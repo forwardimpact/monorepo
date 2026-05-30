@@ -1,19 +1,19 @@
-import { ghauth } from "@forwardimpact/libtype";
+import { ghuser } from "@forwardimpact/libtype";
 
-/** Maps ghauth GetToken oneof + gRPC transport into a discriminated DispatchAuth result. */
+/** Maps ghuser GetToken oneof + gRPC transport into a discriminated DispatchAuth result. */
 export class TokenResolver {
   #client;
 
-  /** @param {object} client - ghauth gRPC client */
+  /** @param {object} client - ghuser gRPC client */
   constructor(client) {
-    if (!client) throw new Error("ghauth client is required");
+    if (!client) throw new Error("ghuser client is required");
     this.#client = client;
   }
 
   /** @returns {Promise<{kind: string, token?: string, authorizeUrl?: string, error?: Error}>} */
   async resolve(surface, surfaceUserId) {
     try {
-      const req = new ghauth.GetTokenRequest({
+      const req = new ghuser.GetTokenRequest({
         surface,
         surface_user_id: surfaceUserId,
       });

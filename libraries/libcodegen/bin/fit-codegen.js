@@ -110,6 +110,7 @@ function parseFlags() {
   const { values } = parsed;
   const doAll = values.all;
   return {
+    doAll,
     doTypes: doAll || values.type,
     doServices: doAll || values.service,
     doClients: doAll || values.client,
@@ -326,6 +327,17 @@ async function runCodegen(protoDirs, projectRoot, finder) {
   const sourcePath = generatedStorage.path();
 
   await generatedStorage.ensureBucket();
+
+  // Full regeneration (--all) clears the content directories first so that a
+  // renamed or removed proto leaves no orphaned per-proto artifacts. The
+  // services exports step scans the services/ directory, so a stale service
+  // dir would otherwise be re-exported and import types that no longer exist.
+  // Partial flags intentionally preserve sibling artifacts and are not cleaned.
+  if (parsedFlags.doAll) {
+    for (const dir of ["types", "services", "definitions", "proto"]) {
+      fs.rmSync(path.join(sourcePath, dir), { recursive: true, force: true });
+    }
+  }
 
   // Write package.json with "type": "module" so Node.js treats generated
   // ES module files correctly and avoids MODULE_TYPELESS_PACKAGE_JSON warnings.

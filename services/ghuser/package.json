@@ -1,5 +1,5 @@
 {
-  "name": "@forwardimpact/svcghauth",
+  "name": "@forwardimpact/svcghuser",
   "version": "0.1.0",
   "description": "GitHub user authentication — per-user OAuth token lifecycle for the Kata Agent User App.",
   "keywords": [
@@ -13,7 +13,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",
-    "directory": "services/ghauth"
+    "directory": "services/ghuser"
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -30,7 +30,7 @@
   "type": "module",
   "main": "./index.js",
   "bin": {
-    "fit-svcghauth": "./server.js"
+    "fit-svcghuser": "./server.js"
   },
   "files": [
     "index.js",

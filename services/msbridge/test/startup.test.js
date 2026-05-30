@@ -38,7 +38,7 @@ function makeAdapter() {
 }
 
 describe("msbridge startup", () => {
-  test("construction fails when ghauthClient is absent", () => {
+  test("construction fails when ghuserClient is absent", () => {
     expect(
       () =>
         new MsBridgeService(makeConfig(), {
@@ -47,6 +47,6 @@ describe("msbridge startup", () => {
           discussionClient: createMockDiscussionClient(),
           adapter: makeAdapter(),
         }),
-    ).toThrow("ghauthClient is required");
+    ).toThrow("ghuserClient is required");
   });
 });

@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package ghauth;
+package ghuser;
 
 import "common.proto";
 
-service Ghauth {
+service Ghuser {
   rpc Begin(BeginRequest) returns (BeginResponse);
   rpc Complete(CompleteRequest) returns (CompleteResponse);
   rpc Redeem(RedeemRequest) returns (RedeemResponse);

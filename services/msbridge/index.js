@@ -70,7 +70,7 @@ export class MsBridgeService {
    * @param {import("@forwardimpact/libtelemetry").Logger} deps.logger
    * @param {import("@forwardimpact/libtelemetry").Tracer} deps.tracer
    * @param {object} deps.discussionClient - BridgeClient instance
-   * @param {object} deps.ghauthClient - ghauth gRPC client
+   * @param {object} deps.ghuserClient - ghuser gRPC client
    * @param {object} [deps.adapter] - Bot Framework adapter override (tests)
    * @param {Acknowledgement} [deps.acknowledgement] - Override (tests)
    */
@@ -80,7 +80,7 @@ export class MsBridgeService {
       logger,
       tracer,
       discussionClient,
-      ghauthClient,
+      ghuserClient,
       adapter,
       acknowledgement,
     },
@@ -88,7 +88,7 @@ export class MsBridgeService {
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
     if (!discussionClient) throw new Error("discussionClient is required");
-    if (!ghauthClient) throw new Error("ghauthClient is required");
+    if (!ghuserClient) throw new Error("ghuserClient is required");
     this.#logger = logger;
     this.#tracer = tracer;
     this.#config = config;
@@ -125,7 +125,7 @@ export class MsBridgeService {
       callbackBaseUrl: normalizeBaseUrl(config.callback_base_url),
       workflowFile: WORKFLOW_FILE,
       githubRepo: config.github_repo,
-      tokenResolver: new TokenResolver(ghauthClient),
+      tokenResolver: new TokenResolver(ghuserClient),
     });
     this.#resume = new ResumeScheduler({
       dispatcher: this.#dispatcher,

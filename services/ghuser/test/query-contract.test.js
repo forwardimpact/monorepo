@@ -2,17 +2,17 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { createMockConfig } from "@forwardimpact/libmock";
 import { createMockStorage } from "@forwardimpact/libmock/mock";
-import { GhauthService } from "../index.js";
+import { GhuserService } from "../index.js";
 import { BindingStore, FlowStore, GrantStore } from "../src/stores.js";
 
-describe("ghauth query-contract (SC#8)", () => {
+describe("ghuser query-contract (SC#8)", () => {
   test("GetToken accepts (surface, surface_user_id) and token arm is typeof string", async () => {
     const storage = createMockStorage();
-    const config = createMockConfig("ghauth", {
+    const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",
     });
     const bindings = new BindingStore(storage);
-    const service = new GhauthService(config, {
+    const service = new GhuserService(config, {
       bindings,
       flows: new FlowStore(storage),
       grants: new GrantStore(storage),

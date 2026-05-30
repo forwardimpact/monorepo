@@ -20,7 +20,7 @@
     },
     "libraries/libbridge": {
       "name": "@forwardimpact/libbridge",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "dependencies": {
         "@forwardimpact/libtype": "^0.1.0",
         "@hono/node-server": "^2.0.4",
@@ -317,7 +317,7 @@
     },
     "libraries/libstorage": {
       "name": "@forwardimpact/libstorage",
-      "version": "0.1.82",
+      "version": "0.1.83",
       "bin": {
         "fit-storage": "./bin/fit-storage.js",
       },
@@ -516,7 +516,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.10",
+      "version": "0.2.11",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
@@ -757,25 +757,6 @@
         "@forwardimpact/libmock": "^0.1.0",
       },
     },
-    "services/ghauth": {
-      "name": "@forwardimpact/svcghauth",
-      "version": "0.1.0",
-      "bin": {
-        "fit-svcghauth": "./server.js",
-      },
-      "dependencies": {
-        "@forwardimpact/libconfig": "^0.1.79",
-        "@forwardimpact/libindex": "^0.1.0",
-        "@forwardimpact/libpreflight": "^0.1.0",
-        "@forwardimpact/librpc": "^0.1.99",
-        "@forwardimpact/libstorage": "^0.1.78",
-        "@forwardimpact/libtelemetry": "^0.1.42",
-        "@forwardimpact/libtype": "^0.1.0",
-      },
-      "devDependencies": {
-        "@forwardimpact/libmock": "^0.1.0",
-      },
-    },
     "services/ghbridge": {
       "name": "@forwardimpact/svcghbridge",
       "version": "0.1.1",
@@ -792,6 +773,25 @@
         "@octokit/auth-app": "^8.2.0",
         "@octokit/graphql": "^9.0.3",
         "@octokit/webhooks-methods": "^6.0.0",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+      },
+    },
+    "services/ghuser": {
+      "name": "@forwardimpact/svcghuser",
+      "version": "0.1.0",
+      "bin": {
+        "fit-svcghuser": "./server.js",
+      },
+      "dependencies": {
+        "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libindex": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
+        "@forwardimpact/librpc": "^0.1.99",
+        "@forwardimpact/libstorage": "^0.1.78",
+        "@forwardimpact/libtelemetry": "^0.1.42",
+        "@forwardimpact/libtype": "^0.1.0",
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
@@ -1242,9 +1242,9 @@
 
     "@forwardimpact/svcembedding": ["@forwardimpact/svcembedding@workspace:services/embedding"],
 
-    "@forwardimpact/svcghauth": ["@forwardimpact/svcghauth@workspace:services/ghauth"],
-
     "@forwardimpact/svcghbridge": ["@forwardimpact/svcghbridge@workspace:services/ghbridge"],
+
+    "@forwardimpact/svcghuser": ["@forwardimpact/svcghuser@workspace:services/ghuser"],
 
     "@forwardimpact/svcgraph": ["@forwardimpact/svcgraph@workspace:services/graph"],
 

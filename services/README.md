@@ -13,8 +13,8 @@ that let agents consume backend functionality natively.
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | **bridge**    | Canonical threaded-discussion store — single source of truth for GitHub/Microsoft Teams bridge state.                        |
 | **embedding** | Text embeddings over gRPC — semantic representation without each product running its own inference.                          |
-| **ghauth**    | GitHub user authentication — per-user OAuth token lifecycle for the Kata Agent User App.                                     |
 | **ghbridge**  | GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.                        |
+| **ghuser**    | GitHub user authentication — per-user OAuth token lifecycle for the Kata Agent User App.                                     |
 | **graph**     | RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.                         |
 | **map**       | Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.                                   |
 | **mcp**       | Unified MCP server — agents reach backend services as tools without per-service integration.                                 |
@@ -208,11 +208,11 @@ the human who asked, not a shared bot token.
 
 **Big Hire:** Help me own the Kata Agent User App credential lifecycle
 end-to-end so every surface resolves a per-user GitHub token through one gRPC
-query. → **ghauth**
+query. → **ghuser**
 
 **Little Hire:** Help me exchange an authorization code for a user-to-server
 token, store the binding, refresh on expiry, and return a typed link/re-auth
-result when the binding is missing or revoked. → **ghauth**
+result when the binding is missing or revoked. → **ghuser**
 
 **Competes With:** per-surface OAuth implementations duplicating the
 authorization-code flow, token storage, and refresh logic across multiple bridge

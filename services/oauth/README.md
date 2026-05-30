@@ -9,7 +9,7 @@ to a configured provider backend over gRPC.
 
 ## Prerequisites
 
-- A running provider backend (currently `ghauth`) that implements the
+- A running provider backend (currently `ghuser`) that implements the
   `Begin`, `Complete`, and `Redeem` RPCs.
 
 Configuration (loaded via `createServiceConfig("oauth")`):
@@ -18,13 +18,13 @@ Configuration (loaded via `createServiceConfig("oauth")`):
 | --- | --- |
 | `SERVICE_OAUTH_URL` | Listen URL (default `http://localhost:3007`) |
 | `SERVICE_OAUTH_ISSUER` | Authorization server issuer URL (used in metadata document) |
-| `SERVICE_OAUTH_PROVIDER` | Backend provider service name, resolved via `createClient` (default `ghauth`) |
+| `SERVICE_OAUTH_PROVIDER` | Backend provider service name, resolved via `createClient` (default `ghuser`) |
 
 ## Running
 
 Add `oauth` to `config/config.json` under `init.services` — see
 [`config/CLAUDE.md`](../../config/CLAUDE.md) for the entry format. List
-`oauthtunnel` with the other tunnels (before services) and `ghauth`
+`oauthtunnel` with the other tunnels (before services) and `ghuser`
 before `oauth` (dependency first).
 
 Start the service:
@@ -40,12 +40,12 @@ every restart. After starting, check the tunnel log for the assigned URL:
 cat data/logs/oauthtunnel/current | grep trycloudflare.com
 ```
 
-Set the tunnel domain as `SERVICE_GHAUTH_LINK_BASE_URL` in `.env` (so
-`ghauth` composes the correct `LinkRequired.authorize_url`), then restart
+Set the tunnel domain as `SERVICE_GHUSER_LINK_BASE_URL` in `.env` (so
+`ghuser` composes the correct `LinkRequired.authorize_url`), then restart
 the auth services:
 
 ```sh
-bunx fit-rc restart ghauth
+bunx fit-rc restart ghuser
 ```
 
 The tunnel keeps its hostname across service restarts.
@@ -80,4 +80,4 @@ curl -sI 'https://<tunnel-domain>/authorize?surface=test&surface_user_id=you'
 
 Returns a `302` redirect to the upstream provider's authorization URL.
 The full linking flow is described in the
-[ghauth README](../ghauth/README.md#smoke-test).
+[ghuser README](../ghuser/README.md#smoke-test).

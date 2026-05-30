@@ -2,16 +2,16 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { createMockConfig } from "@forwardimpact/libmock";
 import { createMockStorage } from "@forwardimpact/libmock/mock";
-import { GhauthService } from "../index.js";
+import { GhuserService } from "../index.js";
 import { BindingStore, FlowStore, GrantStore } from "../src/stores.js";
 
 function createService(storage, { getUserId = "12345" } = {}) {
-  const config = createMockConfig("ghauth", {
+  const config = createMockConfig("ghuser", {
     link_base_url: "http://localhost:3007",
   });
   const bindings = new BindingStore(storage);
   return {
-    service: new GhauthService(config, {
+    service: new GhuserService(config, {
       bindings,
       flows: new FlowStore(storage),
       grants: new GrantStore(storage),
@@ -31,7 +31,7 @@ function createService(storage, { getUserId = "12345" } = {}) {
   };
 }
 
-describe("ghauth identity verification", () => {
+describe("ghuser identity verification", () => {
   test("matching id creates binding with github_user_id", async () => {
     const storage = createMockStorage();
     const { service, bindings } = createService(storage, {

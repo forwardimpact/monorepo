@@ -60,7 +60,7 @@ describe("ghbridge reply path", () => {
         }
         return {};
       },
-      ghauthClient: {
+      ghuserClient: {
         GetToken: async () => ({
           result: "token",
           token: "ghs_per_user_token",

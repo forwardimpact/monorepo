@@ -8,8 +8,8 @@ function mockClient(impl) {
 
 describe("TokenResolver", () => {
   test("rejects construction without a client", () => {
-    expect(() => new TokenResolver()).toThrow("ghauth client is required");
-    expect(() => new TokenResolver(null)).toThrow("ghauth client is required");
+    expect(() => new TokenResolver()).toThrow("ghuser client is required");
+    expect(() => new TokenResolver(null)).toThrow("ghuser client is required");
   });
 
   test("token arm returns kind=token", async () => {

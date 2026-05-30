@@ -101,7 +101,7 @@ its `loadDiscussionId` lens.
 | `Acknowledgement` | reaction + optional typing-verb lifecycle |
 | `CallbackRegistry` | token → correlation map with TTL |
 | `Dispatcher`, `dispatchWorkflow` | the dispatch dance + workflow URL |
-| `TokenResolver` | `(surface, user) → DispatchAuth` via ghauth gRPC |
+| `TokenResolver` | `(surface, user) → DispatchAuth` via ghuser gRPC |
 | `createCallbackHandler`, `validateCallbackPayload` | inbound-callback skeleton + payload validator |
 | `RateLimiter` | per-thread dispatch rate cap |
 | `ResumeScheduler`, `ElapsedScheduler` | suspend/resume lifecycle + chunked-setTimeout |

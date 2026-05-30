@@ -23,7 +23,7 @@ function createTestService(overrides = {}) {
       issuer: "http://localhost:3007",
       host: "0.0.0.0",
       port: 0,
-      provider: "ghauth",
+      provider: "ghuser",
       ...overrides,
     },
     logger: { info: () => {}, error: () => {} },

@@ -5,19 +5,19 @@ import { Server, createTracer } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createStorage } from "@forwardimpact/libstorage";
-import { GhauthService } from "./index.js";
+import { GhuserService } from "./index.js";
 import { BindingStore, FlowStore, GrantStore } from "./src/stores.js";
 import { createGithubOAuth } from "./src/github-oauth.js";
 
-const config = await createServiceConfig("ghauth", {
+const config = await createServiceConfig("ghuser", {
   client_id: "",
   client_secret: "",
   link_base_url: "",
 });
 
-const logger = createLogger("ghauth");
-const tracer = await createTracer("ghauth");
-const storage = createStorage("ghauth");
+const logger = createLogger("ghuser");
+const tracer = await createTracer("ghuser");
+const storage = createStorage("ghuser");
 
 const github = createGithubOAuth({
   clientId: config.client_id,
@@ -28,7 +28,7 @@ const bindings = new BindingStore(storage);
 const flows = new FlowStore(storage);
 const grants = new GrantStore(storage);
 
-const service = new GhauthService(config, { bindings, flows, grants, github });
+const service = new GhuserService(config, { bindings, flows, grants, github });
 const server = new Server(service, config, logger, tracer);
 
 await server.start();

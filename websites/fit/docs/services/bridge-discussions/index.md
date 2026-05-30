@@ -53,7 +53,7 @@ registry, rate limiter, history bound, prompt builder, and trigger
 evaluator all come from the library. Durable thread state lives in the
 shared `services/bridge` gRPC service, reached through a `BridgeClient`.
 Per-user GitHub auth (used to mint the dispatch token) lives in
-`services/ghauth`, reached through a `GhauthClient`. `ghbridge` owns the
+`services/ghuser`, reached through a `GhuserClient`. `ghbridge` owns the
 GitHub-specific glue: webhook signature verification, App installation
 token minting, and the GraphQL reaction and reply adapters.
 
@@ -74,9 +74,9 @@ Set the credentials and service parameters in `.env`. All are loaded via
 Discussion context is persisted by the shared `services/bridge` gRPC
 service at `data/bridges/discussions.jsonl`. `ghbridge` calls `bridge`
 through a `BridgeClient` channel — no per-bridge storage configuration
-is needed. `services/ghauth` similarly persists per-user GitHub link
-state under `data/ghauth/` and is reached through a `GhauthClient`. Add
-both `bridge` and `ghauth` to `config/config.json` under `init.services`
+is needed. `services/ghuser` similarly persists per-user GitHub link
+state under `data/ghuser/` and is reached through a `GhuserClient`. Add
+both `bridge` and `ghuser` to `config/config.json` under `init.services`
 ahead of `ghbridge` so they start first.
 
 ### Private key format
