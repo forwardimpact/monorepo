@@ -144,11 +144,18 @@ export class GitClient {
   }
 
   async #runRaw(args, { cwd, allowFailure = false } = {}) {
-    // Authenticate over HTTPS by injecting a per-invocation bearer header via
-    // git's `-c` config (the standard token mechanism; `git -c http.extraHeader`
-    // must precede the subcommand). No-op when the client carries no token.
+    // Authenticate over HTTPS by injecting a per-invocation Basic auth header
+    // via git's `-c` config (the `-c http.extraHeader` must precede the
+    // subcommand). GitHub's git-over-HTTPS expects the token as the password in
+    // HTTP Basic auth (username `x-access-token`); a `bearer` scheme is rejected
+    // for PAT/OAuth tokens and only works for App installation tokens, so Basic
+    // is the broadly-compatible choice. No-op when the client carries no token.
     const fullArgs = this.#token
-      ? ["-c", `http.extraHeader=AUTHORIZATION: bearer ${this.#token}`, ...args]
+      ? [
+          "-c",
+          `http.extraHeader=Authorization: Basic ${Buffer.from(`x-access-token:${this.#token}`).toString("base64")}`,
+          ...args,
+        ]
       : args;
     const result = await this.#runtime.subprocess.run("git", fullArgs, {
       cwd,

@@ -71,13 +71,14 @@ describe("GitClient", () => {
     );
   });
 
-  test("withAuth injects a bearer http.extraHeader before the subcommand", async () => {
+  test("withAuth injects a Basic x-access-token http.extraHeader before the subcommand", async () => {
     const { client, subprocess } = clientWith();
     await client.withAuth("secret").fetch("origin", undefined, { cwd: "/r" });
     const args = subprocess.calls.at(-1).args;
+    const expected = Buffer.from("x-access-token:secret").toString("base64");
     assert.deepStrictEqual(args.slice(0, 3), [
       "-c",
-      "http.extraHeader=AUTHORIZATION: bearer secret",
+      `http.extraHeader=Authorization: Basic ${expected}`,
       "fetch",
     ]);
   });
