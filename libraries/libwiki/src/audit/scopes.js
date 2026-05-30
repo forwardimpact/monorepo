@@ -11,7 +11,7 @@ export const WEEKLY_LOG_H1_RE =
 export const PRIORITY_HEADER_RE =
   /^\|\s*Item\s*\|\s*Agents\s*\|\s*Owner\s*\|\s*Status\s*\|\s*Added\s*\|/m;
 
-const EXCLUDED_BASES = new Set(["MEMORY.md", "Home.md", "STATUS.md"]);
+const EXCLUDED_BASES = new Set(["MEMORY.md", "Home.md"]);
 const NON_SUMMARY_PREFIXES = [
   "storyboard-",
   "downstream-",
@@ -72,6 +72,10 @@ function loadFile(filePath) {
 function classifyFile(filePath) {
   const base = path.basename(filePath);
   if (EXCLUDED_BASES.has(base)) return null;
+  // STATUS.md is loaded separately (loadStatus) and audited via the dedicated
+  // `status-row` scope — skip the per-file classification so it is not treated
+  // as a stray file.
+  if (base === "STATUS.md") return null;
   if (NON_SUMMARY_PREFIXES.some((p) => base.startsWith(p))) return null;
   if (WEEKLY_LOG_NAME_RE.test(base)) {
     return { kind: "weekly-log-main", subject: loadFile(filePath) };
@@ -92,6 +96,46 @@ function loadMemory(wikiRoot) {
     text: exists ? readFileSync(filePath, "utf-8") : "",
     exists,
   };
+}
+
+function loadStatus(wikiRoot) {
+  const filePath = path.join(wikiRoot, "STATUS.md");
+  const exists = existsSync(filePath);
+  return {
+    path: filePath,
+    text: exists ? readFileSync(filePath, "utf-8") : "",
+    exists,
+  };
+}
+
+/**
+ * Parse the rows inside STATUS.md's fenced block into audit subjects. Lines
+ * outside the ``` fence (header prose) and blank lines are skipped.
+ * @param {string} statusText - The full STATUS.md contents.
+ * @returns {Array<{lineNo: number, text: string, cells: string[], id: string, phase: string, status: string}>}
+ */
+function parseStatusRows(statusText) {
+  const lines = statusText.split("\n");
+  const rows = [];
+  let inFence = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trimStart().startsWith("```")) {
+      inFence = !inFence;
+      continue;
+    }
+    if (!inFence || line.trim() === "") continue;
+    const cells = line.split("\t");
+    rows.push({
+      lineNo: i + 1,
+      text: line,
+      cells,
+      id: cells[0],
+      phase: cells[1],
+      status: cells[2],
+    });
+  }
+  return rows;
 }
 
 function loadStoryboard(wikiRoot, today) {
@@ -168,6 +212,11 @@ const SCOPE_RESOLVERS = {
       path: ctx.memory.path,
     })),
   storyboard: (ctx) => [ctx.storyboard],
+  "status-row": (ctx) =>
+    parseStatusRows(ctx.status.text).map((r) => ({
+      ...r,
+      path: ctx.status.path,
+    })),
   "stray-file": (ctx) => ctx.subjects.stray,
 };
 
@@ -195,6 +244,7 @@ export function buildContext({ wikiRoot, today }) {
     today,
     subjects,
     memory: loadMemory(wikiRoot),
+    status: loadStatus(wikiRoot),
     storyboard: loadStoryboard(wikiRoot, today),
   };
 }

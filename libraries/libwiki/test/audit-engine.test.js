@@ -52,6 +52,10 @@ describe("RULES catalogue", () => {
         "storyboard.word-budget",
         "storyboard.markers-balanced.xmr",
         "storyboard.markers-balanced.issues",
+        "status-row.shape",
+        "status-row.id-format",
+        "status-row.phase",
+        "status-row.status",
         "wiki.stray-file",
       ],
     );

@@ -12,6 +12,7 @@ import {
   WEEKLY_LOG_WORD_BUDGET,
 } from "../constants.js";
 import { PRIORITY_HEADER_RE, WEEKLY_LOG_H1_RE } from "./scopes.js";
+import { STATUS_ROW_RULES } from "./status-row.js";
 
 const PRIORITY_INDEX_HEADING_RE = new RegExp(
   `^${PRIORITY_INDEX_HEADING}$`,
@@ -482,6 +483,10 @@ export const RULES = [
       `${r.reason} issue-list marker${r.label ? ` (${r.label})` : ""}`,
     hint: "every '<!-- obstacles:* -->' or '<!-- experiments:* -->' needs a matching close marker",
   },
+
+  // -- STATUS.md rows (spec 1370 sub-row schema) --
+
+  ...STATUS_ROW_RULES,
 
   // -- Stray files --
 

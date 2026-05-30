@@ -96,6 +96,32 @@ describe("removeClaim", () => {
   });
 });
 
+describe("sub-row suffix targets (spec 1370)", () => {
+  test("a plan:NNNN/unit target round-trips through append/parse/remove", () => {
+    const target = "plan:1370/libutil-ambient-deps";
+    const appended = appendClaim(MEMORY_WITH_EMPTY_CLAIMS, {
+      agent: "staff-engineer",
+      target,
+      branch: "plan/1370-libutil",
+      pr: null,
+      claimed_at: "2026-05-30",
+      expires_at: "2026-06-06",
+    });
+    assert.equal(appended.inserted, true);
+
+    const parsed = parseClaims(appended.text);
+    assert.equal(parsed.length, 1);
+    assert.equal(parsed[0].target, target);
+
+    const removed = removeClaim(appended.text, {
+      agent: "staff-engineer",
+      target,
+    });
+    assert.equal(removed.removed, true);
+    assert.equal(parseClaims(removed.text).length, 0);
+  });
+});
+
 describe("filterExpired", () => {
   test("splits on ISO date comparison", () => {
     const claims = [
