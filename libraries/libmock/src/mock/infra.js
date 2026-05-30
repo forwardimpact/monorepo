@@ -133,18 +133,40 @@ export function createTurtleHelpers(
 }
 
 /**
- * Creates a minimal mock `process`-like object with env, stdout, stderr,
- * exitCode, and simple write capture.
+ * Build an `AsyncIterable<string>` over a fixed list of input chunks, used as
+ * the mock `proc.stdin`.
+ * @param {string[]} chunks - Lines/chunks the iterator yields in order.
+ * @returns {AsyncIterable<string>}
+ */
+export function createMockStdin(chunks = []) {
+  return {
+    async *[Symbol.asyncIterator]() {
+      for (const chunk of chunks) yield chunk;
+    },
+  };
+}
+
+/**
+ * Creates a mock `process`-like object matching the `Runtime.proc` surface:
+ * `cwd()`, `env`, `argv`, `stdin`, `stdout.write`, `stderr.write`,
+ * `exit(code)`, and a settable `exitCode`. Writes are captured on
+ * `stdout.chunks` / `stderr.chunks`.
  *
  * @param {object} [options]
- * @param {Record<string, string>} [options.env]
+ * @param {Record<string, string>} [options.env] - Initial env map.
+ * @param {string} [options.cwd] - Working directory `cwd()` returns.
+ * @param {string[]} [options.argv] - The frozen `argv` array.
+ * @param {string[]} [options.stdin] - Chunks the `stdin` iterator yields.
  * @returns {object}
  */
-export function createMockProcess({ env = {} } = {}) {
+export function createMockProcess({ env = {}, cwd, argv, stdin } = {}) {
   const stdout = { chunks: [], write: (s) => stdout.chunks.push(String(s)) };
   const stderr = { chunks: [], write: (s) => stderr.chunks.push(String(s)) };
   return {
     env: { ...env },
+    cwd: () => cwd ?? "/work",
+    argv: Object.freeze([...(argv ?? ["/usr/bin/node", "/tmp/test-bin.js"])]),
+    stdin: createMockStdin(stdin ?? []),
     stdout,
     stderr,
     exitCode: 0,

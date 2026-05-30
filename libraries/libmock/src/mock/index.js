@@ -28,11 +28,16 @@ export {
 export { createMockServiceCallbacks } from "./service-callbacks.js";
 export { createMockFs } from "./fs.js";
 export { createMockClock } from "./clock.js";
+export { createMockSubprocess } from "./subprocess.js";
+export { createMockFinder } from "./finder.js";
+export { createMockGitClient } from "./git-client.js";
+export { createMockGhClient } from "./gh-client.js";
 export { spy } from "./spy.js";
 export {
   createMockSupabaseClient,
   createTurtleHelpers,
   createMockProcess,
+  createMockStdin,
   withSilentConsole,
   createMockS3Client,
   createMockQueries,
