@@ -286,6 +286,16 @@ to every participant -- always set a budget so a stuck participant cannot run
 the session indefinitely. The CLI default is `20`; raise it for sessions that
 do real implementation work.
 
+For a **threaded discussion** (Chair + N participants, suspendable across a
+bridged channel), use `fit-eval discuss`. It accepts the same lead and
+agent flags plus `--discussion-id` (the stable thread identifier carried
+through traces) and `--resume-context` (JSON-serialized prior state for a
+resumed run). The bridge service relays the workflow callback when the
+conversation suspends and re-enters.
+
+Every mode accepts the task as one of three inputs (exactly one required):
+`--task-file=<path>`, `--task-text="<inline>"`, or
+`--task-event=<path>` for a native GitHub event payload.
 The `--task-file` content is visible to every agent in the session as the
 opening prompt. The facilitator profile steers how the goal is pursued; the
 participants apply their specialisms.
