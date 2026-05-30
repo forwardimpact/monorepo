@@ -176,10 +176,11 @@ this repository:
   credentials to (a) every kata workflow named in § Proposal 2 and
   (b) the hosted bridges, without any customer-side long-lived
   credential. The capability is the single logical custody point for
-  the hosted App's signing material; the substrate that physically
-  stores that material (filesystem, KMS, HSM) is deferred — see
-  § Deferred. Mechanism, transport, packaging, and authentication
-  shape are design concerns.
+  the hosted App's signing material — even when realized as a custody
+  backend sitting behind a separate stateless protocol front; the
+  substrate that physically stores that material (filesystem, KMS, HSM)
+  is deferred — see § Deferred. Mechanism, transport, packaging, and
+  authentication shape are design concerns.
 - Updated workflow templates emitted by `kata-setup` for the hosted
   path, covering every kata workflow named in § Proposal 2, with no
   `KATA_APP_PRIVATE_KEY` secret reference in any kata workflow file
@@ -319,7 +320,7 @@ no PR:
 | No GitHub App private key is required in a hosted-path consuming repository. | The hosted-path setup flow does not ask the adopter to set `KATA_APP_PRIVATE_KEY` or any equivalent renaming; a hosted-path consuming repository's Actions-secrets listing contains no `KATA_APP_PRIVATE_KEY` entry. (Public identifiers like the App id are not credentials and are not constrained by this criterion. Microsoft App credentials are scoped to the hosted Teams operator, never to a consuming repository — see the hosted Teams onboarding criterion below.) |
 | The hosted App's signing material does not appear, by reference or by value, in customer workflow files or templates. | No hosted-path workflow template emitted by `kata-setup` carries the hosted App's private key by any path: no template references the secret by any name, and no template passes a private-key-bearing input (under any input name) to any action it invokes. The criterion holds against any renaming of the secret. |
 | Long-running kata workflows are not bounded by a single credential lifetime. | A `kata-dispatch.yml` run on the hosted path lasting at least 90 minutes — exceeding the 60-minute GitHub App installation-token cap, so the run necessarily crosses at least one credential boundary — completes end-to-end without operator intervention. |
-| The hosted control plane does not read the customer's Anthropic API key. | For every directory listed in § In scope as part of the hosted control plane (the bridges, the tenant registry, the workflow-identity capability, and the multi-tenancy code in `libraries/libbridge`), plus any sibling control-plane directory the design names: no `package.json` declares any `@anthropic-ai/*` package as a runtime dependency; no source file imports a module under `@anthropic-ai/*`; no source file reads an environment variable whose name matches `ANTHROPIC_*`. The same patterns pass against the hosted-path workflow templates emitted by `kata-setup` so the BYOK boundary is end-to-end. |
+| The hosted control plane does not read the customer's Anthropic API key. | For every directory listed in § In scope as part of the hosted control plane (the bridges, the tenant registry, the workflow-identity capability — both its credential-custody backend and any stateless protocol front it sits behind — and the multi-tenancy code in `libraries/libbridge`), plus any sibling control-plane directory the design names: no `package.json` declares any `@anthropic-ai/*` package as a runtime dependency; no source file imports a module under `@anthropic-ai/*`; no source file reads an environment variable whose name matches `ANTHROPIC_*`. The same patterns pass against the hosted-path workflow templates emitted by `kata-setup` so the BYOK boundary is end-to-end. |
 | Per-tenant state isolation across the hosted control plane. | On any control-plane surface that returns persisted state to a caller authenticated as tenant A — for both per-id reads and any aggregate/list endpoints — the response (HTTP status code plus body) carries no field, count, or other content derived from a record persisted on behalf of tenant B. The criterion is bounded to the wire-visible response (status + body); timing-side-channel indistinguishability is not in scope here. |
 | Per-tenant verification of callbacks from workflow runs. | A callback from a workflow run authenticated with material bound to tenant A but addressed to tenant B's resource is rejected: no reply is posted to any tenant B channel, and no state attributed to a tenant B thread changes as a result of the callback. |
 | Workflow-identity is scoped to the requesting repository. | An attempt by a customer workflow run on repository X to obtain credentials usable against repository Y is rejected by the workflow-identity capability and no credential for Y is produced. |
