@@ -24,6 +24,7 @@ import { serve } from "@hono/node-server";
  * @param {(c: import("hono").Context) => Promise<Response> | Response} options.onWebhook
  * @param {(c: import("hono").Context) => Promise<Response> | Response} options.onCallback
  * @param {((c: import("hono").Context) => Promise<Response> | Response)} [options.onLinkComplete]
+ * @param {(c: import("hono").Context) => Promise<Response> | Response} [options.onInbox] - Long-poll inbox handler
  * @returns {{ start: () => Promise<void>, stop: () => Promise<void>, app: import("hono").Hono, address: () => ({port: number} | null) }}
  */
 export function createBridgeServer({
@@ -34,6 +35,7 @@ export function createBridgeServer({
   onWebhook,
   onCallback,
   onLinkComplete,
+  onInbox,
 }) {
   if (!config) throw new Error("config is required");
   if (!logger) throw new Error("logger is required");
@@ -95,6 +97,17 @@ export function createBridgeServer({
       } catch (err) {
         logger.error("bridge.link-complete", err);
         return c.json({ error: "Link completion failure" }, 500);
+      }
+    });
+  }
+
+  if (onInbox) {
+    app.get("/api/inbox/:correlationId", async (c) => {
+      try {
+        return await onInbox(c);
+      } catch (err) {
+        logger.error("bridge.inbox", err);
+        return c.json({ error: "Inbox failure" }, 500);
       }
     });
   }

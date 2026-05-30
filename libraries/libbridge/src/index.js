@@ -50,3 +50,4 @@ export {
 } from "./callback-payload.js";
 export { evaluateTrigger, parseIsoDuration } from "./triggers.js";
 export { prepareLinkResume, createLinkCompleteHandler } from "./link-resume.js";
+export { createInboxHandler } from "./inbox-handler.js";

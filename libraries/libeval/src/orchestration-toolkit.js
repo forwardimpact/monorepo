@@ -59,6 +59,20 @@ export function requireNoPendingAsks(ctx) {
   );
 }
 
+/**
+ * Guard for terminal tools in discuss mode (`Adjourn`, `Recess`). Returns
+ * an error result when the lead's inbox has unprocessed messages from the
+ * human, telling them to end the turn and wait for the auto-resume.
+ * Returns `null` when no inbox messages are pending and the terminal tool
+ * is free to run.
+ */
+export function requireNoUnprocessedInbox(ctx) {
+  if (!ctx.messageBus?.hasPending?.("lead")) return null;
+  return errorResult(
+    "New messages from the human are waiting. End your turn. You will be resumed to process them.",
+  );
+}
+
 /** Mark the session as concluded; cancel any open Asks so askers see the synthetic null on their next turn. */
 export function createConcludeHandler(ctx) {
   return async ({ verdict, summary }) => {

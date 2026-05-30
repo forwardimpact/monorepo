@@ -17,6 +17,8 @@ import { Writable } from "node:stream";
 import { resolve } from "node:path";
 
 import { createAgentRunner } from "./agent-runner.js";
+import { InboxPoller } from "./inbox-poller.js";
+import { ReplyEmitter } from "./reply-emitter.js";
 import { composeSystemPrompt } from "./profile-prompt.js";
 import { SequenceCounter } from "./sequence-counter.js";
 import { createMessageBus } from "./message-bus.js";
@@ -40,6 +42,7 @@ export const DISCUSS_SYSTEM_PROMPT =
   "Answers arrive on your next turn as `[answer#N] <participant>: <text>` in your inbox.\n" +
   "End your turn while Asks are pending. The system resumes you when answers arrive.\n" +
   "Multiple `Ask` calls in one turn run participants in parallel.\n" +
+  "Use `Acknowledge` to post a brief message directly to the discussion thread — use it to respond to human follow-ups or give status updates while participants are working.\n" +
   "End the discussion by calling `Adjourn` with a verdict and summary, or `Recess` only to wait on an external reply or duration.";
 
 /**
@@ -79,7 +82,15 @@ export class Discusser {
    * @param {string|null} [deps.discussionId]
    * @param {SequenceCounter} [deps.counter]
    */
-  constructor({ loop, ctx, output, discussionId, counter, redactor }) {
+  constructor({
+    loop,
+    ctx,
+    output,
+    discussionId,
+    counter,
+    redactor,
+    inboxPoller,
+  }) {
     if (!loop) throw new Error("loop is required");
     if (!ctx) throw new Error("ctx is required");
     if (!output) throw new Error("output is required");
@@ -90,6 +101,7 @@ export class Discusser {
     this.discussionId = discussionId ?? null;
     this.counter = counter ?? new SequenceCounter();
     this.redactor = redactor;
+    this.inboxPoller = inboxPoller ?? null;
   }
 
   /**
@@ -150,6 +162,7 @@ export class Discusser {
       ...(this.ctx.rfcs?.length && { rfcs: this.ctx.rfcs }),
       ...(this.ctx.recessTrigger && { trigger: this.ctx.recessTrigger }),
       ...(this.discussionId && { discussion_id: this.discussionId }),
+      lastActedSeq: this.inboxPoller?.lastActedSeq ?? -1,
     };
     this.output.write(
       JSON.stringify(
@@ -184,10 +197,14 @@ export class Discusser {
  * @param {function} deps.query
  * @param {import("stream").Writable} deps.output
  * @param {number} [deps.maxTurns]
+ * @param {number} [deps.maxLeadTurns]
  * @param {string} [deps.leadCwd]
  * @param {string} [deps.profilesDir]
  * @param {string} [deps.taskAmend]
  * @param {object} deps.redactor
+ * @param {string|null} [deps.callbackUrl]
+ * @param {string|null} [deps.inboxUrl]
+ * @param {string|null} [deps.correlationId]
  * @returns {Discusser}
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: factory wires N runners + resume hydration paths
@@ -201,10 +218,14 @@ export function createDiscusser({
   query,
   output,
   maxTurns,
+  maxLeadTurns,
   leadCwd,
   profilesDir,
   taskAmend,
   redactor,
+  callbackUrl,
+  inboxUrl,
+  correlationId,
 }) {
   if (!redactor) throw new Error("redactor is required");
   const resolvedLeadCwd = resolve(leadCwd ?? ".");
@@ -236,13 +257,34 @@ export function createDiscusser({
     participants: ["lead", ...resolvedConfigs.map((a) => a.name)],
   });
 
+  const loopCounter = new SequenceCounter();
+  const emitter = new ReplyEmitter({
+    callbackUrl: callbackUrl ?? null,
+    correlationId: correlationId ?? null,
+    counter: loopCounter,
+  });
+  ctx.emitter = emitter;
+
+  const abortController = new AbortController();
+  const inboxPoller = inboxUrl
+    ? new InboxPoller({
+        inboxUrl,
+        messageBus,
+        leadName: "lead",
+        signal: abortController.signal,
+      })
+    : null;
+
   // Intercept answers routed to the lead — each becomes a discussion reply.
   const originalAnswer = messageBus.answer.bind(messageBus);
   messageBus.answer = (from, to, text, askId) => {
     if (to === "lead" && from !== "@orchestrator") {
+      const seq = emitter.emit({ kind: "reply", body: text, agent: from });
       ctx.replies.push({
         body: text,
         agent: from,
+        kind: "reply",
+        seq,
         ...(ctx.discussionId && { thread_id: ctx.discussionId }),
       });
     }
@@ -327,10 +369,14 @@ export function createDiscusser({
     output,
     leadName: "lead",
     mode: "discussion",
+    maxLeadTurns: maxLeadTurns ?? undefined,
     ctx,
     taskAmend,
     redactor,
+    inboxPoller,
+    abortController,
   });
+  loop.counter = loopCounter;
 
   discusser = new Discusser({
     loop,
@@ -338,7 +384,8 @@ export function createDiscusser({
     output,
     discussionId: discussionId ?? null,
     redactor,
-    counter: loop.counter,
+    counter: loopCounter,
+    inboxPoller,
   });
   return discusser;
 }

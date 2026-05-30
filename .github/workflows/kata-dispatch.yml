@@ -42,6 +42,10 @@ on:
         description: "Serialized prior state when resuming a recessed run (JSON string)"
         required: false
         type: string
+      inbox_url:
+        description: "Long-poll URL for injecting messages into a live run (optional)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -118,6 +122,9 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
+          CALLBACK_URL: ${{ inputs.callback_url }}
+          CORRELATION_ID: ${{ inputs.correlation_id }}
+          INBOX_URL: ${{ inputs.inbox_url }}
         with:
           mode: ${{ inputs.discussion_id != '' && 'discuss' || 'facilitate' }}
           task-event: ${{ github.event_path }}
@@ -169,5 +176,5 @@ jobs:
                 --arg cid "$CORRELATION_ID" \
                 --arg run "$RUN_URL" \
                 --arg did "$DISCUSSION_ID" \
-                '{correlation_id: $cid, verdict: "failed", summary: "Facilitator session did not produce a trace; see run log.", run_url: $run, discussion_id: $did, replies: []}')"
+                '{correlation_id: $cid, kind: "terminal", verdict: "failed", summary: "Facilitator session did not produce a trace; see run log.", run_url: $run, discussion_id: $did, replies: []}')"
           fi

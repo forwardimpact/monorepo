@@ -11,6 +11,7 @@ export const MAX_REPLY_COUNT = 50;
  * @param {unknown} body
  * @returns {object | null}
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: lenient validator with per-field type checks
 export function validateCallbackPayload(body) {
   if (!body || typeof body !== "object") return null;
   const cid = body.correlation_id;
@@ -37,8 +38,22 @@ export function validateCallbackPayload(body) {
   const trigger = validateTrigger(body.trigger);
   const runUrl = typeof body.run_url === "string" ? body.run_url : undefined;
 
+  const kind = typeof body.kind === "string" ? body.kind : "terminal";
+  const seq = typeof body.seq === "number" ? body.seq : -1;
+  const eventBody =
+    typeof body.body === "string" ? body.body.slice(0, MAX_FIELD_LENGTH) : "";
+  const agent =
+    typeof body.agent === "string" ? body.agent.slice(0, MAX_FIELD_LENGTH) : "";
+  const lastActedSeq =
+    typeof body.last_acted_seq === "number" ? body.last_acted_seq : -1;
+
   return {
     correlation_id: cid,
+    kind,
+    seq,
+    body: eventBody,
+    agent,
+    last_acted_seq: lastActedSeq,
     verdict,
     summary,
     replies,
@@ -119,5 +134,7 @@ export function newDiscussionContext({ channel, discussionId, participant }) {
     pending_callbacks: {},
     dispatches: [],
     last_active_at: Date.now(),
+    active_requester: null,
+    last_posted_seq: -1,
   };
 }

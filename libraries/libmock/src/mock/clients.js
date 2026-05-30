@@ -258,5 +258,7 @@ export function createStatefulDiscussionClient() {
       pending.delete(token);
       return rec;
     }),
+    EnqueueInbox: spy(async () => ({})),
+    DrainInbox: spy(async () => ({ messages: [] })),
   };
 }

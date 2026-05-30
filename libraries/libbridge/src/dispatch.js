@@ -16,6 +16,7 @@
  * @param {string} params.prompt - The facilitator prompt
  * @param {string} params.callbackUrl - Where the workflow posts the reply
  * @param {string} params.correlationId - UUID linking dispatch → callback
+ * @param {string} [params.inboxUrl] - Long-poll URL for injecting messages into a live run
  * @param {string} [params.discussionId] - For trace linkage in libeval
  * @param {string} [params.resumeContext] - JSON string carried across resumes
  * @returns {Promise<void>}
@@ -28,6 +29,7 @@ export async function dispatchWorkflow({
   prompt,
   callbackUrl,
   correlationId,
+  inboxUrl,
   discussionId,
   resumeContext,
 }) {
@@ -40,6 +42,7 @@ export async function dispatchWorkflow({
     callback_url: callbackUrl,
     correlation_id: correlationId,
   };
+  if (inboxUrl !== undefined) inputs.inbox_url = inboxUrl;
   if (discussionId !== undefined) inputs.discussion_id = discussionId;
   if (resumeContext !== undefined) inputs.resume_context = resumeContext;
 

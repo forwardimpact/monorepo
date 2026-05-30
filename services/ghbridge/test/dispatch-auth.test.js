@@ -114,6 +114,26 @@ describe("ghbridge dispatch-auth", () => {
     expect(client.calls[0].surface).toBe("github-discussions");
     expect(client.calls[0].surface_user_id).toBe("100");
 
+    // Complete the first run so inject guard does not intercept alice's comment.
+    const token = Object.keys(
+      (await service.store.loadByChannel("github-discussions", "D_1"))
+        .pending_callbacks,
+    )[0];
+    const corr = (
+      await service.store.loadByChannel("github-discussions", "D_1")
+    ).pending_callbacks[token];
+    await fetch(`${baseUrl}/api/callback/${token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        correlation_id: corr,
+        kind: "terminal",
+        verdict: "adjourned",
+        summary: "done",
+        replies: [],
+      }),
+    });
+
     await postSigned(baseUrl, "discussion_comment", {
       action: "created",
       discussion: {

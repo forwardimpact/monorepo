@@ -27,6 +27,7 @@ import {
   RECESS_DESC,
   requestForCommentTool,
   requireNoPendingAsks,
+  requireNoUnprocessedInbox,
 } from "./orchestration-toolkit.js";
 
 /** System prompt for discuss-mode agent participants. L0 mechanics only per COALIGNED. */
@@ -64,6 +65,26 @@ export function createDiscussLeadToolServer(ctx) {
   return orchestrationServer([
     ...baseTools(ctx, { from: "lead", defaultTo: undefined, broadcast: true }),
     tool(
+      "Acknowledge",
+      "Post a brief message directly to the discussion thread. Use when responding to a human follow-up or providing a status update while participants are working.",
+      {
+        message: z.string().describe("Message to post on the thread"),
+      },
+      async ({ message }) => {
+        const seq =
+          ctx.emitter?.emit({ kind: "ack", body: message, agent: "lead" }) ??
+          -1;
+        ctx.replies.push({
+          body: message,
+          agent: "lead",
+          kind: "ack",
+          seq,
+          ...(ctx.discussionId && { thread_id: ctx.discussionId }),
+        });
+        return { content: [{ type: "text", text: "Posted." }] };
+      },
+    ),
+    tool(
       "Recess",
       RECESS_DESC,
       { reason: z.string(), trigger: RESUME_TRIGGER_SCHEMA },
@@ -82,11 +103,36 @@ export function createDiscussLeadToolServer(ctx) {
   ]);
 }
 
+const ACKNOWLEDGE_DESC =
+  "Acknowledge an Ask before starting work. Posts a visible comment on the thread. Does not discharge the Ask — you still owe an Answer.";
+
 /** Discuss-mode agent tool server. */
 export function createDiscussAgentToolServer(ctx, { from }) {
   return orchestrationServer([
     ...baseTools(ctx, { from, defaultTo: "lead", broadcast: true }),
     requestForCommentTool(ctx),
+    tool(
+      "Acknowledge",
+      ACKNOWLEDGE_DESC,
+      {
+        message: z
+          .string()
+          .describe("Brief acknowledgement to post on the thread"),
+        askId: z.number().optional().describe("The ask being acknowledged"),
+      },
+      async ({ message }) => {
+        const seq =
+          ctx.emitter?.emit({ kind: "ack", body: message, agent: from }) ?? -1;
+        ctx.replies.push({
+          body: message,
+          agent: from,
+          kind: "ack",
+          seq,
+          ...(ctx.discussionId && { thread_id: ctx.discussionId }),
+        });
+        return { content: [{ type: "text", text: "Acknowledged." }] };
+      },
+    ),
   ]);
 }
 
@@ -99,7 +145,7 @@ export function createDiscussAgentToolServer(ctx, { from }) {
  */
 export function createRecessHandler(ctx) {
   return async ({ reason, trigger }) => {
-    const guard = requireNoPendingAsks(ctx);
+    const guard = requireNoPendingAsks(ctx) ?? requireNoUnprocessedInbox(ctx);
     if (guard) return guard;
     ctx.recessTrigger = trigger;
     concludeSession(ctx, {
@@ -114,7 +160,7 @@ export function createRecessHandler(ctx) {
 /** Adjourn handler — ends the discussion with a verdict. */
 export function createAdjournHandler(ctx) {
   return async ({ verdict, summary, outcome }) => {
-    const guard = requireNoPendingAsks(ctx);
+    const guard = requireNoPendingAsks(ctx) ?? requireNoUnprocessedInbox(ctx);
     if (guard) return guard;
     if (outcome !== undefined) ctx.outcome = outcome;
     concludeSession(ctx, {

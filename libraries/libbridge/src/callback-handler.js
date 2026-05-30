@@ -72,20 +72,64 @@ export function createCallbackHandler({
     throw new Error("handleReply is required");
   }
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: session-aware callback handler branches on kind
   return async (c) => {
-    const prelude = await resolveContext(c, {
-      callbacks,
-      ack,
-      store,
-      channel,
-      logger,
-      loadDiscussionId,
-      ackFinishTarget,
-    });
-    if (prelude.error) return c.json({ error: prelude.error }, prelude.status);
+    let body;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: "Invalid JSON" }, 400);
+    }
+    const payload = validateCallbackPayload(body);
+    if (!payload) return c.json({ error: "Invalid payload" }, 400);
 
-    const { token, ctx, meta, payload } = prelude;
-    delete ctx.pending_callbacks[token];
+    const token = c.req.param("token");
+    const isTerminal = payload.kind === "terminal";
+    const meta = isTerminal ? callbacks.consume(token) : callbacks.peek(token);
+    if (!meta) {
+      logger.debug?.("callback", "unknown token");
+      return c.json({ error: "Unknown callback token" }, 404);
+    }
+
+    if (isTerminal) {
+      await ack.finish(
+        token,
+        ackFinishTarget ? ackFinishTarget(meta) : undefined,
+      );
+    }
+    if (payload.correlation_id !== meta.correlationId) {
+      return c.json({ error: "Correlation ID mismatch" }, 400);
+    }
+
+    const discussionId = loadDiscussionId(meta);
+    const ctx = await store.loadByChannel(channel, discussionId);
+    if (!ctx) {
+      logger.error?.("callback", "context missing", {
+        discussion_id: discussionId,
+      });
+      return c.json({ error: "Discussion context missing" }, 410);
+    }
+
+    if (
+      !isTerminal &&
+      payload.seq >= 0 &&
+      payload.seq <= (ctx.last_posted_seq ?? -1)
+    ) {
+      return c.json({ ok: true, dedupe: true }, 200);
+    }
+
+    if (!isTerminal) {
+      payload.replies = payload.body
+        ? [{ body: payload.body, agent: payload.agent }]
+        : [];
+      payload.verdict = null;
+    }
+
+    if (isTerminal) {
+      delete ctx.pending_callbacks[token];
+      ctx.active_requester = null;
+    }
+
     return runHandleReply(c, {
       ctx,
       meta,
@@ -95,43 +139,13 @@ export function createCallbackHandler({
       logger,
       tracer,
       spanName,
+      postReply() {
+        if (!isTerminal) {
+          ctx.last_posted_seq = payload.seq;
+        }
+      },
     });
   };
-}
-
-async function resolveContext(
-  c,
-  { callbacks, ack, store, channel, logger, loadDiscussionId, ackFinishTarget },
-) {
-  const token = c.req.param("token");
-  const meta = callbacks.consume(token);
-  if (!meta) {
-    logger.debug?.("callback", "unknown token");
-    return { status: 404, error: "Unknown callback token" };
-  }
-  await ack.finish(token, ackFinishTarget ? ackFinishTarget(meta) : undefined);
-
-  let body;
-  try {
-    body = await c.req.json();
-  } catch {
-    return { status: 400, error: "Invalid JSON" };
-  }
-  const payload = validateCallbackPayload(body);
-  if (!payload) return { status: 400, error: "Invalid payload" };
-  if (payload.correlation_id !== meta.correlationId) {
-    return { status: 400, error: "Correlation ID mismatch" };
-  }
-
-  const discussionId = loadDiscussionId(meta);
-  const ctx = await store.loadByChannel(channel, discussionId);
-  if (!ctx) {
-    logger.error?.("callback", "context missing", {
-      discussion_id: discussionId,
-    });
-    return { status: 410, error: "Discussion context missing" };
-  }
-  return { token, ctx, meta, payload };
 }
 
 const STATUS_MESSAGES = {
@@ -149,7 +163,17 @@ function sanitizeErrorMessage(status) {
 
 async function runHandleReply(
   c,
-  { ctx, meta, payload, handleReply, store, logger, tracer, spanName },
+  {
+    ctx,
+    meta,
+    payload,
+    handleReply,
+    store,
+    logger,
+    tracer,
+    spanName,
+    postReply,
+  },
 ) {
   const span = tracer.startSpan(spanName, {
     kind: "SERVER",
@@ -157,6 +181,7 @@ async function runHandleReply(
   });
   try {
     await handleReply(ctx, payload, meta);
+    if (postReply) postReply();
     ctx.last_active_at = Date.now();
     await store.add(ctx);
     await store.flush();

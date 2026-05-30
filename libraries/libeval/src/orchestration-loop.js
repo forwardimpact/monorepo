@@ -26,8 +26,8 @@ import {
 } from "./orchestration-toolkit.js";
 import { formatMessages } from "./orchestrator-helpers.js";
 
-/** Default per-session lead-turn budget (one resume per round of traffic). */
-const DEFAULT_MAX_LEAD_TURNS = 40;
+/** Default per-session lead-turn budget — accommodates multi-round injected conversations. */
+const DEFAULT_MAX_LEAD_TURNS = 200;
 
 /** Orchestrate N agent sessions coordinated by a single lead LLM session. */
 export class OrchestrationLoop {
@@ -41,8 +41,10 @@ export class OrchestrationLoop {
    * @param {"facilitated"|"discussion"|"supervised"} deps.mode - Carries through to `protocol_violation` events.
    * @param {object} deps.ctx - Orchestration context (from `createOrchestrationContext()`).
    * @param {object} deps.redactor
-   * @param {number} [deps.maxLeadTurns] - Cap on lead resumes per session (default 40).
+   * @param {number} [deps.maxLeadTurns] - Cap on lead resumes per session (default 200).
    * @param {string} [deps.taskAmend] - Appended to the task before delivery.
+   * @param {import("./inbox-poller.js").InboxPoller} [deps.inboxPoller]
+   * @param {AbortController} [deps.abortController]
    */
   constructor({
     leadRunner,
@@ -55,6 +57,8 @@ export class OrchestrationLoop {
     ctx,
     taskAmend,
     redactor,
+    inboxPoller,
+    abortController,
   }) {
     if (!leadRunner) throw new Error("leadRunner is required");
     if (!agents) throw new Error("agents is required");
@@ -74,6 +78,8 @@ export class OrchestrationLoop {
     this.redactor = redactor;
     this.taskAmend = taskAmend ?? null;
     this.maxLeadTurns = maxLeadTurns ?? DEFAULT_MAX_LEAD_TURNS;
+    this.inboxPoller = inboxPoller ?? null;
+    this.abortController = abortController ?? null;
     this.counter = new SequenceCounter();
     this.leadTurns = 0;
     this.stopped = false;
@@ -112,6 +118,7 @@ export class OrchestrationLoop {
     const agentPromises = this.agents.map((a) =>
       this.#runAgent(a).catch(abort),
     );
+    const pollerPromise = this.inboxPoller?.run().catch(() => {});
 
     try {
       await this.#runLead(initialTask);
@@ -121,7 +128,7 @@ export class OrchestrationLoop {
       this.#stop();
     }
 
-    await Promise.allSettled(agentPromises);
+    await Promise.allSettled([...agentPromises, pollerPromise].filter(Boolean));
     if (firstError) throw firstError;
 
     const success = this.ctx.concluded && this.ctx.verdict === "success";
@@ -138,6 +145,7 @@ export class OrchestrationLoop {
     if (this.stopped) return;
     this.stopped = true;
     this.#signalDone();
+    this.abortController?.abort();
     for (const agent of this.agents) {
       agent.runner.currentAbortController?.abort();
     }
@@ -173,7 +181,9 @@ export class OrchestrationLoop {
       if (messages.length === 0) return;
 
       this.leadTurns++;
+      const hasSynthetic = messages.some((m) => m.kind === "synthetic");
       await this.leadRunner.resume(formatMessages(messages));
+      if (hasSynthetic) this.inboxPoller?.markActed();
       if (this.#exiting()) return;
       await this.#settleOwedAsks(this.leadName, this.leadRunner);
     }

@@ -40,6 +40,9 @@ export function parseDiscussOptions(values) {
     }
   }
 
+  const maxLeadTurnsRaw = values["max-lead-turns"] ?? "200";
+  const maxLeadTurns = parseInt(maxLeadTurnsRaw, 10);
+
   return {
     taskContent,
     taskAmend,
@@ -48,9 +51,13 @@ export function parseDiscussOptions(values) {
     leadModel: values["lead-model"] ?? "claude-opus-4-7[1m]",
     agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
     maxTurns,
+    maxLeadTurns,
     outputPath: values.output,
     discussionId: values["discussion-id"] ?? null,
     resumeContext,
+    callbackUrl: process.env.CALLBACK_URL ?? null,
+    inboxUrl: process.env.INBOX_URL ?? null,
+    correlationId: process.env.CORRELATION_ID ?? null,
   };
 }
 
@@ -93,8 +100,12 @@ export async function runDiscussCommand(values, _args) {
     query,
     output,
     maxTurns: opts.maxTurns,
+    maxLeadTurns: opts.maxLeadTurns,
     taskAmend: opts.taskAmend,
     redactor,
+    callbackUrl: opts.callbackUrl,
+    inboxUrl: opts.inboxUrl,
+    correlationId: opts.correlationId,
   });
 
   const result = await discusser.run(opts.taskContent);

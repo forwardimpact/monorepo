@@ -71,6 +71,12 @@ export class MessageBus {
     this.#resolveWaiter(to);
   }
 
+  /** Check whether a participant has pending messages without draining them. */
+  hasPending(participant) {
+    this.#assertParticipant(participant);
+    return this.queues.get(participant).length > 0;
+  }
+
   /** Return and clear pending messages for a participant. */
   drain(participant) {
     this.#assertParticipant(participant);

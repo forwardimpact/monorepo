@@ -10,6 +10,7 @@ import {
   buildPrompt,
   createBridgeServer,
   createCallbackHandler,
+  createInboxHandler,
   createLinkCompleteHandler,
   newDiscussionContext,
   normalizeBaseUrl,
@@ -17,6 +18,7 @@ import {
   validateCallbackPayload,
 } from "@forwardimpact/libbridge";
 
+import { bridge } from "@forwardimpact/libtype";
 import { DiscussionAdapter } from "./src/discussion-adapter.js";
 
 import {
@@ -48,6 +50,7 @@ export class MsBridgeService {
   #config;
   #msAppId;
   #adapter;
+  #client;
   #store;
   #callbacks;
   #rateLimiter;
@@ -91,6 +94,7 @@ export class MsBridgeService {
     this.#config = config;
     this.#msAppId = () => config.msAppId();
 
+    this.#client = discussionClient;
     this.#adapter = adapter ?? createDefaultAdapter(config);
     this.#adapter.onTurnError = async (context, error) => {
       this.#logger.error("onTurnError", error);
@@ -164,6 +168,7 @@ export class MsBridgeService {
       ),
       onCallback: (c) => this.#onCallback(c),
       onLinkComplete,
+      onInbox: createInboxHandler({ client: discussionClient, logger }),
     });
   }
 
@@ -239,6 +244,15 @@ export class MsBridgeService {
         return;
       }
 
+      const inject = await this.#tryInject(ctx, requester, text, ref);
+      if (inject) {
+        await this.#store.add(ctx);
+        await this.#store.flush();
+        span.addEvent(inject.kind);
+        span.setOk();
+        return;
+      }
+
       const limit = this.#rateLimiter.check(threadId, ctx.dispatches);
       if (!limit.allowed) {
         await context.sendActivity(
@@ -289,7 +303,10 @@ export class MsBridgeService {
       throw new CallbackHandlerError(410, "Conversation reference missing");
     }
     const ref = ctx.participants[0].metadata;
-    await this.#postReplies(ref, payload.replies, ctx);
+    const unstreamed = (payload.replies ?? []).filter(
+      (r) => r.kind === undefined,
+    );
+    await this.#postReplies(ref, unstreamed, ctx);
     switch (payload.verdict) {
       case "recessed":
         this.#resume.enterRecess(
@@ -309,6 +326,7 @@ export class MsBridgeService {
         }
         break;
       default:
+        if (!payload.verdict) return;
         this.#resume.cancelRecess(ctx, meta.correlationId);
         if (payload.summary && !payload.replies?.length) {
           await sendReply(this.#adapter, this.#msAppId, ref, payload.summary);
@@ -318,6 +336,62 @@ export class MsBridgeService {
           });
         }
         break;
+    }
+
+    if (payload.verdict !== "recessed") {
+      await this.#reconcileInbox(ctx, meta, payload);
+    }
+  }
+
+  async #tryInject(ctx, requester, text, ref) {
+    if (
+      Object.keys(ctx.pending_callbacks).length === 0 ||
+      !ctx.active_requester
+    ) {
+      return null;
+    }
+    if (String(requester) === String(ctx.active_requester)) {
+      const correlationId = Object.values(ctx.pending_callbacks)[0];
+      await this.#client.EnqueueInbox(
+        bridge.EnqueueInboxRequest.fromObject({
+          message: {
+            correlation_id: correlationId,
+            text,
+            author: String(requester),
+            enqueued_at: Date.now(),
+          },
+        }),
+      );
+      ctx.last_active_at = Date.now();
+      return { kind: "injected" };
+    }
+    await sendReply(
+      this.#adapter,
+      this.#msAppId,
+      ref,
+      "A session is in progress on this thread. Your message was not forwarded to the active run.",
+    );
+    return { kind: "noticed" };
+  }
+
+  async #reconcileInbox(ctx, meta, payload) {
+    const lastActed = payload.last_acted_seq ?? -1;
+    const remaining = await this.#client.DrainInbox(
+      bridge.DrainInboxRequest.fromObject({
+        correlation_id: meta.correlationId,
+        since_seq: lastActed,
+      }),
+    );
+    if (remaining.messages?.length > 0) {
+      const coalesced = remaining.messages.map((m) => m.text).join("\n\n");
+      await this.#dispatcher.dispatch({
+        ctx,
+        prompt: buildPrompt(coalesced, ctx.history),
+        requester: remaining.messages[0].author,
+        ackTarget: { ref: ctx.participants?.[0]?.metadata },
+        callbackMeta: { threadId: ctx.discussion_id },
+        workflowInputs: { discussionId: ctx.discussion_id },
+      });
     }
   }
 

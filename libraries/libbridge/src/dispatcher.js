@@ -78,7 +78,9 @@ export class Dispatcher {
     const mergedMeta = { ...(callbackMeta ?? {}), requester };
     const token = this.#callbacks.register(correlationId, mergedMeta);
     ctx.pending_callbacks[token] = correlationId;
+    ctx.active_requester = requester;
     const callbackUrl = `${this.#callbackBaseUrl}/api/callback/${token}`;
+    const inboxUrl = `${this.#callbackBaseUrl}/api/inbox/${correlationId}`;
 
     if (ackTarget !== undefined) await this.#ack.start(token, ackTarget);
     try {
@@ -89,6 +91,7 @@ export class Dispatcher {
         prompt,
         callbackUrl,
         correlationId,
+        inboxUrl,
         ...(workflowInputs ?? {}),
       });
       ctx.dispatches.push(Date.now());
@@ -100,6 +103,7 @@ export class Dispatcher {
       if (ackTarget !== undefined) await this.#ack.finish(token, ackTarget);
       this.#callbacks.consume(token);
       delete ctx.pending_callbacks[token];
+      ctx.active_requester = null;
       throw err;
     }
   }

@@ -107,6 +107,11 @@ describe("msbridge service", () => {
       const minimal = validateCallbackPayload({ correlation_id: "c-1" });
       expect(minimal).toEqual({
         correlation_id: "c-1",
+        kind: "terminal",
+        seq: -1,
+        body: "",
+        agent: "",
+        last_acted_seq: -1,
         verdict: "unknown",
         summary: "",
         replies: [],

@@ -13,6 +13,7 @@ GitHub/Microsoft Teams bridge state.
 |---|---|---|
 | Discussion | `data/bridges/discussions.jsonl` | `<channel>:<discussion_id>` |
 | Origin | `data/bridges/origins.jsonl` | `<comment_node_id>` |
+| Inbox | `data/bridges/inbox.jsonl` | `<correlation_id>:<seq>` |
 
 ## Service supervision
 

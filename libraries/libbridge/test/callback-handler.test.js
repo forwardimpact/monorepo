@@ -163,7 +163,17 @@ describe("createCallbackHandler", () => {
   });
 
   test("unknown token returns 404", async () => {
-    const res = await handler(makeC({ token: "none", body: {} }));
+    const res = await handler(
+      makeC({
+        token: "none",
+        body: {
+          correlation_id: "any",
+          kind: "terminal",
+          verdict: "adjourned",
+          summary: "",
+        },
+      }),
+    );
     expect(res.status).toBe(404);
   });
 
@@ -314,6 +324,78 @@ describe("createCallbackHandler", () => {
     expect(res.status).toBe(410);
     const body = await res.json();
     expect(body.error).toBe("Gone");
+  });
+
+  test("streaming reply (kind=reply) peeks token and updates last_posted_seq", async () => {
+    const { token, correlationId } = await seed(store, callbacks);
+    const res = await handler(
+      makeC({
+        token,
+        body: {
+          correlation_id: correlationId,
+          kind: "reply",
+          seq: 3,
+          body: "partial answer",
+          agent: "staff-engineer",
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(handleReplyCalls).toHaveLength(1);
+    expect(handleReplyCalls[0].payload.verdict).toBeNull();
+    expect(handleReplyCalls[0].payload.replies).toEqual([
+      { body: "partial answer", agent: "staff-engineer" },
+    ]);
+    // Token NOT consumed — peek was used
+    expect(callbacks.peek(token)).not.toBeNull();
+    const reloaded = await store.loadByChannel(channel, "D_1");
+    expect(reloaded.last_posted_seq).toBe(3);
+    expect(reloaded.pending_callbacks[token]).toBe(correlationId);
+  });
+
+  test("duplicate seq returns dedupe response", async () => {
+    const { token, correlationId, ctx } = await seed(store, callbacks);
+    ctx.last_posted_seq = 5;
+    await store.add(ctx);
+    const res = await handler(
+      makeC({
+        token,
+        body: {
+          correlation_id: correlationId,
+          kind: "reply",
+          seq: 3,
+          body: "old",
+          agent: "a",
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.dedupe).toBe(true);
+    expect(handleReplyCalls).toHaveLength(0);
+  });
+
+  test("terminal event consumes token and clears active_requester", async () => {
+    const { token, correlationId, ctx } = await seed(store, callbacks);
+    ctx.active_requester = "user-1";
+    await store.add(ctx);
+    const res = await handler(
+      makeC({
+        token,
+        body: {
+          correlation_id: correlationId,
+          kind: "terminal",
+          verdict: "adjourned",
+          summary: "done",
+          replies: [],
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(callbacks.peek(token)).toBeNull();
+    const reloaded = await store.loadByChannel(channel, "D_1");
+    expect(reloaded.active_requester).toBeNull();
+    expect(reloaded.pending_callbacks[token]).toBeUndefined();
   });
 
   test("unexpected handleReply errors return 500", async () => {

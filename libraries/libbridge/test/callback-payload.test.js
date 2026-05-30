@@ -25,6 +25,11 @@ describe("validateCallbackPayload", () => {
     const payload = validateCallbackPayload({ correlation_id: "c-1" });
     expect(payload).toEqual({
       correlation_id: "c-1",
+      kind: "terminal",
+      seq: -1,
+      body: "",
+      agent: "",
+      last_acted_seq: -1,
       verdict: "unknown",
       summary: "",
       replies: [],
@@ -154,6 +159,42 @@ describe("validateCallbackPayload", () => {
     expect(good.trigger).toEqual({ kind: "elapsed", elapsed: "PT5M" });
   });
 
+  test("payload with kind=reply sets kind and defaults seq", () => {
+    const payload = validateCallbackPayload({
+      correlation_id: "c-1",
+      kind: "reply",
+      body: "hello",
+      agent: "staff-engineer",
+      seq: 5,
+    });
+    expect(payload.kind).toBe("reply");
+    expect(payload.seq).toBe(5);
+    expect(payload.body).toBe("hello");
+    expect(payload.agent).toBe("staff-engineer");
+  });
+
+  test("payload without kind defaults to terminal", () => {
+    const payload = validateCallbackPayload({
+      correlation_id: "c-1",
+      verdict: "adjourned",
+      summary: "done",
+    });
+    expect(payload.kind).toBe("terminal");
+    expect(payload.seq).toBe(-1);
+    expect(payload.last_acted_seq).toBe(-1);
+  });
+
+  test("truncates body and agent to MAX_FIELD_LENGTH", () => {
+    const long = "x".repeat(MAX_FIELD_LENGTH + 100);
+    const payload = validateCallbackPayload({
+      correlation_id: "c-1",
+      body: long,
+      agent: long,
+    });
+    expect(payload.body.length).toBe(MAX_FIELD_LENGTH);
+    expect(payload.agent.length).toBe(MAX_FIELD_LENGTH);
+  });
+
   test("validates trigger signal as a non-empty string for escalation_needed", () => {
     const bad = validateCallbackPayload({
       correlation_id: "c-1",
@@ -208,6 +249,8 @@ describe("newDiscussionContext", () => {
     expect(ctx.dispatches).toEqual([]);
     expect(ctx.lead).toBe("release-engineer");
     expect(typeof ctx.last_active_at).toBe("number");
+    expect(ctx.active_requester).toBeNull();
+    expect(ctx.last_posted_seq).toBe(-1);
   });
 
   test("supports the msteams channel shape", () => {

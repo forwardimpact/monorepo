@@ -9,6 +9,7 @@ import {
   buildPrompt,
   createBridgeServer,
   createCallbackHandler,
+  createInboxHandler,
   createLinkCompleteHandler,
   newDiscussionContext,
   normalizeBaseUrl,
@@ -24,6 +25,7 @@ import {
   postDiscussionReplies,
   postSingleDiscussionReply,
 } from "./src/graphql.js";
+import { tryInject, reconcileInbox } from "./src/injection.js";
 
 export { validateCallbackPayload };
 
@@ -157,6 +159,7 @@ export class GhBridgeService {
       onWebhook: (c) => this.#handleWebhook(c),
       onCallback: (c) => this.#onCallback(c),
       onLinkComplete,
+      onInbox: createInboxHandler({ client: discussionClient, logger }),
     });
   }
 
@@ -292,6 +295,7 @@ export class GhBridgeService {
     }
   }
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: webhook intake with origin check, inject, rate limit, and dispatch
   async #handleDiscussionComment(c, body) {
     const discussion = body.discussion;
     const comment = body.comment;
@@ -332,6 +336,19 @@ export class GhBridgeService {
       const { freshDispatchAllowed } = await this.#resume.processInbound(ctx);
 
       if (freshDispatchAllowed) {
+        const inject = await tryInject(ctx, requester, text, {
+          client: this.#client,
+          graphqlClient: this.#graphqlClient,
+          recordOrigin: this.#recordOrigin(ctx),
+        });
+        if (inject) {
+          await this.#store.add(ctx);
+          await this.#store.flush();
+          span.addEvent(inject.kind);
+          span.setOk();
+          return c.json({ ok: true, [inject.kind]: true });
+        }
+
         const limit = this.#rateLimiter.check(discussionId, ctx.dispatches);
         if (!limit.allowed) {
           this.#logger.info("webhook", "rate limited", {
@@ -370,23 +387,17 @@ export class GhBridgeService {
   }
 
   async #handleReply(ctx, payload, meta) {
-    const recordOrigin = async (comment) => {
-      await this.#client.RecordOrigin(
-        bridge.Origin.fromObject({
-          id: comment.id,
-          discussion_id: ctx.discussion_id,
-          posted_at: Date.now(),
-        }),
-      );
-    };
-
+    const recordOrigin = this.#recordOrigin(ctx);
+    const unstreamed = (payload.replies ?? []).filter(
+      (r) => r.kind === undefined,
+    );
     await postDiscussionReplies(
       this.#graphqlClient,
       ctx,
-      payload.replies,
+      unstreamed,
       recordOrigin,
     );
-    for (const reply of payload.replies) {
+    for (const reply of unstreamed) {
       appendHistory(ctx.history, {
         role: "assistant",
         text: reply.body ?? "",
@@ -417,6 +428,7 @@ export class GhBridgeService {
         }
         break;
       default:
+        if (!payload.verdict) return;
         this.#resume.cancelRecess(ctx, meta.correlationId);
         if (payload.summary && !payload.replies?.length) {
           await postSingleDiscussionReply(
@@ -431,6 +443,13 @@ export class GhBridgeService {
           });
         }
         break;
+    }
+
+    if (payload.verdict !== "recessed") {
+      await reconcileInbox(ctx, meta, payload, {
+        client: this.#client,
+        dispatcher: this.#dispatcher,
+      });
     }
   }
 
@@ -456,21 +475,11 @@ export class GhBridgeService {
       created_at: Date.now(),
     });
 
-    const body = `To dispatch, link your GitHub account: ${augmentedUrl}`;
-    const recordOrigin = async (comment) => {
-      await this.#client.RecordOrigin(
-        bridge.Origin.fromObject({
-          id: comment.id,
-          discussion_id: ctx.discussion_id,
-          posted_at: Date.now(),
-        }),
-      );
-    };
     await postSingleDiscussionReply(
       this.#graphqlClient,
       ctx,
-      body,
-      recordOrigin,
+      `To dispatch, link your GitHub account: ${augmentedUrl}`,
+      this.#recordOrigin(ctx),
     );
   }
 
@@ -491,7 +500,16 @@ export class GhBridgeService {
       default:
         return;
     }
-    const recordOrigin = async (comment) => {
+    await postSingleDiscussionReply(
+      this.#graphqlClient,
+      ctx,
+      body,
+      this.#recordOrigin(ctx),
+    );
+  }
+
+  #recordOrigin(ctx) {
+    return async (comment) => {
       await this.#client.RecordOrigin(
         bridge.Origin.fromObject({
           id: comment.id,
@@ -500,12 +518,6 @@ export class GhBridgeService {
         }),
       );
     };
-    await postSingleDiscussionReply(
-      this.#graphqlClient,
-      ctx,
-      body,
-      recordOrigin,
-    );
   }
 
   async #loadOrCreateContext(discussionId, discussion) {

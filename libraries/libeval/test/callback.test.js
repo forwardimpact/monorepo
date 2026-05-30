@@ -96,10 +96,12 @@ describe("fit-eval callback", () => {
       assert.strictEqual(req.url, "/api/callback/abc");
       assert.deepStrictEqual(req.body, {
         correlation_id: "corr-123",
+        kind: "terminal",
         verdict: "success",
         summary: "Routed to staff-engineer.",
         run_url: "https://github.com/foo/bar/actions/runs/42",
         replies: [],
+        last_acted_seq: -1,
       });
     } finally {
       await server.close();

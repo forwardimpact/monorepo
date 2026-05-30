@@ -71,11 +71,12 @@ while participants work in parallel — nothing blocks the LLM thread.
 
 ### Discuss-mode replies
 
-In discussion mode, Answer calls routed to the lead are captured as
-thread replies delivered via the bridge callback. The lead delegates work
-via Ask; each agent's Answer becomes a separate reply posted to the
-discussion thread. No explicit reply tool is needed on the lead surface —
-the message bus intercepts answers and appends them to `ctx.replies[]`.
+In discussion mode, Answer calls routed to the lead are streamed to
+the discussion thread as they are produced — each agent's Answer becomes
+a separate reply posted immediately, not batched at session end. The
+lead and agents can also call `Acknowledge` to post brief messages
+directly to the thread (status updates, human follow-up responses).
+The message bus intercepts answers and appends them to `ctx.replies[]`.
 
 `RequestForComment` is a separate coordination tool available on agent
 roles (facilitated agents and discuss agents). It queues an intent to
@@ -104,8 +105,8 @@ only feeds the summary's `success`/`verdict`.
 | Fac. agent   | ✓   | ✓      | ✓        | ✓        |          | `RequestForComment`            |
 | Supervisor   | ✓   | ✓      | ✓        | ✓        | ✓        |                                |
 | Sup. agent   | ✓   | ✓      | ✓        | ✓        |          |                                |
-| Discuss lead | ✓   | ✓      | ✓        | ✓        |          | `Recess`, `Adjourn`            |
-| Discuss agt  | ✓   | ✓      | ✓        | ✓        |          | `RequestForComment`            |
+| Discuss lead | ✓   | ✓      | ✓        | ✓        |          | `Recess`, `Adjourn`, `Acknowledge` |
+| Discuss agt  | ✓   | ✓      | ✓        | ✓        |          | `RequestForComment`, `Acknowledge` |
 | Judge        |     |        |          |          | ✓        |                                |
 
 Ask's `to` accepts a participant name on multi-participant roles
@@ -169,7 +170,9 @@ downloadable through retention.
 | `orchestration-toolkit.js`                                  | Shared Ask/Answer/Announce/Conclude/RollCall/RequestForComment handlers + builders. |
 | `orchestration-loop.js`                                     | Unified lead+participant loop; reminder/violation handling.          |
 | `facilitator.js` / `supervisor.js` / `discusser.js` / `judge.js` | Per-mode class + factory + system prompt.                       |
-| `discuss-tools.js`                                          | Discuss-only `Recess`/`Adjourn`.                                     |
+| `discuss-tools.js`                                          | Discuss-only `Recess`/`Adjourn`/`Acknowledge`.                       |
+| `reply-emitter.js`                                          | Fire-and-forget POST of reply/ack events to the callback URL.        |
+| `inbox-poller.js`                                           | Long-poll the bridge inbox for injected human messages.              |
 | `trace-collector.js` / `trace-query.js` / `trace-github.js` | Trace ingestion / querying / GitHub-attachment helpers.              |
 | `redaction.js`                                              | Env-var allowlist + credential-shape pattern redaction.              |
 

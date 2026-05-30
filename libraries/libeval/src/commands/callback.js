@@ -40,6 +40,9 @@ function readTraceSummary(traceFile) {
         ...(record.event.discussion_id && {
           discussionId: record.event.discussion_id,
         }),
+        ...(typeof record.event.lastActedSeq === "number" && {
+          lastActedSeq: record.event.lastActedSeq,
+        }),
       };
     }
   }
@@ -86,10 +89,12 @@ export async function runCallbackCommand(values, _args) {
   const discussionId = found.discussionId ?? discussionIdOverride ?? null;
   const payload = {
     correlation_id: correlationId,
+    kind: "terminal",
     verdict: found.verdict,
     summary: found.summary,
     run_url: runUrl,
     replies: found.replies,
+    last_acted_seq: found.lastActedSeq ?? -1,
     ...(discussionId && { discussion_id: discussionId }),
     ...(found.trigger && { trigger: found.trigger }),
   };
