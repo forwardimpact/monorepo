@@ -159,6 +159,31 @@ describe("WikiSync", () => {
     });
   });
 
+  test("commitAndPush tolerates a failing push (WikiRepo fire-and-forget)", async () => {
+    const { git, wikiSync } = make({
+      responses: {
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 0, stderr: "" },
+        revListCount: 1,
+      },
+    });
+    git.push = async () => {
+      throw new Error("could not read Username (no credentials)");
+    };
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+  });
+
+  test("pull tolerates a failing fetch and still rebases", async () => {
+    const { git, wikiSync } = make({
+      responses: { rebase: { exitCode: 0, stderr: "" } },
+    });
+    git.fetch = async () => {
+      throw new Error("could not read Username (no credentials)");
+    };
+    await wikiSync.pull(); // must not throw
+  });
+
   test("resolveToken throws propagate through network operations", async () => {
     const { wikiSync } = make({
       resolveToken: () => {

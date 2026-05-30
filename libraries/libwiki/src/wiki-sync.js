@@ -90,7 +90,16 @@ export class WikiSync {
 
   /** Fetch origin/master using token auth when available. */
   async fetch() {
-    await this.#authed().fetch("origin", "master", { cwd: this.#wikiDir });
+    // Resolve auth first so a misconfigured `resolveToken` still surfaces.
+    const client = this.#authed();
+    try {
+      await client.fetch("origin", "master", { cwd: this.#wikiDir });
+    } catch {
+      // WikiRepo treated fetch as fire-and-forget (it ignored the git result);
+      // a failed fetch leaves the local origin/master ref in place and the
+      // rebase proceeds against it. Preserved so push/pull degrade gracefully
+      // rather than crash when the network or credentials are unavailable.
+    }
   }
 
   /** Whether the wiki working tree has no uncommitted changes. */
@@ -133,7 +142,16 @@ export class WikiSync {
         ref: "origin/master",
       });
     }
-    await this.#authed().push("origin", "master", { cwd: this.#wikiDir });
+    // Resolve auth first so a misconfigured `resolveToken` still surfaces; the
+    // push itself is fire-and-forget like WikiRepo (which ignored the push
+    // result and reported pushed:true regardless), so a network/credential
+    // failure degrades to "saved locally" rather than crashing the command.
+    const client = this.#authed();
+    try {
+      await client.push("origin", "master", { cwd: this.#wikiDir });
+    } catch {
+      // Intentionally ignored — preserves WikiRepo's fire-and-forget push.
+    }
     return { pushed: true, reason: "pushed" };
   }
 
