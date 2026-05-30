@@ -67,7 +67,7 @@ Optional services — add when working on those features:
 { "name": "oauthtunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_OAUTH_URL} --protocol http2'" }
 { "name": "mstunnel",    "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_MSBRIDGE_URL} --protocol http2'" }
 { "name": "ghtunnel",    "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_GHBRIDGE_URL} --protocol http2'" }
-{ "name": "ghauth",      "command": "node -e \"import('@forwardimpact/svcghauth/server.js')\"" }
+{ "name": "ghuser",      "command": "node -e \"import('@forwardimpact/svcghuser/server.js')\"" }
 { "name": "oauth",       "command": "node -e \"import('@forwardimpact/svcoauth/server.js')\"" }
 { "name": "mcp",         "command": "node -e \"import('@forwardimpact/svcmcp/server.js')\"" }
 { "name": "bridge",      "command": "node -e \"import('@forwardimpact/svcbridge/server.js')\"" }

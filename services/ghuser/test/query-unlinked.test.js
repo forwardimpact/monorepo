@@ -2,16 +2,16 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { createMockConfig } from "@forwardimpact/libmock";
 import { createMockStorage } from "@forwardimpact/libmock/mock";
-import { GhauthService } from "../index.js";
+import { GhuserService } from "../index.js";
 import { BindingStore, FlowStore, GrantStore } from "../src/stores.js";
 
-describe("ghauth query-unlinked (SC#5)", () => {
+describe("ghuser query-unlinked (SC#5)", () => {
   test("unlinked user returns link_required with authorize_url", async () => {
     const storage = createMockStorage();
-    const config = createMockConfig("ghauth", {
+    const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",
     });
-    const service = new GhauthService(config, {
+    const service = new GhuserService(config, {
       bindings: new BindingStore(storage),
       flows: new FlowStore(storage),
       grants: new GrantStore(storage),

@@ -20,7 +20,7 @@ function makeConfig() {
 }
 
 describe("ghbridge startup", () => {
-  test("construction fails when ghauthClient is absent", () => {
+  test("construction fails when ghuserClient is absent", () => {
     expect(
       () =>
         new GhBridgeService(makeConfig(), {
@@ -31,6 +31,6 @@ describe("ghbridge startup", () => {
           getInstallationToken: async () => "t",
           graphqlClient: async () => ({}),
         }),
-    ).toThrow("ghauthClient is required");
+    ).toThrow("ghuserClient is required");
   });
 });

@@ -11,7 +11,7 @@ describe("oauth authorize (SC#2)", () => {
         issuer: "http://localhost:3007",
         host: "0.0.0.0",
         port: 0,
-        provider: "ghauth",
+        provider: "ghuser",
       },
       logger: { info: () => {}, error: () => {} },
       providerClient: {
@@ -38,7 +38,7 @@ describe("oauth authorize (SC#2)", () => {
         issuer: "http://localhost:3007",
         host: "0.0.0.0",
         port: 0,
-        provider: "ghauth",
+        provider: "ghuser",
       },
       logger: { info: () => {}, error: () => {} },
       providerClient: {
@@ -69,7 +69,7 @@ describe("oauth authorize (SC#2)", () => {
         issuer: "http://localhost:3007",
         host: "0.0.0.0",
         port: 0,
-        provider: "ghauth",
+        provider: "ghuser",
       },
       logger: { info: () => {}, error: () => {} },
       providerClient: {
@@ -92,7 +92,7 @@ describe("oauth authorize (SC#2)", () => {
         issuer: "http://localhost:3007",
         host: "0.0.0.0",
         port: 0,
-        provider: "ghauth",
+        provider: "ghuser",
       },
       logger: { info: () => {}, error: () => {} },
       providerClient: {
@@ -117,7 +117,7 @@ describe("oauth authorize (SC#2)", () => {
         issuer: "http://localhost:3007",
         host: "0.0.0.0",
         port: 0,
-        provider: "ghauth",
+        provider: "ghuser",
       },
       logger: { info: () => {}, error: () => {} },
       providerClient: {
@@ -139,7 +139,7 @@ describe("oauth authorize (SC#2)", () => {
         issuer: "http://localhost:3007",
         host: "0.0.0.0",
         port: 0,
-        provider: "ghauth",
+        provider: "ghuser",
       },
       logger: { info: () => {}, error: () => {} },
       providerClient: {

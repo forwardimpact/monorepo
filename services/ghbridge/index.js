@@ -95,7 +95,7 @@ export class GhBridgeService {
     if (typeof verifyWebhook !== "function") {
       throw new Error("verifyWebhook is required");
     }
-    if (!deps.ghauthClient) throw new Error("ghauthClient is required");
+    if (!deps.ghuserClient) throw new Error("ghuserClient is required");
     this.#config = config;
     this.#logger = logger;
     this.#tracer = tracer;
@@ -119,7 +119,7 @@ export class GhBridgeService {
       callbackBaseUrl: normalizeBaseUrl(config.callback_base_url),
       workflowFile: WORKFLOW_FILE,
       githubRepo: config.github_repo,
-      tokenResolver: new TokenResolver(deps.ghauthClient),
+      tokenResolver: new TokenResolver(deps.ghuserClient),
     });
     this.#resume = new ResumeScheduler({
       dispatcher: this.#dispatcher,

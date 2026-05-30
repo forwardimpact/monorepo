@@ -97,7 +97,7 @@ describe("msbridge resume", () => {
   let dispatches;
   let originalFetch;
 
-  function makeGhauthClient(token = "ghs_per_user") {
+  function makeGhuserClient(token = "ghs_per_user") {
     return { GetToken: async () => ({ result: "token", token }) };
   }
 
@@ -106,7 +106,7 @@ describe("msbridge resume", () => {
       logger: createMockLogger(),
       tracer: createMockTracer(),
       discussionClient,
-      ghauthClient: makeGhauthClient(),
+      ghuserClient: makeGhuserClient(),
       adapter,
     });
   }

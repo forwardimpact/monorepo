@@ -40,7 +40,7 @@ async function newService() {
       import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),
     getInstallationToken: async () => "ghs_test",
     graphqlClient: async () => ({}),
-    ghauthClient: {
+    ghuserClient: {
       GetToken: async () => ({ result: "token", token: "ghs_per_user" }),
     },
   });

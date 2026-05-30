@@ -380,6 +380,6 @@
   ],
   "products/summit/src/lib/cli.js": ["import:fs"],
   "products/summit/src/roster/loader.js": ["import:fs"],
-  "services/ghauth/src/stores.js": ["date-now"],
+  "services/ghuser/src/stores.js": ["date-now"],
   "services/ghbridge/src/injection.js": ["date-now"]
 }

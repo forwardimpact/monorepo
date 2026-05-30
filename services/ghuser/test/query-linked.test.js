@@ -2,17 +2,17 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { createMockConfig } from "@forwardimpact/libmock";
 import { createMockStorage } from "@forwardimpact/libmock/mock";
-import { GhauthService } from "../index.js";
+import { GhuserService } from "../index.js";
 import { BindingStore, FlowStore, GrantStore } from "../src/stores.js";
 
-describe("ghauth query-linked (SC#4)", () => {
+describe("ghuser query-linked (SC#4)", () => {
   test("linked user with valid token returns that token unchanged", async () => {
     const storage = createMockStorage();
-    const config = createMockConfig("ghauth", {
+    const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",
     });
     const bindings = new BindingStore(storage);
-    const service = new GhauthService(config, {
+    const service = new GhuserService(config, {
       bindings,
       flows: new FlowStore(storage),
       grants: new GrantStore(storage),
@@ -42,11 +42,11 @@ describe("ghauth query-linked (SC#4)", () => {
 
   test("linked user with non-expiring token returns it", async () => {
     const storage = createMockStorage();
-    const config = createMockConfig("ghauth", {
+    const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",
     });
     const bindings = new BindingStore(storage);
-    const service = new GhauthService(config, {
+    const service = new GhuserService(config, {
       bindings,
       flows: new FlowStore(storage),
       grants: new GrantStore(storage),

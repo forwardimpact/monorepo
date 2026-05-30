@@ -51,8 +51,8 @@ builder, lenient payload validator, and the acknowledgement lifecycle
 (reaction + randomized typing-verb ticker) all come from the library.
 Durable thread state lives in the shared `services/bridge` gRPC service,
 which `msbridge` reaches through a `BridgeClient`. Per-user GitHub auth
-(used to mint the dispatch token) lives in `services/ghauth`, reached
-through a `GhauthClient`. `msbridge` owns three Bot Framework adapters in
+(used to mint the dispatch token) lives in `services/ghuser`, reached
+through a `GhuserClient`. `msbridge` owns three Bot Framework adapters in
 `src/teams.js`:
 
 - `botFrameworkIntake` — converts Bot Framework's express-style
@@ -79,9 +79,9 @@ Set the credentials and service parameters in `.env`. All are loaded via
 Discussion context is persisted by the shared `services/bridge` gRPC
 service at `data/bridges/discussions.jsonl`. `msbridge` calls `bridge`
 through a `BridgeClient` channel — no per-bridge storage configuration
-is needed. `services/ghauth` similarly persists per-user GitHub link
-state under `data/ghauth/` and is reached through a `GhauthClient`. Add
-both `bridge` and `ghauth` to `config/config.json` under `init.services`
+is needed. `services/ghuser` similarly persists per-user GitHub link
+state under `data/ghuser/` and is reached through a `GhuserClient`. Add
+both `bridge` and `ghuser` to `config/config.json` under `init.services`
 ahead of `msbridge` so they start first.
 
 ## Start the bridge

@@ -7,7 +7,7 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { createOauthService } from "./index.js";
 
 const config = await createServiceConfig("oauth", {
-  provider: "ghauth",
+  provider: "ghuser",
   issuer: "",
 });
 

@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { createMockStorage } from "@forwardimpact/libmock/mock";
 import { BindingStore } from "../src/stores.js";
 
-describe("ghauth persistence (SC#7)", () => {
+describe("ghuser persistence (SC#7)", () => {
   test("binding written before restart is readable after fresh start", async () => {
     const storage = createMockStorage();
 

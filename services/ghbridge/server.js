@@ -40,9 +40,9 @@ const graphqlClient = async (query, variables) => {
   });
 };
 
-const { GhauthClient, BridgeClient } = clients;
-const ghauthConfig = await createServiceConfig("ghauth");
-const ghauthClient = new GhauthClient(ghauthConfig, logger, tracer);
+const { GhuserClient, BridgeClient } = clients;
+const ghuserConfig = await createServiceConfig("ghuser");
+const ghuserClient = new GhuserClient(ghuserConfig, logger, tracer);
 const bridgeConfig = await createServiceConfig("bridge");
 const discussionClient = new BridgeClient(bridgeConfig, logger, tracer);
 
@@ -53,7 +53,7 @@ const service = new GhBridgeService(config, {
   verifyWebhook: verify,
   getInstallationToken,
   graphqlClient,
-  ghauthClient,
+  ghuserClient,
 });
 
 await service.start();

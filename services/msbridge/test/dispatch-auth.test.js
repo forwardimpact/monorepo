@@ -49,7 +49,7 @@ function makeAdapter(overrides = {}) {
   };
 }
 
-function makeGhauthClient(impl) {
+function makeGhuserClient(impl) {
   const calls = [];
   return {
     calls,
@@ -94,8 +94,8 @@ describe("msbridge dispatch-auth", () => {
     globalThis.fetch = originalFetch;
   });
 
-  test("sender S triggers ghauth query with (msteams, S); sender T triggers (msteams, T)", async () => {
-    const client = makeGhauthClient(() => ({
+  test("sender S triggers ghuser query with (msteams, S); sender T triggers (msteams, T)", async () => {
+    const client = makeGhuserClient(() => ({
       result: "token",
       token: "ghs_user",
     }));
@@ -107,7 +107,7 @@ describe("msbridge dispatch-auth", () => {
       logger: createMockLogger(),
       tracer: createMockTracer(),
       discussionClient: createMockDiscussionClient(),
-      ghauthClient: client,
+      ghuserClient: client,
       adapter,
     });
     await service.start();
@@ -137,7 +137,7 @@ describe("msbridge dispatch-auth", () => {
   });
 
   test("link_required: channel receives authorize URL, no workflow_dispatch", async () => {
-    const client = makeGhauthClient(() => ({
+    const client = makeGhuserClient(() => ({
       result: "link_required",
       link_required: {
         authorize_url: "https://example.com/authorize?s=msteams",
@@ -150,7 +150,7 @@ describe("msbridge dispatch-auth", () => {
       logger: createMockLogger(),
       tracer: createMockTracer(),
       discussionClient: createMockDiscussionClient(),
-      ghauthClient: client,
+      ghuserClient: client,
       adapter,
     });
     await service.start();
@@ -175,7 +175,7 @@ describe("msbridge dispatch-auth", () => {
   });
 
   test("reauth_required: channel receives re-link prompt, no workflow_dispatch", async () => {
-    const client = makeGhauthClient(() => ({
+    const client = makeGhuserClient(() => ({
       result: "re_auth_required",
       re_auth_required: {},
     }));
@@ -186,7 +186,7 @@ describe("msbridge dispatch-auth", () => {
       logger: createMockLogger(),
       tracer: createMockTracer(),
       discussionClient: createMockDiscussionClient(),
-      ghauthClient: client,
+      ghuserClient: client,
       adapter,
     });
     await service.start();
@@ -209,7 +209,7 @@ describe("msbridge dispatch-auth", () => {
   });
 
   test("transient: channel receives transient error, no workflow_dispatch", async () => {
-    const client = makeGhauthClient(() => {
+    const client = makeGhuserClient(() => {
       throw new Error("UNAVAILABLE");
     });
     const adapter = makeAdapter({
@@ -219,7 +219,7 @@ describe("msbridge dispatch-auth", () => {
       logger: createMockLogger(),
       tracer: createMockTracer(),
       discussionClient: createMockDiscussionClient(),
-      ghauthClient: client,
+      ghuserClient: client,
       adapter,
     });
     await service.start();
@@ -242,7 +242,7 @@ describe("msbridge dispatch-auth", () => {
   });
 
   test("token: workflow_dispatch uses per-user token", async () => {
-    const client = makeGhauthClient(() => ({
+    const client = makeGhuserClient(() => ({
       result: "token",
       token: "ghs_alice_personal",
     }));
@@ -253,7 +253,7 @@ describe("msbridge dispatch-auth", () => {
       logger: createMockLogger(),
       tracer: createMockTracer(),
       discussionClient: createMockDiscussionClient(),
-      ghauthClient: client,
+      ghuserClient: client,
       adapter,
     });
     await service.start();

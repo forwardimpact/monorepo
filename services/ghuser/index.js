@@ -2,16 +2,16 @@ import crypto from "node:crypto";
 import { services } from "@forwardimpact/librpc";
 import { RevokedError } from "./src/github-oauth.js";
 
-const { GhauthBase } = services;
+const { GhuserBase } = services;
 
 const EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const GITHUB_ID_SURFACES = new Set(["github-discussions"]);
 
 /**
  * GitHub user authentication service — Kata Agent User App token lifecycle.
- * @augments GhauthBase
+ * @augments GhuserBase
  */
-export class GhauthService extends GhauthBase {
+export class GhuserService extends GhuserBase {
   #bindings;
   #flows;
   #grants;

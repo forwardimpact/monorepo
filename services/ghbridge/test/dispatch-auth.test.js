@@ -21,7 +21,7 @@ function makeConfig() {
   });
 }
 
-function makeGhauthClient(impl) {
+function makeGhuserClient(impl) {
   const calls = [];
   return {
     calls,
@@ -69,7 +69,7 @@ describe("ghbridge dispatch-auth", () => {
     globalThis.fetch = originalFetch;
   });
 
-  function buildService(ghauthClient) {
+  function buildService(ghuserClient) {
     let commentCounter = 0;
     return new GhBridgeService(makeConfig(), {
       logger: createMockLogger(),
@@ -89,12 +89,12 @@ describe("ghbridge dispatch-auth", () => {
         }
         return {};
       },
-      ghauthClient,
+      ghuserClient,
     });
   }
 
   test("comment by A on discussion by B queries (github-discussions, A)", async () => {
-    const client = makeGhauthClient(() => ({
+    const client = makeGhuserClient(() => ({
       result: "token",
       token: "ghs_user",
     }));
@@ -154,7 +154,7 @@ describe("ghbridge dispatch-auth", () => {
   });
 
   test("top-level discussion by B queries (github-discussions, B)", async () => {
-    const client = makeGhauthClient(() => ({
+    const client = makeGhuserClient(() => ({
       result: "token",
       token: "ghs_user",
     }));
@@ -177,7 +177,7 @@ describe("ghbridge dispatch-auth", () => {
   });
 
   test("link_required: discussion reply with authorize URL, no workflow_dispatch", async () => {
-    const client = makeGhauthClient(() => ({
+    const client = makeGhuserClient(() => ({
       result: "link_required",
       link_required: { authorize_url: "https://example.com/authorize?s=ghd" },
     }));
@@ -208,7 +208,7 @@ describe("ghbridge dispatch-auth", () => {
   });
 
   test("reauth_required: discussion reply with re-link prompt, no workflow_dispatch", async () => {
-    const client = makeGhauthClient(() => ({
+    const client = makeGhuserClient(() => ({
       result: "re_auth_required",
       re_auth_required: {},
     }));
@@ -235,7 +235,7 @@ describe("ghbridge dispatch-auth", () => {
   });
 
   test("transient: discussion reply with transient error, no workflow_dispatch", async () => {
-    const client = makeGhauthClient(() => {
+    const client = makeGhuserClient(() => {
       throw new Error("UNAVAILABLE");
     });
     const service = buildService(client);
@@ -261,7 +261,7 @@ describe("ghbridge dispatch-auth", () => {
   });
 
   test("token: workflow_dispatch uses per-user token", async () => {
-    const client = makeGhauthClient(() => ({
+    const client = makeGhuserClient(() => ({
       result: "token",
       token: "ghs_alice_personal",
     }));

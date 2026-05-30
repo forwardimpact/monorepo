@@ -2,18 +2,18 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { createMockConfig } from "@forwardimpact/libmock";
 import { createMockStorage } from "@forwardimpact/libmock/mock";
-import { GhauthService } from "../index.js";
+import { GhuserService } from "../index.js";
 import { BindingStore, FlowStore, GrantStore } from "../src/stores.js";
 import { RevokedError } from "../src/github-oauth.js";
 
-describe("ghauth query-reauth (SC#6)", () => {
+describe("ghuser query-reauth (SC#6)", () => {
   test("expired token with revoked refresh returns re_auth_required", async () => {
     const storage = createMockStorage();
-    const config = createMockConfig("ghauth", {
+    const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",
     });
     const bindings = new BindingStore(storage);
-    const service = new GhauthService(config, {
+    const service = new GhuserService(config, {
       bindings,
       flows: new FlowStore(storage),
       grants: new GrantStore(storage),
@@ -48,11 +48,11 @@ describe("ghauth query-reauth (SC#6)", () => {
 
   test("expired token with no refresh_token returns re_auth_required", async () => {
     const storage = createMockStorage();
-    const config = createMockConfig("ghauth", {
+    const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",
     });
     const bindings = new BindingStore(storage);
-    const service = new GhauthService(config, {
+    const service = new GhuserService(config, {
       bindings,
       flows: new FlowStore(storage),
       grants: new GrantStore(storage),
@@ -83,11 +83,11 @@ describe("ghauth query-reauth (SC#6)", () => {
 
   test("transient refresh error propagates as error, not re_auth_required", async () => {
     const storage = createMockStorage();
-    const config = createMockConfig("ghauth", {
+    const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",
     });
     const bindings = new BindingStore(storage);
-    const service = new GhauthService(config, {
+    const service = new GhuserService(config, {
       bindings,
       flows: new FlowStore(storage),
       grants: new GrantStore(storage),

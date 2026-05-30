@@ -14,7 +14,7 @@ conversations and the Kata agent team.
   [config-msteams.md § 1–3](../../specs/1200-teams-agent-bridge/config-msteams.md).
 - The **Microsoft Teams channel** must be enabled on the Azure Bot resource
   (Settings → Channels → add Microsoft Teams).
-- The `ghauth` service running and reachable (provides per-user GitHub
+- The `ghuser` service running and reachable (provides per-user GitHub
   tokens for dispatch). Each user who triggers a dispatch must have linked
   their GitHub account through the OAuth flow — the bridge prompts on the
   channel when a link is missing.
@@ -24,7 +24,7 @@ conversations and the Kata agent team.
 | Service | Why |
 | --- | --- |
 | `bridge` | Canonical discussion and origin store (gRPC) |
-| `ghauth` | Per-user GitHub token for `workflow_dispatch` |
+| `ghuser` | Per-user GitHub token for `workflow_dispatch` |
 
 Discussion state is owned by `services/bridge`; the bridge talks to it
 over gRPC and keeps no on-disk discussion state of its own. Operators
@@ -41,7 +41,7 @@ Loaded via `createServiceConfig("msbridge")`:
 | `SERVICE_MSBRIDGE_URL` | Listen URL (default `http://localhost:3010`) |
 | `SERVICE_MSBRIDGE_GITHUB_REPO` | `owner/repo` target |
 | `SERVICE_MSBRIDGE_CALLBACK_BASE_URL` | Public URL the workflow POSTs callbacks to |
-| `SERVICE_GHAUTH_URL` | gRPC address of the ghauth service |
+| `SERVICE_GHUSER_URL` | gRPC address of the ghuser service |
 | `MICROSOFT_APP_ID` | Azure Bot application id |
 | `MICROSOFT_APP_PASSWORD` | Azure Bot client secret |
 | `MICROSOFT_APP_TENANT_ID` | Azure AD tenant id |

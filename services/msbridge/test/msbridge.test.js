@@ -64,7 +64,7 @@ function makeAdapter(overrides = {}) {
   };
 }
 
-function makeGhauthClient(token = "ghs_per_user") {
+function makeGhuserClient(token = "ghs_per_user") {
   return {
     GetToken: async () => ({ result: "token", token }),
   };
@@ -74,13 +74,13 @@ function newService({
   adapter,
   config: configOverrides,
   logger,
-  ghauthClient,
+  ghuserClient,
 } = {}) {
   return new MsBridgeService(makeConfig(configOverrides), {
     logger: logger ?? createMockLogger(),
     tracer: createMockTracer(),
     discussionClient: createStatefulDiscussionClient(),
-    ghauthClient: ghauthClient ?? makeGhauthClient(),
+    ghuserClient: ghuserClient ?? makeGhuserClient(),
     adapter: adapter ?? makeAdapter(),
   });
 }

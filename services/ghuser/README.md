@@ -14,22 +14,22 @@ User App.
   dispatch workflow requires (e.g. `actions:write`).
 - The App's **Client ID** and a generated **Client Secret**.
 
-Configuration (loaded via `createServiceConfig("ghauth")`):
+Configuration (loaded via `createServiceConfig("ghuser")`):
 
 | Env var | Purpose |
 | --- | --- |
-| `SERVICE_GHAUTH_URL` | Listen URL (default `grpc://localhost:3006`) |
-| `SERVICE_GHAUTH_CLIENT_ID` | Kata Agent User App client ID |
-| `SERVICE_GHAUTH_CLIENT_SECRET` | Kata Agent User App client secret |
-| `SERVICE_GHAUTH_LINK_BASE_URL` | Public URL of the `oauth` service (used in `LinkRequired.authorize_url`) |
+| `SERVICE_GHUSER_URL` | Listen URL (default `grpc://localhost:3006`) |
+| `SERVICE_GHUSER_CLIENT_ID` | Kata Agent User App client ID |
+| `SERVICE_GHUSER_CLIENT_SECRET` | Kata Agent User App client secret |
+| `SERVICE_GHUSER_LINK_BASE_URL` | Public URL of the `oauth` service (used in `LinkRequired.authorize_url`) |
 
 ## Running
 
-Add `ghauth` and `oauth` to `config/config.json` under `init.services` —
+Add `ghuser` and `oauth` to `config/config.json` under `init.services` —
 see [`config/CLAUDE.md`](../../config/CLAUDE.md) for the entry format.
 List `oauthtunnel` with the other tunnels (before services) so that
-restarting `ghauth` does not cycle the tunnel (declaration order determines
-restart scope). List `ghauth` before `oauth` (dependency first).
+restarting `ghuser` does not cycle the tunnel (declaration order determines
+restart scope). List `ghuser` before `oauth` (dependency first).
 
 Start both services:
 
@@ -51,16 +51,16 @@ In the App settings (`github.com/settings/apps/<app>`):
 1. Set **Callback URL** to `https://<tunnel-domain>/callback`.
 2. Save changes.
 
-Set `SERVICE_GHAUTH_LINK_BASE_URL` in `.env` to the tunnel domain
+Set `SERVICE_GHUSER_LINK_BASE_URL` in `.env` to the tunnel domain
 (without any path), then restart only the auth services:
 
 ```sh
-bunx fit-rc restart ghauth
+bunx fit-rc restart ghuser
 ```
 
 The tunnel keeps its hostname across service restarts.
 
-Token bindings are persisted as JSONL under `data/ghauth/` via
+Token bindings are persisted as JSONL under `data/ghuser/` via
 `libstorage` (the standard `createStorage` path — no extra env var
 needed).
 
@@ -82,8 +82,8 @@ The flow:
 
 1. Redirects to GitHub to authorize the Kata Agent User App.
 2. GitHub calls back to `/callback` on the `oauth` service.
-3. `ghauth` exchanges the authorization code for a user-to-server token.
-4. The binding is stored in `data/ghauth/bindings.jsonl`.
+3. `ghuser` exchanges the authorization code for a user-to-server token.
+4. The binding is stored in `data/ghuser/bindings.jsonl`.
 5. The browser shows "Linked — Your account has been linked."
 
 Verify the binding via gRPC:
