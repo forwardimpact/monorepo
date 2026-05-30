@@ -41,31 +41,35 @@ flowchart TD
 | `scripts/check-ambient-deps.deny.json`, `bun.lock` | source/derived | deny key `services/ghauth/src/stores.js` → `services/ghuser/src/stores.js`; lockfile workspace entry regenerates on `bun install` |
 | Docs | source | `services/README.md` (regenerated via `bun run context:fix`), `services/ghuser/README.md`, and the three pages from spec criterion 9 — `getting-started/contributors`, `services/bridge-conversations`, `services/bridge-discussions` |
 
-## Storage-namespace migration
+## Storage-namespace clean break
 
-`server.js` calls `createStorage("ghauth")`, rooting durable state at
-`data/ghauth/`: `bindings.jsonl` (the `(surface, surface_user_id)` ↔ token
+> **Superseded during planning/implementation.** This section originally
+> specified a one-shot boot migration to preserve pre-rename bindings. The
+> shipped implementation ([PR #1296](https://github.com/forwardimpact/monorepo/pull/1296))
+> deliberately chose a **clean break** instead; this section now records what
+> shipped, and spec criterion 8 was reversed to match.
+
+`server.js` calls `createStorage("ghuser")`, rooting durable state at
+`data/ghuser/`: `bindings.jsonl` (the `(surface, surface_user_id)` ↔ token
 binding — durable), plus `flows.jsonl` and `grants.jsonl` (10-minute-TTL
-ephemera). Renaming the namespace to `data/ghuser/` would orphan existing
-bindings and force every linked user to re-link — which spec criterion 8
-forbids.
+ephemera). **Nothing reads the legacy `data/ghauth/` path** — there is no
+boot migration, no migration module, and no `migration.test.js`.
 
-**Mechanism: a one-shot, idempotent boot migration.** On start, if the
-`ghuser` binding store is empty/absent and a legacy `data/ghauth/bindings.jsonl`
-exists, the service relocates the binding records into the `ghuser` namespace
-before serving, then proceeds normally. The migration is guarded so a second
-boot is a no-op. `flows`/`grants` are **not** migrated: they self-expire within
-10 minutes, so at worst an auth dance in flight across the single deploy is
-restarted — never a re-link of an established binding. This keeps the
-fallback path bounded and removable, rather than a permanent dual-path read.
+**Consequence.** Bindings written under the pre-rename `data/ghauth/`
+namespace are abandoned; any deployment carrying live bindings loses them at
+cutover and those users must re-link. The ephemeral `flows`/`grants` records
+self-expire within 10 minutes, so at worst an auth dance in flight across the
+cutover is restarted. The clean break was preferred over a migration because
+it leaves no dual-path or fallback code to carry and remove later — the
+post-rename tree reads exactly one namespace.
 
 ## Key decisions
 
 | Decision | Chosen | Rejected | Why |
 |---|---|---|---|
 | Migration extent | One coordinated change: proto+name+package sources edited, codegen regenerated, all consumers updated together | Stage the rename (land an alias, migrate consumers later) | The libtype `ghauth` namespace and `GhauthClient` are generated; once the proto package renames they cease to exist, so there is no intermediate tree state that both builds and is half-renamed. A clean break in one change is the only consistent state. |
-| Binding continuity | One-shot boot migration of `bindings.jsonl` into the new namespace | (a) Permanent read-through fallback to `data/ghauth/`; (b) external ops `mv` only | (a) leaves dual-path code forever — violates clean-break. (b) is untestable from the repo, yet criterion 8 names a migration test; a boot migration is self-contained and verifiable. |
-| Ephemeral stores | Drop `flows`/`grants` at the rename (no migration) | Migrate all three stores | They carry 10-minute TTL records; migrating in-flight auth flows adds code for state that expires within one deploy window. Established bindings are the only continuity the spec requires. |
+| Binding continuity | **Clean break — abandon `data/ghauth/`, no migration** (decided during planning; reverses spec criterion 8) | (a) One-shot boot migration of `bindings.jsonl`; (b) permanent read-through fallback to `data/ghauth/` | Both (a) and (b) add storage-relocation code to carry and later remove for a one-time cutover. The clean break keeps the post-rename tree reading exactly one namespace; affected users re-link, which is acceptable for the current deployment footprint. |
+| Ephemeral stores | Not migrated — `flows`/`grants` left under the old namespace, abandoned with `bindings` | (moot once binding continuity is a clean break) | They carry 10-minute TTL records that self-expire; at worst an in-flight auth dance across cutover is restarted. |
 | Generated artifacts | Regenerate via `just codegen`; never hand-edit `generated/**` | Hand-patch generated files to the new names | Generated files are outputs of the proto + definitions pipeline; hand edits drift from the source and break the next regeneration. |
 | `oauth` provider binding | Move the `provider` default and `SERVICE_OAUTH_PROVIDER` value to `"ghuser"`; `oauth` keeps its name | Treat the `provider` string as a doc reference only | `createClient(config.provider)` resolves the backend definition **by that name**; leaving it `"ghauth"` would resolve a definition that no longer exists. It is a behaviour-bearing value, not prose. |
 | Config acceptance surface | Assert against tracked `.env.*.example` + `config/CLAUDE.md` | Assert against `config/config.json` | The runtime `config/config.json` is gitignored and regenerated at setup; only the documented entry and env examples are tracked and reviewable. |

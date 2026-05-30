@@ -39,10 +39,20 @@ identifiers change. The rename touches the service itself, its published
 package identity, its configuration surface, its generated codegen artifacts,
 its live consumers, and its documentation.
 
-The rename is purely nominal: the OAuth authorization-code exchange, refresh,
-revoke, durable binding storage, and the `GetToken` link/re-auth result
-semantics established by spec 1320 are unchanged. A user who linked their
-GitHub identity before the rename is not forced to re-link after it.
+The rename is purely nominal in **behaviour**: the OAuth authorization-code
+exchange, refresh, revoke, durable binding storage mechanics, and the
+`GetToken` link/re-auth result semantics established by spec 1320 are
+unchanged.
+
+> **Storage is a clean break (decided during planning).** The durable
+> storage namespace moves from `data/ghauth/` to `data/ghuser/` with **no
+> read-back of the old path** — no boot migration. Bindings written under the
+> pre-rename namespace are abandoned, so a user who linked their GitHub
+> identity before the rename **must re-link** after it. Any deployment
+> carrying live `data/ghauth/` bindings loses them at cutover. This reverses
+> the originally-specified continuity guarantee (see § Success criteria #8)
+> and is recorded here to match what shipped in
+> [PR #1296](https://github.com/forwardimpact/monorepo/pull/1296).
 
 ## Scope
 
@@ -56,7 +66,7 @@ GitHub identity before the rename is not forced to re-link after it.
 | gRPC contract names | proto `package ghauth` → `ghuser`, `service Ghauth` → `Ghuser`, file `proto/ghauth.proto` → `proto/ghuser.proto` (RPCs and message shapes unchanged) |
 | Generated codegen | `generated/` artifacts for the service regenerate under the `ghuser` name; no `ghauth` codegen artifact remains |
 | Configuration | env vars `SERVICE_GHAUTH_*` → `SERVICE_GHUSER_*` (`_URL`, `_CLIENT_ID`, `_CLIENT_SECRET`, `_LINK_BASE_URL`) in `.env.*.example`, and the documented `init.services` entry in `config/CLAUDE.md` (service name + `svcghuser` package). The generated runtime `config/config.json` is gitignored and refreshed at setup time — not a tracked acceptance surface. |
-| Persisted storage path | the service storage namespace moves from `data/ghauth/` to `data/ghuser/`; bindings written before the rename must remain resolvable afterward — a real data move, not a nominal change (the migration mechanism is a design/plan concern) |
+| Persisted storage path | the service storage namespace moves from `data/ghauth/` to `data/ghuser/` as a **clean break** — `createStorage("ghuser")` roots state at `data/ghuser/` and nothing reads `data/ghauth/`. Pre-rename bindings are abandoned and affected users re-link; there is no migration (see Proposal and § Success criteria #8) |
 | Live consumers | `services/ghbridge`, `services/msbridge`, and `libraries/libbridge` (token-resolver) reference the renamed service/package/contract; `services/oauth`'s provider binding (its `provider` default value and `SERVICE_OAUTH_PROVIDER`, which resolve the backend client **by name**) moves from `ghauth` to `ghuser`. Consumer-side identifiers move with it — the generated client class (`GhauthClient` → `GhuserClient`) and local symbols (`ghauthClient`). |
 | Policy + lockfile | `scripts/check-ambient-deps.deny.json` (keyed on the service source path) and `bun.lock` (keyed on the package name) move to the renamed values |
 | Documentation | `services/README.md`, `services/ghuser/README.md`, and the `websites/fit/docs/` pages that name the service |
@@ -84,5 +94,5 @@ GitHub identity before the rename is not forced to re-link after it.
 | 5 | Configuration moved on tracked surfaces. | No `SERVICE_GHAUTH_*` key appears in any `.env.*.example` and the corresponding `SERVICE_GHUSER_*` keys are present; the documented `init.services` entry in `config/CLAUDE.md` names `ghuser` and `@forwardimpact/svcghuser` (the gitignored runtime `config/config.json` is refreshed at setup time and is not part of this check) |
 | 6 | Live consumers resolve the renamed service and stay green. | `services/ghbridge`, `services/msbridge`, `services/oauth`, and `libraries/libbridge` reference `ghuser`; `bun run check` and `bun run test` pass |
 | 7 | Behaviour is unchanged. | The migrated spec-1320 acceptance tests pass unchanged under `services/ghuser/test/` — `query-linked`, `query-unlinked`, `query-reauth`, `query-contract`, `persistence`, `identity-verification`, and `smoke` |
-| 8 | A pre-rename link survives. | A binding seeded under the pre-rename storage namespace (`data/ghauth/`) is resolvable via `GetToken` through the renamed service after a fresh start, with no re-link required — `services/ghuser/test/migration.test.js` |
+| 8 | Storage is a clean break — no migration. | `services/ghuser/server.js` calls `createStorage("ghuser")` and never reads `data/ghauth/`; there is no boot migration, no migration module, and no `services/ghuser/test/migration.test.js`. Pre-rename bindings are abandoned and affected users re-link. **(Reverses the original "a pre-rename link survives" criterion — see Proposal.)** |
 | 9 | Documentation names the renamed service. | `services/README.md`, `websites/fit/docs/getting-started/contributors/index.md`, `websites/fit/docs/services/bridge-conversations/index.md`, and `websites/fit/docs/services/bridge-discussions/index.md` reference `ghuser`; none reference `ghauth` |
