@@ -1,0 +1,81 @@
+# Spec Status Tracker
+#
+# Format: {id}	{phase}	{status}
+#
+#   spec	draft			Spec is being written
+#   spec	approved		Human approved — ready for design
+#   design	draft			Design is being written
+#   design	approved		Human approved — ready for planning
+#   plan	draft			Plan is being written
+#   plan	approved		Human approved — ready for implementation
+#   plan	implemented		Implementation complete
+#   {phase}	cancelled		Spec cancelled during {phase} — no further work planned
+#
+# Lifecycle: spec draft → spec approved → design draft → design approved → plan draft → plan approved → plan implemented
+# Any row may transition to {phase} cancelled at any point; cancelled is terminal.
+# One row per spec, updated in place.
+
+010	plan	implemented
+020	plan	implemented
+030	plan	implemented
+040	plan	implemented
+050	plan	implemented
+051	plan	implemented
+052	plan	implemented
+060	plan	implemented
+061	plan	implemented
+062	plan	implemented
+063	plan	implemented
+070	plan	implemented
+080	plan	implemented
+090	plan	implemented
+100	plan	implemented
+110	plan	implemented
+120	plan	implemented
+130	plan	implemented
+140	plan	implemented
+150	plan	implemented
+160	plan	implemented
+170	plan	implemented
+180	plan	implemented
+190	plan	implemented
+200	plan	implemented
+210	plan	implemented
+220	plan	implemented
+230	plan	implemented
+240	plan	implemented
+250	plan	implemented
+260	design	cancelled
+270	plan	implemented
+280	plan	implemented
+290	plan	implemented
+300	plan	implemented
+310	plan	implemented
+320	plan	implemented
+330	plan	implemented
+340	plan	implemented
+350	plan	implemented
+360	plan	implemented
+370	plan	implemented
+380	plan	implemented
+390	plan	implemented
+400	plan	implemented
+410	plan	implemented
+420	plan	implemented
+430	plan	implemented
+440	plan	implemented
+450	plan	implemented
+460	plan	implemented
+470	plan	implemented
+480	plan	draft
+490	plan	implemented
+500	plan	implemented
+510	design	draft
+520	plan	implemented
+530	plan	implemented
+540	plan	implemented
+550	spec	approved
+560	spec	draft
+570	spec	draft
+580	design	draft
+590	spec	draft
