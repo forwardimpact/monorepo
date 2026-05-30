@@ -1,12 +1,13 @@
-import { readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { BROADCAST_TARGET } from "./constants.js";
 
-/** List all agent markdown files in the agents directory, returning agent names and summary paths. */
-export function listAgents(
-  { agentsDir, wikiRoot },
-  fs = { readdirSync, statSync },
-) {
+/**
+ * List all agent markdown files in the agents directory, returning agent names
+ * and summary paths.
+ * @param {{agentsDir: string, wikiRoot: string}} dirs
+ * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
+ */
+export function listAgents({ agentsDir, wikiRoot }, fs) {
   const entries = fs.readdirSync(agentsDir);
   const agents = [];
 

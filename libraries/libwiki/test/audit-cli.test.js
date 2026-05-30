@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { execFileSync } from "node:child_process";
 
-const CLI_PATH = new URL("../bin/fit-wiki.js", import.meta.url).pathname;
+import { runAuditCommand } from "../src/commands/audit.js";
+import { makeRuntime, ctxFor } from "./helpers.js";
+
 const STORYBOARD_AGENTS = [
   "product-manager",
   "release-engineer",
@@ -14,29 +15,7 @@ const STORYBOARD_AGENTS = [
   "technical-writer",
 ];
 
-function run(dir, args, env = {}) {
-  return execFileSync("node", [CLI_PATH, ...args], {
-    cwd: dir,
-    encoding: "utf-8",
-    env: { ...process.env, ...env },
-  });
-}
-
-function runFail(dir, args, env = {}) {
-  try {
-    execFileSync("node", [CLI_PATH, ...args], {
-      cwd: dir,
-      encoding: "utf-8",
-      stdio: "pipe",
-      env: { ...process.env, ...env },
-    });
-    assert.fail("expected non-zero exit");
-  } catch (err) {
-    return { status: err.status, stdout: err.stdout, stderr: err.stderr };
-  }
-}
-
-function seedCleanWiki(wikiRoot, today = "2026-05-24") {
+function seedCleanWiki(wikiRoot) {
   writeFileSync(
     join(wikiRoot, "MEMORY.md"),
     [
@@ -48,13 +27,10 @@ function seedCleanWiki(wikiRoot, today = "2026-05-24") {
       "",
     ].join("\n"),
   );
-  const d = new Date(today);
-  const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
   writeFileSync(
-    join(wikiRoot, `storyboard-${yyyy}-M${mm}.md`),
+    join(wikiRoot, "storyboard-2026-M05.md"),
     [
-      `# Storyboard — ${yyyy}-${mm}`,
+      "# Storyboard — 2026-05",
       "",
       ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
       "",
@@ -62,7 +38,7 @@ function seedCleanWiki(wikiRoot, today = "2026-05-24") {
   );
 }
 
-describe("fit-wiki audit CLI", () => {
+describe("fit-wiki audit CLI (in-process)", () => {
   let dir;
   let wikiRoot;
 
@@ -72,22 +48,27 @@ describe("fit-wiki audit CLI", () => {
     mkdirSync(wikiRoot, { recursive: true });
     writeFileSync(join(dir, "package.json"), '{"name":"root"}');
   });
-
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+  function run(options) {
+    const harness = makeRuntime({ cwd: dir });
+    const result = runAuditCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        options: { today: "2026-05-24", ...options },
+      }),
+    );
+    return { harness, result };
+  }
 
   test("clean wiki: JSON shape and exit 0", () => {
     seedCleanWiki(wikiRoot);
-    const out = run(dir, [
-      "audit",
-      "--today",
-      "2026-05-24",
-      "--format",
-      "json",
-    ]);
-    const result = JSON.parse(out);
-    assert.equal(result.result, "pass");
-    assert.deepEqual(result.failures, []);
-    assert.deepEqual(result.warnings, []);
+    const { harness, result } = run({ format: "json" });
+    assert.equal(result.ok, true);
+    const parsed = JSON.parse(harness.stdout);
+    assert.equal(parsed.result, "pass");
+    assert.deepEqual(parsed.failures, []);
+    assert.deepEqual(parsed.warnings, []);
   });
 
   test("over-budget summary: JSON failure with id, path, exit 1", () => {
@@ -97,17 +78,12 @@ describe("fit-wiki audit CLI", () => {
       join(wikiRoot, "staff-engineer.md"),
       `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${big}\n`,
     );
-    const r = runFail(dir, [
-      "audit",
-      "--today",
-      "2026-05-24",
-      "--format",
-      "json",
-    ]);
-    assert.equal(r.status, 1);
-    const result = JSON.parse(r.stdout);
-    assert.equal(result.result, "fail");
-    const lineBudget = result.failures.find(
+    const { harness, result } = run({ format: "json" });
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 1);
+    const parsed = JSON.parse(harness.stdout);
+    assert.equal(parsed.result, "fail");
+    const lineBudget = parsed.failures.find(
       (f) => f.id === "summary.line-budget",
     );
     assert.ok(lineBudget, "expected a summary.line-budget failure");
@@ -123,11 +99,13 @@ describe("fit-wiki audit CLI", () => {
       join(wikiRoot, "staff-engineer.md"),
       `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${big}\n`,
     );
-    const r = runFail(dir, ["audit", "--today", "2026-05-24"]);
-    assert.equal(r.status, 1);
-    // ESLint-style: relative path header, then indented `error` lines
-    assert.match(r.stdout, /^wiki\/staff-engineer\.md$/m);
-    assert.match(r.stdout, /^ +\d* +error +.+ +summary\.line-budget$/m);
-    assert.match(r.stdout, /^✖ \d+ problems? \(\d+ errors?, \d+ warnings?\)$/m);
+    const { harness, result } = run({});
+    assert.equal(result.code, 1);
+    assert.match(harness.stdout, /^wiki\/staff-engineer\.md$/m);
+    assert.match(harness.stdout, /^ +\d* +error +.+ +summary\.line-budget$/m);
+    assert.match(
+      harness.stdout,
+      /^✖ \d+ problems? \(\d+ errors?, \d+ warnings?\)$/m,
+    );
   });
 });

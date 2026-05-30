@@ -1,5 +1,6 @@
 import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
+import * as nodeFs from "node:fs";
 import {
   mkdtempSync,
   writeFileSync,
@@ -58,7 +59,14 @@ describe("rotateIfOverBudget", () => {
   afterEach(() => rmSync(wikiRoot, { recursive: true, force: true }));
 
   test("no-op when file does not exist", () => {
-    const r = rotateIfOverBudget(wikiRoot, "staff-engineer", "2026-05-19", 0);
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      "staff-engineer",
+      "2026-05-19",
+      0,
+      {},
+      nodeFs,
+    );
     assert.equal(r.rotated, false);
   });
 
@@ -66,7 +74,14 @@ describe("rotateIfOverBudget", () => {
     const filePath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-19");
     const big = "x\n".repeat(WEEKLY_LOG_LINE_BUDGET + 5);
     writeFileSync(filePath, big);
-    const r = rotateIfOverBudget(wikiRoot, "staff-engineer", "2026-05-19", 1);
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      "staff-engineer",
+      "2026-05-19",
+      1,
+      {},
+      nodeFs,
+    );
     assert.equal(r.rotated, true);
     assert.match(r.toPath, /-part1\.md$/);
     assert.equal(existsSync(filePath), true, "fresh file created");
@@ -81,18 +96,32 @@ describe("rotateIfOverBudget", () => {
   test("part numbering increments", () => {
     const filePath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-19");
     writeFileSync(filePath, "x\n".repeat(WEEKLY_LOG_LINE_BUDGET + 5));
-    rotateIfOverBudget(wikiRoot, "staff-engineer", "2026-05-19", 1);
+    rotateIfOverBudget(wikiRoot, "staff-engineer", "2026-05-19", 1, {}, nodeFs);
     writeFileSync(filePath, "x\n".repeat(WEEKLY_LOG_LINE_BUDGET + 5));
-    const r2 = rotateIfOverBudget(wikiRoot, "staff-engineer", "2026-05-19", 1);
+    const r2 = rotateIfOverBudget(
+      wikiRoot,
+      "staff-engineer",
+      "2026-05-19",
+      1,
+      {},
+      nodeFs,
+    );
     assert.match(r2.toPath, /-part2\.md$/);
   });
 
   test("force rotates even when under budget", () => {
     const filePath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-19");
     writeFileSync(filePath, "small\n");
-    const r = rotateIfOverBudget(wikiRoot, "staff-engineer", "2026-05-19", 0, {
-      force: true,
-    });
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      "staff-engineer",
+      "2026-05-19",
+      0,
+      {
+        force: true,
+      },
+      nodeFs,
+    );
     assert.equal(r.rotated, true);
   });
 });
@@ -111,6 +140,7 @@ describe("appendEntry", () => {
       "## 2026-05-19\n\n### Decision\nbody",
       "staff-engineer",
       "2026-05-19",
+      nodeFs,
     );
     const content = readFileSync(filePath, "utf-8");
     assert.match(content, /^# Staff Engineer — 2026-W21/);

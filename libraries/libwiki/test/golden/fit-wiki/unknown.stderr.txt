@@ -1,0 +1,1 @@
+fit-wiki: error: unknown command "bogus"

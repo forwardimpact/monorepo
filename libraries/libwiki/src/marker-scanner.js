@@ -12,10 +12,8 @@ function openLabel(open) {
   return open.kind === "xmr" ? open.metric : open.topic;
 }
 
-function warnDangling(open) {
-  process.stderr.write(
-    `dangling-marker ${openLabel(open)} at line ${open.openLine + 1}\n`,
-  );
+function warnDangling(open, warn) {
+  warn(`dangling-marker ${openLabel(open)} at line ${open.openLine + 1}\n`);
 }
 
 function tryOpen(line, i) {
@@ -68,8 +66,15 @@ function matchClose(line, open) {
   return Boolean(m && open.kind === "issue-list" && open.topic === m[1]);
 }
 
-/** Scan text for paired marker blocks (xmr or issue-list). Returns positions and metadata. */
-export function scanMarkers(text) {
+/**
+ * Scan text for paired marker blocks (xmr or issue-list). Returns positions and
+ * metadata. Dangling open markers are reported through the injected `warn`
+ * callback (default: discard) instead of writing to the process directly.
+ * @param {string} text - The storyboard text to scan.
+ * @param {{warn?: (message: string) => void}} [options]
+ * @returns {Array<object>} The paired marker blocks.
+ */
+export function scanMarkers(text, { warn = () => {} } = {}) {
   const lines = text.split("\n");
   const pairs = [];
   let open = null;
@@ -78,7 +83,7 @@ export function scanMarkers(text) {
     const line = lines[i];
     const newOpen = tryOpen(line, i);
     if (newOpen) {
-      if (open) warnDangling(open);
+      if (open) warnDangling(open, warn);
       open = newOpen;
       continue;
     }
@@ -88,7 +93,7 @@ export function scanMarkers(text) {
     }
   }
 
-  if (open) warnDangling(open);
+  if (open) warnDangling(open, warn);
 
   return pairs;
 }

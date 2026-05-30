@@ -1,26 +1,27 @@
-import fsAsync from "node:fs/promises";
 import path from "node:path";
 import {
-  Finder,
   emitFindingsJson,
   emitFindingsText,
   runRules,
 } from "@forwardimpact/libutil";
 import { RULES } from "../audit/rules.js";
 import { buildContext, resolveScope } from "../audit/scopes.js";
+import { currentDayIso } from "../util/clock.js";
+import { resolveProjectRoot } from "../util/wiki-dir.js";
 
 /** Run the wiki audit and emit findings. JSON via --format json. */
-export function runAuditCommand(values, _args, _cli) {
-  const finder = new Finder(fsAsync, { debug() {} }, process);
-  const projectRoot = finder.findProjectRoot(process.cwd());
-  const wikiRoot = values["wiki-root"] || path.join(projectRoot, "wiki");
-  const today = values.today || new Date().toISOString().slice(0, 10);
+export function runAuditCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const options = ctx.options;
+  const projectRoot = resolveProjectRoot(runtime);
+  const wikiRoot = options["wiki-root"] || path.join(projectRoot, "wiki");
+  const today = options.today || currentDayIso(runtime);
 
-  const ctx = buildContext({ wikiRoot, today });
-  const findings = runRules(RULES, ctx, { resolveScope });
+  const auditCtx = buildContext({ wikiRoot, today, fs: runtime.fsSync });
+  const findings = runRules(RULES, auditCtx, { resolveScope });
 
-  process.stdout.write(
-    values.format === "json"
+  runtime.proc.stdout.write(
+    options.format === "json"
       ? emitFindingsJson(findings)
       : emitFindingsText(findings, {
           cwd: projectRoot,
@@ -28,5 +29,6 @@ export function runAuditCommand(values, _args, _cli) {
         }),
   );
 
-  if (findings.some((f) => f.level === "fail")) process.exit(1);
+  if (findings.some((f) => f.level === "fail")) return { ok: false, code: 1 };
+  return { ok: true };
 }

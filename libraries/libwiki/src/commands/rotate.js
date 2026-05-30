@@ -1,25 +1,36 @@
-import fsAsync from "node:fs/promises";
-import path from "node:path";
-import { Finder } from "@forwardimpact/libutil";
 import { rotateIfOverBudget } from "../weekly-log.js";
+import { currentDayIso } from "../util/clock.js";
+import { resolveWikiRoot } from "../util/wiki-dir.js";
 
 /** Force-rotate the current weekly log to a sealed part file. */
-export function runRotateCommand(values, _args, cli) {
-  const agent = values.agent || process.env.LIBEVAL_AGENT_PROFILE;
+export function runRotateCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const options = ctx.options;
+  const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
-    cli.usageError("rotate requires --agent or LIBEVAL_AGENT_PROFILE");
-    process.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "rotate requires --agent or LIBEVAL_AGENT_PROFILE",
+    };
   }
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, process);
-  const projectRoot = finder.findProjectRoot(process.cwd());
-  const wikiRoot = values["wiki-root"] || path.join(projectRoot, "wiki");
-  const today = values.today || new Date().toISOString().slice(0, 10);
+  const wikiRoot = resolveWikiRoot(runtime, options);
+  const today = options.today || currentDayIso(runtime);
 
-  const result = rotateIfOverBudget(wikiRoot, agent, today, 0, { force: true });
+  const result = rotateIfOverBudget(
+    wikiRoot,
+    agent,
+    today,
+    0,
+    { force: true },
+    runtime.fsSync,
+  );
   if (result.rotated) {
-    process.stdout.write(`rotated ${result.fromPath} → ${result.toPath}\n`);
+    runtime.proc.stdout.write(
+      `rotated ${result.fromPath} → ${result.toPath}\n`,
+    );
   } else {
-    process.stdout.write(`no rotation needed for ${agent}\n`);
+    runtime.proc.stdout.write(`no rotation needed for ${agent}\n`);
   }
+  return { ok: true };
 }

@@ -1,26 +1,20 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import fsAsync from "node:fs/promises";
 import path from "node:path";
-import { Finder } from "@forwardimpact/libutil";
 import {
   MEMO_INBOX_MARKER,
   PRIORITY_INDEX_HEADING,
   PRIORITY_INDEX_TABLE_HEADER,
 } from "../constants.js";
+import { currentDayIso } from "../util/clock.js";
+import { resolveWikiRoot } from "../util/wiki-dir.js";
 
-function projectRoot() {
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, process);
-  return finder.findProjectRoot(process.cwd());
-}
-
-function paths(values) {
-  const root = projectRoot();
-  const wikiRoot = values["wiki-root"] || path.join(root, "wiki");
-  const agent = values.agent || process.env.LIBEVAL_AGENT_PROFILE;
+function paths(runtime, options) {
+  const wikiRoot = resolveWikiRoot(runtime, options);
+  const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
-    process.stderr.write("inbox requires --agent or LIBEVAL_AGENT_PROFILE\n");
-    process.exit(2);
+    runtime.proc.stderr.write(
+      "inbox requires --agent or LIBEVAL_AGENT_PROFILE\n",
+    );
+    return { error: { ok: false, code: 2 } };
   }
   return {
     summaryPath: path.join(wikiRoot, `${agent}.md`),
@@ -53,33 +47,39 @@ function removeBulletAt(lines, idx) {
   return lines;
 }
 
-function listCmd(values) {
-  const { summaryPath } = paths(values);
-  if (!existsSync(summaryPath)) {
-    process.stdout.write(JSON.stringify({ bullets: [] }) + "\n");
-    return;
+function listCmd(runtime, options) {
+  const p = paths(runtime, options);
+  if (p.error) return p.error;
+  const { summaryPath } = p;
+  if (!runtime.fsSync.existsSync(summaryPath)) {
+    runtime.proc.stdout.write(JSON.stringify({ bullets: [] }) + "\n");
+    return { ok: true };
   }
-  const text = readFileSync(summaryPath, "utf-8");
+  const text = runtime.fsSync.readFileSync(summaryPath, "utf-8");
   const { bullets } = readInboxBullets(text);
-  process.stdout.write(JSON.stringify({ bullets }, null, 2) + "\n");
+  runtime.proc.stdout.write(JSON.stringify({ bullets }, null, 2) + "\n");
+  return { ok: true };
 }
 
-function ackOrDropCmd(values, _kind) {
-  const { summaryPath } = paths(values);
-  const idx = Number.parseInt(values.index ?? "", 10);
+function ackOrDropCmd(runtime, options) {
+  const p = paths(runtime, options);
+  if (p.error) return p.error;
+  const { summaryPath } = p;
+  const idx = Number.parseInt(options.index ?? "", 10);
   if (!Number.isInteger(idx) || idx < 0) {
-    process.stderr.write("inbox requires --index <n>\n");
-    process.exit(2);
+    runtime.proc.stderr.write("inbox requires --index <n>\n");
+    return { ok: false, code: 2 };
   }
-  const text = readFileSync(summaryPath, "utf-8");
+  const text = runtime.fsSync.readFileSync(summaryPath, "utf-8");
   const { lines, bulletIdxs } = readInboxBullets(text);
   if (idx >= bulletIdxs.length) {
-    process.stderr.write(`no bullet at index ${idx}\n`);
-    process.exit(2);
+    runtime.proc.stderr.write(`no bullet at index ${idx}\n`);
+    return { ok: false, code: 2 };
   }
   removeBulletAt(lines, bulletIdxs[idx]);
-  writeFileSync(summaryPath, lines.join("\n"));
-  process.stdout.write(`removed inbox bullet ${idx}\n`);
+  runtime.fsSync.writeFileSync(summaryPath, lines.join("\n"));
+  runtime.proc.stdout.write(`removed inbox bullet ${idx}\n`);
+  return { ok: true };
 }
 
 function appendPriorityRow(memoryText, { item, agents, owner, status, added }) {
@@ -128,28 +128,30 @@ function appendPriorityRow(memoryText, { item, agents, owner, status, added }) {
   return lines.join("\n");
 }
 
-function promoteCmd(values) {
-  const { summaryPath, memoryPath, agent } = paths(values);
-  const idx = Number.parseInt(values.index ?? "", 10);
+function promoteCmd(runtime, options) {
+  const p = paths(runtime, options);
+  if (p.error) return p.error;
+  const { summaryPath, memoryPath, agent } = p;
+  const idx = Number.parseInt(options.index ?? "", 10);
   if (!Number.isInteger(idx) || idx < 0) {
-    process.stderr.write("inbox promote requires --index <n>\n");
-    process.exit(2);
+    runtime.proc.stderr.write("inbox promote requires --index <n>\n");
+    return { ok: false, code: 2 };
   }
-  const text = readFileSync(summaryPath, "utf-8");
+  const text = runtime.fsSync.readFileSync(summaryPath, "utf-8");
   const { lines, bullets, bulletIdxs } = readInboxBullets(text);
   if (idx >= bullets.length) {
-    process.stderr.write(`no bullet at index ${idx}\n`);
-    process.exit(2);
+    runtime.proc.stderr.write(`no bullet at index ${idx}\n`);
+    return { ok: false, code: 2 };
   }
   const bulletText = bullets[idx].replace(/^[-*]\s+/, "");
   removeBulletAt(lines, bulletIdxs[idx]);
-  writeFileSync(summaryPath, lines.join("\n"));
+  runtime.fsSync.writeFileSync(summaryPath, lines.join("\n"));
 
-  const memText = existsSync(memoryPath)
-    ? readFileSync(memoryPath, "utf-8")
+  const memText = runtime.fsSync.existsSync(memoryPath)
+    ? runtime.fsSync.readFileSync(memoryPath, "utf-8")
     : "";
-  const today = values.today || new Date().toISOString().slice(0, 10);
-  const owner = values.owner || agent;
+  const today = options.today || currentDayIso(runtime);
+  const owner = options.owner || agent;
   const promoted = appendPriorityRow(memText, {
     item: bulletText,
     agents: agent,
@@ -157,24 +159,29 @@ function promoteCmd(values) {
     status: "active",
     added: today,
   });
-  writeFileSync(memoryPath, promoted);
-  process.stdout.write(`promoted inbox bullet ${idx} to priorities\n`);
+  runtime.fsSync.writeFileSync(memoryPath, promoted);
+  runtime.proc.stdout.write(`promoted inbox bullet ${idx} to priorities\n`);
+  return { ok: true };
 }
 
 const SUBS = {
   list: listCmd,
-  ack: (v) => ackOrDropCmd(v, "ack"),
-  drop: (v) => ackOrDropCmd(v, "drop"),
+  ack: ackOrDropCmd,
+  drop: ackOrDropCmd,
   promote: promoteCmd,
 };
 
 /** Dispatch `inbox {list|ack|promote|drop}` to the matching sub-handler. */
-export function runInboxCommand(values, args, cli) {
-  const sub = args[0];
+export function runInboxCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const sub = ctx.args.subcommand;
   const handler = SUBS[sub];
   if (!handler) {
-    cli.usageError("inbox requires subcommand: list | ack | promote | drop");
-    process.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "inbox requires subcommand: list | ack | promote | drop",
+    };
   }
-  handler(values);
+  return handler(runtime, ctx.options);
 }

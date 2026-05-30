@@ -1,9 +1,5 @@
 [
   "libraries/libeval/test/selfedit.test.js",
-  "libraries/libwiki/test/audit-cli.test.js",
-  "libraries/libwiki/test/cli-boot.test.js",
-  "libraries/libwiki/test/cli-fix.test.js",
-  "libraries/libwiki/test/cli-memo.test.js",
   "libraries/libxmr/test/record.test.js",
   "libraries/libxmr/test/summarize.test.js",
   "products/landmark/test/dispatcher.test.js",

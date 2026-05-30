@@ -1,5 +1,6 @@
 import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
+import * as nodeFs from "node:fs";
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -114,7 +115,9 @@ describe("runRules", () => {
   };
 
   const audit = (today = "2026-05-24") =>
-    runRules(RULES, buildContext({ wikiRoot: wiki, today }), { resolveScope });
+    runRules(RULES, buildContext({ wikiRoot: wiki, today, fs: nodeFs }), {
+      resolveScope,
+    });
 
   const idsOf = (findings) => findings.map((f) => f.id);
 

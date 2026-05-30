@@ -1,31 +1,22 @@
-import { existsSync, readFileSync } from "node:fs";
-import fsAsync from "node:fs/promises";
-import path from "node:path";
-import { Finder } from "@forwardimpact/libutil";
 import {
   weeklyLogPath,
   rotateIfOverBudget,
   appendEntry,
 } from "../weekly-log.js";
 import { DECISION_HEADING } from "../constants.js";
-import { createDefaultIo } from "../io.js";
+import { currentDayIso } from "../util/clock.js";
+import { resolveWikiRoot } from "../util/wiki-dir.js";
 
-function projectRootForCommand(io) {
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, { cwd: io.cwd });
-  return finder.findProjectRoot(io.cwd());
-}
-
-function commonContext(values, io) {
-  const agent = values.agent || io.env.LIBEVAL_AGENT_PROFILE;
+function commonContext(runtime, options) {
+  const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
-    io.stderr("log requires --agent <name> or LIBEVAL_AGENT_PROFILE env var\n");
-    io.exit(2);
-    return null;
+    runtime.proc.stderr.write(
+      "log requires --agent <name> or LIBEVAL_AGENT_PROFILE env var\n",
+    );
+    return { error: { ok: false, code: 2 } };
   }
-  const projectRoot = projectRootForCommand(io);
-  const wikiRoot = values["wiki-root"] || path.join(projectRoot, "wiki");
-  const today = values.today || io.today();
+  const wikiRoot = resolveWikiRoot(runtime, options);
+  const today = options.today || currentDayIso(runtime);
   return { agent, wikiRoot, today };
 }
 
@@ -39,14 +30,14 @@ function lastDateHeading(text) {
   return last;
 }
 
-function runDecision(values, io) {
-  const ctx = commonContext(values, io);
-  if (!ctx) return;
+function runDecision(runtime, options) {
+  const ctx = commonContext(runtime, options);
+  if (ctx.error) return ctx.error;
   const { agent, wikiRoot, today } = ctx;
-  const surveyed = values.surveyed || "—";
-  const chosen = values.chosen || "—";
-  const rationale = values.rationale || "—";
-  const alternatives = values.alternatives || "—";
+  const surveyed = options.surveyed || "—";
+  const chosen = options.chosen || "—";
+  const rationale = options.rationale || "—";
+  const alternatives = options.alternatives || "—";
   const body = [
     `## ${today}`,
     "",
@@ -62,55 +53,70 @@ function runDecision(values, io) {
     "",
   ].join("\n");
   const lineCount = body.split("\n").length;
-  rotateIfOverBudget(wikiRoot, agent, today, lineCount);
+  rotateIfOverBudget(wikiRoot, agent, today, lineCount, {}, runtime.fsSync);
   const target = weeklyLogPath(wikiRoot, agent, today);
-  appendEntry(target, body, agent, today);
-  io.stdout(`logged decision to ${target}\n`);
+  appendEntry(target, body, agent, today, runtime.fsSync);
+  runtime.proc.stdout.write(`logged decision to ${target}\n`);
+  return { ok: true };
 }
 
-function runNote(values, io) {
-  const ctx = commonContext(values, io);
-  if (!ctx) return;
+function runNote(runtime, options) {
+  const ctx = commonContext(runtime, options);
+  if (ctx.error) return ctx.error;
   const { agent, wikiRoot, today } = ctx;
-  if (!values.field || !values.body) {
-    io.stderr("log note requires --field and --body\n");
-    io.exit(2);
-    return;
+  if (!options.field || !options.body) {
+    runtime.proc.stderr.write("log note requires --field and --body\n");
+    return { ok: false, code: 2 };
   }
-  const fieldBlock = `### ${values.field}\n\n${values.body}\n`;
+  const fieldBlock = `### ${options.field}\n\n${options.body}\n`;
   // Conservative line budget: assume we'll prepend a date heading.
   const withHeading = `## ${today}\n\n${fieldBlock}`;
-  rotateIfOverBudget(wikiRoot, agent, today, withHeading.split("\n").length);
+  rotateIfOverBudget(
+    wikiRoot,
+    agent,
+    today,
+    withHeading.split("\n").length,
+    {},
+    runtime.fsSync,
+  );
   const target = weeklyLogPath(wikiRoot, agent, today);
   // Append under the open entry if the file's last `## YYYY-MM-DD` is today;
   // otherwise open a new entry by prepending a date heading.
-  const existing = existsSync(target) ? readFileSync(target, "utf-8") : "";
+  const existing = runtime.fsSync.existsSync(target)
+    ? runtime.fsSync.readFileSync(target, "utf-8")
+    : "";
   const body = lastDateHeading(existing) === today ? fieldBlock : withHeading;
-  appendEntry(target, body, agent, today);
-  io.stdout(`logged note to ${target}\n`);
+  appendEntry(target, body, agent, today, runtime.fsSync);
+  runtime.proc.stdout.write(`logged note to ${target}\n`);
+  return { ok: true };
 }
 
-function runDone(values, io) {
-  const ctx = commonContext(values, io);
-  if (!ctx) return;
+function runDone(runtime, options) {
+  const ctx = commonContext(runtime, options);
+  if (ctx.error) return ctx.error;
   const { agent, wikiRoot, today } = ctx;
   const body = `### Closed\n\nRun closed ${today}.\n`;
   const lineCount = body.split("\n").length;
-  rotateIfOverBudget(wikiRoot, agent, today, lineCount);
+  rotateIfOverBudget(wikiRoot, agent, today, lineCount, {}, runtime.fsSync);
   const target = weeklyLogPath(wikiRoot, agent, today);
-  appendEntry(target, body, agent, today);
-  io.stdout(`closed entry in ${target}\n`);
+  appendEntry(target, body, agent, today, runtime.fsSync);
+  runtime.proc.stdout.write(`closed entry in ${target}\n`);
+  return { ok: true };
 }
 
 const SUBS = { decision: runDecision, note: runNote, done: runDone };
 
 /** Dispatch `log {decision|note|done}` to the matching sub-handler. */
-export function runLogCommand(values, args, cli, io = createDefaultIo()) {
-  const sub = args[0];
+export function runLogCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const sub = ctx.args.subcommand;
   const handler = SUBS[sub];
   if (!handler) {
-    cli.usageError("log requires subcommand: decision | note | done");
-    return io.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "log requires subcommand: decision | note | done",
+    };
   }
-  handler(values, io);
+  return handler(runtime, ctx.options);
 }

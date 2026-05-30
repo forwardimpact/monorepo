@@ -11,103 +11,80 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 import { runClaimCommand, runReleaseCommand } from "../src/commands/claim.js";
-import { createTestIo, runWithIo } from "../src/io.js";
-import { WikiRepo } from "../src/wiki-repo.js";
-import { git, createBareRepo, seedBareRepo, cloneRepo } from "./helpers.js";
+import { makeRuntime, ctxFor } from "./helpers.js";
 
-function makeCli() {
-  return {
-    errors: [],
-    usageError(message) {
-      this.errors.push(message);
-    },
-  };
-}
+const EMPTY_CLAIMS =
+  "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| *None* | — | — | — | — | — |\n";
 
-describe("fit-wiki claim/release CLI", () => {
+describe("fit-wiki claim/release CLI (in-process)", () => {
   let dir;
   let wikiRoot;
   let memoryPath;
-  let cli;
-  let io;
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "claim-cli-"));
     wikiRoot = join(dir, "wiki");
     mkdirSync(wikiRoot, { recursive: true });
-    writeFileSync(join(dir, "package.json"), '{"name":"root"}');
     memoryPath = join(wikiRoot, "MEMORY.md");
-    writeFileSync(
-      memoryPath,
-      "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| *None* | — | — | — | — | — |\n",
-    );
-    cli = makeCli();
-    io = createTestIo({ cwd: () => dir });
+    writeFileSync(memoryPath, EMPTY_CLAIMS);
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
+  function ctx(options) {
+    const harness = makeRuntime({ cwd: dir });
+    return {
+      harness,
+      ctx: ctxFor({
+        runtime: harness.runtime,
+        options: { "wiki-root": wikiRoot, ...options },
+      }),
+    };
+  }
+
   test("claim inserts a row", async () => {
-    await runWithIo(() =>
-      runClaimCommand(
-        {
-          agent: "staff-engineer",
-          target: "spec-NNNN",
-          branch: "feat/x",
-          today: "2026-05-19",
-        },
-        [],
-        cli,
-        io,
-        null,
-      ),
+    const { ctx: c } = ctx({
+      agent: "staff-engineer",
+      target: "spec-NNNN",
+      branch: "feat/x",
+      today: "2026-05-19",
+    });
+    const result = await runClaimCommand(c);
+    assert.equal(result.ok, true);
+    assert.match(
+      readFileSync(memoryPath, "utf-8"),
+      /staff-engineer \| spec-NNNN \| feat\/x/,
     );
-    const text = readFileSync(memoryPath, "utf-8");
-    assert.match(text, /staff-engineer \| spec-NNNN \| feat\/x/);
-    assert.equal(io.exitCode, null);
   });
 
   test("claim refuses duplicates with exit 2", async () => {
-    await runWithIo(() =>
-      runClaimCommand(
-        { agent: "staff-engineer", target: "spec-NNNN", branch: "feat/x" },
-        [],
-        cli,
-        io,
-        null,
-      ),
-    );
-    await runWithIo(() =>
-      runClaimCommand(
-        { agent: "staff-engineer", target: "spec-NNNN", branch: "feat/y" },
-        [],
-        cli,
-        io,
-        null,
-      ),
-    );
-    assert.equal(io.exitCode, 2);
+    const first = ctx({
+      agent: "staff-engineer",
+      target: "spec-NNNN",
+      branch: "feat/x",
+    });
+    await runClaimCommand(first.ctx);
+    const second = ctx({
+      agent: "staff-engineer",
+      target: "spec-NNNN",
+      branch: "feat/y",
+    });
+    const result = await runClaimCommand(second.ctx);
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(second.harness.stderr, /claim already exists/);
   });
 
   test("release removes a row", async () => {
-    await runWithIo(() =>
-      runClaimCommand(
-        { agent: "staff-engineer", target: "spec-NNNN", branch: "feat/x" },
-        [],
-        cli,
-        io,
-        null,
-      ),
+    await runClaimCommand(
+      ctx({ agent: "staff-engineer", target: "spec-NNNN", branch: "feat/x" })
+        .ctx,
     );
-    await runWithIo(() =>
-      runReleaseCommand(
-        { agent: "staff-engineer", target: "spec-NNNN" },
-        [],
-        cli,
-        io,
-        null,
-      ),
+    await runReleaseCommand(
+      ctx({ agent: "staff-engineer", target: "spec-NNNN" }).ctx,
     );
-    const text = readFileSync(memoryPath, "utf-8");
-    assert.doesNotMatch(text, /staff-engineer \| spec-NNNN/);
+    assert.doesNotMatch(
+      readFileSync(memoryPath, "utf-8"),
+      /staff-engineer \| spec-NNNN/,
+    );
   });
 
   test("release --expired clears expired rows", async () => {
@@ -115,115 +92,47 @@ describe("fit-wiki claim/release CLI", () => {
       memoryPath,
       "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| staff-engineer | old | feat/o | — | 2026-04-01 | 2026-04-08 |\n| staff-engineer | new | feat/n | — | 2026-05-19 | 2026-05-26 |\n",
     );
-    await runWithIo(() =>
-      runReleaseCommand(
-        { expired: true, today: "2026-05-19" },
-        [],
-        cli,
-        io,
-        null,
-      ),
-    );
+    await runReleaseCommand(ctx({ expired: true, today: "2026-05-19" }).ctx);
     const text = readFileSync(memoryPath, "utf-8");
     assert.doesNotMatch(text, /\| old \|/);
     assert.match(text, /\| new \|/);
   });
-});
 
-describe("claim/release push integration", () => {
-  let bare;
-  let parent;
-  let wikiDir;
-  let memPath;
-  let cli;
-  let io;
-
-  beforeEach(() => {
-    bare = createBareRepo();
-    seedBareRepo(bare);
-    ({ parent, wikiDir } = cloneRepo(bare, "claim-push"));
-    git(wikiDir, "checkout", "master");
-    memPath = join(wikiDir, "MEMORY.md");
-    writeFileSync(
-      memPath,
-      "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| *None* | — | — | — | — | — |\n",
-    );
-    writeFileSync(join(parent, "package.json"), '{"name":"root"}');
-    cli = makeCli();
-    io = createTestIo({ cwd: () => parent });
-  });
-
-  function repoFactory(_values, _cwd) {
-    return new WikiRepo({
-      wikiDir,
-      parentDir: parent,
-      resolveToken: () => null,
+  test("claim missing --agent returns a usage envelope", async () => {
+    const result = await runClaimCommand(ctx({ target: "x", branch: "b" }).ctx);
+    assert.deepEqual(result, {
+      ok: false,
+      code: 2,
+      error: "claim requires --agent or LIBEVAL_AGENT_PROFILE",
     });
-  }
-
-  test("claim pushes to remote", async () => {
-    await runWithIo(() =>
-      runClaimCommand(
-        {
-          agent: "staff-engineer",
-          target: "spec-NNNN",
-          branch: "feat/x",
-          today: "2099-01-01",
-        },
-        [],
-        cli,
-        io,
-        repoFactory,
-      ),
-    );
-
-    assert.match(io.out, /push: committed and pushed/);
-    const log = git(bare, "log", "--oneline", "-1", "master");
-    assert.match(log, /wiki: claim spec-NNNN/);
   });
 
-  test("claim succeeds locally when push fails", async () => {
-    const failingFactory = async () => {
-      throw new Error("network down");
+  test("claim succeeds locally when the wiki push fails", async () => {
+    const harness = makeRuntime({ cwd: dir });
+    const wikiSync = {
+      async inheritIdentity() {},
+      async commitAndPush() {
+        throw new Error("network down");
+      },
     };
-    await runWithIo(() =>
-      runClaimCommand(
-        {
+    const result = await runClaimCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiRoot,
           agent: "staff-engineer",
           target: "spec-NNNN",
           branch: "feat/x",
           today: "2099-01-01",
         },
-        [],
-        cli,
-        io,
-        failingFactory,
-      ),
+      }),
     );
-
-    assert.equal(io.exitCode, null);
-    const text = readFileSync(memPath, "utf-8");
-    assert.match(text, /staff-engineer \| spec-NNNN/);
-    assert.match(io.err, /push failed.*network down/);
-  });
-
-  test("release pushes to remote", async () => {
-    writeFileSync(
-      memPath,
-      "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| staff-engineer | spec-NNNN | feat/x | — | 2099-01-01 | 2099-01-08 |\n",
+    assert.equal(result.ok, true);
+    assert.match(
+      readFileSync(memoryPath, "utf-8"),
+      /staff-engineer \| spec-NNNN/,
     );
-    await runWithIo(() =>
-      runReleaseCommand(
-        { agent: "staff-engineer", target: "spec-NNNN" },
-        [],
-        cli,
-        io,
-        repoFactory,
-      ),
-    );
-
-    assert.match(io.out, /push: committed and pushed/);
-    const log = git(bare, "log", "--oneline", "-1", "master");
-    assert.match(log, /wiki: release spec-NNNN/);
+    assert.match(harness.stderr, /push failed.*network down/);
   });
 });

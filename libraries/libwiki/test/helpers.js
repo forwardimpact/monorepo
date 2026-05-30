@@ -1,7 +1,82 @@
+import nodeFsSync from "node:fs";
+import nodeFs from "node:fs/promises";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
+import {
+  Finder,
+  createDefaultClock,
+  createDefaultSubprocess,
+} from "@forwardimpact/libutil";
+
+/**
+ * Build a real-filesystem `runtime` for in-process command tests: real fs and
+ * subprocess, a `proc` whose `cwd()`/`env` are test-controlled and whose
+ * stdout/stderr are captured, and a real `Finder`. Returns the runtime plus
+ * `stdout`/`stderr` getters over the captured output.
+ *
+ * @param {object} [options]
+ * @param {string} [options.cwd] - Working directory `proc.cwd()` returns.
+ * @param {Record<string,string>} [options.env] - The `proc.env` backing map.
+ * @param {number} [options.now] - Fixed clock time in ms (defaults to real clock).
+ * @returns {{runtime: object, stdout: string, stderr: string}}
+ */
+export function makeRuntime({ cwd = process.cwd(), env = {}, now } = {}) {
+  const out = [];
+  const err = [];
+  const proc = {
+    cwd: () => cwd,
+    env: { ...env },
+    argv: Object.freeze([]),
+    stdout: { write: (s) => out.push(String(s)) },
+    stderr: { write: (s) => err.push(String(s)) },
+    exit: () => {},
+    exitCode: 0,
+  };
+  const clock =
+    now != null
+      ? {
+          now: () => now,
+          sleep: async () => {},
+          setTimeout: (fn, ms) => setTimeout(fn, ms),
+          clearTimeout: (h) => clearTimeout(h),
+        }
+      : createDefaultClock();
+  const runtime = Object.freeze({
+    fs: nodeFs,
+    fsSync: nodeFsSync,
+    proc,
+    clock,
+    subprocess: createDefaultSubprocess(),
+    finder: new Finder({ fs: nodeFs, fsSync: nodeFsSync, proc }),
+  });
+  return {
+    runtime,
+    get stdout() {
+      return out.join("");
+    },
+    get stderr() {
+      return err.join("");
+    },
+  };
+}
+
+/**
+ * Assemble an `InvocationContext`-shaped object for invoking a command handler
+ * directly in-process (without going through `cli.dispatch`).
+ * @param {{runtime: object, wikiSync?: object, gitClient?: object, options?: object, args?: object}} parts
+ * @returns {object}
+ */
+export function ctxFor({
+  runtime,
+  wikiSync,
+  gitClient,
+  options = {},
+  args = {},
+}) {
+  return { deps: { runtime, wikiSync, gitClient }, options, args };
+}
 
 /** Run a git command in the given directory and return its trimmed stdout. */
 export function git(dir, ...args) {

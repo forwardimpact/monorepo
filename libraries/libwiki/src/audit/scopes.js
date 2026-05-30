@@ -1,5 +1,5 @@
-import { readFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims } from "../active-claims.js";
 import { PRIORITY_INDEX_HEADING } from "../constants.js";
 
@@ -20,9 +20,10 @@ const NON_SUMMARY_PREFIXES = [
   "fit-trace-",
 ];
 
-function listMdFiles(wikiRoot) {
-  if (!existsSync(wikiRoot)) return [];
-  return readdirSync(wikiRoot)
+function listMdFiles(wikiRoot, fs) {
+  if (!fs.existsSync(wikiRoot)) return [];
+  return fs
+    .readdirSync(wikiRoot)
     .filter((e) => e.endsWith(".md"))
     .map((e) => path.join(wikiRoot, e));
 }
@@ -46,8 +47,8 @@ function countWords(text) {
   return count;
 }
 
-function loadFile(filePath) {
-  const text = readFileSync(filePath, "utf-8");
+function loadFile(filePath, fs) {
+  const text = fs.readFileSync(filePath, "utf-8");
   const fileLines = text.split("\n");
   const h2s = [];
   for (const line of fileLines) {
@@ -69,7 +70,7 @@ function loadFile(filePath) {
   };
 }
 
-function classifyFile(filePath) {
+function classifyFile(filePath, fs) {
   const base = path.basename(filePath);
   if (EXCLUDED_BASES.has(base)) return null;
   // STATUS.md is loaded separately (loadStatus) and audited via the dedicated
@@ -78,32 +79,32 @@ function classifyFile(filePath) {
   if (base === "STATUS.md") return null;
   if (NON_SUMMARY_PREFIXES.some((p) => base.startsWith(p))) return null;
   if (WEEKLY_LOG_NAME_RE.test(base)) {
-    return { kind: "weekly-log-main", subject: loadFile(filePath) };
+    return { kind: "weekly-log-main", subject: loadFile(filePath, fs) };
   }
   if (WEEKLY_LOG_PART_NAME_RE.test(base)) {
-    return { kind: "weekly-log-part", subject: loadFile(filePath) };
+    return { kind: "weekly-log-part", subject: loadFile(filePath, fs) };
   }
-  const subject = loadFile(filePath);
+  const subject = loadFile(filePath, fs);
   const kind = SUMMARY_H1_RE.test(subject.firstLine) ? "summary" : "stray";
   return { kind, subject };
 }
 
-function loadMemory(wikiRoot) {
+function loadMemory(wikiRoot, fs) {
   const filePath = path.join(wikiRoot, "MEMORY.md");
-  const exists = existsSync(filePath);
+  const exists = fs.existsSync(filePath);
   return {
     path: filePath,
-    text: exists ? readFileSync(filePath, "utf-8") : "",
+    text: exists ? fs.readFileSync(filePath, "utf-8") : "",
     exists,
   };
 }
 
-function loadStatus(wikiRoot) {
+function loadStatus(wikiRoot, fs) {
   const filePath = path.join(wikiRoot, "STATUS.md");
-  const exists = existsSync(filePath);
+  const exists = fs.existsSync(filePath);
   return {
     path: filePath,
-    text: exists ? readFileSync(filePath, "utf-8") : "",
+    text: exists ? fs.readFileSync(filePath, "utf-8") : "",
     exists,
   };
 }
@@ -138,19 +139,17 @@ function parseStatusRows(statusText) {
   return rows;
 }
 
-function loadStoryboard(wikiRoot, today) {
-  const date = new Date(today);
-  const yyyy = date.getUTCFullYear();
-  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const filePath = path.join(wikiRoot, `storyboard-${yyyy}-M${mm}.md`);
-  const exists = existsSync(filePath);
-  const text = exists ? readFileSync(filePath, "utf-8") : "";
+function loadStoryboard(wikiRoot, today, fs) {
+  const ym = yearMonth(today);
+  const filePath = path.join(wikiRoot, `storyboard-${ym}.md`);
+  const exists = fs.existsSync(filePath);
+  const text = exists ? fs.readFileSync(filePath, "utf-8") : "";
   return {
     path: filePath,
     text,
     fileLines: text.split("\n"),
     exists,
-    yearMonth: `${yyyy}-M${mm}`,
+    yearMonth: ym,
     lines: countLines(text),
     words: countWords(text),
   };
@@ -227,24 +226,28 @@ export function resolveScope(scopeKey, ctx) {
   return resolver(ctx);
 }
 
-/** Build the audit context: classifies and loads every wiki file once. */
-export function buildContext({ wikiRoot, today }) {
+/**
+ * Build the audit context: classifies and loads every wiki file once.
+ * @param {{wikiRoot: string, today: string, fs: object}} options
+ *   `fs` is the sync filesystem surface (`runtime.fsSync`).
+ */
+export function buildContext({ wikiRoot, today, fs }) {
   const subjects = {
     summary: [],
     "weekly-log-main": [],
     "weekly-log-part": [],
     stray: [],
   };
-  for (const file of listMdFiles(wikiRoot)) {
-    const classified = classifyFile(file);
+  for (const file of listMdFiles(wikiRoot, fs)) {
+    const classified = classifyFile(file, fs);
     if (classified) subjects[classified.kind].push(classified.subject);
   }
   return {
     wikiRoot,
     today,
     subjects,
-    memory: loadMemory(wikiRoot),
-    status: loadStatus(wikiRoot),
-    storyboard: loadStoryboard(wikiRoot, today),
+    memory: loadMemory(wikiRoot, fs),
+    status: loadStatus(wikiRoot, fs),
+    storyboard: loadStoryboard(wikiRoot, today, fs),
   };
 }
