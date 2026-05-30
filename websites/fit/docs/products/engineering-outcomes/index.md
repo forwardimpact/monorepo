@@ -61,11 +61,12 @@ npx fit-landmark org team --manager alice@example.com
 ```
 
 ```text
-  Team: Alice Smith (alice@example.com)
+  Team under alice@example.com
 
-    Bob Chen         bob@example.com        Software Engineering  J060
-    Carol Davis      carol@example.com      Software Engineering  J070
-    Dan Park         dan@example.com        Data Engineering      J060
+    Alice Smith           alice@example.com    Software Engineering / J080 (manager)
+    Bob Chen              bob@example.com      Software Engineering / J060
+    Carol Davis           carol@example.com    Software Engineering / J070
+    Dan Park              dan@example.com      Data Engineering / J060
 ```
 
 If the output is empty, re-run `npx fit-map people push roster.csv` with your
@@ -78,11 +79,14 @@ npx fit-landmark snapshot list
 ```
 
 ```text
-  Snapshots
+  GetDX Snapshots
 
-    MjUyNbaY   2025-03-15   Q1 2025
-    NzE4MmRk   2025-06-14   Q2 2025
+    MjUyNbaY                        2025-03-15   completed
+    NzE4MmRk                        2025-06-14   completed
 ```
+
+The third column is the snapshot status (`completed` or `pending`); the
+date is the snapshot's `scheduled_for` value.
 
 If the output is empty, run `npx fit-map getdx sync` followed by
 `npx fit-map activity transform` to ingest the latest GetDX data.
@@ -99,11 +103,11 @@ npx fit-landmark snapshot trend --item code_review --manager alice@example.com
 ```
 
 ```text
-  Trend: code_review (Alice Smith's team)
+  Trend for code_review
 
-    2025-03-15   72
-    2025-06-14   78
-    2025-09-13   81
+    2025-03-15       72
+    2025-06-14       78
+    2025-09-13       81
 ```
 
 The output shows the driver's score at each snapshot date, making the direction
@@ -140,31 +144,55 @@ npx fit-landmark health --manager alice@example.com
 ```
 
 ```text
-  Health: Alice Smith's team
+  alice@example.com team — health view
 
-    code_review (78, 72nd percentile, vs_org: +5)
-      Contributing skills: task_completion (12 artifacts), planning (8 artifacts)
-      "We've been catching more issues in review lately" — latest snapshot
-      "Design docs are getting better but still inconsistent" — latest snapshot
-      Recommendation: Carol Davis could develop planning (currently working)
+  Drivers (2)
+  ────────────────────────────────────────────────────────────
+  #  Driver             Percentile  vs_org  More
+  1  code_review        72nd        +5      -
+  2  incident_response  48th        -3      -
 
-    incident_response (65, 48th percentile, vs_org: -3)
-      Contributing skills: incident_response (4 artifacts), sre_practices (2 artifacts)
-      "On-call handoffs are still rough" — latest snapshot
+  Recommendations (1 unique)
+  ────────────────────────────────────────────────────────────
+  - Carol Davis (working) could develop planning — for code_review (high)
 ```
 
-The output is organized by driver. For each driver you will see:
+The default output is a compact table organized by driver, followed by deduped
+growth recommendations. Each row shows:
 
-- **Score and percentile** -- the team's GetDX score with its position relative
-  to the organization (e.g. "72nd percentile, vs_org: +5").
-- **Contributing skills** -- the skills from your standard that map to this
-  driver, listed by ID.
-- **Evidence counts** -- how many marker-matched artifacts exist for each
-  contributing skill.
-- **GetDX comments** -- up to two engineer comments related to the driver's
-  contributing skills, surfaced from the latest snapshot.
-- **Growth recommendations** -- if Summit is installed, specific individuals who
-  could develop a contributing skill, with their current level noted.
+- **Driver name** -- the driver ID from your `drivers.yaml`.
+- **Percentile** -- the team's GetDX score position relative to the
+  organization (e.g. `72nd`).
+- **vs_org** -- the signed delta against the org median (e.g. `+5`).
+- **More** -- a hint when additional per-driver anchors are available via
+  `--verbose`.
+
+The trailing Recommendations table is populated when Summit is installed and
+deduped per `(candidate, skill)` — each line names the individual who could
+develop the skill, their current proficiency, and the driver the development
+serves.
+
+Pass `--verbose` to switch to a per-driver paragraph layout that discloses all
+percentile anchors, contributing skills, evidence counts, and the two most
+recent GetDX comments per driver:
+
+```sh
+npx fit-landmark health --manager alice@example.com --verbose
+```
+
+```text
+  alice@example.com team — health view
+
+    Driver: code_review (72nd percentile)
+      Anchors: percentile=72, vs_org=+5
+      Contributing skills: task_completion, planning
+      Evidence: 12 artifacts for task_completion, 8 artifacts for planning
+      GetDX comments: "We've been catching more issues in review lately"
+                      "Design docs are getting better but still inconsistent"
+
+      ⮕ Recommendation: Carol Davis (working) could develop planning.
+        (Summit growth alignment: high)
+```
 
 ### Understanding what the health view shows
 
@@ -191,27 +219,21 @@ npx fit-landmark voice --manager alice@example.com
 ```
 
 ```text
-  Voice: Alice Smith's team (latest snapshot)
+  alice@example.com team — engineer voice
 
-    incident    3 comments
-      "On-call handoffs are still rough"
-      "Runbook coverage is improving but gaps remain"
-      "Incident review meetings have been helpful"
-
-    planning    2 comments
-      "Sprint planning feels more realistic this quarter"
-      "Design docs are getting better but still inconsistent"
-
-    testing     1 comment
-      "Integration tests saved us twice this month"
+    Most discussed themes:
+      incident              3 comments   "On-call handoffs are still rough", "Runbook coverage is improving but gaps remain"
+      planning              2 comments   "Sprint planning feels more realistic this quarter", "Design docs are getting better but still inconsistent"
+      testing               1 comments   "Integration tests saved us twice this month"
 
     Below-50th driver alignment:
       incident_response (48th percentile) — 3 incident comments
 ```
 
-The manager view buckets comments by theme and counts how many mention each. It
-also highlights drivers scoring below the 50th percentile where engineer
-comments align -- showing where sentiment matches the quantitative data.
+The manager view buckets comments by theme and counts how many mention each,
+showing the two most recent snippets inline per theme. It also highlights
+drivers scoring below the 50th percentile where engineer comments align --
+where sentiment matches the quantitative data.
 
 This is valuable for quarterly reviews because it grounds numerical scores in
 the team's own words. A low `incident_response` score paired with three
@@ -230,16 +252,19 @@ npx fit-landmark practice --manager alice@example.com
 ```
 
 ```text
-  Practice patterns: Alice Smith's team
+  Practice patterns
 
-    task_completion     12 artifacts   strong
-    planning             8 artifacts   moderate
-    incident_response    4 artifacts   developing
-    sre_practices        2 artifacts   minimal
+    task_completion       matched: 12  unmatched: 4   total: 16
+    planning              matched: 8   unmatched: 2   total: 10
+    incident_response     matched: 4   unmatched: 6   total: 10
+    sre_practices         matched: 2   unmatched: 5   total: 7
 ```
 
-Practice patterns show which skills have strong marker-matched evidence and
-which have little or none. Filter to a specific skill for detail:
+Each row shows how many marker-matched artifacts exist for the skill, how many
+unmatched candidates remain, and the total considered. Skills with high
+`matched:` counts have strong evidence; rows with low matched and high
+unmatched signal where the evidence pipeline is light. Filter to a specific
+skill for detail:
 
 ```sh
 npx fit-landmark practice --skill task_completion --manager alice@example.com
@@ -253,23 +278,24 @@ npx fit-landmark practiced --manager alice@example.com
 ```
 
 ```text
-  Practiced vs derived: Alice Smith's team
+  Practiced capability — alice@example.com (4 members)
 
-    Bob Chen
-      task_completion    practitioner   evidenced
-      planning           working        evidenced
-      sre_practices      working        on paper only
-
-    Carol Davis
-      task_completion    practitioner   evidenced
-      architecture       practitioner   on paper only
+    Task Completion       derived: practitioner   evidenced: 18 evidence rows
+    Planning              derived: working        evidenced: 7 evidence rows
+    Incident Response     derived: working        evidenced: 0 ← on paper only
+    SRE Practices         derived: working        evidenced: 0 ← on paper only
+    Architecture Design   derived: practitioner   evidenced: 0 ← on paper only
 ```
 
-Skills flagged "on paper only" have derived capability (the team member's role
-implies the skill) but no marker evidence. This can mean the evidence pipeline
-has a gap, or it can highlight a coaching opportunity. Either way, it is
-information worth surfacing in a quarterly review -- it shows where the
-organization's definitions and actual practice diverge.
+Each row aggregates across the team: `derived:` is the highest proficiency the
+team's role definitions imply for the skill, and `evidenced:` counts the
+marker-matched evidence rows backing it. Rows trailing `← on paper only` flag
+skills the standard predicts but evidence has not yet caught (the inverse,
+`← evidenced beyond role`, marks skills whose evidence outruns the derived
+role profile). This can mean the evidence pipeline has a gap, or it can
+highlight a coaching opportunity.
+Either way, it is information worth surfacing in a quarterly review -- it
+shows where the organization's definitions and actual practice diverge.
 
 ## Verify
 
