@@ -251,14 +251,17 @@ capability. Higher skill proficiencies unlock additional responsibilities.
 Drivers represent organizational outcomes. Coverage is calculated by checking
 which skills and behaviours meet specific thresholds:
 
-| Threshold          | Value                      |
-| ------------------ | -------------------------- |
-| Skill proficiency  | working or above           |
-| Behaviour maturity | practicing or above        |
-| Level              | Senior threshold and above |
+| Threshold          | Value               |
+| ------------------ | ------------------- |
+| Skill proficiency  | working or above    |
+| Behaviour maturity | practicing or above |
 
-Each driver specifies related skills and behaviours. If the derived job meets
-the thresholds for a driver's dependencies, that driver is considered covered.
+Each driver lists `contributingSkills` and `contributingBehaviours`. For every
+derived job, each contributing skill and behaviour is partitioned into
+`covered` or `missing` against the thresholds above, and the driver reports
+coverage ratios for both. Coverage is computed for every level — there is no
+level gate. A driver is reported as fully covered when every contributing
+skill and behaviour clears its threshold.
 
 ---
 
