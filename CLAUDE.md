@@ -136,7 +136,7 @@ rg '<do_confirm_checklist'  # Exit gates — do from memory, then confirm
 `.claude/skills/kata-*/SKILL.md`. Shared libraries:
 [libraries/README.md](libraries/README.md).
 
-When `.claude/**` writes are blocked (#1162, #441), use
+When `.claude/**` writes are blocked, use
 `echo … | bunx fit-selfedit <path>` — gated to `.claude/settings.json` Edit() rules + non-`main` branch.
 
 ## Memory and Coordination
