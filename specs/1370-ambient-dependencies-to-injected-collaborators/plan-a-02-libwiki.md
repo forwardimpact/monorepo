@@ -1,10 +1,15 @@
 # Plan 1370 — Part 02: libwiki
 
-Consolidates libwiki's 11 per-command files behind a `LibwikiCommands`
-class ([Success Criterion 4](spec.md#success-criteria)), replaces
-`WikiRepo` with a `WikiSync` collaborator over `libutil`'s `GitClient`
-([design § Components](design-a.md#components)), and rewrites `bin/fit-wiki.js`
-from its hand-rolled `COMMANDS` switch to `cli.dispatch` ([design § Decision 13](design-a.md#key-decisions)).
+Migrates libwiki's 11 per-command files to the spec-1370 DI contract
+([Success Criterion 4](spec.md#success-criteria)), replaces `WikiRepo`
+with a `WikiSync` collaborator over `libutil`'s `GitClient`
+([design § Components](design-a.md#components)), and rewrites
+`bin/fit-wiki.js` from its hand-rolled `COMMANDS` switch to
+`cli.dispatch(parsed, { deps: { runtime, wikiSync } })`
+([design § Decision 13](design-a.md#key-decisions)). No per-CLI facade
+class — libwiki's per-command file layout is preserved; handlers read
+`runtime` and `wikiSync` from `ctx.deps` identically to every other
+dispatched CLI in the monorepo ([design § Decision 11](design-a.md#key-decisions)).
 
 Blocking dependency: plan-a-01 (foundations) merged.
 
@@ -40,17 +45,39 @@ Created: `libraries/libwiki/src/wiki-sync.js`, `libraries/libwiki/test/wiki-sync
   }
   ```
 - `wiki-sync.test.js` — uses `createTestRuntime` + `createMockGitClient`; asserts each method invokes the expected `gitClient` method with the expected args; no real git, no tmpdir.
-- `wiki-sync.integration.test.js` — uses `createDefaultRuntime` + a real `GitClient`; covers the spec-preserved cases from the deleted `wiki-repo.test.js`: rebase conflict, `-X ours` recovery, token-rotated push, parent-dir `configGet` read. **`deriveWikiUrl` coverage moves** to `libraries/libutil/test/git-client.integration.test.js` (plan-a-01 Step 5) since `deriveWikiUrl` is logically a `GitClient.remoteGetUrl` consumer; `commands/init.js`'s remaining `deriveWikiUrl` orchestration is covered by `commands.test.js` against a mock `GitClient`.
+- `wiki-sync.integration.test.js` — uses `createDefaultRuntime` + a real `GitClient`; covers the spec-preserved cases from the deleted `wiki-repo.test.js`: rebase conflict, `-X ours` recovery, token-rotated push, parent-dir `configGet` read. **`deriveWikiUrl` coverage moves** to `libraries/libutil/test/git-client.integration.test.js` (plan-a-01 Step 5) since `deriveWikiUrl` is logically a `GitClient.remoteGetUrl` consumer; `commands/init.js`'s remaining `deriveWikiUrl` orchestration is covered by `init.test.js` against a mock `GitClient`.
 - `wiki-repo.js` is deleted in the same commit; every monorepo importer rewires to `WikiSync` or directly to `GitClient` in this PR. Pre-PR audit: `rg "WikiRepo|require.*wiki-repo|from.*wiki-repo" libraries/ products/ services/` enumerates the actual importers; current audit (2026-05-30) shows callers only inside `libraries/libwiki/` itself — the bridges (`services/{msbridge,ghbridge}`) do **not** import `WikiRepo` directly. If the audit at PR time uncovers any cross-package consumer, that consumer's migration is added to this PR.
 
 Verification: `bun test libraries/libwiki/test/wiki-sync.test.js` passes; `bun test libraries/libwiki/test/wiki-sync.integration.test.js` passes; `rg "WikiRepo|require.*wiki-repo|from.*wiki-repo" libraries/ products/ services/` returns zero matches.
 
-## Step 3 — `LibwikiCommands` facade
+## Step 3 — Per-command handler signature migration
 
-Created: `libraries/libwiki/src/commands.js`, `libraries/libwiki/test/commands.test.js`. Modified: every file under `libraries/libwiki/src/commands/`.
+Created: none. Modified: every file under `libraries/libwiki/src/commands/`.
 
-- `commands.js` — thin composition facade. The 13 subcommand methods map onto **11 source files**: `claim.js` exports both `runClaimCommand` and `runReleaseCommand`; `sync.js` exports `runPushCommand` and `runPullCommand`. Imports below reflect the actual layout:
+- Each `commands/<name>.js` keeps its existing per-file location. The exported handler signature changes from `(values, args, cli)` to `(ctx)` — matching `cli.dispatch`'s `handler: (ctx) => …` contract — and reads its dependencies from `ctx.deps`:
   ```js
+  // libraries/libwiki/src/commands/claim.js — sketch of the post-migration shape
+  export async function runClaimCommand(ctx) {
+    const { runtime, wikiSync } = ctx.deps;
+    // ... use runtime.proc.cwd(), runtime.fs.*, wikiSync.pull(), etc.
+    return { ok: true, value: { /* ... */ } };
+  }
+  ```
+- Inside each handler: every `process.cwd()` → `runtime.proc.cwd()`, every `process.env.X` → `runtime.proc.env.X`, every `process.exit(code)` → `return { ok: false, code, error: … }` (or `{ ok: true, value }` for success), every `fs.writeFileSync` → `runtime.fsSync.writeFileSync` (or migrate to async `runtime.fs.writeFile` if the call chain permits — see § Async propagation below), every `Date.now()` → `runtime.clock.now()`, every `new Date()` → `new Date(runtime.clock.now())`.
+- A one-line helper `currentDayIso(runtime)` lives in `libraries/libwiki/src/util/clock.js` (new); commands that previously called `io.today()` invoke this helper instead of inlining the `new Date(...).toISOString().slice(0,10)` chain at every site.
+- The four already-`io`-migrated commands (`claim.js`, `init.js`, `log.js`, `refresh.js`) rewire from `io.cwd()` / `io.env` / `io.exit()` / `io.today()` to `ctx.deps.runtime.proc.cwd()` / `ctx.deps.runtime.proc.env` / envelope return / `currentDayIso(ctx.deps.runtime)`. `io.js` and `createDefaultIo()` are deleted.
+- Each command's existing test file (`test/<name>.test.js`) imports the handler directly and invokes `runXxxCommand({ args, options, data, deps: { runtime, wikiSync } })` against a `createTestRuntime` + `createMockGitClient`-backed `WikiSync` — no class instantiation, no bin spawn. One assertion per test covers the envelope shape and the side-effect channel that command owns (e.g. `runtime.fsSync.calls.writeFileSync` for `claim`).
+- The 13 subcommands map onto **11 source files**: `claim.js` exports both `runClaimCommand` and `runReleaseCommand`; `sync.js` exports `runPushCommand` and `runPullCommand`; the other nine files each export one handler. This file/handler arrangement is preserved; only signatures change.
+
+Verification: `bun test libraries/libwiki/test/` passes against the new signatures; `rg "from .*libwiki/io" libraries/ products/ services/` returns zero matches; `rg "process\\.(cwd|env|exit|stdout|stderr)" libraries/libwiki/src/commands/` returns zero matches.
+
+## Step 4 — `bin/fit-wiki.js` rewrite to `cli.dispatch`
+
+Created: `libraries/libwiki/src/cli-definition.js` (new file extracted from the bin). Modified: `libraries/libwiki/bin/fit-wiki.js`, `libraries/libwiki/test/fit-wiki-smoke.integration.test.js`.
+
+- Move the libcli subcommand definitions out of the bin into `src/cli-definition.js`. The file exports a `definition` constant whose subcommand `handler` fields directly reference each per-command file's exported handler:
+  ```js
+  // libraries/libwiki/src/cli-definition.js — sketch
   import { runAuditCommand } from "./commands/audit.js";
   import { runBootCommand } from "./commands/boot.js";
   import { runClaimCommand, runReleaseCommand } from "./commands/claim.js";
@@ -62,72 +89,56 @@ Created: `libraries/libwiki/src/commands.js`, `libraries/libwiki/test/commands.t
   import { runRefreshCommand } from "./commands/refresh.js";
   import { runRotateCommand } from "./commands/rotate.js";
   import { runPullCommand, runPushCommand } from "./commands/sync.js";
-  export class LibwikiCommands {
-    #runtime; #wikiSync;
-    constructor({ runtime, wikiSync }) {
-      this.#runtime = runtime;
-      this.#wikiSync = wikiSync;
-    }
-    audit(ctx)   { return runAuditCommand(ctx,   { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    boot(ctx)    { return runBootCommand(ctx,    { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    claim(ctx)   { return runClaimCommand(ctx,   { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    release(ctx) { return runReleaseCommand(ctx, { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    fix(ctx)     { return runFixCommand(ctx,     { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    inbox(ctx)   { return runInboxCommand(ctx,   { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    init(ctx)    { return runInitCommand(ctx,    { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    log(ctx)     { return runLogCommand(ctx,     { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    memo(ctx)    { return runMemoCommand(ctx,    { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    pull(ctx)    { return runPullCommand(ctx,    { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    push(ctx)    { return runPushCommand(ctx,    { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    refresh(ctx) { return runRefreshCommand(ctx, { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-    rotate(ctx)  { return runRotateCommand(ctx,  { runtime: this.#runtime, wikiSync: this.#wikiSync }); }
-  }
+  export const definition = {
+    name: "fit-wiki",
+    commands: {
+      audit:   { handler: runAuditCommand,   /* args/options */ },
+      boot:    { handler: runBootCommand,    /* ... */ },
+      claim:   { handler: runClaimCommand,   /* ... */ },
+      release: { handler: runReleaseCommand, /* ... */ },
+      fix:     { handler: runFixCommand,     /* ... */ },
+      inbox:   { handler: runInboxCommand,   /* ... */ },
+      init:    { handler: runInitCommand,    /* ... */ },
+      log:     { handler: runLogCommand,     /* ... */ },
+      memo:    { handler: runMemoCommand,    /* ... */ },
+      pull:    { handler: runPullCommand,    /* ... */ },
+      push:    { handler: runPushCommand,    /* ... */ },
+      refresh: { handler: runRefreshCommand, /* ... */ },
+      rotate:  { handler: runRotateCommand,  /* ... */ },
+    },
+  };
   ```
-- Every `commands/<name>.js`: signature changes from `(values, args, cli)` to `(ctx, { runtime, wikiSync })`. Inside, every `process.cwd()` → `runtime.proc.cwd()`, every `process.env.X` → `runtime.proc.env.X`, every `process.exit(code)` → `return { ok: false, code, error: … }` (or `{ ok: true, value }` for success), every `fs.writeFileSync` → `runtime.fsSync.writeFileSync` (or migrate to async `runtime.fs.writeFile` if the call chain permits — see § Async propagation below), every `Date.now()` → `runtime.clock.now()`, every `new Date()` → `new Date(runtime.clock.now())`.
-- A one-line helper `currentDayIso(runtime)` lives in `libraries/libwiki/src/util/clock.js` (new); commands that previously called `io.today()` invoke this helper instead of inlining the `new Date(...).toISOString().slice(0,10)` chain at every site.
-- The four already-`io`-migrated commands (`claim.js`, `init.js`, `log.js`, `refresh.js`) rewire from `io.cwd()` / `io.env` / `io.exit()` / `io.today()` to `ctx.deps.runtime.proc.cwd()` / `ctx.deps.runtime.proc.env` / envelope return / `currentDayIso(ctx.deps.runtime)`. `io.js` and `createDefaultIo()` are deleted.
-- `commands.test.js` — instantiates `LibwikiCommands` with `createTestRuntime` + `createMockGitClient`-backed `WikiSync`; one test per method asserting it returns the expected envelope shape against a representative ctx.
-
-Verification: `bun test libraries/libwiki/test/commands.test.js` passes; existing per-command tests (`libraries/libwiki/test/*.test.js`) pass against the new signatures.
-
-## Step 4 — `bin/fit-wiki.js` rewrite to `cli.dispatch`
-
-Created: none. Modified: `libraries/libwiki/bin/fit-wiki.js`, `libraries/libwiki/src/cli-definition.js` (new file extracted from the bin), `libraries/libwiki/test/fit-wiki-smoke.integration.test.js`.
-
-- Move the libcli subcommand definitions out of the bin into `src/cli-definition.js`. The file exports a **factory** `makeDefinition(commands)` so each subcommand's `handler: (ctx) => commands.<name>(ctx)` closes over the `LibwikiCommands` instance the bin constructs (per `cli.js`'s `handler: (ctx) => …` contract — no new libcli API needed).
+  Each `args`/`options` block carries the parsed-argument shape the bin's current `COMMANDS` switch encodes. No factory closure is needed — the handlers read everything from `ctx`, including `ctx.deps.wikiSync`, which the bin threads at dispatch time.
 - `bin/fit-wiki.js` collapses to (paths use libutil's new `exports` subpaths from plan-a-01 Step 4):
   ```js
   #!/usr/bin/env node
   import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
   import { GitClient } from "@forwardimpact/libutil/git-client";
   import { createCli } from "@forwardimpact/libcli";
-  import { LibwikiCommands } from "../src/commands.js";
   import { WikiSync } from "../src/wiki-sync.js";
   import { resolveWikiDir } from "../src/util/wiki-dir.js";
-  import { makeDefinition } from "../src/cli-definition.js";
+  import { definition } from "../src/cli-definition.js";
 
   async function main() {
     const runtime = createDefaultRuntime();
     const argv = runtime.proc.argv.slice(2); // skip [node, script]
     const gitClient = new GitClient({ runtime });
-    const tentative = createCli(makeDefinition(null), { runtime });
-    const parsed = tentative.parse(argv);
+    const cli = createCli(definition, { runtime });
+    const parsed = cli.parse(argv);
     const wikiDir = resolveWikiDir({ runtime, options: parsed.options }); // honors --wiki-dir, FORWARDIMPACT_WIKI_DIR env, repo discovery via Finder
     const wikiSync = new WikiSync({ runtime, gitClient, wikiDir });
-    const commands = new LibwikiCommands({ runtime, wikiSync });
-    const cli = createCli(makeDefinition(commands), { runtime });
-    const result = await cli.dispatch(parsed, { deps: { runtime } });
+    const result = await cli.dispatch(parsed, { deps: { runtime, wikiSync } });
     if (!result.ok) { runtime.proc.stderr.write(result.error + "\n"); }
     runtime.proc.exit(result.ok ? 0 : (result.code ?? 1));
   }
   main();
   ```
-  `makeDefinition(null)` is the parse-only pass — handlers stubbed as no-ops so `cli.parse` runs without dispatching; `makeDefinition(commands)` is the dispatch pass with real handlers. This keeps the libcli surface unchanged from plan-a-01 (no `bindHandlers` method introduced).
+  Construction order matters: `runtime` first, then `cli.parse(argv)` so flags like `--wiki-dir` are available, then `wikiSync` (which depends on the parsed `wikiDir`), then dispatch. `deps.wikiSync` is the only libwiki-specific value carried by `ctx.deps`; every other dispatched CLI in the monorepo carries `deps.runtime` alone, so libwiki's bin shape matches the universal contract plus one library-local field.
 - `resolveWikiDir` is a new helper (`src/util/wiki-dir.js`) preserving the pre-refactor resolution order: `--wiki-dir` flag → `FORWARDIMPACT_WIKI_DIR` env → `Finder.findUpward(runtime.proc.cwd(), "wiki", 5)` → throw. Hard-coding `cwd() + "/wiki"` would break the `fit-wiki init --target` flow and any non-default wiki location. Pre-refactor resolution logic moves here verbatim from `bin/fit-wiki.js` and `commands/init.js`.
 - The hand-rolled `COMMANDS` map (lines 316–350 of pre-refactor bin) is deleted.
-- `fit-wiki-smoke.integration.test.js` — the one allow-listed smoke test per SC5 / [check-subprocess-in-tests.mjs](plan-a-01-foundations.md#step-7--scripts-invariant-checks). Spawns `node bin/fit-wiki.js claim --target test-smoke --branch test --agent staff-engineer` against a tmpdir wiki; asserts exit code 0 and the claim row appears. One case is enough — the rest of the wiring is covered by `commands.test.js`.
+- `fit-wiki-smoke.integration.test.js` — the one allow-listed smoke test per SC5 / [check-subprocess-in-tests.mjs](plan-a-01-foundations.md#step-7--scripts-invariant-checks). Spawns `node bin/fit-wiki.js claim --target test-smoke --branch test --agent staff-engineer` against a tmpdir wiki; asserts exit code 0 and the claim row appears. One case is enough — the rest of the wiring is covered by the per-command unit tests in Step 3.
 
-Verification: `bun run scripts/capture-cli-golden.mjs --bin fit-wiki --verify` exits 0 (the goldens captured in Step 1 still match); `bun test libraries/libwiki/test/fit-wiki-smoke.integration.test.js` passes; `rg "COMMANDS\\[" libraries/libwiki/bin/` returns zero matches.
+Verification: `bun run scripts/capture-cli-golden.mjs --bin fit-wiki --verify` exits 0 (the goldens captured in Step 1 still match); `bun test libraries/libwiki/test/fit-wiki-smoke.integration.test.js` passes; `rg "COMMANDS\\[" libraries/libwiki/bin/` returns zero matches; `rg "LibwikiCommands" libraries/ products/ services/` returns zero matches (no class is introduced).
 
 ## Step 5 — Async propagation through libwiki-internal callers
 
@@ -173,6 +184,6 @@ Libraries used: libutil (Runtime, GitClient, Finder), libmock
 - **`io` → `ctx.deps.runtime` rename breaks downstream consumers.** Anything that imported `createDefaultIo` from libwiki (the four migrated commands are the documented case, but other callers may exist). Mitigation: `rg "createDefaultIo|from.*libwiki/io|require.*libwiki/io"` before the PR opens; rewire every caller in the same PR.
 - **A late-discovered cross-package consumer of `WikiRepo`.** Pre-PR `rg` audit may surface a consumer the 2026-05-30 snapshot missed. Mitigation: the audit is the first task of the PR; any uncovered importer is rewired in the same PR, or the PR's scope-creep guard escalates to a follow-up sub-row.
 - **`fit-wiki.js` bin rewrite changes the help text.** The libcli definition's help renderer differs from the hand-rolled help text. Mitigation: the golden capture (Step 1) records help output; the rewrite (Step 4) must match. Help text changes are caught by Step 7's verify pass and treated as PR-blocking until the diff is reconciled.
-- **`LibwikiCommands` class adds a constructor argument many callers don't have.** Anything constructing libwiki commands directly (test helpers, scripts) needs the new shape. Mitigation: `rg "from.*libwiki/commands/"` before the PR opens; rewire to import `LibwikiCommands` and construct with `createTestRuntime` + mock `WikiSync`.
+- **Handler signature change breaks direct importers.** Anything that imports a `commands/<name>.js` handler directly (test helpers, scripts, cross-package consumers) is currently calling it as `runXxxCommand(values, args, cli)`; the new shape is `runXxxCommand(ctx)`. Mitigation: `rg "from.*libwiki/(src/)?commands/" libraries/ products/ services/ scripts/` before the PR opens; rewire every caller to pass a single `ctx` object with `deps: { runtime, wikiSync }` (constructed via `createTestRuntime` + mock `WikiSync` for tests, via the bin's real construction path otherwise).
 
 — Staff Engineer 🛠️

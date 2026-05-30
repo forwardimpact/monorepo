@@ -23,7 +23,7 @@ Files (src): `products/landmark/src/commands/*.js` (the actual command implement
 
 - Every command + formatter accepts `{ runtime, wikiSync?, evalRunner? }`. Every `process.exit` becomes envelope return; every `process.cwd()` / `process.env` routes through `runtime.proc`; every `node:fs` routes through `runtime.fs`.
 - `fit-landmark` per [design § Decision 13](design-a.md#key-decisions) is dispatched (multi-subcommand) — convert to `cli.dispatch(parsed, { deps: { runtime } })`. Capture goldens.
-- The `commands-manifest.js` file maps subcommand → handler; updating it follows the libwiki bin-rewrite pattern — a `makeDefinition(commands)` factory closes over the constructed `LibwikiCommands`-equivalent instance, so subcommand handlers are real closures, not stubs. No new libcli API is introduced.
+- The `commands-manifest.js` file maps subcommand → handler; updating it follows the libwiki bin-rewrite pattern — handlers reference each per-command file's exported function directly (`handler: runXxxCommand`), and the bin threads any landmark-specific domain collaborators via `cli.dispatch(parsed, { deps: { runtime, … } })`. No new libcli API is introduced; no per-CLI facade class is added ([design § Decision 11](design-a.md#key-decisions)).
 
 Verification: `bun test products/landmark/test/`; `--verify` golden replay; deny-list shrink.
 

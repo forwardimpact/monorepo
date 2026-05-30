@@ -4,10 +4,13 @@
 
 The design ratifies a single `runtime` bag (`{ fs, fsSync?, proc, clock,
 subprocess, finder }`) flowing from each entry point through `ctx.deps`
-into every constructor and factory, with libwiki specifically
-consolidating onto a `LibwikiCommands` class plus a `WikiSync` collaborator
-(Success Criterion 4). The plan executes that direction as a foundation
-PR followed by per-library / per-product / per-service migration PRs.
+into every constructor and factory. Every multi-subcommand CLI — libwiki
+included — keeps its per-command-file layout; libwiki adds a `WikiSync`
+collaborator constructed inside `bin/fit-wiki.js` and threaded via
+`cli.dispatch(parsed, { deps: { runtime, wikiSync } })` (Success
+Criterion 4, reframed after PR #1280 review). The plan executes that
+direction as a foundation PR followed by per-library / per-product /
+per-service migration PRs.
 STATUS carries one sub-row per migration unit
 ([`{spec}/{unit}`](../../wiki/STATUS.md)) so claims are visible and
 parallel sessions don't collide ([design § Decision 8](design-a.md#key-decisions)).
@@ -164,7 +167,7 @@ libraries) so every src module gets covered.
 | # | Part | Units | Blocks on |
 |---|---|---|---|
 | 01 | [plan-a-01-foundations.md](plan-a-01-foundations.md) | libmock, libcli, libutil, scripts, MONOREPO.md, STATUS schema, golden capture | — |
-| 02 | [plan-a-02-libwiki.md](plan-a-02-libwiki.md) | libwiki (LibwikiCommands + WikiSync + bin rewrite) | 01 |
+| 02 | [plan-a-02-libwiki.md](plan-a-02-libwiki.md) | libwiki (per-command handler signature migration + WikiSync + bin rewrite to `cli.dispatch`) | 01 |
 | 03 | [plan-a-03-bin-libraries.md](plan-a-03-bin-libraries.md) | libconfig (no bin), libstorage, libcoaligned, libeval, librpc, libdoc, libcodegen, libterrain, libxmr, librc, libgraph, libvector, libresource, libsupervise, libtelemetry | 01 |
 | 04 | [plan-a-04-non-bin-libraries.md](plan-a-04-non-bin-libraries.md) | libbridge, libformat, libindex, libmacos, libmcp, libpack, libpolicy, libpreflight, libprompt, libproto, librepl, libsecret, libskill, libsyntheticgen, libsyntheticprose, libsyntheticrender, libtemplate, libtype, libui | 01 |
 | 05 | [plan-a-05-products.md](plan-a-05-products.md) | products/{map, pathway, summit, landmark, guide, outpost} | 01, 03 (libeval), 02 (libwiki) |
@@ -182,9 +185,9 @@ transitive collaborator-wiring updates.
 
 Libraries used: libmock (createMock* fakes for runtime fields), libcli
 (InvocationContext.deps), libutil (Runtime + GitClient + GhClient +
-Finder), libwiki (LibwikiCommands + WikiSync — plan-a-02), libeval
-(runner + workdir + benchmark — plan-a-03), librpc (HmacAuth audit —
-plan-a-03), libconfig (process arg → runtime.proc — plan-a-03).
+Finder), libwiki (WikiSync + bin rewrite to cli.dispatch — plan-a-02),
+libeval (runner + workdir + benchmark — plan-a-03), librpc (HmacAuth
+audit — plan-a-03), libconfig (process arg → runtime.proc — plan-a-03).
 
 ## Risks
 
