@@ -1,5 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
+import * as nodeFs from "node:fs";
 import { mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -17,7 +18,7 @@ describe("listAgents", () => {
     writeFileSync(join(agentsDir, "staff-engineer.md"), "# Staff Engineer");
     writeFileSync(join(agentsDir, "product-manager.md"), "# PM");
 
-    const result = listAgents({ agentsDir, wikiRoot: "wiki" });
+    const result = listAgents({ agentsDir, wikiRoot: "wiki" }, nodeFs);
 
     assert.equal(result.length, 2);
     const names = result.map((r) => r.agent).sort();
@@ -36,7 +37,7 @@ describe("listAgents", () => {
     mkdirSync(join(agentsDir, "references"));
     writeFileSync(join(agentsDir, "references", "protocol.md"), "");
 
-    const result = listAgents({ agentsDir, wikiRoot: "wiki" });
+    const result = listAgents({ agentsDir, wikiRoot: "wiki" }, nodeFs);
 
     assert.equal(result.length, 1);
     assert.equal(result[0].agent, "staff-engineer");
@@ -49,7 +50,7 @@ describe("listAgents", () => {
     writeFileSync(join(agentsDir, "all.md"), "");
 
     assert.throws(
-      () => listAgents({ agentsDir, wikiRoot: "wiki" }),
+      () => listAgents({ agentsDir, wikiRoot: "wiki" }, nodeFs),
       /reserved for broadcast/,
     );
   });
@@ -61,7 +62,7 @@ describe("listAgents", () => {
     writeFileSync(join(agentsDir, "staff-engineer.md"), "");
     writeFileSync(join(agentsDir, "README.txt"), "");
 
-    const result = listAgents({ agentsDir, wikiRoot: "wiki" });
+    const result = listAgents({ agentsDir, wikiRoot: "wiki" }, nodeFs);
 
     assert.equal(result.length, 1);
   });

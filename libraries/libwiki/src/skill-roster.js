@@ -1,8 +1,12 @@
-import { readdirSync, statSync } from "node:fs";
 import path from "node:path";
 
-/** List all kata-prefixed skill directory names under the skills directory, sorted alphabetically. */
-export function listSkills({ skillsDir }, fs = { readdirSync, statSync }) {
+/**
+ * List all kata-prefixed skill directory names under the skills directory,
+ * sorted alphabetically.
+ * @param {{skillsDir: string}} dirs
+ * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
+ */
+export function listSkills({ skillsDir }, fs) {
   const entries = fs.readdirSync(skillsDir);
   const skills = [];
 

@@ -1,0 +1,16 @@
+{
+  "summary": "",
+  "owned_priorities": [],
+  "cross_cutting": [],
+  "claims": [],
+  "storyboard_items": [
+    {
+      "dim": "staff-engineer",
+      "threshold": "item",
+      "status": "open",
+      "link": null
+    }
+  ],
+  "inbox_count": 0,
+  "storyboard_path": "fixture/storyboard-2026-M05.md"
+}

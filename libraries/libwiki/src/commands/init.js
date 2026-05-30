@@ -1,12 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import path from "node:path";
-import fsAsync from "node:fs/promises";
-import { Finder } from "@forwardimpact/libutil";
-import { createScriptConfig } from "@forwardimpact/libconfig";
-import { WikiRepo } from "../wiki-repo.js";
 import { listSkills } from "../skill-roster.js";
-import { createDefaultIo } from "../io.js";
+import { resolveProjectRoot, resolveWikiRoot } from "../util/wiki-dir.js";
 import {
   ACTIVE_CLAIMS_HEADING,
   ACTIVE_CLAIMS_TABLE_HEADER,
@@ -14,22 +8,21 @@ import {
 } from "../constants.js";
 
 /** Resolve the wiki clone URL. Honors the FIT_WIKI_URL env var as an explicit override (for sandboxed environments where `origin` is rewritten to a local proxy that does not serve wiki repos); otherwise derives the URL by appending `.wiki.git` to the parent repo's `origin` remote. */
-export function deriveWikiUrl(parentDir, env = process.env) {
+export async function deriveWikiUrl(gitClient, parentDir, env) {
   if (env.FIT_WIKI_URL) return env.FIT_WIKI_URL;
-
-  const r = spawnSync("git", ["-C", parentDir, "remote", "get-url", "origin"], {
-    encoding: "utf-8",
-    stdio: "pipe",
-  });
-  if (r.status !== 0) return null;
-  const origin = r.stdout.trim();
-  const base = origin.replace(/\.git$/, "");
-  return base + ".wiki.git";
+  try {
+    const origin = await gitClient.remoteGetUrl("origin", { cwd: parentDir });
+    if (!origin) return null;
+    const base = origin.replace(/\.git$/, "");
+    return base + ".wiki.git";
+  } catch {
+    return null;
+  }
 }
 
-function scaffoldActiveClaims(memoryPath) {
-  if (!existsSync(memoryPath)) return false;
-  const text = readFileSync(memoryPath, "utf-8");
+function scaffoldActiveClaims(runtime, memoryPath) {
+  if (!runtime.fsSync.existsSync(memoryPath)) return false;
+  const text = runtime.fsSync.readFileSync(memoryPath, "utf-8");
   if (new RegExp(`^${ACTIVE_CLAIMS_HEADING}$`, "m").test(text)) return false;
 
   const block = [
@@ -48,65 +41,66 @@ function scaffoldActiveClaims(memoryPath) {
   const lines = text.split("\n");
   const storyboardIdx = lines.findIndex((l) => l.trim() === "## Storyboard");
   if (storyboardIdx === -1) {
-    writeFileSync(memoryPath, text.replace(/\n*$/, "") + "\n" + block + "\n");
+    runtime.fsSync.writeFileSync(
+      memoryPath,
+      text.replace(/\n*$/, "") + "\n" + block + "\n",
+    );
     return true;
   }
   lines.splice(storyboardIdx, 0, ...block.split("\n"), "");
-  writeFileSync(memoryPath, lines.join("\n"));
+  runtime.fsSync.writeFileSync(memoryPath, lines.join("\n"));
   return true;
 }
 
-async function maybeCloneWiki(projectRoot, wikiDir, io) {
-  const wikiUrl = deriveWikiUrl(projectRoot, io.env);
+async function maybeCloneWiki(wikiSync, gitClient, projectRoot, runtime) {
+  const wikiUrl = await deriveWikiUrl(gitClient, projectRoot, runtime.proc.env);
   if (!wikiUrl) {
-    io.stderr("init: could not determine wiki URL from origin remote\n");
+    runtime.proc.stderr.write(
+      "init: could not determine wiki URL from origin remote\n",
+    );
     return;
   }
-  const config = await createScriptConfig("wiki");
-  const repo = new WikiRepo({
-    wikiDir,
-    parentDir: projectRoot,
-    resolveToken: () => config.ghToken(),
-  });
-  const cloneResult = repo.ensureCloned(wikiUrl);
+  const cloneResult = await wikiSync.ensureCloned(wikiUrl);
   if (cloneResult.cloned) {
-    repo.inheritIdentity();
+    await wikiSync.inheritIdentity();
   } else {
-    io.stderr("init: could not clone wiki, continuing with local-only steps\n");
+    runtime.proc.stderr.write(
+      "init: could not clone wiki, continuing with local-only steps\n",
+    );
   }
 }
 
 /** Clone the wiki if not already present, scaffold Active Claims in MEMORY.md, and create per-skill metric directories. */
-export async function runInitCommand(
-  values,
-  _args,
-  _cli,
-  io = createDefaultIo(),
-) {
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, { cwd: io.cwd });
-  const projectRoot = finder.findProjectRoot(io.cwd());
+export async function runInitCommand(ctx) {
+  const { runtime, wikiSync, gitClient } = ctx.deps;
+  const options = ctx.options;
+  const projectRoot = resolveProjectRoot(runtime);
 
-  const wikiDir = path.resolve(projectRoot, values["wiki-root"] ?? "wiki");
+  const wikiDir = resolveWikiRoot(runtime, options);
   const skillsDir = path.resolve(
     projectRoot,
-    values["skills-dir"] ?? path.join(".claude", "skills"),
+    options["skills-dir"] ?? path.join(".claude", "skills"),
   );
 
-  await maybeCloneWiki(projectRoot, wikiDir, io);
+  await maybeCloneWiki(wikiSync, gitClient, projectRoot, runtime);
 
-  if (existsSync(skillsDir)) {
-    for (const slug of listSkills({ skillsDir })) {
-      mkdirSync(path.join(wikiDir, "metrics", slug), { recursive: true });
+  if (runtime.fsSync.existsSync(skillsDir)) {
+    for (const slug of listSkills({ skillsDir }, runtime.fsSync)) {
+      runtime.fsSync.mkdirSync(path.join(wikiDir, "metrics", slug), {
+        recursive: true,
+      });
     }
   }
 
-  if (existsSync(wikiDir)) {
+  if (runtime.fsSync.existsSync(wikiDir)) {
     const memoryPath = path.join(wikiDir, "MEMORY.md");
-    if (scaffoldActiveClaims(memoryPath)) {
-      io.stdout(`init: scaffolded ${ACTIVE_CLAIMS_HEADING} in ${memoryPath}\n`);
+    if (scaffoldActiveClaims(runtime, memoryPath)) {
+      runtime.proc.stdout.write(
+        `init: scaffolded ${ACTIVE_CLAIMS_HEADING} in ${memoryPath}\n`,
+      );
     }
   }
 
-  io.stdout(`init: wiki ready at ${wikiDir}\n`);
+  runtime.proc.stdout.write(`init: wiki ready at ${wikiDir}\n`);
+  return { ok: true };
 }

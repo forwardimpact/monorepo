@@ -1,5 +1,6 @@
 import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
+import * as nodeFs from "node:fs";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -20,6 +21,7 @@ describe("buildDigest", () => {
       wikiRoot: root,
       agent: "staff-engineer",
       today: "2026-05-19",
+      fs: nodeFs,
     });
     assert.equal(digest.summary, "");
     assert.deepEqual(digest.owned_priorities, []);
@@ -42,6 +44,7 @@ describe("buildDigest", () => {
       wikiRoot: root,
       agent: "staff-engineer",
       today: "2026-05-19",
+      fs: nodeFs,
     });
     assert.equal(digest.summary, "One-line summary of the agent.");
     assert.equal(digest.owned_priorities.length, 1);
@@ -61,6 +64,7 @@ describe("buildDigest", () => {
       wikiRoot: root,
       agent: "staff-engineer",
       today: "2026-05-19",
+      fs: nodeFs,
     });
     assert.deepEqual(digest.claims, []);
   });
@@ -74,6 +78,7 @@ describe("buildDigest", () => {
       wikiRoot: root,
       agent: "staff-engineer",
       today: "2026-05-19",
+      fs: nodeFs,
     });
     assert.equal(digest.claims.length, 1);
     assert.equal(digest.claims[0].target, "new");

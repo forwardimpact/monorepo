@@ -12,47 +12,37 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 import { runLogCommand } from "../src/commands/log.js";
-import { createTestIo, runWithIo } from "../src/io.js";
+import { makeRuntime, ctxFor } from "./helpers.js";
 
-function makeCli() {
-  return {
-    errors: [],
-    usageError(message) {
-      this.errors.push(message);
-    },
-  };
-}
-
-describe("fit-wiki log CLI", () => {
+describe("fit-wiki log CLI (in-process)", () => {
   let dir;
   let wikiRoot;
-  let cli;
-  let io;
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "log-cli-"));
     wikiRoot = join(dir, "wiki");
     mkdirSync(wikiRoot, { recursive: true });
-    writeFileSync(join(dir, "package.json"), '{"name":"root"}');
-    cli = makeCli();
-    io = createTestIo({ cwd: () => dir });
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  test("log decision writes leading ### Decision block", async () => {
-    await runWithIo(() =>
-      runLogCommand(
-        {
-          agent: "staff-engineer",
-          surveyed: "owned",
-          chosen: "implement spec NNNN",
-          rationale: "merged plan",
-          today: "2026-05-19",
-        },
-        ["decision"],
-        cli,
-        io,
-      ),
+  function run(subcommand, options) {
+    const harness = makeRuntime({ cwd: dir });
+    return runLogCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        options: { "wiki-root": wikiRoot, ...options },
+        args: subcommand ? { subcommand } : {},
+      }),
     );
+  }
+
+  test("log decision writes leading ### Decision block", async () => {
+    await run("decision", {
+      agent: "staff-engineer",
+      surveyed: "owned",
+      chosen: "implement spec NNNN",
+      rationale: "merged plan",
+      today: "2026-05-19",
+    });
     const expected = join(wikiRoot, "staff-engineer-2026-W21.md");
     assert.equal(existsSync(expected), true);
     const text = readFileSync(expected, "utf-8");
@@ -63,39 +53,22 @@ describe("fit-wiki log CLI", () => {
   });
 
   test("missing subcommand exits 2", async () => {
-    await runWithIo(() =>
-      runLogCommand({ agent: "staff-engineer" }, [], cli, io),
-    );
-    assert.equal(io.exitCode, 2);
+    const result = await run(undefined, { agent: "staff-engineer" });
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
   });
 
   test("log note appends under the open decision's date heading", async () => {
     const base = { agent: "staff-engineer", today: "2026-05-19" };
-    await runWithIo(() =>
-      runLogCommand(
-        { ...base, surveyed: "owned", chosen: "x", rationale: "y" },
-        ["decision"],
-        cli,
-        io,
-      ),
-    );
-    await runWithIo(() =>
-      runLogCommand(
-        { ...base, field: "Actions taken", body: "Did stuff" },
-        ["note"],
-        cli,
-        io,
-      ),
-    );
-    await runWithIo(() =>
-      runLogCommand(
-        { ...base, field: "Findings", body: "All clean" },
-        ["note"],
-        cli,
-        io,
-      ),
-    );
-    await runWithIo(() => runLogCommand(base, ["done"], cli, io));
+    await run("decision", {
+      ...base,
+      surveyed: "owned",
+      chosen: "x",
+      rationale: "y",
+    });
+    await run("note", { ...base, field: "Actions taken", body: "Did stuff" });
+    await run("note", { ...base, field: "Findings", body: "All clean" });
+    await run("done", base);
 
     const text = readFileSync(
       join(wikiRoot, "staff-engineer-2026-W21.md"),
@@ -105,7 +78,7 @@ describe("fit-wiki log CLI", () => {
     assert.equal(
       dateHeadings.length,
       1,
-      "note/done must not start a new date heading under the open entry",
+      "note/done must not start a new date heading",
     );
     assert.match(
       text,
@@ -114,34 +87,20 @@ describe("fit-wiki log CLI", () => {
   });
 
   test("log note for a new day opens its own entry", async () => {
-    const base = { agent: "staff-engineer", "wiki-root": wikiRoot };
-    await runWithIo(() =>
-      runLogCommand(
-        {
-          ...base,
-          today: "2026-05-19",
-          surveyed: "s",
-          chosen: "c",
-          rationale: "r",
-        },
-        ["decision"],
-        cli,
-        io,
-      ),
-    );
-    await runWithIo(() =>
-      runLogCommand(
-        {
-          ...base,
-          today: "2026-05-20",
-          field: "Followup",
-          body: "Next day",
-        },
-        ["note"],
-        cli,
-        io,
-      ),
-    );
+    const base = { agent: "staff-engineer" };
+    await run("decision", {
+      ...base,
+      today: "2026-05-19",
+      surveyed: "s",
+      chosen: "c",
+      rationale: "r",
+    });
+    await run("note", {
+      ...base,
+      today: "2026-05-20",
+      field: "Followup",
+      body: "Next day",
+    });
     const text = readFileSync(
       join(wikiRoot, "staff-engineer-2026-W21.md"),
       "utf-8",

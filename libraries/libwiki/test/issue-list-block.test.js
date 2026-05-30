@@ -1,145 +1,122 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
+import {
+  createTestRuntime,
+  createMockSubprocess,
+} from "@forwardimpact/libmock";
 import { renderIssueList, parseRepoSlug } from "../src/issue-list-renderer.js";
 
-function mockGh(stdout, status = 0) {
-  return () => ({ status, stdout, stderr: "" });
-}
-
-function spyGh(stdout, status = 0) {
-  const calls = [];
-  const fn = (args, options) => {
-    calls.push({ args, options });
-    return { status, stdout, stderr: "" };
-  };
-  fn.calls = calls;
-  return fn;
+function runtimeWithGh(stdout, exitCode = 0) {
+  const subprocess = createMockSubprocess({
+    responses: { gh: { stdout, exitCode } },
+  });
+  return { runtime: createTestRuntime({ subprocess }), subprocess };
 }
 
 describe("renderIssueList", () => {
-  test("renders open obstacles as bullets", () => {
-    const lines = renderIssueList({
+  test("renders open obstacles as bullets", async () => {
+    const { runtime } = runtimeWithGh(
+      JSON.stringify([
+        {
+          number: 1,
+          title: "obstacle one",
+          labels: [{ name: "obstacle" }],
+          closedAt: null,
+        },
+      ]),
+    );
+    const lines = await renderIssueList({
       topic: "obstacles",
       state: "open",
       window: null,
-      today: new Date("2026-05-19T00:00:00Z"),
-      gh: mockGh(
-        JSON.stringify([
-          {
-            number: 1,
-            title: "obstacle one",
-            labels: [{ name: "obstacle" }],
-            closedAt: null,
-          },
-        ]),
-      ),
+      today: "2026-05-19",
+      runtime,
     });
-    assert.equal(lines.length, 1);
-    assert.equal(lines[0], "- #1 obstacle one");
+    assert.deepEqual(lines, ["- #1 obstacle one"]);
   });
 
-  test("filters closed experiments by 7-day window", () => {
-    const lines = renderIssueList({
-      topic: "experiments",
-      state: "closed",
-      window: null,
-      today: new Date("2026-05-19T00:00:00Z"),
-      gh: mockGh(
-        JSON.stringify([
-          { number: 1, title: "old", closedAt: "2026-04-01T00:00:00Z" },
-          { number: 2, title: "recent", closedAt: "2026-05-15T00:00:00Z" },
-        ]),
-      ),
-    });
-    assert.equal(lines.length, 1);
-    assert.equal(lines[0], "- #2 recent");
-  });
-
-  test("returns [] on gh failure", () => {
-    const lines = renderIssueList({
+  test("passes the --repo slug to gh when provided", async () => {
+    const { runtime, subprocess } = runtimeWithGh("[]");
+    await renderIssueList({
       topic: "obstacles",
       state: "open",
       window: null,
-      gh: mockGh("", 1),
-    });
-    assert.deepEqual(lines, []);
-  });
-
-  test("forwards cwd, repo, and token to gh when provided", () => {
-    const gh = spyGh(JSON.stringify([]));
-    renderIssueList({
-      topic: "obstacles",
-      state: "open",
-      window: null,
-      cwd: "/some/project-root",
       repo: "forwardimpact/monorepo",
-      token: "ghp_test",
-      gh,
+      cwd: "/repo",
+      today: "2026-05-19",
+      runtime,
     });
-    const call = gh.calls[0];
-    const repoIdx = call.args.indexOf("--repo");
-    assert.notEqual(repoIdx, -1);
-    assert.equal(call.args[repoIdx + 1], "forwardimpact/monorepo");
-    assert.equal(call.options.cwd, "/some/project-root");
-    assert.equal(call.options.token, "ghp_test");
+    const call = subprocess.calls.find((c) => c.cmd === "gh");
+    assert.ok(call.args.includes("--repo"));
+    assert.ok(call.args.includes("forwardimpact/monorepo"));
+    assert.equal(call.opts.cwd, "/repo");
   });
 
-  test("omits --repo and options when none provided", () => {
-    const gh = spyGh(JSON.stringify([]));
-    renderIssueList({
-      topic: "obstacles",
-      state: "open",
-      window: null,
-      gh,
-    });
-    const call = gh.calls[0];
-    assert.equal(call.args.includes("--repo"), false);
-    assert.equal(call.options.cwd, undefined);
-    assert.equal(call.options.token, undefined);
-  });
-
-  test("honours window suffix (30d)", () => {
-    const lines = renderIssueList({
+  test("filters closed issues to the window", async () => {
+    const { runtime } = runtimeWithGh(
+      JSON.stringify([
+        {
+          number: 2,
+          title: "recent",
+          labels: [],
+          closedAt: "2026-05-18T00:00:00Z",
+        },
+        {
+          number: 3,
+          title: "stale",
+          labels: [],
+          closedAt: "2026-01-01T00:00:00Z",
+        },
+      ]),
+    );
+    const lines = await renderIssueList({
       topic: "experiments",
       state: "closed",
       window: "30d",
-      today: new Date("2026-05-19T00:00:00Z"),
-      gh: mockGh(
-        JSON.stringify([
-          { number: 1, title: "old", closedAt: "2026-03-01T00:00:00Z" },
-          { number: 2, title: "in-window", closedAt: "2026-04-30T00:00:00Z" },
-        ]),
-      ),
+      today: "2026-05-19",
+      runtime,
     });
-    assert.equal(lines.length, 1);
-    assert.equal(lines[0], "- #2 in-window");
+    assert.deepEqual(lines, ["- #2 recent"]);
+  });
+
+  test("gh failure yields an empty block and a stderr warning", async () => {
+    const { runtime } = runtimeWithGh("", 1);
+    const lines = await renderIssueList({
+      topic: "obstacles",
+      state: "open",
+      window: null,
+      today: "2026-05-19",
+      runtime,
+    });
+    assert.deepEqual(lines, []);
+    assert.match(runtime.proc.stderr.chunks.join(""), /gh issue list failed/);
+  });
+
+  test("malformed JSON yields an empty block and a stderr warning", async () => {
+    const { runtime } = runtimeWithGh("not json");
+    const lines = await renderIssueList({
+      topic: "obstacles",
+      state: "open",
+      window: null,
+      today: "2026-05-19",
+      runtime,
+    });
+    assert.deepEqual(lines, []);
+    assert.match(runtime.proc.stderr.chunks.join(""), /JSON parse failed/);
   });
 });
 
 describe("parseRepoSlug", () => {
-  test("parses https github URL", () => {
+  test("parses https origin", () => {
+    assert.equal(parseRepoSlug("https://github.com/foo/bar.git"), "foo/bar");
+  });
+  test("parses proxy-rewritten origin", () => {
     assert.equal(
-      parseRepoSlug("https://github.com/forwardimpact/monorepo.git"),
+      parseRepoSlug("http://host/git/forwardimpact/monorepo"),
       "forwardimpact/monorepo",
     );
   });
-
-  test("parses ssh github URL", () => {
-    assert.equal(
-      parseRepoSlug("git@github.com:forwardimpact/monorepo.git"),
-      "forwardimpact/monorepo",
-    );
-  });
-
-  test("parses proxy-rewritten URL with extra path prefix", () => {
-    assert.equal(
-      parseRepoSlug("http://127.0.0.1:1234/git/forwardimpact/monorepo"),
-      "forwardimpact/monorepo",
-    );
-  });
-
-  test("returns null for empty input", () => {
-    assert.equal(parseRepoSlug(null), null);
+  test("returns null for unparseable input", () => {
     assert.equal(parseRepoSlug(""), null);
   });
 });

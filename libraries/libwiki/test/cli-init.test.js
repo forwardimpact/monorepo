@@ -3,187 +3,84 @@ import assert from "node:assert/strict";
 import {
   mkdtempSync,
   mkdirSync,
-  existsSync,
   writeFileSync,
   readFileSync,
+  rmSync,
 } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { WikiRepo } from "../src/wiki-repo.js";
-import { listSkills } from "../src/skill-roster.js";
+import { createMockGitClient } from "@forwardimpact/libmock";
 import { deriveWikiUrl, runInitCommand } from "../src/commands/init.js";
-import { createTestIo, runWithIo } from "../src/io.js";
-import { git, createBareRepo, seedBareRepo } from "./helpers.js";
-
-describe("init command", () => {
-  let projectDir;
-  let bare;
-  let wikiDir;
-  let skillsDir;
-
-  beforeEach(() => {
-    bare = createBareRepo();
-    seedBareRepo(bare);
-
-    projectDir = mkdtempSync(join(tmpdir(), "wiki-project-"));
-    wikiDir = join(projectDir, "wiki");
-    skillsDir = join(projectDir, ".claude", "skills");
-    mkdirSync(skillsDir, { recursive: true });
-    mkdirSync(join(skillsDir, "kata-spec"));
-    mkdirSync(join(skillsDir, "kata-plan"));
-    mkdirSync(join(skillsDir, "fit-wiki"));
-
-    git(projectDir, "init");
-    git(projectDir, "config", "user.name", "Project User");
-    git(projectDir, "config", "user.email", "project@example.com");
-  });
-
-  test("clones wiki and creates metrics directories", () => {
-    const repo = new WikiRepo({
-      wikiDir,
-      parentDir: projectDir,
-      resolveToken: () => null,
-    });
-    const result = repo.ensureCloned(bare);
-    assert.equal(result.cloned, true);
-
-    repo.inheritIdentity();
-
-    const skills = listSkills({ skillsDir });
-    for (const slug of skills) {
-      mkdirSync(join(wikiDir, "metrics", slug), { recursive: true });
-    }
-
-    const gitDir = git(wikiDir, "rev-parse", "--git-dir");
-    assert.ok(gitDir);
-
-    assert.ok(existsSync(join(wikiDir, "metrics", "kata-spec")));
-    assert.ok(existsSync(join(wikiDir, "metrics", "kata-plan")));
-    assert.ok(!existsSync(join(wikiDir, "metrics", "fit-wiki")));
-  });
-
-  test("idempotent — second run produces no error", () => {
-    const repo = new WikiRepo({
-      wikiDir,
-      parentDir: projectDir,
-      resolveToken: () => null,
-    });
-    repo.ensureCloned(bare);
-    repo.inheritIdentity();
-
-    const skills = listSkills({ skillsDir });
-    for (const slug of skills) {
-      mkdirSync(join(wikiDir, "metrics", slug), { recursive: true });
-    }
-
-    const result = repo.ensureCloned(bare);
-    assert.equal(result.cloned, true);
-    assert.equal(result.reason, "already-cloned");
-
-    for (const slug of skills) {
-      mkdirSync(join(wikiDir, "metrics", slug), { recursive: true });
-    }
-
-    assert.ok(existsSync(join(wikiDir, "metrics", "kata-spec")));
-  });
-
-  test("ensureCloned returns cloned:false for unreachable URL", () => {
-    const repo = new WikiRepo({
-      wikiDir,
-      parentDir: projectDir,
-      resolveToken: () => null,
-    });
-    const result = repo.ensureCloned("/nonexistent/repo.git");
-    assert.equal(result.cloned, false);
-  });
-});
+import { makeRuntime, ctxFor } from "./helpers.js";
 
 describe("deriveWikiUrl", () => {
-  let projectDir;
-  let priorEnv;
-
-  beforeEach(() => {
-    priorEnv = process.env.FIT_WIKI_URL;
-    delete process.env.FIT_WIKI_URL;
-
-    projectDir = mkdtempSync(join(tmpdir(), "wiki-derive-"));
-    git(projectDir, "init");
+  test("FIT_WIKI_URL env var takes precedence over origin remote", async () => {
+    const git = createMockGitClient({
+      responses: { remoteGetUrl: "https://example.com/foo/bar" },
+    });
+    const url = await deriveWikiUrl(git, "/p", {
+      FIT_WIKI_URL: "https://github.com/forwardimpact/monorepo.wiki.git",
+    });
+    assert.equal(url, "https://github.com/forwardimpact/monorepo.wiki.git");
   });
 
-  test("FIT_WIKI_URL env var takes precedence over origin remote", () => {
-    git(projectDir, "remote", "add", "origin", "https://example.com/foo/bar");
-    process.env.FIT_WIKI_URL =
-      "https://github.com/forwardimpact/monorepo.wiki.git";
-    try {
-      assert.equal(
-        deriveWikiUrl(projectDir),
-        "https://github.com/forwardimpact/monorepo.wiki.git",
-      );
-    } finally {
-      if (priorEnv === undefined) delete process.env.FIT_WIKI_URL;
-      else process.env.FIT_WIKI_URL = priorEnv;
-    }
-  });
-
-  test("derives wiki URL by appending .wiki.git to origin", () => {
-    git(projectDir, "remote", "add", "origin", "https://github.com/foo/bar");
+  test("derives wiki URL by appending .wiki.git to origin", async () => {
+    const git = createMockGitClient({
+      responses: { remoteGetUrl: "https://github.com/foo/bar" },
+    });
     assert.equal(
-      deriveWikiUrl(projectDir),
+      await deriveWikiUrl(git, "/p", {}),
       "https://github.com/foo/bar.wiki.git",
     );
   });
 
-  test("strips trailing .git before appending .wiki.git", () => {
-    git(
-      projectDir,
-      "remote",
-      "add",
-      "origin",
-      "https://github.com/foo/bar.git",
-    );
+  test("strips trailing .git before appending .wiki.git", async () => {
+    const git = createMockGitClient({
+      responses: { remoteGetUrl: "https://github.com/foo/bar.git" },
+    });
     assert.equal(
-      deriveWikiUrl(projectDir),
+      await deriveWikiUrl(git, "/p", {}),
       "https://github.com/foo/bar.wiki.git",
     );
   });
 
-  test("returns null when no origin remote configured", () => {
-    assert.equal(deriveWikiUrl(projectDir), null);
+  test("returns null when no origin remote configured", async () => {
+    const git = createMockGitClient({ responses: { remoteGetUrl: "" } });
+    assert.equal(await deriveWikiUrl(git, "/p", {}), null);
   });
 });
 
-describe("init Active Claims scaffolding", () => {
+describe("init Active Claims scaffolding (local fs)", () => {
   let dir;
   let wikiRoot;
-  let io;
-  // runInitCommand calls createScriptConfig("wiki") which reads
-  // process.env.GH_TOKEN directly (it predates io.env injection), so the
-  // global needs a value for the test to reach the scaffolding step.
-  let priorGhToken;
   beforeEach(() => {
-    priorGhToken = process.env.GH_TOKEN;
-    if (!process.env.GH_TOKEN) process.env.GH_TOKEN = "test-token";
     dir = mkdtempSync(join(tmpdir(), "init-active-"));
     wikiRoot = join(dir, "wiki");
     mkdirSync(wikiRoot, { recursive: true });
     writeFileSync(join(dir, "package.json"), '{"name":"root"}');
-    io = createTestIo({
-      cwd: () => dir,
-      // FIT_WIKI_URL points at a non-existent path so the clone fails
-      // cleanly; the handler falls through to the local-only scaffolding.
-      env: {
-        ...process.env,
-        FIT_WIKI_URL: "/nonexistent/repo.git",
-      },
-    });
   });
-  afterEach(() => {
-    if (priorGhToken === undefined) delete process.env.GH_TOKEN;
-    else process.env.GH_TOKEN = priorGhToken;
-  });
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
   async function runInit() {
-    return runWithIo(() => runInitCommand({}, [], null, io));
+    const harness = makeRuntime({
+      cwd: dir,
+      // FIT_WIKI_URL points at a non-existent path so the clone fails cleanly;
+      // the handler falls through to the local-only scaffolding.
+      env: { FIT_WIKI_URL: "/nonexistent/repo.git" },
+    });
+    const wikiSync = {
+      isCloned: () => false,
+      ensureCloned: async () => ({ cloned: false, reason: "no such repo" }),
+      inheritIdentity: async () => {},
+    };
+    return runInitCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        gitClient: createMockGitClient(),
+        options: {},
+      }),
+    );
   }
 
   test("scaffolds ## Active Claims in MEMORY.md when absent", async () => {
@@ -208,7 +105,6 @@ describe("init Active Claims scaffolding", () => {
     await runInit();
     await runInit();
     const text = readFileSync(join(wikiRoot, "MEMORY.md"), "utf-8");
-    const matches = text.match(/## Active Claims/g) || [];
-    assert.equal(matches.length, 1);
+    assert.equal((text.match(/## Active Claims/g) || []).length, 1);
   });
 });

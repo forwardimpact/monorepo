@@ -1,0 +1,223 @@
+import { describe, test, beforeEach } from "node:test";
+import assert from "node:assert/strict";
+import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { GitClient } from "@forwardimpact/libutil/git-client";
+import { WikiSync, WikiPullConflict } from "../src/wiki-sync.js";
+import { git, createBareRepo, seedBareRepo, cloneRepo } from "./helpers.js";
+
+function makeSync(wikiDir, parentDir, resolveToken = () => null) {
+  const runtime = createDefaultRuntime();
+  const gitClient = new GitClient({ runtime });
+  return new WikiSync({ runtime, gitClient, wikiDir, parentDir, resolveToken });
+}
+
+describe("WikiSync (real git)", () => {
+  let bare;
+
+  beforeEach(() => {
+    bare = createBareRepo();
+    seedBareRepo(bare);
+  });
+
+  test("isCloned returns false for an empty dir", () => {
+    const dir = mkdtempSync(join(tmpdir(), "wiki-empty-"));
+    assert.equal(makeSync(join(dir, "wiki"), dir).isCloned(), false);
+  });
+
+  test("ensureCloned clones and isCloned then returns true", async () => {
+    const parent = mkdtempSync(join(tmpdir(), "wiki-parent-"));
+    const wikiDir = join(parent, "wiki");
+    const ws = makeSync(wikiDir, parent);
+    const result = await ws.ensureCloned(bare);
+    assert.equal(result.cloned, true);
+    assert.equal(ws.isCloned(), true);
+  });
+
+  test("ensureCloned is a no-op when already cloned", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "noop");
+    const result = await makeSync(wikiDir, parent).ensureCloned(bare);
+    assert.deepEqual(result, { cloned: true, reason: "already-cloned" });
+  });
+
+  test("ensureCloned returns cloned:false for a bad URL", async () => {
+    const parent = mkdtempSync(join(tmpdir(), "wiki-bad-"));
+    const ws = makeSync(join(parent, "wiki"), parent);
+    const result = await ws.ensureCloned("/nonexistent/path.git");
+    assert.equal(result.cloned, false);
+  });
+
+  test("isClean detects a dirty tree", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "dirty");
+    git(wikiDir, "checkout", "master");
+    const ws = makeSync(wikiDir, parent);
+    assert.equal(await ws.isClean(), true);
+    writeFileSync(join(wikiDir, "new.md"), "content");
+    assert.equal(await ws.isClean(), false);
+  });
+
+  test("inheritIdentity propagates parent config", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "identity");
+    git(parent, "init");
+    git(parent, "config", "user.name", "Parent Name");
+    git(parent, "config", "user.email", "parent@example.com");
+
+    await makeSync(wikiDir, parent).inheritIdentity();
+
+    assert.equal(git(wikiDir, "config", "--get", "user.name"), "Parent Name");
+    assert.equal(
+      git(wikiDir, "config", "--get", "user.email"),
+      "parent@example.com",
+    );
+  });
+
+  test("pull picks up remote changes", async () => {
+    const { wikiDir: w1 } = cloneRepo(bare, "pull1");
+    const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "pull2");
+    git(w1, "checkout", "master");
+    git(w2, "checkout", "master");
+
+    writeFileSync(join(w1, "change.md"), "from clone1");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "clone1 change");
+    git(w1, "push", "origin", "master");
+
+    await makeSync(w2, p2).pull();
+
+    assert.equal(
+      readFileSync(join(w2, "change.md"), "utf-8").trim(),
+      "from clone1",
+    );
+  });
+
+  test("pull throws WikiPullConflict on divergence", async () => {
+    const { wikiDir: w1 } = cloneRepo(bare, "conflict1");
+    const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "conflict2");
+    git(w1, "checkout", "master");
+    git(w2, "checkout", "master");
+
+    writeFileSync(join(w1, "README.md"), "clone1 edit");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "clone1");
+    git(w1, "push", "origin", "master");
+
+    writeFileSync(join(w2, "README.md"), "clone2 edit");
+    git(w2, "add", "-A");
+    git(w2, "commit", "-m", "clone2");
+
+    await assert.rejects(() => makeSync(w2, p2).pull(), WikiPullConflict);
+  });
+
+  test("commitAndPush is a no-op on a clean tree", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "clean");
+    git(wikiDir, "checkout", "master");
+    const result = await makeSync(wikiDir, parent).commitAndPush("test");
+    assert.deepEqual(result, { pushed: false, reason: "clean" });
+  });
+
+  test("commitAndPush commits and pushes a dirty tree", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "push");
+    git(wikiDir, "checkout", "master");
+
+    writeFileSync(join(wikiDir, "update.md"), "new content");
+    const result = await makeSync(wikiDir, parent).commitAndPush(
+      "wiki: test push",
+    );
+    assert.equal(result.pushed, true);
+    assert.ok(
+      git(wikiDir, "log", "-1", "--oneline").includes("wiki: test push"),
+    );
+    assert.equal(git(wikiDir, "diff", "origin/master"), "");
+  });
+
+  test("commitAndPush pushes pre-existing local commits on a clean tree", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "ahead");
+    git(wikiDir, "checkout", "master");
+
+    writeFileSync(join(wikiDir, "inline.md"), "committed inline by caller");
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "inline commit by caller");
+    const headBefore = git(wikiDir, "rev-parse", "HEAD");
+
+    const result = await makeSync(wikiDir, parent).commitAndPush(
+      "wiki: should not be used",
+    );
+    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.equal(
+      git(wikiDir, "rev-parse", "HEAD"),
+      headBefore,
+      "no new commit object should be created when the tree is clean",
+    );
+    assert.equal(git(wikiDir, "diff", "origin/master"), "");
+    assert.equal(
+      git(wikiDir, "log", "-1", "--format=%s"),
+      "inline commit by caller",
+    );
+  });
+
+  test("commitAndPush recovers via merge -X ours on divergence", async () => {
+    const { wikiDir: w1 } = cloneRepo(bare, "merge1");
+    const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "merge2");
+    git(w1, "checkout", "master");
+    git(w2, "checkout", "master");
+
+    writeFileSync(join(w1, "README.md"), "remote change");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "remote");
+    git(w1, "push", "origin", "master");
+
+    writeFileSync(join(w2, "README.md"), "local wins");
+    const result = await makeSync(w2, p2).commitAndPush("wiki: local update");
+    assert.equal(result.pushed, true);
+    assert.equal(
+      readFileSync(join(w2, "README.md"), "utf-8").trim(),
+      "local wins",
+    );
+  });
+});
+
+describe("WikiSync resolveToken (real git)", () => {
+  let bare;
+
+  beforeEach(() => {
+    bare = createBareRepo();
+    seedBareRepo(bare);
+  });
+
+  test("invokes resolveToken on network operations", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "tokencb");
+    git(wikiDir, "checkout", "master");
+    let calls = 0;
+    const ws = makeSync(wikiDir, parent, () => {
+      calls++;
+      return "ghp_fromcallback";
+    });
+    await ws.fetch();
+    assert.ok(calls >= 1, "resolveToken should be called by fetch()");
+  });
+
+  test("does not invoke resolveToken on local-only operations", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "tokenlocal");
+    git(wikiDir, "checkout", "master");
+    let calls = 0;
+    const ws = makeSync(wikiDir, parent, () => {
+      calls++;
+      return "ghp_unused";
+    });
+    ws.isCloned();
+    await ws.isClean();
+    await ws.inheritIdentity();
+    assert.equal(calls, 0);
+  });
+
+  test("propagates errors thrown by resolveToken", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "tokenthrow");
+    git(wikiDir, "checkout", "master");
+    const ws = makeSync(wikiDir, parent, () => {
+      throw new Error("not configured");
+    });
+    await assert.rejects(() => ws.fetch(), /not configured/);
+  });
+});

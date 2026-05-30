@@ -1,102 +1,87 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import fsAsync from "node:fs/promises";
 import path from "node:path";
-import { Finder } from "@forwardimpact/libutil";
+import { addDays } from "@forwardimpact/libutil";
 import {
   appendClaim,
   removeClaim,
   parseClaims,
   filterExpired,
 } from "../active-claims.js";
-import { createDefaultIo } from "../io.js";
-import { buildRepo } from "../build-repo.js";
+import { currentDayIso } from "../util/clock.js";
+import { resolveWikiRoot } from "../util/wiki-dir.js";
 
-function projectRoot(io) {
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, { cwd: io.cwd });
-  return finder.findProjectRoot(io.cwd());
+function readMemory(runtime, memPath) {
+  if (!runtime.fsSync.existsSync(memPath)) return "";
+  return runtime.fsSync.readFileSync(memPath, "utf-8");
 }
 
-function memoryPath(values, io) {
-  const root = projectRoot(io);
-  const wikiRoot = values["wiki-root"] || path.join(root, "wiki");
-  return path.join(wikiRoot, "MEMORY.md");
+function memoryPath(runtime, options) {
+  return path.join(resolveWikiRoot(runtime, options), "MEMORY.md");
 }
 
-function readMemory(memPath) {
-  if (!existsSync(memPath)) return "";
-  return readFileSync(memPath, "utf-8");
-}
-
-function addDays(today, n) {
-  const d = new Date(today);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
-
-async function pushWiki(repoFactory, values, io, message) {
-  if (!repoFactory) return;
+async function pushWiki(wikiSync, runtime, message) {
+  if (!wikiSync) return;
   try {
-    const repo = await repoFactory(values, io.cwd());
-    repo.inheritIdentity();
-    const result = repo.commitAndPush(message);
-    if (result.pushed) io.stdout("push: committed and pushed\n");
+    await wikiSync.inheritIdentity();
+    const result = await wikiSync.commitAndPush(message);
+    if (result.pushed)
+      runtime.proc.stdout.write("push: committed and pushed\n");
   } catch (err) {
-    io.stderr(`push failed (saved locally): ${err.message}\n`);
+    runtime.proc.stderr.write(`push failed (saved locally): ${err.message}\n`);
   }
 }
 
 /** Insert a row into MEMORY.md `## Active Claims`. Refuses if (agent, target) already present. */
-export async function runClaimCommand(
-  values,
-  _args,
-  cli,
-  io = createDefaultIo(),
-  repoFactory = buildRepo,
-) {
-  const agent = values.agent || io.env.LIBEVAL_AGENT_PROFILE;
+export async function runClaimCommand(ctx) {
+  const { runtime, wikiSync } = ctx.deps;
+  const options = ctx.options;
+  const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
-    cli.usageError("claim requires --agent or LIBEVAL_AGENT_PROFILE");
-    return io.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "claim requires --agent or LIBEVAL_AGENT_PROFILE",
+    };
   }
-  if (!values.target || !values.branch) {
-    cli.usageError("claim requires --target and --branch");
-    return io.exit(2);
+  if (!options.target || !options.branch) {
+    return {
+      ok: false,
+      code: 2,
+      error: "claim requires --target and --branch",
+    };
   }
-  const today = values.today || io.today();
-  const expires = values["expires-at"] || addDays(today, 7);
-  const memPath = memoryPath(values, io);
-  const text = readMemory(memPath);
+  const today = options.today || currentDayIso(runtime);
+  const expires = options["expires-at"] || addDays(today, 7);
+  const memPath = memoryPath(runtime, options);
+  const text = readMemory(runtime, memPath);
   const result = appendClaim(text, {
     agent,
-    target: values.target,
-    branch: values.branch,
-    pr: values.pr || null,
+    target: options.target,
+    branch: options.branch,
+    pr: options.pr || null,
     claimed_at: today,
     expires_at: expires,
   });
   if (!result.inserted) {
-    io.stderr(`claim already exists for ${agent}/${values.target}\n`);
-    return io.exit(2);
+    runtime.proc.stderr.write(
+      `claim already exists for ${agent}/${options.target}\n`,
+    );
+    return { ok: false, code: 2 };
   }
-  writeFileSync(memPath, result.text);
-  io.stdout(`claimed ${values.target} (expires ${expires})\n`);
-  await pushWiki(repoFactory, values, io, `wiki: claim ${values.target}`);
+  runtime.fsSync.writeFileSync(memPath, result.text);
+  runtime.proc.stdout.write(`claimed ${options.target} (expires ${expires})\n`);
+  await pushWiki(wikiSync, runtime, `wiki: claim ${options.target}`);
+  return { ok: true };
 }
 
 /** Remove a claim row. `--expired` cleans every row past expires_at. */
-export async function runReleaseCommand(
-  values,
-  _args,
-  cli,
-  io = createDefaultIo(),
-  repoFactory = buildRepo,
-) {
-  const memPath = memoryPath(values, io);
-  const text = readMemory(memPath);
+export async function runReleaseCommand(ctx) {
+  const { runtime, wikiSync } = ctx.deps;
+  const options = ctx.options;
+  const memPath = memoryPath(runtime, options);
+  const text = readMemory(runtime, memPath);
 
-  if (values.expired) {
-    const today = values.today || io.today();
+  if (options.expired) {
+    const today = options.today || currentDayIso(runtime);
     const claims = parseClaims(text);
     const { expired } = filterExpired(claims, today);
     let current = text;
@@ -108,27 +93,36 @@ export async function runReleaseCommand(
         count++;
       }
     }
-    writeFileSync(memPath, current);
-    io.stdout(`released ${count} expired claim(s)\n`);
-    await pushWiki(repoFactory, values, io, "wiki: release expired claims");
-    return;
+    runtime.fsSync.writeFileSync(memPath, current);
+    runtime.proc.stdout.write(`released ${count} expired claim(s)\n`);
+    await pushWiki(wikiSync, runtime, "wiki: release expired claims");
+    return { ok: true };
   }
 
-  const agent = values.agent || io.env.LIBEVAL_AGENT_PROFILE;
+  const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
-    cli.usageError("release requires --agent or --expired");
-    return io.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "release requires --agent or --expired",
+    };
   }
-  if (!values.target) {
-    cli.usageError("release requires --target (or --expired)");
-    return io.exit(2);
+  if (!options.target) {
+    return {
+      ok: false,
+      code: 2,
+      error: "release requires --target (or --expired)",
+    };
   }
-  const result = removeClaim(text, { agent, target: values.target });
-  writeFileSync(memPath, result.text);
+  const result = removeClaim(text, { agent, target: options.target });
+  runtime.fsSync.writeFileSync(memPath, result.text);
   if (!result.removed) {
-    io.stdout(`no matching claim for ${agent}/${values.target}\n`);
+    runtime.proc.stdout.write(
+      `no matching claim for ${agent}/${options.target}\n`,
+    );
   } else {
-    io.stdout(`released ${values.target}\n`);
-    await pushWiki(repoFactory, values, io, `wiki: release ${values.target}`);
+    runtime.proc.stdout.write(`released ${options.target}\n`);
+    await pushWiki(wikiSync, runtime, `wiki: release ${options.target}`);
   }
+  return { ok: true };
 }

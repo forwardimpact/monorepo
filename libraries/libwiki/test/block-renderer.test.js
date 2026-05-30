@@ -1,5 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
+import * as nodeFs from "node:fs";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -26,6 +27,7 @@ describe("renderBlock", () => {
       metric: "findings",
       csvPath: "test.csv",
       projectRoot: dir,
+      fs: nodeFs,
     });
 
     assert.equal(lines[0], "```");
@@ -50,6 +52,7 @@ describe("renderBlock", () => {
       metric: "outlier",
       csvPath: "test.csv",
       projectRoot: dir,
+      fs: nodeFs,
     });
 
     const signalLine = lines[lines.length - 1];
@@ -65,6 +68,7 @@ describe("renderBlock", () => {
       metric: "few",
       csvPath: "test.csv",
       projectRoot: dir,
+      fs: nodeFs,
     });
 
     assert.equal(lines[0], "```");

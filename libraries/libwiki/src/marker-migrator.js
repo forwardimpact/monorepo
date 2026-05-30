@@ -1,13 +1,14 @@
-import { readFileSync, writeFileSync } from "node:fs";
 import { MEMO_INBOX_MARKER, INBOX_HEADING } from "./constants.js";
 import { listAgents } from "./agent-roster.js";
 
-/** Insert memo:inbox markers into agent summary files that have an inbox heading but no marker yet. */
-export function insertMarkers(
-  { agentsDir, wikiRoot },
-  fs = { readFileSync, writeFileSync },
-) {
-  const agents = listAgents({ agentsDir, wikiRoot });
+/**
+ * Insert memo:inbox markers into agent summary files that have an inbox heading
+ * but no marker yet.
+ * @param {{agentsDir: string, wikiRoot: string}} dirs
+ * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
+ */
+export function insertMarkers({ agentsDir, wikiRoot }, fs) {
+  const agents = listAgents({ agentsDir, wikiRoot }, fs);
   const inserted = [];
   const skipped = [];
   const errors = [];

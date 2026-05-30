@@ -1,7 +1,6 @@
-import fsAsync from "node:fs/promises";
-import path from "node:path";
-import { Finder } from "@forwardimpact/libutil";
 import { buildDigest } from "../boot.js";
+import { currentDayIso } from "../util/clock.js";
+import { resolveWikiRoot } from "../util/wiki-dir.js";
 
 function renderMarkdown(digest) {
   const lines = [];
@@ -41,21 +40,21 @@ function renderMarkdown(digest) {
 }
 
 /** Print the on-boot digest for the calling agent. JSON by default; --format markdown renders prose. */
-export function runBootCommand(values, _args, cli) {
+export function runBootCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const options = ctx.options;
   const agent =
-    values.agent || process.env.LIBEVAL_AGENT_PROFILE || "staff-engineer";
+    options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE || "staff-engineer";
 
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, process);
-  const projectRoot = finder.findProjectRoot(process.cwd());
-  const wikiRoot = values["wiki-root"] || path.join(projectRoot, "wiki");
-  const today = values.today || new Date().toISOString().slice(0, 10);
+  const wikiRoot = resolveWikiRoot(runtime, options);
+  const today = options.today || currentDayIso(runtime);
 
-  const digest = buildDigest({ wikiRoot, agent, today });
+  const digest = buildDigest({ wikiRoot, agent, today, fs: runtime.fsSync });
 
-  if ((values.format || "json") === "markdown") {
-    process.stdout.write(renderMarkdown(digest) + "\n");
+  if ((options.format || "json") === "markdown") {
+    runtime.proc.stdout.write(renderMarkdown(digest) + "\n");
   } else {
-    process.stdout.write(JSON.stringify(digest, null, 2) + "\n");
+    runtime.proc.stdout.write(JSON.stringify(digest, null, 2) + "\n");
   }
+  return { ok: true };
 }

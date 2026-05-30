@@ -1,36 +1,33 @@
-import { readFileSync, writeFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import path from "node:path";
-import fsAsync from "node:fs/promises";
-import { Finder } from "@forwardimpact/libutil";
+import { yearMonth } from "@forwardimpact/libutil";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { scanMarkers } from "../marker-scanner.js";
 import { renderBlock, BlockRenderError } from "../block-renderer.js";
 import { renderIssueList, parseRepoSlug } from "../issue-list-renderer.js";
-import { createDefaultIo } from "../io.js";
+import { currentDayIso } from "../util/clock.js";
+import { resolveProjectRoot } from "../util/wiki-dir.js";
 
-function currentStoryboardPath(now = new Date()) {
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  return `wiki/storyboard-${yyyy}-M${mm}.md`;
+function currentStoryboardRelPath(runtime) {
+  return `wiki/storyboard-${yearMonth(currentDayIso(runtime))}.md`;
 }
 
-function deriveParentRepo(parentDir, env) {
+async function deriveParentRepo(gitClient, parentDir, env) {
   if (env.FIT_GH_REPO) return env.FIT_GH_REPO;
-  const r = spawnSync("git", ["-C", parentDir, "remote", "get-url", "origin"], {
-    encoding: "utf-8",
-    stdio: "pipe",
-  });
-  if (r.status !== 0) return null;
-  return parseRepoSlug(r.stdout);
+  try {
+    const url = await gitClient.remoteGetUrl("origin", { cwd: parentDir });
+    return parseRepoSlug(url);
+  } catch {
+    return null;
+  }
 }
 
-function renderForBlock(block, projectRoot, ghContext) {
+async function renderForBlock(block, projectRoot, ghContext, runtime) {
   if (block.kind === "xmr") {
     return renderBlock({
       metric: block.metric,
       csvPath: block.csvPath,
       projectRoot,
+      fs: runtime.fsSync,
     });
   }
   if (block.kind === "issue-list") {
@@ -41,6 +38,8 @@ function renderForBlock(block, projectRoot, ghContext) {
       cwd: ghContext.cwd,
       repo: ghContext.repo,
       token: ghContext.token,
+      today: currentDayIso(runtime),
+      runtime,
     });
   }
   return null;
@@ -55,23 +54,20 @@ function spliceBlock(lines, block, rendered) {
 }
 
 /** Re-render XmR chart blocks and issue-list blocks in a storyboard file. */
-export async function runRefreshCommand(
-  values,
-  args,
-  _cli,
-  io = createDefaultIo(),
-) {
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, { cwd: io.cwd });
-  const projectRoot = finder.findProjectRoot(io.cwd());
+export async function runRefreshCommand(ctx) {
+  const { runtime, gitClient } = ctx.deps;
+  const options = ctx.options;
+  const projectRoot = resolveProjectRoot(runtime);
 
   const storyboardPath = path.resolve(
     projectRoot,
-    args[0] || currentStoryboardPath(),
+    ctx.args["storyboard-path"] || currentStoryboardRelPath(runtime),
   );
-  const text = readFileSync(storyboardPath, "utf-8");
-  const blocks = scanMarkers(text);
-  if (blocks.length === 0) return;
+  const text = runtime.fsSync.readFileSync(storyboardPath, "utf-8");
+  const blocks = scanMarkers(text, {
+    warn: (message) => runtime.proc.stderr.write(message),
+  });
+  if (blocks.length === 0) return { ok: true };
 
   const config = await createScriptConfig("wiki");
   let token = null;
@@ -89,7 +85,7 @@ export async function runRefreshCommand(
   // overrides the parsed origin.
   const ghContext = {
     cwd: projectRoot,
-    repo: deriveParentRepo(projectRoot, io.env),
+    repo: await deriveParentRepo(gitClient, projectRoot, runtime.proc.env),
     token,
   };
 
@@ -99,20 +95,28 @@ export async function runRefreshCommand(
   for (let i = blocks.length - 1; i >= 0; i--) {
     const block = blocks[i];
     try {
-      const rendered = renderForBlock(block, projectRoot, ghContext);
+      const rendered = await renderForBlock(
+        block,
+        projectRoot,
+        ghContext,
+        runtime,
+      );
       if (!rendered) continue;
       spliceBlock(lines, block, rendered);
       spliced = true;
     } catch (err) {
       if (!(err instanceof BlockRenderError)) throw err;
-      io.stderr(
+      runtime.proc.stderr.write(
         `refresh-error ${storyboardPath}:${block.openLine + 1} ${err.message}\n`,
       );
     }
   }
 
-  if (spliced) writeFileSync(storyboardPath, lines.join("\n"));
-  if (values && values.format === "json") {
-    io.stdout(JSON.stringify({ blocks: blocks.length, spliced }) + "\n");
+  if (spliced) runtime.fsSync.writeFileSync(storyboardPath, lines.join("\n"));
+  if (options.format === "json") {
+    runtime.proc.stdout.write(
+      JSON.stringify({ blocks: blocks.length, spliced }) + "\n",
+    );
   }
+  return { ok: true };
 }

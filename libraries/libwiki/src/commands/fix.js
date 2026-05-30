@@ -1,7 +1,6 @@
-import fsAsync from "node:fs/promises";
 import path from "node:path";
 import { Writable } from "node:stream";
-import { Finder, emitFindingsText, runRules } from "@forwardimpact/libutil";
+import { emitFindingsText, runRules } from "@forwardimpact/libutil";
 import {
   createAgentRunner,
   composeProfilePrompt,
@@ -9,20 +8,23 @@ import {
 } from "@forwardimpact/libeval";
 import { RULES } from "../audit/rules.js";
 import { buildContext, resolveScope } from "../audit/scopes.js";
+import { currentDayIso } from "../util/clock.js";
+import { resolveProjectRoot } from "../util/wiki-dir.js";
 
 /** Run the wiki audit and auto-fix findings via a Haiku-powered AgentRunner. */
-export async function runFixCommand(values, _args, _cli) {
-  const finder = new Finder(fsAsync, { debug() {} }, process);
-  const projectRoot = finder.findProjectRoot(process.cwd());
-  const wikiRoot = values["wiki-root"] || path.join(projectRoot, "wiki");
-  const today = values.today || new Date().toISOString().slice(0, 10);
+export async function runFixCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const options = ctx.options;
+  const projectRoot = resolveProjectRoot(runtime);
+  const wikiRoot = options["wiki-root"] || path.join(projectRoot, "wiki");
+  const today = options.today || currentDayIso(runtime);
 
-  const ctx = buildContext({ wikiRoot, today });
-  const findings = runRules(RULES, ctx, { resolveScope });
+  const auditCtx = buildContext({ wikiRoot, today, fs: runtime.fsSync });
+  const findings = runRules(RULES, auditCtx, { resolveScope });
 
   if (findings.length === 0) {
-    process.stdout.write("nothing to fix\n");
-    return;
+    runtime.proc.stdout.write("nothing to fix\n");
+    return { ok: true };
   }
 
   const auditText = emitFindingsText(findings, { cwd: projectRoot });
@@ -59,6 +61,6 @@ export async function runFixCommand(values, _args, _cli) {
   ].join("\n");
 
   const result = await runner.run(task);
-  if (result.text) process.stdout.write(result.text + "\n");
-  process.exit(result.success ? 0 : 1);
+  if (result.text) runtime.proc.stdout.write(result.text + "\n");
+  return { ok: result.success, code: result.success ? 0 : 1 };
 }

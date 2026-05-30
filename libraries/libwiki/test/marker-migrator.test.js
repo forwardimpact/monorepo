@@ -1,5 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
+import * as nodeFs from "node:fs";
 import { mkdtempSync, writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -28,7 +29,7 @@ describe("insertMarkers", () => {
         "# Staff Engineer\n\n## Message Inbox\n\n- existing bullet\n",
     });
 
-    const result = insertMarkers({ agentsDir, wikiRoot });
+    const result = insertMarkers({ agentsDir, wikiRoot }, nodeFs);
 
     assert.deepStrictEqual(result.inserted, ["staff-engineer"]);
     assert.deepStrictEqual(result.skipped, []);
@@ -44,8 +45,8 @@ describe("insertMarkers", () => {
         "# Staff Engineer\n\n## Message Inbox\n\n- existing bullet\n",
     });
 
-    insertMarkers({ agentsDir, wikiRoot });
-    const result = insertMarkers({ agentsDir, wikiRoot });
+    insertMarkers({ agentsDir, wikiRoot }, nodeFs);
+    const result = insertMarkers({ agentsDir, wikiRoot }, nodeFs);
 
     assert.deepStrictEqual(result.inserted, []);
     assert.deepStrictEqual(result.skipped, ["staff-engineer"]);
@@ -56,7 +57,7 @@ describe("insertMarkers", () => {
       "staff-engineer": "# Staff Engineer\n\nNo inbox section here.\n",
     });
 
-    const result = insertMarkers({ agentsDir, wikiRoot });
+    const result = insertMarkers({ agentsDir, wikiRoot }, nodeFs);
 
     assert.deepStrictEqual(result.errors, [
       { agent: "staff-engineer", reason: "missing-heading" },
@@ -68,7 +69,7 @@ describe("insertMarkers", () => {
       "staff-engineer": "## Message Inbox\n\n- existing bullet\n",
     });
 
-    insertMarkers({ agentsDir, wikiRoot });
+    insertMarkers({ agentsDir, wikiRoot }, nodeFs);
 
     const lines = readFileSync(
       join(wikiRoot, "staff-engineer.md"),

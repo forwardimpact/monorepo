@@ -3,18 +3,17 @@ import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { execFileSync } from "node:child_process";
 
-const CLI_PATH = new URL("../bin/fit-wiki.js", import.meta.url).pathname;
+import { runBootCommand } from "../src/commands/boot.js";
+import { makeRuntime, ctxFor } from "./helpers.js";
 
-describe("fit-wiki boot CLI", () => {
+describe("fit-wiki boot CLI (in-process)", () => {
   let dir;
   let wikiRoot;
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "boot-cli-"));
     wikiRoot = join(dir, "wiki");
     mkdirSync(wikiRoot, { recursive: true });
-    writeFileSync(join(dir, "package.json"), '{"name":"root"}');
     writeFileSync(
       join(wikiRoot, "MEMORY.md"),
       "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
@@ -26,30 +25,27 @@ describe("fit-wiki boot CLI", () => {
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  test("prints JSON digest", () => {
-    const out = execFileSync(
-      "node",
-      [CLI_PATH, "boot", "--agent", "staff-engineer"],
-      {
-        cwd: dir,
-        encoding: "utf-8",
-      },
+  function run(options) {
+    const harness = makeRuntime({ cwd: dir });
+    const result = runBootCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        options: { "wiki-root": wikiRoot, agent: "staff-engineer", ...options },
+      }),
     );
-    const digest = JSON.parse(out);
+    return { harness, result };
+  }
+
+  test("prints JSON digest", () => {
+    const { harness } = run({ today: "2026-05-19" });
+    const digest = JSON.parse(harness.stdout);
     assert.equal(typeof digest.summary, "string");
     assert.ok(Array.isArray(digest.owned_priorities));
     assert.ok(Array.isArray(digest.claims));
   });
 
   test("markdown format emits human-readable output", () => {
-    const out = execFileSync(
-      "node",
-      [CLI_PATH, "boot", "--agent", "staff-engineer", "--format", "markdown"],
-      {
-        cwd: dir,
-        encoding: "utf-8",
-      },
-    );
-    assert.match(out, /# Boot Digest/);
+    const { harness } = run({ today: "2026-05-19", format: "markdown" });
+    assert.match(harness.stdout, /# Boot Digest/);
   });
 });

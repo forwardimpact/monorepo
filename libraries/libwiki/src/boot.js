@@ -1,17 +1,15 @@
-import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
+import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims, filterExpired } from "./active-claims.js";
 import { MEMO_INBOX_MARKER, PRIORITY_INDEX_HEADING } from "./constants.js";
 
-function readIfExists(filePath) {
-  if (!existsSync(filePath)) return null;
-  return readFileSync(filePath, "utf-8");
+function readIfExists(fs, filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  return fs.readFileSync(filePath, "utf-8");
 }
 
-function currentStoryboardPath(wikiRoot, date) {
-  const yyyy = date.getUTCFullYear();
-  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
-  return path.join(wikiRoot, `storyboard-${yyyy}-M${mm}.md`);
+function currentStoryboardPath(wikiRoot, today) {
+  return path.join(wikiRoot, `storyboard-${yearMonth(today)}.md`);
 }
 
 function extractSummary(text) {
@@ -146,20 +144,22 @@ function mapClaim(c) {
   };
 }
 
-/** Build the boot digest JSON object. */
-export function buildDigest({ wikiRoot, agent, today, _fs, _gh }) {
-  const date = today instanceof Date ? today : new Date(today);
-  const todayStr = date.toISOString().slice(0, 10);
-
+/**
+ * Build the boot digest JSON object.
+ * @param {{wikiRoot: string, agent: string, today: string, fs: object}} options
+ *   `fs` is the sync filesystem surface (`runtime.fsSync`); `today` is an ISO
+ *   date string.
+ */
+export function buildDigest({ wikiRoot, agent, today, fs }) {
   const summaryPath = path.join(wikiRoot, `${agent}.md`);
   const memoryPath = path.join(wikiRoot, "MEMORY.md");
-  const storyboardPath = currentStoryboardPath(wikiRoot, date);
+  const storyboardPath = currentStoryboardPath(wikiRoot, today);
 
-  const summaryText = readIfExists(summaryPath);
-  const memoryText = readIfExists(memoryPath);
-  const storyboardText = readIfExists(storyboardPath);
+  const summaryText = readIfExists(fs, summaryPath);
+  const memoryText = readIfExists(fs, memoryPath);
+  const storyboardText = readIfExists(fs, storyboardPath);
 
-  const { active } = filterExpired(parseClaims(memoryText ?? ""), todayStr);
+  const { active } = filterExpired(parseClaims(memoryText ?? ""), today);
   const { owned, cross } = splitPriorities(
     parsePriorityTable(memoryText ?? ""),
     agent,
@@ -172,7 +172,7 @@ export function buildDigest({ wikiRoot, agent, today, _fs, _gh }) {
     claims: active.map(mapClaim),
     storyboard_items: parseStoryboardItems(storyboardText ?? "", agent),
     inbox_count: countInbox(summaryText),
-    storyboard_path: existsSync(storyboardPath)
+    storyboard_path: fs.existsSync(storyboardPath)
       ? path.relative(path.dirname(wikiRoot) || ".", storyboardPath)
       : "",
   };

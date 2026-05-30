@@ -6,6 +6,7 @@ const GIT_METHODS = [
   "fetch",
   "status",
   "rebase",
+  "rebaseAbort",
   "mergeOursStrategy",
   "commitAll",
   "push",

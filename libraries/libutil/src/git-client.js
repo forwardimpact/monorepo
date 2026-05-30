@@ -69,9 +69,14 @@ export class GitClient {
     return this.#runRaw(args, { cwd, allowFailure: true });
   }
 
-  /** Continue a rebase resolving conflicts with `-X ours`. */
+  /** Abort an in-progress rebase, leaving the working tree at its pre-rebase state. */
+  async rebaseAbort({ cwd } = {}) {
+    return this.#runRaw(["rebase", "--abort"], { cwd, allowFailure: true });
+  }
+
+  /** Merge `ref` into the current branch resolving conflicts with `-X ours`. */
   async mergeOursStrategy({ cwd, ref }) {
-    return this.#runRaw(["merge", "-X", "ours", ref], { cwd });
+    return this.#runRaw(["merge", "-X", "ours", "--no-edit", ref], { cwd });
   }
 
   /** Stage all changes and commit with `message`. */

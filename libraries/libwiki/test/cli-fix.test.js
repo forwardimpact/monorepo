@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { execFileSync } from "node:child_process";
 
-const CLI_PATH = new URL("../bin/fit-wiki.js", import.meta.url).pathname;
+import { runFixCommand } from "../src/commands/fix.js";
+import { makeRuntime, ctxFor } from "./helpers.js";
+
 const STORYBOARD_AGENTS = [
   "product-manager",
   "release-engineer",
@@ -14,15 +15,7 @@ const STORYBOARD_AGENTS = [
   "technical-writer",
 ];
 
-function run(dir, args, env = {}) {
-  return execFileSync("node", [CLI_PATH, ...args], {
-    cwd: dir,
-    encoding: "utf-8",
-    env: { ...process.env, ...env },
-  });
-}
-
-function seedCleanWiki(wikiRoot, today = "2026-05-24") {
+function seedCleanWiki(wikiRoot) {
   writeFileSync(
     join(wikiRoot, "MEMORY.md"),
     [
@@ -34,13 +27,10 @@ function seedCleanWiki(wikiRoot, today = "2026-05-24") {
       "",
     ].join("\n"),
   );
-  const d = new Date(today);
-  const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
   writeFileSync(
-    join(wikiRoot, `storyboard-${yyyy}-M${mm}.md`),
+    join(wikiRoot, "storyboard-2026-M05.md"),
     [
-      `# Storyboard — ${yyyy}-${mm}`,
+      "# Storyboard — 2026-05",
       "",
       ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
       "",
@@ -48,7 +38,7 @@ function seedCleanWiki(wikiRoot, today = "2026-05-24") {
   );
 }
 
-describe("fit-wiki fix CLI", () => {
+describe("fit-wiki fix CLI (in-process)", () => {
   let dir;
   let wikiRoot;
 
@@ -58,12 +48,15 @@ describe("fit-wiki fix CLI", () => {
     mkdirSync(wikiRoot, { recursive: true });
     writeFileSync(join(dir, "package.json"), '{"name":"root"}');
   });
-
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  test("clean wiki: prints 'nothing to fix' and exits 0", () => {
+  test("clean wiki: prints 'nothing to fix' and exits 0", async () => {
     seedCleanWiki(wikiRoot);
-    const out = run(dir, ["fix", "--today", "2026-05-24"]);
-    assert.match(out, /nothing to fix/);
+    const harness = makeRuntime({ cwd: dir });
+    const result = await runFixCommand(
+      ctxFor({ runtime: harness.runtime, options: { today: "2026-05-24" } }),
+    );
+    assert.deepEqual(result, { ok: true });
+    assert.match(harness.stdout, /nothing to fix/);
   });
 });

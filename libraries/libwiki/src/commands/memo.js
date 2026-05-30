@@ -1,18 +1,23 @@
-import { existsSync } from "node:fs";
-import fsAsync from "node:fs/promises";
 import path from "node:path";
-import { Finder } from "@forwardimpact/libutil";
 import { writeMemo } from "../memo-writer.js";
 import { listAgents } from "../agent-roster.js";
 import { BROADCAST_TARGET } from "../constants.js";
+import { currentDayIso } from "../util/clock.js";
+import { resolveProjectRoot } from "../util/wiki-dir.js";
 
-function writeAndCheck(summaryPath, sender, message, today) {
-  const result = writeMemo({ summaryPath, sender, message, today });
+function writeAndCheck(runtime, summaryPath, sender, message, today) {
+  const result = writeMemo(
+    { summaryPath, sender, message, today },
+    runtime.fsSync,
+  );
   if (!result.written) {
-    process.stderr.write(`summary lacks memo:inbox marker: ${result.path}\n`);
-    process.exit(2);
+    runtime.proc.stderr.write(
+      `summary lacks memo:inbox marker: ${result.path}\n`,
+    );
+    return { ok: false, code: 2 };
   }
-  process.stdout.write(`wrote ${result.path}\n`);
+  runtime.proc.stdout.write(`wrote ${result.path}\n`);
+  return { ok: true };
 }
 
 function resolveTargetPath(wikiRoot, target) {
@@ -25,72 +30,76 @@ function resolveTargetPath(wikiRoot, target) {
   return { summaryPath, escapesRoot };
 }
 
-function writeSingleTarget({ wikiRoot, target, sender, message, today, cli }) {
+function writeSingleTarget(
+  runtime,
+  { wikiRoot, target, sender, message, today },
+) {
   const { summaryPath, escapesRoot } = resolveTargetPath(wikiRoot, target);
   if (escapesRoot) {
-    cli.usageError(`target escapes wiki root: ${target}`);
-    process.exit(2);
+    return { ok: false, code: 2, error: `target escapes wiki root: ${target}` };
   }
-  if (!existsSync(summaryPath)) {
-    cli.usageError(`target summary not found: ${summaryPath}`);
-    process.exit(2);
+  if (!runtime.fsSync.existsSync(summaryPath)) {
+    return {
+      ok: false,
+      code: 2,
+      error: `target summary not found: ${summaryPath}`,
+    };
   }
-  writeAndCheck(summaryPath, sender, message, today);
+  return writeAndCheck(runtime, summaryPath, sender, message, today);
 }
 
-function writeBroadcast({ agentsDir, wikiRoot, sender, message, today }) {
-  const agents = listAgents({ agentsDir, wikiRoot });
+function writeBroadcast(
+  runtime,
+  { agentsDir, wikiRoot, sender, message, today },
+) {
+  const agents = listAgents({ agentsDir, wikiRoot }, runtime.fsSync);
   for (const { agent, summaryPath } of agents) {
     if (agent === sender) continue;
-    writeAndCheck(summaryPath, sender, message, today);
+    const result = writeAndCheck(runtime, summaryPath, sender, message, today);
+    if (!result.ok) return result;
   }
+  return { ok: true };
 }
 
 /** Write a memo to a target agent's summary file (or broadcast to all except the sender); sender is --from or LIBEVAL_AGENT_PROFILE env var. */
-export function runMemoCommand(values, _args, cli) {
-  const sender = values.from || process.env.LIBEVAL_AGENT_PROFILE;
+export function runMemoCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const options = ctx.options;
+  const sender = options.from || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
 
   if (!sender) {
-    cli.usageError(
-      "memo requires --from <sender> or LIBEVAL_AGENT_PROFILE env var",
-    );
-    process.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "memo requires --from <sender> or LIBEVAL_AGENT_PROFILE env var",
+    };
+  }
+  if (!options.to) {
+    return { ok: false, code: 2, error: "memo requires --to <target|all>" };
+  }
+  if (!options.message) {
+    return { ok: false, code: 2, error: "memo requires --message <text>" };
   }
 
-  if (!values.to) {
-    cli.usageError("memo requires --to <target|all>");
-    process.exit(2);
-  }
-
-  if (!values.message) {
-    cli.usageError("memo requires --message <text>");
-    process.exit(2);
-  }
-
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, process);
-  const projectRoot = finder.findProjectRoot(process.cwd());
-
-  const wikiRoot = values["wiki-root"] || path.join(projectRoot, "wiki");
+  const projectRoot = resolveProjectRoot(runtime);
+  const wikiRoot = options["wiki-root"] || path.join(projectRoot, "wiki");
   const agentsDir = path.join(projectRoot, ".claude", "agents");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = currentDayIso(runtime);
 
-  if (values.to === BROADCAST_TARGET) {
-    writeBroadcast({
+  if (options.to === BROADCAST_TARGET) {
+    return writeBroadcast(runtime, {
       agentsDir,
       wikiRoot,
       sender,
-      message: values.message,
+      message: options.message,
       today,
-    });
-  } else {
-    writeSingleTarget({
-      wikiRoot,
-      target: values.to,
-      sender,
-      message: values.message,
-      today,
-      cli,
     });
   }
+  return writeSingleTarget(runtime, {
+    wikiRoot,
+    target: options.to,
+    sender,
+    message: options.message,
+    today,
+  });
 }

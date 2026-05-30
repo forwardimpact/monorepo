@@ -1,18 +1,22 @@
 import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, mkdirSync, readFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  writeFileSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { execFileSync } from "node:child_process";
 import { MEMO_INBOX_MARKER } from "../src/constants.js";
+import { runMemoCommand } from "../src/commands/memo.js";
+import { makeRuntime, ctxFor } from "./helpers.js";
 
-const CLI_PATH = new URL("../bin/fit-wiki.js", import.meta.url).pathname;
-
-describe("fit-wiki memo CLI", () => {
+describe("fit-wiki memo CLI (in-process)", () => {
   let dir;
   let agentsDir;
   let wikiRoot;
-  let savedEnv;
 
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "wiki-cli-"));
@@ -33,49 +37,24 @@ describe("fit-wiki memo CLI", () => {
       join(wikiRoot, "product-manager.md"),
       `# PM\n\n## Message Inbox\n\n${MEMO_INBOX_MARKER}\n\n- old bullet\n`,
     );
-
-    savedEnv = { ...process.env };
   });
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  afterEach(() => {
-    process.env = savedEnv;
-  });
-
-  function run(args, env = {}) {
-    return execFileSync("node", [CLI_PATH, ...args], {
-      cwd: dir,
-      env: { ...process.env, ...env, PATH: process.env.PATH },
-      encoding: "utf-8",
-    });
-  }
-
-  function runFail(args, env = {}) {
-    try {
-      execFileSync("node", [CLI_PATH, ...args], {
-        cwd: dir,
-        env: { ...process.env, ...env, PATH: process.env.PATH },
-        encoding: "utf-8",
-        stdio: "pipe",
-      });
-      assert.fail("expected non-zero exit");
-    } catch (err) {
-      return { status: err.status, stderr: err.stderr, stdout: err.stdout };
-    }
+  function run(options, env = {}) {
+    const harness = makeRuntime({ cwd: dir, env });
+    const result = runMemoCommand(
+      ctxFor({ runtime: harness.runtime, options }),
+    );
+    return { harness, result };
   }
 
   test("single-target write", () => {
-    const stdout = run([
-      "memo",
-      "--from",
-      "technical-writer",
-      "--to",
-      "staff-engineer",
-      "--message",
-      "audit d642ff0c",
-    ]);
-
-    assert.ok(stdout.includes("wrote"));
-
+    const { harness } = run({
+      from: "technical-writer",
+      to: "staff-engineer",
+      message: "audit d642ff0c",
+    });
+    assert.match(harness.stdout, /wrote/);
     const content = readFileSync(join(wikiRoot, "staff-engineer.md"), "utf-8");
     assert.ok(content.includes("from **technical-writer**: audit d642ff0c"));
   });
@@ -86,17 +65,7 @@ describe("fit-wiki memo CLI", () => {
       join(wikiRoot, "technical-writer.md"),
       `# TW\n\n## Message Inbox\n\n${MEMO_INBOX_MARKER}\n`,
     );
-
-    run([
-      "memo",
-      "--from",
-      "technical-writer",
-      "--to",
-      "all",
-      "--message",
-      "check baselines",
-    ]);
-
+    run({ from: "technical-writer", to: "all", message: "check baselines" });
     const se = readFileSync(join(wikiRoot, "staff-engineer.md"), "utf-8");
     const pm = readFileSync(join(wikiRoot, "product-manager.md"), "utf-8");
     const tw = readFileSync(join(wikiRoot, "technical-writer.md"), "utf-8");
@@ -110,33 +79,18 @@ describe("fit-wiki memo CLI", () => {
       join(wikiRoot, "staff-engineer.md"),
       "# SE\n\n## Message Inbox\n\n- no marker\n",
     );
-
-    const { status, stderr } = runFail([
-      "memo",
-      "--from",
-      "x",
-      "--to",
-      "staff-engineer",
-      "--message",
-      "test",
-    ]);
-
-    assert.equal(status, 2);
-    assert.ok(stderr.includes("memo:inbox marker"));
+    const { harness, result } = run({
+      from: "x",
+      to: "staff-engineer",
+      message: "test",
+    });
+    assert.equal(result.code, 2);
+    assert.ok(harness.stderr.includes("memo:inbox marker"));
   });
 
   test("missing target file exits 2", () => {
-    const { status } = runFail([
-      "memo",
-      "--from",
-      "x",
-      "--to",
-      "nonexistent",
-      "--message",
-      "test",
-    ]);
-
-    assert.equal(status, 2);
+    const { result } = run({ from: "x", to: "nonexistent", message: "test" });
+    assert.equal(result.code, 2);
   });
 
   test("rejects --to that escapes wiki root via path traversal", () => {
@@ -145,42 +99,31 @@ describe("fit-wiki memo CLI", () => {
       outside,
       `# Outside\n\n## Message Inbox\n\n${MEMO_INBOX_MARKER}\n`,
     );
-
-    const { status, stderr } = runFail([
-      "memo",
-      "--from",
-      "x",
-      "--to",
-      "../outside",
-      "--message",
-      "traversal",
-    ]);
-
-    assert.equal(status, 2);
-    assert.ok(stderr.includes("escapes wiki root"));
-
-    const after = readFileSync(outside, "utf-8");
-    assert.ok(!after.includes("traversal"), "outside file must not be touched");
+    const { result } = run({
+      from: "x",
+      to: "../outside",
+      message: "traversal",
+    });
+    assert.equal(result.code, 2);
+    assert.ok(result.error.includes("escapes wiki root"));
+    assert.ok(!readFileSync(outside, "utf-8").includes("traversal"));
   });
 
   test("LIBEVAL_AGENT_PROFILE fallback when --from omitted", () => {
-    const stdout = run(
-      ["memo", "--to", "staff-engineer", "--message", "env test"],
+    const { harness } = run(
+      { to: "staff-engineer", message: "env test" },
       { LIBEVAL_AGENT_PROFILE: "security-engineer" },
     );
-
-    assert.ok(stdout.includes("wrote"));
-
+    assert.match(harness.stdout, /wrote/);
     const content = readFileSync(join(wikiRoot, "staff-engineer.md"), "utf-8");
     assert.ok(content.includes("from **security-engineer**: env test"));
   });
 
   test("exits 2 when neither --from nor env var set", () => {
-    const { status } = runFail(
-      ["memo", "--to", "staff-engineer", "--message", "test"],
+    const { result } = run(
+      { to: "staff-engineer", message: "test" },
       { LIBEVAL_AGENT_PROFILE: "" },
     );
-
-    assert.equal(status, 2);
+    assert.equal(result.code, 2);
   });
 });

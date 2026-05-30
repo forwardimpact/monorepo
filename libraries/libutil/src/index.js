@@ -163,6 +163,13 @@ export {
   createDefaultSubprocess,
   createDefaultClock,
 } from "./runtime.js";
+export {
+  isoDate,
+  isoWeek,
+  isoWeekString,
+  yearMonth,
+  addDays,
+} from "./calendar.js";
 export { GitClient } from "./git-client.js";
 export { GhClient } from "./gh-client.js";
 export { BundleDownloader } from "./downloader.js";

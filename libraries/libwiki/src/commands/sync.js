@@ -1,33 +1,34 @@
-import { WikiPullConflict } from "../wiki-repo.js";
-import { buildRepo } from "../build-repo.js";
+import { WikiPullConflict } from "../wiki-sync.js";
 
 /** Commit all wiki changes and push them to the remote wiki repository. */
-export async function runPushCommand(values, _args, cli) {
-  const repo = await buildRepo(values);
-  repo.inheritIdentity();
+export async function runPushCommand(ctx) {
+  const { runtime, wikiSync } = ctx.deps;
+  await wikiSync.inheritIdentity();
 
-  const result = repo.commitAndPush("wiki: update from session");
+  const result = await wikiSync.commitAndPush("wiki: update from session");
   if (result.pushed) {
-    process.stdout.write("push: committed and pushed\n");
+    runtime.proc.stdout.write("push: committed and pushed\n");
   } else {
-    process.stdout.write("push: nothing to push\n");
+    runtime.proc.stdout.write("push: nothing to push\n");
   }
+  return { ok: true };
 }
 
-/** Fetch and rebase the local wiki on origin/master; on rebase conflict, exit the process with code 1 and a message to resolve manually or push first. */
-export async function runPullCommand(values, _args, cli) {
-  const repo = await buildRepo(values);
-  repo.inheritIdentity();
+/** Fetch and rebase the local wiki on origin/master; on rebase conflict, return a non-zero envelope with a message to resolve manually or push first. */
+export async function runPullCommand(ctx) {
+  const { runtime, wikiSync } = ctx.deps;
+  await wikiSync.inheritIdentity();
 
   try {
-    repo.pull();
-    process.stdout.write("pull: up to date\n");
+    await wikiSync.pull();
+    runtime.proc.stdout.write("pull: up to date\n");
+    return { ok: true };
   } catch (err) {
     if (err instanceof WikiPullConflict) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         "fit-wiki pull: rebase conflict — local divergence detected; resolve manually or push first\n",
       );
-      process.exit(1);
+      return { ok: false, code: 1 };
     }
     throw err;
   }

@@ -1,5 +1,6 @@
 import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
+import * as nodeFs from "node:fs";
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -27,7 +28,11 @@ describe("status-row audit", () => {
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
   const auditStatus = () => {
-    const ctx = buildContext({ wikiRoot: wiki, today: "2026-05-30" });
+    const ctx = buildContext({
+      wikiRoot: wiki,
+      today: "2026-05-30",
+      fs: nodeFs,
+    });
     return runRules(STATUS_RULES, ctx, { resolveScope });
   };
 

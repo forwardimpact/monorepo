@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import path from "node:path";
 import { analyze, renderChart, MIN_POINTS } from "@forwardimpact/libxmr";
 
@@ -11,13 +10,13 @@ export class BlockRenderError extends Error {
   }
 }
 
-/** Render an XmR chart block for a metric by reading its CSV and producing markdown lines. */
-export function renderBlock({
-  metric,
-  csvPath,
-  projectRoot,
-  fs = { readFileSync },
-}) {
+/**
+ * Render an XmR chart block for a metric by reading its CSV and producing
+ * markdown lines.
+ * @param {{metric: string, csvPath: string, projectRoot: string, fs: object}} options
+ *   `fs` is the sync filesystem surface (`runtime.fsSync`).
+ */
+export function renderBlock({ metric, csvPath, projectRoot, fs }) {
   const fullPath = path.resolve(projectRoot, csvPath);
   let csvText;
   try {
