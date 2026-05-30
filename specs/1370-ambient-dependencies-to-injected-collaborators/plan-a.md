@@ -172,6 +172,16 @@ libraries) so every src module gets covered.
 | 04 | [plan-a-04-non-bin-libraries.md](plan-a-04-non-bin-libraries.md) | libbridge, libformat, libindex, libmacos, libmcp, libpack, libpolicy, libpreflight, libprompt, libproto, librepl, libsecret, libskill, libsyntheticgen, libsyntheticprose, libsyntheticrender, libtemplate, libtype, libui | 01 |
 | 05 | [plan-a-05-products.md](plan-a-05-products.md) | products/{map, pathway, summit, landmark, guide, outpost} | 01, 03 (libeval), 02 (libwiki) |
 | 06 | [plan-a-06-services.md](plan-a-06-services.md) | services/{bridge, embedding, ghauth, ghbridge, graph, map, mcp, msbridge, oauth, pathway, trace, vector} | 01, 03 |
+| teardown | [teardown.md](teardown.md) | remove the one-cycle BC bridges foundations shipped (`Finder` legacy positional constructor + `node:fs` deny-list entry; `createCli` zero-arg fallback) | 02, 03, 04, 05, 06 |
+
+The `teardown` unit is the **last** to land: it deletes the backward-compat
+bridges part 01 introduced so consumers could migrate incrementally. The master
+`1370` row reaches `plan implemented` only once `1370/teardown` does (the
+`kata-release-merge` sub-row gate enforces it). See
+[teardown.md](teardown.md) for the bridges, their forcing functions, and the
+removal checklist — `finder.js`'s `check-ambient-deps.deny.json` entry
+mechanically blocks the Finder bridge from being forgotten; the `createCli`
+fallback is tracked by teardown.md plus a runnable zero-count check.
 
 Inter-part dependencies are inclusion-only — once a part's predecessor
 has merged its foundations row, every unit inside the part can ship in
