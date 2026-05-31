@@ -93,7 +93,7 @@ npm. It's the source of truth for several sibling repos under
   sync on push to `main`. Install: `npx skills add forwardimpact/fit-skills`
   (or `kata-skills`). Internal skills (`libs-*`, product internals) never
   publish.
-- **Composite actions** — `forwardimpact/{fit-benchmark,fit-bootstrap,fit-eval,kata-agent}`
+- **Composite actions** — `forwardimpact/{fit-benchmark,fit-bootstrap,fit-eval,fit-wiki,kata-agent}`
   tagged at `v1`. Edit procedure in
   [`.github/CLAUDE.md`](.github/CLAUDE.md).
 

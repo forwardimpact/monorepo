@@ -92,17 +92,18 @@ Exit gate — verify every item before committing.
 ```
 .claude/       # agent and skills, edited via `bunx fit-selfedit`
 products/
-  map/         # fit-map — data product, validation, schema, starter YAML
-  pathway/     # fit-pathway — web app, CLI, formatters
-  guide/       # fit-guide — LLM agent, artifact interpretation
+  map/         # fit-map — data, validation, schema
+  pathway/     # fit-pathway — web app, CLI
+  guide/       # fit-guide — LLM agent
   landmark/    # fit-landmark
   summit/      # fit-summit
-  outpost/     # fit-outpost — knowledge system, scheduler, macOS app
-  gear/        # fit-skills and services
+  outpost/     # fit-outpost — macOS knowledge system
+  gear/        # fit-skills catalog CLI
+  kata/        # kata-skills pack
 libraries/
-  lib*/        # shared infrastructure and domain libraries
+  lib*/        # shared infrastructure libraries
 services/
-  graph/ map/ mcp/ pathway/ trace/ vector/
+  bridge/ embedding/ ghbridge/ ghuser/ graph/ map/ mcp/ msbridge/ oauth/ pathway/ trace/ vector/
 config/
   config.json  # service definitions
 data/
