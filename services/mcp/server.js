@@ -24,6 +24,7 @@ const resourceIndex = createResourceIndex("resources");
 const service = createMcpService({
   config,
   logger,
+  tracer,
   graphClient,
   vectorClient,
   pathwayClient,
@@ -32,3 +33,7 @@ const service = createMcpService({
 });
 
 await service.start();
+
+for (const sig of ["SIGINT", "SIGTERM"]) {
+  process.on(sig, () => service.stop());
+}

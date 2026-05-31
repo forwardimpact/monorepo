@@ -105,7 +105,7 @@ its `loadDiscussionId` lens.
 | `createCallbackHandler`, `validateCallbackPayload` | inbound-callback skeleton + payload validator |
 | `RateLimiter` | per-thread dispatch rate cap |
 | `ResumeScheduler`, `ElapsedScheduler` | suspend/resume lifecycle + chunked-setTimeout |
-| `createBridgeServer` | Hono + `@hono/node-server` wiring |
+| `createBridgeServer` | bridge routes mounted on `@forwardimpact/libhttp` |
 | `newDiscussionContext`, `evaluateTrigger`, `parseIsoDuration` | record factory + trigger helpers |
 | `prepareLinkResume` | mints link token, augments authorize URL for resume |
 | `createLinkCompleteHandler` | factory for the `/api/link-complete` GET handler |
