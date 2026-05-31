@@ -9,9 +9,9 @@ description: >
 
 # Release Merge
 
-Verify every open non-Dependabot PR against five gates (trust, type, CI,
-mechanical readiness, approval), produce a classification report, and merge
-those that pass.
+Verify every open non-Dependabot PR against six gates (trust, type, CI,
+mechanical readiness, approval, open trusted-contributor comments), produce a
+classification report, and merge those that pass.
 
 This skill handles **all non-Dependabot PRs** — both external contributions and
 PRs from `kata-agent-team`. Contributor trust is the most critical gate; the
@@ -38,11 +38,13 @@ Comment templates and the report format are in `references/templates.md`.
 - [ ] `wiki/STATUS.md` row for the spec id shows the matching phase at
       `approved` (or `implemented` for the terminal plan row).
 - [ ] For implementation PRs: parent spec's `plan-a.md` exists on `main`.
+- [ ] No unresolved question or concern from a trusted human contributor in
+      the PR comment thread.
 
 </do_confirm_checklist>
 
 A PR that fails any gate is marked **blocked** with the reason. A PR that passes
-all gates is merged in Step 8.
+all gates is merged in Step 9.
 
 ## Process
 
@@ -121,7 +123,7 @@ deleted-vs-modified) — `git rebase --abort` and comment listing conflicting
 files for the author.
 
 After rebase, run `bun run check:fix` then `bun run check`. If checks still
-fail, mark **blocked** with the failures and skip to Step 9.
+fail, mark **blocked** with the failures and skip to Step 10.
 
 ```sh
 git push --force-with-lease origin <pr-branch>
@@ -142,7 +144,31 @@ reaches `plan implemented` only once every sub-row does. If absent or
 APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See
 [`approval-signals.md`](../../agents/references/approval-signals.md).
 
-### Step 7: Implementation PR Spec Check
+### Step 7: Open Comment Gate
+
+The approval signal in `wiki/STATUS.md` says ready-to-merge. A fresh,
+unaddressed concern from a trusted human contributor overrides it — do not
+close a thread on behalf of a human who has not yet reacted.
+
+Use `gh api repos/{owner}/{repo}/issues/<number>/comments` to read the thread.
+For each top-7 human contributor (Step 2 lookup) who has commented on the PR,
+read their **most recent** comment. If it raises a concern, question, or
+objection that has not been resolved by a **later** comment from the **same**
+human acknowledging or accepting the response, mark **blocked** with reason
+`awaiting trusted-contributor reply`.
+
+A bot reply (`product-manager`, `staff-engineer`, etc.) addressing the concern
+does **not** resolve it — the trusted human must respond. Explicit approval
+signals from a trusted human (label applied, APPROVED review submitted, merge
+performed by that human) override this gate; they are direct resolution.
+
+Worked example — PR #1300 (2026-05-31): @dickolsson posted a substantive
+revision request at 06:29:04Z; the bot merged at 06:30:25Z (81 seconds later)
+without a reply, citing "all gates pass." Under this gate the PR would have
+been blocked with `awaiting trusted-contributor reply` until @dickolsson posted
+a follow-up acknowledging or accepting a staff-engineer revision.
+
+### Step 8: Implementation PR Spec Check
 
 For implementation PRs (`feat`/`fix`/`bug`/`refactor`/`chore`) referencing a
 spec id (e.g. `feat(...): … (#NNN)` or "implements spec NNN"):
@@ -155,14 +181,14 @@ spec id (e.g. `feat(...): … (#NNN)` or "implements spec NNN"):
 PRs not referencing a spec (one-off mechanical fixes, doc patches) skip this
 step.
 
-### Step 8: Merge Mergeable PRs
+### Step 9: Merge Mergeable PRs
 
 1. Post the merge comment from `references/templates.md` § Merge Comment.
 2. `gh pr merge <number> --merge --delete-branch`
 3. Verify state is `MERGED`. On race or branch-protection failure, record and
-   move on — do **not** retry without re-running Steps 1–7.
+   move on — do **not** retry without re-running Steps 1–8.
 
-### Step 9: Produce the Classification Report
+### Step 10: Produce the Classification Report
 
 Per PR record: number, title, type, author, trust check, CI, approval source
 (label / review / blocked), final verdict.
