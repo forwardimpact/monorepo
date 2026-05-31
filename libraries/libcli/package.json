@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libcli",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Agent-friendly CLIs — self-documenting entry points that humans and agents reach through the same interface.",
   "keywords": [
     "cli",
