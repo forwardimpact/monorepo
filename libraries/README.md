@@ -226,28 +226,24 @@ drift in the instruction architecture.
 
 **Trigger:** Adding a proto definition and realizing the JavaScript types are
 already stale; registering a gRPC service as MCP tools and realizing the tool
-schema is just the proto definition rewritten by hand; starting a new service
-and reaching for last project's copy-pasted transport boilerplate; importing
-service types in a product and finding three different hand-maintained copies of
-the same definition.
+schema is just the proto definition rewritten by hand; importing service types
+in a product and finding three different hand-maintained copies of the same
+definition.
 
 **Big Hire:** Help me keep types in sync with proto definitions without
 hand-writing; register gRPC services as MCP tools from config instead of writing
-glue code; ship a service endpoint without reimplementing transport; import
-service types from one generated source instead of maintaining copies. →
-**libcodegen, libmcp, librpc, libtype**
+glue code; import service types from one generated source instead of maintaining
+copies. → **libcodegen, libmcp, libtype**
 
 **Little Hire:** Help me change a proto definition and trust the JavaScript
 types follow; expose a new proto method as an agent tool without touching tool
-registration; call a service without managing connections or retries; reference
-a service type and trust it matches the proto definition. → **libcodegen,
-libmcp, librpc, libtype**
+registration; reference a service type and trust it matches the proto
+definition. → **libcodegen, libmcp, libtype**
 
 **Competes With:** manual type definitions; hoping hand-written types match;
 skipping types entirely; hand-written tool schemas; per-service MCP adapters;
-leaving services invisible to agents; copy-pasting boilerplate; hand-writing
-protobuf clients; tolerating the duplication; hand-maintained type copies;
-inferring types from runtime responses.
+leaving services invisible to agents; hand-maintained type copies; inferring
+types from runtime responses.
 
 </job>
 
@@ -317,21 +313,24 @@ hooks.
 
 </job>
 
-<job user="Platform Builders" goal="Stand Up an HTTP Service Without Boilerplate">
+<job user="Platform Builders" goal="Ship Service Endpoints Without Boilerplate">
 
-## Platform Builders: Stand Up an HTTP Service Without Boilerplate
+## Platform Builders: Ship Service Endpoints Without Boilerplate
 
 **Trigger:** Starting a new HTTP service and reaching for last service's
-copy-pasted Hono wiring.
+copy-pasted Hono wiring; starting a new service and reaching for last project's
+copy-pasted transport boilerplate.
 
 **Big Hire:** Help me ship an HTTP endpoint without reimplementing server
-lifecycle, security headers, or health checks. → **libhttp**
+lifecycle, security headers, or health checks; ship a gRPC service endpoint
+without reimplementing transport. → **libhttp, librpc**
 
-**Little Hire:** Help me mount routes on a configured app and call start(). →
-**libhttp**
+**Little Hire:** Help me mount routes on a configured app and call start(); call
+a service without managing connections or retries. → **libhttp, librpc**
 
 **Competes With:** copy-pasting Hono setup; hand-rolling node:http servers;
-tolerating the duplication.
+tolerating the duplication; copy-pasting boilerplate; hand-writing protobuf
+clients.
 
 </job>
 
