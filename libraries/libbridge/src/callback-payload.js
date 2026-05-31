@@ -1,3 +1,5 @@
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
+
 export const MAX_FIELD_LENGTH = 2000;
 export const MAX_REPLY_COUNT = 50;
 
@@ -120,9 +122,15 @@ export function normalizeBaseUrl(url) {
  * @param {string} args.channel
  * @param {string} args.discussionId
  * @param {object} args.participant
+ * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [args.clock]
  * @returns {object}
  */
-export function newDiscussionContext({ channel, discussionId, participant }) {
+export function newDiscussionContext({
+  channel,
+  discussionId,
+  participant,
+  clock = createDefaultClock(),
+}) {
   return {
     id: `${channel}:${discussionId}`,
     channel,
@@ -133,7 +141,7 @@ export function newDiscussionContext({ channel, discussionId, participant }) {
     lead: "release-engineer",
     pending_callbacks: {},
     dispatches: [],
-    last_active_at: Date.now(),
+    last_active_at: clock.now(),
     active_requester: null,
     last_posted_seq: -1,
   };

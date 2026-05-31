@@ -38,6 +38,7 @@
     "README.md"
   ],
   "dependencies": {
+    "@forwardimpact/libutil": "^0.1.61",
     "@forwardimpact/libsyntheticgen": "^0.1.0",
     "@forwardimpact/libtemplate": "^0.2.0",
     "yaml": "^2.9.0"

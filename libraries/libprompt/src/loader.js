@@ -1,6 +1,6 @@
-import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import Mustache from "mustache";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * Prompt loader with Mustache templating.
@@ -8,13 +8,16 @@ import Mustache from "mustache";
  */
 export class PromptLoader {
   #promptDir;
+  #fsSync;
 
   /**
    * @param {string} promptDir - Directory containing .prompt.md files
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime]
    */
-  constructor(promptDir) {
+  constructor(promptDir, runtime = createDefaultRuntime()) {
     if (!promptDir) throw new Error("promptDir is required");
     this.#promptDir = promptDir;
+    this.#fsSync = runtime.fsSync;
   }
 
   /**
@@ -26,11 +29,11 @@ export class PromptLoader {
     if (!promptName) throw new Error("promptName is required");
 
     const promptPath = join(this.#promptDir, `${promptName}.prompt.md`);
-    if (!existsSync(promptPath)) {
+    if (!this.#fsSync.existsSync(promptPath)) {
       throw new Error(`Prompt file not found: ${promptPath}`);
     }
 
-    return readFileSync(promptPath, "utf-8");
+    return this.#fsSync.readFileSync(promptPath, "utf-8");
   }
 
   /**

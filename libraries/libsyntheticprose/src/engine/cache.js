@@ -11,7 +11,7 @@
  * @module libsyntheticprose/engine/cache
  */
 
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const SCHEMA_VERSION = 1;
 const SCHEMA_FIELD = "_schema";
@@ -22,12 +22,15 @@ export class ProseCache {
    * @param {object} options
    * @param {string} options.cachePath - Path to prose cache JSON file
    * @param {object} options.logger - Logger instance
+   * @param {object} [options.runtime] - Runtime collaborator bag (default: createDefaultRuntime())
    */
-  constructor({ cachePath, logger }) {
+  constructor({ cachePath, logger, runtime = createDefaultRuntime() }) {
     if (!cachePath) throw new Error("cachePath is required");
     if (!logger) throw new Error("logger is required");
+    const { fsSync } = runtime;
     this.cachePath = cachePath;
     this.logger = logger;
+    this.fsSync = fsSync;
     this.entries = this.#load();
     this.dirty = false;
     this.stats = { hits: 0, misses: 0, missKeys: new Set() };
@@ -80,7 +83,7 @@ export class ProseCache {
     for (const key of [...this.entries.keys()].sort()) {
       payload[key] = this.entries.get(key);
     }
-    writeFileSync(this.cachePath, JSON.stringify(payload, null, 2));
+    this.fsSync.writeFileSync(this.cachePath, JSON.stringify(payload, null, 2));
     this.dirty = false;
   }
 
@@ -109,9 +112,11 @@ export class ProseCache {
 
   #load() {
     try {
-      if (!existsSync(this.cachePath)) return new Map();
+      if (!this.fsSync.existsSync(this.cachePath)) return new Map();
 
-      const parsed = JSON.parse(readFileSync(this.cachePath, "utf-8"));
+      const parsed = JSON.parse(
+        this.fsSync.readFileSync(this.cachePath, "utf-8"),
+      );
       const schema = parsed?.[SCHEMA_FIELD];
       if (schema !== undefined && schema !== SCHEMA_VERSION) {
         this.logger.info(

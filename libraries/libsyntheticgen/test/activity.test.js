@@ -5,7 +5,7 @@ import { parse } from "../src/dsl/parser.js";
 import { createSeededRNG } from "../src/engine/rng.js";
 import { buildEntities } from "../src/engine/entities.js";
 import { generateActivity } from "../src/engine/activity.js";
-import { assertThrowsMessage } from "@forwardimpact/libmock";
+import { assertThrowsMessage, createTestRuntime } from "@forwardimpact/libmock";
 import { MINI_TERRAIN } from "./fixtures/mini-terrain.fixture.js";
 
 /**
@@ -20,7 +20,8 @@ function generateFromDsl(source) {
     ast,
     rng,
   );
-  const activity = generateActivity(ast, rng, people, teams);
+  const runtime = createTestRuntime();
+  const activity = generateActivity(ast, rng, people, teams, runtime);
   return { ast, orgs, departments, teams, people, projects, activity };
 }
 

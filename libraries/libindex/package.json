@@ -39,7 +39,8 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
-    "@forwardimpact/libtype": "^0.1.63"
+    "@forwardimpact/libtype": "^0.1.63",
+    "@forwardimpact/libutil": "^0.1.84"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

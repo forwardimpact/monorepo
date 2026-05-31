@@ -15,8 +15,9 @@ import { PromptLoader } from "./loader.js";
  * Create a PromptLoader bound to a prompt directory.
  * Convenience factory for contexts where class instantiation is awkward.
  * @param {string} promptDir - Directory containing .prompt.md files
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime]
  * @returns {PromptLoader}
  */
-export function createPromptLoader(promptDir) {
-  return new PromptLoader(promptDir);
+export function createPromptLoader(promptDir, runtime) {
+  return new PromptLoader(promptDir, runtime);
 }

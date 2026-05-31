@@ -1,19 +1,32 @@
-import { writeFile } from "fs/promises";
-import { execFileSync } from "child_process";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 import { collectPaths, resetTimestamps } from "./util.js";
 
 /** Deterministic tarball emitter. */
 export class TarEmitter {
-  #exec;
-  /** @param {{exec?: Function}} [opts] */
-  constructor({ exec = execFileSync } = {}) {
-    this.#exec = exec;
+  #subprocess;
+  #fs;
+
+  /** @param {{runtime?: object}} [opts] */
+  constructor({ runtime } = {}) {
+    const rt = runtime ?? createDefaultRuntime();
+    this.#subprocess = rt.subprocess;
+    this.#fs = rt.fs;
+  }
+
+  /** Run a command synchronously with binary output; returns stdout Buffer. */
+  #exec(cmd, args, opts = {}) {
+    const result = this.#subprocess.runSync(cmd, args, {
+      encoding: "buffer",
+      ...opts,
+    });
+    return result.stdout;
   }
 
   /** Emit a deterministic `.tar.gz` from stagedDir to outputPath. */
   async emit(stagedDir, outputPath) {
-    await resetTimestamps(stagedDir);
-    const files = await collectPaths(stagedDir);
+    await resetTimestamps(stagedDir, this.#fs);
+    const files = await collectPaths(stagedDir, ".", this.#fs);
     files.sort();
     const tarBuf = this.#exec("tar", [
       "--no-recursion",
@@ -24,6 +37,6 @@ export class TarEmitter {
       ...files,
     ]);
     const gzBuf = this.#exec("gzip", ["-n"], { input: tarBuf });
-    await writeFile(outputPath, gzBuf);
+    await this.#fs.writeFile(outputPath, gzBuf);
   }
 }

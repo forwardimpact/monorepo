@@ -1,6 +1,6 @@
-import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import Mustache from "mustache";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * Template loader with two-tier resolution and Mustache rendering.
@@ -12,13 +12,16 @@ import Mustache from "mustache";
  */
 export class TemplateLoader {
   #defaultsDir;
+  #fsSync;
 
   /**
    * @param {string} defaultsDir - Absolute path to the package's templates/ folder
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime]
    */
-  constructor(defaultsDir) {
+  constructor(defaultsDir, runtime = createDefaultRuntime()) {
     if (!defaultsDir) throw new Error("defaultsDir is required");
     this.#defaultsDir = defaultsDir;
+    this.#fsSync = runtime.fsSync;
   }
 
   /**
@@ -35,7 +38,8 @@ export class TemplateLoader {
     paths.push(join(this.#defaultsDir, name));
 
     for (const path of paths) {
-      if (existsSync(path)) return readFileSync(path, "utf-8");
+      if (this.#fsSync.existsSync(path))
+        return this.#fsSync.readFileSync(path, "utf-8");
     }
 
     throw new Error(

@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
+
 import { dispatchWorkflow } from "./dispatch.js";
 
 /** Dispatch dance: resolve per-user token, register callback, ack, fire workflow, flush. */
@@ -11,6 +13,7 @@ export class Dispatcher {
   #workflowFile;
   #githubRepo;
   #tokenResolver;
+  #clock;
 
   /**
    * @param {object} options
@@ -21,6 +24,7 @@ export class Dispatcher {
    * @param {string} options.workflowFile
    * @param {string} options.githubRepo
    * @param {import("./token-resolver.js").TokenResolver} options.tokenResolver
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
    */
   constructor({
     callbacks,
@@ -30,6 +34,7 @@ export class Dispatcher {
     workflowFile,
     githubRepo,
     tokenResolver,
+    clock = createDefaultClock(),
   }) {
     if (!callbacks) throw new Error("callbacks is required");
     if (!ack) throw new Error("ack is required");
@@ -47,6 +52,7 @@ export class Dispatcher {
     this.#workflowFile = workflowFile;
     this.#githubRepo = githubRepo;
     this.#tokenResolver = tokenResolver;
+    this.#clock = clock;
   }
 
   /**
@@ -94,8 +100,8 @@ export class Dispatcher {
         inboxUrl,
         ...(workflowInputs ?? {}),
       });
-      ctx.dispatches.push(Date.now());
-      ctx.last_active_at = Date.now();
+      ctx.dispatches.push(this.#clock.now());
+      ctx.last_active_at = this.#clock.now();
       await this.#store.add(ctx);
       await this.#store.flush();
       return { kind: "dispatched", token, correlationId };

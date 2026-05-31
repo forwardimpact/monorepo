@@ -9,6 +9,14 @@
     "libraries/libutil/src/git-client.js",
     "libraries/libutil/src/gh-client.js",
     "libraries/libcli/src/**",
-    "libraries/libmock/src/**"
+    "libraries/libmock/src/**",
+    "libraries/libsyntheticgen/src/activity/comment.js",
+    "libraries/libsyntheticgen/src/activity/webhook.js",
+    "libraries/libsyntheticgen/src/engine/activity.js",
+    "libraries/libsyntheticgen/src/engine/activity-initiatives.js",
+    "libraries/libsyntheticrender/src/render/html.js",
+    "libraries/libsyntheticrender/src/render/link-assigner.js",
+    "libraries/libsyntheticrender/src/render/markdown.js",
+    "libraries/libui/src/command-bar.js"
   ]
 }

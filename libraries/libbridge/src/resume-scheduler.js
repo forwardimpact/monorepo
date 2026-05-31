@@ -1,3 +1,5 @@
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
+
 import { ElapsedScheduler } from "./elapsed-scheduler.js";
 import { evaluateTrigger, parseIsoDuration } from "./triggers.js";
 
@@ -13,6 +15,7 @@ export class ResumeScheduler {
   #buildResumeInputs;
   #buildCallbackMeta;
   #onDeclined;
+  #clock;
 
   /**
    * @param {object} options
@@ -23,6 +26,7 @@ export class ResumeScheduler {
    * @param {(ctx: object) => object} [options.buildCallbackMeta]
    * @param {(ctx: object) => object} [options.buildResumeInputs]
    * @param {((ctx: object, outcome: object) => Promise<void>) | null} [options.onDeclined]
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
    */
   constructor({
     dispatcher,
@@ -32,6 +36,7 @@ export class ResumeScheduler {
     buildCallbackMeta = (ctx) => ({ discussionId: ctx.discussion_id }),
     buildResumeInputs = () => ({}),
     onDeclined = null,
+    clock = createDefaultClock(),
   }) {
     if (!dispatcher) throw new Error("dispatcher is required");
     if (!store) throw new Error("store is required");
@@ -51,12 +56,14 @@ export class ResumeScheduler {
     this.#buildCallbackMeta = buildCallbackMeta;
     this.#buildResumeInputs = buildResumeInputs;
     this.#onDeclined = onDeclined;
+    this.#clock = clock;
     this.#elapsed = new ElapsedScheduler({
       onFire: (cid) => this.#fireElapsed(cid),
       onError: (err, cid) =>
         this.#logger?.error?.("resume.elapsed", err, {
           correlation_id: cid,
         }),
+      clock,
     });
   }
 
@@ -81,7 +88,7 @@ export class ResumeScheduler {
    */
   enterRecess(ctx, correlationId, trigger, requester) {
     if (!trigger) return;
-    const openedAt = Date.now();
+    const openedAt = this.#clock.now();
     ctx.open_rfcs[correlationId] = {
       trigger,
       opened_at: openedAt,
@@ -157,7 +164,7 @@ export class ResumeScheduler {
         replies: ctx.history.length - rfc.history_index_at_open,
         opened_at: rfc.opened_at,
       };
-      if (evaluateTrigger(trigger, observed, Date.now()).fired) {
+      if (evaluateTrigger(trigger, observed, this.#clock.now()).fired) {
         fired.push({ correlationId, rfc });
       }
     }
@@ -207,7 +214,7 @@ export class ResumeScheduler {
     const result = await this.#redispatch(ctx, correlationId, historySince);
     if (result.kind === "dispatched") {
       this.cancelRecess(ctx, correlationId);
-      ctx.last_active_at = Date.now();
+      ctx.last_active_at = this.#clock.now();
       await this.#store.add(ctx);
       await this.#store.flush();
     }

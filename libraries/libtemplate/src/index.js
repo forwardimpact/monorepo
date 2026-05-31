@@ -16,8 +16,9 @@ import { TemplateLoader } from "./loader.js";
  * Create a TemplateLoader bound to a package's default templates directory.
  * Convenience factory for contexts where class instantiation is awkward.
  * @param {string} defaultsDir - Absolute path to the package's templates/ folder
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime]
  * @returns {TemplateLoader}
  */
-export function createTemplateLoader(defaultsDir) {
-  return new TemplateLoader(defaultsDir);
+export function createTemplateLoader(defaultsDir, runtime) {
+  return new TemplateLoader(defaultsDir, runtime);
 }

@@ -1,19 +1,24 @@
-import { mkdir, rm } from "fs/promises";
 import { join } from "path";
+
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /** Orchestrate pack generation across stager and emitters. */
 export class PackBuilder {
   #stager;
   #emitters;
+  #fs;
 
-  /** @param {{stager: PackStager, emitters: {tar: TarEmitter, git: GitEmitter, disc: DiscEmitter}}} deps */
-  constructor({ stager, emitters }) {
+  /** @param {{stager: PackStager, emitters: {tar: TarEmitter, git: GitEmitter, disc: DiscEmitter}, runtime?: object}} deps */
+  constructor({ stager, emitters, runtime }) {
+    const rt = runtime ?? createDefaultRuntime();
     this.#stager = stager;
     this.#emitters = emitters;
+    this.#fs = rt.fs;
   }
 
   /** Build all packs from combinations into outputDir. */
   async build({ combinations, outputDir, version }) {
+    const { mkdir, rm } = this.#fs;
     const stagingDir = join(outputDir, "_packs");
     const rawOutDir = join(outputDir, "packs", "raw");
     const apmOutDir = join(outputDir, "packs", "apm");

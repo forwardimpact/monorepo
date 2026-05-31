@@ -6,9 +6,10 @@
 // processes (claude) inherit TCC attributes from the responsible binary.
 
 import { dlopen, ptr } from "bun:ffi";
-import { openSync, closeSync, readFileSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 // responsibility_spawnattrs_setdisclaim makes the spawned child disclaim
 // TCC "responsible process" status, so macOS checks the parent's responsible
@@ -96,16 +97,18 @@ function buildStringArray(strings) {
 /**
  * Read captured output from a temp file and clean up.
  * @param {string} filePath
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {string}
  */
-export function readOutput(filePath) {
+export function readOutput(filePath, runtime = createDefaultRuntime()) {
+  const { fsSync } = runtime;
   try {
-    return readFileSync(filePath, "utf-8");
+    return fsSync.readFileSync(filePath, "utf-8");
   } catch {
     return "";
   } finally {
     try {
-      unlinkSync(filePath);
+      fsSync.unlinkSync(filePath);
     } catch {
       // temp file may already be gone
     }
@@ -123,22 +126,30 @@ export function readOutput(filePath) {
  * @param {string[]} args - Arguments (argv[0] should be the executable name)
  * @param {Record<string, string>} [env] - Environment (defaults to current)
  * @param {string} [cwd] - Working directory for the child process
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {{ pid: number, stdoutFile: string, stderrFile: string }}
  */
-export function spawn(executable, args, env, cwd) {
+export function spawn(
+  executable,
+  args,
+  env,
+  cwd,
+  runtime = createDefaultRuntime(),
+) {
+  const { proc, clock, fsSync } = runtime;
   const argv = buildStringArray([executable, ...args]);
-  const envObj = env ?? { ...process.env };
+  const envObj = env ?? { ...proc.env };
   const envStrings = Object.entries(envObj)
     .filter(([, v]) => typeof v === "string")
     .map(([k, v]) => `${k}=${v}`);
   const envp = buildStringArray(envStrings);
 
   // Capture stdout/stderr via temp files instead of pipes.
-  const tag = `outpost-${process.pid}-${Date.now()}`;
+  const tag = `outpost-${clock.now()}-${clock.now()}`;
   const stdoutFile = join(tmpdir(), `${tag}-stdout`);
   const stderrFile = join(tmpdir(), `${tag}-stderr`);
-  const stdoutFd = openSync(stdoutFile, "w", 0o600);
-  const stderrFd = openSync(stderrFile, "w", 0o600);
+  const stdoutFd = fsSync.openSync(stdoutFile, "w", 0o600);
+  const stderrFd = fsSync.openSync(stderrFile, "w", 0o600);
 
   // Allocate attr and file_actions on the heap
   const attrBuf = new Uint8Array(512); // posix_spawnattr_t is opaque, 512 is generous
@@ -175,20 +186,20 @@ export function spawn(executable, args, env, cwd) {
   );
 
   // Close file fds in the parent (child has its own copies)
-  closeSync(stdoutFd);
-  closeSync(stderrFd);
+  fsSync.closeSync(stdoutFd);
+  fsSync.closeSync(stderrFd);
 
   libc.symbols.posix_spawnattr_destroy(attr);
   libc.symbols.posix_spawn_file_actions_destroy(fa);
 
   if (result !== 0) {
     try {
-      unlinkSync(stdoutFile);
+      fsSync.unlinkSync(stdoutFile);
     } catch {
       // cleanup best-effort
     }
     try {
-      unlinkSync(stderrFile);
+      fsSync.unlinkSync(stderrFile);
     } catch {
       // cleanup best-effort
     }
@@ -203,9 +214,15 @@ export function spawn(executable, args, env, cwd) {
  * Uses WNOHANG to avoid blocking the event loop.
  * @param {number} pid
  * @param {number} [pollIntervalMs=100] - Polling interval in milliseconds
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Promise<number>} Exit status
  */
-export async function waitForExit(pid, pollIntervalMs = 100) {
+export async function waitForExit(
+  pid,
+  pollIntervalMs = 100,
+  runtime = createDefaultRuntime(),
+) {
+  const { clock } = runtime;
   const status = new Int32Array(1);
   while (true) {
     const result = libc.symbols.waitpid(pid, ptr(status), WNOHANG);
@@ -214,6 +231,6 @@ export async function waitForExit(pid, pollIntervalMs = 100) {
       return (status[0] >> 8) & 0xff;
     }
     // Child not yet exited — yield to event loop
-    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    await clock.sleep(pollIntervalMs);
   }
 }

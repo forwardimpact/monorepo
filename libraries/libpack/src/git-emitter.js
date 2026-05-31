@@ -1,6 +1,6 @@
-import { readdir, readFile, stat, mkdir, writeFile, rm } from "fs/promises";
 import { join } from "path";
-import { execFileSync } from "child_process";
+
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const AUTHOR = "Forward Impact Pathway";
 const EMAIL = "pathway@forwardimpact.team";
@@ -22,16 +22,29 @@ function pktLine(data) {
 
 /** Static bare git repo emitter for dumb-HTTP serving. */
 export class GitEmitter {
-  #exec;
-  /** @param {{exec?: Function}} [opts] */
-  constructor({ exec = execFileSync } = {}) {
-    this.#exec = exec;
+  #subprocess;
+  #fs;
+  #proc;
+
+  /** @param {{runtime?: object}} [opts] */
+  constructor({ runtime } = {}) {
+    const rt = runtime ?? createDefaultRuntime();
+    this.#subprocess = rt.subprocess;
+    this.#fs = rt.fs;
+    this.#proc = rt.proc;
+  }
+
+  /** Run a git command synchronously; returns stdout as string. */
+  #exec(cmd, args, opts = {}) {
+    const result = this.#subprocess.runSync(cmd, args, opts);
+    return result.stdout;
   }
 
   /** Emit a static bare git repo from stagedDir at outputPath. */
   async emit(stagedDir, outputPath, { version, name }) {
+    const { mkdir, writeFile, rm, readdir } = this.#fs;
     const cleanEnv = Object.fromEntries(
-      Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")),
+      Object.entries(this.#proc.env).filter(([k]) => !k.startsWith("GIT_")),
     );
     const gitEnv = {
       ...cleanEnv,
@@ -57,9 +70,7 @@ export class GitEmitter {
       "git",
       ["commit-tree", rootTree, "-m", `pathway v${version}`],
       { env: gitEnv },
-    )
-      .toString()
-      .trim();
+    ).trim();
 
     // 6. Point default branch at commit
     this.#exec("git", ["update-ref", "refs/heads/main", commitSha], {
@@ -117,6 +128,7 @@ export class GitEmitter {
   }
 
   async #hashTree(stagedDir, gitEnv) {
+    const { readdir, readFile, stat } = this.#fs;
     const entries = await readdir(stagedDir, { withFileTypes: true });
     entries.sort((a, b) => a.name.localeCompare(b.name));
     const lines = [];
@@ -129,9 +141,7 @@ export class GitEmitter {
         const blobSha = this.#exec("git", ["hash-object", "-w", "--stdin"], {
           input: await readFile(fullPath),
           env: gitEnv,
-        })
-          .toString()
-          .trim();
+        }).trim();
         const mode = (await stat(fullPath)).mode & 0o111 ? "100755" : "100644";
         lines.push(`${mode} blob ${blobSha}\t${entry.name}`);
       }
@@ -139,12 +149,11 @@ export class GitEmitter {
     return this.#exec("git", ["mktree"], {
       input: lines.join("\n") + "\n",
       env: gitEnv,
-    })
-      .toString()
-      .trim();
+    }).trim();
   }
 
   async #emitSmartHttp(outputPath, commitSha, version) {
+    const { mkdir, writeFile, readdir, readFile } = this.#fs;
     const smartDir = join(outputPath, "smart-http");
     await mkdir(smartDir, { recursive: true });
 

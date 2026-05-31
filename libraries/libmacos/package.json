@@ -31,6 +31,9 @@
   "scripts": {
     "test": "bun test test/*.test.js"
   },
+  "dependencies": {
+    "@forwardimpact/libutil": "^0.1.60"
+  },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
   },

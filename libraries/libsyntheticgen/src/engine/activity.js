@@ -6,6 +6,7 @@
  * @module libterrain/engine/activity
  */
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { PROSE_ACTIVITIES } from "../activity/index.js";
 import { deriveInitiatives } from "./activity-initiatives.js";
 import { generateRosterSnapshots } from "./activity-roster.js";
@@ -53,9 +54,16 @@ const PROFICIENCY_ORDER = [
  * @param {import('./rng.js').SeededRNG} rng
  * @param {object[]} people
  * @param {object[]} teams
+ * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
  * @returns {object}
  */
-export function generateActivity(ast, rng, people, teams) {
+export function generateActivity(
+  ast,
+  rng,
+  people,
+  teams,
+  runtime = createDefaultRuntime(),
+) {
   const roster = people.map((p) => ({
     email: p.email,
     name: p.name,
@@ -77,6 +85,7 @@ export function generateActivity(ast, rng, people, teams) {
     people,
     teams,
     snapshots,
+    runtime,
   );
   const rosterSnapshots = generateRosterSnapshots(
     ast,

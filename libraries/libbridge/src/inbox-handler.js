@@ -1,4 +1,5 @@
 import { bridge } from "@forwardimpact/libtype";
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 /**
  * Long-poll handler for the per-correlation inbox. The run's InboxPoller
@@ -9,6 +10,7 @@ import { bridge } from "@forwardimpact/libtype";
  * @param {object} deps.logger
  * @param {number} [deps.pollTimeoutMs] - Max wait before returning empty (default 30s)
  * @param {number} [deps.pollIntervalMs] - Poll interval (default 1s)
+ * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [deps.clock]
  * @returns {(c: import("hono").Context) => Promise<Response>}
  */
 export function createInboxHandler({
@@ -16,13 +18,14 @@ export function createInboxHandler({
   logger,
   pollTimeoutMs = 30_000,
   pollIntervalMs = 1_000,
+  clock = createDefaultClock(),
 }) {
   return async (c) => {
     const correlationId = c.req.param("correlationId");
     const sinceSeq = parseInt(c.req.query("since") ?? "0", 10);
-    const deadline = Date.now() + pollTimeoutMs;
+    const deadline = clock.now() + pollTimeoutMs;
 
-    while (Date.now() < deadline) {
+    while (clock.now() < deadline) {
       try {
         const result = await client.DrainInbox(
           bridge.DrainInboxRequest.fromObject({
@@ -37,7 +40,7 @@ export function createInboxHandler({
         logger.error?.("inbox", err);
         return c.json({ error: "Inbox failure" }, 500);
       }
-      await new Promise((r) => setTimeout(r, pollIntervalMs));
+      await clock.sleep(pollIntervalMs);
     }
     return c.json({ messages: [] });
   };

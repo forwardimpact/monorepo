@@ -1,13 +1,24 @@
-import { mkdir, readdir, cp, writeFile } from "fs/promises";
 import { join } from "path";
+
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 import { buildSkillEntry, stringifySorted } from "./util.js";
 
 const SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json";
 
 /** Skill discovery index emitter (.well-known/skills/). */
 export class DiscEmitter {
+  #fs;
+
+  /** @param {{runtime?: object}} [opts] */
+  constructor({ runtime } = {}) {
+    const rt = runtime ?? createDefaultRuntime();
+    this.#fs = rt.fs;
+  }
+
   /** Emit a per-pack skill discovery repository. */
   async emit(skillsSrcDir, outputPath) {
+    const { mkdir, readdir, cp, writeFile } = this.#fs;
     const wellKnownDir = join(outputPath, ".well-known", "skills");
     await mkdir(wellKnownDir, { recursive: true });
 
@@ -21,7 +32,7 @@ export class DiscEmitter {
       const src = join(skillsSrcDir, dir.name);
       const dest = join(wellKnownDir, dir.name);
       await cp(src, dest, { recursive: true });
-      entries.push(await buildSkillEntry(dest, dir.name));
+      entries.push(await buildSkillEntry(dest, dir.name, this.#fs));
     }
 
     const manifest = { $schema: SCHEMA, skills: entries };
@@ -36,6 +47,7 @@ export class DiscEmitter {
 
   /** Emit a deduplicated aggregate discovery index across all packs. */
   async emitAggregate(packsOutputDir, allPackEntries) {
+    const { mkdir, cp, writeFile } = this.#fs;
     const wellKnownDir = join(packsOutputDir, ".well-known", "skills");
     await mkdir(wellKnownDir, { recursive: true });
 

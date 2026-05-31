@@ -1,4 +1,5 @@
 import { IndexBase } from "./base.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * Buffered index for high-volume writes with periodic flushing
@@ -10,6 +11,7 @@ export class BufferedIndex extends IndexBase {
   #flushTimer = null;
   #flushInterval;
   #maxBufferSize;
+  #clock;
 
   /**
    * Creates a new BufferedIndex instance
@@ -18,11 +20,18 @@ export class BufferedIndex extends IndexBase {
    * @param {object} config - Buffer configuration
    * @param {number} [config.flush_interval] - Flush interval in milliseconds (default: 5000)
    * @param {number} [config.max_buffer_size] - Max items before forced flush (default: 1000)
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime]
    */
-  constructor(storage, indexKey, config = {}) {
+  constructor(
+    storage,
+    indexKey,
+    config = {},
+    runtime = createDefaultRuntime(),
+  ) {
     super(storage, indexKey);
     this.#flushInterval = config.flush_interval || 5000;
     this.#maxBufferSize = config.max_buffer_size || 1000;
+    this.#clock = runtime.clock;
   }
 
   /**
@@ -47,7 +56,10 @@ export class BufferedIndex extends IndexBase {
 
     // Schedule periodic flush
     if (!this.#flushTimer) {
-      this.#flushTimer = setTimeout(() => this.flush(), this.#flushInterval);
+      this.#flushTimer = this.#clock.setTimeout(
+        () => this.flush(),
+        this.#flushInterval,
+      );
     }
   }
 
@@ -57,7 +69,7 @@ export class BufferedIndex extends IndexBase {
    */
   async flush() {
     if (this.#flushTimer) {
-      clearTimeout(this.#flushTimer);
+      this.#clock.clearTimeout(this.#flushTimer);
       this.#flushTimer = null;
     }
 

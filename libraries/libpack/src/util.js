@@ -1,17 +1,15 @@
-import { readdir, readFile } from "fs/promises";
-import { utimesSync } from "fs";
 import { join } from "path";
 
 /** Recursively collect all paths (files and directories) under `dir`, relative to `dir`. */
-export async function collectPaths(dir, prefix = ".") {
-  const entries = await readdir(dir, { withFileTypes: true });
+export async function collectPaths(dir, prefix = ".", fs) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
   const result = [];
   for (const entry of entries) {
     const rel = prefix + "/" + entry.name;
     const abs = join(dir, entry.name);
     if (entry.isDirectory()) {
       result.push(rel);
-      result.push(...(await collectPaths(abs, rel)));
+      result.push(...(await collectPaths(abs, rel, fs)));
     } else {
       result.push(rel);
     }
@@ -20,13 +18,15 @@ export async function collectPaths(dir, prefix = ".") {
 }
 
 /** Set mtime and atime to the Unix epoch for every entry under `dir`. */
-export async function resetTimestamps(dir) {
-  const epoch = new Date(0);
-  const paths = await collectPaths(dir);
+export async function resetTimestamps(dir, fs) {
+  // Epoch 0 (seconds) — a deterministic constant, not the ambient clock, so a
+  // packed tree is byte-identical regardless of when it was staged.
+  const epoch = 0;
+  const paths = await collectPaths(dir, ".", fs);
   for (const rel of paths) {
-    utimesSync(join(dir, rel), epoch, epoch);
+    await fs.utimes(join(dir, rel), epoch, epoch);
   }
-  utimesSync(dir, epoch, epoch);
+  await fs.utimes(dir, epoch, epoch);
 }
 
 /** Stringify JSON with recursively sorted object keys for deterministic output. */
@@ -45,13 +45,13 @@ export function stringifySorted(value) {
 }
 
 /** Collect all file paths (no dirs) under `dir`, relative to `dir`, sorted. */
-export async function collectFiles(dir, prefix = "") {
-  const entries = await readdir(dir, { withFileTypes: true });
+export async function collectFiles(dir, fs, prefix = "") {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
   const result = [];
   for (const entry of entries) {
     const rel = prefix ? prefix + "/" + entry.name : entry.name;
     if (entry.isDirectory()) {
-      result.push(...(await collectFiles(join(dir, entry.name), rel)));
+      result.push(...(await collectFiles(join(dir, entry.name), fs, rel)));
     } else {
       result.push(rel);
     }
@@ -72,9 +72,9 @@ export function parseFrontmatter(content) {
 }
 
 /** Build a skill index entry from a staged skill directory. */
-export async function buildSkillEntry(skillDir, name) {
-  const skillMd = await readFile(join(skillDir, "SKILL.md"), "utf-8");
+export async function buildSkillEntry(skillDir, name, fs) {
+  const skillMd = await fs.readFile(join(skillDir, "SKILL.md"), "utf-8");
   const fm = parseFrontmatter(skillMd);
-  const files = await collectFiles(skillDir);
+  const files = await collectFiles(skillDir, fs);
   return { description: fm.description || "", files, name };
 }

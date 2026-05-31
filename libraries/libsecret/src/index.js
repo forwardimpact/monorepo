@@ -1,14 +1,21 @@
 import crypto from "crypto";
-import fs from "fs/promises";
 import path from "path";
+
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * Reads an environment variable value from an env file
  * @param {string} key - Environment variable name
  * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Promise<string|undefined>} The value if found, undefined otherwise
  */
-export async function readEnvFile(key, envPath = ".env") {
+export async function readEnvFile(
+  key,
+  envPath = ".env",
+  runtime = createDefaultRuntime(),
+) {
+  const { fs } = runtime;
   const fullPath = path.resolve(envPath);
 
   try {
@@ -33,14 +40,20 @@ export async function readEnvFile(key, envPath = ".env") {
  * @param {string} key - Environment variable name
  * @param {() => string} generator - Function that generates the secret if not found
  * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Promise<string>} The existing or newly generated secret
  */
-export async function getOrGenerateSecret(key, generator, envPath = ".env") {
+export async function getOrGenerateSecret(
+  key,
+  generator,
+  envPath = ".env",
+  runtime = createDefaultRuntime(),
+) {
   if (typeof generator !== "function") {
     throw new Error("generator is required");
   }
 
-  const existing = await readEnvFile(key, envPath);
+  const existing = await readEnvFile(key, envPath, runtime);
   if (existing) {
     return existing;
   }
@@ -53,8 +66,15 @@ export async function getOrGenerateSecret(key, generator, envPath = ".env") {
  * @param {string} key - Environment variable name (e.g., "SERVICE_SECRET")
  * @param {string} value - Environment variable value
  * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
+ * @param {object} [runtime] - Runtime collaborator bag
  */
-export async function updateEnvFile(key, value, envPath = ".env") {
+export async function updateEnvFile(
+  key,
+  value,
+  envPath = ".env",
+  runtime = createDefaultRuntime(),
+) {
+  const { fs } = runtime;
   const fullPath = path.resolve(envPath);
   let content = "";
 
@@ -162,17 +182,17 @@ export function generateJWT(payload, secret) {
  * @param {string} params.secret - Supabase JWT secret (HMAC key)
  * @param {number} [params.ttlSeconds] - Token lifetime in seconds
  * @param {object} [params.claims] - Extra claims merged into the payload
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {string} Signed JWT
  */
-export function mintSupabaseJwt({
-  email,
-  secret,
-  ttlSeconds = 3600,
-  claims = {},
-}) {
+export function mintSupabaseJwt(
+  { email, secret, ttlSeconds = 3600, claims = {} },
+  runtime = createDefaultRuntime(),
+) {
+  const { clock } = runtime;
   if (!secret) throw new Error("mintSupabaseJwt: secret required");
   if (!email) throw new Error("mintSupabaseJwt: email required");
-  const now = Math.floor(Date.now() / 1000);
+  const now = Math.floor(clock.now() / 1000);
   return generateJWT(
     {
       role: "authenticated",
@@ -190,13 +210,17 @@ export function mintSupabaseJwt({
 
 const SUPABASE_ROLE_EXP_SECONDS = 10 * 365 * 24 * 60 * 60;
 
-function mintSupabaseRoleKey({ role, secret }) {
+function mintSupabaseRoleKey(
+  { role, secret },
+  runtime = createDefaultRuntime(),
+) {
+  const { clock } = runtime;
   if (!secret) {
     throw new Error(
       `mintSupabase${role === "anon" ? "Anon" : "ServiceRole"}Key: secret required`,
     );
   }
-  const now = Math.floor(Date.now() / 1000);
+  const now = Math.floor(clock.now() / 1000);
   return generateJWT(
     { iss: "supabase", iat: now, exp: now + SUPABASE_ROLE_EXP_SECONDS, role },
     secret,
@@ -209,10 +233,14 @@ function mintSupabaseRoleKey({ role, secret }) {
  *
  * @param {object} params
  * @param {string} params.secret - Supabase JWT secret (HMAC key)
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {string} Signed JWT
  */
-export function mintSupabaseAnonKey({ secret }) {
-  return mintSupabaseRoleKey({ role: "anon", secret });
+export function mintSupabaseAnonKey(
+  { secret },
+  runtime = createDefaultRuntime(),
+) {
+  return mintSupabaseRoleKey({ role: "anon", secret }, runtime);
 }
 
 /**
@@ -221,10 +249,14 @@ export function mintSupabaseAnonKey({ secret }) {
  *
  * @param {object} params
  * @param {string} params.secret - Supabase JWT secret (HMAC key)
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {string} Signed JWT
  */
-export function mintSupabaseServiceRoleKey({ secret }) {
-  return mintSupabaseRoleKey({ role: "service_role", secret });
+export function mintSupabaseServiceRoleKey(
+  { secret },
+  runtime = createDefaultRuntime(),
+) {
+  return mintSupabaseRoleKey({ role: "service_role", secret }, runtime);
 }
 
 /**

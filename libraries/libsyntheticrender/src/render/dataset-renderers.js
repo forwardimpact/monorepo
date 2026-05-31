@@ -10,6 +10,7 @@
  */
 
 import YAML from "yaml";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 // ── JSON ────────────────────────────────────────────────────────────────────
 
@@ -107,9 +108,15 @@ function renderMarkdown(dataset, config) {
 /**
  * @param {Dataset} dataset
  * @param {object} config - { path }
+ * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
  * @returns {Promise<Map<string, Buffer>>}
  */
-async function renderParquet(dataset, config) {
+async function renderParquet(
+  dataset,
+  config,
+  runtime = createDefaultRuntime(),
+) {
+  const { fsSync } = runtime;
   let arrow, parquetModule;
   try {
     arrow = await import("apache-arrow");
@@ -120,11 +127,10 @@ async function renderParquet(dataset, config) {
         "Install with: bun add apache-arrow parquet-wasm",
     );
   }
-  const { readFileSync } = await import("fs");
   const { createRequire } = await import("module");
   const require = createRequire(import.meta.url);
   const wasmPath = require.resolve("parquet-wasm/esm/parquet_wasm_bg.wasm");
-  const wasmBytes = readFileSync(wasmPath);
+  const wasmBytes = fsSync.readFileSync(wasmPath);
   parquetModule.initSync(wasmBytes);
   const table = arrow.tableFromJSON(dataset.records);
   const ipc = arrow.tableToIPC(table, "stream");
@@ -186,10 +192,17 @@ const RENDERERS = {
  * @param {Dataset} dataset
  * @param {string} format
  * @param {object} config
+ * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
  * @returns {Promise<Map<string, string|Buffer>>}
  */
-export async function renderDataset(dataset, format, config) {
+export async function renderDataset(
+  dataset,
+  format,
+  config,
+  runtime = createDefaultRuntime(),
+) {
   const renderer = RENDERERS[format];
   if (!renderer) throw new Error(`Unknown format: ${format}`);
+  if (format === "parquet") return renderer(dataset, config, runtime);
   return renderer(dataset, config);
 }

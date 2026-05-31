@@ -1,3 +1,5 @@
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
+
 import { validateCallbackPayload } from "./callback-payload.js";
 
 /**
@@ -44,6 +46,7 @@ export class CallbackHandlerError extends Error {
  * @param {(meta: object) => string} options.loadDiscussionId
  * @param {(meta: object) => unknown} [options.ackFinishTarget]
  * @param {(ctx: object, payload: object, meta: object) => Promise<void>} options.handleReply
+ * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
  * @returns {(c: object) => Promise<Response>}
  */
 export function createCallbackHandler({
@@ -57,6 +60,7 @@ export function createCallbackHandler({
   loadDiscussionId,
   ackFinishTarget,
   handleReply,
+  clock = createDefaultClock(),
 }) {
   if (!channel) throw new Error("channel is required");
   if (!callbacks) throw new Error("callbacks is required");
@@ -139,6 +143,7 @@ export function createCallbackHandler({
       logger,
       tracer,
       spanName,
+      clock,
       postReply() {
         if (!isTerminal) {
           ctx.last_posted_seq = payload.seq;
@@ -172,6 +177,7 @@ async function runHandleReply(
     logger,
     tracer,
     spanName,
+    clock,
     postReply,
   },
 ) {
@@ -182,7 +188,7 @@ async function runHandleReply(
   try {
     await handleReply(ctx, payload, meta);
     if (postReply) postReply();
-    ctx.last_active_at = Date.now();
+    ctx.last_active_at = clock.now();
     await store.add(ctx);
     await store.flush();
     span.addEvent("reply_delivered", { verdict: payload.verdict });

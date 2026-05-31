@@ -1,12 +1,4 @@
 {
-  "libraries/libbridge/src/callback-handler.js": ["date-now"],
-  "libraries/libbridge/src/callback-payload.js": ["date-now"],
-  "libraries/libbridge/src/callback-registry.js": ["date-now"],
-  "libraries/libbridge/src/dispatcher.js": ["date-now"],
-  "libraries/libbridge/src/elapsed-scheduler.js": ["date-now", "set-timeout"],
-  "libraries/libbridge/src/inbox-handler.js": ["date-now", "set-timeout"],
-  "libraries/libbridge/src/rate-limit.js": ["date-now"],
-  "libraries/libbridge/src/resume-scheduler.js": ["date-now"],
   "libraries/libeval/src/benchmark/apm-installer.js": [
     "import:child_process",
     "import:fs"
@@ -49,25 +41,6 @@
     "new-date",
     "process-global"
   ],
-  "libraries/libindex/src/buffered.js": ["set-timeout"],
-  "libraries/libmacos/src/posix-spawn.js": [
-    "date-now",
-    "import:fs",
-    "process-global",
-    "set-timeout"
-  ],
-  "libraries/libpack/src/builder.js": ["import:fs"],
-  "libraries/libpack/src/disc-emitter.js": ["import:fs"],
-  "libraries/libpack/src/git-emitter.js": [
-    "import:child_process",
-    "import:fs",
-    "process-global"
-  ],
-  "libraries/libpack/src/stager.js": ["import:fs", "new-date"],
-  "libraries/libpack/src/tar-emitter.js": ["import:child_process", "import:fs"],
-  "libraries/libpack/src/util.js": ["import:fs", "new-date"],
-  "libraries/libprompt/src/loader.js": ["import:fs"],
-  "libraries/libsecret/src/index.js": ["date-now", "import:fs"],
   "libraries/libsupervise/src/logger.js": [
     "import:fs",
     "new-date",
@@ -81,22 +54,6 @@
   "libraries/libsupervise/src/oneshot.js": ["import:child_process"],
   "libraries/libsupervise/src/state.js": ["date-now"],
   "libraries/libsupervise/src/tree.js": ["import:child_process", "set-timeout"],
-  "libraries/libsyntheticgen/src/activity/comment.js": ["new-date"],
-  "libraries/libsyntheticgen/src/activity/webhook.js": ["new-date"],
-  "libraries/libsyntheticgen/src/engine/activity-initiatives.js": [
-    "date-now",
-    "new-date"
-  ],
-  "libraries/libsyntheticgen/src/engine/activity.js": ["new-date"],
-  "libraries/libsyntheticprose/src/engine/cache.js": ["import:fs"],
-  "libraries/libsyntheticprose/src/engine/generator.js": ["date-now"],
-  "libraries/libsyntheticprose/src/engine/pathway.js": ["import:fs"],
-  "libraries/libsyntheticrender/src/render/dataset-renderers.js": ["import:fs"],
-  "libraries/libsyntheticrender/src/render/html.js": ["new-date"],
-  "libraries/libsyntheticrender/src/render/link-assigner.js": ["new-date"],
-  "libraries/libsyntheticrender/src/render/markdown.js": ["new-date"],
-  "libraries/libtemplate/src/loader.js": ["import:fs"],
-  "libraries/libui/src/command-bar.js": ["set-timeout"],
   "libraries/libutil/src/extractor.js": ["import:fs"],
   "libraries/libutil/src/finder.js": ["import:fs"],
   "libraries/libutil/src/index.js": ["import:fs"],

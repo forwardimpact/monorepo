@@ -1,9 +1,8 @@
-import { describe, test, beforeEach, afterEach } from "node:test";
+import { describe, test } from "node:test";
 import assert from "node:assert";
 import { createHmac } from "node:crypto";
-import fs from "fs/promises";
-import path from "path";
-import os from "os";
+
+import { createTestRuntime, createMockFs, spy } from "@forwardimpact/libmock";
 
 // Module under test
 import {
@@ -20,6 +19,20 @@ import {
   mintSupabaseServiceRoleKey,
   parseDuration,
 } from "../src/index.js";
+
+// Fixed test env path used across all mocked-fs tests.
+const TEST_ENV_PATH = "/test/.env";
+
+/**
+ * Build a test runtime with an in-memory fs. The `chmod` method is
+ * added as a spy since createMockFs does not include it.
+ * @param {Object<string,string>} [files]
+ */
+function makeRuntime(files = {}) {
+  const fs = createMockFs(files);
+  fs.chmod = spy(async () => {});
+  return createTestRuntime({ fs });
+}
 
 describe("libsecret", () => {
   describe("generateHash", () => {
@@ -240,6 +253,23 @@ describe("libsecret", () => {
         /email required/,
       );
     });
+
+    test("uses injected clock.now() for iat/exp", () => {
+      const fixedMs = 1_700_000_000_000;
+      const runtime = createTestRuntime({
+        clock: {
+          now: () => fixedMs,
+          sleep: async () => {},
+          setTimeout,
+          clearTimeout,
+        },
+      });
+      const jwt = mintSupabaseJwt({ email: "a@b.com", secret }, runtime);
+      const payload = JSON.parse(
+        Buffer.from(jwt.split(".")[1], "base64url").toString(),
+      );
+      assert.strictEqual(payload.iat, Math.floor(fixedMs / 1000));
+    });
   });
 
   describe("mintSupabaseAnonKey", () => {
@@ -366,259 +396,227 @@ describe("libsecret", () => {
   });
 
   describe("updateEnvFile", () => {
-    let tempDir;
-    let envPath;
-
-    beforeEach(async () => {
-      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "libsecret-test-"));
-      envPath = path.join(tempDir, ".env");
-    });
-
-    afterEach(async () => {
-      try {
-        await fs.rm(tempDir, { recursive: true });
-      } catch {
-        // Ignore cleanup errors
-      }
-    });
-
     test("creates new .env file when it does not exist", async () => {
-      await updateEnvFile("TEST_KEY", "test-value", envPath);
+      const runtime = makeRuntime();
+      await updateEnvFile("TEST_KEY", "test-value", TEST_ENV_PATH, runtime);
 
-      const content = await fs.readFile(envPath, "utf8");
-      // When file doesn't exist, split("") gives [""], resulting in leading newline
+      const content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.ok(content.includes("TEST_KEY=test-value"));
     });
 
     test("adds new key to existing .env file", async () => {
-      await fs.writeFile(envPath, "EXISTING_KEY=existing-value\n");
+      const runtime = makeRuntime({
+        [TEST_ENV_PATH]: "EXISTING_KEY=existing-value\n",
+      });
+      await updateEnvFile("NEW_KEY", "new-value", TEST_ENV_PATH, runtime);
 
-      await updateEnvFile("NEW_KEY", "new-value", envPath);
-
-      const content = await fs.readFile(envPath, "utf8");
+      const content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.ok(content.includes("EXISTING_KEY=existing-value"));
       assert.ok(content.includes("NEW_KEY=new-value"));
     });
 
     test("updates existing key in .env file", async () => {
-      await fs.writeFile(envPath, "MY_KEY=old-value\n");
+      const runtime = makeRuntime({ [TEST_ENV_PATH]: "MY_KEY=old-value\n" });
+      await updateEnvFile("MY_KEY", "new-value", TEST_ENV_PATH, runtime);
 
-      await updateEnvFile("MY_KEY", "new-value", envPath);
-
-      const content = await fs.readFile(envPath, "utf8");
+      const content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.ok(content.includes("MY_KEY=new-value"));
       assert.ok(!content.includes("old-value"));
     });
 
     test("uncomments and updates commented key", async () => {
-      await fs.writeFile(envPath, "# TEST_KEY=commented-value\n");
+      const runtime = makeRuntime({
+        [TEST_ENV_PATH]: "# TEST_KEY=commented-value\n",
+      });
+      await updateEnvFile("TEST_KEY", "new-value", TEST_ENV_PATH, runtime);
 
-      await updateEnvFile("TEST_KEY", "new-value", envPath);
-
-      const content = await fs.readFile(envPath, "utf8");
+      const content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.strictEqual(content.trim(), "TEST_KEY=new-value");
     });
 
     test("handles file without trailing newline", async () => {
-      await fs.writeFile(envPath, "FIRST_KEY=value");
+      const runtime = makeRuntime({ [TEST_ENV_PATH]: "FIRST_KEY=value" });
+      await updateEnvFile("SECOND_KEY", "second-value", TEST_ENV_PATH, runtime);
 
-      await updateEnvFile("SECOND_KEY", "second-value", envPath);
-
-      const content = await fs.readFile(envPath, "utf8");
+      const content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.ok(content.includes("FIRST_KEY=value"));
       assert.ok(content.includes("SECOND_KEY=second-value"));
     });
 
     test("output always ends with trailing newline", async () => {
-      await updateEnvFile("KEY_A", "value-a", envPath);
-      let content = await fs.readFile(envPath, "utf8");
+      const runtime = makeRuntime();
+      await updateEnvFile("KEY_A", "value-a", TEST_ENV_PATH, runtime);
+      let content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.ok(content.endsWith("\n"), "new file should end with newline");
 
-      await updateEnvFile("KEY_B", "value-b", envPath);
-      content = await fs.readFile(envPath, "utf8");
+      await updateEnvFile("KEY_B", "value-b", TEST_ENV_PATH, runtime);
+      content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.ok(
         content.endsWith("\n"),
         "file with appended key should end with newline",
       );
 
-      await updateEnvFile("KEY_A", "updated", envPath);
-      content = await fs.readFile(envPath, "utf8");
+      await updateEnvFile("KEY_A", "updated", TEST_ENV_PATH, runtime);
+      content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.ok(
         content.endsWith("\n"),
         "file with updated key should end with newline",
       );
     });
 
-    test("uses default .env path when not specified", async () => {
-      // This test creates a file in the current directory, so we mock it carefully
-      const defaultPath = path.join(tempDir, ".env");
-      await updateEnvFile("KEY", "value", defaultPath);
+    test("uses provided env path", async () => {
+      const customPath = "/test/custom.env";
+      const runtime = makeRuntime();
+      await updateEnvFile("KEY", "value", customPath, runtime);
 
-      const content = await fs.readFile(defaultPath, "utf8");
+      const content = await runtime.fs.readFile(customPath, "utf8");
       assert.ok(content.includes("KEY=value"));
     });
 
-    test("creates .env with mode 0o600 (owner-only read/write)", async () => {
-      if (process.platform === "win32") return;
+    test("calls chmod(path, 0o600) on new file", async () => {
+      const runtime = makeRuntime();
+      await updateEnvFile("SECRET", "s3cret", TEST_ENV_PATH, runtime);
 
-      await updateEnvFile("SECRET", "s3cret", envPath);
-
-      const stat = await fs.stat(envPath);
+      assert.strictEqual(runtime.fs.chmod.mock.callCount(), 1);
       assert.strictEqual(
-        stat.mode & 0o777,
-        0o600,
-        "new .env file must be owner-only readable",
+        runtime.fs.chmod.mock.calls[0].arguments[0],
+        TEST_ENV_PATH,
       );
+      assert.strictEqual(runtime.fs.chmod.mock.calls[0].arguments[1], 0o600);
     });
 
-    test("tightens existing .env mode to 0o600 on update", async () => {
-      if (process.platform === "win32") return;
+    test("calls chmod(path, 0o600) on update", async () => {
+      const runtime = makeRuntime({ [TEST_ENV_PATH]: "PRIOR=value\n" });
+      await updateEnvFile("PRIOR", "updated", TEST_ENV_PATH, runtime);
 
-      await fs.writeFile(envPath, "PRIOR=value\n", { mode: 0o644 });
-      await updateEnvFile("PRIOR", "updated", envPath);
-
-      const stat = await fs.stat(envPath);
-      assert.strictEqual(
-        stat.mode & 0o777,
-        0o600,
-        "existing .env file must be tightened to 0o600",
-      );
+      assert.strictEqual(runtime.fs.chmod.mock.callCount(), 1);
+      assert.strictEqual(runtime.fs.chmod.mock.calls[0].arguments[1], 0o600);
     });
   });
 
   describe("readEnvFile", () => {
-    let tempDir;
-    let envPath;
-
-    beforeEach(async () => {
-      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "libsecret-test-"));
-      envPath = path.join(tempDir, ".env");
-    });
-
-    afterEach(async () => {
-      try {
-        await fs.rm(tempDir, { recursive: true });
-      } catch {
-        // Ignore cleanup errors
-      }
-    });
-
     test("returns undefined when file does not exist", async () => {
-      const value = await readEnvFile("MISSING_KEY", envPath);
+      const runtime = makeRuntime();
+      const value = await readEnvFile("MISSING_KEY", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, undefined);
     });
 
     test("returns undefined when key does not exist", async () => {
-      await fs.writeFile(envPath, "OTHER_KEY=other-value\n");
-
-      const value = await readEnvFile("MISSING_KEY", envPath);
+      const runtime = makeRuntime({
+        [TEST_ENV_PATH]: "OTHER_KEY=other-value\n",
+      });
+      const value = await readEnvFile("MISSING_KEY", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, undefined);
     });
 
     test("returns value for existing key", async () => {
-      await fs.writeFile(envPath, "MY_KEY=my-value\n");
-
-      const value = await readEnvFile("MY_KEY", envPath);
+      const runtime = makeRuntime({ [TEST_ENV_PATH]: "MY_KEY=my-value\n" });
+      const value = await readEnvFile("MY_KEY", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, "my-value");
     });
 
     test("returns value with equals sign in it", async () => {
-      await fs.writeFile(envPath, "JWT_TOKEN=abc=def==\n");
-
-      const value = await readEnvFile("JWT_TOKEN", envPath);
+      const runtime = makeRuntime({ [TEST_ENV_PATH]: "JWT_TOKEN=abc=def==\n" });
+      const value = await readEnvFile("JWT_TOKEN", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, "abc=def==");
     });
 
     test("ignores commented keys", async () => {
-      await fs.writeFile(envPath, "# MY_KEY=commented-value\n");
-
-      const value = await readEnvFile("MY_KEY", envPath);
+      const runtime = makeRuntime({
+        [TEST_ENV_PATH]: "# MY_KEY=commented-value\n",
+      });
+      const value = await readEnvFile("MY_KEY", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, undefined);
     });
 
     test("returns first matching key when duplicates exist", async () => {
-      await fs.writeFile(envPath, "MY_KEY=first-value\nMY_KEY=second-value\n");
-
-      const value = await readEnvFile("MY_KEY", envPath);
+      const runtime = makeRuntime({
+        [TEST_ENV_PATH]: "MY_KEY=first-value\nMY_KEY=second-value\n",
+      });
+      const value = await readEnvFile("MY_KEY", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, "first-value");
     });
 
     test("handles empty value", async () => {
-      await fs.writeFile(envPath, "EMPTY_KEY=\n");
-
-      const value = await readEnvFile("EMPTY_KEY", envPath);
+      const runtime = makeRuntime({ [TEST_ENV_PATH]: "EMPTY_KEY=\n" });
+      const value = await readEnvFile("EMPTY_KEY", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, "");
     });
   });
 
   describe("getOrGenerateSecret", () => {
-    let tempDir;
-    let envPath;
-
-    beforeEach(async () => {
-      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "libsecret-test-"));
-      envPath = path.join(tempDir, ".env");
-    });
-
-    afterEach(async () => {
-      try {
-        await fs.rm(tempDir, { recursive: true });
-      } catch {
-        // Ignore cleanup errors
-      }
-    });
-
     test("returns existing value when key exists", async () => {
-      await fs.writeFile(envPath, "MY_SECRET=existing-secret\n");
-
+      const runtime = makeRuntime({
+        [TEST_ENV_PATH]: "MY_SECRET=existing-secret\n",
+      });
       const generator = () => "new-secret";
-      const value = await getOrGenerateSecret("MY_SECRET", generator, envPath);
-
+      const value = await getOrGenerateSecret(
+        "MY_SECRET",
+        generator,
+        TEST_ENV_PATH,
+        runtime,
+      );
       assert.strictEqual(value, "existing-secret");
     });
 
     test("calls generator when key does not exist", async () => {
+      const runtime = makeRuntime();
       const generator = () => "generated-secret";
-      const value = await getOrGenerateSecret("MY_SECRET", generator, envPath);
-
+      const value = await getOrGenerateSecret(
+        "MY_SECRET",
+        generator,
+        TEST_ENV_PATH,
+        runtime,
+      );
       assert.strictEqual(value, "generated-secret");
     });
 
     test("does not call generator when key exists", async () => {
-      await fs.writeFile(envPath, "MY_SECRET=existing-secret\n");
-
+      const runtime = makeRuntime({
+        [TEST_ENV_PATH]: "MY_SECRET=existing-secret\n",
+      });
       let generatorCalled = false;
       const generator = () => {
         generatorCalled = true;
         return "new-secret";
       };
-
-      await getOrGenerateSecret("MY_SECRET", generator, envPath);
+      await getOrGenerateSecret("MY_SECRET", generator, TEST_ENV_PATH, runtime);
       assert.strictEqual(generatorCalled, false);
     });
 
     test("calls generator when file does not exist", async () => {
+      const runtime = makeRuntime();
       const generator = () => "generated-secret";
-      const value = await getOrGenerateSecret("MY_SECRET", generator, envPath);
-
+      const value = await getOrGenerateSecret(
+        "MY_SECRET",
+        generator,
+        TEST_ENV_PATH,
+        runtime,
+      );
       assert.strictEqual(value, "generated-secret");
     });
 
     test("throws when generator is not a function", async () => {
+      const runtime = makeRuntime();
       await assert.rejects(
-        async () => getOrGenerateSecret("MY_SECRET", "not-a-function", envPath),
+        async () =>
+          getOrGenerateSecret(
+            "MY_SECRET",
+            "not-a-function",
+            TEST_ENV_PATH,
+            runtime,
+          ),
         { message: "generator is required" },
       );
     });
 
     test("does not write to file (no side effects)", async () => {
+      const runtime = makeRuntime();
       const generator = () => "generated-secret";
-      await getOrGenerateSecret("MY_SECRET", generator, envPath);
+      await getOrGenerateSecret("MY_SECRET", generator, TEST_ENV_PATH, runtime);
 
-      // File should not exist since getOrGenerateSecret doesn't write
-      await assert.rejects(async () => fs.readFile(envPath, "utf8"), {
-        code: "ENOENT",
-      });
+      // writeFile should never have been called
+      assert.strictEqual(runtime.fs.writeFile.mock.callCount(), 0);
     });
   });
 });

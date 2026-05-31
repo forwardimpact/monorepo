@@ -4,6 +4,8 @@
  * @module libterrain/engine/activity-initiatives
  */
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 /**
  * Compute initiative priority from magnitude and direction.
  * @param {boolean} isDeclining
@@ -60,6 +62,7 @@ function buildInitiative(params) {
     checks,
     people,
     project,
+    runtime,
   } = params;
 
   const endDate = new Date(scenario.timerange_end + "-28");
@@ -68,7 +71,7 @@ function buildInitiative(params) {
     (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
   const elapsed = Math.min(
     totalDays,
-    (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+    (runtime.clock.now() - startDate.getTime()) / (1000 * 60 * 60 * 24),
   );
   const rawPct = Math.max(0, Math.min(100, (elapsed / totalDays) * 100));
   const pctComplete = isDeclining
@@ -165,7 +168,16 @@ function buildScorecard({
  * for each of its dx_drivers.
  */
 function processAffect(params) {
-  const { affect, scenario, project, teams, people, driverMap, state } = params;
+  const {
+    affect,
+    scenario,
+    project,
+    teams,
+    people,
+    driverMap,
+    state,
+    runtime,
+  } = params;
   const team = teams.find((t) => t.id === affect.team_id);
   if (!team) return;
 
@@ -206,6 +218,7 @@ function processAffect(params) {
         checks,
         people,
         project,
+        runtime,
       }),
     );
   }
@@ -218,9 +231,17 @@ function processAffect(params) {
  * @param {object[]} people
  * @param {object[]} teams
  * @param {object[]} _snapshots
+ * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
  * @returns {{ scorecards: object[], initiatives: object[] }}
  */
-export function deriveInitiatives(ast, rng, people, teams, _snapshots) {
+export function deriveInitiatives(
+  ast,
+  rng,
+  people,
+  teams,
+  _snapshots,
+  runtime = createDefaultRuntime(),
+) {
   const driverMap = new Map(
     (ast.standard?.drivers || []).map((d) => [d.id, d]),
   );
@@ -240,6 +261,7 @@ export function deriveInitiatives(ast, rng, people, teams, _snapshots) {
         people,
         driverMap,
         state,
+        runtime,
       });
     }
   }

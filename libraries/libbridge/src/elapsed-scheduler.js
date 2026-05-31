@@ -1,3 +1,5 @@
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
+
 const CHUNK_CAP_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
@@ -12,16 +14,19 @@ export class ElapsedScheduler {
   #timers = new Map();
   #onFire;
   #onError;
+  #clock;
 
   /**
    * @param {object} options
    * @param {(correlationId: string) => Promise<void>} options.onFire - Invoked when the deadline passes.
    * @param {(err: Error, correlationId: string) => void} [options.onError] - Invoked when `onFire` rejects.
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
    */
-  constructor({ onFire, onError = () => {} }) {
+  constructor({ onFire, onError = () => {}, clock = createDefaultClock() }) {
     if (typeof onFire !== "function") throw new Error("onFire is required");
     this.#onFire = onFire;
     this.#onError = onError;
+    this.#clock = clock;
   }
 
   /** @returns {number} */
@@ -38,13 +43,13 @@ export class ElapsedScheduler {
    */
   schedule(correlationId, dueAt) {
     this.cancel(correlationId);
-    const remaining = dueAt - Date.now();
+    const remaining = dueAt - this.#clock.now();
     if (remaining <= 0) {
       this.#fire(correlationId);
       return;
     }
     const delay = Math.min(remaining, CHUNK_CAP_MS);
-    const timer = setTimeout(() => {
+    const timer = this.#clock.setTimeout(() => {
       this.#timers.delete(correlationId);
       if (remaining > CHUNK_CAP_MS) {
         this.schedule(correlationId, dueAt);
@@ -63,14 +68,14 @@ export class ElapsedScheduler {
   cancel(correlationId) {
     const timer = this.#timers.get(correlationId);
     if (timer) {
-      clearTimeout(timer);
+      this.#clock.clearTimeout(timer);
       this.#timers.delete(correlationId);
     }
   }
 
   /** Cancel every scheduled timer. */
   clear() {
-    for (const timer of this.#timers.values()) clearTimeout(timer);
+    for (const timer of this.#timers.values()) this.#clock.clearTimeout(timer);
     this.#timers.clear();
   }
 

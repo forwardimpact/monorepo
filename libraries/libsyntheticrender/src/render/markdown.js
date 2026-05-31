@@ -5,6 +5,8 @@
  * Uses TemplateLoader from libtemplate for all output.
  */
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 const SKILL_NAMES = [
   "version_control",
   "code_review",
@@ -131,10 +133,17 @@ function renderPersona(files, person, entities, prose, templates, date) {
  * @param {object} entities
  * @param {Map<string,string>} prose
  * @param {import('@forwardimpact/libtemplate/loader').TemplateLoader} templates - Template loader
+ * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
  * @returns {Map<string,string>} path → Markdown content
  */
-export function renderMarkdown(entities, prose, templates) {
+export function renderMarkdown(
+  entities,
+  prose,
+  templates,
+  runtime = createDefaultRuntime(),
+) {
   if (!templates) throw new Error("templates is required");
+  const { clock } = runtime;
   const files = new Map();
   const outpostContent = entities.content.find(
     (c) => c.id === "outpost_markdown",
@@ -147,7 +156,7 @@ export function renderMarkdown(entities, prose, templates) {
     personaLevels.includes(p.level),
   );
   const personas = candidates.slice(0, personaCount);
-  const date = new Date().toISOString().split("T")[0];
+  const date = new Date(clock.now()).toISOString().split("T")[0];
 
   for (const person of personas) {
     renderPersona(files, person, entities, prose, templates, date);

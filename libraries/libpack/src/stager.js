@@ -1,12 +1,32 @@
-import { mkdir, readdir, cp, writeFile, copyFile } from "fs/promises";
-import { existsSync } from "fs";
 import { join } from "path";
+
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 import { collectFiles } from "./util.js";
 
 /** Stage directory trees per layout (full, APM, skills). */
 export class PackStager {
+  #fs;
+
+  /** @param {{runtime?: object}} [opts] */
+  constructor({ runtime } = {}) {
+    const rt = runtime ?? createDefaultRuntime();
+    this.#fs = rt.fs;
+  }
+
+  /** Return true if path exists (file or directory). */
+  async #exists(path) {
+    try {
+      await this.#fs.access(path);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /** Stage the full pack layout into dir from pre-formatted content. */
   async stageFull(dir, content) {
+    const { mkdir, writeFile } = this.#fs;
     const claudeDir = join(dir, ".claude");
     const agentsDir = join(claudeDir, "agents");
     const skillsDir = join(claudeDir, "skills");
@@ -62,6 +82,7 @@ export class PackStager {
 
   /** Stage the APM bundle from a full staging dir. */
   async stageApm(fullDir, apmDir, packName, version) {
+    const { mkdir, readdir, cp, writeFile, copyFile } = this.#fs;
     const srcSkillsDir = join(fullDir, ".claude", "skills");
     const srcAgentsDir = join(fullDir, ".claude", "agents");
     const destSkillsDir = join(apmDir, ".claude", "skills");
@@ -88,23 +109,25 @@ export class PackStager {
 
     const srcClaudeMd = join(fullDir, ".claude", "CLAUDE.md");
     const destClaudeDir = join(apmDir, ".claude");
-    if (existsSync(srcClaudeMd)) {
+    if (await this.#exists(srcClaudeMd)) {
       await copyFile(srcClaudeMd, join(destClaudeDir, "CLAUDE.md"));
     }
 
     const deployedFiles = [];
-    if (existsSync(join(destClaudeDir, "CLAUDE.md"))) {
+    if (await this.#exists(join(destClaudeDir, "CLAUDE.md"))) {
       deployedFiles.push(".claude/CLAUDE.md");
     }
-    for (const file of await collectFiles(destSkillsDir)) {
+    for (const file of await collectFiles(destSkillsDir, this.#fs)) {
       deployedFiles.push(`.claude/skills/${file}`);
     }
-    for (const file of await collectFiles(destAgentsDir)) {
+    for (const file of await collectFiles(destAgentsDir, this.#fs)) {
       deployedFiles.push(`.claude/agents/${file}`);
     }
     deployedFiles.sort();
 
-    const epoch = new Date(0).toISOString();
+    // Epoch 0 as an ISO string — a deterministic constant (not the ambient
+    // clock) so generated lockfiles are reproducible across packing runs.
+    const epoch = "1970-01-01T00:00:00.000Z";
     const lockLines = [
       `lockfile_version: '1'`,
       `generated_at: '${epoch}'`,
@@ -134,6 +157,7 @@ export class PackStager {
    *  canonical source layout for agent discovery and integration).
    */
   async stageApmGit(fullDir, gitDir, packName, version) {
+    const { mkdir, readdir, cp, writeFile, copyFile } = this.#fs;
     const srcSkillsDir = join(fullDir, ".claude", "skills");
     const srcAgentsDir = join(fullDir, ".claude", "agents");
     const destSkillsDir = join(gitDir, "skills");
@@ -159,7 +183,7 @@ export class PackStager {
     }
 
     const srcClaudeMd = join(fullDir, ".claude", "CLAUDE.md");
-    if (existsSync(srcClaudeMd)) {
+    if (await this.#exists(srcClaudeMd)) {
       await copyFile(srcClaudeMd, join(gitDir, "CLAUDE.md"));
     }
 

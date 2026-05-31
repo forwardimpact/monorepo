@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
+
 const DEFAULT_TTL_MS = 2 * 60 * 60 * 1000;
 
 /**
@@ -10,14 +12,17 @@ const DEFAULT_TTL_MS = 2 * 60 * 60 * 1000;
  */
 export class CallbackRegistry {
   #ttlMs;
+  #clock;
   #entries = new Map();
 
   /**
    * @param {object} [options]
    * @param {number} [options.ttlMs] - Time-to-live in ms (default: 2h)
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
    */
-  constructor({ ttlMs = DEFAULT_TTL_MS } = {}) {
+  constructor({ ttlMs = DEFAULT_TTL_MS, clock = createDefaultClock() } = {}) {
     this.#ttlMs = ttlMs;
+    this.#clock = clock;
   }
 
   /** @returns {number} */
@@ -38,7 +43,7 @@ export class CallbackRegistry {
     this.#entries.set(token, {
       correlationId,
       meta,
-      createdAt: Date.now(),
+      createdAt: this.#clock.now(),
     });
     return token;
   }
@@ -75,7 +80,7 @@ export class CallbackRegistry {
    * @param {number} [now]
    * @returns {number} Number of entries evicted
    */
-  sweep(now = Date.now()) {
+  sweep(now = this.#clock.now()) {
     let evicted = 0;
     for (const [token, entry] of this.#entries) {
       if (now - entry.createdAt > this.#ttlMs) {

@@ -1,5 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
+import { createTestRuntime } from "@forwardimpact/libmock";
 import { assignLinks } from "../src/render/link-assigner.js";
 import {
   generateDrugs,
@@ -74,6 +75,7 @@ describe("assignLinks", () => {
       blogCount: 5,
       articleTopics: ["clinical"],
       seed: 42,
+      runtime: createTestRuntime(),
     });
     assert.ok(Array.isArray(result.drugs));
     assert.ok(Array.isArray(result.platforms));
@@ -93,6 +95,7 @@ describe("assignLinks", () => {
       eventCount: 0,
       blogCount: 45,
       seed: 42,
+      runtime: createTestRuntime(),
     });
     for (const blog of result.blogPosts) {
       const parsed = new Date(blog.date);
@@ -111,6 +114,7 @@ describe("assignLinks", () => {
       eventCount: 1,
       blogCount: 1,
       seed: 42,
+      runtime: createTestRuntime(),
     });
     for (const proj of result.projects) {
       assert.ok(
@@ -130,6 +134,7 @@ describe("assignLinks", () => {
       blogCount: 0,
       seed: 42,
       orgName: "TestCorp",
+      runtime: createTestRuntime(),
     });
     for (const course of result.courses) {
       assert.strictEqual(course.orgName, "TestCorp");
@@ -147,6 +152,7 @@ describe("assignLinks", () => {
       seed: 42,
       startYear: 2027,
       endYear: 2028,
+      runtime: createTestRuntime(),
     });
     for (const course of result.courses) {
       const year = parseInt(course.date.split("-")[0], 10);

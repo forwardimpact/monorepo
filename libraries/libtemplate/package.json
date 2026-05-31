@@ -37,6 +37,7 @@
     "README.md"
   ],
   "dependencies": {
+    "@forwardimpact/libutil": "^0.1.84",
     "mustache": "^4.2.0"
   },
   "engines": {

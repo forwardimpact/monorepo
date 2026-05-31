@@ -23,6 +23,7 @@
       "version": "0.1.6",
       "dependencies": {
         "@forwardimpact/libtype": "^0.1.0",
+        "@forwardimpact/libutil": "^0.1.84",
         "@hono/node-server": "^2.0.4",
         "hono": "^4.12.23",
       },
@@ -77,6 +78,7 @@
       "dependencies": {
         "@forwardimpact/libsecret": "^0.1.15",
         "@forwardimpact/libstorage": "^0.1.53",
+        "@forwardimpact/libutil": "^0.1.60",
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
@@ -92,6 +94,7 @@
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.22",
+        "@forwardimpact/libutil": "^0.1.0",
         "@hono/node-server": "^2.0.4",
         "hono": "^4.12.23",
         "marked": "^18.0.4",
@@ -171,6 +174,7 @@
       "version": "0.1.40",
       "dependencies": {
         "@forwardimpact/libtype": "^0.1.63",
+        "@forwardimpact/libutil": "^0.1.84",
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
@@ -179,6 +183,9 @@
     "libraries/libmacos": {
       "name": "@forwardimpact/libmacos",
       "version": "0.1.2",
+      "dependencies": {
+        "@forwardimpact/libutil": "^0.1.60",
+      },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
       },
@@ -204,6 +211,12 @@
     "libraries/libpack": {
       "name": "@forwardimpact/libpack",
       "version": "0.1.5",
+      "dependencies": {
+        "@forwardimpact/libutil": "^0.1.84",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.1",
+      },
     },
     "libraries/libpolicy": {
       "name": "@forwardimpact/libpolicy",
@@ -223,6 +236,7 @@
       "name": "@forwardimpact/libprompt",
       "version": "0.1.10",
       "dependencies": {
+        "@forwardimpact/libutil": "^0.1.84",
         "mustache": "^4.2.0",
       },
     },
@@ -242,6 +256,7 @@
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libsupervise": "^0.1.6",
         "@forwardimpact/libtelemetry": "^0.1.22",
+        "@forwardimpact/libutil": "^0.1.0",
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
@@ -304,6 +319,12 @@
     "libraries/libsecret": {
       "name": "@forwardimpact/libsecret",
       "version": "0.1.17",
+      "dependencies": {
+        "@forwardimpact/libutil": "^0.1.60",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+      },
     },
     "libraries/libskill": {
       "name": "@forwardimpact/libskill",
@@ -379,6 +400,9 @@
         "ajv-formats": "^3.0.1",
         "yaml": "^2.9.0",
       },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+      },
     },
     "libraries/libsyntheticrender": {
       "name": "@forwardimpact/libsyntheticrender",
@@ -386,6 +410,7 @@
       "dependencies": {
         "@forwardimpact/libsyntheticgen": "^0.1.0",
         "@forwardimpact/libtemplate": "^0.2.0",
+        "@forwardimpact/libutil": "^0.1.61",
         "yaml": "^2.9.0",
       },
       "devDependencies": {
@@ -412,6 +437,7 @@
         "@forwardimpact/librepl": "^0.1.12",
         "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtype": "^0.1.75",
+        "@forwardimpact/libutil": "^0.1.0",
         "jmespath": "^0.16.0",
       },
       "devDependencies": {
@@ -422,6 +448,7 @@
       "name": "@forwardimpact/libtemplate",
       "version": "0.2.11",
       "dependencies": {
+        "@forwardimpact/libutil": "^0.1.84",
         "mustache": "^4.2.0",
       },
     },
@@ -441,8 +468,10 @@
         "@forwardimpact/libsyntheticrender": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.23",
         "@forwardimpact/libtemplate": "^0.2.0",
+        "@forwardimpact/libutil": "^0.1.0",
       },
       "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.111",
         "jsdom": "^29.1.1",
       },

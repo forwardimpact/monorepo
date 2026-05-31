@@ -9,6 +9,7 @@
  */
 
 import { createSeededRNG } from "@forwardimpact/libsyntheticgen/rng";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * @typedef {object} LinkedEntities
@@ -35,6 +36,7 @@ import { createSeededRNG } from "@forwardimpact/libsyntheticgen/rng";
  * @param {number} params.blogCount
  * @param {string[]} [params.articleTopics=[]]
  * @param {number} [params.seed=42]
+ * @param {object} [params.runtime] - Runtime collaborator bag (default: createDefaultRuntime())
  * @returns {LinkedEntities}
  */
 export function assignLinks({
@@ -54,11 +56,13 @@ export function assignLinks({
   startYear = null,
   endYear = null,
   blogTopics = null,
+  runtime = createDefaultRuntime(),
 }) {
+  const { clock } = runtime;
   const rng = createSeededRNG(seed + 1000);
   const base = `https://${domain}`;
   const effectiveOrgName = orgName || domain;
-  const effectiveStartYear = startYear || new Date().getFullYear();
+  const effectiveStartYear = startYear || new Date(clock.now()).getFullYear();
   const yearSpan = endYear && startYear ? endYear - startYear + 1 : 1;
 
   // --- Project linking ---

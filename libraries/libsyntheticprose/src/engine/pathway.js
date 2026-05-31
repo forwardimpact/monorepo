@@ -8,7 +8,7 @@
  * @module libterrain/engine/pathway
  */
 
-import { readFileSync } from "fs";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { join } from "path";
 import { buildStandardPrompt } from "../prompts/pathway/standard.js";
 import { buildLevelPrompt } from "../prompts/pathway/level.js";
@@ -25,9 +25,11 @@ import {
 /**
  * Load JSON schemas from the schema directory.
  * @param {string} schemaDir - Path to products/map/schema/json/
+ * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
  * @returns {object} schemas keyed by entity type
  */
-export function loadSchemas(schemaDir) {
+export function loadSchemas(schemaDir, runtime = createDefaultRuntime()) {
+  const { fsSync } = runtime;
   const names = [
     "standard",
     "levels",
@@ -42,7 +44,7 @@ export function loadSchemas(schemaDir) {
   const schemas = {};
   for (const name of names) {
     schemas[name] = JSON.parse(
-      readFileSync(join(schemaDir, `${name}.schema.json`), "utf-8"),
+      fsSync.readFileSync(join(schemaDir, `${name}.schema.json`), "utf-8"),
     );
   }
   return schemas;
