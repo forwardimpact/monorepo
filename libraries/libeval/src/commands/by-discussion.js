@@ -10,7 +10,7 @@ const FIRST_LINE_CAP = 64 * 1024;
  * loading whole files into memory just to inspect the header. This uses
  * `node:fs` directly because the `runtime.fsSync` surface exposes no
  * positional `openSync`/`readSync` — the file is grandfathered for
- * `import:fs` in `check-ambient-deps.deny.json` until that seam exists.
+ * `import:fs` in `check-ambient-deps.deny.yml` until that seam exists.
  *
  * @param {string} path
  * @returns {string}

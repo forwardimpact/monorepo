@@ -22,7 +22,7 @@ it.
   "node:fs"` / `import nodeFsPromises from "node:fs/promises"` for the legacy
   path.
 - **Forcing function (mechanical):** `finder.js` is grandfathered in
-  [`scripts/check-ambient-deps.deny.json`](../../scripts/check-ambient-deps.deny.json)
+  [`scripts/check-ambient-deps.deny.yml`](../../scripts/check-ambient-deps.deny.yml)
   with `["import:fs"]`. The migration recipe forbids a library exiting
   migration with any file still on the deny-list, so removing finder.js from
   the deny-list — required to close libutil — fails CI until the `node:fs`
@@ -33,7 +33,7 @@ it.
   this exact check.
 - **Removal steps:** delete the `isRuntimeConfig` branch's legacy fallback and
   the two `node:fs` imports; collapse the constructor to `({ fs, fsSync, proc,
-  logger })`; drop the `finder.js` entry from `check-ambient-deps.deny.json`;
+  logger })`; drop the `finder.js` entry from `check-ambient-deps.deny.yml`;
   update `finder.test.js` to drop the legacy-form cases.
 
 ## Bridge 2 — `createCli` zero-arg deprecated alias
@@ -74,9 +74,11 @@ callers; once every caller injects `runtime`, the fallback is dead code.
     `libmacos/src/posix-spawn.js` (`readOutput`, `spawn`, `waitForExit`),
     `libprompt/src/loader.js` (`PromptLoader`), `libtemplate/src/loader.js`
     (`TemplateLoader`), `libsecret/src/index.js` (the env-file + Supabase-JWT
-    helpers — `readEnvFile`, `getOrGenerateSecret`, `updateEnvFile`,
-    `mintSupabaseJwt`, `mintSupabaseAnonKey`, `mintSupabaseServiceRoleKey`,
-    and `generateJWT` — 7 exported functions),
+    helpers that read the clock — `readEnvFile`, `getOrGenerateSecret`,
+    `updateEnvFile`, `mintSupabaseJwt`, `mintSupabaseAnonKey`,
+    `mintSupabaseServiceRoleKey`, plus the internal `mintSupabaseRoleKey`
+    helper the latter two delegate to; the pure-crypto helpers `generateJWT`
+    / `generateHash` / `generateSecret` take no `runtime`),
     `libsyntheticgen/src/engine/{activity,activity-initiatives}.js`,
     `libsyntheticprose/src/engine/{generator,cache,pathway}.js`,
     `libsyntheticrender/src/render/{dataset-renderers,markdown,link-assigner}.js`.
@@ -168,7 +170,7 @@ exception set:
 - **`libeval` streaming-fs / `node:net` / fd-passing files**
   (`benchmark/{runner,workdir,task-family,scorer,judge,report,*-installer}.js`,
   `commands/{tee,run,supervise,discuss,facilitate}.js`, `trace-github.js`,
-  `profile-prompt.js`) — kept grandfathered in `check-ambient-deps.deny.json`;
+  `profile-prompt.js`) — kept grandfathered in `check-ambient-deps.deny.yml`;
   they need `createReadStream`/`createWriteStream`, `node:net`, and fd-3
   passing, none of which the runtime surface covers.
 - **Already-closed notes:** `Config.ghToken()` uses
@@ -200,7 +202,7 @@ the items above migrate and this section shrinks to empty.
       `librc/manager.js` remains (Bridge 3 + the NOT-BC section).
 - [ ] `rg "resolveRuntime|_procFromLegacy" libraries/` → 0; the `Logger`
       positional `proc` parameter removed (Bridge 4).
-- [ ] `finder.js` removed from `check-ambient-deps.deny.json`; `bun run
+- [ ] `finder.js` removed from `check-ambient-deps.deny.yml`; `bun run
       invariants` green.
 - [ ] All four bridges' code paths deleted; the NOT-BC residue either migrated
       (if the runtime-surface-extension spec has landed) or explicitly retained

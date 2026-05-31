@@ -38,19 +38,28 @@ export function createMockFs(files = {}) {
         typeof content === "string" ? content : content.toString(),
       );
     }),
-    readdir: spy(async (path) => {
-      const entries = [];
+    readdir: spy(async (path, opts = {}) => {
+      // Collect immediate children; an entry is a directory if anything lives
+      // below it (a deeper key) or it was registered via mkdir/cp.
       const prefix = path.endsWith("/") ? path : `${path}/`;
-      for (const key of data.keys()) {
-        if (key.startsWith(prefix)) {
-          const rest = key.slice(prefix.length);
-          const name = rest.split("/")[0];
-          if (name && !entries.includes(name)) {
-            entries.push(name);
-          }
-        }
+      const isDir = new Map();
+      for (const key of [...data.keys(), ...dirs]) {
+        if (!key.startsWith(prefix)) continue;
+        const rest = key.slice(prefix.length);
+        const name = rest.split("/")[0];
+        if (!name) continue;
+        const dir = rest.includes("/") || dirs.has(`${prefix}${name}`);
+        isDir.set(name, isDir.get(name) || dir);
       }
-      return entries;
+      const names = [...isDir.keys()];
+      if (!opts.withFileTypes) return names;
+      // Mirror node:fs Dirent: name + isDirectory()/isFile()/isSymbolicLink().
+      return names.map((name) => ({
+        name,
+        isDirectory: () => isDir.get(name),
+        isFile: () => !isDir.get(name),
+        isSymbolicLink: () => false,
+      }));
     }),
     stat: spy(async (path) => {
       if (data.has(path)) {

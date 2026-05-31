@@ -5,10 +5,12 @@
 // default-collaborator factories, bin shims, and libcli internals. They
 // destructure the injected `runtime` bag instead.
 //
-// Two lists govern the check:
-//   - check-ambient-deps.allow.json — path globs that are permitted to use
-//     ambient deps forever (factories, bins, libcli internals, scripts).
-//   - check-ambient-deps.deny.json — a MONOTONE list of grandfathered files
+// Two YAML lists govern the check (YAML so each entry can carry an inline
+// comment explaining why it is exempt):
+//   - check-ambient-deps.allow.yml — path globs that are permitted to use
+//     ambient deps forever (factories, bins, libcli internals, scripts, and
+//     domain files whose flagged construct is a deterministic false positive).
+//   - check-ambient-deps.deny.yml — a MONOTONE list of grandfathered files
 //     that still carry pre-1370 smells. Each migration PR removes its files
 //     from this list; entries are removed only, never added.
 //
@@ -20,6 +22,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, resolve, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "acorn";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SCOPE_GLOBS = ["libraries", "products", "services"];
@@ -33,18 +36,18 @@ const FS_MODULES = new Set([
 ]);
 const CHILD_PROCESS_MODULES = new Set(["child_process", "node:child_process"]);
 
-const ALLOW = loadJson("check-ambient-deps.allow.json", { globs: [] });
+const ALLOW = loadConfig("check-ambient-deps.allow.yml", { globs: [] });
 // DENY maps a grandfathered path to the exact smells it is allowed to carry.
 // A deny-listed file that accrues a NEW smell (one not in its list) still
 // fails — this preserves the per-smell granularity of design Decision 9.
-const DENY = loadJson("check-ambient-deps.deny.json", {});
+const DENY = loadConfig("check-ambient-deps.deny.yml", {});
 
-function loadJson(name, fallback) {
+function loadConfig(name, fallback) {
   const p = join(ROOT, "scripts", name);
   if (!existsSync(p)) return fallback;
   const text = readFileSync(p, "utf8").trim();
   if (text === "") return fallback;
-  return JSON.parse(text);
+  return parseYaml(text) ?? fallback;
 }
 
 /**
@@ -256,7 +259,7 @@ function main() {
   if (seedMode) {
     const map = {};
     for (const v of violators) map[v.file] = v.smells;
-    process.stdout.write(`${JSON.stringify(map, null, 2)}\n`);
+    process.stdout.write(stringifyYaml(map));
     return;
   }
 
@@ -267,7 +270,7 @@ function main() {
       ? "grandfathered file accrued a new ambient smell"
       : "uses ambient deps";
     console.error(
-      `error: ${v.file} ${where} [${v.smells.join(", ")}] — destructure the runtime bag, or grandfather it in check-ambient-deps.deny.json during migration`,
+      `error: ${v.file} ${where} [${v.smells.join(", ")}] — destructure the runtime bag, or grandfather it in check-ambient-deps.deny.yml during migration`,
     );
   }
   process.exitCode = 1;

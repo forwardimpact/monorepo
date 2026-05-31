@@ -9,6 +9,7 @@
  */
 
 import { createSeededRNG } from "@forwardimpact/libsyntheticgen/rng";
+import { isoDate } from "@forwardimpact/libutil";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
@@ -62,7 +63,8 @@ export function assignLinks({
   const rng = createSeededRNG(seed + 1000);
   const base = `https://${domain}`;
   const effectiveOrgName = orgName || domain;
-  const effectiveStartYear = startYear || new Date(clock.now()).getFullYear();
+  const effectiveStartYear =
+    startYear || Number(isoDate(clock.now()).slice(0, 4));
   const yearSpan = endYear && startYear ? endYear - startYear + 1 : 1;
 
   // --- Project linking ---

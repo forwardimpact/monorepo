@@ -5,6 +5,7 @@
  * Uses TemplateLoader from libtemplate for all output.
  */
 
+import { isoDate } from "@forwardimpact/libutil";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const SKILL_NAMES = [
@@ -156,7 +157,7 @@ export function renderMarkdown(
     personaLevels.includes(p.level),
   );
   const personas = candidates.slice(0, personaCount);
-  const date = new Date(clock.now()).toISOString().split("T")[0];
+  const date = isoDate(clock.now());
 
   for (const person of personas) {
     renderPersona(files, person, entities, prose, templates, date);
