@@ -10,8 +10,6 @@ import { registerToolsFromConfig } from "@forwardimpact/libmcp";
 
 const SESSION_IDLE_MS = 30 * 60 * 1000;
 const SESSION_SWEEP_MS = 60_000;
-const DEFAULT_HOST = "0.0.0.0";
-const DEFAULT_PORT = 3005;
 
 /**
  * Builds the MCP prompt by appending one routing line per (tool, statement)
@@ -110,12 +108,13 @@ async function dispatchNewSession(req, res, ctx) {
  * `c.env.incoming`/`c.env.outgoing` and returns the `RESPONSE_ALREADY_SENT`
  * sentinel; libhttp's body limit is disabled so the SDK reads an untouched body.
  *
- * @param {{ config: object, logger: object, graphClient: object, vectorClient: object, pathwayClient: object, mapClient: object, resourceIndex: object }} deps
+ * @param {{ config: object, logger: object, tracer?: object, graphClient: object, vectorClient: object, pathwayClient: object, mapClient: object, resourceIndex: object }} deps
  * @returns {{ app: import("hono").Hono, address: () => object|null, start: () => Promise<void>, stop: () => Promise<void> }}
  */
 export function createMcpService({
   config,
   logger,
+  tracer,
   graphClient,
   vectorClient,
   pathwayClient,
@@ -158,11 +157,9 @@ export function createMcpService({
 
   const httpService = createHttpService({
     name: "mcp",
-    config: {
-      host: config.host || DEFAULT_HOST,
-      port: config.port || DEFAULT_PORT,
-    },
+    config,
     logger,
+    tracer,
     // The MCP SDK transport reads the raw request stream itself, so the body
     // limit must stay off to leave the body untouched.
     bodyLimit: 0,

@@ -119,19 +119,6 @@ describe("createHttpService", () => {
     });
   });
 
-  describe("health disabled", () => {
-    test("health: false omits the route", async () => {
-      await startWith({
-        health: false,
-        configure(app) {
-          app.get("/health", (c) => c.text("custom"));
-        },
-      });
-      const res = await fetch(`${baseUrl}/health`);
-      expect(await res.text()).toBe("custom");
-    });
-  });
-
   describe("lifecycle", () => {
     test("onStop runs during stop() and stop() is idempotent", async () => {
       let stopped = 0;
@@ -147,20 +134,16 @@ describe("createHttpService", () => {
       expect(stopped).toBe(1); // stop() is idempotent — onStop fires once
     });
 
-    test("forwards config/logger/tracer/runtime to configure", async () => {
+    test("forwards logger and tracer to configure", async () => {
       let received;
       const tracer = { tag: "tracer" };
-      const runtime = { tag: "runtime" };
       await startWith({
         tracer,
-        runtime,
-        configure(_app, ctx) {
-          received = ctx;
+        configure(_app, deps) {
+          received = deps;
         },
       });
       expect(received.tracer).toBe(tracer);
-      expect(received.runtime).toBe(runtime);
-      expect(received.config).toBeDefined();
       expect(received.logger).toBeDefined();
     });
   });

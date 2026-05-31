@@ -24,6 +24,7 @@ const resourceIndex = createResourceIndex("resources");
 const service = createMcpService({
   config,
   logger,
+  tracer,
   graphClient,
   vectorClient,
   pathwayClient,

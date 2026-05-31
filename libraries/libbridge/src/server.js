@@ -28,7 +28,7 @@ import { createHttpService } from "@forwardimpact/libhttp";
 export function createBridgeServer({
   config,
   logger,
-  tracer: _tracer,
+  tracer,
   webhookPath,
   onWebhook,
   onCallback,
@@ -52,7 +52,7 @@ export function createBridgeServer({
     name: "bridge",
     config,
     logger,
-    tracer: _tracer,
+    tracer,
     configure(app) {
       // Capture the raw POST body once, before downstream handlers parse it.
       // Channel adapters use this buffer to verify HMAC signatures.
