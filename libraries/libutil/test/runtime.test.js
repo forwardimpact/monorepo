@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-import { createTestRuntime } from "@forwardimpact/libmock";
+import { createTestRuntime, createMockClock } from "@forwardimpact/libmock";
 
 import {
   createDefaultRuntime,
@@ -104,6 +104,20 @@ describe("createDefaultClock / createDefaultSubprocess", () => {
     await clock.sleep(1);
   });
 
+  test("clock.setInterval returns an unref-able host handle; clearInterval stops it", () => {
+    const clock = createDefaultClock();
+    let fired = 0;
+    // 1h period guarantees the callback never fires within the test.
+    const handle = clock.setInterval(() => fired++, 3_600_000);
+    // The handle must mirror the host timer so periodic sweepers can `.unref()`
+    // it (design § Collaborator Surfaces — a load-bearing contract for the
+    // service idle-session/TTL reapers).
+    assert.strictEqual(typeof handle.unref, "function");
+    handle.unref();
+    clock.clearInterval(handle);
+    assert.strictEqual(fired, 0);
+  });
+
   test("subprocess.run echoes via a real binary", async () => {
     const sub = createDefaultSubprocess();
     const result = await sub.run("node", ["-e", "process.stdout.write('hi')"]);
@@ -155,6 +169,20 @@ describe("createDefaultClock / createDefaultSubprocess", () => {
     assert.strictEqual(child.pid, undefined);
     assert.strictEqual(await child.exitCode, 127);
     assert.strictEqual(await child.signal, null);
+  });
+});
+
+describe("createMockClock interval surface", () => {
+  test("setInterval returns an unref-able handle; clearInterval stops it", () => {
+    const clock = createMockClock();
+    let fired = 0;
+    const handle = clock.setInterval(() => fired++, 3_600_000);
+    // The fake delegates to the host timer (matching createDefaultClock), so a
+    // migrated sweeper injected with createMockClock keeps the `.unref()` seam.
+    assert.strictEqual(typeof handle.unref, "function");
+    handle.unref();
+    clock.clearInterval(handle);
+    assert.strictEqual(fired, 0);
   });
 });
 
