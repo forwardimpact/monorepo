@@ -5,7 +5,9 @@ import { createHttpService } from "@forwardimpact/libhttp";
  * share. The server mounts two routes:
  *   - `OPTIONS|POST <webhookPath>` — channel-specific intake. The raw POST
  *     body is captured on `c.get("rawBody")` for signature verification.
- *   - `POST /api/callback/:token` — workflow → bridge reply intake.
+ *   - `POST /api/callback/:tenant_id/:token` — workflow → bridge reply
+ *     intake. Single-tenant deployments hit the same route with the literal
+ *     `default` segment; multi-tenant deployments with the resolved tenant.
  *
  * Handlers receive Hono's context `c` (matching the monorepo standard) and
  * return a `Response` (or use `c.json` / `c.text` / `c.body`). The caller
@@ -75,7 +77,7 @@ export function createBridgeServer({
         }
       });
 
-      app.post("/api/callback/:token", async (c) => {
+      app.post("/api/callback/:tenant_id/:token", async (c) => {
         try {
           return await onCallback(c);
         } catch (err) {

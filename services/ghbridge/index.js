@@ -1,6 +1,7 @@
 import {
   Acknowledgement,
   CallbackRegistry,
+  DefaultTenantResolver,
   Dispatcher,
   RateLimiter,
   ResumeScheduler,
@@ -33,6 +34,13 @@ const CHANNEL = "github-discussions";
 const WEBHOOK_PATH = "/api/webhook";
 const WORKFLOW_FILE = "kata-dispatch.yml";
 const REACTION_CONTENT = "EYES";
+
+function parseRepo(githubRepo) {
+  if (typeof githubRepo !== "string" || !githubRepo) return undefined;
+  const [owner, name] = githubRepo.split("/");
+  if (!owner || !name) return undefined;
+  return { owner, name };
+}
 
 function buildReactionAdapter(graphqlClient) {
   return {
@@ -120,6 +128,10 @@ export class GhBridgeService {
       workflowFile: WORKFLOW_FILE,
       githubRepo: config.github_repo,
       tokenResolver: new TokenResolver(deps.ghuserClient),
+      tenantResolver: new DefaultTenantResolver({
+        channel: CHANNEL,
+        repo: parseRepo(config.github_repo),
+      }),
     });
     this.#resume = new ResumeScheduler({
       dispatcher: this.#dispatcher,

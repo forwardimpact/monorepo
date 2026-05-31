@@ -69,7 +69,7 @@ async function postSigned(baseUrl, event, body) {
 }
 
 async function postCallback(baseUrl, token, body) {
-  return fetch(`${baseUrl}/api/callback/${token}`, {
+  return fetch(`${baseUrl}/api/callback/default/${token}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -104,7 +104,7 @@ describe("ghbridge resume", () => {
       "D_resume",
     );
     const token = Object.keys(stored1.pending_callbacks)[0];
-    const meta = ctx.service.callbacks.peek(token);
+    const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
     expect(ctx.dispatches).toHaveLength(1);
 
     await postCallback(baseUrl, token, {
@@ -172,7 +172,7 @@ describe("ghbridge resume", () => {
       "D_elapsed",
     );
     const token = Object.keys(stored1.pending_callbacks)[0];
-    const meta = ctx.service.callbacks.peek(token);
+    const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
 
     const before = Date.now();
     await postCallback(baseUrl, token, {
@@ -212,7 +212,7 @@ describe("ghbridge resume", () => {
       "D_elapsed_2",
     );
     const token = Object.keys(stored1.pending_callbacks)[0];
-    const meta = ctx.service.callbacks.peek(token);
+    const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
 
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
@@ -247,7 +247,7 @@ describe("ghbridge resume", () => {
       "D_accum",
     );
     const token = Object.keys(stored1.pending_callbacks)[0];
-    const meta = ctx.service.callbacks.peek(token);
+    const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
     // Recess with a 3-reply trigger; one comment must not fire.
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,

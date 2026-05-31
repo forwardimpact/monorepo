@@ -3,6 +3,10 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { Acknowledgement } from "../src/acknowledgement.js";
 import { CallbackRegistry } from "../src/callback-registry.js";
 import { Dispatcher } from "../src/dispatcher.js";
+import {
+  DefaultTenantResolver,
+  RegistryTenantResolver,
+} from "../src/tenant-resolver.js";
 
 function createFakeAdapter() {
   const records = new Map();
@@ -88,6 +92,10 @@ function makeTokenResolver(token = "ghs_test") {
   return { resolve: async () => ({ kind: "token", token }) };
 }
 
+function makeDefaultTenantResolver(channel = "test-channel") {
+  return new DefaultTenantResolver({ channel });
+}
+
 describe("Dispatcher", () => {
   let store;
   let callbacks;
@@ -110,6 +118,7 @@ describe("Dispatcher", () => {
       workflowFile: "kata-dispatch.yml",
       githubRepo: "owner/repo",
       tokenResolver: makeTokenResolver(),
+      tenantResolver: makeDefaultTenantResolver(),
     });
   });
 
@@ -130,6 +139,18 @@ describe("Dispatcher", () => {
           githubRepo: "r",
         }),
     ).toThrow("tokenResolver is required");
+    expect(
+      () =>
+        new Dispatcher({
+          callbacks,
+          ack,
+          store,
+          callbackBaseUrl: "x",
+          workflowFile: "w",
+          githubRepo: "r",
+          tokenResolver: makeTokenResolver(),
+        }),
+    ).toThrow("tenantResolver is required");
   });
 
   test("happy path: registers callback, starts ack, dispatches, appends history, flushes store", async () => {
@@ -152,7 +173,7 @@ describe("Dispatcher", () => {
     expect(fetchStub.calls).toHaveLength(1);
     const body = JSON.parse(fetchStub.calls[0].init.body);
     expect(body.inputs.callback_url).toBe(
-      `https://bridge.example/api/callback/${result.token}`,
+      `https://bridge.example/api/callback/default/${result.token}`,
     );
     expect(body.inputs.correlation_id).toBe(result.correlationId);
     expect(body.inputs.discussion_id).toBe("T_1");
@@ -238,6 +259,7 @@ describe("Dispatcher", () => {
       workflowFile: "kata-dispatch.yml",
       githubRepo: "owner/repo",
       tokenResolver: makeTokenResolver("ghs_per_user"),
+      tenantResolver: makeDefaultTenantResolver(),
     });
     const ctx = makeCtx();
     await dispatcher.dispatch({
@@ -272,6 +294,7 @@ describe("Dispatcher", () => {
           authorizeUrl: "https://example.com/authorize",
         }),
       },
+      tenantResolver: makeDefaultTenantResolver(),
     });
     const ctx = makeCtx();
     const result = await dispatcher.dispatch({
@@ -301,6 +324,7 @@ describe("Dispatcher", () => {
       tokenResolver: {
         resolve: async () => ({ kind: "reauth_required" }),
       },
+      tenantResolver: makeDefaultTenantResolver(),
     });
     const ctx = makeCtx();
     const result = await dispatcher.dispatch({
@@ -332,6 +356,7 @@ describe("Dispatcher", () => {
           error: new Error("UNAVAILABLE"),
         }),
       },
+      tenantResolver: makeDefaultTenantResolver(),
     });
     const ctx = makeCtx();
     const result = await dispatcher.dispatch({
@@ -358,7 +383,75 @@ describe("Dispatcher", () => {
       callbackMeta: { discussionId: "T_1" },
     });
     expect(result.kind).toBe("dispatched");
-    expect(callbacks.peek(result.token).meta.requester).toBe("U_1");
-    expect(callbacks.peek(result.token).meta.discussionId).toBe("T_1");
+    const peek = callbacks.peek(result.token, { tenant_id: "default" });
+    expect(peek.meta.requester).toBe("U_1");
+    expect(peek.meta.discussionId).toBe("T_1");
+    expect(peek.meta.tenant_id).toBe("default");
+  });
+
+  test("RegistryTenantResolver: URL and meta carry the resolved tenant_id", async () => {
+    const stub = {
+      ResolveByChannelKey: async () => ({
+        tenant_id: "t-1",
+        channel: "test-channel",
+        channel_tenant_key: "k-1",
+        state: "active",
+      }),
+      ResolveByRepo: async () => null,
+      ResolveByTenantId: async () => null,
+    };
+    dispatcher = new Dispatcher({
+      callbacks,
+      ack,
+      store,
+      callbackBaseUrl: "https://bridge.example",
+      workflowFile: "kata-dispatch.yml",
+      githubRepo: "owner/repo",
+      tokenResolver: makeTokenResolver(),
+      tenantResolver: new RegistryTenantResolver({ client: stub }),
+    });
+    const ctx = makeCtx();
+    ctx.channel_tenant_key = "k-1";
+    const result = await dispatcher.dispatch({
+      ctx,
+      prompt: "p",
+      requester: "U_1",
+      callbackMeta: {},
+    });
+    expect(result.kind).toBe("dispatched");
+    const body = JSON.parse(fetchStub.calls[0].init.body);
+    expect(body.inputs.callback_url).toBe(
+      `https://bridge.example/api/callback/t-1/${result.token}`,
+    );
+    const peek = callbacks.peek(result.token, { tenant_id: "t-1" });
+    expect(peek.meta.tenant_id).toBe("t-1");
+  });
+
+  test("tenant resolver returning null yields a transient result, no callback registered", async () => {
+    const nullResolver = {
+      resolve: async () => null,
+      resolveByRepo: async () => null,
+      resolveByTenantId: async () => null,
+    };
+    dispatcher = new Dispatcher({
+      callbacks,
+      ack,
+      store,
+      callbackBaseUrl: "https://bridge.example",
+      workflowFile: "kata-dispatch.yml",
+      githubRepo: "owner/repo",
+      tokenResolver: makeTokenResolver(),
+      tenantResolver: nullResolver,
+    });
+    const ctx = makeCtx();
+    const result = await dispatcher.dispatch({
+      ctx,
+      prompt: "p",
+      requester: "U_1",
+      callbackMeta: {},
+    });
+    expect(result.kind).toBe("transient");
+    expect(callbacks.size).toBe(0);
+    expect(fetchStub.calls).toHaveLength(0);
   });
 });

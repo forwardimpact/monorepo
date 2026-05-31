@@ -101,7 +101,7 @@ async function dispatchFresh(service, baseUrl) {
 }
 
 async function postCallback(baseUrl, token, body) {
-  return fetch(`${baseUrl}/api/callback/${token}`, {
+  return fetch(`${baseUrl}/api/callback/default/${token}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -134,7 +134,7 @@ describe("ghbridge callback handler", () => {
 
   test("adjourned verdict posts each reply via addDiscussionComment", async () => {
     const token = await dispatchFresh(ctx.service, baseUrl);
-    const meta = ctx.service.callbacks.peek(token);
+    const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
     const res = await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "adjourned",
@@ -161,7 +161,7 @@ describe("ghbridge callback handler", () => {
 
   test("recessed verdict persists open_rfcs with the trigger", async () => {
     const token = await dispatchFresh(ctx.service, baseUrl);
-    const meta = ctx.service.callbacks.peek(token);
+    const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
     const res = await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "recessed",
@@ -183,7 +183,7 @@ describe("ghbridge callback handler", () => {
 
   test("failed verdict posts the summary as a discussion comment and clears state", async () => {
     const token = await dispatchFresh(ctx.service, baseUrl);
-    const meta = ctx.service.callbacks.peek(token);
+    const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
     const res = await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "failed",
@@ -209,7 +209,7 @@ describe("ghbridge callback handler", () => {
 
   test("callback fires removeReaction(EYES) on the discussion", async () => {
     const token = await dispatchFresh(ctx.service, baseUrl);
-    const meta = ctx.service.callbacks.peek(token);
+    const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
     const before = ctx.graphqlCalls.filter((c) =>
       c.query.includes("removeReaction"),
     ).length;
@@ -253,7 +253,7 @@ describe("ghbridge callback handler", () => {
 
   test("self-originated comments are skipped by the webhook handler", async () => {
     const token = await dispatchFresh(ctx.service, baseUrl);
-    const meta = ctx.service.callbacks.peek(token);
+    const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "adjourned",

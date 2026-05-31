@@ -219,7 +219,7 @@ describe("msbridge service", () => {
     });
 
     test("unknown token returns 404", async () => {
-      const res = await fetch(`${baseUrl}/api/callback/no-such-token`, {
+      const res = await fetch(`${baseUrl}/api/callback/default/no-such-token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -234,9 +234,10 @@ describe("msbridge service", () => {
     test("correlation_id mismatch returns 400", async () => {
       const token = service.callbacks.register("real-corr", {
         threadId: "t-mm",
+        tenant_id: "default",
       });
       await seedCtx(token, "t-mm", "real-corr");
-      const res = await fetch(`${baseUrl}/api/callback/${token}`, {
+      const res = await fetch(`${baseUrl}/api/callback/default/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -249,9 +250,12 @@ describe("msbridge service", () => {
     });
 
     test("adjourned verdict posts each reply as a separate sendActivity", async () => {
-      const token = service.callbacks.register("c-adj", { threadId: "t-adj" });
+      const token = service.callbacks.register("c-adj", {
+        threadId: "t-adj",
+        tenant_id: "default",
+      });
       await seedCtx(token, "t-adj", "c-adj");
-      const res = await fetch(`${baseUrl}/api/callback/${token}`, {
+      const res = await fetch(`${baseUrl}/api/callback/default/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -272,9 +276,10 @@ describe("msbridge service", () => {
     test("failed verdict additionally posts the summary", async () => {
       const token = service.callbacks.register("c-fail", {
         threadId: "t-fail",
+        tenant_id: "default",
       });
       await seedCtx(token, "t-fail", "c-fail");
-      const res = await fetch(`${baseUrl}/api/callback/${token}`, {
+      const res = await fetch(`${baseUrl}/api/callback/default/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -290,9 +295,12 @@ describe("msbridge service", () => {
     });
 
     test("recessed verdict persists the trigger and posts only the replies", async () => {
-      const token = service.callbacks.register("c-rec", { threadId: "t-rec" });
+      const token = service.callbacks.register("c-rec", {
+        threadId: "t-rec",
+        tenant_id: "default",
+      });
       await seedCtx(token, "t-rec", "c-rec");
-      const res = await fetch(`${baseUrl}/api/callback/${token}`, {
+      const res = await fetch(`${baseUrl}/api/callback/default/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -407,7 +415,7 @@ describe("msbridge service", () => {
       const stored = await service.store.loadByChannel("msteams", "thread-ack");
       const [token] = Object.keys(stored.pending_callbacks);
       const correlationId = stored.pending_callbacks[token];
-      const cb = await fetch(`${baseUrl}/api/callback/${token}`, {
+      const cb = await fetch(`${baseUrl}/api/callback/default/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

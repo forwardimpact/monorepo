@@ -4,6 +4,7 @@ import { Acknowledgement } from "../src/acknowledgement.js";
 import { CallbackRegistry } from "../src/callback-registry.js";
 import { Dispatcher } from "../src/dispatcher.js";
 import { ResumeScheduler } from "../src/resume-scheduler.js";
+import { DefaultTenantResolver } from "../src/tenant-resolver.js";
 
 function createFakeAdapter() {
   const records = new Map();
@@ -104,6 +105,7 @@ function buildEnv({
     workflowFile: "kata-dispatch.yml",
     githubRepo: "owner/repo",
     tokenResolver: tr,
+    tenantResolver: new DefaultTenantResolver({ channel: "test-channel" }),
   });
   const scheduler = new ResumeScheduler({
     dispatcher,
@@ -304,7 +306,7 @@ describe("ResumeScheduler", () => {
     await env.scheduler.processInbound(ctx);
 
     const token = Object.keys(ctx.pending_callbacks)[0];
-    const stored = env.callbacks.peek(token);
+    const stored = env.callbacks.peek(token, { tenant_id: "default" });
     expect(stored.meta.threadId).toBe("thread-99");
     expect(stored.meta.requester).toBe("U_1");
   });
@@ -357,6 +359,7 @@ describe("ResumeScheduler", () => {
       workflowFile: "kata-dispatch.yml",
       githubRepo: "owner/repo",
       tokenResolver: makeTokenResolver(),
+      tenantResolver: new DefaultTenantResolver({ channel: "test-channel" }),
     });
     const fresh = new ResumeScheduler({ dispatcher, store: freshStore });
     try {

@@ -122,7 +122,7 @@ describe("ghbridge dispatch-auth", () => {
     const corr = (
       await service.store.loadByChannel("github-discussions", "D_1")
     ).pending_callbacks[token];
-    await fetch(`${baseUrl}/api/callback/${token}`, {
+    await fetch(`${baseUrl}/api/callback/default/${token}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
