@@ -33,7 +33,7 @@ export async function runBenchmarkRunCommand(ctx) {
   delete runtime.proc.env.NODE_EXTRA_CA_CERTS;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
-  const runner = createBenchmarkRunner({ ...opts, query });
+  const runner = createBenchmarkRunner({ ...opts, query, runtime });
 
   let anyFail = false;
   for await (const record of runner.run()) {

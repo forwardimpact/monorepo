@@ -3,7 +3,11 @@ import assert from "node:assert";
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 import { composeProfilePrompt } from "@forwardimpact/libeval";
+
+const RT = createDefaultRuntime();
 
 const FIXTURES = fileURLToPath(
   new URL("./fixtures/profile-prompt", import.meta.url),
@@ -16,6 +20,7 @@ describe("composeProfilePrompt", () => {
   test("returns preset-shaped object", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
+      runtime: RT,
     });
     assert.strictEqual(result.type, "preset");
     assert.strictEqual(result.preset, "claude_code");
@@ -25,6 +30,7 @@ describe("composeProfilePrompt", () => {
   test("strips YAML frontmatter", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
+      runtime: RT,
     });
     assert.ok(
       !result.append.includes("---"),
@@ -47,6 +53,7 @@ describe("composeProfilePrompt", () => {
   test("uses entire body when frontmatter is absent", () => {
     const result = composeProfilePrompt("no-frontmatter", {
       profilesDir: FIXTURES,
+      runtime: RT,
     });
     assert.ok(result.append.startsWith("You are the frontmatter-less"));
   });
@@ -54,6 +61,7 @@ describe("composeProfilePrompt", () => {
   test("concatenates trailer with blank-line separator", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
+      runtime: RT,
       trailer: "TRAILER_TEXT",
     });
     assert.ok(result.append.endsWith("\n\nTRAILER_TEXT"));
@@ -63,6 +71,7 @@ describe("composeProfilePrompt", () => {
   test("omits trailer cleanly when not provided", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
+      runtime: RT,
     });
     assert.ok(
       !result.append.endsWith("\n\n"),
@@ -73,6 +82,7 @@ describe("composeProfilePrompt", () => {
   test("treats empty trailer as omitted", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
+      runtime: RT,
       trailer: "",
     });
     assert.ok(!result.append.endsWith("\n\n"));
@@ -80,7 +90,11 @@ describe("composeProfilePrompt", () => {
 
   test("throws ENOENT for missing profile", () => {
     assert.throws(
-      () => composeProfilePrompt("does-not-exist", { profilesDir: FIXTURES }),
+      () =>
+        composeProfilePrompt("does-not-exist", {
+          profilesDir: FIXTURES,
+          runtime: RT,
+        }),
       /ENOENT/,
     );
   });
@@ -100,6 +114,7 @@ describe("composeProfilePrompt", () => {
       const name = fileName.slice(0, -".md".length);
       const result = composeProfilePrompt(name, {
         profilesDir: LIVE_PROFILES,
+        runtime: RT,
       });
 
       const raw = readFileSync(`${LIVE_PROFILES}/${fileName}`, "utf8");

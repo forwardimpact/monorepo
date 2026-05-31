@@ -7,14 +7,21 @@
  * Process state tracking
  */
 export class ProcessState {
+  #clock;
   #state;
   #pid;
   #startedAt;
   #restartCount;
   #lastExitCode;
 
-  /** Creates a new ProcessState instance */
-  constructor() {
+  /**
+   * Creates a new ProcessState instance
+   * @param {object} runtime - Injected runtime bag
+   * @param {{now: () => number}} runtime.clock - Time source for `startedAt`
+   */
+  constructor(runtime) {
+    if (!runtime?.clock) throw new Error("runtime.clock is required");
+    this.#clock = runtime.clock;
     this.#state = "down";
     this.#pid = null;
     this.#startedAt = null;
@@ -34,7 +41,7 @@ export class ProcessState {
 
     if (state === "starting" && context.pid) {
       this.#pid = context.pid;
-      this.#startedAt = Date.now();
+      this.#startedAt = this.#clock.now();
     }
 
     if (state === "up" && context.pid) {

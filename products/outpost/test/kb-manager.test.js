@@ -1,148 +1,37 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 import { KBManager } from "../src/kb-manager.js";
-
-/**
- * Register all parent directories of a path into a set.
- * @param {string} filePath
- * @param {Set<string>} dirs
- */
-function registerParentDirs(filePath, dirs) {
-  const parts = filePath.split("/");
-  for (let i = 1; i < parts.length; i++) {
-    dirs.add(parts.slice(0, i).join("/"));
-  }
-}
-
-/**
- * Collect direct child names under a prefix from a key iterable.
- * @param {Iterable<string>} keys
- * @param {string} prefix
- * @param {Set<string>} names
- */
-function collectChildNames(keys, prefix, names) {
-  for (const key of keys) {
-    if (key.startsWith(prefix)) {
-      const name = key.slice(prefix.length).split("/")[0];
-      if (name) names.add(name);
-    }
-  }
-}
-
-/**
- * Simulate cpSync: copy matching files and dirs from src to dest.
- * @param {Map<string, string>} data
- * @param {Set<string>} dirs
- * @param {string} src
- * @param {string} dest
- */
-function mockCpSyncCopy(data, dirs, src, dest) {
-  const fileEntries = [...data.keys()].filter(
-    (k) => k === src || k.startsWith(src + "/"),
-  );
-  if (fileEntries.length === 0 && !dirs.has(src)) {
-    const err = new Error("ENOENT: no such file or directory '" + src + "'");
-    err.code = "ENOENT";
-    throw err;
-  }
-  dirs.add(dest);
-  for (const d of [...dirs]) {
-    if (d.startsWith(src + "/")) dirs.add(dest + d.slice(src.length));
-  }
-  for (const key of fileEntries) {
-    const target = key === src ? dest : dest + key.slice(src.length);
-    registerParentDirs(target, dirs);
-    data.set(target, data.get(key));
-  }
-}
-
-/**
- * In-memory fs mock for KBManager tests.
- * @param {Record<string, string>} files
- */
-function createKBMockFs(files = {}) {
-  const data = new Map(Object.entries(files));
-  const dirs = new Set();
-
-  for (const path of data.keys()) {
-    registerParentDirs(path, dirs);
-  }
-
-  return {
-    data,
-    dirs,
-    copyFileSyncCallCount: 0,
-    existsSync(path) {
-      return data.has(path) || dirs.has(path);
-    },
-    mkdirSync(path) {
-      dirs.add(path);
-    },
-    copyFileSync(src, dest) {
-      this.copyFileSyncCallCount++;
-      const content = data.get(src);
-      if (content === undefined) {
-        const err = new Error("ENOENT: no such file, copyFile '" + src + "'");
-        err.code = "ENOENT";
-        throw err;
-      }
-      data.set(dest, content);
-    },
-    cpSync(src, dest, _options) {
-      this.cpSyncCallCount = (this.cpSyncCallCount || 0) + 1;
-      mockCpSyncCopy(data, dirs, src, dest);
-    },
-    readFileSync(path, encoding) {
-      const content = data.get(path);
-      if (content === undefined) {
-        const err = new Error("ENOENT: no such file, open '" + path + "'");
-        err.code = "ENOENT";
-        throw err;
-      }
-      return encoding ? content : Buffer.from(content);
-    },
-    writeFileSync(path, content) {
-      data.set(
-        path,
-        typeof content === "string" ? content : content.toString(),
-      );
-    },
-    readdirSync(path, options) {
-      const prefix = path.endsWith("/") ? path : path + "/";
-      const names = new Set();
-      collectChildNames(data.keys(), prefix, names);
-      collectChildNames(dirs, prefix, names);
-      if (options && options.withFileTypes) {
-        return [...names].map((name) => ({
-          name,
-          isDirectory: () => dirs.has(path + "/" + name),
-          isFile: () => data.has(path + "/" + name),
-        }));
-      }
-      return [...names];
-    },
-  };
-}
+import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 
 function noop() {}
 
+/**
+ * Build a runtime over a mock async fs seeded with `files`.
+ * @param {Record<string, string>} files
+ */
+function makeRuntime(files = {}) {
+  const fs = createMockFs(files);
+  return { runtime: createTestRuntime({ fs }), fs };
+}
+
 describe("KBManager", () => {
   describe("constructor validation", () => {
-    test("throws when fs is missing", () => {
-      assert.throws(() => new KBManager(null, noop), /fs is required/);
+    test("throws when runtime.fs is missing", () => {
+      assert.throws(() => new KBManager({}, noop), /runtime.fs is required/);
     });
 
     test("throws when logFn is missing", () => {
-      assert.throws(() => new KBManager({}, null), /logFn is required/);
+      const { runtime } = makeRuntime();
+      assert.throws(() => new KBManager(runtime, null), /logFn is required/);
     });
   });
 
   describe("copyBundledFiles", () => {
-    let mockFs;
+    let fs;
     let km;
 
     beforeEach(() => {
-      mockFs = createKBMockFs({
+      const built = makeRuntime({
         "/tpl/CLAUDE.md": "# Instructions",
         "/tpl/apm.yml":
           "name: outpost\nversion: 0.0.0\ndependencies:\n  apm:\n    - forwardimpact/fit-skills\n",
@@ -154,93 +43,110 @@ describe("KBManager", () => {
         "/dest/CLAUDE.md": "# Old Instructions",
         "/dest/.claude/settings.json": '{"permissions":{}}',
       });
-      km = new KBManager(mockFs, noop);
+      fs = built.fs;
+      km = new KBManager(built.runtime, noop);
     });
 
-    test("copies CLAUDE.md to destination", () => {
-      km.copyBundledFiles("/tpl", "/dest");
-      assert.strictEqual(mockFs.data.get("/dest/CLAUDE.md"), "# Instructions");
+    test("copies CLAUDE.md to destination", async () => {
+      await km.copyBundledFiles("/tpl", "/dest");
+      assert.strictEqual(fs.data.get("/dest/CLAUDE.md"), "# Instructions");
     });
 
-    test("copies agent files recursively", () => {
-      km.copyBundledFiles("/tpl", "/dest");
+    test("copies agent files recursively", async () => {
+      await km.copyBundledFiles("/tpl", "/dest");
       assert.strictEqual(
-        mockFs.data.get("/dest/.claude/agents/postman.md"),
+        fs.data.get("/dest/.claude/agents/postman.md"),
         "postman content",
       );
       assert.strictEqual(
-        mockFs.data.get("/dest/.claude/agents/librarian.md"),
+        fs.data.get("/dest/.claude/agents/librarian.md"),
         "librarian content",
       );
     });
 
-    test("copies skill files recursively", () => {
-      km.copyBundledFiles("/tpl", "/dest");
+    test("copies skill files recursively", async () => {
+      await km.copyBundledFiles("/tpl", "/dest");
       assert.strictEqual(
-        mockFs.data.get("/dest/.claude/skills/draft-emails/SKILL.md"),
+        fs.data.get("/dest/.claude/skills/draft-emails/SKILL.md"),
         "draft skill",
       );
       assert.strictEqual(
-        mockFs.data.get("/dest/.claude/skills/meeting-prep/SKILL.md"),
+        fs.data.get("/dest/.claude/skills/meeting-prep/SKILL.md"),
         "meeting skill",
       );
     });
 
-    test("uses cpSync for skill and agent trees", () => {
-      km.copyBundledFiles("/tpl", "/dest");
-      // One cpSync per top-level subdir: skills, agents.
-      assert.strictEqual(mockFs.cpSyncCallCount, 2);
+    test("uses cp for skill and agent trees", async () => {
+      await km.copyBundledFiles("/tpl", "/dest");
+      // One cp per top-level subdir: skills, agents.
+      assert.strictEqual(fs.cp.mock.callCount(), 2);
     });
 
-    test("creates destination directories for skills", () => {
-      km.copyBundledFiles("/tpl", "/dest");
-      assert.ok(mockFs.dirs.has("/dest/.claude/agents"));
-      assert.ok(mockFs.dirs.has("/dest/.claude/skills/draft-emails"));
-      assert.ok(mockFs.dirs.has("/dest/.claude/skills/meeting-prep"));
-    });
-
-    test("copies apm.yml to destination root", () => {
-      km.copyBundledFiles("/tpl", "/dest");
+    test("copies apm.yml to destination root", async () => {
+      await km.copyBundledFiles("/tpl", "/dest");
       assert.ok(
-        mockFs.data.get("/dest/apm.yml").includes("forwardimpact/fit-skills"),
+        fs.data.get("/dest/apm.yml").includes("forwardimpact/fit-skills"),
       );
     });
 
-    test("skips apm.yml when template has none", () => {
-      const fs = createKBMockFs({
+    test("skips apm.yml when template has none", async () => {
+      const built = makeRuntime({
         "/tpl/CLAUDE.md": "# Instructions",
         "/tpl/.claude/settings.json": '{"permissions":{}}',
         "/dest/CLAUDE.md": "# Old",
         "/dest/.claude/settings.json": '{"permissions":{}}',
       });
-      const km2 = new KBManager(fs, noop);
-      km2.copyBundledFiles("/tpl", "/dest");
-      assert.strictEqual(fs.data.has("/dest/apm.yml"), false);
+      const km2 = new KBManager(built.runtime, noop);
+      await km2.copyBundledFiles("/tpl", "/dest");
+      assert.strictEqual(built.fs.data.has("/dest/apm.yml"), false);
     });
   });
 
   describe("init", () => {
-    test("creates knowledge base structure", () => {
-      const fs = createKBMockFs({
+    test("creates knowledge base structure", async () => {
+      const built = makeRuntime({
         "/tpl/CLAUDE.md": "# Instructions",
         "/tpl/USER.md": "# User",
         "/tpl/apm.yml": "name: outpost\nversion: 0.0.0\n",
         "/tpl/.claude/settings.json": '{"permissions":{}}',
         "/tpl/.claude/agents/postman.md": "postman",
       });
-      const km = new KBManager(fs, noop);
-      km.init("/kb", "/tpl");
+      const km = new KBManager(built.runtime, noop);
+      const result = await km.init("/kb", "/tpl");
 
-      assert.ok(fs.data.has("/kb/CLAUDE.md"));
-      assert.ok(fs.data.has("/kb/USER.md"));
-      assert.ok(fs.data.has("/kb/apm.yml"));
-      assert.ok(fs.data.has("/kb/.claude/agents/postman.md"));
+      assert.strictEqual(result.ok, true);
+      assert.ok(built.fs.data.has("/kb/CLAUDE.md"));
+      assert.ok(built.fs.data.has("/kb/USER.md"));
+      assert.ok(built.fs.data.has("/kb/apm.yml"));
+      assert.ok(built.fs.data.has("/kb/.claude/agents/postman.md"));
+    });
+
+    test("returns error envelope when KB already exists", async () => {
+      const built = makeRuntime({ "/kb/CLAUDE.md": "# Existing" });
+      const km = new KBManager(built.runtime, noop);
+      const result = await km.init("/kb", "/tpl");
+
+      assert.strictEqual(result.ok, false);
+      assert.strictEqual(result.code, 1);
+      assert.match(result.error, /already exists/);
+    });
+  });
+
+  describe("update", () => {
+    test("returns error envelope when no KB found", async () => {
+      const built = makeRuntime({ "/tpl/CLAUDE.md": "# Instructions" });
+      const km = new KBManager(built.runtime, noop);
+      const result = await km.update("/kb", "/tpl");
+
+      assert.strictEqual(result.ok, false);
+      assert.strictEqual(result.code, 1);
+      assert.match(result.error, /No knowledge base found/);
     });
   });
 
   describe("mergeSettings", () => {
-    test("adds new permission entries without duplicating", () => {
-      const fs = createKBMockFs({
+    test("adds new permission entries without duplicating", async () => {
+      const built = makeRuntime({
         "/tpl/.claude/settings.json": JSON.stringify({
           permissions: { allow: ["Bash(ls *)"], deny: ["Bash(rm *)"] },
         }),
@@ -248,10 +154,12 @@ describe("KBManager", () => {
           permissions: { allow: ["Bash(ls *)"] },
         }),
       });
-      const km = new KBManager(fs, noop);
-      km.mergeSettings("/tpl", "/dest");
+      const km = new KBManager(built.runtime, noop);
+      await km.mergeSettings("/tpl", "/dest");
 
-      const result = JSON.parse(fs.data.get("/dest/.claude/settings.json"));
+      const result = JSON.parse(
+        built.fs.data.get("/dest/.claude/settings.json"),
+      );
       assert.strictEqual(result.permissions.allow.length, 1);
       assert.deepStrictEqual(result.permissions.deny, ["Bash(rm *)"]);
     });

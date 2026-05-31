@@ -3,44 +3,57 @@ import assert from "node:assert";
 import { EventEmitter } from "node:events";
 
 import { SupervisionTree } from "../src/tree.js";
-import { createSilentLogger } from "@forwardimpact/libmock";
+import { createSilentLogger, createTestRuntime } from "@forwardimpact/libmock";
 
 const mockLogger = createSilentLogger();
+const cfg = (extra = {}) => ({
+  runtime: createTestRuntime(),
+  logger: mockLogger,
+  ...extra,
+});
 
 describe("SupervisionTree", () => {
   describe("constructor", () => {
     test("throws if logDir is missing", () => {
       assert.throws(
-        () => new SupervisionTree(undefined, { logger: mockLogger }),
+        () => new SupervisionTree(undefined, cfg()),
         /logDir is required/,
+      );
+    });
+
+    test("throws if config.runtime is missing", () => {
+      assert.throws(
+        () => new SupervisionTree("/tmp/logs", { logger: mockLogger }),
+        /config\.runtime is required/,
       );
     });
 
     test("throws if config.logger is missing", () => {
       assert.throws(
-        () => new SupervisionTree("/tmp/logs"),
+        () =>
+          new SupervisionTree("/tmp/logs", { runtime: createTestRuntime() }),
         /config\.logger is required/,
       );
     });
 
     test("creates instance with logDir and logger", () => {
-      const tree = new SupervisionTree("/tmp/logs", { logger: mockLogger });
+      const tree = new SupervisionTree("/tmp/logs", cfg());
       assert.ok(tree instanceof SupervisionTree);
       assert.ok(tree instanceof EventEmitter);
     });
 
     test("accepts config options", () => {
-      const tree = new SupervisionTree("/tmp/logs", {
-        shutdownTimeout: 5000,
-        logger: mockLogger,
-      });
+      const tree = new SupervisionTree(
+        "/tmp/logs",
+        cfg({ shutdownTimeout: 5000 }),
+      );
       assert.ok(tree instanceof SupervisionTree);
     });
   });
 
   describe("start", () => {
     test("emits start event", async () => {
-      const tree = new SupervisionTree("/tmp/logs", { logger: mockLogger });
+      const tree = new SupervisionTree("/tmp/logs", cfg());
       let eventEmitted = false;
 
       tree.on("start", () => {
@@ -55,7 +68,7 @@ describe("SupervisionTree", () => {
 
   describe("stop", () => {
     test("emits stop event", async () => {
-      const tree = new SupervisionTree("/tmp/logs", { logger: mockLogger });
+      const tree = new SupervisionTree("/tmp/logs", cfg());
       let eventEmitted = false;
 
       tree.on("stop", () => {
@@ -71,7 +84,7 @@ describe("SupervisionTree", () => {
 
   describe("event emission", () => {
     test("is an EventEmitter", () => {
-      const tree = new SupervisionTree("/tmp/logs", { logger: mockLogger });
+      const tree = new SupervisionTree("/tmp/logs", cfg());
 
       let eventReceived = false;
       tree.on("test-event", () => {
@@ -83,7 +96,7 @@ describe("SupervisionTree", () => {
     });
 
     test("emits lifecycle events", async () => {
-      const tree = new SupervisionTree("/tmp/logs", { logger: mockLogger });
+      const tree = new SupervisionTree("/tmp/logs", cfg());
       const events = [];
 
       tree.on("start", () => events.push("start"));

@@ -182,7 +182,7 @@ export async function runDevCommand({ dataDir, options, runtime }) {
   // Load standard config for display
   let standard;
   try {
-    const loader = createDataLoader();
+    const loader = createDataLoader(runtime);
     standard = await loader.loadStandardConfig(dataDir);
   } catch {
     // Fallback if standard config fails
@@ -191,7 +191,7 @@ export async function runDevCommand({ dataDir, options, runtime }) {
 
   // Generate _index.yaml files before serving
   logger.info("Generating index files...");
-  const indexGenerator = createIndexGenerator();
+  const indexGenerator = createIndexGenerator(runtime);
   await indexGenerator.generateAllIndexes(dataDir);
 
   const routes = buildRoutes({ dataDir });

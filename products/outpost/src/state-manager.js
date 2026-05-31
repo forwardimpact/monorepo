@@ -2,41 +2,46 @@
  * StateManager — load/save state.json, reset stale agents.
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { isoTimestamp } from "@forwardimpact/libutil";
 
 /** Persist and query agent scheduler state from a JSON file on disk. */
 export class StateManager {
   #statePath;
   #fs;
+  #clock;
 
   /**
    * @param {string} statePath - Path to state.json
-   * @param {{ readFileSync: Function, writeFileSync: Function, mkdirSync: Function }} fs
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+   *   Injected runtime bag (uses `fs` (async) and `clock`).
    */
-  constructor(statePath, fs) {
+  constructor(statePath, runtime) {
     if (!statePath) throw new Error("statePath is required");
-    if (!fs) throw new Error("fs is required");
+    if (!runtime?.fs) throw new Error("runtime.fs is required");
+    if (!runtime?.clock) throw new Error("runtime.clock is required");
     this.#statePath = statePath;
-    this.#fs = fs;
+    this.#fs = runtime.fs;
+    this.#clock = runtime.clock;
   }
 
   /**
-   * Read and parse state from disk; on any read or parse error, write a fresh empty state and return it.
-   * @returns {Object}
+   * Read and parse state from disk; on any read or parse error, write a fresh
+   * empty state and return it.
+   * @returns {Promise<Object>}
    */
-  load() {
+  async load() {
     try {
-      const raw = JSON.parse(this.#fs.readFileSync(this.#statePath, "utf8"));
+      const raw = JSON.parse(await this.#fs.readFile(this.#statePath, "utf8"));
       if (!raw || typeof raw !== "object" || !raw.agents) {
         const state = { agents: {} };
-        this.save(state);
+        await this.save(state);
         return state;
       }
       return raw;
     } catch {
       const state = { agents: {} };
-      this.save(state);
+      await this.save(state);
       return state;
     }
   }
@@ -44,10 +49,11 @@ export class StateManager {
   /**
    * Save state to disk
    * @param {Object} state
+   * @returns {Promise<void>}
    */
-  save(state) {
-    this.#fs.mkdirSync(dirname(this.#statePath), { recursive: true });
-    this.#fs.writeFileSync(
+  async save(state) {
+    await this.#fs.mkdir(dirname(this.#statePath), { recursive: true });
+    await this.#fs.writeFile(
       this.#statePath,
       JSON.stringify(state, null, 2) + "\n",
     );
@@ -58,14 +64,14 @@ export class StateManager {
    * @param {Object} state
    * @param {{ reason: string, maxAge?: number }} opts
    * @param {Function} logFn
-   * @returns {number} Number of agents reset
+   * @returns {Promise<number>} Number of agents reset
    */
-  resetStaleAgents(state, { reason, maxAge }, logFn) {
+  async resetStaleAgents(state, { reason, maxAge }, logFn) {
     let resetCount = 0;
     for (const [name, as] of Object.entries(state.agents)) {
       if (as.status !== "active") continue;
       if (maxAge && as.startedAt) {
-        const elapsed = Date.now() - new Date(as.startedAt).getTime();
+        const elapsed = this.#clock.now() - Date.parse(as.startedAt);
         if (elapsed < maxAge) continue;
       }
       logFn(`Resetting stale agent: ${name} (${reason})`);
@@ -76,7 +82,7 @@ export class StateManager {
       });
       resetCount++;
     }
-    if (resetCount > 0) this.save(state);
+    if (resetCount > 0) await this.save(state);
     return resetCount;
   }
 
@@ -86,8 +92,9 @@ export class StateManager {
    * @param {string} stdout
    * @param {string} agentName
    * @param {string} cacheDir - Cache directory for state files
+   * @returns {Promise<void>}
    */
-  updateAgentState(agentState, stdout, agentName, cacheDir) {
+  async updateAgentState(agentState, stdout, agentName, cacheDir) {
     const lines = stdout.split("\n");
     const decisionLine = lines.find((l) => l.startsWith("Decision:"));
     const actionLine = lines.find((l) => l.startsWith("Action:"));
@@ -95,7 +102,7 @@ export class StateManager {
     Object.assign(agentState, {
       status: "idle",
       startedAt: null,
-      lastWokeAt: new Date().toISOString(),
+      lastWokeAt: isoTimestamp(this.#clock.now()),
       lastDecision: decisionLine
         ? decisionLine.slice(10).trim()
         : stdout.slice(0, 200),
@@ -106,21 +113,11 @@ export class StateManager {
 
     // Save output as briefing fallback
     const stateDir = join(cacheDir, "state");
-    this.#fs.mkdirSync(stateDir, { recursive: true });
+    await this.#fs.mkdir(stateDir, { recursive: true });
     const prefix = agentName.replace(/-/g, "_");
-    this.#fs.writeFileSync(join(stateDir, `${prefix}_last_output.md`), stdout);
+    await this.#fs.writeFile(
+      join(stateDir, `${prefix}_last_output.md`),
+      stdout,
+    );
   }
-}
-
-/**
- * Create a StateManager with real fs dependencies
- * @param {string} statePath
- * @returns {StateManager}
- */
-export function createStateManager(statePath) {
-  return new StateManager(statePath, {
-    readFileSync,
-    writeFileSync,
-    mkdirSync,
-  });
 }

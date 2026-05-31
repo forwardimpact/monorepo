@@ -1,0 +1,4 @@
+dispatch-substrate <stage|roster|pick|issue> [options]
+
+Single-flow entry for the Landmark-substrate verbs (normally invoked as
+`fit-map substrate <verb>`). Constructs the default runtime and dispatches.

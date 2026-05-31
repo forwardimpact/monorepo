@@ -14,7 +14,7 @@ Complete the
 [Integrate with the Engineering Standard](/docs/libraries/integrate-standard/)
 guide first -- this page assumes you have `@forwardimpact/libskill` and
 `@forwardimpact/map` installed and know how to load standard data with
-`createDataLoader().loadAllData()`.
+`createDataLoader(createDefaultRuntime()).loadAllData()`.
 
 ## Load data and resolve coordinates
 
@@ -23,8 +23,9 @@ coordinates:
 
 ```js
 import { createDataLoader } from "@forwardimpact/map/loader";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-const loader = createDataLoader();
+const loader = createDataLoader(createDefaultRuntime());
 const data = await loader.loadAllData("data/pathway");
 
 const discipline = data.disciplines.find((d) => d.id === "software_engineering");

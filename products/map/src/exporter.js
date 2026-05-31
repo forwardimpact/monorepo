@@ -102,18 +102,18 @@ export class Exporter {
 }
 
 /**
- * Factory wiring real fs (node:fs/promises) and a Renderer.
- * @param {object} [opts]
- * @param {object} [opts.fs] - Override filesystem (defaults to node:fs/promises)
+ * Factory wiring the injected runtime's async fs surface and a Renderer.
+ * @param {object} opts
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} opts.runtime - Injected collaborators.
  * @param {import('./renderer.js').Renderer} [opts.renderer]
  * @returns {Promise<Exporter>}
  */
-export async function createExporter(opts = {}) {
-  const fs = opts.fs || (await import("node:fs/promises"));
-  let renderer = opts.renderer;
-  if (!renderer) {
+export async function createExporter({ runtime, renderer } = {}) {
+  if (!runtime?.fs) throw new Error("createExporter requires runtime.fs");
+  let r = renderer;
+  if (!r) {
     const { createRenderer } = await import("./renderer.js");
-    renderer = createRenderer();
+    r = createRenderer();
   }
-  return new Exporter(fs, renderer);
+  return new Exporter(runtime.fs, r);
 }

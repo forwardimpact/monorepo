@@ -12,9 +12,7 @@
  * whole report.
  */
 
-import { createReadStream } from "node:fs";
 import { join } from "node:path";
-import { createInterface } from "node:readline";
 
 import { validateResultRecord } from "./result.js";
 
@@ -41,11 +39,17 @@ import { validateResultRecord } from "./result.js";
  */
 
 /**
- * @param {{inputDir: string, kValues: number[], includeRuns?: boolean}} opts
+ * @param {{inputDir: string, kValues: number[], includeRuns?: boolean, runtime: import("@forwardimpact/libutil/runtime").Runtime}} opts
  * @returns {Promise<{tasks: TaskReport[], totals: object}>}
  */
-export async function aggregate({ inputDir, kValues, includeRuns = false }) {
-  const records = await loadRecords(inputDir);
+export async function aggregate({
+  inputDir,
+  kValues,
+  includeRuns = false,
+  runtime,
+}) {
+  if (!runtime) throw new Error("runtime is required");
+  const records = await loadRecords(inputDir, runtime);
   const grouped = groupByTask(records.records);
   const tasks = [];
   let totalRuns = 0;
@@ -429,20 +433,30 @@ function median(arr) {
 // Record loading
 // ---------------------------------------------------------------------------
 
-async function loadRecords(inputDir) {
+async function loadRecords(inputDir, runtime) {
   const path = join(inputDir, "results.jsonl");
-  const stream = createReadStream(path);
-  const rl = createInterface({ input: stream, crlfDelay: Infinity });
+  let content;
+  try {
+    content = await runtime.fs.readFile(path, "utf8");
+  } catch (e) {
+    // Re-throw with the stack collapsed to the message line so the CLI's
+    // error rendering stays free of node-internal async `readFile` frames
+    // (matching the pre-1370 stream-error shape the golden captured).
+    const err = new Error(e.message);
+    if (e.code) err.code = e.code;
+    err.stack = `Error: ${e.message}`;
+    throw err;
+  }
   const records = [];
   let skipped = 0;
-  for await (const line of rl) {
+  for (const line of content.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed) continue;
     let record;
     try {
       record = JSON.parse(trimmed);
     } catch (e) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         `benchmark report: skipped malformed JSON line — ${e.message}\n`,
       );
       skipped++;
@@ -451,7 +465,7 @@ async function loadRecords(inputDir) {
     try {
       validateResultRecord(record);
     } catch (e) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         `benchmark report: skipped record failing schema — ${describeError(e)}\n`,
       );
       skipped++;

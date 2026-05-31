@@ -32,9 +32,10 @@ const TABLE_HEADERS = [
  * @param {object} params
  * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase
  * @param {{format?: string}} params.options
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators (fs, proc).
  * @returns {Promise<number>}
  */
-export async function runRosterCommand({ supabase, options }) {
+export async function runRosterCommand({ supabase, options, runtime }) {
   const { findInvariantSatisfyingPersonas } = await import(
     "./substrate-persona-query.js"
   );
@@ -43,13 +44,13 @@ export async function runRosterCommand({ supabase, options }) {
   });
 
   if (!personas.length) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`substrate roster: ${diagnostic ?? "no personas"}`) + "\n",
     );
     return 1;
   }
 
-  const ast = await loadStory();
+  const ast = await loadStory(runtime);
   const enriched = personas.map((row) => enrichPersonaRow(row, ast));
 
   const payload = {
@@ -60,7 +61,7 @@ export async function runRosterCommand({ supabase, options }) {
   };
 
   if (options?.format === "json") {
-    process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
+    runtime.proc.stdout.write(JSON.stringify(payload, null, 2) + "\n");
     return 0;
   }
 
@@ -74,6 +75,6 @@ export async function runRosterCommand({ supabase, options }) {
     p.manages_count,
     p.parent_email,
   ]);
-  process.stdout.write(formatTable(TABLE_HEADERS, rows) + "\n");
+  runtime.proc.stdout.write(formatTable(TABLE_HEADERS, rows) + "\n");
   return 0;
 }

@@ -113,6 +113,7 @@ export async function runFixCommand(ctx) {
     settingSources: ["project"],
     systemPrompt: composeProfilePrompt("technical-writer", {
       profilesDir: path.resolve(projectRoot, ".claude/agents"),
+      runtime,
     }),
     redactor: createRedactor(),
   });

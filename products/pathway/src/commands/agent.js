@@ -313,7 +313,7 @@ export async function runAgentCommand({
   loader,
   runtime,
 }) {
-  const dataLoader = loader || createDataLoader();
+  const dataLoader = loader || createDataLoader(runtime);
   const agentData = await dataLoader.loadAgentData(dataDir);
   const skillsWithAgent = await dataLoader.loadSkillsWithAgentData(dataDir);
 

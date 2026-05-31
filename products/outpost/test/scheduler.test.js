@@ -173,18 +173,20 @@ describe("scheduler", () => {
   });
 
   describe("failAgent", () => {
+    const NOW = Date.parse("2025-01-15T10:00:00.000Z");
+
     test("sets failed status and error", () => {
       const state = { status: "active", startedAt: "2025-01-01" };
-      failAgent(state, "Connection timeout");
+      failAgent(state, "Connection timeout", NOW);
       assert.strictEqual(state.status, "failed");
       assert.strictEqual(state.startedAt, null);
       assert.strictEqual(state.lastError, "Connection timeout");
-      assert.ok(state.lastWokeAt);
+      assert.strictEqual(state.lastWokeAt, "2025-01-15T10:00:00.000Z");
     });
 
     test("truncates long error messages", () => {
       const state = {};
-      failAgent(state, "x".repeat(1000));
+      failAgent(state, "x".repeat(1000), NOW);
       assert.strictEqual(state.lastError.length, 500);
     });
   });

@@ -43,11 +43,11 @@ async function listAuthUsers(supabase) {
 
 const FIFTY_YEARS_MS = 50 * 365 * 24 * 60 * 60 * 1000;
 
-function isCurrentlyBanned(user) {
-  return Boolean(user.banned_until && new Date(user.banned_until) > new Date());
+function isCurrentlyBanned(user, nowMs) {
+  return Boolean(user.banned_until && Date.parse(user.banned_until) > nowMs);
 }
 
-async function reconcileRosterRow(supabase, email, existing, summary) {
+async function reconcileRosterRow(supabase, email, existing, summary, nowMs) {
   if (!existing) {
     const { error } = await supabase.auth.admin.createUser({
       email,
@@ -57,7 +57,7 @@ async function reconcileRosterRow(supabase, email, existing, summary) {
     summary.created += 1;
     return;
   }
-  if (isCurrentlyBanned(existing)) {
+  if (isCurrentlyBanned(existing, nowMs)) {
     const { error } = await supabase.auth.admin.updateUserById(existing.id, {
       ban_duration: "none",
     });
@@ -68,7 +68,7 @@ async function reconcileRosterRow(supabase, email, existing, summary) {
   summary.unchanged += 1;
 }
 
-async function decommissionUser(supabase, email, user) {
+async function decommissionUser(supabase, email, user, nowMs) {
   const { data, error } = await supabase.auth.admin.updateUserById(user.id, {
     ban_duration: BAN_FOREVER,
   });
@@ -79,10 +79,10 @@ async function decommissionUser(supabase, email, user) {
   // account masquerade as decommissioned. NaN (missing / unparseable
   // banned_until) is treated as 0 — never as a passing comparison.
   const parsed = data?.user?.banned_until
-    ? new Date(data.user.banned_until).getTime()
+    ? Date.parse(data.user.banned_until)
     : 0;
   const until = Number.isFinite(parsed) ? parsed : 0;
-  if (until - Date.now() < FIFTY_YEARS_MS) {
+  if (until - nowMs < FIFTY_YEARS_MS) {
     throw new Error(
       `ban ${email}: banned_until=${
         data?.user?.banned_until ?? "<missing>"
@@ -96,10 +96,12 @@ async function decommissionUser(supabase, email, user) {
  *
  * @param {object} params
  * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase - Service-role client.
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators (proc, clock).
  * @returns {Promise<{summary: object, meta: object}>}
  */
-export async function runProvisionCommand({ supabase }) {
-  process.stdout.write(
+export async function runProvisionCommand({ supabase, runtime }) {
+  const nowMs = runtime.clock.now();
+  runtime.proc.stdout.write(
     formatHeader("Provisioning auth.users from organization_people") + "\n\n",
   );
   const { data: roster, error } = await supabase
@@ -111,16 +113,24 @@ export async function runProvisionCommand({ supabase }) {
 
   const summary = { created: 0, restored: 0, decommissioned: 0, unchanged: 0 };
   for (const email of rosterEmails) {
-    await reconcileRosterRow(supabase, email, authUsers.get(email), summary);
+    await reconcileRosterRow(
+      supabase,
+      email,
+      authUsers.get(email),
+      summary,
+      nowMs,
+    );
   }
   for (const [email, user] of authUsers) {
     if (rosterEmails.has(email)) continue;
-    if (isCurrentlyBanned(user)) continue;
-    await decommissionUser(supabase, email, user);
+    if (isCurrentlyBanned(user, nowMs)) continue;
+    await decommissionUser(supabase, email, user, nowMs);
     summary.decommissioned += 1;
   }
   for (const [k, v] of Object.entries(summary))
-    process.stdout.write(formatBullet(`${k}: ${v}`, 0) + "\n");
-  process.stdout.write("\n" + formatSuccess("Reconciliation complete") + "\n");
+    runtime.proc.stdout.write(formatBullet(`${k}: ${v}`, 0) + "\n");
+  runtime.proc.stdout.write(
+    "\n" + formatSuccess("Reconciliation complete") + "\n",
+  );
   return { summary, meta: { ok: true } };
 }

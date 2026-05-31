@@ -2,15 +2,6 @@
  * KBManager — knowledge base init/update operations.
  */
 
-import {
-  existsSync,
-  mkdirSync,
-  copyFileSync,
-  cpSync,
-  readFileSync,
-  writeFileSync,
-  readdirSync,
-} from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -22,30 +13,44 @@ export class KBManager {
   #fs;
 
   /**
-   * @param {{ existsSync: Function, mkdirSync: Function, copyFileSync: Function, cpSync: Function, readFileSync: Function, writeFileSync: Function, readdirSync: Function }} fs
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+   *   Injected runtime bag (uses `fs` (async)).
    * @param {Function} logFn
    */
-  constructor(fs, logFn) {
-    if (!fs) throw new Error("fs is required");
+  constructor(runtime, logFn) {
+    if (!runtime?.fs) throw new Error("runtime.fs is required");
     if (!logFn) throw new Error("logFn is required");
-    this.#fs = fs;
+    this.#fs = runtime.fs;
+  }
+
+  /**
+   * Test whether a path exists, via the async fs surface.
+   * @param {string} p
+   * @returns {Promise<boolean>}
+   */
+  async #exists(p) {
+    return this.#fs.access(p).then(
+      () => true,
+      () => false,
+    );
   }
 
   /**
    * @param {string} dir
+   * @returns {Promise<void>}
    */
-  #ensureDir(dir) {
-    this.#fs.mkdirSync(dir, { recursive: true });
+  async #ensureDir(dir) {
+    await this.#fs.mkdir(dir, { recursive: true });
   }
 
   /**
    * @param {string} path
    * @param {*} fallback
-   * @returns {*}
+   * @returns {Promise<*>}
    */
-  #readJSON(path, fallback) {
+  async #readJSON(path, fallback) {
     try {
-      return JSON.parse(this.#fs.readFileSync(path, "utf8"));
+      return JSON.parse(await this.#fs.readFile(path, "utf8"));
     } catch {
       return fallback;
     }
@@ -54,38 +59,40 @@ export class KBManager {
   /**
    * @param {string} path
    * @param {*} data
+   * @returns {Promise<void>}
    */
-  #writeJSON(path, data) {
-    this.#ensureDir(dirname(path));
-    this.#fs.writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
+  async #writeJSON(path, data) {
+    await this.#ensureDir(dirname(path));
+    await this.#fs.writeFile(path, JSON.stringify(data, null, 2) + "\n");
   }
 
   /**
    * Copy bundled files (CLAUDE.md, skills, agents) from template to a KB.
    * @param {string} tpl - Path to the template directory
    * @param {string} dest - Path to the target knowledge base
+   * @returns {Promise<void>}
    */
-  copyBundledFiles(tpl, dest) {
-    this.#fs.copyFileSync(join(tpl, "CLAUDE.md"), join(dest, "CLAUDE.md"));
+  async copyBundledFiles(tpl, dest) {
+    await this.#fs.copyFile(join(tpl, "CLAUDE.md"), join(dest, "CLAUDE.md"));
     logger.info(`  Updated CLAUDE.md`);
 
     const apmSrc = join(tpl, "apm.yml");
-    if (this.#fs.existsSync(apmSrc)) {
-      this.#fs.copyFileSync(apmSrc, join(dest, "apm.yml"));
+    if (await this.#exists(apmSrc)) {
+      await this.#fs.copyFile(apmSrc, join(dest, "apm.yml"));
       logger.info(`  Updated apm.yml`);
     }
 
-    this.mergeSettings(tpl, dest);
+    await this.mergeSettings(tpl, dest);
 
     for (const sub of ["skills", "agents"]) {
       const src = join(tpl, ".claude", sub);
-      if (!this.#fs.existsSync(src)) continue;
-      this.#fs.cpSync(src, join(dest, ".claude", sub), { recursive: true });
-      const entries = this.#fs
-        .readdirSync(src, { withFileTypes: true })
-        .filter((d) =>
-          sub === "skills" ? d.isDirectory() : d.name.endsWith(".md"),
-        );
+      if (!(await this.#exists(src))) continue;
+      await this.#fs.cp(src, join(dest, ".claude", sub), { recursive: true });
+      const entries = (
+        await this.#fs.readdir(src, { withFileTypes: true })
+      ).filter((d) =>
+        sub === "skills" ? d.isDirectory() : d.name.endsWith(".md"),
+      );
       const names = entries.map((d) =>
         sub === "agents" ? d.name.replace(".md", "") : d.name,
       );
@@ -123,29 +130,30 @@ export class KBManager {
    * Merge template settings.json into the destination's settings.json.
    * @param {string} tpl - Template directory
    * @param {string} dest - Knowledge base directory
+   * @returns {Promise<void>}
    */
-  mergeSettings(tpl, dest) {
+  async mergeSettings(tpl, dest) {
     const src = join(tpl, ".claude", "settings.json");
-    if (!this.#fs.existsSync(src)) return;
+    if (!(await this.#exists(src))) return;
 
     const destPath = join(dest, ".claude", "settings.json");
 
-    if (!this.#fs.existsSync(destPath)) {
-      this.#ensureDir(join(dest, ".claude"));
-      this.#fs.copyFileSync(src, destPath);
+    if (!(await this.#exists(destPath))) {
+      await this.#ensureDir(join(dest, ".claude"));
+      await this.#fs.copyFile(src, destPath);
       logger.info(`  Created settings.json`);
       return;
     }
 
-    const template = this.#readJSON(src, {});
-    const existing = this.#readJSON(destPath, {});
+    const template = await this.#readJSON(src, {});
+    const existing = await this.#readJSON(destPath, {});
     const added = this.#mergePermissionLists(
       template.permissions || {},
       (existing.permissions ||= {}),
     );
 
     if (added > 0) {
-      this.#writeJSON(destPath, existing);
+      await this.#writeJSON(destPath, existing);
       logger.info(`  Updated settings.json (${added} new entries)`);
     } else {
       logger.info(`  Settings up to date`);
@@ -153,18 +161,22 @@ export class KBManager {
   }
 
   /**
-   * Initialize a new knowledge base
+   * Initialize a new knowledge base.
    * @param {string} targetPath
    * @param {string} templateDir
+   * @returns {Promise<{ok: true, value: {dest: string}} | {ok: false, code: number, error: string}>}
    */
-  init(targetPath, templateDir) {
+  async init(targetPath, templateDir) {
     const dest = this.#expandPath(targetPath);
-    if (this.#fs.existsSync(join(dest, "CLAUDE.md"))) {
-      console.error(`Knowledge base already exists at ${dest}`);
-      process.exit(1);
+    if (await this.#exists(join(dest, "CLAUDE.md"))) {
+      return {
+        ok: false,
+        code: 1,
+        error: `Knowledge base already exists at ${dest}`,
+      };
     }
 
-    this.#ensureDir(dest);
+    await this.#ensureDir(dest);
     for (const d of [
       "knowledge/People",
       "knowledge/Organizations",
@@ -172,30 +184,39 @@ export class KBManager {
       "knowledge/Topics",
       "knowledge/Briefings",
     ])
-      this.#ensureDir(join(dest, d));
+      await this.#ensureDir(join(dest, d));
 
-    this.#fs.copyFileSync(join(templateDir, "USER.md"), join(dest, "USER.md"));
+    await this.#fs.copyFile(
+      join(templateDir, "USER.md"),
+      join(dest, "USER.md"),
+    );
 
-    this.copyBundledFiles(templateDir, dest);
+    await this.copyBundledFiles(templateDir, dest);
 
     logger.info(
       `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. Edit ${dest}/USER.md with your name, email, and domain\n  2. cd ${dest} && npx apm install\n  3. claude`,
     );
+    return { ok: true, value: { dest } };
   }
 
   /**
    * Update an existing knowledge base with the latest bundled files.
    * @param {string} targetPath
    * @param {string} templateDir
+   * @returns {Promise<{ok: true, value: {dest: string}} | {ok: false, code: number, error: string}>}
    */
-  update(targetPath, templateDir) {
+  async update(targetPath, templateDir) {
     const dest = this.#expandPath(targetPath);
-    if (!this.#fs.existsSync(join(dest, "CLAUDE.md"))) {
-      console.error(`No knowledge base found at ${dest}`);
-      process.exit(1);
+    if (!(await this.#exists(join(dest, "CLAUDE.md")))) {
+      return {
+        ok: false,
+        code: 1,
+        error: `No knowledge base found at ${dest}`,
+      };
     }
-    this.copyBundledFiles(templateDir, dest);
+    await this.copyBundledFiles(templateDir, dest);
     logger.info(`\nKnowledge base updated: ${dest}`);
+    return { ok: true, value: { dest } };
   }
 
   /**
@@ -205,24 +226,4 @@ export class KBManager {
   #expandPath(p) {
     return p.startsWith("~/") ? join(homedir(), p.slice(2)) : resolve(p);
   }
-}
-
-/**
- * Create a KBManager with real fs dependencies
- * @param {Function} logFn
- * @returns {KBManager}
- */
-export function createKBManager(logFn) {
-  return new KBManager(
-    {
-      existsSync,
-      mkdirSync,
-      copyFileSync,
-      cpSync,
-      readFileSync,
-      writeFileSync,
-      readdirSync,
-    },
-    logFn,
-  );
 }

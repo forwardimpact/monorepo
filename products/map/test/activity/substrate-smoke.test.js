@@ -40,7 +40,10 @@ describe("assertJwtShape", () => {
       email: "a@b",
       exp: future(),
     });
-    assert.throws(() => assertJwtShape(jwt, "a@b"), /aud != authenticated/);
+    assert.throws(
+      () => assertJwtShape(jwt, "a@b", Date.now()),
+      /aud != authenticated/,
+    );
   });
 
   test("rejects wrong role", () => {
@@ -50,7 +53,10 @@ describe("assertJwtShape", () => {
       email: "a@b",
       exp: future(),
     });
-    assert.throws(() => assertJwtShape(jwt, "a@b"), /role != authenticated/);
+    assert.throws(
+      () => assertJwtShape(jwt, "a@b", Date.now()),
+      /role != authenticated/,
+    );
   });
 
   test("rejects email mismatch", () => {
@@ -60,7 +66,10 @@ describe("assertJwtShape", () => {
       email: "wrong@x",
       exp: future(),
     });
-    assert.throws(() => assertJwtShape(jwt, "right@x"), /email mismatch/);
+    assert.throws(
+      () => assertJwtShape(jwt, "right@x", Date.now()),
+      /email mismatch/,
+    );
   });
 
   test("rejects expired exp", () => {
@@ -70,7 +79,7 @@ describe("assertJwtShape", () => {
       email: "a@b",
       exp: Math.floor(Date.now() / 1000) - 60,
     });
-    assert.throws(() => assertJwtShape(jwt, "a@b"), /exp claim/);
+    assert.throws(() => assertJwtShape(jwt, "a@b", Date.now()), /exp claim/);
   });
 
   test("accepts a well-shaped JWT", () => {
@@ -80,7 +89,7 @@ describe("assertJwtShape", () => {
       email: "a@b",
       exp: future(),
     });
-    assert.doesNotThrow(() => assertJwtShape(jwt, "a@b"));
+    assert.doesNotThrow(() => assertJwtShape(jwt, "a@b", Date.now()));
   });
 });
 

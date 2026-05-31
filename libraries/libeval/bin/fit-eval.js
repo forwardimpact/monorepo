@@ -15,19 +15,6 @@ import { runFacilitateCommand } from "../src/commands/facilitate.js";
 import { runDiscussCommand } from "../src/commands/discuss.js";
 import { runCallbackCommand } from "../src/commands/callback.js";
 
-// `tee` streams stdin→stdout via Node's `pipeline`, which needs real stream
-// objects the runtime surface does not expose; it keeps the legacy
-// `(values, args)` signature and this adapter bridges it into dispatch.
-async function teeHandler(ctx) {
-  const out = ctx.args.output;
-  try {
-    await runTeeCommand(ctx.options, out ? [out] : []);
-    return { ok: true };
-  } catch (error) {
-    return { ok: false, code: 1, error: error.message };
-  }
-}
-
 // `bun build --compile` injects FIT_EVAL_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
 // the bunfs virtual mount). Source execution falls through to package.json.
@@ -249,7 +236,7 @@ const definition = {
       name: "tee",
       args: ["output"],
       argsUsage: "[output.ndjson]",
-      handler: teeHandler,
+      handler: runTeeCommand,
       description:
         "Stream readable text to stdout while saving raw NDJSON to a file",
     },

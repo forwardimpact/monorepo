@@ -1,11 +1,15 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 import {
   createTraceGitHub,
   detectRepoSlug,
   parseGitRemote,
 } from "@forwardimpact/libeval";
+
+const RT = createDefaultRuntime();
 
 describe("parseGitRemote", () => {
   test("parses SSH remote", () => {
@@ -69,26 +73,26 @@ describe("detectRepoSlug", () => {
     }
   }
 
-  test("reads GITHUB_REPOSITORY when set", () => {
-    const result = withEnv(
+  test("reads GITHUB_REPOSITORY when set", async () => {
+    const result = await withEnv(
       { GITHUB_REPOSITORY: "forwardimpact/monorepo" },
-      () => detectRepoSlug(),
+      () => detectRepoSlug(RT),
     );
     assert.strictEqual(result.owner, "forwardimpact");
     assert.strictEqual(result.repo, "monorepo");
   });
 
-  test("ignores blank GITHUB_REPOSITORY and falls back to git remote", () => {
-    const result = withEnv({ GITHUB_REPOSITORY: "   " }, () =>
-      detectRepoSlug(),
+  test("ignores blank GITHUB_REPOSITORY and falls back to git remote", async () => {
+    const result = await withEnv({ GITHUB_REPOSITORY: "   " }, () =>
+      detectRepoSlug(RT),
     );
     assert.ok(result.owner);
     assert.ok(result.repo);
   });
 
-  test("falls back to git remote when GITHUB_REPOSITORY is unset", () => {
-    const result = withEnv({ GITHUB_REPOSITORY: undefined }, () =>
-      detectRepoSlug(),
+  test("falls back to git remote when GITHUB_REPOSITORY is unset", async () => {
+    const result = await withEnv({ GITHUB_REPOSITORY: undefined }, () =>
+      detectRepoSlug(RT),
     );
     // We're running inside this monorepo, so origin should resolve.
     assert.ok(result.owner);
@@ -97,16 +101,13 @@ describe("detectRepoSlug", () => {
 });
 
 describe("createTraceGitHub", () => {
-  test("throws a clear error when called with no arguments", async () => {
-    await assert.rejects(
-      () => createTraceGitHub(),
-      /token is required.*Config\.ghToken/,
-    );
+  test("throws a clear error when called without a runtime", async () => {
+    await assert.rejects(() => createTraceGitHub(), /runtime is required/);
   });
 
   test("throws a clear error when token is missing", async () => {
     await assert.rejects(
-      () => createTraceGitHub({ repo: "owner/repo" }),
+      () => createTraceGitHub({ repo: "owner/repo", runtime: RT }),
       /token is required.*Config\.ghToken/,
     );
   });
@@ -115,6 +116,7 @@ describe("createTraceGitHub", () => {
     const gh = await createTraceGitHub({
       token: "ghp_fake",
       repo: "forwardimpact/monorepo",
+      runtime: RT,
     });
     assert.strictEqual(gh.token, "ghp_fake");
     assert.strictEqual(gh.owner, "forwardimpact");

@@ -164,7 +164,7 @@ describe("agent-builder-install", () => {
       outputDir = join(workDir, "public");
       await mkdir(outputDir, { recursive: true });
 
-      const loader = createDataLoader();
+      const loader = createDataLoader(createDefaultRuntime());
       const data = await loader.loadAllData(starterDir);
       const agentData = await loader.loadAgentData(starterDir);
       combinations = findValidCombinations(data, agentData);

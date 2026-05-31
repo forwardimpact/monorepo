@@ -1,0 +1,42 @@
+[
+  {
+    "name": "help",
+    "args": ["--help"],
+    "exitCode": 0,
+    "stdoutFile": "help.stdout",
+    "stderrFile": "help.stderr"
+  },
+  {
+    "name": "version",
+    "args": ["--version"],
+    "env": { "OUTPOST_VERSION": "0.0.0-golden" },
+    "exitCode": 0,
+    "stdoutFile": "version.stdout",
+    "stderrFile": "version.stderr"
+  },
+  {
+    "name": "no-args",
+    "args": [],
+    "env": { "HOME": "/tmp/fit-outpost-golden-home" },
+    "exitCode": 0,
+    "stdoutFile": "no-args.stdout",
+    "stderrFile": "no-args.stderr",
+    "transform": [
+      {
+        "pattern": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z",
+        "replacement": "<TIMESTAMP>"
+      },
+      {
+        "pattern": "No agents due\\. \\d+ ",
+        "replacement": "No agents due. <PID> "
+      }
+    ]
+  },
+  {
+    "name": "unknown-command",
+    "args": ["bogus"],
+    "exitCode": 2,
+    "stdoutFile": "unknown.stdout",
+    "stderrFile": "unknown.stderr"
+  }
+]

@@ -1,0 +1,64 @@
+fit-landmark 0.1.22 — Landmark — analysis and recommendations on top of Map data.
+
+Usage: fit-landmark <command> [options]
+
+Commands:
+  org show          Show full organization directory
+  org team          Show hierarchy under a manager
+  snapshot list     List available snapshots
+  snapshot show     Show factor/driver scores for a snapshot
+  snapshot trend    Track item trend across snapshots
+  snapshot compare  Compare snapshot against benchmarks
+  evidence          Show marker-linked evidence
+  practice          Show practice-pattern aggregates
+  marker <skill>    Show marker definitions for a skill
+  health            Show health view with driver scores and evidence
+  readiness         Show promotion readiness checklist
+  timeline          Show individual growth timeline
+  coverage          Show evidence coverage metrics
+  practiced         Show evidenced vs derived capability
+  voice             Surface engineer voice from GetDX comments
+  sources           List activity row classes retained about an engineer
+  login             Sign in via Supabase magic-link (browser or --otp)
+  logout            Delete the local credentials file
+
+Options:
+  --data=<string>    Path to Map data directory
+  --format=<string>  Output format (text|json|markdown)
+  --help, -h         Show help
+  --version, -v      Show version
+
+Examples:
+  fit-landmark org show
+  fit-landmark snapshot list
+  fit-landmark marker task_completion
+  fit-landmark health --manager alice@example.com
+  fit-landmark sources --email self@example.com
+
+Documentation:
+  Landmark Overview
+    https://www.forwardimpact.team/landmark/index.md
+    Product overview, audience model, and key concepts.
+  Getting Started: Landmark for Leaders
+    https://www.forwardimpact.team/docs/getting-started/leaders/landmark/index.md
+    From zero to your first engineering outcome measurement.
+  Demonstrate Engineering Progress
+    https://www.forwardimpact.team/docs/products/engineering-outcomes/index.md
+    Show evidence of engineering progress without blaming individuals.
+  Tell Whether Culture Investments Are Working
+    https://www.forwardimpact.team/docs/products/engineering-outcomes/culture-investments/index.md
+    Track initiative impact through outcome trends.
+  Find Growth Areas and Build Evidence
+    https://www.forwardimpact.team/docs/products/growth-areas/index.md
+    Identify gaps and track progress toward the next level.
+  Check Progress Toward Next Level
+    https://www.forwardimpact.team/docs/products/growth-areas/check-progress/index.md
+    See where you stand against level expectations.
+  List Engineering Data Sources
+    https://www.forwardimpact.team/docs/products/engineering-data-sources/index.md
+    List the activity rows retained about an engineer and their fall-off dates.
+  Sign In to Landmark
+    https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md
+    Sign in via Supabase magic-link so commands resolve your identity automatically.
+
+Use fit-landmark <command> --help for command-specific options.

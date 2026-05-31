@@ -227,7 +227,7 @@ export async function generatePacks({
   const normalizedSiteUrl = siteUrl.replace(/\/$/, "");
   const standardTitle = standard.title || "Engineering Pathway";
 
-  const loader = createDataLoader();
+  const loader = createDataLoader(runtime);
   const templateLoader = createTemplateLoader(templatesDir);
 
   const data = await loader.loadAndValidate(dataDir);

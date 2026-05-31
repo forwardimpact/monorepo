@@ -1,0 +1,15 @@
+fit-svscan X.Y.Z — Supervision daemon that manages a SupervisionTree
+
+Usage: fit-svscan [options]
+
+Options:
+  --socket=<string>, -s   Path to Unix socket
+  --pid=<string>, -p      Path to PID file
+  --logdir=<string>, -l   Path to log directory
+  --timeout=<string>, -t  Shutdown timeout in ms (default: 3000)
+  --help, -h              Show this help
+  --version               Show version
+  --json                  Output help as JSON
+
+Examples:
+  fit-svscan --socket /tmp/sv.sock --pid /tmp/sv.pid --logdir /tmp/logs

@@ -4,8 +4,9 @@
  * path, --ttl propagation) is covered without a live stack.
  */
 
-import { describe, test, beforeEach, afterEach } from "node:test";
+import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
+import { createTestRuntime } from "@forwardimpact/libmock";
 
 import { runAuthIssueCommand } from "../../src/commands/auth-issue.js";
 
@@ -37,21 +38,6 @@ function makeStub({ rosterRow, authUsers = [] }) {
   };
 }
 
-function captureStdout() {
-  const chunks = [];
-  const orig = process.stdout.write.bind(process.stdout);
-  process.stdout.write = (chunk) => {
-    chunks.push(typeof chunk === "string" ? chunk : chunk.toString("utf8"));
-    return true;
-  };
-  return {
-    text: () => chunks.join(""),
-    restore: () => {
-      process.stdout.write = orig;
-    },
-  };
-}
-
 function makeConfig(secret = "test-secret") {
   return {
     supabaseJwtSecret: () => {
@@ -64,15 +50,12 @@ function makeConfig(secret = "test-secret") {
 }
 
 describe("runAuthIssueCommand", () => {
-  let out;
+  let runtime;
   let config;
 
   beforeEach(() => {
     config = makeConfig("test-secret");
-    out = captureStdout();
-  });
-  afterEach(() => {
-    out.restore();
+    runtime = createTestRuntime();
   });
 
   test("happy path mints a JWT for a human row", async () => {
@@ -84,6 +67,7 @@ describe("runAuthIssueCommand", () => {
       supabase,
       config,
       options: { email: "alice@example.com" },
+      runtime,
     });
     assert.equal(result.meta.ok, true);
     assert.equal(result.summary.email, "alice@example.com");
@@ -91,7 +75,7 @@ describe("runAuthIssueCommand", () => {
     // 8760h = 365 * 24 * 3600 = 31_536_000 seconds.
     assert.equal(result.summary.ttlSeconds, 31_536_000);
 
-    const printed = out.text();
+    const printed = runtime.proc.stdout.chunks.join("");
     // The JWT is the first multi-segment dot string of length ≥3.
     const jwtMatch = printed.match(/[\w-]+\.[\w-]+\.[\w-]+/);
     assert.ok(jwtMatch, "JWT not present in stdout");
@@ -108,6 +92,7 @@ describe("runAuthIssueCommand", () => {
       supabase,
       config,
       options: { email: "agent@example.com" },
+      runtime,
     });
     assert.equal(result.summary.kind, "service_account");
   });
@@ -121,6 +106,7 @@ describe("runAuthIssueCommand", () => {
       supabase,
       config,
       options: { email: "alice@example.com", ttl: "30d" },
+      runtime,
     });
     assert.equal(result.summary.ttlSeconds, 30 * 86_400);
   });
@@ -128,7 +114,7 @@ describe("runAuthIssueCommand", () => {
   test("rejects missing --email", async () => {
     const supabase = makeStub({});
     await assert.rejects(
-      () => runAuthIssueCommand({ supabase, config, options: {} }),
+      () => runAuthIssueCommand({ supabase, config, options: {}, runtime }),
       /--email <e> is required/,
     );
   });
@@ -144,6 +130,7 @@ describe("runAuthIssueCommand", () => {
           supabase,
           config: makeConfig(null),
           options: { email: "alice@example.com" },
+          runtime,
         }),
       /SUPABASE_JWT_SECRET is not set/,
     );
@@ -160,6 +147,7 @@ describe("runAuthIssueCommand", () => {
           supabase,
           config,
           options: { email: "alice@example.com" },
+          runtime,
         }),
       /no organization_people row[\s\S]*fit-map people push/,
     );
@@ -176,6 +164,7 @@ describe("runAuthIssueCommand", () => {
           supabase,
           config,
           options: { email: "alice@example.com" },
+          runtime,
         }),
       /no auth\.users row[\s\S]*fit-map people provision/,
     );
@@ -192,6 +181,7 @@ describe("runAuthIssueCommand", () => {
           supabase,
           config,
           options: { email: "alice@example.com", ttl: "5m" },
+          runtime,
         }),
       /invalid duration/,
     );

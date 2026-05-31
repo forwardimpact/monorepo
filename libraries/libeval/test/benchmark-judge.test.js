@@ -4,7 +4,11 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 import { parseConcludeFromTrace } from "../src/benchmark/judge.js";
+
+const RT = createDefaultRuntime();
 
 async function writeTrace(lines) {
   const dir = await mkdtemp(join(tmpdir(), "benchmark-judge-"));
@@ -35,7 +39,7 @@ describe("parseConcludeFromTrace", () => {
     const path = await writeTrace([
       envelopeAssistant("supervisor", [concludeBlock("success", "all good")]),
     ]);
-    const parsed = await parseConcludeFromTrace(path);
+    const parsed = await parseConcludeFromTrace(path, RT);
     assert.deepStrictEqual(parsed, { verdict: "pass", summary: "all good" });
   });
 
@@ -45,7 +49,7 @@ describe("parseConcludeFromTrace", () => {
         { type: "text", text: "I think the agent did fine." },
       ]),
     ]);
-    const parsed = await parseConcludeFromTrace(path);
+    const parsed = await parseConcludeFromTrace(path, RT);
     assert.strictEqual(parsed, null);
   });
 
@@ -54,7 +58,7 @@ describe("parseConcludeFromTrace", () => {
       envelopeAssistant("supervisor", [concludeBlock("success", "first")]),
       envelopeAssistant("supervisor", [concludeBlock("failure", "second")]),
     ]);
-    const parsed = await parseConcludeFromTrace(path);
+    const parsed = await parseConcludeFromTrace(path, RT);
     assert.deepStrictEqual(parsed, { verdict: "fail", summary: "second" });
   });
 
@@ -62,7 +66,7 @@ describe("parseConcludeFromTrace", () => {
     const path = await writeTrace([
       envelopeAssistant("agent", [concludeBlock("success", "agent lies")]),
     ]);
-    const parsed = await parseConcludeFromTrace(path);
+    const parsed = await parseConcludeFromTrace(path, RT);
     assert.strictEqual(parsed, null);
   });
 
@@ -79,7 +83,7 @@ describe("parseConcludeFromTrace", () => {
         },
       ]),
     ]);
-    const parsed = await parseConcludeFromTrace(path);
+    const parsed = await parseConcludeFromTrace(path, RT);
     assert.deepStrictEqual(parsed, { verdict: "pass", summary: "ns ok" });
   });
 });

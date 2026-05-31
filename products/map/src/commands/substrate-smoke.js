@@ -8,7 +8,6 @@
  * persona.
  */
 
-import { spawnSync } from "node:child_process";
 import { Buffer } from "node:buffer";
 import { mintSupabaseJwt, parseDuration } from "@forwardimpact/libsecret";
 
@@ -22,16 +21,17 @@ const ROW_CLASS_KEYS = {
 // fit-landmark resolves via the workspace; a fresh tmpdir would push bunx
 // up the filesystem looking for node_modules, hit nothing, and 404 from
 // npm. JWT/secret isolation comes from spawn-options env, not cwd.
-function fitLandmarkSpawn(argv, extraEnv = {}) {
-  return spawnSync("bunx", ["fit-landmark", ...argv], {
-    encoding: "utf8",
-    env: { ...process.env, ...extraEnv },
+// `runtime.subprocess.run` resolves (never rejects); callers drive errors
+// off `exitCode` (lesson 3).
+function fitLandmarkSpawn(runtime, argv, extraEnv = {}) {
+  return runtime.subprocess.run("bunx", ["fit-landmark", ...argv], {
+    env: { ...runtime.proc.env, ...extraEnv },
   });
 }
 
-function fetchManifest() {
-  const manifestRes = fitLandmarkSpawn(["_commands"]);
-  if (manifestRes.status !== 0) {
+async function fetchManifest(runtime) {
+  const manifestRes = await fitLandmarkSpawn(runtime, ["_commands"]);
+  if (manifestRes.exitCode !== 0) {
     throw new Error(`_commands: ${manifestRes.stderr}`);
   }
   return JSON.parse(manifestRes.stdout);
@@ -76,10 +76,12 @@ export function buildSmokeArgv({ command, smokeOptions }, persona, discovery) {
   return argv;
 }
 
-function runSmokeCommand(argv, jwt) {
-  const res = fitLandmarkSpawn(argv, { PRODUCT_LANDMARK_TOKEN: jwt });
-  if (res.status !== 0) {
-    throw new Error(`${argv.join(" ")} exited ${res.status}: ${res.stderr}`);
+async function runSmokeCommand(runtime, argv, jwt) {
+  const res = await fitLandmarkSpawn(runtime, argv, {
+    PRODUCT_LANDMARK_TOKEN: jwt,
+  });
+  if (res.exitCode !== 0) {
+    throw new Error(`${argv.join(" ")} exited ${res.exitCode}: ${res.stderr}`);
   }
   return res;
 }
@@ -91,9 +93,10 @@ function runSmokeCommand(argv, jwt) {
  * @param {object} params
  * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase
  * @param {{supabaseJwtSecret: () => string}} params.config
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators (subprocess, proc, clock).
  * @returns {Promise<void>}
  */
-export async function runSelfSmoke({ supabase, config }) {
+export async function runSelfSmoke({ supabase, config, runtime }) {
   const { findInvariantSatisfyingPersonas } = await import(
     "./substrate-persona-query.js"
   );
@@ -110,16 +113,16 @@ export async function runSelfSmoke({ supabase, config }) {
   });
 
   // Spec § Success Criteria rows 1–4: explicit shape check.
-  assertJwtShape(jwt, persona.email);
+  assertJwtShape(jwt, persona.email, runtime.clock.now());
   await assertPersonaIsHuman(supabase, persona.email);
   assertDiscoveryResolves(persona, discovery);
 
-  const manifest = fetchManifest();
+  const manifest = await fetchManifest(runtime);
   const smokeList = buildSmokeList(manifest);
 
   for (const item of smokeList) {
     const argv = buildSmokeArgv(item, persona, discovery);
-    const res = runSmokeCommand(argv, jwt);
+    const res = await runSmokeCommand(runtime, argv, jwt);
     const rowKey = ROW_CLASS_KEYS[item.command];
     if (rowKey) assertNonEmpty(res.stdout, rowKey);
   }
@@ -137,8 +140,9 @@ function expand(template, persona, discovery) {
  * requires (aud, role, email, future exp). Throws on any mismatch.
  * @param {string} jwt
  * @param {string} expectedEmail
+ * @param {number} nowMs - Current epoch ms (`runtime.clock.now()`).
  */
-export function assertJwtShape(jwt, expectedEmail) {
+export function assertJwtShape(jwt, expectedEmail, nowMs) {
   const [, payloadB64] = jwt.split(".");
   const claims = JSON.parse(Buffer.from(payloadB64, "base64url").toString());
   if (claims.aud !== "authenticated") {
@@ -150,7 +154,7 @@ export function assertJwtShape(jwt, expectedEmail) {
   if (claims.email !== expectedEmail) {
     throw new Error(`JWT email mismatch: ${claims.email}`);
   }
-  if (typeof claims.exp !== "number" || claims.exp * 1000 <= Date.now()) {
+  if (typeof claims.exp !== "number" || claims.exp * 1000 <= nowMs) {
     throw new Error(`JWT exp claim missing or in the past: ${claims.exp}`);
   }
 }

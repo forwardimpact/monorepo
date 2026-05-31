@@ -41,6 +41,9 @@ globs:
   - "libraries/libsyntheticgen/src/engine/activity-initiatives.js" # new Date(scenario.timerange_*) for initiative dates
   - "libraries/libsyntheticrender/src/render/html.js" # new Date(allDates[…]).getFullYear() over fixture dates
   - "products/summit/src/git/history.js" # new Date(iso) parses git commit timestamps; subprocess routes through runtime (cwd is caller-supplied, else inherited)
+  - "products/landmark/src/lib/evidence-helpers.js" # new Date(row.created_at) for quarter-bucketing explicit evidence-row dates; never the wall clock (callers read "now" via runtime.clock)
+  - "products/landmark/src/commands/sources.js" # new Date(ts) parses an explicit retention timestamp for UTC fall-off arithmetic; never the wall clock
+  - "products/outpost/src/scheduler.js" # pure cron helpers do deterministic new Date() arithmetic over a caller-supplied `now` Date and parsed-from-state ISO strings; the genuine wall-clock read routes through runtime.clock (Scheduler#wakeDueAgents, failAgent)
 
   # ── libui: browser DOM module. Its `setTimeout` is the window timer for a
   #    copy-button animation; `runtime` is a node-side bag with no browser-DOM

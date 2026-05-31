@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 
 import { createCli } from "@forwardimpact/libcli";
 import { createProductConfig } from "@forwardimpact/libconfig";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { COMMANDS } from "../src/lib/commands-manifest.js";
 import { resolveDataDir } from "../src/lib/cli.js";
@@ -282,16 +283,20 @@ async function main() {
     process.exit(2);
   }
 
+  const runtime = createDefaultRuntime();
+
   try {
-    const dataDir = resolveDataDir(values);
+    const dataDir = resolveDataDir(values, runtime);
     let identity = null;
-    if (entry.needsSupabase) identity = await resolveIdentity({ config });
+    if (entry.needsSupabase)
+      identity = await resolveIdentity({ config, runtime });
     const ctx = await buildContext({
       dataDir,
       config,
       options: values,
       needsSupabase: entry.needsSupabase,
       identity,
+      runtime,
     });
 
     const result = await entry.handler({
@@ -301,6 +306,10 @@ async function main() {
       mapData: ctx.mapData,
       supabase: ctx.supabase,
       format: ctx.format,
+      runtime,
+      // login/logout prompt and print directly; give them a real stdin
+      // (a Readable that readline can consume) plus the runtime stdout.
+      io: { stdin: process.stdin, stdout: runtime.proc.stdout },
     });
 
     if (result.meta && command === "health") {

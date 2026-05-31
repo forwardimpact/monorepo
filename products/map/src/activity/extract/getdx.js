@@ -5,6 +5,7 @@
  * Supabase Storage. Each API call produces one stored document.
  */
 
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { storeRaw } from "../storage.js";
 
 /**
@@ -67,11 +68,12 @@ async function extractSnapshotDetails(ctx, snapshots) {
  * Extract: fetch and store raw GetDX API responses.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {GetDXConfig} config
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (clock).
  * @returns {Promise<{files: Array<string>, errors: Array<string>}>}
  */
-export async function extractGetDX(supabase, config) {
+export async function extractGetDX(supabase, config, runtime) {
   const ctx = { supabase, config, files: [], errors: [] };
-  const timestamp = new Date().toISOString();
+  const timestamp = isoTimestamp(runtime.clock.now());
 
   await fetchAndStore(
     ctx,

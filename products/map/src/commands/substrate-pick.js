@@ -39,22 +39,24 @@ function parseMemoryWindow(raw) {
  * @param {object} params
  * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase
  * @param {{memoryWindow?: string, format?: string}} [params.options]
- * @param {NodeJS.ProcessEnv} [params.env]
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators (fs, proc).
+ * @param {Record<string,string>} [params.env]
  * @param {string} [params.cwd]
  * @returns {Promise<number>}
  */
 export async function runPickCommand({
   supabase,
   options = {},
-  env = process.env,
-  cwd = process.cwd(),
+  runtime,
+  env = runtime.proc.env,
+  cwd = runtime.proc.cwd(),
 }) {
   const { personas, diagnostic } = await findInvariantSatisfyingPersonas({
     supabase,
   });
 
   if (!personas.length) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`substrate pick: ${diagnostic ?? "no personas"}`) + "\n",
     );
     return 1;
@@ -62,11 +64,11 @@ export async function runPickCommand({
 
   const memoryPath = path.join(cwd, "wiki/kata-interview/picks.csv");
   const memoryWindow = parseMemoryWindow(options.memoryWindow);
-  const recentEmails = await readPickMemory(memoryPath, memoryWindow);
+  const recentEmails = await readPickMemory(memoryPath, memoryWindow, runtime);
   const remaining = personas.filter((p) => !recentEmails.has(p.email));
 
   if (!remaining.length) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(
         `substrate pick: no candidate diversifies against last ${memoryWindow} picks`,
       ) + "\n",
@@ -74,7 +76,7 @@ export async function runPickCommand({
     return 1;
   }
 
-  const ast = await loadStory(cwd);
+  const ast = await loadStory(runtime, cwd);
   const enriched = enrichPersonaRow(remaining[0], ast);
 
   const payload = {
@@ -96,18 +98,22 @@ export async function runPickCommand({
       enriched.manages_count,
       enriched.parent_email,
     ];
-    process.stdout.write(formatTable(TEXT_TABLE_HEADERS, [row]) + "\n");
+    runtime.proc.stdout.write(formatTable(TEXT_TABLE_HEADERS, [row]) + "\n");
   } else {
-    process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
+    runtime.proc.stdout.write(JSON.stringify(payload, null, 2) + "\n");
   }
 
   try {
-    await appendPickMemory(memoryPath, {
-      persona_email: enriched.email,
-      run_id: env.GITHUB_RUN_ID ?? "",
-    });
+    await appendPickMemory(
+      memoryPath,
+      {
+        persona_email: enriched.email,
+        run_id: env.GITHUB_RUN_ID ?? "",
+      },
+      runtime,
+    );
   } catch (err) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(
         `substrate pick: failed to append ${memoryPath}: ${err.message}`,
       ) + "\n",

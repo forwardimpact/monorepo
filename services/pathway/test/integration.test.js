@@ -14,6 +14,7 @@ import pkg from "n3";
 
 import { PathwayService } from "../index.js";
 import { createDataLoader } from "@forwardimpact/map/loader";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createMockConfig, createTurtleHelpers } from "@forwardimpact/libmock";
 import { deriveJob } from "@forwardimpact/libskill/derivation";
 import { analyzeProgression } from "@forwardimpact/libskill/progression";
@@ -33,7 +34,7 @@ describe("PathwayService integration (starter standard)", () => {
   let data;
 
   before(async () => {
-    const loader = createDataLoader();
+    const loader = createDataLoader(createDefaultRuntime());
     data = await loader.loadAllData(STARTER_DIR);
     const agentData = await loader.loadAgentData(STARTER_DIR);
     const skillsWithAgent = await loader.loadSkillsWithAgentData(STARTER_DIR);

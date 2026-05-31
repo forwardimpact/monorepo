@@ -8,6 +8,7 @@ import {
   FACILITATOR_SYSTEM_PROMPT,
   FACILITATED_AGENT_SYSTEM_PROMPT,
 } from "@forwardimpact/libeval";
+import { createTestRuntime } from "@forwardimpact/libmock";
 import { createNoopRedactor } from "../src/redaction.js";
 
 const baseOpts = () => ({
@@ -19,6 +20,7 @@ const baseOpts = () => ({
   query: async function* () {},
   output: new PassThrough(),
   redactor: createNoopRedactor(),
+  runtime: createTestRuntime(),
 });
 
 const findAgent = (f, name) => f.agents.find((a) => a.name === name);

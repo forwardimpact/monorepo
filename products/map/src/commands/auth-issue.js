@@ -26,9 +26,15 @@ const DEFAULT_TTL = "8760h"; // 1 year.
  * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase
  * @param {{supabaseJwtSecret: () => string}} params.config
  * @param {{email?: string, ttl?: string}} params.options
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators (proc).
  * @returns {Promise<{summary: object, meta: object}>}
  */
-export async function runAuthIssueCommand({ supabase, config, options }) {
+export async function runAuthIssueCommand({
+  supabase,
+  config,
+  options,
+  runtime,
+}) {
   const email = options.email;
   if (!email) {
     throw new Error("auth issue: --email <e> is required");
@@ -68,18 +74,18 @@ export async function runAuthIssueCommand({ supabase, config, options }) {
   }
 
   const jwt = mintSupabaseJwt({ email, secret, ttlSeconds });
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatHeader(`Issued JWT for ${email} (${row.kind}, ttl=${ttlString})`) +
       "\n\n",
   );
-  process.stdout.write(jwt + "\n\n");
-  process.stdout.write(
+  runtime.proc.stdout.write(jwt + "\n\n");
+  runtime.proc.stdout.write(
     formatBullet(
       "Export: PRODUCT_LANDMARK_TOKEN=<jwt above>; never commit or echo it.",
       0,
     ) + "\n",
   );
-  process.stdout.write(formatSuccess("Done.") + "\n");
+  runtime.proc.stdout.write(formatSuccess("Done.") + "\n");
   return {
     summary: { email, kind: row.kind, ttlSeconds },
     meta: { ok: true },

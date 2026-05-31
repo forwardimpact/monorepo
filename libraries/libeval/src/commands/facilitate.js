@@ -1,5 +1,5 @@
-import { createWriteStream } from "node:fs";
 import { resolve } from "node:path";
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { createFacilitator } from "../facilitator.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
@@ -76,13 +76,14 @@ export async function runFacilitateCommand(ctx) {
   const redactor = createRedactor({ runtime });
 
   const fileStream = opts.outputPath
-    ? createWriteStream(opts.outputPath)
+    ? runtime.fs.createWriteStream(opts.outputPath)
     : null;
   const output = fileStream
     ? createTeeWriter({
         fileStream,
         textStream: runtime.proc.stdout,
         mode: "supervised",
+        now: () => isoTimestamp(runtime.clock.now()),
       })
     : runtime.proc.stdout;
 

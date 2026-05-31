@@ -1,6 +1,6 @@
-import { createWriteStream } from "node:fs";
 import { Writable } from "node:stream";
 import { resolve } from "node:path";
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { createAgentRunner } from "../agent-runner.js";
 import { composeProfilePrompt } from "../profile-prompt.js";
 import { createRedactor } from "../redaction.js";
@@ -67,12 +67,15 @@ export async function runRunCommand(ctx) {
 
   // When --output is specified, stream text to stdout while writing NDJSON to file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).
-  const fileStream = outputPath ? createWriteStream(outputPath) : null;
+  const fileStream = outputPath
+    ? runtime.fs.createWriteStream(outputPath)
+    : null;
   const output = fileStream
     ? createTeeWriter({
         fileStream,
         textStream: runtime.proc.stdout,
         mode: "raw",
+        now: () => isoTimestamp(runtime.clock.now()),
       })
     : runtime.proc.stdout;
 
@@ -108,6 +111,7 @@ export async function runRunCommand(ctx) {
   const systemPrompt = agentProfile
     ? composeProfilePrompt(agentProfile, {
         profilesDir: resolve(cwd, ".claude/agents"),
+        runtime,
       })
     : undefined;
 

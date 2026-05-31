@@ -1,9 +1,8 @@
-import { execSync } from "node:child_process";
-import { createWriteStream } from "node:fs";
-import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
+
+import { isoTimestamp } from "@forwardimpact/libutil";
 
 const API = "https://api.github.com";
 
@@ -17,11 +16,15 @@ export class TraceGitHub {
    * @param {string} deps.token - GitHub token
    * @param {string} deps.owner - Repository owner
    * @param {string} deps.repo  - Repository name
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} deps.runtime -
+   *   Ambient collaborators; uses `fs`, `subprocess`, `clock`.
    */
-  constructor({ token, owner, repo }) {
+  constructor({ token, owner, repo, runtime }) {
+    if (!runtime) throw new Error("runtime is required");
     this.token = token;
     this.owner = owner;
     this.repo = repo;
+    this.runtime = runtime;
   }
 
   /**
@@ -35,7 +38,7 @@ export class TraceGitHub {
    */
   async listRuns(opts = {}) {
     const { pattern = "agent", limit = 50, lookback = "7d" } = opts;
-    const cutoff = parseLookback(lookback);
+    const cutoff = parseLookback(lookback, this.runtime.clock.now());
 
     const params = new URLSearchParams({
       per_page: String(Math.min(limit, 100)),
@@ -77,8 +80,9 @@ export class TraceGitHub {
    * @returns {Promise<{dir: string, artifact: string, files: string[]}>}
    */
   async downloadTrace(runId, opts = {}) {
+    const fs = this.runtime.fs;
     const dir = opts.dir ?? `/tmp/trace-${runId}`;
-    await mkdir(dir, { recursive: true });
+    await fs.mkdir(dir, { recursive: true });
 
     // List artifacts for this run.
     const url = `${API}/repos/${this.owner}/${this.repo}/actions/runs/${runId}/artifacts`;
@@ -121,15 +125,27 @@ export class TraceGitHub {
     }
 
     // Stream to disk then extract.
-    await pipeline(Readable.fromWeb(response.body), createWriteStream(zipPath));
-
-    execSync(
-      `unzip -o -q ${JSON.stringify(zipPath)} -d ${JSON.stringify(dir)}`,
+    await pipeline(
+      Readable.fromWeb(response.body),
+      fs.createWriteStream(zipPath),
     );
 
+    const unzip = await this.runtime.subprocess.run("unzip", [
+      "-o",
+      "-q",
+      zipPath,
+      "-d",
+      dir,
+    ]);
+    if (unzip.exitCode !== 0) {
+      throw new Error(
+        `unzip failed (${unzip.exitCode}): ${unzip.stderr || unzip.stdout}`,
+      );
+    }
+
     // List extracted files.
-    const { readdirSync } = await import("node:fs");
-    const files = readdirSync(dir).filter((f) => !f.endsWith(".zip"));
+    const entries = await fs.readdir(dir);
+    const files = entries.filter((f) => !f.endsWith(".zip"));
 
     return { dir, artifact: artifact.name, files };
   }
@@ -160,14 +176,15 @@ export class TraceGitHub {
  * Parse a lookback duration string into an ISO date string.
  * Supports: Nd (days), Nh (hours), Nw (weeks).
  * @param {string} lookback
+ * @param {number} nowMs - Current time in ms (`runtime.clock.now()`).
  * @returns {string|null} ISO date string or null if unparseable
  */
-function parseLookback(lookback) {
+function parseLookback(lookback, nowMs) {
   const match = lookback.match(/^(\d+)([dhw])$/);
   if (!match) return null;
   const [, val, unit] = match;
   const ms = { d: 86400000, h: 3600000, w: 604800000 }[unit];
-  return new Date(Date.now() - parseInt(val, 10) * ms).toISOString();
+  return isoTimestamp(nowMs - parseInt(val, 10) * ms);
 }
 
 /**
@@ -203,22 +220,23 @@ export function parseGitRemote(remote) {
  *   1. `GITHUB_REPOSITORY` env var (set automatically by GitHub Actions).
  *   2. `git remote get-url origin` in the current working directory.
  *
- * @returns {{owner: string, repo: string}}
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @returns {Promise<{owner: string, repo: string}>}
  * @throws {Error} with a clear message if neither source yields a parseable slug.
  */
-export function detectRepoSlug() {
-  const env = process.env.GITHUB_REPOSITORY;
+export async function detectRepoSlug(runtime) {
+  const env = runtime.proc.env.GITHUB_REPOSITORY;
   if (env && env.trim()) {
     return parseGitRemote(env.trim());
   }
 
-  let remote;
-  try {
-    remote = execSync("git remote get-url origin", {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-  } catch {
+  const result = await runtime.subprocess.run("git", [
+    "remote",
+    "get-url",
+    "origin",
+  ]);
+  const remote = result.exitCode === 0 ? result.stdout.trim() : "";
+  if (result.exitCode !== 0) {
     throw new Error(
       "Cannot detect repository: set --repo <owner/repo>, export GITHUB_REPOSITORY, or run inside a git checkout with an 'origin' remote.",
     );
@@ -245,10 +263,12 @@ export function detectRepoSlug() {
  * @param {object} opts
  * @param {string} opts.token - GitHub token (e.g. from `Config.ghToken()`)
  * @param {string} [opts.repo] - "owner/repo" override (default: detect from git remote)
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators.
  * @returns {Promise<TraceGitHub>}
  */
 export async function createTraceGitHub(opts = {}) {
-  const { token, repo: repoOverride } = opts;
+  const { token, repo: repoOverride, runtime } = opts;
+  if (!runtime) throw new Error("createTraceGitHub: runtime is required");
   if (!token) {
     throw new Error(
       "createTraceGitHub: token is required (pass Config.ghToken())",
@@ -257,7 +277,7 @@ export async function createTraceGitHub(opts = {}) {
 
   const { owner, repo } = repoOverride
     ? parseGitRemote(repoOverride)
-    : detectRepoSlug();
+    : await detectRepoSlug(runtime);
 
-  return new TraceGitHub({ token, owner, repo });
+  return new TraceGitHub({ token, owner, repo, runtime });
 }

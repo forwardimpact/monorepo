@@ -109,8 +109,10 @@ export function createFacilitator({
   profilesDir,
   taskAmend,
   redactor,
+  runtime,
 }) {
   if (!redactor) throw new Error("redactor is required");
+  if (!runtime) throw new Error("runtime is required");
   const resolvedProfilesDir =
     profilesDir ?? resolve(facilitatorCwd, ".claude/agents");
   const ctx = createOrchestrationContext();
@@ -151,6 +153,7 @@ export function createFacilitator({
         profile: config.agentProfile,
         profilesDir: resolvedProfilesDir,
         trailer: agentTrailer,
+        runtime,
       }),
       redactor,
     });
@@ -187,6 +190,7 @@ export function createFacilitator({
       profile: facilitatorProfile,
       profilesDir: resolvedProfilesDir,
       trailer: FACILITATOR_SYSTEM_PROMPT,
+      runtime,
     }),
     redactor,
   });

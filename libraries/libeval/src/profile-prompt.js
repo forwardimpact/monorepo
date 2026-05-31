@@ -14,20 +14,25 @@
  *   of the above based on `opts.role`.
  */
 
-import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Compose a `claude_code`-preset system prompt from a profile file.
+ * Compose a `claude_code`-preset system prompt from a profile file. The
+ * profile is read synchronously off the injected `runtime.fsSync` surface —
+ * this composer runs inside the synchronous SDK-option builders of the
+ * supervisor / facilitator / discusser / judge factories, so it cannot go
+ * async without an unbounded cascade.
+ *
  * @param {string} name - Profile basename (no `.md` suffix)
  * @param {object} opts
  * @param {string} opts.profilesDir - Directory containing `<name>.md`
  * @param {string} [opts.trailer] - Mode-specific trailer appended after a blank line
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators; uses `fsSync.readFileSync`.
  * @returns {{type: "preset", preset: "claude_code", append: string}}
  */
-export function composeProfilePrompt(name, { profilesDir, trailer }) {
+export function composeProfilePrompt(name, { profilesDir, trailer, runtime }) {
   const path = join(profilesDir, `${name}.md`);
-  const raw = readFileSync(path, "utf8");
+  const raw = runtime.fsSync.readFileSync(path, "utf8");
   const body = stripFrontmatter(raw).trim();
   const append = trailer && trailer.length > 0 ? `${body}\n\n${trailer}` : body;
   return { type: "preset", preset: "claude_code", append };
@@ -39,13 +44,14 @@ export function composeProfilePrompt(name, { profilesDir, trailer }) {
  * @param {string} [opts.profile] - Profile basename (no `.md` suffix)
  * @param {string} [opts.profilesDir] - Directory containing profile files
  * @param {string} opts.trailer - Mode-specific orchestration instructions
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators; uses `fsSync.readFileSync`.
  * @returns {string}
  */
-export function composeLeadPrompt({ profile, profilesDir, trailer }) {
+export function composeLeadPrompt({ profile, profilesDir, trailer, runtime }) {
   if (!trailer) throw new Error("trailer is required");
   if (!profile) return trailer;
   const path = join(profilesDir, `${profile}.md`);
-  const raw = readFileSync(path, "utf8");
+  const raw = runtime.fsSync.readFileSync(path, "utf8");
   const body = stripFrontmatter(raw).trim();
   return `${body}\n\n${trailer}`;
 }
@@ -59,15 +65,22 @@ export function composeLeadPrompt({ profile, profilesDir, trailer }) {
  * @param {string} [opts.profile] - Profile basename
  * @param {string} [opts.profilesDir]
  * @param {string} opts.trailer - Mode-specific instructions
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators; uses `fsSync.readFileSync`.
  * @returns {string | {type: "preset", preset: "claude_code", append: string}}
  */
-export function composeSystemPrompt({ role, profile, profilesDir, trailer }) {
+export function composeSystemPrompt({
+  role,
+  profile,
+  profilesDir,
+  trailer,
+  runtime,
+}) {
   if (!trailer) throw new Error("trailer is required");
   if (role === "lead") {
-    return composeLeadPrompt({ profile, profilesDir, trailer });
+    return composeLeadPrompt({ profile, profilesDir, trailer, runtime });
   }
   if (profile) {
-    return composeProfilePrompt(profile, { profilesDir, trailer });
+    return composeProfilePrompt(profile, { profilesDir, trailer, runtime });
   }
   return { type: "preset", preset: "claude_code", append: trailer };
 }

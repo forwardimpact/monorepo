@@ -5,7 +5,6 @@
  * These files list all entity files in a directory.
  */
 
-import { readdir, writeFile } from "fs/promises";
 import { join, basename } from "path";
 import { stringify as stringifyYaml } from "yaml";
 
@@ -83,12 +82,18 @@ ${content}`;
 }
 
 /**
- * Create an IndexGenerator with real filesystem and serializer dependencies
+ * Create an IndexGenerator wired to the injected runtime's async fs surface.
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators.
  * @returns {IndexGenerator}
  */
-export function createIndexGenerator() {
+export function createIndexGenerator(runtime) {
+  if (!runtime?.fs) throw new Error("createIndexGenerator requires runtime.fs");
+  const { readdir, writeFile } = runtime.fs;
   return new IndexGenerator(
-    { readdir, writeFile },
+    {
+      readdir: (...a) => readdir(...a),
+      writeFile: (...a) => writeFile(...a),
+    },
     { stringify: stringifyYaml },
   );
 }

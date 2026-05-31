@@ -1,9 +1,42 @@
 /**
  * Scheduler — cron matching, shouldWake logic, wake orchestration.
+ *
+ * The genuine wall-clock read ("what time is it now?") routes through the
+ * injected `runtime.clock` (see `Scheduler#wakeDueAgents` and `failAgent`).
+ * The pure cron helpers below receive that `now` as an explicit `Date` and
+ * construct further `Date` objects only for deterministic date *arithmetic*
+ * over caller-supplied or parsed-from-state inputs (never an ambient no-arg
+ * `new Date()`); the AST checker cannot distinguish the two, so this file is
+ * allow-listed in check-ambient-deps.allow.yml with that reason.
  */
+
+import { isoTimestamp } from "@forwardimpact/libutil";
 
 /** Maximum time an agent can be "active" before being considered stale (35 min). */
 const MAX_AGENT_RUNTIME_MS = 35 * 60_000;
+
+/**
+ * Build a `Date` for "now" from the injected clock's milliseconds. The cron
+ * helpers operate on `Date` objects; this is the single seam that turns the
+ * wall-clock read (`runtime.clock.now()`) into one, so callers in other
+ * modules never construct an ambient `new Date()` themselves.
+ * @param {{now: () => number}} clock
+ * @returns {Date}
+ */
+export function nowFromClock(clock) {
+  return new Date(clock.now());
+}
+
+/**
+ * Format a stored ISO timestamp as a human-readable local time string. Parses
+ * an explicit value (never the wall clock); lives here so the only `new Date`
+ * construction sites stay in this allow-listed module.
+ * @param {string} iso
+ * @returns {string}
+ */
+export function formatLocalTime(iso) {
+  return new Date(Date.parse(iso)).toLocaleString();
+}
 
 // --- Cron matching (pure functions) ------------------------------------------
 
@@ -133,12 +166,13 @@ export function computeNextWakeAt(agent, agentState, now) {
 /**
  * @param {Object} agentState
  * @param {string} error
+ * @param {number} nowMs - Wall-clock milliseconds (from `runtime.clock.now()`)
  */
-export function failAgent(agentState, error) {
+export function failAgent(agentState, error, nowMs) {
   Object.assign(agentState, {
     status: "failed",
     startedAt: null,
-    lastWokeAt: new Date().toISOString(),
+    lastWokeAt: isoTimestamp(nowMs),
     lastError: String(error).slice(0, 500),
   });
 }
@@ -151,33 +185,38 @@ export class Scheduler {
   #stateManager;
   #agentRunner;
   #log;
+  #clock;
 
   /**
-   * @param {Function} loadConfig - Returns scheduler config
+   * @param {() => Promise<Object>} loadConfig - Returns scheduler config
    * @param {import('./state-manager.js').StateManager} stateManager
    * @param {import('./agent-runner.js').AgentRunner} agentRunner
    * @param {Function} logFn
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+   *   Injected runtime bag (uses `clock` for the wall-clock read).
    */
-  constructor(loadConfig, stateManager, agentRunner, logFn) {
+  constructor(loadConfig, stateManager, agentRunner, logFn, runtime) {
     if (!loadConfig) throw new Error("loadConfig is required");
     if (!stateManager) throw new Error("stateManager is required");
     if (!agentRunner) throw new Error("agentRunner is required");
     if (!logFn) throw new Error("logFn is required");
+    if (!runtime?.clock) throw new Error("runtime.clock is required");
     this.#loadConfig = loadConfig;
     this.#stateManager = stateManager;
     this.#agentRunner = agentRunner;
     this.#log = logFn;
+    this.#clock = runtime.clock;
   }
 
   /**
    * Reset any agents exceeding max runtime, reload config, then wake each agent whose schedule is due.
    */
   async wakeDueAgents() {
-    const config = this.#loadConfig();
-    const state = this.#stateManager.load();
-    const now = new Date();
+    const config = await this.#loadConfig();
+    const state = await this.#stateManager.load();
+    const now = nowFromClock(this.#clock);
 
-    this.#stateManager.resetStaleAgents(
+    await this.#stateManager.resetStaleAgents(
       state,
       { reason: "Exceeded maximum runtime", maxAge: MAX_AGENT_RUNTIME_MS },
       this.#log,

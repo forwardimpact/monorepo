@@ -16,7 +16,7 @@ import {
 import { MessageBus } from "../src/message-bus.js";
 import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
-import { createToolUseMsg } from "@forwardimpact/libmock";
+import { createToolUseMsg, createTestRuntime } from "@forwardimpact/libmock";
 
 const noop = () => createNoopRedactor();
 
@@ -46,6 +46,7 @@ describe("systemPromptAmend delivery (SC 7 a)", () => {
       query: async function* () {},
       output: devNullStream(),
       redactor: noop(),
+      runtime: createTestRuntime(),
     });
     const append = facilitator.agents[0].runner.systemPrompt.append;
     assert.ok(append.includes(FACILITATED_AGENT_SYSTEM_PROMPT));
@@ -63,6 +64,7 @@ describe("systemPromptAmend delivery (SC 7 a)", () => {
       query: async function* () {},
       output: devNullStream(),
       redactor: noop(),
+      runtime: createTestRuntime(),
     });
     assert.strictEqual(
       facilitator.agents[0].runner.systemPrompt.append,

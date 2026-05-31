@@ -14,8 +14,6 @@
  * the JSONL append is the system of record.
  */
 
-import { createReadStream, createWriteStream } from "node:fs";
-import { mkdir, readFile, unlink } from "node:fs/promises";
 import { createInterface } from "node:readline";
 import { join, resolve as resolvePath } from "node:path";
 
@@ -60,17 +58,21 @@ export class BenchmarkRunner {
    *   write a valid NDJSON trace to `workdir.agentTracePath`. Default uses
    *   `createAgentRunner` with the harness `BASE_TOOLS` allowlist. Internal
    *   testing only — not part of the public API.
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime -
+   *   Injected ambient collaborators (`fs`, `subprocess`, `clock`, `proc`),
+   *   threaded into the installers, workdir manager, invariants, and judge.
    * @param {Function} [opts.runInvariants] - Test seam: replaces `runInvariants`.
-   *   Same contract as `runInvariants(task, ctx)`. Internal testing only.
+   *   Same contract as `runInvariants(task, ctx, runtime)`. Internal testing only.
    * @param {Function} [opts.runJudge] - Test seam: replaces `runJudge`. Same
-   *   contract as `runJudge(task, workdir, invariants, deps)`. Internal testing
-   *   only.
+   *   contract as `runJudge(task, workdir, invariants, deps)` (deps carries
+   *   `runtime`). Internal testing only.
    * @param {Function} [opts.installApm] - Test seam: replaces `installApm`.
-   *   Same contract as `installApm(family, outputDir)`. Lets tests inject a
-   *   fake `apm` spawn (or skip the install entirely) so the suite never
-   *   shells out to a real `apm` binary. Internal testing only.
+   *   Same contract as `installApm(family, outputDir, runtime)`. Lets tests
+   *   inject a fake subprocess (or skip the install entirely) so the suite
+   *   never shells out to a real `apm` binary. Internal testing only.
    * @param {Function} [opts.installNpm] - Test seam: replaces `installNpm`.
-   *   Same contract as `installNpm(family, stagingDir)`. Internal testing only.
+   *   Same contract as `installNpm(family, stagingDir, runtime)`. Internal
+   *   testing only.
    */
   constructor({
     family,
@@ -84,6 +86,7 @@ export class BenchmarkRunner {
     allowedTools,
     maxTurns,
     termGraceMs,
+    runtime,
     // Test seams — default to the real implementations.
     runAgent,
     runInvariants: runInvariantsHook,
@@ -91,12 +94,8 @@ export class BenchmarkRunner {
     installApm: installApmHook,
     installNpm: installNpmHook,
   }) {
-    if (!family) throw new Error("family is required");
-    if (!Number.isInteger(runs) || runs < 1)
-      throw new Error("runs must be an integer ≥ 1");
-    if (!output) throw new Error("output is required");
-    if (!agentModel) throw new Error("agentModel is required");
-    if (!query) throw new Error("query is required");
+    validateRunnerArgs({ family, runs, output, agentModel, query, runtime });
+    this.runtime = runtime;
     this.familyInput = family;
     this.runs = runs;
     this.output = output;
@@ -123,15 +122,16 @@ export class BenchmarkRunner {
    * @returns {AsyncGenerator<object>}
    */
   async *run() {
+    const runtime = this.runtime;
     const family =
       typeof this.familyInput === "string"
-        ? await loadTaskFamily(this.familyInput)
+        ? await loadTaskFamily(this.familyInput, runtime)
         : this.familyInput;
 
-    await mkdir(this.output, { recursive: true });
+    await runtime.fs.mkdir(this.output, { recursive: true });
     const { stagingDir, skillSetHash, judgeProfilesDir } =
-      await this._installApmHook(family, this.output);
-    await this._installNpmHook(family, stagingDir);
+      await this._installApmHook(family, this.output, runtime);
+    await this._installNpmHook(family, stagingDir, runtime);
 
     const tasks = family.tasks();
     if (this.profiles.judge) {
@@ -139,6 +139,7 @@ export class BenchmarkRunner {
         family,
         judgeProfilesDir,
         this.profiles.judge,
+        runtime,
       );
     }
 
@@ -147,10 +148,13 @@ export class BenchmarkRunner {
       runOutputDir: this.output,
       termGraceMs: this.termGraceMs,
       familyRootPath: family.rootPath,
+      runtime,
     });
 
     const resultsPath = join(this.output, "results.jsonl");
-    const resultsStream = createWriteStream(resultsPath, { flags: "a" });
+    const resultsStream = runtime.fs.createWriteStream(resultsPath, {
+      flags: "a",
+    });
     try {
       for (const task of tasks) {
         for (let runIndex = 0; runIndex < this.runs; runIndex++) {
@@ -172,7 +176,7 @@ export class BenchmarkRunner {
   }
 
   async #runOne(family, wm, task, runIndex, skillSetHash, judgeProfilesDir) {
-    const t0 = Date.now();
+    const t0 = this.runtime.clock.now();
     const workdir = await wm.start(task, runIndex);
     try {
       if (workdir.preflightError) {
@@ -182,7 +186,7 @@ export class BenchmarkRunner {
           workdir,
           skillSetHash,
           familyRevision: family.familyRevision,
-          durationMs: Date.now() - t0,
+          durationMs: this.runtime.clock.now() - t0,
         });
         return this.#validateOrFallback(
           record,
@@ -191,11 +195,15 @@ export class BenchmarkRunner {
       }
       const { costUsd, turns, submission, agentError } =
         await this.#runAgentSafe(task, workdir);
-      const invariants = await this._runInvariantsHook(task, {
-        cwd: workdir.cwd,
-        port: workdir.port,
-        runDir: workdir.runDir,
-      });
+      const invariants = await this._runInvariantsHook(
+        task,
+        {
+          cwd: workdir.cwd,
+          port: workdir.port,
+          runDir: workdir.runDir,
+        },
+        this.runtime,
+      );
       let judgeVerdict = null;
       if (task.paths.judge) {
         const judgeContext = await this.#buildJudgeContext(
@@ -212,6 +220,7 @@ export class BenchmarkRunner {
             model: this.judgeModel,
             judgeProfile: this.profiles.judge ?? undefined,
             profilesDir: judgeProfilesDir,
+            runtime: this.runtime,
           },
           judgeContext,
         );
@@ -245,7 +254,7 @@ export class BenchmarkRunner {
         },
         skillSetHash,
         familyRevision: family.familyRevision,
-        durationMs: Date.now() - t0,
+        durationMs: this.runtime.clock.now() - t0,
         ...(agentError && { agentError }),
       };
       return this.#validateOrFallback(record, resultsRecordKey(task, runIndex));
@@ -283,10 +292,11 @@ export class BenchmarkRunner {
    * agent.ndjson and supervisor.ndjson and extract cost/turns/submission.
    */
   async #runAgent(task, workdir) {
+    const fs = this.runtime.fs;
     const combinedPath = join(workdir.runDir, ".combined.ndjson");
-    const combinedStream = createWriteStream(combinedPath);
+    const combinedStream = fs.createWriteStream(combinedPath);
     const supervisorInstructions = task.paths.supervisor
-      ? await readFile(task.paths.supervisor, "utf8").catch(() => null)
+      ? await fs.readFile(task.paths.supervisor, "utf8").catch(() => null)
       : null;
     const supervisor = createSupervisor({
       supervisorCwd: workdir.cwd,
@@ -301,9 +311,11 @@ export class BenchmarkRunner {
       ...(supervisorInstructions && { taskAmend: supervisorInstructions }),
       redactor: createRedactor({
         allowlist: [...DEFAULT_ENV_ALLOWLIST, ...(workdir.envNames ?? [])],
+        runtime: this.runtime,
       }),
+      runtime: this.runtime,
     });
-    const instructions = await readFile(task.paths.instructions, "utf8");
+    const instructions = await fs.readFile(task.paths.instructions, "utf8");
     let agentError = null;
     try {
       const result = await supervisor.run(instructions);
@@ -316,16 +328,21 @@ export class BenchmarkRunner {
       await new Promise((r) => combinedStream.end(r));
     }
     const summary = await splitAndSummarize(
+      this.runtime,
       combinedPath,
       workdir.agentTracePath,
       workdir.supervisorTracePath,
     );
-    await unlink(combinedPath).catch(() => {});
+    await fs.unlink(combinedPath).catch(() => {});
     return { ...summary, agentError };
   }
 
   async #buildJudgeContext(task, workdir, skillSetHash) {
-    const agentInstructions = await readFile(task.paths.instructions, "utf8");
+    const fs = this.runtime.fs;
+    const agentInstructions = await fs.readFile(
+      task.paths.instructions,
+      "utf8",
+    );
     let agentProfile = "";
     if (this.profiles.agent) {
       const profilePath = resolvePath(
@@ -333,7 +350,7 @@ export class BenchmarkRunner {
         ".claude/agents",
         `${this.profiles.agent}.md`,
       );
-      agentProfile = await readFile(profilePath, "utf8").catch(() => "");
+      agentProfile = await fs.readFile(profilePath, "utf8").catch(() => "");
     }
     return { agentInstructions, agentProfile, skillSetHash };
   }
@@ -390,6 +407,27 @@ export class BenchmarkRunner {
   }
 }
 
+/**
+ * Validate the required BenchmarkRunner constructor arguments. Extracted from
+ * the constructor to keep its cognitive complexity under the lint ceiling.
+ */
+function validateRunnerArgs({
+  family,
+  runs,
+  output,
+  agentModel,
+  query,
+  runtime,
+}) {
+  if (!family) throw new Error("family is required");
+  if (!Number.isInteger(runs) || runs < 1)
+    throw new Error("runs must be an integer ≥ 1");
+  if (!output) throw new Error("output is required");
+  if (!agentModel) throw new Error("agentModel is required");
+  if (!query) throw new Error("query is required");
+  if (!runtime) throw new Error("runtime is required");
+}
+
 function resultsRecordKey(task, runIndex) {
   return { taskId: task.id, runIndex };
 }
@@ -408,11 +446,17 @@ async function writeRecord(stream, record) {
  * `supervisorPath`.
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: stream-splitting state machine
-async function splitAndSummarize(combinedPath, agentPath, supervisorPath) {
-  const agentStream = createWriteStream(agentPath);
-  const supStream = createWriteStream(supervisorPath);
+async function splitAndSummarize(
+  runtime,
+  combinedPath,
+  agentPath,
+  supervisorPath,
+) {
+  const fs = runtime.fs;
+  const agentStream = fs.createWriteStream(agentPath);
+  const supStream = fs.createWriteStream(supervisorPath);
   const rl = createInterface({
-    input: createReadStream(combinedPath),
+    input: fs.createReadStream(combinedPath),
     crlfDelay: Infinity,
   });
   let agentCost = 0;

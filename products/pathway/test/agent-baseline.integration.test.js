@@ -45,7 +45,7 @@ function silent(fn) {
 
 async function runAgent(dataDir) {
   const outputDir = mkdtempSync(join(tmpdir(), "agent-baseline-out-"));
-  const loader = createDataLoader();
+  const loader = createDataLoader(createDefaultRuntime());
   const templateLoader = createTemplateLoader(templatesDir);
   const data = await loader.loadAllData(dataDir);
   await silent(() =>

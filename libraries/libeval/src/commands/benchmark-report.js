@@ -40,6 +40,7 @@ export async function runBenchmarkReportCommand(ctx) {
     inputDir: resolve(inputDir),
     kValues,
     includeRuns: format === "text",
+    runtime,
   });
   if (format === "text") {
     runtime.proc.stdout.write(renderTextReport(report, kValues) + "\n");

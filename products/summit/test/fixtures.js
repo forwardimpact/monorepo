@@ -2,11 +2,15 @@ import { join } from "node:path";
 
 import { memoizeAsync } from "@forwardimpact/libmock";
 import { createDataLoader } from "@forwardimpact/map/loader";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { computeCoverage, resolveTeam } from "../src/aggregation/coverage.js";
 import { detectRisks } from "../src/aggregation/risks.js";
 
 const FIXTURE_DATA = join(import.meta.dirname, "fixtures", "map-data");
+// The fixture loader reads the starter standard from disk, so it wires a real
+// createDefaultRuntime() into the Map data loader.
+const runtime = createDefaultRuntime();
 
 /**
  * Loads the shared starter standard fixture (map data + agent data) once per
@@ -17,7 +21,7 @@ const FIXTURE_DATA = join(import.meta.dirname, "fixtures", "map-data");
  */
 export function loadStarterData() {
   return memoizeAsync("summit:starter-data", async () => {
-    const loader = createDataLoader();
+    const loader = createDataLoader(runtime);
     const [data, agentData] = await Promise.all([
       loader.loadAllData(FIXTURE_DATA),
       loader.loadAgentData(FIXTURE_DATA),

@@ -4,7 +4,6 @@
  * Initializes a new standard data directory by copying starter data.
  */
 
-import { cp, access } from "fs/promises";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { bootstrapProject } from "@forwardimpact/libconfig";
@@ -20,30 +19,39 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const starterDir = join(__dirname, "..", "..", "starter");
 
 /**
- * Run the init command
- * @param {string} [targetPath] - Target directory (defaults to cwd)
+ * Run the init command.
+ *
+ * Returns a result envelope (`{ ok }`); the bin translates a `false` `ok`
+ * into a non-zero exit code (design Decision 4 — only bins call
+ * `runtime.proc.exit`).
+ *
+ * @param {string|undefined} targetPath - Target directory (defaults to cwd)
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs, proc).
+ * @returns {Promise<{ok: boolean, code?: number}>}
  */
-export async function runInit(targetPath) {
-  const target = targetPath || process.cwd();
+export async function runInit(targetPath, runtime) {
+  const target = targetPath || runtime.proc.cwd();
   const dataDir = join(target, "data", "pathway");
 
   // Verify starter data is available
   try {
-    await access(starterDir);
+    await runtime.fs.access(starterDir);
   } catch {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError("Starter data not found in package.") + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       "This may indicate a corrupted package installation.\n",
     );
-    process.exit(1);
+    return { ok: false, code: 1 };
   }
 
   // Copy starter data — idempotent so substrate stage can re-stage a
   // workspace produced by `fit-map init` as a no-op.
-  process.stdout.write("Creating ./data/pathway/ with starter data...\n\n");
-  await cp(starterDir, dataDir, {
+  runtime.proc.stdout.write(
+    "Creating ./data/pathway/ with starter data...\n\n",
+  );
+  await runtime.fs.cp(starterDir, dataDir, {
     recursive: true,
     force: false,
     errorOnExist: false,
@@ -54,19 +62,19 @@ export async function runInit(targetPath) {
   // config/. No product.map starter fragment is shipped this spec.
   await bootstrapProject({ target, fragment: {} });
 
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatSuccess("Created ./data/pathway/ with starter data.") + "\n\n",
   );
 
-  process.stdout.write(formatHeader("Next steps") + "\n");
-  process.stdout.write(
+  runtime.proc.stdout.write(formatHeader("Next steps") + "\n");
+  runtime.proc.stdout.write(
     formatBullet("Edit data files to match your organization", 0) + "\n",
   );
-  process.stdout.write(formatBullet("npx fit-map validate", 0) + "\n");
-  process.stdout.write(formatBullet("npx fit-pathway dev", 0) + "\n\n");
+  runtime.proc.stdout.write(formatBullet("npx fit-map validate", 0) + "\n");
+  runtime.proc.stdout.write(formatBullet("npx fit-pathway dev", 0) + "\n\n");
 
-  process.stdout.write(formatHeader("Data structure") + "\n");
-  process.stdout.write(
+  runtime.proc.stdout.write(formatHeader("Data structure") + "\n");
+  runtime.proc.stdout.write(
     indent(
       `data/pathway/
 \u251C\u2500\u2500 standard.yaml        # Standard metadata
@@ -79,4 +87,6 @@ export async function runInit(targetPath) {
       2,
     ) + "\n",
   );
+
+  return { ok: true };
 }

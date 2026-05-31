@@ -16,6 +16,7 @@ import { createLandmarkClient } from "./supabase.js";
  * @param {object} params.options - Parsed CLI options.
  * @param {boolean} params.needsSupabase - Whether to open a Supabase client.
  * @param {{email: string, jwt: string}|null} [params.identity] - Resolved caller identity (required when needsSupabase).
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators (fs).
  * @returns {Promise<{mapData: object, supabase: object|null, format: string, options: object, identity: object|null}>}
  */
 export async function buildContext({
@@ -24,8 +25,9 @@ export async function buildContext({
   options,
   needsSupabase,
   identity = null,
+  runtime,
 }) {
-  const mapData = await loadMapData(dataDir);
+  const mapData = await loadMapData(dataDir, runtime);
   const supabase = needsSupabase
     ? createLandmarkClient({ jwt: identity?.jwt, config })
     : null;

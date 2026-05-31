@@ -5,7 +5,6 @@
  * Replaces custom validation with declarative schema validation.
  */
 
-import { readFile, readdir, stat } from "fs/promises";
 import { parse as parseYaml } from "yaml";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -473,16 +472,25 @@ export class SchemaValidator {
 }
 
 /**
- * Create a SchemaValidator with real dependencies
+ * Create a SchemaValidator wired to the injected runtime's async fs surface.
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators.
  * @returns {SchemaValidator}
  */
-export function createSchemaValidator() {
+export function createSchemaValidator(runtime) {
+  if (!runtime?.fs)
+    throw new Error("createSchemaValidator requires runtime.fs");
+  const { readFile, readdir, stat } = runtime.fs;
   const schemaDir = join(
     dirname(fileURLToPath(import.meta.url)),
     "../schema/json",
   );
-  return new SchemaValidator({ readFile, readdir, stat }, schemaDir, {
-    Ajv,
-    addFormats,
-  });
+  return new SchemaValidator(
+    {
+      readFile: (...a) => readFile(...a),
+      readdir: (...a) => readdir(...a),
+      stat: (...a) => stat(...a),
+    },
+    schemaDir,
+    { Ajv, addFormats },
+  );
 }

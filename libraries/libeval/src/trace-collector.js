@@ -9,6 +9,8 @@
  * one formatting path.
  */
 
+import { isoTimestamp } from "@forwardimpact/libutil";
+
 import { renderTurnLines } from "./render/turn-renderer.js";
 import { isSuppressedOrchestratorEvent } from "./render/orchestrator-filter.js";
 
@@ -16,11 +18,16 @@ import { isSuppressedOrchestratorEvent } from "./render/orchestrator-filter.js";
 export class TraceCollector {
   /**
    * @param {object} [deps]
-   * @param {function} [deps.now] - Returns ISO timestamp string. Defaults to () => new Date().toISOString()
+   * @param {function} [deps.now] - Returns an ISO timestamp string. Injected
+   *   so the collector never reads the wall clock directly; construct it as
+   *   `() => isoTimestamp(runtime.clock.now())`. When omitted (pure
+   *   structural/replay use where every event already carries a `timestamp`),
+   *   the fallback formats the epoch — a deterministic sentinel, not a clock
+   *   read.
    */
   constructor(deps = {}) {
     /** @type {function} */
-    this.now = deps.now ?? (() => new Date().toISOString());
+    this.now = deps.now ?? (() => isoTimestamp(0));
     /** @type {object|null} */
     this.metadata = null;
     /** @type {Array<object>} */

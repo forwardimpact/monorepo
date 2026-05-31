@@ -5,21 +5,26 @@ import { connect } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 import { createApmInstaller } from "../src/benchmark/apm-installer.js";
 import { loadTaskFamily } from "../src/benchmark/task-family.js";
 import { createWorkdirManager } from "../src/benchmark/workdir.js";
-import { makeFakeApmSpawn } from "./mock-apm-spawn.js";
+import { realRuntimeWithSubprocess } from "./real-runtime.js";
 
 // Integration: WorkdirManager spawns real detached process groups and binds
-// real TCP ports — exactly the surface the injected runtime does not yet
-// cover. This case spawns a real `node` listener subprocess to verify the
-// SIGTERM/SIGKILL teardown actually reaps it, so it stays an integration test.
+// real TCP ports through the production runtime. This case spawns a real
+// `node` listener subprocess to verify the SIGTERM/SIGKILL teardown actually
+// reaps it, so it stays an integration test. The apm installer keeps a fake
+// subprocess so the suite never shells out to a real `apm`.
 
 const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
   .pathname;
 
+const RT = createDefaultRuntime();
+
 function newInstaller() {
-  return createApmInstaller({ spawn: makeFakeApmSpawn() });
+  return createApmInstaller({ runtime: realRuntimeWithSubprocess() });
 }
 
 describe("WorkdirManager.teardown", () => {
@@ -27,13 +32,14 @@ describe("WorkdirManager.teardown", () => {
     // Synthesize a task whose preflight starts a background HTTP listener
     // on $PORT and then exits 0 itself. The listener lives in the same
     // process group; teardown should SIGTERM/SIGKILL it.
-    const family = await loadTaskFamily(FIXTURE);
+    const family = await loadTaskFamily(FIXTURE, RT);
     const out = await mkdtemp(join(tmpdir(), "benchmark-wm-listener-"));
     const { stagingDir } = await newInstaller().install(family, out);
     const wm = createWorkdirManager({
       stagingDir,
       runOutputDir: out,
       termGraceMs: 200,
+      runtime: RT,
     });
     const taskRoot = await mkdtemp(join(tmpdir(), "benchmark-listener-task-"));
     await mkdir(join(taskRoot, "hooks"), { recursive: true });

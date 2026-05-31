@@ -19,8 +19,8 @@
  */
 
 import path from "node:path";
-import fs from "node:fs/promises";
 import { randomBytes } from "node:crypto";
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { mintSupabaseJwt, parseDuration } from "@forwardimpact/libsecret";
 import { findAuthUser } from "../lib/auth-helpers.js";
 import { formatSuccess } from "@forwardimpact/libcli";
@@ -30,9 +30,16 @@ import { formatSuccess } from "@forwardimpact/libcli";
  * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase
  * @param {{supabaseJwtSecret: () => string}} params.config
  * @param {{email?: string, cwd?: string, ttl?: string, stash?: string}} params.options
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators (fs, proc, clock).
  * @returns {Promise<number>}
  */
-export async function runSubstrateIssueCommand({ supabase, config, options }) {
+export async function runSubstrateIssueCommand({
+  supabase,
+  config,
+  options,
+  runtime,
+}) {
+  const fs = runtime.fs;
   const { email, cwd, ttl, stash } = options;
   if (!email) throw new Error("substrate issue: --email <e> is required");
   if (!cwd) throw new Error("substrate issue: --cwd <path> is required");
@@ -67,7 +74,7 @@ export async function runSubstrateIssueCommand({ supabase, config, options }) {
 
   const envPath = path.join(cwd, ".env");
   const subPath = path.join(cwd, ".substrate.json");
-  const tag = `${process.pid}-${randomBytes(4).toString("hex")}`;
+  const tag = `${runtime.proc.pid}-${randomBytes(4).toString("hex")}`;
   const envTmp = `${envPath}.tmp-${tag}`;
   const subTmp = `${subPath}.tmp-${tag}`;
   try {
@@ -87,7 +94,7 @@ export async function runSubstrateIssueCommand({ supabase, config, options }) {
           manager_email: email,
           snapshot_id,
           item_id,
-          generated_at: new Date().toISOString(),
+          generated_at: isoTimestamp(runtime.clock.now()),
         },
         null,
         2,
@@ -114,7 +121,9 @@ export async function runSubstrateIssueCommand({ supabase, config, options }) {
     await fs.chmod(stash, 0o600);
   }
 
-  process.stdout.write(formatSuccess(`Issued substrate for ${email}`) + "\n");
+  runtime.proc.stdout.write(
+    formatSuccess(`Issued substrate for ${email}`) + "\n",
+  );
   return 0;
 }
 

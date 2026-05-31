@@ -1,7 +1,12 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 import { transformPeople } from "@forwardimpact/map/activity/transform/people";
-import { createMockSupabaseClient } from "@forwardimpact/libmock";
+import {
+  createMockSupabaseClient,
+  createTestRuntime,
+} from "@forwardimpact/libmock";
+
+const runtime = createTestRuntime();
 
 function createFakeClient({ peopleYaml }) {
   const client = createMockSupabaseClient({
@@ -30,7 +35,7 @@ describe("activity/transform/people", () => {
     ].join("\n");
 
     const fake = createFakeClient({ peopleYaml: yaml });
-    const result = await transformPeople(fake);
+    const result = await transformPeople(fake, runtime);
 
     assert.strictEqual(result.imported, 2);
     assert.strictEqual(result.errors.length, 0);
@@ -55,7 +60,7 @@ describe("activity/transform/people", () => {
         },
       },
     };
-    const result = await transformPeople(fake);
+    const result = await transformPeople(fake, runtime);
     assert.strictEqual(result.imported, 0);
     assert.strictEqual(result.errors.length, 0);
   });
@@ -76,7 +81,7 @@ describe("activity/transform/people", () => {
         return { data: { text: async () => csv }, error: null };
       },
     });
-    const result = await transformPeople(fake);
+    const result = await transformPeople(fake, runtime);
     assert.strictEqual(result.imported, 2);
   });
 });

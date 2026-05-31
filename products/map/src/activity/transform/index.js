@@ -13,11 +13,12 @@ import { transformEvidence } from "./evidence.js";
 /**
  * Run all transforms in dependency order.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (clock).
  * @returns {Promise<{people: object, getdx: object, github: object, evidence: object}>}
  */
-export async function transformAll(supabase) {
-  const people = await transformPeople(supabase);
-  const getdx = await transformAllGetDX(supabase);
+export async function transformAll(supabase, runtime) {
+  const people = await transformPeople(supabase, runtime);
+  const getdx = await transformAllGetDX(supabase, runtime);
   const github = await transformAllGitHub(supabase);
   const evidence = await transformEvidence(supabase);
 

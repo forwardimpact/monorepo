@@ -5,7 +5,6 @@
  * Uses directory structure: disciplines/, tracks/, skills/
  */
 
-import { readFile, readdir, stat } from "fs/promises";
 import { parse as parseYaml } from "yaml";
 import { join, basename } from "path";
 import { validateAllData } from "./validation.js";
@@ -470,9 +469,19 @@ export class DataLoader {
 }
 
 /**
- * Create a DataLoader with real filesystem and parser dependencies
+ * Create a DataLoader wired to the injected runtime's async fs surface.
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators.
  * @returns {DataLoader}
  */
-export function createDataLoader() {
-  return new DataLoader({ readFile, readdir, stat }, { parseYaml });
+export function createDataLoader(runtime) {
+  if (!runtime?.fs) throw new Error("createDataLoader requires runtime.fs");
+  const { readFile, readdir, stat } = runtime.fs;
+  return new DataLoader(
+    {
+      readFile: (...a) => readFile(...a),
+      readdir: (...a) => readdir(...a),
+      stat: (...a) => stat(...a),
+    },
+    { parseYaml },
+  );
 }

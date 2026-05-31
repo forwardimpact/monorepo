@@ -1,5 +1,6 @@
-import fs from "node:fs/promises";
 import path from "node:path";
+
+import { isoTimestamp } from "@forwardimpact/libutil";
 
 /**
  * @typedef {object} LogWriterConfig
@@ -12,6 +13,8 @@ import path from "node:path";
  * Reliable log writer with rotation, inspired by s6-log
  */
 export class LogWriter {
+  #fs;
+  #clock;
   #logDir;
   #maxFileSize;
   #maxFiles;
@@ -23,10 +26,18 @@ export class LogWriter {
   /**
    * Creates a new LogWriter
    * @param {string} logDir - Directory for log files
-   * @param {LogWriterConfig} [config] - Writer configuration
+   * @param {object} options - Options bag
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} options.runtime
+   *   Injected runtime bag (uses `fs` async surface + `clock`).
+   * @param {LogWriterConfig} [options.config] - Writer configuration
    */
-  constructor(logDir, config = {}) {
+  constructor(logDir, options = {}) {
     if (!logDir) throw new Error("logDir is required");
+    const { runtime, config = {} } = options;
+    if (!runtime?.fs) throw new Error("runtime.fs is required");
+    if (!runtime?.clock) throw new Error("runtime.clock is required");
+    this.#fs = runtime.fs;
+    this.#clock = runtime.clock;
     this.#logDir = logDir;
     this.#maxFileSize = config.maxFileSize ?? 1_000_000;
     this.#maxFiles = config.maxFiles ?? 10;
@@ -41,14 +52,14 @@ export class LogWriter {
    * @returns {Promise<void>}
    */
   async init() {
-    await fs.mkdir(this.#logDir, { recursive: true });
+    await this.#fs.mkdir(this.#logDir, { recursive: true });
     await this.#loadCurrentSize();
   }
 
   /** Loads the current file size if it exists */
   async #loadCurrentSize() {
     try {
-      const stats = await fs.stat(this.#currentPath());
+      const stats = await this.#fs.stat(this.#currentPath());
       this.#currentSize = stats.size;
     } catch {
       this.#currentSize = 0;
@@ -74,7 +85,7 @@ export class LogWriter {
 
     for (const line of lines) {
       const formatted = this.#timestamp
-        ? `${new Date().toISOString()} ${line}\n`
+        ? `${isoTimestamp(this.#clock.now())} ${line}\n`
         : `${line}\n`;
       this.#writeQueue.push(formatted);
     }
@@ -98,7 +109,7 @@ export class LogWriter {
         await this.rotate();
       }
 
-      await fs.appendFile(this.#currentPath(), line);
+      await this.#fs.appendFile(this.#currentPath(), line);
       this.#currentSize += bytes;
     }
 
@@ -110,8 +121,7 @@ export class LogWriter {
    * @returns {Promise<void>}
    */
   async rotate() {
-    const timestamp = new Date()
-      .toISOString()
+    const timestamp = isoTimestamp(this.#clock.now())
       .replace(/[:.]/g, "-")
       .replace("T", "_")
       .replace("Z", "");
@@ -119,7 +129,7 @@ export class LogWriter {
     const archivePath = path.join(this.#logDir, archiveName);
 
     try {
-      await fs.rename(this.#currentPath(), archivePath);
+      await this.#fs.rename(this.#currentPath(), archivePath);
     } catch {
       // Current file may not exist
     }
@@ -130,7 +140,7 @@ export class LogWriter {
 
   /** Removes old archives beyond maxFiles limit */
   async #pruneArchives() {
-    const entries = await fs.readdir(this.#logDir);
+    const entries = await this.#fs.readdir(this.#logDir);
     const archives = entries
       .filter((name) => name.startsWith("@") && name.endsWith(".s"))
       .sort()
@@ -140,7 +150,7 @@ export class LogWriter {
 
     const toDelete = archives.slice(this.#maxFiles);
     for (const name of toDelete) {
-      await fs.unlink(path.join(this.#logDir, name));
+      await this.#fs.unlink(path.join(this.#logDir, name));
     }
   }
 
@@ -150,7 +160,7 @@ export class LogWriter {
    */
   async close() {
     while (this.#writeQueue.length > 0 || this.#processing) {
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => this.#clock.setTimeout(resolve, 10));
     }
   }
 }

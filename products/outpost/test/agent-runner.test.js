@@ -1,31 +1,29 @@
 /**
  * AgentRunner unit tests
  *
- * Tests environment building and agent wake logic.
+ * Tests environment building and agent wake logic against injected mock
+ * collaborators (runtime fs/proc/clock + a stubbed posix-spawn module).
  */
-import { test, describe, before, after } from "node:test";
+import { test, describe } from "node:test";
 import assert from "node:assert";
-import { mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
 import { AgentRunner } from "../src/agent-runner.js";
-import { spy } from "@forwardimpact/libmock";
+import {
+  spy,
+  createTestRuntime,
+  createMockFs,
+  createMockProcess,
+} from "@forwardimpact/libmock";
 
-const TEST_KB = join(tmpdir(), "outpost-test-kb");
+const TEST_KB = "/work/outpost-test-kb";
 
 /**
  * Create a mock spawn module that records calls and returns a successful result.
  * @param {Object} [options]
  * @param {number} [options.exitCode=0]
  * @param {string} [options.stdout="ok"]
- * @param {string} [options.stderr=""]
  * @returns {{ module: Object, calls: Array }}
  */
-function createMockSpawn({
-  exitCode = 0,
-  stdout = "ok",
-  stderr: _stderr = "",
-} = {}) {
+function createMockSpawn({ exitCode = 0, stdout = "ok" } = {}) {
   const calls = [];
   return {
     calls,
@@ -46,33 +44,54 @@ function createMockSpawn({
 
 function createMockStateManager() {
   return {
-    save: spy(),
-    updateAgentState: spy(),
+    save: spy(async () => {}),
+    updateAgentState: spy(async () => {}),
   };
 }
 
+/**
+ * Build a runtime whose mock fs reports TEST_KB as existing and whose proc env
+ * carries the supplied vars.
+ * @param {Record<string,string>} env
+ */
+function makeRuntime(env) {
+  const fs = createMockFs({});
+  fs.dirs.add(TEST_KB);
+  return createTestRuntime({ fs, proc: createMockProcess({ env }) });
+}
+
 describe("AgentRunner", () => {
-  before(() => mkdirSync(TEST_KB, { recursive: true }));
-  after(() => rmSync(TEST_KB, { recursive: true, force: true }));
+  describe("constructor validation", () => {
+    test("throws when runtime is missing", () => {
+      assert.throws(
+        () =>
+          new AgentRunner(
+            createMockSpawn().module,
+            createMockStateManager(),
+            () => {},
+            "/tmp/cache",
+          ),
+        /runtime.fs is required/,
+      );
+    });
+  });
 
   describe("#buildSpawnEnv (via wake)", () => {
-    test("passes process.env to spawned process by default", async () => {
+    test("passes runtime.proc.env to spawned process by default", async () => {
       const { module: spawnMod, calls } = createMockSpawn();
       const runner = new AgentRunner(
         spawnMod,
         createMockStateManager(),
         () => {},
         "/tmp/cache",
+        makeRuntime({ HOME: "/home/u", PATH: "/usr/bin" }),
       );
 
-      const agent = { kb: TEST_KB };
-      const state = { agents: {} };
-      await runner.wake("test-agent", agent, state);
+      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
 
       assert.strictEqual(calls.length, 1);
-      const env = calls[0].env;
-      assert.strictEqual(env.HOME, process.env.HOME);
-      assert.strictEqual(env.PATH, process.env.PATH);
+      assert.strictEqual(calls[0].env.HOME, "/home/u");
+      assert.strictEqual(calls[0].env.PATH, "/usr/bin");
     });
 
     test("merges configEnv into spawn environment", async () => {
@@ -82,41 +101,43 @@ describe("AgentRunner", () => {
         createMockStateManager(),
         () => {},
         "/tmp/cache",
+        makeRuntime({ HOME: "/home/u" }),
       );
 
-      const agent = { kb: TEST_KB };
-      const state = { agents: {} };
       const configEnv = { NODE_EXTRA_CA_CERTS: "/etc/ssl/custom-ca.pem" };
-      await runner.wake("test-agent", agent, state, configEnv);
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB },
+        { agents: {} },
+        configEnv,
+      );
 
       assert.strictEqual(calls.length, 1);
-      const env = calls[0].env;
-      assert.strictEqual(env.NODE_EXTRA_CA_CERTS, "/etc/ssl/custom-ca.pem");
-      assert.strictEqual(env.HOME, process.env.HOME);
+      assert.strictEqual(
+        calls[0].env.NODE_EXTRA_CA_CERTS,
+        "/etc/ssl/custom-ca.pem",
+      );
+      assert.strictEqual(calls[0].env.HOME, "/home/u");
     });
 
-    test("configEnv overrides process.env values", async () => {
-      const original = process.env.TERM;
-      process.env.TERM = "xterm";
-      try {
-        const { module: spawnMod, calls } = createMockSpawn();
-        const runner = new AgentRunner(
-          spawnMod,
-          createMockStateManager(),
-          () => {},
-          "/tmp/cache",
-        );
+    test("configEnv overrides runtime.proc.env values", async () => {
+      const { module: spawnMod, calls } = createMockSpawn();
+      const runner = new AgentRunner(
+        spawnMod,
+        createMockStateManager(),
+        () => {},
+        "/tmp/cache",
+        makeRuntime({ TERM: "xterm" }),
+      );
 
-        const agent = { kb: TEST_KB };
-        const state = { agents: {} };
-        const configEnv = { TERM: "dumb" };
-        await runner.wake("test-agent", agent, state, configEnv);
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB },
+        { agents: {} },
+        { TERM: "dumb" },
+      );
 
-        assert.strictEqual(calls[0].env.TERM, "dumb");
-      } finally {
-        if (original === undefined) delete process.env.TERM;
-        else process.env.TERM = original;
-      }
+      assert.strictEqual(calls[0].env.TERM, "dumb");
     });
 
     test("expands ~ in configEnv values", async () => {
@@ -126,12 +147,15 @@ describe("AgentRunner", () => {
         createMockStateManager(),
         () => {},
         "/tmp/cache",
+        makeRuntime({}),
       );
 
-      const agent = { kb: TEST_KB };
-      const state = { agents: {} };
-      const configEnv = { NODE_EXTRA_CA_CERTS: "~/certs/ca-bundle.pem" };
-      await runner.wake("test-agent", agent, state, configEnv);
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB },
+        { agents: {} },
+        { NODE_EXTRA_CA_CERTS: "~/certs/ca-bundle.pem" },
+      );
 
       const env = calls[0].env;
       assert.ok(
@@ -151,14 +175,41 @@ describe("AgentRunner", () => {
         createMockStateManager(),
         () => {},
         "/tmp/cache",
+        makeRuntime({ HOME: "/home/u" }),
       );
 
-      const agent = { kb: TEST_KB };
-      const state = { agents: {} };
-      await runner.wake("test-agent", agent, state, undefined);
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB },
+        { agents: {} },
+        undefined,
+      );
 
       assert.strictEqual(calls.length, 1);
       assert.strictEqual(typeof calls[0].env, "object");
+    });
+  });
+
+  describe("killActiveChildren", () => {
+    test("sends SIGTERM via runtime.proc.kill to tracked children", async () => {
+      const { module: spawnMod } = createMockSpawn();
+      const runtime = makeRuntime({ HOME: "/home/u" });
+      const runner = new AgentRunner(
+        spawnMod,
+        createMockStateManager(),
+        () => {},
+        "/tmp/cache",
+        runtime,
+      );
+
+      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+      // pid 999 was tracked during wake but removed on exit; force one in.
+      runner.activeChildren.add(4242);
+      runner.killActiveChildren();
+
+      assert.deepStrictEqual(runtime.proc.kills, [
+        { pid: 4242, signal: "SIGTERM" },
+      ]);
     });
   });
 });

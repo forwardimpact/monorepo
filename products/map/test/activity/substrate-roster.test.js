@@ -4,8 +4,9 @@
  * propagation.
  */
 
-import { describe, test, beforeEach, afterEach } from "node:test";
+import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
+import { createTestRuntime } from "@forwardimpact/libmock";
 
 import { runRosterCommand } from "../../src/commands/substrate-roster.js";
 import { makeStub } from "./_substrate-stubs.js";
@@ -56,46 +57,14 @@ const supabasePersonaArtifacts = {
   evidence: [{ artifact_id: "ART1" }, { artifact_id: "ART2" }],
 };
 
-function captureStdout() {
-  const chunks = [];
-  const orig = process.stdout.write.bind(process.stdout);
-  process.stdout.write = (chunk) => {
-    chunks.push(typeof chunk === "string" ? chunk : chunk.toString("utf8"));
-    return true;
-  };
-  return {
-    text: () => chunks.join(""),
-    restore: () => {
-      process.stdout.write = orig;
-    },
-  };
-}
-
-function captureStderr() {
-  const chunks = [];
-  const orig = process.stderr.write.bind(process.stderr);
-  process.stderr.write = (chunk) => {
-    chunks.push(typeof chunk === "string" ? chunk : chunk.toString("utf8"));
-    return true;
-  };
-  return {
-    text: () => chunks.join(""),
-    restore: () => {
-      process.stderr.write = orig;
-    },
-  };
-}
-
 describe("substrate-roster JSON output", () => {
-  let out;
-  let err;
+  let runtime;
+  const out = () => runtime.proc.stdout.chunks.join("");
+  const err = () => runtime.proc.stderr.chunks.join("");
   beforeEach(() => {
-    out = captureStdout();
-    err = captureStderr();
-  });
-  afterEach(() => {
-    out.restore();
-    err.restore();
+    // Mock finder.findUpward returns null, so loadStory yields no DSL AST and
+    // the three DSL-derived fields stay null (asserted below).
+    runtime = createTestRuntime();
   });
 
   test("--format json returns { personas, selection_metadata } with per-row discovery", async () => {
@@ -103,9 +72,10 @@ describe("substrate-roster JSON output", () => {
     const code = await runRosterCommand({
       supabase,
       options: { format: "json" },
+      runtime,
     });
     assert.equal(code, 0);
-    const parsed = JSON.parse(out.text());
+    const parsed = JSON.parse(out());
     assert.equal(parsed.personas.length, 1);
     const alice = parsed.personas[0];
     assert.equal(alice.email, "alice@x");
@@ -132,9 +102,9 @@ describe("substrate-roster JSON output", () => {
 
   test("non-empty corpus exits 0 with table output", async () => {
     const supabase = makeStub(supabasePersonaArtifacts);
-    const code = await runRosterCommand({ supabase, options: {} });
+    const code = await runRosterCommand({ supabase, options: {}, runtime });
     assert.equal(code, 0);
-    const text = out.text();
+    const text = out();
     // Aligned header line, no leading bullet.
     assert.match(text, /^email\s+name\s+/);
     assert.match(text, /alice@x/);
@@ -143,8 +113,8 @@ describe("substrate-roster JSON output", () => {
 
   test("empty corpus exits non-zero with diagnostic on stderr", async () => {
     const supabase = makeStub({});
-    const code = await runRosterCommand({ supabase, options: {} });
+    const code = await runRosterCommand({ supabase, options: {}, runtime });
     assert.notEqual(code, 0);
-    assert.match(err.text(), /substrate roster:/);
+    assert.match(err(), /substrate roster:/);
   });
 });

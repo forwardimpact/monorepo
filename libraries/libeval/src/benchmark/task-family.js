@@ -17,45 +17,55 @@
  * a temp dir and `familyRevision` becomes `git:<sha>` of HEAD at clone time.
  * Local paths use the canonical-tree algorithm from design § Family revision
  * algorithm so the result is stable across operating systems.
+ *
+ * Filesystem and subprocess access route through the injected `runtime` bag
+ * (`runtime.fs` async, `runtime.subprocess.run` one-shot, `tmpdir` derived
+ * from `runtime.proc.env`).
  */
 
-import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import {
-  access,
-  constants,
-  lstat,
-  mkdtemp,
-  readdir,
-  readFile,
-  realpath,
-} from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join, posix, relative, resolve, sep } from "node:path";
 
 const GIT_URL_RE = /^(git@|https?:\/\/|ssh:\/\/|git:\/\/)/;
 const SKIP_DIRS = new Set([".git", "node_modules"]);
+// POSIX `X_OK` (execute permission); node's fs honours the numeric mode, so we
+// avoid importing `node:fs`'s `constants` (which would light the fs smell).
+const X_OK = 1;
+
+/**
+ * Derive the system temp dir from the env (node's `os.tmpdir()` is itself an
+ * env-respecting wrapper). The runtime bag has no `os` slot by design.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @returns {string}
+ */
+function tmpdir(runtime) {
+  return runtime.proc.env.TMPDIR ?? "/tmp";
+}
 
 /**
  * Load a task family from a local path or git URL.
  * @param {string} rootPathOrGitUrl
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {Promise<TaskFamily>}
  */
-export async function loadTaskFamily(rootPathOrGitUrl) {
+export async function loadTaskFamily(rootPathOrGitUrl, runtime) {
+  if (!runtime) throw new Error("runtime is required");
   const isGit = GIT_URL_RE.test(rootPathOrGitUrl);
   let rootPath;
   let familyRevision;
   if (isGit) {
-    const dir = await mkdtemp(join(tmpdir(), "fit-benchmark-family-"));
-    await gitClone(rootPathOrGitUrl, dir);
+    const dir = await runtime.fs.mkdtemp(
+      join(tmpdir(runtime), "fit-benchmark-family-"),
+    );
+    await gitClone(runtime, rootPathOrGitUrl, dir);
     rootPath = dir;
-    familyRevision = "git:" + (await gitHead(dir));
+    familyRevision = "git:" + (await gitHead(runtime, dir));
   } else {
     rootPath = resolve(rootPathOrGitUrl);
-    familyRevision = "sha256:" + (await canonicalTreeHash(rootPath));
+    familyRevision = "sha256:" + (await canonicalTreeHash(runtime, rootPath));
   }
 
-  const tasks = await discoverTasks(rootPath);
+  const tasks = await discoverTasks(runtime, rootPath);
 
   return {
     rootPath,
@@ -73,27 +83,30 @@ export async function loadTaskFamily(rootPathOrGitUrl) {
  * @param {TaskFamily} _family
  * @param {string} judgeProfilesDir
  * @param {string} judgeProfile
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {Promise<void>}
  */
 export async function assertJudgeProfileStaged(
   _family,
   judgeProfilesDir,
   judgeProfile,
+  runtime,
 ) {
   const candidate = join(judgeProfilesDir, `${judgeProfile}.md`);
   try {
-    await access(candidate);
+    await runtime.fs.access(candidate);
   } catch {
     throw new Error(`judge profile not staged: ${candidate}`);
   }
 }
 
-async function discoverTasks(rootPath) {
+async function discoverTasks(runtime, rootPath) {
+  const fs = runtime.fs;
   const tasksRoot = join(rootPath, "tasks");
   const tasks = [];
   let entries;
   try {
-    entries = await readdir(tasksRoot, { withFileTypes: true });
+    entries = await fs.readdir(tasksRoot, { withFileTypes: true });
   } catch (e) {
     if (e.code === "ENOENT") return tasks;
     throw e;
@@ -110,11 +123,15 @@ async function discoverTasks(rootPath) {
       paths: {
         taskDir,
         instructions: join(taskDir, "agent.task.md"),
-        supervisor: (await fileExists(supervisorPath)) ? supervisorPath : null,
-        judge: (await fileExists(judgePath)) ? judgePath : null,
+        supervisor: (await fileExists(fs, supervisorPath))
+          ? supervisorPath
+          : null,
+        judge: (await fileExists(fs, judgePath)) ? judgePath : null,
         hooks: join(taskDir, "hooks"),
-        preflight: (await fileExecutable(preflightPath)) ? preflightPath : null,
-        invariants: (await fileExecutable(invariantsPath))
+        preflight: (await fileExecutable(fs, preflightPath))
+          ? preflightPath
+          : null,
+        invariants: (await fileExecutable(fs, invariantsPath))
           ? invariantsPath
           : null,
         specs: join(taskDir, "specs"),
@@ -126,18 +143,18 @@ async function discoverTasks(rootPath) {
   return tasks;
 }
 
-async function fileExists(path) {
+async function fileExists(fs, path) {
   try {
-    await access(path);
+    await fs.access(path);
     return true;
   } catch {
     return false;
   }
 }
 
-async function fileExecutable(path) {
+async function fileExecutable(fs, path) {
   try {
-    await access(path, constants.X_OK);
+    await fs.access(path, X_OK);
     return true;
   } catch {
     return false;
@@ -151,16 +168,18 @@ async function fileExecutable(path) {
  *   sort by NFC-normalised POSIX-style root-relative path
  *   row = <rel-path>\0<hex-sha256>\n
  *   sha256(concat(rows))
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string} rootPath
  * @returns {Promise<string>} hex digest
  */
-async function canonicalTreeHash(rootPath) {
-  const real = await realpath(rootPath);
+async function canonicalTreeHash(runtime, rootPath) {
+  const fs = runtime.fs;
+  const real = await fs.realpath(rootPath);
   const rows = [];
-  for await (const filePath of walkFiles(real)) {
+  for await (const filePath of walkFiles(fs, real)) {
     const rel = toPosix(relative(real, filePath)).normalize("NFC");
-    const target = await realpath(filePath);
-    const bytes = await readFile(target);
+    const target = await fs.realpath(filePath);
+    const bytes = await fs.readFile(target);
     const hex = createHash("sha256").update(bytes).digest("hex");
     rows.push({ rel, hex });
   }
@@ -170,15 +189,15 @@ async function canonicalTreeHash(rootPath) {
   return acc.digest("hex");
 }
 
-async function* walkFiles(dir) {
-  const entries = await readdir(dir, { withFileTypes: true });
+async function* walkFiles(fs, dir) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) {
       if (SKIP_DIRS.has(entry.name)) continue;
-      yield* walkFiles(full);
+      yield* walkFiles(fs, full);
     } else if (entry.isSymbolicLink()) {
-      const resolvedFile = await resolveSymlinkToFile(full);
+      const resolvedFile = await resolveSymlinkToFile(fs, full);
       if (resolvedFile) yield full;
     } else if (entry.isFile()) {
       yield full;
@@ -190,12 +209,12 @@ async function* walkFiles(dir) {
  * Return the resolved path if `linkPath` is a symlink to a regular file.
  * Returns null for dangling symlinks or links to non-file targets.
  */
-async function resolveSymlinkToFile(linkPath) {
-  const st = await lstat(linkPath);
+async function resolveSymlinkToFile(fs, linkPath) {
+  const st = await fs.lstat(linkPath);
   if (!st.isSymbolicLink()) return null;
   try {
-    const resolved = await realpath(linkPath);
-    const tstat = await lstat(resolved);
+    const resolved = await fs.realpath(linkPath);
+    const tstat = await fs.lstat(resolved);
     return tstat.isFile() ? resolved : null;
   } catch {
     return null;
@@ -207,32 +226,24 @@ function toPosix(p) {
   return p.split(sep).join(posix.sep);
 }
 
-async function gitClone(url, dir) {
-  await run("git", ["clone", "--depth", "1", url, dir]);
+async function gitClone(runtime, url, dir) {
+  await git(runtime, ["clone", "--depth", "1", url, dir]);
 }
 
-async function gitHead(dir) {
-  const out = await run("git", ["-C", dir, "rev-parse", "HEAD"]);
+async function gitHead(runtime, dir) {
+  const out = await git(runtime, ["-C", dir, "rev-parse", "HEAD"]);
   return out.trim();
 }
 
-function run(cmd, args) {
-  return new Promise((res, rej) => {
-    const child = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (d) => {
-      stdout += d.toString();
-    });
-    child.stderr.on("data", (d) => {
-      stderr += d.toString();
-    });
-    child.on("error", rej);
-    child.on("close", (code) => {
-      if (code === 0) res(stdout);
-      else rej(new Error(`${cmd} ${args.join(" ")} exited ${code}: ${stderr}`));
-    });
-  });
+async function git(runtime, args) {
+  const { stdout, stderr, exitCode } = await runtime.subprocess.run(
+    "git",
+    args,
+  );
+  if (exitCode !== 0) {
+    throw new Error(`git ${args.join(" ")} exited ${exitCode}: ${stderr}`);
+  }
+  return stdout;
 }
 
 /**

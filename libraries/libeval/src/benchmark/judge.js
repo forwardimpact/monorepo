@@ -21,9 +21,6 @@
  * historical run from its judge.ndjson file).
  */
 
-import { createReadStream, createWriteStream } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { createInterface } from "node:readline";
 import { createJudge } from "../judge.js";
 import { createRedactor } from "../redaction.js";
 
@@ -45,12 +42,15 @@ import { createRedactor } from "../redaction.js";
  * @param {import("./task-family.js").Task} task
  * @param {import("./workdir.js").Workdir} workdir
  * @param {import("./invariants.js").InvariantsResult} invariants
- * @param {{query: Function, model: string, judgeProfile?: string, profilesDir?: string}} deps
+ * @param {{query: Function, model: string, judgeProfile?: string, profilesDir?: string, runtime: import("@forwardimpact/libutil/runtime").Runtime}} deps
  * @param {JudgeContext} [context]
  * @returns {Promise<JudgeVerdict>}
  */
 export async function runJudge(task, workdir, invariants, deps, context) {
-  const template = await readFile(task.paths.judge, "utf8");
+  const runtime = deps.runtime;
+  if (!runtime) throw new Error("runtime is required");
+  const fs = runtime.fs;
+  const template = await fs.readFile(task.paths.judge, "utf8");
   const invariantsJson = JSON.stringify(invariants, null, 2);
   const taskText = template
     .replaceAll("{{INVARIANTS_RESULT}}", invariantsJson)
@@ -61,7 +61,7 @@ export async function runJudge(task, workdir, invariants, deps, context) {
     .replaceAll("{{TASK_ID}}", task.id)
     .replaceAll("{{TASK_DIR}}", workdir.cwd);
 
-  const output = createWriteStream(workdir.judgeTracePath);
+  const output = fs.createWriteStream(workdir.judgeTracePath);
   const judge = createJudge({
     cwd: workdir.cwd,
     query: deps.query,
@@ -70,7 +70,8 @@ export async function runJudge(task, workdir, invariants, deps, context) {
     judgeProfile: deps.judgeProfile,
     profilesDir: deps.profilesDir,
     maxTurns: 25,
-    redactor: createRedactor(),
+    redactor: createRedactor({ runtime }),
+    runtime,
   });
 
   let outcome;
@@ -95,13 +96,14 @@ export async function runJudge(task, workdir, invariants, deps, context) {
  * and map the verdict (`success → pass`, `failure → fail`). Preserved for
  * offline analysis; not used on the runtime happy path.
  * @param {string} tracePath
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {Promise<JudgeVerdict | null>}
  */
-export async function parseConcludeFromTrace(tracePath) {
-  const stream = createReadStream(tracePath);
-  const rl = createInterface({ input: stream, crlfDelay: Infinity });
+export async function parseConcludeFromTrace(tracePath, runtime) {
+  if (!runtime) throw new Error("runtime is required");
+  const content = await runtime.fs.readFile(tracePath, "utf8");
   let last = null;
-  for await (const line of rl) {
+  for (const line of content.split("\n")) {
     const candidate = extractConcludeInput(line);
     if (candidate) last = candidate;
   }

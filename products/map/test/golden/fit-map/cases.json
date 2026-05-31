@@ -1,0 +1,31 @@
+[
+  {
+    "name": "help",
+    "args": ["--help"],
+    "exitCode": 0,
+    "stdoutFile": "help.stdout",
+    "stderrFile": "help.stderr"
+  },
+  {
+    "name": "version",
+    "args": ["--version"],
+    "env": { "FIT_MAP_VERSION": "0.0.0-golden" },
+    "exitCode": 0,
+    "stdoutFile": "version.stdout",
+    "stderrFile": "version.stderr"
+  },
+  {
+    "name": "no-args",
+    "args": [],
+    "exitCode": 0,
+    "stdoutFile": "no-args.stdout",
+    "stderrFile": "no-args.stderr"
+  },
+  {
+    "name": "unknown-command",
+    "args": ["bogus"],
+    "exitCode": 2,
+    "stdoutFile": "unknown.stdout",
+    "stderrFile": "unknown.stderr"
+  }
+]

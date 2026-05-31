@@ -289,7 +289,7 @@ async function main() {
   try {
     const runtime = createDefaultRuntime();
     const dataDir = resolveDataDir(values, runtime);
-    const data = await loadMapData(dataDir);
+    const data = await loadMapData(dataDir, runtime);
     await handler({ data, args, options: values, dataDir, config, runtime });
   } catch (error) {
     cli.error(error.message);

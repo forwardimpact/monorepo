@@ -96,7 +96,7 @@ describe("generatePacks", () => {
     outputDir = join(workDir, "public");
     await mkdir(outputDir, { recursive: true });
 
-    const loader = createDataLoader();
+    const loader = createDataLoader(createDefaultRuntime());
     data = await loader.loadAllData(starterDir);
     const agentData = await loader.loadAgentData(starterDir);
     validCombinations = findValidCombinations(data, agentData);
@@ -357,7 +357,7 @@ describe("generatePacks", () => {
 
   test("pack contents match CLI agent output for the same combination", async () => {
     // Generate agent files via the CLI path into a tmp dir
-    const loader = createDataLoader();
+    const loader = createDataLoader(createDefaultRuntime());
     const templateLoader = createTemplateLoader(
       join(__dirname, "..", "templates"),
     );

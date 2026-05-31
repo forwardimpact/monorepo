@@ -25,7 +25,7 @@
  * Validate a roster.
  *
  * @param {import("./yaml.js").Roster} roster
- * @param {object} data - Map data object from `createDataLoader().loadAllData()`.
+ * @param {object} data - Map data object from `createDataLoader(runtime).loadAllData()`.
  * @returns {ValidationResult}
  */
 export function validateRosterAgainstStandard(roster, data) {

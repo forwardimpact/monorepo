@@ -321,7 +321,7 @@ async function main() {
   }
 
   try {
-    const loader = createDataLoader();
+    const loader = createDataLoader(runtime);
     const templateLoader = createTemplateLoader(TEMPLATE_DIR);
 
     const data = await loader.loadAndValidate(dataDir);

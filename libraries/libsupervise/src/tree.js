@@ -1,6 +1,5 @@
 import { createRequire } from "node:module";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import { PassThrough } from "node:stream";
 import { EventEmitter } from "node:events";
 
@@ -19,6 +18,9 @@ const LOG_BIN = require.resolve("../bin/fit-logger.js");
  * Supervision tree managing multiple processes, inspired by s6-svscan
  */
 export class SupervisionTree extends EventEmitter {
+  #runtime;
+  #subprocess;
+  #clock;
   #logDir;
   #shutdownTimeout;
   #longruns;
@@ -29,13 +31,22 @@ export class SupervisionTree extends EventEmitter {
   /**
    * Creates a new SupervisionTree
    * @param {string} logDir - Base directory for process logs
-   * @param {TreeConfig} config - Tree configuration
+   * @param {object} config - Tree configuration
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} config.runtime
+   *   Injected runtime bag (uses `subprocess`, `clock`; threaded into children).
+   * @param {number} [config.shutdownTimeout] - Timeout for graceful shutdown in ms (default: 3000)
+   * @param {import('@forwardimpact/libtelemetry').Logger} config.logger - Logger instance
    */
   constructor(logDir, config) {
     super();
     if (!logDir) throw new Error("logDir is required");
+    if (!config?.runtime?.subprocess)
+      throw new Error("config.runtime is required");
     if (!config?.logger) throw new Error("config.logger is required");
 
+    this.#runtime = config.runtime;
+    this.#subprocess = config.runtime.subprocess;
+    this.#clock = config.runtime.clock;
     this.#logDir = logDir;
     this.#shutdownTimeout = config.shutdownTimeout ?? 3000;
     this.#logger = config.logger;
@@ -91,6 +102,7 @@ export class SupervisionTree extends EventEmitter {
     this.#spawnLogProcess(name, processLogDir, stdout, stderr);
 
     const longrun = new LongrunProcess(name, command, {
+      runtime: this.#runtime,
       stdout,
       stderr,
       cwd: options.cwd,
@@ -117,32 +129,45 @@ export class SupervisionTree extends EventEmitter {
    * @param {PassThrough} stderr - Stderr stream to pipe from
    */
   #spawnLogProcess(name, logDir, stdout, stderr) {
-    const logProcess = spawn("node", [LOG_BIN, "--dir", logDir], {
-      stdio: ["pipe", "inherit", "inherit"],
-    });
+    const logProcess = this.#subprocess.spawn(
+      "node",
+      [LOG_BIN, "--dir", logDir],
+      {
+        stdio: ["pipe", "inherit", "inherit"],
+      },
+    );
 
-    // Pipe streams to log process stdin (with end: false so pipe survives restarts)
-    stdout.pipe(logProcess.stdin, { end: false });
-    stderr.pipe(logProcess.stdin, { end: false });
+    // Pipe streams to log process stdin (with end: false so pipe survives
+    // restarts). `stdin` is the child's writable from the spawn contract.
+    if (logProcess.stdin) {
+      stdout.pipe(logProcess.stdin, { end: false });
+      stderr.pipe(logProcess.stdin, { end: false });
+    }
 
-    // Supervise: restart on unexpected exit
-    logProcess.on("exit", (code, signal) => {
-      // Only restart if tree is still running and process entry exists
-      if (this.#running && this.#longruns.has(name)) {
-        this.emit("log:down", { name, code, signal });
-        // Respawn after a short delay
-        setTimeout(() => {
-          if (this.#running && this.#longruns.has(name)) {
-            this.#spawnLogProcess(name, logDir, stdout, stderr);
-            this.emit("log:up", { name });
-          }
-        }, 100);
-      }
-    });
+    // Supervise: restart on unexpected exit. The exit event is the resolution
+    // of the exitCode/signal promises from the spawn contract.
+    void Promise.all([logProcess.exitCode, logProcess.signal]).then(
+      ([code, signal]) => {
+        // Only restart if tree is still running and process entry exists
+        if (this.#running && this.#longruns.has(name)) {
+          this.emit("log:down", { name, code, signal });
+          // Respawn after a short delay
+          this.#clock.setTimeout(() => {
+            if (this.#running && this.#longruns.has(name)) {
+              this.#spawnLogProcess(name, logDir, stdout, stderr);
+              this.emit("log:up", { name });
+            }
+          }, 100);
+        }
+      },
+    );
 
-    logProcess.on("error", (error) => {
-      this.emit("log:error", { name, error });
-    });
+    if (logProcess.pid === undefined) {
+      this.emit("log:error", {
+        name,
+        error: new Error(`failed to spawn log process for ${name}`),
+      });
+    }
 
     this.#logProcesses.set(name, logProcess);
     this.#logger.debug(name, "Log writer added to supervision", {
@@ -174,7 +199,7 @@ export class SupervisionTree extends EventEmitter {
       this.#logger.debug(name, "Removing log writer from supervision", {
         pid: logProcess.pid,
       });
-      logProcess.stdin.end();
+      logProcess.stdin?.end();
       logProcess.kill("SIGTERM");
       this.#logProcesses.delete(name);
     }

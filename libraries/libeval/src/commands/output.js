@@ -1,3 +1,4 @@
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { createTraceCollector } from "@forwardimpact/libeval";
 
 /**
@@ -16,7 +17,9 @@ export async function runOutputCommand(ctx) {
     values.format === "text" || values.format === "json"
       ? values.format
       : "json";
-  const collector = createTraceCollector();
+  const collector = createTraceCollector({
+    now: () => isoTimestamp(runtime.clock.now()),
+  });
 
   // `runtime.proc.stdin` is an AsyncIterable of UTF-8 lines (newline-split by
   // the runtime), so each yielded value is exactly one NDJSON record.

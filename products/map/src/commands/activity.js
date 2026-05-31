@@ -1,3 +1,4 @@
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { createSupabaseCli } from "../lib/supabase-cli.js";
 import { storeRaw } from "@forwardimpact/map/activity/storage";
 import { transformAll } from "@forwardimpact/map/activity/transform";
@@ -15,11 +16,17 @@ import {
   SummaryRenderer,
 } from "@forwardimpact/libcli";
 
-const summary = new SummaryRenderer({ process });
+/**
+ * Build a SummaryRenderer bound to the injected process surface.
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime
+ */
+function makeSummary(runtime) {
+  return new SummaryRenderer({ process: runtime.proc });
+}
 
 /** Start the local Supabase instance and print a one-line confirmation. */
-export async function start({ cli, out = process.stdout } = {}) {
-  cli = cli ?? createSupabaseCli();
+export async function start({ cli, runtime, out = runtime.proc.stdout } = {}) {
+  cli = cli ?? createSupabaseCli({ runtime });
   await cli.run(["start"]);
   const json = await cli.capture(["status", "--output", "json"]);
   const status = JSON.parse(json);
@@ -28,20 +35,20 @@ export async function start({ cli, out = process.stdout } = {}) {
 }
 
 /** Stop the local Supabase instance. */
-export async function stop() {
-  await createSupabaseCli().run(["stop"]);
+export async function stop({ runtime } = {}) {
+  await createSupabaseCli({ runtime }).run(["stop"]);
   return 0;
 }
 
 /** Print the current status of the local Supabase instance. */
-export async function status() {
-  await createSupabaseCli().run(["status"]);
+export async function status({ runtime } = {}) {
+  await createSupabaseCli({ runtime }).run(["status"]);
   return 0;
 }
 
 /** Reset the local Supabase database by re-applying all migrations. */
-export async function migrate() {
-  await createSupabaseCli().run(["db", "reset"]);
+export async function migrate({ runtime } = {}) {
+  await createSupabaseCli({ runtime }).run(["db", "reset"]);
   return 0;
 }
 
@@ -62,16 +69,29 @@ const TRANSFORM_TARGETS = {
   },
 };
 
-async function transformAllTargets(supabase) {
-  const r = await transformAll(supabase);
+async function transformAllTargets(supabase, runtime) {
+  const summary = makeSummary(runtime);
+  const r = await transformAll(supabase, runtime);
   report(
+    summary,
     "people",
     { imported: r.people.imported, errors: r.people.errors.length },
     r.people.errors.length === 0,
   );
-  report("getdx", summarizeCounts(r.getdx), r.getdx.errors.length === 0);
-  report("github", summarizeCounts(r.github), r.github.errors.length === 0);
   report(
+    summary,
+    "getdx",
+    summarizeCounts(r.getdx),
+    r.getdx.errors.length === 0,
+  );
+  report(
+    summary,
+    "github",
+    summarizeCounts(r.github),
+    r.github.errors.length === 0,
+  );
+  report(
+    summary,
     "evidence",
     {
       inserted: r.evidence.inserted,
@@ -89,19 +109,19 @@ async function transformAllTargets(supabase) {
 }
 
 /** Run the named transform target (or all targets) against raw activity data. */
-export async function transform(target, supabase) {
+export async function transform(target, supabase, runtime) {
   if (target === "all" || target === undefined) {
-    return transformAllTargets(supabase);
+    return transformAllTargets(supabase, runtime);
   }
   const cfg = TRANSFORM_TARGETS[target];
   if (!cfg) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`Unknown transform target: ${target}`) + "\n",
     );
     return 1;
   }
-  const r = await cfg.fn(supabase);
-  report(target, cfg.summarize(r), r.errors.length === 0);
+  const r = await cfg.fn(supabase, runtime);
+  report(makeSummary(runtime), target, cfg.summarize(r), r.errors.length === 0);
   return r.errors.length === 0 ? 0 : 1;
 }
 
@@ -114,7 +134,8 @@ async function countRows(supabase, table) {
 }
 
 /** Report per-table row counts for all activity tables and exit non-zero if the people roster or all derived-data tables (getdx_snapshots, github_events) are empty. */
-export async function verify(supabase) {
+export async function verify(supabase, runtime) {
+  const summary = makeSummary(runtime);
   const people = await getOrganization(supabase);
   const snapshotCount = await countRows(supabase, "getdx_snapshots");
   const eventCount = await countRows(supabase, "github_events");
@@ -140,8 +161,8 @@ export async function verify(supabase) {
   });
 
   if (!hasPeople) {
-    process.stderr.write("\n");
-    process.stderr.write(
+    runtime.proc.stderr.write("\n");
+    runtime.proc.stderr.write(
       formatError(
         "organization_people is empty. Run `fit-map people push <file>`.",
       ) + "\n",
@@ -149,8 +170,8 @@ export async function verify(supabase) {
     return 1;
   }
   if (!hasDerived) {
-    process.stderr.write("\n");
-    process.stderr.write(
+    runtime.proc.stderr.write("\n");
+    runtime.proc.stderr.write(
       formatError(
         "No derived-table rows found. Run `fit-map getdx sync` or configure the github-webhook.",
       ) + "\n",
@@ -158,7 +179,9 @@ export async function verify(supabase) {
     return 1;
   }
 
-  process.stdout.write("\n" + formatSuccess("Activity layer verified") + "\n");
+  runtime.proc.stdout.write(
+    "\n" + formatSuccess("Activity layer verified") + "\n",
+  );
   return 0;
 }
 
@@ -167,19 +190,20 @@ export async function verify(supabase) {
  * @param {object} options
  * @param {string} options.data - Path to data directory
  * @param {import('@supabase/supabase-js').SupabaseClient} options.supabase
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} options.runtime - Injected collaborators (fs, clock).
  * @returns {Promise<number>} exit code
  */
-export async function seed({ data, supabase }) {
-  const { readFile } = await import("fs/promises");
+export async function seed({ data, supabase, runtime }) {
   const { join } = await import("path");
+  const summary = makeSummary(runtime);
 
   const activityDir = join(data, "activity");
   const rawDir = join(activityDir, "raw");
 
   // 1. Upload roster to Supabase Storage (people/ prefix)
   const rosterPath = join(activityDir, "roster.yaml");
-  const rosterContent = await readFile(rosterPath, "utf-8");
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const rosterContent = await runtime.fs.readFile(rosterPath, "utf-8");
+  const timestamp = isoTimestamp(runtime.clock.now()).replace(/[:.]/g, "-");
   const stored = await storeRaw(
     supabase,
     `people/${timestamp}.yaml`,
@@ -187,42 +211,47 @@ export async function seed({ data, supabase }) {
     "text/yaml",
   );
   if (!stored.stored) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`Failed to upload roster: ${stored.error}`) + "\n",
     );
     return 1;
   }
-  report("Upload roster", { stored: 1 }, true);
+  report(summary, "Upload roster", { stored: 1 }, true);
 
   // 2. Upload raw documents (github/, getdx/ prefixes)
-  const uploaded = await uploadRawDir(supabase, rawDir);
+  const uploaded = await uploadRawDir(supabase, rawDir, runtime);
   report(
+    summary,
     "Upload raw",
     { stored: uploaded.count, errors: uploaded.errors.length },
     uploaded.errors.length === 0,
   );
   for (const err of uploaded.errors) {
-    process.stderr.write(formatBullet(err, 1) + "\n");
+    runtime.proc.stderr.write(formatBullet(err, 1) + "\n");
   }
 
   // 3. Run all transforms
-  const result = await transformAll(supabase);
+  const result = await transformAll(supabase, runtime);
   report(
+    summary,
     "Transform people",
     { imported: result.people.imported, errors: result.people.errors.length },
     result.people.errors.length === 0,
   );
   report(
+    summary,
     "Transform getdx",
     summarizeCounts(result.getdx),
     result.getdx.errors.length === 0,
   );
   report(
+    summary,
     "Transform github",
     summarizeCounts(result.github),
     result.github.errors.length === 0,
   );
   report(
+    summary,
     "Transform evidence",
     {
       inserted: result.evidence.inserted,
@@ -233,7 +262,7 @@ export async function seed({ data, supabase }) {
   );
 
   // 4. Verify
-  return verify(supabase);
+  return verify(supabase, runtime);
 }
 
 function detectContentType(filePath) {
@@ -242,9 +271,9 @@ function detectContentType(filePath) {
     : "application/json";
 }
 
-async function uploadFile(supabase, readFile, rawDir, fullPath, relative) {
+async function uploadFile(supabase, runtime, rawDir, fullPath, relative) {
   const storagePath = relative(rawDir, fullPath);
-  const content = await readFile(fullPath, "utf-8");
+  const content = await runtime.fs.readFile(fullPath, "utf-8");
   const result = await storeRaw(
     supabase,
     storagePath,
@@ -254,10 +283,10 @@ async function uploadFile(supabase, readFile, rawDir, fullPath, relative) {
   return { storagePath, stored: result.stored, error: result.error };
 }
 
-async function walkAndCollect(readdir, join, dir) {
+async function walkAndCollect(runtime, join, dir) {
   let entries;
   try {
-    entries = await readdir(dir, { withFileTypes: true });
+    entries = await runtime.fs.readdir(dir, { withFileTypes: true });
   } catch {
     return []; // directory doesn't exist — skip silently
   }
@@ -265,7 +294,7 @@ async function walkAndCollect(readdir, join, dir) {
   for (const entry of entries) {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
-      filePaths.push(...(await walkAndCollect(readdir, join, fullPath)));
+      filePaths.push(...(await walkAndCollect(runtime, join, fullPath)));
     } else {
       filePaths.push(fullPath);
     }
@@ -273,18 +302,17 @@ async function walkAndCollect(readdir, join, dir) {
   return filePaths;
 }
 
-async function uploadRawDir(supabase, rawDir) {
-  const { readFile, readdir } = await import("fs/promises");
+async function uploadRawDir(supabase, rawDir, runtime) {
   const { join, relative } = await import("path");
 
   const errors = [];
   let count = 0;
 
-  const filePaths = await walkAndCollect(readdir, join, rawDir);
+  const filePaths = await walkAndCollect(runtime, join, rawDir);
   for (const fullPath of filePaths) {
     const result = await uploadFile(
       supabase,
-      readFile,
+      runtime,
       rawDir,
       fullPath,
       relative,
@@ -319,11 +347,12 @@ function summarizeCounts(counts) {
 
 /**
  * Render a labeled transform report using the SummaryRenderer.
+ * @param {SummaryRenderer} summary
  * @param {string} target
  * @param {object} counts
  * @param {boolean} ok
  */
-function report(target, counts, ok) {
+function report(summary, target, counts, ok) {
   summary.render({
     title: formatSubheader(target),
     ok,

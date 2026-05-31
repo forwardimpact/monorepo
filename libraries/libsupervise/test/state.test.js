@@ -1,29 +1,37 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 
+import { createTestRuntime } from "@forwardimpact/libmock";
+
 import { ProcessState } from "../src/state.js";
+
+const newState = () => new ProcessState(createTestRuntime());
 
 describe("ProcessState", () => {
   describe("constructor", () => {
+    test("throws if runtime.clock is missing", () => {
+      assert.throws(() => new ProcessState(), /runtime\.clock is required/);
+    });
+
     test("initializes with down state", () => {
-      const state = new ProcessState();
+      const state = newState();
       assert.strictEqual(state.getState(), "down");
     });
 
     test("initializes with null pid", () => {
-      const state = new ProcessState();
+      const state = newState();
       assert.strictEqual(state.getPid(), null);
     });
 
     test("initializes with zero restart count", () => {
-      const state = new ProcessState();
+      const state = newState();
       assert.strictEqual(state.getRestartCount(), 0);
     });
   });
 
   describe("transitionTo", () => {
     test("transitions to starting state with pid", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("starting", { pid: 1234 });
 
       assert.strictEqual(state.getState(), "starting");
@@ -31,7 +39,7 @@ describe("ProcessState", () => {
     });
 
     test("transitions to up state with pid", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("up", { pid: 5678 });
 
       assert.strictEqual(state.getState(), "up");
@@ -39,7 +47,7 @@ describe("ProcessState", () => {
     });
 
     test("transitions to down state clears pid", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("up", { pid: 1234 });
       state.transitionTo("down", { exitCode: 0 });
 
@@ -48,7 +56,7 @@ describe("ProcessState", () => {
     });
 
     test("transitions to backoff increments restart count", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("backoff", { exitCode: 1 });
 
       assert.strictEqual(state.getState(), "backoff");
@@ -56,7 +64,7 @@ describe("ProcessState", () => {
     });
 
     test("multiple backoffs increment restart count", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("backoff");
       state.transitionTo("starting", { pid: 1 });
       state.transitionTo("backoff");
@@ -69,33 +77,33 @@ describe("ProcessState", () => {
 
   describe("isRunning", () => {
     test("returns true when starting", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("starting", { pid: 1234 });
 
       assert.strictEqual(state.isRunning(), true);
     });
 
     test("returns true when up", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("up", { pid: 1234 });
 
       assert.strictEqual(state.isRunning(), true);
     });
 
     test("returns false when down", () => {
-      const state = new ProcessState();
+      const state = newState();
       assert.strictEqual(state.isRunning(), false);
     });
 
     test("returns false when stopping", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("stopping");
 
       assert.strictEqual(state.isRunning(), false);
     });
 
     test("returns false when in backoff", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("backoff");
 
       assert.strictEqual(state.isRunning(), false);
@@ -104,7 +112,7 @@ describe("ProcessState", () => {
 
   describe("resetRestartCount", () => {
     test("resets count to zero", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("backoff");
       state.transitionTo("backoff");
       state.transitionTo("backoff");
@@ -116,7 +124,7 @@ describe("ProcessState", () => {
 
   describe("toJSON", () => {
     test("serializes state correctly", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("up", { pid: 9876 });
 
       const json = state.toJSON();
@@ -128,7 +136,7 @@ describe("ProcessState", () => {
     });
 
     test("includes exit code after down transition", () => {
-      const state = new ProcessState();
+      const state = newState();
       state.transitionTo("up", { pid: 1234 });
       state.transitionTo("down", { exitCode: 137 });
 

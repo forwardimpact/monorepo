@@ -81,12 +81,13 @@ async function promptOtp(io) {
   }
 }
 
-function persistSession(session, email, env) {
+function persistSession(runtime, session, email, env) {
   return writeCredentials(
+    runtime,
     {
       access_token: session.access_token,
       refresh_token: session.refresh_token,
-      expires_at: Date.now() + (session.expires_in ?? 3600) * 1000,
+      expires_at: runtime.clock.now() + (session.expires_in ?? 3600) * 1000,
       email: session.user?.email ?? email,
     },
     env,
@@ -139,18 +140,22 @@ function resolveAnonClient({ config, createClient, flowType = "implicit" }) {
  * Run the login command.
  *
  * @param {object} params
+ * @param {object} params.runtime - The injected collaborator bag (clock, fs, proc).
  * @param {{email?:string, otp?:boolean}} params.options
- * @param {{stdin?:NodeJS.ReadableStream,stdout?:NodeJS.WritableStream}} [params.io]
+ * @param {{stdin?:NodeJS.ReadableStream,stdout?:{write:(s:string)=>unknown}}} params.io
+ *   stdout defaults to `runtime.proc`; stdin must be supplied by the bin (a
+ *   real Readable for `readline`) when the command may prompt interactively.
  * @param {object} params.config - libconfig Config carrying Supabase URL + anon key.
  * @param {NodeJS.ProcessEnv} [params.env] - Carries LANDMARK_CREDENTIALS_FILE.
  * @param {(url:string,key:string)=>any} [params.createClient]
  * @param {() => Promise<{port:number,codePromise:Promise<string>,close:()=>void}>} [params.openListener]
  */
 export async function runLoginCommand({
+  runtime,
   options = {},
-  io = { stdin: process.stdin, stdout: process.stdout },
+  io = { stdout: runtime.proc.stdout },
   config,
-  env = process.env,
+  env = runtime.proc.env,
   createClient,
   openListener = startCallbackServer,
 } = {}) {
@@ -163,17 +168,24 @@ export async function runLoginCommand({
 
   if (options.otp) {
     const client = resolveAnonClient({ config, createClient });
-    return runOtpFlow({ client, email, io, env });
+    return runOtpFlow({ runtime, client, email, io, env });
   }
   // Browser flow needs PKCE so the magic-link redirect lands `?code=` (a
   // query param the localhost listener can read) rather than the default
   // implicit flow's `#access_token=...` URL fragment (which browsers strip
   // before sending the request — making it invisible to the listener).
   const client = resolveAnonClient({ config, createClient, flowType: "pkce" });
-  return runBrowserFlow({ client, email, io, env, openListener });
+  return runBrowserFlow({ runtime, client, email, io, env, openListener });
 }
 
-async function runBrowserFlow({ client, email, io, env, openListener }) {
+async function runBrowserFlow({
+  runtime,
+  client,
+  email,
+  io,
+  env,
+  openListener,
+}) {
   const { port, codePromise } = await openListener();
   const redirectTo = `http://127.0.0.1:${port}/cb`;
   const { error } = await client.auth.signInWithOtp({
@@ -193,7 +205,7 @@ async function runBrowserFlow({ client, email, io, env, openListener }) {
 
   let timer;
   const timeoutPromise = new Promise((_, rej) => {
-    timer = setTimeout(
+    timer = runtime.clock.setTimeout(
       () => rej(new Error("login timed out after 5 minutes")),
       DEFAULT_TIMEOUT_MS,
     );
@@ -202,9 +214,8 @@ async function runBrowserFlow({ client, email, io, env, openListener }) {
   try {
     code = await Promise.race([codePromise, timeoutPromise]);
   } finally {
-    // Unref so the timer never holds the event loop open past a fast
-    // successful login; clear so it doesn't fire after the fact either.
-    clearTimeout(timer);
+    // Clear so the timer doesn't fire after a fast successful login.
+    runtime.clock.clearTimeout(timer);
   }
 
   const { data, error: exchErr } =
@@ -213,14 +224,14 @@ async function runBrowserFlow({ client, email, io, env, openListener }) {
   if (!data?.session)
     throw new Error("exchangeCodeForSession returned no session");
 
-  await persistSession(data.session, email, env);
+  await persistSession(runtime, data.session, email, env);
   io.stdout.write(
     formatSuccess(`Logged in as ${data.user?.email ?? email}.`) + "\n",
   );
   return { meta: { ok: true }, summary: { email: data.user?.email ?? email } };
 }
 
-async function runOtpFlow({ client, email, io, env }) {
+async function runOtpFlow({ runtime, client, email, io, env }) {
   const { error } = await client.auth.signInWithOtp({
     email,
     options: { shouldCreateUser: false },
@@ -243,7 +254,7 @@ async function runOtpFlow({ client, email, io, env }) {
   if (verifyErr) throw new Error(`verifyOtp: ${verifyErr.message}`);
   if (!data?.session) throw new Error("verifyOtp returned no session");
 
-  await persistSession(data.session, email, env);
+  await persistSession(runtime, data.session, email, env);
   io.stdout.write(
     formatSuccess(`Logged in as ${data.user?.email ?? email}.`) + "\n",
   );

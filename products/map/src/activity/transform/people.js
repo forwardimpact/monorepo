@@ -7,15 +7,17 @@
  * edge functions.
  */
 
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { readRaw, listRaw } from "../storage.js";
 import { parsePeopleFile } from "../parse-people.js";
 
 /**
  * Transform the most recent stored people file into DB rows.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (clock).
  * @returns {Promise<{imported: number, errors: Array<string>}>}
  */
-export async function transformPeople(supabase) {
+export async function transformPeople(supabase, runtime) {
   const files = await listRaw(supabase, "people/");
   if (files.length === 0) return { imported: 0, errors: [] };
 
@@ -24,7 +26,7 @@ export async function transformPeople(supabase) {
   const format = latest.endsWith(".csv") ? "csv" : "yaml";
   const people = parsePeopleFile(content, format);
 
-  return importPeople(supabase, people);
+  return importPeople(supabase, people, runtime);
 }
 
 /**
@@ -32,11 +34,13 @@ export async function transformPeople(supabase) {
  * Upserts rows into activity.organization_people.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {Array<object>} people - Person objects
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (clock).
  * @returns {Promise<{imported: number, errors: Array<string>}>}
  */
-async function importPeople(supabase, people) {
+async function importPeople(supabase, people, runtime) {
   const errors = [];
   let imported = 0;
+  const nowIso = isoTimestamp(runtime.clock.now());
 
   // Insert in dependency order: people without managers first, then with managers.
   // This avoids foreign key violations on manager_email.
@@ -61,7 +65,7 @@ async function importPeople(supabase, people) {
           track: p.track || null,
           manager_email: p.manager_email || null,
           kind,
-          updated_at: new Date().toISOString(),
+          updated_at: nowIso,
         };
       }),
       { onConflict: "email" },

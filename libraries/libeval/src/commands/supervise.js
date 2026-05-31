@@ -1,5 +1,5 @@
-import { createWriteStream } from "node:fs";
 import { resolve, join } from "node:path";
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { createSupervisor } from "../supervisor.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
@@ -72,13 +72,14 @@ export async function runSuperviseCommand(ctx) {
   // When --output is specified, stream text to stdout while writing NDJSON to file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).
   const fileStream = opts.outputPath
-    ? createWriteStream(opts.outputPath)
+    ? runtime.fs.createWriteStream(opts.outputPath)
     : null;
   const output = fileStream
     ? createTeeWriter({
         fileStream,
         textStream: runtime.proc.stdout,
         mode: "supervised",
+        now: () => isoTimestamp(runtime.clock.now()),
       })
     : runtime.proc.stdout;
 

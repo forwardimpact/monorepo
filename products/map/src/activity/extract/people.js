@@ -4,6 +4,7 @@
  * Stores the uploaded CSV or YAML people file as-is in Supabase Storage.
  */
 
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { storeRaw } from "../storage.js";
 
 /**
@@ -11,10 +12,11 @@ import { storeRaw } from "../storage.js";
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {string} content - File content (CSV or YAML)
  * @param {string} format - 'csv' or 'yaml'
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (clock).
  * @returns {Promise<{stored: boolean, path: string, error?: string}>}
  */
-export async function extractPeopleFile(supabase, content, format) {
-  const timestamp = new Date().toISOString();
+export async function extractPeopleFile(supabase, content, format, runtime) {
+  const timestamp = isoTimestamp(runtime.clock.now());
   const ext = format === "csv" ? "csv" : "yaml";
   const contentType = format === "csv" ? "text/csv" : "application/x-yaml";
   const path = `people/${timestamp}.${ext}`;

@@ -92,7 +92,7 @@ export async function runBuildCommand({ dataDir, options, runtime }) {
   // Load standard config for display
   let standard;
   try {
-    const loader = createDataLoader();
+    const loader = createDataLoader(runtime);
     standard = await loader.loadStandardConfig(dataDir);
   } catch {
     standard = { emojiIcon: "🚀", title: "Engineering Pathway" };
@@ -118,7 +118,7 @@ ${standard.emojiIcon} Generating ${standard.title} static site...
 
   // Generate index files in data directory
   logger.info("📇 Generating index files...");
-  const indexGenerator = createIndexGenerator();
+  const indexGenerator = createIndexGenerator(runtime);
   await indexGenerator.generateAllIndexes(dataDir);
 
   // Copy app assets

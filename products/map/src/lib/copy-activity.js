@@ -6,7 +6,6 @@
  * parent if absent, matching init.js's semantics.
  */
 
-import { cp } from "node:fs/promises";
 import path from "node:path";
 
 /**
@@ -15,10 +14,11 @@ import path from "node:path";
  *   (e.g. `<monorepo>/data/activity`).
  * @param {string} params.target - Absolute path to the workspace target
  *   (the `--cwd` value).
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators (fs).
  */
-export async function copyActivity({ source, target }) {
+export async function copyActivity({ source, target, runtime }) {
   const dest = path.join(target, "data", "activity");
-  await cp(source, dest, {
+  await runtime.fs.cp(source, dest, {
     recursive: true,
     force: false,
     errorOnExist: false,

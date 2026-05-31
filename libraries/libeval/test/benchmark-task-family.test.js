@@ -9,10 +9,12 @@ import {
   loadTaskFamily,
 } from "../src/benchmark/task-family.js";
 import { createApmInstaller } from "../src/benchmark/apm-installer.js";
-import { makeFakeApmSpawn } from "./mock-apm-spawn.js";
+import { realRuntimeWithSubprocess } from "./real-runtime.js";
+
+const RT = realRuntimeWithSubprocess();
 
 function newInstaller() {
-  return createApmInstaller({ spawn: makeFakeApmSpawn() });
+  return createApmInstaller({ runtime: RT });
 }
 
 const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
@@ -26,7 +28,7 @@ async function copyFixture() {
 
 describe("loadTaskFamily", () => {
   test("loads tasks with METR-style ids", async () => {
-    const family = await loadTaskFamily(FIXTURE);
+    const family = await loadTaskFamily(FIXTURE, RT);
     const tasks = family.tasks();
     const ids = tasks.map((t) => t.id);
     assert.deepStrictEqual(ids.sort(), [
@@ -45,18 +47,18 @@ describe("loadTaskFamily", () => {
   });
 
   test("familyRevision is stable across two consecutive loads", async () => {
-    const a = await loadTaskFamily(FIXTURE);
-    const b = await loadTaskFamily(FIXTURE);
+    const a = await loadTaskFamily(FIXTURE, RT);
+    const b = await loadTaskFamily(FIXTURE, RT);
     assert.strictEqual(a.familyRevision, b.familyRevision);
     assert.match(a.familyRevision, /^sha256:[0-9a-f]{64}$/);
   });
 
   test("familyRevision flips on a one-byte mutation under tasks/pass/workdir/", async () => {
     const dir = await copyFixture();
-    const a = (await loadTaskFamily(dir)).familyRevision;
+    const a = (await loadTaskFamily(dir, RT)).familyRevision;
     const target = join(dir, "tasks/pass/workdir/README.md");
     await writeFile(target, "Service scaffold lives here.\nEXTRA\n");
-    const b = (await loadTaskFamily(dir)).familyRevision;
+    const b = (await loadTaskFamily(dir, RT)).familyRevision;
     assert.notStrictEqual(a, b);
   });
 
@@ -78,8 +80,8 @@ describe("loadTaskFamily", () => {
       join(crlfDir, "apm.lock.yaml"),
       content.replace(/\n/g, "\r\n"),
     );
-    const lfFamily = await loadTaskFamily(lfDir);
-    const crlfFamily = await loadTaskFamily(crlfDir);
+    const lfFamily = await loadTaskFamily(lfDir, RT);
+    const crlfFamily = await loadTaskFamily(crlfDir, RT);
     const lfOut = await newInstaller().install(
       lfFamily,
       await mkdtemp(join(tmpdir(), "benchmark-out-lf-")),
@@ -94,18 +96,18 @@ describe("loadTaskFamily", () => {
 
 describe("assertJudgeProfileStaged", () => {
   test("resolves when the profile exists", async () => {
-    const family = await loadTaskFamily(FIXTURE);
+    const family = await loadTaskFamily(FIXTURE, RT);
     const out = await mkdtemp(join(tmpdir(), "benchmark-stage-"));
     const { judgeProfilesDir } = await newInstaller().install(family, out);
-    await assertJudgeProfileStaged(family, judgeProfilesDir, "judge");
+    await assertJudgeProfileStaged(family, judgeProfilesDir, "judge", RT);
   });
 
   test("throws when the profile is absent", async () => {
-    const family = await loadTaskFamily(FIXTURE);
+    const family = await loadTaskFamily(FIXTURE, RT);
     const out = await mkdtemp(join(tmpdir(), "benchmark-stage-miss-"));
     const { judgeProfilesDir } = await newInstaller().install(family, out);
     await assert.rejects(
-      assertJudgeProfileStaged(family, judgeProfilesDir, "missing"),
+      assertJudgeProfileStaged(family, judgeProfilesDir, "missing", RT),
       /judge profile not staged/,
     );
   });

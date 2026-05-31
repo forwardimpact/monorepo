@@ -32,10 +32,15 @@ standard data directory and returns a single object with all entities resolved:
 
 ```js
 import { createDataLoader } from "@forwardimpact/map/loader";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-const loader = createDataLoader();
+const loader = createDataLoader(createDefaultRuntime());
 const data = await loader.loadAllData("data/pathway");
 ```
+
+`createDataLoader` takes a runtime — the bag of injected collaborators it reads
+files through. `createDefaultRuntime()` from `@forwardimpact/libutil` wires the
+real filesystem; pass your own when you load data from somewhere else.
 
 The returned `data` object contains arrays for `disciplines`, `levels`,
 `tracks`, `skills`, `behaviours`, `capabilities`, and `drivers`. Every function
@@ -379,8 +384,9 @@ options in a form.
 
 You have reached the outcome of this guide when:
 
-- You can load standard data with `createDataLoader().loadAllData()` and pass
-  the result to `@forwardimpact/libskill` functions.
+- You can load standard data with
+  `createDataLoader(createDefaultRuntime()).loadAllData()` and pass the result
+  to `@forwardimpact/libskill` functions.
 - You can derive a skill matrix for a discipline + level (+ optional track) and
   inspect the type, proficiency, and description of each entry.
 - You can derive a behaviour profile and read the maturity level for each

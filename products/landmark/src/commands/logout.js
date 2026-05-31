@@ -12,20 +12,22 @@ export const needsSupabase = false;
 /**
  * Run the logout command.
  *
- * @param {object} [params]
- * @param {{stdout?:NodeJS.WritableStream}} [params.io]
- * @param {NodeJS.ProcessEnv} [params.env]
+ * @param {object} params
+ * @param {object} params.runtime - The injected collaborator bag.
+ * @param {{stdout?:{write:(s:string)=>unknown}}} [params.io] - Defaults to `runtime.proc`.
+ * @param {NodeJS.ProcessEnv} [params.env] - Defaults to `runtime.proc.env`.
  */
 export async function runLogoutCommand({
-  io = { stdout: process.stdout },
-  env = process.env,
+  runtime,
+  io = runtime.proc,
+  env = runtime.proc.env,
 } = {}) {
-  const creds = await readCredentials(env);
+  const creds = await readCredentials(runtime, env);
   if (!creds) {
     io.stdout.write("Already logged out.\n");
     return { meta: { ok: true }, summary: { previousEmail: null } };
   }
-  await clearCredentials(env);
+  await clearCredentials(runtime, env);
   io.stdout.write(formatSuccess(`Logged out ${creds.email}.`) + "\n");
   return { meta: { ok: true }, summary: { previousEmail: creds.email } };
 }

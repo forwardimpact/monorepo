@@ -27,7 +27,7 @@ export async function runBenchmarkInvariantsCommand(ctx) {
   if (!workdirArg)
     return { ok: false, code: 1, error: "--workdir is required" };
 
-  const family = await loadTaskFamily(familyInput);
+  const family = await loadTaskFamily(familyInput, runtime);
   const task = family.tasks().find((t) => t.id === taskId);
   if (!task)
     return { ok: false, code: 1, error: `task not found in family: ${taskId}` };
@@ -36,7 +36,7 @@ export async function runBenchmarkInvariantsCommand(ctx) {
   const cwd = join(runDir, "cwd");
   const port = await allocatePort();
 
-  const invariants = await runInvariants(task, { cwd, port, runDir });
+  const invariants = await runInvariants(task, { cwd, port, runDir }, runtime);
   const record = {
     taskId: task.id,
     invariants,

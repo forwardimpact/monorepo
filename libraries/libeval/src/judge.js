@@ -167,17 +167,20 @@ export function createJudge({
   judgeProfile,
   profilesDir,
   taskAmend,
+  runtime,
 }) {
   if (!cwd) throw new Error("cwd is required");
   if (!query) throw new Error("query is required");
   if (!output) throw new Error("output is required");
   if (!redactor) throw new Error("redactor is required");
+  if (!runtime) throw new Error("runtime is required");
 
   const resolvedProfilesDir = profilesDir ?? resolve(cwd, ".claude/agents");
   const systemPrompt = judgeProfile
     ? composeProfilePrompt(judgeProfile, {
         profilesDir: resolvedProfilesDir,
         trailer: JUDGE_SYSTEM_PROMPT,
+        runtime,
       })
     : {
         type: "preset",

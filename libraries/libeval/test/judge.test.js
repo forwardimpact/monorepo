@@ -13,9 +13,10 @@ import {
 } from "../src/orchestration-toolkit.js";
 import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
-import { createToolUseMsg } from "@forwardimpact/libmock";
+import { createToolUseMsg, createTestRuntime } from "@forwardimpact/libmock";
 
 const noop = () => createNoopRedactor();
+const RT = () => createTestRuntime();
 const concludeMsg = (summary, verdict = "success") =>
   createToolUseMsg("Conclude", { verdict, summary });
 
@@ -166,6 +167,7 @@ describe("createJudge", () => {
       query: mockQuery,
       output,
       redactor: noop(),
+      runtime: RT(),
     });
     assert.ok(judge instanceof Judge);
     // Trigger the underlying runner so we can inspect the options it
@@ -192,6 +194,7 @@ describe("createJudge", () => {
       query: mockQuery,
       output,
       redactor: noop(),
+      runtime: RT(),
     });
     return judge.runner.run("noop").then(() => {
       const orchestration = capturedParams.options.mcpServers?.orchestration;
@@ -216,6 +219,7 @@ describe("createJudge", () => {
       query: mockQuery,
       output,
       redactor: noop(),
+      runtime: RT(),
     });
     return judge.runner.run("noop").then(() => {
       assert.deepStrictEqual(capturedParams.options.allowedTools, [

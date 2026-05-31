@@ -5,8 +5,11 @@ import { readFileSync } from "node:fs";
 import readline from "node:readline";
 
 import { createCli } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { LogWriter } from "../src/logger.js";
+
+const runtime = createDefaultRuntime();
 
 // `bun build --compile` injects FIT_LOGGER_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
@@ -49,20 +52,23 @@ const definition = {
 const cli = createCli(definition);
 
 const parsed = cli.parse(process.argv.slice(2));
-if (!parsed) process.exit(0);
+if (!parsed) runtime.proc.exit(0);
 
 const { values } = parsed;
 
 if (!values.dir) {
   cli.usageError("missing required option: --dir");
-  process.exit(2);
+  runtime.proc.exit(2);
 }
 
 const writer = new LogWriter(values.dir, {
-  maxFileSize: values.maxFileSize
-    ? parseInt(values.maxFileSize, 10)
-    : undefined,
-  maxFiles: values.maxFiles ? parseInt(values.maxFiles, 10) : undefined,
+  runtime,
+  config: {
+    maxFileSize: values.maxFileSize
+      ? parseInt(values.maxFileSize, 10)
+      : undefined,
+    maxFiles: values.maxFiles ? parseInt(values.maxFiles, 10) : undefined,
+  },
 });
 
 await writer.init();
@@ -78,7 +84,7 @@ rl.on("line", async (line) => {
 
 rl.on("close", async () => {
   await writer.close();
-  process.exit(0);
+  runtime.proc.exit(0);
 });
 
 process.on("SIGTERM", async () => {

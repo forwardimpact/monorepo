@@ -1,0 +1,33 @@
+fit-outpost 3.1.3 — Schedule autonomous agents across knowledge bases
+
+Usage: fit-outpost <command> [options]
+
+Commands:
+  daemon         Run continuously (poll every 60s)
+  wake <agent>   Wake a specific agent immediately
+  init <path>    Initialize a new knowledge base
+  update [path]  Update KB with latest CLAUDE.md, agents and skills
+  stop           Gracefully stop daemon and all running agents
+  validate       Validate agent definitions exist
+  status         Show agent status
+
+Options:
+  --help, -h  Show this help
+  --version   Show version
+  --json      JSON output (with --help)
+
+Documentation:
+  Outpost Overview
+    https://www.forwardimpact.team/outpost/index.md
+    Product overview, audience model, and key concepts.
+  Getting Started: Outpost for Engineers
+    https://www.forwardimpact.team/docs/getting-started/engineers/outpost/index.md
+    From zero to your first daily briefing.
+  Keep Track of Context Without Effort
+    https://www.forwardimpact.team/docs/products/knowledge-systems/index.md
+    Maintain continuous awareness of people, projects, and threads.
+  Walk Into Every Meeting Already Oriented
+    https://www.forwardimpact.team/docs/products/knowledge-systems/meeting-prep/index.md
+    Assemble context so you arrive prepared.
+
+Use fit-outpost <command> --help for command-specific options.

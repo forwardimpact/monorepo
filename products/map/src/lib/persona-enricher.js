@@ -9,9 +9,6 @@
  * only the substrate ↔ DSL id coupling and the row-shape contract.
  */
 
-import fs from "node:fs";
-import { readFile } from "node:fs/promises";
-import { Finder } from "@forwardimpact/libutil";
 import {
   createDslParser,
   findTeamById,
@@ -26,14 +23,14 @@ import {
  * with no staged terrain. Wraps parser errors with the file path so the
  * supervisor sees DSL drift inside Step 3a (Risk B).
  *
- * @param {string} [cwd] - working directory (defaults to `process.cwd()`)
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs, finder, proc).
+ * @param {string} [cwd] - working directory (defaults to `runtime.proc.cwd()`)
  * @returns {Promise<object|null>}
  */
-export async function loadStory(cwd = process.cwd()) {
-  const finder = new Finder(fs, console, process);
-  const dslPath = finder.findUpward(cwd, "data/synthetic/story.dsl", 5);
+export async function loadStory(runtime, cwd = runtime.proc.cwd()) {
+  const dslPath = runtime.finder.findUpward(cwd, "data/synthetic/story.dsl", 5);
   if (!dslPath) return null;
-  const source = await readFile(dslPath, "utf8");
+  const source = await runtime.fs.readFile(dslPath, "utf8");
   try {
     return createDslParser().parse(source);
   } catch (err) {

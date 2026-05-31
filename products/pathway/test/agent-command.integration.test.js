@@ -107,7 +107,7 @@ function clearTrackTeamInstructions(work, trackId) {
 async function runAgent(work) {
   const dataDir = join(work, "data");
   const outputDir = join(work, "out");
-  const loader = createDataLoader();
+  const loader = createDataLoader(createDefaultRuntime());
   const templateLoader = createTemplateLoader(templatesDir);
   const data = await loader.loadAllData(dataDir);
   await silent(() =>

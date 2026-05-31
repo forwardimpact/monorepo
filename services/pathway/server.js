@@ -6,6 +6,7 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createDataLoader } from "@forwardimpact/map/loader";
 import { Finder } from "@forwardimpact/libutil";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { homedir } from "os";
 import { join } from "path";
 import fs from "fs/promises";
@@ -32,7 +33,9 @@ const data_dir = config.data_dir
 // loadAllData drops `human` from each skill (loader.js:102-127) while
 // loadSkillsWithAgentData spreads the full raw skill, which is the shape
 // generateAgentProfile walks. Both are required.
-const loader = createDataLoader();
+// createDataLoader requires an injected runtime; the service entry point is a
+// legitimate construction site for the production runtime.
+const loader = createDataLoader(createDefaultRuntime());
 const data = await loader.loadAllData(data_dir);
 const agentData = await loader.loadAgentData(data_dir);
 const skillsWithAgent = await loader.loadSkillsWithAgentData(data_dir);

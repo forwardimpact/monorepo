@@ -12,11 +12,11 @@ import { createDataLoader } from "../../loader.js";
 /**
  * Load people from a local file (CSV or YAML).
  * @param {string} filePath - Path to the people file
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs).
  * @returns {Promise<Array<object>>} Array of person objects
  */
-export async function loadPeopleFile(filePath) {
-  const { readFile } = await import("fs/promises");
-  const content = await readFile(filePath, "utf-8");
+export async function loadPeopleFile(filePath, runtime) {
+  const content = await runtime.fs.readFile(filePath, "utf-8");
 
   if (filePath.endsWith(".yaml") || filePath.endsWith(".yml")) {
     return parseYamlPeople(content);
@@ -92,10 +92,11 @@ function normalizePersonRecord(person) {
  * Checks that discipline, level, and track values exist in the standard.
  * @param {Array<object>} people - Array of person objects
  * @param {string} dataDir - Path to standard data directory
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs).
  * @returns {Promise<{valid: Array<object>, errors: Array<{row: number, message: string}>}>}
  */
-export async function validatePeople(people, dataDir) {
-  const loader = createDataLoader();
+export async function validatePeople(people, dataDir, runtime) {
+  const loader = createDataLoader(runtime);
   const data = await loader.loadAllData(dataDir);
 
   const ids = {

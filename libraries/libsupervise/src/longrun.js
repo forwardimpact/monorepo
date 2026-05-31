@@ -1,4 +1,3 @@
-import { spawn } from "node:child_process";
 import { EventEmitter } from "node:events";
 
 import { ProcessState } from "./state.js";
@@ -19,10 +18,13 @@ import { ProcessState } from "./state.js";
  * Supervised longrun process, inspired by s6-supervise
  */
 export class LongrunProcess extends EventEmitter {
+  #subprocess;
+  #proc;
+  #clock;
   #name;
   #command;
   #cwd;
-  #process;
+  #child;
   #state;
   #wantUp;
   #stdout;
@@ -37,6 +39,8 @@ export class LongrunProcess extends EventEmitter {
    * @param {string} name - Service name
    * @param {string} command - Shell command to run
    * @param {object} options - Process options
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} options.runtime
+   *   Injected runtime bag (uses `subprocess`, `proc`, `clock`).
    * @param {import("node:stream").Writable} options.stdout - Stream for stdout
    * @param {import("node:stream").Writable} options.stderr - Stream for stderr
    * @param {string} [options.cwd] - Working directory for the process
@@ -46,14 +50,20 @@ export class LongrunProcess extends EventEmitter {
     super();
     if (!name) throw new Error("name is required");
     if (!command) throw new Error("command is required");
+    if (!options?.runtime?.subprocess)
+      throw new Error("runtime.subprocess is required");
     if (!options?.stdout) throw new Error("options.stdout is required");
     if (!options?.stderr) throw new Error("options.stderr is required");
 
+    const { runtime } = options;
+    this.#subprocess = runtime.subprocess;
+    this.#proc = runtime.proc;
+    this.#clock = runtime.clock;
     this.#name = name;
     this.#command = command;
     this.#cwd = options.cwd;
-    this.#process = null;
-    this.#state = new ProcessState();
+    this.#child = null;
+    this.#state = new ProcessState(runtime);
     this.#wantUp = false;
     this.#stdout = options.stdout;
     this.#stderr = options.stderr;
@@ -94,31 +104,54 @@ export class LongrunProcess extends EventEmitter {
     // kill the entire process tree (shell + children) with a negative PID.
     // Without this, only the bash shell receives SIGTERM and its children
     // become orphans. See: https://nodejs.org/api/child_process.html#optionsdetached
-    const child = spawn("bash", ["-c", this.#command], {
+    const child = this.#subprocess.spawn("bash", ["-c", this.#command], {
       stdio: ["ignore", "pipe", "pipe"],
       detached: true,
       cwd: this.#cwd,
-      env: process.env,
+      env: this.#proc.env,
     });
 
-    this.#process = child;
+    this.#child = child;
+
+    // The streaming contract exposes no "spawn" event: a defined pid right
+    // after spawn() returns means the child is up; an undefined pid is the
+    // spawn failure the old `error` event reported.
+    if (child.pid === undefined) {
+      this.#child = null;
+      this.emit("error", {
+        name: this.#name,
+        error: new Error(`failed to spawn ${this.#name}: ${this.#command}`),
+      });
+      return;
+    }
+
     this.#state.transitionTo("starting", { pid: child.pid });
 
-    child.stdout.pipe(this.#stdout, { end: false });
-    child.stderr.pipe(this.#stderr, { end: false });
+    // Pipe the child's output into the held sinks as detached async loops so
+    // neither blocks supervision. `end: false` semantics are preserved by
+    // never calling `.end()` on the shared sinks here.
+    void (async () => {
+      try {
+        for await (const chunk of child.stdout) this.#stdout.write(chunk);
+      } catch {
+        // Stream torn down on kill — nothing to flush.
+      }
+    })();
+    void (async () => {
+      try {
+        for await (const chunk of child.stderr) this.#stderr.write(chunk);
+      } catch {
+        // Stream torn down on kill — nothing to flush.
+      }
+    })();
 
-    child.on("spawn", () => {
-      this.#state.transitionTo("up", { pid: child.pid });
-      this.emit("up", { name: this.#name, pid: child.pid });
-    });
+    this.#state.transitionTo("up", { pid: child.pid });
+    this.emit("up", { name: this.#name, pid: child.pid });
 
-    child.on("exit", (code, signal) => {
-      this.#process = null;
+    // The exit event becomes the resolution of the exitCode/signal promises.
+    void Promise.all([child.exitCode, child.signal]).then(([code, signal]) => {
+      if (this.#child === child) this.#child = null;
       this.#handleExit(code, signal);
-    });
-
-    child.on("error", (error) => {
-      this.emit("error", { name: this.#name, error });
     });
   }
 
@@ -142,7 +175,7 @@ export class LongrunProcess extends EventEmitter {
       delay: this.#currentDelay,
     });
 
-    setTimeout(() => {
+    this.#clock.setTimeout(() => {
       if (this.#wantUp) {
         this.#spawn();
       }
@@ -162,7 +195,7 @@ export class LongrunProcess extends EventEmitter {
   async stop(timeout = 3000) {
     this.#wantUp = false;
 
-    if (!this.#process) {
+    if (!this.#child) {
       this.#state.transitionTo("down");
       return;
     }
@@ -170,22 +203,22 @@ export class LongrunProcess extends EventEmitter {
     this.#state.transitionTo("stopping");
 
     return new Promise((resolve) => {
-      const child = this.#process;
+      const child = this.#child;
       const pid = child.pid;
 
-      const forceKill = setTimeout(() => {
-        if (this.#process === child && pid) {
+      const forceKill = this.#clock.setTimeout(() => {
+        if (this.#child === child && pid) {
           // Kill the entire process group with SIGKILL
           try {
-            process.kill(-pid, "SIGKILL");
+            this.#proc.kill(-pid, "SIGKILL");
           } catch {
             // Process group may already be dead
           }
         }
       }, timeout);
 
-      child.once("exit", () => {
-        clearTimeout(forceKill);
+      void child.exitCode.then(() => {
+        this.#clock.clearTimeout(forceKill);
         resolve();
       });
 
@@ -194,7 +227,7 @@ export class LongrunProcess extends EventEmitter {
       // See: https://nodejs.org/api/child_process.html#subprocesskillsignal
       if (pid) {
         try {
-          process.kill(-pid, "SIGTERM");
+          this.#proc.kill(-pid, "SIGTERM");
         } catch {
           // Process group may already be dead
         }
@@ -216,9 +249,9 @@ export class LongrunProcess extends EventEmitter {
    * @param {string} sig - Signal to send (e.g., 'SIGTERM', 'SIGKILL')
    */
   signal(sig) {
-    if (this.#process?.pid) {
+    if (this.#child?.pid) {
       try {
-        process.kill(-this.#process.pid, sig);
+        this.#proc.kill(-this.#child.pid, sig);
       } catch {
         // Process group may already be dead
       }

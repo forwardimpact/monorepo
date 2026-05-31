@@ -42,10 +42,11 @@ export function resolveDataDir(options, runtime) {
  * Load standard data for a given data directory.
  *
  * @param {string} dataDir
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs).
  * @returns {Promise<object>}
  */
-export async function loadMapData(dataDir) {
-  const loader = createDataLoader();
+export async function loadMapData(dataDir, runtime) {
+  const loader = createDataLoader(runtime);
   return loader.loadAllData(dataDir);
 }
 

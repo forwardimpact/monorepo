@@ -226,8 +226,10 @@ export function createDiscusser({
   callbackUrl,
   inboxUrl,
   correlationId,
+  runtime,
 }) {
   if (!redactor) throw new Error("redactor is required");
+  if (!runtime) throw new Error("runtime is required");
   const resolvedLeadCwd = resolve(leadCwd ?? ".");
   const resolvedProfilesDir =
     profilesDir ?? resolve(resolvedLeadCwd, ".claude/agents");
@@ -326,6 +328,7 @@ export function createDiscusser({
         profile: config.agentProfile,
         profilesDir: resolvedProfilesDir,
         trailer: agentTrailer,
+        runtime,
       }),
       redactor,
     });
@@ -358,6 +361,7 @@ export function createDiscusser({
       profile: leadProfile,
       profilesDir: resolvedProfilesDir,
       trailer: DISCUSS_SYSTEM_PROMPT,
+      runtime,
     }),
     redactor,
   });

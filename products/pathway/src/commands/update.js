@@ -43,7 +43,7 @@ export async function runUpdateCommand({
   }
 
   // Load standard config to get siteUrl
-  const loader = createDataLoader();
+  const loader = createDataLoader(runtime);
   const standard = await loader.loadStandardConfig(INSTALL_DIR);
   const siteUrl = options.url || standard.distribution?.siteUrl;
 

@@ -27,15 +27,17 @@ export class TeeWriter extends Writable {
    * @param {import("stream").Writable} deps.fileStream - Stream to write raw NDJSON to
    * @param {import("stream").Writable} deps.textStream - Stream to write human-readable text to
    * @param {"raw"|"supervised"} [deps.mode] - Display mode: "raw" (no source labels) or "supervised" (source labels) (default: "raw")
+   * @param {function} [deps.now] - Injected ISO-timestamp source threaded into
+   *   the internal `TraceCollector` (`() => isoTimestamp(runtime.clock.now())`).
    */
-  constructor({ fileStream, textStream, mode }) {
+  constructor({ fileStream, textStream, mode, now }) {
     super();
     if (!fileStream) throw new Error("fileStream is required");
     if (!textStream) throw new Error("textStream is required");
     this.fileStream = fileStream;
     this.textStream = textStream;
     this.mode = mode ?? "raw";
-    this.collector = new TraceCollector();
+    this.collector = new TraceCollector({ now });
     this.turnsEmitted = 0;
   }
 

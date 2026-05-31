@@ -145,8 +145,10 @@ export function createSupervisor({
   taskAmend,
   agentMcpServers,
   redactor,
+  runtime,
 }) {
   if (!redactor) throw new Error("redactor is required");
+  if (!runtime) throw new Error("runtime is required");
   const resolvedProfilesDir =
     profilesDir ?? resolve(supervisorCwd, ".claude/agents");
 
@@ -180,6 +182,7 @@ export function createSupervisor({
       profile: agentProfile,
       profilesDir: resolvedProfilesDir,
       trailer: AGENT_SYSTEM_PROMPT,
+      runtime,
     }),
     mcpServers: { orchestration: agentServer, ...agentMcpServers },
     redactor,
@@ -213,6 +216,7 @@ export function createSupervisor({
       profile: supervisorProfile,
       profilesDir: resolvedProfilesDir,
       trailer: SUPERVISOR_SYSTEM_PROMPT,
+      runtime,
     }),
     mcpServers: { orchestration: supervisorServer },
     redactor,

@@ -1,5 +1,3 @@
-#!/usr/bin/env bun
-
 // Outpost — CLI and scheduler for autonomous agent teams.
 //
 // Usage:
@@ -12,215 +10,107 @@
 //   fit-outpost validate            Validate agent definitions exist
 //   fit-outpost status              Show agent status
 //   fit-outpost --help              Show this help
+//
+// This module owns the CLI definition and dispatch table. The runtime
+// collaborator bag is constructed once in bin/fit-outpost.js (the sole
+// construction site) and threaded into `run(runtime, version)`; `run` returns
+// the process exit code and the bin translates it to `runtime.proc.exit`.
 
-import {
-  readFileSync,
-  writeFileSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  copyFileSync,
-  cpSync,
-  appendFileSync,
-} from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
-import { fileURLToPath } from "node:url";
 import { createCli } from "@forwardimpact/libcli";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { isoTimestamp } from "@forwardimpact/libutil";
 
 const logger = createLogger("outpost");
 
-import * as posixSpawn from "@forwardimpact/libmacos/posix-spawn";
 import { StateManager } from "./state-manager.js";
 import { AgentRunner } from "./agent-runner.js";
-import { Scheduler } from "./scheduler.js";
+import { Scheduler, formatLocalTime } from "./scheduler.js";
 import { KBManager } from "./kb-manager.js";
 import { SocketServer, requestShutdown } from "./socket-server.js";
 
-// --- Paths -------------------------------------------------------------------
-
-const HOME = homedir();
-const OUTPOST_HOME = join(HOME, ".fit", "outpost");
-const CONFIG_PATH = join(OUTPOST_HOME, "scheduler.json");
-const STATE_PATH = join(OUTPOST_HOME, "state.json");
-const LOG_DIR = join(OUTPOST_HOME, "logs");
-const CACHE_DIR = join(HOME, ".cache", "fit", "outpost");
-const __dirname =
-  import.meta.dirname || dirname(fileURLToPath(import.meta.url));
 const SHARE_DIR = "/usr/local/share/fit-outpost";
-const SOCKET_PATH = join(OUTPOST_HOME, "outpost.sock");
 
-// In compiled binaries (bun build --compile), `bun build --define` injects the
-// version string here so the readFileSync branch is eliminated as dead code.
-// Source execution (bun src/outpost.js) falls through to package.json.
-const VERSION =
-  process.env.OUTPOST_VERSION ||
-  JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"))
-    .version;
-
-// --- Logging -----------------------------------------------------------------
-
-function createFileLogger(logDir, fs) {
-  if (!logDir) throw new Error("logDir is required");
-  if (!fs) throw new Error("fs is required");
-  fs.mkdirSync(logDir, { recursive: true });
-  return function log(msg) {
-    const ts = new Date().toISOString();
-    const line = `[${ts}] ${msg}`;
-    logger.info(line);
-    fs.appendFileSync(
-      join(logDir, `scheduler-${ts.slice(0, 10)}.log`),
-      line + "\n",
-    );
+/**
+ * Build the CLI definition. The object is byte-identical to the libcli
+ * definition the goldens were captured against, so `--help` / `--version`
+ * output stays stable.
+ * @param {string} version
+ * @returns {object}
+ */
+function buildDefinition(version) {
+  return {
+    name: "fit-outpost",
+    version,
+    description: "Schedule autonomous agents across knowledge bases",
+    commands: [
+      { name: "daemon", description: "Run continuously (poll every 60s)" },
+      {
+        name: "wake",
+        args: "<agent>",
+        description: "Wake a specific agent immediately",
+      },
+      {
+        name: "init",
+        args: "<path>",
+        description: "Initialize a new knowledge base",
+      },
+      {
+        name: "update",
+        args: "[path]",
+        description: "Update KB with latest CLAUDE.md, agents and skills",
+      },
+      {
+        name: "stop",
+        description: "Gracefully stop daemon and all running agents",
+      },
+      { name: "validate", description: "Validate agent definitions exist" },
+      { name: "status", description: "Show agent status" },
+    ],
+    globalOptions: {
+      help: { type: "boolean", short: "h", description: "Show this help" },
+      version: { type: "boolean", description: "Show version" },
+      json: { type: "boolean", description: "JSON output (with --help)" },
+    },
+    documentation: [
+      {
+        title: "Outpost Overview",
+        url: "https://www.forwardimpact.team/outpost/index.md",
+        description: "Product overview, audience model, and key concepts.",
+      },
+      {
+        title: "Getting Started: Outpost for Engineers",
+        url: "https://www.forwardimpact.team/docs/getting-started/engineers/outpost/index.md",
+        description: "From zero to your first daily briefing.",
+      },
+      {
+        title: "Keep Track of Context Without Effort",
+        url: "https://www.forwardimpact.team/docs/products/knowledge-systems/index.md",
+        description:
+          "Maintain continuous awareness of people, projects, and threads.",
+      },
+      {
+        title: "Walk Into Every Meeting Already Oriented",
+        url: "https://www.forwardimpact.team/docs/products/knowledge-systems/meeting-prep/index.md",
+        description: "Assemble context so you arrive prepared.",
+      },
+    ],
   };
 }
 
-const log = createFileLogger(LOG_DIR, { mkdirSync, appendFileSync });
-
-// --- Config ------------------------------------------------------------------
-
-function loadConfig() {
-  try {
-    return JSON.parse(readFileSync(CONFIG_PATH, "utf8"));
-  } catch {
-    return { agents: {} };
-  }
-}
-
-function expandPath(p) {
-  return p.startsWith("~/") ? join(HOME, p.slice(2)) : resolve(p);
-}
-
-// --- Wire dependencies -------------------------------------------------------
-
-const fsOps = { readFileSync, writeFileSync, mkdirSync };
-const stateManager = new StateManager(STATE_PATH, fsOps);
-const agentRunner = new AgentRunner(posixSpawn, stateManager, log, CACHE_DIR);
-const scheduler = new Scheduler(loadConfig, stateManager, agentRunner, log);
-const kbManager = new KBManager(
-  {
-    existsSync,
-    mkdirSync,
-    copyFileSync,
-    cpSync,
-    readFileSync,
-    writeFileSync,
-    readdirSync,
-  },
-  log,
-);
-
-// --- Template dir resolution -------------------------------------------------
-
 /**
- * Detect if running from inside a macOS .app bundle.
- * @returns {{ bundle: string, resources: string } | null}
+ * Render an agent's multi-line status block (pure formatting).
+ * @param {string} name
+ * @param {Object} agent
+ * @param {Object} s - The agent's persisted state.
+ * @param {boolean} kbMissing - Whether the agent's kb path is absent.
+ * @returns {string}
  */
-function getBundlePath() {
-  try {
-    const exe = process.execPath || "";
-    const macosDir = dirname(exe);
-    const contentsDir = dirname(macosDir);
-    const resourcesDir = join(contentsDir, "Resources");
-    if (existsSync(join(resourcesDir, "config"))) {
-      return { bundle: dirname(contentsDir), resources: resourcesDir };
-    }
-  } catch {
-    /* not in bundle */
-  }
-  return null;
-}
-
-function requireTemplateDir() {
-  const bundle = getBundlePath();
-  if (bundle) {
-    const tpl = join(bundle.resources, "templates");
-    if (existsSync(tpl)) return tpl;
-  }
-  for (const d of [
-    join(SHARE_DIR, "templates"),
-    join(__dirname, "..", "templates"),
-  ])
-    if (existsSync(d)) return d;
-  console.error("Template not found. Reinstall fit-outpost.");
-  process.exit(1);
-}
-
-// --- Daemon ------------------------------------------------------------------
-
-function daemon() {
-  const daemonStartedAt = Date.now();
-  log("Scheduler daemon started. Polling every 60 seconds.");
-  log(`Config: ${CONFIG_PATH}  State: ${STATE_PATH}`);
-
-  // Reset any agents left "active" from a previous daemon session.
-  const state = stateManager.load();
-  stateManager.resetStaleAgents(state, { reason: "Daemon restarted" }, log);
-
-  const socketServer = new SocketServer(
-    SOCKET_PATH,
-    scheduler,
-    agentRunner,
-    stateManager,
-    loadConfig,
-    log,
-    CACHE_DIR,
-    daemonStartedAt,
-  );
-  socketServer.start();
-
-  async function tick() {
-    try {
-      await scheduler.wakeDueAgents();
-    } catch (err) {
-      log(`Error: ${err.message}`);
-    }
-    setTimeout(tick, 60_000);
-  }
-  tick();
-}
-
-// --- Update ------------------------------------------------------------------
-
-function runUpdate(args) {
-  if (args[0]) {
-    kbManager.update(args[0], requireTemplateDir());
-    return;
-  }
-
-  const config = loadConfig();
-  const kbPaths = [
-    ...new Set(
-      Object.values(config.agents)
-        .filter((a) => a.kb)
-        .map((a) => expandPath(a.kb)),
-    ),
-  ];
-
-  if (kbPaths.length === 0) {
-    console.error(
-      "No knowledge bases configured and no path given.\n" +
-        "Usage: fit-outpost update [path]",
-    );
-    process.exit(1);
-  }
-
-  for (const kb of kbPaths) {
-    logger.info(`\nUpdating ${kb}...`);
-    kbManager.update(kb, requireTemplateDir());
-  }
-}
-
-// --- Status ------------------------------------------------------------------
-
-function formatAgentStatus(name, agent, s) {
+function renderAgentStatus(name, agent, s, kbMissing) {
   const enabledMark = agent.enabled !== false ? "+" : "-";
-  const kbStatus =
-    agent.kb && !existsSync(expandPath(agent.kb)) ? " (not found)" : "";
-  const lastWake = s.lastWokeAt
-    ? new Date(s.lastWokeAt).toLocaleString()
-    : "never";
+  const kbStatus = kbMissing ? " (not found)" : "";
+  const lastWake = s.lastWokeAt ? formatLocalTime(s.lastWokeAt) : "never";
   const lines = [
     `  ${enabledMark} ${name}`,
     `    KB: ${agent.kb || "(none)"}${kbStatus}  Schedule: ${JSON.stringify(agent.schedule)}`,
@@ -232,186 +122,341 @@ function formatAgentStatus(name, agent, s) {
   return lines.join("\n");
 }
 
-function showStatus() {
-  const config = loadConfig();
-  const state = stateManager.load();
-  logger.info("\nOutpost Scheduler\n==================\n");
-
-  const agents = Object.entries(config.agents || {});
-  if (agents.length === 0) {
-    logger.info(`No agents configured.\n\nEdit ${CONFIG_PATH} to add agents.`);
-    return;
-  }
-
-  logger.info("Agents:");
-  for (const [name, agent] of agents) {
-    logger.info(formatAgentStatus(name, agent, state.agents[name] || {}));
-  }
-}
-
-// --- Validate ----------------------------------------------------------------
-
-function findInLocalOrGlobal(kbPath, subPath) {
-  const local = join(kbPath, ".claude", subPath);
-  const global = join(HOME, ".claude", subPath);
-  if (existsSync(local)) return local;
-  if (existsSync(global)) return global;
-  return null;
-}
-
 /**
- * Validate a single agent's configuration.
- * @param {string} name
- * @param {Object} agent
- * @returns {boolean} true if valid
+ * Run the Outpost CLI.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ *   Injected collaborator bag (constructed in the bin).
+ * @param {string} version - Resolved CLI version string.
+ * @returns {Promise<number>} Process exit code.
  */
-function validateAgent(name, agent) {
-  if (!agent.kb) {
-    logger.info(`  [FAIL] ${name}: no "kb" path specified`);
-    return false;
-  }
-  const kbPath = expandPath(agent.kb);
-  if (!existsSync(kbPath)) {
-    logger.info(`  [FAIL] ${name}: path not found: ${kbPath}`);
-    return false;
+export async function run(runtime, version) {
+  const { fs, proc, clock } = runtime;
+
+  /**
+   * Async existence check via the one fs surface this module uses.
+   * @param {string} p
+   * @returns {Promise<boolean>}
+   */
+  const exists = (p) =>
+    fs.access(p).then(
+      () => true,
+      () => false,
+    );
+
+  // --- Paths -----------------------------------------------------------------
+  const HOME = homedir();
+  const OUTPOST_HOME = join(HOME, ".fit", "outpost");
+  const CONFIG_PATH = join(OUTPOST_HOME, "scheduler.json");
+  const STATE_PATH = join(OUTPOST_HOME, "state.json");
+  const LOG_DIR = join(OUTPOST_HOME, "logs");
+  const CACHE_DIR = join(HOME, ".cache", "fit", "outpost");
+  const SOCKET_PATH = join(OUTPOST_HOME, "outpost.sock");
+  const PKG_DIR = dirname(import.meta.dirname);
+
+  // --- Logging ---------------------------------------------------------------
+  await fs.mkdir(LOG_DIR, { recursive: true });
+  function log(msg) {
+    const ts = isoTimestamp(clock.now());
+    const line = `[${ts}] ${msg}`;
+    logger.info(line);
+    void fs.appendFile(
+      join(LOG_DIR, `scheduler-${ts.slice(0, 10)}.log`),
+      line + "\n",
+    );
   }
 
-  const agentFile = join("agents", name + ".md");
-  const found = findInLocalOrGlobal(kbPath, agentFile);
-  logger.info(
-    `  [${found ? "OK" : "FAIL"}]  ${name}: agent definition${found ? "" : " not found"}`,
+  // --- Config ----------------------------------------------------------------
+  async function loadConfig() {
+    try {
+      return JSON.parse(await fs.readFile(CONFIG_PATH, "utf8"));
+    } catch {
+      return { agents: {} };
+    }
+  }
+
+  function expandPath(p) {
+    return p.startsWith("~/") ? join(HOME, p.slice(2)) : resolve(p);
+  }
+
+  // --- Wire dependencies -----------------------------------------------------
+  // posix-spawn is a Bun-FFI module (`bun:ffi`); importing it eagerly would
+  // crash plain `node` (e.g. `--help`/`--version`/golden capture). Load it
+  // lazily so only an actual agent wake — which only runs under Bun on macOS —
+  // pulls it in.
+  const loadSpawn = () => import("@forwardimpact/libmacos/posix-spawn");
+  const stateManager = new StateManager(STATE_PATH, runtime);
+  const agentRunner = new AgentRunner(
+    loadSpawn,
+    stateManager,
+    log,
+    CACHE_DIR,
+    runtime,
   );
-  return !!found;
-}
+  const scheduler = new Scheduler(
+    loadConfig,
+    stateManager,
+    agentRunner,
+    log,
+    runtime,
+  );
+  const kbManager = new KBManager(runtime, log);
 
-function validate() {
-  const config = loadConfig();
-  const agents = Object.entries(config.agents || {});
-  if (agents.length === 0) {
-    logger.info("No agents configured. Nothing to validate.");
-    return;
-  }
-
-  logger.info("\nValidating agents...\n");
-  let errors = 0;
-
-  for (const [name, agent] of agents) {
-    if (!validateAgent(name, agent)) errors++;
-  }
-
-  logger.info(errors > 0 ? `\n${errors} error(s).` : "\nAll OK.");
-  if (errors > 0) process.exit(1);
-}
-
-// --- CLI definition ----------------------------------------------------------
-
-const definition = {
-  name: "fit-outpost",
-  version: VERSION,
-  description: "Schedule autonomous agents across knowledge bases",
-  commands: [
-    { name: "daemon", description: "Run continuously (poll every 60s)" },
-    {
-      name: "wake",
-      args: "<agent>",
-      description: "Wake a specific agent immediately",
-    },
-    {
-      name: "init",
-      args: "<path>",
-      description: "Initialize a new knowledge base",
-    },
-    {
-      name: "update",
-      args: "[path]",
-      description: "Update KB with latest CLAUDE.md, agents and skills",
-    },
-    {
-      name: "stop",
-      description: "Gracefully stop daemon and all running agents",
-    },
-    { name: "validate", description: "Validate agent definitions exist" },
-    { name: "status", description: "Show agent status" },
-  ],
-  globalOptions: {
-    help: { type: "boolean", short: "h", description: "Show this help" },
-    version: { type: "boolean", description: "Show version" },
-    json: { type: "boolean", description: "JSON output (with --help)" },
-  },
-  documentation: [
-    {
-      title: "Outpost Overview",
-      url: "https://www.forwardimpact.team/outpost/index.md",
-      description: "Product overview, audience model, and key concepts.",
-    },
-    {
-      title: "Getting Started: Outpost for Engineers",
-      url: "https://www.forwardimpact.team/docs/getting-started/engineers/outpost/index.md",
-      description: "From zero to your first daily briefing.",
-    },
-    {
-      title: "Keep Track of Context Without Effort",
-      url: "https://www.forwardimpact.team/docs/products/knowledge-systems/index.md",
-      description:
-        "Maintain continuous awareness of people, projects, and threads.",
-    },
-    {
-      title: "Walk Into Every Meeting Already Oriented",
-      url: "https://www.forwardimpact.team/docs/products/knowledge-systems/meeting-prep/index.md",
-      description: "Assemble context so you arrive prepared.",
-    },
-  ],
-};
-
-// --- CLI entry point ---------------------------------------------------------
-
-const cli = createCli(definition);
-const parsed = cli.parse(process.argv.slice(2));
-if (!parsed) process.exit(0);
-
-const { positionals } = parsed;
-const [command, ...args] = positionals;
-
-mkdirSync(OUTPOST_HOME, { recursive: true });
-
-const COMMANDS = {
-  daemon,
-  wake: async () => {
-    if (!args[0]) {
-      cli.usageError("missing required argument <agent>");
-      process.exit(2);
+  // --- Template dir resolution -----------------------------------------------
+  async function getBundlePath() {
+    try {
+      const exe = process.execPath || "";
+      const macosDir = dirname(exe);
+      const contentsDir = dirname(macosDir);
+      const resourcesDir = join(contentsDir, "Resources");
+      if (await exists(join(resourcesDir, "config"))) {
+        return { bundle: dirname(contentsDir), resources: resourcesDir };
+      }
+    } catch {
+      /* not in bundle */
     }
-    const config = loadConfig();
-    const state = stateManager.load();
-    const agent = config.agents[args[0]];
-    if (!agent) {
-      cli.error(
-        `agent "${args[0]}" not found. Available: ${Object.keys(config.agents).join(", ") || "(none)"}`,
+    return null;
+  }
+
+  async function requireTemplateDir() {
+    const bundle = await getBundlePath();
+    if (bundle) {
+      const tpl = join(bundle.resources, "templates");
+      if (await exists(tpl)) return tpl;
+    }
+    for (const d of [join(SHARE_DIR, "templates"), join(PKG_DIR, "templates")])
+      if (await exists(d)) return d;
+    proc.stderr.write("Template not found. Reinstall fit-outpost.\n");
+    return null;
+  }
+
+  // --- Daemon ----------------------------------------------------------------
+  async function daemon() {
+    const daemonStartedAt = clock.now();
+    log("Scheduler daemon started. Polling every 60 seconds.");
+    log(`Config: ${CONFIG_PATH}  State: ${STATE_PATH}`);
+
+    // Reset any agents left "active" from a previous daemon session.
+    const state = await stateManager.load();
+    await stateManager.resetStaleAgents(
+      state,
+      { reason: "Daemon restarted" },
+      log,
+    );
+
+    const socketServer = new SocketServer(
+      SOCKET_PATH,
+      scheduler,
+      agentRunner,
+      stateManager,
+      loadConfig,
+      log,
+      CACHE_DIR,
+      daemonStartedAt,
+      runtime,
+    );
+    socketServer.start();
+
+    let stopped = false;
+    let tickHandle;
+    void socketServer.whenStopped().then(() => {
+      stopped = true;
+      // Cancel any pending poll so the armed timer does not keep the event
+      // loop alive after shutdown — `run()` returns 0 and the bin exits only
+      // on a nonzero code, so a lingering 60s timer would delay exit.
+      if (tickHandle !== undefined) clock.clearTimeout(tickHandle);
+    });
+
+    async function tick() {
+      if (stopped) return;
+      try {
+        await scheduler.wakeDueAgents();
+      } catch (err) {
+        log(`Error: ${err.message}`);
+      }
+      if (!stopped) tickHandle = clock.setTimeout(tick, 60_000);
+    }
+    void tick();
+
+    // Block until a shutdown is requested via socket or signal; the bin then
+    // owns the process-exit call.
+    await socketServer.whenStopped();
+    return 0;
+  }
+
+  // --- Update ----------------------------------------------------------------
+  async function runUpdate(args) {
+    const tpl = await requireTemplateDir();
+    if (tpl === null) return 1;
+
+    if (args[0]) {
+      const result = await kbManager.update(args[0], tpl);
+      if (!result.ok) {
+        proc.stderr.write(result.error + "\n");
+        return result.code;
+      }
+      return 0;
+    }
+
+    const config = await loadConfig();
+    const kbPaths = [
+      ...new Set(
+        Object.values(config.agents)
+          .filter((a) => a.kb)
+          .map((a) => expandPath(a.kb)),
+      ),
+    ];
+
+    if (kbPaths.length === 0) {
+      proc.stderr.write(
+        "No knowledge bases configured and no path given.\n" +
+          "Usage: fit-outpost update [path]\n",
       );
-      process.exit(1);
+      return 1;
     }
-    await agentRunner.wake(args[0], agent, state);
-  },
-  init: () => {
-    if (!args[0]) {
-      cli.usageError("missing required argument <path>");
-      process.exit(2);
-    }
-    kbManager.init(args[0], requireTemplateDir());
-  },
-  update: () => runUpdate(args),
-  stop: async () => {
-    const stopped = await requestShutdown(SOCKET_PATH);
-    if (!stopped) process.exit(1);
-  },
-  validate,
-  status: showStatus,
-};
 
-const handler = COMMANDS[command];
-if (command && !handler) {
-  cli.usageError(`unknown command "${command}"`);
-  process.exit(2);
+    for (const kb of kbPaths) {
+      logger.info(`\nUpdating ${kb}...`);
+      const result = await kbManager.update(kb, tpl);
+      if (!result.ok) {
+        proc.stderr.write(result.error + "\n");
+        return result.code;
+      }
+    }
+    return 0;
+  }
+
+  // --- Status ----------------------------------------------------------------
+  async function formatAgentStatus(name, agent, s) {
+    const kbMissing = agent.kb ? !(await exists(expandPath(agent.kb))) : false;
+    return renderAgentStatus(name, agent, s, kbMissing);
+  }
+
+  async function showStatus() {
+    const config = await loadConfig();
+    const state = await stateManager.load();
+    logger.info("\nOutpost Scheduler\n==================\n");
+
+    const agents = Object.entries(config.agents || {});
+    if (agents.length === 0) {
+      logger.info(
+        `No agents configured.\n\nEdit ${CONFIG_PATH} to add agents.`,
+      );
+      return 0;
+    }
+
+    logger.info("Agents:");
+    for (const [name, agent] of agents) {
+      logger.info(
+        await formatAgentStatus(name, agent, state.agents[name] || {}),
+      );
+    }
+    return 0;
+  }
+
+  // --- Validate --------------------------------------------------------------
+  async function findInLocalOrGlobal(kbPath, subPath) {
+    const local = join(kbPath, ".claude", subPath);
+    const global = join(HOME, ".claude", subPath);
+    if (await exists(local)) return local;
+    if (await exists(global)) return global;
+    return null;
+  }
+
+  async function validateAgent(name, agent) {
+    if (!agent.kb) {
+      logger.info(`  [FAIL] ${name}: no "kb" path specified`);
+      return false;
+    }
+    const kbPath = expandPath(agent.kb);
+    if (!(await exists(kbPath))) {
+      logger.info(`  [FAIL] ${name}: path not found: ${kbPath}`);
+      return false;
+    }
+
+    const agentFile = join("agents", name + ".md");
+    const found = await findInLocalOrGlobal(kbPath, agentFile);
+    logger.info(
+      `  [${found ? "OK" : "FAIL"}]  ${name}: agent definition${found ? "" : " not found"}`,
+    );
+    return !!found;
+  }
+
+  async function validate() {
+    const config = await loadConfig();
+    const agents = Object.entries(config.agents || {});
+    if (agents.length === 0) {
+      logger.info("No agents configured. Nothing to validate.");
+      return 0;
+    }
+
+    logger.info("\nValidating agents...\n");
+    let errors = 0;
+
+    for (const [name, agent] of agents) {
+      if (!(await validateAgent(name, agent))) errors++;
+    }
+
+    logger.info(errors > 0 ? `\n${errors} error(s).` : "\nAll OK.");
+    return errors > 0 ? 1 : 0;
+  }
+
+  // --- CLI entry point -------------------------------------------------------
+  const cli = createCli(buildDefinition(version));
+  const parsed = cli.parse(proc.argv.slice(2));
+  if (!parsed) return 0;
+
+  const { positionals } = parsed;
+  const [command, ...args] = positionals;
+
+  await fs.mkdir(OUTPOST_HOME, { recursive: true });
+
+  const COMMANDS = {
+    daemon,
+    wake: async () => {
+      if (!args[0]) {
+        cli.usageError("missing required argument <agent>");
+        return 2;
+      }
+      const config = await loadConfig();
+      const state = await stateManager.load();
+      const agent = config.agents[args[0]];
+      if (!agent) {
+        cli.error(
+          `agent "${args[0]}" not found. Available: ${Object.keys(config.agents).join(", ") || "(none)"}`,
+        );
+        return 1;
+      }
+      await agentRunner.wake(args[0], agent, state);
+      return 0;
+    },
+    init: async () => {
+      if (!args[0]) {
+        cli.usageError("missing required argument <path>");
+        return 2;
+      }
+      const tpl = await requireTemplateDir();
+      if (tpl === null) return 1;
+      const result = await kbManager.init(args[0], tpl);
+      if (!result.ok) {
+        proc.stderr.write(result.error + "\n");
+        return result.code;
+      }
+      return 0;
+    },
+    update: () => runUpdate(args),
+    stop: async () => {
+      const stopped = await requestShutdown(SOCKET_PATH, runtime);
+      return stopped ? 0 : 1;
+    },
+    validate,
+    status: showStatus,
+  };
+
+  const handler = COMMANDS[command];
+  if (command && !handler) {
+    cli.usageError(`unknown command "${command}"`);
+    return 2;
+  }
+
+  return (await (handler || (() => scheduler.wakeDueAgents()))()) ?? 0;
 }
-
-await (handler || (() => scheduler.wakeDueAgents()))();

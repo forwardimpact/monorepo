@@ -2,16 +2,12 @@
  * Invariants — runs `<task.paths.hooks>/invariants.sh` from the template path
  * against the post-run agent CWD. The exit code is authoritative for the
  * verdict; structured per-check rows arrive on fd 3 (`$RESULTS_FD=3`) as NDJSON.
+ *
+ * Subprocess access flows through `runtime.subprocess.spawn`; the fd-3 backing
+ * store and the stderr log use the sync filesystem surface (`runtime.fsSync`) —
+ * the only surface this module touches, per design Decision 7.
  */
 
-import { spawn } from "node:child_process";
-import {
-  closeSync,
-  createWriteStream,
-  openSync,
-  readFileSync,
-  unlinkSync,
-} from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -25,72 +21,64 @@ import { join } from "node:path";
  * Run the task's invariants script.
  * @param {import("./task-family.js").Task} task
  * @param {{cwd: string, port: number, runDir: string}} ctx
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {Promise<InvariantsResult>}
  */
-export function runInvariants(task, ctx) {
+export async function runInvariants(task, ctx, runtime) {
+  if (!runtime) throw new Error("runtime is required");
   if (!task.paths.invariants) {
-    return Promise.resolve({ verdict: "pass", details: [], exitCode: 0 });
+    return { verdict: "pass", details: [], exitCode: 0 };
   }
-  return new Promise((res, rej) => {
-    const script = task.paths.invariants;
-    const stderrLog = createWriteStream(
-      join(ctx.runDir, "invariants.stderr.log"),
-    );
+  const fsSync = runtime.fsSync;
+  const script = task.paths.invariants;
+  const stderrLogPath = join(ctx.runDir, "invariants.stderr.log");
 
-    // Bun's child_process pipe setup for fd >= 3 is racy under load (it
-    // creates a unix socket pair and the connect() can return ENOENT). Use
-    // a temp file as the fd-3 backing store instead — the script still
-    // writes via `$RESULTS_FD`, but we hand it a real file descriptor.
-    const fd3Path = join(ctx.runDir, "invariants.fd3.ndjson");
-    let fd3File;
-    try {
-      fd3File = openSync(fd3Path, "w+");
-    } catch (e) {
-      rej(e);
-      return;
-    }
+  // Bun's child_process pipe setup for fd >= 3 is racy under load (it
+  // creates a unix socket pair and the connect() can return ENOENT). Use
+  // a temp file as the fd-3 backing store instead — the script still
+  // writes via `$RESULTS_FD`, but we hand it a real file descriptor.
+  const fd3Path = join(ctx.runDir, "invariants.fd3.ndjson");
+  const fd3File = fsSync.openSync(fd3Path, "w+");
 
-    const child = spawn(script, [], {
+  let child;
+  try {
+    child = runtime.subprocess.spawn(script, [], {
       env: {
-        ...process.env,
+        ...runtime.proc.env,
         WORKDIR: ctx.cwd,
         PORT: String(ctx.port),
         RESULTS_FD: "3",
       },
       stdio: ["inherit", "pipe", "pipe", fd3File],
     });
-    if (child.pid === undefined) {
-      try {
-        closeSync(fd3File);
-      } catch {
-        // already closed
-      }
-      rej(new Error(`failed to spawn invariants script: ${script}`));
-      return;
+  } catch (e) {
+    tryClose(fsSync, fd3File);
+    throw e;
+  }
+
+  // Drain stdout (do not require consumers to read it); capture stderr to log.
+  const drainStdout = (async () => {
+    for await (const _chunk of child.stdout) {
+      // discard
     }
+  })();
+  let stderr = "";
+  for await (const chunk of child.stderr) stderr += chunk.toString();
+  await drainStdout;
+  const code = await child.exitCode;
 
-    child.stderr.pipe(stderrLog);
-    // Drain stdout (do not require consumers to read it).
-    child.stdout.on("data", () => {});
+  fsSync.writeFileSync(stderrLogPath, stderr);
+  tryClose(fsSync, fd3File);
 
-    child.on("error", (e) => {
-      tryClose(fd3File);
-      rej(e);
-    });
-    child.on("close", (code) => {
-      stderrLog.end();
-      tryClose(fd3File);
-      const raw = readAndUnlink(fd3Path);
-      const details = [];
-      parseFd3Buffer(raw, details);
-      const exitCode = typeof code === "number" ? code : -1;
-      res({
-        verdict: exitCode === 0 ? "pass" : "fail",
-        details,
-        exitCode,
-      });
-    });
-  });
+  const raw = readAndUnlink(fsSync, fd3Path);
+  const details = [];
+  parseFd3Buffer(raw, details);
+  const exitCode = typeof code === "number" ? code : -1;
+  return {
+    verdict: exitCode === 0 ? "pass" : "fail",
+    details,
+    exitCode,
+  };
 }
 
 function pushRow(line, details) {
@@ -103,23 +91,23 @@ function pushRow(line, details) {
   }
 }
 
-function tryClose(fd) {
+function tryClose(fsSync, fd) {
   try {
-    closeSync(fd);
+    fsSync.closeSync(fd);
   } catch {
     // already closed
   }
 }
 
-function readAndUnlink(path) {
+function readAndUnlink(fsSync, path) {
   let raw = "";
   try {
-    raw = readFileSync(path, "utf8");
+    raw = fsSync.readFileSync(path, "utf8");
   } catch {
     // empty
   }
   try {
-    unlinkSync(path);
+    fsSync.unlinkSync(path);
   } catch {
     // best-effort cleanup
   }

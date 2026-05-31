@@ -1,0 +1,15 @@
+fit-logger X.Y.Z — Log writer that reads stdin and writes rotated log files
+
+Usage: fit-logger [options]
+
+Options:
+  --dir=<string>, -d          Log directory (required)
+  --maxFileSize=<string>, -s  Maximum log file size in bytes
+  --maxFiles=<string>, -n     Maximum number of log files to keep
+  --help, -h                  Show this help
+  --version                   Show version
+  --json                      Output help as JSON
+
+Examples:
+  fit-logger --dir /var/log/myapp
+  fit-logger -d ./logs -s 1048576 -n 5

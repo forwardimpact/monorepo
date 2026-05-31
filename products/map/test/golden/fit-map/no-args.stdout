@@ -1,0 +1,58 @@
+fit-map 0.15.53 — Data validation and management for Engineering Pathway
+
+Usage: fit-map <command> [options]
+
+Commands:
+  init                                                        Create ./data/pathway/ with starter standard data
+  validate                                                    Run validation (default: JSON schema)
+  generate-index                                              Generate _index.yaml files
+  export                                                      Render base entities to HTML microdata
+  people <validate|push|provision> [file]                     Validate or push people files, or provision auth.users from the roster
+  activity <start|stop|status|migrate|transform|verify|seed>  Manage activity stack
+  getdx sync                                                  Extract + transform GetDX snapshots
+  auth issue                                                  Issue a Supabase-shaped JWT for an existing roster row
+  substrate stage                                             Provision a Landmark substrate (init + stack + migrate + seed + provision + self-smoke)
+  substrate roster                                            List invariant-satisfying personas from the seeded substrate
+  substrate pick                                              Pick one invariant-satisfying persona diversified against recent picks (writes wiki/kata-interview/picks.csv)
+  substrate issue                                             Atomically write .env (JWT) and .substrate.json (discovery vector) into a target dir
+
+Options:
+  --data=<string>  Path to data directory
+  --json           Output as JSON
+  --help, -h       Show this help
+  --version        Show version
+
+Examples:
+  fit-map init
+  fit-map validate
+  fit-map validate --shacl
+  fit-map people validate ./org/people.yaml
+  fit-map activity start
+
+Documentation:
+  Map Overview
+    https://www.forwardimpact.team/map/index.md
+    Product overview, audience model, and key concepts.
+  Getting Started: Map for Leaders
+    https://www.forwardimpact.team/docs/getting-started/leaders/map/index.md
+    From zero to a validated engineering standard.
+  Authoring Agent-Aligned Engineering Standards
+    https://www.forwardimpact.team/docs/products/authoring-standards/index.md
+    End-to-end guide to defining your engineering standard in YAML.
+  Validate and Update the Standard
+    https://www.forwardimpact.team/docs/products/authoring-standards/update-standard/index.md
+    Run validation, interpret errors, and update safely.
+  Define a New Role
+    https://www.forwardimpact.team/docs/products/authoring-standards/define-role/index.md
+    Add a discipline, track, or capability to the standard.
+  YAML Schema Reference
+    https://www.forwardimpact.team/docs/reference/yaml-schema/index.md
+    File format reference for every entity type.
+  Provision Engineer Auth Users
+    https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md
+    Reconcile auth.users against the roster so identity-derived RLS works.
+  Issue Service-Account Tokens
+    https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md
+    Mint long-lived Supabase JWTs for unattended agents.
+
+Use fit-map <command> --help for command-specific options.

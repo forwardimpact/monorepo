@@ -7,14 +7,17 @@
 import "@forwardimpact/libpreflight/node22";
 
 import { readFileSync } from "node:fs";
-import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
 
 import { createCli } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
 import { SupervisionTree } from "../src/tree.js";
+
+const runtime = createDefaultRuntime();
+const fs = runtime.fsSync;
 
 // `bun build --compile` injects FIT_SVSCAN_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
@@ -58,13 +61,13 @@ const cli = createCli(definition);
 const logger = createLogger("svscan");
 
 const parsed = cli.parse(process.argv.slice(2));
-if (!parsed) process.exit(0);
+if (!parsed) runtime.proc.exit(0);
 
 const { values } = parsed;
 
 if (!values.socket || !values.pid || !values.logdir) {
   cli.usageError("missing required arguments: --socket, --pid, --logdir");
-  process.exit(2);
+  runtime.proc.exit(2);
 }
 
 const socketPath = path.resolve(values.socket);
@@ -72,7 +75,7 @@ const pidPath = path.resolve(values.pid);
 const logDir = path.resolve(values.logdir);
 const shutdownTimeout = parseInt(values.timeout || "3000", 10);
 
-const tree = new SupervisionTree(logDir, { shutdownTimeout, logger });
+const tree = new SupervisionTree(logDir, { runtime, shutdownTimeout, logger });
 
 /**
  * Handles a command from a client
@@ -123,7 +126,7 @@ async function handleCommand(line) {
       logger.info("svscan", "Shutdown requested");
       await tree.stop();
       cleanup();
-      process.exit(0);
+      runtime.proc.exit(0);
       break; // Unreachable but required for ESLint
     }
 
@@ -155,7 +158,7 @@ async function shutdown() {
   logger.info("svscan", "Signal received, shutting down...");
   await tree.stop();
   cleanup();
-  process.exit(0);
+  runtime.proc.exit(0);
 }
 
 process.on("SIGTERM", shutdown);
@@ -193,13 +196,13 @@ const server = net.createServer((conn) => {
 
 server.listen(socketPath, async () => {
   // Write PID file
-  fs.writeFileSync(pidPath, String(process.pid));
+  fs.writeFileSync(pidPath, String(runtime.proc.pid));
 
   // Start the supervision tree
   await tree.start();
 
   logger.info("svscan", "Started", {
-    pid: process.pid,
+    pid: runtime.proc.pid,
     socket: socketPath,
     log_dir: logDir,
   });
@@ -207,5 +210,5 @@ server.listen(socketPath, async () => {
 
 server.on("error", (err) => {
   logger.error("svscan", "Server error", { error: err.message });
-  process.exit(1);
+  runtime.proc.exit(1);
 });

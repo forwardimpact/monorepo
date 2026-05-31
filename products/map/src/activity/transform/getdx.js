@@ -7,14 +7,16 @@
  * Idempotent where possible (upsert on teams and snapshots, insert on scores).
  */
 
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { readRaw, listRaw } from "../storage.js";
 
 /**
  * Transform stored GetDX API responses into DB rows.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (clock).
  * @returns {Promise<{teams: number, snapshots: number, scores: number, errors: Array<string>}>}
  */
-export async function transformAllGetDX(supabase) {
+export async function transformAllGetDX(supabase, runtime) {
   const errors = [];
   let teamCount = 0;
   let snapshotCount = 0;
@@ -56,6 +58,7 @@ export async function transformAllGetDX(supabase) {
     const commentsResult = await transformSnapshotComments(
       supabase,
       `getdx/snapshots-comments/${file.name}`,
+      runtime,
     );
     commentCount += commentsResult.comments;
     errors.push(...commentsResult.errors);
@@ -208,9 +211,11 @@ async function transformSnapshotScores(supabase, path) {
  * Transform a stored snapshots-comments document into getdx_snapshot_comments rows.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {string} path - Storage path
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (clock).
  * @returns {Promise<{comments: number, errors: Array<string>}>}
  */
-async function transformSnapshotComments(supabase, path) {
+async function transformSnapshotComments(supabase, path, runtime) {
+  const nowIso = isoTimestamp(runtime.clock.now());
   const raw = JSON.parse(await readRaw(supabase, path));
   const comments = raw.comments || [];
   const errors = [];
@@ -237,7 +242,7 @@ async function transformSnapshotComments(supabase, path) {
     const email = comment.email || null;
     const commentId =
       comment.id ||
-      `${snapshotId}::${email ?? "anon"}::${comment.timestamp ?? Date.now()}`;
+      `${snapshotId}::${email ?? "anon"}::${comment.timestamp ?? runtime.clock.now()}`;
 
     // Derive team_id from email → manager → team
     let teamId = null;
@@ -255,7 +260,7 @@ async function transformSnapshotComments(supabase, path) {
       team_id: teamId,
       driver_name: comment.driver_name || null,
       text: comment.text || "",
-      timestamp: comment.timestamp || new Date().toISOString(),
+      timestamp: comment.timestamp || nowIso,
       raw: comment,
     };
   });

@@ -10,10 +10,25 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
+import { createTestRuntime, createMockProcess } from "@forwardimpact/libmock";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { runStageCommand } from "../../src/commands/substrate-stage.js";
 import { runInit } from "../../src/commands/init.js";
 import { copyActivity } from "../../src/lib/copy-activity.js";
+
+/** A real-fs runtime with a quiet proc (for the bootstrap-parity test). */
+function quietRealRuntime() {
+  const base = createDefaultRuntime();
+  return {
+    ...base,
+    proc: {
+      ...base.proc,
+      stdout: { write: () => true },
+      stderr: { write: () => true },
+    },
+  };
+}
 
 function buildDeps({ failPhase = null, invocations }) {
   function recorded(name, fn = async () => undefined) {
@@ -51,36 +66,23 @@ function buildDeps({ failPhase = null, invocations }) {
 
 describe("substrate-stage phase ordering", () => {
   let invocations;
-  let stdoutWrite;
-  let prevSupabaseUrl;
-  let prevSupabaseAnonKey;
+  let runtime;
 
   beforeEach(() => {
     invocations = [];
-    delete process.env.SUBSTRATE_FORCE_EMPTY_CORPUS;
-    // The url-discovery phase writes SUPABASE_URL/ANON_KEY to process.env
-    // (intentional in production; see no-supabase-env-in-src.test.js ALLOW
-    // entry). Snapshot whatever's there and restore in afterEach so
-    // subsequent tests in this Bun process don't inherit the stub values.
-    prevSupabaseUrl = process.env.SUPABASE_URL;
-    prevSupabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-    stdoutWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = () => true;
-  });
-
-  afterEach(() => {
-    delete process.env.SUBSTRATE_FORCE_EMPTY_CORPUS;
-    if (prevSupabaseUrl === undefined) delete process.env.SUPABASE_URL;
-    else process.env.SUPABASE_URL = prevSupabaseUrl;
-    if (prevSupabaseAnonKey === undefined) delete process.env.SUPABASE_ANON_KEY;
-    else process.env.SUPABASE_ANON_KEY = prevSupabaseAnonKey;
-    process.stdout.write = stdoutWrite;
+    // The url-discovery phase writes SUPABASE_URL/ANON_KEY to the injected
+    // proc.env (a Proxy over a per-test backing object), so it never touches
+    // the global process — no snapshot/restore needed. cwd defaults to a
+    // fixed mock value; tests that need an explicit target pass it.
+    runtime = createTestRuntime({
+      proc: createMockProcess({ cwd: "/work" }),
+    });
   });
 
   test("invokes phases in init → copy-activity → stack → url-discovery → migrate → seed → provision → smoke order", async () => {
     const deps = buildDeps({ invocations });
     const config = { supabaseJwtSecret: () => "secret" };
-    await runStageCommand({ config }, deps);
+    await runStageCommand({ config, runtime }, deps);
     assert.deepEqual(invocations, [
       "init",
       "copy-activity",
@@ -94,11 +96,11 @@ describe("substrate-stage phase ordering", () => {
   });
 
   test("SUBSTRATE_FORCE_EMPTY_CORPUS=true short-circuits smoke phase with named error", async () => {
-    process.env.SUBSTRATE_FORCE_EMPTY_CORPUS = "true";
+    runtime.proc.env.SUBSTRATE_FORCE_EMPTY_CORPUS = "true";
     const deps = buildDeps({ invocations });
     const config = { supabaseJwtSecret: () => "secret" };
     await assert.rejects(
-      () => runStageCommand({ config }, deps),
+      () => runStageCommand({ config, runtime }, deps),
       /\[substrate stage: smoke\] empty corpus/,
     );
     assert.deepEqual(invocations, [
@@ -116,7 +118,7 @@ describe("substrate-stage phase ordering", () => {
     const deps = buildDeps({ invocations, failPhase: "seed" });
     const config = { supabaseJwtSecret: () => "secret" };
     await assert.rejects(
-      () => runStageCommand({ config }, deps),
+      () => runStageCommand({ config, runtime }, deps),
       /\[substrate stage: seed\] stubbed seed failure/,
     );
   });
@@ -131,7 +133,7 @@ describe("substrate-stage phase ordering", () => {
     const config = { supabaseJwtSecret: () => "secret" };
     const tmpDir = await fs.mkdtemp(path.join(tmpdir(), "substrate-target-"));
     try {
-      await runStageCommand({ config, target: tmpDir }, deps);
+      await runStageCommand({ config, target: tmpDir, runtime }, deps);
       assert.equal(initTarget, tmpDir);
     } finally {
       await fs.rm(tmpDir, { recursive: true, force: true });
@@ -151,9 +153,13 @@ describe("substrate-stage phase ordering", () => {
     deps.loadCopyActivity = async () => copyActivity;
     deps.findDataDir = async () => path.join(absentRoot, "data", "pathway");
     const config = { supabaseJwtSecret: () => "secret" };
+    // This case exercises the REAL copyActivity helper against a missing
+    // source on disk, so it needs a real-fs runtime (the describe's default
+    // mock-fs runtime would not raise ENOENT).
+    const realRuntime = quietRealRuntime();
     try {
       await assert.rejects(
-        () => runStageCommand({ config, target }, deps),
+        () => runStageCommand({ config, target, runtime: realRuntime }, deps),
         /\[substrate stage: copy-activity\]/,
       );
     } finally {
@@ -166,21 +172,15 @@ describe("substrate-stage phase ordering", () => {
 describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
   let tmpA;
   let tmpB;
-  let prevStdout;
-  let prevStderr;
+  let runtime;
 
   beforeEach(async () => {
     tmpA = await fs.mkdtemp(path.join(tmpdir(), "substrate-parity-a-"));
     tmpB = await fs.mkdtemp(path.join(tmpdir(), "substrate-parity-b-"));
-    prevStdout = process.stdout.write.bind(process.stdout);
-    prevStderr = process.stderr.write.bind(process.stderr);
-    process.stdout.write = () => true;
-    process.stderr.write = () => true;
+    runtime = quietRealRuntime();
   });
 
   afterEach(async () => {
-    process.stdout.write = prevStdout;
-    process.stderr.write = prevStderr;
     for (const d of [tmpA, tmpB]) {
       try {
         await fs.rm(d, { recursive: true, force: true });
@@ -191,7 +191,7 @@ describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
   });
 
   test("runInit(tmpA) and substrate stage init phase against tmpB produce identical project root trees", async () => {
-    await runInit(tmpA);
+    await runInit(tmpA, runtime);
 
     // Run only the init phase of substrate stage against tmpB. Stubbing
     // every other phase isolates the bootstrap surface — what substrate
@@ -207,6 +207,7 @@ describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
       {
         config: { supabaseJwtSecret: () => "secret" },
         target: tmpB,
+        runtime,
       },
       {
         loadInit: async () => runInit,

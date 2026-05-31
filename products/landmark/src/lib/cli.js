@@ -6,13 +6,10 @@
  * across commands.
  */
 
-import fs from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { createDataLoader } from "@forwardimpact/map/loader";
-import { Finder } from "@forwardimpact/libutil";
-import { createLogger } from "@forwardimpact/libtelemetry";
 
 /** Canonical output format constants. */
 export const Format = Object.freeze({
@@ -27,15 +24,14 @@ export const Format = Object.freeze({
  * Summit and Pathway.
  *
  * @param {object} options - Parsed CLI options.
+ * @param {object} runtime - The injected collaborator bag (its `finder`).
  * @returns {string}
  */
-export function resolveDataDir(options) {
+export function resolveDataDir(options, runtime) {
   if (options.data) return resolve(options.data);
 
-  const logger = createLogger("landmark");
-  const finder = new Finder(fs, logger, process);
   try {
-    return join(finder.findData("data", homedir()), "pathway");
+    return join(runtime.finder.findData("data", homedir()), "pathway");
   } catch {
     throw new Error(
       "landmark: no data directory found. Pass --data <path> pointing at a Map data directory.",
@@ -47,10 +43,11 @@ export function resolveDataDir(options) {
  * Load standard data for a given data directory.
  *
  * @param {string} dataDir
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs).
  * @returns {Promise<object>}
  */
-export async function loadMapData(dataDir) {
-  const loader = createDataLoader();
+export async function loadMapData(dataDir, runtime) {
+  const loader = createDataLoader(runtime);
   return loader.loadAllData(dataDir);
 }
 

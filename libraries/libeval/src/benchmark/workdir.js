@@ -5,15 +5,16 @@
  *
  * The Workdir handle threads `cwd`, `port`, `pgid`, and trace paths through
  * runAgent → invariants → judge → teardown.
+ *
+ * Filesystem, subprocess, clock, and process-signal access all route through
+ * the injected `runtime` bag. Only raw TCP plumbing (`node:net`) stays direct —
+ * it is not an ambient-dependency smell and the runtime bag models no socket
+ * surface.
  */
 
-import { spawn } from "node:child_process";
-import { cp, mkdir } from "node:fs/promises";
 import { createServer } from "node:net";
 import { connect } from "node:net";
 import { join } from "node:path";
-
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { loadEnv } from "./env-loader.js";
 
@@ -39,6 +40,8 @@ export class WorkdirManager {
    * @param {object} deps
    * @param {string} deps.stagingDir - Output of `installApm(...)`.
    * @param {string} deps.runOutputDir - Root run-output directory (parent of `runs/`).
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} deps.runtime -
+   *   Ambient collaborators; uses `fs`, `subprocess`, `clock`, `proc`.
    */
   constructor({
     stagingDir,
@@ -49,14 +52,12 @@ export class WorkdirManager {
   }) {
     if (!stagingDir) throw new Error("stagingDir is required");
     if (!runOutputDir) throw new Error("runOutputDir is required");
+    if (!runtime) throw new Error("runtime is required");
     this.stagingDir = stagingDir;
     this.runOutputDir = runOutputDir;
     this.termGraceMs = termGraceMs ?? DEFAULT_TERM_GRACE_MS;
     this.familyRootPath = familyRootPath ?? null;
-    // `loadEnv` is the only collaborator routed through the runtime today; the
-    // rest of this manager still uses raw streaming/net/process-group APIs the
-    // runtime surface does not yet cover.
-    this.runtime = runtime ?? null;
+    this.runtime = runtime;
   }
 
   /**
@@ -66,36 +67,39 @@ export class WorkdirManager {
    * @returns {Promise<Workdir>}
    */
   async start(task, runIndex) {
+    const fs = this.runtime.fs;
     const slug = task.id.replace("/", "__");
     const runDir = join(this.runOutputDir, "runs", slug, String(runIndex));
     const cwd = join(runDir, "cwd");
-    await mkdir(cwd, { recursive: true });
+    await fs.mkdir(cwd, { recursive: true });
 
-    await cp(task.paths.workdir, cwd, { recursive: true }).catch((e) => {
+    await fs.cp(task.paths.workdir, cwd, { recursive: true }).catch((e) => {
       if (e.code !== "ENOENT") throw e;
     });
-    await cp(task.paths.specs, join(cwd, "specs"), {
+    await fs
+      .cp(task.paths.specs, join(cwd, "specs"), {
+        recursive: true,
+      })
+      .catch((e) => {
+        if (e.code !== "ENOENT") throw e;
+      });
+    await fs.cp(join(this.stagingDir, ".claude"), join(cwd, ".claude"), {
       recursive: true,
-    }).catch((e) => {
-      if (e.code !== "ENOENT") throw e;
     });
-    await cp(join(this.stagingDir, ".claude"), join(cwd, ".claude"), {
-      recursive: true,
-    });
-    await cp(join(this.stagingDir, "node_modules"), join(cwd, "node_modules"), {
-      recursive: true,
-    }).catch((e) => {
-      if (e.code !== "ENOENT") throw e;
-    });
+    await fs
+      .cp(join(this.stagingDir, "node_modules"), join(cwd, "node_modules"), {
+        recursive: true,
+      })
+      .catch((e) => {
+        if (e.code !== "ENOENT") throw e;
+      });
 
     const envDirs = [
       ...(this.familyRootPath ? [this.familyRootPath] : []),
       ...(task.paths.taskDir ? [task.paths.taskDir] : []),
     ];
     const envNames =
-      envDirs.length > 0
-        ? await loadEnv(envDirs, cwd, this.runtime ?? createDefaultRuntime())
-        : [];
+      envDirs.length > 0 ? await loadEnv(envDirs, cwd, this.runtime) : [];
 
     const port = await allocatePort();
     const agentTracePath = join(runDir, "agent.ndjson");
@@ -103,7 +107,7 @@ export class WorkdirManager {
     const judgeTracePath = join(runDir, "judge.ndjson");
 
     const preflight = task.paths.preflight
-      ? await runPreflight(task.paths.preflight, cwd, port)
+      ? await runPreflight(this.runtime, task.paths.preflight, cwd, port)
       : { pgid: 0 };
 
     return {
@@ -126,81 +130,71 @@ export class WorkdirManager {
    * @returns {Promise<{portFree: boolean, descendants: number}>}
    */
   async teardown(workdir) {
+    const { proc, clock } = this.runtime;
     if (workdir.pgid && workdir.pgid > 0) {
       try {
-        process.kill(-workdir.pgid, "SIGTERM");
+        proc.kill(-workdir.pgid, "SIGTERM");
       } catch {
         // Process group already gone — fine.
       }
-      await sleep(this.termGraceMs);
+      await clock.sleep(this.termGraceMs);
       try {
-        process.kill(-workdir.pgid, "SIGKILL");
+        proc.kill(-workdir.pgid, "SIGKILL");
       } catch {
         // Already exited.
       }
       // Poll briefly until the process group is empty — SIGKILL returns
       // before the kernel finishes reaping descendants.
       await waitFor(
-        async () => (await countDescendants(workdir.pgid)) === 0,
+        this.runtime,
+        async () => (await countDescendants(this.runtime, workdir.pgid)) === 0,
         2_000,
       );
     }
     const portFree = await isPortFree(workdir.port);
-    const descendants = await countDescendants(workdir.pgid);
+    const descendants = await countDescendants(this.runtime, workdir.pgid);
     return { portFree, descendants };
   }
 }
 
 /**
  * Spawn preflight. Stays detached so we can SIGTERM the whole process group.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string} script
  * @param {string} cwd - Agent CWD passed via $WORKDIR.
  * @param {number} port - Free TCP port passed via $PORT.
  * @returns {Promise<{pgid: number, error?: {phase: string, message: string, exitCode: number}}>}
  */
-function runPreflight(script, cwd, port) {
-  return new Promise((res, rej) => {
-    let stderr = "";
-    const child = spawn(script, [], {
-      cwd,
-      env: { ...process.env, WORKDIR: cwd, PORT: String(port) },
-      detached: true,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    if (child.pid === undefined) {
-      rej(new Error(`failed to spawn preflight: ${script}`));
-      return;
-    }
-    const pgid = child.pid;
-    child.stderr.on("data", (d) => {
-      stderr += d.toString();
-    });
-    child.on("error", (e) => {
-      res({
-        pgid,
-        error: {
-          phase: "preflight",
-          message: `preflight failed to spawn: ${e.message}`,
-          exitCode: -1,
-        },
-      });
-    });
-    child.on("exit", (code, signal) => {
-      if (code === 0) {
-        res({ pgid });
-        return;
-      }
-      const message = stderr.trim() || `preflight exited with signal ${signal}`;
-      res({
-        pgid,
-        error: {
-          phase: "preflight",
-          message,
-          exitCode: typeof code === "number" ? code : -1,
-        },
-      });
-    });
+async function runPreflight(runtime, script, cwd, port) {
+  const child = runtime.subprocess.spawn(script, [], {
+    cwd,
+    env: { ...runtime.proc.env, WORKDIR: cwd, PORT: String(port) },
+    detached: true,
+    stdio: ["ignore", "pipe", "pipe"],
   });
+  if (child.pid === undefined) {
+    throw new Error(`failed to spawn preflight: ${script}`);
+  }
+  const pgid = child.pid;
+  let stderr = "";
+  const drainStdout = (async () => {
+    for await (const _chunk of child.stdout) {
+      // discard
+    }
+  })();
+  for await (const chunk of child.stderr) stderr += chunk.toString();
+  await drainStdout;
+  const code = await child.exitCode;
+  if (code === 0) return { pgid };
+  const message = stderr.trim() || `preflight exited with code ${code}`;
+  return {
+    pgid,
+    error: {
+      phase: "preflight",
+      message,
+      exitCode: typeof code === "number" ? code : -1,
+    },
+  };
 }
 
 function allocatePort() {
@@ -236,37 +230,35 @@ function isPortFree(port) {
   });
 }
 
-function countDescendants(pgid) {
-  if (!pgid || pgid <= 0) return Promise.resolve(0);
-  return new Promise((res) => {
-    const child = spawn("ps", ["-o", "pid=", "-g", String(pgid)], {
+async function countDescendants(runtime, pgid) {
+  if (!pgid || pgid <= 0) return 0;
+  const child = runtime.subprocess.spawn(
+    "ps",
+    ["-o", "pid=", "-g", String(pgid)],
+    {
       stdio: ["ignore", "pipe", "ignore"],
-    });
-    let out = "";
-    child.stdout.on("data", (d) => {
-      out += d.toString();
-    });
-    child.on("error", () => res(0));
-    child.on("close", () => {
-      const pids = out
-        .split("\n")
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .filter((s) => Number(s) !== process.pid);
-      res(pids.length);
-    });
-  });
+    },
+  );
+  let out = "";
+  try {
+    for await (const chunk of child.stdout) out += chunk.toString();
+    await child.exitCode;
+  } catch {
+    return 0;
+  }
+  const pids = out
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .filter((s) => Number(s) !== runtime.proc.pid);
+  return pids.length;
 }
 
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-async function waitFor(predicate, timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
+async function waitFor(runtime, predicate, timeoutMs) {
+  const deadline = runtime.clock.now() + timeoutMs;
+  while (runtime.clock.now() < deadline) {
     if (await predicate()) return true;
-    await sleep(50);
+    await runtime.clock.sleep(50);
   }
   return false;
 }

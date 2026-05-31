@@ -1,4 +1,5 @@
 import { join, dirname } from "node:path";
+import { isoTimestamp } from "@forwardimpact/libutil";
 import { createTraceCollector } from "@forwardimpact/libeval";
 import { createTraceQuery } from "../trace-query.js";
 import { createTraceGitHub } from "../trace-github.js";
@@ -50,7 +51,9 @@ export async function runDownloadCommand(ctx) {
   const ndjsonFile = result.files.find((f) => f.endsWith(".ndjson"));
   if (ndjsonFile) {
     const ndjsonPath = join(result.dir, ndjsonFile);
-    const collector = createTraceCollector();
+    const collector = createTraceCollector({
+      now: () => isoTimestamp(runtime.clock.now()),
+    });
     for (const line of runtime.fsSync
       .readFileSync(ndjsonPath, "utf8")
       .split("\n")) {
@@ -325,7 +328,9 @@ function loadTrace(runtime, file) {
     // Not valid JSON — fall through to NDJSON.
   }
 
-  const collector = createTraceCollector();
+  const collector = createTraceCollector({
+    now: () => isoTimestamp(runtime.clock.now()),
+  });
   for (const line of content.split("\n")) {
     collector.addLine(line);
   }

@@ -5,18 +5,11 @@
 import { createServer } from "node:net";
 import { createConnection } from "node:net";
 import { createLogger } from "@forwardimpact/libtelemetry";
-import {
-  existsSync,
-  unlinkSync,
-  chmodSync,
-  readdirSync,
-  statSync,
-} from "node:fs";
 
 const logger = createLogger("outpost");
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { computeNextWakeAt } from "./scheduler.js";
+import { computeNextWakeAt, nowFromClock } from "./scheduler.js";
 
 /** Unix-socket IPC server that handles status queries, wake requests, and shutdown commands. */
 export class SocketServer {
@@ -28,6 +21,11 @@ export class SocketServer {
   #cacheDir;
   #daemonStartedAt;
   #server;
+  #fsSync;
+  #clock;
+  #proc;
+  #resolveShutdown;
+  #shutdownPromise;
 
   /**
    * @param {string} socketPath
@@ -38,6 +36,8 @@ export class SocketServer {
    * @param {Function} logFn
    * @param {string} cacheDir
    * @param {number} daemonStartedAt
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+   *   Injected runtime bag (uses `fsSync`, `clock`, `proc`).
    */
   constructor(
     socketPath,
@@ -48,6 +48,7 @@ export class SocketServer {
     logFn,
     cacheDir,
     daemonStartedAt,
+    runtime,
   ) {
     if (!socketPath) throw new Error("socketPath is required");
     if (!scheduler) throw new Error("scheduler is required");
@@ -56,6 +57,9 @@ export class SocketServer {
     if (!loadConfig) throw new Error("loadConfig is required");
     if (!logFn) throw new Error("logFn is required");
     if (!cacheDir) throw new Error("cacheDir is required");
+    if (!runtime?.fsSync) throw new Error("runtime.fsSync is required");
+    if (!runtime?.clock) throw new Error("runtime.clock is required");
+    if (!runtime?.proc) throw new Error("runtime.proc is required");
     this.#socketPath = socketPath;
     this.#agentRunner = agentRunner;
     this.#stateManager = stateManager;
@@ -63,6 +67,21 @@ export class SocketServer {
     this.#log = logFn;
     this.#cacheDir = cacheDir;
     this.#daemonStartedAt = daemonStartedAt;
+    this.#fsSync = runtime.fsSync;
+    this.#clock = runtime.clock;
+    this.#proc = runtime.proc;
+    this.#shutdownPromise = new Promise((r) => {
+      this.#resolveShutdown = r;
+    });
+  }
+
+  /**
+   * Resolves once a shutdown has been requested (via socket or signal). The
+   * daemon awaits this, then the bin translates it to `runtime.proc.exit(0)`.
+   * @returns {Promise<void>}
+   */
+  whenStopped() {
+    return this.#shutdownPromise;
   }
 
   /**
@@ -90,13 +109,13 @@ export class SocketServer {
    * @returns {string|null}
    */
   #latestFileByMtime(dir, filter) {
-    const matches = readdirSync(dir).filter(filter);
+    const matches = this.#fsSync.readdirSync(dir).filter(filter);
     if (matches.length === 0) return null;
     let latest = join(dir, matches[0]);
-    let latestMtime = statSync(latest).mtimeMs;
+    let latestMtime = this.#fsSync.statSync(latest).mtimeMs;
     for (let i = 1; i < matches.length; i++) {
       const p = join(dir, matches[i]);
-      const mt = statSync(p).mtimeMs;
+      const mt = this.#fsSync.statSync(p).mtimeMs;
       if (mt > latestMtime) {
         latest = p;
         latestMtime = mt;
@@ -113,7 +132,7 @@ export class SocketServer {
    */
   #resolveBriefingFile(agentName, agentConfig) {
     const stateDir = join(this.#cacheDir, "state");
-    if (existsSync(stateDir)) {
+    if (this.#fsSync.existsSync(stateDir)) {
       const prefix = agentName.replace(/-/g, "_") + "_";
       const found = this.#latestFileByMtime(
         stateDir,
@@ -128,8 +147,9 @@ export class SocketServer {
         "knowledge",
         "Briefings",
       );
-      if (existsSync(dir)) {
-        const files = readdirSync(dir)
+      if (this.#fsSync.existsSync(dir)) {
+        const files = this.#fsSync
+          .readdirSync(dir)
           .filter((f) => f.endsWith(".md"))
           .sort()
           .reverse();
@@ -143,10 +163,10 @@ export class SocketServer {
   /**
    * @param {import('node:net').Socket} socket
    */
-  #handleStatusRequest(socket) {
-    const config = this.#loadConfig();
-    const state = this.#stateManager.load();
-    const now = new Date();
+  async #handleStatusRequest(socket) {
+    const config = await this.#loadConfig();
+    const state = await this.#stateManager.load();
+    const now = nowFromClock(this.#clock);
     const agents = {};
 
     for (const [name, agent] of Object.entries(config.agents)) {
@@ -169,7 +189,7 @@ export class SocketServer {
     this.#send(socket, {
       type: "status",
       uptime: this.#daemonStartedAt
-        ? Math.floor((Date.now() - this.#daemonStartedAt) / 1000)
+        ? Math.floor((this.#clock.now() - this.#daemonStartedAt) / 1000)
         : 0,
       agents,
     });
@@ -179,7 +199,7 @@ export class SocketServer {
    * @param {import('node:net').Socket} socket
    * @param {string} line
    */
-  #handleMessage(socket, line) {
+  async #handleMessage(socket, line) {
     let request;
     try {
       request = JSON.parse(line);
@@ -194,8 +214,8 @@ export class SocketServer {
       this.#log("Shutdown requested via socket.");
       this.#send(socket, { type: "ack", command: "shutdown" });
       socket.end();
-      this.#agentRunner.killActiveChildren();
-      process.exit(0);
+      this.#requestShutdown();
+      return;
     }
 
     if (request.type === "wake") {
@@ -203,7 +223,7 @@ export class SocketServer {
         this.#send(socket, { type: "error", message: "Missing agent name" });
         return;
       }
-      const config = this.#loadConfig();
+      const config = await this.#loadConfig();
       const agent = config.agents[request.agent];
       if (!agent) {
         this.#send(socket, {
@@ -217,7 +237,7 @@ export class SocketServer {
         command: "wake",
         agent: request.agent,
       });
-      const state = this.#stateManager.load();
+      const state = await this.#stateManager.load();
       this.#agentRunner
         .wake(request.agent, agent, state, config.env)
         .catch(() => {});
@@ -231,12 +251,27 @@ export class SocketServer {
   }
 
   /**
-   * Remove any existing socket file, bind the server, and register SIGTERM/SIGINT handlers to kill active children before exit.
+   * Tear down active children and the listening socket, then signal the daemon
+   * (via `whenStopped`) that it is safe to exit. The bin owns the actual
+   * `runtime.proc.exit` call (design Decision 4).
+   */
+  #requestShutdown() {
+    this.#agentRunner.killActiveChildren();
+    if (this.#server) this.#server.close();
+    try {
+      this.#fsSync.unlinkSync(this.#socketPath);
+    } catch {}
+    this.#resolveShutdown();
+  }
+
+  /**
+   * Remove any existing socket file, bind the server, and register
+   * SIGTERM/SIGINT handlers that request a graceful shutdown.
    * @returns {import('node:net').Server}
    */
   start() {
     try {
-      unlinkSync(this.#socketPath);
+      this.#fsSync.unlinkSync(this.#socketPath);
     } catch {}
 
     this.#server = createServer((socket) => {
@@ -247,14 +282,14 @@ export class SocketServer {
         while ((idx = buffer.indexOf("\n")) !== -1) {
           const line = buffer.slice(0, idx).trim();
           buffer = buffer.slice(idx + 1);
-          if (line) this.#handleMessage(socket, line);
+          if (line) void this.#handleMessage(socket, line);
         }
       });
       socket.on("error", () => {});
     });
 
     this.#server.listen(this.#socketPath, () => {
-      chmodSync(this.#socketPath, 0o600);
+      this.#fsSync.chmodSync(this.#socketPath, 0o600);
       this.#log(`Socket server listening on ${this.#socketPath}`);
     });
 
@@ -262,16 +297,8 @@ export class SocketServer {
       this.#log(`Socket server error: ${err.message}`);
     });
 
-    const cleanup = () => {
-      this.#agentRunner.killActiveChildren();
-      this.#server.close();
-      try {
-        unlinkSync(this.#socketPath);
-      } catch {}
-      process.exit(0);
-    };
-    process.on("SIGTERM", cleanup);
-    process.on("SIGINT", cleanup);
+    this.#proc.on("SIGTERM", () => this.#requestShutdown());
+    this.#proc.on("SIGINT", () => this.#requestShutdown());
 
     return this.#server;
   }
@@ -284,7 +311,7 @@ export class SocketServer {
       this.#server.close();
     }
     try {
-      unlinkSync(this.#socketPath);
+      this.#fsSync.unlinkSync(this.#socketPath);
     } catch {}
   }
 }
@@ -292,16 +319,20 @@ export class SocketServer {
 /**
  * Connect to the daemon socket and request graceful shutdown.
  * @param {string} socketPath
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ *   Injected runtime bag (uses `fsSync` and `clock`).
  * @returns {Promise<boolean>}
  */
-export async function requestShutdown(socketPath) {
-  if (!existsSync(socketPath)) {
+export async function requestShutdown(socketPath, runtime) {
+  if (!runtime?.fsSync) throw new Error("runtime.fsSync is required");
+  if (!runtime?.clock) throw new Error("runtime.clock is required");
+  if (!runtime.fsSync.existsSync(socketPath)) {
     logger.info("Daemon not running (no socket).");
     return false;
   }
 
   return new Promise((resolve) => {
-    const timeout = setTimeout(() => {
+    const timeout = runtime.clock.setTimeout(() => {
       logger.info("Shutdown timed out.");
       socket.destroy();
       resolve(false);
@@ -315,7 +346,7 @@ export async function requestShutdown(socketPath) {
     socket.on("data", (data) => {
       buffer += data.toString();
       if (buffer.includes("\n")) {
-        clearTimeout(timeout);
+        runtime.clock.clearTimeout(timeout);
         logger.info("Daemon stopped.");
         socket.destroy();
         resolve(true);
@@ -323,13 +354,13 @@ export async function requestShutdown(socketPath) {
     });
 
     socket.on("error", () => {
-      clearTimeout(timeout);
+      runtime.clock.clearTimeout(timeout);
       logger.info("Daemon not running (connection refused).");
       resolve(false);
     });
 
     socket.on("close", () => {
-      clearTimeout(timeout);
+      runtime.clock.clearTimeout(timeout);
       resolve(true);
     });
   });

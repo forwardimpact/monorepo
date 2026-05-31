@@ -1,4 +1,3 @@
-import { closeSync, openSync, readSync } from "node:fs";
 import { join } from "node:path";
 
 const FIRST_LINE_CAP = 64 * 1024;
@@ -6,25 +5,25 @@ const FIRST_LINE_CAP = 64 * 1024;
 /**
  * Read the first newline-terminated line of a file, bounded to the first
  * {@link FIRST_LINE_CAP} bytes. Trace `.ndjson` files can be many MB; the
- * Step 2.6 meta header is always small, so a bounded `readSync` avoids
- * loading whole files into memory just to inspect the header. This uses
- * `node:fs` directly because the `runtime.fsSync` surface exposes no
- * positional `openSync`/`readSync` — the file is grandfathered for
- * `import:fs` in `check-ambient-deps.deny.yml` until that seam exists.
+ * Step 2.6 meta header is always small, so a bounded positional read avoids
+ * loading whole files into memory just to inspect the header. The positional
+ * `openSync`/`readSync`/`closeSync` trio is read off the injected
+ * `runtime.fsSync` surface.
  *
+ * @param {object} fsSync - Sync filesystem surface (`runtime.fsSync`).
  * @param {string} path
  * @returns {string}
  */
-function readFirstLine(path) {
-  const fd = openSync(path, "r");
+function readFirstLine(fsSync, path) {
+  const fd = fsSync.openSync(path, "r");
   try {
     const buf = Buffer.alloc(FIRST_LINE_CAP);
-    const bytes = readSync(fd, buf, 0, buf.length, 0);
+    const bytes = fsSync.readSync(fd, buf, 0, buf.length, 0);
     const text = buf.toString("utf8", 0, bytes);
     const nl = text.indexOf("\n");
     return nl === -1 ? text : text.slice(0, nl);
   } finally {
-    closeSync(fd);
+    fsSync.closeSync(fd);
   }
 }
 
@@ -53,7 +52,7 @@ export function findTracesByDiscussion(dir, discussionId, fsSync) {
     const path = join(dir, entry);
     let firstLine;
     try {
-      firstLine = readFirstLine(path);
+      firstLine = readFirstLine(fsSync, path);
     } catch {
       continue;
     }

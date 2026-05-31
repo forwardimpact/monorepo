@@ -9,13 +9,11 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import fs from "fs/promises";
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { homedir } from "os";
-import { Finder } from "@forwardimpact/libutil";
-import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createProductConfig } from "@forwardimpact/libconfig";
 import { findDataDir } from "../src/lib/data-dir.js";
 import { dispatchSubstrate as _dispatchSubstrate } from "./dispatch-substrate.js";
@@ -30,7 +28,10 @@ import {
   formatBullet,
 } from "@forwardimpact/libcli";
 
-const summary = new SummaryRenderer({ process });
+// The bin is the sole construction site for the injected runtime bag and the
+// only caller of runtime.proc.exit (design Decision 4).
+const runtime = createDefaultRuntime();
+const summary = new SummaryRenderer({ process: runtime.proc });
 const config = await createProductConfig("map");
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,7 +41,7 @@ const __dirname = dirname(__filename);
 // the readFileSync branch in the compiled binary (which would ENOENT against
 // the bunfs virtual mount). Source execution falls through to package.json.
 const VERSION =
-  process.env.FIT_MAP_VERSION ||
+  runtime.proc.env.FIT_MAP_VERSION ||
   JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"))
     .version;
 
@@ -249,19 +250,21 @@ function formatValidationResults(result) {
  * Validate command
  */
 async function runValidate(dataDir) {
-  process.stdout.write(formatHeader(`Validating data in: ${dataDir}`) + "\n\n");
+  runtime.proc.stdout.write(
+    formatHeader(`Validating data in: ${dataDir}`) + "\n\n",
+  );
 
   const { createDataLoader, createSchemaValidator } = await import(
     "../src/index.js"
   );
 
-  const loader = createDataLoader();
-  const validator = createSchemaValidator();
+  const loader = createDataLoader(runtime);
+  const validator = createSchemaValidator(runtime);
 
   const data = await loader.loadAllData(dataDir);
   const result = await validator.runFullValidation(dataDir, data);
 
-  process.stdout.write(formatValidationResults(result) + "\n");
+  runtime.proc.stdout.write(formatValidationResults(result) + "\n");
 
   summary.render({
     title: formatHeader("Data Summary"),
@@ -292,9 +295,7 @@ async function runValidate(dataDir) {
  */
 async function findOutputDir(providedPath) {
   if (providedPath) return resolve(providedPath);
-  const logger = createLogger("map");
-  const finder = new Finder(fs, logger, process);
-  const dataRoot = finder.findData("data", homedir());
+  const dataRoot = runtime.finder.findData("data", homedir());
   return join(dataRoot, "knowledge");
 }
 
@@ -302,7 +303,7 @@ async function findOutputDir(providedPath) {
  * Export command — render every base entity to HTML microdata.
  */
 async function runExport(dataDir, outputDir) {
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatHeader(`Exporting standard to: ${outputDir}`) + "\n\n",
   );
 
@@ -310,10 +311,13 @@ async function runExport(dataDir, outputDir) {
     "../src/index.js"
   );
 
-  const loader = createDataLoader();
+  const loader = createDataLoader(runtime);
   const data = await loader.loadAllData(dataDir);
 
-  const exporter = await createExporter({ renderer: createRenderer() });
+  const exporter = await createExporter({
+    runtime,
+    renderer: createRenderer(),
+  });
   const result = await exporter.exportAll({ data, outputDir });
 
   const counts = {};
@@ -323,7 +327,7 @@ async function runExport(dataDir, outputDir) {
     counts[type] = (counts[type] || 0) + 1;
   }
 
-  process.stdout.write(formatSuccess("Export complete") + "\n");
+  runtime.proc.stdout.write(formatSuccess("Export complete") + "\n");
   summary.render({
     title: formatSubheader("By type"),
     ok: result.errors.length === 0,
@@ -339,9 +343,11 @@ async function runExport(dataDir, outputDir) {
   });
 
   if (result.errors.length > 0) {
-    process.stderr.write("\n" + formatError("Errors:") + "\n");
+    runtime.proc.stderr.write("\n" + formatError("Errors:") + "\n");
     for (const err of result.errors) {
-      process.stderr.write(formatBullet(`${err.path}: ${err.error}`, 1) + "\n");
+      runtime.proc.stderr.write(
+        formatBullet(`${err.path}: ${err.error}`, 1) + "\n",
+      );
     }
     return 1;
   }
@@ -353,22 +359,22 @@ async function runExport(dataDir, outputDir) {
  * Generate index command
  */
 async function runGenerateIndex(dataDir) {
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatHeader(`Generating index files in: ${dataDir}`) + "\n\n",
   );
 
   const { createIndexGenerator } = await import("../src/index.js");
 
-  const generator = createIndexGenerator();
+  const generator = createIndexGenerator(runtime);
   const results = await generator.generateAllIndexes(dataDir);
 
   for (const [dir, files] of Object.entries(results)) {
     if (files.error) {
-      process.stdout.write(
+      runtime.proc.stdout.write(
         formatBullet(`${dir}/_index.yaml: ${files.error}`, 0) + "\n",
       );
     } else {
-      process.stdout.write(
+      runtime.proc.stdout.write(
         formatBullet(`${dir}/_index.yaml (${files.length} files)`, 0) + "\n",
       );
     }
@@ -393,8 +399,8 @@ async function dispatchPeople(subcommand, rest, values) {
         cli.error("people validate requires a file path");
         return 1;
       }
-      const dataDir = await findDataDir(values.data);
-      return people.validate(filePath, dataDir);
+      const dataDir = await findDataDir(values.data, runtime);
+      return people.validate(filePath, dataDir, runtime);
     }
     case "push": {
       const filePath = rest[0];
@@ -403,18 +409,18 @@ async function dispatchPeople(subcommand, rest, values) {
         return 1;
       }
       const supabase = await mapClient();
-      return people.push(filePath, supabase);
+      return people.push(filePath, supabase, runtime);
     }
     case "provision": {
       const supabase = await mapClient();
       const { runProvisionCommand } = await import(
         "../src/commands/people-provision.js"
       );
-      await runProvisionCommand({ supabase });
+      await runProvisionCommand({ supabase, runtime });
       return 0;
     }
     case "import": {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         formatWarning(
           "`fit-map people import` is deprecated. Use " +
             "`fit-map people validate` to validate locally or " +
@@ -426,8 +432,8 @@ async function dispatchPeople(subcommand, rest, values) {
         cli.error("people import requires a file path");
         return 1;
       }
-      const dataDir = await findDataDir(values.data);
-      return people.validate(filePath, dataDir);
+      const dataDir = await findDataDir(values.data, runtime);
+      return people.validate(filePath, dataDir, runtime);
     }
     default:
       cli.usageError(`unknown people subcommand: ${subcommand || "(none)"}`);
@@ -439,22 +445,22 @@ async function dispatchActivity(subcommand, rest, values) {
   const activity = await import("../src/commands/activity.js");
   switch (subcommand) {
     case "start":
-      return activity.start();
+      return activity.start({ runtime });
     case "stop":
-      return activity.stop();
+      return activity.stop({ runtime });
     case "status":
-      return activity.status();
+      return activity.status({ runtime });
     case "migrate":
-      return activity.migrate();
+      return activity.migrate({ runtime });
     case "transform":
-      return activity.transform(rest[0] ?? "all", await mapClient());
+      return activity.transform(rest[0] ?? "all", await mapClient(), runtime);
     case "verify":
-      return activity.verify(await mapClient());
+      return activity.verify(await mapClient(), runtime);
     case "seed": {
-      const dataDir = await findDataDir(values.data);
+      const dataDir = await findDataDir(values.data, runtime);
       // findDataDir returns .../pathway; seed needs the parent data/ dir
       const data = dirname(dataDir);
-      return activity.seed({ data, supabase: await mapClient() });
+      return activity.seed({ data, supabase: await mapClient(), runtime });
     }
     default:
       cli.usageError(`unknown activity subcommand: ${subcommand || "(none)"}`);
@@ -468,6 +474,7 @@ async function dispatchGetdx(subcommand, rest, values) {
     case "sync":
       return getdx.sync(await mapClient(), {
         baseUrl: values["base-url"],
+        runtime,
       });
     default:
       cli.usageError(`unknown getdx subcommand: ${subcommand || "(none)"}`);
@@ -486,6 +493,7 @@ async function dispatchAuth(subcommand, _rest, values) {
         supabase,
         config,
         options: { email: values.email, ttl: values.ttl },
+        runtime,
       });
       return 0;
     }
@@ -500,6 +508,7 @@ async function dispatchSubstrate(subcommand, _rest, values) {
     config,
     mapClient,
     cli,
+    runtime,
   });
 }
 
@@ -507,15 +516,15 @@ async function dispatchSubstrate(subcommand, _rest, values) {
  * Main entry point
  */
 async function main() {
-  const parsed = cli.parse(process.argv.slice(2));
-  if (!parsed) process.exit(0);
+  const parsed = cli.parse(runtime.proc.argv.slice(2));
+  if (!parsed) runtime.proc.exit(0);
 
   const { values, positionals } = parsed;
   const [command, subcommand, ...rest] = positionals;
 
   if (!command) {
     cli.showHelp();
-    process.exit(0);
+    runtime.proc.exit(0);
   }
 
   try {
@@ -524,8 +533,8 @@ async function main() {
     switch (command) {
       case "init": {
         const { runInit } = await import("../src/commands/init.js");
-        await runInit(positionals[1]);
-        exitCode = 0;
+        const result = await runInit(positionals[1], runtime);
+        exitCode = result.ok ? 0 : (result.code ?? 1);
         break;
       }
       case "validate": {
@@ -533,20 +542,20 @@ async function main() {
           const { runValidateShacl } = await import(
             "../src/commands/validate-shacl.js"
           );
-          exitCode = await runValidateShacl();
+          exitCode = await runValidateShacl(runtime);
         } else {
-          const dataDir = await findDataDir(values.data);
+          const dataDir = await findDataDir(values.data, runtime);
           exitCode = await runValidate(dataDir);
         }
         break;
       }
       case "generate-index": {
-        const dataDir = await findDataDir(values.data);
+        const dataDir = await findDataDir(values.data, runtime);
         exitCode = await runGenerateIndex(dataDir);
         break;
       }
       case "export": {
-        const dataDir = await findDataDir(values.data);
+        const dataDir = await findDataDir(values.data, runtime);
         const outputDir = await findOutputDir(values.output);
         exitCode = await runExport(dataDir, outputDir);
         break;
@@ -571,10 +580,10 @@ async function main() {
         exitCode = 2;
     }
 
-    process.exit(exitCode);
+    runtime.proc.exit(exitCode);
   } catch (error) {
     cli.error(error.message);
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 }
 

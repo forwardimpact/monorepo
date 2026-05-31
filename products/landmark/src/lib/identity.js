@@ -49,7 +49,7 @@ function parseJwtSegment(seg, label) {
  * the secret — the JWT is trusted at the shape level, and Postgres
  * rejects forgeries at the RLS clamp on the next round trip.
  */
-function resolveFromJwt(jwt, config) {
+function resolveFromJwt(jwt, config, runtime) {
   const parts = jwt.split(".");
   if (parts.length !== 3)
     throw new IdentityUnresolvedError("PRODUCT_LANDMARK_TOKEN is not a JWT");
@@ -65,7 +65,10 @@ function resolveFromJwt(jwt, config) {
     throw new IdentityUnresolvedError(
       "PRODUCT_LANDMARK_TOKEN missing string email claim",
     );
-  if (typeof claims.exp !== "number" || claims.exp * 1000 <= Date.now())
+  if (
+    typeof claims.exp !== "number" ||
+    claims.exp * 1000 <= runtime.clock.now()
+  )
     throw new IdentityUnresolvedError("PRODUCT_LANDMARK_TOKEN is expired");
 
   // HMAC verification is best-effort: monorepo contributors get the
@@ -101,10 +104,11 @@ function resolveFromJwt(jwt, config) {
  *
  * @param {{access_token:string,refresh_token:string,expires_at:number,email:string}} creds
  * @param {object} config - libconfig Config for the landmark product.
+ * @param {object} runtime - The injected collaborator bag.
  * @param {NodeJS.ProcessEnv} env
  * @param {(url:string,key:string) => any} createClient
  */
-async function refreshSession(creds, config, env, createClient) {
+async function refreshSession(creds, config, runtime, env, createClient) {
   let url, anonKey;
   try {
     url = config.supabaseUrl();
@@ -119,7 +123,7 @@ async function refreshSession(creds, config, env, createClient) {
     refresh_token: creds.refresh_token,
   });
   if (error || !data?.session) {
-    await clearCredentials(env);
+    await clearCredentials(runtime, env);
     throw new IdentityUnresolvedError(
       "session expired and refresh failed — run `fit-landmark login` again",
     );
@@ -127,10 +131,10 @@ async function refreshSession(creds, config, env, createClient) {
   const next = {
     access_token: data.session.access_token,
     refresh_token: data.session.refresh_token ?? creds.refresh_token,
-    expires_at: Date.now() + (data.session.expires_in ?? 3600) * 1000,
+    expires_at: runtime.clock.now() + (data.session.expires_in ?? 3600) * 1000,
     email: data.user?.email ?? creds.email,
   };
-  await writeCredentials(next, env);
+  await writeCredentials(runtime, next, env);
   return next;
 }
 
@@ -150,6 +154,7 @@ async function refreshSession(creds, config, env, createClient) {
  *
  * @param {object} params
  * @param {object} params.config - libconfig Config for the landmark product.
+ * @param {object} params.runtime - The injected collaborator bag.
  * @param {NodeJS.ProcessEnv} [params.env] - Process env; carries LANDMARK_CREDENTIALS_FILE.
  * @param {(url:string,key:string)=>any} [params.createClient]
  * @returns {Promise<{email: string, jwt: string}>}
@@ -157,14 +162,15 @@ async function refreshSession(creds, config, env, createClient) {
  */
 export async function resolveIdentity({
   config,
-  env = process.env,
+  runtime,
+  env = runtime.proc.env,
   createClient,
 } = {}) {
   if (config?.token) {
-    return resolveFromJwt(config.token, config);
+    return resolveFromJwt(config.token, config, runtime);
   }
 
-  const creds = await readCredentials(env);
+  const creds = await readCredentials(runtime, env);
   if (!creds)
     throw new IdentityUnresolvedError(
       "no session found — run `fit-landmark login`",
@@ -172,11 +178,11 @@ export async function resolveIdentity({
 
   if (
     typeof creds.expires_at === "number" &&
-    Date.now() >= creds.expires_at - REFRESH_LEAD_MS
+    runtime.clock.now() >= creds.expires_at - REFRESH_LEAD_MS
   ) {
     const cc =
       createClient ?? (await import("@supabase/supabase-js")).createClient;
-    const refreshed = await refreshSession(creds, config, env, cc);
+    const refreshed = await refreshSession(creds, config, runtime, env, cc);
     return { email: refreshed.email, jwt: refreshed.access_token };
   }
 
