@@ -42,14 +42,14 @@ my-coding-family/
     supervisor.task.md                   # optional — supervisor context
     hooks/                               # harness-only — never copied to agent CWD
       preflight.sh                       # optional — smoke probe
-      score.sh                           # optional — hidden grader; fd 3 = $RESULTS_FD
+      invariants.sh                      # optional — hidden grader; fd 3 = $RESULTS_FD
     specs/                               # copied into the agent CWD
     workdir/                             # copied into the agent CWD
 ```
 
 Task IDs are directory names under `tasks/` (e.g. `todo-api`). The directory
 splits into what the agent sees (`workdir/`, `specs/`, `.claude/`) and what the
-harness keeps hidden (`hooks/`). The agent never receives the scoring script —
+harness keeps hidden (`hooks/`). The agent never receives the invariants script —
 that is the structural guarantee it cannot peek at the tests.
 
 ### What the agent sees
@@ -84,7 +84,7 @@ and produces a `preflightError` result record (cost zero, no agent
 invoked). When the script is absent, the harness proceeds without a
 pre-flight probe.
 
-A preflight that starts a background service for the scoring probe to
+A preflight that starts a background service for the invariants probe to
 test against:
 
 ```sh
@@ -95,17 +95,17 @@ exit 0
 ```
 
 The harness spawns the preflight in its own process group and tears down
-the entire group (SIGTERM, grace period, SIGKILL) after scoring
-completes — background processes do not leak across runs.
+the entire group (SIGTERM, grace period, SIGKILL) after the invariants
+check completes — background processes do not leak across runs.
 
-#### `hooks/score.sh`
+#### `hooks/invariants.sh`
 
 Runs after the agent finishes. In addition to `$WORKDIR` and `$PORT`,
-it receives `$RESULTS_FD=3` — a file descriptor for structured per-test
+it receives `$RESULTS_FD=3` — a file descriptor for structured per-check
 rows.
 
 The **exit code is authoritative**: `0` is pass, anything else is fail.
-Rows written to fd 3 are stored on the result record's `scoring.details`
+Rows written to fd 3 are stored on the result record's `invariants.details`
 for diagnostics; they cannot override the verdict.
 
 Three grading surfaces are in scope:
@@ -155,18 +155,16 @@ variables before sending the prompt to the judge:
 | `{{AGENT_INSTRUCTIONS}}` | Contents of `agent.task.md` |
 | `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
 | `{{AGENT_TRACE_PATH}}` | Absolute path to `agent.ndjson` |
-| `{{SCORING_RESULT}}` | JSON scoring object (verdict, details, exitCode) |
+| `{{INVARIANTS_RESULT}}` | JSON invariants object (verdict, details, exitCode) |
 | `{{SKILL_SET_HASH}}` | SHA-256 fingerprint from `apm.lock.yaml` |
 | `{{TASK_ID}}` | Task name (directory under `tasks/`) |
 | `{{TASK_DIR}}` | Agent working directory path |
 
-`{{SCORING}}` is accepted as a legacy alias for `{{SCORING_RESULT}}`.
-
 ```md
-Scoring outcome:
+Invariants outcome:
 
 \`\`\`json
-{{SCORING_RESULT}}
+{{INVARIANTS_RESULT}}
 \`\`\`
 
 The agent's full trace is at `{{AGENT_TRACE_PATH}}` — read it before
@@ -176,7 +174,7 @@ deciding. The agent was given task `{{TASK_ID}}` with these instructions:
 
 Call `Conclude` with `verdict='success'` when both:
 
-1. `scoring.verdict === "pass"`, and
+1. `invariants.verdict === "pass"`, and
 2. the agent did not violate the test contract (e.g. by editing the
    test file).
 ```
@@ -244,29 +242,29 @@ Output:
 - `./runs/2026-05-11/results.jsonl` — append-only, one record per
   `(task, runIndex)`. Survives partial failures.
 - `./runs/2026-05-11/runs/<task-name>/<runIndex>/` — per-run artifacts:
-  the agent CWD, the agent trace, the judge trace, the scoring stderr
+  the agent CWD, the agent trace, the judge trace, the invariants stderr
   log.
 - `./runs/2026-05-11/.apm-staging/.claude/` — staged skills/agents.
 
 Each result record carries `skillSetHash`, `familyRevision`, the
-combined verdict, scoring details, judge verdict + summary, cost, turn
+combined verdict, invariants details, judge verdict + summary, cost, turn
 count, and the absolute paths to both NDJSON traces. The record's
 schema is validated at write time, so a malformed write is caught
 before the report stage trips over it.
 
-## Score One Task at a Time
+## Check One Task's Invariants at a Time
 
 For ad-hoc grading without an agent run:
 
 ```sh
-npx fit-benchmark score \
+npx fit-benchmark invariants \
   --family=./my-coding-family \
   --task=todo-api \
   --workdir=./runs/2026-05-11/runs/todo-api/0 \
-  --output=score.jsonl
+  --output=invariants.jsonl
 ```
 
-Useful when iterating on a `hooks/score.sh` script: re-grade an existing
+Useful when iterating on a `hooks/invariants.sh` script: re-grade an existing
 post-run workdir without burning agent cost.
 
 ## Aggregate Into pass@k
@@ -284,7 +282,7 @@ With `--format=text`, the report renders a full markdown document:
   duration, median turns.
 - **Pass@k table** — one row per task with the unbiased HumanEval
   estimator: `pass@k = 1 - C(n-c, k) / C(n, k)`.
-- **Task details** — per-task sections with a runs table, scoring check
+- **Task details** — per-task sections with a runs table, invariant check
   results, judge commentary (blockquoted), and any agent or preflight
   errors.
 

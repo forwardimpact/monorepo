@@ -3,14 +3,14 @@ import assert from "node:assert";
 
 import {
   validateResultRecord,
-  validateScoringRecord,
+  validateInvariantsRecord,
 } from "../src/benchmark/result.js";
 
 const happy = {
   taskId: "pass",
   runIndex: 0,
   verdict: "pass",
-  scoring: { verdict: "pass", details: [], exitCode: 0 },
+  invariants: { verdict: "pass", details: [], exitCode: 0 },
   submission: "all good",
   judgeVerdict: { verdict: "pass", summary: "approved" },
   costUsd: 0.123,
@@ -54,7 +54,7 @@ const agentFailed = {
   ...happy,
   taskId: "agent-died",
   verdict: "fail",
-  scoring: { verdict: "fail", details: [], exitCode: 1 },
+  invariants: { verdict: "fail", details: [], exitCode: 1 },
   judgeVerdict: { verdict: "fail", summary: "agent died" },
   submission: "",
   agentError: { message: "iteration failed", aborted: false },
@@ -69,7 +69,7 @@ describe("validateResultRecord", () => {
     assert.doesNotThrow(() => validateResultRecord(preflightFail));
   });
 
-  test("accepts an agent-execution-failure record (scoring/judge present)", () => {
+  test("accepts an agent-execution-failure record (invariants/judge present)", () => {
     assert.doesNotThrow(() => validateResultRecord(agentFailed));
   });
 
@@ -88,18 +88,18 @@ describe("validateResultRecord", () => {
   });
 });
 
-describe("validateScoringRecord", () => {
-  test("accepts a valid scoring record", () => {
+describe("validateInvariantsRecord", () => {
+  test("accepts a valid invariants record", () => {
     assert.doesNotThrow(() =>
-      validateScoringRecord({
+      validateInvariantsRecord({
         taskId: "pass",
-        scoring: { verdict: "pass", details: [], exitCode: 0 },
+        invariants: { verdict: "pass", details: [], exitCode: 0 },
         exitCode: 0,
       }),
     );
   });
 
-  test("rejects when scoring is missing", () => {
-    assert.throws(() => validateScoringRecord({ taskId: "x", exitCode: 0 }));
+  test("rejects when invariants is missing", () => {
+    assert.throws(() => validateInvariantsRecord({ taskId: "x", exitCode: 0 }));
   });
 });

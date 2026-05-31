@@ -260,7 +260,7 @@ const definition = {
       argsUsage: "<test-name> <file>",
       handler: runAssertCommand,
       description:
-        "Shell-friendly assertion — outputs structured JSON for scoring hooks",
+        "Shell-friendly assertion — outputs structured JSON for invariant hooks",
       options: {
         grep: {
           type: "string",

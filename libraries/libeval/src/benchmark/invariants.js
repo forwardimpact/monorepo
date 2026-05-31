@@ -1,7 +1,7 @@
 /**
- * Scorer — runs `<task.paths.hooks>/score.sh` from the template path against
- * the post-run agent CWD. The exit code is authoritative for the verdict;
- * structured per-test rows arrive on fd 3 (`$RESULTS_FD=3`) as NDJSON.
+ * Invariants — runs `<task.paths.hooks>/invariants.sh` from the template path
+ * against the post-run agent CWD. The exit code is authoritative for the
+ * verdict; structured per-check rows arrive on fd 3 (`$RESULTS_FD=3`) as NDJSON.
  */
 
 import { spawn } from "node:child_process";
@@ -15,31 +15,33 @@ import {
 import { join } from "node:path";
 
 /**
- * @typedef {object} ScoringResult
+ * @typedef {object} InvariantsResult
  * @property {"pass" | "fail"} verdict
  * @property {Array<object>} details
  * @property {number} exitCode
  */
 
 /**
- * Run the task's scoring script.
+ * Run the task's invariants script.
  * @param {import("./task-family.js").Task} task
  * @param {{cwd: string, port: number, runDir: string}} ctx
- * @returns {Promise<ScoringResult>}
+ * @returns {Promise<InvariantsResult>}
  */
-export function runScoring(task, ctx) {
-  if (!task.paths.score) {
+export function runInvariants(task, ctx) {
+  if (!task.paths.invariants) {
     return Promise.resolve({ verdict: "pass", details: [], exitCode: 0 });
   }
   return new Promise((res, rej) => {
-    const script = task.paths.score;
-    const stderrLog = createWriteStream(join(ctx.runDir, "scoring.stderr.log"));
+    const script = task.paths.invariants;
+    const stderrLog = createWriteStream(
+      join(ctx.runDir, "invariants.stderr.log"),
+    );
 
     // Bun's child_process pipe setup for fd >= 3 is racy under load (it
     // creates a unix socket pair and the connect() can return ENOENT). Use
     // a temp file as the fd-3 backing store instead — the script still
     // writes via `$RESULTS_FD`, but we hand it a real file descriptor.
-    const fd3Path = join(ctx.runDir, "scoring.fd3.ndjson");
+    const fd3Path = join(ctx.runDir, "invariants.fd3.ndjson");
     let fd3File;
     try {
       fd3File = openSync(fd3Path, "w+");
@@ -63,7 +65,7 @@ export function runScoring(task, ctx) {
       } catch {
         // already closed
       }
-      rej(new Error(`failed to spawn scoring script: ${script}`));
+      rej(new Error(`failed to spawn invariants script: ${script}`));
       return;
     }
 

@@ -133,7 +133,7 @@ Scheduled runs on `main` create a weekly baseline. Compare the latest
 
 ## Cost Control
 
-Each run invokes Claude for the agent-under-test, scoring, and judging. Control
+Each run invokes Claude for the agent-under-test, invariants, and judging. Control
 cost with:
 
 - **`runs`** — fewer runs means lower cost but weaker statistical signal.

@@ -9,7 +9,7 @@
  *       judge.task.md
  *       hooks/                # harness-only; never copied to agent CWD
  *         preflight.sh
- *         score.sh
+ *         invariants.sh
  *       specs/                # copied into agent CWD
  *       workdir/              # copied into agent CWD
  *
@@ -104,7 +104,7 @@ async function discoverTasks(rootPath) {
     const supervisorPath = join(taskDir, "supervisor.task.md");
     const judgePath = join(taskDir, "judge.task.md");
     const preflightPath = join(taskDir, "hooks", "preflight.sh");
-    const scorePath = join(taskDir, "hooks", "score.sh");
+    const invariantsPath = join(taskDir, "hooks", "invariants.sh");
     tasks.push({
       id: entry.name,
       paths: {
@@ -114,7 +114,9 @@ async function discoverTasks(rootPath) {
         judge: (await fileExists(judgePath)) ? judgePath : null,
         hooks: join(taskDir, "hooks"),
         preflight: (await fileExecutable(preflightPath)) ? preflightPath : null,
-        score: (await fileExecutable(scorePath)) ? scorePath : null,
+        invariants: (await fileExecutable(invariantsPath))
+          ? invariantsPath
+          : null,
         specs: join(taskDir, "specs"),
         workdir: join(taskDir, "workdir"),
       },
@@ -236,7 +238,7 @@ function run(cmd, args) {
 /**
  * @typedef {object} Task
  * @property {string} id - Task name (directory name under tasks/)
- * @property {{taskDir: string, instructions: string, supervisor: string|null, judge: string|null, hooks: string, preflight: string|null, score: string|null, specs: string, workdir: string}} paths
+ * @property {{taskDir: string, instructions: string, supervisor: string|null, judge: string|null, hooks: string, preflight: string|null, invariants: string|null, specs: string, workdir: string}} paths
  */
 
 /**

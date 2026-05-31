@@ -1,5 +1,5 @@
-Scoring:
-{{SCORING_RESULT}}
+Invariants:
+{{INVARIANTS_RESULT}}
 
 Trace: {{AGENT_TRACE_PATH}}
 

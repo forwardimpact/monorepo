@@ -9,7 +9,7 @@ single v1 task) plus a regime-aware staging script that produces a valid
 `fit-benchmark` family tree at build time (per spec [#870](../870-fit-benchmark-coding-tasks/design-a.md)).
 The task `kata-spec/write-feature-spec/` ships an `instructions.md`, a
 brief + JTBD excerpt under `specs/`, a no-op `workdir/scripts/preflight.sh`,
-a templated `judge.task.md`, and a structural `scoring/run.sh` that emits
+a templated `judge.task.md`, and a structural `invariants/run.sh` that emits
 NDJSON to `$RESULTS_FD`. A new GitHub Actions workflow drives three triggers
 (manual dispatch and weekly schedule stage the published pack; path-filtered
 PRs stage from in-repo `.claude/`), invokes `bunx fit-benchmark run` then
@@ -83,7 +83,7 @@ description: Judge for the kata-skills benchmark family.
 ---
 
 You are a judge grading agent-emitted specs in the kata-skills benchmark.
-Read the scoring result and the agent trace passed in the task prompt;
+Read the invariants result and the agent trace passed in the task prompt;
 read the spec the agent wrote at `$WORKDIR/spec.md`. Decide whether the
 spec **addresses the brief** — does it propose a solution to the
 stated problem? Structural rubric compliance is graded separately;
@@ -245,7 +245,7 @@ File contents:
 | --- | --- |
 | `instructions.md` | One paragraph: "Read `specs/brief.md` and `specs/jtbd-excerpt.md`. Following the `kata-spec` skill (staged under `.claude/skills/kata-spec/`), write a specification at `spec.md` (at the working-directory root) that addresses the brief. Quote the JTBD persona+job verbatim using the exact `<persona>: <job>` string from the second-level heading of `specs/jtbd-excerpt.md`. Do not write a plan or design — spec only." |
 | `supervisor.task.md` | Verbatim body (single line): `<!-- Reserved per spec #0870 design Decision 14; unread in v1. -->`. The file's existence is forward-compat metadata — `TaskFamily` records the path but the harness does not read it in v1. |
-| `judge.task.md` | Templated prompt with `{{SCORING}}` and `{{AGENT_TRACE_PATH}}` per #0870 plan Step 6's contract. Verbatim body shown below the table. |
+| `judge.task.md` | Templated prompt with `{{INVARIANTS_RESULT}}` and `{{AGENT_TRACE_PATH}}` per #0870 plan Step 6's contract. Verbatim body shown below the table. |
 | `specs/brief.md` | The brief itself: "Spec a new `--filter-tools` flag for `fit-trace overview` that restricts the output to events involving a comma-separated list of tool names. The hire is the persona+job at the level-2 heading of `specs/jtbd-excerpt.md`; quote that heading verbatim in your spec's persona section." |
 | `specs/jtbd-excerpt.md` | The full `<job user="Platform Builders" goal="Evaluate and Improve Agents"> … </job>` block from `JTBD.md` (copied verbatim including the opening and closing `<job>` tags — locate the block by tag delimiter, not by line number, so it survives upstream edits to `JTBD.md`). |
 | `workdir/scripts/preflight.sh` | Executable. Two lines: `#!/bin/sh` and `exit 0` — the script ignores `$WORKDIR`/`$PORT` because v1 ships no scaffold. Substrate gates `install` on `fs.access(path, X_OK)` per #0870 plan Step 8.3. |
@@ -253,10 +253,10 @@ File contents:
 Verbatim `judge.task.md` body:
 
 ````markdown
-Scoring result:
+Invariants result:
 
 ```json
-{{SCORING}}
+{{INVARIANTS_RESULT}}
 ```
 
 Agent trace at `{{AGENT_TRACE_PATH}}`. Read the trace and the
@@ -270,18 +270,18 @@ brief, or `verdict="failure"` if it does not. Include a one-sentence
 ````
 
 Verify: from the family root, `test -x tasks/kata-spec/write-feature-spec/workdir/scripts/preflight.sh`;
-`grep -q '{{SCORING}}' tasks/kata-spec/write-feature-spec/judge.task.md`
+`grep -q '{{INVARIANTS_RESULT}}' tasks/kata-spec/write-feature-spec/judge.task.md`
 and `grep -q '{{AGENT_TRACE_PATH}}' …/judge.task.md`;
 `grep -q '<job user="Platform Builders"' tasks/kata-spec/write-feature-spec/specs/jtbd-excerpt.md`.
 
-## Step 5 — Scoring rubric
+## Step 5 — Invariants rubric
 
 Intent: grade the agent's emitted `$WORKDIR/spec.md` against the kata-spec
 DO-CONFIRM bar. The rubric runs as POSIX `/bin/sh` with `awk`/`grep`/`sed`
 only — no language runtime dependency, matching the existing fixture-family
-scoring scripts under `libraries/libeval/test/fixtures/benchmark-family/`.
+invariants scripts under `libraries/libeval/test/fixtures/benchmark-family/`.
 
-**Created:** `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/scoring/run.sh` (executable).
+**Created:** `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/invariants/run.sh` (executable).
 
 ```sh
 #!/bin/sh
@@ -357,7 +357,7 @@ fi
 ```
 
 Verify: from the family root, write a passing fixture `spec.md` into a
-scratch `$WORKDIR` and call `WORKDIR=…  RESULTS_FD=1 sh tasks/kata-spec/write-feature-spec/scoring/run.sh`;
+scratch `$WORKDIR` and call `WORKDIR=…  RESULTS_FD=1 sh tasks/kata-spec/write-feature-spec/invariants/run.sh`;
 all six rows emit `pass:true` and the exit code is `0`. Mutate one rule
 (drop the `## Problem` heading) and assert the exit code flips to `1` with
 `problem-first` reporting `pass:false`.

@@ -3,10 +3,10 @@
  *
  * Two schemas live here:
  *   - RESULT_RECORD_SCHEMA — one record per (task, runIndex) from a full
- *     benchmark run. Has a happy branch (scoring + judge present) and a
- *     pre-flight-failure branch (scoring/judgeVerdict/submission absent).
- *   - SCORING_RECORD_SCHEMA — narrower output of `benchmark-score` (P7):
- *     ad-hoc grading without a full lifecycle.
+ *     benchmark run. Has a happy branch (invariants + judge present) and a
+ *     pre-flight-failure branch (invariants/judgeVerdict/submission absent).
+ *   - INVARIANTS_RECORD_SCHEMA — narrower output of `benchmark-invariants`
+ *     (P7): ad-hoc grading without a full lifecycle.
  *
  * Validation is throw-on-mismatch so the runner can wrap every JSONL append
  * in a guard and reject schema drift at write time.
@@ -16,7 +16,7 @@ import { z } from "zod";
 
 const VERDICT_ENUM = z.enum(["pass", "fail"]);
 
-const SCORING_SHAPE = z.object({
+const INVARIANTS_SHAPE = z.object({
   verdict: VERDICT_ENUM,
   details: z.array(z.unknown()),
   exitCode: z.number().int(),
@@ -63,7 +63,7 @@ const AGENT_ERROR_SHAPE = z.object({
 
 const HAPPY_RECORD = z.object({
   ...COMMON_FIELDS,
-  scoring: SCORING_SHAPE,
+  invariants: INVARIANTS_SHAPE,
   submission: z.string(),
   judgeVerdict: JUDGE_VERDICT_SHAPE.optional(),
   agentTracePath: z.string(),
@@ -83,7 +83,7 @@ const PREFLIGHT_RECORD = z.object({
   agentTracePath: z.string(),
   supervisorTracePath: z.string(),
   judgeTracePath: z.string(),
-  scoring: z.undefined().optional(),
+  invariants: z.undefined().optional(),
   submission: z.undefined().optional(),
   judgeVerdict: z.undefined().optional(),
   agentError: z.undefined().optional(),
@@ -91,9 +91,9 @@ const PREFLIGHT_RECORD = z.object({
 
 export const RESULT_RECORD_SCHEMA = z.union([HAPPY_RECORD, PREFLIGHT_RECORD]);
 
-export const SCORING_RECORD_SCHEMA = z.object({
+export const INVARIANTS_RECORD_SCHEMA = z.object({
   taskId: z.string().min(1),
-  scoring: SCORING_SHAPE,
+  invariants: INVARIANTS_SHAPE,
   exitCode: z.number().int(),
 });
 
@@ -109,6 +109,6 @@ export function validateResultRecord(record) {
  * Throw on schema mismatch.
  * @param {object} record
  */
-export function validateScoringRecord(record) {
-  SCORING_RECORD_SCHEMA.parse(record);
+export function validateInvariantsRecord(record) {
+  INVARIANTS_RECORD_SCHEMA.parse(record);
 }

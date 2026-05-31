@@ -4,7 +4,7 @@
  * the pre-flight smoke probe, and tear down the process group at end of run.
  *
  * The Workdir handle threads `cwd`, `port`, `pgid`, and trace paths through
- * runAgent → score → judge → teardown.
+ * runAgent → invariants → judge → teardown.
  */
 
 import { spawn } from "node:child_process";

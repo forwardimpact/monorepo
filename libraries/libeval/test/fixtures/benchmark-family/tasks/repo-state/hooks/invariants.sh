@@ -1,5 +1,5 @@
 #!/bin/sh
-# Repo-state scoring: asserts SHA-256 of `$WORKDIR/result.txt` matches the
+# Repo-state invariants: asserts SHA-256 of `$WORKDIR/result.txt` matches the
 # digest of "hello\n".
 EXPECTED="5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03"
 F="$WORKDIR/result.txt"

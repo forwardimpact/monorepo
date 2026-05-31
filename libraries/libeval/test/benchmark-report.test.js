@@ -11,7 +11,7 @@ function baseRecord(overrides) {
     taskId: "sample",
     runIndex: 0,
     verdict: "pass",
-    scoring: { verdict: "pass", details: [], exitCode: 0 },
+    invariants: { verdict: "pass", details: [], exitCode: 0 },
     submission: "x",
     judgeVerdict: { verdict: "pass", summary: "ok" },
     costUsd: 0,
@@ -132,7 +132,7 @@ describe("aggregate with includeRuns", () => {
     assert.strictEqual(task.runs[0].runIndex, 0);
     assert.strictEqual(task.runs[0].verdict, "pass");
     assert.strictEqual(task.runs[0].costUsd, 0.1);
-    assert.ok(task.runs[0].scoring);
+    assert.ok(task.runs[0].invariants);
     assert.ok(task.runs[0].judgeVerdict);
     assert.strictEqual(task.runs[1].runIndex, 1);
   });
@@ -187,7 +187,7 @@ describe("renderTextReport (full report)", () => {
         taskId: "alpha",
         runIndex: 0,
         verdict: "pass",
-        scoring: {
+        invariants: {
           verdict: "pass",
           details: [{ test: "check-1", pass: true }],
           exitCode: 0,
@@ -211,18 +211,18 @@ describe("renderTextReport (full report)", () => {
     assert.match(text, /## Task Details/);
     assert.match(text, /### alpha/);
     assert.match(text, /✅ \*\*1\/1 runs passed\*\*/);
-    assert.match(text, /#### Scoring Checks/);
+    assert.match(text, /#### Invariant Checks/);
     assert.match(text, /check-1 \| ✅/);
     assert.match(text, /#### Judge Commentary/);
     assert.match(text, /looks good/);
   });
 
-  test("single run omits Run column in scoring checks", async () => {
+  test("single run omits Run column in invariant checks", async () => {
     const records = [
       baseRecord({
         taskId: "x",
         runIndex: 0,
-        scoring: {
+        invariants: {
           verdict: "pass",
           details: [{ test: "t1", pass: true }],
           exitCode: 0,
@@ -236,17 +236,19 @@ describe("renderTextReport (full report)", () => {
       includeRuns: true,
     });
     const text = renderTextReport(report, [1]);
-    const checksSection = text.split("#### Scoring Checks")[1].split("####")[0];
+    const checksSection = text
+      .split("#### Invariant Checks")[1]
+      .split("####")[0];
     assert.match(checksSection, /\| Check \| Result \| Message \|/);
     assert.doesNotMatch(checksSection, /\| Run \|/);
   });
 
-  test("multi-run includes Run column in scoring checks", async () => {
+  test("multi-run includes Run column in invariant checks", async () => {
     const records = [
       baseRecord({
         taskId: "x",
         runIndex: 0,
-        scoring: {
+        invariants: {
           verdict: "pass",
           details: [{ test: "t1", pass: true }],
           exitCode: 0,
@@ -255,7 +257,7 @@ describe("renderTextReport (full report)", () => {
       baseRecord({
         taskId: "x",
         runIndex: 1,
-        scoring: {
+        invariants: {
           verdict: "fail",
           details: [{ test: "t1", pass: false, message: "nope" }],
           exitCode: 1,
@@ -269,7 +271,9 @@ describe("renderTextReport (full report)", () => {
       includeRuns: true,
     });
     const text = renderTextReport(report, [1]);
-    const checksSection = text.split("#### Scoring Checks")[1].split("####")[0];
+    const checksSection = text
+      .split("#### Invariant Checks")[1]
+      .split("####")[0];
     assert.match(checksSection, /\| Run \| Check \| Result \| Message \|/);
   });
 
@@ -328,12 +332,12 @@ describe("renderTextReport (full report)", () => {
     assert.match(text, /preflight error/);
   });
 
-  test("omits scoring checks section when details are empty", async () => {
+  test("omits invariant checks section when details are empty", async () => {
     const records = [
       baseRecord({
         taskId: "x",
         runIndex: 0,
-        scoring: { verdict: "pass", details: [], exitCode: 0 },
+        invariants: { verdict: "pass", details: [], exitCode: 0 },
       }),
     ];
     const dir = await writeJsonl(records);
@@ -343,6 +347,6 @@ describe("renderTextReport (full report)", () => {
       includeRuns: true,
     });
     const text = renderTextReport(report, [1]);
-    assert.doesNotMatch(text, /#### Scoring Checks/);
+    assert.doesNotMatch(text, /#### Invariant Checks/);
   });
 });

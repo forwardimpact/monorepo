@@ -9,12 +9,10 @@
  *   {{AGENT_INSTRUCTIONS}}  — contents of agent.task.md
  *   {{AGENT_PROFILE}}       — agent profile body (empty string if none)
  *   {{AGENT_TRACE_PATH}}    — path to agent.ndjson
- *   {{SCORING_RESULT}}      — JSON scoring object
+ *   {{INVARIANTS_RESULT}}   — JSON invariants object
  *   {{SKILL_SET_HASH}}      — SHA-256 from apm.lock.yaml
  *   {{TASK_ID}}             — task name (directory under tasks/)
  *   {{TASK_DIR}}            — agent working directory path
- *
- * Legacy alias: {{SCORING}} is accepted as an alias for {{SCORING_RESULT}}.
  *
  * The judge verdict is captured from the orchestration context's
  * `concluded` flag directly — no trace parsing on the happy path.
@@ -46,17 +44,16 @@ import { createRedactor } from "../redaction.js";
  * Run the judge over a completed task run.
  * @param {import("./task-family.js").Task} task
  * @param {import("./workdir.js").Workdir} workdir
- * @param {import("./scorer.js").ScoringResult} scoring
+ * @param {import("./invariants.js").InvariantsResult} invariants
  * @param {{query: Function, model: string, judgeProfile?: string, profilesDir?: string}} deps
  * @param {JudgeContext} [context]
  * @returns {Promise<JudgeVerdict>}
  */
-export async function runJudge(task, workdir, scoring, deps, context) {
+export async function runJudge(task, workdir, invariants, deps, context) {
   const template = await readFile(task.paths.judge, "utf8");
-  const scoringJson = JSON.stringify(scoring, null, 2);
+  const invariantsJson = JSON.stringify(invariants, null, 2);
   const taskText = template
-    .replaceAll("{{SCORING_RESULT}}", scoringJson)
-    .replaceAll("{{SCORING}}", scoringJson)
+    .replaceAll("{{INVARIANTS_RESULT}}", invariantsJson)
     .replaceAll("{{AGENT_TRACE_PATH}}", workdir.agentTracePath)
     .replaceAll("{{AGENT_INSTRUCTIONS}}", context?.agentInstructions ?? "")
     .replaceAll("{{AGENT_PROFILE}}", context?.agentProfile ?? "")

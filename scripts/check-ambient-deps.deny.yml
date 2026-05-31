@@ -13,6 +13,10 @@
 libraries/libeval/src/benchmark/apm-installer.js:
   - import:child_process
   - import:fs
+libraries/libeval/src/benchmark/invariants.js:
+  - import:child_process
+  - import:fs
+  - process-global
 libraries/libeval/src/benchmark/judge.js:
   - import:fs
 libraries/libeval/src/benchmark/npm-installer.js:
@@ -24,10 +28,6 @@ libraries/libeval/src/benchmark/report.js:
 libraries/libeval/src/benchmark/runner.js:
   - date-now
   - import:fs
-libraries/libeval/src/benchmark/scorer.js:
-  - import:child_process
-  - import:fs
-  - process-global
 libraries/libeval/src/benchmark/task-family.js:
   - import:child_process
   - import:fs
