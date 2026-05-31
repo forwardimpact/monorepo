@@ -5,6 +5,7 @@ import {
   createMockDiscussionClient,
   createMockLogger,
   createMockTracer,
+  createMockClock,
 } from "@forwardimpact/libmock";
 
 import {
@@ -79,6 +80,7 @@ function newService({
   return new MsBridgeService(makeConfig(configOverrides), {
     logger: logger ?? createMockLogger(),
     tracer: createMockTracer(),
+    clock: createMockClock(),
     discussionClient: createStatefulDiscussionClient(),
     ghuserClient: ghuserClient ?? makeGhuserClient(),
     adapter: adapter ?? makeAdapter(),
@@ -146,6 +148,7 @@ describe("msbridge service", () => {
         () =>
           new MsBridgeService(makeConfig(), {
             tracer: createMockTracer(),
+            clock: createMockClock(),
             discussionClient: createMockDiscussionClient(),
             adapter: makeAdapter(),
           }),
@@ -169,6 +172,7 @@ describe("msbridge service", () => {
           new MsBridgeService(makeConfig(), {
             logger: createMockLogger(),
             tracer: createMockTracer(),
+            clock: createMockClock(),
             adapter: makeAdapter(),
           }),
       ).toThrow("discussionClient is required");

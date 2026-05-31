@@ -7,6 +7,7 @@ import {
   createMockConfig,
   createMockStorage,
   createMockLogger,
+  createMockClock,
 } from "@forwardimpact/libmock";
 
 const DEFAULTS = {
@@ -32,6 +33,7 @@ describe("bridge service", () => {
       storage,
       logger,
       tracer: null,
+      clock: createMockClock({ start: Date.now() }),
     });
   });
 

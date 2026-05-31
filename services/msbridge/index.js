@@ -67,6 +67,7 @@ export class MsBridgeService {
   #resume;
   #bridge;
   #onCallback;
+  #clock;
 
   /**
    * @param {import("@forwardimpact/libbridge").BridgeConfig & {
@@ -79,6 +80,8 @@ export class MsBridgeService {
    * @param {import("@forwardimpact/libtelemetry").Tracer} deps.tracer
    * @param {object} deps.discussionClient - BridgeClient instance
    * @param {object} deps.ghuserClient - ghuser gRPC client
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock
+   *   Injected clock collaborator (`now()` for discussion-context timestamps).
    * @param {object} [deps.adapter] - Bot Framework adapter override (tests)
    * @param {Acknowledgement} [deps.acknowledgement] - Override (tests)
    */
@@ -91,14 +94,17 @@ export class MsBridgeService {
       ghuserClient,
       adapter,
       acknowledgement,
+      clock,
     },
   ) {
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
     if (!discussionClient) throw new Error("discussionClient is required");
     if (!ghuserClient) throw new Error("ghuserClient is required");
+    if (!clock) throw new Error("clock is required");
     this.#logger = logger;
     this.#tracer = tracer;
+    this.#clock = clock;
     this.#config = config;
     this.#msAppId = () => config.msAppId();
 
@@ -245,7 +251,7 @@ export class MsBridgeService {
       ctx.participants[0].metadata = ref;
 
       appendHistory(ctx.history, { role: "user", text, author: requester });
-      ctx.last_active_at = Date.now();
+      ctx.last_active_at = this.#clock.now();
       await this.#store.add(ctx);
 
       const { freshDispatchAllowed } = await this.#resume.processInbound(ctx);
@@ -370,11 +376,11 @@ export class MsBridgeService {
             correlation_id: correlationId,
             text,
             author: String(requester),
-            enqueued_at: Date.now(),
+            enqueued_at: this.#clock.now(),
           },
         }),
       );
-      ctx.last_active_at = Date.now();
+      ctx.last_active_at = this.#clock.now();
       return { kind: "injected" };
     }
     await sendReply(
@@ -430,7 +436,7 @@ export class MsBridgeService {
       surface: CHANNEL,
       surface_user_id: requester,
       discussion_id: ctx.discussion_id,
-      created_at: Date.now(),
+      created_at: this.#clock.now(),
     });
 
     const ref = ctx.participants?.[0]?.metadata;

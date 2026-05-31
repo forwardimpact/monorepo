@@ -4,6 +4,7 @@ import "@forwardimpact/libpreflight/node22";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { clients, createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { MsBridgeService } from "./index.js";
 
@@ -20,10 +21,13 @@ const ghuserClient = new GhuserClient(ghuserConfig, logger, tracer);
 const bridgeConfig = await createServiceConfig("bridge");
 const discussionClient = new BridgeClient(bridgeConfig, logger, tracer);
 
+const { clock } = createDefaultRuntime();
+
 const service = new MsBridgeService(config, {
   logger,
   tracer,
   discussionClient,
   ghuserClient,
+  clock,
 });
 await service.start();

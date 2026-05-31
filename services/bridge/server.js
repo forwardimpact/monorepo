@@ -5,6 +5,7 @@ import { Server, createTracer } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createStorage } from "@forwardimpact/libstorage";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { BridgeService } from "./index.js";
 
@@ -23,8 +24,9 @@ const logger = createLogger("bridge");
 const tracer = await createTracer("bridge");
 
 const storage = createStorage("bridges");
+const { clock } = createDefaultRuntime();
 
-const service = new BridgeService(config, { storage, logger, tracer });
+const service = new BridgeService(config, { storage, logger, tracer, clock });
 const server = new Server(service, config, logger, tracer);
 
 await server.start();

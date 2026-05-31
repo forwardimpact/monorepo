@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { createMockConfig } from "@forwardimpact/libmock";
+import { createMockConfig, createMockClock } from "@forwardimpact/libmock";
 import { createMockStorage } from "@forwardimpact/libmock/mock";
 import { GhuserService } from "../index.js";
 import { BindingStore, FlowStore, GrantStore } from "../src/stores.js";
@@ -11,11 +11,13 @@ describe("ghuser query-linked (SC#4)", () => {
     const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",
     });
+    const clock = createMockClock({ start: Date.now() });
     const bindings = new BindingStore(storage);
     const service = new GhuserService(config, {
       bindings,
-      flows: new FlowStore(storage),
-      grants: new GrantStore(storage),
+      flows: new FlowStore(storage, { clock }),
+      grants: new GrantStore(storage, { clock }),
+      clock,
       github: {
         authorizeUrl: () => "",
         exchangeCode: async () => ({}),
@@ -45,11 +47,13 @@ describe("ghuser query-linked (SC#4)", () => {
     const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",
     });
+    const clock = createMockClock({ start: Date.now() });
     const bindings = new BindingStore(storage);
     const service = new GhuserService(config, {
       bindings,
-      flows: new FlowStore(storage),
-      grants: new GrantStore(storage),
+      flows: new FlowStore(storage, { clock }),
+      grants: new GrantStore(storage, { clock }),
+      clock,
       github: {
         authorizeUrl: () => "",
         exchangeCode: async () => ({}),

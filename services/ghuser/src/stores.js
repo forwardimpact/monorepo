@@ -71,6 +71,7 @@ export class BindingStore extends BufferedIndex {
 class TtlStore extends BufferedIndex {
   #ttlMs;
   #sweepTimer;
+  #clock;
 
   /**
    * @param {import("@forwardimpact/libstorage").StorageInterface} storage
@@ -78,6 +79,8 @@ class TtlStore extends BufferedIndex {
    * @param {object} [options]
    * @param {number} [options.ttlMs]
    * @param {number} [options.sweepIntervalMs]
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} options.clock
+   *   Injected clock collaborator (`now`/`setInterval`/`clearInterval`).
    */
   constructor(
     storage,
@@ -85,12 +88,15 @@ class TtlStore extends BufferedIndex {
     {
       ttlMs = DEFAULT_TTL_MS,
       sweepIntervalMs = DEFAULT_SWEEP_INTERVAL_MS,
+      clock,
     } = {},
   ) {
     super(storage, indexKey, { flush_interval: 1_000, max_buffer_size: 100 });
+    if (!clock) throw new Error("clock is required");
+    this.#clock = clock;
     this.#ttlMs = ttlMs;
-    this.#sweepTimer = setInterval(
-      () => this.#sweep(Date.now()),
+    this.#sweepTimer = this.#clock.setInterval(
+      () => this.#sweep(this.#clock.now()),
       sweepIntervalMs,
     );
     this.#sweepTimer.unref();
@@ -99,7 +105,7 @@ class TtlStore extends BufferedIndex {
   /** Stop the periodic sweep timer. */
   stopSweep() {
     if (this.#sweepTimer) {
-      clearInterval(this.#sweepTimer);
+      this.#clock.clearInterval(this.#sweepTimer);
       this.#sweepTimer = null;
     }
   }

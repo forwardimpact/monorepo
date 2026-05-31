@@ -46,6 +46,7 @@
     "@forwardimpact/librpc": "^0.1.99",
     "@forwardimpact/libtelemetry": "^0.1.42",
     "@forwardimpact/libtype": "^0.1.63",
+    "@forwardimpact/libutil": "^0.1.85",
     "botbuilder": "^4.23.3"
   },
   "devDependencies": {

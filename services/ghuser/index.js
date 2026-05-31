@@ -17,6 +17,7 @@ export class GhuserService extends GhuserBase {
   #grants;
   #github;
   #linkBaseUrl;
+  #clock;
 
   /**
    * @param {object} config
@@ -25,14 +26,19 @@ export class GhuserService extends GhuserBase {
    * @param {import("./src/stores.js").FlowStore} deps.flows
    * @param {import("./src/stores.js").GrantStore} deps.grants
    * @param {ReturnType<import("./src/github-oauth.js").createGithubOAuth>} deps.github
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock
+   *   Injected clock collaborator; drives flow/grant timestamps and token
+   *   expiry comparisons (`now()`).
    */
-  constructor(config, { bindings, flows, grants, github }) {
+  constructor(config, { bindings, flows, grants, github, clock }) {
     super(config);
+    if (!clock) throw new Error("clock is required");
     this.#bindings = bindings;
     this.#flows = flows;
     this.#grants = grants;
     this.#github = github;
     this.#linkBaseUrl = config.link_base_url;
+    this.#clock = clock;
   }
 
   /**
@@ -50,7 +56,7 @@ export class GhuserService extends GhuserBase {
       code_challenge: req.code_challenge ?? null,
       redirect_uri: req.redirect_uri ?? null,
       client_state: req.client_state ?? null,
-      created_at: Date.now(),
+      created_at: this.#clock.now(),
     });
 
     const upstreamUrl = this.#github.authorizeUrl({
@@ -94,7 +100,7 @@ export class GhuserService extends GhuserBase {
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token ?? null,
       expires_at: tokens.expires_in
-        ? Date.now() + tokens.expires_in * 1000
+        ? this.#clock.now() + tokens.expires_in * 1000
         : null,
       scopes: flow.scopes ?? [],
     });
@@ -108,7 +114,7 @@ export class GhuserService extends GhuserBase {
         code_challenge: flow.code_challenge,
         redirect_uri: flow.redirect_uri,
         client_state: flow.client_state,
-        created_at: Date.now(),
+        created_at: this.#clock.now(),
       });
       return {
         downstream_code: downstreamCode,
@@ -148,7 +154,10 @@ export class GhuserService extends GhuserBase {
       access_token: binding.access_token,
       token_type: "bearer",
       expires_in: binding.expires_at
-        ? Math.max(0, Math.floor((binding.expires_at - Date.now()) / 1000))
+        ? Math.max(
+            0,
+            Math.floor((binding.expires_at - this.#clock.now()) / 1000),
+          )
         : 0,
     };
   }
@@ -173,7 +182,7 @@ export class GhuserService extends GhuserBase {
 
     if (
       binding.expires_at &&
-      Date.now() > binding.expires_at - EXPIRY_BUFFER_MS
+      this.#clock.now() > binding.expires_at - EXPIRY_BUFFER_MS
     ) {
       if (!binding.refresh_token) {
         return { result: "re_auth_required", re_auth_required: {} };
@@ -184,7 +193,7 @@ export class GhuserService extends GhuserBase {
         binding.refresh_token =
           refreshed.refresh_token ?? binding.refresh_token;
         binding.expires_at = refreshed.expires_in
-          ? Date.now() + refreshed.expires_in * 1000
+          ? this.#clock.now() + refreshed.expires_in * 1000
           : null;
         await this.#bindings.upsert(binding);
       } catch (err) {

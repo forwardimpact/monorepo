@@ -47,6 +47,7 @@
     "@forwardimpact/librpc": "^0.1.99",
     "@forwardimpact/libtelemetry": "^0.1.42",
     "@forwardimpact/libtype": "^0.1.63",
+    "@forwardimpact/libutil": "^0.1.85",
     "@octokit/auth-app": "^8.2.0",
     "@octokit/graphql": "^9.0.3",
     "@octokit/webhooks-methods": "^6.0.0"
