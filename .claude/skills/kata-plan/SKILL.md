@@ -41,7 +41,6 @@ there is no architectural direction to translate into implementation steps.
 - [ ] Read the spec and design end-to-end before writing. Restate problem,
       scope, success criteria, and architectural direction without referring
       back.
-- [ ] Default to a clean break — compat only when design (and spec) required it.
 
 </read_do_checklist>
 
@@ -98,8 +97,10 @@ The plan translates an approved design into concrete implementation steps.
 - **Execution recommendation.** Route parts to the most suitable agent —
   engineering agents for code, `technical-writer` for docs. For decomposed plans,
   state which parts can run in parallel vs sequentially.
-- **Clean break by default.** Honor [§ Clean breaks](../../../CONTRIBUTING.md#read-do)
-  — plan without compat unless design (and spec) required it; revise design if unsafe.
+- **Clean break.** Follow [§ Clean breaks](../../../CONTRIBUTING.md#read-do): the
+  plan replaces the old path, never wraps it in shims or fallbacks. Compat
+  belongs in the plan only when the design names it as a requirement; if a clean
+  break can't meet the design, revise the design rather than planning around it.
 
 **Form follows content.** Prefer tables for shared-structure lists, bullets for
 flat facts, prose only for narrative connecting them. If a paragraph could be a

@@ -43,7 +43,6 @@ is no commitment to implement, and a design has nothing to shape.
 - [ ] One design per spec — do not bundle multiple specs into one design.
 - [ ] Read the spec end-to-end before writing. Restate problem, scope, and
       success criteria without referring back.
-- [ ] Default to a clean break — compat only when the spec required it.
 
 </read_do_checklist>
 
@@ -102,8 +101,10 @@ interfaces connect them — and why this architecture over alternatives.
   flow, state machines, sequence diagrams.
 - **Scope-faithful.** Stay within the spec's scope. If scope should change,
   return the spec to draft rather than expanding silently.
-- **Clean break by default.** Honor [§ Clean breaks](../../../CONTRIBUTING.md#read-do)
-  — design without compat unless the spec required it; return spec to `draft` if unsafe.
+- **Clean break.** Follow [§ Clean breaks](../../../CONTRIBUTING.md#read-do): the
+  design replaces the old path, never wraps it in shims or fallbacks. Compat
+  belongs in the design only when the spec names it as a requirement; if a clean
+  break can't meet the spec, return the spec to `draft` rather than designing around it.
 
 **Form follows content.** Prefer tables for lists with shared structure
 (components, decisions). Prefer bullets for flat facts. Use prose only for the
