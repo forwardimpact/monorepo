@@ -41,12 +41,11 @@
   },
   "dependencies": {
     "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/libhttp": "^0.1.0",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/librpc": "^0.1.99",
     "@forwardimpact/libtelemetry": "^0.1.42",
-    "@forwardimpact/libtype": "^0.1.0",
-    "@hono/node-server": "^2.0.4",
-    "hono": "^4.12.23"
+    "@forwardimpact/libtype": "^0.1.0"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

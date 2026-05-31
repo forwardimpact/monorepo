@@ -1,6 +1,4 @@
-import { Hono } from "hono";
-import { bodyLimit } from "hono/body-limit";
-import { serve } from "@hono/node-server";
+import { createHttpService } from "@forwardimpact/libhttp";
 
 /**
  * Create the channel-agnostic HTTP server that bridges (ghbridge, msbridge)
@@ -47,97 +45,66 @@ export function createBridgeServer({
     throw new Error("onCallback is required");
   }
 
-  const app = new Hono();
-
-  // Security headers — standard hardening for a backend service.
-  app.use("*", async (c, next) => {
-    await next();
-    c.header("X-Content-Type-Options", "nosniff");
-    c.header("X-Frame-Options", "DENY");
-    c.header("Cache-Control", "no-store");
-  });
-
-  // Request body size limit — 1 MB is generous for JSON callback payloads.
-  app.use("*", bodyLimit({ maxSize: 1024 * 1024 }));
-
-  // Capture the raw POST body once, before downstream handlers parse it.
-  // Channel adapters use this buffer to verify HMAC signatures.
-  app.use("*", async (c, next) => {
-    if (c.req.method === "POST") {
-      const buf = Buffer.from(await c.req.raw.clone().arrayBuffer());
-      c.set("rawBody", buf);
-    }
-    await next();
-  });
-
-  app.options(webhookPath, (c) => c.body(null, 200));
-
-  app.post(webhookPath, async (c) => {
-    try {
-      return await onWebhook(c);
-    } catch (err) {
-      logger.error("bridge.webhook", err);
-      return c.json({ error: "Webhook failure" }, 500);
-    }
-  });
-
-  app.post("/api/callback/:token", async (c) => {
-    try {
-      return await onCallback(c);
-    } catch (err) {
-      logger.error("bridge.callback", err);
-      return c.json({ error: "Callback failure" }, 500);
-    }
-  });
-
-  if (onLinkComplete) {
-    app.get("/api/link-complete", async (c) => {
-      try {
-        return await onLinkComplete(c);
-      } catch (err) {
-        logger.error("bridge.link-complete", err);
-        return c.json({ error: "Link completion failure" }, 500);
-      }
-    });
-  }
-
-  if (onInbox) {
-    app.get("/api/inbox/:correlationId", async (c) => {
-      try {
-        return await onInbox(c);
-      } catch (err) {
-        logger.error("bridge.inbox", err);
-        return c.json({ error: "Inbox failure" }, 500);
-      }
-    });
-  }
-
-  let server = null;
-
-  return {
-    app,
-    address() {
-      if (!server || typeof server.address !== "function") return null;
-      const addr = server.address();
-      if (!addr || typeof addr === "string") return null;
-      return { port: addr.port };
-    },
-    async start() {
-      const { host, port } = config;
-      await new Promise((resolve) => {
-        server = serve({ fetch: app.fetch, port, hostname: host }, (info) => {
-          logger.info("bridge.server", "listening", {
-            host,
-            port: info?.port ?? port,
-          });
-          resolve();
-        });
+  // Lifecycle, security headers, body limit, and the health route are owned by
+  // `@forwardimpact/libhttp`. This factory only mounts the bridge routes (and
+  // the raw-body capture they depend on) through the `configure` callback.
+  return createHttpService({
+    name: "bridge",
+    config,
+    logger,
+    tracer: _tracer,
+    configure(app) {
+      // Capture the raw POST body once, before downstream handlers parse it.
+      // Channel adapters use this buffer to verify HMAC signatures.
+      app.use("*", async (c, next) => {
+        if (c.req.method === "POST") {
+          const buf = Buffer.from(await c.req.raw.clone().arrayBuffer());
+          c.set("rawBody", buf);
+        }
+        await next();
       });
+
+      app.options(webhookPath, (c) => c.body(null, 200));
+
+      app.post(webhookPath, async (c) => {
+        try {
+          return await onWebhook(c);
+        } catch (err) {
+          logger.error("bridge.webhook", err);
+          return c.json({ error: "Webhook failure" }, 500);
+        }
+      });
+
+      app.post("/api/callback/:token", async (c) => {
+        try {
+          return await onCallback(c);
+        } catch (err) {
+          logger.error("bridge.callback", err);
+          return c.json({ error: "Callback failure" }, 500);
+        }
+      });
+
+      if (onLinkComplete) {
+        app.get("/api/link-complete", async (c) => {
+          try {
+            return await onLinkComplete(c);
+          } catch (err) {
+            logger.error("bridge.link-complete", err);
+            return c.json({ error: "Link completion failure" }, 500);
+          }
+        });
+      }
+
+      if (onInbox) {
+        app.get("/api/inbox/:correlationId", async (c) => {
+          try {
+            return await onInbox(c);
+          } catch (err) {
+            logger.error("bridge.inbox", err);
+            return c.json({ error: "Inbox failure" }, 500);
+          }
+        });
+      }
     },
-    async stop() {
-      if (!server) return;
-      await new Promise((resolve) => server.close(() => resolve()));
-      server = null;
-    },
-  };
+  });
 }

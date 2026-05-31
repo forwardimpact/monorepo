@@ -60,9 +60,9 @@ See [`config/CLAUDE.md`](../config/CLAUDE.md) and
 
 ## Architecture
 
-Most services expose gRPC (`proto/`). Exceptions: `mcp` exposes HTTP/SSE
-via `@modelcontextprotocol/sdk`; `msbridge` and `ghbridge` expose HTTP
-via `libbridge` (Hono + `@hono/node-server`).
+Most services expose gRPC (`proto/`). HTTP services standardize on `libhttp`'s
+`createHttpService` (Hono + `@hono/node-server`): `oauth` directly,
+`ghbridge`/`msbridge` via `libbridge`, `mcp` via a raw req/res escape hatch.
 
 Each service follows the same structure:
 

@@ -21,6 +21,7 @@ can read and tune via JSON.
 | **libeval**            | Agent evaluation framework — prove whether agent changes improved outcomes with reproducible evidence.                                    |
 | **libformat**          | Render markdown to ANSI or HTML — formatted output in any surface without losing structure.                                               |
 | **libgraph**           | RDF triple store with named ontologies — answer relationship questions without writing join logic.                                        |
+| **libhttp**            | HTTP service framework — ship a Hono service endpoint without reimplementing lifecycle, security headers, or health checks.               |
 | **libindex**           | JSONL-backed indexes with filtering and buffered writes — fast context lookup without an external search engine.                          |
 | **libmacos**           | macOS bundle assembly, code signing, and OS permission helpers — desktop delivery without platform ceremony.                              |
 | **libmcp**             | Config-driven gRPC-to-MCP tool registration — expose protobuf services as agent tools without glue code.                                  |
@@ -313,6 +314,24 @@ of an upstream library's. → **libpreflight**
 
 **Competes With:** inline checks in each bin; engines-strict; install-time
 hooks.
+
+</job>
+
+<job user="Platform Builders" goal="Stand Up an HTTP Service Without Boilerplate">
+
+## Platform Builders: Stand Up an HTTP Service Without Boilerplate
+
+**Trigger:** Starting a new HTTP service and reaching for last service's
+copy-pasted Hono wiring.
+
+**Big Hire:** Help me ship an HTTP endpoint without reimplementing server
+lifecycle, security headers, or health checks. → **libhttp**
+
+**Little Hire:** Help me mount routes on a configured app and call start(). →
+**libhttp**
+
+**Competes With:** copy-pasting Hono setup; hand-rolling node:http servers;
+tolerating the duplication.
 
 </job>
 

@@ -1,14 +1,17 @@
 import crypto from "node:crypto";
-import { createServer } from "node:http";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+
+import { createHttpService } from "@forwardimpact/libhttp";
+import { RESPONSE_ALREADY_SENT } from "@hono/node-server/utils/response";
 
 import { registerToolsFromConfig } from "@forwardimpact/libmcp";
 
 const SESSION_IDLE_MS = 30 * 60 * 1000;
 const SESSION_SWEEP_MS = 60_000;
-const SHUTDOWN_TIMEOUT_MS = 5000;
+const DEFAULT_HOST = "0.0.0.0";
+const DEFAULT_PORT = 3005;
 
 /**
  * Builds the MCP prompt by appending one routing line per (tool, statement)
@@ -43,12 +46,6 @@ function sendInternalError(res, logger, err) {
     error: { code: -32603, message: "Internal server error" },
     id: null,
   });
-}
-
-function tryServeHealth(req, res) {
-  if (req.url !== "/health" || req.method !== "GET") return false;
-  sendJson(res, 200, { status: "ok" });
-  return true;
 }
 
 /**
@@ -107,8 +104,14 @@ async function dispatchNewSession(req, res, ctx) {
  * MCP SDK's Protocol only supports one transport at a time. The system prompt
  * is read from config.system_prompt and served via the guide-default MCP prompt.
  *
+ * Transport boilerplate (security headers, `/health`, lifecycle) is owned by
+ * `@forwardimpact/libhttp`. The MCP SDK's `StreamableHTTPServerTransport` drives
+ * the raw Node request/response, so the catch-all route reaches them via
+ * `c.env.incoming`/`c.env.outgoing` and returns the `RESPONSE_ALREADY_SENT`
+ * sentinel; libhttp's body limit is disabled so the SDK reads an untouched body.
+ *
  * @param {{ config: object, logger: object, graphClient: object, vectorClient: object, pathwayClient: object, mapClient: object, resourceIndex: object }} deps
- * @returns {{ start: () => Promise<void> }}
+ * @returns {{ app: import("hono").Hono, address: () => object|null, start: () => Promise<void>, stop: () => Promise<void> }}
  */
 export function createMcpService({
   config,
@@ -147,70 +150,67 @@ export function createMcpService({
     return server;
   }
 
-  async function start() {
-    const promptText = buildPromptText(config.system_prompt, config.tools);
-    const host = config.host || "0.0.0.0";
-    const port = config.port || 3005;
-    const expectedToken = config.mcpToken();
-    const sessions = new Map();
-    const ctx = { sessions, makeServer, promptText, logger };
+  const promptText = buildPromptText(config.system_prompt, config.tools);
+  const expectedToken = config.mcpToken();
+  const sessions = new Map();
+  const ctx = { sessions, makeServer, promptText, logger };
+  let sweepTimer = null;
 
-    const httpServer = createServer(async (req, res) => {
-      if (tryServeHealth(req, res)) return;
-      if (!isAuthorized(req, expectedToken)) {
-        res.writeHead(401);
-        res.end("Unauthorized");
-        return;
-      }
-      const sessionId = req.headers["mcp-session-id"];
-      const existing = sessionId && sessions.get(sessionId);
-      if (existing) {
-        await dispatchExistingSession(req, res, existing, logger);
-        return;
-      }
-      await dispatchNewSession(req, res, ctx);
-    });
-
-    httpServer.on("error", (err) => {
-      logger.error(`HTTP server error: ${err.message}`);
-      if (err.code === "EADDRINUSE") process.exit(1);
-    });
-
-    httpServer.listen(port, host, () => {
-      logger.info(`MCP server listening on ${host}:${port}`);
-    });
-
-    const sweepTimer = setInterval(() => {
-      const now = Date.now();
-      for (const [sid, session] of sessions) {
-        if (now - session.lastActivity > SESSION_IDLE_MS) {
-          logger.info(`Reaping idle session ${sid}`);
-          session.server.close();
+  const httpService = createHttpService({
+    name: "mcp",
+    config: {
+      host: config.host || DEFAULT_HOST,
+      port: config.port || DEFAULT_PORT,
+    },
+    logger,
+    // The MCP SDK transport reads the raw request stream itself, so the body
+    // limit must stay off to leave the body untouched.
+    bodyLimit: 0,
+    configure(app) {
+      app.all("*", async (c) => {
+        const req = c.env.incoming;
+        const res = c.env.outgoing;
+        if (!isAuthorized(req, expectedToken)) {
+          res.writeHead(401);
+          res.end("Unauthorized");
+          return RESPONSE_ALREADY_SENT;
         }
-      }
-    }, SESSION_SWEEP_MS);
-    sweepTimer.unref();
-
-    const shutdown = async () => {
+        const sessionId = req.headers["mcp-session-id"];
+        const existing = sessionId && sessions.get(sessionId);
+        if (existing) {
+          await dispatchExistingSession(req, res, existing, logger);
+        } else {
+          await dispatchNewSession(req, res, ctx);
+        }
+        return RESPONSE_ALREADY_SENT;
+      });
+    },
+    async onStop() {
       logger.info("Shutting down MCP server");
-      clearInterval(sweepTimer);
-
-      const forceExit = setTimeout(() => {
-        logger.error("Shutdown timed out, forcing exit");
-        process.exit(1);
-      }, SHUTDOWN_TIMEOUT_MS);
-      forceExit.unref();
-
+      if (sweepTimer) clearInterval(sweepTimer);
       await Promise.allSettled(
         [...sessions.values()].map((s) => s.server.close()),
       );
       sessions.clear();
-      httpServer.close();
-    };
+    },
+  });
 
-    process.on("SIGINT", shutdown);
-    process.on("SIGTERM", shutdown);
-  }
-
-  return { start };
+  return {
+    app: httpService.app,
+    address: httpService.address,
+    async start() {
+      sweepTimer = setInterval(() => {
+        const now = Date.now();
+        for (const [sid, session] of sessions) {
+          if (now - session.lastActivity > SESSION_IDLE_MS) {
+            logger.info(`Reaping idle session ${sid}`);
+            session.server.close();
+          }
+        }
+      }, SESSION_SWEEP_MS);
+      sweepTimer.unref();
+      await httpService.start();
+    },
+    stop: httpService.stop,
+  };
 }

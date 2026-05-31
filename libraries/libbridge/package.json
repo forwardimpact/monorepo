@@ -40,10 +40,9 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
+    "@forwardimpact/libhttp": "^0.1.0",
     "@forwardimpact/libtype": "^0.1.0",
-    "@forwardimpact/libutil": "^0.1.84",
-    "@hono/node-server": "^2.0.4",
-    "hono": "^4.12.23"
+    "@forwardimpact/libutil": "^0.1.84"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

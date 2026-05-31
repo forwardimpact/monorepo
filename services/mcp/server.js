@@ -32,3 +32,7 @@ const service = createMcpService({
 });
 
 await service.start();
+
+for (const sig of ["SIGINT", "SIGTERM"]) {
+  process.on(sig, () => service.stop());
+}
