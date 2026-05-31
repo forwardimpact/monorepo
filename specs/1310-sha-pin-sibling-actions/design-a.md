@@ -86,7 +86,7 @@ plan-scope.
 
 The four artefacts in § Components are the entire change surface.
 `kata-release-cut` continues to tag sibling repos as it does today;
-`kata-security-update` gains four new Dependabot PR sources that fall
+`kata-security-update` gains five new Dependabot PR sources that fall
 under its existing third-party-action handling; branch-protection
 required checks are unchanged (the spec anchors to the live
 branch-protection list rather than enumerating jobs).

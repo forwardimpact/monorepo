@@ -15,7 +15,7 @@ Team* ([JTBD.md](../../JTBD.md)).
 
 `CONTRIBUTING.md` § Security Policies states that all third-party
 GitHub Actions are pinned to SHA hashes and "never change a pin to a
-tag." Today, `.github/workflows/*.yml` consumes four sibling
+tag." Today, `.github/workflows/*.yml` consumes five sibling
 composite actions under `forwardimpact/*` by tag (`@v1`), and
 `.github/CLAUDE.md` § Third-party actions documents a force-tag-move
 edit procedure (`git tag -f v1 && git push origin v1 --force`) that
@@ -30,17 +30,20 @@ monorepo consumes from a `forwardimpact/*` sibling:
 
 | Sibling | Tag-pinned references | Workflow files touched |
 |---|---:|---:|
-| `forwardimpact/fit-bootstrap@v1` | 26 | 17 |
+| `forwardimpact/fit-bootstrap@v1` | 27 | 18 |
 | `forwardimpact/kata-agent@v1` | 3 | 3 |
 | `forwardimpact/fit-eval@v1` | 3 | 3 |
-| `forwardimpact/fit-benchmark@v1` | 1 | 1 |
-| **Total references** | **33** | — |
-| **Unique workflow files (union)** | — | **20** |
+| `forwardimpact/fit-wiki@v1` | 3 | 3 |
+| `forwardimpact/fit-benchmark@v1` | 2 | 2 |
+| **Total references** | **38** | — |
+| **Unique workflow files (union)** | — | **21** |
 
 Per-row file counts exceed the unique-file total because several
 workflows reference more than one sibling (e.g. `eval-guide.yml`
-calls both `fit-bootstrap` and `fit-eval`; `eval-kata.yml` calls both
-`fit-bootstrap` and `fit-benchmark`).
+calls `fit-bootstrap`, `fit-eval`, and `fit-wiki`; `eval-kata.yml`
+calls both `fit-bootstrap` and `fit-benchmark`; `kata-dispatch.yml`
+and `kata-interview.yml` each call `fit-bootstrap`, `fit-eval`, and
+`fit-wiki`).
 
 ### Why a tag pin matters here
 
@@ -57,20 +60,27 @@ workflows expose:
   workflows (the `kata-*` set plus `eval-guide.yml` and
   `eval-kata.yml`); misuse exposes billing fraud.
 - `KATA_APP_ID` and `KATA_APP_PRIVATE_KEY` — reached through the
-  `kata-*` workflows that authenticate as the GitHub App; the App
-  has write access to `monorepo`, `monorepo.wiki`, `fit-skills`,
-  `kata-skills`, and `homebrew-tap`.
+  `kata-*` workflows that authenticate as the GitHub App, and
+  through every `fit-wiki@v1` call site (which receives the App
+  private key to push memory back after a run); the App has write
+  access to `monorepo`, `monorepo.wiki`, `fit-skills`, `kata-skills`,
+  and `homebrew-tap`.
 - `NPM_TOKEN` — reached through the npm publish path.
 - macOS code-signing credentials — reached through the macOS publish
   path; misuse reaches end-user `.app` bundles.
 
-`fit-bootstrap` alone carries 26 of the 33 references and runs on
+`fit-bootstrap` alone carries 27 of the 38 references and runs on
 every workflow that needs the CI environment, including every
 `publish-*` workflow and `kata-dispatch.yml`. The threat-model
 rationale that justifies SHA-pinning the lower-blast-radius siblings
-applies a fortiori to `fit-bootstrap`; SHA-pinning three of the four
+applies a fortiori to `fit-bootstrap`; SHA-pinning four of the five
 would leave the highest-blast-radius sibling tag-pinned, an asymmetry
-that does not match the rationale.
+that does not match the rationale. The rationale applies symmetrically
+to `fit-wiki`, whose three call sites each receive
+`KATA_APP_PRIVATE_KEY` directly so the sibling can push memory back
+after a run; SHA-pinning four of the five and leaving `fit-wiki`
+tag-pinned would carry the same asymmetry against the App-key blast
+radius.
 
 ### Why the divergence has held until now
 
@@ -94,7 +104,12 @@ narrower scope. Three things have shifted since:
 ratified the SHA-pin answer on 2026-05-26 and extended scope to
 include `fit-bootstrap` (originally missing from the discussion
 body's enumeration). This spec captures the ratified answer for
-design and plan to act on.
+design and plan to act on. A 2026-05-28 post-ratification audit
+([Issue #1260](https://github.com/forwardimpact/monorepo/issues/1260))
+surfaced a further sibling — `fit-wiki` — missing from this spec's
+initial enumeration; the same in-place amendment pattern applied to
+`fit-bootstrap` during ratification has been applied to `fit-wiki`
+in this revision, lifting the in-scope set to five.
 
 ### Residual exposure that this spec does not close
 
@@ -114,7 +129,7 @@ The spec records the residual rather than silently inheriting it.
 ### In scope
 
 - Replacing every workflow `uses:` reference to a sibling action
-  (`forwardimpact/{fit-bootstrap,kata-agent,fit-eval,fit-benchmark}@v1`)
+  (`forwardimpact/{fit-bootstrap,kata-agent,fit-eval,fit-wiki,fit-benchmark}@v1`)
   in `.github/workflows/*.yml` with a SHA-pinned form that carries a
   `# v1` comment, so the human-readable marker stays legible alongside
   the immutable pin.
@@ -175,7 +190,7 @@ The spec records the residual rather than silently inheriting it.
 
 | Claim | Verifies via |
 |---|---|
-| No workflow `uses:` line in `.github/workflows/` references a sibling action by mutable ref. | A repository-wide search across `.github/workflows/` for `uses:\s*forwardimpact/(fit-bootstrap\|kata-agent\|fit-eval\|fit-benchmark)@` returns matches in which every match resolves to a 40-character lowercase hexadecimal SHA — no `@v1`, `@main`, `@latest`, or other non-SHA ref remains on any `uses:` line. |
+| No workflow `uses:` line in `.github/workflows/` references a sibling action by mutable ref. | A repository-wide search across `.github/workflows/` for `uses:\s*forwardimpact/(fit-bootstrap\|kata-agent\|fit-eval\|fit-wiki\|fit-benchmark)@` returns matches in which every match resolves to a 40-character lowercase hexadecimal SHA — no `@v1`, `@main`, `@latest`, or other non-SHA ref remains on any `uses:` line. |
 | Every remaining workflow `uses:` reference to a sibling action carries a `# v1` comment on the same line. | The same search reports a trailing `# v1` (the literal canonical marker, agreed for stability against future `v2` cuts; if a sibling cuts a new major, the spec is reopened) on every `uses:` line that references a sibling. |
 | The implementation PR's required checks all pass. | The PR that lands this spec's implementation reports green on every check the branch-protection rules for `main` mark required at merge time. |
 | `CONTRIBUTING.md` carries the pinning rule as a single source of truth. | The Security Policies section states that all third-party actions, including sibling `forwardimpact/*` repos, are pinned to SHA on workflow `uses:` lines, with no carve-out language. |
