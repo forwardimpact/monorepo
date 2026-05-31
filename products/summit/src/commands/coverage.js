@@ -27,39 +27,55 @@ import { coverageToMarkdown } from "../formatters/coverage/markdown.js";
  * @param {object} params.data
  * @param {string[]} params.args
  * @param {object} params.options
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime
  */
-export async function runCoverageCommand({ data, args, options, config }) {
+export async function runCoverageCommand({
+  data,
+  args,
+  options,
+  config,
+  runtime,
+}) {
   const format = resolveFormat(options);
   const audience = resolveAudience(options);
   const target = resolveTarget(args, options);
 
-  const roster = await loadRoster(getRosterSource(options, config));
+  const roster = await loadRoster({
+    ...getRosterSource(options, config),
+    fs: runtime.fs,
+  });
   const resolved = resolveCommandTeam(roster, data, target);
 
   if (resolved.members.length === 0) {
-    process.stdout.write(`  ${new EmptyTeamError(resolved.id).message}\n`);
+    runtime.proc.stdout.write(`  ${new EmptyTeamError(resolved.id).message}\n`);
     return;
   }
 
   let coverage = computeCoverage(resolved, data);
 
   if (options.evidenced) {
-    coverage = await decorateWithEvidence(coverage, resolved, options, config);
+    coverage = await decorateWithEvidence(
+      coverage,
+      resolved,
+      options,
+      config,
+      runtime,
+    );
   }
 
   const filtered = withAudienceFilter(coverage, audience);
 
   if (format === Format.JSON) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       JSON.stringify(coverageToJson(filtered), null, 2) + "\n",
     );
     return;
   }
   if (format === Format.MARKDOWN) {
-    process.stdout.write(coverageToMarkdown(filtered));
+    runtime.proc.stdout.write(coverageToMarkdown(filtered));
     return;
   }
-  process.stdout.write(coverageToText(filtered, data));
+  runtime.proc.stdout.write(coverageToText(filtered, data));
 }
 
 function resolveTarget(args, options) {
@@ -84,12 +100,19 @@ function resolveCommandTeam(roster, data, target) {
   }
 }
 
-async function decorateWithEvidence(coverage, resolved, options, config) {
+async function decorateWithEvidence(
+  coverage,
+  resolved,
+  options,
+  config,
+  runtime,
+) {
   try {
     const client = options.supabase ?? (await createSummitClient({ config }));
     const evidence = await loadEvidence(client, {
       team: resolved,
       lookbackMonths: Number(options["lookback-months"] ?? 12),
+      clock: runtime.clock,
     });
     return decorateCoverageWithEvidence(coverage, evidence);
   } catch (e) {
@@ -97,7 +120,7 @@ async function decorateWithEvidence(coverage, resolved, options, config) {
       e instanceof EvidenceUnavailableError ||
       e instanceof SupabaseUnavailableError
     ) {
-      process.stderr.write(`summit: ${e.message}\n`);
+      runtime.proc.stderr.write(`summit: ${e.message}\n`);
       return decorateCoverageWithEvidence(coverage, new Map());
     }
     throw e;

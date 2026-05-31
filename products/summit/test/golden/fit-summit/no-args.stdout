@@ -1,0 +1,45 @@
+fit-summit 0.1.24 — Team capability planning from skill data.
+
+Usage: fit-summit <command> [options]
+
+Commands:
+  coverage <team>          Show capability coverage
+  risks <team>             Show structural risks
+  what-if <team>           Simulate roster changes (the team is the source for --move, otherwise the target team for the diff)
+  growth <team>            Show growth opportunities aligned with team needs
+  compare <team1> <team2>  Compare two teams' coverage and risks
+  trajectory <team>        Show team capability over time
+  roster                   Show current roster
+  validate                 Validate roster file
+
+Options:
+  --roster=<string>  Path to summit.yaml
+  --data=<string>    Path to Map data directory
+  --format=<string>  Output format: text, json, markdown (default: text)
+  --help, -h         Show help
+  --version, -v      Show version
+
+Examples:
+  fit-summit roster
+  fit-summit coverage platform
+  fit-summit coverage --project migration-q2
+  fit-summit validate --roster ./summit.yaml
+
+Documentation:
+  Summit Overview
+    https://www.forwardimpact.team/summit/index.md
+    Product overview, design principles, and audience model.
+  Getting Started: Summit for Leaders
+    https://www.forwardimpact.team/docs/getting-started/leaders/summit/index.md
+    From zero to your first team capability analysis.
+  Make Staffing Decisions You Can Defend
+    https://www.forwardimpact.team/docs/products/team-capability/index.md
+    Coverage heatmaps, structural risks, and what-if scenarios.
+  Evaluate a Candidate Against Team Gaps
+    https://www.forwardimpact.team/docs/products/team-capability/evaluate-candidate/index.md
+    Check whether a candidate fills the team's actual gap.
+  Surface Capability Gaps
+    https://www.forwardimpact.team/docs/products/team-capability/surface-gaps/index.md
+    Detect single points of failure and coverage blindspots.
+
+Use fit-summit <command> --help for command-specific options.

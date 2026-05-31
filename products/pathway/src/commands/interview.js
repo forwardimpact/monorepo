@@ -24,8 +24,8 @@ const VALID_TYPES = Object.keys(INTERVIEW_TYPES);
  * @param {Object} view - Presenter view
  * @param {Object} options - Options including standard
  */
-function formatInterview(view, options) {
-  process.stdout.write(
+function formatInterview(view, options, runtime) {
+  runtime.proc.stdout.write(
     interviewToMarkdown(view, { standard: options.standard }) + "\n",
   );
 }
@@ -35,12 +35,12 @@ function formatInterview(view, options) {
  * @param {Array<Object>} views - Array of presenter views
  * @param {Object} options - Options including standard
  */
-function formatAllInterviews(views, options) {
+function formatAllInterviews(views, options, runtime) {
   for (let i = 0; i < views.length; i++) {
     if (i > 0) {
-      process.stdout.write("\n" + horizontalRule(80) + "\n\n");
+      runtime.proc.stdout.write("\n" + horizontalRule(80) + "\n\n");
     }
-    process.stdout.write(
+    runtime.proc.stdout.write(
       interviewToMarkdown(views[i], { standard: options.standard }) + "\n",
     );
   }
@@ -49,15 +49,15 @@ function formatAllInterviews(views, options) {
 export const runInterviewCommand = createCompositeCommand({
   commandName: "interview",
   requiredArgs: ["discipline_id", "level_id"],
-  findEntities: (data, args, options) => {
+  findEntities: (data, args, options, runtime) => {
     const interviewType = options.type === "full" ? null : options.type;
 
     if (interviewType && !INTERVIEW_TYPES[interviewType]) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         formatError(`Unknown interview type: ${interviewType}`) + "\n",
       );
-      process.stderr.write(`Available types: ${VALID_TYPES.join(", ")}\n`);
-      process.exit(1);
+      runtime.proc.stderr.write(`Available types: ${VALID_TYPES.join(", ")}\n`);
+      runtime.proc.exit(1);
     }
 
     return {
@@ -104,13 +104,13 @@ export const runInterviewCommand = createCompositeCommand({
       prepareInterviewDetail({ ...params, interviewType: type }),
     ).filter(Boolean);
   },
-  formatter: (view, options, data) => {
+  formatter: (view, options, data, runtime) => {
     const opts = { ...options, standard: data.standard };
 
     if (Array.isArray(view)) {
-      formatAllInterviews(view, opts);
+      formatAllInterviews(view, opts, runtime);
     } else {
-      formatInterview(view, opts);
+      formatInterview(view, opts, runtime);
     }
   },
   usageExample:

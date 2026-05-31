@@ -15,7 +15,6 @@
  * Invoked from build.js after the distribution bundle has been generated.
  */
 
-import { writeFile } from "fs/promises";
 import { join } from "path";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createDataLoader } from "@forwardimpact/map/loader";
@@ -170,8 +169,15 @@ function formatContent(
  * @param {Array<{name: string, description: string, url: string}>} packs
  * @param {string} version
  * @param {string} standardTitle
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
  */
-async function writeApmManifest(outputDir, packs, version, standardTitle) {
+async function writeApmManifest(
+  outputDir,
+  packs,
+  version,
+  standardTitle,
+  runtime,
+) {
   const lines = [
     `name: ${slugify(standardTitle)}`,
     `version: ${version}`,
@@ -186,7 +192,11 @@ async function writeApmManifest(outputDir, packs, version, standardTitle) {
     lines.push(`      url: ${yamlQuote(pack.url)}`);
   }
   lines.push("");
-  await writeFile(join(outputDir, "apm.yml"), lines.join("\n"), "utf-8");
+  await runtime.fs.writeFile(
+    join(outputDir, "apm.yml"),
+    lines.join("\n"),
+    "utf-8",
+  );
 }
 
 /**
@@ -201,6 +211,7 @@ async function writeApmManifest(outputDir, packs, version, standardTitle) {
  * @param {Object} params.standard - Standard configuration
  * @param {string} params.version - Pathway package version
  * @param {string} params.templatesDir - Absolute path to pathway/templates
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators
  */
 export async function generatePacks({
   outputDir,
@@ -209,6 +220,7 @@ export async function generatePacks({
   standard,
   version,
   templatesDir,
+  runtime,
 }) {
   logger.info("📦 Generating agent/skill packs...");
 
@@ -294,6 +306,7 @@ export async function generatePacks({
     })),
     version,
     standardTitle,
+    runtime,
   );
   logger.info("   ✓ apm.yml");
 }

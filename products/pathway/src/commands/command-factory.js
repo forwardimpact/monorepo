@@ -46,24 +46,30 @@ export function createEntityCommand({
   validate,
   _emojiIcon = "",
 }) {
-  return async function runCommand({ data, args, options }) {
+  return async function runCommand({ data, args, options, runtime }) {
     const [id] = args;
     const rawItems = data[pluralName];
     const items = sortItems ? sortItems(rawItems) : rawItems;
 
     // --validate: Run validation checks
     if (options.validate) {
-      return handleValidate({ data, entityName, pluralName, validate });
+      return handleValidate({
+        data,
+        entityName,
+        pluralName,
+        validate,
+        runtime,
+      });
     }
 
     // --list: Output one id per line for piping
     if (options.list) {
-      return handleList(items, formatListItem);
+      return handleList(items, formatListItem, runtime);
     }
 
     // No args: Show summary
     if (!id) {
-      return handleSummary(items, data, options, formatSummary);
+      return handleSummary(items, data, options, formatSummary, runtime);
     }
 
     // With ID: Show detail
@@ -76,6 +82,7 @@ export function createEntityCommand({
       findEntity,
       presentDetail,
       formatDetail,
+      runtime,
     });
   };
 }
@@ -85,9 +92,9 @@ export function createEntityCommand({
  * @param {Array} items
  * @param {Function|undefined} formatListItem
  */
-function handleList(items, formatListItem) {
+function handleList(items, formatListItem, runtime) {
   for (const item of items) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       (formatListItem ? formatListItem(item) : item.id) + "\n",
     );
   }
@@ -100,24 +107,24 @@ function handleList(items, formatListItem) {
  * @param {Object} options
  * @param {Function} formatSummary
  */
-function handleSummary(items, data, options, formatSummary) {
+function handleSummary(items, data, options, formatSummary, runtime) {
   if (options.json) {
-    process.stdout.write(JSON.stringify(items, null, 2) + "\n");
+    runtime.proc.stdout.write(JSON.stringify(items, null, 2) + "\n");
     return;
   }
-  formatSummary(items, data);
+  formatSummary(items, data, runtime);
 }
 
 /**
  * Handle validation for an entity type
  * @param {Object} params
  */
-function handleValidate({ data, _entityName, pluralName, validate }) {
+function handleValidate({ data, _entityName, pluralName, validate, runtime }) {
   if (!validate) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       formatBullet(`No specific validation for ${pluralName}.`, 0) + "\n",
     );
-    process.stdout.write(
+    runtime.proc.stdout.write(
       formatBullet(
         "Run 'npx fit-pathway --validate' for full data validation.",
         0,
@@ -130,25 +137,27 @@ function handleValidate({ data, _entityName, pluralName, validate }) {
   const { errors = [], warnings = [] } = result;
 
   if (errors.length === 0 && warnings.length === 0) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       formatSuccess(`${capitalize(pluralName)} validation passed`) + "\n",
     );
     return;
   }
 
   if (warnings.length > 0) {
-    process.stdout.write(formatWarning(`${warnings.length} warning(s)`) + "\n");
+    runtime.proc.stdout.write(
+      formatWarning(`${warnings.length} warning(s)`) + "\n",
+    );
     for (const w of warnings) {
-      process.stdout.write(formatBullet(w, 1) + "\n");
+      runtime.proc.stdout.write(formatBullet(w, 1) + "\n");
     }
   }
 
   if (errors.length > 0) {
-    process.stderr.write(formatError(`${errors.length} error(s)`) + "\n");
+    runtime.proc.stderr.write(formatError(`${errors.length} error(s)`) + "\n");
     for (const e of errors) {
-      process.stderr.write(formatBullet(e, 1) + "\n");
+      runtime.proc.stderr.write(formatBullet(e, 1) + "\n");
     }
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 }
 
@@ -165,34 +174,35 @@ function handleDetail({
   findEntity,
   presentDetail,
   formatDetail,
+  runtime,
 }) {
   const entity = findEntity(data, id);
 
   if (!entity) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`${capitalize(entityName)} not found: ${id}`) + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       `Available: ${data[pluralName].map((e) => e.id).join(", ")}\n`,
     );
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   const view = presentDetail(entity, data, options);
 
   if (!view) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`Failed to present ${entityName}: ${id}`) + "\n",
     );
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   if (options.json) {
-    process.stdout.write(JSON.stringify(view, null, 2) + "\n");
+    runtime.proc.stdout.write(JSON.stringify(view, null, 2) + "\n");
     return;
   }
 
-  formatDetail(view, data.standard);
+  formatDetail(view, data.standard, runtime);
 }
 
 /**
@@ -216,41 +226,41 @@ export function createCompositeCommand({
   formatter,
   usageExample,
 }) {
-  return async function runCommand({ data, args, options }) {
+  return async function runCommand({ data, args, options, runtime }) {
     if (args.length < requiredArgs.length) {
       const argsList = requiredArgs.map((arg) => `<${arg}>`).join(" ");
-      process.stderr.write(
+      runtime.proc.stderr.write(
         formatError(`Usage: npx fit-pathway ${commandName} ${argsList}`) + "\n",
       );
       if (usageExample) {
-        process.stderr.write(`Example: ${usageExample}\n`);
+        runtime.proc.stderr.write(`Example: ${usageExample}\n`);
       }
-      process.exit(1);
+      runtime.proc.exit(1);
     }
 
-    const entities = findEntities(data, args, options);
+    const entities = findEntities(data, args, options, runtime);
     const validationError = validateEntities(entities, data, options);
 
     if (validationError) {
-      process.stderr.write(formatError(validationError) + "\n");
-      process.exit(1);
+      runtime.proc.stderr.write(formatError(validationError) + "\n");
+      runtime.proc.exit(1);
     }
 
     const view = presenter(entities, data, options);
 
     if (!view) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         formatError(`Failed to generate ${commandName} output.`) + "\n",
       );
-      process.exit(1);
+      runtime.proc.exit(1);
     }
 
     if (options.json) {
-      process.stdout.write(JSON.stringify(view, null, 2) + "\n");
+      runtime.proc.stdout.write(JSON.stringify(view, null, 2) + "\n");
       return;
     }
 
-    formatter(view, options, data);
+    formatter(view, options, data, runtime);
   };
 }
 

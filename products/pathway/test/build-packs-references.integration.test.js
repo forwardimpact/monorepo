@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { generatePacks } from "../src/commands/build-packs.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -52,6 +53,7 @@ describe("generatePacks — references emission", () => {
         standard: { title: "Engineering Pathway" },
         version: pathwayPkg.version,
         templatesDir: join(__dirname, "..", "templates"),
+        runtime: createDefaultRuntime(),
       }),
     );
   });

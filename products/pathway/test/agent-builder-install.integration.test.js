@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 
 import { createDataLoader } from "@forwardimpact/map/loader";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { generatePacks } from "../src/commands/build-packs.js";
 import { findValidCombinations } from "../src/commands/agent.js";
 import {
@@ -176,6 +177,7 @@ describe("agent-builder-install", () => {
           standard: { title: "Engineering Pathway" },
           version: pathwayPkg.version,
           templatesDir: join(__dirname, "..", "templates"),
+          runtime: createDefaultRuntime(),
         }),
       );
     });

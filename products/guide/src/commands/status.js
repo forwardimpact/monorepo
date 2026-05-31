@@ -1,7 +1,7 @@
 import { SummaryRenderer } from "@forwardimpact/libcli";
 import { runStatus } from "../lib/status.js";
 
-function printStatusSummary(summary, result) {
+function printStatusSummary(summary, result, proc) {
   const ok = result.verdict === "ready";
 
   summary.render({
@@ -33,29 +33,37 @@ function printStatusSummary(summary, result) {
     ],
   });
 
-  if (summary.shouldRender(ok)) process.stdout.write("\n");
-  process.stdout.write(`Status: ${result.verdict}\n`);
+  if (summary.shouldRender(ok)) proc.stdout.write("\n");
+  proc.stdout.write(`Status: ${result.verdict}\n`);
 }
 
-/** Check Guide service health, data counts, and credentials, returning a ready/not-ready verdict. */
-export async function runStatusCommand({ json }) {
+/**
+ * Check Guide service health, data counts, and credentials, returning a
+ * ready/not-ready verdict.
+ * @param {object} options - Command options.
+ * @param {boolean} options.json - Emit machine-readable JSON instead of a summary.
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators.
+ * @returns {Promise<number>} 0 when ready, 1 otherwise.
+ */
+export async function runStatusCommand({ json }, runtime) {
+  const { proc, clock, fs } = runtime;
   const { createServiceConfig } = await import("@forwardimpact/libconfig");
   const { healthDefinition } = await import("@forwardimpact/librpc");
   const grpcMod = (await import("@grpc/grpc-js")).default;
-  const fsPromises = await import("fs/promises");
 
   const result = await runStatus({
     createServiceConfig,
     grpc: grpcMod,
     healthDefinition,
-    fs: fsPromises,
+    fs,
+    clock,
   });
 
   if (json) {
-    process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+    proc.stdout.write(JSON.stringify(result, null, 2) + "\n");
   } else {
-    const summary = new SummaryRenderer({ process });
-    printStatusSummary(summary, result);
+    const summary = new SummaryRenderer({ process: proc });
+    printStatusSummary(summary, result, proc);
   }
 
   return result.verdict === "ready" ? 0 : 1;

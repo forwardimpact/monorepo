@@ -13,30 +13,33 @@ import { Format, getRosterSource, resolveFormat } from "../lib/cli.js";
  * @param {object} params.data - Loaded Map standard data.
  * @param {object} params.options - Parsed CLI options.
  */
-export async function runValidateCommand({ data, options, config }) {
+export async function runValidateCommand({ data, options, config, runtime }) {
   const format = resolveFormat(options);
-  const roster = await loadRoster(getRosterSource(options, config));
+  const roster = await loadRoster({
+    ...getRosterSource(options, config),
+    fs: runtime.fs,
+  });
   const result = validateRosterAgainstStandard(roster, data);
 
   if (format === Format.JSON) {
-    process.stdout.write(JSON.stringify(result, null, 2) + "\n");
-    if (result.errors.length > 0) process.exitCode = 1;
+    runtime.proc.stdout.write(JSON.stringify(result, null, 2) + "\n");
+    if (result.errors.length > 0) runtime.proc.exitCode = 1;
     return;
   }
 
   if (result.errors.length === 0) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       `  Roster is valid. ${countMembers(roster)} members across ${roster.teams.size} teams.\n`,
     );
     return;
   }
 
-  process.stdout.write("  Roster validation failed:\n\n");
+  runtime.proc.stdout.write("  Roster validation failed:\n\n");
   for (const issue of result.errors) {
-    process.stdout.write(`    [${issue.code}] ${issue.message}\n`);
+    runtime.proc.stdout.write(`    [${issue.code}] ${issue.message}\n`);
   }
-  process.stdout.write("\n");
-  process.exitCode = 1;
+  runtime.proc.stdout.write("\n");
+  runtime.proc.exitCode = 1;
 }
 
 function countMembers(roster) {

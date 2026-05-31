@@ -26,11 +26,11 @@ import { getConceptEmoji } from "@forwardimpact/map/levels";
  * @param {Array} tracks - Raw track entities
  * @param {Object} data - Full data context
  */
-function formatSummary(tracks, data) {
+function formatSummary(tracks, data, runtime) {
   const { standard, disciplines } = data;
   const emoji = standard ? getConceptEmoji(standard, "track") : "🛤️";
 
-  process.stdout.write("\n" + formatHeader(`${emoji} Tracks`) + "\n\n");
+  runtime.proc.stdout.write("\n" + formatHeader(`${emoji} Tracks`) + "\n\n");
 
   const rows = tracks.map((t) => {
     const modCount = Object.keys(t.skillModifiers || {}).length;
@@ -43,16 +43,16 @@ function formatSummary(tracks, data) {
     return [t.id, t.name, modCount, disciplineNames || "—"];
   });
 
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatTable(["ID", "Name", "Modifiers", "Disciplines"], rows) + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     "\n" + formatSubheader(`Total: ${tracks.length} tracks`) + "\n\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway track --list' for IDs") + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway track <id>' for details") + "\n\n",
   );
 }
@@ -62,9 +62,9 @@ function formatSummary(tracks, data) {
  * @param {Object} viewAndContext - Contains track entity and data context
  * @param {Object} standard - Standard config
  */
-function formatDetail(viewAndContext, standard) {
+function formatDetail(viewAndContext, standard, runtime) {
   const { track, skills, behaviours, disciplines } = viewAndContext;
-  process.stdout.write(
+  runtime.proc.stdout.write(
     trackToMarkdown(track, { skills, behaviours, disciplines, standard }) +
       "\n",
   );

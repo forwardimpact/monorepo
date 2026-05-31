@@ -1,5 +1,4 @@
 [
   "products/landmark/test/dispatcher.test.js",
-  "products/landmark/test/lib/commands-verb.test.js",
-  "products/pathway/test/serve.test.js"
+  "products/landmark/test/lib/commands-verb.test.js"
 ]

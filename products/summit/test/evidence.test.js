@@ -1,5 +1,6 @@
 import { before, test } from "node:test";
 import assert from "node:assert/strict";
+import { createMockClock } from "@forwardimpact/libmock";
 
 import { parseRosterYaml } from "../src/roster/yaml.js";
 import { computeCoverage, resolveTeam } from "../src/aggregation/coverage.js";
@@ -47,6 +48,7 @@ test("loadEvidence transforms evidence rows into an EvidenceMap", async () => {
     {
       team: { managerEmail: null },
       fetchEvidence: async () => fakeRows,
+      clock: createMockClock({ start: Date.now() }),
     },
   );
 
@@ -193,6 +195,7 @@ test("loadEvidence filters by team emails when team is provided", async () => {
         members: [{ email: "alice@example.com" }],
       },
       fetchEvidence: async () => fakeRows,
+      clock: createMockClock({ start: Date.now() }),
     },
   );
 

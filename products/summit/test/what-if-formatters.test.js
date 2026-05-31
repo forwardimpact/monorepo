@@ -1,11 +1,10 @@
 import { before, test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
-import { spy } from "@forwardimpact/libmock";
+import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 
 import { parseRosterYaml } from "../src/roster/yaml.js";
 import {
@@ -193,32 +192,24 @@ test("non-move scenarios match captured fixtures byte-for-byte", () => {
 });
 
 test("runWhatIfCommand emits diff.teams[] for --move via JSON output", async () => {
-  const tmpDir = mkdtempSync(join(tmpdir(), "summit-whatif-"));
-  const tmpFile = join(tmpDir, "roster.yaml");
-  writeFileSync(tmpFile, MOVE_FIXTURE_YAML);
-  const original = process.stdout.write.bind(process.stdout);
-  const captured = [];
-  const writer = spy((chunk) => {
-    captured.push(String(chunk));
-    return true;
+  // In-process: seed the roster file in a mock fs and capture stdout via the
+  // injected mock proc — no real tmpdir, no global process patching.
+  const rosterPath = "/work/roster.yaml";
+  const runtime = createTestRuntime({
+    fs: createMockFs({ [rosterPath]: MOVE_FIXTURE_YAML }),
   });
-  process.stdout.write = writer;
-  try {
-    await runWhatIfCommand({
-      data,
-      args: ["a"],
-      options: {
-        roster: tmpFile,
-        move: "Alice",
-        to: "b",
-        format: "json",
-      },
-    });
-  } finally {
-    process.stdout.write = original;
-    rmSync(tmpDir, { recursive: true });
-  }
-  const parsed = JSON.parse(captured.join(""));
+  await runWhatIfCommand({
+    data,
+    args: ["a"],
+    options: {
+      roster: rosterPath,
+      move: "Alice",
+      to: "b",
+      format: "json",
+    },
+    runtime,
+  });
+  const parsed = JSON.parse(runtime.proc.stdout.chunks.join(""));
   assert.equal(parsed.diff.teams.length, 2);
   assert.equal(parsed.diff.teams[0].role, "source");
   assert.equal(parsed.diff.teams[1].role, "destination");

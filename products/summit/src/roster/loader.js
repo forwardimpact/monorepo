@@ -6,7 +6,6 @@
  * is injectable for tests.
  */
 
-import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { parseRosterYaml } from "./yaml.js";
@@ -26,6 +25,8 @@ import {
  *   Optional pre-built Supabase client (tests inject fakes through this).
  * @param {(opts: object) => import("@supabase/supabase-js").SupabaseClient} [options.createClient] -
  *   Alternative Supabase factory (defaults to `createSummitClient`).
+ * @param {object} [options.fs] - Injected async fs surface (`runtime.fs`); its
+ *   `readFile` is used when no explicit `readFile` override is supplied.
  * @param {(path: string) => Promise<string>} [options.readFile] - Override file reader for tests.
  * @returns {Promise<import("./yaml.js").Roster>}
  */
@@ -35,10 +36,16 @@ export async function loadRoster(options = {}) {
     config,
     supabase,
     createClient = createSummitClient,
-    readFile: read = defaultRead,
+    fs,
+    readFile: read = fs ? (path) => fs.readFile(path, "utf8") : undefined,
   } = options;
 
   if (rosterPath) {
+    if (!read) {
+      throw new Error(
+        "summit: loadRoster requires an `fs` collaborator or a `readFile` override to read a roster file.",
+      );
+    }
     const absolute = resolve(rosterPath);
     const content = await read(absolute);
     return parseRosterYaml(content);
@@ -60,8 +67,4 @@ export async function loadRoster(options = {}) {
   }
 
   return loadRosterFromMap(client);
-}
-
-async function defaultRead(path) {
-  return readFile(path, "utf8");
 }

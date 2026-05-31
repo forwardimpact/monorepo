@@ -5,9 +5,7 @@
  * to disk. Extracted from agent.js to keep command logic focused.
  */
 
-import { writeFile, mkdir, readFile, rm } from "fs/promises";
 import { join, dirname } from "path";
-import { existsSync } from "fs";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
 import {
   formatAgentSkill,
@@ -21,11 +19,29 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 const logger = createLogger("pathway");
 
 /**
+ * Async file-existence check over the injected async fs surface. Keeps this
+ * module on a single fs surface (async only) per spec § Scope / design
+ * Decision 7 instead of reaching for `fsSync.existsSync`.
+ * @param {object} fs - The `runtime.fs` collaborator.
+ * @param {string} path - Path to test.
+ * @returns {Promise<boolean>}
+ */
+async function pathExists(fs, path) {
+  try {
+    await fs.access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Ensure directory exists for a file path
  * @param {string} filePath - Full file path
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
  */
-async function ensureDir(filePath) {
-  await mkdir(dirname(filePath), { recursive: true });
+async function ensureDir(filePath, runtime) {
+  await runtime.fs.mkdir(dirname(filePath), { recursive: true });
 }
 
 /**
@@ -34,19 +50,19 @@ async function ensureDir(filePath) {
  * @param {string} baseDir - Base output directory
  * @param {Object} claudeSettings - Settings loaded from data
  */
-export async function generateClaudeSettings(baseDir, claudeSettings) {
+export async function generateClaudeSettings(baseDir, claudeSettings, runtime) {
   const settingsPath = join(baseDir, ".claude", "settings.json");
 
   let settings = {};
-  if (existsSync(settingsPath)) {
-    const content = await readFile(settingsPath, "utf-8");
+  if (await pathExists(runtime.fs, settingsPath)) {
+    const content = await runtime.fs.readFile(settingsPath, "utf-8");
     settings = JSON.parse(content);
   }
 
   const merged = { ...settings, ...claudeSettings };
 
-  await ensureDir(settingsPath);
-  await writeFile(
+  await ensureDir(settingsPath, runtime);
+  await runtime.fs.writeFile(
     settingsPath,
     JSON.stringify(merged, null, 2) + "\n",
     "utf-8",
@@ -60,21 +76,21 @@ export async function generateClaudeSettings(baseDir, claudeSettings) {
  * @param {string} baseDir - Base output directory
  * @param {Object} vscodeSettings - Settings loaded from data
  */
-export async function generateVscodeSettings(baseDir, vscodeSettings) {
+export async function generateVscodeSettings(baseDir, vscodeSettings, runtime) {
   if (!vscodeSettings || Object.keys(vscodeSettings).length === 0) return;
 
   const settingsPath = join(baseDir, ".vscode", "settings.json");
 
   let settings = {};
-  if (existsSync(settingsPath)) {
-    const content = await readFile(settingsPath, "utf-8");
+  if (await pathExists(runtime.fs, settingsPath)) {
+    const content = await runtime.fs.readFile(settingsPath, "utf-8");
     settings = JSON.parse(content);
   }
 
   const merged = { ...settings, ...vscodeSettings };
 
-  await ensureDir(settingsPath);
-  await writeFile(
+  await ensureDir(settingsPath, runtime);
+  await runtime.fs.writeFile(
     settingsPath,
     JSON.stringify(merged, null, 2) + "\n",
     "utf-8",
@@ -88,11 +104,11 @@ export async function generateVscodeSettings(baseDir, vscodeSettings) {
  * @param {string} baseDir - Base output directory
  * @param {string} template - Mustache template for agent profile
  */
-export async function writeProfile(profile, baseDir, template) {
+export async function writeProfile(profile, baseDir, template, runtime) {
   const profilePath = join(baseDir, ".claude", "agents", profile.filename);
   const profileContent = formatAgentProfile(profile, template);
-  await ensureDir(profilePath);
-  await writeFile(profilePath, profileContent, "utf-8");
+  await ensureDir(profilePath, runtime);
+  await runtime.fs.writeFile(profilePath, profileContent, "utf-8");
   logger.info(formatSuccess(`Created: ${profilePath}`));
   return profilePath;
 }
@@ -110,6 +126,7 @@ export async function writeTeamInstructions(
   orgSection,
   baseDir,
   template,
+  runtime,
 ) {
   const content = formatTeamInstructions(
     teamInstructions,
@@ -118,8 +135,8 @@ export async function writeTeamInstructions(
   );
   if (!content) return null;
   const filePath = join(baseDir, ".claude", "CLAUDE.md");
-  await ensureDir(filePath);
-  await writeFile(filePath, content, "utf-8");
+  await ensureDir(filePath, runtime);
+  await runtime.fs.writeFile(filePath, content, "utf-8");
   logger.info(formatSuccess(`Created: ${filePath}`));
   return filePath;
 }
@@ -134,16 +151,26 @@ export async function writeTeamInstructions(
  * @param {string} skillDir - Skill directory (`.claude/skills/{dirname}`)
  * @param {Array<{name: string, title: string, body: string}>} references
  * @param {string} template - Mustache template for an individual reference file
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
  * @returns {Promise<number>} Number of reference files written
  */
-export async function writeSkillReferences(skillDir, references, template) {
+export async function writeSkillReferences(
+  skillDir,
+  references,
+  template,
+  runtime,
+) {
   const refDir = join(skillDir, "references");
-  await rm(refDir, { recursive: true, force: true });
+  await runtime.fs.rm(refDir, { recursive: true, force: true });
   if (!references || references.length === 0) return 0;
-  await mkdir(refDir, { recursive: true });
+  await runtime.fs.mkdir(refDir, { recursive: true });
   for (const entry of references) {
     const refPath = join(refDir, `${entry.name}.md`);
-    await writeFile(refPath, formatReference(entry, template), "utf-8");
+    await runtime.fs.writeFile(
+      refPath,
+      formatReference(entry, template),
+      "utf-8",
+    );
     logger.info(formatSuccess(`Created: ${refPath}`));
   }
   return references.length;
@@ -154,24 +181,25 @@ export async function writeSkillReferences(skillDir, references, template) {
  * @param {Array} skills - Generated skills
  * @param {string} baseDir - Base output directory
  * @param {Object} templates - Templates object with skill, install, reference
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
  */
-export async function writeSkills(skills, baseDir, templates) {
+export async function writeSkills(skills, baseDir, templates, runtime) {
   let fileCount = 0;
   for (const skill of skills) {
     const skillDir = join(baseDir, ".claude", "skills", skill.dirname);
 
     const skillPath = join(skillDir, "SKILL.md");
     const skillContent = formatAgentSkill(skill, templates.skill);
-    await ensureDir(skillPath);
-    await writeFile(skillPath, skillContent, "utf-8");
+    await ensureDir(skillPath, runtime);
+    await runtime.fs.writeFile(skillPath, skillContent, "utf-8");
     logger.info(formatSuccess(`Created: ${skillPath}`));
     fileCount++;
 
     if (skill.installScript) {
       const installPath = join(skillDir, "scripts", "install.sh");
       const installContent = formatInstallScript(skill, templates.install);
-      await ensureDir(installPath);
-      await writeFile(installPath, installContent, { mode: 0o755 });
+      await ensureDir(installPath, runtime);
+      await runtime.fs.writeFile(installPath, installContent, { mode: 0o755 });
       logger.info(formatSuccess(`Created: ${installPath}`));
       fileCount++;
     }
@@ -180,6 +208,7 @@ export async function writeSkills(skills, baseDir, templates) {
       skillDir,
       skill.references,
       templates.reference,
+      runtime,
     );
   }
   return fileCount;

@@ -15,10 +15,11 @@ function displayUrl(url) {
  * @param {object} grpcMod - @grpc/grpc-js module
  * @param {object} healthDef - Health service definition
  * @param {object} config - Service config with host/port
+ * @param {object} clock - Clock collaborator (`now()`)
  * @param {number} timeoutMs - Deadline in milliseconds
  * @returns {Promise<string>} "ok" or "unreachable"
  */
-function checkGrpcHealth(grpcMod, healthDef, config, timeoutMs = 2000) {
+function checkGrpcHealth(grpcMod, healthDef, config, clock, timeoutMs = 2000) {
   return new Promise((resolve) => {
     const ClientCtor = grpcMod.makeGenericClientConstructor(
       healthDef,
@@ -28,7 +29,8 @@ function checkGrpcHealth(grpcMod, healthDef, config, timeoutMs = 2000) {
     const uri = `${host}:${config.port}`;
     const client = new ClientCtor(uri, grpcMod.credentials.createInsecure());
 
-    const deadline = new Date(Date.now() + timeoutMs);
+    // grpc-js accepts an absolute deadline as a millisecond timestamp.
+    const deadline = clock.now() + timeoutMs;
     client.Check({ service: "" }, { deadline }, (err, response) => {
       client.close();
       if (err) {
@@ -45,21 +47,22 @@ function checkGrpcHealth(grpcMod, healthDef, config, timeoutMs = 2000) {
 /**
  * Checks an HTTP service via its /health endpoint.
  * @param {string} healthUrl - Full URL to the health endpoint
+ * @param {object} clock - Clock collaborator (`setTimeout`/`clearTimeout`)
  * @param {Function} fetchFn - Fetch implementation
  * @param {number} timeoutMs - Timeout in milliseconds
  * @returns {Promise<string>} "ok" or "unreachable"
  */
-function checkHttpHealth(healthUrl, fetchFn = fetch, timeoutMs = 2000) {
+function checkHttpHealth(healthUrl, clock, fetchFn = fetch, timeoutMs = 2000) {
   return new Promise((resolve) => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = clock.setTimeout(() => controller.abort(), timeoutMs);
     fetchFn(healthUrl, { signal: controller.signal })
       .then((res) => {
-        clearTimeout(timer);
+        clock.clearTimeout(timer);
         resolve(res.ok ? "ok" : "unreachable");
       })
       .catch(() => {
-        clearTimeout(timer);
+        clock.clearTimeout(timer);
         resolve("unreachable");
       });
   });
@@ -136,13 +139,13 @@ async function checkAllServices(
   configs,
   configErrors,
   fetchFn,
+  clock,
 ) {
   const checks = GRPC_SERVICES.map((name) => {
     if (configErrors.has(name)) return Promise.resolve([name, "unreachable"]);
-    return checkGrpcHealth(grpcMod, healthDef, configs[name]).then((s) => [
-      name,
-      s,
-    ]);
+    return checkGrpcHealth(grpcMod, healthDef, configs[name], clock).then(
+      (s) => [name, s],
+    );
   });
 
   for (const [name, healthPath] of Object.entries(HTTP_SERVICES)) {
@@ -150,9 +153,11 @@ async function checkAllServices(
       checks.push(Promise.resolve([name, "unreachable"]));
     } else {
       checks.push(
-        checkHttpHealth(`${configs[name].url}${healthPath}`, fetchFn).then(
-          (s) => [name, s],
-        ),
+        checkHttpHealth(
+          `${configs[name].url}${healthPath}`,
+          clock,
+          fetchFn,
+        ).then((s) => [name, s]),
       );
     }
   }
@@ -192,6 +197,8 @@ async function checkAnthropicToken(config) {
  * @param {object} [deps.grpc] - @grpc/grpc-js module (default: real grpc)
  * @param {object} [deps.healthDefinition] - Health service definition (default: real def)
  * @param {Function} [deps.fetch] - Fetch function (default: global fetch)
+ * @param {object} deps.clock - Clock collaborator (`now()`); supplied by the
+ *   caller from `runtime.clock` (the bin is the sole construction site).
  * @param {Function} [deps.queryDataInventory] - Data inventory query (default: real query)
  * @returns {Promise<object>} Status result object
  */
@@ -199,6 +206,7 @@ export async function runStatus(deps) {
   const grpcMod = deps.grpc || grpc;
   const healthDef = deps.healthDefinition || healthDefinition;
   const fetchFn = deps.fetch || fetch;
+  const { clock } = deps;
 
   const { configs, configErrors } = await loadConfigs(deps.createServiceConfig);
   const services = await checkAllServices(
@@ -207,6 +215,7 @@ export async function runStatus(deps) {
     configs,
     configErrors,
     fetchFn,
+    clock,
   );
 
   // Data inventory — only query if graph is reachable

@@ -44,12 +44,12 @@ export function findValidCombinations(data, agentData) {
  * @param {Object} agentData - Agent-specific data
  * @param {Array} skillsWithAgent - Skills with agent sections
  */
-export function showAgentSummary(data, agentData, skillsWithAgent) {
-  const summary = new SummaryRenderer({ process });
+export function showAgentSummary(data, agentData, skillsWithAgent, runtime) {
+  const summary = new SummaryRenderer({ process: runtime.proc });
   const validCombinations = findValidCombinations(data, agentData).length;
   const skillsWithAgentCount = skillsWithAgent.filter((s) => s.agent).length;
 
-  process.stdout.write("\n" + formatHeader("\u{1F916} Agent") + "\n");
+  runtime.proc.stdout.write("\n" + formatHeader("\u{1F916} Agent") + "\n");
   summary.render({
     title: formatSubheader("Coverage"),
     ok: true,
@@ -68,14 +68,14 @@ export function showAgentSummary(data, agentData, skillsWithAgent) {
       },
     ],
   });
-  process.stdout.write(
+  runtime.proc.stdout.write(
     "\n" + formatSubheader(`Valid combinations: ${validCombinations}`) + "\n\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway agent --list' for all combinations") +
       "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet(
       "Run 'npx fit-pathway agent <discipline> --track=<track>' to generate files",
     ) + "\n\n",
@@ -87,7 +87,7 @@ export function showAgentSummary(data, agentData, skillsWithAgent) {
  * @param {Object} data - Pathway data
  * @param {Object} agentData - Agent-specific data
  */
-function listAgentCombinationsCompact(data, agentData) {
+function listAgentCombinationsCompact(data, agentData, runtime) {
   for (const {
     discipline,
     track,
@@ -97,7 +97,7 @@ function listAgentCombinationsCompact(data, agentData) {
     const abbrev = getDisciplineAbbreviation(discipline.id);
     const agentName = `${abbrev}-${toKebabCase(track.id)}`;
     const specName = humanDiscipline.specialization || humanDiscipline.id;
-    process.stdout.write(
+    runtime.proc.stdout.write(
       `${agentName} ${discipline.id} ${track.id}, ${specName} (${humanTrack.name})\n`,
     );
   }
@@ -108,30 +108,30 @@ function listAgentCombinationsCompact(data, agentData) {
  * @param {Object} data - Pathway data
  * @param {Object} agentData - Agent-specific data
  */
-function listAgentCombinationsVerbose(data, agentData) {
+function listAgentCombinationsVerbose(data, agentData, runtime) {
   // Markdown headings stay literal so downstream tools can parse them.
-  process.stdout.write("# 🤖 Available Agent Combinations\n\n");
+  runtime.proc.stdout.write("# 🤖 Available Agent Combinations\n\n");
 
   const agentDisciplineIds = new Set(agentData.disciplines.map((d) => d.id));
   const agentTrackIds = new Set(agentData.tracks.map((t) => t.id));
 
-  process.stdout.write("## Disciplines with agent definitions:\n\n");
+  runtime.proc.stdout.write("## Disciplines with agent definitions:\n\n");
   for (const discipline of data.disciplines) {
     const status = agentDisciplineIds.has(discipline.id) ? "✅" : "⬜";
-    process.stdout.write(
+    runtime.proc.stdout.write(
       `  ${status} ${discipline.id} - ${discipline.specialization || discipline.name}\n`,
     );
   }
 
-  process.stdout.write("\n## Tracks with agent definitions:\n\n");
+  runtime.proc.stdout.write("\n## Tracks with agent definitions:\n\n");
   for (const track of data.tracks) {
     const status = agentTrackIds.has(track.id) ? "✅" : "⬜";
-    process.stdout.write(`  ${status} ${track.id} - ${track.name}\n`);
+    runtime.proc.stdout.write(`  ${status} ${track.id} - ${track.name}\n`);
   }
 
-  process.stdout.write("\n## Valid combinations:\n\n");
+  runtime.proc.stdout.write("\n## Valid combinations:\n\n");
   for (const { discipline, track } of findValidCombinations(data, agentData)) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       `  npx fit-pathway agent ${discipline.id} --track=${track.id}\n`,
     );
   }
@@ -143,10 +143,15 @@ function listAgentCombinationsVerbose(data, agentData) {
  * @param {Object} agentData - Agent-specific data
  * @param {boolean} verbose - Show verbose output
  */
-export function listAgentCombinations(data, agentData, verbose = false) {
+export function listAgentCombinations(
+  data,
+  agentData,
+  verbose = false,
+  runtime,
+) {
   if (verbose) {
-    listAgentCombinationsVerbose(data, agentData);
+    listAgentCombinationsVerbose(data, agentData, runtime);
   } else {
-    listAgentCombinationsCompact(data, agentData);
+    listAgentCombinationsCompact(data, agentData, runtime);
   }
 }

@@ -1,15 +1,22 @@
 import { randomBytes, createHash } from "node:crypto";
 import { createServer } from "node:http";
-import { execFile } from "node:child_process";
 
-const ANTHROPIC_AUTHORIZE_URL =
-  process.env.ANTHROPIC_OAUTH_AUTHORIZE_URL ||
-  "https://auth.anthropic.com/oauth/authorize";
-const ANTHROPIC_TOKEN_URL =
-  process.env.ANTHROPIC_OAUTH_TOKEN_URL ||
-  "https://auth.anthropic.com/oauth/token";
-const ANTHROPIC_CLIENT_ID =
-  process.env.ANTHROPIC_OAUTH_CLIENT_ID || "fit-guide";
+/**
+ * Resolve the Anthropic OAuth endpoints, honouring environment overrides read
+ * through the injected process collaborator.
+ * @param {object} env - The `runtime.proc.env` surface.
+ * @returns {{authorizeUrl: string, tokenUrl: string, clientId: string}}
+ */
+function resolveOAuthEndpoints(env) {
+  return {
+    authorizeUrl:
+      env.ANTHROPIC_OAUTH_AUTHORIZE_URL ||
+      "https://auth.anthropic.com/oauth/authorize",
+    tokenUrl:
+      env.ANTHROPIC_OAUTH_TOKEN_URL || "https://auth.anthropic.com/oauth/token",
+    clientId: env.ANTHROPIC_OAUTH_CLIENT_ID || "fit-guide",
+  };
+}
 
 function createPkce() {
   const verifier = randomBytes(32).toString("base64url");
@@ -49,8 +56,8 @@ function startCallbackServer(expectedState) {
   });
 }
 
-async function exchangeCode(code, verifier, redirectUri) {
-  const res = await fetch(ANTHROPIC_TOKEN_URL, {
+async function exchangeCode(code, verifier, redirectUri, tokenUrl, clock) {
+  const res = await fetch(tokenUrl, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -65,21 +72,29 @@ async function exchangeCode(code, verifier, redirectUri) {
   return {
     access_token: body.access_token,
     refresh_token: body.refresh_token,
-    expires_at: Date.now() + (body.expires_in ?? 3600) * 1000,
+    expires_at: clock.now() + (body.expires_in ?? 3600) * 1000,
   };
 }
 
 /**
  * Runs the OAuth PKCE login flow and persists the credential.
  * @param {import("@forwardimpact/libconfig").Config} config
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators.
  */
-export async function login(config) {
+export async function login(config, runtime) {
+  const { proc, clock, subprocess } = runtime;
+  const {
+    authorizeUrl: authorizeBase,
+    tokenUrl,
+    clientId,
+  } = resolveOAuthEndpoints(proc.env);
+
   const pkce = createPkce();
   const { port, codePromise } = await startCallbackServer(pkce.state);
   const redirectUri = `http://127.0.0.1:${port}/callback`;
 
-  const authorizeUrl = new URL(ANTHROPIC_AUTHORIZE_URL);
-  authorizeUrl.searchParams.set("client_id", ANTHROPIC_CLIENT_ID);
+  const authorizeUrl = new URL(authorizeBase);
+  authorizeUrl.searchParams.set("client_id", clientId);
   authorizeUrl.searchParams.set("response_type", "code");
   authorizeUrl.searchParams.set("redirect_uri", redirectUri);
   authorizeUrl.searchParams.set("code_challenge", pkce.challenge);
@@ -87,17 +102,25 @@ export async function login(config) {
   authorizeUrl.searchParams.set("state", pkce.state);
   authorizeUrl.searchParams.set("scope", "openid offline_access");
 
-  // Try to open browser; fall back to printing the URL
+  // Try to open browser; fall back to printing the URL. `subprocess.run`
+  // resolves with an exit code (it does not reject), so the fallback is driven
+  // by a non-zero exit (e.g. no `open` binary on Linux), not a thrown error.
   const openUrl = authorizeUrl.toString();
-  try {
-    execFile("open", [openUrl]);
-    process.stdout.write("Opening browser for login...\n");
-  } catch {
-    process.stdout.write(`Open this URL in your browser:\n\n  ${openUrl}\n\n`);
+  const { exitCode } = await subprocess.run("open", [openUrl]);
+  if (exitCode === 0) {
+    proc.stdout.write("Opening browser for login...\n");
+  } else {
+    proc.stdout.write(`Open this URL in your browser:\n\n  ${openUrl}\n\n`);
   }
 
   const code = await codePromise;
-  const tokenData = await exchangeCode(code, pkce.verifier, redirectUri);
+  const tokenData = await exchangeCode(
+    code,
+    pkce.verifier,
+    redirectUri,
+    tokenUrl,
+    clock,
+  );
   await config.writeOAuthCredential(tokenData);
-  process.stdout.write("Logged in successfully.\n");
+  proc.stdout.write("Logged in successfully.\n");
 }

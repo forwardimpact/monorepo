@@ -725,6 +725,7 @@
         "yaml": "^2.9.0",
       },
       "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
         "happy-dom": "^20.9.0",
       },
     },

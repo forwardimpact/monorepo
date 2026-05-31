@@ -36,15 +36,15 @@ import { toolkitToPlainList } from "../formatters/toolkit/markdown.js";
  * @param {Object} entities - Original entities
  * @param {string} jobTemplate - Mustache template for job description
  */
-function formatJob(view, _options, entities, jobTemplate) {
-  process.stdout.write(jobToMarkdown(view, entities, jobTemplate) + "\n");
+function formatJob(view, _options, entities, jobTemplate, runtime) {
+  runtime.proc.stdout.write(jobToMarkdown(view, entities, jobTemplate) + "\n");
 }
 
 /**
  * Print job list output
  * @param {Array} filteredJobs
  */
-function printJobList(filteredJobs) {
+function printJobList(filteredJobs, runtime) {
   for (const job of filteredJobs) {
     const title = generateJobTitle({
       discipline: job.discipline,
@@ -52,11 +52,13 @@ function printJobList(filteredJobs) {
       track: job.track,
     });
     if (job.track) {
-      process.stdout.write(
+      runtime.proc.stdout.write(
         `${job.discipline.id} ${job.level.id} ${job.track.id}, ${title}\n`,
       );
     } else {
-      process.stdout.write(`${job.discipline.id} ${job.level.id}, ${title}\n`);
+      runtime.proc.stdout.write(
+        `${job.discipline.id} ${job.level.id}, ${title}\n`,
+      );
     }
   }
 }
@@ -66,9 +68,9 @@ function printJobList(filteredJobs) {
  * @param {Array} filteredJobs
  * @param {Object} options
  */
-function printJobSummary(filteredJobs, options) {
+function printJobSummary(filteredJobs, options, runtime) {
   const trackLabel = options.track ? ` — ${options.track}` : "";
-  process.stdout.write(
+  runtime.proc.stdout.write(
     "\n" + formatHeader(`\u{1F4BC} Jobs${trackLabel}`) + "\n\n",
   );
 
@@ -95,21 +97,21 @@ function printJobSummary(filteredJobs, options) {
     info.count,
     info.tracks.size > 0 ? [...info.tracks].join(", ") : "—",
   ]);
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatTable(["ID", "Specialization", "Type", "Jobs", "Tracks"], rows) +
       "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     "\n" +
       formatSubheader(`Total: ${filteredJobs.length} valid job combinations`) +
       "\n\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet(
       "Run 'npx fit-pathway job --list' for all combinations with titles",
     ) + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet(
       "Run 'npx fit-pathway job <discipline> <level> [--track=<track>]' for details",
     ) + "\n\n",
@@ -121,86 +123,88 @@ function printJobSummary(filteredJobs, options) {
  * @param {string} arg
  * @param {Object} data
  */
-function handleSingleArg(arg, data) {
+function handleSingleArg(arg, data, runtime) {
   const isLevel = data.levels.some((g) => g.id === arg);
   const isTrack = data.tracks.some((t) => t.id === arg);
   if (isLevel) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(
         `Missing discipline. Usage: npx fit-pathway job <discipline> ${arg} [--track=<track>]`,
       ) + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       `Disciplines: ${data.disciplines.map((d) => d.id).join(", ")}\n`,
     );
   } else if (isTrack) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`Track must be passed as a flag: --track=${arg}`) + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       `Usage: npx fit-pathway job <discipline> <level> --track=${arg}\n`,
     );
   } else {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(
         "Usage: npx fit-pathway job <discipline> <level> [--track=<track>]",
       ) + "\n",
     );
-    process.stderr.write("       npx fit-pathway job --list\n");
+    runtime.proc.stderr.write("       npx fit-pathway job --list\n");
   }
-  process.exit(1);
+  runtime.proc.exit(1);
 }
 
 /**
  * Exit with an error when discipline lookup fails.
  * Detects swapped args and suggests the correct order.
  */
-function exitDisciplineNotFound(data, args, options) {
+function exitDisciplineNotFound(data, args, options, runtime) {
   const maybeLevel = data.levels.find((g) => g.id === args[0]);
   const maybeDiscipline = data.disciplines.find((d) => d.id === args[1]);
   if (maybeLevel && maybeDiscipline) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError("Arguments are in the wrong order. Try:") + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       `  npx fit-pathway job ${args[1]} ${args[0]}${options.track ? ` --track=${options.track}` : ""}\n`,
     );
   } else {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`Discipline not found: ${args[0]}`) + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       `Available: ${data.disciplines.map((d) => d.id).join(", ")}\n`,
     );
   }
-  process.exit(1);
+  runtime.proc.exit(1);
 }
 
 /**
  * Exit with an error when level lookup fails.
  * Detects track IDs passed as positional args and suggests the flag form.
  */
-function exitLevelNotFound(data, args) {
+function exitLevelNotFound(data, args, runtime) {
   const isTrack = data.tracks.some((t) => t.id === args[1]);
   if (isTrack) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(
         "Track must be passed as a flag, not a positional argument:",
       ) + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       `  npx fit-pathway job ${args[0]} <level> --track=${args[1]}\n`,
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       `Levels: ${data.levels.map((g) => g.id).join(", ")}\n`,
     );
   } else {
-    process.stderr.write(formatError(`Level not found: ${args[1]}`) + "\n");
-    process.stderr.write(
+    runtime.proc.stderr.write(
+      formatError(`Level not found: ${args[1]}`) + "\n",
+    );
+    runtime.proc.stderr.write(
       `Available: ${data.levels.map((g) => g.id).join(", ")}\n`,
     );
   }
-  process.exit(1);
+  runtime.proc.exit(1);
 }
 
 /**
@@ -210,7 +214,7 @@ function exitLevelNotFound(data, args) {
  * @param {Object} options
  * @returns {{discipline: Object, level: Object, track: Object|null}}
  */
-function resolveJobEntities(data, args, options) {
+function resolveJobEntities(data, args, options, runtime) {
   const discipline = data.disciplines.find((d) => d.id === args[0]);
   const level = data.levels.find((g) => g.id === args[1]);
   const track = options.track
@@ -218,21 +222,21 @@ function resolveJobEntities(data, args, options) {
     : null;
 
   if (!discipline) {
-    exitDisciplineNotFound(data, args, options);
+    exitDisciplineNotFound(data, args, options, runtime);
   }
 
   if (!level) {
-    exitLevelNotFound(data, args);
+    exitLevelNotFound(data, args, runtime);
   }
 
   if (options.track && !track) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`Track not found: ${options.track}`) + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       `Available: ${data.tracks.map((t) => t.id).join(", ")}\n`,
     );
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   return { discipline, level, track };
@@ -252,30 +256,30 @@ function resolveJobEntities(data, args, options) {
  * @param {Object} data
  * @param {Object} options
  */
-function validateTrackFilter(filteredJobs, data, options) {
+function validateTrackFilter(filteredJobs, data, options, runtime) {
   if (!options.track || filteredJobs.length > 0) return;
   const trackExists = data.tracks.some((t) => t.id === options.track);
   if (!trackExists) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`Track not found: ${options.track}`) + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       `Available: ${data.tracks.map((t) => t.id).join(", ")}\n`,
     );
   } else {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`No jobs found for track: ${options.track}`) + "\n",
     );
     const trackDisciplines = data.disciplines
       .filter((d) => d.validTracks && d.validTracks.includes(options.track))
       .map((d) => d.id);
     if (trackDisciplines.length > 0) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         `Disciplines with this track: ${trackDisciplines.join(", ")}\n`,
       );
     }
   }
-  process.exit(1);
+  runtime.proc.exit(1);
 }
 
 /**
@@ -285,31 +289,33 @@ function validateTrackFilter(filteredJobs, data, options) {
  * @param {Object|null} track
  * @param {Object} data
  */
-function reportInvalidCombination(discipline, level, track, data) {
+function reportInvalidCombination(discipline, level, track, data, runtime) {
   const combo = track
     ? `${discipline.id} × ${level.id} × ${track.id}`
     : `${discipline.id} × ${level.id}`;
-  process.stderr.write(formatError(`Invalid combination: ${combo}`) + "\n");
+  runtime.proc.stderr.write(
+    formatError(`Invalid combination: ${combo}`) + "\n",
+  );
   if (track) {
     const validTracks = discipline.validTracks?.filter((t) => t !== null) || [];
     if (validTracks.length > 0) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         `Valid tracks for ${discipline.id}: ${validTracks.join(", ")}\n`,
       );
     } else {
-      process.stderr.write(`${discipline.id} does not support tracks\n`);
+      runtime.proc.stderr.write(`${discipline.id} does not support tracks\n`);
     }
   }
   if (discipline.minLevel) {
     const levelIndex = data.levels.findIndex((g) => g.id === level.id);
     const minIndex = data.levels.findIndex((g) => g.id === discipline.minLevel);
     if (levelIndex >= 0 && minIndex >= 0 && levelIndex < minIndex) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         `${discipline.id} requires minimum level: ${discipline.minLevel}\n`,
       );
     }
   }
-  process.exit(1);
+  runtime.proc.exit(1);
 }
 
 /** Generate all job definitions and dispatch to summary table, list, detail, --skills list, --tools list, or JSON output depending on arguments and options. */
@@ -319,6 +325,7 @@ export async function runJobCommand({
   options,
   dataDir,
   templateLoader,
+  runtime,
 }) {
   const jobs = generateAllJobs({
     disciplines: data.disciplines,
@@ -334,25 +341,30 @@ export async function runJobCommand({
     : jobs;
 
   if (args.length === 0 && filteredJobs.length === 0) {
-    validateTrackFilter(filteredJobs, data, options);
+    validateTrackFilter(filteredJobs, data, options, runtime);
   }
 
   if (options.list) {
-    printJobList(filteredJobs);
+    printJobList(filteredJobs, runtime);
     return;
   }
 
   if (args.length === 0) {
-    printJobSummary(filteredJobs, options);
+    printJobSummary(filteredJobs, options, runtime);
     return;
   }
 
   if (args.length < 2) {
-    handleSingleArg(args[0], data);
+    handleSingleArg(args[0], data, runtime);
     return;
   }
 
-  const { discipline, level, track } = resolveJobEntities(data, args, options);
+  const { discipline, level, track } = resolveJobEntities(
+    data,
+    args,
+    options,
+    runtime,
+  );
 
   const view = prepareJobDetail({
     discipline,
@@ -365,26 +377,26 @@ export async function runJobCommand({
   });
 
   if (!view) {
-    reportInvalidCombination(discipline, level, track, data);
+    reportInvalidCombination(discipline, level, track, data, runtime);
   }
 
   if (options.skills) {
     for (const skill of view.skillMatrix) {
-      process.stdout.write(skill.skillId + "\n");
+      runtime.proc.stdout.write(skill.skillId + "\n");
     }
     return;
   }
 
   if (options.tools) {
-    process.stdout.write(toolkitToPlainList(view.toolkit) + "\n");
+    runtime.proc.stdout.write(toolkitToPlainList(view.toolkit) + "\n");
     return;
   }
 
   if (options.json) {
-    process.stdout.write(JSON.stringify(view, null, 2) + "\n");
+    runtime.proc.stdout.write(JSON.stringify(view, null, 2) + "\n");
     return;
   }
 
   const jobTemplate = templateLoader.load("job.template.md", dataDir);
-  formatJob(view, options, { discipline, level, track }, jobTemplate);
+  formatJob(view, options, { discipline, level, track }, jobTemplate, runtime);
 }

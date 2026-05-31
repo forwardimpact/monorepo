@@ -26,11 +26,11 @@ import { capitalize } from "../formatters/shared.js";
  * @param {Array} levels - Raw level entities
  * @param {Object} data - Full data context
  */
-function formatSummary(levels, data) {
+function formatSummary(levels, data, runtime) {
   const { standard } = data;
   const emoji = standard ? getConceptEmoji(standard, "level") : "📊";
 
-  process.stdout.write("\n" + formatHeader(`${emoji} Levels`) + "\n\n");
+  runtime.proc.stdout.write("\n" + formatHeader(`${emoji} Levels`) + "\n\n");
 
   const rows = levels.map((g) => [
     g.id,
@@ -40,7 +40,7 @@ function formatSummary(levels, data) {
     capitalize(g.baseSkillProficiencies?.core || "-"),
   ]);
 
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatTable(
       [
         "ID",
@@ -52,13 +52,13 @@ function formatSummary(levels, data) {
       rows,
     ) + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     "\n" + formatSubheader(`Total: ${levels.length} levels`) + "\n\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway level --list' for IDs") + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway level <id>' for details") + "\n\n",
   );
 }
@@ -68,8 +68,8 @@ function formatSummary(levels, data) {
  * @param {Object} level - Raw level entity
  * @param {Object} standard - Standard config
  */
-function formatDetail(level, standard) {
-  process.stdout.write(levelToMarkdown(level, standard) + "\n");
+function formatDetail(level, standard, runtime) {
+  runtime.proc.stdout.write(levelToMarkdown(level, standard) + "\n");
 }
 
 export const runLevelCommand = createEntityCommand({

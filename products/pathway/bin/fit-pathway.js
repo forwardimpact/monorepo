@@ -14,11 +14,9 @@ import "@forwardimpact/libpreflight/node22";
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
-import fs from "fs/promises";
 import { homedir } from "os";
 import { createDataLoader } from "@forwardimpact/map/loader";
-import { Finder } from "@forwardimpact/libutil";
-import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createCli } from "@forwardimpact/libcli";
 import { createTemplateLoader } from "@forwardimpact/libtemplate";
 
@@ -278,14 +276,14 @@ async function main() {
     process.exit(0);
   }
 
+  const runtime = createDefaultRuntime();
+
   let dataDir;
   if (values.data) {
     dataDir = resolve(values.data);
   } else {
-    const logger = createLogger("pathway");
-    const finder = new Finder(fs, logger, process);
     try {
-      dataDir = join(finder.findData("data", homedir()), "pathway");
+      dataDir = join(runtime.finder.findData("data", homedir()), "pathway");
     } catch {
       cli.error(
         "No data directory found. Use --data=<path> to specify location.",
@@ -295,23 +293,23 @@ async function main() {
   }
 
   if (command === "dev") {
-    await runDevCommand({ dataDir, options: values });
+    await runDevCommand({ dataDir, options: values, runtime });
     return;
   }
 
   if (command === "serve") {
     const dir = resolve(args[0] || "public");
-    await runServeCommand({ dir, options: values });
+    await runServeCommand({ dir, options: values, runtime });
     return;
   }
 
   if (command === "build") {
-    await runBuildCommand({ dataDir, options: values });
+    await runBuildCommand({ dataDir, options: values, runtime });
     process.exit(0);
   }
 
   if (command === "update") {
-    await runUpdateCommand({ dataDir, options: values });
+    await runUpdateCommand({ dataDir, options: values, runtime });
     process.exit(0);
   }
 
@@ -335,6 +333,7 @@ async function main() {
       dataDir,
       templateLoader,
       loader,
+      runtime,
     });
   } catch (error) {
     cli.error(error.message);

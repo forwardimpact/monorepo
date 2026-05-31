@@ -16,6 +16,7 @@ import {
   getDisciplineAbbreviation,
   toKebabCase,
 } from "@forwardimpact/libskill/agent";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { generatePacks } from "../src/commands/build-packs.js";
 import { findValidCombinations } from "../src/commands/agent.js";
 
@@ -59,6 +60,7 @@ describe("APM bundles", () => {
         standard: { title: "Engineering Pathway" },
         version: pathwayPkg.version,
         templatesDir: join(__dirname, "..", "templates"),
+        runtime: createDefaultRuntime(),
       }),
     );
   });

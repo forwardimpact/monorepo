@@ -60,14 +60,14 @@ export { findValidCombinations } from "./agent-list.js";
  * @param {string} listHeader - Header for the available-items list
  * @param {Array} available - Items to list (each must have an .id)
  */
-function requireEntity(entity, errorMessage, listHeader, available) {
+function requireEntity(entity, errorMessage, listHeader, available, runtime) {
   if (entity) return;
-  process.stderr.write(formatError(errorMessage) + "\n");
-  process.stderr.write(`\n${listHeader}\n`);
+  runtime.proc.stderr.write(formatError(errorMessage) + "\n");
+  runtime.proc.stderr.write(`\n${listHeader}\n`);
   for (const item of available) {
-    process.stderr.write(formatBullet(item.id, 1) + "\n");
+    runtime.proc.stderr.write(formatBullet(item.id, 1) + "\n");
   }
-  process.exit(1);
+  runtime.proc.exit(1);
 }
 
 /**
@@ -78,7 +78,7 @@ function requireEntity(entity, errorMessage, listHeader, available) {
  * @param {string|null} trackId
  * @returns {{humanDiscipline: Object, humanTrack: Object|null, agentDiscipline: Object, agentTrack: Object|null}}
  */
-function resolveAgentEntities(data, agentData, disciplineId, trackId) {
+function resolveAgentEntities(data, agentData, disciplineId, trackId, runtime) {
   const humanDiscipline = data.disciplines.find((d) => d.id === disciplineId);
   const humanTrack = trackId ? data.tracks.find((t) => t.id === trackId) : null;
 
@@ -87,6 +87,7 @@ function resolveAgentEntities(data, agentData, disciplineId, trackId) {
     `Unknown discipline: ${disciplineId}`,
     "Available disciplines:",
     data.disciplines,
+    runtime,
   );
   if (trackId) {
     requireEntity(
@@ -94,6 +95,7 @@ function resolveAgentEntities(data, agentData, disciplineId, trackId) {
       `Unknown track: ${trackId}`,
       "Available tracks:",
       data.tracks,
+      runtime,
     );
   }
 
@@ -109,6 +111,7 @@ function resolveAgentEntities(data, agentData, disciplineId, trackId) {
     `No agent definition for discipline: ${disciplineId}`,
     "Agent definitions exist for:",
     agentData.disciplines,
+    runtime,
   );
   if (trackId) {
     requireEntity(
@@ -116,6 +119,7 @@ function resolveAgentEntities(data, agentData, disciplineId, trackId) {
       `No agent definition for track: ${trackId}`,
       "Agent definitions exist for:",
       agentData.tracks,
+      runtime,
     );
   }
 
@@ -135,6 +139,7 @@ function printTeamInstructions(
   orgSection,
   template,
   levelForInstructions,
+  runtime,
 ) {
   const teamInstructions = interpolateTeamInstructions({
     agentTrack,
@@ -155,9 +160,9 @@ function printTeamInstructions(
       : hasTeamInstructionsContent
         ? "# Team Instructions (CLAUDE.md)"
         : "# Organizational Context (CLAUDE.md)";
-  process.stdout.write(`${header}\n\n`);
-  process.stdout.write(content + "\n");
-  process.stdout.write("\n---\n\n");
+  runtime.proc.stdout.write(`${header}\n\n`);
+  runtime.proc.stdout.write(content + "\n");
+  runtime.proc.stdout.write("\n---\n\n");
 }
 
 /**
@@ -177,6 +182,7 @@ async function handleAgent({
   levelForInstructions,
   templateLoader,
   dataDir,
+  runtime,
 }) {
   const profile = generateAgentProfile({
     discipline: humanDiscipline,
@@ -205,27 +211,27 @@ async function handleAgent({
 
   const errors = validateAgentProfile(profile);
   if (errors.length > 0) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`Profile ${profile.frontmatter.name} validation failed:`) +
         "\n",
     );
     for (const err of errors) {
-      process.stderr.write(formatBullet(err, 1) + "\n");
+      runtime.proc.stderr.write(formatBullet(err, 1) + "\n");
     }
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   for (const skill of skillFiles) {
     const skillErrors = validateAgentSkill(skill);
     if (skillErrors.length > 0) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         formatError(`Skill ${skill.frontmatter.name} validation failed:`) +
           "\n",
       );
       for (const err of skillErrors) {
-        process.stderr.write(formatBullet(err, 1) + "\n");
+        runtime.proc.stderr.write(formatBullet(err, 1) + "\n");
       }
-      process.exit(1);
+      runtime.proc.exit(1);
     }
   }
 
@@ -251,8 +257,11 @@ async function handleAgent({
       orgSection,
       claudeTemplate,
       levelForInstructions,
+      runtime,
     );
-    process.stdout.write(formatAgentProfile(profile, agentTemplate) + "\n");
+    runtime.proc.stdout.write(
+      formatAgentProfile(profile, agentTemplate) + "\n",
+    );
     return;
   }
 
@@ -266,17 +275,25 @@ async function handleAgent({
     orgSection,
     baseDir,
     claudeTemplate,
+    runtime,
   );
-  await writeProfile(profile, baseDir, agentTemplate);
-  const fileCount = await writeSkills(skillFiles, baseDir, skillTemplates);
-  await generateClaudeSettings(baseDir, agentData.claudeSettings);
-  await generateVscodeSettings(baseDir, agentData.vscodeSettings);
+  await writeProfile(profile, baseDir, agentTemplate, runtime);
+  const fileCount = await writeSkills(
+    skillFiles,
+    baseDir,
+    skillTemplates,
+    runtime,
+  );
+  await generateClaudeSettings(baseDir, agentData.claudeSettings, runtime);
+  await generateVscodeSettings(baseDir, agentData.vscodeSettings, runtime);
 
-  process.stdout.write("\n");
-  process.stdout.write(
+  runtime.proc.stdout.write("\n");
+  runtime.proc.stdout.write(
     formatSuccess(`Generated agent: ${profile.frontmatter.name}`) + "\n",
   );
-  process.stdout.write(formatSubheader(`Skills: ${fileCount} files`) + "\n");
+  runtime.proc.stdout.write(
+    formatSubheader(`Skills: ${fileCount} files`) + "\n",
+  );
 }
 
 /**
@@ -294,50 +311,51 @@ export async function runAgentCommand({
   dataDir,
   templateLoader,
   loader,
+  runtime,
 }) {
   const dataLoader = loader || createDataLoader();
   const agentData = await dataLoader.loadAgentData(dataDir);
   const skillsWithAgent = await dataLoader.loadSkillsWithAgentData(dataDir);
 
   if (options.list) {
-    listAgentCombinations(data, agentData, false);
+    listAgentCombinations(data, agentData, false, runtime);
     return;
   }
 
   if (args.length === 0) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError("Missing required argument: <discipline>") + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       "\nUsage: npx fit-pathway agent <discipline> --track=<track>\n",
     );
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   const [disciplineId] = args;
   const trackId = options.track;
 
   if (args.length > 1) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(
         `Unexpected argument: ${args[1]}. Did you mean --track=${args[1]}?`,
       ) + "\n",
     );
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   if (!trackId) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError("Missing required option: --track=<track>") + "\n",
     );
-    process.stderr.write(
+    runtime.proc.stderr.write(
       "\nUsage: npx fit-pathway agent <discipline> --track=<track>\n",
     );
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   const { humanDiscipline, humanTrack, agentDiscipline, agentTrack } =
-    resolveAgentEntities(data, agentData, disciplineId, trackId);
+    resolveAgentEntities(data, agentData, disciplineId, trackId, runtime);
 
   let level;
   let levelForInstructions = null;
@@ -348,6 +366,7 @@ export async function runAgentCommand({
       `Unknown level: ${options.level}`,
       "Available levels:",
       data.levels,
+      runtime,
     );
     levelForInstructions = level;
   } else {
@@ -363,7 +382,7 @@ export async function runAgentCommand({
       capabilities: data.capabilities,
     });
     for (const skill of derivedSkills)
-      process.stdout.write(skill.skillId + "\n");
+      runtime.proc.stdout.write(skill.skillId + "\n");
     return;
   }
 
@@ -379,7 +398,7 @@ export async function runAgentCommand({
       skillMatrix: derivedSkills,
       skills: skillsWithAgent,
     });
-    process.stdout.write(toolkitToPlainList(toolkit) + "\n");
+    runtime.proc.stdout.write(toolkitToPlainList(toolkit) + "\n");
     return;
   }
 
@@ -396,5 +415,6 @@ export async function runAgentCommand({
     levelForInstructions,
     templateLoader,
     dataDir,
+    runtime,
   });
 }

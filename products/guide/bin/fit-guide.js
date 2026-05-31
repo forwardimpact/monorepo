@@ -20,6 +20,11 @@ import {
 import { createAgentTraceFormatter } from "@forwardimpact/libformat";
 import { Repl } from "@forwardimpact/librepl";
 import { createStorage } from "@forwardimpact/libstorage";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+// Sole construction site for the injected collaborator bag threaded into the
+// single-flow command handlers (init, login, status).
+const runtime = createDefaultRuntime();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // `bun build --compile` injects FIT_GUIDE_VERSION via --define, eliminating
@@ -167,7 +172,8 @@ const repl = new Repl({
       type: "boolean",
       handler: async () => {
         const { runInitCommand } = await import("../src/commands/init.js");
-        await runInitCommand();
+        const result = await runInitCommand(runtime);
+        if (!result?.ok) runtime.proc.exit(result?.code ?? 1);
         return false;
       },
     },
@@ -177,7 +183,7 @@ const repl = new Repl({
       handler: async () => {
         const { login } = await import("../src/lib/login.js");
         const config = await createServiceConfig("mcp");
-        await login(config);
+        await login(config, runtime);
         return false;
       },
     },
@@ -196,7 +202,7 @@ const repl = new Repl({
       type: "boolean",
       handler: async () => {
         const { runStatusCommand } = await import("../src/commands/status.js");
-        await runStatusCommand({ json: false });
+        await runStatusCommand({ json: false }, runtime);
         return false;
       },
     },

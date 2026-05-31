@@ -19,6 +19,7 @@ import {
   toKebabCase,
 } from "@forwardimpact/libskill/agent";
 import { generateJobTitle } from "@forwardimpact/libskill/derivation";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { generatePacks } from "../src/commands/build-packs.js";
 import {
   findValidCombinations,
@@ -108,6 +109,7 @@ describe("generatePacks", () => {
         standard,
         version: pathwayPkg.version,
         templatesDir: join(__dirname, "..", "templates"),
+        runtime: createDefaultRuntime(),
       }),
     );
   });
@@ -374,6 +376,7 @@ describe("generatePacks", () => {
           dataDir: starterDir,
           templateLoader,
           loader,
+          runtime: createDefaultRuntime(),
         }),
       );
 
@@ -454,6 +457,7 @@ describe("generatePacks", () => {
         standard,
         version: pathwayPkg.version,
         templatesDir: join(__dirname, "..", "templates"),
+        runtime: createDefaultRuntime(),
       }),
     );
 

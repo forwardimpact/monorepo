@@ -47,11 +47,11 @@ function parseOptions(rawOptions) {
  * Show questions summary
  * @param {Object} data - Loaded data
  */
-function showQuestionsSummary(data) {
+function showQuestionsSummary(data, runtime) {
   const { skills, behaviours } = data;
   const questions = data.questions;
 
-  process.stdout.write("\n" + formatHeader("\u2753 Questions") + "\n\n");
+  runtime.proc.stdout.write("\n" + formatHeader("\u2753 Questions") + "\n\n");
 
   // Skill questions by level
   const skillProficiencies = [
@@ -75,8 +75,8 @@ function showQuestionsSummary(data) {
     return [level, count];
   });
 
-  process.stdout.write(formatSubheader("Skill Questions") + "\n");
-  process.stdout.write(formatTable(["Level", "Count"], skillRows) + "\n");
+  runtime.proc.stdout.write(formatSubheader("Skill Questions") + "\n");
+  runtime.proc.stdout.write(formatTable(["Level", "Count"], skillRows) + "\n");
 
   // Behaviour questions by maturity
   const maturities = [
@@ -99,21 +99,23 @@ function showQuestionsSummary(data) {
     return [maturity.replace(/_/g, " "), count];
   });
 
-  process.stdout.write("\n" + formatSubheader("Behaviour Questions") + "\n");
-  process.stdout.write(
+  runtime.proc.stdout.write(
+    "\n" + formatSubheader("Behaviour Questions") + "\n",
+  );
+  runtime.proc.stdout.write(
     formatTable(["Maturity", "Count"], behaviourRows) + "\n",
   );
 
-  process.stdout.write("\n");
-  process.stdout.write(
+  runtime.proc.stdout.write("\n");
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway questions --list' for question IDs") +
       "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway questions --stats' for detailed stats") +
       "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet(
       "Run 'npx fit-pathway questions --level=practitioner' to filter",
     ) + "\n\n",
@@ -131,6 +133,7 @@ export async function runQuestionsCommand({
   data,
   args: _args,
   options: rawOptions,
+  runtime,
 }) {
   const options = parseOptions(rawOptions);
 
@@ -148,7 +151,7 @@ export async function runQuestionsCommand({
     options.capability;
 
   if (!hasFilters && !options.stats && !options.list) {
-    showQuestionsSummary(data);
+    showQuestionsSummary(data, runtime);
     return;
   }
 
@@ -162,7 +165,7 @@ export async function runQuestionsCommand({
       filter,
     });
     for (const q of view.questions) {
-      process.stdout.write(q.id + "\n");
+      runtime.proc.stdout.write(q.id + "\n");
     }
     return;
   }
@@ -196,5 +199,5 @@ export async function runQuestionsCommand({
       break;
   }
 
-  process.stdout.write(output + "\n");
+  runtime.proc.stdout.write(output + "\n");
 }

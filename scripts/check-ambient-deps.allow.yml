@@ -40,9 +40,24 @@ globs:
   - "libraries/libsyntheticgen/src/engine/activity.js" # new Date(scenario range) + new Date(Date.UTC(...)) snapshots
   - "libraries/libsyntheticgen/src/engine/activity-initiatives.js" # new Date(scenario.timerange_*) for initiative dates
   - "libraries/libsyntheticrender/src/render/html.js" # new Date(allDates[…]).getFullYear() over fixture dates
+  - "products/summit/src/git/history.js" # new Date(iso) parses git commit timestamps; subprocess routes through runtime (cwd is caller-supplied, else inherited)
 
   # ── libui: browser DOM module. Its `setTimeout` is the window timer for a
   #    copy-button animation; `runtime` is a node-side bag with no browser-DOM
   #    surface, and libui is a published zero-dependency browser library, so
   #    injecting the node clock would pull node-only code into browser bundles.
   - "libraries/libui/src/command-bar.js" # window.setTimeout for copy-feedback UI
+
+  # ── Pathway browser components & pages: client-side DOM modules bundled into
+  #    the static Pathway site. Their `setTimeout` (DOM-ready / animation) and
+  #    `Date.now()` (unique DOM element ids) are browser-UI concerns; `runtime`
+  #    is a node-side bag with no DOM surface, and injecting the node clock would
+  #    pull node-only code into the browser bundle (same rationale as libui).
+  - "products/pathway/src/components/builder.js"
+  - "products/pathway/src/components/code-display.js"
+  - "products/pathway/src/components/command-prompt.js"
+  - "products/pathway/src/components/comparison-radar.js"
+  - "products/pathway/src/components/progression-table.js"
+  - "products/pathway/src/components/radar-chart.js"
+  - "products/pathway/src/components/top-bar.js"
+  - "products/pathway/src/pages/progress.js"

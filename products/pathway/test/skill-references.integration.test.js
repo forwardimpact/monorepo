@@ -19,10 +19,13 @@ import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { formatReference } from "../src/formatters/agent/skill.js";
 import { writeSkillReferences } from "../src/commands/agent-io.js";
 import { skillToMarkdown } from "../src/formatters/skill/markdown.js";
 import { prepareSkillDetail } from "../src/formatters/skill/shared.js";
+
+const runtime = createDefaultRuntime();
 
 const REFERENCE_TEMPLATE = "# {{{title}}}\n\n{{{body}}}\n";
 
@@ -75,7 +78,12 @@ describe("writeSkillReferences", () => {
   });
 
   test("returns 0 and creates no directory when references is empty", async () => {
-    const count = await writeSkillReferences(skillDir, [], REFERENCE_TEMPLATE);
+    const count = await writeSkillReferences(
+      skillDir,
+      [],
+      REFERENCE_TEMPLATE,
+      runtime,
+    );
     assert.strictEqual(count, 0);
     assert.strictEqual(existsSync(join(skillDir, "references")), false);
   });
@@ -85,6 +93,7 @@ describe("writeSkillReferences", () => {
       skillDir,
       undefined,
       REFERENCE_TEMPLATE,
+      runtime,
     );
     assert.strictEqual(count, 0);
   });
@@ -97,6 +106,7 @@ describe("writeSkillReferences", () => {
         { name: "postmortem", title: "Postmortem", body: "Body B." },
       ],
       REFERENCE_TEMPLATE,
+      runtime,
     );
     assert.strictEqual(count, 2);
     const refDir = join(skillDir, "references");
@@ -116,6 +126,7 @@ describe("writeSkillReferences", () => {
       skillDir,
       [{ name: "fresh", title: "Fresh", body: "Body." }],
       REFERENCE_TEMPLATE,
+      runtime,
     );
 
     const files = (await readdir(refDir)).sort();
@@ -129,7 +140,7 @@ describe("writeSkillReferences", () => {
     await mkdir(refDir, { recursive: true });
     await writeFile(join(refDir, "old.md"), "old", "utf-8");
 
-    await writeSkillReferences(skillDir, [], REFERENCE_TEMPLATE);
+    await writeSkillReferences(skillDir, [], REFERENCE_TEMPLATE, runtime);
 
     assert.strictEqual(existsSync(refDir), false);
   });

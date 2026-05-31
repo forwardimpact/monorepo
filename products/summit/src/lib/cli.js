@@ -6,13 +6,10 @@
  * across commands.
  */
 
-import fs from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { createDataLoader } from "@forwardimpact/map/loader";
-import { Finder } from "@forwardimpact/libutil";
-import { createLogger } from "@forwardimpact/libtelemetry";
 
 /** Canonical output format constants. */
 export const Format = Object.freeze({
@@ -26,15 +23,14 @@ export const Format = Object.freeze({
  * contributor data finder. Pathway uses the same pattern.
  *
  * @param {object} options - Parsed CLI options.
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators.
  * @returns {string}
  */
-export function resolveDataDir(options) {
+export function resolveDataDir(options, runtime) {
   if (options.data) return resolve(options.data);
 
-  const logger = createLogger("summit");
-  const finder = new Finder(fs, logger, process);
   try {
-    return join(finder.findData("data", homedir()), "pathway");
+    return join(runtime.finder.findData("data", homedir()), "pathway");
   } catch {
     throw new Error(
       "summit: no data directory found. Pass --data <path> pointing at a Map data directory.",

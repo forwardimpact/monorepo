@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 
 import { createCli } from "@forwardimpact/libcli";
 import { createProductConfig } from "@forwardimpact/libconfig";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { runCompareCommand } from "../src/commands/compare.js";
 import { runCoverageCommand } from "../src/commands/coverage.js";
@@ -286,9 +287,10 @@ async function main() {
   }
 
   try {
-    const dataDir = resolveDataDir(values);
+    const runtime = createDefaultRuntime();
+    const dataDir = resolveDataDir(values, runtime);
     const data = await loadMapData(dataDir);
-    await handler({ data, args, options: values, dataDir, config });
+    await handler({ data, args, options: values, dataDir, config, runtime });
   } catch (error) {
     cli.error(error.message);
     process.exit(1);

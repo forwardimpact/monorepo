@@ -1,6 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
+import { createTestRuntime } from "@forwardimpact/libmock";
 import { runLevelCommand } from "../src/commands/level.js";
 import { runDisciplineCommand } from "../src/commands/discipline.js";
 import { runTrackCommand } from "../src/commands/track.js";
@@ -9,22 +10,16 @@ import { runDriverCommand } from "../src/commands/driver.js";
 import { runSkillCommand } from "../src/commands/skill.js";
 
 /**
- * Capture process.stdout.write during an async function and return the joined output.
- * @param {() => unknown} fn - Function to run; may be sync or return a promise.
+ * Run an entity command against an injected mock runtime and return the
+ * captured stdout — no global `process.stdout` patching.
+ * @param {Function} runner - The entity command handler.
+ * @param {object} params - Handler params (data/args/options).
  * @returns {Promise<string>} The captured stdout as a string.
  */
-function captureStdout(fn) {
-  const original = process.stdout.write.bind(process.stdout);
-  const chunks = [];
-  process.stdout.write = (chunk) => {
-    chunks.push(typeof chunk === "string" ? chunk : chunk.toString("utf8"));
-    return true;
-  };
-  return Promise.resolve(fn())
-    .finally(() => {
-      process.stdout.write = original;
-    })
-    .then(() => chunks.join(""));
+async function runCapturing(runner, params) {
+  const runtime = createTestRuntime();
+  await runner({ ...params, runtime });
+  return runtime.proc.stdout.chunks.join("");
 }
 
 const fixture = {
@@ -54,9 +49,11 @@ describe("entity --list outputs id-only", () => {
     ["skill", runSkillCommand, "skills"],
   ]) {
     test(`${name} --list emits one id per line, no commas, no header`, async () => {
-      const out = await captureStdout(() =>
-        runner({ data: fixture, args: [], options: { list: true } }),
-      );
+      const out = await runCapturing(runner, {
+        data: fixture,
+        args: [],
+        options: { list: true },
+      });
       assert.ok(!out.includes(","), "no commas");
       const lines = out.split("\n").filter((l) => l.length > 0);
       const expected = fixture[plural].map((i) => i.id);

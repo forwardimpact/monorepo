@@ -24,10 +24,12 @@ import {
  * @param {Array} behaviours - Raw behaviour entities
  * @param {Object} data - Full data context
  */
-function formatSummary(behaviours, data) {
+function formatSummary(behaviours, data, runtime) {
   const { drivers } = data;
 
-  process.stdout.write("\n" + formatHeader("\u{1F9E0} Behaviours") + "\n\n");
+  runtime.proc.stdout.write(
+    "\n" + formatHeader("\u{1F9E0} Behaviours") + "\n\n",
+  );
 
   // Summary table
   const rows = behaviours.map((b) => {
@@ -37,14 +39,16 @@ function formatSummary(behaviours, data) {
     return [b.id, b.name, linkedDrivers];
   });
 
-  process.stdout.write(formatTable(["ID", "Name", "Drivers"], rows) + "\n");
-  process.stdout.write(
+  runtime.proc.stdout.write(
+    formatTable(["ID", "Name", "Drivers"], rows) + "\n",
+  );
+  runtime.proc.stdout.write(
     "\n" + formatSubheader(`Total: ${behaviours.length} behaviours`) + "\n\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway behaviour --list' for IDs") + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway behaviour <id>' for details") + "\n\n",
   );
 }
@@ -53,9 +57,9 @@ function formatSummary(behaviours, data) {
  * Format behaviour detail output
  * @param {Object} viewAndContext - Contains behaviour entity and context
  */
-function formatDetail(viewAndContext) {
+function formatDetail(viewAndContext, _standard, runtime) {
   const { behaviour, drivers } = viewAndContext;
-  process.stdout.write(behaviourToMarkdown(behaviour, { drivers }) + "\n");
+  runtime.proc.stdout.write(behaviourToMarkdown(behaviour, { drivers }) + "\n");
 }
 
 export const runBehaviourCommand = createEntityCommand({

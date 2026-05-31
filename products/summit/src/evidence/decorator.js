@@ -26,13 +26,16 @@ import { getEvidence } from "@forwardimpact/map/activity/queries/evidence";
  * @param {object} params
  * @param {import("../aggregation/coverage.js").ResolvedTeam} params.team
  * @param {number} [params.lookbackMonths=12]
+ * @param {object} params.clock - Clock collaborator (`now()`); supplied by the
+ *   caller from `runtime.clock` (the bin is the sole construction site).
  * @param {(client: object, options?: object) => Promise<Array<object>>} [params.fetchEvidence]
  * @returns {Promise<EvidenceMap>}
  */
 export async function loadEvidence(supabase, params) {
   const fetch = params.fetchEvidence ?? getEvidence;
+  const { clock } = params;
   const lookbackMs = 1000 * 60 * 60 * 24 * 30 * (params.lookbackMonths ?? 12);
-  const cutoff = Date.now() - lookbackMs;
+  const cutoff = clock.now() - lookbackMs;
   const teamEmails = params.team?.members
     ? new Set(params.team.members.map((m) => m.email))
     : null;
@@ -59,7 +62,9 @@ export async function loadEvidence(supabase, params) {
  */
 function normalizeEvidenceRow(row, cutoff, teamEmails) {
   if (!row.matched) return null;
-  const created = row.created_at ? new Date(row.created_at).getTime() : null;
+  // `Date.parse` returns epoch ms (NaN for invalid input) without the
+  // detector-flagged `new Date()` ambient-clock construct.
+  const created = row.created_at ? Date.parse(row.created_at) : null;
   if (created !== null && created < cutoff) return null;
   const skillId = row.skill_id;
   const email = row.github_artifacts?.email ?? row.email;

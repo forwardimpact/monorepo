@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import { resolve } from "node:path";
 import { generateSecret, getOrGenerateSecret } from "@forwardimpact/libsecret";
 import { bootstrapProject } from "@forwardimpact/libconfig";
@@ -9,8 +8,15 @@ import {
   formatError,
 } from "@forwardimpact/libcli";
 
-/** Bootstrap a Guide project by generating secrets, writing default service URLs to .env, and copying starter configuration. */
-export async function runInitCommand() {
+/**
+ * Bootstrap a Guide project by generating secrets, writing default service
+ * URLs to .env, and copying starter configuration.
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators.
+ * @returns {Promise<{ok: boolean, code?: number}>} Result envelope; the bin shim
+ *   translates a falsy `ok` into a non-zero exit.
+ */
+export async function runInitCommand(runtime) {
+  const { fs, proc } = runtime;
   const serviceSecret = await getOrGenerateSecret("SERVICE_SECRET", () =>
     generateSecret(),
   );
@@ -24,10 +30,8 @@ export async function runInitCommand() {
   try {
     await fs.access(starterDir);
   } catch {
-    process.stderr.write(
-      formatError("Starter data not found in package.") + "\n",
-    );
-    process.exit(1);
+    proc.stderr.write(formatError("Starter data not found in package.") + "\n");
+    return { ok: false, code: 1 };
   }
 
   const starterConfig = JSON.parse(
@@ -67,10 +71,10 @@ export async function runInitCommand() {
         2,
       ) + "\n",
     );
-    process.stdout.write(formatSuccess("package.json created.") + "\n");
+    proc.stdout.write(formatSuccess("package.json created.") + "\n");
   }
 
-  const summary = new SummaryRenderer({ process });
+  const summary = new SummaryRenderer({ process: proc });
   summary.render({
     title: formatHeader("Environment (.env)"),
     ok: true,
@@ -84,7 +88,7 @@ export async function runInitCommand() {
       },
     ],
   });
-  if (summary.shouldRender(true)) process.stdout.write("\n");
+  if (summary.shouldRender(true)) proc.stdout.write("\n");
 
   // Copy skills → .claude/skills/
   const starterSkills = resolve(starterDir, "skills");
@@ -92,10 +96,12 @@ export async function runInitCommand() {
     await fs.access(starterSkills);
     await fs.mkdir(skillsDir, { recursive: true });
     await fs.cp(starterSkills, skillsDir, { recursive: true });
-    process.stdout.write(
+    proc.stdout.write(
       formatSuccess(".claude/skills/ created with starter skills.") + "\n",
     );
   } catch {
     // No starter skills directory — skip silently
   }
+
+  return { ok: true };
 }

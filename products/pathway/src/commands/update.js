@@ -6,10 +6,8 @@
  * Updates the global @forwardimpact/pathway package if the version changed.
  */
 
-import { cp, mkdir, rm, readFile, writeFile, access } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
-import { execFileSync } from "child_process";
 import { tmpdir } from "os";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createDataLoader } from "@forwardimpact/map/loader";
@@ -28,16 +26,20 @@ const INSTALL_DIR = join(BASE_DIR, "pathway");
  * @param {string} params.dataDir - Path to data directory (may be the installed one)
  * @param {Object} params.options - Command options
  */
-export async function runUpdateCommand({ dataDir: _dataDir, options }) {
+export async function runUpdateCommand({
+  dataDir: _dataDir,
+  options,
+  runtime,
+}) {
   // Verify we have a home-directory installation
   try {
-    await access(INSTALL_DIR);
+    await runtime.fs.access(INSTALL_DIR);
   } catch {
     console.error("Error: No local installation found at ~/.fit/data/pathway/");
     console.error(
       "Install first using the install.sh script from your organization's pathway site.",
     );
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   // Load standard config to get siteUrl
@@ -50,7 +52,7 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
       "Error: No siteUrl found in ~/.fit/data/pathway/standard.yaml (distribution.siteUrl)",
     );
     console.error("Provide one with --url=<URL> or add it to standard.yaml.");
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   const baseUrl = siteUrl.replace(/\/$/, "");
@@ -60,13 +62,13 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
 
   // 1. Download bundle to temp location
   const tmpDir = join(tmpdir(), "fit-pathway-update");
-  await mkdir(tmpDir, { recursive: true });
+  await runtime.fs.mkdir(tmpDir, { recursive: true });
 
   const tmpBundle = join(tmpDir, bundleName);
 
   try {
     logger.info("   Downloading bundle...");
-    execFileSync("curl", [
+    await runSubprocessOrThrow(runtime, "curl", [
       "-fsSL",
       `${baseUrl}/${bundleName}`,
       "-o",
@@ -77,8 +79,8 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
     // 2. Extract bundle
     logger.info("   Extracting...");
     const extractDir = join(tmpDir, "extracted");
-    await mkdir(extractDir, { recursive: true });
-    execFileSync("tar", [
+    await runtime.fs.mkdir(extractDir, { recursive: true });
+    await runSubprocessOrThrow(runtime, "tar", [
       "-xzf",
       tmpBundle,
       "-C",
@@ -90,10 +92,10 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
     // 3. Compare versions from bundle's package.json (version manifest)
     const newPkgPath = join(extractDir, "package.json");
     const oldPkgPath = join(BASE_DIR, "package.json");
-    const newPkg = JSON.parse(await readFile(newPkgPath, "utf8"));
+    const newPkg = JSON.parse(await runtime.fs.readFile(newPkgPath, "utf8"));
     let oldPkg;
     try {
-      oldPkg = JSON.parse(await readFile(oldPkgPath, "utf8"));
+      oldPkg = JSON.parse(await runtime.fs.readFile(oldPkgPath, "utf8"));
     } catch {
       oldPkg = { version: "unknown", dependencies: {} };
     }
@@ -105,22 +107,26 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
 
     // 4. Replace data
     logger.info("   Updating data files...");
-    await rm(INSTALL_DIR, { recursive: true });
-    await cp(join(extractDir, "data"), INSTALL_DIR, { recursive: true });
+    await runtime.fs.rm(INSTALL_DIR, { recursive: true });
+    await runtime.fs.cp(join(extractDir, "data"), INSTALL_DIR, {
+      recursive: true,
+    });
     logger.info("   ✓ Data updated");
 
     // 5. Update version manifest
-    await writeFile(oldPkgPath, JSON.stringify(newPkg, null, 2) + "\n");
+    await runtime.fs.writeFile(
+      oldPkgPath,
+      JSON.stringify(newPkg, null, 2) + "\n",
+    );
 
     // 6. Update global pathway package if version changed
     if (oldVersion !== newVersion) {
       logger.info(`   Updating pathway ${oldVersion} → ${newVersion}...`);
-      execFileSync(
+      await runSubprocessOrThrow(
+        runtime,
         "npm",
         ["install", "-g", `@forwardimpact/pathway@${newVersion}`],
-        {
-          stdio: "ignore",
-        },
+        { stdio: "ignore" },
       );
       logger.info("   ✓ Global package updated");
     }
@@ -134,6 +140,24 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
 `);
   } finally {
     // Clean up temp directory
-    await rm(tmpDir, { recursive: true, force: true });
+    await runtime.fs.rm(tmpDir, { recursive: true, force: true });
   }
+}
+
+/**
+ * Run a subprocess through the injected collaborator, throwing on non-zero exit.
+ * Preserves the fail-fast behavior of the previous `execFileSync` calls.
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
+ * @param {string} cmd - Command to run
+ * @param {string[]} args - Command arguments
+ * @param {object} [opts] - Subprocess options
+ */
+async function runSubprocessOrThrow(runtime, cmd, args, opts = {}) {
+  const result = await runtime.subprocess.run(cmd, args, opts);
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `${cmd} exited with ${result.exitCode}: ${(result.stderr ?? "").trim()}`,
+    );
+  }
+  return result;
 }

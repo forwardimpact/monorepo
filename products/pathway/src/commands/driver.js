@@ -25,11 +25,11 @@ import { getConceptEmoji } from "@forwardimpact/map/levels";
  * @param {Array} drivers - Raw driver entities
  * @param {Object} data - Full data context
  */
-function formatSummary(drivers, data) {
+function formatSummary(drivers, data, runtime) {
   const { skills, behaviours, standard } = data;
   const emoji = standard ? getConceptEmoji(standard, "driver") : "🎯";
 
-  process.stdout.write("\n" + formatHeader(`${emoji} Drivers`) + "\n\n");
+  runtime.proc.stdout.write("\n" + formatHeader(`${emoji} Drivers`) + "\n\n");
 
   const rows = drivers.map((d) => {
     const contributingSkills = skills.filter((s) =>
@@ -41,16 +41,16 @@ function formatSummary(drivers, data) {
     return [d.id, d.name, contributingSkills, contributingBehaviours];
   });
 
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatTable(["ID", "Name", "Skills", "Behaviours"], rows) + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     "\n" + formatSubheader(`Total: ${drivers.length} drivers`) + "\n\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway driver --list' for IDs") + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway driver <id>' for details") + "\n\n",
   );
 }
@@ -60,30 +60,34 @@ function formatSummary(drivers, data) {
  * @param {Object} viewAndContext - Contains driver entity and context
  * @param {Object} standard - Standard config
  */
-function formatDetail(viewAndContext, standard) {
+function formatDetail(viewAndContext, standard, runtime) {
   const { driver, skills, behaviours } = viewAndContext;
   const view = prepareDriverDetail(driver, { skills, behaviours });
   const emoji = standard ? getConceptEmoji(standard, "driver") : "🎯";
 
-  process.stdout.write("\n" + formatHeader(`${emoji} ${view.name}`) + "\n\n");
-  process.stdout.write(view.description + "\n\n");
+  runtime.proc.stdout.write(
+    "\n" + formatHeader(`${emoji} ${view.name}`) + "\n\n",
+  );
+  runtime.proc.stdout.write(view.description + "\n\n");
 
   // Contributing skills
   if (view.contributingSkills.length > 0) {
-    process.stdout.write(formatSubheader("Contributing Skills") + "\n\n");
+    runtime.proc.stdout.write(formatSubheader("Contributing Skills") + "\n\n");
     for (const s of view.contributingSkills) {
-      process.stdout.write(formatBullet(s.name, 1) + "\n");
+      runtime.proc.stdout.write(formatBullet(s.name, 1) + "\n");
     }
-    process.stdout.write("\n");
+    runtime.proc.stdout.write("\n");
   }
 
   // Contributing behaviours
   if (view.contributingBehaviours.length > 0) {
-    process.stdout.write(formatSubheader("Contributing Behaviours") + "\n\n");
+    runtime.proc.stdout.write(
+      formatSubheader("Contributing Behaviours") + "\n\n",
+    );
     for (const b of view.contributingBehaviours) {
-      process.stdout.write(formatBullet(b.name, 1) + "\n");
+      runtime.proc.stdout.write(formatBullet(b.name, 1) + "\n");
     }
-    process.stdout.write("\n");
+    runtime.proc.stdout.write("\n");
   }
 }
 

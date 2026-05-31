@@ -20,7 +20,13 @@ import { whatIfToMarkdown } from "../formatters/what-if/markdown.js";
  * @param {string[]} params.args
  * @param {object} params.options
  */
-export async function runWhatIfCommand({ data, args, options, config }) {
+export async function runWhatIfCommand({
+  data,
+  args,
+  options,
+  config,
+  runtime,
+}) {
   const format = resolveFormat(options);
   const target = resolveTarget(args, options);
 
@@ -34,7 +40,10 @@ export async function runWhatIfCommand({ data, args, options, config }) {
     throw e;
   }
 
-  const roster = await loadRoster(getRosterSource(options, config));
+  const roster = await loadRoster({
+    ...getRosterSource(options, config),
+    fs: runtime.fs,
+  });
 
   const before = computeSnapshot(roster, data, target);
   let mutated;
@@ -69,16 +78,16 @@ export async function runWhatIfCommand({ data, args, options, config }) {
   const report = buildWhatIfReport({ scenario, teams });
 
   if (format === Format.JSON) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       JSON.stringify(whatIfToJson({ report }), null, 2) + "\n",
     );
     return;
   }
   if (format === Format.MARKDOWN) {
-    process.stdout.write(whatIfToMarkdown({ report }));
+    runtime.proc.stdout.write(whatIfToMarkdown({ report }));
     return;
   }
-  process.stdout.write(whatIfToText({ report, data }));
+  runtime.proc.stdout.write(whatIfToText({ report, data }));
 }
 
 function resolveTarget(args, options) {

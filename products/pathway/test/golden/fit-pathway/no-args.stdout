@@ -1,0 +1,63 @@
+fit-pathway 0.25.66 — Career progression for agent-aligned engineering standards
+
+Usage: fit-pathway <command> [options]
+
+Commands:
+  discipline [<id>]               Show disciplines
+  level [<id>]                    Show levels
+  track [<id>]                    Show tracks
+  behaviour [<id>]                Show behaviours
+  skill [<id>]                    Show skills
+  driver [<id>]                   Show drivers
+  tool [<name>]                   Show tools
+  job [<discipline> <level>]      Generate job definition
+  interview <discipline> <level>  Generate interview questions
+  progress <discipline> <level>   Career progression analysis
+  questions                       Browse interview questions
+  agent <discipline>              Generate AI agent profile
+  dev                             Run live development server
+  build                           Generate static site
+  serve [<dir>]                   Serve a build directory with git smart HTTP (default: public/)
+  update                          Update local installation
+
+Options:
+  --list, -l         Output IDs only (for piping)
+  --json             Output as JSON
+  --data=<string>    Path to data directory
+  --format=<string>  Output format
+  --help, -h         Show this help
+  --version, -v      Show version
+
+Examples:
+  fit-pathway discipline backend
+  fit-pathway job software_engineering J060 --track=platform
+  fit-pathway interview software_engineering J060 --json
+  fit-pathway agent software_engineering --track=platform
+
+Documentation:
+  Pathway Overview
+    https://www.forwardimpact.team/pathway/index.md
+    Product overview, audience model, and key concepts.
+  Getting Started: Pathway for Engineers
+    https://www.forwardimpact.team/docs/getting-started/engineers/pathway/index.md
+    From zero to a running Pathway site.
+  Authoring Agent-Aligned Engineering Standards
+    https://www.forwardimpact.team/docs/products/authoring-standards/index.md
+    End-to-end guide to defining your engineering standard in YAML.
+  Validate and Update the Standard
+    https://www.forwardimpact.team/docs/products/authoring-standards/update-standard/index.md
+    Run validation, interpret errors, and update safely.
+  Configure Agents to Meet Your Engineering Standard
+    https://www.forwardimpact.team/docs/products/agent-teams/index.md
+    Generate, structure, and maintain exported agent teams.
+  Give Agents Organizational Context
+    https://www.forwardimpact.team/docs/products/agent-teams/organizational-context/index.md
+    Track-scoped team instructions and installation-scoped organizational context for exported agent teams.
+  See What's Expected at Your Level
+    https://www.forwardimpact.team/docs/products/career-paths/index.md
+    Browse jobs, skills, and career progression between levels.
+  Understand Autonomy and Scope
+    https://www.forwardimpact.team/docs/products/career-paths/autonomy-scope/index.md
+    What each level implies for decision-making and ownership.
+
+Use fit-pathway <command> --help for command-specific options.

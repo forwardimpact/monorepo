@@ -9,7 +9,6 @@
  * subdirectory that `fit-pathway build` generates inside each pack repo.
  */
 
-import { readFile } from "fs/promises";
 import { join } from "path";
 import { Hono } from "hono";
 import { serveStatic } from "@hono/node-server/serve-static";
@@ -24,7 +23,7 @@ const logger = createLogger("pathway");
  * @param {string} params.dir - Build output directory to serve
  * @param {Object} params.options - CLI options (port, host)
  */
-export async function runServeCommand({ dir, options }) {
+export async function runServeCommand({ dir, options, runtime }) {
   const port = Number(options.port) || 3000;
   const host = options.host || "0.0.0.0";
 
@@ -54,7 +53,7 @@ export async function runServeCommand({ dir, options }) {
         "refs",
       );
       try {
-        const data = await readFile(filePath);
+        const data = await runtime.fs.readFile(filePath);
         return c.body(data);
       } catch {
         return c.notFound();
@@ -64,7 +63,7 @@ export async function runServeCommand({ dir, options }) {
     const name = c.req.param("name");
     const filePath = join(dir, "packs", "apm", name, "smart-http", "info-refs");
     try {
-      const data = await readFile(filePath);
+      const data = await runtime.fs.readFile(filePath);
       return c.body(data, 200, {
         "Content-Type": "application/x-git-upload-pack-advertisement",
       });
@@ -84,7 +83,7 @@ export async function runServeCommand({ dir, options }) {
       : "upload-pack-shallow";
     const filePath = join(dir, "packs", "apm", name, "smart-http", file);
     try {
-      const data = await readFile(filePath);
+      const data = await runtime.fs.readFile(filePath);
       return c.body(data, 200, {
         "Content-Type": "application/x-git-upload-pack-result",
       });

@@ -21,14 +21,14 @@ import { formatError } from "@forwardimpact/libcli";
  * Format progress output
  * @param {Object} view - Presenter view
  */
-function formatProgress(view) {
-  process.stdout.write(progressToMarkdown(view) + "\n");
+function formatProgress(view, _options, _data, runtime) {
+  runtime.proc.stdout.write(progressToMarkdown(view) + "\n");
 }
 
 export const runProgressCommand = createCompositeCommand({
   commandName: "progress",
   requiredArgs: ["discipline_id", "level_id"],
-  findEntities: (data, args, options) => {
+  findEntities: (data, args, options, runtime) => {
     const discipline = data.disciplines.find((d) => d.id === args[0]);
     const level = data.levels.find((g) => g.id === args[1]);
     const track = options.track
@@ -39,18 +39,18 @@ export const runProgressCommand = createCompositeCommand({
     if (options.compare) {
       targetLevel = data.levels.find((g) => g.id === options.compare);
       if (!targetLevel) {
-        process.stderr.write(
+        runtime.proc.stderr.write(
           formatError(`Target level not found: ${options.compare}`) + "\n",
         );
-        process.exit(1);
+        runtime.proc.exit(1);
       }
     } else {
       targetLevel = getDefaultTargetLevel(level, data.levels);
       if (!targetLevel) {
-        process.stderr.write(
+        runtime.proc.stderr.write(
           formatError("No next level available for progression.") + "\n",
         );
-        process.exit(1);
+        runtime.proc.exit(1);
       }
     }
 

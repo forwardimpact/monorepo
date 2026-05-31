@@ -3,8 +3,13 @@ import assert from "node:assert";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { runInitCommand } from "../src/commands/init.js";
+
+// Real runtime: init writes to the real filesystem inside an isolated tmpdir
+// (chdir'd in beforeEach), so this exercises the production fs/proc wiring.
+const runtime = createDefaultRuntime();
 
 let testDir;
 let prevCwd;
@@ -34,7 +39,7 @@ afterEach(async () => {
 
 describe("fit-guide init", () => {
   test("first run materialises config/, .env, and package.json with starter top-level keys", async () => {
-    await runInitCommand();
+    await runInitCommand(runtime);
     const config = JSON.parse(
       await fs.readFile(path.join(testDir, "config", "config.json"), "utf8"),
     );
@@ -68,7 +73,7 @@ describe("fit-guide init", () => {
   });
 
   test("re-run is byte-identical across config/, .env, package.json, .claude/skills/", async () => {
-    await runInitCommand();
+    await runInitCommand(runtime);
     const configBefore = await fs.readFile(
       path.join(testDir, "config", "config.json"),
     );
@@ -85,7 +90,7 @@ describe("fit-guide init", () => {
     );
     const tokenBefore = matchEnvValue(envBefore.toString("utf8"), "MCP_TOKEN");
 
-    await runInitCommand();
+    await runInitCommand(runtime);
 
     const configAfter = await fs.readFile(
       path.join(testDir, "config", "config.json"),

@@ -6,8 +6,6 @@
  */
 
 import { createServer } from "http";
-import { readFile, stat } from "fs/promises";
-import { readFileSync } from "fs";
 import { join, extname, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -21,12 +19,23 @@ const __dirname = dirname(__filename);
 const publicDir = join(__dirname, "..");
 const rootDir = join(__dirname, "../..");
 
-// `bun build --compile` injects FIT_PATHWAY_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_PATHWAY_VERSION ||
-  JSON.parse(readFileSync(join(rootDir, "package.json"), "utf8")).version;
+/**
+ * Resolve the published version string.
+ *
+ * `bun build --compile` injects FIT_PATHWAY_VERSION via --define, eliminating
+ * the readFileSync branch in the compiled binary (which would ENOENT against
+ * the bunfs virtual mount). Source execution falls through to package.json.
+ *
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
+ * @returns {Promise<string>}
+ */
+async function resolveVersion(runtime) {
+  return (
+    runtime.proc.env.FIT_PATHWAY_VERSION ||
+    JSON.parse(await runtime.fs.readFile(join(rootDir, "package.json"), "utf8"))
+      .version
+  );
+}
 
 /**
  * Resolve package directory using Node's module resolution.
@@ -83,9 +92,9 @@ function getMimeType(ext) {
  * @param {import('http').ServerResponse} res - HTTP response
  * @param {string} filePath - Path to file
  */
-async function serveFile(res, filePath) {
+async function serveFile(res, filePath, runtime) {
   try {
-    const content = await readFile(filePath);
+    const content = await runtime.fs.readFile(filePath);
     const ext = extname(filePath);
     res.setHeader("Content-Type", getMimeType(ext));
     res.end(content);
@@ -107,9 +116,9 @@ async function serveFile(res, filePath) {
  * @param {string} path - Path to check
  * @returns {Promise<boolean>}
  */
-async function isDirectory(path) {
+async function isDirectory(path, runtime) {
   try {
-    const stats = await stat(path);
+    const stats = await runtime.fs.stat(path);
     return stats.isDirectory();
   } catch {
     return false;
@@ -166,8 +175,9 @@ function resolveRoute(pathname, routes) {
  * @param {string} params.dataDir - Path to data directory
  * @param {Object} params.options - Command options
  */
-export async function runDevCommand({ dataDir, options }) {
+export async function runDevCommand({ dataDir, options, runtime }) {
   const port = options.port || 3000;
+  const version = await resolveVersion(runtime);
 
   // Load standard config for display
   let standard;
@@ -197,18 +207,18 @@ export async function runDevCommand({ dataDir, options }) {
 
     if (pathname === "/version.json") {
       res.setHeader("Content-Type", "application/json; charset=utf-8");
-      res.end(JSON.stringify({ version: VERSION }));
+      res.end(JSON.stringify({ version }));
       return;
     }
 
     let filePath = resolveRoute(pathname, routes);
 
     // Check if path is a directory, serve index.html if so
-    if (await isDirectory(filePath)) {
+    if (await isDirectory(filePath, runtime)) {
       filePath = join(filePath, "index.html");
     }
 
-    await serveFile(res, filePath);
+    await serveFile(res, filePath, runtime);
   });
 
   server.listen(port, () => {

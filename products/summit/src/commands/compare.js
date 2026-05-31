@@ -19,14 +19,23 @@ import { compareToJson } from "../formatters/compare/json.js";
  * @param {string[]} params.args
  * @param {object} params.options
  */
-export async function runCompareCommand({ data, args, options, config }) {
+export async function runCompareCommand({
+  data,
+  args,
+  options,
+  config,
+  runtime,
+}) {
   const format = resolveFormat(options);
   const audience = resolveAudience(options);
 
   const leftTarget = parseCompareTarget(args[0], options, "left-project");
   const rightTarget = parseCompareTarget(args[1], options, "right-project");
 
-  const roster = await loadRoster(getRosterSource(options, config));
+  const roster = await loadRoster({
+    ...getRosterSource(options, config),
+    fs: runtime.fs,
+  });
 
   const left = snapshotTeam(roster, data, leftTarget);
   const right = snapshotTeam(roster, data, rightTarget);
@@ -38,7 +47,7 @@ export async function runCompareCommand({ data, args, options, config }) {
   const rightFiltered = withAudienceFilter(right.coverage, audience);
 
   if (format === Format.JSON) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       JSON.stringify(
         compareToJson({
           left: leftFiltered,
@@ -52,7 +61,7 @@ export async function runCompareCommand({ data, args, options, config }) {
     );
     return;
   }
-  process.stdout.write(
+  runtime.proc.stdout.write(
     compareToText({
       left: leftFiltered,
       right: rightFiltered,

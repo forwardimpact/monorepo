@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { createMockFs } from "@forwardimpact/libmock";
+import { createMockClock, createMockFs } from "@forwardimpact/libmock";
 import { runStatus } from "../src/lib/status.js";
 
 /**
@@ -105,6 +105,7 @@ function createMockDeps(opts = {}) {
     grpc: createMockGrpc(opts.unreachable),
     healthDefinition: createMockHealthDefinition(),
     fs: createMockFs(),
+    clock: createMockClock(),
     fetch: opts.fetch || createMockFetch(true),
     queryDataInventory: async () => ({ resources: 0, triples: 0 }),
   };

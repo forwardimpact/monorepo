@@ -30,12 +30,12 @@ import { formatAgentSkill } from "../formatters/agent/skill.js";
  * @param {Array} skills - Raw skill entities
  * @param {Object} data - Full data context
  */
-function formatSummary(skills, data) {
+function formatSummary(skills, data, runtime) {
   const { capabilities, standard } = data;
   const { groups, groupOrder } = prepareSkillsList(skills, capabilities);
   const emoji = standard ? getConceptEmoji(standard, "skill") : "📚";
 
-  process.stdout.write("\n" + formatHeader(`${emoji} Skills`) + "\n\n");
+  runtime.proc.stdout.write("\n" + formatHeader(`${emoji} Skills`) + "\n\n");
 
   // Summary table by capability
   const rows = groupOrder.map((capability) => {
@@ -44,16 +44,16 @@ function formatSummary(skills, data) {
     return [capability, count, withAgent];
   });
 
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatTable(["Capability", "Count", "Agent"], rows) + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     "\n" + formatSubheader(`Total: ${skills.length} skills`) + "\n\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway skill --list' for IDs") + "\n",
   );
-  process.stdout.write(
+  runtime.proc.stdout.write(
     formatBullet("Run 'npx fit-pathway skill <id>' for details") + "\n\n",
   );
 }
@@ -63,9 +63,9 @@ function formatSummary(skills, data) {
  * @param {Object} viewAndContext - Contains skill entity and context
  * @param {Object} standard - Standard config
  */
-function formatDetail(viewAndContext, standard) {
+function formatDetail(viewAndContext, standard, runtime) {
   const { skill, disciplines, tracks, drivers, capabilities } = viewAndContext;
-  process.stdout.write(
+  runtime.proc.stdout.write(
     skillToMarkdown(skill, {
       disciplines,
       tracks,
@@ -82,22 +82,22 @@ function formatDetail(viewAndContext, standard) {
  * @param {Object} templateLoader - Template loader
  * @param {string} dataDir - Path to data directory for template loading
  */
-async function formatAgentDetail(skill, templateLoader, dataDir) {
+async function formatAgentDetail(skill, templateLoader, dataDir, runtime) {
   if (!skill.agent) {
-    process.stderr.write(
+    runtime.proc.stderr.write(
       formatError(`Skill '${skill.id}' has no agent section`) + "\n",
     );
-    process.stderr.write("\nSkills with agent support:\n");
-    process.stderr.write(
+    runtime.proc.stderr.write("\nSkills with agent support:\n");
+    runtime.proc.stderr.write(
       `  npx fit-pathway skill --list | xargs -I{} sh -c 'npx fit-pathway skill {} --json | jq -e .skill.agent > /dev/null && echo {}'\n`,
     );
-    process.exit(1);
+    runtime.proc.exit(1);
   }
 
   const template = templateLoader.load("skill.template.md", dataDir);
   const skillMd = generateSkillMarkdown({ skillData: skill });
   const output = formatAgentSkill(skillMd, template);
-  process.stdout.write(output + "\n");
+  runtime.proc.stdout.write(output + "\n");
 }
 
 const baseSkillCommand = createEntityCommand({
@@ -130,6 +130,7 @@ export async function runSkillCommand({
   options,
   dataDir,
   templateLoader,
+  runtime,
 }) {
   // Handle --agent flag for detail view
   if (options.agent && args.length > 0) {
@@ -137,17 +138,17 @@ export async function runSkillCommand({
     const skill = data.skills.find((s) => s.id === id);
 
     if (!skill) {
-      process.stderr.write(formatError(`Skill not found: ${id}`) + "\n");
-      process.stderr.write(
+      runtime.proc.stderr.write(formatError(`Skill not found: ${id}`) + "\n");
+      runtime.proc.stderr.write(
         `Available: ${data.skills.map((s) => s.id).join(", ")}\n`,
       );
-      process.exit(1);
+      runtime.proc.exit(1);
     }
 
-    await formatAgentDetail(skill, templateLoader, dataDir);
+    await formatAgentDetail(skill, templateLoader, dataDir, runtime);
     return;
   }
 
   // Delegate to base command for all other cases
-  return baseSkillCommand({ data, args, options, dataDir });
+  return baseSkillCommand({ data, args, options, dataDir, runtime });
 }

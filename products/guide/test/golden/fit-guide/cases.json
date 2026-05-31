@@ -1,0 +1,10 @@
+[
+  {
+    "name": "version",
+    "args": ["--version"],
+    "env": { "FIT_GUIDE_VERSION": "0.0.0-golden" },
+    "exitCode": 0,
+    "stdoutFile": "version.stdout",
+    "stderrFile": "version.stderr"
+  }
+]

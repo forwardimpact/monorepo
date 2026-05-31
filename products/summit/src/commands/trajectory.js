@@ -31,7 +31,7 @@ import { trajectoryToJson } from "../formatters/trajectory/json.js";
  * @param {string[]} params.args
  * @param {object} params.options
  */
-export async function runTrajectoryCommand({ data, args, options }) {
+export async function runTrajectoryCommand({ data, args, options, runtime }) {
   const format = resolveFormat(options);
   const teamId = args[0];
   if (!teamId) {
@@ -41,14 +41,14 @@ export async function runTrajectoryCommand({ data, args, options }) {
   }
 
   if (!options.roster) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       "  Historical roster data not available. Showing current-state only. Trajectory requires quarterly roster snapshots in Map or version-controlled summit.yaml.\n",
     );
     return;
   }
 
   if (options.evidenced) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       "  Evidence on trajectory is not yet supported. Historical evidence snapshots would require new Map infrastructure. Run `fit-summit trajectory <team>` without --evidenced to see derivation-only trajectory.\n",
     );
     return;
@@ -58,12 +58,15 @@ export async function runTrajectoryCommand({ data, args, options }) {
   const absolute = resolve(options.roster);
   const cwd = dirname(absolute);
 
+  const { subprocess } = runtime;
   let repoRoot;
   try {
-    repoRoot = await getRepoRoot({ cwd });
+    repoRoot = await getRepoRoot({ cwd, subprocess });
   } catch (e) {
     if (e instanceof GitUnavailableError) {
-      process.stdout.write(`  ${e.message}\n  Showing current-state only.\n`);
+      runtime.proc.stdout.write(
+        `  ${e.message}\n  Showing current-state only.\n`,
+      );
       return;
     }
     throw e;
@@ -75,17 +78,19 @@ export async function runTrajectoryCommand({ data, args, options }) {
 
   let commits;
   try {
-    commits = await listCommits(relativePath, { cwd: repoRoot });
+    commits = await listCommits(relativePath, { cwd: repoRoot, subprocess });
   } catch (e) {
     if (e instanceof GitUnavailableError) {
-      process.stdout.write(`  ${e.message}\n  Showing current-state only.\n`);
+      runtime.proc.stdout.write(
+        `  ${e.message}\n  Showing current-state only.\n`,
+      );
       return;
     }
     throw e;
   }
 
   if (commits.length === 0) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       "  Historical roster data not available. Showing current-state only.\n",
     );
     return;
@@ -96,6 +101,7 @@ export async function runTrajectoryCommand({ data, args, options }) {
     buckets,
     relativePath,
     repoRoot,
+    runtime,
   );
 
   const trajectory = computeTrajectory({
@@ -105,24 +111,28 @@ export async function runTrajectoryCommand({ data, args, options }) {
   });
 
   if (format === Format.JSON) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       JSON.stringify(trajectoryToJson(trajectory), null, 2) + "\n",
     );
     return;
   }
-  process.stdout.write(trajectoryToText(trajectory));
+  runtime.proc.stdout.write(trajectoryToText(trajectory));
 }
 
-async function loadHistoricalRosters(buckets, relativePath, cwd) {
+async function loadHistoricalRosters(buckets, relativePath, cwd, runtime) {
+  const { subprocess } = runtime;
   const out = [];
   for (const bucket of buckets) {
     try {
-      const yaml = await showFileAt(bucket.sha, relativePath, { cwd });
+      const yaml = await showFileAt(bucket.sha, relativePath, {
+        cwd,
+        subprocess,
+      });
       const roster = parseRosterYaml(yaml);
       out.push({ quarter: bucket.quarter, roster });
     } catch (e) {
       // Skip quarters whose historical file cannot be parsed.
-      process.stderr.write(
+      runtime.proc.stderr.write(
         `summit: skipping quarter ${bucket.quarter} — ${e.message}\n`,
       );
     }

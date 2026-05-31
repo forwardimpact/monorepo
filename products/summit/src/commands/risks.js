@@ -31,16 +31,25 @@ import { risksToMarkdown } from "../formatters/risks/markdown.js";
  * @param {string[]} params.args
  * @param {object} params.options
  */
-export async function runRisksCommand({ data, args, options, config }) {
+export async function runRisksCommand({
+  data,
+  args,
+  options,
+  config,
+  runtime,
+}) {
   const format = resolveFormat(options);
   const audience = resolveAudience(options);
   const target = resolveTarget(args, options);
 
-  const roster = await loadRoster(getRosterSource(options, config));
+  const roster = await loadRoster({
+    ...getRosterSource(options, config),
+    fs: runtime.fs,
+  });
   const resolved = safeResolveTeam(roster, data, target);
 
   if (resolved.members.length === 0) {
-    process.stdout.write(`  ${new EmptyTeamError(resolved.id).message}\n`);
+    runtime.proc.stdout.write(`  ${new EmptyTeamError(resolved.id).message}\n`);
     return;
   }
 
@@ -48,7 +57,7 @@ export async function runRisksCommand({ data, args, options, config }) {
   let risks = detectRisks({ resolvedTeam: resolved, coverage, data });
 
   if (options.evidenced) {
-    const evidence = await loadEvidenceSafe(resolved, options, config);
+    const evidence = await loadEvidenceSafe(resolved, options, config, runtime);
     coverage = decorateCoverageWithEvidence(coverage, evidence);
     risks = decorateRisksWithEvidence(risks, coverage, evidence);
   }
@@ -56,7 +65,7 @@ export async function runRisksCommand({ data, args, options, config }) {
   const filtered = withAudienceFilter(coverage, audience);
 
   if (format === Format.JSON) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       JSON.stringify(
         risksToJson({ coverage: filtered, risks, audience }),
         null,
@@ -66,12 +75,12 @@ export async function runRisksCommand({ data, args, options, config }) {
     return;
   }
   if (format === Format.MARKDOWN) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       risksToMarkdown({ coverage: filtered, risks, audience }),
     );
     return;
   }
-  process.stdout.write(
+  runtime.proc.stdout.write(
     risksToText({ coverage: filtered, risks, data, audience }),
   );
 }
@@ -98,19 +107,20 @@ function safeResolveTeam(roster, data, target) {
   }
 }
 
-async function loadEvidenceSafe(resolved, options, config) {
+async function loadEvidenceSafe(resolved, options, config, runtime) {
   try {
     const client = options.supabase ?? (await createSummitClient({ config }));
     return await loadEvidence(client, {
       team: resolved,
       lookbackMonths: Number(options["lookback-months"] ?? 12),
+      clock: runtime.clock,
     });
   } catch (e) {
     if (
       e instanceof EvidenceUnavailableError ||
       e instanceof SupabaseUnavailableError
     ) {
-      process.stderr.write(`summit: ${e.message}\n`);
+      runtime.proc.stderr.write(`summit: ${e.message}\n`);
       return new Map();
     }
     throw e;

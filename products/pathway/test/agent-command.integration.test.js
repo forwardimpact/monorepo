@@ -28,6 +28,7 @@ import { fileURLToPath } from "node:url";
 
 import { createDataLoader } from "@forwardimpact/map/loader";
 import { createTemplateLoader } from "@forwardimpact/libtemplate";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { runAgentCommand } from "../src/commands/agent.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -117,6 +118,7 @@ async function runAgent(work) {
       dataDir,
       templateLoader,
       loader,
+      runtime: createDefaultRuntime(),
     }),
   );
   return outputDir;
