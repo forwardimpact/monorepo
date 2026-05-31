@@ -8,6 +8,24 @@ set -euo pipefail
 PREFIX="${INSTALL_PREFIX:-$HOME/.local}"
 BIN_DIR="$PREFIX/bin"
 LIB_DIR="$PREFIX/lib"
+
+# Tools installed here, in install order. The same list drives `--paths`.
+TOOLS=(apm just gh rg)
+
+# `install-deps.sh --paths` prints the cache paths this script manages — each
+# tool's lib directory plus its bin symlink — one per line. The bootstrap
+# action feeds these into actions/cache so the deps cache holds only what this
+# script installs, not unrelated tooling that shares the prefix (uv, Python,
+# other XDG state under ~/.local). Layout is static, so this is correct even on
+# a cold cache before anything is installed.
+if [ "${1:-}" = "--paths" ]; then
+  for tool in "${TOOLS[@]}"; do
+    echo "$LIB_DIR/$tool"
+    echo "$BIN_DIR/$tool"
+  done
+  exit 0
+fi
+
 mkdir -p "$BIN_DIR"
 
 ARCH=$(uname -m)
@@ -184,7 +202,6 @@ resolve_rg() {
 
 # ── Install ──────────────────────────────────────────────────────
 
-resolve_apm
-resolve_just
-resolve_gh
-resolve_rg
+for tool in "${TOOLS[@]}"; do
+  "resolve_$tool"
+done
