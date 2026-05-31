@@ -25,7 +25,7 @@ substitutions:
 |---|---|
 | Step 2 (golden capture) | Snapshot the service's RPC contract via `bun test services/<name>/test/contract.test.js` (creating the file if not present — per-service Step 2 substep). Contract tests assert request/response shapes against a stubbed dependency layer. No bytes-comparison golden. |
 | Step 7 (golden replay) | Re-run the contract test after refactor; pass/fail is the verdict. |
-| `runtime.proc.exit` allow-list | Services call `runtime.proc.exit(code)` from the entry point on SIGTERM / fatal startup error; the migration preserves this. |
+| `runtime.proc.exit` allow-list | Services call `runtime.proc.exit(code)` from the entry point on a fatal startup error; the migration preserves this. HTTP services (oauth, mcp) instead wire `SIGINT`/`SIGTERM` to `service.stop()` in `server.js` for graceful shutdown — `libhttp` owns the socket teardown, so the entry point never calls `runtime.proc.exit` on a signal. |
 
 ## Service file layout
 
@@ -36,6 +36,27 @@ have a `src/` subtree. Per-section "Files (src)" lists below reflect
 the actual layout; sections for services without `src/` list
 `services/<name>/index.js`, `services/<name>/server.js`, and any other
 top-level `.js` file.
+
+## HTTP transport standardization (libhttp)
+
+Since 2026-05-30 the four HTTP services standardize on
+`@forwardimpact/libhttp`'s `createHttpService` factory — a non-bin library
+added **after** this plan was first drafted: `oauth` mounts its routes
+directly, `ghbridge` / `msbridge` go through `libbridge`'s
+`createBridgeServer`, and `mcp` reaches the MCP SDK transport through a
+raw-Node escape hatch (`c.env.incoming` / `c.env.outgoing` +
+`RESPONSE_ALREADY_SENT`). `libhttp/src` is **ambient-clean** — it does only
+network I/O (Hono + `@hono/node-server`) and touches no `process` / `node:fs`
+/ clock / timer surface, so `check-ambient-deps` passes on it. It therefore
+carries **no** 1370 sub-row, and the HTTP services migrate **no** transport
+internals: serve/bind, security headers, body limit, `/health`, and graceful
+`stop()` already live behind the library. `libhttp` already accepts injected
+`logger` and `tracer`; the runtime construction site and `SIGINT`/`SIGTERM` →
+`service.stop()` wiring live in each `server.js`. The clock/timer surface for
+the bridge HTTP path (`ProgressTicker`, `ElapsedScheduler`) lives in
+`libbridge` and migrates in its plan-a-04 sub-row. The per-service bullets
+below describe only the **domain** ambient usage that remains after transport
+moved into the libraries.
 
 ## bridge
 
@@ -72,12 +93,12 @@ Files (src): `services/ghauth/index.js`, `services/ghauth/server.js` (no `src/` 
 
 Sub-row: `1370/services-ghbridge\tplan\timplemented`.
 
-Blocking: plan-a-01; plan-a-02 (libwiki — wiki-flow consumes WikiSync).
+Blocking: plan-a-01; plan-a-02 (libwiki — wiki-flow consumes WikiSync); plan-a-04 (libbridge — HTTP transport + ProgressTicker/ElapsedScheduler clock).
 
-Files (src): `services/ghbridge/index.js`, `services/ghbridge/server.js`, `services/ghbridge/src/discussion-adapter.js`, `services/ghbridge/src/graphql.js`.
+Files (src): `services/ghbridge/index.js`, `services/ghbridge/server.js`, `services/ghbridge/src/discussion-adapter.js`, `services/ghbridge/src/graphql.js`, `services/ghbridge/src/injection.js`.
 
-- The pre-PR `rg "WikiRepo|wiki-repo"` audit (per plan-a-02 Step 2) currently shows zero ghbridge importers of `WikiRepo`; if the audit at PR time uncovers wiki-flow code that the 2026-05-30 snapshot missed, it's rewired here (or in plan-a-02 if the migration interlock pulls it forward). Service's own ambient-dep migration covers `process.env`, `node:fs`, `Date.now()`, and any `node:child_process` usage in `graphql.js` / `discussion-adapter.js`.
-- Bridge hardening already in place (MAX_REPLY_COUNT, bodyLimit, sanitization) is untouched.
+- The pre-PR `rg "WikiRepo|wiki-repo"` audit (per plan-a-02 Step 2) currently shows zero ghbridge importers of `WikiRepo`; if the audit at PR time uncovers wiki-flow code that the 2026-05-30 snapshot missed, it's rewired here (or in plan-a-02 if the migration interlock pulls it forward). The service's own ambient-dep migration now centers on `Date.now()` for discussion-context timestamps (`index.js`, `src/injection.js`) → `runtime.clock.now`, plus any `process.env` / `node:fs` / `node:child_process` usage in `graphql.js` / `discussion-adapter.js`. HTTP lifecycle, body limit, and security headers moved into `libbridge` → `libhttp`, so they are no longer migrated here.
+- Bridge hardening already in place (MAX_REPLY_COUNT, sanitization) is untouched; `bodyLimit` now lives in `libhttp`.
 
 ## graph
 
@@ -105,20 +126,21 @@ Sub-row: `1370/services-mcp\tplan\timplemented`.
 
 Blocking: plan-a-01.
 
-Files (src): `services/mcp/index.js`, `services/mcp/server.js` (no `src/` subtree). MCP transport service.
+Files (src): `services/mcp/index.js`, `services/mcp/server.js` (no `src/` subtree; `test/http.test.js` is the transport contract test from Step 2 — it exercises `/health`, the 401 path, and a real `initialize` handshake over the escape hatch). MCP transport service.
 
-- libmcp boundary already excluded from SDK wrapping; service-level migration covers project-internal ambient-dep usage only.
+- No longer runs its own `node:http` server: `mcp` mounts on `libhttp` and hands the raw Node req/res to the MCP SDK's `StreamableHTTPServerTransport` through the escape hatch (`c.env.incoming` / `c.env.outgoing`, returning `RESPONSE_ALREADY_SENT`), with `libhttp`'s body limit disabled so the SDK reads an untouched body. libmcp / the SDK stay excluded from wrapping.
+- Remaining ambient surface is the **clock** only: `Date.now()` for per-session `lastActivity` stamps and `setInterval` for the idle-session sweep → `runtime.clock.now` and `runtime.clock.setInterval`. The former `EADDRINUSE` and shutdown-timeout `process.exit` calls were removed in the libhttp migration; signal handling now lives in `server.js` (`SIGINT`/`SIGTERM` → `service.stop()`), which clears the sweep timer and closes sessions through `libhttp`'s `onStop` hook.
 
 ## msbridge
 
 Sub-row: `1370/services-msbridge\tplan\timplemented`.
 
-Blocking: plan-a-01; plan-a-02 (libwiki).
+Blocking: plan-a-01; plan-a-02 (libwiki); plan-a-04 (libbridge — HTTP transport + ProgressTicker/ElapsedScheduler clock).
 
 Files (src): `services/msbridge/index.js`, `services/msbridge/server.js`, `services/msbridge/src/discussion-adapter.js`, `services/msbridge/src/teams.js`.
 
 - The pre-PR `rg "WikiRepo|wiki-repo"` audit currently shows zero msbridge importers of `WikiRepo`; same conditional rewire as ghbridge. Recent fixes — `e9b9e5a6` HMAC refactor, `5624831f` cascade auth cleanup, `d6b43163` hardening, `0df0d073` format auto-fix — are preserved untouched.
-- Migration covers `process.env.SERVICE_SECRET` / similar (already removed; verify), `Date.now()` for typing-ticker cadence (`runtime.clock.now`), `setTimeout` for typing ticker (`runtime.clock.setTimeout`).
+- Migration now centers on `Date.now()` for discussion-context timestamps in `index.js` → `runtime.clock.now`. The typing-ticker cadence (`setInterval` in `ProgressTicker`) and the `elapsed`-resume `setTimeout` (`ElapsedScheduler`, already on an injected `#clock`) live in `libbridge`, not the service — they migrate in libbridge's plan-a-04 row. HTTP lifecycle / body limit moved into `libbridge` → `libhttp`.
 
 ## oauth
 
@@ -128,7 +150,7 @@ Blocking: plan-a-01.
 
 Files (src): `services/oauth/index.js`, `services/oauth/server.js` (no `src/` subtree). OAuth dance handler.
 
-- `process.env` for OAuth client secrets; `Date.now()` for token expiry; `node:fs` for state persistence (if any).
+- Thinnest HTTP service: `index.js` delegates entirely to `libhttp` and the gRPC `providerClient`, so it carries **no** ambient deps — no `process.env`, `Date.now()`, or `node:fs` (client secrets and host/port arrive through `createServiceConfig` in `server.js`; there is no token-expiry or state-persistence logic in the adapter). Migration is the standard `{ runtime }` construction in `server.js`, which already wires `SIGINT`/`SIGTERM` → `service.stop()`.
 
 ## pathway (service)
 
@@ -173,7 +195,9 @@ After every service's PR merges:
 Libraries used: libutil (Runtime), libmock (createTestRuntime + fakes —
 especially createMockSubprocess for shell-out tests), libcli where the
 service ships an admin CLI, each service's library dependencies (libwiki,
-libgraph, libvector per section), libmcp for mcp / others as needed.
+libgraph, libvector per section), libhttp (ambient-clean HTTP transport
+composed by oauth / mcp / bridges — no 1370 row of its own), libbridge (HTTP
++ scheduling clock for the bridges), libmcp for mcp / others as needed.
 
 ## Master row advance
 
@@ -186,6 +210,6 @@ This is the only condition that flips the master row.
 - **Service migration without consumer awareness.** A service whose RPC contract evolves during migration (even if the contract test still passes) may surprise the gateway. Mitigation: contract tests must include canary cases the gateway also runs; release-merge gates service PRs on both the local contract test and the gateway's contract verification (where available).
 - **Bridge service async-cascade collides with existing hardening.** msbridge / ghbridge's hardening commits introduced precise error-path semantics. Migration must preserve them exactly. Mitigation: each bridge PR's diff shows hardening lines untouched; release-merge inspects.
 - **services that read `process.env` lazily during request handling.** A `runtime.proc.env` Proxy preserves late-binding token rotation ([design § Collaborator Surfaces](design-a.md#collaborator-surfaces)). Tests must specifically exercise the rotation path against `createMockProcess({ env })` mutation between requests.
-- **services/mcp and external SDK boundary.** MCP's SDK is out of scope; if a service module re-implements MCP transport semantics inline (rather than calling the SDK), migrating that module surfaces the inline reimplementation. Mitigation: per-service audit lists every `node:net` / `node:http` direct use and the PR rewrites them through the SDK or `runtime` collaborators, not both.
+- **services/mcp and external SDK boundary.** Resolved by the 2026-05-30 libhttp migration: mcp no longer runs its own `node:http` server — it mounts on `libhttp` and hands the raw Node req/res to the MCP SDK transport via the documented escape hatch (`c.env.incoming` / `c.env.outgoing` + `RESPONSE_ALREADY_SENT`). The `node:net` / `node:http` direct-use audit now returns clean for mcp, so the remaining migration is purely the clock surface (`Date.now()` / `setInterval`); there is no inline transport reimplementation left to surface.
 
 — Staff Engineer 🛠️
