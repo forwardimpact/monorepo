@@ -57,8 +57,8 @@ Entry gate — read every item before starting.
       try/catch "just to be safe," no optional chaining on data that isn't
       optional.
 - [ ] **Clean breaks.** Delete old code as you write new — in one commit. No
-      shims, aliases, or flags for the old path. With no consumers yet, remove
-      the old interface entirely.
+      shims, aliases, fallbacks, or flags for the old path; update every call
+      site and remove the old interface.
 
 </read_do_checklist>
 
