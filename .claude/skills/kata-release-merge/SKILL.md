@@ -9,14 +9,12 @@ description: >
 
 # Release Merge
 
-Verify every open non-Dependabot PR against five gates (trust, type, CI,
-mechanical readiness, approval), produce a classification report, and merge
-those that pass.
+Verify every open non-Dependabot PR against six gates (trust, type, CI,
+mechanical readiness, approval, open comments) and merge those that pass.
 
-This skill handles **all non-Dependabot PRs** — both external contributions and
-PRs from `kata-agent-team`. Contributor trust is the most critical gate; the
-invariant audit (KATA.md § Invariants) confirms the trust check ran on every
-advanced PR.
+This skill handles all non-Dependabot PRs — external contributions and
+kata-agent-team alike. Contributor trust is the most critical gate (the
+invariant audit per KATA.md § Invariants confirms it ran on every advanced PR).
 
 ## When to Use
 
@@ -38,18 +36,17 @@ Comment templates and the report format are in `references/templates.md`.
 - [ ] `wiki/STATUS.md` row for the spec id shows the matching phase at
       `approved` (or `implemented` for the terminal plan row).
 - [ ] For implementation PRs: parent spec's `plan-a.md` exists on `main`.
+- [ ] No unresolved trusted-human concern in the PR comment thread.
 
 </do_confirm_checklist>
 
-A PR that fails any gate is marked **blocked** with the reason. A PR that passes
-all gates is merged in Step 8.
+A PR that fails any gate is **blocked** with reason; passing PRs merge in Step 9.
 
 ## Process
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract PRs blocked in previous runs with
-consecutive-block counts.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract PRs blocked in previous runs with consecutive-block counts.
 
 ### Step 1: List Open PRs
 
@@ -117,11 +114,9 @@ git add <files> && git rebase --continue
 ```
 
 **Substantive conflicts** (overlapping logic, renamed symbols,
-deleted-vs-modified) — `git rebase --abort` and comment listing conflicting
-files for the author.
+deleted-vs-modified) — `git rebase --abort` and comment the conflicting files.
 
-After rebase, run `bun run check:fix` then `bun run check`. If checks still
-fail, mark **blocked** with the failures and skip to Step 9.
+After rebase, run `bun run check:fix` then `bun run check`. If checks still fail, mark **blocked** with the failures and skip to Step 10.
 
 ```sh
 git push --force-with-lease origin <pr-branch>
@@ -129,9 +124,8 @@ git push --force-with-lease origin <pr-branch>
 
 ### Step 6: Approval Gate
 
-**Docs fast-path**: A `docs`-typed PR whose changed files are all `.md` or
-`.mdx` (`gh pr view <n> --json files`) passes on trust (Step 2) alone — skip
-the STATUS check below. Any non-doc file falls through to the standard check.
+**Docs fast-path**: A `docs`-typed PR whose changed files are all `.md`/`.mdx`
+passes on trust (Step 2) alone — skip the STATUS check below.
 
 Read `wiki/STATUS.md` for the PR's spec id —
 `grep -P "^${spec_id}(/[a-z0-9-]+)?\t"` matches the master `NNNN` row and any
@@ -142,7 +136,13 @@ reaches `plan implemented` only once every sub-row does. If absent or
 APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See
 [`approval-signals.md`](../../agents/references/approval-signals.md).
 
-### Step 7: Implementation PR Spec Check
+### Step 7: Open Comment Gate
+
+If any top-7 human contributor's most-recent PR comment is an unresolved
+concern not accepted by a **later** same-human comment, mark **blocked**
+(`awaiting trusted-contributor reply`). See [`comment-gate.md`](references/comment-gate.md) for the resolution model.
+
+### Step 8: Implementation PR Spec Check
 
 For implementation PRs (`feat`/`fix`/`bug`/`refactor`/`chore`) referencing a
 spec id (e.g. `feat(...): … (#NNN)` or "implements spec NNN"):
@@ -155,14 +155,14 @@ spec id (e.g. `feat(...): … (#NNN)` or "implements spec NNN"):
 PRs not referencing a spec (one-off mechanical fixes, doc patches) skip this
 step.
 
-### Step 8: Merge Mergeable PRs
+### Step 9: Merge Mergeable PRs
 
 1. Post the merge comment from `references/templates.md` § Merge Comment.
 2. `gh pr merge <number> --merge --delete-branch`
 3. Verify state is `MERGED`. On race or branch-protection failure, record and
-   move on — do **not** retry without re-running Steps 1–7.
+   move on — do **not** retry without re-running Steps 1–8.
 
-### Step 9: Produce the Classification Report
+### Step 10: Produce the Classification Report
 
 Per PR record: number, title, type, author, trust check, CI, approval source
 (label / review / blocked), final verdict.
