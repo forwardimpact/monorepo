@@ -115,7 +115,10 @@ bin shim along with the src modules it drives.
   `exitCode` so libcli's existing pattern survives without a rewrite).
 - `runtime.clock` — `now()` (ms); `sleep(ms)` is the primary wait
   primitive (Promise); `setTimeout(fn, ms)` / `clearTimeout(h)` for
-  fire-and-forget scheduling (debounce, watchdog) only.
+  fire-and-forget scheduling (debounce, watchdog) only;
+  `setInterval(fn, ms)` / `clearInterval(h)` for periodic sweepers
+  (added in plan-a-06 for the service idle-session/TTL reapers — the
+  returned handle mirrors the host timer so callers may `.unref()` it).
 - `runtime.subprocess` — `run(cmd, args, opts) → Promise<{ stdout,
   stderr, exitCode }>` for one-shot commands (replaces every current
   `spawnSync` / `execFileSync`); `runSync(cmd, args, opts) → { stdout,

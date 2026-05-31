@@ -20,7 +20,3 @@ libraries/libutil/src/retry.js:
   - set-timeout
 libraries/libutil/src/wait.js:
   - date-now
-services/ghuser/src/stores.js:
-  - date-now
-services/ghbridge/src/injection.js:
-  - date-now

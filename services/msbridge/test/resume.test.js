@@ -4,6 +4,7 @@ import {
   createMockConfig,
   createMockLogger,
   createMockTracer,
+  createMockClock,
 } from "@forwardimpact/libmock";
 
 import { MsBridgeService } from "../index.js";
@@ -105,6 +106,7 @@ describe("msbridge resume", () => {
     return new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
+      clock: createMockClock(),
       discussionClient,
       ghuserClient: makeGhuserClient(),
       adapter,

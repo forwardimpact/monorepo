@@ -5,6 +5,7 @@ import {
   createMockDiscussionClient,
   createMockLogger,
   createMockTracer,
+  createMockClock,
 } from "@forwardimpact/libmock";
 
 import { MsBridgeService } from "../index.js";
@@ -106,6 +107,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
+      clock: createMockClock(),
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,
@@ -149,6 +151,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
+      clock: createMockClock(),
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,
@@ -185,6 +188,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
+      clock: createMockClock(),
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,
@@ -218,6 +222,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
+      clock: createMockClock(),
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,
@@ -252,6 +257,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
+      clock: createMockClock(),
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,

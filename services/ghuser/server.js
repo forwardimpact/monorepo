@@ -5,6 +5,7 @@ import { Server, createTracer } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createStorage } from "@forwardimpact/libstorage";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { GhuserService } from "./index.js";
 import { BindingStore, FlowStore, GrantStore } from "./src/stores.js";
 import { createGithubOAuth } from "./src/github-oauth.js";
@@ -24,11 +25,18 @@ const github = createGithubOAuth({
   clientSecret: config.client_secret,
 });
 
+const { clock } = createDefaultRuntime();
 const bindings = new BindingStore(storage);
-const flows = new FlowStore(storage);
-const grants = new GrantStore(storage);
+const flows = new FlowStore(storage, { clock });
+const grants = new GrantStore(storage, { clock });
 
-const service = new GhuserService(config, { bindings, flows, grants, github });
+const service = new GhuserService(config, {
+  bindings,
+  flows,
+  grants,
+  github,
+  clock,
+});
 const server = new Server(service, config, logger, tracer);
 
 await server.start();

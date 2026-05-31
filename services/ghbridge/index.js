@@ -82,6 +82,7 @@ export class GhBridgeService {
   #resume;
   #bridge;
   #onCallback;
+  #clock;
 
   /**
    * @param {import("@forwardimpact/libbridge").BridgeConfig & {
@@ -93,10 +94,12 @@ export class GhBridgeService {
    * @param {object} deps.discussionClient - BridgeClient instance
    * @param {(secret: string, body: string, signature: string) => Promise<boolean>} deps.verifyWebhook
    * @param {(query: string, vars: object) => Promise<unknown>} deps.graphqlClient
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock
+   *   Injected clock collaborator (`now()` for discussion-context timestamps).
    * @param {Acknowledgement} [deps.acknowledgement] - Override (tests)
    */
   constructor(config, deps) {
-    const { logger, tracer, discussionClient, verifyWebhook } = deps;
+    const { logger, tracer, discussionClient, verifyWebhook, clock } = deps;
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
     if (!discussionClient) throw new Error("discussionClient is required");
@@ -104,11 +107,13 @@ export class GhBridgeService {
       throw new Error("verifyWebhook is required");
     }
     if (!deps.ghuserClient) throw new Error("ghuserClient is required");
+    if (!clock) throw new Error("clock is required");
     this.#config = config;
     this.#logger = logger;
     this.#tracer = tracer;
     this.#verifyWebhook = verifyWebhook;
     this.#graphqlClient = deps.graphqlClient;
+    this.#clock = clock;
 
     this.#store = new DiscussionAdapter(discussionClient);
     this.#client = discussionClient;
@@ -265,7 +270,7 @@ export class GhBridgeService {
       const ctx = await this.#loadOrCreateContext(discussionId, discussion);
 
       appendHistory(ctx.history, { role: "user", text, author: requester });
-      ctx.last_active_at = Date.now();
+      ctx.last_active_at = this.#clock.now();
       await this.#store.add(ctx);
 
       const limit = this.#rateLimiter.check(discussionId, ctx.dispatches);
@@ -342,7 +347,7 @@ export class GhBridgeService {
       if (!ctx) ctx = await this.#loadOrCreateContext(discussionId, discussion);
 
       appendHistory(ctx.history, { role: "user", text, author: requester });
-      ctx.last_active_at = Date.now();
+      ctx.last_active_at = this.#clock.now();
       await this.#store.add(ctx);
 
       const { freshDispatchAllowed } = await this.#resume.processInbound(ctx);
@@ -352,6 +357,7 @@ export class GhBridgeService {
           client: this.#client,
           graphqlClient: this.#graphqlClient,
           recordOrigin: this.#recordOrigin(ctx),
+          clock: this.#clock,
         });
         if (inject) {
           await this.#store.add(ctx);
@@ -484,7 +490,7 @@ export class GhBridgeService {
       surface: CHANNEL,
       surface_user_id: requester,
       discussion_id: ctx.discussion_id,
-      created_at: Date.now(),
+      created_at: this.#clock.now(),
     });
 
     await postSingleDiscussionReply(
@@ -526,7 +532,7 @@ export class GhBridgeService {
         bridge.Origin.fromObject({
           id: comment.id,
           discussion_id: ctx.discussion_id,
-          posted_at: Date.now(),
+          posted_at: this.#clock.now(),
         }),
       );
     };

@@ -18,12 +18,21 @@ export class BridgeService extends BridgeBase {
   #originTtlMs;
   #pendingTtlMs;
   #sweepTimer;
+  #clock;
 
   /**
-   *
+   * @param {object} config
+   * @param {object} deps
+   * @param {object} deps.storage
+   * @param {object} deps.logger
+   * @param {object} [deps.tracer]
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock
+   *   Injected clock collaborator (`now`/`setInterval`/`clearInterval`).
    */
-  constructor(config, { storage, logger, tracer }) {
+  constructor(config, { storage, logger, tracer, clock }) {
     super(config);
+    if (!clock) throw new Error("clock is required");
+    this.#clock = clock;
     this.#discussions = new BufferedIndex(storage, "discussions.jsonl", {
       flush_interval: config.discussion_flush_interval_ms,
       max_buffer_size: config.discussion_max_buffer_size,
@@ -48,8 +57,8 @@ export class BridgeService extends BridgeBase {
     this.#conversationTtlMs = config.conversation_ttl_ms;
     this.#originTtlMs = config.origin_ttl_ms;
     this.#pendingTtlMs = config.pending_ttl_ms ?? 10 * 60 * 1000;
-    this.#sweepTimer = setInterval(() => {
-      this.#sweep(Date.now()).catch((e) => logger.error?.("sweep", e));
+    this.#sweepTimer = this.#clock.setInterval(() => {
+      this.#sweep(this.#clock.now()).catch((e) => logger.error?.("sweep", e));
     }, config.sweep_interval_ms);
     this.#sweepTimer.unref();
   }
@@ -144,7 +153,7 @@ export class BridgeService extends BridgeBase {
       seq,
       text: msg.text ?? "",
       author: msg.author ?? "",
-      enqueued_at: msg.enqueued_at ?? Date.now(),
+      enqueued_at: msg.enqueued_at ?? this.#clock.now(),
     };
     await this.#inbox.add(entry);
     await this.#inbox.flush();
@@ -177,7 +186,7 @@ export class BridgeService extends BridgeBase {
       surface: p.surface,
       surface_user_id: p.surface_user_id,
       discussion_id: p.discussion_id,
-      created_at: Number(p.created_at) || Date.now(),
+      created_at: Number(p.created_at) || this.#clock.now(),
     });
     return {};
   }
@@ -212,7 +221,7 @@ export class BridgeService extends BridgeBase {
    *
    */
   async Sweep(req) {
-    const now = req.now ?? Date.now();
+    const now = req.now ?? this.#clock.now();
     const { evicted_discussions, evicted_origins, evicted_pending } =
       await this.#sweep(now);
     return { evicted_discussions, evicted_origins, evicted_pending };
@@ -272,7 +281,7 @@ export class BridgeService extends BridgeBase {
    *
    */
   async shutdown() {
-    clearInterval(this.#sweepTimer);
+    this.#clock.clearInterval(this.#sweepTimer);
     await Promise.all([
       this.#discussions.flush(),
       this.#origins.flush(),

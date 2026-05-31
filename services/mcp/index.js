@@ -64,8 +64,8 @@ export function isAuthorized(req, expectedToken) {
   return crypto.timingSafeEqual(Buffer.from(auth), Buffer.from(expected));
 }
 
-async function dispatchExistingSession(req, res, session, logger) {
-  session.lastActivity = Date.now();
+async function dispatchExistingSession(req, res, session, logger, clock) {
+  session.lastActivity = clock.now();
   try {
     await session.transport.handleRequest(req, res);
   } catch (err) {
@@ -74,7 +74,7 @@ async function dispatchExistingSession(req, res, session, logger) {
 }
 
 async function dispatchNewSession(req, res, ctx) {
-  const { sessions, makeServer, promptText, logger } = ctx;
+  const { sessions, makeServer, promptText, logger, clock } = ctx;
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => crypto.randomUUID(),
   });
@@ -91,7 +91,7 @@ async function dispatchNewSession(req, res, ctx) {
 
   const sid = transport.sessionId;
   if (sid) {
-    sessions.set(sid, { transport, server, lastActivity: Date.now() });
+    sessions.set(sid, { transport, server, lastActivity: clock.now() });
   }
 }
 
@@ -108,7 +108,7 @@ async function dispatchNewSession(req, res, ctx) {
  * `c.env.incoming`/`c.env.outgoing` and returns the `RESPONSE_ALREADY_SENT`
  * sentinel; libhttp's body limit is disabled so the SDK reads an untouched body.
  *
- * @param {{ config: object, logger: object, tracer?: object, graphClient: object, vectorClient: object, pathwayClient: object, mapClient: object, resourceIndex: object }} deps
+ * @param {{ config: object, logger: object, tracer?: object, graphClient: object, vectorClient: object, pathwayClient: object, mapClient: object, resourceIndex: object, clock: import("@forwardimpact/libutil/runtime").Runtime["clock"] }} deps
  * @returns {{ app: import("hono").Hono, address: () => object|null, start: () => Promise<void>, stop: () => Promise<void> }}
  */
 export function createMcpService({
@@ -120,7 +120,9 @@ export function createMcpService({
   pathwayClient,
   mapClient,
   resourceIndex,
+  clock,
 }) {
+  if (!clock) throw new Error("clock is required");
   function makeServer(promptText) {
     const server = new McpServer(
       { name: "guide", version: "0.1.0" },
@@ -152,7 +154,7 @@ export function createMcpService({
   const promptText = buildPromptText(config.system_prompt, config.tools);
   const expectedToken = config.mcpToken();
   const sessions = new Map();
-  const ctx = { sessions, makeServer, promptText, logger };
+  const ctx = { sessions, makeServer, promptText, logger, clock };
   let sweepTimer = null;
 
   const httpService = createHttpService({
@@ -175,7 +177,7 @@ export function createMcpService({
         const sessionId = req.headers["mcp-session-id"];
         const existing = sessionId && sessions.get(sessionId);
         if (existing) {
-          await dispatchExistingSession(req, res, existing, logger);
+          await dispatchExistingSession(req, res, existing, logger, clock);
         } else {
           await dispatchNewSession(req, res, ctx);
         }
@@ -184,7 +186,7 @@ export function createMcpService({
     },
     async onStop() {
       logger.info("Shutting down MCP server");
-      if (sweepTimer) clearInterval(sweepTimer);
+      if (sweepTimer) clock.clearInterval(sweepTimer);
       await Promise.allSettled(
         [...sessions.values()].map((s) => s.server.close()),
       );
@@ -196,8 +198,8 @@ export function createMcpService({
     app: httpService.app,
     address: httpService.address,
     async start() {
-      sweepTimer = setInterval(() => {
-        const now = Date.now();
+      sweepTimer = clock.setInterval(() => {
+        const now = clock.now();
         for (const [sid, session] of sessions) {
           if (now - session.lastActivity > SESSION_IDLE_MS) {
             logger.info(`Reaping idle session ${sid}`);

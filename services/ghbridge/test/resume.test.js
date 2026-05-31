@@ -4,6 +4,7 @@ import {
   createMockConfig,
   createMockLogger,
   createMockTracer,
+  createMockClock,
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
@@ -35,6 +36,7 @@ async function newService() {
   const service = new GhBridgeService(makeConfig(), {
     logger: createMockLogger(),
     tracer: createMockTracer(),
+    clock: createMockClock(),
     discussionClient: createStatefulDiscussionClient(),
     verifyWebhook: (s, b, sig) =>
       import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),

@@ -7,13 +7,21 @@ import { postSingleDiscussionReply } from "./graphql.js";
  * Try to inject a message into an active run's inbox, or post a static
  * notice if the requester is not the session owner.
  *
+ * @param {object} ctx
+ * @param {string} requester
+ * @param {string} text
+ * @param {object} deps
+ * @param {object} deps.client
+ * @param {Function} deps.graphqlClient
+ * @param {Function} deps.recordOrigin
+ * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock
  * @returns {{ kind: "injected"|"noticed" } | null}
  */
 export async function tryInject(
   ctx,
   requester,
   text,
-  { client, graphqlClient, recordOrigin },
+  { client, graphqlClient, recordOrigin, clock },
 ) {
   if (
     Object.keys(ctx.pending_callbacks).length === 0 ||
@@ -29,11 +37,11 @@ export async function tryInject(
           correlation_id: correlationId,
           text,
           author: String(requester),
-          enqueued_at: Date.now(),
+          enqueued_at: clock.now(),
         },
       }),
     );
-    ctx.last_active_at = Date.now();
+    ctx.last_active_at = clock.now();
     return { kind: "injected" };
   }
   await postSingleDiscussionReply(

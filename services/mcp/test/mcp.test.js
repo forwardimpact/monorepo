@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { spy } from "@forwardimpact/libmock";
+import { spy, createMockClock } from "@forwardimpact/libmock";
 
 import { buildPromptText, createMcpService, isAuthorized } from "../index.js";
 import { registerToolsFromConfig } from "@forwardimpact/libmcp";
@@ -182,6 +182,7 @@ describe("MCP service", () => {
         graphClient: clients.graph,
         vectorClient: clients.vector,
         pathwayClient: clients.pathway,
+        clock: createMockClock({ start: Date.now() }),
       });
       assert.strictEqual(typeof start, "function");
     });

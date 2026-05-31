@@ -40,7 +40,8 @@ import { Finder } from "./finder.js";
  *   `exitCode` accessor.
  * @property {Object} clock
  *   Time surface: `now()`, `sleep(ms)`, `setTimeout(fn, ms)`,
- *   `clearTimeout(handle)`.
+ *   `clearTimeout(handle)`, `setInterval(fn, ms)`, `clearInterval(handle)`.
+ *   The interval handle mirrors the host timer (so callers may `.unref()` it).
  * @property {Object} subprocess
  *   Subprocess surface: `run(cmd, args, opts) -> Promise<{stdout, stderr,
  *   exitCode}>` (async, buffered), `runSync(cmd, args, opts) -> {stdout,
@@ -134,7 +135,7 @@ function lineIterator(stream) {
 
 /**
  * Build the clock surface backed by real timers.
- * @returns {{now: () => number, sleep: (ms: number) => Promise<void>, setTimeout: Function, clearTimeout: Function}}
+ * @returns {{now: () => number, sleep: (ms: number) => Promise<void>, setTimeout: Function, clearTimeout: Function, setInterval: Function, clearInterval: Function}}
  */
 export function createDefaultClock() {
   return {
@@ -142,6 +143,8 @@ export function createDefaultClock() {
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
     setTimeout: (fn, ms) => setTimeout(fn, ms),
     clearTimeout: (handle) => clearTimeout(handle),
+    setInterval: (fn, ms) => setInterval(fn, ms),
+    clearInterval: (handle) => clearInterval(handle),
   };
 }
 

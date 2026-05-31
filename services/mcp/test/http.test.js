@@ -1,6 +1,6 @@
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert";
-import { spy } from "@forwardimpact/libmock";
+import { spy, createMockClock } from "@forwardimpact/libmock";
 
 import { createMcpService } from "../index.js";
 
@@ -31,6 +31,7 @@ describe("MCP HTTP transport", () => {
       graphClient: {},
       vectorClient: {},
       pathwayClient: {},
+      clock: createMockClock({ start: Date.now() }),
     });
     await service.start();
     baseUrl = `http://127.0.0.1:${service.address().port}`;

@@ -48,6 +48,7 @@
     "@forwardimpact/librpc": "^0.1.92",
     "@forwardimpact/libtelemetry": "^0.1.35",
     "@forwardimpact/libtype": "^0.1.68",
+    "@forwardimpact/libutil": "^0.1.85",
     "@forwardimpact/svcmap": "^0.1.0",
     "@hono/node-server": "^2.0.4",
     "@modelcontextprotocol/sdk": "^1.29.0"

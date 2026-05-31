@@ -5,6 +5,7 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createResourceIndex } from "@forwardimpact/libresource";
 import { createClient, createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { createMcpService } from "./index.js";
 
@@ -20,6 +21,7 @@ const vectorClient = await createClient("vector", logger, tracer);
 const pathwayClient = await createClient("pathway", logger, tracer);
 const mapClient = await createClient("map", logger, tracer);
 const resourceIndex = createResourceIndex("resources");
+const { clock } = createDefaultRuntime();
 
 const service = createMcpService({
   config,
@@ -30,6 +32,7 @@ const service = createMcpService({
   pathwayClient,
   mapClient,
   resourceIndex,
+  clock,
 });
 
 await service.start();
