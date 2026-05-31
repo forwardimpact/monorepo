@@ -65,17 +65,18 @@ export function makeRuntime({ cwd = process.cwd(), env = {}, now } = {}) {
 /**
  * Assemble an `InvocationContext`-shaped object for invoking a command handler
  * directly in-process (without going through `cli.dispatch`).
- * @param {{runtime: object, wikiSync?: object, gitClient?: object, options?: object, args?: object}} parts
+ * @param {{runtime: object, wikiSync?: object, gitClient?: object, query?: function, options?: object, args?: object}} parts
  * @returns {object}
  */
 export function ctxFor({
   runtime,
   wikiSync,
   gitClient,
+  query,
   options = {},
   args = {},
 }) {
-  return { deps: { runtime, wikiSync, gitClient }, options, args };
+  return { deps: { runtime, wikiSync, gitClient, query }, options, args };
 }
 
 /** Run a git command in the given directory and return its trimmed stdout. */

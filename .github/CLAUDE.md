@@ -45,6 +45,28 @@ git push origin main && git push origin v1 --force
 `GITHUB_TOKEN` in this environment has push rights to every sibling repo
 under `forwardimpact/*`; no extra auth setup is needed.
 
+### `IS_SANDBOX` for headless agents
+
+Every published action that drives the Claude Agent SDK runs it in
+**bypass-permissions** mode (`--dangerously-skip-permissions`), which Claude
+Code refuses under `uid 0` unless the process is marked sandboxed. CI runners
+and agent containers may run as root, so each such action sets `IS_SANDBOX=1`
+on the step that spawns the agent:
+
+- `fit-eval` — the `Run fit-eval` step (all modes).
+- `fit-benchmark` — the `Run benchmark` step (the agent-under-test).
+- `fit-wiki` — the `Run fit-wiki command` step (`fit-wiki fix` is an agent run).
+- `kata-agent` — the `Assess and Act` step, explicit alongside the `fit-eval@v1`
+  it wraps.
+
+(`fit-bootstrap` spawns no agent and needs nothing.) The SDK forwards the
+parent process environment to the spawned Claude Code process, so setting it on
+the action's environment is sufficient; this is deliberately **not** hard-coded
+in `libeval` so the value stays an environment decision. Without it the agent
+exits 1 with no NDJSON output before its first turn — the same failure mode any
+`fit-eval`-derived command (e.g. `fit-wiki fix`) hits when run as root in an
+environment that has not set the flag.
+
 ## Local composite actions
 
 Live under `actions/`. Workflows reference them via the full workspace path
