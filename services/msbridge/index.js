@@ -2,6 +2,7 @@ import {
   Acknowledgement,
   CallbackHandlerError,
   CallbackRegistry,
+  DefaultTenantResolver,
   Dispatcher,
   RateLimiter,
   ResumeScheduler,
@@ -33,6 +34,13 @@ import {
 const CHANNEL = "msteams";
 const WEBHOOK_PATH = "/api/messages";
 const WORKFLOW_FILE = "kata-dispatch.yml";
+
+function parseRepo(githubRepo) {
+  if (typeof githubRepo !== "string" || !githubRepo) return undefined;
+  const [owner, name] = githubRepo.split("/");
+  if (!owner || !name) return undefined;
+  return { owner, name };
+}
 
 export { appendHistory, buildPrompt, validateCallbackPayload };
 
@@ -126,6 +134,10 @@ export class MsBridgeService {
       workflowFile: WORKFLOW_FILE,
       githubRepo: config.github_repo,
       tokenResolver: new TokenResolver(ghuserClient),
+      tenantResolver: new DefaultTenantResolver({
+        channel: CHANNEL,
+        repo: parseRepo(config.github_repo),
+      }),
     });
     this.#resume = new ResumeScheduler({
       dispatcher: this.#dispatcher,

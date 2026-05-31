@@ -2,48 +2,87 @@ import { describe, expect, test } from "bun:test";
 
 import { CallbackRegistry } from "../src/callback-registry.js";
 
+const DEFAULT = { tenant_id: "default" };
+
 describe("CallbackRegistry", () => {
   test("register returns a token and consume returns the metadata once", () => {
     const reg = new CallbackRegistry();
-    const token = reg.register("corr-1", { threadId: "T1" });
+    const token = reg.register("corr-1", {
+      threadId: "T1",
+      tenant_id: "default",
+    });
     expect(typeof token).toBe("string");
     expect(token.length).toBeGreaterThan(0);
     expect(reg.size).toBe(1);
 
-    const first = reg.consume(token);
+    const first = reg.consume(token, DEFAULT);
     expect(first).not.toBeNull();
     expect(first.correlationId).toBe("corr-1");
-    expect(first.meta).toEqual({ threadId: "T1" });
+    expect(first.meta).toEqual({ threadId: "T1", tenant_id: "default" });
     expect(reg.size).toBe(0);
 
-    const second = reg.consume(token);
+    const second = reg.consume(token, DEFAULT);
     expect(second).toBeNull();
   });
 
   test("peek returns metadata without consuming and clones the entry", () => {
     const reg = new CallbackRegistry();
-    const token = reg.register("corr-2");
-    const peeked = reg.peek(token);
+    const token = reg.register("corr-2", { tenant_id: "default" });
+    const peeked = reg.peek(token, DEFAULT);
     expect(peeked.correlationId).toBe("corr-2");
     expect(reg.size).toBe(1);
 
     // Mutating the peeked entry must not corrupt internal state.
     peeked.correlationId = "tampered";
-    const second = reg.peek(token);
+    const second = reg.peek(token, DEFAULT);
     expect(second.correlationId).toBe("corr-2");
   });
 
   test("register rejects empty correlationId", () => {
     const reg = new CallbackRegistry();
-    expect(() => reg.register("")).toThrow();
-    expect(() => reg.register(undefined)).toThrow();
+    expect(() => reg.register("", { tenant_id: "default" })).toThrow();
+    expect(() => reg.register(undefined, { tenant_id: "default" })).toThrow();
+  });
+
+  test("register requires meta.tenant_id", () => {
+    const reg = new CallbackRegistry();
+    expect(() => reg.register("corr", {})).toThrow(/tenant_id/);
+    expect(() => reg.register("corr")).toThrow(/tenant_id/);
+    expect(() => reg.register("corr", { tenant_id: "" })).toThrow(/tenant_id/);
+  });
+
+  test("consume returns null when tenant_id does not match the stored binding", () => {
+    const reg = new CallbackRegistry();
+    const token = reg.register("corr-mismatch", { tenant_id: "tenant-a" });
+    expect(reg.consume(token, { tenant_id: "tenant-b" })).toBeNull();
+    // Mismatched consume leaves the entry intact for the rightful caller.
+    expect(reg.size).toBe(1);
+    const ok = reg.consume(token, { tenant_id: "tenant-a" });
+    expect(ok).not.toBeNull();
+    expect(ok.correlationId).toBe("corr-mismatch");
+  });
+
+  test("peek returns null when tenant_id does not match the stored binding", () => {
+    const reg = new CallbackRegistry();
+    const token = reg.register("corr-peek", { tenant_id: "tenant-a" });
+    expect(reg.peek(token, { tenant_id: "tenant-b" })).toBeNull();
+    expect(reg.peek(token, { tenant_id: "tenant-a" })).not.toBeNull();
+  });
+
+  test("consume and peek require a tenant_id argument", () => {
+    const reg = new CallbackRegistry();
+    const token = reg.register("corr-required", { tenant_id: "default" });
+    expect(() => reg.consume(token)).toThrow(/tenant_id/);
+    expect(() => reg.consume(token, {})).toThrow(/tenant_id/);
+    expect(() => reg.peek(token)).toThrow(/tenant_id/);
+    expect(() => reg.peek(token, {})).toThrow(/tenant_id/);
   });
 
   test("sweep evicts entries older than ttlMs (caller-provided clock)", () => {
     const reg = new CallbackRegistry({ ttlMs: 1000 });
     const before = Date.now();
-    const a = reg.register("corr-a");
-    const b = reg.register("corr-b");
+    const a = reg.register("corr-a", { tenant_id: "default" });
+    const b = reg.register("corr-b", { tenant_id: "default" });
     const after = Date.now();
 
     // No eviction when `now` is still inside the window.
@@ -51,14 +90,14 @@ describe("CallbackRegistry", () => {
 
     // Eviction when `now` has advanced past createdAt + ttlMs for both.
     expect(reg.sweep(before + 5000)).toBe(2);
-    expect(reg.consume(a)).toBeNull();
-    expect(reg.consume(b)).toBeNull();
+    expect(reg.consume(a, DEFAULT)).toBeNull();
+    expect(reg.consume(b, DEFAULT)).toBeNull();
   });
 
   test("default ttlMs matches the legacy 2h constant", () => {
     const reg = new CallbackRegistry();
     const before = Date.now();
-    reg.register("corr-default-ttl");
+    reg.register("corr-default-ttl", { tenant_id: "default" });
     const twoHours = 2 * 60 * 60 * 1000;
     expect(reg.sweep(before + twoHours - 1000)).toBe(0);
     expect(reg.sweep(before + twoHours + 1000)).toBe(1);
@@ -66,8 +105,8 @@ describe("CallbackRegistry", () => {
 
   test("issues unique tokens for distinct correlationIds", () => {
     const reg = new CallbackRegistry();
-    const t1 = reg.register("a");
-    const t2 = reg.register("b");
+    const t1 = reg.register("a", { tenant_id: "default" });
+    const t2 = reg.register("b", { tenant_id: "default" });
     expect(t1).not.toBe(t2);
   });
 });

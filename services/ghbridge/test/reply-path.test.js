@@ -108,18 +108,21 @@ describe("ghbridge reply path", () => {
       "D_reply",
     );
     const token = Object.keys(stored.pending_callbacks)[0];
-    const meta = service.callbacks.peek(token);
+    const meta = service.callbacks.peek(token, { tenant_id: "default" });
 
-    const callbackRes = await fetch(`${baseUrl}/api/callback/${token}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        correlation_id: meta.correlationId,
-        verdict: "adjourned",
-        summary: "done",
-        replies: [{ body: "bot reply" }],
-      }),
-    });
+    const callbackRes = await fetch(
+      `${baseUrl}/api/callback/default/${token}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          correlation_id: meta.correlationId,
+          verdict: "adjourned",
+          summary: "done",
+          replies: [{ body: "bot reply" }],
+        }),
+      },
+    );
     expect(callbackRes.status).toBe(200);
 
     const commentCalls = graphqlCalls.filter(

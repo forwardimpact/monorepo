@@ -72,7 +72,7 @@ function makeActivity(threadId, id, text) {
 }
 
 async function postCallback(baseUrl, token, body) {
-  return fetch(`${baseUrl}/api/callback/${token}`, {
+  return fetch(`${baseUrl}/api/callback/default/${token}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -142,7 +142,7 @@ describe("msbridge resume", () => {
     await postMessage(baseUrl);
     const stored1 = await service.store.loadByChannel("msteams", "t-r");
     const token = Object.keys(stored1.pending_callbacks)[0];
-    const meta = service.callbacks.peek(token);
+    const meta = service.callbacks.peek(token, { tenant_id: "default" });
     expect(dispatches).toHaveLength(1);
 
     await postCallback(baseUrl, token, {
@@ -184,7 +184,7 @@ describe("msbridge resume", () => {
     await postMessage(baseUrl);
     const stored1 = await service.store.loadByChannel("msteams", "t-e");
     const token = Object.keys(stored1.pending_callbacks)[0];
-    const meta = service.callbacks.peek(token);
+    const meta = service.callbacks.peek(token, { tenant_id: "default" });
 
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
@@ -207,7 +207,7 @@ describe("msbridge resume", () => {
     await postMessage(baseUrl);
     const stored1 = await service.store.loadByChannel("msteams", "t-a");
     const token = Object.keys(stored1.pending_callbacks)[0];
-    const meta = service.callbacks.peek(token);
+    const meta = service.callbacks.peek(token, { tenant_id: "default" });
 
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
@@ -233,7 +233,7 @@ describe("msbridge resume", () => {
     await postMessage(baseUrl);
     const stored1 = await service.store.loadByChannel("msteams", "t-rs");
     const token = Object.keys(stored1.pending_callbacks)[0];
-    const meta = service.callbacks.peek(token);
+    const meta = service.callbacks.peek(token, { tenant_id: "default" });
 
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,

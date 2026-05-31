@@ -13,6 +13,7 @@ export class Dispatcher {
   #workflowFile;
   #githubRepo;
   #tokenResolver;
+  #tenantResolver;
   #clock;
 
   /**
@@ -24,6 +25,7 @@ export class Dispatcher {
    * @param {string} options.workflowFile
    * @param {string} options.githubRepo
    * @param {import("./token-resolver.js").TokenResolver} options.tokenResolver
+   * @param {import("./tenant-resolver.js").TenantResolver} options.tenantResolver
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
    */
   constructor({
@@ -34,6 +36,7 @@ export class Dispatcher {
     workflowFile,
     githubRepo,
     tokenResolver,
+    tenantResolver,
     clock = createDefaultClock(),
   }) {
     if (!callbacks) throw new Error("callbacks is required");
@@ -45,6 +48,7 @@ export class Dispatcher {
     if (!workflowFile) throw new Error("workflowFile is required");
     if (!githubRepo) throw new Error("githubRepo is required");
     if (!tokenResolver) throw new Error("tokenResolver is required");
+    if (!tenantResolver) throw new Error("tenantResolver is required");
     this.#callbacks = callbacks;
     this.#ack = ack;
     this.#store = store;
@@ -52,6 +56,7 @@ export class Dispatcher {
     this.#workflowFile = workflowFile;
     this.#githubRepo = githubRepo;
     this.#tokenResolver = tokenResolver;
+    this.#tenantResolver = tenantResolver;
     this.#clock = clock;
   }
 
@@ -80,12 +85,21 @@ export class Dispatcher {
     const auth = await this.#tokenResolver.resolve(ctx.channel, requester);
     if (auth.kind !== "token") return auth;
 
+    const tenant = await this.#tenantResolver.resolve({
+      channel: ctx.channel,
+      key: ctx.channel_tenant_key,
+    });
+    if (!tenant) {
+      return { kind: "transient", error: new Error("tenant_unresolved") };
+    }
+    const tenant_id = tenant.tenant_id;
+
     const correlationId = randomUUID();
-    const mergedMeta = { ...(callbackMeta ?? {}), requester };
+    const mergedMeta = { ...(callbackMeta ?? {}), requester, tenant_id };
     const token = this.#callbacks.register(correlationId, mergedMeta);
     ctx.pending_callbacks[token] = correlationId;
     ctx.active_requester = requester;
-    const callbackUrl = `${this.#callbackBaseUrl}/api/callback/${token}`;
+    const callbackUrl = `${this.#callbackBaseUrl}/api/callback/${tenant_id}/${token}`;
     const inboxUrl = `${this.#callbackBaseUrl}/api/inbox/${correlationId}`;
 
     if (ackTarget !== undefined) await this.#ack.start(token, ackTarget);
@@ -107,7 +121,7 @@ export class Dispatcher {
       return { kind: "dispatched", token, correlationId };
     } catch (err) {
       if (ackTarget !== undefined) await this.#ack.finish(token, ackTarget);
-      this.#callbacks.consume(token);
+      this.#callbacks.consume(token, { tenant_id });
       delete ctx.pending_callbacks[token];
       ctx.active_requester = null;
       throw err;

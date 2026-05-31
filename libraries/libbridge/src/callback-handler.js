@@ -88,8 +88,14 @@ export function createCallbackHandler({
     if (!payload) return c.json({ error: "Invalid payload" }, 400);
 
     const token = c.req.param("token");
+    const tenant_id = c.req.param("tenant_id");
+    if (!tenant_id) {
+      return c.json({ error: "Unknown callback token" }, 404);
+    }
     const isTerminal = payload.kind === "terminal";
-    const meta = isTerminal ? callbacks.consume(token) : callbacks.peek(token);
+    const meta = isTerminal
+      ? callbacks.consume(token, { tenant_id })
+      : callbacks.peek(token, { tenant_id });
     if (!meta) {
       logger.debug?.("callback", "unknown token");
       return c.json({ error: "Unknown callback token" }, 404);

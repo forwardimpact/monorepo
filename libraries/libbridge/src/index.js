@@ -34,6 +34,10 @@ export {
   DEFAULT_TYPING_VERBS,
 } from "./acknowledgement.js";
 export { Dispatcher } from "./dispatcher.js";
+export {
+  DefaultTenantResolver,
+  RegistryTenantResolver,
+} from "./tenant-resolver.js";
 export { TokenResolver } from "./token-resolver.js";
 export {
   CallbackHandlerError,

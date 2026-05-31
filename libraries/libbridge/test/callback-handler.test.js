@@ -68,10 +68,14 @@ function makeReactionAdapter() {
   };
 }
 
-function makeC({ token, body, parseFails } = {}) {
+function makeC({ token, tenant_id = "default", body, parseFails } = {}) {
   return {
     req: {
-      param: () => token,
+      param: (name) => {
+        if (name === "tenant_id") return tenant_id;
+        if (name === "token") return token;
+        return undefined;
+      },
       json: async () => {
         if (parseFails) throw new Error("bad json");
         return body;
@@ -90,11 +94,12 @@ const channel = "test-channel";
 async function seed(
   store,
   callbacks,
-  { discussionId = "D_1", meta = {} } = {},
+  { discussionId = "D_1", tenant_id = "default", meta = {} } = {},
 ) {
   const correlationId = "corr-1";
   const token = callbacks.register(correlationId, {
     discussionId,
+    tenant_id,
     ...meta,
   });
   const ctx = {
@@ -177,6 +182,23 @@ describe("createCallbackHandler", () => {
     expect(res.status).toBe(404);
   });
 
+  test("tenant_id mismatch returns 404 (registry returns null on consume)", async () => {
+    const { token, correlationId } = await seed(store, callbacks);
+    const res = await handler(
+      makeC({
+        token,
+        tenant_id: "other-tenant",
+        body: {
+          correlation_id: correlationId,
+          kind: "terminal",
+          verdict: "adjourned",
+          summary: "",
+        },
+      }),
+    );
+    expect(res.status).toBe(404);
+  });
+
   test("invalid JSON returns 400", async () => {
     const { token } = await seed(store, callbacks);
     const res = await handler(makeC({ token, parseFails: true }));
@@ -201,7 +223,10 @@ describe("createCallbackHandler", () => {
   });
 
   test("missing context returns 410", async () => {
-    const token = callbacks.register("corr-x", { discussionId: "missing" });
+    const token = callbacks.register("corr-x", {
+      discussionId: "missing",
+      tenant_id: "default",
+    });
     const res = await handler(
       makeC({
         token,
@@ -347,7 +372,7 @@ describe("createCallbackHandler", () => {
       { body: "partial answer", agent: "staff-engineer" },
     ]);
     // Token NOT consumed — peek was used
-    expect(callbacks.peek(token)).not.toBeNull();
+    expect(callbacks.peek(token, { tenant_id: "default" })).not.toBeNull();
     const reloaded = await store.loadByChannel(channel, "D_1");
     expect(reloaded.last_posted_seq).toBe(3);
     expect(reloaded.pending_callbacks[token]).toBe(correlationId);
@@ -392,7 +417,7 @@ describe("createCallbackHandler", () => {
       }),
     );
     expect(res.status).toBe(200);
-    expect(callbacks.peek(token)).toBeNull();
+    expect(callbacks.peek(token, { tenant_id: "default" })).toBeNull();
     const reloaded = await store.loadByChannel(channel, "D_1");
     expect(reloaded.active_requester).toBeNull();
     expect(reloaded.pending_callbacks[token]).toBeUndefined();
