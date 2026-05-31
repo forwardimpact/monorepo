@@ -1,21 +1,21 @@
 /**
- * `fit-benchmark score` — score a single task against a post-run workdir
- * directory without invoking an agent (P6/P7). Useful for re-scoring an
- * agent's output against revised grading material.
+ * `fit-benchmark invariants` — check a single task's invariants against a
+ * post-run workdir directory without invoking an agent (P6/P7). Useful for
+ * re-checking an agent's output against revised grading material.
  */
 
 import { join, resolve } from "node:path";
 import { createServer } from "node:net";
 
-import { validateScoringRecord } from "../benchmark/result.js";
-import { runScoring } from "../benchmark/scorer.js";
+import { validateInvariantsRecord } from "../benchmark/result.js";
+import { runInvariants } from "../benchmark/invariants.js";
 import { loadTaskFamily } from "../benchmark/task-family.js";
 
 /**
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}
  */
-export async function runBenchmarkScoreCommand(ctx) {
+export async function runBenchmarkInvariantsCommand(ctx) {
   const values = ctx.options;
   const runtime = ctx.deps.runtime;
   const familyInput = values.family;
@@ -36,13 +36,13 @@ export async function runBenchmarkScoreCommand(ctx) {
   const cwd = join(runDir, "cwd");
   const port = await allocatePort();
 
-  const scoring = await runScoring(task, { cwd, port, runDir });
+  const invariants = await runInvariants(task, { cwd, port, runDir });
   const record = {
     taskId: task.id,
-    scoring,
-    exitCode: scoring.exitCode,
+    invariants,
+    exitCode: invariants.exitCode,
   };
-  validateScoringRecord(record);
+  validateInvariantsRecord(record);
 
   const line = JSON.stringify(record) + "\n";
   if (values.output) {
@@ -50,7 +50,7 @@ export async function runBenchmarkScoreCommand(ctx) {
   } else {
     runtime.proc.stdout.write(line);
   }
-  return scoring.verdict === "pass"
+  return invariants.verdict === "pass"
     ? { ok: true }
     : { ok: false, code: 1, error: "" };
 }

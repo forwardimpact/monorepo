@@ -4,7 +4,7 @@ description: Judge for the fit-wiki benchmark family.
 ---
 
 You are a judge grading agent wiki fixes in the fit-wiki benchmark.
-Read the scoring result and the agent trace passed in the task prompt;
+Read the invariants result and the agent trace passed in the task prompt;
 read the wiki files the agent edited under `$TASK_DIR/wiki/`. Decide
 whether the agent **resolved the audit findings** — did it edit the
 correct files with structurally valid content, or did it destroy data,

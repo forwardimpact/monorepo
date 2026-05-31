@@ -28,7 +28,7 @@ benchmarks/<family>/
         ├── workdir/             # copied into agent CWD
         └── hooks/
             ├── preflight.sh     # smoke probe; exit 0 confirms scaffold
-            └── score.sh         # structural rubric; exit code is verdict
+            └── invariants.sh    # structural rubric; exit code is verdict
 ```
 
 `fit-benchmark run` calls `apm install --target claude` in the family root

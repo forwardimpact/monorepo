@@ -17,9 +17,9 @@ substrate already shipped by spec [#870](../870-fit-benchmark-coding-tasks/desig
 | Staged skill tree | `benchmarks/kata-skills/.claude/skills/kata-*/` (build output) | Identical layout to `.claude/skills/kata-*` in the monorepo; populated by the staging script, not checked in. |
 | Staged judge profile | `benchmarks/kata-skills/.claude/agents/judge.md` (new, checked in) | The judge agent profile the harness invokes per spec #870's judge contract — see Decision 4 for rationale. |
 | Lockfile | `benchmarks/kata-skills/apm.lock.yaml` (build output) | The file `ApmInstaller` hashes for `skillSetHash`. Bytes are deterministic per regime (see § Lockfile shape) and change when the staged sources change. |
-| v1 task | `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/` (new) | The single v1 task. METR-style `task_family_name/task_name` (`kata-spec/write-feature-spec`). Carries `instructions.md`, `supervisor.task.md` (reserved, unread in v1 per #870 Decision 14), `judge.task.md`, `specs/` (a brief plus a JTBD persona+job snippet copied into the agent CWD), `workdir/scripts/preflight.sh` (no-op `exit 0` — the task ships nothing to boot), and `scoring/run.sh` (the structural rubric). |
-| Structural rubric | `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/scoring/run.sh` (new) | Hidden grading per #870 — invoked by the harness's `Scorer` from the template path, never copied into the agent CWD. Asserts the rubric enumerated in § Grading rubric. NDJSON rows to `$RESULTS_FD`; exit code is the authoritative verdict. |
-| Judge prompt | `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/judge.task.md` (new) | Reads `{{SCORING}}` and `{{AGENT_TRACE_PATH}}` per #870. Judges whether the spec *addresses the brief* — the layer the structural rubric cannot grade. |
+| v1 task | `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/` (new) | The single v1 task. METR-style `task_family_name/task_name` (`kata-spec/write-feature-spec`). Carries `instructions.md`, `supervisor.task.md` (reserved, unread in v1 per #870 Decision 14), `judge.task.md`, `specs/` (a brief plus a JTBD persona+job snippet copied into the agent CWD), `workdir/scripts/preflight.sh` (no-op `exit 0` — the task ships nothing to boot), and `invariants/run.sh` (the structural rubric). |
+| Structural rubric | `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/invariants/run.sh` (new) | Hidden grading per #870 — invoked by the harness's `Invariants` from the template path, never copied into the agent CWD. Asserts the rubric enumerated in § Grading rubric. NDJSON rows to `$RESULTS_FD`; exit code is the authoritative verdict. |
+| Judge prompt | `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/judge.task.md` (new) | Reads `{{INVARIANTS_RESULT}}` and `{{AGENT_TRACE_PATH}}` per #870. Judges whether the spec *addresses the brief* — the layer the structural rubric cannot grade. |
 | Workflow | `.github/workflows/benchmark-kata-skills.yml` (new) | Drives the three trigger signals, calls the staging script with the regime appropriate to the trigger, invokes `fit-benchmark run` + `fit-benchmark report`, writes the pass@k table to `$GITHUB_STEP_SUMMARY`, and uploads the JSONL artefact. |
 
 ## Component graph
@@ -63,7 +63,7 @@ benchmarks/
           judge.task.md                    # judge prompt (templated)
           specs/                           # copied into agent CWD: the brief, JTBD excerpt
           workdir/scripts/preflight.sh     # `exit 0` — no scaffold to boot
-          scoring/run.sh                   # structural rubric; lives template-side
+          invariants/run.sh                   # structural rubric; lives template-side
 ```
 
 ## Staging-regime sequence
@@ -155,7 +155,7 @@ assertion is workflow-level (post-run sum over JSONL) — see Decision 9.
 
 ## Grading rubric (structural)
 
-The `scoring/run.sh` script grades the agent's emitted `spec.md` against the
+The `invariants/run.sh` script grades the agent's emitted `spec.md` against the
 quality bar `.claude/skills/kata-spec/SKILL.md` § DO-CONFIRM publishes:
 
 | Check | Property |
@@ -167,7 +167,7 @@ quality bar `.claude/skills/kata-spec/SKILL.md` § DO-CONFIRM publishes:
 | No HOW leak | Absence of file-path/function-signature patterns characteristic of plan-grade content. |
 | Cites JTBD | References a persona+job present in the staged `JTBD.md` excerpt (under `$WORKDIR/specs/`). |
 
-`verdict = "pass"` iff scoring **and** judge both pass, per #870's combined
+`verdict = "pass"` iff invariants **and** judge both pass, per #870's combined
 gate.
 
 ## Key Decisions

@@ -11,7 +11,7 @@ npx fit-benchmark <command> [options]
 | Command  | Purpose                                                       |
 | -------- | ------------------------------------------------------------- |
 | `run`    | Run every task in a family for N runs                         |
-| `score`  | Score one task against a post-run workdir (no agent invoked)  |
+| `invariants` | Check one task's invariants against a post-run workdir (no agent invoked) |
 | `report` | Aggregate results into pass@k via the HumanEval estimator     |
 
 ## `run` options
@@ -34,16 +34,16 @@ and appends the same record to `<output>/results.jsonl` for the report
 subcommand. Exit code is `0` if every record's combined verdict is
 `pass`, otherwise `1`.
 
-## `score` options
+## `invariants` options
 
 | Flag         | Required | Purpose                                                                                  |
 | ------------ | -------- | ---------------------------------------------------------------------------------------- |
 | `--family`   | yes      | Path or git URL of the task family                                                       |
 | `--task`     | yes      | Task id (directory name under `tasks/`)                                        |
-| `--workdir`  | yes      | Post-run directory. `<workdir>/cwd/` is the agent CWD; scoring runs against it.          |
+| `--workdir`  | yes      | Post-run directory. `<workdir>/cwd/` is the agent CWD; invariants run against it.        |
 | `--output`   | no       | Output file path (defaults to stdout; one JSONL line)                                    |
 
-`score` emits a `ScoringRecord` (narrower than the full `ResultRecord` —
+`invariants` emits an `InvariantsRecord` (narrower than the full `ResultRecord` —
 it skips agent and judge fields because no agent was invoked). Exit
 `0` on pass, `1` on fail.
 

@@ -61,7 +61,7 @@ describe("WorkdirManager.start", () => {
     // hooks/ MUST NOT exist in the agent CWD
     await assert.rejects(
       import("node:fs").then((m) =>
-        m.promises.access(join(wd.cwd, "hooks", "score.sh")),
+        m.promises.access(join(wd.cwd, "hooks", "invariants.sh")),
       ),
     );
     await wm.teardown(wd);

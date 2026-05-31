@@ -71,7 +71,7 @@ exit 0
         judge: null,
         hooks: join(taskRoot, "hooks"),
         preflight: join(taskRoot, "hooks", "preflight.sh"),
-        score: null,
+        invariants: null,
         specs: join(taskRoot, "specs"),
         workdir: join(taskRoot, "workdir"),
       },

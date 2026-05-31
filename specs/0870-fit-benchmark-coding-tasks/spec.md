@@ -64,8 +64,8 @@ agents in production are not in scope.
 | Task family format | A conventional layout (local path or git remote) for grouping related coding tasks. The format borrows METR Task Standard vocabulary and lifecycle structure; the on-disk shape is a design decision. |
 | Per-task content | Each task carries enough material to: prompt the agent, guide a live supervisor, guide a post-hoc judge, anchor the agent in the desired outcome (work specifications), seed the agent's working directory, and grade the agent's output. The grading material is never accessible from the agent's working directory. |
 | Skill set under test | The task family declares the skills/agents installed in each task's working directory through a manifest whose contents uniquely identify the skill set. The manifest is the unit of measurement — different manifest contents produce comparable result records, with a stable identifier on each record. |
-| Lifecycle | The harness drives a fixed sequence of phases per task: setup, agent execution, scoring, judging, and teardown. The harness rejects broken task templates without spending agent cost. |
-| Judge phase | A separate evaluator session runs after scoring, consumes the scoring outcome and the agent trace, and emits a final verdict that the result record records. |
+| Lifecycle | The harness drives a fixed sequence of phases per task: setup, agent execution, invariants, judging, and teardown. The harness rejects broken task templates without spending agent cost. |
+| Judge phase | A separate evaluator session runs after invariants, consumes the invariants outcome and the agent trace, and emits a final verdict that the result record records. |
 | Multi-run aggregation | The harness supports running each task multiple times in one invocation and aggregates pass@k across runs per the OpenAI HumanEval unbiased estimator. |
 | Result records | One result record per task per run, even when tasks fail at any phase. Records carry the information needed to compute pass@k, attribute outcomes to a skill-set version, and reproduce a run. The record schema is a single declared shape shared by the harness and the report tooling. |
 | Grading surface | The harness grades tasks via three post-run outcome categories: running-service behaviour, repository state, and process exit. |
@@ -85,7 +85,7 @@ agents in production are not in scope.
 - **Family-level cost-budget enforcement.** Per-task budgets surface from
   libeval.
 - **Determinism / replay from trace.** Each run is a fresh agent session.
-- **Intermediate scoring.** Only end-of-run scoring in this scope.
+- **Intermediate invariants.** Only end-of-run invariants in this scope.
 - **Concurrent runs across `(task, runIndex)` pairs.** v1 is serial.
 - **Per-task tool/network permissions.** v1 runs every task with one default
   tool set built into the harness. Per-task permissions (e.g. METR's
@@ -101,7 +101,7 @@ agents in production are not in scope.
 | Hidden grading produces a pass/fail per task via the running-service surface. | Test: a fixture task whose grading script HTTP-probes the agent's app on a known port and asserts a JSON shape; with a stub agent producing a passing app, the result record's grading verdict is pass; with a stub producing a failing app, it is fail. |
 | Hidden grading produces a pass/fail per task via the repository-state surface. | Test: a fixture task whose grading script asserts the existence and SHA-256 content of one or more files under the post-run working directory; a stub agent meeting the assertions produces a passing record; one missing the file produces a failing record. |
 | Hidden grading produces a pass/fail per task via the process-exit surface. | Test: a fixture task whose grading script invokes a command in the post-run working directory and treats exit-zero as pass; the result record's grading verdict tracks the command's exit code. |
-| The judge phase consumes the scoring outcome and the agent trace and emits a final verdict that the result record records. | Test: a fixture judge prompt referencing scoring results yields a judge-verdict on the result record; a known-bad scoring outcome plus a known-good trace produces a failing verdict. |
+| The judge phase consumes the invariants outcome and the agent trace and emits a final verdict that the result record records. | Test: a fixture judge prompt referencing invariants results yields a judge-verdict on the result record; a known-bad invariants outcome plus a known-good trace produces a failing verdict. |
 | The skill set under test is reproducible across runs. | Test: two consecutive runs against the same skill-set manifest produce result records whose skill-set identifier matches; a one-byte content change to the manifest produces a different identifier. |
 | Pre-flight catches broken task templates before the agent runs. | Test: a task whose unmodified scaffolding fails its own start fails before agent execution with a non-zero exit and a structured error in the result record; the result record's agent cost is zero. |
 | Result aggregation across runs reports pass@k per the OpenAI HumanEval unbiased estimator. | Test: the report tooling, given five runs of the same task with verdicts pass/fail/fail/pass/fail, reports `pass@1 = 0.4` and `pass@3 = 0.9` (the unbiased estimator `1 - C(n-c, k) / C(n, k)`). |

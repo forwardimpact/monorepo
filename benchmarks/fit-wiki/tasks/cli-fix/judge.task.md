@@ -1,7 +1,7 @@
-Scoring result:
+Invariants result:
 
 ```json
-{{SCORING_RESULT}}
+{{INVARIANTS_RESULT}}
 ```
 
 The agent was given these instructions:

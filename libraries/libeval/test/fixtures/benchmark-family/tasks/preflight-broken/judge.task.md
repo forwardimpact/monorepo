@@ -1,1 +1,1 @@
-Never reached. {{SCORING_RESULT}} {{AGENT_TRACE_PATH}}
+Never reached. {{INVARIANTS_RESULT}} {{AGENT_TRACE_PATH}}

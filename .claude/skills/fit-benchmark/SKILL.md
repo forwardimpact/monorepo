@@ -21,7 +21,7 @@ unbiased estimator.
 ## Why a Separate Tool
 
 `fit-eval` is the generic agent-evaluation plumbing. `fit-benchmark` is
-the opinionated layer on top — a task-family format, hidden scoring,
+the opinionated layer on top — a task-family format, hidden invariant checks,
 post-hoc judge, and multi-run aggregation. Keeping the two separate
 keeps `fit-eval` low-level while letting the benchmark layer evolve.
 
@@ -42,7 +42,7 @@ under test:
     supervisor.task.md    # optional — supervisor context for the relay
     judge.task.md         # optional — judge prompt (see § Judge Template Variables)
     hooks/preflight.sh    # optional — smoke probe; exit 0 confirms scaffold
-    hooks/score.sh        # optional — fd 3 = $RESULTS_FD for structured rows
+    hooks/invariants.sh   # optional — fd 3 = $RESULTS_FD for structured rows
     specs/                # copied into agent CWD
     workdir/              # copied into agent CWD
 ```
@@ -67,10 +67,10 @@ For each `(task, runIndex)` the harness drives:
 2. **Agent** — run the coding agent on `agent.task.md` with a default
    tool allow-list (`Bash`, `Read`, `Glob`, `Grep`, `Write`, `Edit`,
    `Agent`, `TodoWrite`). Override with `--allowed-tools`.
-3. **Score** — run `hooks/score.sh` from the template path. The exit
-   code is authoritative for the verdict; fd 3 (`$RESULTS_FD=3`)
-   carries optional NDJSON rows for diagnostic per-test details.
-4. **Judge** — a separate session reads the scoring outcome and the
+3. **Invariants** — run `hooks/invariants.sh` from the template path. The
+   exit code is authoritative for the verdict; fd 3 (`$RESULTS_FD=3`)
+   carries optional NDJSON rows for diagnostic per-check details.
+4. **Judge** — a separate session reads the invariants outcome and the
    agent trace and calls `Conclude` with `success` or `failure`.
 5. **Teardown** — SIGTERM/SIGKILL the per-task process group, verify
    the port is free, and reap descendants.
@@ -118,8 +118,8 @@ The action outputs `results-path` — the absolute path to
 | Command | Purpose |
 | --- | --- |
 | `run` | Run every task N times against a family; append result records to `<output>/results.jsonl`. |
-| `score` | Score a single task against a post-run workdir without invoking an agent. |
-| `report` | Aggregate `results.jsonl` into pass@k, scoring checks, judge commentary, and operational stats. |
+| `invariants` | Check a single task's invariants against a post-run workdir without invoking an agent. |
+| `report` | Aggregate `results.jsonl` into pass@k, invariant checks, judge commentary, and operational stats. |
 
 ## Typical Workflow
 
@@ -143,16 +143,14 @@ The `judge.task.md` template supports these variables:
 | `{{AGENT_INSTRUCTIONS}}` | Contents of `agent.task.md` |
 | `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
 | `{{AGENT_TRACE_PATH}}` | Path to `agent.ndjson` |
-| `{{SCORING_RESULT}}` | JSON scoring object (verdict, details, exitCode) |
+| `{{INVARIANTS_RESULT}}` | JSON invariants object (verdict, details, exitCode) |
 | `{{SKILL_SET_HASH}}` | SHA-256 fingerprint from `apm.lock.yaml` |
 | `{{TASK_ID}}` | Task name (directory under `tasks/`) |
 | `{{TASK_DIR}}` | Agent working directory path |
 
-`{{SCORING}}` is accepted as a legacy alias for `{{SCORING_RESULT}}`.
-
 ## Grading Surfaces
 
-`hooks/score.sh` decides "pass" or "fail" using any of three surfaces:
+`hooks/invariants.sh` decides "pass" or "fail" using any of three surfaces:
 
 | Surface | Example |
 | --- | --- |
@@ -160,8 +158,8 @@ The `judge.task.md` template supports these variables:
 | **Repository state** | Assert the SHA-256 of `$WORKDIR/result.txt`. |
 | **Process exit** | Run a command in `$WORKDIR` and treat exit-zero as pass. |
 
-The exit code of `score.sh` is the verdict. Rows written to `fd 3` (i.e.
-`$RESULTS_FD`) are surfaced on the result record as `scoring.details[]`
+The exit code of `invariants.sh` is the verdict. Rows written to `fd 3` (i.e.
+`$RESULTS_FD`) are surfaced on the result record as `invariants.details[]`
 for diagnostic breakdowns.
 
 ## Result Records

@@ -8,7 +8,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
 import { runBenchmarkRunCommand } from "../src/commands/benchmark-run.js";
-import { runBenchmarkScoreCommand } from "../src/commands/benchmark-score.js";
+import { runBenchmarkInvariantsCommand } from "../src/commands/benchmark-invariants.js";
 import { runBenchmarkReportCommand } from "../src/commands/benchmark-report.js";
 
 // `bun build --compile` injects FIT_BENCHMARK_VERSION via --define, eliminating
@@ -80,11 +80,11 @@ export const definition = {
       },
     },
     {
-      name: "score",
+      name: "invariants",
       args: [],
-      handler: runBenchmarkScoreCommand,
+      handler: runBenchmarkInvariantsCommand,
       description:
-        "Score a single task against a post-run workdir without invoking an agent.",
+        "Check a single task's invariants against a post-run workdir without invoking an agent.",
       options: {
         family: {
           type: "string",
@@ -97,7 +97,7 @@ export const definition = {
         workdir: {
           type: "string",
           description:
-            "Post-run directory; <workdir>/cwd/ is the agent CWD scoring runs against",
+            "Post-run directory; <workdir>/cwd/ is the agent CWD invariants run against",
         },
         output: {
           type: "string",
@@ -136,7 +136,7 @@ export const definition = {
   examples: [
     "fit-benchmark run --family=./families/coding",
     "fit-benchmark run --family=./families/coding --runs=10 --agent-model=claude-sonnet-4-6",
-    "fit-benchmark score --family=./families/coding --task=todo-api --workdir=./benchmark-runs/runs/todo-api/0",
+    "fit-benchmark invariants --family=./families/coding --task=todo-api --workdir=./benchmark-runs/runs/todo-api/0",
     "fit-benchmark report --format=text",
     "fit-benchmark report --input=./runs/today --k=1,3,5 --format=text",
   ],

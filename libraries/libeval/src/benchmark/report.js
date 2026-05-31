@@ -3,7 +3,7 @@
  * records by `taskId`, and compute pass@k via the OpenAI HumanEval
  * unbiased estimator: `1 - C(n-c, k) / C(n, k)`.
  *
- * When `includeRuns` is true, each task carries per-run detail (scoring
+ * When `includeRuns` is true, each task carries per-run detail (invariant
  * checks, judge commentary, cost, duration) and the text renderer produces
  * a full markdown report instead of just the pass@k table.
  *
@@ -22,7 +22,7 @@ import { validateResultRecord } from "./result.js";
  * @typedef {object} RunDetail
  * @property {number} runIndex
  * @property {"pass"|"fail"} verdict
- * @property {{verdict: string, details: unknown[], exitCode: number}} [scoring]
+ * @property {{verdict: string, details: unknown[], exitCode: number}} [invariants]
  * @property {{verdict: string, summary: string}} [judgeVerdict]
  * @property {number} costUsd
  * @property {number} turns
@@ -112,7 +112,7 @@ function buildRunDetail(r, acc) {
   return {
     runIndex: r.runIndex,
     verdict: r.verdict,
-    ...(r.scoring && { scoring: r.scoring }),
+    ...(r.invariants && { invariants: r.invariants }),
     ...(r.judgeVerdict && { judgeVerdict: r.judgeVerdict }),
     costUsd: r.costUsd ?? 0,
     turns: r.turns ?? 0,
@@ -262,7 +262,7 @@ function renderTaskDetail(task) {
 
   lines.push("", renderRunsTable(runs));
 
-  const checks = renderScoringChecks(runs, singleRun);
+  const checks = renderInvariantChecks(runs, singleRun);
   if (checks) lines.push("", checks);
 
   const commentary = renderJudgeCommentary(runs, singleRun);
@@ -278,7 +278,7 @@ function renderRunsTable(runs) {
   const header = [
     "Run",
     "Verdict",
-    "Scoring",
+    "Invariants",
     "Judge",
     "Cost",
     "Turns",
@@ -286,10 +286,10 @@ function renderRunsTable(runs) {
   ];
   const rows = [header, header.map(() => "---")];
   for (const r of runs) {
-    const scoringCell = r.preflightError
+    const invariantsCell = r.preflightError
       ? "preflight error"
-      : r.scoring
-        ? statusIcon(r.scoring.verdict === "pass")
+      : r.invariants
+        ? statusIcon(r.invariants.verdict === "pass")
         : "—";
     const judgeCell = r.preflightError
       ? "—"
@@ -299,7 +299,7 @@ function renderRunsTable(runs) {
     rows.push([
       String(r.runIndex),
       statusIcon(r.verdict === "pass"),
-      scoringCell,
+      invariantsCell,
       judgeCell,
       formatCost(r.costUsd),
       String(r.turns),
@@ -309,15 +309,15 @@ function renderRunsTable(runs) {
   return rows.map((r) => `| ${r.join(" | ")} |`).join("\n");
 }
 
-function renderScoringChecks(runs, singleRun) {
-  const rows = collectScoringRows(runs);
+function renderInvariantChecks(runs, singleRun) {
+  const rows = collectInvariantRows(runs);
   if (!rows.length) return null;
 
   const header = singleRun
     ? ["Check", "Result", "Message"]
     : ["Run", "Check", "Result", "Message"];
   const lines = [
-    "#### Scoring Checks",
+    "#### Invariant Checks",
     "",
     `| ${header.join(" | ")} |`,
     `| ${header.map(() => "---").join(" | ")} |`,
@@ -331,11 +331,11 @@ function renderScoringChecks(runs, singleRun) {
   return lines.join("\n");
 }
 
-function collectScoringRows(runs) {
+function collectInvariantRows(runs) {
   const rows = [];
   for (const r of runs) {
-    if (!r.scoring?.details?.length) continue;
-    for (const d of r.scoring.details) {
+    if (!r.invariants?.details?.length) continue;
+    for (const d of r.invariants.details) {
       rows.push({
         run: r.runIndex,
         check: escapeCell(String(d.test ?? "(unnamed)")),

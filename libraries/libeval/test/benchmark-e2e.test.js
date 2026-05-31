@@ -28,12 +28,12 @@ const mockInstallApm = (family, outputDir) =>
 const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
   .pathname;
 
-const SCORING_SENTINEL = "SCORING_SENTINEL_DO_NOT_LEAK_2870c4";
+const INVARIANTS_SENTINEL = "INVARIANTS_SENTINEL_DO_NOT_LEAK_2870c4";
 
 /**
  * Mock query for the agent-under-test session. Writes a minimal NDJSON
  * trace to `workdir.agentTracePath` and seeds task-specific side effects
- * the scoring script depends on.
+ * the invariants script depends on.
  */
 async function mockRunAgent(task, workdir) {
   // Seed task-specific side effects.
@@ -42,7 +42,7 @@ async function mockRunAgent(task, workdir) {
   }
   // Stub agent that "tries to enumerate" — its assistant text mentions
   // every filename it explored. The sentinel filename must NOT appear
-  // because scoring/ is never copied to cwd.
+  // because hooks/ is never copied to cwd.
   const submission = `I built it. Listed cwd: README.md, app.js, specs/, .claude/, sentinel-pass-file.`;
   const messages = [
     { type: "system", subtype: "init", session_id: "mock", model: "m" },
@@ -70,12 +70,14 @@ async function mockRunAgent(task, workdir) {
 
 /**
  * Mock judge: writes a supervisor-source Conclude tool_use to
- * `workdir.judgeTracePath` matching the scoring verdict.
+ * `workdir.judgeTracePath` matching the invariants verdict.
  */
-async function mockRunJudge(_task, workdir, scoring) {
-  const verdict = scoring.verdict === "pass" ? "success" : "failure";
+async function mockRunJudge(_task, workdir, invariants) {
+  const verdict = invariants.verdict === "pass" ? "success" : "failure";
   const summary =
-    scoring.verdict === "pass" ? "matches scoring; approved" : "scoring failed";
+    invariants.verdict === "pass"
+      ? "matches invariants; approved"
+      : "invariants failed";
   const envelopes = [
     {
       source: "supervisor",
@@ -191,37 +193,37 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   test("pass: running-service grading via HTTP probe yields verdict='pass'", () => {
     const passRec = sharedRecords.find((r) => r.taskId === "pass");
     assert.ok(passRec, "pass record missing");
-    assert.strictEqual(passRec.scoring.verdict, "pass");
-    assert.strictEqual(passRec.scoring.exitCode, 0);
+    assert.strictEqual(passRec.invariants.verdict, "pass");
+    assert.strictEqual(passRec.invariants.exitCode, 0);
     assert.strictEqual(passRec.verdict, "pass");
-    assert.strictEqual(passRec.scoring.details[0].test, "probe");
+    assert.strictEqual(passRec.invariants.details[0].test, "probe");
   });
 
   test("repo-state: repository-state grading via SHA-256 yields verdict='pass'", () => {
     const rs = sharedRecords.find((r) => r.taskId === "repo-state");
     assert.ok(rs);
-    assert.strictEqual(rs.scoring.verdict, "pass");
+    assert.strictEqual(rs.invariants.verdict, "pass");
     assert.strictEqual(rs.verdict, "pass");
   });
 
-  test("scoring sentinel filename never appears in the agent trace", async () => {
+  test("invariants sentinel filename never appears in the agent trace", async () => {
     for (const r of sharedRecords) {
       if (!r.agentTracePath) continue;
       const body = await readFile(r.agentTracePath, "utf8").catch(() => "");
       assert.ok(
-        !body.includes(SCORING_SENTINEL),
-        `agent trace for ${r.taskId} must not contain the scoring sentinel`,
+        !body.includes(INVARIANTS_SENTINEL),
+        `agent trace for ${r.taskId} must not contain the invariants sentinel`,
       );
     }
   });
 
-  test("judge prompt has {{SCORING_RESULT}} substituted (verdict tracks scoring)", () => {
+  test("judge prompt has {{INVARIANTS_RESULT}} substituted (verdict tracks invariants)", () => {
     for (const r of sharedRecords) {
       if (r.preflightError) continue;
       assert.strictEqual(
-        r.scoring.verdict === "pass" ? "pass" : "fail",
+        r.invariants.verdict === "pass" ? "pass" : "fail",
         r.judgeVerdict.verdict,
-        `${r.taskId}: judge verdict should track scoring`,
+        `${r.taskId}: judge verdict should track invariants`,
       );
     }
   });
@@ -257,7 +259,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
 
   test("agent-execution failure still produces a record (spec criterion 1)", async () => {
     // Force the agent session to throw for tf/pass; the runner must still
-    // produce a record, validate it, and proceed to scoring/judge against
+    // produce a record, validate it, and proceed to invariants/judge against
     // the partial workdir. Plan Step 13 row 1 explicitly required this
     // coverage at the integration layer.
     const failingAgent = async (task, workdir) => {

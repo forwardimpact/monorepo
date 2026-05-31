@@ -22,7 +22,7 @@ Commands:
   by-discussion <discussion-id> [trace-dir]  List trace files whose meta header carries the given discussion_id, ordered by first-event timestamp
   filter <file>                              Filter turns by role, tool, or error status
   split <file>                               Split a combined trace into per-source files following the `trace--<case>--<participant>.<role>.ndjson` convention
-  assert <test-name> <file>                  Shell-friendly assertion — outputs structured JSON for scoring hooks
+  assert <test-name> <file>                  Shell-friendly assertion — outputs structured JSON for invariant hooks
 
 Options:
   --help, -h    Show this help

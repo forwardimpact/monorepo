@@ -4,7 +4,7 @@
  * Phases per (task, runIndex):
  *   1. WorkdirManager.start → seed CWD + run pre-flight probe
  *   2. Supervisor session (agent + supervisor) → produce traces + submission
- *   3. Scorer.runScoring → exit-code-driven verdict via fd-3 NDJSON
+ *   3. Invariants.runInvariants → exit-code-driven verdict via fd-3 NDJSON
  *   4. Judge.runJudge → Conclude-driven verdict mapped to pass/fail
  *   5. WorkdirManager.teardown → process-group cleanup
  *
@@ -25,7 +25,7 @@ import { installApm as defaultInstallApm } from "./apm-installer.js";
 import { installNpm as defaultInstallNpm } from "./npm-installer.js";
 import { runJudge } from "./judge.js";
 import { validateResultRecord } from "./result.js";
-import { runScoring } from "./scorer.js";
+import { runInvariants } from "./invariants.js";
 import { assertJudgeProfileStaged, loadTaskFamily } from "./task-family.js";
 import { createWorkdirManager } from "./workdir.js";
 
@@ -60,10 +60,10 @@ export class BenchmarkRunner {
    *   write a valid NDJSON trace to `workdir.agentTracePath`. Default uses
    *   `createAgentRunner` with the harness `BASE_TOOLS` allowlist. Internal
    *   testing only — not part of the public API.
-   * @param {Function} [opts.runScoring] - Test seam: replaces `runScoring`.
-   *   Same contract as `runScoring(task, ctx)`. Internal testing only.
+   * @param {Function} [opts.runInvariants] - Test seam: replaces `runInvariants`.
+   *   Same contract as `runInvariants(task, ctx)`. Internal testing only.
    * @param {Function} [opts.runJudge] - Test seam: replaces `runJudge`. Same
-   *   contract as `runJudge(task, workdir, scoring, deps)`. Internal testing
+   *   contract as `runJudge(task, workdir, invariants, deps)`. Internal testing
    *   only.
    * @param {Function} [opts.installApm] - Test seam: replaces `installApm`.
    *   Same contract as `installApm(family, outputDir)`. Lets tests inject a
@@ -86,7 +86,7 @@ export class BenchmarkRunner {
     termGraceMs,
     // Test seams — default to the real implementations.
     runAgent,
-    runScoring: runScoringHook,
+    runInvariants: runInvariantsHook,
     runJudge: runJudgeHook,
     installApm: installApmHook,
     installNpm: installNpmHook,
@@ -112,7 +112,7 @@ export class BenchmarkRunner {
     this.maxTurns = maxTurns;
     this.termGraceMs = termGraceMs;
     this._runAgentHook = runAgent ?? null;
-    this._runScoringHook = runScoringHook ?? runScoring;
+    this._runInvariantsHook = runInvariantsHook ?? runInvariants;
     this._runJudgeHook = runJudgeHook ?? runJudge;
     this._installApmHook = installApmHook ?? defaultInstallApm;
     this._installNpmHook = installNpmHook ?? defaultInstallNpm;
@@ -191,7 +191,7 @@ export class BenchmarkRunner {
       }
       const { costUsd, turns, submission, agentError } =
         await this.#runAgentSafe(task, workdir);
-      const scoring = await this._runScoringHook(task, {
+      const invariants = await this._runInvariantsHook(task, {
         cwd: workdir.cwd,
         port: workdir.port,
         runDir: workdir.runDir,
@@ -206,7 +206,7 @@ export class BenchmarkRunner {
         judgeVerdict = await this._runJudgeHook(
           task,
           workdir,
-          scoring,
+          invariants,
           {
             query: this.query,
             model: this.judgeModel,
@@ -217,7 +217,7 @@ export class BenchmarkRunner {
         );
       }
       const verdict =
-        scoring.verdict === "pass" &&
+        invariants.verdict === "pass" &&
         (judgeVerdict === null || judgeVerdict.verdict === "pass")
           ? "pass"
           : "fail";
@@ -225,7 +225,7 @@ export class BenchmarkRunner {
         taskId: task.id,
         runIndex,
         verdict,
-        scoring,
+        invariants,
         submission,
         ...(judgeVerdict && { judgeVerdict }),
         costUsd,
