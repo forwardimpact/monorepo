@@ -5,7 +5,9 @@ and `services/bridge`. In multi-tenant mode each bridge resolves the
 tenant per request and calls `services/ghserver` for installation
 tokens; the canonical store scopes records by `tenant_id`; the
 callback route becomes `POST /api/callback/:tenant_id/:token`.
-Single-tenant mode (default) is unchanged for self-hosted operators.
+Single-tenant mode (default) runs the same code path with a
+`DefaultTenantResolver` and `tenant_id = "default"` threaded
+through every RPC.
 Depends on parts 01 (protos, tenancy), 02 (ghserver), 04 (libbridge
 resolver).
 
@@ -88,20 +90,19 @@ tenant continues to call `appAuth` as today.
 
 Modified files: `services/ghbridge/index.js`.
 
-Pass `tenancyMode: config.tenancy_mode` to `createBridgeServer` (part
-04 Step 5). The server registers the correct route shape:
-single-tenant `/api/callback/:token`, multi-tenant
-`/api/callback/:tenant_id/:token`. The `Dispatcher` instance (libbridge,
-part 04 Step 6) is constructed with the `tenantResolver` so the
-emitted callback URL matches the route shape. No grace window — per
-plan-a.md § Callback URL routing, a deployment runs in one mode at a
-time; the upgrade procedure is drain → flip → restart.
+`createBridgeServer` (part 04 Step 5) mounts a single
+`/api/callback/:tenant_id/:token` route in every mode. The
+`Dispatcher` instance (libbridge, part 04 Step 6) is constructed with
+the `tenantResolver` (`DefaultTenantResolver` in single-tenant,
+`RegistryTenantResolver` in multi-tenant) so the emitted callback URL
+matches the route shape. No mode-conditioned mounting — only the
+resolver implementation varies.
 
 Verification: `services/ghbridge/test/server.test.js` adds two cases:
-single-tenant inbound `/api/callback/:token` resolves; multi-tenant
-inbound `/api/callback/:tenant_id/:token` with mismatched `tenant_id`
-returns 404 (the registry's `consume` returns null on mismatch and
-the existing handler maps null to 404).
+single-tenant inbound `/api/callback/default/:token` resolves;
+multi-tenant inbound `/api/callback/:tenant_id/:token` with mismatched
+`tenant_id` returns 404 (the registry's `consume` returns null on
+mismatch and the existing handler maps null to 404).
 
 ## Step 5 — `services/ghbridge` GitHub install onboarding + per-request tenant extraction
 
@@ -214,42 +215,38 @@ handler code, not in the index.
 The `Discussion`, `Origin`, `OpenRecess`, `Inbox`, and
 `PendingDispatch` index keys today are derived from the JSONL record
 fields (e.g. `${channel}:${discussion_id}` for discussions, the
-correlation_id for pending dispatches). Extend each handler:
+correlation_id for pending dispatches). Extend each handler — every
+RPC requires `tenant_id`; the handler rejects empty values with a
+typed `INVALID_ARGUMENT` error before doing any other work:
 
-- **`SaveDiscussion`** — when the request carries `tenant_id`, prefix
-  the index key as `${channel}:${tenant_id}:${discussion_id}`.
-  When `tenant_id` is absent (single-tenant), use the existing
-  key shape unchanged.
-- **`LoadDiscussion`** — when the request carries `tenant_id`, look
-  up the tenant-scoped key; when absent, look up the legacy key.
-  No fallback across modes; the request's `tenant_id` (or absence)
-  is authoritative.
-- **`LoadDiscussionByCorrelation`** — when the request carries
-  `tenant_id`, filter results to records matching that tenant
-  (records are scanned by correlation_id; the filter is applied
-  after the scan). When absent, return any matching record.
-- **`HasOrigin` / `RecordOrigin`** — `Origin` records gain `tenant_id`;
-  the existence check is tenant-scoped when set.
-- **`Sweep`** — when the request carries `tenant_id`, restrict the
-  sweep to tenant-scoped records; when absent, sweep all records
-  (preserves the current self-hosted behaviour).
-- **`PutPendingDispatch` / `ResolvePendingDispatch`** — `tenant_id`
-  carried through; the registry index keys include the tenant when
-  set.
+- **`SaveDiscussion`** — prefix the index key as
+  `${channel}:${tenant_id}:${discussion_id}` in every mode.
+  Single-tenant emits `${channel}:default:${discussion_id}`.
+- **`LoadDiscussion`** — look up the tenant-scoped key. No
+  cross-tenant lookup.
+- **`LoadDiscussionByCorrelation`** — filter results to records
+  matching the request's `tenant_id` (records are scanned by
+  correlation_id; the filter is applied after the scan).
+- **`HasOrigin` / `RecordOrigin`** — `Origin` records carry
+  `tenant_id`; the existence check is tenant-scoped.
+- **`Sweep`** — restrict the sweep to tenant-scoped records
+  matching the request's `tenant_id`.
+- **`PutPendingDispatch` / `ResolvePendingDispatch`** — registry
+  index keys include the tenant.
 - **`EnqueueInbox` / `DrainInbox`** — tenant-scoped queue per
-  `(tenant_id, correlation_id)` when set.
+  `(tenant_id, correlation_id)`.
 - **`ListOpenRecesses`** — request takes `common.Empty`; the gRPC
-  metadata header `x-tenant-id` (set by the bridge in multi-tenant
-  mode, absent in single-tenant) scopes the result. The
-  `BridgeService` handler reads metadata via `librpc`'s
-  per-call accessor.
+  metadata header `x-tenant-id` (set by the bridge in every mode)
+  scopes the result. The `BridgeService` handler reads metadata via
+  `librpc`'s per-call accessor and rejects missing or empty values.
 
 Verification: `services/bridge/test/multi-tenant.test.js` covers each
-RPC's scoping behaviour: single-tenant save/load (legacy key);
-multi-tenant save/load (tenant-scoped key); cross-tenant
+RPC's scoping behaviour: save/load round-trip on the tenant-scoped
+key for both `default` and a non-default tenant; cross-tenant
 `LoadDiscussionByCorrelation` (tenant A by correlation_id → not
-found if tenant B); `ListOpenRecesses` filters by metadata header;
-`DrainInbox` returns only the requesting tenant's messages.
+found from tenant B); `ListOpenRecesses` filters by metadata header;
+`DrainInbox` returns only the requesting tenant's messages; missing
+or empty `tenant_id` returns `INVALID_ARGUMENT` on every RPC.
 
 ## Step 9 — `DiscussionAdapter` passes `tenant_id`
 
@@ -257,17 +254,19 @@ Modified files: `services/ghbridge/src/discussion-adapter.js` (exists;
 the msbridge equivalent is in `services/msbridge/src/` if present
 today, otherwise added per ghbridge's shape).
 
-The adapter sets `tenant_id` on every `save` and on every `load`
-request **only in multi-tenant mode**, sourced from the resolved
-tenant via the constructor-injected `TenantResolver`. In single-
-tenant mode the adapter omits the field entirely so existing JSONL
-keys remain readable on upgrade (per plan-a.md § Storage isolation).
-The gRPC metadata `x-tenant-id` header is set by the adapter on
-`ListOpenRecesses` calls in multi-tenant mode only.
+The adapter sets `tenant_id` on every `save` and `load` request,
+sourced from the resolved tenant via the constructor-injected
+`TenantResolver`. Single-tenant deployments thread the literal
+`"default"` (`DefaultTenantResolver`); multi-tenant deployments
+thread the registry-resolved tenant (`RegistryTenantResolver`). The
+adapter never omits the field. The gRPC metadata `x-tenant-id`
+header is set by the adapter on every `ListOpenRecesses` call.
 
 Verification: `services/ghbridge/test/discussion-adapter.test.js`
-adds two cases: single-tenant mode → no `tenant_id` field set;
-multi-tenant mode → resolved `tenant_id` set on every RPC.
+covers two cases: `DefaultTenantResolver` → `tenant_id: "default"`
+set on every RPC; `RegistryTenantResolver` → resolved `tenant_id`
+set on every RPC. A third case asserts the adapter constructor
+throws when `tenantResolver` is omitted.
 
 ## Step 10 — BYOK boundary check
 
@@ -321,16 +320,6 @@ Update `wiki/STATUS.md`: `1270/multi-tenant-bridges\tplan\tapproved` →
   construction is required. The implementer's only operational
   risk is if Microsoft removes the multi-tenant mode (no current
   signal of that). Documented in `services/msbridge/README.md`.
-
-- **Existing self-hosted JSONL keys readable on hosted upgrade.** A
-  deployment that flips from single-tenant to multi-tenant has
-  records already written with the legacy
-  `${channel}:${discussion_id}` key shape. Step 8 reads the legacy
-  key only when the request omits `tenant_id`; once the adapter
-  starts threading `tenant_id` (Step 9, multi-tenant mode), reads
-  miss the legacy records by design. Migration is out of scope here
-  per spec § Deferred — operators choose hosted or self-hosted at
-  setup time.
 
 ## Libraries used
 

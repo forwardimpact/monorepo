@@ -188,13 +188,6 @@ Update `wiki/STATUS.md`: `1270/workflow-templates\tplan\tapproved` →
   documentation; auto-setting via `gh variable set` would require
   the customer's `GITHUB_TOKEN`, which is out of scope.
 
-- **`actions/create-github-app-token` removal does not migrate
-  existing customer workflows.** The hosted templates are emitted on
-  fresh setups or explicit re-emit. Existing customer workflows that
-  already include the action continue to read
-  `KATA_APP_PRIVATE_KEY`. Migration of existing self-hosted
-  installations to hosted is spec § Deferred — out of scope.
-
 - **`forwardimpact/kata-action-agent` and `kata-action-eval` are
   two distinct sibling actions.** The hosted templates must continue
   to invoke the correct one per workflow kind (agent vs eval);

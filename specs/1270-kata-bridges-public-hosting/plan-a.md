@@ -37,10 +37,9 @@ repository (spec § Operator commitments).
 | 06 | [workflow-templates](plan-a-06-workflow-templates.md) | Rewrite hosted-path templates for every kata workflow named in spec § Proposal 2 to call `services/oidc` for credentials; preserve self-hosted templates unchanged. | 03 | 05, 07 |
 | 07 | [trust-md](plan-a-07-trust-md.md) | Author `TRUST.md` at repo root per spec § Proposal 5; link from `kata-setup`, `ghbridge/README.md`, `msbridge/README.md`. | — | any |
 
-A migration unit per part is recorded in `wiki/STATUS.md` as `1270/<part>`
-([design § Onboarding](design-a.md#onboarding) follows spec 1370's
-sub-row convention). The master `1270` row advances to
-`plan implemented` only when every sub-row is implemented.
+A sub-row per part is recorded in `wiki/STATUS.md` as `1270/<part>`
+(follows spec 1370's sub-row convention). The master `1270` row
+advances to `plan implemented` only when every sub-row is implemented.
 
 ## Execution
 
@@ -60,21 +59,22 @@ column above is the sequencing constraint.
 ### Single-tenant default and mode flag
 
 Self-hosted deployments run the same code with `tenancy_mode = "single"`
-(default). In single-tenant mode:
+(default). The data shape is identical in both modes — every record,
+RPC, and route carries a `tenant_id`; single-tenant mode binds it to
+the literal value `"default"`. No code path branches on
+"is `tenant_id` set?" — the field is always set.
+
+In single-tenant mode:
 
 - `libbridge` constructs a `DefaultTenantResolver` that returns
   `{ tenant_id: "default", channel, channel_tenant_key: "default", repo: <config.github_repo>, state: "active" }` without
   reaching `services/tenancy`. `ghbridge` and `msbridge` instantiate this
   resolver from their existing `github_repo` / `app_*` / `ms_*` config.
 - `services/tenancy`, `services/ghserver`, and `services/oidc` are not
-  started. Self-hosted templates continue to read
-  `KATA_APP_PRIVATE_KEY` directly. The hosted-only mint path is gated
-  behind the mode flag in the bridge constructors.
-- The `DiscussionAdapter` does not pass `tenant_id` through to
-  `services/bridge` (the resolver's `"default"` value is dropped at
-  the adapter layer). Records continue to read and write the existing
-  JSONL keys (`${channel}:${discussion_id}`); the proto's `tenant_id`
-  field stays unset.
+  started. The bridge reads `KATA_APP_PRIVATE_KEY` directly to build
+  its in-process `createAppAuth` closure.
+- The `DiscussionAdapter` passes the resolved `tenant_id = "default"`
+  through to `services/bridge` on every save and load.
 
 In `tenancy_mode = "multi"`:
 
@@ -83,37 +83,34 @@ In `tenancy_mode = "multi"`:
 - Bridges call `services/ghserver` for installation tokens instead of
   using `createAppAuth` in-process.
 - The `DiscussionAdapter` sets the resolved `tenant_id` on every
-  request; `services/bridge` scopes records by `tenant_id` on save
-  and load.
+  request from the registry-backed resolver.
 
-The mode flag is the single source of truth; no other code branches on
-hosted-vs-self-hosted.
+The mode flag is the single source of truth for deployment topology
+(which services start, which credential source the bridge uses); the
+on-the-wire data shape does not branch on it.
 
 ### Storage isolation in `services/bridge`
 
-Per [design § Storage isolation], the canonical store gains a per-record
-`tenant_id` field passed through the `DiscussionAdapter` over gRPC.
-Index keys become `${channel}:${tenant_id}:${discussion_id}` in
-multi-tenant mode and `${channel}:${discussion_id}` in single-tenant
-mode (no prefix change for existing self-hosted deployments). The
-adapter sets `tenant_id` on save and filters on load; the canonical
+Per [design § Storage isolation], the canonical store gains a required
+per-record `tenant_id` field passed through the `DiscussionAdapter`
+over gRPC. Index keys are `${channel}:${tenant_id}:${discussion_id}`
+in every mode; single-tenant mode emits `${channel}:default:${discussion_id}`.
+The adapter sets `tenant_id` on save and filters on load; the canonical
 `libindex`/`libstorage` stack remains caller-injected and unchanged.
+The proto field is required (not optional) and the handler rejects
+requests that omit it.
 
 ### Callback URL routing
 
-Per [design § Tenant registry], the callback URL changes from the
-current `/api/callback/:token` to `/api/callback/:tenant_id/:token` in
-multi-tenant mode. The `CallbackRegistry` stores
-`(correlation_id, tenant_id, token)` on register; the bridge's
+Per [design § Tenant registry], the callback URL is
+`/api/callback/:tenant_id/:token` in every mode. The `CallbackRegistry`
+stores `(correlation_id, tenant_id, token)` on register; the bridge's
 `createCallbackHandler` rejects on consume if the path's `tenant_id`
 mismatches the bound value before any body parsing runs. Single-tenant
-mode binds `tenant_id = "default"` and keeps the existing
-`/api/callback/:token` shape unchanged — no path migration is needed
-for self-hosted operators. Clean break: there is no dual-path /
-grace-window handler. Hosted-mode bridges register the three-segment
-route exclusively; single-tenant bridges register the two-segment
-route exclusively (selected by the `tenancy_mode` flag in
-`createBridgeServer`).
+mode binds `tenant_id = "default"` and emits the three-segment route
+with the literal `default` segment. There is no two-segment legacy
+route, no dual-path handler, and no grace window — `createBridgeServer`
+mounts exactly one callback route shape.
 
 ### gRPC peer authentication inside the control plane
 
@@ -210,18 +207,6 @@ templates in part 06.
   on insert (`tenancy.upsertByPair`) and idempotent state transitions
   on the registry side.
 
-- **Single-tenant and multi-tenant route shapes are disjoint.** Per
-  the cross-cutting concern, single-tenant bridges keep
-  `/api/callback/:token` and multi-tenant bridges register
-  `/api/callback/:tenant_id/:token`. A bridge cannot serve both shapes
-  in one process. An operator who upgrades a self-hosted deployment to
-  hosted mode must accept that any in-flight callbacks already
-  dispatched before the flip will not match the new route. The
-  upgrade procedure (documented in the part 06 hosted-setup README)
-  is therefore: drain in-flight workflows, flip the flag, restart the
-  bridge. No code path bridges the two shapes — the clean break is
-  consistent with [CONTRIBUTING.md § Invariants](../../CONTRIBUTING.md#invariants).
-
 - **gRPC peer authentication substrate deferred.**
   `services/ghserver`'s mint API is unauthenticated at the gRPC level
   in the initial delivery and relies on network isolation (loopback /
@@ -231,15 +216,6 @@ templates in part 06.
   bind-address check that refuses to start `ghserver` on a non-loopback
   / non-private address without an explicit `allow_public_bind = true`
   config override.
-
-- **`KATA_APP_PRIVATE_KEY` left behind in customer secrets after the
-  hosted onboarding migration.** Customers migrating from self-hosted
-  to hosted retain the old secret in repo Actions secrets unless they
-  rotate it. The hosted-path workflow templates do not read it; the
-  spec criterion holds because the templates contain no reference.
-  Part 06 Step 6 adds a one-liner to the hosted-setup README pointing
-  customers at GitHub's secret-delete UI. Not a code risk; an
-  onboarding-doc risk.
 
 - **OIDC issuer-trust drift.** GitHub's OIDC issuer or JWKS endpoint
   may rotate or change. `services/oidc` caches JWKS for a bounded TTL

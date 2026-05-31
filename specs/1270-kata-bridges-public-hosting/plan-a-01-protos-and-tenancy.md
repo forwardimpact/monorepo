@@ -117,49 +117,54 @@ bundle's `ghserver` namespace defines `MintRequest`, `MintResponse`;
 `generated/services/exports.js` exports `GhserverClient` and
 `GhserverBase`.
 
-## Step 4 — Add optional `tenant_id` field to `services/bridge/proto/bridge.proto`
+## Step 4 — Add required `tenant_id` field to `services/bridge/proto/bridge.proto`
 
 Modified files: `services/bridge/proto/bridge.proto`.
 
-Add `optional string tenant_id` to every message that scopes a record
+Add a required `string tenant_id` to every message that scopes a record
 to or returns a record across tenants. Per
 [design § Storage isolation](design-a.md#storage-isolation): records
-and cross-record reads are tenant-scoped. The field is added at the
-next available field number in each message; all existing field
-numbers are preserved.
+and cross-record reads are tenant-scoped in every mode. The field is
+added at the next available field number in each message; all existing
+field numbers are preserved.
 
 | Message | Field added |
 |---|---|
-| `Discussion` | `optional string tenant_id = 13;` |
-| `Origin` | `optional string tenant_id = 4;` |
-| `LoadDiscussionRequest` | `optional string tenant_id = 3;` |
-| `LoadByCorrelationRequest` | `optional string tenant_id = 2;` |
-| `OriginKey` | `optional string tenant_id = 2;` |
-| `PutPendingDispatchRequest` | `optional string tenant_id` (next) |
-| `ResolvePendingDispatchRequest` | `optional string tenant_id` (next) |
-| `EnqueueInboxRequest` | `optional string tenant_id` (next) |
-| `DrainInboxRequest` | `optional string tenant_id` (next) |
-| `SweepRequest` | `optional string tenant_id` (next) |
-| `OpenRecessRef` | `optional string tenant_id` (next) |
+| `Discussion` | `string tenant_id = 13;` |
+| `Origin` | `string tenant_id = 4;` |
+| `LoadDiscussionRequest` | `string tenant_id = 3;` |
+| `LoadByCorrelationRequest` | `string tenant_id = 2;` |
+| `OriginKey` | `string tenant_id = 2;` |
+| `PutPendingDispatchRequest` | `string tenant_id` (next) |
+| `ResolvePendingDispatchRequest` | `string tenant_id` (next) |
+| `EnqueueInboxRequest` | `string tenant_id` (next) |
+| `DrainInboxRequest` | `string tenant_id` (next) |
+| `SweepRequest` | `string tenant_id` (next) |
+| `OpenRecessRef` | `string tenant_id` (next) |
 | `ListOpenRecesses` calls (signature unchanged — uses tenant via gRPC metadata header `x-tenant-id` for the `common.Empty` request) | n/a (see Step 4a) |
 
-All fields are optional; single-tenant mode omits them and the
-registry-backed multi-tenant mode sets them. `services/bridge`
-indexes and filters accordingly (see part 05 Step 8).
+The field is required. Single-tenant callers set it to the literal
+`"default"`; multi-tenant callers set the resolved tenant. The
+`services/bridge` handler rejects empty `tenant_id` on every RPC
+that carries the field (see part 05 Step 8).
 
 ### Step 4a — gRPC metadata for parameterless RPCs
 
 `ListOpenRecesses` is declared as `common.Empty → OpenRecessList`. To
 scope by tenant without breaking the request shape, the bridge sets a
-gRPC metadata header `x-tenant-id` on every multi-tenant call;
-`services/bridge` reads the header in the handler. `librpc`'s server
-helper already exposes per-call metadata; the implementer wires the
-read in part 05 Step 8.
+gRPC metadata header `x-tenant-id` on every call (`"default"` in
+single-tenant, the resolved tenant in multi-tenant); `services/bridge`
+reads the header in the handler and rejects missing or empty values.
+`librpc`'s server helper already exposes per-call metadata; the
+implementer wires the read in part 05 Step 8.
 
 Verification: `bunx fit-codegen --all` succeeds; `bun run test` in
-`services/bridge` passes (existing tests do not set `tenant_id` and
-continue to work); a new test `services/bridge/test/multi-tenant.test.js`
-(authored in part 05) covers each cross-tenant RPC's scoping behaviour.
+`services/bridge` passes — existing tests are updated to thread
+`tenant_id: "default"` on every request as part of this step
+(grep for the test fixture-builder helpers and add the field once at
+each builder, not per call site); a new test
+`services/bridge/test/multi-tenant.test.js` (authored in part 05)
+covers each cross-tenant RPC's scoping behaviour.
 
 ## Step 5 — Scaffold `services/tenancy/`
 
