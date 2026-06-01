@@ -198,8 +198,12 @@ describe("Finder", () => {
 
       assert.ok(fs.existsSync(targetPath));
       assert.ok(fs.lstatSync(targetPath).isSymbolicLink());
-      // Should point to new source
-      assert.strictEqual(fs.readlinkSync(targetPath), sourceDir);
+      // Should point to new source, via a relative target so the link
+      // survives being restored at a different absolute path.
+      assert.strictEqual(
+        fs.readlinkSync(targetPath),
+        path.relative(path.dirname(targetPath), sourceDir),
+      );
     });
   });
 

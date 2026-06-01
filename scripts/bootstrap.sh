@@ -2,37 +2,55 @@
 set -euo pipefail
 
 # ── Sync with origin/main ────────────────────────────────────────
-# Shallow clones lack enough history for rebase to find a merge base.
-# Unshallow first so rebase works reliably.
-if [ -f .git/shallow ]; then
-  git fetch --unshallow origin
-fi
+# The fit-bootstrap action already rebases onto origin/main (it must, to key
+# the workspace cache off the post-rebase tree) and sets BOOTSTRAP_SKIP_SYNC
+# so we don't pay for a second fetch+rebase round-trip here. Local runs and
+# the SessionStart hook leave it unset and still sync.
+if [ "${BOOTSTRAP_SKIP_SYNC:-}" != "true" ]; then
+  # Shallow clones lack enough history for rebase to find a merge base.
+  # Unshallow first so rebase works reliably.
+  if [ -f .git/shallow ]; then
+    git fetch --unshallow origin
+  fi
 
-git fetch origin main
+  git fetch origin main
 
-current_branch=$(git branch --show-current)
+  current_branch=$(git branch --show-current)
 
-if [ "$current_branch" = "main" ]; then
-  git merge --ff-only origin/main
-else
-  # Update local main ref without checkout
-  git branch -f main origin/main
-  # Rebase feature branch onto main; on conflict abort and warn (never reset)
-  if git rebase main 2>/dev/null; then
-    echo "Rebased '$current_branch' onto main."
+  if [ "$current_branch" = "main" ]; then
+    git merge --ff-only origin/main
   else
-    git rebase --abort
-    echo "Branch '$current_branch' has conflicts with main. Rebase manually when ready."
+    # Update local main ref without checkout
+    git branch -f main origin/main
+    # Rebase feature branch onto main; on conflict abort and warn (never reset)
+    if git rebase main 2>/dev/null; then
+      echo "Rebased '$current_branch' onto main."
+    else
+      git rebase --abort
+      echo "Branch '$current_branch' has conflicts with main. Rebase manually when ready."
+    fi
   fi
 fi
 
 # ── Install workspace ───────────────────────────────────────────
-# Codegen creates symlinks at libraries/*/src/generated → ./generated that
-# the workspace cache does not restore, so always run codegen even on a
-# warm cache; bun install is what we actually save time on.
+# fit-codegen now writes RELATIVE symlinks (libraries/*/src/generated ->
+# ../../../generated), so the workspace cache restores both generated/ and its
+# symlinks intact — a warm cache needs neither bun install nor codegen. Guard
+# against a stale cache (e.g. one saved before relative symlinks, whose links
+# dangle once restored at a different path) by verifying the generated tree
+# resolves, and fall back to codegen only when it does not.
 if [ "${BOOTSTRAP_WORKSPACE_CACHE_HIT:-}" = "true" ]; then
-  echo "Workspace cache hit — skipping bun install, running codegen"
-  just codegen
+  needs_codegen=0
+  [ -d generated/types ] || needs_codegen=1
+  for link in libraries/*/src/generated; do
+    [ -e "$link" ] || needs_codegen=1
+  done
+  if [ "$needs_codegen" = "0" ]; then
+    echo "Workspace cache hit — generated restored; skipping bun install and codegen"
+  else
+    echo "Workspace cache hit — generated tree incomplete; running codegen"
+    just codegen
+  fi
 else
   just install
 fi
