@@ -42,8 +42,11 @@ Verify: `bun test libraries/libtemplate` (no `mkdtemp`).
 
 ## Step 3 — Sweep the remaining non-`integration` real-I/O files
 
-For each candidate below, apply the decision rule, then act. The rule (Open Q1
-default): **migrate** when the code under test accepts a `runtime` (or `fs`)
+The candidate lists below are the seed enumeration as of this plan; Step 4's
+`rg -l mkdtemp` gate is the authoritative closing check, so treat any
+non-`integration` `mkdtemp`/subprocess file the gate surfaces — listed here or
+not — as in-scope for the rule. For each candidate, apply the decision rule,
+then act. The rule (Open Q1 default): **migrate** when the code under test accepts a `runtime` (or `fs`)
 parameter and the assertions inspect pure logic/returned values; **rename** to
 `*.integration.test.js` when the real filesystem/subprocess behaviour is itself
 under test or no injection seam exists; **allow-list** only a genuine residual

@@ -15,6 +15,10 @@ dependency.
 - Created: `libraries/libmock/src/mock/environments.js`
 - Modified: `libraries/libmock/src/mock/index.js` (export the three)
 
+`src/index.js` already does `export * from "./mock/index.js"`, so the three
+resolve from the package root transitively — no top-level `src/index.js` edit is
+needed, and SC1's "exported from `src/index.js`" is satisfied.
+
 ```js
 // environments.js
 /**
@@ -128,10 +132,15 @@ triple/definition/bundle in a file that does not import the new fixture
   message: "inline GraphIndex triple — use createGraphIndexFixture",
 },
 {
-  // inline { Check: { path: "/grpc.health.v1.Health/Check" … } }
+  // inline mock object literal `{ Check: { path: "…", requestStream: … } }`.
+  // Keyed on the requestStream/responseStream literal keys inside a Check
+  // object, NOT the bare path string — librpc/health.test.js asserts on the
+  // real definition's `check.path` (no `Check: {` mock literal) and must not
+  // trip this rule.
   test: (t) =>
-    /Check\s*:\s*\{[\s\S]{0,120}?\/grpc\.health\.v1\.Health\/Check/.test(t) &&
-    !t.includes("createMockGrpcHealthDefinition"),
+    /Check\s*:\s*\{[\s\S]{0,160}?requestStream\s*:[\s\S]{0,80}?responseStream\s*:/.test(
+      t,
+    ) && !t.includes("createMockGrpcHealthDefinition"),
   message:
     "inline gRPC health definition — use createMockGrpcHealthDefinition",
 },
@@ -147,7 +156,10 @@ triple/definition/bundle in a file that does not import the new fixture
 
 Add a `has(...)` assertion per rule to `check-libmock-rules.test.js` (positive
 detection + a negative when the file imports the fixture), mirroring the
-existing `createMockSubprocess` cases.
+existing `createMockSubprocess` cases. For the gRPC rule, add a second negative
+asserting that a real-definition assertion (`assert.strictEqual(check.path,
+"/grpc.health.v1.Health/Check")` with no `Check: {` mock literal) does **not**
+trip — pinning the librpc/health.test.js exemption.
 
 Verify: `bun test tests/check-libmock-rules.test.js`.
 
