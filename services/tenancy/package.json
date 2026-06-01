@@ -1,0 +1,63 @@
+{
+  "name": "@forwardimpact/svctenancy",
+  "version": "0.1.0",
+  "description": "Tenant registry — `(channel, channel_tenant_key) → Tenant` lookup for the hosted control plane.",
+  "keywords": [
+    "tenant",
+    "registry",
+    "multi-tenant",
+    "bridge",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "services/tenancy"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Resolve a tenant from a channel event",
+      "trigger": "Hosted bridges receive events from many channels and need to know which customer tenant they belong to before processing.",
+      "bigHire": "own the `(channel, channel_tenant_key) → Tenant` registry end-to-end so every bridge resolves through one gRPC query and every callback verifies against one source of truth.",
+      "littleHire": "look up a tenant by channel key, by GitHub repo, or by tenant id; upsert on installation or consent events; record state transitions through `pending_consent → active → revoked`.",
+      "competesWith": "per-bridge tenant tables duplicating the lookup and upsert logic across multiple bridge services; callback verification scattered across each bridge's process."
+    }
+  ],
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "fit-svctenancy": "./server.js"
+  },
+  "files": [
+    "index.js",
+    "server.js",
+    "src",
+    "proto"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/libindex": "^0.1.0",
+    "@forwardimpact/libpreflight": "^0.1.0",
+    "@forwardimpact/librpc": "^0.1.99",
+    "@forwardimpact/libstorage": "^0.1.78",
+    "@forwardimpact/libtelemetry": "^0.1.42",
+    "@forwardimpact/libutil": "^0.1.85"
+  },
+  "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

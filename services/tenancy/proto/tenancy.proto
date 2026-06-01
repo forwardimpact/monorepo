@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package tenancy;
+
+import "common.proto";
+
+service Tenancy {
+  rpc ResolveByChannelKey(ChannelTenantKey) returns (Tenant);
+  rpc ResolveByRepo(RepoKey) returns (Tenant);
+  rpc ResolveByTenantId(TenantIdKey) returns (Tenant);
+  rpc UpsertByChannelKey(UpsertChannelKeyRequest) returns (Tenant);
+  rpc UpsertByPair(UpsertPairRequest) returns (Tenant);
+  rpc SetState(SetStateRequest) returns (Tenant);
+  rpc SetRepo(SetRepoRequest) returns (Tenant);
+}
+
+message Tenant {
+  string tenant_id = 1;
+  string channel = 2;
+  string channel_tenant_key = 3;
+  optional Repo repo = 4;
+  string state = 5;
+  int64 created_at = 6;
+  int64 last_active_at = 7;
+}
+
+message Repo { string owner = 1; string name = 2; }
+message ChannelTenantKey { string channel = 1; string key = 2; }
+message RepoKey { string owner = 1; string name = 2; }
+message TenantIdKey { string tenant_id = 1; }
+
+message UpsertChannelKeyRequest {
+  string channel = 1;
+  string channel_tenant_key = 2;
+  string state = 3;
+}
+message UpsertPairRequest {
+  string installation_id = 1;
+  string owner = 2;
+  string name = 3;
+}
+message SetStateRequest { string tenant_id = 1; string state = 2; }
+message SetRepoRequest { string tenant_id = 1; Repo repo = 2; }
