@@ -60,11 +60,18 @@ from `node:test`; neither imports from `bun:test`. They are included in the
 verification roots so the inventory matches the runner's discovery surface.
 
 Issue #1328 framed the disposition as binary: enforce (Option A — guard rule
-+ migrate 31 files) or relax (Option B — allowlist + amend record). Both
-options align with the **Platform Builders** persona job to "Build
-Agent-Capable Systems" via the Gear product
-([JTBD.md](../../JTBD.md#platform-builders-build-agent-capable-systems));
-the choice turns on the symbol-usage evidence.
++ migrate 31 files) or relax (Option B — allowlist + amend record). The
+**Platform Builders** persona job is to "Build Agent-Capable Systems" via
+the Gear product
+([JTBD.md](../../JTBD.md#platform-builders-build-agent-capable-systems)) —
+specifically, *"give humans and agents shared capabilities through the
+same interface."* Option B serves that job better than Option A: 31 files
+of organic adoption show the team converged on a single shared test
+surface (the universal subset); Option A would split that surface in two
+(`bun:test` test files in `libpack`, `node:test` test files elsewhere)
+without any feature evidence justifying the split. The choice turns on
+the symbol-usage evidence below, weighted by which option leaves the
+shared surface intact.
 
 Per-symbol file counts among the 31 outside-`libpack` files. Each row's
 verification grep matches the table header by filtering out
@@ -164,8 +171,9 @@ Replacement bullet text:
 > Adding `bun:test`-specific features to `libmock`/`libpack` **source**
 > (snapshot testing, fake timers, etc.) — out of scope. The universal
 > test-surface subset (per spec 1410 allowlist) is permitted in
-> `*.test.js` files anywhere. Non-test source files anywhere in the repo
-> must not import from `bun:test` — see spec 1410 § Scope.
+> `*.test.js` files under the directory set named in spec 1410 § Scope.
+> Non-test source files under the same set must not import from
+> `bun:test` — see spec 1410 § Scope.
 
 ## Scope
 
@@ -277,13 +285,21 @@ shape is a design-phase concern (see § Risks for the persona framing).
 
 | # | Claim                                                                                                                  | Verified by                                                                                       |
 | - | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 1 | A guard enforces the named-import allowlist on every `*.test.js` import from `bun:test`, **and** rejects default, namespace, side-effect, and re-export shapes (`import "bun:test"`, `export ... from "bun:test"`) in `*.test.js` files. On rejection the guard produces a structured error that identifies (a) the file and import statement, (b) the offending symbol (for named-import violations) or the offending shape (for default/namespace/side-effect/re-export), and (c) a pointer the reader can act on — the per-symbol replacement when one exists, or the allowlist itself when no replacement applies. Mapping of symbol → replacement-or-pointer is carried in the rules module (design phase); exact message wording is a design choice. | The guard exits 0 against a fixture for each allowed shape (named import of an allowlisted symbol; renamed named import of an allowlisted symbol). The guard exits non-zero against a fixture for each disallowed shape and each banned symbol, and each non-zero exit emits the structured error covering (a), (b), and (c) above. |
-| 2 | The guard forbids `bun:test` imports and re-exports of every shape (named, default, namespace, side-effect, re-export) in any non-test source file, where "non-test source file" means a file under the allowlist directory set (see § Scope clause) that does **not** match `**/*.test.js`. | Running the guard against a fixture source file (non-`*.test.js`) that imports or re-exports anything from `bun:test` exits non-zero, producing the same structured error as criterion 1. |
-| 3 | The guard runs in CI on every pull request and on `main` as a member of the same aggregator that runs the other `invariants:check-*` scripts. | The aggregator that invokes the other `invariants:check-*` scripts also invokes the new guard; both `bun run check` and the CI workflow that runs invariants execute it. |
-| 4 | The guard binary, run on `main` at the time this spec lands, exits 0. | Two things must hold together. First, the inventory holds: the four single-command counts in § Problem reproduce 37 / 31 / 6 / 0; the source-side check `grep -rlE "from ['\"]bun:test['\"]" $ROOTS \| grep -v '\.test\.js$' \| wc -l` returns 0 (no non-`.test.js` file imports from `bun:test`, where `$ROOTS` is the directory set defined in § Problem); the re-export check `grep -rlE "export[[:space:]]+\\{[^}]*\\}[[:space:]]+from[[:space:]]+['\"]bun:test['\"]" $ROOTS \| wc -l` returns 0 (no re-export shim). Second, the guard binary itself exits 0 with no findings when invoked on the same tree the counts were taken against — the inventory being clean does not by itself satisfy criterion 4 if the guard is missing or broken. |
-| 5 | A regression test exercises the allowed and disallowed partition against the rules module. The partition has six classes that must all be covered: (i) named import of an allowlisted symbol; (ii) renamed named import of an allowlisted symbol; (iii) named import of a banned symbol from § Out; (iv) renamed named import of a banned symbol (rejected on the imported name, not the local alias); (v) each disallowed import shape (default, namespace, side-effect); (vi) re-export shape (`export ... from "bun:test"`) in both test and non-test files. | The regression test runs under `bun test`, lives somewhere the test runner discovers, and contains at least one assertion per partition class (i)–(vi). (Naming/location of the regression test, the guard script, and the rules module is a design-phase choice; see § References for an informative precedent.) |
-| 6 | `specs/0650-bun-test-runner/spec.md` has its Non-goals bullet quoted in § Supersession replaced by the Replacement bullet text shown there, followed by a footnote of the form `*[amended by spec 1410](link)*` (no date in the footnote — see § Supersession). | The 0650 spec file on `main` shows the Replacement bullet text and the footnote link to this spec; the original bullet text no longer appears in 0650 outside this spec's quotation; the audit date is observable from the file's git history. |
-| 7 | A canonical policy paragraph exists in exactly one human-facing doc; the paragraph covers the allowlist, the source/test split, and the snapshot out-of-scope note, and links to this spec. 0650's amended bullet defers to that doc (or to this spec § Scope), and no other doc states a contradictory policy. | The doc that carries the policy paragraph (design phase chooses — CONTRIBUTING.md is the informative default; see § References) shows a diff adding a paragraph that covers the three named items and links to this spec; 0650's amended bullet links to the same doc or to this spec; a repo-wide search for `bun:test` policy text finds no contradicting statement outside the canonical paragraph + this spec + 0650's amended bullet. |
+| #  | Claim                                                                                                                  | Verified by                                                                                       |
+| -- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1a | The guard enforces the named-import allowlist on every `*.test.js` import from `bun:test`. | Fixture `*.test.js` files: an unaliased named import of an allowlisted symbol exits 0; an unaliased named import of a banned symbol exits non-zero; a renamed named import of an allowlisted symbol exits 0; a renamed named import of a banned symbol exits non-zero (rejected on the imported name). |
+| 1b | The guard rejects default, namespace, side-effect, and re-export shapes in `*.test.js` files. | One fixture per shape (`import x from "bun:test"`, `import * as x from "bun:test"`, `import "bun:test"`, `export { test } from "bun:test"`) each exits non-zero. |
+| 1c | On rejection the guard emits a **structured error**: each rejection produces at least one error record carrying named fields `file`, `line`, `kind` (`"symbol"` or `"shape"`), `name` (the symbol name or shape name), and `pointer` (the per-symbol replacement when one exists, otherwise the allowlist itself). | A non-zero guard run on any criterion-1a/1b fixture emits one or more error records whose JSON or labeled-text encoding contains the five named fields. The mapping `name → pointer` is carried in the rules module; exact wording and serialization format are design-phase choices. |
+| 2  | The guard forbids `bun:test` imports and re-exports of every shape (named, default, namespace, side-effect, re-export) in any non-test source file, where "non-test source file" means a file under the allowlist directory set (see § Scope clause) that does **not** match `**/*.test.js`. | Running the guard against a fixture source file (non-`*.test.js`) that imports or re-exports anything from `bun:test` exits non-zero with the structured error from criterion 1c. |
+| 3  | The guard runs in CI on every pull request and on `main` as a member of the same aggregator that runs the other `invariants:check-*` scripts. | The aggregator that invokes the other `invariants:check-*` scripts also invokes the new guard; both `bun run check` and the CI workflow that runs invariants execute it. |
+| 4a | At the time this spec lands, the source-side inventory holds: no non-test source file under the allowlist directory set imports from `bun:test`. | `grep -rlE "from ['\"]bun:test['\"]" $ROOTS \| grep -v '\.test\.js$' \| wc -l` returns 0 (where `$ROOTS` is the directory set defined in § Problem). |
+| 4b | At the time this spec lands, no file under the allowlist directory set re-exports from `bun:test`. | `grep -rlE "export[[:space:]]+\\{[^}]*\\}[[:space:]]+from[[:space:]]+['\"]bun:test['\"]" $ROOTS \| wc -l` returns 0. |
+| 4c | The guard binary, invoked on `main` at the time the implementation lands, exits 0. | Running the guard binary against the tree at the implementation commit yields exit 0 with no error records. (Criteria 4a and 4b verify the inventory is in a state the guard can pass; 4c verifies the guard itself is wired and works.) |
+| 5  | A regression test exercises the allowed and disallowed partition against the rules module. The partition has eight classes, each with at least one assertion: (i) named import of an allowlisted symbol; (ii) renamed named import of an allowlisted symbol; (iii) named import of a banned symbol from § Out; (iv) renamed named import of a banned symbol; (v.a) default import; (v.b) namespace import; (v.c) side-effect import; (vi) re-export shape (`export ... from "bun:test"`) in both test and non-test files. | The regression test runs under `bun test`, lives somewhere the test runner discovers, and contains at least one assertion per class (i)–(vi) with class (v) split into (v.a)/(v.b)/(v.c). (Naming/location of the regression test, the guard script, and the rules module is a design-phase choice; see § References for an informative precedent.) |
+| 6  | `specs/0650-bun-test-runner/spec.md` has its Non-goals bullet quoted in § Supersession replaced by the Replacement bullet text shown there, followed by a footnote of the form `*[amended by spec 1410](link)*` (no date in the footnote — see § Supersession). | The 0650 spec file on `main` shows the Replacement bullet text and the footnote link to this spec; the original bullet text no longer appears in 0650 outside this spec's quotation; the audit date is observable from the file's git history. |
+| 7a | A canonical policy paragraph exists in exactly one human-facing doc; the paragraph covers the allowlist, the source/test split, and the snapshot out-of-scope note, and links to this spec. | The doc that carries the policy paragraph (design phase chooses — CONTRIBUTING.md is the informative default; see § References) shows a diff adding a paragraph covering those three items and linking to this spec. |
+| 7b | 0650's amended bullet defers to the canonical doc (or to this spec § Scope). | The amended bullet contains a link to the canonical doc or to this spec § Scope. |
+| 7c | No other doc states a contradictory policy. | `grep -rnE "bun:test" --include='*.md' .` (or equivalent) returns no policy statement outside the canonical paragraph, this spec, and 0650's amended bullet that contradicts the allowlist or source/test split. |
 
 ## Risks
 
