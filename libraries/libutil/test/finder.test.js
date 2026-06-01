@@ -86,6 +86,47 @@ describe("Finder", () => {
     });
   });
 
+  describe("withLogger", () => {
+    test("returns a new Finder that logs through the swapped logger", async () => {
+      const otherLogger = createMockLogger();
+      const scoped = finder.withLogger(otherLogger);
+
+      assert.ok(scoped instanceof Finder);
+      assert.notStrictEqual(scoped, finder);
+
+      // createSymlink (the one Finder method that logs) now routes through the
+      // swapped logger; the original is left untouched.
+      const sourceDir = path.join(tempDir, "wl-source");
+      const targetPath = path.join(tempDir, "wl-target");
+      await scoped.createSymlink(sourceDir, targetPath);
+
+      assert.strictEqual(otherLogger.debug.mock.calls.length, 1);
+      assert.ok(
+        otherLogger.debug.mock.calls[0].arguments[1].includes(
+          "Created symlink",
+        ),
+      );
+      assert.strictEqual(mockLogger.debug.mock.calls.length, 0);
+    });
+
+    test("preserves the injected fsSync existence binding", () => {
+      const syncFs = createMockFs();
+      const asyncFs = createMockFs();
+      const base = new Finder({
+        fs: asyncFs,
+        fsSync: syncFs,
+        proc: mockProcess,
+      });
+
+      base.withLogger(createMockLogger()).findUpward("/a/b/c", "target");
+
+      // Existence still resolves through the SAME injected sync surface — the
+      // rebuild must not silently fall back to the async `fs`.
+      assert.ok(syncFs.existsSync.mock.calls.length > 0);
+      assert.strictEqual(asyncFs.existsSync.mock.calls.length, 0);
+    });
+  });
+
   describe("findUpward", () => {
     test("finds file in current directory", () => {
       // Create test structure

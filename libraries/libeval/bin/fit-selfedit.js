@@ -7,12 +7,11 @@
 
 import "@forwardimpact/libpreflight/node22";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import fsPromises from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { resolve, relative, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
 
-import { Finder } from "@forwardimpact/libutil";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { minimatch } from "minimatch";
 
 const HELP = `fit-selfedit — write stdin to a settings.json-allowed path on a non-main branch.
@@ -71,12 +70,15 @@ if (extra.length > 0) fail(`unexpected extra arguments: ${extra.join(" ")}`);
 
 const absoluteTarget = resolve(process.cwd(), targetArg);
 
-// Safeguard 1: settings.json must grant Edit() on this path.
-const settingsPath = new Finder({
-  fs: fsPromises,
-  fsSync: { existsSync },
-  proc: process,
-}).findUpward(dirname(absoluteTarget), ".claude/settings.json", 20);
+// Safeguard 1: settings.json must grant Edit() on this path. The bin is the
+// sole construction site for the runtime; resolve the finder off the bag
+// rather than constructing a Finder here (Success Criterion 9).
+const runtime = createDefaultRuntime();
+const settingsPath = runtime.finder.findUpward(
+  dirname(absoluteTarget),
+  ".claude/settings.json",
+  20,
+);
 if (!settingsPath) {
   fail(
     `no .claude/settings.json found walking upward from ${dirname(absoluteTarget)}`,

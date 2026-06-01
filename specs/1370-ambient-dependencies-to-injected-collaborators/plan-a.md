@@ -90,7 +90,7 @@ so the plan parts can stay short. Variations are called out per section.
 | Unit tests | `bun test {unit-path}/test/` | `0 fail`, `0 errors` |
 | Integration tests | `bun test {unit-path}/test/*.integration.test.js` | `0 fail`, `0 errors` |
 | Golden replay | `bun run scripts/capture-cli-golden.mjs --verify <bin>` | exit 0 (bytes match) |
-| Full suite | `time bun run test` | `real` time tracked against milestone M1/M2/M3 ([spec § SC6](spec.md#success-criteria)) |
+| Full suite | `bun run test` | `0 fail`, `0 errors`; wall time recorded as a trend, not gated — the M1/M2/M3 milestones are **retired** ([spec § Outcome](spec.md#outcome-post-implementation-reconciliation-2026-06-01)) |
 
 ## Cross-Cutting Concerns
 

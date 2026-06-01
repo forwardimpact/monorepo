@@ -44,9 +44,14 @@ const graphqlClient = async (query, variables) => {
 
 const { GhuserClient, BridgeClient } = clients;
 const ghuserConfig = await createServiceConfig("ghuser");
-const ghuserClient = new GhuserClient(ghuserConfig, logger, tracer);
+const ghuserClient = new GhuserClient(ghuserConfig, runtime, logger, tracer);
 const bridgeConfig = await createServiceConfig("bridge");
-const discussionClient = new BridgeClient(bridgeConfig, logger, tracer);
+const discussionClient = new BridgeClient(
+  bridgeConfig,
+  runtime,
+  logger,
+  tracer,
+);
 
 const { clock } = runtime;
 

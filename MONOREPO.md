@@ -227,5 +227,12 @@ every test imports them from there.
   project bin, exempting the one `*.integration.test.js` smoke test per binary.
 - `scripts/check-libmock.mjs` flags inline reimplementations of the canonical
   fakes.
+- `scripts/check-collaborator-construction.mjs` flags any module under
+  `libraries/`, `products/`, or `services/` that constructs a leaf
+  collaborator itself — `new Finder(...)`, `createDefaultProc(...)`,
+  `createDefaultClock(...)`, or `createDefaultSubprocess(...)` — instead of
+  receiving it off the injected `runtime` bag. Only `libutil` constructs them;
+  `createDefaultRuntime(...)` (the composition-root factory) is exempt. There
+  is no deny-list: the tree is clean, so any hit is a real regression.
 
-All three run under `bun run invariants`.
+All four run under `bun run invariants`.

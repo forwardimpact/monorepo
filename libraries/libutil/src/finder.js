@@ -13,6 +13,7 @@ const NOOP_LOGGER = { debug() {} };
  */
 export class Finder {
   #fs;
+  #fsSync;
   #existsSync;
   #logger;
   #proc;
@@ -36,10 +37,32 @@ export class Finder {
     if (!fs) throw new Error("fs is required");
     if (!proc) throw new Error("proc is required");
     this.#fs = fs;
+    // Retain the raw collaborators so `withLogger` can rebuild an identically
+    // bound Finder with a different logger (private fields can't be copied
+    // onto a bare clone, and `#existsSync` is derived from `fsSync ?? fs`).
+    this.#fsSync = fsSync;
     const existsTarget = fsSync ?? fs;
     this.#existsSync = existsTarget.existsSync.bind(existsTarget);
     this.#proc = proc;
     this.#logger = config.logger ?? NOOP_LOGGER;
+  }
+
+  /**
+   * Return a Finder over the same collaborators but with the given logger.
+   * The shared `runtime.finder` carries a no-op logger; a site that needs
+   * symlink debug logs (e.g. codegen) calls `runtime.finder.withLogger(logger)`
+   * instead of constructing its own Finder (Success Criterion 9 keeps `new
+   * Finder(...)` inside libutil).
+   * @param {object} logger - Logger with a `debug(scope, msg, data)` method.
+   * @returns {Finder} A logger-bound view sharing this Finder's fs/proc.
+   */
+  withLogger(logger) {
+    return new Finder({
+      fs: this.#fs,
+      fsSync: this.#fsSync,
+      proc: this.#proc,
+      logger,
+    });
   }
 
   /**

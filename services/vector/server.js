@@ -24,6 +24,7 @@ const tracer = await createTracer("vector");
 const { EmbeddingClient } = clients;
 const embeddingClient = new EmbeddingClient(
   await createServiceConfig("embedding"),
+  runtime,
   logger,
   tracer,
 );

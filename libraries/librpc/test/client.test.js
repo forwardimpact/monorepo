@@ -9,11 +9,13 @@ import {
   createMockGrpcFn,
   createMockLogger,
   createMockObserverFn,
+  createTestRuntime,
   spy,
 } from "@forwardimpact/libmock";
 
 describe("Client", () => {
   let mockConfig;
+  let mockRuntime;
   let mockGrpcFn;
   let mockAuthFn;
   let mockLogFn;
@@ -21,6 +23,7 @@ describe("Client", () => {
   let mockClientInstance;
 
   beforeEach(() => {
+    mockRuntime = createTestRuntime();
     mockConfig = {
       name: "graph", // Use a valid service name that exists in definitions
       host: "0.0.0.0",
@@ -64,6 +67,7 @@ describe("Client", () => {
       () =>
         new Client(
           null,
+          mockRuntime,
           mockLogFn,
           null,
           mockObserverFn,
@@ -77,6 +81,7 @@ describe("Client", () => {
   test("should accept valid parameters", () => {
     const client = new Client(
       mockConfig,
+      mockRuntime,
       mockLogFn,
       null,
       mockObserverFn,
@@ -91,6 +96,7 @@ describe("Client", () => {
   test("callUnary should execute unary call", async () => {
     const client = new Client(
       mockConfig,
+      mockRuntime,
       mockLogFn,
       null,
       mockObserverFn,
@@ -106,6 +112,7 @@ describe("Client", () => {
   test("callStream should execute streaming call", async () => {
     const client = new Client(
       mockConfig,
+      mockRuntime,
       mockLogFn,
       null,
       mockObserverFn,
@@ -129,6 +136,7 @@ describe("Client", () => {
   test("should accept tracer parameter", () => {
     const client = new Client(
       mockConfig,
+      mockRuntime,
       mockLogFn,
       {}, // tracer
       mockObserverFn,

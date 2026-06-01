@@ -71,14 +71,16 @@ function checkHttpHealth(healthUrl, clock, fetchFn = fetch, timeoutMs = 2000) {
 /**
  * Queries graph service for resource and triple counts.
  * @param {object} graphConfig - Graph service config
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected
+ *   runtime bag, threaded to the client so its auth reads SERVICE_SECRET.
  * @returns {Promise<{resources: number, triples: number}>}
  */
-async function queryDataInventory(graphConfig) {
+async function queryDataInventory(graphConfig, runtime) {
   const { clients } = await import("@forwardimpact/librpc");
   const { GraphClient } = clients;
   const { graph } = await import("@forwardimpact/libtype");
 
-  const client = new GraphClient(graphConfig);
+  const client = new GraphClient(graphConfig, runtime);
 
   let resources = 0;
   try {
@@ -199,6 +201,9 @@ async function checkAnthropicToken(config) {
  * @param {Function} [deps.fetch] - Fetch function (default: global fetch)
  * @param {object} deps.clock - Clock collaborator (`now()`); supplied by the
  *   caller from `runtime.clock` (the bin is the sole construction site).
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} [deps.runtime] -
+ *   Injected runtime bag, threaded to the graph client so its auth reads
+ *   SERVICE_SECRET.
  * @param {Function} [deps.queryDataInventory] - Data inventory query (default: real query)
  * @returns {Promise<object>} Status result object
  */
@@ -222,7 +227,7 @@ export async function runStatus(deps) {
   const queryFn = deps.queryDataInventory || queryDataInventory;
   let dataCounts = { resources: 0, triples: 0 };
   if (services.graph?.status === "ok") {
-    dataCounts = await queryFn(configs.graph);
+    dataCounts = await queryFn(configs.graph, deps.runtime);
   }
   const data = { ...dataCounts };
 
