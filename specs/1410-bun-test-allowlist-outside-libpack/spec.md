@@ -22,11 +22,14 @@ counts are produced by four commands sharing one regex; each count names
 its source explicitly so the result is single-command reproducible:
 
 ```sh
-# $ROOTS is the directory set used by every grep in this spec — the bun test
-# invocation roots plus websites/ for preemptive coverage.
-ROOTS="libraries/ services/ products/ tests/ websites/ .github/ .claude/"
+# $ROOTS is the directory set used by every grep in this spec. It matches the
+# allowlist directory set defined in § Scope clause exactly: the six bun test
+# invocation roots from package.json (libraries/, services/, products/,
+# tests/, .github/workflows/test/, .claude/skills/kata-interview/test/) plus
+# websites/ as preemptive coverage.
+ROOTS="libraries/ services/ products/ tests/ websites/ .github/workflows/test/ .claude/skills/kata-interview/test/"
 
-# 37 = repo-wide files importing from "bun:test"
+# 37 = repo-wide files importing from "bun:test" (under the allowlist directory set)
 grep -rlE "from ['\"]bun:test['\"]" $ROOTS | wc -l
 
 # 31 = outside-libpack subset of the 37
@@ -35,8 +38,8 @@ grep -rlE "from ['\"]bun:test['\"]" $ROOTS | grep -v '^libraries/libpack/' | wc 
 # 6 = inside-libpack subset of the 37
 grep -rlE "from ['\"]bun:test['\"]" libraries/libpack/ | wc -l
 
-# 0 = files outside the package surfaces (tests/, websites/, .github/, .claude/)
-grep -rlE "from ['\"]bun:test['\"]" tests/ websites/ .github/ .claude/ | wc -l
+# 0 = files in non-package roots (tests/, websites/, and the two discovery roots)
+grep -rlE "from ['\"]bun:test['\"]" tests/ websites/ .github/workflows/test/ .claude/skills/kata-interview/test/ | wc -l
 ```
 
 | Surface                                | Files with `from "bun:test"` |
@@ -76,9 +79,8 @@ shared surface intact.
 Per-symbol file counts among the 31 outside-`libpack` files. Each row's
 verification grep matches the table header by filtering out
 `libraries/libpack/` so a reviewer can reproduce a single row in
-isolation against the "31 outside-libpack" claim. (Define
-`ROOTS="libraries/ services/ products/ tests/ websites/ .github/ .claude/"`
-to shorten each row; the path argument is the same across every row.)
+isolation against the "31 outside-libpack" claim. `$ROOTS` is the
+definition from the code block above.
 
 | Symbol           | Files using it | Per-symbol verification grep                                                                                                |
 | ---------------- | -------------: | --------------------------------------------------------------------------------------------------------------------------- |
@@ -283,23 +285,21 @@ shape is a design-phase concern (see § Risks for the persona framing).
 
 ## Success criteria
 
-| # | Claim                                                                                                                  | Verified by                                                                                       |
-| - | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | #  | Claim                                                                                                                  | Verified by                                                                                       |
 | -- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | 1a | The guard enforces the named-import allowlist on every `*.test.js` import from `bun:test`. | Fixture `*.test.js` files: an unaliased named import of an allowlisted symbol exits 0; an unaliased named import of a banned symbol exits non-zero; a renamed named import of an allowlisted symbol exits 0; a renamed named import of a banned symbol exits non-zero (rejected on the imported name). |
-| 1b | The guard rejects default, namespace, side-effect, and re-export shapes in `*.test.js` files. | One fixture per shape (`import x from "bun:test"`, `import * as x from "bun:test"`, `import "bun:test"`, `export { test } from "bun:test"`) each exits non-zero. |
-| 1c | On rejection the guard emits a **structured error**: each rejection produces at least one error record carrying named fields `file`, `line`, `kind` (`"symbol"` or `"shape"`), `name` (the symbol name or shape name), and `pointer` (the per-symbol replacement when one exists, otherwise the allowlist itself). | A non-zero guard run on any criterion-1a/1b fixture emits one or more error records whose JSON or labeled-text encoding contains the five named fields. The mapping `name → pointer` is carried in the rules module; exact wording and serialization format are design-phase choices. |
-| 2  | The guard forbids `bun:test` imports and re-exports of every shape (named, default, namespace, side-effect, re-export) in any non-test source file, where "non-test source file" means a file under the allowlist directory set (see § Scope clause) that does **not** match `**/*.test.js`. | Running the guard against a fixture source file (non-`*.test.js`) that imports or re-exports anything from `bun:test` exits non-zero with the structured error from criterion 1c. |
+| 1b | The guard rejects default, namespace, side-effect, and re-export shapes in `*.test.js` files. The re-export check covers all three ECMAScript re-export shapes: named (`export { x } from`), namespace (`export * from`), and default-as (`export { default as x } from`). | One fixture per shape (`import x from "bun:test"`, `import * as x from "bun:test"`, `import "bun:test"`, `export { test } from "bun:test"`, `export * from "bun:test"`, `export { default as t } from "bun:test"`) each exits non-zero. |
+| 1c | On rejection the guard emits a **structured error**: each rejection produces at least one error record carrying named fields `file`, `line`, `kind` (`"symbol"` or `"shape"`), `name` (the symbol name for `kind="symbol"`; the shape identifier — `"default"`, `"namespace"`, `"side-effect"`, `"re-export-named"`, `"re-export-namespace"`, `"re-export-default-as"` — for `kind="shape"`), and `pointer` (for `kind="symbol"`: the per-symbol replacement when one exists, otherwise a reference to the allowlist; for `kind="shape"`: a reference to the allowlist). | A non-zero guard run on any criterion-1a/1b fixture emits one or more error records whose JSON or labeled-text encoding contains the five named fields with the values defined above. The mapping `name → pointer` for symbol-kind rejections is carried in the rules module; the shape-kind pointer is a single value; exact wording and serialization format are design-phase choices. |
+| 2  | The guard forbids `bun:test` imports and re-exports of every shape (named, default, namespace, side-effect, named re-export, namespace re-export, default-as re-export) in any non-test source file, where "non-test source file" means a file under the allowlist directory set (see § Scope clause) that does **not** match `**/*.test.js`. | Running the guard against a fixture source file (non-`*.test.js`) that imports or re-exports anything from `bun:test` exits non-zero with the structured error from criterion 1c. |
 | 3  | The guard runs in CI on every pull request and on `main` as a member of the same aggregator that runs the other `invariants:check-*` scripts. | The aggregator that invokes the other `invariants:check-*` scripts also invokes the new guard; both `bun run check` and the CI workflow that runs invariants execute it. |
 | 4a | At the time this spec lands, the source-side inventory holds: no non-test source file under the allowlist directory set imports from `bun:test`. | `grep -rlE "from ['\"]bun:test['\"]" $ROOTS \| grep -v '\.test\.js$' \| wc -l` returns 0 (where `$ROOTS` is the directory set defined in § Problem). |
-| 4b | At the time this spec lands, no file under the allowlist directory set re-exports from `bun:test`. | `grep -rlE "export[[:space:]]+\\{[^}]*\\}[[:space:]]+from[[:space:]]+['\"]bun:test['\"]" $ROOTS \| wc -l` returns 0. |
+| 4b | At the time this spec lands, no file under the allowlist directory set re-exports from `bun:test` in any ECMAScript re-export shape. | `grep -rlE "export[[:space:]]+(\\*\|\\{[^}]*\\})[[:space:]]+from[[:space:]]+['\"]bun:test['\"]" $ROOTS \| wc -l` returns 0. The regex matches `export {...} from "bun:test"` and `export * from "bun:test"` (default-as is a sub-shape of the braced form). |
 | 4c | The guard binary, invoked on `main` at the time the implementation lands, exits 0. | Running the guard binary against the tree at the implementation commit yields exit 0 with no error records. (Criteria 4a and 4b verify the inventory is in a state the guard can pass; 4c verifies the guard itself is wired and works.) |
-| 5  | A regression test exercises the allowed and disallowed partition against the rules module. The partition has eight classes, each with at least one assertion: (i) named import of an allowlisted symbol; (ii) renamed named import of an allowlisted symbol; (iii) named import of a banned symbol from § Out; (iv) renamed named import of a banned symbol; (v.a) default import; (v.b) namespace import; (v.c) side-effect import; (vi) re-export shape (`export ... from "bun:test"`) in both test and non-test files. | The regression test runs under `bun test`, lives somewhere the test runner discovers, and contains at least one assertion per class (i)–(vi) with class (v) split into (v.a)/(v.b)/(v.c). (Naming/location of the regression test, the guard script, and the rules module is a design-phase choice; see § References for an informative precedent.) |
+| 5  | A regression test exercises the allowed and disallowed partition against the rules module. The partition has six top-level classes; class (v) contains three shape sub-cases. The regression test contains at least one assertion per **leaf** entry below — eight total assertions: (i) named import of an allowlisted symbol; (ii) renamed named import of an allowlisted symbol; (iii) named import of a banned symbol from § Out; (iv) renamed named import of a banned symbol; (v.a) default import; (v.b) namespace import; (v.c) side-effect import; (vi) re-export shape (`export ... from "bun:test"`) — one assertion each in a test file and a non-test file (so class (vi) accounts for two leaf assertions, taking the total to nine). | The regression test runs under `bun test`, lives somewhere the test runner discovers, and contains at least one assertion per leaf entry above. (Naming/location of the regression test, the guard script, and the rules module is a design-phase choice; see § References for an informative precedent.) |
 | 6  | `specs/0650-bun-test-runner/spec.md` has its Non-goals bullet quoted in § Supersession replaced by the Replacement bullet text shown there, followed by a footnote of the form `*[amended by spec 1410](link)*` (no date in the footnote — see § Supersession). | The 0650 spec file on `main` shows the Replacement bullet text and the footnote link to this spec; the original bullet text no longer appears in 0650 outside this spec's quotation; the audit date is observable from the file's git history. |
 | 7a | A canonical policy paragraph exists in exactly one human-facing doc; the paragraph covers the allowlist, the source/test split, and the snapshot out-of-scope note, and links to this spec. | The doc that carries the policy paragraph (design phase chooses — CONTRIBUTING.md is the informative default; see § References) shows a diff adding a paragraph covering those three items and linking to this spec. |
 | 7b | 0650's amended bullet defers to the canonical doc (or to this spec § Scope). | The amended bullet contains a link to the canonical doc or to this spec § Scope. |
-| 7c | No other doc states a contradictory policy. | `grep -rnE "bun:test" --include='*.md' .` (or equivalent) returns no policy statement outside the canonical paragraph, this spec, and 0650's amended bullet that contradicts the allowlist or source/test split. |
+| 7c | No other doc states a contradictory policy. The allowed-mention set is: the canonical policy paragraph, this spec, and 0650's amended bullet. | `grep -rnlE "bun:test" --include='*.md' .` enumerates every `.md` file mentioning `bun:test`; the file list is a subset of {the canonical doc, `specs/1410-…/spec.md`, `specs/0650-…/spec.md`} plus files that only mention `bun:test` in non-policy contexts (e.g. release notes, changelogs, ADRs that reference 0650's runner switch). A reviewer reading the list confirms no member is a policy doc making a claim that contradicts the allowlist or source/test split. |
 
 ## Risks
 
