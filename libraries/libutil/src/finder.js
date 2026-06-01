@@ -158,10 +158,15 @@ export class Finder {
     // Ensure the target's parent directory exists before symlinking
     await this.#fs.mkdir(path.dirname(targetPath), { recursive: true });
 
-    // Create the symlink
-    await this.#fs.symlink(sourcePath, targetPath, "dir");
+    // Link relative to the symlink's own directory, not absolute. A relative
+    // target survives being moved or restored at a different path — e.g. the
+    // CI workspace cache restoring libraries/*/src/generated on a runner whose
+    // checkout root differs from where codegen first ran. An absolute target
+    // would dangle, forcing a full codegen re-run on every warm cache.
+    const relativeSource = path.relative(path.dirname(targetPath), sourcePath);
+    await this.#fs.symlink(relativeSource, targetPath, "dir");
     this.#logger.debug("Finder", "Created symlink", {
-      source_path: sourcePath,
+      source_path: relativeSource,
       target_path: targetPath,
     });
   }
