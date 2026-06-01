@@ -40,7 +40,7 @@ export class Server extends Rpc {
     } = options;
     if (!runtime) throw new Error("runtime is required");
 
-    super(config, logger, tracer, observerFn, grpcFn, authFn);
+    super(config, logger, tracer, observerFn, grpcFn, authFn, runtime);
     this.#service = service;
     this.#runtime = runtime;
   }

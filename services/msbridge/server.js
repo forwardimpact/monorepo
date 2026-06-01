@@ -18,9 +18,14 @@ const tracer = await createTracer("msbridge");
 
 const { GhuserClient, BridgeClient } = clients;
 const ghuserConfig = await createServiceConfig("ghuser");
-const ghuserClient = new GhuserClient(ghuserConfig, logger, tracer);
+const ghuserClient = new GhuserClient(ghuserConfig, logger, tracer, runtime);
 const bridgeConfig = await createServiceConfig("bridge");
-const discussionClient = new BridgeClient(bridgeConfig, logger, tracer);
+const discussionClient = new BridgeClient(
+  bridgeConfig,
+  logger,
+  tracer,
+  runtime,
+);
 
 const { clock } = runtime;
 

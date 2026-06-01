@@ -1,7 +1,6 @@
 import grpc from "@grpc/grpc-js";
 
 import { createObserver } from "@forwardimpact/libtelemetry";
-import { createDefaultProc } from "@forwardimpact/libutil/runtime";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { definitions } from "./generated/definitions/exports.js";
@@ -24,15 +23,22 @@ export function createGrpc() {
 }
 
 /**
- * Default auth factory that creates authentication interceptor.
- * Reads `SERVICE_SECRET` through `createDefaultProc().env` (a late-binding
- * Proxy over `process.env`) rather than touching the `process` global
- * directly — same read semantics as before, no ambient-dep smell.
+ * Default auth factory that creates an authentication interceptor. Reads
+ * `SERVICE_SECRET` from the injected `runtime.proc.env` rather than
+ * constructing its own process collaborator — the runtime is threaded from the
+ * entry point through `Server`/`Client` (no leaf-collaborator construction in
+ * src, Success Criterion 9).
  * @param {string} serviceName - Name of the service for the interceptor
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
  * @returns {Interceptor} Configured interceptor instance
  */
-export function createAuth(serviceName) {
-  const secret = createDefaultProc().env.SERVICE_SECRET;
+export function createAuth(serviceName, runtime) {
+  if (!runtime?.proc) {
+    throw new Error(
+      `createAuth requires an injected runtime for service ${serviceName}`,
+    );
+  }
+  const secret = runtime.proc.env.SERVICE_SECRET;
   if (!secret) {
     throw new Error(
       `SERVICE_SECRET environment variable is required for service ${serviceName}`,
@@ -58,7 +64,8 @@ export class Rpc {
    * @param {import("@forwardimpact/libtelemetry").Tracer} [tracer] - Optional tracer for distributed tracing
    * @param {(serviceName: string, logger: object, tracer: object) => object} observerFn - Observer factory
    * @param {() => {grpc: object}} grpcFn - gRPC factory
-   * @param {(serviceName: string) => object} authFn - Auth factory
+   * @param {(serviceName: string, runtime: object) => object} authFn - Auth factory
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Injected runtime bag, threaded to `authFn`
    */
   constructor(
     config,
@@ -67,6 +74,7 @@ export class Rpc {
     observerFn = createObserver,
     grpcFn = createGrpc,
     authFn = createAuth,
+    runtime,
   ) {
     if (!config) throw new Error("config is required");
     if (typeof observerFn !== "function")
@@ -82,8 +90,9 @@ export class Rpc {
     const { grpc } = grpcFn();
     this.#grpc = grpc;
 
-    // Setup authentication
-    this.#auth = authFn(this.config.name);
+    // Setup authentication (the default factory reads SERVICE_SECRET off the
+    // injected runtime; a mock authFn ignores it)
+    this.#auth = authFn(this.config.name, runtime);
 
     // Create observer with logger and tracer
     this.#observer = observerFn(this.config.name, logger, tracer);

@@ -1,8 +1,13 @@
-import { test, describe, beforeEach } from "node:test";
+import { test, describe } from "node:test";
 import assert from "node:assert";
 
 import { createAuth, HmacAuth } from "../src/index.js";
-import { assertThrowsMessage, createMockClock } from "@forwardimpact/libmock";
+import {
+  assertThrowsMessage,
+  createMockClock,
+  createMockProcess,
+  createTestRuntime,
+} from "@forwardimpact/libmock";
 
 describe("Auth", () => {
   describe("HmacAuth", () => {
@@ -69,32 +74,33 @@ describe("Auth", () => {
   });
 
   describe("createAuth", () => {
-    let originalEnv;
+    const runtimeWithSecret = (secret) =>
+      createTestRuntime({
+        proc: createMockProcess({
+          env: secret ? { SERVICE_SECRET: secret } : {},
+        }),
+      });
 
-    beforeEach(() => {
-      originalEnv = process.env.SERVICE_SECRET;
+    test("should throw if no runtime is injected", () => {
+      assertThrowsMessage(
+        () => createAuth("test"),
+        /createAuth requires an injected runtime/,
+      );
     });
 
     test("should throw if SERVICE_SECRET is missing", () => {
-      delete process.env.SERVICE_SECRET;
       assertThrowsMessage(
-        () => createAuth("test"),
+        () => createAuth("test", runtimeWithSecret()),
         /SERVICE_SECRET environment variable is required/,
       );
     });
 
     test("should create Interceptor with valid secret", () => {
-      process.env.SERVICE_SECRET =
-        "test-secret-that-is-at-least-32-characters-long";
-      const interceptor = createAuth("test");
+      const interceptor = createAuth(
+        "test",
+        runtimeWithSecret("test-secret-that-is-at-least-32-characters-long"),
+      );
       assert.ok(interceptor);
-
-      // Cleanup
-      if (originalEnv) {
-        process.env.SERVICE_SECRET = originalEnv;
-      } else {
-        delete process.env.SERVICE_SECRET;
-      }
     });
   });
 });

@@ -52,7 +52,12 @@ async function main() {
 
   const embeddingConfig = await createServiceConfig("embedding");
   const { EmbeddingClient } = clients;
-  const embeddingClient = new EmbeddingClient(embeddingConfig);
+  const embeddingClient = new EmbeddingClient(
+    embeddingConfig,
+    null,
+    null,
+    runtime,
+  );
 
   const storage = createStorage("vectors");
   const vectorIndex = new VectorIndex(storage);

@@ -57,6 +57,7 @@ export async function runStatusCommand({ json }, runtime) {
     healthDefinition,
     fs,
     clock,
+    runtime,
   });
 
   if (json) {

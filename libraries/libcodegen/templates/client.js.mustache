@@ -15,10 +15,11 @@ export class {{className}} extends Client {
    * @param {object} config - Service configuration
    * @param {import("@forwardimpact/libtelemetry").Logger} [logger] - Optional logger instance
    * @param {import("@forwardimpact/libtelemetry").Tracer} [tracer] - Optional tracer for distributed tracing
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Injected runtime bag (the default auth factory reads SERVICE_SECRET from it)
    * @param {Function} [authFn] - Optional authentication function
    */
-  constructor(config, logger = null, tracer = null, authFn = createAuth) {
-    super(config, logger, tracer, createObserver, createGrpc, authFn);
+  constructor(config, logger = null, tracer = null, runtime, authFn = createAuth) {
+    super(config, logger, tracer, createObserver, createGrpc, authFn, null, runtime);
   }
 
 {{#methods}}

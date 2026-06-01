@@ -31,15 +31,17 @@ export const clients = exports.clients || {};
 export async function createTracer(serviceName) {
   const traceConfig = await createServiceConfig("trace");
   const { TraceClient } = clients;
-  const traceClient = new TraceClient(traceConfig);
-  // createTracer is a composition-root factory; it builds the production clock
-  // as its DI root and threads it into the Tracer (and thus every Span).
-  const { clock } = createDefaultRuntime();
+  // createTracer is a composition-root factory; it builds the production
+  // runtime as its DI root, threads it into the TraceClient (so the client's
+  // auth reads SERVICE_SECRET off the bag) and into the Tracer (and thus every
+  // Span) via its clock.
+  const runtime = createDefaultRuntime();
+  const traceClient = new TraceClient(traceConfig, null, null, runtime);
   return new Tracer({
     serviceName,
     traceClient,
     grpcMetadata: grpc.Metadata,
-    clock,
+    clock: runtime.clock,
   });
 }
 
@@ -65,6 +67,10 @@ export async function createClient(name, logger = null, tracer = null) {
   // Create config for the service
   const config = await createServiceConfig(name);
 
-  // Create and return the client instance with logger and tracer
-  return new ClientClass(config, logger, tracer);
+  // createClient is a composition-root factory; build the production runtime
+  // here and thread it so the client's auth reads SERVICE_SECRET off the bag.
+  const runtime = createDefaultRuntime();
+
+  // Create and return the client instance with logger, tracer, and runtime
+  return new ClientClass(config, logger, tracer, runtime);
 }

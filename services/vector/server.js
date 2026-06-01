@@ -26,6 +26,7 @@ const embeddingClient = new EmbeddingClient(
   await createServiceConfig("embedding"),
   logger,
   tracer,
+  runtime,
 );
 
 async function createEmbeddings(input) {
