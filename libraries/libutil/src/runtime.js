@@ -4,6 +4,7 @@ import nodeFsSync, {
   createWriteStream as nodeCreateWriteStream,
 } from "node:fs";
 import nodeFs from "node:fs/promises";
+import { Writable } from "node:stream";
 import { Finder } from "./finder.js";
 
 /**
@@ -29,8 +30,9 @@ import { Finder } from "./finder.js";
  *   `readFileSync`, `writeFileSync`, `mkdirSync`, `readdirSync`, `statSync`,
  *   `openSync`, `readSync`, `closeSync`, `unlinkSync`.
  * @property {Object} proc
- *   Process surface: `cwd()`, `env`, `argv`, `stdin`, `stdout.write`,
- *   `stderr.write`, `exit(code)`, `kill(pid, signal)` (a negative `pid`
+ *   Process surface: `cwd()`, `env`, `argv`, `stdin`, `stdout`/`stderr`
+ *   (pipeline-grade `Writable`s — they support `.write(str)` and also serve as
+ *   `pipeline()` sinks), `exit(code)`, `kill(pid, signal)` (a negative `pid`
  *   signals the process group, e.g. for daemon teardown), `pid` (this
  *   process's id — used to exclude self from process-group descendant scans),
  *   `platform` (the `process.platform` string — `"darwin"`/`"win32"`/`"linux"`
@@ -93,8 +95,12 @@ export function createDefaultProc({ source = process, env = source.env } = {}) {
     }),
     argv: Object.freeze([...source.argv]),
     stdin: lineIterator(source.stdin),
-    stdout: { write: (s) => source.stdout.write(s) },
-    stderr: { write: (s) => source.stderr.write(s) },
+    // Pipeline-grade Writables: they support `.write(str)` like the old
+    // `{ write }` shim and also serve as `pipeline()` sinks. The wrapper
+    // forwards each chunk to the real stream; `.end()` finishes the wrapper
+    // without closing `source.stdout`/`stderr`.
+    stdout: forwardingWritable(source.stdout),
+    stderr: forwardingWritable(source.stderr),
     exit: (code) => source.exit(code),
     kill: (pid, signal) => source.kill(pid, signal),
     pid: source.pid,
@@ -109,6 +115,23 @@ export function createDefaultProc({ source = process, env = source.env } = {}) {
     },
   });
   return proc;
+}
+
+/**
+ * Wrap an underlying writable (`process.stdout`/`stderr`) in a pipeline-grade
+ * `Writable` sink that forwards every chunk to it. Used so `runtime.proc.stdout`
+ * can be both `.write(str)`-ed and used as a `pipeline()` destination, without
+ * `.end()` on the wrapper closing the real stream.
+ * @param {object} target - The underlying writable to forward chunks to.
+ * @returns {import("node:stream").Writable}
+ */
+function forwardingWritable(target) {
+  return new Writable({
+    write(chunk, _encoding, callback) {
+      target.write(chunk);
+      callback();
+    },
+  });
 }
 
 /**

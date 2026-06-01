@@ -13,7 +13,19 @@ describe("ServiceManager - constructor, paths, running, start", () => {
   let mockConfig;
   let mockLogger;
   let mockDeps;
+  let mockFs;
   let logCalls;
+
+  // A live PID resolves to a running daemon; any other signal target throws.
+  const KILL = (pid, signal) => {
+    if (signal === 0 && pid === 12345) return true;
+    throw new Error("ESRCH");
+  };
+  // The sync-fs and process surfaces now flow through the injected runtime, so
+  // tests that need a custom fs or kill build a runtime rather than passing a
+  // `deps.fs` override.
+  const makeRuntime = (fsSync, kill = KILL) =>
+    createTestRuntime({ fsSync, proc: createMockProcess({ kill }) });
 
   beforeEach(() => {
     logCalls = [];
@@ -44,27 +56,18 @@ describe("ServiceManager - constructor, paths, running, start", () => {
         logCalls.push({ level: "error", name, msg, data }),
     };
 
+    mockFs = {
+      readFileSync: () => "12345",
+      mkdirSync: () => {},
+      openSync: () => 42,
+      closeSync: () => {},
+      unlinkSync: () => {},
+    };
+
     mockDeps = {
-      fs: {
-        readFileSync: () => "12345",
-        mkdirSync: () => {},
-        openSync: () => 42,
-        closeSync: () => {},
-        unlinkSync: () => {},
-      },
-      spawn: () => {
-        const child = { unref: () => {} };
-        return child;
-      },
+      spawn: () => ({ unref: () => {} }),
       execSync: () => {},
-      runtime: createTestRuntime({
-        proc: createMockProcess({
-          kill: (pid, signal) => {
-            if (signal === 0 && pid === 12345) return true;
-            throw new Error("ESRCH");
-          },
-        }),
-      }),
+      runtime: makeRuntime(mockFs),
       sendCommand: async () => ({ ok: true }),
       waitForSocket: async () => true,
     };
@@ -108,12 +111,12 @@ describe("ServiceManager - constructor, paths, running, start", () => {
     test("returns false when PID file does not exist", () => {
       const deps = {
         ...mockDeps,
-        fs: {
-          ...mockDeps.fs,
+        runtime: makeRuntime({
+          ...mockFs,
           readFileSync: () => {
             throw new Error("ENOENT");
           },
-        },
+        }),
       };
       const manager = new ServiceManager(mockConfig, mockLogger, deps);
       assert.strictEqual(manager.isSvscanRunning(), false);
@@ -122,12 +125,8 @@ describe("ServiceManager - constructor, paths, running, start", () => {
     test("returns false when process is not alive", () => {
       const deps = {
         ...mockDeps,
-        runtime: createTestRuntime({
-          proc: createMockProcess({
-            kill: () => {
-              throw new Error("ESRCH");
-            },
-          }),
+        runtime: makeRuntime(mockFs, () => {
+          throw new Error("ESRCH");
         }),
       };
       const manager = new ServiceManager(mockConfig, mockLogger, deps);
@@ -139,12 +138,12 @@ describe("ServiceManager - constructor, paths, running, start", () => {
     test("starts svscan if not running", async () => {
       const deps = {
         ...mockDeps,
-        fs: {
-          ...mockDeps.fs,
+        runtime: makeRuntime({
+          ...mockFs,
           readFileSync: () => {
             throw new Error("ENOENT");
           },
-        },
+        }),
       };
       const manager = new ServiceManager(mockConfig, mockLogger, deps);
       await manager.start();

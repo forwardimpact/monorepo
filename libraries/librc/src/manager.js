@@ -59,23 +59,15 @@ const SVSCAN_BIN = require.resolve(
 
 /**
  * @typedef {object} Dependencies
- * @property {typeof import("node:fs")} [fs] - File system module (sync surface).
- *   Foundation-gap override for `logs()`'s `createReadStream`, which the
- *   ratified `runtime.fsSync` surface does not express; defaults to
- *   `runtime.fsSync` otherwise (see teardown ledger § foundation surface gaps).
  * @property {typeof import("node:child_process").spawn} [spawn] - Spawn function.
  *   In production wire from the bin (which is allowed to import child_process).
  * @property {typeof import("node:child_process").execSync} [execSync] - ExecSync function.
  *   In production wire from the bin (which is allowed to import child_process).
  * @property {function(string, object): Promise<object>} [sendCommand] - Socket command sender
  * @property {function(string, number): Promise<boolean>} [waitForSocket] - Socket waiter
- * @property {NodeJS.WritableStream} [stdout] - Stdout sink for `logs()`'s
- *   `pipeline()`; defaults to the ambient `process.stdout` because
- *   `runtime.proc.stdout` is a `{ write }` shim, not a pipeline-grade
- *   `Writable` (see MONOREPO teardown § foundation surface gaps).
  * @property {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Runtime bag.
- *   Supplies the sync-fs (`fsSync`) and process (`proc`, including `kill` and
- *   `env`) surfaces; `deps.fs` overrides `fsSync` for stream reads when present.
+ *   Supplies the sync-fs (`fsSync`, including `createReadStream`) and process
+ *   (`proc`, including `kill`, `env`, and the pipeline-grade `stdout`) surfaces.
  */
 
 /**
@@ -107,9 +99,10 @@ export class ServiceManager {
 
     this.#config = config;
     this.#logger = logger;
-    // deps.fs is the foundation-gap override for logs() stream reads
-    // (createReadStream); otherwise the injected runtime's sync-fs is used.
-    this.#fs = deps.fs ?? runtime.fsSync;
+    // The injected runtime's sync-fs is the full node:fs module, so it exposes
+    // createReadStream for logs() alongside the readFileSync/openSync/etc. the
+    // lifecycle methods use.
+    this.#fs = runtime.fsSync;
     // spawn and execSync must be provided by the caller (bin or test); there
     // is no runtime-level equivalent that covers detached stdio-redirect
     // spawning. Fail fast with a clear message rather than a late TypeError
@@ -126,10 +119,10 @@ export class ServiceManager {
     this.#proc = runtime.proc;
     this.#sendCommand = deps.sendCommand;
     this.#waitForSocket = deps.waitForSocket;
-    // logs() pipes a read stream into a Writable; runtime.proc.stdout is a
-    // `{ write }` shim, not pipeline-grade, so this stays on the ambient
-    // stream until the runtime surface grows a writable stdout (teardown).
-    this.#stdout = deps.stdout ?? process.stdout;
+    // logs() pipes a read stream into this Writable; runtime.proc.stdout is now
+    // a pipeline-grade Writable, so the log stream routes through the injected
+    // process surface with no ambient global stream.
+    this.#stdout = runtime.proc.stdout;
   }
 
   /**

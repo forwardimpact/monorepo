@@ -1,6 +1,6 @@
 import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert";
-import { Readable, Writable } from "node:stream";
+import { Readable } from "node:stream";
 
 import { ServiceManager } from "../src/manager.js";
 import {
@@ -21,23 +21,11 @@ const failingStream = (code) =>
     },
   });
 
-// Writable that captures every chunk into an array of Buffers.
-const capturingSink = () => {
-  const captured = [];
-  const sink = new Writable({
-    write(chunk, _enc, cb) {
-      captured.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-      cb();
-    },
-  });
-  sink.captured = captured;
-  return sink;
-};
-
 describe("ServiceManager - logs", () => {
   let mockConfig;
   let mockLogger;
-  let mockDeps;
+  let mockFs;
+  let baseDeps;
   let logCalls;
 
   beforeEach(() => {
@@ -69,99 +57,81 @@ describe("ServiceManager - logs", () => {
         logCalls.push({ level: "error", name, msg, data }),
     };
 
-    mockDeps = {
-      fs: {
-        readFileSync: () => "12345",
-        mkdirSync: () => {},
-        openSync: () => 42,
-        closeSync: () => {},
-        unlinkSync: () => {},
-      },
+    // Sync-fs the lifecycle methods touch; logs() adds createReadStream
+    // per-test. The full surface (createReadStream + stdout) now flows through
+    // the injected runtime, so logs() reads runtime.fsSync.createReadStream and
+    // pipes into runtime.proc.stdout — there is no deps.fs / deps.stdout.
+    mockFs = {
+      readFileSync: () => "12345",
+      mkdirSync: () => {},
+      openSync: () => 42,
+      closeSync: () => {},
+      unlinkSync: () => {},
+    };
+
+    baseDeps = {
       spawn: () => ({ unref: () => {} }),
       execSync: () => {},
-      runtime: createTestRuntime({
-        proc: createMockProcess({
-          kill: (pid, signal) => {
-            if (signal === 0 && pid === 12345) return true;
-            throw new Error("ESRCH");
-          },
-        }),
-      }),
       sendCommand: async () => ({ ok: true }),
       waitForSocket: async () => true,
     };
   });
 
+  // Build deps whose runtime carries the given createReadStream over the
+  // sync-fs base and a fresh capturing proc (read its `stdout.chunks`).
+  const depsWith = (createReadStream, proc) => ({
+    ...baseDeps,
+    runtime: createTestRuntime({
+      proc,
+      fsSync: { ...mockFs, createReadStream },
+    }),
+  });
+
   test('throws "Unknown service: <name>" for unrecognised name', async () => {
-    const manager = new ServiceManager(mockConfig, mockLogger, mockDeps);
+    const runtime = createTestRuntime({
+      fsSync: mockFs,
+      proc: createMockProcess(),
+    });
+    const manager = new ServiceManager(mockConfig, mockLogger, {
+      ...baseDeps,
+      runtime,
+    });
     await assertRejectsMessage(
       () => manager.logs("unknown"),
       /Unknown service: unknown/,
     );
   });
 
-  test("emits file bytes to the stdout sink for a known service", async () => {
-    const stdout = capturingSink();
-    const deps = {
-      ...mockDeps,
-      fs: {
-        ...mockDeps.fs,
-        createReadStream: () => Readable.from(["log-canary-payload\n"]),
-      },
-      stdout,
-    };
+  test("emits file bytes to the runtime stdout sink for a known service", async () => {
+    const proc = createMockProcess();
+    const deps = depsWith(() => Readable.from(["log-canary-payload\n"]), proc);
     const manager = new ServiceManager(mockConfig, mockLogger, deps);
     await manager.logs("trace");
 
-    assert.ok(
-      Buffer.concat(stdout.captured)
-        .toString("utf8")
-        .includes("log-canary-payload"),
-    );
+    assert.ok(proc.stdout.chunks.join("").includes("log-canary-payload"));
   });
 
   test("resolves silently when the current file is missing (ENOENT)", async () => {
-    const stdout = capturingSink();
-    const deps = {
-      ...mockDeps,
-      fs: {
-        ...mockDeps.fs,
-        createReadStream: () => failingStream("ENOENT"),
-      },
-      stdout,
-    };
+    const proc = createMockProcess();
+    const deps = depsWith(() => failingStream("ENOENT"), proc);
     const manager = new ServiceManager(mockConfig, mockLogger, deps);
     await manager.logs("trace");
 
-    assert.strictEqual(stdout.captured.length, 0);
+    assert.strictEqual(proc.stdout.chunks.length, 0);
   });
 
   test("resolves silently when the current file is empty", async () => {
-    const stdout = capturingSink();
-    const deps = {
-      ...mockDeps,
-      fs: {
-        ...mockDeps.fs,
-        createReadStream: () => Readable.from([]),
-      },
-      stdout,
-    };
+    const proc = createMockProcess();
+    const deps = depsWith(() => Readable.from([]), proc);
     const manager = new ServiceManager(mockConfig, mockLogger, deps);
     await manager.logs("trace");
 
-    assert.strictEqual(stdout.captured.length, 0);
+    assert.strictEqual(proc.stdout.chunks.length, 0);
   });
 
   test("propagates non-ENOENT stream errors", async () => {
-    const stdout = capturingSink();
-    const deps = {
-      ...mockDeps,
-      fs: {
-        ...mockDeps.fs,
-        createReadStream: () => failingStream("EACCES"),
-      },
-      stdout,
-    };
+    const proc = createMockProcess();
+    const deps = depsWith(() => failingStream("EACCES"), proc);
     const manager = new ServiceManager(mockConfig, mockLogger, deps);
     await assertRejectsMessage(() => manager.logs("trace"), /EACCES/);
   });

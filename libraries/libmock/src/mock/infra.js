@@ -2,6 +2,29 @@
  * Additional infrastructure mocks for services/products tests. Centralizes
  * variants that consumers previously inlined.
  */
+import { Writable } from "node:stream";
+
+/**
+ * A capturing `Writable` used as the mock `proc.stdout`/`stderr`. It retains
+ * the `chunks` accessor existing assertions read AND is a real `Writable`, so
+ * it accepts piped input (e.g. a `pipeline()` from a read stream).
+ */
+class CaptureWritable extends Writable {
+  constructor() {
+    super();
+    this.chunks = [];
+  }
+
+  /**
+   * @param {Buffer|string} chunk - The written chunk.
+   * @param {string} _encoding - Chunk encoding (unused).
+   * @param {Function} callback - Completion callback.
+   */
+  _write(chunk, _encoding, callback) {
+    this.chunks.push(String(chunk));
+    callback();
+  }
+}
 
 /**
  * Creates a mock Supabase-style client with configurable table and storage
@@ -148,11 +171,12 @@ export function createMockStdin(chunks = []) {
 
 /**
  * Creates a mock `process`-like object matching the `Runtime.proc` surface:
- * `cwd()`, `env`, `argv`, `stdin`, `stdout.write`, `stderr.write`,
+ * `cwd()`, `env`, `argv`, `stdin`, `stdout`/`stderr` (capturing `Writable`s),
  * `exit(code)`, `kill(pid, signal)`, `pid`, `platform`, `on(event, handler)`,
  * and a settable `exitCode`. Writes are captured on `stdout.chunks` /
- * `stderr.chunks`; kill calls on `kills`; event handlers on `handlers` (fire
- * them via `emit(event, ...args)` to simulate a signal).
+ * `stderr.chunks` (and the streams accept piped input); kill calls on `kills`;
+ * event handlers on `handlers` (fire them via `emit(event, ...args)` to
+ * simulate a signal).
  *
  * @param {object} [options]
  * @param {Record<string, string>} [options.env] - Initial env map.
@@ -176,8 +200,8 @@ export function createMockProcess({
   pid = 1234,
   platform = "linux",
 } = {}) {
-  const stdout = { chunks: [], write: (s) => stdout.chunks.push(String(s)) };
-  const stderr = { chunks: [], write: (s) => stderr.chunks.push(String(s)) };
+  const stdout = new CaptureWritable();
+  const stderr = new CaptureWritable();
   const kills = [];
   // Registered event handlers (e.g. "SIGTERM"/"SIGINT"); a test can fire them
   // via `emit(event, ...args)` to simulate a signal without a real process.
