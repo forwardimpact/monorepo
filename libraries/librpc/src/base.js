@@ -60,23 +60,24 @@ export class Rpc {
   /**
    * Creates a new Rpc instance
    * @param {object} config - Configuration object
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag (required), threaded to `authFn`
    * @param {object} [logger] - Optional logger instance
    * @param {import("@forwardimpact/libtelemetry").Tracer} [tracer] - Optional tracer for distributed tracing
    * @param {(serviceName: string, logger: object, tracer: object) => object} observerFn - Observer factory
    * @param {() => {grpc: object}} grpcFn - gRPC factory
    * @param {(serviceName: string, runtime: object) => object} authFn - Auth factory
-   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Injected runtime bag, threaded to `authFn`
    */
   constructor(
     config,
+    runtime,
     logger = null,
     tracer = null,
     observerFn = createObserver,
     grpcFn = createGrpc,
     authFn = createAuth,
-    runtime,
   ) {
     if (!config) throw new Error("config is required");
+    if (!runtime) throw new Error("runtime is required");
     if (typeof observerFn !== "function")
       throw new Error("observerFn must be a function");
     if (typeof grpcFn !== "function")

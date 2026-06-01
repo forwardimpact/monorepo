@@ -19,25 +19,25 @@ export class Client extends Rpc {
   /**
    * Creates a new Client instance
    * @param {object} config - Configuration object
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag (required), threaded to `authFn`
    * @param {object} [logger] - Optional logger instance
    * @param {import("@forwardimpact/libtelemetry").Tracer} [tracer] - Optional tracer for distributed tracing
    * @param {(serviceName: string, logger: object, tracer: object) => object} observerFn - Observer factory
    * @param {() => {grpc: object}} grpcFn - gRPC factory
    * @param {(serviceName: string, runtime: object) => object} authFn - Auth factory
    * @param {import("@forwardimpact/libutil").Retry} [retry] - Optional retry instance for handling transient errors
-   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Injected runtime bag, threaded to `authFn`
    */
   constructor(
     config,
+    runtime,
     logger = null,
     tracer = null,
     observerFn = createObserver,
     grpcFn = createGrpc,
     authFn = createAuth,
     retry = null,
-    runtime,
   ) {
-    super(config, logger, tracer, observerFn, grpcFn, authFn, runtime);
+    super(config, runtime, logger, tracer, observerFn, grpcFn, authFn);
     this.#retry = retry || createRetry({ retries: 10, delay: 1000 });
     this.#setupClient();
   }

@@ -80,7 +80,7 @@ async function queryDataInventory(graphConfig, runtime) {
   const { GraphClient } = clients;
   const { graph } = await import("@forwardimpact/libtype");
 
-  const client = new GraphClient(graphConfig, null, null, runtime);
+  const client = new GraphClient(graphConfig, runtime);
 
   let resources = 0;
   try {

@@ -36,7 +36,7 @@ export async function createTracer(serviceName) {
   // auth reads SERVICE_SECRET off the bag) and into the Tracer (and thus every
   // Span) via its clock.
   const runtime = createDefaultRuntime();
-  const traceClient = new TraceClient(traceConfig, null, null, runtime);
+  const traceClient = new TraceClient(traceConfig, runtime);
   return new Tracer({
     serviceName,
     traceClient,
@@ -71,6 +71,6 @@ export async function createClient(name, logger = null, tracer = null) {
   // here and thread it so the client's auth reads SERVICE_SECRET off the bag.
   const runtime = createDefaultRuntime();
 
-  // Create and return the client instance with logger, tracer, and runtime
-  return new ClientClass(config, logger, tracer, runtime);
+  // Create and return the client instance (runtime is the required 2nd arg)
+  return new ClientClass(config, runtime, logger, tracer);
 }
