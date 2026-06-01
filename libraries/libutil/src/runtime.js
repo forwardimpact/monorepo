@@ -128,6 +128,11 @@ export function createDefaultProc({ source = process, env = source.env } = {}) {
 function forwardingWritable(target) {
   return new Writable({
     write(chunk, _encoding, callback) {
+      // Forward and complete immediately. The underlying stream's
+      // backpressure signal is not propagated, which is fine for the CLI
+      // sinks this serves (a one-shot `librc logs()` tail); a future
+      // high-volume consumer that needs flow control should respect
+      // `target.write()`'s return value here.
       target.write(chunk);
       callback();
     },

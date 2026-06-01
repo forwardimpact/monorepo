@@ -1,3 +1,7 @@
+// Lives at `tests/*.test.js` (not `scripts/*.test.mjs`) so the root `test`
+// script's `find ./tests … -name '*.test.js'` glob discovers it, matching the
+// sibling checker tests (check-ambient-deps.test.js, etc.); a `.test.mjs` under
+// scripts/ would never run.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 

@@ -144,10 +144,14 @@ one shape and applies that shape across `libraries/`, `products/`, and
 ## Outcome (post-implementation reconciliation, 2026-06-01)
 
 Parts 01–06 + teardown shipped the charter; SC1–5 and SC7–8 are met and
-CI-enforced. SC9 and SC10 are **not yet** met on `main` — six `new Finder(`
-sites remain and the enforcing invariant does not exist; [plan-a-07.md](plan-a-07.md)
-(approved, pending implementation) closes them. A post-merge audit recorded
-the following honest results so the artifacts match what shipped:
+CI-enforced. SC9 and SC10 were the final gaps — six `new Finder(` sites
+remained and the enforcing invariant did not exist — and [plan-a-07.md](plan-a-07.md)
+closes them: every site is collapsed onto `runtime.finder` (the lone logging
+site, codegen's symlink step, via `Finder.withLogger`), and
+`scripts/check-collaborator-construction.mjs` enforces the no-leaf-construction
+rule in CI while `MONOREPO.md` § Enforcement documents all four invariants. A
+post-merge audit recorded the following honest results so the artifacts match
+what shipped:
 
 - **The structural goal succeeded.** Ambient `node:fs`/`node:child_process`/
   `Date.now`/`setTimeout`/`process.*` are gone from src outside the
@@ -166,10 +170,11 @@ the following honest results so the artifacts match what shipped:
   (milliseconds, not subprocess forks, per unit test) is real; the absolute
   wall-time milestone was the wrong gate for a scope that grew underneath it.
   Wall time is now a recorded trend, not a gate.
-- **The only genuine runtime-surface gap left** is `librc logs()` (it cannot
+- **The last genuine runtime-surface gap** was `librc logs()` (it could not
   pipe to `runtime.proc.stdout`, a `{ write }` shim). [plan-a-07.md](plan-a-07.md)
-  closes it by making `proc.stdout`/`stderr` pipeline-grade `Writable`s. The
-  libeval and libsupervise residue the teardown ledger once named as needing
+  closes it by making `proc.stdout`/`stderr` pipeline-grade `Writable`s and
+  migrating `logs()` onto `runtime.fsSync.createReadStream` + `runtime.proc.stdout`.
+  The libeval and libsupervise residue the teardown ledger once named as needing
   "a future runtime-surface-extension spec" had already shipped during the
   waves (`runtime.fs.createReadStream`/`createWriteStream`, `proc.kill` group
   signalling, `subprocess.spawn` `detached`/`pid`/`stdin`); [teardown.md](teardown.md)

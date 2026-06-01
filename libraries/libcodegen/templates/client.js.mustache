@@ -18,6 +18,9 @@ export class {{className}} extends Client {
    * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Injected runtime bag (the default auth factory reads SERVICE_SECRET from it)
    * @param {Function} [authFn] - Optional authentication function
    */
+  // `runtime` is the 4th positional here so the common call shape stays
+  // `new XxxClient(config, logger, tracer, runtime)`; it maps to the base
+  // `Client`'s trailing `runtime` param (after observerFn/grpcFn/authFn/retry).
   constructor(config, logger = null, tracer = null, runtime, authFn = createAuth) {
     super(config, logger, tracer, createObserver, createGrpc, authFn, null, runtime);
   }
