@@ -22,11 +22,15 @@ counts are produced by four commands sharing one regex; each count names
 its source explicitly so the result is single-command reproducible:
 
 ```sh
+# $ROOTS is the directory set used by every grep in this spec — the bun test
+# invocation roots plus websites/ for preemptive coverage.
+ROOTS="libraries/ services/ products/ tests/ websites/ .github/ .claude/"
+
 # 37 = repo-wide files importing from "bun:test"
-grep -rlE "from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/ | wc -l
+grep -rlE "from ['\"]bun:test['\"]" $ROOTS | wc -l
 
 # 31 = outside-libpack subset of the 37
-grep -rlE "from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/ | grep -v '^libraries/libpack/' | wc -l
+grep -rlE "from ['\"]bun:test['\"]" $ROOTS | grep -v '^libraries/libpack/' | wc -l
 
 # 6 = inside-libpack subset of the 37
 grep -rlE "from ['\"]bun:test['\"]" libraries/libpack/ | wc -l
@@ -62,24 +66,27 @@ Agent-Capable Systems" via the Gear product
 ([JTBD.md](../../JTBD.md#platform-builders-build-agent-capable-systems));
 the choice turns on the symbol-usage evidence.
 
-Per-symbol file counts among the 31 outside-`libpack` files, each with its
-own per-symbol verification grep so a reviewer can reproduce a single row
-in isolation:
+Per-symbol file counts among the 31 outside-`libpack` files. Each row's
+verification grep matches the table header by filtering out
+`libraries/libpack/` so a reviewer can reproduce a single row in
+isolation against the "31 outside-libpack" claim. (Define
+`ROOTS="libraries/ services/ products/ tests/ websites/ .github/ .claude/"`
+to shorten each row; the path argument is the same across every row.)
 
 | Symbol           | Files using it | Per-symbol verification grep                                                                                                |
 | ---------------- | -------------: | --------------------------------------------------------------------------------------------------------------------------- |
-| `describe`       |             31 | `grep -rlE "import .*\\bdescribe\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
-| `test`           |             31 | `grep -rlE "import .*\\btest\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
-| `expect`         |             31 | `grep -rlE "import .*\\bexpect\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
-| `beforeEach`     |             16 | `grep -rlE "import .*\\bbeforeEach\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
-| `afterEach`      |             16 | `grep -rlE "import .*\\bafterEach\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
-| `afterAll`       |              1 | `grep -rlE "import .*\\bafterAll\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
+| `describe`       |             31 | `grep -rlE "import .*\\bdescribe\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` |
+| `test`           |             31 | `grep -rlE "import .*\\btest\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` |
+| `expect`         |             31 | `grep -rlE "import .*\\bexpect\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` |
+| `beforeEach`     |             16 | `grep -rlE "import .*\\bbeforeEach\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` |
+| `afterEach`      |             16 | `grep -rlE "import .*\\bafterEach\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` |
+| `afterAll`       |              1 | `grep -rlE "import .*\\bafterAll\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` — the lone adopter is `products/pathway/test/serve.integration.test.js` |
 | `beforeAll`      |              0 | Same shape — no matches; allowlisted as forward-compat alias only.                                                          |
 | `it`             |              0 | Same shape — no matches; allowlisted as forward-compat alias only.                                                          |
-| `mock`           |              0 | `grep -rlE "import .*\\bmock\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
-| `spyOn`          |              0 | `grep -rlE "import .*\\bspyOn\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
-| `setSystemTime`  |              0 | `grep -rlE "import .*\\bsetSystemTime\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
-| `useFakeTimers`  |              0 | `grep -rlE "import .*\\buseFakeTimers\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
+| `mock`           |              0 | `grep -rlE "import .*\\bmock\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` |
+| `spyOn`          |              0 | `grep -rlE "import .*\\bspyOn\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` |
+| `setSystemTime`  |              0 | `grep -rlE "import .*\\bsetSystemTime\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` |
+| `useFakeTimers`  |              0 | `grep -rlE "import .*\\buseFakeTimers\\b.* from ['\"]bun:test['\"]" $ROOTS \| grep -v '^libraries/libpack/'` |
 
 `vi.*` (Vitest compatibility globals) and snapshot serializers
 (`toMatchSnapshot`, `toMatchInlineSnapshot`, custom serializers) are **not**
@@ -109,7 +116,7 @@ source decoupling via a guard rule.**
 
 | Signal                        | Weight                                                                                                                                                 |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Symbol convergence is exact   | No file (inside or outside `libpack`) imports any symbol outside the 6-symbol observed subset (`describe`, `test`, `expect`, `beforeEach`, `afterEach`, `afterAll`). Most files use a smaller floor — `libpack`-inside files use only `describe`/`test`/`expect`; outside-`libpack` files add lifecycle hooks. Zero divergent-feature usage. The drift is not toward bun-specific power; it is toward `expect()` ergonomics. |
+| Symbol convergence is exact   | No file (inside or outside `libpack`) imports any symbol outside a 6-symbol observed subset (`describe`, `test`, `expect`, `beforeEach`, `afterEach`, `afterAll`). The 8-symbol Allowlist below is the 6 observed symbols plus 2 forward-compat aliases (`it`, `beforeAll`) — the convergence evidence is on 6; the allowlist surface is wider for the reasons named under "Admission rule" in § Allowlist. Most files use a smaller floor — `libpack`-inside files use only `describe`/`test`/`expect`; outside-`libpack` files add lifecycle hooks. Zero divergent-feature usage. The drift is not toward bun-specific power; it is toward `expect()` ergonomics. |
 | Cost asymmetry favours B      | Option A migrates ~31 files (rewriting `expect(x).toEqual(y)` → `assert.deepStrictEqual(x, y)`, plus several `expect(spy).toHaveBeenCalledWith(...)` shapes), turning CI red until clean. Option B is a guard script + supersession note. |
 | 0650's core decoupling holds  | The "Why a custom `spy`" rationale in 0650 protected `libmock`/`libpack` **source** from runtime mock APIs. Source files still do not import `bun:test` (verified). Only test files do. The relaxation is at the test-consumer edge; the structural decoupling is unchanged. |
 | Foreclosure was inferred, not stated | 0650 records the foreclosure as a non-goal bullet under "snapshot testing, etc." — never enumerated the prohibited symbols, never wired a guard. 31 files of organic adoption is evidence the inferred scope was over-broad. |
@@ -189,7 +196,7 @@ variation.
 | Symbol or shape                                    | Why out                                                                                                                                                                                                                                  |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mock`, `spyOn`                                    | Use `libmock`'s runtime-independent `spy()`. Preserves 0650's core decoupling: call-inspection sites stay identical across runners.                                                                                                      |
-| Bun-specific timer manipulation (`setSystemTime`)  | Diverges from `node:test`'s timer semantics. 0650 names the symmetric risk for `node:test`'s `mock.timers`; banning the bun-side equivalent keeps the surface narrow in both directions. Any future `bun:test` timer-manipulation symbol is also banned by allowlist construction (only the 8 symbols on the allowlist are admitted; anything not on the list — present or future — is rejected). |
+| Bun-specific timer manipulation (`setSystemTime`, `useFakeTimers`)  | Diverges from `node:test`'s timer semantics. 0650 names the symmetric risk for `node:test`'s `mock.timers`; banning the bun-side equivalent keeps the surface narrow in both directions. (General rule: the policy is allowlist-shaped — only the symbols in the Allowlist table above are admitted as named imports from `bun:test`; any symbol not on the allowlist, current or future, is rejected. This row enumerates timer-manipulation symbols because the rationale is symmetric with 0650 and worth surfacing, not because the ban is per-symbol.) |
 | Default or namespace imports from `bun:test`       | Allowlist scope is **named imports only**; `import test from "bun:test"` or `import * as bunTest from "bun:test"` would bypass the per-symbol check. The guard rejects them in test files just as the source-file ban rejects them everywhere else. |
 | Side-effect imports (`import "bun:test"`)          | Carry no named symbols, so the named-import allowlist does not engage. The guard rejects this shape in test files for the same reason it rejects default/namespace imports: the guard cannot tell which symbols a side-effect import made available. |
 | Re-export shims (`export { test } from "bun:test"`) | Would let a downstream `import { test } from "./shim.js"` evade the guard if it were only matching import strings. The guard MUST match the same shapes (named/default/namespace/side-effect) on `export ... from "bun:test"`, in the same files it applies to import statements. |
@@ -212,20 +219,23 @@ criterion 7) mentions this for awareness.
 ### Scope clause
 
 - The allowlist applies to files matching `**/*.test.js` under the
-  monorepo's `bun test` invocation roots: `libraries/`, `services/`,
-  `products/`, `tests/`, `websites/`, `.github/workflows/test/`, and
-  `.claude/skills/kata-interview/test/`. The last two are the discovery
-  roots verified against `package.json` (see § Problem). Today `tests/`,
+  monorepo's `bun test` invocation roots — `libraries/`, `services/`,
+  `products/`, `tests/`, `.github/workflows/test/`, and
+  `.claude/skills/kata-interview/test/` (all six verified against
+  `package.json` `scripts.test`; see § Problem) — plus `websites/` as
+  preemptive coverage (not a current invocation root). Today `tests/`,
   `websites/`, `.github/workflows/test/`, and
   `.claude/skills/kata-interview/test/` have zero `bun:test` imports;
   inclusion is preemptive so the policy is uniform across every directory
-  the monorepo's test runner walks.
-- Files matching `**/*.spec.js` (the Playwright end-to-end tests in
-  `tests/`) and any other extension (`*.test.ts`, `*.test.mjs`, …) are
-  **not** in test-file scope. They count as non-test source for the
-  purposes of this spec — i.e., they are bound by the source-file ban
-  below. `bun:test` is intended for the `bun test` runner, which only
-  picks up `.test.js`.
+  the test runner walks now or could walk later.
+- The bound is **by filename**, not by directory: a `tests/` file that
+  matches `**/*.test.js` is in test-file scope (allowlist applies); a
+  `tests/` file that matches `**/*.spec.js` is non-test source (the
+  source-file ban below applies). `tests/` contains both — Playwright's
+  `*.spec.js` end-to-end tests and `bun test`'s `*.test.js` invariant
+  tests. Other extensions (`*.test.ts`, `*.test.mjs`, …) are non-test
+  source under the same rule. `bun:test` is intended for the `bun test`
+  runner, which only picks up `.test.js`.
 - **Non-test source files** (anything not matching `**/*.test.js` under
   the same allowlist directory set) must not import from `bun:test`
   under any condition. This preserves the source/runtime decoupling
@@ -267,13 +277,13 @@ shape is a design-phase concern (see § Risks for the persona framing).
 
 | # | Claim                                                                                                                  | Verified by                                                                                       |
 | - | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 1 | A guard enforces the named-import allowlist on every `*.test.js` import from `bun:test`, **and** rejects default, namespace, side-effect, and re-export shapes (`import "bun:test"`, `export ... from "bun:test"`) in `*.test.js` files. The guard's error message contract: for an allowlist symbol violation the message names the offending symbol; for a banned symbol it also names the recommended replacement (`spy()` from `libmock` for `mock`/`spyOn`; "no replacement — out of scope" for `setSystemTime`/`useFakeTimers`); for a banned shape (default/namespace/side-effect/re-export) the message names the shape and points the reader to the named-import allowlist. | A fixture `*.test.js` for each allowed shape (named import of an allowlisted symbol, renamed named import of an allowlisted symbol) exits zero; fixtures for each disallowed shape and each banned symbol exit non-zero, and the error message text matches the per-shape, per-symbol contract above. |
-| 2 | The guard forbids `bun:test` imports and re-exports of every shape (named, default, namespace, side-effect, re-export) in any non-test source file, where "non-test source file" means a file under the allowlist directory set (see § Scope clause) that does **not** match `**/*.test.js`. | Running the guard against a fixture source file (non-`*.test.js`) that imports or re-exports anything from `bun:test` exits non-zero, with the same per-shape contract as criterion 1. |
+| 1 | A guard enforces the named-import allowlist on every `*.test.js` import from `bun:test`, **and** rejects default, namespace, side-effect, and re-export shapes (`import "bun:test"`, `export ... from "bun:test"`) in `*.test.js` files. On rejection the guard produces a structured error that identifies (a) the file and import statement, (b) the offending symbol (for named-import violations) or the offending shape (for default/namespace/side-effect/re-export), and (c) a pointer the reader can act on — the per-symbol replacement when one exists, or the allowlist itself when no replacement applies. Mapping of symbol → replacement-or-pointer is carried in the rules module (design phase); exact message wording is a design choice. | The guard exits 0 against a fixture for each allowed shape (named import of an allowlisted symbol; renamed named import of an allowlisted symbol). The guard exits non-zero against a fixture for each disallowed shape and each banned symbol, and each non-zero exit emits the structured error covering (a), (b), and (c) above. |
+| 2 | The guard forbids `bun:test` imports and re-exports of every shape (named, default, namespace, side-effect, re-export) in any non-test source file, where "non-test source file" means a file under the allowlist directory set (see § Scope clause) that does **not** match `**/*.test.js`. | Running the guard against a fixture source file (non-`*.test.js`) that imports or re-exports anything from `bun:test` exits non-zero, producing the same structured error as criterion 1. |
 | 3 | The guard runs in CI on every pull request and on `main` as a member of the same aggregator that runs the other `invariants:check-*` scripts. | The aggregator that invokes the other `invariants:check-*` scripts also invokes the new guard; both `bun run check` and the CI workflow that runs invariants execute it. |
-| 4 | The guard, run on `main` at the time this spec lands, exits 0: all 37 current `bun:test` imports in test files pass the named-import allowlist, and zero non-test source files under the allowlist directory set import or re-export from `bun:test`. | The four single-command counts in § Problem reproduce 37 / 31 / 6 / 0 (each count names its own command). The two source-side checks below return `0`: <br>• `grep -rlE "from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/ \| grep -v '\.test\.js$' \| wc -l` (no non-`.test.js` file imports from `bun:test`) <br>• `grep -rlE "export .* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/ \| wc -l` (no file re-exports from `bun:test`, in either test or non-test files — the re-export shape is banned everywhere) |
-| 5 | A regression test exercises the allowed and disallowed partition against the rules module: every allowlisted symbol (including renamed-import shape), every banned symbol from § Out, every banned import shape (default, namespace, side-effect, re-export), and the renamed-import-of-banned-symbol case (rejected on the imported name, not the local alias). | The regression test runs under `bun test`, lives somewhere the test runner discovers, and is parameterised over the in/out symbol partition declared in this spec plus every disallowed shape listed above. (Naming/location of the regression test, the guard script, and the rules module is a design-phase choice; see § References for an informative precedent.) |
+| 4 | The guard binary, run on `main` at the time this spec lands, exits 0. | Two things must hold together. First, the inventory holds: the four single-command counts in § Problem reproduce 37 / 31 / 6 / 0; the source-side check `grep -rlE "from ['\"]bun:test['\"]" $ROOTS \| grep -v '\.test\.js$' \| wc -l` returns 0 (no non-`.test.js` file imports from `bun:test`, where `$ROOTS` is the directory set defined in § Problem); the re-export check `grep -rlE "export[[:space:]]+\\{[^}]*\\}[[:space:]]+from[[:space:]]+['\"]bun:test['\"]" $ROOTS \| wc -l` returns 0 (no re-export shim). Second, the guard binary itself exits 0 with no findings when invoked on the same tree the counts were taken against — the inventory being clean does not by itself satisfy criterion 4 if the guard is missing or broken. |
+| 5 | A regression test exercises the allowed and disallowed partition against the rules module. The partition has six classes that must all be covered: (i) named import of an allowlisted symbol; (ii) renamed named import of an allowlisted symbol; (iii) named import of a banned symbol from § Out; (iv) renamed named import of a banned symbol (rejected on the imported name, not the local alias); (v) each disallowed import shape (default, namespace, side-effect); (vi) re-export shape (`export ... from "bun:test"`) in both test and non-test files. | The regression test runs under `bun test`, lives somewhere the test runner discovers, and contains at least one assertion per partition class (i)–(vi). (Naming/location of the regression test, the guard script, and the rules module is a design-phase choice; see § References for an informative precedent.) |
 | 6 | `specs/0650-bun-test-runner/spec.md` has its Non-goals bullet quoted in § Supersession replaced by the Replacement bullet text shown there, followed by a footnote of the form `*[amended by spec 1410](link)*` (no date in the footnote — see § Supersession). | The 0650 spec file on `main` shows the Replacement bullet text and the footnote link to this spec; the original bullet text no longer appears in 0650 outside this spec's quotation; the audit date is observable from the file's git history. |
-| 7 | `CONTRIBUTING.md` carries the canonical policy paragraph and is the doc readers are pointed to from 0650's amended bullet and from this spec. The paragraph covers the allowlist, the source/test split, and the snapshot out-of-scope note, and links to this spec. | The diff against the current `CONTRIBUTING.md` shows the added paragraph naming those four items; 0650's amended bullet links to CONTRIBUTING.md or to this spec § Scope; this spec's § Scope clause is consistent with the paragraph (the design phase chooses which doc carries which level of detail — CONTRIBUTING.md the policy paragraph, this spec the audit trail and partition tables). |
+| 7 | A canonical policy paragraph exists in exactly one human-facing doc; the paragraph covers the allowlist, the source/test split, and the snapshot out-of-scope note, and links to this spec. 0650's amended bullet defers to that doc (or to this spec § Scope), and no other doc states a contradictory policy. | The doc that carries the policy paragraph (design phase chooses — CONTRIBUTING.md is the informative default; see § References) shows a diff adding a paragraph that covers the three named items and links to this spec; 0650's amended bullet links to the same doc or to this spec; a repo-wide search for `bun:test` policy text finds no contradicting statement outside the canonical paragraph + this spec + 0650's amended bullet. |
 
 ## Risks
 
@@ -332,5 +342,10 @@ shape is a design-phase concern (see § Risks for the persona framing).
   filename shape, and aggregator entry id are not normative — the
   design phase chooses how to express success criteria 1, 3, and 5
   concretely.
+- `CONTRIBUTING.md` — **informative default** for where the canonical
+  policy paragraph in success criterion 7 lives. The spec defers the
+  final placement to design; CONTRIBUTING.md is the doc that already
+  carries similarly-shaped policy paragraphs and is the natural home
+  unless design surfaces a stronger candidate.
 
 — Product Manager 🌱
