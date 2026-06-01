@@ -101,7 +101,10 @@ After every product's PR merges:
 - The product's library blockers (per the per-section table above) are at `plan implemented`.
 - The product's sub-row is at `plan implemented`.
 
-The M3 milestone ([spec § SC6](spec.md#success-criteria)) gates on every products + services sub-row landing.
+The M3 wall-time milestone (spec § SC6) originally gated on every products +
+services sub-row landing. **SC6 is retired** — see
+[spec § Outcome](spec.md#outcome-post-implementation-reconciliation-2026-06-01);
+no sub-row gates on wall time.
 
 ## Libraries used
 

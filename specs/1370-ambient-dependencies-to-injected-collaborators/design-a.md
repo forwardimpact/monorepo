@@ -29,7 +29,7 @@ one row per library/product (spec § Risks mitigation).
 | `GhClient` | libutil (`src/gh-client.js`) | Typed async methods over `runtime.subprocess`: `prCreate`, `prMerge`, `apiGet`, `apiPost`. |
 | `WikiSync` | libwiki (`src/wiki-sync.js`) | Consolidates pull/rebase/conflict-resolve/push currently spread across `wiki-repo.js`, `commands/sync.js`, and bridge call sites. Consumes `{ runtime, gitClient }`. Constructed once inside `bin/fit-wiki.js` (the same layer that builds `runtime`) and passed to handlers via `cli.dispatch(parsed, { deps: { runtime, wikiSync } })`. |
 | libwiki command handlers | libwiki (`src/commands/<name>.js`) | Per-command files keep today's layout. Each handler signature changes from `(values, args, cli)` to `(ctx)` and reads `ctx.deps.runtime` plus `ctx.deps.wikiSync` (and any other host-injected collaborator the bin chooses to thread). No `LibwikiCommands` class wrapper — the shape matches every other multi-subcommand CLI's dispatched handlers. Handlers return the result envelope below. Spec § Scope enumerated 12 handlers; the implementation covers 13 to match the bin's shipped command set (`fix` post-dates the spec). |
-| `Finder` (refactored) | libutil | Constructor `{ fs, proc }` — logger is **removed** from the constructor. `findUpward` / `findData` use the injected `fs` (the current dead-`fs` bug is fixed). Methods take an optional `{ logger }` per call; default logger is a `runtime.proc`-based stderr logger built inside `createDefaultRuntime`. Only `libutil` ever calls `new Finder(...)`; SC9 holds without escape hatches. |
+| `Finder` (refactored) | libutil | Constructor `{ fs, fsSync?, proc, logger? }` — the injected `fs`/`fsSync` flow through to `findUpward` / `findData` (the dead-`fs` bug is fixed). **Implementation note (2026-06-01):** the logger is a **constructor** field, not the per-call parameter this row first described; the default is a no-op. A site needing a custom logger on the shared `runtime.finder` uses `finder.withLogger(logger)` (added in [plan-a-07.md](plan-a-07.md)), which returns a logger-bound view sharing the same collaborators. Only `libutil` constructs `Finder`; enforced by `scripts/check-collaborator-construction.mjs` ([plan-a-07.md](plan-a-07.md)), which generalises SC9 to the whole DI pattern — no leaf collaborator constructor (`new Finder`, `createDefaultProc/Clock/Subprocess`) outside libutil in production code. The original waves left 6 escape-hatch sites that part-07 collapses. |
 | Entry points (`bin/*.js` **and** `services/*/server.js`) | unchanged paths | Sole construction site for `createDefaultRuntime()`. Sole callers of `runtime.proc.exit`. Bin shims translate handler results to exit codes; service entries call `runtime.proc.exit` only on shutdown signals. **Spec interpretation:** SC3 allow-lists "bin/*.js entry points"; spec § Scope row "products and services" puts services in scope alongside CLIs, so the design reads "bin shims" as "entry points (bin shims + service server.js)" — services are entry points by another name. If reviewers disagree, the spec returns to draft to widen SC3 explicitly. |
 | `scripts/check-ambient-deps.mjs` | scripts/ | Invariant under `bun run invariants`. Reads two JSON files (schemas in Decision 9). Detection is AST-based on constructor parameter destructuring (catches `fs` xor `fsSync` violations) and on direct imports of `node:fs`, `node:child_process`. |
 | `scripts/check-subprocess-in-tests.mjs` | scripts/ | Sibling invariant. Exempts `*.integration.test.js` files (whole-file granularity — mixed files split during their library's migration) and the one-entry-per-binary smoke allow-list. |
@@ -110,9 +110,16 @@ bin shim along with the src modules it drives.
   property reads pass through on every access so token rotation and
   late-binding config work; tests override the fake's backing object),
   `argv` (read-only array — entry-point bins parse it; domain modules
-  should not), `stdout.write`, `stderr.write`, `exit(code)`, `exitCode`
+  should not), `stdout`/`stderr` (**pipeline-grade `Writable`s** as of
+  [plan-a-07.md](plan-a-07.md) — they support `.write(str)` and also serve as
+  `pipeline()` sinks; the original implementation shipped a narrower
+  `{ write }` shim, which blocked `librc logs()`), `exit(code)`, `exitCode`
   setter (libcli sets this directly — the contract carries both `exit` and
-  `exitCode` so libcli's existing pattern survives without a rewrite).
+  `exitCode` so libcli's existing pattern survives without a rewrite). The
+  implementation also grew `kill(pid, signal)` (negative pid = process
+  group), `pid`, `platform`, and `on(event, handler)` during the waves —
+  surfaces the design did not enumerate but the services/supervise migrations
+  required.
 - `runtime.clock` — `now()` (ms); `sleep(ms)` is the primary wait
   primitive (Promise); `setTimeout(fn, ms)` / `clearTimeout(h)` for
   fire-and-forget scheduling (debounce, watchdog) only;
@@ -131,9 +138,12 @@ bin shim along with the src modules it drives.
   for `runSync` only when the call site is a synchronous accessor whose
   caller chain cannot be made async without an unbounded cascade.
 - `runtime.finder` — pre-constructed `Finder` built inside
-  `createDefaultRuntime` (phase 2). Methods accept `{ logger }` per call
-  for sites that want a custom logger; default is a stderr logger built
-  from `runtime.proc.stderr`.
+  `createDefaultRuntime` (phase 2). A site that wants a custom logger calls
+  `runtime.finder.withLogger(logger)` ([plan-a-07.md](plan-a-07.md)) rather
+  than constructing its own `Finder`; the default logger is a no-op. (This
+  row originally described a per-call `{ logger }` parameter that was never
+  implemented — the logger is a constructor field; `withLogger` is the
+  grounded seam.)
 
 ## libmock README and Drift Detection
 
@@ -157,8 +167,10 @@ library's deny-list entries or unrenamed integration tests remain.
 - File-level migration order inside a library — that's the plan's
   per-library section.
 - Third-party SDK wrapping (`@grpc/grpc-js`, `botbuilder`, `@octokit/*`).
-- A `runtime.logger` slot — logger is a per-call concern on Finder
-  methods; other domains pass loggers as domain dependencies.
-- Performance milestones M1/M2/M3 — covered by spec Success Criterion 6.
+- A `runtime.logger` slot — logger is a Finder constructor field, attached to
+  the shared `runtime.finder` via `finder.withLogger(logger)` ([plan-a-07.md](plan-a-07.md));
+  other domains pass loggers as domain dependencies.
+- Performance milestones M1/M2/M3 — **retired** (see [spec § Outcome](spec.md#outcome-post-implementation-reconciliation-2026-06-01));
+  the original framing gated on spec Success Criterion 6.
 
 — Staff Engineer 🛠️
