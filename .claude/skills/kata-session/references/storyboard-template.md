@@ -62,10 +62,10 @@ _Note:_ {one line, only when `status` is `signals_present` or a fired rule needs
 cross-referencing to a specific event; stable metrics get no prose}.
 
 (Repeat one `#### metric_name` block per metric, grouped under `### {agent}`.
-Run `bunx fit-wiki refresh <storyboard.md>` to regenerate all marker blocks
-from CSV data. The chart is the visualization — do not duplicate its values in
-surrounding prose. Agents add the cross-reference layer only where there is
-something to say.)
+The deterministic `fit-wiki refresh` step regenerates all marker blocks from CSV
+data — no one runs it by hand. The chart is the visualization — do not duplicate
+its values in surrounding prose. Agents add the cross-reference layer only where
+there is something to say.)
 
 ### Notes
 

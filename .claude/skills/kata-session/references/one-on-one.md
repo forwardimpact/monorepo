@@ -16,9 +16,12 @@ trace's run-level findings. One facilitator, one participant, turn-taking via
 2. **What actually happened?** (Q2 — the participant runs `fit-trace` on its
    own most recent workflow trace and reports the numeric findings.)
 3. **What obstacles prevented better outcomes?** (Q3 — grounded in the trace
-   findings, not narrative.)
+   findings, not narrative. Record the obstacle as a labeled issue per
+   [`issue-lifecycle.md`](issue-lifecycle.md) and report its `#NNN`.)
 4. **What will you do differently next run?** (Q4 — small, testable, with
-   expected outcome recorded before the experiment runs.)
+   expected outcome recorded before the experiment runs. Record it as an
+   experiment issue (`experiment` + `agent:{self}`) per
+   [`issue-lifecycle.md`](issue-lifecycle.md) and report its `#NNN`.)
 5. **When will you see the effect?** (Q5 — typically the next scheduled workflow
    run.)
 
@@ -33,10 +36,13 @@ participant fetches it under Q2.
 ```markdown
 You are in a 1-on-1 coaching session. I will Ask you five questions; reply to
 each with Answer. Under Q2, run `fit-trace` on your most recent workflow
-trace and include the numeric findings in your Answer.
+trace and include the numeric findings in your Answer. Under Q3 and Q4, record
+your obstacle and experiment as labeled GitHub issues (see issue-lifecycle.md)
+and report each issue number back in your Answer.
 ```
 
 ## Memory
 
-After the session, the participant writes its findings to its own weekly log.
-The coach records session metrics per the Facilitator Process.
+After the session, the participant writes its findings to its own weekly log —
+in addition to the obstacle and experiment issues it recorded under Q3/Q4. The
+coach facilitates only; it records no metrics or files of its own.

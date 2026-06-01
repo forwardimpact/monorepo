@@ -1,7 +1,14 @@
 # Issue Lifecycle
 
-The improvement coach manages experiment and obstacle issues during storyboard
-sessions. No other agent creates or comments on these issues.
+The agent being coached — not the facilitator — creates, comments on, and closes
+**its own** obstacle and experiment issues with `gh`, in both team storyboard and
+1-on-1 sessions. The facilitator has no `Bash`: it `Ask`s the agent to record
+each one, and the agent **reports the `#NNN` back via `Answer`** (the facilitator
+can't `gh issue list` to find it) for the storyboard headlines and `Conclude`
+summary.
+
+The storyboard's Active and Concluded lists render from issue state via the
+deterministic `fit-wiki refresh` step — never hand-edit them.
 
 ## New obstacle
 
@@ -13,8 +20,6 @@ gh issue create --label obstacle \
 Blocking dimension: [which gap this blocks]"
 ```
 
-Add to storyboard Active list: `- Obstacle name (#NNN)`
-
 ## New experiment
 
 Each experiment references its parent obstacle issue in the body. GitHub renders
@@ -25,17 +30,18 @@ The `**Expected outcome:**` line names metrics owned by a single skill. Skills
 don't share runs, so a prediction naming metrics from two different skills
 cannot resolve in one run — split into one prediction per skill / run type.
 
+The `agent:` label and `Owner:` name the **coached agent itself** (the one
+running this command):
+
 ```sh
-gh issue create --label experiment --label "agent:[agent-name]" \
+gh issue create --label experiment --label "agent:[your-agent-name]" \
   --title "Exp N — short name" \
   --body "Obstacle: #NNN
-Owner: [agent name]
+Owner: [your agent name]
 
 **What:** description
 **Expected outcome:** prediction"
 ```
-
-Add to storyboard Active list: `- Exp N (#NNN) — short name`
 
 ## Progress update
 
@@ -52,11 +58,11 @@ gh issue comment #NNN --body "**Verdict:** one-sentence learning"
 gh issue close #NNN
 ```
 
-Move storyboard entry from Active to Concluded.
+Report the closure via `Answer` so it lands in the session summary.
 
 ## Migration (one-time)
 
-At the first session after implementation, create labeled issues for every
-active experiment and obstacle that lacks a `(#NNN)` suffix. Add the suffix
-after creation. Apply the `agent:{owner}` label to each experiment issue. Skip
-entries that already have an issue link. Concluded items need no action.
+At the first session after implementation, each agent creates labeled issues for
+its own active experiments and obstacles that lack a `(#NNN)` suffix, applying
+the `agent:{owner}` label to each experiment issue. Skip entries that already
+have an issue link. Concluded items need no action.
