@@ -182,7 +182,7 @@ jobs:
           fi
 
           fail=0
-          # Spec § Success Criteria row 8: scan for all three literals.
+          # Scan the run logs for all three secret literals.
           # GH Actions auto-masks the two repo secrets, so grepping for
           # them is normally a no-op — but the scan still performs the
           # grep so the criterion is satisfied literally and to catch the

@@ -40,6 +40,13 @@ const rules = [
   // (`p50`/`p90`), CSS hex (`#f87171`), cert extensions (`.p12`) — never trip
   // the check.
   { pattern: "\\bSC[0-9]+\\b", caseSensitive: true },
+  // The same label spelled out as a spec-section reference ("Spec § Success
+  // Criteria row 8") rots when the spec closes, exactly like "SC8". Require
+  // the capitalised "Success" (caseSensitive) so the generic prose noun in
+  // the agent docs — "a spec with verifiable success criteria" — never trips;
+  // only the section-label form does. Allow either case on the second word so
+  // "Success criteria" is caught too.
+  { pattern: "\\bSuccess [Cc]riteria\\b", caseSensitive: true },
   // P (priority) and F (finding) also serve as a legitimate, self-defined
   // triage vocabulary in the agent operating docs under .claude/ (the product
   // manager's P1/P2/P3 buckets, the storyboard P1/F4 placeholders) — those are
