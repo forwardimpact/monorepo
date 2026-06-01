@@ -131,7 +131,7 @@ function _createLocalStorage(prefix, runtime, rootDir = null) {
   }
 
   // 3. Filesystem discovery (fallback) via the injected finder collaborator,
-  //    so the runtime's fs flows through path discovery (SC9).
+  //    so the runtime's fs flows through path discovery.
   const root = proc.cwd();
   const basePath = runtime.finder.findUpward(root, relative);
 

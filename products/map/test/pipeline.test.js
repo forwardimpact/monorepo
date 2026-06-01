@@ -5,13 +5,12 @@
  * and libgraph GraphProcessor, then asserts that
  * `GraphIndex.getSubjects("fit:Skill")` returns the fixture skill's IRI.
  *
- * This is the only test that exercises foundation F2's `RDF_PREFIXES`
- * registration: the `fit:Skill` short form must expand via the N3 Store's
- * prefix table or the query degrades to a literal and misses all
- * subjects. It is also the only test that proves ResourceProcessor's
- * `ALLOWED_TYPE_PREFIXES` (foundation F1) accepts the fit: vocabulary —
- * if F1 regresses, the parser rejects every main item and no subjects are
- * loaded into the graph.
+ * This is the only test that exercises the `RDF_PREFIXES` registration: the
+ * `fit:Skill` short form must expand via the N3 Store's prefix table or the
+ * query degrades to a literal and misses all subjects. It is also the only
+ * test that proves ResourceProcessor's `ALLOWED_TYPE_PREFIXES` accepts the
+ * fit: vocabulary — if that widening regresses, the parser rejects every main
+ * item and no subjects are loaded into the graph.
  *
  * The test uses real filesystem LocalStorage instances for both the
  * knowledge directory (from the exporter) and the graph index directory,
@@ -114,8 +113,8 @@ describe("end-to-end export → resource → graph pipeline", () => {
     await resourceProcessor.process(".html");
 
     // Sanity check: resource index has at least one resource whose Turtle
-    // content mentions the fit: skill subject. Foundation F1 — if the
-    // parser widening regressed, zero main items would be produced.
+    // content mentions the fit: skill subject. If the parser widening
+    // regressed, zero main items would be produced.
     const ids = await resourceIndex.findAll();
     assert.ok(ids.length > 0, "ResourceProcessor should have stored resources");
     const stored = await resourceIndex.get(ids);
@@ -140,7 +139,7 @@ describe("end-to-end export → resource → graph pipeline", () => {
     );
     await graphProcessor.process("test-actor");
 
-    // 7. Foundation F2 check — the fit: prefix must be registered so
+    // 7. RDF prefix check — the fit: prefix must be registered so
     //    `fit:Skill` expands to the full IRI. If this regresses, the
     //    subjects map comes back empty.
     const subjects = await graphIndex.getSubjects("fit:Skill");

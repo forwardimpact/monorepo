@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// SC5 smoke test: spawn the real fit-summit bin to verify the runtime wiring
+// Smoke test: spawn the real fit-summit bin to verify the runtime wiring
 // (createDefaultRuntime threaded through cli.parse) end to end. `--version` and
 // `--help` run before any data load, so they are deterministic.
 const binPath = join(

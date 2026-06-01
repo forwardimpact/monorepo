@@ -5,8 +5,8 @@
  *   - RESULT_RECORD_SCHEMA — one record per (task, runIndex) from a full
  *     benchmark run. Has a happy branch (invariants + judge present) and a
  *     pre-flight-failure branch (invariants/judgeVerdict/submission absent).
- *   - INVARIANTS_RECORD_SCHEMA — narrower output of `benchmark-invariants`
- *     (P7): ad-hoc grading without a full lifecycle.
+ *   - INVARIANTS_RECORD_SCHEMA — narrower output of `benchmark-invariants`:
+ *     ad-hoc grading without a full lifecycle.
  *
  * Validation is throw-on-mismatch so the runner can wrap every JSONL append
  * in a guard and reject schema drift at write time.

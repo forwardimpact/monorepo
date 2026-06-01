@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
-// Real-bin functional CLI-surface guard (spec SC4): spawns the actual
+// Real-bin functional CLI-surface guard: spawns the actual
 // `fit-wiki` bin against a committed audit-clean fixture wiki and asserts the
 // read-only command output (which the capture harness can replay
 // idempotently) is byte-identical to the committed golden. Mutating commands

@@ -32,6 +32,36 @@ const rules = [
   { pattern: "\\bGH-[0-9]{2,5}\\b" },
   { pattern: "\\(#[0-9]{2,5}\\)", globs: ["!**/test/**"] },
   { pattern: "[[:space:]]#[0-9]{2,5}\\b", globs: ["!**/test/**"] },
+  // Spec-artefact labels: solution criteria (SC), priorities (P), and
+  // findings (F) are numbered inside a spec's spec.md / plan / review. Once
+  // the spec closes, "SC5" or "Foundation F1" in a comment points at nothing.
+  // Match the uppercase label forms only (caseSensitive) so the lowercase
+  // tokens that collide — patient fixture IDs (`p1`), latency percentiles
+  // (`p50`/`p90`), CSS hex (`#f87171`), cert extensions (`.p12`) — never trip
+  // the check.
+  { pattern: "\\bSC[0-9]+\\b", caseSensitive: true },
+  // P (priority) and F (finding) also serve as a legitimate, self-defined
+  // triage vocabulary in the agent operating docs under .claude/ (the product
+  // manager's P1/P2/P3 buckets, the storyboard P1/F4 placeholders) — those are
+  // not references into a spec, so scope these two rules to everything else.
+  { pattern: "\\bP[0-9]+\\b", caseSensitive: true, globs: ["!.claude/**"] },
+  { pattern: "\\bF[0-9]+\\b", caseSensitive: true, globs: ["!.claude/**"] },
+  // Kata experiments and obstacles are tracked as labeled GitHub issues that
+  // close when the PDSA cycle ends, so "Exp 45" / "RE Exp 43" / "Obstacle 12"
+  // rot the same way a raw issue number does. caseSensitive so prose like
+  // "active experiments" or an "exp"-prefixed identifier never matches — only
+  // the capitalised label-plus-number form does.
+  {
+    pattern: "\\b(Exp|Experiment|Obstacle)[- ]?[0-9]+\\b",
+    caseSensitive: true,
+  },
+  // Agent-role initialisms used as a numbered shorthand for that agent's
+  // experiments or findings (SE = staff/security engineer, RE = release
+  // engineer, TW = technical writer, PM = product manager, IC = improvement
+  // coach). None occur today; this guards against the shorthand creeping in.
+  // Single-letter role forms (S#, T#) are deliberately omitted — they collide
+  // with `S3`, `SHA-256`, type parameters, and similar legitimate tokens.
+  { pattern: "\\b(SE|RE|TW|PM|IC)[0-9]+\\b", caseSensitive: true },
   {
     pattern:
       "\\b(introduced|added|landed|shipped|removed) in (spec|design|plan|PR|issue)\\b",
@@ -76,8 +106,11 @@ for (const rule of rules) {
     "--line-number",
     "--color",
     "never",
-    "-i",
   ];
+  // Most rules match prose case-insensitively ("PR", "GH-", "spec"); the
+  // spec-artefact label rules opt into case-sensitivity to dodge lowercase
+  // homographs.
+  if (!rule.caseSensitive) args.push("-i");
   for (const g of baseGlobs) args.push("--glob", g);
   if (rule.globs) {
     for (const g of rule.globs) args.push("--glob", g);

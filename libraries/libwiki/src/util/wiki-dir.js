@@ -3,7 +3,7 @@ import path from "node:path";
 /**
  * Find the project root by upward `package.json` discovery from the current
  * working directory, using the injected `runtime.finder` (the one canonical
- * Finder — SC9 keeps `new Finder(...)` inside libutil).
+ * Finder — `new Finder(...)` lives only inside libutil).
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime
  * @returns {string}
  */

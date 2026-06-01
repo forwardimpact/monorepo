@@ -75,8 +75,8 @@ jobs:
             gear)     "$BUNDLE/Contents/MacOS/fit-svcgraph" --help ;;
           esac
 
-      - name: Verify cdhash stability (plan §1b CI gate)
-        # Spec SC8 / plan Risk 9: rebuild the bundle from the same tree and
+      - name: Verify cdhash stability
+        # Rebuild the bundle from the same tree and
         # confirm the signed cdhash is identical. A drifting cdhash wipes TCC
         # grants on `brew upgrade`, so a non-deterministic build must fail
         # release rather than ship.

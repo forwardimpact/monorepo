@@ -7,7 +7,7 @@ import { createCli } from "@forwardimpact/libcli";
 import { createDefinition } from "../src/cli-definition.js";
 import { makeRuntime } from "./helpers.js";
 
-// Byte-for-byte CLI-contract guard (spec SC4): the definition + libcli help
+// Byte-for-byte CLI-contract guard: the definition + libcli help
 // renderer must keep producing the snapshots captured in golden/fit-wiki/. The
 // committed `*.txt` were captured from the bin with the version normalised to
 // `X.Y.Z`; rendering in-process with that version reproduces them without a

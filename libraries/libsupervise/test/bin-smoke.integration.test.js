@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-// Per-bin smoke tests (spec SC5): spawn each libsupervise bin with `--version`
+// Per-bin smoke tests: spawn each libsupervise bin with `--version`
 // and assert it exits 0 and prints a semver-shaped line. This is the one
 // legitimate subprocess test per binary, so it lives in an
 // `*.integration.test.js` file (exempt from check-subprocess-in-tests).

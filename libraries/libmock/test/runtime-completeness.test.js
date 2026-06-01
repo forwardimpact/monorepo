@@ -68,7 +68,7 @@ describe("Runtime completeness", () => {
     assert.strictEqual(rt.clock, sentinel);
   });
 
-  // SC7 covers every declared collaborator surface, not only the runtime-bag
+  // This covers every declared collaborator surface, not only the runtime-bag
   // fields — the typed clients (GitClient/GhClient) documented in the README
   // Collaborators section must also have exported fakes.
   test("declared non-bag collaborator surfaces have exported fakes", () => {
