@@ -23,7 +23,12 @@ describe("Finder", () => {
       cwd: () => "/test/project",
     };
 
-    finder = new Finder(fsPromises, mockLogger, mockProcess);
+    finder = new Finder({
+      fs: fsPromises,
+      fsSync: fs,
+      proc: mockProcess,
+      logger: mockLogger,
+    });
 
     // Create a temporary directory for testing
     const __filename = fileURLToPath(import.meta.url);
@@ -45,8 +50,13 @@ describe("Finder", () => {
   });
 
   describe("constructor", () => {
-    test("creates Finder with fs, logger and process", () => {
-      const finder = new Finder(fsPromises, mockLogger, mockProcess);
+    test("creates Finder with injected collaborators", () => {
+      const finder = new Finder({
+        fs: fsPromises,
+        fsSync: fs,
+        proc: mockProcess,
+        logger: mockLogger,
+      });
 
       assert.ok(finder instanceof Finder);
     });
@@ -55,28 +65,23 @@ describe("Finder", () => {
       assert.throws(() => new Finder(), {
         message: /fs is required/,
       });
-      assert.throws(() => new Finder(null), {
+      assert.throws(() => new Finder({ proc: mockProcess }), {
         message: /fs is required/,
       });
     });
 
-    test("validates logger parameter", () => {
-      assert.throws(() => new Finder(fsPromises), {
-        message: /logger is required/,
-      });
-      assert.throws(() => new Finder(fsPromises, null), {
-        message: /logger is required/,
+    test("validates proc parameter", () => {
+      assert.throws(() => new Finder({ fs: fsPromises }), {
+        message: /proc is required/,
       });
     });
 
-    test("validates process parameter", () => {
-      assert.throws(() => new Finder(fsPromises, mockLogger, null), {
-        message: /process is required/,
+    test("defaults logger to a no-op when omitted", () => {
+      const finder = new Finder({
+        fs: fsPromises,
+        fsSync: fs,
+        proc: mockProcess,
       });
-    });
-
-    test("uses global process when not provided", () => {
-      const finder = new Finder(fsPromises, mockLogger);
       assert.ok(finder instanceof Finder);
     });
   });
@@ -267,8 +272,11 @@ describe("Finder", () => {
       const dataDir = path.join(tempDir, "data");
       fs.mkdirSync(dataDir);
 
-      const cwdFinder = new Finder(fsPromises, mockLogger, {
-        cwd: () => tempDir,
+      const cwdFinder = new Finder({
+        fs: fsPromises,
+        fsSync: fs,
+        proc: { cwd: () => tempDir },
+        logger: mockLogger,
       });
       const result = cwdFinder.findData("data", "/nonexistent-home");
 
@@ -281,8 +289,11 @@ describe("Finder", () => {
       const subDir = path.join(tempDir, "products", "pathway");
       fs.mkdirSync(subDir, { recursive: true });
 
-      const cwdFinder = new Finder(fsPromises, mockLogger, {
-        cwd: () => subDir,
+      const cwdFinder = new Finder({
+        fs: fsPromises,
+        fsSync: fs,
+        proc: { cwd: () => subDir },
+        logger: mockLogger,
       });
       const result = cwdFinder.findData("data", "/nonexistent-home");
 
@@ -297,8 +308,11 @@ describe("Finder", () => {
       const isolatedDir = path.join(tempDir, "isolated");
       fs.mkdirSync(isolatedDir);
 
-      const cwdFinder = new Finder(fsPromises, mockLogger, {
-        cwd: () => isolatedDir,
+      const cwdFinder = new Finder({
+        fs: fsPromises,
+        fsSync: fs,
+        proc: { cwd: () => isolatedDir },
+        logger: mockLogger,
       });
       const result = cwdFinder.findData("data", fakeHome);
 
@@ -309,8 +323,11 @@ describe("Finder", () => {
       const isolatedDir = path.join(tempDir, "isolated");
       fs.mkdirSync(isolatedDir);
 
-      const cwdFinder = new Finder(fsPromises, mockLogger, {
-        cwd: () => isolatedDir,
+      const cwdFinder = new Finder({
+        fs: fsPromises,
+        fsSync: fs,
+        proc: { cwd: () => isolatedDir },
+        logger: mockLogger,
       });
 
       assert.throws(() => cwdFinder.findData("data", "/nonexistent-home"), {
@@ -326,8 +343,11 @@ describe("Finder", () => {
       const homeFitData = path.join(fakeHome, ".fit", "data");
       fs.mkdirSync(homeFitData, { recursive: true });
 
-      const cwdFinder = new Finder(fsPromises, mockLogger, {
-        cwd: () => tempDir,
+      const cwdFinder = new Finder({
+        fs: fsPromises,
+        fsSync: fs,
+        proc: { cwd: () => tempDir },
+        logger: mockLogger,
       });
       const result = cwdFinder.findData("data", fakeHome);
 

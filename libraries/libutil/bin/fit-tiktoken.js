@@ -3,6 +3,7 @@ import "@forwardimpact/libpreflight/node22";
 
 import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { countTokens } from "@forwardimpact/libutil";
 
@@ -27,8 +28,9 @@ const definition = {
   examples: ['fit-tiktoken "hello world"', "echo 'hello world' | fit-tiktoken"],
 };
 
-const cli = createCli(definition);
-const logger = createLogger("tiktoken");
+const runtime = createDefaultRuntime();
+const cli = createCli(definition, { runtime });
+const logger = createLogger("tiktoken", runtime);
 
 /**
  * Counts tokens in the provided text
