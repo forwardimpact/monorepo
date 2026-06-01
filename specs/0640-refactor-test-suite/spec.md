@@ -1,5 +1,39 @@
 # Spec 0640 — Refactor Test Suite for Speed and Maintenance
 
+## Re-scope (2026-06-01)
+
+Most of the original scope has shipped or been subsumed. The remaining spec
+narrows to the audit work that did not land in the first two passes.
+
+| Section                            | Disposition  | Citation                                                       |
+| ---------------------------------- | ------------ | -------------------------------------------------------------- |
+| § A.1–A.5 libmock surface          | **shipped**  | PR #512 (`1b1c25ea`, 2026-04-23) — § Outcome so far            |
+| § B.1 turn on concurrency          | **moot**     | Runner switched to `bun test` (spec 1370 / PR #1285 `87964450`); concurrency is the bun-test default. |
+| § B.2 eliminate real fs I/O        | **subsumed** | Source-side DI required for libprompt / libtemplate / libsyntheticprose → handled by spec 1370 (ambient-dependencies-to-injected-collaborators). |
+| § B.3 cache fixture data           | **shipped**  | PR #512 `memoizeAsync` in `products/summit/test/fixtures.js`.  |
+| § B.4 split giant test files       | **remains**  | libeval supervisor-\* and libtelemetry visualizer-\* still unsplit; ~3 s wall-clock savings available. |
+| § B.5 reduce excessive parametrization | **remains** | `libraries/libskill/test/{modifiers,policies-predicates}.test.js` and `tests/model-types.test.js` matrix audit not done. |
+| § C coverage reductions            | **deferred** | Per original § Still open — candidates re-examined and covering distinct surfaces. |
+| § D docs / process guards          | **shipped**  | PR #512 — `CONTRIBUTING.md` READ-DO/DO-CONFIRM + `scripts/check-libmock.mjs`. |
+
+### Genuinely remaining
+
+1. **§ B.4 file consolidation** — split `libraries/libeval/test/supervisor-*.test.js`
+   (currently 4 files: `factory`, `output`, `run`, plus `intervention`/`batching`
+   referenced in original § A.2) into 2 along the behavioural split (run/output
+   vs mid-turn control). Similarly collapse
+   `libraries/libtelemetry/test/visualizer-{attributes,basics,edge-cases,timeline}.test.js`
+   into 2 files along feature lines. Expected wall-clock saving: ~3 s.
+2. **§ B.5 parametrization audit** — review the modifier × proficiency matrix in
+   `libraries/libskill/test/modifiers.test.js` (44 cases) and
+   `policies-predicates.test.js` (46 cases) for whether each case probes a
+   distinct branch; replace cross-multiplied combinations with representative
+   cases per branch. Same exercise for `tests/model-types.test.js` (448 LOC of
+   proficiency × maturity iteration).
+
+The "Scope" and "Outcome so far" sections below remain for historical context;
+they are the record of what shipped, not a work list.
+
 ## Problem
 
 The test suite has grown to 211 files / 45,456 lines / 3,089 test cases, and it
@@ -343,16 +377,18 @@ files and the 8 libtelemetry visualizer tests into 5–10 combined files would
 reasonably save ~3 s. That's deferred pending a judgement call on whether
 collapsed files hurt discoverability.
 
-### Still open
+### Still open (superseded — see § Re-scope above)
 
-- libprompt / libtemplate / libsyntheticprose tmpdir → `createMockFs` — blocked
-  by source refactor: `PromptLoader`, `TemplateLoader`, and `ProseEngine`
-  hardcode `readFileSync` from `node:fs` rather than accepting a fs dep.
-- Remaining file consolidation (libeval supervisor-_, libtelemetry visualizer-_)
-  — would move wall-clock, deferred on aesthetic grounds.
-- `bun test` migration — blocked on a `mock.fn` shim in libmock that bridges
-  to `bun:test`'s `mock`. Plausible but invasive.
-- Coverage cuts remain unlikely to pay off: the original audit's candidates
-  (`libutil.test.js`, `guide/test/cli.test.js`, `trace-query.test.js` +
-  `trace-query-v1.1.test.js`) all turned out to cover distinct surfaces on
-  closer inspection.
+The original entries here are preserved for archaeology. Current state:
+
+- libprompt / libtemplate / libsyntheticprose tmpdir → **subsumed by spec 1370**
+  (source-side DI for ambient `node:fs` collaborators).
+- File consolidation (libeval supervisor-\*, libtelemetry visualizer-\*) —
+  **genuinely remaining** as § B.4 of the re-scoped spec.
+- `bun test` migration — **shipped via spec 1370 / PR #1285** (`87964450`,
+  2026-05-30): `package.json` `test` script now runs `bun test`, and libmock
+  carries `src/mock/spy.js` as the runner-independent `mock.fn` replacement.
+- Coverage cuts (§ C) — **deferred** as originally noted; candidates cover
+  distinct surfaces on closer inspection.
+- Parametrization audit (§ B.5) — **genuinely remaining**; not addressed in
+  either pass.
