@@ -101,16 +101,16 @@ products/
   gear/        # fit-skills catalog CLI
   kata/        # kata-skills pack
 libraries/
-  lib*/        # shared infrastructure libraries
+  lib*/        # shared libraries
 services/
-  bridge/ embedding/ ghbridge/ ghuser/ graph/ map/ mcp/ msbridge/ oauth/ pathway/ trace/ vector/
+  bridge/ embedding/ ghbridge/ ghserver/ ghuser/ graph/ map/ mcp/ msbridge/ oauth/ pathway/ tenancy/ trace/ vector/
 config/
   config.json  # service definitions
 data/
   synthetic/   # synthetic data DSL and generated artifacts
 specs/
   {feature}/   # feature specifications and plans
-wiki/          # GitHub wiki (cloned on demand) — shared agent memory
+wiki/          # GitHub wiki — shared agent memory
 design/        # design language (brand-agnostic) and brand implementations
 websites/      # public site sources — fit/ → forwardimpact.team, kata/ → kata.team
 ```
