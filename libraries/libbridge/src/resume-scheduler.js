@@ -1,5 +1,3 @@
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
-
 import { ElapsedScheduler } from "./elapsed-scheduler.js";
 import { evaluateTrigger, parseIsoDuration } from "./triggers.js";
 
@@ -36,7 +34,7 @@ export class ResumeScheduler {
     buildCallbackMeta = (ctx) => ({ discussionId: ctx.discussion_id }),
     buildResumeInputs = () => ({}),
     onDeclined = null,
-    clock = createDefaultClock(),
+    clock,
   }) {
     if (!dispatcher) throw new Error("dispatcher is required");
     if (!store) throw new Error("store is required");
@@ -49,6 +47,7 @@ export class ResumeScheduler {
     if (onDeclined != null && typeof onDeclined !== "function") {
       throw new Error("onDeclined must be a function");
     }
+    if (!clock) throw new Error("clock is required");
     this.#dispatcher = dispatcher;
     this.#store = store;
     this.#logger = logger ?? null;

@@ -19,20 +19,11 @@
 import path from "node:path";
 import { createRequire } from "node:module";
 import { pipeline } from "node:stream/promises";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const require = createRequire(import.meta.url);
 const SVSCAN_BIN = require.resolve(
   "@forwardimpact/libsupervise/bin/fit-svscan.js",
 );
-
-// Lazily constructed so that test code importing this module does not
-// trigger the real-fs side-effects of createDefaultRuntime at import time.
-let _defaultRuntime;
-function getDefaultRuntime() {
-  if (!_defaultRuntime) _defaultRuntime = createDefaultRuntime();
-  return _defaultRuntime;
-}
 
 /**
  * @typedef {object} RuntimePaths
@@ -69,7 +60,9 @@ function getDefaultRuntime() {
 /**
  * @typedef {object} Dependencies
  * @property {typeof import("node:fs")} [fs] - File system module (sync surface).
- *   BC shim: superseded by `runtime.fsSync` when a `runtime` bag is injected.
+ *   Foundation-gap override for `logs()`'s `createReadStream`, which the
+ *   ratified `runtime.fsSync` surface does not express; defaults to
+ *   `runtime.fsSync` otherwise (see teardown ledger § foundation surface gaps).
  * @property {typeof import("node:child_process").spawn} [spawn] - Spawn function.
  *   In production wire from the bin (which is allowed to import child_process).
  * @property {typeof import("node:child_process").execSync} [execSync] - ExecSync function.
@@ -82,7 +75,7 @@ function getDefaultRuntime() {
  *   `Writable` (see MONOREPO teardown § foundation surface gaps).
  * @property {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Runtime bag.
  *   Supplies the sync-fs (`fsSync`) and process (`proc`, including `kill` and
- *   `env`) surfaces; `deps.fs` overrides `fsSync` when present.
+ *   `env`) surfaces; `deps.fs` overrides `fsSync` for stream reads when present.
  */
 
 /**
@@ -109,11 +102,13 @@ export class ServiceManager {
     if (!config) throw new Error("config is required");
     if (!logger) throw new Error("logger is required");
 
-    const runtime = deps.runtime ?? getDefaultRuntime();
+    const runtime = deps.runtime;
+    if (!runtime) throw new Error("deps.runtime is required");
 
     this.#config = config;
     this.#logger = logger;
-    // deps.fs (legacy sync-fs override) > runtime.fsSync
+    // deps.fs is the foundation-gap override for logs() stream reads
+    // (createReadStream); otherwise the injected runtime's sync-fs is used.
     this.#fs = deps.fs ?? runtime.fsSync;
     // spawn and execSync must be provided by the caller (bin or test); there
     // is no runtime-level equivalent that covers detached stdio-redirect

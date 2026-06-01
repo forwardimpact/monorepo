@@ -4,6 +4,8 @@ import assert from "node:assert";
 import { TraceIndex } from "../src/index/trace.js";
 import { trace } from "@forwardimpact/libtype";
 import { createMockStorage } from "@forwardimpact/libmock";
+import { createMockClock } from "@forwardimpact/libmock";
+const _clock = createMockClock();
 
 describe("TraceIndex - Resource ID Filtering", () => {
   let traceIndex;
@@ -11,7 +13,9 @@ describe("TraceIndex - Resource ID Filtering", () => {
 
   beforeEach(() => {
     mockStorage = createMockStorage();
-    traceIndex = new TraceIndex(mockStorage, "test-traces.jsonl");
+    traceIndex = new TraceIndex(mockStorage, "test-traces.jsonl", {
+      clock: _clock,
+    });
   });
 
   describe("queryItems() - Resource ID Filtering with Complete Traces", () => {

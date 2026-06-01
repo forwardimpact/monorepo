@@ -1,6 +1,5 @@
 import { join } from "node:path";
 import Mustache from "mustache";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * Template loader with two-tier resolution and Mustache rendering.
@@ -16,10 +15,11 @@ export class TemplateLoader {
 
   /**
    * @param {string} defaultsDir - Absolute path to the package's templates/ folder
-   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime]
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
    */
-  constructor(defaultsDir, runtime = createDefaultRuntime()) {
+  constructor(defaultsDir, runtime) {
     if (!defaultsDir) throw new Error("defaultsDir is required");
+    if (!runtime) throw new Error("runtime is required");
     this.#defaultsDir = defaultsDir;
     this.#fsSync = runtime.fsSync;
   }

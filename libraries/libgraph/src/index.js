@@ -65,14 +65,17 @@ export function parseGraphQuery(line) {
 /**
  * Creates a `GraphIndex` with the provided storage prefix and default index key.
  * @param {string} prefix - Storage prefix (directory name or S3 key prefix) for graph data
+ * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} clock - Injected clock
  * @returns {GraphIndex} Graph index instance
  */
-export function createGraphIndex(prefix) {
+export function createGraphIndex(prefix, clock) {
   if (!prefix) throw new Error("prefix is required");
   const storage = createStorage(prefix);
   const n3Store = new Store({ prefixes: RDF_PREFIXES });
   // New constructor order: storage, store, prefixes, indexKey
-  return new GraphIndex(storage, n3Store, RDF_PREFIXES, "index.jsonl");
+  return new GraphIndex(storage, n3Store, RDF_PREFIXES, "index.jsonl", {
+    clock,
+  });
 }
 
 // GraphIndex is NOT exported to avoid circular dependency - import from ./index/graph.js

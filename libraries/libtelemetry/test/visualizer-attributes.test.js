@@ -5,6 +5,8 @@ import { TraceVisualizer } from "../src/visualizer.js";
 import { TraceIndex } from "../src/index/trace.js";
 import { trace } from "@forwardimpact/libtype";
 import { createMockStorage } from "@forwardimpact/libmock";
+import { createMockClock } from "@forwardimpact/libmock";
+const _clock = createMockClock();
 
 describe("TraceVisualizer - attributes and errors", () => {
   let traceIndex;
@@ -14,7 +16,9 @@ describe("TraceVisualizer - attributes and errors", () => {
   beforeEach(() => {
     mockStorage = createMockStorage();
 
-    traceIndex = new TraceIndex(mockStorage, "test-traces.jsonl");
+    traceIndex = new TraceIndex(mockStorage, "test-traces.jsonl", {
+      clock: _clock,
+    });
     visualizer = new TraceVisualizer(traceIndex);
   });
 

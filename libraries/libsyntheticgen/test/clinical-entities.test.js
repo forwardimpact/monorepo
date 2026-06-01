@@ -1,4 +1,5 @@
 import { describe, test } from "node:test";
+import { createTestRuntime } from "@forwardimpact/libmock";
 import assert from "node:assert";
 import { buildClinicalEntities } from "../src/engine/clinical-entities.js";
 import { createSeededRNG } from "../src/engine/rng.js";
@@ -264,7 +265,7 @@ describe("clinical entity generation", () => {
     const { parse } = await import("../src/dsl/parser.js");
     const { MINI_TERRAIN } = await import("./fixtures/mini-terrain.fixture.js");
     const logger = { warn: () => {} };
-    const gen = createEntityGenerator(logger);
+    const gen = createEntityGenerator(logger, createTestRuntime());
     const ast = parse(tokenize(MINI_TERRAIN));
     const result = gen.generate(ast);
     assert.strictEqual(result.clinical, null);

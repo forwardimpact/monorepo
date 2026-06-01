@@ -1,5 +1,3 @@
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
-
 import { validateCallbackPayload } from "./callback-payload.js";
 
 /**
@@ -60,8 +58,9 @@ export function createCallbackHandler({
   loadDiscussionId,
   ackFinishTarget,
   handleReply,
-  clock = createDefaultClock(),
+  clock,
 }) {
+  if (!clock) throw new Error("clock is required");
   if (!channel) throw new Error("channel is required");
   if (!callbacks) throw new Error("callbacks is required");
   if (!ack) throw new Error("ack is required");

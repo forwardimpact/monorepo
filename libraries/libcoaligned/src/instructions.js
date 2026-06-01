@@ -1,5 +1,4 @@
 import { resolve } from "node:path";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { runRules } from "@forwardimpact/libutil";
 
 const SKIP_DIRS = new Set([
@@ -322,7 +321,8 @@ export const INSTRUCTION_RULES = [
  *   with `emitFindingsText` / `emitFindingsJson` from libutil.
  */
 export async function checkInstructions({ root, runtime }) {
-  const { fs } = runtime ?? createDefaultRuntime();
+  if (!runtime) throw new Error("runtime is required");
+  const { fs } = runtime;
   const { layers, skillDirs } = await buildLayers(root, fs);
   const fileSubjects = await buildFileSubjects(root, layers, fs);
   const checklistSubjects = await buildChecklistSubjects(

@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 
 import { createConfig } from "../src/index.js";
 import { createMockStorage, spy } from "@forwardimpact/libmock";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 describe("libconfig - .env file loading", () => {
   const testDir = path.join(tmpdir(), `libconfig-env-test-${process.pid}`);
@@ -16,9 +17,11 @@ describe("libconfig - .env file loading", () => {
       get: spy(() => Promise.resolve("")),
     });
 
-  const createProcess = (env = {}) => ({
-    cwd: () => testDir,
-    env,
+  // Real fs (to read the .env written to testDir) with a test-controlled proc.
+  // Config mutates `runtime.proc.env`, so tests inspect `.proc.env` afterward.
+  const createRuntime = (env = {}) => ({
+    ...createDefaultRuntime(),
+    proc: { cwd: () => testDir, env },
   });
 
   afterEach(() => {
@@ -41,7 +44,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -57,7 +60,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess({ GITHUB_TOKEN: "env-value" }),
+      createRuntime({ GITHUB_TOKEN: "env-value" }),
       mockStorageFn,
     );
 
@@ -67,11 +70,17 @@ describe("libconfig - .env file loading", () => {
   test("GH_TOKEN from .env file is treated as a credential", async () => {
     writeEnvFile("GH_TOKEN=gh-cli-value\n");
 
-    const proc = createProcess();
-    const config = await createConfig("test", "svc", {}, proc, mockStorageFn);
+    const runtime = createRuntime();
+    const config = await createConfig(
+      "test",
+      "svc",
+      {},
+      runtime,
+      mockStorageFn,
+    );
 
     assert.strictEqual(config.ghToken(), "gh-cli-value");
-    assert.strictEqual(proc.env.GH_TOKEN, undefined);
+    assert.strictEqual(runtime.proc.env.GH_TOKEN, undefined);
   });
 
   test("loads non-allowed keys into process.env", async () => {
@@ -79,19 +88,19 @@ describe("libconfig - .env file loading", () => {
       "SERVICE_SECRET=my-secret\nSERVICE_MCP_URL=http://localhost:3005\nGITHUB_TOKEN=allowed\n",
     );
 
-    const mockProcess = createProcess();
+    const runtime = createRuntime();
     const config = await createConfig(
       "test",
       "svc",
       {},
-      mockProcess,
+      runtime,
       mockStorageFn,
     );
 
     assert.strictEqual(config.ghToken(), "allowed");
-    assert.strictEqual(mockProcess.env.SERVICE_SECRET, "my-secret");
+    assert.strictEqual(runtime.proc.env.SERVICE_SECRET, "my-secret");
     assert.strictEqual(
-      mockProcess.env.SERVICE_MCP_URL,
+      runtime.proc.env.SERVICE_MCP_URL,
       "http://localhost:3005",
     );
   });
@@ -99,13 +108,13 @@ describe("libconfig - .env file loading", () => {
   test(".env file overwrites inherited process.env for non-credential keys", async () => {
     writeEnvFile("SERVICE_SECRET=from-file\n");
 
-    const mockProcess = createProcess({ SERVICE_SECRET: "from-env" });
-    await createConfig("test", "svc", {}, mockProcess, mockStorageFn);
+    const runtime = createRuntime({ SERVICE_SECRET: "from-env" });
+    await createConfig("test", "svc", {}, runtime, mockStorageFn);
 
     // .env is the persistent source of truth. Supervised child processes
     // inherit stale values from svscan — always applying the .env value
     // ensures edits take effect on restart.
-    assert.strictEqual(mockProcess.env.SERVICE_SECRET, "from-file");
+    assert.strictEqual(runtime.proc.env.SERVICE_SECRET, "from-file");
   });
 
   test("skips comments and blank lines", async () => {
@@ -117,7 +126,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -133,7 +142,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -149,7 +158,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -164,7 +173,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -179,7 +188,7 @@ describe("libconfig - .env file loading", () => {
     chmodSync(envPath, 0o000);
 
     await assert.rejects(
-      () => createConfig("test", "svc", {}, createProcess(), mockStorageFn),
+      () => createConfig("test", "svc", {}, createRuntime(), mockStorageFn),
       (error) => error.code === "EACCES",
     );
 
@@ -194,7 +203,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -210,7 +219,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -234,7 +243,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -250,7 +259,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -271,8 +280,14 @@ describe("libconfig - .env file loading", () => {
       ].join("\n"),
     );
 
-    const proc = createProcess();
-    const config = await createConfig("test", "svc", {}, proc, mockStorageFn);
+    const runtime = createRuntime();
+    const config = await createConfig(
+      "test",
+      "svc",
+      {},
+      runtime,
+      mockStorageFn,
+    );
 
     assert.strictEqual(config.supabaseAnonKey(), "anon-jwt");
     assert.strictEqual(config.supabaseServiceRoleKey(), "service-role-jwt");
@@ -281,13 +296,13 @@ describe("libconfig - .env file loading", () => {
     // SUPABASE_URL is non-credential; it must remain on process.env so
     // docker-compose's ${SUPABASE_URL} interpolation works at the shell
     // level (design § Key Decisions row 7).
-    assert.strictEqual(proc.env.SUPABASE_URL, "http://127.0.0.1:54321");
+    assert.strictEqual(runtime.proc.env.SUPABASE_URL, "http://127.0.0.1:54321");
     assert.strictEqual(config.supabaseUrl(), "http://127.0.0.1:54321");
 
     // Three secret values must NOT leak onto process.env.
-    assert.strictEqual(proc.env.SUPABASE_ANON_KEY, undefined);
-    assert.strictEqual(proc.env.SUPABASE_SERVICE_ROLE_KEY, undefined);
-    assert.strictEqual(proc.env.SUPABASE_JWT_SECRET, undefined);
+    assert.strictEqual(runtime.proc.env.SUPABASE_ANON_KEY, undefined);
+    assert.strictEqual(runtime.proc.env.SUPABASE_SERVICE_ROLE_KEY, undefined);
+    assert.strictEqual(runtime.proc.env.SUPABASE_JWT_SECRET, undefined);
   });
 
   test("strips export prefix on keys", async () => {
@@ -297,7 +312,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 
@@ -316,7 +331,7 @@ describe("libconfig - .env file loading", () => {
       "test",
       "svc",
       {},
-      createProcess(),
+      createRuntime(),
       mockStorageFn,
     );
 

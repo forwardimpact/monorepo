@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PagesBuilder, PagesServer } from "../src/index.js";
+import { createTestRuntime } from "@forwardimpact/libmock";
 import { assertThrowsMessage } from "@forwardimpact/libmock";
 
 test("PagesBuilder constructor validates dependencies", () => {
@@ -56,6 +57,7 @@ test("PagesBuilder constructor validates dependencies", () => {
     mockMatter,
     mockMustache,
     mockPrettier,
+    createTestRuntime(),
   );
   assert.ok(builder instanceof PagesBuilder);
 });
@@ -73,7 +75,9 @@ test("PagesServer constructor validates dependencies", () => {
   );
 
   const mockBuilder = {};
-  const server = new PagesServer(mockFs, null, null, mockBuilder);
+  const server = new PagesServer(mockFs, null, null, mockBuilder, {
+    runtime: createTestRuntime(),
+  });
   assert.ok(server instanceof PagesServer);
 
   const mockHono = function () {};
@@ -83,6 +87,7 @@ test("PagesServer constructor validates dependencies", () => {
     mockHono,
     mockServe,
     mockBuilder,
+    { runtime: createTestRuntime() },
   );
   assert.ok(serverWithHono instanceof PagesServer);
 });
@@ -93,7 +98,9 @@ test("PagesServer stopWatch handles null watcher", () => {
   const mockServe = () => {};
   const mockBuilder = {};
 
-  const server = new PagesServer(mockFs, mockHono, mockServe, mockBuilder);
+  const server = new PagesServer(mockFs, mockHono, mockServe, mockBuilder, {
+    runtime: createTestRuntime(),
+  });
 
   assert.doesNotThrow(() => server.stopWatch());
 });
@@ -185,6 +192,7 @@ test("PagesBuilder generates correct output paths", async () => {
     mockMatter,
     mockMustache,
     mockPrettier,
+    createTestRuntime(),
   );
 
   await builder.build("docs", "dist");
@@ -293,6 +301,7 @@ test("PagesBuilder handles multiple markdown files correctly", async () => {
     mockMatter,
     mockMustache,
     mockPrettier,
+    createTestRuntime(),
   );
 
   await builder.build("docs", "dist");
@@ -378,6 +387,7 @@ test("PagesBuilder skips CLAUDE.md and SKILL.md files", async () => {
     mockMatter,
     mockMustache,
     mockPrettier,
+    createTestRuntime(),
   );
 
   await builder.build("docs", "dist");
@@ -436,7 +446,9 @@ test("PagesServer handles directory requests correctly", async () => {
   const mockServe = () => ({});
   const mockBuilder = {};
 
-  const server = new PagesServer(mockFs, mockHono, mockServe, mockBuilder);
+  const server = new PagesServer(mockFs, mockHono, mockServe, mockBuilder, {
+    runtime: createTestRuntime(),
+  });
   server.serve("dist", { port: 3000, hostname: "0.0.0.0" });
 
   const handler = mockApp.routes.get("*");

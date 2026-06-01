@@ -2,6 +2,7 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { Server } from "../src/index.js";
+import { createTestRuntime } from "@forwardimpact/libmock";
 import {
   assertThrowsMessage,
   createMockAuthFn,
@@ -12,6 +13,8 @@ import {
   createMockTracer,
   spy,
 } from "@forwardimpact/libmock";
+
+const runtime = createTestRuntime();
 
 describe("Server", () => {
   let mockService;
@@ -38,15 +41,14 @@ describe("Server", () => {
   test("should require service parameter", () => {
     assertThrowsMessage(
       () =>
-        new Server(
-          null,
-          mockConfig,
-          mockLogFn,
-          null,
-          mockObserverFn,
-          mockGrpcFn,
-          mockAuthFn,
-        ),
+        new Server(null, mockConfig, {
+          logger: mockLogFn,
+          tracer: null,
+          observerFn: mockObserverFn,
+          grpcFn: mockGrpcFn,
+          authFn: mockAuthFn,
+          runtime,
+        }),
       /service is required/,
     );
   });
@@ -54,29 +56,27 @@ describe("Server", () => {
   test("should require config parameter", () => {
     assertThrowsMessage(
       () =>
-        new Server(
-          mockService,
-          null,
-          mockLogFn,
-          null,
-          mockObserverFn,
-          mockGrpcFn,
-          mockAuthFn,
-        ),
+        new Server(mockService, null, {
+          logger: mockLogFn,
+          tracer: null,
+          observerFn: mockObserverFn,
+          grpcFn: mockGrpcFn,
+          authFn: mockAuthFn,
+          runtime,
+        }),
       /config is required/,
     );
   });
 
   test("should accept valid parameters", () => {
-    const server = new Server(
-      mockService,
-      mockConfig,
-      mockLogFn,
-      null,
-      mockObserverFn,
-      mockGrpcFn,
-      mockAuthFn,
-    );
+    const server = new Server(mockService, mockConfig, {
+      logger: mockLogFn,
+      tracer: null,
+      observerFn: mockObserverFn,
+      grpcFn: mockGrpcFn,
+      authFn: mockAuthFn,
+      runtime,
+    });
 
     assert.ok(server);
     assert.strictEqual(server.config, mockConfig);
@@ -91,15 +91,14 @@ describe("Server", () => {
       getHandlers: getHandlersSpy,
     };
 
-    const server = new Server(
-      spiedService,
-      mockConfig,
-      mockLogFn,
-      null,
-      mockObserverFn,
-      mockGrpcFn,
-      mockAuthFn,
-    );
+    const server = new Server(spiedService, mockConfig, {
+      logger: mockLogFn,
+      tracer: null,
+      observerFn: mockObserverFn,
+      grpcFn: mockGrpcFn,
+      authFn: mockAuthFn,
+      runtime,
+    });
 
     // Start the server to trigger setup
     await server.start();
@@ -132,15 +131,14 @@ describe("Server", () => {
       logger: () => mockLogFn,
     });
 
-    const server = new Server(
-      throwingService,
-      mockConfig,
-      mockLogFn,
-      null,
-      customObserverFn,
-      customGrpcFn,
-      mockAuthFn,
-    );
+    const server = new Server(throwingService, mockConfig, {
+      logger: mockLogFn,
+      tracer: null,
+      observerFn: customObserverFn,
+      grpcFn: customGrpcFn,
+      authFn: mockAuthFn,
+      runtime,
+    });
 
     await server.start();
 
@@ -155,15 +153,14 @@ describe("Server", () => {
   test("should accept tracer parameter", () => {
     const mockTracer = createMockTracer();
 
-    const server = new Server(
-      mockService,
-      mockConfig,
-      mockLogFn,
-      mockTracer,
-      mockObserverFn,
-      mockGrpcFn,
-      mockAuthFn,
-    );
+    const server = new Server(mockService, mockConfig, {
+      logger: mockLogFn,
+      tracer: mockTracer,
+      observerFn: mockObserverFn,
+      grpcFn: mockGrpcFn,
+      authFn: mockAuthFn,
+      runtime,
+    });
 
     assert.ok(server);
   });

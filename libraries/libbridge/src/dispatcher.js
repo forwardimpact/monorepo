@@ -1,7 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
-
 import { dispatchWorkflow } from "./dispatch.js";
 
 /** Dispatch dance: resolve per-user token, register callback, ack, fire workflow, flush. */
@@ -37,7 +35,7 @@ export class Dispatcher {
     githubRepo,
     tokenResolver,
     tenantResolver,
-    clock = createDefaultClock(),
+    clock,
   }) {
     if (!callbacks) throw new Error("callbacks is required");
     if (!ack) throw new Error("ack is required");
@@ -49,6 +47,7 @@ export class Dispatcher {
     if (!githubRepo) throw new Error("githubRepo is required");
     if (!tokenResolver) throw new Error("tokenResolver is required");
     if (!tenantResolver) throw new Error("tenantResolver is required");
+    if (!clock) throw new Error("clock is required");
     this.#callbacks = callbacks;
     this.#ack = ack;
     this.#store = store;

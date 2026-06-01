@@ -36,10 +36,14 @@ describe("bootstrapProject — refusal stderr greppability", () => {
       import { bootstrapProject } from "${pathToFileUrl(
         path.join(repoRoot, "libraries", "libconfig", "src", "bootstrap.js"),
       )}";
+      import { createDefaultRuntime } from "${pathToFileUrl(
+        path.join(repoRoot, "libraries", "libutil", "src", "runtime.js"),
+      )}";
       try {
         await bootstrapProject({
           target: ${JSON.stringify(testDir)},
           fragment: { product: { x: { foo: "b" } } },
+          deps: { runtime: createDefaultRuntime() },
         });
         process.exit(0);
       } catch (err) {

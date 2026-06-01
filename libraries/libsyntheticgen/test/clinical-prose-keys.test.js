@@ -3,6 +3,7 @@ import assert from "node:assert";
 import { clinicalProseKeys } from "../src/engine/clinical-prose-keys.js";
 import { collectProseKeys } from "../src/engine/prose-keys.js";
 import { PromptLoader } from "@forwardimpact/libprompt";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,7 +18,7 @@ const promptDir = join(
 );
 
 function makePromptLoader() {
-  return new PromptLoader(promptDir);
+  return new PromptLoader(promptDir, createDefaultRuntime());
 }
 
 function makeClinicalEntities() {

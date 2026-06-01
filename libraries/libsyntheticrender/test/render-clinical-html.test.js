@@ -3,13 +3,15 @@ import assert from "node:assert";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TemplateLoader } from "@forwardimpact/libtemplate/loader";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const _rt = createDefaultRuntime();
 import { renderHTML } from "../src/render/html.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_DIR = join(__dirname, "..", "templates");
 
 function makeTemplates() {
-  return new TemplateLoader(TEMPLATE_DIR);
+  return new TemplateLoader(TEMPLATE_DIR, createDefaultRuntime());
 }
 
 function makeMinimalEntities(overrides = {}) {
@@ -101,7 +103,7 @@ function makeClinicalFixture() {
 describe("renderClinicalPages", () => {
   test("produces 7 clinical HTML files", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
-    const { files } = renderHTML(entities, new Map(), makeTemplates());
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
     const clinicalFiles = [
       "condition-explainers.html",
@@ -119,7 +121,7 @@ describe("renderClinicalPages", () => {
 
   test("Schema.org microdata uses correct itemtype URLs", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
-    const { files } = renderHTML(entities, new Map(), makeTemplates());
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
     assert.match(
       files.get("condition-explainers.html"),
@@ -153,7 +155,7 @@ describe("renderClinicalPages", () => {
 
   test("data-enrich keys follow clinical_ prefix pattern", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
-    const { files } = renderHTML(entities, new Map(), makeTemplates());
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
     assert.match(
       files.get("condition-explainers.html"),
@@ -183,7 +185,7 @@ describe("renderClinicalPages", () => {
 
   test("empty prose cache falls back to placeholder strings", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
-    const { files } = renderHTML(entities, new Map(), makeTemplates());
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
     assert.match(
       files.get("condition-explainers.html"),
@@ -201,7 +203,7 @@ describe("renderClinicalPages", () => {
       ],
       ["clinical_trial_faq_oncora_p3", "Common questions about ONCORA-301."],
     ]);
-    const { files } = renderHTML(entities, prose, makeTemplates());
+    const { files } = renderHTML(entities, prose, makeTemplates(), {}, _rt);
 
     assert.match(
       files.get("condition-explainers.html"),
@@ -215,14 +217,14 @@ describe("renderClinicalPages", () => {
 
   test("trial-cards has no data-enrich attribute", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
-    const { files } = renderHTML(entities, new Map(), makeTemplates());
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
     assert.doesNotMatch(files.get("trial-cards.html"), /data-enrich/);
   });
 
   test("no clinical block produces zero clinical files, leaves others unaffected", () => {
     const entities = makeMinimalEntities({ clinical: null });
-    const { files } = renderHTML(entities, new Map(), makeTemplates());
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
     const clinicalFiles = [
       "condition-explainers.html",
@@ -242,7 +244,7 @@ describe("renderClinicalPages", () => {
 
   test("condition study link points to trial IRIs", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
-    const { files } = renderHTML(entities, new Map(), makeTemplates());
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
     assert.match(
       files.get("condition-explainers.html"),
@@ -262,9 +264,13 @@ describe("renderClinicalPages", () => {
       siteIdToPatientIris: new Map([["cambridge", new Set([patientIri])]]),
       trialIriToPatientIris: new Map([[trialIri, new Set([patientIri])]]),
     };
-    const { files } = renderHTML(entities, new Map(), makeTemplates(), {
-      fhirCrossRef,
-    });
+    const { files } = renderHTML(
+      entities,
+      new Map(),
+      makeTemplates(),
+      { fhirCrossRef },
+      _rt,
+    );
     assert.match(
       files.get("trial-cards.html"),
       /itemprop="https:\/\/www\.forwardimpact\.team\/schema\/rdf\/enrolledPatient"/,
@@ -281,7 +287,7 @@ describe("renderClinicalPages", () => {
 
   test("no fhirCrossRef option: reverse-link strings absent from output", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
-    const { files } = renderHTML(entities, new Map(), makeTemplates());
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
     for (const page of [
       "trial-cards.html",
@@ -324,7 +330,7 @@ describe("renderClinicalPages", () => {
     clinical.sites[0].trials.push("completed_trial");
 
     const entities = makeMinimalEntities({ clinical });
-    const { files } = renderHTML(entities, new Map(), makeTemplates());
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
     const siteHtml = files.get("site-descriptions.html");
     assert.match(

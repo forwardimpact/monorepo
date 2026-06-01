@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 import { Acknowledgement } from "../src/acknowledgement.js";
 import { CallbackRegistry } from "../src/callback-registry.js";
@@ -89,7 +90,7 @@ function buildEnv({
   tokenResolver,
 } = {}) {
   const store = createFakeAdapter();
-  const callbacks = new CallbackRegistry();
+  const callbacks = new CallbackRegistry({ clock });
   const ack = new Acknowledgement({
     reactionAdapter: {
       add: async () => null,
@@ -98,6 +99,7 @@ function buildEnv({
   });
   const tr = tokenResolver ?? makeTokenResolver();
   const dispatcher = new Dispatcher({
+    clock,
     callbacks,
     ack,
     store,
@@ -108,6 +110,7 @@ function buildEnv({
     tenantResolver: new DefaultTenantResolver({ channel: "test-channel" }),
   });
   const scheduler = new ResumeScheduler({
+    clock,
     dispatcher,
     store,
     buildCallbackMeta,
@@ -116,6 +119,8 @@ function buildEnv({
   });
   return { store, callbacks, dispatcher, scheduler, tokenResolver: tr };
 }
+
+const clock = createDefaultClock();
 
 describe("ResumeScheduler", () => {
   let env;
@@ -132,16 +137,17 @@ describe("ResumeScheduler", () => {
   });
 
   test("rejects construction when required options are missing", () => {
-    expect(() => new ResumeScheduler({})).toThrow();
-    expect(() => new ResumeScheduler({ dispatcher: env.dispatcher })).toThrow(
-      "store is required",
-    );
+    expect(() => new ResumeScheduler({ clock })).toThrow();
+    expect(
+      () => new ResumeScheduler({ clock, dispatcher: env.dispatcher }),
+    ).toThrow("store is required");
   });
 
   test("rejects non-function callback builders", () => {
     expect(
       () =>
         new ResumeScheduler({
+          clock,
           dispatcher: env.dispatcher,
           store: env.store,
           buildCallbackMeta: "nope",
@@ -153,6 +159,7 @@ describe("ResumeScheduler", () => {
     expect(
       () =>
         new ResumeScheduler({
+          clock,
           dispatcher: env.dispatcher,
           store: env.store,
           onDeclined: "nope",
@@ -347,11 +354,12 @@ describe("ResumeScheduler", () => {
 
     const freshStore = createFakeAdapter();
     await freshStore.add(ctx);
-    const callbacks = new CallbackRegistry();
+    const callbacks = new CallbackRegistry({ clock });
     const ack = new Acknowledgement({
       reactionAdapter: { add: async () => null, remove: async () => {} },
     });
     const dispatcher = new Dispatcher({
+      clock,
       callbacks,
       ack,
       store: freshStore,
@@ -361,7 +369,7 @@ describe("ResumeScheduler", () => {
       tokenResolver: makeTokenResolver(),
       tenantResolver: new DefaultTenantResolver({ channel: "test-channel" }),
     });
-    const fresh = new ResumeScheduler({ dispatcher, store: freshStore });
+    const fresh = new ResumeScheduler({ clock, dispatcher, store: freshStore });
     try {
       expect(fresh.size).toBe(0);
       await fresh.rearm();

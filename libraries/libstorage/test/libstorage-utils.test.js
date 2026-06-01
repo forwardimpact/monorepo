@@ -1,6 +1,10 @@
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import { spy } from "@forwardimpact/libmock";
+import {
+  spy,
+  createTestRuntime,
+  createMockProcess,
+} from "@forwardimpact/libmock";
 
 import {
   LocalStorage,
@@ -16,46 +20,38 @@ import {
 } from "../src/index.js";
 
 describe("storageFactory", () => {
-  let mockProcess;
-
-  beforeEach(() => {
-    mockProcess = {
-      env: {},
-    };
-  });
+  const runtimeWithEnv = (env) =>
+    createTestRuntime({ proc: createMockProcess({ env }) });
 
   test("creates LocalStorage for local type", () => {
-    mockProcess.env.STORAGE_ROOT = "/tmp";
+    const runtime = runtimeWithEnv({ STORAGE_ROOT: "/tmp" });
 
-    const storage = createStorage("config", "local", mockProcess);
+    const storage = createStorage("config", "local", runtime);
 
     assert(storage instanceof LocalStorage);
   });
 
   test("creates S3Storage for s3 type", () => {
-    mockProcess.env = {
+    const runtime = runtimeWithEnv({
       STORAGE_TYPE: "s3",
       S3_REGION: "us-east-1",
       S3_ENDPOINT: "https://s3.amazonaws.com",
       AWS_ACCESS_KEY_ID: "test-key",
       AWS_SECRET_ACCESS_KEY: "test-secret",
       S3_DATA_BUCKET: "test-bucket",
-    };
+    });
 
-    const storage = createStorage("/test/path", "s3", mockProcess);
+    const storage = createStorage("/test/path", "s3", runtime);
 
     assert(storage instanceof S3Storage);
   });
 
   test("throws error for unsupported storage type", () => {
-    mockProcess.env.STORAGE_TYPE = "unsupported";
+    const runtime = runtimeWithEnv({ STORAGE_TYPE: "unsupported" });
 
-    assert.throws(
-      () => createStorage("/test/path", "unsupported", mockProcess),
-      {
-        message: /Unsupported storage type: unsupported/,
-      },
-    );
+    assert.throws(() => createStorage("/test/path", "unsupported", runtime), {
+      message: /Unsupported storage type: unsupported/,
+    });
   });
 });
 

@@ -1,7 +1,5 @@
 import { join } from "path";
 
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-
 import { collectFiles } from "./util.js";
 
 /** Stage directory trees per layout (full, APM, skills). */
@@ -10,7 +8,8 @@ export class PackStager {
 
   /** @param {{runtime?: object}} [opts] */
   constructor({ runtime } = {}) {
-    const rt = runtime ?? createDefaultRuntime();
+    if (!runtime) throw new Error("runtime is required");
+    const rt = runtime;
     this.#fs = rt.fs;
   }
 

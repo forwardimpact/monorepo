@@ -1,5 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { join } from "path";
 import { mkdtempSync, rmSync, readFileSync, existsSync, readdirSync } from "fs";
 import { tmpdir } from "os";
@@ -81,6 +82,7 @@ describe("WriteSink", () => {
       const sink = new WriteSink({
         monorepoRoot: tmpDir,
         prettierFn: format,
+        runtime: createDefaultRuntime(),
         logger: makeLogger(),
       });
       const stats = await sink.accept(result);
@@ -128,6 +130,7 @@ describe("WriteSink", () => {
       const sink = new WriteSink({
         monorepoRoot: tmpDir,
         prettierFn: format,
+        runtime: createDefaultRuntime(),
         logger: makeLogger(),
       });
       await sink.accept(result);
@@ -151,6 +154,7 @@ describe("WriteSink", () => {
       const sink = new WriteSink({
         monorepoRoot: tmpDir,
         prettierFn: format,
+        runtime: createDefaultRuntime(),
         logger: makeLogger(),
       });
       await sink.accept(result);
@@ -183,6 +187,7 @@ describe("LoadSink", () => {
 
       const sink = new LoadSink({
         prettierFn: format,
+        runtime: createDefaultRuntime(),
         supabase: { id: "stub" },
         loadToSupabase,
         logger: makeLogger(),
@@ -260,10 +265,12 @@ describe("CompositeSink", () => {
       const writeSink = new WriteSink({
         monorepoRoot: tmpDir,
         prettierFn: format,
+        runtime: createDefaultRuntime(),
         logger: makeLogger(),
       });
       const loadSink = new LoadSink({
         prettierFn: format,
+        runtime: createDefaultRuntime(),
         supabase: { id: "stub" },
         loadToSupabase: async (_s, raw) => ({ loaded: raw.size, errors: [] }),
         logger: makeLogger(),

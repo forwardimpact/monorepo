@@ -6,6 +6,7 @@
  * and per-output unit coverage including multi-driver-declining input.
  */
 import { describe, test } from "node:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
@@ -28,7 +29,13 @@ function loadFromDsl() {
   const rng = createSeededRNG(ast.seed);
   const built = buildEntities(ast, rng);
   const entities = { ...built, content: [], domain: "test.example" };
-  entities.activity = generateActivity(ast, rng, built.people, built.teams);
+  entities.activity = generateActivity(
+    ast,
+    rng,
+    built.people,
+    built.teams,
+    createDefaultRuntime(),
+  );
   return { ast, entities, rng };
 }
 

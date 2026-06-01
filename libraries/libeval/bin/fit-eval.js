@@ -313,10 +313,10 @@ const definition = {
   ],
 };
 
-const logger = createLogger("eval");
+const runtime = createDefaultRuntime();
+const logger = createLogger("eval", runtime);
 
 async function main() {
-  const runtime = createDefaultRuntime();
   const cli = createCli(definition, { runtime });
   const parsed = cli.parse(runtime.proc.argv.slice(2));
   if (!parsed) return runtime.proc.exit(0);
@@ -341,6 +341,6 @@ async function main() {
 
 main().catch((error) => {
   logger.exception("main", error);
-  createCli(definition).error(error.message);
+  createCli(definition, { runtime }).error(error.message);
   process.exit(1);
 });

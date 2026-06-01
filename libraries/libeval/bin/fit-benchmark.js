@@ -156,10 +156,10 @@ export const definition = {
   ],
 };
 
-const logger = createLogger("benchmark");
+const runtime = createDefaultRuntime();
+const logger = createLogger("benchmark", runtime);
 
 async function main() {
-  const runtime = createDefaultRuntime();
   const cli = createCli(definition, { runtime });
   const parsed = cli.parse(runtime.proc.argv.slice(2));
   if (!parsed) return runtime.proc.exit(0);
@@ -187,7 +187,7 @@ async function main() {
 if (import.meta.url === `file://${realpathSync(process.argv[1])}`) {
   main().catch((error) => {
     logger.exception("main", error);
-    createCli(definition).error(error.message);
+    createCli(definition, { runtime }).error(error.message);
     process.exit(1);
   });
 }

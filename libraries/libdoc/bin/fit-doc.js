@@ -79,8 +79,9 @@ const definition = {
   examples: ["fit-doc build", "fit-doc serve --watch --port 8080"],
 };
 
-const cli = createCli(definition);
-const logger = createLogger("doc");
+const runtime = createDefaultRuntime();
+const cli = createCli(definition, { runtime });
+const logger = createLogger("doc", runtime);
 
 /**
  * @param {import("../builder.js").PagesBuilder} builder
@@ -144,8 +145,6 @@ async function runServe(builder, server, pagesDir, distDir, options) {
 }
 
 async function main() {
-  const runtime = createDefaultRuntime();
-
   const parsed = cli.parse(process.argv.slice(2));
   if (!parsed) process.exit(0);
 
@@ -174,6 +173,7 @@ async function main() {
     parseFrontMatter,
     mustache.render,
     prettier,
+    runtime,
   );
 
   try {

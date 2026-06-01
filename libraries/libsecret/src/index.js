@@ -1,8 +1,6 @@
 import crypto from "crypto";
 import path from "path";
 
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-
 /**
  * Reads an environment variable value from an env file
  * @param {string} key - Environment variable name
@@ -10,11 +8,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
  * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Promise<string|undefined>} The value if found, undefined otherwise
  */
-export async function readEnvFile(
-  key,
-  envPath = ".env",
-  runtime = createDefaultRuntime(),
-) {
+export async function readEnvFile(key, envPath = ".env", runtime) {
   const { fs } = runtime;
   const fullPath = path.resolve(envPath);
 
@@ -47,7 +41,7 @@ export async function getOrGenerateSecret(
   key,
   generator,
   envPath = ".env",
-  runtime = createDefaultRuntime(),
+  runtime,
 ) {
   if (typeof generator !== "function") {
     throw new Error("generator is required");
@@ -68,12 +62,7 @@ export async function getOrGenerateSecret(
  * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
  * @param {object} [runtime] - Runtime collaborator bag
  */
-export async function updateEnvFile(
-  key,
-  value,
-  envPath = ".env",
-  runtime = createDefaultRuntime(),
-) {
+export async function updateEnvFile(key, value, envPath = ".env", runtime) {
   const { fs } = runtime;
   const fullPath = path.resolve(envPath);
   let content = "";
@@ -187,7 +176,7 @@ export function generateJWT(payload, secret) {
  */
 export function mintSupabaseJwt(
   { email, secret, ttlSeconds = 3600, claims = {} },
-  runtime = createDefaultRuntime(),
+  runtime,
 ) {
   const { clock } = runtime;
   if (!secret) throw new Error("mintSupabaseJwt: secret required");
@@ -210,10 +199,7 @@ export function mintSupabaseJwt(
 
 const SUPABASE_ROLE_EXP_SECONDS = 10 * 365 * 24 * 60 * 60;
 
-function mintSupabaseRoleKey(
-  { role, secret },
-  runtime = createDefaultRuntime(),
-) {
+function mintSupabaseRoleKey({ role, secret }, runtime) {
   const { clock } = runtime;
   if (!secret) {
     throw new Error(
@@ -236,10 +222,7 @@ function mintSupabaseRoleKey(
  * @param {object} [runtime] - Runtime collaborator bag
  * @returns {string} Signed JWT
  */
-export function mintSupabaseAnonKey(
-  { secret },
-  runtime = createDefaultRuntime(),
-) {
+export function mintSupabaseAnonKey({ secret }, runtime) {
   return mintSupabaseRoleKey({ role: "anon", secret }, runtime);
 }
 
@@ -252,10 +235,7 @@ export function mintSupabaseAnonKey(
  * @param {object} [runtime] - Runtime collaborator bag
  * @returns {string} Signed JWT
  */
-export function mintSupabaseServiceRoleKey(
-  { secret },
-  runtime = createDefaultRuntime(),
-) {
+export function mintSupabaseServiceRoleKey({ secret }, runtime) {
   return mintSupabaseRoleKey({ role: "service_role", secret }, runtime);
 }
 

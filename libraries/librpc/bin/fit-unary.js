@@ -34,7 +34,7 @@ const definition = {
 };
 
 const cli = createCli(definition, { runtime });
-const logger = createLogger("cli");
+const logger = createLogger("cli", runtime);
 
 /**
  * Makes a unary gRPC call to a service

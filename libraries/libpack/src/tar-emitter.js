@@ -1,5 +1,3 @@
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-
 import { collectPaths, resetTimestamps } from "./util.js";
 
 /** Deterministic tarball emitter. */
@@ -9,7 +7,8 @@ export class TarEmitter {
 
   /** @param {{runtime?: object}} [opts] */
   constructor({ runtime } = {}) {
-    const rt = runtime ?? createDefaultRuntime();
+    if (!runtime) throw new Error("runtime is required");
+    const rt = runtime;
     this.#subprocess = rt.subprocess;
     this.#fs = rt.fs;
   }

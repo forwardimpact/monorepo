@@ -1,6 +1,5 @@
 import { join } from "node:path";
 import Mustache from "mustache";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * Prompt loader with Mustache templating.
@@ -12,10 +11,11 @@ export class PromptLoader {
 
   /**
    * @param {string} promptDir - Directory containing .prompt.md files
-   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime]
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
    */
-  constructor(promptDir, runtime = createDefaultRuntime()) {
+  constructor(promptDir, runtime) {
     if (!promptDir) throw new Error("promptDir is required");
+    if (!runtime) throw new Error("runtime is required");
     this.#promptDir = promptDir;
     this.#fsSync = runtime.fsSync;
   }

@@ -1,7 +1,5 @@
 import { join } from "path";
 
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-
 import { buildSkillEntry, stringifySorted } from "./util.js";
 
 const SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json";
@@ -12,7 +10,8 @@ export class DiscEmitter {
 
   /** @param {{runtime?: object}} [opts] */
   constructor({ runtime } = {}) {
-    const rt = runtime ?? createDefaultRuntime();
+    if (!runtime) throw new Error("runtime is required");
+    const rt = runtime;
     this.#fs = rt.fs;
   }
 

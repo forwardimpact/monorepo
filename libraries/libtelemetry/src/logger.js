@@ -1,5 +1,3 @@
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
-
 import { msToIso } from "./time.js";
 
 /**
@@ -25,17 +23,17 @@ export class Logger {
   /**
    * Creates a new Logger instance
    * @param {string} domain - Domain or service area for this logger instance
-   * @param {object} [proc] - Process object for environment access (defaults to global.process)
-   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Optional runtime bag;
-   *   falls back to `createDefaultClock()` so existing callers keep working unchanged.
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected
+   *   runtime bag; supplies the `proc` (env access) and `clock` collaborators.
    */
-  constructor(domain, proc = global.process, runtime = null) {
+  constructor(domain, runtime) {
     if (!domain || typeof domain !== "string") {
       throw new Error("domain must be a non-empty string");
     }
+    if (!runtime) throw new Error("runtime is required");
     this.#domain = domain;
-    this.#process = proc;
-    this.#clock = runtime?.clock ?? createDefaultClock();
+    this.#process = runtime.proc;
+    this.#clock = runtime.clock;
     this.#level = this.#resolveLevel();
     this.#enabled = this.#isEnabled();
   }
@@ -245,9 +243,9 @@ export class Logger {
 /**
  * Factory function to create a Logger instance
  * @param {string} domain - Domain or service area for the logger
- * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Optional runtime bag
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
  * @returns {Logger} Configured logger instance
  */
-export function createLogger(domain, runtime = null) {
-  return new Logger(domain, global.process, runtime);
+export function createLogger(domain, runtime) {
+  return new Logger(domain, runtime);
 }

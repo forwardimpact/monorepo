@@ -5,6 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { checkJtbd } from "../src/index.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const runtime = createDefaultRuntime();
 
 async function makeRepo() {
   const root = await mkdtemp(join(tmpdir(), "libcoaligned-jtbd-"));
@@ -49,7 +51,7 @@ describe("checkJtbd", () => {
   test("passes on an empty repo with no packages", async () => {
     const root = await makeRepo();
     try {
-      const result = await checkJtbd({ root });
+      const result = await checkJtbd({ root, runtime });
       assert.deepStrictEqual(result.findings, []);
       assert.deepStrictEqual(result.stale, []);
     } finally {
@@ -70,7 +72,7 @@ describe("checkJtbd", () => {
         join(root, "libraries", "libfoo", "package.json"),
         JSON.stringify(pkg),
       );
-      const result = await checkJtbd({ root });
+      const result = await checkJtbd({ root, runtime });
       const f = result.findings.find(
         (x) => x.id === "jtbd.hire-missing-period",
       );
@@ -107,10 +109,10 @@ describe("checkJtbd", () => {
       const readmePath = join(root, "libraries", "libfoo", "README.md");
       await writeFile(readmePath, readme);
 
-      const dryRun = await checkJtbd({ root, fix: false });
+      const dryRun = await checkJtbd({ root, fix: false, runtime });
       assert.ok(dryRun.stale.length > 0, "expected stale entries");
 
-      const fixed = await checkJtbd({ root, fix: true });
+      const fixed = await checkJtbd({ root, fix: true, runtime });
       assert.ok(fixed.fixed.length > 0, "expected fix to apply");
 
       const updated = await readFile(readmePath, "utf8");
@@ -140,7 +142,7 @@ describe("checkJtbd", () => {
         "<!-- BEGIN:jobs -->\n<!-- END:jobs -->\n",
       );
 
-      const result = await checkJtbd({ root });
+      const result = await checkJtbd({ root, runtime });
       assert.deepStrictEqual(result.findings, []);
       assert.ok(result.stale.includes("JTBD.md"));
     } finally {
@@ -162,7 +164,7 @@ describe("checkJtbd", () => {
         JSON.stringify(pkg),
       );
 
-      const result = await checkJtbd({ root });
+      const result = await checkJtbd({ root, runtime });
       const f = result.findings.find((x) => x.id === "jtbd.invalid-user");
       assert.ok(
         f,
@@ -194,7 +196,7 @@ describe("checkJtbd", () => {
         "<!-- BEGIN:jobs -->\n<!-- END:jobs -->\n",
       );
 
-      await checkJtbd({ root, fix: true });
+      await checkJtbd({ root, fix: true, runtime });
 
       const jtbd = await readFile(join(root, "JTBD.md"), "utf8");
       const start = jtbd.indexOf("**Big Hire:**");
@@ -237,8 +239,8 @@ describe("checkJtbd", () => {
         "<!-- BEGIN:jobs -->\n<!-- END:jobs -->\n",
       );
 
-      await checkJtbd({ root, fix: true });
-      const second = await checkJtbd({ root, fix: true });
+      await checkJtbd({ root, fix: true, runtime });
+      const second = await checkJtbd({ root, fix: true, runtime });
 
       assert.deepStrictEqual(second.fixed, []);
       assert.deepStrictEqual(second.stale, []);

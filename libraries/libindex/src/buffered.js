@@ -1,5 +1,4 @@
 import { IndexBase } from "./base.js";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * Buffered index for high-volume writes with periodic flushing
@@ -20,19 +19,16 @@ export class BufferedIndex extends IndexBase {
    * @param {object} config - Buffer configuration
    * @param {number} [config.flush_interval] - Flush interval in milliseconds (default: 5000)
    * @param {number} [config.max_buffer_size] - Max items before forced flush (default: 1000)
-   * @param {object} [deps] - Injected collaborators
-   * @param {import("@forwardimpact/libutil/runtime").Runtime} [deps.runtime]
+   * @param {object} deps - Injected collaborators
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock -
+   *   Injected clock collaborator (the only runtime surface BufferedIndex uses).
    */
-  constructor(
-    storage,
-    indexKey,
-    config = {},
-    { runtime = createDefaultRuntime() } = {},
-  ) {
+  constructor(storage, indexKey, config = {}, { clock } = {}) {
     super(storage, indexKey);
+    if (!clock) throw new Error("clock is required");
     this.#flushInterval = config.flush_interval || 5000;
     this.#maxBufferSize = config.max_buffer_size || 1000;
-    this.#clock = runtime.clock;
+    this.#clock = clock;
   }
 
   /**

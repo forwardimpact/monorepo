@@ -2,6 +2,7 @@ import grpc from "@grpc/grpc-js";
 
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { Tracer } from "@forwardimpact/libtelemetry/tracer.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { capitalizeFirstLetter } from "./base.js";
 import * as exports from "./generated/services/exports.js";
@@ -31,10 +32,14 @@ export async function createTracer(serviceName) {
   const traceConfig = await createServiceConfig("trace");
   const { TraceClient } = clients;
   const traceClient = new TraceClient(traceConfig);
+  // createTracer is a composition-root factory; it builds the production clock
+  // as its DI root and threads it into the Tracer (and thus every Span).
+  const { clock } = createDefaultRuntime();
   return new Tracer({
     serviceName,
     traceClient,
     grpcMetadata: grpc.Metadata,
+    clock,
   });
 }
 

@@ -1,7 +1,5 @@
 import { join } from "path";
 
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-
 /** Orchestrate pack generation across stager and emitters. */
 export class PackBuilder {
   #stager;
@@ -10,7 +8,8 @@ export class PackBuilder {
 
   /** @param {{stager: PackStager, emitters: {tar: TarEmitter, git: GitEmitter, disc: DiscEmitter}, runtime?: object}} deps */
   constructor({ stager, emitters, runtime }) {
-    const rt = runtime ?? createDefaultRuntime();
+    if (!runtime) throw new Error("runtime is required");
+    const rt = runtime;
     this.#stager = stager;
     this.#emitters = emitters;
     this.#fs = rt.fs;

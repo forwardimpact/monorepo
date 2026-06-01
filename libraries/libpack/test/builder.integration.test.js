@@ -1,4 +1,6 @@
 import { describe, test, expect } from "bun:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const runtime = createDefaultRuntime();
 import { mkdtemp } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
@@ -85,8 +87,9 @@ describe("PackBuilder", () => {
     const disc = createRecordingDiscEmitter();
 
     const builder = new PackBuilder({
-      stager: new PackStager(),
+      stager: new PackStager({ runtime }),
       emitters: { tar, git, disc },
+      runtime,
     });
 
     const result = await builder.build({

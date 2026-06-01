@@ -2,7 +2,7 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
+import nodeFs, { readFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import {
   createCli,
@@ -10,6 +10,7 @@ import {
   formatSuccess,
   formatBullet,
 } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createStorage } from "@forwardimpact/libstorage";
 import { Logger } from "@forwardimpact/libtelemetry";
@@ -89,7 +90,8 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition);
+const runtime = createDefaultRuntime();
+const cli = createCli(definition, { runtime });
 const parsed = cli.parse(process.argv.slice(2));
 if (!parsed) process.exit(0);
 
@@ -102,8 +104,8 @@ const [command] = positionals;
  * @returns {Promise<string[]>} Array of discovered prefixes
  */
 async function discoverLocalPrefixes() {
-  const logger = new Logger("storage");
-  const finder = new Finder(fs, logger);
+  const logger = new Logger("storage", runtime);
+  const finder = new Finder({ fs, fsSync: nodeFs, proc: process, logger });
   const root = finder.findUpward(process.cwd(), "data");
   if (!root) return [];
 
@@ -157,7 +159,7 @@ const commands = {
 
   async upload() {
     await createScriptConfig("storage");
-    const logger = new Logger("storage");
+    const logger = new Logger("storage", runtime);
     const prefixes = prefixList.length
       ? prefixList
       : await discoverLocalPrefixes();
@@ -195,7 +197,7 @@ const commands = {
 
   async download() {
     await createScriptConfig("storage");
-    const logger = new Logger("storage");
+    const logger = new Logger("storage", runtime);
     const prefixes = prefixList.length
       ? prefixList
       : await discoverRemotePrefixes();

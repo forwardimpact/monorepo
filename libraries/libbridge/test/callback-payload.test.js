@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 import {
   MAX_FIELD_LENGTH,
@@ -7,6 +8,8 @@ import {
   normalizeBaseUrl,
   validateCallbackPayload,
 } from "../src/callback-payload.js";
+
+const clock = createDefaultClock();
 
 describe("validateCallbackPayload", () => {
   test("rejects non-object bodies", () => {
@@ -235,6 +238,7 @@ describe("newDiscussionContext", () => {
       metadata: { node_id: "U_1" },
     };
     const ctx = newDiscussionContext({
+      clock,
       channel: "github-discussions",
       discussionId: "D_kw1",
       participant,
@@ -256,6 +260,7 @@ describe("newDiscussionContext", () => {
   test("supports the msteams channel shape", () => {
     const ref = { conversation: { id: "thread-1" } };
     const ctx = newDiscussionContext({
+      clock,
       channel: "msteams",
       discussionId: "thread-1",
       participant: { name: "teams-user", kind: "human", metadata: ref },

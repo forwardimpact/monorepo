@@ -3,6 +3,7 @@ import "@forwardimpact/libpreflight/node22";
 
 import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createResourceIndex } from "@forwardimpact/libresource";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
@@ -28,8 +29,9 @@ const definition = {
   },
 };
 
-const cli = createCli(definition);
-const logger = createLogger("graphs");
+const runtime = createDefaultRuntime();
+const cli = createCli(definition, { runtime });
+const logger = createLogger("graphs", runtime);
 
 /**
  * Processes resources into RDF graphs
@@ -40,7 +42,7 @@ async function main() {
   if (!parsed) process.exit(0);
 
   const resourceIndex = createResourceIndex("resources");
-  const graphIndex = createGraphIndex("graphs");
+  const graphIndex = createGraphIndex("graphs", runtime.clock);
 
   const processor = new GraphProcessor(graphIndex, resourceIndex, logger);
 

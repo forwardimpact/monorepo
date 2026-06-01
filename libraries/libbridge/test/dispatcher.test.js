@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 import { Acknowledgement } from "../src/acknowledgement.js";
 import { CallbackRegistry } from "../src/callback-registry.js";
@@ -96,6 +97,8 @@ function makeDefaultTenantResolver(channel = "test-channel") {
   return new DefaultTenantResolver({ channel });
 }
 
+const clock = createDefaultClock();
+
 describe("Dispatcher", () => {
   let store;
   let callbacks;
@@ -106,11 +109,12 @@ describe("Dispatcher", () => {
 
   beforeEach(() => {
     store = createFakeAdapter();
-    callbacks = new CallbackRegistry();
+    callbacks = new CallbackRegistry({ clock });
     reactions = makeReactionAdapter();
     ack = new Acknowledgement({ reactionAdapter: reactions });
     fetchStub = stubFetch();
     dispatcher = new Dispatcher({
+      clock,
       callbacks,
       ack,
       store,
@@ -127,10 +131,11 @@ describe("Dispatcher", () => {
   });
 
   test("rejects construction when required options are missing", () => {
-    expect(() => new Dispatcher({})).toThrow();
+    expect(() => new Dispatcher({ clock })).toThrow();
     expect(
       () =>
         new Dispatcher({
+          clock,
           callbacks,
           ack,
           store,
@@ -142,6 +147,7 @@ describe("Dispatcher", () => {
     expect(
       () =>
         new Dispatcher({
+          clock,
           callbacks,
           ack,
           store,
@@ -252,6 +258,7 @@ describe("Dispatcher", () => {
 
   test("token resolver result is used as the dispatch token", async () => {
     dispatcher = new Dispatcher({
+      clock,
       callbacks,
       ack,
       store,
@@ -282,6 +289,7 @@ describe("Dispatcher", () => {
 
   test("link_required: no ack, no workflow, no callback registered", async () => {
     dispatcher = new Dispatcher({
+      clock,
       callbacks,
       ack,
       store,
@@ -315,6 +323,7 @@ describe("Dispatcher", () => {
 
   test("reauth_required: no ack, no workflow, no callback registered", async () => {
     dispatcher = new Dispatcher({
+      clock,
       callbacks,
       ack,
       store,
@@ -344,6 +353,7 @@ describe("Dispatcher", () => {
 
   test("transient: no ack, no workflow, no callback registered", async () => {
     dispatcher = new Dispatcher({
+      clock,
       callbacks,
       ack,
       store,
@@ -401,6 +411,7 @@ describe("Dispatcher", () => {
       ResolveByTenantId: async () => null,
     };
     dispatcher = new Dispatcher({
+      clock,
       callbacks,
       ack,
       store,
@@ -434,6 +445,7 @@ describe("Dispatcher", () => {
       resolveByTenantId: async () => null,
     };
     dispatcher = new Dispatcher({
+      clock,
       callbacks,
       ack,
       store,

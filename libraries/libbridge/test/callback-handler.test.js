@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 import { Acknowledgement } from "../src/acknowledgement.js";
 import {
@@ -119,6 +120,8 @@ async function seed(
   return { token, correlationId, ctx };
 }
 
+const clock = createDefaultClock();
+
 describe("createCallbackHandler", () => {
   let store;
   let callbacks;
@@ -131,13 +134,14 @@ describe("createCallbackHandler", () => {
 
   beforeEach(() => {
     store = createFakeAdapter();
-    callbacks = new CallbackRegistry();
+    callbacks = new CallbackRegistry({ clock });
     reactions = makeReactionAdapter();
     ack = new Acknowledgement({ reactionAdapter: reactions });
     logger = makeLogger();
     tracer = makeTracer();
     handleReplyCalls = [];
     handler = createCallbackHandler({
+      clock,
       channel,
       callbacks,
       ack,
@@ -153,9 +157,10 @@ describe("createCallbackHandler", () => {
   });
 
   test("rejects construction when required options are missing", () => {
-    expect(() => createCallbackHandler({})).toThrow();
+    expect(() => createCallbackHandler({ clock })).toThrow();
     expect(() =>
       createCallbackHandler({
+        clock,
         channel: "c",
         callbacks,
         ack,
@@ -266,6 +271,7 @@ describe("createCallbackHandler", () => {
     const { token, correlationId } = await seed(store, callbacks);
     let finishedFirst = false;
     handler = createCallbackHandler({
+      clock,
       channel,
       callbacks,
       ack,
@@ -296,6 +302,7 @@ describe("createCallbackHandler", () => {
   test("ackFinishTarget is forwarded when supplied", async () => {
     const { token, correlationId } = await seed(store, callbacks);
     handler = createCallbackHandler({
+      clock,
       channel,
       callbacks,
       ack,
@@ -324,6 +331,7 @@ describe("createCallbackHandler", () => {
   test("handleReply may throw CallbackHandlerError to short-circuit with a custom status", async () => {
     const { token, correlationId } = await seed(store, callbacks);
     handler = createCallbackHandler({
+      clock,
       channel,
       callbacks,
       ack,
@@ -426,6 +434,7 @@ describe("createCallbackHandler", () => {
   test("unexpected handleReply errors return 500", async () => {
     const { token, correlationId } = await seed(store, callbacks);
     handler = createCallbackHandler({
+      clock,
       channel,
       callbacks,
       ack,

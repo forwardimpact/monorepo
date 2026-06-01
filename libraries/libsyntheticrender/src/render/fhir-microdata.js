@@ -15,7 +15,6 @@ import { normalizePatientRef } from "@forwardimpact/libsyntheticgen/tools/synthe
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_DIR = join(__dirname, "..", "..", "templates");
-const templates = new TemplateLoader(TEMPLATE_DIR);
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -237,8 +236,9 @@ function validateFhirInput(input, config) {
  * @param {string} config.path - Output directory (required, non-empty)
  * @returns {Map<string, string>}
  */
-export function renderFhirMicrodataHtml(input, config) {
+export function renderFhirMicrodataHtml(input, config, runtime) {
   validateFhirInput(input, config);
+  const templates = new TemplateLoader(TEMPLATE_DIR, runtime);
   const { patients, conditions, procedures, medRequests, crossRef, domain } =
     input;
 

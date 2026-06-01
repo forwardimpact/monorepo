@@ -1,5 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const _rt = createDefaultRuntime();
 
 import {
   Redactor,
@@ -75,6 +77,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     }
 
     const r = createRedactor({
+      runtime: _rt,
       env: {
         ANTHROPIC_API_KEY: ANTHROPIC,
         AWS_ACCESS_KEY_ID: AWS_KEY,
@@ -172,7 +175,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
 
   test("multiple occurrences of the same sentinel in a single string all redacted", () => {
     const SENT = "MULTI_HIT_SENTINEL";
-    const r = createRedactor({ env: { GH_TOKEN: SENT } });
+    const r = createRedactor({ runtime: _rt, env: { GH_TOKEN: SENT } });
     const out = r.redactValue(`${SENT} and ${SENT} again ${SENT}`);
     assert.strictEqual(
       out,
@@ -182,6 +185,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
 
   test("empty-string env values do not poison redaction", () => {
     const r = createRedactor({
+      runtime: _rt,
       env: { GH_TOKEN: "", GITHUB_TOKEN: "", ANTHROPIC_API_KEY: "" },
     });
     // Empty string input must come through identically; redactor must
@@ -195,6 +199,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
 
   test("LIBEVAL_REDACTION_ENV_VARS replaces (not extends) the default allowlist", () => {
     const r = createRedactor({
+      runtime: _rt,
       env: {
         LIBEVAL_REDACTION_ENV_VARS: "FOO,BAR",
         FOO: "foo-secret",
@@ -210,6 +215,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
 
   test("LIBEVAL_REDACTION_ENV_VARS trims whitespace and ignores empty entries", () => {
     const r = createRedactor({
+      runtime: _rt,
       env: {
         LIBEVAL_REDACTION_ENV_VARS: "  FOO , , BAR  ",
         FOO: "foo-secret",
@@ -223,7 +229,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
 
 describe("Redactor — credential patterns (criterion 2)", () => {
   test("each default pattern at canonical length yields [REDACTED:pattern:KIND]", () => {
-    const r = createRedactor({ env: {} });
+    const r = createRedactor({ runtime: _rt, env: {} });
 
     // Anthropic prefix + 80 url-safe chars.
     const anth = "sk-ant-" + "a".repeat(80);
@@ -253,7 +259,7 @@ describe("Redactor — credential patterns (criterion 2)", () => {
   });
 
   test("anthropic pattern hit inside tool_result.content JSON-string", () => {
-    const r = createRedactor({ env: {} });
+    const r = createRedactor({ runtime: _rt, env: {} });
     const anth = "sk-ant-" + "z".repeat(95);
     const message = {
       type: "user",
@@ -273,7 +279,7 @@ describe("Redactor — credential patterns (criterion 2)", () => {
 });
 
 describe("Redactor — benign content unchanged (criterion 3)", () => {
-  const r = createRedactor({ env: {} });
+  const r = createRedactor({ runtime: _rt, env: {} });
   const benign = [
     "Hello world — this is plain prose.",
     "# Markdown header\n\n- item 1\n- item 2",
@@ -302,6 +308,7 @@ describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => 
     let r;
     const stderr = captureStderr(() => {
       r = createRedactor({
+        runtime: _rt,
         env: {
           LIBEVAL_REDACTION_DISABLED: "1",
           GH_TOKEN: "would-have-redacted",
@@ -323,6 +330,7 @@ describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => 
     let r;
     const stderr = captureStderr(() => {
       r = createRedactor({
+        runtime: _rt,
         env: { LIBEVAL_REDACTION_DISABLED: "true", GH_TOKEN: "secret-value" },
       });
     });
@@ -338,6 +346,7 @@ describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => 
     let r;
     const stderr = captureStderr(() => {
       r = createRedactor({
+        runtime: _rt,
         env: { LIBEVAL_REDACTION_DISABLED: "yes", GH_TOKEN: "secret-value" },
       });
     });
@@ -352,7 +361,7 @@ describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => 
   test("createRedactor({ enabled: false }) fires the stderr warning regardless of env state", () => {
     let r;
     const stderr = captureStderr(() => {
-      r = createRedactor({ env: {}, enabled: false });
+      r = createRedactor({ runtime: _rt, env: {}, enabled: false });
     });
     assert.strictEqual(r.enabled, false);
     assert.match(stderr, /libeval: trace redaction DISABLED/);
@@ -389,7 +398,7 @@ describe("createNoopRedactor", () => {
 });
 
 describe("Redactor — word boundary adversarial cases (Risks table)", () => {
-  const r = createRedactor({ env: {} });
+  const r = createRedactor({ runtime: _rt, env: {} });
   const body = "A".repeat(36);
   const token = `ghp_${body}`;
 
@@ -464,9 +473,9 @@ describe("Redactor — exports and defaults", () => {
     ]);
   });
 
-  test("createRedactor() with no options falls back to process.env", () => {
+  test("createRedactor({ runtime: _rt }) with no options falls back to process.env", () => {
     // Smoke check — must not throw, and must produce a Redactor.
-    const r = createRedactor();
+    const r = createRedactor({ runtime: _rt });
     assert.ok(r instanceof Redactor);
   });
 });

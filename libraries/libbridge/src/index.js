@@ -29,10 +29,7 @@ export { appendHistory } from "./history.js";
 export { RateLimiter } from "./rate-limit.js";
 export { dispatchWorkflow } from "./dispatch.js";
 export { ProgressTicker } from "./progress-ticker.js";
-export {
-  Acknowledgement,
-  DEFAULT_TYPING_VERBS,
-} from "./acknowledgement.js";
+export { Acknowledgement, DEFAULT_TYPING_VERBS } from "./acknowledgement.js";
 export { Dispatcher } from "./dispatcher.js";
 export {
   DefaultTenantResolver,

@@ -51,7 +51,7 @@ const definition = {
   examples: ["coaligned", "coaligned instructions", "coaligned jtbd --fix"],
 };
 
-const cli = createCli(definition);
+const cli = createCli(definition, { runtime });
 
 function writeFindings(findings, passMessage, jsonOutput, cwd, rt) {
   if (jsonOutput) {

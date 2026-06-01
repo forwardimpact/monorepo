@@ -11,6 +11,7 @@ import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
 
 import { createCli, SummaryRenderer } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { Finder } from "@forwardimpact/libutil";
 import { Logger } from "@forwardimpact/libtelemetry";
 import {
@@ -62,7 +63,8 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition);
+const runtime = createDefaultRuntime();
+const cli = createCli(definition, { runtime });
 
 /**
  * Create tar.gz bundle of all directories inside sourcePath
@@ -179,6 +181,7 @@ function createCodegen(
   mustache,
   protoLoader,
   fs,
+  runtime,
 ) {
   const base = new CodegenBase(
     protoDirs,
@@ -187,6 +190,7 @@ function createCodegen(
     mustache,
     protoLoader,
     fs,
+    runtime,
   );
   return {
     types: new CodegenTypes(base),
@@ -356,6 +360,7 @@ async function runCodegen(protoDirs, projectRoot, finder) {
     mustache,
     protoLoader,
     fs,
+    runtime,
   );
   await executeGeneration(codegens, sourcePath, parsedFlags);
 
@@ -370,8 +375,13 @@ async function runCodegen(protoDirs, projectRoot, finder) {
  */
 async function main() {
   try {
-    const logger = new Logger("codegen");
-    const finder = new Finder(fsAsync, logger, process);
+    const logger = new Logger("codegen", runtime);
+    const finder = new Finder({
+      fs: fsAsync,
+      fsSync: fs,
+      proc: process,
+      logger,
+    });
     const projectRoot = finder.findProjectRoot(process.cwd());
 
     const protoDirs = discoverProtoDirs(projectRoot);
@@ -385,7 +395,7 @@ async function main() {
 
     await runCodegen(protoDirs, projectRoot, finder);
   } catch (err) {
-    const logger = new Logger("codegen");
+    const logger = new Logger("codegen", runtime);
     logger.exception("main", err);
     cli.error(err.message);
     process.exit(1);

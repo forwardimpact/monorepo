@@ -10,8 +10,6 @@ import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-
 // responsibility_spawnattrs_setdisclaim makes the spawned child disclaim
 // TCC "responsible process" status, so macOS checks the parent's responsible
 // process (Outpost.app) instead.
@@ -101,7 +99,7 @@ function buildStringArray(strings) {
  * @param {object} [runtime] - Runtime collaborator bag
  * @returns {string}
  */
-export function readOutput(filePath, runtime = createDefaultRuntime()) {
+export function readOutput(filePath, runtime) {
   const { fsSync } = runtime;
   try {
     return fsSync.readFileSync(filePath, "utf-8");
@@ -130,13 +128,7 @@ export function readOutput(filePath, runtime = createDefaultRuntime()) {
  * @param {object} [runtime] - Runtime collaborator bag
  * @returns {{ pid: number, stdoutFile: string, stderrFile: string }}
  */
-export function spawn(
-  executable,
-  args,
-  env,
-  cwd,
-  runtime = createDefaultRuntime(),
-) {
+export function spawn(executable, args, env, cwd, runtime) {
   const { proc, clock, fsSync } = runtime;
   const argv = buildStringArray([executable, ...args]);
   const envObj = env ?? { ...proc.env };
@@ -221,11 +213,7 @@ export function spawn(
  * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Promise<number>} Exit status
  */
-export async function waitForExit(
-  pid,
-  pollIntervalMs = 100,
-  runtime = createDefaultRuntime(),
-) {
+export async function waitForExit(pid, pollIntervalMs = 100, runtime) {
   const { clock } = runtime;
   const status = new Int32Array(1);
   while (true) {

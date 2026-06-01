@@ -1,4 +1,6 @@
 import { describe, test, expect } from "bun:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const runtime = createDefaultRuntime();
 import {
   mkdtemp,
   mkdir,
@@ -59,7 +61,7 @@ describe("GitEmitter", () => {
     const repoPath = join(outDir, "test.git");
     const cloneDir = join(outDir, "clone");
 
-    const emitter = new GitEmitter();
+    const emitter = new GitEmitter({ runtime });
     await emitter.emit(stagedDir, repoPath, {
       version: "1.0.0",
       name: "test-pack",
@@ -79,7 +81,7 @@ describe("GitEmitter", () => {
     const outDir = await makeTempDir();
     const repoPath = join(outDir, "test.git");
 
-    const emitter = new GitEmitter();
+    const emitter = new GitEmitter({ runtime });
     await emitter.emit(stagedDir, repoPath, {
       version: "2.5.0",
       name: "tagged",
@@ -94,7 +96,7 @@ describe("GitEmitter", () => {
     const outDir = await makeTempDir();
     const repoPath = join(outDir, "test.git");
 
-    const emitter = new GitEmitter();
+    const emitter = new GitEmitter({ runtime });
     await emitter.emit(stagedDir, repoPath, {
       version: "1.0.0",
       name: "clean",
@@ -118,7 +120,7 @@ describe("GitEmitter", () => {
     const repo1 = join(outDir, "a.git");
     const repo2 = join(outDir, "b.git");
 
-    const emitter = new GitEmitter();
+    const emitter = new GitEmitter({ runtime });
     await emitter.emit(stagedDir, repo1, { version: "1.0.0", name: "det" });
     await emitter.emit(stagedDir, repo2, { version: "1.0.0", name: "det" });
 
@@ -140,7 +142,7 @@ describe("GitEmitter", () => {
     const repoPath = join(outDir, "test.git");
     const cloneDir = join(outDir, "http-clone");
 
-    const emitter = new GitEmitter();
+    const emitter = new GitEmitter({ runtime });
     await emitter.emit(stagedDir, repoPath, {
       version: "1.0.0",
       name: "http-test",
@@ -187,7 +189,7 @@ describe("GitEmitter", () => {
     const repoPath = join(outDir, "test.git");
     const cloneDir = join(outDir, "shallow-clone");
 
-    const emitter = new GitEmitter();
+    const emitter = new GitEmitter({ runtime });
     await emitter.emit(stagedDir, repoPath, {
       version: "1.0.0",
       name: "smart-http-test",

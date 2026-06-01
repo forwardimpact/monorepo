@@ -10,7 +10,6 @@
  */
 
 import YAML from "yaml";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 // ── JSON ────────────────────────────────────────────────────────────────────
 
@@ -108,14 +107,10 @@ function renderMarkdown(dataset, config) {
 /**
  * @param {Dataset} dataset
  * @param {object} config - { path }
- * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Promise<Map<string, Buffer>>}
  */
-async function renderParquet(
-  dataset,
-  config,
-  runtime = createDefaultRuntime(),
-) {
+async function renderParquet(dataset, config, runtime) {
   const { fsSync } = runtime;
   let arrow, parquetModule;
   try {
@@ -192,15 +187,10 @@ const RENDERERS = {
  * @param {Dataset} dataset
  * @param {string} format
  * @param {object} config
- * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Promise<Map<string, string|Buffer>>}
  */
-export async function renderDataset(
-  dataset,
-  format,
-  config,
-  runtime = createDefaultRuntime(),
-) {
+export async function renderDataset(dataset, format, config, runtime) {
   const renderer = RENDERERS[format];
   if (!renderer) throw new Error(`Unknown format: ${format}`);
   if (format === "parquet") return renderer(dataset, config, runtime);

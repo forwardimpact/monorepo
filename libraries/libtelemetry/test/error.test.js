@@ -2,6 +2,7 @@ import { test } from "node:test";
 import { strict as assert } from "node:assert";
 
 import { Tracer } from "../src/tracer.js";
+import { createMockClock } from "@forwardimpact/libmock";
 
 test("Tracer enriches errors with trace context in observeClientUnaryCall", async () => {
   const mockTraceClient = {
@@ -36,6 +37,7 @@ test("Tracer enriches errors with trace context in observeClientUnaryCall", asyn
     serviceName: "test-service",
     traceClient: mockTraceClient,
     grpcMetadata: mockGrpcMetadata,
+    clock: createMockClock(),
   });
 
   const request = { test: "data" };
@@ -100,6 +102,7 @@ test("Tracer enriches errors with trace context in observeServerUnaryCall", asyn
     serviceName: "test-service",
     traceClient: mockTraceClient,
     grpcMetadata: mockGrpcMetadata,
+    clock: createMockClock(),
   });
 
   const call = {
@@ -167,6 +170,7 @@ test("Logger extracts trace context from error", async () => {
     serviceName: "test-service",
     traceClient: mockTraceClient,
     grpcMetadata: mockGrpcMetadata,
+    clock: createMockClock(),
   });
 
   const request = { test: "data" };
@@ -223,6 +227,7 @@ test("Tracer handles non-Error objects gracefully", async () => {
     serviceName: "test-service",
     traceClient: mockTraceClient,
     grpcMetadata: mockGrpcMetadata,
+    clock: createMockClock(),
   });
 
   const request = { test: "data" };

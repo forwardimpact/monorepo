@@ -1,5 +1,4 @@
 import { trace } from "@forwardimpact/libtype";
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 /**
  * Compute the wall-clock offset (ns) relative to hrtime.bigint() using the
@@ -45,8 +44,8 @@ export class Span {
    * @param {string} [options.traceId] - Trace ID from parent context
    * @param {string} [options.parentSpanId] - Parent span ID from parent context
    * @param {object} options.traceClient - Trace service client
-   * @param {import("@forwardimpact/libutil/runtime").Runtime} [options.runtime] - Optional runtime bag;
-   *   falls back to `createDefaultClock()` so existing callers keep working unchanged.
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} options.clock -
+   *   Injected clock collaborator (drives the wall-clock offset).
    */
   constructor({
     name,
@@ -56,9 +55,9 @@ export class Span {
     traceId,
     parentSpanId,
     traceClient,
-    runtime = null,
+    clock,
   }) {
-    const clock = runtime?.clock ?? createDefaultClock();
+    if (!clock) throw new Error("clock is required");
     this.#wallClockOffsetNs = computeWallClockOffset(clock);
     this.#object = {
       trace_id: traceId || this.#generateId(),

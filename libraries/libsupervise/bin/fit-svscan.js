@@ -57,8 +57,8 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition);
-const logger = createLogger("svscan");
+const cli = createCli(definition, { runtime });
+const logger = createLogger("svscan", runtime);
 
 const parsed = cli.parse(process.argv.slice(2));
 if (!parsed) runtime.proc.exit(0);

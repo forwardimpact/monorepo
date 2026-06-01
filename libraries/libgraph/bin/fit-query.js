@@ -3,6 +3,7 @@ import "@forwardimpact/libpreflight/node22";
 
 import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createGraphIndex, parseGraphQuery } from "@forwardimpact/libgraph";
 
@@ -27,8 +28,9 @@ const definition = {
   examples: ['fit-query "?" rdf:type schema:Person'],
 };
 
-const cli = createCli(definition);
-const logger = createLogger("query");
+const runtime = createDefaultRuntime();
+const cli = createCli(definition, { runtime });
+const logger = createLogger("query", runtime);
 
 /**
  * Queries the graph index with a triple pattern
@@ -44,7 +46,7 @@ async function main() {
   }
 
   const pattern = parseGraphQuery(parsed.positionals.join(" "));
-  const graphIndex = createGraphIndex("graphs");
+  const graphIndex = createGraphIndex("graphs", runtime.clock);
 
   const identifiers = await graphIndex.queryItems(pattern);
 

@@ -1,6 +1,5 @@
 import path from "node:path";
 import { readEnvFile, updateEnvFile } from "@forwardimpact/libsecret";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { mergeConfigFragment, mergeEnvEntries } from "./merge.js";
 import { bootstrapRefusal } from "./errors.js";
@@ -41,7 +40,9 @@ export async function bootstrapProject({
   overwrites = {},
   deps,
 } = {}) {
-  const { fs, proc } = deps?.runtime ?? createDefaultRuntime();
+  const runtime = deps?.runtime;
+  if (!runtime) throw new Error("deps.runtime is required");
+  const { fs, proc } = runtime;
   const resolvedTarget = target ?? proc.cwd();
 
   const configDir = path.join(resolvedTarget, "config");
@@ -49,7 +50,7 @@ export async function bootstrapProject({
   const envPath = path.join(resolvedTarget, ".env");
 
   const existingConfig = await readJsonOrEmpty(fs, configPath);
-  const existingEnv = await readEnvSubset(Object.keys(env), envPath);
+  const existingEnv = await readEnvSubset(Object.keys(env), envPath, runtime);
 
   const cfg = mergeConfigFragment({
     existing: existingConfig,
@@ -76,7 +77,7 @@ export async function bootstrapProject({
   // criterion to survive a pre-existing .env with mode 0o644. The merged
   // `ev.result` is computed for classification only.
   for (const [key, value] of Object.entries(env)) {
-    await updateEnvFile(key, value, envPath);
+    await updateEnvFile(key, value, envPath, runtime);
   }
 }
 
@@ -90,10 +91,10 @@ async function readJsonOrEmpty(fs, filePath) {
   }
 }
 
-async function readEnvSubset(keys, envPath) {
+async function readEnvSubset(keys, envPath, runtime) {
   const out = {};
   for (const key of keys) {
-    const value = await readEnvFile(key, envPath);
+    const value = await readEnvFile(key, envPath, runtime);
     if (value !== undefined) out[key] = value;
   }
   return out;

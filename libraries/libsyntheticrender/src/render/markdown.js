@@ -6,7 +6,6 @@
  */
 
 import { isoDate } from "@forwardimpact/libutil";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const SKILL_NAMES = [
   "version_control",
@@ -134,15 +133,10 @@ function renderPersona(files, person, entities, prose, templates, date) {
  * @param {object} entities
  * @param {Map<string,string>} prose
  * @param {import('@forwardimpact/libtemplate/loader').TemplateLoader} templates - Template loader
- * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Map<string,string>} path → Markdown content
  */
-export function renderMarkdown(
-  entities,
-  prose,
-  templates,
-  runtime = createDefaultRuntime(),
-) {
+export function renderMarkdown(entities, prose, templates, runtime) {
   if (!templates) throw new Error("templates is required");
   const { clock } = runtime;
   const files = new Map();

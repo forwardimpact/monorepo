@@ -14,7 +14,6 @@
  */
 
 import { generateHash } from "@forwardimpact/libutil";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /** Async LLM-backed prose generator that writes through to a ProseCache on every miss. */
 export class ProseGenerator {
@@ -29,7 +28,7 @@ export class ProseGenerator {
    *        Pre-configured LLM client — required when mode is "generate"
    * @param {import('@forwardimpact/libprompt').PromptLoader} options.promptLoader
    * @param {object} options.logger
-   * @param {object} [options.runtime]             Runtime collaborator bag (default: createDefaultRuntime())
+   * @param {object} [options.runtime]             Runtime collaborator bag
    */
   constructor({
     cache,
@@ -38,7 +37,7 @@ export class ProseGenerator {
     llmApi,
     promptLoader,
     logger,
-    runtime = createDefaultRuntime(),
+    runtime,
   }) {
     if (!cache) throw new Error("cache is required");
     if (!mode) throw new Error("mode is required");

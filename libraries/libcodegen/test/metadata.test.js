@@ -7,6 +7,7 @@ import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
 
 import { CodegenBase, CodegenMetadata } from "@forwardimpact/libcodegen";
+import { createTestRuntime } from "@forwardimpact/libmock";
 
 const projectRoot = path.resolve(
   path.dirname(new URL(import.meta.url).pathname),
@@ -38,6 +39,7 @@ function createBase() {
     mustache,
     protoLoader,
     fs,
+    createTestRuntime(),
   );
 }
 

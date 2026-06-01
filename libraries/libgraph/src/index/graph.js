@@ -19,13 +19,21 @@ export class GraphIndex extends IndexBase {
    * @param {Store} store - N3 Store instance for graph operations
    * @param {{[key: string]: string}} [prefixes] - Optional RDF prefix map
    * @param {string} [indexKey] - The index file name to use for storage (default: "index.jsonl")
+   * @param {object} [deps]
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock
    */
-  constructor(storage, store, prefixes = {}, indexKey = "index.jsonl") {
+  constructor(
+    storage,
+    store,
+    prefixes = {},
+    indexKey = "index.jsonl",
+    { clock } = {},
+  ) {
     if (!storage) throw new Error("storage is required");
     if (!store || !(store instanceof Store))
       throw new Error("store must be an N3 Store instance");
 
-    super(storage, indexKey);
+    super(storage, indexKey, {}, { clock });
 
     this.#graph = store;
     this.#prefixes = prefixes;

@@ -274,6 +274,7 @@ export function createDiscusser({
         messageBus,
         leadName: "lead",
         signal: abortController.signal,
+        runtime,
       })
     : null;
 

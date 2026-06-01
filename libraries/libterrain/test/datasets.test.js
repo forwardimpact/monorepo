@@ -1,6 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { buildNodes } from "../src/nodes.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 function makeLogger() {
   return { info: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
@@ -36,6 +37,7 @@ function runDatasetsNode(parse, { clinical, factory }) {
     proseCacheSink: { flush: () => {} },
     toolFactory: factory,
     logger: makeLogger(),
+    runtime: createDefaultRuntime(),
     options: {},
   });
   return nodes.datasets.run({ parse: { ...parse, clinical } });
@@ -225,6 +227,7 @@ describe("datasets node — condition resolution", () => {
       proseCacheSink: { flush: () => {} },
       toolFactory: factory,
       logger,
+      runtime: createDefaultRuntime(),
       options: {},
     });
 
@@ -324,6 +327,7 @@ async function runFhirNodes(parse, ctx = {}) {
     proseCacheSink: { flush: () => {} },
     toolFactory: ctx.factory ?? null,
     logger: ctx.logger ?? makeLogger(),
+    runtime: createDefaultRuntime(),
     options: {},
   });
   const datasets = await nodes.datasets.run({

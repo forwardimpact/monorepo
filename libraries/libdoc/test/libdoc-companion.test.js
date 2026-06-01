@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PagesBuilder } from "../src/index.js";
+import { createTestRuntime } from "@forwardimpact/libmock";
 
 function createTestHarness({
   sourceFiles,
@@ -100,6 +101,7 @@ function createTestHarness({
     mockMatter,
     mockMustache,
     mockPrettier,
+    createTestRuntime(),
   );
 
   return { files, dirs, copied, builder };

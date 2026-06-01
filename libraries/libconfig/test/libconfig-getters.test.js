@@ -8,6 +8,10 @@ import {
   createTestRuntime,
   spy,
 } from "@forwardimpact/libmock";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+// Wrap a test proc as a runtime bag (real fs + test-controlled proc).
+const rt = (proc) => ({ ...createDefaultRuntime(), proc });
 
 describe("libconfig - Config getters", () => {
   const mockStorageFn = () =>
@@ -37,7 +41,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       () => mockStorage,
     );
 
@@ -60,7 +64,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       () => mockStorage,
     );
 
@@ -82,7 +86,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       () => mockStorage,
     );
 
@@ -114,7 +118,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(config.ghToken(), "gh-cli-token");
@@ -130,7 +134,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(config.ghToken(), "actions-token");
@@ -146,7 +150,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(config.ghToken(), "gh-token");
@@ -196,7 +200,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(config.supabaseUrl(), "http://127.0.0.1:54321");
@@ -212,7 +216,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.throws(() => config.supabaseUrl(), {
@@ -230,7 +234,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(config.supabaseAnonKey(), "anon-key-value");
@@ -246,7 +250,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.throws(() => config.supabaseAnonKey(), {
@@ -264,7 +268,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(
@@ -283,7 +287,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.throws(() => config.supabaseServiceRoleKey(), {
@@ -301,7 +305,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(config.supabaseJwtSecret(), "jwt-secret-value");
@@ -317,7 +321,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.throws(() => config.supabaseJwtSecret(), {
@@ -335,7 +339,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(config.msAppPassword(), "test-client-secret");
@@ -351,7 +355,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.throws(() => config.msAppPassword(), {
@@ -369,7 +373,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(config.msAppId(), "test-app-id");
@@ -385,7 +389,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.throws(() => config.msAppId(), {
@@ -403,7 +407,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.strictEqual(config.msAppTenantId(), "test-tenant-id");
@@ -419,7 +423,7 @@ describe("libconfig - Config getters", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
     assert.throws(() => config.msAppTenantId(), {

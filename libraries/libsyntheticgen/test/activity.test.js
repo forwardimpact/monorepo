@@ -202,7 +202,13 @@ describe("activity generation", () => {
       const rng = createSeededRNG(ast.seed);
       const { teams, people } = buildEntities(ast, rng);
       for (let i = 0; i < 17; i++) rng.random();
-      const drifted = generateActivity(ast, rng, people, teams).comment.keys;
+      const drifted = generateActivity(
+        ast,
+        rng,
+        people,
+        teams,
+        createTestRuntime(),
+      ).comment.keys;
 
       assert.deepStrictEqual(
         drifted.map((c) => `${c.snapshot_id}|${c.email}`),

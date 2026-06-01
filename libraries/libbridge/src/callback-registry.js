@@ -1,7 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
-
 const DEFAULT_TTL_MS = 2 * 60 * 60 * 1000;
 
 /**
@@ -25,7 +23,8 @@ export class CallbackRegistry {
    * @param {number} [options.ttlMs] - Time-to-live in ms (default: 2h)
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
    */
-  constructor({ ttlMs = DEFAULT_TTL_MS, clock = createDefaultClock() } = {}) {
+  constructor({ ttlMs = DEFAULT_TTL_MS, clock } = {}) {
+    if (!clock) throw new Error("clock is required");
     this.#ttlMs = ttlMs;
     this.#clock = clock;
   }

@@ -1,5 +1,3 @@
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
-
 export const MAX_FIELD_LENGTH = 2000;
 export const MAX_REPLY_COUNT = 50;
 
@@ -129,8 +127,9 @@ export function newDiscussionContext({
   channel,
   discussionId,
   participant,
-  clock = createDefaultClock(),
+  clock,
 }) {
+  if (!clock) throw new Error("clock is required");
   return {
     id: `${channel}:${discussionId}`,
     channel,

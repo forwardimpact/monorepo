@@ -1,4 +1,6 @@
 import { describe, test, expect } from "bun:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const runtime = createDefaultRuntime();
 import { mkdtemp, mkdir, writeFile, readFile } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
@@ -31,7 +33,7 @@ describe("DiscEmitter", () => {
     const skillsDir = await createSkillsDir();
     const outputDir = await makeTempDir();
 
-    const emitter = new DiscEmitter();
+    const emitter = new DiscEmitter({ runtime });
     const entries = await emitter.emit(skillsDir, outputDir);
 
     expect(entries).toHaveLength(2);
@@ -55,7 +57,7 @@ describe("DiscEmitter", () => {
 
   test("emitAggregate deduplicates skills across packs", async () => {
     const packsDir = await makeTempDir();
-    const emitter = new DiscEmitter();
+    const emitter = new DiscEmitter({ runtime });
 
     // Create two per-pack skill repos with overlapping skills
     const skills1 = await createSkillsDir();
