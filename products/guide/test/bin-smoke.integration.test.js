@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// SC5 smoke test: spawn the real fit-guide bin to verify the runtime wiring
+// Smoke test: spawn the real fit-guide bin to verify the runtime wiring
 // (createDefaultRuntime + the librepl one-shot command path) end to end. The
 // `--version` flag runs before any network setup, so it is deterministic.
 const binPath = join(

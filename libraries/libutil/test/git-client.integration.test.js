@@ -7,7 +7,7 @@ import path from "node:path";
 import { createDefaultRuntime } from "../src/runtime.js";
 import { GitClient } from "../src/git-client.js";
 
-// SC5 "one explicit smoke test per binary" for GitClient: exercises the real
+// One explicit smoke test per binary for GitClient: exercises the real
 // `git` binary through the default runtime in a tmpdir.
 describe("GitClient (integration)", () => {
   let dir;

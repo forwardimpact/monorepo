@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// SC5 smoke tests: spawn each real bin to verify the runtime wiring
+// Smoke tests: spawn each real bin to verify the runtime wiring
 // (createDefaultRuntime threaded from the bin) end to end. `--version` runs
 // before any data load or Supabase setup, so it is deterministic and
 // network-free.

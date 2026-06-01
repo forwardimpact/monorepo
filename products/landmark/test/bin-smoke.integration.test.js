@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// SC5 smoke test: spawn the real fit-landmark bin to verify the runtime
+// Smoke test: spawn the real fit-landmark bin to verify the runtime
 // wiring (createDefaultRuntime threaded from the bin into the dispatcher) end
 // to end. The `--version` flag runs before any data load or Supabase setup,
 // so it is deterministic and network-free.

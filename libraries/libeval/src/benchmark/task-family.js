@@ -2,7 +2,7 @@
  * Task-family loader. A task family is a directory under
  *   <root>/
  *     apm.lock.yaml
- *     .claude/                # pre-staged skills + agents (P1)
+ *     .claude/                # pre-staged skills + agents
  *     tasks/<task_name>/
  *       agent.task.md
  *       supervisor.task.md    # optional; appended to the task as supervisor context

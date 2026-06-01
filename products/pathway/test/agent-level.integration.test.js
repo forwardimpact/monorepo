@@ -4,8 +4,8 @@
  * Stages a copy of products/map/starter into a temp data dir, removes the
  * organizational-context slot so byte-comparisons are scoped to the
  * teamInstructions / level-expectations layer, then invokes runAgentCommand
- * with various combinations of `--level`. Covers SC1 (level changes output),
- * SC3 (unknown-level error shape), and the `--list` short-circuit (C-5).
+ * with various combinations of `--level`. Covers level-driven output changes,
+ * the unknown-level error shape, and the `--list` short-circuit.
  */
 
 import { test, describe } from "node:test";
@@ -95,7 +95,7 @@ function stubProcessExit() {
 }
 
 describe("agent --level integration", () => {
-  test("SC1-file — two levels produce different CLAUDE.md outputs", async () => {
+  test("two levels produce different CLAUDE.md outputs (file)", async () => {
     const { work, dataDir } = stageDataDir();
     try {
       const outJ040 = join(work, "out-j040");
@@ -166,7 +166,7 @@ describe("agent --level integration", () => {
     }
   });
 
-  test("SC1-stdout — populated level expectations appear on stdout with Team Instructions umbrella label", async () => {
+  test("populated level expectations appear on stdout with Team Instructions umbrella label", async () => {
     const { work, dataDir } = stageDataDir();
     const stdout = captureWrite(process.stdout);
     try {

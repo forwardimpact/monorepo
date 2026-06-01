@@ -47,8 +47,7 @@ advance routing; only merge of the prior phase's PR puts the artifact on
 0. **48h Staff deliverable with no artifact?** Scan
    `wiki/storyboard-{YYYY}-M{MM}.md` (Next review, Active Experiments
    horizons, Q5 pre-commits). Action before routes 1–4. On slip, post a
-   slip-as-data Announce. (Staff Exp 45, P1 2026-06-01; close if RE Exp 43
-   verdict 2026-05-27 lands F1.)
+   slip-as-data Announce.
 1. **Merged specs without designs?** -- `kata-design` (specs/NNN/ where
    `spec.md` is on `origin/main` but `design-a.md` is not)
 2. **Merged designs without plans?** -- `kata-plan` (specs/NNN/ where

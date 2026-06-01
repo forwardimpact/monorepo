@@ -1,6 +1,6 @@
 /**
  * `fit-benchmark invariants` — check a single task's invariants against a
- * post-run workdir directory without invoking an agent (P6/P7). Useful for
+ * post-run workdir directory without invoking an agent. Useful for
  * re-checking an agent's output against revised grading material.
  */
 

@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
 
-// The one allow-listed smoke test per binary (SC5): it spawns the real bin to
+// The one allow-listed smoke test per binary: it spawns the real bin to
 // prove the runtime/dispatch wiring end-to-end. Every other libwiki command is
 // covered in-process against injected collaborators.
 const CLI_PATH = new URL("../bin/fit-wiki.js", import.meta.url).pathname;
