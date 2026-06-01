@@ -24,6 +24,7 @@ function makeConfig() {
 
 async function newService() {
   const dispatches = [];
+  const clock = createMockClock();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, init) => {
     const target = String(url);
@@ -36,7 +37,7 @@ async function newService() {
   const service = new GhBridgeService(makeConfig(), {
     logger: createMockLogger(),
     tracer: createMockTracer(),
-    clock: createMockClock(),
+    clock,
     discussionClient: createStatefulDiscussionClient(),
     verifyWebhook: (s, b, sig) =>
       import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),
@@ -50,6 +51,7 @@ async function newService() {
   return {
     service,
     dispatches,
+    clock,
     restore: () => {
       globalThis.fetch = originalFetch;
     },
@@ -176,7 +178,7 @@ describe("ghbridge resume", () => {
     const token = Object.keys(stored1.pending_callbacks)[0];
     const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
 
-    const before = Date.now();
+    const before = ctx.clock.now();
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "recessed",

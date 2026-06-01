@@ -5,8 +5,6 @@
 import { createServer } from "node:net";
 import { createConnection } from "node:net";
 import { createLogger } from "@forwardimpact/libtelemetry";
-
-const logger = createLogger("outpost");
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
 import { computeNextWakeAt, nowFromClock } from "./scheduler.js";
@@ -326,6 +324,7 @@ export class SocketServer {
 export async function requestShutdown(socketPath, runtime) {
   if (!runtime?.fsSync) throw new Error("runtime.fsSync is required");
   if (!runtime?.clock) throw new Error("runtime.clock is required");
+  const logger = createLogger("outpost", runtime);
   if (!runtime.fsSync.existsSync(socketPath)) {
     logger.info("Daemon not running (no socket).");
     return false;

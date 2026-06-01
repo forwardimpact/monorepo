@@ -49,6 +49,7 @@
     "@forwardimpact/libresource": "^0.1.89",
     "@forwardimpact/librpc": "^0.1.77",
     "@forwardimpact/libtelemetry": "^0.1.41",
+    "@forwardimpact/libutil": "^0.1.85",
     "n3": "^2.0.3"
   },
   "devDependencies": {

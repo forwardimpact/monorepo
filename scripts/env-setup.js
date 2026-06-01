@@ -9,6 +9,7 @@ import {
 } from "@forwardimpact/libsecret";
 import { writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * Unified bootstrap script.
@@ -35,7 +36,8 @@ async function main() {
     },
   });
 
-  const get = (key, gen) => getOrGenerateSecret(key, gen);
+  const runtime = createDefaultRuntime();
+  const get = (key, gen) => getOrGenerateSecret(key, gen, ".env", runtime);
 
   // Generate / read the Supabase JWT secret first; the anon and
   // service-role keys are HMAC-signed against it.
@@ -54,13 +56,13 @@ async function main() {
     [
       "SUPABASE_ANON_KEY",
       await get("SUPABASE_ANON_KEY", () =>
-        mintSupabaseAnonKey({ secret: supabaseJwtSecret }),
+        mintSupabaseAnonKey({ secret: supabaseJwtSecret }, runtime),
       ),
     ],
     [
       "SUPABASE_SERVICE_ROLE_KEY",
       await get("SUPABASE_SERVICE_ROLE_KEY", () =>
-        mintSupabaseServiceRoleKey({ secret: supabaseJwtSecret }),
+        mintSupabaseServiceRoleKey({ secret: supabaseJwtSecret }, runtime),
       ),
     ],
     [
@@ -83,7 +85,7 @@ async function main() {
     return;
   }
 
-  for (const [k, v] of entries) await updateEnvFile(k, v);
+  for (const [k, v] of entries) await updateEnvFile(k, v, ".env", runtime);
   for (const [k] of entries) console.log(`${k} is set in .env`);
 }
 

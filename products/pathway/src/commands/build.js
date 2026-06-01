@@ -15,7 +15,6 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { createIndexGenerator } from "@forwardimpact/map/index-generator";
 import { createDataLoader } from "@forwardimpact/map/loader";
 
-const logger = createLogger("pathway");
 import { generateBundle } from "./build-bundle.js";
 import { generatePacks } from "./build-packs.js";
 
@@ -66,6 +65,7 @@ const PUBLIC_ASSETS = [
 const ROOT_ASSETS = ["templates"];
 
 async function copyAssets(srcDir, assetNames, outputDir, runtime) {
+  const logger = createLogger("pathway", runtime);
   for (const asset of assetNames) {
     const src = join(srcDir, asset);
     const dest = join(outputDir, asset);
@@ -86,6 +86,7 @@ async function copyAssets(srcDir, assetNames, outputDir, runtime) {
  * @param {Object} params.options - Command options
  */
 export async function runBuildCommand({ dataDir, options, runtime }) {
+  const logger = createLogger("pathway", runtime);
   const outputDir = options.output || join(runtime.proc.cwd(), "public");
   const clean = options.clean !== false;
 

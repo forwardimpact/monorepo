@@ -1,4 +1,5 @@
 import { test, describe } from "node:test";
+import { createMockClock } from "@forwardimpact/libmock";
 import assert from "node:assert";
 import { createMockStorage } from "@forwardimpact/libmock/mock";
 import { BindingStore } from "../src/stores.js";
@@ -7,7 +8,7 @@ describe("ghuser persistence (SC#7)", () => {
   test("binding written before restart is readable after fresh start", async () => {
     const storage = createMockStorage();
 
-    const store1 = new BindingStore(storage);
+    const store1 = new BindingStore(storage, { clock: createMockClock() });
     await store1.upsert({
       id: BindingStore.keyOf("teams", "u1"),
       github_user_id: "ghuser-abc",
@@ -18,7 +19,7 @@ describe("ghuser persistence (SC#7)", () => {
     });
     await store1.shutdown();
 
-    const store2 = new BindingStore(storage);
+    const store2 = new BindingStore(storage, { clock: createMockClock() });
     const binding = await store2.loadBinding("teams", "u1");
     assert.ok(binding, "binding survives restart");
     assert.strictEqual(binding.access_token, "ghu_persisted");
@@ -28,7 +29,7 @@ describe("ghuser persistence (SC#7)", () => {
   test("deleted binding is not readable after restart", async () => {
     const storage = createMockStorage();
 
-    const store1 = new BindingStore(storage);
+    const store1 = new BindingStore(storage, { clock: createMockClock() });
     const id = BindingStore.keyOf("teams", "u2");
     await store1.upsert({
       id,
@@ -41,7 +42,7 @@ describe("ghuser persistence (SC#7)", () => {
     await store1.delete(id);
     await store1.shutdown();
 
-    const store2 = new BindingStore(storage);
+    const store2 = new BindingStore(storage, { clock: createMockClock() });
     const binding = await store2.loadBinding("teams", "u2");
     assert.strictEqual(
       binding,

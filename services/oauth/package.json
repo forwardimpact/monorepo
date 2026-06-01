@@ -45,7 +45,8 @@
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/librpc": "^0.1.99",
     "@forwardimpact/libtelemetry": "^0.1.42",
-    "@forwardimpact/libtype": "^0.1.0"
+    "@forwardimpact/libtype": "^0.1.0",
+    "@forwardimpact/libutil": "^0.1.85"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

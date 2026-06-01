@@ -17,11 +17,17 @@ import {
  */
 export async function runInitCommand(runtime) {
   const { fs, proc } = runtime;
-  const serviceSecret = await getOrGenerateSecret("SERVICE_SECRET", () =>
-    generateSecret(),
+  const serviceSecret = await getOrGenerateSecret(
+    "SERVICE_SECRET",
+    () => generateSecret(),
+    ".env",
+    runtime,
   );
-  const mcpToken = await getOrGenerateSecret("MCP_TOKEN", () =>
-    generateSecret(),
+  const mcpToken = await getOrGenerateSecret(
+    "MCP_TOKEN",
+    () => generateSecret(),
+    ".env",
+    runtime,
   );
 
   const starterDir = new URL("../../starter", import.meta.url).pathname;
@@ -39,6 +45,7 @@ export async function runInitCommand(runtime) {
   );
 
   await bootstrapProject({
+    deps: { runtime },
     fragment: starterConfig,
     env: {
       SERVICE_SECRET: serviceSecret,

@@ -12,8 +12,6 @@ import { tmpdir } from "os";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createDataLoader } from "@forwardimpact/map/loader";
 
-const logger = createLogger("pathway");
-
 const BASE_DIR = join(homedir(), ".fit", "data");
 const INSTALL_DIR = join(BASE_DIR, "pathway");
 
@@ -31,6 +29,7 @@ export async function runUpdateCommand({
   options,
   runtime,
 }) {
+  const logger = createLogger("pathway", runtime);
   // Verify we have a home-directory installation
   try {
     await runtime.fs.access(INSTALL_DIR);

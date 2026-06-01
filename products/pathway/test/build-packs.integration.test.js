@@ -360,6 +360,7 @@ describe("generatePacks", () => {
     const loader = createDataLoader(createDefaultRuntime());
     const templateLoader = createTemplateLoader(
       join(__dirname, "..", "templates"),
+      createDefaultRuntime(),
     );
     const data = await loader.loadAllData(starterDir);
 

@@ -268,7 +268,8 @@ const definition = {
 };
 
 async function main() {
-  const cli = createCli(definition);
+  const runtime = createDefaultRuntime();
+  const cli = createCli(definition, { runtime });
   const parsed = cli.parse(process.argv.slice(2));
   if (!parsed) process.exit(0);
 
@@ -287,7 +288,6 @@ async function main() {
   }
 
   try {
-    const runtime = createDefaultRuntime();
     const dataDir = resolveDataDir(values, runtime);
     const data = await loadMapData(dataDir, runtime);
     await handler({ data, args, options: values, dataDir, config, runtime });

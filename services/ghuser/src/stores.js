@@ -13,8 +13,13 @@ export class BindingStore extends BufferedIndex {
    * @param {object} [options]
    * @param {string} [options.indexKey]
    */
-  constructor(storage, { indexKey = "bindings.jsonl" } = {}) {
-    super(storage, indexKey, { flush_interval: 5_000, max_buffer_size: 100 });
+  constructor(storage, { indexKey = "bindings.jsonl", clock } = {}) {
+    super(
+      storage,
+      indexKey,
+      { flush_interval: 5_000, max_buffer_size: 100 },
+      { clock },
+    );
   }
 
   /**
@@ -91,8 +96,13 @@ class TtlStore extends BufferedIndex {
       clock,
     } = {},
   ) {
-    super(storage, indexKey, { flush_interval: 1_000, max_buffer_size: 100 });
     if (!clock) throw new Error("clock is required");
+    super(
+      storage,
+      indexKey,
+      { flush_interval: 1_000, max_buffer_size: 100 },
+      { clock },
+    );
     this.#clock = clock;
     this.#ttlMs = ttlMs;
     this.#sweepTimer = this.#clock.setInterval(

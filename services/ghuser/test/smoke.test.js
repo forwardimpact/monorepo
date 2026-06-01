@@ -13,7 +13,7 @@ describe("ghuser smoke (SC#1)", () => {
     });
     const clock = createMockClock({ start: Date.now() });
     const service = new GhuserService(config, {
-      bindings: new BindingStore(storage),
+      bindings: new BindingStore(storage, { clock }),
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,

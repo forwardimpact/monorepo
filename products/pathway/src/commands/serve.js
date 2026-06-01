@@ -15,8 +15,6 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { serve } from "@hono/node-server";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-const logger = createLogger("pathway");
-
 /**
  * Run the serve command.
  * @param {Object} params
@@ -24,6 +22,7 @@ const logger = createLogger("pathway");
  * @param {Object} params.options - CLI options (port, host)
  */
 export async function runServeCommand({ dir, options, runtime }) {
+  const logger = createLogger("pathway", runtime);
   const port = Number(options.port) || 3000;
   const host = options.host || "0.0.0.0";
 

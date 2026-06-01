@@ -9,6 +9,7 @@
  */
 
 import { test, describe } from "node:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import assert from "node:assert";
 import { MicrodataRdfParser } from "microdata-rdf-streaming-parser";
 
@@ -104,7 +105,7 @@ const CTX = {
 };
 
 describe("Renderer", () => {
-  const renderer = createRenderer();
+  const renderer = createRenderer(createDefaultRuntime());
 
   test("renderSkill emits a complete HTML document with fit:Skill quads", async () => {
     const html = renderer.renderSkill(SKILL, CTX);

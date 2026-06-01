@@ -5,6 +5,9 @@ import { tmpdir } from "os";
 import { execFileSync, spawn } from "child_process";
 import { existsSync } from "fs";
 import { GitEmitter, PackStager } from "@forwardimpact/libpack";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+const _packRuntime = createDefaultRuntime();
 
 const CLEAN_ENV = Object.fromEntries(
   Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")),
@@ -17,8 +20,8 @@ async function makeTempDir() {
 async function buildMinimalSite() {
   const siteDir = await makeTempDir();
 
-  const stager = new PackStager();
-  const emitter = new GitEmitter();
+  const stager = new PackStager({ runtime: _packRuntime });
+  const emitter = new GitEmitter({ runtime: _packRuntime });
 
   const fullDir = join(siteDir, "_staging");
   const apmDir = join(siteDir, "_staging-apm");

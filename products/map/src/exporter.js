@@ -113,7 +113,7 @@ export async function createExporter({ runtime, renderer } = {}) {
   let r = renderer;
   if (!r) {
     const { createRenderer } = await import("./renderer.js");
-    r = createRenderer();
+    r = createRenderer(runtime);
   }
   return new Exporter(runtime.fs, r);
 }

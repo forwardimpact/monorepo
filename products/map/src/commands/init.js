@@ -60,7 +60,7 @@ export async function runInit(targetPath, runtime) {
   // Materialise target/config/config.json so subsequent fit-map invocations
   // anchor at the init target rather than upward-walking into an ancestor
   // config/. No product.map starter fragment is shipped this spec.
-  await bootstrapProject({ target, fragment: {} });
+  await bootstrapProject({ target, fragment: {}, deps: { runtime } });
 
   runtime.proc.stdout.write(
     formatSuccess("Created ./data/pathway/ with starter data.") + "\n\n",

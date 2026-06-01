@@ -20,7 +20,8 @@ const config = await createServiceConfig("ghbridge", {
   app_installation_id: "",
   app_webhook_secret: "",
 });
-const logger = createLogger("ghbridge");
+const runtime = createDefaultRuntime();
+const logger = createLogger("ghbridge", runtime);
 const tracer = await createTracer("ghbridge");
 
 const appAuth = createAppAuth({
@@ -47,7 +48,7 @@ const ghuserClient = new GhuserClient(ghuserConfig, logger, tracer);
 const bridgeConfig = await createServiceConfig("bridge");
 const discussionClient = new BridgeClient(bridgeConfig, logger, tracer);
 
-const { clock } = createDefaultRuntime();
+const { clock } = runtime;
 
 const service = new GhBridgeService(config, {
   logger,

@@ -5,6 +5,7 @@
  */
 
 import { test, describe, beforeEach, afterEach } from "node:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import assert from "node:assert";
 import { mkdtempSync, rmSync, existsSync } from "node:fs";
 import * as fsp from "node:fs/promises";
@@ -45,7 +46,7 @@ async function parseQuads(html) {
 
 describe("Exporter", () => {
   test("writes one file per base entity into <outputDir>/pathway/<type>/<id>.html", async () => {
-    const exporter = new Exporter(fsp, createRenderer());
+    const exporter = new Exporter(fsp, createRenderer(createDefaultRuntime()));
     const result = await exporter.exportAll({ data: DATA, outputDir });
 
     assert.strictEqual(result.errors.length, 0);
@@ -68,7 +69,7 @@ describe("Exporter", () => {
   });
 
   test("rendered files parse with fit: vocabulary subjects", async () => {
-    const exporter = new Exporter(fsp, createRenderer());
+    const exporter = new Exporter(fsp, createRenderer(createDefaultRuntime()));
     await exporter.exportAll({ data: DATA, outputDir });
 
     const html = await fsp.readFile(
@@ -86,7 +87,7 @@ describe("Exporter", () => {
   });
 
   test("running twice yields byte-identical output", async () => {
-    const exporter = new Exporter(fsp, createRenderer());
+    const exporter = new Exporter(fsp, createRenderer(createDefaultRuntime()));
     await exporter.exportAll({ data: DATA, outputDir });
 
     const path = join(outputDir, "pathway", "skill", "planning.html");
@@ -103,7 +104,7 @@ describe("Exporter", () => {
     await fsp.mkdir(ghostDir, { recursive: true });
     await fsp.writeFile(join(ghostDir, "ghost.html"), "ghost");
 
-    const exporter = new Exporter(fsp, createRenderer());
+    const exporter = new Exporter(fsp, createRenderer(createDefaultRuntime()));
     await exporter.exportAll({ data: DATA, outputDir });
 
     assert.strictEqual(existsSync(join(ghostDir, "ghost.html")), false);

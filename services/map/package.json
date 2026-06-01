@@ -48,6 +48,7 @@
     "@forwardimpact/librpc": "^0.1.77",
     "@forwardimpact/libtelemetry": "^0.1.30",
     "@forwardimpact/libtype": "^0.1.67",
+    "@forwardimpact/libutil": "^0.1.85",
     "@forwardimpact/map": "^0.15.12",
     "@supabase/supabase-js": "^2.106.2"
   },

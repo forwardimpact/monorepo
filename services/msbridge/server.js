@@ -12,7 +12,8 @@ const config = await createServiceConfig("msbridge", {
   github_repo: "",
   callback_base_url: "",
 });
-const logger = createLogger("msbridge");
+const runtime = createDefaultRuntime();
+const logger = createLogger("msbridge", runtime);
 const tracer = await createTracer("msbridge");
 
 const { GhuserClient, BridgeClient } = clients;
@@ -21,7 +22,7 @@ const ghuserClient = new GhuserClient(ghuserConfig, logger, tracer);
 const bridgeConfig = await createServiceConfig("bridge");
 const discussionClient = new BridgeClient(bridgeConfig, logger, tracer);
 
-const { clock } = createDefaultRuntime();
+const { clock } = runtime;
 
 const service = new MsBridgeService(config, {
   logger,
