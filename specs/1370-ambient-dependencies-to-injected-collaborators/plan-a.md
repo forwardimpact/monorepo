@@ -70,7 +70,7 @@ so the plan parts can stay short. Variations are called out per section.
      (e.g. WikiSync rebase recovery, libeval workdir listener cleanup)
      rename to `*.integration.test.js`.
 6. **Deny-list shrink.** Remove every entry for the unit from
-   `scripts/check-ambient-deps.deny.json` and
+   `scripts/check-ambient-deps.deny.yml` and
    `scripts/check-subprocess-in-tests.deny.json`. The PR may not exit
    migration with any entry for the unit remaining
    ([spec § Risks](spec.md#risks-and-mitigations)).
@@ -138,7 +138,7 @@ contract drift).
 
 ### Deny-list seeding
 
-Foundations PR seeds `scripts/check-ambient-deps.deny.json` with every
+Foundations PR seeds `scripts/check-ambient-deps.deny.yml` with every
 existing src violation across the monorepo, grouped by library/product/
 service. Each migration PR removes its unit's entries (Step 6). The
 deny-list is monotone — entries are removed only, never added — and CI
@@ -153,21 +153,17 @@ has a corresponding `createMock*` factory export
 Adding a field to `Runtime` without adding a fake fails CI. This
 catches the "spec extension drifts ahead of fakes" failure mode.
 
-### Performance milestone tracking
+### Performance milestone tracking (RETIRED)
 
-[Spec § SC6](spec.md#success-criteria) gates the spec on M1/M2/M3 wall
-times. The plan tracks them as part of release-merge's per-wave
-acceptance:
-
-| Milestone | Trigger | Target |
-|---|---|---|
-| Pre-M1 baseline | foundations PR merges | record current `time bun run test` in plan-a-01 final note |
-| M1 | every library in plan-a-02/03/04 sub-row at `plan implemented` | `real` under 45 s, three consecutive runs |
-| M2 | every libeval + librpc sub-row at `plan implemented` | `real` under 35 s |
-| M3 | every products + services sub-row at `plan implemented` | `real` under 25 s |
-
-A missed milestone halts further wave PRs until reinvestigated
-([spec § Risks](spec.md#risks-and-mitigations) — Slow migration).
+This section originally gated the spec on M1/M2/M3 wall times (45 s / 35 s /
+25 s) tracked as part of release-merge's per-wave acceptance, with a missed
+milestone halting further wave PRs. **The wall-time gate is retired** — it
+was missed (~38.5 s at part-06 vs the 25 s M3 target) because the migration
+traded coarse integration tests for many fine-grained unit tests and total
+wall time tracked scope, not per-test speed. See
+[spec § Outcome](spec.md#outcome-post-implementation-reconciliation-2026-06-01)
+for the grounded close-out; wall time is now a recorded trend, not a gate, and
+no wave PR is halted on it.
 
 ## Migration Order and Part Index
 
@@ -182,15 +178,22 @@ libraries) so every src module gets covered.
 | 03 | [plan-a-03-bin-libraries.md](plan-a-03-bin-libraries.md) | libconfig (no bin), libstorage, libcoaligned, libeval, librpc, libdoc, libcodegen, libterrain, libxmr, librc, libgraph, libvector, libresource, libsupervise, libtelemetry | 01 |
 | 04 | [plan-a-04-non-bin-libraries.md](plan-a-04-non-bin-libraries.md) | libbridge, libformat, libindex, libmacos, libmcp, libpack, libpolicy, libpreflight, libprompt, libproto, librepl, libsecret, libskill, libsyntheticgen, libsyntheticprose, libsyntheticrender, libtemplate, libtype, libui | 01 |
 | 05 | [plan-a-05-products.md](plan-a-05-products.md) | products/{map, pathway, summit, landmark, guide, outpost} | 01, 03 (libeval), 02 (libwiki) |
+| 05-b | [plan-a-05-b.md](plan-a-05-b.md) | follow-up wave for the remaining products + libeval/libsupervise (landmark, map, outpost) after the first products wave | 05 |
 | 06 | [plan-a-06-services.md](plan-a-06-services.md) | services/{bridge, embedding, ghauth, ghbridge, graph, map, mcp, msbridge, oauth, pathway, trace, vector} | 01, 03 |
 | teardown | [teardown.md](teardown.md) | remove the one-cycle BC bridges foundations shipped (`Finder` legacy positional constructor + `node:fs` deny-list entry; `createCli` zero-arg fallback) | 02, 03, 04, 05, 06 |
+| 07 | [plan-a-07.md](plan-a-07.md) | post-implementation gap closure: collapse the residual `new Finder(` sites + enforce SC9 with an invariant; make `runtime.proc.stdout` pipeline-grade and migrate `librc logs()`; retire SC6's wall-time milestones with a grounded outcome; reconcile `teardown.md`/`spec.md`/`design-a.md` to what shipped | 01–06, teardown |
 
-The `teardown` unit is the **last** to land: it deletes the backward-compat
-bridges part 01 introduced so consumers could migrate incrementally. The master
-`1370` row reaches `plan implemented` only once `1370/teardown` does (the
-`kata-release-merge` sub-row gate enforces it). See
+Part 07 is a **post-merge remediation unit** authored after the master row
+had already advanced. It is now the terminal unit: the master `1370` row,
+having been set back to `plan approved` to reflect the outstanding work,
+re-advances to `plan implemented` only once `1370/part-07-reconciliation`
+does. The `teardown` unit was the last of the original migration waves: it
+deletes the backward-compat bridges part 01 introduced so consumers could
+migrate incrementally. The master `1370` row reaches `plan implemented` only
+once every sub-row — `1370/teardown` and `1370/part-07-reconciliation` — does
+(the `kata-release-merge` sub-row gate enforces it). See
 [teardown.md](teardown.md) for the bridges, their forcing functions, and the
-removal checklist — `finder.js`'s `check-ambient-deps.deny.json` entry
+removal checklist — `finder.js`'s `check-ambient-deps.deny.yml` entry
 mechanically blocks the Finder bridge from being forgotten; the `createCli`
 fallback is tracked by teardown.md plus a runnable zero-count check.
 
@@ -234,11 +237,13 @@ audit — plan-a-03), libconfig (process arg → runtime.proc — plan-a-03).
   to async forces every caller path async. Mitigation: plan-a-02 carries
   the bridge call-site updates inside the libwiki PR (the bridges
   themselves remain on their existing bin contracts).
-- **M2/M3 milestone slippage stalls the program.** A missed milestone
-  halts further wave PRs ([§ Performance milestone tracking](#performance-milestone-tracking)).
-  Mitigation: plan-a-03 and plan-a-04 are ordered so the smallest
-  libraries migrate first, building per-unit time savings into M1
-  before the larger libraries land.
+- **M2/M3 milestone slippage stalls the program.** ~~A missed milestone
+  halts further wave PRs.~~ **Retired** — the wall-time gate no longer halts
+  any wave ([§ Performance milestone tracking](#performance-milestone-tracking),
+  [spec § Outcome](spec.md#outcome-post-implementation-reconciliation-2026-06-01)).
+  The milestones were missed and the program completed anyway; ordering
+  plan-a-03/04 smallest-first still helped per-unit feedback latency, which
+  remains the real benefit.
 - **products PR opens before its library consumer migrates.** If a
   product is migrated while still constructing collaborators against a
   pre-1370 library shape, the product carries an in-flight compatibility

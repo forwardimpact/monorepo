@@ -140,48 +140,45 @@ callers that passed the old shape keep working for one cycle.
 
 ## Residual global reads that are NOT backward-compat (foundation surface gaps)
 
-These are **not** BC bridges and teardown does **not** remove them — they exist
-because the ratified `runtime` surface does not (yet) express the capability.
-Closing them needs a **foundation follow-up** that extends the runtime contract
-(a separate spec/design amendment), not the `1370/teardown` unit. They are
-listed here so "no fallbacks left after teardown" has an explicit, honest
-exception set:
+**Corrected 2026-06-01 (post-merge audit + [plan-a-07.md](plan-a-07.md)).**
+An earlier revision of this section listed libeval, libsupervise, and a
+`librc logs()` pair as grandfathered gaps awaiting "a future runtime
+surface-extension spec." That description did **not** match what shipped:
+most of the surface those items needed was added, backward-compatibly,
+during the migration waves, and the rest is closed by part-07. The honest
+current state:
 
-- **`librc/src/manager.js` `logs()` — streaming read piped to a `Writable`
-  stdout.** `logs()` does `pipeline(fs.createReadStream(logPath), this.#stdout)`.
-  Two surface gaps keep it grandfathered together (they are co-required — fixing
-  one without the other does not migrate `logs()`):
-  - `fs.createReadStream` is not on the `fsSync`/`fs` surface, so `librc` keeps
-    its legacy `deps.fs` for the read stream.
-  - `runtime.proc.stdout` is a `{ write }` shim, not a pipeline-grade
-    `Writable`, so `librc` keeps `deps.stdout ?? process.stdout` for the sink.
-
-  **Resolved this wave:** `runtime.proc` now exposes `kill(pid, signal)`
-  (negative pid = group), so `librc`'s liveness probe and env reads route
-  through `runtime.proc` and the `deps.process` fallback was deleted. Only the
-  `logs()` streaming pair above remains.
-- **`libsupervise` detached, process-group spawning** (`spawn(...,
-  { detached: true })` + `process.kill(-pid, ...)`) and **log stdin piping** —
-  `runtime.subprocess` exposes no detached option, no child **pid** (needed for
-  `proc.kill(-pid, ...)` group-kill), and no writable child stdin. This is why
-  libsupervise was deferred this wave. (`proc.kill` now exists, but the spawn
-  surface must also return the pid and accept `detached` before the group-kill
-  can route through it.)
-- **`libeval` streaming-fs / `node:net` / fd-passing files**
-  (`benchmark/{runner,workdir,task-family,scorer,judge,report,*-installer}.js`,
-  `commands/{tee,run,supervise,discuss,facilitate}.js`, `trace-github.js`,
-  `profile-prompt.js`) — kept grandfathered in `check-ambient-deps.deny.yml`;
-  they need `createReadStream`/`createWriteStream`, `node:net`, and fd-3
-  passing, none of which the runtime surface covers.
+- **Closed during the waves.** `runtime.fs` gained `createReadStream` /
+  `createWriteStream`; `runtime.fsSync` is the full `node:fs` module (so it
+  too exposes `createReadStream`); `runtime.proc` gained `kill(pid, signal)`
+  (negative pid = group), `pid`, `platform`, and `on(event, handler)`;
+  `runtime.subprocess.spawn` gained `detached`, `pid`, and writable `stdin`.
+  With those, **libeval** migrated fully (no `node:fs` imports;
+  `createWriteStream` via `runtime.fs`; **off** the deny-list) and
+  **libsupervise** migrated fully (`this.#proc.kill(-pid, …)` group teardown,
+  `detached: true` spawns, and `logProcess.stdin` piping all route through
+  injected collaborators). Neither is deferred; neither is on the deny-list.
+- **To be closed by [plan-a-07.md](plan-a-07.md) (approved, pending
+  implementation).** The one genuine remaining surface gap **is**
+  `librc/src/manager.js` `logs()`: it pipes a read stream into
+  `runtime.proc.stdout`, which is still a `{ write }` shim rather than a
+  pipeline-grade `Writable`, so `manager.js` still carries the
+  `deps.fs ?? runtime.fsSync` and `deps.stdout ?? process.stdout` fallbacks on
+  `main`. Part-07 **will** make `proc.stdout`/`stderr` pipeline-grade
+  `Writable`s and migrate `logs()` onto `runtime.fsSync.createReadStream` +
+  `runtime.proc.stdout`.
+- **Genuinely remaining (DI-clean, not a fallback).** `librc` still injects
+  `deps.spawn` / `deps.execSync` (from the bin) to launch the `fit-svscan`
+  daemon, because that spawn needs `detached` **plus** fd-redirect-to-logfile
+  stdio (`stdio: [..., fd, fd]`), which `runtime.subprocess.spawn` does not
+  yet express. This is dependency-injected (the bin supplies it; src reads no
+  ambient `process`/`child_process`), so it is **not** a backward-compat
+  fallback — it is a deliberate injected seam. Unifying it onto
+  `runtime.subprocess` (an fd-redirect `stdio` option) is the only surface
+  extension still open; it is small, and no separate spec is required unless a
+  second consumer needs the same shape.
 - **Already-closed notes:** `Config.ghToken()` uses
-  `runtime.subprocess.runSync`, and `runtime.proc.kill` is now in the contract
-  — both were foundation seams added during the wave, so neither appears above.
-
-A future "runtime surface extension" spec should add: a writable
-`proc.stdout` stream, streaming `fs.createReadStream`/`createWriteStream`, and
-`subprocess.spawn` detached + pid + writable-stdin (which, combined with the
-now-shipped `proc.kill`, closes the libsupervise group-kill). When it lands,
-the items above migrate and this section shrinks to empty.
+  `runtime.subprocess.runSync` — a foundation seam added during the wave.
 
 ## Retained composition-root defaults (DX-first decision)
 
@@ -229,12 +226,17 @@ and correct; the spec's "remaining hits are the live root, not a fallback."
       roots; every per-consumer fallback is removed (Bridge 3).
 - [x] `rg "\?\? process\b|globalThis\.(process|setTimeout|clearTimeout)|getDefaultRuntime"
       libraries/ products/ services/` → only the foundation-gap residue
-      `librc/manager.js` `deps.stdout ?? process.stdout` remains (NOT-BC).
+      `librc/manager.js` `deps.stdout ?? process.stdout` remains (NOT-BC) on
+      `main`; **scheduled for removal in [plan-a-07.md](plan-a-07.md)**
+      (approved, pending) once `runtime.proc.stdout` becomes pipeline-grade.
 - [x] `rg "resolveRuntime|_procFromLegacy" libraries/` → 0; the `Logger`
       positional `proc` parameter removed (Bridge 4).
 - [x] `finder.js` removed from `check-ambient-deps.deny.yml`; `bun run
       invariants` green.
 - [x] All four bridges' code paths deleted; the NOT-BC residue explicitly
       retained with the tracking reference above; `bun run test` green.
-- [ ] STATUS `1370/teardown` → `plan implemented`; master `1370` → `plan
-      implemented` once every sub-row reads `plan implemented`.
+- [x] STATUS `1370/teardown` → `plan implemented`. **Note (2026-06-01):** the
+      master `1370` row advanced to `plan implemented` after teardown, but a
+      post-merge audit reopened it — see [plan-a-07.md](plan-a-07.md). Master
+      `1370` re-advances to `plan implemented` only once
+      `1370/part-07-reconciliation` is also implemented.
