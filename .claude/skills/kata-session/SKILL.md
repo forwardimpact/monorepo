@@ -11,16 +11,11 @@ description: >
 # Kata Session
 
 Shared entry-point skill for Toyota Kata coaching sessions. The improvement
-coach facilitates; domain agents participate. The coach follows the Facilitator
-Process; participants follow the Participant Protocol. Both roles share the same
-five coaching kata questions.
-
-Two mode overlays describe the mode-specific artifact surface:
-
-- Team storyboard meetings —
-  [`references/team-storyboard.md`](references/team-storyboard.md)
-- 1-on-1 coaching sessions —
-  [`references/one-on-one.md`](references/one-on-one.md)
+coach facilitates (Facilitator Process); domain agents participate (Participant
+Protocol). Both share the same five coaching kata questions. The mode-specific
+artifact surface lives in two overlays:
+[`team-storyboard.md`](references/team-storyboard.md) and
+[`one-on-one.md`](references/one-on-one.md).
 
 ## When to Use
 
@@ -44,13 +39,12 @@ runs; load this skill only if you need the full Participant Protocol below.
       ([`references/team-storyboard.md`](references/team-storyboard.md) or
       [`references/one-on-one.md`](references/one-on-one.md)) and follow its
       artifact guidance.
-- [ ] Identify which metrics CSVs to review from `wiki/metrics/`.
-- [ ] Run `bunx fit-xmr analyze --format json` against each metrics CSV and
-      record the `status`, fired-rule `signals`, and `latest` for each metric.
-- [ ] For team storyboard runs, seed any missing `<!-- xmr:... -->` marker
-      pair from
-      [`references/storyboard-template.md`](references/storyboard-template.md),
-      then run `bunx fit-wiki refresh`.
+- [ ] Pick metrics CSVs from `wiki/metrics/` for participants to report.
+      Participants — not the facilitator — run `bunx fit-xmr analyze`.
+- [ ] Team runs: confirm each metric has its `<!-- xmr:... -->` marker (a
+      participant seeds missing ones from
+      [`storyboard-template.md`](references/storyboard-template.md)); blocks
+      render from the deterministic `fit-wiki refresh` step, never the facilitator.
 
 </read_do_checklist>
 
@@ -58,18 +52,14 @@ runs; load this skill only if you need the full Participant Protocol below.
 
 - [ ] All five coaching kata questions were addressed.
 - [ ] Every `Ask` received an `Answer`.
-- [ ] Current condition updated with numbers from metrics CSVs (not narrative),
-      including XmR `status` and signal descriptions for each metric with
-      sufficient data. Metrics with `insufficient_data` are noted.
-- [ ] Coaching metrics appended to CSV (see Facilitator Process step 6).
-- [ ] For team meetings: storyboard updated per partition protocol;
-      `bunx fit-wiki refresh` rendered every metric block (no no-op, no manual
-      paste); experiments and obstacles managed as labeled GitHub issues per
-      [`issue-lifecycle.md`](references/issue-lifecycle.md).
-- [ ] For 1-on-1: agent's findings written to its own memory.
+- [ ] Current condition reflects participants' reported numbers and XmR
+      `status`/`signals` (not narrative); `insufficient_data` metrics noted.
+- [ ] Both modes: each participant recorded its obstacles/experiments as labeled
+      issues per [`issue-lifecycle.md`](references/issue-lifecycle.md) and
+      reported the `#NNN`s; the facilitator created none.
 - [ ] Weekly log updated under `## YYYY-MM-DD` with meeting type, metrics,
-      obstacle, experiment, and Step 7 routing per Q3 obstacle.
-- [ ] Experiment expected outcome recorded _before_ the experiment runs.
+      obstacle, experiment, and Step 7 routing (1-on-1: the coached agent writes
+      its own).
 - [ ] In facilitated mode: `Conclude` called with session summary.
 
 </do_confirm_checklist>
@@ -79,10 +69,14 @@ runs; load this skill only if you need the full Participant Protocol below.
 <do_confirm_checklist goal="Verify participation quality">
 
 - [ ] Q2 data gathered from live sources, not memory or prior logs.
-- [ ] Domain metrics appended to CSV before answering (step 2).
+- [ ] Domain metrics appended to CSV before answering (step 2), and
+      `bunx fit-xmr analyze` run on own CSV(s) with `status`/`μ`/`signals`
+      reported via `Answer`.
 - [ ] Metrics reported via `Answer` match the CSV rows just written.
-- [ ] Q3 obstacles grounded in data or trace findings, not narrative.
-- [ ] Q4 experiment has a recorded expected outcome.
+- [ ] Q3 obstacles grounded in data or trace findings, not narrative; obstacle
+      recorded as a labeled issue and its `#NNN` reported back.
+- [ ] Q4 experiment has a recorded expected outcome and is recorded as a labeled
+      issue (`experiment` + `agent:{self}`) with its `#NNN` reported back.
 - [ ] Q4 expected outcome names metrics owned by a single skill — split
       multi-skill predictions into one per skill / run type.
 
@@ -120,20 +114,23 @@ Mode-specific question wording (team vs. 1-on-1) lives in the overlays.
 3. **Brief participants.** Deliver the overlay's briefing template before Q1.
    Team mode: broadcast once via `Announce` at session open. 1-on-1 mode:
    prepend it to the Q1 `Ask` body.
-4. **Run XmR analysis.** For every CSV in `wiki/metrics/`, run
-   `bunx fit-xmr analyze <csv> --format json` and use the `status`, fired-rule
-   `signals`, and `latest` fields when reporting the Condition. For team
-   storyboard runs, refresh chart blocks per
-   [`team-storyboard.md` § Storyboard updates](references/team-storyboard.md#storyboard-updates).
-   Note any `insufficient_data` metric. In facilitated mode, include `status`
-   and fired-rule signals in the Q2 `Ask`.
+4. **Collect XmR analysis from participants.** Participants run
+   `bunx fit-xmr analyze` on their own CSVs (Participant Protocol step 2) and
+   report `status`, fired-rule `signals`, and `latest` in their Q2 `Answer`. The
+   facilitator has no `Bash` — it relays what they report, noting any
+   `insufficient_data` metric. Chart blocks render from the deterministic
+   `fit-wiki refresh` step, not a facilitator call.
 5. **Run the five questions.** Follow the overlay's wording. In facilitated
    mode, pose each question via `Ask` and collect `Answer` replies before
-   advancing. Use `Announce` for between-question transitions or any status that
-   would otherwise repeat into every `Ask`. In solo mode, read metrics and wiki
-   files directly.
-6. **Update artifacts.** Write back whatever the overlay prescribes — for team
-   mode, the storyboard file; for 1-on-1, the participant's memory.
+   advancing. After the Q3/Q4 answers, `Ask` each participant to record its
+   obstacle (Q3) and experiment (Q4) as labeled issues per
+   [`issue-lifecycle.md`](references/issue-lifecycle.md) and return the `#NNN`s.
+   Use `Announce` for between-question transitions. In solo mode, read files
+   directly.
+6. **Collect, don't write.** The facilitator writes no files — participants own
+   every write (CSVs, weekly-log memory, issues) and the storyboard renders via
+   `fit-wiki refresh`. Collect the reported `#NNN`s and numbers via `Answer` for
+   the summary.
 7. **Route Q3 obstacles (team meetings only; skip for 1-on-1).** For each
    obstacle pick one route (they can run in parallel) and log the choice.
    Triggers and worked example:
@@ -144,14 +141,10 @@ Mode-specific question wording (team vs. 1-on-1) lives in the overlays.
      `gh discussion create --category <category> --title "RFC: <q>"`.
    - **Coaching** — participant-scoped blocker / unanalyzed trace / stalled
      experiment: `gh workflow run kata-coaching.yml -f agent=<name>`.
-8. **Commit.** Commit artifact changes as part of the wiki push.
-9. **Conclude (facilitated mode only).** Call `Conclude` with a session summary
-   covering: meeting type, key metrics reviewed, obstacles addressed,
-   experiments planned, and any coaching session triggered.
-
-The coach orchestrates the session — it does not own an end-to-end process and
-records no metrics of its own. Participants record their domain metrics per the
-Participant Protocol; the coach reads them.
+8. **Conclude (facilitated mode only).** Call `Conclude` with a session summary
+   covering meeting type, key metrics, obstacles addressed, experiments planned,
+   and any coaching session triggered. (Wiki memory pushes automatically; the
+   facilitator does not commit.)
 
 ## Participant Protocol
 
@@ -160,19 +153,25 @@ briefing.
 
 1. **Prepare for Q2.** Gather your domain's current measured state from live
    data (`gh`, `bun`, repo files) — not memory or narrative.
-2. **Record metrics to CSV.** Before answering, append one row per metric to
-   `wiki/metrics/{skill}/{YYYY}.csv` per the skill's
-   `references/metrics.md`, creating the directory and header if needed. The CSV is authoritative; your `Answer` summarizes it.
+2. **Record metrics to CSV and analyze them.** Before answering, append one row
+   per metric to `wiki/metrics/{skill}/{YYYY}.csv` per the skill's
+   `references/metrics.md`, creating the directory and header if needed. Then run
+   `bunx fit-xmr analyze <csv> --format json` on your own CSV(s). The CSV is
+   authoritative; your `Answer` summarizes it.
 3. **Answer with measured data.** Report numbers via
    `Answer(askId=N, message=…)`, quoting the `askId` from the `[ask#N]` header
-   on the question. Reference the CSV rows; use counts and durations — not
-   narratives like "improving." Use `Announce` only for unsolicited team-wide
-   context.
-4. **Ground obstacles in data.** For Q3, identify obstacles from the gap between
-   current and target. Prefer trace findings or live run data over log
-   narratives.
-5. **Propose testable experiments.** For Q4, propose small experiments with
-   expected outcomes verifiable in one or two daily cycles.
+   on the question. Reference the CSV rows; include each metric's XmR `status`,
+   `μ`, and any fired-rule `signals` from your `fit-xmr analyze` run. Use counts
+   and durations — not narratives like "improving." Use `Announce` only for
+   unsolicited team-wide context.
+4. **Ground obstacles in data, then record them.** For Q3, identify obstacles
+   from the gap between current and target (prefer trace findings over log
+   narratives). Create an obstacle issue per
+   [`issue-lifecycle.md`](references/issue-lifecycle.md) and report its `#NNN`.
+5. **Propose testable experiments, then record them.** For Q4, propose small
+   experiments verifiable in one or two daily cycles. Create an experiment issue
+   (`experiment` + `agent:{self}`, expected outcome recorded _before_ the run)
+   and report its `#NNN`.
 
 ## Memory: what to record
 
@@ -184,4 +183,3 @@ Append to the current week's log (see agent profile for the file path):
 - **Experiment status** — Outcome of prior experiment, next experiment planned
 
 Participants record their own domain metrics per Participant Protocol step 2.
-The coach records none — see step 7.

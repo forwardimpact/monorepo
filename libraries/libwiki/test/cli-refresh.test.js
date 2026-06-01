@@ -118,6 +118,12 @@ describe("fit-wiki refresh CLI (in-process)", () => {
     assert.ok(readFileSync(storyboard, "utf-8").includes("preserved content"));
   });
 
+  test("missing storyboard file — no-op, exit 0", async () => {
+    const dir = createProject();
+    // No storyboard written at all.
+    await assert.doesNotReject(() => refresh(dir, "storyboard.md"));
+  });
+
   test("working-directory independence", async () => {
     const dir = createProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");

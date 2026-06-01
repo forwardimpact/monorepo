@@ -53,6 +53,18 @@ function spliceBlock(lines, block, rendered) {
   );
 }
 
+// A missing current-month storyboard (e.g. a coaching run early in the month,
+// before the storyboard meeting created it) is non-fatal: return null so the
+// deterministic refresh step exits cleanly instead of failing the job.
+function readStoryboardOrNull(runtime, storyboardPath) {
+  try {
+    return runtime.fsSync.readFileSync(storyboardPath, "utf-8");
+  } catch (err) {
+    if (err.code !== "ENOENT") throw err;
+    return null;
+  }
+}
+
 /** Re-render XmR chart blocks and issue-list blocks in a storyboard file. */
 export async function runRefreshCommand(ctx) {
   const { runtime, gitClient } = ctx.deps;
@@ -63,7 +75,11 @@ export async function runRefreshCommand(ctx) {
     projectRoot,
     ctx.args["storyboard-path"] || currentStoryboardRelPath(runtime),
   );
-  const text = runtime.fsSync.readFileSync(storyboardPath, "utf-8");
+  const text = readStoryboardOrNull(runtime, storyboardPath);
+  if (text === null) {
+    runtime.proc.stderr.write(`refresh: no storyboard at ${storyboardPath}\n`);
+    return { ok: true };
+  }
   const blocks = scanMarkers(text, {
     warn: (message) => runtime.proc.stderr.write(message),
   });
