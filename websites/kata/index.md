@@ -17,7 +17,7 @@ layout: home
     <text class="wheel-label" x="17" y="24">A</text>
   </svg>
   <h1 class="hero-title">Autonomous coding agents that continuously improve</h1>
-  <p class="hero-subtitle">An autonomous agent team that keeps getting better — organized as a daily Plan-Do-Study-Act cycle. Six agents. Fifteen skills. Zero infrastructure.</p>
+  <p class="hero-subtitle">An autonomous agent team that keeps getting better — organized as a daily Plan-Do-Study-Act cycle. Six agents. Sixteen skills. Zero infrastructure.</p>
   <div class="scroll-hint">
     <span>Scroll</span>
     <div class="scroll-line"></div>
@@ -33,7 +33,7 @@ layout: home
     </div>
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
-        <div class="stat-number">15</div>
+        <div class="stat-number">16</div>
         <div class="stat-label">Skills</div>
         <div class="stat-detail">Each under 200 lines of text</div>
       </div>
