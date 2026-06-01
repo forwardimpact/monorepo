@@ -32,7 +32,7 @@ const rules = [
   { pattern: "\\bGH-[0-9]{2,5}\\b" },
   { pattern: "\\(#[0-9]{2,5}\\)", globs: ["!**/test/**"] },
   { pattern: "[[:space:]]#[0-9]{2,5}\\b", globs: ["!**/test/**"] },
-  // Spec-artefact labels: solution criteria (SC), priorities (P), and
+  // Spec-artefact labels: success criteria (SC), priorities (P), and
   // findings (F) are numbered inside a spec's spec.md / plan / review. Once
   // the spec closes, "SC5" or "Foundation F1" in a comment points at nothing.
   // Match the uppercase label forms only (caseSensitive) so the lowercase
