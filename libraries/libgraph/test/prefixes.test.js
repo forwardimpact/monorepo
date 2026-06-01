@@ -5,7 +5,7 @@ import { Store, DataFactory } from "n3";
 import { GraphIndex } from "../src/index/graph.js";
 import { RDF_PREFIXES } from "../src/index.js";
 import { resource } from "@forwardimpact/libtype";
-import { createMockStorage } from "@forwardimpact/libmock";
+import { createGraphIndexFixture } from "@forwardimpact/libmock";
 
 const { namedNode } = DataFactory;
 
@@ -34,26 +34,23 @@ describe("RDF_PREFIXES", () => {
 
 describe("GraphIndex prefix resolution", () => {
   let graphIndex;
-  let mockStorage;
-  let n3Store;
 
   beforeEach(() => {
     // The default mock storage rejects on missing keys; #getTypesWithSynonyms
     // calls storage.get("ontology.ttl") and any rejection bubbles up.  We
     // don't need ontology synonyms here, so return an empty string instead.
-    mockStorage = createMockStorage({
-      get: (key) => {
-        if (key === "ontology.ttl") return Promise.resolve("");
-        return Promise.reject(new Error("Not found"));
+    ({ graphIndex } = createGraphIndexFixture({
+      GraphIndex,
+      Store,
+      storageOverrides: {
+        get: (key) => {
+          if (key === "ontology.ttl") return Promise.resolve("");
+          return Promise.reject(new Error("Not found"));
+        },
       },
-    });
-    n3Store = new Store();
-    graphIndex = new GraphIndex(
-      mockStorage,
-      n3Store,
-      RDF_PREFIXES,
-      "test.jsonl",
-    );
+      prefixes: RDF_PREFIXES,
+      indexKey: "test.jsonl",
+    }));
   });
 
   test("getSubjects('fit:Skill') resolves the fit: prefix to a named node", async () => {

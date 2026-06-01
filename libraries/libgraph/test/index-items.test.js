@@ -4,7 +4,7 @@ import { Store, DataFactory } from "n3";
 
 import { GraphIndex } from "../src/index/graph.js";
 import { resource } from "@forwardimpact/libtype";
-import { createMockStorage } from "@forwardimpact/libmock";
+import { createGraphIndexFixture } from "@forwardimpact/libmock";
 
 const { namedNode, literal } = DataFactory;
 
@@ -14,10 +14,10 @@ describe("GraphIndex - Item Management and Queries", () => {
   let n3Store;
 
   beforeEach(() => {
-    mockStorage = createMockStorage();
-
-    n3Store = new Store();
-    graphIndex = new GraphIndex(mockStorage, n3Store, {}, "test-graph.jsonl");
+    ({ mockStorage, n3Store, graphIndex } = createGraphIndexFixture({
+      GraphIndex,
+      Store,
+    }));
   });
 
   describe("Item Management", () => {

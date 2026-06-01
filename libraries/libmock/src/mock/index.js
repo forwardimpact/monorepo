@@ -42,3 +42,8 @@ export {
   createMockS3Client,
   createMockQueries,
 } from "./infra.js";
+export {
+  createGraphIndexFixture,
+  createMockGrpcHealthDefinition,
+  createReplEnvironment,
+} from "./environments.js";

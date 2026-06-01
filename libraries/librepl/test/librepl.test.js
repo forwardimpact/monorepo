@@ -1,7 +1,10 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
-import { assertThrowsMessage, createMockStorage } from "@forwardimpact/libmock";
+import {
+  assertThrowsMessage,
+  createReplEnvironment,
+} from "@forwardimpact/libmock";
 
 // Module under test
 import { Repl } from "../src/index.js";
@@ -11,50 +14,13 @@ describe("librepl", () => {
     let mockReadline, mockProcess, mockFormatter, mockOs, mockStorage;
 
     beforeEach(() => {
-      // Mock readline
-      const mockRlInterface = {
-        on: () => {},
-        prompt: () => {},
-        close: () => {},
-      };
-      mockReadline = {
-        createInterface: () => mockRlInterface,
-      };
-
-      // Mock process with proper exit handling
-      mockProcess = {
-        argv: ["node", "script.js"],
-        stdin: {
-          isTTY: true,
-          setEncoding: () => {},
-          async *[Symbol.asyncIterator]() {
-            yield "test input";
-            return; // This ensures the iterator completes
-          },
-        },
-        stdout: { write: () => {} },
-        stderr: { write: () => {} },
-        exit: (code) => {
-          // Don't actually exit in tests - just mark that exit was called
-          mockProcess._exitCalled = true;
-          mockProcess._exitCode = code;
-        },
-        _exitCalled: false,
-        _exitCode: null,
-      };
-
-      // Mock formatter factory function
-      mockFormatter = () => ({
-        format: (text) => `formatted: ${text}`,
-      });
-
-      // Mock OS module
-      mockOs = {
-        userInfo: () => ({ uid: 1000 }),
-      };
-
-      // Mock storage interface
-      mockStorage = createMockStorage();
+      ({
+        readline: mockReadline,
+        process: mockProcess,
+        os: mockOs,
+        formatter: mockFormatter,
+        storage: mockStorage,
+      } = createReplEnvironment());
     });
 
     test("creates repl with minimal app configuration", () => {
