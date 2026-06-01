@@ -7,6 +7,7 @@ import {
   ServingStatus,
   Server,
 } from "../src/index.js";
+import { createTestRuntime } from "@forwardimpact/libmock";
 import {
   createMockConfig,
   createMockGrpcFn,
@@ -14,6 +15,8 @@ import {
   createMockAuthFn,
   createMockLogger,
 } from "@forwardimpact/libmock";
+
+const runtime = createTestRuntime();
 
 describe("healthDefinition", () => {
   test("Check has the required service definition fields", () => {
@@ -109,15 +112,14 @@ describe("Server health registration", () => {
     const mockLogFn = createMockLogger();
     const mockObserverFn = createMockObserverFn(mockLogFn);
 
-    const server = new Server(
-      mockService,
-      mockConfig,
-      mockLogFn,
-      null,
-      mockObserverFn,
-      mockGrpcFn,
-      mockAuthFn,
-    );
+    const server = new Server(mockService, mockConfig, {
+      logger: mockLogFn,
+      tracer: null,
+      observerFn: mockObserverFn,
+      grpcFn: mockGrpcFn,
+      authFn: mockAuthFn,
+      runtime,
+    });
 
     await server.start();
     assert.ok(server);
@@ -147,15 +149,14 @@ describe("Server health registration", () => {
     const mockLogFn = createMockLogger();
     const mockObserverFn = createMockObserverFn(mockLogFn);
 
-    const server = new Server(
-      mockService,
-      mockConfig,
-      mockLogFn,
-      null,
-      mockObserverFn,
-      mockGrpcFn,
-      trackingAuthFn,
-    );
+    const server = new Server(mockService, mockConfig, {
+      logger: mockLogFn,
+      tracer: null,
+      observerFn: mockObserverFn,
+      grpcFn: mockGrpcFn,
+      authFn: trackingAuthFn,
+      runtime,
+    });
 
     await server.start();
 

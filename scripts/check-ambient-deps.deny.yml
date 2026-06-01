@@ -12,8 +12,6 @@
 # outlive 1370 are catalogued in the spec teardown ledger).
 libraries/libutil/src/extractor.js:
   - import:fs
-libraries/libutil/src/finder.js:
-  - import:fs
 libraries/libutil/src/index.js:
   - import:fs
 libraries/libutil/src/retry.js:

@@ -4,6 +4,9 @@ import assert from "node:assert";
 // Module under test
 import { BufferedIndex } from "../src/index.js";
 import { createMockStorage } from "@forwardimpact/libmock";
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
+
+const clock = createDefaultClock();
 
 describe("BufferedIndex - Buffered Write Operations", () => {
   let bufferedIndex;
@@ -21,19 +24,28 @@ describe("BufferedIndex - Buffered Write Operations", () => {
 
   describe("Constructor Configuration", () => {
     test("uses default config values when not provided", () => {
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl");
+      bufferedIndex = new BufferedIndex(
+        mockStorage,
+        "test.jsonl",
+        {},
+        { clock },
+      );
       assert.ok(bufferedIndex, "Should create instance with defaults");
     });
 
     test("accepts config with flush_interval", () => {
       const config = { flush_interval: 1000 };
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config);
+      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
+        clock,
+      });
       assert.ok(bufferedIndex, "Should create instance with custom config");
     });
 
     test("accepts config with max_buffer_size", () => {
       const config = { max_buffer_size: 500 };
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config);
+      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
+        clock,
+      });
       assert.ok(bufferedIndex, "Should create instance with custom config");
     });
   });
@@ -41,7 +53,9 @@ describe("BufferedIndex - Buffered Write Operations", () => {
   describe("Buffered Add Operations", () => {
     test("add buffers items without immediate write", async () => {
       const config = { flush_interval: 10000 };
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config);
+      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
+        clock,
+      });
 
       await bufferedIndex.add({ id: "item1", data: "test" });
 
@@ -54,7 +68,9 @@ describe("BufferedIndex - Buffered Write Operations", () => {
 
     test("add makes items immediately queryable", async () => {
       const config = { flush_interval: 10000 };
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config);
+      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
+        clock,
+      });
 
       await bufferedIndex.add({ id: "item1", data: "test" });
       const exists = await bufferedIndex.has("item1");
@@ -68,7 +84,9 @@ describe("BufferedIndex - Buffered Write Operations", () => {
 
     test("flush writes buffered items to storage", async () => {
       const config = { flush_interval: 10000 };
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config);
+      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
+        clock,
+      });
 
       await bufferedIndex.add({ id: "item1", data: "test1" });
       await bufferedIndex.add({ id: "item2", data: "test2" });
@@ -84,7 +102,12 @@ describe("BufferedIndex - Buffered Write Operations", () => {
     });
 
     test("flush returns zero when buffer is empty", async () => {
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl");
+      bufferedIndex = new BufferedIndex(
+        mockStorage,
+        "test.jsonl",
+        {},
+        { clock },
+      );
 
       const flushed = await bufferedIndex.flush();
 
@@ -100,7 +123,9 @@ describe("BufferedIndex - Buffered Write Operations", () => {
   describe("Automatic Flush Behavior", () => {
     test("forces flush when max_buffer_size is reached", async () => {
       const config = { flush_interval: 10000, max_buffer_size: 2 };
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config);
+      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
+        clock,
+      });
 
       await bufferedIndex.add({ id: "item1", data: "test1" });
       await bufferedIndex.add({ id: "item2", data: "test2" });
@@ -116,7 +141,9 @@ describe("BufferedIndex - Buffered Write Operations", () => {
   describe("Shutdown", () => {
     test("shutdown flushes remaining buffered items", async () => {
       const config = { flush_interval: 10000 };
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config);
+      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
+        clock,
+      });
 
       await bufferedIndex.add({ id: "item1", data: "test" });
       await bufferedIndex.shutdown();
@@ -129,7 +156,12 @@ describe("BufferedIndex - Buffered Write Operations", () => {
     });
 
     test("shutdown succeeds with empty buffer", async () => {
-      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl");
+      bufferedIndex = new BufferedIndex(
+        mockStorage,
+        "test.jsonl",
+        {},
+        { clock },
+      );
       await bufferedIndex.shutdown();
 
       assert.strictEqual(

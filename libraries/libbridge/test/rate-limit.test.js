@@ -1,10 +1,13 @@
 import { describe, expect, test } from "bun:test";
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 import { RateLimiter } from "../src/rate-limit.js";
 
+const clock = createDefaultClock();
+
 describe("RateLimiter", () => {
   test("allows up to max dispatches per window", () => {
-    const limiter = new RateLimiter({ windowMs: 60_000, max: 3 });
+    const limiter = new RateLimiter({ clock, windowMs: 60_000, max: 3 });
     const dispatches = [];
     const now = Date.now();
     for (let i = 0; i < 3; i++) {
@@ -19,7 +22,7 @@ describe("RateLimiter", () => {
   });
 
   test("evicts timestamps outside the window before measuring", () => {
-    const limiter = new RateLimiter({ windowMs: 1000, max: 5 });
+    const limiter = new RateLimiter({ clock, windowMs: 1000, max: 5 });
     const now = Date.now();
     const dispatches = [now - 5000, now - 3000, now - 2000];
     const result = limiter.check("t1", dispatches);
@@ -28,7 +31,7 @@ describe("RateLimiter", () => {
   });
 
   test("retryAfterMs predicts when the oldest entry exits the window", () => {
-    const limiter = new RateLimiter({ windowMs: 60_000, max: 2 });
+    const limiter = new RateLimiter({ clock, windowMs: 60_000, max: 2 });
     const now = Date.now();
     const dispatches = [now - 10_000, now - 5_000];
     const result = limiter.check("t1", dispatches);
@@ -38,7 +41,7 @@ describe("RateLimiter", () => {
   });
 
   test("default windowMs and max match legacy values", () => {
-    const limiter = new RateLimiter();
+    const limiter = new RateLimiter({ clock });
     const now = Date.now();
     const dispatches = [now, now, now, now, now];
     const result = limiter.check("t1", dispatches);
@@ -46,7 +49,7 @@ describe("RateLimiter", () => {
   });
 
   test("rejects non-array dispatches", () => {
-    const limiter = new RateLimiter();
+    const limiter = new RateLimiter({ clock });
     expect(() => limiter.check("t1", null)).toThrow();
     expect(() => limiter.check("t1", undefined)).toThrow();
   });

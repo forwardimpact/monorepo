@@ -11,6 +11,7 @@
  * (see `fixtures/README.md` for the regeneration command).
  */
 import { describe, test } from "node:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
@@ -41,6 +42,7 @@ describe("file-path parity against pre-refactor baseline", () => {
       rng,
       entities.people,
       entities.teams,
+      createDefaultRuntime(),
     );
     const files = renderRawDocuments(entities, undefined);
     const actual = Array.from(files.keys()).sort();

@@ -1,4 +1,6 @@
 import { describe, test, expect } from "bun:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const runtime = createDefaultRuntime();
 import { mkdtemp, mkdir, writeFile, readFile } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
@@ -23,7 +25,7 @@ describe("TarEmitter", () => {
     const outDir = await makeTempDir();
     const outputPath = join(outDir, "test.tar.gz");
 
-    const emitter = new TarEmitter();
+    const emitter = new TarEmitter({ runtime });
     await emitter.emit(stagedDir, outputPath);
 
     const listing = execFileSync("tar", ["tzf", outputPath]).toString();
@@ -37,7 +39,7 @@ describe("TarEmitter", () => {
     const path1 = join(outDir, "a.tar.gz");
     const path2 = join(outDir, "b.tar.gz");
 
-    const emitter = new TarEmitter();
+    const emitter = new TarEmitter({ runtime });
     await emitter.emit(stagedDir, path1);
     await emitter.emit(stagedDir, path2);
 

@@ -1,4 +1,6 @@
 import { describe, expect, test, afterEach, beforeEach } from "bun:test";
+import { createTestRuntime } from "@forwardimpact/libmock";
+const _rt = createTestRuntime();
 
 import { InboxPoller } from "../src/inbox-poller.js";
 import { createMessageBus } from "../src/message-bus.js";
@@ -33,6 +35,7 @@ describe("InboxPoller", () => {
 
     const bus = createMessageBus({ participants: ["lead"] });
     const poller = new InboxPoller({
+      runtime: _rt,
       inboxUrl: "https://bridge.test/api/inbox/corr-1",
       messageBus: bus,
       leadName: "lead",
@@ -64,6 +67,7 @@ describe("InboxPoller", () => {
 
     const bus = createMessageBus({ participants: ["lead"] });
     const poller = new InboxPoller({
+      runtime: _rt,
       inboxUrl: "https://bridge.test/api/inbox/corr-1",
       messageBus: bus,
       leadName: "lead",
@@ -80,6 +84,7 @@ describe("InboxPoller", () => {
     const bus = createMessageBus({ participants: ["lead"] });
     const ac = new AbortController();
     const poller = new InboxPoller({
+      runtime: _rt,
       inboxUrl: null,
       messageBus: bus,
       leadName: "lead",

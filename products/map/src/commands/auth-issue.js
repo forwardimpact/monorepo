@@ -73,7 +73,7 @@ export async function runAuthIssueCommand({
     );
   }
 
-  const jwt = mintSupabaseJwt({ email, secret, ttlSeconds });
+  const jwt = mintSupabaseJwt({ email, secret, ttlSeconds }, runtime);
   runtime.proc.stdout.write(
     formatHeader(`Issued JWT for ${email} (${row.kind}, ttl=${ttlString})`) +
       "\n\n",

@@ -6,7 +6,6 @@ import {
   capitalizeFirstLetter,
 } from "./base.js";
 import { healthDefinition, createHealthHandlers } from "./health.js";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * gRPC Server class using pre-compiled service definitions
@@ -21,29 +20,29 @@ export class Server extends Rpc {
    * Creates a gRPC server for a service
    * @param {object} service - Service instance with business logic
    * @param {object} config - Server configuration
-   * @param {object} [logger] - Optional logger instance
-   * @param {import("@forwardimpact/libtelemetry").Tracer} [tracer] - Optional tracer for distributed tracing
-   * @param {(serviceName: string, logger: object, tracer: object) => object} observerFn - Observer factory
-   * @param {() => {grpc: object}} grpcFn - gRPC factory
-   * @param {(serviceName: string) => object} authFn - Auth factory
-   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Optional runtime bag;
-   *   falls back to `createDefaultRuntime()` so existing service callers keep working.
+   * @param {object} options - Injected collaborators and optional factory overrides
+   * @param {object} [options.logger] - Optional logger instance
+   * @param {import("@forwardimpact/libtelemetry").Tracer} [options.tracer] - Optional tracer for distributed tracing
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} options.runtime - Injected runtime bag
+   * @param {(serviceName: string, logger: object, tracer: object) => object} [options.observerFn] - Observer factory
+   * @param {() => {grpc: object}} [options.grpcFn] - gRPC factory
+   * @param {(serviceName: string) => object} [options.authFn] - Auth factory
    */
-  constructor(
-    service,
-    config,
-    logger = null,
-    tracer = null,
-    observerFn = createObserver,
-    grpcFn = createGrpc,
-    authFn = createAuth,
-    runtime = null,
-  ) {
+  constructor(service, config, options = {}) {
     if (!service) throw new Error("service is required");
+    const {
+      logger = null,
+      tracer = null,
+      runtime,
+      observerFn = createObserver,
+      grpcFn = createGrpc,
+      authFn = createAuth,
+    } = options;
+    if (!runtime) throw new Error("runtime is required");
 
     super(config, logger, tracer, observerFn, grpcFn, authFn);
     this.#service = service;
-    this.#runtime = runtime ?? createDefaultRuntime();
+    this.#runtime = runtime;
   }
 
   /** Starts the gRPC server */

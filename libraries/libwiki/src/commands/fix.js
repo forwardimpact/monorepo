@@ -115,7 +115,7 @@ export async function runFixCommand(ctx) {
       profilesDir: path.resolve(projectRoot, ".claude/agents"),
       runtime,
     }),
-    redactor: createRedactor(),
+    redactor: createRedactor({ runtime }),
   });
 
   // The audit is the verdict, not the agent's self-report: run, re-audit, and

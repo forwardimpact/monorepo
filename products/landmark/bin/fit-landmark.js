@@ -265,7 +265,8 @@ const definition = {
 };
 
 async function main() {
-  const cli = createCli(definition);
+  const runtime = createDefaultRuntime();
+  const cli = createCli(definition, { runtime });
   const parsed = cli.parse(process.argv.slice(2));
   if (!parsed) process.exit(0);
 
@@ -282,8 +283,6 @@ async function main() {
     cli.usageError(`unknown command "${command}"`);
     process.exit(2);
   }
-
-  const runtime = createDefaultRuntime();
 
   try {
     const dataDir = resolveDataDir(values, runtime);

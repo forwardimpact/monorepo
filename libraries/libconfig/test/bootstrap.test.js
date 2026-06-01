@@ -4,7 +4,14 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
 
-import { bootstrapProject } from "../src/bootstrap.js";
+import { bootstrapProject as _bootstrapProject } from "../src/bootstrap.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+// bootstrapProject requires an injected runtime; the tests exercise real fs,
+// so thread the production runtime through a thin wrapper.
+const _runtime = createDefaultRuntime();
+const bootstrapProject = (opts = {}) =>
+  _bootstrapProject({ ...opts, deps: { runtime: _runtime } });
 
 let testDir;
 

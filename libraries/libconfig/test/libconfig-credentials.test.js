@@ -3,6 +3,10 @@ import assert from "node:assert";
 
 import { createConfig } from "../src/index.js";
 import { createMockStorage, spy } from "@forwardimpact/libmock";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+// Wrap a test proc as a runtime bag (real fs + test-controlled proc).
+const rt = (proc) => ({ ...createDefaultRuntime(), proc });
 
 describe("libconfig - Anthropic and MCP credentials", () => {
   const baseMockProcess = () => ({
@@ -37,7 +41,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       "test",
       "myservice",
       {},
-      proc,
+      rt(proc),
       mockStorageFn(storage),
     );
     assert.strictEqual(config.mcpToken(), "mcp-secret-123");
@@ -51,7 +55,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       "test",
       "myservice",
       {},
-      baseMockProcess(),
+      rt(baseMockProcess()),
       mockStorageFn(storage),
     );
     assert.throws(() => config.mcpToken(), {
@@ -80,7 +84,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       "test",
       "myservice",
       {},
-      proc,
+      rt(proc),
       mockStorageFn(storage),
     );
     const token = await config.anthropicToken();
@@ -102,7 +106,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       "test",
       "myservice",
       {},
-      baseMockProcess(),
+      rt(baseMockProcess()),
       mockStorageFn(storage),
     );
     const token = await config.anthropicToken();
@@ -141,7 +145,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
         "test",
         "myservice",
         {},
-        proc,
+        rt(proc),
         mockStorageFn(storage),
       );
       const token = await config.anthropicToken();
@@ -178,7 +182,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
         "test",
         "myservice",
         {},
-        proc,
+        rt(proc),
         mockStorageFn(storage),
       );
       await assert.rejects(() => config.anthropicToken(), {
@@ -197,7 +201,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       "test",
       "myservice",
       {},
-      baseMockProcess(),
+      rt(baseMockProcess()),
       mockStorageFn(storage),
     );
     await assert.rejects(() => config.anthropicToken(), {
@@ -214,7 +218,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       "test",
       "myservice",
       {},
-      baseMockProcess(),
+      rt(baseMockProcess()),
       mockStorageFn(storage),
     );
 
@@ -243,7 +247,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       "test",
       "myservice",
       {},
-      baseMockProcess(),
+      rt(baseMockProcess()),
       mockStorageFn(storage),
     );
     await config.clearOAuthCredential();
@@ -257,7 +261,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       "test",
       "myservice",
       {},
-      baseMockProcess(),
+      rt(baseMockProcess()),
       mockStorageFn(storage),
     );
     // Should not throw

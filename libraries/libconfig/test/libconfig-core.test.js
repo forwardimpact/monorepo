@@ -12,6 +12,11 @@ import {
   createMockStorage,
   spy,
 } from "@forwardimpact/libmock";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+// Wrap a test proc as a runtime bag (real fs + test-controlled proc). The proc
+// object is shared so Config's env mutations remain observable on it.
+const rt = (proc) => ({ ...createDefaultRuntime(), proc });
 
 describe("libconfig - Config", () => {
   let mockProcess;
@@ -37,7 +42,7 @@ describe("libconfig - Config", () => {
       "test",
       "myservice",
       { defaultValue: 42 },
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -60,7 +65,7 @@ describe("libconfig - Config", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -80,7 +85,7 @@ describe("libconfig - Config", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -101,7 +106,7 @@ describe("libconfig - Config", () => {
       "test",
       "myservice",
       { numbers: [], boolean: false },
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -119,7 +124,7 @@ describe("libconfig - Config", () => {
       "test",
       "myservice",
       { invalid: "" },
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -132,7 +137,7 @@ describe("libconfig - Config", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -145,7 +150,7 @@ describe("libconfig - Config", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -162,7 +167,7 @@ describe("libconfig - Config", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -171,7 +176,7 @@ describe("libconfig - Config", () => {
 
   test("uses default storageFactory when storageFn not provided", async () => {
     mockProcess.env.STORAGE_ROOT = "/tmp";
-    const config = await createConfig("test", "myservice", {}, mockProcess);
+    const config = await createConfig("test", "myservice", {}, rt(mockProcess));
 
     assert.strictEqual(config.name, "myservice");
   });
@@ -184,7 +189,7 @@ describe("libconfig - Environment-driven storage integration", () => {
       cwd: () => "/test/dir",
     };
 
-    const config = await createConfig("test", "myservice", {}, mockProcess);
+    const config = await createConfig("test", "myservice", {}, rt(mockProcess));
 
     assert.strictEqual(config.name, "myservice");
   });
@@ -213,7 +218,7 @@ describe("libconfig - Environment-driven storage integration", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -226,7 +231,7 @@ describe("libconfig - Environment-driven storage integration", () => {
       cwd: () => "/test/dir",
     };
 
-    const config = await createConfig("test", "myservice", {}, mockProcess);
+    const config = await createConfig("test", "myservice", {}, rt(mockProcess));
 
     assert.strictEqual(config.name, "myservice");
     assert.strictEqual(config.namespace, "test");
@@ -250,7 +255,7 @@ describe("libconfig - Config methods", () => {
       "test",
       "myservice",
       {},
-      mockProcess,
+      rt(mockProcess),
       mockStorageFn,
     );
 
@@ -271,7 +276,7 @@ describe("libconfig - Config methods", () => {
     const config = await createServiceConfig(
       "testservice",
       { custom: "value" },
-      proc,
+      rt(proc),
       storageFn,
     );
 
@@ -290,7 +295,7 @@ describe("libconfig - Config methods", () => {
     const config = await createExtensionConfig(
       "testextension",
       { custom: "value" },
-      proc,
+      rt(proc),
       storageFn,
     );
 
@@ -309,7 +314,7 @@ describe("libconfig - Config methods", () => {
     const config = await createProductConfig(
       "testproduct",
       { custom: "value" },
-      proc,
+      rt(proc),
       storageFn,
     );
 

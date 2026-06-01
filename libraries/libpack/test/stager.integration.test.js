@@ -1,4 +1,6 @@
 import { describe, test, expect } from "bun:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const runtime = createDefaultRuntime();
 import { mkdtemp, readFile, readdir, stat } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
@@ -39,7 +41,7 @@ const CONTENT = {
 describe("PackStager", () => {
   test("stageFull creates expected file tree", async () => {
     const dir = await makeTempDir();
-    const stager = new PackStager();
+    const stager = new PackStager({ runtime });
     await stager.stageFull(dir, CONTENT);
 
     expect(
@@ -78,7 +80,7 @@ describe("PackStager", () => {
   test("stageApm produces APM layout with lock file", async () => {
     const fullDir = await makeTempDir();
     const apmDir = await makeTempDir();
-    const stager = new PackStager();
+    const stager = new PackStager({ runtime });
     await stager.stageFull(fullDir, CONTENT);
     await stager.stageApm(fullDir, apmDir, "se-platform", "1.0.0");
 
@@ -102,7 +104,7 @@ describe("PackStager", () => {
   });
 
   test("skillsDir returns .claude/skills path", () => {
-    const stager = new PackStager();
+    const stager = new PackStager({ runtime });
     expect(stager.skillsDir("/tmp/pack")).toBe("/tmp/pack/.claude/skills");
   });
 });

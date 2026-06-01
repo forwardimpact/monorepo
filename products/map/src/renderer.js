@@ -99,9 +99,10 @@ export class Renderer {
 
 /**
  * Wire a Renderer with the package's bundled templates directory.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
  * @returns {Renderer}
  */
-export function createRenderer() {
+export function createRenderer(runtime) {
   const templateDir = join(__dirname, "..", "templates");
-  return new Renderer(new TemplateLoader(templateDir));
+  return new Renderer(new TemplateLoader(templateDir, runtime));
 }

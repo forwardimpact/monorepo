@@ -20,6 +20,7 @@
  */
 
 import { test, describe, beforeEach, afterEach } from "node:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import assert from "node:assert";
 import { mkdtempSync, rmSync } from "node:fs";
 import * as fsp from "node:fs/promises";
@@ -89,7 +90,7 @@ afterEach(() => {
 describe("end-to-end export → resource → graph pipeline", () => {
   test("fit-map export → ResourceProcessor → GraphProcessor → getSubjects('fit:Skill') returns the fixture skill", async () => {
     // 1. Export to a temp knowledge dir
-    const exporter = new Exporter(fsp, createRenderer());
+    const exporter = new Exporter(fsp, createRenderer(createDefaultRuntime()));
     const { errors } = await exporter.exportAll({ data: DATA, outputDir });
     assert.strictEqual(errors.length, 0, "export should produce no errors");
 

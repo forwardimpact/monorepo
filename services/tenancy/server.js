@@ -15,11 +15,12 @@ const logger = createLogger("tenancy");
 const tracer = await createTracer("tenancy");
 const storage = createStorage("tenancy");
 
-const { clock } = createDefaultRuntime();
+const runtime = createDefaultRuntime();
+const { clock } = runtime;
 const tenants = new TenantStore(storage, { clock });
 
 const service = new TenancyService(config, { tenants });
-const server = new Server(service, config, logger, tracer);
+const server = new Server(service, config, { logger, tracer, runtime });
 
 await server.start();
 

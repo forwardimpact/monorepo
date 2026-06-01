@@ -20,13 +20,14 @@ const config = await createServiceConfig("bridge", {
 });
 
 // Initialize observability
-const logger = createLogger("bridge");
+const runtime = createDefaultRuntime();
+const logger = createLogger("bridge", runtime);
 const tracer = await createTracer("bridge");
 
 const storage = createStorage("bridges");
-const { clock } = createDefaultRuntime();
+const { clock } = runtime;
 
 const service = new BridgeService(config, { storage, logger, tracer, clock });
-const server = new Server(service, config, logger, tracer);
+const server = new Server(service, config, { logger, tracer, runtime });
 
 await server.start();

@@ -43,7 +43,7 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition);
+const cli = createCli(definition, { runtime });
 
 const parsed = cli.parse(runtime.proc.argv.slice(2));
 if (!parsed) runtime.proc.exit(0);
@@ -99,7 +99,9 @@ const repl = new Repl({
 
   setup: async (state) => {
     const traceStorage = createStorage("traces");
-    state.traceIndex = new TraceIndex(traceStorage, "index.jsonl");
+    state.traceIndex = new TraceIndex(traceStorage, "index.jsonl", {
+      clock: runtime.clock,
+    });
     state.visualizer = new TraceVisualizer(state.traceIndex, runtime);
   },
 

@@ -1,5 +1,3 @@
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
-
 /**
  * Sliding-window rate limiter. Operates on a caller-owned `dispatches: number[]`
  * array of timestamps and returns a structured result so callers can both
@@ -16,11 +14,8 @@ export class RateLimiter {
    * @param {number} [options.max] - Max dispatches allowed in the window (default: 5)
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
    */
-  constructor({
-    windowMs = 60_000,
-    max = 5,
-    clock = createDefaultClock(),
-  } = {}) {
+  constructor({ windowMs = 60_000, max = 5, clock } = {}) {
+    if (!clock) throw new Error("clock is required");
     this.#windowMs = windowMs;
     this.#max = max;
     this.#clock = clock;

@@ -9,6 +9,16 @@ import { trace } from "@forwardimpact/libtype";
  */
 export class TraceIndex extends BufferedIndex {
   /**
+   * @param {import("@forwardimpact/libstorage").StorageInterface} storage
+   * @param {string} [indexKey]
+   * @param {object} [deps]
+   * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock
+   */
+  constructor(storage, indexKey = "index.jsonl", { clock } = {}) {
+    super(storage, indexKey, {}, { clock });
+  }
+
+  /**
    * Loads data from storage and reconstructs Span objects
    * Overrides parent to ensure proper protobuf enum deserialization
    * @returns {Promise<void>}

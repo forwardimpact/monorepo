@@ -264,7 +264,8 @@ const definition = {
  * Main CLI entry point
  */
 async function main() {
-  const cli = createCli(definition);
+  const runtime = createDefaultRuntime();
+  const cli = createCli(definition, { runtime });
   const parsed = cli.parse(process.argv.slice(2));
   if (!parsed) process.exit(0);
 
@@ -275,8 +276,6 @@ async function main() {
     cli.showHelp();
     process.exit(0);
   }
-
-  const runtime = createDefaultRuntime();
 
   let dataDir;
   if (values.data) {
@@ -322,7 +321,7 @@ async function main() {
 
   try {
     const loader = createDataLoader(runtime);
-    const templateLoader = createTemplateLoader(TEMPLATE_DIR);
+    const templateLoader = createTemplateLoader(TEMPLATE_DIR, runtime);
 
     const data = await loader.loadAndValidate(dataDir);
 

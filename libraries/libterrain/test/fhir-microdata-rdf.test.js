@@ -16,6 +16,7 @@ import {
   PathwayGenerator,
 } from "@forwardimpact/libsyntheticprose";
 import { TemplateLoader } from "@forwardimpact/libtemplate/loader";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { Parser } from "@forwardimpact/libresource/parser.js";
 import { Skolemizer } from "@forwardimpact/libresource/skolemizer.js";
 import { Pipeline } from "../src/pipeline.js";
@@ -116,11 +117,14 @@ function makeFhirToolFactory() {
 function makePipeline() {
   const tmpDir = mkdtempSync(join(tmpdir(), "fhir-rdf-"));
   const logger = makeLogger();
+  const runtime = createDefaultRuntime();
   const proseCache = new ProseCache({
+    runtime,
     cachePath: join(tmpDir, "cache.json"),
     logger,
   });
   const proseGenerator = new ProseGenerator({
+    runtime,
     cache: proseCache,
     mode: "no-prose",
     promptLoader: { load: () => "system", render: () => "user" },
@@ -128,14 +132,19 @@ function makePipeline() {
   });
   const deps = {
     dslParser: createDslParser(),
-    entityGenerator: createEntityGenerator(logger),
+    entityGenerator: createEntityGenerator(logger, runtime),
     proseCache,
     proseGenerator,
     pathwayGenerator: new PathwayGenerator(proseGenerator, logger),
-    renderer: new Renderer(new TemplateLoader(TEMPLATE_DIR), logger),
+    renderer: new Renderer(
+      new TemplateLoader(TEMPLATE_DIR, createDefaultRuntime()),
+      logger,
+      runtime,
+    ),
     validator: new ContentValidator(logger),
     proseCacheSink: new NullProseCacheSink(),
     toolFactory: makeFhirToolFactory(),
+    runtime,
     logger,
   };
   return { tmpDir, pipeline: new Pipeline(deps) };

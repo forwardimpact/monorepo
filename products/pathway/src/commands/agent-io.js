@@ -16,8 +16,6 @@ import { formatTeamInstructions } from "../formatters/agent/team-instructions.js
 import { formatSuccess } from "@forwardimpact/libcli";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-const logger = createLogger("pathway");
-
 /**
  * Async file-existence check over the injected async fs surface. Keeps this
  * module on a single fs surface (async only) per spec § Scope / design
@@ -51,6 +49,7 @@ async function ensureDir(filePath, runtime) {
  * @param {Object} claudeSettings - Settings loaded from data
  */
 export async function generateClaudeSettings(baseDir, claudeSettings, runtime) {
+  const logger = createLogger("pathway", runtime);
   const settingsPath = join(baseDir, ".claude", "settings.json");
 
   let settings = {};
@@ -77,6 +76,7 @@ export async function generateClaudeSettings(baseDir, claudeSettings, runtime) {
  * @param {Object} vscodeSettings - Settings loaded from data
  */
 export async function generateVscodeSettings(baseDir, vscodeSettings, runtime) {
+  const logger = createLogger("pathway", runtime);
   if (!vscodeSettings || Object.keys(vscodeSettings).length === 0) return;
 
   const settingsPath = join(baseDir, ".vscode", "settings.json");
@@ -105,6 +105,7 @@ export async function generateVscodeSettings(baseDir, vscodeSettings, runtime) {
  * @param {string} template - Mustache template for agent profile
  */
 export async function writeProfile(profile, baseDir, template, runtime) {
+  const logger = createLogger("pathway", runtime);
   const profilePath = join(baseDir, ".claude", "agents", profile.filename);
   const profileContent = formatAgentProfile(profile, template);
   await ensureDir(profilePath, runtime);
@@ -128,6 +129,7 @@ export async function writeTeamInstructions(
   template,
   runtime,
 ) {
+  const logger = createLogger("pathway", runtime);
   const content = formatTeamInstructions(
     teamInstructions,
     orgSection,
@@ -160,6 +162,7 @@ export async function writeSkillReferences(
   template,
   runtime,
 ) {
+  const logger = createLogger("pathway", runtime);
   const refDir = join(skillDir, "references");
   await runtime.fs.rm(refDir, { recursive: true, force: true });
   if (!references || references.length === 0) return 0;
@@ -184,6 +187,7 @@ export async function writeSkillReferences(
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
  */
 export async function writeSkills(skills, baseDir, templates, runtime) {
+  const logger = createLogger("pathway", runtime);
   let fileCount = 0;
   for (const skill of skills) {
     const skillDir = join(baseDir, ".claude", "skills", skill.dirname);

@@ -2,7 +2,6 @@
  * Unix socket client utilities for communicating with svscan daemon.
  */
 import net from "node:net";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 export { ServiceManager } from "./manager.js";
 
@@ -41,13 +40,13 @@ export function sendCommand(socketPath, cmd) {
  * Waits for socket to become available
  * @param {string} socketPath - Path to Unix socket
  * @param {number} timeout - Timeout in ms
- * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Runtime
- *   bag. Falls back to `createDefaultRuntime()` so existing callers keep
- *   working without change.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected
+ *   runtime bag (supplies the clock).
  * @returns {Promise<boolean>} True if socket available
  */
 export async function waitForSocket(socketPath, timeout, runtime) {
-  const { clock } = runtime ?? createDefaultRuntime();
+  if (!runtime) throw new Error("runtime is required");
+  const { clock } = runtime;
   const start = clock.now();
   while (clock.now() - start < timeout) {
     try {

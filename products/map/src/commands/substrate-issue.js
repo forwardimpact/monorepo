@@ -68,7 +68,7 @@ export async function runSubstrateIssueCommand({
   }
 
   const secret = config.supabaseJwtSecret();
-  const jwt = mintSupabaseJwt({ email, secret, ttlSeconds });
+  const jwt = mintSupabaseJwt({ email, secret, ttlSeconds }, runtime);
 
   const { snapshot_id, item_id } = await resolveDiscoveryVector(supabase);
 

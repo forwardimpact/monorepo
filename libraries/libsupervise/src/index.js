@@ -20,6 +20,6 @@ import { SupervisionTree } from "./tree.js";
 export function createSupervisionTree(logDir, options = {}) {
   const { runtime, ...config } = options;
   if (!runtime) throw new Error("runtime is required");
-  const logger = createLogger("tree");
+  const logger = createLogger("tree", runtime);
   return new SupervisionTree(logDir, { ...config, runtime, logger });
 }

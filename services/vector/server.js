@@ -9,13 +9,15 @@ import { VectorIndex } from "@forwardimpact/libvector/index/vector.js";
 import { createStorage } from "@forwardimpact/libstorage";
 import { createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { VectorService } from "./index.js";
 
 const config = await createServiceConfig("vector");
 
 // Initialize observability
-const logger = createLogger("vector");
+const runtime = createDefaultRuntime();
+const logger = createLogger("vector", runtime);
 const tracer = await createTracer("vector");
 
 // gRPC embedding client
@@ -39,6 +41,6 @@ const vectorStorage = createStorage("vectors");
 const vectorIndex = new VectorIndex(vectorStorage);
 
 const service = new VectorService(config, vectorIndex, createEmbeddings);
-const server = new Server(service, config, logger, tracer);
+const server = new Server(service, config, { logger, tracer, runtime });
 
 await server.start();

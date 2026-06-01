@@ -1,40 +1,15 @@
-import nodeFsSync from "node:fs";
-import nodeFsPromises from "node:fs/promises";
 import path from "path";
 import { createRequire } from "node:module";
 
 const NOOP_LOGGER = { debug() {} };
 
 /**
- * Detect the new collaborator-config constructor form. The legacy positional
- * form passes an fs module as the first argument (which carries `readFile`);
- * the new form passes `{ fs, fsSync?, proc, logger? }`.
- * @param {*} arg - The first constructor argument.
- * @returns {boolean}
- */
-function isRuntimeConfig(arg) {
-  return (
-    arg != null &&
-    typeof arg === "object" &&
-    !Array.isArray(arg) &&
-    (arg.proc !== undefined ||
-      arg.fsSync !== undefined ||
-      (arg.fs !== undefined && typeof arg.readFile !== "function"))
-  );
-}
-
-/**
  * Finder class for project path resolution and symlink management.
  * Handles filesystem operations for linking generated code to packages.
  *
- * Two constructor forms are supported during the ambient-to-injected migration:
- *
- * - Collaborator config (canonical): `new Finder({ fs, fsSync?, proc, logger? })`.
- *   The injected `fs` (async) and `fsSync` (sync, for existence checks) flow
- *   through to every internal call — the spec-flagged dead-`fs` bug is fixed.
- * - Legacy positional (deprecated, one migration cycle):
- *   `new Finder(fs, logger, process)`. Preserved byte-for-byte so existing
- *   call sites stay green until their per-unit migration PRs convert them.
+ * Constructed with injected collaborators: `new Finder({ fs, fsSync?, proc,
+ * logger? })`. The injected `fs` (async) and `fsSync` (sync, for existence
+ * checks) flow through to every internal call.
  */
 export class Finder {
   #fs;
@@ -43,39 +18,28 @@ export class Finder {
   #proc;
 
   /**
-   * @param {object} fsOrConfig - Either `{ fs, fsSync?, proc, logger? }` (new)
-   *   or the async fs module (legacy positional first argument).
-   * @param {object} [logger] - Legacy positional logger.
-   * @param {object} [proc] - Legacy positional process (cwd provider).
+   * @param {object} config - Injected collaborators.
+   * @param {object} config.fs - Async fs surface (mkdir, lstat, symlink, …).
+   * @param {object} [config.fsSync] - Sync fs surface for existence checks;
+   *   falls back to `fs` when omitted.
+   * @param {object} config.proc - Process collaborator (cwd provider).
+   * @param {object} [config.logger] - Optional logger; defaults to a no-op.
    */
-  constructor(fsOrConfig, logger, proc = global.process) {
-    if (isRuntimeConfig(fsOrConfig)) {
-      // Finder is the one module that legitimately bridges the sync and async
-      // fs surfaces (existence checks vs. symlink ops), so it reads both fields
-      // by property access rather than a single `{ fs, fsSync }` destructure
-      // (which design Decision 7 reserves for consumer modules).
-      const fs = fsOrConfig.fs;
-      const fsSync = fsOrConfig.fsSync;
-      const procArg = fsOrConfig.proc;
-      if (!fs) throw new Error("fs is required");
-      if (!procArg) throw new Error("proc is required");
-      this.#fs = fs;
-      const existsTarget = fsSync ?? fs;
-      this.#existsSync = existsTarget.existsSync.bind(existsTarget);
-      this.#proc = procArg;
-      this.#logger = fsOrConfig.logger ?? NOOP_LOGGER;
-      return;
-    }
-    // Legacy positional form: behavior identical to the pre-1370 Finder —
-    // every fs operation routes through the module-level node:fs imports
-    // (the historical dead-`fs` behavior callers depend on).
-    if (!fsOrConfig) throw new Error("fs is required");
-    if (!logger) throw new Error("logger is required");
-    if (!proc) throw new Error("process is required");
-    this.#fs = nodeFsPromises;
-    this.#existsSync = (p) => nodeFsSync.existsSync(p);
-    this.#logger = logger;
+  constructor(config = {}) {
+    // Finder is the one module that legitimately bridges the sync and async
+    // fs surfaces (existence checks vs. symlink ops), so it reads both fields
+    // by property access rather than a single `{ fs, fsSync }` destructure
+    // (which design Decision 7 reserves for consumer modules).
+    const fs = config.fs;
+    const fsSync = config.fsSync;
+    const proc = config.proc;
+    if (!fs) throw new Error("fs is required");
+    if (!proc) throw new Error("proc is required");
+    this.#fs = fs;
+    const existsTarget = fsSync ?? fs;
+    this.#existsSync = existsTarget.existsSync.bind(existsTarget);
     this.#proc = proc;
+    this.#logger = config.logger ?? NOOP_LOGGER;
   }
 
   /**

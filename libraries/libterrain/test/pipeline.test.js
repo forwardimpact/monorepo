@@ -19,6 +19,7 @@ import {
   PathwayGenerator,
 } from "@forwardimpact/libsyntheticprose";
 import { TemplateLoader } from "@forwardimpact/libtemplate/loader";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { Pipeline } from "../src/pipeline.js";
 import { NullProseCacheSink } from "../src/sinks.js";
 
@@ -92,11 +93,14 @@ function makePipelineDeps({
 } = {}) {
   const tmpDir = mkdtempSync(join(tmpdir(), "pipeline-deps-"));
   const logger = makeLogger();
+  const runtime = createDefaultRuntime();
   const proseCache = new ProseCache({
+    runtime,
     cachePath: join(tmpDir, "cache.json"),
     logger,
   });
   const proseGenerator = new ProseGenerator({
+    runtime,
     cache: proseCache,
     mode,
     strict,
@@ -107,14 +111,19 @@ function makePipelineDeps({
     tmpDir,
     deps: {
       dslParser: createDslParser(),
-      entityGenerator: createEntityGenerator(logger),
+      entityGenerator: createEntityGenerator(logger, runtime),
       proseCache,
       proseGenerator,
       pathwayGenerator: new PathwayGenerator(proseGenerator, logger),
-      renderer: new Renderer(new TemplateLoader(TEMPLATE_DIR), logger),
+      renderer: new Renderer(
+        new TemplateLoader(TEMPLATE_DIR, createDefaultRuntime()),
+        logger,
+        runtime,
+      ),
       validator: new ContentValidator(logger),
       proseCacheSink: new NullProseCacheSink(),
       toolFactory,
+      runtime,
       logger,
     },
   };
@@ -137,7 +146,10 @@ describe("Pipeline integration", () => {
     const source = readFileSync(FIXTURE_PATH, "utf-8");
     const parser = createDslParser();
     const ast = parser.parse(source);
-    const generator = createEntityGenerator(makeLogger());
+    const generator = createEntityGenerator(
+      makeLogger(),
+      createDefaultRuntime(),
+    );
     const entities = generator.generate(ast);
 
     assert.ok(entities.orgs.length > 0);
@@ -152,7 +164,10 @@ describe("Pipeline integration", () => {
     const source = readFileSync(FIXTURE_PATH, "utf-8");
     const parser = createDslParser();
     const ast = parser.parse(source);
-    const generator = createEntityGenerator(makeLogger());
+    const generator = createEntityGenerator(
+      makeLogger(),
+      createDefaultRuntime(),
+    );
     const entities = generator.generate(ast);
 
     for (const org of entities.orgs) {
@@ -373,7 +388,10 @@ describe("Pipeline integration", () => {
     const source = readFileSync(FIXTURE_PATH, "utf-8");
     const parser = createDslParser();
     const ast = parser.parse(source);
-    const generator = createEntityGenerator(makeLogger());
+    const generator = createEntityGenerator(
+      makeLogger(),
+      createDefaultRuntime(),
+    );
     const entities = generator.generate(ast);
     const result = validateCrossContent(entities);
 

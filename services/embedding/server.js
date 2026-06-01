@@ -6,6 +6,7 @@ import { Server } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { EmbeddingService } from "./index.js";
 
@@ -14,7 +15,8 @@ const config = await createServiceConfig("embedding", {
   model: "BAAI/bge-small-en-v1.5",
 });
 
-const logger = createLogger("embedding");
+const runtime = createDefaultRuntime();
+const logger = createLogger("embedding", runtime);
 const tracer = await createTracer("embedding");
 
 const backend_port = config.backend_port;
@@ -38,6 +40,6 @@ tei.on("exit", (code, signal) => {
 });
 
 const service = new EmbeddingService(config, backendUrl);
-const server = new Server(service, config, logger, tracer);
+const server = new Server(service, config, { logger, tracer, runtime });
 
 await server.start();

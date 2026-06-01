@@ -1,4 +1,6 @@
 import { describe, test } from "node:test";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const _rt = createDefaultRuntime();
 import assert from "node:assert";
 import { PassThrough, Writable } from "node:stream";
 
@@ -57,6 +59,7 @@ describe("Producer pipeline — sentinel sweep (criterion 1)", () => {
     const sink = captureSink();
 
     const redactor = createRedactor({
+      runtime: _rt,
       env: {
         ANTHROPIC_API_KEY: ANTH_SENT,
         GH_TOKEN: GH_SENT,
@@ -146,7 +149,7 @@ describe("Producer pipeline — sentinel sweep (criterion 1)", () => {
 describe("Producer pipeline — patterns (criterion 2)", () => {
   test("pattern hits redact when no env vars are configured", async () => {
     const sink = captureSink();
-    const redactor = createRedactor({ env: {} });
+    const redactor = createRedactor({ runtime: _rt, env: {} });
 
     const anth = "sk-ant-" + "a".repeat(95);
     const ghp = "ghp_" + "A".repeat(36);
@@ -211,6 +214,7 @@ describe("Producer pipeline — opt-out warning (criterion 4)", () => {
     };
     try {
       redactor = createRedactor({
+        runtime: _rt,
         env: {
           LIBEVAL_REDACTION_DISABLED: "1",
           ANTHROPIC_API_KEY: ANTH_SENT,
@@ -257,6 +261,7 @@ describe("Producer pipeline — toText() byte-for-byte placeholder fidelity (cri
   test("captured NDJSON replays placeholders identically through TraceCollector.toText()", async () => {
     const sink = captureSink();
     const redactor = createRedactor({
+      runtime: _rt,
       env: { ANTHROPIC_API_KEY: ANTH_SENT, GH_TOKEN: GH_SENT },
     });
 
@@ -323,6 +328,7 @@ describe("Producer pipeline — toText() byte-for-byte placeholder fidelity (cri
     });
 
     const redactor = createRedactor({
+      runtime: _rt,
       env: { GH_TOKEN: GH_SENT },
     });
 
@@ -397,7 +403,10 @@ describe("Producer pipeline — Supervisor.emitSummary covers Conclude-handler t
     const agentRunner = createMockRunner([]);
 
     const sink = captureSink();
-    const redactor = createRedactor({ env: { GH_TOKEN: GH_SENT } });
+    const redactor = createRedactor({
+      runtime: _rt,
+      env: { GH_TOKEN: GH_SENT },
+    });
 
     const supervisor = new Supervisor({
       agentRunner,
@@ -460,7 +469,10 @@ describe("Producer pipeline — Facilitator.emitSummary covers Conclude-handler 
     const agentRunner = createMockRunner([]);
 
     const sink = captureSink();
-    const redactor = createRedactor({ env: { GH_TOKEN: GH_SENT } });
+    const redactor = createRedactor({
+      runtime: _rt,
+      env: { GH_TOKEN: GH_SENT },
+    });
 
     const facilitator = new Facilitator({
       facilitatorRunner,

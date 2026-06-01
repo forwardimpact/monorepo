@@ -12,6 +12,9 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { ProseCache } from "../src/engine/cache.js";
 import { ProseGenerator } from "../src/engine/generator.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+const _runtime = createDefaultRuntime();
 
 function makeLogger() {
   return {
@@ -42,9 +45,11 @@ function makeFixture() {
   const cache = new ProseCache({
     cachePath: join(tmpDir, "cache.json"),
     logger: makeLogger(),
+    runtime: _runtime,
   });
   const generator = new ProseGenerator({
     cache,
+    runtime: _runtime,
     mode: "generate",
     promptLoader: makeEchoPromptLoader(),
     logger: makeLogger(),

@@ -19,7 +19,6 @@ import { join } from "path";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createDataLoader } from "@forwardimpact/map/loader";
 
-const logger = createLogger("pathway");
 import { createTemplateLoader } from "@forwardimpact/libtemplate";
 import {
   generateAgentProfile,
@@ -222,13 +221,14 @@ export async function generatePacks({
   templatesDir,
   runtime,
 }) {
+  const logger = createLogger("pathway", runtime);
   logger.info("📦 Generating agent/skill packs...");
 
   const normalizedSiteUrl = siteUrl.replace(/\/$/, "");
   const standardTitle = standard.title || "Engineering Pathway";
 
   const loader = createDataLoader(runtime);
-  const templateLoader = createTemplateLoader(templatesDir);
+  const templateLoader = createTemplateLoader(templatesDir, runtime);
 
   const data = await loader.loadAndValidate(dataDir);
   const agentData = await loader.loadAgentData(dataDir);
@@ -280,12 +280,13 @@ export async function generatePacks({
   });
 
   const builder = new PackBuilder({
-    stager: new PackStager(),
+    stager: new PackStager({ runtime }),
     emitters: {
-      tar: new TarEmitter(),
-      git: new GitEmitter(),
-      disc: new DiscEmitter(),
+      tar: new TarEmitter({ runtime }),
+      git: new GitEmitter({ runtime }),
+      disc: new DiscEmitter({ runtime }),
     },
+    runtime,
   });
 
   const { packs } = await builder.build({ combinations, outputDir, version });

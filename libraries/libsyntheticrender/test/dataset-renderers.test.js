@@ -1,6 +1,8 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 import { renderDataset } from "../src/render/dataset-renderers.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const _rt = createDefaultRuntime();
 import { assertRejectsMessage } from "@forwardimpact/libmock";
 
 const FIXTURE = {
@@ -24,9 +26,14 @@ const EMPTY = {
 describe("dataset renderers", () => {
   describe("JSON", () => {
     test("renders valid JSON", async () => {
-      const result = await renderDataset(FIXTURE, "json", {
-        path: "out/test.json",
-      });
+      const result = await renderDataset(
+        FIXTURE,
+        "json",
+        {
+          path: "out/test.json",
+        },
+        _rt,
+      );
       assert.strictEqual(result.size, 1);
       const content = result.get("out/test.json");
       const parsed = JSON.parse(content);
@@ -35,22 +42,37 @@ describe("dataset renderers", () => {
     });
 
     test("round-trips records", async () => {
-      const result = await renderDataset(FIXTURE, "json", { path: "x.json" });
+      const result = await renderDataset(
+        FIXTURE,
+        "json",
+        { path: "x.json" },
+        _rt,
+      );
       const parsed = JSON.parse(result.get("x.json"));
       assert.deepStrictEqual(parsed, FIXTURE.records);
     });
 
     test("handles empty dataset", async () => {
-      const result = await renderDataset(EMPTY, "json", { path: "e.json" });
+      const result = await renderDataset(
+        EMPTY,
+        "json",
+        { path: "e.json" },
+        _rt,
+      );
       assert.deepStrictEqual(JSON.parse(result.get("e.json")), []);
     });
   });
 
   describe("YAML", () => {
     test("renders YAML content", async () => {
-      const result = await renderDataset(FIXTURE, "yaml", {
-        path: "out/test.yaml",
-      });
+      const result = await renderDataset(
+        FIXTURE,
+        "yaml",
+        {
+          path: "out/test.yaml",
+        },
+        _rt,
+      );
       const content = result.get("out/test.yaml");
       assert.ok(content.includes("Alice"));
       assert.ok(content.includes("Bob"));
@@ -59,9 +81,14 @@ describe("dataset renderers", () => {
 
   describe("CSV", () => {
     test("renders header and rows", async () => {
-      const result = await renderDataset(FIXTURE, "csv", {
-        path: "out/test.csv",
-      });
+      const result = await renderDataset(
+        FIXTURE,
+        "csv",
+        {
+          path: "out/test.csv",
+        },
+        _rt,
+      );
       const lines = result.get("out/test.csv").split("\n");
       assert.strictEqual(lines[0], "id,name,active,score,tags");
       assert.ok(lines[1].startsWith("1,Alice,true,9.5,"));
@@ -74,13 +101,13 @@ describe("dataset renderers", () => {
         records: [{ val: "hello, world" }],
         metadata: {},
       };
-      const result = await renderDataset(ds, "csv", { path: "c.csv" });
+      const result = await renderDataset(ds, "csv", { path: "c.csv" }, _rt);
       const lines = result.get("c.csv").split("\n");
       assert.ok(lines[1].includes('"hello, world"'));
     });
 
     test("handles empty dataset", async () => {
-      const result = await renderDataset(EMPTY, "csv", { path: "e.csv" });
+      const result = await renderDataset(EMPTY, "csv", { path: "e.csv" }, _rt);
       assert.strictEqual(result.get("e.csv"), "");
     });
 
@@ -91,7 +118,7 @@ describe("dataset renderers", () => {
         records: [{ data: { key: "val" } }],
         metadata: {},
       };
-      const result = await renderDataset(ds, "csv", { path: "n.csv" });
+      const result = await renderDataset(ds, "csv", { path: "n.csv" }, _rt);
       const content = result.get("n.csv");
       // Nested object is serialized as JSON, then CSV-escaped (quotes doubled)
       assert.ok(content.includes('{""key"":""val""}'));
@@ -100,9 +127,14 @@ describe("dataset renderers", () => {
 
   describe("Markdown", () => {
     test("renders table with header", async () => {
-      const result = await renderDataset(FIXTURE, "markdown", {
-        path: "out/test.md",
-      });
+      const result = await renderDataset(
+        FIXTURE,
+        "markdown",
+        {
+          path: "out/test.md",
+        },
+        _rt,
+      );
       const content = result.get("out/test.md");
       assert.ok(content.startsWith("# test_records"));
       assert.ok(content.includes("| id | name |"));
@@ -111,7 +143,12 @@ describe("dataset renderers", () => {
     });
 
     test("handles empty dataset", async () => {
-      const result = await renderDataset(EMPTY, "markdown", { path: "e.md" });
+      const result = await renderDataset(
+        EMPTY,
+        "markdown",
+        { path: "e.md" },
+        _rt,
+      );
       const content = result.get("e.md");
       assert.ok(content.includes("No records."));
     });
@@ -123,17 +160,22 @@ describe("dataset renderers", () => {
         records: [{ val: "a|b" }],
         metadata: {},
       };
-      const result = await renderDataset(ds, "markdown", { path: "p.md" });
+      const result = await renderDataset(ds, "markdown", { path: "p.md" }, _rt);
       assert.ok(result.get("p.md").includes("a\\|b"));
     });
   });
 
   describe("SQL INSERT", () => {
     test("renders INSERT statement", async () => {
-      const result = await renderDataset(FIXTURE, "sql", {
-        path: "out/test.sql",
-        table: "my_table",
-      });
+      const result = await renderDataset(
+        FIXTURE,
+        "sql",
+        {
+          path: "out/test.sql",
+          table: "my_table",
+        },
+        _rt,
+      );
       const content = result.get("out/test.sql");
       assert.ok(content.startsWith('INSERT INTO "my_table"'));
       assert.ok(content.includes('"id"'));
@@ -144,9 +186,14 @@ describe("dataset renderers", () => {
     });
 
     test("uses dataset name as default table", async () => {
-      const result = await renderDataset(FIXTURE, "sql", {
-        path: "out/test.sql",
-      });
+      const result = await renderDataset(
+        FIXTURE,
+        "sql",
+        {
+          path: "out/test.sql",
+        },
+        _rt,
+      );
       const content = result.get("out/test.sql");
       assert.ok(content.includes('"test_records"'));
     });
@@ -158,26 +205,41 @@ describe("dataset renderers", () => {
         records: [{ val: "it's" }],
         metadata: {},
       };
-      const result = await renderDataset(ds, "sql", {
-        path: "e.sql",
-        table: "t",
-      });
+      const result = await renderDataset(
+        ds,
+        "sql",
+        {
+          path: "e.sql",
+          table: "t",
+        },
+        _rt,
+      );
       assert.ok(result.get("e.sql").includes("'it''s'"));
     });
 
     test("renders NULL for null values", async () => {
-      const result = await renderDataset(FIXTURE, "sql", {
-        path: "n.sql",
-        table: "t",
-      });
+      const result = await renderDataset(
+        FIXTURE,
+        "sql",
+        {
+          path: "n.sql",
+          table: "t",
+        },
+        _rt,
+      );
       assert.ok(result.get("n.sql").includes("NULL"));
     });
 
     test("handles empty dataset", async () => {
-      const result = await renderDataset(EMPTY, "sql", {
-        path: "e.sql",
-        table: "t",
-      });
+      const result = await renderDataset(
+        EMPTY,
+        "sql",
+        {
+          path: "e.sql",
+          table: "t",
+        },
+        _rt,
+      );
       assert.ok(result.get("e.sql").includes("No records"));
     });
   });
@@ -193,9 +255,12 @@ describe("dataset renderers", () => {
         ],
         metadata: {},
       };
-      const result = await renderDataset(simpleDs, "parquet", {
-        path: "out/test.parquet",
-      });
+      const result = await renderDataset(
+        simpleDs,
+        "parquet",
+        { path: "out/test.parquet" },
+        _rt,
+      );
       const buf = result.get("out/test.parquet");
       assert.ok(Buffer.isBuffer(buf));
       assert.ok(buf.length > 0);
@@ -207,7 +272,7 @@ describe("dataset renderers", () => {
   describe("dispatch", () => {
     test("throws on unknown format", async () => {
       await assertRejectsMessage(
-        () => renderDataset(FIXTURE, "xlsx", { path: "x" }),
+        () => renderDataset(FIXTURE, "xlsx", { path: "x" }, _rt),
         /Unknown format: xlsx/,
       );
     });

@@ -33,14 +33,24 @@ export class BridgeService extends BridgeBase {
     super(config);
     if (!clock) throw new Error("clock is required");
     this.#clock = clock;
-    this.#discussions = new BufferedIndex(storage, "discussions.jsonl", {
-      flush_interval: config.discussion_flush_interval_ms,
-      max_buffer_size: config.discussion_max_buffer_size,
-    });
-    this.#origins = new BufferedIndex(storage, "origins.jsonl", {
-      flush_interval: config.origin_flush_interval_ms,
-      max_buffer_size: config.origin_max_buffer_size,
-    });
+    this.#discussions = new BufferedIndex(
+      storage,
+      "discussions.jsonl",
+      {
+        flush_interval: config.discussion_flush_interval_ms,
+        max_buffer_size: config.discussion_max_buffer_size,
+      },
+      { clock: this.#clock },
+    );
+    this.#origins = new BufferedIndex(
+      storage,
+      "origins.jsonl",
+      {
+        flush_interval: config.origin_flush_interval_ms,
+        max_buffer_size: config.origin_max_buffer_size,
+      },
+      { clock: this.#clock },
+    );
     this.#pendingDispatches = new BufferedIndex(
       storage,
       "pending_dispatches.jsonl",
@@ -48,11 +58,17 @@ export class BridgeService extends BridgeBase {
         flush_interval: config.pending_flush_interval_ms ?? 1_000,
         max_buffer_size: 100,
       },
+      { clock: this.#clock },
     );
-    this.#inbox = new BufferedIndex(storage, "inbox.jsonl", {
-      flush_interval: config.discussion_flush_interval_ms,
-      max_buffer_size: config.discussion_max_buffer_size,
-    });
+    this.#inbox = new BufferedIndex(
+      storage,
+      "inbox.jsonl",
+      {
+        flush_interval: config.discussion_flush_interval_ms,
+        max_buffer_size: config.discussion_max_buffer_size,
+      },
+      { clock: this.#clock },
+    );
     this.#inboxSeqs = new Map();
     this.#conversationTtlMs = config.conversation_ttl_ms;
     this.#originTtlMs = config.origin_ttl_ms;
@@ -238,7 +254,6 @@ export class BridgeService extends BridgeBase {
     return evicted;
   }
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: three-index sweep with eviction and flush
   async #sweep(now) {
     await this.#discussions.loadData();
     await this.#origins.loadData();

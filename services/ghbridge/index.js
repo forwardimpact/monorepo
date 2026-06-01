@@ -117,8 +117,8 @@ export class GhBridgeService {
 
     this.#store = new DiscussionAdapter(discussionClient);
     this.#client = discussionClient;
-    this.#callbacks = new CallbackRegistry();
-    this.#rateLimiter = new RateLimiter();
+    this.#callbacks = new CallbackRegistry({ clock: this.#clock });
+    this.#rateLimiter = new RateLimiter({ clock: this.#clock });
     this.#ack =
       deps.acknowledgement ??
       new Acknowledgement({
@@ -126,6 +126,7 @@ export class GhBridgeService {
         logger,
       });
     this.#dispatcher = new Dispatcher({
+      clock: this.#clock,
       callbacks: this.#callbacks,
       ack: this.#ack,
       store: this.#store,
@@ -139,6 +140,7 @@ export class GhBridgeService {
       }),
     });
     this.#resume = new ResumeScheduler({
+      clock: this.#clock,
       dispatcher: this.#dispatcher,
       store: this.#store,
       logger,
@@ -148,6 +150,7 @@ export class GhBridgeService {
     });
 
     this.#onCallback = createCallbackHandler({
+      clock: this.#clock,
       channel: CHANNEL,
       callbacks: this.#callbacks,
       ack: this.#ack,
@@ -176,7 +179,11 @@ export class GhBridgeService {
       onWebhook: (c) => this.#handleWebhook(c),
       onCallback: (c) => this.#onCallback(c),
       onLinkComplete,
-      onInbox: createInboxHandler({ client: discussionClient, logger }),
+      onInbox: createInboxHandler({
+        client: discussionClient,
+        logger,
+        clock: this.#clock,
+      }),
     });
   }
 
@@ -542,6 +549,7 @@ export class GhBridgeService {
     const existing = await this.#store.loadByChannel(CHANNEL, discussionId);
     if (existing) return existing;
     return newDiscussionContext({
+      clock: this.#clock,
       channel: CHANNEL,
       discussionId,
       participant: {

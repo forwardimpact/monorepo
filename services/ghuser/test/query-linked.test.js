@@ -12,7 +12,7 @@ describe("ghuser query-linked (SC#4)", () => {
       link_base_url: "http://localhost:3007",
     });
     const clock = createMockClock({ start: Date.now() });
-    const bindings = new BindingStore(storage);
+    const bindings = new BindingStore(storage, { clock });
     const service = new GhuserService(config, {
       bindings,
       flows: new FlowStore(storage, { clock }),
@@ -48,7 +48,7 @@ describe("ghuser query-linked (SC#4)", () => {
       link_base_url: "http://localhost:3007",
     });
     const clock = createMockClock({ start: Date.now() });
-    const bindings = new BindingStore(storage);
+    const bindings = new BindingStore(storage, { clock });
     const service = new GhuserService(config, {
       bindings,
       flows: new FlowStore(storage, { clock }),

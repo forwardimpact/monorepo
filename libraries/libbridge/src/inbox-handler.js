@@ -1,5 +1,4 @@
 import { bridge } from "@forwardimpact/libtype";
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 /**
  * Long-poll handler for the per-correlation inbox. The run's InboxPoller
@@ -18,8 +17,9 @@ export function createInboxHandler({
   logger,
   pollTimeoutMs = 30_000,
   pollIntervalMs = 1_000,
-  clock = createDefaultClock(),
+  clock,
 }) {
+  if (!clock) throw new Error("clock is required");
   return async (c) => {
     const correlationId = c.req.param("correlationId");
     const sinceSeq = parseInt(c.req.query("since") ?? "0", 10);

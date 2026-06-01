@@ -72,11 +72,11 @@ if (extra.length > 0) fail(`unexpected extra arguments: ${extra.join(" ")}`);
 const absoluteTarget = resolve(process.cwd(), targetArg);
 
 // Safeguard 1: settings.json must grant Edit() on this path.
-const settingsPath = new Finder(fsPromises, { debug() {} }).findUpward(
-  dirname(absoluteTarget),
-  ".claude/settings.json",
-  20,
-);
+const settingsPath = new Finder({
+  fs: fsPromises,
+  fsSync: { existsSync },
+  proc: process,
+}).findUpward(dirname(absoluteTarget), ".claude/settings.json", 20);
 if (!settingsPath) {
   fail(
     `no .claude/settings.json found walking upward from ${dirname(absoluteTarget)}`,

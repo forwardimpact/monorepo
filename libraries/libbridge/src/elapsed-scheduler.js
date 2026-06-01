@@ -1,5 +1,3 @@
-import { createDefaultClock } from "@forwardimpact/libutil/runtime";
-
 const CHUNK_CAP_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
@@ -22,8 +20,9 @@ export class ElapsedScheduler {
    * @param {(err: Error, correlationId: string) => void} [options.onError] - Invoked when `onFire` rejects.
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
    */
-  constructor({ onFire, onError = () => {}, clock = createDefaultClock() }) {
+  constructor({ onFire, onError = () => {}, clock }) {
     if (typeof onFire !== "function") throw new Error("onFire is required");
+    if (!clock) throw new Error("clock is required");
     this.#onFire = onFire;
     this.#onError = onError;
     this.#clock = clock;

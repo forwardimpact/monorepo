@@ -4,6 +4,8 @@ import assert from "node:assert";
 import { TraceIndex } from "../src/index/trace.js";
 import { trace } from "@forwardimpact/libtype";
 import { assertThrowsMessage, createMockStorage } from "@forwardimpact/libmock";
+import { createMockClock } from "@forwardimpact/libmock";
+const _clock = createMockClock();
 
 describe("TraceIndex - Core", () => {
   let traceIndex;
@@ -11,20 +13,24 @@ describe("TraceIndex - Core", () => {
 
   beforeEach(() => {
     mockStorage = createMockStorage();
-    traceIndex = new TraceIndex(mockStorage, "test-traces.jsonl");
+    traceIndex = new TraceIndex(mockStorage, "test-traces.jsonl", {
+      clock: _clock,
+    });
   });
 
   describe("Constructor and Inheritance", () => {
     test("constructor validates storage parameter", () => {
       assertThrowsMessage(
-        () => new TraceIndex(null),
+        () => new TraceIndex(null, undefined, { clock: _clock }),
         /storage is required/,
         "Should throw for missing storage",
       );
     });
 
     test("constructor sets properties correctly", () => {
-      const index = new TraceIndex(mockStorage, "custom.jsonl");
+      const index = new TraceIndex(mockStorage, "custom.jsonl", {
+        clock: _clock,
+      });
       assert.strictEqual(index.storage(), mockStorage, "Should set storage");
       assert.strictEqual(index.indexKey, "custom.jsonl", "Should set indexKey");
       assert.strictEqual(
@@ -35,7 +41,7 @@ describe("TraceIndex - Core", () => {
     });
 
     test("constructor uses default indexKey when not provided", () => {
-      const index = new TraceIndex(mockStorage);
+      const index = new TraceIndex(mockStorage, undefined, { clock: _clock });
       assert.strictEqual(
         index.indexKey,
         "index.jsonl",

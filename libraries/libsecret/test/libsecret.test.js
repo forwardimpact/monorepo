@@ -189,7 +189,10 @@ describe("libsecret", () => {
     const secret = "supabase-test-secret";
 
     test("mints a 3-part JWT with HS256 header and Supabase claims", () => {
-      const jwt = mintSupabaseJwt({ email: "alice@example.com", secret });
+      const jwt = mintSupabaseJwt(
+        { email: "alice@example.com", secret },
+        makeRuntime(),
+      );
       const [headerB64, payloadB64, sig] = jwt.split(".");
       assert.ok(sig);
 
@@ -209,11 +212,14 @@ describe("libsecret", () => {
     });
 
     test("honours ttlSeconds", () => {
-      const jwt = mintSupabaseJwt({
-        email: "alice@example.com",
-        secret,
-        ttlSeconds: 60,
-      });
+      const jwt = mintSupabaseJwt(
+        {
+          email: "alice@example.com",
+          secret,
+          ttlSeconds: 60,
+        },
+        makeRuntime(),
+      );
       const payload = JSON.parse(
         Buffer.from(jwt.split(".")[1], "base64url").toString(),
       );
@@ -221,11 +227,14 @@ describe("libsecret", () => {
     });
 
     test("merges extra claims", () => {
-      const jwt = mintSupabaseJwt({
-        email: "alice@example.com",
-        secret,
-        claims: { custom: "x" },
-      });
+      const jwt = mintSupabaseJwt(
+        {
+          email: "alice@example.com",
+          secret,
+          claims: { custom: "x" },
+        },
+        makeRuntime(),
+      );
       const payload = JSON.parse(
         Buffer.from(jwt.split(".")[1], "base64url").toString(),
       );
@@ -233,7 +242,10 @@ describe("libsecret", () => {
     });
 
     test("signature verifies under the same secret", () => {
-      const jwt = mintSupabaseJwt({ email: "alice@example.com", secret });
+      const jwt = mintSupabaseJwt(
+        { email: "alice@example.com", secret },
+        makeRuntime(),
+      );
       const [h, p, s] = jwt.split(".");
       const expected = createHmac("sha256", secret)
         .update(`${h}.${p}`)
@@ -243,14 +255,14 @@ describe("libsecret", () => {
 
     test("throws when secret missing", () => {
       assert.throws(
-        () => mintSupabaseJwt({ email: "x@y", secret: "" }),
+        () => mintSupabaseJwt({ email: "x@y", secret: "" }, makeRuntime()),
         /secret required/,
       );
     });
 
     test("throws when email missing", () => {
       assert.throws(
-        () => mintSupabaseJwt({ email: "", secret }),
+        () => mintSupabaseJwt({ email: "", secret }, makeRuntime()),
         /email required/,
       );
     });
@@ -273,7 +285,7 @@ describe("libsecret", () => {
     const TEN_YEARS_SECONDS = 10 * 365 * 24 * 60 * 60;
 
     test("returns a 3-segment HS256 JWT", () => {
-      const jwt = mintSupabaseAnonKey({ secret });
+      const jwt = mintSupabaseAnonKey({ secret }, makeRuntime());
       const parts = jwt.split(".");
       assert.strictEqual(parts.length, 3);
       const header = JSON.parse(Buffer.from(parts[0], "base64url").toString());
@@ -281,7 +293,7 @@ describe("libsecret", () => {
     });
 
     test("payload contains role: anon and iss: supabase", () => {
-      const jwt = mintSupabaseAnonKey({ secret });
+      const jwt = mintSupabaseAnonKey({ secret }, makeRuntime());
       const payload = JSON.parse(
         Buffer.from(jwt.split(".")[1], "base64url").toString(),
       );
@@ -292,7 +304,7 @@ describe("libsecret", () => {
     });
 
     test("exp - iat equals the 10-year constant", () => {
-      const jwt = mintSupabaseAnonKey({ secret });
+      const jwt = mintSupabaseAnonKey({ secret }, makeRuntime());
       const payload = JSON.parse(
         Buffer.from(jwt.split(".")[1], "base64url").toString(),
       );
@@ -300,7 +312,7 @@ describe("libsecret", () => {
     });
 
     test("signature verifies under the same secret", () => {
-      const jwt = mintSupabaseAnonKey({ secret });
+      const jwt = mintSupabaseAnonKey({ secret }, makeRuntime());
       const [h, p, s] = jwt.split(".");
       const expected = createHmac("sha256", secret)
         .update(`${h}.${p}`)
@@ -310,7 +322,7 @@ describe("libsecret", () => {
 
     test("throws when secret missing", () => {
       assert.throws(
-        () => mintSupabaseAnonKey({ secret: "" }),
+        () => mintSupabaseAnonKey({ secret: "" }, makeRuntime()),
         /mintSupabaseAnonKey: secret required/,
       );
     });
@@ -321,7 +333,7 @@ describe("libsecret", () => {
     const TEN_YEARS_SECONDS = 10 * 365 * 24 * 60 * 60;
 
     test("returns a 3-segment HS256 JWT", () => {
-      const jwt = mintSupabaseServiceRoleKey({ secret });
+      const jwt = mintSupabaseServiceRoleKey({ secret }, makeRuntime());
       const parts = jwt.split(".");
       assert.strictEqual(parts.length, 3);
       const header = JSON.parse(Buffer.from(parts[0], "base64url").toString());
@@ -329,7 +341,7 @@ describe("libsecret", () => {
     });
 
     test("payload contains role: service_role and iss: supabase", () => {
-      const jwt = mintSupabaseServiceRoleKey({ secret });
+      const jwt = mintSupabaseServiceRoleKey({ secret }, makeRuntime());
       const payload = JSON.parse(
         Buffer.from(jwt.split(".")[1], "base64url").toString(),
       );
@@ -338,7 +350,7 @@ describe("libsecret", () => {
     });
 
     test("exp - iat equals the 10-year constant", () => {
-      const jwt = mintSupabaseServiceRoleKey({ secret });
+      const jwt = mintSupabaseServiceRoleKey({ secret }, makeRuntime());
       const payload = JSON.parse(
         Buffer.from(jwt.split(".")[1], "base64url").toString(),
       );
@@ -346,7 +358,7 @@ describe("libsecret", () => {
     });
 
     test("signature verifies under the same secret", () => {
-      const jwt = mintSupabaseServiceRoleKey({ secret });
+      const jwt = mintSupabaseServiceRoleKey({ secret }, makeRuntime());
       const [h, p, s] = jwt.split(".");
       const expected = createHmac("sha256", secret)
         .update(`${h}.${p}`)
@@ -356,7 +368,7 @@ describe("libsecret", () => {
 
     test("throws when secret missing", () => {
       assert.throws(
-        () => mintSupabaseServiceRoleKey({ secret: "" }),
+        () => mintSupabaseServiceRoleKey({ secret: "" }, makeRuntime()),
         /mintSupabaseServiceRoleKey: secret required/,
       );
     });

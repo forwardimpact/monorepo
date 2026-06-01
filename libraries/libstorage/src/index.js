@@ -98,19 +98,6 @@ export function isJson(key, data) {
 }
 
 /**
- * Adapt an old-style `process`-shaped object `{ env, cwd? }` into a minimal
- * `runtime.proc`-shaped collaborator so BC callers keep working.
- * @param {object} proc - Old-style process-like object.
- * @returns {object} Runtime-proc-shaped object.
- */
-function _procFromLegacy(proc) {
-  return {
-    env: proc.env ?? {},
-    cwd: typeof proc.cwd === "function" ? () => proc.cwd() : () => "",
-  };
-}
-
-/**
  * Creates a local storage instance
  * @param {string} prefix - Bucket/directory name for local storage
  * @param {object} runtime - Runtime collaborator bag
@@ -247,56 +234,36 @@ function _createSupabaseStorage(prefix, runtime) {
  *
  * @param {string} prefix - Prefix for the storage operations (for S3) or bucket/directory name (for local)
  * @param {string} [type] - Storage type ("local", "s3", or "supabase")
- * @param {object|null} [processOrRuntime] - Legacy process-shaped object `{ env, cwd? }` OR a
- *   runtime bag `{ fs, proc, … }` — either is accepted for backward compatibility.
- *   When omitted, a default runtime is constructed automatically.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime|null} [runtime] - Runtime
+ *   bag `{ fs, proc, … }`. When omitted — a composition-root convenience — the
+ *   default production runtime is constructed automatically.
  * @param {string|null} [rootDir] - Explicit root directory for local storage
  * @returns {object} Storage instance
  * @throws {Error} When unsupported storage type is provided
  */
-export function createStorage(
-  prefix,
-  type,
-  processOrRuntime = null,
-  rootDir = null,
-) {
-  // Build the runtime collaborator. Accept three shapes:
-  //   (a) a full runtime bag (has `.proc`),
-  //   (b) a legacy process-like object (has `.env` but no `.proc`),
-  //   (c) null/undefined — construct the default runtime.
-  let runtime;
-  if (processOrRuntime && typeof processOrRuntime === "object") {
-    if ("proc" in processOrRuntime && "fs" in processOrRuntime) {
-      // Full runtime bag — use as-is.
-      runtime = processOrRuntime;
-    } else {
-      // Legacy process-like object: adapt it into a minimal runtime.
-      const legacyProc = _procFromLegacy(processOrRuntime);
-      const defaultRuntime = createDefaultRuntime();
-      runtime = { ...defaultRuntime, proc: legacyProc };
-    }
-  } else {
-    runtime = createDefaultRuntime();
-  }
+export function createStorage(prefix, type, runtime = null, rootDir = null) {
+  // Consumers inject a runtime bag; when absent the default production runtime
+  // is built here (createStorage is a composition-root factory).
+  const rt = runtime ?? createDefaultRuntime();
 
   // Always use local storage for config and generated directories
   // These are part of the codebase and should never be stored in S3
   if (prefix === "config" || prefix === "generated") {
-    return _createLocalStorage(prefix, runtime, rootDir);
+    return _createLocalStorage(prefix, rt, rootDir);
   }
 
-  const finalType = type || runtime.proc.env.STORAGE_TYPE || "local";
+  const finalType = type || rt.proc.env.STORAGE_TYPE || "local";
 
   switch (finalType) {
     case "local":
     case undefined:
-      return _createLocalStorage(prefix, runtime, rootDir);
+      return _createLocalStorage(prefix, rt, rootDir);
 
     case "s3":
-      return _createS3Storage(prefix, runtime);
+      return _createS3Storage(prefix, rt);
 
     case "supabase":
-      return _createSupabaseStorage(prefix, runtime);
+      return _createSupabaseStorage(prefix, rt);
 
     default:
       throw new Error(`Unsupported storage type: ${finalType}`);

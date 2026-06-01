@@ -49,7 +49,7 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition);
+const cli = createCli(definition, { runtime });
 
 const parsed = cli.parse(process.argv.slice(2));
 if (!parsed) runtime.proc.exit(0);

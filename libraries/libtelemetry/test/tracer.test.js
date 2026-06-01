@@ -2,6 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 
 import { Tracer } from "../src/tracer.js";
+import { createMockClock } from "@forwardimpact/libmock";
 
 /**
  * Mock gRPC Metadata class for testing
@@ -40,6 +41,7 @@ describe("Tracer", () => {
         serviceName: "test-service",
         traceClient: mockTraceClient,
         grpcMetadata: MockMetadata,
+        clock: createMockClock(),
       });
 
       // Simulate two concurrent operations
@@ -93,6 +95,7 @@ describe("Tracer", () => {
         serviceName: "test-service",
         traceClient: mockTraceClient,
         grpcMetadata: MockMetadata,
+        clock: createMockClock(),
       });
       const context = tracer.getSpanContext();
 
@@ -125,6 +128,7 @@ describe("Tracer", () => {
         serviceName: "test-service",
         traceClient: mockTraceClient,
         grpcMetadata: MockMetadata,
+        clock: createMockClock(),
       });
 
       // Mock gRPC metadata with trace context

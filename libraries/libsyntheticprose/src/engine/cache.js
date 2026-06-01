@@ -11,8 +11,6 @@
  * @module libsyntheticprose/engine/cache
  */
 
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-
 const SCHEMA_VERSION = 1;
 const SCHEMA_FIELD = "_schema";
 
@@ -24,9 +22,9 @@ export class ProseCache {
    * @param {object} options
    * @param {string} options.cachePath - Path to prose cache JSON file
    * @param {object} options.logger - Logger instance
-   * @param {object} [options.runtime] - Runtime collaborator bag (default: createDefaultRuntime())
+   * @param {object} [options.runtime] - Runtime collaborator bag
    */
-  constructor({ cachePath, logger, runtime = createDefaultRuntime() }) {
+  constructor({ cachePath, logger, runtime }) {
     if (!cachePath) throw new Error("cachePath is required");
     if (!logger) throw new Error("logger is required");
     const { fsSync } = runtime;

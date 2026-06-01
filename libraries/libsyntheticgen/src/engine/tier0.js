@@ -16,12 +16,15 @@ export class EntityGenerator {
   /**
    * @param {Function} rngFactory - Factory function that creates a seeded RNG
    * @param {object} logger - Logger instance
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
    */
-  constructor(rngFactory, logger) {
+  constructor(rngFactory, logger, runtime) {
     if (!rngFactory) throw new Error("rngFactory is required");
     if (!logger) throw new Error("logger is required");
+    if (!runtime) throw new Error("runtime is required");
     this.rngFactory = rngFactory;
     this.logger = logger;
+    this.runtime = runtime;
   }
 
   /**
@@ -36,7 +39,7 @@ export class EntityGenerator {
       rng,
       this.logger,
     );
-    const activity = generateActivity(ast, rng, people, teams);
+    const activity = generateActivity(ast, rng, people, teams, this.runtime);
 
     const clinical = ast.clinical
       ? buildClinicalEntities(
@@ -70,8 +73,9 @@ export class EntityGenerator {
 /**
  * Creates an EntityGenerator with the built-in seeded RNG factory.
  * @param {object} logger - Logger instance
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
  * @returns {EntityGenerator}
  */
-export function createEntityGenerator(logger) {
-  return new EntityGenerator(createSeededRNG, logger);
+export function createEntityGenerator(logger, runtime) {
+  return new EntityGenerator(createSeededRNG, logger, runtime);
 }

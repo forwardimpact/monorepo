@@ -12,8 +12,6 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { createIndexGenerator } from "@forwardimpact/map/index-generator";
 import { createDataLoader } from "@forwardimpact/map/loader";
 
-const logger = createLogger("pathway");
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const publicDir = join(__dirname, "..");
@@ -176,6 +174,7 @@ function resolveRoute(pathname, routes) {
  * @param {Object} params.options - Command options
  */
 export async function runDevCommand({ dataDir, options, runtime }) {
+  const logger = createLogger("pathway", runtime);
   const port = options.port || 3000;
   const version = await resolveVersion(runtime);
 

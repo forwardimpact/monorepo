@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PagesBuilder } from "../src/index.js";
+import { createTestRuntime } from "@forwardimpact/libmock";
 
 function createTestHarness({
   sourceFiles,
@@ -100,6 +101,7 @@ function createTestHarness({
     mockMatter,
     mockMustache,
     mockPrettier,
+    createTestRuntime(),
   );
 
   return { files, dirs, copied, builder };
@@ -306,6 +308,7 @@ test("PagesBuilder copies root-level static files and skips .md, template, CNAME
     mockMatter,
     mockMustache,
     mockPrettier,
+    createTestRuntime(),
   );
 
   await builder.build("src", "dist");
@@ -420,6 +423,7 @@ test("PagesBuilder classifies docs pages under Documentation in llms.txt", async
     mockMatter,
     mockMustache,
     mockPrettier,
+    createTestRuntime(),
   );
 
   await builder.build("src", "dist", "https://example.com");

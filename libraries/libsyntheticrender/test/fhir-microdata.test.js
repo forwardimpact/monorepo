@@ -1,9 +1,15 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  renderFhirMicrodataHtml,
+  renderFhirMicrodataHtml as _renderFhirMicrodataHtml,
   buildFhirCrossRef,
 } from "../src/render/fhir-microdata.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+// Thread a real runtime (the renderer reads bundled templates via fsSync).
+const _fhirRuntime = createDefaultRuntime();
+const renderFhirMicrodataHtml = (input, config) =>
+  _renderFhirMicrodataHtml(input, config, _fhirRuntime);
 
 const PATIENT_A = "11111111-1111-4111-8111-111111111111";
 const PATIENT_B = "22222222-2222-4222-8222-222222222222";

@@ -1,6 +1,5 @@
 import { fileURLToPath } from "node:url";
 import protobuf from "protobufjs";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /** Convert camelCase to snake_case (protobufjs normalizes field names) */
 function camelToSnake(str) {
@@ -71,7 +70,7 @@ export class CodegenBase {
    * @param {object} mustache - Mustache template rendering module
    * @param {object} protoLoader - Protocol buffer loader module
    * @param {object} fs - File system module (sync operations only)
-   * @param {object} [runtime] - Optional runtime bag; falls back to createDefaultRuntime()
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
    */
   constructor(
     protoDirs,
@@ -90,6 +89,7 @@ export class CodegenBase {
     if (!mustache) throw new Error("mustache module is required");
     if (!protoLoader) throw new Error("protoLoader module is required");
     if (!fs) throw new Error("fs module is required");
+    if (!runtime) throw new Error("runtime is required");
 
     this.#protoDirs = protoDirs;
     this.#projectRoot = projectRoot;
@@ -97,7 +97,7 @@ export class CodegenBase {
     this.#mustache = mustache;
     this.#protoLoader = protoLoader;
     this.#fs = fs;
-    this.#subprocess = (runtime ?? createDefaultRuntime()).subprocess;
+    this.#subprocess = runtime.subprocess;
   }
 
   /**

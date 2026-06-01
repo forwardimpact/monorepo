@@ -1,7 +1,5 @@
 import { join } from "path";
 
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-
 const AUTHOR = "Forward Impact Pathway";
 const EMAIL = "pathway@forwardimpact.team";
 const EPOCH = "1970-01-01T00:00:00Z";
@@ -28,7 +26,8 @@ export class GitEmitter {
 
   /** @param {{runtime?: object}} [opts] */
   constructor({ runtime } = {}) {
-    const rt = runtime ?? createDefaultRuntime();
+    if (!runtime) throw new Error("runtime is required");
+    const rt = runtime;
     this.#subprocess = rt.subprocess;
     this.#fs = rt.fs;
     this.#proc = rt.proc;

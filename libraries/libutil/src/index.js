@@ -101,13 +101,16 @@ export function createTokenizer() {
  * Used in containerized deployments to download pre-generated code bundles.
  * @param {Function} createStorage - Storage factory function from libstorage
  * @param {object} logger - Logger instance
+ * @param {import("./runtime.js").Runtime} runtime - Injected runtime bag; supplies
+ *   the `fs`/`fsSync`/`proc` collaborators the Finder reads.
  * @returns {BundleDownloader} Configured BundleDownloader instance
  */
-export function createBundleDownloader(createStorage, logger) {
+export function createBundleDownloader(createStorage, logger, runtime) {
   if (!createStorage) throw new Error("createStorage is required");
   if (!logger) throw new Error("logger is required");
+  if (!runtime) throw new Error("runtime is required");
 
-  const finder = new Finder(fs, logger);
+  const finder = new Finder({ ...runtime, logger });
   const extractor = new TarExtractor(fs, path);
 
   return new BundleDownloader(createStorage, finder, logger, extractor);

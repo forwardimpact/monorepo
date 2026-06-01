@@ -16,6 +16,7 @@ export class AgentRunner {
   #fs;
   #proc;
   #clock;
+  #runtime;
 
   /**
    * @param {Object | (() => Object | Promise<{default?: Object}>)} spawn -
@@ -43,6 +44,7 @@ export class AgentRunner {
     this.#fs = runtime.fs;
     this.#proc = runtime.proc;
     this.#clock = runtime.clock;
+    this.#runtime = runtime;
     this.#activeChildren = new Set();
   }
 
@@ -181,14 +183,19 @@ export class AgentRunner {
         spawnArgs,
         env,
         kbPath,
+        this.#runtime,
       );
       this.#activeChildren.add(pid);
 
-      const exitCode = await spawnMod.waitForExit(pid);
+      const exitCode = await spawnMod.waitForExit(
+        pid,
+        undefined,
+        this.#runtime,
+      );
       this.#activeChildren.delete(pid);
 
-      const stdout = spawnMod.readOutput(stdoutFile);
-      const stderr = spawnMod.readOutput(stderrFile);
+      const stdout = spawnMod.readOutput(stdoutFile, this.#runtime);
+      const stderr = spawnMod.readOutput(stderrFile, this.#runtime);
 
       if (exitCode === 0) {
         this.#log(

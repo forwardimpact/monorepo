@@ -352,7 +352,7 @@ function extractGuideConfig(gc) {
   };
 }
 
-function buildLinkedEntities(entities, domain) {
+function buildLinkedEntities(entities, domain, runtime) {
   const gc = entities.content.find((c) => c.id === "guide_html");
   const { startYear, endYear } = extractDateRange(entities);
   const seed = entities.activity?.seed || 42;
@@ -371,6 +371,7 @@ function buildLinkedEntities(entities, domain) {
     orgName,
     startYear,
     endYear,
+    runtime,
   });
 
   return { linked, gc };
@@ -385,15 +386,16 @@ function buildLinkedEntities(entities, domain) {
  * @param {object} [options.fhirCrossRef] - Optional FHIR cross-ref index;
  *   when non-null, clinical pages emit reverse links to matched patients.
  *   Absent or `null` → byte-identical output with no reverse links.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
  * @returns {{ files: Map<string,string>, linked: import('./link-assigner.js').LinkedEntities }}
  */
-export function renderHTML(entities, prose, templates, options = {}) {
+export function renderHTML(entities, prose, templates, options = {}, runtime) {
   if (!templates) throw new Error("templates is required");
   const { fhirCrossRef = null } = options;
   const files = new Map();
   const domain = entities.domain;
 
-  const { linked, gc } = buildLinkedEntities(entities, domain);
+  const { linked, gc } = buildLinkedEntities(entities, domain, runtime);
   const enrichedPlatforms = enrichPlatformsWithLinks(linked);
   const enrichedDrugs = enrichDrugsWithLinks(linked);
 

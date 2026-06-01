@@ -86,13 +86,14 @@ export function createPipeline(opts) {
     templateDir,
     persistCache,
   } = opts;
-  const promptLoader = new PromptLoader(promptDir);
-  const templateLoader = new TemplateLoader(templateDir);
+  const promptLoader = new PromptLoader(promptDir, runtime);
+  const templateLoader = new TemplateLoader(templateDir, runtime);
 
   const dslParser = createDslParser();
-  const entityGenerator = createEntityGenerator(logger);
-  const proseCache = new ProseCache({ cachePath, logger });
+  const entityGenerator = createEntityGenerator(logger, runtime);
+  const proseCache = new ProseCache({ cachePath, logger, runtime });
   const proseGenerator = new ProseGenerator({
+    runtime,
     cache: proseCache,
     mode,
     strict: opts.strict,
@@ -101,7 +102,7 @@ export function createPipeline(opts) {
     logger,
   });
   const pathwayGenerator = new PathwayGenerator(proseGenerator, logger);
-  const renderer = new Renderer(templateLoader, logger);
+  const renderer = new Renderer(templateLoader, logger, runtime);
   const validator = new ContentValidator(logger);
 
   // Build an execFileFn compatible with SyntheaTool / SdvTool from the

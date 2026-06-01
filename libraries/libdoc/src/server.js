@@ -1,12 +1,11 @@
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-const logger = createLogger("libdoc");
-
 /**
  * Documentation server for serving built documentation and watching for changes
  */
 export class PagesServer {
   #fs;
+  #logger;
   #Hono;
   #serve;
   #builder;
@@ -19,19 +18,20 @@ export class PagesServer {
    * @param {Function} HonoConstructor - Hono constructor (optional, required for serve())
    * @param {Function} serveFn - Hono serve function from @hono/node-server (optional, required for serve())
    * @param {import("./builder.js").PagesBuilder} builder - PagesBuilder instance
-   * @param {{ runtime?: import("@forwardimpact/libutil/runtime").Runtime }} [opts] - Optional injected runtime bag
+   * @param {{ runtime: import("@forwardimpact/libutil/runtime").Runtime }} opts - Injected runtime bag
    */
   constructor(fs, HonoConstructor, serveFn, builder, opts) {
     if (!fs) throw new Error("fs is required");
     if (!builder) throw new Error("builder is required");
+    if (!opts?.runtime) throw new Error("runtime is required");
 
     this.#fs = fs;
     this.#Hono = HonoConstructor;
     this.#serve = serveFn;
     this.#builder = builder;
     this.#watcher = null;
-    // Fall back to the ambient process when no runtime is injected (BC shim).
-    this.#proc = opts?.runtime?.proc ?? process;
+    this.#proc = opts.runtime.proc;
+    this.#logger = createLogger("libdoc", opts.runtime);
   }
 
   /**
@@ -41,7 +41,7 @@ export class PagesServer {
    * @returns {void}
    */
   watch(pagesDir, distDir) {
-    logger.info(`Watching for changes in ${pagesDir}...`);
+    this.#logger.info(`Watching for changes in ${pagesDir}...`);
 
     this.#watcher = this.#fs.watch(
       pagesDir,
@@ -53,7 +53,7 @@ export class PagesServer {
             filename.endsWith(".mustache") ||
             filename.startsWith("assets/"))
         ) {
-          logger.info(`\nRebuilding due to change in ${filename}...`);
+          this.#logger.info(`\nRebuilding due to change in ${filename}...`);
           this.#builder.build(pagesDir, distDir).catch((error) => {
             console.error("Build error:", error);
           });
@@ -159,7 +159,7 @@ export class PagesServer {
       });
     });
 
-    logger.info(`Serving documentation at http://${hostname}:${port}`);
+    this.#logger.info(`Serving documentation at http://${hostname}:${port}`);
 
     return this.#serve({ fetch: app.fetch, port, hostname });
   }

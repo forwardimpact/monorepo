@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 import { TemplateLoader, createTemplateLoader } from "../src/index.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 describe("TemplateLoader", () => {
   let defaultsDir;
@@ -26,27 +27,27 @@ describe("TemplateLoader", () => {
   });
 
   test("constructor accepts valid defaultsDir", () => {
-    const loader = new TemplateLoader(defaultsDir);
+    const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
     assert.ok(loader instanceof TemplateLoader);
   });
 
   describe("load", () => {
     test("throws when name is not provided", () => {
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       assert.throws(() => loader.load(), {
         message: "name is required",
       });
     });
 
     test("throws when name is empty string", () => {
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       assert.throws(() => loader.load(""), {
         message: "name is required",
       });
     });
 
     test("throws when template file does not exist", () => {
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       assert.throws(() => loader.load("nonexistent.html"), {
         message: /Template 'nonexistent.html' not found/,
       });
@@ -56,7 +57,7 @@ describe("TemplateLoader", () => {
       const content = "<h1>{{title}}</h1>";
       writeFileSync(join(defaultsDir, "page.html"), content);
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.load("page.html");
 
       assert.strictEqual(result, content);
@@ -69,7 +70,7 @@ describe("TemplateLoader", () => {
       writeFileSync(join(defaultsDir, "page.html"), "default");
       writeFileSync(join(dataDir, "templates", "page.html"), "override");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.load("page.html", dataDir);
 
       assert.strictEqual(result, "override");
@@ -82,7 +83,7 @@ describe("TemplateLoader", () => {
 
       writeFileSync(join(defaultsDir, "page.html"), "default");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.load("page.html", dataDir);
 
       assert.strictEqual(result, "default");
@@ -94,7 +95,7 @@ describe("TemplateLoader", () => {
     test("renders template with data", () => {
       writeFileSync(join(defaultsDir, "greeting.html"), "Hello, {{name}}!");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.render("greeting.html", { name: "World" });
 
       assert.strictEqual(result, "Hello, World!");
@@ -103,7 +104,7 @@ describe("TemplateLoader", () => {
     test("renders template with empty data", () => {
       writeFileSync(join(defaultsDir, "greeting.html"), "Hello, {{name}}!");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.render("greeting.html", {});
 
       assert.strictEqual(result, "Hello, !");
@@ -112,7 +113,7 @@ describe("TemplateLoader", () => {
     test("renders template without data argument", () => {
       writeFileSync(join(defaultsDir, "static.html"), "Static content");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.render("static.html");
 
       assert.strictEqual(result, "Static content");
@@ -122,7 +123,7 @@ describe("TemplateLoader", () => {
       const template = "<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>";
       writeFileSync(join(defaultsDir, "list.html"), template);
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.render("list.html", { items: ["a", "b"] });
 
       assert.strictEqual(result, "<ul><li>a</li><li>b</li></ul>");
@@ -135,7 +136,7 @@ describe("TemplateLoader", () => {
       writeFileSync(join(defaultsDir, "page.html"), "default {{v}}");
       writeFileSync(join(dataDir, "templates", "page.html"), "custom {{v}}");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.render("page.html", { v: "!" }, dataDir);
 
       assert.strictEqual(result, "custom !");
@@ -151,7 +152,7 @@ describe("TemplateLoader", () => {
       );
       writeFileSync(join(defaultsDir, "item.html"), "<li>{{label}}</li>");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.renderWithPartials(
         "page.html",
         { items: [{ label: "a" }, { label: "b" }] },
@@ -169,7 +170,7 @@ describe("TemplateLoader", () => {
       writeFileSync(join(defaultsDir, "partial.html"), "default");
       writeFileSync(join(dataDir, "templates", "partial.html"), "overridden");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.renderWithPartials(
         "page.html",
         {},
@@ -184,7 +185,7 @@ describe("TemplateLoader", () => {
     test("missing partial raises a Template not found error", () => {
       writeFileSync(join(defaultsDir, "page.html"), "{{> missing.html}}");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       assert.throws(
         () => loader.renderWithPartials("page.html", {}, ["missing.html"]),
         {
@@ -196,7 +197,7 @@ describe("TemplateLoader", () => {
     test("renders without any partials when partialNames is empty", () => {
       writeFileSync(join(defaultsDir, "page.html"), "Hello, {{name}}!");
 
-      const loader = new TemplateLoader(defaultsDir);
+      const loader = new TemplateLoader(defaultsDir, createDefaultRuntime());
       const result = loader.renderWithPartials(
         "page.html",
         { name: "World" },
@@ -219,7 +220,7 @@ describe("TemplateLoader", () => {
 describe("createTemplateLoader", () => {
   test("returns a TemplateLoader instance", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "libtemplate-factory-"));
-    const loader = createTemplateLoader(tempDir);
+    const loader = createTemplateLoader(tempDir, createDefaultRuntime());
     assert.ok(loader instanceof TemplateLoader);
     rmSync(tempDir, { recursive: true, force: true });
   });

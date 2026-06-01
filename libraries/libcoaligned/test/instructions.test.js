@@ -5,6 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { checkInstructions } from "../src/index.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+const runtime = createDefaultRuntime();
 
 async function makeRepo() {
   const root = await mkdtemp(join(tmpdir(), "libcoaligned-instr-"));
@@ -16,7 +18,7 @@ describe("checkInstructions", () => {
   test("returns no findings for an empty repo", async () => {
     const root = await makeRepo();
     try {
-      const findings = await checkInstructions({ root });
+      const findings = await checkInstructions({ root, runtime });
       assert.deepStrictEqual(findings, []);
     } finally {
       await rm(root, { recursive: true, force: true });
@@ -28,7 +30,7 @@ describe("checkInstructions", () => {
     try {
       const oversize = "line\n".repeat(200);
       await writeFile(join(root, "CLAUDE.md"), oversize);
-      const findings = await checkInstructions({ root });
+      const findings = await checkInstructions({ root, runtime });
       const f = findings.find(
         (x) =>
           x.id === "instructions.line-budget" && x.path.endsWith("CLAUDE.md"),
@@ -52,7 +54,7 @@ describe("checkInstructions", () => {
       // root cap — proves the tighter rule applies to subdirectories only.
       const oversize = "line\n".repeat(140);
       await writeFile(join(root, "products", "CLAUDE.md"), oversize);
-      const findings = await checkInstructions({ root });
+      const findings = await checkInstructions({ root, runtime });
       const f = findings.find(
         (x) =>
           x.id === "instructions.line-budget" &&
@@ -76,7 +78,7 @@ describe("checkInstructions", () => {
       });
       const oversize = "line\n".repeat(200);
       await writeFile(join(root, ".claude/agents/references/big.md"), oversize);
-      const findings = await checkInstructions({ root });
+      const findings = await checkInstructions({ root, runtime });
       const f = findings.find(
         (x) =>
           x.id === "instructions.line-budget" &&
@@ -110,7 +112,7 @@ describe("checkInstructions", () => {
         "",
       ].join("\n");
       await writeFile(join(root, ".claude/skills/demo/SKILL.md"), skill);
-      const findings = await checkInstructions({ root });
+      const findings = await checkInstructions({ root, runtime });
       const f = findings.find((x) => x.id === "L7.too-many-items");
       assert.ok(
         f,

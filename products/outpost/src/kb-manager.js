@@ -6,11 +6,10 @@ import { join, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-const logger = createLogger("outpost");
-
 /** Manage knowledge base lifecycle including initialization, updates, and settings merging. */
 export class KBManager {
   #fs;
+  #logger;
 
   /**
    * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
@@ -21,6 +20,7 @@ export class KBManager {
     if (!runtime?.fs) throw new Error("runtime.fs is required");
     if (!logFn) throw new Error("logFn is required");
     this.#fs = runtime.fs;
+    this.#logger = createLogger("outpost", runtime);
   }
 
   /**
@@ -74,12 +74,12 @@ export class KBManager {
    */
   async copyBundledFiles(tpl, dest) {
     await this.#fs.copyFile(join(tpl, "CLAUDE.md"), join(dest, "CLAUDE.md"));
-    logger.info(`  Updated CLAUDE.md`);
+    this.#logger.info(`  Updated CLAUDE.md`);
 
     const apmSrc = join(tpl, "apm.yml");
     if (await this.#exists(apmSrc)) {
       await this.#fs.copyFile(apmSrc, join(dest, "apm.yml"));
-      logger.info(`  Updated apm.yml`);
+      this.#logger.info(`  Updated apm.yml`);
     }
 
     await this.mergeSettings(tpl, dest);
@@ -96,7 +96,9 @@ export class KBManager {
       const names = entries.map((d) =>
         sub === "agents" ? d.name.replace(".md", "") : d.name,
       );
-      logger.info(`  Updated ${names.length} ${sub}: ${names.join(", ")}`);
+      this.#logger.info(
+        `  Updated ${names.length} ${sub}: ${names.join(", ")}`,
+      );
     }
   }
 
@@ -141,7 +143,7 @@ export class KBManager {
     if (!(await this.#exists(destPath))) {
       await this.#ensureDir(join(dest, ".claude"));
       await this.#fs.copyFile(src, destPath);
-      logger.info(`  Created settings.json`);
+      this.#logger.info(`  Created settings.json`);
       return;
     }
 
@@ -154,9 +156,9 @@ export class KBManager {
 
     if (added > 0) {
       await this.#writeJSON(destPath, existing);
-      logger.info(`  Updated settings.json (${added} new entries)`);
+      this.#logger.info(`  Updated settings.json (${added} new entries)`);
     } else {
-      logger.info(`  Settings up to date`);
+      this.#logger.info(`  Settings up to date`);
     }
   }
 
@@ -193,7 +195,7 @@ export class KBManager {
 
     await this.copyBundledFiles(templateDir, dest);
 
-    logger.info(
+    this.#logger.info(
       `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. Edit ${dest}/USER.md with your name, email, and domain\n  2. cd ${dest} && npx apm install\n  3. claude`,
     );
     return { ok: true, value: { dest } };
@@ -215,7 +217,7 @@ export class KBManager {
       };
     }
     await this.copyBundledFiles(templateDir, dest);
-    logger.info(`\nKnowledge base updated: ${dest}`);
+    this.#logger.info(`\nKnowledge base updated: ${dest}`);
     return { ok: true, value: { dest } };
   }
 

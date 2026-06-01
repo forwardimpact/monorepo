@@ -4,8 +4,6 @@
  * @module libterrain/engine/activity-initiatives
  */
 
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-
 /**
  * Compute initiative priority from magnitude and direction.
  * @param {boolean} isDeclining
@@ -231,7 +229,7 @@ function processAffect(params) {
  * @param {object[]} people
  * @param {object[]} teams
  * @param {object[]} _snapshots
- * @param {object} [runtime] - Runtime collaborator bag (default: createDefaultRuntime())
+ * @param {object} [runtime] - Runtime collaborator bag
  * @returns {{ scorecards: object[], initiatives: object[] }}
  */
 export function deriveInitiatives(
@@ -240,7 +238,7 @@ export function deriveInitiatives(
   people,
   teams,
   _snapshots,
-  runtime = createDefaultRuntime(),
+  runtime,
 ) {
   const driverMap = new Map(
     (ast.standard?.drivers || []).map((d) => [d.id, d]),

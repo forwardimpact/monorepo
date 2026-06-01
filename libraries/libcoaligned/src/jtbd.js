@@ -1,7 +1,6 @@
 import { join } from "node:path";
 import * as prettier from "prettier";
 import { runRules } from "@forwardimpact/libutil";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const VALID_USERS = [
   "Engineering Leaders",
@@ -503,7 +502,8 @@ async function processJtbdMd(root, fix, formatMarkdown, result, fsSync) {
  *   that were rewritten in place.
  */
 export async function checkJtbd({ root, fix = false, runtime }) {
-  const { fsSync } = runtime ?? createDefaultRuntime();
+  if (!runtime) throw new Error("runtime is required");
+  const { fsSync } = runtime;
   const result = { findings: [], stale: [], fixed: [] };
   const prettierConfig = await prettier.resolveConfig(join(root, "JTBD.md"));
   const formatMarkdown = makeFormatter(prettierConfig);

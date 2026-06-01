@@ -18,20 +18,17 @@ export class InboxPoller {
    * @param {import("./message-bus.js").MessageBus} deps.messageBus
    * @param {string} deps.leadName
    * @param {AbortSignal} deps.signal
-   * @param {import("@forwardimpact/libutil/runtime").Runtime} [deps.runtime] -
-   *   Ambient collaborators; only `clock.setTimeout`/`clock.clearTimeout` are
-   *   used for the inter-poll backoff. Falls back to the global timers when
-   *   absent so existing callers keep working.
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} deps.runtime -
+   *   Injected collaborators; `clock.setTimeout`/`clock.clearTimeout` drive the
+   *   inter-poll backoff.
    */
   constructor({ inboxUrl, messageBus, leadName, signal, runtime }) {
+    if (!runtime) throw new Error("runtime is required");
     this.#inboxUrl = inboxUrl;
     this.#messageBus = messageBus;
     this.#leadName = leadName;
     this.#signal = signal;
-    this.#clock = runtime?.clock ?? {
-      setTimeout: (fn, ms) => globalThis.setTimeout(fn, ms),
-      clearTimeout: (h) => globalThis.clearTimeout(h),
-    };
+    this.#clock = runtime.clock;
   }
 
   /** Long-poll the inbox until the abort signal fires. */

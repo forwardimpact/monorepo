@@ -13,7 +13,7 @@ describe("ghuser query-unlinked (SC#5)", () => {
     });
     const clock = createMockClock({ start: Date.now() });
     const service = new GhuserService(config, {
-      bindings: new BindingStore(storage),
+      bindings: new BindingStore(storage, { clock }),
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,

@@ -6,6 +6,8 @@ import { TraceService } from "../index.js";
 import { TraceIndex } from "@forwardimpact/libtelemetry/index/trace.js";
 import { trace } from "@forwardimpact/libtype";
 import { createMockConfig, createMockStorage } from "@forwardimpact/libmock";
+import { createMockClock } from "@forwardimpact/libmock";
+const _clock = createMockClock();
 
 describe("trace service", () => {
   describe("TraceService", () => {
@@ -52,7 +54,9 @@ describe("trace service", () => {
       mockStorage = createMockStorage();
 
       // Use real TraceIndex with mock storage for more realistic testing
-      mockTraceIndex = new TraceIndex(mockStorage, "test-traces.jsonl");
+      mockTraceIndex = new TraceIndex(mockStorage, "test-traces.jsonl", {
+        clock: _clock,
+      });
     });
 
     test("creates service instance with trace index", () => {

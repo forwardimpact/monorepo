@@ -10,7 +10,6 @@
 
 import { createSeededRNG } from "@forwardimpact/libsyntheticgen/rng";
 import { isoDate } from "@forwardimpact/libutil";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * @typedef {object} LinkedEntities
@@ -37,7 +36,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
  * @param {number} params.blogCount
  * @param {string[]} [params.articleTopics=[]]
  * @param {number} [params.seed=42]
- * @param {object} [params.runtime] - Runtime collaborator bag (default: createDefaultRuntime())
+ * @param {object} [params.runtime] - Runtime collaborator bag
  * @returns {LinkedEntities}
  */
 export function assignLinks({
@@ -57,7 +56,7 @@ export function assignLinks({
   startYear = null,
   endYear = null,
   blogTopics = null,
-  runtime = createDefaultRuntime(),
+  runtime,
 }) {
   const { clock } = runtime;
   const rng = createSeededRNG(seed + 1000);

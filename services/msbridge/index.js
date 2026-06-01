@@ -123,8 +123,8 @@ export class MsBridgeService {
     };
 
     this.#store = new DiscussionAdapter(discussionClient);
-    this.#callbacks = new CallbackRegistry();
-    this.#rateLimiter = new RateLimiter();
+    this.#callbacks = new CallbackRegistry({ clock: this.#clock });
+    this.#rateLimiter = new RateLimiter({ clock: this.#clock });
     this.#ack =
       acknowledgement ??
       new Acknowledgement({
@@ -133,6 +133,7 @@ export class MsBridgeService {
         logger,
       });
     this.#dispatcher = new Dispatcher({
+      clock: this.#clock,
       callbacks: this.#callbacks,
       ack: this.#ack,
       store: this.#store,
@@ -146,6 +147,7 @@ export class MsBridgeService {
       }),
     });
     this.#resume = new ResumeScheduler({
+      clock: this.#clock,
       dispatcher: this.#dispatcher,
       store: this.#store,
       logger,
@@ -155,6 +157,7 @@ export class MsBridgeService {
     });
 
     this.#onCallback = createCallbackHandler({
+      clock: this.#clock,
       channel: CHANNEL,
       callbacks: this.#callbacks,
       ack: this.#ack,
@@ -186,7 +189,11 @@ export class MsBridgeService {
       ),
       onCallback: (c) => this.#onCallback(c),
       onLinkComplete,
-      onInbox: createInboxHandler({ client: discussionClient, logger }),
+      onInbox: createInboxHandler({
+        client: discussionClient,
+        logger,
+        clock: this.#clock,
+      }),
     });
   }
 
@@ -485,6 +492,7 @@ export class MsBridgeService {
     const existing = await this.#store.loadByChannel(CHANNEL, threadId);
     if (existing) return existing;
     return newDiscussionContext({
+      clock: this.#clock,
       channel: CHANNEL,
       discussionId: threadId,
       participant: {

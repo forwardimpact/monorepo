@@ -15,7 +15,6 @@ import {
   ContentFormatter,
   formatContent,
 } from "@forwardimpact/libsyntheticrender";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const ZERO_STATS = {
   filesWritten: 0,
@@ -42,11 +41,11 @@ export class WriteSink {
     if (!monorepoRoot) throw new Error("monorepoRoot is required");
     if (!prettierFn) throw new Error("prettierFn is required");
     if (!logger) throw new Error("logger is required");
+    if (!runtime) throw new Error("runtime is required");
     this.monorepoRoot = monorepoRoot;
     this.formatter = new ContentFormatter(prettierFn, logger);
     this.logger = logger;
-    // Fall back to the production runtime for BC when no runtime is injected.
-    this._fs = (runtime ?? createDefaultRuntime()).fs;
+    this._fs = runtime.fs;
   }
 
   /** Format and write generated files, raw documents, and evidence to disk. */

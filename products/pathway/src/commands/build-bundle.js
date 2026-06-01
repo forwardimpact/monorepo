@@ -11,8 +11,6 @@ import { join } from "path";
 import Mustache from "mustache";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-const logger = createLogger("pathway");
-
 /**
  * Generate distribution bundle (bundle.tar.gz + install.sh)
  * @param {Object} params
@@ -33,6 +31,7 @@ export async function generateBundle({
   templatesDir,
   runtime,
 }) {
+  const logger = createLogger("pathway", runtime);
   logger.info("📦 Generating distribution bundle...");
 
   const standardTitle = standard.title || "Engineering Pathway";

@@ -14,8 +14,6 @@ import {
 import { scanPages } from "./page-tree.js";
 import { resolvePartials, defaultRegistry } from "./partials.js";
 
-const logger = createLogger("libdoc");
-
 /**
  * Pages builder for converting Markdown files to HTML
  */
@@ -26,6 +24,7 @@ export class PagesBuilder {
   #matter;
   #mustacheRender;
   #prettier;
+  #logger;
 
   /**
    * Creates a new PagesBuilder instance
@@ -35,14 +34,24 @@ export class PagesBuilder {
    * @param {Function} matterParser - Front matter parser function
    * @param {Function} mustacheRender - Mustache render function
    * @param {object} prettier - Prettier module for HTML formatting
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
    */
-  constructor(fs, path, markedParser, matterParser, mustacheRender, prettier) {
+  constructor(
+    fs,
+    path,
+    markedParser,
+    matterParser,
+    mustacheRender,
+    prettier,
+    runtime,
+  ) {
     if (!fs) throw new Error("fs is required");
     if (!path) throw new Error("path is required");
     if (!markedParser) throw new Error("markedParser is required");
     if (!matterParser) throw new Error("matterParser is required");
     if (!mustacheRender) throw new Error("mustacheRender is required");
     if (!prettier) throw new Error("prettier is required");
+    if (!runtime) throw new Error("runtime is required");
 
     this.#fs = fs;
     this.#path = path;
@@ -50,6 +59,7 @@ export class PagesBuilder {
     this.#matter = matterParser;
     this.#mustacheRender = mustacheRender;
     this.#prettier = prettier;
+    this.#logger = createLogger("libdoc", runtime);
 
     // Configure marked with extensions
     this.#marked.use(
@@ -103,7 +113,7 @@ export class PagesBuilder {
         this.#path.join(distDir, "assets"),
       )
     ) {
-      logger.info("  ✓ assets/");
+      this.#logger.info("  ✓ assets/");
     }
 
     const skipFiles = new Set(["index.template.html", "CNAME", "justfile"]);
@@ -120,7 +130,7 @@ export class PagesBuilder {
           this.#path.join(pagesDir, entry.name),
           this.#path.join(distDir, entry.name),
         );
-        logger.info(`  ✓ ${entry.name}`);
+        this.#logger.info(`  ✓ ${entry.name}`);
       });
   }
 
@@ -146,7 +156,7 @@ export class PagesBuilder {
       xml,
       "utf-8",
     );
-    logger.info("  ✓ sitemap.xml");
+    this.#logger.info("  ✓ sitemap.xml");
   }
 
   /**
@@ -174,7 +184,7 @@ export class PagesBuilder {
     const output = insertSectionLinks(content.split("\n"), sections, linkLine);
 
     this.#fs.writeFileSync(llmsPath, output.join("\n"), "utf-8");
-    logger.info("  ✓ llms.txt (augmented)");
+    this.#logger.info("  ✓ llms.txt (augmented)");
   }
 
   /**
@@ -240,7 +250,7 @@ export class PagesBuilder {
       finalHtml,
       "utf-8",
     );
-    logger.info(`  ✓ ${outputPath}.html`);
+    this.#logger.info(`  ✓ ${outputPath}.html`);
 
     this.#fs.writeFileSync(
       this.#path.join(distDir, outputPath + ".md"),
@@ -330,7 +340,7 @@ export class PagesBuilder {
    * @returns {Promise<void>}
    */
   async build(pagesDir, distDir, baseUrl) {
-    logger.info("Building documentation...");
+    this.#logger.info("Building documentation...");
 
     baseUrl = this.#resolveBaseUrl(baseUrl, pagesDir);
 
@@ -377,6 +387,6 @@ export class PagesBuilder {
       this.#augmentLlmsTxt(sortedPages, baseUrl, distDir);
     }
 
-    logger.info("Documentation build complete!");
+    this.#logger.info("Documentation build complete!");
   }
 }

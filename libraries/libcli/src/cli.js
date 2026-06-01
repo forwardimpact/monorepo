@@ -180,17 +180,16 @@ export class Cli {
 }
 
 /**
- * Create a Cli instance. When `runtime` is provided, error,
- * usage-error, and help output route through `runtime.proc` instead of the
- * global `process`. The zero-arg form keeps reading the global `process` as a
- * deprecated alias for one migration cycle.
+ * Create a Cli instance. Error, usage-error, and help output route through the
+ * injected `runtime.proc`.
  * @param {object} definition - The CLI definition.
- * @param {object} [options]
- * @param {import('@forwardimpact/libutil/runtime').Runtime} [options.runtime]
+ * @param {object} options
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} options.runtime
  * @returns {Cli}
  */
 export function createCli(definition, { runtime } = {}) {
-  const proc = runtime ? runtime.proc : process;
+  if (!runtime) throw new Error("runtime is required");
+  const proc = runtime.proc;
   const helpRenderer = new HelpRenderer({ process: proc });
   return new Cli(definition, { process: proc, helpRenderer });
 }

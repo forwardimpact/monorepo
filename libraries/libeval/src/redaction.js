@@ -135,7 +135,8 @@ export function createRedactor({
   patterns = DEFAULT_PATTERNS,
   enabled,
 } = {}) {
-  const proc = runtime?.proc ?? defaultProc();
+  if (!runtime) throw new Error("runtime is required");
+  const proc = runtime.proc;
   const resolvedEnv = env ?? proc.env;
   const envDisabled = resolvedEnv.LIBEVAL_REDACTION_DISABLED === "1";
   const resolvedEnabled = enabled ?? !envDisabled;
@@ -149,20 +150,6 @@ export function createRedactor({
     );
   }
   return new Redactor({ envSnapshot, patterns, enabled: resolvedEnabled });
-}
-
-/**
- * Lazily build the production proc surface so callers that don't inject a
- * runtime keep working. Imported indirectly to avoid pulling the whole
- * runtime bag (and its `node:fs`/`node:child_process` imports) into modules
- * that only ever receive an injected runtime.
- * @returns {{env: Record<string, string|undefined>, stderr: {write: (s: string) => void}}}
- */
-function defaultProc() {
-  return {
-    env: globalThis.process?.env ?? {},
-    stderr: { write: (s) => globalThis.process?.stderr?.write(s) },
-  };
 }
 
 /**

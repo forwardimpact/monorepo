@@ -35,8 +35,13 @@ export class TenantStore extends BufferedIndex {
    *   `last_active_at` timestamps so tests can use a virtual clock.
    */
   constructor(storage, { indexKey = "tenants.jsonl", clock } = {}) {
-    super(storage, indexKey, { flush_interval: 5_000, max_buffer_size: 100 });
     if (!clock) throw new Error("clock is required");
+    super(
+      storage,
+      indexKey,
+      { flush_interval: 5_000, max_buffer_size: 100 },
+      { clock },
+    );
     this.#clock = clock;
   }
 

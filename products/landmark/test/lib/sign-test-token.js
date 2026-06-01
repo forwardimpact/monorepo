@@ -1,4 +1,5 @@
 import { mintSupabaseJwt } from "@forwardimpact/libsecret";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * HMAC-sign a Supabase-shaped JWT for use in tests and local fixtures.
@@ -15,5 +16,5 @@ export function signTestToken({
   ttlSeconds = 900,
 }) {
   if (!secret) throw new Error("signTestToken: SUPABASE_JWT_SECRET not set");
-  return mintSupabaseJwt({ email, secret, ttlSeconds });
+  return mintSupabaseJwt({ email, secret, ttlSeconds }, createDefaultRuntime());
 }

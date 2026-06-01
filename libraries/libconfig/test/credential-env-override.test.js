@@ -4,6 +4,10 @@ import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { createProductConfig } from "../src/index.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+// Real fs (to read the .env written to tmpdir) with a test-controlled proc.
+const runtimeWith = (proc) => ({ ...createDefaultRuntime(), proc });
 
 // Mocked storage that always returns no config file (no findUpward walk).
 function mockStorageFn() {
@@ -29,7 +33,11 @@ describe("PRODUCT_LANDMARK_TOKEN credential override", () => {
     const config = await createProductConfig(
       "landmark",
       { token: undefined },
-      { ...process, cwd: () => tmpdir, env: { PATH: process.env.PATH } },
+      runtimeWith({
+        ...process,
+        cwd: () => tmpdir,
+        env: { PATH: process.env.PATH },
+      }),
       mockStorageFn,
     );
     assert.equal(config.token, "test-jwt-value");
@@ -41,11 +49,11 @@ describe("PRODUCT_LANDMARK_TOKEN credential override", () => {
     const config = await createProductConfig(
       "landmark",
       { token: undefined },
-      {
+      runtimeWith({
         ...process,
         cwd: () => tmpdir,
         env: { PATH: process.env.PATH, PRODUCT_LANDMARK_TOKEN: "shell-jwt" },
-      },
+      }),
       mockStorageFn,
     );
     assert.equal(config.token, "shell-jwt");
@@ -57,11 +65,11 @@ describe("PRODUCT_LANDMARK_TOKEN credential override", () => {
     const config = await createProductConfig(
       "landmark",
       { token: undefined },
-      {
+      runtimeWith({
         ...process,
         cwd: () => tmpdir,
         env: { PATH: process.env.PATH, PRODUCT_LANDMARK_TOKEN: "" },
-      },
+      }),
       mockStorageFn,
     );
     // .env wins, not ""

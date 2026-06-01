@@ -184,7 +184,7 @@ export function buildNodes(ctx) {
         if (!hasPathwayStandard || !options.schemaDir) return { files };
 
         logger.info("render", "Rendering pathway");
-        const schemas = loadSchemas(options.schemaDir);
+        const schemas = loadSchemas(options.schemaDir, runtime);
         const pathwayData = await pathwayGenerator.generate({
           standard: entities.standard,
           domain: entities.domain,
@@ -215,7 +215,8 @@ export function buildNodes(ctx) {
           logger,
           parse.clinical,
         );
-        await renderDatasetOutputs(parse.outputs, datasets, files, logger);
+        const outs = parse.outputs;
+        await renderDatasetOutputs(outs, datasets, files, logger, runtime);
         return { files, datasetsMap: datasets };
       },
     },
@@ -290,7 +291,7 @@ export function buildNodes(ctx) {
             );
             continue;
           }
-          const rendered = renderFhirMicrodataHtml(input, out.config);
+          const rendered = renderFhirMicrodataHtml(input, out.config, runtime);
           for (const [path, content] of rendered) files.set(path, content);
         }
         return { files };
@@ -463,22 +464,18 @@ function resolveDatasetConfig(ds, clinical, logger) {
 }
 
 /** Render dataset outputs and merge into the files map. */
-async function renderDatasetOutputs(outputs, datasets, files, logger) {
+async function renderDatasetOutputs(outputs, datasets, files, logger, runtime) {
   logger.info("pipeline", `Rendering ${outputs.length} dataset output(s)`);
   for (const out of outputs) {
     if (out.format === "fhir_microdata_html") continue;
     const dataset = datasets.get(out.dataset);
     if (!dataset) {
-      logger.info(
-        "pipeline",
-        `Skipping output '${out.dataset}': dataset not generated`,
-      );
+      logger.info("pipeline", `Skipping '${out.dataset}': not generated`);
       continue;
     }
-    const rendered = await renderDataset(dataset, out.format, out.config);
-    for (const [path, content] of rendered) {
-      files.set(path, content);
-    }
+    const { format, config } = out;
+    const rendered = await renderDataset(dataset, format, config, runtime);
+    for (const [path, content] of rendered) files.set(path, content);
   }
 }
 

@@ -106,11 +106,14 @@ export async function runSelfSmoke({ supabase, config, runtime }) {
   const persona = personas[0];
 
   const secret = config.supabaseJwtSecret();
-  const jwt = mintSupabaseJwt({
-    email: persona.email,
-    secret,
-    ttlSeconds: parseDuration("1h"),
-  });
+  const jwt = mintSupabaseJwt(
+    {
+      email: persona.email,
+      secret,
+      ttlSeconds: parseDuration("1h"),
+    },
+    runtime,
+  );
 
   // Spec § Success Criteria rows 1–4: explicit shape check.
   assertJwtShape(jwt, persona.email, runtime.clock.now());

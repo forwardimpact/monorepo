@@ -48,7 +48,10 @@ function stageDataDir({ stripOrgContext = true } = {}) {
 
 async function runAgent({ dataDir, args, options, outputDir = null }) {
   const loader = createDataLoader(createDefaultRuntime());
-  const templateLoader = createTemplateLoader(templatesDir);
+  const templateLoader = createTemplateLoader(
+    templatesDir,
+    createDefaultRuntime(),
+  );
   const data = await loader.loadAllData(dataDir);
   const opts = { ...options };
   if (outputDir) opts.output = outputDir;
