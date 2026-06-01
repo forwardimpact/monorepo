@@ -91,7 +91,17 @@ non-integration):**
 `products/pathway/test/build-packs.integration.test.js`) and any entry already in
 `scripts/check-subprocess-in-tests.allow.json`.
 
-Verify per file: `bun test <file>`; `bun run invariants:check-subprocess-in-tests`.
+**Owned end-to-end here (also > 400 LOC, excluded from Part 03):** after
+applying the migrate/rename rule to `libraries/libterrain/test/pipeline.test.js`
+(411) and `libraries/libwiki/test/audit-engine.test.js` (421), bring each result
+under the 400-LOC ceiling — split by behaviour family (Part 03's rule) or
+allow-list if cohesive. `products/map/test/pipeline.test.js` is a **rename** to
+`*.integration.test.js` (real `GraphIndex` over `LocalStorage`); the Part 01
+GraphIndex rule is scoped to the `createMockStorage` triple, so it does not trip
+here.
+
+Verify per file: `bun test <file>`; `bun run invariants:check-subprocess-in-tests`;
+for the two dual-concern files, also confirm ≤400 LOC (or allow-listed).
 
 ## Step 4 — Establish the SC3 allow-list and verify
 

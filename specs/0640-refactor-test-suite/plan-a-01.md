@@ -125,11 +125,15 @@ triple/definition/bundle in a file that does not import the new fixture
 ```js
 // new RULES entries
 {
-  // inline `new GraphIndex(mockStorage, n3Store, …)` triple
+  // inline mock triple: createMockStorage + new GraphIndex co-occurring
+  // without the fixture import. Keyed on createMockStorage (the *mock* triple),
+  // NOT a bare `new GraphIndex` — products/map/test/pipeline.test.js builds a
+  // *real* GraphIndex over LocalStorage (integration) and must not trip.
   test: (t) =>
+    /createMockStorage\s*\(/.test(t) &&
     /new\s+GraphIndex\s*\(/.test(t) &&
     !t.includes("createGraphIndexFixture"),
-  message: "inline GraphIndex triple — use createGraphIndexFixture",
+  message: "inline GraphIndex mock triple — use createGraphIndexFixture",
 },
 {
   // inline mock object literal `{ Check: { path: "…", requestStream: … } }`.
@@ -159,7 +163,10 @@ detection + a negative when the file imports the fixture), mirroring the
 existing `createMockSubprocess` cases. For the gRPC rule, add a second negative
 asserting that a real-definition assertion (`assert.strictEqual(check.path,
 "/grpc.health.v1.Health/Check")` with no `Check: {` mock literal) does **not**
-trip — pinning the librpc/health.test.js exemption.
+trip — pinning the librpc/health.test.js exemption. For the GraphIndex rule, add
+a second negative asserting that a `new GraphIndex(new LocalStorage(…), …)`
+construction with no `createMockStorage` does **not** trip — pinning the
+products/map/test/pipeline.test.js (real-GraphIndex integration) exemption.
 
 Verify: `bun test tests/check-libmock-rules.test.js`.
 
@@ -214,7 +221,7 @@ Verify: `bun test libraries/librepl` and `bun run invariants:check-libmock`.
 
 ## Step 7 — Part verification
 
-Run `bun run check` and
+Run `bun run check`, `bun run invariants:check-libmock` (SC2's own command), and
 `bun test libraries/libmock libraries/libgraph libraries/librpc products/guide libraries/librepl tests/check-libmock-rules.test.js`.
 Confirms SC1 (exports resolve + README), SC2 (each new rule flags its inline
-shape).
+shape; `check-libmock` stays green across the repo).

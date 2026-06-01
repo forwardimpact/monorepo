@@ -40,6 +40,19 @@ assertions over pure logic — everything else is renamed (Q1).
   Part 03's split set excludes it. If Part 04's audit finds it is broad
   per-helper coverage rather than a single-path cross-multiply, Part 04 splits it
   by behaviour family under the Part 03 ceiling instead of collapsing.
+- **Part 02 ∩ Part 03 overlap.** `libraries/libterrain/test/pipeline.test.js`
+  (411 LOC, `mkdtemp`) and `libraries/libwiki/test/audit-engine.test.js` (421
+  LOC, `mkdtemp`) appear on both Part 02's sweep list and Part 03's split list.
+  **Part 02 owns both end-to-end**: migrate/rename the I/O first, then bring the
+  result under the 400-LOC ceiling (split by family, or allow-list per Part 03's
+  rule if cohesive). Part 03's split set excludes both. This keeps the two parts
+  file-disjoint and parallel-safe.
+- **map pipeline GraphIndex.** `products/map/test/pipeline.test.js` builds a
+  *real* `GraphIndex` over `LocalStorage` (an integration construction, not the
+  `createMockStorage` unit triple) and also uses `mkdtemp`. **Part 02 owns it**
+  as a rename to `*.integration.test.js`; Part 01's GraphIndex rule is scoped to
+  the `createMockStorage` triple so it does not trip on this file (or on the
+  rename).
 - **Three-artifact rule.** Every new shared fixture lands with its export, its
   `check-libmock-rules.mjs` shape rule, and its README line in the same commit
   (Decision 2). Part 01 is the only part that adds fixtures.

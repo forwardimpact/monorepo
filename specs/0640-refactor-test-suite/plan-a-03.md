@@ -46,10 +46,9 @@ without one (Step 3).
 `libraries/libbridge/test/{resume-scheduler,dispatcher,callback-handler}.test.js`,
 `libraries/libindex/test/base-filters.test.js` (454),
 `services/msbridge/test/msbridge.test.js` (436),
-`libraries/libterrain/test/{datasets,pipeline}.test.js`,
+`libraries/libterrain/test/datasets.test.js` (433),
 `libraries/libconfig/test/libconfig-getters.test.js` (433),
 `libraries/libsyntheticgen/test/parser.test.js` (425),
-`libraries/libwiki/test/audit-engine.test.js` (421),
 `tests/{model-matching-core,model-validation-data}.test.js`,
 `libraries/libtelemetry/test/visualizer-edge-cases.test.js` (415),
 `libraries/libsyntheticrender/test/{validate,fhir-microdata}.test.js`.
@@ -57,6 +56,11 @@ without one (Step 3).
 Note: `products/pathway/test/build-packs.integration.test.js` (560) is an
 integration file — apply the same family split or allow-list it; the ceiling
 applies to all `*.test.js`.
+
+Excluded (owned elsewhere, per plan-a.md cross-cutting):
+`libraries/libterrain/test/pipeline.test.js` and
+`libraries/libwiki/test/audit-engine.test.js` (Part 02, which brings them under
+the ceiling after the I/O migration); `tests/model-types.test.js` (Part 04).
 
 Verify: `bun test` for each touched library/product/service directory; each new
 file ≤400 LOC.
