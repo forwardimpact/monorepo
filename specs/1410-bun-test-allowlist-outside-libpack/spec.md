@@ -12,13 +12,14 @@ the issue author's enumeration of the architectural choices embedded in
 bullet has been interpreted as foreclosing any `bun:test` import outside
 `libraries/libpack/`.
 
-Current `main` contradicts that reading. The verification roots match the
-`bun test` invocation roots (`./tests`, `./libraries`, `./products`,
-`./services`, `./.github/workflows/test`, `./.claude/skills/kata-interview/test`,
-plus `./websites` for forward-compat) so the inventory below cannot miss a
-discovery-root file. The four spec-critical counts are produced by four
-commands sharing one regex; each count names its source explicitly so the
-result is single-command reproducible:
+Current `main` contradicts that reading. The `bun test` invocation roots
+(verified against `package.json` `scripts.test`) are `./tests`,
+`./libraries`, `./products`, `./services`, `./.github/workflows/test`, and
+`./.claude/skills/kata-interview/test`; the verification grep adds
+`./websites/` as preemptive coverage so the inventory cannot miss a file
+the runner discovery surface might absorb later. The four spec-critical
+counts are produced by four commands sharing one regex; each count names
+its source explicitly so the result is single-command reproducible:
 
 ```sh
 # 37 = repo-wide files importing from "bun:test"
@@ -56,9 +57,10 @@ verification roots so the inventory matches the runner's discovery surface.
 
 Issue #1328 framed the disposition as binary: enforce (Option A — guard rule
 + migrate 31 files) or relax (Option B — allowlist + amend record). Both
-options align with the **Platform Builders / Gear** persona job to maintain
-a shared, agent-capable test surface ([JTBD.md § Gear](../../JTBD.md)); the
-choice turns on the symbol-usage evidence.
+options align with the **Platform Builders** persona job to "Build
+Agent-Capable Systems" via the Gear product
+([JTBD.md](../../JTBD.md#platform-builders-build-agent-capable-systems));
+the choice turns on the symbol-usage evidence.
 
 Per-symbol file counts among the 31 outside-`libpack` files, each with its
 own per-symbol verification grep so a reviewer can reproduce a single row
@@ -78,12 +80,13 @@ in isolation:
 | `spyOn`          |              0 | `grep -rlE "import .*\\bspyOn\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
 | `setSystemTime`  |              0 | `grep -rlE "import .*\\bsetSystemTime\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
 | `useFakeTimers`  |              0 | `grep -rlE "import .*\\buseFakeTimers\\b.* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/` |
-| `vi.*` aliases   |              0 | `grep -rnE "\\bvi\\." libraries/ services/ products/ tests/ websites/ .github/ .claude/ \| grep -v node_modules` (Vitest globals; not an import) |
 
-Snapshot serializers (`toMatchSnapshot`, `toMatchInlineSnapshot`, custom
-serializers) are **not** rows in this table because they are `expect()`
-methods, not symbols imported from `bun:test`. The import-allowlist guard
-cannot catch them; they are addressed under § Out of scope below.
+`vi.*` (Vitest compatibility globals) and snapshot serializers
+(`toMatchSnapshot`, `toMatchInlineSnapshot`, custom serializers) are **not**
+rows in this table. They are not imported from `bun:test` — `vi.*` is a
+global access pattern and snapshot serializers are `expect()` methods — so
+the import-allowlist guard cannot catch them. They are addressed under
+§ Out of scope below.
 
 **Convergence claim (precise).** Of the 37 files that import from `bun:test`
 across `libpack`-inside and -outside, none import any symbol outside the
@@ -106,42 +109,48 @@ source decoupling via a guard rule.**
 
 | Signal                        | Weight                                                                                                                                                 |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Symbol convergence is exact   | The 6-symbol observed subset is shared across `libpack`-inside and -outside files. Zero divergent-feature usage. The drift is not toward bun-specific power; it is toward `expect()` ergonomics. |
+| Symbol convergence is exact   | No file (inside or outside `libpack`) imports any symbol outside the 6-symbol observed subset (`describe`, `test`, `expect`, `beforeEach`, `afterEach`, `afterAll`). Most files use a smaller floor — `libpack`-inside files use only `describe`/`test`/`expect`; outside-`libpack` files add lifecycle hooks. Zero divergent-feature usage. The drift is not toward bun-specific power; it is toward `expect()` ergonomics. |
 | Cost asymmetry favours B      | Option A migrates ~31 files (rewriting `expect(x).toEqual(y)` → `assert.deepStrictEqual(x, y)`, plus several `expect(spy).toHaveBeenCalledWith(...)` shapes), turning CI red until clean. Option B is a guard script + supersession note. |
 | 0650's core decoupling holds  | The "Why a custom `spy`" rationale in 0650 protected `libmock`/`libpack` **source** from runtime mock APIs. Source files still do not import `bun:test` (verified). Only test files do. The relaxation is at the test-consumer edge; the structural decoupling is unchanged. |
 | Foreclosure was inferred, not stated | 0650 records the foreclosure as a non-goal bullet under "snapshot testing, etc." — never enumerated the prohibited symbols, never wired a guard. 31 files of organic adoption is evidence the inferred scope was over-broad. |
 
-### Supersession note on spec 0650 (sealed at `plan implemented`)
+### Supersession note on spec 0650
 
-This spec amends one bullet of `specs/0650-bun-test-runner/spec.md` — the
-**Non-goals** bullet quoted above:
+This spec amends one bullet of `specs/0650-bun-test-runner/spec.md`,
+which lives on `main`. (`wiki/STATUS.md` records the 0650 row as
+`0650 spec cancelled`, but the spec.md file itself was merged onto
+`main` and the runner switch it describes is live — `package.json`
+runs `bun test`, `libmock` exports `spy()`, and
+`libraries/libpack/test/` contains 6 `bun:test` importers. The
+amendment edits the file on `main`; the STATUS string does not change
+the audit obligation.) The **Non-goals** bullet quoted above is the
+amendment target:
 
 > Adding `bun:test`-specific features (snapshot testing, etc.) — out of
 > scope; this spec is purely about the runner switch.
 
-The seal is being broken because the foreclosure was inferred from a single
-non-goal bullet interpreted globally rather than written as a stated
-constraint with a guard. 31 files of organic adoption across 6 surfaces
-(`libbridge`, `libhttp`, `libeval`, `ghbridge`, `msbridge`, `pathway`)
-over months, all converging on the universal subset, are evidence the
-inferred scope was over-broad. Narrowing the foreclosure preserves 0650's
-structural intent (keep `libmock`/`libpack` source decoupled from
-`bun:test`) while matching the convention the team actually uses. No
-other 0650 decision is amended — runner choice, custom `spy()`,
-`node:test` lifecycle compatibility, and risk register all stand.
+The amendment is justified because the foreclosure was inferred from a
+single non-goal bullet interpreted globally rather than written as a
+stated constraint with a guard. 31 files of organic adoption across 6
+surfaces (`libbridge`, `libhttp`, `libeval`, `ghbridge`, `msbridge`,
+`pathway`) over months, all converging on the universal subset, are
+evidence the inferred scope was over-broad. Narrowing the foreclosure
+preserves 0650's structural intent (keep `libmock`/`libpack` source
+decoupled from `bun:test`) while matching the convention the team
+actually uses. No other 0650 statement is amended — runner choice,
+custom `spy()`, `node:test` lifecycle compatibility, and risk register
+all stand.
 
-The amendment to 0650 takes one specific form: the Non-goals bullet
-quoted above is **replaced** by the text below, plus a footnote of the
-form `*[amended by spec 1410, <merge-date>]*` that links to this spec
-for audit. `<merge-date>` is the merge date of this spec PR (the PR
-that lands `specs/1410-bun-test-allowlist-outside-libpack/spec.md` on
-`main`) in ISO-8601 (`YYYY-MM-DD`); the implementer reads it from the
-spec PR's merge commit when applying the amendment. The original bullet
-text is preserved in this spec's quotation above, which is reachable
-from the footnote, so the seal-break audit trail is complete. The
-amendment is done by the implementation of this spec; CONTRIBUTING.md
-is the single source of truth for the policy itself (see success
-criterion 7) and 0650's bullet defers there.
+The amendment takes one specific form: the Non-goals bullet quoted
+above is **replaced** by the Replacement bullet text below, plus a
+footnote of the form `*[amended by spec 1410](link-to-this-spec)*`.
+The footnote carries no date — the audit date is observable from the
+git history of `specs/0650-bun-test-runner/spec.md` and from this
+spec's PR record; embedding a date in the footnote would require
+post-merge editing or out-of-band substitution and adds no audit value
+the git history does not already provide. The original bullet text is
+preserved in this spec's quotation above, which is reachable from the
+footnote, so the seal-break audit trail is complete.
 
 Replacement bullet text:
 
@@ -180,11 +189,11 @@ variation.
 | Symbol or shape                                    | Why out                                                                                                                                                                                                                                  |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mock`, `spyOn`                                    | Use `libmock`'s runtime-independent `spy()`. Preserves 0650's core decoupling: call-inspection sites stay identical across runners.                                                                                                      |
-| Bun-specific timer manipulation (`setSystemTime` and any future `bun:test` timer surface) | Diverges from `node:test`'s timer semantics. 0650 names the symmetric risk for `node:test`'s `mock.timers`; banning the bun-side equivalent keeps the surface narrow in both directions.                |
+| Bun-specific timer manipulation (`setSystemTime`)  | Diverges from `node:test`'s timer semantics. 0650 names the symmetric risk for `node:test`'s `mock.timers`; banning the bun-side equivalent keeps the surface narrow in both directions. Any future `bun:test` timer-manipulation symbol is also banned by allowlist construction (only the 8 symbols on the allowlist are admitted; anything not on the list — present or future — is rejected). |
 | Default or namespace imports from `bun:test`       | Allowlist scope is **named imports only**; `import test from "bun:test"` or `import * as bunTest from "bun:test"` would bypass the per-symbol check. The guard rejects them in test files just as the source-file ban rejects them everywhere else. |
 | Side-effect imports (`import "bun:test"`)          | Carry no named symbols, so the named-import allowlist does not engage. The guard rejects this shape in test files for the same reason it rejects default/namespace imports: the guard cannot tell which symbols a side-effect import made available. |
 | Re-export shims (`export { test } from "bun:test"`) | Would let a downstream `import { test } from "./shim.js"` evade the guard if it were only matching import strings. The guard MUST match the same shapes (named/default/namespace/side-effect) on `export ... from "bun:test"`, in the same files it applies to import statements. |
-| `vi.*` aliases (Vitest compatibility shims)        | Out of scope for this spec; if Vitest compatibility becomes a need, that is its own decision.                                                                                                                                            |
+| `vi.*` aliases (Vitest compatibility shims)        | Out of scope for this spec; if Vitest compatibility becomes a need, that is its own decision. Not guard-enforceable from `bun:test` imports (Vitest globals are not imported from `bun:test`) — listed here for completeness, not as a guard target. |
 
 **Renamed named imports** (e.g. `import { test as bunTest } from "bun:test"`)
 are **allowed** when the imported binding (the left-hand name, `test` here)
@@ -258,13 +267,13 @@ shape is a design-phase concern (see § Risks for the persona framing).
 
 | # | Claim                                                                                                                  | Verified by                                                                                       |
 | - | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 1 | A guard enforces the named-import allowlist on every `*.test.js` import from `bun:test`, **and** rejects default, namespace, side-effect, and re-export shapes (`import "bun:test"`, `export ... from "bun:test"`) in `*.test.js` files (parallel to criterion 2). The guard's error message names the offending symbol or import shape and, for banned symbols, the recommended replacement (e.g. `libmock`'s `spy()` for `spyOn`). | A fixture `*.test.js` importing only allowlisted named symbols (including a renamed named import of an allowlisted symbol) exits zero; fixtures importing a banned symbol, a default import, a namespace import, a side-effect import, or a re-export shim each exit non-zero with a message matching the requirement above. |
-| 2 | The guard forbids `bun:test` imports and re-exports of every shape (named, default, namespace, side-effect, re-export) in any non-test source file, where "non-test source file" means a file under the allowlist directory set (see § Scope clause) that does **not** match `**/*.test.js`. | Running the guard against a fixture source file (non-`*.test.js`) that imports or re-exports anything from `bun:test` exits non-zero. |
-| 3 | The guard runs in CI as a member of the existing `invariants` CI aggregator (the same aggregator that runs the other `invariants:check-*` scripts on every pull request and on `main`). | The aggregator entry that invokes the other `invariants:check-*` scripts also invokes the new guard; both `bun run check` and the CI workflow that runs invariants execute it. |
-| 4 | The guard, run on `main` at the time this spec lands, exits 0: all 37 current `bun:test` imports in test files pass the named-import allowlist, and zero non-test source files import or re-export from `bun:test`. | The four single-command counts in § Problem reproduce 37 / 31 / 6 / 0. The source-side check `grep -rlE "from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/ \| grep -v '\.test\.js$' \| wc -l` returns `0` (no file outside the test-file scope imports from `bun:test`); the same check with `"from"` replaced by `"export"` `from` returns `0` (no re-export shim either). |
-| 5 | A regression test exercises the allowed and disallowed partition against the rules module: every allowlisted symbol (including renamed-import shape), every banned symbol from § Out, and every banned import shape (default, namespace, side-effect, re-export). | The regression test runs under `bun test`, lives somewhere the test runner discovers, and is parameterised over the in/out symbol partition declared in this spec plus the default, namespace, side-effect, and re-export shapes. (Naming/location of the regression test, the guard script, and the rules module is a design-phase choice; see § References for an informative precedent.) |
-| 6 | `specs/0650-bun-test-runner/spec.md` has its Non-goals bullet quoted in § Supersession replaced by the Replacement bullet text shown there, followed by a footnote of the form `*[amended by spec 1410, <merge-date>]*` (with `<merge-date>` substituted as defined in § Supersession) that links to this spec. | The 0650 spec file shows the replacement bullet (the original bullet text no longer appears in 0650 outside this spec's quotation); the footnote link resolves to this spec; the original bullet text appears in this spec's § Supersession quotation block, so the seal-break audit trail is complete. |
-| 7 | `CONTRIBUTING.md` is the single source of truth for the policy: one paragraph names the allowlist, the source/test split, the snapshot out-of-scope note, and points readers to this spec. No other doc states a contradictory policy. | A diff against the current `CONTRIBUTING.md` shows the added paragraph; `grep -rnE "bun:test" CONTRIBUTING.md specs/0650-bun-test-runner/spec.md specs/1410-bun-test-allowlist-outside-libpack/spec.md` shows the three docs' policy statements are mutually consistent (CONTRIBUTING.md is the canonical paragraph; 0650's amended bullet defers there; this spec is the audit trail). |
+| 1 | A guard enforces the named-import allowlist on every `*.test.js` import from `bun:test`, **and** rejects default, namespace, side-effect, and re-export shapes (`import "bun:test"`, `export ... from "bun:test"`) in `*.test.js` files. The guard's error message contract: for an allowlist symbol violation the message names the offending symbol; for a banned symbol it also names the recommended replacement (`spy()` from `libmock` for `mock`/`spyOn`; "no replacement — out of scope" for `setSystemTime`/`useFakeTimers`); for a banned shape (default/namespace/side-effect/re-export) the message names the shape and points the reader to the named-import allowlist. | A fixture `*.test.js` for each allowed shape (named import of an allowlisted symbol, renamed named import of an allowlisted symbol) exits zero; fixtures for each disallowed shape and each banned symbol exit non-zero, and the error message text matches the per-shape, per-symbol contract above. |
+| 2 | The guard forbids `bun:test` imports and re-exports of every shape (named, default, namespace, side-effect, re-export) in any non-test source file, where "non-test source file" means a file under the allowlist directory set (see § Scope clause) that does **not** match `**/*.test.js`. | Running the guard against a fixture source file (non-`*.test.js`) that imports or re-exports anything from `bun:test` exits non-zero, with the same per-shape contract as criterion 1. |
+| 3 | The guard runs in CI on every pull request and on `main` as a member of the same aggregator that runs the other `invariants:check-*` scripts. | The aggregator that invokes the other `invariants:check-*` scripts also invokes the new guard; both `bun run check` and the CI workflow that runs invariants execute it. |
+| 4 | The guard, run on `main` at the time this spec lands, exits 0: all 37 current `bun:test` imports in test files pass the named-import allowlist, and zero non-test source files under the allowlist directory set import or re-export from `bun:test`. | The four single-command counts in § Problem reproduce 37 / 31 / 6 / 0 (each count names its own command). The two source-side checks below return `0`: <br>• `grep -rlE "from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/ \| grep -v '\.test\.js$' \| wc -l` (no non-`.test.js` file imports from `bun:test`) <br>• `grep -rlE "export .* from ['\"]bun:test['\"]" libraries/ services/ products/ tests/ websites/ .github/ .claude/ \| wc -l` (no file re-exports from `bun:test`, in either test or non-test files — the re-export shape is banned everywhere) |
+| 5 | A regression test exercises the allowed and disallowed partition against the rules module: every allowlisted symbol (including renamed-import shape), every banned symbol from § Out, every banned import shape (default, namespace, side-effect, re-export), and the renamed-import-of-banned-symbol case (rejected on the imported name, not the local alias). | The regression test runs under `bun test`, lives somewhere the test runner discovers, and is parameterised over the in/out symbol partition declared in this spec plus every disallowed shape listed above. (Naming/location of the regression test, the guard script, and the rules module is a design-phase choice; see § References for an informative precedent.) |
+| 6 | `specs/0650-bun-test-runner/spec.md` has its Non-goals bullet quoted in § Supersession replaced by the Replacement bullet text shown there, followed by a footnote of the form `*[amended by spec 1410](link)*` (no date in the footnote — see § Supersession). | The 0650 spec file on `main` shows the Replacement bullet text and the footnote link to this spec; the original bullet text no longer appears in 0650 outside this spec's quotation; the audit date is observable from the file's git history. |
+| 7 | `CONTRIBUTING.md` carries the canonical policy paragraph and is the doc readers are pointed to from 0650's amended bullet and from this spec. The paragraph covers the allowlist, the source/test split, and the snapshot out-of-scope note, and links to this spec. | The diff against the current `CONTRIBUTING.md` shows the added paragraph naming those four items; 0650's amended bullet links to CONTRIBUTING.md or to this spec § Scope; this spec's § Scope clause is consistent with the paragraph (the design phase chooses which doc carries which level of detail — CONTRIBUTING.md the policy paragraph, this spec the audit trail and partition tables). |
 
 ## Risks
 
