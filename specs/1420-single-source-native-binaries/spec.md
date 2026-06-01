@@ -25,10 +25,10 @@ and nothing produces a Linux binary at all.
 
 | CLI | Observed failure when compiled standalone | Consequence |
 |---|---|---|
-| `fit-codegen` | The compiled binary exits before its first line of work — protobufjs's optional 64-bit-integer support is pulled in through a dynamic lookup the bundler drops, so resolving a field default throws at startup. | It is **already enumerated in the gear build set**, so the gear cask ships a CLI that exits on launch. |
+| `fit-codegen` | The compiled binary exits at startup, before its first line of work: protobufjs's optional 64-bit-integer support does not survive standalone bundling, so resolving a field default throws. | It is **already enumerated in the gear build set**, so the gear cask ships a CLI that exits on launch. |
 | `fit-wiki` | The binary resolves its version by reading its own `package.json` at runtime; that file is absent from the compiled binary's mount, so it exits with `ENOENT`. `fit-codegen` already avoids this by reading a build-time-injected version; `fit-wiki` does not. | Not compile-ready; cannot join the build until version resolution stops touching the filesystem. |
 | `fit-outpost` (defect 1) | Outpost's installer compiles a module that only *exports* its entry function and never calls it, so the binary does nothing (`--help` prints nothing, exits 0). The working entry is the package's existing `bin` (a thin wrapper that constructs the runtime and invokes the entry). | The installer's binary is a no-op. |
-| `fit-outpost` (defect 2) | That working `bin` entry reads its build-time version under a different name than the shared builder injects. | A shared build of `fit-outpost` would carry no version. |
+| `fit-outpost` (defect 2) | That working `bin` entry reads its build-time version as `OUTPOST_VERSION`, but the shared builder injects `FIT_OUTPOST_VERSION` (derived from the bin name); the names do not match. | A shared build of `fit-outpost` would carry no version. |
 
 `fit-wiki init` + `fit-wiki pull` run on **every** bootstrap; `fit-codegen
 --all` runs only on a cold cache. So `fit-wiki`'s startup is paid every CI run
@@ -91,7 +91,7 @@ CI runs. These figures motivate the Linux channel; none is a success criterion.
 | Claim | Verification |
 |---|---|
 | Native binaries are produced in exactly one place; both macOS publish workflows consume that output rather than compiling their own. | Inspect `publish-brew.yml` and `publish-macos.yml`; observe neither contains a binary-compile step and both obtain binaries from the shared build. |
-| Every published binary starts and produces output. | For each binary in a release, run its trivial invocation; observe a zero exit and non-empty output. The same check runs as the build gate and fails the build on violation. |
+| Every published binary starts and produces output. | For each CLI in the design-chosen set, on each target in the design-chosen matrix, run the release binary's trivial invocation; observe a zero exit and non-empty output. The same check runs as the build gate and fails the build on violation. |
 | `fit-codegen` runs as a compiled binary. | Build `fit-codegen` through the shared mechanism and run `fit-codegen --version`; observe it prints the version and exits 0 (today it throws at startup). |
 | `fit-wiki` runs as a compiled binary. | Build `fit-wiki` through the shared mechanism and run `fit-wiki --version`; observe it prints the version and exits 0 (today it exits `ENOENT`). |
 | `fit-outpost` is built from its real entry by the shared mechanism and reports its version. | Build `fit-outpost` through the shared mechanism and run `fit-outpost --version` and `fit-outpost --help`; observe the version prints and help lists the commands (today the installer's binary prints nothing). |
