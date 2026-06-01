@@ -19,7 +19,12 @@ artifact a downstream packager can point at.
 
 Two workflows compile overlapping binaries from the same source on the same
 tag with no shared output, Outpost's compile path differs from the shared one,
-and nothing produces a Linux binary at all.
+and nothing produces a Linux binary at all. The shared paths are themselves
+hand-maintained enumeration recipes (`build-product-binaries` lists six CLIs,
+`build-gear-binaries` lists twenty-five) that drift from reality — `fit-codegen`
+sits in the gear list while its binary crashes, and the gear list names
+twenty-five of the repo's forty-odd `bin` entries with no rule for which
+belong.
 
 ### Three CLIs cannot take part in a unified build today
 
@@ -58,6 +63,7 @@ CI runs. These figures motivate the Linux channel; none is a success criterion.
 | Component | What changes |
 |---|---|
 | Shared binary build | One mechanism compiles the distributable `fit-*` CLI set for a defined platform matrix and is the **only** place a native binary is produced. Every consumer sources binaries from it. |
+| Bespoke `just` target cleanup | The per-category binary-build recipes spec 0600 introduced — `build-binaries`, `build-product-binaries`, and `build-gear-binaries`, each a hand-maintained enumeration that drifts from the actual distributed set — are removed. The only binary-build entry point left is the single generic recipe, driven by one source-of-truth CLI list; no per-product or per-category build recipe survives. The macOS `.app`-assembly recipes lose their `fit-outpost` special-case (its binary now comes from the generic build). |
 | Per-binary build gate | Each compiled binary is run (a trivial invocation) inside the build; a non-zero exit or empty output fails the build, so the `fit-codegen` and `fit-outpost` failure modes above can never be published. |
 | Native release channel (`publish-native.yml`) | Publishes the raw per-platform binaries plus checksums as release assets — a single addressable artifact for the CI bootstrap and any future packager. |
 | Homebrew workflow (`publish-brew.yml`) | Sources its macOS binaries from the shared build instead of compiling its own; the `.app` wrap, codesign, cdhash-stability check, and cask-update PR are unchanged. |
@@ -96,4 +102,5 @@ CI runs. These figures motivate the Linux channel; none is a success criterion.
 | `fit-wiki` runs as a compiled binary. | Build `fit-wiki` through the shared mechanism and run `fit-wiki --version`; observe it prints the version and exits 0 (today it exits `ENOENT`). |
 | `fit-outpost` is built from its real entry by the shared mechanism and reports its version. | Build `fit-outpost` through the shared mechanism and run `fit-outpost --version` and `fit-outpost --help`; observe the version prints and help lists the commands (today the installer's binary prints nothing). |
 | The native release channel publishes per-platform binaries with checksums. | Trigger `publish-native.yml`; observe the release carries one binary per CLI-per-target plus a checksum for each. |
+| The bespoke per-category build recipes are gone and only the generic build entry point remains. | Grep the `justfile`; observe `build-binaries`, `build-product-binaries`, and `build-gear-binaries` are absent and exactly one generic binary-build recipe remains, with the CLI set defined in a single place. |
 | A Homebrew cask built through the new path is equivalent for the user. | Install such a cask; observe it exposes the same CLI set on `PATH`, each answers `--help` with a zero exit, and the cdhash-stability check still passes. |
