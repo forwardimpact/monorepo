@@ -17,7 +17,8 @@ loader's `promptDir`.
 
 ## Step 1 — Migrate the libprompt loader test
 
-- Modified: `libraries/libprompt/test/loader.test.js`
+- Modified: `libraries/libprompt/test/loader.test.js`,
+  `libraries/libprompt/package.json`
 
 Replace the `beforeEach` tempdir with a per-test `createMockFs` seed. Each test
 that did `writeFileSync(join(tempDir, "x.prompt.md"), content)` seeds
@@ -25,20 +26,28 @@ that did `writeFileSync(join(tempDir, "x.prompt.md"), content)` seeds
 `new PromptLoader("/prompts", createTestRuntime({ fs }))`. Constructor-validation
 tests (`promptDir is required`, etc.) need no fs at all. Drop the `node:fs` /
 `node:os` / `createDefaultRuntime` imports; import `createMockFs`,
-`createTestRuntime` from `@forwardimpact/libmock`.
+`createTestRuntime` from `@forwardimpact/libmock`. libprompt does **not** yet
+declare libmock — add `"@forwardimpact/libmock"` to `package.json`
+`devDependencies` (matching the version other libs pin) so
+`check-workspace-imports` stays green.
 
-Verify: `bun test libraries/libprompt` (same pass count, no `mkdtemp`).
+Verify: `bun test libraries/libprompt` (same pass count, no `mkdtemp`);
+`bun run invariants:check-workspace-imports`.
 
 ## Step 2 — Migrate the libtemplate loader test
 
-- Modified: `libraries/libtemplate/test/loader.test.js`
+- Modified: `libraries/libtemplate/test/loader.test.js`,
+  `libraries/libtemplate/package.json`
 
 Same shape. The override-dir tests (`dataDir` second tmpdir, lines 67–90) seed
 both layers into one `createMockFs` map (`/defaults/page.html`,
 `/data/templates/page.html`) and pass the data dir through the loader's existing
-parameter. Drop `mkdirSync`/`mkdtempSync`/`rmSync`/`tmpdir`.
+parameter. Drop `mkdirSync`/`mkdtempSync`/`rmSync`/`tmpdir`. libtemplate does
+**not** yet declare libmock — add `"@forwardimpact/libmock"` to `package.json`
+`devDependencies` so `check-workspace-imports` stays green.
 
-Verify: `bun test libraries/libtemplate` (no `mkdtemp`).
+Verify: `bun test libraries/libtemplate` (no `mkdtemp`);
+`bun run invariants:check-workspace-imports`.
 
 ## Step 3 — Sweep the remaining non-`integration` real-I/O files
 
@@ -50,9 +59,13 @@ then act. The rule (Open Q1 default): **migrate** when the code under test accep
 parameter and the assertions inspect pure logic/returned values; **rename** to
 `*.integration.test.js` when the real filesystem/subprocess behaviour is itself
 under test or no injection seam exists; **allow-list** only a genuine residual
-(record it for SC3).
+(record it for SC3). When a **migrate** disposition makes a test file the first
+in its package to import `@forwardimpact/libmock`, add libmock to that package's
+`package.json` `devDependencies` in the same change (per plan-a.md § Cross-cutting
+"Workspace-import declarations").
 
-- Modified / renamed: the files in the candidate list.
+- Modified / renamed: the files in the candidate list (plus any newly-importing
+  `package.json`).
 
 **Candidate list — `mkdtemp` (non-integration `*.test.js`):**
 

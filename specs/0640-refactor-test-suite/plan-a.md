@@ -56,6 +56,30 @@ assertions over pure logic — everything else is renamed (Q1).
 - **Three-artifact rule.** Every new shared fixture lands with its export, its
   `check-libmock-rules.mjs` shape rule, and its README line in the same commit
   (Decision 2). Part 01 is the only part that adds fixtures.
+- **Workspace-import declarations.** `scripts/check-workspace-imports.mjs` fails
+  any `@forwardimpact/*` import not declared in the importing package's
+  `package.json`. Any file that **newly** imports `@forwardimpact/libmock` (or
+  any other workspace package) requires that package added to the importing
+  package's `devDependencies` in the same commit. Part 01's consumers
+  (libgraph, guide, map, librepl, librpc) already declare libmock; the new
+  importers are in Part 02 (libprompt, libtemplate, and any lib the sweep
+  newly migrates) — see Part 02.
+
+## STATUS sub-rows
+
+Each part is tracked as a `wiki/STATUS.md` sub-row under the master `0640` row,
+mirroring the 1370/1270 precedent (`1370/teardown`, `1270/protos-and-tenancy`):
+
+| Sub-row | Part |
+| --- | --- |
+| `0640/libmock-fixtures` | 01 |
+| `0640/io-migration` | 02 |
+| `0640/file-splits` | 03 |
+| `0640/matrix-collapse` | 04 |
+
+All four sub-rows enter at `plan approved` alongside the master row. Each
+advances to `plan implemented` when its part merges. The master `0640` row
+advances to `plan implemented` only when **every** sub-row is implemented.
 
 ## Execution
 
