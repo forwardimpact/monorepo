@@ -20,6 +20,8 @@ const DEFAULTS = {
   sweep_interval_ms: 60_000,
 };
 
+const T = "default";
+
 describe("bridge service", () => {
   let service;
   let storage;
@@ -47,6 +49,7 @@ describe("bridge service", () => {
         service.LoadDiscussion({
           channel: "github-discussions",
           discussion_id: "999",
+          tenant_id: T,
         }),
       (err) => err.code === grpc.status.NOT_FOUND,
     );
@@ -81,12 +84,14 @@ describe("bridge service", () => {
         },
       },
       pending_callbacks: { "tok-a": "corr-1" },
+      tenant_id: T,
     };
 
     await service.SaveDiscussion(rec);
     const loaded = await service.LoadDiscussion({
       channel: "github-discussions",
       discussion_id: "42",
+      tenant_id: T,
     });
 
     assert.strictEqual(loaded.id, rec.id);
@@ -100,16 +105,17 @@ describe("bridge service", () => {
   });
 
   test("HasOrigin returns false for unknown id; true after RecordOrigin", async () => {
-    const before = await service.HasOrigin({ id: "comment-1" });
+    const before = await service.HasOrigin({ id: "comment-1", tenant_id: T });
     assert.strictEqual(before.exists, false);
 
     await service.RecordOrigin({
       id: "comment-1",
       discussion_id: "42",
       posted_at: Date.now(),
+      tenant_id: T,
     });
 
-    const after = await service.HasOrigin({ id: "comment-1" });
+    const after = await service.HasOrigin({ id: "comment-1", tenant_id: T });
     assert.strictEqual(after.exists, true);
   });
 
@@ -121,10 +127,12 @@ describe("bridge service", () => {
       lead: "alice",
       last_active_at: Date.now(),
       pending_callbacks: { "tok-a": "corr-1" },
+      tenant_id: T,
     });
 
     const found = await service.LoadDiscussionByCorrelation({
       correlation_id: "corr-1",
+      tenant_id: T,
     });
     assert.strictEqual(found.discussion_id, "42");
   });
@@ -144,17 +152,23 @@ describe("bridge service", () => {
           due_at: 500,
         },
       },
+      tenant_id: T,
     });
 
     const found = await service.LoadDiscussionByCorrelation({
       correlation_id: "corr-2",
+      tenant_id: T,
     });
     assert.strictEqual(found.discussion_id, "99");
   });
 
   test("LoadDiscussionByCorrelation rejects with NOT_FOUND when no record owns the id", async () => {
     await assert.rejects(
-      () => service.LoadDiscussionByCorrelation({ correlation_id: "missing" }),
+      () =>
+        service.LoadDiscussionByCorrelation({
+          correlation_id: "missing",
+          tenant_id: T,
+        }),
       (err) => err.code === grpc.status.NOT_FOUND,
     );
   });
@@ -179,6 +193,7 @@ describe("bridge service", () => {
           history_index_at_open: 0,
         },
       },
+      tenant_id: T,
     });
 
     const result = await service.ListOpenRecesses({});
@@ -197,6 +212,7 @@ describe("bridge service", () => {
       discussion_id: "old",
       lead: "alice",
       last_active_at: stale,
+      tenant_id: T,
     });
     await service.SaveDiscussion({
       id: "github-discussions:fresh",
@@ -204,9 +220,10 @@ describe("bridge service", () => {
       discussion_id: "fresh",
       lead: "bob",
       last_active_at: now,
+      tenant_id: T,
     });
 
-    const result = await service.Sweep({ now });
+    const result = await service.Sweep({ now, tenant_id: T });
     assert.strictEqual(result.evicted_discussions, 1);
 
     await assert.rejects(
@@ -214,12 +231,14 @@ describe("bridge service", () => {
         service.LoadDiscussion({
           channel: "github-discussions",
           discussion_id: "old",
+          tenant_id: T,
         }),
       (err) => err.code === grpc.status.NOT_FOUND,
     );
     const fresh = await service.LoadDiscussion({
       channel: "github-discussions",
       discussion_id: "fresh",
+      tenant_id: T,
     });
     assert.strictEqual(fresh.discussion_id, "fresh");
   });
@@ -232,19 +251,27 @@ describe("bridge service", () => {
       id: "old-origin",
       discussion_id: "42",
       posted_at: stale,
+      tenant_id: T,
     });
     await service.RecordOrigin({
       id: "fresh-origin",
       discussion_id: "42",
       posted_at: now,
+      tenant_id: T,
     });
 
-    const result = await service.Sweep({ now });
+    const result = await service.Sweep({ now, tenant_id: T });
     assert.strictEqual(result.evicted_origins, 1);
 
-    const oldCheck = await service.HasOrigin({ id: "old-origin" });
+    const oldCheck = await service.HasOrigin({
+      id: "old-origin",
+      tenant_id: T,
+    });
     assert.strictEqual(oldCheck.exists, false);
-    const freshCheck = await service.HasOrigin({ id: "fresh-origin" });
+    const freshCheck = await service.HasOrigin({
+      id: "fresh-origin",
+      tenant_id: T,
+    });
     assert.strictEqual(freshCheck.exists, true);
   });
 
@@ -257,10 +284,12 @@ describe("bridge service", () => {
         discussion_id: "d-100",
         created_at: Date.now(),
       },
+      tenant_id: T,
     });
 
     const resolved = await service.ResolvePendingDispatch({
       link_token: "lt-1",
+      tenant_id: T,
     });
     assert.strictEqual(resolved.link_token, "lt-1");
     assert.strictEqual(resolved.surface, "github-discussions");
@@ -268,7 +297,8 @@ describe("bridge service", () => {
     assert.strictEqual(resolved.discussion_id, "d-100");
 
     await assert.rejects(
-      () => service.ResolvePendingDispatch({ link_token: "lt-1" }),
+      () =>
+        service.ResolvePendingDispatch({ link_token: "lt-1", tenant_id: T }),
       (err) => err.code === grpc.status.NOT_FOUND,
     );
   });
@@ -285,13 +315,15 @@ describe("bridge service", () => {
         discussion_id: "d-1",
         created_at: stale,
       },
+      tenant_id: T,
     });
 
-    const result = await service.Sweep({ now });
+    const result = await service.Sweep({ now, tenant_id: T });
     assert.ok(result.evicted_pending >= 1);
 
     await assert.rejects(
-      () => service.ResolvePendingDispatch({ link_token: "lt-old" }),
+      () =>
+        service.ResolvePendingDispatch({ link_token: "lt-old", tenant_id: T }),
       (err) => err.code === grpc.status.NOT_FOUND,
     );
   });
@@ -304,6 +336,7 @@ describe("bridge service", () => {
         discussion_id: "1",
         lead: "alice",
         last_active_at: Date.now(),
+        tenant_id: T,
       }),
       service.SaveDiscussion({
         id: "msteams:2",
@@ -311,16 +344,19 @@ describe("bridge service", () => {
         discussion_id: "2",
         lead: "bob",
         last_active_at: Date.now(),
+        tenant_id: T,
       }),
     ]);
 
     const gh = await service.LoadDiscussion({
       channel: "github-discussions",
       discussion_id: "1",
+      tenant_id: T,
     });
     const ms = await service.LoadDiscussion({
       channel: "msteams",
       discussion_id: "2",
+      tenant_id: T,
     });
     assert.strictEqual(gh.lead, "alice");
     assert.strictEqual(ms.lead, "bob");
