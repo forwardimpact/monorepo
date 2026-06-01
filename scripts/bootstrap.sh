@@ -1,36 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ── Sync with origin/main ────────────────────────────────────────
-# The fit-bootstrap action already rebases onto origin/main (it must, to key
-# the workspace cache off the post-rebase tree) and sets BOOTSTRAP_SKIP_SYNC
-# so we don't pay for a second fetch+rebase round-trip here. Local runs and
-# the SessionStart hook leave it unset and still sync.
-if [ "${BOOTSTRAP_SKIP_SYNC:-}" != "true" ]; then
-  # Shallow clones lack enough history for rebase to find a merge base.
-  # Unshallow first so rebase works reliably.
-  if [ -f .git/shallow ]; then
-    git fetch --unshallow origin
-  fi
-
-  git fetch origin main
-
-  current_branch=$(git branch --show-current)
-
-  if [ "$current_branch" = "main" ]; then
-    git merge --ff-only origin/main
-  else
-    # Update local main ref without checkout
-    git branch -f main origin/main
-    # Rebase feature branch onto main; on conflict abort and warn (never reset)
-    if git rebase main 2>/dev/null; then
-      echo "Rebased '$current_branch' onto main."
-    else
-      git rebase --abort
-      echo "Branch '$current_branch' has conflicts with main. Rebase manually when ready."
-    fi
-  fi
-fi
+# Environment setup only — install the workspace and sync the wiki. Keeping the
+# branch current with origin/main is a separate concern owned by whoever needs
+# it: the fit-bootstrap action rebases before computing its cache key, and CI
+# is the only context that requires it. Local runs and resumed sessions operate
+# on the branch as-is; rebase yourself when you want to.
 
 # ── Install workspace ───────────────────────────────────────────
 # fit-codegen now writes RELATIVE symlinks (libraries/*/src/generated ->
