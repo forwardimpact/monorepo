@@ -1,358 +1,176 @@
-# Spec 0640 — Refactor Test Suite for Speed and Maintenance
+# Spec 0640 — Test-Side Hygiene (Re-scoped)
+
+## Re-scope note (2026-06-01)
+
+This spec originally bundled three things: libmock adoption, removal of real I/O
+from tests, and **wall-clock speed via reduced file count**. Two sibling specs
+have since landed on `main` and subsumed most of that surface:
+
+| Slice                                                                       | Owner                                                                  | Status on `main`                                                                                                                                                                                     |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Source-side DI (`fs`/`proc`/`clock`/`subprocess` injected as collaborators) | [1370](../1370-ambient-dependencies-to-injected-collaborators/spec.md) | **Delivered** — ambient `node:fs`/`node:child_process`/`Date.now`/`process.*` gone from src outside allow-listed factories; canonical fakes shipped in libmock.                                      |
+| Runner switch (`node:test` → `bun test` via `spy()`)                        | [0650](../0650-bun-test-runner/spec.md)                                | **Delivered** — `package.json` runs `bun test`; `spy()` replaces `mock.fn`; PR #1282 closed as delivered.                                                                                            |
+| **Test-side hygiene**                                                       | **0640 (this spec)**                                                   | **Remaining** — adoption gap, the libmock infra fixtures 1370 did not add, oversized files, combinatorial parametrization, and the residual real-tmpdir unit tests that 1370's fs seam now unblocks. |
+
+The most important consequence: **wall-clock is no longer a lever this spec can
+pull.** 640's original thesis was that `node --test`'s fork-per-file overhead
+(~90 ms × N files) meant only reducing file count cut wall time. 0650 moved the
+suite to `bun test`, which does not fork per file, so file count no longer
+drives wall time. 1370 then roughly doubled the test count (coarse
+subprocess-spawning integration tests replaced by many fine-grained in-process
+unit tests) and retired its own wall-time gate for the same reason (see
+[1370 § Outcome](../1370-ambient-dependencies-to-injected-collaborators/spec.md#outcome-post-implementation-reconciliation-2026-06-01)).
+This spec therefore drops every wall-clock target and reframes around
+**maintenance surface and test-fake discoverability**, which are still poor.
 
 ## Problem
 
-The test suite has grown to 211 files / 45,456 lines / 3,089 test cases, and it
-is slow to run and time-consuming to maintain. `libraries/libmock/` was
-created to hold shared fixtures and mocks, but adoption has stalled: coding
-agents consistently pick the local optimum and reinvent helpers inline rather
-than extend the shared library.
+The test suite is **440 files** today (up from 211 when this spec was first
+written — 1370's migration roughly doubled it). The structural problems that
+remain are about maintenance cost and fake reuse, not speed:
 
-### Evidence
+| Metric                                                        | Original (2026-04) | On `main` (2026-06-01) | Note                                                                                        |
+| ------------------------------------------------------------- | ------------------ | ---------------------- | ------------------------------------------------------------------------------------------- |
+| Test files                                                    | 211                | 440                    | 1370 split integration tests into unit tests                                                |
+| Test files importing `@forwardimpact/libmock`                 | 37 (17.5%)         | 156 (35%)              | up, but far below the helpers' reach                                                        |
+| Test files > 400 LOC                                          | (n/a)              | 30                     | maintenance burden                                                                          |
+| Test files > 300 LOC                                          | 107                | 86                     |                                                                                             |
+| Test files using a real tmpdir (`mkdtemp`)                    | 12                 | 85                     | most are now `*.integration.test.js` (legitimate); a tail of unit tests still does real I/O |
+| Test files spawning a subprocess (`execFileSync`/`spawnSync`) | 6                  | 22                     | bounded by 1370's one-smoke-test-per-bin allow-list; audit the rest                         |
 
-Measured on branch `claude/refactor-test-suite-Fx4EQ` at 2026-04-23:
+Three concrete gaps:
 
-| Metric                                                                | Value                                   |
-| --------------------------------------------------------------------- | --------------------------------------- |
-| Test files                                                            | 211                                     |
-| Total LOC in test files                                               | 45,456                                  |
-| Test cases                                                            | 3,089                                   |
-| Test files importing `@forwardimpact/libmock`                      | **37 (17.5%)**                          |
-| Test files with local `createMock*` / `mockStorage` / `createFake*`   | 67                                      |
-| Files using raw `assert.throws` / `assert.rejects`                    | 82                                      |
-| Files using libmock `assertThrowsMessage` / `assertRejectsMessage` | **0**                                   |
-| Tests that call `createDataLoader().loadAllData()` (real YAML I/O)    | 27                                      |
-| Tests using `mkdtempSync` / real tmp dirs                             | 12                                      |
-| Tests doing real `fs.readFile` / `readFileSync`                       | 20                                      |
-| Tests spawning child processes / real servers                         | 6                                       |
-| Test files > 300 LOC                                                  | 52                                      |
-| Test files > 200 LOC                                                  | 107                                     |
-| Full `bun run test` wall-clock                                        | 16.3 s (serial, `--test-concurrency=0`) |
-
-### Structural issues found
-
-1. **Serial execution is hard-coded.** `package.json` runs
-   `node --test --test-concurrency=0`, which forces one test file at a time.
-2. **Products almost never use libmock.** 0 of 19 `products/map` tests, 0 of
-   17 `products/landmark` tests, and 0 of 12 root `tests/model-*.test.js` files
-   import it. They redefine framework fixtures (disciplines, levels, tracks,
-   skills, behaviours) 10+ times.
-3. **Existing libmock helpers are reimplemented.** `MockMetadata` is
-   redefined four times in `libraries/libtelemetry/test/*` even though
-   `libmock` already exports it. `createMockStorage`, `createMockLogger`, and
-   `createMockFs` are duplicated across at least seven subsystems.
-4. **Ad-hoc `make*` vs `createTest*` naming.** `libraries/libskill/test/`
-   invented a parallel fixture layer (`makeDiscipline`, `makeLevel`,
-   `makeSeniorLevel`, `makeSkills`, `makeBehaviours`, `makeCapabilities`,
-   `makeDrivers`) that duplicates the pathway fixtures already in libmock.
-5. **Coverage loops.** The 12 root `tests/model-*.test.js` files, the 16
-   `libraries/libskill/test/*` files, and
-   `services/pathway/test/integration.test.js` overlap on libskill
-   matching/derivation behaviour.
+1. **Adoption stalled at one-third.** 156 of 440 test files import libmock. The
+   canonical fakes 1370 shipped (`createMockFs`, `createMockProcess`,
+   `createMockSubprocess`, `createMockSupabaseClient`, `spy`, the pathway
+   fixture atoms) are not yet reached by the majority of files that could use
+   them.
+2. **libmock has named infra holes 1370 never filled.** The 2026-04 audit named
+   seven shared infra fixtures. 1370 shipped most (`createMockS3Client`,
+   `createTurtleHelpers`, `createMockSupabaseClient`, reused `MockMetadata`),
+   but three remain absent while their inline consumers persist:
+   - `createGraphIndexFixture` — `libraries/libgraph/test/` rebuilds the
+     `{ n3Store, graphIndex, mockStorage }` triple across `index-items`,
+     `prefixes`, `index-loading`, `libgraph-filters`, `libgraph-query`.
+   - `createMockGrpcHealthDefinition` — duplicated in
+     `libraries/librpc/test/health.test.js` and
+     `products/guide/test/status.test.js`.
+   - `createReplEnvironment` — the readline/process/formatter/storage bundle
+     inlined in `libraries/librepl/test/librepl.test.js`.
+3. **Residual real-I/O unit tests now have a seam but were never migrated.**
+   1370 gave `PromptLoader`/`TemplateLoader` an injected `runtime`/`fs` (their
+   constructors take `runtime` today), yet their _tests_ still create real
+   tmpdirs — `libraries/libprompt/test/loader.test.js` (`mkdtemp` ×3) and
+   `libraries/libtemplate/test/loader.test.js` (`mkdtemp` ×7). The blocker 640
+   originally recorded ("loaders hardcode `readFileSync`") is gone; the
+   migration to `createMockFs` is now mechanical and was simply never done.
+4. **Combinatorial parametrization persists.**
+   `libraries/libskill/test/modifiers.test.js` (387 LOC),
+   `policies-predicates.test.js` (349 LOC), and `tests/model-types.test.js` (448
+   LOC) still cross-multiply proficiency × modifier / maturity matrices where a
+   handful of boundary cases plus one property check would cover the same code
+   paths at a fraction of the maintenance surface.
 
 ## Goal
 
-Halve both maintenance surface (duplicate fixture/mock definitions) and
-wall-clock test time. Coverage reduction is allowed where redundant, but it must
-not be the only fix — the primary levers are consolidation into libmock and
-removing real I/O from unit tests.
+Lift fake reuse and cut maintenance surface. Concretely: raise libmock adoption
+among files that have a fake available, close the three named infra holes,
+migrate the unit tests still doing real I/O onto the seams 1370 opened, and tame
+the largest files and the combinatorial matrices. **No wall-clock target** —
+wall time is recorded as a trend (consistent with 1370's retired SC6), not
+gated.
 
 ## Scope
 
-### A. Move into libmock
+### A. Fill the three remaining libmock infra fixtures
 
-Concrete helpers to add, with call sites that will collapse once they exist.
+Add to libmock and collapse the inline consumers named in Problem #2:
 
-#### A.1 Framework-data fixtures
+| Fixture                                                     | Returns                                    | Collapses                                        |
+| ----------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------ |
+| `createGraphIndexFixture({ storageOverrides?, indexKey? })` | `{ n3Store, graphIndex, mockStorage }`     | the 5 libgraph test files that rebuild it        |
+| `createMockGrpcHealthDefinition()`                          | a gRPC health service definition           | librpc `health.test.js` + guide `status.test.js` |
+| `createReplEnvironment()`                                   | bundled readline/process/formatter/storage | librepl `librepl.test.js`                        |
 
-Framework data (capabilities / skills / disciplines / tracks / drivers /
-behaviours / levels) is inlined or re-defined in at least 20 places.
+These are additive extensions; libmock internals are not rewritten. Each new
+export is documented in `libraries/libmock/README.md` under the existing
+Collaborators section, and `scripts/check-libmock-rules.mjs` gains a rule that
+flags the inline shape it replaces (matching how the guard already catches
+`createMockSubprocess` / `createMockFinder` reimplementations).
 
-| Helper                                                                                                                   | Consumers (examples)                                                                                                                                                                                                                                                                                                                         |
-| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `createTestFramework(overrides?)` → returns `{ capabilities, skills, disciplines, tracks, drivers, behaviours, levels }` | `products/map/test/exporter.test.js:21-87`, `products/map/test/levels.test.js:71-104`, `products/map/test/view-builders/{skill,capability,others}.test.js`, `products/landmark/test/{readiness,health,marker,snapshot}.test.js`, `tests/model-fixtures.js` (shared across all 12 root tests), `services/pathway/test/service.test.js:31-120` |
-| `createTestPerson(overrides?)`                                                                                           | `products/map/test/activity/validate-people.test.js:16-43` and surrounding validation tests                                                                                                                                                                                                                                                  |
-| `createTestRoster(overrides?)` + `createTestTeamSnapshot(roster, data, teamId)`                                          | `products/summit/test/{coverage,evidence,risks,what-if,trajectory,growth}.test.js` — the `FIXTURE_ROSTER` + `snapshot()` pattern is replicated 7×.                                                                                                                                                                                           |
-| `createTestEvidenceRow(overrides?)`                                                                                      | `products/map/test/activity/transform-evidence.test.js:74-100`, `products/landmark/test/{evidence,evidence-helpers,health,timeline}.test.js` (5 sites, identical shape)                                                                                                                                                                      |
-| `createTestSkillWithMarkers()`                                                                                           | `products/landmark/test/{marker,readiness,evidence-helpers}.test.js`                                                                                                                                                                                                                                                                         |
+### B. Migrate residual real-I/O unit tests onto the 1370 seam
 
-libmock already exports `createTestLevel[s]`, `createTestDiscipline`,
-`createTestSkill[s]`, `createTestTrack`, `createTestCapability`,
-`createTestBehaviour[s]` in `src/fixture/pathway.js`. Extend (don't replace)
-those with a single top-level `createTestFramework()` and migrate
-`libraries/libskill/test/derivation-fixtures.js` to call it, then retire
-`makeDiscipline`, `makeLevel`, `makeSeniorLevel`, `makeJuniorLevel`,
-`makeSkills`, `makeBehaviours`, `makeCapabilities`, `makeDrivers` from libskill
-and `products/landmark/test/**/stubQueries` from landmark.
+Use the `*.integration.test.js` naming convention 1370 established as the
+boundary: integration tests keep real collaborators; **unit** tests do not.
 
-#### A.2 libeval supervisor / trace helpers
+- Migrate `libraries/libprompt/test/loader.test.js` and
+  `libraries/libtemplate/test/loader.test.js` from real tmpdirs to
+  `createMockFs` injected through the loader's existing `runtime` parameter.
+- Sweep the remaining non-`integration` test files in the `mkdtemp` / `exec`
+  list that exercise pure logic against the real filesystem or a real
+  subprocess, and move them to `createMockFs` / `createMockSubprocess`.
+- Where a test legitimately needs real I/O, rename it to `*.integration.test.js`
+  so the `scripts/check-subprocess-in-tests.mjs` and ambient-deps invariants
+  1370 introduced can tell the two apart.
 
-The `libraries/libeval/test/` directory (23 files) contains 10 helpers
-duplicated 2–6 times each. Add to libmock as an opt-in `eval` namespace:
+### C. Maintenance surface: large files and parametrization
 
-| Helper                                                                                         | Call sites                                                                                                                                                                                                          |
-| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `createToolUseMsg(name, input)` (replaces `concludeMsg`, `redirectMsg`, `tellMsg`, `shareMsg`) | `supervisor-run.test.js:13-27`, `supervisor-output.test.js:18-48`, `supervisor-batching.test.js:18-48`, `supervisor-intervention.test.js:13-43`, `facilitator.test.js:13-43`, `facilitator-messaging.test.js:14-60` |
-| `createTextBlockMsg(text)`                                                                     | `agent-runner-batching.test.js:20-23`, `supervisor-batching.test.js:13-16`                                                                                                                                          |
-| `createTestTrace(overrides?)` (replaces 155-line inline `buildTrace`)                          | `trace-query.test.js:11-165`, `trace-query-v1.1.test.js:12-36`                                                                                                                                                      |
-| `createStreamCollector()` → `{ collect, collectLines }`                                        | `tee-writer{,-schema}.test.js`, `fixture-equivalence.test.js` (5 sites)                                                                                                                                             |
-| `stripAnsi(s)`                                                                                 | same 3 files                                                                                                                                                                                                        |
-| `writeLines(writer, lines)`                                                                    | `tee-writer{,-schema}.test.js`                                                                                                                                                                                      |
-| `createMockAgentQuery(messages, onParams?)` async-generator                                    | `agent-runner.test.js:13-20`, `agent-runner-batching.test.js:12-18`                                                                                                                                                 |
+These are maintainability changes, **not** speed changes — state that explicitly
+so reviewers don't expect a wall-time delta.
 
-#### A.3 Graph / RPC / telemetry infra
-
-| Helper                                                                                               | Call sites                                                                                                                                            |
-| ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `createGraphIndexFixture({ storageOverrides?, indexKey? })` → `{ n3Store, graphIndex, mockStorage }` | `libgraph/test/index-items.test.js:19`, `libgraph-query.test.js:54`, `prefixes.test.js:50`, `index-loading.test.js:18`, `libgraph-filters.test.js:55` |
-| **Use existing** `MockMetadata` (already exported)                                                   | replace 4 redefinitions in `libtelemetry/test/{tracer,error}.test.js`                                                                                 |
-| `createMockS3Client({ sendFn?, overrides? })`                                                        | `libstorage/test/libstorage-s3-ops.test.js:12-48`                                                                                                     |
-| `createMockSupabaseClient({ from?, insert?, delete?, storage? })`                                    | `products/map/test/activity/transform-{evidence,getdx,people,github}.test.js` (4 files with near-identical `createFakeClient`)                        |
-| `createTurtleTestHelpers()` → `{ parseQuads, findOne, findAll }`                                     | `services/pathway/test/{service,integration,serialize}.test.js` (~100 LOC across 3 files)                                                             |
-| `createMockGrpcHealthDefinition()`                                                                   | `libraries/librpc/test/health.test.js` and `products/guide/test/status.test.js`                                                                       |
-| `createReplEnvironment()` bundling readline / process / os / formatter / storage                     | `libraries/librepl/test/librepl.test.js:11-58`                                                                                                        |
-
-#### A.4 CLI / console
-
-| Helper                                                      | Call sites                                                                                                                                |
-| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `withSilentConsole(fn)`                                     | `products/pathway/test/{agent-builder-install,build-packs}.test.js:31-50` (defined twice), useful in CLI tests across libcli and basecamp |
-| `createMockProcess()` → `{ env, stdout, stderr, exitCode }` | `libraries/libcli/test/cli.test.js:7-25`, `libutil/test/finder.test.js:14-24`                                                             |
-
-#### A.5 Promote existing helpers (no new API needed)
-
-These exist in libmock already but the 67 inline reimplementations prove the
-helpers aren't discoverable. Blocking fix: add `CONTRIBUTING.md` section
-pointing to the libmock README with an example and add to the `CHECKLISTS.md`
-DO-CONFIRM gate "checked libmock before writing a mock."
-
-- `createMockStorage` — reimplemented in
-  `libraries/libutil/test/downloader.test.js:9-44`,
-  `libraries/libstorage/test/libstorage-local.test.js:9-46`, and inline in at
-  least 5 other files.
-- `createMockLogger` / `createSilentLogger` —
-  `libraries/libsupervise/test/tree.test.js:8`,
-  `libraries/libutil/test/finder.test.js:14`,
-  `libraries/libutil/test/libutil.test.js:8`.
-- `createMockFs` — `products/basecamp/test/kb-manager.test.js:9-80`
-  (sophisticated, could feed back into libmock),
-  `products/basecamp/test/agent-runner.test.js:13-14` uses real tmpdir instead.
-- `assertThrowsMessage` / `assertRejectsMessage` — exist, zero adopters.
-- `MockMetadata` — exported, redefined 4×.
-
-### B. Speed improvements that aren't libmock moves
-
-#### B.1 Turn on concurrency
-
-`package.json:28` hard-codes `--test-concurrency=0`. Node test runner defaults
-to parallel file execution. Flipping to the default (or an explicit number)
-should drop wall-clock on 2+ cores materially; the blocker to investigate is
-whether some tests share global state (`process.env`, file locks, ports). Likely
-culprits to fix first:
-
-- `libraries/libutil/test/logger.test.js` mutates `process.env.DEBUG` and
-  `console.error` globally — wrap in a per-file `beforeEach/afterEach`.
-- `libraries/librc/test/manager-{start,stop}.test.js` spawns processes.
-- `libraries/libconfig/test/libconfig-credentials.test.js` binds a real port
-  (only test doing so in libraries).
-
-Expected impact: ~3–5× faster on CI runners with multiple cores.
-
-#### B.2 Eliminate real filesystem I/O in unit tests
-
-The 20 files doing `fs.readFile` / `readFileSync` and the 12 using `mkdtemp` are
-mostly unit tests that could use the existing `createMockFs`. The slowest
-offenders:
-
-| File                                                                                      | Issue                                                                                                                                                  |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `libraries/libsyntheticprose/test/prose-engine.test.js`                                   | 6 tests each `mkdtempSync` + `writeFileSync` + `readFileSync` for cache persistence (~150 LOC). Replace with `createMockFs`.                           |
-| `libraries/libprompt/test/loader.test.js` and `libraries/libtemplate/test/loader.test.js` | Mirror image — both do per-test `mkdtempSync` + `writeFileSync` for 10+ tests.                                                                         |
-| `libraries/libcodegen/test/metadata.test.js:16-42`                                        | Scans `node_modules/@forwardimpact/*/proto` at load time.                                                                                              |
-| `products/pathway/test/build-packs.test.js`                                               | Real tar extraction via `execFileSync("tar", …)` in 3 tests. Keep _one_ integration test; convert the others to assert against the pre-packed archive. |
-
-#### B.3 Cache fixture data across tests that need real framework data
-
-27 tests call `createDataLoader().loadAllData()` which reads the 11 YAML files
-in `products/map/starter/`. Even at 57 KB it adds up × 27 × (parse + derive).
-Options:
-
-- Add a libmock `loadStarterFrameworkCached()` that memoizes the load across
-  a process, keyed by `starterDir`. Safe because fixtures are read-only.
-- Replace per-test `loadData()` calls in `products/summit/test/*` with a single
-  shared `before()` that loads once per file.
-
-Expected impact: ~30–40% reduction in summit + services/pathway integration test
-time.
-
-#### B.4 Split giant test files
-
-52 files are over 300 LOC. The biggest maintenance burden comes from the few at
-400+:
-
-| File                                                        | LOC | Split suggestion                |
-| ----------------------------------------------------------- | --- | ------------------------------- |
-| `libraries/libeval/test/tee-writer.test.js`                 | 474 | split schema vs behaviour       |
-| `libraries/libeval/test/trace-query.test.js`                | 460 | introspection vs query vs stats |
-| `libraries/libeval/test/supervisor-output.test.js`          | 453 | event envelope vs orchestration |
-| `libraries/libindex/test/base-filters.test.js`              | 450 | by filter family                |
-| `libraries/libtelemetry/test/visualizer-edge-cases.test.js` | 411 | by edge-case family             |
-
-#### B.5 Reduce excessive parametrization
-
-- `libraries/libskill/test/modifiers.test.js` (44 cases) and
-  `policies-predicates.test.js` (46 cases) appear to cross-multiply every
-  proficiency × modifier combination. Audit whether the matrix tests distinct
-  code paths or repeats one implementation detail; keep representative cases per
-  branch.
-- `tests/model-types.test.js` (448 LOC) exhaustively iterates proficiency ×
-  maturity indices. Replace with a small set of boundary cases plus one
-  property-based check.
-
-### C. Coverage reductions (secondary, after B)
-
-Only take these after the libmock moves so the remaining tests are also
-cleaner to maintain. Each removal below was called out by independent sub-agents
-as redundant with upstream coverage.
-
-| Candidate                                                                                                | Rationale                                                                                                                                                                                                                                                                    |
-| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Merge `libraries/libeval/test/trace-query.test.js` and `trace-query-v1.1.test.js`                        | Both probe the same `TraceQuery` surface; v1.1 mostly adds schema-specific assertions that can be version-gated subtests in one file.                                                                                                                                        |
-| Consolidate 4 `libraries/libeval/test/supervisor-*.test.js` files into 2                                 | `supervisor-run` + `supervisor-output` + `supervisor-batching` + `supervisor-intervention` share identical mock scaffolding; split by _behaviour_ (run/output vs mid-turn control) instead of by _detail_.                                                                   |
-| Remove overlap between `tests/model-matching-*.test.js` and `libraries/libskill/test/matching-*.test.js` | Root matching tests re-exercise `findNextStepJob` / `classifyMatch` / `calculateGapScore` already covered in libskill's own tests. Keep root tests for genuine cross-module integration (`profile-base`, `interview`); delete assertions that duplicate libskill unit tests. |
-| Drop `libraries/libsyntheticrender/test/enricher.test.js` IRI-format checks                              | Covered by `validate.test.js` + `industry-data.test.js` in the same library.                                                                                                                                                                                                 |
-| Merge `libraries/libsyntheticgen/test/parser.test.js` + `parser-dataset.test.js` overlap                 | Both parse org/team/department shapes; keep one.                                                                                                                                                                                                                             |
-| Remove regex-based source-file assertions in `products/guide/test/cli.test.js`                           | Fragile and duplicates what libcli already unit-tests.                                                                                                                                                                                                                       |
-| `libraries/libutil/test/libutil.test.js` (3 tests)                                                       | Subsumed by `logger.test.js` (18 tests).                                                                                                                                                                                                                                     |
-
-### D. Docs / process (prevents regression)
-
-1. Add a short "Don't inline a mock" section to `CONTRIBUTING.md`, listing the
-   libmock API and saying: if you need a helper that isn't there, add it to
-   libmock in the same PR.
-2. Add a `<read_do_checklist>` entry in the project-wide test checklist (per
-   `CHECKLISTS.md`): _"Checked `libraries/libmock/src/index.js` for an
-   existing mock / fixture before writing a new one."_
-3. Add a simple eslint rule or `scripts/check-instructions.mjs` lint that warns
-   when a test file defines `createMock*` locally and does not import from
-   `@forwardimpact/libmock`.
+- Split the test files over ~400 LOC by behaviour family (30 files; start with
+  the libeval cluster — `tee-writer`, `trace-collector`, `redaction-pipeline` —
+  and `libcli/test/cli.test.js`). Target ceiling: ≤400 LOC per test file.
+- Replace the combinatorial matrices in `libskill/test/modifiers.test.js`,
+  `policies-predicates.test.js`, and `tests/model-types.test.js` with
+  representative boundary cases plus one property-based check each. Audit first
+  that the matrix exercises one implementation path before collapsing it.
 
 ## Non-goals
 
-- No changes to what products do or how they are wired. Only test code.
-- No new test framework. Keep `node:test`.
-- No rewrite of libmock internals; only additive extensions.
+- **No runner change.** 0650 delivered `bun test`; this spec assumes it.
+- **No source-side DI work.** 1370 owns `fs`/`proc`/`clock`/`subprocess`
+  injection in `src`; this spec only consumes the seams it opened.
+- **No wall-clock target.** File count no longer drives wall time under bun;
+  speed is a recorded trend, not a gate.
+- **No coverage cuts.** The original § C coverage-reduction candidates were
+  re-examined and found to cover distinct surfaces; they stay. (Retired in the
+  first execution pass and not revived here.)
+- **No new process guards.** The `check-libmock` guard and the CONTRIBUTING
+  READ-DO/DO-CONFIRM libmock entries already exist (delivered alongside 1370);
+  this spec only adds per-fixture rules for the three new A-section fakes.
 
-## Open questions
+## Success Criteria
 
-1. What's the right ceiling for coverage reduction? Step C removes maybe 8–12
-   test files; are any of those load-bearing for a spec owner?
-2. Should the `eval` namespace helpers live in libmock or in a sibling
-   `libeval/test-helpers.js` exported for downstream libraries that consume
-   libeval? Precedent in `libdoc/test-harness.js`.
-3. Is there appetite for property-based testing (fast-check or similar) to
-   replace the combinatorial matrices in libskill and root `tests/`?
+| #   | Criterion                                                                                                                                                                                                                                           | How to verify                                                                                                                                                |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | The three named infra fixtures exist in libmock, are exported from `src/index.js`, and are documented in the README Collaborators section.                                                                                                          | a libmock test asserts each export resolves; README lists each with a one-line example.                                                                      |
+| 2   | The inline consumers named in Problem #2 import the new fixtures instead of rebuilding them; `scripts/check-libmock.mjs` flags reintroduction of each inline shape.                                                                                 | `bun run invariants:check-libmock` exits non-zero against a corpus fixture for each new rule.                                                                |
+| 3   | No non-`integration` unit test under `libraries/`, `products/`, `services/`, `tests/` creates a real tmpdir or spawns a subprocess for assertions that only inspect pure logic; legitimate real-I/O tests carry the `*.integration.test.js` suffix. | the `check-subprocess-in-tests` / ambient-deps invariants pass; `rg -l mkdtemp` over non-integration test files returns only an explicitly allow-listed set. |
+| 4   | The three combinatorial matrices are replaced by boundary + property cases with no loss of covered code paths.                                                                                                                                      | the libskill and model test suites still pass; case counts drop while branch coverage of the targeted functions is unchanged.                                |
+| 5   | No test file exceeds ~400 LOC except an explicitly allow-listed set.                                                                                                                                                                                | a size check over `*.test.js` reports the over-ceiling set; the set shrinks to the allow-list.                                                               |
+| 6   | The full suite reports `0 fail` and `0 errors` under `bun test`.                                                                                                                                                                                    | `bun run test 2>&1` — wall time recorded as a trend, not gated.                                                                                              |
 
 ## Expected outcome
 
-- Local `bun run test` wall-clock: 16 s → ~5 s (parallel + cached framework
-  data + fewer tmpdirs).
-- Duplicate mock/fixture definitions: ~120 → ~15.
-- libmock adoption: 17% → ~80% of test files.
-- Test LOC: 45,456 → ~33,000 (≈ 25% reduction) without losing a real code path
-  from coverage.
+- libmock adoption: 35% → meaningfully higher among files with an available fake
+  (the three new fixtures plus the unit-test migrations pull in the libgraph,
+  librpc, librepl, libprompt, and libtemplate suites).
+- Duplicate infra-fixture definitions: the three named holes → 0.
+- Residual real-I/O unit tests: migrated onto `createMockFs` /
+  `createMockSubprocess`; real I/O confined to `*.integration.test.js`.
+- Test files > 400 LOC: 30 → allow-listed minimum.
+- Wall time: **not a target.** Recorded as a trend signal only.
 
-## Outcome so far
+## History (superseded passes)
 
-First execution pass on branch `claude/refactor-test-suite-Fx4EQ`:
-
-- **libmock extended** — `src/fixture/eval.js`, `src/fixture/cache.js`, and
-  `src/mock/infra.js` added. New exports: `createToolUseMsg`,
-  `createTextBlockMsg`, `createTestTrace`, `collectStream`, `collectLines`,
-  `stripAnsi`, `writeLines`, `createMockAgentQuery`, `createTestFramework`,
-  `createTestPerson`, `createTestRoster`, `createTestEvidenceRow`,
-  `createTestSkillWithMarkers`,
-  `createTestCapabilities/Tracks/Disciplines/Drivers`,
-  `createMockSupabaseClient`, `createTurtleHelpers`, `createMockProcess`,
-  `withSilentConsole`, `createMockQueries`, `createMockS3Client`,
-  `memoizeAsync`, `memoizeOnSubject`.
-- **Consumers migrated**: libeval (11 files, -232 LOC of
-  `concludeMsg/redirectMsg/tellMsg/shareMsg/textBlock/mockQuery/collect/stripAnsi/writeLines`);
-  services/pathway (3 files, Turtle helpers); products/map (2 transform tests,
-  Supabase fake clients); libsupervise + libutil (inline `mockLogger`);
-  products/landmark (10 `stubQueries` factories).
-- **Process**: `CONTRIBUTING.md` READ-DO and DO-CONFIRM entries added;
-  `scripts/check-libmock.mjs` wired into `bun run check` to flag new inline
-  `concludeMsg`/`stripAnsi`/`mockLogger`/`MockStorage` patterns.
-
-Measured deltas:
-
-| Metric                                             | Before     | After                         |
-| -------------------------------------------------- | ---------- | ----------------------------- |
-| Test files importing `@forwardimpact/libmock`   | 37 (17.5%) | **85 (40.9%)**                |
-| Files using `assertThrowsMessage`/`RejectsMessage` | 0          | **40**                        |
-| Total LOC in test files                            | 45,456     | 44,312 (−1,144)               |
-| Test file count                                    | 211        | 208 (3 schema-sibling merges) |
-| Full `bun run test` wall-clock (serial)            | 16.3 s     | ~18 s (noise-bound)           |
-| Test count                                         | 2,405      | 2,405 (1 skipped both sides)  |
-
-**Second pass (parallel sub-agent sweep)**
-
-After the first pass I spawned six focused sub-agents in parallel, each
-constrained to a non-overlapping scope, and they delivered the bulk of the
-remaining migrations:
-
-- `products/landmark/test/fixtures.js` created; 11 test files refactored to
-  import `PEOPLE`/`TEAM`/`SNAPSHOTS`/`SCORES`/`EVIDENCE_ROWS`/`COMMENTS`/
-  `PATTERNS`/`MAP_DATA` from the shared module.
-- `products/summit/test/fixtures.js` created with `loadStarterData()` using
-  `memoizeAsync` to cache the starter YAML load across the 9 summit test files
-  plus shared `FIXTURE_ROSTER` and `snapshot(roster, data, teamId)` helpers.
-  Per-test framework re-parse dropped from ~20–27 ms to ~1–3 ms.
-- `products/map/test/fixtures.js` created with shared `DATA`, `PIPELINE_DATA`,
-  `PEOPLE_VALID`, `PEOPLE_UNKNOWN_LEVEL`, `makeEvidenceRow`, `makeArtifact`.
-  Activity tests migrated to `createMockSupabaseClient`; `exporter`, `pipeline`,
-  `validate-people`, `transform-github` migrated.
-- `libraries/libskill/test/derivation-fixtures.js` rewritten as thin wrappers
-  around libmock pathway atoms (315 → 266 LOC); `job.test.js` inline fixtures
-  deleted (161 → 49 LOC).
-- `tests/model-fixtures.js` rewritten to compose from libmock atoms (176 →
-  114 LOC).
-- Mechanical `assertThrowsMessage`/`assertRejectsMessage` sweep across libcli,
-  libconfig, libdoc, libgraph, libindex, libmcp, librc, librepl, librpc,
-  libsyntheticgen, libsyntheticrender, libtelemetry, libvector, and
-  `services/pathway` (~77 call sites converted, devDeps added to 14 packages).
-
-### Wall-clock is dominated by Node per-file fork overhead
-
-On this 16-core machine, 211 test files × ~90 ms of Node boot per file = ~19 s
-of pure startup, which matches the observed wall-clock. Measured:
-
-- `--test-concurrency=0` (serial fork-per-file): 16–18 s
-- default parallel: 18–19 s
-- `--experimental-test-isolation=none` (everything in one process): 27 s
-  single-threaded — module caching helps but async serialization hurts more
-- `bun test`: 12 s — but `node:test`'s `mock.fn` throws `NotImplementedError`
-  under bun ([bun#5090](https://github.com/oven-sh/bun/issues/5090)), and
-  libmock relies heavily on `mock.fn`
-
-So wall-clock speedups only come from reducing file count. This pass merged
-three schema/messaging sibling pairs in libeval (saving ~280 ms) — a small
-sample to validate that approach; a larger consolidation of the 23 libeval test
-files and the 8 libtelemetry visualizer tests into 5–10 combined files would
-reasonably save ~3 s. That's deferred pending a judgement call on whether
-collapsed files hurt discoverability.
-
-### Still open
-
-- libprompt / libtemplate / libsyntheticprose tmpdir → `createMockFs` — blocked
-  by source refactor: `PromptLoader`, `TemplateLoader`, and `ProseEngine`
-  hardcode `readFileSync` from `node:fs` rather than accepting a fs dep.
-- Remaining file consolidation (libeval supervisor-_, libtelemetry visualizer-_)
-  — would move wall-clock, deferred on aesthetic grounds.
-- `bun test` migration — blocked on a `mock.fn` shim in libmock that bridges
-  to `bun:test`'s `mock`. Plausible but invasive.
-- Coverage cuts remain unlikely to pay off: the original audit's candidates
-  (`libutil.test.js`, `guide/test/cli.test.js`, `trace-query.test.js` +
-  `trace-query-v1.1.test.js`) all turned out to cover distinct surfaces on
-  closer inspection.
+The 2026-04 prototype on `claude/refactor-test-suite-Fx4EQ` lifted libmock
+adoption 17.5% → 40.9% (libharness era), added `assertThrowsMessage` adoption (0
+→ 40 files), and merged three schema-sibling test pairs. Its central finding —
+that `node --test` fork-per-file overhead made file count the only wall-clock
+lever — was correct for `node:test` and is **why 0650 was split out and
+prioritised**. With 0650 (bun) and 1370 (source DI) both on `main`, that
+prototype's remaining items are either delivered, retired (coverage cuts), or
+re-expressed in §§ A–C above. The original sprawling A–D scope, the concurrency
+work (§ B.1, moot under bun), and the process-guard work (§ D, delivered) are
+intentionally not carried forward.
