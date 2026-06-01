@@ -4,10 +4,10 @@ import { mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
-  Finder,
   createDefaultClock,
   createDefaultSubprocess,
 } from "@forwardimpact/libutil";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * Build a real-filesystem runtime for in-process command tests: real fsSync,
@@ -55,7 +55,10 @@ export function makeRuntime({ cwd = process.cwd(), env = {}, now } = {}) {
     proc,
     clock,
     subprocess: createDefaultSubprocess(),
-    finder: new Finder({ fs: nodeFs, fsSync: nodeFsSync, proc }),
+    // findProjectRoot is called with an explicit start path (proc.cwd()), so
+    // the shared real-fs finder traverses fixtures correctly without needing
+    // the test's custom proc bound into it.
+    finder: createDefaultRuntime().finder,
   });
   return {
     runtime,

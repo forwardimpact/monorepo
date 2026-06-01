@@ -5,7 +5,6 @@ import { Server, createTracer } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createDataLoader } from "@forwardimpact/map/loader";
-import { Finder } from "@forwardimpact/libutil";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { homedir } from "os";
 import { join } from "path";
@@ -27,10 +26,9 @@ const tracer = await createTracer("pathway");
 // Resolve the pathway data directory using the same upward-walk + HOME
 // fallback rules as fit-pathway. SERVICE_PATHWAY_DATA_DIR (picked up by
 // libconfig and exposed as config.data_dir) overrides the discovery.
-const finder = new Finder({ ...runtime, logger });
 const data_dir = config.data_dir
   ? String(config.data_dir)
-  : join(finder.findData("data", homedir()), "pathway");
+  : join(runtime.finder.findData("data", homedir()), "pathway");
 
 // Three-call load sequence matching products/pathway/src/commands/agent.js.
 // loadAllData drops `human` from each skill (loader.js:102-127) while

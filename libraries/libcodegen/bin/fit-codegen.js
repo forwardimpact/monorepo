@@ -3,7 +3,6 @@
 import "@forwardimpact/libpreflight/node22";
 
 import fs, { readFileSync } from "node:fs";
-import fsAsync from "node:fs/promises";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -12,7 +11,6 @@ import mustache from "mustache";
 
 import { createCli, SummaryRenderer } from "@forwardimpact/libcli";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-import { Finder } from "@forwardimpact/libutil";
 import { Logger } from "@forwardimpact/libtelemetry";
 import {
   CodegenBase,
@@ -376,12 +374,10 @@ async function runCodegen(protoDirs, projectRoot, finder) {
 async function main() {
   try {
     const logger = new Logger("codegen", runtime);
-    const finder = new Finder({
-      fs: fsAsync,
-      fsSync: fs,
-      proc: process,
-      logger,
-    });
+    // The shared runtime.finder carries a no-op logger; bind this CLI's logger
+    // so createPackageSymlinks (the one logging Finder consumer) keeps emitting
+    // symlink debug logs.
+    const finder = runtime.finder.withLogger(logger);
     const projectRoot = finder.findProjectRoot(process.cwd());
 
     const protoDirs = discoverProtoDirs(projectRoot);

@@ -2,7 +2,7 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import nodeFs, { readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import {
   createCli,
@@ -14,7 +14,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createStorage } from "@forwardimpact/libstorage";
 import { Logger } from "@forwardimpact/libtelemetry";
-import { Finder, waitFor } from "@forwardimpact/libutil";
+import { waitFor } from "@forwardimpact/libutil";
 
 // `bun build --compile` injects FIT_STORAGE_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
@@ -104,9 +104,7 @@ const [command] = positionals;
  * @returns {Promise<string[]>} Array of discovered prefixes
  */
 async function discoverLocalPrefixes() {
-  const logger = new Logger("storage", runtime);
-  const finder = new Finder({ fs, fsSync: nodeFs, proc: process, logger });
-  const root = finder.findUpward(process.cwd(), "data");
+  const root = runtime.finder.findUpward(process.cwd(), "data");
   if (!root) return [];
 
   const entries = await fs.readdir(root, { withFileTypes: true });
