@@ -231,7 +231,7 @@ describe("ghbridge callback handler", () => {
   });
 
   test("addDiscussionComment is not composed inside any workflow YAML", async () => {
-    // Spec § Success criteria row 6: GraphQL mutation strings are owned by
+    // GraphQL mutation strings are owned by
     // src/graphql.js, never composed inside facilitator prompts or workflow
     // YAML. This guard catches a regression where the Discussion handling
     // sneaks back into kata-dispatch.yml.

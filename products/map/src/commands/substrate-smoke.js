@@ -115,7 +115,8 @@ export async function runSelfSmoke({ supabase, config, runtime }) {
     runtime,
   );
 
-  // Spec § Success Criteria rows 1–4: explicit shape check.
+  // Explicit shape checks: the JWT is well-formed, the persona resolves to
+  // a human, and discovery resolves.
   assertJwtShape(jwt, persona.email, runtime.clock.now());
   await assertPersonaIsHuman(supabase, persona.email);
   assertDiscoveryResolves(persona, discovery);
