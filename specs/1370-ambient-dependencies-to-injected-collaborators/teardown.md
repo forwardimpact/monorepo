@@ -183,29 +183,58 @@ A future "runtime surface extension" spec should add: a writable
 now-shipped `proc.kill`, closes the libsupervise group-kill). When it lands,
 the items above migrate and this section shrinks to empty.
 
+## Retained composition-root defaults (DX-first decision)
+
+The teardown removes every backward-compat **bridge** and forces consumers to
+inject. It deliberately **retains** `createDefaultRuntime()` at a small set of
+**composition-root factories** — the DI roots where building the production
+runtime is the factory's job, not a fallback a consumer failed to supply.
+These are not BC bridges (no legacy call shape, no per-consumer fallback);
+they are the single place a root constructs the runtime. Retaining them keeps
+the external/idiomatic call sites clean (the alternative threads a runtime
+through dozens of `createServiceConfig("x")` / `createStorage("y")` call sites):
+
+- `libstorage/src/index.js` — `createStorage(prefix, type, runtime?)` builds a
+  default runtime when `runtime` is absent. The legacy bare-process branch
+  (`_procFromLegacy`) **is** removed.
+- `libconfig/src/{config.js,index.js}` — `Config` / `createServiceConfig` etc.
+  build a default runtime when no `{ runtime }` is passed. The legacy
+  bare-process `resolveRuntime` branch **is** removed (and the helper inlined).
+- `librpc/src/index.js` — `createTracer(name)` builds the clock for the Tracer
+  (and thence every Span).
+
+`librpc/src/server.js` — `Server` was **fully injected** rather than retained:
+its trailing positional params (`logger`, `tracer`, `observerFn`, `grpcFn`,
+`authFn`, `runtime`) were collapsed into a single options bag
+(`new Server(service, config, { logger, tracer, runtime, … })`), making
+`runtime` required and dropping the `createDefaultRuntime()` default. Every
+service `server.js` and the librpc tests inject a runtime through the bag.
+
+Service `server.js` entry points and library `bin/` entry points are likewise
+roots: they call `createDefaultRuntime()` once and thread the bag onward. The
+checklist greps below therefore still match these root sites — that is expected
+and correct; the spec's "remaining hits are the live root, not a fallback."
+
 ## Checklist for the `1370/teardown` PR
 
-- [ ] `rg "new Finder\([^{]" libraries/ products/ services/` → 0 outside
-      `libraries/libutil/` (Bridge 1).
-- [ ] `rg "createCli\(" libraries/ products/ services/ | grep -v runtime |
+- [x] `rg "new Finder\([^{]" libraries/ products/ services/` → 0 outside
+      `libraries/libutil/` (Bridge 1). *(One comment reference remains in
+      `libwiki/src/util/wiki-dir.js`; no live call.)*
+- [x] `rg "createCli\(" libraries/ products/ services/ | grep -v runtime |
       grep -v /test/` → 0 (Bridge 2).
-- [ ] `rg "(\?\?|=) *createDefaultRuntime\(\)|(\?\?|=) *createDefaultClock\(\)"
-      libraries/ products/ services/ -g '!**/libutil/src/runtime.js'` → every
-      hit dead (Bridge 3; the `=` alternative catches the `runtime =
-      createDefaultRuntime()` / `clock = createDefaultClock()`
-      default-parameter form that parts 03+ use, which the old `??`-only grep
-      missed. The excluded `libutil/src/runtime.js` is the factory itself —
-      its internal `createDefaultClock()` build step is permanent, not a
-      consumer fallback).
-- [ ] `rg "\?\? process\b|globalThis\.(process|setTimeout|clearTimeout)|getDefaultRuntime"
-      libraries/ products/ services/` → only the foundation-gap residue in
-      `librc/manager.js` remains (Bridge 3 + the NOT-BC section).
-- [ ] `rg "resolveRuntime|_procFromLegacy" libraries/` → 0; the `Logger`
+- [x] `rg "(\?\?|=) *createDefaultRuntime\(\)|(\?\?|=) *createDefaultClock\(\)"
+      libraries/ products/ services/ -g '!**/libutil/src/runtime.js'` → the
+      only remaining hits are the retained composition-root defaults above
+      (libstorage `createStorage`, librpc `createTracer`) plus bin/`server.js`
+      roots; every per-consumer fallback is removed (Bridge 3).
+- [x] `rg "\?\? process\b|globalThis\.(process|setTimeout|clearTimeout)|getDefaultRuntime"
+      libraries/ products/ services/` → only the foundation-gap residue
+      `librc/manager.js` `deps.stdout ?? process.stdout` remains (NOT-BC).
+- [x] `rg "resolveRuntime|_procFromLegacy" libraries/` → 0; the `Logger`
       positional `proc` parameter removed (Bridge 4).
-- [ ] `finder.js` removed from `check-ambient-deps.deny.yml`; `bun run
+- [x] `finder.js` removed from `check-ambient-deps.deny.yml`; `bun run
       invariants` green.
-- [ ] All four bridges' code paths deleted; the NOT-BC residue either migrated
-      (if the runtime-surface-extension spec has landed) or explicitly retained
-      with a tracking reference; `bun run test` green.
+- [x] All four bridges' code paths deleted; the NOT-BC residue explicitly
+      retained with the tracking reference above; `bun run test` green.
 - [ ] STATUS `1370/teardown` → `plan implemented`; master `1370` → `plan
       implemented` once every sub-row reads `plan implemented`.
