@@ -2,142 +2,169 @@
 name: fit-map
 description: >
   Define what good engineering means so roles have clear, defensible
-  expectations. Use when managers disagree on what a level requires and
-  you need a written standard, when defining or updating skills,
-  capabilities, behaviours, disciplines, tracks, levels, and questions,
-  or when pushing people rosters, syncing GetDX snapshots, ingesting
-  GitHub artifacts, and verifying the activity database.
+  expectations, and provision activity-database substrates. Use when
+  defining or updating skills, capabilities, behaviours, disciplines,
+  tracks, levels, or questions; when pushing rosters, syncing GetDX
+  snapshots, or ingesting GitHub artifacts; or when staging, listing,
+  picking, and issuing personas from a seeded substrate.
 ---
 
 # Map Product
 
-A public data model for consumption by AI agents and engineers. Map is the
-foundation of all Forward Impact products — it defines how engineering
-competencies, career progression, and agent capabilities are structured in a
-machine-readable format. Map ships two layers: a **standard layer** (YAML files
-validated against JSON Schema and RDF/SHACL) and an **activity layer** (a
-Supabase project with `organization_people`, GitHub artifacts, GetDX snapshots,
-and marker evidence).
+Map is the foundation of all Forward Impact products. It ships three
+operator surfaces — each owns a different consumer:
 
-Making the data model well understood is a first-class goal. It is published in
-structured formats (JSON Schema, RDF/SHACL) so that AI agents can reliably
-interpret and work with agent-aligned engineering standard data.
+- **Standard layer** — YAML validated against JSON Schema and RDF/SHACL.
+  Engineering-leaders edit this directly.
+- **Activity layer** — bundled Supabase project carrying
+  `organization_people`, GitHub artifacts, GetDX snapshots, marker
+  evidence. Leaders ingest into this over time.
+- **Substrate** — a single-shot provisioning pipeline that collapses
+  activity-layer setup into one verb, then exposes persona-pick and
+  JWT-issue verbs against the seeded database.
+
+Standard and activity entities are published in structured formats so
+agents can interpret them reliably.
 
 ## When to Use
 
-**Defining or updating your engineering standard:**
+- Defining or tailoring an engineering standard, or editing JSON Schema /
+  RDF / SHACL definitions.
+- Validating, indexing, or exporting standard data.
+- Managing the activity database — starting Supabase, pushing rosters,
+  syncing GetDX, reprocessing the raw bucket, verifying ingest.
+- Provisioning or interrogating a **substrate** — staging the database,
+  listing or picking a persona, issuing a JWT.
 
-- Defining or tailoring engineering expectations for your organization
-- Adding or modifying skills, behaviours, disciplines, tracks, or levels
-- Adding interview questions to skill or behaviour files
-- Working with JSON Schema or RDF/SHACL definitions
+## Standard Layer
 
-**Validating and inspecting standard data:**
+Edit YAML under `data/pathway/`. Entity files use co-located `human:` and
+`agent:` sections; skills live nested inside capability files.
 
-- Validating standard data integrity after changes — `npx fit-map validate`
-- Checking data summary (skill counts, entity counts) — `npx fit-map validate`
-- Generating browser index files — `npx fit-map generate-index`
-- Exporting base entities to HTML microdata — `npx fit-map export`
+Run `npx fit-map validate` after every change. Validation runs in two
+phases:
 
-**Activity-layer operations:**
+1. **Schema** — each YAML against its JSON Schema (`schema/json/`).
+2. **Referential** — cross-references resolve (skill IDs in disciplines,
+   behaviour IDs in tracks, track IDs in `validTracks`, driver
+   `contributingSkills`/`contributingBehaviours`, level `minLevel`).
 
-- Starting and checking the local Supabase stack — `npx fit-map activity start`
-- Validating a people roster against the standard — `npx fit-map people validate <file>`
-- Pushing a people roster into the activity database — `npx fit-map people push <file>`
-- Syncing GetDX snapshots — `npx fit-map getdx sync`
-- Reprocessing the raw bucket — `npx fit-map activity transform`
-- Verifying the activity database is populated — `npx fit-map activity verify`
+When schema changes touch `schema/json/`, update `schema/rdf/` in the
+same commit — the two formats must stay in sync.
 
----
+Generate browser indexes with `npx fit-map generate-index`. Render base
+entities to HTML microdata with `npx fit-map export`. Common authoring
+tasks (add a skill, add interview questions, add an agent section, add a
+tool reference) live in [`references/tasks.md`](references/tasks.md).
 
-## How It Works
+## Activity Layer
 
-### Data Loading
+Activity commands wrap the bundled Supabase project; consumers never
+`cd` into `node_modules/@forwardimpact/map`. The CLI finds Supabase via
+Homebrew, npm, or falls back to `npx supabase`.
 
-Map loads YAML files from structured directories (`disciplines/`, `tracks/`,
-`capabilities/`, `behaviours/`, `levels.yaml`, etc.). Skills are extracted from
-capability files during loading — they live inside capabilities rather than as
-standalone files. The result is a unified data object containing all entities
-with their cross-references resolved by ID.
-
-### Validation Pipeline
-
-Validation runs in two phases:
-
-1. **Schema validation** — each YAML file is checked against its corresponding
-   JSON Schema (e.g. capability files against `capability.schema.json`). This
-   catches structural issues like missing required fields or wrong types.
-2. **Referential integrity** — after schema passes, cross-references are
-   verified: skill IDs referenced by disciplines must exist in capabilities,
-   behaviour IDs in tracks must exist, track IDs in discipline `validTracks`
-   must exist, driver `contributingSkills` and `contributingBehaviours` must
-   point to valid entities, and level references (`minLevel`) must resolve.
-
-### Index Generation
-
-The index generator creates `_index.yaml` files in each entity directory,
-listing all valid file IDs. These indexes enable browser-based discovery without
-filesystem access — the web app loads them to know which entities are available.
-
----
-
-## CLI Reference
-
-See [`references/cli.md`](references/cli.md) for full command listings.
-
-### Edge functions (hosted-only)
-
-Four edge functions ship in the bundled Supabase project and deploy with
-`supabase functions deploy`:
-
-| Function         | Trigger                                    | Responsibility                                                                        |
-| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `github-webhook` | POST from a configured GitHub webhook      | Store raw payload + upsert `github_events`, `github_artifacts` with email resolution  |
-| `people-upload`  | POST with a CSV/YAML body                  | Store raw upload + upsert `organization_people` (equivalent to `fit-map people push`) |
-| `getdx-sync`     | Scheduled POST (cron, GitHub Actions, etc) | Fetch + store + transform GetDX (equivalent to `fit-map getdx sync`)                  |
-| `transform`      | On-demand POST                             | Reprocess the `raw` bucket end-to-end (equivalent to `fit-map activity transform`)    |
-
-Every edge function returns a JSON response with per-target counts and errors.
-Full walk-through in the
-[engineering leaders getting-started guide](https://www.forwardimpact.team/docs/getting-started/leaders/index.md#activity-ingest-github-activity).
-
----
-
-## Data Structure
-
-```
-data/pathway/
-├── standard.yaml         # Standard metadata, entity definitions
-├── levels.yaml            # Career levels (J040, J060, etc.)
-├── stages.yaml            # Lifecycle stages (plan, code, review, etc.)
-├── drivers.yaml           # Organizational outcomes
-├── disciplines/           # Engineering specialties (software_engineering, etc.)
-├── tracks/                # Work contexts (platform, forward_deployed, etc.)
-├── behaviours/            # Approach to work (outcome_ownership, etc.)
-├── capabilities/          # Skills grouped by area (delivery, scale, etc.)
-├── repository/            # Repository configuration (vscode-settings, devcontainer, etc.)
-└── questions/             # Interview questions
-    ├── skills/            # Per-skill question sets
-    └── behaviours/        # Per-behaviour question sets
+```sh
+npx fit-map activity start              # Start local Supabase
+npx fit-map activity status             # Report stack health
+npx fit-map activity migrate            # Reset + re-apply migrations (drops data)
+npx fit-map people push <file>          # Upsert into organization_people
+npx fit-map getdx sync                  # Sync GetDX (needs GETDX_API_TOKEN)
+npx fit-map activity transform          # Reprocess the raw bucket
+npx fit-map activity verify             # Smoke-test the database
 ```
 
-Entity files use **co-located content** — `human:` and `agent:` sections in the
-same YAML file. All entities have an `id` field used for cross-references.
+`people push` and `getdx sync` write the raw payload to the `raw` bucket
+first, then upsert on natural keys — safe to re-run. The same code
+ships as four edge functions (`github-webhook`, `people-upload`,
+`getdx-sync`, `transform`) in the bundled Supabase project for hosted
+deployments.
 
----
+## Substrate
 
-## Schema Definitions and Common Tasks
+Four verbs provision and interrogate an invariant-satisfying activity
+database. The pipeline collapses the activity-layer flow above — when
+running substrate, `init`, `migrate`, `seed`, `people push`, and
+`provision` are all internal phases. Do not invoke them separately.
 
-See [`references/tasks.md`](references/tasks.md) for schema locations and
-authoring tasks.
+### One-shot stage
+
+```sh
+npx fit-map substrate stage --cwd <agent_dir>
+```
+
+Phases (failures surface as `[substrate stage: <phase>] <reason>` so CI
+identifies the failing step):
+
+| Phase           | What it does                                                     |
+| --------------- | ---------------------------------------------------------------- |
+| `init`          | Bootstrap `data/pathway/` + `config/config.json` into target     |
+| `copy-activity` | Copy synthetic activity data into target                         |
+| `stack`         | `supabase start`                                                 |
+| `url-discovery` | Parse `supabase status` → set `SUPABASE_URL`/`SUPABASE_ANON_KEY` |
+| `migrate`       | `supabase db reset`                                              |
+| `seed`          | Load activity data                                               |
+| `provision`     | Reconcile `auth.users` against the roster                        |
+| `smoke`         | Invoke every gated product command end-to-end                    |
+
+`SUBSTRATE_FORCE_EMPTY_CORPUS=true` forces the smoke phase to fail with
+the empty-corpus diagnostic — used by CI to assert the failure path.
+
+### Persona selection
+
+After staging, pick one persona that satisfies every corpus invariant:
+
+```sh
+npx fit-map substrate roster --format json   # List every qualifying persona
+npx fit-map substrate pick --format json     # Pick one, diversified
+```
+
+`substrate pick` reads and appends a caller-scoped picks log under
+`wiki/` to diversify against the last `--memory-window` picks (default
+5). When zero candidates qualify, the output names the binding
+constraint: `parent_email_known`, `manages`, `authors_evidence`, or
+`practice_directs`.
+
+A qualifying persona satisfies all five invariants:
+
+1. Their `manager_email` is non-null (no top-of-tree rows).
+2. They are the manager of ≥1 other row.
+3. They have authored ≥1 `evidence` row.
+4. They manage ≥1 direct who has authored ≥1 evidence row.
+5. The corpus carries ≥1 `getdx_snapshots` row and ≥1 `item_id`.
+
+### JWT issue
+
+Seal persona identity into the agent's cwd atomically:
+
+```sh
+npx fit-map substrate issue --email <e> --cwd <agent_dir> [--ttl 1h] [--stash <p>]
+```
+
+Writes two files, mode 0600 each:
+
+- `.env` — the product's JWT env var carrying the issued token (one line)
+- `.substrate.json` — discovery vector (persona email, manager email,
+  snapshot id, item id, `generated_at`)
+
+`--stash <p>` writes a bare-JWT copy to a second workflow-private
+path that the caller controls — useful when a downstream step needs
+the JWT but the agent must not see it.
+
+Rejects non-`human` rows on purpose — service-account JWTs use
+`fit-map auth issue` instead. The substrate path is for engineer
+personas only.
 
 ## Verification
 
-Always run validation after changes:
+After standard-layer changes:
 
 ```sh
 npx fit-map validate
 ```
+
+After substrate changes, the `smoke` phase verifies every gated
+product command against the seeded database — a non-zero exit names
+the failing command.
 
 ## Documentation
 

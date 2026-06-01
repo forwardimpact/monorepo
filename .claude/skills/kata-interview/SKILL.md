@@ -68,7 +68,7 @@ under `products/` that has a `<job>` entry in `JTBD.md`.
 ### Step 2: Pick the Job
 
 Read `JTBD.md`. Find every `<job>` entry whose **Big Hire** or **Little
-Hire** line names the chosen product (e.g. `→ **Guide, Landmark**`). If the
+Hire** line names the chosen product (e.g. `→ **Map, Pathway**`). If the
 task includes `Job:`, match it against the `goal=` attribute; otherwise
 pick one. Record the full block: `user`, `goal`, Trigger, Big Hire, Little
 Hire, Competes With, Forces (Push, Pull, Habit, Anxiety), Fired When.
@@ -83,29 +83,28 @@ Copy the subset the chosen product needs into `$AGENT_CWD`:
 | Guide, Outpost   | nothing                                                                                                                                            |
 | Pathway          | `data/pathway/`                                                                                                                                    |
 | Map              | `data/pathway/` and `data/activity/`                                                                                                               |
-| Landmark         | `data/pathway/`; substrate (`data/activity/`, `auth.users` for all humans, schema, seed, smoke) staged by the workflow's `Substrate stage` step    |
+| Substrate-backed | `data/pathway/`; automated workflows commonly bring up the substrate already — otherwise `bunx fit-map substrate stage --cwd "$AGENT_CWD"`         |
 | Summit           | `data/pathway/` and `data/activity/raw/activity/summit.yaml` (as `summit.yaml` at root)                                                            |
 
 Use `cp -r data/pathway "$AGENT_CWD/data/pathway"` and similar.
 
-### Step 3a: Pick the Persona (Landmark only)
+### Step 3a: Pick the Persona (substrate-backed products only)
 
-For **Landmark**, the workflow already brought up the substrate. Before
-`CLAUDE.md`, pick a persona and seal identity:
+For **substrate-backed products**, the substrate is already up (per
+Step 3). Pick a persona and seal identity via two `fit-map substrate`
+verbs — see the [`fit-map` skill § Substrate](../fit-map/SKILL.md) for
+verb mechanics, invariants, and exit codes:
 
-1. `bunx fit-map substrate pick --format json` returns one
-   invariant-satisfying persona diversified against the last 5 picks
-   (reads + appends `wiki/kata-interview/picks.csv`). Read `email`,
-   `name`, `github_username`, `team_name`, `department_name`,
+1. `bunx fit-map substrate pick --format json` — read `email`, `name`,
+   `github_username`, `team_name`, `department_name`,
    `parent.{name,github_username,level}`, `repos`, `teammates`, and
-   `scenario` — no follow-up reads of `data/synthetic/` are needed.
+   `scenario` off the returned persona; no follow-up reads of
+   `data/synthetic/` are needed.
 2. `bunx fit-map substrate issue --email <picked> --cwd "$AGENT_CWD"
-   --stash "$RUNNER_TEMP/.persona-jwt"` writes `.env`, `.substrate.json`,
-   and a workflow-private JWT copy (mode 0600 on all three). You never
-   see the JWT bytes; the agent has no `$RUNNER_TEMP` access.
+   --stash "$RUNNER_TEMP/.persona-jwt"` — `--stash` is for the post-run
+   log scan; the agent has no `$RUNNER_TEMP` access.
 
-If either verb exits non-zero, write a diagnostic naming the verb and
-exit the skill — do not proceed to Step 4.
+On non-zero exit, write a diagnostic naming the verb and exit the skill.
 
 ### Step 4: Craft the Persona
 
@@ -113,8 +112,8 @@ Write `$AGENT_CWD/CLAUDE.md`. The persona file carries **who** and **the
 situation** — never the job. Two sources:
 
 - **Identity** (name, team, manager, teammates, repos, recent project,
-  company facts) — Landmark: the persona row from Step 3a. Other
-  products: `data/synthetic/story.dsl` and `prose-cache.json`.
+  company facts) — substrate-backed: Step 3a's persona row. Others:
+  `data/synthetic/story.dsl` and `prose-cache.json`.
 - **Situation** (Trigger, Forces, Competes With) — from the chosen JTBD
   entry, rephrased into the persona's voice.
 

@@ -1,8 +1,8 @@
 /**
  * Shape assertion for the kata-interview SKILL.md. Guards:
- *   - Step 3 staging table mentions substrate on the Landmark row.
- *   - Step 3a (Landmark persona pick) names the substrate verbs the
- *     persona-pick reframe invokes (`substrate pick` + `substrate issue`).
+ *   - Step 3 staging table carries a substrate-backed-products row.
+ *   - Step 3a persona-pick names the substrate verbs the reframe
+ *     invokes (`substrate pick` + `substrate issue`).
  *   - The read-do-checklist line carries the amended wording (the
  *     literal "No product names anywhere agent-visible" must be gone, so
  *     production CLI env vars stay permitted).
@@ -20,11 +20,11 @@ const SKILL_PATH = join(__dirname, "..", "SKILL.md");
 const skill = readFileSync(SKILL_PATH, "utf8");
 
 describe("kata-interview SKILL.md amendments", () => {
-  it("Step 3 staging table Landmark row mentions substrate", () => {
-    assert.match(skill, /\| Landmark\s+\|.*substrate.*staged.*\|/);
+  it("Step 3 staging table carries a substrate-backed row", () => {
+    assert.match(skill, /\| Substrate-backed\s+\|.*substrate.*\|/);
   });
 
-  it("Step 3a (Landmark persona pick) names the substrate verbs", () => {
+  it("Step 3a persona-pick names the substrate verbs", () => {
     assert.match(skill, /fit-map substrate pick/);
     assert.match(skill, /fit-map substrate issue/);
   });
