@@ -212,18 +212,18 @@ export class BridgeService extends BridgeBase {
    */
   async ResolvePendingDispatch(req) {
     await this.#pendingDispatches.loadData();
-    const stale = [];
-    for (const [id, rec] of this.#pendingDispatches.index) {
-      if (rec.deleted) stale.push(id);
-    }
-    for (const id of stale) this.#pendingDispatches.index.delete(id);
     const rec = this.#pendingDispatches.index.get(req.link_token);
     if (!rec)
       throw Object.assign(new Error("not found"), {
         code: grpc.status.NOT_FOUND,
       });
     this.#pendingDispatches.index.delete(req.link_token);
-    await this.#pendingDispatches.add({ id: req.link_token, deleted: true });
+    // compaction safety: services/bridge runs single-instance per tenant;
+    // gRPC handlers serialise on the event loop, so compact() and add()
+    // never interleave inside one process. If services/bridge ever becomes
+    // multi-instance, replace this with a tmp-file + atomic rename inside
+    // libstorage.
+    await this.#pendingDispatches.compact();
     return bridge.PendingDispatch.fromObject({
       link_token: rec.id,
       surface: rec.surface,
@@ -273,7 +273,7 @@ export class BridgeService extends BridgeBase {
     const evicted_pending = this.#sweepIndex(
       this.#pendingDispatches.index,
       now,
-      (rec) => rec.deleted || now - (rec.created_at ?? 0) > this.#pendingTtlMs,
+      (rec) => now - (rec.created_at ?? 0) > this.#pendingTtlMs,
     );
 
     let evictedInbox = 0;
@@ -286,7 +286,7 @@ export class BridgeService extends BridgeBase {
 
     if (evicted_discussions > 0) await this.#discussions.flush();
     if (evicted_origins > 0) await this.#origins.flush();
-    if (evicted_pending > 0) await this.#pendingDispatches.flush();
+    if (evicted_pending > 0) await this.#pendingDispatches.compact();
     if (evictedInbox > 0) await this.#inbox.flush();
 
     return { evicted_discussions, evicted_origins, evicted_pending };
