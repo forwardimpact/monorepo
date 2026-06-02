@@ -1,6 +1,31 @@
 import { createHttpService } from "@forwardimpact/libhttp";
 import * as types from "@forwardimpact/libtype";
 
+const OUTCOME_PAGES = {
+  identity_mismatch:
+    "<!DOCTYPE html><html><body><h1>Account mismatch</h1>" +
+    "<p>The account that authorized does not match the " +
+    "account that requested linking. No binding was created. " +
+    "Please try again from the correct account.</p></body></html>",
+  untrusted_origin:
+    "<!DOCTYPE html><html><body><h1>Account not linked</h1>" +
+    "<p>The identity provider that authorized is not in the " +
+    "configured trusted set. No binding was created.</p></body></html>",
+};
+
+const LINKED_PAGE =
+  "<!DOCTYPE html><html><body><h1>Linked</h1>" +
+  "<p>Your account has been linked. You can close this window.</p></body></html>";
+
+function buildRedirectUrl(result) {
+  const url = new URL(result.redirect_uri);
+  url.searchParams.set("code", result.downstream_code);
+  if (result.client_state) url.searchParams.set("state", result.client_state);
+  if (result.completion_ticket)
+    url.searchParams.set("ticket", result.completion_ticket);
+  return url.toString();
+}
+
 /**
  * Create the OAuth 2.1 authorization server HTTP adapter.
  *
@@ -74,36 +99,14 @@ export function createOauthService({ config, logger, providerClient }) {
           typed("CompleteRequest", { code, state }),
         );
 
-        if (result.outcome === "identity_mismatch") {
-          return c.html(
-            "<!DOCTYPE html><html><body><h1>Account mismatch</h1>" +
-              "<p>The account that authorized does not match the " +
-              "account that requested linking. No binding was created. " +
-              "Please try again from the correct account.</p></body></html>",
-          );
-        }
-
-        if (result.outcome === "untrusted_origin") {
-          return c.html(
-            "<!DOCTYPE html><html><body><h1>Account not linked</h1>" +
-              "<p>The identity provider that authorized is not in the " +
-              "configured trusted set. No binding was created.</p></body></html>",
-          );
-        }
+        const outcomePage = OUTCOME_PAGES[result.outcome];
+        if (outcomePage) return c.html(outcomePage);
 
         if (result.redirect_uri) {
-          const url = new URL(result.redirect_uri);
-          url.searchParams.set("code", result.downstream_code);
-          if (result.client_state)
-            url.searchParams.set("state", result.client_state);
-          if (result.completion_ticket)
-            url.searchParams.set("ticket", result.completion_ticket);
-          return c.redirect(url.toString(), 302);
+          return c.redirect(buildRedirectUrl(result), 302);
         }
 
-        return c.html(
-          "<!DOCTYPE html><html><body><h1>Linked</h1><p>Your account has been linked. You can close this window.</p></body></html>",
-        );
+        return c.html(LINKED_PAGE);
       });
 
       app.post("/token", async (c) => {

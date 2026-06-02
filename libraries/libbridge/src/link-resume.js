@@ -55,15 +55,14 @@ const UNABLE_TO_VERIFY_HTML =
 /**
  * Factory for the `/api/link-complete` GET handler.
  *
- * Handler ordering (spec 1400 step 8): the ticket is verified **before**
- * any store touch — an attacker without a valid ticket exits at the verify
- * step and never sees a present-vs-absent timing oracle on `linkToken`.
+ * Handler ordering: the ticket is verified **before** any store touch —
+ * an attacker without a valid ticket exits at the verify step and never
+ * sees a present-vs-absent timing oracle on `linkToken`.
  *
  * The `surface_user_id` cross-check happens after `resolvePendingDispatch`
  * because the handler is the only site that has both `ticket.surfaceUserId`
  * and the freshly-resolved `pending.surface_user_id`; folding it into the
- * verifier would force the verifier to take a pending store, which the
- * design avoids.
+ * verifier would force the verifier to take a pending store.
  *
  * @param {object} options
  * @param {string} options.channel Channel id (e.g. `"github-discussions"`).

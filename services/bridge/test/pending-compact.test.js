@@ -1,8 +1,8 @@
 /**
- * Verifies spec 1400 SC #6 ("the link token appears in none of those records"):
- * after a consume the on-disk pending_dispatches.jsonl carries no substring
- * match for the consumed link_token (and no `"deleted":true` tombstone), and
- * a fresh BridgeService over the same storage path does not re-surface the
+ * Verifies the no-token-on-disk invariant: after a consume the on-disk
+ * `pending_dispatches.jsonl` carries no substring match for the consumed
+ * `link_token` (and no `"deleted":true` tombstone), and a fresh
+ * BridgeService over the same storage path does not re-surface the
  * consumed entry on restart.
  *
  * Uses the real LocalStorage backend (not the mock) so the assertion goes
