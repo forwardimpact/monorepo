@@ -2,10 +2,16 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { createMockConfig, createMockClock } from "@forwardimpact/libmock";
 import { createMockStorage } from "@forwardimpact/libmock/mock";
+import { loadTrustedIdpOrigins } from "@forwardimpact/libutil/trusted-origins";
 import { GhuserService } from "../index.js";
 import { BindingStore, FlowStore, GrantStore } from "../src/stores.js";
 
-function createService(storage, { getUserId = "12345" } = {}) {
+const TRUSTED = loadTrustedIdpOrigins("https://github.com");
+
+function createService(
+  storage,
+  { getUserId = "12345", idpOrigin = "https://github.com" } = {},
+) {
   const config = createMockConfig("ghuser", {
     link_base_url: "http://localhost:3007",
   });
@@ -17,6 +23,9 @@ function createService(storage, { getUserId = "12345" } = {}) {
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,
+      idpOrigin,
+      trustedOrigins: TRUSTED,
+      ticketSecret: "test-secret",
       github: {
         authorizeUrl: () => "http://gh/authorize",
         exchangeCode: async () => ({

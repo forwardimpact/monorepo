@@ -1,5 +1,7 @@
 import crypto from "node:crypto";
 import { services } from "@forwardimpact/librpc";
+import { mintCompletionTicket } from "@forwardimpact/libutil/completion-ticket";
+import { isTrusted } from "@forwardimpact/libutil/trusted-origins";
 import { RevokedError } from "./src/github-oauth.js";
 
 const { GhuserBase } = services;
@@ -18,6 +20,9 @@ export class GhuserService extends GhuserBase {
   #github;
   #linkBaseUrl;
   #clock;
+  #idpOrigin;
+  #trustedOrigins;
+  #ticketSecret;
 
   /**
    * @param {object} config
@@ -29,8 +34,28 @@ export class GhuserService extends GhuserBase {
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock
    *   Injected clock collaborator; drives flow/grant timestamps and token
    *   expiry comparisons (`now()`).
+   * @param {string} deps.idpOrigin Normalised IdP origin minted into the
+   *   completion ticket. Sourced from `config.idp_origin` at boot — never
+   *   from request data.
+   * @param {Set<string>} deps.trustedOrigins Trusted-origin set asserted-
+   *   non-empty at boot; gates `bindings.upsert` so an IdP origin no longer
+   *   in the trusted set returns `untrusted_origin` instead of binding.
+   * @param {string} deps.ticketSecret Shared HMAC secret across ghuser,
+   *   ghbridge, and msbridge. Rotation policy documented in TRUST.md.
    */
-  constructor(config, { bindings, flows, grants, github, clock }) {
+  constructor(
+    config,
+    {
+      bindings,
+      flows,
+      grants,
+      github,
+      clock,
+      idpOrigin,
+      trustedOrigins,
+      ticketSecret,
+    },
+  ) {
     super(config);
     if (!clock) throw new Error("clock is required");
     this.#bindings = bindings;
@@ -39,6 +64,9 @@ export class GhuserService extends GhuserBase {
     this.#github = github;
     this.#linkBaseUrl = config.link_base_url;
     this.#clock = clock;
+    this.#idpOrigin = idpOrigin;
+    this.#trustedOrigins = trustedOrigins;
+    this.#ticketSecret = ticketSecret;
   }
 
   /**
@@ -90,6 +118,10 @@ export class GhuserService extends GhuserBase {
       return { outcome: "identity_mismatch" };
     }
 
+    if (!isTrusted(this.#idpOrigin, this.#trustedOrigins)) {
+      return { outcome: "untrusted_origin" };
+    }
+
     const bindingId = this.#bindings.constructor.keyOf(
       flow.surface,
       flow.surface_user_id,
@@ -116,10 +148,18 @@ export class GhuserService extends GhuserBase {
         client_state: flow.client_state,
         created_at: this.#clock.now(),
       });
+      const completionTicket = mintCompletionTicket({
+        linkToken: flow.client_state,
+        surfaceUserId: flow.surface_user_id,
+        idpOrigin: this.#idpOrigin,
+        secret: this.#ticketSecret,
+        now: this.#clock.now(),
+      });
       return {
         downstream_code: downstreamCode,
         redirect_uri: flow.redirect_uri,
         client_state: flow.client_state,
+        completion_ticket: completionTicket,
       };
     }
 
