@@ -15,8 +15,8 @@
 //     Default: record the most-recent prior staff-engineer trace.
 //   node scripts/staff-engineer-record-prior-trace.mjs --backfill --since=7
 //     Walk past N days of Kata: Dispatch runs and record every SE trace not
-//     yet in the CSV. Use once after spec 1351 lands; ongoing runs use the
-//     default single-trace mode.
+//     yet in the CSV. Use to seed an empty CSV or fill historical gaps;
+//     ongoing runs use the default single-trace mode.
 //   node scripts/staff-engineer-record-prior-trace.mjs --run-id=<id>
 //     Record a specific run-id (still idempotent on the CSV).
 //   node scripts/staff-engineer-record-prior-trace.mjs --dry-run
@@ -48,7 +48,8 @@ function parseArgs(argv) {
   const args = { backfill: false, sinceDays: 7, runId: null, dryRun: false };
   for (const a of argv.slice(2)) {
     if (a === "--backfill") args.backfill = true;
-    else if (a.startsWith("--since=")) args.sinceDays = parseInt(a.slice(8), 10);
+    else if (a.startsWith("--since="))
+      args.sinceDays = parseInt(a.slice(8), 10);
     else if (a.startsWith("--run-id=")) args.runId = a.slice(9);
     else if (a === "--dry-run") args.dryRun = true;
   }
@@ -70,10 +71,13 @@ function parseCsvLine(line) {
   for (let i = 0; i < line.length; i++) {
     const c = line[i];
     if (c === '"') {
-      if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
-      else inQ = !inQ;
+      if (inQ && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else inQ = !inQ;
     } else if (c === "," && !inQ) {
-      out.push(cur); cur = "";
+      out.push(cur);
+      cur = "";
     } else cur += c;
   }
   out.push(cur);
@@ -94,9 +98,53 @@ function readExistingRunIds() {
 function ghApi(path, jq) {
   const args = ["api", path];
   if (jq) args.push("--jq", jq);
-  const r = spawnSync("gh", args, { encoding: "utf8", maxBuffer: 100 * 1024 * 1024 });
-  if (r.status !== 0) throw new Error(`gh api ${path} failed: ${r.stderr || r.stdout}`);
+  const r = spawnSync("gh", args, {
+    encoding: "utf8",
+    maxBuffer: 100 * 1024 * 1024,
+  });
+  if (r.status !== 0)
+    throw new Error(`gh api ${path} failed: ${r.stderr || r.stdout}`);
   return r.stdout;
+}
+
+function fetchRunsPage(page) {
+  try {
+    const raw = ghApi(
+      `repos/${REPO}/actions/runs?per_page=100&page=${page}`,
+      `.workflow_runs[] | {id: .id, workflow_id: .workflow_id, conclusion: .conclusion, created_at: .created_at}`,
+    );
+    return { lines: raw.trim().split("\n").filter(Boolean) };
+  } catch (e) {
+    console.warn(`listDispatchRuns page ${page} failed: ${e.message}`);
+    return { lines: null };
+  }
+}
+
+function isDispatchSuccessInWindow(obj, sinceIso, excludeRunId) {
+  if (obj.workflow_id !== KATA_DISPATCH_WORKFLOW_ID) return false;
+  if (obj.conclusion !== "success") return false;
+  if (obj.created_at < sinceIso) return false;
+  if (excludeRunId && String(obj.id) === String(excludeRunId)) return false;
+  return true;
+}
+
+function collectPageRuns(lines, sinceIso, excludeRunId, seen, out) {
+  let oldestOnPage = null;
+  for (const ln of lines) {
+    let obj;
+    try {
+      obj = JSON.parse(ln);
+    } catch {
+      continue;
+    }
+    if (!oldestOnPage || obj.created_at < oldestOnPage)
+      oldestOnPage = obj.created_at;
+    if (!isDispatchSuccessInWindow(obj, sinceIso, excludeRunId)) continue;
+    if (seen.has(obj.id)) continue;
+    seen.add(obj.id);
+    out.push({ id: obj.id, created_at: obj.created_at });
+  }
+  return oldestOnPage;
 }
 
 function listDispatchRuns(sinceIso, excludeRunId) {
@@ -108,31 +156,16 @@ function listDispatchRuns(sinceIso, excludeRunId) {
   const seen = new Set();
   const out = [];
   for (let page = 1; page <= 60; page++) {
-    let raw;
-    try {
-      raw = ghApi(
-        `repos/${REPO}/actions/runs?per_page=100&page=${page}`,
-        `.workflow_runs[] | {id: .id, workflow_id: .workflow_id, conclusion: .conclusion, created_at: .created_at}`,
-      );
-    } catch (e) {
-      console.warn(`listDispatchRuns page ${page} failed: ${e.message}`);
-      break;
-    }
-    const lines = raw.trim().split("\n").filter(Boolean);
+    const { lines } = fetchRunsPage(page);
+    if (lines === null) break;
     if (lines.length === 0) break;
-    let oldestOnPage = null;
-    for (const ln of lines) {
-      let obj;
-      try { obj = JSON.parse(ln); } catch { continue; }
-      if (!oldestOnPage || obj.created_at < oldestOnPage) oldestOnPage = obj.created_at;
-      if (obj.workflow_id !== KATA_DISPATCH_WORKFLOW_ID) continue;
-      if (obj.conclusion !== "success") continue;
-      if (obj.created_at < sinceIso) continue;
-      if (excludeRunId && String(obj.id) === String(excludeRunId)) continue;
-      if (seen.has(obj.id)) continue;
-      seen.add(obj.id);
-      out.push({ id: obj.id, created_at: obj.created_at });
-    }
+    const oldestOnPage = collectPageRuns(
+      lines,
+      sinceIso,
+      excludeRunId,
+      seen,
+      out,
+    );
     if (oldestOnPage && oldestOnPage < sinceIso) break;
     if (lines.length < 100) break;
   }
@@ -152,38 +185,49 @@ function downloadTrace(runId) {
   const start = txt.indexOf("{");
   const end = txt.lastIndexOf("}");
   if (start < 0 || end < 0) return null;
-  try { return JSON.parse(txt.substring(start, end + 1)); }
-  catch { return null; }
+  try {
+    return JSON.parse(txt.substring(start, end + 1));
+  } catch {
+    return null;
+  }
+}
+
+function tallyBashCommand(cmd, tally) {
+  if (/\bgit\s+push\b/.test(cmd)) tally.commitsPushed++;
+  if (/\bgh\s+pr\s+create\b/.test(cmd)) tally.prsOpened++;
+}
+
+function tallyTurnBashUses(turn, tally) {
+  if (!Array.isArray(turn.content)) return;
+  for (const c of turn.content) {
+    if (c.type !== "tool_use" || c.name !== "Bash") continue;
+    tallyBashCommand(c.input?.command || "", tally);
+  }
+}
+
+function countBashIntents(traceFile) {
+  const bashR = fitTrace(["tool", traceFile, "Bash"]);
+  if (bashR.status !== 0) return { commitsPushed: 0, prsOpened: 0 };
+  const tally = { commitsPushed: 0, prsOpened: 0 };
+  for (const turn of JSON.parse(bashR.stdout)) tallyTurnBashUses(turn, tally);
+  return tally;
+}
+
+function fitTraceJson(args, label) {
+  const r = fitTrace(args);
+  if (r.status !== 0) throw new Error(`${label} failed: ${r.stderr}`);
+  return JSON.parse(r.stdout);
 }
 
 function extractMetrics(traceFile) {
-  const statsR = fitTrace(["stats", traceFile]);
-  if (statsR.status !== 0) throw new Error(`stats failed: ${statsR.stderr}`);
-  const totals = JSON.parse(statsR.stdout).totals;
-
-  const toolsR = fitTrace(["tools", traceFile]);
-  if (toolsR.status !== 0) throw new Error(`tools failed: ${toolsR.stderr}`);
-  const tools = JSON.parse(toolsR.stdout);
+  const totals = fitTraceJson(["stats", traceFile], "stats").totals;
+  const tools = fitTraceJson(["tools", traceFile], "tools");
   const toolMap = new Map(tools.map((t) => [t.tool, t.count]));
 
   const errR = fitTrace(["errors", traceFile]);
   const toolErrors = errR.status === 0 ? JSON.parse(errR.stdout).length : 0;
 
-  const bashR = fitTrace(["tool", traceFile, "Bash"]);
-  let commitsPushed = 0;
-  let prsOpened = 0;
-  if (bashR.status === 0) {
-    const turns = JSON.parse(bashR.stdout);
-    for (const t of turns) {
-      if (!Array.isArray(t.content)) continue;
-      for (const c of t.content) {
-        if (c.type !== "tool_use" || c.name !== "Bash") continue;
-        const cmd = c.input?.command || "";
-        if (/\bgit\s+push\b/.test(cmd)) commitsPushed++;
-        if (/\bgh\s+pr\s+create\b/.test(cmd)) prsOpened++;
-      }
-    }
-  }
+  const { commitsPushed, prsOpened } = countBashIntents(traceFile);
 
   const bashCalls = toolMap.get("Bash") || 0;
   const totalCalls = tools.reduce((s, t) => s + t.count, 0);
@@ -206,17 +250,27 @@ function extractMetrics(traceFile) {
 function recordRun(run, runLabel, dryRun, existingRunIds) {
   const dl = downloadTrace(run.id);
   if (!dl || !Array.isArray(dl.files)) return { skipped: "no-artifact" };
-  const seFile = dl.files.find((f) => f.endsWith("staff-engineer.agent.ndjson"));
+  const seFile = dl.files.find((f) =>
+    f.endsWith("staff-engineer.agent.ndjson"),
+  );
   if (!seFile) return { skipped: "no-se-trace" };
 
   let metrics;
-  try { metrics = extractMetrics(join(dl.dir, seFile)); }
-  catch (e) { return { skipped: `extract-failed: ${e.message}` }; }
+  try {
+    metrics = extractMetrics(join(dl.dir, seFile));
+  } catch (e) {
+    return { skipped: `extract-failed: ${e.message}` };
+  }
 
   const date = run.created_at.substring(0, 10);
   const note = `boot-append from Kata: Dispatch ${run.id}; durationMs=${metrics._durationMs}`;
   const rows = METRICS.map(([metric, unit]) => [
-    date, metric, metrics[metric], unit, runLabel, note,
+    date,
+    metric,
+    metrics[metric],
+    unit,
+    runLabel,
+    note,
   ]);
   const block = rows.map((r) => r.map(csvEscape).join(",")).join("\n") + "\n";
   if (dryRun) {
@@ -228,37 +282,45 @@ function recordRun(run, runLabel, dryRun, existingRunIds) {
   return { appended: rows.length, date };
 }
 
-function main() {
-  const args = parseArgs(process.argv);
-  const existingRunIds = readExistingRunIds();
-  const currentRunId = process.env.GITHUB_RUN_ID || null;
-
-  let candidates;
-  if (args.runId) {
-    // Look up the run's actual created_at so the row's date column is the
-    // run date, not today.
-    let createdAt = new Date().toISOString();
-    try {
-      const raw = ghApi(`repos/${REPO}/actions/runs/${args.runId}`, ".created_at");
-      const trimmed = raw.trim();
-      if (trimmed) createdAt = trimmed;
-    } catch (e) { console.warn(`run lookup failed: ${e.message}`); }
-    candidates = [{ id: args.runId, created_at: createdAt }];
-  } else {
-    const sinceMs = Date.now() - args.sinceDays * 86_400_000;
-    const sinceIso = new Date(sinceMs).toISOString();
-    try { candidates = listDispatchRuns(sinceIso, currentRunId); }
-    catch (e) { console.warn(`list failed: ${e.message}`); return; }
+function lookupCreatedAt(runId) {
+  // Look up the run's actual created_at so the row's date column is the
+  // run date, not today.
+  try {
+    const raw = ghApi(`repos/${REPO}/actions/runs/${runId}`, ".created_at");
+    const trimmed = raw.trim();
+    if (trimmed) return trimmed;
+  } catch (e) {
+    console.warn(`run lookup failed: ${e.message}`);
   }
+  return new Date().toISOString();
+}
 
+function resolveCandidates(args, currentRunId) {
+  if (args.runId) {
+    return [{ id: args.runId, created_at: lookupCreatedAt(args.runId) }];
+  }
+  const sinceMs = Date.now() - args.sinceDays * 86_400_000;
+  const sinceIso = new Date(sinceMs).toISOString();
+  try {
+    return listDispatchRuns(sinceIso, currentRunId);
+  } catch (e) {
+    console.warn(`list failed: ${e.message}`);
+    return null;
+  }
+}
+
+function processCandidates(candidates, args) {
+  const existingRunIds = readExistingRunIds();
   let totalRows = 0;
   let traces = 0;
   for (const run of candidates) {
     const runLabel = `run-${run.id}`;
-    if (existingRunIds.has(runLabel) || existingRunIds.has(String(run.id))) {
+    const alreadyRecorded =
+      existingRunIds.has(runLabel) || existingRunIds.has(String(run.id));
+    if (alreadyRecorded) {
       if (!args.backfill) {
         console.log(`already recorded ${runLabel}; nothing to append`);
-        return;
+        return { totalRows, traces };
       }
       continue;
     }
@@ -266,14 +328,29 @@ function main() {
     if (result.appended) {
       totalRows += result.appended;
       traces++;
-      console.log(`appended ${result.appended} rows for ${runLabel} (${result.date})`);
-      if (!args.backfill) return;
-    } else if (!args.backfill) {
-      // skip and continue to next candidate when looking for the freshest SE trace
-      // (single-trace mode keeps walking until it finds one)
+      console.log(
+        `appended ${result.appended} rows for ${runLabel} (${result.date})`,
+      );
+      if (!args.backfill) return { totalRows, traces };
     }
   }
+  return { totalRows, traces };
+}
+
+function main() {
+  const args = parseArgs(process.argv);
+  const currentRunId = process.env.GITHUB_RUN_ID || null;
+  const candidates = resolveCandidates(args, currentRunId);
+  if (!candidates) return;
+  const { totalRows, traces } = processCandidates(candidates, args);
   console.log(`done: ${traces} trace(s), ${totalRows} row(s)`);
 }
 
-main();
+// Hot-path hardening: any synchronous throw from main() (post-existsSync race,
+// permission flip, etc.) must not propagate non-zero from this boot helper.
+try {
+  main();
+} catch (e) {
+  console.warn(`record-prior-trace failed: ${e.message}`);
+}
+process.exit(0);
