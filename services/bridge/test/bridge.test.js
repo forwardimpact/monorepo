@@ -303,6 +303,55 @@ describe("bridge service", () => {
     );
   });
 
+  test("ResolvePendingDispatch refuses to consume when expected_surface_user_id mismatches", async () => {
+    await service.PutPendingDispatch({
+      pending: {
+        link_token: "lt-suI",
+        surface: "github-discussions",
+        surface_user_id: "victim-42",
+        discussion_id: "d-2",
+        created_at: Date.now(),
+      },
+      tenant_id: T,
+    });
+
+    await assert.rejects(
+      () =>
+        service.ResolvePendingDispatch({
+          link_token: "lt-suI",
+          tenant_id: T,
+          expected_surface_user_id: "attacker-99",
+        }),
+      (err) => err.code === grpc.status.FAILED_PRECONDITION,
+    );
+
+    // The pending row is still consumable by the legitimate user.
+    const resolved = await service.ResolvePendingDispatch({
+      link_token: "lt-suI",
+      tenant_id: T,
+      expected_surface_user_id: "victim-42",
+    });
+    assert.strictEqual(resolved.surface_user_id, "victim-42");
+  });
+
+  test("ResolvePendingDispatch with no expected_surface_user_id remains permissive (legacy callers)", async () => {
+    await service.PutPendingDispatch({
+      pending: {
+        link_token: "lt-legacy",
+        surface: "github-discussions",
+        surface_user_id: "user-1",
+        discussion_id: "d-3",
+        created_at: Date.now(),
+      },
+      tenant_id: T,
+    });
+    const resolved = await service.ResolvePendingDispatch({
+      link_token: "lt-legacy",
+      tenant_id: T,
+    });
+    assert.strictEqual(resolved.link_token, "lt-legacy");
+  });
+
   test("Sweep evicts pending dispatches older than TTL", async () => {
     const now = Date.now();
     const stale = now - 11 * 60 * 1000;

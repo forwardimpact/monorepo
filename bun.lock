@@ -28,6 +28,7 @@
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
+        "@forwardimpact/libtelemetry": "^0.1.0",
       },
     },
     "libraries/libcli": {
@@ -188,6 +189,7 @@
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
+        "@forwardimpact/libstorage": "^0.1.0",
       },
     },
     "libraries/libmacos": {

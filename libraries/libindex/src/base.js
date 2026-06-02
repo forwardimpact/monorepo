@@ -213,6 +213,21 @@ export class IndexBase {
   }
 
   /**
+   * Replaces the persisted index file with a JSONL serialisation of the
+   * current in-memory live set. Closes the append-only-vs-deletion gap: a
+   * caller that removes an entry from the in-memory `index` Map and then
+   * calls `compact()` ends with that entry absent from both memory and disk.
+   * Uses `storage.put` (atomic file-replace) so a process restart cannot
+   * observe a half-written index.
+   * @returns {Promise<void>}
+   */
+  async compact() {
+    if (!this.#loaded) await this.loadData();
+    const records = [...this.#index.values()];
+    await this.#storage.put(this.#indexKey, records);
+  }
+
+  /**
    * Queries items from the index using basic filtering
    * Provides a default implementation that applies shared filters to all items
    * Subclasses can override this for more sophisticated query logic

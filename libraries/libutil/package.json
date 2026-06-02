@@ -22,6 +22,8 @@
   "exports": {
     ".": "./src/index.js",
     "./runtime": "./src/runtime.js",
+    "./trusted-origins": "./src/trusted-origins.js",
+    "./completion-ticket": "./src/completion-ticket.js",
     "./git-client": "./src/git-client.js",
     "./gh-client": "./src/gh-client.js",
     "./bin/fit-download-bundle.js": "./bin/fit-download-bundle.js",

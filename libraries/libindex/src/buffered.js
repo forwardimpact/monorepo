@@ -82,6 +82,17 @@ export class BufferedIndex extends IndexBase {
   }
 
   /**
+   * Compaction on a buffered index drains the in-memory write buffer to
+   * storage first (so any post-buffer state is observable on disk) and
+   * then replaces the persisted file with the live in-memory set.
+   * @returns {Promise<void>}
+   */
+  async compact() {
+    await this.flush();
+    await super.compact();
+  }
+
+  /**
    * Shuts down the index by flushing remaining buffer and clearing timer
    * @returns {Promise<void>}
    */
