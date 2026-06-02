@@ -1,8 +1,18 @@
-# Plan 1420-a-01 — Compile-readiness fixes
+# Plan 1420-a-01 — Compile-readiness fix
 
 Part 1 of [plan 1420-a](plan-a.md). Makes the shared `just build-binary` emit a
-working, versioned binary for the three CLIs that cannot join the build today.
-Independently executable on a branch off `origin/main`.
+working, versioned binary for `fit-codegen`, the one CLI still blocked from the
+build. Independently executable on a branch off `origin/main`.
+
+> **Two of this part's original three steps are already done.** A precursor
+> change centralized CLI version resolution in libcli (`resolveVersion` reading
+> a single injected `LIBCLI_VERSION` literal, with `createCli` auto-filling from
+> each bin's `packageJsonUrl`). That landed the `fit-wiki` (was: ENOENT, no env
+> branch) and `fit-outpost` defect-2 (was: `OUTPOST_VERSION` ≠
+> `FIT_OUTPOST_VERSION`) version fixes, and removed the now-dead version
+> `--define` from `pkg/build.js`. Only Step 1 below — the `fit-codegen`
+> `util.Long` binding — remains. `fit-outpost` defect 1 (no-op `src/outpost.js`
+> entry) is addressed in [Parts 02/03](plan-a.md), not here.
 
 Libraries used: none (uses libcodegen's existing `protobufjs` + `long` deps).
 
@@ -50,56 +60,21 @@ and `./dist/binaries/fit-codegen --version` prints the version and exits 0. The
 resolveAll()`, the 64-bit-default resolution that throws today, so a regressed or
 absent `Long` binding fails here even if `--version`/`--help` pass.
 
-## Step 2 — Read `FIT_WIKI_VERSION` in the `fit-wiki` bin
+## Steps 2 & 3 — `fit-wiki` and `fit-outpost` version reads (resolved by precursor)
 
-Give `fit-wiki` the env-injected version read with a source-execution
-`readFileSync` fallback, matching the `fit-codegen` pattern, so the compiled
-binary stops ENOENT-ing on its own `package.json`.
+Originally this part also gave `fit-wiki` an env-injected version read and
+renamed `fit-outpost`'s `OUTPOST_VERSION` read to `FIT_OUTPOST_VERSION`. The
+libcli version-centralization precursor supersedes both: `createCli` now
+resolves the version from each bin's `packageJsonUrl` via `resolveVersion`,
+which reads the single injected `LIBCLI_VERSION` literal with a `package.json`
+fallback. `fit-wiki` and `fit-outpost` both route through that path, so neither
+per-bin env read exists any more, and the dead `OUTPOST_VERSION` `--define` is
+already gone from `pkg/build.js`.
 
-- Modified: `libraries/libwiki/bin/fit-wiki.js`
+Already verified by the precursor (re-confirm on the integrated branch):
 
-Replace the version resolution in `main()` (lines 19–24):
-
-```js
-  const version =
-    runtime.proc.env.FIT_WIKI_VERSION ||
-    JSON.parse(
-      runtime.fsSync.readFileSync(
-        new URL("../package.json", import.meta.url),
-        "utf8",
-      ),
-    ).version;
-```
-
-(`just build-binary` upper-cases the bin name to `FIT_WIKI_VERSION` and injects
-it via `--define`, so the `readFileSync` branch tree-shakes away in the binary.)
-
-Verify: `just build-binary fit-wiki bun-linux-x64 && ./dist/binaries/fit-wiki --version` prints the version and exits 0 (today it exits ENOENT).
-
-## Step 3 — Rename `fit-outpost`'s build-time version read
-
-Rename the bin entry's version env read from `OUTPOST_VERSION` to
-`FIT_OUTPOST_VERSION` — the name `just build-binary fit-outpost` injects (bin
-name upper-cased, `-`→`_`) — so a shared build of `fit-outpost` carries its
-version.
-
-- Modified: `products/outpost/bin/fit-outpost.js`
-
-Change the version read (lines 19–22):
-
-```js
-const VERSION =
-  process.env.FIT_OUTPOST_VERSION ||
-  JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"))
-    .version;
-```
-
-The comment above it referencing `bun build --define` stays accurate. `pkg/build.js`'s
-own scheduler compile (which injects `OUTPOST_VERSION` against `src/outpost.js`)
-is retired in [Part 03](plan-a-03.md) together with the `publish-macos.yml`
-rewire; leaving it until then keeps `just pkg` runnable on `main` between merges.
-
-Verify: `just build-binary fit-outpost bun-linux-x64 && ./dist/binaries/fit-outpost --version && ./dist/binaries/fit-outpost --help` — version prints, help lists the commands (today the installer's `src/outpost.js` binary prints nothing; this builds the real bin entry instead).
+- `just build-binary fit-wiki bun-linux-x64 && ./dist/binaries/fit-wiki --version` — prints the version and exits 0 (previously ENOENT).
+- `just build-binary fit-outpost bun-linux-x64 && ./dist/binaries/fit-outpost --version` — prints the version (defect 2 fixed). Note: `--help` listing the commands still depends on compiling the **bin** entry rather than `src/outpost.js` — that entry fix (defect 1) lands in [Parts 02/03](plan-a.md).
 
 ## Risks
 
