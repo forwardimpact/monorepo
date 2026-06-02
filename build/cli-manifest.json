@@ -33,27 +33,32 @@
     {
       "name": "fit-svcgraph",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
-      "bundle": "gear"
+      "bundle": "gear",
+      "server": true
     },
     {
       "name": "fit-svcmcp",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
-      "bundle": "gear"
+      "bundle": "gear",
+      "server": true
     },
     {
       "name": "fit-svcpathway",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
-      "bundle": "gear"
+      "bundle": "gear",
+      "server": true
     },
     {
       "name": "fit-svctrace",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
-      "bundle": "gear"
+      "bundle": "gear",
+      "server": true
     },
     {
       "name": "fit-svcvector",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
-      "bundle": "gear"
+      "bundle": "gear",
+      "server": true
     },
     {
       "name": "fit-codegen",
