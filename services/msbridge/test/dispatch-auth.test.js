@@ -9,6 +9,7 @@ import {
 } from "@forwardimpact/libmock";
 
 import { MsBridgeService } from "../index.js";
+import { DEFAULT_TICKET_SECRET, DEFAULT_TRUSTED_ORIGINS } from "./helpers.js";
 
 function makeConfig(overrides = {}) {
   return createMockConfig("msbridge", {
@@ -111,6 +112,8 @@ describe("msbridge dispatch-auth", () => {
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,
+      trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+      ticketSecret: DEFAULT_TICKET_SECRET,
     });
     await service.start();
     const baseUrl = `http://127.0.0.1:${service.address().port}`;
@@ -142,7 +145,7 @@ describe("msbridge dispatch-auth", () => {
     const client = makeGhuserClient(() => ({
       result: "link_required",
       link_required: {
-        authorize_url: "https://example.com/authorize?s=msteams",
+        authorize_url: "https://github.com/authorize?s=msteams",
       },
     }));
     const adapter = makeAdapter({
@@ -155,6 +158,8 @@ describe("msbridge dispatch-auth", () => {
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,
+      trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+      ticketSecret: DEFAULT_TICKET_SECRET,
     });
     await service.start();
     const baseUrl = `http://127.0.0.1:${service.address().port}`;
@@ -192,6 +197,8 @@ describe("msbridge dispatch-auth", () => {
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,
+      trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+      ticketSecret: DEFAULT_TICKET_SECRET,
     });
     await service.start();
     const baseUrl = `http://127.0.0.1:${service.address().port}`;
@@ -226,6 +233,8 @@ describe("msbridge dispatch-auth", () => {
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,
+      trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+      ticketSecret: DEFAULT_TICKET_SECRET,
     });
     await service.start();
     const baseUrl = `http://127.0.0.1:${service.address().port}`;
@@ -261,6 +270,8 @@ describe("msbridge dispatch-auth", () => {
       discussionClient: createMockDiscussionClient(),
       ghuserClient: client,
       adapter,
+      trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+      ticketSecret: DEFAULT_TICKET_SECRET,
     });
     await service.start();
     const baseUrl = `http://127.0.0.1:${service.address().port}`;

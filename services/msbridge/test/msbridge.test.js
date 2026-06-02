@@ -14,7 +14,11 @@ import {
   buildPrompt,
   validateCallbackPayload,
 } from "../index.js";
-import { createStatefulDiscussionClient } from "./helpers.js";
+import {
+  DEFAULT_TICKET_SECRET,
+  DEFAULT_TRUSTED_ORIGINS,
+  createStatefulDiscussionClient,
+} from "./helpers.js";
 
 function makeConfig(overrides = {}) {
   return createMockConfig("msbridge", {
@@ -84,6 +88,8 @@ function newService({
     discussionClient: createStatefulDiscussionClient(),
     ghuserClient: ghuserClient ?? makeGhuserClient(),
     adapter: adapter ?? makeAdapter(),
+    trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+    ticketSecret: DEFAULT_TICKET_SECRET,
   });
 }
 

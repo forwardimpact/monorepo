@@ -8,7 +8,11 @@ import {
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
-import { createStatefulDiscussionClient } from "./helpers.js";
+import {
+  DEFAULT_TICKET_SECRET,
+  DEFAULT_TRUSTED_ORIGINS,
+  createStatefulDiscussionClient,
+} from "./helpers.js";
 
 const SECRET = "ghbridge-test-secret-long-enough";
 
@@ -92,6 +96,8 @@ describe("ghbridge dispatch-auth", () => {
         return {};
       },
       ghuserClient,
+      trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+      ticketSecret: DEFAULT_TICKET_SECRET,
     });
   }
 
@@ -181,7 +187,7 @@ describe("ghbridge dispatch-auth", () => {
   test("link_required: discussion reply with authorize URL, no workflow_dispatch", async () => {
     const client = makeGhuserClient(() => ({
       result: "link_required",
-      link_required: { authorize_url: "https://example.com/authorize?s=ghd" },
+      link_required: { authorize_url: "https://github.com/authorize?s=ghd" },
     }));
     const service = buildService(client);
     await service.start();

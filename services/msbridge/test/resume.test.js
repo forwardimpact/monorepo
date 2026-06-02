@@ -8,7 +8,11 @@ import {
 } from "@forwardimpact/libmock";
 
 import { MsBridgeService } from "../index.js";
-import { createStatefulDiscussionClient } from "./helpers.js";
+import {
+  DEFAULT_TICKET_SECRET,
+  DEFAULT_TRUSTED_ORIGINS,
+  createStatefulDiscussionClient,
+} from "./helpers.js";
 
 function makeConfig(configOverrides = {}) {
   return createMockConfig("msbridge", {
@@ -110,6 +114,8 @@ describe("msbridge resume", () => {
       discussionClient,
       ghuserClient: makeGhuserClient(),
       adapter,
+      trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+      ticketSecret: DEFAULT_TICKET_SECRET,
     });
   }
 

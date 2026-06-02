@@ -83,6 +83,7 @@ export class GhBridgeService {
   #bridge;
   #onCallback;
   #clock;
+  #trustedOrigins;
 
   /**
    * @param {import("@forwardimpact/libbridge").BridgeConfig & {
@@ -99,7 +100,15 @@ export class GhBridgeService {
    * @param {Acknowledgement} [deps.acknowledgement] - Override (tests)
    */
   constructor(config, deps) {
-    const { logger, tracer, discussionClient, verifyWebhook, clock } = deps;
+    const {
+      logger,
+      tracer,
+      discussionClient,
+      verifyWebhook,
+      clock,
+      trustedOrigins,
+      ticketSecret,
+    } = deps;
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
     if (!discussionClient) throw new Error("discussionClient is required");
@@ -108,12 +117,17 @@ export class GhBridgeService {
     }
     if (!deps.ghuserClient) throw new Error("ghuserClient is required");
     if (!clock) throw new Error("clock is required");
+    if (!(trustedOrigins instanceof Set))
+      throw new Error("trustedOrigins is required");
+    if (typeof ticketSecret !== "string" || ticketSecret.length === 0)
+      throw new Error("ticketSecret is required");
     this.#config = config;
     this.#logger = logger;
     this.#tracer = tracer;
     this.#verifyWebhook = verifyWebhook;
     this.#graphqlClient = deps.graphqlClient;
     this.#clock = clock;
+    this.#trustedOrigins = trustedOrigins;
 
     this.#store = new DiscussionAdapter(discussionClient);
     this.#client = discussionClient;
@@ -169,6 +183,9 @@ export class GhBridgeService {
       store: this.#store,
       dispatcher: this.#dispatcher,
       buildCallbackMeta: (ctx) => ({ discussionId: ctx.discussion_id }),
+      trustedOrigins: this.#trustedOrigins,
+      ticketSecret,
+      clock: this.#clock,
     });
 
     this.#bridge = createBridgeServer({
@@ -487,13 +504,18 @@ export class GhBridgeService {
   }
 
   async #stashAndPostLink(ctx, result, requester) {
-    const { linkToken, augmentedUrl } = prepareLinkResume(
-      result.authorizeUrl,
-      this.#config.callback_base_url,
-    );
+    const prepared = prepareLinkResume({
+      authorizeUrl: result.authorizeUrl,
+      callbackBaseUrl: this.#config.callback_base_url,
+      trustedOrigins: this.#trustedOrigins,
+    });
+    if (prepared.skipped) {
+      this.#logger.info("link-resume skipped", { reason: prepared.reason });
+      return;
+    }
 
     await this.#store.putPendingDispatch({
-      link_token: linkToken,
+      link_token: prepared.linkToken,
       surface: CHANNEL,
       surface_user_id: requester,
       discussion_id: ctx.discussion_id,
@@ -503,7 +525,7 @@ export class GhBridgeService {
     await postSingleDiscussionReply(
       this.#graphqlClient,
       ctx,
-      `To dispatch, link your GitHub account: ${augmentedUrl}`,
+      `To dispatch, link your GitHub account: ${prepared.augmentedUrl}`,
       this.#recordOrigin(ctx),
     );
   }
