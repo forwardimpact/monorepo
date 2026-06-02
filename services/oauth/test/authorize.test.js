@@ -111,6 +111,84 @@ describe("oauth authorize (SC#2)", () => {
     assert.strictEqual(capturedClientState, "link-tok-99");
   });
 
+  test("callback with completion_ticket appends &ticket= to redirect", async () => {
+    const { app } = createOauthService({
+      config: {
+        issuer: "http://localhost:3007",
+        host: "0.0.0.0",
+        port: 0,
+        provider: "ghuser",
+      },
+      logger: { info: () => {}, error: () => {} },
+      providerClient: {
+        Begin: async () => ({}),
+        Complete: async () => ({
+          downstream_code: "dc-123",
+          redirect_uri: "http://client.example/cb",
+          client_state: "cs-1",
+          completion_ticket: "payload.signature",
+        }),
+        Redeem: async () => ({}),
+      },
+    });
+
+    const res = await app.request("/callback?code=gh-code&state=s1");
+    assert.strictEqual(res.status, 302);
+    const location = new URL(res.headers.get("Location"));
+    assert.strictEqual(location.searchParams.get("ticket"), "payload.signature");
+    assert.strictEqual(location.searchParams.get("code"), "dc-123");
+    assert.strictEqual(location.searchParams.get("state"), "cs-1");
+  });
+
+  test("callback without completion_ticket omits ticket from redirect", async () => {
+    const { app } = createOauthService({
+      config: {
+        issuer: "http://localhost:3007",
+        host: "0.0.0.0",
+        port: 0,
+        provider: "ghuser",
+      },
+      logger: { info: () => {}, error: () => {} },
+      providerClient: {
+        Begin: async () => ({}),
+        Complete: async () => ({
+          downstream_code: "dc-123",
+          redirect_uri: "http://client.example/cb",
+          client_state: "cs-1",
+        }),
+        Redeem: async () => ({}),
+      },
+    });
+
+    const res = await app.request("/callback?code=gh-code&state=s1");
+    assert.strictEqual(res.status, 302);
+    const location = new URL(res.headers.get("Location"));
+    assert.strictEqual(location.searchParams.has("ticket"), false);
+  });
+
+  test("/callback with untrusted_origin renders refusal page and does not redirect", async () => {
+    const { app } = createOauthService({
+      config: {
+        issuer: "http://localhost:3007",
+        host: "0.0.0.0",
+        port: 0,
+        provider: "ghuser",
+      },
+      logger: { info: () => {}, error: () => {} },
+      providerClient: {
+        Begin: async () => ({}),
+        Complete: async () => ({ outcome: "untrusted_origin" }),
+        Redeem: async () => ({}),
+      },
+    });
+
+    const res = await app.request("/callback?code=gh-code&state=s1");
+    assert.strictEqual(res.status, 200);
+    const html = await res.text();
+    assert.ok(html.includes("not in the configured"), "page names the rejection cause");
+    assert.ok(html.includes("Account not linked"), "page heading is fail-closed");
+  });
+
   test("/callback with identity_mismatch renders refusal page", async () => {
     const { app } = createOauthService({
       config: {

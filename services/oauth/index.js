@@ -83,11 +83,21 @@ export function createOauthService({ config, logger, providerClient }) {
           );
         }
 
+        if (result.outcome === "untrusted_origin") {
+          return c.html(
+            "<!DOCTYPE html><html><body><h1>Account not linked</h1>" +
+              "<p>The identity provider that authorized is not in the " +
+              "configured trusted set. No binding was created.</p></body></html>",
+          );
+        }
+
         if (result.redirect_uri) {
           const url = new URL(result.redirect_uri);
           url.searchParams.set("code", result.downstream_code);
           if (result.client_state)
             url.searchParams.set("state", result.client_state);
+          if (result.completion_ticket)
+            url.searchParams.set("ticket", result.completion_ticket);
           return c.redirect(url.toString(), 302);
         }
 
