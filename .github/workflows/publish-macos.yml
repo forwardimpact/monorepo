@@ -8,8 +8,16 @@ permissions:
   contents: read
 
 jobs:
+  binaries:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      targets: '["bun-darwin-arm64"]'
+
   build:
-    runs-on: macos-latest
+    needs: binaries
+    runs-on: macos-14
 
     permissions:
       contents: write
@@ -32,9 +40,16 @@ jobs:
       - name: Run tests
         run: bun run test
 
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: fit-outpost-bun-darwin-arm64
+          path: products/outpost/dist   # workspace-root-relative → products/outpost/dist/fit-outpost
+
       - name: Build .pkg installer
         working-directory: products/outpost
-        run: just pkg
+        run: |
+          chmod +x dist/fit-outpost   # upload-artifact dropped the +x bit
+          bun pkg/build.js --pkg      # launcher + .app + .pkg; consumes dist/fit-outpost, no scheduler compile
 
       - name: Verify .pkg exists
         working-directory: products/outpost

@@ -3,11 +3,13 @@
 // Build script for Outpost (arm64 macOS).
 //
 // Usage:
-//   bun pkg/build.js                    Compile scheduler + launcher
+//   bun pkg/build.js                    Compile launcher
 //   bun pkg/build.js --app              Above + assemble Outpost.app
 //   bun pkg/build.js --pkg              Above + .pkg installer
-//   bun pkg/build.js --scheduler        Compile scheduler binary only
 //   bun pkg/build.js --launcher         Compile Swift launcher only
+//
+// The fit-outpost scheduler binary is produced by the shared
+// `just build-binary fit-outpost` and must be present in dist/ before --app/--pkg.
 
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -35,29 +37,6 @@ function ensureDir(dir) {
 function run(cmd, opts = {}) {
   console.log(`  $ ${cmd}`);
   return execSync(cmd, { encoding: "utf8", stdio: "inherit", ...opts });
-}
-
-// ---------------------------------------------------------------------------
-// Compile scheduler binary
-// ---------------------------------------------------------------------------
-
-function compileScheduler() {
-  const outputPath = join(DIST_DIR, APP_NAME);
-
-  console.log(`\nCompiling ${APP_NAME}...`);
-  ensureDir(DIST_DIR);
-
-  const cmd = [
-    "bun build",
-    "--compile",
-    `--outfile "${outputPath}"`,
-    "src/outpost.js",
-  ].join(" ");
-
-  run(cmd, { cwd: PROJECT_DIR });
-
-  console.log(`  -> ${outputPath}`);
-  return outputPath;
 }
 
 // ---------------------------------------------------------------------------
@@ -111,6 +90,12 @@ function compileLauncher() {
 function buildApp() {
   console.log("\nAssembling Outpost.app...");
 
+  if (!existsSync(join(DIST_DIR, APP_NAME))) {
+    throw new Error(
+      `${APP_NAME} binary not found in dist/ — build it with \`just build-binary fit-outpost\` or supply it from the native build before assembling the app.`,
+    );
+  }
+
   const LIBMACOS = join(PROJECT_DIR, "..", "..", "libraries", "libmacos");
   const script = join(LIBMACOS, "scripts", "build-app.sh");
   const iconPath = join(
@@ -161,25 +146,19 @@ function buildPKG() {
 
 const args = process.argv.slice(2);
 
-// No flags → full default build (scheduler + launcher).
-// Explicit flags → run only those steps; --app/--pkg imply the earlier steps.
+// No flags → default build (launcher only; the fit-outpost scheduler binary
+// comes from the shared `just build-binary fit-outpost`, not this script).
+// Explicit flags → run only those steps; --app/--pkg imply the launcher.
 const all = args.length === 0;
 const want = {
-  scheduler: all || args.includes("--scheduler"),
   launcher: all || args.includes("--launcher"),
   app: args.includes("--app") || args.includes("--pkg"),
   pkg: args.includes("--pkg"),
 };
-if (want.app || want.pkg) {
-  want.scheduler = true;
-  want.launcher = true;
-}
+if (want.app || want.pkg) want.launcher = true;
 
 console.log(`Outpost Build (v${VERSION})`);
 console.log("==========================");
-// Scheduler first (before launcher exists in dist/) so the launcher binary
-// is not embedded in the compiled binary.
-if (want.scheduler) compileScheduler();
 if (want.launcher) compileLauncher();
 if (want.app) buildApp();
 if (want.pkg) buildPKG();

@@ -2,6 +2,14 @@
 
 import "@forwardimpact/libpreflight/node22";
 
+// Bind protobufjs's `util.Long` before any other import evaluates. The
+// `@grpc/proto-loader` import below pulls in protobufjs's descriptor extension,
+// which calls `Root.fromJSON(...).resolveAll()` at module-evaluation time —
+// resolving a 64-bit field default needs `util.Long`, which `bun --compile`
+// leaves undefined (see long-init.js). This side-effect import must precede the
+// proto-loader import so the binding is in place before that resolveAll runs.
+import "../src/long-init.js";
+
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";

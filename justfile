@@ -223,57 +223,24 @@ build-binary NAME TARGET="bun-darwin-arm64":
       --outfile "dist/binaries/{{NAME}}" \
       "$ENTRY"
 
-# Build every Mach-O for the default target (codegen + product + gear)
-build-binaries: codegen build-product-binaries build-gear-binaries
-
-# Compile every fit-<product> CLI
-build-product-binaries:
-    just build-binary fit-outpost
-    just build-binary fit-guide
-    just build-binary fit-landmark
-    just build-binary fit-map
-    just build-binary fit-pathway
-    just build-binary fit-summit
-
-# Compile every gear CLI (services + library binaries; must stay in sync with
-# Casks/fit-gear.rb in the forwardimpact/homebrew-tap repo)
-build-gear-binaries:
-    just build-binary fit-svcgraph
-    just build-binary fit-svcmcp
-    just build-binary fit-svcpathway
-    just build-binary fit-svctrace
-    just build-binary fit-svcvector
-    just build-binary fit-codegen
-    just build-binary fit-terrain
-    just build-binary fit-eval
-    just build-binary fit-doc
-    just build-binary fit-rc
-    just build-binary fit-xmr
-    just build-binary fit-storage
-    just build-binary fit-logger
-    just build-binary fit-svscan
-    just build-binary fit-trace
-    just build-binary fit-visualize
-    just build-binary fit-query
-    just build-binary fit-subjects
-    just build-binary fit-process-graphs
-    just build-binary fit-process-resources
-    just build-binary fit-process-vectors
-    just build-binary fit-search
-    just build-binary fit-unary
-    just build-binary fit-tiktoken
-    just build-binary fit-download-bundle
+# Build every distributable binary for TARGET, driven by build/cli-manifest.json
+build-all TARGET="bun-darwin-arm64": codegen
+    #!/usr/bin/env bash
+    set -euo pipefail
+    jq -r --arg t "{{TARGET}}" \
+      '.clis[] | select(.targets | index($t)) | .name' build/cli-manifest.json \
+      | while read -r CLI; do just build-binary "$CLI" "{{TARGET}}"; done
 
 # Assemble dist/apps/fit-<NAME>.app for a product (outpost is special-cased)
 build-app-product NAME:
     #!/usr/bin/env bash
     set -euo pipefail
     if [ "{{NAME}}" = "outpost" ]; then
-      (cd products/outpost && just build)
+      (cd products/outpost && bun pkg/build.js --launcher)
       bash libraries/libmacos/scripts/build-app.sh \
         --bundle-name "fit-outpost" \
         --primary-exec "products/outpost/dist/Outpost" \
-        --extra-exec "products/outpost/dist/fit-outpost" \
+        --extra-exec "dist/binaries/fit-outpost" \
         --info-plist "products/outpost/macos/Info.plist" \
         --entitlements "products/outpost/macos/Outpost.entitlements" \
         --resource "products/outpost/config" \
@@ -291,49 +258,20 @@ build-app-product NAME:
         --out-dir dist/apps
     fi
 
-# Assemble dist/apps/fit-gear.app — bundles all 25 service + library CLIs
+# Assemble dist/apps/fit-gear.app — bundles the manifest's gear CLI subset
 build-app-gear:
-    bash libraries/libmacos/scripts/build-app.sh \
-      --bundle-name "fit-gear" \
-      --primary-exec "dist/binaries/fit-svcgraph" \
-      --extra-exec "dist/binaries/fit-svcmcp" \
-      --extra-exec "dist/binaries/fit-svcpathway" \
-      --extra-exec "dist/binaries/fit-svctrace" \
-      --extra-exec "dist/binaries/fit-svcvector" \
-      --extra-exec "dist/binaries/fit-codegen" \
-      --extra-exec "dist/binaries/fit-terrain" \
-      --extra-exec "dist/binaries/fit-eval" \
-      --extra-exec "dist/binaries/fit-doc" \
-      --extra-exec "dist/binaries/fit-rc" \
-      --extra-exec "dist/binaries/fit-xmr" \
-      --extra-exec "dist/binaries/fit-storage" \
-      --extra-exec "dist/binaries/fit-logger" \
-      --extra-exec "dist/binaries/fit-svscan" \
-      --extra-exec "dist/binaries/fit-trace" \
-      --extra-exec "dist/binaries/fit-visualize" \
-      --extra-exec "dist/binaries/fit-query" \
-      --extra-exec "dist/binaries/fit-subjects" \
-      --extra-exec "dist/binaries/fit-process-graphs" \
-      --extra-exec "dist/binaries/fit-process-resources" \
-      --extra-exec "dist/binaries/fit-process-vectors" \
-      --extra-exec "dist/binaries/fit-search" \
-      --extra-exec "dist/binaries/fit-unary" \
-      --extra-exec "dist/binaries/fit-tiktoken" \
-      --extra-exec "dist/binaries/fit-download-bundle" \
-      --info-plist "macos/gear/Info.plist" \
-      --entitlements "macos/gear/entitlements.plist" \
-      --version "$(jq -r .version package.json)" \
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mapfile -t GEAR < <(jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json)
+    ARGS=(--bundle-name "fit-gear" --primary-exec "dist/binaries/${GEAR[0]}")
+    for CLI in "${GEAR[@]:1}"; do ARGS+=(--extra-exec "dist/binaries/$CLI"); done
+    ARGS+=(
+      --info-plist "macos/gear/Info.plist"
+      --entitlements "macos/gear/entitlements.plist"
+      --version "$(jq -r .version package.json)"
       --out-dir dist/apps
-
-# Fan-out: build every Mach-O, then every bundle
-build-apps: build-binaries
-    just build-app-product outpost
-    just build-app-product guide
-    just build-app-product landmark
-    just build-app-product map
-    just build-app-product pathway
-    just build-app-product summit
-    just build-app-gear
+    )
+    bash libraries/libmacos/scripts/build-app.sh "${ARGS[@]}"
 
 # ── Quality ───────────────────────────────────────────────────────
 
