@@ -64,6 +64,48 @@ in the six conforming brew lanes; the spec promotes it from accidental
 convention to documented contract, and brings the one violation —
 Outpost's `.pkg` lane — into line.
 
+## Status after spec 1420 (#1345) — reduced scope
+
+Spec 1420 (single-source native binary builds) merged after this draft was
+written and already delivers part of this unification, so the remaining scope
+is **narrower** than the Problem and Why sections below describe. Those
+sections predate 1420 and overstate the divergence — read them with this
+correction.
+
+**Already delivered by 1420 — no longer in scope here:**
+
+- **Shared scheduler binary.** Both Outpost lanes now consume the same
+  `dist/binaries/fit-outpost` produced by the single `just build-binary`
+  primitive. `products/outpost/pkg/build.js` no longer compiles the scheduler
+  (`compileScheduler` is removed); it builds only the Swift launcher and
+  assembles from the shared binary, which `publish-macos.yml` obtains from the
+  shared `build-binaries.yml` workflow rather than compiling its own. The
+  "same upstream code built twice" cost is eliminated for the binary.
+- **Runner parity.** `publish-macos.yml` now runs on `macos-14`, matching
+  `publish-brew.yml` and `outpost-determinism-probe.yml`, closing the former
+  `macos-latest` / `macos-14` split so the cdhash toolchain image is identical
+  across lanes.
+
+**Still in scope — the remaining unification this spec owns:**
+
+- **One bundle directory name + install path (SC1, SC2, SC4, SC5).** The brew
+  lane still assembles `fit-outpost.app` (`build-app-product outpost` →
+  `--bundle-name fit-outpost`) while the `.pkg` lane still assembles
+  `Outpost.app` (`pkg/build.js buildApp()` → `--bundle-name "Outpost"`). The
+  name / install-path / TCC-identity divergence is unchanged by 1420.
+- **One cdhash determinism gate on the `.pkg` lane (SC3).** `publish-macos.yml`
+  still has no cdhash-determinism step; only `publish-brew.yml` does. 1420
+  aligned the runner and the binary source but did not bring the `.pkg`
+  `.app` assembly under the gate.
+- **One canonical build entry point.** The `.pkg` lane still assembles its
+  bundle via `pkg/build.js buildApp()` rather than consuming the canonical
+  `build-app-product outpost` output.
+
+SC1–SC5 remain valid as written, except that their shared-binary and
+runner-parity inputs are now satisfied by 1420 rather than by this spec. The
+Lane/Builder table above is also updated by this note: the `.pkg` lane's
+builder no longer compiles the scheduler and runs on `macos-14`.
+
 ## Why
 
 The single approach is **one canonical bundle directory name per
@@ -95,12 +137,14 @@ fixing the one violation — addresses concrete costs:
   failure mode there too, and inherits the contract for any future
   Gear-bundle channel that declares TCC entitlements.
 - **Release surface area doubles for Outpost.** Every Outpost release
-  builds the app twice — once in `publish-brew.yml` for the brew zip and
-  once in `publish-macos.yml` for the `.pkg` — with two build scripts,
-  two signing passes, and two `.app` paths in `dist/`. The other six
-  products build once per release. Collapsing Outpost's bundle to one
-  brings it in line with the cost profile every other product already
-  has.
+  still assembles the `.app` twice — once in `publish-brew.yml` for the
+  brew zip (`build-app-product outpost`) and once in `publish-macos.yml`
+  for the `.pkg` (`pkg/build.js buildApp()`) — with two signing passes
+  and two `.app` paths in `dist/`. (Post-1420 the *scheduler binary* is
+  built once and shared across both lanes, so the duplication is now the
+  `.app` assembly and signing, not the binary compile.) The other six
+  products assemble once per release; collapsing Outpost's bundle to one
+  brings it in line with the cost profile every other product already has.
 - **The contract is currently undocumented.** The six conforming lanes
   satisfy the approach because every `build-app-product NAME` invocation
   passes the same fixed `--bundle-name "fit-{{NAME}}"` to the shared
