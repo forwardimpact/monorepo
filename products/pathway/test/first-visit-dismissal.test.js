@@ -1,6 +1,6 @@
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import { Window } from "happy-dom";
+import { JSDOM } from "jsdom";
 
 const MODULE_PATH = "../src/lib/first-visit-dismissal.js";
 const STORAGE_KEY = "pathway:first-visit-banner:dismissed";
@@ -11,7 +11,7 @@ const savedDocument = globalThis.document;
 const savedNavigator = globalThis.navigator;
 
 beforeEach(() => {
-  win = new Window({ url: "http://localhost" });
+  win = new JSDOM("", { url: "http://localhost/" }).window;
   globalThis.window = win;
   globalThis.document = win.document;
   globalThis.navigator = win.navigator;
@@ -34,15 +34,28 @@ async function loadModule() {
 }
 
 /**
- * Override a Storage method using defineProperty. Reassigning directly on the
- * instance is a no-op in happy-dom because the methods live on the Storage
- * prototype; defineProperty installs an own property that shadows the
- * prototype method.
+ * Replace `window.localStorage` with an in-memory fake whose `name` method
+ * throws. Stubbing a method on the real Storage instance is unreliable — the
+ * DOM exposes Storage as a proxy that treats `storage.setItem = …` as writing
+ * a *key* named "setItem" rather than shadowing the method. The module reads
+ * `window.localStorage` lazily per call, so swapping the whole object on the
+ * window is the dependable way to inject a failing method.
  */
-function stubStorageMethod(storage, name, impl) {
-  Object.defineProperty(storage, name, {
-    value: impl,
-    writable: true,
+function stubStorageMethod(win, name, impl) {
+  const store = new Map();
+  const fake = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => {
+      store.set(k, String(v));
+    },
+    removeItem: (k) => {
+      store.delete(k);
+    },
+    clear: () => store.clear(),
+  };
+  fake[name] = impl;
+  Object.defineProperty(win, "localStorage", {
+    value: fake,
     configurable: true,
   });
 }
@@ -62,7 +75,7 @@ describe("first-visit-dismissal", () => {
 
   test("getItem throws — isDismissed returns false and does not throw", async () => {
     const { isDismissed } = await loadModule();
-    stubStorageMethod(win.localStorage, "getItem", () => {
+    stubStorageMethod(win, "getItem", () => {
       throw new Error("storage disabled");
     });
     assert.strictEqual(isDismissed(), false);
@@ -70,7 +83,7 @@ describe("first-visit-dismissal", () => {
 
   test("setItem throws — markDismissed returns without throwing", async () => {
     const { isDismissed, markDismissed } = await loadModule();
-    stubStorageMethod(win.localStorage, "setItem", () => {
+    stubStorageMethod(win, "setItem", () => {
       throw new Error("quota");
     });
     assert.doesNotThrow(() => markDismissed());

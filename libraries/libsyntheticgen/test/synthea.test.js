@@ -46,7 +46,7 @@ describe("SyntheaTool", () => {
     );
   });
 
-  test("checkAvailability error message references 'just synthea-install'", async () => {
+  test("checkAvailability error message references 'just synthetic-deps'", async () => {
     const tool = new SyntheaTool({
       logger,
       syntheaJar: "/missing.jar",
@@ -57,7 +57,7 @@ describe("SyntheaTool", () => {
     });
     await assertRejectsMessage(
       () => tool.checkAvailability(),
-      /just synthea-install/,
+      /just synthetic-deps/,
     );
   });
 

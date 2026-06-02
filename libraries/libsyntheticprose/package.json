@@ -34,10 +34,7 @@
     "@forwardimpact/libutil": "^0.1.61",
     "@forwardimpact/libsyntheticgen": "^0.1.21",
     "@forwardimpact/libtelemetry": "^0.1.23",
-    "@forwardimpact/libprompt": "^0.1.0",
-    "ajv": "^8.20.0",
-    "ajv-formats": "^3.0.1",
-    "yaml": "^2.9.0"
+    "@forwardimpact/libprompt": "^0.1.0"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
