@@ -5,7 +5,11 @@ import { fileURLToPath } from "node:url";
 
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-import { composeProfilePrompt } from "@forwardimpact/libeval";
+import {
+  composeProfilePrompt,
+  composeLeadPrompt,
+  composeSystemPrompt,
+} from "@forwardimpact/libeval";
 
 const RT = createDefaultRuntime();
 
@@ -45,9 +49,18 @@ describe("composeProfilePrompt", () => {
       "append should not leak the skills list",
     );
     assert.ok(
-      result.append.startsWith("You are the fixture agent."),
-      "append should start with the body content",
+      result.append.startsWith("<agent_profile>\nYou are the fixture agent."),
+      "body content should open the <agent_profile> section",
     );
+  });
+
+  test("wraps the profile body in <agent_profile>", () => {
+    const result = composeProfilePrompt("with-frontmatter", {
+      profilesDir: FIXTURES,
+      runtime: RT,
+    });
+    assert.ok(result.append.startsWith("<agent_profile>\n"));
+    assert.ok(result.append.endsWith("\n</agent_profile>"));
   });
 
   test("uses entire body when frontmatter is absent", () => {
@@ -55,28 +68,51 @@ describe("composeProfilePrompt", () => {
       profilesDir: FIXTURES,
       runtime: RT,
     });
-    assert.ok(result.append.startsWith("You are the frontmatter-less"));
+    assert.ok(
+      result.append.startsWith("<agent_profile>\nYou are the frontmatter-less"),
+    );
   });
 
-  test("concatenates trailer with blank-line separator", () => {
+  test("wraps the trailer in a sibling <session_protocol> section", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
       runtime: RT,
       trailer: "TRAILER_TEXT",
     });
-    assert.ok(result.append.endsWith("\n\nTRAILER_TEXT"));
     assert.ok(result.append.includes("You are the fixture agent."));
+    assert.ok(
+      result.append.includes(
+        "</agent_profile>\n\n<session_protocol>\nTRAILER_TEXT\n</session_protocol>",
+      ),
+      "sections are siblings joined by a blank line",
+    );
+    assert.ok(
+      result.append.indexOf("<agent_profile>") <
+        result.append.indexOf("<session_protocol>"),
+      "profile precedes protocol",
+    );
   });
 
-  test("omits trailer cleanly when not provided", () => {
+  test("the two sections are siblings — neither nests in the other", () => {
+    const result = composeProfilePrompt("with-frontmatter", {
+      profilesDir: FIXTURES,
+      runtime: RT,
+      trailer: "TRAILER_TEXT",
+    });
+    assert.ok(
+      result.append.indexOf("</agent_profile>") <
+        result.append.indexOf("<session_protocol>"),
+      "<agent_profile> closes before <session_protocol> opens",
+    );
+  });
+
+  test("omits the <session_protocol> section when no trailer is provided", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
       runtime: RT,
     });
-    assert.ok(
-      !result.append.endsWith("\n\n"),
-      "append should not have trailing blank lines when no trailer",
-    );
+    assert.ok(!result.append.includes("<session_protocol>"));
+    assert.ok(result.append.endsWith("</agent_profile>"));
   });
 
   test("treats empty trailer as omitted", () => {
@@ -85,7 +121,7 @@ describe("composeProfilePrompt", () => {
       runtime: RT,
       trailer: "",
     });
-    assert.ok(!result.append.endsWith("\n\n"));
+    assert.ok(!result.append.includes("<session_protocol>"));
   });
 
   test("throws ENOENT for missing profile", () => {
@@ -131,5 +167,95 @@ describe("composeProfilePrompt", () => {
         `expected composed prompt for ${name} to include body substring "${probe}"`,
       );
     }
+  });
+});
+
+describe("composeSystemPrompt", () => {
+  test("folds amend into the <session_protocol> section", () => {
+    const result = composeSystemPrompt({
+      role: "agent",
+      profile: "with-frontmatter",
+      profilesDir: FIXTURES,
+      trailer: "PROTOCOL",
+      amend: "<AMENDMENT>",
+      runtime: RT,
+    });
+    const open = result.append.indexOf("<session_protocol>");
+    const close = result.append.indexOf("</session_protocol>");
+    const amendAt = result.append.indexOf("<AMENDMENT>");
+    assert.ok(
+      open < amendAt && amendAt < close,
+      "amendment lands inside the <session_protocol> section",
+    );
+    assert.ok(
+      result.append.includes("PROTOCOL\n\n<AMENDMENT>"),
+      "amendment follows the trailer with a blank-line separator",
+    );
+  });
+
+  test("wraps the protocol even when no profile is supplied", () => {
+    const result = composeSystemPrompt({
+      role: "agent",
+      profilesDir: FIXTURES,
+      trailer: "PROTOCOL",
+      amend: "<AMENDMENT>",
+      runtime: RT,
+    });
+    assert.strictEqual(result.type, "preset");
+    assert.ok(!result.append.includes("<agent_profile>"));
+    assert.strictEqual(
+      result.append,
+      "<session_protocol>\nPROTOCOL\n\n<AMENDMENT>\n</session_protocol>",
+    );
+  });
+
+  test("lead role returns a wrapped plain string", () => {
+    const result = composeSystemPrompt({
+      role: "lead",
+      profilesDir: FIXTURES,
+      trailer: "LEAD_PROTOCOL",
+      runtime: RT,
+    });
+    assert.strictEqual(typeof result, "string");
+    assert.strictEqual(
+      result,
+      "<session_protocol>\nLEAD_PROTOCOL\n</session_protocol>",
+    );
+  });
+});
+
+describe("composeLeadPrompt", () => {
+  test("wraps profile and trailer as parallel sections", () => {
+    const result = composeLeadPrompt({
+      profile: "with-frontmatter",
+      profilesDir: FIXTURES,
+      trailer: "LEAD_PROTOCOL",
+      runtime: RT,
+    });
+    assert.ok(result.startsWith("<agent_profile>\n"));
+    assert.ok(
+      result.includes(
+        "</agent_profile>\n\n<session_protocol>\nLEAD_PROTOCOL\n</session_protocol>",
+      ),
+    );
+  });
+
+  test("emits only <session_protocol> when no profile is supplied", () => {
+    const result = composeLeadPrompt({
+      profilesDir: FIXTURES,
+      trailer: "LEAD_PROTOCOL",
+      runtime: RT,
+    });
+    assert.strictEqual(
+      result,
+      "<session_protocol>\nLEAD_PROTOCOL\n</session_protocol>",
+    );
+  });
+
+  test("throws when trailer is missing", () => {
+    assert.throws(
+      () => composeLeadPrompt({ profilesDir: FIXTURES, runtime: RT }),
+      /trailer is required/,
+    );
   });
 });

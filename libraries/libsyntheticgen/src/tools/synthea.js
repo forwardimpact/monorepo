@@ -36,7 +36,7 @@ export class SyntheaTool {
     } catch {
       throw new Error(
         `Synthea requires Java and ${this.syntheaJar}. ` +
-          "Run 'just synthea-install' to download the JAR, " +
+          "Run 'just synthetic-deps' to download the JAR, " +
           "or set SYNTHEA_JAR to a custom path.",
       );
     }

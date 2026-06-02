@@ -122,6 +122,7 @@ const devNull = new Writable({
  * @param {string[]} [deps.supervisorDisallowedTools]
  * @param {string} [deps.supervisorProfile]
  * @param {string} [deps.agentProfile]
+ * @param {string} [deps.agentSystemPromptAmend] - Amendment folded into the agent's `<session_protocol>` section, after the protocol trailer.
  * @param {string} [deps.profilesDir]
  * @param {string} [deps.taskAmend]
  * @param {Record<string, object>} [deps.agentMcpServers]
@@ -141,6 +142,7 @@ export function createSupervisor({
   supervisorDisallowedTools,
   supervisorProfile,
   agentProfile,
+  agentSystemPromptAmend,
   profilesDir,
   taskAmend,
   agentMcpServers,
@@ -182,6 +184,7 @@ export function createSupervisor({
       profile: agentProfile,
       profilesDir: resolvedProfilesDir,
       trailer: AGENT_SYSTEM_PROMPT,
+      amend: agentSystemPromptAmend,
       runtime,
     }),
     mcpServers: { orchestration: agentServer, ...agentMcpServers },

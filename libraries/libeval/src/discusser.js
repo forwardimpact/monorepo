@@ -310,10 +310,6 @@ export function createDiscusser({
       from: config.name,
     });
 
-    const agentTrailer = config.systemPromptAmend
-      ? `${DISCUSS_AGENT_SYSTEM_PROMPT}\n\n${config.systemPromptAmend}`
-      : DISCUSS_AGENT_SYSTEM_PROMPT;
-
     const runner = createAgentRunner({
       cwd: config.cwd ?? resolvedLeadCwd,
       query,
@@ -328,7 +324,8 @@ export function createDiscusser({
         role: "agent",
         profile: config.agentProfile,
         profilesDir: resolvedProfilesDir,
-        trailer: agentTrailer,
+        trailer: DISCUSS_AGENT_SYSTEM_PROMPT,
+        amend: config.systemPromptAmend,
         runtime,
       }),
       redactor,

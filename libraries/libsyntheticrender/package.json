@@ -47,9 +47,7 @@
     "@forwardimpact/libmock": "^0.1.0"
   },
   "peerDependencies": {
-    "prettier": "^3.0.0"
-  },
-  "optionalDependencies": {
+    "prettier": "^3.0.0",
     "apache-arrow": "^21.1.0",
     "parquet-wasm": "^0.7.1"
   },
@@ -59,5 +57,13 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependenciesMeta": {
+    "apache-arrow": {
+      "optional": true
+    },
+    "parquet-wasm": {
+      "optional": true
+    }
   }
 }

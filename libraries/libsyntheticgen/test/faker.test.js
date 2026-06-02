@@ -9,10 +9,26 @@ import {
 
 const logger = createSilentLogger();
 
+// @faker-js/faker is an optional peer dependency, provisioned on demand by
+// `just synthetic-deps` rather than installed by default. Detect it once so the
+// tests that need the real package self-skip when it is absent (conditional
+// registration, since bun's node:test ignores the `{ skip }` option).
+const FAKER_AVAILABLE = await (async () => {
+  try {
+    await import("@faker-js/faker");
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
 describe("FakerTool", () => {
   test("requires logger", () => {
     assertThrowsMessage(() => new FakerTool({}), /requires logger/);
   });
+
+  // Everything below exercises the real faker provider paths.
+  if (!FAKER_AVAILABLE) return;
 
   test("checkAvailability returns true", async () => {
     const tool = new FakerTool({ logger });
