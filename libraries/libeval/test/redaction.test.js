@@ -90,7 +90,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
         PRODUCT_LANDMARK_TOKEN: LANDMARK,
         SERVICE_SECRET: SVC,
         SUPABASE_ANON_KEY: SB_ANON,
-        SUPABASE_JWT_SECRET: SB_JWT,
+        JWT_SECRET: SB_JWT,
         SUPABASE_SERVICE_ROLE_KEY: SB_ROLE,
       },
     });
@@ -153,7 +153,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     );
     assert.ok(!out.includes(SVC), "SERVICE_SECRET sentinel leaked");
     assert.ok(!out.includes(SB_ANON), "SUPABASE_ANON_KEY sentinel leaked");
-    assert.ok(!out.includes(SB_JWT), "SUPABASE_JWT_SECRET sentinel leaked");
+    assert.ok(!out.includes(SB_JWT), "JWT_SECRET sentinel leaked");
     assert.ok(
       !out.includes(SB_ROLE),
       "SUPABASE_SERVICE_ROLE_KEY sentinel leaked",
@@ -169,7 +169,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     assert.ok(out.includes("[REDACTED:env:PRODUCT_LANDMARK_TOKEN]"));
     assert.ok(out.includes("[REDACTED:env:SERVICE_SECRET]"));
     assert.ok(out.includes("[REDACTED:env:SUPABASE_ANON_KEY]"));
-    assert.ok(out.includes("[REDACTED:env:SUPABASE_JWT_SECRET]"));
+    assert.ok(out.includes("[REDACTED:env:JWT_SECRET]"));
     assert.ok(out.includes("[REDACTED:env:SUPABASE_SERVICE_ROLE_KEY]"));
   });
 
@@ -449,6 +449,7 @@ describe("Redactor — exports and defaults", () => {
         "DATABASE_PASSWORD",
         "GH_TOKEN",
         "GITHUB_TOKEN",
+        "JWT_SECRET",
         "MCP_TOKEN",
         "MICROSOFT_APP_ID",
         "MICROSOFT_APP_PASSWORD",
@@ -456,7 +457,6 @@ describe("Redactor — exports and defaults", () => {
         "PRODUCT_LANDMARK_TOKEN",
         "SERVICE_SECRET",
         "SUPABASE_ANON_KEY",
-        "SUPABASE_JWT_SECRET",
         "SUPABASE_SERVICE_ROLE_KEY",
       ],
     );

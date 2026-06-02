@@ -20,7 +20,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
  * verbatim by the second.
  *
  * To rotate a single value, delete its line from .env and re-run.
- * To rotate SUPABASE_JWT_SECRET, also delete SUPABASE_ANON_KEY and
+ * To rotate JWT_SECRET, also delete SUPABASE_ANON_KEY and
  * SUPABASE_SERVICE_ROLE_KEY so they re-mint against the new secret.
  *
  * Usage:
@@ -41,9 +41,7 @@ async function main() {
 
   // Generate / read the Supabase JWT secret first; the anon and
   // service-role keys are HMAC-signed against it.
-  const supabaseJwtSecret = await get("SUPABASE_JWT_SECRET", () =>
-    generateSecret(32),
-  );
+  const supabaseJwtSecret = await get("JWT_SECRET", () => generateSecret(32));
 
   const entries = [
     ["SERVICE_SECRET", await get("SERVICE_SECRET", () => generateSecret())],
@@ -52,7 +50,7 @@ async function main() {
       await get("DATABASE_PASSWORD", () => generateSecret(16)),
     ],
     ["MCP_TOKEN", await get("MCP_TOKEN", () => generateSecret())],
-    ["SUPABASE_JWT_SECRET", supabaseJwtSecret],
+    ["JWT_SECRET", supabaseJwtSecret],
     [
       "SUPABASE_ANON_KEY",
       await get("SUPABASE_ANON_KEY", () =>

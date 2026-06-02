@@ -12,9 +12,9 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
  */
 export function signTestToken({
   email,
-  secret = process.env.SUPABASE_JWT_SECRET,
+  secret = process.env.JWT_SECRET,
   ttlSeconds = 900,
 }) {
-  if (!secret) throw new Error("signTestToken: SUPABASE_JWT_SECRET not set");
+  if (!secret) throw new Error("signTestToken: JWT_SECRET not set");
   return mintSupabaseJwt({ email, secret, ttlSeconds }, createDefaultRuntime());
 }

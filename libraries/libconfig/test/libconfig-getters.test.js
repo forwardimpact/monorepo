@@ -298,7 +298,7 @@ describe("libconfig - Config getters", () => {
   test("supabaseJwtSecret() returns env value", async () => {
     const mockProcess = {
       cwd: spy(() => "/test/dir"),
-      env: { SUPABASE_JWT_SECRET: "jwt-secret-value" },
+      env: { JWT_SECRET: "jwt-secret-value" },
     };
 
     const config = await createConfig(
@@ -325,7 +325,7 @@ describe("libconfig - Config getters", () => {
       mockStorageFn,
     );
     assert.throws(() => config.supabaseJwtSecret(), {
-      message: "SUPABASE_JWT_SECRET not found in environment",
+      message: "JWT_SECRET not found in environment",
     });
   });
 

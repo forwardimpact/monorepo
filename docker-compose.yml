@@ -174,7 +174,7 @@ services:
       - .env
     environment:
       SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
-      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      PGRST_JWT_SECRET: ${JWT_SECRET}
       DATABASE_URL: postgres://postgres:${DATABASE_PASSWORD}@db.local:5432/postgres?search_path=storage
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
@@ -257,7 +257,7 @@ services:
       - .env
     environment:
       DATABASE_URL: postgres://postgres:${DATABASE_PASSWORD}@supabase-db.local:5432/postgres
-      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      PGRST_JWT_SECRET: ${JWT_SECRET}
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
       FILE_STORAGE_BACKEND_PATH: /var/lib/storage

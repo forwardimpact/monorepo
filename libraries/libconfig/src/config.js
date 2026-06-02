@@ -62,6 +62,7 @@ export class Config {
     "ANTHROPIC_API_KEY",
     "GH_TOKEN",
     "GITHUB_TOKEN",
+    "JWT_SECRET",
     "MCP_TOKEN",
     "MICROSOFT_APP_ID",
     "MICROSOFT_APP_PASSWORD",
@@ -69,7 +70,6 @@ export class Config {
     "PRODUCT_LANDMARK_TOKEN",
     "SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
-    "SUPABASE_JWT_SECRET",
   ]);
 
   // Cached credential values — populated on first access via getter methods
@@ -223,7 +223,7 @@ export class Config {
 
   /** @returns {string} Supabase HS256 JWT signing secret */
   supabaseJwtSecret() {
-    return this.#resolve(["SUPABASE_JWT_SECRET"]);
+    return this.#resolve(["JWT_SECRET"]);
   }
 
   /**

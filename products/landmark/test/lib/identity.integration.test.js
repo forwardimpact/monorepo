@@ -32,8 +32,7 @@ function makeConfig({ url, anonKey, jwtSecret, token } = {}) {
       return anonKey;
     },
     supabaseJwtSecret: () => {
-      if (!jwtSecret)
-        throw new Error("SUPABASE_JWT_SECRET not found in environment");
+      if (!jwtSecret) throw new Error("JWT_SECRET not found in environment");
       return jwtSecret;
     },
   };

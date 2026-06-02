@@ -1,7 +1,7 @@
 /**
  * Verifies every Landmark-read activity.* table has RLS enabled.
  *
- * Live-Postgres test. Skipped when SUPABASE_URL / SUPABASE_JWT_SECRET
+ * Live-Postgres test. Skipped when SUPABASE_URL / JWT_SECRET
  * are unset (CI today does not boot Supabase).
  */
 
@@ -25,7 +25,7 @@ const TABLES = [
 
 describe("RLS + retention migration", () => {
   if (!isLiveSupabaseAvailable()) {
-    test("skipped — SUPABASE_URL / SUPABASE_JWT_SECRET not set", {
+    test("skipped — SUPABASE_URL / JWT_SECRET not set", {
       skip: true,
     }, () => {});
     return;
