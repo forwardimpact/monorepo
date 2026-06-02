@@ -4,14 +4,16 @@ description: >
   Give agent teams stable memory that persists across sessions. Use when
   an agent finishes a session and its findings would vanish without shared
   memory, when sending a memo to a teammate, when refreshing storyboard
-  XmR charts, or when bootstrapping and syncing a wiki.
+  XmR charts, when auto-fixing wiki audit findings after editing memory,
+  or when bootstrapping and syncing a wiki.
 ---
 
 # Wiki Operations
 
 `fit-wiki` is the operational CLI for the Kata agent wiki. It handles the
 on-boot read set, run-time appends (decisions, notes), in-flight claims,
-cross-team memos, storyboard chart maintenance, audit, and git lifecycle.
+cross-team memos, storyboard chart maintenance, audit, auto-fix, and git
+lifecycle.
 
 ## When to Use
 
@@ -26,6 +28,8 @@ cross-team memos, storyboard chart maintenance, audit, and git lifecycle.
   obstacle/experiment marker blocks.
 - **Bootstrap** — `init` clones the wiki and scaffolds Active Claims.
 - **Audit** — `audit` runs the gate; replaces `scripts/wiki-audit.sh`.
+- **Auto-fix** — `fix` clears `audit` findings via a Haiku technical-writer;
+  run after editing memory so the Stop-hook gate passes.
 - **Git lifecycle** — `push` / `pull`.
 
 ## Commands
@@ -84,6 +88,15 @@ Operator escape; seals the current file even when it is under the cap.
 ```sh
 npx fit-wiki audit [--format json]
 ```
+
+### `fix` — Auto-fix audit findings
+
+```sh
+npx fit-wiki fix
+```
+
+Audits, then spawns a Haiku technical-writer to fix findings, re-auditing until
+clean (max three rounds). Run after editing wiki files.
 
 ### `memo` — Cross-team memo
 

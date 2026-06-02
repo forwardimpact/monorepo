@@ -73,6 +73,10 @@ Cross-agent memos use `fit-wiki memo` (writer-side); the recipient triages
 via `inbox`. Update `wiki/{agent}.md` directly with Actions taken and Open
 Blockers as needed at run end.
 
+After editing any wiki file, run `fit-wiki fix` — it auto-clears the `audit`
+findings your edits introduced (re-auditing until clean) so the Stop-hook
+gate passes, rather than leaving them for the next curation cycle.
+
 ## Summary Contract
 
 Each `wiki/<agent>.md` conforms to a mechanically-checkable contract —
@@ -148,6 +152,7 @@ deletion; the prior commit preserves the claim record.
 | `inbox promote` | Cross-Cutting Priorities write (from inbox) |
 | `rotate` | Weekly Log Contract (explicit rotation) |
 | `audit` | Summary; Active Claims schema; Decision-block gate; Weekly Log cap; Expired claims |
+| `fix` | Auto-fix `audit` findings inline (Haiku technical-writer) |
 | `memo` | Cross-agent memo writer |
 | `push` / `pull` | Wiki git lifecycle |
 | `init` | Active Claims scaffold; Stop-hook installation |
