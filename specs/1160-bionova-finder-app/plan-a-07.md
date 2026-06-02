@@ -99,20 +99,41 @@ Created (one `page.tsx` per route + `layout.tsx`):
 | `/about` | `src/app/about/page.tsx` | `showAbout` |
 | `/admin/trials/[id]` | `src/app/admin/trials/[id]/page.tsx` | `manageTrial` |
 
-All read pages also respond to `?format=json` by serializing the handler
-result and returning it as `application/json`. This is implemented in
-each Server Component as:
+JSON variants of every read handler are exposed via sibling Route Handlers
+under `src/app/api/`. A Server Component **cannot** legally return a bare
+`Response` in Next 14 App Router (it must return a React element), so the
+JSON surface lives at a distinct URL path that the smoke script (plan-a-08
+SC4) calls. Ordinary browsers continue to hit the page routes; the API
+routes are an implementer surface for parity testing and the CLI.
 
-```tsx
-if (searchParams.format === "json") {
+Created (one `route.ts` per read handler, beside `src/app/api/`):
+
+| URL | File | Handler |
+| --- | --- | --- |
+| `GET /api/search` | `src/app/api/search/route.ts` | `searchTrials` |
+| `GET /api/trials/[id]` | `src/app/api/trials/[id]/route.ts` | `showTrial` |
+| `GET /api/sites` | `src/app/api/sites/route.ts` | `listSites` |
+| `GET /api/about` | `src/app/api/about/route.ts` | `showAbout` |
+
+Shape of every Route Handler:
+
+```ts
+import { NextResponse, type NextRequest } from "next/server";
+import { searchTrials } from "@bionova/finder-handlers";
+import { buildCtxFromRequest } from "@/lib/build-ctx";
+
+export async function GET(request: NextRequest) {
+  const ctx = buildCtxFromRequest(request);
   const result = await searchTrials(ctx);
-  return new Response(JSON.stringify(result), { headers: { "content-type": "application/json" } });
+  return NextResponse.json(result);
 }
 ```
 
-The format-json branch is used by the smoke script (plan-a-08 SC4) to
-compare web vs CLI without parsing rendered HTML. It is NOT used by
-ordinary browsers.
+(`/api/trials/[id]` receives `{ params: { id } }` as the second argument
+and threads it into `buildCtxFromRequest(request, { id })`.)
+
+No page Server Component returns a `Response` — the JSON surface and the
+HTML surface are distinct routes that share the handler and `buildCtx`.
 
 `src/app/layout.tsx`: imports Tailwind base, wraps children in shadcn
 Toaster + a header with nav (Home, Search, Sites, About). Admin pages add
@@ -125,14 +146,31 @@ Each page is a Server Component that:
 3. Renders via shadcn primitives (NOT libformat HTML, since React already
    renders — libformat HTML output is for non-React contexts)
 
-Created: `src/lib/build-ctx.ts` — shared bootstrap so each page does not
-duplicate the six-line wiring:
+Created: `src/lib/build-ctx.ts` — three shared bootstraps so pages,
+admin pages, and API routes do not duplicate wiring. The staff JWT is
+read from the `sb-staff-jwt` cookie (set by GoTrue's email/password
+flow); when absent, `ctx.data.token` is `undefined` and `manageTrial`
+will throw the documented "manageTrial requires ctx.data.token"
+error rather than silently performing an anon PATCH.
 
 ```ts
+import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
 import { freezeInvocationContext } from "@forwardimpact/libui";
 import { createDataContext } from "@bionova/finder-handlers/context";
 
-export function buildCtx(searchParams: Record<string, string | string[] | undefined>, args: Record<string, string> = {}) {
+const STAFF_JWT_COOKIE = "sb-staff-jwt";
+
+function env() {
+  return {
+    SUPABASE_URL: process.env.SUPABASE_URL!,
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    TEI_URL: process.env.TEI_URL!,
+  };
+}
+
+function collapse(searchParams: Record<string, string | string[] | undefined>) {
   // Next 14 may pass array values when the same key appears multiple times.
   // Handlers expect scalar options; collapse arrays to first value.
   const options: Record<string, string> = {};
@@ -140,15 +178,55 @@ export function buildCtx(searchParams: Record<string, string | string[] | undefi
     if (typeof v === "string") options[k] = v;
     else if (Array.isArray(v) && v.length > 0) options[k] = v[0];
   }
-  const env = {
-    SUPABASE_URL: process.env.SUPABASE_URL!,
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    TEI_URL: process.env.TEI_URL!,
-  };
-  return freezeInvocationContext({ data: createDataContext(env), args, options });
+  return options;
+}
+
+// Page Server Components (anon read; no staff JWT).
+export function buildCtx(
+  searchParams: Record<string, string | string[] | undefined>,
+  args: Record<string, string> = {},
+) {
+  return freezeInvocationContext({
+    data: createDataContext(env()),
+    args,
+    options: collapse(searchParams),
+  });
+}
+
+// Admin page Server Components (staff JWT required — propagated to
+// `ctx.data.token` so `manageTrial`'s precondition passes and RLS
+// evaluates the staff role).
+export function buildAdminCtx(
+  searchParams: Record<string, string | string[] | undefined>,
+  args: Record<string, string> = {},
+) {
+  const token = cookies().get(STAFF_JWT_COOKIE)?.value;
+  return freezeInvocationContext({
+    data: createDataContext(env(), { token }),
+    args,
+    options: collapse(searchParams),
+  });
+}
+
+// Route Handlers (`src/app/api/**`). Reads the same staff cookie when
+// present so an authenticated browser session can hit `/api/*` with the
+// staff role; anon clients get anon-role data. The smoke script calls
+// `/api/*` without a cookie, exercising the anon path.
+export function buildCtxFromRequest(request: NextRequest, args: Record<string, string> = {}) {
+  const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries());
+  const token = request.cookies.get(STAFF_JWT_COOKIE)?.value;
+  return freezeInvocationContext({
+    data: createDataContext(env(), { token }),
+    args,
+    options: collapse(searchParams),
+  });
 }
 ```
+
+`createDataContext(env, { token })` is the existing handlers entry point
+from plan-a-05 — extended in this part to take an optional second
+argument that the PostgREST client uses as the `Authorization: Bearer`
+header for the bound session.
 
 Example `src/app/search/page.tsx`:
 
@@ -160,11 +238,6 @@ import { TrialCard } from "@/components/trial-card";
 export default async function SearchPage({ searchParams }: { searchParams: Record<string, string | string[]> }) {
   const ctx = buildCtx(searchParams);
   const result = await searchTrials(ctx);
-
-  if (searchParams.format === "json") {
-    return new Response(JSON.stringify(result), { headers: { "content-type": "application/json" } });
-  }
-
   return (
     <main>
       <h1>Trial search</h1>
@@ -177,8 +250,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Recor
 }
 ```
 
+Admin page `src/app/admin/trials/[id]/page.tsx` uses `buildAdminCtx`
+instead, so `manageTrial` sees the staff JWT and RLS applies the staff
+role; the page renders an unauthorized state if the cookie is absent.
+
 Verify: `bun run build` exits 0; `bun run dev` and visiting `/search?condition=diabetes`
-renders the diabetes trial list (success criterion #2).
+renders the diabetes trial list; `/api/search?condition=diabetes` returns
+JSON; `/admin/trials/<id>` 200s when the staff cookie is set and
+401-redirects when it is not (success criteria #2 + #5).
 
 ## Step 4 — Author shared components
 

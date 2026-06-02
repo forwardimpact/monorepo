@@ -17,7 +17,7 @@ Concrete change:
 
 ```sh
 gh repo create forwardimpact/bionova-apps --public \
-  --description "BioNova Clinical Research Finder — reference consumer of Forward Impact libraries"
+  --description "Clinical Research Finder — reference consumer of Forward Impact libraries"
 git clone git@github.com:forwardimpact/bionova-apps.git ~/work/bionova-apps
 cd ~/work/bionova-apps
 ```
@@ -112,13 +112,14 @@ Service definitions (one per `infrastructure/` subdirectory):
 
 | Service | Image | Port | Healthcheck | Depends on |
 | --- | --- | --- | --- | --- |
-| `kong` | `kong:3.4` | 8000:8000 | `kong health` | (none) |
+| `kong` | `kong:3.4.3.1` | 8000:8000 | `kong health` | (none) |
 | `postgres` | builds `infrastructure/postgres/` (Dockerfile based on `supabase/postgres:15.6.1.143`, which ships pgvector + pg_cron + pg_net + pgjwt + pgsodium + pgaudit + pgcrypto + uuid-ossp out of the box) | 5432:5432 | `pg_isready -U postgres` | (none) |
 | `pgbouncer` | `edoburu/pgbouncer:1.22.1` | 6432:6432 | `nc -z localhost 6432` | `postgres` |
 | `postgrest` | `postgrest/postgrest:v12.0.2` | 3000:3000 | `curl -f http://localhost:3000/` | `pgbouncer` |
 | `gotrue` | `supabase/gotrue:v2.151.0` | 9999:9999 | `curl -f http://localhost:9999/health` | `pgbouncer` |
 | `realtime` | `supabase/realtime:v2.30.34` | 4000:4000 | `curl -f http://localhost:4000/api/health` | `pgbouncer` |
-| `storage` | `supabase/storage-api:v1.0.6` + `minio/minio` sidecar | 5000:5000 | `curl -f http://localhost:5000/status` | `pgbouncer`, `minio` |
+| `storage` | `supabase/storage-api:v1.0.6` | 5000:5000 | `curl -f http://localhost:5000/status` | `pgbouncer`, `minio` |
+| `minio` | `minio/minio:RELEASE.2024-11-07T00-52-20Z` (S3 backend for `storage`) | 9000:9000 | `curl -f http://localhost:9000/minio/health/live` | (none) |
 | `imgproxy` | `darthsim/imgproxy:v3.23` | 8081:8080 | `imgproxy health` | `storage` |
 | `tei` | `ghcr.io/huggingface/text-embeddings-inference:cpu-1.5` (env `MODEL_ID=BAAI/bge-small-en-v1.5`, `MAX_BATCH_TOKENS=16384`) | host `8080:80` (internal Docker DNS resolves `http://tei:80`, NOT `tei:8080`) | container-side: `wget -q --spider http://localhost:80/health`, `start_period: 120s`, retries 12 | (none) |
 | `finder-site` | builds `products/finder/site/` (placeholder Dockerfile in this part) | 3001:3000 | `curl -f http://localhost:3000/api/health` | `kong` |
@@ -277,7 +278,7 @@ Verify: PR opens with green CI (lint + type-check + compose validation pass).
 ## Verification (end of part 01)
 
 - [ ] `gh repo view forwardimpact/bionova-apps` returns the repo URL.
-- [ ] `docker compose up -d` brings all 11 services to `healthy` within 180s.
+- [ ] `docker compose up -d` brings all 12 services to `healthy` within 180s.
 - [ ] `curl -s http://localhost:8000/rest/v1/` returns PostgREST root JSON.
 - [ ] `curl -s http://localhost:8000/auth/v1/health` returns `{"name":"GoTrue",…}`.
 - [ ] `curl -s http://localhost:8080/health` (direct to TEI) returns `OK`.

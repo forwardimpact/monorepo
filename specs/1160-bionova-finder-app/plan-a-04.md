@@ -240,10 +240,14 @@ Verify: `UPDATE trials SET status='completed' WHERE id=<some_id>;` logs a
 
 Created: `services/finder-functions/sync-listings/mod.ts`
 
-Behavior: re-reads `data/synthetic/output/migrations/*.sql` (mounted at
-`/data/synthetic/output/`), parses out `INSERT` statements for `trials`
-and `criteria` tables, upserts via PostgREST. Used to refresh seed data
-without re-running full `setup.sh`.
+Behavior: re-reads `data/synthetic/seed/seed_*.sql` (mounted read-only at
+`/data/synthetic/seed/` per plan-a-03 step 6 — same volume the
+`embed-seed` function already uses), parses out `INSERT` statements for
+`trials` and `criteria` tables, upserts via PostgREST. Used to refresh
+seed data without re-running full `setup.sh`. The path is deliberate:
+the only mount the `finder-functions` container has on
+`data/synthetic/` is `:seed`, so `sync-listings` reads what `fetch-seed.sh`
+actually places there — no second bind-mount needed.
 
 Request:
 

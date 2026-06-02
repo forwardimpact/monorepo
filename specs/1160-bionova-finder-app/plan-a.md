@@ -39,7 +39,7 @@ this spec; the monorepo PR (`plan-implemented`) updates only
 | --- | --- | --- |
 | Spec 1140 — clinical-output pipeline | implemented (commits `8bbf8f1c`, `0c921e81`) | `libterrain` clinical-output stage emits `supabase_migration` + `embeddings_jsonl` files |
 | Spec 1150 — story.dsl clinical rewrite | **plan approved, not implemented** | story.dsl currently lacks `clinical {}` and `output … supabase_migration {…}` blocks |
-| `@forwardimpact/libcli@0.1.9`, `libui@1.2.1`, `libformat@0.1.15`, `libtemplate@0.2.10`, `librepl@0.1.12` on npm | published — versions verified via `npm view @forwardimpact/<lib> version` at plan-write time | part 01 pins these exact versions; implementer re-runs `npm view` before `bun install` and bumps in the part-01 PR if any patch level published since. **libterrain is NOT a bionova-apps dependency** — see Approach |
+| `@forwardimpact/libcli@0.1.12`, `libui@1.3.0`, `libformat@0.1.18`, `libtemplate@0.2.12`, `librepl@0.1.14` on npm | published — versions verified via `npm view @forwardimpact/<lib> version` at panel-review time | part 01 pins these exact versions; implementer re-runs `npm view @forwardimpact/{libcli,libui,libformat,libtemplate,librepl} version` immediately before `bun install` and bumps in the part-01 PR if any further patch level published since. **libui crossed a minor (1.2 → 1.3): the implementer must scan `CHANGELOG.md` (or the GitHub release notes for `@forwardimpact/libui@1.3.0`) for breaking changes to `createBoundRouter`, `render`, `freezeInvocationContext`, and the exported `components` surface used by plan-a-07; record the scan result in the part-01 PR body** even when no breakage is found. **libterrain is NOT a bionova-apps dependency** — see Approach |
 
 **This plan should not enter implementation until spec 1150 lands on
 `origin/main`.** Spec 1150 generates the clinical schema and seed data
@@ -84,9 +84,14 @@ Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationCo
   field. Conclusion: bionova-apps cannot run terrain; it consumes
   terrain output produced inside the monorepo. SC6 (regenerable) is
   satisfied by re-fetching from a pinned monorepo SHA — see part 03.
-- **Schema type mismatch: `trials.id` is `text` not `uuid`.** Confirmed at
-  `libraries/libsyntheticrender/src/render/render-sql.js:303` (`"id" text
-  PRIMARY KEY`). All FKs to `trials(id)` and `conditions(id)` in
+- **Schema type mismatch: `trials.id` is `text` not `uuid`.** Confirmed
+  at `libraries/libsyntheticrender/src/render/render-sql.js:32-33` (the
+  trials entity spec) which is rendered by `renderEntityTable` (same
+  file, line 157): `inferColumns` walks the records, `inferType` returns
+  `text` for the string `id` values story.dsl emits, and line 162
+  appends `PRIMARY KEY` to the `pk` column. (Line 303 is
+  `renderEmbeddingsTable()`, a different table — the previous draft cited
+  the wrong line.) All FKs to `trials(id)` and `conditions(id)` in
   hand-written migrations must use `text`. Part 02 reflects this in
   `interest_signals.trial_id`.
 - **`condition_embeddings.condition_id` lacks a UNIQUE constraint** as
@@ -94,10 +99,16 @@ Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationCo
   `CREATE UNIQUE INDEX condition_embeddings_condition_id_uidx ON
   condition_embeddings(condition_id)` so PostgREST `on_conflict` upsert
   works in `embed-seed`.
-- **Forward Impact library versions** are pinned at plan-write time but
-  patches may publish between approval and implementation. Part 01's PR
-  description must record the resolved versions; if any pin requires a
-  bump, the implementer notes the breaking-change scan in the same PR.
+- **Forward Impact library versions** are pinned at panel-review time
+  (libcli 0.1.12, libui 1.3.0, libformat 0.1.18, libtemplate 0.2.12,
+  librepl 0.1.14). Patches may publish between approval and
+  implementation; part 01's PR description must record the resolved
+  versions. libui already crossed a minor (1.2 → 1.3) between plan-write
+  and panel review, and any further minor (or major) bump on any of the
+  five requires a breaking-change scan recorded in the part-01 PR — the
+  scan reads the relevant `CHANGELOG.md` and confirms the symbols
+  imported by plan-a-06 (CLI) and plan-a-07 (web) still behave as the
+  plan assumes.
 - **Postgres extension surface.** The plan uses `pgvector`, `pg_cron`,
   `pg_net`, `pgjwt`, `pgsodium`, `pgaudit`, `pgcrypto`, `uuid-ossp`. Only
   `supabase/postgres` ships all of these in one image. Part 01 step 6
@@ -126,8 +137,13 @@ Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationCo
 - **Railway deployment requires a Railway project + token.** Part 08
   step 1 creates the project; if Railway account access is unavailable
   the implementer documents the gap, defers Railway-specific verification,
-  and ships local-only smoke tests. The deploy workflow pins a specific
-  SHA of the railway action rather than a floating tag.
+  and ships local-only smoke tests. The deploy workflow installs the
+  Railway CLI from a pinned npm version (`@railway/cli@3.20.0` —
+  immutable on the npm registry) rather than the `curl | sh` flow,
+  which resolves to a floating "latest" binary and is not a supply-chain
+  point we want unpinned. The plan-a.md draft previously claimed "pins
+  a specific SHA of the railway action" — there is no railway GitHub
+  Action in use, so that claim is replaced with the explicit npm pin.
 - **TEI embeddings cold-start can exceed 60s** on a fresh container. Part 01
   configures Docker Compose healthchecks with a 120s `start_period` and
   `setup.sh` waits on `tei`'s `/health` (internal port 80, host port 8080)
