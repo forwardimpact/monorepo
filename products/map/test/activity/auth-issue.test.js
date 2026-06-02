@@ -42,7 +42,7 @@ function makeConfig(secret = "test-secret") {
   return {
     supabaseJwtSecret: () => {
       if (secret === null) {
-        throw new Error("SUPABASE_JWT_SECRET not found in environment");
+        throw new Error("JWT_SECRET not found in environment");
       }
       return secret;
     },
@@ -132,7 +132,7 @@ describe("runAuthIssueCommand", () => {
           options: { email: "alice@example.com" },
           runtime,
         }),
-      /SUPABASE_JWT_SECRET is not set/,
+      /JWT_SECRET is not set/,
     );
   });
 

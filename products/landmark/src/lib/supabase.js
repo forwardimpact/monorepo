@@ -33,7 +33,9 @@ export function createLandmarkClient({
 } = {}) {
   if (!config)
     throw new SupabaseUnavailableError(
-      "Supabase URL + anon key not set. Run `just env-setup`.",
+      "SUPABASE_URL and SUPABASE_ANON_KEY must be set. " +
+        "Copy them from your Supabase project Settings → API " +
+        "(or, for monorepo contributors, run `just env-setup`).",
     );
   if (!jwt)
     throw new SupabaseUnavailableError(
@@ -45,7 +47,10 @@ export function createLandmarkClient({
     anonKey = config.supabaseAnonKey();
   } catch (err) {
     throw new SupabaseUnavailableError(
-      `Supabase URL + anon key not set. Run \`just env-setup\`. Underlying: ${err.message}`,
+      "SUPABASE_URL and SUPABASE_ANON_KEY must be set. " +
+        "Copy them from your Supabase project Settings → API " +
+        "(or, for monorepo contributors, run `just env-setup`). " +
+        `Underlying: ${err.message}`,
     );
   }
   return createClient(url, anonKey, {

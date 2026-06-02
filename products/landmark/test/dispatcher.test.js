@@ -74,7 +74,7 @@ describe("fit-landmark dispatcher exit codes", () => {
       },
     );
     assert.equal(res.status, 3);
-    assert.match(res.stderr, /just env-setup/);
+    assert.match(res.stderr, /SUPABASE_URL and SUPABASE_ANON_KEY must be set/);
   });
 
   test("marker does not need Supabase and skips identity resolution", () => {

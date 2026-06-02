@@ -34,7 +34,7 @@ describe("createLandmarkClient", () => {
     assert.throws(
       () =>
         createLandmarkClient({ jwt: "x", config: makeConfig({ url: null }) }),
-      /just env-setup/,
+      /SUPABASE_URL and SUPABASE_ANON_KEY must be set/,
     );
   });
 
@@ -45,7 +45,7 @@ describe("createLandmarkClient", () => {
           jwt: "x",
           config: makeConfig({ anonKey: null }),
         }),
-      /just env-setup/,
+      /SUPABASE_URL and SUPABASE_ANON_KEY must be set/,
     );
   });
 

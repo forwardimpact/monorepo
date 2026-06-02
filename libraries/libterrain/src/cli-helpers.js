@@ -63,7 +63,9 @@ export async function resolveSupabaseClient({ config }) {
   } catch (err) {
     throw new Error(
       "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set. " +
-        `Run \`just env-setup\` to generate them. Underlying: ${err.message}`,
+        "Copy them from your Supabase project Settings → API " +
+        "(or, for monorepo contributors, run `just env-setup`). " +
+        `Underlying: ${err.message}`,
     );
   }
   return createClient(url, key);
