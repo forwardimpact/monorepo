@@ -261,8 +261,7 @@ binary), with a guard if it is missing.
 
 - Modified: `products/outpost/pkg/build.js`
 
-Delete `compileScheduler()` (its version `--define` was already removed by the
-libcli precursor, so it now only `bun build --compile`s `src/outpost.js`).
+Delete `compileScheduler()` (it `bun build --compile`s `src/outpost.js`).
 Change the CLI flag logic (lines 167–186) so `scheduler` is gone and
 `app`/`pkg` imply only `launcher`, and guard `buildApp()` on the binary's
 presence:
@@ -293,8 +292,7 @@ At the top of `buildApp()`, fail fast if the shared binary is absent:
   }
 ```
 
-The `--scheduler` flag no longer exists (the `OUTPOST_VERSION` define was
-already removed by the libcli precursor); the shared `just build-binary
+The `--scheduler` flag no longer exists; the shared `just build-binary
 fit-outpost` is the only `fit-outpost` compile. Update the usage comment block
 (lines 5–10) to drop `--scheduler`.
 
@@ -352,8 +350,7 @@ scheduler is no longer compiled here.
 
 Verify: an `outpost@v*` build downloads the `fit-outpost` artifact, builds the
 launcher and `.pkg`, and uploads the installer; the `.pkg`'s bundled scheduler
-reports its version (resolved through libcli's `LIBCLI_VERSION`, injected by
-`just build-binary`). After applying all
+reports its version. After applying all
 steps, `rg -n PIN_DOWNLOAD_ARTIFACT_V4 .github/workflows/` returns nothing — no
 unresolved pin token remains in any of the three workflows.
 

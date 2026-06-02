@@ -57,7 +57,7 @@ membership; `null` = native channel only).
 `fit-svcgraph` is first among `gear` entries so it remains the gear bundle's
 `--primary-exec` (the CLI `publish-brew.yml`'s gear smoke test invokes).
 
-Verify: `jq -e '.clis | length == 32' build/cli-manifest.json` exits 0, and every `.name` resolves: `jq -r '.clis[].name' build/cli-manifest.json | while read c; do just build-binary "$c" bun-linux-x64 >/dev/null; done` exits 0. (`fit-outpost` already carries its version via the libcli precursor; on a 02-only branch its binary still has the no-op-entry defect until Part 03 builds the bin entry, but it compiles and reports a version.)
+Verify: `jq -e '.clis | length == 32' build/cli-manifest.json` exits 0, and every `.name` resolves: `jq -r '.clis[].name' build/cli-manifest.json | while read c; do just build-binary "$c" bun-linux-x64 >/dev/null; done` exits 0.
 
 ## Step 2 — Replace the enumeration recipes with a manifest-driven `build-all`
 
