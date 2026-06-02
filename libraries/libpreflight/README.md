@@ -2,8 +2,8 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-Runtime-floor preflight — fail fast with a product-authored error when the host
-Node is below a package's declared floor.
+Fail fast at process start with product-authored errors — runtime-floor checks
+and required-config assertions before heavy imports resolve.
 
 <!-- END:description -->
 
@@ -47,6 +47,24 @@ const mockProcess = {
 };
 check(22, mockProcess);
 ```
+
+## Required-config assertion
+
+Call `assertNonEmpty(value, label)` from `server.js` immediately after
+`createServiceConfig` to fail the process at startup if a required
+configuration value is empty. Empty means an empty string, an empty array,
+an empty `Set`, or `undefined`/`null`.
+
+```js
+import { assertNonEmpty } from "@forwardimpact/libpreflight/assert-non-empty.js";
+
+const config = createServiceConfig("svc", { link_completion_ticket_secret: "" });
+assertNonEmpty(config.link_completion_ticket_secret, "link_completion_ticket_secret");
+```
+
+On failure the process writes
+`Error: required configuration "<label>" is empty.` to stderr and exits `1`.
+A test injects a `processObj` exposing `stderr.write` and `exit`.
 
 ## Why a side-effect import per floor
 
