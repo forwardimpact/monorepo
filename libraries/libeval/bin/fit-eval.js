@@ -2,7 +2,6 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -14,14 +13,6 @@ import { runSuperviseCommand } from "../src/commands/supervise.js";
 import { runFacilitateCommand } from "../src/commands/facilitate.js";
 import { runDiscussCommand } from "../src/commands/discuss.js";
 import { runCallbackCommand } from "../src/commands/callback.js";
-
-// `bun build --compile` injects FIT_EVAL_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_EVAL_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
 
 const LEAD_OPTIONS = {
   "lead-profile": {
@@ -60,7 +51,6 @@ const TASK_INPUT_OPTIONS = {
 
 const definition = {
   name: "fit-eval",
-  version: VERSION,
   description:
     "Run agents and capture NDJSON traces — for agent evaluations or multi-agent collaboration",
   commands: [
@@ -317,7 +307,10 @@ const runtime = createDefaultRuntime();
 const logger = createLogger("eval", runtime);
 
 async function main() {
-  const cli = createCli(definition, { runtime });
+  const cli = createCli(definition, {
+    runtime,
+    packageJsonUrl: new URL("../package.json", import.meta.url),
+  });
   const parsed = cli.parse(runtime.proc.argv.slice(2));
   if (!parsed) return runtime.proc.exit(0);
 

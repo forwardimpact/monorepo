@@ -21,7 +21,10 @@ function golden(file) {
 
 function cli() {
   const harness = makeRuntime({});
-  const definition = createDefinition(harness.runtime.proc.env, "X.Y.Z");
+  const definition = createDefinition(harness.runtime.proc.env);
+  // Goldens were captured with the version normalised to X.Y.Z; set it
+  // explicitly so createCli's packageJsonUrl auto-fill stays out of the way.
+  definition.version = "X.Y.Z";
   return {
     harness,
     definition,

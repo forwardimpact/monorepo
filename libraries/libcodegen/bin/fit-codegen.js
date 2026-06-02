@@ -2,7 +2,7 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import fs, { readFileSync } from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -21,17 +21,8 @@ import {
 } from "@forwardimpact/libcodegen";
 import { createStorage } from "@forwardimpact/libstorage";
 
-// `bun build --compile` injects FIT_CODEGEN_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_CODEGEN_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-codegen",
-  version: VERSION,
   description:
     "Generate protobuf types, service clients, and definitions from .proto files in installed @forwardimpact/* packages (node_modules/@forwardimpact/*/proto/) and an optional project-local proto/ directory.",
   globalOptions: {
@@ -62,7 +53,10 @@ const definition = {
 };
 
 const runtime = createDefaultRuntime();
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 
 /**
  * Create tar.gz bundle of all directories inside sourcePath

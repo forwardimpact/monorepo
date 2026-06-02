@@ -14,21 +14,8 @@ import { runRecordCommand } from "../src/commands/record.js";
 
 const runtime = createDefaultRuntime();
 
-// `bun build --compile` injects FIT_XMR_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  runtime.proc.env.FIT_XMR_VERSION ||
-  JSON.parse(
-    runtime.fsSync.readFileSync(
-      new URL("../package.json", import.meta.url),
-      "utf8",
-    ),
-  ).version;
-
 const definition = {
   name: "fit-xmr",
-  version: VERSION,
   description: "Wheeler/Vacanti XmR control charts for time-series CSV metrics",
   commands: [
     {
@@ -179,7 +166,10 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 
 async function main() {
   const parsed = cli.parse(runtime.proc.argv.slice(2));

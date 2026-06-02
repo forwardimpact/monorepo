@@ -208,17 +208,18 @@ build-binary NAME TARGET="bun-darwin-arm64":
     fi
     # Inject the package version as a build-time literal. `bun --compile` mounts
     # source onto a virtual /$bunfs filesystem, so readFileSync(__dirname/../package.json)
-    # ENOENTs at runtime. Each bin reads `process.env.<NAME>_VERSION`
-    # with a readFileSync fallback for source execution; --define inlines the
-    # literal at compile time so the fallback branch tree-shakes away.
+    # ENOENTs at runtime. libcli's `resolveVersion` reads the single literal
+    # `process.env.LIBCLI_VERSION` with a readFileSync fallback for source
+    # execution; --define inlines the literal at compile time (across the bundled
+    # libcli too) so the fallback branch tree-shakes away. Each binary is compiled
+    # separately, so one shared name carries that binary's own version.
     VERSION=$(jq -r .version "$PKG_DIR/package.json")
-    ENV_PREFIX=$(echo "{{NAME}}" | tr '[:lower:]-' '[:upper:]_')
     mkdir -p dist/binaries
     bun build --compile \
       --target "{{TARGET}}" \
       --no-compile-autoload-dotenv \
       --no-compile-autoload-bunfig \
-      --define "process.env.${ENV_PREFIX}_VERSION=\"${VERSION}\"" \
+      --define "process.env.LIBCLI_VERSION=\"${VERSION}\"" \
       --outfile "dist/binaries/{{NAME}}" \
       "$ENTRY"
 

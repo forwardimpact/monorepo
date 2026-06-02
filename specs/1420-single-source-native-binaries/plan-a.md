@@ -4,32 +4,30 @@ Implements [design 1420-a](design-a.md) for [spec 1420](spec.md).
 
 ## Approach
 
-Land the three compile-readiness fixes first so the shared `just build-binary`
-emits correct binaries for `fit-codegen`, `fit-wiki`, and `fit-outpost`; then
-introduce the single-source-of-truth CLI manifest and collapse the bespoke
-`just` recipes onto it; then add the `build-binaries.yml` reusable workflow plus
-`publish-native.yml` and rewire `publish-brew.yml`/`publish-macos.yml` to consume
-its artifacts and retire the duplicate `fit-outpost` compile. Each part is its
-own branch off `origin/main` and verifiable on its own.
+Land the `fit-codegen` compile-readiness fix first so the shared `just
+build-binary` emits a working `fit-codegen` binary; then introduce the
+single-source-of-truth CLI manifest and collapse the bespoke `just` recipes onto
+it; then add the `build-binaries.yml` reusable workflow plus `publish-native.yml`
+and rewire `publish-brew.yml`/`publish-macos.yml` to consume its artifacts and
+retire the duplicate `fit-outpost` compile. Each part is its own branch off
+`origin/main` and verifiable on its own.
 
 ## Parts
 
 | Part | Title | Scope | Depends on |
 |---|---|---|---|
-| [01](plan-a-01.md) | Compile-readiness fixes | `fit-codegen` `Long` binding, `fit-wiki` version env read, `fit-outpost` bin version-name rename | — |
+| [01](plan-a-01.md) | Compile-readiness fix | `fit-codegen` `util.Long` binding | — |
 | [02](plan-a-02.md) | CLI manifest + justfile + docs | `build/cli-manifest.json`; delete the 0600 enumeration recipes; manifest-driven `build-all`, `build-app-gear`, `build-app-product` outpost path; release-doc update | 01 |
 | [03](plan-a-03.md) | Native channel + workflow rewire | `build-binaries.yml` reusable matrix, `publish-native.yml`, `publish-brew.yml`/`publish-macos.yml` rewire, `pkg/build.js` scheduler retirement | 01, 02 |
 
 ## Execution
 
-Sequential: **01 → 02 → 03**. Part 02's `build-app-product outpost` path bundles
-the shared `dist/binaries/fit-outpost`, which only carries a version once 01's
-bin rename lands; Part 03's smoke gate only passes once 01's fixes are on `main`
-and its matrix reads the manifest 02 creates. Route all three to an engineering
-agent — there is no docs-only part (the release-doc edit in 02 is one table
-footnote adjacent to the recipe change). `outpost-determinism-probe.yml` is the
-local guard that 02's outpost-app rewrite preserves the spec-1170 cdhash
-contract; no part edits it.
+Sequential: **01 → 02 → 03**. Part 03's smoke gate only passes once 01's
+`fit-codegen` fix is on `main` and its matrix reads the manifest 02 creates.
+Route all three to an engineering agent — there is no docs-only part (the
+release-doc edit in 02 is one table footnote adjacent to the recipe change).
+`outpost-determinism-probe.yml` is the local guard that 02's outpost-app rewrite
+preserves the spec-1170 cdhash contract; no part edits it.
 
 ## Risks
 

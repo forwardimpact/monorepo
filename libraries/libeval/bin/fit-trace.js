@@ -2,7 +2,6 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createScriptConfig } from "@forwardimpact/libconfig";
@@ -31,17 +30,8 @@ import {
 import { runAssertCommand } from "../src/commands/assert.js";
 import { runByDiscussionCommand } from "../src/commands/by-discussion.js";
 
-// `bun build --compile` injects FIT_TRACE_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_TRACE_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-trace",
-  version: VERSION,
   description:
     "Download, query, and analyze agent execution traces — read NDJSON output from fit-eval as qualitative research",
   commands: [
@@ -348,7 +338,10 @@ const logger = createLogger("trace", runtime);
 const NEEDS_CONFIG = new Set(["runs", "download"]);
 
 async function main() {
-  const cli = createCli(definition, { runtime });
+  const cli = createCli(definition, {
+    runtime,
+    packageJsonUrl: new URL("../package.json", import.meta.url),
+  });
   const parsed = cli.parse(runtime.proc.argv.slice(2));
   if (!parsed) return runtime.proc.exit(0);
 

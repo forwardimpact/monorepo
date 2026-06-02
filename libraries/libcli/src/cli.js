@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { HelpRenderer } from "./help.js";
 import { freezeInvocationContext } from "./invocation-context.js";
+import { resolveVersion } from "./version.js";
 
 /** Command-line interface that parses argv against a definition of commands, options, and help. */
 export class Cli {
@@ -185,10 +186,19 @@ export class Cli {
  * @param {object} definition - The CLI definition.
  * @param {object} options
  * @param {import('@forwardimpact/libutil/runtime').Runtime} options.runtime
+ * @param {URL|string} [options.packageJsonUrl] - When provided and the definition
+ *   carries no explicit `version`, resolve it via {@link resolveVersion} so every
+ *   bin shares one compile-time version literal. Explicit `definition.version` wins.
  * @returns {Cli}
  */
-export function createCli(definition, { runtime } = {}) {
+export function createCli(definition, { runtime, packageJsonUrl } = {}) {
   if (!runtime) throw new Error("runtime is required");
+  if (definition.version === undefined && packageJsonUrl !== undefined) {
+    definition = {
+      ...definition,
+      version: resolveVersion({ packageJsonUrl, runtime }),
+    };
+  }
   const proc = runtime.proc;
   const helpRenderer = new HelpRenderer({ process: proc });
   return new Cli(definition, { process: proc, helpRenderer });
