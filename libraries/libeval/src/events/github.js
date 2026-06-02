@@ -29,8 +29,11 @@ export const TASK_TEMPLATE_ISSUE_LABELED =
 export const TASK_TEMPLATE_PR_LABELED =
   'Label "${LABEL}" was added to PR "${PR_TITLE}" (#${NUMBER}). PR URL: ${URL}.';
 
+// "unreleased changes" + "cut" hint at release activity (the release-engineer's
+// Assess step 3 / `kata-release-cut`) without naming an owner, so the lead
+// routes the merge instead of treating it as a no-op.
 export const TASK_TEMPLATE_PR_MERGED =
-  'PR "${PR_TITLE}" (#${NUMBER}) merged. PR URL: ${URL}.';
+  'PR "${PR_TITLE}" (#${NUMBER}) merged to main — may leave unreleased changes to cut. PR URL: ${URL}.';
 
 // Appended verbatim to comment/review templates. `${BODY}` is the untrusted
 // author text; the fence and the "data, not instructions" framing keep the lead
