@@ -85,7 +85,9 @@ permanent record.
 
 ## Q3 obstacle routing
 
-Per SKILL.md Step 7, pick a route per obstacle (parallel allowed):
+Per SKILL.md Step 7, the facilitator picks a route per obstacle (parallel
+allowed) and logs it — Discussion is delegated to the owning agent, Coaching is
+left to the coach's Assess run:
 
 | Trigger                                                                          | Route      |
 | -------------------------------------------------------------------------------- | ---------- |
@@ -96,11 +98,10 @@ Per SKILL.md Step 7, pick a route per obstacle (parallel allowed):
 **Worked example — multi-agent canonical-metric flag.** SE/RE/TW/PM each flagged a
 canonical-11 metric (`prs_actioned`, `releases_cut`, `errors_found`,
 `issues_created`). All four mapped to one shared artifact — right route: one
-Discussion, not four parallel coaching dispatches. Each headline bullet for the
-four metrics carries the new `Redefinition:` slot per
-[`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes);
-for this date the value is `—` on all four. Example:
-`- kata-security-update / prs_actioned — … — Redefinition: —`.
+Discussion, not four parallel coaching dispatches. Each of the four headline
+bullets carries the `Redefinition:` slot per
+[`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes)
+(here `—`).
 
 ## Participant briefing template
 

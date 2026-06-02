@@ -128,23 +128,23 @@ Mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    Use `Announce` for between-question transitions. In solo mode, read files
    directly.
 6. **Collect, don't write.** The facilitator writes no files — participants own
-   every write (CSVs, weekly-log memory, issues) and the storyboard renders via
-   `fit-wiki refresh`. Collect the reported `#NNN`s and numbers via `Answer` for
-   the summary.
+   every write (CSVs, weekly-log memory, issues). Collect reported `#NNN`s and
+   numbers via `Answer` for the summary.
 7. **Route Q3 obstacles (team meetings only; skip for 1-on-1).** For each
-   obstacle pick one route (they can run in parallel) and log the choice.
-   Triggers and worked example:
+   obstacle the facilitator picks one route (parallel allowed) and logs it; it
+   runs no `gh` itself. Triggers and worked example:
    [`team-storyboard.md`](references/team-storyboard.md#q3-obstacle-routing).
    - **Discussion** — shared-artifact change (metric, rule, boundary, policy) or
-     same question in ≥2 agents' Q3 answers. RFC per
+     same question in ≥2 agents' Q3 answers. The owning agent opens an RFC per
      [coordination-protocol.md](../../agents/references/coordination-protocol.md):
      `gh discussion create --category <category> --title "RFC: <q>"`.
    - **Coaching** — participant-scoped blocker / unanalyzed trace / stalled
-     experiment: `gh workflow run kata-coaching.yml -f agent=<name>`.
+     experiment: not dispatched here. The obstacle issue stands; the coach
+     dispatches `kata-coaching.yml` in its Assess run.
 8. **Conclude (facilitated mode only).** Call `Conclude` with a session summary
    covering meeting type, key metrics, obstacles addressed, experiments planned,
-   and any coaching session triggered. (Wiki memory pushes automatically; the
-   facilitator does not commit.)
+   and any obstacle handed off for coaching. (Wiki pushes automatically; do not
+   commit.)
 
 ## Participant Protocol
 
