@@ -328,4 +328,46 @@ describe("fit-wiki fix CLI (in-process)", () => {
     assert.match(harness.stderr, /need human judgment/);
     assert.match(harness.stderr, /decision-block\.heading-within-5/);
   });
+
+  test("leaves a healthy current-week log alone when a prior week is over budget", async () => {
+    seedCleanWiki(wikiRoot);
+    seedAgentProfile(dir);
+    // Prior week (W20) over budget — the finding.
+    const priorLog = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-17");
+    writeFileSync(
+      priorLog,
+      ["# Staff Engineer — 2026-W20", ""]
+        .concat(Array(600).fill("- filler"))
+        .join("\n") + "\n",
+    );
+    // Current week (W21) healthy — must NOT be force-rotated.
+    const currentLog = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(
+      currentLog,
+      "# Staff Engineer — 2026-W21\n\n## 2026-05-24\n\n### Decision\n\n- ok\n",
+    );
+
+    const calls = [];
+    const query = scriptedQuery(join(wikiRoot, "unused.md"), [""], calls);
+    const harness = makeRuntime({ cwd: dir });
+
+    const result = await runFixCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        query,
+        options: { today: "2026-05-24" },
+      }),
+    );
+
+    assert.equal(calls.length, 0, "the agent is never invoked");
+    assert.ok(
+      !existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      "the healthy current-week log is not rotated",
+    );
+    assert.ok(existsSync(priorLog), "the prior-week log is left for a human");
+    // The unrotatable prior-week budget finding is flagged, not handed to the agent.
+    assert.equal(result.code, 2);
+    assert.match(harness.stderr, /need human judgment/);
+    assert.match(harness.stderr, /weekly-log\.line-budget/);
+  });
 });

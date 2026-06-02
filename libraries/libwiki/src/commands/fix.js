@@ -8,7 +8,7 @@ import {
 } from "@forwardimpact/libeval";
 import { RULES } from "../audit/rules.js";
 import { buildContext, resolveScope } from "../audit/scopes.js";
-import { rotateIfOverBudget } from "../weekly-log.js";
+import { rotateIfOverBudget, weeklyLogPath } from "../weekly-log.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot } from "../util/wiki-dir.js";
 
@@ -78,9 +78,12 @@ function composeFollowup(findings, projectRoot) {
  * Deterministic pre-pass: seal every over-budget current-week weekly-log main
  * file via `rotateIfOverBudget`. The agent name comes from the audit's own
  * subjects (keyed by path) — no filename parsing. `force: true` rotates even a
- * word-over/line-under file. A prior-week main log recomputes to a different
- * path, so `fromPath` won't match the finding; it is left untouched and falls
- * through to the agent path (which carries the rotate hint).
+ * word-over/line-under file.
+ *
+ * `rotateIfOverBudget` always seals the agent's *current-week* log, so we only
+ * call it when the finding IS that file. A prior-week over-budget main is left
+ * untouched (rotating it would force-seal a healthy current-week log instead);
+ * it survives the re-audit and is flagged for a human.
  */
 function rotateOverBudgetMainLogs(
   findings,
@@ -94,6 +97,7 @@ function rotateOverBudgetMainLogs(
     if (classOf(f) !== "rotate") continue;
     const agent = agentByPath.get(f.path);
     if (!agent) continue;
+    if (weeklyLogPath(wikiRoot, agent, today) !== f.path) continue;
     const res = rotateIfOverBudget(
       wikiRoot,
       agent,
@@ -102,7 +106,7 @@ function rotateOverBudgetMainLogs(
       { force: true },
       fs,
     );
-    if (res.rotated && res.fromPath === f.path) {
+    if (res.rotated) {
       out(
         `rotated ${path.relative(projectRoot, res.fromPath)} -> ` +
           `${path.relative(projectRoot, res.toPath)}\n`,
@@ -207,9 +211,13 @@ export async function runFixCommand(ctx) {
   // The agent's edits change the result, so re-read and re-audit each round.
   const audit = () =>
     runRules(RULES, buildContext({ wikiRoot, today, fs }), { resolveScope });
+  // The agent only ever gets prose-judgment (`agent`-class) findings. A
+  // `rotate` finding that survived the pre-pass (e.g. a prior-week log) is
+  // unfixable by the agent — and trimming append-only history to satisfy a
+  // budget would corrupt it — so it joins the flag set for a human.
   const partition = (found) => ({
-    agentFindings: found.filter((f) => classOf(f) !== "flag"),
-    flagFindings: found.filter((f) => classOf(f) === "flag"),
+    agentFindings: found.filter((f) => classOf(f) === "agent"),
+    flagFindings: found.filter((f) => classOf(f) !== "agent"),
   });
 
   let findings = audit();
@@ -234,8 +242,8 @@ export async function runFixCommand(ctx) {
     }
   }
 
-  // Residual: agent-class (incl. any rotate finding the deterministic pass
-  // could not handle — prior-week demotion); flag-class needs a human.
+  // Residual: agent-class goes to the writer; everything else (flag, plus any
+  // rotate finding the deterministic pass could not handle) needs a human.
   const { agentFindings, flagFindings } = partition(findings);
   if (agentFindings.length === 0) {
     reportFlags(err, flagFindings, projectRoot);
