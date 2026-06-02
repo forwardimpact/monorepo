@@ -178,7 +178,10 @@ describe("createJudge", () => {
       assert.ok(sp, "systemPrompt must be set");
       assert.strictEqual(sp.type, "preset");
       assert.strictEqual(sp.preset, "claude_code");
-      assert.strictEqual(sp.append, JUDGE_SYSTEM_PROMPT);
+      assert.strictEqual(
+        sp.append,
+        `<session_protocol>\n${JUDGE_SYSTEM_PROMPT}\n</session_protocol>`,
+      );
     });
   });
 

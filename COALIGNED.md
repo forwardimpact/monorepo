@@ -81,6 +81,26 @@ interactive runs or `libeval` prompt for agent workflows.
 4. **Invisible downstream.** The most specific layer overrides. A system prompt
    should never compete with a skill procedure.
 
+### Section Tags
+
+When a harness composes a system prompt from more than one layer, it wraps each
+layer in a parallel, sibling-tagged section so the boundary between persona (L3)
+and orchestration mechanics (L0) stays explicit:
+
+```text
+<agent_profile>
+…L3 profile body…
+</agent_profile>
+
+<session_protocol>
+…L0 orchestration mechanics…
+</session_protocol>
+```
+
+The tags are siblings joined by a blank line — neither nests inside the other,
+and `<agent_profile>` precedes `<session_protocol>`. Profile and protocol source
+text carry no tags; the harness applies them at composition time.
+
 ## L1 — Project Identity (CLAUDE.md)
 
 Auto-loaded via `settingSources: ["project"]`. Orients every contributor on

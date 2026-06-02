@@ -64,7 +64,7 @@ describe("Facilitator - createFacilitator factory", () => {
     assert.strictEqual(typeof f.facilitatorRunner.systemPrompt, "string");
     assert.strictEqual(
       f.facilitatorRunner.systemPrompt,
-      FACILITATOR_SYSTEM_PROMPT,
+      `<session_protocol>\n${FACILITATOR_SYSTEM_PROMPT}\n</session_protocol>`,
     );
   });
 
@@ -74,7 +74,7 @@ describe("Facilitator - createFacilitator factory", () => {
       assert.deepStrictEqual(agent.runner.systemPrompt, {
         type: "preset",
         preset: "claude_code",
-        append: FACILITATED_AGENT_SYSTEM_PROMPT,
+        append: `<session_protocol>\n${FACILITATED_AGENT_SYSTEM_PROMPT}\n</session_protocol>`,
       });
     }
   });
