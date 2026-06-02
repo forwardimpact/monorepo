@@ -2,7 +2,6 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import {
   createCli,
@@ -16,17 +15,8 @@ import { createStorage } from "@forwardimpact/libstorage";
 import { Logger } from "@forwardimpact/libtelemetry";
 import { waitFor } from "@forwardimpact/libutil";
 
-// `bun build --compile` injects FIT_STORAGE_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_STORAGE_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-storage",
-  version: VERSION,
   description: "Storage operations for local and remote data",
   commands: [
     {
@@ -91,7 +81,10 @@ const definition = {
 };
 
 const runtime = createDefaultRuntime();
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const parsed = cli.parse(process.argv.slice(2));
 if (!parsed) process.exit(0);
 

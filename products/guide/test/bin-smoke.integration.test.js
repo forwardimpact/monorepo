@@ -18,7 +18,7 @@ describe("fit-guide bin smoke", () => {
   test("--version prints the version and exits 0", () => {
     const out = execFileSync("node", [binPath, "--version"], {
       encoding: "utf8",
-      env: { ...process.env, FIT_GUIDE_VERSION: "9.9.9-smoke" },
+      env: { ...process.env, LIBCLI_VERSION: "9.9.9-smoke" },
     });
     assert.equal(out, "fit-guide v9.9.9-smoke\n");
   });

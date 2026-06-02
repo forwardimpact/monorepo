@@ -10,8 +10,6 @@
 import "@forwardimpact/libpreflight/node22";
 
 import { join, resolve, dirname } from "path";
-import { fileURLToPath } from "url";
-import { readFileSync } from "fs";
 import { homedir } from "os";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createProductConfig } from "@forwardimpact/libconfig";
@@ -34,20 +32,8 @@ const runtime = createDefaultRuntime();
 const summary = new SummaryRenderer({ process: runtime.proc });
 const config = await createProductConfig("map");
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// `bun build --compile` injects FIT_MAP_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  runtime.proc.env.FIT_MAP_VERSION ||
-  JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-map",
-  version: VERSION,
   description: "Data validation and management for Engineering Pathway",
   commands: [
     {
@@ -212,7 +198,10 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 
 /**
  * Format validation results for display using libcli helpers.

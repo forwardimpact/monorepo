@@ -15,21 +15,8 @@ import { ServiceManager, sendCommand, waitForSocket } from "../src/index.js";
 
 const runtime = createDefaultRuntime();
 
-// `bun build --compile` injects FIT_RC_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  runtime.proc.env.FIT_RC_VERSION ||
-  JSON.parse(
-    runtime.fsSync.readFileSync(
-      new URL("../package.json", import.meta.url),
-      "utf8",
-    ),
-  ).version;
-
 const definition = {
   name: "fit-rc",
-  version: VERSION,
   description: "Service manager for Forward Impact",
   commands: [
     { name: "start", args: "[service]", description: "Start services" },
@@ -60,7 +47,10 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const parsed = cli.parse(runtime.proc.argv.slice(2));
 if (!parsed) runtime.proc.exit(0);
 

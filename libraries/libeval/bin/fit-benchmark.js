@@ -2,7 +2,7 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync, realpathSync } from "node:fs";
+import { realpathSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -11,17 +11,8 @@ import { runBenchmarkRunCommand } from "../src/commands/benchmark-run.js";
 import { runBenchmarkInvariantsCommand } from "../src/commands/benchmark-invariants.js";
 import { runBenchmarkReportCommand } from "../src/commands/benchmark-report.js";
 
-// `bun build --compile` injects FIT_BENCHMARK_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_BENCHMARK_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 export const definition = {
   name: "fit-benchmark",
-  version: VERSION,
   description:
     "Run coding-agent task families, grade hidden tests, and aggregate pass@k across runs.",
   commands: [
@@ -160,7 +151,10 @@ const runtime = createDefaultRuntime();
 const logger = createLogger("benchmark", runtime);
 
 async function main() {
-  const cli = createCli(definition, { runtime });
+  const cli = createCli(definition, {
+    runtime,
+    packageJsonUrl: new URL("../package.json", import.meta.url),
+  });
   const parsed = cli.parse(runtime.proc.argv.slice(2));
   if (!parsed) return runtime.proc.exit(0);
 

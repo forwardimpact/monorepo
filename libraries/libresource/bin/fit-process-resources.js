@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createScriptConfig } from "@forwardimpact/libconfig";
@@ -13,17 +12,8 @@ import { ResourceProcessor } from "@forwardimpact/libresource/processor/resource
 import { Parser } from "@forwardimpact/libresource/parser.js";
 import { Skolemizer } from "@forwardimpact/libresource/skolemizer.js";
 
-// `bun build --compile` injects FIT_PROCESS_RESOURCES_VERSION via --define,
-// eliminating the readFileSync branch in the compiled binary (which would
-// ENOENT against the bunfs virtual mount). Source execution falls through.
-const VERSION =
-  process.env.FIT_PROCESS_RESOURCES_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-process-resources",
-  version: VERSION,
   description:
     "Process HTML files in the knowledge base directory and generate resources",
   globalOptions: {
@@ -39,7 +29,10 @@ const definition = {
 };
 
 const runtime = createDefaultRuntime();
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const logger = createLogger("resources", runtime);
 
 /**

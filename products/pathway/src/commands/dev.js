@@ -8,6 +8,7 @@
 import { createServer } from "http";
 import { join, extname, dirname } from "path";
 import { fileURLToPath } from "url";
+import { resolveVersion } from "@forwardimpact/libcli";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createIndexGenerator } from "@forwardimpact/map/index-generator";
 import { createDataLoader } from "@forwardimpact/map/loader";
@@ -16,24 +17,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const publicDir = join(__dirname, "..");
 const rootDir = join(__dirname, "../..");
-
-/**
- * Resolve the published version string.
- *
- * `bun build --compile` injects FIT_PATHWAY_VERSION via --define, eliminating
- * the readFileSync branch in the compiled binary (which would ENOENT against
- * the bunfs virtual mount). Source execution falls through to package.json.
- *
- * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
- * @returns {Promise<string>}
- */
-async function resolveVersion(runtime) {
-  return (
-    runtime.proc.env.FIT_PATHWAY_VERSION ||
-    JSON.parse(await runtime.fs.readFile(join(rootDir, "package.json"), "utf8"))
-      .version
-  );
-}
 
 /**
  * Resolve package directory using Node's module resolution.
@@ -176,7 +159,10 @@ function resolveRoute(pathname, routes) {
 export async function runDevCommand({ dataDir, options, runtime }) {
   const logger = createLogger("pathway", runtime);
   const port = options.port || 3000;
-  const version = await resolveVersion(runtime);
+  const version = resolveVersion({
+    packageJsonUrl: new URL("../../package.json", import.meta.url),
+    runtime,
+  });
 
   // Load standard config for display
   let standard;

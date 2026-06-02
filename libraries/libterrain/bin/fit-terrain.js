@@ -33,18 +33,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const runtime = createDefaultRuntime();
 
-// `bun build --compile` injects FIT_TERRAIN_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  runtime.proc.env.FIT_TERRAIN_VERSION ||
-  JSON.parse(
-    runtime.fsSync.readFileSync(
-      new URL("../package.json", import.meta.url),
-      "utf8",
-    ),
-  ).version;
-
 const documentation = [
   {
     title: "Prove Agent Changes",
@@ -62,7 +50,6 @@ const documentation = [
 
 const definition = {
   name: "fit-terrain",
-  version: VERSION,
   description: "Synthetic data generation pipeline",
   globalOptions: {
     story: { type: "string", description: "Path to a custom story DSL file" },
@@ -140,7 +127,10 @@ const definition = {
   documentation,
 };
 
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const logger = createLogger("terrain", runtime);
 
 /**

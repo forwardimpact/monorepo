@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createResourceIndex } from "@forwardimpact/libresource";
@@ -10,17 +9,8 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { createGraphIndex } from "@forwardimpact/libgraph";
 import { GraphProcessor } from "@forwardimpact/libgraph/processor/graph.js";
 
-// `bun build --compile` injects FIT_PROCESS_GRAPHS_VERSION via --define,
-// eliminating the readFileSync branch in the compiled binary (which would
-// ENOENT against the bunfs virtual mount). Source execution falls through.
-const VERSION =
-  process.env.FIT_PROCESS_GRAPHS_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-process-graphs",
-  version: VERSION,
   description: "Process resources into RDF graphs",
   globalOptions: {
     help: { type: "boolean", short: "h", description: "Show this help" },
@@ -30,7 +20,10 @@ const definition = {
 };
 
 const runtime = createDefaultRuntime();
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const logger = createLogger("graphs", runtime);
 
 /**

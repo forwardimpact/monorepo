@@ -9,16 +9,8 @@ import { checkInstructions, checkJtbd } from "../src/index.js";
 
 const runtime = createDefaultRuntime();
 
-const { version: VERSION } = JSON.parse(
-  runtime.fsSync.readFileSync(
-    new URL("../package.json", import.meta.url),
-    "utf8",
-  ),
-);
-
 const definition = {
   name: "coaligned",
-  version: VERSION,
   description:
     "Enforce the layered instruction architecture defined in COALIGNED.md (no subcommand: run every check)",
   commands: [
@@ -51,7 +43,10 @@ const definition = {
   examples: ["coaligned", "coaligned instructions", "coaligned jtbd --fix"],
 };
 
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 
 function writeFindings(findings, passMessage, jsonOutput, cwd, rt) {
   if (jsonOutput) {

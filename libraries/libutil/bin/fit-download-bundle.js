@@ -2,7 +2,6 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { createCli } from "@forwardimpact/libcli";
 import { createScriptConfig } from "@forwardimpact/libconfig";
@@ -11,17 +10,8 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { createBundleDownloader, execLine } from "@forwardimpact/libutil";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-// `bun build --compile` injects FIT_DOWNLOAD_BUNDLE_VERSION via --define,
-// eliminating the readFileSync branch in the compiled binary (which would
-// ENOENT against the bunfs virtual mount). Source execution falls through.
-const VERSION =
-  process.env.FIT_DOWNLOAD_BUNDLE_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-download-bundle",
-  version: VERSION,
   description: "Download generated code bundle from remote storage",
   globalOptions: {
     help: { type: "boolean", short: "h", description: "Show this help" },
@@ -31,7 +21,10 @@ const definition = {
 };
 
 const runtime = createDefaultRuntime();
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const logger = createLogger("generated", runtime);
 
 /**

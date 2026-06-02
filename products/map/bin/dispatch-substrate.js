@@ -14,6 +14,7 @@
  */
 
 import { fileURLToPath } from "node:url";
+import { resolveVersion } from "@forwardimpact/libcli";
 
 /**
  * @param {string} subcommand
@@ -94,13 +95,10 @@ async function main(runtime) {
   const argv = runtime.proc.argv.slice(2);
 
   if (argv.includes("--version")) {
-    const { dirname, join } = await import("node:path");
-    const { readFileSync } = await import("node:fs");
-    const here = dirname(fileURLToPath(import.meta.url));
-    const version =
-      runtime.proc.env.FIT_MAP_VERSION ||
-      JSON.parse(readFileSync(join(here, "..", "package.json"), "utf8"))
-        .version;
+    const version = resolveVersion({
+      packageJsonUrl: new URL("../package.json", import.meta.url),
+      runtime,
+    });
     runtime.proc.stdout.write(version + "\n");
     return 0;
   }
