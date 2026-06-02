@@ -146,8 +146,9 @@ function buildPKG() {
 
 const args = process.argv.slice(2);
 
-// No flags → full default build (scheduler + launcher).
-// Explicit flags → run only those steps; --app/--pkg imply the earlier steps.
+// No flags → default build (launcher only; the fit-outpost scheduler binary
+// comes from the shared `just build-binary fit-outpost`, not this script).
+// Explicit flags → run only those steps; --app/--pkg imply the launcher.
 const all = args.length === 0;
 const want = {
   launcher: all || args.includes("--launcher"),

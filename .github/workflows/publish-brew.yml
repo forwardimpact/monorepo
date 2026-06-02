@@ -84,6 +84,8 @@ jobs:
             product)  "$BUNDLE/Contents/MacOS/fit-${{ steps.meta.outputs.name }}" --help ;;
             gear)
               SMOKE_CLI=$(jq -r '[.clis[] | select(.bundle == "gear" and (.server != true)) | .name][0]' build/cli-manifest.json)
+              test -n "$SMOKE_CLI" && [ "$SMOKE_CLI" != "null" ] \
+                || { echo "::error::no non-server gear CLI in manifest to smoke"; exit 1; }
               "$BUNDLE/Contents/MacOS/$SMOKE_CLI" --help
               ;;
           esac
