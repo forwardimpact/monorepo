@@ -394,9 +394,12 @@
         "@forwardimpact/libprompt": "^0.1.9",
         "@forwardimpact/libsyntheticrender": "^0.1.25",
       },
-      "optionalDependencies": {
+      "peerDependencies": {
         "@faker-js/faker": "^10.4.0",
       },
+      "optionalPeers": [
+        "@faker-js/faker",
+      ],
     },
     "libraries/libsyntheticprose": {
       "name": "@forwardimpact/libsyntheticprose",
@@ -1217,8 +1220,6 @@
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.7.1", "", { "dependencies": { "@eslint/core": "^1.2.1", "levn": "^0.4.1" } }, "sha512-rZAP3aVgB9ds9KOeUSL+zZ21hPmo8dh6fnIFwRQj5EAZl9gzR7wxYbYXYysAM8CTqGmUGyp2S4kUdV17MnGuWQ=="],
 
     "@exodus/bytes": ["@exodus/bytes@1.15.0", "", { "peerDependencies": { "@noble/hashes": "^1.8.0 || ^2.0.0" }, "optionalPeers": ["@noble/hashes"] }, "sha512-UY0nlA+feH81UGSHv92sLEPLCeZFjXOuHhrIo0HQydScuQc8s0A7kL/UdgwgDq8g8ilksmuoF35YVTNphV2aBQ=="],
-
-    "@faker-js/faker": ["@faker-js/faker@10.4.0", "", {}, "sha512-sDBWI3yLy8EcDzgobvJTWq1MJYzAkQdpjXuPukga9wXonhpMRvd1Izuo2Qgwey2OiEoRIBr35RMU9HJRoOHzpw=="],
 
     "@forwardimpact/gear": ["@forwardimpact/gear@workspace:products/gear"],
 

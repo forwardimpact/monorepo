@@ -96,12 +96,19 @@ bunx fit-rc start             # Start services (supabase/tei skipped if not inst
 ### Generation
 
 ```sh
+just synthetic-deps           # Provision generation tools (Synthea, SDV, faker)
 just synthetic                # Cached prose (default, no LLM needed)
 just synthetic-update         # Generate new prose via LLM and update cache
 ```
 
 Generation uses cached prose by default from `data/synthetic/prose-cache.json`.
 Use `just synthetic-update` to call the LLM and refresh the cache.
+
+The dataset tools (the Synthea JAR, the SDV Python package, and faker) are
+heavy and rarely needed, so they live outside `package.json` and the default
+`bun install`. Provision them on demand with `just synthetic-deps`
+(`just synthetic-deps-check` reports status); the pipeline gracefully skips any
+dataset whose tool is unavailable.
 
 ### Activity Seed (synthetic data)
 
