@@ -60,13 +60,15 @@ rest of this Process. Then read every file in `wiki/`: agent summaries
 
 ### Step 1: Contract audit
 
-Run `bunx fit-wiki fix` first — it audits, then auto-fixes mechanical findings
-via a Haiku technical-writer and re-audits until clean (or three rounds). Then
-run `bunx fit-wiki audit --format json` to confirm — it checks every wiki file
+Run `bunx fit-wiki fix` first — it rotates over-budget weekly logs, hands the
+prose-judgment findings to a Haiku technical-writer (re-auditing each round),
+and exits non-zero listing anything it flags for a human (missing decision
+blocks, oversized sealed parts) rather than inventing content. Then run
+`bunx fit-wiki audit --format json` to confirm — it checks every wiki file
 (summaries, weekly logs and sealed parts, MEMORY.md, priority and claims rows,
 the current storyboard, stray files) against the rule catalogue. The same audit
-gates pre-merge CI, so a clean local run is the bar. Hand-fix any `fail` the
-auto-fixer left in the named file:
+gates pre-merge CI, so a clean local run is the bar. Hand-resolve each flagged
+`fail` in the named file:
 
 - **Budgets** (line/word) — trim settled state, or
   `bunx fit-wiki rotate --agent <agent>` to seal an overflowing weekly log.

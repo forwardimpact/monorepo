@@ -10,7 +10,7 @@ Commands:
   inbox [subcommand]         Triage the agent's Message Inbox (list/ack/promote/drop)
   rotate                     Force-rotate the current weekly log to a sealed part
   audit                      Audit the wiki against the declarative rule catalogue (line and word budgets, headings, decision blocks, storyboards, claims)
-  fix                        Auto-fix wiki audit findings using an AI agent (technical-writer, Haiku)
+  fix                        Auto-fix wiki audit findings: rotate weekly logs, fix the rest with an AI agent (technical-writer, Haiku), flag the unresolvable
   memo                       Send a cross-team memo into a teammate's Message Inbox
   refresh [storyboard-path]  Regenerate XmR and obstacle/experiment marker blocks in a storyboard
   init                       Bootstrap a wiki working tree and scaffold Active Claims

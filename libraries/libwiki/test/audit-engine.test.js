@@ -74,6 +74,28 @@ describe("RULES catalogue", () => {
       ids.add(rule.id);
     }
   });
+
+  test("remediation classes match the annotated set", () => {
+    // `fit-wiki fix` dispatches on this field: rotate deterministically,
+    // flag for a human, or (default, absent) hand to the agent.
+    const REMEDIATION = {
+      "weekly-log.line-budget": "rotate",
+      "weekly-log.word-budget": "rotate",
+      "decision-block.heading-within-5": "flag",
+      "weekly-log-part.line-budget": "flag",
+      "weekly-log-part.word-budget": "flag",
+    };
+    for (const rule of RULES) {
+      if ("remediation" in rule) {
+        assert.match(rule.remediation, /^(rotate|flag|agent)$/);
+      }
+      assert.equal(
+        rule.remediation ?? "agent",
+        REMEDIATION[rule.id] ?? "agent",
+        `unexpected remediation class for ${rule.id}`,
+      );
+    }
+  });
 });
 
 describe("runRules", () => {

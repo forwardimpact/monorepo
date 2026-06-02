@@ -173,7 +173,7 @@ export function createDefinition(env) {
       {
         name: "fix",
         description:
-          "Auto-fix wiki audit findings using an AI agent (technical-writer, Haiku)",
+          "Auto-fix wiki audit findings: rotate weekly logs, fix the rest with an AI agent (technical-writer, Haiku), flag the unresolvable",
         handler: runFixCommand,
         options: {
           ...wikiRootOpt,

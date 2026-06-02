@@ -95,8 +95,11 @@ npx fit-wiki audit [--format json]
 npx fit-wiki fix
 ```
 
-Audits, then spawns a Haiku technical-writer to fix findings, re-auditing until
-clean (max three rounds). Run after editing wiki files.
+Audits, then rotates over-budget weekly logs deterministically, hands the
+prose-judgment findings to a Haiku technical-writer (re-auditing each round, max
+three), and flags anything unfixable (missing decision blocks, oversized sealed
+parts) for a human — exiting non-zero rather than touching them. Run after
+editing wiki files.
 
 ### `memo` — Cross-team memo
 
