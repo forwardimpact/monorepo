@@ -114,15 +114,18 @@ export class DiscussionAdapter {
   /**
    *
    */
-  async resolvePendingDispatch(linkToken) {
+  async resolvePendingDispatch(linkToken, expectedSurfaceUserId) {
     try {
       return await this.#client.ResolvePendingDispatch(
         bridge.ResolvePendingDispatchRequest.fromObject({
           link_token: linkToken,
+          expected_surface_user_id: expectedSurfaceUserId ?? undefined,
         }),
       );
     } catch (err) {
       if (isNotFound(err)) return null;
+      if (err?.code === grpc.status.FAILED_PRECONDITION)
+        return { unattributable: true };
       throw err;
     }
   }

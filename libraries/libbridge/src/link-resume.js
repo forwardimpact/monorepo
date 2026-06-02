@@ -59,10 +59,14 @@ const UNABLE_TO_VERIFY_HTML =
  * an attacker without a valid ticket exits at the verify step and never
  * sees a present-vs-absent timing oracle on `linkToken`.
  *
- * The `surface_user_id` cross-check happens after `resolvePendingDispatch`
- * because the handler is the only site that has both `ticket.surfaceUserId`
- * and the freshly-resolved `pending.surface_user_id`; folding it into the
- * verifier would force the verifier to take a pending store.
+ * The `surface_user_id` cross-check is performed **server-side** by passing
+ * `verify.claims.surfaceUserId` as `expectedSurfaceUserId` to
+ * `store.resolvePendingDispatch`. The bridge refuses to consume the entry
+ * on mismatch — so an attacker who minted a valid ticket against the
+ * victim's `link_token` (e.g. by driving the IdP round-trip under their
+ * own account with `client_state=victim_link_token`) cannot drain the
+ * auto-resume affordance: the bridge returns `{ unattributable: true }`
+ * and the entry stays available for the legitimate user.
  *
  * @param {object} options
  * @param {string} options.channel Channel id (e.g. `"github-discussions"`).
@@ -116,7 +120,10 @@ export function createLinkCompleteHandler({
       return c.html(UNABLE_TO_VERIFY_HTML);
     }
 
-    const target = await store.resolvePendingDispatch(linkToken);
+    const target = await store.resolvePendingDispatch(
+      linkToken,
+      verify.claims.surfaceUserId,
+    );
     if (!target) {
       return c.html(
         "<!DOCTYPE html><html><body><h1>Already processed</h1>" +
@@ -124,8 +131,10 @@ export function createLinkCompleteHandler({
           "</p></body></html>",
       );
     }
-
-    if (verify.claims.surfaceUserId !== target.surface_user_id) {
+    if (target.unattributable) {
+      // Bridge refused to consume because the ticket's surfaceUserId does
+      // not match the pending row. The pending entry is left intact for
+      // the legitimate user.
       return c.html(UNABLE_TO_VERIFY_HTML);
     }
 

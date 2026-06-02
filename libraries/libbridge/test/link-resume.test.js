@@ -107,10 +107,23 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
 
   function makeStore({ pending = null, ctx = null } = {}) {
     let resolveCount = 0;
+    let consumeCount = 0;
     return {
       resolveCount: () => resolveCount,
-      resolvePendingDispatch: async () => {
+      consumeCount: () => consumeCount,
+      // Mirrors the bridge contract: when expectedSurfaceUserId is provided
+      // and the pending row's surface_user_id does not match, the bridge
+      // returns `{ unattributable: true }` without consuming the entry.
+      resolvePendingDispatch: async (_lt, expectedSurfaceUserId) => {
         resolveCount += 1;
+        if (!pending) return null;
+        if (
+          expectedSurfaceUserId != null &&
+          pending.surface_user_id !== expectedSurfaceUserId
+        ) {
+          return { unattributable: true };
+        }
+        consumeCount += 1;
         return pending;
       },
       loadByChannel: async () => ctx,
@@ -250,7 +263,7 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
     expect(store.resolveCount()).toBe(1);
   });
 
-  test("valid ticket, surface_user_id mismatch → 'Unable to verify' but store touched once", async () => {
+  test("valid ticket, surface_user_id mismatch → 'Unable to verify' and pending entry is NOT consumed", async () => {
     const store = makeStore({
       pending: { discussion_id: "d", surface_user_id: "99" },
       ctx: null,
@@ -268,7 +281,10 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
       `/api/link-complete?state=link-token-xyz&ticket=${encodeURIComponent(ticket)}`,
     );
     expect(await res.text()).toContain("Unable to verify");
+    // The bridge gates consume on expectedSurfaceUserId server-side; the
+    // attacker call exercises the resolve RPC once but does not consume.
     expect(store.resolveCount()).toBe(1);
+    expect(store.consumeCount()).toBe(0);
   });
 
   test("valid ticket, matching pending entry → dispatches exactly once", async () => {

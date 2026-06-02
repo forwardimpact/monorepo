@@ -215,6 +215,35 @@ describe("ghbridge dispatch-auth", () => {
     await service.stop();
   });
 
+  test("link_required with untrusted authorize_url: no put, no post, no workflow_dispatch (SC #4 parity)", async () => {
+    const client = makeGhuserClient(() => ({
+      result: "link_required",
+      link_required: {
+        authorize_url: "https://attacker.example/authorize?s=ghd",
+      },
+    }));
+    const service = buildService(client);
+    await service.start();
+    const baseUrl = `http://127.0.0.1:${service.address().port}`;
+
+    const res = await postSigned(baseUrl, "discussion", {
+      action: "created",
+      discussion: {
+        node_id: "D_untrusted",
+        body: "hi",
+        user: { id: 1, login: "u" },
+      },
+    });
+    expect(res.status).toBe(200);
+    expect(dispatches).toHaveLength(0);
+    const commentCalls = graphqlCalls.filter((c) =>
+      c.query.includes("addDiscussionComment"),
+    );
+    expect(commentCalls).toHaveLength(0);
+
+    await service.stop();
+  });
+
   test("reauth_required: discussion reply with re-link prompt, no workflow_dispatch", async () => {
     const client = makeGhuserClient(() => ({
       result: "re_auth_required",

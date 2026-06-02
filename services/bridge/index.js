@@ -217,12 +217,26 @@ export class BridgeService extends BridgeBase {
       throw Object.assign(new Error("not found"), {
         code: grpc.status.NOT_FOUND,
       });
+    // Server-side surface-user-id gate: when the caller asserts which user
+    // should own the entry, refuse to consume on mismatch. Closes the
+    // pre-consume window the libbridge handler would otherwise open if it
+    // did the cross-check client-side after the destructive resolve.
+    if (
+      req.expected_surface_user_id != null &&
+      req.expected_surface_user_id !== "" &&
+      rec.surface_user_id !== req.expected_surface_user_id
+    ) {
+      throw Object.assign(new Error("surface_user_id mismatch"), {
+        code: grpc.status.FAILED_PRECONDITION,
+      });
+    }
     this.#pendingDispatches.index.delete(req.link_token);
     // compaction safety: services/bridge runs single-instance per tenant;
     // gRPC handlers serialise on the event loop, so compact() and add()
-    // never interleave inside one process. If services/bridge ever becomes
-    // multi-instance, replace this with a tmp-file + atomic rename inside
-    // libstorage.
+    // never interleave inside one process. The periodic sweep at #sweep
+    // also calls compact() under the same invariant. If services/bridge
+    // ever becomes multi-instance, replace these with a tmp-file +
+    // atomic rename inside libstorage.
     await this.#pendingDispatches.compact();
     return bridge.PendingDispatch.fromObject({
       link_token: rec.id,

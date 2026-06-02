@@ -450,7 +450,10 @@ export class MsBridgeService {
       trustedOrigins: this.#trustedOrigins,
     });
     if (prepared.skipped) {
-      this.#logger.info("link-resume skipped", { reason: prepared.reason });
+      this.#logger.info("link-resume", "skipped", {
+        reason: prepared.reason,
+        discussion_id: ctx.discussion_id,
+      });
       return;
     }
 

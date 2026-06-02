@@ -22,11 +22,15 @@ export function loadTrustedIdpOrigins(raw, { logger } = {}) {
     try {
       url = new URL(entry);
     } catch {
-      logger?.warn?.("trusted-origin malformed, skipping", { entry });
+      logger?.error?.("trusted-origins", "malformed entry; skipping", {
+        entry,
+      });
       continue;
     }
     if (url.protocol !== "https:") {
-      logger?.warn?.("trusted-origin refused (non-TLS), skipping", { entry });
+      logger?.error?.("trusted-origins", "non-TLS entry refused; skipping", {
+        entry,
+      });
       continue;
     }
     set.add(url.origin);

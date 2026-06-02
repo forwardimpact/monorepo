@@ -182,6 +182,47 @@ describe("msbridge dispatch-auth", () => {
     await service.stop();
   });
 
+  test("link_required with untrusted authorize_url: no put, no post, no workflow_dispatch (SC #4 parity)", async () => {
+    const client = makeGhuserClient(() => ({
+      result: "link_required",
+      link_required: {
+        authorize_url: "https://attacker.example/authorize?s=msteams",
+      },
+    }));
+    const adapter = makeAdapter({
+      activity: makeActivity("t-untrust", "U_untrust", "hi"),
+    });
+    const service = new MsBridgeService(makeConfig(), {
+      logger: createMockLogger(),
+      tracer: createMockTracer(),
+      clock: createMockClock(),
+      discussionClient: createMockDiscussionClient(),
+      ghuserClient: client,
+      adapter,
+      trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+      ticketSecret: DEFAULT_TICKET_SECRET,
+    });
+    await service.start();
+    const baseUrl = `http://127.0.0.1:${service.address().port}`;
+
+    await fetch(`${baseUrl}/api/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "message" }),
+    });
+
+    expect(dispatches).toHaveLength(0);
+    // No link comment posted into the channel: the trusted-origin gate
+    // refused the authorize URL.
+    expect(
+      adapter.sent.some((m) =>
+        typeof m === "string" ? m.includes("link-complete") : false,
+      ),
+    ).toBe(false);
+
+    await service.stop();
+  });
+
   test("reauth_required: channel receives re-link prompt, no workflow_dispatch", async () => {
     const client = makeGhuserClient(() => ({
       result: "re_auth_required",

@@ -68,7 +68,11 @@ message PendingDispatch {
 }
 
 message PutPendingDispatchRequest { PendingDispatch pending = 1; string tenant_id = 2; }
-message ResolvePendingDispatchRequest { string link_token = 1; string tenant_id = 2; }
+message ResolvePendingDispatchRequest {
+  string link_token = 1;
+  string tenant_id = 2;
+  optional string expected_surface_user_id = 3;
+}
 
 message SweepRequest { optional int64 now = 1; string tenant_id = 2; }
 message SweepResponse { int32 evicted_discussions = 1; int32 evicted_origins = 2; int32 evicted_pending = 3; }

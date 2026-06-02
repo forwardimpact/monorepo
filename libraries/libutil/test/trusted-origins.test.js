@@ -3,10 +3,15 @@ import assert from "node:assert";
 import { isTrusted, loadTrustedIdpOrigins } from "../src/trusted-origins.js";
 
 function recordingLogger() {
-  const warns = [];
+  // Mirrors the @forwardimpact/libtelemetry Logger surface: there is no
+  // `warn` method; level-elevated diagnostics flow through `error(appId,
+  // message, attributes)`. Recording `error` lets the loader's diagnostics
+  // be observable in tests AND in production wiring.
+  const entries = [];
   return {
-    warn: (msg, meta) => warns.push({ msg, meta }),
-    warns,
+    error: (appId, message, attributes) =>
+      entries.push({ appId, message, attributes }),
+    entries,
   };
 }
 
@@ -25,24 +30,26 @@ describe("loadTrustedIdpOrigins", () => {
     assert.strictEqual(set.has("https://github.com."), true);
   });
 
-  test("refuses http://… with a warn; does not add", () => {
+  test("refuses http://… via logger.error(appId, message, attributes); does not add", () => {
     const logger = recordingLogger();
     const set = loadTrustedIdpOrigins("http://github.com", { logger });
     assert.strictEqual(set.size, 0);
-    assert.strictEqual(logger.warns.length, 1);
-    assert.match(logger.warns[0].msg, /non-TLS/);
-    assert.strictEqual(logger.warns[0].meta.entry, "http://github.com");
+    assert.strictEqual(logger.entries.length, 1);
+    assert.strictEqual(logger.entries[0].appId, "trusted-origins");
+    assert.match(logger.entries[0].message, /non-TLS/);
+    assert.strictEqual(logger.entries[0].attributes.entry, "http://github.com");
   });
 
-  test("skips a malformed entry with a warn; other valid entries still populate", () => {
+  test("skips a malformed entry via logger.error; other valid entries still populate", () => {
     const logger = recordingLogger();
     const set = loadTrustedIdpOrigins("not-a-url, https://github.com", {
       logger,
     });
     assert.deepStrictEqual([...set], ["https://github.com"]);
-    assert.strictEqual(logger.warns.length, 1);
-    assert.match(logger.warns[0].msg, /malformed/);
-    assert.strictEqual(logger.warns[0].meta.entry, "not-a-url");
+    assert.strictEqual(logger.entries.length, 1);
+    assert.strictEqual(logger.entries[0].appId, "trusted-origins");
+    assert.match(logger.entries[0].message, /malformed/);
+    assert.strictEqual(logger.entries[0].attributes.entry, "not-a-url");
   });
 
   test("empty / unset / null raw yields an empty set", () => {
