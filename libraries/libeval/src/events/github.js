@@ -29,10 +29,12 @@ export const TASK_TEMPLATE_ISSUE_LABELED =
 export const TASK_TEMPLATE_PR_LABELED =
   'Label "${LABEL}" was added to PR "${PR_TITLE}" (#${NUMBER}). PR URL: ${URL}.';
 
-// "unreleased changes"/"cut" and "status" hint at the two post-merge actions —
-// release activity (the release-engineer's Assess step 3 / `kata-release-cut`)
-// and advancing the spec's `wiki/STATUS.md` row — without naming an owner or
-// artifact, so the lead routes the merge instead of treating it as a no-op.
+// "unreleased changes"/"cut" point at the genuine post-merge action — release
+// activity (the release-engineer's Assess step 3 / `kata-release-cut`).
+// "status" is a backstop: the spec's `wiki/STATUS.md` row is normally advanced
+// in the pre-merge gate (`kata-release-merge` Step 8), but the keyword catches a
+// merge that landed without it. Neither owner nor artifact is named, so the lead
+// routes the merge instead of treating it as a no-op.
 export const TASK_TEMPLATE_PR_MERGED =
   'PR "${PR_TITLE}" (#${NUMBER}) merged to main — may leave unreleased changes to cut or status to update. PR URL: ${URL}.';
 
