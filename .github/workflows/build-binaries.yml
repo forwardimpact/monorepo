@@ -1,0 +1,75 @@
+name: "Build: Binaries"
+
+on:
+  workflow_call:
+    inputs:
+      targets:
+        description: "JSON array of bun targets to build (subset of the manifest's)."
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      cells: ${{ steps.gen.outputs.cells }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - id: gen
+        env:
+          TARGETS: ${{ inputs.targets }}
+        run: |
+          # `server: true` entries (long-running gRPC services) are still built,
+          # checksummed, uploaded, and bundled — the flag only tells the smoke
+          # step below to skip executing them, since their bin starts a server
+          # rather than honouring --help. Defaults to false for every other CLI.
+          CELLS=$(jq -c --argjson req "$TARGETS" '
+            [ .clis[] as $c | $c.targets[]
+              | select(. as $t | $req | index($t))
+              | { cli: $c.name, target: .,
+                  os: (if . == "bun-linux-x64" then "ubuntu-latest" else "macos-14" end),
+                  server: ($c.server // false) } ]
+          ' build/cli-manifest.json)
+          # Fail loudly on a bad `targets` input rather than emit an empty
+          # matrix that silently skips every build.
+          test "$(jq 'length' <<<"$CELLS")" -gt 0 \
+            || { echo "::error::no manifest CLI matches targets ${TARGETS}"; exit 1; }
+          echo "cells={\"include\":${CELLS}}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: matrix
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.matrix.outputs.cells) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: forwardimpact/fit-bootstrap@v1
+      - name: Ensure codegen is current
+        run: just codegen
+      - name: Compile
+        run: just build-binary "${{ matrix.cli }}" "${{ matrix.target }}"
+      - name: Smoke gate
+        # Servers boot on any invocation and never exit, so --help would hang
+        # the cell; they are excluded until they support a print-and-exit flag.
+        if: ${{ matrix.server != true }}
+        run: |
+          BIN="dist/binaries/${{ matrix.cli }}"
+          # Capture stdout+stderr: a CLI that prints --help to stderr must still
+          # count as non-empty output (the gate is "starts and writes output").
+          # `set -e` (the default shell) fails the gate when the binary exits
+          # non-zero — the fit-codegen / fit-outpost startup-crash failure mode.
+          OUT="$("$BIN" --help 2>&1)"
+          test -n "$OUT" || { echo "::error::${{ matrix.cli }} produced no output"; exit 1; }
+      - name: Checksum
+        run: shasum -a 256 "dist/binaries/${{ matrix.cli }}" | awk '{print $1}' > "dist/binaries/${{ matrix.cli }}.sha256"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: "${{ matrix.cli }}-${{ matrix.target }}"
+          path: |
+            dist/binaries/${{ matrix.cli }}
+            dist/binaries/${{ matrix.cli }}.sha256
+          if-no-files-found: error
