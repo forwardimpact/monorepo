@@ -102,7 +102,7 @@ describe("composeTaskFromGitHubEvent matches the kata-dispatch shell output", ()
     );
     assert.strictEqual(
       task,
-      'PR "Wire up task-event" (#99) merged to main — may leave unreleased changes to cut. PR URL: https://github.com/acme/repo/pull/99.',
+      'PR "Wire up task-event" (#99) merged to main — may leave unreleased changes to cut or status to update. PR URL: https://github.com/acme/repo/pull/99.',
     );
   });
 
