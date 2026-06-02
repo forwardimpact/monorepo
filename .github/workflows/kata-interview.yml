@@ -73,7 +73,7 @@ jobs:
         if: inputs.product == 'landmark'
         shell: bash
         env:
-          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUBSTRATE_FORCE_EMPTY_CORPUS: ${{ inputs.empty-corpus-test }}
         run: |
@@ -86,10 +86,10 @@ jobs:
           # invocations and the agent's `fit-landmark` spawns need them
           # via $GITHUB_ENV.
           status_json=$(bunx --no-install -- supabase status --output json)
-          api_url=$(echo "$status_json" | python3 -c 'import sys,json; print(json.load(sys.stdin)["api_url"])')
-          anon_key=$(echo "$status_json" | python3 -c 'import sys,json; print(json.load(sys.stdin)["anon_key"])')
+          api_url=$(echo "$status_json" | python3 -c 'import sys,json; print(json.load(sys.stdin)["API_URL"])')
+          anon_key=$(echo "$status_json" | python3 -c 'import sys,json; print(json.load(sys.stdin)["ANON_KEY"])')
           if [ -z "$api_url" ] || [ -z "$anon_key" ]; then
-            echo "FAIL: supabase status did not yield api_url + anon_key" >&2
+            echo "FAIL: supabase status did not yield API_URL + ANON_KEY" >&2
             exit 1
           fi
           echo "SUPABASE_URL=$api_url" >> "$GITHUB_ENV"
@@ -118,7 +118,7 @@ jobs:
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
           AGENT_CWD: ${{ inputs.product == 'landmark' && steps.agent-workspace.outputs.dir || '' }}
-          SUPABASE_JWT_SECRET: ${{ inputs.product == 'landmark' && secrets.SUPABASE_JWT_SECRET || '' }}
+          JWT_SECRET: ${{ inputs.product == 'landmark' && secrets.SUPABASE_JWT_SECRET || '' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ inputs.product == 'landmark' && secrets.SUPABASE_SERVICE_ROLE_KEY || '' }}
         with:
           mode: "supervise"

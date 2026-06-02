@@ -46,8 +46,8 @@ function buildDeps({ failPhase = null, invocations }) {
     },
     capture: recorded("url-discovery", async () =>
       JSON.stringify({
-        api_url: "http://supabase.local",
-        anon_key: "anon-key",
+        API_URL: "http://supabase.local",
+        ANON_KEY: "anon-key",
       }),
     ),
   };
@@ -216,8 +216,8 @@ describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
           run: recorded("noop"),
           capture: recorded("noop", async () =>
             JSON.stringify({
-              api_url: "http://x",
-              anon_key: "a",
+              API_URL: "http://x",
+              ANON_KEY: "a",
             }),
           ),
         }),
