@@ -203,7 +203,7 @@ const repl = new Repl({
       usage: "Show version",
       type: "boolean",
       handler: async () => {
-        process.stdout.write(`fit-guide v${VERSION}\n`);
+        process.stdout.write(`${VERSION}\n`);
         return false;
       },
     },

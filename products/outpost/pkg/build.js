@@ -51,7 +51,6 @@ function compileScheduler() {
     "bun build",
     "--compile",
     `--outfile "${outputPath}"`,
-    `--define 'process.env.LIBCLI_VERSION'='"${VERSION}"'`,
     "src/outpost.js",
   ].join(" ");
 

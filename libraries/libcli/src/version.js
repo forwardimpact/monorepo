@@ -18,11 +18,6 @@
 export function resolveVersion({ packageJsonUrl, runtime }) {
   const injected = process.env.LIBCLI_VERSION; // literal — the --define target
   if (injected) return injected;
-  if (!packageJsonUrl) {
-    throw new Error(
-      "resolveVersion: packageJsonUrl required when LIBCLI_VERSION is not injected",
-    );
-  }
   const text = runtime.fsSync.readFileSync(packageJsonUrl, "utf8");
   return JSON.parse(text).version;
 }

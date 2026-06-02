@@ -20,6 +20,6 @@ describe("fit-guide bin smoke", () => {
       encoding: "utf8",
       env: { ...process.env, LIBCLI_VERSION: "9.9.9-smoke" },
     });
-    assert.equal(out, "fit-guide v9.9.9-smoke\n");
+    assert.equal(out, "9.9.9-smoke\n");
   });
 });
