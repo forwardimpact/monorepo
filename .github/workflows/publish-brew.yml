@@ -76,10 +76,16 @@ jobs:
           BUNDLE="dist/apps/${{ steps.meta.outputs.bundle }}"
           codesign --verify --deep --strict "$BUNDLE"
           # Product bundles run their own CLI's --help. Shared bundles exercise
-          # one primary CLI per bundle (others are reachable via cask binary stanzas).
+          # one CLI per bundle (others are reachable via cask binary stanzas).
+          # The gear primary-exec (fit-svcgraph) is a long-running server with no
+          # --help short-circuit, so smoke the first non-server gear CLI instead;
+          # teaching the server entries to honour --help is tracked separately.
           case "${{ steps.meta.outputs.kind }}" in
             product)  "$BUNDLE/Contents/MacOS/fit-${{ steps.meta.outputs.name }}" --help ;;
-            gear)     "$BUNDLE/Contents/MacOS/fit-svcgraph" --help ;;
+            gear)
+              SMOKE_CLI=$(jq -r '[.clis[] | select(.bundle == "gear" and (.server != true)) | .name][0]' build/cli-manifest.json)
+              "$BUNDLE/Contents/MacOS/$SMOKE_CLI" --help
+              ;;
           esac
 
       - name: Verify cdhash stability

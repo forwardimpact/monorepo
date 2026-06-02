@@ -45,6 +45,10 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.matrix.outputs.cells) }}
     runs-on: ${{ matrix.os }}
+    # Bound the cell: bootstrap + codegen + compile + smoke is a few minutes, so
+    # a stuck cell (e.g. a future non-server CLI that hangs on --help) fails fast
+    # instead of burning the default job budget.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: forwardimpact/fit-bootstrap@v1
