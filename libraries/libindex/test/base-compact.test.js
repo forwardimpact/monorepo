@@ -43,10 +43,7 @@ describe("IndexBase compact() — put-call shape (mock storage)", () => {
     const [key, value] = mockStorage.put.mock.calls[0].arguments;
     assert.strictEqual(key, "test.jsonl");
     assert.strictEqual(value.length, 2, "should persist exactly two records");
-    assert.deepStrictEqual(
-      value.map((r) => r.id).sort(),
-      ["a", "c"],
-    );
+    assert.deepStrictEqual(value.map((r) => r.id).sort(), ["a", "c"]);
   });
 
   test("loads data first when compact runs before any other call", async () => {
@@ -63,10 +60,7 @@ describe("IndexBase compact() — put-call shape (mock storage)", () => {
 
     const [key, value] = seeded.put.mock.calls.at(-1).arguments;
     assert.strictEqual(key, "test.jsonl");
-    assert.deepStrictEqual(
-      value.map((r) => r.id).sort(),
-      ["x", "y"],
-    );
+    assert.deepStrictEqual(value.map((r) => r.id).sort(), ["x", "y"]);
   });
 });
 

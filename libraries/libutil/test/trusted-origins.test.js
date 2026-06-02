@@ -1,9 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
-import {
-  isTrusted,
-  loadTrustedIdpOrigins,
-} from "../src/trusted-origins.js";
+import { isTrusted, loadTrustedIdpOrigins } from "../src/trusted-origins.js";
 
 function recordingLogger() {
   const warns = [];
@@ -15,7 +12,9 @@ function recordingLogger() {
 
 describe("loadTrustedIdpOrigins", () => {
   test("normalises explicit :443 to the bare-default form on https", () => {
-    const set = loadTrustedIdpOrigins("https://github.com:443,https://github.com");
+    const set = loadTrustedIdpOrigins(
+      "https://github.com:443,https://github.com",
+    );
     assert.deepStrictEqual([...set], ["https://github.com"]);
   });
 
@@ -53,7 +52,9 @@ describe("loadTrustedIdpOrigins", () => {
   });
 
   test("trims surrounding whitespace on each comma entry", () => {
-    const set = loadTrustedIdpOrigins("  https://a.example , https://b.example  ");
+    const set = loadTrustedIdpOrigins(
+      "  https://a.example , https://b.example  ",
+    );
     assert.deepStrictEqual([...set].sort(), [
       "https://a.example",
       "https://b.example",

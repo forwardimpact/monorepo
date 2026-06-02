@@ -67,7 +67,12 @@ export function mintCompletionTicket({
   now,
 }) {
   const exp = now + TICKET_TTL_MS;
-  const payloadJson = canonicalJson({ exp, idpOrigin, linkToken, surfaceUserId });
+  const payloadJson = canonicalJson({
+    exp,
+    idpOrigin,
+    linkToken,
+    surfaceUserId,
+  });
   const payloadB64 = b64urlEncode(payloadJson);
   const sig = sign(secret, payloadB64);
   return `${payloadB64}.${b64urlEncode(sig)}`;
