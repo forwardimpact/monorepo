@@ -28,9 +28,7 @@ export function prepareLinkResume({
   trustedOrigins,
 }) {
   if (!(trustedOrigins instanceof Set))
-    throw new TypeError(
-      "prepareLinkResume: trustedOrigins must be a Set",
-    );
+    throw new TypeError("prepareLinkResume: trustedOrigins must be a Set");
   let originUrl;
   try {
     originUrl = new URL(authorizeUrl);

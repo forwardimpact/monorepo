@@ -140,7 +140,9 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
   });
 
   test("missing ticket → 'Unable to verify' and zero store touches", async () => {
-    const store = makeStore({ pending: { discussion_id: "d", surface_user_id: "42" } });
+    const store = makeStore({
+      pending: { discussion_id: "d", surface_user_id: "42" },
+    });
     const handler = defaultHandler({ store });
     const app = makeApp(handler);
     const res = await app.request("/api/link-complete?state=link-token-xyz");
@@ -150,7 +152,9 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
   });
 
   test("bad signature → 'Unable to verify' and zero store touches", async () => {
-    const store = makeStore({ pending: { discussion_id: "d", surface_user_id: "42" } });
+    const store = makeStore({
+      pending: { discussion_id: "d", surface_user_id: "42" },
+    });
     const handler = defaultHandler({ store });
     const ticket = mintCompletionTicket({
       linkToken: "link-token-xyz",
@@ -168,7 +172,9 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
   });
 
   test("expired ticket → 'Unable to verify' and zero store touches", async () => {
-    const store = makeStore({ pending: { discussion_id: "d", surface_user_id: "42" } });
+    const store = makeStore({
+      pending: { discussion_id: "d", surface_user_id: "42" },
+    });
     const lateClock = { now: () => NOW + TICKET_TTL_MS + 1 };
     const handler = defaultHandler({ store, clock: lateClock });
     const ticket = mintCompletionTicket({
@@ -187,7 +193,9 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
   });
 
   test("link_token mismatch → 'Unable to verify' and zero store touches", async () => {
-    const store = makeStore({ pending: { discussion_id: "d", surface_user_id: "42" } });
+    const store = makeStore({
+      pending: { discussion_id: "d", surface_user_id: "42" },
+    });
     const handler = defaultHandler({ store });
     const ticket = mintCompletionTicket({
       linkToken: "different-link",
@@ -205,7 +213,9 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
   });
 
   test("untrusted origin in ticket → 'Unable to verify' and zero store touches", async () => {
-    const store = makeStore({ pending: { discussion_id: "d", surface_user_id: "42" } });
+    const store = makeStore({
+      pending: { discussion_id: "d", surface_user_id: "42" },
+    });
     const handler = defaultHandler({ store });
     const ticket = mintCompletionTicket({
       linkToken: "link-token-xyz",

@@ -83,10 +83,9 @@ describe("link-resume log redaction (O4 (a))", () => {
   test("loader (a): refused entries log a warn but never the link token", () => {
     const runtime = createDefaultRuntime();
     const bridgeLogger = createLogger("ghbridge", runtime);
-    loadTrustedIdpOrigins(
-      `not-a-url, http://github.com, https://github.com`,
-      { logger: bridgeLogger },
-    );
+    loadTrustedIdpOrigins(`not-a-url, http://github.com, https://github.com`, {
+      logger: bridgeLogger,
+    });
     // Loader warns are emitted only when the logger's level admits them. The
     // assertion runs regardless of the actual emission — we want zero matches
     // even when the logger is active.
@@ -128,7 +127,9 @@ describe("link-resume log redaction (O4 (a))", () => {
       now: NOW,
     });
 
-    await app.request(`/api/link-complete?state=${encodeURIComponent(LINK_TOKEN)}`);
+    await app.request(
+      `/api/link-complete?state=${encodeURIComponent(LINK_TOKEN)}`,
+    );
     await app.request(
       `/api/link-complete?state=${encodeURIComponent(LINK_TOKEN)}&ticket=garbage`,
     );

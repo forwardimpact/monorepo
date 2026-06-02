@@ -135,7 +135,10 @@ describe("oauth authorize (SC#2)", () => {
     const res = await app.request("/callback?code=gh-code&state=s1");
     assert.strictEqual(res.status, 302);
     const location = new URL(res.headers.get("Location"));
-    assert.strictEqual(location.searchParams.get("ticket"), "payload.signature");
+    assert.strictEqual(
+      location.searchParams.get("ticket"),
+      "payload.signature",
+    );
     assert.strictEqual(location.searchParams.get("code"), "dc-123");
     assert.strictEqual(location.searchParams.get("state"), "cs-1");
   });
@@ -185,8 +188,14 @@ describe("oauth authorize (SC#2)", () => {
     const res = await app.request("/callback?code=gh-code&state=s1");
     assert.strictEqual(res.status, 200);
     const html = await res.text();
-    assert.ok(html.includes("not in the configured"), "page names the rejection cause");
-    assert.ok(html.includes("Account not linked"), "page heading is fail-closed");
+    assert.ok(
+      html.includes("not in the configured"),
+      "page names the rejection cause",
+    );
+    assert.ok(
+      html.includes("Account not linked"),
+      "page heading is fail-closed",
+    );
   });
 
   test("/callback with identity_mismatch renders refusal page", async () => {
