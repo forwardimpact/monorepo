@@ -19,7 +19,7 @@
  * @property {() => Promise<void>} flush
  * @property {() => Promise<void>} shutdown
  * @property {(target: object) => Promise<void>} [putPendingDispatch]
- * @property {(linkToken: string) => Promise<object|null>} [resolvePendingDispatch]
+ * @property {(linkToken: string, expectedSurfaceUserId?: string) => Promise<object|null>} [resolvePendingDispatch]
  */
 
 export { createBridgeServer } from "./server.js";

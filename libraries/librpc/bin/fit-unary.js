@@ -8,21 +8,8 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const runtime = createDefaultRuntime();
 
-// `bun build --compile` injects FIT_UNARY_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  runtime.proc.env.FIT_UNARY_VERSION ||
-  JSON.parse(
-    runtime.fsSync.readFileSync(
-      new URL("../package.json", import.meta.url),
-      "utf8",
-    ),
-  ).version;
-
 const definition = {
   name: "fit-unary",
-  version: VERSION,
   description: "Make a unary gRPC call to a service",
   usage: "fit-unary <service> <method> [json-request]",
   globalOptions: {
@@ -33,7 +20,10 @@ const definition = {
   examples: ['fit-unary memory GetWindow \'{"resource_id":"..."}\''],
 };
 
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const logger = createLogger("cli", runtime);
 
 /**

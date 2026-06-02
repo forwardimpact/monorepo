@@ -8,7 +8,11 @@ import {
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
-import { createStatefulDiscussionClient } from "./helpers.js";
+import {
+  DEFAULT_TICKET_SECRET,
+  DEFAULT_TRUSTED_ORIGINS,
+  createStatefulDiscussionClient,
+} from "./helpers.js";
 import {
   ADD_DISCUSSION_COMMENT_MUTATION,
   ADD_REACTION_MUTATION,
@@ -62,6 +66,8 @@ async function newService() {
     ghuserClient: {
       GetToken: async () => ({ result: "token", token: "ghs_per_user" }),
     },
+    trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+    ticketSecret: DEFAULT_TICKET_SECRET,
   });
   await service.start();
   return {

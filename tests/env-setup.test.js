@@ -57,7 +57,7 @@ describe("scripts/env-setup.js", () => {
       "SERVICE_SECRET",
       "DATABASE_PASSWORD",
       "MCP_TOKEN",
-      "SUPABASE_JWT_SECRET",
+      "JWT_SECRET",
       "SUPABASE_ANON_KEY",
       "SUPABASE_SERVICE_ROLE_KEY",
       "AWS_ACCESS_KEY_ID",
@@ -94,11 +94,11 @@ describe("scripts/env-setup.js", () => {
     }
   });
 
-  test("SUPABASE_ANON_KEY verifies against SUPABASE_JWT_SECRET", () => {
+  test("SUPABASE_ANON_KEY verifies against JWT_SECRET", () => {
     spawnSync("bun", [SCRIPT], { cwd: tmpdir });
     const env = parseEnv(readFileSync(path.join(tmpdir, ".env"), "utf8"));
     assert.ok(
-      verifyHs256(env.SUPABASE_ANON_KEY, env.SUPABASE_JWT_SECRET),
+      verifyHs256(env.SUPABASE_ANON_KEY, env.JWT_SECRET),
       "anon key signature must verify against the JWT secret",
     );
     const payload = JSON.parse(
@@ -107,11 +107,11 @@ describe("scripts/env-setup.js", () => {
     assert.strictEqual(payload.role, "anon");
   });
 
-  test("SUPABASE_SERVICE_ROLE_KEY verifies against SUPABASE_JWT_SECRET", () => {
+  test("SUPABASE_SERVICE_ROLE_KEY verifies against JWT_SECRET", () => {
     spawnSync("bun", [SCRIPT], { cwd: tmpdir });
     const env = parseEnv(readFileSync(path.join(tmpdir, ".env"), "utf8"));
     assert.ok(
-      verifyHs256(env.SUPABASE_SERVICE_ROLE_KEY, env.SUPABASE_JWT_SECRET),
+      verifyHs256(env.SUPABASE_SERVICE_ROLE_KEY, env.JWT_SECRET),
       "service-role key signature must verify against the JWT secret",
     );
     const payload = JSON.parse(

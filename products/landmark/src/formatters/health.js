@@ -14,9 +14,12 @@ import {
 // ---------------------------------------------------------------------------
 
 function formatScorePart(driver) {
-  return driver.score != null
-    ? `${driver.score}${ordinalSuffix(driver.score)} percentile`
-    : "n/a";
+  if (driver.score == null) return "n/a";
+  // Round to integer so the suffix matches the displayed digit — ordinalSuffix
+  // rounds internally, so feeding the raw decimal yields "62.3nd" (suffix from
+  // round(62.3)=62 but display 62.3).
+  const r = Math.round(driver.score);
+  return `${r}${ordinalSuffix(r)} percentile`;
 }
 
 function formatSkillNames(driver) {
@@ -90,9 +93,9 @@ function countHiddenAnchors(driver) {
  * @returns {string}
  */
 function formatPercentileCell(driver) {
-  return driver.score != null
-    ? `${driver.score}${ordinalSuffix(driver.score)}`
-    : "n/a";
+  if (driver.score == null) return "n/a";
+  const r = Math.round(driver.score);
+  return `${r}${ordinalSuffix(r)}`;
 }
 
 /**
@@ -220,12 +223,20 @@ function renderMdDriver(driver, lines, deduped) {
 const TEXT_COLS = { num: 3, driver: 16, percentile: 12, vsOrg: 9 };
 
 function renderTextDefault(view, deduped, lines) {
+  // The Driver column is the only one whose content can exceed its default
+  // width (16) — e.g. "Leveraging User Feedback" is 24. Expand to fit so
+  // multi-word driver names don't collide with the Percentile column.
+  const driverWidth = Math.max(
+    TEXT_COLS.driver,
+    "Driver".length,
+    ...view.drivers.map((d) => d.name.length + 1),
+  );
   lines.push(`  Drivers (${view.drivers.length})`);
   lines.push("  " + "─".repeat(60));
   lines.push(
     "  " +
       padRight("#", TEXT_COLS.num) +
-      padRight("Driver", TEXT_COLS.driver) +
+      padRight("Driver", driverWidth) +
       padRight("Percentile", TEXT_COLS.percentile) +
       padRight("vs_org", TEXT_COLS.vsOrg) +
       "More",
@@ -235,7 +246,7 @@ function renderTextDefault(view, deduped, lines) {
     lines.push(
       "  " +
         padRight(String(i + 1), TEXT_COLS.num) +
-        padRight(driver.name, TEXT_COLS.driver) +
+        padRight(driver.name, driverWidth) +
         padRight(cells.percentile, TEXT_COLS.percentile) +
         padRight(cells.vsOrg, TEXT_COLS.vsOrg) +
         cells.more,

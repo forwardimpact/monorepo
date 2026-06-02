@@ -30,7 +30,7 @@ export async function start({ cli, runtime, out = runtime.proc.stdout } = {}) {
   await cli.run(["start"]);
   const json = await cli.capture(["status", "--output", "json"]);
   const status = JSON.parse(json);
-  out.write("\n" + formatSuccess(`Supabase ready at ${status.api_url}`) + "\n");
+  out.write("\n" + formatSuccess(`Supabase ready at ${status.API_URL}`) + "\n");
   return 0;
 }
 

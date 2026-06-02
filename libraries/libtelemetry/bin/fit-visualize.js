@@ -11,21 +11,8 @@ import { TraceVisualizer } from "../src/visualizer.js";
 
 const runtime = createDefaultRuntime();
 
-// `bun build --compile` injects FIT_VISUALIZE_VERSION via --define,
-// eliminating the readFileSync branch in the compiled binary (which would
-// ENOENT against the bunfs virtual mount). Source execution falls through.
-const VERSION =
-  runtime.proc.env.FIT_VISUALIZE_VERSION ||
-  JSON.parse(
-    runtime.fsSync.readFileSync(
-      new URL("../package.json", import.meta.url),
-      "utf8",
-    ),
-  ).version;
-
 const definition = {
   name: "fit-visualize",
-  version: VERSION,
   description: "Query and visualize traces using JMESPath expressions",
   globalOptions: {
     trace: { type: "string", description: "Filter traces by trace ID" },
@@ -43,7 +30,10 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 
 const parsed = cli.parse(runtime.proc.argv.slice(2));
 if (!parsed) runtime.proc.exit(0);

@@ -19,7 +19,7 @@ to find out.
   [Sign In to Landmark](https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md).
   Unattended agents and CI fixtures instead export an operator-minted JWT
   as `PRODUCT_LANDMARK_TOKEN`; test harnesses mint short-lived JWTs against
-  `SUPABASE_JWT_SECRET` via the `signTestToken` helper.
+  `JWT_SECRET` via the `signTestToken` helper.
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY` available in your environment.
   Local installs generate these in `.env` via `just env-setup`; hosted
   Supabase deployments copy them from the project's API settings.

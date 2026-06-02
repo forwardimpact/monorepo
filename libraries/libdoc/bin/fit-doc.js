@@ -2,7 +2,6 @@
 import "@forwardimpact/libpreflight/node22";
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import fs from "node:fs";
 import path from "node:path";
 import { Hono } from "hono";
@@ -17,17 +16,8 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { PagesBuilder, PagesServer } from "../src/index.js";
 import { parseFrontMatter } from "../src/frontmatter.js";
 
-// `bun build --compile` injects FIT_DOC_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_DOC_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-doc",
-  version: VERSION,
   description: "Build and serve documentation sites from markdown",
   commands: [
     {
@@ -80,7 +70,10 @@ const definition = {
 };
 
 const runtime = createDefaultRuntime();
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const logger = createLogger("doc", runtime);
 
 /**

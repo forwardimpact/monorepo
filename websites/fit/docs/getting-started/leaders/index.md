@@ -1,12 +1,14 @@
 ---
 title: "Getting Started: Leaders"
-description: "Go from an unwritten engineering standard to a validated, previewable definition — with career paths, capability signals, and team analysis ready to use."
+description: "Set up the Forward Impact suite for engineering leaders — define the engineering standard, measure system-level outcomes, and analyze team capability."
 layout: product
 toc: false
 ---
 
-Set up the Forward Impact suite for engineering leaders. Each guide walks you
-through a single product from install to working output.
+Set up the Forward Impact suite for engineering leaders: define what good
+engineering looks like (Map, Pathway), measure progress without surveillance
+(Landmark), and staff teams with evidence (Summit). Each guide walks one
+product from install to working output.
 
 **Prerequisites for all guides:** Node.js 22+ and npm.
 

@@ -28,6 +28,7 @@ message CompleteResponse {
   optional string redirect_uri = 2;
   optional string client_state = 3;
   optional string outcome = 4;
+  optional string completion_ticket = 5;
 }
 
 message RedeemRequest { string code = 1; string code_verifier = 2; }

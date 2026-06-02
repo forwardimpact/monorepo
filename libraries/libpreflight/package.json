@@ -1,10 +1,11 @@
 {
   "name": "@forwardimpact/libpreflight",
   "version": "0.1.1",
-  "description": "Runtime-floor preflight — fail fast with a product-authored error when the host Node is below a package's declared floor.",
+  "description": "Fail fast at process start with product-authored errors — runtime-floor checks and required-config assertions before heavy imports resolve.",
   "keywords": [
     "preflight",
     "runtime",
+    "config",
     "node",
     "engines",
     "agent"
@@ -25,12 +26,21 @@
       "bigHire": "enforce a runtime floor before any heavy import evaluates.",
       "littleHire": "surface a product-authored Node-version error instead of an upstream library's.",
       "competesWith": "inline checks in each bin; engines-strict; install-time hooks"
+    },
+    {
+      "user": "Platform Builders",
+      "goal": "Ship Predictable Services",
+      "trigger": "Operator starts a service with a required config value unset or empty.",
+      "bigHire": "fail fast at startup before the service constructs partially against an unsafe default.",
+      "littleHire": "surface a product-authored empty-config error before the service constructs partially.",
+      "competesWith": "ad-hoc inline checks; null-coalesced defaults that mask the regression"
     }
   ],
   "type": "module",
   "exports": {
     "./node22": "./src/node22.js",
-    "./check.js": "./src/check.js"
+    "./check.js": "./src/check.js",
+    "./assert-non-empty.js": "./src/assert-non-empty.js"
   },
   "files": [
     "src/**/*.js",

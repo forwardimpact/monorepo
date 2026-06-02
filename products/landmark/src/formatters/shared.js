@@ -56,6 +56,23 @@ export function ordinalSuffix(n) {
 }
 
 /**
+ * Truncate a snippet to `max` chars on a word boundary, appending an
+ * ellipsis. Falls through to a hard cut if no boundary exists in the last
+ * 40% of the slice.
+ *
+ * @param {string} s
+ * @param {number} [max=60]
+ * @returns {string}
+ */
+export function truncateSnippet(s, max = 60) {
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max - 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  const body = lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut;
+  return body + "…";
+}
+
+/**
  * Render a simple key-value table.
  *
  * @param {Array<[string, string]>} rows

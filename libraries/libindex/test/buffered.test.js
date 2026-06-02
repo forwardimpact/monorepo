@@ -138,6 +138,59 @@ describe("BufferedIndex - Buffered Write Operations", () => {
     });
   });
 
+  describe("Compact (flush-then-replace)", () => {
+    test("flushes the buffer, then replaces the persisted file", async () => {
+      const config = { flush_interval: 10000 };
+      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
+        clock,
+      });
+
+      await bufferedIndex.add({ id: "a", body: "alpha" });
+      await bufferedIndex.add({ id: "b", body: "beta" });
+      bufferedIndex.index.delete("a");
+
+      await bufferedIndex.compact();
+
+      assert.strictEqual(
+        mockStorage.put.mock.callCount(),
+        1,
+        "compact should replace the persisted file once",
+      );
+      const [key, value] = mockStorage.put.mock.calls[0].arguments;
+      assert.strictEqual(key, "test.jsonl");
+      assert.strictEqual(value.length, 1);
+      assert.strictEqual(value[0].id, "b");
+
+      const persisted = mockStorage.data.get("test.jsonl");
+      assert.strictEqual(
+        persisted.includes("alpha"),
+        false,
+        "the deleted record's body must not remain on disk after compact",
+      );
+    });
+
+    test("compact with an empty buffer still replaces the persisted file", async () => {
+      const config = { flush_interval: 10000 };
+      bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
+        clock,
+      });
+
+      await bufferedIndex.add({ id: "a", body: "alpha" });
+      await bufferedIndex.flush();
+      bufferedIndex.index.delete("a");
+
+      await bufferedIndex.compact();
+
+      assert.strictEqual(
+        mockStorage.put.mock.callCount(),
+        1,
+        "compact should call put even when the buffer is already drained",
+      );
+      const [, value] = mockStorage.put.mock.calls[0].arguments;
+      assert.strictEqual(value.length, 0);
+    });
+  });
+
   describe("Shutdown", () => {
     test("shutdown flushes remaining buffered items", async () => {
       const config = { flush_interval: 10000 };

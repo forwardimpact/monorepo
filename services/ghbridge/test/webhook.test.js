@@ -8,7 +8,11 @@ import {
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
-import { createStatefulDiscussionClient } from "./helpers.js";
+import {
+  DEFAULT_TICKET_SECRET,
+  DEFAULT_TRUSTED_ORIGINS,
+  createStatefulDiscussionClient,
+} from "./helpers.js";
 
 const SECRET = "ghbridge-test-secret-long-enough";
 
@@ -66,6 +70,8 @@ async function newService({ dispatchImpl } = {}) {
       return { addDiscussionComment: { comment: { id: "C_1", url: "url" } } };
     },
     ghuserClient: makeGhuserClient(),
+    trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+    ticketSecret: DEFAULT_TICKET_SECRET,
   });
   await service.start();
   return { service, harness };

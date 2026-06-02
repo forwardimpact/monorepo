@@ -17,7 +17,7 @@ describe("fit-map bin smoke", () => {
       [join(binDir, "fit-map.js"), "--version"],
       {
         encoding: "utf8",
-        env: { ...process.env, FIT_MAP_VERSION: "9.9.9-smoke" },
+        env: { ...process.env, LIBCLI_VERSION: "9.9.9-smoke" },
       },
     );
     assert.equal(out, "9.9.9-smoke\n");
@@ -31,7 +31,7 @@ describe("dispatch-substrate bin smoke", () => {
       [join(binDir, "dispatch-substrate.js"), "--version"],
       {
         encoding: "utf8",
-        env: { ...process.env, FIT_MAP_VERSION: "9.9.9-smoke" },
+        env: { ...process.env, LIBCLI_VERSION: "9.9.9-smoke" },
       },
     );
     assert.equal(out, "9.9.9-smoke\n");

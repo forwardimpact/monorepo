@@ -86,13 +86,13 @@ export async function runStageCommand(
   await runPhase("url-discovery", async () => {
     const json = await cli.capture(["status", "--output", "json"]);
     const status = JSON.parse(json);
-    if (!status.api_url) throw new Error("supabase status: no api_url");
-    if (!status.anon_key) throw new Error("supabase status: no anon_key");
+    if (!status.API_URL) throw new Error("supabase status: no API_URL");
+    if (!status.ANON_KEY) throw new Error("supabase status: no ANON_KEY");
     // libconfig's #env() reads env first; setting these here makes the
     // createMapClient call below (and any same-process children) observe
     // the live local-stack values.
-    runtime.proc.env.SUPABASE_URL = status.api_url;
-    runtime.proc.env.SUPABASE_ANON_KEY = status.anon_key;
+    runtime.proc.env.SUPABASE_URL = status.API_URL;
+    runtime.proc.env.SUPABASE_ANON_KEY = status.ANON_KEY;
   });
 
   await runPhase("migrate", () => cli.run(["db", "reset"]));

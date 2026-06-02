@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createServiceConfig } from "@forwardimpact/libconfig";
@@ -11,17 +10,8 @@ import { embedding } from "@forwardimpact/libtype";
 import { createStorage } from "@forwardimpact/libstorage";
 import { VectorIndex } from "@forwardimpact/libvector/index/vector.js";
 
-// `bun build --compile` injects FIT_SEARCH_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_SEARCH_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-search",
-  version: VERSION,
   description: "Search vector index by embedding a query string",
   usage: "fit-search <query>",
   globalOptions: {
@@ -33,7 +23,10 @@ const definition = {
 };
 
 const runtime = createDefaultRuntime();
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const logger = createLogger("search", runtime);
 
 /**

@@ -5,7 +5,7 @@
  * a different manager M') hit each table; this test asserts the admit/deny
  * matrix matches the per-row-class scope rule.
  *
- * Live-Postgres only — skipped when SUPABASE_URL / SUPABASE_JWT_SECRET
+ * Live-Postgres only — skipped when SUPABASE_URL / JWT_SECRET
  * are unset.
  */
 
@@ -32,7 +32,7 @@ function clientFor(email) {
 
 describe("RLS scope matrix", () => {
   if (!isLiveSupabaseAvailable()) {
-    test("skipped — SUPABASE_URL / SUPABASE_JWT_SECRET not set", {
+    test("skipped — SUPABASE_URL / JWT_SECRET not set", {
       skip: true,
     }, () => {});
     return;

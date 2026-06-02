@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import readline from "node:readline";
 
 import { createCli } from "@forwardimpact/libcli";
@@ -11,17 +10,8 @@ import { LogWriter } from "../src/logger.js";
 
 const runtime = createDefaultRuntime();
 
-// `bun build --compile` injects FIT_LOGGER_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_LOGGER_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-logger",
-  version: VERSION,
   description: "Log writer that reads stdin and writes rotated log files",
   globalOptions: {
     dir: {
@@ -49,7 +39,10 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 
 const parsed = cli.parse(process.argv.slice(2));
 if (!parsed) runtime.proc.exit(0);

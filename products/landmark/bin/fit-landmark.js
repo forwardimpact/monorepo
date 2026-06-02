@@ -10,10 +10,6 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { createCli } from "@forwardimpact/libcli";
 import { createProductConfig } from "@forwardimpact/libconfig";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
@@ -50,21 +46,10 @@ if (process.argv[2] === "_commands") {
   process.exit(0);
 }
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// `bun build --compile` injects FIT_LANDMARK_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_LANDMARK_VERSION ||
-  JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"))
-    .version;
-
 const config = await createProductConfig("landmark", { token: undefined });
 
 const definition = {
   name: "fit-landmark",
-  version: VERSION,
   description: "Landmark — analysis and recommendations on top of Map data.",
   commands: [
     { name: "org show", description: "Show full organization directory" },
@@ -266,7 +251,10 @@ const definition = {
 
 async function main() {
   const runtime = createDefaultRuntime();
-  const cli = createCli(definition, { runtime });
+  const cli = createCli(definition, {
+    runtime,
+    packageJsonUrl: new URL("../package.json", import.meta.url),
+  });
   const parsed = cli.parse(process.argv.slice(2));
   if (!parsed) process.exit(0);
 

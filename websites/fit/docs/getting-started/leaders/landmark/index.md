@@ -43,7 +43,7 @@ Today's minimum stand-up is three steps under Map plus one Landmark login:
 1. **Start the activity layer.** `npx fit-map activity start` brings the
    Supabase stack up and prints a one-line ready confirmation. The bootstrap
    recipe (`just env-setup` for monorepo contributors) writes `SUPABASE_URL`,
-   `SUPABASE_ANON_KEY`, `SUPABASE_JWT_SECRET`, and `SUPABASE_SERVICE_ROLE_KEY`
+   `SUPABASE_ANON_KEY`, `JWT_SECRET`, and `SUPABASE_SERVICE_ROLE_KEY`
    to `.env`. Hosted Supabase users copy the same four values from Project
    Settings → API.
 2. **Push the roster.** `npx fit-map people push ./people.yaml` populates

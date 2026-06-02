@@ -13,16 +13,16 @@ import { runFixCommand } from "./commands/fix.js";
 /**
  * Build the `fit-wiki` libcli definition. The agent/sender defaults read the
  * injected `env` rather than the ambient `process.env` so this module carries
- * no ambient dependency; the bin shim passes `runtime.proc.env` and the
- * package version. Each subcommand carries a `handler` and (for subcommand-
- * bearing commands) `args`/`argsUsage` so `cli.dispatch` can route to the
- * per-command handler with a frozen `ctx`.
+ * no ambient dependency; the bin shim passes `runtime.proc.env`. The version is
+ * resolved by libcli's `createCli` from the bin's `packageJsonUrl`. Each
+ * subcommand carries a `handler` and (for subcommand-bearing commands)
+ * `args`/`argsUsage` so `cli.dispatch` can route to the per-command handler
+ * with a frozen `ctx`.
  *
  * @param {Record<string, string>} env - The process env (`runtime.proc.env`).
- * @param {string} version - The package version string.
  * @returns {object} The libcli definition.
  */
-export function createDefinition(env, version) {
+export function createDefinition(env) {
   const wikiRootOpt = {
     "wiki-root": {
       type: "string",
@@ -48,7 +48,6 @@ export function createDefinition(env, version) {
 
   return {
     name: "fit-wiki",
-    version,
     description: "Wiki lifecycle management for the Kata agent system",
     commands: [
       {

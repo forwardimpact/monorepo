@@ -6,6 +6,7 @@ on:
     paths:
       - "products/outpost/**"
       - "libraries/libmacos/**"
+      - "justfile"
       - ".github/workflows/outpost-determinism-probe.yml"
 
 permissions:

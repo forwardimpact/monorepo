@@ -20,7 +20,7 @@ project. Engineers do not run it.
 ## Prerequisites
 
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and
-  `SUPABASE_JWT_SECRET` available in your environment.
+  `JWT_SECRET` available in your environment.
   - **Local stack** — `just env-setup` writes all three to `.env`.
   - **Hosted Supabase** — find them in Project Settings → API → Project URL,
     Service Role Key, and JWT Secret.
@@ -85,7 +85,7 @@ PRODUCT_LANDMARK_TOKEN=$JWT fit-landmark voice
 ```
 
 No magic-link, no refresh flow — the long-lived JWT verifies under
-`SUPABASE_JWT_SECRET` on the Postgres side, RLS clamps the result to
+`JWT_SECRET` on the Postgres side, RLS clamps the result to
 the service-account's row class, and the agent runs unattended.
 
 ## Security guidance

@@ -1,7 +1,7 @@
 /**
  * fit-landmark sources verb tests.
  *
- * Live-Postgres only — skipped when SUPABASE_URL / SUPABASE_JWT_SECRET
+ * Live-Postgres only — skipped when SUPABASE_URL / JWT_SECRET
  * are unset.
  *
  * Covers:
@@ -37,7 +37,7 @@ function clientFor(email) {
 
 describe("fit-landmark sources", () => {
   if (!isLiveSupabaseAvailable()) {
-    test("skipped — SUPABASE_URL / SUPABASE_JWT_SECRET not set", {
+    test("skipped — SUPABASE_URL / JWT_SECRET not set", {
       skip: true,
     }, () => {});
     return;

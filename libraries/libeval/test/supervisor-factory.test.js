@@ -59,7 +59,7 @@ describe("Supervisor - createSupervisor factory", () => {
     assert.strictEqual(typeof s.supervisorRunner.systemPrompt, "string");
     assert.strictEqual(
       s.supervisorRunner.systemPrompt,
-      SUPERVISOR_SYSTEM_PROMPT,
+      `<session_protocol>\n${SUPERVISOR_SYSTEM_PROMPT}\n</session_protocol>`,
     );
   });
 
@@ -68,8 +68,19 @@ describe("Supervisor - createSupervisor factory", () => {
     assert.deepStrictEqual(s.agentRunner.systemPrompt, {
       type: "preset",
       preset: "claude_code",
-      append: AGENT_SYSTEM_PROMPT,
+      append: `<session_protocol>\n${AGENT_SYSTEM_PROMPT}\n</session_protocol>`,
     });
+  });
+
+  test("folds agentSystemPromptAmend into the agent <session_protocol>", () => {
+    const s = createSupervisor({
+      ...baseOpts(),
+      agentSystemPromptAmend: "<TEST_MARKER>",
+    });
+    assert.strictEqual(
+      s.agentRunner.systemPrompt.append,
+      `<session_protocol>\n${AGENT_SYSTEM_PROMPT}\n\n<TEST_MARKER>\n</session_protocol>`,
+    );
   });
 
   test("blocks sub-agent spawn and write tools on supervisor by default", () => {

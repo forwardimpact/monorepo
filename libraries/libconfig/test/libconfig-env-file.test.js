@@ -276,7 +276,7 @@ describe("libconfig - .env file loading", () => {
         "SUPABASE_URL=http://127.0.0.1:54321",
         "SUPABASE_ANON_KEY=anon-jwt",
         "SUPABASE_SERVICE_ROLE_KEY=service-role-jwt",
-        "SUPABASE_JWT_SECRET=signing-secret",
+        "JWT_SECRET=signing-secret",
       ].join("\n"),
     );
 
@@ -302,7 +302,7 @@ describe("libconfig - .env file loading", () => {
     // Three secret values must NOT leak onto process.env.
     assert.strictEqual(runtime.proc.env.SUPABASE_ANON_KEY, undefined);
     assert.strictEqual(runtime.proc.env.SUPABASE_SERVICE_ROLE_KEY, undefined);
-    assert.strictEqual(runtime.proc.env.SUPABASE_JWT_SECRET, undefined);
+    assert.strictEqual(runtime.proc.env.JWT_SECRET, undefined);
   });
 
   test("strips export prefix on keys", async () => {

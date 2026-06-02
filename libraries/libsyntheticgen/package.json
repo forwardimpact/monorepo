@@ -46,7 +46,7 @@
     "@forwardimpact/libprompt": "^0.1.9",
     "@forwardimpact/libsyntheticrender": "^0.1.25"
   },
-  "optionalDependencies": {
+  "peerDependencies": {
     "@faker-js/faker": "^10.4.0"
   },
   "engines": {
@@ -55,5 +55,10 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependenciesMeta": {
+    "@faker-js/faker": {
+      "optional": true
+    }
   }
 }

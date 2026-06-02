@@ -29,8 +29,8 @@ function fakeStdout() {
 }
 
 describe("activity.start()", () => {
-  test("prints a single ready confirmation with the api_url", async () => {
-    const cli = fakeCli({ api_url: "http://127.0.0.1:54321" });
+  test("prints a single ready confirmation with the API_URL", async () => {
+    const cli = fakeCli({ API_URL: "http://127.0.0.1:54321" });
     const out = fakeStdout();
     const rc = await start({ cli, out });
     assert.equal(rc, 0);

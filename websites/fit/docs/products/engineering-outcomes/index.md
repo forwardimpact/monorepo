@@ -121,15 +121,17 @@ npx fit-landmark snapshot compare --snapshot MjUyNbaY --manager alice@example.co
 ```
 
 ```text
-  Snapshot comparison: MjUyNbaY (Alice Smith's team vs organization)
+  Snapshot snap_2025_Q3
 
-    Driver          Team   p50   p75   p90
-    code_review       78    70    80    88
-    incident_response 65    68    76    84
-    deep_work         82    72    81    90
+    Code Review        78    vs_prev: +6, vs_org: +8, vs_50th: +8, vs_75th: -2, vs_90th: -10
+    Incident Response  65    vs_prev: -3, vs_org: -3, vs_50th: -3, vs_75th: -11, vs_90th: -19
+    Deep Work          82    vs_prev: +1, vs_org: +10, vs_50th: +10, vs_75th: +1, vs_90th: -8
 ```
 
-Use the snapshot ID from `npx fit-landmark snapshot list`.
+Each row shows the team's score followed by signed deltas against the
+previous snapshot (`vs_prev`), the organization median (`vs_org`), and the
+50th/75th/90th percentiles. Use the snapshot ID from
+`npx fit-landmark snapshot list`.
 
 ## Build the health view
 

@@ -212,18 +212,32 @@ export class BridgeService extends BridgeBase {
    */
   async ResolvePendingDispatch(req) {
     await this.#pendingDispatches.loadData();
-    const stale = [];
-    for (const [id, rec] of this.#pendingDispatches.index) {
-      if (rec.deleted) stale.push(id);
-    }
-    for (const id of stale) this.#pendingDispatches.index.delete(id);
     const rec = this.#pendingDispatches.index.get(req.link_token);
     if (!rec)
       throw Object.assign(new Error("not found"), {
         code: grpc.status.NOT_FOUND,
       });
+    // Server-side surface-user-id gate: when the caller asserts which user
+    // should own the entry, refuse to consume on mismatch. Closes the
+    // pre-consume window the libbridge handler would otherwise open if it
+    // did the cross-check client-side after the destructive resolve.
+    if (
+      req.expected_surface_user_id != null &&
+      req.expected_surface_user_id !== "" &&
+      rec.surface_user_id !== req.expected_surface_user_id
+    ) {
+      throw Object.assign(new Error("surface_user_id mismatch"), {
+        code: grpc.status.FAILED_PRECONDITION,
+      });
+    }
     this.#pendingDispatches.index.delete(req.link_token);
-    await this.#pendingDispatches.add({ id: req.link_token, deleted: true });
+    // compaction safety: services/bridge runs single-instance per tenant;
+    // gRPC handlers serialise on the event loop, so compact() and add()
+    // never interleave inside one process. The periodic sweep at #sweep
+    // also calls compact() under the same invariant. If services/bridge
+    // ever becomes multi-instance, replace these with a tmp-file +
+    // atomic rename inside libstorage.
+    await this.#pendingDispatches.compact();
     return bridge.PendingDispatch.fromObject({
       link_token: rec.id,
       surface: rec.surface,
@@ -273,7 +287,7 @@ export class BridgeService extends BridgeBase {
     const evicted_pending = this.#sweepIndex(
       this.#pendingDispatches.index,
       now,
-      (rec) => rec.deleted || now - (rec.created_at ?? 0) > this.#pendingTtlMs,
+      (rec) => now - (rec.created_at ?? 0) > this.#pendingTtlMs,
     );
 
     let evictedInbox = 0;
@@ -286,7 +300,7 @@ export class BridgeService extends BridgeBase {
 
     if (evicted_discussions > 0) await this.#discussions.flush();
     if (evicted_origins > 0) await this.#origins.flush();
-    if (evicted_pending > 0) await this.#pendingDispatches.flush();
+    if (evicted_pending > 0) await this.#pendingDispatches.compact();
     if (evictedInbox > 0) await this.#inbox.flush();
 
     return { evicted_discussions, evicted_origins, evicted_pending };

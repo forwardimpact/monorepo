@@ -147,9 +147,13 @@ Growth recommendations appear when Summit is installed.
 ## Getting Started
 
 ```sh
-npm install @forwardimpact/landmark
-npx fit-landmark marker task_completion
+npm install @forwardimpact/landmark @forwardimpact/map
+npx fit-map init                            # seed ./data/pathway/ with the starter standard
+npx fit-landmark marker task_completion     # reference view — no Supabase required
 ```
+
+The rest of Landmark (`health`, `voice`, `snapshot`, `evidence`, …) reads
+from Map's activity layer. Walk that setup in the per-persona guides below.
 
 <div class="grid">
 

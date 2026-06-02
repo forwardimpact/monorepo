@@ -13,7 +13,6 @@ import "@forwardimpact/libpreflight/node22";
 
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { readFileSync } from "fs";
 import { homedir } from "os";
 import { createDataLoader } from "@forwardimpact/map/loader";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
@@ -41,14 +40,6 @@ import { runServeCommand } from "../src/commands/serve.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_DIR = join(__dirname, "..", "templates");
 
-// `bun build --compile` injects FIT_PATHWAY_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_PATHWAY_VERSION ||
-  JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"))
-    .version;
-
 const COMMANDS = {
   discipline: runDisciplineCommand,
   level: runLevelCommand,
@@ -66,7 +57,6 @@ const COMMANDS = {
 
 const definition = {
   name: "fit-pathway",
-  version: VERSION,
   description: "Career progression for agent-aligned engineering standards",
   commands: [
     { name: "discipline", args: "[<id>]", description: "Show disciplines" },
@@ -265,7 +255,10 @@ const definition = {
  */
 async function main() {
   const runtime = createDefaultRuntime();
-  const cli = createCli(definition, { runtime });
+  const cli = createCli(definition, {
+    runtime,
+    packageJsonUrl: new URL("../package.json", import.meta.url),
+  });
   const parsed = cli.parse(process.argv.slice(2));
   if (!parsed) process.exit(0);
 

@@ -122,8 +122,9 @@ function resolveAnonClient({ config, createClient, flowType = "implicit" }) {
   } catch (err) {
     throw new Error(
       "fit-landmark login: SUPABASE_URL and SUPABASE_ANON_KEY must be set. " +
-        "Run `just env-setup` (local) or copy them from your Supabase " +
-        `project settings (hosted). Underlying: ${err.message}`,
+        "Copy them from your Supabase project Settings → API " +
+        "(or, for monorepo contributors, run `just env-setup`). " +
+        `Underlying: ${err.message}`,
     );
   }
   return createClient(url, anonKey, {

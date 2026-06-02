@@ -5,10 +5,12 @@ import { createAppAuth } from "@octokit/auth-app";
 import { graphql } from "@octokit/graphql";
 import { verify } from "@octokit/webhooks-methods";
 
+import { assertNonEmpty } from "@forwardimpact/libpreflight/assert-non-empty.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { clients, createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { loadTrustedIdpOrigins } from "@forwardimpact/libutil/trusted-origins";
 
 import { GhBridgeService } from "./index.js";
 
@@ -19,10 +21,24 @@ const config = await createServiceConfig("ghbridge", {
   app_private_key: "",
   app_installation_id: "",
   app_webhook_secret: "",
+  trusted_idp_origins: "",
+  link_completion_ticket_secret: "",
 });
+
+assertNonEmpty(config.trusted_idp_origins, "trusted_idp_origins");
+assertNonEmpty(
+  config.link_completion_ticket_secret,
+  "link_completion_ticket_secret",
+);
+
 const runtime = createDefaultRuntime();
 const logger = createLogger("ghbridge", runtime);
 const tracer = await createTracer("ghbridge");
+
+const trustedOrigins = loadTrustedIdpOrigins(config.trusted_idp_origins, {
+  logger,
+});
+assertNonEmpty(trustedOrigins, "trusted_idp_origins (loaded)");
 
 const appAuth = createAppAuth({
   appId: config.app_id,
@@ -64,6 +80,8 @@ const service = new GhBridgeService(config, {
   graphqlClient,
   ghuserClient,
   clock,
+  trustedOrigins,
+  ticketSecret: config.link_completion_ticket_secret,
 });
 
 await service.start();

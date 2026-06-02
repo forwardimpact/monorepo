@@ -8,7 +8,11 @@ import {
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
-import { createStatefulDiscussionClient } from "./helpers.js";
+import {
+  DEFAULT_TICKET_SECRET,
+  DEFAULT_TRUSTED_ORIGINS,
+  createStatefulDiscussionClient,
+} from "./helpers.js";
 
 const SECRET = "ghbridge-test-secret-long-enough";
 
@@ -92,6 +96,8 @@ describe("ghbridge dispatch-auth", () => {
         return {};
       },
       ghuserClient,
+      trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+      ticketSecret: DEFAULT_TICKET_SECRET,
     });
   }
 
@@ -181,7 +187,7 @@ describe("ghbridge dispatch-auth", () => {
   test("link_required: discussion reply with authorize URL, no workflow_dispatch", async () => {
     const client = makeGhuserClient(() => ({
       result: "link_required",
-      link_required: { authorize_url: "https://example.com/authorize?s=ghd" },
+      link_required: { authorize_url: "https://github.com/authorize?s=ghd" },
     }));
     const service = buildService(client);
     await service.start();
@@ -205,6 +211,35 @@ describe("ghbridge dispatch-auth", () => {
     expect(linkBody).toContain("redirect_uri=");
     expect(linkBody).toContain("client_state=");
     expect(linkBody).toContain("link-complete");
+
+    await service.stop();
+  });
+
+  test("link_required with untrusted authorize_url: no put, no post, no workflow_dispatch (SC #4 parity)", async () => {
+    const client = makeGhuserClient(() => ({
+      result: "link_required",
+      link_required: {
+        authorize_url: "https://attacker.example/authorize?s=ghd",
+      },
+    }));
+    const service = buildService(client);
+    await service.start();
+    const baseUrl = `http://127.0.0.1:${service.address().port}`;
+
+    const res = await postSigned(baseUrl, "discussion", {
+      action: "created",
+      discussion: {
+        node_id: "D_untrusted",
+        body: "hi",
+        user: { id: 1, login: "u" },
+      },
+    });
+    expect(res.status).toBe(200);
+    expect(dispatches).toHaveLength(0);
+    const commentCalls = graphqlCalls.filter((c) =>
+      c.query.includes("addDiscussionComment"),
+    );
+    expect(commentCalls).toHaveLength(0);
 
     await service.stop();
   });

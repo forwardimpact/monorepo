@@ -3,7 +3,7 @@
  *
  * Tests need a running Supabase stack (migrate, apply RLS, mint JWTs,
  * exercise the policy matrix). The harness:
- *   - skips when `SUPABASE_URL` and `SUPABASE_JWT_SECRET` are unset
+ *   - skips when `SUPABASE_URL` and `JWT_SECRET` are unset
  *     (CI runs the suite without booting Supabase)
  *   - applies the RLS migration via `bunx fit-map activity migrate`
  *   - seeds a per-test fixture under the service-role admin client
@@ -17,7 +17,7 @@ import { createClient } from "@supabase/supabase-js";
 
 /** Return true when env vars for a running local Supabase stack are set. */
 export function isLiveSupabaseAvailable() {
-  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_JWT_SECRET);
+  return Boolean(process.env.SUPABASE_URL && process.env.JWT_SECRET);
 }
 
 /**

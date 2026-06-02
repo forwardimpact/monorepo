@@ -18,7 +18,15 @@ permissions:
   contents: read
 
 jobs:
+  binaries:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      targets: '["bun-darwin-arm64"]'
+
   build:
+    needs: binaries
     runs-on: macos-14
 
     permissions:
@@ -48,20 +56,19 @@ jobs:
 
       - uses: ./.github/actions/audit
 
-      - name: Ensure codegen is current
-        run: just codegen
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: "*-bun-darwin-arm64"
+          path: dist/binaries
+          merge-multiple: true
 
-      - name: Build bundle
+      - name: Assemble bundle
         run: |
+          # upload-artifact drops the executable bit; restore it before wrapping.
+          find dist/binaries -type f ! -name '*.sha256' -exec chmod +x {} +
           case "${{ steps.meta.outputs.kind }}" in
-            gear)
-              just build-gear-binaries
-              just build-app-gear
-              ;;
-            product)
-              just build-binary "fit-${{ steps.meta.outputs.name }}"
-              just build-app-product "${{ steps.meta.outputs.name }}"
-              ;;
+            gear)     just build-app-gear ;;
+            product)  just build-app-product "${{ steps.meta.outputs.name }}" ;;
           esac
 
       - name: Smoke test
@@ -69,10 +76,18 @@ jobs:
           BUNDLE="dist/apps/${{ steps.meta.outputs.bundle }}"
           codesign --verify --deep --strict "$BUNDLE"
           # Product bundles run their own CLI's --help. Shared bundles exercise
-          # one primary CLI per bundle (others are reachable via cask binary stanzas).
+          # one CLI per bundle (others are reachable via cask binary stanzas).
+          # The gear primary-exec (fit-svcgraph) is a long-running server with no
+          # --help short-circuit, so smoke the first non-server gear CLI instead;
+          # teaching the server entries to honour --help is tracked separately.
           case "${{ steps.meta.outputs.kind }}" in
             product)  "$BUNDLE/Contents/MacOS/fit-${{ steps.meta.outputs.name }}" --help ;;
-            gear)     "$BUNDLE/Contents/MacOS/fit-svcgraph" --help ;;
+            gear)
+              SMOKE_CLI=$(jq -r '[.clis[] | select(.bundle == "gear" and (.server != true)) | .name][0]' build/cli-manifest.json)
+              test -n "$SMOKE_CLI" && [ "$SMOKE_CLI" != "null" ] \
+                || { echo "::error::no non-server gear CLI in manifest to smoke"; exit 1; }
+              "$BUNDLE/Contents/MacOS/$SMOKE_CLI" --help
+              ;;
           esac
 
       - name: Verify cdhash stability
@@ -83,16 +98,10 @@ jobs:
         run: |
           BUNDLE="dist/apps/${{ steps.meta.outputs.bundle }}"
           BASELINE=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
-          rm -rf dist/apps dist/binaries products/outpost/dist
+          rm -rf dist/apps products/outpost/dist   # keep dist/binaries (artifacts)
           case "${{ steps.meta.outputs.kind }}" in
-            gear)
-              just build-gear-binaries
-              just build-app-gear
-              ;;
-            product)
-              just build-binary "fit-${{ steps.meta.outputs.name }}"
-              just build-app-product "${{ steps.meta.outputs.name }}"
-              ;;
+            gear)     just build-app-gear ;;
+            product)  just build-app-product "${{ steps.meta.outputs.name }}" ;;
           esac
           AFTER=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
           if [ "$BASELINE" != "$AFTER" ]; then

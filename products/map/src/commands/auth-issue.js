@@ -4,7 +4,7 @@
  *
  * Operator-only verb. Uses the service-role client (which we already need
  * to read `organization_people` and list `auth.users`) to verify both rows
- * exist before signing, then HMACs a JWT against SUPABASE_JWT_SECRET.
+ * exist before signing, then HMACs a JWT against JWT_SECRET.
  * Output goes to stdout so the operator can capture it into `.env`, a
  * secret manager, or pipe it to an agent's `PRODUCT_LANDMARK_TOKEN` setting.
  */
@@ -46,9 +46,10 @@ export async function runAuthIssueCommand({
     secret = config.supabaseJwtSecret();
   } catch (err) {
     throw new Error(
-      "auth issue: SUPABASE_JWT_SECRET is not set. Run `just env-setup` " +
-        "(local) or fetch the JWT secret from your Supabase project's API " +
-        `settings (hosted) and export it. Underlying: ${err.message}`,
+      "auth issue: JWT_SECRET is not set. " +
+        "Fetch the JWT secret from your Supabase project Settings → API " +
+        "(or, for monorepo contributors, run `just env-setup`). " +
+        `Underlying: ${err.message}`,
     );
   }
 

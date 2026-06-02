@@ -2,7 +2,7 @@
  * Verifies the admin provisioning lifecycle.
  *
  * Live-Postgres only — skipped when SUPABASE_URL /
- * SUPABASE_JWT_SECRET are unset.
+ * JWT_SECRET are unset.
  *
  * Covers:
  *   - first run creates one auth.users row per roster email
@@ -54,7 +54,7 @@ async function listEmails(admin) {
 
 describe("fit-map people provision lifecycle", () => {
   if (!isLiveSupabaseAvailable()) {
-    test("skipped — SUPABASE_URL / SUPABASE_JWT_SECRET not set", {
+    test("skipped — SUPABASE_URL / JWT_SECRET not set", {
       skip: true,
     }, () => {});
     return;

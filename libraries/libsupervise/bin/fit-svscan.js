@@ -6,7 +6,6 @@
  */
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import net from "node:net";
 import path from "node:path";
 
@@ -19,17 +18,8 @@ import { SupervisionTree } from "../src/tree.js";
 const runtime = createDefaultRuntime();
 const fs = runtime.fsSync;
 
-// `bun build --compile` injects FIT_SVSCAN_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_SVSCAN_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
-
 const definition = {
   name: "fit-svscan",
-  version: VERSION,
   description: "Supervision daemon that manages a SupervisionTree",
   globalOptions: {
     socket: {
@@ -57,7 +47,10 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition, { runtime });
+const cli = createCli(definition, {
+  runtime,
+  packageJsonUrl: new URL("../package.json", import.meta.url),
+});
 const logger = createLogger("svscan", runtime);
 
 const parsed = cli.parse(process.argv.slice(2));

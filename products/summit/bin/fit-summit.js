@@ -10,10 +10,6 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { createCli } from "@forwardimpact/libcli";
 import { createProductConfig } from "@forwardimpact/libconfig";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
@@ -27,16 +23,6 @@ import { runTrajectoryCommand } from "../src/commands/trajectory.js";
 import { runValidateCommand } from "../src/commands/validate.js";
 import { runWhatIfCommand } from "../src/commands/what-if.js";
 import { loadMapData, resolveDataDir } from "../src/lib/cli.js";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// `bun build --compile` injects FIT_SUMMIT_VERSION via --define, eliminating
-// the readFileSync branch in the compiled binary (which would ENOENT against
-// the bunfs virtual mount). Source execution falls through to package.json.
-const VERSION =
-  process.env.FIT_SUMMIT_VERSION ||
-  JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"))
-    .version;
 
 const config = await createProductConfig("summit");
 
@@ -53,7 +39,6 @@ const COMMANDS = {
 
 const definition = {
   name: "fit-summit",
-  version: VERSION,
   description: "Team capability planning from skill data.",
   commands: [
     {
@@ -269,7 +254,10 @@ const definition = {
 
 async function main() {
   const runtime = createDefaultRuntime();
-  const cli = createCli(definition, { runtime });
+  const cli = createCli(definition, {
+    runtime,
+    packageJsonUrl: new URL("../package.json", import.meta.url),
+  });
   const parsed = cli.parse(process.argv.slice(2));
   if (!parsed) process.exit(0);
 

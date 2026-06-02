@@ -61,7 +61,7 @@
     "test": "bun test test/*.test.js"
   },
   "devDependencies": {
-    "happy-dom": "^20.9.0"
+    "jsdom": "^29.1.1"
   },
   "engines": {
     "bun": ">=1.2.0",

@@ -5,6 +5,19 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 const _rt = createDefaultRuntime();
 import { assertRejectsMessage } from "@forwardimpact/libmock";
 
+// apache-arrow and parquet-wasm are optional peer dependencies — the parquet
+// renderer degrades gracefully when they are absent. Detect availability once
+// so the parquet test self-skips on installs that opted out of the ~31 MB pair.
+const PARQUET_AVAILABLE = await (async () => {
+  try {
+    await import("apache-arrow");
+    await import("parquet-wasm/esm/parquet_wasm.js");
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
 const FIXTURE = {
   name: "test_records",
   schema: null,
@@ -245,6 +258,9 @@ describe("dataset renderers", () => {
   });
 
   describe("Parquet", () => {
+    // Conditional registration (not `{ skip }`, which bun's node:test ignores):
+    // when the optional deps are not installed, the parquet test is omitted.
+    if (!PARQUET_AVAILABLE) return;
     test("renders parquet buffer", async () => {
       const simpleDs = {
         name: "parq",

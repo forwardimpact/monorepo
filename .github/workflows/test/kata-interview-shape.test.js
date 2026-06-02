@@ -27,7 +27,7 @@ const ADDED_STEPS = ["Substrate stage", "Scan logs for sensitive values"];
 // Substrate stage and does not appear in the env: map here.
 const ADDED_RUN_ENV_KEYS = [
   "AGENT_CWD",
-  "SUPABASE_JWT_SECRET",
+  "JWT_SECRET",
   "SUPABASE_SERVICE_ROLE_KEY",
 ];
 
