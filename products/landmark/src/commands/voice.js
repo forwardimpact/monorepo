@@ -176,34 +176,64 @@ async function runManagerVoice({ managerEmail, supabase, mapData, format, q }) {
   };
 }
 
+function matchesTheme(text, keyword) {
+  return (text ?? "").toLowerCase().includes(keyword);
+}
+
+function countThemeMatches(comments, themes) {
+  for (const c of comments) {
+    for (const keyword of THEME_KEYWORDS) {
+      if (matchesTheme(c.text, keyword)) themes.get(keyword).count++;
+    }
+  }
+}
+
+// Higher-ranked themes claim representative snippets first so a multi-keyword
+// comment doesn't display identically under every matching theme.
+function claimUniqueSnippets(theme, keyword, comments, claimed) {
+  for (const c of comments) {
+    if (theme.snippets.length >= 2) return;
+    if (claimed.has(c.text)) continue;
+    if (!matchesTheme(c.text, keyword)) continue;
+    theme.snippets.push(c.text);
+    claimed.add(c.text);
+  }
+}
+
+// Fallback when every matching comment is already claimed — accept duplicates
+// rather than emit an empty snippet list.
+function fillSnippetsWithRemainders(theme, keyword, comments) {
+  for (const c of comments) {
+    if (theme.snippets.length >= 2) return;
+    if (theme.snippets.includes(c.text)) continue;
+    if (!matchesTheme(c.text, keyword)) continue;
+    theme.snippets.push(c.text);
+  }
+}
+
 /** Bucket comments by theme keywords and return sorted by count. */
 function bucketCommentsByTheme(comments) {
   const themes = new Map();
   for (const keyword of THEME_KEYWORDS) {
     themes.set(keyword, { count: 0, snippets: [] });
   }
+  countThemeMatches(comments, themes);
 
-  for (const c of comments) {
-    const lower = (c.text ?? "").toLowerCase();
-    for (const keyword of THEME_KEYWORDS) {
-      if (lower.includes(keyword)) {
-        const theme = themes.get(keyword);
-        theme.count++;
-        if (theme.snippets.length < 2) {
-          theme.snippets.push(c.text);
-        }
-      }
-    }
+  const sortedThemes = [...themes.entries()]
+    .filter(([, v]) => v.count > 0)
+    .sort((a, b) => b[1].count - a[1].count);
+
+  const claimed = new Set();
+  for (const [keyword, data] of sortedThemes) {
+    claimUniqueSnippets(data, keyword, comments, claimed);
+    fillSnippetsWithRemainders(data, keyword, comments);
   }
 
-  return [...themes.entries()]
-    .filter(([, v]) => v.count > 0)
-    .sort((a, b) => b[1].count - a[1].count)
-    .map(([keyword, data]) => ({
-      theme: keyword,
-      count: data.count,
-      snippets: data.snippets,
-    }));
+  return sortedThemes.map(([keyword, data]) => ({
+    theme: keyword,
+    count: data.count,
+    snippets: data.snippets,
+  }));
 }
 
 /** Find health signals that score below 50th percentile. */

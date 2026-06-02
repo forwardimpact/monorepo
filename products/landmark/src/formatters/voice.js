@@ -2,7 +2,7 @@
  * Formatters for the `voice` command.
  */
 
-import { renderHeader } from "./shared.js";
+import { renderHeader, truncateSnippet } from "./shared.js";
 
 /** Render voice comments as plain text, dispatching to email or manager format. */
 export function toText(view) {
@@ -51,7 +51,7 @@ function managerToText(view) {
     for (const t of view.themes) {
       const snippetPreview = t.snippets
         .slice(0, 2)
-        .map((s) => `"${s.slice(0, 60)}"`)
+        .map((s) => `"${truncateSnippet(s)}"`)
         .join(", ");
       lines.push(
         `      ${t.theme.padEnd(20)}  ${t.count} comments   ${snippetPreview}`,
@@ -98,7 +98,9 @@ function managerToMarkdown(view) {
     lines.push("| Theme | Comments | Snippets |");
     lines.push("| --- | --- | --- |");
     for (const t of view.themes) {
-      const snippets = t.snippets.map((s) => `"${s.slice(0, 60)}"`).join(", ");
+      const snippets = t.snippets
+        .map((s) => `"${truncateSnippet(s)}"`)
+        .join(", ");
       lines.push(`| ${t.theme} | ${t.count} | ${snippets} |`);
     }
     lines.push("");
