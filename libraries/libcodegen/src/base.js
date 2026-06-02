@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import protobuf from "protobufjs";
+import "./long-init.js";
 
 /** Convert camelCase to snake_case (protobufjs normalizes field names) */
 function camelToSnake(str) {
