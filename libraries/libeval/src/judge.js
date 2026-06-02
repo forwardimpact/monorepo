@@ -17,7 +17,7 @@ import { resolve } from "node:path";
 import { Writable } from "node:stream";
 
 import { createAgentRunner } from "./agent-runner.js";
-import { composeProfilePrompt } from "./profile-prompt.js";
+import { composeSystemPrompt } from "./profile-prompt.js";
 import { SequenceCounter } from "./sequence-counter.js";
 import {
   createJudgeToolServer,
@@ -140,7 +140,7 @@ export class Judge {
 /**
  * Factory function — wires the AgentRunner with the judge orchestration server
  * and the JUDGE_SYSTEM_PROMPT trailer. A `judgeProfile` (when supplied) layers
- * on top of the trailer via `composeProfilePrompt`, matching the
+ * on top of the trailer via `composeSystemPrompt`, matching the
  * supervisor/facilitator pattern.
  *
  * @param {object} deps
@@ -151,7 +151,7 @@ export class Judge {
  * @param {string} [deps.model]
  * @param {number} [deps.maxTurns] - Default 5 (the judge is expected to act in turn 1; 5 leaves headroom for tool inspection).
  * @param {string[]} [deps.allowedTools] - Default `["Read","Glob","Grep","Bash"]` — read-only inspection.
- * @param {string} [deps.judgeProfile] - Profile name; resolved into the system prompt via `composeProfilePrompt`.
+ * @param {string} [deps.judgeProfile] - Profile name; resolved into the system prompt via `composeSystemPrompt`.
  * @param {string} [deps.profilesDir] - Defaults to `<cwd>/.claude/agents`.
  * @param {string} [deps.taskAmend]
  * @returns {Judge}
@@ -176,17 +176,13 @@ export function createJudge({
   if (!runtime) throw new Error("runtime is required");
 
   const resolvedProfilesDir = profilesDir ?? resolve(cwd, ".claude/agents");
-  const systemPrompt = judgeProfile
-    ? composeProfilePrompt(judgeProfile, {
-        profilesDir: resolvedProfilesDir,
-        trailer: JUDGE_SYSTEM_PROMPT,
-        runtime,
-      })
-    : {
-        type: "preset",
-        preset: "claude_code",
-        append: JUDGE_SYSTEM_PROMPT,
-      };
+  const systemPrompt = composeSystemPrompt({
+    role: "agent",
+    profile: judgeProfile,
+    profilesDir: resolvedProfilesDir,
+    trailer: JUDGE_SYSTEM_PROMPT,
+    runtime,
+  });
 
   const ctx = createOrchestrationContext();
   ctx.participants = [{ name: "judge", role: "judge" }];

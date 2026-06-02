@@ -134,10 +134,6 @@ export function createFacilitator({
       from: config.name,
     });
 
-    const agentTrailer = config.systemPromptAmend
-      ? `${FACILITATED_AGENT_SYSTEM_PROMPT}\n\n${config.systemPromptAmend}`
-      : FACILITATED_AGENT_SYSTEM_PROMPT;
-
     const runner = createAgentRunner({
       cwd: config.cwd ?? facilitatorCwd,
       query,
@@ -152,7 +148,8 @@ export function createFacilitator({
         role: "agent",
         profile: config.agentProfile,
         profilesDir: resolvedProfilesDir,
-        trailer: agentTrailer,
+        trailer: FACILITATED_AGENT_SYSTEM_PROMPT,
+        amend: config.systemPromptAmend,
         runtime,
       }),
       redactor,

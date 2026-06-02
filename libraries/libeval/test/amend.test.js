@@ -50,14 +50,20 @@ describe("systemPromptAmend delivery (SC 7 a)", () => {
     });
     const append = facilitator.agents[0].runner.systemPrompt.append;
     assert.ok(append.includes(FACILITATED_AGENT_SYSTEM_PROMPT));
-    assert.ok(append.endsWith("<TEST_MARKER>"));
+    // The amendment is folded transparently into the <session_protocol>
+    // section — after the protocol trailer, before the closing tag.
+    const amendAt = append.indexOf("<TEST_MARKER>");
     assert.ok(
-      append.indexOf(FACILITATED_AGENT_SYSTEM_PROMPT) <
-        append.indexOf("<TEST_MARKER>"),
+      append.indexOf(FACILITATED_AGENT_SYSTEM_PROMPT) < amendAt,
+      "amendment follows the protocol trailer",
+    );
+    assert.ok(
+      amendAt < append.indexOf("</session_protocol>"),
+      "amendment lands inside the <session_protocol> section",
     );
   });
 
-  test("Facilitator without systemPromptAmend leaves the prompt purely generic", () => {
+  test("Facilitator without systemPromptAmend wraps just the protocol", () => {
     const facilitator = createFacilitator({
       facilitatorCwd: "/tmp/fac",
       agentConfigs: [{ name: "agent-1", role: "worker", cwd: "/tmp/agent" }],
@@ -68,7 +74,7 @@ describe("systemPromptAmend delivery (SC 7 a)", () => {
     });
     assert.strictEqual(
       facilitator.agents[0].runner.systemPrompt.append,
-      FACILITATED_AGENT_SYSTEM_PROMPT,
+      `<session_protocol>\n${FACILITATED_AGENT_SYSTEM_PROMPT}\n</session_protocol>`,
     );
   });
 });
