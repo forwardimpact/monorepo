@@ -39,8 +39,8 @@ Created: one `railway.toml` per service.
 | storage | `infrastructure/storage/railway.toml` | `infrastructure/storage/**` | image |
 | tei | `infrastructure/tei/railway.toml` | `infrastructure/tei/**` | image |
 | kong | `infrastructure/kong/railway.toml` | `infrastructure/kong/**` | Dockerfile |
-| beacon-site | `products/beacon/site/railway.toml` | `products/beacon/site/**`, `products/beacon/handlers/**` | Dockerfile |
-| beacon-functions | `services/beacon-functions/railway.toml` | `services/beacon-functions/**` | Dockerfile |
+| finder-site | `products/finder/site/railway.toml` | `products/finder/site/**`, `products/finder/handlers/**` | Dockerfile |
+| finder-functions | `services/finder-functions/railway.toml` | `services/finder-functions/**` | Dockerfile |
 
 Each `railway.toml` shape:
 
@@ -56,7 +56,7 @@ healthcheckPath = "/health"  # or service-specific
 ```
 
 Verify: `railway up --service postgres` deploys; subsequent push touching
-only `products/beacon/site/` triggers redeploy of `beacon-site` only (not
+only `products/finder/site/` triggers redeploy of `finder-site` only (not
 postgres).
 
 ## Step 3 — Wire deploy workflow
@@ -83,13 +83,13 @@ jobs:
         run: |
           changed=$(git diff --name-only HEAD~1 HEAD)
           services=()
-          for d in infrastructure/postgres infrastructure/kong infrastructure/postgrest infrastructure/gotrue infrastructure/storage infrastructure/tei products/beacon/site services/beacon-functions; do
+          for d in infrastructure/postgres infrastructure/kong infrastructure/postgrest infrastructure/gotrue infrastructure/storage infrastructure/tei products/finder/site services/finder-functions; do
             if echo "$changed" | grep -q "^$d/"; then
               services+=("$(basename "$d")")
             fi
           done
-          # beacon-site also depends on handlers
-          if echo "$changed" | grep -q "^products/beacon/handlers/" && [[ ! " ${services[*]} " =~ " site " ]]; then
+          # finder-site also depends on handlers
+          if echo "$changed" | grep -q "^products/finder/handlers/" && [[ ! " ${services[*]} " =~ " site " ]]; then
             services+=("site")
           fi
           echo "services=$(printf '%s\n' "${services[@]}" | jq -R -s 'split("\n") | map(select(length>0))' -c)" >> $GITHUB_OUTPUT
@@ -113,7 +113,7 @@ project-scoped token from Railway dashboard, set as repo secret.
 
 Verify: a no-op commit to `main` runs the `detect` job, which emits an
 empty `services` array, and the `deploy` job is skipped. A commit
-touching `products/beacon/site/src/app/page.tsx` triggers a `site`-only
+touching `products/finder/site/src/app/page.tsx` triggers a `site`-only
 deploy.
 
 ## Step 4 — Author the success-criteria smoke script
@@ -133,7 +133,7 @@ bad()  { echo "  ✗ $*" >&2; FAIL=$((FAIL+1)); }
 # Every expected service must report Health=healthy — services with no
 # healthcheck are flagged so the script does not pass silently.
 note "SC1: stack boots and seeds"
-expected=(kong postgres pgbouncer postgrest gotrue realtime storage minio imgproxy tei beacon-site beacon-functions)
+expected=(kong postgres pgbouncer postgrest gotrue realtime storage minio imgproxy tei finder-site finder-functions)
 sc1_fail=0
 for svc in "${expected[@]}"; do
   state=$(docker compose ps "$svc" --format json | jq -r '.[0].Health // "missing"' 2>/dev/null || echo "missing")
@@ -180,7 +180,7 @@ fi
 note "SC4: CLI search matches web"
 web_ids=$(curl -fsS "http://localhost:3001/search?condition=diabetes&format=json" \
   | jq -r '[.trials[].id] | sort | join(",")')
-cli_ids=$(node products/beacon/cli/bin/bionova-beacon.js search --condition=diabetes --json \
+cli_ids=$(node products/finder/cli/bin/bionova-finder.js search --condition=diabetes --json \
   | jq -r '[.trials[].id] | sort | join(",")')
 [ -n "$cli_ids" ] && [ "$cli_ids" = "$web_ids" ] && ok "cli ids = web ids" \
   || bad "cli=$cli_ids web=$web_ids"
@@ -194,7 +194,7 @@ sc5_trial_id=$(curl -fsS "http://localhost:8000/rest/v1/trials?status=eq.recruit
 [ -n "$sc5_trial_id" ] && [ "$sc5_trial_id" != "null" ] || { bad "no recruiting trial to update"; sc5_trial_id=""; }
 if [ -n "$sc5_trial_id" ]; then
   SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
-    node products/beacon/cli/bin/bionova-beacon.js admin trial "$sc5_trial_id" --update '{"status":"completed"}'
+    node products/finder/cli/bin/bionova-finder.js admin trial "$sc5_trial_id" --update '{"status":"completed"}'
   # Verify via PostgREST as anon — the web surface reads the same data
   new_status=$(curl -fsS "http://localhost:8000/rest/v1/trials?id=eq.${sc5_trial_id}&select=status" \
     -H "apikey:$ANON_KEY" | jq -r '.[0].status')
@@ -219,7 +219,7 @@ ORIG=$(psql -h localhost -U postgres -tAc \
 rm -rf "$ROOT/data/synthetic/seed"
 docker compose exec -T postgres psql -U postgres -c \
   "TRUNCATE conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, interest_signals CASCADE;"
-find "$ROOT/products/beacon/site/supabase/migrations" -maxdepth 1 -name "20250101000000_seed_*.sql" -delete
+find "$ROOT/products/finder/site/supabase/migrations" -maxdepth 1 -name "20250101000000_seed_*.sql" -delete
 (cd "$ROOT" && ./setup.sh)
 REGEN=$(psql -h localhost -U postgres -tAc \
   "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
@@ -293,7 +293,7 @@ Verify: docs link from root README; `markdownlint docs/` passes.
 Edit `README.md` (from part 01):
 
 ```markdown
-# BioNova Beacon
+# Clinical Research Finder
 
 Patient-facing clinical trial discovery built on Forward Impact libraries.
 
@@ -307,11 +307,11 @@ docker compose up -d --wait
 ./setup.sh
 \`\`\`
 
-Visit http://localhost:3001/ — or run \`bionova-beacon search --condition=diabetes\` from the CLI.
+Visit http://localhost:3001/ — or run \`bionova-finder search --condition=diabetes\` from the CLI.
 
 ## Architecture
 
-See [specs/1160 design](https://github.com/forwardimpact/monorepo/blob/main/specs/1160-bionova-beacon-app/design-a.md) in the Forward Impact monorepo.
+See [specs/1160 design](https://github.com/forwardimpact/monorepo/blob/main/specs/1160-bionova-finder-app/design-a.md) in the Forward Impact monorepo.
 ```
 
 Verify: README renders cleanly on GitHub; quickstart instructions match
@@ -321,7 +321,7 @@ what `scripts/smoke.sh` exercises.
 
 ```sh
 git checkout -b deploy/smoke-and-railway
-git add infrastructure/railway/ products/beacon/site/railway.toml services/beacon-functions/railway.toml products/beacon/site/Dockerfile services/beacon-functions/Dockerfile .github/workflows/ scripts/smoke.sh docs/ README.md
+git add infrastructure/railway/ products/finder/site/railway.toml services/finder-functions/railway.toml products/finder/site/Dockerfile services/finder-functions/Dockerfile .github/workflows/ scripts/smoke.sh docs/ README.md
 git commit -m "deploy: railway configs + e2e smoke verifying SC1–SC6"
 git push -u origin deploy/smoke-and-railway
 gh pr create --title "deploy: railway configs + e2e smoke verifying SC1–SC6" --body "Implements plan-a-08 of spec 1160. CI e2e job verifies all six success criteria against a fresh stack."
@@ -368,10 +368,10 @@ bionova-apps PRs:
 - infra/repo-bootstrap (part 01)
 - db/interest-signals-rls (part 02)
 - data/terrain-pipeline (part 03)
-- services/beacon-functions (part 04)
-- products/beacon-handlers (part 05)
-- products/beacon-cli (part 06)
-- products/beacon-site (part 07)
+- services/finder-functions (part 04)
+- products/finder-handlers (part 05)
+- products/finder-cli (part 06)
+- products/finder-site (part 07)
 - deploy/smoke-and-railway (part 08)
 
 — Staff Engineer 🛠️"

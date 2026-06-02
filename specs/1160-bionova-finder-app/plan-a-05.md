@@ -1,33 +1,33 @@
 # Plan 1160-a-05 — Shared handlers
 
 Implement the six surface-agnostic handlers under
-`products/beacon/handlers/` that both CLI (part 06) and web (part 07)
+`products/finder/handlers/` that both CLI (part 06) and web (part 07)
 dispatch into. Handlers accept a frozen `InvocationContext` and return
 plain data; rendering is the surface's job (libformat for CLI, JSX/libui
 for web).
 
 All paths are inside `bionova-apps/`.
 
-## Step 1 — Scaffold `products/beacon/handlers/`
+## Step 1 — Scaffold `products/finder/handlers/`
 
 Created:
 
 | File | Purpose |
 | --- | --- |
-| `products/beacon/handlers/package.json` | `@bionova/beacon-handlers`, ESM, exports `.` (index) + `./context` (createDataContext) + `./templates` (template-dir path constant) |
-| `products/beacon/handlers/src/index.js` | re-exports each handler |
-| `products/beacon/handlers/src/context.js` | Exports `createDataContext(env)` — returns `{ db: <postgrest client>, embeddings: <tei client>, edgeFunctions: <kong client> }` for handlers to read from |
-| `products/beacon/handlers/src/templates-dir.js` | Exports `TEMPLATES_DIR = new URL("../templates/", import.meta.url).pathname` — surface-agnostic resolved template directory |
-| `products/beacon/handlers/src/clients/postgrest.js` | thin fetch wrapper around Kong's `/rest/v1/*` |
-| `products/beacon/handlers/src/clients/tei.js` | thin fetch wrapper around `/embed` for client-side semantic queries |
-| `products/beacon/handlers/src/clients/edge.js` | wrapper for `/functions/v1/*` invocations |
-| `products/beacon/handlers/test/*.test.js` | per-handler tests, runner-independent (`bun:test` and `node:test`) |
+| `products/finder/handlers/package.json` | `@bionova/finder-handlers`, ESM, exports `.` (index) + `./context` (createDataContext) + `./templates` (template-dir path constant) |
+| `products/finder/handlers/src/index.js` | re-exports each handler |
+| `products/finder/handlers/src/context.js` | Exports `createDataContext(env)` — returns `{ db: <postgrest client>, embeddings: <tei client>, edgeFunctions: <kong client> }` for handlers to read from |
+| `products/finder/handlers/src/templates-dir.js` | Exports `TEMPLATES_DIR = new URL("../templates/", import.meta.url).pathname` — surface-agnostic resolved template directory |
+| `products/finder/handlers/src/clients/postgrest.js` | thin fetch wrapper around Kong's `/rest/v1/*` |
+| `products/finder/handlers/src/clients/tei.js` | thin fetch wrapper around `/embed` for client-side semantic queries |
+| `products/finder/handlers/src/clients/edge.js` | wrapper for `/functions/v1/*` invocations |
+| `products/finder/handlers/test/*.test.js` | per-handler tests, runner-independent (`bun:test` and `node:test`) |
 
 `package.json`:
 
 ```json
 {
-  "name": "@bionova/beacon-handlers",
+  "name": "@bionova/finder-handlers",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -47,11 +47,11 @@ data; rendering (ANSI for CLI, JSX for web) belongs to the surface. Only
 `libtemplate` is used to fill markdown templates that the surface then
 formats.
 
-Verify: `bun install` resolves; `bun run --filter='./products/beacon/handlers' test` exits 0 (no tests yet).
+Verify: `bun install` resolves; `bun run --filter='./products/finder/handlers' test` exits 0 (no tests yet).
 
 ## Step 2 — Implement `searchTrials`
 
-Created: `products/beacon/handlers/src/search-trials.js`
+Created: `products/finder/handlers/src/search-trials.js`
 
 Signature:
 
@@ -70,7 +70,7 @@ export async function searchTrials(ctx) {
 Vector search SQL (via PostgREST RPC `match_conditions`):
 
 Created as a hand-written migration *owned by this part*:
-`products/beacon/site/supabase/migrations/20260601000004_match_function.sql`
+`products/finder/site/supabase/migrations/20260601000004_match_function.sql`
 
 ```sql
 CREATE OR REPLACE FUNCTION match_conditions(query_embedding vector(384), match_threshold float DEFAULT 0.7, match_count int DEFAULT 5)
@@ -96,7 +96,7 @@ returns trials whose primary condition is diabetes (success criterion #2).
 
 ## Step 3 — Implement `showTrial`
 
-Created: `products/beacon/handlers/src/show-trial.js`
+Created: `products/finder/handlers/src/show-trial.js`
 
 ```js
 export async function showTrial(ctx) {
@@ -112,7 +112,7 @@ fields.
 
 ## Step 4 — Implement `checkEligibility`
 
-Created: `products/beacon/handlers/src/check-eligibility.js`
+Created: `products/finder/handlers/src/check-eligibility.js`
 
 ```js
 export async function checkEligibility(ctx) {
@@ -129,7 +129,7 @@ conditions: ["type-2-diabetes"], … } })` returns `eligible` and inserts an
 
 ## Step 5 — Implement `listSites`
 
-Created: `products/beacon/handlers/src/list-sites.js`
+Created: `products/finder/handlers/src/list-sites.js`
 
 ```js
 export async function listSites(ctx) {
@@ -145,24 +145,24 @@ with `oncology` in `specialties`.
 
 ## Step 6 — Implement `showAbout`
 
-Created: `products/beacon/handlers/src/show-about.js`
+Created: `products/finder/handlers/src/show-about.js`
 
 ```js
 export async function showAbout(ctx) {
   // Static metadata: BioNova mission, partnership disclosures, contact email
-  // Reads from a YAML file at products/beacon/handlers/data/about.yaml so staff can edit without code
+  // Reads from a YAML file at products/finder/handlers/data/about.yaml so staff can edit without code
   return { mission, partnerships, contact };
 }
 ```
 
-Also created: `products/beacon/handlers/data/about.yaml` — placeholder
+Also created: `products/finder/handlers/data/about.yaml` — placeholder
 content (mission statement, two partnership lines, contact email).
 
 Verify: `showAbout({})` returns the YAML deserialized to a plain object.
 
 ## Step 7 — Implement `manageTrial`
 
-Created: `products/beacon/handlers/src/manage-trial.js`
+Created: `products/finder/handlers/src/manage-trial.js`
 
 Two-mode handler:
 
@@ -228,7 +228,7 @@ surfaces" line; the design's note was aspirational, and reconciling it
 here keeps the plan implementable. The CLI surface still demonstrates
 the libformat path end-to-end.
 
-Created templates under `products/beacon/handlers/templates/`:
+Created templates under `products/finder/handlers/templates/`:
 
 - `search-trials.md`
 - `show-trial.md`
@@ -244,7 +244,7 @@ handler's data:
 
 ```js
 // CLI usage (part 06):
-import { TEMPLATES_DIR } from "@bionova/beacon-handlers/templates";
+import { TEMPLATES_DIR } from "@bionova/finder-handlers/templates";
 import { createTemplateLoader } from "@forwardimpact/libtemplate";
 const templates = createTemplateLoader(TEMPLATES_DIR);
 const md = templates.render("search-trials.md", await searchTrials(ctx));
@@ -255,7 +255,7 @@ produces non-empty markdown for each handler.
 
 ## Step 9 — Tests
 
-Created: per-handler test file under `products/beacon/handlers/test/`.
+Created: per-handler test file under `products/finder/handlers/test/`.
 
 Each test:
 - Mocks PostgREST + edge-function clients via `createDataContext({ stub: true })`
@@ -264,33 +264,33 @@ Each test:
 - Asserts `manageTrial` rejects non-staff JWT
 - Asserts `searchTrials` falls back to ILIKE when embeddings client throws
 
-Test fixtures in `products/beacon/handlers/test/fixtures/`:
+Test fixtures in `products/finder/handlers/test/fixtures/`:
 - `seed-trial.json` (1 trial with criteria + sites)
 - `seed-condition.json`
 - `staff-jwt.txt`, `anon-jwt.txt`
 
-Verify: `bun run --filter='./products/beacon/handlers' test` exits 0 with
+Verify: `bun run --filter='./products/finder/handlers' test` exits 0 with
 ≥ 18 assertions (3 per handler avg).
 
 ## Step 10 — Open part-05 PR
 
 ```sh
-git checkout -b products/beacon-handlers
-git add products/beacon/handlers/ products/beacon/site/supabase/migrations/20260601000004_match_function.sql
-git commit -m "products: beacon shared handlers + match_conditions RPC"
-git push -u origin products/beacon-handlers
-gh pr create --title "products: beacon shared handlers" --body "Implements plan-a-05 of spec 1160. Six handlers + libtemplate integration; consumed by CLI (part 06) and web (part 07). Adds match_conditions RPC migration for vector search."
+git checkout -b products/finder-handlers
+git add products/finder/handlers/ products/finder/site/supabase/migrations/20260601000004_match_function.sql
+git commit -m "products: finder shared handlers + match_conditions RPC"
+git push -u origin products/finder-handlers
+gh pr create --title "products: finder shared handlers" --body "Implements plan-a-05 of spec 1160. Six handlers + libtemplate integration; consumed by CLI (part 06) and web (part 07). Adds match_conditions RPC migration for vector search."
 ```
 
 Verify: PR CI green.
 
 ## Verification (end of part 05)
 
-- [ ] All 6 handlers exported from `products/beacon/handlers/src/index.js`.
+- [ ] All 6 handlers exported from `products/finder/handlers/src/index.js`.
 - [ ] Each handler accepts a frozen `{ data, args, options }` context (assert `Object.isFrozen(ctx)` in test).
 - [ ] `searchTrials("high blood sugar")` returns diabetes trials (assertion against seeded data).
 - [ ] `checkEligibility` inserts an `interest_signals` row with `match_score` from edge-function response.
 - [ ] `manageTrial` enforces staff role via PostgREST RLS (verified by integration test).
-- [ ] `bun test products/beacon/handlers/` exits 0.
+- [ ] `bun test products/finder/handlers/` exits 0.
 
 — Staff Engineer 🛠️

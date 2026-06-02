@@ -1,4 +1,4 @@
-# Plan 1160-a — BioNova Beacon Application
+# Plan 1160-a — Clinical Research Finder Application
 
 Build the `bionova-apps` external repository to spec
 [1160](spec.md) / design [a](design-a.md).
@@ -13,7 +13,7 @@ external repo's `node_modules` writes files to the wrong place and would
 need `products/map/schema/json` (not in the published npm package). The
 data pipeline is therefore inverted: the monorepo regenerates terrain
 output via spec 1150's implementation; bionova-apps fetches the committed
-SQL and JSONL artifacts from `raw.githubusercontent.com/forwardimpact/monorepo/<sha>/products/beacon/site/supabase/migrations/`
+SQL and JSONL artifacts from `raw.githubusercontent.com/forwardimpact/monorepo/<sha>/products/finder/site/supabase/migrations/`
 at `setup.sh` time. Parts are decomposed by surface so they can run in
 parallel where the design allows. Each part is independently verifiable
 end-to-end against a local `docker compose` boot; the final part ties
@@ -57,10 +57,10 @@ implemented`; route `kata-implement` only after that signal flips.
 | [01](plan-a-01.md) | Repo bootstrap + infrastructure | New repo, MONOREPO.md, `package.json`, `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | — |
 | [02](plan-a-02.md) | Schema + RLS + interest_signals migration | Hand-written migration for `interest_signals`, RLS policies, schema verification | 01 |
 | [03](plan-a-03.md) | Data pipeline | story.dsl in `data/synthetic/`, `fit-terrain generate` integration, `setup.sh` data steps | 01, 02, spec 1150 implemented |
-| [04](plan-a-04.md) | Edge functions | `embed-seed`, `eligibility-check`, `notify-updates`, `sync-listings` under `services/beacon-functions/` | 03 |
-| [05](plan-a-05.md) | Shared handlers | `products/beacon/handlers/` — `searchTrials`, `showTrial`, `checkEligibility`, `listSites`, `showAbout`, `manageTrial` | 03 |
-| [06](plan-a-06.md) | CLI surface | `products/beacon/cli/` + `bin/bionova-beacon.js`, libcli wiring, `repl` subcommand | 05 |
-| [07](plan-a-07.md) | Web surface | `products/beacon/site/` — Next.js App Router, Tailwind, shadcn/ui, libui routing | 05 |
+| [04](plan-a-04.md) | Edge functions | `embed-seed`, `eligibility-check`, `notify-updates`, `sync-listings` under `services/finder-functions/` | 03 |
+| [05](plan-a-05.md) | Shared handlers | `products/finder/handlers/` — `searchTrials`, `showTrial`, `checkEligibility`, `listSites`, `showAbout`, `manageTrial` | 03 |
+| [06](plan-a-06.md) | CLI surface | `products/finder/cli/` + `bin/bionova-finder.js`, libcli wiring, `repl` subcommand | 05 |
+| [07](plan-a-07.md) | Web surface | `products/finder/site/` — Next.js App Router, Tailwind, shadcn/ui, libui routing | 05 |
 | [08](plan-a-08.md) | Deployment + smoke tests | Railway watch-path config per service, success-criteria verification script | 01–07 |
 
 ## Libraries used
@@ -70,7 +70,7 @@ Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationCo
 ## Risks
 
 - **Spec 1150 not implemented before this plan starts.** Without spec
-  1150's `products/beacon/site/supabase/migrations/seed_*.sql` and
+  1150's `products/finder/site/supabase/migrations/seed_*.sql` and
   `seed_embeddings.jsonl` committed to monorepo `main`, bionova-apps has
   no data to fetch. Mitigation: hold plan approval until 1150 lands (see
   Prerequisites). Part 03 step 1 verifies the artifacts exist on `main`

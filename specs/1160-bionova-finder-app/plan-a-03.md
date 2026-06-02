@@ -2,7 +2,7 @@
 
 Wire bionova-apps's data pipeline. **Terrain output is produced inside
 the monorepo by spec 1150's implementation** and committed to
-`products/beacon/site/supabase/migrations/seed_*.sql` +
+`products/finder/site/supabase/migrations/seed_*.sql` +
 `seed_embeddings.jsonl`. bionova-apps fetches these artifacts at
 `setup.sh` time and applies them. No `fit-terrain` invocation occurs in
 bionova-apps.
@@ -25,9 +25,9 @@ SHA="${MONOREPO_SHA:?Set MONOREPO_SHA to a 40-char commit SHA where spec 1150 is
 
 # Probe each required artifact
 for f in \
-  "products/beacon/site/supabase/migrations/seed_001_conditions.sql" \
-  "products/beacon/site/supabase/migrations/seed_002_sites.sql" \
-  "products/beacon/site/supabase/migrations/seed_embeddings.jsonl" ; do
+  "products/finder/site/supabase/migrations/seed_001_conditions.sql" \
+  "products/finder/site/supabase/migrations/seed_002_sites.sql" \
+  "products/finder/site/supabase/migrations/seed_embeddings.jsonl" ; do
   status=$(curl -fsI -o /dev/null -w "%{http_code}" "$MONOREPO_RAW/$SHA/$f")
   [ "$status" = "200" ] || { echo "FAIL: $f not at $SHA ($status)"; exit 1; }
 done
@@ -37,7 +37,7 @@ echo "Monorepo SHA pinned: $SHA"
 If any probe fails, halt and post an `agent-react` ask to the
 release-engineer: "Spec 1160 plan-a-03 blocked on spec 1150
 implementation. Monorepo `main` at SHA $MAIN_SHA lacks
-`products/beacon/site/supabase/migrations/seed_*.sql` or
+`products/finder/site/supabase/migrations/seed_*.sql` or
 `seed_embeddings.jsonl`."
 
 The exact filenames `seed_001_conditions.sql` etc. follow
@@ -60,7 +60,7 @@ MONOREPO_RAW="https://raw.githubusercontent.com/forwardimpact/monorepo"
 PINNED_SHA="${MONOREPO_SHA:?Must be set to the pinned monorepo SHA}"
 
 SEED_DIR="$ROOT/data/synthetic/seed"
-MIG_DIR="$ROOT/products/beacon/site/supabase/migrations"
+MIG_DIR="$ROOT/products/finder/site/supabase/migrations"
 mkdir -p "$SEED_DIR"
 
 # List of files to fetch (one per terrain entity + embeddings)
@@ -78,7 +78,7 @@ FILES=(
 )
 
 for f in "${FILES[@]}"; do
-  url="$MONOREPO_RAW/$PINNED_SHA/products/beacon/site/supabase/migrations/$f"
+  url="$MONOREPO_RAW/$PINNED_SHA/products/finder/site/supabase/migrations/$f"
   echo "Fetching $f from $PINNED_SHA…"
   curl --fail -fsSL -o "$SEED_DIR/$f" "$url"
 done
@@ -97,11 +97,11 @@ Make executable: `chmod +x scripts/fetch-seed.sh`.
 
 Filenames listed above must match terrain's actual output for the
 1150-implemented story.dsl. The implementer probes the directory listing
-via `curl https://api.github.com/repos/forwardimpact/monorepo/contents/products/beacon/site/supabase/migrations?ref=$MAIN_SHA`
+via `curl https://api.github.com/repos/forwardimpact/monorepo/contents/products/finder/site/supabase/migrations?ref=$MAIN_SHA`
 at part-03 PR time and updates the FILES array if names differ.
 
 Verify: `MONOREPO_SHA=$MAIN_SHA bash scripts/fetch-seed.sh` exits 0 and
-populates `data/synthetic/seed/` + `products/beacon/site/supabase/migrations/20250101000000_seed_*.sql`.
+populates `data/synthetic/seed/` + `products/finder/site/supabase/migrations/20250101000000_seed_*.sql`.
 
 ## Step 3 — Pin monorepo SHA + add to `.env`
 
@@ -131,7 +131,7 @@ echo "Fetching seed data from monorepo@$MONOREPO_SHA…"
 
 # Step B — apply migrations via supabase db push
 echo "Running supabase db push…"
-cd "$ROOT/products/beacon/site"
+cd "$ROOT/products/finder/site"
 npx -y supabase@1.219.2 db push --db-url "postgres://postgres:${POSTGRES_PASSWORD}@localhost:5432/postgres"
 cd "$ROOT"
 ```
@@ -147,7 +147,7 @@ Add Step C (embeddings seeding) to `setup.sh`:
 ```sh
 # Step C — populate condition_embeddings via embed-seed edge function.
 # The JSONL is mounted at /data/synthetic/seed/seed_embeddings.jsonl
-# inside the beacon-functions container (volume added in step 6 below).
+# inside the finder-functions container (volume added in step 6 below).
 echo "Seeding embeddings via embed-seed edge function…"
 curl --fail -sS -X POST "http://localhost:8000/functions/v1/embed-seed" \
   -H "apikey: ${SERVICE_ROLE_KEY}" \
@@ -158,7 +158,7 @@ curl --fail -sS -X POST "http://localhost:8000/functions/v1/embed-seed" \
 
 ## Step 6 — Mount seed dir into edge-functions container
 
-Edit `docker-compose.yml` `beacon-functions` block (from part 01) to add:
+Edit `docker-compose.yml` `finder-functions` block (from part 01) to add:
 
 ```yaml
 volumes:
@@ -168,7 +168,7 @@ volumes:
 Also add `setup.sh` Step A line: `mkdir -p data/synthetic/seed` before
 `wait_healthy` so the bind-mount target exists on a fresh clone.
 
-Verify: `docker compose exec beacon-functions ls /data/synthetic/seed/`
+Verify: `docker compose exec finder-functions ls /data/synthetic/seed/`
 lists the fetched files after `setup.sh` runs.
 
 ## Step 7 — Add `data/synthetic/seed/README.md`
@@ -231,6 +231,6 @@ Verify: PR CI green (lint + seed-fetch jobs).
 - [ ] `psql -c "SELECT COUNT(*) FROM trials;"` returns ≥ 6 (story.dsl trial count).
 - [ ] `psql -c "SELECT COUNT(*) FROM condition_embeddings;"` returns ≥ 6 (after embed-seed runs).
 - [ ] `psql -c "SELECT indexrelid::regclass FROM pg_index WHERE indrelid = 'condition_embeddings'::regclass AND indisunique;"` includes `condition_embeddings_condition_id_uidx` (from part 02).
-- [ ] `cd products/beacon/site && npx -y supabase@1.219.2 test db` exits 0 (the part-02 RLS test asserts against the now-applied schema).
+- [ ] `cd products/finder/site && npx -y supabase@1.219.2 test db` exits 0 (the part-02 RLS test asserts against the now-applied schema).
 
 — Staff Engineer 🛠️
