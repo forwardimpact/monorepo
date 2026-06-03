@@ -42,7 +42,8 @@ primitives every adapter needs:
 | `createCallbackHandler` | Inbound-callback skeleton with verdict routing (`adjourned` / `failed` / `recessed`) and span instrumentation |
 | `ResumeScheduler` | Channel-agnostic suspend/resume lifecycle for `recessed` verdicts; wraps `ElapsedScheduler` |
 | `CallbackRegistry` | In-memory `correlation_id → token` registry with TTL and atomic consume |
-| `DiscussionContextStore` | Durable per-thread state in `libindex` JSONL, keyed by `(channel, discussion_id)` |
+| `DiscussionAdapter` *(typedef)* | The persistence contract every bridge implements: `loadByChannel`, `loadByCorrelation`, `listOpenRecesses`, `add`, `flush`, `shutdown` (plus optional `putPendingDispatch` / `resolvePendingDispatch`) |
+| `newDiscussionContext` | Channel-agnostic factory for a fresh per-thread record, keyed by `(channel, discussion_id)` |
 | `RateLimiter` | Sliding-window per-thread rate limit so a noisy channel cannot DoS the workflow |
 | `ProgressTicker` | Tick-and-stop timer so the host can show progress while the workflow runs |
 | `appendHistory` | Bounded message history (default cap: 10 entries; oldest dropped on overflow) |
@@ -57,12 +58,14 @@ SDK into these constructors and lets each one own its slice of the dance; the
 primitives below them are still available when you need to step outside the
 shared composition.
 
-Two injection rules keep the surface testable from any host. Storage is
-**caller-injected**: the `DiscussionContextStore` constructor takes a
-`StorageInterface` from `@forwardimpact/libstorage` as its first positional
-argument, and the library never constructs storage on its own. The trigger
-evaluator is **clock-injected**: `evaluateTrigger(trigger, observed, now)`
-takes `now` as a parameter, never calling `Date.now()` inside the library.
+Two injection rules keep the surface testable from any host. Persistence is
+**contract-injected**: every libbridge primitive that touches per-thread state
+(`Dispatcher`, `ResumeScheduler`, `createCallbackHandler`,
+`createLinkCompleteHandler`) takes a `store` parameter satisfying the
+`DiscussionAdapter` typedef in `src/index.js`, and the library never
+constructs persistence on its own. The trigger evaluator is **clock-injected**:
+`evaluateTrigger(trigger, observed, now)` takes `now` as a parameter, never
+calling `Date.now()` inside the library.
 
 ## Compose a bridge server
 
@@ -76,12 +79,9 @@ signature verification, token redemption, and channel-shaped responses:
 import {
   createBridgeServer,
   CallbackRegistry,
-  DiscussionContextStore,
 } from "@forwardimpact/libbridge";
-import { createStorage } from "@forwardimpact/libstorage";
 
-const storage = createStorage("bridges/example");
-const store = new DiscussionContextStore(storage);
+const store = createDiscussionAdapter();   // see "Persist per-thread context" below
 const registry = new CallbackRegistry({ ttlMs: 60 * 60 * 1000 });
 
 const bridge = createBridgeServer({
@@ -125,53 +125,109 @@ GitHub, a `botbuilder` activity for Teams, etc.).
 ## Persist per-thread context
 
 Each thread (a Discussion, a Teams conversation) carries its own context
-record, keyed by `(channel, discussion_id)`:
-
-```text
-{
-  id: "<channel>:<discussion_id>",
-  channel: "github-discussions" | "msteams",
-  discussion_id: string,
-  history: Array<{role: "user"|"assistant", text: string}>,
-  participants: Array<{name, kind: "agent"|"human", external_id?, metadata?}>,
-  open_rfcs: Record<correlationId, {trigger, opened_at, history_index_at_open}>,
-  lead: string,
-  pending_callbacks: Record<token, correlationId>,
-  last_active_at: number,
-}
-```
-
-`DiscussionContextStore` extends `BufferedIndex` from `@forwardimpact/libindex`,
-so the host appends records with `add()` and persists them with `flush()`:
+record, keyed by `(channel, discussion_id)`. `newDiscussionContext` builds a
+fresh record so every bridge agrees on the shape:
 
 ```js
-import { DiscussionContextStore } from "@forwardimpact/libbridge";
+import { newDiscussionContext } from "@forwardimpact/libbridge";
+
+const ctx = newDiscussionContext({
+  clock,
+  channel: "github-discussions",
+  discussionId,
+  participant: { name: "octocat", kind: "human", external_id: "1234" },
+});
+// {
+//   id: "github-discussions:<discussion_id>",
+//   channel, discussion_id,
+//   history: [], participants: [participant],
+//   open_rfcs: {}, lead: "release-engineer",
+//   pending_callbacks: {}, dispatches: [],
+//   active_requester: null, last_posted_seq: -1,
+//   last_active_at: <clock.now()>,
+// }
+```
+
+The host owns persistence by implementing the `DiscussionAdapter` typedef and
+passing the instance as `store` to `Dispatcher`, `ResumeScheduler`,
+`createCallbackHandler`, and `createLinkCompleteHandler`. The contract:
+
+```js
+/**
+ * @typedef {object} DiscussionAdapter
+ * @property {(channel: string, discussionId: string) => Promise<object|null>} loadByChannel
+ * @property {(correlationId: string) => Promise<object|null>} loadByCorrelation
+ * @property {() => Promise<Array<{correlationId: string, dueAt: number}>>} listOpenRecesses
+ * @property {(ctx: object) => Promise<void>} add
+ * @property {() => Promise<void>} flush
+ * @property {() => Promise<void>} shutdown
+ * @property {(target: object) => Promise<void>} [putPendingDispatch]
+ * @property {(linkToken: string, expectedSurfaceUserId?: string) => Promise<object|null>} [resolvePendingDispatch]
+ */
+```
+
+A minimal in-process adapter — durable JSONL via `@forwardimpact/libindex` and
+`@forwardimpact/libstorage`, suitable for single-process bridges:
+
+```js
+import { BufferedIndex } from "@forwardimpact/libindex";
+import { createStorage } from "@forwardimpact/libstorage";
 import { appendHistory } from "@forwardimpact/libbridge";
 
-const store = new DiscussionContextStore(storage);
+function createInProcessAdapter({ clock }) {
+  const storage = createStorage("bridges/example");
+  const index = new BufferedIndex(storage, "discussions.jsonl", {}, { clock });
 
-const ctx = (await store.loadByChannel("github-discussions", discussionId)) ?? {
-  id: DiscussionContextStore.keyOf("github-discussions", discussionId),
-  channel: "github-discussions",
-  discussion_id: discussionId,
-  history: [],
-  participants: [],
-  open_rfcs: {},
-  lead: "release-engineer",
-  pending_callbacks: {},
-  last_active_at: Date.now(),
-};
+  return {
+    async loadByChannel(channel, id) {
+      await index.loadData();
+      return index.index.get(`${channel}:${id}`) ?? null;
+    },
+    async loadByCorrelation(correlationId) {
+      await index.loadData();
+      for (const rec of index.index.values()) {
+        if (Object.values(rec.pending_callbacks ?? {}).includes(correlationId)) {
+          return rec;
+        }
+        if (rec.open_rfcs?.[correlationId]) return rec;
+      }
+      return null;
+    },
+    async listOpenRecesses() {
+      await index.loadData();
+      const refs = [];
+      for (const rec of index.index.values()) {
+        for (const [cid, rfc] of Object.entries(rec.open_rfcs ?? {})) {
+          if (typeof rfc.due_at === "number") {
+            refs.push({ correlationId: cid, dueAt: rfc.due_at });
+          }
+        }
+      }
+      return refs;
+    },
+    add: (ctx) => index.add(ctx),
+    flush: () => index.flush(),
+    shutdown: () => index.flush(),
+  };
+}
 
+const store = createInProcessAdapter({ clock });
+const ctx = (await store.loadByChannel("github-discussions", discussionId))
+  ?? newDiscussionContext({ clock, channel: "github-discussions", discussionId, participant });
 appendHistory(ctx.history, { role: "user", text: "Should we add nested levels?" });
-ctx.last_active_at = Date.now();
+ctx.last_active_at = clock.now();
 await store.add(ctx);
 await store.flush();
 ```
 
-The store reads, appends, and writes through the injected storage — no
-filesystem access inside the library. Records older than `conversationTtlMs`
-(default 24h) are evicted by a background sweep; hosts running on Lambda or a
-managed storage tier swap the storage implementation without touching libbridge.
+For multi-process bridges, point the adapter at a shared backend (Redis,
+Postgres, or a dedicated persistence service) so every bridge replica sees
+the same `(channel, discussion_id)` records and `pending_callbacks` tokens
+survive restarts. The Kata Agent Team's monorepo runs the canonical
+implementation — a small gRPC service that owns the JSONL files and the TTL
+sweep — and `services/ghbridge` / `services/msbridge` wrap a generated
+client in a `DiscussionAdapter` to talk to it. Implementations swap freely;
+libbridge only sees the contract.
 
 ## Issue and verify callback tokens
 
@@ -218,8 +274,8 @@ async function onCallback(c) {
 ```
 
 The registry is in-memory; for multi-process bridges, persist
-`pending_callbacks` on each `DiscussionContextStore` record so the host can
-re-register tokens on restart. The `correlation_id` echoes through the
+`pending_callbacks` on each discussion-context record (via the adapter's
+`add()` call) so the host can re-register tokens on restart. The `correlation_id` echoes through the
 workflow and is checked against `meta.correlationId` to defend against
 token-and-payload mismatches.
 
@@ -280,8 +336,10 @@ You have reached the outcome of this guide when:
 - You can stand up a Hono server with channel-webhook and
   `/api/callback/:token` routes via `createBridgeServer`, with the host's
   channel-specific SDK glue only inside `onWebhook` and `onCallback`.
-- You can persist per-thread state through `DiscussionContextStore` backed by
-  an injected `libstorage` instance and keyed by `(channel, discussion_id)`.
+- You can persist per-thread state by implementing the `DiscussionAdapter`
+  contract — `loadByChannel`, `loadByCorrelation`, `listOpenRecesses`, `add`,
+  `flush`, `shutdown` — and build fresh records via `newDiscussionContext`
+  keyed by `(channel, discussion_id)`.
 - You can `register`, dispatch, and one-shot `consume` callback tokens through
   `CallbackRegistry`, with `correlation_id` echoed end-to-end.
 - You can evaluate `missing_input` and `elapsed` recess triggers
