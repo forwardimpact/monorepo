@@ -1,57 +1,18 @@
 import { describe, test } from "node:test";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-const _rt = createDefaultRuntime();
 import assert from "node:assert";
-import { PassThrough, Writable } from "node:stream";
+import { Writable } from "node:stream";
 
-import { AgentRunner, Supervisor, Facilitator } from "@forwardimpact/libeval";
+import { AgentRunner } from "@forwardimpact/libeval";
 import { createRedactor } from "../src/redaction.js";
-import {
-  createOrchestrationContext,
-  createConcludeHandler,
-} from "../src/orchestration-toolkit.js";
-import { MessageBus } from "../src/message-bus.js";
 import { TraceCollector } from "../src/trace-collector.js";
 import { createTeeWriter } from "../src/tee-writer.js";
-import { createMockRunner } from "./mock-runner.js";
-import { createToolUseMsg } from "@forwardimpact/libmock";
-
-/**
- * JSON-stable guard: sentinels are printable ASCII without `"`, `\`, or
- * control chars so a substring scan over JSON-encoded bytes gives a sound
- * check (design § Test surfaces).
- */
-function assertJsonStableSentinel(s) {
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: validating absence of control chars in test sentinels
-  if (/[\x00-\x1f\x7f"\\]/.test(s)) {
-    throw new Error(`sentinel is not JSON-stable: ${JSON.stringify(s)}`);
-  }
-}
-
-/** Capture bytes written to a Writable into an array of strings. */
-function captureSink() {
-  const chunks = [];
-  const stream = new Writable({
-    write(chunk, _enc, cb) {
-      chunks.push(chunk.toString());
-      cb();
-    },
-  });
-  return {
-    stream,
-    get text() {
-      return chunks.join("");
-    },
-  };
-}
-
-const ANTH_SENT = "ANTHROPIC_PIPELINE_SENTINEL";
-const GH_SENT = "GH_TOKEN_PIPELINE_SENTINEL";
-const GITHUB_SENT = "GITHUB_TOKEN_PIPELINE_SENTINEL";
-
-for (const s of [ANTH_SENT, GH_SENT, GITHUB_SENT]) {
-  assertJsonStableSentinel(s);
-}
+import {
+  rt as _rt,
+  captureSink,
+  ANTH_SENT,
+  GH_SENT,
+  GITHUB_SENT,
+} from "./redaction-pipeline-helpers.js";
 
 describe("Producer pipeline — sentinel sweep (criterion 1)", () => {
   test("sentinels in every carrier shape are redacted before reaching fileStream", async () => {
@@ -367,140 +328,5 @@ describe("Producer pipeline — toText() byte-for-byte placeholder fidelity (cri
 
     assert.ok(!fileSink.text.includes(GH_SENT));
     assert.ok(fileSink.text.includes("[REDACTED:env:GH_TOKEN]"));
-  });
-});
-
-describe("Producer pipeline — Supervisor.emitSummary covers Conclude-handler text", () => {
-  test("sentinel-bearing Conclude summary is redacted in the orchestrator summary line", async () => {
-    const ctx = createOrchestrationContext();
-    const messageBus = new MessageBus({
-      participants: ["supervisor", "agent"],
-    });
-    ctx.messageBus = messageBus;
-    ctx.participants = [
-      { name: "supervisor", role: "supervisor" },
-      { name: "agent", role: "agent" },
-    ];
-    const concludeHandler = createConcludeHandler(ctx);
-
-    const SECRET_SUMMARY = `wrap-up with secret ${GH_SENT}`;
-    const supervisorRunner = createMockRunner(
-      [{ text: "Done" }],
-      [
-        [
-          createToolUseMsg("Conclude", {
-            verdict: "success",
-            summary: SECRET_SUMMARY,
-          }),
-        ],
-      ],
-      {
-        toolDispatcher: {
-          Conclude: (input) => concludeHandler(input),
-        },
-      },
-    );
-    const agentRunner = createMockRunner([]);
-
-    const sink = captureSink();
-    const redactor = createRedactor({
-      runtime: _rt,
-      env: { GH_TOKEN: GH_SENT },
-    });
-
-    const supervisor = new Supervisor({
-      agentRunner,
-      supervisorRunner,
-      output: sink.stream,
-      maxTurns: 5,
-      ctx,
-      messageBus,
-      redactor,
-    });
-
-    const result = await supervisor.run("Do the thing");
-    assert.strictEqual(result.success, true);
-
-    // The summary line is the orchestrator-source event.
-    const summaryLines = sink.text
-      .split("\n")
-      .filter((l) => l.length > 0)
-      .map((l) => JSON.parse(l))
-      .filter(
-        (e) => e.source === "orchestrator" && e.event?.type === "summary",
-      );
-
-    assert.strictEqual(summaryLines.length, 1);
-    const evt = summaryLines[0].event;
-    assert.ok(
-      !evt.summary.includes(GH_SENT),
-      "GH_TOKEN sentinel leaked into supervisor summary",
-    );
-    assert.ok(evt.summary.includes("[REDACTED:env:GH_TOKEN]"));
-  });
-});
-
-describe("Producer pipeline — Facilitator.emitSummary covers Conclude-handler text", () => {
-  test("sentinel-bearing Conclude summary is redacted in the facilitator summary line", async () => {
-    const ctx = createOrchestrationContext();
-    const messageBus = new MessageBus({
-      participants: ["facilitator", "agent-1"],
-    });
-    ctx.messageBus = messageBus;
-    ctx.participants = [
-      { name: "facilitator", role: "facilitator" },
-      { name: "agent-1", role: "agent" },
-    ];
-    const concludeHandler = createConcludeHandler(ctx);
-
-    const SECRET_SUMMARY = `facilitator wrap ${GH_SENT}`;
-    const facilitatorRunner = createMockRunner(
-      [{ text: "Wrap" }],
-      [
-        [
-          createToolUseMsg("Conclude", {
-            verdict: "success",
-            summary: SECRET_SUMMARY,
-          }),
-        ],
-      ],
-      { toolDispatcher: { Conclude: (input) => concludeHandler(input) } },
-    );
-    const agentRunner = createMockRunner([]);
-
-    const sink = captureSink();
-    const redactor = createRedactor({
-      runtime: _rt,
-      env: { GH_TOKEN: GH_SENT },
-    });
-
-    const facilitator = new Facilitator({
-      facilitatorRunner,
-      agents: [{ name: "agent-1", role: "worker", runner: agentRunner }],
-      messageBus,
-      output: sink.stream,
-      maxTurns: 5,
-      ctx,
-      redactor,
-    });
-
-    const result = await facilitator.run("Coordinate");
-    assert.strictEqual(result.success, true);
-
-    const summaryLines = sink.text
-      .split("\n")
-      .filter((l) => l.length > 0)
-      .map((l) => JSON.parse(l))
-      .filter(
-        (e) => e.source === "orchestrator" && e.event?.type === "summary",
-      );
-
-    assert.strictEqual(summaryLines.length, 1);
-    const evt = summaryLines[0].event;
-    assert.ok(
-      !evt.summary.includes(GH_SENT),
-      "GH_TOKEN sentinel leaked into facilitator summary",
-    );
-    assert.ok(evt.summary.includes("[REDACTED:env:GH_TOKEN]"));
   });
 });
