@@ -2,8 +2,8 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { mkdtempSync, rmSync, readFileSync } from "fs";
-import { tmpdir } from "os";
+import { readFileSync } from "fs";
+import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 import {
   createDslParser,
   createEntityGenerator,
@@ -91,12 +91,15 @@ function makePipelineDeps({
   strict = false,
   toolFactory = null,
 } = {}) {
-  const tmpDir = mkdtempSync(join(tmpdir(), "pipeline-deps-"));
   const logger = makeLogger();
   const runtime = createDefaultRuntime();
+  // no-prose mode never reads or writes the cache; back its path with an
+  // in-memory fs so the deps need no real tmpdir. The pipeline's own runtime
+  // stays real to read the on-disk DSL fixtures and HTML templates, and write
+  // output stays in `result.files` (asserted in memory below).
   const proseCache = new ProseCache({
-    runtime,
-    cachePath: join(tmpDir, "cache.json"),
+    runtime: createTestRuntime({ fs: createMockFs() }),
+    cachePath: "/prose/cache.json",
     logger,
   });
   const proseGenerator = new ProseGenerator({
@@ -108,24 +111,21 @@ function makePipelineDeps({
     logger,
   });
   return {
-    tmpDir,
-    deps: {
-      dslParser: createDslParser(),
-      entityGenerator: createEntityGenerator(logger, runtime),
-      proseCache,
-      proseGenerator,
-      pathwayGenerator: new PathwayGenerator(proseGenerator, logger),
-      renderer: new Renderer(
-        new TemplateLoader(TEMPLATE_DIR, createDefaultRuntime()),
-        logger,
-        runtime,
-      ),
-      validator: new ContentValidator(logger),
-      proseCacheSink: new NullProseCacheSink(),
-      toolFactory,
-      runtime,
+    dslParser: createDslParser(),
+    entityGenerator: createEntityGenerator(logger, runtime),
+    proseCache,
+    proseGenerator,
+    pathwayGenerator: new PathwayGenerator(proseGenerator, logger),
+    renderer: new Renderer(
+      new TemplateLoader(TEMPLATE_DIR, createDefaultRuntime()),
       logger,
-    },
+      runtime,
+    ),
+    validator: new ContentValidator(logger),
+    proseCacheSink: new NullProseCacheSink(),
+    toolFactory,
+    runtime,
+    logger,
   };
 }
 
@@ -197,8 +197,8 @@ describe("Pipeline integration", () => {
   });
 
   test("constructor requires both proseCache and proseGenerator", () => {
-    const { tmpDir, deps } = makePipelineDeps();
-    try {
+    const deps = makePipelineDeps();
+    {
       assert.throws(
         () => new Pipeline({ ...deps, proseCache: null }),
         /proseCache is required/,
@@ -209,14 +209,12 @@ describe("Pipeline integration", () => {
       );
       // Happy path constructs without throwing.
       assert.ok(new Pipeline(deps));
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 
   test("run to write terminal in no-prose mode aggregates stats", async () => {
-    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
-    try {
+    const deps = makePipelineDeps({ mode: "no-prose" });
+    {
       const pipeline = new Pipeline(deps);
       const result = await pipeline.run({
         storyPath: FIXTURE_PATH,
@@ -236,14 +234,12 @@ describe("Pipeline integration", () => {
       assert.strictEqual(result.stats.prose.misses, 0);
       assert.strictEqual(result.stats.prose.missKeys.size, 0);
       assert.ok(result.files.size > 0);
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 
   test("check verb walks only cache-lookup closure", async () => {
-    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
-    try {
+    const deps = makePipelineDeps({ mode: "no-prose" });
+    {
       const pipeline = new Pipeline(deps);
       const result = await pipeline.run({
         storyPath: FIXTURE_PATH,
@@ -260,14 +256,12 @@ describe("Pipeline integration", () => {
       // No render/validate side effects.
       assert.strictEqual(result.files.size, 0);
       assert.strictEqual(result.validation.checks.length, 0);
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 
   test("validate verb pulls datasets via skeleton → fhir-cross-ref", async () => {
-    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
-    try {
+    const deps = makePipelineDeps({ mode: "no-prose" });
+    {
       const pipeline = new Pipeline(deps);
       const result = await pipeline.run({
         storyPath: FIXTURE_PATH,
@@ -288,41 +282,35 @@ describe("Pipeline integration", () => {
       assert.ok(!result.ran.has("markdown"));
       assert.ok(!result.ran.has("pathway"));
       assert.ok(!result.ran.has("fhir-microdata-html"));
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 
   test("run rejects unknown terminal stage", async () => {
-    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
-    try {
+    const deps = makePipelineDeps({ mode: "no-prose" });
+    {
       const pipeline = new Pipeline(deps);
       await assert.rejects(
         () => pipeline.run({ storyPath: FIXTURE_PATH, terminal: "nonsense" }),
         /Unknown stage 'nonsense'/,
       );
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 
   test("clinical-output produces zero files when no clinical block", async () => {
-    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
-    try {
+    const deps = makePipelineDeps({ mode: "no-prose" });
+    {
       const pipeline = new Pipeline(deps);
       const result = await pipeline.run({
         storyPath: FIXTURE_PATH,
         terminal: "clinical-output",
       });
       assert.strictEqual(result.output.files.size, 0);
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 
   test("clinical-output renders SQL and JSONL files", async () => {
-    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
-    try {
+    const deps = makePipelineDeps({ mode: "no-prose" });
+    {
       const pipeline = new Pipeline(deps);
       const result = await pipeline.run({
         storyPath: CLINICAL_FIXTURE_PATH,
@@ -337,14 +325,12 @@ describe("Pipeline integration", () => {
         paths.includes("out/clinical.jsonl"),
         `Expected embeddings JSONL, got: ${paths.join(", ")}`,
       );
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 
   test("write stage merges clinical output alongside other files", async () => {
-    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
-    try {
+    const deps = makePipelineDeps({ mode: "no-prose" });
+    {
       const pipeline = new Pipeline(deps);
       const result = await pipeline.run({
         storyPath: CLINICAL_FIXTURE_PATH,
@@ -355,17 +341,15 @@ describe("Pipeline integration", () => {
       assert.ok(paths.includes("out/clinical.jsonl"));
       // Existing knowledge files still produced
       assert.ok(paths.some((p) => p.startsWith("data/knowledge/")));
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 
   test("write merges fhir_microdata_html files when wired", async () => {
-    const { tmpDir, deps } = makePipelineDeps({
+    const deps = makePipelineDeps({
       mode: "no-prose",
       toolFactory: makeFhirToolFactory(),
     });
-    try {
+    {
       const pipeline = new Pipeline(deps);
       const result = await pipeline.run({
         storyPath: FHIR_FIXTURE_PATH,
@@ -379,8 +363,6 @@ describe("Pipeline integration", () => {
         result.files.has("data/patients/index.html"),
         "expected patient index.html",
       );
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 

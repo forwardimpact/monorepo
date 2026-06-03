@@ -1,9 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 import { join } from "path";
-import { mkdtempSync, rmSync, readFileSync, existsSync, readdirSync } from "fs";
-import { tmpdir } from "os";
 import { format } from "prettier";
 import {
   NullSink,
@@ -15,6 +13,8 @@ import {
   ProseCacheWriteSink,
 } from "../src/sinks.js";
 
+const ROOT = "/monorepo";
+
 function makeLogger() {
   return {
     info: () => {},
@@ -22,6 +22,14 @@ function makeLogger() {
     warn: () => {},
     error: () => {},
   };
+}
+
+// Build an in-memory fs (optionally pre-seeded) and a runtime over it. WriteSink
+// performs every write/clean through `runtime.fs`, so reads of the seeded map
+// back-verify what the sink materialised — no real tmpdir needed.
+function fsRuntime(seed = {}) {
+  const fs = createMockFs(seed);
+  return { fs, runtime: createTestRuntime({ fs }) };
 }
 
 function makeResult(overrides = {}) {
@@ -41,173 +49,153 @@ function makeResult(overrides = {}) {
 
 describe("NullSink", () => {
   test("returns zeroed stats and writes nothing", async () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), "nullsink-"));
-    try {
-      const result = makeResult({
-        files: new Map([["data/knowledge/x.html", "<p>hi</p>"]]),
-      });
-      const stats = await new NullSink().accept(result);
-      assert.deepStrictEqual(stats, {
-        filesWritten: 0,
-        rawWritten: 0,
-        rawLoaded: 0,
-        loadErrors: 0,
-        loadErrorMessages: [],
-      });
-      assert.strictEqual(existsSync(join(tmpDir, "data")), false);
-    } finally {
-      rmSync(tmpDir, { recursive: true });
-    }
+    const { fs } = fsRuntime();
+    const result = makeResult({
+      files: new Map([["data/knowledge/x.html", "<p>hi</p>"]]),
+    });
+    const stats = await new NullSink().accept(result);
+    assert.deepStrictEqual(stats, {
+      filesWritten: 0,
+      rawWritten: 0,
+      rawLoaded: 0,
+      loadErrors: 0,
+      loadErrorMessages: [],
+    });
+    assert.strictEqual(fs.existsSync(join(ROOT, "data")), false);
   });
 });
 
 describe("WriteSink", () => {
   test("formats with Prettier, writes files, raw, and evidence", async () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), "writesink-"));
-    try {
-      const result = makeResult({
-        files: new Map([
-          [
-            "data/knowledge/x.html",
-            "<!doctype html><html><body><p>hi</p></body></html>",
-          ],
-        ]),
-        rawDocuments: new Map([["alice/email-1.md", "# Email\n\nbody"]]),
-        entities: {
-          domain: "test.example",
-          activity: { evidence: { events: [{ id: 1 }] } },
-        },
-      });
+    const { fs, runtime } = fsRuntime();
+    const result = makeResult({
+      files: new Map([
+        [
+          "data/knowledge/x.html",
+          "<!doctype html><html><body><p>hi</p></body></html>",
+        ],
+      ]),
+      rawDocuments: new Map([["alice/email-1.md", "# Email\n\nbody"]]),
+      entities: {
+        domain: "test.example",
+        activity: { evidence: { events: [{ id: 1 }] } },
+      },
+    });
 
-      const sink = new WriteSink({
-        monorepoRoot: tmpDir,
-        prettierFn: format,
-        runtime: createDefaultRuntime(),
-        logger: makeLogger(),
-      });
-      const stats = await sink.accept(result);
+    const sink = new WriteSink({
+      monorepoRoot: ROOT,
+      prettierFn: format,
+      runtime,
+      logger: makeLogger(),
+    });
+    const stats = await sink.accept(result);
 
-      assert.strictEqual(stats.filesWritten, 1);
-      assert.strictEqual(stats.rawWritten, 1);
-      assert.strictEqual(stats.rawLoaded, 0);
+    assert.strictEqual(stats.filesWritten, 1);
+    assert.strictEqual(stats.rawWritten, 1);
+    assert.strictEqual(stats.rawLoaded, 0);
 
-      const html = readFileSync(join(tmpDir, "data/knowledge/x.html"), "utf-8");
-      assert.match(html, /<!doctype html>/);
-      // Prettier reformats the single-line input across multiple lines.
-      assert.ok(
-        html.split("\n").length > 2,
-        "html should be multi-line after Prettier",
-      );
+    const html = await fs.readFile(
+      join(ROOT, "data/knowledge/x.html"),
+      "utf-8",
+    );
+    assert.match(html, /<!doctype html>/);
+    // Prettier reformats the single-line input across multiple lines.
+    assert.ok(
+      html.split("\n").length > 2,
+      "html should be multi-line after Prettier",
+    );
 
-      const raw = readFileSync(
-        join(tmpDir, "data/activity/raw/alice/email-1.md"),
-        "utf-8",
-      );
-      assert.match(raw, /# Email/);
+    const raw = await fs.readFile(
+      join(ROOT, "data/activity/raw/alice/email-1.md"),
+      "utf-8",
+    );
+    assert.match(raw, /# Email/);
 
-      const evidence = JSON.parse(
-        readFileSync(join(tmpDir, "data/activity/evidence.json"), "utf-8"),
-      );
-      assert.deepStrictEqual(evidence, { events: [{ id: 1 }] });
-    } finally {
-      rmSync(tmpDir, { recursive: true });
-    }
+    const evidence = JSON.parse(
+      await fs.readFile(join(ROOT, "data/activity/evidence.json"), "utf-8"),
+    );
+    assert.deepStrictEqual(evidence, { events: [{ id: 1 }] });
   });
 
   test("cleans top-level subdirectories of files before writing", async () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), "writesink-clean-"));
-    try {
-      const result = makeResult({
-        files: new Map([["data/knowledge/new.html", "<p>new</p>"]]),
-      });
+    // Pre-seed a stale file that the cleanup step should delete.
+    const stalePath = join(ROOT, "data/knowledge/stale.html");
+    const { fs, runtime } = fsRuntime({ [stalePath]: "<p>stale</p>" });
+    const result = makeResult({
+      files: new Map([["data/knowledge/new.html", "<p>new</p>"]]),
+    });
 
-      // Pre-populate a stale file that should be deleted by the cleanup step.
-      const stalePath = join(tmpDir, "data/knowledge/stale.html");
-      const { mkdirSync, writeFileSync } = await import("fs");
-      mkdirSync(join(tmpDir, "data/knowledge"), { recursive: true });
-      writeFileSync(stalePath, "<p>stale</p>");
+    const sink = new WriteSink({
+      monorepoRoot: ROOT,
+      prettierFn: format,
+      runtime,
+      logger: makeLogger(),
+    });
+    await sink.accept(result);
 
-      const sink = new WriteSink({
-        monorepoRoot: tmpDir,
-        prettierFn: format,
-        runtime: createDefaultRuntime(),
-        logger: makeLogger(),
-      });
-      await sink.accept(result);
-
-      assert.strictEqual(existsSync(stalePath), false);
-      assert.strictEqual(
-        existsSync(join(tmpDir, "data/knowledge/new.html")),
-        true,
-      );
-    } finally {
-      rmSync(tmpDir, { recursive: true });
-    }
+    assert.strictEqual(fs.existsSync(stalePath), false);
+    assert.strictEqual(
+      fs.existsSync(join(ROOT, "data/knowledge/new.html")),
+      true,
+    );
   });
 
   test("skips evidence sidecar when entities.activity.evidence is absent", async () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), "writesink-noev-"));
-    try {
-      const result = makeResult({
-        files: new Map([["data/knowledge/x.html", "<p>hi</p>"]]),
-      });
-      const sink = new WriteSink({
-        monorepoRoot: tmpDir,
-        prettierFn: format,
-        runtime: createDefaultRuntime(),
-        logger: makeLogger(),
-      });
-      await sink.accept(result);
-      assert.strictEqual(
-        existsSync(join(tmpDir, "data/activity/evidence.json")),
-        false,
-      );
-    } finally {
-      rmSync(tmpDir, { recursive: true });
-    }
+    const { fs, runtime } = fsRuntime();
+    const result = makeResult({
+      files: new Map([["data/knowledge/x.html", "<p>hi</p>"]]),
+    });
+    const sink = new WriteSink({
+      monorepoRoot: ROOT,
+      prettierFn: format,
+      runtime,
+      logger: makeLogger(),
+    });
+    await sink.accept(result);
+    assert.strictEqual(
+      fs.existsSync(join(ROOT, "data/activity/evidence.json")),
+      false,
+    );
   });
 });
 
 describe("LoadSink", () => {
   test("uploads formatted raw to Supabase without touching the filesystem", async () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), "loadsink-"));
-    try {
-      const result = makeResult({
-        files: new Map([["data/knowledge/x.html", "<p>x</p>"]]),
-        rawDocuments: new Map([["alice/note.md", "# Note\n\ntext"]]),
-      });
+    const { fs, runtime } = fsRuntime();
+    const result = makeResult({
+      files: new Map([["data/knowledge/x.html", "<p>x</p>"]]),
+      rawDocuments: new Map([["alice/note.md", "# Note\n\ntext"]]),
+    });
 
-      const calls = [];
-      const loadToSupabase = async (_supabase, rawDocs) => {
-        for (const [path, content] of rawDocs) {
-          calls.push({ path, content });
-        }
-        return { loaded: rawDocs.size, errors: [] };
-      };
+    const calls = [];
+    const loadToSupabase = async (_supabase, rawDocs) => {
+      for (const [path, content] of rawDocs) {
+        calls.push({ path, content });
+      }
+      return { loaded: rawDocs.size, errors: [] };
+    };
 
-      const sink = new LoadSink({
-        prettierFn: format,
-        runtime: createDefaultRuntime(),
-        supabase: { id: "stub" },
-        loadToSupabase,
-        logger: makeLogger(),
-      });
-      const stats = await sink.accept(result);
+    const sink = new LoadSink({
+      prettierFn: format,
+      runtime,
+      supabase: { id: "stub" },
+      loadToSupabase,
+      logger: makeLogger(),
+    });
+    const stats = await sink.accept(result);
 
-      // LoadSink owns Supabase upload only — no local writes.
-      assert.strictEqual(stats.filesWritten, 0);
-      assert.strictEqual(stats.rawLoaded, 1);
-      assert.strictEqual(stats.rawWritten, 0);
-      assert.strictEqual(calls.length, 1);
-      const expected = await format("# Note\n\ntext", {
-        parser: "markdown",
-        filepath: "alice/note.md",
-      });
-      assert.strictEqual(calls[0].content, expected);
-      assert.strictEqual(readdirSync(tmpDir).length, 0);
-    } finally {
-      rmSync(tmpDir, { recursive: true });
-    }
+    // LoadSink owns Supabase upload only — no local writes.
+    assert.strictEqual(stats.filesWritten, 0);
+    assert.strictEqual(stats.rawLoaded, 1);
+    assert.strictEqual(stats.rawWritten, 0);
+    assert.strictEqual(calls.length, 1);
+    const expected = await format("# Note\n\ntext", {
+      parser: "markdown",
+      filepath: "alice/note.md",
+    });
+    assert.strictEqual(calls[0].content, expected);
+    // No local writes: the in-memory fs stays empty under the root.
+    assert.strictEqual(fs.readdirSync(ROOT).length, 0);
   });
 
   test("surfaces Supabase load errors via loadErrorMessages", async () => {
@@ -255,39 +243,33 @@ describe("LoadSink", () => {
 
 describe("CompositeSink", () => {
   test("merges stats from each composed sink in order", async () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), "composite-"));
-    try {
-      const result = makeResult({
-        files: new Map([["data/knowledge/x.html", "<p>x</p>"]]),
-        rawDocuments: new Map([["alice/note.md", "# n\n\nbody"]]),
-      });
+    const { fs, runtime } = fsRuntime();
+    const result = makeResult({
+      files: new Map([["data/knowledge/x.html", "<p>x</p>"]]),
+      rawDocuments: new Map([["alice/note.md", "# n\n\nbody"]]),
+    });
 
-      const writeSink = new WriteSink({
-        monorepoRoot: tmpDir,
-        prettierFn: format,
-        runtime: createDefaultRuntime(),
-        logger: makeLogger(),
-      });
-      const loadSink = new LoadSink({
-        prettierFn: format,
-        runtime: createDefaultRuntime(),
-        supabase: { id: "stub" },
-        loadToSupabase: async (_s, raw) => ({ loaded: raw.size, errors: [] }),
-        logger: makeLogger(),
-      });
+    const writeSink = new WriteSink({
+      monorepoRoot: ROOT,
+      prettierFn: format,
+      runtime,
+      logger: makeLogger(),
+    });
+    const loadSink = new LoadSink({
+      prettierFn: format,
+      runtime,
+      supabase: { id: "stub" },
+      loadToSupabase: async (_s, raw) => ({ loaded: raw.size, errors: [] }),
+      logger: makeLogger(),
+    });
 
-      const stats = await new CompositeSink([writeSink, loadSink]).accept(
-        result,
-      );
-      assert.strictEqual(stats.filesWritten, 1);
-      assert.strictEqual(stats.rawWritten, 1);
-      assert.strictEqual(stats.rawLoaded, 1);
-      assert.strictEqual(stats.loadErrors, 0);
-      // Composite preserves the local copy written by WriteSink.
-      assert.ok(existsSync(join(tmpDir, "data/activity/raw/alice/note.md")));
-    } finally {
-      rmSync(tmpDir, { recursive: true });
-    }
+    const stats = await new CompositeSink([writeSink, loadSink]).accept(result);
+    assert.strictEqual(stats.filesWritten, 1);
+    assert.strictEqual(stats.rawWritten, 1);
+    assert.strictEqual(stats.rawLoaded, 1);
+    assert.strictEqual(stats.loadErrors, 0);
+    // Composite preserves the local copy written by WriteSink.
+    assert.ok(fs.existsSync(join(ROOT, "data/activity/raw/alice/note.md")));
   });
 
   test("rejects empty sink list", () => {
@@ -332,24 +314,19 @@ describe("InspectSink", () => {
 
 describe("ProseCacheWriteSink", () => {
   test("flush() persists cache state to disk", () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), "cachesink-"));
-    try {
-      const cachePath = join(tmpDir, "cache.json");
-      const cache = {
-        dirty: true,
-        save() {
-          this.savedTo = cachePath;
-          this.saveCount = (this.saveCount || 0) + 1;
-        },
-      };
-      const sink = new ProseCacheWriteSink({ cache });
-      sink.flush();
-      sink.flush();
-      assert.strictEqual(cache.saveCount, 2);
-      assert.strictEqual(cache.savedTo, cachePath);
-    } finally {
-      rmSync(tmpDir, { recursive: true });
-    }
+    const cachePath = "/prose/cache.json";
+    const cache = {
+      dirty: true,
+      save() {
+        this.savedTo = cachePath;
+        this.saveCount = (this.saveCount || 0) + 1;
+      },
+    };
+    const sink = new ProseCacheWriteSink({ cache });
+    sink.flush();
+    sink.flush();
+    assert.strictEqual(cache.saveCount, 2);
+    assert.strictEqual(cache.savedTo, cachePath);
   });
 
   test("constructor requires a cache", () => {
