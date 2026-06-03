@@ -23,11 +23,13 @@ the URL to multiple AAD users, so any participant could race the
 legitimate user's `/authorize` and bind the asserted identity to their
 own GitHub. The design declares **1:1 personal Bot Framework
 conversations** a load-bearing invariant for any surface whose contract
-is `bridge_pending_dispatch_proof`. **Spec amendment PR #1401** names
-this invariant as a spec-side in-scope row + success criterion; the
-design's STATUS row advances to `design approved` only after #1401
-merges so the load-bearing invariant has a merged spec anchor. The
-msteams ingress's Bot Framework signature verification (today at
+is `bridge_pending_dispatch_proof`. Ratified on `main` at `46b299df`
+(spec.md § Scope row "Channel confidentiality for surfaces using
+bridge-pending-dispatch proof (amendment 2026-06-03)" and the paired
+Success Criterion at line 121): the spec now names the conversation-type
+restriction as the trust-model invariant, with fail-closed handling of
+unrecognised or absent `conversationType` as the enforcement contract.
+The msteams ingress's Bot Framework signature verification (today at
 `services/msbridge`'s activity-handler entry) is a transitive dependency
 of this invariant — a forged `conversationType` would bypass the gate.
 Preserving that ingress posture is implicit; weakening it in a future
