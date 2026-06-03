@@ -20,7 +20,7 @@
     },
     "libraries/libbridge": {
       "name": "@forwardimpact/libbridge",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "dependencies": {
         "@forwardimpact/libhttp": "^0.1.0",
         "@forwardimpact/libtype": "^0.1.0",
@@ -33,7 +33,7 @@
     },
     "libraries/libcli": {
       "name": "@forwardimpact/libcli",
-      "version": "0.1.12",
+      "version": "0.1.13",
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
       },
@@ -49,6 +49,9 @@
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libutil": "*",
         "prettier": "^3.0.0",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libcodegen": {
@@ -112,7 +115,7 @@
     },
     "libraries/libeval": {
       "name": "@forwardimpact/libeval",
-      "version": "0.1.52",
+      "version": "0.1.54",
       "bin": {
         "fit-eval": "./bin/fit-eval.js",
         "fit-trace": "./bin/fit-trace.js",
@@ -182,7 +185,7 @@
     },
     "libraries/libindex": {
       "name": "@forwardimpact/libindex",
-      "version": "0.1.41",
+      "version": "0.1.42",
       "dependencies": {
         "@forwardimpact/libtype": "^0.1.63",
         "@forwardimpact/libutil": "^0.1.84",
@@ -215,7 +218,7 @@
     },
     "libraries/libmock": {
       "name": "@forwardimpact/libmock",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "peerDependencies": {
         "@forwardimpact/libtype": "*",
       },
@@ -242,7 +245,7 @@
     },
     "libraries/libpreflight": {
       "name": "@forwardimpact/libpreflight",
-      "version": "0.1.1",
+      "version": "0.1.2",
     },
     "libraries/libprompt": {
       "name": "@forwardimpact/libprompt",
@@ -250,6 +253,9 @@
       "dependencies": {
         "@forwardimpact/libutil": "^0.1.84",
         "mustache": "^4.2.0",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libproto": {
@@ -349,7 +355,7 @@
     },
     "libraries/libstorage": {
       "name": "@forwardimpact/libstorage",
-      "version": "0.1.84",
+      "version": "0.1.85",
       "bin": {
         "fit-storage": "./bin/fit-storage.js",
       },
@@ -369,7 +375,7 @@
     },
     "libraries/libsupervise": {
       "name": "@forwardimpact/libsupervise",
-      "version": "0.1.27",
+      "version": "0.1.28",
       "bin": {
         "fit-logger": "./bin/fit-logger.js",
         "fit-svscan": "./bin/fit-svscan.js",
@@ -465,6 +471,9 @@
         "@forwardimpact/libutil": "^0.1.84",
         "mustache": "^4.2.0",
       },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+      },
     },
     "libraries/libterrain": {
       "name": "@forwardimpact/libterrain",
@@ -518,7 +527,7 @@
     },
     "libraries/libutil": {
       "name": "@forwardimpact/libutil",
-      "version": "0.1.87",
+      "version": "0.1.88",
       "bin": {
         "fit-download-bundle": "./bin/fit-download-bundle.js",
         "fit-tiktoken": "./bin/fit-tiktoken.js",
@@ -559,7 +568,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.13",
+      "version": "0.2.14",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
