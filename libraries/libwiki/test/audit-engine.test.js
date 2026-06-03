@@ -272,11 +272,11 @@ describe("runRules", () => {
     assert.ok(idsOf(audit(seed)).includes("memory.priority-separator-row"));
   });
 
-  test("stray file fires wiki.stray-file", () => {
+  test("stray file is not audited", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/weird.md`]: "# Whatever\n",
     });
-    assert.ok(idsOf(audit(seed)).includes("wiki.stray-file"));
+    assert.ok(!idsOf(audit(seed)).includes("wiki.stray-file"));
   });
 
   test("when predicate skips rule when subject does not qualify", () => {
