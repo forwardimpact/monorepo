@@ -9,19 +9,20 @@ const { GhuserBase } = services;
 const EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const GITHUB_ID_SURFACES = new Set(["github-discussions"]);
 
-// Issue #1397 kill-switch: surfaces whose surface_user_id is not a verifiable
-// GitHub identity (e.g. msteams aad-obj-id, slack user id) cannot be safely
-// linked yet because `Complete` skips the identity gate for them, letting an
-// attacker bind their own token under an arbitrary victim's surface_user_id.
-// Spec 1520 replaces this allowlist with bridge-originated proof of intent.
+// Begin only links surfaces whose `surface_user_id` is a verifiable GitHub
+// identity. For other surfaces (e.g. msteams aad-obj-id, slack user id) the
+// GitHub-side identity check in `Complete` cannot bind to the asserted
+// surface_user_id, so an attacker could bind their own token under an
+// arbitrary victim's surface_user_id. Until a per-surface proof-of-intent
+// contract gates `Begin`, only github-discussions is permitted.
 const BEGIN_ALLOWED_SURFACES = new Set(["github-discussions"]);
 
-// Issue #1397 quarantine (PM option c): GetToken returns `link_required` for
-// any surface outside DISPATCH_ALLOWED_SURFACES regardless of whether a
-// binding record exists. Records remain in BindingStore — the spec 1520
-// structural-fix migration is the canonical invalidation point. This closes
-// residual exploitation of bindings that may have been attacker-planted
-// before the kill-switch shipped (#1399).
+// GetToken returns `link_required` for surfaces outside this set even when a
+// binding record exists, suppressing dispatch under records that may have
+// been planted before the surface allowlist gated `Begin`. Records remain in
+// BindingStore; the proof-of-intent migration is the canonical invalidation
+// point and lifts both this restriction and `BEGIN_ALLOWED_SURFACES` at the
+// same release boundary.
 const DISPATCH_ALLOWED_SURFACES = new Set(["github-discussions"]);
 
 /**

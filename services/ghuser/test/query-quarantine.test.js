@@ -49,8 +49,8 @@ describe("ghuser query-quarantine (#1397)", () => {
       "URL carries surface param",
     );
 
-    // Record remains in storage — spec 1520 migration is the canonical
-    // invalidation point.
+    // Record remains in storage; the proof-of-intent migration is the
+    // canonical invalidation point.
     const stored = await bindings.loadBinding("msteams", "victim-aad-obj-id");
     assert.ok(stored, "binding record remains in storage");
     assert.strictEqual(stored.access_token, "ghu_planted_token");
