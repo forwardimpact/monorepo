@@ -10,17 +10,27 @@ import {
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
- * Build a real-filesystem runtime for in-process command tests: real fsSync,
- * a `proc` whose `cwd()`/`env` are test-controlled and whose stdout/stderr
- * are captured, a real `Finder`, and a real clock (unless `now` is given).
+ * Build a runtime for in-process command tests: a `proc` whose `cwd()`/`env`
+ * are test-controlled and whose stdout/stderr are captured, a real `Finder`,
+ * a real clock (unless `now` is given), and fs surfaces that default to the
+ * real `node:fs` but accept a libmock `createMockFs()` override so a command's
+ * reads can stay in memory.
  *
  * @param {object} [options]
  * @param {string} [options.cwd] - Working directory `proc.cwd()` returns.
  * @param {Record<string,string>} [options.env] - The `proc.env` backing map.
  * @param {number} [options.now] - Fixed clock time in ms (defaults to real clock).
+ * @param {object} [options.fs] - Async fs surface override (default real `node:fs/promises`).
+ * @param {object} [options.fsSync] - Sync fs surface override (default real `node:fs`).
  * @returns {{ runtime: object, stdout: string, stderr: string, exitCode: number }}
  */
-export function makeRuntime({ cwd = process.cwd(), env = {}, now } = {}) {
+export function makeRuntime({
+  cwd = process.cwd(),
+  env = {},
+  now,
+  fs: fsOverride = nodeFs,
+  fsSync: fsSyncOverride = nodeFsSync,
+} = {}) {
   const out = [];
   const err = [];
   let _exitCode = 0;
@@ -50,8 +60,8 @@ export function makeRuntime({ cwd = process.cwd(), env = {}, now } = {}) {
         }
       : createDefaultClock();
   const runtime = Object.freeze({
-    fs: nodeFs,
-    fsSync: nodeFsSync,
+    fs: fsOverride,
+    fsSync: fsSyncOverride,
     proc,
     clock,
     subprocess: createDefaultSubprocess(),

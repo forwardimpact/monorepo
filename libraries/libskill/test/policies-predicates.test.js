@@ -156,36 +156,40 @@ describe("predicates", () => {
     });
   });
 
-  describe("hasMinLevel", () => {
-    test("returns true for skills at or above minimum", () => {
-      const atWorking = hasMinLevel("working");
-      assert.strictEqual(atWorking(skill({ proficiency: "working" })), true);
-      assert.strictEqual(
-        atWorking(skill({ proficiency: "practitioner" })),
-        true,
-      );
-      assert.strictEqual(atWorking(skill({ proficiency: "expert" })), true);
-    });
+  // The three level-ordered predicates each cross-multiplied a threshold against
+  // the ordered proficiency set, all flowing through a single
+  // `getSkillProficiencyIndex(...)` comparison (>=, ===, <). Per Decision 6 this
+  // is a single implementation path, so each collapses to boundary cases
+  // (at-threshold, one-below, one-above, and the floor/ceiling) plus one
+  // monotonicity property loop over the full ordered axis.
+  const PROFICIENCY_ORDER = [
+    "awareness",
+    "foundational",
+    "working",
+    "practitioner",
+    "expert",
+  ];
 
-    test("returns false for skills below minimum", () => {
+  describe("hasMinLevel", () => {
+    test("boundary cases around a mid threshold and at the extremes", () => {
       const atWorking = hasMinLevel("working");
-      assert.strictEqual(atWorking(skill({ proficiency: "awareness" })), false);
       assert.strictEqual(
         atWorking(skill({ proficiency: "foundational" })),
         false,
-      );
-    });
+      ); // one-below
+      assert.strictEqual(atWorking(skill({ proficiency: "working" })), true); // at-threshold
+      assert.strictEqual(
+        atWorking(skill({ proficiency: "practitioner" })),
+        true,
+      ); // one-above
 
-    test("awareness minimum accepts all levels", () => {
+      // awareness floor accepts everything; expert ceiling accepts only expert.
       const atAwareness = hasMinLevel("awareness");
       assert.strictEqual(
         atAwareness(skill({ proficiency: "awareness" })),
         true,
       );
       assert.strictEqual(atAwareness(skill({ proficiency: "expert" })), true);
-    });
-
-    test("expert minimum accepts only expert", () => {
       const atExpert = hasMinLevel("expert");
       assert.strictEqual(
         atExpert(skill({ proficiency: "practitioner" })),
@@ -193,58 +197,84 @@ describe("predicates", () => {
       );
       assert.strictEqual(atExpert(skill({ proficiency: "expert" })), true);
     });
+
+    test("monotonicity: true iff proficiency index >= threshold index (property)", () => {
+      for (let t = 0; t < PROFICIENCY_ORDER.length; t++) {
+        const pred = hasMinLevel(PROFICIENCY_ORDER[t]);
+        for (let i = 0; i < PROFICIENCY_ORDER.length; i++) {
+          assert.strictEqual(
+            pred(skill({ proficiency: PROFICIENCY_ORDER[i] })),
+            i >= t,
+            `hasMinLevel(${PROFICIENCY_ORDER[t]})(${PROFICIENCY_ORDER[i]})`,
+          );
+        }
+      }
+    });
   });
 
   describe("hasLevel", () => {
-    test("returns true for exact level match", () => {
-      const exactlyWorking = hasLevel("working");
-      assert.strictEqual(
-        exactlyWorking(skill({ proficiency: "working" })),
-        true,
-      );
-    });
-
-    test("returns false for different levels", () => {
+    test("boundary cases: matches only the exact level", () => {
       const exactlyWorking = hasLevel("working");
       assert.strictEqual(
         exactlyWorking(skill({ proficiency: "foundational" })),
         false,
-      );
+      ); // one-below
+      assert.strictEqual(
+        exactlyWorking(skill({ proficiency: "working" })),
+        true,
+      ); // exact
       assert.strictEqual(
         exactlyWorking(skill({ proficiency: "practitioner" })),
         false,
-      );
+      ); // one-above
+    });
+
+    test("true iff proficiency index === threshold index (property)", () => {
+      for (let t = 0; t < PROFICIENCY_ORDER.length; t++) {
+        const pred = hasLevel(PROFICIENCY_ORDER[t]);
+        for (let i = 0; i < PROFICIENCY_ORDER.length; i++) {
+          assert.strictEqual(
+            pred(skill({ proficiency: PROFICIENCY_ORDER[i] })),
+            i === t,
+            `hasLevel(${PROFICIENCY_ORDER[t]})(${PROFICIENCY_ORDER[i]})`,
+          );
+        }
+      }
     });
   });
 
   describe("hasBelowLevel", () => {
-    test("returns true for skills below threshold", () => {
+    test("boundary cases around a mid threshold and at the floor", () => {
       const belowWorking = hasBelowLevel("working");
-      assert.strictEqual(
-        belowWorking(skill({ proficiency: "awareness" })),
-        true,
-      );
       assert.strictEqual(
         belowWorking(skill({ proficiency: "foundational" })),
         true,
-      );
-    });
-
-    test("returns false for skills at or above threshold", () => {
-      const belowWorking = hasBelowLevel("working");
+      ); // one-below
       assert.strictEqual(
         belowWorking(skill({ proficiency: "working" })),
         false,
-      );
-      assert.strictEqual(belowWorking(skill({ proficiency: "expert" })), false);
-    });
+      ); // at-threshold
+      assert.strictEqual(belowWorking(skill({ proficiency: "expert" })), false); // one-above
 
-    test("below awareness returns false for everything", () => {
+      // below awareness (the floor) returns false for everything.
       const belowAwareness = hasBelowLevel("awareness");
       assert.strictEqual(
         belowAwareness(skill({ proficiency: "awareness" })),
         false,
       );
+    });
+
+    test("true iff proficiency index < threshold index (property)", () => {
+      for (let t = 0; t < PROFICIENCY_ORDER.length; t++) {
+        const pred = hasBelowLevel(PROFICIENCY_ORDER[t]);
+        for (let i = 0; i < PROFICIENCY_ORDER.length; i++) {
+          assert.strictEqual(
+            pred(skill({ proficiency: PROFICIENCY_ORDER[i] })),
+            i < t,
+            `hasBelowLevel(${PROFICIENCY_ORDER[t]})(${PROFICIENCY_ORDER[i]})`,
+          );
+        }
+      }
     });
   });
 

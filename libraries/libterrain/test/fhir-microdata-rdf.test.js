@@ -2,9 +2,8 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
 import { JSDOM } from "jsdom";
+import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 import {
   createDslParser,
   createEntityGenerator,
@@ -115,12 +114,14 @@ function makeFhirToolFactory() {
 }
 
 function makePipeline() {
-  const tmpDir = mkdtempSync(join(tmpdir(), "fhir-rdf-"));
   const logger = makeLogger();
   const runtime = createDefaultRuntime();
+  // no-prose mode never reads or writes the cache; back its path with an
+  // in-memory fs so the pipeline needs no real tmpdir. The pipeline's own
+  // runtime stays real to read the on-disk DSL fixture and HTML templates.
   const proseCache = new ProseCache({
-    runtime,
-    cachePath: join(tmpDir, "cache.json"),
+    runtime: createTestRuntime({ fs: createMockFs() }),
+    cachePath: "/prose/cache.json",
     logger,
   });
   const proseGenerator = new ProseGenerator({
@@ -147,7 +148,7 @@ function makePipeline() {
     runtime,
     logger,
   };
-  return { tmpDir, pipeline: new Pipeline(deps) };
+  return { pipeline: new Pipeline(deps) };
 }
 
 async function parseFile(parser, content, baseIri) {
@@ -172,8 +173,8 @@ function hasQuad(items, { subject, predicate, object }) {
 
 describe("FHIR microdata HTML → libresource RDF", () => {
   test("emits Person main item and Patient → resource quads per spec criteria 2–6", async () => {
-    const { tmpDir, pipeline } = makePipeline();
-    try {
+    const { pipeline } = makePipeline();
+    {
       const result = await pipeline.run({
         storyPath: FIXTURE,
         terminal: "write",
@@ -308,8 +309,6 @@ describe("FHIR microdata HTML → libresource RDF", () => {
         }),
         "combined graph missing trial → patient quad",
       );
-    } finally {
-      rmSync(tmpDir, { recursive: true });
     }
   });
 });

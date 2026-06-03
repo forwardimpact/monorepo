@@ -1,19 +1,23 @@
-import { test, describe, beforeEach } from "node:test";
+import { test, describe } from "node:test";
 import assert from "node:assert";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
 
 import { PromptLoader, createPromptLoader } from "../src/index.js";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
+
+const PROMPT_DIR = "/prompts";
+
+/**
+ * Build a PromptLoader over an in-memory fs seeded with `files` (a path→content
+ * map), injected through the loader's `runtime` parameter.
+ */
+function loaderWith(files = {}) {
+  return new PromptLoader(
+    PROMPT_DIR,
+    createTestRuntime({ fs: createMockFs(files) }),
+  );
+}
 
 describe("PromptLoader", () => {
-  let tempDir;
-
-  beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), "libprompt-test-"));
-  });
-
   test("constructor throws when promptDir is not provided", () => {
     assert.throws(() => new PromptLoader(), {
       message: "promptDir is required",
@@ -27,27 +31,27 @@ describe("PromptLoader", () => {
   });
 
   test("constructor accepts valid promptDir", () => {
-    const loader = new PromptLoader(tempDir, createDefaultRuntime());
+    const loader = loaderWith();
     assert.ok(loader instanceof PromptLoader);
   });
 
   describe("load", () => {
     test("throws when promptName is not provided", () => {
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith();
       assert.throws(() => loader.load(), {
         message: "promptName is required",
       });
     });
 
     test("throws when promptName is empty string", () => {
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith();
       assert.throws(() => loader.load(""), {
         message: "promptName is required",
       });
     });
 
     test("throws when prompt file does not exist", () => {
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith();
       assert.throws(() => loader.load("nonexistent"), {
         message: /Prompt file not found/,
       });
@@ -55,9 +59,7 @@ describe("PromptLoader", () => {
 
     test("loads prompt file content", () => {
       const content = "# Test Prompt\n\nThis is a test prompt.";
-      writeFileSync(join(tempDir, "test.prompt.md"), content);
-
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith({ [`${PROMPT_DIR}/test.prompt.md`]: content });
       const result = loader.load("test");
 
       assert.strictEqual(result, content);
@@ -65,9 +67,9 @@ describe("PromptLoader", () => {
 
     test("loads prompt file with utf-8 encoding", () => {
       const content = "# Prompt with umlauts and accents";
-      writeFileSync(join(tempDir, "unicode.prompt.md"), content);
-
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith({
+        [`${PROMPT_DIR}/unicode.prompt.md`]: content,
+      });
       const result = loader.load("unicode");
 
       assert.strictEqual(result, content);
@@ -77,9 +79,9 @@ describe("PromptLoader", () => {
   describe("render", () => {
     test("renders template with data", () => {
       const template = "Hello, {{name}}!";
-      writeFileSync(join(tempDir, "greeting.prompt.md"), template);
-
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith({
+        [`${PROMPT_DIR}/greeting.prompt.md`]: template,
+      });
       const result = loader.render("greeting", { name: "World" });
 
       assert.strictEqual(result, "Hello, World!");
@@ -87,9 +89,9 @@ describe("PromptLoader", () => {
 
     test("renders template with empty data object", () => {
       const template = "Hello, {{name}}!";
-      writeFileSync(join(tempDir, "greeting.prompt.md"), template);
-
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith({
+        [`${PROMPT_DIR}/greeting.prompt.md`]: template,
+      });
       const result = loader.render("greeting", {});
 
       assert.strictEqual(result, "Hello, !");
@@ -97,9 +99,9 @@ describe("PromptLoader", () => {
 
     test("renders template without data argument", () => {
       const template = "Static content";
-      writeFileSync(join(tempDir, "static.prompt.md"), template);
-
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith({
+        [`${PROMPT_DIR}/static.prompt.md`]: template,
+      });
       const result = loader.render("static");
 
       assert.strictEqual(result, "Static content");
@@ -107,9 +109,9 @@ describe("PromptLoader", () => {
 
     test("renders template with triple mustache for unescaped content", () => {
       const template = "Content: {{{html}}}";
-      writeFileSync(join(tempDir, "html.prompt.md"), template);
-
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith({
+        [`${PROMPT_DIR}/html.prompt.md`]: template,
+      });
       const result = loader.render("html", { html: "<strong>bold</strong>" });
 
       assert.strictEqual(result, "Content: <strong>bold</strong>");
@@ -118,9 +120,9 @@ describe("PromptLoader", () => {
     test("renders template with sections", () => {
       const template =
         "Items:{{#items}}\n- {{name}}{{/items}}\nTotal: {{total}}";
-      writeFileSync(join(tempDir, "list.prompt.md"), template);
-
-      const loader = new PromptLoader(tempDir, createDefaultRuntime());
+      const loader = loaderWith({
+        [`${PROMPT_DIR}/list.prompt.md`]: template,
+      });
       const result = loader.render("list", {
         items: [{ name: "First" }, { name: "Second" }],
         total: 2,
@@ -129,21 +131,14 @@ describe("PromptLoader", () => {
       assert.strictEqual(result, "Items:\n- First\n- Second\nTotal: 2");
     });
   });
-
-  test.afterEach(() => {
-    try {
-      rmSync(tempDir, { recursive: true, force: true });
-    } catch {
-      // Ignore cleanup errors
-    }
-  });
 });
 
 describe("createPromptLoader", () => {
   test("returns a PromptLoader instance", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "libprompt-factory-"));
-    const loader = createPromptLoader(tempDir, createDefaultRuntime());
+    const loader = createPromptLoader(
+      PROMPT_DIR,
+      createTestRuntime({ fs: createMockFs() }),
+    );
     assert.ok(loader instanceof PromptLoader);
-    rmSync(tempDir, { recursive: true, force: true });
   });
 });

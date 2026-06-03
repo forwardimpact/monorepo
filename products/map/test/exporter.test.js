@@ -4,13 +4,11 @@
  * idempotent, and that stale entries are removed before writing.
  */
 
-import { test, describe, beforeEach, afterEach } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import assert from "node:assert";
-import { mkdtempSync, rmSync, existsSync } from "node:fs";
-import * as fsp from "node:fs/promises";
+import { createMockFs } from "@forwardimpact/libmock";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
 import { MicrodataRdfParser } from "microdata-rdf-streaming-parser";
 
 import { Exporter } from "../src/exporter.js";
@@ -19,15 +17,16 @@ import { VOCAB_BASE } from "../src/iri.js";
 import { DATA } from "./fixtures.js";
 
 const RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const OUTPUT_DIR = "/map-export";
 
+// A fresh in-memory fs per test; the Exporter writes/clears/reads the pathway
+// tree through it (the constructor's injected async fs surface).
+let fs;
 let outputDir;
 
 beforeEach(() => {
-  outputDir = mkdtempSync(join(tmpdir(), "map-exporter-"));
-});
-
-afterEach(() => {
-  rmSync(outputDir, { recursive: true, force: true });
+  fs = createMockFs();
+  outputDir = OUTPUT_DIR;
 });
 
 async function parseQuads(html) {
@@ -46,7 +45,7 @@ async function parseQuads(html) {
 
 describe("Exporter", () => {
   test("writes one file per base entity into <outputDir>/pathway/<type>/<id>.html", async () => {
-    const exporter = new Exporter(fsp, createRenderer(createDefaultRuntime()));
+    const exporter = new Exporter(fs, createRenderer(createDefaultRuntime()));
     const result = await exporter.exportAll({ data: DATA, outputDir });
 
     assert.strictEqual(result.errors.length, 0);
@@ -64,15 +63,15 @@ describe("Exporter", () => {
 
     for (const rel of expected) {
       const path = join(outputDir, "pathway", rel);
-      assert.ok(existsSync(path), `expected ${rel} to exist`);
+      assert.ok(fs.existsSync(path), `expected ${rel} to exist`);
     }
   });
 
   test("rendered files parse with fit: vocabulary subjects", async () => {
-    const exporter = new Exporter(fsp, createRenderer(createDefaultRuntime()));
+    const exporter = new Exporter(fs, createRenderer(createDefaultRuntime()));
     await exporter.exportAll({ data: DATA, outputDir });
 
-    const html = await fsp.readFile(
+    const html = await fs.readFile(
       join(outputDir, "pathway", "skill", "planning.html"),
       "utf-8",
     );
@@ -87,26 +86,26 @@ describe("Exporter", () => {
   });
 
   test("running twice yields byte-identical output", async () => {
-    const exporter = new Exporter(fsp, createRenderer(createDefaultRuntime()));
+    const exporter = new Exporter(fs, createRenderer(createDefaultRuntime()));
     await exporter.exportAll({ data: DATA, outputDir });
 
     const path = join(outputDir, "pathway", "skill", "planning.html");
-    const first = await fsp.readFile(path, "utf-8");
+    const first = await fs.readFile(path, "utf-8");
 
     await exporter.exportAll({ data: DATA, outputDir });
-    const second = await fsp.readFile(path, "utf-8");
+    const second = await fs.readFile(path, "utf-8");
 
     assert.strictEqual(first, second);
   });
 
   test("clears stale files in pathway/ before writing", async () => {
     const ghostDir = join(outputDir, "pathway", "skill");
-    await fsp.mkdir(ghostDir, { recursive: true });
-    await fsp.writeFile(join(ghostDir, "ghost.html"), "ghost");
+    await fs.mkdir(ghostDir, { recursive: true });
+    await fs.writeFile(join(ghostDir, "ghost.html"), "ghost");
 
-    const exporter = new Exporter(fsp, createRenderer(createDefaultRuntime()));
+    const exporter = new Exporter(fs, createRenderer(createDefaultRuntime()));
     await exporter.exportAll({ data: DATA, outputDir });
 
-    assert.strictEqual(existsSync(join(ghostDir, "ghost.html")), false);
+    assert.strictEqual(fs.existsSync(join(ghostDir, "ghost.html")), false);
   });
 });

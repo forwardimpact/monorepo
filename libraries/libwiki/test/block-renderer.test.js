@@ -1,13 +1,11 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import * as nodeFs from "node:fs";
-import { mkdtempSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { createMockFs } from "@forwardimpact/libmock";
 import { renderBlock, BlockRenderError } from "../src/block-renderer.js";
 import { analyze, renderChart } from "@forwardimpact/libxmr";
 
 const HEADER = "date,metric,value,unit,run,note";
+const ROOT = "/project";
 
 function makeCSV(metric, values) {
   const rows = values.map(
@@ -17,17 +15,21 @@ function makeCSV(metric, values) {
   return [HEADER, ...rows].join("\n");
 }
 
+// Seed the CSV in an in-memory fs at `${ROOT}/test.csv`; renderBlock reads it
+// via the injected sync surface (join(projectRoot, csvPath)).
+function csvFs(csv) {
+  return createMockFs({ [`${ROOT}/test.csv`]: csv });
+}
+
 describe("renderBlock", () => {
   test("predictable metric renders chart fenced code and Signals", () => {
-    const dir = mkdtempSync(join(tmpdir(), "block-"));
     const values = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10];
-    writeFileSync(join(dir, "test.csv"), makeCSV("findings", values));
 
     const lines = renderBlock({
       metric: "findings",
       csvPath: "test.csv",
-      projectRoot: dir,
-      fs: nodeFs,
+      projectRoot: ROOT,
+      fs: csvFs(makeCSV("findings", values)),
     });
 
     assert.equal(lines[0], "```");
@@ -44,15 +46,13 @@ describe("renderBlock", () => {
   });
 
   test("signals_present metric lists fired rules", () => {
-    const dir = mkdtempSync(join(tmpdir(), "block-"));
     const values = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 50];
-    writeFileSync(join(dir, "test.csv"), makeCSV("outlier", values));
 
     const lines = renderBlock({
       metric: "outlier",
       csvPath: "test.csv",
-      projectRoot: dir,
-      fs: nodeFs,
+      projectRoot: ROOT,
+      fs: csvFs(makeCSV("outlier", values)),
     });
 
     const signalLine = lines[lines.length - 1];
@@ -60,15 +60,13 @@ describe("renderBlock", () => {
   });
 
   test("insufficient_data metric shows insufficient message", () => {
-    const dir = mkdtempSync(join(tmpdir(), "block-"));
     const values = [10, 20, 30, 40, 50];
-    writeFileSync(join(dir, "test.csv"), makeCSV("few", values));
 
     const lines = renderBlock({
       metric: "few",
       csvPath: "test.csv",
-      projectRoot: dir,
-      fs: nodeFs,
+      projectRoot: ROOT,
+      fs: csvFs(makeCSV("few", values)),
     });
 
     assert.equal(lines[0], "```");
@@ -78,15 +76,13 @@ describe("renderBlock", () => {
   });
 
   test("throws BlockRenderError for missing metric", () => {
-    const dir = mkdtempSync(join(tmpdir(), "block-"));
-    writeFileSync(join(dir, "test.csv"), makeCSV("exists", [10, 20, 30]));
-
     assert.throws(
       () =>
         renderBlock({
           metric: "nonexistent",
           csvPath: "test.csv",
-          projectRoot: dir,
+          projectRoot: ROOT,
+          fs: csvFs(makeCSV("exists", [10, 20, 30])),
         }),
       BlockRenderError,
     );

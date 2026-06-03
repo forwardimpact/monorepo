@@ -1,19 +1,22 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 
 import { checkJtbd } from "../src/index.js";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-const runtime = createDefaultRuntime();
+import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 
-async function makeRepo() {
-  const root = await mkdtemp(join(tmpdir(), "libcoaligned-jtbd-"));
-  for (const sub of ["products", "services", "libraries"]) {
-    await mkdir(join(root, sub), { recursive: true });
-  }
-  return root;
+const ROOT = "/repo";
+
+/**
+ * Build a runtime over an in-memory fs seeded with `files` (a path→content map
+ * rooted at `/repo`). `checkJtbd` reads and rewrites through `runtime.fsSync`,
+ * so the seeded map is the on-disk repo it inspects.
+ */
+function fsWith(files = {}) {
+  return createMockFs(files);
+}
+
+function runtimeWith(fs) {
+  return createTestRuntime({ fs });
 }
 
 const validJob = {
@@ -49,204 +52,171 @@ const kataJob = {
 
 describe("checkJtbd", () => {
   test("passes on an empty repo with no packages", async () => {
-    const root = await makeRepo();
-    try {
-      const result = await checkJtbd({ root, runtime });
-      assert.deepStrictEqual(result.findings, []);
-      assert.deepStrictEqual(result.stale, []);
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
+    const result = await checkJtbd({
+      root: ROOT,
+      runtime: runtimeWith(fsWith()),
+    });
+    assert.deepStrictEqual(result.findings, []);
+    assert.deepStrictEqual(result.stale, []);
   });
 
   test("rejects a job entry whose bigHire is missing the trailing period", async () => {
-    const root = await makeRepo();
-    try {
-      const pkg = {
-        name: "@x/libfoo",
-        description: "Foo.",
-        jobs: [{ ...validJob, bigHire: "do the thing without a period" }],
-      };
-      await mkdir(join(root, "libraries", "libfoo"));
-      await writeFile(
-        join(root, "libraries", "libfoo", "package.json"),
-        JSON.stringify(pkg),
-      );
-      const result = await checkJtbd({ root, runtime });
-      const f = result.findings.find(
-        (x) => x.id === "jtbd.hire-missing-period",
-      );
-      assert.ok(
-        f,
-        `expected jtbd.hire-missing-period finding, got: ${JSON.stringify(result.findings)}`,
-      );
-      assert.match(f.message, /must end with "\."/);
-      assert.ok(f.path.endsWith("libraries/libfoo/package.json"));
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
+    const pkg = {
+      name: "@x/libfoo",
+      description: "Foo.",
+      jobs: [{ ...validJob, bigHire: "do the thing without a period" }],
+    };
+    const result = await checkJtbd({
+      root: ROOT,
+      runtime: runtimeWith(
+        fsWith({
+          [`${ROOT}/libraries/libfoo/package.json`]: JSON.stringify(pkg),
+        }),
+      ),
+    });
+    const f = result.findings.find((x) => x.id === "jtbd.hire-missing-period");
+    assert.ok(
+      f,
+      `expected jtbd.hire-missing-period finding, got: ${JSON.stringify(result.findings)}`,
+    );
+    assert.match(f.message, /must end with "\."/);
+    assert.ok(f.path.endsWith("libraries/libfoo/package.json"));
   });
 
   test("--fix regenerates a stale description block", async () => {
-    const root = await makeRepo();
-    try {
-      const pkg = { name: "@x/libfoo", description: "Updated description." };
-      await mkdir(join(root, "libraries", "libfoo"));
-      await writeFile(
-        join(root, "libraries", "libfoo", "package.json"),
-        JSON.stringify(pkg),
-      );
-      const readme = [
-        "# libfoo",
-        "",
-        "<!-- BEGIN:description -->",
-        "",
-        "Stale description.",
-        "",
-        "<!-- END:description -->",
-        "",
-      ].join("\n");
-      const readmePath = join(root, "libraries", "libfoo", "README.md");
-      await writeFile(readmePath, readme);
+    const pkg = { name: "@x/libfoo", description: "Updated description." };
+    const readme = [
+      "# libfoo",
+      "",
+      "<!-- BEGIN:description -->",
+      "",
+      "Stale description.",
+      "",
+      "<!-- END:description -->",
+      "",
+    ].join("\n");
+    const readmePath = `${ROOT}/libraries/libfoo/README.md`;
+    const fs = fsWith({
+      [`${ROOT}/libraries/libfoo/package.json`]: JSON.stringify(pkg),
+      [readmePath]: readme,
+    });
 
-      const dryRun = await checkJtbd({ root, fix: false, runtime });
-      assert.ok(dryRun.stale.length > 0, "expected stale entries");
+    const dryRun = await checkJtbd({
+      root: ROOT,
+      fix: false,
+      runtime: runtimeWith(fs),
+    });
+    assert.ok(dryRun.stale.length > 0, "expected stale entries");
 
-      const fixed = await checkJtbd({ root, fix: true, runtime });
-      assert.ok(fixed.fixed.length > 0, "expected fix to apply");
+    const fixed = await checkJtbd({
+      root: ROOT,
+      fix: true,
+      runtime: runtimeWith(fs),
+    });
+    assert.ok(fixed.fixed.length > 0, "expected fix to apply");
 
-      const updated = await readFile(readmePath, "utf8");
-      assert.ok(updated.includes("Updated description."));
-      assert.ok(!updated.includes("Stale description."));
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
+    const updated = fs.readFileSync(readmePath, "utf8");
+    assert.ok(updated.includes("Updated description."));
+    assert.ok(!updated.includes("Stale description."));
   });
 
   test("accepts Teams Using Agents as a job-author value", async () => {
-    const root = await makeRepo();
-    try {
-      const pkg = {
-        name: "@forwardimpact/kata",
-        private: true,
-        description: "Kata description.",
-        jobs: [kataJob],
-      };
-      await mkdir(join(root, "products", "kata"));
-      await writeFile(
-        join(root, "products", "kata", "package.json"),
-        JSON.stringify(pkg),
-      );
-      await writeFile(
-        join(root, "JTBD.md"),
-        "<!-- BEGIN:jobs -->\n<!-- END:jobs -->\n",
-      );
-
-      const result = await checkJtbd({ root, runtime });
-      assert.deepStrictEqual(result.findings, []);
-      assert.ok(result.stale.includes("JTBD.md"));
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
+    const pkg = {
+      name: "@forwardimpact/kata",
+      private: true,
+      description: "Kata description.",
+      jobs: [kataJob],
+    };
+    const result = await checkJtbd({
+      root: ROOT,
+      runtime: runtimeWith(
+        fsWith({
+          [`${ROOT}/products/kata/package.json`]: JSON.stringify(pkg),
+          [`${ROOT}/JTBD.md`]: "<!-- BEGIN:jobs -->\n<!-- END:jobs -->\n",
+        }),
+      ),
+    });
+    assert.deepStrictEqual(result.findings, []);
+    assert.ok(result.stale.includes("JTBD.md"));
   });
 
   test("rejects an unknown persona value", async () => {
-    const root = await makeRepo();
-    try {
-      const pkg = {
-        name: "@x/foo",
-        description: "Foo.",
-        jobs: [{ ...validJob, user: "Teams of Agents" }],
-      };
-      await mkdir(join(root, "products", "foo"));
-      await writeFile(
-        join(root, "products", "foo", "package.json"),
-        JSON.stringify(pkg),
-      );
-
-      const result = await checkJtbd({ root, runtime });
-      const f = result.findings.find((x) => x.id === "jtbd.invalid-user");
-      assert.ok(
-        f,
-        `expected jtbd.invalid-user finding, got: ${JSON.stringify(result.findings)}`,
-      );
-      assert.match(f.message, /invalid user "Teams of Agents"/);
-      assert.match(f.hint, /Teams Using Agents/);
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
+    const pkg = {
+      name: "@x/foo",
+      description: "Foo.",
+      jobs: [{ ...validJob, user: "Teams of Agents" }],
+    };
+    const result = await checkJtbd({
+      root: ROOT,
+      runtime: runtimeWith(
+        fsWith({
+          [`${ROOT}/products/foo/package.json`]: JSON.stringify(pkg),
+        }),
+      ),
+    });
+    const f = result.findings.find((x) => x.id === "jtbd.invalid-user");
+    assert.ok(
+      f,
+      `expected jtbd.invalid-user finding, got: ${JSON.stringify(result.findings)}`,
+    );
+    assert.match(f.message, /invalid user "Teams of Agents"/);
+    assert.match(f.hint, /Teams Using Agents/);
   });
 
   test("renders a Big Hire that satisfies criterion 1 substrings", async () => {
-    const root = await makeRepo();
-    try {
-      const pkg = {
-        name: "@forwardimpact/kata",
-        private: true,
-        description: "Kata description.",
-        jobs: [kataJob],
-      };
-      await mkdir(join(root, "products", "kata"));
-      await writeFile(
-        join(root, "products", "kata", "package.json"),
-        JSON.stringify(pkg),
-      );
-      await writeFile(
-        join(root, "JTBD.md"),
-        "<!-- BEGIN:jobs -->\n<!-- END:jobs -->\n",
-      );
+    const pkg = {
+      name: "@forwardimpact/kata",
+      private: true,
+      description: "Kata description.",
+      jobs: [kataJob],
+    };
+    const fs = fsWith({
+      [`${ROOT}/products/kata/package.json`]: JSON.stringify(pkg),
+      [`${ROOT}/JTBD.md`]: "<!-- BEGIN:jobs -->\n<!-- END:jobs -->\n",
+    });
 
-      await checkJtbd({ root, fix: true, runtime });
+    await checkJtbd({ root: ROOT, fix: true, runtime: runtimeWith(fs) });
 
-      const jtbd = await readFile(join(root, "JTBD.md"), "utf8");
-      const start = jtbd.indexOf("**Big Hire:**");
-      assert.ok(start >= 0, "Big Hire label missing from JTBD.md");
-      const end = jtbd.indexOf("\n\n", start);
-      const bigHire = jtbd.slice(start, end);
+    const jtbd = fs.readFileSync(`${ROOT}/JTBD.md`, "utf8");
+    const start = jtbd.indexOf("**Big Hire:**");
+    assert.ok(start >= 0, "Big Hire label missing from JTBD.md");
+    const end = jtbd.indexOf("\n\n", start);
+    const bigHire = jtbd.slice(start, end);
 
+    assert.ok(
+      bigHire.toLowerCase().includes("autonomous"),
+      `Big Hire missing 'autonomous': ${bigHire}`,
+    );
+    for (const token of ["plan", "ship", "stud", "act"]) {
       assert.ok(
-        bigHire.toLowerCase().includes("autonomous"),
-        `Big Hire missing 'autonomous': ${bigHire}`,
+        bigHire.toLowerCase().includes(token),
+        `Big Hire missing '${token}': ${bigHire}`,
       );
-      for (const token of ["plan", "ship", "stud", "act"]) {
-        assert.ok(
-          bigHire.toLowerCase().includes(token),
-          `Big Hire missing '${token}': ${bigHire}`,
-        );
-      }
-      assert.match(bigHire, /→ \*\*Kata\*\*$/);
-    } finally {
-      await rm(root, { recursive: true, force: true });
     }
+    assert.match(bigHire, /→ \*\*Kata\*\*$/);
   });
 
   test("regeneration is idempotent across two fix runs", async () => {
-    const root = await makeRepo();
-    try {
-      const pkg = {
-        name: "@forwardimpact/kata",
-        private: true,
-        description: "Kata description.",
-        jobs: [kataJob],
-      };
-      await mkdir(join(root, "products", "kata"));
-      await writeFile(
-        join(root, "products", "kata", "package.json"),
-        JSON.stringify(pkg),
-      );
-      await writeFile(
-        join(root, "JTBD.md"),
-        "<!-- BEGIN:jobs -->\n<!-- END:jobs -->\n",
-      );
+    const pkg = {
+      name: "@forwardimpact/kata",
+      private: true,
+      description: "Kata description.",
+      jobs: [kataJob],
+    };
+    const fs = fsWith({
+      [`${ROOT}/products/kata/package.json`]: JSON.stringify(pkg),
+      [`${ROOT}/JTBD.md`]: "<!-- BEGIN:jobs -->\n<!-- END:jobs -->\n",
+    });
 
-      await checkJtbd({ root, fix: true, runtime });
-      const second = await checkJtbd({ root, fix: true, runtime });
+    await checkJtbd({ root: ROOT, fix: true, runtime: runtimeWith(fs) });
+    const second = await checkJtbd({
+      root: ROOT,
+      fix: true,
+      runtime: runtimeWith(fs),
+    });
 
-      assert.deepStrictEqual(second.fixed, []);
-      assert.deepStrictEqual(second.stale, []);
-      assert.deepStrictEqual(second.findings, []);
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
+    assert.deepStrictEqual(second.fixed, []);
+    assert.deepStrictEqual(second.stale, []);
+    assert.deepStrictEqual(second.findings, []);
   });
 });

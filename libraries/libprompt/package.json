@@ -31,6 +31,9 @@
     "@forwardimpact/libutil": "^0.1.84",
     "mustache": "^4.2.0"
   },
+  "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.0"
+  },
   "engines": {
     "bun": ">=1.2.0",
     "node": ">=22.0.0"

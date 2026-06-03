@@ -4,10 +4,38 @@ import { SyntheaTool } from "../src/tools/synthea.js";
 import {
   assertRejectsMessage,
   assertThrowsMessage,
+  createMockFs,
   createSilentLogger,
 } from "@forwardimpact/libmock";
 
 const logger = createSilentLogger();
+
+const JAR = "/synthea.jar";
+
+/**
+ * A libmock in-memory fs to back SyntheaTool's `fsFns`, plus an `execFileFn`
+ * that materialises the supplied FHIR `bundles` under the temp dir Synthea was
+ * told to export to (the `--exporter.baseDirectory` arg). This mirrors the real
+ * flow — the tool creates a temp dir, the java run writes `fhir/*.json` into
+ * it, then the tool reads them back — without touching the real filesystem.
+ *
+ * @param {object[]} [bundles] - FHIR bundles the run "produces".
+ * @param {string} [jar] - The jar path to seed so the availability check passes.
+ */
+function syntheaDeps(bundles = [], jar = JAR) {
+  const fs = createMockFs({ [jar]: "" });
+  const execFileFn = async (cmd, args) => {
+    const baseDir = args[args.indexOf("--exporter.baseDirectory") + 1];
+    for (const [i, bundle] of bundles.entries()) {
+      await fs.writeFile(
+        `${baseDir}/fhir/bundle${i + 1}.json`,
+        JSON.stringify(bundle),
+      );
+    }
+    return { stdout: "" };
+  };
+  return { fsFns: fs, execFileFn };
+}
 
 describe("SyntheaTool", () => {
   test("requires all dependencies", () => {
@@ -38,7 +66,7 @@ describe("SyntheaTool", () => {
       execFileFn: async () => {
         throw new Error("not found");
       },
-      fsFns: { readFile: async () => Buffer.from("") },
+      fsFns: syntheaDeps([], "/missing.jar").fsFns,
     });
     await assertRejectsMessage(
       () => tool.checkAvailability(),
@@ -53,7 +81,7 @@ describe("SyntheaTool", () => {
       execFileFn: async () => {
         throw new Error("not found");
       },
-      fsFns: { readFile: async () => Buffer.from("") },
+      fsFns: syntheaDeps([], "/missing.jar").fsFns,
     });
     await assertRejectsMessage(
       () => tool.checkAvailability(),
@@ -70,22 +98,15 @@ describe("SyntheaTool", () => {
       ],
     };
 
+    const { fsFns, execFileFn } = syntheaDeps([fhirBundle]);
     const tool = new SyntheaTool({
       logger,
-      syntheaJar: "/synthea.jar",
+      syntheaJar: JAR,
       execFileFn: async (cmd, args) => {
         capturedArgs = { cmd, args };
-        return { stdout: "" };
+        return execFileFn(cmd, args);
       },
-      fsFns: {
-        readFile: async (path, _enc) => {
-          if (path === "/synthea.jar") return Buffer.from("");
-          return JSON.stringify(fhirBundle);
-        },
-        readdir: async () => ["patient1.json"],
-        mkdtemp: async () => "/tmp/synthea-abc",
-        rm: async () => {},
-      },
+      fsFns,
     });
 
     const datasets = await tool.generate({
@@ -344,19 +365,6 @@ function makeFhirBundles(patientSpecs) {
 }
 
 function makeToolWithBundles(bundles, syntheaJar) {
-  return new SyntheaTool({
-    logger,
-    syntheaJar,
-    execFileFn: async () => ({ stdout: "" }),
-    fsFns: {
-      readFile: async (path) => {
-        if (path === syntheaJar) return Buffer.from("");
-        const idx = parseInt(path.split("/").pop().replace(/\D/g, ""), 10) - 1;
-        return JSON.stringify(bundles[idx] || { entry: [] });
-      },
-      readdir: async () => bundles.map((_, i) => `bundle${i + 1}.json`),
-      mkdtemp: async () => "/tmp/synthea-test",
-      rm: async () => {},
-    },
-  });
+  const { fsFns, execFileFn } = syntheaDeps(bundles, syntheaJar);
+  return new SyntheaTool({ logger, syntheaJar, execFileFn, fsFns });
 }

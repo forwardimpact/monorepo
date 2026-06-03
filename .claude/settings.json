@@ -9,11 +9,13 @@
       "Edit(.claude/agents/**)",
       "Edit(.claude/commands/**)",
       "Edit(.claude/skills/**)",
+      "Edit(.claude/rules/**)",
       "Edit(products/*/templates/.claude/agents/**)",
       "Edit(products/*/templates/.claude/skills/**)",
       "Write(.claude/agents/**)",
       "Write(.claude/commands/**)",
       "Write(.claude/skills/**)",
+      "Write(.claude/rules/**)",
       "Write(products/*/templates/.claude/agents/**)",
       "Write(products/*/templates/.claude/skills/**)"
     ]

@@ -1,36 +1,32 @@
-import { describe, test, beforeEach, afterEach } from "node:test";
+import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { createMockFs } from "@forwardimpact/libmock";
 
 import { runBootCommand } from "../src/commands/boot.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
-describe("fit-wiki boot CLI (in-process)", () => {
-  let dir;
-  let wikiRoot;
-  beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "boot-cli-"));
-    wikiRoot = join(dir, "wiki");
-    mkdirSync(wikiRoot, { recursive: true });
-    writeFileSync(
-      join(wikiRoot, "MEMORY.md"),
-      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
-    );
-    writeFileSync(
-      join(wikiRoot, "staff-engineer.md"),
-      "# Staff Engineer — Summary\n\nSE summary.\n",
-    );
-  });
-  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+const WIKI_ROOT = "/wiki";
 
+function seededFs() {
+  return createMockFs({
+    [`${WIKI_ROOT}/MEMORY.md`]:
+      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
+    [`${WIKI_ROOT}/staff-engineer.md`]:
+      "# Staff Engineer — Summary\n\nSE summary.\n",
+  });
+}
+
+describe("fit-wiki boot CLI (in-process)", () => {
   function run(options) {
-    const harness = makeRuntime({ cwd: dir });
+    const harness = makeRuntime({ fsSync: seededFs() });
     const result = runBootCommand(
       ctxFor({
         runtime: harness.runtime,
-        options: { "wiki-root": wikiRoot, agent: "staff-engineer", ...options },
+        options: {
+          "wiki-root": WIKI_ROOT,
+          agent: "staff-engineer",
+          ...options,
+        },
       }),
     );
     return { harness, result };

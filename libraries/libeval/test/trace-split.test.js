@@ -1,43 +1,48 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
-import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
+
+import { createMockFs } from "@forwardimpact/libmock";
 
 import { runSplitCommand } from "../src/commands/trace.js";
 
+const DIR = "/traces";
+
 /**
- * Invoke the split handler with an InvocationContext-shaped object backed by a
- * real-fs runtime. `values` are the parsed flags; `file` is the positional.
+ * Invoke the split handler with an InvocationContext-shaped object backed by an
+ * in-memory fs. `values` are the parsed flags; `file` is the positional;
+ * `fsSync` is the seeded fs the command reads and writes through.
  */
-function split(values, [file]) {
+function split(values, [file], fsSync) {
   return runSplitCommand({
     options: values,
     args: { file },
-    deps: { runtime: { fsSync: fs } },
+    deps: { runtime: { fsSync } },
   });
 }
 
 /**
- * Create a temp directory and write combined NDJSON lines to a trace file.
+ * Seed combined NDJSON lines for `envelopes` in an in-memory fs and return the
+ * fs plus the dir/file it lives in. `runSplitCommand` reads the input and
+ * writes the per-source split files back through the same fs.
  * @param {object[]} envelopes - Array of envelope objects { source, seq, event }
- * @returns {{ dir: string, file: string }}
+ * @returns {{ fs: object, dir: string, file: string }}
  */
 function setupTrace(envelopes) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "trace-split-"));
+  const dir = DIR;
   const file = path.join(dir, "trace--demo.raw.ndjson");
   const content = envelopes.map((e) => JSON.stringify(e)).join("\n") + "\n";
-  fs.writeFileSync(file, content);
-  return { dir, file };
+  return { fs: createMockFs({ [file]: content }), dir, file };
 }
 
 /**
- * Read an NDJSON output file and return parsed lines.
+ * Read an NDJSON output file from `fsSync` and return parsed lines.
+ * @param {object} fsSync
  * @param {string} filePath
  * @returns {object[]}
  */
-function readNdjson(filePath) {
-  return fs
+function readNdjson(fsSync, filePath) {
+  return fsSync
     .readFileSync(filePath, "utf8")
     .trim()
     .split("\n")
@@ -56,20 +61,22 @@ describe("fit-trace split", () => {
         message: { content: [{ type: "text", text: "looks good" }] },
       };
 
-      const { dir, file } = setupTrace([
+      const { fs, dir, file } = setupTrace([
         { source: "agent", seq: 0, event: agentEvent },
         { source: "supervisor", seq: 1, event: supervisorEvent },
       ]);
 
-      split({ mode: "supervise", case: "demo" }, [file]);
+      split({ mode: "supervise", case: "demo" }, [file], fs);
 
       const agentLines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--agent.agent.ndjson"),
       );
       assert.strictEqual(agentLines.length, 1);
       assert.deepStrictEqual(agentLines[0], agentEvent);
 
       const supervisorLines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--supervisor.supervisor.ndjson"),
       );
       assert.strictEqual(supervisorLines.length, 1);
@@ -92,27 +99,30 @@ describe("fit-trace split", () => {
         message: { content: [{ type: "text", text: "engineer 2 work" }] },
       };
 
-      const { dir, file } = setupTrace([
+      const { fs, dir, file } = setupTrace([
         { source: "facilitator", seq: 0, event: facEvent },
         { source: "staff-engineer", seq: 1, event: eng1Event },
         { source: "security-engineer", seq: 2, event: eng2Event },
       ]);
 
-      split({ mode: "facilitate", case: "demo" }, [file]);
+      split({ mode: "facilitate", case: "demo" }, [file], fs);
 
       const facLines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--facilitator.facilitator.ndjson"),
       );
       assert.strictEqual(facLines.length, 1);
       assert.deepStrictEqual(facLines[0], facEvent);
 
       const eng1Lines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--staff-engineer.agent.ndjson"),
       );
       assert.strictEqual(eng1Lines.length, 1);
       assert.deepStrictEqual(eng1Lines[0], eng1Event);
 
       const eng2Lines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--security-engineer.agent.ndjson"),
       );
       assert.strictEqual(eng2Lines.length, 1);
@@ -131,11 +141,14 @@ describe("fit-trace split", () => {
         type: "assistant",
         message: { content: [{ type: "text", text: "hi" }] },
       };
-      const { dir, file } = setupTrace([{ source: "agent", seq: 0, event }]);
+      const { fs, dir, file } = setupTrace([
+        { source: "agent", seq: 0, event },
+      ]);
 
-      split({ mode: "run", case: "demo" }, [file]);
+      split({ mode: "run", case: "demo" }, [file], fs);
 
       const agentLines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--agent.agent.ndjson"),
       );
       assert.strictEqual(agentLines.length, 1);
@@ -149,9 +162,11 @@ describe("fit-trace split", () => {
         type: "assistant",
         message: { content: [{ type: "text", text: "hi" }] },
       };
-      const { dir, file } = setupTrace([{ source: "agent", seq: 0, event }]);
+      const { fs, dir, file } = setupTrace([
+        { source: "agent", seq: 0, event },
+      ]);
 
-      split({ mode: "run" }, [file]);
+      split({ mode: "run" }, [file], fs);
 
       assert.ok(
         fs.existsSync(path.join(dir, "trace--default--agent.agent.ndjson")),
@@ -170,7 +185,7 @@ describe("fit-trace split", () => {
         message: { content: [{ type: "text", text: "invalid" }] },
       };
 
-      const { dir, file } = setupTrace([
+      const { fs, dir, file } = setupTrace([
         { source: "facilitator", seq: 0, event: validEvent },
         { source: "valid-agent", seq: 1, event: validEvent },
         { source: "123-bad-name", seq: 2, event: invalidEvent },
@@ -178,7 +193,7 @@ describe("fit-trace split", () => {
         { source: "-starts-hyphen", seq: 4, event: invalidEvent },
       ]);
 
-      split({ mode: "facilitate", case: "demo" }, [file]);
+      split({ mode: "facilitate", case: "demo" }, [file], fs);
 
       assert.ok(
         fs.existsSync(path.join(dir, "trace--demo--valid-agent.agent.ndjson")),
@@ -206,7 +221,7 @@ describe("fit-trace split", () => {
         message: { content: [{ type: "text", text: "hello" }] },
       };
 
-      const dir = fs.mkdtempSync(path.join(os.tmpdir(), "trace-split-"));
+      const dir = DIR;
       const file = path.join(dir, "trace--demo.raw.ndjson");
       const content = [
         "",
@@ -217,24 +232,26 @@ describe("fit-trace split", () => {
         "also bad",
         JSON.stringify({ source: "supervisor", seq: 1, event }),
       ].join("\n");
-      fs.writeFileSync(file, content);
+      const fs = createMockFs({ [file]: content });
 
-      split({ mode: "supervise", case: "demo" }, [file]);
+      split({ mode: "supervise", case: "demo" }, [file], fs);
 
       const agentLines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--agent.agent.ndjson"),
       );
       assert.strictEqual(agentLines.length, 1);
       assert.deepStrictEqual(agentLines[0], event);
 
       const supervisorLines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--supervisor.supervisor.ndjson"),
       );
       assert.strictEqual(supervisorLines.length, 1);
     });
 
     test("lines without envelope format are skipped", () => {
-      const dir = fs.mkdtempSync(path.join(os.tmpdir(), "trace-split-"));
+      const dir = DIR;
       const file = path.join(dir, "trace--demo.raw.ndjson");
       const content = [
         JSON.stringify({ type: "assistant", message: { content: [] } }),
@@ -244,11 +261,12 @@ describe("fit-trace split", () => {
           event: { type: "assistant", message: { content: [] } },
         }),
       ].join("\n");
-      fs.writeFileSync(file, content);
+      const fs = createMockFs({ [file]: content });
 
-      split({ mode: "supervise", case: "demo" }, [file]);
+      split({ mode: "supervise", case: "demo" }, [file], fs);
 
       const agentLines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--agent.agent.ndjson"),
       );
       assert.strictEqual(agentLines.length, 1);
@@ -263,13 +281,13 @@ describe("fit-trace split", () => {
       };
       const orchEvent = { type: "summary", success: true };
 
-      const { dir, file } = setupTrace([
+      const { fs, dir, file } = setupTrace([
         { source: "agent", seq: 0, event: agentEvent },
         { source: "orchestrator", seq: 1, event: orchEvent },
         { source: "supervisor", seq: 2, event: agentEvent },
       ]);
 
-      split({ mode: "supervise", case: "demo" }, [file]);
+      split({ mode: "supervise", case: "demo" }, [file], fs);
 
       assert.ok(
         !fs.existsSync(
@@ -278,6 +296,7 @@ describe("fit-trace split", () => {
       );
 
       const agentLines = readNdjson(
+        fs,
         path.join(dir, "trace--demo--agent.agent.ndjson"),
       );
       assert.strictEqual(agentLines.length, 1);
@@ -286,7 +305,7 @@ describe("fit-trace split", () => {
 
   describe("output-dir option", () => {
     test("writes files to specified directory instead of input directory", () => {
-      const { file } = setupTrace([
+      const { fs, file } = setupTrace([
         {
           source: "agent",
           seq: 0,
@@ -305,9 +324,13 @@ describe("fit-trace split", () => {
         },
       ]);
 
-      const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "trace-out-"));
+      const outDir = "/trace-out";
 
-      split({ mode: "supervise", case: "demo", "output-dir": outDir }, [file]);
+      split(
+        { mode: "supervise", case: "demo", "output-dir": outDir },
+        [file],
+        fs,
+      );
 
       assert.ok(
         fs.existsSync(path.join(outDir, "trace--demo--agent.agent.ndjson")),
@@ -320,7 +343,7 @@ describe("fit-trace split", () => {
     });
 
     test("creates output directory if it does not exist", () => {
-      const { file } = setupTrace([
+      const { fs, file } = setupTrace([
         {
           source: "agent",
           seq: 0,
@@ -331,13 +354,13 @@ describe("fit-trace split", () => {
         },
       ]);
 
-      const outDir = path.join(
-        os.tmpdir(),
-        `trace-nonexistent-${Date.now()}`,
-        "nested",
-      );
+      const outDir = path.join("/trace-nonexistent", "nested");
 
-      split({ mode: "supervise", case: "demo", "output-dir": outDir }, [file]);
+      split(
+        { mode: "supervise", case: "demo", "output-dir": outDir },
+        [file],
+        fs,
+      );
 
       assert.ok(
         fs.existsSync(path.join(outDir, "trace--demo--agent.agent.ndjson")),
@@ -347,7 +370,7 @@ describe("fit-trace split", () => {
 
   describe("invalid mode", () => {
     test("rejects unknown --mode values", async () => {
-      const { file } = setupTrace([
+      const { fs, file } = setupTrace([
         {
           source: "agent",
           seq: 0,
@@ -355,7 +378,7 @@ describe("fit-trace split", () => {
         },
       ]);
 
-      const result = await split({ mode: "bogus", case: "demo" }, [file]);
+      const result = await split({ mode: "bogus", case: "demo" }, [file], fs);
       assert.strictEqual(result.ok, false);
       assert.match(result.error, /invalid --mode/);
     });

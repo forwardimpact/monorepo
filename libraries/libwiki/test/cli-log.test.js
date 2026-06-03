@@ -1,41 +1,32 @@
-import { describe, test, beforeEach, afterEach } from "node:test";
+import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  mkdtempSync,
-  writeFileSync,
-  readFileSync,
-  mkdirSync,
-  rmSync,
-  existsSync,
-} from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { createMockFs } from "@forwardimpact/libmock";
 
 import { runLogCommand } from "../src/commands/log.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
-describe("fit-wiki log CLI (in-process)", () => {
-  let dir;
-  let wikiRoot;
-  beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "log-cli-"));
-    wikiRoot = join(dir, "wiki");
-    mkdirSync(wikiRoot, { recursive: true });
-  });
-  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+const WIKI_ROOT = "/wiki";
 
-  function run(subcommand, options) {
-    const harness = makeRuntime({ cwd: dir });
-    return runLogCommand(
-      ctxFor({
-        runtime: harness.runtime,
-        options: { "wiki-root": wikiRoot, ...options },
-        args: subcommand ? { subcommand } : {},
-      }),
-    );
+describe("fit-wiki log CLI (in-process)", () => {
+  // One in-memory wiki shared across a test's log subcommands; the command
+  // reads and rewrites the weekly-log file via runtime.fsSync.
+  function makeWiki() {
+    const fsSync = createMockFs();
+    const run = (subcommand, options) => {
+      const harness = makeRuntime({ fsSync });
+      return runLogCommand(
+        ctxFor({
+          runtime: harness.runtime,
+          options: { "wiki-root": WIKI_ROOT, ...options },
+          args: subcommand ? { subcommand } : {},
+        }),
+      );
+    };
+    return { fsSync, run };
   }
 
   test("log decision writes leading ### Decision block", async () => {
+    const { fsSync, run } = makeWiki();
     await run("decision", {
       agent: "staff-engineer",
       surveyed: "owned",
@@ -43,9 +34,9 @@ describe("fit-wiki log CLI (in-process)", () => {
       rationale: "merged plan",
       today: "2026-05-19",
     });
-    const expected = join(wikiRoot, "staff-engineer-2026-W21.md");
-    assert.equal(existsSync(expected), true);
-    const text = readFileSync(expected, "utf-8");
+    const expected = `${WIKI_ROOT}/staff-engineer-2026-W21.md`;
+    assert.equal(fsSync.existsSync(expected), true);
+    const text = fsSync.readFileSync(expected, "utf-8");
     assert.match(text, /## 2026-05-19/);
     assert.match(text, /### Decision/);
     assert.match(text, /\*\*Surveyed:\*\* owned/);
@@ -53,12 +44,14 @@ describe("fit-wiki log CLI (in-process)", () => {
   });
 
   test("missing subcommand exits 2", async () => {
+    const { run } = makeWiki();
     const result = await run(undefined, { agent: "staff-engineer" });
     assert.equal(result.ok, false);
     assert.equal(result.code, 2);
   });
 
   test("log note appends under the open decision's date heading", async () => {
+    const { fsSync, run } = makeWiki();
     const base = { agent: "staff-engineer", today: "2026-05-19" };
     await run("decision", {
       ...base,
@@ -70,8 +63,8 @@ describe("fit-wiki log CLI (in-process)", () => {
     await run("note", { ...base, field: "Findings", body: "All clean" });
     await run("done", base);
 
-    const text = readFileSync(
-      join(wikiRoot, "staff-engineer-2026-W21.md"),
+    const text = fsSync.readFileSync(
+      `${WIKI_ROOT}/staff-engineer-2026-W21.md`,
       "utf-8",
     );
     const dateHeadings = text.match(/^## 2026-05-19/gm) || [];
@@ -87,6 +80,7 @@ describe("fit-wiki log CLI (in-process)", () => {
   });
 
   test("log note for a new day opens its own entry", async () => {
+    const { fsSync, run } = makeWiki();
     const base = { agent: "staff-engineer" };
     await run("decision", {
       ...base,
@@ -101,8 +95,8 @@ describe("fit-wiki log CLI (in-process)", () => {
       field: "Followup",
       body: "Next day",
     });
-    const text = readFileSync(
-      join(wikiRoot, "staff-engineer-2026-W21.md"),
+    const text = fsSync.readFileSync(
+      `${WIKI_ROOT}/staff-engineer-2026-W21.md`,
       "utf-8",
     );
     assert.match(text, /^## 2026-05-19/m);
