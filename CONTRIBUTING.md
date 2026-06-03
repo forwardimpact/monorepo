@@ -53,6 +53,18 @@ Entry gate — read every item before starting.
 - [ ] **Simple over easy.** Reduce complexity, don't relocate it. Three similar
       lines beat a premature abstraction. Inline single-use helpers; hardcode
       single-consumer configuration.
+- [ ] **Test-file shape.** Target ≤400 LOC per `*.test.js`, split by behaviour
+      family (sibling `<original>-<family>.test.js`, shared setup lifted to a
+      `test/helpers.js`); files that are one cohesive behaviour may exceed it —
+      keep the exception list here (judgement, no lint):
+  - `tests/model-validation-data.test.js` — one `validateAllData` contract, no describe seam.
+  - `libraries/libdoc/test/libdoc-llms.test.js` — one llms.txt augmentation behaviour.
+  - `libraries/libbridge/test/callback-handler.test.js` — one `createCallbackHandler` request flow.
+  - `libraries/libeval/test/agent-runner.test.js` — one `AgentRunner` run/resume surface.
+  - `libraries/libbridge/test/dispatcher.test.js` — one `Dispatcher.dispatch` flow.
+  - `libraries/libbridge/test/resume-scheduler.test.js` — one `ResumeScheduler` lifecycle.
+  - `products/pathway/test/build-packs.integration.test.js` — one `generatePacks` build, shared expensive fixture.
+  - (Transient, owned by sibling slices: `libraries/libterrain/test/pipeline.test.js` and `libraries/libwiki/test/audit-engine.test.js` drop under the ceiling after spec 0640 Part 02's I/O migration; `tests/model-types.test.js` is Part 04's.)
 - [ ] **No defensive code.** Trust the architecture — let errors surface. No
       try/catch "just to be safe," no optional chaining on data that isn't
       optional.
