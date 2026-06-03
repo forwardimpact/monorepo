@@ -181,6 +181,47 @@ ever reaching codification).
   spec codifies the agent-side recovery for hazard (c), not the
   authoring convention. The two ship independently.
 
+### Design-phase carry-forwards
+
+Reviewer-surfaced items the design must resolve before plan opens.
+Each is named at the constraint level; the design picks the shape.
+
+1. **(b)/(h) overlap visibility.** The codified entries make the
+   (h)-is-cause / (b)-is-symptom-when-violated relationship explicit
+   so the codification does not double-count the same underlying
+   constraint.
+2. **Success-criteria verifiability anchors.** For each row in
+   § Success criteria, the design names the concrete evidence
+   (artefact, passage, command output) whose inspection proves the
+   criterion was met.
+3. **Stable-identifier anchoring.** The design picks how codified
+   entries are stably identified across spec / design / implementation
+   — letter (a)–(h), slug, numeric id, or another scheme — such that
+   existing Run-Plan references resolve.
+4. **Evidence-sourcing scope.** The design names which external
+   surfaces (workflow logs, `wiki/release-engineer*.md`,
+   `wiki/release-engineer.md` § Run Plan, GitHub run history) are
+   authoritative when codifying per-hazard recoveries.
+5. **(b)/(h) overlap resolution.** Paired with item 1, the design's
+   structural choice on whether the codification merges (b) and (h)
+   into one entry, splits them with cross-references, or restructures
+   the existing *Edge Cases* dependency-chain rule.
+6. **Hazard (f) JSDoc recovery mechanism.** The codified (f) entry
+   names a specific mechanism — separate fix invocation, bundling
+   into `check:fix`, a pre-commit hook, or another shape — rather
+   than leaving the recovery at the WHAT level.
+7. **Hazard (d) NPM_TOKEN preflight mechanism.** The design picks
+   among (a) a `workflow_dispatch`-only validation workflow running
+   `npm whoami`, (b) an early-fail step in `publish-npm.yml` before
+   any tag operation, or (c) a lookback heuristic on recent
+   `Publish: Package` runs; release-engineer prefers (a) as cleanest.
+8. **Hazard (d) NPM_TOKEN rotation as human handoff.** The codified
+   (d) entry states the human handoff explicitly — when a token has
+   expired, the agent's autonomous recovery is
+   *request-rotation-via-memo + re-run*, not a self-mechanical fix,
+   because rotation requires repo-admin access to org secrets the
+   agent does not hold.
+
 ## Success criteria
 
 | Claim | Verifies via |
