@@ -170,6 +170,110 @@ describe("composeProfilePrompt", () => {
   });
 });
 
+describe("composeProfilePrompt — hoisted ## Session Protocol", () => {
+  test("lifts the section out of <agent_profile> into <session_protocol>", () => {
+    const result = composeProfilePrompt("with-session-protocol", {
+      profilesDir: FIXTURES,
+      runtime: RT,
+      trailer: "TRAILER_TEXT",
+    });
+    const profileEnd = result.append.indexOf("</agent_profile>");
+    const protocolStart = result.append.indexOf("<session_protocol>");
+    const hoistedAt = result.append.indexOf(
+      "Before any task, boot the work routine fixture step.",
+    );
+    assert.ok(profileEnd !== -1 && protocolStart > profileEnd);
+    assert.ok(
+      hoistedAt > protocolStart,
+      "hoisted work routine lands inside <session_protocol>",
+    );
+  });
+
+  test("drops the heading line itself", () => {
+    const result = composeProfilePrompt("with-session-protocol", {
+      profilesDir: FIXTURES,
+      runtime: RT,
+      trailer: "TRAILER_TEXT",
+    });
+    assert.ok(
+      !result.append.includes("## Session Protocol"),
+      "the <session_protocol> tag replaces the heading",
+    );
+  });
+
+  test("keeps persona sections on both sides of the hoist in <agent_profile>", () => {
+    const result = composeProfilePrompt("with-session-protocol", {
+      profilesDir: FIXTURES,
+      runtime: RT,
+      trailer: "TRAILER_TEXT",
+    });
+    const profileBody = result.append.slice(
+      result.append.indexOf("<agent_profile>"),
+      result.append.indexOf("</agent_profile>"),
+    );
+    assert.ok(
+      profileBody.includes("## Voice"),
+      "section before the hoist stays",
+    );
+    assert.ok(
+      profileBody.includes("## Constraints"),
+      "section after the hoist stays",
+    );
+    assert.ok(profileBody.includes("— Hoist Fixture 🪝"));
+    assert.ok(
+      !profileBody.includes("Before any task"),
+      "hoisted content does not remain in the persona",
+    );
+  });
+
+  test("keeps a level-3 subsection inside the hoisted section", () => {
+    const result = composeProfilePrompt("with-session-protocol", {
+      profilesDir: FIXTURES,
+      runtime: RT,
+      trailer: "TRAILER_TEXT",
+    });
+    const protocolBody = result.append.slice(
+      result.append.indexOf("<session_protocol>"),
+      result.append.indexOf("</session_protocol>"),
+    );
+    assert.ok(
+      protocolBody.includes("### Routing"),
+      "a ### subsection does not terminate the hoist",
+    );
+  });
+
+  test("orders trailer, then hoisted section, within <session_protocol>", () => {
+    const result = composeProfilePrompt("with-session-protocol", {
+      profilesDir: FIXTURES,
+      runtime: RT,
+      trailer: "TRAILER_TEXT",
+    });
+    assert.ok(
+      result.append.indexOf("TRAILER_TEXT") <
+        result.append.indexOf("Before any task"),
+      "the orchestration trailer precedes the hoisted work routine",
+    );
+  });
+
+  test("emits <session_protocol> from the hoist even with no trailer", () => {
+    const result = composeProfilePrompt("with-session-protocol", {
+      profilesDir: FIXTURES,
+      runtime: RT,
+    });
+    assert.ok(result.append.includes("<session_protocol>"));
+    assert.ok(result.append.includes("Before any task"));
+    assert.ok(!result.append.includes("## Session Protocol"));
+  });
+
+  test("a profile with no such heading keeps its whole body in <agent_profile>", () => {
+    const result = composeProfilePrompt("with-frontmatter", {
+      profilesDir: FIXTURES,
+      runtime: RT,
+    });
+    assert.ok(!result.append.includes("<session_protocol>"));
+  });
+});
+
 describe("composeSystemPrompt", () => {
   test("folds amend into the <session_protocol> section", () => {
     const result = composeSystemPrompt({
@@ -190,6 +294,25 @@ describe("composeSystemPrompt", () => {
     assert.ok(
       result.append.includes("PROTOCOL\n\n<AMENDMENT>"),
       "amendment follows the trailer with a blank-line separator",
+    );
+  });
+
+  test("orders trailer, hoisted section, then amend inside <session_protocol>", () => {
+    const result = composeSystemPrompt({
+      role: "agent",
+      profile: "with-session-protocol",
+      profilesDir: FIXTURES,
+      trailer: "PROTOCOL",
+      amend: "<AMENDMENT>",
+      runtime: RT,
+    });
+    const trailerAt = result.append.indexOf("PROTOCOL");
+    const hoistedAt = result.append.indexOf("Before any task");
+    const amendAt = result.append.indexOf("<AMENDMENT>");
+    const close = result.append.indexOf("</session_protocol>");
+    assert.ok(
+      trailerAt < hoistedAt && hoistedAt < amendAt && amendAt < close,
+      "fragments run trailer → hoisted → amend, all inside the section",
     );
   });
 
@@ -249,6 +372,25 @@ describe("composeLeadPrompt", () => {
     assert.strictEqual(
       result,
       "<session_protocol>\nLEAD_PROTOCOL\n</session_protocol>",
+    );
+  });
+
+  test("hoists a profile's ## Session Protocol section alongside the trailer", () => {
+    const result = composeLeadPrompt({
+      profile: "with-session-protocol",
+      profilesDir: FIXTURES,
+      trailer: "LEAD_PROTOCOL",
+      runtime: RT,
+    });
+    const protocolBody = result.slice(
+      result.indexOf("<session_protocol>"),
+      result.indexOf("</session_protocol>"),
+    );
+    assert.ok(protocolBody.includes("LEAD_PROTOCOL"));
+    assert.ok(protocolBody.includes("Before any task"));
+    assert.ok(!result.includes("## Session Protocol"));
+    assert.ok(
+      result.indexOf("LEAD_PROTOCOL") < result.indexOf("Before any task"),
     );
   });
 
