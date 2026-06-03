@@ -1,74 +1,57 @@
-import { describe, test, beforeEach, afterEach } from "node:test";
+import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import * as nodeFs from "node:fs";
-import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { createMockFs } from "@forwardimpact/libmock";
 
 import { runRules } from "@forwardimpact/libutil";
 import { RULES } from "../src/audit/rules.js";
 import { buildContext, resolveScope } from "../src/audit/scopes.js";
 
 const STATUS_RULES = RULES.filter((r) => r.scope === "status-row");
+const WIKI = "/wiki";
 
 function fence(rows) {
   return ["# Spec Status", "", "```", ...rows, "```", ""].join("\n");
 }
 
-describe("status-row audit", () => {
-  let dir;
-  let wiki;
-
-  beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "audit-status-"));
-    wiki = join(dir, "wiki");
-    mkdirSync(wiki, { recursive: true });
+// Seed STATUS.md in an in-memory fs and run the status-row rules; buildContext
+// reads `${wikiRoot}/STATUS.md` through the injected sync surface.
+function auditStatus(statusMd) {
+  const ctx = buildContext({
+    wikiRoot: WIKI,
+    today: "2026-05-30",
+    fs: createMockFs({ [`${WIKI}/STATUS.md`]: statusMd }),
   });
+  return runRules(STATUS_RULES, ctx, { resolveScope });
+}
 
-  afterEach(() => rmSync(dir, { recursive: true, force: true }));
-
-  const auditStatus = () => {
-    const ctx = buildContext({
-      wikiRoot: wiki,
-      today: "2026-05-30",
-      fs: nodeFs,
-    });
-    return runRules(STATUS_RULES, ctx, { resolveScope });
-  };
-
+describe("status-row audit", () => {
   test("master and sub-rows pass cleanly", () => {
-    writeFileSync(
-      join(wiki, "STATUS.md"),
+    const findings = auditStatus(
       fence(["1370\tplan\tapproved", "1370/libutil\tplan\timplemented"]),
     );
-    assert.deepEqual(auditStatus(), []);
+    assert.deepEqual(findings, []);
   });
 
   test("flags a malformed id", () => {
-    writeFileSync(join(wiki, "STATUS.md"), fence(["137\tplan\tapproved"]));
-    const ids = auditStatus().map((f) => f.id);
+    const ids = auditStatus(fence(["137\tplan\tapproved"])).map((f) => f.id);
     assert.ok(ids.includes("status-row.id-format"));
   });
 
   test("flags a bad phase and a bad status", () => {
-    writeFileSync(
-      join(wiki, "STATUS.md"),
+    const ids = auditStatus(
       fence(["1370\tbuild\tapproved", "1380\tplan\tshipped"]),
-    );
-    const ids = auditStatus().map((f) => f.id);
+    ).map((f) => f.id);
     assert.ok(ids.includes("status-row.phase"));
     assert.ok(ids.includes("status-row.status"));
   });
 
   test("flags a row without three fields", () => {
-    writeFileSync(join(wiki, "STATUS.md"), fence(["1370 plan approved"]));
-    const ids = auditStatus().map((f) => f.id);
+    const ids = auditStatus(fence(["1370 plan approved"])).map((f) => f.id);
     assert.ok(ids.includes("status-row.shape"));
   });
 
   test("ignores prose outside the fence", () => {
-    writeFileSync(
-      join(wiki, "STATUS.md"),
+    const findings = auditStatus(
       [
         "# Spec Status",
         "",
@@ -80,6 +63,6 @@ describe("status-row audit", () => {
         "",
       ].join("\n"),
     );
-    assert.deepEqual(auditStatus(), []);
+    assert.deepEqual(findings, []);
   });
 });

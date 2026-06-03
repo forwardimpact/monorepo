@@ -1,46 +1,50 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import * as nodeFs from "node:fs";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { createMockFs } from "@forwardimpact/libmock";
 import { listSkills } from "../src/skill-roster.js";
+
+const SKILLS_DIR = "/repo/skills";
+
+// Register the directory entries `names` (and optional plain `files`) under
+// SKILLS_DIR in an in-memory fs; listSkills reads them via readdirSync/statSync.
+function skillsFs(names = [], files = {}) {
+  const fs = createMockFs(files);
+  fs.mkdirSync(SKILLS_DIR);
+  for (const name of names) fs.mkdirSync(join(SKILLS_DIR, name));
+  return fs;
+}
 
 describe("listSkills", () => {
   test("empty dir returns []", () => {
-    const dir = mkdtempSync(join(tmpdir(), "skills-"));
-    assert.deepEqual(listSkills({ skillsDir: dir }, nodeFs), []);
+    const fs = skillsFs();
+    assert.deepEqual(listSkills({ skillsDir: SKILLS_DIR }, fs), []);
   });
 
   test("returns only kata-* directories", () => {
-    const dir = mkdtempSync(join(tmpdir(), "skills-"));
-    mkdirSync(join(dir, "kata-spec"));
-    mkdirSync(join(dir, "kata-plan"));
-    mkdirSync(join(dir, "fit-wiki"));
-    mkdirSync(join(dir, "kata-session"));
-    writeFileSync(join(dir, "kata-file.txt"), "not a dir");
+    const fs = skillsFs(
+      ["kata-spec", "kata-plan", "fit-wiki", "kata-session"],
+      {
+        [`${SKILLS_DIR}/kata-file.txt`]: "not a dir",
+      },
+    );
 
-    const result = listSkills({ skillsDir: dir }, nodeFs);
+    const result = listSkills({ skillsDir: SKILLS_DIR }, fs);
     assert.deepEqual(result, ["kata-plan", "kata-session", "kata-spec"]);
   });
 
   test("ignores dot-prefixed entries", () => {
-    const dir = mkdtempSync(join(tmpdir(), "skills-"));
-    mkdirSync(join(dir, ".DS_Store_kata-hidden"));
-    mkdirSync(join(dir, "kata-real"));
+    const fs = skillsFs([".DS_Store_kata-hidden", "kata-real"]);
 
-    const result = listSkills({ skillsDir: dir }, nodeFs);
+    const result = listSkills({ skillsDir: SKILLS_DIR }, fs);
     assert.deepEqual(result, ["kata-real"]);
   });
 
   test("sorted output is stable", () => {
-    const dir = mkdtempSync(join(tmpdir(), "skills-"));
-    mkdirSync(join(dir, "kata-z"));
-    mkdirSync(join(dir, "kata-a"));
-    mkdirSync(join(dir, "kata-m"));
+    const fs = skillsFs(["kata-z", "kata-a", "kata-m"]);
 
-    const r1 = listSkills({ skillsDir: dir }, nodeFs);
-    const r2 = listSkills({ skillsDir: dir }, nodeFs);
+    const r1 = listSkills({ skillsDir: SKILLS_DIR }, fs);
+    const r2 = listSkills({ skillsDir: SKILLS_DIR }, fs);
     assert.deepEqual(r1, ["kata-a", "kata-m", "kata-z"]);
     assert.deepEqual(r1, r2);
   });

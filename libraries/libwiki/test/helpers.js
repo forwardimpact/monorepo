@@ -20,9 +20,19 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
  * @param {string} [options.cwd] - Working directory `proc.cwd()` returns.
  * @param {Record<string,string>} [options.env] - The `proc.env` backing map.
  * @param {number} [options.now] - Fixed clock time in ms (defaults to real clock).
+ * @param {object} [options.fs] - Async fs surface override (default real `node:fs/promises`).
+ * @param {object} [options.fsSync] - Sync fs surface override (default real `node:fs`);
+ *   pass a libmock `createMockFs()` to keep a command's reads/writes in memory.
  * @returns {{runtime: object, stdout: string, stderr: string}}
  */
-export function makeRuntime({ cwd = process.cwd(), env = {}, now } = {}) {
+export function makeRuntime({
+  cwd = process.cwd(),
+  env = {},
+  now,
+  fs: fsOverride = nodeFs,
+  fsSync: fsSyncOverride = nodeFsSync,
+  finder: finderOverride,
+} = {}) {
   const out = [];
   const err = [];
   const proc = {
@@ -44,15 +54,16 @@ export function makeRuntime({ cwd = process.cwd(), env = {}, now } = {}) {
         }
       : createDefaultClock();
   const runtime = Object.freeze({
-    fs: nodeFs,
-    fsSync: nodeFsSync,
+    fs: fsOverride,
+    fsSync: fsSyncOverride,
     proc,
     clock,
     subprocess: createDefaultSubprocess(),
     // findProjectRoot is called with an explicit start path (proc.cwd()), so
     // the shared real-fs finder traverses fixtures correctly without needing
-    // the test's custom proc bound into it.
-    finder: createDefaultRuntime().finder,
+    // the test's custom proc bound into it. Tests that drive a command against
+    // an in-memory fs pass a `finder` stub returning a fixed project root.
+    finder: finderOverride ?? createDefaultRuntime().finder,
   });
   return {
     runtime,
