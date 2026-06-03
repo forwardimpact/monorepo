@@ -20,7 +20,7 @@ message BeginRequest {
   repeated string scopes = 5;
   optional string client_state = 6;
 }
-message BeginResponse { string upstream_authorize_url = 1; string state = 2; }
+message BeginResponse { string upstream_authorize_url = 1; string state = 2; optional string outcome = 3; }
 
 message CompleteRequest { string code = 1; string state = 2; }
 message CompleteResponse {

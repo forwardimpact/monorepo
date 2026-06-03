@@ -9,6 +9,13 @@ const { GhuserBase } = services;
 const EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const GITHUB_ID_SURFACES = new Set(["github-discussions"]);
 
+// Issue #1397 kill-switch: surfaces whose surface_user_id is not a verifiable
+// GitHub identity (e.g. msteams aad-obj-id, slack user id) cannot be safely
+// linked yet because `Complete` skips the identity gate for them, letting an
+// attacker bind their own token under an arbitrary victim's surface_user_id.
+// Spec 1520 replaces this allowlist with bridge-originated proof of intent.
+const BEGIN_ALLOWED_SURFACES = new Set(["github-discussions"]);
+
 /**
  * GitHub user authentication service — Kata Agent User App token lifecycle.
  * @augments GhuserBase
@@ -74,6 +81,9 @@ export class GhuserService extends GhuserBase {
    * @returns {Promise<object>}
    */
   async Begin(req) {
+    if (!BEGIN_ALLOWED_SURFACES.has(req.surface)) {
+      return { outcome: "surface_not_supported" };
+    }
     const state = crypto.randomUUID();
     const redirectUri = `${this.#linkBaseUrl}/callback`;
 

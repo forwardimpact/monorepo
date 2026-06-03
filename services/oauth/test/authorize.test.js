@@ -16,7 +16,7 @@ describe("oauth authorize (SC#2)", () => {
       logger: { info: () => {}, error: () => {} },
       providerClient: {
         Begin: async (req) => {
-          assert.strictEqual(req.surface, "teams");
+          assert.strictEqual(req.surface, "github-discussions");
           assert.strictEqual(req.surface_user_id, "u1");
           return { upstream_authorize_url: upstreamUrl, state: "s1" };
         },
@@ -26,7 +26,7 @@ describe("oauth authorize (SC#2)", () => {
     });
 
     const res = await app.request(
-      "/authorize?surface=teams&surface_user_id=u1",
+      "/authorize?surface=github-discussions&surface_user_id=u1",
     );
     assert.strictEqual(res.status, 302);
     assert.strictEqual(res.headers.get("Location"), upstreamUrl);
@@ -106,9 +106,33 @@ describe("oauth authorize (SC#2)", () => {
     });
 
     await app.request(
-      "/authorize?surface=teams&surface_user_id=u1&client_state=link-tok-99",
+      "/authorize?surface=github-discussions&surface_user_id=u1&client_state=link-tok-99",
     );
     assert.strictEqual(capturedClientState, "link-tok-99");
+  });
+
+  test("/authorize maps Begin outcome to 503 (#1397 kill-switch)", async () => {
+    const { app } = createOauthService({
+      config: {
+        issuer: "http://localhost:3007",
+        host: "0.0.0.0",
+        port: 0,
+        provider: "ghuser",
+      },
+      logger: { info: () => {}, error: () => {} },
+      providerClient: {
+        Begin: async () => ({ outcome: "surface_not_supported" }),
+        Complete: async () => ({}),
+        Redeem: async () => ({}),
+      },
+    });
+
+    const res = await app.request(
+      "/authorize?surface=msteams&surface_user_id=victim-aad-obj-id",
+    );
+    assert.strictEqual(res.status, 503);
+    const body = await res.json();
+    assert.strictEqual(body.error, "surface_not_supported");
   });
 
   test("callback with completion_ticket appends &ticket= to redirect", async () => {
