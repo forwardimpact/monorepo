@@ -86,6 +86,9 @@ export function createOauthService({ config, logger, providerClient }) {
           }),
         );
 
+        if (result.outcome) {
+          return c.json({ error: result.outcome }, 503);
+        }
         return c.redirect(result.upstream_authorize_url, 302);
       });
 

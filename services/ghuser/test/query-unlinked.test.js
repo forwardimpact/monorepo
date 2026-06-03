@@ -26,7 +26,7 @@ describe("ghuser query-unlinked (SC#5)", () => {
     });
 
     const result = await service.GetToken({
-      surface: "teams",
+      surface: "github-discussions",
       surface_user_id: "unknown",
     });
 
@@ -40,7 +40,7 @@ describe("ghuser query-unlinked (SC#5)", () => {
       "URL contains /authorize path",
     );
     assert.ok(
-      result.link_required.authorize_url.includes("surface=teams"),
+      result.link_required.authorize_url.includes("surface=github-discussions"),
       "URL carries surface param",
     );
     assert.ok(

@@ -26,7 +26,7 @@ describe("ghuser smoke (SC#1)", () => {
     });
 
     const result = await service.GetToken({
-      surface: "teams",
+      surface: "github-discussions",
       surface_user_id: "u1",
     });
     assert.ok(result, "GetToken returns a response");

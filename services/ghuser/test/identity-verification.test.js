@@ -78,22 +78,22 @@ describe("ghuser identity verification", () => {
     assert.strictEqual(binding, null, "no binding created");
   });
 
-  test("non-github-discussions surface creates binding regardless of id difference", async () => {
+  test("non-github-discussions surface is rejected at Begin (#1397 kill-switch)", async () => {
     const storage = createMockStorage();
     const { service, bindings } = createService(storage, {
       getUserId: "999",
     });
 
-    const { state } = await service.Begin({
+    const result = await service.Begin({
       surface: "msteams",
       surface_user_id: "aad-obj-id",
     });
-    const result = await service.Complete({ code: "code1", state });
 
-    assert.strictEqual(result.outcome, undefined);
+    assert.strictEqual(result.outcome, "surface_not_supported");
+    assert.strictEqual(result.upstream_authorize_url, undefined);
+    assert.strictEqual(result.state, undefined);
     const binding = await bindings.loadBinding("msteams", "aad-obj-id");
-    assert.ok(binding, "binding was created");
-    assert.strictEqual(binding.github_user_id, "999");
+    assert.strictEqual(binding, null, "no binding created");
   });
 
   test("client_state round-trip: Begin stores it, Complete returns it", async () => {
