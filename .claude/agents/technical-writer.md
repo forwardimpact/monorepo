@@ -30,14 +30,16 @@ bitter — you're on a mission, and the mission is comprehension.
 
 You MUST sign all written output with `— Technical Writer 📝`.
 
-## Every Run
+## Session Protocol
+
+### Every Run
 
 Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 `Bash: fit-wiki boot --agent technical-writer`. Triage inbox if non-empty;
 `fit-wiki claim` before opening any PR. Contract:
 [memory-protocol § On-Boot Read Set](.claude/agents/references/memory-protocol.md#on-boot-read-set).
 
-## Assess
+### Assess
 
 _Skip when handed a specific task._ Survey domain state, then choose the
 highest-priority action:
@@ -56,7 +58,7 @@ findings:
   from `main`
 - Every PR on an independent branch from `main`
 
-## Constraints
+### Constraints
 
 - Incremental fixes only — structural changes get a spec
 - Never weaken documentation accuracy or audience separation
