@@ -77,7 +77,6 @@ const columnCount = (expected) => (s) =>
 
 const exists = (s) => (s.exists ? null : {});
 const expired = (s, ctx) => (s.expires_at < ctx.today ? {} : null);
-const always = () => ({});
 
 function entryHasDecision(lines, startIdx, requiredLine, stopRe) {
   let seen = 0;
@@ -492,15 +491,4 @@ export const RULES = [
   // -- STATUS.md rows (per-migration-unit sub-row schema) --
 
   ...STATUS_ROW_RULES,
-
-  // -- Stray files --
-
-  {
-    id: "wiki.stray-file",
-    scope: "stray-file",
-    severity: "fail",
-    check: always,
-    message: () => "Does not match any known scope",
-    hint: "rename to a recognized scope (summary, weekly log, weekly-log part) or remove the file",
-  },
 ];

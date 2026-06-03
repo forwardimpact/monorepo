@@ -74,8 +74,7 @@ function classifyFile(filePath, fs) {
   const base = path.basename(filePath);
   if (EXCLUDED_BASES.has(base)) return null;
   // STATUS.md is loaded separately (loadStatus) and audited via the dedicated
-  // `status-row` scope — skip the per-file classification so it is not treated
-  // as a stray file.
+  // `status-row` scope — skip the per-file classification.
   if (base === "STATUS.md") return null;
   if (NON_SUMMARY_PREFIXES.some((p) => base.startsWith(p))) return null;
   if (WEEKLY_LOG_NAME_RE.test(base)) {
@@ -85,8 +84,10 @@ function classifyFile(filePath, fs) {
     return { kind: "weekly-log-part", subject: loadFile(filePath, fs) };
   }
   const subject = loadFile(filePath, fs);
-  const kind = SUMMARY_H1_RE.test(subject.firstLine) ? "summary" : "stray";
-  return { kind, subject };
+  // Files that do not match a summary or weekly-log shape are left
+  // unclassified: stray files are not audited.
+  if (!SUMMARY_H1_RE.test(subject.firstLine)) return null;
+  return { kind: "summary", subject };
 }
 
 function loadMemory(wikiRoot, fs) {
@@ -216,7 +217,6 @@ const SCOPE_RESOLVERS = {
       ...r,
       path: ctx.status.path,
     })),
-  "stray-file": (ctx) => ctx.subjects.stray,
 };
 
 /** Resolve a scope key into the list of subjects the engine should iterate. */
@@ -236,7 +236,6 @@ export function buildContext({ wikiRoot, today, fs }) {
     summary: [],
     "weekly-log-main": [],
     "weekly-log-part": [],
-    stray: [],
   };
   for (const file of listMdFiles(wikiRoot, fs)) {
     const classified = classifyFile(file, fs);
