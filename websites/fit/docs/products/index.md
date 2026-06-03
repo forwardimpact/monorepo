@@ -69,6 +69,26 @@ toc: false
 
 </div>
 
+## Provision Landmark Access (Leaders)
+
+<div class="grid">
+
+<!-- part:card:provisioning-engineers -->
+
+<!-- part:card:issuing-service-account-tokens -->
+
+</div>
+
+## Read Engineering Data (Engineers)
+
+<div class="grid">
+
+<!-- part:card:signing-in-to-landmark -->
+
+<!-- part:card:engineering-data-sources -->
+
+</div>
+
 ## Staff Teams to Succeed (Leaders)
 
 <div class="grid">
