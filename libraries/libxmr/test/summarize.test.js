@@ -1,11 +1,11 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
+import { createMockFs } from "@forwardimpact/libmock";
 import { runSummarizeCommand } from "../src/commands/summarize.js";
 import { runChartCommand } from "../src/commands/chart.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
+
+const CSV_PATH = "/metrics/metrics.csv";
 
 function makeCSV(metric, values, { unit = "count" } = {}) {
   const header = "date,metric,value,unit,run,note";
@@ -17,19 +17,16 @@ function makeCSV(metric, values, { unit = "count" } = {}) {
   return [header, ...rows].join("\n");
 }
 
+// Seed the CSV in an in-memory fs and hand `fn` both the path and the fs the
+// command should read it through. The commands only emit to stdout, so the
+// on-disk file is never inspected.
 function withTempCSV(content, fn) {
-  const dir = mkdtempSync(path.join(tmpdir(), "fit-xmr-summarize-"));
-  const file = path.join(dir, "metrics.csv");
-  writeFileSync(file, content);
-  try {
-    return fn(file);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  const fsSync = createMockFs({ [CSV_PATH]: content });
+  return fn(CSV_PATH, fsSync);
 }
 
-function runSummarize(csvPath, options = {}) {
-  const rt = makeRuntime();
+function runSummarize(csvPath, fsSync, options = {}) {
+  const rt = makeRuntime({ fsSync });
   const ctx = ctxFor({
     runtime: rt.runtime,
     options,
@@ -39,8 +36,8 @@ function runSummarize(csvPath, options = {}) {
   return { result, stdout: rt.stdout, stderr: rt.stderr };
 }
 
-function runChart(csvPath, options = {}) {
-  const rt = makeRuntime();
+function runChart(csvPath, fsSync, options = {}) {
+  const rt = makeRuntime({ fsSync });
   const ctx = ctxFor({
     runtime: rt.runtime,
     options,
@@ -55,8 +52,8 @@ describe("summarize command", () => {
     const values = Array.from({ length: 20 }, (_, i) => 10 + (i % 2));
     const csv = makeCSV("stable_metric", values);
 
-    withTempCSV(csv, (file) => {
-      const { result, stdout } = runSummarize(file);
+    withTempCSV(csv, (file, fsSync) => {
+      const { result, stdout } = runSummarize(file, fsSync);
       assert.ok(result.ok, JSON.stringify(result));
       assert.match(stdout, /\*\*XmR — `.*`\*\*/);
       assert.match(
@@ -71,8 +68,8 @@ describe("summarize command", () => {
   test("notes insufficient data without a stats row", () => {
     const csv = makeCSV("new_metric", [1, 2, 3]);
 
-    withTempCSV(csv, (file) => {
-      const { result, stdout } = runSummarize(file);
+    withTempCSV(csv, (file, fsSync) => {
+      const { result, stdout } = runSummarize(file, fsSync);
       assert.ok(result.ok, JSON.stringify(result));
       assert.match(stdout, /Insufficient data \(n<15\):_ new_metric \(n=3\)\./);
       assert.doesNotMatch(stdout, /\| metric \| n \|/);
@@ -83,8 +80,8 @@ describe("summarize command", () => {
     const values = Array.from({ length: 20 }, (_, i) => 10 + (i % 2));
     const csv = makeCSV("m", values);
 
-    withTempCSV(csv, (file) => {
-      const { result, stdout } = runSummarize(file, { format: "json" });
+    withTempCSV(csv, (file, fsSync) => {
+      const { result, stdout } = runSummarize(file, fsSync, { format: "json" });
       assert.ok(result.ok, JSON.stringify(result));
       const parsed = JSON.parse(stdout);
       assert.ok(parsed.source);
@@ -111,8 +108,8 @@ describe("summarize command", () => {
       }),
     ].join("\n");
 
-    withTempCSV(csv, (file) => {
-      const { result, stdout } = runSummarize(file, { metric: "b" });
+    withTempCSV(csv, (file, fsSync) => {
+      const { result, stdout } = runSummarize(file, fsSync, { metric: "b" });
       assert.ok(result.ok, JSON.stringify(result));
       assert.match(stdout, /\| b \|/);
       assert.doesNotMatch(stdout, /\| a \|/);
@@ -136,8 +133,8 @@ describe("summarize command", () => {
     ];
     const csv = makeCSV("shifty", values);
 
-    withTempCSV(csv, (file) => {
-      const { result, stdout } = runSummarize(file, { format: "json" });
+    withTempCSV(csv, (file, fsSync) => {
+      const { result, stdout } = runSummarize(file, fsSync, { format: "json" });
       assert.ok(result.ok, JSON.stringify(result));
       const parsed = JSON.parse(stdout);
       assert.notStrictEqual(parsed.metrics[0].classification, "stable");
@@ -150,8 +147,8 @@ describe("chart command", () => {
   test("renders a 14-line chart for the §10 worked example", () => {
     const csv = makeCSV("ex", [5, 6, 7, 5, 6, 4, 7, 8, 6, 13, 5, 6, 7, 6, 5]);
 
-    withTempCSV(csv, (file) => {
-      const { result, stdout } = runChart(file, { metric: "ex" });
+    withTempCSV(csv, (file, fsSync) => {
+      const { result, stdout } = runChart(file, fsSync, { metric: "ex" });
       assert.ok(result.ok, JSON.stringify(result));
       const lines = stdout.replace(/\n$/, "").split("\n");
       assert.strictEqual(lines.length, 14);
@@ -165,8 +162,8 @@ describe("chart command", () => {
 
   test("defaults to the sole metric when --metric is omitted", () => {
     const csv = makeCSV("ex", [5, 6, 7, 5, 6, 4, 7, 8, 6, 13, 5, 6, 7, 6, 5]);
-    withTempCSV(csv, (file) => {
-      const { result, stdout } = runChart(file);
+    withTempCSV(csv, (file, fsSync) => {
+      const { result, stdout } = runChart(file, fsSync);
       assert.ok(result.ok, JSON.stringify(result));
       assert.ok(stdout.includes("UPL 12.5"));
       assert.ok(stdout.includes("●"));
@@ -179,8 +176,8 @@ describe("chart command", () => {
       "2026-01-01,a,1,count,,",
       "2026-01-02,b,2,count,,",
     ].join("\n");
-    withTempCSV(csv, (file) => {
-      const { result } = runChart(file);
+    withTempCSV(csv, (file, fsSync) => {
+      const { result } = runChart(file, fsSync);
       assert.equal(result.ok, false);
       assert.match(result.error, /requires --metric/);
     });
@@ -188,8 +185,11 @@ describe("chart command", () => {
 
   test("rejects --format json", () => {
     const csv = makeCSV("ex", [1, 2, 3]);
-    withTempCSV(csv, (file) => {
-      const { result } = runChart(file, { metric: "ex", format: "json" });
+    withTempCSV(csv, (file, fsSync) => {
+      const { result } = runChart(file, fsSync, {
+        metric: "ex",
+        format: "json",
+      });
       assert.equal(result.ok, false);
       assert.match(result.error, /does not support --format json/);
     });
@@ -197,8 +197,11 @@ describe("chart command", () => {
 
   test("--ascii substitutes ASCII glyphs", () => {
     const csv = makeCSV("ex", [5, 6, 7, 5, 6, 4, 7, 8, 6, 13, 5, 6, 7, 6, 5]);
-    withTempCSV(csv, (file) => {
-      const { result, stdout } = runChart(file, { metric: "ex", ascii: true });
+    withTempCSV(csv, (file, fsSync) => {
+      const { result, stdout } = runChart(file, fsSync, {
+        metric: "ex",
+        ascii: true,
+      });
       assert.ok(result.ok, JSON.stringify(result));
       assert.ok(stdout.includes("X-bar"));
       assert.ok(stdout.includes("R-bar"));
@@ -210,8 +213,8 @@ describe("chart command", () => {
 
   test("notes insufficient data when n < 15", () => {
     const csv = makeCSV("ex", [1, 2, 3]);
-    withTempCSV(csv, (file) => {
-      const { result, stdout } = runChart(file, { metric: "ex" });
+    withTempCSV(csv, (file, fsSync) => {
+      const { result, stdout } = runChart(file, fsSync, { metric: "ex" });
       assert.ok(result.ok, JSON.stringify(result));
       assert.match(stdout, /Insufficient data/);
     });

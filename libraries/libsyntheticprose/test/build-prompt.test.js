@@ -7,14 +7,11 @@
  */
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
 import { ProseCache } from "../src/engine/cache.js";
 import { ProseGenerator } from "../src/engine/generator.js";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 
-const _runtime = createDefaultRuntime();
+const CACHE_PATH = "/prose/cache.json";
 
 function makeLogger() {
   return {
@@ -40,16 +37,16 @@ function makeEchoPromptLoader() {
 }
 
 function makeFixture() {
-  const tmpDir = mkdtempSync(join(tmpdir(), "prose-build-prompt-"));
+  const runtime = createTestRuntime({ fs: createMockFs() });
   const captured = [];
   const cache = new ProseCache({
-    cachePath: join(tmpDir, "cache.json"),
+    cachePath: CACHE_PATH,
     logger: makeLogger(),
-    runtime: _runtime,
+    runtime,
   });
   const generator = new ProseGenerator({
     cache,
-    runtime: _runtime,
+    runtime,
     mode: "generate",
     promptLoader: makeEchoPromptLoader(),
     logger: makeLogger(),
@@ -64,82 +61,74 @@ function makeFixture() {
       },
     },
   });
-  return { tmpDir, generator, captured };
+  return { generator, captured };
 }
 
 describe("ProseGenerator #buildPrompt", () => {
   test("identical contexts under different cache keys render byte-equal prompts", async () => {
-    const { tmpDir, generator, captured } = makeFixture();
-    try {
-      const ctx = {
-        topic: "snapshot survey comment about deep work",
-        tone: "authentic, first-person developer voice",
-        length: "1-2 sentences",
-        domain: "test.example",
-        orgName: "TestCo",
-        role: "L3 software_engineering on the Alpha Team",
-        scenario: "Release Pressure",
-        drivers: [
-          { driver_id: "deep_work", trajectory: "declining", magnitude: -6 },
-          {
-            driver_id: "ease_of_release",
-            trajectory: "declining",
-            magnitude: -4,
-          },
-        ],
-      };
-      // Spread identical ctx into two distinct objects under different
-      // cache keys to prove the rendered prompt does not depend on the
-      // key — only on the context fields.
-      await generator.generatePlain("snapshot_comment_a", { ...ctx });
-      await generator.generatePlain("snapshot_comment_b", { ...ctx });
+    const { generator, captured } = makeFixture();
+    const ctx = {
+      topic: "snapshot survey comment about deep work",
+      tone: "authentic, first-person developer voice",
+      length: "1-2 sentences",
+      domain: "test.example",
+      orgName: "TestCo",
+      role: "L3 software_engineering on the Alpha Team",
+      scenario: "Release Pressure",
+      drivers: [
+        { driver_id: "deep_work", trajectory: "declining", magnitude: -6 },
+        {
+          driver_id: "ease_of_release",
+          trajectory: "declining",
+          magnitude: -4,
+        },
+      ],
+    };
+    // Spread identical ctx into two distinct objects under different
+    // cache keys to prove the rendered prompt does not depend on the
+    // key — only on the context fields.
+    await generator.generatePlain("snapshot_comment_a", { ...ctx });
+    await generator.generatePlain("snapshot_comment_b", { ...ctx });
 
-      assert.strictEqual(
-        captured.length,
-        2,
-        "two prompts captured (one per call)",
-      );
-      assert.strictEqual(
-        captured[0],
-        captured[1],
-        "identical ProseContext entries must produce byte-equal prompts",
-      );
-    } finally {
-      rmSync(tmpDir, { recursive: true });
-    }
+    assert.strictEqual(
+      captured.length,
+      2,
+      "two prompts captured (one per call)",
+    );
+    assert.strictEqual(
+      captured[0],
+      captured[1],
+      "identical ProseContext entries must produce byte-equal prompts",
+    );
   });
 
   test("different drivers produce different prompts", async () => {
-    const { tmpDir, generator, captured } = makeFixture();
-    try {
-      const base = {
-        topic: "snapshot survey comment",
-        tone: "authentic",
-        length: "1-2 sentences",
-      };
-      await generator.generatePlain("k1", {
-        ...base,
-        drivers: [
-          { driver_id: "deep_work", trajectory: "declining", magnitude: -6 },
-        ],
-      });
-      await generator.generatePlain("k2", {
-        ...base,
-        drivers: [
-          {
-            driver_id: "learning_culture",
-            trajectory: "rising",
-            magnitude: 5,
-          },
-        ],
-      });
-      assert.notStrictEqual(
-        captured[0],
-        captured[1],
-        "different drivers must produce different prompts (sanity)",
-      );
-    } finally {
-      rmSync(tmpDir, { recursive: true });
-    }
+    const { generator, captured } = makeFixture();
+    const base = {
+      topic: "snapshot survey comment",
+      tone: "authentic",
+      length: "1-2 sentences",
+    };
+    await generator.generatePlain("k1", {
+      ...base,
+      drivers: [
+        { driver_id: "deep_work", trajectory: "declining", magnitude: -6 },
+      ],
+    });
+    await generator.generatePlain("k2", {
+      ...base,
+      drivers: [
+        {
+          driver_id: "learning_culture",
+          trajectory: "rising",
+          magnitude: 5,
+        },
+      ],
+    });
+    assert.notStrictEqual(
+      captured[0],
+      captured[1],
+      "different drivers must produce different prompts (sanity)",
+    );
   });
 });
