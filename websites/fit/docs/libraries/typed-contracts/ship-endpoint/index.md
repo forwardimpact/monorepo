@@ -80,11 +80,13 @@ import { Server, createTracer } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createGraphIndex } from "@forwardimpact/libgraph";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { GraphService } from "./index.js";
 
+const runtime = createDefaultRuntime();
 const config = await createServiceConfig("graph");
-const logger = createLogger("graph");
+const logger = createLogger("graph", runtime);
 const tracer = await createTracer("graph");
 
 const graphIndex = createGraphIndex("graphs");
@@ -118,8 +120,9 @@ authentication, and returns a typed client with built-in retries.
 ```js
 import { createClient, createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-const logger = createLogger("my-script");
+const logger = createLogger("my-script", createDefaultRuntime());
 const tracer = await createTracer("my-script");
 
 const graphClient = await createClient("graph", logger, tracer);

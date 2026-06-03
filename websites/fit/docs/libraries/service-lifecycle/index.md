@@ -241,8 +241,9 @@ and agents.
 
 ```js
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-const logger = createLogger("my-service");
+const logger = createLogger("my-service", createDefaultRuntime());
 
 logger.info("startup", "Server listening", { port: "3000" });
 // INFO 2026-05-04T10:00:00.000Z my-service startup 42001 MSG001 [port="3000"] Server listening
@@ -288,6 +289,9 @@ import { spawn, execSync } from "node:child_process";
 import { ServiceManager } from "@forwardimpact/librc";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { sendCommand, waitForSocket } from "@forwardimpact/librc";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+const runtime = createDefaultRuntime();
 
 const config = {
   rootDir: process.cwd(),
@@ -300,10 +304,11 @@ const config = {
   },
 };
 
-const logger = createLogger("rc");
+const logger = createLogger("rc", runtime);
 // spawn/execSync are injected by the caller — there is no runtime-level
 // equivalent for detached, stdio-redirected daemon spawning.
 const manager = new ServiceManager(config, logger, {
+  runtime,
   spawn,
   execSync,
   sendCommand,
