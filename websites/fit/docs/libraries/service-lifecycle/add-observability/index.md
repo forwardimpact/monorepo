@@ -27,8 +27,9 @@ Create a logger with a domain name and call `info`, `error`, or `debug`:
 
 ```js
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-const logger = createLogger("my-service");
+const logger = createLogger("my-service", createDefaultRuntime());
 
 logger.info("startup", "Server listening", { port: "3000" });
 ```
@@ -154,8 +155,9 @@ The `Observer` class unifies logging and tracing for gRPC handlers:
 
 ```js
 import { createObserver, createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-const logger = createLogger("agent");
+const logger = createLogger("agent", createDefaultRuntime());
 const observer = createObserver("Agent", logger, tracer);
 ```
 

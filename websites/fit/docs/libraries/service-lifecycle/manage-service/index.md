@@ -139,6 +139,9 @@ The same operations are available from the `ServiceManager` class:
 import { spawn, execSync } from "node:child_process";
 import { ServiceManager, sendCommand, waitForSocket } from "@forwardimpact/librc";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+const runtime = createDefaultRuntime();
 
 const config = {
   rootDir: process.cwd(),
@@ -150,10 +153,11 @@ const config = {
   },
 };
 
-const logger = createLogger("rc");
+const logger = createLogger("rc", runtime);
 // spawn/execSync are injected by the caller — there is no runtime-level
 // equivalent for detached, stdio-redirected daemon spawning.
 const manager = new ServiceManager(config, logger, {
+  runtime,
   spawn,
   execSync,
   sendCommand,
