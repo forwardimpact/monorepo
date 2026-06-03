@@ -52,6 +52,40 @@ const RULES = [
     message:
       "inline { run, spawn, calls } subprocess fake — use createMockSubprocess",
   },
+  // Inline GraphIndex mock triple: createMockStorage + `new GraphIndex(...)`
+  // co-occurring without the fixture import. Keyed on the *mock* triple, not a
+  // bare `new GraphIndex` — products/map/test/pipeline.test.js builds a real
+  // GraphIndex over LocalStorage (integration) and must not trip.
+  {
+    test: (t) =>
+      /createMockStorage\s*\(/.test(t) &&
+      /new\s+GraphIndex\s*\(/.test(t) &&
+      !t.includes("createGraphIndexFixture"),
+    message: "inline GraphIndex mock triple — use createGraphIndexFixture",
+  },
+  // Inline mock gRPC health definition `{ Check: { … requestStream: …
+  // responseStream: … } }`. Keyed on the requestStream/responseStream literal
+  // keys inside a Check object literal, NOT a bare `check.path` assertion —
+  // librpc/health.test.js asserts on the real definition's serialization
+  // surface (no `Check: {` mock literal) and must not trip.
+  {
+    test: (t) =>
+      /Check\s*:\s*\{[\s\S]{0,160}?requestStream\s*:[\s\S]{0,80}?responseStream\s*:/.test(
+        t,
+      ) && !t.includes("createMockGrpcHealthDefinition"),
+    message:
+      "inline gRPC health definition — use createMockGrpcHealthDefinition",
+  },
+  // Inline readline.createInterface bundle paired with a mock process exit
+  // flag (`_exitCalled`). Keyed on both halves so a plain
+  // `readline.createInterface(...)` call doesn't trip.
+  {
+    test: (t) =>
+      /createInterface\s*:/.test(t) &&
+      /_exitCalled/.test(t) &&
+      !t.includes("createReplEnvironment"),
+    message: "inline repl environment bundle — use createReplEnvironment",
+  },
 ];
 
 // Runtime collaborator surfaces: an inline `function createMock<Surface>` in a

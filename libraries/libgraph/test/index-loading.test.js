@@ -5,7 +5,7 @@ import { Store, DataFactory } from "n3";
 import { GraphIndex } from "../src/index/graph.js";
 import {
   assertThrowsMessage,
-  createMockStorage,
+  createGraphIndexFixture,
   spy,
 } from "@forwardimpact/libmock";
 
@@ -17,10 +17,10 @@ describe("GraphIndex - Constructor and Data Loading", () => {
   let n3Store;
 
   beforeEach(() => {
-    mockStorage = createMockStorage();
-
-    n3Store = new Store();
-    graphIndex = new GraphIndex(mockStorage, n3Store, {}, "test-graph.jsonl");
+    ({ mockStorage, n3Store, graphIndex } = createGraphIndexFixture({
+      GraphIndex,
+      Store,
+    }));
   });
 
   describe("Constructor and Properties", () => {

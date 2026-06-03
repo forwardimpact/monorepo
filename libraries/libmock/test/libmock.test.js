@@ -240,4 +240,72 @@ describe("libmock", () => {
       assert.strictEqual(entry.maturity, "developing");
     });
   });
+
+  describe("environments", () => {
+    test("createGraphIndexFixture wires storage, store, and index", async () => {
+      const { createGraphIndexFixture } = await import("../src/index.js");
+      class StubGraphIndex {
+        constructor(storage, store, prefixes, indexKey) {
+          this.storage = storage;
+          this.store = store;
+          this.prefixes = prefixes;
+          this.indexKey = indexKey;
+        }
+      }
+      class StubStore {}
+      const { graphIndex, n3Store, mockStorage } = createGraphIndexFixture({
+        GraphIndex: StubGraphIndex,
+        Store: StubStore,
+        prefixes: { rdf: "http://x/" },
+        indexKey: "custom.jsonl",
+      });
+      assert.ok(graphIndex instanceof StubGraphIndex);
+      assert.ok(n3Store instanceof StubStore);
+      assert.strictEqual(graphIndex.storage, mockStorage);
+      assert.strictEqual(graphIndex.store, n3Store);
+      assert.deepStrictEqual(graphIndex.prefixes, { rdf: "http://x/" });
+      assert.strictEqual(graphIndex.indexKey, "custom.jsonl");
+    });
+
+    test("createGraphIndexFixture forwards storageOverrides and defaults indexKey", async () => {
+      const { createGraphIndexFixture } = await import("../src/index.js");
+      class StubGraphIndex {
+        constructor(storage, store, prefixes, indexKey) {
+          this.indexKey = indexKey;
+        }
+      }
+      const sentinel = () => Promise.resolve("override");
+      const { graphIndex, mockStorage } = createGraphIndexFixture({
+        GraphIndex: StubGraphIndex,
+        Store: class {},
+        storageOverrides: { get: sentinel },
+      });
+      assert.strictEqual(mockStorage.get, sentinel);
+      assert.strictEqual(graphIndex.indexKey, "test-graph.jsonl");
+    });
+
+    test("createMockGrpcHealthDefinition returns the stripped Check shape", async () => {
+      const { createMockGrpcHealthDefinition } = await import(
+        "../src/index.js"
+      );
+      const def = createMockGrpcHealthDefinition();
+      assert.strictEqual(def.Check.path, "/grpc.health.v1.Health/Check");
+      assert.strictEqual(def.Check.requestStream, false);
+      assert.strictEqual(def.Check.responseStream, false);
+    });
+
+    test("createReplEnvironment bundles readline/process/os/formatter/storage", async () => {
+      const { createReplEnvironment } = await import("../src/index.js");
+      const env = createReplEnvironment();
+      assert.strictEqual(typeof env.readline.createInterface, "function");
+      assert.deepStrictEqual(env.process.argv, ["node", "script.js"]);
+      assert.strictEqual(env.process._exitCalled, false);
+      env.process.exit(2);
+      assert.strictEqual(env.process._exitCalled, true);
+      assert.strictEqual(env.process._exitCode, 2);
+      assert.strictEqual(env.os.userInfo().uid, 1000);
+      assert.strictEqual(env.formatter().format("x"), "formatted: x");
+      assert.ok(env.storage.data instanceof Map);
+    });
+  });
 });

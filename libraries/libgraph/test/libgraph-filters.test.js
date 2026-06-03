@@ -5,7 +5,10 @@ import { Store, DataFactory } from "n3";
 import { GraphIndex } from "../src/index/graph.js";
 import { parseGraphQuery } from "../src/index.js";
 import { resource } from "@forwardimpact/libtype";
-import { assertThrowsMessage, createMockStorage } from "@forwardimpact/libmock";
+import {
+  assertThrowsMessage,
+  createGraphIndexFixture,
+} from "@forwardimpact/libmock";
 
 const { namedNode, literal } = DataFactory;
 
@@ -47,13 +50,13 @@ function jsonldToQuads(jsonld) {
 describe("GraphIndex - Filters and parseGraphQuery", () => {
   describe("queryItems respects shared filters from IndexBase", () => {
     let graphIndex;
-    let mockStorage;
-    let n3Store;
 
     beforeEach(() => {
-      mockStorage = createMockStorage();
-      n3Store = new Store();
-      graphIndex = new GraphIndex(mockStorage, n3Store, {}, "test.jsonl");
+      ({ graphIndex } = createGraphIndexFixture({
+        GraphIndex,
+        Store,
+        indexKey: "test.jsonl",
+      }));
     });
 
     test("queryItems respects shared filters from IndexBase", async () => {

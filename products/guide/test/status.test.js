@@ -1,6 +1,10 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { createMockClock, createMockFs } from "@forwardimpact/libmock";
+import {
+  createMockClock,
+  createMockFs,
+  createMockGrpcHealthDefinition,
+} from "@forwardimpact/libmock";
 import { runStatus } from "../src/lib/status.js";
 
 /**
@@ -85,16 +89,6 @@ function createMockGrpc(unreachable = new Set()) {
   };
 }
 
-function createMockHealthDefinition() {
-  return {
-    Check: {
-      path: "/grpc.health.v1.Health/Check",
-      requestStream: false,
-      responseStream: false,
-    },
-  };
-}
-
 function createMockFetch(ok = true) {
   return async () => ({ ok });
 }
@@ -103,7 +97,7 @@ function createMockDeps(opts = {}) {
   return {
     createServiceConfig: createMockConfigFactory(opts.configOverrides),
     grpc: createMockGrpc(opts.unreachable),
-    healthDefinition: createMockHealthDefinition(),
+    healthDefinition: createMockGrpcHealthDefinition(),
     fs: createMockFs(),
     clock: createMockClock(),
     fetch: opts.fetch || createMockFetch(true),

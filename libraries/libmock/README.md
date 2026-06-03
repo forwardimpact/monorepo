@@ -88,6 +88,9 @@ a fake imports it from here so production and test wire the same shape.
 | git-client | libutil `GitClient` | `createMockGitClient` | `const git = createMockGitClient({ responses: { revListCount: 3 } });` |
 | gh-client | libutil `GhClient` | `createMockGhClient` | `const gh = createMockGhClient({ responses: { prCreate: "url" } });` |
 | runtime bag | libutil `createDefaultRuntime` | `createTestRuntime` | `const rt = createTestRuntime({ clock: createMockClock() });` |
+| graph-index | libgraph `GraphIndex` + n3 `Store` triple | `createGraphIndexFixture` | `const { graphIndex } = createGraphIndexFixture({ GraphIndex, Store });` |
+| grpc health def | stripped `{ Check: { path, … } }` shape | `createMockGrpcHealthDefinition` | `const def = createMockGrpcHealthDefinition();` |
+| repl env | readline/process/os/formatter/storage bundle | `createReplEnvironment` | `const { readline, process } = createReplEnvironment();` |
 
 `test/runtime-completeness.test.js` asserts every field on libutil's `Runtime`
 typedef has a matching fake here, so the fakes can't drift behind the bag.
