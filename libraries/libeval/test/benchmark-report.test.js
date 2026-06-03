@@ -1,14 +1,11 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
-import { mkdtemp, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 
 import { aggregate, renderTextReport } from "../src/benchmark/report.js";
 
-const RT = createDefaultRuntime();
+const INPUT_DIR = "/benchmark-report";
 
 function baseRecord(overrides) {
   return {
@@ -32,12 +29,16 @@ function baseRecord(overrides) {
   };
 }
 
-async function writeJsonl(records) {
-  const dir = await mkdtemp(join(tmpdir(), "benchmark-report-"));
-  const path = join(dir, "results.jsonl");
+/**
+ * Seed `results.jsonl` for `records` in an in-memory fs under `INPUT_DIR` and
+ * return a runtime; `aggregate` reads `join(inputDir, "results.jsonl")` via
+ * `runtime.fs.readFile`.
+ */
+function jsonlRuntime(records) {
   const body = records.map((r) => JSON.stringify(r)).join("\n") + "\n";
-  await writeFile(path, body);
-  return dir;
+  return createTestRuntime({
+    fs: createMockFs({ [`${INPUT_DIR}/results.jsonl`]: body }),
+  });
 }
 
 describe("aggregate", () => {
@@ -46,10 +47,10 @@ describe("aggregate", () => {
     const records = verdicts.map((v, i) =>
       baseRecord({ taskId: "x", runIndex: i, verdict: v }),
     );
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1, 3],
     });
     assert.strictEqual(report.tasks.length, 1);
@@ -64,10 +65,10 @@ describe("aggregate", () => {
 
   test("k > n yields a structured error row", async () => {
     const records = [baseRecord({ taskId: "x", runIndex: 0 })];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [3],
     });
     assert.deepStrictEqual(report.tasks[0].passAtK[3], { error: "k > n" });
@@ -76,10 +77,10 @@ describe("aggregate", () => {
   test("schema-invalid records are skipped and counted under totals.skipped", async () => {
     const good = baseRecord({ taskId: "x", runIndex: 0 });
     const bad = { taskId: "x", runIndex: 1 }; // missing required fields
-    const dir = await writeJsonl([good, bad]);
+    const runtime = jsonlRuntime([good, bad]);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
     });
     assert.strictEqual(report.totals.skipped, 1);
@@ -92,10 +93,10 @@ describe("aggregate", () => {
       baseRecord({ taskId: "a", runIndex: 0, verdict: "fail" }),
       baseRecord({ taskId: "a", runIndex: 1, verdict: "pass" }),
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
     });
     assert.deepStrictEqual(
@@ -111,10 +112,10 @@ describe("renderTextReport", () => {
       baseRecord({ taskId: "x", runIndex: 0, verdict: "pass" }),
       baseRecord({ taskId: "x", runIndex: 1, verdict: "fail" }),
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
     });
     const text = renderTextReport(report, [1]);
@@ -143,10 +144,10 @@ describe("aggregate with includeRuns", () => {
         durationMs: 5000,
       }),
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
       includeRuns: true,
     });
@@ -179,10 +180,10 @@ describe("aggregate with includeRuns", () => {
         turns: 9,
       }),
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
       includeRuns: true,
     });
@@ -199,10 +200,10 @@ describe("aggregate with includeRuns", () => {
 
   test("without includeRuns does not attach runs", async () => {
     const records = [baseRecord({ taskId: "x", runIndex: 0 })];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
     });
     assert.strictEqual(report.tasks[0].runs, undefined);
@@ -228,10 +229,10 @@ describe("renderTextReport (full report)", () => {
         durationMs: 30000,
       }),
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
       includeRuns: true,
     });
@@ -260,10 +261,10 @@ describe("renderTextReport (full report)", () => {
         },
       }),
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
       includeRuns: true,
     });
@@ -296,10 +297,10 @@ describe("renderTextReport (full report)", () => {
         },
       }),
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
       includeRuns: true,
     });
@@ -319,10 +320,10 @@ describe("renderTextReport (full report)", () => {
         agentError: { message: "boom", aborted: false },
       }),
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
       includeRuns: true,
     });
@@ -354,10 +355,10 @@ describe("renderTextReport (full report)", () => {
         judgeTracePath: "/tmp/j.ndjson",
       },
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
       includeRuns: true,
     });
@@ -375,10 +376,10 @@ describe("renderTextReport (full report)", () => {
         invariants: { verdict: "pass", details: [], exitCode: 0 },
       }),
     ];
-    const dir = await writeJsonl(records);
+    const runtime = jsonlRuntime(records);
     const report = await aggregate({
-      runtime: RT,
-      inputDir: dir,
+      runtime,
+      inputDir: INPUT_DIR,
       kValues: [1],
       includeRuns: true,
     });

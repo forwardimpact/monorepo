@@ -1,30 +1,35 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
+
+import { createMockFs } from "@forwardimpact/libmock";
 
 import { evaluateAssertion } from "../src/commands/assert.js";
 
-function tmpFile(content) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "assert-test-"));
-  const file = path.join(dir, "input.txt");
+// A single in-memory fs accumulates every seeded input file; `evaluateAssertion`
+// reads inputs via this sync surface (`existsSync` / `readFileSync`). Each
+// helper writes to a fresh path so seeds never collide across cases.
+const fs = createMockFs();
+let seq = 0;
+
+function seed(name, content) {
+  const file = `/assert/${seq++}/${name}`;
   fs.writeFileSync(file, content);
   return file;
 }
 
+function tmpFile(content) {
+  return seed("input.txt", content);
+}
+
 function tmpJson(data) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "assert-test-"));
-  const file = path.join(dir, "input.json");
-  fs.writeFileSync(file, JSON.stringify(data));
-  return file;
+  return seed("input.json", JSON.stringify(data));
 }
 
 function tmpNdjson(lines) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "assert-test-"));
-  const file = path.join(dir, "input.ndjson");
-  fs.writeFileSync(file, lines.map((l) => JSON.stringify(l)).join("\n") + "\n");
-  return file;
+  return seed(
+    "input.ndjson",
+    lines.map((l) => JSON.stringify(l)).join("\n") + "\n",
+  );
 }
 
 describe("fit-trace assert", () => {

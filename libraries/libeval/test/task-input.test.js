@@ -1,24 +1,29 @@
-import { describe, test, beforeEach, afterEach } from "node:test";
+import { describe, test } from "node:test";
 import assert from "node:assert";
-import nodeFsSync from "node:fs";
-import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
+
+import { createMockFs } from "@forwardimpact/libmock";
 
 import { resolveTaskContent } from "../src/commands/task-input.js";
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const EVENT_FIXTURE = join(HERE, "fixtures", "events", "issues-opened.json");
+const EVENT_FIXTURE = "/events/issues-opened.json";
+const ISSUES_OPENED = JSON.stringify({
+  action: "opened",
+  issue: {
+    number: 42,
+    title: "Investigate flaky CI",
+    html_url: "https://github.com/acme/repo/issues/42",
+    user: { login: "alice", type: "User" },
+  },
+});
 
 /**
- * Build a minimal real-fs runtime for resolveTaskContent: sync fs reads from
- * the real filesystem (test files live on disk) and a test-controlled env map.
+ * Build a runtime over an in-memory fs seeded with `files` and a
+ * test-controlled env map. `resolveTaskContent` loads `--task-file` /
+ * `--task-event` via `runtime.fsSync.readFileSync`.
  */
-function makeRuntime(env = {}) {
+function makeRuntime({ env = {}, files = {} } = {}) {
   return {
-    fsSync: nodeFsSync,
+    fsSync: createMockFs(files),
     proc: { env: { ...env } },
   };
 }
@@ -72,21 +77,12 @@ describe("resolveTaskContent mutual exclusion", () => {
 });
 
 describe("resolveTaskContent dispatch", () => {
-  let tmpDir;
-
-  beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), "task-input-"));
-  });
-
-  afterEach(() => {
-    rmSync(tmpDir, { recursive: true, force: true });
-  });
-
   test("--task-file returns file contents and undefined amend", () => {
-    const path = join(tmpDir, "task.md");
-    writeFileSync(path, "from a file");
     assert.deepStrictEqual(
-      resolveTaskContent({ "task-file": path }, makeRuntime()),
+      resolveTaskContent(
+        { "task-file": "/work/task.md" },
+        makeRuntime({ files: { "/work/task.md": "from a file" } }),
+      ),
       {
         task: "from a file",
         amend: undefined,
@@ -117,7 +113,10 @@ describe("resolveTaskContent dispatch", () => {
   test("--task-event composes from GITHUB_EVENT_NAME", () => {
     const { task, amend } = resolveTaskContent(
       { "task-event": EVENT_FIXTURE },
-      makeRuntime({ GITHUB_EVENT_NAME: "issues" }),
+      makeRuntime({
+        env: { GITHUB_EVENT_NAME: "issues" },
+        files: { [EVENT_FIXTURE]: ISSUES_OPENED },
+      }),
     );
     assert.ok(task.includes('New issue: "Investigate flaky CI" (#42)'));
     assert.strictEqual(amend, "");
@@ -125,47 +124,55 @@ describe("resolveTaskContent dispatch", () => {
 
   test("--task-event without GITHUB_EVENT_NAME throws", () => {
     assert.throws(
-      () => resolveTaskContent({ "task-event": EVENT_FIXTURE }, makeRuntime()),
+      () =>
+        resolveTaskContent(
+          { "task-event": EVENT_FIXTURE },
+          makeRuntime({ files: { [EVENT_FIXTURE]: ISSUES_OPENED } }),
+        ),
       /GITHUB_EVENT_NAME/,
     );
   });
 
   test("--task-event with workflow_dispatch returns empty task + inputs.prompt as amend", () => {
-    const dispatchFixture = join(tmpDir, "dispatch.json");
-    writeFileSync(
-      dispatchFixture,
-      JSON.stringify({ inputs: { prompt: "Hello world" } }),
-    );
+    const dispatchFixture = "/work/dispatch.json";
     assert.deepStrictEqual(
       resolveTaskContent(
         { "task-event": dispatchFixture },
-        makeRuntime({ GITHUB_EVENT_NAME: "workflow_dispatch" }),
+        makeRuntime({
+          env: { GITHUB_EVENT_NAME: "workflow_dispatch" },
+          files: {
+            [dispatchFixture]: JSON.stringify({
+              inputs: { prompt: "Hello world" },
+            }),
+          },
+        }),
       ),
       { task: "", amend: "Hello world" },
     );
   });
 
   test("explicit --task-amend overrides payload.inputs.prompt on --task-event", () => {
-    const path = join(tmpDir, "with-input.json");
-    writeFileSync(
-      path,
-      JSON.stringify({
-        action: "opened",
-        issue: {
-          number: 1,
-          title: "t",
-          html_url: "u",
-          user: { login: "a", type: "User" },
-        },
-        inputs: { prompt: "from payload" },
-      }),
-    );
+    const path = "/work/with-input.json";
     const { amend } = resolveTaskContent(
       {
         "task-event": path,
         "task-amend": "explicit",
       },
-      makeRuntime({ GITHUB_EVENT_NAME: "issues" }),
+      makeRuntime({
+        env: { GITHUB_EVENT_NAME: "issues" },
+        files: {
+          [path]: JSON.stringify({
+            action: "opened",
+            issue: {
+              number: 1,
+              title: "t",
+              html_url: "u",
+              user: { login: "a", type: "User" },
+            },
+            inputs: { prompt: "from payload" },
+          }),
+        },
+      }),
     );
     assert.strictEqual(amend, "explicit");
   });

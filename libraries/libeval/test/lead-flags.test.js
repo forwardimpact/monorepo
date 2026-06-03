@@ -1,16 +1,18 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import nodeFs from "node:fs/promises";
+
+import { createMockFs } from "@forwardimpact/libmock";
 
 import { parseSuperviseOptions } from "../src/commands/supervise.js";
 import { parseFacilitateOptions } from "../src/commands/facilitate.js";
 import { parseDiscussOptions } from "../src/commands/discuss.js";
 
-// All cases below use --task-text, so the runtime's fs is only exercised by
-// supervise's mkdtemp fallback (real async fs is fine in tests). The env map
-// is isolated so discuss's CALLBACK_URL/INBOX_URL reads stay deterministic.
+// All cases below use --task-text, so the runtime's fs is never read (the
+// only fs path is supervise's temp-dir fallback for --task-file). An in-memory
+// fs therefore suffices. The env map is isolated so discuss's
+// CALLBACK_URL/INBOX_URL reads stay deterministic.
 function makeRuntime(env = {}) {
-  return { fs: nodeFs, proc: { env: { ...env } } };
+  return { fs: createMockFs(), proc: { env: { ...env } } };
 }
 
 describe("--lead-profile / --lead-model consolidation across modes", () => {
