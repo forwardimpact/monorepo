@@ -31,37 +31,21 @@ const SKILLS = [
 // =============================================================================
 
 describe("isCapability", () => {
-  test("returns true for all valid capability values", () => {
+  // Property: every value in the Capability enum is a recognised capability.
+  // Single path (`VALID_CAPABILITIES.has(key)`); the per-value delivery/scale/ai
+  // blocks asserted the same shape and collapse into this loop.
+  test("returns true for every Capability enum value (property)", () => {
     for (const cap of Object.values(Capability)) {
       assert.strictEqual(isCapability(cap), true, `${cap} should be valid`);
     }
   });
 
-  test("returns true for 'delivery'", () => {
-    assert.strictEqual(isCapability("delivery"), true);
-  });
-
-  test("returns true for 'scale'", () => {
-    assert.strictEqual(isCapability("scale"), true);
-  });
-
-  test("returns true for 'ai'", () => {
-    assert.strictEqual(isCapability("ai"), true);
-  });
-
-  test("returns false for individual skill IDs", () => {
-    assert.strictEqual(isCapability("coding"), false);
-    assert.strictEqual(isCapability("testing"), false);
-    assert.strictEqual(isCapability("architecture"), false);
-  });
-
-  test("returns false for empty string", () => {
-    assert.strictEqual(isCapability(""), false);
-  });
-
-  test("returns false for arbitrary strings", () => {
-    assert.strictEqual(isCapability("not_a_capability"), false);
-    assert.strictEqual(isCapability("DELIVERY"), false);
+  // Boundary cases for the false branch — each is a distinct kind of non-key.
+  test("returns false for a skill ID, empty string, and arbitrary strings", () => {
+    assert.strictEqual(isCapability("coding"), false); // skill ID
+    assert.strictEqual(isCapability(""), false); // empty string
+    assert.strictEqual(isCapability("not_a_capability"), false); // unknown
+    assert.strictEqual(isCapability("DELIVERY"), false); // wrong case
   });
 });
 
@@ -119,29 +103,30 @@ describe("getSkillsByCapability", () => {
 // =============================================================================
 
 describe("buildCapabilityToSkillsMap", () => {
-  test("builds map with all valid capabilities as keys", () => {
-    const result = buildCapabilityToSkillsMap(SKILLS);
-    for (const cap of Object.values(Capability)) {
-      assert.ok(
-        cap in result,
-        `capability '${cap}' should be a key in the map`,
-      );
+  // Property: the map's key set is exactly the Capability enum, regardless of
+  // input — every enum value is present (seeded with `[]`) and nothing else is.
+  // Single path (the `for (const capability of VALID_CAPABILITIES)` seed loop).
+  test("keys are exactly the Capability enum for any input (property)", () => {
+    for (const skills of [SKILLS, []]) {
+      const result = buildCapabilityToSkillsMap(skills);
+      const keys = Object.keys(result).sort();
+      const caps = Object.values(Capability).sort();
+      assert.deepStrictEqual(keys, caps);
     }
   });
 
-  test("groups skill IDs by capability", () => {
+  // Boundary: a capability with multiple skills, one with a single skill, and
+  // capabilities with no skills (empty arrays).
+  test("groups skill IDs by capability; unmatched capabilities stay empty", () => {
     const result = buildCapabilityToSkillsMap(SKILLS);
-    assert.deepStrictEqual(result.delivery, ["coding", "testing"]);
-    assert.deepStrictEqual(result.scale, ["architecture"]);
-    assert.deepStrictEqual(result.reliability, ["monitoring"]);
+    assert.deepStrictEqual(result.delivery, ["coding", "testing"]); // many
+    assert.deepStrictEqual(result.scale, ["architecture"]); // one
+    assert.deepStrictEqual(result.reliability, ["monitoring"]); // one
+    assert.deepStrictEqual(result.people, []); // none
+    assert.deepStrictEqual(result.business, []); // none
   });
 
-  test("capabilities with no skills have empty arrays", () => {
-    const result = buildCapabilityToSkillsMap(SKILLS);
-    assert.deepStrictEqual(result.people, []);
-    assert.deepStrictEqual(result.business, []);
-  });
-
+  // Boundary: empty input — every key maps to an empty array.
   test("handles empty skills array", () => {
     const result = buildCapabilityToSkillsMap([]);
     for (const cap of Object.values(Capability)) {
@@ -149,10 +134,10 @@ describe("buildCapabilityToSkillsMap", () => {
     }
   });
 
+  // Boundary: an unrecognized capability key is dropped entirely.
   test("ignores skills with unrecognized capability", () => {
     const skills = [{ id: "x", name: "X", capability: "unknown_cap" }];
     const result = buildCapabilityToSkillsMap(skills);
-    // No capability key should contain "x"
     for (const ids of Object.values(result)) {
       assert.ok(!ids.includes("x"));
     }
