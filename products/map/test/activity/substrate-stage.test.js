@@ -2,33 +2,15 @@
  * Tests for `fit-map substrate stage` — uses injected dependency
  * overrides to stub out the init phase, Supabase CLI, mapClient, seed,
  * provision, and the self-smoke so the phase ordering is verifiable
- * without a live stack.
+ * without a live stack. The real-fs cases (copy-activity ENOENT, bootstrap
+ * parity) live in substrate-stage.integration.test.js.
  */
 
-import { describe, test, beforeEach, afterEach } from "node:test";
+import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs/promises";
-import path from "node:path";
-import { tmpdir } from "node:os";
 import { createTestRuntime, createMockProcess } from "@forwardimpact/libmock";
-import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { runStageCommand } from "../../src/commands/substrate-stage.js";
-import { runInit } from "../../src/commands/init.js";
-import { copyActivity } from "../../src/lib/copy-activity.js";
-
-/** A real-fs runtime with a quiet proc (for the bootstrap-parity test). */
-function quietRealRuntime() {
-  const base = createDefaultRuntime();
-  return {
-    ...base,
-    proc: {
-      ...base.proc,
-      stdout: { write: () => true },
-      stderr: { write: () => true },
-    },
-  };
-}
 
 function buildDeps({ failPhase = null, invocations }) {
   function recorded(name, fn = async () => undefined) {
@@ -131,127 +113,10 @@ describe("substrate-stage phase ordering", () => {
       initTarget = t;
     };
     const config = { supabaseJwtSecret: () => "secret" };
-    const tmpDir = await fs.mkdtemp(path.join(tmpdir(), "substrate-target-"));
-    try {
-      await runStageCommand({ config, target: tmpDir, runtime }, deps);
-      assert.equal(initTarget, tmpDir);
-    } finally {
-      await fs.rm(tmpDir, { recursive: true, force: true });
-    }
-  });
-
-  test("real copy-activity helper against missing source wraps under [substrate stage: copy-activity]", async () => {
-    // Build a tmp root whose sibling `data/activity` does NOT exist so
-    // copyActivity's fs.cp call raises ENOENT.
-    const absentRoot = await fs.mkdtemp(
-      path.join(tmpdir(), "substrate-missing-source-"),
-    );
-    const target = await fs.mkdtemp(
-      path.join(tmpdir(), "substrate-missing-target-"),
-    );
-    const deps = buildDeps({ invocations });
-    deps.loadCopyActivity = async () => copyActivity;
-    deps.findDataDir = async () => path.join(absentRoot, "data", "pathway");
-    const config = { supabaseJwtSecret: () => "secret" };
-    // This case exercises the REAL copyActivity helper against a missing
-    // source on disk, so it needs a real-fs runtime (the describe's default
-    // mock-fs runtime would not raise ENOENT).
-    const realRuntime = quietRealRuntime();
-    try {
-      await assert.rejects(
-        () => runStageCommand({ config, target, runtime: realRuntime }, deps),
-        /\[substrate stage: copy-activity\]/,
-      );
-    } finally {
-      await fs.rm(absentRoot, { recursive: true, force: true });
-      await fs.rm(target, { recursive: true, force: true });
-    }
+    // The target is only threaded through to the init phase and asserted —
+    // never read or written — so a fixed in-memory path suffices.
+    const target = "/substrate-target";
+    await runStageCommand({ config, target, runtime }, deps);
+    assert.equal(initTarget, target);
   });
 });
-
-describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
-  let tmpA;
-  let tmpB;
-  let runtime;
-
-  beforeEach(async () => {
-    tmpA = await fs.mkdtemp(path.join(tmpdir(), "substrate-parity-a-"));
-    tmpB = await fs.mkdtemp(path.join(tmpdir(), "substrate-parity-b-"));
-    runtime = quietRealRuntime();
-  });
-
-  afterEach(async () => {
-    for (const d of [tmpA, tmpB]) {
-      try {
-        await fs.rm(d, { recursive: true, force: true });
-      } catch {
-        // ignore
-      }
-    }
-  });
-
-  test("runInit(tmpA) and substrate stage init phase against tmpB produce identical project root trees", async () => {
-    await runInit(tmpA, runtime);
-
-    // Run only the init phase of substrate stage against tmpB. Stubbing
-    // every other phase isolates the bootstrap surface — what substrate
-    // stage materialises at the target dir.
-    const invocations = [];
-    function recorded(name, fn = async () => undefined) {
-      return async (...args) => {
-        invocations.push(name);
-        return fn(...args);
-      };
-    }
-    await runStageCommand(
-      {
-        config: { supabaseJwtSecret: () => "secret" },
-        target: tmpB,
-        runtime,
-      },
-      {
-        loadInit: async () => runInit,
-        loadCopyActivity: async () => async () => {},
-        createSupabaseCli: () => ({
-          run: recorded("noop"),
-          capture: recorded("noop", async () =>
-            JSON.stringify({
-              API_URL: "http://x",
-              ANON_KEY: "a",
-            }),
-          ),
-        }),
-        createMapClient: () => ({ stub: true }),
-        findDataDir: async () => "/tmp/data/pathway",
-        loadSeed: async () => recorded("noop"),
-        loadProvision: async () => recorded("noop"),
-        loadSmoke: async () => recorded("noop"),
-        reloadConfig: async () => ({ supabaseJwtSecret: () => "secret" }),
-      },
-    );
-
-    const treeA = await listTree(tmpA);
-    const treeB = await listTree(tmpB);
-    assert.deepEqual(treeA, treeB);
-  });
-});
-
-async function listTree(root) {
-  const out = [];
-  async function walk(dir, rel) {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    for (const e of entries) {
-      const full = path.join(dir, e.name);
-      const r = rel ? `${rel}/${e.name}` : e.name;
-      if (e.isDirectory()) {
-        out.push(r + "/");
-        await walk(full, r);
-      } else {
-        out.push(r);
-      }
-    }
-  }
-  await walk(root, "");
-  out.sort();
-  return out;
-}
