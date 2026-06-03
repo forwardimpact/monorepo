@@ -16,6 +16,14 @@ const GITHUB_ID_SURFACES = new Set(["github-discussions"]);
 // Spec 1520 replaces this allowlist with bridge-originated proof of intent.
 const BEGIN_ALLOWED_SURFACES = new Set(["github-discussions"]);
 
+// Issue #1397 quarantine (PM option c): GetToken returns `link_required` for
+// any surface outside DISPATCH_ALLOWED_SURFACES regardless of whether a
+// binding record exists. Records remain in BindingStore — the spec 1520
+// structural-fix migration is the canonical invalidation point. This closes
+// residual exploitation of bindings that may have been attacker-planted
+// before the kill-switch shipped (#1399).
+const DISPATCH_ALLOWED_SURFACES = new Set(["github-discussions"]);
+
 /**
  * GitHub user authentication service — Kata Agent User App token lifecycle.
  * @augments GhuserBase
@@ -222,7 +230,7 @@ export class GhuserService extends GhuserBase {
       req.surface_user_id,
     );
 
-    if (!binding) {
+    if (!binding || !DISPATCH_ALLOWED_SURFACES.has(req.surface)) {
       const authorizeUrl = `${this.#linkBaseUrl}/authorize?surface=${encodeURIComponent(req.surface)}&surface_user_id=${encodeURIComponent(req.surface_user_id)}`;
       return {
         result: "link_required",

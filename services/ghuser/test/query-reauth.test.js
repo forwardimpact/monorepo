@@ -30,7 +30,7 @@ describe("ghuser query-reauth (SC#6)", () => {
     });
 
     await bindings.upsert({
-      id: BindingStore.keyOf("teams", "u1"),
+      id: BindingStore.keyOf("github-discussions", "u1"),
       github_user_id: "ghuser-abc",
       access_token: "ghu_expired",
       refresh_token: "ghr_revoked",
@@ -39,7 +39,7 @@ describe("ghuser query-reauth (SC#6)", () => {
     });
 
     const result = await service.GetToken({
-      surface: "teams",
+      surface: "github-discussions",
       surface_user_id: "u1",
     });
 
@@ -69,7 +69,7 @@ describe("ghuser query-reauth (SC#6)", () => {
     });
 
     await bindings.upsert({
-      id: BindingStore.keyOf("teams", "u2"),
+      id: BindingStore.keyOf("github-discussions", "u2"),
       github_user_id: "ghuser-def",
       access_token: "ghu_expired_no_refresh",
       refresh_token: null,
@@ -78,7 +78,7 @@ describe("ghuser query-reauth (SC#6)", () => {
     });
 
     const result = await service.GetToken({
-      surface: "teams",
+      surface: "github-discussions",
       surface_user_id: "u2",
     });
 
@@ -108,7 +108,7 @@ describe("ghuser query-reauth (SC#6)", () => {
     });
 
     await bindings.upsert({
-      id: BindingStore.keyOf("teams", "u3"),
+      id: BindingStore.keyOf("github-discussions", "u3"),
       github_user_id: "ghuser-ghi",
       access_token: "ghu_expired",
       refresh_token: "ghr_valid",
@@ -117,7 +117,11 @@ describe("ghuser query-reauth (SC#6)", () => {
     });
 
     await assert.rejects(
-      () => service.GetToken({ surface: "teams", surface_user_id: "u3" }),
+      () =>
+        service.GetToken({
+          surface: "github-discussions",
+          surface_user_id: "u3",
+        }),
       { message: "network timeout" },
     );
   });

@@ -27,7 +27,7 @@ describe("ghuser query-linked (SC#4)", () => {
     });
 
     await bindings.upsert({
-      id: BindingStore.keyOf("teams", "u1"),
+      id: BindingStore.keyOf("github-discussions", "u1"),
       github_user_id: "ghuser-abc",
       access_token: "ghu_stored_token",
       refresh_token: "ghr_refresh",
@@ -36,7 +36,7 @@ describe("ghuser query-linked (SC#4)", () => {
     });
 
     const result = await service.GetToken({
-      surface: "teams",
+      surface: "github-discussions",
       surface_user_id: "u1",
     });
     assert.strictEqual(result.token, "ghu_stored_token");
@@ -63,7 +63,7 @@ describe("ghuser query-linked (SC#4)", () => {
     });
 
     await bindings.upsert({
-      id: BindingStore.keyOf("teams", "u2"),
+      id: BindingStore.keyOf("github-discussions", "u2"),
       github_user_id: "ghuser-def",
       access_token: "ghu_no_expiry",
       refresh_token: null,
@@ -72,7 +72,7 @@ describe("ghuser query-linked (SC#4)", () => {
     });
 
     const result = await service.GetToken({
-      surface: "teams",
+      surface: "github-discussions",
       surface_user_id: "u2",
     });
     assert.strictEqual(result.token, "ghu_no_expiry");
