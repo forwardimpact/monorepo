@@ -168,41 +168,37 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     { timeout: 30_000 },
   );
 
-  test(
-    "produces one record per (task, runIndex), including pre-flight failures",
-    {
-      timeout: 30_000,
-    },
-    async () => {
-      const { runner, out } = await setupRunner({ runs: 2 });
-      const records = await collectRecords(runner);
-      // 4 tasks × 2 runs = 8 records (preflight-broken records included).
-      assert.strictEqual(records.length, 8);
-      const keys = records.map((r) => `${r.taskId}#${r.runIndex}`);
-      assert.strictEqual(new Set(keys).size, keys.length);
+  test("produces one record per (task, runIndex), including pre-flight failures", {
+    timeout: 30_000,
+  }, async () => {
+    const { runner, out } = await setupRunner({ runs: 2 });
+    const records = await collectRecords(runner);
+    // 4 tasks × 2 runs = 8 records (preflight-broken records included).
+    assert.strictEqual(records.length, 8);
+    const keys = records.map((r) => `${r.taskId}#${r.runIndex}`);
+    assert.strictEqual(new Set(keys).size, keys.length);
 
-      // Every record must validate against the runtime schema (spec criterion 11).
-      for (const r of records) {
-        assert.doesNotThrow(() => validateResultRecord(r));
-      }
+    // Every record must validate against the runtime schema (spec criterion 11).
+    for (const r of records) {
+      assert.doesNotThrow(() => validateResultRecord(r));
+    }
 
-      // pre-flight-broken records carry preflightError and costUsd === 0 (criterion 8).
-      const broken = records.filter((r) => r.taskId === "preflight-broken");
-      assert.strictEqual(broken.length, 2);
-      for (const r of broken) {
-        assert.ok(r.preflightError, `expected preflightError on ${r.taskId}`);
-        assert.strictEqual(r.costUsd, 0);
-      }
+    // pre-flight-broken records carry preflightError and costUsd === 0 (criterion 8).
+    const broken = records.filter((r) => r.taskId === "preflight-broken");
+    assert.strictEqual(broken.length, 2);
+    for (const r of broken) {
+      assert.ok(r.preflightError, `expected preflightError on ${r.taskId}`);
+      assert.strictEqual(r.costUsd, 0);
+    }
 
-      // Read results.jsonl — every line must validate.
-      const jsonl = await readFile(join(out, "results.jsonl"), "utf8");
-      const lines = jsonl.split("\n").filter(Boolean);
-      assert.strictEqual(lines.length, 8);
-      for (const line of lines) {
-        assert.doesNotThrow(() => validateResultRecord(JSON.parse(line)));
-      }
-    },
-  );
+    // Read results.jsonl — every line must validate.
+    const jsonl = await readFile(join(out, "results.jsonl"), "utf8");
+    const lines = jsonl.split("\n").filter(Boolean);
+    assert.strictEqual(lines.length, 8);
+    for (const line of lines) {
+      assert.doesNotThrow(() => validateResultRecord(JSON.parse(line)));
+    }
+  });
 
   test("pass: running-service grading via HTTP probe yields verdict='pass'", () => {
     const passRec = sharedRecords.find((r) => r.taskId === "pass");
@@ -257,27 +253,23 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test(
-    "report aggregator computes pass@k over the JSONL file",
-    {
-      timeout: 30_000,
-    },
-    async () => {
-      const { runner, out } = await setupRunner({ runs: 2 });
-      await collectRecords(runner);
-      const report = await aggregate({
-        inputDir: out,
-        kValues: [1],
-        runtime: RT,
-      });
-      assert.ok(report.tasks.length >= 3);
-      const pass = report.tasks.find((t) => t.taskId === "pass");
-      assert.ok(pass);
-      assert.strictEqual(pass.passAtK[1], 1);
-      const fail = report.tasks.find((t) => t.taskId === "fail");
-      assert.strictEqual(fail.passAtK[1], 0);
-    },
-  );
+  test("report aggregator computes pass@k over the JSONL file", {
+    timeout: 30_000,
+  }, async () => {
+    const { runner, out } = await setupRunner({ runs: 2 });
+    await collectRecords(runner);
+    const report = await aggregate({
+      inputDir: out,
+      kValues: [1],
+      runtime: RT,
+    });
+    assert.ok(report.tasks.length >= 3);
+    const pass = report.tasks.find((t) => t.taskId === "pass");
+    assert.ok(pass);
+    assert.strictEqual(pass.passAtK[1], 1);
+    const fail = report.tasks.find((t) => t.taskId === "fail");
+    assert.strictEqual(fail.passAtK[1], 0);
+  });
 
   test("agent-execution failure still produces a record (spec criterion 1)", async () => {
     // Force the agent session to throw for tf/pass; the runner must still

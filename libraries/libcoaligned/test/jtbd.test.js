@@ -52,7 +52,10 @@ const kataJob = {
 
 describe("checkJtbd", () => {
   test("passes on an empty repo with no packages", async () => {
-    const result = await checkJtbd({ root: ROOT, runtime: runtimeWith(fsWith()) });
+    const result = await checkJtbd({
+      root: ROOT,
+      runtime: runtimeWith(fsWith()),
+    });
     assert.deepStrictEqual(result.findings, []);
     assert.deepStrictEqual(result.stale, []);
   });
@@ -98,10 +101,18 @@ describe("checkJtbd", () => {
       [readmePath]: readme,
     });
 
-    const dryRun = await checkJtbd({ root: ROOT, fix: false, runtime: runtimeWith(fs) });
+    const dryRun = await checkJtbd({
+      root: ROOT,
+      fix: false,
+      runtime: runtimeWith(fs),
+    });
     assert.ok(dryRun.stale.length > 0, "expected stale entries");
 
-    const fixed = await checkJtbd({ root: ROOT, fix: true, runtime: runtimeWith(fs) });
+    const fixed = await checkJtbd({
+      root: ROOT,
+      fix: true,
+      runtime: runtimeWith(fs),
+    });
     assert.ok(fixed.fixed.length > 0, "expected fix to apply");
 
     const updated = fs.readFileSync(readmePath, "utf8");
@@ -198,7 +209,11 @@ describe("checkJtbd", () => {
     });
 
     await checkJtbd({ root: ROOT, fix: true, runtime: runtimeWith(fs) });
-    const second = await checkJtbd({ root: ROOT, fix: true, runtime: runtimeWith(fs) });
+    const second = await checkJtbd({
+      root: ROOT,
+      fix: true,
+      runtime: runtimeWith(fs),
+    });
 
     assert.deepStrictEqual(second.fixed, []);
     assert.deepStrictEqual(second.stale, []);

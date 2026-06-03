@@ -16,7 +16,10 @@ function runtimeWith(files = {}) {
 
 describe("checkInstructions", () => {
   test("returns no findings for an empty repo", async () => {
-    const findings = await checkInstructions({ root: ROOT, runtime: runtimeWith() });
+    const findings = await checkInstructions({
+      root: ROOT,
+      runtime: runtimeWith(),
+    });
     assert.deepStrictEqual(findings, []);
   });
 
