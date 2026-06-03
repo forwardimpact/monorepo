@@ -5,14 +5,14 @@
 Six-tier hierarchy under `websites/fit/docs/` serving four user groups
 (Leadership, Engineers, Builders and Agents, Contributors):
 
-| Tier              | Intent                              | Subsections                                                                                                                                                                               |
-| ----------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `getting-started` | "Get me going fast"                 | `leadership/`, `engineers/`, `contributors/`                                                                                                                                              |
-| `products`        | "Help me accomplish a product task" | `authoring-standards/`, `agent-teams/`, `career-paths/`, `knowledge-systems/`, `landmark-quickstart/`, `team-capability/`, `finding-your-bearing/`                                        |
-| `libraries`       | "Help me accomplish a library task" | `agent-evaluations/`, `agent-collaboration/`, `trace-analysis/`                                                                                                                           |
-| `services`        | "Help me integrate with a service"  | One per service (`graph/`, `vector/`, `pathway/`, `mcp/`, `trace/`)                                                                                                                       |
-| `reference`       | "Let me look something up"          | `cli/`, `model/`, `lifecycle/`, `yaml-schema/`                                                                                                                                            |
-| `internals`       | "Show me how this is built"         | one per product (`map/`, `pathway/`, `outpost/`, `guide/`, `landmark/`, `summit/`), shared infrastructure (`codegen/`, `libcli/`, `librepl/`, `libskill/`, `terrain/`), and `operations/` |
+| Tier              | Intent                              | Subsections                                                                                                                                                                            |
+| ----------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getting-started` | "Get me going fast"                 | `leaders/`, `engineers/`, `contributors/`                                                                                                                                              |
+| `products`        | "Help me accomplish a product task" | One per product job (e.g. `agent-teams/`, `authoring-standards/`, `career-paths/`, `engineering-data-sources/`, `engineering-outcomes/`, `growth-areas/`, `knowledge-systems/`, `provisioning-engineers/`, `signing-in-to-landmark/`, `team-capability/`, `trust-output/`, `issuing-service-account-tokens/`) |
+| `libraries`       | "Help me accomplish a library task" | One per library job (e.g. `bridge-channels/`, `every-surface/`, `ground-agents/`, `integrate-standard/`, `predictable-team/`, `prove-changes/`, `service-lifecycle/`, `typed-contracts/`) |
+| `services`        | "Help me integrate with a service"  | One per service job (e.g. `bridge-conversations/`, `bridge-discussions/`, `embed-text/`, `ground-agents/`, `integrate-standard/`, `prove-changes/`, `typed-contracts/`)                |
+| `reference`       | "Let me look something up"          | `lifecycle/`, `model/`, `yaml-schema/`                                                                                                                                                 |
+| `internals`       | "Show me how this is built"         | One per product or shared substrate (e.g. `kata/`, `librepl/`, `operations/`, `release/`, `vectors/`)                                                                                  |
 
 ## Audience Rules
 
