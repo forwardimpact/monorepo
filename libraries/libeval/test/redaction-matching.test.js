@@ -2,10 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 
 import { createRedactor } from "../src/redaction.js";
-import {
-  rt as _rt,
-  assertJsonStableSentinel,
-} from "./redaction-helpers.js";
+import { rt as _rt, assertJsonStableSentinel } from "./redaction-helpers.js";
 
 describe("Redactor — env-var allowlist (criterion 1)", () => {
   test("replaces sentinels with [REDACTED:env:NAME] across deep-walked carrier shapes", () => {

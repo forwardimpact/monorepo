@@ -196,5 +196,4 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
       );
     });
   });
-
 });

@@ -165,5 +165,4 @@ describe("Finder", () => {
       finder.findProjectRoot = originalFindProjectRoot;
     });
   });
-
 });

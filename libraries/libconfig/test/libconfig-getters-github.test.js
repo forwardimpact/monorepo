@@ -189,5 +189,4 @@ describe("libconfig - Config getters (core + github)", () => {
     assert.strictEqual(first, second);
     assert.strictEqual(subprocess.calls.length, 1);
   });
-
 });

@@ -47,7 +47,6 @@ test("PagesServer stopWatch handles null watcher", () => {
   assert.doesNotThrow(() => server.stopWatch());
 });
 
-
 test("PagesServer handles directory requests correctly", async () => {
   const files = new Map();
   files.set("dist/index.html", "Home");

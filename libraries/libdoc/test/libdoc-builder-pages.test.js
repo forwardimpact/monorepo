@@ -361,4 +361,3 @@ test("PagesBuilder skips CLAUDE.md and SKILL.md files", async () => {
     "guide/index.html should exist",
   );
 });
-

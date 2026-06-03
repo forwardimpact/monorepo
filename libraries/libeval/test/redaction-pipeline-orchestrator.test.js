@@ -10,7 +10,11 @@ import {
 import { MessageBus } from "../src/message-bus.js";
 import { createMockRunner } from "./mock-runner.js";
 import { createToolUseMsg } from "@forwardimpact/libmock";
-import { rt as _rt, captureSink, GH_SENT } from "./redaction-pipeline-helpers.js";
+import {
+  rt as _rt,
+  captureSink,
+  GH_SENT,
+} from "./redaction-pipeline-helpers.js";
 
 describe("Producer pipeline — Supervisor.emitSummary covers Conclude-handler text", () => {
   test("sentinel-bearing Conclude summary is redacted in the orchestrator summary line", async () => {

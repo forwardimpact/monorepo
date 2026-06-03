@@ -201,5 +201,4 @@ describe("bridge service", () => {
     assert.strictEqual(result.refs[0].correlation_id, "corr-with-due");
     assert.strictEqual(result.refs[0].due_at, 999);
   });
-
 });

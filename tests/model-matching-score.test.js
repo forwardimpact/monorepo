@@ -213,5 +213,4 @@ describe("Matching", () => {
       assert.strictEqual(match.expectationsScore, undefined);
     });
   });
-
 });

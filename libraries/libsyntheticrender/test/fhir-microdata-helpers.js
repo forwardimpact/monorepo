@@ -15,6 +15,7 @@ export const PATIENT_A = "11111111-1111-4111-8111-111111111111";
 export const PATIENT_B = "22222222-2222-4222-8222-222222222222";
 export const PATIENT_C = "33333333-3333-4333-8333-333333333333";
 
+/** Build a FHIR Patient resource. */
 export function makePatient(id, family, given) {
   return {
     resourceType: "Patient",
@@ -25,6 +26,7 @@ export function makePatient(id, family, given) {
   };
 }
 
+/** Build a FHIR Condition resource for a patient. */
 export function makeCondition(patientId, code, display) {
   return {
     resourceType: "Condition",
@@ -37,6 +39,7 @@ export function makeCondition(patientId, code, display) {
   };
 }
 
+/** Build a FHIR Procedure resource for a patient. */
 export function makeProcedure(patientId, code, display) {
   return {
     resourceType: "Procedure",
@@ -46,6 +49,7 @@ export function makeProcedure(patientId, code, display) {
   };
 }
 
+/** Build a FHIR MedicationRequest resource for a patient. */
 export function makeMedRequest(patientId, code, display) {
   return {
     resourceType: "MedicationRequest",
@@ -55,6 +59,7 @@ export function makeMedRequest(patientId, code, display) {
   };
 }
 
+/** Build a minimal clinical block with one condition, trial, and site. */
 export function makeClinical() {
   return {
     conditions: [

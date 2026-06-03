@@ -13,11 +13,7 @@ import {
   buildPrompt,
   validateCallbackPayload,
 } from "../index.js";
-import {
-  makeConfig,
-  makeAdapter,
-  newService,
-} from "./msbridge-helpers.js";
+import { makeConfig, makeAdapter, newService } from "./msbridge-helpers.js";
 
 describe("msbridge service", () => {
   describe("module exports", () => {
@@ -110,5 +106,4 @@ describe("msbridge service", () => {
       ).toThrow("discussionClient is required");
     });
   });
-
 });
