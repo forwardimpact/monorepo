@@ -6,11 +6,13 @@ import {
   mkdirSync,
   rmSync,
   readFileSync,
+  existsSync,
 } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 import { runFixCommand } from "../src/commands/fix.js";
+import { weeklyLogPath } from "../src/weekly-log.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
 const STORYBOARD_AGENTS = [
@@ -246,5 +248,126 @@ describe("fit-wiki fix CLI (in-process)", () => {
       /agent run failed: Claude Code process exited with code 1/,
     );
     assert.equal(calls.length, 1, "no resume after a launch failure");
+  });
+
+  test("rotates an over-budget weekly log deterministically, without the agent", async () => {
+    seedCleanWiki(wikiRoot);
+    seedAgentProfile(dir);
+    // Valid H1 + 600 filler lines → over the line budget, well under words.
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(
+      logPath,
+      ["# Staff Engineer — 2026-W21", ""]
+        .concat(Array(600).fill("- filler"))
+        .join("\n") + "\n",
+    );
+
+    // The agent must never be constructed for a deterministic rotation.
+    const calls = [];
+    const query = scriptedQuery(join(wikiRoot, "unused.md"), [""], calls);
+    const harness = makeRuntime({ cwd: dir });
+
+    const result = await runFixCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        query,
+        options: { today: "2026-05-24" },
+      }),
+    );
+
+    assert.equal(calls.length, 0, "rotation does not invoke the agent");
+    assert.match(harness.stdout, /rotated/);
+    assert.ok(
+      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      "the bloated log is sealed as a part",
+    );
+    assert.ok(existsSync(logPath), "a fresh main log is started");
+    // Sealing relabels the overflow onto the part — flagged for a human, not
+    // silently failed and not handed to the agent.
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(harness.stderr, /need human judgment/);
+    assert.match(harness.stderr, /weekly-log-part\.line-budget/);
+  });
+
+  test("flags a missing ### Decision instead of letting the agent backfill it", async () => {
+    seedCleanWiki(wikiRoot);
+    seedAgentProfile(dir);
+    // In-budget weekly log whose dated entry lacks a leading ### Decision.
+    writeFileSync(
+      weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24"),
+      [
+        "# Staff Engineer — 2026-W21",
+        "",
+        "## 2026-05-20",
+        "",
+        "- did stuff",
+        "",
+      ].join("\n"),
+    );
+
+    const calls = [];
+    const query = scriptedQuery(join(wikiRoot, "unused.md"), [""], calls);
+    const harness = makeRuntime({ cwd: dir });
+
+    const result = await runFixCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        query,
+        options: { today: "2026-05-24" },
+      }),
+    );
+
+    assert.equal(
+      calls.length,
+      0,
+      "the agent is never asked to fix a flag finding",
+    );
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(harness.stderr, /need human judgment/);
+    assert.match(harness.stderr, /decision-block\.heading-within-5/);
+  });
+
+  test("leaves a healthy current-week log alone when a prior week is over budget", async () => {
+    seedCleanWiki(wikiRoot);
+    seedAgentProfile(dir);
+    // Prior week (W20) over budget — the finding.
+    const priorLog = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-17");
+    writeFileSync(
+      priorLog,
+      ["# Staff Engineer — 2026-W20", ""]
+        .concat(Array(600).fill("- filler"))
+        .join("\n") + "\n",
+    );
+    // Current week (W21) healthy — must NOT be force-rotated.
+    const currentLog = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(
+      currentLog,
+      "# Staff Engineer — 2026-W21\n\n## 2026-05-24\n\n### Decision\n\n- ok\n",
+    );
+
+    const calls = [];
+    const query = scriptedQuery(join(wikiRoot, "unused.md"), [""], calls);
+    const harness = makeRuntime({ cwd: dir });
+
+    const result = await runFixCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        query,
+        options: { today: "2026-05-24" },
+      }),
+    );
+
+    assert.equal(calls.length, 0, "the agent is never invoked");
+    assert.ok(
+      !existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      "the healthy current-week log is not rotated",
+    );
+    assert.ok(existsSync(priorLog), "the prior-week log is left for a human");
+    // The unrotatable prior-week budget finding is flagged, not handed to the agent.
+    assert.equal(result.code, 2);
+    assert.match(harness.stderr, /need human judgment/);
+    assert.match(harness.stderr, /weekly-log\.line-budget/);
   });
 });

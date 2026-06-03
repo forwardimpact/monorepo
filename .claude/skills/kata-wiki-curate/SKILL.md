@@ -19,12 +19,12 @@ on, and MEMORY.md falls out of sync.
 `fit-wiki audit` is the spine — it mechanically enforces every contract rule the
 memory protocol defines (budgets, section order, decision blocks, MEMORY.md
 structure, Active Claims schema, storyboard markers, stray files), and the same
-rules gate CI. Run it first and fix every finding; the remaining areas are the
-_meaning_ audit cannot read.
+rules gate CI. `fit-wiki fix` auto-clears those findings; run it first, then
+`audit` to confirm. The remaining areas are the _meaning_ audit cannot read.
 
 | Area               | What to check                                            | Tool                         |
 | ------------------ | -------------------------------------------------------- | ---------------------------- |
-| `contract-audit`   | Every mechanical contract rule passes                    | `fit-wiki audit`             |
+| `contract-audit`   | Every mechanical contract rule passes                    | `fit-wiki fix`, then `audit` |
 | `claims-hygiene`   | Expired or settled claims cleared                        | `fit-wiki release --expired` |
 | `summary-accuracy` | Each summary _means_ what the agent's latest logs say    | manual (audit can't read it) |
 | `inbox-follow-up`  | `## Message Inbox` entries are acknowledged and acted on | `fit-wiki inbox`             |
@@ -60,11 +60,15 @@ rest of this Process. Then read every file in `wiki/`: agent summaries
 
 ### Step 1: Contract audit
 
-Run `bunx fit-wiki audit --format json` — it checks every wiki file (summaries,
-weekly logs and sealed parts, MEMORY.md, priority and claims rows, the current
-storyboard, stray files) against the rule catalogue. The same audit gates
-pre-merge CI, so a clean local run is the bar. Fix every `fail` in the named
-file:
+Run `bunx fit-wiki fix` first — it rotates over-budget weekly logs, hands the
+prose-judgment findings to a Haiku technical-writer (re-auditing each round),
+and exits non-zero listing anything it flags for a human (missing decision
+blocks, oversized sealed parts) rather than inventing content. Then run
+`bunx fit-wiki audit --format json` to confirm — it checks every wiki file
+(summaries, weekly logs and sealed parts, MEMORY.md, priority and claims rows,
+the current storyboard, stray files) against the rule catalogue. The same audit
+gates pre-merge CI, so a clean local run is the bar. Hand-resolve each flagged
+`fail` in the named file:
 
 - **Budgets** (line/word) — trim settled state, or
   `bunx fit-wiki rotate --agent <agent>` to seal an overflowing weekly log.

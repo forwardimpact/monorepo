@@ -8,13 +8,24 @@ import {
 } from "@forwardimpact/libeval";
 import { RULES } from "../audit/rules.js";
 import { buildContext, resolveScope } from "../audit/scopes.js";
+import { rotateIfOverBudget, weeklyLogPath } from "../weekly-log.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot } from "../util/wiki-dir.js";
 
-// The agent edits, we re-audit, and resume on whatever still fails. Cap the
-// rounds so a finding the agent cannot resolve (e.g. a budget needing
-// `fit-wiki rotate`, which it has no Bash to run) fails loudly, not forever.
+// Pipeline: audit → deterministic rotation (the one fix needing a file seal the
+// agent can't do) → re-audit → Haiku agent on the prose-judgment residual →
+// flag what neither should touch. MAX_ROUNDS still caps the agent loop so an
+// unresolvable agent-class finding fails loudly rather than spinning forever.
 const MAX_ROUNDS = 3;
+
+/**
+ * A finding's remediation class, from the declarative rule. Rules without a
+ * `remediation` field default to `"agent"`: the Haiku agent handles all
+ * prose-judgment fixes (summary trims, section order, MEMORY.md prose).
+ */
+function classOf(finding) {
+  return RULES.find((r) => r.id === finding.id)?.remediation ?? "agent";
+}
 
 /**
  * Every rule governing a scope with an open finding, as `id — hint` lines.
@@ -64,6 +75,56 @@ function composeFollowup(findings, projectRoot) {
 }
 
 /**
+ * Deterministic pre-pass: seal every over-budget current-week weekly-log main
+ * file via `rotateIfOverBudget`. The agent name comes from the audit's own
+ * subjects (keyed by path) — no filename parsing. `force: true` rotates even a
+ * word-over/line-under file.
+ *
+ * `rotateIfOverBudget` always seals the agent's *current-week* log, so we only
+ * call it when the finding IS that file. A prior-week over-budget main is left
+ * untouched (rotating it would force-seal a healthy current-week log instead);
+ * it survives the re-audit and is flagged for a human.
+ */
+function rotateOverBudgetMainLogs(
+  findings,
+  { wikiRoot, today, projectRoot, fs, out },
+) {
+  const subjects = buildContext({ wikiRoot, today, fs }).subjects[
+    "weekly-log-main"
+  ];
+  const agentByPath = new Map(subjects.map((s) => [s.path, s.agentPrefix]));
+  for (const f of findings) {
+    if (classOf(f) !== "rotate") continue;
+    const agent = agentByPath.get(f.path);
+    if (!agent) continue;
+    if (weeklyLogPath(wikiRoot, agent, today) !== f.path) continue;
+    const res = rotateIfOverBudget(
+      wikiRoot,
+      agent,
+      today,
+      0,
+      { force: true },
+      fs,
+    );
+    if (res.rotated) {
+      out(
+        `rotated ${path.relative(projectRoot, res.fromPath)} -> ` +
+          `${path.relative(projectRoot, res.toPath)}\n`,
+      );
+    }
+  }
+}
+
+/** Report findings that need human judgment — never auto-fixed. */
+function reportFlags(err, flagFindings, projectRoot) {
+  err(
+    `fit-wiki fix: ${flagFindings.length} finding(s) need human judgment ` +
+      `(not auto-fixable):\n` +
+      emitFindingsText(flagFindings, { cwd: projectRoot }),
+  );
+}
+
+/**
  * Surface a round's agent error, if any. Returns true when it is fatal: a
  * missing sessionId means the process never started (e.g. the SDK refused
  * bypass-permissions as root), so there is nothing to resume. A turn-limit or
@@ -80,9 +141,67 @@ function isFatalError(result, round, err) {
   return false;
 }
 
-/** Run the wiki audit and auto-fix findings via a Haiku-powered AgentRunner. */
+/** Build the Haiku technical-writer runner for prose-judgment fixes. */
+async function buildFixRunner(ctx, projectRoot, runtime) {
+  const query =
+    ctx.deps.query ?? (await import("@anthropic-ai/claude-agent-sdk")).query;
+  return createAgentRunner({
+    cwd: projectRoot,
+    query,
+    output: new Writable({ write: (_c, _e, cb) => cb() }),
+    model: "claude-haiku-4-5-20251001",
+    maxTurns: 30,
+    allowedTools: ["Read", "Glob", "Write", "Edit"],
+    settingSources: ["project"],
+    systemPrompt: composeProfilePrompt("technical-writer", {
+      profilesDir: path.resolve(projectRoot, ".claude/agents"),
+      runtime,
+    }),
+    redactor: createRedactor({ runtime }),
+  });
+}
+
+/**
+ * Run the agent on the prose-judgment findings, re-auditing each round until
+ * clean, flag-only, or MAX_ROUNDS is exhausted. The audit is the verdict, not
+ * the agent's self-report; resuming extends the turn budget for a trim too
+ * large for one round.
+ */
+async function runAgentRounds(runner, agentFindings, deps) {
+  const { wikiRoot, projectRoot, audit, partition, out, err } = deps;
+  let task = composeTask(agentFindings, wikiRoot, projectRoot);
+  let flagFindings = [];
+  for (let round = 0; round < MAX_ROUNDS; round++) {
+    const result =
+      round === 0 ? await runner.run(task) : await runner.resume(task);
+    if (result.text) out(result.text + "\n");
+    if (isFatalError(result, round, err)) return { ok: false, code: 1 };
+
+    ({ agentFindings, flagFindings } = partition(audit()));
+    if (agentFindings.length === 0) {
+      if (flagFindings.length === 0) {
+        out("fixed: wiki audit is clean\n");
+        return { ok: true, code: 0 };
+      }
+      reportFlags(err, flagFindings, projectRoot);
+      return { ok: false, code: 2 };
+    }
+    task = composeFollowup(agentFindings, projectRoot);
+  }
+
+  err(
+    `fit-wiki fix: ${agentFindings.length} finding(s) remain after ` +
+      `${MAX_ROUNDS} round(s):\n` +
+      emitFindingsText(agentFindings, { cwd: projectRoot }),
+  );
+  if (flagFindings.length > 0) reportFlags(err, flagFindings, projectRoot);
+  return { ok: false, code: 1 };
+}
+
+/** Run the wiki audit and auto-fix findings: rotate, then agent, then flag. */
 export async function runFixCommand(ctx) {
   const { runtime } = ctx.deps;
+  const fs = runtime.fsSync;
   const projectRoot = resolveProjectRoot(runtime);
   const wikiRoot = ctx.options["wiki-root"] || path.join(projectRoot, "wiki");
   const today = ctx.options.today || currentDayIso(runtime);
@@ -91,9 +210,15 @@ export async function runFixCommand(ctx) {
 
   // The agent's edits change the result, so re-read and re-audit each round.
   const audit = () =>
-    runRules(RULES, buildContext({ wikiRoot, today, fs: runtime.fsSync }), {
-      resolveScope,
-    });
+    runRules(RULES, buildContext({ wikiRoot, today, fs }), { resolveScope });
+  // The agent only ever gets prose-judgment (`agent`-class) findings. A
+  // `rotate` finding that survived the pre-pass (e.g. a prior-week log) is
+  // unfixable by the agent — and trimming append-only history to satisfy a
+  // budget would corrupt it — so it joins the flag set for a human.
+  const partition = (found) => ({
+    agentFindings: found.filter((f) => classOf(f) === "agent"),
+    flagFindings: found.filter((f) => classOf(f) !== "agent"),
+  });
 
   let findings = audit();
   if (findings.length === 0) {
@@ -101,44 +226,38 @@ export async function runFixCommand(ctx) {
     return { ok: true };
   }
 
-  const query =
-    ctx.deps.query ?? (await import("@anthropic-ai/claude-agent-sdk")).query;
-  const runner = createAgentRunner({
-    cwd: projectRoot,
-    query,
-    output: new Writable({ write: (_c, _e, cb) => cb() }),
-    model: "claude-haiku-4-5-20251001",
-    maxTurns: 30,
-    allowedTools: ["Read", "Write", "Edit"],
-    settingSources: ["project"],
-    systemPrompt: composeProfilePrompt("technical-writer", {
-      profilesDir: path.resolve(projectRoot, ".claude/agents"),
-      runtime,
-    }),
-    redactor: createRedactor({ runtime }),
-  });
-
-  // The audit is the verdict, not the agent's self-report: run, re-audit, and
-  // resume the session on whatever still fails until clean or out of rounds.
-  // Resuming also extends the turn budget for a trim too large for one round.
-  let task = composeTask(findings, wikiRoot, projectRoot);
-  for (let round = 0; round < MAX_ROUNDS; round++) {
-    const result =
-      round === 0 ? await runner.run(task) : await runner.resume(task);
-    if (result.text) out(result.text + "\n");
-    if (isFatalError(result, round, err)) return { ok: false, code: 1 };
-
+  // Deterministic layer: weekly-log rotation only.
+  if (findings.some((f) => classOf(f) === "rotate")) {
+    rotateOverBudgetMainLogs(findings, {
+      wikiRoot,
+      today,
+      projectRoot,
+      fs,
+      out,
+    });
     findings = audit();
     if (findings.length === 0) {
       out("fixed: wiki audit is clean\n");
       return { ok: true, code: 0 };
     }
-    task = composeFollowup(findings, projectRoot);
   }
 
-  err(
-    `fit-wiki fix: ${findings.length} finding(s) remain after ${MAX_ROUNDS} round(s):\n` +
-      emitFindingsText(findings, { cwd: projectRoot }),
-  );
-  return { ok: false, code: 1 };
+  // Residual: agent-class goes to the writer; everything else (flag, plus any
+  // rotate finding the deterministic pass could not handle) needs a human.
+  const { agentFindings, flagFindings } = partition(findings);
+  if (agentFindings.length === 0) {
+    reportFlags(err, flagFindings, projectRoot);
+    return { ok: false, code: 2 };
+  }
+
+  // Constructed only now, so a rotation-only or flag-only run never spawns it.
+  const runner = await buildFixRunner(ctx, projectRoot, runtime);
+  return runAgentRounds(runner, agentFindings, {
+    wikiRoot,
+    projectRoot,
+    audit,
+    partition,
+    out,
+    err,
+  });
 }

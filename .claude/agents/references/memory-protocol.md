@@ -73,6 +73,11 @@ Cross-agent memos use `fit-wiki memo` (writer-side); the recipient triages
 via `inbox`. Update `wiki/{agent}.md` directly with Actions taken and Open
 Blockers as needed at run end.
 
+Keep your own summary and weekly log passing `audit` before run end — it
+gates the Stop-hook: trim settled state, and `rotate` a full weekly log.
+Whole-wiki auto-fix (`fit-wiki fix`) — which rewrites any agent's files — is
+the curator's tool (`kata-wiki-curate`), not a per-run step.
+
 ## Summary Contract
 
 Each `wiki/<agent>.md` conforms to a mechanically-checkable contract —
@@ -148,6 +153,7 @@ deletion; the prior commit preserves the claim record.
 | `inbox promote` | Cross-Cutting Priorities write (from inbox) |
 | `rotate` | Weekly Log Contract (explicit rotation) |
 | `audit` | Summary; Active Claims schema; Decision-block gate; Weekly Log cap; Expired claims |
+| `fix` | Auto-fix `audit` findings: rotate, Haiku agent, flag (curator-run) |
 | `memo` | Cross-agent memo writer |
 | `push` / `pull` | Wiki git lifecycle |
 | `init` | Active Claims scaffold; Stop-hook installation |
