@@ -60,12 +60,31 @@ runs 44–148 that are not codified anywhere the agent re-reads:
   consumers are re-tagged (the procedural rule that (b) is the
   observed symptom of).
 
-Each hazard has a known recovery the release-engineer applied at the
-time it first surfaced. The recoveries live in weekly logs under
-`wiki/release-engineer-2026-W*.md` and as letter-labelled references
-("carry rule (g)", "rule (h)") in `wiki/release-engineer.md` § Run
-Plan. The eight letters are RE's stable identifiers; the wiki carries
-the labels but not their expansions.
+Each hazard has a known recovery the release-engineer has applied
+across the runs that surfaced it. The recoveries live in weekly logs
+under `wiki/release-engineer-2026-W*.md` and as letter-labelled
+references ("carry rule (g)", "rule (h)") in
+`wiki/release-engineer.md` § Run Plan. The eight letters are RE's
+stable identifiers; the wiki carries the labels but not their
+expansions.
+
+### Per-hazard recoveries
+
+For each hazard, the recovery action the release-engineer applies
+when the hazard fires (sourced from § Problem evidence + weekly
+logs). Recoveries are stated at the WHAT level — the exact command,
+flag, or surface is the design's call:
+
+| Letter | Recovery action |
+|---|---|
+| (a) | Treat the darwin-platform stderr as expected noise on the bumping host; verify the in-tree `package.json` version updated correctly and proceed. |
+| (b) | Publish the new workspace dependency first, await registry propagation, then publish the consumer; do not parallelise the two publishes. |
+| (c) | Publish at the declared non-zero version on first release; do not bump-then-publish. The `0.0.0`-skip rule does not apply when the declared version is non-zero. |
+| (d) | Preflight NPM_TOKEN validity (e.g. a token-scope or `whoami` probe) **before** cutting any tag; abort the cut with an operator-visible error if the token is expired or unscoped, so the tag is not created locally ahead of a failing publish. If a tag was already cut before the failure was observed, the recovery is to rotate the token and re-run the publish workflow against the same tag. |
+| (e) | On smoke-test failure immediately after publish, treat the first failure as registry-propagation lag; re-run the smoke-test after a propagation delay before classifying the publish as failed. |
+| (f) | After `bun run check:fix`, run the JSDoc auto-fix separately when JSDoc-only failures persist; do not assume `check:fix` has covered the JSDoc surface. The exact invocation is design-time. |
+| (g) | Route to the surface's owning agent (the agent listed under `wiki/MEMORY.md` for that surface, or named in the file's frontmatter) — do **not** attempt a mechanical repair. Release-engineer's mechanical-repair scope ends at content-judgement boundaries. The codified entry must name routing-to-owner as the recovery, not a mechanical fix. |
+| (h) | Cut the new library's first-release tag at the same source commit before re-tagging any consumer that depends on it; the new library and its consumers tag at one source commit, in dependency order. |
 
 ### What is missing from the skill today
 
