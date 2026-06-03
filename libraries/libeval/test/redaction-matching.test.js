@@ -279,3 +279,28 @@ describe("Redactor — word boundary adversarial cases (Risks table)", () => {
     assert.strictEqual(r.redactValue(longer), longer);
   });
 });
+
+describe("Redactor — benign content unchanged (criterion 3)", () => {
+  const r = createRedactor({ runtime: _rt, env: {} });
+  const benign = [
+    "Hello world — this is plain prose.",
+    "# Markdown header\n\n- item 1\n- item 2",
+    "https://www.forwardimpact.team/docs/products/index.md",
+    "Visit https://github.com/forwardimpact/monorepo/pull/123.",
+    // git SHA (40 hex)
+    "7dd76efba1234567890abcdef0123456789abcde",
+    // UUID
+    "550e8400-e29b-41d4-a716-446655440000",
+    // ghp_ prefix at less than 36 chars — should NOT match
+    "ghp_short",
+    "ghp_" + "A".repeat(35),
+    // quoted shell commands
+    "echo 'hello world' | grep -v foo",
+    'curl -X POST -d "{\\"foo\\":1}" http://example.com',
+  ];
+  for (const text of benign) {
+    test(`round-trips identically: ${JSON.stringify(text).slice(0, 60)}`, () => {
+      assert.strictEqual(r.redactValue(text), text);
+    });
+  }
+});
