@@ -18,7 +18,7 @@ describe("fit-summit bin smoke", () => {
   test("--version prints the version and exits 0", () => {
     const out = execFileSync("node", [binPath, "--version"], {
       encoding: "utf8",
-      env: { ...process.env, LIBCLI_VERSION: "9.9.9-smoke" },
+      env: { ...process.env, LIBCLI_PACKAGE_VERSION: "9.9.9-smoke" },
     });
     assert.equal(out.trim(), "9.9.9-smoke");
   });

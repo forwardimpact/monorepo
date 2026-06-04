@@ -8,10 +8,11 @@
 # Resolves <NAME> to the package.json that declares bin[<NAME>], then compiles
 # the entry with two build-time literals consumed by libcli:
 #
-#   LIBCLI_VERSION     the package version. `bun --compile` mounts source onto a
-#                      virtual /$bunfs filesystem, so readFileSync(package.json)
-#                      ENOENTs at runtime; resolveVersion reads this literal
-#                      instead, and the readFileSync fallback tree-shakes away.
+#   LIBCLI_PACKAGE_VERSION  the built package's version. `bun --compile` mounts
+#                      source onto a virtual /$bunfs filesystem, so
+#                      readFileSync(package.json) ENOENTs at runtime; resolveVersion
+#                      reads this literal instead, and the readFileSync fallback
+#                      tree-shakes away.
 #   LIBCLI_IS_COMPILED "1", so libcli's LIBCLI_IS_COMPILED constant folds to true
 #                      in the binary and stays false in source/npx execution.
 #
@@ -55,7 +56,7 @@ bun build --compile \
   --target "$TARGET" \
   --no-compile-autoload-dotenv \
   --no-compile-autoload-bunfig \
-  --define "process.env.LIBCLI_VERSION=\"${VERSION}\"" \
+  --define "process.env.LIBCLI_PACKAGE_VERSION=\"${VERSION}\"" \
   --define "process.env.LIBCLI_IS_COMPILED=\"1\"" \
   --outfile "dist/binaries/$NAME" \
   "$COMPILE_ENTRY"

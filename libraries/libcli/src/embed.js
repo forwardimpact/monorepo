@@ -54,9 +54,9 @@ export function embeddedAssetsActive() {
  * so Bun substitutes the literal member expression `process.env.LIBCLI_IS_COMPILED`
  * with `"1"` across the whole bundle (this file included) at compile time and
  * the comparison folds to `true`. In source/npx/test execution the env var is
- * normally unset, so it is `false`. This mirrors the `LIBCLI_VERSION` literal
- * trick in version.js — an explicit, platform-independent build-time contract
- * rather than sniffing Bun's internal `/$bunfs` path convention.
+ * normally unset, so it is `false`. This mirrors the `LIBCLI_PACKAGE_VERSION`
+ * literal trick in version.js — an explicit, platform-independent build-time
+ * contract rather than sniffing Bun's internal `/$bunfs` path convention.
  *
  * The read must stay the literal token `process.env.LIBCLI_IS_COMPILED` — that
  * is what `--define` replaces; a dynamic `process.env[name]` would not be.
