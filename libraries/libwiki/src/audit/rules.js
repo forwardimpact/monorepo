@@ -310,7 +310,7 @@ export const RULES = [
     remediation: "flag",
     check: lineBudget(WEEKLY_LOG_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
-    hint: "sealed parts should already be at-or-under the cap; if not, the rotation that produced this part needs investigation",
+    hint: "the bisecting seal produces conforming parts, so an over-budget part means a hand-edited part or an irreducible single-day section — bisect it at a finer seam by hand",
   },
   {
     id: "weekly-log-part.word-budget",
@@ -319,7 +319,7 @@ export const RULES = [
     remediation: "flag",
     check: wordBudget(WEEKLY_LOG_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
-    hint: "sealed parts should already be at-or-under the cap; if not, the rotation that produced this part needs investigation",
+    hint: "the bisecting seal produces conforming parts, so an over-budget part means a hand-edited part or an irreducible single-day section — bisect it at a finer seam by hand",
   },
   {
     id: "weekly-log-part.h1-agent-matches-filename",
