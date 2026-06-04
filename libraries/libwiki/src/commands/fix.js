@@ -87,30 +87,44 @@ function composeFollowup(findings, projectRoot) {
  */
 function rotateOverBudgetMainLogs(
   findings,
-  { wikiRoot, today, projectRoot, fs, out },
+  { wikiRoot, today, projectRoot, fs, out, err },
 ) {
   const subjects = buildContext({ wikiRoot, today, fs }).subjects[
     "weekly-log-main"
   ];
   const agentByPath = new Map(subjects.map((s) => [s.path, s.agentPrefix]));
+  // A log over BOTH budgets yields two `rotate` findings with the same path
+  // (different rule ids); seal each path once, or the second force call would
+  // bisect the freshly-written fresh-main into a spurious near-empty part.
+  const sealed = new Set();
   for (const f of findings) {
     if (classOf(f) !== "rotate") continue;
     const agent = agentByPath.get(f.path);
     if (!agent) continue;
     if (weeklyLogPath(wikiRoot, agent, today) !== f.path) continue;
-    const res = rotateIfOverBudget(
-      wikiRoot,
-      agent,
-      today,
-      0,
-      { force: true },
-      fs,
-    );
-    if (res.rotated) {
-      out(
-        `rotated ${path.relative(projectRoot, res.fromPath)} -> ` +
-          `${path.relative(projectRoot, res.toPath)}\n`,
+    if (sealed.has(f.path)) continue;
+    sealed.add(f.path);
+    try {
+      const res = rotateIfOverBudget(
+        wikiRoot,
+        agent,
+        today,
+        0,
+        { force: true },
+        fs,
       );
+      if (res.status === "sealed" || res.status === "incomplete") {
+        for (const part of res.parts) {
+          out(
+            `rotated ${path.relative(projectRoot, res.fromPath)} -> ` +
+              `${path.relative(projectRoot, part)}\n`,
+          );
+        }
+      }
+    } catch (e) {
+      // A failed seal leaves the source intact (the writer rolled back); report
+      // it and let the re-audit re-flag the still-over-budget log for a human.
+      err(`fit-wiki fix: rotate failed for ${agent}: ${e.message}\n`);
     }
   }
 }
@@ -234,6 +248,7 @@ export async function runFixCommand(ctx) {
       projectRoot,
       fs,
       out,
+      err,
     });
     findings = audit();
     if (findings.length === 0) {

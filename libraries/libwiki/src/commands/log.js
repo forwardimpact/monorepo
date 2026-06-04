@@ -30,6 +30,36 @@ function lastDateHeading(text) {
   return last;
 }
 
+/**
+ * Rotate before an append, never blocking it. A bisecting seal may now produce
+ * multiple parts; the append still proceeds against the fresh current file. An
+ * `incomplete` residue (a lone over-cap day-section sealed as its own part —
+ * never the live file) is surfaced to stderr but does not block the append. A
+ * thrown fs error is reported and swallowed: the writer rolled back, so the
+ * (intact) current file still receives the new entry.
+ */
+function rotateBeforeAppend(wikiRoot, agent, today, appendLines, runtime) {
+  try {
+    const res = rotateIfOverBudget(
+      wikiRoot,
+      agent,
+      today,
+      appendLines,
+      {},
+      runtime.fsSync,
+    );
+    if (res.status === "incomplete") {
+      runtime.proc.stderr.write(
+        `note: day-section ${res.residue.section} alone exceeds the budget ` +
+          `(${res.residue.lines} lines, ${res.residue.words} words); ` +
+          `sealed as ${res.residue.path} for manual recovery\n`,
+      );
+    }
+  } catch (e) {
+    runtime.proc.stderr.write(`note: rotation failed: ${e.message}\n`);
+  }
+}
+
 function runDecision(runtime, options) {
   const ctx = commonContext(runtime, options);
   if (ctx.error) return ctx.error;
@@ -53,7 +83,7 @@ function runDecision(runtime, options) {
     "",
   ].join("\n");
   const lineCount = body.split("\n").length;
-  rotateIfOverBudget(wikiRoot, agent, today, lineCount, {}, runtime.fsSync);
+  rotateBeforeAppend(wikiRoot, agent, today, lineCount, runtime);
   const target = weeklyLogPath(wikiRoot, agent, today);
   appendEntry(target, body, agent, today, runtime.fsSync);
   runtime.proc.stdout.write(`logged decision to ${target}\n`);
@@ -71,13 +101,12 @@ function runNote(runtime, options) {
   const fieldBlock = `### ${options.field}\n\n${options.body}\n`;
   // Conservative line budget: assume we'll prepend a date heading.
   const withHeading = `## ${today}\n\n${fieldBlock}`;
-  rotateIfOverBudget(
+  rotateBeforeAppend(
     wikiRoot,
     agent,
     today,
     withHeading.split("\n").length,
-    {},
-    runtime.fsSync,
+    runtime,
   );
   const target = weeklyLogPath(wikiRoot, agent, today);
   // Append under the open entry if the file's last `## YYYY-MM-DD` is today;
@@ -97,7 +126,7 @@ function runDone(runtime, options) {
   const { agent, wikiRoot, today } = ctx;
   const body = `### Closed\n\nRun closed ${today}.\n`;
   const lineCount = body.split("\n").length;
-  rotateIfOverBudget(wikiRoot, agent, today, lineCount, {}, runtime.fsSync);
+  rotateBeforeAppend(wikiRoot, agent, today, lineCount, runtime);
   const target = weeklyLogPath(wikiRoot, agent, today);
   appendEntry(target, body, agent, today, runtime.fsSync);
   runtime.proc.stdout.write(`closed entry in ${target}\n`);

@@ -32,6 +32,7 @@ export {
   isoWeek,
   weeklyLogPath,
   rotateIfOverBudget,
+  bisectWeeklyLog,
   appendEntry,
 } from "./weekly-log.js";
 export { buildDigest } from "./boot.js";
