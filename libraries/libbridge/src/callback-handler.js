@@ -111,7 +111,15 @@ export function createCallbackHandler({
     }
 
     const discussionId = loadDiscussionId(meta);
-    const ctx = await store.loadByChannel(channel, discussionId);
+    // The dispatcher bound the resolved tenant on the callback token's domain
+    // meta (`default` in single-tenant). Thread it into the load so
+    // multi-tenant lookups hit the tenant-scoped key rather than re-resolving
+    // by channel (which the registry cannot do — the channel is not a key).
+    const ctx = await store.loadByChannel(
+      channel,
+      discussionId,
+      meta.meta?.tenant_id,
+    );
     if (!ctx) {
       logger.error?.("callback", "context missing", {
         discussion_id: discussionId,

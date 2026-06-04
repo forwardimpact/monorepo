@@ -36,6 +36,7 @@ export {
   RegistryTenantResolver,
 } from "./tenant-resolver.js";
 export { TokenResolver } from "./token-resolver.js";
+export { GhServerTokenResolver } from "./ghserver-token-resolver.js";
 export {
   CallbackHandlerError,
   createCallbackHandler,

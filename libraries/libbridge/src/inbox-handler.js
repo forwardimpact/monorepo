@@ -23,6 +23,15 @@ export function createInboxHandler({
   return async (c) => {
     const correlationId = c.req.param("correlationId");
     const sinceSeq = parseInt(c.req.query("since") ?? "0", 10);
+    // The dispatcher embeds the resolved tenant on the inbox URL it hands the
+    // run (single-tenant binds the literal `default`). `services/bridge`
+    // rejects a `DrainInbox` without a `tenant_id`, so a poll that omits it is
+    // a caller error: fail fast rather than leaking a cross-tenant queue.
+    const tenant_id = c.req.query("tenant_id");
+    if (!tenant_id) {
+      logger.error?.("inbox", "missing tenant_id");
+      return c.json({ error: "tenant_id required" }, 400);
+    }
     const deadline = clock.now() + pollTimeoutMs;
 
     while (clock.now() < deadline) {
@@ -31,6 +40,7 @@ export function createInboxHandler({
           bridge.DrainInboxRequest.fromObject({
             correlation_id: correlationId,
             since_seq: sinceSeq,
+            tenant_id,
           }),
         );
         if (result.messages?.length > 0) {
