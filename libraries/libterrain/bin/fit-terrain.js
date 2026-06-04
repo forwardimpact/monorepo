@@ -4,15 +4,13 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { resolve, join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { join } from "path";
 import { format } from "prettier";
 import {
   createCli,
   formatWarning,
   SummaryRenderer,
   withEmbeddedAssets,
-  LIBCLI_IS_COMPILED,
 } from "@forwardimpact/libcli";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -30,8 +28,6 @@ import {
   printCacheReport,
   printGenerateStats,
 } from "../src/cli-helpers.js";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Overlay the runtime so the prompt/template loaders read inlined assets when
 // this is a compiled binary; a no-op in source/npx execution.
@@ -196,13 +192,10 @@ async function runVerb(options) {
   const llmApi =
     mode === "generate" ? await resolveLlmApi(config, options.model) : null;
 
-  // A compiled binary's `__dirname` is the /$bunfs root, not the package on
-  // disk, so derive the project root from the working directory instead — the
-  // binary operates on the project tree it is run from (story DSL, schemas,
-  // and output paths are all project data, not bundled package assets).
-  const monorepoRoot = LIBCLI_IS_COMPILED
-    ? runtime.proc.cwd()
-    : resolve(__dirname, "../../..");
+  // The project tree this run reads (story DSL, schemas) and writes to. Finder
+  // handles the compiled-vs-source split: cwd for a compiled binary, upward
+  // package.json search otherwise — so this stays free of build-mode checks.
+  const monorepoRoot = runtime.finder.findProjectRoot();
   const schemaDir = join(monorepoRoot, "products/map/schema/json");
   const cachePath =
     options.cache ||

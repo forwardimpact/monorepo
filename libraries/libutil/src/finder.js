@@ -1,5 +1,6 @@
 import path from "path";
 import { createRequire } from "node:module";
+import { LIBCLI_IS_COMPILED } from "@forwardimpact/libcli";
 
 const NOOP_LOGGER = { debug() {} };
 
@@ -17,6 +18,7 @@ export class Finder {
   #existsSync;
   #logger;
   #proc;
+  #isCompiled;
 
   /**
    * @param {object} config - Injected collaborators.
@@ -25,6 +27,10 @@ export class Finder {
    *   falls back to `fs` when omitted.
    * @param {object} config.proc - Process collaborator (cwd provider).
    * @param {object} [config.logger] - Optional logger; defaults to a no-op.
+   * @param {boolean} [config.isCompiled] - Whether the host is a
+   *   `bun build --compile` binary; defaults to libcli's `LIBCLI_IS_COMPILED`.
+   *   Injectable so tests can exercise the compiled branch of
+   *   {@link Finder#findProjectRoot} without a real binary.
    */
   constructor(config = {}) {
     // Finder is the one module that legitimately bridges the sync and async
@@ -45,6 +51,7 @@ export class Finder {
     this.#existsSync = existsTarget.existsSync.bind(existsTarget);
     this.#proc = proc;
     this.#logger = config.logger ?? NOOP_LOGGER;
+    this.#isCompiled = config.isCompiled ?? LIBCLI_IS_COMPILED;
   }
 
   /**
@@ -62,6 +69,7 @@ export class Finder {
       fsSync: this.#fsSync,
       proc: this.#proc,
       logger,
+      isCompiled: this.#isCompiled,
     });
   }
 
@@ -106,12 +114,28 @@ export class Finder {
   }
 
   /**
-   * Find the project root directory.
-   * @param {string} startPath - Starting directory path
+   * Find the project root a tool operates against, transparently handling
+   * compiled binaries.
+   *
+   * In a `bun build --compile` binary the entry module lives in the virtual
+   * `/$bunfs` root, so `import.meta.url`/`__dirname`-relative traversal is
+   * meaningless — the binary operates on whatever project tree it is launched
+   * from, so the working directory *is* the project root. In source/npx
+   * execution the working directory may sit anywhere inside the project, so we
+   * walk upward from `startPath` for the nearest `package.json`.
+   *
+   * Folding the compiled check in here keeps it out of every consumer: callers
+   * just ask the injected `runtime.finder` for the project root and get the
+   * right answer in both worlds.
+   *
+   * @param {string} [startPath] - Source-mode search origin; defaults to cwd.
    * @returns {string} Project root directory path
    */
   findProjectRoot(startPath) {
-    const projectRoot = this.findUpward(startPath, "package.json", 5);
+    if (this.#isCompiled) return this.#proc.cwd();
+
+    const start = startPath ?? this.#proc.cwd();
+    const projectRoot = this.findUpward(start, "package.json", 5);
     if (projectRoot) {
       return path.dirname(projectRoot);
     }
