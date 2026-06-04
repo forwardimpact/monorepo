@@ -68,7 +68,17 @@
     {
       "name": "fit-terrain",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
-      "bundle": "gear"
+      "bundle": "gear",
+      "assets": [
+        {
+          "from": "libraries/libsyntheticprose/src/prompts",
+          "mount": "libsyntheticprose/prompts"
+        },
+        {
+          "from": "libraries/libsyntheticrender/templates",
+          "mount": "libsyntheticrender/templates"
+        }
+      ]
     },
     {
       "name": "fit-eval",

@@ -11,6 +11,8 @@ import {
   createCli,
   formatWarning,
   SummaryRenderer,
+  withEmbeddedAssets,
+  isCompiledBinary,
 } from "@forwardimpact/libcli";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -31,7 +33,9 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const runtime = createDefaultRuntime();
+// Overlay the runtime so the prompt/template loaders read inlined assets when
+// this is a compiled binary; a no-op in source/npx execution.
+const runtime = withEmbeddedAssets(createDefaultRuntime());
 
 const documentation = [
   {
@@ -192,7 +196,13 @@ async function runVerb(options) {
   const llmApi =
     mode === "generate" ? await resolveLlmApi(config, options.model) : null;
 
-  const monorepoRoot = resolve(__dirname, "../../..");
+  // A compiled binary's `__dirname` is the /$bunfs root, not the package on
+  // disk, so derive the project root from the working directory instead — the
+  // binary operates on the project tree it is run from (story DSL, schemas,
+  // and output paths are all project data, not bundled package assets).
+  const monorepoRoot = isCompiledBinary()
+    ? runtime.proc.cwd()
+    : resolve(__dirname, "../../..");
   const schemaDir = join(monorepoRoot, "products/map/schema/json");
   const cachePath =
     options.cache ||

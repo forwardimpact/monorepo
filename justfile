@@ -215,13 +215,19 @@ build-binary NAME TARGET="bun-darwin-arm64":
     # separately, so one shared name carries that binary's own version.
     VERSION=$(jq -r .version "$PKG_DIR/package.json")
     mkdir -p dist/binaries
+    # Inline any package-data assets the CLI declares in build/cli-manifest.json
+    # (prompts, templates) so they survive `--compile` — `import.meta.resolve`
+    # and on-disk reads fail in the /$bunfs root. gen-embed prints the entry to
+    # compile: a generated shim that registers the assets first, or — when the
+    # CLI declares none — the original entry unchanged.
+    COMPILE_ENTRY=$(bun build/gen-embed.mjs "{{NAME}}" "$ENTRY" "dist/.embed")
     bun build --compile \
       --target "{{TARGET}}" \
       --no-compile-autoload-dotenv \
       --no-compile-autoload-bunfig \
       --define "process.env.LIBCLI_VERSION=\"${VERSION}\"" \
       --outfile "dist/binaries/{{NAME}}" \
-      "$ENTRY"
+      "$COMPILE_ENTRY"
 
 # Build every distributable binary for TARGET, driven by build/cli-manifest.json
 build-all TARGET="bun-darwin-arm64": codegen

@@ -1,5 +1,12 @@
 export { Cli, createCli } from "./cli.js";
 export { resolveVersion } from "./version.js";
+export {
+  registerAssets,
+  embeddedAssetsActive,
+  isCompiledBinary,
+  embeddedDir,
+  withEmbeddedAssets,
+} from "./embed.js";
 export { freezeInvocationContext } from "./invocation-context.js";
 export { HelpRenderer } from "./help.js";
 export { SummaryRenderer } from "./summary.js";
