@@ -36,7 +36,8 @@
     "index.js",
     "server.js",
     "src",
-    "proto"
+    "proto",
+    "github-app.md"
   ],
   "scripts": {
     "test": "bun test test/*.test.js"

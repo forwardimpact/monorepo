@@ -65,16 +65,26 @@ Optional services — add when working on those features:
 
 ```json
 { "name": "oauthtunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_OAUTH_URL} --protocol http2'" }
-{ "name": "mstunnel",    "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_MSBRIDGE_URL} --protocol http2'" }
+{ "name": "oidctunnel",  "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_OIDC_URL} --protocol http2'" }
 { "name": "ghtunnel",    "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_GHBRIDGE_URL} --protocol http2'" }
+{ "name": "mstunnel",    "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_MSBRIDGE_URL} --protocol http2'" }
+{ "name": "tenancy",     "command": "node -e \"import('@forwardimpact/svctenancy/server.js')\"" }
+{ "name": "ghserver",    "command": "node -e \"import('@forwardimpact/svcghserver/server.js')\"" }
+{ "name": "oidc",        "command": "node -e \"import('@forwardimpact/svcoidc/server.js')\"" }
 { "name": "ghuser",      "command": "node -e \"import('@forwardimpact/svcghuser/server.js')\"" }
 { "name": "oauth",       "command": "node -e \"import('@forwardimpact/svcoauth/server.js')\"" }
 { "name": "mcp",         "command": "node -e \"import('@forwardimpact/svcmcp/server.js')\"" }
 { "name": "bridge",      "command": "node -e \"import('@forwardimpact/svcbridge/server.js')\"" }
-{ "name": "msbridge",    "command": "node -e \"import('@forwardimpact/svcmsbridge/server.js')\"" }
 { "name": "ghbridge",    "command": "node -e \"import('@forwardimpact/svcghbridge/server.js')\"" }
+{ "name": "msbridge",    "command": "node -e \"import('@forwardimpact/svcmsbridge/server.js')\"" }
 { "name": "embedding",   "command": "node -e \"import('@forwardimpact/svcembedding/server.js')\"" }
 ```
+
+This order mirrors the `.env.*.example` profiles (ports `3006`–`3015`) and
+lists each service after what it depends on: `tenancy` → `ghserver` → `oidc`,
+ahead of the multi-tenant `ghbridge`/`msbridge` that consume them. Only `oidc`
+is public-facing (its `oidctunnel` mirrors `oauthtunnel`); `tenancy` and
+`ghserver` are internal gRPC (loopback) and need no tunnel.
 
 Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`:
 
@@ -91,6 +101,16 @@ Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`:
 
 Values merge with the service's constructor defaults, then overridden by
 `SERVICE_{NAME}_{KEY}` environment variables from `.env` or the shell.
+
+For configuring the platform apps whose credentials feed these blocks and
+`.env` — self-hosted (single-tenant) vs hosted (multi-tenant) — see the
+per-app guides:
+
+- [GitHub server App](../services/ghserver/github-app.md) — installation-token
+  App (`ghbridge` / `ghserver`).
+- [GitHub user App](../services/ghuser/github-app.md) — per-user OAuth
+  (`ghuser`).
+- [Azure AD app](../services/msbridge/azure-app.md) — Teams bot (`msbridge`).
 
 ### `product.<name>` — product configuration
 

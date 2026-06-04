@@ -140,7 +140,11 @@ for (const mode of ["single", "multi"]) {
         };
       }
       service = new MsBridgeService(
-        makeConfig(multi ? { github_repo: "" } : {}),
+        makeConfig(
+          multi
+            ? { tenancy_mode: "multi", github_repo: "" }
+            : { tenancy_mode: "single" },
+        ),
         deps,
       );
       await service.start();

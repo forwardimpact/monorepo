@@ -34,6 +34,7 @@ export { Dispatcher } from "./dispatcher.js";
 export {
   DefaultTenantResolver,
   RegistryTenantResolver,
+  assertMultiTenantDeps,
 } from "./tenant-resolver.js";
 export { TokenResolver } from "./token-resolver.js";
 export { GhServerTokenResolver } from "./ghserver-token-resolver.js";

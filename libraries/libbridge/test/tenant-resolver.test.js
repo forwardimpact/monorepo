@@ -3,7 +3,21 @@ import { describe, expect, test } from "bun:test";
 import {
   DefaultTenantResolver,
   RegistryTenantResolver,
+  assertMultiTenantDeps,
 } from "../src/tenant-resolver.js";
+
+describe("assertMultiTenantDeps", () => {
+  test("throws when multi-tenant but no tenancy client", () => {
+    expect(() => assertMultiTenantDeps(true, undefined)).toThrow(
+      /tenancyClient is required/,
+    );
+  });
+
+  test("passes when multi-tenant with a client, or single-tenant", () => {
+    expect(() => assertMultiTenantDeps(true, {})).not.toThrow();
+    expect(() => assertMultiTenantDeps(false, undefined)).not.toThrow();
+  });
+});
 
 describe("DefaultTenantResolver", () => {
   test("requires channel", () => {

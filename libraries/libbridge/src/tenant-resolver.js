@@ -100,3 +100,18 @@ export class RegistryTenantResolver {
     return this.#client.ResolveByTenantId({ tenant_id });
   }
 }
+
+/**
+ * Fail fast when a bridge is in multi-tenant mode but the tenancy client that
+ * mode requires was not injected. The bridge's `tenancy_mode` config is the
+ * single source of truth; a multi config missing its collaborators is a wiring
+ * error, not single-tenant mode.
+ *
+ * @param {boolean} multiTenant
+ * @param {object} [tenancyClient]
+ * @returns {void}
+ */
+export function assertMultiTenantDeps(multiTenant, tenancyClient) {
+  if (multiTenant && !tenancyClient)
+    throw new Error("tenancyClient is required in multi-tenant mode");
+}

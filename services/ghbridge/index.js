@@ -8,6 +8,7 @@ import {
   ResumeScheduler,
   TokenResolver,
   appendHistory,
+  assertMultiTenantDeps,
   buildPrompt,
   createBridgeServer,
   createCallbackHandler,
@@ -112,7 +113,11 @@ export class GhBridgeService {
     // per-request resolved tenant repo; `makeGraphqlClient(repo)` returns a
     // client bound to that repo. Single-tenant uses the static `graphqlClient`.
     this.#makeGraphqlClient = deps.makeGraphqlClient;
-    this.#multiTenant = Boolean(deps.tenancyClient);
+    // Deployment mode is config-driven — `tenancy_mode` is the single source of
+    // truth. server.js injects the tenancy/ghserver clients only in "multi";
+    // guard against a multi config that is missing them.
+    this.#multiTenant = config.tenancy_mode === "multi";
+    assertMultiTenantDeps(this.#multiTenant, deps.tenancyClient);
     this.#clock = clock;
     this.#trustedOrigins = trustedOrigins;
     // Multi-tenant onboarding upserts repositories into the registry. The
@@ -300,7 +305,7 @@ export class GhBridgeService {
     // Multi-tenant onboarding: register repositories named by an
     // install-class delivery. Single-tenant deployments have no tenancy
     // client and skip this branch.
-    if (this.#tenancyClient && isInstallEvent(event, body)) {
+    if (this.#multiTenant && isInstallEvent(event, body)) {
       await handleInstall(body, {
         tenancyClient: this.#tenancyClient,
         logger: this.#logger,
@@ -315,7 +320,7 @@ export class GhBridgeService {
     // is dropped (204). Single-tenant deployments skip this branch and rely on
     // the DefaultTenantResolver (`tenant_id = "default"`).
     let tenant;
-    if (this.#tenancyClient) {
+    if (this.#multiTenant) {
       tenant = await extractTenant(body, this.#tenantResolver);
       if (!tenant) {
         this.#logger.debug("webhook", "no active tenant for delivery");

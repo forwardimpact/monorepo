@@ -34,7 +34,8 @@
   },
   "files": [
     "index.js",
-    "server.js"
+    "server.js",
+    "azure-app.md"
   ],
   "scripts": {
     "test": "bun test test/*.test.js"

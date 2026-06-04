@@ -25,13 +25,14 @@ const BASE_DEPS = () => ({
   ticketSecret: "ghbridge-test-secret",
 });
 
-function makeConfig() {
+function makeConfig(overrides = {}) {
   return createMockConfig("ghbridge", {
     host: "127.0.0.1",
     port: 0,
     github_repo: "owner/repo",
     callback_base_url: "https://bridge.example",
     app_webhook_secret: "secret-long-enough-for-hmac",
+    ...overrides,
   });
 }
 
@@ -75,7 +76,7 @@ describe("ghbridge startup", () => {
         expires_at: 0,
       }),
     };
-    const service = new GhBridgeService(makeConfig(), {
+    const service = new GhBridgeService(makeConfig({ tenancy_mode: "multi" }), {
       ...BASE_DEPS(),
       ghuserClient: {},
       tenantResolver: new RegistryTenantResolver({ client: tenancyClient }),
