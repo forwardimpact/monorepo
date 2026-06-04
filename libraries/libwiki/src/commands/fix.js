@@ -85,19 +85,12 @@ function composeFollowup(findings, projectRoot) {
  * untouched (rotating it would force-seal a healthy current-week log instead);
  * it survives the re-audit and is flagged for a human.
  */
-function rotateOverBudgetMainLogs(
-  findings,
-  { wikiRoot, today, projectRoot, fs, out },
-) {
-  const subjects = buildContext({ wikiRoot, today, fs }).subjects[
-    "weekly-log-main"
-  ];
-  const agentByPath = new Map(subjects.map((s) => [s.path, s.agentPrefix]));
-  for (const f of findings) {
-    if (classOf(f) !== "rotate") continue;
-    const agent = agentByPath.get(f.path);
-    if (!agent) continue;
-    if (weeklyLogPath(wikiRoot, agent, today) !== f.path) continue;
+/**
+ * Seal one over-budget current-week main log. A failed seal leaves the source
+ * intact (the writer rolled back), so the re-audit re-flags it for a human.
+ */
+function sealMainLog(agent, { wikiRoot, today, projectRoot, fs, out, err }) {
+  try {
     const res = rotateIfOverBudget(
       wikiRoot,
       agent,
@@ -106,12 +99,35 @@ function rotateOverBudgetMainLogs(
       { force: true },
       fs,
     );
-    if (res.rotated) {
+    if (res.status !== "sealed" && res.status !== "incomplete") return;
+    for (const part of res.parts) {
       out(
         `rotated ${path.relative(projectRoot, res.fromPath)} -> ` +
-          `${path.relative(projectRoot, res.toPath)}\n`,
+          `${path.relative(projectRoot, part)}\n`,
       );
     }
+  } catch (e) {
+    err(`fit-wiki fix: rotate failed for ${agent}: ${e.message}\n`);
+  }
+}
+
+function rotateOverBudgetMainLogs(findings, deps) {
+  const { wikiRoot, today, fs } = deps;
+  const subjects = buildContext({ wikiRoot, today, fs }).subjects[
+    "weekly-log-main"
+  ];
+  const agentByPath = new Map(subjects.map((s) => [s.path, s.agentPrefix]));
+  // A log over BOTH budgets yields two `rotate` findings with the same path
+  // (different rule ids); seal each path once, or the second force call would
+  // bisect the freshly-written fresh-main into a spurious near-empty part.
+  const sealed = new Set();
+  for (const f of findings) {
+    if (classOf(f) !== "rotate") continue;
+    const agent = agentByPath.get(f.path);
+    if (!agent || weeklyLogPath(wikiRoot, agent, today) !== f.path) continue;
+    if (sealed.has(f.path)) continue;
+    sealed.add(f.path);
+    sealMainLog(agent, deps);
   }
 }
 
@@ -234,6 +250,7 @@ export async function runFixCommand(ctx) {
       projectRoot,
       fs,
       out,
+      err,
     });
     findings = audit();
     if (findings.length === 0) {

@@ -250,17 +250,19 @@ describe("fit-wiki fix CLI (in-process)", () => {
     assert.equal(calls.length, 1, "no resume after a launch failure");
   });
 
-  test("rotates an over-budget weekly log deterministically, without the agent", async () => {
+  test("bisects a multi-day over-cap log into conforming parts; audit clean, no agent", async () => {
     seedCleanWiki(wikiRoot);
     seedAgentProfile(dir);
-    // Valid H1 + 600 filler lines → over the line budget, well under words.
+    // Valid H1 + 4 day-sections @ 150 lines: each section is under both
+    // budgets, jointly they overflow the line budget. The bisecting seal splits
+    // them into conforming parts and the re-audit is clean.
     const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
-    writeFileSync(
-      logPath,
-      ["# Staff Engineer — 2026-W21", ""]
-        .concat(Array(600).fill("- filler"))
-        .join("\n") + "\n",
-    );
+    let text = "# Staff Engineer — 2026-W21\n";
+    for (let s = 0; s < 4; s++) {
+      text += `## 2026-05-${String(18 + s).padStart(2, "0")}\n`;
+      for (let i = 1; i < 150; i++) text += "- filler\n";
+    }
+    writeFileSync(logPath, text);
 
     // The agent must never be constructed for a deterministic rotation.
     const calls = [];
@@ -277,13 +279,43 @@ describe("fit-wiki fix CLI (in-process)", () => {
 
     assert.equal(calls.length, 0, "rotation does not invoke the agent");
     assert.match(harness.stdout, /rotated/);
+    assert.match(harness.stdout, /fixed: wiki audit is clean/);
     assert.ok(
-      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
-      "the bloated log is sealed as a part",
+      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")) &&
+        existsSync(join(wikiRoot, "staff-engineer-2026-W21-part2.md")),
+      "the over-cap log is sealed into ≥2 conforming parts",
     );
     assert.ok(existsSync(logPath), "a fresh main log is started");
-    // Sealing relabels the overflow onto the part — flagged for a human, not
-    // silently failed and not handed to the agent.
+    // The over-cap multi-day log now resolves clean — no human flag.
+    assert.deepEqual(result, { ok: true, code: 0 });
+    assert.doesNotMatch(harness.stderr, /weekly-log-part\.line-budget/);
+  });
+
+  test("flags only the irreducible single-day section that cannot be split", async () => {
+    seedCleanWiki(wikiRoot);
+    seedAgentProfile(dir);
+    // One day-section alone exceeds the line budget — it cannot be split at a
+    // day seam, so it seals as an over-cap part the audit still flags.
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    let text = "# Staff Engineer — 2026-W21\n## 2026-05-19\n";
+    for (let i = 0; i < 600; i++) text += "- filler\n";
+    writeFileSync(logPath, text);
+
+    const calls = [];
+    const query = scriptedQuery(join(wikiRoot, "unused.md"), [""], calls);
+    const harness = makeRuntime({ cwd: dir });
+
+    const result = await runFixCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        query,
+        options: { today: "2026-05-24" },
+      }),
+    );
+
+    assert.equal(calls.length, 0, "rotation does not invoke the agent");
+    assert.ok(existsSync(logPath), "a fresh main log is started");
+    // Only the irreducible residue flags for a human.
     assert.equal(result.ok, false);
     assert.equal(result.code, 2);
     assert.match(harness.stderr, /need human judgment/);

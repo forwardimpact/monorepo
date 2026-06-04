@@ -17,20 +17,46 @@ export function runRotateCommand(ctx) {
   const wikiRoot = resolveWikiRoot(runtime, options);
   const today = options.today || currentDayIso(runtime);
 
-  const result = rotateIfOverBudget(
-    wikiRoot,
-    agent,
-    today,
-    0,
-    { force: true },
-    runtime.fsSync,
-  );
-  if (result.rotated) {
-    runtime.proc.stdout.write(
-      `rotated ${result.fromPath} → ${result.toPath}\n`,
+  let result;
+  try {
+    result = rotateIfOverBudget(
+      wikiRoot,
+      agent,
+      today,
+      0,
+      { force: true },
+      runtime.fsSync,
     );
-  } else {
-    runtime.proc.stdout.write(`no rotation needed for ${agent}\n`);
+  } catch (e) {
+    runtime.proc.stderr.write(`rotate failed: ${e.message}\n`);
+    return { ok: false, code: 1 };
   }
-  return { ok: true };
+  switch (result.status) {
+    case "noop":
+      runtime.proc.stdout.write(`no rotation needed for ${agent}\n`);
+      return { ok: true };
+    case "sealed":
+      for (const part of result.parts) {
+        runtime.proc.stdout.write(`sealed → ${part}\n`);
+      }
+      return { ok: true };
+    case "incomplete": {
+      for (const part of result.parts) {
+        runtime.proc.stdout.write(`sealed → ${part}\n`);
+      }
+      const { section, lines, words, path: residuePath } = result.residue;
+      runtime.proc.stderr.write(
+        `day-section ${section} alone exceeds the budget ` +
+          `(${lines} lines, ${words} words) and cannot be split at a day ` +
+          `seam: ${residuePath}\n` +
+          `recover it by hand — bisect the section at a finer seam ` +
+          `(see the memory protocol's manual-recovery convention)\n`,
+      );
+      return { ok: false, code: 1 };
+    }
+    default:
+      // Defensive: the tagged union is exhaustive above, so this is
+      // unreachable; kept so a future status can't fall through to no return.
+      return { ok: true };
+  }
 }

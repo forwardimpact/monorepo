@@ -1,6 +1,7 @@
 import path from "node:path";
 import { isoWeekString } from "@forwardimpact/libutil";
-import { WEEKLY_LOG_LINE_BUDGET } from "./constants.js";
+import { countLines, countWords } from "./budget.js";
+import { WEEKLY_LOG_LINE_BUDGET, WEEKLY_LOG_WORD_BUDGET } from "./constants.js";
 
 // ISO week computation lives in libutil's calendar util (the one place a
 // `new Date` is allowed); re-exported here for the existing public surface.
@@ -11,20 +12,25 @@ export function weeklyLogPath(wikiRoot, agent, today) {
   return path.join(wikiRoot, `${agent}-${isoWeekString(today)}.md`);
 }
 
-function countLines(text) {
-  if (text.length === 0) return 0;
-  let n = 0;
-  for (const ch of text) if (ch === "\n") n++;
-  if (!text.endsWith("\n")) n++;
-  return n;
-}
-
-function nextPartPath(filePath, fs) {
+function partPathAt(filePath, n) {
   const dir = path.dirname(filePath);
   const base = path.basename(filePath, ".md");
-  let n = 1;
-  while (fs.existsSync(path.join(dir, `${base}-part${n}.md`))) n++;
   return path.join(dir, `${base}-part${n}.md`);
+}
+
+// Find `count` part slots that are each verified free, skipping any occupied
+// `-partN.md` (e.g. a numbering gap left by a manually deleted middle part).
+// Every returned slot is unoccupied, so the seal never overwrites a pre-existing
+// part on commit nor unlinks one on rollback.
+function nextFreeSlots(filePath, count, fs) {
+  const slots = [];
+  let n = 1;
+  while (slots.length < count) {
+    const p = partPathAt(filePath, n);
+    if (!fs.existsSync(p)) slots.push(p);
+    n++;
+  }
+  return slots;
 }
 
 function agentTitle(agent) {
@@ -38,9 +44,207 @@ function defaultH1(agent, isoWeekStr) {
   return `# ${agentTitle(agent)} — ${isoWeekStr}\n`;
 }
 
+/** Describe a lone over-cap day-section as a residue at its part index. */
+function residueOf(sec, partIndex, measure) {
+  const { lines, words } = measure(sec.text);
+  return { section: sec.date, lines, words, partIndex };
+}
+
 /**
- * Rotate the current weekly log if next append would exceed the budget.
- * @returns {{rotated: boolean, fromPath: string, toPath?: string}}
+ * An over-cap prologue cannot merge with any day-section (adding content only
+ * grows it), so it always seals as its own part 0. Flag it up front as the
+ * first residue so it is never shipped silently over budget.
+ */
+function prologueResidue(prologue, { overBudget, measure }) {
+  if (prologue.length === 0 || !overBudget(prologue)) return null;
+  const { lines, words } = measure(prologue);
+  return { section: "prologue", lines, words, partIndex: 0 };
+}
+
+/**
+ * Greedily pack day-sections into part bodies under both budgets, the prologue
+ * riding with part 1. A chunk that alone exceeds a budget — a lone day-section
+ * or an over-cap prologue — is sealed as its own part and recorded as the
+ * (first) residue; packed runs and single sections are kept under both budgets,
+ * so the only over-cap part bodies are the ones `residue` accounts for.
+ * @param {Array<{date: string, text: string}>} sections
+ * @param {string} prologue - Content above the first seam; rides with part 1.
+ * @param {{overBudget: (s: string) => boolean, measure: (s: string) => {lines: number, words: number}}} budget
+ * @returns {{partBodies: string[], residue: null | {section: string, lines: number, words: number, partIndex: number}}}
+ */
+function packSections(sections, prologue, budget) {
+  const { overBudget, measure } = budget;
+  const partBodies = [];
+  // The prologue, when over budget, is always pushed first (part 0) — record it
+  // before packing so a later lone-section residue cannot displace it.
+  let residue = prologueResidue(prologue, budget);
+  let open = prologue; // body of the part currently being filled
+  let opened = prologue.length > 0;
+  const flush = () => {
+    if (opened) {
+      partBodies.push(open);
+      open = "";
+      opened = false;
+    }
+  };
+  for (const sec of sections) {
+    if (overBudget(sec.text)) {
+      // Irreducible lone day-section: flush the open part, then seal it alone.
+      flush();
+      residue ??= residueOf(sec, partBodies.length, measure);
+      partBodies.push(sec.text);
+    } else if (!opened) {
+      open = sec.text;
+      opened = true;
+    } else if (overBudget(open + sec.text)) {
+      partBodies.push(open);
+      open = sec.text;
+    } else {
+      open += sec.text;
+    }
+  }
+  flush();
+  return { partBodies, residue };
+}
+
+/**
+ * Split an over-budget weekly-log source at its `## YYYY-MM-DD` day-section
+ * seams into an ordered list of conforming parts. Pure — no I/O.
+ *
+ * The first line of `text` is the original H1; it is consumed and replaced by
+ * per-part H1s, never appearing in a part body. Everything after that first
+ * line is the body, sliced at the day-section seam byte offsets so that
+ * concatenating the parts' bodies reproduces the original body byte-for-byte.
+ * The prologue (any content above the first seam) rides with part 1. Sections
+ * are greedily packed left-to-right under both the line- and word-budget, with
+ * each candidate part measured H1-included so its own H1 is charged.
+ *
+ * When a single chunk alone exceeds a budget — a lone day-section, or the
+ * whole prologue when the source has no day-sections — it is sealed as its own
+ * (over-budget) part and named in `residue`; the rest still packs normally.
+ *
+ * @param {string} text - The full weekly-log source (H1 + body).
+ * @param {string} agent - Agent profile id (e.g. "staff-engineer").
+ * @param {string} isoWeekStr - ISO week label (e.g. "2026-W21").
+ * @returns {{parts: Array<{h1: string, body: string}>, residue: null | {section: string, lines: number, words: number, partIndex: number}}}
+ */
+export function bisectWeeklyLog(text, agent, isoWeekStr) {
+  const nl = text.indexOf("\n");
+  const body = nl === -1 ? "" : text.slice(nl + 1);
+  const title = agentTitle(agent);
+  // `(part N of M)` costs the same 1 line and 4 word-tokens regardless of the
+  // digits in N/M, so a fixed template measures every part exactly without
+  // needing to know M before packing finishes.
+  const h1Template = `# ${title} — ${isoWeekStr} (part 1 of 1)`;
+  const measure = (chunk) => {
+    const rendered = `${h1Template}\n${chunk}`;
+    return { lines: countLines(rendered), words: countWords(rendered) };
+  };
+  const overBudget = (chunk) => {
+    const { lines, words } = measure(chunk);
+    return lines > WEEKLY_LOG_LINE_BUDGET || words > WEEKLY_LOG_WORD_BUDGET;
+  };
+  const partH1 = (n, m) => `# ${title} — ${isoWeekStr} (part ${n} of ${m})`;
+  const finish = (partBodies, residue) => {
+    const m = partBodies.length;
+    return {
+      parts: partBodies.map((b, i) => ({ h1: partH1(i + 1, m), body: b })),
+      residue,
+    };
+  };
+
+  // Locate the day-section seams (date at line-start, trailing suffix
+  // tolerated, e.g. `## 2026-05-19 (third activation)`).
+  const seamRe = /^## (\d{4}-\d{2}-\d{2})/gm;
+  const seams = [];
+  let match;
+  while ((match = seamRe.exec(body)) !== null) {
+    seams.push({ offset: match.index, date: match[1] });
+  }
+
+  // Zero day-sections: the whole body is the prologue and its own single part,
+  // flagged as a residue when it alone exceeds a budget.
+  if (seams.length === 0) {
+    return finish([body], prologueResidue(body, { overBudget, measure }));
+  }
+
+  const prologue = body.slice(0, seams[0].offset);
+  const sections = seams.map((s, i) => ({
+    date: s.date,
+    text: body.slice(
+      s.offset,
+      i + 1 < seams.length ? seams[i + 1].offset : body.length,
+    ),
+  }));
+
+  const { partBodies, residue } = packSections(sections, prologue, {
+    overBudget,
+    measure,
+  });
+  return finish(partBodies, residue);
+}
+
+/**
+ * Stage every part at its slot and the fresh-main body at temps, then commit
+ * by renaming each part onto its `-partN.md` slot and the fresh main over
+ * `filePath` as the single final step. On any failure before that last rename,
+ * unlink every committed slot and remaining temp this seal wrote and re-throw,
+ * so the source's path/contents/inode are untouched. Returns the produced slot
+ * paths in part order.
+ *
+ * @param {string} filePath - The current weekly-log path.
+ * @param {Array<{h1: string, body: string}>} parts - Ordered parts to seal.
+ * @param {string} agent
+ * @param {string} isoWeekStr
+ * @param {object} fs - Sync filesystem surface.
+ * @returns {string[]} The `-partN.md` slot paths, in part order.
+ */
+function atomicSeal(filePath, parts, agent, isoWeekStr, fs) {
+  const slots = nextFreeSlots(filePath, parts.length, fs);
+  const mainTemp = `${filePath}.tmp`;
+  const temps = []; // temp paths this seal wrote, for rollback
+  const committed = []; // slots already renamed into place, for rollback
+  try {
+    // Stage every part and the fresh main at temp files.
+    slots.forEach((slot, i) => {
+      const tmp = `${slot}.tmp`;
+      fs.writeFileSync(tmp, `${parts[i].h1}\n${parts[i].body}`);
+      temps.push(tmp);
+    });
+    fs.writeFileSync(mainTemp, defaultH1(agent, isoWeekStr));
+    temps.push(mainTemp);
+    // Commit: parts onto their slots, then the fresh main as the final step.
+    slots.forEach((slot, i) => {
+      fs.renameSync(`${slot}.tmp`, slot);
+      committed.push(slot);
+      // The part temp is consumed by its rename; drop it from the rollback set.
+      temps.splice(temps.indexOf(`${slot}.tmp`), 1);
+    });
+    fs.renameSync(mainTemp, filePath);
+    return slots;
+  } catch (e) {
+    for (const slot of committed) {
+      try {
+        fs.unlinkSync(slot);
+      } catch {}
+    }
+    for (const tmp of temps) {
+      try {
+        fs.unlinkSync(tmp);
+      } catch {}
+    }
+    throw e;
+  }
+}
+
+/**
+ * Rotate the current weekly log, sealing an over-budget source into
+ * budget-conforming parts via a bisecting seal. Returns a tagged union:
+ * `{status:"noop"}` (no rotation needed), `{status:"sealed",parts}` (sealed
+ * into one-or-more conforming parts), or `{status:"incomplete",parts,residue}`
+ * (a lone day-section exceeds a budget and is named).
+ *
+ * @returns {{status: "noop"|"sealed"|"incomplete", fromPath: string, parts?: string[], residue?: {path: string, section: string, lines: number, words: number}}}
  * @param {string} wikiRoot
  * @param {string} agent
  * @param {string} today - ISO date string.
@@ -58,16 +262,29 @@ export function rotateIfOverBudget(
 ) {
   const filePath = weeklyLogPath(wikiRoot, agent, today);
   const { force = false } = options;
-  if (!fs.existsSync(filePath)) return { rotated: false, fromPath: filePath };
+  if (!fs.existsSync(filePath)) return { status: "noop", fromPath: filePath };
   const text = fs.readFileSync(filePath, "utf-8");
   const current = countLines(text);
   if (!force && current + appendLines <= WEEKLY_LOG_LINE_BUDGET) {
-    return { rotated: false, fromPath: filePath };
+    return { status: "noop", fromPath: filePath };
   }
-  const toPath = nextPartPath(filePath, fs);
-  fs.renameSync(filePath, toPath);
-  fs.writeFileSync(filePath, defaultH1(agent, isoWeekString(today)));
-  return { rotated: true, fromPath: filePath, toPath };
+  const isoWeekStr = isoWeekString(today);
+  const { parts, residue } = bisectWeeklyLog(text, agent, isoWeekStr);
+  const slots = atomicSeal(filePath, parts, agent, isoWeekStr, fs);
+  if (residue === null) {
+    return { status: "sealed", fromPath: filePath, parts: slots };
+  }
+  return {
+    status: "incomplete",
+    fromPath: filePath,
+    parts: slots,
+    residue: {
+      path: slots[residue.partIndex],
+      section: residue.section,
+      lines: residue.lines,
+      words: residue.words,
+    },
+  };
 }
 
 /**

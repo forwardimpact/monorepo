@@ -1,9 +1,37 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { createMockFs } from "@forwardimpact/libmock";
-import { isoWeek, weeklyLogPath, appendEntry } from "../src/weekly-log.js";
+import {
+  isoWeek,
+  weeklyLogPath,
+  appendEntry,
+  bisectWeeklyLog,
+} from "../src/weekly-log.js";
+import { countLines, countWords } from "../src/budget.js";
+import {
+  WEEKLY_LOG_LINE_BUDGET,
+  WEEKLY_LOG_WORD_BUDGET,
+} from "../src/constants.js";
 
 const WIKI_ROOT = "/wiki";
+
+// Build a `## YYYY-MM-DD` day-section of `lines` lines, each carrying
+// `wordsPerLine` words, so a fixture can target the line- or word-budget
+// independently.
+function daySection(date, lines, wordsPerLine = 1) {
+  const word = "word";
+  const rows = [`## ${date}`];
+  for (let i = 1; i < lines; i++) {
+    rows.push(Array(wordsPerLine).fill(word).join(" "));
+  }
+  return rows.join("\n") + "\n";
+}
+
+function source(h1, ...sections) {
+  return `${h1}\n${sections.join("")}`;
+}
+
+const H1 = "# Staff Engineer — 2026-W21";
 
 describe("isoWeek", () => {
   test("2026-01-04 is W01", () => {
@@ -35,6 +63,189 @@ describe("isoWeek", () => {
     const { year, week } = isoWeek(new Date("2026-12-31T00:00:00Z"));
     assert.equal(year, 2026);
     assert.equal(week, 53);
+  });
+});
+
+describe("bisectWeeklyLog", () => {
+  // Every part's rendered text (H1 + body) is at-or-under both budgets.
+  const partConforms = (p) => {
+    const rendered = `${p.h1}\n${p.body}`;
+    return (
+      countLines(rendered) <= WEEKLY_LOG_LINE_BUDGET &&
+      countWords(rendered) <= WEEKLY_LOG_WORD_BUDGET
+    );
+  };
+  const bodyBelowH1 = (text) => text.slice(text.indexOf("\n") + 1);
+
+  test("over the line budget across days → ≥2 conforming parts", () => {
+    // 4 × 150-line sections = 600 body lines > 496; each section < 496.
+    const text = source(
+      H1,
+      daySection("2026-05-18", 150),
+      daySection("2026-05-19", 150),
+      daySection("2026-05-20", 150),
+      daySection("2026-05-21", 150),
+    );
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    assert.equal(residue, null);
+    assert.ok(parts.length >= 2, "splits into multiple parts");
+    for (const p of parts) assert.ok(partConforms(p), "every part conforms");
+  });
+
+  test("over only the word budget across days → ≥2 conforming parts", () => {
+    // 2 × 200-line sections @ 20 words/line ≈ 4000 words each > 6400 jointly,
+    // ~400 lines total < 496 — only the word budget is breached.
+    const text = source(
+      H1,
+      daySection("2026-05-19", 200, 20),
+      daySection("2026-05-20", 200, 20),
+    );
+    assert.ok(countLines(text) <= WEEKLY_LOG_LINE_BUDGET, "under the line cap");
+    assert.ok(countWords(text) > WEEKLY_LOG_WORD_BUDGET, "over the word cap");
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    assert.equal(residue, null);
+    assert.ok(parts.length >= 2);
+    for (const p of parts) assert.ok(partConforms(p));
+  });
+
+  test("loses and duplicates no content; cuts only at day seams", () => {
+    const text = source(
+      H1,
+      "preamble line\n",
+      daySection("2026-05-18", 150),
+      daySection("2026-05-19", 150),
+      daySection("2026-05-20", 150),
+      daySection("2026-05-21", 150),
+    );
+    const { parts } = bisectWeeklyLog(text, "staff-engineer", "2026-W21");
+    // Concatenated part bodies equal the original body below its H1.
+    assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
+    // The prologue rides with part 1; every other part starts at a day seam,
+    // and no day-section's count is lost or duplicated across parts.
+    assert.match(parts[0].body, /^preamble line\n## 2026-05-18/);
+    for (const p of parts.slice(1)) {
+      assert.match(p.body, /^## \d{4}-\d{2}-\d{2}/);
+    }
+    const seamCount = (s) => (s.match(/^## \d{4}-\d{2}-\d{2}/gm) || []).length;
+    assert.equal(
+      parts.reduce((n, p) => n + seamCount(p.body), 0),
+      seamCount(bodyBelowH1(text)),
+    );
+  });
+
+  test("H1s number (part 1 of M) … (part M of M)", () => {
+    const text = source(
+      H1,
+      daySection("2026-05-18", 150),
+      daySection("2026-05-19", 150),
+      daySection("2026-05-20", 150),
+      daySection("2026-05-21", 150),
+    );
+    const { parts } = bisectWeeklyLog(text, "staff-engineer", "2026-W21");
+    const m = parts.length;
+    parts.forEach((p, i) => {
+      assert.equal(p.h1, `# Staff Engineer — 2026-W21 (part ${i + 1} of ${m})`);
+    });
+  });
+
+  test("irreducible lone day-section → residue named with its date", () => {
+    // One 600-line section alone exceeds the line budget; the rest packs.
+    const text = source(
+      H1,
+      daySection("2026-05-18", 50),
+      daySection("2026-05-19", 600),
+      daySection("2026-05-20", 50),
+    );
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    assert.ok(residue, "an irreducible residue is reported");
+    assert.equal(residue.section, "2026-05-19");
+    assert.ok(residue.lines > WEEKLY_LOG_LINE_BUDGET);
+    // The residue's part carries that section; the rest conforms.
+    assert.match(parts[residue.partIndex].body, /^## 2026-05-19/);
+    parts.forEach((p, i) => {
+      if (i !== residue.partIndex) {
+        const rendered = `${p.h1}\n${p.body}`;
+        assert.ok(countLines(rendered) <= WEEKLY_LOG_LINE_BUDGET);
+      }
+    });
+    // Content is still fully preserved.
+    assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
+  });
+
+  test("over-cap prologue above day-sections → residue 'prologue', never silent", () => {
+    // A preamble that alone busts the line budget, then normal day-sections.
+    const prologue = `${Array(600).fill("preamble").join("\n")}\n`;
+    const text = source(
+      H1,
+      prologue,
+      daySection("2026-05-19", 50),
+      daySection("2026-05-20", 50),
+    );
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    assert.ok(
+      residue,
+      "the over-cap prologue is flagged, not shipped silently",
+    );
+    assert.equal(residue.section, "prologue");
+    assert.equal(residue.partIndex, 0);
+    assert.ok(residue.lines > WEEKLY_LOG_LINE_BUDGET);
+    // The prologue is part 0; content is still fully preserved.
+    assert.match(parts[0].body, /^preamble/);
+    assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
+  });
+
+  test("multiple irreducible sections → first named, every over-cap part present", () => {
+    const text = source(
+      H1,
+      daySection("2026-05-18", 600),
+      daySection("2026-05-19", 50),
+      daySection("2026-05-20", 600),
+    );
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    // residue names the FIRST irreducible chunk (plan: "names the first such
+    // chunk"); the second over-cap section is still its own part in the list,
+    // so the caller's status is incomplete and the audit flags every over-cap
+    // part — none ships silently.
+    assert.equal(residue.section, "2026-05-18");
+    const overCap = parts.filter(
+      (p) => countLines(`${p.h1}\n${p.body}`) > WEEKLY_LOG_LINE_BUDGET,
+    );
+    assert.equal(overCap.length, 2, "both irreducible parts are present");
+    assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
+  });
+
+  test("zero-day-section over-cap source → residue 'prologue'", () => {
+    const text = `${H1}\n${Array(600).fill("filler").join("\n")}\n`;
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    assert.equal(parts.length, 1);
+    assert.ok(residue);
+    assert.equal(residue.section, "prologue");
+    assert.equal(residue.partIndex, 0);
+    assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
   });
 });
 
