@@ -85,4 +85,40 @@ describe("fit-wiki log CLI seal-on-append (in-process)", () => {
       "the fresh current log is well under budget",
     );
   });
+
+  test("note shares the seal-then-append path and lands in a fresh current log", () => {
+    const today = "2026-05-24";
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", today);
+    let text = "# Staff Engineer — 2026-W21\n";
+    for (let s = 0; s < 4; s++) {
+      text += `## 2026-05-${String(18 + s).padStart(2, "0")}\n`;
+      for (let i = 1; i < 150; i++) text += "- filler\n";
+    }
+    writeFileSync(logPath, text);
+
+    const harness = makeRuntime({ cwd: dir });
+    const result = runLogCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        options: {
+          agent: "staff-engineer",
+          "wiki-root": wikiRoot,
+          today,
+          field: "Findings",
+          body: "all clean",
+        },
+        args: { subcommand: "note" },
+      }),
+    );
+
+    assert.deepEqual(result, { ok: true });
+    assert.ok(
+      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      "the over-cap log is sealed before the note appends",
+    );
+    const fresh = readFileSync(logPath, "utf-8");
+    assert.match(fresh, /^# Staff Engineer — 2026-W21\n/);
+    assert.match(fresh, /### Findings/);
+    assert.ok(fresh.split("\n").length - 1 <= WEEKLY_LOG_LINE_BUDGET);
+  });
 });

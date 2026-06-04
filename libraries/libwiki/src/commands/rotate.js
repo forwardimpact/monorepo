@@ -55,6 +55,8 @@ export function runRotateCommand(ctx) {
       return { ok: false, code: 1 };
     }
     default:
+      // Defensive: the tagged union is exhaustive above, so this is
+      // unreachable; kept so a future status can't fall through to no return.
       return { ok: true };
   }
 }

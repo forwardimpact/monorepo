@@ -12,18 +12,25 @@ export function weeklyLogPath(wikiRoot, agent, today) {
   return path.join(wikiRoot, `${agent}-${isoWeekString(today)}.md`);
 }
 
-function nextPartIndex(filePath, fs) {
-  const dir = path.dirname(filePath);
-  const base = path.basename(filePath, ".md");
-  let n = 1;
-  while (fs.existsSync(path.join(dir, `${base}-part${n}.md`))) n++;
-  return n;
-}
-
 function partPathAt(filePath, n) {
   const dir = path.dirname(filePath);
   const base = path.basename(filePath, ".md");
   return path.join(dir, `${base}-part${n}.md`);
+}
+
+// Find `count` part slots that are each verified free, skipping any occupied
+// `-partN.md` (e.g. a numbering gap left by a manually deleted middle part).
+// Every returned slot is unoccupied, so the seal never overwrites a pre-existing
+// part on commit nor unlinks one on rollback.
+function nextFreeSlots(filePath, count, fs) {
+  const slots = [];
+  let n = 1;
+  while (slots.length < count) {
+    const p = partPathAt(filePath, n);
+    if (!fs.existsSync(p)) slots.push(p);
+    n++;
+  }
+  return slots;
 }
 
 function agentTitle(agent) {
@@ -44,17 +51,33 @@ function residueOf(sec, partIndex, measure) {
 }
 
 /**
+ * An over-cap prologue cannot merge with any day-section (adding content only
+ * grows it), so it always seals as its own part 0. Flag it up front as the
+ * first residue so it is never shipped silently over budget.
+ */
+function prologueResidue(prologue, { overBudget, measure }) {
+  if (prologue.length === 0 || !overBudget(prologue)) return null;
+  const { lines, words } = measure(prologue);
+  return { section: "prologue", lines, words, partIndex: 0 };
+}
+
+/**
  * Greedily pack day-sections into part bodies under both budgets, the prologue
- * riding with part 1. A lone section that alone exceeds a budget is sealed as
- * its own part and recorded as the (first) residue.
+ * riding with part 1. A chunk that alone exceeds a budget — a lone day-section
+ * or an over-cap prologue — is sealed as its own part and recorded as the
+ * (first) residue; packed runs and single sections are kept under both budgets,
+ * so the only over-cap part bodies are the ones `residue` accounts for.
  * @param {Array<{date: string, text: string}>} sections
  * @param {string} prologue - Content above the first seam; rides with part 1.
  * @param {{overBudget: (s: string) => boolean, measure: (s: string) => {lines: number, words: number}}} budget
  * @returns {{partBodies: string[], residue: null | {section: string, lines: number, words: number, partIndex: number}}}
  */
-function packSections(sections, prologue, { overBudget, measure }) {
+function packSections(sections, prologue, budget) {
+  const { overBudget, measure } = budget;
   const partBodies = [];
-  let residue = null;
+  // The prologue, when over budget, is always pushed first (part 0) — record it
+  // before packing so a later lone-section residue cannot displace it.
+  let residue = prologueResidue(prologue, budget);
   let open = prologue; // body of the part currently being filled
   let opened = prologue.length > 0;
   const flush = () => {
@@ -139,20 +162,10 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
     seams.push({ offset: match.index, date: match[1] });
   }
 
-  // Zero day-sections: the whole body is the prologue and its own single part.
+  // Zero day-sections: the whole body is the prologue and its own single part,
+  // flagged as a residue when it alone exceeds a budget.
   if (seams.length === 0) {
-    const measured = measure(body);
-    const residue =
-      measured.lines > WEEKLY_LOG_LINE_BUDGET ||
-      measured.words > WEEKLY_LOG_WORD_BUDGET
-        ? {
-            section: "prologue",
-            lines: measured.lines,
-            words: measured.words,
-            partIndex: 0,
-          }
-        : null;
-    return finish([body], residue);
+    return finish([body], prologueResidue(body, { overBudget, measure }));
   }
 
   const prologue = body.slice(0, seams[0].offset);
@@ -187,8 +200,7 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
  * @returns {string[]} The `-partN.md` slot paths, in part order.
  */
 function atomicSeal(filePath, parts, agent, isoWeekStr, fs) {
-  const start = nextPartIndex(filePath, fs);
-  const slots = parts.map((_, i) => partPathAt(filePath, start + i));
+  const slots = nextFreeSlots(filePath, parts.length, fs);
   const mainTemp = `${filePath}.tmp`;
   const temps = []; // temp paths this seal wrote, for rollback
   const committed = []; // slots already renamed into place, for rollback

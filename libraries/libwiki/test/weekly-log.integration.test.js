@@ -167,4 +167,103 @@ describe("rotateIfOverBudget", () => {
       "no part or temp files survive the rollback",
     );
   });
+
+  test("atomic: a staging-phase write failure (before any rename) rolls back", () => {
+    const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
+    const original = multiDaySource();
+    writeFileSync(filePath, original);
+    const inodeBefore = statSync(filePath).ino;
+
+    // Fail on the SECOND part temp write — before any rename has run — so only
+    // the temp-cleanup rollback branch (no committed slots) is exercised.
+    let writes = 0;
+    const flakyFs = {
+      existsSync: nodeFs.existsSync,
+      readFileSync: nodeFs.readFileSync,
+      renameSync: nodeFs.renameSync,
+      unlinkSync: nodeFs.unlinkSync,
+      writeFileSync: (p, data) => {
+        writes++;
+        if (writes === 2) throw new Error("disk full");
+        return nodeFs.writeFileSync(p, data);
+      },
+    };
+
+    assert.throws(
+      () => rotateIfOverBudget(wikiRoot, AGENT, WEEK, 1, {}, flakyFs),
+      /disk full/,
+    );
+    assert.equal(readFileSync(filePath, "utf-8"), original, "source intact");
+    assert.equal(statSync(filePath).ino, inodeBefore, "source inode unchanged");
+    const leftover = readdirSync(wikiRoot).filter(
+      (f) => f.includes("-part") || f.endsWith(".tmp"),
+    );
+    assert.deepEqual(leftover, [], "no staged temps survive the rollback");
+  });
+
+  test("never overwrites a pre-existing part when slot numbering has a gap", () => {
+    // A manually deleted middle part leaves part1 + part3; a multi-part seal
+    // must claim only free slots (part2, part4, …), never clobbering part3.
+    const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
+    writeFileSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md"), "# p1\n");
+    const part3 = join(wikiRoot, "staff-engineer-2026-W21-part3.md");
+    writeFileSync(part3, "# preexisting part 3\n");
+    writeFileSync(filePath, multiDaySource());
+
+    const r = rotateIfOverBudget(wikiRoot, AGENT, WEEK, 1, {}, nodeFs);
+    assert.equal(r.status, "sealed");
+    assert.ok(r.parts.length >= 2);
+    assert.ok(
+      !r.parts.includes(part3),
+      "the seal does not claim the occupied part3 slot",
+    );
+    assert.equal(
+      readFileSync(part3, "utf-8"),
+      "# preexisting part 3\n",
+      "the pre-existing part3 is untouched",
+    );
+  });
+
+  test("force seals a word-only-over multi-day source into conforming parts", () => {
+    const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
+    // 2 day-sections @ 200 lines × 20 words ≈ 8000 words > 6400, ~400 lines
+    // < 496 — only the word budget is breached. Drives the seal end-to-end
+    // through the primitive's atomic writer.
+    let text = "# Staff Engineer — 2026-W21\n";
+    for (let s = 0; s < 2; s++) {
+      text += `## 2026-05-${String(19 + s).padStart(2, "0")}\n`;
+      for (let i = 1; i < 200; i++)
+        text += `${Array(20).fill("word").join(" ")}\n`;
+    }
+    writeFileSync(filePath, text);
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      AGENT,
+      WEEK,
+      0,
+      { force: true },
+      nodeFs,
+    );
+    assert.equal(r.status, "sealed");
+    assert.ok(r.parts.length >= 2, "word overflow splits into ≥2 parts");
+  });
+
+  test("incomplete when the prologue alone exceeds the budget above day-sections", () => {
+    const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
+    let text = "# Staff Engineer — 2026-W21\n";
+    for (let i = 0; i < 600; i++) text += "preamble\n";
+    text += "## 2026-05-19\nx\n## 2026-05-20\ny\n";
+    writeFileSync(filePath, text);
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      AGENT,
+      WEEK,
+      0,
+      { force: true },
+      nodeFs,
+    );
+    assert.equal(r.status, "incomplete");
+    assert.equal(r.residue.section, "prologue");
+    assert.ok(r.parts.includes(r.residue.path));
+  });
 });

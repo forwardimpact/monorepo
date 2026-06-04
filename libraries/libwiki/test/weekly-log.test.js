@@ -184,6 +184,56 @@ describe("bisectWeeklyLog", () => {
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
   });
 
+  test("over-cap prologue above day-sections → residue 'prologue', never silent", () => {
+    // A preamble that alone busts the line budget, then normal day-sections.
+    const prologue = `${Array(600).fill("preamble").join("\n")}\n`;
+    const text = source(
+      H1,
+      prologue,
+      daySection("2026-05-19", 50),
+      daySection("2026-05-20", 50),
+    );
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    assert.ok(
+      residue,
+      "the over-cap prologue is flagged, not shipped silently",
+    );
+    assert.equal(residue.section, "prologue");
+    assert.equal(residue.partIndex, 0);
+    assert.ok(residue.lines > WEEKLY_LOG_LINE_BUDGET);
+    // The prologue is part 0; content is still fully preserved.
+    assert.match(parts[0].body, /^preamble/);
+    assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
+  });
+
+  test("multiple irreducible sections → first named, every over-cap part present", () => {
+    const text = source(
+      H1,
+      daySection("2026-05-18", 600),
+      daySection("2026-05-19", 50),
+      daySection("2026-05-20", 600),
+    );
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    // residue names the FIRST irreducible chunk (plan: "names the first such
+    // chunk"); the second over-cap section is still its own part in the list,
+    // so the caller's status is incomplete and the audit flags every over-cap
+    // part — none ships silently.
+    assert.equal(residue.section, "2026-05-18");
+    const overCap = parts.filter(
+      (p) => countLines(`${p.h1}\n${p.body}`) > WEEKLY_LOG_LINE_BUDGET,
+    );
+    assert.equal(overCap.length, 2, "both irreducible parts are present");
+    assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
+  });
+
   test("zero-day-section over-cap source → residue 'prologue'", () => {
     const text = `${H1}\n${Array(600).fill("filler").join("\n")}\n`;
     const { parts, residue } = bisectWeeklyLog(
