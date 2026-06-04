@@ -80,7 +80,7 @@ Add `export function bisectWeeklyLog(text, agent, isoWeekStr)` returning
   the file slots (Step 3) continue from the next free global index (design Key
   Decision: local `N of M`, existing slots kept).
 
-Verification: new `bun test libraries/libwiki/test/weekly-log.test.js` cases assert concatenated part bodies equal the original body below its H1, every part is at-or-under both budgets, rendered H1s number `(part 1 of M) … (part M of M)`, no day-section spans two parts, and an irreducible section yields a named `residue` with its `partIndex`.
+Verification: new `bun test libraries/libwiki/test/weekly-log.test.js` cases assert concatenated part bodies equal the original body below its H1, every part is at-or-under both budgets, rendered H1s number `(part 1 of M) … (part M of M)`, and no day-section spans two parts. Two irreducible cases: a lone over-cap `## YYYY-MM-DD` section yields a `residue` named with that date and its `partIndex`; a **zero-day-section** over-cap source (all prologue) yields `residue.section === "prologue"` as its own part.
 
 ## Step 3 — Atomic writer, `nextPartIndex`, and the tagged primitive
 
@@ -116,6 +116,12 @@ the produced slot paths (`slots`) **in part order**:
    written until the last rename, so its path/contents/inode are untouched on
    failure.
 
+This realizes the design's "replace the source as the single commit point": the
+fresh-main rename over `filePath` is that point, and the per-part renames before
+it are rolled back (slots unlinked) on failure — the design's "unlink the staged
+parts" applied to fs-error renames, the only failure mode the spec's atomicity
+criterion covers.
+
 Re-shape `rotateIfOverBudget` to return the tagged union (delete the
 `{ rotated, toPath }` shape and the local `countLines`; compute `isoWeekStr`
 once via `isoWeekString(today)` and thread it to `bisectWeeklyLog`/
@@ -139,7 +145,7 @@ once via `isoWeekString(today)` and thread it to `bisectWeeklyLog`/
 Update `index.js`: export `bisectWeeklyLog`; the `rotateIfOverBudget` export
 line is unchanged.
 
-Verification: rewrite `bun test libraries/libwiki/test/weekly-log.integration.test.js` (real `node:fs`) to assert the three statuses and multi-part `parts` arrays. The atomicity case seeds a source that bisects into **≥2 parts** and passes a real-fs-backed `fs` wrapper whose `renameSync` succeeds on the first part rename but throws on the **second** (so ≥1 slot is already committed when the failure hits, exercising the slot-unlink rollback — not just temp cleanup) → assert the source path/contents/inode are intact and **no** `-partN.md` slot (committed or staged) survives.
+Verification: rewrite `bun test libraries/libwiki/test/weekly-log.integration.test.js` (real `node:fs`) to assert the three statuses and multi-part `parts` arrays. The atomicity case seeds a source that bisects into **≥2 parts** and passes a real-fs-backed `fs` wrapper that delegates `writeFileSync`/`existsSync`/`readFileSync`/`unlinkSync` to `node:fs` and wraps only `renameSync` to succeed on the first part rename and throw on the **second** (so ≥1 slot is already committed when the failure hits, exercising the slot-unlink rollback — not just temp cleanup) → assert the source path/contents/inode are intact and **no** `-partN.md` slot (committed or staged) survives.
 
 ## Step 4 — `fit-wiki rotate` handler
 
@@ -172,10 +178,10 @@ multi-day current log now resolves clean.
 In `rotateOverBudgetMainLogs`:
 
 - A main log over **both** line and word budget yields two `rotate` findings
-  for the same path; dedupe so each path is sealed at most once (track sealed
-  paths in a `Set`, or seal the unique `f.path` set) — otherwise the second
-  `force: true` call bisects the freshly-written `defaultH1` main into a
-  spurious near-empty part.
+  with the **same `f.path`** (different rule ids); inside the loop, skip any
+  `f.path` already sealed this pass (a `Set` of sealed paths) — deduping by rule
+  id would not help. Otherwise the second `force: true` call bisects the
+  freshly-written `defaultH1` main into a spurious near-empty part.
 - Replace the `res.rotated` check with
   `if (res.status === "sealed" || res.status === "incomplete")` and print one
   relative `rotated … -> …` line per `res.parts`.
@@ -204,7 +210,7 @@ dated entry). Wrap the rotate call in `try/catch` — a thrown fs error is
 reported to stderr and the command still returns `{ ok: true }` after appending
 against the (intact) current file.
 
-Verification: add a real-fs integration case (a new `cli-log.integration.test.js`, modelled on `cli-fix.integration.test.js`; **not** the mock-backed `cli-log.test.js`, whose `createMockFs` has no `renameSync`) driving `log decision` against an over-cap multi-day current log; assert the source is sealed into conforming parts and the new dated entry lands in a fresh current `<agent>-YYYY-Www.md`. `note`/`done` share the same rotate-then-append path; the existing under-budget `cli-log.test.js` cases (no seal triggered) keep passing on the mock.
+Verification: add a real-fs integration case (a new `cli-log.integration.test.js`, modelled on `cli-fix.integration.test.js`; **not** the mock-backed `cli-log.test.js`, whose `createMockFs` has no `renameSync`) driving `log decision` against a current log over the **line** budget across ≥2 day-sections (the append path's non-`force` short-circuit triggers on the line budget only, so a word-only-over fixture would `noop` and never seal); assert the source is sealed into conforming parts and the new dated entry lands in a fresh current `<agent>-YYYY-Www.md`. `note`/`done` share the same rotate-then-append path; the existing under-budget `cli-log.test.js` cases (no seal triggered) keep passing on the mock.
 
 ## Step 7 — Sealed-part hint text
 
@@ -233,9 +239,11 @@ Verification: `bun test libraries/libwiki/test/audit-rules.test.js` green (the e
   reaches a human.
 - **Residual post-commit failure is out of scope.** Atomicity holds up to the
   final fresh-main rename; a crash *between* the part renames and that rename
-  (kernel-level) can leave committed parts with the source still over-budget, so
-  a re-run would create duplicate parts. Design R3 narrowed the spec's
-  atomicity criterion to fs-error renames, which the rollback covers.
+  (kernel-level, not an `fs` throw) can leave committed parts with the source
+  still over-budget, so a re-run would create duplicate parts. The design's
+  Atomicity decision (unlink the staged parts on failure) and the spec's
+  atomicity criterion address fs-error renames, which the rollback covers; a
+  mid-commit kernel crash is not in that envelope.
 
 ## Execution
 
