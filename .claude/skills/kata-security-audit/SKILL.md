@@ -95,6 +95,53 @@ Each run covers **one topic** in depth.
 3. Announce your pick and why before starting.
 4. Go deep — read every relevant file, not just grep for patterns.
 
+#### Topic-rotation budget rule
+
+PR-review work is high-priority but displaces canonical topic rotation. The
+budget rule restores rotation cadence without breaching PR-review turnaround.
+
+**Rule**: After **2 consecutive PR-review-displacement slots** in the same
+vocabulary class (PR-review note vs canonical-topic note), the next SE Assess
+invocation reserves the slot for canonical topic rotation unless a critical-PR
+safety carve-out applies.
+
+**Counter mechanics** — derived live from
+`wiki/metrics/kata-security-audit/2026.csv`, walking rows backward from latest:
+
+| `note` shape                       | Effect on counter                                  |
+| ---------------------------------- | -------------------------------------------------- |
+| matches `*-pass[0-9]+$`            | **STOP** (reset to 0)                              |
+| matches `*-pr-review-*`            | **+1**                                             |
+| matches `^storyboard-*` (non-pass) | **+1**                                             |
+| matches `*-off-cadence*`           | **+1**                                             |
+| matches `*-ci-red-defer-*`         | **neutral** (safety-deferral does not punish rule) |
+
+Rule fires when counter ≥ 2 at next Assess.
+
+**Safety carve-outs** — rule does NOT fire if any apply:
+
+- **CRITICAL Dependabot PR open** — vulnerability with CVSS ≥ 7.0 in any open
+  Dependabot PR.
+- **Main CI red** — at least one required check on `origin/main` HEAD has
+  `conclusion=failure` (per
+  `gh api repos/forwardimpact/monorepo/commits/<sha>/check-runs`).
+- **Plan-phase PR covers a live security finding** (class rule) — PR branch
+  matches `plan/NNN-*` AND the spec body cites an open security Issue, an
+  active kill-switch, or a HIGH-severity SE audit finding; carve-out remains
+  time-bounded by the release-cut window noted in plan-a § Atomic release
+  coupling. *Replaces case-by-case enumeration of plan-phase PRs covering live
+  security findings — predicate matching means future qualifying plan PRs
+  inherit the carve-out without a SKILL.md amendment.*
+
+**Collision contingency** (main CI red AND reserved rotation slot on the same
+day):
+
+- SE is canonical repair-owner only for `secret-scanning` failures. If
+  root cause = secret-scanning → rule yields, SE repairs, records
+  `note=*-ci-red-secret-scanning-repair`.
+- Otherwise (RE/Staff repair-owner) → rule defers rotation 24h on safety
+  grounds. Assess records `note=*-ci-red-defer-<reason>`.
+
 ### Step 2: Audit the Topic
 
 Go deep on the selected topic using the audit area reference above. Read every
