@@ -24,6 +24,13 @@ const ZERO_STATS = {
   loadErrorMessages: [],
 };
 
+// Raw documents are emitted by canonical serializers (`JSON.stringify(…, 2)`
+// and `YAML.stringify`), so they are already well-formed. A second Prettier
+// pass over the thousands of activity/GetDX fixtures costs ~11s on a full
+// build and changes nothing — skip those parsers and let Prettier handle only
+// the content that genuinely needs reflowing (e.g. markdown emails, HTML).
+const PRESERIALIZED_PARSERS = new Set(["json", "yaml"]);
+
 /** No-op sink that discards pipeline output and returns zero stats. */
 export class NullSink {
   /** Ignore the result and return an empty stats object. */
@@ -51,7 +58,9 @@ export class WriteSink {
   /** Format and write generated files, raw documents, and evidence to disk. */
   async accept(result) {
     const formattedFiles = await this.formatter.format(result.files);
-    const formattedRaw = await this.formatter.format(result.rawDocuments);
+    const formattedRaw = await this.formatter.format(result.rawDocuments, {
+      skipParsers: PRESERIALIZED_PARSERS,
+    });
     this.logger.info(
       "format",
       `Formatted ${formattedFiles.size} files, ${formattedRaw.size} raw documents`,
@@ -112,7 +121,9 @@ export class LoadSink {
     if (result.rawDocuments.size === 0) {
       return { ...ZERO_STATS };
     }
-    const formattedRaw = await this.formatter.format(result.rawDocuments);
+    const formattedRaw = await this.formatter.format(result.rawDocuments, {
+      skipParsers: PRESERIALIZED_PARSERS,
+    });
     const loadResult = await this.loadToSupabase(this.supabase, formattedRaw);
     return {
       ...ZERO_STATS,
@@ -211,6 +222,39 @@ export class ProseCacheWriteSink {
   }
 }
 
+// Cap on concurrent writeFile calls. A full build emits ~14k files; an
+// unbounded Promise.all would risk EMFILE on hosts with a low descriptor
+// ulimit, while a bounded pool keeps throughput near-parallel and safe.
+const WRITE_CONCURRENCY = 256;
+
+/**
+ * Run `fn` over `items` with at most `limit` in flight at once. Returns once
+ * every item has settled. Used to fan out file writes without exhausting file
+ * descriptors on large datasets.
+ */
+async function mapWithConcurrency(items, limit, fn) {
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const item = items[next++];
+      await fn(item);
+    }
+  };
+  const size = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: size }, worker));
+}
+
+/**
+ * Ensure every directory in `paths` exists, deduplicating so each unique
+ * directory triggers a single recursive `mkdir`. The per-file `mkdir` it
+ * replaces issued one syscall per file (~14k on a full build) for a handful
+ * of distinct directories.
+ */
+async function ensureDirs(paths, fs) {
+  const dirs = new Set(paths.map((p) => dirname(p)));
+  await Promise.all([...dirs].map((dir) => fs.mkdir(dir, { recursive: true })));
+}
+
 /**
  * Write a Map of relative paths → content under the monorepo root. Cleans
  * each top-level subdirectory before writing so removed entities don't linger.
@@ -226,18 +270,31 @@ async function writeFiles(files, monorepoRoot, fs) {
   for (const dir of generatedDirs) {
     await fs.rm(dir, { recursive: true, force: true });
   }
-  for (const [relPath, content] of files) {
-    const fullPath = join(monorepoRoot, relPath);
-    await fs.mkdir(dirname(fullPath), { recursive: true });
-    await fs.writeFile(fullPath, content);
-  }
+  const entries = [...files].map(([relPath, content]) => [
+    join(monorepoRoot, relPath),
+    content,
+  ]);
+  await ensureDirs(
+    entries.map(([fullPath]) => fullPath),
+    fs,
+  );
+  await mapWithConcurrency(entries, WRITE_CONCURRENCY, ([fullPath, content]) =>
+    fs.writeFile(fullPath, content),
+  );
   return files.size;
 }
 
 async function writeRawLocally(rawDocuments, monorepoRoot, fs) {
-  for (const [storagePath, content] of rawDocuments) {
-    const fullPath = join(monorepoRoot, "data/activity/raw", storagePath);
-    await fs.mkdir(dirname(fullPath), { recursive: true });
-    await fs.writeFile(fullPath, content);
-  }
+  const rawRoot = join(monorepoRoot, "data/activity/raw");
+  const entries = [...rawDocuments].map(([storagePath, content]) => [
+    join(rawRoot, storagePath),
+    content,
+  ]);
+  await ensureDirs(
+    entries.map(([fullPath]) => fullPath),
+    fs,
+  );
+  await mapWithConcurrency(entries, WRITE_CONCURRENCY, ([fullPath, content]) =>
+    fs.writeFile(fullPath, content),
+  );
 }
