@@ -1,6 +1,10 @@
 import path from "node:path";
 import { isoWeekString } from "@forwardimpact/libutil";
-import { WEEKLY_LOG_LINE_BUDGET } from "./constants.js";
+import { countLines, countWords } from "./budget.js";
+import {
+  WEEKLY_LOG_LINE_BUDGET,
+  WEEKLY_LOG_WORD_BUDGET,
+} from "./constants.js";
 
 // ISO week computation lives in libutil's calendar util (the one place a
 // `new Date` is allowed); re-exported here for the existing public surface.
@@ -9,14 +13,6 @@ export { isoWeek } from "@forwardimpact/libutil";
 /** Return the path of the current weekly log file for an agent. */
 export function weeklyLogPath(wikiRoot, agent, today) {
   return path.join(wikiRoot, `${agent}-${isoWeekString(today)}.md`);
-}
-
-function countLines(text) {
-  if (text.length === 0) return 0;
-  let n = 0;
-  for (const ch of text) if (ch === "\n") n++;
-  if (!text.endsWith("\n")) n++;
-  return n;
 }
 
 function nextPartPath(filePath, fs) {
@@ -36,6 +32,127 @@ function agentTitle(agent) {
 
 function defaultH1(agent, isoWeekStr) {
   return `# ${agentTitle(agent)} — ${isoWeekStr}\n`;
+}
+
+/**
+ * Split an over-budget weekly-log source at its `## YYYY-MM-DD` day-section
+ * seams into an ordered list of conforming parts. Pure — no I/O.
+ *
+ * The first line of `text` is the original H1; it is consumed and replaced by
+ * per-part H1s, never appearing in a part body. Everything after that first
+ * line is the body, sliced at the day-section seam byte offsets so that
+ * concatenating the parts' bodies reproduces the original body byte-for-byte.
+ * The prologue (any content above the first seam) rides with part 1. Sections
+ * are greedily packed left-to-right under both the line- and word-budget, with
+ * each candidate part measured H1-included so its own H1 is charged.
+ *
+ * When a single chunk alone exceeds a budget — a lone day-section, or the
+ * whole prologue when the source has no day-sections — it is sealed as its own
+ * (over-budget) part and named in `residue`; the rest still packs normally.
+ *
+ * @param {string} text - The full weekly-log source (H1 + body).
+ * @param {string} agent - Agent profile id (e.g. "staff-engineer").
+ * @param {string} isoWeekStr - ISO week label (e.g. "2026-W21").
+ * @returns {{parts: Array<{h1: string, body: string}>, residue: null | {section: string, lines: number, words: number, partIndex: number}}}
+ */
+export function bisectWeeklyLog(text, agent, isoWeekStr) {
+  const nl = text.indexOf("\n");
+  const body = nl === -1 ? "" : text.slice(nl + 1);
+  const title = agentTitle(agent);
+  // `(part N of M)` costs the same 1 line and 4 word-tokens regardless of the
+  // digits in N/M, so a fixed template measures every part exactly without
+  // needing to know M before packing finishes.
+  const h1Template = `# ${title} — ${isoWeekStr} (part 1 of 1)`;
+  const measure = (chunk) => {
+    const rendered = `${h1Template}\n${chunk}`;
+    return { lines: countLines(rendered), words: countWords(rendered) };
+  };
+  const overBudget = (chunk) => {
+    const { lines, words } = measure(chunk);
+    return lines > WEEKLY_LOG_LINE_BUDGET || words > WEEKLY_LOG_WORD_BUDGET;
+  };
+  const partH1 = (n, m) => `# ${title} — ${isoWeekStr} (part ${n} of ${m})`;
+  const finish = (partBodies, residue) => {
+    const m = partBodies.length;
+    return {
+      parts: partBodies.map((b, i) => ({ h1: partH1(i + 1, m), body: b })),
+      residue,
+    };
+  };
+
+  // Locate the day-section seams (date at line-start, trailing suffix
+  // tolerated, e.g. `## 2026-05-19 (third activation)`).
+  const seamRe = /^## (\d{4}-\d{2}-\d{2})/gm;
+  const seams = [];
+  let match;
+  while ((match = seamRe.exec(body)) !== null) {
+    seams.push({ offset: match.index, date: match[1] });
+  }
+
+  // Zero day-sections: the whole body is the prologue and its own single part.
+  if (seams.length === 0) {
+    const measured = measure(body);
+    const residue =
+      measured.lines > WEEKLY_LOG_LINE_BUDGET ||
+      measured.words > WEEKLY_LOG_WORD_BUDGET
+        ? {
+            section: "prologue",
+            lines: measured.lines,
+            words: measured.words,
+            partIndex: 0,
+          }
+        : null;
+    return finish([body], residue);
+  }
+
+  const prologue = body.slice(0, seams[0].offset);
+  const sections = seams.map((s, i) => ({
+    date: s.date,
+    text: body.slice(
+      s.offset,
+      i + 1 < seams.length ? seams[i + 1].offset : body.length,
+    ),
+  }));
+
+  const partBodies = [];
+  let residue = null;
+  let current = prologue;
+  let currentEmpty = prologue.length === 0;
+
+  for (const sec of sections) {
+    if (overBudget(sec.text)) {
+      // Irreducible lone day-section: flush the open part, then seal it alone.
+      if (!currentEmpty) {
+        partBodies.push(current);
+        current = "";
+        currentEmpty = true;
+      }
+      const partIndex = partBodies.length;
+      partBodies.push(sec.text);
+      if (residue === null) {
+        const measured = measure(sec.text);
+        residue = {
+          section: sec.date,
+          lines: measured.lines,
+          words: measured.words,
+          partIndex,
+        };
+      }
+      continue;
+    }
+    if (currentEmpty) {
+      current = sec.text;
+      currentEmpty = false;
+    } else if (overBudget(current + sec.text)) {
+      partBodies.push(current);
+      current = sec.text;
+    } else {
+      current += sec.text;
+    }
+  }
+  if (!currentEmpty) partBodies.push(current);
+
+  return finish(partBodies, residue);
 }
 
 /**
