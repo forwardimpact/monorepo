@@ -139,14 +139,20 @@ top-7 list, or reading the latest unresolved-concern author) uses
 the existing skill mechanisms (Step 2, comment-gate.md), not new
 logic.
 
-| Gate (block reason)                | `owner` role on the re-ping              |
-| ---------------------------------- | ---------------------------------------- |
-| Untrusted Author                   | A trusted human (top-7 contributor) who can review |
-| Unsupported PR Type                | A trusted human who can re-title or close the PR |
-| CI Failing                         | The PR author (agent or human)           |
-| Substantive Conflict               | The PR author                            |
-| Awaiting Approval Signal           | A trusted human who can apply the approval signal |
-| Awaiting trusted-contributor reply | The named trusted-contributor whose comment remains open |
+The `Gate (attribute)` column ties each row back to the six-gate list
+at § Problem ¶1 ("trust, type, CI, mechanical readiness, approval,
+open comments"). The `Gate (block reason)` column is the
+template-name vocabulary used in `references/templates.md` and on the
+re-ping comment itself.
+
+| Gate (attribute)     | Gate (block reason)                | `owner` role on the re-ping              |
+| -------------------- | ---------------------------------- | ---------------------------------------- |
+| trust                | Untrusted Author                   | A trusted human (top-7 contributor) who can review |
+| type                 | Unsupported PR Type                | A trusted human who can re-title or close the PR |
+| CI                   | CI Failing                         | The PR author (agent or human)           |
+| mechanical readiness | Substantive Conflict               | The PR author                            |
+| approval             | Awaiting Approval Signal           | A trusted human who can apply the approval signal |
+| open comments        | Awaiting trusted-contributor reply | The named trusted-contributor whose comment remains open |
 
 ### Excluded
 
@@ -166,9 +172,9 @@ logic.
 - **How the rule reads the staleness timestamp.** The bot identity
   is committed (`app/kata-agent-team`); whether the skill reads the
   staleness signal from the per-week classification table, from a
-  per-sweep timeline query, from a derived index, or from any other
-  source is a design choice. The data path is deferred; the input
-  is not.
+  fresh `gh api …/issues/<n>/comments` query, from a derived index,
+  or from any other source is a design choice. The data path is
+  deferred; the input is not.
 - **The exact report-channel format.** The Classification Report
   must distinguish re-pings from initial blocks via a distinct
   action category (committed). Whether that is a new `Action`
