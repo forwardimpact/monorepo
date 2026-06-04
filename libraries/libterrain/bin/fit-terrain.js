@@ -12,7 +12,7 @@ import {
   formatWarning,
   SummaryRenderer,
   withEmbeddedAssets,
-  isCompiledBinary,
+  LIBCLI_IS_COMPILED,
 } from "@forwardimpact/libcli";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -200,7 +200,7 @@ async function runVerb(options) {
   // disk, so derive the project root from the working directory instead — the
   // binary operates on the project tree it is run from (story DSL, schemas,
   // and output paths are all project data, not bundled package assets).
-  const monorepoRoot = isCompiledBinary()
+  const monorepoRoot = LIBCLI_IS_COMPILED
     ? runtime.proc.cwd()
     : resolve(__dirname, "../../..");
   const schemaDir = join(monorepoRoot, "products/map/schema/json");

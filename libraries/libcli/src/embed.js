@@ -48,14 +48,22 @@ export function embeddedAssetsActive() {
 }
 
 /**
- * Whether this process is a `bun build --compile` standalone binary. Bun reports
- * the entry under its `/$bunfs` virtual root in compiled mode and a real path
- * otherwise.
+ * True when this process is a `bun build --compile` standalone binary.
+ *
+ * `build/build-binary.sh` passes `--define process.env.LIBCLI_IS_COMPILED="1"`,
+ * so Bun substitutes the literal member expression `process.env.LIBCLI_IS_COMPILED`
+ * with `"1"` across the whole bundle (this file included) at compile time and
+ * the comparison folds to `true`. In source/npx/test execution the env var is
+ * normally unset, so it is `false`. This mirrors the `LIBCLI_VERSION` literal
+ * trick in version.js — an explicit, platform-independent build-time contract
+ * rather than sniffing Bun's internal `/$bunfs` path convention.
+ *
+ * The read must stay the literal token `process.env.LIBCLI_IS_COMPILED` — that
+ * is what `--define` replaces; a dynamic `process.env[name]` would not be.
+ *
+ * @type {boolean}
  */
-export function isCompiledBinary() {
-  const main = globalThis.Bun?.main;
-  return typeof main === "string" && main.includes("/$bunfs/");
-}
+export const LIBCLI_IS_COMPILED = process.env.LIBCLI_IS_COMPILED === "1";
 
 /**
  * Virtual directory for a registered mount. Joining a filename onto it yields a

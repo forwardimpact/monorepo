@@ -3,7 +3,7 @@ export { resolveVersion } from "./version.js";
 export {
   registerAssets,
   embeddedAssetsActive,
-  isCompiledBinary,
+  LIBCLI_IS_COMPILED,
   embeddedDir,
   withEmbeddedAssets,
 } from "./embed.js";

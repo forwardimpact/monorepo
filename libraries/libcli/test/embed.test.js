@@ -7,6 +7,7 @@ import {
   embeddedAssetsActive,
   embeddedDir,
   withEmbeddedAssets,
+  LIBCLI_IS_COMPILED,
 } from "../src/embed.js";
 
 // The registry is module-global; these tests register a unique mount so they
@@ -67,6 +68,14 @@ describe("embed", () => {
       runtime.fsSync.readFileSync("/etc/real/file", "utf-8"),
       "from-disk",
     );
+  });
+
+  test("LIBCLI_IS_COMPILED is a boolean, false outside a compiled binary", () => {
+    // The constant folds to true only when build/build-binary.sh injects
+    // `--define process.env.LIBCLI_IS_COMPILED="1"`; in source/test execution
+    // the env var is unset, so it must be a plain false.
+    assert.strictEqual(typeof LIBCLI_IS_COMPILED, "boolean");
+    assert.strictEqual(LIBCLI_IS_COMPILED, false);
   });
 
   test("overlay returns the same runtime when no assets are registered", () => {
