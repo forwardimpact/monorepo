@@ -1,10 +1,7 @@
 import path from "node:path";
 import { isoWeekString } from "@forwardimpact/libutil";
 import { countLines, countWords } from "./budget.js";
-import {
-  WEEKLY_LOG_LINE_BUDGET,
-  WEEKLY_LOG_WORD_BUDGET,
-} from "./constants.js";
+import { WEEKLY_LOG_LINE_BUDGET, WEEKLY_LOG_WORD_BUDGET } from "./constants.js";
 
 // ISO week computation lives in libutil's calendar util (the one place a
 // `new Date` is allowed); re-exported here for the existing public surface.
@@ -38,6 +35,53 @@ function agentTitle(agent) {
 
 function defaultH1(agent, isoWeekStr) {
   return `# ${agentTitle(agent)} — ${isoWeekStr}\n`;
+}
+
+/** Describe a lone over-cap day-section as a residue at its part index. */
+function residueOf(sec, partIndex, measure) {
+  const { lines, words } = measure(sec.text);
+  return { section: sec.date, lines, words, partIndex };
+}
+
+/**
+ * Greedily pack day-sections into part bodies under both budgets, the prologue
+ * riding with part 1. A lone section that alone exceeds a budget is sealed as
+ * its own part and recorded as the (first) residue.
+ * @param {Array<{date: string, text: string}>} sections
+ * @param {string} prologue - Content above the first seam; rides with part 1.
+ * @param {{overBudget: (s: string) => boolean, measure: (s: string) => {lines: number, words: number}}} budget
+ * @returns {{partBodies: string[], residue: null | {section: string, lines: number, words: number, partIndex: number}}}
+ */
+function packSections(sections, prologue, { overBudget, measure }) {
+  const partBodies = [];
+  let residue = null;
+  let open = prologue; // body of the part currently being filled
+  let opened = prologue.length > 0;
+  const flush = () => {
+    if (opened) {
+      partBodies.push(open);
+      open = "";
+      opened = false;
+    }
+  };
+  for (const sec of sections) {
+    if (overBudget(sec.text)) {
+      // Irreducible lone day-section: flush the open part, then seal it alone.
+      flush();
+      residue ??= residueOf(sec, partBodies.length, measure);
+      partBodies.push(sec.text);
+    } else if (!opened) {
+      open = sec.text;
+      opened = true;
+    } else if (overBudget(open + sec.text)) {
+      partBodies.push(open);
+      open = sec.text;
+    } else {
+      open += sec.text;
+    }
+  }
+  flush();
+  return { partBodies, residue };
 }
 
 /**
@@ -120,44 +164,10 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
     ),
   }));
 
-  const partBodies = [];
-  let residue = null;
-  let current = prologue;
-  let currentEmpty = prologue.length === 0;
-
-  for (const sec of sections) {
-    if (overBudget(sec.text)) {
-      // Irreducible lone day-section: flush the open part, then seal it alone.
-      if (!currentEmpty) {
-        partBodies.push(current);
-        current = "";
-        currentEmpty = true;
-      }
-      const partIndex = partBodies.length;
-      partBodies.push(sec.text);
-      if (residue === null) {
-        const measured = measure(sec.text);
-        residue = {
-          section: sec.date,
-          lines: measured.lines,
-          words: measured.words,
-          partIndex,
-        };
-      }
-      continue;
-    }
-    if (currentEmpty) {
-      current = sec.text;
-      currentEmpty = false;
-    } else if (overBudget(current + sec.text)) {
-      partBodies.push(current);
-      current = sec.text;
-    } else {
-      current += sec.text;
-    }
-  }
-  if (!currentEmpty) partBodies.push(current);
-
+  const { partBodies, residue } = packSections(sections, prologue, {
+    overBudget,
+    measure,
+  });
   return finish(partBodies, residue);
 }
 

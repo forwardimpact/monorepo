@@ -67,24 +67,41 @@ describe("rotateIfOverBudget", () => {
       );
     }
     assert.equal(existsSync(filePath), true, "fresh main created");
-    assert.match(readFileSync(filePath, "utf-8"), /^# Staff Engineer — 2026-W21\n$/);
+    assert.match(
+      readFileSync(filePath, "utf-8"),
+      /^# Staff Engineer — 2026-W21\n$/,
+    );
   });
 
   test("force seals into conforming parts without a born-over-cap part", () => {
     const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
     writeFileSync(filePath, multiDaySource());
-    const r = rotateIfOverBudget(wikiRoot, AGENT, WEEK, 0, { force: true }, nodeFs);
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      AGENT,
+      WEEK,
+      0,
+      { force: true },
+      nodeFs,
+    );
     assert.equal(r.status, "sealed");
     assert.ok(r.parts.length >= 2);
   });
 
   test("part slots continue past existing parts", () => {
     const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
-    writeFileSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md"), "# old\n");
+    writeFileSync(
+      join(wikiRoot, "staff-engineer-2026-W21-part1.md"),
+      "# old\n",
+    );
     writeFileSync(filePath, multiDaySource());
     const r = rotateIfOverBudget(wikiRoot, AGENT, WEEK, 1, {}, nodeFs);
     assert.equal(r.status, "sealed");
-    assert.match(r.parts[0], /-part2\.md$/, "new parts start at the next free slot");
+    assert.match(
+      r.parts[0],
+      /-part2\.md$/,
+      "new parts start at the next free slot",
+    );
   });
 
   test("incomplete when a lone day-section exceeds the budget", () => {
@@ -93,10 +110,20 @@ describe("rotateIfOverBudget", () => {
     for (let i = 0; i < 600; i++) text += "filler\n";
     text += "## 2026-05-20\nx\n";
     writeFileSync(filePath, text);
-    const r = rotateIfOverBudget(wikiRoot, AGENT, WEEK, 0, { force: true }, nodeFs);
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      AGENT,
+      WEEK,
+      0,
+      { force: true },
+      nodeFs,
+    );
     assert.equal(r.status, "incomplete");
     assert.equal(r.residue.section, "2026-05-19");
-    assert.ok(r.parts.includes(r.residue.path), "residue path is among the parts");
+    assert.ok(
+      r.parts.includes(r.residue.path),
+      "residue path is among the parts",
+    );
     assert.ok(r.residue.lines > WEEKLY_LOG_LINE_BUDGET);
   });
 
@@ -125,11 +152,19 @@ describe("rotateIfOverBudget", () => {
       () => rotateIfOverBudget(wikiRoot, AGENT, WEEK, 1, {}, flakyFs),
       /disk full/,
     );
-    assert.equal(readFileSync(filePath, "utf-8"), original, "source contents intact");
+    assert.equal(
+      readFileSync(filePath, "utf-8"),
+      original,
+      "source contents intact",
+    );
     assert.equal(statSync(filePath).ino, inodeBefore, "source inode unchanged");
     const leftover = readdirSync(wikiRoot).filter(
       (f) => f.includes("-part") || f.endsWith(".tmp"),
     );
-    assert.deepEqual(leftover, [], "no part or temp files survive the rollback");
+    assert.deepEqual(
+      leftover,
+      [],
+      "no part or temp files survive the rollback",
+    );
   });
 });

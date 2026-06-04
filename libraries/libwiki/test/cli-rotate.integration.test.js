@@ -1,6 +1,12 @@
 import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
+import {
+  mkdtempSync,
+  writeFileSync,
+  mkdirSync,
+  rmSync,
+  existsSync,
+} from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -67,11 +73,17 @@ describe("fit-wiki rotate CLI (in-process)", () => {
   test("an irreducible single-day section exits 1 and names the section", () => {
     let text = "# Staff Engineer — 2026-W21\n## 2026-05-18\nx\n## 2026-05-19\n";
     for (let i = 0; i < 600; i++) text += "filler\n";
-    writeFileSync(weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24"), text);
+    writeFileSync(
+      weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24"),
+      text,
+    );
     const { result, harness } = run();
     assert.equal(result.ok, false);
     assert.equal(result.code, 1);
-    assert.match(harness.stderr, /day-section 2026-05-19 alone exceeds the budget/);
+    assert.match(
+      harness.stderr,
+      /day-section 2026-05-19 alone exceeds the budget/,
+    );
     assert.match(harness.stderr, /recover it by hand/);
   });
 });

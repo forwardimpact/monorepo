@@ -86,7 +86,11 @@ describe("bisectWeeklyLog", () => {
       daySection("2026-05-20", 150),
       daySection("2026-05-21", 150),
     );
-    const { parts, residue } = bisectWeeklyLog(text, "staff-engineer", "2026-W21");
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
     assert.equal(residue, null);
     assert.ok(parts.length >= 2, "splits into multiple parts");
     for (const p of parts) assert.ok(partConforms(p), "every part conforms");
@@ -102,7 +106,11 @@ describe("bisectWeeklyLog", () => {
     );
     assert.ok(countLines(text) <= WEEKLY_LOG_LINE_BUDGET, "under the line cap");
     assert.ok(countWords(text) > WEEKLY_LOG_WORD_BUDGET, "over the word cap");
-    const { parts, residue } = bisectWeeklyLog(text, "staff-engineer", "2026-W21");
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
     assert.equal(residue, null);
     assert.ok(parts.length >= 2);
     for (const p of parts) assert.ok(partConforms(p));
@@ -156,7 +164,11 @@ describe("bisectWeeklyLog", () => {
       daySection("2026-05-19", 600),
       daySection("2026-05-20", 50),
     );
-    const { parts, residue } = bisectWeeklyLog(text, "staff-engineer", "2026-W21");
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
     assert.ok(residue, "an irreducible residue is reported");
     assert.equal(residue.section, "2026-05-19");
     assert.ok(residue.lines > WEEKLY_LOG_LINE_BUDGET);
@@ -174,7 +186,11 @@ describe("bisectWeeklyLog", () => {
 
   test("zero-day-section over-cap source → residue 'prologue'", () => {
     const text = `${H1}\n${Array(600).fill("filler").join("\n")}\n`;
-    const { parts, residue } = bisectWeeklyLog(text, "staff-engineer", "2026-W21");
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
     assert.equal(parts.length, 1);
     assert.ok(residue);
     assert.equal(residue.section, "prologue");
