@@ -15,11 +15,11 @@ All changes live in `libraries/libwiki`. No new library; no service touched.
 |---|---|---|
 | Rotation primitive | `src/weekly-log.js` `rotateIfOverBudget` | Once rotation triggers, calls the bisecting seal instead of one `renameSync`. Returns a tagged result (below). The non-`force` line-budget short-circuit is untouched. |
 | Bisecting seal | `src/weekly-log.js` (new `bisectWeeklyLog`) | Pure split: H1 + preamble + day-sections → an ordered list of `{ h1, body }` parts, each conforming to both budgets, plus an optional residue descriptor for a lone over-cap section. No I/O. |
-| Atomic writer | `src/weekly-log.js` (new helper) | Stages every part file, then replaces the source last; unwinds written parts on any failure (atomicity). |
-| Shared budget counters | new `src/budget.js` | The audit's `countWords` (and `countLines`) move here as the one canonical pair. Today the primitive has **no** word counter and its own char-based `countLines` (`weekly-log.js`), separate from the audit's split-based one in `audit/scopes.js`; both now import `budget.js` so the seal and the audit measure identically and a part the seal calls conforming cannot later flag. |
+| Atomic writer | `src/weekly-log.js` (new helper) | Writes the part files, then replaces the source as the final step (see Atomicity decision). |
+| Shared budget counters | new `src/budget.js` | The audit's `countWords` and `countLines` move here as the one canonical pair, imported by both the seal and the audit. Today the primitive has **no** word counter at all and carries its own char-based `countLines` separate from the audit's split-based one (the two line counts already agree; the word count is the real gap). |
 | `fit-wiki rotate` handler | `src/commands/rotate.js` | Prints every produced part. Exits non-zero only on bisect-incomplete, naming the un-splittable section. Clean multi-part seal exits zero. |
 | `fit-wiki fix` auto-fixer | `src/commands/fix.js` `rotateOverBudgetMainLogs` | Same call site; consumes the tagged result. An over-cap multi-day current log now resolves clean — only a genuine residue still flows to the human-flag set. |
-| Append paths | `src/commands/log.js` (`decision`/`note`/`done`) | Still rotate-then-append. On any seal outcome the append proceeds against the fresh current file; a residue signal is surfaced (the residue is a sealed part, never the live file). |
+| Append paths | `src/commands/log.js` (`decision`/`note`/`done`) | Begin consuming the result (today they discard it). On any seal outcome the append proceeds against the fresh current file; an `incomplete` residue is reported to stderr (the residue is a sealed part, never the live file) without blocking the append. |
 | Sealed-part hint text | `src/audit/rules.js` | `weekly-log-part.{line,word}-budget` hints reworded: a sealed part over budget now means a hand-edited part or an irreducible single-day section — the cases a human should still act on. The rules stay `remediation: "flag"`. |
 
 ```mermaid
@@ -79,9 +79,9 @@ produced (one or many), replacing the single `toPath`.
 | Decision | Choice | Rejected alternative |
 |---|---|---|
 | Seal behaviour | Bisect at day seams into conforming parts | Plain rename (today) — seals born-over-budget parts. Pure refuse-and-error (spec's earlier (b)) — leaves CI red until a human bisects. |
-| Counting source of truth | One shared `countLines`/`countWords`, imported by both primitive and audit | Duplicate the counters in the primitive — primitive and audit could disagree, so the seal could emit a part the audit then flags. |
+| Counting source of truth | One shared `countLines`/`countWords`, imported by both primitive and audit | Give the primitive its own word counter — a second implementation can drift from the audit's, so the seal could call a part conforming that the audit then flags. |
 | Result shape | Tagged `status` union | Extend `{ rotated, toPath }` with a `parts` array — `sealed` and `incomplete` would share a shape, breaking the spec's "tell the three apart". |
-| Part numbering | `N of M` over the parts this seal produces; M consecutive file slots reserved from the first free `nextPartPath` index | Renumber every existing week part into a global `N of M` — not atomic, rewrites already-sealed history. |
+| Part numbering | `N of M` local to the parts this seal produces; existing `*-partN.md` files keep their slots and H1s | Renumber every existing week part into a global `N of M` — not atomic, rewrites already-sealed history. |
 | Atomicity | Stage all M parts at their slots, then replace the source as the single commit point; on any failure unlink the staged parts so the source (path/contents/inode) is untouched | Truncate/rename the source first (today's order) — a mid-write failure loses the source body. |
 | Bin packing | Greedy left-to-right | Optimal/balanced packing — extra complexity for no gain; greedy already meets the per-part cap. |
 
