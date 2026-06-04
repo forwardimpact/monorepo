@@ -149,7 +149,11 @@ async function newService({ multi } = {}) {
     deps.tenancyClient = tenancy;
   }
   const service = new GhBridgeService(
-    makeConfig(multi ? { github_repo: "" } : {}),
+    makeConfig(
+      multi
+        ? { tenancy_mode: "multi", github_repo: "" }
+        : { tenancy_mode: "single" },
+    ),
     deps,
   );
   await service.start();

@@ -9,6 +9,7 @@ import {
   ResumeScheduler,
   TokenResolver,
   appendHistory,
+  assertMultiTenantDeps,
   buildPrompt,
   createBridgeServer,
   createCallbackHandler,
@@ -74,6 +75,7 @@ export class MsBridgeService {
   #clock;
   #trustedOrigins;
   #tenancyClient;
+  #multiTenant;
   #tenantResolver;
 
   /**
@@ -128,6 +130,10 @@ export class MsBridgeService {
     // Present only in multi-tenant mode; drives consent registration and the
     // /onboard repo mapping. Single-tenant deployments never reach tenancy.
     this.#tenancyClient = tenancyClient;
+    // Deployment mode is config-driven — `tenancy_mode` is the single source of
+    // truth; server.js injects the tenancy/ghserver clients only in "multi".
+    this.#multiTenant = config.tenancy_mode === "multi";
+    assertMultiTenantDeps(this.#multiTenant, tenancyClient);
 
     // One resolver instance is shared by the store adapter (tenant_id on
     // every gRPC) and the dispatcher (tenant_id in the callback URL). The
@@ -171,7 +177,7 @@ export class MsBridgeService {
     // Bot Framework reply credential stays in-process. Single-tenant keeps the
     // per-user OAuth token via services/ghuser.
     const dispatchTokenResolver =
-      this.#tenancyClient && ghserverClient
+      this.#multiTenant && ghserverClient
         ? new GhServerTokenResolver(ghserverClient, { requestedBy: "msbridge" })
         : new TokenResolver(ghuserClient);
     this.#dispatcher = new Dispatcher({
@@ -239,7 +245,7 @@ export class MsBridgeService {
     });
 
     // Hosted repo-mapping endpoint, mounted only in multi-tenant mode.
-    if (this.#tenancyClient) {
+    if (this.#multiTenant) {
       this.#mountOnboard(authenticateTenant, logger);
     }
   }
@@ -316,7 +322,7 @@ export class MsBridgeService {
    * @returns {Promise<boolean>} true when the activity was a consent signal
    */
   async #maybeHandleConsent(activity) {
-    if (!this.#tenancyClient || !isConsentActivity(activity)) return false;
+    if (!this.#multiTenant || !isConsentActivity(activity)) return false;
     await handleConsent(activity, {
       tenancyClient: this.#tenancyClient,
       logger: this.#logger,
@@ -348,7 +354,7 @@ export class MsBridgeService {
     // (pending_consent) tenants are dropped. Single-tenant deployments skip
     // this branch and rely on the DefaultTenantResolver (`tenant_id = "default"`).
     let tenant;
-    if (this.#tenancyClient) {
+    if (this.#multiTenant) {
       tenant = await extractTenant(activity, this.#tenantResolver);
       if (!tenant) {
         this.#logger.debug("intake", "no active tenant for activity");
