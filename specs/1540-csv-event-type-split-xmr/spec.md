@@ -9,13 +9,17 @@
 ## Problem
 
 `wiki/metrics/staff-engineer/2026.csv` carries 435 observation rows plus
-the schema header. **414 of those 435 rows (≈95%) are dispatch-boot
-annotations** — rows whose `note` field begins
-`boot-append from Kata: Dispatch <run-id>`, recorded when the agent
-activated, did boot-and-yield, and exited because no qualifying route
-fired. The remaining 21 rows are end-to-end shift-work runs from
-`Kata: Shift` that opened PRs, ran panels, or completed substantive
-design or implementation work.
+the schema header. **414 of those 435 rows (≈95%) carry the dispatch-boot
+note prefix** — rows whose `note` field begins
+`boot-append from Kata: Dispatch <run-id>`, conventionally recorded
+when the agent activates, does boot-and-yield, and exits because no
+qualifying route fires. Exp SE 1432-A surfaced that at least six of
+them executed shift-work despite carrying the prefix — itself evidence
+that the note convention is an unreliable classifier (see § Scope,
+existing-rows row, for the classifier-defer to design). The remaining
+21 rows are end-to-end shift-work runs from `Kata: Shift` that opened
+PRs, ran panels, or completed substantive design or implementation
+work.
 
 The two shapes are structurally different work, recorded against the
 same `metric` name in the same series. A dispatch-boot run is ~30–60s,
