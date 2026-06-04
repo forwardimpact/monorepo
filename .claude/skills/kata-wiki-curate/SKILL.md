@@ -68,10 +68,9 @@ and exits non-zero listing anything it flags for a human (missing decision
 blocks, oversized sealed parts) rather than inventing content. Then run
 `bunx fit-wiki audit --format json` to confirm — it checks every wiki file
 (summaries, weekly logs and sealed parts, MEMORY.md, priority and claims rows,
-the current storyboard) against the rule catalogue. Files that match no
-audited shape are skipped rather than rejected (see `wiki.stray-file` removal
-in spec 1350 / issue #1185). The same audit gates pre-merge CI, so a clean
-local run is the bar. Hand-resolve each flagged `fail` in the named file:
+the current storyboard) against the rule catalogue. The same audit gates
+pre-merge CI, so a clean local run is the bar. Hand-resolve each flagged
+`fail` in the named file:
 
 - **Budgets** (line/word) — trim settled state, or
   `bunx fit-wiki rotate --agent <agent>` to seal an overflowing weekly log.
