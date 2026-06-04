@@ -7,6 +7,10 @@ the hosted control plane.
 
 <!-- END:description -->
 
+For configuring the GitHub **server App** (self-hosted vs hosted), see
+[github-app.md](github-app.md). The separate per-user OAuth app is documented
+in `services/ghuser`.
+
 ## What this service owns
 
 `services/ghserver` is the only process in the hosted control plane that

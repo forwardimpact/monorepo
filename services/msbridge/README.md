@@ -11,6 +11,9 @@ For the trust model when this bridge runs as the hosted Forward Impact
 service vs the customer's self-hosted deployment, see
 [TRUST.md](../../TRUST.md).
 
+For configuring the Azure AD (Entra) app behind this bridge (self-hosted
+single-tenant vs hosted multi-tenant), see [azure-app.md](azure-app.md).
+
 ## Prerequisites
 
 - A Microsoft 365 developer tenant with an Azure Bot resource registered

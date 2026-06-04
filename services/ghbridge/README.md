@@ -11,6 +11,10 @@ For the trust model when this bridge runs as the hosted Forward Impact
 service vs the customer's self-hosted deployment, see
 [TRUST.md](../../TRUST.md).
 
+For configuring the GitHub **server App** this bridge uses (self-hosted holds
+the key here; hosted custodies it in `services/ghserver`), see
+[`services/ghserver` § github-app.md](https://github.com/forwardimpact/monorepo/blob/main/services/ghserver/github-app.md).
+
 ## Prerequisites
 
 - The Kata Agent Team GitHub App with `discussions: write` permission and
