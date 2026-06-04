@@ -13,6 +13,11 @@ only when `improvement-coach` is selected.
 | `{{MODEL}}`           | `claude-opus-4-7[1m]`                                                                |
 | `{{WIKI}}`            | `"true"` or `"false"`                                                                |
 
+The templates below are the **self-hosted** variants. For the **hosted**
+control plane (see [`SKILL.md`](../SKILL.md) `--hosted`), apply the hosted
+delta described under [§ Hosted variant](#hosted-variant) — no
+`KATA_APP_PRIVATE_KEY`.
+
 ## Storyboard Template
 
 File name: `kata-storyboard.yml`
@@ -94,6 +99,15 @@ jobs:
           task-amend: ${{ inputs.task-amend }}
 ```
 
+## Hosted variant
+
+Both templates above are `kata-action-agent@v1` workflows, so the hosted
+delta is identical to
+[`workflow-agent.md` § Template (hosted)](workflow-agent.md): add
+`id-token: write` to `permissions`, insert the OIDC mint step as the first
+step, and replace the `app-id` / `app-private-key` inputs with
+`installation-token: ${{ steps.mint.outputs.token }}`.
+
 ## Notes
 
 - The storyboard `{{AGENT_LIST}}` includes all selected agents except
@@ -102,3 +116,5 @@ jobs:
   for the correct UTC time per timezone.
 - Coaching is `workflow_dispatch` only -- triggered manually or by the
   storyboard when an agent needs focused attention.
+- **Hosted variants** require the `FIT_OIDC_URL` repository variable and
+  depend on `kata-action-agent@v1` accepting an `installation-token` input.

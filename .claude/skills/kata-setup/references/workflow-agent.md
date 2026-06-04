@@ -13,7 +13,13 @@ the user's configuration.
 | `{{MODEL}}`        | `claude-opus-4-7[1m]`                     |
 | `{{WIKI}}`         | `"true"` or `"false"`                     |
 
-## Template
+Emit `## Template (self-hosted)` when the team runs its own GitHub App (the
+default), or apply `## Template (hosted)` when the team uses the Forward
+Impact-hosted control plane (see [`SKILL.md`](../SKILL.md) `--hosted`). The
+hosted variant carries no `KATA_APP_PRIVATE_KEY`; it mints a short-lived
+installation token from `services/oidc` at run time.
+
+## Template (self-hosted)
 
 ```yaml
 name: "Agent: {{AGENT_TITLE}}"
@@ -49,6 +55,42 @@ jobs:
           task-amend: ${{ inputs.task-amend }}
 ```
 
+## Template (hosted)
+
+The hosted variant is the self-hosted template with three changes. This is
+the **canonical** hosted recipe — `workflow-facilitate.md` and
+`workflow-react.md` reference the mint step below.
+
+1. Add `id-token: write` to `permissions` (keep `contents: write`).
+2. Insert this OIDC mint step as the first entry under `steps:`:
+
+   ```yaml
+         - name: Mint installation token via Forward Impact OIDC
+           id: mint
+           env:
+             OIDC_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+             OIDC_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+             OIDC_HOST: ${{ vars.FIT_OIDC_URL }}
+           run: |
+             set -euo pipefail
+             # OIDC_REQUEST_URL already carries ?api-version=... — append &audience= safely.
+             sep=$(printf '%s' "$OIDC_REQUEST_URL" | grep -q '?' && printf '&' || printf '?')
+             ACT_TOKEN=$(curl -sf -H "Authorization: bearer $OIDC_REQUEST_TOKEN" \
+               "${OIDC_REQUEST_URL}${sep}audience=fit-ghserver" | jq -r .value)
+             RESP=$(curl -sf -X POST -H "Authorization: bearer $ACT_TOKEN" "${OIDC_HOST}/token")
+             INSTALL_TOKEN=$(printf '%s' "$RESP" | jq -r .installation_token)
+             printf '::add-mask::%s\n' "$INSTALL_TOKEN"
+             printf 'token=%s\n' "$INSTALL_TOKEN" >> "$GITHUB_OUTPUT"
+   ```
+
+3. In the `kata-action-agent@v1` step, drop the `app-id` and
+   `app-private-key` inputs and add
+   `installation-token: ${{ steps.mint.outputs.token }}`.
+
+`FIT_OIDC_URL` is a repository **variable** (not a secret) — the Forward
+Impact-operated `services/oidc` URL. `::add-mask::` keeps the minted token
+out of logs.
+
 ## Notes
 
 - **Cron entries** come from `schedules.md`. Agents with only a night shift
@@ -61,3 +103,6 @@ jobs:
   sync.
 - If model is the default (`claude-opus-4-7[1m]`), the `model:` line can be
   omitted since the action defaults to it.
+- **Hosted variant** requires the `FIT_OIDC_URL` repository variable and
+  depends on `kata-action-agent@v1` accepting an `installation-token` input
+  (pin the minimum sibling SHA per your security policy).
