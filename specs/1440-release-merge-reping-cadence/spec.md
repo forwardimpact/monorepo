@@ -25,8 +25,8 @@ Three terms used below, anchored to the existing skill:
   mechanical readiness, approval, open comments). The five
   templated variants live in `references/templates.md` § Skip
   Comments (Untrusted Author, Unsupported PR Type, Awaiting Approval
-  Signal, CI Failing, Substantive Conflict); the sixth — `awaiting
-  trusted-contributor reply` — is the open-comment gate's reason
+  Signal, CI Failing, Substantive Conflict); the sixth — Awaiting
+  trusted-contributor reply — is the open-comment gate's reason
   per [`references/comment-gate.md`](../../.claude/skills/kata-release-merge/references/comment-gate.md).
 - **Re-ping** — a fresh block comment from the skill on a
   subsequent release-merge run, posted while the PR is still in the
