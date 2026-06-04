@@ -25,23 +25,26 @@ restatements still match the source of truth they paraphrase.
 
 ### Recurrence in numbers
 
-The `wiki/metrics/kata-documentation/2026.csv` ledger captured eight
-enumeration-class PR findings in the 14 days from 2026-05-19 to
-2026-06-02, plus one Security Engineer issue surface (#1260). Each PR
-cycle produced a one-line fix; together they consumed eight review
-slots budgeted for deeper recurrence-pass work:
+Eight enumeration-class PR findings landed in the 14 days from
+2026-05-19 to 2026-06-02, plus one Security Engineer issue surface
+(#1260). Six of the eight PRs are captured as dedicated cycle rows in
+`wiki/metrics/kata-documentation/2026.csv`; PRs #1322 and #1337 landed
+on 2026-06-01 without dedicated cycle rows and appear as back-references
+in subsequent rows' notes. Each PR produced a one-line fix; together
+they consumed eight review slots budgeted for deeper recurrence-pass
+work:
 
-| Date | Cycle / PR | Drift |
-|---|---|---|
-| 2026-05-19 | cycle 65 PR #1015 | `websites/fit/about/index.md` products enumeration missing Summit (5 of 6) |
-| 2026-05-25 | cycle 69 PR #1193 | `gear/index.md` service count rebaseline |
-| 2026-05-28 | (Issue #1260, Security Engineer) | Spec 1310 sibling enumeration missed `fit-wiki` |
-| 2026-05-29 | cycle 73 PR #1278 | Bridge-services storage-path enumeration |
-| 2026-05-31 | cycle 75 PR #1301 | `gear/index.md` service count 9 → 12 |
-| 2026-05-31 | cycle 76 PR #1312 | `CLAUDE.md` composite-actions 4 → 5; `KATA.md` Four → Five; `CONTRIBUTING.md` services tree 6 → 12; products tree added `kata/` |
-| 2026-06-01 | cycle 78 PR #1322 | `kata.team` skill count `Fifteen` → `Sixteen` |
-| 2026-06-01 | cycle 79 PR #1337 | `CONTRIBUTING.md` services tree 12 → 14 + `gear/index.md` 39/14 cross-page |
-| 2026-06-02 | cycle 80 PR #1349 | `getting-started/contributors/index.md` services tree 11 → 14 |
+| Date | PR / Issue | CSV row? | Drift |
+|---|---|---|---|
+| 2026-05-19 | PR #1015 | yes | `websites/fit/about/index.md` products enumeration missing Summit (5 of 6) |
+| 2026-05-25 | PR #1193 | yes | `gear/index.md` service count rebaseline |
+| 2026-05-28 | Issue #1260 (Security Engineer) | n/a (issue) | Spec 1310 sibling enumeration missed `fit-wiki` |
+| 2026-05-29 | PR #1278 | yes | Bridge-services storage-path enumeration |
+| 2026-05-31 | PR #1301 | yes | `gear/index.md` service count 9 → 12 |
+| 2026-05-31 | PR #1312 | yes | `CLAUDE.md` composite-actions 4 → 5; `KATA.md` Four → Five; `CONTRIBUTING.md` services tree 6 → 12; products tree added `kata/` |
+| 2026-06-01 | PR #1322 | no (back-ref only) | `kata.team` skill count `Fifteen` → `Sixteen` |
+| 2026-06-01 | PR #1337 | no (back-ref only) | `CONTRIBUTING.md` services tree 12 → 14 + `gear/index.md` 39/14 cross-page |
+| 2026-06-02 | PR #1349 | yes | `getting-started/contributors/index.md` services tree 11 → 14 |
 
 The services-tree topic alone drifted on four different consumer
 paths in 13 days, each time with the same fix shape: a one-line
@@ -148,7 +151,7 @@ comes from.
 |---|---|---|---|---|
 | 1 | Services tree | Directories under `services/` containing a `package.json` | `CONTRIBUTING.md` § Per-package layout · `websites/fit/docs/getting-started/contributors/index.md` · `websites/fit/gear/index.md` · `KATA.md` | 2026-05-31 PR #1301 · 2026-05-31 PR #1312 · 2026-06-01 PR #1337 · 2026-06-02 PR #1349 |
 | 2 | Libraries list | Directories under `libraries/` matching `lib*` containing a `package.json` | `websites/fit/gear/index.md` ("N libraries") · `CONTRIBUTING.md` § Per-package layout | 2026-05-19 PR #1015 · 2026-05-31 PR #1301 (rebaseline) |
-| 3 | Sibling composite actions | The sibling rows of `.github/CLAUDE.md` § Third-party actions (rows whose `Action` column begins with `forwardimpact/`) | `CLAUDE.md` § Distribution Model · `KATA.md` § Architecture (external composite-actions paragraph) | 2026-05-25 RFC #1022 (Staff Engineer + `fit-bootstrap`) · 2026-05-28 Issue #1260 (Security Engineer + `fit-wiki`) · 2026-05-31 PR #1312 (root-docs 4 → 5) |
+| 3 | Sibling composite actions | The sibling rows of `.github/CLAUDE.md` § Third-party actions (rows whose `Action` column begins with `forwardimpact/`) | `CLAUDE.md` § Distribution Model · `KATA.md` § Architecture (external composite-actions paragraph) | 2026-05-28 Issue #1260 (Security Engineer + `fit-wiki`) · 2026-05-31 PR #1312 (root-docs 4 → 5). Spec 1310 / RFC #1022 (Staff Engineer + `fit-bootstrap`) is the upstream authoring miss that motivated #1260 — captured in the § Why the manual pass is insufficient author table below, not the recurrence ledger |
 | 4 | Published skills catalog | `.claude/skills/kata-*/SKILL.md` directories (the kata published-skill pack) | `KATA.md` § Skills (kata-skill table) · `websites/kata/index.md` (kata-skill count; in-repo source for the rendered `kata.team` site) | 2026-06-01 PR #1322 (`websites/kata/index.md` `Fifteen` → `Sixteen`) |
 | 5 | Products tree | Directories under `products/` excluding `README.md` and `CLAUDE.md` | `CONTRIBUTING.md` § Per-package layout · `KATA.md` § Primary Products · `websites/fit/docs/products/index.md` | 2026-05-31 PR #1312 (CONTRIBUTING.md products tree added `kata/`) |
 | 6 | PDSA kata workflow files | `.github/workflows/kata-*.yml` minus `.github/workflows/kata-interview.yml` (the four PDSA workflows: `kata-shift`, `kata-storyboard`, `kata-coaching`, `kata-dispatch`) | `websites/fit/docs/internals/kata/index.md` § workflow count · `KATA.md` § Workflows | 2026-05-31 PR #1318 deferred finding §(a) — `websites/fit/docs/internals/kata/index.md` "four workflows" framing vs. the broader `kata-*.yml` glob on disk |
@@ -165,9 +168,8 @@ gate knows whether to assert counts, sets, or both.
   is published separately as the `fit-skills` pack but no current
   consumer in the registry restates a fit-pack count or list. Skills
   outside the `kata-*` and `fit-*` prefix conventions (currently
-  `downstream-skill/`, `ship-it/`, `init/`) are repository utilities
-  not part of any published catalog and are excluded by the prefix
-  glob.
+  `downstream-skill/` and `ship-it/`) are repository utilities not
+  part of any published catalog and are excluded by the prefix glob.
 - *Topic 6 — kata-interview exclusion.* `kata-interview.yml` is a
   `workflow_dispatch`-only research utility for JTBD product testing,
   intentionally separate from the PDSA cycle that the registered
@@ -198,12 +200,12 @@ one named build step covers every registered consumer.
 |---|---|
 | A single named build step asserts every registry-covered consumer against its source-of-truth | The implementation PR description names one build invocation; running that invocation on a branch with synthetic drift introduced on any registry-covered consumer exits non-zero |
 | The build step covers consumers outside `websites/fit/docs/` | The build step fails when synthetic drift is introduced into `CONTRIBUTING.md`, `CLAUDE.md`, `KATA.md`, or `websites/kata/index.md` — not just into pages inside `websites/fit/docs/` |
-| Every known-consumer path in the Enumeration Registry is wired into the gate | For each path in the registry's "Known consumer paths" column, removing or corrupting its enumeration block causes the gate to fail with a message naming that path. Each consumer's enumeration block is identified by a marker convention named in the design (HTML comment, fenced metadata block, or unique section heading) so the synthetic-drift test can target the block deterministically — including for unnamed-section consumers (`websites/fit/gear/index.md`, `websites/kata/index.md`) |
+| Every known-consumer path in the Enumeration Registry is wired into the gate | For each path in the registry's "Known consumer paths" column, removing or corrupting its enumeration block causes the gate to fail with a message naming that path. The design names a single marker convention (one of: HTML comment, fenced metadata block, or unique section heading) and applies it uniformly across every registered consumer, including unnamed-section consumers (`websites/fit/gear/index.md`, `websites/kata/index.md`), so two independent verifiers target the same block on every page |
 | Failure messages are actionable | On a drift, the gate emits a message containing the consumer path, the topic name, and the drift detail in the consumer's declared shape — for set-shaped consumers (exhaustive lists), the symmetric difference between consumer and source; for count-only consumers, the actual count vs the expected count — so the author can correct the consumer in one edit |
 | The registry is single-source | The implementation PR description records the path to the registry file (one path); the file at that path declares all six registry topics; no other file in the implementation diff outside `specs/1460-…/` declares a registry topic. By construction, a follow-up PR adding a 7th topic edits exactly that one file. |
 | Existing consumers pass at landing | The gate is green on the implementation PR against `main` HEAD — i.e., landing the implementation does not flag any pre-existing consumer |
 | The outcome-metric baseline is recorded at landing | The implementation PR description names the spec id (`1460`). The baseline date is the PR's `mergedAt` timestamp from the GitHub API; the spec does not require a merge SHA in the PR body (the SHA is unknown until merge) |
-| Implementation PR diff is bounded by the plan's declared path set | `plan-a.md` declares an `Affected paths` section listing the paths the implementation will touch. The PR description quotes that list verbatim. Verifier runs `git diff --name-only main HEAD -- ':!specs/1460-*'` and confirms the result equals the quoted list |
+| Implementation PR diff is bounded by the plan's declared path set | `plan-a.md` declares an `Affected paths` section listing every file the implementation will touch (registry file, build-step source, modified consumer files, any new test file). The PR description quotes that list verbatim. Verifier runs `git diff --name-only main HEAD` and confirms the result equals the union of that list and `specs/1460-*/*` (the spec/design/plan tree). Evaluated at landing — i.e., on the implementation PR before merge |
 
 ## Outcome metric (post-landing, not a landing gate)
 
