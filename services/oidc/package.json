@@ -1,0 +1,64 @@
+{
+  "name": "@forwardimpact/svcoidc",
+  "version": "0.1.0",
+  "description": "GitHub Actions OIDC exchange front — validates a workflow OIDC token and mints a repo-scoped installation token without holding signing material.",
+  "keywords": [
+    "oidc",
+    "github-actions",
+    "token",
+    "exchange",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "services/oidc"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Exchange a GitHub Actions OIDC token for a repo-scoped installation token",
+      "trigger": "A hosted workflow needs an installation token but the App private key must stay off the public-facing process.",
+      "bigHire": "serve a stateless OIDC exchange that verifies a workflow's GitHub Actions identity and delegates minting to a gRPC backend, keeping the public surface free of signing material.",
+      "littleHire": "validate the inbound OIDC token's signature, issuer, audience, and repository claim, then call the custody backend to mint a token scoped to the asserted repository.",
+      "competesWith": "shipping the App private key into every customer workflow as a repository secret"
+    }
+  ],
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "fit-svcoidc": "./server.js"
+  },
+  "files": [
+    "index.js",
+    "server.js",
+    "src"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/libhttp": "^0.1.0",
+    "@forwardimpact/libpreflight": "^0.1.0",
+    "@forwardimpact/librpc": "^0.1.99",
+    "@forwardimpact/libtelemetry": "^0.1.42",
+    "@forwardimpact/libtype": "^0.1.63",
+    "@forwardimpact/libutil": "^0.1.85",
+    "jose": "^6.2.2"
+  },
+  "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.0",
+    "hono": "^4.12.23"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
