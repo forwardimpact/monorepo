@@ -97,10 +97,8 @@ Each run covers **one topic** in depth.
 
 #### Topic-rotation budget rule
 
-Codified from SE Exp 43 (PASS 2026-06-03, Issue
-[#1367](https://github.com/forwardimpact/monorepo/issues/1367)). PR-review work
-is high-priority but displaces canonical topic rotation. The budget rule
-restores rotation cadence without breaching PR-review turnaround.
+PR-review work is high-priority but displaces canonical topic rotation. The
+budget rule restores rotation cadence without breaching PR-review turnaround.
 
 **Rule**: After **2 consecutive PR-review-displacement slots** in the same
 vocabulary class (PR-review note vs canonical-topic note), the next SE Assess
@@ -131,10 +129,9 @@ Rule fires when counter ≥ 2 at next Assess.
   matches `plan/NNN-*` AND the spec body cites an open security Issue, an
   active kill-switch, or a HIGH-severity SE audit finding; carve-out remains
   time-bounded by the release-cut window noted in plan-a § Atomic release
-  coupling. *Replaces per-spec exceptions (formerly enumerated as `spec 1310
-  plan-phase PR`, `spec 1520 plan-phase PR`, …) — predicate matching means
-  future security-driven plan PRs inherit the carve-out without a SKILL.md
-  amendment.*
+  coupling. *Replaces case-by-case enumeration of plan-phase PRs covering live
+  security findings — predicate matching means future qualifying plan PRs
+  inherit the carve-out without a SKILL.md amendment.*
 
 **Collision contingency** (main CI red AND reserved rotation slot on the same
 day):
