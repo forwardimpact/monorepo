@@ -10,6 +10,8 @@ import {
   formatHeader,
   formatListItem,
   formatTable,
+  embeddedAssetsActive,
+  embeddedDir,
 } from "@forwardimpact/libcli";
 
 import { PromptLoader } from "@forwardimpact/libprompt";
@@ -246,8 +248,21 @@ export function terminalForVerb(verb, inspectStage) {
   }
 }
 
-/** Resolve prompt and template directories from installed libsyntheticprose and libsyntheticrender packages. */
+/**
+ * Resolve prompt and template directories. In a `bun build --compile` binary
+ * the prompt/template files are inlined and registered (see the CLI's `assets`
+ * block in build/cli-manifest.json), so return the virtual mounts the runtime
+ * overlay serves them from — `import.meta.resolve` cannot find packages in the
+ * /$bunfs root. Otherwise resolve from the installed libsyntheticprose and
+ * libsyntheticrender packages.
+ */
 export function resolvePackagePaths(metaResolve) {
+  if (embeddedAssetsActive()) {
+    return {
+      promptDir: embeddedDir("libsyntheticprose/prompts"),
+      templateDir: embeddedDir("libsyntheticrender/templates"),
+    };
+  }
   const libsyntheticproseDir = dirname(
     fileURLToPath(metaResolve("@forwardimpact/libsyntheticprose")),
   );

@@ -193,6 +193,42 @@ describe("Finder", () => {
         message: /Could not find project root/,
       });
     });
+
+    test("defaults the search origin to cwd when no startPath is given", () => {
+      const cwd = path.join(tempDir, "cwd-project");
+      fs.mkdirSync(cwd, { recursive: true });
+      fs.writeFileSync(path.join(cwd, "package.json"), "{}");
+
+      const cwdFinder = new Finder({
+        fs: fsPromises,
+        fsSync: fs,
+        proc: { cwd: () => cwd },
+        logger: mockLogger,
+      });
+
+      assert.strictEqual(cwdFinder.findProjectRoot(), cwd);
+    });
+
+    test("returns cwd in a compiled binary without touching the filesystem", () => {
+      // A compiled binary's module dir is the /$bunfs root, so the upward
+      // package.json search is skipped entirely — cwd is the project root.
+      const compiledFinder = new Finder({
+        fs: fsPromises,
+        fsSync: {
+          existsSync: () => {
+            throw new Error("compiled findProjectRoot must not hit the fs");
+          },
+        },
+        proc: { cwd: () => "/launched/here" },
+        logger: mockLogger,
+        isCompiled: true,
+      });
+
+      assert.strictEqual(
+        compiledFinder.findProjectRoot("/ignored"),
+        "/launched/here",
+      );
+    });
   });
 
   describe("findData", () => {

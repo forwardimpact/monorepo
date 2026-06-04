@@ -190,88 +190,19 @@ cli-xmr:
 
 # Compile NAME (a bin entry like fit-codegen) into dist/binaries/NAME
 build-binary NAME TARGET="bun-darwin-arm64":
-    #!/usr/bin/env bash
-    set -euo pipefail
-    ENTRY=""
-    PKG_DIR=""
-    for PKG in products/*/package.json services/*/package.json libraries/*/package.json; do
-      REL=$(jq -r --arg n "{{NAME}}" '.bin[$n] // empty' "$PKG" 2>/dev/null)
-      if [ -n "$REL" ]; then
-        PKG_DIR="$(dirname "$PKG")"
-        ENTRY="$PKG_DIR/$REL"
-        break
-      fi
-    done
-    if [ -z "$ENTRY" ] || [ ! -f "$ENTRY" ]; then
-      echo "Error: no package.json declares bin[{{NAME}}] with an existing entry" >&2
-      exit 1
-    fi
-    # Inject the package version as a build-time literal. `bun --compile` mounts
-    # source onto a virtual /$bunfs filesystem, so readFileSync(__dirname/../package.json)
-    # ENOENTs at runtime. libcli's `resolveVersion` reads the single literal
-    # `process.env.LIBCLI_VERSION` with a readFileSync fallback for source
-    # execution; --define inlines the literal at compile time (across the bundled
-    # libcli too) so the fallback branch tree-shakes away. Each binary is compiled
-    # separately, so one shared name carries that binary's own version.
-    VERSION=$(jq -r .version "$PKG_DIR/package.json")
-    mkdir -p dist/binaries
-    bun build --compile \
-      --target "{{TARGET}}" \
-      --no-compile-autoload-dotenv \
-      --no-compile-autoload-bunfig \
-      --define "process.env.LIBCLI_VERSION=\"${VERSION}\"" \
-      --outfile "dist/binaries/{{NAME}}" \
-      "$ENTRY"
+    bash build/build-binary.sh "{{NAME}}" "{{TARGET}}"
 
 # Build every distributable binary for TARGET, driven by build/cli-manifest.json
 build-all TARGET="bun-darwin-arm64": codegen
-    #!/usr/bin/env bash
-    set -euo pipefail
-    jq -r --arg t "{{TARGET}}" \
-      '.clis[] | select(.targets | index($t)) | .name' build/cli-manifest.json \
-      | while read -r CLI; do just build-binary "$CLI" "{{TARGET}}"; done
+    bash build/build-all.sh "{{TARGET}}"
 
 # Assemble dist/apps/fit-<NAME>.app for a product (outpost is special-cased)
 build-app-product NAME:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if [ "{{NAME}}" = "outpost" ]; then
-      (cd products/outpost && bun pkg/build.js --launcher)
-      bash libraries/libmacos/scripts/build-app.sh \
-        --bundle-name "fit-outpost" \
-        --primary-exec "products/outpost/dist/Outpost" \
-        --extra-exec "dist/binaries/fit-outpost" \
-        --info-plist "products/outpost/macos/Info.plist" \
-        --entitlements "products/outpost/macos/Outpost.entitlements" \
-        --resource "products/outpost/config" \
-        --resource "products/outpost/templates" \
-        --resource "design/fit/assets/icon-outpost.svg" \
-        --version "$(jq -r .version products/outpost/package.json)" \
-        --out-dir dist/apps
-    else
-      bash libraries/libmacos/scripts/build-app.sh \
-        --bundle-name "fit-{{NAME}}" \
-        --primary-exec "dist/binaries/fit-{{NAME}}" \
-        --info-plist "products/{{NAME}}/macos/Info.plist" \
-        --entitlements "products/{{NAME}}/macos/entitlements.plist" \
-        --version "$(jq -r .version products/{{NAME}}/package.json)" \
-        --out-dir dist/apps
-    fi
+    bash build/build-app-product.sh "{{NAME}}"
 
 # Assemble dist/apps/fit-gear.app — bundles the manifest's gear CLI subset
 build-app-gear:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mapfile -t GEAR < <(jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json)
-    ARGS=(--bundle-name "fit-gear" --primary-exec "dist/binaries/${GEAR[0]}")
-    for CLI in "${GEAR[@]:1}"; do ARGS+=(--extra-exec "dist/binaries/$CLI"); done
-    ARGS+=(
-      --info-plist "macos/gear/Info.plist"
-      --entitlements "macos/gear/entitlements.plist"
-      --version "$(jq -r .version package.json)"
-      --out-dir dist/apps
-    )
-    bash libraries/libmacos/scripts/build-app.sh "${ARGS[@]}"
+    bash build/build-app-gear.sh
 
 # ── Quality ───────────────────────────────────────────────────────
 

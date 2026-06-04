@@ -4,13 +4,13 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { resolve, join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { join } from "path";
 import { format } from "prettier";
 import {
   createCli,
   formatWarning,
   SummaryRenderer,
+  withEmbeddedAssets,
 } from "@forwardimpact/libcli";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -29,9 +29,9 @@ import {
   printGenerateStats,
 } from "../src/cli-helpers.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-const runtime = createDefaultRuntime();
+// Overlay the runtime so the prompt/template loaders read inlined assets when
+// this is a compiled binary; a no-op in source/npx execution.
+const runtime = withEmbeddedAssets(createDefaultRuntime());
 
 const documentation = [
   {
@@ -192,7 +192,10 @@ async function runVerb(options) {
   const llmApi =
     mode === "generate" ? await resolveLlmApi(config, options.model) : null;
 
-  const monorepoRoot = resolve(__dirname, "../../..");
+  // The project tree this run reads (story DSL, schemas) and writes to. Finder
+  // handles the compiled-vs-source split: cwd for a compiled binary, upward
+  // package.json search otherwise — so this stays free of build-mode checks.
+  const monorepoRoot = runtime.finder.findProjectRoot();
   const schemaDir = join(monorepoRoot, "products/map/schema/json");
   const cachePath =
     options.cache ||
