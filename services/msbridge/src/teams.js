@@ -67,6 +67,18 @@ export async function sendReply(adapter, msAppIdFn, ref, text) {
  * @returns {object}
  */
 export function createDefaultAdapter(config) {
+  // Multi-tenant (hosted) uses Microsoft's documented MultiTenant mode: the
+  // app type is "MultiTenant" and the tenant id is omitted, so the Bot
+  // Framework SDK accepts JWTs issued by any consenting Entra tenant.
+  // Single-tenant (self-hosted) keeps the static tenant id binding.
+  if (config.tenancy_mode === "multi") {
+    const auth = new ConfigurationBotFrameworkAuthentication({
+      MicrosoftAppId: config.msAppId(),
+      MicrosoftAppPassword: config.msAppPassword(),
+      MicrosoftAppType: "MultiTenant",
+    });
+    return new CloudAdapter(auth);
+  }
   const auth = new ConfigurationBotFrameworkAuthentication({
     MicrosoftAppId: config.msAppId(),
     MicrosoftAppPassword: config.msAppPassword(),

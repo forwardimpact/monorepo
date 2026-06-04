@@ -4,6 +4,7 @@ import {
   CallbackRegistry,
   DefaultTenantResolver,
   Dispatcher,
+  GhServerTokenResolver,
   RateLimiter,
   ResumeScheduler,
   TokenResolver,
@@ -21,6 +22,9 @@ import {
 
 import { bridge } from "@forwardimpact/libtype";
 import { DiscussionAdapter } from "./src/discussion-adapter.js";
+import { handleConsent, isConsentActivity } from "./src/consent-handler.js";
+import { createOnboardHandler } from "./src/onboard-handler.js";
+import { extractTenant } from "./src/tenant-extractor.js";
 
 import {
   TurnContext,
@@ -69,6 +73,8 @@ export class MsBridgeService {
   #onCallback;
   #clock;
   #trustedOrigins;
+  #tenancyClient;
+  #tenantResolver;
 
   /**
    * @param {import("@forwardimpact/libbridge").BridgeConfig & {
@@ -98,6 +104,10 @@ export class MsBridgeService {
       clock,
       trustedOrigins,
       ticketSecret,
+      tenantResolver: injectedTenantResolver,
+      tenancyClient,
+      ghserverClient,
+      authenticateTenant,
     },
   ) {
     if (!logger) throw new Error("logger is required");
@@ -115,6 +125,21 @@ export class MsBridgeService {
     this.#config = config;
     this.#msAppId = () => config.msAppId();
     this.#trustedOrigins = trustedOrigins;
+    // Present only in multi-tenant mode; drives consent registration and the
+    // /onboard repo mapping. Single-tenant deployments never reach tenancy.
+    this.#tenancyClient = tenancyClient;
+
+    // One resolver instance is shared by the store adapter (tenant_id on
+    // every gRPC) and the dispatcher (tenant_id in the callback URL). The
+    // deployment mode picks the implementation in server.js; if none is
+    // injected, default to the single-tenant `default` resolver.
+    const tenantResolver =
+      injectedTenantResolver ??
+      new DefaultTenantResolver({
+        channel: CHANNEL,
+        repo: parseRepo(config.github_repo),
+      });
+    this.#tenantResolver = tenantResolver;
 
     this.#client = discussionClient;
     this.#adapter = adapter ?? createDefaultAdapter(config);
@@ -130,7 +155,7 @@ export class MsBridgeService {
       }
     };
 
-    this.#store = new DiscussionAdapter(discussionClient);
+    this.#store = new DiscussionAdapter(discussionClient, { tenantResolver });
     this.#callbacks = new CallbackRegistry({ clock: this.#clock });
     this.#rateLimiter = new RateLimiter({ clock: this.#clock });
     this.#ack =
@@ -140,6 +165,15 @@ export class MsBridgeService {
         typingAdapter: buildTypingAdapter(this.#adapter, this.#msAppId),
         logger,
       });
+    // Hosted dispatch identity: multi-tenant mode fires workflow_dispatch with
+    // a repo-scoped GitHub App installation token minted by services/ghserver
+    // for the resolved tenant repo (design § Hosted dispatch identity). The
+    // Bot Framework reply credential stays in-process. Single-tenant keeps the
+    // per-user OAuth token via services/ghuser.
+    const dispatchTokenResolver =
+      this.#tenancyClient && ghserverClient
+        ? new GhServerTokenResolver(ghserverClient, { requestedBy: "msbridge" })
+        : new TokenResolver(ghuserClient);
     this.#dispatcher = new Dispatcher({
       clock: this.#clock,
       callbacks: this.#callbacks,
@@ -148,11 +182,8 @@ export class MsBridgeService {
       callbackBaseUrl: normalizeBaseUrl(config.callback_base_url),
       workflowFile: WORKFLOW_FILE,
       githubRepo: config.github_repo,
-      tokenResolver: new TokenResolver(ghuserClient),
-      tenantResolver: new DefaultTenantResolver({
-        channel: CHANNEL,
-        repo: parseRepo(config.github_repo),
-      }),
+      tokenResolver: dispatchTokenResolver,
+      tenantResolver,
     });
     this.#resume = new ResumeScheduler({
       clock: this.#clock,
@@ -206,6 +237,38 @@ export class MsBridgeService {
         clock: this.#clock,
       }),
     });
+
+    // Hosted repo-mapping endpoint, mounted only in multi-tenant mode.
+    if (this.#tenancyClient) {
+      this.#mountOnboard(authenticateTenant, logger);
+    }
+  }
+
+  /**
+   * Mount the multi-tenant `POST /onboard` endpoint. The caller's Microsoft
+   * Entra tenant id is verified by `authenticateTenant` (injectable for
+   * tests) and resolved to its registry row before any write. Default-deny:
+   * a missing verifier never authenticates a caller — production injects a
+   * verifier that validates the Bot Framework bearer JWT and returns its
+   * `tid` claim (deferred substrate tracked in services/msbridge/README.md).
+   *
+   * @param {((c: object) => Promise<string | null> | (string | null)) | undefined} authenticateTenant
+   * @param {object} logger
+   */
+  #mountOnboard(authenticateTenant, logger) {
+    const onboard = createOnboardHandler({
+      authenticateTenant: authenticateTenant ?? (() => null),
+      tenancyClient: this.#tenancyClient,
+      logger,
+    });
+    this.#bridge.app.post("/onboard", async (c) => {
+      try {
+        return await onboard(c);
+      } catch (err) {
+        logger.error("msbridge.onboard", err);
+        return c.json({ error: "Onboarding failure" }, 500);
+      }
+    });
   }
 
   /** @returns {import("@forwardimpact/libbridge").DiscussionAdapter} */
@@ -245,8 +308,28 @@ export class MsBridgeService {
     await this.#bridge.stop();
   }
 
+  /**
+   * Consume a multi-tenant consent (`installationUpdate`/`add`) activity.
+   * Single-tenant deployments have no tenancy client and never match.
+   *
+   * @param {object} activity
+   * @returns {Promise<boolean>} true when the activity was a consent signal
+   */
+  async #maybeHandleConsent(activity) {
+    if (!this.#tenancyClient || !isConsentActivity(activity)) return false;
+    await handleConsent(activity, {
+      tenancyClient: this.#tenancyClient,
+      logger: this.#logger,
+    });
+    return true;
+  }
+
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Teams intake branches on consent, inject, rate limit, and dispatch
   async #handleNewMessage(context) {
     const activity = context.activity;
+
+    if (await this.#maybeHandleConsent(activity)) return;
+
     if (activity.type !== "message") return;
 
     if (activity.from?.id === this.#msAppId()) return;
@@ -258,6 +341,21 @@ export class MsBridgeService {
     const requester = activity.from?.id;
     if (!requester) return;
 
+    // Multi-tenant per-request tenant extraction. Read the Entra tenant id
+    // from `activity.channelData.tenant.id`, resolve it to an active tenant,
+    // and bind `tenant_id`/`channel_tenant_key` on the context before any
+    // store write or dispatch. Activities from unknown or non-active
+    // (pending_consent) tenants are dropped. Single-tenant deployments skip
+    // this branch and rely on the DefaultTenantResolver (`tenant_id = "default"`).
+    let tenant;
+    if (this.#tenancyClient) {
+      tenant = await extractTenant(activity, this.#tenantResolver);
+      if (!tenant) {
+        this.#logger.debug("intake", "no active tenant for activity");
+        return;
+      }
+    }
+
     const span = this.#tracer.startSpan("MsBridge.HandleNewMessage", {
       kind: "SERVER",
       attributes: { thread_id: threadId },
@@ -265,8 +363,12 @@ export class MsBridgeService {
 
     try {
       const ref = TurnContext.getConversationReference(activity);
-      const ctx = await this.#loadOrCreateContext(threadId, ref);
+      const ctx = await this.#loadOrCreateContext(threadId, ref, tenant);
       ctx.participants[0].metadata = ref;
+      if (tenant) {
+        ctx.tenant_id = tenant.tenant_id;
+        ctx.channel_tenant_key = tenant.channel_tenant_key;
+      }
 
       appendHistory(ctx.history, { role: "user", text, author: requester });
       ctx.last_active_at = this.#clock.now();
@@ -390,6 +492,7 @@ export class MsBridgeService {
       const correlationId = Object.values(ctx.pending_callbacks)[0];
       await this.#client.EnqueueInbox(
         bridge.EnqueueInboxRequest.fromObject({
+          tenant_id: ctx.tenant_id,
           message: {
             correlation_id: correlationId,
             text,
@@ -414,6 +517,7 @@ export class MsBridgeService {
     const lastActed = payload.last_acted_seq ?? -1;
     const remaining = await this.#client.DrainInbox(
       bridge.DrainInboxRequest.fromObject({
+        tenant_id: ctx.tenant_id,
         correlation_id: meta.correlationId,
         since_seq: lastActed,
       }),
@@ -507,8 +611,12 @@ export class MsBridgeService {
     }
   }
 
-  async #loadOrCreateContext(threadId, ref) {
-    const existing = await this.#store.loadByChannel(CHANNEL, threadId);
+  async #loadOrCreateContext(threadId, ref, tenant) {
+    const existing = await this.#store.loadByChannel(
+      CHANNEL,
+      threadId,
+      tenant?.tenant_id,
+    );
     if (existing) return existing;
     return newDiscussionContext({
       clock: this.#clock,

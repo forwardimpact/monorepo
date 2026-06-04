@@ -90,12 +90,27 @@ Ask these questions. Skip any already answered in the task prompt.
    defaults from kata-skills?" If defaults, confirm
    `npx skills add forwardimpact/kata-skills` is installed.
 
+8. **Control plane** — "Are you using the Forward Impact-hosted control
+   plane, or self-hosting your own GitHub App?" Default: self-hosted. See
+   [TRUST.md](../../../TRUST.md) for the trust model of each path. In
+   **hosted** mode the workflows mint a short-lived installation token
+   from `services/oidc` at run time, so the team does **not** configure
+   `KATA_APP_ID` / `KATA_APP_PRIVATE_KEY` (question 2 needs only
+   `ANTHROPIC_API_KEY`); instead set the `FIT_OIDC_URL` repository
+   **variable** to the hosted OIDC URL before the first workflow run.
+
 ### Step 2: Generate Workflow Files
 
 For each selected agent, write a workflow to `.github/workflows/` using
 templates from `references/workflow-agent.md` (scheduled agents) and
 `references/workflow-facilitate.md` (storyboard/coaching). Use
 `forwardimpact/kata-action-agent@v1` as the action reference.
+
+Emit the variant matching question 8's mode: the **`## Template
+(self-hosted)`** block (the default) or the **`## Template (hosted)`**
+block. Each reference carries both. On hosted setup, remind the operator:
+"Set the `FIT_OIDC_URL` repository variable to your hosted OIDC URL before
+the first workflow run." The hosted blocks carry no `KATA_APP_PRIVATE_KEY`.
 
 Generate one workflow per agent. Storyboard and coaching workflows are generated
 only when `improvement-coach` is selected.
@@ -104,7 +119,8 @@ only when `improvement-coach` is selected.
 
 If `product-manager` is selected, ask: "Do you want agents to respond to PR
 comments, issue comments, and discussions?" If yes, generate `kata-dispatch.yml`
-from `references/workflow-react.md`.
+from `references/workflow-react.md` — emit the `## Template (hosted)` block in
+hosted mode (question 8) or `## Template (self-hosted)` otherwise.
 
 If discussion replies are wanted, also instruct the operator to deploy
 `services/ghbridge` before flipping the App webhook URL to point at it. PR,

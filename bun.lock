@@ -568,7 +568,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.14",
+      "version": "0.2.15",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
@@ -838,6 +838,20 @@
     "services/ghserver": {
       "name": "@forwardimpact/svcghserver",
       "version": "0.1.0",
+      "bin": {
+        "fit-svcghserver": "./server.js",
+      },
+      "dependencies": {
+        "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libpreflight": "^0.1.0",
+        "@forwardimpact/librpc": "^0.1.99",
+        "@forwardimpact/libtelemetry": "^0.1.42",
+        "@forwardimpact/libutil": "^0.1.85",
+        "@octokit/auth-app": "^8.2.0",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+      },
     },
     "services/ghuser": {
       "name": "@forwardimpact/svcghuser",
@@ -961,6 +975,27 @@
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
+      },
+    },
+    "services/oidc": {
+      "name": "@forwardimpact/svcoidc",
+      "version": "0.1.0",
+      "bin": {
+        "fit-svcoidc": "./server.js",
+      },
+      "dependencies": {
+        "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libhttp": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
+        "@forwardimpact/librpc": "^0.1.99",
+        "@forwardimpact/libtelemetry": "^0.1.42",
+        "@forwardimpact/libtype": "^0.1.63",
+        "@forwardimpact/libutil": "^0.1.85",
+        "jose": "^6.2.2",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+        "hono": "^4.12.23",
       },
     },
     "services/pathway": {
@@ -1345,6 +1380,8 @@
     "@forwardimpact/svcmsbridge": ["@forwardimpact/svcmsbridge@workspace:services/msbridge"],
 
     "@forwardimpact/svcoauth": ["@forwardimpact/svcoauth@workspace:services/oauth"],
+
+    "@forwardimpact/svcoidc": ["@forwardimpact/svcoidc@workspace:services/oidc"],
 
     "@forwardimpact/svcpathway": ["@forwardimpact/svcpathway@workspace:services/pathway"],
 

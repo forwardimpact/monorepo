@@ -9,22 +9,23 @@ that let agents consume backend functionality natively.
 
 <!-- BEGIN:catalog — Do not edit. Generated from each service's package.json. -->
 
-| Service       | Description                                                                                                                  |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **bridge**    | Canonical threaded-discussion store — single source of truth for GitHub/Microsoft Teams bridge state.                        |
-| **embedding** | Text embeddings over gRPC — semantic representation without each product running its own inference.                          |
-| **ghbridge**  | GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.                        |
-| **ghserver**  | GitHub App key custody and short-lived installation-token minting surface for the hosted control plane.                      |
-| **ghuser**    | GitHub user authentication — per-user OAuth token lifecycle for the Kata Agent User App.                                     |
-| **graph**     | RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.                         |
-| **map**       | Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.                                   |
-| **mcp**       | Unified MCP server — agents reach backend services as tools without per-service integration.                                 |
-| **msbridge**  | Microsoft Teams bridge onto libbridge — relay messages between Teams conversations and the Kata agent team.                  |
-| **oauth**     | OAuth 2.1 authorization server adapter — protocol-only HTTP front that delegates to a configured provider backend over gRPC. |
-| **pathway**   | Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products.                     |
-| **tenancy**   | Tenant registry — `(channel, channel_tenant_key) → Tenant` lookup for the hosted control plane.                              |
-| **trace**     | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.                          |
-| **vector**    | Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.                            |
+| Service       | Description                                                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **bridge**    | Canonical threaded-discussion store — single source of truth for GitHub/Microsoft Teams bridge state.                                             |
+| **embedding** | Text embeddings over gRPC — semantic representation without each product running its own inference.                                               |
+| **ghbridge**  | GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.                                             |
+| **ghserver**  | GitHub App key custody and short-lived installation-token minting surface for the hosted control plane.                                           |
+| **ghuser**    | GitHub user authentication — per-user OAuth token lifecycle for the Kata Agent User App.                                                          |
+| **graph**     | RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.                                              |
+| **map**       | Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.                                                        |
+| **mcp**       | Unified MCP server — agents reach backend services as tools without per-service integration.                                                      |
+| **msbridge**  | Microsoft Teams bridge onto libbridge — relay messages between Teams conversations and the Kata agent team.                                       |
+| **oauth**     | OAuth 2.1 authorization server adapter — protocol-only HTTP front that delegates to a configured provider backend over gRPC.                      |
+| **oidc**      | GitHub Actions OIDC exchange front — validates a workflow OIDC token and mints a repo-scoped installation token without holding signing material. |
+| **pathway**   | Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products.                                          |
+| **tenancy**   | Tenant registry — `(channel, channel_tenant_key) → Tenant` lookup for the hosted control plane.                                                   |
+| **trace**     | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.                                               |
+| **vector**    | Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.                                                 |
 
 <!-- END:catalog -->
 
@@ -85,6 +86,26 @@ retries per product. → **embedding**
 
 **Competes With:** inline fetch calls; per-product embedding wrappers; skipping
 semantic search entirely.
+
+</job>
+
+<job user="Platform Builders" goal="Exchange a GitHub Actions OIDC token for a repo-scoped installation token">
+
+## Platform Builders: Exchange a GitHub Actions OIDC token for a repo-scoped installation token
+
+**Trigger:** A hosted workflow needs an installation token but the App private
+key must stay off the public-facing process.
+
+**Big Hire:** Help me serve a stateless OIDC exchange that verifies a workflow's
+GitHub Actions identity and delegates minting to a gRPC backend, keeping the
+public surface free of signing material. → **oidc**
+
+**Little Hire:** Help me validate the inbound OIDC token's signature, issuer,
+audience, and repository claim, then call the custody backend to mint a token
+scoped to the asserted repository. → **oidc**
+
+**Competes With:** shipping the App private key into every customer workflow as
+a repository secret.
 
 </job>
 
@@ -180,6 +201,26 @@ integration code. → **mcp**
 
 **Competes With:** per-service MCP wrappers; hand-writing tool schemas for each
 endpoint; leaving services unreachable by agents.
+
+</job>
+
+<job user="Platform Builders" goal="Mint a repo-scoped GitHub installation token without holding App signing material">
+
+## Platform Builders: Mint a repo-scoped GitHub installation token without holding App signing material
+
+**Trigger:** A control-plane caller needs an installation token for a customer
+repo and the App private key must stay off the public-facing process.
+
+**Big Hire:** Help me own the hosted GitHub App key custody so every
+control-plane caller mints a repo-scoped, short-lived installation token through
+one gRPC query that checks the tenant registry first. → **ghserver**
+
+**Little Hire:** Help me resolve the requesting repo to an active tenant,
+enforce a per-tenant mint-rate ceiling, and return a fresh installation token
+bound to the resolved installation. → **ghserver**
+
+**Competes With:** embedding the App private key in every bridge and front-end
+process that needs to dispatch a workflow.
 
 </job>
 

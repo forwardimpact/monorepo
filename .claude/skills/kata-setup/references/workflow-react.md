@@ -5,6 +5,12 @@ product-manager facilitates and routes to the best-suited agent. File name:
 `kata-dispatch.yml`. Replace `{{AGENT_LIST}}` (all agents except product-manager
 and improvement-coach) and `{{MODEL}}`.
 
+The block below is the **self-hosted** variant. For the **hosted** control
+plane (see [`SKILL.md`](../SKILL.md) `--hosted`), apply the hosted delta
+under [§ Hosted variant](#hosted-variant) — no `KATA_APP_PRIVATE_KEY`.
+
+## Template (self-hosted)
+
 ```yaml
 name: "Agent: React"
 on:
@@ -99,3 +105,19 @@ composed dynamically between checkout and eval. The `if:` filters
 `pull_request_review_comment` to thread replies only. The recursion guard
 prevents loops when agents respond to each other. Action refs use tags for
 readability; pin to SHAs per your security policy.
+
+## Hosted variant
+
+This workflow mints its own App token via `actions/create-github-app-token`
+rather than passing `app-private-key` to the action, so the hosted delta
+differs from the agent workflow:
+
+1. Add `id-token: write` to `permissions` (keep `contents: write`).
+2. Replace the `Generate token` (`actions/create-github-app-token`) step
+   with the OIDC mint step from
+   [`workflow-agent.md` § Template (hosted)](workflow-agent.md).
+3. Change the checkout `token:` and the `Assess and Act` step's `GH_TOKEN:`
+   from `${{ steps.ci-app.outputs.token }}` to
+   `${{ steps.mint.outputs.token }}`.
+
+Requires the `FIT_OIDC_URL` repository variable.
