@@ -2,7 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { JSDOM } from "jsdom";
+import { parseHTML } from "linkedom";
 import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 import {
   createDslParser,
@@ -152,8 +152,8 @@ function makePipeline() {
 }
 
 async function parseFile(parser, content, baseIri) {
-  const dom = new JSDOM(content);
-  return parser.parseHTML(dom, baseIri);
+  const { document } = parseHTML(content);
+  return parser.parseHTML(document, baseIri);
 }
 
 function hasQuad(items, { subject, predicate, object }) {

@@ -3,10 +3,9 @@ import path from "node:path";
 import { PassThrough } from "node:stream";
 import { EventEmitter } from "node:events";
 
-import { LongrunProcess } from "./longrun.js";
+import { LIBCLI_IS_COMPILED } from "@forwardimpact/libcli";
 
-const require = createRequire(import.meta.url);
-const LOG_BIN = require.resolve("../bin/fit-logger.js");
+import { LongrunProcess } from "./longrun.js";
 
 /**
  * @typedef {object} TreeConfig
@@ -27,6 +26,8 @@ export class SupervisionTree extends EventEmitter {
   #logProcesses;
   #running;
   #logger;
+  #isCompiled;
+  #loggerCmd;
 
   /**
    * Creates a new SupervisionTree
@@ -36,6 +37,10 @@ export class SupervisionTree extends EventEmitter {
    *   Injected runtime bag (uses `subprocess`, `clock`; threaded into children).
    * @param {number} [config.shutdownTimeout] - Timeout for graceful shutdown in ms (default: 3000)
    * @param {import('@forwardimpact/libtelemetry').Logger} config.logger - Logger instance
+   * @param {boolean} [config.isCompiled] - Whether the host is a
+   *   `bun build --compile` binary; defaults to libcli's `LIBCLI_IS_COMPILED`.
+   *   Selects how the `fit-logger` child is launched (see {@link #loggerCommand});
+   *   injectable so tests can exercise both branches without a real binary.
    */
   constructor(logDir, config) {
     super();
@@ -53,6 +58,34 @@ export class SupervisionTree extends EventEmitter {
     this.#longruns = new Map();
     this.#logProcesses = new Map();
     this.#running = false;
+    this.#isCompiled = config.isCompiled ?? LIBCLI_IS_COMPILED;
+  }
+
+  /**
+   * Resolve the command + base args used to launch the `fit-logger` child,
+   * daemontools-style: svscan execs a separate logger program per supervised
+   * service (like s6-svscan exec'ing s6-log) and pipes the service's output
+   * into its stdin.
+   *
+   * A compiled install ships `fit-logger` alongside `fit-svscan` on PATH, so it
+   * is launched by bare name and resolved by the OS — the same way s6 run
+   * scripts invoke their logger. In source/npx execution there is no installed
+   * binary, so the entry module is run under `node`; the `require.resolve` stays
+   * inside this branch (and lazy) so it never runs in a compiled binary, where
+   * the `../bin/fit-logger.js` path does not exist on the `$bunfs`.
+   * @returns {{command: string, baseArgs: string[]}}
+   */
+  #loggerCommand() {
+    if (this.#loggerCmd) return this.#loggerCmd;
+    this.#loggerCmd = this.#isCompiled
+      ? { command: "fit-logger", baseArgs: [] }
+      : {
+          command: "node",
+          baseArgs: [
+            createRequire(import.meta.url).resolve("../bin/fit-logger.js"),
+          ],
+        };
+    return this.#loggerCmd;
   }
 
   /**
@@ -129,9 +162,10 @@ export class SupervisionTree extends EventEmitter {
    * @param {PassThrough} stderr - Stderr stream to pipe from
    */
   #spawnLogProcess(name, logDir, stdout, stderr) {
+    const { command, baseArgs } = this.#loggerCommand();
     const logProcess = this.#subprocess.spawn(
-      "node",
-      [LOG_BIN, "--dir", logDir],
+      command,
+      [...baseArgs, "--dir", logDir],
       {
         stdio: ["pipe", "inherit", "inherit"],
       },

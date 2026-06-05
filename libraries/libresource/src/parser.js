@@ -34,13 +34,13 @@ export class Parser {
   }
 
   /**
-   * Parses HTML DOM and extracts structured items
-   * @param {object} dom - JSDOM instance
+   * Parses an HTML document and extracts structured items
+   * @param {object} document - Parsed document (linkedom)
    * @param {string} baseIri - Base IRI for parsing
    * @returns {Promise<Array>} Array of extracted items with RDF quads
    */
-  async parseHTML(dom, baseIri) {
-    const minifiedHtml = await this.#minifyHTML(dom.serialize());
+  async parseHTML(document, baseIri) {
+    const minifiedHtml = await this.#minifyHTML(document.toString());
     const allQuads = await this.#extractQuads(minifiedHtml, baseIri);
 
     if (!allQuads || allQuads.length === 0) {
