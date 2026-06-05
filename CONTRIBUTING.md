@@ -223,8 +223,8 @@ Security policies apply to all contributors — human and agent.
   `invalid` markers; close the PR if dependents lack compatible ranges.
 - **Audit after changes.** Run `just audit-vulnerabilities` after adding or
   updating deps.
-- **No `jsdom`** (its `css-tree` dep breaks `bun --compile`) — use `linkedom`
-  for HTML parsing, `happy-dom` for browser-env tests.
+- **No `jsdom`** (its `css-tree` breaks `bun --compile`) — use `linkedom` for
+  parsing, `happy-dom` for browser-env tests.
 
 ### Classification
 
