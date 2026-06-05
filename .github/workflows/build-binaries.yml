@@ -4,9 +4,17 @@ on:
   workflow_call:
     inputs:
       targets:
-        description: "JSON array of bun targets to build (subset of the manifest's)."
+        description: "JSON array of bun targets to build (subset of the manifest's). Omit to build every target in the manifest."
         type: string
-        required: true
+        required: false
+        default: '["bun-linux-x64", "bun-darwin-arm64"]'
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "JSON array of bun targets to build (subset of the manifest's). Defaults to the full build manifest."
+        type: string
+        required: false
+        default: '["bun-linux-x64", "bun-darwin-arm64"]'
 
 permissions:
   contents: read
