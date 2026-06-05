@@ -204,8 +204,8 @@ agent-aligned engineering standard may define more.
 | ---------- | -------------------------------------------------------------- |
 | Discipline | Software Engineering                                           |
 | Level      | J060 (core=working, supporting=foundational, broad=awareness)  |
-| Track      | Platform (delivery: +1, reliability: +1)                       |
-| Skill      | Task Completion (capability: delivery, tier: supportingSkills) |
+| Track      | Forward Deployed (delivery: +1, reliability: -1)               |
+| Skill      | Planning (capability: delivery, tier: supportingSkills)        |
 
 1. **Skill tier**: supporting
 2. **Base proficiency**: foundational (index 1)
