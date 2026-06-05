@@ -38,6 +38,7 @@ export default [
       "design/**",
       "public/**",
       "tmp/**",
+      "scripts/test/byok-fixtures/**",
     ],
   },
 ];

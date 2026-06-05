@@ -33,6 +33,7 @@ export async function tryInject(
     const correlationId = Object.values(ctx.pending_callbacks)[0];
     await client.EnqueueInbox(
       bridge.EnqueueInboxRequest.fromObject({
+        tenant_id: ctx.tenant_id,
         message: {
           correlation_id: correlationId,
           text,
@@ -66,6 +67,7 @@ export async function reconcileInbox(
   const lastActed = payload.last_acted_seq ?? -1;
   const remaining = await client.DrainInbox(
     bridge.DrainInboxRequest.fromObject({
+      tenant_id: ctx.tenant_id,
       correlation_id: meta.correlationId,
       since_seq: lastActed,
     }),

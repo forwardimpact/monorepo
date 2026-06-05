@@ -11,6 +11,10 @@ For the trust model when this bridge runs as the hosted Forward Impact
 service vs the customer's self-hosted deployment, see
 [TRUST.md](../../TRUST.md).
 
+For configuring the GitHub **server App** this bridge uses (self-hosted holds
+the key here; hosted custodies it in `services/ghserver`), see
+[`services/ghserver` § github-app.md](https://github.com/forwardimpact/monorepo/blob/main/services/ghserver/github-app.md).
+
 ## Prerequisites
 
 - The Kata Agent Team GitHub App with `discussions: write` permission and
@@ -39,6 +43,52 @@ upgrading from a bridge that predates this service can safely delete
 legacy `data/bridges/ghbridge/` files; they expire under their existing
 24-hour TTL regardless.
 
+## Tenancy mode
+
+`SERVICE_GHBRIDGE_TENANCY_MODE` selects the deployment shape:
+
+- **`single`** (default, self-hosted) — the bridge reads the App private key
+  in process, mints installation tokens from the static
+  `app_installation_id`, and threads the literal tenant id `default` through
+  every `services/bridge` RPC via a `DefaultTenantResolver`. Per-user OAuth
+  (`services/ghuser`) supplies the `workflow_dispatch` credential.
+- **`multi`** (hosted) — the bridge holds no App key. It resolves the tenant
+  per inbound webhook from the delivery's repository (`resolveByRepo`), mints
+  repo-scoped tokens through `services/ghserver`, and scopes every store RPC
+  by the resolved tenant. `installation.created` /
+  `installation.repositories_added` deliveries onboard repositories into the
+  registry (`services/tenancy`) with `state = active`.
+
+### Multi-tenant dependencies
+
+| Service | Why |
+| --- | --- |
+| `services/tenancy` | Tenant registry — resolves a delivery's repo to a tenant and records onboarding upserts |
+| `services/ghserver` | Mints repo-scoped App installation tokens for replies, reactions, and `workflow_dispatch` (the bridge never holds the App key) |
+
+### Deferred: `installation.repositories_removed` revoke
+
+Onboarding upserts on `installation.created` /
+`installation.repositories_added`. The revoke path — rotating a tenant from
+`active` to `revoked` on `installation.repositories_removed` or a full
+uninstall — is not handled here. A partial uninstall leaves the `active` row
+in place until the revoke path ships. Self-hosted (`single`) deployments are
+unaffected.
+
+### Documented limitation: multi-tenant elapsed-recess re-arm on restart
+
+In `single` mode, the bridge re-arms time-based (`elapsed`-trigger) recesses at
+startup: `ResumeScheduler.rearm()` reads the open recesses for the one tenant
+(`default`) and re-schedules each. In `multi` mode there is no single tenant at
+boot, and the registry does not expose a cross-tenant enumeration of open
+recesses, so `rearm()` returns nothing. The consequence: a hosted bridge that
+restarts while an `elapsed` recess is pending does not fire that recess on a
+timer. Instead, multi-tenant `elapsed`-trigger recesses re-arm lazily on the
+next inbound activity on the thread (the resume lifecycle runs through
+`processInbound`). `missing_input` recesses are unaffected — they resume on the
+next reply regardless of restart. Self-hosted (`single`) re-arm behaviour is
+unchanged.
+
 ### Configuration
 
 Loaded via `createServiceConfig("ghbridge")`):
@@ -53,6 +103,7 @@ Loaded via `createServiceConfig("ghbridge")`):
 | `SERVICE_GHBRIDGE_APP_PRIVATE_KEY` | PEM contents (see § Private key format) |
 | `SERVICE_GHBRIDGE_APP_INSTALLATION_ID` | Installation id for the target repo |
 | `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET` | Shared secret for `X-Hub-Signature-256` verification |
+| `SERVICE_GHBRIDGE_TENANCY_MODE` | `single` (default) or `multi` — see § Tenancy mode |
 
 ### Private key format
 

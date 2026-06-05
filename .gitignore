@@ -8,6 +8,9 @@ data
 generated/
 **/generated
 
+# Finder seed data (terrain-generated output; see data/synthetic/story.dsl)
+products/finder/
+
 # Sensitive files
 *.pem
 *.key

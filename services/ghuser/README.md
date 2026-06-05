@@ -7,6 +7,10 @@ User App.
 
 <!-- END:description -->
 
+For configuring this GitHub **user App** (self-hosted vs hosted), see
+[github-app.md](github-app.md). The separate server/installation app
+is documented in `services/ghserver`.
+
 ## Prerequisites
 
 - A **Kata Agent User** GitHub App (user-to-server auth model) with

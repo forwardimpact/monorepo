@@ -3,10 +3,12 @@ import {
   CallbackRegistry,
   DefaultTenantResolver,
   Dispatcher,
+  GhServerTokenResolver,
   RateLimiter,
   ResumeScheduler,
   TokenResolver,
   appendHistory,
+  assertMultiTenantDeps,
   buildPrompt,
   createBridgeServer,
   createCallbackHandler,
@@ -14,51 +16,26 @@ import {
   createLinkCompleteHandler,
   newDiscussionContext,
   normalizeBaseUrl,
-  prepareLinkResume,
   validateCallbackPayload,
 } from "@forwardimpact/libbridge";
 import { bridge } from "@forwardimpact/libtype";
 
 import { DiscussionAdapter } from "./src/discussion-adapter.js";
 import {
-  ADD_REACTION_MUTATION,
-  REMOVE_REACTION_MUTATION,
   postDiscussionReplies,
   postSingleDiscussionReply,
 } from "./src/graphql.js";
 import { tryInject, reconcileInbox } from "./src/injection.js";
+import { handleInstall, isInstallEvent } from "./src/install-handler.js";
+import { buildReactionAdapter, parseRepo } from "./src/reactions.js";
+import { createReplyRender } from "./src/reply-render.js";
+import { extractTenant } from "./src/tenant-extractor.js";
 
 export { validateCallbackPayload };
 
 const CHANNEL = "github-discussions";
 const WEBHOOK_PATH = "/api/webhook";
 const WORKFLOW_FILE = "kata-dispatch.yml";
-const REACTION_CONTENT = "EYES";
-
-function parseRepo(githubRepo) {
-  if (typeof githubRepo !== "string" || !githubRepo) return undefined;
-  const [owner, name] = githubRepo.split("/");
-  if (!owner || !name) return undefined;
-  return { owner, name };
-}
-
-function buildReactionAdapter(graphqlClient) {
-  return {
-    add: async (target) => {
-      if (!target?.subjectId) return null;
-      await graphqlClient(ADD_REACTION_MUTATION, {
-        i: { subjectId: target.subjectId, content: REACTION_CONTENT },
-      });
-      return target.subjectId;
-    },
-    remove: async (_reactionId, target) => {
-      if (!target?.subjectId) return;
-      await graphqlClient(REMOVE_REACTION_MUTATION, {
-        i: { subjectId: target.subjectId, content: REACTION_CONTENT },
-      });
-    },
-  };
-}
 
 /**
  * GitHub Discussions bridge service. Receives webhooks from the Kata
@@ -84,6 +61,12 @@ export class GhBridgeService {
   #onCallback;
   #clock;
   #trustedOrigins;
+  #tenancyClient;
+  #tenantResolver;
+  #ghserverClient;
+  #makeGraphqlClient;
+  #multiTenant;
+  #replyRender;
 
   /**
    * @param {import("@forwardimpact/libbridge").BridgeConfig & {
@@ -126,19 +109,78 @@ export class GhBridgeService {
     this.#tracer = tracer;
     this.#verifyWebhook = verifyWebhook;
     this.#graphqlClient = deps.graphqlClient;
+    // In multi-tenant mode the reply/reaction path mints a token for the
+    // per-request resolved tenant repo; `makeGraphqlClient(repo)` returns a
+    // client bound to that repo. Single-tenant uses the static `graphqlClient`.
+    this.#makeGraphqlClient = deps.makeGraphqlClient;
+    // Deployment mode is config-driven — `tenancy_mode` is the single source of
+    // truth. server.js injects the tenancy/ghserver clients only in "multi";
+    // guard against a multi config that is missing them.
+    this.#multiTenant = config.tenancy_mode === "multi";
+    assertMultiTenantDeps(this.#multiTenant, deps.tenancyClient);
     this.#clock = clock;
     this.#trustedOrigins = trustedOrigins;
+    // Multi-tenant onboarding upserts repositories into the registry. The
+    // raw tenancy client is present only in multi-tenant mode; single-tenant
+    // deployments never reach services/tenancy.
+    this.#tenancyClient = deps.tenancyClient;
 
-    this.#store = new DiscussionAdapter(discussionClient);
+    // One resolver instance is shared by the store adapter (tenant_id on
+    // every gRPC) and the dispatcher (tenant_id in the callback URL). The
+    // deployment mode picks the implementation in server.js; if none is
+    // injected, default to the single-tenant `default` resolver derived
+    // from the configured repo.
+    const tenantResolver =
+      deps.tenantResolver ??
+      new DefaultTenantResolver({
+        channel: CHANNEL,
+        repo: parseRepo(config.github_repo),
+      });
+    this.#tenantResolver = tenantResolver;
+    // Present only in multi-tenant mode; mints the per-tenant App
+    // installation token for the reply/reaction path. Single-tenant
+    // deployments use the static `graphqlClient` closure.
+    this.#ghserverClient = deps.ghserverClient;
+
+    this.#store = new DiscussionAdapter(discussionClient, { tenantResolver });
     this.#client = discussionClient;
+    this.#replyRender = createReplyRender({
+      graphqlClient: this.#graphqlClient,
+      makeGraphqlClient: this.#makeGraphqlClient,
+      multiTenant: this.#multiTenant,
+      tenantResolver,
+      client: this.#client,
+      store: this.#store,
+      clock: this.#clock,
+      config,
+      trustedOrigins: this.#trustedOrigins,
+      logger,
+    });
     this.#callbacks = new CallbackRegistry({ clock: this.#clock });
     this.#rateLimiter = new RateLimiter({ clock: this.#clock });
     this.#ack =
       deps.acknowledgement ??
       new Acknowledgement({
-        reactionAdapter: buildReactionAdapter(this.#graphqlClient),
+        reactionAdapter: buildReactionAdapter(
+          this.#graphqlClient,
+          this.#makeGraphqlClient,
+        ),
         logger,
       });
+    // Hosted dispatch identity: multi-tenant mode fires workflow_dispatch with
+    // a repo-scoped GitHub App installation token minted by services/ghserver
+    // for the resolved tenant repo (design § Hosted dispatch identity). This is
+    // the SAME resolver msbridge uses in multi-tenant mode; sharing it removes
+    // the per-user OAuth link path from hosted ghbridge entirely — and with it
+    // the `putPendingDispatch` → bare-channel resolve that otherwise threw
+    // `tenant_unresolved`. Single-tenant keeps the per-user OAuth token via
+    // services/ghuser exactly as before.
+    const dispatchTokenResolver =
+      this.#multiTenant && this.#ghserverClient
+        ? new GhServerTokenResolver(this.#ghserverClient, {
+            requestedBy: "ghbridge",
+          })
+        : new TokenResolver(deps.ghuserClient);
     this.#dispatcher = new Dispatcher({
       clock: this.#clock,
       callbacks: this.#callbacks,
@@ -147,11 +189,8 @@ export class GhBridgeService {
       callbackBaseUrl: normalizeBaseUrl(config.callback_base_url),
       workflowFile: WORKFLOW_FILE,
       githubRepo: config.github_repo,
-      tokenResolver: new TokenResolver(deps.ghuserClient),
-      tenantResolver: new DefaultTenantResolver({
-        channel: CHANNEL,
-        repo: parseRepo(config.github_repo),
-      }),
+      tokenResolver: dispatchTokenResolver,
+      tenantResolver,
     });
     this.#resume = new ResumeScheduler({
       clock: this.#clock,
@@ -160,7 +199,8 @@ export class GhBridgeService {
       logger,
       buildCallbackMeta: (ctx) => ({ discussionId: ctx.discussion_id }),
       buildResumeInputs: (ctx) => ({ discussionId: ctx.discussion_id }),
-      onDeclined: (ctx, outcome) => this.#renderDeclined(ctx, outcome),
+      onDeclined: (ctx, outcome) =>
+        this.#replyRender.renderDeclined(ctx, outcome),
     });
 
     this.#onCallback = createCallbackHandler({
@@ -262,16 +302,55 @@ export class GhBridgeService {
       return c.json({ error: "Invalid JSON" }, 400);
     }
 
+    // Multi-tenant onboarding: register repositories named by an
+    // install-class delivery. Single-tenant deployments have no tenancy
+    // client and skip this branch.
+    if (this.#multiTenant && isInstallEvent(event, body)) {
+      await handleInstall(body, {
+        tenancyClient: this.#tenancyClient,
+        logger: this.#logger,
+      });
+      return c.body(null, 200);
+    }
+
+    // Multi-tenant per-request tenant extraction. The inbound delivery names
+    // one repository; resolve it to an active tenant before any store write or
+    // dispatch so the downstream Dispatcher/DiscussionAdapter scope every RPC
+    // by the resolved tenant. A delivery from an unknown or non-active tenant
+    // is dropped (204). Single-tenant deployments skip this branch and rely on
+    // the DefaultTenantResolver (`tenant_id = "default"`).
+    let tenant;
+    if (this.#multiTenant) {
+      tenant = await extractTenant(body, this.#tenantResolver);
+      if (!tenant) {
+        this.#logger.debug("webhook", "no active tenant for delivery");
+        return c.body(null, 204);
+      }
+    }
+
     if (event === "discussion" && body.action === "created") {
-      return this.#handleDiscussionCreated(c, body);
+      return this.#handleDiscussionCreated(c, body, tenant);
     }
     if (event === "discussion_comment" && body.action === "created") {
-      return this.#handleDiscussionComment(c, body);
+      return this.#handleDiscussionComment(c, body, tenant);
     }
     return c.body(null, 204);
   }
 
-  async #handleDiscussionCreated(c, body) {
+  /**
+   * Bind the resolved tenant onto a context so downstream store writes carry
+   * the correct `tenant_id`. In single-tenant mode `tenant` is undefined and
+   * the DiscussionAdapter resolves `"default"` itself.
+   */
+  #bindTenant(ctx, tenant) {
+    if (tenant) {
+      ctx.tenant_id = tenant.tenant_id;
+      ctx.channel_tenant_key = tenant.channel_tenant_key;
+    }
+    return ctx;
+  }
+
+  async #handleDiscussionCreated(c, body, tenant) {
     const discussion = body.discussion;
     const discussionId = discussion?.node_id;
     const text = (discussion?.body ?? "").trim();
@@ -291,7 +370,11 @@ export class GhBridgeService {
       attributes: { discussion_id: discussionId },
     });
     try {
-      const ctx = await this.#loadOrCreateContext(discussionId, discussion);
+      const ctx = await this.#loadOrCreateContext(
+        discussionId,
+        discussion,
+        tenant,
+      );
 
       appendHistory(ctx.history, { role: "user", text, author: requester });
       ctx.last_active_at = this.#clock.now();
@@ -312,7 +395,7 @@ export class GhBridgeService {
           ctx,
           prompt: buildPrompt(text, ctx.history),
           requester,
-          ackTarget: { subjectId: discussionId },
+          ackTarget: { subjectId: discussionId, repo: tenant?.repo },
           callbackMeta: { discussionId },
           workflowInputs: { discussionId },
         });
@@ -321,7 +404,7 @@ export class GhBridgeService {
             correlation_id: result.correlationId,
           });
         } else {
-          await this.#handleDispatchResult(ctx, result, requester);
+          await this.#replyRender.handleDispatchResult(ctx, result, requester);
           span.addEvent("dispatch_declined", { kind: result.kind });
         }
         span.setOk();
@@ -337,15 +420,20 @@ export class GhBridgeService {
   }
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: webhook intake with origin check, inject, rate limit, and dispatch
-  async #handleDiscussionComment(c, body) {
+  async #handleDiscussionComment(c, body, tenant) {
     const discussion = body.discussion;
     const comment = body.comment;
     const commentId = comment?.node_id;
+    const originTenantId =
+      tenant?.tenant_id ?? (await this.#store.tenantForChannel(CHANNEL));
     if (
       commentId &&
       (
         await this.#client.HasOrigin(
-          bridge.OriginKey.fromObject({ id: commentId }),
+          bridge.OriginKey.fromObject({
+            id: commentId,
+            tenant_id: originTenantId,
+          }),
         )
       ).exists
     ) {
@@ -367,8 +455,14 @@ export class GhBridgeService {
       attributes: { discussion_id: discussionId },
     });
     try {
-      let ctx = await this.#store.loadByChannel(CHANNEL, discussionId);
-      if (!ctx) ctx = await this.#loadOrCreateContext(discussionId, discussion);
+      let ctx = await this.#store.loadByChannel(
+        CHANNEL,
+        discussionId,
+        tenant?.tenant_id,
+      );
+      if (!ctx)
+        ctx = await this.#loadOrCreateContext(discussionId, discussion, tenant);
+      this.#bindTenant(ctx, tenant);
 
       appendHistory(ctx.history, { role: "user", text, author: requester });
       ctx.last_active_at = this.#clock.now();
@@ -379,8 +473,8 @@ export class GhBridgeService {
       if (freshDispatchAllowed) {
         const inject = await tryInject(ctx, requester, text, {
           client: this.#client,
-          graphqlClient: this.#graphqlClient,
-          recordOrigin: this.#recordOrigin(ctx),
+          graphqlClient: await this.#replyRender.graphqlFor(ctx),
+          recordOrigin: this.#replyRender.recordOrigin(ctx),
           clock: this.#clock,
         });
         if (inject) {
@@ -406,12 +500,12 @@ export class GhBridgeService {
           ctx,
           prompt: buildPrompt(text, ctx.history),
           requester,
-          ackTarget: { subjectId: comment?.node_id },
+          ackTarget: { subjectId: comment?.node_id, repo: tenant?.repo },
           callbackMeta: { discussionId: ctx.discussion_id },
           workflowInputs: { discussionId: ctx.discussion_id },
         });
         if (result.kind !== "dispatched") {
-          await this.#handleDispatchResult(ctx, result, requester);
+          await this.#replyRender.handleDispatchResult(ctx, result, requester);
         }
       }
 
@@ -429,16 +523,12 @@ export class GhBridgeService {
   }
 
   async #handleReply(ctx, payload, meta) {
-    const recordOrigin = this.#recordOrigin(ctx);
+    const graphqlClient = await this.#replyRender.graphqlFor(ctx);
+    const recordOrigin = this.#replyRender.recordOrigin(ctx);
     const unstreamed = (payload.replies ?? []).filter(
       (r) => r.kind === undefined,
     );
-    await postDiscussionReplies(
-      this.#graphqlClient,
-      ctx,
-      unstreamed,
-      recordOrigin,
-    );
+    await postDiscussionReplies(graphqlClient, ctx, unstreamed, recordOrigin);
     for (const reply of unstreamed) {
       appendHistory(ctx.history, {
         role: "assistant",
@@ -462,7 +552,7 @@ export class GhBridgeService {
         this.#resume.cancelRecess(ctx, meta.correlationId);
         if (payload.summary) {
           await postSingleDiscussionReply(
-            this.#graphqlClient,
+            graphqlClient,
             ctx,
             payload.summary,
             recordOrigin,
@@ -474,7 +564,7 @@ export class GhBridgeService {
         this.#resume.cancelRecess(ctx, meta.correlationId);
         if (payload.summary && !payload.replies?.length) {
           await postSingleDiscussionReply(
-            this.#graphqlClient,
+            graphqlClient,
             ctx,
             payload.summary,
             recordOrigin,
@@ -495,94 +585,26 @@ export class GhBridgeService {
     }
   }
 
-  async #handleDispatchResult(ctx, result, requester) {
-    if (result.kind === "link_required") {
-      await this.#stashAndPostLink(ctx, result, requester);
-    } else {
-      await this.#renderDeclined(ctx, result);
-    }
-  }
-
-  async #stashAndPostLink(ctx, result, requester) {
-    const prepared = prepareLinkResume({
-      authorizeUrl: result.authorizeUrl,
-      callbackBaseUrl: this.#config.callback_base_url,
-      trustedOrigins: this.#trustedOrigins,
-    });
-    if (prepared.skipped) {
-      this.#logger.info("link-resume", "skipped", {
-        reason: prepared.reason,
-        discussion_id: ctx.discussion_id,
-      });
-      return;
-    }
-
-    await this.#store.putPendingDispatch({
-      link_token: prepared.linkToken,
-      surface: CHANNEL,
-      surface_user_id: requester,
-      discussion_id: ctx.discussion_id,
-      created_at: this.#clock.now(),
-    });
-
-    await postSingleDiscussionReply(
-      this.#graphqlClient,
-      ctx,
-      `To dispatch, link your GitHub account: ${prepared.augmentedUrl}`,
-      this.#recordOrigin(ctx),
-    );
-  }
-
-  async #renderDeclined(ctx, outcome) {
-    let body;
-    switch (outcome.kind) {
-      case "link_required":
-        body = `To dispatch, link your GitHub account: ${outcome.authorizeUrl}`;
-        break;
-      case "reauth_required":
-        body =
-          "Your GitHub link has expired. Please re-link your account to dispatch.";
-        break;
-      case "transient":
-        body =
-          "Unable to verify your GitHub identity right now. Please try again later.";
-        break;
-      default:
-        return;
-    }
-    await postSingleDiscussionReply(
-      this.#graphqlClient,
-      ctx,
-      body,
-      this.#recordOrigin(ctx),
-    );
-  }
-
-  #recordOrigin(ctx) {
-    return async (comment) => {
-      await this.#client.RecordOrigin(
-        bridge.Origin.fromObject({
-          id: comment.id,
-          discussion_id: ctx.discussion_id,
-          posted_at: this.#clock.now(),
-        }),
-      );
-    };
-  }
-
-  async #loadOrCreateContext(discussionId, discussion) {
-    const existing = await this.#store.loadByChannel(CHANNEL, discussionId);
-    if (existing) return existing;
-    return newDiscussionContext({
-      clock: this.#clock,
-      channel: CHANNEL,
+  async #loadOrCreateContext(discussionId, discussion, tenant) {
+    const existing = await this.#store.loadByChannel(
+      CHANNEL,
       discussionId,
-      participant: {
-        name: discussion?.user?.login ?? "github-user",
-        kind: "human",
-        external_id: discussion?.user?.id?.toString(),
-        metadata: { node_id: discussion?.node_id },
-      },
-    });
+      tenant?.tenant_id,
+    );
+    if (existing) return existing;
+    return this.#bindTenant(
+      newDiscussionContext({
+        clock: this.#clock,
+        channel: CHANNEL,
+        discussionId,
+        participant: {
+          name: discussion?.user?.login ?? "github-user",
+          kind: "human",
+          external_id: discussion?.user?.id?.toString(),
+          metadata: { node_id: discussion?.node_id },
+        },
+      }),
+      tenant,
+    );
   }
 }

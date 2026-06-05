@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcghserver",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "GitHub App key custody and short-lived installation-token minting surface for the hosted control plane.",
   "keywords": [
     "github",
@@ -17,12 +17,41 @@
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Mint a repo-scoped GitHub installation token without holding App signing material",
+      "trigger": "A control-plane caller needs an installation token for a customer repo and the App private key must stay off the public-facing process.",
+      "bigHire": "own the hosted GitHub App key custody so every control-plane caller mints a repo-scoped, short-lived installation token through one gRPC query that checks the tenant registry first.",
+      "littleHire": "resolve the requesting repo to an active tenant, enforce a per-tenant mint-rate ceiling, and return a fresh installation token bound to the resolved installation.",
+      "competesWith": "embedding the App private key in every bridge and front-end process that needs to dispatch a workflow"
+    }
+  ],
   "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "fit-svcghserver": "./server.js"
+  },
   "files": [
-    "proto"
+    "index.js",
+    "server.js",
+    "src",
+    "proto",
+    "github-app.md"
   ],
   "scripts": {
-    "test": "exit 0"
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/libpreflight": "^0.1.0",
+    "@forwardimpact/librpc": "^0.1.99",
+    "@forwardimpact/libtelemetry": "^0.1.42",
+    "@forwardimpact/libutil": "^0.1.85",
+    "@octokit/auth-app": "^8.2.0"
+  },
+  "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.0"
   },
   "engines": {
     "bun": ">=1.2.0",

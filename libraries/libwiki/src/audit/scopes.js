@@ -1,6 +1,7 @@
 import path from "node:path";
 import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims } from "../active-claims.js";
+import { countLines, countWords } from "../budget.js";
 import { PRIORITY_INDEX_HEADING } from "../constants.js";
 
 const SUMMARY_H1_RE = /^# [A-Z].* — Summary$/;
@@ -26,25 +27,6 @@ function listMdFiles(wikiRoot, fs) {
     .readdirSync(wikiRoot)
     .filter((e) => e.endsWith(".md"))
     .map((e) => path.join(wikiRoot, e));
-}
-
-function countLines(text) {
-  return text.split("\n").length - (text.endsWith("\n") ? 1 : 0);
-}
-
-function countWords(text) {
-  let count = 0;
-  let inWord = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text.charCodeAt(i);
-    const isWs = c === 32 || c === 9 || c === 10 || c === 13;
-    if (isWs) inWord = false;
-    else if (!inWord) {
-      inWord = true;
-      count++;
-    }
-  }
-  return count;
 }
 
 function loadFile(filePath, fs) {

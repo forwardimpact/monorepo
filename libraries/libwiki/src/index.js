@@ -32,8 +32,10 @@ export {
   isoWeek,
   weeklyLogPath,
   rotateIfOverBudget,
+  bisectWeeklyLog,
   appendEntry,
 } from "./weekly-log.js";
 export { buildDigest } from "./boot.js";
+export { countLines, countWords } from "./budget.js";
 export { RULES } from "./audit/rules.js";
 export { resolveScope as resolveAuditScope } from "./audit/scopes.js";

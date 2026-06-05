@@ -21,12 +21,14 @@ const PARSER_BY_EXT = {
  * @param {Function} prettierFn - Prettier format function
  * @param {string} filePath - Relative or absolute file path (used to infer parser)
  * @param {string} content - File content to format
+ * @param {Set<string>} [skipParsers] - Parsers whose content is already canonical
+ *   (e.g. machine-serialized JSON/YAML); these are passed through unformatted.
  * @returns {Promise<string>} Formatted content
  */
-async function formatOne(prettierFn, filePath, content) {
+async function formatOne(prettierFn, filePath, content, skipParsers) {
   const ext = extname(filePath).toLowerCase();
   const parser = PARSER_BY_EXT[ext];
-  if (!parser) return content;
+  if (!parser || skipParsers?.has(parser)) return content;
 
   const config = (await resolveConfig(filePath)) || {};
   try {
@@ -66,14 +68,18 @@ export class ContentFormatter {
   /**
    * Format all entries in a Map of path→content.
    * @param {Map<string, string>} files
+   * @param {{ skipParsers?: Set<string> }} [options] - `skipParsers` lists
+   *   parsers whose content is already canonical (e.g. machine-serialized
+   *   JSON/YAML), so a second Prettier pass is redundant work and they are
+   *   written through unchanged.
    * @returns {Promise<Map<string, string>>}
    */
-  async format(files) {
+  async format(files, { skipParsers } = {}) {
     const formatted = new Map();
     const entries = [...files.entries()];
     const results = await Promise.all(
       entries.map(([path, content]) =>
-        formatOne(this.prettierFn, path, content),
+        formatOne(this.prettierFn, path, content, skipParsers),
       ),
     );
     for (let i = 0; i < entries.length; i++) {

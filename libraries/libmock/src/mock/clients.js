@@ -167,6 +167,27 @@ export function createMockDiscussionClient(overrides = {}) {
   };
 }
 
+/**
+ * Reject a request that omits `tenant_id`, mirroring `services/bridge`'s
+ * `requireTenant` guard. Every tenant-scoped RPC carries a `tenant_id` in
+ * both deployment modes (single-tenant binds the literal `"default"`); an
+ * empty value is a caller error, not an empty result. The stateful mock
+ * applies the same guard so production callers that forget to thread a
+ * `tenant_id` fail in tests exactly as they would against the real service.
+ *
+ * @param {{tenant_id?: string}} obj
+ * @returns {string} the validated tenant id
+ */
+function requireTenant(obj) {
+  const tenant_id = obj?.tenant_id;
+  if (typeof tenant_id !== "string" || tenant_id.length === 0) {
+    throw Object.assign(new Error("tenant_id is required"), {
+      code: grpc.status.INVALID_ARGUMENT,
+    });
+  }
+  return tenant_id;
+}
+
 function coerceInt64Fields(obj) {
   obj.open_rfcs ??= {};
   obj.pending_callbacks ??= {};
@@ -194,24 +215,35 @@ export function createStatefulDiscussionClient() {
   const records = new Map();
   const origins = new Map();
   const pending = new Map();
+  const inbox = new Map();
+  const inboxSeqs = new Map();
 
   return {
     SaveDiscussion: spy(async (req) => {
       const obj = req?.toJSON?.() ?? req;
+      const tenant_id = requireTenant(obj);
       coerceInt64Fields(obj);
-      records.set(obj.id, obj);
+      // Tenant-scope the index key exactly like services/bridge:
+      // `${channel}:${tenant_id}:${discussion_id}`. The record keeps its
+      // tenant_id so cross-record RPCs can filter by it.
+      records.set(`${obj.channel}:${tenant_id}:${obj.discussion_id}`, obj);
       return {};
     }),
     LoadDiscussion: spy(async (req) => {
       const obj = req?.toJSON?.() ?? req;
-      const key = `${obj.channel}:${obj.discussion_id}`;
+      const tenant_id = requireTenant(obj);
+      const key = `${obj.channel}:${tenant_id}:${obj.discussion_id}`;
       const rec = records.get(key);
       if (!rec) throw notFound();
       return rec;
     }),
     LoadDiscussionByCorrelation: spy(async (req) => {
       const obj = req?.toJSON?.() ?? req;
+      const tenant_id = requireTenant(obj);
       for (const rec of records.values()) {
+        // Filter to the requesting tenant after the correlation scan so a
+        // correlation owned by tenant A is invisible to tenant B.
+        if (rec.tenant_id !== tenant_id) continue;
         if (
           Object.values(rec.pending_callbacks ?? {}).includes(
             obj.correlation_id,
@@ -222,43 +254,89 @@ export function createStatefulDiscussionClient() {
       }
       throw notFound();
     }),
-    ListOpenRecesses: spy(async () => {
+    ListOpenRecesses: spy(async (req) => {
+      const obj = req?.toJSON?.() ?? req;
+      const tenant_id = requireTenant(obj);
       const refs = [];
-      for (const rec of records.values())
+      for (const rec of records.values()) {
+        if (rec.tenant_id !== tenant_id) continue;
         for (const [cid, rfc] of Object.entries(rec.open_rfcs ?? {}))
           if (typeof rfc.due_at === "number")
-            refs.push({ correlation_id: cid, due_at: rfc.due_at });
+            refs.push({ correlation_id: cid, due_at: rfc.due_at, tenant_id });
+      }
       return { refs };
     }),
     HasOrigin: spy(async (req) => {
       const obj = req?.toJSON?.() ?? req;
-      return { exists: origins.has(obj.id) };
+      const tenant_id = requireTenant(obj);
+      return { exists: origins.has(`${tenant_id}:${obj.id}`) };
     }),
     RecordOrigin: spy(async (req) => {
       const obj = req?.toJSON?.() ?? req;
-      origins.set(obj.id, obj);
+      const tenant_id = requireTenant(obj);
+      // Tenant-scope the origin key so a comment id recorded by tenant A is
+      // not seen as self-originated by tenant B.
+      origins.set(`${tenant_id}:${obj.id}`, obj);
       return {};
     }),
-    Sweep: spy(async () => ({
-      evicted_discussions: 0,
-      evicted_origins: 0,
-      evicted_pending: 0,
-    })),
+    Sweep: spy(async (req) => {
+      requireTenant(req?.toJSON?.() ?? req);
+      return {
+        evicted_discussions: 0,
+        evicted_origins: 0,
+        evicted_pending: 0,
+      };
+    }),
     PutPendingDispatch: spy(async (req) => {
       const obj = req?.toJSON?.() ?? req;
+      const tenant_id = requireTenant(obj);
       const p = obj.pending ?? obj;
-      pending.set(p.link_token, p);
+      pending.set(`${tenant_id}:${p.link_token}`, p);
       return {};
     }),
     ResolvePendingDispatch: spy(async (req) => {
       const obj = req?.toJSON?.() ?? req;
-      const token = obj.link_token;
-      const rec = pending.get(token);
+      const tenant_id = requireTenant(obj);
+      const key = `${tenant_id}:${obj.link_token}`;
+      const rec = pending.get(key);
       if (!rec) throw notFound();
-      pending.delete(token);
+      pending.delete(key);
       return rec;
     }),
-    EnqueueInbox: spy(async () => ({})),
-    DrainInbox: spy(async () => ({ messages: [] })),
+    EnqueueInbox: spy(async (req) => {
+      const obj = req?.toJSON?.() ?? req;
+      const tenant_id = requireTenant(obj);
+      const msg = obj.message ?? {};
+      // Queue per (tenant_id, correlation_id) so two tenants never collide
+      // on a shared correlation id.
+      const seqKey = `${tenant_id}:${msg.correlation_id}`;
+      const seq = (inboxSeqs.get(seqKey) ?? 0) + 1;
+      inboxSeqs.set(seqKey, seq);
+      inbox.set(`${seqKey}:${seq}`, {
+        tenant_id,
+        correlation_id: msg.correlation_id,
+        seq,
+        text: msg.text ?? "",
+        author: msg.author ?? "",
+        enqueued_at: msg.enqueued_at ?? 0,
+      });
+      return {};
+    }),
+    DrainInbox: spy(async (req) => {
+      const obj = req?.toJSON?.() ?? req;
+      const tenant_id = requireTenant(obj);
+      const messages = [];
+      for (const rec of inbox.values()) {
+        if (
+          rec.tenant_id === tenant_id &&
+          rec.correlation_id === obj.correlation_id &&
+          (rec.seq ?? 0) > (obj.since_seq ?? 0)
+        ) {
+          messages.push(rec);
+        }
+      }
+      messages.sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0));
+      return { messages };
+    }),
   };
 }

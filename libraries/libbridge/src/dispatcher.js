@@ -44,7 +44,12 @@ export class Dispatcher {
       throw new Error("callbackBaseUrl is required");
     }
     if (!workflowFile) throw new Error("workflowFile is required");
-    if (!githubRepo) throw new Error("githubRepo is required");
+    // A non-empty static repo is required in single-tenant mode; multi-tenant
+    // mode derives the repo per request from the resolved tenant, so an empty
+    // string is accepted (the dispatch falls back to `tenant.repo`).
+    if (typeof githubRepo !== "string") {
+      throw new Error("githubRepo is required");
+    }
     if (!tokenResolver) throw new Error("tokenResolver is required");
     if (!tenantResolver) throw new Error("tenantResolver is required");
     if (!clock) throw new Error("clock is required");
@@ -81,9 +86,11 @@ export class Dispatcher {
     if (typeof prompt !== "string") throw new Error("prompt is required");
     if (typeof requester !== "string") throw new Error("requester is required");
 
-    const auth = await this.#tokenResolver.resolve(ctx.channel, requester);
-    if (auth.kind !== "token") return auth;
-
+    // Resolve the tenant before the dispatch credential. The hosted dispatch
+    // identity is a repo-scoped App installation token (see design § Hosted
+    // dispatch identity), so a token resolver that mints per repo needs the
+    // resolved tenant's `repo`. The third argument is additive — the
+    // self-hosted `TokenResolver` (per-user OAuth) ignores it.
     const tenant = await this.#tenantResolver.resolve({
       channel: ctx.channel,
       key: ctx.channel_tenant_key,
@@ -93,19 +100,33 @@ export class Dispatcher {
     }
     const tenant_id = tenant.tenant_id;
 
+    const auth = await this.#tokenResolver.resolve(
+      ctx.channel,
+      requester,
+      tenant,
+    );
+    if (auth.kind !== "token") return auth;
+
     const correlationId = randomUUID();
     const mergedMeta = { ...(callbackMeta ?? {}), requester, tenant_id };
     const token = this.#callbacks.register(correlationId, mergedMeta);
     ctx.pending_callbacks[token] = correlationId;
     ctx.active_requester = requester;
     const callbackUrl = `${this.#callbackBaseUrl}/api/callback/${tenant_id}/${token}`;
-    const inboxUrl = `${this.#callbackBaseUrl}/api/inbox/${correlationId}`;
+    const inboxUrl = `${this.#callbackBaseUrl}/api/inbox/${correlationId}?tenant_id=${encodeURIComponent(tenant_id)}`;
+
+    // The workflow_dispatch targets the resolved tenant's repository when the
+    // resolver supplies one (multi-tenant); otherwise the static configured
+    // repo (single-tenant). Both modes fire against the customer's runner.
+    const dispatchRepo = tenant.repo
+      ? `${tenant.repo.owner}/${tenant.repo.name}`
+      : this.#githubRepo;
 
     if (ackTarget !== undefined) await this.#ack.start(token, ackTarget);
     try {
       await dispatchWorkflow({
         workflowFile: this.#workflowFile,
-        repo: this.#githubRepo,
+        repo: dispatchRepo,
         token: auth.token,
         prompt,
         callbackUrl,

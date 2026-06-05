@@ -94,7 +94,7 @@ describe("bridge service", () => {
       tenant_id: T,
     });
 
-    assert.strictEqual(loaded.id, rec.id);
+    assert.strictEqual(loaded.id, "github-discussions:default:42");
     assert.strictEqual(loaded.channel, rec.channel);
     assert.strictEqual(loaded.discussion_id, rec.discussion_id);
     assert.strictEqual(loaded.lead, rec.lead);
@@ -196,7 +196,7 @@ describe("bridge service", () => {
       tenant_id: T,
     });
 
-    const result = await service.ListOpenRecesses({});
+    const result = await service.ListOpenRecesses({ tenant_id: T });
     assert.strictEqual(result.refs.length, 1);
     assert.strictEqual(result.refs[0].correlation_id, "corr-with-due");
     assert.strictEqual(result.refs[0].due_at, 999);
