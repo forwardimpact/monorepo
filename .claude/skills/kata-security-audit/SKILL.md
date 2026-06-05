@@ -66,6 +66,30 @@ YAML/JSON without schema validation).
 Verify publish workflows block on audit failures and CI/local workflows run the
 same checks.
 
+### 6. Library Audit Invariants (libbridge)
+
+Cluster-derived invariants for `app-security-libraries` rotations. Both surfaced
+from the 5-PR libbridge cluster (#1316/#1341/#1348/#1374/#1379) and the
+`oauth /authorize` binding-injection finding (Issue #1397). Apply both the
+bridge-parity and timing-parity invariants when the selected topic is
+`app-security-libraries` or when reviewing any libbridge PR.
+
+- **Bridge-parity invariant** — For each surface added to
+  `BEGIN_ALLOWED_SURFACES` beyond `github-discussions`, verify the bridge
+  invokes `prepareLinkResume` + `putPendingDispatch` with the same
+  `(link_token, surface, surface_user_id, discussion_id)` shape OR documents an
+  explicit opt-out rationale in the bridge README; flag any surface that falls
+  through to a `PutPendingDispatch`-less path while still issuing dispatch.
+- **Timing-parity convention** (libbridge-wide) — Any new `CallbackRegistry`
+  (or sibling registry) lookup method that scans a stored collection MUST
+  maintain a secondary index keyed on the lookup field so hits and misses share
+  an O(1) path, OR carry an explicit `scan-by-design` comment with security
+  review of response-shape parity.
+
+Structural adoption of either invariant (e.g., refactoring `CallbackRegistry`
+to carry a secondary index) is staff-engineer-owned per RFC #1022 — SE codifies
+the audit-time check, not the implementation.
+
 ## Process
 
 ### Step 0: Read Memory
