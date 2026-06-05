@@ -1,6 +1,6 @@
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import { JSDOM } from "jsdom";
+import { Window } from "happy-dom";
 
 import { createJsonLdScript } from "../src/json-ld-script.js";
 import { freezeInvocationContext } from "../src/invocation-context.js";
@@ -9,7 +9,7 @@ let win;
 const savedDocument = globalThis.document;
 
 beforeEach(() => {
-  win = new JSDOM("", { url: "http://localhost/" }).window;
+  win = new Window({ url: "http://localhost/" });
   globalThis.document = win.document;
 });
 

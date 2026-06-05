@@ -215,17 +215,16 @@ Security policies apply to all contributors — human and agent.
 ## Dependency Policy
 
 - **Prefer built-ins.** Use Node built-ins over npm (`fetch` not `undici`,
-  `crypto.randomUUID()` not `uuid`); consolidate overlapping packages — one YAML
-  parser, one markdown renderer.
+  `crypto.randomUUID()` not `uuid`); consolidate overlapping packages.
 - **Align versions.** Declare the same range across workspaces. Bun hoists
-  matched versions to a single copy — don't remove a runtime dep just because it
-  deduplicates.
-- **No nested duplicates.** Same package at two major versions (e.g.
-  `protobufjs@8` next to `@grpc/proto-loader/protobufjs@7`) is forbidden. Before
-  merging a major bump, run `bun pm ls` and inspect `bun.lock` for `invalid`
-  markers; close the PR if dependents lack compatible ranges.
+  matched versions; don't drop a runtime dep just because it deduplicates.
+- **No nested duplicates.** The same package at two major versions is
+  forbidden. Before a major bump, run `bun pm ls` and inspect `bun.lock` for
+  `invalid` markers; close the PR if dependents lack compatible ranges.
 - **Audit after changes.** Run `just audit-vulnerabilities` after adding or
   updating deps.
+- **No `jsdom`** (its `css-tree` dep breaks `bun --compile`) — use `linkedom`
+  for HTML parsing, `happy-dom` for browser-env tests.
 
 ### Classification
 
