@@ -1,3 +1,5 @@
+import { NodeFilter } from "linkedom";
+
 /**
  * Pattern definitions for text-node sanitation.
  */
@@ -60,19 +62,15 @@ function applyPatterns(value, patterns) {
 }
 
 /**
- * Sanitize an existing JSDOM instance in-place.
- * @param {import('jsdom').JSDOM} dom - DOM to mutate
+ * Sanitize a parsed document in-place.
+ * @param {import('linkedom').Document} document - Document to mutate
  * @param {Array} patterns - Pattern definitions (defaults to SANITIZE_PATTERNS)
- * @returns {import('jsdom').JSDOM} The mutated DOM instance
+ * @returns {import('linkedom').Document} The mutated document
  */
-export function sanitizeDom(dom, patterns = SANITIZE_PATTERNS) {
+export function sanitizeDom(document, patterns = SANITIZE_PATTERNS) {
   try {
-    const { document } = dom.window;
     const root = document.body || document;
-    const walker = document.createTreeWalker(
-      root,
-      dom.window.NodeFilter.SHOW_TEXT,
-    );
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
       const node = walker.currentNode;
       const original = node.nodeValue;
@@ -83,5 +81,5 @@ export function sanitizeDom(dom, patterns = SANITIZE_PATTERNS) {
   } catch {
     // Ignore sanitizer errors to avoid disrupting processing
   }
-  return dom;
+  return document;
 }

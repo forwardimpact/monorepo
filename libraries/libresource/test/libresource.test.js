@@ -1,6 +1,6 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { JSDOM } from "jsdom";
+import { parseHTML } from "linkedom";
 
 import { toType, toIdentifier, ResourceIndex } from "../src/index.js";
 import { sanitizeDom } from "../src/sanitizer.js";
@@ -300,20 +300,20 @@ describe("toType helper function", () => {
 
 describe("sanitizeDom patterns", () => {
   test("encodes angle-number and stray ampersand; preserves existing &amp; entity and unknown entity", () => {
-    const html = `<!DOCTYPE html><div>Value <5 and >10 plus R&D &amp; already encoded &unknown; end</div>`;
-    const dom = new JSDOM(html);
-    sanitizeDom(dom);
-    const text = dom.window.document.querySelector("div").textContent;
+    const html = `<!DOCTYPE html><html><body><div>Value <5 and >10 plus R&D &amp; already encoded &unknown; end</div></body></html>`;
+    const { document } = parseHTML(html);
+    sanitizeDom(document);
+    const text = document.querySelector("div").textContent;
     const expected =
       "Value &lt;5 and &gt;10 plus R&amp;D &amp; already encoded &unknown; end";
     assert.strictEqual(text, expected);
   });
 
   test("normalizes smart quotes and nbsp characters", () => {
-    const html = `<!DOCTYPE html><p>“Quoted” ‘text’ and&nbsp;space</p>`;
-    const dom = new JSDOM(html.replace(/&nbsp;/g, "\u00A0"));
-    sanitizeDom(dom);
-    const text = dom.window.document.querySelector("p").textContent;
+    const html = `<!DOCTYPE html><html><body><p>“Quoted” ‘text’ and&nbsp;space</p></body></html>`;
+    const { document } = parseHTML(html.replace(/&nbsp;/g, "\u00A0"));
+    sanitizeDom(document);
+    const text = document.querySelector("p").textContent;
     assert.strictEqual(text, '"Quoted" \u0027text\u0027 and space');
     // Ensure no smart quotes remain
     assert.doesNotMatch(text, /[“”‘’]/);
