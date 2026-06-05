@@ -42,8 +42,11 @@ git tag -f v1
 git push origin main && git push origin v1 --force
 ```
 
-`GITHUB_TOKEN` in this environment has push rights to every sibling repo
-under `forwardimpact/*`; no extra auth setup is needed.
+This procedure requires push rights on the sibling repo. Agent-workflow
+tokens minted by `actions/create-github-app-token@v3` (e.g. in
+`kata-dispatch.yml`) are scoped to the `kata-agent-team` App installation
+— monorepo only, not the siblings. For agent-driven sibling edits, file
+an Issue on the sibling repo with the diff for admin push.
 
 ### `IS_SANDBOX` for headless agents
 
