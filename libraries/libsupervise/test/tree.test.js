@@ -3,7 +3,11 @@ import assert from "node:assert";
 import { EventEmitter } from "node:events";
 
 import { SupervisionTree } from "../src/tree.js";
-import { createSilentLogger, createTestRuntime } from "@forwardimpact/libmock";
+import {
+  createMockSubprocess,
+  createSilentLogger,
+  createTestRuntime,
+} from "@forwardimpact/libmock";
 
 const mockLogger = createSilentLogger();
 const cfg = (extra = {}) => ({
@@ -106,6 +110,55 @@ describe("SupervisionTree", () => {
       await tree.stop();
 
       assert.deepStrictEqual(events, ["start", "stop"]);
+    });
+  });
+
+  // Each supervised service gets its own fit-logger child (daemontools s6-log
+  // model): the service's stdout/stderr are piped into the logger's stdin,
+  // which writes one rotated log per service. How that child is launched
+  // depends on whether svscan is a compiled binary.
+  describe("log process", () => {
+    /** Run `add` against a capturing subprocess and return the logger spawn. */
+    async function logSpawnFor({ isCompiled }) {
+      const subprocess = createMockSubprocess();
+      const tree = new SupervisionTree(
+        "/tmp/logs",
+        cfg({ runtime: createTestRuntime({ subprocess }), isCompiled }),
+      );
+      await tree.start();
+      await tree.add("web", "run-web");
+      // The logger is the spawn carrying the --dir flag; the service itself
+      // goes through `bash -c`.
+      const logCall = subprocess.calls.find((c) => c.args.includes("--dir"));
+      // The mock child "exits" immediately and the mock clock's setTimeout uses
+      // real timers, so leaving the tree running would respawn the logger every
+      // 100ms forever; stop() flips the guard that gates the restart.
+      await tree.stop();
+      return logCall;
+    }
+
+    test("source mode runs fit-logger under node with the per-service log dir", async () => {
+      const logCall = await logSpawnFor({ isCompiled: false });
+      assert.ok(logCall, "a logger process is spawned");
+      assert.strictEqual(logCall.cmd, "node");
+      assert.match(logCall.args[0], /bin\/fit-logger\.js$/);
+      assert.deepStrictEqual(logCall.args.slice(1), ["--dir", "/tmp/logs/web"]);
+    });
+
+    test("compiled mode execs the sibling fit-logger resolved from PATH", async () => {
+      const logCall = await logSpawnFor({ isCompiled: true });
+      assert.ok(logCall, "a logger process is spawned");
+      assert.strictEqual(logCall.cmd, "fit-logger");
+      assert.deepStrictEqual(logCall.args, ["--dir", "/tmp/logs/web"]);
+    });
+
+    test("pipes the service streams into the logger via a stdin pipe", async () => {
+      const logCall = await logSpawnFor({ isCompiled: false });
+      assert.deepStrictEqual(logCall.opts.stdio, [
+        "pipe",
+        "inherit",
+        "inherit",
+      ]);
     });
   });
 });
