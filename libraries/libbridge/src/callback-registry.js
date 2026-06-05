@@ -92,6 +92,25 @@ export class CallbackRegistry {
   }
 
   /**
+   * Return the bound `tenant_id` for any active token whose correlationId
+   * matches; null if no active token binds the correlation. The inbox
+   * route uses this to verify a path-supplied tenant against the binding
+   * the dispatcher recorded. Single-pass scan of the entries map; the
+   * registry is one entry per in-flight dispatch per bridge process.
+   * @param {string} correlationId
+   * @returns {string | null}
+   */
+  tenantOf(correlationId) {
+    if (typeof correlationId !== "string" || !correlationId) return null;
+    for (const entry of this.#entries.values()) {
+      if (entry.correlationId === correlationId) {
+        return entry.meta.tenant_id;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Drop entries older than ttlMs. Caller drives the clock so tests stay
    * deterministic.
    * @param {number} [now]

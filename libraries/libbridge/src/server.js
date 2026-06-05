@@ -98,7 +98,7 @@ export function createBridgeServer({
       }
 
       if (onInbox) {
-        app.get("/api/inbox/:correlationId", async (c) => {
+        app.get("/api/inbox/:tenant_id/:correlationId", async (c) => {
           try {
             return await onInbox(c);
           } catch (err) {

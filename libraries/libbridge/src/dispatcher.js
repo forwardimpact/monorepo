@@ -113,7 +113,7 @@ export class Dispatcher {
     ctx.pending_callbacks[token] = correlationId;
     ctx.active_requester = requester;
     const callbackUrl = `${this.#callbackBaseUrl}/api/callback/${tenant_id}/${token}`;
-    const inboxUrl = `${this.#callbackBaseUrl}/api/inbox/${correlationId}?tenant_id=${encodeURIComponent(tenant_id)}`;
+    const inboxUrl = `${this.#callbackBaseUrl}/api/inbox/${tenant_id}/${correlationId}`;
 
     // The workflow_dispatch targets the resolved tenant's repository when the
     // resolver supplies one (multi-tenant); otherwise the static configured
