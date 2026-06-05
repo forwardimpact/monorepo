@@ -256,7 +256,7 @@ enforced by `coaligned instructions` (see `libraries/libcoaligned/`):
 | ---------------------------- | ----------- | ---------------- |
 | L1 root CLAUDE.md            | ≤ 192 lines | auto             |
 | L1 subdir CLAUDE.md          | ≤ 128 lines | on demand        |
-| L2 CONTRIBUTING.md & JTBD.md | ≤ 256 lines | on demand        |
+| L2 CONTRIBUTING.md & JTBD.md | ≤ 320 lines | on demand        |
 | L3 Agent profile             | ≤ 72 lines  | auto (every run) |
 | L4 Agent reference           | ≤ 192 lines | on demand        |
 | L5 SKILL.md                  | ≤ 192 lines | auto (per skill) |

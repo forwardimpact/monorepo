@@ -103,7 +103,7 @@ products/
 libraries/
   lib*/        # shared libraries
 services/
-  bridge/ embedding/ ghbridge/ ghserver/ ghuser/ graph/ map/ mcp/ msbridge/ oauth/ pathway/ tenancy/ trace/ vector/
+  bridge/ embedding/ ghbridge/ ghserver/ ghuser/ graph/ map/ mcp/ msbridge/ oauth/ oidc/ pathway/ tenancy/ trace/ vector/
 config/
   config.json  # service definitions
 data/
