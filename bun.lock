@@ -568,7 +568,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.15",
+      "version": "0.2.16",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
@@ -1088,7 +1088,7 @@
     "brace-expansion": "^5.0.6",
     "fast-uri": "^3.1.2",
     "fast-xml-builder": "^1.1.7",
-    "hono": "^4.12.18",
+    "hono": "^4.12.23",
     "ip-address": "^10.2.0",
     "lodash": "^4.18.0",
     "postcss": "^8.5.10",
@@ -1867,7 +1867,7 @@
 
     "highlight.js": ["highlight.js@10.7.3", "", {}, "sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A=="],
 
-    "hono": ["hono@4.12.18", "", {}, "sha512-RWzP96k/yv0PQfyXnWjs6zot20TqfpfsNXhOnev8d1InAxubW93L11/oNUc3tQqn2G0bSdAOBpX+2uDFHV7kdQ=="],
+    "hono": ["hono@4.12.23", "", {}, "sha512-eIaZ9qDgu7XV0pxOCrg7/WhnQ6Ivm22UcxhXx/A3dcbqbbYgBEkc6e/J/s7j2tS96zoB0S9VBdLwQNCWwUo4LA=="],
 
     "html-entities": ["html-entities@2.6.0", "", {}, "sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ=="],
 
