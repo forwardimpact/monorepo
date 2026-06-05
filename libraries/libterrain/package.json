@@ -56,7 +56,7 @@
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0",
     "@forwardimpact/libresource": "^0.1.111",
-    "jsdom": "^29.1.1"
+    "linkedom": "^0.18.12"
   },
   "peerDependencies": {
     "prettier": "^3.0.0"

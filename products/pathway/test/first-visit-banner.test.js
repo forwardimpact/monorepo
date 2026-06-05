@@ -1,6 +1,6 @@
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import { JSDOM } from "jsdom";
+import { Window } from "happy-dom";
 
 import { createFirstVisitBanner } from "../src/components/first-visit-banner.js";
 
@@ -11,7 +11,7 @@ const savedNavigator = globalThis.navigator;
 const savedHTMLElement = globalThis.HTMLElement;
 
 beforeEach(() => {
-  win = new JSDOM("", { url: "http://localhost/" }).window;
+  win = new Window({ url: "http://localhost/" });
   globalThis.window = win;
   globalThis.document = win.document;
   globalThis.navigator = win.navigator;

@@ -1,6 +1,6 @@
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import { JSDOM } from "jsdom";
+import { Window } from "happy-dom";
 
 import { createBoundRouter } from "../src/bound-router.js";
 import { defineRoute } from "../src/route-descriptor.js";
@@ -11,10 +11,7 @@ const savedHistory = globalThis.history;
 const savedDocument = globalThis.document;
 
 beforeEach(() => {
-  win = new JSDOM("", { url: "http://localhost/" }).window;
-  // jsdom emits a "Not implemented" notice for scrollTo; the router calls it on
-  // every route match, so stub it to a no-op (happy-dom implemented it silently).
-  win.scrollTo = () => {};
+  win = new Window({ url: "http://localhost/" });
   globalThis.window = win;
   globalThis.history = win.history;
   globalThis.document = win.document;

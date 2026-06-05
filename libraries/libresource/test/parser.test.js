@@ -1,9 +1,17 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { JSDOM } from "jsdom";
+import { parseHTML } from "linkedom";
 
 import { Parser } from "../src/parser.js";
 import { Skolemizer } from "../src/skolemizer.js";
+
+/** Wraps fragment markup in a full HTML document and returns its parsed DOM. */
+function domOf(bodyHtml) {
+  const { document } = parseHTML(
+    `<!DOCTYPE html><html><head></head><body>${bodyHtml}</body></html>`,
+  );
+  return document;
+}
 
 describe("Parser", () => {
   let parser;
@@ -37,7 +45,7 @@ describe("Parser", () => {
         <h1 itemprop="headline">Test Article</h1>
       </div>
     `;
-    const dom = new JSDOM(html);
+    const dom = domOf(html);
     const baseIri = "https://example.com/";
 
     const items = await parser.parseHTML(dom, baseIri);
@@ -52,7 +60,7 @@ describe("Parser", () => {
         <span itemprop="https://www.forwardimpact.team/schema/rdf/name">Test Skill</span>
       </div>
     `;
-    const dom = new JSDOM(html);
+    const dom = domOf(html);
     const baseIri = "https://example.com/";
 
     const items = await parser.parseHTML(dom, baseIri);
@@ -73,7 +81,7 @@ describe("Parser", () => {
 
   test("returns empty array for HTML without microdata", async () => {
     const html = "<div><h1>No Microdata Here</h1></div>";
-    const dom = new JSDOM(html);
+    const dom = domOf(html);
     const baseIri = "https://example.com/";
 
     const items = await parser.parseHTML(dom, baseIri);

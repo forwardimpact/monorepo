@@ -1,6 +1,6 @@
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import { JSDOM } from "jsdom";
+import { Window } from "happy-dom";
 
 const MODULE_PATH = "../src/lib/first-visit-dismissal.js";
 const STORAGE_KEY = "pathway:first-visit-banner:dismissed";
@@ -11,7 +11,7 @@ const savedDocument = globalThis.document;
 const savedNavigator = globalThis.navigator;
 
 beforeEach(() => {
-  win = new JSDOM("", { url: "http://localhost/" }).window;
+  win = new Window({ url: "http://localhost/" });
   globalThis.window = win;
   globalThis.document = win.document;
   globalThis.navigator = win.navigator;

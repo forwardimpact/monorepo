@@ -1,4 +1,4 @@
-import { JSDOM } from "jsdom";
+import { parseHTML } from "linkedom";
 import { sanitizeDom } from "../sanitizer.js";
 
 import { generateHash } from "@forwardimpact/libsecret";
@@ -52,24 +52,24 @@ export class ResourceProcessor extends ProcessorBase {
         ? htmlContent.toString("utf8")
         : String(htmlContent);
 
-      const dom = new JSDOM(html);
-      sanitizeDom(dom);
+      const { document } = parseHTML(html);
+      sanitizeDom(document);
 
-      const baseIri = this.#extractBaseIri(dom, key);
-      const items = await this.#parseHTML(dom, baseIri);
+      const baseIri = this.#extractBaseIri(document, key);
+      const items = await this.#parseHTML(document, baseIri);
 
       await super.process(items, key);
     }
   }
 
   /**
-   * Extracts base IRI from DOM's base element or uses fallback
-   * @param {object} dom - JSDOM instance with parsed HTML
+   * Extracts base IRI from the document's base element or uses fallback
+   * @param {object} document - Parsed document with HTML (linkedom)
    * @param {string} key - Storage key (filename) for fallback IRI generation
    * @returns {string} Base IRI to use for this document
    */
-  #extractBaseIri(dom, key) {
-    const baseElement = dom.window.document.querySelector("base[href]");
+  #extractBaseIri(document, key) {
+    const baseElement = document.querySelector("base[href]");
     return (
       baseElement?.getAttribute("href") ||
       this.#baseIri ||
@@ -103,12 +103,12 @@ export class ResourceProcessor extends ProcessorBase {
   /**
    * Parses HTML DOM and extracts structured items with RDF union merging.
    * Implements entity merging across files using stable IRI-based identifiers.
-   * @param {object} dom - JSDOM instance with parsed and sanitized HTML
+   * @param {object} document - Parsed and sanitized document (linkedom)
    * @param {string} baseIri - Base IRI for resolving relative references
    * @returns {Promise<Array>} Array of item objects ready for processItem()
    */
-  async #parseHTML(dom, baseIri) {
-    const parsedItems = await this.#parser.parseHTML(dom, baseIri);
+  async #parseHTML(document, baseIri) {
+    const parsedItems = await this.#parser.parseHTML(document, baseIri);
     if (!parsedItems || parsedItems.length === 0) return [];
 
     const items = [];

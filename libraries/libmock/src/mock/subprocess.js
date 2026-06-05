@@ -1,3 +1,5 @@
+import { Writable } from "node:stream";
+
 import { spy } from "./spy.js";
 
 function asyncIterableOf(str) {
@@ -9,27 +11,21 @@ function asyncIterableOf(str) {
 }
 
 /**
- * A captured-chunks stub for a spawned child's writable stdin. Records every
- * `write(chunk)` on `chunks`; `end()`/`destroy()` are no-ops. Mirrors the
- * shape `createDefaultSubprocess().spawn` exposes (the child's `node:stream`
- * Writable) closely enough for a supervisor that pipes into it.
+ * A captured-chunks sink for a spawned child's writable stdin. A real
+ * `node:stream` Writable (so it is a valid `pipe()` destination, the way a
+ * supervisor pipes a service's output into its logger) that records every
+ * written chunk on `chunks` instead of forwarding it anywhere. Mirrors the
+ * `stdin` the production `createDefaultSubprocess().spawn` exposes.
  */
 function createMockStdinSink() {
-  const sink = {
-    chunks: [],
-    write(chunk) {
-      sink.chunks.push(typeof chunk === "string" ? chunk : chunk.toString());
-      return true;
+  const chunks = [];
+  const sink = new Writable({
+    write(chunk, _encoding, callback) {
+      chunks.push(typeof chunk === "string" ? chunk : chunk.toString());
+      callback();
     },
-    end() {},
-    destroy() {},
-    on() {
-      return sink;
-    },
-    once() {
-      return sink;
-    },
-  };
+  });
+  sink.chunks = chunks;
   return sink;
 }
 
