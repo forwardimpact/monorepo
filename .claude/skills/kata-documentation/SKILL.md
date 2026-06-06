@@ -136,10 +136,11 @@ Run the DO-CONFIRM checklist at the top of this skill.
 
 ## Output
 
-Every review must produce both categories when applicable — incremental fixes on
-a `fix/` branch and specs for structural findings on `spec/` branches. Branch
-naming, commit conventions, and independence rules are defined in the agent
-profile.
+Every review must produce both categories when applicable. Classify each finding
+with
+[work-definition.md § Classification tests](../../agents/references/work-definition.md#classification-tests)
+(mechanical fix vs structural spec). Branch naming, commit conventions, and
+independence rules are defined in the agent profile.
 
 **Commit format:** `docs(website): {verb} {topic} documentation`
 

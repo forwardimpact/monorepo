@@ -1,7 +1,9 @@
 # Coordination Protocol
 
 Pick the channel by what the output **is**, not where context happens to be.
-Wiki cadence and structure are governed by
+What each output type *is*, and how to classify a finding into one, is defined
+in [work-definition.md](work-definition.md); this protocol routes each type to
+its channel. Wiki cadence and structure are governed by
 [memory-protocol.md](memory-protocol.md); this protocol covers every other
 output an agent produces.
 
@@ -107,7 +109,8 @@ When an output could fit multiple channels, ask in order:
 1. Is the answer **settled**? No → Discussion. Yes → continue.
 2. Is it **tied to one artifact**? Yes → comment there. No → continue.
 3. Is it **mechanical or structural**? Mechanical → `fix/`. Structural →
-   `spec/`.
+   `spec/`. (Apply the test in
+   [work-definition.md § Classification tests](work-definition.md#classification-tests).)
 4. Otherwise → wiki.
 
 A finding can require **multiple channels in parallel** — e.g., a CVE raising

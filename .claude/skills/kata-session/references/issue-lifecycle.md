@@ -1,5 +1,10 @@
 # Issue Lifecycle
 
+What an obstacle and an experiment *are* — and the obstacle-vs-experiment test —
+is defined in
+[work-definition.md](../../../agents/references/work-definition.md); this file is
+the `gh` command shapes for filing and closing them.
+
 The agent being coached — not the facilitator — creates, comments on, and closes
 **its own** obstacle and experiment issues with `gh`, in both team storyboard and
 1-on-1 sessions. The facilitator has no `Bash`: it `Ask`s the agent to record

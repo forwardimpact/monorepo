@@ -43,6 +43,12 @@ All comment templates are in `references/templates.md`.
 
 ## Classification
 
+The trivial-vs-structural-vs-unsettled-vs-out-of-scope tests are defined once in
+[work-definition.md § Classification tests](../../agents/references/work-definition.md#classification-tests);
+this table maps those work-types to the triage-specific action and labels.
+Product alignment (the **Product-aligned** row) is this skill's own criterion —
+see § Product Vision Alignment below.
+
 | Category                 | Criteria                                                   | Recommended action                                                                                                  |
 | ------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **Trivial fix/bug**      | Clear bug or small fix with obvious resolution             | Fix PR (direct git ops, no spec)                                                                                    |
