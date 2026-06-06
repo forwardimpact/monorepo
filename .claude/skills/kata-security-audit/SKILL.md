@@ -22,7 +22,7 @@ description: >
 - [ ] Ran `just audit` locally and reported findings.
 - [ ] Read every file in the topic's audit scope — not just grep results.
 - [ ] Each finding cites a specific file path and line number.
-- [ ] Each finding categorized: trivial fix, structural (spec), or observation.
+- [ ] Each finding categorized: mechanical fix, structural (spec), or observation.
 - [ ] Coverage map updated with today's date for the audited topic.
 
 </do_confirm_checklist>

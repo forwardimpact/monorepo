@@ -105,10 +105,11 @@ graph LR
   harden, release, and maintain. Every run captures a trace.
 - **Study** — Analyze Do outputs across four streams: security audits, external
   feedback triage, one-topic-deep doc review, one-trace-deep grounded theory.
-- **Act** — Trivial findings become **pushed fix PRs**; structural findings
-  become `spec.md` documents on **pushed spec branches**. A local commit is not
-  a PR — the URL is the only valid completion signal. `fix/` and `spec/`
-  branches never mix.
+- **Act** — Mechanical findings become **pushed fix PRs**; structural findings
+  become `spec.md` documents on **pushed spec branches** — classify each per
+  [work-definition.md § Classification tests](.claude/agents/references/work-definition.md#classification-tests).
+  A local commit is not a PR — the URL is the only valid completion signal.
+  `fix/` and `spec/` branches never mix.
 
 ## Agents
 

@@ -86,8 +86,9 @@ permanent record.
 ## Q3 obstacle routing
 
 Per SKILL.md Step 7, the facilitator picks a route per obstacle (parallel
-allowed) and logs it — Discussion is delegated to the owning agent, Coaching is
-left to the coach's Assess run:
+allowed) and logs it; trigger criteria live in
+[work-definition.md § Classification tests](../../../agents/references/work-definition.md#classification-tests).
+Discussion is delegated to the owning agent, Coaching to the coach's Assess run:
 
 | Trigger                                                                          | Route      |
 | -------------------------------------------------------------------------------- | ---------- |
@@ -97,9 +98,8 @@ left to the coach's Assess run:
 
 **Worked example — multi-agent canonical-metric flag.** SE/RE/TW/PM each flagged a
 canonical-11 metric (`prs_actioned`, `releases_cut`, `errors_found`,
-`issues_created`). All four mapped to one shared artifact — right route: one
-Discussion, not four parallel coaching dispatches. Each of the four headline
-bullets carries the `Redefinition:` slot per
+`issues_created`). All four mapped to one artifact — one Discussion, not four
+coaching dispatches. Each headline bullet carries the `Redefinition:` slot per
 [`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes)
 (here `—`).
 
