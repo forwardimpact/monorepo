@@ -97,8 +97,9 @@ Once 1310's implementation pins `fit-bootstrap` to a SHA, advancing
 means a SHA-bump PR — the durable propagation path. Without that
 implementation pass the references remain `@v1` and advancing would
 require force-moving the sibling's `v1` tag — exactly the procedure
-1310 retires. The two specs are therefore sequenced: **1310's
-implementation pass for `fit-bootstrap` ships, then 1580's monorepo PR
+1310 retires. The two specs are therefore sequenced across three
+steps, not two: **1310's plan phase opens, then 1310's implementation
+pins `fit-bootstrap` to a SHA in the monorepo, then 1580's monorepo PR
 opens.**
 
 Ground truth at the time of this spec: all 28 `uses:` references to
