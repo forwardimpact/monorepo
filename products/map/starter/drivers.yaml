@@ -3,63 +3,142 @@
 - id: clear_direction
   name: Clear Direction
   description: Teams know what to build and why.
+  contributingSkills:
+    - stakeholder_management
+    - product_thinking
+  contributingBehaviours:
+    - systems_thinking
 
 - id: say_on_priorities
   name: Say On Priorities
   description: Engineers shape the priorities they are asked to deliver.
+  contributingSkills:
+    - stakeholder_management
+    - product_thinking
+  contributingBehaviours:
+    - systems_thinking
 
 - id: requirements_quality
   name: Requirements Quality
   description: Requests arrive specific enough to act on without re-discovery.
+  contributingSkills:
+    - product_thinking
+    - stakeholder_management
+    - planning
 
 - id: ease_of_release
   name: Ease Of Release
   description: Shipping a change to users is low-friction and low-anxiety.
+  contributingSkills:
+    - task_completion
+    - architecture_design
+    - cloud_platforms
+  contributingBehaviours:
+    - systems_thinking
 
 - id: test_efficiency
   name: Test Efficiency
   description: The test suite gives fast, trustworthy signal on every change.
+  contributingSkills:
+    - task_completion
+    - architecture_design
+    - performance_optimization
+  contributingBehaviours:
+    - systems_thinking
 
 - id: managing_tech_debt
   name: Managing Tech Debt
   description: Known debt is tracked and paid down on a predictable cadence.
+  contributingSkills:
+    - planning
+    - architecture_design
+    - risk_management
+  contributingBehaviours:
+    - systems_thinking
 
 - id: code_review
   name: Code Review
   description: Reviews are timely, substantive, and improve the change under review.
+  contributingSkills:
+    - team_collaboration
+    - mentoring
+    - task_completion
 
 - id: documentation
   name: Documentation
   description: The docs a contributor needs are present, current, and discoverable.
+  contributingSkills:
+    - task_completion
+    - team_collaboration
+    - mentoring
 
 - id: codebase_experience
   name: Codebase Experience
   description: Navigating, reading, and changing the codebase feels coherent.
+  contributingSkills:
+    - architecture_design
+    - mentoring
+  contributingBehaviours:
+    - systems_thinking
 
 - id: incident_response
   name: Incident Response
   description: Production issues are detected, mitigated, and learned from quickly.
+  contributingSkills:
+    - incident_response
+    - incident_management
+    - risk_management
+  contributingBehaviours:
+    - systems_thinking
 
 - id: learning_culture
   name: Learning Culture
   description: People grow their craft as a normal part of the work.
+  contributingSkills:
+    - mentoring
+    - team_collaboration
 
 - id: experimentation
   name: Experimentation
   description: Small, reversible bets are encouraged and resourced.
+  contributingSkills:
+    - product_thinking
+    - risk_management
+    - planning
+  contributingBehaviours:
+    - systems_thinking
 
 - id: connectedness
   name: Connectedness
   description: Engineers know who to talk to and feel part of the team.
+  contributingSkills:
+    - team_collaboration
+    - mentoring
+    - stakeholder_management
 
 - id: efficient_processes
   name: Efficient Processes
   description: Process exists to unblock work, not to add ceremony.
+  contributingSkills:
+    - planning
+    - task_completion
+    - team_collaboration
+  contributingBehaviours:
+    - systems_thinking
 
 - id: deep_work
   name: Deep Work
   description: Engineers get uninterrupted time for sustained focus.
+  contributingSkills:
+    - planning
+    - task_completion
 
 - id: leveraging_user_feedback
   name: Leveraging User Feedback
   description: User signal reaches the people building the product and changes what they build.
+  contributingSkills:
+    - product_thinking
+    - stakeholder_management
+    - data_integration
+  contributingBehaviours:
+    - systems_thinking
