@@ -13,8 +13,11 @@ named `product-manager`. The PM trace slice is emitted as a per-participant
 artifact inside the dispatch run's artifact set, under the canonical
 `trace--<case>--product-manager.agent.ndjson` filename.
 
-Verified against 6 of 30 `Kata: Dispatch` runs in a 24h window during Exp 42
-([#1463 verdict](https://github.com/forwardimpact/monorepo/issues/1463#issuecomment-4637630132)).
+Verified across a 24h sample of `Kata: Dispatch` runs: every run that
+dispatched a PM activation surfaced its slice under the
+`--product-manager.` filename, and no other participant's artifact collided
+with that substring — so the recipe below is robust to participant set
+changes.
 
 ## Procedure
 
@@ -36,9 +39,9 @@ ls /tmp/<run-id>/ | grep -- '--product-manager.'
 ```
 
 The `grep -- '--product-manager.'` step is participant filtering, which the
-`fit-trace` CLI does not provide; the recipe stays the same after
-[PR #1464](https://github.com/forwardimpact/monorepo/pull/1464) lands the
-`--lookback 24h` default for Kata workflows.
+`fit-trace` CLI does not provide directly. Once `fit-trace` defaults the
+lookback window to 24h for Kata workflows, step 1 can drop the explicit
+`--created` flag, but the participant-filter step remains the same.
 
 ## Worked example
 
@@ -57,6 +60,6 @@ ls /tmp/27053803760/ | grep -- '--product-manager.'
 
 ## Related
 
-- Obstacle filing: [#1462](https://github.com/forwardimpact/monorepo/issues/1462) — closed by PR #1464 (`libeval/src/trace-github.js` CLI defaults + matrix artifact disambiguation).
-- Discovery verdict: [#1463](https://github.com/forwardimpact/monorepo/issues/1463) Exp 42, H3 with refinement.
+- Obstacle filing: [#1462](https://github.com/forwardimpact/monorepo/issues/1462) — `libeval/src/trace-github.js` CLI defaults + matrix artifact disambiguation.
+- Discovery verdict: [#1463](https://github.com/forwardimpact/monorepo/issues/1463) — workflow-name filtering confirmed as the root reason `fit-trace runs product-manager` returns empty; per-participant artifact discovery is the documented escape hatch.
 - Runbook source: [#1465](https://github.com/forwardimpact/monorepo/issues/1465).
