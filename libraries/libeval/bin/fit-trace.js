@@ -41,7 +41,7 @@ const definition = {
       argsUsage: "[pattern]",
       handler: runRunsCommand,
       description:
-        "List recent GitHub Actions workflow runs (default pattern: agent)",
+        "List recent GitHub Actions workflow runs (default pattern: Kata|agent)",
       options: {
         lookback: {
           type: "string",
@@ -59,7 +59,8 @@ const definition = {
       args: ["run-id"],
       argsUsage: "<run-id>",
       handler: runDownloadCommand,
-      description: "Download trace artifact and convert to structured JSON",
+      description:
+        "Download trace artifact and convert to structured JSON; pass --artifact to pick one when a matrix workflow emits multiple `trace--*` artifacts",
       options: {
         dir: { type: "string", description: "Output directory" },
         artifact: { type: "string", description: "Artifact name override" },

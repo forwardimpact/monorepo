@@ -31,13 +31,13 @@ export class TraceGitHub {
    * List recent workflow runs, optionally filtered by name pattern.
    *
    * @param {object} [opts]
-   * @param {string} [opts.pattern] - Case-insensitive substring to match workflow name (default: "agent")
+   * @param {string} [opts.pattern] - Case-insensitive regex to match workflow name (default: "Kata|agent" — covers `Kata: Shift`, `Kata: Dispatch`, and any `agent`-named workflow)
    * @param {number} [opts.limit=50] - Max runs to return from GitHub API
    * @param {string} [opts.lookback="7d"] - How far back to search (e.g. "7d", "24h", "2w")
    * @returns {Promise<object[]>} Array of {workflow, runId, status, conclusion, createdAt, branch, url}
    */
   async listRuns(opts = {}) {
-    const { pattern = "agent", limit = 50, lookback = "7d" } = opts;
+    const { pattern = "Kata|agent", limit = 50, lookback = "7d" } = opts;
     const cutoff = parseLookback(lookback, this.runtime.clock.now());
 
     const params = new URLSearchParams({
@@ -68,10 +68,10 @@ export class TraceGitHub {
   /**
    * Download a trace artifact from a workflow run and extract it.
    *
-   * When `opts.name` is set, looks up that exact artifact. Otherwise picks the
-   * best match from the unified `trace--<case>--<participant>.<role>` naming
-   * convention: prefer a `*.raw` artifact (combined log), then any `*.agent`,
-   * then the first `trace--*` artifact found.
+   * When `opts.name` is set, looks up that exact artifact. Otherwise picks
+   * the single `trace--*` artifact if exactly one exists, or throws with a
+   * disambiguation list when matrix workflows emit multiple per-participant
+   * artifacts (see {@link pickTraceArtifact}).
    *
    * @param {number|string} runId
    * @param {object} [opts]
@@ -88,28 +88,7 @@ export class TraceGitHub {
     const url = `${API}/repos/${this.owner}/${this.repo}/actions/runs/${runId}/artifacts`;
     const data = await this.#get(url);
     const artifacts = data.artifacts ?? [];
-
-    // Find the trace artifact.
-    let artifact = null;
-    if (opts.name) {
-      artifact = artifacts.find((a) => a.name === opts.name);
-    } else {
-      const traceArtifacts = artifacts.filter((a) =>
-        a.name.startsWith("trace--"),
-      );
-      artifact =
-        traceArtifacts.find((a) => a.name.endsWith(".raw")) ??
-        traceArtifacts.find((a) => a.name.endsWith(".agent")) ??
-        traceArtifacts[0] ??
-        null;
-    }
-
-    if (!artifact) {
-      const available = artifacts.map((a) => a.name).join(", ");
-      throw new Error(
-        `No trace artifact found for run ${runId}. Available: ${available || "none"}`,
-      );
-    }
+    const artifact = pickTraceArtifact(artifacts, opts.name, runId);
 
     // Download the zip.
     const zipPath = path.join(dir, `${artifact.name}.zip`);
@@ -170,6 +149,45 @@ export class TraceGitHub {
       "X-GitHub-Api-Version": "2022-11-28",
     };
   }
+}
+
+/**
+ * Pick the trace artifact to download from a workflow run's artifact list.
+ *
+ * When `name` is given, returns the exact match or throws with the available
+ * names. When `name` is omitted, returns the only `trace--*` artifact if
+ * there is exactly one; if there are multiple (matrix workflows like
+ * `kata-shift.yml` emit one `trace--<participant>` per cell), throws and
+ * lists them so the caller can pass `--name` to disambiguate.
+ *
+ * @param {Array<{name: string}>} artifacts - Artifact list from the GitHub API.
+ * @param {string} [name] - Exact artifact name to match.
+ * @param {number|string} [runId] - Run id for error messages.
+ * @returns {{name: string}} The selected artifact.
+ */
+export function pickTraceArtifact(artifacts, name, runId) {
+  const runRef = runId == null ? "" : ` for run ${runId}`;
+  if (name) {
+    const found = artifacts.find((a) => a.name === name);
+    if (found) return found;
+    const available = artifacts.map((a) => a.name).join(", ");
+    throw new Error(
+      `No artifact named "${name}"${runRef}. Available: ${available || "none"}`,
+    );
+  }
+
+  const traceArtifacts = artifacts.filter((a) => a.name.startsWith("trace--"));
+  if (traceArtifacts.length === 1) return traceArtifacts[0];
+  if (traceArtifacts.length === 0) {
+    const available = artifacts.map((a) => a.name).join(", ");
+    throw new Error(
+      `No trace artifact found${runRef}. Available: ${available || "none"}`,
+    );
+  }
+  const names = traceArtifacts.map((a) => a.name).join(", ");
+  throw new Error(
+    `Multiple trace artifacts found${runRef}: ${names}. Pass --name to choose one.`,
+  );
 }
 
 /**
