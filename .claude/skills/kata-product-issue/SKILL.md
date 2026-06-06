@@ -49,12 +49,12 @@ this table maps those work-types to the triage-specific action and labels.
 Product alignment (the **Product-aligned** row) is this skill's own criterion —
 see § Product Vision Alignment below.
 
-| Category                 | Criteria                                                   | Recommended action                                                                                                  |
-| ------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Mechanical fix/bug**   | Clear bug or small fix with obvious resolution             | Fix PR (direct git ops, no spec)                                                                                    |
-| **Product-aligned**      | Feature/improvement serving the product vision             | Write spec via the `kata-spec` skill                                                                                |
-| **Cross-product policy** | Cross-cutting question that needs decision before any spec | Open Discussion (per [coordination-protocol.md](../../agents/references/coordination-protocol.md)); label `triaged` |
-| **Out of scope**         | Not aligned, unclear, duplicate, or already addressed      | Comment + label `triaged`/`wontfix`                                                                                 |
+| Category                 | Recommended action                                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Mechanical fix/bug**   | Fix PR (direct git ops, no spec)                                                                                    |
+| **Product-aligned**      | Write spec via the `kata-spec` skill                                                                                |
+| **Cross-product policy** | Open Discussion (per [coordination-protocol.md](../../agents/references/coordination-protocol.md)); label `triaged` |
+| **Out of scope**         | Comment + label `triaged`/`wontfix`                                                                                 |
 
 ## Product Vision Alignment
 

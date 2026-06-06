@@ -15,13 +15,13 @@ trace's run-level findings. One facilitator, one participant, turn-taking via
 1. **What were you trying to achieve in this run?** (Q1)
 2. **What actually happened?** (Q2 — the participant runs `fit-trace` on its
    own most recent workflow trace and reports the numeric findings.)
-3. **What obstacles prevented better outcomes?** (Q3 — grounded in the trace
-   findings, not narrative. Record the obstacle as a labeled issue per
+3. **What obstacles prevented better outcomes?** (Q3 — drawn from the trace
+   findings. Record the obstacle as a labeled issue per
    [`issue-lifecycle.md`](issue-lifecycle.md) and report its `#NNN`.)
-4. **What will you do differently next run?** (Q4 — small, testable, with
-   expected outcome recorded before the experiment runs. Record it as an
-   experiment issue (`experiment` + `agent:{self}`) per
-   [`issue-lifecycle.md`](issue-lifecycle.md) and report its `#NNN`.)
+4. **What will you do differently next run?** (Q4 — propose the next experiment
+   and its expected outcome. Record it as an experiment issue (`experiment` +
+   `agent:{self}`) per [`issue-lifecycle.md`](issue-lifecycle.md) and report its
+   `#NNN`.)
 5. **When will you see the effect?** (Q5 — typically the next scheduled workflow
    run.)
 

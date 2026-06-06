@@ -73,10 +73,11 @@ runs; load this skill only if you need the full Participant Protocol below.
       `bunx fit-xmr analyze` run on own CSV(s) with `status`/`μ`/`signals`
       reported via `Answer`.
 - [ ] Metrics reported via `Answer` match the CSV rows just written.
-- [ ] Q3 obstacles grounded in data or trace findings, not narrative; obstacle
-      recorded as a labeled issue and its `#NNN` reported back.
-- [ ] Q4 experiment has a recorded expected outcome and is recorded as a labeled
-      issue (`experiment` + `agent:{self}`) with its `#NNN` reported back.
+- [ ] Q3 obstacle meets its definition (see
+      [work-definition.md](../../agents/references/work-definition.md#classification-tests))
+      and is recorded as a labeled issue; `#NNN` reported back.
+- [ ] Q4 experiment recorded as a labeled issue (`experiment` + `agent:{self}`)
+      with its expected outcome and `#NNN` reported back.
 - [ ] Q4 expected outcome names metrics owned by a single skill — split
       multi-skill predictions into one per skill / run type.
 
@@ -91,14 +92,16 @@ sessions. The coach asks via `Ask`; the participant replies via `Answer`.
    (or the agent) is headed.
 2. **What is the actual condition now?** Measured, not narrative — counts and
    durations from live data, recorded in CSV.
-3. **What obstacles prevent us from reaching the target?** Identified from the
-   gap between current and target, grounded in data or trace findings.
-4. **What is the next step? What do you expect?** The expected outcome is
-   recorded _before_ the experiment runs.
+3. **What obstacles prevent us from reaching the target?** Each participant
+   names the obstacles in their domain.
+4. **What is the next step? What do you expect?** Propose the next experiment
+   and its expected outcome.
 5. **When can we see what we learned from that step?** Establish the feedback
    loop — the next meeting opens by reviewing what was learned.
 
-Mode-specific question wording (team vs. 1-on-1) lives in the overlays.
+What an obstacle and an experiment *are* is defined in
+[work-definition.md § Classification tests](../../agents/references/work-definition.md#classification-tests);
+mode-specific question wording (team vs. 1-on-1) lives in the overlays.
 
 ## Facilitator Process
 
@@ -164,14 +167,13 @@ briefing.
    `μ`, and any fired-rule `signals` from your `fit-xmr analyze` run. Use counts
    and durations — not narratives like "improving." Use `Announce` only for
    unsolicited team-wide context.
-4. **Ground obstacles in data, then record them.** For Q3, identify obstacles
-   from the gap between current and target (prefer trace findings over log
-   narratives). Create an obstacle issue per
+4. **Identify obstacles, then record them.** For Q3, each participant names the
+   obstacles in its domain, then creates an obstacle issue per
+   [`issue-lifecycle.md`](references/issue-lifecycle.md) and reports its `#NNN`.
+5. **Propose experiments, then record them.** For Q4, propose the next
+   experiment (scoped to one or two daily cycles) and its expected outcome, then
+   create an experiment issue (`experiment` + `agent:{self}`) per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and report its `#NNN`.
-5. **Propose testable experiments, then record them.** For Q4, propose small
-   experiments verifiable in one or two daily cycles. Create an experiment issue
-   (`experiment` + `agent:{self}`, expected outcome recorded _before_ the run)
-   and report its `#NNN`.
 
 ## Memory: what to record
 

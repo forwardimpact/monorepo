@@ -37,14 +37,12 @@ vs. expected), update Obstacles, and plan the next experiment.
    and runs no analysis itself. Participants flag any metric whose status changed
    since the last meeting.
 3. **What obstacles are preventing us from reaching the target?** Participants
-   identify obstacles from their domain based on the gap between current and
-   target. Obstacles are discovered through data and experiments, not
-   hypothesized upfront. Prefer trace findings or live run data over accumulated
-   log narratives.
+   identify obstacles from their domain; what an obstacle *is* — and
+   obstacle-vs-experiment — is defined in
+   [work-definition.md § Classification tests](../../../agents/references/work-definition.md#classification-tests).
 4. **What is the next step? What do you expect?** For the obstacle currently
-   being addressed, participants propose their next experiment. The expected
-   outcome is recorded _before_ the experiment runs. Experiments should be small
-   and testable within one or two daily cycles.
+   being addressed, participants propose their next experiment and its expected
+   outcome, scoped to one or two daily cycles.
 5. **When can we see what we learned?** Typically: next meeting, end of week, or
    after a specific workflow run.
 
