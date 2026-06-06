@@ -32,9 +32,9 @@ else
   # generated/ from an unrelated commit's tree on disk. bun install
   # --frozen-lockfile is not reliable at reconstructing nested dependencies
   # over that partial state across a top-level version bump (observed:
-  # eslint 10.4.0 → 10.4.1 leaves node_modules/eslint/node_modules/ajv@6
-  # missing, breaking jsdoc — issue #1458). Discard the stale workspace
-  # before installing so the resulting tree derives solely from bun.lock.
+  # an eslint patch bump leaves node_modules/eslint/node_modules/ajv@6
+  # missing, breaking jsdoc). Discard the stale workspace before installing
+  # so the resulting tree derives solely from bun.lock.
   rm -rf node_modules generated libraries/*/src/generated
   just install
 fi
