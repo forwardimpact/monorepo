@@ -36,7 +36,7 @@ describe("InboxPoller", () => {
     const bus = createMessageBus({ participants: ["lead"] });
     const poller = new InboxPoller({
       runtime: _rt,
-      inboxUrl: "https://bridge.test/api/inbox/corr-1",
+      inboxUrl: "https://bridge.test/api/inbox/default/corr-1",
       messageBus: bus,
       leadName: "lead",
       signal: ac.signal,
@@ -68,7 +68,7 @@ describe("InboxPoller", () => {
     const bus = createMessageBus({ participants: ["lead"] });
     const poller = new InboxPoller({
       runtime: _rt,
-      inboxUrl: "https://bridge.test/api/inbox/corr-1",
+      inboxUrl: "https://bridge.test/api/inbox/default/corr-1",
       messageBus: bus,
       leadName: "lead",
       signal: ac.signal,

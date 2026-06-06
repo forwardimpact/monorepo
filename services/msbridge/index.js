@@ -241,6 +241,7 @@ export class MsBridgeService {
         client: discussionClient,
         logger,
         clock: this.#clock,
+        callbacks: this.#callbacks,
       }),
     });
 

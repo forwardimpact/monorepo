@@ -161,7 +161,7 @@ export class CodegenBase {
 
   /**
    * Load mustache template for given kind
-   * @param {"service"|"client"|"exports"|"definition"|"definitions-exports"|"services-exports"} kind - Template kind
+   * @param {"service"|"client"|"definition"|"definitions-exports"|"services-exports"} kind - Template kind
    * @returns {string} Template content
    */
   loadTemplate(kind) {

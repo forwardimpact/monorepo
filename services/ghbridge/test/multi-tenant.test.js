@@ -252,7 +252,7 @@ for (const mode of ["single", "multi"]) {
       expect(dispatched.url).toContain(`/repos/${inboundRepo}/actions/`);
       const sent = JSON.parse(dispatched.init.body);
       expect(sent.inputs.callback_url).toContain(`/api/callback/${tenantId}/`);
-      expect(sent.inputs.inbox_url).toContain(`tenant_id=${tenantId}`);
+      expect(sent.inputs.inbox_url).toContain(`/api/inbox/${tenantId}/`);
       // The record is stored under the resolved tenant.
       const ctx = await service.store.loadByChannel(
         "github-discussions",

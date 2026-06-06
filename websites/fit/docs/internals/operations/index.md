@@ -52,7 +52,7 @@ credentials works out of the box.
 
 - `init.services` — Ordered list of service objects (`name`, `command`,
   optional `optional: true`) for `fit-rc` to supervise (trace, vector, graph,
-  map, pathway)
+  pathway, map, mcp)
 - `init.log_dir` / `init.shutdown_timeout` — Logging and shutdown
 - `service.*` — Per-service settings (e.g. MCP tool routing)
 
