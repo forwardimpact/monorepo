@@ -6,8 +6,10 @@ import { createBridgeServer } from "../src/server.js";
 describe("createBridgeServer", () => {
   let bridge;
   let baseUrl;
+  let inboxCalls;
 
   beforeEach(async () => {
+    inboxCalls = [];
     bridge = createBridgeServer({
       config: { host: "127.0.0.1", port: 0 },
       logger: createMockLogger(),
@@ -29,6 +31,13 @@ describe("createBridgeServer", () => {
           },
           200,
         );
+      },
+      onInbox: async (c) => {
+        inboxCalls.push({
+          tenant_id: c.req.param("tenant_id"),
+          correlationId: c.req.param("correlationId"),
+        });
+        return c.json({ messages: [] }, 200);
       },
     });
     await bridge.start();
@@ -101,6 +110,26 @@ describe("createBridgeServer", () => {
       body: JSON.stringify({ summary: "" }),
     });
     expect(res.status).toBe(404);
+  });
+
+  test("GET /api/inbox/:tenant_id/:correlationId routes to onInbox with both params (default tenant)", async () => {
+    const res = await fetch(`${baseUrl}/api/inbox/default/corr-1`);
+    expect(res.status).toBe(200);
+    expect(inboxCalls).toEqual([
+      { tenant_id: "default", correlationId: "corr-1" },
+    ]);
+  });
+
+  test("GET /api/inbox/:tenant_id/:correlationId routes to onInbox with a non-default tenant", async () => {
+    const res = await fetch(`${baseUrl}/api/inbox/t-7/corr-9`);
+    expect(res.status).toBe(200);
+    expect(inboxCalls).toEqual([{ tenant_id: "t-7", correlationId: "corr-9" }]);
+  });
+
+  test("GET /api/inbox/:correlationId (legacy one-segment shape) does not reach onInbox", async () => {
+    const res = await fetch(`${baseUrl}/api/inbox/foo`);
+    expect(res.status).toBe(404);
+    expect(inboxCalls).toHaveLength(0);
   });
 
   test("handler throws → 500 with error envelope", async () => {

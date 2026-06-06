@@ -112,4 +112,38 @@ describe("CallbackRegistry", () => {
     const t2 = reg.register("b", { tenant_id: "default" });
     expect(t1).not.toBe(t2);
   });
+
+  test("tenantOf returns the bound tenant for an active correlation", () => {
+    const reg = new CallbackRegistry({ clock });
+    reg.register("corr-known", { tenant_id: "tenant-a" });
+    expect(reg.tenantOf("corr-known")).toBe("tenant-a");
+  });
+
+  test("tenantOf returns null for an unknown correlation", () => {
+    const reg = new CallbackRegistry({ clock });
+    expect(reg.tenantOf("nope")).toBeNull();
+  });
+
+  test("tenantOf returns null for invalid argument shapes (no throw)", () => {
+    const reg = new CallbackRegistry({ clock });
+    expect(reg.tenantOf("")).toBeNull();
+    expect(reg.tenantOf(undefined)).toBeNull();
+    expect(reg.tenantOf(null)).toBeNull();
+    expect(reg.tenantOf(42)).toBeNull();
+  });
+
+  test("tenantOf returns null after consume removes the entry", () => {
+    const reg = new CallbackRegistry({ clock });
+    const token = reg.register("corr-consume", { tenant_id: "tenant-a" });
+    reg.consume(token, { tenant_id: "tenant-a" });
+    expect(reg.tenantOf("corr-consume")).toBeNull();
+  });
+
+  test("tenantOf returns null after sweep evicts the entry", () => {
+    const reg = new CallbackRegistry({ clock, ttlMs: 1000 });
+    const before = Date.now();
+    reg.register("corr-evict", { tenant_id: "tenant-a" });
+    reg.sweep(before + 5000);
+    expect(reg.tenantOf("corr-evict")).toBeNull();
+  });
 });

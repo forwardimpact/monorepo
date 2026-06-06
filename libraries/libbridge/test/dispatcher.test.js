@@ -183,6 +183,11 @@ describe("Dispatcher", () => {
     );
     expect(body.inputs.correlation_id).toBe(result.correlationId);
     expect(body.inputs.discussion_id).toBe("T_1");
+    const inboxUrl = new URL(body.inputs.inbox_url);
+    expect(inboxUrl.pathname).toBe(
+      `/api/inbox/default/${result.correlationId}`,
+    );
+    expect(inboxUrl.search).toBe("");
     const reloaded = await store.loadByChannel("test-channel", "T_1");
     expect(reloaded).not.toBeNull();
   });
@@ -434,6 +439,9 @@ describe("Dispatcher", () => {
     expect(body.inputs.callback_url).toBe(
       `https://bridge.example/api/callback/t-1/${result.token}`,
     );
+    const inboxUrl = new URL(body.inputs.inbox_url);
+    expect(inboxUrl.pathname).toBe(`/api/inbox/t-1/${result.correlationId}`);
+    expect(inboxUrl.search).toBe("");
     const peek = callbacks.peek(result.token, { tenant_id: "t-1" });
     expect(peek.meta.tenant_id).toBe("t-1");
   });

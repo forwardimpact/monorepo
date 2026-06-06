@@ -170,7 +170,7 @@ for (const mode of ["single", "multi"]) {
       expect(dispatches).toHaveLength(1);
       const sent = JSON.parse(dispatches[0].init.body);
       expect(sent.inputs.callback_url).toContain(`/api/callback/${tenantId}/`);
-      expect(sent.inputs.inbox_url).toContain(`tenant_id=${tenantId}`);
+      expect(sent.inputs.inbox_url).toContain(`/api/inbox/${tenantId}/`);
       if (multi) {
         // Hosted dispatch identity: the workflow_dispatch fires on the
         // resolved tenant repo with the ghserver-minted App token, not the
