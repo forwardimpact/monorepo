@@ -10,11 +10,11 @@ import {
   pickTraceArtifact,
 } from "@forwardimpact/libeval";
 
-// Recorded manifest from Kata: Shift run 27053185454 (issue #1462). Six
-// matrix cells, each emits one `trace--<participant>` artifact — no
-// `.raw` / `.agent` suffix in the artifact name (those suffixes live on
-// files inside the zip).
-const RUN_27053185454_ARTIFACTS = [
+// Manifest shape for a Kata matrix run: six participants, each emits one
+// `trace--<participant>` artifact. The `.raw` / `.agent` suffixes live on
+// files inside the zip, not on the artifact name — disambiguation must
+// happen on the artifact-name level here.
+const MATRIX_RUN_ARTIFACTS = [
   { id: 1, name: "trace--improvement-coach" },
   { id: 2, name: "trace--release-engineer" },
   { id: 3, name: "trace--technical-writer" },
@@ -117,8 +117,7 @@ describe("detectRepoSlug", () => {
 describe("pickTraceArtifact", () => {
   test("throws disambiguation error against the run 27053185454 matrix manifest", () => {
     assert.throws(
-      () =>
-        pickTraceArtifact(RUN_27053185454_ARTIFACTS, undefined, 27053185454),
+      () => pickTraceArtifact(MATRIX_RUN_ARTIFACTS, undefined, 27053185454),
       (err) => {
         assert.match(
           err.message,
@@ -134,7 +133,7 @@ describe("pickTraceArtifact", () => {
 
   test("returns the named artifact from the matrix manifest", () => {
     const picked = pickTraceArtifact(
-      RUN_27053185454_ARTIFACTS,
+      MATRIX_RUN_ARTIFACTS,
       "trace--product-manager",
       27053185454,
     );
@@ -146,7 +145,7 @@ describe("pickTraceArtifact", () => {
     assert.throws(
       () =>
         pickTraceArtifact(
-          RUN_27053185454_ARTIFACTS,
+          MATRIX_RUN_ARTIFACTS,
           "trace--nonexistent",
           27053185454,
         ),
@@ -188,9 +187,9 @@ describe("pickTraceArtifact", () => {
 });
 
 describe("listRuns default pattern", () => {
-  // Kata: Shift run 27053185454 is the canonical case from #1462: the prior
-  // default "agent" missed every workflow we care about because none of
-  // them contain "agent" in the name.
+  // The prior default "agent" missed every Kata workflow name because
+  // none of them contain "agent" — "Kata: Shift", "Kata: Dispatch", etc.
+  // The new default keeps the legacy "agent" matcher and adds "Kata".
   const KATA_WORKFLOW_NAMES = [
     "Kata: Shift",
     "Kata: Dispatch",
