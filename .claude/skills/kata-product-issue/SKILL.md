@@ -28,6 +28,10 @@ triage decisions captured here.
 
 All comment templates are in `references/templates.md`.
 
+For PM-trace experiment grading, the discovery procedure for locating
+`trace--<case>--product-manager.agent.ndjson` slices inside `Kata: Dispatch`
+artifacts is in `references/trace-discovery.md`.
+
 ## Checklists
 
 <read_do_checklist goal="Hold the triage boundary before classifying issues">
