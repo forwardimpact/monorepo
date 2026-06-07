@@ -198,15 +198,15 @@ describe("listRuns default pattern", () => {
     "Kata: Storyboard",
   ];
 
-  test("'Kata|agent' matches every Kata workflow name", () => {
-    const re = new RegExp("Kata|agent", "i");
+  test("'kata|agent' matches every Kata workflow name", () => {
+    const re = new RegExp("kata|agent", "i");
     for (const name of KATA_WORKFLOW_NAMES) {
       assert.ok(re.test(name), `expected default pattern to match "${name}"`);
     }
   });
 
-  test("'Kata|agent' still matches legacy agent-named workflows", () => {
-    const re = new RegExp("Kata|agent", "i");
+  test("'kata|agent' still matches legacy agent-named workflows", () => {
+    const re = new RegExp("kata|agent", "i");
     assert.ok(re.test("agent-runner"));
     assert.ok(re.test("Some Agent Eval"));
   });

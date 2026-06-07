@@ -41,7 +41,7 @@ const definition = {
       argsUsage: "[pattern]",
       handler: runRunsCommand,
       description:
-        "List recent GitHub Actions workflow runs (default pattern: Kata|agent)",
+        "List recent GitHub Actions workflow runs (default pattern: kata|agent)",
       options: {
         lookback: {
           type: "string",
