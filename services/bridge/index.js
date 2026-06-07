@@ -30,6 +30,7 @@ export class BridgeService extends BridgeBase {
   #discussions;
   #origins;
   #pendingDispatches;
+  #claimedDispatches;
   #inbox;
   #inboxSeqs;
   #conversationTtlMs;
@@ -72,6 +73,15 @@ export class BridgeService extends BridgeBase {
     this.#pendingDispatches = new BufferedIndex(
       storage,
       "pending_dispatches.jsonl",
+      {
+        flush_interval: config.pending_flush_interval_ms ?? 1_000,
+        max_buffer_size: 100,
+      },
+      { clock: this.#clock },
+    );
+    this.#claimedDispatches = new BufferedIndex(
+      storage,
+      "claimed_dispatches.jsonl",
       {
         flush_interval: config.pending_flush_interval_ms ?? 1_000,
         max_buffer_size: 100,
@@ -296,6 +306,51 @@ export class BridgeService extends BridgeBase {
   }
 
   /**
+   * Verify a pending dispatch and record a single-use claim of its
+   * `link_token`. Cross-validates `(expected_surface,
+   * expected_surface_user_id)` against the pending entry keyed by
+   * `(tenant_id, link_token)`. The first OK response appends to
+   * `claimed_dispatches.jsonl`; subsequent verifies for the same
+   * `link_token` fail closed with `FAILED_PRECONDITION`.
+   *
+   * Concurrency: services/bridge runs single-instance per tenant; gRPC
+   * handlers serialise on the event loop. Once both handler calls return
+   * from `await loadData()`, the synchronous `has` check and `add` body
+   * (which `index.set`s before yielding) run within one microtask each, so
+   * a second resumer always observes the first resumer's set.
+   */
+  async VerifyPendingDispatch(req) {
+    const tenant_id = requireTenant(req);
+    const scopedKey = `${tenant_id}:${req.link_token}`;
+    await this.#pendingDispatches.loadData();
+    await this.#claimedDispatches.loadData();
+    const rec = this.#pendingDispatches.index.get(scopedKey);
+    if (!rec)
+      throw Object.assign(new Error("not found"), {
+        code: grpc.status.NOT_FOUND,
+      });
+    if (
+      rec.surface !== req.expected_surface ||
+      rec.surface_user_id !== req.expected_surface_user_id
+    )
+      throw Object.assign(new Error("surface or surface_user_id mismatch"), {
+        code: grpc.status.FAILED_PRECONDITION,
+      });
+    if (this.#claimedDispatches.index.has(scopedKey))
+      throw Object.assign(new Error("already claimed"), {
+        code: grpc.status.FAILED_PRECONDITION,
+      });
+    await this.#claimedDispatches.add({
+      id: scopedKey,
+      tenant_id,
+      link_token: req.link_token,
+      claimed_at: this.#clock.now(),
+    });
+    await this.#claimedDispatches.flush();
+    return {};
+  }
+
+  /**
    *
    */
   async Sweep(req) {
@@ -376,6 +431,7 @@ export class BridgeService extends BridgeBase {
       this.#discussions.flush(),
       this.#origins.flush(),
       this.#pendingDispatches.flush(),
+      this.#claimedDispatches.flush(),
       this.#inbox.flush(),
     ]);
   }
