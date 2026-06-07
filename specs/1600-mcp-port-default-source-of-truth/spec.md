@@ -19,28 +19,26 @@ surface and forget the others, but agents driving installs from the
 published docs are the primary tenant.
 
 Related JTBD: *Teams Using Agents — Run a Continuously Improving
-Agent Team* ([JTBD.md](../../JTBD.md)).
+Agent Team* ([JTBD.md](../../JTBD.md)). The Little Hire this spec
+serves within that job is the install-time URL-touch: the first
+service-start or `curl /health` after running the bootstrap CLI,
+where the URL the agent reaches must match the URL the surface the
+agent just consulted said to use.
 
 ## Problem
 
-The MCP service has no single declared default for its listen URL.
-The four kinds of surface that restate the URL today carry three
-distinct values, and the service's own manifest declares none of
-them:
+The MCP service is HTTP-transported — its consumer surfaces all
+carry `http://` URLs and operators connect via `curl /health` —
+but it has no single declared default for its listen URL. The four
+kinds of surface that restate the URL today carry three distinct
+values, and the service's own manifest declares none of them:
 
 | Surface kind | Path | Restated value | Role of the surface |
 |---|---|---|---|
 | Service authoritative manifest | `services/mcp/server.js` `createServiceConfig` defaults | not declared | The `defaults` object `services/CLAUDE.md` § Configuration calls "the authoritative manifest of what the service expects" |
-| Bootstrap CLI written value | `products/guide/src/commands/init.js` env block | `http://localhost:3005` | Value `npx fit-guide init` writes to `.env` |
-| Operator example (commented) | `.env.docker-native.example`, `.env.docker-supabase.example`, `.env.local.example` | `http://localhost:3011` | Value the operator uncomments to enable the service |
+| Bootstrap CLI written value | `products/guide/src/commands/init.js` env block | `http://localhost:3005` | Value `npx fit-guide init` writes to `.env` (as `SERVICE_MCP_URL=http://localhost:3005`) |
+| Operator example (commented) | `.env.docker-native.example`, `.env.docker-supabase.example`, `.env.local.example` | `http://localhost:3011` | Value the operator uncomments to enable the service (the `SERVICE_MCP_URL=http://localhost:3011` row in each) |
 | Public service-contract docs | `websites/fit/docs/services/typed-contracts/index.md` start, `/health` probe, client URL | `http://localhost:3008` | Value a reader copies into a client URL and a `curl /health` probe |
-
-A fifth, internal contradiction lives on the Bootstrap CLI surface:
-the user-facing summary `init.js` prints describes the service URLs
-it writes as "ports 3001–3005", but the same file writes URLs up to
-port 3007. This is one self-contradicting surface (not a separate
-consumer) and is included here because the consumer-side sweep
-needs to reconcile it.
 
 ### What the runtime actually does
 
@@ -73,24 +71,36 @@ against the URL the manifest produces.
 ### Recurrence in numbers
 
 `SERVICE_*_URL`-shaped scalar drift has surfaced as its own one-line
-documentation fix twice in the 7 days from 2026-05-31 to
-2026-06-06, both on the same documented embedding URL, framed by
+documentation fix twice within a 6-day window (2026-05-31 to
+2026-06-06), both on the same documented embedding URL, framed by
 one intervening proactive renumber:
 
 | Date | PR | Shape | Drift |
 |---|---|---|---|
 | 2026-05-31 | PR #1318 | Reactive drift-fix | `internals/vectors/index.md` `SERVICE_EMBEDDING_URL` `3011` → `3012` |
 | 2026-06-04 | PR #1413 | App-config refactor with port renumber as side-effect | `.env.*.example` URL block restructured; embedding canonicalized to `3015` |
-| 2026-06-06 | PR #1454 | Reactive drift-fix | `internals/vectors/index.md:80` `SERVICE_EMBEDDING_URL` `3012` → `3015` (second drift on the same documented row in 7 days) |
+| 2026-06-06 | PR #1454 | Reactive drift-fix | `internals/vectors/index.md` `SERVICE_EMBEDDING_URL` `3012` → `3015` (second drift on the same documented row inside the 6-day window) |
 
-A note on protocol: PRs #1318 and #1454 fix a `grpc://` URL value,
-not HTTP, and § Consumer registry below scopes the initial gate to
-HTTP-shaped `SERVICE_*_URL` values. The cited evidence is therefore
-analogous, not within scope: same `SERVICE_*_URL=<scheme>://localhost:NNNN`
-topology, same hand-restated-value failure shape, different scheme.
-The recurrence cadence motivates the *gate*; the *initial registry*
-covers MCP only and the design phase decides whether `grpc://` URLs
-are admitted alongside.
+The cited evidence is `grpc://` drift on `SERVICE_EMBEDDING_URL`
+while the initial registry below covers HTTP-shaped MCP only. That
+the evidence is out-of-initial-scope is intentional: this spec
+makes a two-part argument, and the two parts have distinct evidence.
+
+- **Gate shape** — motivated by the recurrence cadence above. The
+  drift topology (`SERVICE_*_URL=<scheme>://localhost:NNNN`,
+  hand-restated across consumer surfaces) is scheme-agnostic; the
+  failure mode the gate forecloses is the same whether the URLs
+  carry `http://` or `grpc://`. Two reactive drift-fix PRs in a
+  six-day window on the same row warrants a build-time assertion
+  at the shape level.
+- **Initial MCP registry row** — motivated by the snapshot
+  three-way disagreement in § Problem above (`3005` / `3008` /
+  `3011` across four MCP-consumer surfaces, with the manifest
+  declaring none). This evidence is in-scope on its own and does
+  not depend on the cadence argument.
+
+Whether `grpc://` URLs are admitted to the registry alongside MCP
+is a design-phase choice.
 
 ### Why this is not covered by spec 1460
 
@@ -101,10 +111,10 @@ single-sink scalar drift, a different topology with a much lower
 recurrence cadence"* than the list-shaped restatements it covers.
 Spec 1600 attacks that excluded slice directly.
 
-The 7-day double-drift on the same embedding URL row, and the
-simultaneous three-way disagreement on the MCP URL, both challenge
-the "much lower" half of the comparator's premise. The
-"single-source" half is contradicted for MCP at this moment:
+The double-drift on the same embedding URL row inside a 6-day
+window, and the simultaneous three-way disagreement on the MCP URL,
+both challenge the "much lower" half of the comparator's premise.
+The "single-source" half is contradicted for MCP at this moment:
 there is no declared single source to drift away from.
 
 Sequencing: spec 1460 is not yet on `main`. If 1460's exclusion
@@ -146,10 +156,11 @@ time.
   manifest produces.
 - A **build-pipeline assertion** that fails CI when any of the
   registered consumer surfaces restates a URL that disagrees with
-  the MCP service's declared URL. The assertion runs on every PR
-  that touches a registered consumer file or the declaration
-  itself; which named step in the documentation-build pipeline it
-  attaches to is a design choice.
+  the MCP service's declared URL. The structural requirement is
+  that no PR can land on `main` with a stale registered consumer;
+  the trigger surface (which named step in the documentation-build
+  pipeline, and whether it path-filters on registered files or
+  runs on every PR) is a design choice.
 - A **trigger population that includes source-side-only edits**.
   A PR that changes the declaration but touches no registered
   consumer must still be gated, so a renumber cannot land green
@@ -161,14 +172,14 @@ time.
 - A **consumer-side sweep** that brings the four currently
   divergent surfaces into agreement with the declared URL at the
   moment the gate is activated, so the gate's first run is green.
-  The `init.js` self-contradicting summary string ("ports
-  3001–3005") is part of the sweep.
 - **A registry shape that extends to other `SERVICE_*_URL`
   services** without rewriting the assertion. Adding a row for the
   embedding service or any other service must be a registry-only
   edit. Which services are activated at implementation time is a
   plan-phase choice; the spec requires the registry to be
-  extension-shaped, not MCP-specific.
+  extension-shaped, not MCP-specific. SC #5 verifies the
+  assertion-code shape (a registry-only edit suffices); SC #6
+  covers whichever rows the plan activates at first run.
 
 ### Excluded
 
@@ -186,11 +197,18 @@ time.
   cron schedules, log-level defaults). Excluded for the same
   topology-coupling reason spec 1460 cites; these may earn their
   own spec when their recurrence cadence justifies it.
-- **Free-prose port and URL mentions** outside the registered
-  consumer surfaces. Sentence-form references such as "runs on
-  port 3008" in narrative paragraphs are not parsed. The
-  `init.js` summary string is included because it lives on a
-  registered surface; arbitrary prose elsewhere is not.
+- **Free-prose port and URL mentions**, including the user-facing
+  summary string `init.js` prints ("ports 3001–3005"). Sentence-form
+  and list-of-ports references are not parsed by the gate. Whether
+  any prose-shaped restatement gains a registry row — by way of a
+  parseable structural anchor (regex, AST marker, sentinel
+  comment) — is a design-phase choice. A related cross-service
+  observation noted by reviewers — that the `init.js` summary
+  undercounts because the same file writes `SERVICE_MAP_URL` at
+  `3006` and `SERVICE_EMBEDDING_URL` at `3007`, past `3005` — is
+  out of scope for an MCP-only spec; the consumer-side sweep does
+  not fix it and the design phase may surface it as a follow-up
+  when other-service rows are admitted.
 - **Out-of-repo consumers** of the URL (e.g., the published
   `kata-skills` pack at consumption time, downstream installations'
   own env files, sibling repos). The registry covers only paths
@@ -221,23 +239,26 @@ the first-run-green guarantee to whichever rows are activated).
 
 | Service | Authoritative declaration | Consumer surfaces |
 |---|---|---|
-| `mcp` | `services/mcp/server.js` `createServiceConfig` defaults | `products/guide/src/commands/init.js` env block + summary string, `.env.local.example`, `.env.docker-native.example`, `.env.docker-supabase.example`, `websites/fit/docs/services/typed-contracts/index.md` |
-| `embedding` (illustrative extension) | `services/embedding/server.js` `createServiceConfig` defaults | `.env.*.example` rows, `websites/fit/docs/internals/vectors/index.md` |
+| `mcp` | `services/mcp/server.js` `createServiceConfig` defaults | `products/guide/src/commands/init.js` env block, `.env.local.example`, `.env.docker-native.example`, `.env.docker-supabase.example`, `websites/fit/docs/services/typed-contracts/index.md` |
+| `embedding` (future illustration, after `grpc://` admission) | `services/embedding/server.js` `createServiceConfig` defaults | `.env.*.example` rows, `websites/fit/docs/internals/vectors/index.md` |
 | Other `SERVICE_*_URL` services (extension shape) | each service's `server.js` `createServiceConfig` defaults | `.env.*.example` rows + the matching service-docs page on `www.forwardimpact.team` |
 
-The embedding and "other services" rows are illustrative — the
-implementation may activate them, defer them, or admit them in a
-follow-up PR without disturbing the gate's assertion code.
+The "other services" row and the embedding row are illustrative
+shapes — the implementation may activate them, defer them, or admit
+them in a follow-up PR without disturbing the gate's assertion code.
+The embedding row is shown to anchor the extension shape; whether
+it joins the registry depends on the design-phase decision about
+`grpc://` admission (§ Excluded).
 
 ## Success criteria
 
 | # | Claim | Verification |
 |---|---|---|
 | 1 | The MCP service's authoritative manifest declares a key (or keys) from which the listen URL is derivable. | Read `services/mcp/server.js`'s `createServiceConfig` defaults object after merge: it contains a `url`, or a `protocol`+`host`+`port` triple, that was absent on the spec's parent commit. |
-| 2 | The four MCP consumer surfaces restate the URL the manifest produces. | An audit independent of the new gate compares the URL the manifest produces against the value at each consumer (the `SERVICE_MCP_URL=` value in each `.env.*.example`, the value written by `init.js`, and the port number used in `typed-contracts/index.md`'s start/`/health`/client-URL examples). The audit returns zero disagreements on the merge commit. |
+| 2 | The four MCP consumer surfaces restate the URL the manifest produces. | A one-off audit script (independent of the new gate's assertion code) reads the manifest's produced URL, locates each consumer, and emits a `path → restated → expected` table covering the `SERVICE_MCP_URL=` value in each `.env.*.example`, the URL `init.js` writes, and the port used in `typed-contracts/index.md`'s start / `/health` / client-URL examples. On the merge commit, the table has zero rows where `restated ≠ expected`. |
 | 3 | CI fails when a PR introduces a disagreement on any registered consumer surface. | A test PR that edits one consumer to a wrong URL produces a failing CI run whose error message names the consumer file, the disagreeing value, and the declared value. |
 | 4 | CI fails when a PR edits the declaration but leaves a registered consumer stale. | A test PR that changes the declared URL without sweeping consumers produces a failing CI run naming each stale consumer file. |
-| 5 | Adding another service to the registry is a registry-only edit. | The assertion code's only dependency on per-service information is the registry; demonstrated by reading the implementation, no per-service branching in the assertion. |
+| 5 | Adding another service to the registry is a registry-only edit. | A test PR that adds one new registry row and seeds a disagreement on that row's consumers — with no other source edits — produces a failing CI run whose error surface names the new row's consumer and disagreeing value, identical in shape to the MCP error. The registry row alone is sufficient to activate the gate on the new service. |
 | 6 | The first run of the gate after activation is green. | The implementation's merge commit passes the new check on every activated registry row; the consumer-side sweep accomplishes the alignment before the gate becomes active. |
 
 — Technical Writer 📝
