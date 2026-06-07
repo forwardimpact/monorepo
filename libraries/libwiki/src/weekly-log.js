@@ -1,7 +1,11 @@
 import path from "node:path";
 import { isoWeekString } from "@forwardimpact/libutil";
 import { countLines, countWords } from "./budget.js";
-import { WEEKLY_LOG_LINE_BUDGET, WEEKLY_LOG_WORD_BUDGET } from "./constants.js";
+import {
+  WEEKLY_LOG_LINE_BUDGET,
+  WEEKLY_LOG_PART_NAME_RE,
+  WEEKLY_LOG_WORD_BUDGET,
+} from "./constants.js";
 
 // ISO week computation lives in libutil's calendar util (the one place a
 // `new Date` is allowed); re-exported here for the existing public surface.
@@ -287,18 +291,16 @@ export function rotateIfOverBudget(
   };
 }
 
-// A sealed part filename: `<agent>-YYYY-Www-partN.md`. Mirrors
-// WEEKLY_LOG_PART_NAME_RE in audit/scopes.js.
-const PART_NAME_RE = /^([a-z][a-z-]*)-(\d{4})-W(\d{2})-part\d+\.md$/;
-
 /**
  * Derive the agent, ISO week, and MAIN-log path from a sealed part's path. The
  * week comes from the filename (a part may belong to a past week, not today),
  * and the main-log path — not the part path — is what `nextFreeSlots` must base
- * new sibling slots on. Returns null for a non-conforming filename.
+ * new sibling slots on. Returns null for a non-conforming filename. Shares
+ * WEEKLY_LOG_PART_NAME_RE with the audit's file classifier so the two cannot
+ * drift on the filename convention.
  */
 function parsePartPath(partPath) {
-  const m = path.basename(partPath).match(PART_NAME_RE);
+  const m = path.basename(partPath).match(WEEKLY_LOG_PART_NAME_RE);
   if (!m) return null;
   const [, agent, year, week] = m;
   const isoWeekStr = `${year}-W${week}`;

@@ -24,3 +24,11 @@ export const WEEKLY_LOG_LINE_BUDGET = 496;
 export const WEEKLY_LOG_WORD_BUDGET = 6400;
 export const STORYBOARD_LINE_BUDGET = 496;
 export const STORYBOARD_WORD_BUDGET = 6400;
+
+// Weekly-log filename convention: `<agent>-YYYY-Www.md` for the live main log
+// and `<agent>-YYYY-Www-partN.md` for a sealed part. Capture groups are
+// agent / year / week. One home so the audit's file classifier
+// (audit/scopes.js) and the part re-bisector (weekly-log.js) cannot drift.
+export const WEEKLY_LOG_NAME_RE = /^([a-z][a-z-]*)-(\d{4})-W(\d{2})\.md$/;
+export const WEEKLY_LOG_PART_NAME_RE =
+  /^([a-z][a-z-]*)-(\d{4})-W(\d{2})-part\d+\.md$/;

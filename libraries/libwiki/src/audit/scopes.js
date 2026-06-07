@@ -2,11 +2,13 @@ import path from "node:path";
 import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims } from "../active-claims.js";
 import { countLines, countWords } from "../budget.js";
-import { PRIORITY_INDEX_HEADING } from "../constants.js";
+import {
+  PRIORITY_INDEX_HEADING,
+  WEEKLY_LOG_NAME_RE,
+  WEEKLY_LOG_PART_NAME_RE,
+} from "../constants.js";
 
 const SUMMARY_H1_RE = /^# [A-Z].* — Summary$/;
-const WEEKLY_LOG_NAME_RE = /^([a-z][a-z-]*)-(\d{4})-W(\d{2})\.md$/;
-const WEEKLY_LOG_PART_NAME_RE = /^([a-z][a-z-]*)-(\d{4})-W(\d{2})-part\d+\.md$/;
 export const WEEKLY_LOG_H1_RE =
   /^# .* — \d{4}-W\d{2}(?: \(part \d+ of \d+\))?$/;
 export const PRIORITY_HEADER_RE =
