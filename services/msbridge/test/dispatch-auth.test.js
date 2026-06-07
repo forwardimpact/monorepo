@@ -67,7 +67,7 @@ function makeActivity(threadId, fromId, text) {
     type: "message",
     id: "a-1",
     text,
-    conversation: { id: threadId },
+    conversation: { id: threadId, conversationType: "personal" },
     channelId: "msteams",
     serviceUrl: "https://example",
     from: { id: fromId },
