@@ -32,3 +32,15 @@ export const STORYBOARD_WORD_BUDGET = 6400;
 export const WEEKLY_LOG_NAME_RE = /^([a-z][a-z-]*)-(\d{4})-W(\d{2})\.md$/;
 export const WEEKLY_LOG_PART_NAME_RE =
   /^([a-z][a-z-]*)-(\d{4})-W(\d{2})-part\d+\.md$/;
+
+// Storyboard marker syntax. An open or close marker tolerates optional trailing
+// text after the tag (typically an inline "Do not edit. Generated from fit-wiki
+// refresh." notice). One home so the marker scanner (marker-scanner.js) and the
+// audit's balance check (audit/rules.js) cannot drift on the syntax.
+export const XMR_OPEN_RE =
+  /^<!--\s*xmr:([^:\s]+):(\S+)(?:\s+[^>]*?)?\s*-->\s*$/;
+export const XMR_CLOSE_RE = /^<!--\s*\/xmr(?:\s+[^>]*?)?\s*-->\s*$/;
+export const ISSUE_OPEN_RE =
+  /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?(?:\s+[^>]*?)?\s*-->\s*$/;
+export const ISSUE_CLOSE_RE =
+  /^<!--\s*\/(obstacles|experiments)(?:\s+[^>]*?)?\s*-->\s*$/;

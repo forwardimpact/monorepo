@@ -57,8 +57,8 @@ function loadFile(filePath, fs) {
 function classifyFile(filePath, fs) {
   const base = path.basename(filePath);
   if (EXCLUDED_BASES.has(base)) return null;
-  // STATUS.md is loaded separately (loadStatus) and audited via the dedicated
-  // `status-row` scope — skip the per-file classification.
+  // STATUS.md is loaded separately (readOptional in buildContext) and audited
+  // via the dedicated `status-row` scope — skip the per-file classification.
   if (base === "STATUS.md") return null;
   if (NON_SUMMARY_PREFIXES.some((p) => base.startsWith(p))) return null;
   if (WEEKLY_LOG_NAME_RE.test(base)) {
@@ -74,18 +74,10 @@ function classifyFile(filePath, fs) {
   return { kind: "summary", subject };
 }
 
-function loadMemory(wikiRoot, fs) {
-  const filePath = path.join(wikiRoot, "MEMORY.md");
-  const exists = fs.existsSync(filePath);
-  return {
-    path: filePath,
-    text: exists ? fs.readFileSync(filePath, "utf-8") : "",
-    exists,
-  };
-}
-
-function loadStatus(wikiRoot, fs) {
-  const filePath = path.join(wikiRoot, "STATUS.md");
+// Read a file if present; an absent file yields empty text so callers audit
+// "missing" uniformly. The common { path, text, exists } shape backs the
+// MEMORY.md, STATUS.md, and storyboard context loads.
+function readOptional(filePath, fs) {
   const exists = fs.existsSync(filePath);
   return {
     path: filePath,
@@ -126,17 +118,13 @@ function parseStatusRows(statusText) {
 
 function loadStoryboard(wikiRoot, today, fs) {
   const ym = yearMonth(today);
-  const filePath = path.join(wikiRoot, `storyboard-${ym}.md`);
-  const exists = fs.existsSync(filePath);
-  const text = exists ? fs.readFileSync(filePath, "utf-8") : "";
+  const base = readOptional(path.join(wikiRoot, `storyboard-${ym}.md`), fs);
   return {
-    path: filePath,
-    text,
-    fileLines: text.split("\n"),
-    exists,
+    ...base,
+    fileLines: base.text.split("\n"),
     yearMonth: ym,
-    lines: countLines(text),
-    words: countWords(text),
+    lines: countLines(base.text),
+    words: countWords(base.text),
   };
 }
 
@@ -229,8 +217,8 @@ export function buildContext({ wikiRoot, today, fs }) {
     wikiRoot,
     today,
     subjects,
-    memory: loadMemory(wikiRoot, fs),
-    status: loadStatus(wikiRoot, fs),
+    memory: readOptional(path.join(wikiRoot, "MEMORY.md"), fs),
+    status: readOptional(path.join(wikiRoot, "STATUS.md"), fs),
     storyboard: loadStoryboard(wikiRoot, today, fs),
   };
 }
