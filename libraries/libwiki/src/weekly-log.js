@@ -287,6 +287,147 @@ export function rotateIfOverBudget(
   };
 }
 
+// A sealed part filename: `<agent>-YYYY-Www-partN.md`. Mirrors
+// WEEKLY_LOG_PART_NAME_RE in audit/scopes.js.
+const PART_NAME_RE = /^([a-z][a-z-]*)-(\d{4})-W(\d{2})-part\d+\.md$/;
+
+/**
+ * Derive the agent, ISO week, and MAIN-log path from a sealed part's path. The
+ * week comes from the filename (a part may belong to a past week, not today),
+ * and the main-log path — not the part path — is what `nextFreeSlots` must base
+ * new sibling slots on. Returns null for a non-conforming filename.
+ */
+function parsePartPath(partPath) {
+  const m = path.basename(partPath).match(PART_NAME_RE);
+  if (!m) return null;
+  const [, agent, year, week] = m;
+  const isoWeekStr = `${year}-W${week}`;
+  return {
+    agent,
+    isoWeekStr,
+    mainLogPath: path.join(path.dirname(partPath), `${agent}-${isoWeekStr}.md`),
+  };
+}
+
+/**
+ * Stage every sub-part at a temp, commit the new sibling slots first, then
+ * atomically rename the first sub-part over the (existing) source slot as the
+ * final step. Until that last rename the source still holds its original bytes,
+ * so a failure anywhere — including the final rename — unwinds every committed
+ * new slot and remaining temp and re-throws, leaving the source path/contents/
+ * inode untouched. Returns `[partPath, ...newSlots]` in part order.
+ */
+function atomicResealPart(partPath, mainLogPath, parts, fs) {
+  // Sub-part 1 reuses the source slot; the rest claim fresh sibling slots of
+  // the main-log path. `nextFreeSlots` skips occupied slots (including the
+  // source's own), so a commit never clobbers a sibling nor a rollback unlinks
+  // a pre-existing one.
+  const newSlots = nextFreeSlots(mainLogPath, parts.length - 1, fs);
+  const sourceTemp = `${partPath}.tmp`;
+  const temps = []; // temp paths this reseal wrote, for rollback
+  const committed = []; // new slots already renamed into place, for rollback
+  try {
+    fs.writeFileSync(sourceTemp, `${parts[0].h1}\n${parts[0].body}`);
+    temps.push(sourceTemp);
+    newSlots.forEach((slot, i) => {
+      const tmp = `${slot}.tmp`;
+      fs.writeFileSync(tmp, `${parts[i + 1].h1}\n${parts[i + 1].body}`);
+      temps.push(tmp);
+    });
+    // Commit new slots first, then the source slot as the final step.
+    newSlots.forEach((slot) => {
+      fs.renameSync(`${slot}.tmp`, slot);
+      committed.push(slot);
+      temps.splice(temps.indexOf(`${slot}.tmp`), 1);
+    });
+    fs.renameSync(sourceTemp, partPath);
+    return [partPath, ...newSlots];
+  } catch (e) {
+    for (const slot of committed) {
+      try {
+        fs.unlinkSync(slot);
+      } catch {}
+    }
+    for (const tmp of temps) {
+      try {
+        fs.unlinkSync(tmp);
+      } catch {}
+    }
+    throw e;
+  }
+}
+
+/**
+ * Re-bisect a single over-budget sealed weekly-log PART in place. Agent and ISO
+ * week come from the part filename. A part within both budgets is a noop; a part
+ * whose body cannot be reduced (a lone over-cap day-section or an over-cap
+ * zero-seam body) is left BYTE-IDENTICAL and reported `incomplete` with a
+ * residue, so the re-audit re-flags it for a human. Otherwise the first sub-part
+ * overwrites `partPath` (slot reused) and the remaining sub-parts land on fresh
+ * sibling slots, with full rollback (source untouched on any failure).
+ *
+ * The produced sub-parts carry `bisectWeeklyLog`'s `(part i of M)` H1s, where M
+ * is LOCAL to this part's split — not a global count of the week's parts.
+ * Sibling parts are never renumbered (the audit does not validate the numbers).
+ *
+ * @param {string} partPath - Absolute path to an `<agent>-YYYY-Www-partN.md`.
+ * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
+ * @returns {{status: "noop"|"resealed"|"incomplete", fromPath: string, parts?: string[], residue?: {path: string, section: string, lines: number, words: number}}}
+ */
+export function rebisectOverBudgetPart(partPath, fs) {
+  if (!fs.existsSync(partPath)) return { status: "noop", fromPath: partPath };
+  const parsed = parsePartPath(partPath);
+  if (!parsed) return { status: "noop", fromPath: partPath };
+  const text = fs.readFileSync(partPath, "utf-8");
+  const lines = countLines(text);
+  const words = countWords(text);
+  if (lines <= WEEKLY_LOG_LINE_BUDGET && words <= WEEKLY_LOG_WORD_BUDGET) {
+    return { status: "noop", fromPath: partPath };
+  }
+  const { parts, residue } = bisectWeeklyLog(
+    text,
+    parsed.agent,
+    parsed.isoWeekStr,
+  );
+  // A single produced part has no splittable seam: leave the file untouched and
+  // surface a residue (synthesised from the file when the bisector did not name
+  // one) so the caller's re-audit re-flags it.
+  if (parts.length === 1) {
+    const seam = text.match(/^## (\d{4}-\d{2}-\d{2})/m);
+    const r = residue ?? {
+      section: seam ? seam[1] : "prologue",
+      lines,
+      words,
+    };
+    return {
+      status: "incomplete",
+      fromPath: partPath,
+      parts: [partPath],
+      residue: {
+        path: partPath,
+        section: r.section,
+        lines: r.lines,
+        words: r.words,
+      },
+    };
+  }
+  const slots = atomicResealPart(partPath, parsed.mainLogPath, parts, fs);
+  if (residue === null) {
+    return { status: "resealed", fromPath: partPath, parts: slots };
+  }
+  return {
+    status: "incomplete",
+    fromPath: partPath,
+    parts: slots,
+    residue: {
+      path: slots[residue.partIndex],
+      section: residue.section,
+      lines: residue.lines,
+      words: residue.words,
+    },
+  };
+}
+
 /**
  * Append a body to a weekly log file. Creates it with an H1 if missing.
  * @param {string} filePath

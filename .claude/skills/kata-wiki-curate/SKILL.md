@@ -62,10 +62,11 @@ rest of this Process. Then read every file in `wiki/`: agent summaries
 
 ### Step 1: Contract audit
 
-Run `bunx fit-wiki fix` first — it rotates over-budget weekly logs, hands the
-prose-judgment findings to a Haiku technical-writer (re-auditing each round),
-and exits non-zero listing anything it flags for a human (missing decision
-blocks, oversized sealed parts) rather than inventing content. Then run
+Run `bunx fit-wiki fix` first — it rotates over-budget weekly logs, re-bisects
+over-budget sealed parts, hands prose-judgment findings (including a missing
+`### Decision`) to a Haiku technical-writer (re-auditing each round), and exits
+non-zero flagging anything irreducible (a lone over-budget day-section) for a
+human rather than inventing content. Then run
 `bunx fit-wiki audit --format json` to confirm — it checks every wiki file
 (summaries, weekly logs and sealed parts, MEMORY.md, priority and claims rows,
 the current storyboard) against the rule catalogue. The same audit gates
@@ -76,8 +77,9 @@ pre-merge CI, so a clean local run is the bar. Hand-resolve each flagged
   `bunx fit-wiki rotate --agent <agent>` to seal an overflowing weekly log.
 - **Section order / markers** — reorder the summary. The curator is the only
   agent that rewrites summaries; others propose edits via observations.
-- **Decision blocks** — a weekly-log entry missing `### Decision` is a
-  historical record; flag it rather than backfilling invented rationale.
+- **Decision blocks** — `fit-wiki fix` now inserts a missing `### Decision`
+  summarising the entry's narrative; verify it matches what the entry records,
+  not invented rationale.
 - **MEMORY.md structure / row shape** — repair headings, separators, and column
   counts in place.
 
