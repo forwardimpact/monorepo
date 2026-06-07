@@ -71,7 +71,7 @@ bun run check:fix
 ```
 products/       Eight products (map, pathway, outpost, guide, summit, landmark, kata, gear)
 libraries/      Shared libraries (libskill, libdoc, libbridge, etc.)
-services/       Microservices (bridge, embedding, ghbridge, ghserver, ghuser, graph, map, mcp, msbridge, oauth, pathway, tenancy, trace, vector)
+services/       Microservices (bridge, embedding, ghbridge, ghserver, ghuser, graph, map, mcp, msbridge, oauth, oidc, pathway, tenancy, trace, vector)
 data/           Generated and standard data
 config/         Service and tool configuration
 specs/          Feature specifications and plans
