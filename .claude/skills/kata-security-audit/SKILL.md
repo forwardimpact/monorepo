@@ -79,6 +79,8 @@ Apply the bridge-parity and timing-parity invariants when the selected topic is 
 
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find last audit dates per topic in the coverage map.
 
+Canonical topic-rotation runs (the audit topics under § Audit Areas) write only to the wiki and never open a PR — do **not** `fit-wiki claim` for them. The claim contract applies only when this skill is invoked from `kata-security-update` or otherwise opens a PR. See [memory-protocol § Claims](../../agents/references/memory-protocol.md#claims).
+
 ### Step 1: Select Topic
 
 Each run covers **one topic** in depth.
