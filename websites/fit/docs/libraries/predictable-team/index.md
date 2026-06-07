@@ -145,7 +145,10 @@ A zero exit code means the file matches the schema.
 ## Step 4: Analyze the metrics
 
 Once a metric has at least 15 observations, `fit-xmr` computes natural process
-limits and applies Wheeler's three detection rules. Run the analysis:
+limits and applies Wheeler's three detection rules. The limits are only
+meaningful if each metric tracks a single process -- see
+[One process per chart](/docs/libraries/predictable-team/xmr-analysis/#one-process-per-chart).
+Run the analysis:
 
 ```sh
 npx fit-xmr analyze wiki/metrics/kata-spec/2026.csv --metric findings_count
