@@ -117,6 +117,21 @@ Read `classification` first. If it says `stable`, the latest point is within
 expected variation and no action is needed. If it says `signals`, look at the
 `signals` object to see which rules fired and where.
 
+## One process per chart
+
+Before the rules mean anything, the centerline (μ) and average moving range
+(R̄) must come from a single process. If a CSV mixes two processes -- for
+example, fast dispatch-boots interleaved with much slower shift-work -- μ and
+R̄ are computed across the mixture and the limits describe neither. The rules
+still fire, but they fire on the mixture artifact, not on either underlying
+system.
+
+If your CSV mixes processes, split them into separate metrics (or separate
+CSVs) before charting. The `metric` column is the natural seam: name each
+process distinctly so they group separately. After a confirmed shift in a
+single process, see the recompute step in
+[What to do when signals appear](#what-to-do-when-signals-appear).
+
 ## The three detection rules
 
 `fit-xmr` applies the three rules from Wheeler's _Understanding Variation_:
@@ -174,9 +189,9 @@ Prints one row per metric with the observation count and date range.
 2. **Annotate the CSV.** Fill in the `note` field on the observation where the
    shift happened with what you discovered. The note is the durable record.
 3. **Recompute after a confirmed shift.** If the process has genuinely changed
-   (a new deployment, a policy change), re-run analysis against post-shift data
-   only. Otherwise the centerline averages across two different processes and
-   the limits describe neither.
+   (a new deployment, a policy change), pre- and post-shift data are now two
+   different processes -- see [One process per chart](#one-process-per-chart).
+   Re-run analysis against post-shift data only.
 
 Do not set targets based on the natural process limits. They describe what the
 process does, not what it should do.
