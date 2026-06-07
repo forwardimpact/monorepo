@@ -66,9 +66,10 @@ describe("RULES catalogue", () => {
     const REMEDIATION = {
       "weekly-log.line-budget": "rotate",
       "weekly-log.word-budget": "rotate",
-      "decision-block.heading-within-5": "flag",
-      "weekly-log-part.line-budget": "flag",
-      "weekly-log-part.word-budget": "flag",
+      // decision-block.heading-within-5 defaults to "agent" (the writer inserts
+      // the heading); part budgets re-bisect deterministically like main logs.
+      "weekly-log-part.line-budget": "rotate",
+      "weekly-log-part.word-budget": "rotate",
     };
     for (const rule of RULES) {
       if ("remediation" in rule) {

@@ -105,10 +105,11 @@ graph LR
   harden, release, and maintain. Every run captures a trace.
 - **Study** — Analyze Do outputs across four streams: security audits, external
   feedback triage, one-topic-deep doc review, one-trace-deep grounded theory.
-- **Act** — Trivial findings become **pushed fix PRs**; structural findings
-  become `spec.md` documents on **pushed spec branches**. A local commit is not
-  a PR — the URL is the only valid completion signal. `fix/` and `spec/`
-  branches never mix.
+- **Act** — Mechanical findings become **pushed fix PRs**; structural findings
+  become `spec.md` documents on **pushed spec branches** — classify each per
+  [work-definition.md § Classification tests](.claude/agents/references/work-definition.md#classification-tests).
+  A local commit is not a PR — the URL is the only valid completion signal.
+  `fix/` and `spec/` branches never mix.
 
 ## Agents
 
@@ -265,10 +266,8 @@ they only propagate signals from trusted humans. Plans may be approved by
 ## Metrics
 
 End-to-end skills record per-run counts as CSV rows in
-`wiki/metrics/{skill}/{YYYY}.csv`. Two classes: `process-throughput` (units
-produced) and `system-health` (loop events observed). The storyboard reads
-these via `fit-xmr` for control limits. Changes follow [coordination-protocol.md
-§ Measurement-system changes](.claude/agents/references/coordination-protocol.md#measurement-system-changes).
+`wiki/metrics/{skill}/{YYYY}.csv`. The storyboard reads these via `fit-xmr`
+for control limits.
 
 ## Design Principles
 

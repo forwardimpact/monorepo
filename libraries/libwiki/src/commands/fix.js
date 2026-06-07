@@ -8,7 +8,11 @@ import {
 } from "@forwardimpact/libeval";
 import { RULES } from "../audit/rules.js";
 import { buildContext, resolveScope } from "../audit/scopes.js";
-import { rotateIfOverBudget, weeklyLogPath } from "../weekly-log.js";
+import {
+  rotateIfOverBudget,
+  rebisectOverBudgetPart,
+  weeklyLogPath,
+} from "../weekly-log.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot } from "../util/wiki-dir.js";
 
@@ -131,6 +135,50 @@ function rotateOverBudgetMainLogs(findings, deps) {
   }
 }
 
+/**
+ * Re-bisect one over-budget sealed part, logging each new sibling slot it
+ * produces (the reused source slot is not a new file). A failed reseal leaves
+ * the source intact (the writer rolled back), so the re-audit re-flags it.
+ */
+function resealPart(partPath, { fs, projectRoot, out, err }) {
+  try {
+    const res = rebisectOverBudgetPart(partPath, fs);
+    if (res.status !== "resealed" && res.status !== "incomplete") return;
+    for (const part of res.parts) {
+      if (part === res.fromPath) continue; // the reused source slot
+      out(
+        `rotated ${path.relative(projectRoot, res.fromPath)} -> ` +
+          `${path.relative(projectRoot, part)}\n`,
+      );
+    }
+  } catch (e) {
+    err(
+      `fit-wiki fix: rebisect failed for ` +
+        `${path.relative(projectRoot, partPath)}: ${e.message}\n`,
+    );
+  }
+}
+
+/**
+ * Deterministic pass for over-budget sealed parts: re-bisect each at its
+ * day-section seams. A part with no splittable seam is left byte-identical (the
+ * re-audit re-flags it for a human). Agent and week come from the part filename,
+ * so no subject lookup is needed. Part findings are disjoint from the main-log
+ * findings `rotateOverBudgetMainLogs` handles.
+ */
+function rebisectOverBudgetParts(findings, deps) {
+  // A part over both budgets yields two findings with the same path; re-bisect
+  // each path once.
+  const done = new Set();
+  for (const f of findings) {
+    if (classOf(f) !== "rotate") continue;
+    if (!f.id.startsWith("weekly-log-part.")) continue;
+    if (done.has(f.path)) continue;
+    done.add(f.path);
+    resealPart(f.path, deps);
+  }
+}
+
 /** Report findings that need human judgment — never auto-fixed. */
 function reportFlags(err, flagFindings, projectRoot) {
   err(
@@ -242,16 +290,12 @@ export async function runFixCommand(ctx) {
     return { ok: true };
   }
 
-  // Deterministic layer: weekly-log rotation only.
+  // Deterministic layer: seal over-budget main logs, then re-bisect over-budget
+  // sealed parts. Both are content-preserving — no agent, no history rewrite.
   if (findings.some((f) => classOf(f) === "rotate")) {
-    rotateOverBudgetMainLogs(findings, {
-      wikiRoot,
-      today,
-      projectRoot,
-      fs,
-      out,
-      err,
-    });
+    const rotateDeps = { wikiRoot, today, projectRoot, fs, out, err };
+    rotateOverBudgetMainLogs(findings, rotateDeps);
+    rebisectOverBudgetParts(findings, rotateDeps);
     findings = audit();
     if (findings.length === 0) {
       out("fixed: wiki audit is clean\n");

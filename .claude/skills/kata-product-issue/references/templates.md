@@ -12,7 +12,7 @@ comment.
 
 | Outcome             | Body text                                                                                                                                 | Follow-up                                   |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **Trivial fix**     | Thanks for reporting this! I can see the problem — I'll put together a fix now.                                                           | —                                           |
+| **Mechanical fix**  | Thanks for reporting this! I can see the problem — I'll put together a fix now.                                                           | —                                           |
 | **Product-aligned** | Thanks for this suggestion! This aligns with our product direction. I'm going to write up a spec so we can plan the implementation.       | —                                           |
 | **Out of scope**    | Thanks for taking the time to open this! After reviewing it against our product direction, this falls outside our current scope. _<why>_. | `--add-label wontfix`; `gh issue close`     |
 | **Duplicate**       | Thanks for reporting this! This is already tracked in #<original>, so I'll close this one as a duplicate.                                 | `gh issue close --reason "not planned"`     |
@@ -111,7 +111,7 @@ Inbound triage (existing issues classified):
 ```
 | Issue   | Title                           | Category        | Action       | Detail                     |
 | ------- | ------------------------------- | --------------- | ------------ | -------------------------- |
-| #bug-a  | Schema validation crash on null | trivial fix     | PR #fix-a    | Fix null check in validate |
+| #bug-a  | Schema validation crash on null | mechanical fix  | PR #fix-a    | Fix null check in validate |
 | #feat-b | Support custom skill levels     | product-aligned | spec PR #spec-b | Spec lives at specs/<slug>/ |
 | #out-c  | Add dark mode                   | out of scope    | closed       | Not in product scope       |
 ```

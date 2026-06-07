@@ -95,11 +95,12 @@ npx fit-wiki audit [--format json]
 npx fit-wiki fix
 ```
 
-Audits, then rotates over-budget weekly logs deterministically, hands the
-prose-judgment findings to a Haiku technical-writer (re-auditing each round, max
-three), and flags anything unfixable (missing decision blocks, oversized sealed
-parts) for a human — exiting non-zero rather than touching them. Run after
-editing wiki files.
+Audits, then deterministically rotates over-budget weekly logs and re-bisects
+over-budget sealed parts, hands the prose-judgment findings (including inserting
+a missing `### Decision`) to a Haiku technical-writer (re-auditing each round,
+max three), and flags anything irreducible — a lone day-section that alone
+exceeds the budget and cannot be split — for a human, exiting non-zero rather
+than touching it. Run after editing wiki files.
 
 ### `memo` — Cross-team memo
 
