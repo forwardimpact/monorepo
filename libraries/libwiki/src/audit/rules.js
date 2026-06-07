@@ -1,7 +1,11 @@
 import {
+  ACTIVE_CLAIMS_HEADER_RE,
   ACTIVE_CLAIMS_HEADING,
+  ACTIVE_CLAIMS_SEPARATOR_RE,
   ACTIVE_CLAIMS_TABLE_HEADER,
   DECISION_HEADING,
+  ISSUE_CLOSE_RE,
+  ISSUE_OPEN_RE,
   MEMO_INBOX_MARKER,
   PRIORITY_INDEX_HEADING,
   STORYBOARD_LINE_BUDGET,
@@ -10,8 +14,14 @@ import {
   SUMMARY_WORD_BUDGET,
   WEEKLY_LOG_LINE_BUDGET,
   WEEKLY_LOG_WORD_BUDGET,
+  XMR_CLOSE_RE,
+  XMR_OPEN_RE,
 } from "../constants.js";
-import { PRIORITY_HEADER_RE, WEEKLY_LOG_H1_RE } from "./scopes.js";
+import {
+  PRIORITY_HEADER_RE,
+  SUMMARY_H1_RE,
+  WEEKLY_LOG_H1_RE,
+} from "./scopes.js";
 import { STATUS_ROW_RULES } from "./status-row.js";
 
 const PRIORITY_INDEX_HEADING_RE = new RegExp(
@@ -21,20 +31,7 @@ const PRIORITY_INDEX_HEADING_RE = new RegExp(
 const ACTIVE_CLAIMS_HEADING_RE = new RegExp(`^${ACTIVE_CLAIMS_HEADING}$`, "m");
 const PRIORITY_SEPARATOR_RE =
   /^\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|/m;
-const CLAIMS_HEADER_RE =
-  /^\|\s*agent\s*\|\s*target\s*\|\s*branch\s*\|\s*pr\s*\|\s*claimed_at\s*\|\s*expires_at\s*\|/m;
-const CLAIMS_SEPARATOR_RE =
-  /^\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|/m;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-// Marker regexes (mirror of marker-scanner.js): tolerate optional trailing
-// text inside the marker so an open marker can carry an inline notice like
-// "Do not edit. Auto-generated." without breaking the audit's balance check.
-const XMR_OPEN_RE = /^<!--\s*xmr:([^:\s]+):(\S+)(?:\s+[^>]*?)?\s*-->\s*$/;
-const XMR_CLOSE_RE = /^<!--\s*\/xmr(?:\s+[^>]*?)?\s*-->\s*$/;
-const ISSUE_OPEN_RE =
-  /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?(?:\s+[^>]*?)?\s*-->\s*$/;
-const ISSUE_CLOSE_RE =
-  /^<!--\s*\/(obstacles|experiments)(?:\s+[^>]*?)?\s*-->\s*$/;
 
 // improvement-coach is the storyboard facilitator and carries no domain
 // metrics; only the five domain agents need their own H3.
@@ -154,14 +151,12 @@ const slugify = (title) =>
     .replace(/(^-|-$)/g, "");
 
 const summaryAgentMismatch = (s) => {
-  const titleSlug = slugify(s.firstLine.match(/^# (.+) — Summary$/)[1]);
+  const titleSlug = slugify(s.firstLine.match(SUMMARY_H1_RE)[1]);
   return titleSlug === s.agentPrefix ? null : { titleSlug };
 };
 
 const weeklyAgentMismatch = (s) => {
-  const m = s.firstLine.match(
-    /^# (.+) — \d{4}-W\d{2}(?: \(part \d+ of \d+\))?$/,
-  );
+  const m = s.firstLine.match(WEEKLY_LOG_H1_RE);
   if (!m) return null;
   const titleSlug = slugify(m[1]);
   return titleSlug === s.agentPrefix ? null : { titleSlug };
@@ -177,7 +172,7 @@ const memoryHasPriorityHeader = (s) =>
   s.exists && PRIORITY_HEADER_RE.test(s.text);
 const memoryHasClaimsHeading = (s) =>
   s.exists && ACTIVE_CLAIMS_HEADING_RE.test(s.text);
-const memoryHasClaimsHeader = (s) => CLAIMS_HEADER_RE.test(s.text);
+const memoryHasClaimsHeader = (s) => ACTIVE_CLAIMS_HEADER_RE.test(s.text);
 const storyboardExists = (s) => s.exists;
 
 export const RULES = [
@@ -283,14 +278,13 @@ export const RULES = [
     id: "decision-block.heading-within-5",
     scope: "weekly-log-main",
     severity: "fail",
-    remediation: "flag",
     check: decisionWithin5({
       entryRe: /^## \d{4}-\d{2}-\d{2}(?:[\s(].*)?$/,
       requiredLine: DECISION_HEADING,
       stopRe: /^##\s/,
     }),
     message: () => "Entry lacks leading '### Decision'",
-    hint: "open each '## YYYY-MM-DD' entry with a '### Decision' subheading; use `bunx fit-wiki log decision` to do this mechanically",
+    hint: "open each '## YYYY-MM-DD' entry with a '### Decision' subheading that summarises the decision recorded in the entry's own narrative — do not invent rationale the entry does not support",
   },
 
   // -- Weekly logs (sealed parts) --
@@ -307,19 +301,19 @@ export const RULES = [
     id: "weekly-log-part.line-budget",
     scope: "weekly-log-part",
     severity: "fail",
-    remediation: "flag",
+    remediation: "rotate",
     check: lineBudget(WEEKLY_LOG_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
-    hint: "the bisecting seal produces conforming parts, so an over-budget part means a hand-edited part or an irreducible single-day section — bisect it at a finer seam by hand",
+    hint: "`bunx fit-wiki fix` re-bisects an over-budget part with day-section seams; an irreducible single-day section that alone exceeds the budget must be split at a finer seam by hand",
   },
   {
     id: "weekly-log-part.word-budget",
     scope: "weekly-log-part",
     severity: "fail",
-    remediation: "flag",
+    remediation: "rotate",
     check: wordBudget(WEEKLY_LOG_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
-    hint: "the bisecting seal produces conforming parts, so an over-budget part means a hand-edited part or an irreducible single-day section — bisect it at a finer seam by hand",
+    hint: "`bunx fit-wiki fix` re-bisects an over-budget part with day-section seams; an irreducible single-day section that alone exceeds the budget must be split at a finer seam by hand",
   },
   {
     id: "weekly-log-part.h1-agent-matches-filename",
@@ -373,7 +367,7 @@ export const RULES = [
     scope: "memory",
     severity: "fail",
     when: memoryHasClaimsHeading,
-    check: matches(CLAIMS_HEADER_RE),
+    check: matches(ACTIVE_CLAIMS_HEADER_RE),
     message: () => `Active claims header mismatch`,
     hint: `expected header row: '${ACTIVE_CLAIMS_TABLE_HEADER}'`,
   },
@@ -382,7 +376,7 @@ export const RULES = [
     scope: "memory",
     severity: "fail",
     when: memoryHasClaimsHeader,
-    check: matches(CLAIMS_SEPARATOR_RE),
+    check: matches(ACTIVE_CLAIMS_SEPARATOR_RE),
     message: () => "Missing active-claims separator row",
     hint: "add '| --- | --- | --- | --- | --- | --- |' directly below the claims header",
   },

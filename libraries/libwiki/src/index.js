@@ -32,6 +32,7 @@ export {
   isoWeek,
   weeklyLogPath,
   rotateIfOverBudget,
+  rebisectOverBudgetPart,
   bisectWeeklyLog,
   appendEntry,
 } from "./weekly-log.js";

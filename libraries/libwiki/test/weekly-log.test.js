@@ -6,6 +6,7 @@ import {
   weeklyLogPath,
   appendEntry,
   bisectWeeklyLog,
+  rebisectOverBudgetPart,
 } from "../src/weekly-log.js";
 import { countLines, countWords } from "../src/budget.js";
 import {
@@ -246,6 +247,53 @@ describe("bisectWeeklyLog", () => {
     assert.equal(residue.section, "prologue");
     assert.equal(residue.partIndex, 0);
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
+  });
+});
+
+// The split branch of rebisectOverBudgetPart uses fs.renameSync (not modelled
+// by the in-memory mock) and lives in weekly-log-part.integration.test.js. Only
+// the branches that read but never seal are exercised here.
+describe("rebisectOverBudgetPart — non-writing branches", () => {
+  const PART = `${WIKI_ROOT}/staff-engineer-2026-W21-part1.md`;
+  const PART_H1 = "# Staff Engineer — 2026-W21 (part 1 of 2)";
+
+  test("noop when the part is within both budgets", () => {
+    const text = source(PART_H1, daySection("2026-05-19", 10));
+    const fs = createMockFs({ [PART]: text });
+    const res = rebisectOverBudgetPart(PART, fs);
+    assert.equal(res.status, "noop");
+    assert.equal(fs.readFileSync(PART, "utf-8"), text, "left untouched");
+  });
+
+  test("noop and untouched when the filename is not a conforming part name", () => {
+    // A main-log path (no -partN suffix), over budget — still a noop: the part
+    // budgets do not own this file, the main-rotation pass does.
+    const main = weeklyLogPath(WIKI_ROOT, "staff-engineer", "2026-05-19");
+    const text = source(H1, daySection("2026-05-19", 600));
+    const fs = createMockFs({ [main]: text });
+    const res = rebisectOverBudgetPart(main, fs);
+    assert.equal(res.status, "noop");
+    assert.equal(fs.readFileSync(main, "utf-8"), text, "left untouched");
+  });
+
+  test("irreducible lone over-cap day-section → incomplete, byte-identical", () => {
+    const text = source(PART_H1, daySection("2026-05-19", 600));
+    const fs = createMockFs({ [PART]: text });
+    const res = rebisectOverBudgetPart(PART, fs);
+    assert.equal(res.status, "incomplete");
+    assert.deepEqual(res.parts, [PART]);
+    assert.equal(res.residue.section, "2026-05-19");
+    assert.equal(res.residue.path, PART);
+    assert.equal(fs.readFileSync(PART, "utf-8"), text, "no partial write");
+  });
+
+  test("zero-seam over-cap body → incomplete with section 'prologue', byte-identical", () => {
+    const text = `${PART_H1}\n${Array(600).fill("prose").join("\n")}\n`;
+    const fs = createMockFs({ [PART]: text });
+    const res = rebisectOverBudgetPart(PART, fs);
+    assert.equal(res.status, "incomplete");
+    assert.equal(res.residue.section, "prologue");
+    assert.equal(fs.readFileSync(PART, "utf-8"), text, "no partial write");
   });
 });
 

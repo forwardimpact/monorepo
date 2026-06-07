@@ -1,6 +1,6 @@
 import nodeFsSync from "node:fs";
 import nodeFs from "node:fs/promises";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
@@ -91,6 +91,67 @@ export function ctxFor({
   args = {},
 }) {
   return { deps: { runtime, wikiSync, gitClient, query }, options, args };
+}
+
+const STORYBOARD_AGENTS = [
+  "product-manager",
+  "release-engineer",
+  "security-engineer",
+  "staff-engineer",
+  "technical-writer",
+];
+
+/** Seed a wiki root with an audit-clean MEMORY.md and current-month storyboard. */
+export function seedCleanWiki(wikiRoot) {
+  writeFileSync(
+    join(wikiRoot, "MEMORY.md"),
+    [
+      "## Cross-Cutting Priorities",
+      "",
+      "| Item | Agents | Owner | Status | Added |",
+      "| --- | --- | --- | --- | --- |",
+      "| *None* | — | — | — | — |",
+      "",
+    ].join("\n"),
+  );
+  writeFileSync(
+    join(wikiRoot, "storyboard-2026-M05.md"),
+    [
+      "# Storyboard — 2026-05",
+      "",
+      ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
+      "",
+    ].join("\n"),
+  );
+}
+
+/** Write a minimal technical-writer profile so composeProfilePrompt can read it. */
+export function seedAgentProfile(projectRoot) {
+  const agentsDir = join(projectRoot, ".claude", "agents");
+  mkdirSync(agentsDir, { recursive: true });
+  writeFileSync(
+    join(agentsDir, "technical-writer.md"),
+    "---\nname: technical-writer\n---\nYou are the technical writer.\n",
+  );
+}
+
+/**
+ * A mock SDK `query` that writes `versions[n]` to `summaryPath` on its n-th call
+ * (clamped to the last version) and reports success. Records each call's
+ * `resume` option so tests can assert run-vs-resume.
+ */
+export function scriptedQuery(summaryPath, versions, calls) {
+  return async function* ({ options }) {
+    calls.push({ resume: options.resume ?? null });
+    const v = versions[Math.min(calls.length - 1, versions.length - 1)];
+    writeFileSync(summaryPath, v);
+    yield { type: "system", subtype: "init", session_id: "sess-fix" };
+    yield {
+      type: "result",
+      subtype: "success",
+      result: `round ${calls.length}`,
+    };
+  };
 }
 
 /** Run a git command in the given directory and return its trimmed stdout. */
