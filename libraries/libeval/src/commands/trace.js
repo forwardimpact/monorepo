@@ -25,9 +25,8 @@ export async function runRunsCommand(ctx) {
     repo: ctx.options.repo,
     runtime,
   });
-  const pattern = ctx.args.pattern ?? "agent";
   const lookback = ctx.options.lookback ?? "7d";
-  const runs = await gh.listRuns({ pattern, lookback });
+  const runs = await gh.listRuns({ pattern: ctx.args.pattern, lookback });
   writeJSON(runtime, runs, ctx.options);
   return { ok: true };
 }
