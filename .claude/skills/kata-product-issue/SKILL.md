@@ -2,7 +2,7 @@
 name: kata-product-issue
 description: >
   Triage open GitHub issues against the product vision. Classify each as
-  trivial fix, product-aligned spec, or out-of-scope, and produce a report
+  mechanical fix, product-aligned spec, or out-of-scope, and produce a report
   the agent acts on. Operates on issues only — PR mergeability is
   kata-release-merge.
 ---
@@ -12,7 +12,7 @@ description: >
 Triage open GitHub issues against the product vision and decide the appropriate
 action for each — but do not take it. The triage produces a report; the agent
 then uses follow-up skills (`kata-spec` for features, direct git operations for
-trivial fixes) to execute on the recommendations.
+mechanical fixes) to execute on the recommendations.
 
 This is the Study half of the product feedback loop. The Act half lives in the
 agent's workflow, calling `kata-spec` or making fix PRs directly based on the
@@ -43,12 +43,18 @@ All comment templates are in `references/templates.md`.
 
 ## Classification
 
-| Category                 | Criteria                                                   | Recommended action                                                                                                  |
-| ------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Trivial fix/bug**      | Clear bug or small fix with obvious resolution             | Fix PR (direct git ops, no spec)                                                                                    |
-| **Product-aligned**      | Feature/improvement serving the product vision             | Write spec via the `kata-spec` skill                                                                                |
-| **Cross-product policy** | Cross-cutting question that needs decision before any spec | Open Discussion (per [coordination-protocol.md](../../agents/references/coordination-protocol.md)); label `triaged` |
-| **Out of scope**         | Not aligned, unclear, duplicate, or already addressed      | Comment + label `triaged`/`wontfix`                                                                                 |
+The mechanical-vs-structural-vs-unsettled-vs-out-of-scope tests are defined once in
+[work-definition.md § Classification tests](../../agents/references/work-definition.md#classification-tests);
+this table maps those work-types to the triage-specific action and labels.
+Product alignment (the **Product-aligned** row) is this skill's own criterion —
+see § Product Vision Alignment below.
+
+| Category                 | Recommended action                                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Mechanical fix/bug**   | Fix PR (direct git ops, no spec)                                                                                    |
+| **Product-aligned**      | Write spec via the `kata-spec` skill                                                                                |
+| **Cross-product policy** | Open Discussion (per [coordination-protocol.md](../../agents/references/coordination-protocol.md)); label `triaged` |
+| **Out of scope**         | Comment + label `triaged`/`wontfix`                                                                                 |
 
 ## Product Vision Alignment
 

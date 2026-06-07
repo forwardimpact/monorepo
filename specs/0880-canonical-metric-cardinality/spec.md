@@ -1,5 +1,12 @@
 # Spec 0880 — Canonical-metric cardinality and the class boundary
 
+> **Superseded — 2026-06-07.** The two-class metric taxonomy
+> (`process-throughput` / `system-health`) and the `metric-class-guidance.md`
+> reference page this spec introduced have been removed from the Kata system,
+> along with the measurement-system change-control subsystem (spec 0860). The
+> 11 metrics are now fixed. This document is retained as a historical record
+> only; nothing in it is live.
+
 **Persona / job:** Teams Using Agents — *Run an autonomous, continuously
 improving development team that plans, ships, studies its own traces, and acts
 on findings* ([CLAUDE.md § Primary Products](../../CLAUDE.md#primary-products)).

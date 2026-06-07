@@ -37,14 +37,12 @@ vs. expected), update Obstacles, and plan the next experiment.
    and runs no analysis itself. Participants flag any metric whose status changed
    since the last meeting.
 3. **What obstacles are preventing us from reaching the target?** Participants
-   identify obstacles from their domain based on the gap between current and
-   target. Obstacles are discovered through data and experiments, not
-   hypothesized upfront. Prefer trace findings or live run data over accumulated
-   log narratives.
+   identify obstacles from their domain; what an obstacle *is* — and
+   obstacle-vs-experiment — is defined in
+   [work-definition.md § Classification tests](../../../agents/references/work-definition.md#classification-tests).
 4. **What is the next step? What do you expect?** For the obstacle currently
-   being addressed, participants propose their next experiment. The expected
-   outcome is recorded _before_ the experiment runs. Experiments should be small
-   and testable within one or two daily cycles.
+   being addressed, participants propose their next experiment and its expected
+   outcome, scoped to one or two daily cycles.
 5. **When can we see what we learned?** Typically: next meeting, end of week, or
    after a specific workflow run.
 
@@ -86,8 +84,9 @@ permanent record.
 ## Q3 obstacle routing
 
 Per SKILL.md Step 7, the facilitator picks a route per obstacle (parallel
-allowed) and logs it — Discussion is delegated to the owning agent, Coaching is
-left to the coach's Assess run:
+allowed) and logs it; trigger criteria live in
+[work-definition.md § Classification tests](../../../agents/references/work-definition.md#classification-tests).
+Discussion is delegated to the owning agent, Coaching to the coach's Assess run:
 
 | Trigger                                                                          | Route      |
 | -------------------------------------------------------------------------------- | ---------- |
@@ -95,13 +94,9 @@ left to the coach's Assess run:
 | Same question surfaced in ≥2 agents' Q3 answers                                  | Discussion |
 | Persistent obstacle the agent owns; unanalyzed trace; stalled experiment         | Coaching   |
 
-**Worked example — multi-agent canonical-metric flag.** SE/RE/TW/PM each flagged a
-canonical-11 metric (`prs_actioned`, `releases_cut`, `errors_found`,
-`issues_created`). All four mapped to one shared artifact — right route: one
-Discussion, not four parallel coaching dispatches. Each of the four headline
-bullets carries the `Redefinition:` slot per
-[`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes)
-(here `—`).
+**Worked example — multi-agent convergence.** SE/RE/TW/PM each surfaced an
+obstacle touching the same shared artifact (one routing rule). All four mapped
+to one artifact — one Discussion, not four coaching dispatches.
 
 ## Participant briefing template
 

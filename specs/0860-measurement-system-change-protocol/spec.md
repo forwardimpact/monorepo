@@ -1,5 +1,14 @@
 # Spec 0860 — Measurement-system change protocol for canonical metrics
 
+> **Superseded — 2026-06-07.** The measurement-system change-control subsystem
+> this spec introduced — the eight named repair moves, redefinition files
+> (`wiki/redefinitions/`), the no-silent-redefinition rule, and canonical-11
+> change detection — has been removed from the Kata system. The 11 metrics are
+> now fixed and are not redefined. This document is retained as a historical
+> record only; nothing in it is live. Rationale:
+> `wiki/kata-instruction-analysis-2026-06-03.md` §3 and
+> `wiki/kata-component-analysis-2026-06-03.md` §3.
+
 ## Problem
 
 The Kata Agent Team

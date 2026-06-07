@@ -51,9 +51,11 @@ highest-priority action:
    (`kata-security-audit`; check: coverage map in `wiki/security-engineer.md`)
 4. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
 
-After choosing, follow the selected skill's full procedure. For audit findings:
+After choosing, follow the selected skill's full procedure. Classify findings
+per [work-definition.md](references/work-definition.md#classification-tests); the
+branch each work-type lands on:
 
-- **Trivial fix** -- `fix/security-audit-YYYY-MM-DD` branch from `main`
+- **Mechanical fix** -- `fix/security-audit-YYYY-MM-DD` branch from `main`
 - **Structural finding** -- spec via `kata-spec` on `spec/security-<name>`
   branch from `main`
 - Every PR on an independent branch from `main`

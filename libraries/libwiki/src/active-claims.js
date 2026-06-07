@@ -1,11 +1,13 @@
 import {
+  ACTIVE_CLAIMS_HEADER_RE,
   ACTIVE_CLAIMS_HEADING,
   ACTIVE_CLAIMS_TABLE_HEADER,
   ACTIVE_CLAIMS_TABLE_SEPARATOR,
 } from "./constants.js";
 
-const HEADER_RE =
-  /^\|\s*agent\s*\|\s*target\s*\|\s*branch\s*\|\s*pr\s*\|\s*claimed_at\s*\|\s*expires_at\s*\|\s*$/;
+// The header matcher is shared with the audit (via constants.js); the loose
+// separator and the 6-cell row parser stay local — they serve parsing, not the
+// audit's column-count check.
 const SEPARATOR_RE = /^\|\s*---\s*\|/;
 const ROW_RE =
   /^\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*$/;
@@ -47,7 +49,7 @@ function scanRowsBetween(lines, start, end) {
   let seenSeparator = false;
   for (let i = start; i < end; i++) {
     const line = lines[i];
-    if (HEADER_RE.test(line)) {
+    if (ACTIVE_CLAIMS_HEADER_RE.test(line)) {
       inTable = true;
       continue;
     }
@@ -96,7 +98,7 @@ function findTableIndices(lines, heading, sectionEnd) {
   let headerIdx = -1;
   let separatorIdx = -1;
   for (let i = heading + 1; i < sectionEnd; i++) {
-    if (HEADER_RE.test(lines[i])) headerIdx = i;
+    if (ACTIVE_CLAIMS_HEADER_RE.test(lines[i])) headerIdx = i;
     if (headerIdx !== -1 && SEPARATOR_RE.test(lines[i])) {
       separatorIdx = i;
       break;
