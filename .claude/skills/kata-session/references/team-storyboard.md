@@ -94,12 +94,9 @@ Discussion is delegated to the owning agent, Coaching to the coach's Assess run:
 | Same question surfaced in ≥2 agents' Q3 answers                                  | Discussion |
 | Persistent obstacle the agent owns; unanalyzed trace; stalled experiment         | Coaching   |
 
-**Worked example — multi-agent canonical-metric flag.** SE/RE/TW/PM each flagged a
-canonical-11 metric (`prs_actioned`, `releases_cut`, `errors_found`,
-`issues_created`). All four mapped to one artifact — one Discussion, not four
-coaching dispatches. Each headline bullet carries the `Redefinition:` slot per
-[`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes)
-(here `—`).
+**Worked example — multi-agent convergence.** SE/RE/TW/PM each surfaced an
+obstacle touching the same shared artifact (one routing rule). All four mapped
+to one artifact — one Discussion, not four coaching dispatches.
 
 ## Participant briefing template
 

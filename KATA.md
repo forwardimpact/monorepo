@@ -266,10 +266,8 @@ they only propagate signals from trusted humans. Plans may be approved by
 ## Metrics
 
 End-to-end skills record per-run counts as CSV rows in
-`wiki/metrics/{skill}/{YYYY}.csv`. Two classes: `process-throughput` (units
-produced) and `system-health` (loop events observed). The storyboard reads
-these via `fit-xmr` for control limits. Changes follow [coordination-protocol.md
-§ Measurement-system changes](.claude/agents/references/coordination-protocol.md#measurement-system-changes).
+`wiki/metrics/{skill}/{YYYY}.csv`. The storyboard reads these via `fit-xmr`
+for control limits.
 
 ## Design Principles
 

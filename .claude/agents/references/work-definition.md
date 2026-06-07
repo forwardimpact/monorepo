@@ -28,13 +28,10 @@ Cross-references only — see the owning reference for routing/gate detail.
 | **obstacle**       | A measured gap blocking a target condition                  | labeled issue        |
 | **experiment**     | The next testable step against an obstacle                  | labeled issue        |
 | **Discussion/RFC** | An unsettled cross-cutting question                         | `gh` Discussion      |
-| **redefinition**   | A canonical-11 measurement change                           | redefinition file    |
 
 Routing per work-type is in [`coordination-protocol.md` § Channel by output
 type](coordination-protocol.md#channel-by-output-type); gating is in
-[`approval-signals.md`](approval-signals.md); the eight redefinition repair
-moves are in [`coordination-protocol.md` §
-Measurement-system changes](coordination-protocol.md#measurement-system-changes).
+[`approval-signals.md`](approval-signals.md).
 
 ## Classification tests
 

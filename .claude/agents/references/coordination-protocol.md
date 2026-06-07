@@ -45,63 +45,6 @@ only propagates signals already expressed by a trusted human.
 authorizes merge; it does not advance the phase. The next phase begins only
 when the prior phase's artifact is on `main`.
 
-## Measurement-system changes
-
-Changes to a canonical-11 metric — skill removal, rename, split, definition
-change, sidecar opening, denominator redefinition, rule-semantics challenge —
-follow one of eight named repair moves and ship with a redefinition file.
-
-| Move | One-sentence definition | Falsifier-set kind |
-|---|---|---|
-| `producer-rehoming` | Reassign a metric's producing skill when the original is removed/split/renamed; tag continuity on the first row under the new producer. | "structural-zero rows after rehoming" |
-| `mode-restriction` | Narrow recording to one activation mode of a multi-mode skill so the series is unimodal. | "post-restriction series remains bimodal" |
-| `historical-phasing` | Annotate a Phase boundary; XmR windows on Phase 1; no CSV backfill. | "Phase 1 cannot reach `predictable`" |
-| `sidecar-pre-flight` | Record a candidate to a sibling CSV while the canonical metric continues; no denominator change until ratification. | "sidecar diverges from canonical" |
-| `stock-vs-flow-recast` | Replace a flow-rate metric with a stock metric when burst architecture trips XmR by construction. | "stock series fires `xRule1` post-recast" |
-| `event-driven-recast` | Replace per-day cadence with per-activation ("no row, no event"). | "per-activation series stays `insufficient_data`" |
-| `rule-semantics-rfc` | Challenge an XmR rule's blocking effect via Discussion RFC; quorum required. | "RFC quorum not reached by horizon" |
-| `habit-to-policy` | Promote a defensive habit into a `SKILL.md` check after a defect surfaces. | "post-promotion defect of same shape recurs" |
-
-The list is closed; extensions land via the spec/design/plan/implement chain.
-
-### Redefinition shape
-
-Each canonical-11 change ships `wiki/redefinitions/{YYYY-MM-DD}-{slug}.md` in
-the same PR — YAML front-matter plus a one-paragraph prose body:
-
-```yaml
----
-move: <one of the eight>
-affected_metrics: [{skill: <skill>, metric: <metric>}]
-falsifier_set: [<predicate>]
-verdict_horizon: <YYYY-MM-DD>
-cohort_readout: <YYYY-MM-DD>      # >= verdict_horizon
-denominator_effect: none | sidecar | conditional-amend | amend
-links: { obstacle_issue: <issue-ref>?, experiment_issue: <issue-ref>?, pr: <pr-ref>? }
----
-```
-
-`verdict_horizon ≤ cohort_readout` is the only ordering constraint.
-`denominator_effect`: `none` for sidecars and rule-semantics challenges;
-`sidecar` for a parallel CSV pending verdict; `conditional-amend` for a
-denominator change ratified at the cohort read-out; `amend` for unconditional.
-
-### No-silent-redefinition rule
-
-> No change to the canonical-11 denominator lands without a redefinition file
-> at `wiki/redefinitions/{YYYY-MM-DD}-{slug}.md` whose `denominator_effect` is
-> non-`none`, a cohort read-out date on or before the storyboard meeting at
-> which the change takes effect, and a linked storyboard headline.
-
-KATA.md § Metrics links to this section; no other file restates the rule.
-
-### Detection
-
-Any commit touching a canonical-11 edge must add or modify
-`wiki/redefinitions/*.md` in the same commit. Canonical-11 edges:
-`wiki/storyboard-*.md`, `.claude/skills/*/references/metrics.md`, and this
-section.
-
 ## Decision questions
 
 When an output could fit multiple channels, ask in order:

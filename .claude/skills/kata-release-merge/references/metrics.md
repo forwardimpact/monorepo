@@ -53,6 +53,3 @@ append `;api_errors=N` to `note`; a blanket failure records `0` with non-empty
 
 GNU `date -u -d` syntax assumes the GitHub-hosted Ubuntu runner; macOS BSD
 `date` rejects it — run this skill from CI, not a local shell.
-
-See
-[`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes).
