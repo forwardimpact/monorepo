@@ -141,6 +141,12 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
       "residue path is among the parts",
     );
     assert.ok(r.parts.length >= 2, "the reducible sections still split out");
+    // Even when a residue survives, no content is dropped: the sub-part bodies
+    // (source slot included) concatenate back to the original body.
+    const rejoined = r.parts
+      .map((p) => bodyOf(readFileSync(p, "utf-8")))
+      .join("");
+    assert.equal(rejoined, bodyOf(text), "content preserved byte-for-byte");
   });
 
   test("derives agent and week from the filename, naming new slots and H1s for that week", () => {

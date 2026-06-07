@@ -144,6 +144,46 @@ describe("fit-wiki fix CLI — deterministic rotation layer", () => {
     assert.doesNotMatch(harness.stderr, /need human judgment/);
   });
 
+  test("seals an over-budget main log AND re-bisects an over-budget part in one run; clean, no agent", async () => {
+    seedCleanWiki(wikiRoot);
+    seedAgentProfile(dir);
+    // A current-week main log over budget, plus a pre-existing sealed part also
+    // over budget. The two deterministic passes must compose: new slots from
+    // each never collide (nextFreeSlots re-checks occupancy), and both clear.
+    const mkMultiDay = (h1) => {
+      let text = `${h1}\n`;
+      for (let s = 0; s < 4; s++) {
+        text += `## 2026-05-${String(18 + s).padStart(2, "0")}\n`;
+        for (let i = 1; i < 150; i++) text += "- filler\n";
+      }
+      return text;
+    };
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(logPath, mkMultiDay("# Staff Engineer — 2026-W21"));
+    const partPath = join(wikiRoot, "staff-engineer-2026-W21-part1.md");
+    writeFileSync(
+      partPath,
+      mkMultiDay("# Staff Engineer — 2026-W21 (part 1 of 1)"),
+    );
+
+    const calls = [];
+    const query = scriptedQuery(join(wikiRoot, "unused.md"), [""], calls);
+    const harness = makeRuntime({ cwd: dir });
+
+    const result = await runFixCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        query,
+        options: { today: "2026-05-24" },
+      }),
+    );
+
+    assert.equal(calls.length, 0, "neither pass invokes the agent");
+    assert.deepEqual(result, { ok: true, code: 0 });
+    assert.doesNotMatch(harness.stderr, /need human judgment/);
+    assert.ok(existsSync(logPath), "a fresh main log is started");
+  });
+
   test("leaves a healthy current-week log alone when a prior week is over budget", async () => {
     seedCleanWiki(wikiRoot);
     seedAgentProfile(dir);
