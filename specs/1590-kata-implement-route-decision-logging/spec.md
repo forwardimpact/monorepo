@@ -6,6 +6,12 @@
 |---|---|---|
 | Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team) | The Study step of the daily PDSA cycle reads `wiki/metrics/kata-implement/2026.csv` through `fit-xmr` to read whether `implementations_shipped` is shifting. Today every zero row is recorded identically regardless of why the value is zero. Two distinct upstream populations — *attempt-zero* (an implementation route fired and produced no PR) and *route-conservation-zero* (an implementation route was eligible and the routing predicate chose a different route) — read the same on the chart. The xRule2 streak (slots 40–66 at obstacle filing, 27 consecutive ≤ μ=1.6) cannot be adjudicated as either a real throughput floor or an intentional conservation choice. The Study step returns ambiguous on the streak's interpretation, and any policy work driven from the streak (codify conservation, codify throughput-priority, or leave the routing predicate as an unstated judgment call) cannot be falsified against evidence. |
 
+Issue [#1467](https://github.com/forwardimpact/monorepo/issues/1467) names
+four routes a `kata-implement` activation can take when boot-routed: pick a
+design (Route 1), draft a plan (Route 2), open implementation against an
+approved plan (Route 3), or fall back to a fix (Route 4). The remainder of
+this spec uses those names without re-introducing them.
+
 ## Problem
 
 `wiki/metrics/kata-implement/2026.csv` carries one row per `kata-implement`
@@ -75,7 +81,7 @@ downstream tool can read without parsing free text.
 | The agent-side recording surface that appends a row to `wiki/metrics/kata-implement/2026.csv`. | A new zero row carries the route-decision context at write time, named at the recording surface rather than reconstructed later from the trace. **A single CSV-append surface does not exist on main today** — current zero rows are hand-written by the activated agent. The design identifies an existing surface to extend (e.g. a `kata-implement` post-activation hook, a `fit-wiki` subcommand, or an `append`-style helper invoked from the skill) **or** specifies a new surface to introduce; either way it names the surface and the call site. |
 | Non-zero rows in `wiki/metrics/kata-implement/2026.csv`. | Each row records which route fired (the implementation route, by construction of a non-zero value). The routes-eligible field is recorded when known and may be empty when the activation does not enumerate eligibility. The decision over whether to require the field on non-zero rows is a design call. |
 | The known set of `kata-implement` routes. | The spec adopts the four routes named in Issue #1467 (`Route 1` design self-pick, `Route 2` plan-draft, `Route 3` plan-approved-no-impl, `Route 4` fix fallback). **No canonical declaration of this set exists on main today** — the names live only in Issue #1467 prose and two author-side pilot CSV rows (see slots 65–66 below). **Creating the single source-of-truth declaration is a design responsibility.** The design names one location, and the recording surface, the validator, and `kata-implement` SKILL.md all consume from that one location so that a divergence between any two of them is mechanically detectable (see SC6). The set is closed and extensible by deliberate update — adding a fifth route is a deliberate change to the single-sourced declaration. |
-| Existing zero rows on `wiki/metrics/kata-implement/2026.csv` (slots 40–66 at obstacle filing). | Backfill is **deliberately not attempted from the trace.** The spec records that the rows pre-date the convention and stand as observed. Downstream evidence accrues from rows recorded under the convention forward. **Slots 40–64 are pre-convention by date.** Slots 65 (2026-06-05) and 66 (2026-06-06) already carry the proposed `route_taken=…; routes_eligible=…` syntax — they were author-side pilot rows written during obstacle discussion on Issue #1467 before this spec was approved. **They are treated as pre-convention for SC7 counting purposes** so the evidence threshold accrues from rows recorded by the agent-side surface this spec ships, not from rows hand-written before the surface existed. The design may document the existing rows' known route-decision context where the evidence is on-row (e.g. the 2026-06-05 row whose `note` already says `run-62 was design(1272) authoring route`) but no row is rewritten from inference. |
+| Existing zero rows on `wiki/metrics/kata-implement/2026.csv` (slots 40–66 at obstacle filing). | Backfill is **deliberately not attempted from the trace.** The spec records that the rows pre-date the convention and stand as observed. Downstream evidence accrues from rows recorded under the convention forward. **Slots 40–64 are pre-convention by date.** Slots 65 (2026-06-05) and 66 (2026-06-06) already carry the proposed `route_taken=…; routes_eligible=…` syntax. They were author-side pilot rows written during obstacle discussion on Issue #1467 before this spec was approved. **They are treated as pre-convention for SC7 counting purposes.** The evidence threshold accrues from rows recorded by the agent-side surface this spec ships, not from rows hand-written before the surface existed. The design may document the existing rows' known route-decision context where the evidence is on-row (e.g. the 2026-06-05 row whose `note` already says `run-62 was design(1272) authoring route`) but no row is rewritten from inference. |
 | Documentation of the convention. | The four route names and the recording rule are documented at one location the design names; `kata-implement` SKILL.md references that location. The convention is discoverable to a fresh `kata-implement` activation without reading prior CSV rows. |
 
 ### Out of scope
@@ -93,12 +99,13 @@ downstream tool can read without parsing free text.
   remain useful to a human reader. Only the routing classification
   moves into a machine-readable form.
 - **Changes to the xRule2 / mrRule1 / xRule3 rule set or the chart
-  rendering.** The Wheeler/Vacanti rules apply unchanged. This spec
-  changes the input the rules read against, not the rules. (Glossary
-  one-liner: xRule2 = ≥8 consecutive points on the same side of the
-  mean; mrRule1 = a single moving-range point above the upper natural
-  limit; xRule3 = ≥3 of 4 consecutive points beyond ±1σ on the same
-  side.)
+  rendering.** xRule2, mrRule1, and xRule3 are the Wheeler/Vacanti SPC
+  chart rules `fit-xmr` applies to separate signal from noise on a
+  time series. This spec changes the input the rules read against,
+  not the rules. (Glossary one-liner: xRule2 = ≥8 consecutive points
+  on the same side of the mean; mrRule1 = a single moving-range point
+  above the upper natural limit; xRule3 = ≥3 of 4 consecutive points
+  beyond ±1σ on the same side.)
 - **Other per-skill metrics CSVs (`wiki/metrics/kata-spec/`,
   `kata-design/`, `kata-plan/`, etc.).** The conflation surfaced today
   is on `kata-implement`. If the same shape surfaces on a second
@@ -149,11 +156,11 @@ hypothesis ("gate backlog ≥ N binds the routing predicate") can be
 falsified against actual data rather than the obstacle filing's
 single-day snapshot. **The "20" is chosen so that, under a plausible
 1:3 to 1:1 split between attempt-zero and route-conservation-zero
-populations, each population accrues at least 5 observations — small
-enough to reach quickly at current zero-row cadence, large enough that
-the smaller population is not a one- or two-row outlier. The
-follow-up spec may tighten or loosen the threshold if the early
-distribution surfaces a strongly skewed split.** The follow-up spec
+populations, each population accrues at least 5 observations.** Five
+is small enough to reach quickly at current zero-row cadence and large
+enough that the smaller population is not a one- or two-row outlier.
+The follow-up spec may tighten or loosen the threshold if the early
+distribution surfaces a strongly skewed split. The follow-up spec
 is the proximate consumer of the accrued evidence; this spec ships
 the prerequisite mechanism only.
 
@@ -184,6 +191,6 @@ convention ships. See Scope row 5.**
 | Existing zero rows (slots 40–66 at obstacle filing) are unchanged in shape and content. | Diff `wiki/metrics/kata-implement/2026.csv` slots 40–66 before and after the change ships; observe no row is rewritten, no row's `note` is mutated, the row count for slots 40–66 is identical, and `fit-xmr analyze` against the file produces the same xRule2 streak verdict on the pre-convention rows as it did at obstacle filing. |
 | The route-decision context is documented at one location the design names; a fresh `kata-implement` activation that reads only its SKILL.md and the documented location records a row with route-decision context in the form the convention adopts. | Drive a `kata-implement` activation in a clean context window; observe the recorded row carries route-decision context in the documented form without requiring the activation to read prior CSV rows, and the form matches the documented location's specification. |
 | A divergence between the recording surface, the validator, and the documented known set of routes is mechanically detectable through a single source-of-truth declaration that all three components consume. | The design names the single source-of-truth declaration (file path + format) for the known set of routes; the recording surface, the validator, and `kata-implement` SKILL.md all reference that one declaration. Verification: extend the known set in the source-of-truth declaration without updating one of the consuming components, **or** edit one consumer to introduce a fifth route without updating the source-of-truth declaration; observe a test or build failure that names the divergence between the source and the drifted consumer and identifies which one drifted. |
-| The downstream evidence accrual gate for Levers 2 and 3 is met when ≥20 zero rows recorded under the convention by the agent-side surface this spec ships accumulate. | The follow-up route-policy codification spec (Levers 2 and 3 of Issue #1467) is the owner of this check and does not open until it passes. The check: run the canonical reader against `wiki/metrics/kata-implement/2026.csv` restricted to zero rows whose route-decision context was appended by the agent-side recording surface this spec ships **after the plan-implementation merge to main**. **Slots 65–66 are excluded — they syntactically resemble the convention but were author-side pilots written before the surface existed (see Scope row 5 and the Backfill decision).** The criterion is met when the count reaches ≥20. Whoever drafts the follow-up spec runs the check at draft time; product-manager flags the count on each kata-implement obstacle triage as a side-channel signal. |
+| The downstream evidence accrual gate for Levers 2 and 3 (codify conservation policy / codify throughput-priority policy in `kata-implement` SKILL.md, per Issue #1467) is met when ≥20 zero rows recorded under the convention by the agent-side surface this spec ships accumulate. | The follow-up route-policy codification spec (Levers 2 and 3 of Issue #1467) is the owner of this check and does not open until it passes. The check: run the canonical reader against `wiki/metrics/kata-implement/2026.csv` restricted to zero rows whose route-decision context was appended by the agent-side recording surface this spec ships **after the plan-implementation merge to main**. **Slots 65–66 are excluded — they syntactically resemble the convention but were author-side pilots written before the surface existed (see Scope row 5 and the Backfill decision).** The criterion is met when the count reaches ≥20. Whoever drafts the follow-up spec runs the check at draft time; product-manager flags the count on each kata-implement obstacle triage as a side-channel signal **(interim forward-pointer — supersedes when `kata-implement` SKILL.md is amended to surface the count at activation, the L3 signal lever named in Issue #1467)**. |
 
 — Product Manager 🌱
