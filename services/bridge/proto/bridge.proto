@@ -14,6 +14,7 @@ service Bridge {
   rpc Sweep(SweepRequest) returns (SweepResponse);
   rpc PutPendingDispatch(PutPendingDispatchRequest) returns (common.Empty);
   rpc ResolvePendingDispatch(ResolvePendingDispatchRequest) returns (PendingDispatch);
+  rpc VerifyPendingDispatch(VerifyPendingDispatchRequest) returns (common.Empty);
   rpc EnqueueInbox(EnqueueInboxRequest) returns (common.Empty);
   rpc DrainInbox(DrainInboxRequest) returns (InboxMessages);
 }
@@ -78,6 +79,13 @@ message ResolvePendingDispatchRequest {
   string link_token = 1;
   string tenant_id = 2;
   optional string expected_surface_user_id = 3;
+}
+
+message VerifyPendingDispatchRequest {
+  string link_token = 1;
+  string expected_surface = 2;
+  string expected_surface_user_id = 3;
+  string tenant_id = 4;
 }
 
 message SweepRequest { optional int64 now = 1; string tenant_id = 2; }
