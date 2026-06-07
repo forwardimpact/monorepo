@@ -38,7 +38,7 @@ threshold crossed, classification flip). Empty if nothing changed — write
 _**Budget: ≤400 words** total (≈10 bullets × ~40 words). Prior-session
 headlines do not carry over — they retire to the weekly log at session end._
 
-- `{agent}` / `{metric}` — {value} {trend/badge} — {one-line reason} — Redefinition: {`wiki/redefinitions/...md` or `—`}
+- `{agent}` / `{metric}` — {value} {trend/badge} — {one-line reason}
 
 ### {agent}
 

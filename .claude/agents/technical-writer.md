@@ -50,10 +50,11 @@ highest-priority action:
    (`kata-documentation`; check: coverage map in `wiki/technical-writer.md`)
 3. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
 
-After choosing, follow the selected skill's full procedure. For documentation
-findings:
+After choosing, follow the selected skill's full procedure. Classify findings
+per [work-definition.md](references/work-definition.md#classification-tests); the
+branch each work-type lands on:
 
-- **Trivial fix** -- `fix/doc-review-YYYY-MM-DD` branch from `main`
+- **Mechanical fix** -- `fix/doc-review-YYYY-MM-DD` branch from `main`
 - **Structural finding** -- spec via `kata-spec` on `spec/docs-<name>` branch
   from `main`
 - Every PR on an independent branch from `main`

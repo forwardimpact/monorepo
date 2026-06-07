@@ -22,7 +22,7 @@ description: >
 - [ ] Ran `just audit` locally and reported findings.
 - [ ] Read every file in the topic's audit scope — not just grep results.
 - [ ] Each finding cites a specific file path and line number.
-- [ ] Each finding categorized: trivial fix, structural (spec), or observation.
+- [ ] Each finding categorized: mechanical fix, structural (spec), or observation.
 - [ ] Coverage map updated with today's date for the audited topic.
 
 </do_confirm_checklist>
@@ -157,13 +157,12 @@ paths and line numbers.
 
 ### Step 3: Act on Findings
 
-Every audit must produce all applicable categories of output:
-
-- **Trivial fix** → `fix/` branch, incremental change.
-- **Structural finding** → `spec/` branch via `kata-spec`.
-- **Cross-team policy question** → Discussion via the
-  [routing protocol](../../agents/references/coordination-protocol.md), opened
-  before any spec or fix that depends on the answer.
+Every audit must produce all applicable categories of output. Classify each
+finding with
+[work-definition.md § Classification tests](../../agents/references/work-definition.md#classification-tests)
+(mechanical fix vs structural spec vs unsettled Discussion). Security-specific:
+a cross-team policy question goes to a Discussion **before** any spec or fix
+that depends on the answer.
 
 Branch naming, commit conventions, and independence rules are defined in the
 agent profile.
