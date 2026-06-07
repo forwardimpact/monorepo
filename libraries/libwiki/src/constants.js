@@ -8,6 +8,26 @@ export const ACTIVE_CLAIMS_TABLE_HEADER =
   "| agent | target | branch | pr | claimed_at | expires_at |";
 export const ACTIVE_CLAIMS_TABLE_SEPARATOR =
   "| --- | --- | --- | --- | --- | --- |";
+
+// Match a rendered pipe-table row (header or separator) line-anchored and
+// whitespace-tolerant between cells. Deriving the matcher from the rendered
+// literal keeps the claims parser (active-claims.js) and the audit
+// (audit/rules.js) from drifting on the column set — one literal, one matcher.
+function pipeRowRe(literal, flags) {
+  const cells = literal
+    .split("|")
+    .map((c) => c.trim())
+    .filter((c) => c !== "");
+  return new RegExp(`^\\|\\s*${cells.join("\\s*\\|\\s*")}\\s*\\|`, flags);
+}
+export const ACTIVE_CLAIMS_HEADER_RE = pipeRowRe(
+  ACTIVE_CLAIMS_TABLE_HEADER,
+  "m",
+);
+export const ACTIVE_CLAIMS_SEPARATOR_RE = pipeRowRe(
+  ACTIVE_CLAIMS_TABLE_SEPARATOR,
+  "m",
+);
 export const PRIORITY_INDEX_HEADING = "## Cross-Cutting Priorities";
 export const PRIORITY_INDEX_TABLE_HEADER =
   "| Item | Agents | Owner | Status | Added |";

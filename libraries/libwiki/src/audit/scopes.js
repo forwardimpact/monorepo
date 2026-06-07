@@ -8,9 +8,11 @@ import {
   WEEKLY_LOG_PART_NAME_RE,
 } from "../constants.js";
 
-const SUMMARY_H1_RE = /^# [A-Z].* — Summary$/;
+// Capture the agent-title group so the same regex both classifies a file
+// (`.test`) and yields the title for the agent-prefix audit (`.match[1]`).
+export const SUMMARY_H1_RE = /^# ([A-Z].*) — Summary$/;
 export const WEEKLY_LOG_H1_RE =
-  /^# .* — \d{4}-W\d{2}(?: \(part \d+ of \d+\))?$/;
+  /^# (.*) — \d{4}-W\d{2}(?: \(part \d+ of \d+\))?$/;
 export const PRIORITY_HEADER_RE =
   /^\|\s*Item\s*\|\s*Agents\s*\|\s*Owner\s*\|\s*Status\s*\|\s*Added\s*\|/m;
 

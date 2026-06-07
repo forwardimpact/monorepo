@@ -189,12 +189,53 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
 }
 
 /**
- * Stage every part at its slot and the fresh-main body at temps, then commit
- * by renaming each part onto its `-partN.md` slot and the fresh main over
- * `filePath` as the single final step. On any failure before that last rename,
- * unlink every committed slot and remaining temp this seal wrote and re-throw,
- * so the source's path/contents/inode are untouched. Returns the produced slot
- * paths in part order.
+ * Stage every write to `${path}.tmp`, then commit by renaming each `leading`
+ * write onto its path (tracked for rollback) and the `anchor` write LAST — the
+ * single point of no return. The anchor is the live/source file: until its
+ * rename it still holds its original bytes, so a failure anywhere unlinks every
+ * committed leading path and remaining temp and re-throws, leaving the anchor's
+ * path/contents/inode untouched. Leading paths must be verified-free slots (a
+ * rollback unlinks them). Returns the leading paths, in order.
+ *
+ * @param {Array<{path: string, content: string}>} leading - Committed first.
+ * @param {{path: string, content: string}} anchor - Committed last.
+ * @param {object} fs - Sync filesystem surface.
+ * @returns {string[]} The leading paths, in commit order.
+ */
+function commitAtomic(leading, anchor, fs) {
+  const temps = []; // temp paths written but not yet renamed, for rollback
+  const committed = []; // leading paths already renamed into place, for rollback
+  try {
+    for (const w of [...leading, anchor]) {
+      fs.writeFileSync(`${w.path}.tmp`, w.content);
+      temps.push(`${w.path}.tmp`);
+    }
+    for (const w of leading) {
+      fs.renameSync(`${w.path}.tmp`, w.path);
+      committed.push(w.path);
+      temps.splice(temps.indexOf(`${w.path}.tmp`), 1);
+    }
+    fs.renameSync(`${anchor.path}.tmp`, anchor.path);
+    return committed;
+  } catch (e) {
+    for (const p of committed) {
+      try {
+        fs.unlinkSync(p);
+      } catch {}
+    }
+    for (const t of temps) {
+      try {
+        fs.unlinkSync(t);
+      } catch {}
+    }
+    throw e;
+  }
+}
+
+/**
+ * Seal a bisected weekly log: write each part to a fresh `-partN.md` slot and a
+ * fresh empty main over `filePath` (the anchor, committed last). Returns the
+ * `-partN.md` slot paths in part order.
  *
  * @param {string} filePath - The current weekly-log path.
  * @param {Array<{h1: string, body: string}>} parts - Ordered parts to seal.
@@ -205,40 +246,12 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
  */
 function atomicSeal(filePath, parts, agent, isoWeekStr, fs) {
   const slots = nextFreeSlots(filePath, parts.length, fs);
-  const mainTemp = `${filePath}.tmp`;
-  const temps = []; // temp paths this seal wrote, for rollback
-  const committed = []; // slots already renamed into place, for rollback
-  try {
-    // Stage every part and the fresh main at temp files.
-    slots.forEach((slot, i) => {
-      const tmp = `${slot}.tmp`;
-      fs.writeFileSync(tmp, `${parts[i].h1}\n${parts[i].body}`);
-      temps.push(tmp);
-    });
-    fs.writeFileSync(mainTemp, defaultH1(agent, isoWeekStr));
-    temps.push(mainTemp);
-    // Commit: parts onto their slots, then the fresh main as the final step.
-    slots.forEach((slot, i) => {
-      fs.renameSync(`${slot}.tmp`, slot);
-      committed.push(slot);
-      // The part temp is consumed by its rename; drop it from the rollback set.
-      temps.splice(temps.indexOf(`${slot}.tmp`), 1);
-    });
-    fs.renameSync(mainTemp, filePath);
-    return slots;
-  } catch (e) {
-    for (const slot of committed) {
-      try {
-        fs.unlinkSync(slot);
-      } catch {}
-    }
-    for (const tmp of temps) {
-      try {
-        fs.unlinkSync(tmp);
-      } catch {}
-    }
-    throw e;
-  }
+  const leading = slots.map((path, i) => ({
+    path,
+    content: `${parts[i].h1}\n${parts[i].body}`,
+  }));
+  const anchor = { path: filePath, content: defaultH1(agent, isoWeekStr) };
+  return commitAtomic(leading, anchor, fs);
 }
 
 /**
@@ -312,51 +325,24 @@ function parsePartPath(partPath) {
 }
 
 /**
- * Stage every sub-part at a temp, commit the new sibling slots first, then
- * atomically rename the first sub-part over the (existing) source slot as the
- * final step. Until that last rename the source still holds its original bytes,
- * so a failure anywhere — including the final rename — unwinds every committed
- * new slot and remaining temp and re-throws, leaving the source path/contents/
- * inode untouched. Returns `[partPath, ...newSlots]` in part order.
+ * Reseal a re-bisected part: the first sub-part overwrites the source slot (the
+ * anchor, committed last) and the rest claim fresh sibling slots of the main-log
+ * path. `nextFreeSlots` skips occupied slots (including the source's own), so a
+ * commit never clobbers a sibling nor a rollback unlinks a pre-existing one.
+ * Returns `[partPath, ...newSlots]` in part order.
  */
 function atomicResealPart(partPath, mainLogPath, parts, fs) {
-  // Sub-part 1 reuses the source slot; the rest claim fresh sibling slots of
-  // the main-log path. `nextFreeSlots` skips occupied slots (including the
-  // source's own), so a commit never clobbers a sibling nor a rollback unlinks
-  // a pre-existing one.
   const newSlots = nextFreeSlots(mainLogPath, parts.length - 1, fs);
-  const sourceTemp = `${partPath}.tmp`;
-  const temps = []; // temp paths this reseal wrote, for rollback
-  const committed = []; // new slots already renamed into place, for rollback
-  try {
-    fs.writeFileSync(sourceTemp, `${parts[0].h1}\n${parts[0].body}`);
-    temps.push(sourceTemp);
-    newSlots.forEach((slot, i) => {
-      const tmp = `${slot}.tmp`;
-      fs.writeFileSync(tmp, `${parts[i + 1].h1}\n${parts[i + 1].body}`);
-      temps.push(tmp);
-    });
-    // Commit new slots first, then the source slot as the final step.
-    newSlots.forEach((slot) => {
-      fs.renameSync(`${slot}.tmp`, slot);
-      committed.push(slot);
-      temps.splice(temps.indexOf(`${slot}.tmp`), 1);
-    });
-    fs.renameSync(sourceTemp, partPath);
-    return [partPath, ...newSlots];
-  } catch (e) {
-    for (const slot of committed) {
-      try {
-        fs.unlinkSync(slot);
-      } catch {}
-    }
-    for (const tmp of temps) {
-      try {
-        fs.unlinkSync(tmp);
-      } catch {}
-    }
-    throw e;
-  }
+  const leading = newSlots.map((path, i) => ({
+    path,
+    content: `${parts[i + 1].h1}\n${parts[i + 1].body}`,
+  }));
+  const anchor = {
+    path: partPath,
+    content: `${parts[0].h1}\n${parts[0].body}`,
+  };
+  commitAtomic(leading, anchor, fs);
+  return [partPath, ...newSlots];
 }
 
 /**

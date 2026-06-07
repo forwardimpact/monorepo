@@ -1,5 +1,7 @@
 import {
+  ACTIVE_CLAIMS_HEADER_RE,
   ACTIVE_CLAIMS_HEADING,
+  ACTIVE_CLAIMS_SEPARATOR_RE,
   ACTIVE_CLAIMS_TABLE_HEADER,
   DECISION_HEADING,
   ISSUE_CLOSE_RE,
@@ -15,7 +17,11 @@ import {
   XMR_CLOSE_RE,
   XMR_OPEN_RE,
 } from "../constants.js";
-import { PRIORITY_HEADER_RE, WEEKLY_LOG_H1_RE } from "./scopes.js";
+import {
+  PRIORITY_HEADER_RE,
+  SUMMARY_H1_RE,
+  WEEKLY_LOG_H1_RE,
+} from "./scopes.js";
 import { STATUS_ROW_RULES } from "./status-row.js";
 
 const PRIORITY_INDEX_HEADING_RE = new RegExp(
@@ -25,10 +31,6 @@ const PRIORITY_INDEX_HEADING_RE = new RegExp(
 const ACTIVE_CLAIMS_HEADING_RE = new RegExp(`^${ACTIVE_CLAIMS_HEADING}$`, "m");
 const PRIORITY_SEPARATOR_RE =
   /^\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|/m;
-const CLAIMS_HEADER_RE =
-  /^\|\s*agent\s*\|\s*target\s*\|\s*branch\s*\|\s*pr\s*\|\s*claimed_at\s*\|\s*expires_at\s*\|/m;
-const CLAIMS_SEPARATOR_RE =
-  /^\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|/m;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // improvement-coach is the storyboard facilitator and carries no domain
@@ -149,14 +151,12 @@ const slugify = (title) =>
     .replace(/(^-|-$)/g, "");
 
 const summaryAgentMismatch = (s) => {
-  const titleSlug = slugify(s.firstLine.match(/^# (.+) — Summary$/)[1]);
+  const titleSlug = slugify(s.firstLine.match(SUMMARY_H1_RE)[1]);
   return titleSlug === s.agentPrefix ? null : { titleSlug };
 };
 
 const weeklyAgentMismatch = (s) => {
-  const m = s.firstLine.match(
-    /^# (.+) — \d{4}-W\d{2}(?: \(part \d+ of \d+\))?$/,
-  );
+  const m = s.firstLine.match(WEEKLY_LOG_H1_RE);
   if (!m) return null;
   const titleSlug = slugify(m[1]);
   return titleSlug === s.agentPrefix ? null : { titleSlug };
@@ -172,7 +172,7 @@ const memoryHasPriorityHeader = (s) =>
   s.exists && PRIORITY_HEADER_RE.test(s.text);
 const memoryHasClaimsHeading = (s) =>
   s.exists && ACTIVE_CLAIMS_HEADING_RE.test(s.text);
-const memoryHasClaimsHeader = (s) => CLAIMS_HEADER_RE.test(s.text);
+const memoryHasClaimsHeader = (s) => ACTIVE_CLAIMS_HEADER_RE.test(s.text);
 const storyboardExists = (s) => s.exists;
 
 export const RULES = [
@@ -367,7 +367,7 @@ export const RULES = [
     scope: "memory",
     severity: "fail",
     when: memoryHasClaimsHeading,
-    check: matches(CLAIMS_HEADER_RE),
+    check: matches(ACTIVE_CLAIMS_HEADER_RE),
     message: () => `Active claims header mismatch`,
     hint: `expected header row: '${ACTIVE_CLAIMS_TABLE_HEADER}'`,
   },
@@ -376,7 +376,7 @@ export const RULES = [
     scope: "memory",
     severity: "fail",
     when: memoryHasClaimsHeader,
-    check: matches(CLAIMS_SEPARATOR_RE),
+    check: matches(ACTIVE_CLAIMS_SEPARATOR_RE),
     message: () => "Missing active-claims separator row",
     hint: "add '| --- | --- | --- | --- | --- | --- |' directly below the claims header",
   },
