@@ -306,18 +306,18 @@ export class BridgeService extends BridgeBase {
   }
 
   /**
-   * Verify a pending dispatch and atomically claim its `link_token`.
+   * Verify a pending dispatch and record a single-use claim of its
+   * `link_token`. Cross-validates `(expected_surface,
+   * expected_surface_user_id)` against the pending entry keyed by
+   * `(tenant_id, link_token)`. The first OK response appends to
+   * `claimed_dispatches.jsonl`; subsequent verifies for the same
+   * `link_token` fail closed with `FAILED_PRECONDITION`.
    *
-   * Cross-validates `(expected_surface, expected_surface_user_id)` against
-   * the pending entry keyed by `(tenant_id, link_token)`. The first OK
-   * response appends to `claimed_dispatches.jsonl`; subsequent verifies
-   * for the same `link_token` fail closed with `FAILED_PRECONDITION`.
-   *
-   * Single-use semantics rely on `services/bridge` running single-instance
-   * per tenant: the `has` check and `add` are not atomic in isolation, but
-   * `BufferedIndex.add` synchronously updates the in-memory index before
-   * yielding, and gRPC handlers serialise on the event loop. Two concurrent
-   * calls cannot both observe "unclaimed".
+   * Concurrency: services/bridge runs single-instance per tenant; gRPC
+   * handlers serialise on the event loop. Once both handler calls return
+   * from `await loadData()`, the synchronous `has` check and `add` body
+   * (which `index.set`s before yielding) run within one microtask each, so
+   * a second resumer always observes the first resumer's set.
    */
   async VerifyPendingDispatch(req) {
     const tenant_id = requireTenant(req);
@@ -379,7 +379,6 @@ export class BridgeService extends BridgeBase {
     await this.#discussions.loadData();
     await this.#origins.loadData();
     await this.#pendingDispatches.loadData();
-    await this.#claimedDispatches.loadData();
     await this.#inbox.loadData();
 
     const inTenant = (rec) =>

@@ -193,6 +193,83 @@ describe("bridge VerifyPendingDispatch", () => {
     );
   });
 
+  test("post-restart concurrent verifies on a fresh link_token reload the prior claim ledger from disk and still serialise to one OK + one FAILED_PRECONDITION", async () => {
+    // Phase 1: boot, claim one link_token, shutdown. claimed_dispatches.jsonl
+    // is now on disk with the prior claim.
+    const sharedStorage = createMockStorage();
+    let priorService = new BridgeService(createMockConfig("bridge", DEFAULTS), {
+      storage: sharedStorage,
+      logger: createMockLogger(),
+      tracer: null,
+      clock: createMockClock({ start: Date.now() }),
+    });
+    await priorService.PutPendingDispatch({
+      pending: {
+        link_token: "lt-prior",
+        surface: "msteams",
+        surface_user_id: "u-1",
+        discussion_id: "d-prior",
+        created_at: Date.now(),
+      },
+      tenant_id: T,
+    });
+    await priorService.VerifyPendingDispatch({
+      link_token: "lt-prior",
+      expected_surface: "msteams",
+      expected_surface_user_id: "u-1",
+      tenant_id: T,
+    });
+    await priorService.shutdown();
+
+    // Phase 2: fresh service, same storage. Both indices start unloaded; the
+    // concurrent verifies trigger loadData() against a non-empty
+    // claimed_dispatches.jsonl, exercising the file-exists path of the
+    // concurrency invariant.
+    const freshService = new BridgeService(
+      createMockConfig("bridge", DEFAULTS),
+      {
+        storage: sharedStorage,
+        logger: createMockLogger(),
+        tracer: null,
+        clock: createMockClock({ start: Date.now() }),
+      },
+    );
+    await freshService.PutPendingDispatch({
+      pending: {
+        link_token: "lt-fresh",
+        surface: "msteams",
+        surface_user_id: "u-1",
+        discussion_id: "d-fresh",
+        created_at: Date.now(),
+      },
+      tenant_id: T,
+    });
+    const settled = await Promise.allSettled([
+      freshService.VerifyPendingDispatch({
+        link_token: "lt-fresh",
+        expected_surface: "msteams",
+        expected_surface_user_id: "u-1",
+        tenant_id: T,
+      }),
+      freshService.VerifyPendingDispatch({
+        link_token: "lt-fresh",
+        expected_surface: "msteams",
+        expected_surface_user_id: "u-1",
+        tenant_id: T,
+      }),
+    ]);
+    await freshService.shutdown();
+    const fulfilled = settled.filter((s) => s.status === "fulfilled");
+    const rejected = settled.filter((s) => s.status === "rejected");
+    assert.strictEqual(fulfilled.length, 1);
+    assert.strictEqual(rejected.length, 1);
+    assert.strictEqual(
+      rejected[0].reason.code,
+      grpc.status.FAILED_PRECONDITION,
+    );
+    assert.strictEqual(rejected[0].reason.message, "already claimed");
+  });
+
   test("tenant scoping: a verify from tenant B cannot consume tenant A's pending entry", async () => {
     await service.PutPendingDispatch({
       pending: {
