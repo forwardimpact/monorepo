@@ -62,14 +62,16 @@ token minting, and the GraphQL reaction and reply adapters.
 Set the credentials and service parameters in `.env`. All are loaded via
 `createServiceConfig("ghbridge")`:
 
-| Env var                                  | Purpose                                                          |
-| ---------------------------------------- | ---------------------------------------------------------------- |
-| `SERVICE_GHBRIDGE_GITHUB_REPO`           | `owner/repo` target for workflow dispatch and GraphQL replies    |
-| `SERVICE_GHBRIDGE_CALLBACK_BASE_URL`     | Public URL the workflow POSTs callbacks back to                  |
-| `SERVICE_GHBRIDGE_APP_ID`                | Kata App numeric ID                                              |
-| `SERVICE_GHBRIDGE_APP_PRIVATE_KEY`       | PEM contents (see § Private key format below)                    |
-| `SERVICE_GHBRIDGE_APP_INSTALLATION_ID`   | Installation ID for the target repo                              |
-| `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET`    | Shared secret used to verify `X-Hub-Signature-256`               |
+| Env var                                          | Purpose                                                                                                                                                       |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SERVICE_GHBRIDGE_GITHUB_REPO`                   | `owner/repo` target for workflow dispatch and GraphQL replies                                                                                                 |
+| `SERVICE_GHBRIDGE_CALLBACK_BASE_URL`             | Public URL the workflow POSTs callbacks back to                                                                                                               |
+| `SERVICE_GHBRIDGE_APP_ID`                        | Kata App numeric ID                                                                                                                                           |
+| `SERVICE_GHBRIDGE_APP_PRIVATE_KEY`               | PEM contents (see § Private key format below)                                                                                                                 |
+| `SERVICE_GHBRIDGE_APP_INSTALLATION_ID`           | Installation ID for the target repo                                                                                                                           |
+| `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET`            | Shared secret used to verify `X-Hub-Signature-256`                                                                                                            |
+| `SERVICE_GHBRIDGE_TRUSTED_IDP_ORIGINS`           | Comma-separated `https://…` IdP origins; empty / unset is fatal at startup (see [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md))      |
+| `SERVICE_GHBRIDGE_LINK_COMPLETION_TICKET_SECRET` | Shared HMAC secret across `ghuser`, `ghbridge`, and `msbridge` (≥32 CSPRNG bytes); see [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for rotation |
 
 Discussion context is persisted by the shared `services/bridge` gRPC
 service at `data/bridges/discussions.jsonl`. `ghbridge` calls `bridge`

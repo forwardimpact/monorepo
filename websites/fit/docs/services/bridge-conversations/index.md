@@ -68,13 +68,15 @@ through a `GhuserClient`. `msbridge` owns three Bot Framework adapters in
 Set the credentials and service parameters in `.env`. All are loaded via
 `createServiceConfig("msbridge")`:
 
-| Env var                              | Purpose                                                |
-| ------------------------------------ | ------------------------------------------------------ |
-| `MICROSOFT_APP_ID`                   | Azure Bot app ID                                       |
-| `MICROSOFT_APP_PASSWORD`             | Azure Bot app password / secret                        |
-| `MICROSOFT_APP_TENANT_ID`            | Azure AD tenant ID                                     |
-| `SERVICE_MSBRIDGE_GITHUB_REPO`       | `owner/repo` target for workflow dispatch              |
-| `SERVICE_MSBRIDGE_CALLBACK_BASE_URL` | Public URL the workflow POSTs callbacks back to        |
+| Env var                                       | Purpose                                                                                          |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `MICROSOFT_APP_ID`                            | Azure Bot app ID                                                                                 |
+| `MICROSOFT_APP_PASSWORD`                      | Azure Bot app password / secret                                                                  |
+| `MICROSOFT_APP_TENANT_ID`                     | Azure AD tenant ID                                                                               |
+| `SERVICE_MSBRIDGE_GITHUB_REPO`                | `owner/repo` target for workflow dispatch                                                        |
+| `SERVICE_MSBRIDGE_CALLBACK_BASE_URL`          | Public URL the workflow POSTs callbacks back to                                                  |
+| `SERVICE_MSBRIDGE_TRUSTED_IDP_ORIGINS`        | Comma-separated `https://…` IdP origins; empty / unset is fatal at startup (see [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md)) |
+| `SERVICE_MSBRIDGE_LINK_COMPLETION_TICKET_SECRET` | Shared HMAC secret across `ghuser`, `ghbridge`, and `msbridge` (≥32 CSPRNG bytes); see [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for rotation |
 
 Discussion context is persisted by the shared `services/bridge` gRPC
 service at `data/bridges/discussions.jsonl`. `msbridge` calls `bridge`
