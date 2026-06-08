@@ -181,10 +181,11 @@ describe("libconfig - Config", () => {
     assert.strictEqual(config.name, "myservice");
   });
 
-  // Regression: libconfig 0.1.83 passed `this.#proc` to storageFn, but
-  // createStorage destructures `{ fs, proc } = runtime`, so the consumer
-  // crashed with "Cannot read properties of undefined (reading 'env')" the
-  // first time anything touched `proc.env` (issue #1511).
+  // Regression guard: storageFn must receive the full runtime bag.
+  // createStorage destructures `{ fs, proc } = runtime`; passing a bare
+  // `proc` makes `runtime.proc` undefined and crashes the consumer with
+  // "Cannot read properties of undefined (reading 'env')" the first time
+  // anything touches `proc.env`.
   test("invokes storageFn with the full runtime bag, not a bare proc", async () => {
     const mockStorageFn = spy(() => mockStorage);
 
