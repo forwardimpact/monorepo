@@ -100,4 +100,47 @@ verdicts below are constructible at `n = 5` (e.g. `c = 1 ⇒ pass@3 = 0.6`,
 | Skill, CLI reference, and guides reflect the new contract with no stale `--k`/`k`. | Test: a scan finds the new flags/inputs and the fixed pass@1/3/5 report description, and finds no remaining `--k` flag or action `k` input references in the `fit-benchmark` skill, CLI reference, or run-benchmark guides. |
 | Skill and CLI carry parity per `.claude/skills/CLAUDE.md`. | Test: the skill's documentation list and the CLI's published documentation entries carry the same entries in the same order. |
 
+## Amendment 1 — `fit-benchmark` action fully aligned with the CLI flag interface
+
+The base scope (§ In scope, Composite action) added `pass-k`/`pass-threshold`
+inputs and dropped `k`, but specified only that the action "forwards the new
+inputs." The `forwardimpact/fit-benchmark` action holds a stronger standing
+invariant — *"All `fit-benchmark run` CLI flags are exposed as action
+inputs"* (the run-benchmark CI-workflow guide). Partial alignment would break
+that invariant the moment the CLI interface changes. This amendment makes the
+action's input surface **fully aligned** with the new CLI interface, not merely
+augmented.
+
+### In scope (amends the Composite action row)
+
+| Component | What changes |
+|---|---|
+| Action input surface | The action's inputs mirror the CLI gate flags one-for-one: `pass-k` and `pass-threshold` carry the same names, semantics, and *unset ⇒ no gate* default as `--pass-k`/`--pass-threshold`; the `k` input is removed with no alias. The standing "every `run` flag is an input" invariant continues to hold after the change. |
+| Validation pass-through | The action does not re-implement gate validation: it forwards the inputs to `fit-benchmark run`, so the CLI's both-or-neither and range checks surface at the action boundary — a misconfigured input fails the step rather than silently degrading to no-gate. |
+| CI-workflow guide | The action input table in the run-benchmark CI-workflow guide drops the `k` row and adds `pass-k`/`pass-threshold` rows (default empty ⇒ informational), and the surrounding prose continues to state the all-run-flags-are-inputs invariant accurately. |
+| Sibling `action.yml` edit | Editing `forwardimpact/fit-benchmark`'s `action.yml` to the aligned input surface is a **deliverable of this spec**, not handed off to the sibling repo's own backlog. The environment provides an authorized GitHub token with sibling write access, so the edit lands by **direct push** on the append-only patch-tag → SHA-pin-bump path in [`.github/CLAUDE.md`](../../.github/CLAUDE.md) § Editing a published action — the Issue-with-diff fallback (for tokens lacking sibling rights) is not needed here. |
+
+### Sequencing (in scope)
+
+The action edit and the CLI flag rename must ship **together**: the published
+action resolves the `fit-benchmark` CLI (local, else `npx`), so `action.yml`
+may only forward `--pass-k`/`--pass-threshold` once a CLI version exposing them
+is published. The patch tag, its Dependabot SHA-bump PR, and this repo's
+`uses:`/docs migration off `k` therefore land after the CLI change, not before
+(the base spec's cross-repo-drift risk states the same constraint).
+
+### Out of scope (unchanged)
+
+- **SHA-bump merge timing.** Merging the Dependabot SHA-bump PR into `main`
+  remains governed by branch protection and the normal release-merge gate; this
+  spec produces the patch tag and the bump, not a bypass of that gate.
+
+### Success Criteria (append)
+
+| Claim | Verification |
+|---|---|
+| The action's documented inputs mirror the CLI gate flags with matching defaults and no `k`. | Test: the CI-workflow input table lists `pass-k` and `pass-threshold` with an empty (no-gate) default and contains no `k` row; the "all `run` flags are inputs" sentence still reads true against the current CLI flag set. |
+| A misconfigured gate input fails the action step rather than degrading silently. | Test (interface-level): an action invocation passing only `pass-k` (no `pass-threshold`) surfaces the CLI's non-zero exit as a failed job; passing both within range runs the gate. The sibling-repo job run itself is out of this repo's test scope. |
+| The sibling `action.yml` is edited to the aligned surface at a new append-only patch tag. | Test: the new patch tag on `forwardimpact/fit-benchmark` carries an `action.yml` whose inputs include `pass-k`/`pass-threshold` and no `k`, and `v1` is not force-moved (the prior SHA is unchanged until the Dependabot bump). |
+
 — Claude (kata-spec)
