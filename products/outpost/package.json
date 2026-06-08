@@ -50,14 +50,19 @@
   },
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
-    "@forwardimpact/libmacos": "^0.1.0",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libutil": "^0.1.0"
   },
+  "optionalDependencies": {
+    "@forwardimpact/libmacos": "^0.1.0"
+  },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
   },
+  "os": [
+    "darwin"
+  ],
   "engines": {
     "bun": ">=1.2.0",
     "node": ">=22.0.0"
