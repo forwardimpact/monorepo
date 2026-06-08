@@ -116,8 +116,11 @@ fit-map people provision
 To bring the identity back, re-add the roster row and run `provision`
 again. Then mint a fresh token; the old one stays inert.
 
-## Related
+## What's next
 
-- [Sign In to Landmark](https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md)
-- [Provision Engineer Auth Users](https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md)
-- [Map Overview](https://www.forwardimpact.team/map/index.md)
+<div class="grid">
+
+<!-- part:card:../provisioning-engineers -->
+<!-- part:card:../signing-in-to-landmark -->
+
+</div>

@@ -91,7 +91,11 @@ message; no rows are exposed across scope boundaries.
 - Map ingestion-pipeline rows (`getdx_initiatives`, `getdx_teams`,
   `github_events`) are not consumed by Landmark today and so are not listed.
 
-## Related
+## What's next
 
-- [Landmark Overview](https://www.forwardimpact.team/landmark/index.md)
-- [Demonstrate Engineering Progress](https://www.forwardimpact.team/docs/products/engineering-outcomes/index.md)
+<div class="grid">
+
+<!-- part:card:../engineering-outcomes -->
+<!-- part:card:../signing-in-to-landmark -->
+
+</div>

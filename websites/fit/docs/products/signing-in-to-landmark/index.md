@@ -115,8 +115,11 @@ fit-landmark voice
 This is the path unattended agents take. Treat the token like a credential —
 it grants the same scope your magic-link session would.
 
-## Related
+## What's next
 
-- [Provision Engineer Auth Users](https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md)
-- [Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md)
-- [Landmark Overview](https://www.forwardimpact.team/landmark/index.md)
+<div class="grid">
+
+<!-- part:card:../engineering-data-sources -->
+<!-- part:card:../issuing-service-account-tokens -->
+
+</div>
