@@ -127,7 +127,17 @@ An unset input is omitted from the command rather than forwarded as
 hit the CLI's range/parse path and fail a no-gate run that should be
 informational).
 
-Delivery and sequencing are unchanged from § Key Decisions (Issue-with-diff +
-SHA bump) and § Risks (action and CLI ship the rename together).
+**Key decision — direct push, superseding the base "Action change delivery"
+row.** The base design chose Issue-with-diff because
+`actions/create-github-app-token` scopes to `kata-agent-team` only. The
+environment provides an authorized GitHub token with sibling write access, so
+the sibling edit lands by **direct push** — commit to the sibling `main`, cut
+the next append-only patch tag, let Dependabot open the SHA-bump PR.
+*Rejected:* Issue-with-diff (only required when no token carries sibling
+rights; it is a slower manual handoff this environment does not need).
+
+Sequencing is unchanged from § Risks: the patch tag forwards the new flags only
+after a CLI version exposing them is published, since the action resolves the
+CLI it shells out to.
 
 — Claude (kata-design)
