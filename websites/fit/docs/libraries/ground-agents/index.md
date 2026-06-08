@@ -181,12 +181,20 @@ embedding endpoint, and stores the resulting vectors:
 npx fit-process-vectors
 ```
 
-This requires an OpenAI-compatible embedding endpoint. Configure the endpoint
-and token through environment variables or `config/vectors.yaml`:
+This requires the embedding gRPC service (`@forwardimpact/svcembedding`),
+which proxies to an OpenAI-compatible Text Embeddings Inference (TEI) backend.
+Configure it through the `service.embedding` block in `config/config.json` or
+the `SERVICE_EMBEDDING_*` environment variables:
 
-```yaml
-# config/vectors.yaml
-embeddingBaseUrl: http://localhost:8080
+```json
+{
+  "service": {
+    "embedding": {
+      "backend_port": 8090,
+      "model": "BAAI/bge-small-en-v1.5"
+    }
+  }
+}
 ```
 
 The processor:
