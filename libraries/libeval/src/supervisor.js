@@ -31,7 +31,6 @@ import { OrchestrationLoop } from "./orchestration-loop.js";
 export const SUPERVISOR_SYSTEM_PROMPT =
   "You supervise one agent.\n" +
   "Use `Ask` to delegate the agent's task to the agent.\n" +
-  "Do your own work with your own tools.\n" +
   "`Ask` is async and returns {askIds:[N]} immediately.\n" +
   "The reply arrives on your next turn as `[answer#N] agent: <text>` in your inbox.\n" +
   "End your turn while Asks are pending. The system resumes you when an answer arrives.\n" +

@@ -184,9 +184,8 @@ forces materialised; table of findings and issues created or updated.
 
 ## Memory: what to record
 
-Append yourself (your own Bash) to the current week's log: product
-interviewed; job (`<user>: <goal>`); outcome (done / abandoned / partial);
-forces observed
+Using your own Bash, append to the current week's log: product interviewed;
+job (`<user>: <goal>`); outcome (done / abandoned / partial); forces observed
 (Push/Pull/Habit/Anxiety/Competes/Fired); issue numbers + categories.
 Append one metrics row per run to `wiki/metrics/{skill}/` per
 `references/metrics.md`. See KATA.md § Metrics for recording eligibility.
