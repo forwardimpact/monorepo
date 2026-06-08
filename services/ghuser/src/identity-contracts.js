@@ -34,14 +34,17 @@ const SINGLE_TENANT_ID = "default";
  * `(surface, surface_user_id, client_state)` against a single-use
  * pending entry held by `services/bridge`. Evaluates at `Begin`.
  *
- * **Fail-closed on every non-OK return.** NOT_FOUND, FAILED_PRECONDITION
- * (mismatch or already-claimed), transport error, and any non-Empty
- * response shape all collapse to `proof_missing`. Collapsing denies an
- * attacker the enumeration oracle the design rejects in § Default for
- * new surfaces; it also means legitimate users see `proof_missing`
- * during a bridge outage — chosen over fail-open because fail-open
- * re-opens the original defect (design § Bridge availability failure
- * mode).
+ * **Fail-closed on every thrown error.** Any `throw` from
+ * `bridgeClient.VerifyPendingDispatch` — NOT_FOUND, FAILED_PRECONDITION
+ * (mismatch or already-claimed), transport error, malformed-message
+ * decode error — collapses to `proof_missing`. A non-throwing resolve
+ * is treated as `ok`; librpc's generated client raises on every non-OK
+ * gRPC status (design § Default for new surfaces), so "non-Empty response
+ * shape" is bridge-side, not contract-side. Collapsing denies an
+ * attacker the enumeration oracle the design rejects; it also means
+ * legitimate users see `proof_missing` during a bridge outage — chosen
+ * over fail-open because fail-open re-opens the original defect (design
+ * § Bridge availability failure mode).
  *
  * @type {ContractRecord}
  */

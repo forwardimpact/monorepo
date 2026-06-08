@@ -16,6 +16,7 @@ function createService(
     bridgeClient = {
       VerifyPendingDispatch: async () => ({}),
     },
+    logger,
   } = {},
 ) {
   const config = createMockConfig("ghuser", {
@@ -33,6 +34,7 @@ function createService(
       trustedOrigins: TRUSTED,
       ticketSecret: "test-secret",
       bridgeClient,
+      logger,
       github: {
         authorizeUrl: () => "http://gh/authorize",
         exchangeCode: async () => ({
@@ -151,14 +153,19 @@ describe("ghuser identity verification", () => {
     });
   });
 
-  test("bridge transport error fails closed", async () => {
+  test("bridge transport error fails closed and emits operator debug crumb", async () => {
     const storage = createMockStorage();
+    const debugCalls = [];
+    const logger = {
+      debug: (...args) => debugCalls.push(args),
+    };
     const { service, bindings } = createService(storage, {
       bridgeClient: {
         VerifyPendingDispatch: async () => {
           throw new Error("network unreachable");
         },
       },
+      logger,
     });
 
     const result = await service.Begin({
@@ -170,6 +177,12 @@ describe("ghuser identity verification", () => {
     assert.strictEqual(result.outcome, "proof_missing");
     const binding = await bindings.loadBinding("msteams", "aad-victim");
     assert.strictEqual(binding, null);
+    assert.strictEqual(debugCalls.length, 1, "one debug crumb emitted");
+    assert.deepStrictEqual(debugCalls[0], [
+      "identity-contract",
+      "proof_missing",
+      { surface: "msteams", reason: "network unreachable" },
+    ]);
   });
 
   test("github-discussions matching id binds", async () => {

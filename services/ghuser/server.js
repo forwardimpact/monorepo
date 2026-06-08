@@ -78,6 +78,7 @@ const service = new GhuserService(config, {
   trustedOrigins,
   ticketSecret: config.link_completion_ticket_secret,
   bridgeClient,
+  logger,
 });
 const server = new Server(service, config, { logger, tracer, runtime });
 

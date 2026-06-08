@@ -24,6 +24,7 @@ export class GhuserService extends GhuserBase {
   #trustedOrigins;
   #ticketSecret;
   #bridgeClient;
+  #logger;
 
   /**
    * @param {object} config
@@ -45,6 +46,10 @@ export class GhuserService extends GhuserBase {
    *   ghbridge, and msbridge. Rotation policy documented in TRUST.md.
    * @param {object} deps.bridgeClient `services/bridge` gRPC client used by
    *   the `bridge_pending_dispatch_proof` identity contract at `Begin`.
+   * @param {object} [deps.logger] Optional injected logger. When present,
+   *   the identity-proof contract emits a debug-level crumb on every
+   *   fail-closed outcome, letting operators distinguish a bridge outage
+   *   from a legitimate negative result without altering the outcome shape.
    */
   constructor(
     config,
@@ -58,6 +63,7 @@ export class GhuserService extends GhuserBase {
       trustedOrigins,
       ticketSecret,
       bridgeClient,
+      logger,
     },
   ) {
     super(config);
@@ -73,6 +79,7 @@ export class GhuserService extends GhuserBase {
     this.#trustedOrigins = trustedOrigins;
     this.#ticketSecret = ticketSecret;
     this.#bridgeClient = bridgeClient;
+    this.#logger = logger;
   }
 
   /**
@@ -85,6 +92,7 @@ export class GhuserService extends GhuserBase {
       const { outcome } = await contract.evaluate({
         req,
         bridgeClient: this.#bridgeClient,
+        logger: this.#logger,
       });
       if (outcome !== "ok") return { outcome };
     }
