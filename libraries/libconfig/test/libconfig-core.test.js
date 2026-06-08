@@ -180,6 +180,23 @@ describe("libconfig - Config", () => {
 
     assert.strictEqual(config.name, "myservice");
   });
+
+  // Regression: libconfig 0.1.83 passed `this.#proc` to storageFn, but
+  // createStorage destructures `{ fs, proc } = runtime`, so the consumer
+  // crashed with "Cannot read properties of undefined (reading 'env')" the
+  // first time anything touched `proc.env` (issue #1511).
+  test("invokes storageFn with the full runtime bag, not a bare proc", async () => {
+    const mockStorageFn = spy(() => mockStorage);
+
+    await createConfig("test", "myservice", {}, rt(mockProcess), mockStorageFn);
+
+    assert.strictEqual(mockStorageFn.mock.callCount(), 1);
+    const [, , passedRuntime] = mockStorageFn.mock.calls[0].arguments;
+    assert.ok(passedRuntime, "storageFn must receive a runtime argument");
+    assert.ok(passedRuntime.proc, "runtime.proc must be present");
+    assert.ok(passedRuntime.fs, "runtime.fs must be present");
+    assert.ok(passedRuntime.finder, "runtime.finder must be present");
+  });
 });
 
 describe("libconfig - Environment-driven storage integration", () => {
