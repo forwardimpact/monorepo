@@ -30,8 +30,8 @@ import { OrchestrationLoop } from "./orchestration-loop.js";
 /** System prompt for the supervisor lead. L0 mechanics only per COALIGNED. */
 export const SUPERVISOR_SYSTEM_PROMPT =
   "You supervise one agent.\n" +
-  "You have no tools to perform work yourself.\n" +
-  "Use `Ask` to delegate work to the agent.\n" +
+  "Use `Ask` to delegate the agent's task to the agent.\n" +
+  "Do your own work with your own tools.\n" +
   "`Ask` is async and returns {askIds:[N]} immediately.\n" +
   "The reply arrives on your next turn as `[answer#N] agent: <text>` in your inbox.\n" +
   "End your turn while Asks are pending. The system resumes you when an answer arrives.\n" +
@@ -196,7 +196,6 @@ export function createSupervisor({
     "Task",
     "TaskOutput",
     "TaskStop",
-    "Bash",
     "Write",
     "Edit",
   ];
@@ -210,7 +209,7 @@ export function createSupervisor({
     output: devNull,
     model: supervisorModel ?? model,
     maxTurns: perRunBudget,
-    allowedTools: supervisorAllowedTools ?? ["Read", "Glob", "Grep"],
+    allowedTools: supervisorAllowedTools ?? ["Read", "Glob", "Grep", "Bash"],
     disallowedTools,
     onLine: (line) => supervisor.emitLine("supervisor", line),
     settingSources: ["project"],

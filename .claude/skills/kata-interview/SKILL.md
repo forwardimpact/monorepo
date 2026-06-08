@@ -151,8 +151,9 @@ back to the agent.
 
 ### Step 7: Transition to Post-Interview
 
-Once done or abandoned, stop sending work and proceed to Steps 8–9 in
-the same turn. Conclude only after filing issues and writing the report.
+Once done or abandoned, stop Asking and do Steps 8–9 yourself with your own
+Bash and monorepo checkout — never delegate wrap-up to the agent (it breaks
+isolation). Conclude only after filing issues and writing the report.
 
 ### Step 8: Capture Findings
 
@@ -170,8 +171,8 @@ Classify each for action:
 | **Documentation**   | Unclear, missing, or outdated docs    | Create docs issue     |
 | **Out of scope**    | Not actionable or outside the product | Skip — note in report |
 
-For each actionable finding: extract; search for duplicates; create a new
-issue or comment on a matching one (templates in
+For each actionable finding, with your own `gh`: extract; search for
+duplicates; create a new issue or comment on a matching one (templates in
 `../kata-product-issue/references/templates.md` § New Issues from User
 Testing) naming the JTBD job (`<user>: <goal>`) in the body; add the
 finding to the report table with its issue number.
@@ -183,8 +184,9 @@ forces materialised; table of findings and issues created or updated.
 
 ## Memory: what to record
 
-Append to the current week's log: product interviewed; job (`<user>: <goal>`);
-outcome (done / abandoned / partial); forces observed
+Append yourself (your own Bash) to the current week's log: product
+interviewed; job (`<user>: <goal>`); outcome (done / abandoned / partial);
+forces observed
 (Push/Pull/Habit/Anxiety/Competes/Fired); issue numbers + categories.
 Append one metrics row per run to `wiki/metrics/{skill}/` per
 `references/metrics.md`. See KATA.md § Metrics for recording eligibility.
