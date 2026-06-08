@@ -1,0 +1,16 @@
+{
+  "name": "todo-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Zero-dependency mock todo CLI used as the shared kata-skills benchmark fixture.",
+  "type": "module",
+  "bin": {
+    "todo": "./bin/todo.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
