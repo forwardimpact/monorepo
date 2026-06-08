@@ -88,6 +88,7 @@ If your network requires a custom CA bundle, add an `env` block to
 > client) is not seen.
 
 ```sh
+brew install claude                     # Runtime: Outpost spawns claude as a subprocess
 npm install @forwardimpact/outpost      # macOS only
 npx fit-outpost init ~/Documents/Team   # Initialize knowledge base
 npx fit-outpost daemon                  # Start the scheduler
