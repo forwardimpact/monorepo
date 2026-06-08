@@ -72,8 +72,16 @@ If your network requires a custom CA bundle, add an `env` block to
 
 ## Getting Started
 
+> **Outpost currently requires macOS.** Email and calendar sync read from
+> Apple Mail and Apple Calendar, and a transitive dependency
+> (`@forwardimpact/libmacos`) declares `"os": ["darwin"]`. `npm install
+> @forwardimpact/outpost` will fail on Linux and Windows with `EBADPLATFORM`
+> — there is no degraded mode today. A cross-platform degraded install
+> (without Apple sync) is on the roadmap; until it ships, install Outpost on
+> a Mac.
+
 ```sh
-npm install @forwardimpact/outpost
+npm install @forwardimpact/outpost      # macOS only
 npx fit-outpost init ~/Documents/Team   # Initialize knowledge base
 npx fit-outpost daemon                  # Start the scheduler
 npx fit-outpost status                  # Check what's happening
