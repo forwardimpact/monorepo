@@ -207,8 +207,9 @@ Security policies apply to all contributors — human and agent.
 - **CI secret scanning** — Gitleaks runs on every push and pull request via the
   `secret-scanning` job in
   [.github/workflows/check-security.yml](.github/workflows/check-security.yml).
-- **GitHub Actions** — All third-party actions are pinned to SHA hashes. Use
-  `Dependabot` for updates. Never change a pin to a tag.
+- **GitHub Actions** — All third-party actions, including `forwardimpact/*`
+  siblings, are SHA-pinned on `uses:` lines. Use `Dependabot`; never
+  change a pin to a tag.
 - **Reporting** — See [SECURITY.md](SECURITY.md). Contact
   `hi.security@senzilla.io`.
 

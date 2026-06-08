@@ -95,7 +95,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
 
-      - uses: forwardimpact/fit-bootstrap@v1
+      - uses: forwardimpact/fit-bootstrap@22e7a8a053c22cf56d6f4efb95fcf0b3d42267c8 # v1
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
@@ -117,7 +117,7 @@ jobs:
       # this surface preserves the same template-injection-safe contract.
       - name: Assess and Act
         id: assess
-        uses: forwardimpact/fit-eval@v1
+        uses: forwardimpact/fit-eval@187b774863338b0bec9275686e17979eb544c108 # v1
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -138,7 +138,7 @@ jobs:
       # job start expires after an hour and this run can take up to five.
       - name: Push wiki changes
         if: always()
-        uses: forwardimpact/fit-wiki@v1
+        uses: forwardimpact/fit-wiki@269483d677d44834e23f85c79296b836fee8a59f # v1
         with:
           command: push
           app-id: ${{ secrets.KATA_APP_ID }}

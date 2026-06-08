@@ -5,9 +5,9 @@ actions (`actions/`) they consume.
 
 ## Third-party actions
 
-Five composite actions are published as standalone repos under
-`forwardimpact/` and referenced by tag — sibling repos this monorepo
-maintains, not external dependencies:
+Five composite actions are published under `forwardimpact/` and
+SHA-pinned with a `# v1` marker on workflow `uses:` lines — sibling
+repos this monorepo maintains, not external dependencies:
 
 | Action | Repo | Purpose |
 |---|---|---|
@@ -31,22 +31,31 @@ cleanup-time push fails on long agent runs — push with `fit-wiki@v1` as an
 
 ### Editing a published action
 
-Clone into `tmp/` (gitignored), edit, commit, force-move the `v1` tag, push:
+Workflow `uses:` lines target an immutable SHA with a `# v1` marker.
+Edits land via append-only patch tag + Dependabot SHA-bump PR — never
+force-move `v1`:
 
 ```sh
 gh repo clone forwardimpact/fit-eval tmp/fit-eval
-# edit tmp/fit-eval/action.yml
-cd tmp/fit-eval
-git add -A && git commit -m "fix: description"
-git tag -f v1
-git push origin main && git push origin v1 --force
+# edit, commit, tag the next unused patch (start v1.0.0):
+gh api repos/forwardimpact/fit-eval/tags --jq '.[].name'
+git tag v1.0.<N>            # append-only
+git push origin main && git push origin v1.0.<N>
 ```
 
-This procedure requires push rights on the sibling repo. Agent-workflow
-tokens minted by `actions/create-github-app-token@v3` (e.g. in
-`kata-dispatch.yml`) are scoped to the `kata-agent-team` App installation
-— monorepo only, not the siblings. For agent-driven sibling edits, file
-an Issue on the sibling repo with the diff for admin push.
+`.github/dependabot.yml` runs `github-actions` weekly and opens a
+SHA-bump PR on the next sweep; merge through branch protection. `# v1`
+is advisory — siblings move the marker editorially.
+
+Sibling pushes need rights on the sibling. Agent tokens from
+`actions/create-github-app-token@v3` scope to `kata-agent-team` only.
+For agent-driven edits, file an Issue with the diff.
+
+**Scope.** This pinning policy governs workflow `uses:` references to
+sibling actions; sibling-internal references (a sibling's calls inside
+its own `action.yml`, including `kata-agent`'s call to
+`forwardimpact/fit-bootstrap@v1`) are governed by the sibling repos.
+Each sibling's own policy is the only durable close for that residual.
 
 ### `IS_SANDBOX` for headless agents
 

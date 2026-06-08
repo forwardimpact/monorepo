@@ -17,8 +17,8 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/fit-bootstrap@v1
-      - uses: forwardimpact/fit-benchmark@v1
+      - uses: forwardimpact/fit-bootstrap@22e7a8a053c22cf56d6f4efb95fcf0b3d42267c8 # v1
+      - uses: forwardimpact/fit-benchmark@d352f9a7b0eb09fc5e69599017ea50bf1a7709cd # v1
         with:
           family: ./benchmarks/kata-skills
           runs: "5"
