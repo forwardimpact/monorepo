@@ -2,36 +2,43 @@
 
 ## Architecture
 
-The schema gains a trailing `event_type` column whose presence is declared by
-the CSV header line itself. The header line is the **schema-version selector**:
-every reader matches the file's first line against a known set of header
-strings and dispatches the rest of its work against that version's parsing,
-validation, and filtering rules. Per-agent CSVs adopt **schema v2** through a
-one-shot migration; the kata-skill CSVs (out of scope) stay on **schema v1**
-until their own migration spec.
+The schema gains a trailing `event_type` column whose value is the **exact
+GitHub workflow name** that produced the row (e.g. `Kata: Dispatch`,
+`Kata: Shift`, `Kata: Coaching`). The migration is **clean-break**: every
+CSV under `wiki/metrics/**/2026.csv` — every per-agent CSV *and* every
+kata-skill CSV — is rewritten once during this PR series. Runtime code
+(recorder, validator, analyzer, chart, summarize) assumes the new column
+unconditionally; there is no schema-version branch, no header dispatch, no
+v1/v2 coexistence. The migration is performed by a one-time script that is
+removed from the codebase in the same PR series.
 
-`libxmr` owns the schema: the header strings, the `event_type` known set, the
-classifier, the validator, the analyzer's default-filter behaviour, and the
-migrator. Six call sites — recorder, validator, analyzer, chart, summarize,
-migrator — all import from the same module. The agent-side recording surface
-is unchanged — agents continue to invoke `npx fit-xmr record`; the contract on
-that command changes (`--event-type` is now required when the target CSV is
-v2, rejected when v1) but the call site is the same.
+`libxmr` owns the schema constants, the recording surface's smart default,
+the validator's contract, the analyzer's default filter, and the migration
+script. The recording surface accepts `--event-type <name>` and falls back
+to `$GITHUB_WORKFLOW` from the environment — set automatically by GitHub
+Actions to the workflow's `name:` field — so an agent invoked from
+`kata-shift.yml` records `Kata: Shift` without any change at the call site.
+
+> **Reviewer feedback (PR #1494) overrules two spec rulings.** The known
+> set is open-ended workflow names, not the closed `dispatch-boot` /
+> `shift-work` enum the spec § Out-of-scope row implies; and every CSV
+> migrates in one shot, including the kata-skill CSVs the spec § Out of
+> scope deferred. Both changes are deliberate to honour "exactly match the
+> GitHub workflow name", "smart default to `$GITHUB_WORKFLOW`", "CLEAN
+> BREAK and no schema version logic", and "all CSVs migrated".
 
 ```mermaid
 graph TD
-    Constants["constants.js<br/>SCHEMA_V1, SCHEMA_V2,<br/>EVENT_TYPES"] --> Parser["csv.js<br/>parseLine, parseCSV,<br/>detectSchema"]
+    Constants["constants.js<br/>HEADER, COLUMNS,<br/>EVENT_TYPE_COLUMN,<br/>DEFAULT_SHIFT_TYPE"] --> Parser["csv.js<br/>parseLine, parseCSV"]
     Constants --> Recorder["commands/record.js"]
     Constants --> Validator["commands/validate.js"]
-    Constants --> Migrator["commands/migrate.js"]
     Constants --> Analyzer["analyze.js +<br/>commands/{analyze,chart,summarize}"]
-    Classifier["classify-event-type.js<br/>per-run classifier"] --> Migrator
+    Env["$GITHUB_WORKFLOW<br/>(smart default)"] --> Recorder
     Parser --> Validator
     Parser --> Analyzer
-    Parser --> Migrator
     Parser --> Recorder
-    Recorder -->|append| CSV[("wiki/metrics/&lt;agent&gt;/2026.csv")]
-    Migrator -->|atomic rewrite, one-shot| CSV
+    Classifier["scripts/migrate-to-event-type.js<br/>(one-time, removed post-migration)"] -->|atomic rewrite| CSV[("wiki/metrics/**/2026.csv")]
+    Recorder -->|append| CSV
     Analyzer -->|read + slice| CSV
     Validator -->|read + check| CSV
 ```
@@ -40,50 +47,49 @@ graph TD
 
 | Component | Interface | Responsibility |
 |---|---|---|
-| `constants.js` | `SCHEMA_V1`, `SCHEMA_V2`, `EVENT_TYPES`, `detectSchema(headerLine)` | Single source of truth. Each schema record carries `version`, `header`, `columns`, `eventTypeColumn`. `EVENT_TYPES` is the known set; renaming the symbol surfaces every consumer mechanically. |
-| `csv.js` | `parseLine`, `parseCSV`, `validateCSV` | Reads the file's header, calls `detectSchema`, dispatches per-row parsing to the matched schema. Parsed rows on v2 carry an `eventType` field; on v1 the field is absent. |
-| `classify-event-type.js` | `classifyRun(runRows) → 'dispatch-boot' \| 'shift-work'` | Pure function. The migrator groups CSV rows by their `run` column first, then hands each run's rows here. Each metric name (`commits_pushed`, `prs_opened`, `file_writes`, `duration_seconds`) is one row in that group; the classifier looks up rows by metric name and reads each row's `value`. Rule below in § Key Decisions. |
-| `commands/record.js` | `--event-type <type>` option | Reads target CSV header. v2: require `--event-type ∈ EVENT_TYPES`, reject empty/unknown. v1: reject `--event-type` (drift surfaced loudly). Appends the row with `event_type` at end on v2. |
-| `commands/validate.js` | Reads target CSV header | v2: every row must carry an `event_type` ∈ `EVENT_TYPES`; missing or unknown rejected with line number and offending value. v1: behaviour unchanged. |
-| `commands/migrate.js` | `fit-xmr migrate <csv-path>` | One-shot v1 → v2: parse, group by `run`, call `classifyRun`, write atomically (tmp file + rename) with v2 header and seven-column rows. Idempotent (no-op if file already v2). |
-| `analyze.js` + `commands/{analyze,chart,summarize}.js` | `--event-type <type>` filter option | v2 default: filter to `event_type=shift-work`. v1: no filter, no column. Every surface output names the slice it rendered ("filtered to event_type=shift-work" or "all rows; no event_type column"). |
+| `constants.js` | `HEADER` (seven-column header line), `COLUMNS` (column-name array), `EVENT_TYPE_COLUMN = 'event_type'`, `DEFAULT_SHIFT_TYPE = 'Kata: Shift'` | Single source of truth for the schema. Recorder, validator, parser, and analyzer import the same symbols; renaming any one surfaces every consumer as a static error. |
+| `csv.js` | `parseLine`, `parseCSV`, `validateHeader` | Reads the file's first line and rejects a header that does not match `HEADER` with a column-diff message — the post-migration runtime treats a non-matching header as an error, not a version. Every parsed row carries `eventType`. |
+| `commands/record.js` | `--event-type <name>` flag; reads `$GITHUB_WORKFLOW` env when flag absent | Resolves `event_type` from flag (highest precedence), then `$GITHUB_WORKFLOW`, then exits non-zero with a clear error. Appends the row with `event_type` as the trailing column. |
+| `commands/validate.js` | reads target CSV | Header must equal `HEADER` (mechanical static check); every row must carry a non-empty `event_type`. Missing or empty rejected with line number. |
+| `analyze.js` + `commands/{analyze,chart,summarize}.js` | `--event-type <name>` filter | Default filter: `event_type = DEFAULT_SHIFT_TYPE` (`Kata: Shift`). Every surface output names the filtered slice in its header ("filtered to event_type=Kata: Shift" or, with `--event-type=*`, "all rows; no event_type filter"). |
+| `scripts/migrate-to-event-type.js` | One-time CLI script: `node libxmr/scripts/migrate-to-event-type.js` | Walks every CSV under `wiki/metrics/**/2026.csv`. For per-agent CSVs: group by `run`, apply the cross-row classifier (§ Key Decisions) to stamp `Kata: Dispatch` or `Kata: Shift`. For kata-skill CSVs: apply a per-skill default workflow mapping (`kata-dispatch` → `Kata: Dispatch`; `kata-coaching` → `Kata: Coaching`; everything else → `Kata: Shift`). Rewrites each file atomically (tmp + rename). Prints a per-file row count by event_type on exit so reviewers can verify spec § Success Criteria row 4 empirically. **Removed from the repo in the same PR series that ships the migration commits.** |
 
 ## Data Flow
 
-**Write path.** Agent → `fit-xmr record --skill <agent> --metric <name> --value <n> --event-type <type> --run <id> --note <free text>` → `record.js` reads `csvPath` first line → `detectSchema` → if v2, assert `--event-type` present and ∈ `EVENT_TYPES` → append `date,metric,value,unit,run,note,event_type`.
+**Write path.** Agent → `fit-xmr record --skill <agent> --metric <name> --value <n> [--event-type <name>] --run <id> --note <free text>`. `record.js` resolves `event_type` from `--event-type`, falling back to `process.env.GITHUB_WORKFLOW`. Exits non-zero if neither resolves. Appends `date,metric,value,unit,run,note,event_type`.
 
-**Read path.** Any consumer → `fit-xmr analyze|chart|summarize <csv-path>` → `detectSchema` → on v2 apply `--event-type` filter (default `shift-work`) before XmR computation → output names the slice in its header.
+**Read path.** Consumer → `fit-xmr analyze|chart|summarize <csv-path>` → `csv.parseCSV` validates the header against `HEADER` → apply `--event-type` filter (default `DEFAULT_SHIFT_TYPE`) before XmR computation → output names the slice in its header. The pre-existing `--event-type=*` escape hatch yields the unfiltered series and is named as such in the output.
 
-**Migration path (one-shot per CSV).** `fit-xmr migrate <csv-path>` → parse v1 → group rows by `run` column → `classifyRun(rows)` per group → write tmp file with v2 header + per-row `event_type` → `fs.rename(tmp, csvPath)`. Reversible: `git checkout` the pre-migration file. The migrator's exit output prints the resulting `dispatch-boot:shift-work` row count per file — this is the empirical anchor a reader uses to verify spec § Success Criteria row 4 (at least one run-61 `xRule1` fire resolves differently on the shift-work slice), since whether that criterion holds depends on how many shift-work rows the classifier surfaces.
+**Migration path (one-shot, this PR series only).** A single invocation of `node libxmr/scripts/migrate-to-event-type.js` walks `wiki/metrics/**/2026.csv`, applies the classifier per file, and rewrites in place. The migration commits land in the same PR series as the runtime patch and the script removal — after merge, `git log` is the record of how the migration happened; the codebase carries no migration code.
 
-**Storyboard refresh.** `fit-wiki refresh` regenerates storyboard chart blocks by calling `analyze()` + `renderChart()` from `libxmr`. No code change in `libwiki`; the v2 default propagates because every downstream caller of `analyze` inherits the default-slice behaviour.
+**Storyboard refresh.** `fit-wiki refresh` regenerates storyboard chart blocks by calling `analyze()` + `renderChart()` from `libxmr`. No code change in `libwiki`; the shift-work default propagates because every downstream caller of `analyze` inherits it.
 
-**Validation path.** `fit-xmr validate <csv-path>` → `detectSchema`. v2 enforces `event_type` is present and in `EVENT_TYPES`; v1 unchanged.
+**Validation path.** `fit-xmr validate <csv-path>` enforces header equality and per-row non-empty `event_type`. No version branch — a non-matching header is an error, full stop.
 
 ## Key Decisions
 
 | Decision | Choice | Rejected | Why |
 |---|---|---|---|
-| Where does `event_type` live | Trailing column on each v2 row; full header line declares the schema version per file | Path-based dispatch (`wiki/metrics/<agent>/` ⇒ v2 schema); optional column whose presence varies row by row | The file itself declares its version, so parser/validator/recorder/analyzer act on data, not file layout. Path predicate breaks if metric files move. Optional column needs a per-row "am I v2" predicate anyway and silently passes empty values. |
-| Single source of truth for the known set | `EVENT_TYPES = ['dispatch-boot', 'shift-work']` in `constants.js`; record, validate, migrate, and analyze import the same symbol | Per-component literal arrays; separate registry file referenced by string id | One import. Renaming the symbol surfaces every site mechanically. Drift becomes a static error a build catches, not a runtime data mismatch. Satisfies the spec's "divergence is mechanically detectable" criterion. |
-| CLI default when no `--event-type` filter on a v2 file | Default to `event_type=shift-work`; the surface output names the rendered slice on every invocation | Default to "all rows"; default to "shift-work" silently | Spec asserts consumers default to shift-work. CLI carries the convention so the PDSA reader gets the right verdict by default. Naming the slice in output guards against the misread risk the spec calls out. |
-| `fit-xmr record` accepts `--event-type` | Required when target CSV is v2; rejected when target is v1 | Optional with default (e.g. `shift-work` unless env var set); ignored silently on v1 | Spec: "value is named at the recording surface rather than inferred." Required-on-v2 surfaces the convention at write time. Rejecting on v1 surfaces version drift loudly instead of writing a column the file's header does not declare. |
-| Backfill classifier rule | Group CSV rows by their `run` column. Within each group, look up the rows named by their `metric` column: `prs_opened`, `commits_pushed`, `file_writes`, `duration_seconds`. Classify the run as `dispatch-boot` iff (i) the `duration_seconds` row's `note` matches `/^boot-append from Kata: Dispatch/`, (ii) the `prs_opened` row's `value` is `0`, (iii) the `commits_pushed` row's `value` is `0`, and (iv) the `file_writes` row's `value` is `0`. Otherwise `shift-work`. Stamp every row of the group with the result | Note prefix alone (spec § Scope: 6 known misclassifications); single-metric-row predicate; ML/heuristic over multi-row context | Exp SE 1432-A's 6 misclassifications carry the boot-append note on the `duration_seconds` row but non-zero `prs_opened`/`commits_pushed`/`file_writes` rows in the same run group. The composite cross-row predicate matches that evidence using signals already in the schema, runs deterministically, and is auditable per spec § Success Criteria. |
-| Spec § Decisions (c) `run`-prefix alternative | Not adopted. `run` stays as a pure activation identifier; the classification lives in its own column | Encode `dispatch-boot` / `shift-work` into a prefix on the `run` value | Per spec § Decisions: `run` is consumed by trace correlation, panel attribution, and audit logs as an identifier; re-prefixing every value re-keys every downstream consumer that joins on `run`. The typed column carries the classification without disturbing the identifier contract. |
-| Migration mechanism | New `fit-xmr migrate <csv-path>` subcommand; one invocation per per-agent CSV (6 total) | Inline migration on first record; one-shot script outside the CLI | Subcommand is discoverable (`--help` lists it), testable in isolation, idempotent (no-op on v2), and reusable when the next agent CSV joins the cohort. Inline migration blurs the version transition into a write path. |
-| Out-of-scope `kata-*` CSV compatibility | Stay on v1 indefinitely; v1 schema path remains in `libxmr` until those CSVs' own migration ships | Force-migrate all CSVs in this spec; remove v1 support after this spec | Spec excludes kata-skill CSVs. Header-as-version-selector lets v1 and v2 coexist without a code-path entanglement — each file declares its version, each command reads it. Removing v1 support is its own future spec. |
-| `event_type` value emitted by the agent recording surface | The agent skill or workflow step that invokes `fit-xmr record` passes the value as a literal `--event-type <type>` flag, named at the call site | A new `LIBEVAL_EVENT_TYPE` env var read by `record.js`; auto-inference from process state | Spec: "value is named at the recording surface rather than inferred from the `note` string later." Flag-at-call-site is the smallest surface that satisfies that requirement and matches `--skill`'s contract today. |
+| `event_type` value semantics | The **exact GitHub workflow name** (e.g. `Kata: Dispatch`, `Kata: Shift`, `Kata: Coaching`). Open set; the validator only enforces non-empty | Closed enum (`dispatch-boot` / `shift-work`); short tag values; structured `{workflow, run-kind}` tuple | Reviewer feedback (PR #1494): the column value *is* the workflow name. PDSA Study naturally groups runs by workflow, so the value carries the grouping with zero translation. Open set follows from there — workflow names are owned by `.github/workflows/`, not by `libxmr`. |
+| Smart default at write time | `--event-type <name>` flag wins; otherwise read `$GITHUB_WORKFLOW` from the environment; otherwise reject | Required flag; required env var; default to a literal `shift-work` constant | GitHub Actions sets `$GITHUB_WORKFLOW` to the workflow's `name:` value on every step. The env fallback makes the call site zero-friction inside the workflow; the explicit flag wins so a local script or a future test harness can record any workflow name without spoofing env. Rejecting when neither resolves means a row never lands without a value. |
+| Schema versioning | **None.** Single schema, clean-break migration | Header-as-version-selector with v1 + v2 coexistence (prior design revision); migrating only per-agent CSVs and deferring kata-* | Reviewer feedback: "CLEAN BREAK and no schema version logic; all code should assume the new column." Runtime never branches on schema; migration is one-shot and disappears. |
+| Migration scope | **Every** `wiki/metrics/**/2026.csv` — per-agent and kata-skill alike | Per-agent only (spec § Out of scope); skill CSVs deferred to follow-up | Reviewer feedback: "All CSVs should be migrated to the new schema as part of this." Required to enable the no-versioning runtime — leaving any CSV on the old shape would force a schema branch somewhere. |
+| Single source of truth for the column shape | `HEADER`, `COLUMNS`, `EVENT_TYPE_COLUMN`, `DEFAULT_SHIFT_TYPE` constants in `constants.js`; record, validate, analyze import the same symbols | Per-component literal arrays; per-row schema inference; registry file referenced by string id | One import. Renaming any symbol surfaces every consumer as a static error. Spec § Success Criteria "divergence is mechanically detectable" satisfied at the column-shape level (the natural home for it once the value set is open). |
+| Backfill classifier rule (per-agent CSVs) | Group rows by `run` column. Look up rows by `metric`: classify as `Kata: Dispatch` iff (i) the `duration_seconds` row's `note` matches `/^boot-append from Kata: Dispatch/` AND (ii) the `prs_opened`, `commits_pushed`, and `file_writes` rows' `value` are all `0`. Otherwise `Kata: Shift`. Stamp every row of the run group with the result. | Note-substring alone; single-metric-row predicate; ML/heuristic over multi-row context | Reviewer: "best-effort is ok"; this remains the most defensible cross-row predicate using signals already in the schema. Resolves Exp SE 1432-A's 6 known misclassifications (boot-append note on `duration_seconds` + non-zero work signals elsewhere in the same run). |
+| Backfill classifier rule (kata-skill CSVs) | Per-skill default workflow mapping: `kata-dispatch` → `Kata: Dispatch`; `kata-coaching` → `Kata: Coaching`; all other `kata-*` → `Kata: Shift` | Inspect each row for workflow signals; defer kata-* migration; leave field empty | Reviewer: "best-effort is ok; don't spend too much effort." Skill CSVs record skill invocations whose dominant workflow is well known per skill. The default-by-skill mapping is auditable, runs in milliseconds, and produces non-empty values for every row so the validator stays strict. Future records always carry the true workflow name via the `$GITHUB_WORKFLOW` default — the heuristic only colours the migrated tail. |
+| Spec § Decisions (c) `run`-prefix alternative | Not adopted. `run` stays as a pure activation identifier; the workflow name lives in its own column | Encode workflow name into a prefix on `run` | Per spec: `run` is consumed by trace correlation, panel attribution, and audit logs as an identifier; re-prefixing every value re-keys every downstream consumer that joins on `run`. The typed column carries the classification without disturbing the identifier contract. |
+| Validator strictness | Reject empty or missing `event_type`. Accept any non-empty string. Reject any header that does not equal `HEADER` exactly | Reject values outside a closed known set; warn-only on header drift | The known set is open (workflow names). Accepting any non-empty value matches the smart default's behaviour and avoids brittle coupling to a workflow inventory that the recorder cannot lock down. Strict header check is the mechanical drift detector. |
+| Migration mechanism | One-time script in `libxmr/scripts/`, run during this PR series, **removed afterward** | Persistent `fit-xmr migrate` subcommand; inline migration on first record; manual sed | Persistent subcommand implies ongoing dual-schema awareness — exactly the schema version logic the reviewer rejects. One-time script keeps runtime clean; reproducibility is satisfied by `git log` on the migration commits. |
+| CLI default when no `--event-type` filter on read | Filter to `DEFAULT_SHIFT_TYPE` (`Kata: Shift`); every surface output names the slice on every invocation | All rows; default to whichever value has most rows | Spec asserts consumers default to shift-work. CLI carries the convention; naming the slice on output guards against the misread risk the spec calls out. |
 
 ## Reversibility
 
-The change is additive at the row level. To revert a single file: `git
-checkout` the pre-migration commit (the migration writes one CSV per commit).
-To revert the schema: drop the v2 branch from `constants.js` and remove the
-trailing column from every per-agent CSV. A consumer that ignores `event_type`
-reads the same series it reads today — v2 rows differ from v1 rows only in the
-trailing column. `fit-xmr migrate` is idempotent and could be paired with a
-future `fit-xmr migrate --to v1` if a full reversion were ever needed; not
-shipped in this spec because revertibility is satisfied by `git`.
+The change is additive at the row level — a consumer that drops the
+trailing column reads the pre-migration shape. To revert: `git checkout`
+each pre-migration commit on the CSV files and revert the runtime patch.
+No `--to-old` migration path is provided because the migration script is
+single-use and removed from the codebase — recovery is `git`-based by
+design, consistent with the no-schema-version constraint.
 
 ## What this design does not change
 
@@ -92,7 +98,9 @@ shipped in this spec because revertibility is satisfied by `git`.
   *input* (the filtered series); the *rules* are unchanged.
 - The CSV substrate. The schema stays CSV; no migration to a different store.
 - The `note` column convention. `boot-append from Kata: Dispatch …` notes
-  remain useful per-row context (run id, durationMs); they stay where they are.
-- The 16 `wiki/metrics/kata-*/2026.csv` skill series (out of scope).
+  remain useful per-row context (run id, durationMs); they stay where they
+  are. The classifier reads them, but the runtime never relies on them.
+- The agent-side call site. Agents continue to invoke `npx fit-xmr record`;
+  the env-driven default means most call sites need no change at all.
 
 — Staff Engineer 🛠️
