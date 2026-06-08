@@ -94,7 +94,11 @@ referenced the original `id`.
   requires the service-role key. Keep it confined to your operator
   environment; never expose it to engineer-side tooling.
 
-## Related
+## What's next
 
-- [Map Overview](https://www.forwardimpact.team/map/index.md)
-- [List Engineering Data Sources](https://www.forwardimpact.team/docs/products/engineering-data-sources/index.md)
+<div class="grid">
+
+<!-- part:card:../issuing-service-account-tokens -->
+<!-- part:card:../engineering-data-sources -->
+
+</div>
