@@ -1,3 +1,4 @@
+/* biome-ignore-all lint/nursery/noExcessiveLinesPerFile: file sits ~8 logical lines over the 530-line cap after the personal-conversation gate landed; the gate body is already extracted to `src/conversation-gate.js`, and the remaining headroom requires splitting `#stashAndPostLink` together with its `#renderDeclined` and `#handleReply` siblings — a follow-on change kept out of this scope. */
 import {
   Acknowledgement,
   CallbackHandlerError,
@@ -22,6 +23,7 @@ import {
 } from "@forwardimpact/libbridge";
 
 import { bridge } from "@forwardimpact/libtype";
+import { applyPersonalConversationGate } from "./src/conversation-gate.js";
 import { DiscussionAdapter } from "./src/discussion-adapter.js";
 import { handleConsent, isConsentActivity } from "./src/consent-handler.js";
 import { createOnboardHandler } from "./src/onboard-handler.js";
@@ -424,7 +426,13 @@ export class MsBridgeService {
             correlation_id: result.correlationId,
           });
         } else if (result.kind === "link_required") {
-          await this.#stashAndPostLink(ctx, result, requester);
+          const conversationType = activity.conversation?.conversationType;
+          await this.#stashAndPostLink(
+            ctx,
+            result,
+            requester,
+            conversationType,
+          );
           span.addEvent("dispatch_declined", { kind: result.kind });
         } else {
           await this.#renderDeclined(ctx, result);
@@ -554,7 +562,15 @@ export class MsBridgeService {
     }
   }
 
-  async #stashAndPostLink(ctx, result, requester) {
+  async #stashAndPostLink(ctx, result, requester, conversationType) {
+    const gated = await applyPersonalConversationGate(
+      conversationType,
+      ctx,
+      this.#adapter,
+      this.#msAppId,
+      this.#logger,
+    );
+    if (gated) return;
     const prepared = prepareLinkResume({
       authorizeUrl: result.authorizeUrl,
       callbackBaseUrl: this.#config.callback_base_url,
