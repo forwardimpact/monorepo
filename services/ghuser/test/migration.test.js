@@ -26,7 +26,7 @@ async function seedBinding(bindings, surface, userId, githubId) {
 }
 
 describe("ghuser migration — drop pre-fix bridge-proof bindings", () => {
-  test("drops every msteams binding on first boot", async () => {
+  test("drops every non-github-discussions binding on first boot", async () => {
     const { storage, bindings, migrations, clock } = setup();
     await seedBinding(bindings, "msteams", "aad-A", "attacker-A");
     await seedBinding(bindings, "msteams", "aad-B", "attacker-B");

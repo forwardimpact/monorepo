@@ -97,13 +97,15 @@ describe("ghuser identity verification", () => {
     assert.strictEqual(binding, null);
   });
 
-  test("bridge-proof surface with valid proof binds exactly once", async () => {
+  test("bridge-proof surface with valid proof binds exactly once and emits canonical VerifyPendingDispatch shape", async () => {
     const storage = createMockStorage();
     let calls = 0;
+    const verifyCalls = [];
     const { service, bindings } = createService(storage, {
       bridgeClient: {
-        VerifyPendingDispatch: async () => {
+        VerifyPendingDispatch: async (req) => {
           calls += 1;
+          verifyCalls.push(req);
           if (calls === 1) return {};
           const err = new Error("FAILED_PRECONDITION");
           err.code = 9;
@@ -132,6 +134,21 @@ describe("ghuser identity verification", () => {
       client_state: "link-token-xyz",
     });
     assert.strictEqual(second.outcome, "proof_missing");
+    assert.strictEqual(calls, 2, "both Begin calls reached bridge");
+
+    // Pin the canonical request shape against `services/bridge`
+    // `requireTenant` (rejects empty `tenant_id`) and `scopedKey =
+    // ${tenant_id}:${link_token}` (must match msbridge's `default`
+    // tenant write). A regression to `tenant_id: ""` would 1) flip
+    // both Begin calls to `proof_missing` in production while still
+    // passing this suite without the assertion, and 2) silently
+    // break msteams linking on the structural-fix tag.
+    assert.deepStrictEqual(verifyCalls[0], {
+      link_token: "link-token-xyz",
+      expected_surface: "msteams",
+      expected_surface_user_id: "aad-victim",
+      tenant_id: "default",
+    });
   });
 
   test("bridge transport error fails closed", async () => {

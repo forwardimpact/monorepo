@@ -11,7 +11,7 @@ import { GhuserService } from "../index.js";
 import { BindingStore, FlowStore, GrantStore } from "../src/stores.js";
 
 describe("ghuser identity-proof registry", () => {
-  test("lookup miss returns proof_missing", async () => {
+  test("lookup miss returns proof_missing and writes no flow row", async () => {
     const storage = createMockStorage();
     const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",

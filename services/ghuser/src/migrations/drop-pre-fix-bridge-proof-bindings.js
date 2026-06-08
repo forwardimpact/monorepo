@@ -27,6 +27,12 @@ export async function dropPreFixBridgeProofBindings({
   await bindings.loadData();
   let dropped = 0;
   for (const binding of [...bindings.index.values()]) {
+    // `binding.id` is `${surface}:${userId}` per `BindingStore.keyOf`
+    // (services/ghuser/src/stores.js:30-32). Splitting on the first `:`
+    // is safe because current surface vocabularies (`github-discussions`,
+    // `msteams`) contain no `:`; a future colon-bearing surface would
+    // require a corresponding `keyOf` change (flagged in design §
+    // Migration as forward-looking).
     const surface = binding.id.split(":")[0];
     if (surface !== "github-discussions") {
       await bindings.delete(binding.id);
@@ -34,9 +40,13 @@ export async function dropPreFixBridgeProofBindings({
     }
   }
   await bindings.flush();
-  // Marker write is the **last** step. A crash mid-iteration re-runs the
-  // migration on next boot — safe, because re-running over an already-
-  // cleared keyspace is a no-op.
+  // Marker write is the **last** step. Two failure modes considered:
+  //   1. Crash mid-iteration (no marker): next boot re-runs and drops
+  //      surviving non-github-discussions rows; safe because re-running
+  //      over an already-tombstoned keyspace is a no-op.
+  //   2. Crash mid-iteration with marker-first ordering (rejected):
+  //      surviving non-github-discussions rows leak indefinitely because
+  //      the marker check short-circuits the next boot.
   await migrations.record(MIGRATION_ID, clock.now());
   logger?.info?.("migration", "complete", { id: MIGRATION_ID, dropped });
   return { dropped, skipped: false };

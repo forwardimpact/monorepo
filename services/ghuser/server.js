@@ -51,6 +51,12 @@ const flows = new FlowStore(storage, { clock });
 const grants = new GrantStore(storage, { clock });
 const migrations = new MigrationLedger(storage, { clock });
 
+// Migration must finish before any traffic. It does not depend on
+// `bridgeClient`, so it runs before the client is constructed; a throw
+// here propagates out of the top-level await, terminating the process
+// before `server.start()` — `fit-rc` then surfaces the service-down via
+// its standard path rather than serving traffic on a partially migrated
+// store.
 await dropPreFixBridgeProofBindings({
   bindings,
   migrations,
