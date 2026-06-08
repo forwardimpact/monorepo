@@ -11,8 +11,6 @@ import { loadTrustedIdpOrigins } from "@forwardimpact/libutil/trusted-origins";
 import { GhuserService } from "./index.js";
 import { BindingStore, FlowStore, GrantStore } from "./src/stores.js";
 import { createGithubOAuth } from "./src/github-oauth.js";
-import { MigrationLedger } from "./src/migrations/index.js";
-import { dropPreFixBridgeProofBindings } from "./src/migrations/drop-pre-fix-bridge-proof-bindings.js";
 
 const config = await createServiceConfig("ghuser", {
   client_id: "",
@@ -49,20 +47,6 @@ const { clock } = runtime;
 const bindings = new BindingStore(storage, { clock });
 const flows = new FlowStore(storage, { clock });
 const grants = new GrantStore(storage, { clock });
-const migrations = new MigrationLedger(storage, { clock });
-
-// Migration must finish before any traffic. It does not depend on
-// `bridgeClient`, so it runs before the client is constructed; a throw
-// here propagates out of the top-level await, terminating the process
-// before `server.start()` — `fit-rc` then surfaces the service-down via
-// its standard path rather than serving traffic on a partially migrated
-// store.
-await dropPreFixBridgeProofBindings({
-  bindings,
-  migrations,
-  clock,
-  logger,
-});
 
 const { BridgeClient } = clients;
 const bridgeConfig = await createServiceConfig("bridge");
@@ -87,7 +71,6 @@ await server.start();
 for (const sig of ["SIGINT", "SIGTERM"]) {
   process.on(sig, async () => {
     await service.shutdown();
-    await migrations.shutdown();
     process.exit(0);
   });
 }
