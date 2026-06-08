@@ -157,7 +157,7 @@ Install the CLI and explore what's available:
 ```sh
 npx fit-pathway skill --list        # Browse all skills
 npx fit-pathway job software_engineering J060          # Generate a job definition
-npx fit-outpost init ~/Documents/Team                 # Set up your personal ops center
+npx fit-outpost init ~/Documents/Team                 # Set up your personal ops center (macOS only)
 ```
 
 ### For Platform Builders and Agents
