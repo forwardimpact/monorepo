@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/librepl",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Agent-friendly interactive REPL — exploratory interfaces that humans and agents navigate the same way.",
   "keywords": [
     "repl",
