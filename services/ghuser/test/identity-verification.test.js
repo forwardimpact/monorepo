@@ -10,7 +10,13 @@ const TRUSTED = loadTrustedIdpOrigins("https://github.com");
 
 function createService(
   storage,
-  { getUserId = "12345", idpOrigin = "https://github.com" } = {},
+  {
+    getUserId = "12345",
+    idpOrigin = "https://github.com",
+    bridgeClient = {
+      VerifyPendingDispatch: async () => ({}),
+    },
+  } = {},
 ) {
   const config = createMockConfig("ghuser", {
     link_base_url: "http://localhost:3007",
@@ -26,6 +32,7 @@ function createService(
       idpOrigin,
       trustedOrigins: TRUSTED,
       ticketSecret: "test-secret",
+      bridgeClient,
       github: {
         authorizeUrl: () => "http://gh/authorize",
         exchangeCode: async () => ({
@@ -43,7 +50,112 @@ function createService(
 }
 
 describe("ghuser identity verification", () => {
-  test("matching id creates binding with github_user_id", async () => {
+  test("bridge-proof surface with no pending entry returns proof_missing", async () => {
+    const storage = createMockStorage();
+    const { service, bindings } = createService(storage, {
+      bridgeClient: {
+        VerifyPendingDispatch: async () => {
+          const err = new Error("NOT_FOUND");
+          err.code = 5;
+          throw err;
+        },
+      },
+    });
+
+    const result = await service.Begin({
+      surface: "msteams",
+      surface_user_id: "aad-victim",
+      client_state: "forged-token",
+    });
+
+    assert.strictEqual(result.outcome, "proof_missing");
+    assert.strictEqual(result.state, undefined);
+    const binding = await bindings.loadBinding("msteams", "aad-victim");
+    assert.strictEqual(binding, null, "no binding created");
+  });
+
+  test("bridge-proof surface with mismatched user returns proof_missing", async () => {
+    const storage = createMockStorage();
+    const { service, bindings } = createService(storage, {
+      bridgeClient: {
+        VerifyPendingDispatch: async () => {
+          const err = new Error("FAILED_PRECONDITION");
+          err.code = 9;
+          throw err;
+        },
+      },
+    });
+
+    const result = await service.Begin({
+      surface: "msteams",
+      surface_user_id: "aad-B",
+      client_state: "link-token-xyz",
+    });
+
+    assert.strictEqual(result.outcome, "proof_missing");
+    const binding = await bindings.loadBinding("msteams", "aad-B");
+    assert.strictEqual(binding, null);
+  });
+
+  test("bridge-proof surface with valid proof binds exactly once", async () => {
+    const storage = createMockStorage();
+    let calls = 0;
+    const { service, bindings } = createService(storage, {
+      bridgeClient: {
+        VerifyPendingDispatch: async () => {
+          calls += 1;
+          if (calls === 1) return {};
+          const err = new Error("FAILED_PRECONDITION");
+          err.code = 9;
+          throw err;
+        },
+      },
+    });
+
+    const first = await service.Begin({
+      surface: "msteams",
+      surface_user_id: "aad-victim",
+      client_state: "link-token-xyz",
+    });
+    assert.ok(first.state, "first Begin returns state");
+    const completion = await service.Complete({
+      code: "code1",
+      state: first.state,
+    });
+    assert.strictEqual(completion.outcome, undefined);
+    const binding = await bindings.loadBinding("msteams", "aad-victim");
+    assert.ok(binding, "binding written on first valid proof");
+
+    const second = await service.Begin({
+      surface: "msteams",
+      surface_user_id: "aad-victim",
+      client_state: "link-token-xyz",
+    });
+    assert.strictEqual(second.outcome, "proof_missing");
+  });
+
+  test("bridge transport error fails closed", async () => {
+    const storage = createMockStorage();
+    const { service, bindings } = createService(storage, {
+      bridgeClient: {
+        VerifyPendingDispatch: async () => {
+          throw new Error("network unreachable");
+        },
+      },
+    });
+
+    const result = await service.Begin({
+      surface: "msteams",
+      surface_user_id: "aad-victim",
+      client_state: "any-token",
+    });
+
+    assert.strictEqual(result.outcome, "proof_missing");
+    const binding = await bindings.loadBinding("msteams", "aad-victim");
+    assert.strictEqual(binding, null);
+  });
+
+  test("github-discussions matching id binds", async () => {
     const storage = createMockStorage();
     const { service, bindings } = createService(storage, {
       getUserId: "42",
@@ -61,7 +173,7 @@ describe("ghuser identity verification", () => {
     assert.strictEqual(binding.github_user_id, "42");
   });
 
-  test("mismatching id returns identity_mismatch and creates no binding", async () => {
+  test("github-discussions mismatched id returns identity_mismatch", async () => {
     const storage = createMockStorage();
     const { service, bindings } = createService(storage, {
       getUserId: "999",
@@ -78,25 +190,7 @@ describe("ghuser identity verification", () => {
     assert.strictEqual(binding, null, "no binding created");
   });
 
-  test("non-github-discussions surface is rejected at Begin (#1397 kill-switch)", async () => {
-    const storage = createMockStorage();
-    const { service, bindings } = createService(storage, {
-      getUserId: "999",
-    });
-
-    const result = await service.Begin({
-      surface: "msteams",
-      surface_user_id: "aad-obj-id",
-    });
-
-    assert.strictEqual(result.outcome, "surface_not_supported");
-    assert.strictEqual(result.upstream_authorize_url, undefined);
-    assert.strictEqual(result.state, undefined);
-    const binding = await bindings.loadBinding("msteams", "aad-obj-id");
-    assert.strictEqual(binding, null, "no binding created");
-  });
-
-  test("client_state round-trip: Begin stores it, Complete returns it", async () => {
+  test("client_state round-trip carried through to completion", async () => {
     const storage = createMockStorage();
     const { service } = createService(storage, { getUserId: "42" });
 

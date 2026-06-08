@@ -111,7 +111,7 @@ describe("oauth authorize (SC#2)", () => {
     assert.strictEqual(capturedClientState, "link-tok-99");
   });
 
-  test("/authorize maps Begin outcome to 503 (#1397 kill-switch)", async () => {
+  test("/authorize maps Begin proof_missing outcome to 503", async () => {
     const { app } = createOauthService({
       config: {
         issuer: "http://localhost:3007",
@@ -121,7 +121,7 @@ describe("oauth authorize (SC#2)", () => {
       },
       logger: { info: () => {}, error: () => {} },
       providerClient: {
-        Begin: async () => ({ outcome: "surface_not_supported" }),
+        Begin: async () => ({ outcome: "proof_missing" }),
         Complete: async () => ({}),
         Redeem: async () => ({}),
       },
@@ -132,7 +132,7 @@ describe("oauth authorize (SC#2)", () => {
     );
     assert.strictEqual(res.status, 503);
     const body = await res.json();
-    assert.strictEqual(body.error, "surface_not_supported");
+    assert.strictEqual(body.error, "proof_missing");
   });
 
   test("callback with completion_ticket appends &ticket= to redirect", async () => {

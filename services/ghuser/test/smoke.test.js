@@ -17,6 +17,7 @@ describe("ghuser smoke (SC#1)", () => {
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,
+      bridgeClient: { VerifyPendingDispatch: async () => ({}) },
       github: {
         authorizeUrl: () => "http://gh",
         exchangeCode: async () => ({}),
