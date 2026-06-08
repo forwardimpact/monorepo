@@ -106,4 +106,28 @@ no-gate path leaves it informational.
   threshold now gets a green build on agent failures. The guides call out the
   changed default explicitly so the looser semantics are not a surprise.
 
+## Amendment 1 — action fully aligned with the CLI flag interface
+
+Realizes spec § Amendment 1. No new monorepo components — the change lands in
+the sibling `forwardimpact/fit-benchmark` `action.yml` and one docs page here.
+
+| Component | Location | Role |
+|---|---|---|
+| Action input block | sibling `forwardimpact/fit-benchmark` `action.yml` | Remove the `k` input; add `pass-k`/`pass-threshold` inputs (no `default:`, so an unset input is omitted from the forwarded command line ⇒ no gate). The `Run benchmark` step appends `--pass-k`/`--pass-threshold` to `fit-benchmark run` only when the inputs are non-empty. |
+| CI-workflow guide | `websites/fit/docs/libraries/prove-changes/run-benchmark/ci-workflow/index.md` | Swap the `k` table row for `pass-k`/`pass-threshold` rows; keep the "all `run` flags are inputs" prose accurate. |
+
+**Key decision — validation stays in the CLI.** The action forwards inputs and
+inherits `parsePassGate`'s both-or-neither/range exit; it does **not** duplicate
+validation in `action.yml`. *Rejected:* pre-validating in the composite step
+(forks the validation contract across two repos and drifts from the CLI).
+
+**Key decision — empty-default omission, not pass-through of empty strings.**
+An unset input is omitted from the command rather than forwarded as
+`--pass-k ""`. *Rejected:* always forwarding the flags (an empty value would
+hit the CLI's range/parse path and fail a no-gate run that should be
+informational).
+
+Delivery and sequencing are unchanged from § Key Decisions (Issue-with-diff +
+SHA bump) and § Risks (action and CLI ship the rename together).
+
 — Claude (kata-design)
