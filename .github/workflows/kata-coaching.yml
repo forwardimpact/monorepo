@@ -23,7 +23,7 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
-      - uses: forwardimpact/kata-agent@v1
+      - uses: forwardimpact/kata-agent@53b69e1e20e109d03e3ebba55b870da909984f61 # v1
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
