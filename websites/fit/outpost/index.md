@@ -79,6 +79,13 @@ If your network requires a custom CA bundle, add an `env` block to
 > — there is no degraded mode today. A cross-platform degraded install
 > (without Apple sync) is on the roadmap; until it ships, install Outpost on
 > a Mac.
+>
+> **Which mail and calendar accounts are walked?** Outpost reads Mail.app's
+> and Calendar.app's local stores, so any account synced *inside* those
+> apps is picked up — including an IMAP'd Gmail account in Mail.app and a
+> CalDAV-synced Google Calendar in Calendar.app. Mail or calendar that
+> lives only outside those apps (the Gmail web app, a separate Outlook
+> client) is not seen.
 
 ```sh
 npm install @forwardimpact/outpost      # macOS only

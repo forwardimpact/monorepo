@@ -14,6 +14,12 @@ running as scheduled AI tasks in the background.
   `"os": ["darwin"]`. `npm install` fails on Linux and Windows with
   `EBADPLATFORM`. A cross-platform degraded install (without Apple sync) is
   on the roadmap; until it ships, install on a Mac.
+- **Mail and calendar accounts** — Outpost reads through Mail.app and
+  Calendar.app. Any account synced *inside* those apps is walked,
+  including an IMAP'd Gmail account in Mail.app and a CalDAV-synced
+  Google Calendar in Calendar.app. Mail or calendar that lives only
+  outside those apps (the Gmail web app, a separate Outlook client) is
+  not picked up.
 - Node.js 22+
 - npm
 - Claude Code installed via **Homebrew** (`brew install claude`) — Outpost
