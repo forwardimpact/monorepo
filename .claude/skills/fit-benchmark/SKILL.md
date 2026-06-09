@@ -20,10 +20,9 @@ unbiased estimator.
 
 ## Why a Separate Tool
 
-`fit-eval` is the generic agent-evaluation plumbing. `fit-benchmark` is
-the opinionated layer on top — a task-family format, hidden invariant checks,
-post-hoc judge, and multi-run aggregation. Keeping the two separate
-keeps `fit-eval` low-level while letting the benchmark layer evolve.
+`fit-eval` is the generic agent-evaluation plumbing; `fit-benchmark` is the
+opinionated layer on top — task-family format, hidden invariant checks,
+post-hoc judge, and multi-run aggregation.
 
 ## Task Family Format
 
@@ -36,6 +35,8 @@ under test:
   apm.lock.yaml          # skill-set manifest (hashed into skillSetHash)
   .env / .env.local      # env vars — loaded + rendered into each agent CWD
   .claude/               # pre-staged skills + agent profiles
+  workdir/               # optional — shared base copied into EVERY task CWD
+  specs/                 # optional — shared base copied into EVERY task CWD/specs
   tasks/<task-name>/
     agent.task.md         # agent prompt (required)
     .env / .env.local     # task env vars — loaded + rendered (gitignored)
@@ -43,27 +44,35 @@ under test:
     judge.task.md         # optional — judge prompt (see § Judge Template Variables)
     hooks/preflight.sh    # optional — smoke probe; exit 0 confirms scaffold
     hooks/invariants.sh   # optional — fd 3 = $RESULTS_FD for structured rows
-    specs/                # copied into agent CWD
-    workdir/              # copied into agent CWD
+    specs/                # copied into agent CWD (overlays family specs/)
+    workdir/              # copied into agent CWD (overlays family workdir/)
 ```
 
 Task IDs are directory names under `tasks/`. Local paths and git URLs
 are both accepted.
 
+**Family-level shared fixtures.** A `<family>/workdir/` or `<family>/specs/`
+is copied into every task's agent CWD as a shared base, then the per-task
+`workdir/`/`specs/` overlay on top (a per-task file wins over a same-named
+family file). Convention over configuration: present means copied, like
+`hooks/`. Use it to maintain one fixture (e.g. an app under test) across many
+tasks instead of duplicating it per task.
+
 ## Environment Variables
 
-The harness auto-discovers `.env` and `.env.local` in the family root
-and each task directory, loads them into `process.env`, and renders the
-merged result into the agent CWD before `preflight.sh`. `process.env`
-always wins. Locally, use `.env.local` (gitignored). In CI, set secrets
-as env vars. All discovered var names are added to the redaction allowlist.
+The harness auto-discovers `.env`/`.env.local` in the family root and each task
+directory, merges them into `process.env` (which wins), renders the result into
+the agent CWD before `preflight.sh`, and adds every discovered name to the
+redaction allowlist. Locally use `.env.local` (gitignored); in CI set secrets
+as env vars.
 
 ## Lifecycle
 
 For each `(task, runIndex)` the harness drives:
 
-1. **Setup** — copy `workdir/`, `specs/`, and the staged `.claude/` into a
-   fresh per-task CWD. Allocate a free TCP port. Run `hooks/preflight.sh`.
+1. **Setup** — copy the family-level `workdir/`/`specs/` (if present), then the
+   per-task `workdir/`/`specs/`, then the staged `.claude/`, into a fresh
+   per-task CWD. Allocate a free TCP port. Run `hooks/preflight.sh`.
 2. **Agent** — run the coding agent on `agent.task.md` with a default
    tool allow-list (`Bash`, `Read`, `Glob`, `Grep`, `Write`, `Edit`,
    `Agent`, `TodoWrite`). Override with `--allowed-tools`.
@@ -74,6 +83,21 @@ For each `(task, runIndex)` the harness drives:
    agent trace and calls `Conclude` with `success` or `failure`.
 5. **Teardown** — SIGTERM/SIGKILL the per-task process group, verify
    the port is free, and reap descendants.
+
+### Hook Environment Variables
+
+`preflight.sh` and `invariants.sh` both receive these (so hooks reference real
+paths instead of reconstructing them from `$0`):
+
+| Var | Value |
+| --- | --- |
+| `WORKDIR` | Agent CWD (the per-task copy). |
+| `PORT` | Allocated free TCP port. |
+| `TASK_ID` | Task name (directory under `tasks/`). |
+| `TASK_DIR` | Task directory on the host. |
+| `HOOKS_DIR` | The task's `hooks/` dir on the host — read hidden fixtures/tests from here. |
+| `FAMILY_DIR` | Family root on the host. |
+| `RESULTS_FD` | `invariants.sh` only — fd for NDJSON per-check rows (`=3`). |
 
 ## CLI
 
@@ -87,10 +111,9 @@ The full flag surface lives in [references/cli.md](references/cli.md).
 
 ## GitHub Action
 
-The `forwardimpact/fit-benchmark@v1` composite action wraps the CLI for
-GitHub Actions workflows. It installs dependencies, runs the benchmark,
-appends the report to the step summary, and uploads `results.jsonl` as
-a workflow artifact.
+The `forwardimpact/fit-benchmark@v1` composite action wraps the CLI: it
+installs deps, runs the benchmark, appends the report to the step summary, and
+uploads `results.jsonl`.
 
 ```yaml
 - uses: forwardimpact/fit-benchmark@v1
@@ -100,20 +123,9 @@ a workflow artifact.
     judge-profile: judge
 ```
 
-All CLI `run` flags are exposed as action inputs. Additional
-CI-specific inputs:
-
-| Input | Default | Purpose |
-| --- | --- | --- |
-| `summary` | `"true"` | Append text report to `GITHUB_STEP_SUMMARY` |
-| `upload-results` | `"true"` | Upload `results.jsonl` as a workflow artifact |
-| `artifact-name` | `"benchmark-results"` | Name for the uploaded artifact |
-| `timeout-minutes` | `"60"` | Maximum minutes before cancellation |
-| `k` | `"1,3,5"` | Comma-separated k values for the report |
-| `format` | `"text"` | Report format (`json` or `text`) |
-
-The action outputs `results-path` — the absolute path to
-`results.jsonl` — for downstream steps.
+All CLI `run` flags are action inputs, plus CI extras (`summary`,
+`upload-results`, `artifact-name`, `timeout-minutes`, `k`, `format`) and a
+`results-path` output — see the action README.
 
 | Command | Purpose |
 | --- | --- |
@@ -124,14 +136,12 @@ The action outputs `results-path` — the absolute path to
 ## Typical Workflow
 
 ```sh
-# 1. Run the family. One ResultRecord streams to stdout per (task, run).
 npx fit-benchmark run \
   --family=./families/coding \
   --agent-profile=coder \
-  --judge-profile=judge
+  --judge-profile=judge   # one ResultRecord per (task, run) to stdout
 
-# 2. Aggregate into pass@k.
-npx fit-benchmark report --format=text
+npx fit-benchmark report --format=text   # aggregate into pass@k
 ```
 
 ## Judge Template Variables
@@ -150,7 +160,7 @@ The `judge.task.md` template supports these variables:
 
 ## Grading Surfaces
 
-`hooks/invariants.sh` decides "pass" or "fail" using any of three surfaces:
+`hooks/invariants.sh` decides pass/fail via any of three surfaces:
 
 | Surface | Example |
 | --- | --- |
@@ -158,25 +168,18 @@ The `judge.task.md` template supports these variables:
 | **Repository state** | Assert the SHA-256 of `$WORKDIR/result.txt`. |
 | **Process exit** | Run a command in `$WORKDIR` and treat exit-zero as pass. |
 
-The exit code of `invariants.sh` is the verdict. Rows written to `fd 3` (i.e.
-`$RESULTS_FD`) are surfaced on the result record as `invariants.details[]`
-for diagnostic breakdowns.
-
 ## Result Records
 
-One record per `(taskId, runIndex)`, appended one per line to
-`<output>/results.jsonl`. Each record validates against a single
-declared schema (see [`benchmark/result.js`](https://github.com/forwardimpact/monorepo/blob/main/libraries/libeval/src/benchmark/result.js)).
-Records carry the skill-set hash, the family revision, the post-hoc judge
-verdict, the absolute trace paths, the cost, the turn count, and (on
-pre-flight failure) a `preflightError` describing why the scaffold
-didn't boot.
+One record per `(taskId, runIndex)`, appended to `<output>/results.jsonl`,
+each validating against a declared schema (see
+[`benchmark/result.js`](https://github.com/forwardimpact/monorepo/blob/main/libraries/libeval/src/benchmark/result.js)).
+Records carry the skill-set hash, family revision, judge verdict, trace paths,
+cost, turn count, and (on pre-flight failure) a `preflightError`.
 
 ## Handing Off to `fit-trace`
 
-Each run produces two NDJSON traces — one for the agent under test and
-one for the judge session. Both are consumable by `fit-trace overview`
-for post-hoc analysis.
+Each run produces agent and judge NDJSON traces, both consumable by
+`fit-trace overview`.
 
 ---
 

@@ -35,6 +35,7 @@ async function setupManager() {
       stagingDir,
       runOutputDir: out,
       termGraceMs: 200,
+      familyRootPath: family.rootPath,
       runtime: RT,
     }),
   };
@@ -72,6 +73,29 @@ describe("WorkdirManager.start", () => {
       import("node:fs").then((m) =>
         m.promises.access(join(wd.cwd, "hooks", "invariants.sh")),
       ),
+    );
+    await wm.teardown(wd);
+  });
+
+  test("copies family-level workdir/ + specs/, with per-task files overriding the shared base", async () => {
+    const { family, wm } = await setupManager();
+    const task = family.tasks().find((t) => t.id === "pass");
+    const wd = await wm.start(task, 0);
+    const fs = (await import("node:fs")).promises;
+    // family workdir/ file lands in the CWD
+    assert.strictEqual(
+      (await fs.readFile(join(wd.cwd, "SHARED.md"), "utf8")).trim(),
+      "family shared base",
+    );
+    // family specs/ file lands under cwd/specs
+    assert.strictEqual(
+      (await fs.readFile(join(wd.cwd, "specs", "shared.md"), "utf8")).trim(),
+      "family shared spec base",
+    );
+    // per-task workdir/README.md overlays (wins over) the family base README
+    assert.strictEqual(
+      (await fs.readFile(join(wd.cwd, "README.md"), "utf8")).trim(),
+      "Service scaffold lives here.",
     );
     await wm.teardown(wd);
   });

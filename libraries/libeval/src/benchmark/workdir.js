@@ -17,6 +17,7 @@ import { connect } from "node:net";
 import { join } from "node:path";
 
 import { loadEnv } from "./env-loader.js";
+import { buildHookEnv } from "./hook-env.js";
 
 const DEFAULT_TERM_GRACE_MS = 5_000;
 
@@ -73,6 +74,24 @@ export class WorkdirManager {
     const cwd = join(runDir, "cwd");
     await fs.mkdir(cwd, { recursive: true });
 
+    // Family-level shared fixtures: convention-over-configuration, copied if
+    // present. They form the shared base; the per-task workdir/specs below
+    // overlay on top (fs.cp defaults to force:true, so a per-task file wins).
+    if (this.familyRootPath) {
+      await fs
+        .cp(join(this.familyRootPath, "workdir"), cwd, { recursive: true })
+        .catch((e) => {
+          if (e.code !== "ENOENT") throw e;
+        });
+      await fs
+        .cp(join(this.familyRootPath, "specs"), join(cwd, "specs"), {
+          recursive: true,
+        })
+        .catch((e) => {
+          if (e.code !== "ENOENT") throw e;
+        });
+    }
+
     await fs.cp(task.paths.workdir, cwd, { recursive: true }).catch((e) => {
       if (e.code !== "ENOENT") throw e;
     });
@@ -107,7 +126,12 @@ export class WorkdirManager {
     const judgeTracePath = join(runDir, "judge.ndjson");
 
     const preflight = task.paths.preflight
-      ? await runPreflight(this.runtime, task.paths.preflight, cwd, port)
+      ? await runPreflight(this.runtime, task.paths.preflight, cwd, port, {
+          taskId: task.id,
+          taskDir: task.paths.taskDir,
+          hooksDir: task.paths.hooks,
+          familyDir: this.familyRootPath,
+        })
       : { pgid: 0 };
 
     return {
@@ -163,12 +187,13 @@ export class WorkdirManager {
  * @param {string} script
  * @param {string} cwd - Agent CWD passed via $WORKDIR.
  * @param {number} port - Free TCP port passed via $PORT.
+ * @param {{taskId?: string, taskDir?: string, hooksDir?: string, familyDir?: string|null}} [vars] - Extra hook env vars.
  * @returns {Promise<{pgid: number, error?: {phase: string, message: string, exitCode: number}}>}
  */
-async function runPreflight(runtime, script, cwd, port) {
+async function runPreflight(runtime, script, cwd, port, vars = {}) {
   const child = runtime.subprocess.spawn(script, [], {
     cwd,
-    env: { ...runtime.proc.env, WORKDIR: cwd, PORT: String(port) },
+    env: buildHookEnv(runtime.proc.env, { cwd, port, ...vars }),
     detached: true,
     stdio: ["ignore", "pipe", "pipe"],
   });

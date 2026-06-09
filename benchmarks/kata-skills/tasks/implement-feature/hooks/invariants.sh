@@ -1,6 +1,5 @@
 #!/bin/sh
 set -u
-HOOK_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
 APP="$WORKDIR/app"
 FAIL=0
 
@@ -12,7 +11,7 @@ fi
 # Drop in the hidden feature test (the agent never saw it), then run the full
 # suite: baseline tests guard against regressions, the hidden test proves the
 # --filter feature. Exit code is the verdict.
-cp "$HOOK_DIR/feature.test.js" "$APP/test/feature.test.js"
+cp "$HOOKS_DIR/feature.test.js" "$APP/test/feature.test.js"
 if (cd "$APP" && node --test >/dev/null 2>&1); then
   echo "{\"test\":\"tests-pass\",\"pass\":true}" >&"$RESULTS_FD"
 else
