@@ -11,6 +11,11 @@ your role.
 
 - Node.js 22+
 - npm
+- Agent-aligned engineering standard data at `data/pathway/`. If your
+  organization hasn't distributed a bundle, generate starter data with
+  `npx fit-map init` (see [Initialize standard data](#initialize-standard-data)
+  below). Without this, every `fit-pathway` command exits with a
+  data-directory-not-found error.
 
 ## Install
 
@@ -20,8 +25,7 @@ npm install @forwardimpact/pathway
 
 ## Initialize standard data
 
-If your organization hasn't provided a standard data bundle, bootstrap starter
-data to explore with:
+Run this unless your organization has distributed a standard data bundle:
 
 ```sh
 npx fit-map init
