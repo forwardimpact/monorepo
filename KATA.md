@@ -143,9 +143,10 @@ cross-cutting fallback.
 false`). **kata-dispatch** is the event-driven counterpart — the release
 engineer facilitates and routes to the best-suited agent. For bridge-dispatched
 messages, `libeval` discuss mode enables multi-turn threaded conversations
-spanning days via `Recess`/`Adjourn`. Concurrency group per artifact with
-`cancel-in-progress: false`. All workflows support `workflow_dispatch` and
-time out at 45 minutes.
+spanning days via `Recess`/`Adjourn`. kata-dispatch groups concurrency per
+artifact (issue/PR) with `cancel-in-progress: false` so cascaded events stack;
+storyboard, coaching, and interview each use a single global group. All
+workflows support `workflow_dispatch`.
 
 ## Skills
 
