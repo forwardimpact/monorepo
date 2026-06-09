@@ -10,8 +10,9 @@ roles, generate job definitions, and preview everything in the browser.
 
 - Node.js 22+
 - npm
-- Standard data initialized (see
-  [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/))
+- Standard data initialized via `npx fit-map init` (see
+  [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/)
+  for the full setup)
 
 ## Install
 
