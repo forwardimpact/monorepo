@@ -83,7 +83,17 @@ npx fit-landmark readiness --email <email> [--target <level>]
 npx fit-landmark timeline --email <email> [--skill <id>]
 npx fit-landmark coverage --email <email>
 npx fit-landmark practiced --manager <email>
+npx fit-landmark practice [--skill <id>] [--manager <email>]
 ```
+
+#### Engineer Data
+
+```sh
+npx fit-landmark sources [--email <email>]
+```
+
+Inventory of activity row classes Landmark retains about an engineer —
+transparency view for the engineer asking what data the system holds.
 
 #### Health
 
