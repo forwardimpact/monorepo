@@ -53,6 +53,7 @@ function build(
     idpOrigin,
     trustedOrigins: loadTrustedIdpOrigins(trustedOriginsRaw),
     ticketSecret,
+    bridgeClient: { VerifyPendingDispatch: async () => ({}) },
     github: {
       authorizeUrl: () => "http://gh/authorize",
       exchangeCode: async () => ({

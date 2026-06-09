@@ -18,6 +18,7 @@ describe("ghuser query-linked (SC#4)", () => {
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,
+      bridgeClient: { VerifyPendingDispatch: async () => ({}) },
       github: {
         authorizeUrl: () => "",
         exchangeCode: async () => ({}),
@@ -54,6 +55,7 @@ describe("ghuser query-linked (SC#4)", () => {
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,
+      bridgeClient: { VerifyPendingDispatch: async () => ({}) },
       github: {
         authorizeUrl: () => "",
         exchangeCode: async () => ({}),

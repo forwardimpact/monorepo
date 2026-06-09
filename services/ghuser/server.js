@@ -2,7 +2,7 @@
 import "@forwardimpact/libpreflight/node22";
 
 import { assertNonEmpty } from "@forwardimpact/libpreflight/assert-non-empty.js";
-import { Server, createTracer } from "@forwardimpact/librpc";
+import { clients, Server, createTracer } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createStorage } from "@forwardimpact/libstorage";
@@ -48,6 +48,10 @@ const bindings = new BindingStore(storage, { clock });
 const flows = new FlowStore(storage, { clock });
 const grants = new GrantStore(storage, { clock });
 
+const { BridgeClient } = clients;
+const bridgeConfig = await createServiceConfig("bridge");
+const bridgeClient = new BridgeClient(bridgeConfig, runtime, logger, tracer);
+
 const service = new GhuserService(config, {
   bindings,
   flows,
@@ -57,6 +61,8 @@ const service = new GhuserService(config, {
   idpOrigin: config.idp_origin,
   trustedOrigins,
   ticketSecret: config.link_completion_ticket_secret,
+  bridgeClient,
+  logger,
 });
 const server = new Server(service, config, { logger, tracer, runtime });
 

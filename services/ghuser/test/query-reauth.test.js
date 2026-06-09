@@ -19,6 +19,7 @@ describe("ghuser query-reauth (SC#6)", () => {
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,
+      bridgeClient: { VerifyPendingDispatch: async () => ({}) },
       github: {
         authorizeUrl: () => "",
         exchangeCode: async () => ({}),
@@ -60,6 +61,7 @@ describe("ghuser query-reauth (SC#6)", () => {
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,
+      bridgeClient: { VerifyPendingDispatch: async () => ({}) },
       github: {
         authorizeUrl: () => "",
         exchangeCode: async () => ({}),
@@ -97,6 +99,7 @@ describe("ghuser query-reauth (SC#6)", () => {
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,
+      bridgeClient: { VerifyPendingDispatch: async () => ({}) },
       github: {
         authorizeUrl: () => "",
         exchangeCode: async () => ({}),

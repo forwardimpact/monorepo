@@ -17,6 +17,7 @@ describe("ghuser query-unlinked (SC#5)", () => {
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,
+      bridgeClient: { VerifyPendingDispatch: async () => ({}) },
       github: {
         authorizeUrl: () => "",
         exchangeCode: async () => ({}),

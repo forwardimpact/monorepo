@@ -18,6 +18,7 @@ describe("ghuser query-contract (SC#8)", () => {
       flows: new FlowStore(storage, { clock }),
       grants: new GrantStore(storage, { clock }),
       clock,
+      bridgeClient: { VerifyPendingDispatch: async () => ({}) },
       github: {
         authorizeUrl: () => "",
         exchangeCode: async () => ({}),

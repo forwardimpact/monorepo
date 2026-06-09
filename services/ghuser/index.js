@@ -2,28 +2,12 @@ import crypto from "node:crypto";
 import { services } from "@forwardimpact/librpc";
 import { mintCompletionTicket } from "@forwardimpact/libutil/completion-ticket";
 import { isTrusted } from "@forwardimpact/libutil/trusted-origins";
+import { lookupContract } from "./src/identity-contracts.js";
 import { RevokedError } from "./src/github-oauth.js";
 
 const { GhuserBase } = services;
 
 const EXPIRY_BUFFER_MS = 5 * 60 * 1000;
-const GITHUB_ID_SURFACES = new Set(["github-discussions"]);
-
-// Begin only links surfaces whose `surface_user_id` is a verifiable GitHub
-// identity. For other surfaces (e.g. msteams aad-obj-id, slack user id) the
-// GitHub-side identity check in `Complete` cannot bind to the asserted
-// surface_user_id, so an attacker could bind their own token under an
-// arbitrary victim's surface_user_id. Until a per-surface proof-of-intent
-// contract gates `Begin`, only github-discussions is permitted.
-const BEGIN_ALLOWED_SURFACES = new Set(["github-discussions"]);
-
-// GetToken returns `link_required` for surfaces outside this set even when a
-// binding record exists, suppressing dispatch under records that may have
-// been planted before the surface allowlist gated `Begin`. Records remain in
-// BindingStore; the proof-of-intent migration is the canonical invalidation
-// point and lifts both this restriction and `BEGIN_ALLOWED_SURFACES` at the
-// same release boundary.
-const DISPATCH_ALLOWED_SURFACES = new Set(["github-discussions"]);
 
 /**
  * GitHub user authentication service — Kata Agent User App token lifecycle.
@@ -39,6 +23,8 @@ export class GhuserService extends GhuserBase {
   #idpOrigin;
   #trustedOrigins;
   #ticketSecret;
+  #bridgeClient;
+  #logger;
 
   /**
    * @param {object} config
@@ -58,6 +44,12 @@ export class GhuserService extends GhuserBase {
    *   in the trusted set returns `untrusted_origin` instead of binding.
    * @param {string} deps.ticketSecret Shared HMAC secret across ghuser,
    *   ghbridge, and msbridge. Rotation policy documented in TRUST.md.
+   * @param {object} deps.bridgeClient `services/bridge` gRPC client used by
+   *   the `bridge_pending_dispatch_proof` identity contract at `Begin`.
+   * @param {object} [deps.logger] Optional injected logger. When present,
+   *   the identity-proof contract emits a debug-level crumb on every
+   *   fail-closed outcome, letting operators distinguish a bridge outage
+   *   from a legitimate negative result without altering the outcome shape.
    */
   constructor(
     config,
@@ -70,10 +62,13 @@ export class GhuserService extends GhuserBase {
       idpOrigin,
       trustedOrigins,
       ticketSecret,
+      bridgeClient,
+      logger,
     },
   ) {
     super(config);
     if (!clock) throw new Error("clock is required");
+    if (!bridgeClient) throw new Error("bridgeClient is required");
     this.#bindings = bindings;
     this.#flows = flows;
     this.#grants = grants;
@@ -83,6 +78,8 @@ export class GhuserService extends GhuserBase {
     this.#idpOrigin = idpOrigin;
     this.#trustedOrigins = trustedOrigins;
     this.#ticketSecret = ticketSecret;
+    this.#bridgeClient = bridgeClient;
+    this.#logger = logger;
   }
 
   /**
@@ -90,9 +87,16 @@ export class GhuserService extends GhuserBase {
    * @returns {Promise<object>}
    */
   async Begin(req) {
-    if (!BEGIN_ALLOWED_SURFACES.has(req.surface)) {
-      return { outcome: "surface_not_supported" };
+    const contract = lookupContract(req.surface);
+    if (contract.evaluatedAt === "Begin") {
+      const { outcome } = await contract.evaluate({
+        req,
+        bridgeClient: this.#bridgeClient,
+        logger: this.#logger,
+      });
+      if (outcome !== "ok") return { outcome };
     }
+
     const state = crypto.randomUUID();
     const redirectUri = `${this.#linkBaseUrl}/callback`;
 
@@ -130,11 +134,13 @@ export class GhuserService extends GhuserBase {
       await this.#github.getUser(tokens.access_token),
     );
 
-    if (
-      GITHUB_ID_SURFACES.has(flow.surface) &&
-      authorizedGithubId !== flow.surface_user_id
-    ) {
-      return { outcome: "identity_mismatch" };
+    const contract = lookupContract(flow.surface);
+    if (contract.evaluatedAt === "Complete") {
+      const { outcome } = await contract.evaluate({
+        flow,
+        authorizedGithubId,
+      });
+      if (outcome !== "ok") return { outcome };
     }
 
     if (!isTrusted(this.#idpOrigin, this.#trustedOrigins)) {
@@ -231,7 +237,7 @@ export class GhuserService extends GhuserBase {
       req.surface_user_id,
     );
 
-    if (!binding || !DISPATCH_ALLOWED_SURFACES.has(req.surface)) {
+    if (!binding) {
       const authorizeUrl = `${this.#linkBaseUrl}/authorize?surface=${encodeURIComponent(req.surface)}&surface_user_id=${encodeURIComponent(req.surface_user_id)}`;
       return {
         result: "link_required",
