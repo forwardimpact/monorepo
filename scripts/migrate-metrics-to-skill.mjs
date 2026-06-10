@@ -12,7 +12,7 @@ import path from "node:path";
 // This one-shot ran against the pre-spec-1540 six-column schema; the
 // header is frozen locally so the script's record of what it did stays
 // accurate as the live schema evolves.
-const EXPECTED_HEADER = "date,metric,value,unit,run,note";
+const PRE_1540_HEADER = "date,metric,value,unit,run,note";
 
 const WIKI_METRICS = path.resolve("wiki/metrics");
 
@@ -43,7 +43,7 @@ for (const [source, skill] of Object.entries(MAPPING)) {
       .trim();
     const lines = content.split("\n");
     const header = lines[0];
-    if (header !== EXPECTED_HEADER) {
+    if (header !== PRE_1540_HEADER) {
       console.error(`unexpected header in ${csvPath}: ${header}`);
       process.exit(1);
     }
@@ -75,7 +75,7 @@ for (const { skill, year, rows, sources } of Object.values(skillRows)) {
   const targetDir = path.join(WIKI_METRICS, skill);
   mkdirSync(targetDir, { recursive: true });
   const targetPath = path.join(targetDir, `${year}.csv`);
-  writeFileSync(targetPath, EXPECTED_HEADER + "\n" + rows.join("\n") + "\n");
+  writeFileSync(targetPath, PRE_1540_HEADER + "\n" + rows.join("\n") + "\n");
 
   totalSourceRows += rows.length;
   totalOutputRows += rows.length;
