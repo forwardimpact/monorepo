@@ -25,7 +25,7 @@ security policies.
 <do_confirm_checklist goal="Verify dependency PR meets repo policies">
 
 - [ ] All CI checks pass.
-- [ ] Actions pinned to SHA with version comment.
+- [ ] Actions pinned to SHA with version comment; bumps move forward.
 - [ ] No duplicate dependencies.
 - [ ] Version ranges aligned across workspaces.
 - [ ] `npm audit` clean (`--audit-level=high`).
@@ -50,19 +50,28 @@ each check to its policy source and failure action — merge, fix, close, or ski
 | Clean npm audit          | CONTRIBUTING.md § Dependency Policy | **close** if new vuln; **skip** if pre-existing               |
 | No unnecessary deps      | CONTRIBUTING.md § Dependency Policy | **close** with explanation                                    |
 | First-party actions only | kata-security-audit § 1             | **close** with explanation                                    |
+| Pin direction (forward)  | CONTRIBUTING.md § Security          | **close** — record detection evidence; route lagging tag to release-engineer |
 | Peer/transitive compat   | CONTRIBUTING.md § Dependency Policy | **close** until co-dependent packages release compat versions |
 | Override-range shadowing | CONTRIBUTING.md § Dependency Policy | **fix** — open follow-up override-bump PR before merging      |
 
 When evaluating the SHA-pinning check, verify the PR updates **all** workflow
 files referencing the action. See `references/sha-inventory.md` for the full
-action-to-workflow mapping.
+action-to-workflow mapping. Also verify pin **direction**:
+`gh api repos/{owner}/{repo}/compare/{old}...{new} --jq .status` must return
+`ahead`; `behind` or `diverged` is a downgrade — **close** even with green CI
+and route a tag-hygiene issue to release-engineer (a mutable major tag lags
+the release Dependabot tracks via the `# v1` comment).
+
+A downgrade close is still **detection evidence** that Dependabot reads SHA
+pins: before closing, check boot memory for an open watchpoint tracking that
+detection and comment there with the closed PR, both SHAs, and compare status.
 
 ## Process
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract previous triage outcomes and packages that
-repeatedly fail Check 8.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed this Process.
+Extract previous triage outcomes and packages that repeatedly fail Check 8.
 
 ### Step 1: List Open Dependabot PRs
 
@@ -95,9 +104,7 @@ stale override floor; a root override below a workspace range silently floors
 that workspace under the policy minimum.
 
 **Scope.** Fire on **any** PR whose diff touches `*/package.json` or root
-`package.json` — Dependabot, agent-authored, or direct human edits. Originally
-piloted on Dependabot bundles; widened to all vectors after a non-Dependabot
-case (a floor-shadow on an agent-authored bump) tripped the same hazard.
+`package.json` — Dependabot, agent-authored, or direct human edits.
 
 **Procedure.**
 
