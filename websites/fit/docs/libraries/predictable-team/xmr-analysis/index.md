@@ -19,24 +19,33 @@ behaves.
 
 ## Prepare the CSV
 
-`fit-xmr` expects the header `date,metric,value,unit,run,note` with one row per
-observation:
+`fit-xmr` expects the header `date,metric,value,unit,run,note,event_type` with
+one row per observation:
 
 ```csv
-date,metric,value,unit,run,note
-2026-01-06,cycle_time,4.2,days,,
-2026-01-07,cycle_time,3.8,days,,
-2026-01-08,cycle_time,5.1,days,,first Monday spike
+date,metric,value,unit,run,note,event_type
+2026-01-06,cycle_time,4.2,days,,,kata-shift
+2026-01-07,cycle_time,3.8,days,,,kata-shift
+2026-01-08,cycle_time,5.1,days,,first Monday spike,kata-shift
 ```
 
-| Field    | Required | Notes                                                               |
-| -------- | -------- | ------------------------------------------------------------------- |
-| `date`   | yes      | ISO 8601 (`YYYY-MM-DD`). Sort key.                                  |
-| `metric` | yes      | Metric name. One CSV may carry multiple metrics; they are grouped.  |
-| `value`  | yes      | Numeric. Non-numeric values are rejected by `validate`.             |
-| `unit`   | yes      | Free text (`count`, `days`, `pct`, ...). Empty `unit` is rejected.  |
-| `run`    | no       | URL or identifier of the run that produced this observation.        |
-| `note`   | no       | Free text. Use it to record what you discovered when a signal fires.|
+| Field        | Required | Notes                                                               |
+| ------------ | -------- | ------------------------------------------------------------------- |
+| `date`       | yes      | ISO 8601 (`YYYY-MM-DD`). Sort key.                                  |
+| `metric`     | yes      | Metric name. One CSV may carry multiple metrics; they are grouped.  |
+| `value`      | yes      | Numeric. Non-numeric values are rejected by `validate`.             |
+| `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). Empty `unit` is rejected.  |
+| `run`        | no       | URL or identifier of the run that produced this observation.        |
+| `note`       | no       | Free text. Use it to record what you discovered when a signal fires.|
+| `event_type` | yes      | The workflow that recorded the row — its filename without `.yml`.   |
+
+`event_type` keeps structurally different work out of the same baseline: a
+30-second boot-and-yield and a 20-minute end-to-end run recorded against one
+metric would drag μ toward the cheaper shape and flag every real run as an
+outlier. The read commands therefore analyze one slice at a time — `kata-shift`
+by default — and name the active slice in their output. Pass
+`--event-type <name>` for a different slice, or `--event-type '*'` to see the
+unfiltered series.
 
 Validate the file before analysis:
 
