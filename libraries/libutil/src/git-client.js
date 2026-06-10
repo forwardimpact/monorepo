@@ -56,14 +56,17 @@ export class GitClient {
     return this.#runRaw(args, { cwd });
   }
 
-  /** Return `git status --porcelain` output. */
-  async status({ cwd }) {
-    return this.#runRaw(["status", "--porcelain"], { cwd });
+  /** Return `git status --porcelain` output, optionally limited to `paths`. */
+  async status({ cwd, paths } = {}) {
+    const args = ["status", "--porcelain"];
+    if (paths?.length) args.push("--", ...paths);
+    return this.#runRaw(args, { cwd });
   }
 
   /** Rebase the current branch onto `upstream`, optionally with a merge strategy. */
-  async rebase(upstream, { cwd, strategy } = {}) {
+  async rebase(upstream, { cwd, strategy, autostash = false } = {}) {
     const args = ["rebase"];
+    if (autostash) args.push("--autostash");
     if (strategy) args.push("-X", strategy);
     args.push(upstream);
     return this.#runRaw(args, { cwd, allowFailure: true });
@@ -75,8 +78,11 @@ export class GitClient {
   }
 
   /** Merge `ref` into the current branch resolving conflicts with `-X ours`. */
-  async mergeOursStrategy({ cwd, ref }) {
-    return this.#runRaw(["merge", "-X", "ours", "--no-edit", ref], { cwd });
+  async mergeOursStrategy({ cwd, ref, autostash = false }) {
+    const args = ["merge"];
+    if (autostash) args.push("--autostash");
+    args.push("-X", "ours", "--no-edit", ref);
+    return this.#runRaw(args, { cwd });
   }
 
   /** Stage all changes and commit with `message`. */
@@ -84,6 +90,19 @@ export class GitClient {
     await this.#runRaw(["add", "-A"], { cwd });
     const args = ["commit", "-m", message];
     if (author) args.push("--author", author);
+    return this.#runRaw(args, { cwd });
+  }
+
+  /**
+   * Stage and commit only `paths`, leaving the rest of the working tree
+   * untouched. The commit carries the same pathspec so content staged by
+   * other writers is never swept in.
+   */
+  async commitPaths(message, paths, { cwd, author } = {}) {
+    await this.#runRaw(["add", "--", ...paths], { cwd });
+    const args = ["commit", "-m", message];
+    if (author) args.push("--author", author);
+    args.push("--", ...paths);
     return this.#runRaw(args, { cwd });
   }
 

@@ -22,7 +22,9 @@ async function pushWiki(wikiSync, runtime, message) {
   if (!wikiSync) return;
   try {
     await wikiSync.inheritIdentity();
-    const result = await wikiSync.commitAndPush(message);
+    // claim/release contract is a 1-line MEMORY.md change; the pathspec keeps
+    // foreign uncommitted files from parallel writers out of the commit.
+    const result = await wikiSync.commitAndPush(message, ["MEMORY.md"]);
     if (result.pushed)
       runtime.proc.stdout.write("push: committed and pushed\n");
   } catch (err) {

@@ -99,6 +99,40 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
     });
   });
 
+  test("claim and release push with a MEMORY.md pathspec only", async () => {
+    const fsSync = createMockFs({ [MEMORY_PATH]: EMPTY_CLAIMS });
+    const pushes = [];
+    const wikiSync = {
+      async inheritIdentity() {},
+      async commitAndPush(message, paths) {
+        pushes.push({ message, paths });
+        return { pushed: true, reason: "pushed" };
+      },
+    };
+    const ctxWith = (options) =>
+      ctxFor({
+        runtime: makeRuntime({ fsSync }).runtime,
+        wikiSync,
+        options: { "wiki-root": WIKI_ROOT, ...options },
+      });
+    await runClaimCommand(
+      ctxWith({
+        agent: "staff-engineer",
+        target: "spec-NNNN",
+        branch: "feat/x",
+        today: "2099-01-01",
+      }),
+    );
+    await runReleaseCommand(
+      ctxWith({ agent: "staff-engineer", target: "spec-NNNN" }),
+    );
+    await runReleaseCommand(ctxWith({ expired: true, today: "2099-01-01" }));
+    assert.equal(pushes.length, 3);
+    for (const push of pushes) {
+      assert.deepEqual(push.paths, ["MEMORY.md"]);
+    }
+  });
+
   test("claim succeeds locally when the wiki push fails", async () => {
     const fsSync = createMockFs({ [MEMORY_PATH]: EMPTY_CLAIMS });
     const harness = makeRuntime({ fsSync });
