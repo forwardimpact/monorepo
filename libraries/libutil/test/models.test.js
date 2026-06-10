@@ -17,14 +17,18 @@ describe("models", () => {
     }
   });
 
-  test("AGENT_MODEL carries the 1M-context suffix", () => {
+  test("long-session roles carry the 1M-context suffix", () => {
+    // Agents and leads both run long multi-turn sessions; leads
+    // orchestrate entire multi-agent meetings on top of that.
     assert.ok(models.AGENT_MODEL.endsWith("[1m]"));
+    assert.ok(models.LEAD_MODEL.endsWith("[1m]"));
   });
 
-  test("LEAD_MODEL is AGENT_MODEL's family without the context suffix", () => {
-    assert.strictEqual(
-      models.LEAD_MODEL,
-      models.AGENT_MODEL.replace("[1m]", ""),
-    );
+  test("direct Messages API roles use plain model IDs", () => {
+    // The [1m] suffix is an Agent SDK identifier; these constants are
+    // also passed to the raw API (fit-terrain, examples) where a
+    // suffixed ID would 404.
+    assert.ok(!models.CHAT_MODEL.includes("["));
+    assert.ok(!models.FAST_MODEL.includes("["));
   });
 });

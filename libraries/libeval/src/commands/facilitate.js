@@ -4,7 +4,7 @@ import { createFacilitator } from "../facilitator.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { resolveTaskContent } from "./task-input.js";
-import { AGENT_MODEL } from "@forwardimpact/libutil/models";
+import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 /**
  * Parse comma-separated agent profile names into structured configs.
@@ -52,7 +52,7 @@ export function parseFacilitateOptions(values, runtime) {
     agentConfigs,
     facilitatorCwd: resolve(values["facilitator-cwd"] ?? "."),
     agentModel: values["agent-model"] ?? AGENT_MODEL,
-    facilitatorModel: values["lead-model"] ?? AGENT_MODEL,
+    facilitatorModel: values["lead-model"] ?? LEAD_MODEL,
     maxTurns,
     outputPath: values.output,
     facilitatorProfile: values["lead-profile"] ?? undefined,

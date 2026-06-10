@@ -15,7 +15,7 @@ import {
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
-import { FAST_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
+import { CHAT_MODEL, FAST_MODEL } from "@forwardimpact/libutil/models";
 
 import {
   createPipeline,
@@ -104,7 +104,7 @@ const definition = {
       },
       examples: [
         "bunx fit-terrain generate",
-        `bunx fit-terrain generate --model=${LEAD_MODEL}`,
+        `bunx fit-terrain generate --model=${CHAT_MODEL}`,
       ],
     },
     {

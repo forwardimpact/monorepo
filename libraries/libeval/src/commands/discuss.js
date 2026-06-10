@@ -4,7 +4,7 @@ import { createDiscusser } from "../discusser.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { resolveTaskContent } from "./task-input.js";
-import { AGENT_MODEL } from "@forwardimpact/libutil/models";
+import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 function parseAgentProfiles(raw, cwd, maxTurns) {
   if (!raw) return [];
@@ -53,7 +53,7 @@ export function parseDiscussOptions(values, runtime) {
     taskAmend,
     agentConfigs,
     leadProfile: values["lead-profile"] ?? undefined,
-    leadModel: values["lead-model"] ?? AGENT_MODEL,
+    leadModel: values["lead-model"] ?? LEAD_MODEL,
     agentModel: values["agent-model"] ?? AGENT_MODEL,
     maxTurns,
     maxLeadTurns,

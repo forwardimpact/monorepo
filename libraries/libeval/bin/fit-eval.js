@@ -13,7 +13,7 @@ import { runSuperviseCommand } from "../src/commands/supervise.js";
 import { runFacilitateCommand } from "../src/commands/facilitate.js";
 import { runDiscussCommand } from "../src/commands/discuss.js";
 import { runCallbackCommand } from "../src/commands/callback.js";
-import { AGENT_MODEL } from "@forwardimpact/libutil/models";
+import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 const LEAD_OPTIONS = {
   "lead-profile": {
@@ -22,7 +22,7 @@ const LEAD_OPTIONS = {
   },
   "lead-model": {
     type: "string",
-    description: `Claude model for the lead role (default: ${AGENT_MODEL})`,
+    description: `Claude model for the lead role (default: ${LEAD_MODEL})`,
   },
 };
 

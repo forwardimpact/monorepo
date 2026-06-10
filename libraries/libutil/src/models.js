@@ -10,16 +10,19 @@
  */
 
 /**
- * Long-horizon agent and lead roles (eval sessions, facilitation,
- * supervision) — most capable model with the 1M-context suffix.
+ * Long-horizon agents under direct evaluation (eval sessions) — most
+ * capable model with the 1M-context suffix.
  */
 export const AGENT_MODEL = "claude-fable-5[1m]";
 
 /**
- * Benchmark lead and judge roles — same family as AGENT_MODEL, standard
- * context window (benchmark sessions are short).
+ * Lead roles — supervisor, facilitator, discussion lead, benchmark
+ * lead, and judge. Leads orchestrate whole multi-agent sessions, so
+ * they get the most capable model with the 1M-context suffix. The
+ * suffix is an Agent SDK identifier; use CHAT_MODEL or FAST_MODEL for
+ * direct Messages API calls.
  */
-export const LEAD_MODEL = "claude-fable-5";
+export const LEAD_MODEL = "claude-fable-5[1m]";
 
 /**
  * Benchmark agent-under-test — a pinned reference model so pass@k
@@ -29,7 +32,11 @@ export const LEAD_MODEL = "claude-fable-5";
  */
 export const BENCHMARK_AGENT_MODEL = "claude-sonnet-4-6";
 
-/** Interactive chat (fit-guide) — best speed/intelligence balance. */
+/**
+ * Interactive chat (fit-guide) and direct Messages API calls — best
+ * speed/intelligence balance, valid both as an Agent SDK and a raw
+ * API model ID.
+ */
 export const CHAT_MODEL = "claude-sonnet-4-6";
 
 /**

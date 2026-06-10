@@ -5,7 +5,7 @@ import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { resolveTaskContent } from "./task-input.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
-import { AGENT_MODEL } from "@forwardimpact/libutil/models";
+import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 /**
  * Parse all supervise flags from parsed values into an options object.
@@ -32,7 +32,7 @@ export async function parseSuperviseOptions(values, runtime) {
     supervisorCwd: resolve(values["supervisor-cwd"] ?? "."),
     agentCwd,
     agentModel: values["agent-model"] ?? AGENT_MODEL,
-    supervisorModel: values["lead-model"] ?? AGENT_MODEL,
+    supervisorModel: values["lead-model"] ?? LEAD_MODEL,
     maxTurns: (() => {
       const raw = values["max-turns"] ?? "200";
       return raw === "0" ? 0 : parseInt(raw, 10);
