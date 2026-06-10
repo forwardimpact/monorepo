@@ -30,6 +30,11 @@ const definition = {
           short: "m",
           description: "Filter to a single metric by name",
         },
+        "event-type": {
+          type: "string",
+          description:
+            "Filter rows by event_type machine name; use '*' for all rows",
+        },
       },
       handler: runAnalyzeCommand,
     },
@@ -46,6 +51,11 @@ const definition = {
           description:
             "Metric name (optional when the CSV carries exactly one metric)",
         },
+        "event-type": {
+          type: "string",
+          description:
+            "Filter rows by event_type machine name; use '*' for all rows",
+        },
       },
       handler: runChartCommand,
     },
@@ -54,6 +64,13 @@ const definition = {
       args: ["csv-path"],
       argsUsage: "<csv-path>",
       description: "List metrics with counts and date ranges",
+      options: {
+        "event-type": {
+          type: "string",
+          description:
+            "Filter rows by event_type machine name; use '*' for all rows",
+        },
+      },
       handler: runListCommand,
     },
     {
@@ -74,6 +91,11 @@ const definition = {
           type: "string",
           short: "m",
           description: "Filter to a single metric by name",
+        },
+        "event-type": {
+          type: "string",
+          description:
+            "Filter rows by event_type machine name; use '*' for all rows",
         },
       },
       handler: runSummarizeCommand,
@@ -107,6 +129,11 @@ const definition = {
         note: {
           type: "string",
           description: "Contextual note (optional)",
+        },
+        "event-type": {
+          type: "string",
+          description:
+            "Workflow machine name; falls back to $GITHUB_WORKFLOW_REF basename",
         },
         date: {
           type: "string",
@@ -149,6 +176,8 @@ const definition = {
     "fit-xmr summarize wiki/metrics/kata-security-audit/2026.csv",
     "fit-xmr summarize wiki/metrics/kata-security-audit/2026.csv --format json",
     "fit-xmr record --skill kata-product-issue --metric issues_triaged --value 3",
+    "fit-xmr analyze wiki/metrics/staff-engineer/2026.csv --event-type kata-shift",
+    "fit-xmr record --skill kata-spec --metric specs_drafted --value 1 --event-type kata-dispatch",
   ],
   documentation: [
     {

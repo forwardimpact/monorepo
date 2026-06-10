@@ -1,4 +1,4 @@
-import { EXPECTED_HEADER, ISO_DATE_RE } from "./constants.js";
+import { COLUMNS, HEADER, ISO_DATE_RE } from "./constants.js";
 
 // Parse one CSV line into a row object. Quote-aware but does NOT support
 // the `""` escape inside quoted fields — Kata-metrics CSVs use the `note`
@@ -28,6 +28,7 @@ export function parseLine(line) {
     unit: fields[3] || "",
     run: fields[4] || "",
     note: fields[5] || "",
+    eventType: fields[6] || "",
     raw: { fields },
   };
 }
@@ -54,11 +55,8 @@ export function validateCSV(text) {
 
   const lines = text.trim().split("\n");
 
-  if (lines[0].trim() !== EXPECTED_HEADER) {
-    errors.push({
-      line: 1,
-      message: `expected header "${EXPECTED_HEADER}", got "${lines[0].trim()}"`,
-    });
+  if (lines[0].trim() !== HEADER) {
+    errors.push({ line: 1, message: headerMismatchMessage(lines[0].trim()) });
   }
 
   let dataRows = 0;
@@ -97,11 +95,34 @@ function validateRow(row, lineNumber, errors) {
   if (!row.unit) {
     errors.push({ line: lineNumber, field: "unit", message: "missing unit" });
   }
+  if (row.eventType.trim() === "") {
+    errors.push({
+      line: lineNumber,
+      field: "event_type",
+      message: "missing event_type",
+    });
+  }
 }
 
-/** List distinct metrics in a CSV with their unit, point count, and date range. */
-export function listMetrics(csvText) {
-  const rows = parseCSV(csvText);
+// Column-diff message so a reader sees which columns drifted, not just
+// that two long strings differ.
+function headerMismatchMessage(got) {
+  const gotCols = got.split(",").map((c) => c.trim());
+  const extra = gotCols.filter((c) => !COLUMNS.includes(c));
+  const missing = COLUMNS.filter((c) => !gotCols.includes(c));
+  return (
+    `header mismatch: expected [${COLUMNS.join(",")}], ` +
+    `got [${gotCols.join(",")}]; ` +
+    `extra=[${extra.join(",")}] missing=[${missing.join(",")}]`
+  );
+}
+
+/** List distinct metrics in a CSV with their unit, point count, and date range, optionally restricted to one event_type ("*" disables the filter). */
+export function listMetrics(csvText, eventType) {
+  let rows = parseCSV(csvText);
+  if (eventType && eventType !== "*") {
+    rows = rows.filter((row) => row.eventType === eventType);
+  }
 
   const groups = {};
   for (const row of rows) {

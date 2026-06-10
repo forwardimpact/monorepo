@@ -8,6 +8,20 @@ export const ZONE_SIGMAS = 1.5;
 
 export const MIN_POINTS = 15;
 
-export const EXPECTED_HEADER = "date,metric,value,unit,run,note";
+export const HEADER = "date,metric,value,unit,run,note,event_type";
+export const COLUMNS = [
+  "date",
+  "metric",
+  "value",
+  "unit",
+  "run",
+  "note",
+  "event_type",
+];
+export const EVENT_TYPE_COLUMN = "event_type";
+// Default read slice. Couples to the workflow filename
+// `.github/workflows/kata-shift.yml` — if that file is ever renamed,
+// update this constant and search `wiki/metrics/` for the old name.
+export const DEFAULT_SHIFT_TYPE = "kata-shift";
 
 export const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;

@@ -1,14 +1,17 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
+import { createMockFs } from "@forwardimpact/libmock";
 
 import { analyze } from "../src/analyze.js";
+import { runAnalyzeCommand } from "../src/commands/analyze.js";
+import { makeRuntime, ctxFor } from "./helpers.js";
 
 function makeCSV(metric, values, { unit = "count" } = {}) {
-  const header = "date,metric,value,unit,run,note";
+  const header = "date,metric,value,unit,run,note,event_type";
   const rows = values.map((v, i) => {
     const day = String((i % 28) + 1).padStart(2, "0");
     const month = String(Math.floor(i / 28) + 1).padStart(2, "0");
-    return `2026-${month}-${day},${metric},${v},${unit},,`;
+    return `2026-${month}-${day},${metric},${v},${unit},,,kata-shift`;
   });
   return [header, ...rows].join("\n");
 }
@@ -32,10 +35,10 @@ describe("analyze", () => {
 
   test("groups multiple metrics independently", () => {
     const rows = [
-      "date,metric,value,unit,run,note",
-      "2026-01-01,a,1,count,r,",
-      "2026-01-01,b,2,count,r,",
-      "2026-01-02,a,3,count,r,",
+      "date,metric,value,unit,run,note,event_type",
+      "2026-01-01,a,1,count,r,,kata-shift",
+      "2026-01-01,b,2,count,r,,kata-shift",
+      "2026-01-02,a,3,count,r,,kata-shift",
     ];
     const result = analyze(rows.join("\n"));
     assert.strictEqual(result.metrics.length, 2);
@@ -79,3 +82,70 @@ describe("analyze", () => {
     assert.strictEqual(m.values.length, m.n);
   });
 });
+
+describe("analyze event_type slicing", () => {
+  const mixed = [
+    "date,metric,value,unit,run,note,event_type",
+    "2026-01-01,m,1,count,r,,kata-dispatch",
+    "2026-01-02,m,100,count,r,,kata-shift",
+    "2026-01-03,m,2,count,r,,kata-dispatch",
+    "2026-01-04,m,101,count,r,,kata-shift",
+  ].join("\n");
+
+  test("explicit eventType restricts to that slice", () => {
+    const result = analyze(mixed, { eventType: "kata-shift" });
+    assert.deepStrictEqual(result.metrics[0].values, [100, 101]);
+  });
+
+  test("default slice is kata-shift", () => {
+    const result = analyze(mixed);
+    assert.deepStrictEqual(result.metrics[0].values, [100, 101]);
+  });
+
+  test('"*" disables the filter', () => {
+    const result = analyze(mixed, { eventType: "*" });
+    assert.deepStrictEqual(result.metrics[0].values, [1, 100, 2, 101]);
+  });
+
+  test("slice with no rows yields no metrics", () => {
+    const result = analyze(mixed, { eventType: "kata-coaching" });
+    assert.strictEqual(result.metrics.length, 0);
+  });
+});
+
+describe("analyze command slice naming", () => {
+  const CSV_PATH = "/metrics/metrics.csv";
+  const MIXED = [
+    "date,metric,value,unit,run,note,event_type",
+    "2026-01-01,m,1,count,,,kata-dispatch",
+    "2026-01-02,m,100,count,,,kata-shift",
+  ].join("\n");
+
+  function runAnalyze(options = {}) {
+    const fsSync = createMockFs({ [CSV_PATH]: MIXED });
+    const rt = makeRuntime({ fsSync });
+    const ctx = ctxFor({
+      runtime: rt.runtime,
+      options,
+      args: { "csv-path": CSV_PATH },
+    });
+    const result = runAnalyzeCommand(ctx);
+    return { result, stdout: rt.stdout };
+  }
+
+  test("text output names the default slice", () => {
+    const { stdout } = runAnalyze();
+    assert.match(stdout, /event_type: kata-shift/);
+  });
+
+  test('text output names "*" as all rows', () => {
+    const { stdout } = runAnalyze({ "event-type": "*" });
+    assert.match(stdout, /event_type: \* \(all rows\)/);
+  });
+
+  test("json output carries a top-level event_type field", () => {
+    const { stdout } = runAnalyze({ format: "json" });
+    assert.strictEqual(JSON.parse(stdout).event_type, "kata-shift");
+  });
+});
+

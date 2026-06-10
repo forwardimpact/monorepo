@@ -8,7 +8,11 @@ import {
   existsSync,
 } from "node:fs";
 import path from "node:path";
-import { EXPECTED_HEADER } from "@forwardimpact/libxmr";
+
+// This one-shot ran against the pre-spec-1540 six-column schema; the
+// header is frozen locally so the script's record of what it did stays
+// accurate as the live schema evolves.
+const EXPECTED_HEADER = "date,metric,value,unit,run,note";
 
 const WIKI_METRICS = path.resolve("wiki/metrics");
 

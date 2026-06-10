@@ -1,6 +1,7 @@
 {
   "source": "test/fixtures/stable.csv",
   "generated": "YYYY-MM-DD",
+  "event_type": "kata-shift",
   "metrics": [
     {
       "metric": "stable_metric",

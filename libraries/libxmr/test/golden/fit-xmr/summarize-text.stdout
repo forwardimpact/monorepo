@@ -1,3 +1,4 @@
+event_type: kata-shift
 **XmR — `test/fixtures/stable.csv`** _(generated YYYY-MM-DD)_
 
 | metric | n | latest | μ | UPL | LPL | classification | signals |

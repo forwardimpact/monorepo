@@ -8,11 +8,11 @@ import { makeRuntime, ctxFor } from "./helpers.js";
 const CSV_PATH = "/metrics/metrics.csv";
 
 function makeCSV(metric, values, { unit = "count" } = {}) {
-  const header = "date,metric,value,unit,run,note";
+  const header = "date,metric,value,unit,run,note,event_type";
   const rows = values.map((v, i) => {
     const day = String((i % 28) + 1).padStart(2, "0");
     const month = String(Math.floor(i / 28) + 1).padStart(2, "0");
-    return `2026-${month}-${day},${metric},${v},${unit},,`;
+    return `2026-${month}-${day},${metric},${v},${unit},,,kata-shift`;
   });
   return [header, ...rows].join("\n");
 }
@@ -97,14 +97,14 @@ describe("summarize command", () => {
 
   test("filters by --metric", () => {
     const csv = [
-      "date,metric,value,unit,run,note",
+      "date,metric,value,unit,run,note,event_type",
       ...Array.from({ length: 20 }, (_, i) => {
         const d = `2026-01-${String((i % 28) + 1).padStart(2, "0")}`;
-        return `${d},a,${10 + (i % 2)},count,,`;
+        return `${d},a,${10 + (i % 2)},count,,,kata-shift`;
       }),
       ...Array.from({ length: 20 }, (_, i) => {
         const d = `2026-02-${String((i % 28) + 1).padStart(2, "0")}`;
-        return `${d},b,${20 + (i % 2)},count,,`;
+        return `${d},b,${20 + (i % 2)},count,,,kata-shift`;
       }),
     ].join("\n");
 
@@ -151,12 +151,14 @@ describe("chart command", () => {
       const { result, stdout } = runChart(file, fsSync, { metric: "ex" });
       assert.ok(result.ok, JSON.stringify(result));
       const lines = stdout.replace(/\n$/, "").split("\n");
-      assert.strictEqual(lines.length, 14);
-      assert.ok(lines[0].includes("UPL 12.5"));
-      assert.ok(lines[0].includes("●"));
-      assert.ok(lines[6].includes("LPL 0.3"));
-      assert.ok(lines[8].includes("URL 7.5"));
-      assert.ok(lines[13].includes(" 1  2  3"));
+      // Two leading lines name the event_type slice; the chart body is 14.
+      assert.strictEqual(lines.length, 16);
+      assert.strictEqual(lines[0], "# event_type: kata-shift");
+      assert.ok(lines[2].includes("UPL 12.5"));
+      assert.ok(lines[2].includes("●"));
+      assert.ok(lines[8].includes("LPL 0.3"));
+      assert.ok(lines[10].includes("URL 7.5"));
+      assert.ok(lines[15].includes(" 1  2  3"));
     });
   });
 
@@ -172,9 +174,9 @@ describe("chart command", () => {
 
   test("requires --metric when the CSV carries multiple metrics", () => {
     const csv = [
-      "date,metric,value,unit,run,note",
-      "2026-01-01,a,1,count,,",
-      "2026-01-02,b,2,count,,",
+      "date,metric,value,unit,run,note,event_type",
+      "2026-01-01,a,1,count,,,kata-shift",
+      "2026-01-02,b,2,count,,,kata-shift",
     ].join("\n");
     withTempCSV(csv, (file, fsSync) => {
       const { result } = runChart(file, fsSync);
@@ -220,3 +222,68 @@ describe("chart command", () => {
     });
   });
 });
+
+describe("event_type slice naming", () => {
+  function mixedCSV() {
+    const header = "date,metric,value,unit,run,note,event_type";
+    const rows = [];
+    for (let i = 0; i < 20; i++) {
+      const day = String((i % 28) + 1).padStart(2, "0");
+      rows.push(`2026-01-${day},m,${10 + (i % 2)},count,,,kata-shift`);
+      rows.push(`2026-01-${day},m,${1 + (i % 2)},count,,,kata-dispatch`);
+    }
+    return [header, ...rows].join("\n");
+  }
+
+  test("summarize defaults to the kata-shift slice and names it", () => {
+    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+      const { stdout } = runSummarize(csvPath, fsSync);
+      assert.match(stdout, /event_type: kata-shift/);
+      assert.match(stdout, /\| m \| 20 \|/);
+    });
+  });
+
+  test("summarize --event-type kata-dispatch reports the dispatch slice", () => {
+    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+      const { stdout } = runSummarize(csvPath, fsSync, {
+        "event-type": "kata-dispatch",
+      });
+      assert.match(stdout, /event_type: kata-dispatch/);
+      assert.match(stdout, /\| m \| 20 \|/);
+    });
+  });
+
+  test('summarize --event-type "*" reports all rows and names the slice', () => {
+    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+      const { stdout } = runSummarize(csvPath, fsSync, { "event-type": "*" });
+      assert.match(stdout, /event_type: \* \(all rows\)/);
+      assert.match(stdout, /\| m \| 40 \|/);
+    });
+  });
+
+  test("summarize json carries a top-level event_type field", () => {
+    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+      const { stdout } = runSummarize(csvPath, fsSync, { format: "json" });
+      const parsed = JSON.parse(stdout);
+      assert.strictEqual(parsed.event_type, "kata-shift");
+    });
+  });
+
+  test("chart names the slice above the chart body", () => {
+    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+      const { stdout } = runChart(csvPath, fsSync, { metric: "m" });
+      assert.match(stdout, /^# event_type: kata-shift\n\n/);
+    });
+  });
+
+  test("chart --event-type kata-dispatch charts the dispatch slice", () => {
+    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+      const { stdout } = runChart(csvPath, fsSync, {
+        metric: "m",
+        "event-type": "kata-dispatch",
+      });
+      assert.match(stdout, /^# event_type: kata-dispatch\n\n/);
+    });
+  });
+});
+

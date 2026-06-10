@@ -1,4 +1,5 @@
 Metrics — test/fixtures/stable.csv
+event_type: kata-shift
 
 Metric         Unit   Points  From        To        
 ────────────────────────────────────────────────────
