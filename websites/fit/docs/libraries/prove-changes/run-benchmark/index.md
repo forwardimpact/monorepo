@@ -34,6 +34,8 @@ my-coding-family/
   .claude/                               # pre-staged skills + agents
     skills/...
     agents/judge.md
+  workdir/                               # optional — shared base copied into EVERY task CWD
+  specs/                                 # optional — shared base copied into EVERY task CWD/specs
   tasks/todo-api/
     .env                                 # task env vars — loaded + rendered
     .env.local                           # task secrets — loaded + rendered (gitignored)
@@ -69,12 +71,29 @@ with a JSON array of TODO objects.
 Whatever scaffolding the agent should start with: a `package.json`, a
 README, sample data — everything here is copied into the per-task CWD.
 
+To share scaffolding across many tasks, put it in a **family-level**
+`workdir/` (or `specs/`) at the family root. The harness copies that shared
+base into every task's CWD first, then overlays the per-task `workdir/`/`specs/`
+on top (a per-task file wins over a same-named family file). Present means
+copied — the same convention as `hooks/`. This lets one app-under-test be
+maintained once instead of duplicated per task.
+
 ### What the harness controls — `hooks/`
 
 The `hooks/` directory holds lifecycle scripts the harness runs at
-specific phases. Both scripts receive `$WORKDIR` (the per-task agent
-CWD) and `$PORT` (a pre-allocated free TCP port) as environment
-variables. Neither is ever copied to the agent's working directory.
+specific phases. Both scripts receive these environment variables, and
+neither script is ever copied to the agent's working directory:
+
+| Var | Value |
+| --- | --- |
+| `$WORKDIR` | The per-task agent CWD. |
+| `$PORT` | A pre-allocated free TCP port. |
+| `$TASK_ID` | The task name. |
+| `$TASK_DIR` | The task directory on the host. |
+| `$HOOKS_DIR` | The task's `hooks/` dir on the host — read hidden fixtures/tests from here. |
+| `$FAMILY_DIR` | The family root on the host. |
+
+`invariants.sh` additionally receives `$RESULTS_FD=3` (see below).
 
 #### `hooks/preflight.sh`
 
@@ -100,7 +119,7 @@ check completes — background processes do not leak across runs.
 
 #### `hooks/invariants.sh`
 
-Runs after the agent finishes. In addition to `$WORKDIR` and `$PORT`,
+Runs after the agent finishes. In addition to the shared hook env above,
 it receives `$RESULTS_FD=3` — a file descriptor for structured per-check
 rows.
 

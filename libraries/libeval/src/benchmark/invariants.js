@@ -10,6 +10,8 @@
 
 import { join } from "node:path";
 
+import { buildHookEnv } from "./hook-env.js";
+
 /**
  * @typedef {object} InvariantsResult
  * @property {"pass" | "fail"} verdict
@@ -20,7 +22,7 @@ import { join } from "node:path";
 /**
  * Run the task's invariants script.
  * @param {import("./task-family.js").Task} task
- * @param {{cwd: string, port: number, runDir: string}} ctx
+ * @param {{cwd: string, port: number, runDir: string, familyDir?: string|null}} ctx
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {Promise<InvariantsResult>}
  */
@@ -44,9 +46,14 @@ export async function runInvariants(task, ctx, runtime) {
   try {
     child = runtime.subprocess.spawn(script, [], {
       env: {
-        ...runtime.proc.env,
-        WORKDIR: ctx.cwd,
-        PORT: String(ctx.port),
+        ...buildHookEnv(runtime.proc.env, {
+          cwd: ctx.cwd,
+          port: ctx.port,
+          taskId: task.id,
+          taskDir: task.paths.taskDir,
+          hooksDir: task.paths.hooks,
+          familyDir: ctx.familyDir,
+        }),
         RESULTS_FD: "3",
       },
       stdio: ["inherit", "pipe", "pipe", fd3File],

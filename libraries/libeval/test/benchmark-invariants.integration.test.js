@@ -22,6 +22,7 @@ async function buildStubTask(invariantsShContent) {
     task: {
       id: "invariants",
       paths: {
+        taskDir: root,
         instructions: "",
         supervisor: null,
         judge: null,
@@ -95,5 +96,21 @@ exit 0
     assert.strictEqual(out.details[0].workdir, ctx.cwd);
     assert.strictEqual(out.details[0].port, 12345);
     assert.strictEqual(out.details[0].fd, 3);
+  });
+
+  test("TASK_ID, TASK_DIR, HOOKS_DIR, FAMILY_DIR reach the script", async () => {
+    const { task, ctx } = await buildStubTask(
+      `#!/bin/sh
+printf '%s\\n' "{\\"taskId\\":\\"$TASK_ID\\",\\"taskDir\\":\\"$TASK_DIR\\",\\"hooksDir\\":\\"$HOOKS_DIR\\",\\"familyDir\\":\\"$FAMILY_DIR\\",\\"pass\\":true}" >&"$RESULTS_FD"
+exit 0
+`,
+    );
+    ctx.familyDir = "/family/root";
+    const out = await runInvariants(task, ctx, RT);
+    assert.strictEqual(out.verdict, "pass");
+    assert.strictEqual(out.details[0].taskId, "invariants");
+    assert.strictEqual(out.details[0].taskDir, task.paths.taskDir);
+    assert.strictEqual(out.details[0].hooksDir, task.paths.hooks);
+    assert.strictEqual(out.details[0].familyDir, "/family/root");
   });
 });

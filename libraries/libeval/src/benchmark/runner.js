@@ -201,6 +201,7 @@ export class BenchmarkRunner {
           cwd: workdir.cwd,
           port: workdir.port,
           runDir: workdir.runDir,
+          familyDir: family.rootPath,
         },
         this.runtime,
       );

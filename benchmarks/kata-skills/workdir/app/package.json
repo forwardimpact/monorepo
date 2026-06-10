@@ -1,0 +1,25 @@
+{
+  "name": "todo-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Zero-dependency mock todo CLI used as the shared kata-skills benchmark fixture.",
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "benchmarks/kata-skills/workdir/app"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "bin": {
+    "todo": "./bin/todo.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  }
+}
