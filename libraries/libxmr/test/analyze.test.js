@@ -148,4 +148,3 @@ describe("analyze command slice naming", () => {
     assert.strictEqual(JSON.parse(stdout).event_type, "kata-shift");
   });
 });
-

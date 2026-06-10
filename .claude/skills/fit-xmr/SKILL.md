@@ -50,14 +50,10 @@ date,metric,value,unit,run,note,event_type
 - `unit` — free text (`count`, `days`, `pct`, ...)
 - `run` — optional URL or run id
 - `note` — annotate when a signal appears, with what you discovered
-- `event_type` — the workflow that recorded the row, by its filename without
-  `.yml`; the default read slice is `kata-shift`
+- `event_type` — recording workflow's filename without `.yml`; reads default
+  to the `kata-shift` slice
 
-Validate before analysis:
-
-```sh
-npx fit-xmr validate observations.csv
-```
+Validate before analysis: `npx fit-xmr validate observations.csv`
 
 ## CLI Reference
 

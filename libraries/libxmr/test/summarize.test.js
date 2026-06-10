@@ -286,4 +286,3 @@ describe("event_type slice naming", () => {
     });
   });
 });
-
