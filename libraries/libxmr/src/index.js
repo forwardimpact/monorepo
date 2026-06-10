@@ -17,5 +17,8 @@ export {
   D4,
   ZONE_SIGMAS,
   MIN_POINTS,
-  EXPECTED_HEADER,
+  HEADER,
+  COLUMNS,
+  EVENT_TYPE_COLUMN,
+  DEFAULT_SHIFT_TYPE,
 } from "./constants.js";

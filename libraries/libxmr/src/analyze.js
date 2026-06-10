@@ -1,4 +1,4 @@
-import { MIN_POINTS } from "./constants.js";
+import { DEFAULT_SHIFT_TYPE, MIN_POINTS } from "./constants.js";
 import { parseCSV } from "./csv.js";
 import { computeXmR } from "./stats.js";
 import { detectSignals, hasAnySignal } from "./signals.js";
@@ -15,9 +15,15 @@ import { round1, round2 } from "./format.js";
 //   - stats: full-precision numeric stats (consumers round at display time)
 //   - signals: keyed-by-rule signal records
 //   - values, dates: ordered series for chart rendering
-/** Group rows by metric, compute XmR statistics and signals, and classify each metric's process behavior. */
-export function analyze(csvText) {
-  const rows = parseCSV(csvText);
+// The eventType default lives here (not in the command layer) so
+// single-argument callers — e.g. libwiki's block renderer — inherit the
+// shift-work slice without a code change. Pass "*" to disable filtering.
+/** Group rows by metric (restricted to one event_type, default kata-shift; "*" for all rows), compute XmR statistics and signals, and classify each metric's process behavior. */
+export function analyze(csvText, { eventType = DEFAULT_SHIFT_TYPE } = {}) {
+  let rows = parseCSV(csvText);
+  if (eventType !== "*") {
+    rows = rows.filter((row) => row.eventType === eventType);
+  }
 
   const groups = {};
   for (const row of rows) {

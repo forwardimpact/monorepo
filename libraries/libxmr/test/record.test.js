@@ -2,7 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { createMockFs } from "@forwardimpact/libmock";
-import { EXPECTED_HEADER } from "../src/constants.js";
+import { HEADER } from "../src/constants.js";
 import { runRecordCommand } from "../src/commands/record.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
@@ -28,6 +28,7 @@ describe("fit-xmr record", () => {
       metric: "test_count",
       value: "5",
       date: "2026-05-02",
+      "event-type": "kata-test",
       "wiki-root": WIKI_ROOT,
     });
 
@@ -37,9 +38,10 @@ describe("fit-xmr record", () => {
     assert.ok(fs.existsSync(csvPath));
 
     const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
-    assert.equal(lines[0], EXPECTED_HEADER);
+    assert.equal(lines[0], HEADER);
     assert.equal(lines.length, 2);
     assert.ok(lines[1].startsWith("2026-05-02,test_count,5,count,"));
+    assert.ok(lines[1].endsWith(",kata-test"));
   });
 
   test("append-only on existing file", () => {
@@ -50,11 +52,12 @@ describe("fit-xmr record", () => {
         metric: "test_count",
         value: "7",
         date: "2026-05-02",
+        "event-type": "kata-test",
         "wiki-root": WIKI_ROOT,
       },
       {
         seed: {
-          [csvPath]: EXPECTED_HEADER + "\n2026-05-01,test_count,3,count,,\n",
+          [csvPath]: HEADER + "\n2026-05-01,test_count,3,count,,,kata-test\n",
         },
       },
     );
@@ -70,6 +73,7 @@ describe("fit-xmr record", () => {
       metric: "test_count",
       value: "5",
       date: "2026-05-02",
+      "event-type": "kata-test",
       "wiki-root": WIKI_ROOT,
     });
 
@@ -83,6 +87,7 @@ describe("fit-xmr record", () => {
     const { result } = run({
       skill: "kata-test",
       value: "5",
+      "event-type": "kata-test",
       "wiki-root": WIKI_ROOT,
     });
 
@@ -97,6 +102,7 @@ describe("fit-xmr record", () => {
       metric: "test_count",
       value: "1",
       date: "2026-05-02",
+      "event-type": "kata-test",
       "wiki-root": customWiki,
     });
 
@@ -111,6 +117,7 @@ describe("fit-xmr record", () => {
         metric: "test_count",
         value: "1",
         date: "2026-05-02",
+        "event-type": "kata-test",
         "wiki-root": WIKI_ROOT,
       },
       { env: { LIBEVAL_SKILL: "kata-env-test" } },
@@ -121,11 +128,92 @@ describe("fit-xmr record", () => {
     );
   });
 
+  test("$GITHUB_WORKFLOW_REF fallback resolves the workflow machine name", () => {
+    const { fs } = run(
+      {
+        skill: "kata-test",
+        metric: "test_count",
+        value: "2",
+        date: "2026-05-02",
+        "wiki-root": WIKI_ROOT,
+      },
+      {
+        env: {
+          GITHUB_WORKFLOW_REF:
+            "owner/repo/.github/workflows/kata-dispatch.yml@refs/heads/main",
+        },
+      },
+    );
+
+    const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
+    const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
+    assert.ok(lines[1].endsWith(",kata-dispatch"));
+  });
+
+  test("$GITHUB_WORKFLOW_REF with a .yaml extension resolves the same way", () => {
+    const { fs } = run(
+      {
+        skill: "kata-test",
+        metric: "test_count",
+        value: "2",
+        date: "2026-05-02",
+        "wiki-root": WIKI_ROOT,
+      },
+      {
+        env: {
+          GITHUB_WORKFLOW_REF:
+            "owner/repo/.github/workflows/eval-guide.yaml@refs/heads/main",
+        },
+      },
+    );
+
+    const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
+    const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
+    assert.ok(lines[1].endsWith(",eval-guide"));
+  });
+
+  test("--event-type wins over $GITHUB_WORKFLOW_REF", () => {
+    const { fs } = run(
+      {
+        skill: "kata-test",
+        metric: "test_count",
+        value: "2",
+        date: "2026-05-02",
+        "event-type": "kata-local",
+        "wiki-root": WIKI_ROOT,
+      },
+      {
+        env: {
+          GITHUB_WORKFLOW_REF:
+            "owner/repo/.github/workflows/kata-dispatch.yml@refs/heads/main",
+        },
+      },
+    );
+
+    const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
+    const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
+    assert.ok(lines[1].endsWith(",kata-local"));
+  });
+
+  test("returns code 2 when neither --event-type nor $GITHUB_WORKFLOW_REF set", () => {
+    const { result } = run({
+      skill: "kata-test",
+      metric: "test_count",
+      value: "2",
+      "wiki-root": WIKI_ROOT,
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(result.error, /event-type|GITHUB_WORKFLOW_REF/);
+  });
+
   test("returns error envelope when neither --skill nor env var set", () => {
     const { result } = run(
       {
         metric: "test_count",
         value: "1",
+        "event-type": "kata-test",
         "wiki-root": WIKI_ROOT,
       },
       { env: { LIBEVAL_SKILL: "" } },

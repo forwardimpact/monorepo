@@ -41,7 +41,7 @@ Natural process limits describe what a process _does_, not what it _should_ do.
 `fit-xmr` expects exactly this header:
 
 ```
-date,metric,value,unit,run,note
+date,metric,value,unit,run,note,event_type
 ```
 
 - `date` — ISO 8601 (`YYYY-MM-DD`)
@@ -50,12 +50,10 @@ date,metric,value,unit,run,note
 - `unit` — free text (`count`, `days`, `pct`, ...)
 - `run` — optional URL or run id
 - `note` — annotate when a signal appears, with what you discovered
+- `event_type` — recording workflow's filename without `.yml`; reads default
+  to the `kata-shift` slice
 
-Validate before analysis:
-
-```sh
-npx fit-xmr validate observations.csv
-```
+Validate before analysis: `npx fit-xmr validate observations.csv`
 
 ## CLI Reference
 
@@ -79,6 +77,7 @@ npx fit-xmr <command> <csv-path> [options]
 | Flag                     | Purpose                                                                                                                                               |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--metric <name>` / `-m` | Filter to a single metric. Optional on `chart` when the CSV has exactly one metric; otherwise required. Filters `analyze` and `summarize` when given. |
+| `--event-type <name>`    | Restrict read commands to one `event_type` slice (default: `kata-shift`; `'*'` for all rows). On `record`, sets the row's value, falling back to `$GITHUB_WORKFLOW_REF`. |
 | `--format <text\|json>`  | Output format (default: text). `chart` is text-only.                                                                                                  |
 | `--ascii`                | Substitute ASCII glyphs for Unicode in chart rendering                                                                                                |
 | `--help` / `-h`          | Show help (`--json` formats help itself as JSON)                                                                                                      |

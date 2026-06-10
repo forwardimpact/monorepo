@@ -8,7 +8,11 @@ import {
   existsSync,
 } from "node:fs";
 import path from "node:path";
-import { EXPECTED_HEADER } from "@forwardimpact/libxmr";
+
+// Frozen copy of the six-column header this one-shot operated on. Kept
+// local — not imported from libxmr — so the script's record of what it
+// wrote cannot drift when the live schema gains columns.
+const LEGACY_HEADER = "date,metric,value,unit,run,note";
 
 const WIKI_METRICS = path.resolve("wiki/metrics");
 
@@ -39,7 +43,7 @@ for (const [source, skill] of Object.entries(MAPPING)) {
       .trim();
     const lines = content.split("\n");
     const header = lines[0];
-    if (header !== EXPECTED_HEADER) {
+    if (header !== LEGACY_HEADER) {
       console.error(`unexpected header in ${csvPath}: ${header}`);
       process.exit(1);
     }
@@ -71,7 +75,7 @@ for (const { skill, year, rows, sources } of Object.values(skillRows)) {
   const targetDir = path.join(WIKI_METRICS, skill);
   mkdirSync(targetDir, { recursive: true });
   const targetPath = path.join(targetDir, `${year}.csv`);
-  writeFileSync(targetPath, EXPECTED_HEADER + "\n" + rows.join("\n") + "\n");
+  writeFileSync(targetPath, LEGACY_HEADER + "\n" + rows.join("\n") + "\n");
 
   totalSourceRows += rows.length;
   totalOutputRows += rows.length;

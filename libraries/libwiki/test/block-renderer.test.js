@@ -4,13 +4,13 @@ import { createMockFs } from "@forwardimpact/libmock";
 import { renderBlock, BlockRenderError } from "../src/block-renderer.js";
 import { analyze, renderChart } from "@forwardimpact/libxmr";
 
-const HEADER = "date,metric,value,unit,run,note";
+const HEADER = "date,metric,value,unit,run,note,event_type";
 const ROOT = "/project";
 
 function makeCSV(metric, values) {
   const rows = values.map(
     (v, i) =>
-      `2026-01-${String(i + 1).padStart(2, "0")},${metric},${v},count,,`,
+      `2026-01-${String(i + 1).padStart(2, "0")},${metric},${v},count,,,kata-shift`,
   );
   return [HEADER, ...rows].join("\n");
 }

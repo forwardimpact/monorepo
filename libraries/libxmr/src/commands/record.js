@@ -1,7 +1,7 @@
 import path from "node:path";
 import { isoDate } from "@forwardimpact/libutil";
 import { analyze } from "../analyze.js";
-import { EXPECTED_HEADER } from "../constants.js";
+import { HEADER } from "../constants.js";
 
 const csvField = (v) => {
   const s = String(v);
@@ -32,6 +32,18 @@ function parseRecordOptions(values, runtime) {
     };
   }
 
+  const eventType =
+    values["event-type"] || workflowName(runtime.proc.env.GITHUB_WORKFLOW_REF);
+  if (!eventType) {
+    return {
+      error: {
+        ok: false,
+        code: 2,
+        error: "record requires --event-type <name> or $GITHUB_WORKFLOW_REF",
+      },
+    };
+  }
+
   return {
     opts: {
       skill,
@@ -41,16 +53,26 @@ function parseRecordOptions(values, runtime) {
       unit: values.unit || "count",
       run: values.run || "",
       note: values.note || "",
+      eventType,
       wikiRootOverride: values["wiki-root"],
     },
   };
 }
 
-function printSummary(csvPath, metric, runtime) {
+// $GITHUB_WORKFLOW_REF looks like
+// `owner/repo/.github/workflows/kata-shift.yml@refs/heads/main`; the
+// workflow's machine name is the filename without its extension.
+function workflowName(ref) {
+  if (!ref) return "";
+  const base = path.basename(ref.split("@")[0]);
+  return base.replace(/\.ya?ml$/, "");
+}
+
+function printSummary(csvPath, metric, eventType, runtime) {
   const { fsSync, proc } = runtime;
   try {
     const text = fsSync.readFileSync(csvPath, "utf-8");
-    const report = analyze(text);
+    const report = analyze(text, { eventType });
     const m = report.metrics.find((r) => r.metric === metric);
 
     if (m) {
@@ -88,7 +110,7 @@ export function runRecordCommand(ctx) {
   }
 
   if (!fsSync.existsSync(csvPath)) {
-    fsSync.writeFileSync(csvPath, EXPECTED_HEADER + "\n");
+    fsSync.writeFileSync(csvPath, HEADER + "\n");
   }
 
   const row = [
@@ -98,6 +120,7 @@ export function runRecordCommand(ctx) {
     opts.unit,
     opts.run,
     opts.note,
+    opts.eventType,
   ]
     .map(csvField)
     .join(",");
@@ -106,7 +129,7 @@ export function runRecordCommand(ctx) {
     fsSync.readFileSync(csvPath, "utf-8") + row + "\n",
   );
 
-  printSummary(csvPath, opts.metric, runtime);
+  printSummary(csvPath, opts.metric, opts.eventType, runtime);
 
   return { ok: true };
 }

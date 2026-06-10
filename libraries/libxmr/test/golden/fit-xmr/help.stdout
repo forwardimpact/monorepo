@@ -1,4 +1,4 @@
-fit-xmr 1.2.4 — Wheeler/Vacanti XmR control charts for time-series CSV metrics
+fit-xmr 1.3.0 — Wheeler/Vacanti XmR control charts for time-series CSV metrics
 
 Usage: fit-xmr <command> [options]
 
@@ -28,6 +28,8 @@ Examples:
   fit-xmr summarize wiki/metrics/kata-security-audit/2026.csv
   fit-xmr summarize wiki/metrics/kata-security-audit/2026.csv --format json
   fit-xmr record --skill kata-product-issue --metric issues_triaged --value 3
+  fit-xmr analyze wiki/metrics/staff-engineer/2026.csv --event-type kata-shift
+  fit-xmr record --skill kata-spec --metric specs_drafted --value 1 --event-type kata-dispatch
 
 Documentation:
   Operate a Predictable Agent Team

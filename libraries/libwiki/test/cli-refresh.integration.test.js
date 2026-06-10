@@ -10,13 +10,13 @@ import { GitClient } from "@forwardimpact/libutil/git-client";
 import { runRefreshCommand } from "../src/commands/refresh.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
-const HEADER = "date,metric,value,unit,run,note";
+const HEADER = "date,metric,value,unit,run,note,event_type";
 const FIXED_NOW = Date.UTC(2026, 4, 15);
 
 function makeCSV(metric, values) {
   const rows = values.map(
     (v, i) =>
-      `2026-01-${String(i + 1).padStart(2, "0")},${metric},${v},count,,`,
+      `2026-01-${String(i + 1).padStart(2, "0")},${metric},${v},count,,,kata-shift`,
   );
   return [HEADER, ...rows].join("\n");
 }
