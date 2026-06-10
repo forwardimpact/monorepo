@@ -130,6 +130,35 @@ describe("fit-wiki fix CLI (in-process)", () => {
     assert.equal(readFileSync(summaryPath, "utf8"), VALID_SUMMARY);
   });
 
+  test("the composed task forbids new files and prefers pointers over copies", async () => {
+    seedCleanWiki(wikiRoot);
+    seedAgentProfile(dir);
+    const summaryPath = join(wikiRoot, "staff-engineer.md");
+    writeFileSync(summaryPath, MISSING_LAST_RUN);
+
+    const calls = [];
+    const query = scriptedQuery(summaryPath, [VALID_SUMMARY], calls);
+    const harness = makeRuntime({ cwd: dir });
+
+    await runFixCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        query,
+        options: { today: "2026-05-24" },
+      }),
+    );
+
+    // A summary trim that parks narrative in a non-convention file (e.g.
+    // -history.md) fragments the log series invisibly to the audit, so the
+    // task must confine trimmed history to existing weekly-log files, forbid
+    // minting filenames, and prefer a pointer over a copy.
+    const task = calls[0].prompt;
+    assert.match(task, /existing\nweekly-log file/);
+    assert.match(task, /never a new file/);
+    assert.match(task, /do not mint filenames yourself/);
+    assert.match(task, /pointer to that file instead of copying/);
+  });
+
   test("fails with the remaining findings when the agent cannot converge", async () => {
     seedCleanWiki(wikiRoot);
     seedAgentProfile(dir);

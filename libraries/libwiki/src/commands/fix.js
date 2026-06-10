@@ -48,9 +48,10 @@ function invariantContract(findings) {
 }
 
 /**
- * The opening task: the findings, the invariant contract, and the two things
- * the rule hints don't cover — where trimmed history goes, and to prefer a
- * single Write.
+ * The opening task: the findings, the invariant contract, and the things the
+ * rule hints don't cover — where trimmed history goes (only existing
+ * weekly-log files; rotation owns minting new ones), and to prefer a single
+ * Write.
  */
 function composeTask(findings, wikiRoot, projectRoot) {
   return [
@@ -62,9 +63,13 @@ function composeTask(findings, wikiRoot, projectRoot) {
     `by breaking another:`,
     ...invariantContract(findings),
     ``,
-    `Move history out of an over-budget summary into the agent's weekly-log`,
-    `file (wiki/<agent>-YYYY-Www.md), never a new summary section. Prefer a`,
-    `single Write over many Edits.`,
+    `Move history out of an over-budget summary into the agent's existing`,
+    `weekly-log file or its current part (wiki/<agent>-YYYY-Www[-partN].md) —`,
+    `never a new summary section, and never a new file: rotation tooling owns`,
+    `when part files are created, so do not mint filenames yourself. If the`,
+    `trimmed narrative already exists in the weekly log, replace it in the`,
+    `summary with a pointer to that file instead of copying it anywhere.`,
+    `Prefer a single Write over many Edits.`,
   ].join("\n");
 }
 
