@@ -23,7 +23,10 @@ session can observe neither:
 - **TTL lapse** — the token dies ~1h after mint.
 - **Issuing-job revocation** — the mint action's post step revokes the job's
   token at job completion (no mint site opts out), so a token outlives its
-  issuing job only as a dead string.
+  issuing **job execution** only as a dead string. The scope is the job
+  execution, not the run: a GitHub re-run attempt shares `GITHUB_RUN_ID` but
+  is a fresh job execution, and the attempt-1 token is already revoked when
+  attempt 2 starts.
 
 The workflow already acknowledges the TTL mismatch by fresh-minting a token
 for its own post-session wiki push, but the in-session agent gets nothing.
@@ -154,16 +157,17 @@ defects of a probe (§ Problem, gap 2).
 
 | Requirement | Detail |
 |---|---|
-| Mint stamp exported | Both in-scope mint sites export a stamp alongside the token carrying what the accounting needs for both death modes: the mint/expiry timestamp and the issuing run's identity (so "issuing job is not the current run ⇒ token presumed revoked" is a local comparison). Today the token-mint action outputs no timestamp and neither consumer adds one — the stamp is new surface. |
+| Mint stamp exported | Both in-scope mint sites export a stamp alongside the token carrying what the accounting needs for both death modes: the mint/expiry timestamp and the issuing **job execution's** identity — run id plus run attempt at minimum (`GITHUB_RUN_ATTEMPT` is already in the job env), job-disambiguated if a governed surface ever mints in a multi-job run — so "issuing job execution is not the current job execution ⇒ token presumed revoked" is a local comparison. Today the token-mint action outputs no timestamp and neither consumer adds one — the stamp is new surface. |
 | Stamp travels with the token | The stamp lives on the **same surface as the token itself**, so no session state — resume included — can pair a token with another token's stamp (run-241 was a resume; a divorced stamp would silently report a dead token as fresh). |
 | Every governed token is stamped | The pairing rule covers every token the accounting governs — including fresh credentials issued through the (a) re-auth path, which would otherwise be the one unstamped token in exactly the post-TTL window (a) exists for. |
-| Both death modes accounted | Validity is bounded by TTL **and** issuing-job revocation: a carried token whose issuing run is not the current run is presumed dead regardless of age, and the accounting must say so — both determinations from the stamp alone, no API call. |
+| Both death modes accounted | Validity is bounded by TTL **and** issuing-job revocation: a carried token whose issuing job execution is not the current one is presumed dead regardless of age, and the accounting must say so — both determinations from the stamp alone, no API call. Run identity alone is too coarse here: revocation fires at job completion while a re-run attempt shares `GITHUB_RUN_ID`, so a token+stamp pair carried from attempt 1 into attempt 2 would pass a run-id-only comparison — and the TTL check too, if attempt 1 ended <1h after mint — reporting a revoked token as fresh on both axes. Run id + run attempt closes that window. |
 | Accounting points | "Token expires in N minutes" is computable at session boot and before write batches, at zero API cost; the checks live in the (c) playbook agents follow, computing against the (b) stamp. |
 
 ### (c) githubstatus-first anomaly discipline — supporting requirement
 
 The auth-anomaly playbook is codified **as prescription, not history**. The
-Security Engineer's falsifier is adopted verbatim:
+Security Engineer's falsifier is adopted verbatim, with one labelled
+extension closing the control-read-fails cell:
 
 - **Gate (before any anomaly reasoning)**: the token is unexpired per (b) —
   an expired-token 401 is shape 1, by design — AND passes a control read
@@ -243,7 +247,7 @@ they neither fire nor confirm the falsifier.
 | Re-auth introduces no token material into transcript-visible output. | A trace scan of a refresh-exercising run's NDJSON transcript finds no token bytes (raw or encoded) in transcript-visible events, and observable freshness/presence checks return booleans only. |
 | Both in-scope mint sites export a mint/expiry stamp on the same surface as the token. | Inspection of the two mint surfaces, including the (a) re-auth path's issued credentials. |
 | No session state can pair a token with another token's stamp. | Test: a resumed session holding a carried token observes that token's stamp, and a refreshed session observes the fresh token's stamp — never a cross-pairing. |
-| Expiry accounting is deterministic, API-free, and covers both death modes. | Inspection of the playbook's boot and pre-write-batch checks: clock comparison against the stamp's timestamp plus issuing-run-identity comparison, with no API call in the check path. |
+| Expiry accounting is deterministic, API-free, and covers both death modes. | Inspection of the playbook's boot and pre-write-batch checks: clock comparison against the stamp's timestamp plus issuing-job-execution-identity comparison (run id + run attempt at minimum), with no API call in the check path. |
 | The playbook defines conduct on stampless surfaces. | Inspection of the playbook reference: on a surface without a (b) stamp, the control-read + githubstatus discipline applies standalone and a persistent gated 401 classifies as unattributable (record-and-degrade, no falsifier fire). |
 | The anomaly playbook codifies the SE falsifier verbatim, including the closed control-read-fails cell. | Inspection of the auth-anomaly playbook reference: gate, retry discipline (≥2 total attempts ~5s apart), two-stage live + retroactive incident check with bracket condition, one-confirmed-sighting-fires, on-fire routing, and the control-read-fails route. |
 | (c1)–(c3) are present and the harvest is named as permanently excluded. | Inspection of the playbook reference: unauthenticated probe, read-back before re-POST, termination into token age + issuing-job state, the excluded harvest, and the record-and-degrade terminal fallback with its post-(a) supersession into the sanctioned re-auth path. |
@@ -260,7 +264,17 @@ they neither fire nor confirm the falsifier.
 - **Cross-repo delivery**: the `kata-agent` composite is a sibling repo;
   edits land via the append-only patch-tag → Dependabot SHA-bump path per
   [`.github/CLAUDE.md`](../../.github/CLAUDE.md) § Editing a published
-  action — sequencing the plan must account for, not discover.
+  action — sequencing the plan must account for, not discover. The live
+  constraint it must sequence within: per the
+  [#1547](https://github.com/forwardimpact/monorepo/issues/1547) forbearance
+  clause (active until the first organic Dependabot sibling SHA-bump PR is
+  observed), a manual sibling SHA-bump PR waits ≤7 days for the weekly sweep
+  unless security or material-cost urgency applies, and must carry tag↔SHA
+  verification evidence — this gates (a)/(b) delivery latency to the
+  composite. Adjacent, not in scope:
+  [#1548](https://github.com/forwardimpact/monorepo/issues/1548) (mutable
+  internal `@v1` refs in the same `action.yml`) — the plan may note the
+  adjacency but must not fold it in.
 - **Evidence of record for downstream artifacts**: design and plan cite the
   closed partition (68 runs at 2026-06-10T16:50Z — 19 success / 46 cancelled
   / 1 failure / 2 in flight; invariant: exactly one failure, zero blocked
