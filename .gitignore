@@ -45,6 +45,9 @@ id_ecdsa
 **/config/agents/*.agent.md
 !**/config/agents/*.agent.example.md
 
+# Local tool state (gh CLI device ids, etc.)
+.local/
+
 # Claude Code worktrees
 .claude/worktrees/
 
