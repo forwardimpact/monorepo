@@ -107,6 +107,62 @@ describe("WikiSync", () => {
     ]);
   });
 
+  test("commitAndPush with paths scopes the status check and commit", async () => {
+    const { git, wikiSync, methods } = make({
+      responses: {
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 0, stderr: "" },
+        revListCount: 1,
+      },
+    });
+    const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
+    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(methods(), [
+      "status",
+      "commitPaths",
+      "revListCount",
+      "fetch",
+      "rebase",
+      "push",
+    ]);
+    const status = git.calls.find((c) => c.method === "status");
+    assert.deepEqual(status.args, [{ cwd: WIKI, paths: ["MEMORY.md"] }]);
+    const commit = git.calls.find((c) => c.method === "commitPaths");
+    assert.deepEqual(commit.args, [
+      "wiki: claim x",
+      ["MEMORY.md"],
+      { cwd: WIKI },
+    ]);
+  });
+
+  test("commitAndPush rebases with autostash so foreign dirt survives the pull", async () => {
+    const { git, wikiSync } = make({
+      responses: {
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 0, stderr: "" },
+        revListCount: 1,
+      },
+    });
+    await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
+    const rebase = git.calls.find((c) => c.method === "rebase");
+    assert.deepEqual(rebase.args, [
+      "origin/master",
+      { cwd: WIKI, autostash: true },
+    ]);
+  });
+
+  test("commitAndPush with paths is a no-op when only foreign files are dirty", async () => {
+    const { wikiSync, methods } = make({
+      responses: {
+        status: { stdout: "", stderr: "", exitCode: 0 },
+        revListCount: 0,
+      },
+    });
+    const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
+    assert.deepEqual(result, { pushed: false, reason: "clean" });
+    assert.deepEqual(methods(), ["status", "revListCount"]);
+  });
+
   test("commitAndPush is a no-op on a clean tree with nothing ahead", async () => {
     const { wikiSync, methods } = make({
       responses: {

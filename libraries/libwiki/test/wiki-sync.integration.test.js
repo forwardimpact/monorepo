@@ -157,6 +157,83 @@ describe("WikiSync (real git)", () => {
     );
   });
 
+  test("commitAndPush with paths commits only the pathspec and leaves foreign dirt", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "scoped");
+    git(wikiDir, "checkout", "master");
+    writeFileSync(join(wikiDir, "MEMORY.md"), "# Memory\n");
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed memory");
+    git(wikiDir, "push", "origin", "master");
+
+    writeFileSync(join(wikiDir, "MEMORY.md"), "# Memory\nclaim row\n");
+    writeFileSync(join(wikiDir, "README.md"), "foreign tracked edit");
+    writeFileSync(join(wikiDir, "residue.md"), "foreign untracked");
+
+    const result = await makeSync(wikiDir, parent).commitAndPush(
+      "wiki: claim x",
+      ["MEMORY.md"],
+    );
+    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.equal(
+      git(wikiDir, "show", "--name-only", "--format=", "HEAD"),
+      "MEMORY.md",
+    );
+    const status = git(wikiDir, "status", "--porcelain");
+    assert.match(status, /^ ?M README\.md$/m);
+    assert.match(status, /^\?\? residue\.md$/m);
+  });
+
+  test("commitAndPush with paths is a no-op when only foreign files are dirty", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "scoped-noop");
+    git(wikiDir, "checkout", "master");
+    writeFileSync(join(wikiDir, "README.md"), "foreign tracked edit");
+
+    const result = await makeSync(wikiDir, parent).commitAndPush(
+      "wiki: claim x",
+      ["MEMORY.md"],
+    );
+    assert.deepEqual(result, { pushed: false, reason: "clean" });
+    assert.match(
+      git(wikiDir, "status", "--porcelain"),
+      /^ ?M README\.md$/m,
+      "foreign dirt must survive the no-op",
+    );
+  });
+
+  test("commitAndPush with paths rebases over remote changes despite foreign dirt", async () => {
+    const { wikiDir: w1 } = cloneRepo(bare, "scoped-r1");
+    git(w1, "checkout", "master");
+    writeFileSync(join(w1, "MEMORY.md"), "# Memory\n");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "seed memory");
+    git(w1, "push", "origin", "master");
+
+    const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "scoped-r2");
+    git(w2, "checkout", "master");
+
+    writeFileSync(join(w1, "remote-change.md"), "from clone1");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "remote change");
+    git(w1, "push", "origin", "master");
+
+    writeFileSync(join(w2, "MEMORY.md"), "# Memory\nclaim row\n");
+    writeFileSync(join(w2, "README.md"), "foreign tracked edit");
+
+    const result = await makeSync(w2, p2).commitAndPush("wiki: claim x", [
+      "MEMORY.md",
+    ]);
+    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.equal(
+      readFileSync(join(w2, "remote-change.md"), "utf-8").trim(),
+      "from clone1",
+    );
+    assert.match(
+      git(w2, "status", "--porcelain"),
+      /^ ?M README\.md$/m,
+      "autostash must restore foreign dirt after the rebase",
+    );
+  });
+
   test("commitAndPush recovers via merge -X ours on divergence", async () => {
     const { wikiDir: w1 } = cloneRepo(bare, "merge1");
     const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "merge2");

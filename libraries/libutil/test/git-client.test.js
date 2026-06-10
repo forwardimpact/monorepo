@@ -40,6 +40,58 @@ describe("GitClient", () => {
     assert.strictEqual(subprocess.calls.at(-1).opts.cwd, "/repo");
   });
 
+  test("status appends a pathspec when paths are given", async () => {
+    const { client, subprocess } = clientWith();
+    await client.status({ cwd: "/repo", paths: ["MEMORY.md"] });
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "status",
+      "--porcelain",
+      "--",
+      "MEMORY.md",
+    ]);
+  });
+
+  test("commitPaths stages and commits only the given paths", async () => {
+    const { client, subprocess } = clientWith();
+    await client.commitPaths("msg", ["MEMORY.md"], { cwd: "/repo" });
+    const [add, commit] = subprocess.calls.slice(-2);
+    assert.deepStrictEqual(add.args, ["add", "--", "MEMORY.md"]);
+    assert.deepStrictEqual(commit.args, [
+      "commit",
+      "-m",
+      "msg",
+      "--",
+      "MEMORY.md",
+    ]);
+  });
+
+  test("rebase adds --autostash when autostash is set", async () => {
+    const { client, subprocess } = clientWith();
+    await client.rebase("origin/master", { cwd: "/r", autostash: true });
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "rebase",
+      "--autostash",
+      "origin/master",
+    ]);
+  });
+
+  test("mergeOursStrategy adds --autostash when autostash is set", async () => {
+    const { client, subprocess } = clientWith();
+    await client.mergeOursStrategy({
+      cwd: "/r",
+      ref: "origin/master",
+      autostash: true,
+    });
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "merge",
+      "--autostash",
+      "-X",
+      "ours",
+      "--no-edit",
+      "origin/master",
+    ]);
+  });
+
   test("revListCount parses the numeric stdout", async () => {
     const { client } = clientWith({ git: { stdout: "7\n", exitCode: 0 } });
     assert.strictEqual(await client.revListCount("a..b", { cwd: "/r" }), 7);

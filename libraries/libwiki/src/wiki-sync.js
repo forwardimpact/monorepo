@@ -102,9 +102,13 @@ export class WikiSync {
     }
   }
 
-  /** Whether the wiki working tree has no uncommitted changes. */
-  async isClean() {
-    const r = await this.#git.status({ cwd: this.#wikiDir });
+  /**
+   * Whether the wiki working tree has no uncommitted changes, optionally
+   * limited to `paths`.
+   * @param {string[]} [paths] - Pathspecs to scope the check to.
+   */
+  async isClean(paths) {
+    const r = await this.#git.status({ cwd: this.#wikiDir, paths });
     return r.stdout.trim() === "";
   }
 
@@ -119,14 +123,27 @@ export class WikiSync {
   }
 
   /**
-   * Stage and commit any working-tree changes, then fetch, rebase on
+   * Stage and commit working-tree changes, then fetch, rebase on
    * origin/master (falling back to a merge with -X ours if the rebase fails),
    * and push if HEAD is ahead of origin/master. The commit gate and the push
    * gate are independent so a clean tree with local commits still pushes.
+   *
+   * Without `paths` the commit sweeps the whole tree (`fit-wiki push`
+   * contract). With `paths` the commit is pathspec-scoped so foreign residue
+   * from parallel writers in the shared workspace is never swept in; the
+   * rebase and merge fallback then run with --autostash because that residue
+   * stays uncommitted in the tree.
+   *
+   * @param {string} message - The commit message.
+   * @param {string[]} [paths] - Pathspecs limiting what gets committed.
    */
-  async commitAndPush(message) {
-    if (!(await this.isClean())) {
-      await this.#git.commitAll(message, { cwd: this.#wikiDir });
+  async commitAndPush(message, paths) {
+    if (!(await this.isClean(paths))) {
+      if (paths?.length) {
+        await this.#git.commitPaths(message, paths, { cwd: this.#wikiDir });
+      } else {
+        await this.#git.commitAll(message, { cwd: this.#wikiDir });
+      }
     }
     if (!(await this.#hasCommitsAhead())) {
       return { pushed: false, reason: "clean" };
@@ -134,12 +151,14 @@ export class WikiSync {
     await this.fetch();
     const rebase = await this.#git.rebase("origin/master", {
       cwd: this.#wikiDir,
+      autostash: true,
     });
     if (rebase.exitCode !== 0) {
       await this.#git.rebaseAbort({ cwd: this.#wikiDir });
       await this.#git.mergeOursStrategy({
         cwd: this.#wikiDir,
         ref: "origin/master",
+        autostash: true,
       });
     }
     // Resolve auth first so a misconfigured `resolveToken` still surfaces; the

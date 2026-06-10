@@ -50,6 +50,24 @@ describe("GitClient (integration)", () => {
     assert.match(result.stdout, /dirty\.txt/);
   });
 
+  test("commitPaths leaves pre-staged foreign content uncommitted", async () => {
+    await writeFile(path.join(dir, "target.md"), "target");
+    await writeFile(path.join(dir, "foreign.md"), "foreign");
+    const sub = createDefaultRuntime().subprocess;
+    await sub.run("git", ["add", "foreign.md"], { cwd: dir });
+
+    await client.commitPaths("scoped", ["target.md"], { cwd: dir });
+
+    const shown = await sub.run(
+      "git",
+      ["show", "--name-only", "--format=", "HEAD"],
+      { cwd: dir },
+    );
+    assert.strictEqual(shown.stdout.trim(), "target.md");
+    const status = await client.status({ cwd: dir });
+    assert.match(status.stdout, /^A {2}foreign\.md$/m);
+  });
+
   test("rebase with -X ours recovers from a conflict", async () => {
     const branchDir = await mkdtemp(path.join(tmpdir(), "git-client-ours-"));
     const c = new GitClient({ runtime: createDefaultRuntime() });

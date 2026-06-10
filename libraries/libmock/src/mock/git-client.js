@@ -9,6 +9,7 @@ const GIT_METHODS = [
   "rebaseAbort",
   "mergeOursStrategy",
   "commitAll",
+  "commitPaths",
   "push",
   "revListCount",
   "configGet",
