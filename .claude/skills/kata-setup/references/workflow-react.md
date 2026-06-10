@@ -3,7 +3,9 @@
 Responds to PR comments, issue comments, new issues, and discussions. The
 product-manager facilitates and routes to the best-suited agent. File name:
 `kata-dispatch.yml`. Replace `{{AGENT_LIST}}` (all agents except product-manager
-and improvement-coach) and `{{MODEL}}`.
+and improvement-coach), `{{MODEL}}`, and `{{FIT_EVAL_REF}}` (resolved at
+generation time — see
+[`workflow-agent.md` § Resolving action refs](workflow-agent.md#resolving-action-refs)).
 
 The block below is the **self-hosted** variant. For the **hosted** control
 plane (see [`SKILL.md`](../SKILL.md) `--hosted`), apply the hosted delta
@@ -87,7 +89,7 @@ jobs:
           Recursion guard: if the latest activity is already an agent response, stop."
           { echo "target-type=$t"; echo "target-number=$n"; echo "task<<EOF"; echo "$task"; echo "EOF"; } >> "$GITHUB_OUTPUT"
       - name: Assess and Act
-        uses: forwardimpact/kata-action-eval@v1
+        uses: forwardimpact/fit-eval@{{FIT_EVAL_REF}}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -96,15 +98,17 @@ jobs:
           mode: "facilitate"
           lead-profile: "product-manager"
           agent-profiles: "{{AGENT_LIST}}"
-          model: "{{MODEL}}"
+          agent-model: "{{MODEL}}"
+          lead-model: "{{MODEL}}"
           task-text: ${{ steps.task.outputs.task }}
 ```
 
-Uses `kata-action-eval` (not `kata-action-agent`) because the task text is
+Uses `fit-eval` (not `kata-agent`) because the task text is
 composed dynamically between checkout and eval. The `if:` filters
 `pull_request_review_comment` to thread replies only. The recursion guard
-prevents loops when agents respond to each other. Action refs use tags for
-readability; pin to SHAs per your security policy.
+prevents loops when agents respond to each other. The `fit-eval` ref is
+SHA-pinned at generation time, never the mutable `v1` tag — pair it with
+the Dependabot config from `SKILL.md` Step 2.
 
 ## Hosted variant
 
