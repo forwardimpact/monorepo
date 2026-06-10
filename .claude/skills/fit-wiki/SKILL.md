@@ -46,7 +46,7 @@ npx fit-wiki boot --agent staff-engineer [--format markdown]
 | `--format` | `json` (default) or `markdown` |
 | `--wiki-root` | Override wiki root |
 
-Contract: [Memory Protocol § CLI Contract Map](https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-operations/index.md#cli-contract-map)
+Contract: [Memory Protocol § CLI Contract Map](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#cli-contract-map)
 
 ### `log decision | note | done` — Weekly-log append
 
