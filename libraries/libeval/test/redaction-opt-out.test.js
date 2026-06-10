@@ -128,7 +128,7 @@ describe("Redactor — exports and defaults", () => {
     );
   });
 
-  test("DEFAULT_PATTERNS covers the five documented kinds", () => {
+  test("DEFAULT_PATTERNS covers the six documented kinds", () => {
     const kinds = DEFAULT_PATTERNS.map((p) => p.kind);
     assert.deepStrictEqual(kinds, [
       "anthropic",
@@ -136,6 +136,7 @@ describe("Redactor — exports and defaults", () => {
       "gh-installation",
       "gh-oauth",
       "gh-fine-grained",
+      "gh-b64-basic-credential",
     ]);
   });
 
