@@ -66,17 +66,18 @@ need be decoded):
   (same alphabet, trailing `=` stripped) — matching must not depend on padding.
 
 **Baseline — pattern-layer half already shipped.**
-[PR #1559](https://github.com/forwardimpact/monorepo/pull/1559) delivers the
-mechanical pattern-layer fix: a `gh-b64-basic-credential` regex anchored on the
-fixed 20-character base64 prefix of `x-access-token:` (15 bytes = five whole
-triplets, so the prefix is encoding-stable for any token). Once it merges,
-criteria 1 and 4 are satisfied at the pattern layer and criterion 5's benign
-guard is partially exercised. The **net-new scope this spec carries** is
-criterion 2 (env-layer encoded coverage, including the offset case above) and
-criterion 6 (contract documentation). The design phase must state explicitly
-whether the env layer's encoded coverage deliberately overlaps the pattern layer
-on the `extraheader` form (defense-in-depth) or defers to it — the overlap is a
-decision to record, not an accident to discover.
+[PR #1559](https://github.com/forwardimpact/monorepo/pull/1559) (merged
+2026-06-10T17:16Z) delivers the mechanical pattern-layer fix: a
+`gh-b64-basic-credential` regex anchored on the fixed 20-character base64 prefix
+of `x-access-token:` (15 bytes = five whole triplets, so the prefix is
+encoding-stable for any token). Criteria 1 and 4 are therefore satisfied at the
+pattern layer and criterion 5's benign guard is partially exercised. The
+**net-new scope this spec carries** is criterion 2 (env-layer encoded coverage,
+including the offset case above) and criterion 6 (contract documentation). The
+design phase must state explicitly whether the env layer's encoded coverage
+deliberately overlaps the pattern layer on the `extraheader` form
+(defense-in-depth) or defers to it — the overlap is a decision to record, not an
+accident to discover.
 
 **Excluded:**
 
