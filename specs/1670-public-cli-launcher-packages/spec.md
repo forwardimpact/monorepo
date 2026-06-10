@@ -5,7 +5,7 @@
 | Persona | Job | How the gap blocks progress |
 |---|---|---|
 | Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team) | The Kata agent team's own automation invokes first-party CLIs by name (`fit-trace`, `fit-wiki`, `fit-xmr`). When a run executes those outside a warm workspace, resolution falls through to the registry and 404s — failing the job. The `kata-storyboard` run on 2026-06-08 ([run 27133534559, job 80080166294](https://github.com/forwardimpact/monorepo/actions/runs/27133534559/job/80080166294)) ended after Q4 (never reached Q5) and the job hard-failed at `error: GET https://registry.npmjs.org/fit-trace - 404`, with participant agents visibly unable to resolve their CLIs mid-session (falling back to `find`, `bun install`, and direct file paths). |
-| Platform Builders | [Build Agent-Capable Systems](../../JTBD.md#platform-builders-build-agent-capable-systems) | Gear's promise is that humans and agents share capabilities "through the same interface … installed via `npx fit-*`". An external builder who runs `npx fit-rc`, `npx fit-trace`, or `npx fit-xmr` per the docs gets a 404, because no package by that name is published. |
+| Platform Builders | [Build Agent-Capable Systems](../../JTBD.md#platform-builders-build-agent-capable-systems) | Gear's promise is that humans and agents share capabilities "through the same interface … installed via `npx fit-*`". An external builder who runs a documented Gear command such as `npx fit-rc` or `npx fit-xmr` gets a 404, because no package by that name is published. |
 | Empowered Engineers | [Equip Aligned Agent Teams](../../JTBD.md#empowered-engineers-equip-aligned-agent-teams) | The product getting-started guides instruct engineers to run `npx fit-landmark`, `npx fit-map`, `npx fit-summit`, `npx fit-pathway`, `npx fit-guide`, `npx fit-outpost` as the documented first step. Because the published package names differ from these invoked names, each command resolves to no registry package and fails for any user who is not inside the monorepo workspace. |
 
 ## Problem
@@ -42,9 +42,9 @@ on the resolution path:
 
 - **Published composite actions** — the `fit-eval@v1` trace step and
   `fit-wiki@v1` ran `bunx fit-trace` / `bunx fit-wiki` and 404'd after the
-  agent run (the failure above). A narrower resolution fix has since shipped to
-  those actions in their sibling repos; this spec removes the underlying cause
-  so that workaround is no longer load-bearing.
+  agent run (the failure above). This investigation applied a narrower
+  resolution fix to those actions (in their sibling repos); this spec removes
+  the underlying cause so that workaround is no longer load-bearing.
 - **In-session agents** invoking `bunx fit-wiki` / `bunx fit-xmr` once the
   workspace bin drifted from `package.json`.
 - **Every external user** following the getting-started guides.
@@ -74,8 +74,10 @@ contributes only the bins that meet the rule (so `@forwardimpact/libeval`
 contributes `fit-eval`, `fit-trace`, `fit-benchmark`, but not `fit-selfedit`,
 which no doc, skill, or action invokes).
 
-Applying the rule today yields these 22 CLIs (the master must regenerate this
-set; the spec enumerates the current result so membership is auditable):
+The set is the rule's output, not a hand-maintained list: the implementation
+regenerates membership from the rule, and the enumeration below is the current
+result, recorded so membership is auditable. Applying the rule today yields
+these 22 CLIs:
 
 | CLI | Source package | CLI | Source package |
 |---|---|---|---|
@@ -121,14 +123,16 @@ set; the spec enumerates the current result so membership is auditable):
   any CLI's commands, flags, or behaviour.** Only the name under which each CLI
   is reachable from the registry changes.
 
-## Directed approach
+## Directed approach (non-binding)
 
-The originating investigation directs the design toward publishing each public
-CLI under its invoked name as a thin package that delegates to its scoped
-implementation (a launcher per public CLI), pinned to and published atomically
-with that implementation. The mechanism, the alternatives weighed against it,
-and the prior-art it draws on are the design's to own ([`kata-design`](../../.claude/skills/kata-design/SKILL.md)); this spec fixes only the
-observable contract in § Success Criteria.
+This spec fixes only the observable contract in § Success Criteria; the
+mechanism is the design's to own ([`kata-design`](../../.claude/skills/kata-design/SKILL.md)),
+which must weigh alternatives and prior art. As **non-binding** context, the
+originating investigation favours publishing each public CLI under its invoked
+name via a thin package that delegates to its scoped implementation (a launcher
+per public CLI), pinned to and published atomically with that implementation.
+The design may adopt or reject this; nothing in the Success Criteria depends on
+the mechanism being a launcher.
 
 ## Success Criteria
 
@@ -137,7 +141,8 @@ observable contract in § Success Criteria.
 | Every CLI in the public set (the 22 enumerated above) resolves and runs under its invoked name from an environment with no monorepo workspace. | In a temporary directory with no `node_modules` and no FIT lockfile, run `npx --yes <cli> --help` for each of the 22 names; observe exit 0 and output that identifies that CLI (for multi-bin sources, the banner names the specific bin, not a sibling). |
 | Bare `bunx fit-trace`, `bunx fit-wiki`, and `npx fit-xmr` — the invocations that failed in the originating run — succeed from a clean directory. | From a clean temp dir, run each; observe exit 0 and the matching CLI banner, with no `registry.npmjs.org/<name>` resolution error. |
 | Every `npx fit-*` invocation printed in the external getting-started guides resolves. | Extract each distinct `npx fit-*` command from `websites/fit/docs/getting-started`; run each from a clean temp dir; observe none returns a registry resolution failure. |
-| A public CLI invoked from the registry executes the same implementation version as its scoped source package at that release. | Install the published CLI name into a clean project; observe the version it reports equals the version of the scoped source package released alongside it. |
-| The publish pipeline refuses to complete a release in which any public CLI fails to resolve-and-run under its invoked name from a clean environment. | Inspect the pipeline's contract gate and exercise it against a release where one public CLI's invoked name is unresolved or version-skewed; observe the gate fails the release before it completes. |
+| A public CLI invoked from the registry runs its scoped source package's implementation at the version released alongside it — not a wrapper's own version. | Install the published CLI name into a clean project; observe the implementation it executes resolves to the scoped source package, and the version it reports is that scoped package's released version (the authoritative value is the scoped package's version, not any wrapper version). |
+| The published public-CLI set equals the rule's output — no member missing, none extra. | Regenerate the set from the rule (invoked-name sources ∩ non-private bins, classified per bin) and compare to the set of published invoked-names; observe the two are identical. |
+| The publish pipeline refuses to complete a release in which any public CLI fails to resolve-and-run under its invoked name, and never leaves an invoked name published without its working implementation at that version. | Inspect the pipeline's contract gate and exercise it against a release where one public CLI's invoked name is unresolved or version-skewed; observe the gate fails the release before it completes and no invoked name is published without its matching implementation. |
 | Bins outside the public set are not published under bare names. | From a clean temp dir, run `npx --yes fit-svcmap`, `npx --yes fit-selfedit`, and `npx --yes fit-logger`; observe each does not resolve as a bare name — the published set equals the rule's output, no more. |
 | The `CLAUDE.md` distribution statement and getting-started instructions are backed by published packages. | Read the CLI distribution statement and each getting-started `npx fit-*` step; observe every named CLI resolves from the registry and the contract traces to this spec. |
