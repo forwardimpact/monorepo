@@ -11,11 +11,11 @@ repos this monorepo maintains, not external dependencies:
 
 | Action | Repo | Purpose |
 |---|---|---|
-| `forwardimpact/fit-bootstrap@v1` | [fit-bootstrap](https://github.com/forwardimpact/fit-bootstrap) | Single source of truth for the FIT CI environment (Bun + cached deps + cached workspace + wiki checkout + `./scripts/bootstrap.sh`) |
-| `forwardimpact/fit-wiki@v1` | [fit-wiki](https://github.com/forwardimpact/fit-wiki) | Run a `fit-wiki` agent-memory command (push, pull, audit), minting a fresh GitHub App token first |
+| `forwardimpact/fit-bootstrap@v1` | [fit-bootstrap](https://github.com/forwardimpact/fit-bootstrap) | Single source of truth for the FIT CI environment (Bun, cached deps, cached workspace, wiki checkout, `./scripts/bootstrap.sh`) |
+| `forwardimpact/fit-wiki@v1` | [fit-wiki](https://github.com/forwardimpact/fit-wiki) | Run a `fit-wiki` agent-memory command (push, pull, audit), minting a fresh App token first |
 | `forwardimpact/fit-benchmark@v1` | [fit-benchmark](https://github.com/forwardimpact/fit-benchmark) | Coding-agent benchmarks via `fit-benchmark` CLI |
 | `forwardimpact/fit-eval@v1` | [fit-eval](https://github.com/forwardimpact/fit-eval) | Agent task execution via `fit-eval` CLI |
-| `forwardimpact/kata-agent@v1` | [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata workflow (auth + checkout + `fit-bootstrap` + `fit-eval` + `fit-wiki`) |
+| `forwardimpact/kata-agent@v1` | [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata workflow (auth, checkout, `fit-bootstrap`, `fit-eval`, `fit-wiki`) |
 
 `kata-agent` delegates to `fit-bootstrap@v1`, `fit-eval@v1`, and
 `fit-wiki@v1` internally; every workflow calls `fit-bootstrap@v1`
@@ -23,8 +23,8 @@ directly for the CI environment, and the agent workflows call
 `fit-wiki@v1` to push memory back after the run. When changing any
 interface, update and tag the sibling first.
 
-`fit-bootstrap` only **checks out** the wiki (when given a `token`); it no
-longer pushes. The start-of-job App token expires after one hour, so long
+`fit-bootstrap` only **checks out** the wiki (when given a `token`).
+The start-of-job App token expires after one hour, so long
 agent runs push with `fit-wiki@v1` as an `always()` step after the agent,
 which mints a fresh token first.
 
@@ -44,17 +44,21 @@ git push origin main && git push origin v1.0.<N>
 
 `.github/dependabot.yml` runs `github-actions` weekly and opens a
 SHA-bump PR on the next sweep; merge through branch protection. The
-`# v1` marker is advisory only and never affects resolution.
+`# v1` marker is advisory and never affects resolution.
 
-Sibling pushes need rights on the sibling. Agent tokens from
-`actions/create-github-app-token@v3` scope to `kata-agent-team` only.
-For agent-driven edits, file an Issue with the diff.
+Sibling pushes need rights on the sibling. The `kata-agent-team` App
+installation deliberately covers this monorepo only (least privilege):
+sibling writes fail 401/403 by design, not misconfiguration
+([#1549](https://github.com/forwardimpact/monorepo/issues/1549) runs
+240 and 255). Changing that boundary is a security decision requiring
+security-engineer review. For agent-driven edits, file an Issue with
+the diff.
 
 **Scope.** This pinning policy governs workflow `uses:` references to
 sibling actions; sibling-internal references (a sibling's calls inside
 its own `action.yml`, including `kata-agent`'s call to
-`forwardimpact/fit-bootstrap@v1`) are governed by the sibling repos.
-Each sibling's own policy is the only durable close for that residual.
+`forwardimpact/fit-bootstrap@v1`) are governed — and durably closed —
+only by the sibling repos.
 
 ### Moving a sibling's `v1` tag
 
@@ -78,15 +82,15 @@ sets `IS_SANDBOX=1` on the agent-spawning step:
 - `fit-wiki` — the `Run fit-wiki command` step (`fit-wiki fix` is an agent run).
 - `kata-agent` — the `Assess and Act` step.
 
-(`fit-bootstrap` spawns no agent.) The SDK forwards the parent process
+(`fit-bootstrap` spawns no agent.) The SDK forwards the parent
 environment, so setting it on the action's environment is sufficient —
 deliberately **not** hard-coded in `libeval` so the value stays an environment
-decision. Without it the agent (or any `fit-eval`-derived command) exits 1
-with no NDJSON output before its first turn.
+decision. Without it the agent exits 1 with no NDJSON output before its
+first turn.
 
 ## Local composite actions
 
-Live under `actions/`. Workflows reference them via the full workspace path
+Live under `actions/`. Workflows reference them via the workspace path
 `./.github/actions/<name>`.
 
 | Action | Purpose |
@@ -95,7 +99,7 @@ Live under `actions/`. Workflows reference them via the full workspace path
 | `coaligned-check` | Run `bunx coaligned` checks (instructions, jtbd) |
 
 The environment-bootstrap action is `forwardimpact/fit-bootstrap@v1`,
-called directly by workflows; there is no local wrapper.
+called directly by workflows; no local wrapper exists.
 
 ### Composite-action path resolution
 
