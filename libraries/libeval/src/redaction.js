@@ -36,6 +36,16 @@ export const DEFAULT_PATTERNS = Object.freeze([
   { kind: "gh-installation", regex: /\bghs_[A-Za-z0-9]{36}\b/g },
   { kind: "gh-oauth", regex: /\bgho_[A-Za-z0-9]{36}\b/g },
   { kind: "gh-fine-grained", regex: /\bgithub_pat_[A-Za-z0-9_]{82}\b/g },
+  // git persists HTTP basic-auth credentials base64-encoded in
+  // `http.<url>.extraheader` as `AUTHORIZATION: basic <b64>` where the
+  // plaintext is `x-access-token:<token>` (actions/checkout form) — a shape
+  // the raw-byte layers above cannot see. The plaintext prefix is 15 bytes
+  // — five whole base64 triplets — so every encoding starts with the same
+  // 20 chars no matter which token follows.
+  {
+    kind: "gh-b64-basic-credential",
+    regex: /\beC1hY2Nlc3MtdG9rZW46[A-Za-z0-9+/]{8,}={0,2}/g,
+  },
 ]);
 
 const ENV_PLACEHOLDER = (name) => `[REDACTED:env:${name}]`;

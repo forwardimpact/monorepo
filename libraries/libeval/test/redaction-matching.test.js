@@ -219,6 +219,46 @@ describe("Redactor — credential patterns (criterion 2)", () => {
     );
   });
 
+  test("base64 x-access-token extraheader credential redacted across padding variants", () => {
+    const r = createRedactor({ runtime: _rt, env: {} });
+    // Token lengths chosen so the encoded blob ends with "==", "=", and
+    // no padding respectively.
+    for (const len of [36, 37, 38]) {
+      const blob = Buffer.from(
+        `x-access-token:ghs_${"B".repeat(len)}`,
+      ).toString("base64");
+      const out = r.redactValue(`AUTHORIZATION: basic ${blob}`);
+      assert.ok(
+        !out.includes(blob),
+        `b64 credential leaked at token length ${len}`,
+      );
+      assert.strictEqual(
+        out,
+        "AUTHORIZATION: basic [REDACTED:pattern:gh-b64-basic-credential]",
+      );
+    }
+  });
+
+  test("bare base64 credential blob (no AUTHORIZATION header) redacted", () => {
+    const r = createRedactor({ runtime: _rt, env: {} });
+    const blob = Buffer.from(`x-access-token:ghs_${"C".repeat(36)}`).toString(
+      "base64",
+    );
+    const out = r.redactValue(
+      `http.https://github.com/.extraheader ${blob}\norigin url`,
+    );
+    assert.ok(!out.includes(blob));
+    assert.ok(out.includes("[REDACTED:pattern:gh-b64-basic-credential]"));
+  });
+
+  test("b64 prefix without a credential payload is left unchanged", () => {
+    const r = createRedactor({ runtime: _rt, env: {} });
+    // The fixed 20-char prefix alone (e.g. quoted in a finding or doc)
+    // carries no secret and must not match.
+    const prose = "fingerprint prefix eC1hY2Nlc3MtdG9rZW46 decodes to it";
+    assert.strictEqual(r.redactValue(prose), prose);
+  });
+
   test("anthropic pattern hit inside tool_result.content JSON-string", () => {
     const r = createRedactor({ runtime: _rt, env: {} });
     const anth = "sk-ant-" + "z".repeat(95);
