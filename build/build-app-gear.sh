@@ -11,7 +11,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-mapfile -t GEAR < <(jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json)
+# mapfile needs bash 4+; macOS runners ship bash 3.2, so read line-by-line.
+GEAR=()
+while IFS= read -r CLI; do
+  GEAR+=("$CLI")
+done < <(jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json)
 
 ARGS=(--bundle-name "fit-gear" --primary-exec "dist/binaries/${GEAR[0]}")
 for CLI in "${GEAR[@]:1}"; do
