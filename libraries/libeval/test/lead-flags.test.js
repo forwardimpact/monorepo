@@ -6,7 +6,7 @@ import { createMockFs } from "@forwardimpact/libmock";
 import { parseSuperviseOptions } from "../src/commands/supervise.js";
 import { parseFacilitateOptions } from "../src/commands/facilitate.js";
 import { parseDiscussOptions } from "../src/commands/discuss.js";
-import { LEAD_MODEL } from "@forwardimpact/libutil/models";
+import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 // All cases below use --task-text, so the runtime's fs is never read (the
 // only fs path is supervise's temp-dir fallback for --task-file). An in-memory
@@ -125,5 +125,39 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
         ),
       /--resume-context is not valid JSON/,
     );
+  });
+});
+
+describe("blank model flags fall through to the role constants", () => {
+  // Composite-action inputs are strings, so an unset input arrives as
+  // `--lead-model=` (empty string). Blank must behave like absent so the
+  // defaults in @forwardimpact/libutil/models stay the single source.
+  test("supervise treats empty model flags as unset", async () => {
+    const opts = await parseSuperviseOptions(
+      {
+        "task-text": "do a thing",
+        "agent-cwd": ".",
+        "agent-model": "",
+        "lead-model": "",
+      },
+      makeRuntime(),
+    );
+
+    assert.strictEqual(opts.agentModel, AGENT_MODEL);
+    assert.strictEqual(opts.supervisorModel, LEAD_MODEL);
+  });
+
+  test("discuss treats empty model flags as unset", () => {
+    const opts = parseDiscussOptions(
+      {
+        "task-text": "do a thing",
+        "agent-model": "",
+        "lead-model": "",
+      },
+      makeRuntime(),
+    );
+
+    assert.strictEqual(opts.agentModel, AGENT_MODEL);
+    assert.strictEqual(opts.leadModel, LEAD_MODEL);
   });
 });

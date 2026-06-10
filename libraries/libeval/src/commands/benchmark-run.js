@@ -58,9 +58,9 @@ function parseRunOptions(values) {
     family,
     runs,
     output: resolve(output),
-    agentModel: values["agent-model"] ?? BENCHMARK_AGENT_MODEL,
-    supervisorModel: values["lead-model"] ?? LEAD_MODEL,
-    judgeModel: values["judge-model"] ?? LEAD_MODEL,
+    agentModel: values["agent-model"] || BENCHMARK_AGENT_MODEL,
+    supervisorModel: values["lead-model"] || LEAD_MODEL,
+    judgeModel: values["judge-model"] || LEAD_MODEL,
     profiles: {
       agent: values["agent-profile"] ?? null,
       judge: values["judge-profile"] ?? null,
