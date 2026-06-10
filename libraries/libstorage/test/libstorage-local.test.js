@@ -8,10 +8,15 @@ describe("LocalStorage", () => {
   let localStorage;
   let mockFs;
 
+  let nonceSeq = 0;
+  const nonce = () => `stub-${++nonceSeq}`;
+
   beforeEach(() => {
+    nonceSeq = 0;
     mockFs = {
       mkdir: spy(() => Promise.resolve()),
       writeFile: spy(() => Promise.resolve()),
+      rename: spy(() => Promise.resolve()),
       appendFile: spy(() => Promise.resolve()),
       readFile: spy(() => Promise.resolve(Buffer.from("test data"))),
       unlink: spy(() => Promise.resolve()),
@@ -30,17 +35,22 @@ describe("LocalStorage", () => {
       ),
     };
 
-    localStorage = new LocalStorage("/test/base", mockFs);
+    localStorage = new LocalStorage("/test/base", mockFs, nonce);
   });
 
-  test("put creates directory and writes file", async () => {
+  test("put creates directory and writes tmp sibling then renames onto target", async () => {
     await localStorage.put("subdir/file.txt", "content");
 
     assert.strictEqual(mockFs.mkdir.mock.callCount(), 1);
     assert.strictEqual(mockFs.writeFile.mock.callCount(), 1);
     assert.deepStrictEqual(mockFs.writeFile.mock.calls[0].arguments, [
-      "/test/base/subdir/file.txt",
+      "/test/base/subdir/file.txt.libstorage-tmp.stub-1",
       "content",
+    ]);
+    assert.strictEqual(mockFs.rename.mock.callCount(), 1);
+    assert.deepStrictEqual(mockFs.rename.mock.calls[0].arguments, [
+      "/test/base/subdir/file.txt.libstorage-tmp.stub-1",
+      "/test/base/subdir/file.txt",
     ]);
   });
 
@@ -146,8 +156,12 @@ describe("LocalStorage", () => {
 
     assert.deepStrictEqual(
       mockFs.writeFile.mock.calls[0].arguments[0],
-      "/absolute/path/file.txt",
+      "/absolute/path/file.txt.libstorage-tmp.stub-1",
     );
+    assert.deepStrictEqual(mockFs.rename.mock.calls[0].arguments, [
+      "/absolute/path/file.txt.libstorage-tmp.stub-1",
+      "/absolute/path/file.txt",
+    ]);
   });
 
   test("ensureBucket returns false when directory exists", async () => {

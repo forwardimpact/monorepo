@@ -20,7 +20,7 @@ import { Finder } from "./finder.js";
  * @property {Object} fs
  *   Async filesystem surface (the `node:fs/promises` shape): `readFile`,
  *   `writeFile`, `readdir`, `stat`, `mkdir`, `access`, `copyFile`, `cp`, `rm`,
- *   `lstat`, `unlink`, `symlink`, `utimes`, `chmod`, plus the two stream
+ *   `lstat`, `unlink`, `rename`, `symlink`, `utimes`, `chmod`, plus the two stream
  *   factories `createReadStream` / `createWriteStream` (the `node:fs` shape —
  *   the promises API has no stream factories, so they live on the async
  *   surface as the canonical streaming seam). A module destructures `fs` xor

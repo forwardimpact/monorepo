@@ -1,7 +1,5 @@
 import { dirname, join } from "path";
-
-/** Sentinel epoch value used as a fallback sort key (equivalent to new Date(0)). */
-const EPOCH = { getTime: () => 0 };
+import { generateUUID } from "@forwardimpact/libsecret";
 
 import {
   fromJsonLines,
@@ -11,6 +9,12 @@ import {
   isJsonLines,
   isJson,
 } from "./index.js";
+
+/** Sentinel epoch value used as a fallback sort key (equivalent to new Date(0)). */
+const EPOCH = { getTime: () => 0 };
+
+/** Reserved infix in tmp sibling filenames; consumers must not produce keys containing this literal. */
+const TMP_SENTINEL = /\.libstorage-tmp\./;
 
 /**
  * @typedef {import('./index.js').StorageInterface} StorageInterface
@@ -23,15 +27,18 @@ import {
 export class LocalStorage {
   #prefix;
   #fs;
+  #nonce;
 
   /**
    * Creates a new LocalStorage instance
    * @param {string} prefix - Base path for all storage operations
    * @param {object} fs - File system operations object
+   * @param {() => string} [nonce] - Source of collision-free tokens for tmp sibling filenames during `put`. Defaults to `libsecret.generateUUID`; tests may pass a deterministic stub.
    */
-  constructor(prefix, fs) {
+  constructor(prefix, fs, nonce = () => generateUUID()) {
     this.#prefix = prefix;
     this.#fs = fs;
+    this.#nonce = nonce;
   }
 
   // Core CRUD Operations
@@ -45,17 +52,22 @@ export class LocalStorage {
   async put(key, data) {
     const fullPath = this.path(key);
     const dirToCreate = dirname(fullPath);
-    let serializedData = data;
-
-    // Serialize JavaScript objects back to their appropriate format for storage
-    if (isJsonLines(key, data)) {
-      serializedData = toJsonLines(data);
-    } else if (isJson(key, data)) {
-      serializedData = toJson(data);
-    }
+    const tmpPath = `${fullPath}.libstorage-tmp.${this.#nonce()}`;
+    const serializedData = this.#serialize(key, data);
 
     await this.#fs.mkdir(dirToCreate, { recursive: true });
-    await this.#fs.writeFile(fullPath, serializedData);
+    try {
+      await this.#fs.writeFile(tmpPath, serializedData);
+    } catch (error) {
+      await this.#unlinkBestEffort(tmpPath);
+      throw error;
+    }
+    try {
+      await this.#fs.rename(tmpPath, fullPath);
+    } catch (error) {
+      await this.#unlinkBestEffort(tmpPath);
+      throw error;
+    }
   }
 
   /**
@@ -235,6 +247,34 @@ export class LocalStorage {
   // Private Helper Methods
 
   /**
+   * Serialize a value for storage based on the key's extension. Objects
+   * targeting `.json`/`.jsonl` keys are stringified; everything else
+   * passes through unchanged.
+   * @param {string} key - Storage key identifier
+   * @param {string|Buffer|object} data - Data to serialize
+   * @returns {string|Buffer|object}
+   */
+  #serialize(key, data) {
+    if (isJsonLines(key, data)) return toJsonLines(data);
+    if (isJson(key, data)) return toJson(data);
+    return data;
+  }
+
+  /**
+   * Best-effort unlink used by `put`'s failure arms. Cleanup errors are
+   * swallowed so the originating put error propagates.
+   * @param {string} path - Absolute path to unlink
+   * @returns {Promise<void>}
+   */
+  async #unlinkBestEffort(path) {
+    try {
+      await this.#fs.unlink(path);
+    } catch {
+      /* swallow */
+    }
+  }
+
+  /**
    * Recursively traverse directories to find files matching a filter
    * @private
    * @param {Function|null} fileFilter - Optional filter function for files
@@ -257,7 +297,11 @@ export class LocalStorage {
 
       if (entry.isDirectory()) {
         await traverse(fullPath, relativeKey);
-      } else if (entry.isFile() && (!fileFilter || fileFilter(relativeKey))) {
+      } else if (
+        entry.isFile() &&
+        !TMP_SENTINEL.test(entry.name) &&
+        (!fileFilter || fileFilter(relativeKey))
+      ) {
         const stats = await this.#fs.stat(fullPath);
         const birthtime = stats.birthtime || stats.mtime || EPOCH;
         filesWithStats.push({ key: relativeKey, birthtime });

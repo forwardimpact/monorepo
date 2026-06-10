@@ -289,12 +289,13 @@ export class BridgeService extends BridgeBase {
       });
     }
     this.#pendingDispatches.index.delete(scopedKey);
-    // compaction safety: services/bridge runs single-instance per tenant;
-    // gRPC handlers serialise on the event loop, so compact() and add()
-    // never interleave inside one process. The periodic sweep at #sweep
-    // also calls compact() under the same invariant. If services/bridge
-    // ever becomes multi-instance, replace these with a tmp-file +
-    // atomic rename inside libstorage.
+    // compact() writes the new index via storage.put, which is a write-tmp
+    // + atomic rename inside libstorage. A process kill mid-compact leaves
+    // the index at either its prior or new state. Concurrent-writer
+    // correctness for a multi-instance future remains out of scope —
+    // bridge runs single-instance per tenant; gRPC handlers serialise on
+    // the event loop, so compact() and add() never interleave inside one
+    // process.
     await this.#pendingDispatches.compact();
     return bridge.PendingDispatch.fromObject({
       link_token: rec.link_token ?? req.link_token,
@@ -416,6 +417,8 @@ export class BridgeService extends BridgeBase {
 
     if (evicted_discussions > 0) await this.#discussions.flush();
     if (evicted_origins > 0) await this.#origins.flush();
+    // Same write-tmp + atomic rename guarantee inside libstorage as the
+    // ResolvePendingDispatch compact() call site above.
     if (evicted_pending > 0) await this.#pendingDispatches.compact();
     if (evictedInbox > 0) await this.#inbox.flush();
 
