@@ -43,7 +43,7 @@ export class AgentRunner {
     this.query = deps.query;
     this.output = deps.output;
     this.redactor = deps.redactor;
-    this.model = deps.model ?? "claude-opus-4-7[1m]";
+    this.model = deps.model ?? "claude-fable-5[1m]";
     this.maxTurns = deps.maxTurns ?? 50;
     this.allowedTools = deps.allowedTools ?? DEFAULT_ALLOWED_TOOLS;
     this.onLine = deps.onLine ?? null;

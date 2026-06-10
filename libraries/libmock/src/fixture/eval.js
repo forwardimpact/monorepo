@@ -102,7 +102,7 @@ export function createTestTrace(overrides = {}) {
     schema_version: "1.1",
     metadata: {
       session_id: "sess-test",
-      model: "claude-opus-4-7",
+      model: "claude-fable-5",
       started_at: "2026-01-01T00:00:00Z",
       ended_at: "2026-01-01T00:00:05Z",
       tools: [],

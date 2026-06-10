@@ -10,7 +10,7 @@ the user's configuration.
 | `{{AGENT_TITLE}}`  | `Product Manager`                         |
 | `{{AGENT_NAME}}`   | `product-manager`                         |
 | `{{CRON_ENTRIES}}` | Three `- cron:` lines from `schedules.md` |
-| `{{MODEL}}`        | `claude-opus-4-7[1m]`                     |
+| `{{MODEL}}`        | `claude-fable-5[1m]`                     |
 | `{{WIKI}}`         | `"true"` or `"false"`                     |
 
 Emit `## Template (self-hosted)` when the team runs its own GitHub App (the
@@ -101,7 +101,7 @@ out of logs.
   token carries all other permissions via its installation settings.
 - If wiki is disabled, set `wiki: "false"` -- the action skips wiki checkout and
   sync.
-- If model is the default (`claude-opus-4-7[1m]`), the `model:` line can be
+- If model is the default (`claude-fable-5[1m]`), the `model:` line can be
   omitted since the action defaults to it.
 - **Hosted variant** requires the `FIT_OIDC_URL` repository variable and
   depends on `kata-action-agent@v1` accepting an `installation-token` input

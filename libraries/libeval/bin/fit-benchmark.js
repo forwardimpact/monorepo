@@ -44,11 +44,11 @@ export const definition = {
         "lead-model": {
           type: "string",
           description:
-            "Claude model for the lead role (default: claude-opus-4-7)",
+            "Claude model for the lead role (default: claude-fable-5)",
         },
         "judge-model": {
           type: "string",
-          description: "Claude model for the judge (default: claude-opus-4-7)",
+          description: "Claude model for the judge (default: claude-fable-5)",
         },
         "agent-profile": {
           type: "string",

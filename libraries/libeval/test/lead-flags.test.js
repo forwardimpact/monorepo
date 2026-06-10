@@ -22,7 +22,7 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
         "task-text": "do a thing",
         "agent-cwd": ".",
         "lead-profile": "judge",
-        "lead-model": "claude-opus-4-7[1m]",
+        "lead-model": "claude-fable-5[1m]",
         // legacy keys: must be ignored — no soft fallback
         "supervisor-profile": "old-judge",
         "supervisor-model": "claude-sonnet-4-6",
@@ -31,7 +31,7 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
     );
 
     assert.strictEqual(opts.supervisorProfile, "judge");
-    assert.strictEqual(opts.supervisorModel, "claude-opus-4-7[1m]");
+    assert.strictEqual(opts.supervisorModel, "claude-fable-5[1m]");
   });
 
   test("supervise leaves the supervisor profile undefined when --lead-profile is absent", async () => {
@@ -53,7 +53,7 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
         "task-text": "do a thing",
         "agent-profiles": "alpha,beta",
         "lead-profile": "lead",
-        "lead-model": "claude-opus-4-7[1m]",
+        "lead-model": "claude-fable-5[1m]",
         "facilitator-profile": "old-lead",
         "facilitator-model": "claude-sonnet-4-6",
       },
@@ -61,7 +61,7 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
     );
 
     assert.strictEqual(opts.facilitatorProfile, "lead");
-    assert.strictEqual(opts.facilitatorModel, "claude-opus-4-7[1m]");
+    assert.strictEqual(opts.facilitatorModel, "claude-fable-5[1m]");
   });
 
   test("facilitate leaves the facilitator profile undefined when --lead-profile is absent", () => {
@@ -86,7 +86,7 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
     );
 
     assert.strictEqual(opts.leadProfile, undefined);
-    assert.strictEqual(opts.leadModel, "claude-opus-4-7[1m]");
+    assert.strictEqual(opts.leadModel, "claude-fable-5[1m]");
     assert.strictEqual(opts.maxTurns, 40);
     assert.deepStrictEqual(opts.agentConfigs, []);
   });

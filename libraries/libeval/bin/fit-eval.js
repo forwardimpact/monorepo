@@ -21,8 +21,7 @@ const LEAD_OPTIONS = {
   },
   "lead-model": {
     type: "string",
-    description:
-      "Claude model for the lead role (default: claude-opus-4-7[1m])",
+    description: "Claude model for the lead role (default: claude-fable-5[1m])",
   },
 };
 
@@ -65,7 +64,7 @@ const definition = {
         "agent-model": {
           type: "string",
           description:
-            "Claude model for the agent (default: claude-opus-4-7[1m])",
+            "Claude model for the agent (default: claude-fable-5[1m])",
         },
         "max-turns": {
           type: "string",
@@ -103,7 +102,7 @@ const definition = {
         "agent-model": {
           type: "string",
           description:
-            "Claude model for the agent (default: claude-opus-4-7[1m])",
+            "Claude model for the agent (default: claude-fable-5[1m])",
         },
         ...LEAD_OPTIONS,
         "max-turns": {
@@ -147,7 +146,7 @@ const definition = {
         ...TASK_INPUT_OPTIONS,
         "agent-model": {
           type: "string",
-          description: "Claude model for agents (default: claude-opus-4-7[1m])",
+          description: "Claude model for agents (default: claude-fable-5[1m])",
         },
         ...LEAD_OPTIONS,
         "max-turns": {
@@ -184,7 +183,7 @@ const definition = {
         ...TASK_INPUT_OPTIONS,
         "agent-model": {
           type: "string",
-          description: "Claude model for agents (default: claude-opus-4-7[1m])",
+          description: "Claude model for agents (default: claude-fable-5[1m])",
         },
         ...LEAD_OPTIONS,
         "max-turns": {

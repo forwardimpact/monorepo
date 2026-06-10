@@ -1,5 +1,5 @@
 {"source":"orchestrator","seq":0,"event":{"type":"session_start","sessionId":"multi-1"}}
-{"source":"facilitator","seq":1,"event":{"type":"system","subtype":"init","session_id":"facil-1","model":"claude-opus-4-7","tools":["Bash","Read"]}}
+{"source":"facilitator","seq":1,"event":{"type":"system","subtype":"init","session_id":"facil-1","model":"claude-fable-5","tools":["Bash","Read"]}}
 {"source":"facilitator","seq":2,"event":{"type":"assistant","message":{"content":[{"type":"text","text":"Kicking off the review."}],"usage":{"input_tokens":50,"output_tokens":8}}}}
 {"source":"staff-engineer","seq":3,"event":{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"pwd"}}],"usage":{"input_tokens":60,"output_tokens":10}}}}
 {"source":"staff-engineer","seq":4,"event":{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":"/home/user/monorepo"}]}}}
