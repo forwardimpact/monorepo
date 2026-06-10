@@ -128,10 +128,12 @@ Three artifact surfaces:
 whose budget can cross the ~1h token TTL, but this spec *delivers* it only
 to the two surfaces above, where the obstacle's evidence lives. Of the other
 agent-session mint sites, `kata-interview.yml` (50-minute budget) fails the
-budget test; `eval-guide.yml` sets no job timeout (the 360-minute runner
-default crosses the TTL), so it passes the test and is flagged as a
-follow-on adoption site in § Disposition notes — excluded from this spec's
-delivery per the locked scope. Non-session App-token mints (publish and
+budget test; `eval-guide.yml` formerly set no job timeout (the 360-minute
+runner default crossed the TTL) and passed the test, but an explicit
+30-minute per-matrix-job ceiling
+([PR #1563](https://github.com/forwardimpact/monorepo/pull/1563), merged
+`9e7852d7`) has since taken it under the test — follow-on adoption resolved
+as mooted (§ Disposition notes). Non-session App-token mints (publish and
 website workflows) are out of scope entirely. The (c) playbook is loaded by
 all agents: on a surface without a stamp, the shape-1 gate is unavailable,
 the control-read + githubstatus discipline applies on its own, and a
@@ -288,10 +290,16 @@ they neither fire nor confirm the falsifier.
   but the playbook may merge before the mint-site changes deploy — which is
   why (c3)'s terminal fallback carries the until-(a) wording with its
   post-(a) supersession built in.
-- **Follow-on adoption**: `eval-guide.yml` passes the governance budget test
-  (no job timeout ⇒ 360-minute default) but is outside this spec's delivery
-  surface; adopting (a)/(b) there is a candidate follow-up once the dispatch
-  surfaces prove the mechanism.
+- **Follow-on adoption — resolved as mooted**: `eval-guide.yml` passed the
+  governance budget test at spec time (no job timeout ⇒ 360-minute default)
+  and was outside this spec's delivery surface, with tracker
+  [#1561](https://github.com/forwardimpact/monorepo/issues/1561) holding the
+  candidate (a)/(b) adoption. An explicit `timeout-minutes: 30` per matrix
+  job ([PR #1563](https://github.com/forwardimpact/monorepo/pull/1563),
+  merged `9e7852d7`) took the surface under the test; #1561 closed against
+  its recorded closure contract. Re-trigger: raising that ceiling to
+  ≥ ~60 minutes or removing it re-enters the test and warrants a fresh
+  adoption tracker.
 - RE continues appending shape-attributed sighting rows (endpoint-class ×
   verb × client) to the falsifier dataset; this spec changes nothing about
   that protocol.
