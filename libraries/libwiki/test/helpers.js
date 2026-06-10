@@ -138,11 +138,12 @@ export function seedAgentProfile(projectRoot) {
 /**
  * A mock SDK `query` that writes `versions[n]` to `summaryPath` on its n-th call
  * (clamped to the last version) and reports success. Records each call's
- * `resume` option so tests can assert run-vs-resume.
+ * `resume` option and `prompt` so tests can assert run-vs-resume and the
+ * composed task text.
  */
 export function scriptedQuery(summaryPath, versions, calls) {
-  return async function* ({ options }) {
-    calls.push({ resume: options.resume ?? null });
+  return async function* ({ prompt, options }) {
+    calls.push({ resume: options.resume ?? null, prompt });
     const v = versions[Math.min(calls.length - 1, versions.length - 1)];
     writeFileSync(summaryPath, v);
     yield { type: "system", subtype: "init", session_id: "sess-fix" };
