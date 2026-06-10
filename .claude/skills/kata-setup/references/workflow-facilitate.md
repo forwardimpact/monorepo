@@ -10,7 +10,7 @@ only when `improvement-coach` is selected.
 | --------------------- | ------------------------------------------------------------------------------------ |
 | `{{STORYBOARD_CRON}}` | `0 6 * * *` (from `schedules.md`)                                                    |
 | `{{AGENT_LIST}}`      | `security-engineer,technical-writer,product-manager,staff-engineer,release-engineer` |
-| `{{MODEL}}`           | `claude-opus-4-7[1m]`                                                                |
+| `{{MODEL}}`           | `claude-fable-5[1m]`                                                                |
 | `{{WIKI}}`            | `"true"` or `"false"`                                                                |
 
 The templates below are the **self-hosted** variants. For the **hosted**

@@ -10,6 +10,10 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { runBenchmarkRunCommand } from "../src/commands/benchmark-run.js";
 import { runBenchmarkInvariantsCommand } from "../src/commands/benchmark-invariants.js";
 import { runBenchmarkReportCommand } from "../src/commands/benchmark-report.js";
+import {
+  BENCHMARK_AGENT_MODEL,
+  LEAD_MODEL,
+} from "@forwardimpact/libutil/models";
 
 export const definition = {
   name: "fit-benchmark",
@@ -38,17 +42,15 @@ export const definition = {
         },
         "agent-model": {
           type: "string",
-          description:
-            "Claude model for the agent-under-test (default: claude-sonnet-4-6)",
+          description: `Claude model for the agent-under-test (default: ${BENCHMARK_AGENT_MODEL})`,
         },
         "lead-model": {
           type: "string",
-          description:
-            "Claude model for the lead role (default: claude-opus-4-7)",
+          description: `Claude model for the lead role (default: ${LEAD_MODEL})`,
         },
         "judge-model": {
           type: "string",
-          description: "Claude model for the judge (default: claude-opus-4-7)",
+          description: `Claude model for the judge (default: ${LEAD_MODEL})`,
         },
         "agent-profile": {
           type: "string",
@@ -126,7 +128,7 @@ export const definition = {
   },
   examples: [
     "fit-benchmark run --family=./families/coding",
-    "fit-benchmark run --family=./families/coding --runs=10 --agent-model=claude-sonnet-4-6",
+    `fit-benchmark run --family=./families/coding --runs=10 --agent-model=${BENCHMARK_AGENT_MODEL}`,
     "fit-benchmark invariants --family=./families/coding --task=todo-api --workdir=./benchmark-runs/runs/todo-api/0",
     "fit-benchmark report --format=text",
     "fit-benchmark report --input=./runs/today --k=1,3,5 --format=text",

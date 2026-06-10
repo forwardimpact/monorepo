@@ -21,6 +21,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./models": "./src/models.js",
     "./runtime": "./src/runtime.js",
     "./trusted-origins": "./src/trusted-origins.js",
     "./completion-ticket": "./src/completion-ticket.js",

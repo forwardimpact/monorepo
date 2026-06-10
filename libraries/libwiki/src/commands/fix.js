@@ -15,6 +15,7 @@ import {
 } from "../weekly-log.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot } from "../util/wiki-dir.js";
+import { FAST_MODEL } from "@forwardimpact/libutil/models";
 
 // Pipeline: audit → deterministic rotation (the one fix needing a file seal the
 // agent can't do) → re-audit → Haiku agent on the prose-judgment residual →
@@ -213,7 +214,7 @@ async function buildFixRunner(ctx, projectRoot, runtime) {
     cwd: projectRoot,
     query,
     output: new Writable({ write: (_c, _e, cb) => cb() }),
-    model: "claude-haiku-4-5-20251001",
+    model: FAST_MODEL,
     maxTurns: 30,
     allowedTools: ["Read", "Glob", "Write", "Edit"],
     settingSources: ["project"],

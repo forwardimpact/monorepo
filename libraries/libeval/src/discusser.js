@@ -29,6 +29,7 @@ import {
   DISCUSS_AGENT_SYSTEM_PROMPT,
 } from "./discuss-tools.js";
 import { OrchestrationLoop } from "./orchestration-loop.js";
+import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 /** System prompt for the discuss-mode lead. L0 mechanics only per COALIGNED. */
 export const DISCUSS_SYSTEM_PROMPT =
@@ -314,7 +315,7 @@ export function createDiscusser({
       cwd: config.cwd ?? resolvedLeadCwd,
       query,
       output: devNull,
-      model: agentModel ?? "claude-opus-4-7[1m]",
+      model: agentModel ?? AGENT_MODEL,
       maxTurns: config.maxTurns ?? 50,
       allowedTools: config.allowedTools,
       onLine: (line) => discusser.loop.emitLine(config.name, line),
@@ -347,7 +348,7 @@ export function createDiscusser({
     cwd: resolvedLeadCwd,
     query,
     output: devNull,
-    model: leadModel ?? "claude-opus-4-7[1m]",
+    model: leadModel ?? LEAD_MODEL,
     maxTurns: maxTurns ?? 80,
     allowedTools: ["Read", "Glob", "Grep"],
     disallowedTools: defaultDisallowed,

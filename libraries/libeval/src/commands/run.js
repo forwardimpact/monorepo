@@ -8,6 +8,7 @@ import { createTeeWriter } from "../tee-writer.js";
 import { SequenceCounter } from "../sequence-counter.js";
 import { resolveTaskContent } from "./task-input.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
+import { AGENT_MODEL } from "@forwardimpact/libutil/models";
 
 /**
  * Parse and validate run command options from parsed values.
@@ -26,7 +27,7 @@ function parseRunOptions(values, runtime) {
     taskContent,
     taskAmend,
     cwd: resolve(values.cwd ?? "."),
-    agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
+    agentModel: values["agent-model"] ?? AGENT_MODEL,
     maxTurns: maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10),
     outputPath: values.output,
     agentProfile: values["agent-profile"] ?? undefined,

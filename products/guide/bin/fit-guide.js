@@ -18,6 +18,7 @@ import { createAgentTraceFormatter } from "@forwardimpact/libformat";
 import { Repl } from "@forwardimpact/librepl";
 import { createStorage } from "@forwardimpact/libstorage";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { CHAT_MODEL } from "@forwardimpact/libutil/models";
 
 // Sole construction site for the injected collaborator bag threaded into the
 // single-flow command handlers (init, login, status).
@@ -239,7 +240,7 @@ const repl = new Repl({
     if (sessionId) {
       options.resume = sessionId;
     } else {
-      options.model = process.env.GUIDE_MODEL || "claude-sonnet-4-6";
+      options.model = process.env.GUIDE_MODEL || CHAT_MODEL;
       options.systemPrompt = systemPrompt;
     }
 

@@ -21,8 +21,8 @@ const happy = {
   profiles: { agent: "coder", supervisor: null, judge: "judge" },
   model: {
     agent: "claude-sonnet-4-6",
-    supervisor: "claude-opus-4-7",
-    judge: "claude-opus-4-7",
+    supervisor: "claude-fable-5",
+    judge: "claude-fable-5",
   },
   skillSetHash: "sha256:abc",
   familyRevision: "sha256:def",
@@ -39,8 +39,8 @@ const preflightFail = {
   profiles: { agent: null, supervisor: null, judge: null },
   model: {
     agent: "claude-sonnet-4-6",
-    supervisor: "claude-opus-4-7",
-    judge: "claude-opus-4-7",
+    supervisor: "claude-fable-5",
+    judge: "claude-fable-5",
   },
   skillSetHash: "sha256:abc",
   familyRevision: "sha256:def",
