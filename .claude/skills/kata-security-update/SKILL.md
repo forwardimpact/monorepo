@@ -58,25 +58,20 @@ When evaluating the SHA-pinning check, verify the PR updates **all** workflow
 files referencing the action. See `references/sha-inventory.md` for the full
 action-to-workflow mapping. Also verify pin **direction**:
 `gh api repos/{owner}/{repo}/compare/{old}...{new} --jq .status` must return
-`ahead`. `behind` or `diverged` is a downgrade — **close** even with green CI
-and route a tag-hygiene issue to release-engineer; the cause is a mutable
-major tag lagging its latest release while Dependabot tracks the `# v1`
-comment instead of the pinned SHA.
+`ahead`; `behind` or `diverged` is a downgrade — **close** even with green CI
+and route a tag-hygiene issue to release-engineer (a mutable major tag lags
+the release Dependabot tracks via the `# v1` comment).
 
-A downgrade close is still **detection evidence**: Dependabot read the SHA
-pin and proposed a change, which is exactly what a pin-migration watchpoint
-waits to observe. Before closing, check boot memory for an open watchpoint
-tracking Dependabot detection of SHA-pinned actions; if one exists, post a
-cross-reference comment on that issue naming the closed PR, the old and new
-SHAs, and the compare-API status. The mechanical close must not swallow the
-detection signal.
+A downgrade close is still **detection evidence** that Dependabot reads SHA
+pins: before closing, check boot memory for an open watchpoint tracking that
+detection and comment there with the closed PR, both SHAs, and compare status.
 
 ## Process
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract previous triage outcomes and packages that
-repeatedly fail Check 8.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed this Process.
+Extract previous triage outcomes and packages that repeatedly fail Check 8.
 
 ### Step 1: List Open Dependabot PRs
 
@@ -109,9 +104,7 @@ stale override floor; a root override below a workspace range silently floors
 that workspace under the policy minimum.
 
 **Scope.** Fire on **any** PR whose diff touches `*/package.json` or root
-`package.json` — Dependabot, agent-authored, or direct human edits. Originally
-piloted on Dependabot bundles; widened to all vectors after a non-Dependabot
-case (a floor-shadow on an agent-authored bump) tripped the same hazard.
+`package.json` — Dependabot, agent-authored, or direct human edits.
 
 **Procedure.**
 
