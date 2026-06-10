@@ -79,7 +79,8 @@ runs — 19 success, 46 cancelled (concurrency dedup, normal), 1 failure, 2 in
 flight**. The figure grows as dispatches fire; the invariant is **exactly
 one failure** (a dispatch whose work survived resume) — the locked scope's
 earlier figure (66 runs: 17 success / 45 cancelled / 1 failure, with 3
-then-in-flight runs unstated) was the same window queried at 16:39Z. The
+then-in-flight runs unstated) was the same window queried minutes before
+the 16:39:05Z incident resolution. The
 resilience claim this spec inherits is **zero blocked
 work, not zero failures**. What the day cost instead: repeated improvised
 credential craft, withdrawn diagnoses, and a security-shaped habit
@@ -147,6 +148,7 @@ obtains fresh write-capable credentials.
 | Private key isolation | `KATA_APP_PRIVATE_KEY` never enters the agent session environment. Mint-on-demand happens outside the session boundary, owned by the dispatch infrastructure, not by the session. |
 | Coverage | The path works for **both** established session shapes: long-running sessions that cross the TTL boundary mid-run, **and** resumed sessions whose carried token is dead (run-241 shape). |
 | No transcript leakage *(retained from the split item (d))* | The re-auth mechanism introduces no token material into transcript-visible output: fresh credentials are delivered outside the conversational channel (the locked scope names file-or-env delivery; note session env is immutable mid-run), and freshness/presence checks return booleans, never token bytes. |
+| Re-minted tokens die with the job | Fresh credentials issued through (a) inherit the job-start token's revocation property: they are revoked at the issuing job execution's completion, so no late re-mint outlives its job as a live credential. This preserves the "outlives its issuing job execution only as a dead string" invariant (§ Problem) for **every** governed token, not only the job-start mint. |
 | Supersedes the harvest | Once (a) ships, the checkout-extraheader harvest has no remaining use case and stays prohibited (see (c3) and § Excluded). |
 
 ### (b) Deterministic TTL/expiry accounting — supporting requirement
@@ -244,6 +246,7 @@ they neither fire nor confirm the falsifier.
 |---|---|
 | A session that outlives its token completes an API write through the sanctioned path, in **both** coverage shapes. | Recorded dispatch-run evidence (live or test-induced), one run per shape — past-TTL mid-run, and resumed with a dead carried token — each writing via the (a) path with no extraheader decode or harvested credential in the run record. |
 | The private key never enters the agent session environment. | Inspection of `.github/workflows/kata-dispatch.yml` and the `kata-agent` composite `action.yml`: the agent session env carries token and stamp but no `KATA_APP_PRIVATE_KEY` material. |
+| An (a)-issued token is revoked at issuing-job completion. | Test or recorded run evidence: a token minted through the re-auth path late in a job is dead (401) after that job execution completes — no re-mint survives its issuing job as a live credential. |
 | Re-auth introduces no token material into transcript-visible output. | A trace scan of a refresh-exercising run's NDJSON transcript finds no token bytes (raw or encoded) in transcript-visible events, and observable freshness/presence checks return booleans only. |
 | Both in-scope mint sites export a mint/expiry stamp on the same surface as the token. | Inspection of the two mint surfaces, including the (a) re-auth path's issued credentials. |
 | No session state can pair a token with another token's stamp. | Test: a resumed session holding a carried token observes that token's stamp, and a refreshed session observes the fresh token's stamp — never a cross-pairing. |
