@@ -1,7 +1,7 @@
 import { formatHeader, formatTable } from "@forwardimpact/libcli";
 
 import { listMetrics } from "../csv.js";
-import { resolveSlice } from "./analyze.js";
+import { resolveSlice } from "./slice.js";
 
 /** Run the list command: read a CSV and display all metrics with their point counts and date ranges. */
 export function runListCommand(ctx) {
@@ -30,8 +30,11 @@ export function runListCommand(ctx) {
 
   if (values.format === "json") {
     proc.stdout.write(
-      JSON.stringify({ source: csvPath, event_type: label, metrics }, null, 2) +
-        "\n",
+      JSON.stringify(
+        { source: csvPath, event_type: eventType, metrics },
+        null,
+        2,
+      ) + "\n",
     );
   } else {
     const header =

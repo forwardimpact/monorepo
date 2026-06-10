@@ -1,7 +1,7 @@
 import { isoDate } from "@forwardimpact/libutil";
 import { analyze, roundStats } from "../analyze.js";
 import { round1 } from "../format.js";
-import { resolveSlice } from "./analyze.js";
+import { resolveSlice } from "./slice.js";
 
 /** Run the summarize command: analyze a CSV and output a condensed summary as markdown or JSON. */
 export function runSummarizeCommand(ctx) {
@@ -33,7 +33,8 @@ export function runSummarizeCommand(ctx) {
   const report = analyze(text, { eventType });
   report.source = csvPath;
   report.generated = isoDate(clock.now());
-  report.eventType = label;
+  report.eventType = eventType;
+  report.eventTypeLabel = label;
 
   if (values.metric) {
     report.metrics = report.metrics.filter((m) => m.metric === values.metric);
@@ -85,7 +86,7 @@ export function renderMarkdown(report) {
   );
 
   const lines = [
-    `event_type: ${report.eventType}`,
+    `event_type: ${report.eventTypeLabel}`,
     `**XmR — \`${report.source}\`** _(generated ${report.generated})_`,
     "",
   ];

@@ -150,6 +150,28 @@ describe("fit-xmr record", () => {
     assert.ok(lines[1].endsWith(",kata-dispatch"));
   });
 
+  test("$GITHUB_WORKFLOW_REF with a .yaml extension resolves the same way", () => {
+    const { fs } = run(
+      {
+        skill: "kata-test",
+        metric: "test_count",
+        value: "2",
+        date: "2026-05-02",
+        "wiki-root": WIKI_ROOT,
+      },
+      {
+        env: {
+          GITHUB_WORKFLOW_REF:
+            "owner/repo/.github/workflows/eval-guide.yaml@refs/heads/main",
+        },
+      },
+    );
+
+    const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
+    const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
+    assert.ok(lines[1].endsWith(",eval-guide"));
+  });
+
   test("--event-type wins over $GITHUB_WORKFLOW_REF", () => {
     const { fs } = run(
       {

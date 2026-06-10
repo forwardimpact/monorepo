@@ -8,15 +8,8 @@ import {
 
 import { analyze, roundStats } from "../analyze.js";
 import { renderChart } from "../chart.js";
-import { DEFAULT_SHIFT_TYPE } from "../constants.js";
 import { fmt1, round1 } from "../format.js";
-
-/** Resolve the effective event_type slice and its display label from a command's --event-type option value. */
-export function resolveSlice(value) {
-  const eventType = value || DEFAULT_SHIFT_TYPE;
-  const label = eventType === "*" ? "* (all rows)" : eventType;
-  return { eventType, label };
-}
+import { resolveSlice } from "./slice.js";
 
 /** Read a CSV, optionally filter to a single metric, and print a full report (chart + stats table + signals) in text mode or a stamped JSON object with source path and generation date. */
 export function runAnalyzeCommand(ctx) {
@@ -48,7 +41,8 @@ export function runAnalyzeCommand(ctx) {
   const report = analyze(text, { eventType });
   report.source = csvPath;
   report.generated = isoDate(clock.now());
-  report.eventType = label;
+  report.eventType = eventType;
+  report.eventTypeLabel = label;
 
   if (values.metric) {
     report.metrics = report.metrics.filter((m) => m.metric === values.metric);
@@ -98,7 +92,7 @@ export function toJsonMetric(m) {
 
 function formatText(report, { ascii }) {
   const parts = [
-    `event_type: ${report.eventType}\n` +
+    `event_type: ${report.eventTypeLabel}\n` +
       formatHeader(`XmR Analysis — ${report.source}`),
   ];
 

@@ -86,8 +86,12 @@ skill. The `fit-xmr record` command handles the file lifecycle -- it creates the
 directory and CSV header if they do not exist:
 
 ```sh
-npx fit-xmr record --skill kata-spec --metric findings_count --value 3 --unit count
+npx fit-xmr record --skill kata-spec --metric findings_count --value 3 --unit count --event-type kata-shift
 ```
+
+`--event-type` names the workflow recording the row (its filename without
+`.yml`). Inside GitHub Actions it can be omitted — the value falls back to
+`$GITHUB_WORKFLOW_REF` — but local runs must pass it explicitly.
 
 ```
 metric=findings_count n=1 status=insufficient_data latest=3
@@ -101,8 +105,8 @@ The CSV lands at `wiki/metrics/kata-spec/2026.csv` (year derived from the
 recording date) with the standard header:
 
 ```csv
-date,metric,value,unit,run,note
-2026-05-04,findings_count,3,count,,
+date,metric,value,unit,run,note,event_type
+2026-05-04,findings_count,3,count,,,kata-shift
 ```
 
 ### Recording with full context
@@ -115,6 +119,7 @@ npx fit-xmr record \
   --metric findings_count \
   --value 5 \
   --unit count \
+  --event-type kata-shift \
   --run "https://github.com/org/repo/actions/runs/12345" \
   --note "new dependency audit rule"
 ```

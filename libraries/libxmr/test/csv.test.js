@@ -148,15 +148,14 @@ describe("listMetrics", () => {
     "2026-01-01,b,5,days,r,,kata-dispatch",
   ].join("\n");
 
-  test("returns metric inventory", () => {
+  test("returns metric inventory for the default kata-shift slice", () => {
     const metrics = listMetrics(inventoryCsv);
 
-    assert.strictEqual(metrics.length, 2);
+    assert.strictEqual(metrics.length, 1);
     assert.strictEqual(metrics[0].metric, "a");
     assert.strictEqual(metrics[0].n, 2);
     assert.strictEqual(metrics[0].from, "2026-01-01");
     assert.strictEqual(metrics[0].to, "2026-01-02");
-    assert.strictEqual(metrics[1].unit, "days");
   });
 
   test("filters to one event_type when given", () => {
@@ -168,5 +167,6 @@ describe("listMetrics", () => {
   test('treats "*" as no filter', () => {
     const metrics = listMetrics(inventoryCsv, "*");
     assert.strictEqual(metrics.length, 2);
+    assert.strictEqual(metrics[1].unit, "days");
   });
 });

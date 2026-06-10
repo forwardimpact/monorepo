@@ -61,10 +61,11 @@ function parseRecordOptions(values, runtime) {
 
 // $GITHUB_WORKFLOW_REF looks like
 // `owner/repo/.github/workflows/kata-shift.yml@refs/heads/main`; the
-// workflow's machine name is the filename without `.yml`.
+// workflow's machine name is the filename without its extension.
 function workflowName(ref) {
   if (!ref) return "";
-  return path.basename(ref.split("@")[0], ".yml");
+  const base = path.basename(ref.split("@")[0]);
+  return base.replace(/\.ya?ml$/, "");
 }
 
 function printSummary(csvPath, metric, eventType, runtime) {

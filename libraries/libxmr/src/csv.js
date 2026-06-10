@@ -1,4 +1,9 @@
-import { COLUMNS, HEADER, ISO_DATE_RE } from "./constants.js";
+import {
+  COLUMNS,
+  DEFAULT_SHIFT_TYPE,
+  HEADER,
+  ISO_DATE_RE,
+} from "./constants.js";
 
 // Parse one CSV line into a row object. Quote-aware but does NOT support
 // the `""` escape inside quoted fields — Kata-metrics CSVs use the `note`
@@ -117,10 +122,10 @@ function headerMismatchMessage(got) {
   );
 }
 
-/** List distinct metrics in a CSV with their unit, point count, and date range, optionally restricted to one event_type ("*" disables the filter). */
-export function listMetrics(csvText, eventType) {
+/** List distinct metrics in a CSV with their unit, point count, and date range, restricted to one event_type (default kata-shift; "*" disables the filter). */
+export function listMetrics(csvText, eventType = DEFAULT_SHIFT_TYPE) {
   let rows = parseCSV(csvText);
-  if (eventType && eventType !== "*") {
+  if (eventType !== "*") {
     rows = rows.filter((row) => row.eventType === eventType);
   }
 
