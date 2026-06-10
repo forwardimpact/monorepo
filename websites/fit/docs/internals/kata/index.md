@@ -153,21 +153,19 @@ edit to the matrix in `.github/workflows/kata-shift.yml`.
 
 ## Coordination Channels
 
-Five channels carry agent-to-agent and agent-to-human collaboration,
-distinguished by **time horizon** and **persistence**.
+Four channels carry agent-to-agent and agent-to-human collaboration. Shared
+memory (wiki, weekly logs, settled decisions) is owned separately by
+[memory-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md).
 
-| Channel               | Use for                                                          | Lifetime                        |
-| --------------------- | ---------------------------------------------------------------- | ------------------------------- |
-| **Wiki**              | Permanent curated memory: summaries, weekly logs, decisions      | Persistent                      |
-| **Storyboard**        | Daily current condition and next experiment                      | One day; captured into wiki     |
-| **Discussion**        | Open questions before they become decisions — RFCs, cross-policy | Until resolved into spec / wiki |
-| **PR / issue thread** | Real-time response on a specific artifact                        | Lives with the artifact         |
-| **Sub-agent**         | Specialized inline work within one run                           | Ephemeral (one task)            |
+| Channel               | Use for                                          | Lifetime                              | Mechanism                    |
+| --------------------- | ------------------------------------------------ | ------------------------------------- | ---------------------------- |
+| **Storyboard**        | Daily current condition and next experiment      | One day; captured into wiki           | `kata-storyboard` workflow   |
+| **Discussion**        | Open questions before they become decisions      | Open until resolved into spec or wiki | `ghbridge` → `kata-dispatch` |
+| **PR / issue thread** | Real-time response on a specific artifact        | Lives with the artifact               | `kata-dispatch` workflow     |
+| **Sub-agent**         | Specialized inline work within one run           | Ephemeral (one task)                  | `Agent` tool, skill spawning |
 
 Per-output coordination is governed by
-[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md);
-shared memory mechanics by
-[memory-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md).
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md).
 
 ---
 
