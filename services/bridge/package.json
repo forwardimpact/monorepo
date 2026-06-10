@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcbridge",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Canonical threaded-discussion store — single source of truth for GitHub/Microsoft Teams bridge state.",
   "keywords": [
     "discussion",
