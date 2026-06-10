@@ -15,6 +15,7 @@ import {
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { FAST_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 import {
   createPipeline,
@@ -103,7 +104,7 @@ const definition = {
       },
       examples: [
         "bunx fit-terrain generate",
-        "bunx fit-terrain generate --model=claude-sonnet-4-6",
+        `bunx fit-terrain generate --model=${LEAD_MODEL}`,
       ],
     },
     {
@@ -140,7 +141,7 @@ const logger = createLogger("terrain", runtime);
 async function resolveLlmApi(config, modelOverride) {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const token = await config.anthropicToken();
-  const model = modelOverride || config.LLM_MODEL || "claude-haiku-4-5";
+  const model = modelOverride || config.LLM_MODEL || FAST_MODEL;
   const client = new Anthropic({ apiKey: token });
 
   return {
@@ -180,7 +181,7 @@ async function runVerb(options) {
   const { verb, inspectStage } = options;
 
   const config = await createScriptConfig("terrain", {
-    LLM_MODEL: "claude-haiku-4-5",
+    LLM_MODEL: FAST_MODEL,
   });
 
   const mode = verb === "generate" ? "generate" : "cached";

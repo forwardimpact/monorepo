@@ -8,6 +8,10 @@ import { resolve } from "node:path";
 
 import { createConfig } from "@forwardimpact/libconfig";
 import { createBenchmarkRunner } from "../benchmark/runner.js";
+import {
+  BENCHMARK_AGENT_MODEL,
+  LEAD_MODEL,
+} from "@forwardimpact/libutil/models";
 
 /**
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
@@ -54,9 +58,9 @@ function parseRunOptions(values) {
     family,
     runs,
     output: resolve(output),
-    agentModel: values["agent-model"] ?? "claude-sonnet-4-6",
-    supervisorModel: values["lead-model"] ?? "claude-fable-5",
-    judgeModel: values["judge-model"] ?? "claude-fable-5",
+    agentModel: values["agent-model"] ?? BENCHMARK_AGENT_MODEL,
+    supervisorModel: values["lead-model"] ?? LEAD_MODEL,
+    judgeModel: values["judge-model"] ?? LEAD_MODEL,
     profiles: {
       agent: values["agent-profile"] ?? null,
       judge: values["judge-profile"] ?? null,

@@ -13,6 +13,7 @@ import { runSuperviseCommand } from "../src/commands/supervise.js";
 import { runFacilitateCommand } from "../src/commands/facilitate.js";
 import { runDiscussCommand } from "../src/commands/discuss.js";
 import { runCallbackCommand } from "../src/commands/callback.js";
+import { AGENT_MODEL } from "@forwardimpact/libutil/models";
 
 const LEAD_OPTIONS = {
   "lead-profile": {
@@ -21,7 +22,7 @@ const LEAD_OPTIONS = {
   },
   "lead-model": {
     type: "string",
-    description: "Claude model for the lead role (default: claude-fable-5[1m])",
+    description: `Claude model for the lead role (default: ${AGENT_MODEL})`,
   },
 };
 
@@ -63,8 +64,7 @@ const definition = {
         ...TASK_INPUT_OPTIONS,
         "agent-model": {
           type: "string",
-          description:
-            "Claude model for the agent (default: claude-fable-5[1m])",
+          description: `Claude model for the agent (default: ${AGENT_MODEL})`,
         },
         "max-turns": {
           type: "string",
@@ -101,8 +101,7 @@ const definition = {
         ...TASK_INPUT_OPTIONS,
         "agent-model": {
           type: "string",
-          description:
-            "Claude model for the agent (default: claude-fable-5[1m])",
+          description: `Claude model for the agent (default: ${AGENT_MODEL})`,
         },
         ...LEAD_OPTIONS,
         "max-turns": {
@@ -146,7 +145,7 @@ const definition = {
         ...TASK_INPUT_OPTIONS,
         "agent-model": {
           type: "string",
-          description: "Claude model for agents (default: claude-fable-5[1m])",
+          description: `Claude model for agents (default: ${AGENT_MODEL})`,
         },
         ...LEAD_OPTIONS,
         "max-turns": {
@@ -183,7 +182,7 @@ const definition = {
         ...TASK_INPUT_OPTIONS,
         "agent-model": {
           type: "string",
-          description: "Claude model for agents (default: claude-fable-5[1m])",
+          description: `Claude model for agents (default: ${AGENT_MODEL})`,
         },
         ...LEAD_OPTIONS,
         "max-turns": {

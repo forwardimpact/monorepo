@@ -5,6 +5,7 @@ import { PassThrough } from "node:stream";
 import { AgentRunner, createAgentRunner } from "@forwardimpact/libeval";
 import { createNoopRedactor } from "../src/redaction.js";
 import { createMockAgentQuery as mockQuery } from "@forwardimpact/libmock";
+import { AGENT_MODEL } from "@forwardimpact/libutil/models";
 
 const noop = () => createNoopRedactor();
 
@@ -72,7 +73,7 @@ describe("AgentRunner", () => {
       output: new PassThrough(),
       redactor: noop(),
     });
-    assert.strictEqual(runner.model, "claude-fable-5[1m]");
+    assert.strictEqual(runner.model, AGENT_MODEL);
     assert.strictEqual(runner.maxTurns, 50);
     assert.deepStrictEqual(runner.allowedTools, [
       "Bash",
@@ -234,7 +235,7 @@ describe("AgentRunner", () => {
     const result = await runner.resume("Follow up");
 
     assert.strictEqual(resumeCapture.options.resume, "sess-42");
-    assert.strictEqual(resumeCapture.options.model, "claude-fable-5[1m]");
+    assert.strictEqual(resumeCapture.options.model, AGENT_MODEL);
     assert.strictEqual(resumeCapture.prompt, "Follow up");
     assert.strictEqual(result.success, true);
     assert.strictEqual(result.text, "Resumed");

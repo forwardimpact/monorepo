@@ -6,6 +6,7 @@ import { createMockFs } from "@forwardimpact/libmock";
 import { parseSuperviseOptions } from "../src/commands/supervise.js";
 import { parseFacilitateOptions } from "../src/commands/facilitate.js";
 import { parseDiscussOptions } from "../src/commands/discuss.js";
+import { AGENT_MODEL } from "@forwardimpact/libutil/models";
 
 // All cases below use --task-text, so the runtime's fs is never read (the
 // only fs path is supervise's temp-dir fallback for --task-file). An in-memory
@@ -86,7 +87,7 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
     );
 
     assert.strictEqual(opts.leadProfile, undefined);
-    assert.strictEqual(opts.leadModel, "claude-fable-5[1m]");
+    assert.strictEqual(opts.leadModel, AGENT_MODEL);
     assert.strictEqual(opts.maxTurns, 40);
     assert.deepStrictEqual(opts.agentConfigs, []);
   });
