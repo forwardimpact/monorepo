@@ -27,22 +27,31 @@ describe("buildHookEnv", () => {
   test("inherits the base env", () => {
     const env = buildHookEnv(
       { PATH: "/bin", HOME: "/root" },
-      { cwd: "/c", port: 0 },
+      {
+        cwd: "/c",
+        port: 0,
+        taskId: "t",
+        taskDir: "/d",
+        hooksDir: "/d/hooks",
+        familyDir: "/f",
+      },
     );
     assert.equal(env.PATH, "/bin");
     assert.equal(env.HOME, "/root");
   });
 
-  test("absent path vars become empty strings, never undefined", () => {
-    const env = buildHookEnv({}, { cwd: "/c", port: 1 });
-    assert.equal(env.TASK_ID, "");
-    assert.equal(env.TASK_DIR, "");
-    assert.equal(env.HOOKS_DIR, "");
-    assert.equal(env.FAMILY_DIR, "");
-  });
-
   test("null familyDir is coerced to empty string", () => {
-    const env = buildHookEnv({}, { cwd: "/c", port: 1, familyDir: null });
+    const env = buildHookEnv(
+      {},
+      {
+        cwd: "/c",
+        port: 1,
+        taskId: "t",
+        taskDir: "/d",
+        hooksDir: "/d/hooks",
+        familyDir: null,
+      },
+    );
     assert.equal(env.FAMILY_DIR, "");
   });
 });

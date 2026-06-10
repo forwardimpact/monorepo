@@ -14,10 +14,11 @@
  * @param {object} vars
  * @param {string} vars.cwd - Agent CWD → `$WORKDIR`.
  * @param {number} vars.port - Allocated TCP port → `$PORT`.
- * @param {string} [vars.taskId] - Task id → `$TASK_ID`.
- * @param {string} [vars.taskDir] - Task directory on host → `$TASK_DIR`.
- * @param {string} [vars.hooksDir] - Task `hooks/` dir on host → `$HOOKS_DIR`.
- * @param {string} [vars.familyDir] - Family root on host → `$FAMILY_DIR`.
+ * @param {string} vars.taskId - Task id → `$TASK_ID`.
+ * @param {string} vars.taskDir - Task directory on host → `$TASK_DIR`.
+ * @param {string} vars.hooksDir - Task `hooks/` dir on host → `$HOOKS_DIR`.
+ * @param {string|null} vars.familyDir - Family root on host → `$FAMILY_DIR`
+ *   (null when the family root is unknown, e.g. a standalone task).
  * @returns {Record<string, string>}
  */
 export function buildHookEnv(
@@ -28,9 +29,9 @@ export function buildHookEnv(
     ...baseEnv,
     WORKDIR: cwd,
     PORT: String(port),
-    TASK_ID: taskId ?? "",
-    TASK_DIR: taskDir ?? "",
-    HOOKS_DIR: hooksDir ?? "",
+    TASK_ID: taskId,
+    TASK_DIR: taskDir,
+    HOOKS_DIR: hooksDir,
     FAMILY_DIR: familyDir ?? "",
   };
 }

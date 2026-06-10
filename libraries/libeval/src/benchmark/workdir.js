@@ -187,10 +187,10 @@ export class WorkdirManager {
  * @param {string} script
  * @param {string} cwd - Agent CWD passed via $WORKDIR.
  * @param {number} port - Free TCP port passed via $PORT.
- * @param {{taskId?: string, taskDir?: string, hooksDir?: string, familyDir?: string|null}} [vars] - Extra hook env vars.
+ * @param {{taskId: string, taskDir: string, hooksDir: string, familyDir: string|null}} vars - Extra hook env vars.
  * @returns {Promise<{pgid: number, error?: {phase: string, message: string, exitCode: number}}>}
  */
-async function runPreflight(runtime, script, cwd, port, vars = {}) {
+async function runPreflight(runtime, script, cwd, port, vars) {
   const child = runtime.subprocess.spawn(script, [], {
     cwd,
     env: buildHookEnv(runtime.proc.env, { cwd, port, ...vars }),
