@@ -217,8 +217,9 @@ export class IndexBase {
    * current in-memory live set. Closes the append-only-vs-deletion gap: a
    * caller that removes an entry from the in-memory `index` Map and then
    * calls `compact()` ends with that entry absent from both memory and disk.
-   * Uses `storage.put` (atomic file-replace) so a process restart cannot
-   * observe a half-written index.
+   * `storage.put` is a write-tmp + atomic rename on the local backend —
+   * a restart during `compact()` observes either the prior or post-compact
+   * index, never a half-written file.
    * @returns {Promise<void>}
    */
   async compact() {

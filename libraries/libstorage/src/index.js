@@ -12,7 +12,7 @@ import { SupabaseStorage } from "./supabase.js";
 
 /**
  * @typedef {object} StorageInterface
- * @property {function(string, string|Buffer|object): Promise<void>} put - Store data with the given key
+ * @property {function(string, string|Buffer|object): Promise<void>} put - Store data with the given key. On the local backend this is a same-target atomic file-replace (write-tmp + rename) — a process termination at any point during the call leaves the target at either its prior content or the new content, never an intermediate prefix. The `S3Storage` and `SupabaseStorage` backends inherit the same shape from their service `PutObject` semantics.
  * @property {function(string): Promise<any>} get - Retrieve data by key
  * @property {function(string): Promise<void>} delete - Remove data by key
  * @property {function(string): Promise<boolean>} exists - Check if key exists
