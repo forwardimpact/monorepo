@@ -154,7 +154,7 @@ separator) before they reach git.
 | 6 | The boot digest includes remaining words and lines for the agent's summary and active weekly log. | `libwiki` test asserting digest fields against fixtures. |
 | 7 | The audit flags weekly-log entry headings that do not match the dated grammar; that finding and the decision-block finding name the log command, and the sealed-part budget hints no longer direct a hand-split. | `fit-wiki audit` against a grammar-drifted fixture; hint-text assertions for the three rules. |
 | 8 | The memory protocol reserves direct weekly-log file edits for repair, stated alongside the append-path instruction. | `rg -C3 "fit-wiki log" .claude/agents/references/memory-protocol.md \| rg -i "repair"` |
-| 9 | The wiki commit path rejects `:`-prefixed pathspec entries, so a rotation-minted filename can never widen a commit beyond the named files. | `libwiki`/`libutil` test: a `:/`-prefixed path handed to the commit boundary is rejected, not passed to git. |
+| 9 | The wiki commit path rejects `:`-prefixed pathspec entries, so a rotation-minted filename can never widen a commit beyond the named files, and the boundary's `paths` parameter documents this rejection at the interface. | `libwiki`/`libutil` test: a `:/`-prefixed path handed to the commit boundary is rejected, not passed to git; JSDoc on the commit boundary's `paths` parameter warns that `:`-prefixed pathspec entries are rejected. |
 
 ## Why Now
 
