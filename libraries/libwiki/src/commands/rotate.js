@@ -1,4 +1,4 @@
-import { rotateIfOverBudget } from "../weekly-log.js";
+import { rotateIfOverBudget, weeklyLogPath } from "../weekly-log.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 
@@ -16,6 +16,12 @@ export function runRotateCommand(ctx) {
   }
   const wikiRoot = resolveWikiRoot(runtime, options);
   const today = options.today || currentDayIso(runtime);
+  // Name the resolved target before any seal: the file follows from agent +
+  // current week, not from any audit finding, so an env-default agent can
+  // silently select a different file than the one the operator has in mind.
+  runtime.proc.stdout.write(
+    `target → ${weeklyLogPath(wikiRoot, agent, today)}\n`,
+  );
 
   let result;
   try {

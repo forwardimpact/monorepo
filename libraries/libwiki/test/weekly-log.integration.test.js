@@ -88,6 +88,30 @@ describe("rotateIfOverBudget", () => {
     assert.ok(r.parts.length >= 2);
   });
 
+  test("force is a noop on a header-only log — no empty part minted (#1581)", () => {
+    const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
+    writeFileSync(filePath, "# Staff Engineer — 2026-W21\n");
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      AGENT,
+      WEEK,
+      0,
+      { force: true },
+      nodeFs,
+    );
+    assert.equal(r.status, "noop");
+    assert.deepEqual(
+      readdirSync(wikiRoot),
+      ["staff-engineer-2026-W21.md"],
+      "no part minted",
+    );
+    assert.equal(
+      readFileSync(filePath, "utf-8"),
+      "# Staff Engineer — 2026-W21\n",
+      "main left byte-identical",
+    );
+  });
+
   test("part slots continue past existing parts", () => {
     const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
     writeFileSync(

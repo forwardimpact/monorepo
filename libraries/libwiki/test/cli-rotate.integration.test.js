@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   mkdtempSync,
   writeFileSync,
+  readFileSync,
   mkdirSync,
   rmSync,
   existsSync,
@@ -27,19 +28,23 @@ describe("fit-wiki rotate CLI (in-process)", () => {
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  const run = (today = "2026-05-24") => {
+  const run = (today = "2026-05-24", agent = "staff-engineer") => {
     const harness = makeRuntime({ cwd: dir });
     const result = runRotateCommand(
       ctxFor({
         runtime: harness.runtime,
-        options: { agent: "staff-engineer", "wiki-root": wikiRoot, today },
+        options: { agent, "wiki-root": wikiRoot, today },
       }),
     );
     return { result, harness };
   };
 
-  function multiDayLog(sections = 4, linesPerSection = 150) {
-    let text = "# Staff Engineer — 2026-W21\n";
+  function multiDayLog(
+    title = "Staff Engineer",
+    sections = 4,
+    linesPerSection = 150,
+  ) {
+    let text = `# ${title} — 2026-W21\n`;
     for (let s = 0; s < sections; s++) {
       const day = String(18 + s).padStart(2, "0");
       text += `## 2026-05-${day}\n`;
@@ -63,11 +68,65 @@ describe("fit-wiki rotate CLI (in-process)", () => {
   });
 
   test("no rotation needed (missing file) prints a message and exits 0", () => {
-    // The CLI forces, so an existing file always seals; the genuine noop is the
-    // missing-file path.
+    // The CLI forces, so an existing file with content always seals; the noops
+    // are the missing-file and header-only paths.
     const { result, harness } = run();
     assert.deepEqual(result, { ok: true });
     assert.match(harness.stdout, /no rotation needed for staff-engineer/);
+  });
+
+  test("prints the resolved target before any seal output", () => {
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(logPath, multiDayLog());
+    const { harness } = run();
+    const lines = harness.stdout.trim().split("\n");
+    assert.match(lines[0], /^target → .*staff-engineer-2026-W21\.md$/);
+  });
+
+  test("a header-only log is a noop even though the CLI forces (#1581)", () => {
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(logPath, "# Staff Engineer — 2026-W21\n");
+    const { result, harness } = run();
+    assert.deepEqual(result, { ok: true });
+    assert.match(harness.stdout, /no rotation needed for staff-engineer/);
+    assert.equal(
+      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      false,
+      "no empty part minted",
+    );
+  });
+
+  test("#1581 repro: never touches a sibling's over-budget log, and a repeat run mints nothing", () => {
+    // The incident shape: the audit flags product-manager's log, but rotate is
+    // invoked as staff-engineer. The PM file must be left byte-identical, and
+    // the second invocation — against the freshly-reset staff-engineer main —
+    // must noop instead of minting an empty part.
+    const pmSource = multiDayLog("Product Manager");
+    const pmLog = weeklyLogPath(wikiRoot, "product-manager", "2026-05-24");
+    writeFileSync(pmLog, pmSource);
+    const seLog = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(seLog, "# Staff Engineer — 2026-W21\n## 2026-05-18\nshort\n");
+
+    const first = run();
+    assert.deepEqual(first.result, { ok: true });
+    assert.match(
+      first.harness.stdout,
+      /target → .*staff-engineer-2026-W21\.md/,
+    );
+    assert.ok(
+      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      "a non-empty under-budget log still force-seals",
+    );
+    assert.equal(readFileSync(pmLog, "utf-8"), pmSource, "sibling untouched");
+
+    const second = run();
+    assert.deepEqual(second.result, { ok: true });
+    assert.match(second.harness.stdout, /no rotation needed/);
+    assert.equal(
+      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part2.md")),
+      false,
+      "no junk part minted on the repeat run",
+    );
   });
 
   test("an irreducible single-day section exits 1 and names the section", () => {
