@@ -39,6 +39,7 @@ describe("Supervisor - createSupervisor factory", () => {
       "Read",
       "Glob",
       "Grep",
+      "Bash",
     ]);
   });
 
@@ -90,7 +91,6 @@ describe("Supervisor - createSupervisor factory", () => {
       "Task",
       "TaskOutput",
       "TaskStop",
-      "Bash",
       "Write",
       "Edit",
     ]);

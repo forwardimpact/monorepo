@@ -101,7 +101,13 @@ describe("COALIGNED L0 — agents describe inbox arrival of questions", () => {
 });
 
 describe("COALIGNED L0 — leads state delegation constraint", () => {
-  for (const [name, prompt] of LEAD_PROMPTS) {
+  // Supervisor is excluded: it has its own tools (incl. Bash) to do its own
+  // work, so it delegates only the agent's task — not all work — via Ask.
+  const NO_TOOL_LEADS = [
+    ["FACILITATOR_SYSTEM_PROMPT", FACILITATOR_SYSTEM_PROMPT],
+    ["DISCUSS_SYSTEM_PROMPT", DISCUSS_SYSTEM_PROMPT],
+  ];
+  for (const [name, prompt] of NO_TOOL_LEADS) {
     test(`${name} contains delegation constraint`, () => {
       assert.ok(
         prompt.includes("no tools to perform work yourself"),
