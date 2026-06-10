@@ -50,7 +50,7 @@ each check to its policy source and failure action — merge, fix, close, or ski
 | Clean npm audit          | CONTRIBUTING.md § Dependency Policy | **close** if new vuln; **skip** if pre-existing               |
 | No unnecessary deps      | CONTRIBUTING.md § Dependency Policy | **close** with explanation                                    |
 | First-party actions only | kata-security-audit § 1             | **close** with explanation                                    |
-| Pin direction (forward)  | CONTRIBUTING.md § Security          | **close** — route lagging action tag to release-engineer      |
+| Pin direction (forward)  | CONTRIBUTING.md § Security          | **close** — record detection evidence; route lagging tag to release-engineer |
 | Peer/transitive compat   | CONTRIBUTING.md § Dependency Policy | **close** until co-dependent packages release compat versions |
 | Override-range shadowing | CONTRIBUTING.md § Dependency Policy | **fix** — open follow-up override-bump PR before merging      |
 
@@ -62,6 +62,14 @@ action-to-workflow mapping. Also verify pin **direction**:
 and route a tag-hygiene issue to release-engineer; the cause is a mutable
 major tag lagging its latest release while Dependabot tracks the `# v1`
 comment instead of the pinned SHA.
+
+A downgrade close is still **detection evidence**: Dependabot read the SHA
+pin and proposed a change, which is exactly what a pin-migration watchpoint
+waits to observe. Before closing, check boot memory for an open watchpoint
+tracking Dependabot detection of SHA-pinned actions; if one exists, post a
+cross-reference comment on that issue naming the closed PR, the old and new
+SHAs, and the compare-API status. The mechanical close must not swallow the
+detection signal.
 
 ## Process
 
