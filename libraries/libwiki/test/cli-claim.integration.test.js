@@ -123,4 +123,39 @@ describe("claim/release push integration (real git)", () => {
       /wiki: release spec-NNNN/,
     );
   });
+
+  test("release leaves foreign dirty files out of the commit", async () => {
+    writeFileSync(
+      memPath,
+      "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| staff-engineer | spec-NNNN | feat/x | — | 2099-01-01 | 2099-01-08 |\n",
+    );
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed memory");
+    git(wikiDir, "push", "origin", "master");
+    writeFileSync(join(wikiDir, "README.md"), "# Wiki\nforeign edit\n");
+
+    const { harness, wikiSync } = harnessFor();
+    const result = await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "spec-NNNN",
+        },
+      }),
+    );
+    assert.equal(result.ok, true);
+    assert.match(harness.stdout, /push: committed and pushed/);
+    assert.equal(
+      git(wikiDir, "show", "--name-only", "--format=", "HEAD"),
+      "MEMORY.md",
+    );
+    assert.match(
+      git(wikiDir, "status", "--porcelain"),
+      /M README\.md/,
+      "foreign edit survives in the tree",
+    );
+  });
 });

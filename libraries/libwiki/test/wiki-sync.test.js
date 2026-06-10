@@ -151,6 +151,18 @@ describe("WikiSync", () => {
     ]);
   });
 
+  test("commitAndPush with paths is a no-op when only foreign files are dirty", async () => {
+    const { wikiSync, methods } = make({
+      responses: {
+        status: { stdout: "", stderr: "", exitCode: 0 },
+        revListCount: 0,
+      },
+    });
+    const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
+    assert.deepEqual(result, { pushed: false, reason: "clean" });
+    assert.deepEqual(methods(), ["status", "revListCount"]);
+  });
+
   test("commitAndPush is a no-op on a clean tree with nothing ahead", async () => {
     const { wikiSync, methods } = make({
       responses: {
