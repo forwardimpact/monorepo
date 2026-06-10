@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libmock",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Shared mocks and test fixtures so every library and service tests the same way.",
   "keywords": [
     "test",

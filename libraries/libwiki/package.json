@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libwiki",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "description": "Wiki lifecycle primitives — stable memory for agent teams so coordination persists across sessions.",
   "keywords": [
     "wiki",
@@ -50,7 +50,7 @@
     "@forwardimpact/libeval": "^0.1.49",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libutil": "^0.1.0",
-    "@forwardimpact/libxmr": "^1.1.0"
+    "@forwardimpact/libxmr": "^2.0.0"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

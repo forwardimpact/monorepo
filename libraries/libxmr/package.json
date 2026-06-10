@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libxmr",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "Wheeler/Vacanti XmR control charts — distinguish signal from noise so agent teams act on real changes, not fluctuations.",
   "keywords": [
     "xmr",

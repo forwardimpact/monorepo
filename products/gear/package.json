@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/gear",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Shared libraries and services for platform builders and agents — CLIs, retrieval, evaluation, and infrastructure published to npm.",
   "keywords": [
     "agent",
@@ -71,7 +71,7 @@
     "@forwardimpact/libutil": "^0.1.78",
     "@forwardimpact/libvector": "^0.1.88",
     "@forwardimpact/libwiki": "^0.2.0",
-    "@forwardimpact/libxmr": "^1.1.0"
+    "@forwardimpact/libxmr": "^2.0.0"
   },
   "engines": {
     "bun": ">=1.2.0",
