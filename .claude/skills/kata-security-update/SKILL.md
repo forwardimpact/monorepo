@@ -25,7 +25,7 @@ security policies.
 <do_confirm_checklist goal="Verify dependency PR meets repo policies">
 
 - [ ] All CI checks pass.
-- [ ] Actions pinned to SHA with version comment.
+- [ ] Actions pinned to SHA with version comment; bumps move forward.
 - [ ] No duplicate dependencies.
 - [ ] Version ranges aligned across workspaces.
 - [ ] `npm audit` clean (`--audit-level=high`).
@@ -50,12 +50,18 @@ each check to its policy source and failure action — merge, fix, close, or ski
 | Clean npm audit          | CONTRIBUTING.md § Dependency Policy | **close** if new vuln; **skip** if pre-existing               |
 | No unnecessary deps      | CONTRIBUTING.md § Dependency Policy | **close** with explanation                                    |
 | First-party actions only | kata-security-audit § 1             | **close** with explanation                                    |
+| Pin direction (forward)  | CONTRIBUTING.md § Security          | **close** — route lagging action tag to release-engineer      |
 | Peer/transitive compat   | CONTRIBUTING.md § Dependency Policy | **close** until co-dependent packages release compat versions |
 | Override-range shadowing | CONTRIBUTING.md § Dependency Policy | **fix** — open follow-up override-bump PR before merging      |
 
 When evaluating the SHA-pinning check, verify the PR updates **all** workflow
 files referencing the action. See `references/sha-inventory.md` for the full
-action-to-workflow mapping.
+action-to-workflow mapping. Also verify pin **direction**:
+`gh api repos/{owner}/{repo}/compare/{old}...{new} --jq .status` must return
+`ahead`. `behind` or `diverged` is a downgrade — **close** even with green CI
+and route a tag-hygiene issue to release-engineer; the cause is a mutable
+major tag lagging its latest release while Dependabot tracks the `# v1`
+comment instead of the pinned SHA.
 
 ## Process
 
