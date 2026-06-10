@@ -97,6 +97,12 @@ export class CallbackRegistry {
    * route uses this to verify a path-supplied tenant against the binding
    * the dispatcher recorded. Single-pass scan of the entries map; the
    * registry is one entry per in-flight dispatch per bridge process.
+   *
+   * Scan-by-design (timing-parity): the bounded-n scan is acceptable only
+   * while the caller preserves response-shape parity — a miss here and a
+   * tenant mismatch must produce the same response (the inbox route
+   * collapses both to 404 `Unknown correlation`), so timing or shape never
+   * distinguishes "correlation unknown" from "correlation bound elsewhere".
    * @param {string} correlationId
    * @returns {string | null}
    */
