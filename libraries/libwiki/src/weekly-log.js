@@ -281,6 +281,13 @@ export function rotateIfOverBudget(
   const { force = false } = options;
   if (!fs.existsSync(filePath)) return { status: "noop", fromPath: filePath };
   const text = fs.readFileSync(filePath, "utf-8");
+  // A header-only (or empty) log has nothing to seal. Without this floor,
+  // force-rotating a freshly-reset main would mint an empty `(part 1 of 1)`
+  // file and reset the main again — once per invocation, forever.
+  const nl = text.indexOf("\n");
+  if ((nl === -1 ? "" : text.slice(nl + 1)).trim() === "") {
+    return { status: "noop", fromPath: filePath };
+  }
   const current = countLines(text);
   if (!force && current + appendLines <= WEEKLY_LOG_LINE_BUDGET) {
     return { status: "noop", fromPath: filePath };
