@@ -18,6 +18,10 @@ permissions:
 jobs:
   eval-guide:
     runs-on: ubuntu-latest
+    # Per-matrix-case ceiling. Observed max wall-clock ~13 min over the last
+    # 20 runs; 30 min gives >2x headroom while staying under the ~1h App
+    # token TTL, so the job-start token cannot outlive the job (#1561).
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
