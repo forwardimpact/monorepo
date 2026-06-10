@@ -160,7 +160,7 @@ npx fit-pathway job software_engineering J060          # Generate a job definiti
 npx fit-outpost init ~/Documents/Team                 # Set up your personal ops center (macOS only)
 ```
 
-### For Platform Builders and Agents
+### For Platform Builders
 
 Generate aligned agent profiles and install the shared skill pack:
 
