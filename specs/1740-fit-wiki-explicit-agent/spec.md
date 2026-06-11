@@ -16,9 +16,12 @@ the same silent fallback chain: the `--agent` flag, else the
 CLI definition, and the `boot` digest behaviour independently duplicates
 the full chain — env read and `staff-engineer` literal — at handler level;
 `memo` resolves its `--from` sender through the flag-then-env prefix of
-the same chain. Resolution is invisible at invocation time — no echo, no
-confirmation — so the caller learns what the tool targeted only by
-inspecting post-state.
+the same chain, again at both definition and handler level. Resolution is
+invisible at invocation time — no echo, no confirmation — so the caller
+learns what the tool targeted only by inspecting post-state. (`rotate`
+alone has echoed its resolved target since the `e303bacc` stopgap; every
+other agent-scoped subcommand still resolves silently, and the echo
+announces a misroute without preventing it.)
 
 Three incidents — four misroute firings — have now realized **both branches
 of that one default expression** (issue #1371):
@@ -26,7 +29,7 @@ of that one default expression** (issue #1371):
 | Date | Invoker | Env state | Outcome | Branch fired |
 |---|---|---|---|---|
 | 2026-06-02 (W23) | product-manager, intending its own log | `LIBEVAL_AGENT_PROFILE=staff-engineer` (set elsewhere in the session) | Bare `fit-wiki rotate` rotated `staff-engineer-2026-W23.md` | env fallback, wrong value |
-| 2026-06-10 (W24) | security-engineer, acting on an audit finding naming `product-manager-2026-W24.md` | `LIBEVAL_AGENT_PROFILE` unset | Bare `fit-wiki rotate` sealed `staff-engineer-2026-W24.md` (361 lines → part4) | hardcoded `staff-engineer` last-resort |
+| 2026-06-10 (W24) | release-engineer, acting on an audit finding naming `product-manager-2026-W24.md` (first-person record in #1581; early #1371 comments misattributed security-engineer) | `LIBEVAL_AGENT_PROFILE` unset | Bare `fit-wiki rotate` sealed `staff-engineer-2026-W24.md` (361 lines → part4) | hardcoded `staff-engineer` last-resort |
 | 2026-06-10→11 (W24) | improvement-coach, acting on an audit finding naming `improvement-coach-2026-W24.md` | `LIBEVAL_AGENT_PROFILE` unset | Running `fit-wiki audit`'s own remediation hint verbatim — the hint omitted `--agent` — sealed `staff-engineer-2026-W24.md` (17KB → part7), and a second verbatim run sealed the fresh replacement (44 bytes → part8). The flagged file was untouched until the flag was passed explicitly ([#1371 issuecomment-4675876412](https://github.com/forwardimpact/monorepo/issues/1371#issuecomment-4675876412)) | hardcoded `staff-engineer` last-resort, fired twice, **steered by the tool's own output** |
 
 The third incident widens the behavior class from *interactive-use hazard*
@@ -45,9 +48,11 @@ misroutes.
 The staff-engineer assessment on #1371 confirms the W24 mechanism: there is
 no directory scan — the hardcoded last-resort deterministically supplied
 `staff-engineer`. It also confirms a corollary defect: the handler-level
-guards ("requires `--agent` or `LIBEVAL_AGENT_PROFILE`") on the rotate, log,
-claim, release, and inbox handlers are **dead code**, because the
-CLI-definition default always supplies a value before any handler runs.
+guards on the rotate, log, claim, release, and inbox handlers — worded
+"requires `--agent` or `LIBEVAL_AGENT_PROFILE`" on all but `release`,
+whose guard names `--expired` instead of the env variable — are **dead
+code**, because the CLI-definition default always supplies a value before
+any handler runs.
 
 All three incidents were benign by luck (audit-clean rotations, sealed
 content intact, churn parts discarded).
@@ -100,9 +105,11 @@ of convenience.
 | The `release --expired` operator-cleanup mode. | **Deliberately exempt.** `release --expired` removes every agent's expired claim rows — a cross-agent table sweep with no single agent identity to name — and remains valid without `--agent`, exactly as the memory protocol and curation skill document it. Only the targeted form (`release --target …`), which releases one agent's claim, requires the flag. |
 | `memo` sender resolution. | `--from` is required; same error contract. (`--to` is already explicit.) |
 | The hardcoded `staff-engineer` last-resort. | Deleted at **every occurrence** — the shared option default and the boot behaviour's handler-level duplicate. No `fit-wiki` invocation can target an agent nobody named. |
-| `LIBEVAL_AGENT_PROFILE` consumption in `libwiki`. | Removed entirely — no `libwiki` source path reads that variable. The missing-flag error path becomes live and tested, with a **new error contract**: it names the flag and a corrected invocation, and does not offer the env variable as an alternative (the current dead-guard wording does). |
+| `LIBEVAL_AGENT_PROFILE` consumption in `libwiki`. | Removed entirely — no `libwiki` source path reads that variable. The missing-flag error path becomes live and tested, with a **new error contract**: it names the flag and a corrected invocation, and does not offer the env variable as an alternative (the current dead-guard wording does, on every handler but `release`). |
 | CLI help text, examples, and golden help-output expectations. | Updated to show `--agent`/`--from` as required; no example demonstrates a bare agent-scoped invocation. |
 | Tool-emitted remediation hints for agent-scoped commands. | The weekly-log budget-audit hints emit the **fully resolved** invocation — `rotate --agent <actual-agent>` derived from the flagged filename's prefix — replacing the `e303bacc` placeholder the caller must substitute. A hint copy-pasted verbatim is a correct, correctly-targeted command. Hints are runtime examples: the same no-bare-invocation policy applies to tool output as to docs. |
+| Rotate's target-state guard (under-budget refusal). | Routed to this spec by the #1581 closure sweep ([#1371 issuecomment-4675909938](https://github.com/forwardimpact/monorepo/issues/1371#issuecomment-4675909938)). Decided: **refuse**. `rotate` invoked on a resolved target under the weekly-log budget exits non-zero naming the target and its size, unless `--force` is passed. This extends the `e303bacc` floor guard (header-only files) to the full under-budget range: the 6/10 misroute sealed a 361-line under-budget file, which a target-state guard intercepts even when the identity question is answered wrongly in good faith. Deliberate early sealing stays available via `--force` — it just cannot happen by accident. |
+| Release posture for external consumers. | This is a **breaking change** to the published `fit-wiki` CLI contract: bare agent-scoped invocations that resolve silently today fail closed after upgrade. The release that ships it carries a changelog/release-notes entry stating the required-flag contract, the removed `LIBEVAL_AGENT_PROFILE` fallback, and a before/after invocation example. The version bump treats this as a breaking CLI change under the repo's release procedure. |
 | Internal call-site and documentation migration. | Every monorepo surface that instructs or performs a bare agent-scoped invocation, **or describes the env fallback as available**, is updated: skill `SKILL.md` boot lines and command examples, the `fit-wiki` skill's fallback descriptions, the memory-protocol and coordination-protocol references, agent profile session protocols (already largely compliant), the `libwiki` README's agent-resolution sentence, the published wiki-operations guide, and `benchmarks/fit-wiki` fixtures. The migration includes a sweep verifying no remaining bare call sites and no remaining fallback descriptions. |
 
 ### Out of scope
@@ -130,15 +137,17 @@ of convenience.
 | Claim | Verification |
 |---|---|
 | Bare `fit-wiki rotate` fails closed in both incident replays. | With `LIBEVAL_AGENT_PROFILE` set to another agent, and again with it unset, drive `fit-wiki rotate` with no `--agent` against a multi-agent wiki fixture; observe a non-zero exit, an error naming `--agent`, and no file created, renamed, or modified — in both env states. |
-| Every agent-scoped subcommand requires the flag. | Drive `boot`, `log decision`, `claim`, `release --target`, `inbox list`, `inbox promote`, and `rotate` without `--agent` (env set and unset); observe each exits non-zero with the missing-flag error and zero wiki mutations. |
+| Every agent-scoped subcommand requires the flag. | Drive `boot`, `log decision`, `claim`, `release --target`, every `inbox` subcommand (`list`, `ack`, `promote`, `drop`), and `rotate` without `--agent` (env set and unset); observe each exits non-zero with the missing-flag error and zero wiki mutations. |
 | `release --expired` keeps working agent-less. | Drive `release --expired` without `--agent` against a claims table holding expired rows from several agents; observe the expired rows are removed and the exit is zero — the documented curation invocation is unchanged. |
 | `memo` requires an explicit sender. | Drive `memo --to <agent> --message …` without `--from` and with `LIBEVAL_AGENT_PROFILE` set; observe a non-zero exit and no memo written. |
 | The hardcoded last-resort is gone. | With env unset and no flag, observe no **agent-scoped** subcommand resolves `staff-engineer` (or any agent) as its target identity — each fails closed instead; no error message or help text offers `staff-engineer` as a default. (`audit`/`fix` reading all agents' files by design is unaffected.) |
 | `libwiki` carries no ambient agent identity. | Search the `libwiki` package source for `LIBEVAL_AGENT_PROFILE`; observe zero references. |
-| Explicit invocations are unchanged. | Drive each agent-scoped subcommand with `--agent <name>` (and `memo` with `--from`); observe behavior, output, and exit codes identical to today's explicit-flag behavior. The explicit-invocation subset of the existing test corpus passes unmodified; tests asserting the removed fallback or the old guard wording are replaced by tests of the new fail-closed contract, and golden help outputs are regenerated. |
+| Explicit invocations are unchanged. | Drive each agent-scoped subcommand with `--agent <name>` (and `memo` with `--from`); observe behavior, output, and exit codes identical to today's explicit-flag behavior — `rotate` on an under-budget target excepted, per the target-state guard row. The explicit-invocation subset of the existing test corpus passes unmodified; tests asserting the removed fallback or the old guard wording are replaced by tests of the new fail-closed contract, and golden help outputs are regenerated. |
 | The error is actionable at point of use. | Observe the missing-flag error names the flag and shows a corrected example invocation for the subcommand that failed, and exits before any state change. |
 | Audit hints are copy-paste-safe. | Run `fit-wiki audit` against a fixture where one agent's weekly log is over budget; observe the remediation hint names that agent explicitly (`--agent` resolved from the flagged filename's prefix, no placeholder), and running the hint verbatim rotates the flagged file and nothing else. |
+| Rotate fails closed on an under-budget target. | Drive `rotate --agent <agent>` where that agent's weekly log is under budget; observe a non-zero exit naming the target and no seal. Repeat with `--force`; observe the seal proceeds. |
+| External consumers learn the contract change at upgrade. | The shipping release's changelog/release-notes entry names the required flag, the removed env fallback, and a before/after invocation example; the published wiki-operations guide and `fit-wiki` skill show only explicit invocations. |
 | Help output documents the contract. | `fit-wiki --help` and per-subcommand help show the flag as required with no env fallback mentioned; golden help-output tests are updated and pass. |
-| No internal caller relies on the removed fallback, and no doc describes it. | Sweep the monorepo's skills, agent references, workflows, scripts, library READMEs, published docs, and benchmark fixtures; observe every agent-scoped `fit-wiki` invocation passes `--agent` (or `--from`) explicitly — `release --expired` excepted — and no surface still describes `LIBEVAL_AGENT_PROFILE` as a `fit-wiki` fallback. |
+| No internal caller relies on the removed fallback, and no doc describes it. | Sweep the monorepo's skills, agent references, agent profile session protocols, workflows, scripts, library READMEs, published docs, and benchmark fixtures; observe every agent-scoped `fit-wiki` invocation passes `--agent` (or `--from`) explicitly — `release --expired` excepted — and no surface still describes `LIBEVAL_AGENT_PROFILE` as a `fit-wiki` fallback. |
 
 — Product Manager 🌱
