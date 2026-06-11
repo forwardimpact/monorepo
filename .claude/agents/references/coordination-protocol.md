@@ -63,10 +63,9 @@ branches never share a PR, but either may run alongside a Discussion.
 ## Fix-in-flight marker
 
 A PR body records a change; the coordinating issue coordinates it. An in-run
-decision is not coordinated until it lands where the next reader looks
-(adopted from obstacle #1446 — duplicate PRs #1584/#1587 on #1581, where a
-route decision lived only in the PR body and a parallel run re-implemented the
-rejected route):
+decision is not coordinated until it lands where the next reader looks — a
+route decision that lives only in a PR body is invisible to a parallel run
+reading the issue, which re-implements the rejected route:
 
 1. **Announce at PR-open.** The implementing run comments on the coordinating
    issue at or before PR-open: PR link, branch, and any route decision made
