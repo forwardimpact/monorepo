@@ -107,7 +107,7 @@ the tunnel.
 Start both services:
 
 ```sh
-bunx fit-rc start
+npx fit-rc start
 ```
 
 The tunnel publishes a fresh `trycloudflare.com` hostname on every
@@ -135,7 +135,7 @@ Set `SERVICE_GHBRIDGE_CALLBACK_BASE_URL` in `.env` to the tunnel domain
 tunnel:
 
 ```sh
-bunx fit-rc restart ghbridge
+npx fit-rc restart ghbridge
 ```
 
 The tunnel hostname survives bridge restarts because the tunnel is a

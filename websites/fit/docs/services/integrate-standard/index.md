@@ -19,7 +19,7 @@ and verifying the responses contain the derived data your feature needs.
 
 - Node.js 18+
 - Generated client code available (run `npx fit-codegen --all` if not)
-- Services running (`npx fit-rc start` or `just guide`)
+- Services running (`npx fit-rc start`)
 - Standard data initialized at `data/pathway/`. If you have not done that yet,
   run `npx fit-pathway init` and follow the prompts.
 

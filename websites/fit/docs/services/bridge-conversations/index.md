@@ -95,7 +95,7 @@ in that order, so restarting the bridge does not cycle the tunnel
 Start both services:
 
 ```sh
-bunx fit-rc start
+npx fit-rc start
 ```
 
 The tunnel publishes a fresh `trycloudflare.com` hostname on every restart.
@@ -112,13 +112,15 @@ Configure two endpoints with that hostname:
    `https://<tunnel-domain>/api/messages`.
 2. **Bridge callback URL** — set
    `SERVICE_MSBRIDGE_CALLBACK_BASE_URL=https://<tunnel-domain>` in `.env`
-   (no trailing path; the bridge composes `/api/callback/<token>` itself
-   and strips any trailing slashes via `normalizeBaseUrl`).
+   (no trailing path; the bridge composes
+   `/api/callback/<tenant_id>/<token>` itself — `default` is the tenant
+   in single-tenant deployments — and strips any trailing slashes via
+   `normalizeBaseUrl`).
 
 Pick up the callback URL change without recycling the tunnel:
 
 ```sh
-bunx fit-rc restart msbridge
+npx fit-rc restart msbridge
 ```
 
 The tunnel hostname survives bridge restarts because `mstunnel` is a

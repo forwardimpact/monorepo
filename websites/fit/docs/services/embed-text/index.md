@@ -18,7 +18,7 @@ feature expects.
 
 - Node.js 18+
 - Generated client code available (run `npx fit-codegen --all` if not)
-- Services running (`npx fit-rc start` or `just guide`)
+- Services running (`npx fit-rc start`)
 
 Install the transport and type packages:
 
@@ -140,7 +140,7 @@ try {
 ```
 
 When the service starts but the sidecar fails, the service process exits.
-Restart with `bunx fit-rc restart embedding` to relaunch both.
+Restart with `npx fit-rc restart embedding` to relaunch both.
 
 ## Verify
 

@@ -18,7 +18,7 @@ querying it back, and verifying the round trip works.
 
 - Node.js 18+
 - Generated client code available (run `npx fit-codegen --all` if not)
-- The trace service running (`npx fit-rc start` or `just guide`)
+- The trace service running (`npx fit-rc start`)
 
 Install the transport and type packages:
 

@@ -9,7 +9,7 @@ page walks through the bounded task of going from those coordinates to a
 Turtle RDF response you can parse, render, or pass downstream -- without
 embedding derivation logic in your product.
 
-For the full setup including all six RPCs and architecture context, see
+For the full setup including all seven RPCs and architecture context, see
 [Query the Engineering Standard](/docs/services/integrate-standard/).
 
 ## Prerequisites
