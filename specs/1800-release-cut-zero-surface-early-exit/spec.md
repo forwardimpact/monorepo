@@ -28,8 +28,7 @@ discriminator, not agent judgment
 | Fact | Source |
 | --- | --- |
 | Zero-surface assessment costs $5.99 / 2,524,055 cache-read tokens / 28,095 output tokens / ~8m32s wall / 34 Bash calls | dispatch run 27329648271 (run-352, PR #1620: 4 files, all docs, zero npm surface) |
-| Recurrence: runs 303, 323, 333, 352, 354 are all zero-package-surface full sweeps (issue body lists four; run-354 confirmed against the CSV). Run-303's range carried new unreleased package commits, so the early exit would correctly not have fired there — the avoidable-sweep class is n≥4 of the 5 | `wiki/metrics/kata-release-cut/2026.csv`; Issue #1623 coach triage |
-| Run-354 re-swept a range its own record notes was already covered by run-352's sweep | same CSV, run-354 row |
+| Recurrence: runs 303, 323, 333, 352 are zero-package-surface full sweeps; run-354 is a fifth zero-surface assessment that re-checked a range its own record notes was already covered by run-352. Run-303's range carried new unreleased package commits, so the early exit would correctly not have fired there — the avoidable class is 4 of the 5 | `wiki/metrics/kata-release-cut/2026.csv`; Issue #1623 coach triage |
 | Docs/wiki/skill merges dominate current merge traffic — zero-surface is the *modal* assessment shape | Issue #1623, coach-ratified |
 
 ### The load-bearing counterexample
@@ -55,58 +54,75 @@ assume the range check covers it.
 ## What — the early-exit contract
 
 The skill gains an assessment step, positioned after pre-flight and before
-the per-package enumeration, that grants verdict authority to a
-**discriminator predicate**. When every condition holds, the agent records
-**NO CUT OWED** and stops — the sweep is not required and skipping it is
-the codified, defensible path. When any condition fails, the full sweep
-runs; there is no judgment call in between.
+the per-package enumeration (the position is inherent to the contract: the
+verdict must be reachable before any sweep cost is incurred). The step
+grants verdict authority to a **discriminator predicate**. When every
+condition holds, the agent records **NO CUT OWED** and stops — the sweep is
+not required and skipping it is the codified, defensible path. When any
+condition fails, the full sweep runs; there is no judgment call in between.
+
+**Definition — blocked vs due.** An obligation is *blocked* when its record
+cites an unmet external prerequisite (a spec approval, a discussion
+outcome, a human action); otherwise it is *due*. A due obligation defeats
+the early exit; a blocked one rides as a re-cite.
 
 ### Discriminator predicate (all conditions required)
 
 | # | Condition | Why it is load-bearing |
 | --- | --- | --- |
-| 1 | **Verified-clean baseline.** A prior run record establishes a baseline commit `B` at which an assessment verified zero **due** unreleased commits across all publishable packages — i.e., zero unreleased commits outside obligations re-cited as blocked under condition 3. A baseline is established by a full sweep reaching that state (for a cutting run: its post-cut verified state, once tags are pushed and verified), or by an earlier early-exit verdict chained to one. | Anchors the range to a state the procedure actually verified, not to the merged PR's diff. "Due" (not "zero unreleased, period") keeps the predicate satisfiable in the steady state the evidence shows — a standing blocked backlog would otherwise make the exit unreachable forever. |
-| 2 | **Zero publishable paths in range.** The changed paths from `B` to current `HEAD` include nothing under any publishable-package directory. The publishable-path set is derived from the workspace manifest (currently `libraries/*`, `products/*`, `services/*`), not hardcoded. | Sound over-approximation: the sweep's own per-package check is path-scoped, so if no path under any workspace directory changed since a verified-clean baseline, every per-tagged-package comparison is provably empty. |
-| 3 | **Carry-forward state re-cited.** Every standing obligation — first-release backlog, held/deferred cuts, pending publish-failure retries from prior runs — is either empty or explicitly re-cited as still blocked, with its blocking reference. Any obligation that is *due* (no longer blocked) defeats the early exit. | Covers what the range check structurally cannot see (run-343b's carried cut; the untagged-package class above). |
+| 1 | **Verified-clean baseline.** A prior run record establishes a baseline commit `B` — an ancestor of current `HEAD` — at which an assessment verified zero unreleased commits beyond the obligations that run re-cited as blocked. A baseline is established by a full sweep reaching that state, or by a cutting run's post-cut state once its tags exist at that commit (pending publish-workflow verification rides as a condition-3 re-cite; it does not block baseline establishment), or by an earlier early-exit verdict chained to one. | Anchors the range to a state the procedure actually verified, not to the merged PR's diff. Defining cleanliness net of blocked re-cites keeps the predicate satisfiable in the steady state the evidence shows — a standing blocked backlog would otherwise make the exit unreachable forever. |
+| 2 | **Zero publishable paths in range.** The union of paths changed by each commit in `B..HEAD` (per-commit semantics, as the sweep's own log comparison uses — not a net diff, which an add-then-revert pair inside the range would fool) includes nothing under any publishable-package directory. The publishable-path set is derived from the workspace manifest (currently `libraries/*`, `products/*`, `services/*`), not hardcoded. | Sound over-approximation: the sweep's per-package check is path-scoped, so if no path under any workspace directory changed in `B..HEAD`, the sweep run at `HEAD` can find nothing beyond what the baseline run already found and re-cited. |
+| 3 | **Carry-forward state re-cited.** Every standing obligation — first-release backlog, held/deferred cuts, pending publish-failure retries and publish-workflow verifications from prior runs — is either empty or explicitly re-cited as blocked, with its blocking reference. Any due obligation defeats the early exit. | Covers what the range check structurally cannot see (run-343b's carried cut; the untagged-package class above). |
 | 4 | **Main CI green.** The existing pre-flight checklist passed. Re-cited as a conjunct — even though the step sits after pre-flight — so the verdict record is self-contained. | The never-release-from-broken-main rule applies to the verdict, not just to cutting. |
 
-### Authority boundary — full-sweep runs re-anchor the chain
+### Authority boundary
 
-The early exit applies to **event-driven post-merge assessments** only;
-**full-sweep runs** (the scheduled cadence, and any run where the predicate
-fails or cannot be evaluated) always perform the per-package sweep. Because
-the published skill's audience cannot be assumed to share this monorepo's
-dispatch vocabulary, the codified step must state the boundary in the
-skill's own terms — its existing "When to Use" run classes — and must give
-the rule for the unclassifiable case: a run that cannot determine which
-class it is in, or cannot resolve an unambiguous baseline, performs the
-full sweep.
+The codified step must state each of the following as a discrete rule, in
+run-class vocabulary the skill itself defines:
 
-The boundary also bounds the baseline chain: the skill text must require
-that the chain re-anchor to a real full sweep at least once per scheduled
-cadence interval, and that a consumer operating without a scheduled cadence
-treat a chain older than its own re-anchor bound as unresolvable (⇒ full
-sweep). This bounds the blast radius of a wrong or corrupted baseline
-record to one re-anchor interval: even if condition 1's record were false,
-the next full sweep re-verifies every tagged package from its tags and
-every untagged package from its history, so unreleased **commits** cannot
-silently accumulate past it — the never-accumulate invariant holds by
-construction for the commit-accumulation class, not by record fidelity
-alone. (Pending publish-failure recovery, by contrast, is record-dependent
-under both the sweep and the early exit — the tag-based sweep cannot see a
-failed publish either; this contract does not change that, and the design
-must not lean on the re-anchor for it.)
+- **Run classes.** The skill's "When to Use" vocabulary is amended to
+  distinguish the **full-sweep run** (the scheduled cadence, and any
+  on-demand run asked to sweep) from the **event-driven post-merge
+  assessment**; today's text knows only "scheduled weekly" and "on-demand"
+  and cannot express the boundary. Amending it is in scope.
+- **Who may exit.** Only an event-driven post-merge assessment may
+  early-exit. Full-sweep runs always perform the per-package sweep.
+- **Unclassifiable ⇒ sweep.** A run that cannot determine its class, or
+  cannot resolve an unambiguous baseline, performs the full sweep.
+- **Re-anchor bound.** The baseline chain must re-anchor to a real full
+  sweep at least once per scheduled cadence interval. For consumers
+  operating without a scheduled cadence, the skill text states a default
+  re-anchor bound (a maximum chain length or age — value is the design's
+  call); a chain older than the bound is unresolvable (⇒ full sweep).
+- **What the boundary guarantees.** With the bound in place, a wrong or
+  corrupted baseline record survives at most one re-anchor interval: the
+  next full sweep re-verifies every tagged package from its tags and every
+  untagged package from its history, so unreleased **commits** cannot
+  silently accumulate past it. The guarantee covers the commit-accumulation
+  class only — pending publish-failure recovery is record-dependent under
+  both the sweep and the early exit (a tag-based sweep cannot see a failed
+  publish either); this contract does not change that.
 
 ### Recording contract
 
 Every assessment verdict — full-sweep and early-exit alike — records, in
 the same per-run recording surfaces the skill already mandates, the state
-the next run needs to chain: the verified-clean (or post-cut) commit, and
-each carry re-cite with its blocking reference. An early-exit verdict
-additionally records the baseline it chained to and the range-check
-evidence (path summary). Binding sweep verdicts too is what keeps
-condition 1 resolvable after every re-anchor; an early-exit-only contract
-would orphan the chain at exactly the runs that refresh it.
+the next run needs to chain:
+
+- A verdict reaching a verified-clean or post-cut state records that commit
+  and each carry re-cite with its blocking reference.
+- An early-exit verdict additionally records the baseline it chained to and
+  the range-check evidence (path summary).
+- A full-sweep verdict that ends with **due-but-deferred** obligations (a
+  deferral shape condition 3 anticipates) records that it establishes no
+  chainable baseline — the chain is broken, and subsequent assessments
+  full-sweep until some run reaches a verified-clean or post-cut state.
+
+Binding sweep verdicts too is what keeps condition 1 resolvable after every
+re-anchor; an early-exit-only contract would orphan the chain at exactly
+the runs that refresh it. These records live in the existing free-form
+recording surfaces — the metrics-schema exclusion below constrains the
+design to fit them there rather than adding columns.
 
 ### Instruction-budget headroom
 
@@ -115,14 +131,17 @@ budget, and spec 1500's implementation (spec in flight as PR #1384) will
 land eight hazard codifications on the **same file**
 ([Issue #1613](https://github.com/forwardimpact/monorepo/issues/1613):
 budgets across kata skills are structurally at ceiling, and trim-to-green
-repairs conserve the treadmill). The WHAT-level constraints:
+repairs conserve the treadmill). The WHAT-level constraints, stated
+independently of which implementation lands first:
 
 - The step's normative content (predicate, authority boundary, recording
   contract) lives in the skill file itself — verdict authority must be in
   the canonical procedure, not in a reference.
-- After implementation the skill file retains headroom for spec 1500's
-  content: ≤95% of both L5 caps (success criterion below). How content is
-  placed or displaced to meet this is the design's call (carry-forward 4).
+- After this spec's implementation merges, the skill file is at ≤95% of
+  both L5 caps — regardless of whether spec 1500's content has already
+  landed. How content is placed or displaced (including displacing
+  already-landed content to the `references/` tier) to meet this without
+  trimming normative content is the design's call (carry-forward 4).
 
 ## Scope
 
@@ -130,6 +149,10 @@ repairs conserve the treadmill). The WHAT-level constraints:
 
 - The `kata-release-cut` skill gains the early-exit step defined in § What:
   discriminator predicate, authority boundary, and recording contract.
+- The skill's "When to Use" run-class vocabulary is amended per § Authority
+  boundary.
+- The skill's recording section ("Memory: what to record") changes for
+  **all** verdict kinds per § Recording contract, not only early exits.
 - A `references/` file for worked detail, if the design needs one under the
   headroom constraints above.
 - The skill is published (kata-skills pack) and is the canonical source for
@@ -138,20 +161,20 @@ repairs conserve the treadmill). The WHAT-level constraints:
   (precedent: spec 1500 amended the same published skill via this
   pipeline). The codified text must stand alone for a consumer with no
   access to this monorepo's wiki: the baseline/recording contract is stated
-  against the skill's own "Memory: what to record" surfaces, not against
-  monorepo-specific files.
+  against the skill's own recording surfaces, not monorepo-specific files.
 
 ### Excluded
 
 - **Spec 1500's hazard codification.** Publish-time hazards are a distinct
   concern with its spec in an in-flight PR; this spec is assessment-time
   cost. Whichever implementation lands second rebases over the other's
-  skill-file changes; the headroom constraints above exist so both fit.
+  skill-file changes; the headroom constraints above hold either way.
 - **Tooling.** No new scripts, CLI flags, or CI gates; the predicate runs
   with the git/gh invocations the skill already uses.
 - **`kata-release-merge` changes.** The merge gate is a separate procedure.
 - **Scheduled-sweep cadence or metrics-schema changes.** The weekly full
-  sweep and the per-run CSV format stay as they are.
+  sweep and the per-run CSV format stay as they are; the recording contract
+  fits within existing free-form surfaces.
 - **Assessment-cost enforcement.** The cost reduction is observed via the
   existing metric home (`wiki/metrics/kata-release-cut/2026.csv` plus
   dispatch traces), not gated.
@@ -159,36 +182,39 @@ repairs conserve the treadmill). The WHAT-level constraints:
 ### Design-phase carry-forwards
 
 1. **Baseline-record shape.** The design picks how condition 1's baseline
-   is identified in run records (commit citation format, where it lives in
-   the skill's recording surfaces) such that a fresh session can resolve it
-   without ambiguity — including how the skill's monorepo-flavored
-   recording paths generalize for external consumers — and confirms the
-   no-unambiguous-baseline case routes to the full sweep.
+   is identified in run records (commit citation format, ancestry check,
+   where it lives in the skill's recording surfaces) such that a fresh
+   session can resolve it without ambiguity — including how the skill's
+   monorepo-flavored recording paths generalize for external consumers —
+   and confirms the no-unambiguous-baseline case routes to the full sweep.
 2. **Publishable-path derivation.** The design picks the exact derivation
    of the path set from the workspace manifest — including at which commit
    the manifest is read (a manifest change within the range must not narrow
    the set) — and how a brand-new package directory appearing in the range
    is caught (it must defeat the early exit via condition 2).
 3. **Step numbering and references.** The step's position is fixed by
-   § What (after pre-flight, before enumeration); the design keeps existing
-   step numbering and cross-references consistent around it.
+   § What; the design keeps existing step numbering and cross-references
+   consistent around it.
 4. **Content placement under the budget.** The design decides what, if
    anything, moves to the `references/` tier so the post-implementation
    file meets the ≤95% criterion without trimming the new step's normative
    content.
+5. **Default re-anchor bound.** The design picks the default bound value
+   for cadence-less consumers, and must not lean on the re-anchor for
+   publish-failure recovery (out of the boundary's guarantee class).
 
 ## Success criteria
 
 | Claim | Verifies via |
 | --- | --- |
 | The skill carries an early-exit step with explicit verdict authority. | Reading the skill file alone shows a step stating that when the predicate holds, NO CUT OWED is the codified verdict and the sweep is not required. |
-| All four predicate conditions are present and conjunctive. | The skill text names baseline, zero-publishable-paths range, carry-forward re-cite, and green CI, and states that any failure routes to the full sweep. |
+| All four predicate conditions are present and conjunctive. | The skill text names baseline, zero-publishable-paths range (per-commit union semantics), carry-forward re-cite, and green CI, and states that any failure routes to the full sweep. |
 | The run-343b shape routes to the sweep. | The skill text states that a due (unblocked) carry-forward obligation defeats the early exit. |
 | The first-release backlog survives the early exit. | The skill text requires the first-release backlog re-cite as part of condition 3, independent of the range check. |
-| The authority boundary is self-contained. | The skill text states, in its own run-class vocabulary, which runs may early-exit, that full-sweep runs always sweep, the re-anchor bound on the baseline chain, and that an unclassifiable run or unresolvable baseline routes to the full sweep. |
-| The recording contract supports chaining across both verdict kinds. | The skill's recording section requires every assessment verdict to record the chainable verified-clean state and carry re-cites, with early-exit verdicts additionally recording baseline and range evidence. |
-| The skill respects its instruction budget with headroom. | `bun run check` passes on the implementation PR, and the skill file lands at ≤95% of both L5 caps (≤1216 words, ≤182 lines). |
+| The authority boundary is self-contained. | The skill text states each § Authority boundary rule — amended run classes, who may exit, unclassifiable ⇒ sweep, the re-anchor bound including the cadence-less default — in its own (amended) run-class vocabulary. |
+| The recording contract supports chaining across both verdict kinds. | The skill's recording section requires every assessment verdict to record chainable state per § Recording contract, including the broken-chain rule for due-but-deferred sweeps. |
+| The skill respects its instruction budget with headroom. | `bun run check` passes on the implementation PR, and the skill file lands at ≤95% of both L5 caps (≤1216 words, ≤182 lines), regardless of landing order relative to spec 1500's implementation. |
 | The implementation diff stays in scope. | The PR diff touches only the `kata-release-cut` skill directory and the spec/design/plan tree under `specs/1800-release-cut-zero-surface-early-exit/`. |
-| The cost effect is observable (trailing indicator — not a merge gate on the implementation PR). | The first post-implementation zero-package-surface assessment at which the predicate holds records an early-exit verdict in `wiki/metrics/kata-release-cut/2026.csv`, giving the before/after cost comparison its first data point against the run-352 baseline. |
+| The cost effect is observable — a trailing indicator, not a merge gate. | The first post-implementation zero-surface assessment at which the predicate holds records an early-exit verdict in the metric home, the first before/after data point against the run-352 baseline. |
 
 — Release Engineer 🚀
