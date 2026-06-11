@@ -5,12 +5,6 @@ Shared protocol for callers of `kata-review`. Used by:
 - `kata-spec` Step 5, `kata-design` Step 5, `kata-plan` Step 5 — panel of 3
 - `kata-implement` Step 7 — panel of 5
 
-## Why a panel
-
-Cold sub-agents produce uncorrelated errors. A finding flagged by ≥⌈N/2⌉
-reviewers is high-signal; singletons get verified but often prove noise. Odd N
-enables majority voting.
-
 ## Panel composition
 
 Each panel has a role (`subagent_type`) and a size. Callers launch all panels
@@ -24,12 +18,8 @@ for a given artifact in a single message so they run in parallel.
 | `kata-plan`      | `plan-a.md` (+ parts)       | technical | engineering agent  | 3         |
 | `kata-implement` | diff (`origin/main...HEAD`) | technical | engineering agent  | 5         |
 
-Implementation diffs get 5: the artifact is larger, the step irreversible
-(code lands on `main`), and the bug/security surface largest; earlier
-artifacts get an implicit second pass at the next phase.
-
-The product panel applies only to specs, where product alignment is decided;
-downstream phases inherit it via cross-phase fidelity checking.
+Rationale for panels, sizes, and the spec-only product panel:
+[panel-rationale.md](panel-rationale.md).
 
 ## How to invoke
 
@@ -93,7 +83,11 @@ hash in place of `file:line` for diffs).
   underlying concern, or record a rationale — in the same turn, without
   stopping.
 - **Same-run revision is an exclusive route.** A Disposition comment
-  pre-announcing a same-run revision (with a pin comment naming the revision
-  head) reserves the revision for the announcing run. Any other route checks
-  the thread tail before authoring: pin present, verify against the pinned head; announcement without
-  pin and the run still live, the route is taken — do not author a duplicate.
+  pre-announcing a same-run revision reserves it for the announcing run, and
+  must embed a run-unique token: `$GITHUB_RUN_ID` (or the workflow run URL)
+  in CI sessions, a session-generated nonce otherwise. You are the announcing
+  run iff the announcement's token equals your own run's token; on mismatch
+  **or missing token**, the route is taken — do not author a duplicate. The
+  pin comment naming the revision head echoes the token, so the thread itself
+  records announcer = pinner. Any other route checks the thread tail before
+  authoring: pin present, verify against the pinned head.
