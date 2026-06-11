@@ -121,15 +121,13 @@ mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    `bunx fit-xmr analyze` on their own CSVs (Participant Protocol step 2) and
    report `status`, fired-rule `signals`, and `latest` in their Q2 `Answer`. The
    facilitator has no `Bash` — it relays what they report, noting any
-   `insufficient_data` metric. Chart blocks render from the deterministic
-   `fit-wiki refresh` step, not a facilitator call.
+   `insufficient_data` metric.
 5. **Run the five questions.** Follow the overlay's wording. In facilitated
    mode, pose each question via `Ask` and collect `Answer` replies before
    advancing. After the Q3/Q4 answers, `Ask` each participant to record its
    obstacle (Q3) and experiment (Q4) as labeled issues per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and return the `#NNN`s.
-   Use `Announce` for between-question transitions. In solo mode, read files
-   directly.
+   Use `Announce` for between-question transitions.
 6. **Collect, don't write.** The facilitator writes no files — participants own
    every write (CSVs, weekly-log memory, issues). Collect reported `#NNN`s and
    numbers via `Answer` for the summary.
@@ -144,7 +142,11 @@ mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    - **Coaching** — participant-scoped blocker / unanalyzed trace / stalled
      experiment: not dispatched here. The obstacle issue stands; the coach
      dispatches `kata-coaching.yml` in its Assess run.
-8. **Conclude (facilitated mode only).** Call `Conclude` with a session summary
+8. **Before dispatching follow-on work** for a reviewed artifact, run the
+   route-taken check in
+   [`dispatch-discipline.md`](references/dispatch-discipline.md) — an
+   unexpired same-run continuation announcement means do not re-dispatch.
+9. **Conclude (facilitated mode only).** Call `Conclude` with a session summary
    covering meeting type, key metrics, obstacles addressed, experiments planned,
    and any obstacle handed off for coaching. (Wiki pushes automatically; do not
    commit.)
