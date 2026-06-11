@@ -24,20 +24,19 @@ for a given artifact in a single message so they run in parallel.
 | `kata-plan`      | `plan-a.md` (+ parts)       | technical | engineering agent  | 3         |
 | `kata-implement` | diff (`origin/main...HEAD`) | technical | engineering agent  | 5         |
 
-Implementation diffs get 5 because the artifact is larger, the step is
-irreversible (code lands on `main`), and the surface area for subtle bugs and
-security regressions is largest. Spec/design/plan artifacts are bounded and have
-an implicit second pass at the next phase.
+Implementation diffs get 5: the artifact is larger, the step irreversible
+(code lands on `main`), and the bug/security surface largest; earlier
+artifacts get an implicit second pass at the next phase.
 
-The product panel applies only to specs. A spec is where product alignment is
-decided; downstream phases inherit it via cross-phase fidelity checking.
+The product panel applies only to specs, where product alignment is decided;
+downstream phases inherit it via cross-phase fidelity checking.
 
 ## How to invoke
 
 1. **Launch all panels in a single message** via one `Agent` tool call per
-   reviewer. All reviewers across all panels launch in parallel — wall-clock
-   time, and so the caller cannot cross-feed one reviewer's output into
-   another's prompt. Each sub-agent:
+   reviewer. All reviewers across all panels launch in parallel, so the caller
+   cannot cross-feed one reviewer's output into another's prompt. Each
+   sub-agent:
    - Starts cold with no prior conversation context.
    - Uses the `subagent_type` from the panel composition table.
    - Loads the [`kata-review`](../SKILL.md) skill.
@@ -88,9 +87,13 @@ hash in place of `file:line` for diffs).
   **blocker**/**high**/**medium** finding in the same turn — do not stop for
   user permission. Re-run the panel if the fix is substantial, then advance.
 - **Low** findings are optional. Document if dismissed.
-- **False positives.** If you verify a finding and judge it a false positive,
-  record a one-line rationale in the commit message or artifact and continue.
-  Silent dismissal is not allowed.
+- **False positives.** Record a one-line rationale in the commit message or
+  artifact and continue — silent dismissal is not allowed.
 - **Disagreement with a consensus blocker.** Revise the artifact to address the
   underlying concern, or record a rationale — in the same turn, without
   stopping.
+- **Same-run revision is an exclusive route.** A Disposition comment
+  pre-announcing a same-run revision (with a pin comment naming the revision
+  head) reserves the revision for the announcing run. Any other route checks
+  the thread tail before authoring: pin present, verify against the pinned head; announcement without
+  pin and the run still live, the route is taken — do not author a duplicate.
