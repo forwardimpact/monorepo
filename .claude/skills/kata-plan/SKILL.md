@@ -146,7 +146,10 @@ Read both end to end.
 
 ### Step 3: Research the codebase
 
-Read the files the plan will target.
+Read the files the plan will target. Before drafting, enumerate in one
+tracked task every library or service primitive the design's directives
+cite, plus the test files that will host new assertions; source-read each
+item's declaration before the first draft. Keep pre-draft reads under 40.
 
 ### Step 4: Write the plan
 
