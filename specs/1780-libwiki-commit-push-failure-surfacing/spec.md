@@ -55,8 +55,22 @@ the classification (§ Decisions D2).
 the mechanism section is load-bearing — the swallow and the clobber
 fallback are source-confirmed capabilities. The RE run-275 occurrence cited
 in #1580 § Evidence demonstrates the invisible-reject *shape* via a
-sibling instrument, not an instance of the swallow. Live in-repo instances
-sit on the merge-resolution half: collision-ledger occurrence #36 (a
+sibling instrument, not an instance of the swallow. That gap closed on
+2026-06-11: collision-ledger **occurrence #41** is a live, object-in-hand
+instance of the push half itself — during the run-302 release check,
+`fit-wiki push` printed `push: committed and pushed` while commit
+`bc982943` never reached origin (dangling object, no containing ref after
+a full-history fetch), caught only by the *external* run-283
+ancestry-verify floor, not by the tool
+([allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)).
+With #41 the three phantom-class events span the full invisibility
+gradient — #41 object-in-hand, #30 object-reconstructed, #37 no-object —
+so the defect is no longer inferred from source capability alone; it has
+a caught-in-the-act specimen. The acceptance question this evidence sets
+is therefore: what must be true of the push operation itself so that **no
+external floor is needed** — answered by the grounded-success property in
+§ Decisions D2 and its success criteria. Further live instances sit on
+the merge-resolution half: collision-ledger occurrence #36 (a
 foreign Active Claims row dropped by a sibling's conflict resolution) and
 the claims-table erasure in the 6/11 ledger queue; five write-contended
 ledger meta-instances landed in ~90 minutes on 2026-06-10, traced to the
@@ -86,7 +100,7 @@ three caller rows:
 | Component | What changes |
 |---|---|
 | `WikiSync.commitAndPush` conflict handling | The merge-with-ours fallback is removed. On rebase conflict the operation aborts the rebase and fails loudly with a resolve-or-retry message — the same contract the pull command already has. The tool never mechanically resolves a conflict by discarding the remote side. |
-| `WikiSync.commitAndPush` outcome honesty | Success is reported only when the remote accepted the push. Every other outcome is reported with a reason per the § Decisions D2 taxonomy, through an observable channel that reaches every caller — today's unconditional success result makes the `claim`/`release` degradation branch unreachable; the channel's mechanism (typed error vs. outcome result) is a design decision, the observability requirement is not. |
+| `WikiSync.commitAndPush` outcome honesty | Success is reported only when the remote accepted the push, **as established from observed remote state — the pushed commit reachable from the remote ref (or the push's per-ref update result) — never inferred from the push subprocess's output text or the mere absence of a caught error** (§ Decisions D2 grounded-success property; occurrence #41 evidence). Every other outcome is reported with a reason per the § Decisions D2 taxonomy, through an observable channel that reaches every caller — today's unconditional success result makes the `claim`/`release` degradation branch unreachable; the channel's mechanism (typed error vs. outcome result, per-ref status parsing vs. post-push remote observation) is a design decision, the observability and grounding requirements are not. |
 | Command surfaces `fit-wiki push`, `claim`, `release` | Each caller maps every outcome to an honest message per § Decisions D1: `push` exits non-zero whenever the push did not land; `claim`/`release` keep zero exit on a successful local write and print an honest saved-locally warning naming the reason. |
 | Session-end hook surfacing | The Stop-hook wiring maps a push-failure exit to the hook semantics that block the stop and feed the reason back to the agent for a remediation turn (§ Decisions D4). |
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
@@ -143,7 +157,16 @@ usually land.
 Distinguish at minimum: *landed*, *nothing to push*, *rejected by remote*
 (non-fast-forward — actionable now: rerun from the true tip), *conflict*
 (rebase conflict — resolve or retry from the true tip), and
-*transport/credential failure* (possibly transient). *Rejected* is
+*transport/credential failure* (possibly transient). **Grounded-success
+property:** *landed* is asserted only from observed remote state — the
+pushed commit reachable from the remote ref, or the push's per-ref update
+result for that ref — never from the push subprocess's output text, exit
+status alone, or the absence of a caught error. This is the property that
+makes the external ancestry-verify floor unnecessary: occurrence #41
+(§ Evidence) is precisely a success claim made on output text while the
+commit was stranded, detectable only by an out-of-band floor. Any outcome
+that fails this grounding is classified as a failure reason from this
+taxonomy, never as *landed*. *Rejected* is
 reportable only when the preceding remote observation succeeded; when the
 fetch failed, a subsequent push rejection is classified as transport —
 otherwise broken credentials masquerade as contention and "rerun" guidance
@@ -256,7 +279,8 @@ regardless of series order.
 
 | Claim | Verification |
 |---|---|
-| Landed push ⇒ success reported, and only then. | Healthy fixture, uncontended; run `fit-wiki push`; observe zero exit, success message, and the commit present on the remote tip. |
+| Landed push ⇒ success reported, and only then. | Healthy fixture, uncontended; run `fit-wiki push`; observe zero exit, success message, and the commit reachable from the remote ref. |
+| Success is grounded in observed remote state — never claimed on the push subprocess's output text alone, so no external floor is needed. | Occurrence-#41 fixture ([#1564 allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)): force the push subprocess to report success (zero exit, success-shaped output) while the remote ref does not advance to contain the commit; run `fit-wiki push`; observe non-zero exit, a D2 failure reason, and the success message **absent** — the command itself surfaces the stranding that the external run-283 ancestry-verify floor previously had to catch. Repeat via `fit-wiki claim`; observe zero exit with the saved-locally warning carrying the reason, never the success message. |
 | Nothing to push ⇒ zero exit with the existing honest message. | Clean fixture with no commits ahead; run `fit-wiki push`; observe zero exit and the nothing-to-push message. |
 | Rebase conflict ⇒ loud failure, remote side never mechanically discarded. | Fixture with a textually overlapping remote advance; run `fit-wiki push`; observe non-zero exit, a conflict-reason message naming resolve-or-retry, the rebase aborted, no merge commit resolving to the local side, and the remote tip unchanged. |
 | Push rejection after a successful fetch ⇒ *rejected* reported, never success. | Fixture whose remote advances without textual overlap between the operation's fetch and push (retry exhausted, see retry rows); observe non-zero exit and the rejected reason — not a success report. |
@@ -294,6 +318,10 @@ D1–D3 shape from the
 conservation criterion from the
 [security-engineer review of PR #1588](https://github.com/forwardimpact/monorepo/pull/1588#issuecomment-4676068899);
 evidence framing per the
-[improvement-coach correction anchor](https://github.com/forwardimpact/monorepo/issues/1583#issuecomment-4676124931).
+[improvement-coach correction anchor](https://github.com/forwardimpact/monorepo/issues/1583#issuecomment-4676124931);
+occurrence #41 evidence and the grounded-success ("no external floor
+needed") acceptance framing from the
+[improvement-coach allocation pass](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051),
+folded 2026-06-11.
 
 — Product Manager 🌱
