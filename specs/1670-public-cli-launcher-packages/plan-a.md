@@ -146,11 +146,13 @@ Changes:
     | # | Condition |
     |---|---|
     | a | the set of `launchers/` **subdirectories** (non-directories like `README.md` excluded) ≠ rule output (either direction) |
-    | b | launcher `bin` key ≠ its dir/package name; or its bin file's sole import ≠ `@forwardimpact/<src>/bin/<cli>.js` per the rule's mapping; or the source `exports` lacks that subpath |
+    | b | launcher `bin` key ≠ its dir/package name; or `bin/` does not contain exactly one file; or that file is not **byte-exact** equal to the canonical two-line shape (shebang + the rule-mapped `@forwardimpact/<src>/bin/<cli>.js` import) — content equality, not import parsing, because `files: ["bin/"]` ships the whole dir and pinning `package.json` alone stops neither appended code nor a second file (PR #1543 carry 2, [issuecomment-4678620460](https://github.com/forwardimpact/monorepo/pull/1543#issuecomment-4678620460)); or the source `exports` lacks that subpath |
     | c | launcher `version` ≠ `"0.0.0"` or its dependency pin ≠ `"0.0.0"` |
     | d | launcher `package.json` has a key outside the allowed set {name, version, description, homepage, repository, license, author, type, bin, files, dependencies, engines, publishConfig} (subset semantics, per design: "no keys beyond the canonical metadata set"); or is missing any of {name, version, type, bin, files, dependencies}; or `dependencies` ≠ exactly one entry equal to the rule's mapped source; or `files` ≠ `["bin/"]`; or `bin` has ≠ 1 key |
-- Tests (in-memory fixtures): missing launcher, stale launcher, wrong import
-  path, missing source export subpath, real version checked in, smuggled
+- Tests (in-memory fixtures): missing launcher, stale launcher, bin file
+  content deviating from the canonical two-line shape (wrong source import;
+  appended third line), a second file in `bin/`, missing source export
+  subpath, real version checked in, smuggled
   second dependency / `scripts.postinstall` / extra `files` entry, and two
   negative-membership cases — `fit-svcmap` (bin exists, never invoked) and
   `fit-graph` (a literal `npx fit-graph` sits in the docs at
@@ -212,7 +214,10 @@ untouched):
     `.resolve('@forwardimpact/<src>/bin/<cli>.js')`, reads
     `../package.json` relative to the resolved bin dir, asserts `version ===
     SRC_VERSION` (resolve the bin subpath, not `<src>/package.json` — most
-    sources do not export `./package.json`).
+    sources do not export `./package.json`, and the implementer must not
+    "fix" a resulting `ERR_PACKAGE_PATH_NOT_EXPORTED` by reverting to the
+    top-level read, which is vacuous for the exact case this assertion
+    exists to catch; PR #1543 carry 1).
   - Dedupe assertion: `npm ls @forwardimpact/<src> --json` reports exactly
     one copy at the stamped version and `node_modules/<cli>/node_modules`
     does not exist (design Decision 6b's single-deduped-copy / zero-nesting
@@ -351,16 +356,35 @@ Verify: rehearsal transcript attached to the PR description.
   re-running the tag is safe because of the idempotent skip.
 - **First-publish window** — until the first coordinated release, the 22
   unscoped names remain squattable; ownership check turns a pre-claimed name
-  into a loud failure, not a wrong publish. Release-engineer should cut the
-  coordinated release promptly after merge and confirm `NPM_TOKEN` can create
-  new unscoped packages (design § Publish flow, Rollout).
+  into a loud failure, not a wrong publish. Release-engineer cuts the
+  coordinated release promptly after merge; confirming `NPM_TOKEN` can
+  create new unscoped packages — including any 2FA-for-publish interaction,
+  an unexercised path for the current token — is **human-owned
+  (@dickolsson)**, same shape as the #1577/#1548 prerequisites (design
+  § Publish flow, Rollout; PR #1543 carry 4).
 
 ## Execution
 
 Single agent, sequential, one PR: `staff-engineer` via `kata-implement`
 (steps 1–8 in order; 3 depends on 2, 5–6 depend on 3–4). The post-merge
-coordinated release and the granular-token follow-up are `release-engineer`
-actions under `kata-release-cut`, not part of this plan's PR;
+coordinated release is `release-engineer` work under `kata-release-cut`,
+not part of this plan's PR, with three bindings from the PR #1543 carries
+([issuecomment-4678655633](https://github.com/forwardimpact/monorepo/pull/1543#issuecomment-4678655633)):
+
+- **Coverage (carry 3)**: the first cut covers **all 17 source packages**
+  backing the 22 names — sources with no unreleased delta at implementation
+  time (e.g. `libeval`, `libwiki`, `libxmr`, `libcodegen`, `librc`) get
+  explicit chore version bumps so `publish-npm.yml` triggers and claims
+  their launcher names. The typosquat window closes per-package as each tag
+  publishes, not atomically — foundational deps first per `kata-release-cut`
+  § Dependency chain, no stragglers.
+- **Token precondition (carry 4)**: human-owned (@dickolsson) — see § Risks.
+- **Expansion (carry 5)**: once the preferred granular token (22 names +
+  `@forwardimpact`) is in place, every future public-set expansion re-opens
+  the unscoped-create problem — a 23rd launcher needs a temporary
+  broaden-or-rotate token step before its first publish; recorded here so
+  the first expansion doesn't rediscover it as a publish failure.
+
 `release-engineer` also re-runs spec § Success Criteria rows 1–3 and 7 (the
 clean-dir `npx --yes <cli>` checks, only observable against the live
 registry) after that release and records the result on it. No
