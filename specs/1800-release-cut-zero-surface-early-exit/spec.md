@@ -77,26 +77,30 @@ step after the pre-flight checklist): the assessment first evaluates a
 per-package sweep runs **only on a `SWEEP-REQUIRED` classification**. When
 every condition holds, the classification is **`NO-CUT-OWED`**: the agent
 records the verdict and stops — the sweep is not required and skipping it
-is the codified, defensible path. When any condition fails, the
-classification is `SWEEP-REQUIRED` and the full sweep runs; there is no
-judgment call in between. The gate is the step structure itself — the
-discriminator must not ship as a shadow rider or a "run the check before
-the sweep" ordering instruction, the shape Exp #1625 measured at a 2-of-4
-inversion rate (§ Why instruction ordering cannot carry the gate).
-Full-sweep runs are outside the gate and always sweep (§ Authority
-boundary).
+is the codified, defensible path. When a baseline resolves and validates
+but any other condition fails, the classification is `SWEEP-REQUIRED` and
+the full sweep runs; there is no judgment call in between. A run that
+cannot resolve an unambiguous, valid baseline records no classification at
+all — it is **unclassifiable** (no SHA pair exists), records the
+unresolvable state it found, and performs the full sweep (§ Authority
+boundary). The gate is the step structure itself — the discriminator must
+not ship as a shadow rider or a "run the check before the sweep" ordering
+instruction, the shape § Why instruction ordering cannot carry the gate
+shows is unenforceable. Full-sweep runs are outside the gate and always
+sweep (§ Authority boundary).
 
 **The classification binds an explicit SHA pair.** The predicate is
 evaluated against `range_from` (the baseline commit `B`) and `range_to`
 (`HEAD` captured at classification time), and both SHAs are recorded in
 the verdict record for **both** classification outcomes. The verdict is a
 claim about the recorded pair, never about whatever `HEAD` is at recording
-time — the run-358 anchor-drift instance is the direct evidence.
+time (the Evidence table's anchor-drift row).
 
 **A `NO-CUT-OWED` verdict is a four-conjunct claim**: (a) empty publishable
 diff over the bound range, (b) valid anchor, (c) standing-set re-cite —
-first-release backlog (currently svcembedding + svctenancy) plus any
-publish-failure carries, (d) CI green. These are conditions 2, 1, 3, and 4
+condition 3's full standing set: first-release backlog (currently
+svcembedding + svctenancy), held/deferred cuts, and pending
+publish-failure retries and verifications, (d) CI green. These are conditions 2, 1, 3, and 4
 below; the path check alone is never a verdict.
 
 **Definition — blocked, verifiable-in-run, due.** An obligation is
@@ -106,8 +110,11 @@ when the assessment itself can resolve it with the invocations the skill
 already uses (the canonical member of this class: a pending
 publish-workflow verification, resolvable via one `gh run list`) — the
 assessment must resolve it before exiting: verified-success clears it,
-verified-failure makes it due. Every other obligation is *due*. A due
-obligation defeats the early exit; a blocked one rides as a re-cite.
+verified-failure makes it due, and an outcome unresolvable within the run
+(a workflow still in progress) is due. Every other obligation is *due*. A
+due obligation defeats the early exit; a blocked one rides as a re-cite —
+and a re-cite asserts the blocking prerequisite is still unmet at
+assessment time (a lifted hold makes the obligation due).
 
 ### Discriminator predicate (all conditions required)
 
@@ -136,7 +143,8 @@ run-class vocabulary the skill itself defines:
   sweep at least once per scheduled cadence interval. For consumers
   operating without a scheduled cadence, the skill text states a default
   re-anchor bound (a maximum chain length or age — value is the design's
-  call); a chain older than the bound is unresolvable (⇒ full sweep).
+  call); a chain older than the applicable bound — cadence interval or
+  stated default — is unresolvable (⇒ full sweep).
 - **What the boundary guarantees.** With the bound in place, a wrong or
   corrupted baseline record survives at most one re-anchor interval: the
   next full sweep re-verifies every tagged package from its tags and every
@@ -158,7 +166,8 @@ the next run needs to chain:
   alike — records the explicit SHA pair it was evaluated against
   (`range_from` = baseline, `range_to` = `HEAD` at classification time);
   an early-exit verdict additionally records the range-check evidence
-  (path summary).
+  (path summary). An unclassifiable run (§ What) has no classification and
+  no SHA pair — it records the unresolvable state it found and sweeps.
 - A full-sweep verdict that ends with **due-but-deferred** obligations (a
   deferral shape condition 3 anticipates) records that it establishes no
   chainable baseline — the chain is broken, and subsequent assessments
@@ -204,8 +213,8 @@ independently of which implementation lands first:
 - The skill is published (kata-skills pack) and is the canonical source for
   the release procedure — this is a verdict-authority contract change for
   external consumers as well as for the monorepo's release-engineer
-  (precedent: spec 1500 amended the same published skill via this
-  pipeline). The codified text must stand alone for a consumer with no
+  (precedent: spec 1500, in flight as PR #1384, amends the same
+  published skill via this pipeline). The codified text must stand alone for a consumer with no
   access to this monorepo's wiki: the baseline/recording contract is stated
   against the skill's own recording surfaces, not monorepo-specific files.
 
