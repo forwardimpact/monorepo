@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libbridge",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Threaded-channel bridge primitives — relay messages between human channels (GitHub Discussions, Microsoft Teams) and the Kata agent team.",
   "keywords": [
     "bridge",
