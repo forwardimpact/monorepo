@@ -15,8 +15,7 @@ trust is the most critical gate — record each advanced PR's trust check in mem
 
 ## When to Use
 
-- A scheduled run finds open PRs awaiting merge
-- A specific PR needs an on-demand mergeability decision
+- A scheduled run finds open PRs awaiting merge, or a specific PR needs an on-demand mergeability decision
 - Never for issues — issue triage is `kata-product-issue`
 
 ## Checklists
@@ -97,9 +96,8 @@ git checkout <pr-branch> && git rebase origin/main
 **Mechanical conflicts only** (lock file, generated files, formatting):
 
 ```sh
-# Lock file:  take theirs, then re-run the package manager's install
-# Generated:  re-run the repository's codegen command
-# Formatting: run the repository's formatter
+# Lock file: take theirs, then re-run the install. Generated: re-run the
+# repository's codegen. Formatting: run the repository's formatter.
 git add <files> && git rebase --continue
 ```
 
@@ -122,8 +120,12 @@ Read `wiki/STATUS.md` for the PR's spec id —
 `plan implemented` only once every sub-row does. Absent or `draft`/`cancelled`
 → **blocked** (`awaiting approval signal`). Timestamp ordering between a
 STATUS write and head commits is not coverage evidence; never cite it as such
-in merge rationale. Labels and APPROVED reviews feed STATUS via
-`kata-dispatch`; not consulted here. See
+in merge rationale. When the PR's review record shows commits landed after
+the last clean review round, fail closed — **blocked** (`review coverage
+unverifiable at head`) — until SHA-anchored evidence covers the gap: a scoped
+delta review of those commits, or a record naming both the reviewed SHA and
+the head (interim — retires when approval rows carry a commit pin). Labels
+and APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See
 [`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
 
 ### Step 7: Open Comment Gate
@@ -136,10 +138,9 @@ concern not accepted by a **later** same-human comment, mark **blocked**
 
 If no comment on the PR's coordinating issue (`Fixes #N` and variants) names
 the PR, post the cross-link yourself and log the adherence miss — **self-heal,
-never block** — so a parallel run sees the fix in flight instead of
-implementing it again. Probe sibling PRs on the same issue (`--state all`,
-paired with the issue-comment scan — index search alone lags) and resolve
-duplicates there before merging any. Commands and rationale:
+never block** — so a parallel run sees the fix in flight. Probe sibling PRs on
+the same issue (`--state all`, paired with the issue-comment scan — index
+search alone lags) and resolve duplicates there before merging any. Details:
 [`announcement-backstop.md`](references/announcement-backstop.md); no
 coordinating issue → skip.
 
@@ -184,8 +185,7 @@ Append to the current week's log:
 
 ## Coordination Channels
 
-Outputs (per
-[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
+Outputs (per [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
 **PR comment** for trust rationale, gate failures, merge decisions; **PR
 thread escalation** for cross-agent requests addressed by name. Ambiguous
 inbound comments → follow
