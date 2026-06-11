@@ -128,6 +128,7 @@ three caller rows:
 | Session-end hook surfacing | The Stop-hook wiring maps a push-failure exit to the hook semantics that block the stop and feed the reason back to the agent for a remediation turn (§ Decisions D4). |
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
 | Foreign claim-row conservation | A push that would delete an Active Claims row it was not instructed to remove refuses or re-merges — never silently drops (§ Decisions D5). |
+| Unsafe-precondition refusal | A rebase in progress or a detached HEAD refuses before mutating, with a precondition reason — the backstop that keeps an interrupted retry from minting *landed* (§ Decisions D7). |
 | Operator message contract | Failure messages name the reason class and the recovery path; where uncommitted work is retained in the stash on a failed autostash reapplication, the message names where it went (§ Decisions D3 guarantee). Contract is exit code plus reason class — exact wording is plan territory. |
 | Documented contract surface | The `commitAndPush` contract documentation describes the outcome taxonomy and per-caller mapping, traceable to this spec. |
 
@@ -188,8 +189,19 @@ the machine-readable status the *remote* produces during the push,
 admissible because it is remote-originated even though git relays it on the
 push subprocess's stdout. The inadmissible channels are the subprocess's
 prose output text, its exit status alone, and the absence of a caught
-error — those attest that a process ran, not that the remote accepted. This is the property that
-makes the external ancestry-verify floor unnecessary: occurrence #41
+error — those attest that a process ran, not that the remote accepted.
+The grounding covers the other success-shaped quiet outcome too:
+***nothing to push* is asserted only when the observed remote ref already
+contains local HEAD** — never from pre-fetch arithmetic against the
+remote-tracking ref, which is how it is computed today. As contract, not
+doc-comment convention: the push decision is keyed to whether the remote
+contains the local commits, never to working-tree dirtiness — a
+stranded-resume state (clean tree, local commits ahead: exactly the
+workspace a #41-class stranding leaves behind when D4's remediation turn
+never runs) must re-push, not report quiet success. This pair of
+groundings is what
+makes the external ancestry-verify floor unnecessary over *every*
+success-shaped outcome: occurrence #41
 (§ Evidence) is precisely a success claim made on output text while the
 commit was stranded, detectable only by an out-of-band floor. Any outcome
 that fails this grounding is classified as a failure reason from this
@@ -199,7 +211,8 @@ fetch failed, a subsequent push rejection is classified as transport —
 otherwise broken credentials masquerade as contention and "rerun" guidance
 loops forever against a stale ref. Spec 1750's two guard-refusal classes
 (confirmed-unrelated, could-not-verify) join this taxonomy when both specs
-have landed. *Alternative carried:* collapse *rejected* and *transport*
+have landed; D7's *precondition* refusal reports in the same
+could-not-verify family in either series order. *Alternative carried:* collapse *rejected* and *transport*
 into one failure reason — simpler, but they direct different operator
 responses, and conflation is exactly how the run-275 false finding grew.
 
@@ -301,6 +314,31 @@ scoping decision (#1568 lineage) for frequency relief this spec's honesty
 goal does not require; revisit only if post-1780 evidence shows loud sweep
 conflicts are themselves a material burden.
 
+**D7 — Unsafe-precondition refusal.** When the repository state invalidates
+the operation's own instruments — a rebase in progress or a detached HEAD —
+the operation refuses before mutating anything: never *landed*, a
+*precondition* reason reported through the D1 per-caller mapping (non-zero
+exit at `push`; zero exit with the saved-locally warning at
+`claim`/`release` when the local write preceded the precondition). The
+reason is a sub-class of the same could-not-verify family as spec 1750's
+guard refusals — one taxonomy, three refusal sources, no parallel class;
+it is reportable in either series order. The binding reason this is in
+scope rather than implementation detail: **D3's interrupted autostash
+retry *produces* the mid-rebase state**, so the refusal is the backstop
+that prevents a half-finished retry from minting *landed* — companion to,
+not duplicate of, the retry⇄1750-D1 binding (that one governs integration
+eligibility; this one governs verdict eligibility). The check is testable
+without message-copy assertions: rebase-in-progress or detached HEAD ⇒
+never *landed*, exit code plus reason class. *Alternative carried:*
+warn-and-attempt — refuse nothing, attempt the push, and let the
+grounded-success property classify the outcome; weaker but defensible
+because D2 already guarantees an attempt from that state cannot mint
+*landed*, and a hard refusal inside the Stop-hook path could strand a
+session record whose push would otherwise have landed. The proposal
+prefers refusal because the attempt from a known-invalid state buys
+nothing the warning does not, and its partial mutations are what D3's
+guarantee then has to clean up.
+
 ## Success Criteria
 
 Each criterion is verified against a fixture wiki clone plus a controllable
@@ -316,7 +354,9 @@ order.
 |---|---|
 | Landed push ⇒ success reported, and only then. | Healthy fixture, uncontended; run `fit-wiki push`; observe zero exit, success message, and the commit reachable from the remote ref. |
 | Success is grounded in observed remote state — never claimed on the push subprocess's output text alone, so no external floor is needed. | Occurrence-#41 fixture ([#1564 allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)): force only the inadmissible channels to report success — success prose and zero exit, with the per-ref update report absent or reporting the ref un-updated — while the remote ref does not advance to contain the commit, so both permitted grounding mechanisms (per-ref report parsing and post-push remote observation) must classify failure; run `fit-wiki push`; observe non-zero exit, a D2 failure reason, and the success message **absent** — the command itself surfaces the stranding that the external run-283 ancestry-verify floor previously had to catch. Repeat via `fit-wiki claim` and `fit-wiki release` (the run-303 specimen's surface — `704cf95a`, § Problem Evidence); observe zero exit with the saved-locally warning carrying the reason, never the success message. |
-| Nothing to push ⇒ zero exit with the existing honest message. | Clean fixture with no commits ahead; run `fit-wiki push`; observe zero exit and the nothing-to-push message. |
+| Nothing to push ⇒ zero exit with the existing honest message — asserted only when the remote ref contains local HEAD. | Clean fixture whose local HEAD is contained in the observed remote ref; run `fit-wiki push`; observe zero exit and the nothing-to-push message. |
+| Stranded-resume state re-pushes: clean tree, local commits ahead ⇒ push attempted, never *nothing to push*. | Fixture with a clean working tree and local commits the remote ref does not contain (the workspace a #41-class stranding leaves when no remediation turn ran — session death, hook skip), with the remote-tracking ref stale so pre-fetch arithmetic would report nothing to do; run `fit-wiki push`; observe a push attempt in the remote-operation sequence and the nothing-to-push message **absent** — an implementation gating the push on tree-dirtiness fails this row. |
+| Mid-rebase / detached HEAD ⇒ precondition refusal, never *landed*. | Fixture with a rebase in progress, and separately a detached HEAD; run `fit-wiki push`; observe non-zero exit, a precondition reason class, the success message absent, and no remote mutation. Also reached via an interrupted D3 retry (autostash rebase killed mid-reconcile, then re-invocation): observe the re-invocation refuses with the precondition reason rather than reporting any success-shaped outcome. |
 | Rebase conflict ⇒ loud failure, remote side never mechanically discarded. | Fixture with a textually overlapping remote advance; run `fit-wiki push`; observe non-zero exit, a conflict-reason message naming resolve-or-retry, the rebase aborted, no merge commit resolving to the local side, and the remote tip unchanged. |
 | Push rejection after a successful fetch ⇒ *rejected* reported, never success. | Fixture whose remote advances without textual overlap between the operation's fetch and push (retry exhausted, see retry rows); observe non-zero exit and the rejected reason — not a success report. |
 | Push failure with a failed fetch ⇒ *transport*, not *rejected*. | Fixture with remote observation forced to fail (credentials) and a push that would be rejected against the stale ref; run `fit-wiki push`; observe the transport classification and no rerun-guidance loop. |
@@ -368,6 +408,14 @@ inadmissible-channels-only fixture clause, and the ordinal hedge from the
 clarification and the second-landing-plan retry-activation ownership rule
 from the
 [staff-engineer seed-faithfulness review](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676414473)
-(findings 1, 2), folded 2026-06-11.
+(findings 1, 2), folded 2026-06-11; nothing-to-push remote grounding and
+the stranded-resume criterion from the
+[improvement-coach framing-question adjudication](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676413817)
+(residual gap, one-row fix adopted with the D2 contract clause), folded
+2026-06-11; D7 unsafe-precondition refusal restoring the
+[seed-table Update #2 adoption](https://github.com/forwardimpact/monorepo/issues/1580#issuecomment-4676307171)
+(coach proposal, PM-adapted: refuse-vs-warn carried, testable criterion,
+could-not-verify sub-class, D3-composition backstop) that the authored
+spec had lost, folded 2026-06-11 per the adjudication's ask#9 note.
 
 — Product Manager 🌱
