@@ -75,16 +75,22 @@ const columnCount = (expected) => (s) =>
 const exists = (s) => (s.exists ? null : {});
 const expired = (s, ctx) => (s.expires_at < ctx.today ? {} : null);
 
+// The heading must equal `requiredLine` exactly — a suffixed variant like
+// "### Decision — <summary>" does not satisfy it, but is reported as a
+// near miss so the writer fixes the heading instead of hunting for a
+// "missing" line that is right there.
 function entryHasDecision(lines, startIdx, requiredLine, stopRe) {
   let seen = 0;
+  let nearMiss = null;
   for (let j = startIdx + 1; j < lines.length && seen < 5; j++) {
     const ln = lines[j].trim();
     if (ln === "") continue;
     seen++;
-    if (ln === requiredLine) return true;
-    if (stopRe.test(lines[j])) return false;
+    if (ln === requiredLine) return { found: true };
+    if (nearMiss === null && ln.startsWith(requiredLine)) nearMiss = ln;
+    if (stopRe.test(lines[j])) break;
   }
-  return false;
+  return { found: false, nearMiss };
 }
 
 const decisionWithin5 =
@@ -92,12 +98,9 @@ const decisionWithin5 =
   (s) => {
     const offenders = [];
     for (let i = 0; i < s.fileLines.length; i++) {
-      if (
-        entryRe.test(s.fileLines[i]) &&
-        !entryHasDecision(s.fileLines, i, requiredLine, stopRe)
-      ) {
-        offenders.push({ lineNo: i + 1 });
-      }
+      if (!entryRe.test(s.fileLines[i])) continue;
+      const res = entryHasDecision(s.fileLines, i, requiredLine, stopRe);
+      if (!res.found) offenders.push({ lineNo: i + 1, nearMiss: res.nearMiss });
     }
     return offenders.length === 0 ? null : offenders;
   };
@@ -283,8 +286,11 @@ export const RULES = [
       requiredLine: DECISION_HEADING,
       stopRe: /^##\s/,
     }),
-    message: () => "Entry lacks leading '### Decision'",
-    hint: "open each '## YYYY-MM-DD' entry with a '### Decision' subheading that summarises the decision recorded in the entry's own narrative — do not invent rationale the entry does not support",
+    message: (_s, r) =>
+      r.nearMiss
+        ? `Entry opens with '${r.nearMiss}'; the heading must be exactly '${DECISION_HEADING}' — move the suffix into the body`
+        : `Entry lacks a line that is exactly '${DECISION_HEADING}'`,
+    hint: `open each '## YYYY-MM-DD' entry with a line containing exactly '${DECISION_HEADING}' (no suffix — the check is an exact match); put the one-line summary in the body below it, drawn from the entry's own narrative — do not invent rationale the entry does not support`,
   },
 
   // -- Weekly logs (sealed parts) --

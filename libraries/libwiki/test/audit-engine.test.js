@@ -152,6 +152,53 @@ describe("runRules", () => {
       (f) => f.id === "decision-block.heading-within-5",
     );
     assert.equal(offenders.length, 2);
+    for (const f of offenders) {
+      assert.match(f.message, /lacks a line that is exactly '### Decision'/);
+      assert.match(f.hint, /exactly '### Decision'/);
+    }
+  });
+
+  test("decision-block: suffixed heading is reported as a near miss", () => {
+    const seed = cleanSeed("2026-06-22", {
+      [`${WIKI}/staff-engineer-2026-W25.md`]: [
+        "# Staff Engineer — 2026-W25",
+        "",
+        "## 2026-06-22",
+        "",
+        "### Decision — widened the scope of #1371",
+        "",
+        "body",
+      ].join("\n"),
+    });
+    const finding = audit(seed, "2026-06-22").find(
+      (f) => f.id === "decision-block.heading-within-5",
+    );
+    assert.ok(finding, "suffixed heading must not satisfy the exact match");
+    assert.match(
+      finding.message,
+      /opens with '### Decision — widened the scope of #1371'/,
+    );
+    assert.match(finding.message, /must be exactly '### Decision'/);
+  });
+
+  test("decision-block: bare heading after a suffixed one still passes", () => {
+    const seed = cleanSeed("2026-06-22", {
+      [`${WIKI}/staff-engineer-2026-W25.md`]: [
+        "# Staff Engineer — 2026-W25",
+        "",
+        "## 2026-06-22",
+        "",
+        "### Decision — duplicate header",
+        "",
+        "### Decision",
+        "",
+        "body",
+      ].join("\n"),
+    });
+    const offenders = audit(seed, "2026-06-22").filter(
+      (f) => f.id === "decision-block.heading-within-5",
+    );
+    assert.deepEqual(offenders, []);
   });
 
   test("missing storyboard fires storyboard.current-month-exists", () => {
