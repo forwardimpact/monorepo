@@ -4,9 +4,9 @@
  * Runs all transforms in dependency order.
  * People must be imported before GitHub and GetDX (for email/manager resolution).
  * The artifact-driven evidence producer runs after GitHub (it reads
- * github_artifacts) and before the round-robin producer — design 1210
- * § Determinism rule 2: artifact-interpreted rows land first so the
- * round-robin upsert's ON CONFLICT DO NOTHING is the collision guard.
+ * github_artifacts) and before the round-robin producer:
+ * artifact-interpreted rows must land first so the round-robin upsert's
+ * ON CONFLICT DO NOTHING guards cross-producer key collisions.
  */
 
 import { transformAllGitHub } from "./github.js";

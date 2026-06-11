@@ -18,12 +18,12 @@ const starterDir = join(
 const EMAIL = "daedalus@bionova.example";
 
 /**
- * BioNova manufacturing IT persona (issue #989 / spec 1210 criterion 1).
- * Mirrors `data/synthetic/story.dsl` § manufacturing_it: repos
+ * BioNova manufacturing IT persona whose flagship work must surface as
+ * evidence. Mirrors `data/synthetic/story.dsl` § manufacturing_it: repos
  * mes-connector + scada-bridge, flagship work = mes-connector v2 schema
  * cutover + scada-bridge operational record. The starter standard has no
  * J080 level (J040/J060 only), so the fixture pins the senior starter
- * level J060 — the criterion anchors on the team's repo names, not the
+ * level J060 — the contract anchors on the team's repo names, not the
  * literal level id.
  */
 const PERSON = { discipline: "data_engineering", level: "J060", track: null };
@@ -251,13 +251,13 @@ async function runPass(fake) {
 
 let mapData;
 
-describe("BioNova evidence coverage contract (spec 1210 criteria 1 + 6)", () => {
+describe("BioNova evidence coverage contract", () => {
   before(async () => {
     const loader = createDataLoader(createDefaultRuntime());
     mapData = await loader.loadAllData(starterDir);
   });
 
-  test("criterion 1: coverage ≥ floor, ≥14 artifact-interpreted rows, both repos covered", async () => {
+  test("coverage ≥ floor, ≥14 artifact-interpreted rows, both repos covered", async () => {
     const fake = createFakeClient();
     const { rows } = await runPass(fake);
 
@@ -297,7 +297,7 @@ describe("BioNova evidence coverage contract (spec 1210 criteria 1 + 6)", () => 
     assert.ok(repos.has("scada-bridge"), "no interpreted row in scada-bridge");
   });
 
-  test("criterion 6: repeated transform passes produce the same projected set", async () => {
+  test("repeated transform passes produce the same projected set", async () => {
     const fake = createFakeClient();
     const first = await runPass(fake);
     const second = await runPass(fake);

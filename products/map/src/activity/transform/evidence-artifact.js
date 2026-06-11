@@ -205,16 +205,6 @@ function emitForSkill(entry, markerList, byRepo) {
   return rows;
 }
 
-/**
- * Artifact-driven evidence producer. Reads github_artifacts joined to
- * organization_people, derives each persona's skill matrix from pathway
- * data, applies the bounded heuristic (design 1210 § Artifact-driven
- * producer), and writes rows tagged provenance=artifact_interpreted with
- * a per-class delete + ON CONFLICT DO NOTHING upsert.
- * @param {import('@supabase/supabase-js').SupabaseClient} supabase
- * @param {{mapData: object}} collaborators - Standard data from loadAllData.
- * @returns {Promise<{inserted: number, skipped: number, errors: Array<string>}>}
- */
 /** Group joined artifact rows by email, counting profile-less rows as skipped. */
 function groupByPersona(data) {
   let skipped = 0;
@@ -262,6 +252,17 @@ function buildPersonaRows(personaRows, mapData, matrixCache) {
   return rows;
 }
 
+/**
+ * Artifact-driven evidence producer. Reads github_artifacts joined to
+ * organization_people, derives each persona's skill matrix from pathway
+ * data, applies the bounded match heuristic (two-keyword overlap floor,
+ * one row per artifact+skill, unconditional per-repo-per-skill emit
+ * floor), and writes rows tagged provenance=artifact_interpreted with
+ * a per-class delete + ON CONFLICT DO NOTHING upsert.
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {{mapData: object}} collaborators - Standard data from loadAllData.
+ * @returns {Promise<{inserted: number, skipped: number, errors: Array<string>}>}
+ */
 export async function transformEvidenceArtifact(supabase, { mapData }) {
   assertProvenance(ARTIFACT_PROVENANCE);
 
