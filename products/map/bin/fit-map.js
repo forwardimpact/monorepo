@@ -441,15 +441,34 @@ async function dispatchActivity(subcommand, rest, values) {
       return activity.status({ runtime });
     case "migrate":
       return activity.migrate({ runtime });
-    case "transform":
-      return activity.transform(rest[0] ?? "all", await mapClient(), runtime);
+    case "transform": {
+      const target = rest[0] ?? "all";
+      let mapData;
+      if (target === "all" || target === "evidence-artifact") {
+        const dataDir = await findDataDir(values.data, runtime);
+        const { createDataLoader } = await import("../src/index.js");
+        const loader = createDataLoader(runtime);
+        mapData = await loader.loadAllData(dataDir);
+      }
+      return activity.transform(target, await mapClient(), runtime, {
+        mapData,
+      });
+    }
     case "verify":
       return activity.verify(await mapClient(), runtime);
     case "seed": {
       const dataDir = await findDataDir(values.data, runtime);
       // findDataDir returns .../pathway; seed needs the parent data/ dir
       const data = dirname(dataDir);
-      return activity.seed({ data, supabase: await mapClient(), runtime });
+      const { createDataLoader } = await import("../src/index.js");
+      const loader = createDataLoader(runtime);
+      const mapData = await loader.loadAllData(dataDir);
+      return activity.seed({
+        data,
+        supabase: await mapClient(),
+        runtime,
+        mapData,
+      });
     }
     default:
       cli.usageError(`unknown activity subcommand: ${subcommand || "(none)"}`);

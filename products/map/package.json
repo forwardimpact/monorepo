@@ -57,6 +57,7 @@
     "./activity/transform/getdx": "./src/activity/transform/getdx.js",
     "./activity/transform/people": "./src/activity/transform/people.js",
     "./activity/transform/evidence": "./src/activity/transform/evidence.js",
+    "./activity/transform/evidence-artifact": "./src/activity/transform/evidence-artifact.js",
     "./activity/transform": "./src/activity/transform/index.js",
     "./activity/provenance": "./src/activity/provenance.js",
     "./activity/retention": "./src/activity/retention.js"
@@ -81,6 +82,7 @@
     "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libsecret": "^0.1.14",
+    "@forwardimpact/libskill": "^5.0.0",
     "@forwardimpact/libsyntheticgen": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libtemplate": "^0.2.0",
@@ -91,6 +93,7 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
+    "@forwardimpact/landmark": "^0.1.24",
     "@forwardimpact/libgraph": "^0.1.59",
     "@forwardimpact/libmock": "^0.1.0",
     "@forwardimpact/libresource": "^0.1.98",

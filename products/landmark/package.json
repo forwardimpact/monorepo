@@ -54,7 +54,8 @@
   "type": "module",
   "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./lib/confidence-floor": "./src/lib/confidence-floor.js"
   },
   "bin": {
     "fit-landmark": "./bin/fit-landmark.js"
