@@ -32,7 +32,8 @@ discriminator, not agent judgment
 | Docs/wiki/skill merges dominate current merge traffic — zero-surface is the *modal* assessment shape | Issue #1623, coach-ratified |
 | Instruction-ordering is unenforceable: running the discriminator as a shadow rider with an explicit "before Step 2" instruction produced a 2-of-4 ordering-inversion rate under live conditions (run-360: shadow bash#14 vs sweep bash#8; run-365: shadow bash#22 vs sweep bash#12) | [Exp #1625 pre-read adjudication](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4678801690), coach trace-verified |
 | Anchor drift: a racing lane's landed cut moved "range since last cut" between classification and row-landing — run-358's landed row read 7/27 but its stated range reproduces as 6/26 | [Exp #1625 measurement-discipline note](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4678440452) |
-| Directory membership over-approximates publishability at the file level: `libraries/libbridge/CLAUDE.md` classifies publishable under a directory-only rule yet is matched by neither libbridge's `files` allowlist (`["src/**/*.js", "README.md"]`) nor npm's always-included set — the published tarball is byte-identical (false `SWEEP-REQUIRED`; safe direction, FN 0). Frequency (full-history, classifier spot-verified against `npm pack --dry-run`): 10 of 608 first-parent landings on main over 4 weeks (~1.6% of traffic; ~3.5% of landings touching a publishable package dir), bursty — 9 of 10 in one doc-cleanup week. Forgone savings ≈ $2–3/week steady state, ~$54–72/week in campaign bursts. Concentration: CLAUDE.md 5/10, test files 2/10, macOS packaging metadata 3/10; the shape occurs only in packages with tight `files` allowlists; 4 of 10 were direct-to-main pushes, so only the assessment-time classifier sees the whole population | [Exp #1625 run-392 report](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685328504), coach-verified admissible ([adjudication](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685372875)); RE full-history frequency datum |
+| Directory membership over-approximates publishability at the file level: `libraries/libbridge/CLAUDE.md` classifies publishable under a directory-only rule yet is matched by neither libbridge's `files` allowlist (`["src/**/*.js", "README.md"]`) nor npm's always-included set — the published tarball is byte-identical (false `SWEEP-REQUIRED`; safe direction, FN 0). Frequency (full-history, classifier spot-verified against `npm pack --dry-run`): 10 of 608 first-parent landings on main over 4 weeks (~1.6% of traffic; ~3.5% of landings touching a publishable package dir), bursty — 9 of 10 in one doc-cleanup week. The forgone-savings term is residence-driven, not landing-driven (re-fire series row below) — a per-landing derivation understates the steady state and over-sums bursts. Concentration: CLAUDE.md 5/10, test files 2/10, macOS packaging metadata 3/10; the shape occurs only in packages with tight `files` allowlists; 4 of 10 were direct-to-main pushes, so only the assessment-time classifier sees the whole population | [Exp #1625 run-392 report](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685328504), coach-verified admissible ([adjudication](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685372875)); RE full-history frequency datum |
+| Re-fire series — the forgone-savings term is **residence-driven, not landing-driven**: rows 400 and 401 are same-class recurrences of the run-392 shape (one edge-case class under the experiment's adopted root-cause grouping). With `range_from` pinned at `f39706ff` (the svcoidc@v0.1.2 cut) across all three frozen pairs, a single landing (`b75c82c0`, libbridge CLAUDE.md) defeated the directory rule on three consecutive zero-surface assessments in under a day, and re-fires deterministically on every subsequent one until a cut moves the anchor — zero-surface assessments never move `range_from`; only a cut does. The correct term is (per-sweep cost) × (zero-surface assessments during anchor residence): a per-landing model understates steady state (one landing already cost ~3 forgone exits in <1 day, booked as one) and over-sums bursts (N landings sharing one pinned range cost per-assessment; the costs do not sum across landings). Self-reinforcing in exactly the modal window — the term concentrates in docs-heavy periods, where the exit pays most. Shadow-window FN tally including rows 400/401: 0 of 14 | [Row 400](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685457091); [row 401](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685603336); one-class grouping per [adjudication](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685697485); residence-form restatement per [SE assessment](https://github.com/forwardimpact/monorepo/pull/1626#issuecomment-4685856878) |
 
 ### The load-bearing counterexample
 
@@ -138,8 +139,14 @@ the refined predicate its own agreement data before the early exit fires
 on it. This is load-bearing for the unscoped (file-kind-agnostic) form —
 if the full sweep would ever CUT on a tarball-identical test-only range,
 that surfaces in shadow as an unsafe-direction disagreement, falsified
-cheaply rather than in production. Window length and mechanics are the
-experiment owners' call.
+cheaply rather than in production. Because a pinned anchor makes raw
+shadow rows non-independent (rows 392/400/401 re-test one file and count
+as one datum under the experiment's pre-registered root-cause grouping
+rule, [adjudicated](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685697485)),
+the window's agreement evidence is reported in grouped
+distinct-edge-case-class terms per that rule, alongside raw row counts —
+a reporting discipline, deliberately not a numeric class threshold.
+Window length and mechanics are the experiment owners' call.
 
 ### Authority boundary
 
@@ -328,7 +335,11 @@ independently of which implementation lands first:
 | The cost effect is observable — a trailing indicator, not a merge gate. | The first post-implementation zero-surface assessment at which the predicate holds records an early-exit verdict in the metric home, the first before/after data point against the run-352 baseline. |
 
 — Release Engineer 🚀 (r1; r3 applied per the
-[#1623 amendment contract](https://github.com/forwardimpact/monorepo/issues/1623#issuecomment-4685425527))
+[#1623 amendment contract](https://github.com/forwardimpact/monorepo/issues/1623#issuecomment-4685425527);
+r5 evidence-level amendments per the
+[SE assessment of record](https://github.com/forwardimpact/monorepo/pull/1626#issuecomment-4685856878) —
+residence-driven forgone-savings restatement, rows-400/401 anchors,
+FN 0-of-14 refresh, grouped-class agreement reporting)
 · Product Manager 🌱 (r2, Exp #1625 requirements of record; r3 contract,
 run-392 condition-2 packlist-membership refinement; r4, SE-review H1
 fold — pack-manifest-influencing files classify publishable)
