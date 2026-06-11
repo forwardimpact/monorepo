@@ -32,7 +32,7 @@ flowchart LR
 |---|---|---|
 | **Topic registry** | One declarative data file: every topic carries a `source` (glob or selector + optional `exclude`) and a `consumers[]` list with per-consumer `property` ∈ {`count`, `list`, `both`}. The single named registry path the spec's single-source criterion verifies; a 7th topic is a one-file edit. The plan picks the exact YAML schema | New `.coaligned/invariants/enumeration-drift.topics.yml`, adjacent to its module exactly as `ambient-deps.allow.yml` sits beside `ambient-deps.rules.mjs` |
 | **Rule module** | Default export `{ name: "enumeration-drift", build, rules, seed }` per the libcoaligned host contract. The host auto-discovers `*.rules.mjs` — landing the file is the wiring | New `.coaligned/invariants/enumeration-drift.rules.mjs` |
-| **Source probes** | Pure functions inside `build()`, one per source *kind*, not per topic: `fs-glob` (registry-declared glob + `exclude` → sorted basename set, over the shared `lib/walk.mjs` `collectFiles`) serves five topics; `md-table` (registry-declared file + column selector → sorted cell set) serves the sibling-composite-actions topic. Probes own normalisation; topic identity lives only in registry data, so a 7th topic reusing an existing kind is a registry-only edit — only a genuinely new source kind adds probe code | Inside the rule module |
+| **Source probes** | Pure functions inside `build()`, one per source *kind*, not per topic: `fs-glob` (registry-declared glob + `exclude` + identifier derivation — directory name of a matched marker file like `package.json`/`SKILL.md`, plain directory name, or file basename — → sorted identifier set) serves five topics; `md-table` (registry-declared file + column selector → sorted cell set) serves the sibling-composite-actions topic. Probes own normalisation; topic identity lives only in registry data, so a 7th topic reusing an existing kind is a registry-only edit — only a genuinely new source kind adds probe code | Inside the rule module |
 | **Consumer parser** | Inside `build()`: reads each registry-listed consumer path — and only those; fences in unregistered files are out of scope, consistent with the accepted residual risk below — locates fenced enumeration blocks under the marker convention, returns the observed value per block; ignores fences inside fenced-code regions so docs documenting the convention do not self-trigger | Inside the rule module |
 | **Subjects + ctx** | `build()` returns one subject per registry assertion (consumer path × declared property, carrying expected set and observed value or fence-absence) plus one subject per discovered fence (for unknown-topic detection); registry parse/IO errors become a registry-path subject rather than a throw, mirroring `ambient-deps`'s parse-error pattern, so authors never see a raw stack | `build()` return value |
 | **Drift rules** | Declarative `rules[]` entries the shared `runRules` engine applies over the subjects; each emits a finding `{ id, level, path, message, hint }` that the host prints via `writeFindings` and converts to exit 1 | `rules[]` in the module |
@@ -53,19 +53,24 @@ this design's `main` HEAD:
 
 | Topic | Consumer | Property |
 |---|---|---|
-| `services-tree` | `websites/fit/docs/getting-started/contributors/index.md` (inline name list) | `list` |
+| `services-tree` | `websites/fit/docs/getting-started/contributors/index.md` (structure tree, inline name list) | `list` |
 | `services-tree` | `websites/fit/gear/index.md` ("… and N services") | `count` |
 | `libraries-list` | `websites/fit/gear/index.md` ("N libraries …") | `count` |
 | `sibling-composite-actions` | `CLAUDE.md` § Distribution Model (brace-expansion list) | `list` |
 | `sibling-composite-actions` | `KATA.md` § Architecture ("Five external composite actions" + named list) | `both` |
+| `sibling-composite-actions` | `.github/CLAUDE.md` § Third-party actions ("Five composite actions" prose beside the source table) | `count` |
 | `published-skills` | `KATA.md` § Skills (kata-skill table) | `list` |
-| `published-skills` | `websites/kata/index.md` (hero count + stat) | `count` |
+| `published-skills` | `websites/kata/index.md` (hero count + stat: two `count` fences) | `count` |
 | `products-tree` | `CONTRIBUTING.md` § Monorepo layout (products block) | `list` |
+| `products-tree` | `websites/fit/docs/getting-started/contributors/index.md` (structure tree, "Eight products (…)" count + list) | `both` |
 | `kata-workflows` | `websites/fit/docs/internals/kata/index.md` (workflow count) | `count` |
 | `kata-workflows` | `KATA.md` § Workflows (workflow table) | `list` |
 
-Two reconciliations against the spec's 2026-06-02 consumer snapshot,
-both grounded in HEAD:
+Reconciliations against the spec's 2026-06-02 consumer snapshot, all
+grounded in HEAD. In the spec's "every known-consumer path … is
+wired" criterion, *the Enumeration Registry* means the shipped
+registry file — verifier and approver check that file, not the
+spec's dated table:
 
 - **Collapsed restatements are omitted, not re-created.**
   `CONTRIBUTING.md`'s services/libraries entries are now
@@ -75,12 +80,25 @@ both grounded in HEAD:
   them would rebuild the drift surface the collapse removed, so the
   registry omits the pairs; every topic keeps at least one consumer
   outside `websites/fit/docs/`, preserving that spec criterion.
+  Conversely, two restatements live at HEAD that the spec's snapshot
+  missed (the contributors-page products line, the `.github/CLAUDE.md`
+  prose count) — registered above under the same grounding rule.
 - **Prose that conflicts with the source definition is reconciled at
   landing.** Both `kata-workflows` consumers currently count five
   workflows including `kata-interview`; the spec's source excludes
-  it. The landing PR's consumer edits scope each fenced claim to the
-  PDSA set (mentions of `kata-interview` stay outside the fence) —
-  within the atomic-landing edits the design already requires.
+  it. The landing PR scopes each fenced claim to the PDSA set: in
+  `KATA.md` § Workflows the `kata-interview` row moves out of the
+  fenced table into adjacent prose, since a fence cannot exclude a
+  row mid-table — within the atomic-landing edits the design
+  already requires.
+- **Unfenceable or unrepresentable count claims are reworded at
+  landing, not left as silent drift surfaces.** The internals-page
+  YAML front-matter description ("five workflows") cannot carry an
+  HTML-comment fence, and `KATA.md`'s "15 curated skills (excluding
+  the setup utility)" is a derived count with an exclusion the
+  registry schema does not represent; the landing edit drops the
+  numeral from both so no registered consumer keeps an unasserted
+  count.
 
 ## Marker convention
 
@@ -97,13 +115,30 @@ property, `<!-- enum:TOPIC:PROPERTY -->` … `<!-- /enum -->`:
   (`services-tree`, `libraries-list`, `sibling-composite-actions`,
   `published-skills`, `products-tree`, `kata-workflows`).
 - `PROPERTY` is `count` or `list`.
-- Consumers asserting `both` carry two fences, one per property,
-  each placed where its claim lives in the prose — they need not be
-  adjacent. The registry's per-consumer `property` says which
-  fences must exist on each path; a missing required fence is a
-  drift just as a wrong value is.
-- Fences do not nest. The parser pairs each open fence with the
-  next bare `<!-- /enum -->` outside any fenced-code region.
+- An open marker may carry **multiple** space-separated
+  `enum:TOPIC:PROPERTY` claims; the span is asserted once per claim.
+  This serves the structures where one sentence or one code block
+  carries claims for several topics at HEAD (`gear/index.md`'s
+  "39 libraries and 15 services" sentence; the contributors-page
+  structure tree, whose one code block holds both the services list
+  and the products line) without forcing prose restructures.
+- The registry's per-consumer `property` is a required **minimum**:
+  at least one fence per declared property must exist on the path —
+  a missing required fence is a drift just as a wrong value is.
+  Beyond the minimum, every well-formed fence found in a registered
+  consumer is asserted against its named topic, so duplicate claims
+  (the kata-site hero count and stat) are each fenced and each
+  checked.
+- Consumers asserting `both` carry the two claims wherever each
+  lives in the prose — same fence or separate fences; adjacency is
+  not required.
+- Fences do not nest, and spans do not overlap. The parser pairs
+  each open fence with the next bare `<!-- /enum -->`; markers are
+  recognised only **outside** fenced-code regions (so docs
+  documenting the convention do not self-trigger), but a span may
+  **enclose** a fenced-code block — that is how tree-shaped
+  enumerations are fenced; extracting the observed value from the
+  enclosed content is the plan-owned grammar.
 
 The fence is invisible in rendered HTML, so reader pages keep their
 narrative shape. The `enum:` prefix does not collide with `libdoc`'s
@@ -130,7 +165,7 @@ alongside the new module and registry files.
 | Failure mode | Rule | Author-visible finding |
 |---|---|---|
 | Required fence missing on a registered consumer | `enum.fence-missing` | `<consumer-path> :: <topic>:<property> :: required fence not found` |
-| Fence with an unknown `TOPIC` id (typo, vestigial) | `enum.unknown-topic` — hard-fail, never silent-ignore | `<consumer-path> :: <topic> :: unknown topic; remove the fence or add the topic to the registry` |
+| Fence with an unknown `TOPIC` id in a registered consumer (typo, vestigial) | `enum.unknown-topic` — hard-fail within the scanned population; unregistered files are not scanned (residual-risk row below) | `<consumer-path> :: <topic> :: unknown topic; remove the fence or add the topic to the registry` |
 | Malformed fence on a registered consumer (unknown `PROPERTY` token, or an open fence with no closing `<!-- /enum -->`) | `enum.malformed-fence` — hard-fail | `<consumer-path> :: <fence text> :: malformed fence (bad property / unclosed)` |
 | `list` drift | `enum.list-drift` | `<consumer-path> :: <topic>:list :: missing=[…] extra=[…]` |
 | `count` drift | `enum.count-drift` | `<consumer-path> :: <topic>:count :: actual=<n> expected=<m>` |
