@@ -137,7 +137,8 @@ concern not accepted by a **later** same-human comment, mark **blocked**
 If no comment on the PR's coordinating issue (`Fixes #N` and variants) names
 the PR, post the cross-link yourself and log the adherence miss — **self-heal,
 never block** — so a parallel run sees the fix in flight instead of
-implementing it again. Probe sibling open PRs on the same issue and resolve
+implementing it again. Probe sibling PRs on the same issue (`--state all`,
+paired with the issue-comment scan — index search alone lags) and resolve
 duplicates there before merging any. Commands and rationale:
 [`announcement-backstop.md`](references/announcement-backstop.md); no
 coordinating issue → skip.
