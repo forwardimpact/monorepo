@@ -34,14 +34,14 @@ gate.
 
 ### Why the landing page is the right surface
 
-Three facts about Outpost as shipped already determine the answer to all
+The facts about Outpost as shipped already determine the answer to all
 three questions. The page does not surface them.
 
 | Question | What Outpost does today | Where the buyer can see it |
 |---|---|---|
-| Where does the knowledge graph live? | The per-agent knowledge graph lives at the KB path the user passes to `npx fit-outpost init`. Outpost's on-disk cache of synced user content (mail, calendar, chat extracts, per-agent triage state) lives under the Outpost cache directory. Email and calendar inputs come from Apple Mail and Apple Calendar's local stores; the landing page already discloses that any account synced inside those apps (an IMAP'd Gmail account, a CalDAV-synced Google Calendar) is picked up. (Outpost's own operational files — scheduler config, state, logs, socket — are stored separately and are not part of the residency answer.) | Not surfaced as a data-flow story; the residency framing is missing even though the IMAP/CalDAV pickup point already exists in the Getting Started callout. |
-| Where do AI calls go? | Outpost delegates AI calls to the user's locally installed Claude Code CLI; the subprocess sends prompts to whichever endpoint the user's Claude Code installation is configured to reach. The default endpoint is the Anthropic API; alternative endpoints (Bedrock, Vertex, custom proxies) are reached when the user has configured Claude Code accordingly. Outpost itself does not select or override the endpoint. | Not surfaced on the landing page. |
-| Forward Impact's data-processing role? | The Outpost product does not run a Forward Impact-operated server that processes user content; it is a local scheduler around the user's own Claude Code installation. Forward Impact does ship hosted services elsewhere in the catalog (Kata bridges, Guide stack), but Outpost itself is not one of them. | Not surfaced on the landing page. |
+| Where does the knowledge graph live? | The per-agent knowledge graph lives at the KB path the user passes to `npx fit-outpost init`, and email drafts land in a drafts directory inside that same workspace. Outpost's on-disk cache of synced user content and per-agent agent output lives under the Outpost cache directory. Email and calendar inputs come from Apple Mail and Apple Calendar's local stores; the landing page already discloses that any account synced inside those apps (an IMAP'd Gmail account, a CalDAV-synced Google Calendar) is picked up. Outpost's operational files — scheduler config, runtime state, logs, socket — live in the Outpost scheduler home, and the scheduler log and runtime state file retain bounded excerpts of agent output, which for mail and calendar triage routinely carries names, subjects, and meeting details. Every one of these locations is on-device. | Not surfaced as a data-flow story; the residency framing is missing even though the IMAP/CalDAV pickup point already exists in the Getting Started callout. |
+| Where do AI calls go? | Outpost delegates AI calls to the user's locally installed Claude Code CLI; each call's prompt payload carries the user content the agent assembled (knowledge-graph excerpts, synced mail and calendar content) to whichever endpoint the user's Claude Code installation is configured to reach. The default endpoint is the Anthropic API; alternative endpoints (Bedrock, Vertex, custom proxies) are reached when the user has configured Claude Code accordingly. Outpost's scheduler config carries a user-supplied environment block that Outpost passes through to the subprocess (the existing `NODE_EXTRA_CA_CERTS` note rides this surface), but Outpost does not itself select or override the endpoint. The model endpoint is also not the complete egress story: agents in the default install templates make further outbound calls — scheduled scans of public sources, and browser automation that sends messages through the user's chat web apps. | Not surfaced on the landing page. |
+| Forward Impact's data-processing role? | The Outpost product does not run a Forward Impact-operated server that processes user content; it is a local scheduler around the user's own Claude Code installation. Forward Impact does ship hosted services elsewhere in the catalog (Kata bridges, Guide stack), but Outpost itself is not one of them. No BAA, SOC 2 attestation, or enterprise data-processing agreement exists today. | Not surfaced on the landing page. |
 
 The product already has a defensible answer. The page does not deliver
 it.
@@ -68,7 +68,7 @@ doesn't surface it"* — names that shape. This spec captures it.
 
 | Component | What changes |
 |---|---|
-| The Outpost landing page. | A new subsection answers the three data-residency questions above with text that is factually accurate to the as-shipped architecture, carrying the on-device storage entities, the Claude Code subprocess data path, and Forward Impact's role. The subsection is distinguishable from the existing `NODE_EXTRA_CA_CERTS` enterprise-networking note, which addresses a different question. The same subsection carries an explicit suitability statement for regulated workloads. The position of the subsection within the page is a success-criterion concern (SC4), not an in-scope claim. |
+| The Outpost landing page. | A new subsection answers the three data-residency questions above with text that is factually accurate to the as-shipped architecture: the on-device storage locations, the Claude Code subprocess data path and what each call carries, the outbound calls default-template agents make beyond the model endpoint, Forward Impact's data-processing role, and the regulated-workload suitability statement. The subsection is distinguishable from the existing `NODE_EXTRA_CA_CERTS` enterprise-networking note, which addresses a different question. |
 
 ### Out of scope
 
@@ -96,26 +96,33 @@ doesn't surface it"* — names that shape. This spec captures it.
 - **Changes to how Outpost spawns Claude Code, what arguments it
   passes, or which endpoint Claude Code uses.** The spec describes the
   shipped behavior; it does not modify it.
-- **Outpost's own log files, scheduler config, runtime state file, and
-  Unix socket.** These live alongside the scheduler home directory on
-  disk but hold operational data, not user content the regulated buyer
-  asks about; SC1's closed set excludes them.
+- **Changes to what Outpost's operational files record.** The scheduler
+  log and runtime state file retain bounded excerpts of agent output as
+  shipped; the subsection discloses where those files live (SC1), and
+  this spec does not change what they record.
 
 ## Decisions
 
 **Factual where-data-lives subsection chosen over a "not suitable for
 regulated workloads" disclaimer-only approach.** The architecture
 supports the factual answer; the disclaimer-only path would understate
-what is shipped and lose the buyer class the page should appeal to. The
-boundary rule: every sentence in the subsection corresponds to a
-shipped artefact (code path, install command, runtime configuration, or
-published policy) that a reader can verify.
+what is shipped and lose the buyer class the page should appeal to.
+
+**No-attestation self-selection stance for regulated workloads.** Per
+Issue #1501's recommendation, the page states plainly that no BAA,
+SOC 2 attestation, or enterprise data-processing agreement exists today
+and that buyers under a regulated gate must run their own approval
+process before adopting. The spec rejects both alternatives: a
+"suitable because on-device" claim asserts an assurance no attestation
+backs, and a bare "not suitable" disclaimer writes off the on-device
+architecture the rest of the subsection documents. SC6 grades the
+resulting sentence.
 
 **Subsection placed before Getting Started.** The user-testing finding
-lands the Anxiety force *before* install consideration. A buyer who
+lands the Anxiety force *before* install consideration; a buyer who
 reads install commands first and discovers the data question later has
-already paid the install-decision cost on incomplete information. The
-placement claim is graded by SC4; this decision records the rationale.
+already paid the install-decision cost on incomplete information. SC4
+carries the placement claim; this decision records only the rationale.
 
 **Longer guide page deferred to a separate spec when a follow-on signal
 lands.** Bundling a longer guide here would expand scope past the
@@ -127,15 +134,15 @@ surfaced finding.
 where AI calls go, what travels with them). The two notes coexist; the
 spec adds the second without modifying the first.
 
-**Scope of SC1 follows what the landing page advertises.** SC1's
-closed set covers the on-device locations for the data sources the
-landing page currently advertises as Outpost capabilities (Apple Mail
-and Apple Calendar via the Core Skills section). The Outpost cache
-directory holds other synced-content subdirectories (e.g.,
-`teams_chat/`) that ship with the install templates but are not yet
-advertised on the landing page; expanding the Core Skills table to
-advertise an additional source must also extend SC1's closed set,
-under a follow-on spec or as part of the same change.
+**Synced-source enumeration follows what the landing page advertises.**
+The storage answer names the upstream read sources the landing page
+advertises today (Apple Mail and Apple Calendar via the Core Skills
+section). The cache directory ships subdirectories for sources not yet
+advertised (e.g., `teams_chat/`); advertising an additional source on
+the page must extend the subsection's enumeration, under a follow-on
+spec or as part of the same change. The cache directory itself is in
+SC1's closed set regardless, so no synced content lands outside a named
+location in the meantime.
 
 **Reuse existing landing-page disclosures.** Where the landing page
 already discloses a relevant fact (e.g., that any account synced inside
@@ -149,12 +156,13 @@ not a success-criterion gate.
 
 | SC | Claim | Verification |
 |---|---|---|
-| SC1 | The regulated-industry buyer can name where Outpost's on-device user content lives without leaving the landing page. | A reviewer reading the rendered subsection finds at least these four named locations, scoped to the data sources the landing page itself advertises (today: Apple Mail and Apple Calendar via the Core Skills section): (1) the KB path the user passes to `npx fit-outpost init`; (2) Outpost's on-disk cache directory for synced user content; (3) the upstream Apple Mail local store Outpost reads from; (4) the upstream Apple Calendar local store Outpost reads from. The cache landing path (2) and the upstream read sources (3, 4) are distinct items and the reviewer counts them separately. Outpost's operational files (logs, scheduler config, state, socket) need not appear and do not count as residency answers if they do. |
-| SC2 | The regulated-industry buyer can name where Outpost's AI calls go without leaving the landing page. | A reviewer reading the rendered subsection finds two facts stated: (i) Outpost delegates AI calls to the user's local Claude Code installation and does not itself select or override the endpoint; (ii) the endpoint is therefore whichever provider the user's Claude Code is configured to reach (default: the Anthropic API). The subsection does not enumerate Claude Code's env vars or provider-specific configuration mechanisms — those belong to Claude Code's own documentation. |
-| SC3 | The regulated-industry buyer can name Forward Impact's data-processing role without leaving the landing page. | A reviewer reading the rendered subsection finds two distinct claims stated within the subsection itself: (i) the Outpost product does not run a Forward Impact-operated server that processes user content; (ii) at least one third-party provider Claude Code reaches by default is named within the subsection (so the buyer does not read claim (i) as "no third-party server"). Claim (ii) may reuse the provider name that satisfies SC2(ii); SC3 still grades a distinct claim sentence inside the subsection. |
-| SC4 | The data-residency subsection appears before the Getting Started heading in the page's reading order. | In the source Markdown of the Outpost landing page, the subsection's heading appears above the `## Getting Started` H2 and below the page's hero block. The heading level (H2 sibling vs. H3 nested under "How Outpost Works") is a design-phase choice and is not graded by SC4. |
-| SC5 | Every factual claim in the subsection is traceable to a shipped artefact. | The implementing PR description carries a mapping table with one row per declarative sentence in the subsection. Each row pairs the sentence with either a specific path Outpost reads or writes, a specific subprocess Outpost spawns, a specific URL on Claude Code's published documentation, or a specific Forward Impact policy artefact. A row whose artefact column is empty, or whose artefact is a vague gesture without a path or URL, fails SC5. |
-| SC6 | The subsection carries an explicit suitability statement for regulated workloads, structurally distinct from the SC3 data-processing-role claim. | A reviewer reading the rendered subsection finds at least one sentence that names whether the product is suitable for regulated workloads and why (or under what gate the buyer must apply). The suitability sentence appears in a paragraph or top-level list item separate from the SC3 sentences so a reviewer can highlight it independently. (Traceability to a shipped artefact, including the no-BAA/SOC 2/DPA-unless-shipped constraint, is covered by SC5 for every sentence in the subsection; SC6 does not duplicate that gate.) |
+| SC1 | The regulated-industry buyer can name every on-device location where Outpost-handled user content lands without leaving the landing page. | A reviewer reading the rendered subsection finds all five named locations: (1) the KB path the user passes to `npx fit-outpost init`, including the drafts directory inside that workspace where drafted emails land; (2) Outpost's on-disk cache directory for synced user content and per-agent output; (3) the upstream Apple Mail local store Outpost reads from; (4) the upstream Apple Calendar local store Outpost reads from; and (5) the Outpost scheduler home, whose log and runtime state files retain bounded excerpts of agent output. |
+| SC2 | The regulated-industry buyer can name where Outpost's AI calls go and what each call carries without leaving the landing page. | A reviewer reading the rendered subsection finds three facts stated: (i) Outpost delegates AI calls to the user's local Claude Code installation and does not itself select or override the endpoint; (ii) the endpoint is therefore whichever provider the user's Claude Code is configured to reach (default: the Anthropic API); and (iii) each call's prompt payload carries the user content the agent assembled — without the subsection enumerating Claude Code's env vars or provider-specific configuration mechanisms. |
+| SC3 | The regulated-industry buyer can name Forward Impact's data-processing role without leaving the landing page. | A reviewer reading the rendered subsection finds a sentence stating that the Outpost product runs no Forward Impact-operated server that processes user content, and at least one named third-party provider that does receive calls by default (the SC2 default provider suffices). |
+| SC4 | The data-residency subsection appears before the Getting Started heading in the page's reading order. | In the source Markdown of the Outpost landing page, the subsection's heading appears above the `## Getting Started` heading; the heading level is a design-phase choice and is not graded by SC4. |
+| SC5 | Every declarative factual sentence in the subsection is traceable to a verifiable surface. | The implementing change commits a traceability table to this spec's directory with one row per declarative factual sentence, each pairing the sentence with its grounding — a specific path Outpost reads or writes, a specific subprocess Outpost spawns, a specific URL on Claude Code's published documentation, a specific Forward Impact policy artefact, or, for an absence claim, the named closed surface checked (the Outpost product source for the no-server claim; the published policy set for the no-attestation claim). |
+| SC6 | The subsection carries the no-attestation self-selection statement for regulated workloads, structurally distinct from the SC3 data-processing-role claim. | A reviewer reading the rendered subsection finds, in a paragraph or top-level list item separate from the SC3 sentences, a statement that no BAA, SOC 2 attestation, or enterprise data-processing agreement exists today and that buyers under a regulated gate must apply their own approval process. |
+| SC7 | The subsection does not present the model endpoint as Outpost's complete egress story. | A reviewer reading the rendered subsection finds a statement that agents in the default install templates also make outbound calls beyond the model endpoint, naming both shipped classes: scheduled scans of public sources and browser automation against the user's chat web apps. |
 
 ## Provenance
 
@@ -166,6 +174,14 @@ not a success-criterion gate.
   Anxiety force matches the persona's blocker shape).
 - Outpost landing page (surface the spec changes).
 - Outpost product surfaces relevant to the residency answer: the
-  user-specified KB path passed to `init`, the Outpost on-disk cache
-  directory, the upstream Apple Mail and Apple Calendar local stores,
-  and the Claude Code subprocess Outpost spawns when an agent wakes.
+  user-specified KB path passed to `init` (knowledge graph and drafts),
+  the Outpost on-disk cache directory, the upstream Apple Mail and
+  Apple Calendar local stores, the Outpost scheduler home (scheduler
+  config, runtime state, logs, socket — the agent runner logs a bounded
+  excerpt of agent output and the state manager persists last-decision
+  and last-error excerpts), and the Claude Code subprocess Outpost
+  spawns when an agent wakes.
+- Outpost default install templates: the agent team whose skills make
+  the non-model-endpoint outbound calls (scheduled public-source
+  scanning; chat web-app browser automation) and whose workspace layout
+  places email drafts inside the KB path.
