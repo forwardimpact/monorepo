@@ -153,7 +153,7 @@ three caller rows:
 | `WikiSync.commitAndPush` conflict handling | The merge-with-ours fallback is removed. On rebase conflict the operation aborts the rebase and fails loudly with a resolve-or-retry message — the same contract the pull command already has. The tool never mechanically resolves a conflict by discarding the remote side. |
 | `WikiSync.commitAndPush` outcome honesty | Success is reported only when the remote accepted the push, **as established from observed remote state — the pushed commit reachable from the remote ref, or the remote-originated per-ref update report for that ref — never inferred from the push subprocess's prose output, its exit status alone, or the mere absence of a caught error** (the per-ref report is admissible despite arriving on the subprocess's stdout because the remote produces it; the prose and exit channels are not — § Decisions D2) (§ Decisions D2 grounded-success property; occurrence #41 evidence). Every other outcome is reported with a reason per the § Decisions D2 taxonomy, through an observable channel that reaches every caller — today's unconditional success result makes the `claim`/`release` degradation branch unreachable; the channel's mechanism (typed error vs. outcome result, per-ref status parsing vs. post-push remote observation) is a design decision, the observability and grounding requirements are not. |
 | Command surfaces `fit-wiki push`, `claim`, `release` | Each caller maps every outcome to an honest message per § Decisions D1: `push` exits non-zero whenever the push did not land; `claim`/`release` keep zero exit on a successful local write and print an honest saved-locally warning naming the reason. |
-| Session-end hook surfacing | The Stop-hook wiring maps a push-failure exit to the hook semantics that block the stop and feed the reason back to the agent for a remediation turn (§ Decisions D4). |
+| Session-end hook surfacing | The Stop-hook wiring maps a push-failure exit to the hook semantics that block the stop and feed the reason back to the agent for a remediation turn, with the CLI's exit status propagated losslessly through every invocation layer in between — no shell-pipeline or wrapper layer may mask it (§ Decisions D4 fidelity clause). |
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
 | Foreign claim-row conservation | A push that would delete an Active Claims row it was not instructed to remove refuses or re-merges — never silently drops (§ Decisions D5). |
 | Unsafe-precondition refusal | A rebase in progress or a detached HEAD refuses before mutating, with a precondition reason and non-zero exit on all three surfaces — the backstop that keeps an interrupted reconcile from minting a success-shaped verdict (§ Decisions D7). |
@@ -303,6 +303,28 @@ from CLI failure to the hook's blocking semantics is a deliverable of this
 spec at the hook wiring (which wiring component carries it, and the exit
 convention it uses, are design decisions). CI post-run push steps need no
 mapping — a loud failed step is the desired surfacing there.
+**Push exit-status fidelity through the invocation layer:** the wiring's
+failure determination is grounded in the CLI's own exit status, read
+losslessly — no layer between the push subprocess and the hook's blocking
+decision may substitute, aggregate, or discard that status. The constraint
+is live, not hypothetical: the phantom-push class has a **second proven
+lying surface** one wrapper above the libwiki swallow — during a
+2026-06-11 03:02Z write attempt, a rejected push's non-zero exit was eaten
+by a shell pipeline whose status reflected a downstream command, so the
+invocation layer reported success for a push origin never accepted, caught
+only by the external ancestry floor
+([coach adjudication](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676820014)).
+An invocation pattern whose observed status can be another process's — a
+pipeline without pipefail-equivalent semantics, a wrapper keying on prose,
+a compound command returning its last member's status — fails this
+contract regardless of how honest the CLI beneath it is. This is D2's
+grounded-success property restated at the wiring layer: D1/D7's
+honest-outcome guarantee must hold through every layer that can lie
+between `git push` and the agent's decision, not only at the libwiki API
+return value — otherwise the fix invites the same defect to reappear one
+wrapper up, where this instance actually lived. Which wiring component
+carries the mapping and the exit convention it uses remain design
+decisions; that the status arrives unmasked is not.
 *Alternative carried:* scope the mapping out and state the weaker
 log-only guarantee honestly — rejected in one line: #1580's harm is
 precisely the writer not knowing.
@@ -421,6 +443,7 @@ order.
 | `release --expired` maps outcomes identically. | Repeat via `fit-wiki release --expired` over an expired foreign claim; observe the same exit codes, warning, and success gating — and the expired row's removal still pushes when healthy. |
 | Parallel-claim trajectory holds end to end. | Two fixture sessions claim concurrently (same table tail); observe the loser's claim exits zero with the saved-locally warning, its session-end `fit-wiki push` fails loud with a conflict or rejected reason, and a pull-then-push from the true tip lands the row. |
 | Stop-hook failure blocks the stop and feeds the reason to the agent. | Invoke the session-end hook wiring with a push forced to fail; observe the hook-blocking exit semantics carrying the failure reason, and that a subsequent clean push permits the stop. |
+| Exit-status fidelity: the invocation layer never masks the CLI's failure status. | Wiring fixture where the CLI exits non-zero while every other process in the invocation chain exits zero (the shell-pipeline masking shape, 2026-06-11 03:02Z surface); invoke the session-end wiring; observe the failure classification and the hook-blocking semantics engage — an implementation whose observed status can be a downstream process's (pipeline last-member status, prose keying) fails this row. |
 | A failed push never loses uncommitted work. | Run `fit-wiki claim` and `fit-wiki release` (the MEMORY.md-scoped surfaces, where uncommitted foreign residue exists at reconcile time — the whole-tree path commits the tree before reconciling) with the work-preservation step forced to conflict on the failure path; observe the residue present in the working tree or retained where the failure message says it went. |
 | Foreign claim-row conservation: clean-rebase drop refused. | Fixture whose local MEMORY.md commit was written from a stale read and deletes a foreign claim row present in both the merge base and the remote tip, with no textually overlapping remote change so the rebase replays clean; run `fit-wiki push`; observe the push refuses or re-merges and the foreign row survives on the remote. |
 | Foreign claim-row conservation: post-resolution drop refused. | Fixture where a manual conflict resolution dropped a foreign row; run `fit-wiki push`; observe refusal or re-merge and the row's survival. |
@@ -488,6 +511,12 @@ state-equivalent construction, and the four-instrument problem framing
 anchored — and the four-instrument § Problem paragraph itself folded from
 the [spec-owner gap flag](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676394990)
 (item 2a), completing the coach-input fold whose decision-row half D7
-carried.
+carried; wiring-layer push exit-status fidelity clause (D4), the
+matching scope-row tightening, and the masking-fixture criterion from the
+staff-engineer live event (shell-pipeline exit-status masking, fourth
+observation-layer floor-save) routed by the improvement-coach
+([PR #1601 routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676821202);
+[adjudication anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676820014)),
+folded 2026-06-11.
 
 — Product Manager 🌱
