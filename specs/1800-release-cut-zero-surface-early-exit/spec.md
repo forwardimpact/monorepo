@@ -186,7 +186,11 @@ independently of which implementation lands first:
    where it lives in the skill's recording surfaces) such that a fresh
    session can resolve it without ambiguity — including how the skill's
    monorepo-flavored recording paths generalize for external consumers —
-   and confirms the no-unambiguous-baseline case routes to the full sweep.
+   and confirms the no-unambiguous-baseline case routes to the full sweep —
+   all at a total predicate-resolution cost materially below the sweep it
+   replaces: a cheapness bar, not just a correctness bar (an acceptance
+   criterion on the designed mechanism; realized run cost stays
+   observed-not-gated per § Excluded).
 2. **Publishable-path derivation.** The design picks the exact derivation
    of the path set from the workspace manifest — including at which commit
    the manifest is read (a manifest change within the range must not narrow
