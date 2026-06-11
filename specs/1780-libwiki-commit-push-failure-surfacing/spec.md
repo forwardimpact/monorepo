@@ -65,7 +65,9 @@ ancestry-verify floor, not by the tool
 ([allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)).
 With #41 the three phantom-class events span the full invisibility
 gradient — #41 (`bc982943`) object-in-hand, #30 (`ba1468cf`)
-object-reconstructed, the measures-CSV phantom no-object — so the defect
+object-reconstructed, the measures-CSV phantom no-object (ordinals as of
+their allocation anchors; the ledger renumbers positionally, so SHA and
+anchor keying govern) — so the defect
 is no longer inferred from source capability alone; it has a
 caught-in-the-act specimen. That specimen is no longer alone: a third,
 coach-verified first-hand
@@ -121,7 +123,7 @@ three caller rows:
 | Component | What changes |
 |---|---|
 | `WikiSync.commitAndPush` conflict handling | The merge-with-ours fallback is removed. On rebase conflict the operation aborts the rebase and fails loudly with a resolve-or-retry message — the same contract the pull command already has. The tool never mechanically resolves a conflict by discarding the remote side. |
-| `WikiSync.commitAndPush` outcome honesty | Success is reported only when the remote accepted the push, **as established from observed remote state — the pushed commit reachable from the remote ref (or the push's per-ref update result) — never inferred from the push subprocess's output text or the mere absence of a caught error** (§ Decisions D2 grounded-success property; occurrence #41 evidence). Every other outcome is reported with a reason per the § Decisions D2 taxonomy, through an observable channel that reaches every caller — today's unconditional success result makes the `claim`/`release` degradation branch unreachable; the channel's mechanism (typed error vs. outcome result, per-ref status parsing vs. post-push remote observation) is a design decision, the observability and grounding requirements are not. |
+| `WikiSync.commitAndPush` outcome honesty | Success is reported only when the remote accepted the push, **as established from observed remote state — the pushed commit reachable from the remote ref, or the remote-originated per-ref update report for that ref — never inferred from the push subprocess's prose output, its exit status alone, or the mere absence of a caught error** (the per-ref report is admissible despite arriving on the subprocess's stdout because the remote produces it; the prose and exit channels are not — § Decisions D2) (§ Decisions D2 grounded-success property; occurrence #41 evidence). Every other outcome is reported with a reason per the § Decisions D2 taxonomy, through an observable channel that reaches every caller — today's unconditional success result makes the `claim`/`release` degradation branch unreachable; the channel's mechanism (typed error vs. outcome result, per-ref status parsing vs. post-push remote observation) is a design decision, the observability and grounding requirements are not. |
 | Command surfaces `fit-wiki push`, `claim`, `release` | Each caller maps every outcome to an honest message per § Decisions D1: `push` exits non-zero whenever the push did not land; `claim`/`release` keep zero exit on a successful local write and print an honest saved-locally warning naming the reason. |
 | Session-end hook surfacing | The Stop-hook wiring maps a push-failure exit to the hook semantics that block the stop and feed the reason back to the agent for a remediation turn (§ Decisions D4). |
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
@@ -179,10 +181,14 @@ Distinguish at minimum: *landed*, *nothing to push*, *rejected by remote*
 (non-fast-forward — actionable now: rerun from the true tip), *conflict*
 (rebase conflict — resolve or retry from the true tip), and
 *transport/credential failure* (possibly transient). **Grounded-success
-property:** *landed* is asserted only from observed remote state — the
-pushed commit reachable from the remote ref, or the push's per-ref update
-result for that ref — never from the push subprocess's output text, exit
-status alone, or the absence of a caught error. This is the property that
+property:** *landed* is asserted only from observed remote state, through
+either admissible channel: the pushed commit reachable from the remote ref
+(post-push remote observation), or the per-ref update report for that ref —
+the machine-readable status the *remote* produces during the push,
+admissible because it is remote-originated even though git relays it on the
+push subprocess's stdout. The inadmissible channels are the subprocess's
+prose output text, its exit status alone, and the absence of a caught
+error — those attest that a process ran, not that the remote accepted. This is the property that
 makes the external ancestry-verify floor unnecessary: occurrence #41
 (§ Evidence) is precisely a success claim made on output text while the
 commit was stranded, detectable only by an out-of-band floor. Any outcome
@@ -301,7 +307,7 @@ regardless of series order.
 | Claim | Verification |
 |---|---|
 | Landed push ⇒ success reported, and only then. | Healthy fixture, uncontended; run `fit-wiki push`; observe zero exit, success message, and the commit reachable from the remote ref. |
-| Success is grounded in observed remote state — never claimed on the push subprocess's output text alone, so no external floor is needed. | Occurrence-#41 fixture ([#1564 allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)): force the push subprocess to report success (zero exit, success-shaped output) while the remote ref does not advance to contain the commit; run `fit-wiki push`; observe non-zero exit, a D2 failure reason, and the success message **absent** — the command itself surfaces the stranding that the external run-283 ancestry-verify floor previously had to catch. Repeat via `fit-wiki claim` and `fit-wiki release` (the run-303 specimen's surface — `704cf95a`, § Problem Evidence); observe zero exit with the saved-locally warning carrying the reason, never the success message. |
+| Success is grounded in observed remote state — never claimed on the push subprocess's output text alone, so no external floor is needed. | Occurrence-#41 fixture ([#1564 allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)): force only the inadmissible channels to report success — success prose and zero exit, with the per-ref update report absent or reporting the ref un-updated — while the remote ref does not advance to contain the commit, so both permitted grounding mechanisms (per-ref report parsing and post-push remote observation) must classify failure; run `fit-wiki push`; observe non-zero exit, a D2 failure reason, and the success message **absent** — the command itself surfaces the stranding that the external run-283 ancestry-verify floor previously had to catch. Repeat via `fit-wiki claim` and `fit-wiki release` (the run-303 specimen's surface — `704cf95a`, § Problem Evidence); observe zero exit with the saved-locally warning carrying the reason, never the success message. |
 | Nothing to push ⇒ zero exit with the existing honest message. | Clean fixture with no commits ahead; run `fit-wiki push`; observe zero exit and the nothing-to-push message. |
 | Rebase conflict ⇒ loud failure, remote side never mechanically discarded. | Fixture with a textually overlapping remote advance; run `fit-wiki push`; observe non-zero exit, a conflict-reason message naming resolve-or-retry, the rebase aborted, no merge commit resolving to the local side, and the remote tip unchanged. |
 | Push rejection after a successful fetch ⇒ *rejected* reported, never success. | Fixture whose remote advances without textual overlap between the operation's fetch and push (retry exhausted, see retry rows); observe non-zero exit and the rejected reason — not a success report. |
@@ -346,6 +352,10 @@ needed") acceptance framing from the
 folded 2026-06-11; run-303 release-path specimen (`704cf95a` →
 `8b211fe8`) and the deterministic-rate revision from the
 [improvement-coach ledger disposition](https://github.com/forwardimpact/monorepo/issues/1580#issuecomment-4676327242),
-folded 2026-06-11.
+folded 2026-06-11; grounded-success channel disambiguation (remote-originated
+per-ref report admissible, prose/exit inadmissible), the
+inadmissible-channels-only fixture clause, and the ordinal hedge from the
+[staff-engineer amendment review](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676393596)
+(F1, F2), folded 2026-06-11.
 
 — Product Manager 🌱
