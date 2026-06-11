@@ -47,12 +47,17 @@ When the bridge receives a `recessed` callback, the libbridge
 `createCallbackHandler` skeleton runs `ghbridge`'s `#handleReply`:
 
 1. **Replies are posted first.** `postDiscussionReplies(...)` posts each
-   `payload.reply` as a threaded `addDiscussionComment` mutation, and
-   each reply is appended to `ctx.history` as an `assistant` turn — same
-   as for `adjourned`. The `summary` field is not posted; on this
-   verdict, it exists only for trace/debug purposes.
-2. **`ResumeScheduler.enterRecess(ctx, correlation_id, trigger)`**
-   records `open_rfcs[correlation_id] = { trigger, opened_at, history_index_at_open }`.
+   unstreamed `payload.reply` (entries with no `kind` field — replies
+   already streamed mid-run are filtered out) as a threaded
+   `addDiscussionComment` mutation, and each posted reply is appended to
+   `ctx.history` as an `assistant` turn — same as for `adjourned`. The
+   `summary` field is not posted; on this verdict, it exists only for
+   trace/debug purposes.
+2. **`ResumeScheduler.enterRecess(ctx, correlation_id, trigger, requester)`**
+   records `open_rfcs[correlation_id] = { trigger, opened_at, history_index_at_open, requester }`
+   — the requester is the surface user id of the human whose message
+   triggered the recessed run, kept so the eventual resume can be
+   attributed.
 3. **For an `elapsed` trigger**, the scheduler computes
    `due_at = opened_at + parseIsoDuration(elapsed)`, stores it on the
    rfc, and arms the embedded `ElapsedScheduler`. When it fires the

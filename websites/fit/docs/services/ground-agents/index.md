@@ -21,7 +21,7 @@ build features on top of them.
 
 - Node.js 18+
 - Generated client code available (run `npx fit-codegen --all` if not)
-- Services running (`npx fit-rc start` or `just guide`)
+- Services running (`npx fit-rc start`)
 - A populated knowledge base: `data/graphs/index.jsonl` for the graph service,
   `data/vectors/index.jsonl` for the vector service. If you have not built these
   yet, see the
