@@ -42,8 +42,12 @@ function invariantContract(findings) {
   const scopes = new Set(
     findings.map((f) => RULES.find((r) => r.id === f.id)?.scope),
   );
+  // The contract lists rules generically, without a concrete finding, so
+  // function hints render against a placeholder subject.
+  const hintText = (r) =>
+    typeof r.hint === "function" ? r.hint({ agentPrefix: "<agent>" }) : r.hint;
   return RULES.filter((r) => scopes.has(r.scope) && r.hint).map(
-    (r) => `- ${r.id} — ${r.hint}`,
+    (r) => `- ${r.id} — ${hintText(r)}`,
   );
 }
 

@@ -259,7 +259,9 @@ function atomicSeal(filePath, parts, agent, isoWeekStr, fs) {
  * budget-conforming parts via a bisecting seal. Returns a tagged union:
  * `{status:"noop"}` (no rotation needed), `{status:"sealed",parts}` (sealed
  * into one-or-more conforming parts), or `{status:"incomplete",parts,residue}`
- * (a lone day-section exceeds a budget and is named).
+ * (a lone day-section exceeds a budget and is named). A log with no body
+ * beyond the H1 is a noop even under `force` — sealing it would mint an
+ * empty part.
  *
  * @returns {{status: "noop"|"sealed"|"incomplete", fromPath: string, parts?: string[], residue?: {path: string, section: string, lines: number, words: number}}}
  * @param {string} wikiRoot
@@ -281,6 +283,9 @@ export function rotateIfOverBudget(
   const { force = false } = options;
   if (!fs.existsSync(filePath)) return { status: "noop", fromPath: filePath };
   const text = fs.readFileSync(filePath, "utf-8");
+  const nl = text.indexOf("\n");
+  const body = nl === -1 ? "" : text.slice(nl + 1);
+  if (body.trim() === "") return { status: "noop", fromPath: filePath };
   const current = countLines(text);
   if (!force && current + appendLines <= WEEKLY_LOG_LINE_BUDGET) {
     return { status: "noop", fromPath: filePath };

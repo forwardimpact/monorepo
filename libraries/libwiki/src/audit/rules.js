@@ -254,7 +254,8 @@ export const RULES = [
     remediation: "rotate",
     check: lineBudget(WEEKLY_LOG_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
-    hint: "run `bunx fit-wiki rotate` to seal this file as a sealed part and start a fresh weekly log",
+    hint: (s) =>
+      `run \`bunx fit-wiki rotate --agent ${s.agentPrefix}\` to seal this file as a sealed part and start a fresh weekly log`,
   },
   {
     id: "weekly-log.word-budget",
@@ -263,7 +264,8 @@ export const RULES = [
     remediation: "rotate",
     check: wordBudget(WEEKLY_LOG_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
-    hint: "run `bunx fit-wiki rotate` to seal this file as a sealed part and start a fresh weekly log",
+    hint: (s) =>
+      `run \`bunx fit-wiki rotate --agent ${s.agentPrefix}\` to seal this file as a sealed part and start a fresh weekly log`,
   },
   {
     id: "weekly-log.h1-agent-matches-filename",

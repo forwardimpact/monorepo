@@ -4,6 +4,7 @@ import {
   mkdtempSync,
   writeFileSync,
   mkdirSync,
+  readdirSync,
   rmSync,
   existsSync,
 } from "node:fs";
@@ -63,11 +64,51 @@ describe("fit-wiki rotate CLI (in-process)", () => {
   });
 
   test("no rotation needed (missing file) prints a message and exits 0", () => {
-    // The CLI forces, so an existing file always seals; the genuine noop is the
-    // missing-file path.
+    // The CLI forces, so a non-empty existing file always seals; the genuine
+    // noops are the missing-file and header-only paths.
     const { result, harness } = run();
     assert.deepEqual(result, { ok: true });
     assert.match(harness.stdout, /no rotation needed for staff-engineer/);
+  });
+
+  test("prints the resolved target before sealing", () => {
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(logPath, multiDayLog());
+    const { harness } = run();
+    const targetAt = harness.stdout.indexOf(`target: ${logPath}`);
+    const sealedAt = harness.stdout.indexOf("sealed →");
+    assert.ok(targetAt !== -1, "echoes the resolved target path");
+    assert.ok(targetAt < sealedAt, "target precedes the seal output");
+  });
+
+  test("a header-only log is a noop, not an empty part (floor guard)", () => {
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(logPath, "# Staff Engineer — 2026-W21\n");
+    const { result, harness } = run();
+    assert.deepEqual(result, { ok: true });
+    assert.match(harness.stdout, /no rotation needed for staff-engineer/);
+    assert.ok(
+      !existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      "no part minted",
+    );
+  });
+
+  test("a repeat rotate after sealing is a noop (no junk part)", () => {
+    // The #1581 incident shape: the first rotate seals and resets the main to
+    // a fresh H1; a second rotate must not seal the header-only main again.
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(logPath, multiDayLog());
+    run();
+    const partsAfterFirst = readdirSync(wikiRoot).filter((f) =>
+      /-part\d+\.md$/.test(f),
+    );
+    const { result, harness } = run();
+    assert.deepEqual(result, { ok: true });
+    assert.match(harness.stdout, /no rotation needed for staff-engineer/);
+    assert.deepEqual(
+      readdirSync(wikiRoot).filter((f) => /-part\d+\.md$/.test(f)),
+      partsAfterFirst,
+    );
   });
 
   test("an irreducible single-day section exits 1 and names the section", () => {

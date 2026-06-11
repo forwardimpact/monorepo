@@ -1,4 +1,4 @@
-import { rotateIfOverBudget } from "../weekly-log.js";
+import { rotateIfOverBudget, weeklyLogPath } from "../weekly-log.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 
@@ -16,6 +16,12 @@ export function runRotateCommand(ctx) {
   }
   const wikiRoot = resolveWikiRoot(runtime, options);
   const today = options.today || currentDayIso(runtime);
+  // Echo the resolved target before any write — rotation derives it from
+  // identity + calendar, not from the audit, so the invoker must be able to
+  // see a wrong resolution before the seal happens.
+  runtime.proc.stdout.write(
+    `target: ${weeklyLogPath(wikiRoot, agent, today)}\n`,
+  );
 
   let result;
   try {

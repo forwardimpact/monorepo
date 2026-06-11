@@ -11,8 +11,10 @@
 //   an array of finding items. Each item is a plain object whose fields the
 //   rule's `message` function reads (e.g., `{ value: 572 }`).
 // - `message(subject, item, ctx)` builds the human-readable message string.
-// - `hint` is an optional static string rendered as an action prompt by the
-//   text emitter.
+// - `hint` is optional — a static string, or a `hint(subject, item, ctx)`
+//   function returning one — rendered as an action prompt by the text
+//   emitter. Function hints let a rule name subject specifics (an exact
+//   file, agent, or value) in the prompt.
 //
 // `ctx` is passed unchanged to every rule. Cross-subject state (e.g., a
 // duplicate-detection map) lives on `ctx` and is mutated by the rule during
@@ -38,7 +40,10 @@ function applyRule(rule, subject, ctx) {
     path: subject.path ?? null,
     lineNo: item.lineNo ?? subject.lineNo ?? null,
     message: rule.message(subject, item, ctx),
-    hint: rule.hint ?? null,
+    hint:
+      typeof rule.hint === "function"
+        ? rule.hint(subject, item, ctx)
+        : (rule.hint ?? null),
   }));
 }
 

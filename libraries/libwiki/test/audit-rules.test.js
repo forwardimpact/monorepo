@@ -60,6 +60,18 @@ describe("RULES catalogue", () => {
     }
   });
 
+  test("weekly-log budget hints name the flagged agent", () => {
+    // A bare `rotate` hint resolves the target from the invoker's own env,
+    // not the flagged file — the hint must carry an explicit --agent.
+    for (const id of ["weekly-log.line-budget", "weekly-log.word-budget"]) {
+      const rule = RULES.find((r) => r.id === id);
+      assert.match(
+        rule.hint({ agentPrefix: "product-manager" }),
+        /rotate --agent product-manager/,
+      );
+    }
+  });
+
   test("remediation classes match the annotated set", () => {
     // `fit-wiki fix` dispatches on this field: rotate deterministically,
     // flag for a human, or (default, absent) hand to the agent.
