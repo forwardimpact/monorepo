@@ -7,6 +7,32 @@ const DEFAULT = { tenant_id: "default" };
 
 const clock = createDefaultClock();
 
+/**
+ * Deterministic clock double: `advance` moves `now`, and intervals are
+ * captured for manual firing instead of scheduling host timers.
+ * @param {number} [start]
+ * @returns {object}
+ */
+function createFakeClock(start = 0) {
+  let now = start;
+  const intervals = [];
+  return {
+    now: () => now,
+    advance: (ms) => {
+      now += ms;
+    },
+    setInterval: (fn, ms) => {
+      const handle = { fn, ms, cleared: false, unref: () => handle };
+      intervals.push(handle);
+      return handle;
+    },
+    clearInterval: (handle) => {
+      handle.cleared = true;
+    },
+    intervals,
+  };
+}
+
 describe("CallbackRegistry", () => {
   test("register returns a token and consume returns the metadata once", () => {
     const reg = new CallbackRegistry({ clock });
@@ -145,5 +171,54 @@ describe("CallbackRegistry", () => {
     reg.register("corr-evict", { tenant_id: "tenant-a" });
     reg.sweep(before + 5000);
     expect(reg.tenantOf("corr-evict")).toBeNull();
+  });
+
+  test("consume returns null and drops the entry once the TTL has elapsed", () => {
+    const fake = createFakeClock();
+    const reg = new CallbackRegistry({ clock: fake, ttlMs: 1000 });
+    const token = reg.register("corr-stale", { tenant_id: "default" });
+    fake.advance(1001);
+    expect(reg.consume(token, DEFAULT)).toBeNull();
+    expect(reg.size).toBe(0);
+  });
+
+  test("peek returns null and drops the entry once the TTL has elapsed", () => {
+    const fake = createFakeClock();
+    const reg = new CallbackRegistry({ clock: fake, ttlMs: 1000 });
+    const token = reg.register("corr-stale-peek", { tenant_id: "default" });
+    fake.advance(1000);
+    expect(reg.peek(token, DEFAULT)).not.toBeNull();
+    fake.advance(1);
+    expect(reg.peek(token, DEFAULT)).toBeNull();
+    expect(reg.size).toBe(0);
+  });
+
+  test("tenantOf ignores and drops expired entries without a sweep", () => {
+    const fake = createFakeClock();
+    const reg = new CallbackRegistry({ clock: fake, ttlMs: 1000 });
+    reg.register("corr-stale-tenant", { tenant_id: "tenant-a" });
+    fake.advance(1001);
+    expect(reg.tenantOf("corr-stale-tenant")).toBeNull();
+    expect(reg.size).toBe(0);
+  });
+
+  test("startSweepTimer schedules a periodic sweep; stopSweepTimer clears it", () => {
+    const fake = createFakeClock();
+    const reg = new CallbackRegistry({ clock: fake, ttlMs: 1000 });
+    reg.startSweepTimer(60_000);
+    reg.startSweepTimer(60_000);
+    expect(fake.intervals.length).toBe(1);
+
+    reg.register("corr-swept", { tenant_id: "default" });
+    fake.advance(5000);
+    fake.intervals[0].fn();
+    expect(reg.size).toBe(0);
+
+    reg.stopSweepTimer();
+    expect(fake.intervals[0].cleared).toBe(true);
+    // A stopped registry can start sweeping again.
+    reg.startSweepTimer(60_000);
+    expect(fake.intervals.length).toBe(2);
+    reg.stopSweepTimer();
   });
 });

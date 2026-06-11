@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 const DEFAULT_TTL_MS = 2 * 60 * 60 * 1000;
+const DEFAULT_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 
 /**
  * In-memory registry of pending bridge → workflow callbacks. Hosts persist
@@ -17,6 +18,7 @@ export class CallbackRegistry {
   #ttlMs;
   #clock;
   #entries = new Map();
+  #sweepTimer = null;
 
   /**
    * @param {object} [options]
@@ -56,8 +58,20 @@ export class CallbackRegistry {
   }
 
   /**
-   * Atomic lookup + delete. Returns null when the token is unknown or when
-   * the supplied `tenant_id` does not match the stored binding.
+   * Whether an entry's TTL has elapsed; expired entries are dropped at the
+   * lookup that observes them so a stale token stops being a credential
+   * even when no sweep has run yet.
+   * @param {{createdAt: number}} entry
+   * @param {number} now
+   * @returns {boolean}
+   */
+  #expired(entry, now) {
+    return now - entry.createdAt > this.#ttlMs;
+  }
+
+  /**
+   * Atomic lookup + delete. Returns null when the token is unknown, expired,
+   * or when the supplied `tenant_id` does not match the stored binding.
    * @param {string} token
    * @param {{tenant_id: string}} bind
    * @returns {{correlationId: string, meta: object, createdAt: number} | null}
@@ -68,6 +82,10 @@ export class CallbackRegistry {
     }
     const entry = this.#entries.get(token);
     if (!entry) return null;
+    if (this.#expired(entry, this.#clock.now())) {
+      this.#entries.delete(token);
+      return null;
+    }
     if (entry.meta.tenant_id !== bind.tenant_id) return null;
     this.#entries.delete(token);
     return entry;
@@ -87,6 +105,10 @@ export class CallbackRegistry {
     }
     const entry = this.#entries.get(token);
     if (!entry) return null;
+    if (this.#expired(entry, this.#clock.now())) {
+      this.#entries.delete(token);
+      return null;
+    }
     if (entry.meta.tenant_id !== bind.tenant_id) return null;
     return { ...entry };
   }
@@ -102,10 +124,14 @@ export class CallbackRegistry {
    */
   tenantOf(correlationId) {
     if (typeof correlationId !== "string" || !correlationId) return null;
-    for (const entry of this.#entries.values()) {
-      if (entry.correlationId === correlationId) {
-        return entry.meta.tenant_id;
+    const now = this.#clock.now();
+    for (const [token, entry] of this.#entries) {
+      if (entry.correlationId !== correlationId) continue;
+      if (this.#expired(entry, now)) {
+        this.#entries.delete(token);
+        continue;
       }
+      return entry.meta.tenant_id;
     }
     return null;
   }
@@ -119,11 +145,32 @@ export class CallbackRegistry {
   sweep(now = this.#clock.now()) {
     let evicted = 0;
     for (const [token, entry] of this.#entries) {
-      if (now - entry.createdAt > this.#ttlMs) {
+      if (this.#expired(entry, now)) {
         this.#entries.delete(token);
         evicted++;
       }
     }
     return evicted;
+  }
+
+  /**
+   * Start the periodic sweep so tokens whose dispatch never calls back are
+   * reclaimed instead of accumulating for the life of the process. Idempotent;
+   * the handle is unref'd so it never holds the process open.
+   * @param {number} [intervalMs]
+   */
+  startSweepTimer(intervalMs = DEFAULT_SWEEP_INTERVAL_MS) {
+    if (this.#sweepTimer) return;
+    this.#sweepTimer = this.#clock.setInterval(() => this.sweep(), intervalMs);
+    this.#sweepTimer.unref?.();
+  }
+
+  /**
+   * Stop the periodic sweep. Safe to call when no timer is running.
+   */
+  stopSweepTimer() {
+    if (!this.#sweepTimer) return;
+    this.#clock.clearInterval(this.#sweepTimer);
+    this.#sweepTimer = null;
   }
 }
