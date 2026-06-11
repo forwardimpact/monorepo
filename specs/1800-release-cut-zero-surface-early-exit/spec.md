@@ -30,6 +30,8 @@ discriminator, not agent judgment
 | Zero-surface assessment costs $5.99 / 2,524,055 cache-read tokens / 28,095 output tokens / ~8m32s wall / 34 Bash calls | dispatch run 27329648271 (run-352, PR #1620: 4 files, all docs, zero npm surface) |
 | Recurrence: runs 303, 323, 333, 352 are zero-package-surface full sweeps; run-354 is a fifth zero-surface assessment that re-checked a range its own record notes was already covered by run-352. Run-303's range carried new unreleased package commits, so the early exit would correctly not have fired there — the avoidable class is 4 of the 5 | `wiki/metrics/kata-release-cut/2026.csv`; Issue #1623 coach triage |
 | Docs/wiki/skill merges dominate current merge traffic — zero-surface is the *modal* assessment shape | Issue #1623, coach-ratified |
+| Instruction-ordering is unenforceable: running the discriminator as a shadow rider with an explicit "before Step 2" instruction produced a 2-of-4 ordering-inversion rate under live conditions (run-360: shadow bash#14 vs sweep bash#8; run-365: shadow bash#22 vs sweep bash#12) | [Exp #1625 pre-read adjudication](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4678801690), coach trace-verified |
+| Anchor drift: a racing lane's landed cut moved "range since last cut" between classification and row-landing — run-358's landed row read 7/27 but its stated range reproduces as 6/26 | [Exp #1625 measurement-discipline note](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4678440452) |
 
 ### The load-bearing counterexample
 
@@ -51,15 +53,51 @@ merge activity. A range predicate is structurally blind to this class; the
 early exit must carry the first-release backlog as an explicit re-cite, not
 assume the range check covers it.
 
+### Why instruction ordering cannot carry the gate
+
+[Exp #1625](https://github.com/forwardimpact/monorepo/issues/1625) ran the
+discriminator live as a shadow rider with an explicit "before Step 2"
+instruction. The trace-verified precedence map shows the sweep ran first in
+2 of 4 live in-protocol rows (Evidence table above): nothing in the
+assessment flow enforces a "do X before Y" instruction, because the sweep
+is the assessment's natural first move and post-sweep classification is
+the easy path. The same window produced the run-358 anchor-drift instance:
+under racing lanes, "range since last cut" moves between classification
+and row-landing unless the classification is bound to explicit SHAs. Both
+findings are requirements of record for § What
+([spec inputs of record](https://github.com/forwardimpact/monorepo/issues/1623#issuecomment-4678850408)),
+not design preferences.
+
 ## What — the early-exit contract
 
-The skill gains an assessment step, positioned after pre-flight and before
-the per-package enumeration (the position is inherent to the contract: the
-verdict must be reachable before any sweep cost is incurred). The step
-grants verdict authority to a **discriminator predicate**. When every
-condition holds, the agent records **NO CUT OWED** and stops — the sweep is
-not required and skipping it is the codified, defensible path. When any
-condition fails, the full sweep runs; there is no judgment call in between.
+The event-driven post-merge assessment gains a **classification step —
+step 1 of the assessment, structurally ordered** (the first assessment
+step after the pre-flight checklist): the assessment first evaluates a
+**discriminator predicate** and records a classification, and the
+per-package sweep runs **only on a `SWEEP-REQUIRED` classification**. When
+every condition holds, the classification is **`NO-CUT-OWED`**: the agent
+records the verdict and stops — the sweep is not required and skipping it
+is the codified, defensible path. When any condition fails, the
+classification is `SWEEP-REQUIRED` and the full sweep runs; there is no
+judgment call in between. The gate is the step structure itself — the
+discriminator must not ship as a shadow rider or a "run the check before
+the sweep" ordering instruction, the shape Exp #1625 measured at a 2-of-4
+inversion rate (§ Why instruction ordering cannot carry the gate).
+Full-sweep runs are outside the gate and always sweep (§ Authority
+boundary).
+
+**The classification binds an explicit SHA pair.** The predicate is
+evaluated against `range_from` (the baseline commit `B`) and `range_to`
+(`HEAD` captured at classification time), and both SHAs are recorded in
+the verdict record for **both** classification outcomes. The verdict is a
+claim about the recorded pair, never about whatever `HEAD` is at recording
+time — the run-358 anchor-drift instance is the direct evidence.
+
+**A `NO-CUT-OWED` verdict is a four-conjunct claim**: (a) empty publishable
+diff over the bound range, (b) valid anchor, (c) standing-set re-cite —
+first-release backlog (currently svcembedding + svctenancy) plus any
+publish-failure carries, (d) CI green. These are conditions 2, 1, 3, and 4
+below; the path check alone is never a verdict.
 
 **Definition — blocked, verifiable-in-run, due.** An obligation is
 *blocked* when its record cites an unmet external prerequisite (a spec
@@ -76,7 +114,7 @@ obligation defeats the early exit; a blocked one rides as a re-cite.
 | # | Condition | Why it is load-bearing |
 | --- | --- | --- |
 | 1 | **Verified-clean baseline.** A prior run record establishes a baseline commit `B` — an ancestor of current `HEAD` — at which an assessment verified zero unreleased commits beyond the obligations that run re-cited as blocked. A baseline is established by a full sweep reaching that state, or by a cutting run's post-cut state once its tags exist at that commit (a pending publish-workflow verification is verifiable-in-run per § Definition — it does not block baseline establishment, and condition 3 resolves it), or by an earlier early-exit verdict chained to one. | Anchors the range to a state the procedure actually verified, not to the merged PR's diff. Defining cleanliness net of blocked re-cites keeps the predicate satisfiable in the steady state the evidence shows — a standing blocked backlog would otherwise make the exit unreachable forever. |
-| 2 | **Zero publishable paths in range.** The union of paths changed by each commit in `B..HEAD` (per-commit semantics, as the sweep's own log comparison uses — not a net diff, which an add-then-revert pair inside the range would fool) includes nothing under any publishable-package directory. The publishable-path set is derived from the workspace manifest (currently `libraries/*`, `products/*`, `services/*`), not hardcoded. | Sound over-approximation: the sweep's per-package check is path-scoped, so if no path under any workspace directory changed in `B..HEAD`, the sweep run at `HEAD` can find nothing beyond what the baseline run already found and re-cited. |
+| 2 | **Zero publishable paths in range.** The union of paths changed by each commit in the bound range `range_from..range_to` (per-commit semantics, as the sweep's own log comparison uses — not a net diff, which an add-then-revert pair inside the range would fool) includes nothing under any publishable-package directory. The publishable-path set is derived from the workspace manifest (currently `libraries/*`, `products/*`, `services/*`), not hardcoded. | Sound over-approximation: the sweep's per-package check is path-scoped, so if no path under any workspace directory changed in `B..HEAD`, the sweep run at `HEAD` can find nothing beyond what the baseline run already found and re-cited. |
 | 3 | **Carry-forward state re-cited.** Every standing obligation — first-release backlog, held/deferred cuts, pending publish-failure retries and publish-workflow verifications from prior runs — is either empty, explicitly re-cited as blocked with its blocking reference, or verifiable-in-run and resolved to verified-success (§ Definition). Any due obligation — including a verifiable-in-run obligation that resolves to failure — defeats the early exit. | Covers what the range check structurally cannot see (run-343b's carried cut; the untagged-package class above). |
 | 4 | **Main CI green.** The existing pre-flight checklist passed. Re-cited as a conjunct — even though the step sits after pre-flight — so the verdict record is self-contained. | The never-release-from-broken-main rule applies to the verdict, not just to cutting. |
 
@@ -116,8 +154,11 @@ the next run needs to chain:
 
 - A verdict reaching a verified-clean or post-cut state records that commit
   and each carry re-cite with its blocking reference.
-- An early-exit verdict additionally records the baseline it chained to and
-  the range-check evidence (path summary).
+- Every discriminator classification — `NO-CUT-OWED` and `SWEEP-REQUIRED`
+  alike — records the explicit SHA pair it was evaluated against
+  (`range_from` = baseline, `range_to` = `HEAD` at classification time);
+  an early-exit verdict additionally records the range-check evidence
+  (path summary).
 - A full-sweep verdict that ends with **due-but-deferred** obligations (a
   deferral shape condition 3 anticipates) records that it establishes no
   chainable baseline — the chain is broken, and subsequent assessments
@@ -235,8 +276,10 @@ independently of which implementation lands first:
 
 | Claim | Verifies via |
 | --- | --- |
-| The skill carries an early-exit step with explicit verdict authority. | Reading the skill file alone shows a step stating that when the predicate holds, NO CUT OWED is the codified verdict and the sweep is not required. |
-| All four predicate conditions are present and conjunctive. | The skill text names baseline, zero-publishable-paths range (per-commit union semantics), carry-forward re-cite, and green CI, and states that any failure routes to the full sweep. |
+| The skill carries an early-exit step with explicit verdict authority. | Reading the skill file alone shows a step stating that when the predicate holds, `NO-CUT-OWED` is the codified verdict and the sweep is not required. |
+| The sweep is structurally gated on the classification. | The skill text makes the discriminator step 1 of the event-driven assessment and conditions the per-package sweep on a `SWEEP-REQUIRED` classification; no "run the check before the sweep" ordering instruction carries the gate. |
+| Every classification binds an explicit SHA pair. | The skill's recording requirement names `range_from` and `range_to` as recorded fields of every discriminator classification, `NO-CUT-OWED` and `SWEEP-REQUIRED` alike. |
+| All four predicate conditions are present and conjunctive. | The skill text states a `NO-CUT-OWED` verdict as a four-conjunct claim — empty publishable diff over the bound range (per-commit union semantics), valid anchor, standing-set re-cite, green CI — and that any failure routes to the full sweep. |
 | The run-343b shape routes to the sweep. | The skill text states that a due (unblocked) carry-forward obligation defeats the early exit. |
 | The first-release backlog survives the early exit. | The skill text requires the first-release backlog re-cite as part of condition 3, independent of the range check. |
 | The pending-publish-verification class is deterministic. | The skill text classifies a pending publish-workflow verification as verifiable-in-run: the assessment resolves it before exiting — verified-success clears it, verified-failure is due (⇒ full sweep). No reading classifies it blocked or ambiguously due. |
@@ -246,4 +289,5 @@ independently of which implementation lands first:
 | The implementation diff stays in scope. | The PR diff touches only the `kata-release-cut` skill directory and the spec/design/plan tree under `specs/1800-release-cut-zero-surface-early-exit/`. |
 | The cost effect is observable — a trailing indicator, not a merge gate. | The first post-implementation zero-surface assessment at which the predicate holds records an early-exit verdict in the metric home, the first before/after data point against the run-352 baseline. |
 
-— Release Engineer 🚀
+— Release Engineer 🚀 (r1) · Product Manager 🌱 (r2, Exp #1625
+requirements of record)
