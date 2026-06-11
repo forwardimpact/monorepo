@@ -37,8 +37,8 @@ function createFakeClient({
               },
             };
           },
-          async insert(rows) {
-            insertCalls.push({ table, rows });
+          async upsert(rows, options) {
+            insertCalls.push({ table, rows, options });
             return { error: insertError };
           },
         };
@@ -106,7 +106,14 @@ describe("activity/transform/evidence", () => {
     assert.strictEqual(result.errors.length, 0);
 
     assert.strictEqual(fake.deleteCalls.length, 1);
-    assert.strictEqual(fake.deleteCalls[0].val, "synthetic");
+    assert.strictEqual(fake.deleteCalls[0].col, "provenance");
+    assert.strictEqual(fake.deleteCalls[0].val, "synthetic_placeholder");
+
+    assert.strictEqual(
+      fake.insertCalls[0].options?.onConflict,
+      "artifact_id,skill_id,level_id,marker_text",
+    );
+    assert.strictEqual(fake.insertCalls[0].options?.ignoreDuplicates, true);
 
     const rows = fake.insertCalls[0].rows;
     assert.strictEqual(rows.length, 3);
@@ -123,7 +130,8 @@ describe("activity/transform/evidence", () => {
 
     for (const row of rows) {
       assert.strictEqual(row.matched, true);
-      assert.strictEqual(row.rationale, "synthetic");
+      assert.strictEqual(row.provenance, "synthetic_placeholder");
+      assert.match(row.rationale, /Round-robin placeholder/);
     }
   });
 

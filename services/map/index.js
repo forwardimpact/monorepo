@@ -1,5 +1,6 @@
 import { services } from "@forwardimpact/librpc";
 import { pathway } from "@forwardimpact/libtype";
+import { assertProvenance } from "@forwardimpact/map/activity/provenance";
 import { getUnscoredArtifacts } from "@forwardimpact/map/activity/queries/artifacts";
 import { getPerson } from "@forwardimpact/map/activity/queries/org";
 
@@ -93,6 +94,8 @@ export class MapService extends MapBase {
 
   /** @param {object} req */
   async WriteEvidence(req) {
+    const provenance = req.provenance ?? "";
+
     const row = {
       artifact_id: req.artifact_id ?? req.artifactId,
       skill_id: req.skill_id ?? req.skillId,
@@ -107,6 +110,9 @@ export class MapService extends MapBase {
     if (!row.rationale) throw new Error("rationale is required");
     if (!row.level_id) throw new Error("level_id is required");
     if (row.matched == null) throw new Error("matched is required");
+
+    assertProvenance(provenance);
+    if (provenance) row.provenance = provenance;
 
     await this.#validateMarkerGrounding(row);
 

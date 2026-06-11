@@ -5,9 +5,16 @@
  */
 
 import { getEvidence } from "@forwardimpact/map/activity/queries/evidence";
+import {
+  getArtifacts,
+  getUnscoredArtifacts,
+} from "@forwardimpact/map/activity/queries/artifacts";
 
 import { EMPTY_STATES } from "../lib/empty-state.js";
-import { highestLevelPerSkillPerQuarter } from "../lib/evidence-helpers.js";
+import {
+  computeCoverageRatio,
+  highestLevelPerSkillPerQuarter,
+} from "../lib/evidence-helpers.js";
 
 export const needsSupabase = true;
 
@@ -18,7 +25,7 @@ export async function runTimelineCommand({
   format,
   queries,
 }) {
-  const q = queries ?? { getEvidence };
+  const q = queries ?? { getEvidence, getArtifacts, getUnscoredArtifacts };
 
   if (!options.email) {
     throw new Error("timeline: --email <email> is required");
@@ -38,8 +45,20 @@ export async function runTimelineCommand({
 
   const timeline = highestLevelPerSkillPerQuarter(evidenceRows);
 
+  // Same zero-artifact semantics as readiness: null coverage = "no
+  // signal"; the below-floor banner needs a measured ratio.
+  const allArtifacts =
+    (await q.getArtifacts(supabase, { email: options.email })) ?? [];
+  let coverage = null;
+  if (allArtifacts.length > 0) {
+    const unscored = await q.getUnscoredArtifacts(supabase, {
+      email: options.email,
+    });
+    coverage = computeCoverageRatio(allArtifacts, unscored);
+  }
+
   return {
-    view: { email: options.email, timeline },
+    view: { email: options.email, timeline, coverage },
     meta: { format },
   };
 }

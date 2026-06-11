@@ -36,8 +36,11 @@ The prompt must contain "evaluate" and one of:
       - `matched: false` rows are valid — write them to document what was
         checked and not found.
    e. Call `WriteEvidence` once per marker with: `artifact_id`, `skill_id`,
-      `level_id`, `marker_text`, `matched`, `rationale`. Call multiple
-      markers in parallel for throughput.
+      `level_id`, `marker_text`, `matched`, `rationale`, and
+      `provenance: 'agent_attested'`. The `provenance` argument tags the
+      row as agent-judged so downstream consumers can distinguish it from
+      human-attested rows. Call multiple markers in parallel for
+      throughput.
 
 ## Constraints
 
@@ -48,6 +51,9 @@ The prompt must contain "evaluate" and one of:
   appear in `GetUnscoredArtifacts`.
 - Evaluation is idempotent: `WriteEvidence` upserts on
   `(artifact_id, skill_id, level_id, marker_text)`.
+- The `provenance` argument is always `'agent_attested'` for rows this
+  skill writes. Other values exist for other producers; this skill does
+  not emit them.
 
 ## Multi-source note
 

@@ -6,6 +6,7 @@ import { transformPeople } from "@forwardimpact/map/activity/transform/people";
 import { transformAllGetDX } from "@forwardimpact/map/activity/transform/getdx";
 import { transformAllGitHub } from "@forwardimpact/map/activity/transform/github";
 import { transformEvidence } from "@forwardimpact/map/activity/transform/evidence";
+import { transformEvidenceArtifact } from "@forwardimpact/map/activity/transform/evidence-artifact";
 import { getOrganization } from "@forwardimpact/map/activity/queries/org";
 import {
   formatHeader,
@@ -67,11 +68,20 @@ const TRANSFORM_TARGETS = {
       errors: r.errors.length,
     }),
   },
+  "evidence-artifact": {
+    fn: (supabase, runtime, deps) =>
+      transformEvidenceArtifact(supabase, { mapData: deps?.mapData }),
+    summarize: (r) => ({
+      inserted: r.inserted,
+      skipped: r.skipped,
+      errors: r.errors.length,
+    }),
+  },
 };
 
-async function transformAllTargets(supabase, runtime) {
+async function transformAllTargets(supabase, runtime, { mapData } = {}) {
   const summary = makeSummary(runtime);
-  const r = await transformAll(supabase, runtime);
+  const r = await transformAll(supabase, runtime, { mapData });
   report(
     summary,
     "people",
@@ -92,6 +102,16 @@ async function transformAllTargets(supabase, runtime) {
   );
   report(
     summary,
+    "evidence-artifact",
+    {
+      inserted: r.evidenceArtifact.inserted,
+      skipped: r.evidenceArtifact.skipped,
+      errors: r.evidenceArtifact.errors.length,
+    },
+    r.evidenceArtifact.errors.length === 0,
+  );
+  report(
+    summary,
     "evidence",
     {
       inserted: r.evidence.inserted,
@@ -104,14 +124,15 @@ async function transformAllTargets(supabase, runtime) {
     r.people.errors.length +
     r.getdx.errors.length +
     r.github.errors.length +
+    r.evidenceArtifact.errors.length +
     r.evidence.errors.length;
   return totalErrors === 0 ? 0 : 1;
 }
 
 /** Run the named transform target (or all targets) against raw activity data. */
-export async function transform(target, supabase, runtime) {
+export async function transform(target, supabase, runtime, { mapData } = {}) {
   if (target === "all" || target === undefined) {
-    return transformAllTargets(supabase, runtime);
+    return transformAllTargets(supabase, runtime, { mapData });
   }
   const cfg = TRANSFORM_TARGETS[target];
   if (!cfg) {
@@ -120,7 +141,7 @@ export async function transform(target, supabase, runtime) {
     );
     return 1;
   }
-  const r = await cfg.fn(supabase, runtime);
+  const r = await cfg.fn(supabase, runtime, { mapData });
   report(makeSummary(runtime), target, cfg.summarize(r), r.errors.length === 0);
   return r.errors.length === 0 ? 0 : 1;
 }
@@ -191,9 +212,11 @@ export async function verify(supabase, runtime) {
  * @param {string} options.data - Path to data directory
  * @param {import('@supabase/supabase-js').SupabaseClient} options.supabase
  * @param {import('@forwardimpact/libutil/runtime').Runtime} options.runtime - Injected collaborators (fs, clock).
+ * @param {object} [options.mapData] - Standard data for the artifact-driven
+ *   evidence producer; when omitted, that producer is skipped.
  * @returns {Promise<number>} exit code
  */
-export async function seed({ data, supabase, runtime }) {
+export async function seed({ data, supabase, runtime, mapData }) {
   const { join } = await import("path");
   const summary = makeSummary(runtime);
 
@@ -231,7 +254,7 @@ export async function seed({ data, supabase, runtime }) {
   }
 
   // 3. Run all transforms
-  const result = await transformAll(supabase, runtime);
+  const result = await transformAll(supabase, runtime, { mapData });
   report(
     summary,
     "Transform people",
@@ -249,6 +272,16 @@ export async function seed({ data, supabase, runtime }) {
     "Transform github",
     summarizeCounts(result.github),
     result.github.errors.length === 0,
+  );
+  report(
+    summary,
+    "Transform evidence-artifact",
+    {
+      inserted: result.evidenceArtifact.inserted,
+      skipped: result.evidenceArtifact.skipped,
+      errors: result.evidenceArtifact.errors.length,
+    },
+    result.evidenceArtifact.errors.length === 0,
   );
   report(
     summary,

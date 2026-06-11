@@ -5,13 +5,17 @@
  */
 
 import { getPerson } from "@forwardimpact/map/activity/queries/org";
+import { getEvidence } from "@forwardimpact/map/activity/queries/evidence";
 import {
   getArtifacts,
   getUnscoredArtifacts,
 } from "@forwardimpact/map/activity/queries/artifacts";
 
 import { EMPTY_STATES } from "../lib/empty-state.js";
-import { computeCoverageRatio } from "../lib/evidence-helpers.js";
+import {
+  computeCoverageRatio,
+  groupEvidenceByProvenance,
+} from "../lib/evidence-helpers.js";
 
 export const needsSupabase = true;
 
@@ -22,7 +26,12 @@ export async function runCoverageCommand({
   format,
   queries,
 }) {
-  const q = queries ?? { getPerson, getArtifacts, getUnscoredArtifacts };
+  const q = queries ?? {
+    getPerson,
+    getArtifacts,
+    getUnscoredArtifacts,
+    getEvidence,
+  };
 
   if (!options.email) {
     throw new Error("coverage: --email <email> is required");
@@ -73,6 +82,9 @@ export async function runCoverageCommand({
     allByType[type] = (allByType[type] ?? 0) + 1;
   }
 
+  const evidenceRows = await q.getEvidence(supabase, { email: options.email });
+  const byProvenance = groupEvidenceByProvenance(evidenceRows ?? []);
+
   return {
     view: {
       email: options.email,
@@ -80,6 +92,7 @@ export async function runCoverageCommand({
       coverage: ratio,
       byType: allByType,
       uncoveredByType,
+      byProvenance,
     },
     meta: { format },
   };

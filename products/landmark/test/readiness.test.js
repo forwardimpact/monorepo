@@ -3,10 +3,16 @@ import assert from "node:assert/strict";
 import { createMockQueries } from "@forwardimpact/libmock";
 
 import { runReadinessCommand } from "../src/commands/readiness.js";
+import { toText } from "../src/formatters/readiness.js";
 import { EMPTY_STATES } from "../src/lib/empty-state.js";
 import { MAP_DATA } from "./fixtures.js";
 
-function stubQueries({ person = undefined, evidence = [] } = {}) {
+function stubQueries({
+  person = undefined,
+  evidence = [],
+  artifacts = [],
+  unscored = [],
+} = {}) {
   return createMockQueries({
     getPerson: async (_sb, email) => {
       if (person === null) return null;
@@ -21,6 +27,8 @@ function stubQueries({ person = undefined, evidence = [] } = {}) {
       );
     },
     getEvidence: evidence,
+    getArtifacts: artifacts,
+    getUnscoredArtifacts: unscored,
   });
 }
 
@@ -143,6 +151,95 @@ describe("readiness command", () => {
     });
     assert.equal(result.view, null);
     assert.ok(result.meta.emptyState.includes("nobody@example.com"));
+  });
+
+  it("attaches coverage to the view when the persona has artifacts", async () => {
+    const artifacts = [{ artifact_id: "a1" }, { artifact_id: "a2" }];
+    const result = await runReadinessCommand({
+      options: { email: "alice@example.com" },
+      mapData: MAP_DATA,
+      supabase: {},
+      format: "text",
+      queries: stubQueries({
+        artifacts,
+        unscored: [{ artifact_id: "a2" }],
+      }),
+    });
+    assert.ok(result.view);
+    assert.deepEqual(result.view.coverage, {
+      scored: 1,
+      total: 2,
+      ratio: 0.5,
+    });
+  });
+
+  it("renders the coverage ratio adjacent to the markers-evidenced line above floor", async () => {
+    const artifacts = Array.from({ length: 10 }, (_, i) => ({
+      artifact_id: `a${i}`,
+    }));
+    const result = await runReadinessCommand({
+      options: { email: "alice@example.com" },
+      mapData: MAP_DATA,
+      supabase: {},
+      format: "text",
+      queries: stubQueries({
+        artifacts,
+        unscored: artifacts.slice(4), // 4/10 scored = 40%, above floor
+      }),
+    });
+    const text = toText(result.view);
+    const lines = text.split("\n");
+    const summaryIdx = lines.findIndex((l) => l.includes("markers evidenced."));
+    const coverageIdx = lines.findIndex((l) =>
+      l.includes("Evidence coverage: 4/10 artifacts interpreted (40.0%)."),
+    );
+    assert.ok(summaryIdx >= 0, "missing markers-evidenced line");
+    assert.ok(coverageIdx >= 0, "missing coverage line");
+    assert.ok(
+      coverageIdx - summaryIdx >= 1 && coverageIdx - summaryIdx <= 2,
+      `coverage line ${coverageIdx - summaryIdx} lines after summary`,
+    );
+  });
+
+  it("wraps the verdict in negative-evidence copy below the floor", async () => {
+    const artifacts = Array.from({ length: 100 }, (_, i) => ({
+      artifact_id: `a${i}`,
+    }));
+    const result = await runReadinessCommand({
+      options: { email: "alice@example.com" },
+      mapData: MAP_DATA,
+      supabase: {},
+      format: "text",
+      queries: stubQueries({
+        artifacts,
+        unscored: artifacts.slice(1), // 1/100 = 1%, below floor
+      }),
+    });
+    const text = toText(result.view);
+    assert.match(
+      text,
+      /Coverage below floor \(1\.0% < 30%\) — verdict suppressed\./,
+    );
+    assert.match(text, /Evidence coverage: 1\/100 artifacts interpreted/);
+    assert.match(text, /lift the floor/);
+    assert.doesNotMatch(text, /markers evidenced/);
+    assert.doesNotMatch(text, /Missing:/);
+    assert.doesNotMatch(text, /\[ \]/);
+  });
+
+  it("renders the checklist, not below-floor copy, for a zero-artifact persona", async () => {
+    const result = await runReadinessCommand({
+      options: { email: "alice@example.com" },
+      mapData: MAP_DATA,
+      supabase: {},
+      format: "text",
+      queries: stubQueries({ artifacts: [] }),
+    });
+    assert.equal(result.view.coverage, null);
+    const text = toText(result.view);
+    assert.match(text, /markers evidenced/);
+    assert.doesNotMatch(text, /Coverage below floor/);
+    assert.doesNotMatch(text, /Evidence coverage:/);
   });
 
   it("reports unknown discipline (not unknown level) when the persona's discipline isn't defined", async () => {

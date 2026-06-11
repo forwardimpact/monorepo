@@ -1,4 +1,7 @@
+import { assertProvenance } from "../provenance.js";
 import { readRaw } from "../storage.js";
+
+const PLACEHOLDER_PROVENANCE = "synthetic_placeholder";
 
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
@@ -17,7 +20,7 @@ export async function transformEvidence(supabase) {
   const { error: deleteError } = await supabase
     .from("evidence")
     .delete()
-    .eq("rationale", "synthetic");
+    .eq("provenance", "synthetic_placeholder");
   if (deleteError) {
     return { inserted: 0, skipped: 0, errors: [deleteError.message] };
   }
@@ -41,7 +44,10 @@ export async function transformEvidence(supabase) {
 
   const errors = [];
   if (rows.length > 0) {
-    const { error } = await supabase.from("evidence").insert(rows);
+    const { error } = await supabase.from("evidence").upsert(rows, {
+      onConflict: "artifact_id,skill_id,level_id,marker_text",
+      ignoreDuplicates: true,
+    });
     if (error) {
       errors.push(error.message);
       return { inserted: 0, skipped, errors };
@@ -52,6 +58,7 @@ export async function transformEvidence(supabase) {
 }
 
 function buildRows(evidence, byEmail) {
+  assertProvenance(PLACEHOLDER_PROVENANCE);
   const indexByEmail = new Map();
   let skipped = 0;
   const rows = [];
@@ -78,7 +85,9 @@ function buildRows(evidence, byEmail) {
       level_id: ev.proficiency,
       marker_text: markerText,
       matched: true,
-      rationale: "synthetic",
+      rationale:
+        "Round-robin placeholder from getdx/evidence.json — not derived from artifact content.",
+      provenance: PLACEHOLDER_PROVENANCE,
       created_at: ev.observed_at,
     });
   }

@@ -6,10 +6,17 @@
 
 import { getPerson } from "@forwardimpact/map/activity/queries/org";
 import { getEvidence } from "@forwardimpact/map/activity/queries/evidence";
+import {
+  getArtifacts,
+  getUnscoredArtifacts,
+} from "@forwardimpact/map/activity/queries/artifacts";
 import { deriveSkillMatrix, getNextLevel } from "@forwardimpact/libskill";
 
 import { EMPTY_STATES } from "../lib/empty-state.js";
-import { buildMarkerChecklist } from "../lib/evidence-helpers.js";
+import {
+  buildMarkerChecklist,
+  computeCoverageRatio,
+} from "../lib/evidence-helpers.js";
 
 export const needsSupabase = true;
 
@@ -21,7 +28,12 @@ export async function runReadinessCommand({
   format,
   queries,
 }) {
-  const q = queries ?? { getPerson, getEvidence };
+  const q = queries ?? {
+    getPerson,
+    getEvidence,
+    getArtifacts,
+    getUnscoredArtifacts,
+  };
 
   if (!options.email) {
     throw new Error("readiness: --email <email> is required");
@@ -57,6 +69,19 @@ export async function runReadinessCommand({
   const items = buildChecklistItems(checklist, matchedEvidence);
   const summary = summarizeChecklist(items);
 
+  // Zero-artifact short-circuit: a persona with no artifacts is "no
+  // signal", not "below floor" — coverage stays null so the formatter
+  // renders the checklist as a roadmap instead of the suppression copy.
+  const allArtifacts =
+    (await q.getArtifacts(supabase, { email: options.email })) ?? [];
+  let coverage = null;
+  if (allArtifacts.length > 0) {
+    const unscored = await q.getUnscoredArtifacts(supabase, {
+      email: options.email,
+    });
+    coverage = computeCoverageRatio(allArtifacts, unscored);
+  }
+
   return {
     view: {
       email: options.email,
@@ -65,6 +90,7 @@ export async function runReadinessCommand({
       checklist: items,
       skippedSkills,
       summary,
+      coverage,
     },
     meta: { format },
   };

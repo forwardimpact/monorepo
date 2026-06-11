@@ -262,4 +262,86 @@ describe("MapService", () => {
       /Marker not in standard/,
     );
   });
+
+  function createGroundedSupabase(upsertCalls) {
+    const supabase = createMockSupabase();
+    supabase.from = (name) => ({
+      select: () => ({
+        eq: () => ({
+          single: async () => {
+            if (name === "github_artifacts") {
+              return { data: { email: "alice@example.com" }, error: null };
+            }
+            if (name === "organization_people") {
+              return {
+                data: {
+                  email: "alice@example.com",
+                  discipline: "se",
+                  level: "J060",
+                  track: null,
+                },
+                error: null,
+              };
+            }
+            return { data: null, error: { message: "not found" } };
+          },
+        }),
+      }),
+      upsert: async (rows, options) => {
+        upsertCalls.push({ table: name, rows, options });
+        return { error: null };
+      },
+    });
+    return supabase;
+  }
+
+  const validEvidenceReq = {
+    artifact_id: "art-1",
+    skill_id: "skill_a",
+    level_id: "working",
+    marker_text: "Delivered a feature",
+    matched: true,
+    rationale: "The PR shows end-to-end delivery.",
+  };
+
+  it("WriteEvidence omits provenance so the DB default applies", async () => {
+    const config = createMockConfig();
+    const upsertCalls = [];
+    const supabase = createGroundedSupabase(upsertCalls);
+    const pathwayClient = createMockPathwayClient();
+    const service = new MapService(config, { supabase, pathwayClient });
+    const result = await service.WriteEvidence({ ...validEvidenceReq });
+    assert.equal(result.content, "1 row written");
+    assert.equal(upsertCalls.length, 1);
+    assert.ok(!("provenance" in upsertCalls[0].rows[0]));
+  });
+
+  it("WriteEvidence passes a valid provenance value through", async () => {
+    const config = createMockConfig();
+    const upsertCalls = [];
+    const supabase = createGroundedSupabase(upsertCalls);
+    const pathwayClient = createMockPathwayClient();
+    const service = new MapService(config, { supabase, pathwayClient });
+    const result = await service.WriteEvidence({
+      ...validEvidenceReq,
+      provenance: "agent_attested",
+    });
+    assert.equal(result.content, "1 row written");
+    assert.equal(upsertCalls.length, 1);
+    assert.equal(upsertCalls[0].rows[0].provenance, "agent_attested");
+  });
+
+  it("WriteEvidence rejects an invalid provenance before insert", async () => {
+    const config = createMockConfig();
+    const upsertCalls = [];
+    const supabase = createGroundedSupabase(upsertCalls);
+    const pathwayClient = createMockPathwayClient();
+    const service = new MapService(config, { supabase, pathwayClient });
+    await assert.rejects(
+      () =>
+        service.WriteEvidence({ ...validEvidenceReq, provenance: "made_up" }),
+      /Invalid provenance "made_up"\. Must be one of:/,
+    );
+    assert.equal(upsertCalls.length, 0);
+  });
 });

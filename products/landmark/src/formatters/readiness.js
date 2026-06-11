@@ -2,7 +2,38 @@
  * Formatters for the `readiness` command.
  */
 
+import { isBelowFloor, floorPercentText } from "../lib/confidence-floor.js";
 import { renderHeader } from "./shared.js";
+
+const LIFT_HINT =
+  "Add artifact-interpreted evidence, run Guide's evaluate-evidence skill, or hand-attest markers via WriteEvidence to lift the floor.";
+
+/** A persona with zero artifacts is "no signal", not "below floor". */
+function isBelowFloorWithSignal(coverage) {
+  return coverage && coverage.total > 0 && isBelowFloor(coverage.ratio);
+}
+
+function coverageLine(coverage) {
+  const pct = (coverage.ratio * 100).toFixed(1);
+  return `Evidence coverage: ${coverage.scored}/${coverage.total} artifacts interpreted (${pct}%).`;
+}
+
+/** Marker line for one checklist item: checkbox, marker text, artifact id. */
+function itemLine(item) {
+  const check = item.evidenced ? "[x]" : "[ ]";
+  const artifact = item.artifactId ? ` (${item.artifactId})` : "";
+  return `${check} ${item.marker}${artifact}`;
+}
+
+/** Suppression copy shared by text and markdown below-floor branches. */
+function suppressionLines(coverage) {
+  const pct = (coverage.ratio * 100).toFixed(1);
+  return [
+    `Coverage below floor (${pct}% < ${floorPercentText()}) — verdict suppressed.`,
+    coverageLine(coverage),
+    LIFT_HINT,
+  ];
+}
 
 /** Render the readiness checklist as plain text with checkbox-style markers and a summary line. */
 export function toText(view) {
@@ -13,12 +44,16 @@ export function toText(view) {
     "",
   ];
 
+  if (isBelowFloorWithSignal(view.coverage)) {
+    lines.push(...suppressionLines(view.coverage).map((l) => `    ${l}`));
+    lines.push("");
+    return lines.join("\n");
+  }
+
   for (const section of view.checklist) {
     lines.push(`    ${section.skillName} (${section.proficiency}):`);
     for (const item of section.items) {
-      const check = item.evidenced ? "[x]" : "[ ]";
-      const artifact = item.artifactId ? ` (${item.artifactId})` : "";
-      lines.push(`      ${check} ${item.marker}${artifact}`);
+      lines.push(`      ${itemLine(item)}`);
     }
     lines.push("");
   }
@@ -26,6 +61,10 @@ export function toText(view) {
   lines.push(
     `    ${view.summary.evidenced}/${view.summary.total} markers evidenced.`,
   );
+
+  if (view.coverage && view.coverage.total > 0) {
+    lines.push(`    ${coverageLine(view.coverage)}`);
+  }
 
   if (view.summary.missing.length > 0) {
     lines.push(`    Missing: ${view.summary.missing.join("; ")}`);
@@ -55,13 +94,17 @@ export function toMarkdown(view) {
     "",
   ];
 
+  if (isBelowFloorWithSignal(view.coverage)) {
+    const [banner, ...rest] = suppressionLines(view.coverage);
+    lines.push(`**${banner}**`, ...rest);
+    return lines.join("\n");
+  }
+
   for (const section of view.checklist) {
     lines.push(`## ${section.skillName} (${section.proficiency})`);
     lines.push("");
     for (const item of section.items) {
-      const check = item.evidenced ? "[x]" : "[ ]";
-      const artifact = item.artifactId ? ` (${item.artifactId})` : "";
-      lines.push(`- ${check} ${item.marker}${artifact}`);
+      lines.push(`- ${itemLine(item)}`);
     }
     lines.push("");
   }
@@ -69,6 +112,10 @@ export function toMarkdown(view) {
   lines.push(
     `**${view.summary.evidenced}/${view.summary.total} markers evidenced.**`,
   );
+
+  if (view.coverage && view.coverage.total > 0) {
+    lines.push(coverageLine(view.coverage));
+  }
 
   if (view.summary.missing.length > 0) {
     lines.push("");
