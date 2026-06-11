@@ -66,7 +66,19 @@ allowed) with a *failed observation of the remote* on a history-less clone
   #1583 items 1–2; item 3's sweep-scoping reversal rides there as an
   explicit decision point) — the consolidated "commitAndPush fails
   loudly" spec, next in the P2 lane and a coordinated series with this
-  one.
+  one. Per security review design note N1
+  ([PR #1588 comment](https://github.com/forwardimpact/monorepo/pull/1588#issuecomment-4676068899)),
+  the consolidated spec must carry an explicit claim-row conservation
+  criterion: **foreign Active Claims rows survive conflict resolution;
+  a push that would delete a claim row it did not author refuses or
+  re-merges, never silently drops.** Conflict-resolution damage is a
+  distinct defect class from the ancestry damage guarded here — the
+  motivating occurrence (claim row `8164fdc8` dropped by merge
+  `55869857`; collision-ledger occurrence #36 +
+  [#1564 comment](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676068984))
+  passes every D1 check. Until that criterion lands, the series'
+  "claims are the authority" stance holds only conditionally on merges
+  preserving foreign rows.
 - **The swallowed pre-rebase fetch on a healthy clone** — that swallow
   belongs to the healthy-clone outcome regime of the consolidated spec.
   This spec requires a non-swallowed remote observation only where D1's
