@@ -37,15 +37,17 @@ as amended by the PM run-338 reconciliation adopting the security engineer's
    still passes on the bare row even when available evidence shows the head
    postdates the panel-certified state.
 
-**Relation to the existing review-transfer family.** Spec 1790 (#1602)
-governs head moves *after* an approval signal — fail-closed transfer of a
-pinned approval to a new head. Here the head moved *before* the signal was
-minted, so the transfer standard never triggers; this is the complementary
-failure direction. The durable mechanical fix — the STATUS row pinned to the
-panel-certified SHA, with a row-pin-vs-head comparison at the gate (#1605,
-which also absorbs the positive-evidence half 2b) — is sequenced behind
-spec 1790's settlement. This spec is the bounded interim cover for the
-exposure window until #1605 lands.
+**Relation to the existing review-transfer family:**
+
+- Spec 1790 (#1602) governs head moves *after* an approval signal —
+  fail-closed transfer of a pinned approval to a new head.
+- Here the head moved *before* the signal was minted, so the transfer
+  standard never triggers; this is the complementary failure direction.
+- The durable mechanical fix — the STATUS row pinned to the panel-certified
+  SHA, with a row-pin-vs-head comparison at the gate (#1605, which also
+  absorbs the positive-evidence half 2b) — is sequenced behind spec 1790's
+  settlement. This spec is the bounded interim cover for the exposure window
+  until #1605 lands.
 
 ## Personas and Job
 
@@ -53,8 +55,7 @@ exposure window until #1605 lands.
 ([JTBD.md](../../JTBD.md)). The approval ledger and merge gate are the trust
 spine of the Plan-Do-Study-Act cycle; this obstacle showed them admitting a
 false-coverage merge with no system signal — the honest state had no place to
-live, and the dishonest reading was the easy path. Engineering Leaders
-inherit the audit-trail benefit.
+live, and the dishonest reading was the easy path.
 
 ## What changes
 
@@ -64,15 +65,28 @@ inherit the audit-trail benefit.
    - **(a) Scoped panel re-read** of the amendment delta, recorded on the PR;
      or
    - **(b) Dual-SHA coverage annotation** on an addressable surface the gate
-     reads — the PR thread, optionally mirrored in the STATUS merge-gate
-     prose notes — naming both states: panel-clean SHA and not-panel-read
-     amendment SHA. The row never silently claims head coverage.
+     reads (surface selection is a design decision), naming the two states it
+     must carry: the panel-clean SHA and the not-panel-read amendment SHA.
+     The row never silently claims head coverage.
 2. **Gate-side fail-closed consumption** (`kata-release-merge` Step 6): the
-   gate never infers panel coverage from timestamps; when the evidence
-   available to the gate shows any commit postdating the panel-evidence SHA,
-   it blocks pending positive coverage evidence — a delta re-read record or
-   the dual-SHA annotation from (1). Writer-side evidence and gate-side
-   consumption ship as one coherent package.
+   gate never infers panel coverage from timestamps; when its trigger — form
+   adjudicated at design, see § Open question — establishes that head commits
+   postdate the panel-certified state, it blocks pending positive coverage
+   evidence: a delta re-read record or the dual-SHA annotation from (1).
+   Writer-side evidence and gate-side consumption ship as one coherent
+   package.
+
+   The dual-SHA annotation meets the fail-closed bar even though it records
+   *non*-coverage, because the failure mode this interim closes is **silent
+   false coverage**, not amendment-per-se: with the annotation present, the
+   gate's merge rationale must carry the two-state record verbatim — never
+   claiming head coverage — so merging not-panel-read content becomes a
+   visible, attributable decision instead of a hidden timestamp inference.
+
+   When **no** gate-readable evidence of a post-panel amendment exists at
+   all — no annotation, no disclosure, no panel record — the bare-row pass
+   stands. That residual is recorded below in § Scope; closing it requires
+   the row-pin mechanics this spec excludes (#1605).
 3. **Named supersession criterion**: when #1605's mechanical
    row-pin-vs-head comparison lands, the writer-side convention, the
    gate-side interim rule, and the PR #1638 prohibitive line all retire in
@@ -103,6 +117,11 @@ skill-genericity invariants.
   panel-evidence naming must not collide with 1790's pinned-head vocabulary,
   its named compose-with surface.
 - The positive-evidence mechanical half (2b) — folds into #1605.
+- **Recorded residual exposure**: the zero-evidence case — no annotation, no
+  disclosure, no panel record discoverable at the gate — remains a silent
+  bare-row pass until #1605 lands. This interim cover is deliberately
+  incomplete there; treating it as complete, or designing into it, is
+  scope-creep into #1605's territory.
 - Human approval-signal semantics (`approval-signals.md`) — spec and design
   approvals are human-originated and out of scope; this spec covers
   panel-evidence-backed STATUS writes, which today means plan approvals.
@@ -114,8 +133,8 @@ Each criterion is a claim plus its verification path on the implementing PR.
 | # | Claim | Verify |
 | --- | --- | --- |
 | 1 | `kata-plan` states the writer-side convention: amendment between panel execution and STATUS write requires a scoped delta re-read or a dual-SHA coverage annotation | `kata-plan` SKILL.md (or its reference) diff |
-| 2 | `kata-release-merge` Step 6 blocks fail-closed when evidence shows a commit postdating the panel-evidence SHA and no positive coverage evidence exists | `kata-release-merge` SKILL.md Step 6 diff |
-| 3 | Two-state scenario holds: a PR-#1631-shaped timeline (amendment between panel and STATUS write) **blocks** absent positive evidence and **passes** with a delta re-read record or dual-SHA annotation | both outcomes derivable from the changed skill text alone |
+| 2 | `kata-release-merge` Step 6 blocks fail-closed when its adjudicated trigger (§ Open question) establishes head commits beyond the panel-certified state and no positive coverage evidence exists | `kata-release-merge` SKILL.md Step 6 diff |
+| 3 | Two-state scenario holds for a PR-#1631-shaped timeline — amendment between panel execution and STATUS write, disclosed on the PR as in the realized incident: the gate **blocks** absent positive coverage evidence and **passes** with a delta re-read record or dual-SHA annotation | two-state walkthrough against the changed skill text, recorded on the implementing PR |
 | 4 | Changed skill text marks the convention interim, retiring when approval rows carry a commit pin; no monorepo issue/PR references in published-skill text | skill diffs + this spec's supersession section |
 | 5 | No STATUS schema change; no spec-1790 vocabulary dependence | implementing PR diff inspection |
 | 6 | Skill-genericity invariants and length caps pass | repository invariants check in CI |
