@@ -111,7 +111,10 @@ already uses (the canonical member of this class: a pending
 publish-workflow verification, resolvable via one `gh run list`) — the
 assessment must resolve it before exiting: verified-success clears it,
 verified-failure makes it due, and an outcome unresolvable within the run
-(a workflow still in progress) is due. Every other obligation is *due*. A
+(a workflow still in progress) is due for the exit decision — it defeats
+the early exit but is not chain-breaking: condition 1's establishment rule
+governs it, and the next assessment resolves it. Every other obligation is
+*due*. A
 due obligation defeats the early exit; a blocked one rides as a re-cite —
 and a re-cite asserts the blocking prerequisite is still unmet at
 assessment time (a lifted hold makes the obligation due).
@@ -139,8 +142,9 @@ run-class vocabulary the skill itself defines:
   early-exit. Full-sweep runs always perform the per-package sweep.
 - **Unclassifiable ⇒ sweep.** A run that cannot determine its class, or
   cannot resolve an unambiguous baseline, performs the full sweep.
-- **Re-anchor bound.** The baseline chain must re-anchor to a real full
-  sweep at least once per scheduled cadence interval. For consumers
+- **Re-anchor bound.** The baseline chain must re-anchor to a real
+  per-package sweep — performed by a run of any class — at least once per
+  scheduled cadence interval. For consumers
   operating without a scheduled cadence, the skill text states a default
   re-anchor bound (a maximum chain length or age — value is the design's
   call); a chain older than the applicable bound — cadence interval or
@@ -169,7 +173,8 @@ the next run needs to chain:
   (path summary). An unclassifiable run (§ What) has no classification and
   no SHA pair — it records the unresolvable state it found and sweeps.
 - A full-sweep verdict that ends with **due-but-deferred** obligations (a
-  deferral shape condition 3 anticipates) records that it establishes no
+  deferral shape condition 3 anticipates; a pending verifiable-in-run
+  verification is not in this class — § Definition) records that it establishes no
   chainable baseline — the chain is broken, and subsequent assessments
   full-sweep until some run reaches a verified-clean or post-cut state.
 
@@ -286,12 +291,12 @@ independently of which implementation lands first:
 | Claim | Verifies via |
 | --- | --- |
 | The skill carries an early-exit step with explicit verdict authority. | Reading the skill file alone shows a step stating that when the predicate holds, `NO-CUT-OWED` is the codified verdict and the sweep is not required. |
-| The sweep is structurally gated on the classification. | The skill text makes the discriminator step 1 of the event-driven assessment and conditions the per-package sweep on a `SWEEP-REQUIRED` classification; no "run the check before the sweep" ordering instruction carries the gate. |
+| The sweep is structurally gated on the classification. | The skill text makes the discriminator step 1 of the event-driven assessment and conditions the per-package sweep on a `SWEEP-REQUIRED` classification (or an unclassifiable outcome); no "run the check before the sweep" ordering instruction carries the gate. |
 | Every classification binds an explicit SHA pair. | The skill's recording requirement names `range_from` and `range_to` as recorded fields of every discriminator classification, `NO-CUT-OWED` and `SWEEP-REQUIRED` alike. |
 | All four predicate conditions are present and conjunctive. | The skill text states a `NO-CUT-OWED` verdict as a four-conjunct claim — empty publishable diff over the bound range (per-commit union semantics), valid anchor, standing-set re-cite, green CI — and that any failure routes to the full sweep. |
 | The run-343b shape routes to the sweep. | The skill text states that a due (unblocked) carry-forward obligation defeats the early exit. |
 | The first-release backlog survives the early exit. | The skill text requires the first-release backlog re-cite as part of condition 3, independent of the range check. |
-| The pending-publish-verification class is deterministic. | The skill text classifies a pending publish-workflow verification as verifiable-in-run: the assessment resolves it before exiting — verified-success clears it, verified-failure is due (⇒ full sweep). No reading classifies it blocked or ambiguously due. |
+| The pending-publish-verification class is deterministic. | The skill text classifies a pending publish-workflow verification as verifiable-in-run: the assessment resolves it before exiting — verified-success clears it, verified-failure or a still-in-progress outcome is due (⇒ full sweep). No reading classifies it blocked or ambiguously due. |
 | The authority boundary is self-contained. | The skill text states each § Authority boundary rule — amended run classes, who may exit, unclassifiable ⇒ sweep, the re-anchor bound including the cadence-less default — in its own (amended) run-class vocabulary. |
 | The recording contract supports chaining across both verdict kinds. | The skill's recording section requires every assessment verdict to record chainable state per § Recording contract, including the broken-chain rule for due-but-deferred sweeps. |
 | The skill respects its instruction budget with headroom. | `bun run check` passes on the implementation PR, and the skill file lands at ≤95% of both L5 caps (≤1216 words, ≤182 lines), regardless of landing order relative to spec 1500's implementation. |
