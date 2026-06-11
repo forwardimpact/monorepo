@@ -316,7 +316,8 @@ the full operator workflow.
 Provisioning ensures every engineer's email maps to an authenticable identity.
 Once provisioned, leaders and engineers sign in to Landmark with
 `fit-landmark login`, which walks Supabase's magic-link flow and stores the
-session at `~/.config/landmark/credentials.json`. See
+session in your platform's config directory
+(`~/.config/landmark/credentials.json` on Linux). See
 [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
 end-to-end flow, or
 [Authentication](/docs/getting-started/leaders/landmark/#authentication) in
@@ -417,14 +418,16 @@ backfill from raw payloads — ask `fit-map` to re-run every transform against t
 npx fit-map activity transform
 ```
 
-The command reads people, GetDX, and GitHub raw documents in dependency order
-and upserts on natural keys, so it is safe to re-run. To reprocess a single
-source instead of all three:
+The command reads people, GetDX, and GitHub raw documents in dependency order,
+then derives artifact-interpreted evidence rows from the ingested GitHub
+artifacts. Every step upserts on natural keys, so it is safe to re-run. To
+reprocess a single target instead of all of them:
 
 ```sh
 npx fit-map activity transform people
 npx fit-map activity transform getdx
 npx fit-map activity transform github
+npx fit-map activity transform evidence-artifact
 ```
 
 The hosted equivalent is the `transform` edge function, which runs the same code

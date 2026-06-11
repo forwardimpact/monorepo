@@ -56,8 +56,8 @@ bun run check
 bun run test
 ```
 
-`bun run check` runs `format`, `lint`, `jsdoc`, `invariants`, and `context`
-sequentially so failures are easy to spot. `bun run test` runs unit tests
+`bun run check` runs `format`, `lint`, `jsdoc`, `invariants`, `context`, and
+`wiki` sequentially so failures are easy to spot. `bun run test` runs unit tests
 (`bun test`) separately so test output does not bury check failures.
 
 To auto-fix formatting and lint issues:
