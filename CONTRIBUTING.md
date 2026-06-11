@@ -7,8 +7,8 @@ bun install
 just quickstart
 ```
 
-`ANTHROPIC_API_KEY` is available in the shell environment — no manual key
-configuration needed. `libconfig` reads it automatically.
+`ANTHROPIC_API_KEY` is already in the shell environment; `libconfig` reads
+it automatically.
 
 ## Core Rules
 
@@ -31,6 +31,12 @@ Architectural non-negotiables — the shape of the codebase.
 - **FIT upstream of Kata** — Skills and docs in the FIT project (`fit-*` skills,
   `websites/fit/`, shared `libraries/`) must not reference the Kata Agent Team.
   Kata may reference FIT concepts; the dependency points one way.
+- **Explain WHY, not WHEN** — Comments, log messages, and durable docs state
+  the present contract: no spec/design/plan numbers, issue/PR references, or
+  experiment/obstacle labels — provenance lives in PR bodies and git
+  history. `specs/`, `wiki/`, `benchmarks/`, and `generated/` are exempt and
+  citation-dense; rewrite, don't port, their content into checked files.
+  Enforced by `scripts/check-temporal.mjs` under `bun run invariants`.
 
 ### READ-DO
 
@@ -40,8 +46,7 @@ Entry gate — read every item before starting.
 
 - [ ] **Understand the task.** What is it asking? Which files will I
       touch, and which will I not?
-- [ ] **Smallest plan.** No unrequested features, abstractions, or refactors. If
-      it isn't asked for, don't add it.
+- [ ] **Smallest plan.** No unrequested features, abstractions, or refactors.
 - [ ] **Read the code** I'm about to change before writing.
 - [ ] **Search shared libraries first.** Before writing any generic helper, scan
       [libraries/README.md](libraries/README.md). Use a library if one covers
@@ -68,13 +73,13 @@ Exit gate — verify every item before committing.
 
 <do_confirm_checklist goal="Verify quality and publish before finishing">
 
-- [ ] `bun run check` passes — format and lint, all file types.
+- [ ] `bun run check` passes — format, lint, jsdoc, invariants, context.
 - [ ] `bun run test` passes — new logic has tests.
 - [ ] No new inline mock/fixture helpers that libmock already provides.
       Touched test files import from `@forwardimpact/libmock` instead of
       redefining `createMock*`, `make*`, or `stubQueries`.
 - [ ] My diff only contains changes the task required — no unrequested
-      refactors, no scope creep.
+      refactors or scope creep.
 - [ ] Commit format: `type(scope): subject` (see § Git Conventions).
 - [ ] If the run produced commits: branch pushed with `git push -u origin` and
       PR URL captured in output. Exception: release engineer's direct-to-`main`
@@ -103,7 +108,7 @@ products/
 libraries/
   lib*/        # shared libraries
 services/
-  bridge/ embedding/ ghbridge/ ghserver/ ghuser/ graph/ map/ mcp/ msbridge/ oauth/ oidc/ pathway/ tenancy/ trace/ vector/
+  <name>/      # one directory per service — see config/config.json
 config/
   config.json  # service definitions
 data/
@@ -115,13 +120,13 @@ design/        # design language (brand-agnostic) and brand implementations
 websites/      # public site sources — fit/ → forwardimpact.team, kata/ → kata.team
 ```
 
-Git tracks `*.example.*` templates in `config/` — the live files above are
-gitignored and created from examples during setup.
+Git tracks `*.example.*` templates in `config/`; the live files are
+gitignored, created from examples during setup.
 
 ### Per-package layout
 
-Every package follows the same on-disk shape. Source files live under
-`src/` — no `.js` or `.ts` files at the package root.
+Every package follows the same on-disk shape: source under `src/`, no `.js`
+or `.ts` files at the package root.
 
 ```
 <package>/
@@ -130,8 +135,8 @@ Every package follows the same on-disk shape. Source files live under
   src/             All source files (index.js + any domain subdirs)
   bin/             One file per declared CLI binary — thin entry points only
   config/          Checked-in configuration files (optional)
-  macos/           Packaged macOS app bundle, if the package ships one (optional)
-  pkg/             Packaging / distribution artifacts, non-source (optional)
+  macos/           Packaged macOS app bundle (optional)
+  pkg/             Packaging/distribution artifacts, non-source (optional)
   proto/           Protobuf source files (optional)
   schema/          Published schemas (JSON Schema, SHACL, etc.) (optional)
   starter/         Starter data that installs to a consumer's data dir (optional)
@@ -141,8 +146,8 @@ Every package follows the same on-disk shape. Source files live under
 ```
 
 Subcommand handlers live under `src/commands/`, helpers under `src/lib/`.
-Published `exports` point at `src/` — consumers import via subpath aliases
-resolved by the `exports` map. No build step, no root-level proxy file.
+Published `exports` point at `src/`; consumers import via subpath aliases.
+No build step, no root-level proxy file.
 
 ### Services — the one exception
 
@@ -158,9 +163,9 @@ instead.
 
 ## Pull Request Workflow
 
-All changes go through pull requests — never push directly to `main`. Always
-commit, push, and open a PR before finishing a task; a local commit on an
-ephemeral runner is lost work, and the PR URL is the only valid "done" signal.
+All changes go through pull requests — never push directly to `main`. Commit,
+push, and open a PR before finishing; a local commit on an ephemeral runner is
+lost work, and the PR URL is the only valid "done" signal.
 
 **Exception:** the release engineer may push trivial CI fixes (formatting, lint,
 lockfile drift) that `bun run check:fix` can resolve directly to `main`. See
@@ -175,8 +180,7 @@ Format: `type(scope): subject`
   domain area (`security`) for specs
 - **Breaking**: add `!` after scope
 
-`spec` is for new specification documents in `specs/` (e.g.
-`spec(security): Supabase edge function hardening`).
+`spec` = new specification documents in `specs/`.
 
 ### Releasing
 
@@ -190,7 +194,7 @@ and publishing — see [kata-release-cut](.claude/skills/kata-release-cut).
 ## Quality Commands
 
 ```sh
-bun run check                 # Format and lint — ALL file types (run before every commit)
+bun run check                 # All quality gates (run before every commit)
 bun run check:fix             # Auto-fix format and lint issues
 bun run test                  # Unit tests (run before every commit)
 bun run test:e2e              # Playwright E2E tests (requires generated data)
@@ -204,7 +208,7 @@ Security policies apply to all contributors — human and agent.
 
 - **Vulnerability audit** — `npm audit --audit-level=high` runs in CI (via
   temporary lockfile generation) and gates publish workflows.
-- **CI secret scanning** — Gitleaks runs on every push and pull request via the
+- **CI secret scanning** — Gitleaks runs on every push and PR via the
   `secret-scanning` job in
   [.github/workflows/check-security.yml](.github/workflows/check-security.yml).
 - **GitHub Actions** — All third-party actions, including `forwardimpact/*`
@@ -243,4 +247,4 @@ Every dependency belongs in one category. Apply in order — first match wins.
 
 Backend-specific and feature-gated deps use dynamic `import()` at the call site
 (never at module top), wrapped in `try/catch` that throws naming the feature,
-the package, and the install command. Never silently fall back.
+package, and install command. Never silently fall back.
