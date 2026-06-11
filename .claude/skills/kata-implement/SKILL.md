@@ -24,8 +24,8 @@ the plan to understand HOW and WHEN, then implement the changes methodically.
 
 ## Checklists
 
-Also run the CONTRIBUTING.md § READ-DO before starting — those universal rules
-apply alongside the skill-specific ones below.
+Also run CONTRIBUTING.md § READ-DO before starting — universal rules apply
+alongside the skill-specific ones below.
 
 <read_do_checklist goal="Internalize scope and constraints before coding">
 
@@ -36,10 +36,10 @@ apply alongside the skill-specific ones below.
       tree.
 - [ ] Claim before first code write — atomic `pull` → check → `claim` →
       `push` per
-      [memory-protocol § Active Claims](../../agents/references/memory-protocol.md#active-claims).
+      [memory-protocol § Active Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#active-claims).
 - [ ] Probe `gh pr list --search "<issue or spec #>" --state all` — merged
       and closed PRs change the route too
-      ([§ Claim → probe → create](../../agents/references/coordination-protocol.md#claim--probe--create)).
+      ([§ Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create)).
 - [ ] Read the full spec and all plan files before writing any code.
 - [ ] Implement plan-a unless explicitly directed to a different variant.
 - [ ] Implement only what the plan describes — no unrequested refactors,
@@ -158,10 +158,10 @@ before advancing.
 ### Step 8: Open an implementation PR
 
 Push all commits to the remote branch only after the panel review is clean.
-Re-run the READ-DO freshness probe immediately before `gh pr create`. The PR
+Re-run the READ-DO freshness probe before `gh pr create`. The PR
 title references the spec id: `feat(scope): ... (#NNN)`. After opening,
 announce the PR and route on the coordinating issue per
-[coordination-protocol § Fix-in-flight marker](../../agents/references/coordination-protocol.md#fix-in-flight-marker).
+[coordination-protocol § Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create).
 
 ## Handling Problems
 
