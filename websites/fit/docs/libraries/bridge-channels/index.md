@@ -36,12 +36,12 @@ primitives every adapter needs:
 
 | Primitive | Purpose |
 | --- | --- |
-| `createBridgeServer` | Hono server wiring a channel webhook route and `/api/callback/:token` together |
+| `createBridgeServer` | Hono server wiring a channel webhook route and `/api/callback/:tenant_id/:token` together |
 | `Acknowledgement` | Reaction-plus-optional-typing-verb lifecycle for "I received your message" feedback |
 | `Dispatcher` | Composes callback registration, acknowledgement, workflow dispatch, history append, and rollback-on-failure into one call |
 | `createCallbackHandler` | Inbound-callback skeleton with verdict routing (`adjourned` / `failed` / `recessed`) and span instrumentation |
 | `ResumeScheduler` | Channel-agnostic suspend/resume lifecycle for `recessed` verdicts; wraps `ElapsedScheduler` |
-| `CallbackRegistry` | In-memory `correlation_id → token` registry with TTL and atomic consume |
+| `CallbackRegistry` | In-memory token registry with tenant-bound entries, TTL enforced at lookup, periodic sweep, and atomic consume |
 | `DiscussionAdapter` *(typedef)* | The persistence contract every bridge implements: `loadByChannel`, `loadByCorrelation`, `listOpenRecesses`, `add`, `flush`, `shutdown` (plus optional `putPendingDispatch` / `resolvePendingDispatch`) |
 | `newDiscussionContext` | Channel-agnostic factory for a fresh per-thread record, keyed by `(channel, discussion_id)` |
 | `RateLimiter` | Sliding-window per-thread rate limit so a noisy channel cannot DoS the workflow |
@@ -62,7 +62,7 @@ Two injection rules keep the surface testable from any host. Persistence is
 **contract-injected**: every libbridge primitive that touches per-thread state
 (`Dispatcher`, `ResumeScheduler`, `createCallbackHandler`,
 `createLinkCompleteHandler`) takes a `store` parameter satisfying the
-`DiscussionAdapter` typedef in `src/index.js`, and the library never
+`DiscussionAdapter` typedef, and the library never
 constructs persistence on its own. The trigger evaluator is **clock-injected**:
 `evaluateTrigger(trigger, observed, now)` takes `now` as a parameter, never
 calling `Date.now()` inside the library.
@@ -82,7 +82,8 @@ import {
 } from "@forwardimpact/libbridge";
 
 const store = createDiscussionAdapter();   // see "Persist per-thread context" below
-const registry = new CallbackRegistry({ ttlMs: 60 * 60 * 1000 });
+const registry = new CallbackRegistry({ ttlMs: 60 * 60 * 1000, clock });
+registry.startSweepTimer();                // periodic eviction of expired tokens
 
 const bridge = createBridgeServer({
   config: { host: "0.0.0.0", port: 8080 },
@@ -94,13 +95,14 @@ const bridge = createBridgeServer({
     return c.body(null, 200);
   },
   onCallback: async (c) => {
-    const meta = registry.consume(c.req.param("token"));
-    if (!meta) return c.json({ error: "Unknown token" }, 404);
+    const tenantId = c.req.param("tenant_id");
+    const entry = registry.consume(c.req.param("token"), { tenant_id: tenantId });
+    if (!entry) return c.json({ error: "Unknown token" }, 404);
     const payload = await c.req.json();
-    if (payload.correlation_id !== meta.correlationId) {
+    if (payload.correlation_id !== entry.correlationId) {
       return c.json({ error: "Correlation ID mismatch" }, 400);
     }
-    const ctx = await store.loadByChannel("example", meta.meta.discussionId);
+    const ctx = await store.loadByChannel("example", entry.meta.discussionId);
     if (payload.verdict === "adjourned") {
       for (const reply of payload.replies) {
         await postChannelMessage(ctx.discussion_id, reply.body);
@@ -116,8 +118,8 @@ await bridge.start();
 ```
 
 `createBridgeServer` mounts `POST <webhookPath>` and
-`POST /api/callback/:token` on a Hono app, captures the raw POST body on
-`c.get("rawBody")` for signature verification, and returns
+`POST /api/callback/:tenant_id/:token` on a Hono app, captures the raw POST
+body on `c.get("rawBody")` for signature verification, and returns
 `{ start, stop, app, address }`. The host owns lifecycle, the channel SDK,
 and the verdict-to-channel translation (a GraphQL `addDiscussionComment` for
 GitHub, a `botbuilder` activity for Teams, etc.).
@@ -232,11 +234,16 @@ libbridge only sees the contract.
 ## Issue and verify callback tokens
 
 A bridge dispatches a workflow run and waits for the workflow to POST back its
-verdict. The host registers a `(correlationId, meta)` pair and receives a
-randomly generated token; the host embeds the token in the callback URL; the
-workflow echoes it; the host consumes the token once and rejects all
-subsequent attempts. `consume()` is atomic — it removes the entry and returns
-its metadata in one call.
+verdict. The host registers a `(correlationId, meta)` pair — `meta.tenant_id`
+is required — and receives a randomly generated token; the host embeds the
+token in the callback URL; the workflow echoes it; the host consumes the token
+once and rejects all subsequent attempts. `consume(token, { tenant_id })` is
+atomic — it removes the entry and returns it in one call, and returns `null`
+when the token is unknown, expired, or bound to a different tenant. The
+default TTL is two hours, expired entries are dropped at the lookup that
+observes them, and `startSweepTimer()` evicts tokens whose dispatch never
+calls back (every 10 minutes by default; `stopSweepTimer()` cancels it). Use
+`peek(token, { tenant_id })` to inspect an entry without consuming it.
 
 ```js
 import { randomUUID } from "node:crypto";
@@ -245,27 +252,30 @@ import {
   dispatchWorkflow,
 } from "@forwardimpact/libbridge";
 
-const registry = new CallbackRegistry({ ttlMs: 60 * 60 * 1000 });
+const registry = new CallbackRegistry({ ttlMs: 60 * 60 * 1000, clock });
+registry.startSweepTimer();
 
 const correlationId = randomUUID();
-const token = registry.register(correlationId, { discussionId });
+const token = registry.register(correlationId, { tenant_id: tenantId, discussionId });
 await dispatchWorkflow({
   workflowFile: "kata-dispatch.yml",
   ref: "main",
   repo: "owner/repo",
   token: ghInstallationToken,
   prompt,
-  callbackUrl: `${publicUrl}/api/callback/${token}`,
+  callbackUrl: `${publicUrl}/api/callback/${tenantId}/${token}`,
   correlationId,
   discussionId,
 });
 
 // In the `onCallback` handler passed to createBridgeServer:
 async function onCallback(c) {
-  const meta = registry.consume(c.req.param("token"));
-  if (!meta) return c.json({ error: "Unknown token" }, 404);
+  const entry = registry.consume(c.req.param("token"), {
+    tenant_id: c.req.param("tenant_id"),
+  });
+  if (!entry) return c.json({ error: "Unknown token" }, 404);
   const payload = await c.req.json();
-  if (payload.correlation_id !== meta.correlationId) {
+  if (payload.correlation_id !== entry.correlationId) {
     return c.json({ error: "Correlation ID mismatch" }, 400);
   }
   // …deliver replies, recess, or fail per payload.verdict…
@@ -276,8 +286,9 @@ async function onCallback(c) {
 The registry is in-memory; for multi-process bridges, persist
 `pending_callbacks` on each discussion-context record (via the adapter's
 `add()` call) so the host can re-register tokens on restart. The `correlation_id` echoes through the
-workflow and is checked against `meta.correlationId` to defend against
-token-and-payload mismatches.
+workflow and is checked against the consumed entry's `correlationId` to defend
+against token-and-payload mismatches; the tenant binding ensures a token
+issued for one tenant cannot redeem a callback addressed to another.
 
 ## Evaluate recess triggers
 
@@ -334,14 +345,15 @@ spec lands.
 You have reached the outcome of this guide when:
 
 - You can stand up a Hono server with channel-webhook and
-  `/api/callback/:token` routes via `createBridgeServer`, with the host's
-  channel-specific SDK glue only inside `onWebhook` and `onCallback`.
+  `/api/callback/:tenant_id/:token` routes via `createBridgeServer`, with the
+  host's channel-specific SDK glue only inside `onWebhook` and `onCallback`.
 - You can persist per-thread state by implementing the `DiscussionAdapter`
   contract — `loadByChannel`, `loadByCorrelation`, `listOpenRecesses`, `add`,
   `flush`, `shutdown` — and build fresh records via `newDiscussionContext`
   keyed by `(channel, discussion_id)`.
-- You can `register`, dispatch, and one-shot `consume` callback tokens through
-  `CallbackRegistry`, with `correlation_id` echoed end-to-end.
+- You can `register` tenant-bound tokens, dispatch, and one-shot
+  `consume(token, { tenant_id })` through `CallbackRegistry`, with
+  `correlation_id` echoed end-to-end and expired tokens rejected at lookup.
 - You can evaluate `missing_input` and `elapsed` recess triggers
   against a caller-supplied clock and route the resume back through
   `dispatchWorkflow` with a JSON-encoded `resume_context`.

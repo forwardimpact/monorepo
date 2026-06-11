@@ -196,7 +196,9 @@ reverse order.
 npx fit-rc restart trace
 ```
 
-This stops and then starts the named service. Without a name, it restarts all
+This stops the named service and everything after it in the array, then starts
+that same slice again — dependents that were torn down come back up, and
+services before the target are left untouched. Without a name, it restarts all
 services.
 
 ## Read service logs
@@ -263,8 +265,7 @@ Control verbosity with the `LOG_LEVEL` environment variable:
 | `LOG_LEVEL` | What prints                  |
 | ----------- | ---------------------------- |
 | `error`     | Errors only.                 |
-| `warn`      | Errors and warnings.         |
-| `info`      | Errors, warnings, and info (default). |
+| `info`      | Errors and info (default).   |
 | `debug`     | Everything including debug.  |
 
 For domain-specific debug output without changing the global level, set the

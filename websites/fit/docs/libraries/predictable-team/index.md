@@ -130,14 +130,15 @@ record of context that numbers alone cannot convey.
 
 ### CSV schema
 
-| Field    | Required | Description                                                          |
-| -------- | -------- | -------------------------------------------------------------------- |
-| `date`   | yes      | ISO 8601 (`YYYY-MM-DD`). Sort key.                                   |
-| `metric` | yes      | Metric name. One CSV may carry multiple metrics; they are grouped.   |
-| `value`  | yes      | Numeric. Non-numeric values are rejected by `validate`.              |
-| `unit`   | yes      | Free text (`count`, `days`, `pct`, ...). Empty is rejected.          |
-| `run`    | no       | URL or identifier of the run that produced this observation.         |
-| `note`   | no       | Free text. Record what you discovered when a signal appears.         |
+| Field        | Required | Description                                                          |
+| ------------ | -------- | -------------------------------------------------------------------- |
+| `date`       | yes      | ISO 8601 (`YYYY-MM-DD`). Sort key.                                   |
+| `metric`     | yes      | Metric name. One CSV may carry multiple metrics; they are grouped.   |
+| `value`      | yes      | Numeric. Non-numeric values are rejected by `validate`.              |
+| `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). Empty is rejected.          |
+| `run`        | no       | URL or identifier of the run that produced this observation.         |
+| `note`       | no       | Free text. Record what you discovered when a signal appears.         |
+| `event_type` | yes      | The workflow that recorded the row — its filename without `.yml`.    |
 
 Validate the file at any time:
 
@@ -168,12 +169,23 @@ npx fit-xmr analyze wiki/metrics/kata-spec/2026.csv --metric findings_count --fo
 
 ```json
 {
-  "metric": "findings_count",
-  "n": 18,
-  "status": "predictable",
-  "classification": "stable",
-  "latest": { "date": "2026-05-04", "value": 3, "mr": 1 },
-  "stats": { "mu": 4.2, "UPL": 12.5, "LPL": 0, "URL": 7.5 }
+  "source": "wiki/metrics/kata-spec/2026.csv",
+  "generated": "2026-05-04",
+  "event_type": "kata-shift",
+  "metrics": [
+    {
+      "metric": "findings_count",
+      "unit": "count",
+      "n": 18,
+      "from": "2026-04-02",
+      "to": "2026-05-04",
+      "status": "predictable",
+      "classification": "stable",
+      "latest": { "date": "2026-05-04", "value": 3, "mr": 1 },
+      "stats": { "mu": 4.2, "UPL": 12.5, "LPL": 0, "URL": 7.5 },
+      "signals": { "xRule1": [], "xRule2": [], "xRule3": [], "mrRule1": [] }
+    }
+  ]
 }
 ```
 
@@ -239,13 +251,11 @@ Without a path argument, this targets the current month's storyboard at
 npx fit-wiki refresh wiki/storyboard-2026-M05.md
 ```
 
-After refresh, each block contains the latest value, status, chart, and signal
-summary:
+After refresh, each block contains the fenced chart and a signal summary
+naming any fired rules:
 
 ```markdown
 <!-- xmr:findings_count:wiki/metrics/kata-spec/2026.csv -->
-**Latest:** 3 · **Status:** predictable
-
 ```
  UPL 12.5 ──────────────────────────────────────────────
           |
@@ -259,6 +269,10 @@ summary:
 **Signals:** --
 <!-- /xmr -->
 ```
+
+When the metric has fewer than 15 points, the block carries an
+"Insufficient data" line instead of the chart. Fired rules are listed by
+name (`xRule1`, `xRule2`, `xRule3`, `mrRule1`); a dash means none fired.
 
 The operation is idempotent -- running it twice produces the same output. Files
 without markers are left unchanged.
