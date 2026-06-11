@@ -31,8 +31,8 @@ export async function parseSuperviseOptions(values, runtime) {
     taskAmend,
     supervisorCwd: resolve(values["supervisor-cwd"] ?? "."),
     agentCwd,
-    agentModel: values["agent-model"] ?? AGENT_MODEL,
-    supervisorModel: values["lead-model"] ?? LEAD_MODEL,
+    agentModel: values["agent-model"] || AGENT_MODEL,
+    supervisorModel: values["lead-model"] || LEAD_MODEL,
     maxTurns: (() => {
       const raw = values["max-turns"] ?? "200";
       return raw === "0" ? 0 : parseInt(raw, 10);

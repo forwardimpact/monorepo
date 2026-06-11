@@ -67,9 +67,9 @@ CI-specific inputs that have no CLI equivalent:
 | `family` | *(required)* | Path or git URL to a task family |
 | `output` | `"benchmark-runs"` | Run-output directory |
 | `runs` | `"5"` | Runs per task |
-| `agent-model` | `"claude-sonnet-4-6"` | Claude model for the agent-under-test |
-| `lead-model` | `"claude-fable-5[1m]"` | Claude model for the lead role |
-| `judge-model` | `"claude-fable-5[1m]"` | Claude model for the judge |
+| `agent-model` | *(CLI default)* | Claude model for the agent-under-test; empty falls through to the `fit-benchmark` CLI default |
+| `lead-model` | *(CLI default)* | Claude model for the lead role; empty falls through to the `fit-benchmark` CLI default |
+| `judge-model` | *(CLI default)* | Claude model for the judge; empty falls through to the `fit-benchmark` CLI default |
 | `agent-profile` | | Agent-under-test profile name |
 | `judge-profile` | | Judge profile name |
 | `max-turns` | `"50"` | Agent turn budget (`0` = unlimited) |
