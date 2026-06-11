@@ -24,6 +24,7 @@ In a monorepo checkout at a recorded commit on `origin/main` (the
 ```sh
 cd <monorepo>
 PROVENANCE_SHA=$(git rev-parse HEAD)        # record for step 2
+rm -rf products/finder/site/supabase/migrations/   # gitignored output dir — clear stale local builds
 bunx fit-terrain check                       # must report 0 misses (100% hit rate)
 bunx fit-terrain build                       # writes products/finder/site/supabase/migrations/
 ls products/finder/site/supabase/migrations/
@@ -31,7 +32,10 @@ ls products/finder/site/supabase/migrations/
 
 `check` proves the build needs zero LLM calls (no API key path); `build`
 renders from the committed cache. `npx fit-terrain generate` at a full
-cache produces identical output and is the verb spec SC6 uses.
+cache produces identical output and is the verb spec SC6 uses — but note
+it resolves an Anthropic credential at startup even when the cache is
+full (`bin/fit-terrain.js:141–145`), so `check` + `build` is the
+credential-free path.
 
 Expected output is exactly these 10 artifacts (authoritative list,
 live-verified 2026-06-11 against monorepo `6010964b`):
@@ -105,21 +109,25 @@ MIG_DIR="$ROOT/products/finder/site/supabase/migrations"
 [ -s "$SEED_DIR/seed_001_conditions.sql" ] || { echo "FAIL: vendored seed missing at $SEED_DIR"; exit 1; }
 (cd "$SEED_DIR" && sha256sum -c SHA256SUMS >/dev/null) || { echo "FAIL: vendored seed does not match SHA256SUMS"; exit 1; }
 
-# Stage SQL into supabase/migrations with a 2025-prefixed timestamp so terrain
+# Stage SQL into supabase/migrations with 2025-prefixed timestamps so terrain
 # files sort before hand-written 20260601* files (FK to trials resolves).
+# Each file gets a DISTINCT version derived from its seed_NNN number —
+# supabase db push records versions in supabase_migrations.schema_migrations
+# (version-keyed), so same-version files would collide.
 mkdir -p "$MIG_DIR"
-find "$MIG_DIR" -maxdepth 1 -name "20250101000000_seed_*.sql" -delete
+find "$MIG_DIR" -maxdepth 1 -name "20250101000*_seed_*.sql" -delete
 for f in "$SEED_DIR"/seed_*.sql; do
-  base=$(basename "$f")
-  cp "$f" "$MIG_DIR/20250101000000_${base}"
+  base=$(basename "$f")                        # seed_001_conditions.sql
+  n="${base#seed_}"; n="${n%%_*}"              # 001
+  cp "$f" "$MIG_DIR/20250101000${n}_${base}"   # version 20250101000001 … 009
 done
-echo "Staged $(ls "$MIG_DIR"/20250101000000_seed_*.sql | wc -l) seed migrations"
+echo "Staged $(ls "$MIG_DIR"/20250101000*_seed_*.sql | wc -l) seed migrations"
 ```
 
 Make executable: `chmod +x scripts/stage-seed.sh`.
 
 Verify: `bash scripts/stage-seed.sh` exits 0 and stages 9 files matching
-`products/finder/site/supabase/migrations/20250101000000_seed_*.sql`.
+`products/finder/site/supabase/migrations/20250101000*_seed_*.sql`.
 
 ## Step 4 — Wire staging into `setup.sh`
 
@@ -206,7 +214,7 @@ Edit `.github/workflows/ci.yml` (from part 01):
       - uses: actions/checkout@v4
       - run: bash scripts/stage-seed.sh
       - run: |
-          test "$(ls products/finder/site/supabase/migrations/20250101000000_seed_*.sql | wc -l)" -eq 9
+          test "$(ls products/finder/site/supabase/migrations/20250101000*_seed_*.sql | wc -l)" -eq 9
           test -s data/synthetic/seed/seed_embeddings.jsonl
           test "$(wc -l < data/synthetic/seed/seed_embeddings.jsonl)" -ge 6
           grep -Eq '[0-9a-f]{40}' data/synthetic/seed/PROVENANCE.md
@@ -234,7 +242,7 @@ Verify: PR CI green (lint + seed-stage jobs).
 
 - [ ] `data/synthetic/seed/` carries the 10 vendored artifacts + `PROVENANCE.md` + `SHA256SUMS`, all committed; `sha256sum -c SHA256SUMS` passes.
 - [ ] `PROVENANCE.md` pins a real 40-char SHA on `forwardimpact/monorepo:main`; regenerating there per its § Command reproduces the artifacts byte-identical (spec SC6 as corrected).
-- [ ] `scripts/stage-seed.sh` stages 9 SQL files into `products/finder/site/supabase/migrations/20250101000000_seed_*.sql` with checksum verification, no network.
+- [ ] `scripts/stage-seed.sh` stages 9 SQL files into `products/finder/site/supabase/migrations/20250101000*_seed_*.sql` with checksum verification, no network.
 - [ ] `./setup.sh` against a fresh stack: stages seed, applies via `supabase db push`, seeds embeddings via `embed-seed`.
 - [ ] `psql -c "SELECT COUNT(*) FROM trials;"` returns ≥ 6 (story.dsl trial count).
 - [ ] `psql -c "SELECT COUNT(*) FROM condition_embeddings;"` returns ≥ 6 (after embed-seed runs).

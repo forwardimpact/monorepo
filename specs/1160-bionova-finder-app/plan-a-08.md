@@ -273,7 +273,11 @@ else
     ORIG=$(pg "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
     docker compose exec -T postgres psql -U postgres -c \
       "TRUNCATE conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, interest_signals CASCADE;"
-    find "$ROOT/products/finder/site/supabase/migrations" -maxdepth 1 -name "20250101000000_seed_*.sql" -delete
+    # Forget the staged seed versions so `supabase db push` re-applies them —
+    # TRUNCATE clears data tables only, not the migration ledger.
+    docker compose exec -T postgres psql -U postgres -c \
+      "DELETE FROM supabase_migrations.schema_migrations WHERE version LIKE '20250101000%';"
+    find "$ROOT/products/finder/site/supabase/migrations" -maxdepth 1 -name "20250101000*_seed_*.sql" -delete
     (cd "$ROOT" && ./setup.sh)
     REGEN=$(pg "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
     [ "$ORIG" = "$REGEN" ] && ok "deterministic regen from vendored seed" \
