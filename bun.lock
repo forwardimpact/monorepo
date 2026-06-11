@@ -115,7 +115,7 @@
     },
     "libraries/libeval": {
       "name": "@forwardimpact/libeval",
-      "version": "0.1.57",
+      "version": "0.1.59",
       "bin": {
         "fit-eval": "./bin/fit-eval.js",
         "fit-trace": "./bin/fit-trace.js",
@@ -218,7 +218,7 @@
     },
     "libraries/libmock": {
       "name": "@forwardimpact/libmock",
-      "version": "0.1.4",
+      "version": "0.1.6",
       "peerDependencies": {
         "@forwardimpact/libtype": "*",
       },
@@ -477,7 +477,7 @@
     },
     "libraries/libterrain": {
       "name": "@forwardimpact/libterrain",
-      "version": "0.1.37",
+      "version": "0.1.38",
       "bin": {
         "fit-terrain": "./bin/fit-terrain.js",
       },
@@ -527,7 +527,7 @@
     },
     "libraries/libutil": {
       "name": "@forwardimpact/libutil",
-      "version": "0.1.90",
+      "version": "0.1.92",
       "bin": {
         "fit-download-bundle": "./bin/fit-download-bundle.js",
         "fit-tiktoken": "./bin/fit-tiktoken.js",
@@ -568,7 +568,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.17",
+      "version": "0.2.21",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
@@ -586,7 +586,7 @@
     },
     "libraries/libxmr": {
       "name": "@forwardimpact/libxmr",
-      "version": "1.3.0",
+      "version": "2.0.0",
       "bin": {
         "fit-xmr": "./bin/fit-xmr.js",
       },
@@ -601,7 +601,7 @@
     },
     "products/gear": {
       "name": "@forwardimpact/gear",
-      "version": "0.1.3",
+      "version": "0.1.5",
       "dependencies": {
         "@forwardimpact/libcodegen": "^0.1.49",
         "@forwardimpact/libdoc": "^0.2.24",
@@ -627,7 +627,7 @@
     },
     "products/guide": {
       "name": "@forwardimpact/guide",
-      "version": "0.1.46",
+      "version": "0.1.48",
       "bin": {
         "fit-guide": "./bin/fit-guide.js",
       },
@@ -661,7 +661,7 @@
     },
     "products/landmark": {
       "name": "@forwardimpact/landmark",
-      "version": "0.1.24",
+      "version": "0.1.25",
       "bin": {
         "fit-landmark": "./bin/fit-landmark.js",
       },
@@ -683,7 +683,7 @@
     },
     "products/map": {
       "name": "@forwardimpact/map",
-      "version": "0.15.56",
+      "version": "0.15.57",
       "bin": {
         "fit-map": "./bin/fit-map.js",
       },
@@ -692,6 +692,7 @@
         "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libsecret": "^0.1.14",
+        "@forwardimpact/libskill": "^5.0.0",
         "@forwardimpact/libsyntheticgen": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
         "@forwardimpact/libtemplate": "^0.2.0",
@@ -702,6 +703,7 @@
         "yaml": "^2.9.0",
       },
       "devDependencies": {
+        "@forwardimpact/landmark": "^0.1.24",
         "@forwardimpact/libgraph": "^0.1.59",
         "@forwardimpact/libmock": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.98",
@@ -897,7 +899,7 @@
     },
     "services/map": {
       "name": "@forwardimpact/svcmap",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "bin": {
         "fit-svcmap": "./server.js",
       },
