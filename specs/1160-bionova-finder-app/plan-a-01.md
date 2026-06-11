@@ -40,7 +40,7 @@ Created:
 | `README.md` | Repo intro + quickstart (`docker compose up && ./setup.sh`) |
 | `MONOREPO.md` | Mirrors the monorepo's three-shippable / three-support layout doctrine, scoped to bionova-apps |
 | `LICENSE` | Apache-2.0 |
-| `.gitignore` | `node_modules/`, `data/synthetic/seed/`, `.env`, `*.log`, `infrastructure/*/data/` |
+| `.gitignore` | `node_modules/`, `products/finder/site/supabase/migrations/20250101000000_seed_*.sql` (staged copies — the vendored source `data/synthetic/seed/` is committed, see part 03 r2), `.env`, `*.log`, `infrastructure/*/data/` |
 | `.nvmrc` | `20` (Node major) |
 | `.tool-versions` | `bun 1.2.0`, `nodejs 20.11.1` |
 | `package.json` | Workspace root; private; `workspaces: ["products/*/cli", "products/*/site", "products/*/handlers"]` (Deno service `services/finder-functions/` is NOT a bun workspace — it has `deno.json`, not `package.json`) |

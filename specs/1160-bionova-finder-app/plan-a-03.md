@@ -1,90 +1,113 @@
-# Plan 1160-a-03 — Data fetch from monorepo
+# Plan 1160-a-03 — Vendored seed data from monorepo terrain output
 
-Wire bionova-apps's data pipeline. **Terrain output is produced inside
-the monorepo by spec 1150's implementation** and committed to
-`products/finder/site/supabase/migrations/seed_*.sql` +
-`seed_embeddings.jsonl`. bionova-apps fetches these artifacts at
-`setup.sh` time and applies them. No `fit-terrain` invocation occurs in
-bionova-apps.
+Wire bionova-apps's data pipeline. **Revision r2** (fetch→vendor mechanism
+swap): r1 assumed terrain output was committed to monorepo `main` and had
+bionova-apps fetch it from `raw.githubusercontent.com` at `setup.sh` time.
+That premise was false at approval — terrain output is generated, never
+committed (`products/finder/` is gitignored at `.gitignore:12` since
+`8d3948aa`, and `git log --all --diff-filter=A` shows no seed artifact ever
+landed). Adaptation (a) accepted by PM triage on
+[Issue #1608](https://github.com/forwardimpact/monorepo/issues/1608):
+the implementer regenerates the artifacts inside the monorepo and **vendors
+them into bionova-apps with recorded provenance**. No `fit-terrain`
+invocation and no network fetch occurs in bionova-apps — at `setup.sh` time
+or any other time. Spec SC6's verify command is corrected in the same PR
+that carries this revision.
 
-All paths are inside `bionova-apps/`.
+Steps 1–2 run in the monorepo; all other paths are inside `bionova-apps/`.
 
-## Step 1 — Verify spec 1150 artifacts exist on monorepo main
+## Step 1 — Generate the seed artifacts in the monorepo
 
-Run before any other step. The implementer picks a specific monorepo
-commit on `main` that has the spec-1150 artifacts merged, and pins it
-explicitly. The step does NOT auto-resolve `main` because doing so
-captures a moving target on each rerun.
+In a monorepo checkout at a recorded commit on `origin/main` (the
+**provenance SHA**), with the committed prose cache:
 
 ```sh
-MONOREPO_RAW="https://raw.githubusercontent.com/forwardimpact/monorepo"
-# Implementer sets this to a known-good 40-char SHA on origin/main after
-# verifying spec 1150 has merged at that commit. No fallback to HEAD.
-SHA="${MONOREPO_SHA:?Set MONOREPO_SHA to a 40-char commit SHA where spec 1150 is merged}"
-[ "${#SHA}" = "40" ] || { echo "FAIL: MONOREPO_SHA must be 40 chars (got ${#SHA})"; exit 1; }
-
-# Probe each required artifact
-for f in \
-  "products/finder/site/supabase/migrations/seed_001_conditions.sql" \
-  "products/finder/site/supabase/migrations/seed_002_sites.sql" \
-  "products/finder/site/supabase/migrations/seed_embeddings.jsonl" ; do
-  status=$(curl -fsI -o /dev/null -w "%{http_code}" "$MONOREPO_RAW/$SHA/$f")
-  [ "$status" = "200" ] || { echo "FAIL: $f not at $SHA ($status)"; exit 1; }
-done
-echo "Monorepo SHA pinned: $SHA"
+cd <monorepo>
+PROVENANCE_SHA=$(git rev-parse HEAD)        # record for step 2
+bunx fit-terrain check                       # must report 0 misses (100% hit rate)
+bunx fit-terrain build                       # writes products/finder/site/supabase/migrations/
+ls products/finder/site/supabase/migrations/
 ```
 
-If any probe fails, halt and post an `agent-react` ask to the
-release-engineer: "Spec 1160 plan-a-03 blocked on spec 1150
-implementation. Monorepo `main` at SHA $MAIN_SHA lacks
-`products/finder/site/supabase/migrations/seed_*.sql` or
-`seed_embeddings.jsonl`."
+`check` proves the build needs zero LLM calls (no API key path); `build`
+renders from the committed cache. `npx fit-terrain generate` at a full
+cache produces identical output and is the verb spec SC6 uses.
 
-The exact filenames `seed_001_conditions.sql` etc. follow
-`render-sql.js`'s `${prefix}_${NNN}_${entity}.sql` convention with
-`prefix=seed` from spec 1150's plan-a.md:138. If terrain output
-filenames change, the probe list updates here in the same commit.
+Expected output is exactly these 10 artifacts (authoritative list,
+live-verified 2026-06-11 against monorepo `6010964b`):
 
-Verify: all three probes return 200; SHA is captured.
+```
+seed_001_conditions.sql
+seed_002_sites.sql
+seed_003_researchers.sql
+seed_004_trials.sql
+seed_005_criteria.sql
+seed_006_trial_sites.sql
+seed_007_trial_conditions.sql
+seed_008_rls.sql
+seed_009_condition_embeddings.sql
+seed_embeddings.jsonl
+```
 
-## Step 2 — Author `scripts/fetch-seed.sh`
+r1 listed `seed_006_trial_conditions.sql` / `seed_007_trial_sites.sql` —
+the two were swapped relative to terrain's actual output; corrected here
+from live output. If terrain output filenames change upstream, this list
+updates in the same commit that re-vendors.
 
-Created: `scripts/fetch-seed.sh` — fetches monorepo terrain output to
-`data/synthetic/seed/` and stages it into supabase migrations.
+Verify: `check` reports 0 misses; `build` exits 0; the directory listing
+matches the 10 filenames exactly.
+
+## Step 2 — Vendor the artifacts into bionova-apps with provenance
+
+Copy the 10 artifacts to `data/synthetic/seed/` in bionova-apps and write
+`data/synthetic/seed/PROVENANCE.md`:
+
+```sh
+mkdir -p <bionova-apps>/data/synthetic/seed
+cp <monorepo>/products/finder/site/supabase/migrations/seed_* <bionova-apps>/data/synthetic/seed/
+cd <bionova-apps>/data/synthetic/seed && sha256sum seed_* > SHA256SUMS
+```
+
+`PROVENANCE.md` content (one page):
+
+- Generating repo + SHA: `forwardimpact/monorepo` @ `$PROVENANCE_SHA`
+- Source: `data/synthetic/story.dsl` (`seed 42`) + committed
+  `prose-cache.json`
+- Command: `bunx fit-terrain check && bunx fit-terrain build` (equivalently
+  `npx fit-terrain generate` at full cache)
+- Output origin: `products/finder/site/supabase/migrations/` (gitignored in
+  the monorepo — generated, never committed there)
+- SC6 verify procedure: regenerate in the monorepo at `$PROVENANCE_SHA`,
+  then `sha256sum -c SHA256SUMS` against the regenerated files (byte-diff);
+  then `supabase db push` of the staged migrations reproduces identical
+  data.
+
+All 12 files (10 artifacts + `PROVENANCE.md` + `SHA256SUMS`) are
+**committed** — they are the repo's seed source of truth.
+
+Verify: `sha256sum -c SHA256SUMS` passes in `data/synthetic/seed/`;
+`PROVENANCE.md` carries a real 40-char SHA reachable on
+`forwardimpact/monorepo:main`.
+
+## Step 3 — Author `scripts/stage-seed.sh`
+
+Created: `scripts/stage-seed.sh` — stages the vendored SQL into supabase
+migrations (replaces r1's `scripts/fetch-seed.sh`; no network, no env).
 
 ```sh
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MONOREPO_RAW="https://raw.githubusercontent.com/forwardimpact/monorepo"
-PINNED_SHA="${MONOREPO_SHA:?Must be set to the pinned monorepo SHA}"
 
 SEED_DIR="$ROOT/data/synthetic/seed"
 MIG_DIR="$ROOT/products/finder/site/supabase/migrations"
-mkdir -p "$SEED_DIR"
 
-# List of files to fetch (one per terrain entity + embeddings)
-FILES=(
-  seed_001_conditions.sql
-  seed_002_sites.sql
-  seed_003_researchers.sql
-  seed_004_trials.sql
-  seed_005_criteria.sql
-  seed_006_trial_conditions.sql
-  seed_007_trial_sites.sql
-  seed_008_rls.sql
-  seed_009_condition_embeddings.sql
-  seed_embeddings.jsonl
-)
-
-for f in "${FILES[@]}"; do
-  url="$MONOREPO_RAW/$PINNED_SHA/products/finder/site/supabase/migrations/$f"
-  echo "Fetching $f from $PINNED_SHA…"
-  curl --fail -fsSL -o "$SEED_DIR/$f" "$url"
-done
+[ -s "$SEED_DIR/seed_001_conditions.sql" ] || { echo "FAIL: vendored seed missing at $SEED_DIR"; exit 1; }
+(cd "$SEED_DIR" && sha256sum -c SHA256SUMS >/dev/null) || { echo "FAIL: vendored seed does not match SHA256SUMS"; exit 1; }
 
 # Stage SQL into supabase/migrations with a 2025-prefixed timestamp so terrain
 # files sort before hand-written 20260601* files (FK to trials resolves).
+mkdir -p "$MIG_DIR"
 find "$MIG_DIR" -maxdepth 1 -name "20250101000000_seed_*.sql" -delete
 for f in "$SEED_DIR"/seed_*.sql; do
   base=$(basename "$f")
@@ -93,41 +116,19 @@ done
 echo "Staged $(ls "$MIG_DIR"/20250101000000_seed_*.sql | wc -l) seed migrations"
 ```
 
-Make executable: `chmod +x scripts/fetch-seed.sh`.
+Make executable: `chmod +x scripts/stage-seed.sh`.
 
-Filenames listed above must match terrain's actual output for the
-1150-implemented story.dsl. The implementer probes the directory listing
-via `curl https://api.github.com/repos/forwardimpact/monorepo/contents/products/finder/site/supabase/migrations?ref=$MAIN_SHA`
-at part-03 PR time and updates the FILES array if names differ.
+Verify: `bash scripts/stage-seed.sh` exits 0 and stages 9 files matching
+`products/finder/site/supabase/migrations/20250101000000_seed_*.sql`.
 
-Verify: `MONOREPO_SHA=$MAIN_SHA bash scripts/fetch-seed.sh` exits 0 and
-populates `data/synthetic/seed/` + `products/finder/site/supabase/migrations/20250101000000_seed_*.sql`.
-
-## Step 3 — Pin monorepo SHA + add to `.env`
-
-Created: `.env.example` (extends part-01 entries):
-
-```
-# Source of truth for synthetic data — terrain output committed in the
-# Forward Impact monorepo. Update by re-running part-03 step 1's probe
-# against monorepo main and committing the new SHA here.
-MONOREPO_SHA=<40-char-sha>
-```
-
-`setup.sh` exports `MONOREPO_SHA` from `.env` (already loaded by part 01)
-and `scripts/fetch-seed.sh` reads it.
-
-Verify: `.env.example` includes `MONOREPO_SHA=` with a placeholder; the
-implementer's own `.env` carries the actual SHA from step 1.
-
-## Step 4 — Wire fetch into `setup.sh`
+## Step 4 — Wire staging into `setup.sh`
 
 Edit `setup.sh` from part 01; replace the placeholder Step B with:
 
 ```sh
-# Step B0 — fetch terrain output from pinned monorepo SHA
-echo "Fetching seed data from monorepo@$MONOREPO_SHA…"
-"$ROOT/scripts/fetch-seed.sh"
+# Step B0 — stage vendored seed into supabase migrations
+echo "Staging vendored seed data…"
+"$ROOT/scripts/stage-seed.sh"
 
 # Step B — apply migrations via supabase db push
 echo "Running supabase db push…"
@@ -135,6 +136,10 @@ cd "$ROOT/products/finder/site"
 npx -y supabase@1.219.2 db push --db-url "postgres://postgres:${POSTGRES_PASSWORD}@localhost:5432/postgres"
 cd "$ROOT"
 ```
+
+No `MONOREPO_SHA` runtime variable exists in r2 — the provenance SHA is
+documentation in `PROVENANCE.md`, not a setup-time input. r1's `.env`
+plumbing for it is dropped.
 
 Verify: after `docker compose up -d` and `./setup.sh`, `psql -c "\dt"`
 lists all 9 tables (conditions, sites, researchers, trials, criteria,
@@ -165,69 +170,72 @@ volumes:
   - ./data/synthetic/seed:/data/synthetic/seed:ro
 ```
 
-Also add `setup.sh` Step A line: `mkdir -p data/synthetic/seed` before
-`wait_healthy` so the bind-mount target exists on a fresh clone.
+The mount now serves committed files — present on every fresh clone, so
+r1's `mkdir -p` guard in `setup.sh` Step A is unnecessary and dropped.
 
 Verify: `docker compose exec finder-functions ls /data/synthetic/seed/`
-lists the fetched files after `setup.sh` runs.
+lists the vendored files.
 
 ## Step 7 — Add `data/synthetic/seed/README.md`
 
 Created: `data/synthetic/seed/README.md`
 
-Content: one-page describing the static-fetch approach. Key points:
-- bionova-apps does NOT regenerate seed data; it fetches from a pinned
-  monorepo SHA
-- To refresh: update `MONOREPO_SHA` in `.env` to the desired commit on
-  `forwardimpact/monorepo:main`, then re-run `setup.sh`
+Content: one-page describing the vendored approach. Key points:
+
+- bionova-apps does NOT run `fit-terrain` and does NOT fetch at setup
+  time; the seed is vendored, committed, and staged locally by
+  `scripts/stage-seed.sh`
+- To refresh: regenerate in a monorepo checkout (PROVENANCE.md § Command),
+  copy the artifacts here, regenerate `SHA256SUMS`, update the provenance
+  SHA, and commit — one PR, reviewable as a diff
 - To audit what's in the seed: `cat data/synthetic/seed/seed_*.sql`
 - Source of the data: `forwardimpact/monorepo/data/synthetic/story.dsl`
+  at the SHA recorded in `PROVENANCE.md`
 
 Verify: file present; renders cleanly on GitHub.
 
-## Step 8 — Add CI step that proves fetch works
+## Step 8 — Add CI step that proves staging works
 
 Edit `.github/workflows/ci.yml` (from part 01):
 
 ```yaml
-  seed-fetch:
+  seed-stage:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - name: Resolve MONOREPO_SHA from .env.example
-        id: env
-        run: |
-          sha=$(grep -E '^MONOREPO_SHA=' .env.example | cut -d= -f2)
-          [ -n "$sha" ] && [ "$sha" != "<40-char-sha>" ] || { echo "MONOREPO_SHA not pinned in .env.example"; exit 1; }
-          echo "sha=$sha" >> $GITHUB_OUTPUT
-      - run: MONOREPO_SHA=${{ steps.env.outputs.sha }} bash scripts/fetch-seed.sh
+      - run: bash scripts/stage-seed.sh
       - run: |
-          test "$(ls data/synthetic/seed/seed_*.sql | wc -l)" -ge 6
+          test "$(ls products/finder/site/supabase/migrations/20250101000000_seed_*.sql | wc -l)" -eq 9
           test -s data/synthetic/seed/seed_embeddings.jsonl
           test "$(wc -l < data/synthetic/seed/seed_embeddings.jsonl)" -ge 6
+          grep -Eq '[0-9a-f]{40}' data/synthetic/seed/PROVENANCE.md
 ```
 
-Verify: PR CI runs `seed-fetch` job; passes when `.env.example` pins a
-SHA that has the expected files.
+No network access needed — the job validates checksum integrity (inside
+`stage-seed.sh`), staging count, embeddings presence, and that provenance
+pins a real SHA.
+
+Verify: PR CI runs `seed-stage` job; passes on the vendored layout.
 
 ## Step 9 — Open part-03 PR
 
 ```sh
-git checkout -b data/fetch-from-monorepo
-git add scripts/fetch-seed.sh setup.sh docker-compose.yml .env.example data/synthetic/ .github/workflows/ci.yml
-git commit -m "data: fetch seed migrations from pinned monorepo SHA"
-git push -u origin data/fetch-from-monorepo
-gh pr create --title "data: fetch seed migrations from pinned monorepo SHA" --body "Implements plan-a-03 of spec 1160. bionova-apps does not run fit-terrain (libterrain's bin resolves paths from its install dir, not consumer CWD). Instead, the monorepo's spec-1150 implementation commits terrain output, and bionova-apps fetches the committed artifacts at setup.sh time pinned to a known-good SHA."
+git checkout -b data/vendored-seed
+git add scripts/stage-seed.sh setup.sh docker-compose.yml data/synthetic/ .github/workflows/ci.yml
+git commit -m "data: vendor terrain seed with provenance; stage locally at setup"
+git push -u origin data/vendored-seed
+gh pr create --title "data: vendor terrain seed with provenance" --body "Implements plan-a-03 (r2) of spec 1160. bionova-apps does not run fit-terrain (no story.dsl or schema dir outside the monorepo) and does not fetch at setup time (terrain output is generated, never committed, in the monorepo — products/finder/ is gitignored). The seed is vendored from monorepo@<PROVENANCE_SHA> with sha256 provenance; scripts/stage-seed.sh stages it into supabase migrations. Deviation from r1 recorded per kata-implement § Handling Problems; PM acceptance and SC6 correction: forwardimpact/monorepo#1608."
 ```
 
-Verify: PR CI green (lint + seed-fetch jobs).
+Verify: PR CI green (lint + seed-stage jobs).
 
 ## Verification (end of part 03)
 
-- [ ] `scripts/fetch-seed.sh` fetches all `seed_*.sql` + `seed_embeddings.jsonl` from monorepo@MONOREPO_SHA.
-- [ ] `.env.example` pins a real 40-char SHA that points at a commit on `forwardimpact/monorepo:main` containing the artifacts.
-- [ ] `./setup.sh` against a fresh stack: fetches seed, stages migrations, applies via `supabase db push`, seeds embeddings via `embed-seed`.
+- [ ] `data/synthetic/seed/` carries the 10 vendored artifacts + `PROVENANCE.md` + `SHA256SUMS`, all committed; `sha256sum -c SHA256SUMS` passes.
+- [ ] `PROVENANCE.md` pins a real 40-char SHA on `forwardimpact/monorepo:main`; regenerating there per its § Command reproduces the artifacts byte-identical (spec SC6 as corrected).
+- [ ] `scripts/stage-seed.sh` stages 9 SQL files into `products/finder/site/supabase/migrations/20250101000000_seed_*.sql` with checksum verification, no network.
+- [ ] `./setup.sh` against a fresh stack: stages seed, applies via `supabase db push`, seeds embeddings via `embed-seed`.
 - [ ] `psql -c "SELECT COUNT(*) FROM trials;"` returns ≥ 6 (story.dsl trial count).
 - [ ] `psql -c "SELECT COUNT(*) FROM condition_embeddings;"` returns ≥ 6 (after embed-seed runs).
 - [ ] `psql -c "SELECT indexrelid::regclass FROM pg_index WHERE indrelid = 'condition_embeddings'::regclass AND indisunique;"` includes `condition_embeddings_condition_id_uidx` (from part 02).

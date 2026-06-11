@@ -112,6 +112,9 @@ on the Docker network to populate pgvector. No external API keys needed.
 5. `bionova-finder admin trial <id>` allows staff to manage trial listings.
    Verify: CLI updates are reflected in the web interface.
 
-6. All seed data is deterministic and regenerable. Verify: `npx fit-terrain
-   generate` in `data/synthetic/` followed by `supabase db push` reproduces
-   identical data.
+6. All seed data is deterministic and regenerable. Verify: in the monorepo at
+   the vendored provenance SHA, `npx fit-terrain generate` in `data/synthetic/`
+   regenerates `products/finder/site/supabase/migrations/seed_*.sql` +
+   `seed_embeddings.jsonl` byte-identical to bionova-apps' vendored copies
+   under `data/synthetic/seed/`; `supabase db push` of the vendored migrations
+   then reproduces identical data.
