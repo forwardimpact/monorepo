@@ -98,12 +98,22 @@ lands where the next reader looks.
 1. **Claim** before the first code write, atomically with the wiki push —
    procedure in
    [memory-protocol.md § Active Claims](memory-protocol.md#active-claims).
-2. **Probe** for prior or in-flight PRs on the target:
-   `gh pr list --search "<issue#>" --state all`. `--state all` is
-   load-bearing — a merged or closed PR on the target changes the route as
-   much as an open one does. Run the probe twice: at implementation start,
-   and again immediately before `gh pr create` — the search index lags by
-   minutes, and minutes are exactly the collision window.
+2. **Probe** the remote of record for prior or in-flight work on the
+   target. A claim-row cell, a local ref, or a search-index read is each
+   point-in-time and can false-negative against a moving origin — none is
+   sufficient absence evidence alone, and a false "nothing exists" mints
+   duplicate work with no concurrency required:
+   - **Branch existence:** `git ls-remote origin "refs/heads/<branch>"` —
+     exact ref only; glob refspecs fail silent on a miss.
+   - **PR existence:** `gh pr list --head <branch> --state all` — catches
+     a branch pushed before its PR opens, the costliest duplicate window.
+   - **Topic search:** `gh pr list --search "<issue#>" --state all`.
+     `--state all` is load-bearing — a merged or closed PR on the target
+     changes the route as much as an open one does.
+   Run the probes twice: at implementation start, and again immediately
+   before `gh pr create` — the search index lags by minutes, and minutes
+   are exactly the collision window. The probe complements the claim
+   handshake; it never replaces it.
 3. **Create** the PR, then announce it on the coordinating issue per the
    fix-in-flight marker rule.
 

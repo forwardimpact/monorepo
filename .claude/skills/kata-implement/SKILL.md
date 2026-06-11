@@ -37,8 +37,9 @@ alongside the skill-specific ones below.
 - [ ] Claim before first code write — atomic `pull` → check → `claim` →
       `push` per
       [memory-protocol § Active Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#active-claims).
-- [ ] Probe `gh pr list --search "<issue or spec #>" --state all` — merged
-      and closed PRs change the route too
+- [ ] Probe the remote of record: `git ls-remote origin
+      "refs/heads/<branch>"`, `gh pr list --head <branch> --state all`,
+      and `--search "<spec #>" --state all`
       ([§ Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create)).
 - [ ] Read the full spec and all plan files before writing any code.
 - [ ] Implement plan-a unless explicitly directed to a different variant.
