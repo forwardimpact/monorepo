@@ -34,8 +34,10 @@ npm install @forwardimpact/landmark
 npx fit-landmark login --email you@example.com
 ```
 
-`login` walks Supabase's magic-link flow and stores the session under
-`~/.config/landmark/credentials.json` (0600). Subsequent commands resolve your
+`login` walks Supabase's magic-link flow and stores the session (0600) in your
+platform's config directory — `~/.config/landmark/credentials.json` on Linux;
+see [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
+macOS and Windows paths. Subsequent commands resolve your
 identity automatically. Use `--otp` to skip the browser and paste the
 six-digit code instead. If your email is not in the activity roster, login
 fails — your operator runs `fit-map people provision` to keep `auth.users`
@@ -96,8 +98,10 @@ npx fit-landmark evidence --email you@example.com
         rationale: No design review artifact present in this PR.
 ```
 
-Each row shows the marker, whether it matched, and Guide's rationale for the
-assessment. Guide evaluates your GitHub artifacts (PRs, reviews, commits)
+Each row shows the marker, whether it matched, the rationale for the
+assessment, and where the evidence came from — rows are labelled by
+provenance, distinguishing Map's direct artifact matches from Guide's deeper
+assessments. Guide evaluates your GitHub artifacts (PRs, reviews, commits)
 against each marker in the background — you see the results here. Filter by
 `--skill` to focus on a specific area.
 

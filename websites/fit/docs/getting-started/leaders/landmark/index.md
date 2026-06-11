@@ -54,8 +54,11 @@ Today's minimum stand-up is three steps under Map plus one Landmark login:
    [Provision Engineer Auth Users](/docs/products/provisioning-engineers/) for
    the operator workflow.
 4. **Sign in.** `npx fit-landmark login` walks Supabase's magic-link flow,
-   captures the session at a localhost callback, and stores it under
-   `~/.config/landmark/credentials.json` (0600). Subsequent commands resolve
+   captures the session at a localhost callback, and stores it (0600) in your
+   platform's config directory — `~/.config/landmark/credentials.json` on
+   Linux; see
+   [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
+   macOS and Windows paths. Subsequent commands resolve
    identity automatically. Use `--otp` to skip the browser and paste the
    six-digit code instead:
 
@@ -120,11 +123,14 @@ become gaps.
 
 ## How evidence gets populated
 
-Landmark presents evidence — Guide creates it. Guide's evaluation pipeline reads
-GitHub artifacts from Map, evaluates each one against the markers in your
-engineering standard, and writes evidence rows back to Map. In production this
-runs on a schedule (a cron job or GitHub Action) so evidence stays current as new
-artifacts arrive:
+Landmark presents evidence — it doesn't create it. Evidence rows come from two
+producers. Map's transform pipeline derives a first layer directly from
+ingested GitHub artifacts (it runs automatically during
+`npx fit-map activity transform`). Guide's evaluation pipeline goes deeper: it
+reads the same artifacts from Map, evaluates each one against the markers in
+your engineering standard, and writes its assessments back as evidence rows.
+In production the Guide pass runs on a schedule (a cron job or GitHub Action)
+so evidence stays current as new artifacts arrive:
 
 ```sh
 echo "evaluate unscored artifacts for all" | npx fit-guide
