@@ -70,7 +70,7 @@ same checks.
 
 Apply the bridge-parity and timing-parity invariants when the selected topic is `app-security-libraries` or when reviewing any libbridge PR. Both codify SE's audit-time check; structural adoption stays in staff-engineer's lane.
 
-- **Bridge-parity invariant** — For each surface added to `BEGIN_ALLOWED_SURFACES` beyond `github-discussions`, verify the bridge invokes `prepareLinkResume` + `putPendingDispatch` with the same `(link_token, surface, surface_user_id, discussion_id)` shape OR documents an explicit opt-out rationale in the bridge README; flag any surface that falls through to a `PutPendingDispatch`-less path while still issuing dispatch.
+- **Bridge-parity invariant** — Surface gating lives in the identity-contract registry (`IDENTITY_CONTRACTS` in `services/ghuser/src/identity-contracts.js`); unregistered surfaces fail closed through `DEFAULT_CONTRACT` (`bridgePendingDispatchProof`), so the audit target is the registrations: for each surface registered beyond `github-discussions`, verify its contract is at least as strong as the bridge-proof default — a weaker contract (e.g. equality-only) bypasses the `putPendingDispatch` proof while still issuing dispatch; flag it unless the bridge README documents an explicit opt-out rationale.
 - **Timing-parity convention** (libbridge-wide) — Any new `CallbackRegistry` (or sibling registry) lookup method that scans a stored collection MUST maintain a secondary index keyed on the lookup field so hits and misses share an O(1) path, OR carry an explicit `scan-by-design` comment with security review of response-shape parity.
 
 ## Process
