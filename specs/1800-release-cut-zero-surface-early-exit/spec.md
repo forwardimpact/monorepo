@@ -125,9 +125,21 @@ assessment time (a lifted hold makes the obligation due).
 | # | Condition | Why it is load-bearing |
 | --- | --- | --- |
 | 1 | **Verified-clean baseline.** A prior run record establishes a baseline commit `B` — an ancestor of current `HEAD` — at which an assessment verified zero unreleased commits beyond the obligations that run re-cited as blocked. A baseline is established by a full sweep reaching that state, or by a cutting run's post-cut state once its tags exist at that commit (a pending publish-workflow verification is verifiable-in-run per § Definition — it does not block baseline establishment, and condition 3 resolves it), or by an earlier early-exit verdict chained to one. | Anchors the range to a state the procedure actually verified, not to the merged PR's diff. Defining cleanliness net of blocked re-cites keeps the predicate satisfiable in the steady state the evidence shows — a standing blocked backlog would otherwise make the exit unreachable forever. |
-| 2 | **Zero publishable paths in range.** The union of paths changed by each commit in the bound range `range_from..range_to` (per-commit semantics, as the sweep's own log comparison uses — not a net diff, which an add-then-revert pair inside the range would fool) includes nothing under any publishable-package directory. The publishable-path set is derived from the workspace manifest (currently `libraries/*`, `products/*`, `services/*`), not hardcoded. **File-level refinement (the run-392 shape):** a path under a publishable-package directory does not defeat this condition when an affirmative inclusion read shows it is matched by neither that package's `files` allowlist nor npm's always-included set (`package.json`, `README*`, `LICENSE*`, the `main` entry, …) — such a path cannot reach the published artifact. The refinement reclassifies only on an affirmative exclusion read: **any doubt in the inclusion read classifies the path publishable (⇒ `SWEEP-REQUIRED`)** — named doubt classes: a path no longer present at `range_to` (deleted or renamed in range — its removal can itself change the artifact), and any read the chosen inclusion source cannot resolve. A `files`-manifest change within the range self-defeats: `package.json` is always-included, so editing it classifies publishable. | Sound over-approximation: the sweep's per-package check is path-scoped, so if no path under any workspace directory changed in `B..HEAD`, the sweep run at `HEAD` can find nothing beyond what the baseline run already found and re-cited. The file-level refinement preserves soundness because a path is dropped only when affirmatively shown unreachable by the published artifact — the failure direction of every unresolvable read is the sweep, never the exit (the Evidence table's run-392 row: directory membership alone forgoes the exit on the modal contributor-doc shape, at burst cost exactly when the exit pays most). |
+| 2 | **Zero publishable paths in range — two tiers.** The union of paths changed by each commit in the bound range `range_from..range_to` (per-commit semantics, as the sweep's own log comparison uses — not a net diff, which an add-then-revert pair inside the range would fool) is tested in two tiers. **Tier 1 — directory rule:** a path under no publishable-package directory never defeats this condition; the publishable-path set is derived from the workspace manifest (currently `libraries/*`, `products/*`, `services/*`), not hardcoded. **Tier 2 — packlist membership (the run-392 shape), applied only to paths under a publishable-package directory:** such a path is **non-publishable iff** (i) its package is `private: true`, or (ii) it is absent from the packer's own publish list for that package at the frozen `range_to` (canonical instance: `npm pack --dry-run --json --ignore-scripts`; exact invocation and parsing are the design's call within this constraint). The authoritative source is the packer's own publish list — **re-implementing npm inclusion semantics is excluded at the WHAT level**. The test is file-kind-agnostic: `test/**` classifies by the same membership test as markdown; no file-type scoping. Four invariants govern the refinement: (i) **any doubt fails toward `SWEEP-REQUIRED`** — a tool error, unparseable output, or `.npmignore` presence classifies the path publishable, as does each named doubt class: a path no longer present at `range_to` (deleted or renamed in range — its removal can itself change the artifact) and any read the packer cannot resolve; a `files`-manifest change within the range self-defeats (`package.json` is in every publish list, so editing it classifies publishable); (ii) the refinement's failure mode is **forgone savings only, never a missed cut**; (iii) a package with pack-affecting lifecycle scripts (`prepack`/`prepare`/`prepublishOnly`) is **excluded from the refinement** — all its paths stay publishable (zero such packages in this monorepo today; the published skill is canonical for external consumers, where a prepack build is the one genuine missed-cut channel); (iv) the always-included set (`package.json`, `README*`, `LICENSE*`, …) needs no special-casing — it is in the packer's list by construction. | Sound over-approximation, sharpened by run-392: the claim is no longer "the sweep can find nothing in the range" but "the sweep run at `HEAD` can find nothing **that alters any published artifact**" beyond what the baseline run already found and re-cited — run-392 resolved exactly this way (tarball byte-identical to v0.1.15). What must never silently accumulate is **artifact-affecting** unreleased change; a packlist-excluded path never reaches any tarball, and the failure direction of every unresolvable read is the sweep, never the exit (the Evidence table's run-392 row: directory membership alone forgoes the exit on the modal contributor-doc shape, at burst cost exactly when the exit pays most). |
 | 3 | **Carry-forward state re-cited.** Every standing obligation — first-release backlog, held/deferred cuts, pending publish-failure retries and publish-workflow verifications from prior runs — is either empty, explicitly re-cited as blocked with its blocking reference, or verifiable-in-run and resolved to verified-success (§ Definition). Any due obligation — including a verifiable-in-run obligation that resolves to failure — defeats the early exit. | Covers what the range check structurally cannot see (run-343b's carried cut; the untagged-package class above). |
 | 4 | **Main CI green.** The existing pre-flight checklist passed. Re-cited as a conjunct — even though the step sits after pre-flight — so the verdict record is self-contained. | The never-release-from-broken-main rule applies to the verdict, not just to cutting. |
+
+**The refined rule earns its own agreement data.** Condition 2's
+membership tier does not inherit the shadow-window agreement rows that
+validated the directory-level rule
+([Exp #1625](https://github.com/forwardimpact/monorepo/issues/1625)): a
+continued or short follow-up shadow window under the same protocol earns
+the refined predicate its own agreement data before the early exit fires
+on it. This is load-bearing for the unscoped (file-kind-agnostic) form —
+if the full sweep would ever CUT on a tarball-identical test-only range,
+that surfaces in shadow as an unsafe-direction disagreement, falsified
+cheaply rather than in production. Window length and mechanics are the
+experiment owners' call.
 
 ### Authority boundary
 
@@ -274,15 +286,16 @@ independently of which implementation lands first:
    would run — `git log --name-only` and pathspec'd logs diverge under
    TREESAME merge simplification, so the chosen invocation must be shown
    not to prune commits the sweep's path-scoped comparison would count.
-   The design additionally picks the authoritative source for condition 2's
-   file-level inclusion read — preferring the packer's own dry-run file
-   list (e.g. `npm pack --dry-run`) over a re-implementation of npm `files`
-   glob semantics — and names how each doubt class (path absent at
-   `range_to`, unresolvable read) routes to `SWEEP-REQUIRED`. The inclusion
-   read runs only when the range's path union is clean except for
-   package-dir paths — the modal zero-surface range (docs/wiki/skills) pays
-   nothing for it — and the read itself sits under carry-forward 1's
-   cheapness bar.
+   The design additionally picks condition 2's membership-test mechanics
+   within the packer-authoritative constraint (§ What): the exact packer
+   invocation and JSON parsing of its publish list, the manifest-read
+   semantics at the frozen `range_to` (consistent with the
+   manifest-change clause above), and how each doubt class (tool error,
+   unparseable output, `.npmignore` presence, path absent at `range_to`)
+   routes to `SWEEP-REQUIRED`. Cost bound: seconds and ~zero tokens — the
+   membership test runs only on paths that already passed the directory
+   tier, so the modal zero-surface range (docs/wiki/skills) never invokes
+   it — and the read sits under carry-forward 1's cheapness bar.
 3. **Step numbering and references.** The step's position is fixed by
    § What; the design keeps existing step numbering and cross-references
    consistent around it.
@@ -305,7 +318,7 @@ independently of which implementation lands first:
 | Every classification binds an explicit SHA pair. | The skill's recording requirement names `range_from` and `range_to` as recorded fields of every discriminator classification, `NO-CUT-OWED` and `SWEEP-REQUIRED` alike. |
 | All four predicate conditions are present and conjunctive. | The skill text states a `NO-CUT-OWED` verdict as a four-conjunct claim — empty publishable diff over the bound range (per-commit union semantics), valid anchor, standing-set re-cite, green CI — and that any failure routes to the full sweep. |
 | The run-343b shape routes to the sweep. | The skill text states that a due (unblocked) carry-forward obligation defeats the early exit. |
-| The run-392 shape exits, and only on an affirmative read. | The skill text states condition 2's file-level refinement with its invariant: a package-dir path is non-publishable only on an affirmative read that neither the package's `files` allowlist nor npm's always-included set matches it, and any doubt — including a path absent at `range_to` — classifies publishable (⇒ `SWEEP-REQUIRED`). |
+| The run-392 shape exits, and only on an affirmative read. | The skill text states condition 2's two-tier form with all four invariants: a package-dir path is non-publishable iff its package is `private: true` or it is absent from the packer's own publish list at the frozen `range_to`; any doubt — tool error, unparseable output, `.npmignore` presence, a path absent at `range_to` — classifies publishable (⇒ `SWEEP-REQUIRED`); lifecycle-script packages are excluded from the refinement; npm inclusion semantics are not re-implemented. |
 | The first-release backlog survives the early exit. | The skill text requires the first-release backlog re-cite as part of condition 3, independent of the range check. |
 | The pending-publish-verification class is deterministic. | The skill text classifies a pending publish-workflow verification as verifiable-in-run: the assessment resolves it before exiting — verified-success clears it, verified-failure or a still-in-progress outcome is due (⇒ full sweep). No reading classifies it blocked or ambiguously due. |
 | The authority boundary is self-contained. | The skill text states each § Authority boundary rule — amended run classes, who may exit, unclassifiable ⇒ sweep, the re-anchor bound including the cadence-less default — in its own (amended) run-class vocabulary. |
@@ -314,5 +327,7 @@ independently of which implementation lands first:
 | The implementation diff stays in scope. | The PR diff touches only the `kata-release-cut` skill directory and the spec/design/plan tree under `specs/1800-release-cut-zero-surface-early-exit/`. |
 | The cost effect is observable — a trailing indicator, not a merge gate. | The first post-implementation zero-surface assessment at which the predicate holds records an early-exit verdict in the metric home, the first before/after data point against the run-352 baseline. |
 
-— Release Engineer 🚀 (r1) · Product Manager 🌱 (r2, Exp #1625
-requirements of record; r3, run-392 condition-2 file-level refinement)
+— Release Engineer 🚀 (r1; r3 applied per the
+[#1623 amendment contract](https://github.com/forwardimpact/monorepo/issues/1623#issuecomment-4685425527))
+· Product Manager 🌱 (r2, Exp #1625 requirements of record; r3 contract,
+run-392 condition-2 packlist-membership refinement)
