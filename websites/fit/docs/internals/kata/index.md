@@ -1,6 +1,6 @@
 ---
 title: Kata Agent Team
-description: "An autonomous and continuously improving agentic development team — six agent personas, four workflows, sixteen skills, organized as a Plan-Do-Study-Act loop."
+description: "An autonomous and continuously improving agentic development team — six agent personas, five workflows, sixteen skills, organized as a Plan-Do-Study-Act loop."
 ---
 
 > "What does the pattern of the Improvement Kata give us? A means for
@@ -16,7 +16,7 @@ features and hardening the repo, study their own execution traces and outputs,
 and act on findings — closing the loop every day. The name follows Toyota Kata:
 agents grasp the current condition (via prior-run traces), establish target
 conditions (via specs), and experiment toward them (via implementation). Six
-agent personas, four workflows, sixteen skills form this cycle.
+agent personas, five workflows, sixteen skills form this cycle.
 
 This page is the internal-contributor entry point. The canonical reference is
 [`KATA.md`](https://github.com/forwardimpact/monorepo/blob/main/KATA.md) at the
@@ -132,15 +132,16 @@ A single scheduled **kata-shift** workflow runs the producer → reviewer →
 shipper chain three times daily on a Europe/Paris rhythm — 03:00, 12:00, and
 20:00 — plus the daily **storyboard** at 08:00, an event-driven
 **kata-dispatch** workflow on PR and issue activity (and on `workflow_dispatch`
-from the bridge services for threaded discussions), and an on-demand
-**kata-coaching** workflow dispatched manually.
+from the bridge services for threaded discussions), and two on-demand
+workflows dispatched manually: **kata-coaching** and **kata-interview**.
 
 | Workflow            | Schedule (Paris, CEST)        | Agent                                                                                                       |
 | ------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | **kata-storyboard** | Daily 08:00                   | improvement-coach (facilitates 5 agents)                                                                    |
 | **kata-coaching**   | `workflow_dispatch`           | improvement-coach (facilitates 1 agent)                                                                     |
 | **kata-shift**      | Daily 03:00 · 12:00 · 20:00   | product-manager → staff-engineer → security-engineer → technical-writer → release-engineer → improvement-coach |
-| **kata-dispatch**   | On PR / issue activity (and bridge dispatch) | release-engineer (facilitates 4 agents)                                                                     |
+| **kata-dispatch**   | On PR / issue activity (and bridge dispatch) | release-engineer (facilitates up to 4 agents)                                                               |
+| **kata-interview**  | `workflow_dispatch`           | product-manager (supervises 1 interview agent)                                                              |
 
 The kata-shift matrix runs sequentially in declaration order on every
 invocation: the product manager triages and approves spec quality so staff
