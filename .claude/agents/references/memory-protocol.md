@@ -140,6 +140,27 @@ Lifecycle:
 Audit history lives in git history of `MEMORY.md` — rows are settled by
 deletion; the prior commit preserves the claim record.
 
+### Claim gate — before first code write
+
+A claim row MUST exist before the first code write — branch creation or
+worktree entry, whichever comes first. This strengthens the older "claim
+before opening any PR" floor; it does not replace it. The claim is atomic
+with its push — **the wiki git push is the serialization point**:
+
+1. `fit-wiki pull`
+2. Read `## Active Claims` for foreign rows on the same target. Slug
+   equality is **not** the test — parallel runs naming one deliverable
+   independently produce different slugs. Compare on the coordinating
+   artifact (issue or spec number) and judge deliverable overlap; on
+   overlap, stop and read the in-flight branch or PR instead of claiming.
+3. `fit-wiki claim --agent <self> --target <id> --branch <name>`
+4. `fit-wiki push`
+5. If the push rebases in a foreign row covering the same deliverable,
+   abort: `release` your row, push, and re-route.
+
+Pair the gate with the pre-PR freshness probe —
+[coordination-protocol.md § Claim → probe → create](coordination-protocol.md#claim--probe--create).
+
 ## CLI Contract Map
 
 | Subcommand | Contract(s) realized |

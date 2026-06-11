@@ -34,6 +34,16 @@ apply alongside the skill-specific ones below.
 - [ ] Enter a new worktree with `EnterWorktree` (e.g. name `impl/NNN`). All
       implementation work happens in the worktree — never on the main working
       tree.
+- [ ] Claim the target before the first code write, atomically with the wiki
+      push: `fit-wiki pull` → read `## Active Claims` for foreign rows on the
+      same coordinating artifact (judge deliverable overlap — slug equality is
+      not the test) → `fit-wiki claim` → `fit-wiki push`; if a foreign
+      same-deliverable row rebases in, release and re-route. Procedure:
+      [memory-protocol § Active Claims](../../agents/references/memory-protocol.md#active-claims).
+- [ ] Probe for prior or in-flight PRs on the target:
+      `gh pr list --search "<issue or spec #>" --state all` — `--state all`
+      is load-bearing; a merged or closed PR changes the route as much as an
+      open one.
 - [ ] Read the full spec and all plan files before writing any code.
 - [ ] Implement plan-a unless explicitly directed to a different variant.
 - [ ] Implement only what the plan describes — no unrequested refactors,
@@ -156,8 +166,13 @@ before advancing.
 
 ### Step 8: Open an implementation PR
 
-Push all commits to the remote branch only after the panel review is clean. The
-PR title references the spec id: `feat(scope): ... (#NNN)`.
+Push all commits to the remote branch only after the panel review is clean.
+Immediately before `gh pr create`, re-run the freshness probe from READ-DO
+(`gh pr list --search "<issue or spec #>" --state all`) — a PR that appeared
+since implementation start changes the route. The PR title references the
+spec id: `feat(scope): ... (#NNN)`. After opening, announce the PR and the
+route chosen on the coordinating issue per
+[coordination-protocol § Fix-in-flight marker](../../agents/references/coordination-protocol.md#fix-in-flight-marker).
 
 ## Handling Problems
 

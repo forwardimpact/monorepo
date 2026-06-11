@@ -36,7 +36,7 @@ You MUST sign all written output with `— Technical Writer 📝`.
 
 Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 `Bash: fit-wiki boot --agent technical-writer`. Triage inbox if non-empty;
-`fit-wiki claim` before opening any PR. Contract:
+`fit-wiki claim` before first code write (always before any PR). Contract:
 [memory-protocol § On-Boot Read Set](.claude/agents/references/memory-protocol.md#on-boot-read-set).
 
 ### Assess

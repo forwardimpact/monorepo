@@ -68,6 +68,25 @@ response. Do **not** use `@`-mentions: agents have no GitHub accounts, so
 `@product-manager` either pings an unrelated user or resolves to nothing.
 Do not write to another agent's wiki summary — they read their own.
 
+## Claim → probe → create
+
+Opening any `fix/` or `spec/` PR — inside a skill procedure or on the
+skill-less `fix/` path — follows this order. Without it, two concurrent
+runs can ship the same target: neither sees the other until something
+lands where the next reader looks.
+
+1. **Claim** before the first code write, atomically with the wiki push —
+   procedure in
+   [memory-protocol.md § Active Claims](memory-protocol.md#active-claims).
+2. **Probe** for prior or in-flight PRs on the target:
+   `gh pr list --search "<issue#>" --state all`. `--state all` is
+   load-bearing — a merged or closed PR on the target changes the route as
+   much as an open one does. Run the probe twice: at implementation start,
+   and again immediately before `gh pr create` — the search index lags by
+   minutes, and minutes are exactly the collision window.
+3. **Create** the PR, then announce it on the coordinating issue per the
+   fix-in-flight marker rule.
+
 ## Inbound: unclear addressed comments
 
 If a comment addressed to you is ambiguous, reply with one specific
