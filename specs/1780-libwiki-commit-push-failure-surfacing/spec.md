@@ -50,6 +50,22 @@ broken credentials, a push rejection against that stale ref would be
 indistinguishable from genuine contention unless the fetch outcome feeds
 the classification (§ Decisions D2).
 
+These defects are the local members of a wider pattern the team's
+forensics surfaced: **four landing-verification instruments produced false
+positives inside one 36-hour window** (coach record:
+[#1580 issuecomment-4676264988](https://github.com/forwardimpact/monorepo/issues/1580#issuecomment-4676264988),
+routed via the ask#9 record
+[#1564 issuecomment-4676259934](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676259934)).
+Member dispositions, each explicit: phantom push success (this spec's
+core, § Decisions D2); mid-rebase ancestry — `--is-ancestor` passing while
+a rebase is stopped — carried in scope by § Decisions D7; shallow-clone
+parentage (#1577) an independent lane named in § Out of scope;
+tip-ancestry under live writers governed by the team's quiescence floor, a
+record-side convention outside this contract. One common shape: *callers
+compose git plumbing whose preconditions they cannot see*. The contract's
+job is to make the primitive own its preconditions rather than leave each
+caller to rediscover them.
+
 **Evidence.** Per the corrected evidence base
 ([renumber-proof anchor](https://github.com/forwardimpact/monorepo/issues/1583#issuecomment-4676124931)):
 the mechanism section is load-bearing — the swallow and the clobber
@@ -140,7 +156,7 @@ three caller rows:
 | Session-end hook surfacing | The Stop-hook wiring maps a push-failure exit to the hook semantics that block the stop and feed the reason back to the agent for a remediation turn (§ Decisions D4). |
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
 | Foreign claim-row conservation | A push that would delete an Active Claims row it was not instructed to remove refuses or re-merges — never silently drops (§ Decisions D5). |
-| Unsafe-precondition refusal | A rebase in progress or a detached HEAD refuses before mutating, with a precondition reason — the backstop that keeps an interrupted retry from minting *landed* (§ Decisions D7). |
+| Unsafe-precondition refusal | A rebase in progress or a detached HEAD refuses before mutating, with a precondition reason and non-zero exit on all three surfaces — the backstop that keeps an interrupted reconcile from minting a success-shaped verdict (§ Decisions D7). |
 | Operator message contract | Failure messages name the reason class and the recovery path; where uncommitted work is retained in the stash on a failed autostash reapplication, the message names where it went (§ Decisions D3 guarantee). Contract is exit code plus reason class — exact wording is plan territory. |
 | Documented contract surface | The `commitAndPush` contract documentation describes the outcome taxonomy and per-caller mapping, traceable to this spec. |
 
@@ -192,8 +208,10 @@ usually land.
 **D2 — Outcome-reason taxonomy, conditioned on the fetch outcome.**
 Distinguish at minimum: *landed*, *nothing to push*, *rejected by remote*
 (non-fast-forward — actionable now: rerun from the true tip), *conflict*
-(rebase conflict — resolve or retry from the true tip), and
-*transport/credential failure* (possibly transient). **Grounded-success
+(rebase conflict — resolve or retry from the true tip),
+*transport/credential failure* (possibly transient), and *precondition*
+(§ Decisions D7 — the repository state invalidated the operation's
+instruments before it could run). **Grounded-success
 property:** *landed* is asserted only from observed remote state, through
 either admissible channel: the pushed commit reachable from the remote ref
 (post-push remote observation), or the per-ref update report for that ref —
@@ -223,8 +241,8 @@ fetch failed, a subsequent push rejection is classified as transport —
 otherwise broken credentials masquerade as contention and "rerun" guidance
 loops forever against a stale ref. Spec 1750's two guard-refusal classes
 (confirmed-unrelated, could-not-verify) join this taxonomy when both specs
-have landed; D7's *precondition* refusal reports in the same
-could-not-verify family in either series order. *Alternative carried:* collapse *rejected* and *transport*
+have landed; D7's *precondition* refusal is could-not-verify-shaped
+(verification could not run) and reportable in either series order. *Alternative carried:* collapse *rejected* and *transport*
 into one failure reason — simpler, but they direct different operator
 responses, and conflation is exactly how the run-275 false finding grew.
 
@@ -327,29 +345,48 @@ goal does not require; revisit only if post-1780 evidence shows loud sweep
 conflicts are themselves a material burden.
 
 **D7 — Unsafe-precondition refusal.** When the repository state invalidates
-the operation's own instruments — a rebase in progress or a detached HEAD —
-the operation refuses before mutating anything: never *landed*, a
-*precondition* reason reported through the D1 per-caller mapping (non-zero
-exit at `push`; zero exit with the saved-locally warning at
-`claim`/`release` when the local write preceded the precondition). The
-reason is a sub-class of the same could-not-verify family as spec 1750's
-guard refusals — one taxonomy, three refusal sources, no parallel class;
-it is reportable in either series order. The binding reason this is in
-scope rather than implementation detail: **D3's interrupted autostash
-retry *produces* the mid-rebase state**, so the refusal is the backstop
-that prevents a half-finished retry from minting *landed* — companion to,
-not duplicate of, the retry⇄1750-D1 binding (that one governs integration
-eligibility; this one governs verdict eligibility). The check is testable
-without message-copy assertions: rebase-in-progress or detached HEAD ⇒
-never *landed*, exit code plus reason class. *Alternative carried:*
-warn-and-attempt — refuse nothing, attempt the push, and let the
-grounded-success property classify the outcome; weaker but defensible
-because D2 already guarantees an attempt from that state cannot mint
-*landed*, and a hard refusal inside the Stop-hook path could strand a
-session record whose push would otherwise have landed. The proposal
-prefers refusal because the attempt from a known-invalid state buys
-nothing the warning does not, and its partial mutations are what D3's
-guarantee then has to clean up.
+the operation's own instruments — a rebase in progress, or a detached HEAD
+(the state behind spec 1750's canonical trap: a push from it publishes the
+configured branch ref while the session's commits sit on the detached
+chain) — the operation refuses before mutating anything: never any
+success-shaped outcome, a *precondition* reason. The per-caller mapping is
+uniform — a command failure with non-zero exit on `push`, `claim`, and
+`release` — because the refusal fires before the local write commits, so
+D1's zero-exit contract (keyed to a claim row that landed locally) never
+engages; the message names the preserved uncommitted edit and the
+remediation. This aligns with spec 1750's settled exit semantics for guard
+refusals and keeps exit code discriminating on every surface. The
+*precondition* reason joins the outcome taxonomy alongside 1750's two
+guard-refusal classes — three refusal sources, one taxonomy, no parallel
+class; it is could-not-verify-shaped (verification could not run),
+distinct from confirmed-unrelated (verification ran and condemned), and
+reportable in either series order. Seam note: 1750's detached-HEAD
+criterion and this row collapse to one observable refusal on that fixture;
+the second-landing implementation reconciles reason naming, not behavior.
+The binding reason this is in scope rather than implementation detail:
+**an interrupted pre-push reconcile *produces* the mid-rebase state** —
+the first attempt's reconcile today (an autostash rebase in the current
+tool; the criterion binds the state, not the mechanism), and D3's retry
+once active — so the refusal is the backstop that prevents a half-finished
+reconcile from minting a success-shaped verdict on re-invocation;
+companion to, not duplicate of, the retry⇄1750-D1 binding (that one
+governs integration eligibility, this one verdict eligibility). The check
+is testable without message-copy assertions: rebase-in-progress or
+detached HEAD ⇒ refusal, exit code plus reason class. *Alternative
+carried:* warn-and-attempt — refuse nothing, attempt the push, and let the
+grounded-success property classify the outcome. Weaker on two grounds,
+stated so the either/or is honest: (a) D2's groundings prevent *landed*
+for the session's stranded commits, but ***nothing to push* can fire
+success-shaped from exactly this state** — a rebase stopped at its onto
+point leaves HEAD contained in the remote tip, so the attempt path can
+mint a quiet success the warning does not prevent; (b) the attempt's
+partial mutations on an already-invalid tree are what D3's
+work-preservation guarantee then has to clean up. The alternative's
+remaining case: a refusal inside the Stop-hook path delays a record whose
+push a human must re-trigger — mitigated, not eliminated, by D4's blocking
+remediation turn. If the alternative is chosen, the matching § Scope
+refusal row and this decision's criterion row revise in the same approval
+signal.
 
 ## Success Criteria
 
@@ -369,7 +406,7 @@ order.
 | Honest subprocess rejection ⇒ the wrapper does not lie — the production shape of occurrences #30/#41. | Companion fixture: bare remote whose `pre-receive` hook exits 1, so the push subprocess fails *honestly* and only the wrapper's swallow could mint success (the shape actually observed in the `ba1468cf` and `bc982943` events — no forced stub, real refusal); run `fit-wiki push`; observe non-zero exit, a D2 failure reason, the success message absent, and the remote ref unchanged. Repeat via `fit-wiki claim`; observe zero exit with the saved-locally warning. |
 | Nothing to push ⇒ zero exit with the existing honest message — asserted only when the remote ref contains local HEAD. | Clean fixture whose local HEAD is contained in the observed remote ref; run `fit-wiki push`; observe zero exit and the nothing-to-push message. |
 | Stranded-resume state re-pushes: clean tree, local commits ahead ⇒ push attempted, never *nothing to push*. | Fixture with a clean working tree and local commits the remote ref does not contain (the workspace a #41-class stranding leaves when no remediation turn ran — session death, hook skip), with the remote-tracking ref stale so pre-fetch arithmetic would report nothing to do; run `fit-wiki push`; observe a push attempt in the remote-operation sequence and the nothing-to-push message **absent** — an implementation gating the push on tree-dirtiness fails this row. |
-| Mid-rebase / detached HEAD ⇒ precondition refusal, never *landed*. | Fixture with a rebase in progress, and separately a detached HEAD; run `fit-wiki push`; observe non-zero exit, a precondition reason class, the success message absent, and no remote mutation. Also reached via an interrupted D3 retry (autostash rebase killed mid-reconcile, then re-invocation): observe the re-invocation refuses with the precondition reason rather than reporting any success-shaped outcome. |
+| Mid-rebase / detached HEAD ⇒ precondition refusal, never any success-shaped outcome. | Fixture with a rebase in progress, and separately a plain detached HEAD (`git checkout <sha>` — kept distinct because a stopped rebase is itself detached); run `fit-wiki push`; observe non-zero exit, a precondition reason class, the success **and** nothing-to-push messages absent, no remote mutation, and no local mutation — no new commit, rebase state untouched, stash unchanged. Repeat via `fit-wiki claim` and `fit-wiki release`: observe non-zero exit, the precondition reason, no commit created, and the message naming the preserved uncommitted edit. The interrupted-reconcile path is verified by state-equivalent construction — a stopped rebase with an autostash entry present, the state an interrupted reconcile leaves behind (first attempt today; D3 retry once active) — re-invoke and observe the refusal with the stash entry left untouched and named in the message. |
 | Rebase conflict ⇒ loud failure, remote side never mechanically discarded. | Fixture with a textually overlapping remote advance; run `fit-wiki push`; observe non-zero exit, a conflict-reason message naming resolve-or-retry, the rebase aborted, no merge commit resolving to the local side, and the remote tip unchanged. |
 | Push rejection after a successful fetch ⇒ *rejected* reported, never success. | Fixture whose remote advances without textual overlap between the operation's fetch and push (retry exhausted, see retry rows); observe non-zero exit and the rejected reason — not a success report. |
 | Push failure with a failed fetch ⇒ *transport*, not *rejected*. | Fixture with remote observation forced to fail (credentials) and a push that would be rejected against the stale ref; run `fit-wiki push`; observe the transport classification and no rerun-guidance loop. |
@@ -436,6 +473,21 @@ fixture from the
 [release-engineer verification](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676483628),
 with ordinals per the
 [improvement-coach final ledger reconciliation](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676486013)
-(#41 = `bc982943` stands as written), folded 2026-06-11.
+(#41 = `bc982943` stands as written), folded 2026-06-11; D7 package
+panel-treated post-landing (3 product + 3 technical fresh seats,
+2026-06-11) with the consensus findings folded — uniform non-zero
+per-caller mapping aligned with 1750's guard-refusal exit semantics
+(replacing the zero-exit claim/release branch, which the panels showed
+vacuous-or-wrong since the refusal precedes the local commit), the
+three-source taxonomy count corrected against 1750's class distinction,
+the warn-and-attempt defense corrected (it cannot prevent a false
+*nothing to push* from a stopped rebase's onto point), the 1750
+detached-HEAD seam named, claim/release + local-non-mutation legs added
+to the criterion, the interrupted-reconcile leg recast as
+state-equivalent construction, and the four-instrument problem framing
+anchored — and the four-instrument § Problem paragraph itself folded from
+the [spec-owner gap flag](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676394990)
+(item 2a), completing the coach-input fold whose decision-row half D7
+carried.
 
 — Product Manager 🌱
