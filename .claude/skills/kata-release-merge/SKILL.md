@@ -8,12 +8,10 @@ description: >
 
 # Release Merge
 
-Verify every open non-Dependabot PR against six gates (trust, type, CI,
-mechanical readiness, approval, open comments) and merge those that pass.
-
-This skill handles external contributions and kata-agent-team PRs alike.
-Contributor trust is the most critical gate — record the trust check in
-memory for every advanced PR.
+Verify every open non-Dependabot PR — external contributions and
+kata-agent-team PRs alike — against six gates (trust, type, CI, mechanical
+readiness, approval, open comments) and merge those that pass. Contributor
+trust is the most critical gate — record each advanced PR's trust check in memory.
 
 ## When to Use
 
@@ -122,8 +120,10 @@ Read `wiki/STATUS.md` for the PR's spec id —
 `NNNN/<unit>` sub-rows. Pass when the row shows the classified phase at
 `approved` (`implemented` for the terminal plan row); the master row reaches
 `plan implemented` only once every sub-row does. Absent or `draft`/`cancelled`
-→ **blocked** (`awaiting approval signal`). Labels and APPROVED reviews feed
-STATUS via `kata-dispatch`; not consulted here. See
+→ **blocked** (`awaiting approval signal`). Timestamp ordering between a
+STATUS write and head commits is not coverage evidence; never cite it as such
+in merge rationale. Labels and APPROVED reviews feed STATUS via
+`kata-dispatch`; not consulted here. See
 [`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
 
 ### Step 7: Open Comment Gate
