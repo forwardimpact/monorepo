@@ -34,16 +34,12 @@ apply alongside the skill-specific ones below.
 - [ ] Enter a new worktree with `EnterWorktree` (e.g. name `impl/NNN`). All
       implementation work happens in the worktree — never on the main working
       tree.
-- [ ] Claim the target before the first code write, atomically with the wiki
-      push: `fit-wiki pull` → read `## Active Claims` for foreign rows on the
-      same coordinating artifact (judge deliverable overlap — slug equality is
-      not the test) → `fit-wiki claim` → `fit-wiki push`; if a foreign
-      same-deliverable row rebases in, release and re-route. Procedure:
+- [ ] Claim before first code write — atomic `pull` → check → `claim` →
+      `push` per
       [memory-protocol § Active Claims](../../agents/references/memory-protocol.md#active-claims).
-- [ ] Probe for prior or in-flight PRs on the target:
-      `gh pr list --search "<issue or spec #>" --state all` — `--state all`
-      is load-bearing; a merged or closed PR changes the route as much as an
-      open one.
+- [ ] Probe `gh pr list --search "<issue or spec #>" --state all` — merged
+      and closed PRs change the route too
+      ([§ Claim → probe → create](../../agents/references/coordination-protocol.md#claim--probe--create)).
 - [ ] Read the full spec and all plan files before writing any code.
 - [ ] Implement plan-a unless explicitly directed to a different variant.
 - [ ] Implement only what the plan describes — no unrequested refactors,
@@ -70,8 +66,8 @@ apply alongside the skill-specific ones below.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract specs previously implemented and any blockers
-from prior entries.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract previously implemented specs
+and blockers.
 
 > **Writing under `.claude/`:** If the plan targets files there, follow
 > [self-improvement.md](../../agents/references/self-improvement.md).
@@ -120,10 +116,7 @@ Before making any change, read the files that the plan targets. Verify:
 - Does the current code match the plan's assumptions (function signatures, data
   structures, imports)?
 - Have there been changes since the plan was written that affect the approach?
-
-If the codebase has diverged from the plan's assumptions, flag the discrepancies
-to the user before proceeding. Adapt the implementation to the current state —
-the plan describes intent, not a script to replay blindly.
+  On divergence, see Handling Problems.
 
 ### Step 4: Build a task list
 
@@ -134,10 +127,8 @@ Break the plan into ordered, atomic tasks. Each task should:
 - Respect the plan's stated ordering and dependencies
 
 Use TodoWrite to track progress. Group related changes that must land together
-(e.g., schema + data + code for the same feature).
-
-For multi-part plans, organize tasks by part — complete all tasks for part 01
-before starting part 02, unless the plan explicitly allows parallel execution.
+(e.g., schema + data + code for the same feature). For multi-part plans,
+organize tasks by part, ordered as Step 2 describes.
 
 ### Step 5: Implement step by step
 
@@ -167,11 +158,9 @@ before advancing.
 ### Step 8: Open an implementation PR
 
 Push all commits to the remote branch only after the panel review is clean.
-Immediately before `gh pr create`, re-run the freshness probe from READ-DO
-(`gh pr list --search "<issue or spec #>" --state all`) — a PR that appeared
-since implementation start changes the route. The PR title references the
-spec id: `feat(scope): ... (#NNN)`. After opening, announce the PR and the
-route chosen on the coordinating issue per
+Re-run the READ-DO freshness probe immediately before `gh pr create`. The PR
+title references the spec id: `feat(scope): ... (#NNN)`. After opening,
+announce the PR and route on the coordinating issue per
 [coordination-protocol § Fix-in-flight marker](../../agents/references/coordination-protocol.md#fix-in-flight-marker).
 
 ## Handling Problems
@@ -183,7 +172,7 @@ route chosen on the coordinating issue per
   deviations to the user.
 - **A test fails after a change.** Fix the issue before moving on. If the fix
   requires deviating from the plan, note the deviation.
-- **The plan is incomplete.** Some plans don't cover every detail. Fill gaps
+- **The plan is incomplete.** Fill gaps
   using the spec's intent, codebase conventions, and CONTRIBUTING.md § Core
   Rules (Invariants and the READ-DO / DO-CONFIRM checklists). Do not ask for
   permission on routine decisions — only flag genuine ambiguity.
