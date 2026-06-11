@@ -38,7 +38,10 @@ You are in a 1-on-1 coaching session. I will Ask you five questions; reply to
 each with Answer. Under Q2, run `fit-trace` on your most recent workflow
 trace and include the numeric findings in your Answer. Under Q3 and Q4, record
 your obstacle and experiment as labeled GitHub issues (see issue-lifecycle.md)
-and report each issue number back in your Answer.
+and report each issue number back in your Answer. Any comment you write that
+closes a thread or routes a decision to a named owner must name what is in
+flight (owner + artifact) or the explicit negative; if a decision is routed
+to you, announce your PR on the coordinating issue at open.
 ```
 
 ## Memory
