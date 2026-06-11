@@ -7,7 +7,12 @@ if [ ! -f "$F" ]; then
   printf '%s\n' '{"test":"file","pass":false,"message":"result.txt missing"}' >&"$RESULTS_FD"
   exit 1
 fi
-GOT="$(sha256sum "$F" | awk '{print $1}')"
+# Portable sha256: Linux has sha256sum; macOS 14 ships only shasum.
+if command -v sha256sum >/dev/null 2>&1; then
+  GOT="$(sha256sum "$F" | awk '{print $1}')"
+else
+  GOT="$(shasum -a 256 "$F" | awk '{print $1}')"
+fi
 if [ "$GOT" = "$EXPECTED" ]; then
   printf '%s\n' '{"test":"sha","pass":true}' >&"$RESULTS_FD"
   exit 0
