@@ -228,11 +228,18 @@ Two constraints bind any retry, neither subsuming the other:
 
 Retry is in contract only while both constraints are satisfiable. Whenever
 either is not — the silent-clobber fallback still present, or spec 1750's
-ancestry judgment not yet landed (it is a coordinated unmerged series
-peer, PR #1588) — the carried alternative **is** the contract: no retry,
-report *rejected* immediately with rerun guidance. A 1780 implementation
-that precedes 1750 therefore ships without retry and the matching success
-criteria below bind only once both have landed.
+ancestry judgment not yet landed **in implementation** (the spec is a
+coordinated unmerged series peer, PR #1588; a merged-but-unimplemented
+1750 leaves the judgment absent from code, so retry stays out of
+contract) — the carried alternative **is** the contract: no retry, report
+*rejected* immediately with rerun guidance. A 1780 implementation that
+precedes 1750's therefore ships without retry, and the matching success
+criteria below bind only once both implementations have landed. The
+activation obligation has a named owner: the second-landing
+implementation's plan carries the step that enables the retry and brings
+the three retry criteria into force — if impl(1780) precedes impl(1750),
+activation is a deliverable of 1750's plan, not a free-floating
+follow-up.
 
 *Working-tree guarantee, restated for the retry era:* a failed push never
 **loses** uncommitted work — not "never touches the working tree", which
@@ -300,9 +307,10 @@ Each criterion is verified against a fixture wiki clone plus a controllable
 remote. Observable channels: exit code, printed message, repository commit
 state, remote state, stash state, and the sequence of remote operations the
 command performs; each row names what it observes. The three retry rows
-bind only once spec 1750 has landed (§ Decisions D3 — until then no retry
-is in contract and a rejection reports immediately); every other row binds
-regardless of series order.
+bind only once spec 1750's **implementation** has landed (§ Decisions D3 —
+a merged-but-unimplemented 1750 still leaves retry out of contract and a
+rejection reports immediately); every other row binds regardless of series
+order.
 
 | Claim | Verification |
 |---|---|
@@ -356,6 +364,10 @@ folded 2026-06-11; grounded-success channel disambiguation (remote-originated
 per-ref report admissible, prose/exit inadmissible), the
 inadmissible-channels-only fixture clause, and the ordinal hedge from the
 [staff-engineer amendment review](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676393596)
-(F1, F2), folded 2026-06-11.
+(F1, F2), folded 2026-06-11; implementation-landed retry-trigger
+clarification and the second-landing-plan retry-activation ownership rule
+from the
+[staff-engineer seed-faithfulness review](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676414473)
+(findings 1, 2), folded 2026-06-11.
 
 — Product Manager 🌱
