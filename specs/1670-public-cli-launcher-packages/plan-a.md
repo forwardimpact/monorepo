@@ -146,7 +146,7 @@ Changes:
     | # | Condition |
     |---|---|
     | a | the set of `launchers/` **subdirectories** (non-directories like `README.md` excluded) ≠ rule output (either direction) |
-    | b | launcher `bin` key ≠ its dir/package name; or `bin/` does not contain exactly one file; or that file is not **byte-exact** equal to the canonical two-line shape (shebang + the rule-mapped `@forwardimpact/<src>/bin/<cli>.js` import) — content equality, not import parsing, because `files: ["bin/"]` ships the whole dir and pinning `package.json` alone stops neither appended code nor a second file (PR #1543 carry 2, [issuecomment-4678620460](https://github.com/forwardimpact/monorepo/pull/1543#issuecomment-4678620460)); or the source `exports` lacks that subpath |
+    | b | launcher `bin` key ≠ its dir/package name; or `bin/` does not contain exactly one file; or that file is not **byte-exact** equal to the canonical two-line shape (shebang line + the rule-mapped `@forwardimpact/<src>/bin/<cli>.js` import line, LF line endings, single trailing newline — Step 3's code block is the canonical byte sequence) — content equality, not import parsing, because `files: ["bin/"]` ships the whole dir and pinning `package.json` alone stops neither appended code nor a second file (PR #1543 carry 2, [issuecomment-4678620460](https://github.com/forwardimpact/monorepo/pull/1543#issuecomment-4678620460)); or the source `exports` lacks that subpath |
     | c | launcher `version` ≠ `"0.0.0"` or its dependency pin ≠ `"0.0.0"` |
     | d | launcher `package.json` has a key outside the allowed set {name, version, description, homepage, repository, license, author, type, bin, files, dependencies, engines, publishConfig} (subset semantics, per design: "no keys beyond the canonical metadata set"); or is missing any of {name, version, type, bin, files, dependencies}; or `dependencies` ≠ exactly one entry equal to the rule's mapped source; or `files` ≠ `["bin/"]`; or `bin` has ≠ 1 key |
 - Tests (in-memory fixtures): missing launcher, stale launcher, bin file
@@ -373,7 +373,8 @@ not part of this plan's PR, with three bindings from the PR #1543 carries
 
 - **Coverage (carry 3)**: the first cut covers **all 17 source packages**
   backing the 22 names — sources with no unreleased delta at implementation
-  time (e.g. `libeval`, `libwiki`, `libxmr`, `libcodegen`, `librc`) get
+  time (e.g. `libwiki`, `libxmr`, `libcodegen`, `librc` — not `libeval`,
+  whose Step 1 restructure is a real delta by then) get
   explicit chore version bumps so `publish-npm.yml` triggers and claims
   their launcher names. The typosquat window closes per-package as each tag
   publishes, not atomically — foundational deps first per `kata-release-cut`
