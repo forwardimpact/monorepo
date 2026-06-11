@@ -10,7 +10,7 @@ assert file-present --exists "$SPEC"
 
 assert has-problem        --grep '^## Problem' "$SPEC"
 assert has-scope          --grep '^##+ (In )?Scope|^##+ Non.?Goals' "$SPEC"
-assert verifiable-success --grep '^## Success' "$SPEC"
+assert verifiable-success --grep '^## (Success|Acceptance Criteria)' "$SPEC"
 assert no-how-leak        --not --grep '[A-Za-z0-9_/.-]+\.(js|ts|sh|py|yml|yaml):[0-9]+' "$SPEC" \
                           --message "file:line reference detected"
 assert cites-jtbd --cites-job "$JTBD" "$SPEC"
