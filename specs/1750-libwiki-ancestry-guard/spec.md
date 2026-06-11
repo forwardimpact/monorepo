@@ -26,13 +26,17 @@ rebases on the first.
 
 Staff-engineer verification on #1576 (at main `0951c37d`) confirmed the
 defect and sharpened it: **in every failure path, the damage precedes the
-first failure.**
+first failure.** A second source verification (run-131, at main
+`055ed3f5`) confirmed the two review findings folded into this revision:
+the commit and push gates are independent by documented design, and a
+detached HEAD turns publication into silent data loss.
 
-| Path on a history-less clone | Today's behavior |
+| Path on an unverifiable clone | Today's behavior |
 |---|---|
 | Unborn HEAD, local remote-tracking ref absent | The whole-tree sweep mints a full snapshot root commit; only then does the commits-ahead check crash — one step too late, with the snapshot already available to a later healthy actor. The crash is loud only on `fit-wiki push`; the `claim`/`release` surfaces swallow it into a saved-locally message, so two of the three surfaces are silent even after the damage. |
 | Severed history, remote-tracking ref resolvable | The unrelated root rebases onto the remote branch; if it applies cleanly the snapshot lands and pushes silently — the worst case. If it conflicts, the failure is loud but the commit was already minted. |
-| Clean tree, unverifiable history already committed locally | No commit is created — the operation's commit gate and push gate are independent by documented design — and the push runs anyway, publishing the unverifiable history without ever entering the commit path. A guard that only runs "before creating any commit" never fires on this shape. |
+| Clean tree, unverifiable history already committed locally | No commit is created — the operation's commit gate and push gate are independent by documented design — and the push runs anyway, publishing the unverifiable history without ever entering the commit path. A guard that only runs "before creating any commit" never fires on this shape. Aggravating: the push itself is fire-and-forget and the operation reports success unconditionally, so the bypass is also invisible (outcome honesty rides the consolidated spec; the guard must therefore refuse *before* the push). |
+| Detached HEAD with pending writes | The session's commits land on a detached chain, but the push publishes the configured branch ref — not HEAD — so nothing the session wrote is published; the push reports up-to-date, the command prints success, and the orphaned commits are eventually garbage-collected. Silent data loss reported as success. Naive ancestry checks pass on this shape (HEAD resolves, a merge-base exists), which is why D1 demands the verified history be the published history. |
 
 Status: defense-in-depth. No occurrence has been observed, and no code
 route currently re-initializes a wiki clone; the guard exists so that if
@@ -102,10 +106,14 @@ verification itself cannot be completed (network, auth), refuse with a
 distinct could-not-verify error so the operator knows which state they are
 recovering from. Beyond the enumerated shapes, fail closed: any state in
 which the relationship between the history that would be published and the
-remote branch can be neither confirmed nor refuted — a detached HEAD is
-the canonical example — refuses under the same distinct could-not-verify
-class, so "unverifiable ⇒ refuse, everywhere" is operational rather than
-aspirational. Provenance: invariant and positive-evidence standard
+remote branch can be neither confirmed nor refuted refuses under the same
+distinct could-not-verify class, so "unverifiable ⇒ refuse, everywhere" is
+operational rather than aspirational. The history the guard verifies must
+be the history the push would publish — a detached HEAD is the canonical
+trap: HEAD resolves and shares a merge-base, so a naive ancestry check
+classifies it verifiable, yet the push publishes the configured branch
+ref, not HEAD, and today the session's commits are silently lost while
+the command reports success (source-confirmed at main `055ed3f5`). Provenance: invariant and positive-evidence standard
 settled at [#1576 issuecomment-4675759237](https://github.com/forwardimpact/monorepo/issues/1576#issuecomment-4675759237);
 fail-closed deepening accepted at [#1576 issuecomment-4675741749](https://github.com/forwardimpact/monorepo/issues/1576#issuecomment-4675741749).
 The evidence and verification mechanisms (probe vs surfaced fetch, how
@@ -143,6 +151,7 @@ observes.
 | Shallow clone whose shared ancestry resolves within the fetched window ⇒ proceeds with no deepening fetch. | Depth-limited clone fixture with the merge-base inside the window; run `fit-wiki push`; observe a completed commit-and-push and a remote-operation sequence containing no history-deepening fetch. |
 | Shallow clone where the full-history verification completes and still finds no shared ancestry ⇒ confirmed-unrelated refusal: non-zero exit, no commit. | Depth-limited fixture over a genuinely unrelated history; run `fit-wiki push`; observe the confirmed-unrelated refusal after the deeper verification, and no new commit. |
 | Failure of the deeper verification itself ⇒ distinct could-not-verify refusal: non-zero exit, no commit, error text differs from the confirmed-unrelated refusal. | Shallow fixture with the full-history verification forced to fail; observe the distinct message and absence of any new commit. |
+| Detached HEAD ⇒ could-not-verify refusal: non-zero exit, no commit created, no push attempted. | Fixture clone checked out at a commit SHA (detached HEAD) with pending working-tree changes; run `fit-wiki push`; observe the could-not-verify refusal, no new commit on any ref, and no push among the command's remote operations — replacing today's silent loss, where the push publishes the branch ref instead of HEAD and reports success. |
 | Genuinely empty remote with positive evidence ⇒ first commit accepted and pushed. | Fresh wiki fixture against an empty remote; run `fit-wiki push`; observe the commit on the remote. |
 | Local remote-tracking ref absent and remote unobservable ⇒ refusal: non-zero exit, no commit. | History-less clone fixture with remote observation forced to fail; observe a refusal, not a snapshot commit. |
 | Local remote-tracking ref absent, remote observable, branch present on origin, shared ancestry confirmed against full history ⇒ allowed to proceed. | Fixture clone with the remote-tracking ref removed but its history genuinely shared with a populated remote; run `fit-wiki push`; observe a completed commit-and-push with no refusal. |
