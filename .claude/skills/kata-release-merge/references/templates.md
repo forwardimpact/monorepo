@@ -32,6 +32,15 @@ Comment with the specific failing checks from `gh pr checks`.
 gh pr comment <number> --body "Release merge: blocked — substantive conflicts in <files>. Author judgement needed; aborting rebase."
 ```
 
+## Announcement Cross-Link
+
+Posted on the **coordinating issue** (not the PR) when Step 8 finds no comment
+naming the PR. Adapt the verb to the PR's state at gate time:
+
+```sh
+gh issue comment <issue-number> --body "Release merge (announcement backstop): PR #<pr-number> — \`<title>\` — is in flight for this issue and has reached the merge gate. Cross-link posted by the gate because no prior comment here named the PR; recorded as an adherence miss per coordination-protocol.md fix-in-flight markers."
+```
+
 ## Merge Comment
 
 ```sh
