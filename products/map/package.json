@@ -58,6 +58,7 @@
     "./activity/transform/people": "./src/activity/transform/people.js",
     "./activity/transform/evidence": "./src/activity/transform/evidence.js",
     "./activity/transform": "./src/activity/transform/index.js",
+    "./activity/provenance": "./src/activity/provenance.js",
     "./activity/retention": "./src/activity/retention.js"
   },
   "bin": {
