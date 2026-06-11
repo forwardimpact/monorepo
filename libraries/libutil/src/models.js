@@ -1,8 +1,8 @@
 /**
  * Canonical Claude model identifiers, named by role. One home for every
  * model default in the monorepo — a model upgrade edits the values here
- * (plus any docs flagged by `scripts/check-model-defaults.mjs`) and
- * nothing else.
+ * (plus any docs flagged by `.coaligned/invariants/model-defaults.rules.mjs`)
+ * and nothing else.
  *
  * Markdown docs cannot import these constants, so the invariant script
  * cross-checks every model ID mentioned in docs and skills against the

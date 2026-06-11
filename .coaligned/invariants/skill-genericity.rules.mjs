@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Flag monorepo-specific content in the published kata-* skills. The kata-*
 // skill pack syncs unchanged into consuming repositories, so every line must
 // hold in a repo that installed the pack yesterday (.claude/skills/CLAUDE.md
@@ -22,17 +21,11 @@
 // these rules. fit-* skills are out of scope: they document their own
 // published CLIs and legitimately name @forwardimpact packages and tool
 // integrations.
-//
-// Usage: node scripts/check-skill-genericity.mjs
-// Wired into: bun run invariants (root package.json).
 
-import { spawnSync } from "node:child_process";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+import { assertRgAvailable, rgMatches } from "./lib/rg.mjs";
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-
-const rules = [
+const PATTERNS = [
   // --- Group 1: internal-only tooling ---
   {
     pattern: "\\bbun run ",
@@ -114,53 +107,44 @@ const rules = [
   },
 ];
 
-const rgCheck = spawnSync("rg", ["--version"], { stdio: "pipe" });
-if (rgCheck.status !== 0) {
-  process.stderr.write(
-    "error: ripgrep (rg) is required for check-skill-genericity.mjs\n",
-  );
-  process.exit(2);
-}
+export default {
+  name: "skill-genericity",
 
-const allMatches = [];
+  build({ root }) {
+    assertRgAvailable();
+    const seen = new Set();
+    const subjects = [];
+    for (const rule of PATTERNS) {
+      const matches = rgMatches({
+        cwd: root,
+        pattern: rule.pattern,
+        paths: [".claude/skills/"],
+        globs: [".claude/skills/kata-*/**"],
+        caseSensitive: true,
+      });
+      for (const m of matches) {
+        const key = `${m.raw}|${rule.reason}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        subjects.push({
+          path: resolve(root, m.path),
+          lineNo: m.lineNo,
+          text: m.text,
+          reason: rule.reason,
+        });
+      }
+    }
+    return { subjects: { "skill-match": subjects } };
+  },
 
-for (const rule of rules) {
-  const { stdout } = spawnSync(
-    "rg",
-    [
-      "--hidden",
-      "--no-messages",
-      "--line-number",
-      "--color",
-      "never",
-      "-e",
-      rule.pattern,
-      ".claude/skills/",
-      "--glob",
-      ".claude/skills/kata-*/**",
-    ],
-    { cwd: ROOT, stdio: "pipe", encoding: "utf-8" },
-  );
-
-  for (const line of (stdout || "").split("\n").filter(Boolean)) {
-    allMatches.push(`${line}\n    ↳ ${rule.reason}`);
-  }
-}
-
-if (allMatches.length > 0) {
-  const unique = [...new Set(allMatches)].sort();
-  process.stderr.write(
-    "error: monorepo-specific content found in published kata-* skills — " +
-      "every line must hold in a repo that installed the pack yesterday " +
-      "(.claude/skills/CLAUDE.md § Generic by design).\n\n",
-  );
-  process.stderr.write(unique.join("\n") + "\n\n");
-  process.stderr.write(
-    "If a match is a legitimate generic usage, narrow the rule in " +
-      "scripts/check-skill-genericity.mjs rather than leaving the " +
-      "monorepo-specific content in place.\n",
-  );
-  process.exit(1);
-}
-
-console.log("check-skill-genericity: kata-* skills are monorepo-free");
+  rules: [
+    {
+      id: "skills.monorepo-specific",
+      scope: "skill-match",
+      severity: "fail",
+      check: () => ({}),
+      message: (s) => `${s.text.trim()} — ${s.reason}`,
+      hint: "kata-* skills must hold in a repo that installed the pack yesterday (.claude/skills/CLAUDE.md § Generic by design); narrow the rule in .coaligned/invariants/skill-genericity.rules.mjs only for a legitimate generic usage",
+    },
+  ],
+};

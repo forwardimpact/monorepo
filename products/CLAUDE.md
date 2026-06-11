@@ -88,8 +88,8 @@ must appear in that product's `package.json` — in `dependencies`,
 The monorepo's workspace hoist masks missing declarations in `bun install`
 and `bun test`; the gap only surfaces when a downstream consumer runs
 `npx fit-<product>` against a clean machine. The
-[`check-workspace-imports`](../scripts/check-workspace-imports.mjs) guard
-enforces the rule on every PR through `bun run context`.
+[`workspace-imports`](../.coaligned/invariants/workspace-imports.rules.mjs)
+guard enforces the rule on every PR through `bun run invariants`.
 
 ## Adding a product
 

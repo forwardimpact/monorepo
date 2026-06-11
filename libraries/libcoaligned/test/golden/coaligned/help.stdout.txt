@@ -1,0 +1,20 @@
+coaligned 0.1.8 — Enforce the layered instruction architecture defined in COALIGNED.md (no subcommand: run every check)
+
+Usage: coaligned <command> [options]
+
+Commands:
+  instructions  Check L1–L6 length and checklist caps across the repo
+  invariants    Run the repository's invariant rule modules from .coaligned/invariants/
+  jtbd          Validate package.json .jobs entries and generated blocks
+
+Options:
+  --help, -h  Show this help
+  --version   Show version
+  --json      Output findings as JSON
+
+Examples:
+  coaligned
+  coaligned instructions
+  coaligned jtbd --fix
+
+Use coaligned <command> --help for command-specific options.

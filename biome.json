@@ -10,7 +10,6 @@
       "!**/generated/**",
       "!public/**",
       "!wiki/**",
-      "!scripts/test/byok-fixtures/**",
       "!playwright-report/**",
       "!data/knowledge/**",
       "!**/*.html",

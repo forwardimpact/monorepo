@@ -21,6 +21,13 @@
     "stderrFile": "instructions-help.stderr.txt"
   },
   {
+    "name": "invariants-help",
+    "args": ["invariants", "--help"],
+    "exitCode": 0,
+    "stdoutFile": "invariants-help.stdout.txt",
+    "stderrFile": "invariants-help.stderr.txt"
+  },
+  {
     "name": "jtbd-help",
     "args": ["jtbd", "--help"],
     "exitCode": 0,

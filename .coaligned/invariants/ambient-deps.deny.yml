@@ -1,15 +1,15 @@
-# Ambient-dependency deny-list — grandfathered pre-1370 smells.
+# Ambient-dependency deny-list — grandfathered legacy smells.
 #
 # A MONOTONE list: each migration PR REMOVES its files as they move onto the
 # injected runtime bag; entries are removed only, never added. The checker
-# (scripts/check-ambient-deps.mjs) fails if a listed file accrues a NEW smell
-# beyond the ones named here, and if a non-listed file uses any ambient dep.
+# (.coaligned/invariants/ambient-deps.rules.mjs) fails if a listed file
+# accrues a NEW smell beyond the ones named here, and if a non-listed file
+# uses any ambient dep.
 #
 # Smell keys: import:fs, import:child_process, date-now, new-date, set-timeout,
 # process-global, process-io, process-exit, process-cwd, fs-and-fssync.
 #
-# Schema: "<path>": [<smell>, ...]  (the residual foundation-gap entries that
-# outlive 1370 are catalogued in the spec teardown ledger).
+# Schema: "<path>": [<smell>, ...]
 libraries/libutil/src/extractor.js:
   - import:fs
 libraries/libutil/src/index.js:
