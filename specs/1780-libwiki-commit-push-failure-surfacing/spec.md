@@ -63,6 +63,18 @@ instance of the push half itself — during the run-302 release check,
 a full-history fetch), caught only by the *external* run-283
 ancestry-verify floor, not by the tool
 ([allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)).
+The occurrence is **release-engineer live-verified** on every independently
+re-verifiable element ([verification anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676483628)):
+origin never accepted `bc982943` (no containing ref at a full-history
+fetch); its parent `27077d6d` *is* an ancestor of `origin/master`,
+isolating the stranding to exactly the one commit the tool reported
+pushed; the swallow is live at source (empty catch around the push,
+unconditional pushed-true return); and the `claim` surface's
+saved-locally branch is confirmed dead code for push failures. The
+ledger's double-#41 is since reconciled — final assignment keeps
+**#41 = `bc982943`** ([reconciliation](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676486013)),
+so this spec's citations stand as written; the SHA-keyed hedge above
+remains the durable protection.
 With #41 the three phantom-class events span the full invisibility
 gradient — #41 (`bc982943`) object-in-hand, #30 (`ba1468cf`)
 object-reconstructed, the measures-CSV phantom no-object (ordinals as of
@@ -353,7 +365,8 @@ order.
 | Claim | Verification |
 |---|---|
 | Landed push ⇒ success reported, and only then. | Healthy fixture, uncontended; run `fit-wiki push`; observe zero exit, success message, and the commit reachable from the remote ref. |
-| Success is grounded in observed remote state — never claimed on the push subprocess's output text alone, so no external floor is needed. | Occurrence-#41 fixture ([#1564 allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)): force only the inadmissible channels to report success — success prose and zero exit, with the per-ref update report absent or reporting the ref un-updated — while the remote ref does not advance to contain the commit, so both permitted grounding mechanisms (per-ref report parsing and post-push remote observation) must classify failure; run `fit-wiki push`; observe non-zero exit, a D2 failure reason, and the success message **absent** — the command itself surfaces the stranding that the external run-283 ancestry-verify floor previously had to catch. Repeat via `fit-wiki claim` and `fit-wiki release` (the run-303 specimen's surface — `704cf95a`, § Problem Evidence); observe zero exit with the saved-locally warning carrying the reason, never the success message. |
+| Success is grounded in observed remote state — never claimed on the push subprocess's output text alone, so no external floor is needed. | Occurrence-#41 fixture ([#1564 allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)): force only the inadmissible channels to report success — success prose and zero exit, with the per-ref update report absent or reporting the ref un-updated — while the remote ref does not advance to contain the commit, so both permitted grounding mechanisms (per-ref report parsing and post-push remote observation) must classify failure. The stub's per-ref contract is pinned: **absent or failed, never a fabricated ok line** — a fabricated ok would make the fixture falsify the per-ref-parsing mechanism this spec permits; run `fit-wiki push`; observe non-zero exit, a D2 failure reason, and the success message **absent** — the command itself surfaces the stranding that the external run-283 ancestry-verify floor previously had to catch. Repeat via `fit-wiki claim` and `fit-wiki release` (the run-303 specimen's surface — `704cf95a`, § Problem Evidence); observe zero exit with the saved-locally warning carrying the reason, never the success message. |
+| Honest subprocess rejection ⇒ the wrapper does not lie — the production shape of occurrences #30/#41. | Companion fixture: bare remote whose `pre-receive` hook exits 1, so the push subprocess fails *honestly* and only the wrapper's swallow could mint success (the shape actually observed in the `ba1468cf` and `bc982943` events — no forced stub, real refusal); run `fit-wiki push`; observe non-zero exit, a D2 failure reason, the success message absent, and the remote ref unchanged. Repeat via `fit-wiki claim`; observe zero exit with the saved-locally warning. |
 | Nothing to push ⇒ zero exit with the existing honest message — asserted only when the remote ref contains local HEAD. | Clean fixture whose local HEAD is contained in the observed remote ref; run `fit-wiki push`; observe zero exit and the nothing-to-push message. |
 | Stranded-resume state re-pushes: clean tree, local commits ahead ⇒ push attempted, never *nothing to push*. | Fixture with a clean working tree and local commits the remote ref does not contain (the workspace a #41-class stranding leaves when no remediation turn ran — session death, hook skip), with the remote-tracking ref stale so pre-fetch arithmetic would report nothing to do; run `fit-wiki push`; observe a push attempt in the remote-operation sequence and the nothing-to-push message **absent** — an implementation gating the push on tree-dirtiness fails this row. |
 | Mid-rebase / detached HEAD ⇒ precondition refusal, never *landed*. | Fixture with a rebase in progress, and separately a detached HEAD; run `fit-wiki push`; observe non-zero exit, a precondition reason class, the success message absent, and no remote mutation. Also reached via an interrupted D3 retry (autostash rebase killed mid-reconcile, then re-invocation): observe the re-invocation refuses with the precondition reason rather than reporting any success-shaped outcome. |
@@ -377,7 +390,7 @@ order.
 | Conservation holds on the claim/release surfaces. | Drive the stale-read deletion fixture through `fit-wiki claim`; observe zero exit with the saved-locally warning (the guard refusal is a push failure under D1), the foreign row's survival on the remote, and no silent drop pushed. |
 | Deliberate removals pass the conservation guard, including when retried by the session-end push. | Targeted release of an owned claim and `release --expired` over a foreign expired claim, each pushing successfully; then a targeted release whose own push is forced to fail, followed by `fit-wiki push` from the same clone — observe the carried removal lands and the push succeeds. |
 | Whole-tree sweep contract unchanged. | Fixture with changes across multiple files; run `fit-wiki push`; observe a single commit sweeping the tree, as today. |
-| Healthy-clone behavior otherwise unchanged. | Run the libwiki test suite — with the rows that assert the removed behaviors (silent-clobber recovery, tolerated push failure) revised to the new contract — plus a healthy-clone fixture through all three surfaces; observe unchanged outcomes and messages apart from the honest-success gating and those revised rows. |
+| Healthy-clone behavior otherwise unchanged — and the suite's defect-asserting rows are inverted, not preserved. | Run the libwiki test suite — with the rows that assert the removed behaviors revised to the new contract: the silent-clobber recovery rows, and specifically the "commitAndPush tolerates a failing push (WikiRepo fire-and-forget)" test (`wiki-sync.test.js:218` at spec time), which locks in the phantom-success defect and must be **inverted** to assert a failure outcome — plus a healthy-clone fixture through all three surfaces; observe unchanged outcomes and messages apart from the honest-success gating and those revised rows. |
 | The contract documentation describes the taxonomy and per-caller mapping. | Read the `commitAndPush` contract surface documentation; observe it states the outcome taxonomy, the per-caller exit mapping, the conservation guard, and traces to this spec. |
 
 ## Provenance
@@ -416,6 +429,13 @@ the stranded-resume criterion from the
 [seed-table Update #2 adoption](https://github.com/forwardimpact/monorepo/issues/1580#issuecomment-4676307171)
 (coach proposal, PM-adapted: refuse-vs-warn carried, testable criterion,
 could-not-verify sub-class, D3-composition backstop) that the authored
-spec had lost, folded 2026-06-11 per the adjudication's ask#9 note.
+spec had lost, folded 2026-06-11 per the adjudication's ask#9 note;
+occurrence-#41 live verification, the defect-asserting-test inversion,
+the pinned per-ref stub contract, and the honest-rejection companion
+fixture from the
+[release-engineer verification](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676483628),
+with ordinals per the
+[improvement-coach final ledger reconciliation](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676486013)
+(#41 = `bc982943` stands as written), folded 2026-06-11.
 
 — Product Manager 🌱
