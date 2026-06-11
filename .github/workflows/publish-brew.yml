@@ -63,25 +63,32 @@ jobs:
           merge-multiple: true
 
       - name: Assemble bundle
+        env:
+          KIND: ${{ steps.meta.outputs.kind }}
+          NAME: ${{ steps.meta.outputs.name }}
         run: |
           # upload-artifact drops the executable bit; restore it before wrapping.
           find dist/binaries -type f ! -name '*.sha256' -exec chmod +x {} +
-          case "${{ steps.meta.outputs.kind }}" in
+          case "$KIND" in
             gear)     just build-app-gear ;;
-            product)  just build-app-product "${{ steps.meta.outputs.name }}" ;;
+            product)  just build-app-product "$NAME" ;;
           esac
 
       - name: Smoke test
+        env:
+          KIND: ${{ steps.meta.outputs.kind }}
+          NAME: ${{ steps.meta.outputs.name }}
+          BUNDLE_NAME: ${{ steps.meta.outputs.bundle }}
         run: |
-          BUNDLE="dist/apps/${{ steps.meta.outputs.bundle }}"
+          BUNDLE="dist/apps/${BUNDLE_NAME}"
           codesign --verify --deep --strict "$BUNDLE"
           # Product bundles run their own CLI's --help. Shared bundles exercise
           # one CLI per bundle (others are reachable via cask binary stanzas).
           # The gear primary-exec (fit-svcgraph) is a long-running server with no
           # --help short-circuit, so smoke the first non-server gear CLI instead;
           # teaching the server entries to honour --help is tracked separately.
-          case "${{ steps.meta.outputs.kind }}" in
-            product)  "$BUNDLE/Contents/MacOS/fit-${{ steps.meta.outputs.name }}" --help ;;
+          case "$KIND" in
+            product)  "$BUNDLE/Contents/MacOS/fit-${NAME}" --help ;;
             gear)
               SMOKE_CLI=$(jq -r '[.clis[] | select(.bundle == "gear" and (.server != true)) | .name][0]' build/cli-manifest.json)
               test -n "$SMOKE_CLI" && [ "$SMOKE_CLI" != "null" ] \
@@ -95,13 +102,17 @@ jobs:
         # confirm the signed cdhash is identical. A drifting cdhash wipes TCC
         # grants on `brew upgrade`, so a non-deterministic build must fail
         # release rather than ship.
+        env:
+          KIND: ${{ steps.meta.outputs.kind }}
+          NAME: ${{ steps.meta.outputs.name }}
+          BUNDLE_NAME: ${{ steps.meta.outputs.bundle }}
         run: |
-          BUNDLE="dist/apps/${{ steps.meta.outputs.bundle }}"
+          BUNDLE="dist/apps/${BUNDLE_NAME}"
           BASELINE=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
           rm -rf dist/apps products/outpost/dist   # keep dist/binaries (artifacts)
-          case "${{ steps.meta.outputs.kind }}" in
+          case "$KIND" in
             gear)     just build-app-gear ;;
-            product)  just build-app-product "${{ steps.meta.outputs.name }}" ;;
+            product)  just build-app-product "$NAME" ;;
           esac
           AFTER=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
           if [ "$BASELINE" != "$AFTER" ]; then
@@ -114,10 +125,12 @@ jobs:
 
       - name: Zip bundle and hash
         id: hash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          CASK: ${{ steps.meta.outputs.cask }}
+          BUNDLE_NAME: ${{ steps.meta.outputs.bundle }}
         run: |
-          VERSION="${{ steps.meta.outputs.version }}"
-          CASK="${{ steps.meta.outputs.cask }}"
-          BUNDLE="dist/apps/${{ steps.meta.outputs.bundle }}"
+          BUNDLE="dist/apps/${BUNDLE_NAME}"
           ASSET="${CASK}-${VERSION}-darwin-arm64.zip"
           # ditto preserves codesign metadata through zip; standard zip does not.
           ditto -c -k --sequesterRsrc --keepParent "$BUNDLE" "dist/apps/${ASSET}"
@@ -138,9 +151,9 @@ jobs:
       - name: Upload release assets
         env:
           GH_TOKEN: ${{ github.token }}
+          ASSET: ${{ steps.hash.outputs.asset }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          ASSET="${{ steps.hash.outputs.asset }}"
           gh release upload "$TAG" \
             "dist/apps/${ASSET}" \
             "dist/apps/${ASSET}.sha256" \
@@ -174,10 +187,10 @@ jobs:
         id: hash
         env:
           GH_TOKEN: ${{ github.token }}
+          CASK: ${{ steps.meta.outputs.cask }}
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          CASK="${{ steps.meta.outputs.cask }}"
-          VERSION="${{ steps.meta.outputs.version }}"
           ASSET="${CASK}-${VERSION}-darwin-arm64.zip"
           gh release download "$TAG" --pattern "${ASSET}.sha256" --dir . \
             --repo "$GITHUB_REPOSITORY"
@@ -224,9 +237,9 @@ jobs:
         working-directory: tap
         env:
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
+          CASK: ${{ steps.meta.outputs.cask }}
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          CASK="${{ steps.meta.outputs.cask }}"
-          VERSION="${{ steps.meta.outputs.version }}"
           BRANCH="update/${CASK}-${VERSION}"
           git checkout -b "$BRANCH"
           git add "Casks/${CASK}.rb"

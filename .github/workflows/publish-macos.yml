@@ -53,8 +53,10 @@ jobs:
 
       - name: Verify .pkg exists
         working-directory: products/outpost
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          PKG_FILE="dist/fit-outpost-${{ steps.meta.outputs.version }}.pkg"
+          PKG_FILE="dist/fit-outpost-${VERSION}.pkg"
           if [ ! -f "$PKG_FILE" ]; then
             echo "Error: $PKG_FILE not found"
             ls -la dist/
@@ -71,18 +73,20 @@ jobs:
       - name: Create or reuse GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          TAG="${{ steps.meta.outputs.tag }}"
           gh release create "$TAG" \
-            --title "Outpost ${{ steps.meta.outputs.version }}" \
+            --title "Outpost $VERSION" \
             --generate-notes 2>/dev/null \
             || echo "Release $TAG already exists"
 
       - name: Upload release assets
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          PKG_FILE: ${{ steps.verify.outputs.pkg_file }}
         run: |
-          TAG="${{ steps.meta.outputs.tag }}"
           gh release upload "$TAG" \
-            "products/outpost/${{ steps.verify.outputs.pkg_file }}" \
+            "products/outpost/$PKG_FILE" \
             --clobber
