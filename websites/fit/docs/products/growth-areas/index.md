@@ -127,27 +127,50 @@ npx fit-landmark evidence --email you@example.com
     architecture_design: 3 matched, 1 unmatched
       [matched] Designs services with clear API boundaries
         rationale: A recent pull request introduced a new service boundary with documented...
+        provenance: artifact_interpreted
       [matched] Documents trade-offs in design decisions
         rationale: Design doc for auth migration weighed three approaches...
+        provenance: agent_attested
       [matched] Defines module boundaries for a bounded domain
         rationale: RFC-019 established module boundaries for the billing...
+        provenance: artifact_interpreted
       [unmatched] Leads architecture for a product or platform area
 
     code_review: 2 matched, 0 unmatched
       [matched] Provides actionable feedback on design intent, not just style
         rationale: Review of a recent pull request identified a coupling risk between...
+        provenance: artifact_interpreted
       [matched] Catches cross-cutting concerns during review
         rationale: Review of a recent pull request flagged a missing audit trail...
+        provenance: agent_attested
 
     Evidence covers 18/24 artifacts.
 ```
 
-Each row shows the artifact, the marker it matched, and Guide's rationale for
-the match. Filter by skill to focus on a specific gap:
+Each row shows the marker it matched, the rationale for the match, and a
+provenance label naming where the evidence came from. Filter by skill to
+focus on a specific gap:
 
 ```sh
 npx fit-landmark evidence --skill architecture_design --email you@example.com
 ```
+
+### Know where each piece of evidence comes from
+
+Every evidence row carries one of four provenance labels. They matter when
+you bring the record to a promotion conversation — evidence interpreted from
+real artifacts carries more weight than placeholder rows:
+
+| Provenance              | Where the row came from                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| `artifact_interpreted`  | Matched directly from an ingested artifact (pull request, design document, code review)  |
+| `agent_attested`        | Written by Guide's deeper evaluation of your artifacts against a marker                  |
+| `human_attested`        | Recorded by a person attesting the marker — also the default for rows written before provenance tracking |
+| `synthetic_placeholder` | Generated from synthetic demo data — not evidence of real work                           |
+
+The `coverage` command (below) breaks your record down by these labels, so
+you can see at a glance how much of it rests on interpreted artifacts versus
+placeholders.
 
 ### Check promotion readiness
 
@@ -159,7 +182,7 @@ npx fit-landmark readiness --email you@example.com
 ```
 
 ```text
-  Readiness: you@example.com (J060 -> J070)
+  Readiness: you@example.com (J060 → J070)
 
     Architecture Design (practitioner):
       [x] Designs services with clear API boundaries (service-boundary-pr)
@@ -173,8 +196,8 @@ npx fit-landmark readiness --email you@example.com
       [ ] Defines review standards for the area
 
     5/7 markers evidenced.
-    Missing: Leads architecture for a product or platform area; Mentors others
-    on review quality; Defines review standards for the area
+    Evidence coverage: 18/24 artifacts interpreted (75.0%).
+    Missing: Leads architecture for a product or platform area; Mentors others on review quality; Defines review standards for the area
 ```
 
 Without `--target`, readiness checks against the next level above your current
@@ -200,14 +223,36 @@ npx fit-landmark coverage --email you@example.com
 
     18/24 artifacts interpreted (75.0%)
 
+    By provenance (evidence rows):
+      synthetic_placeholder     0
+      artifact_interpreted      14
+      agent_attested            5
+      human_attested            3
+
     By type:
+      code_review           2/4 interpreted
+      design_document       4/5 interpreted
       pull_request          12/15 interpreted
-      design_document        4/5 interpreted
-      code_review            2/4 interpreted
 ```
 
-Coverage shows evidenced artifacts versus total expected markers. Low coverage
-in a specific skill area tells you where to focus your work.
+Coverage shows how many of your artifacts have been interpreted into
+evidence, broken down by provenance label and artifact type. A low
+interpreted ratio means the record is thin — focus on getting artifacts
+ingested and interpreted before reading too much into any other view.
+
+### When coverage is below the confidence floor
+
+When fewer than 30% of your artifacts are interpreted, Landmark treats the
+record as too thin to support conclusions:
+
+- `readiness` suppresses its verdict entirely and prints the coverage figure
+  with guidance instead of a checklist.
+- `coverage` and `timeline` print a banner — low coverage means the numbers
+  reflect a measurement gap, not an absence of growth.
+
+Each suppression names the same way out: add evidence from interpreted
+artifacts, run Guide's evaluate-evidence assessment, or have a person attest
+markers directly. Once coverage crosses the floor, the full views return.
 
 ## Build evidence in the gaps
 

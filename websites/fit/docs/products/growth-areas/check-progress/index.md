@@ -34,7 +34,7 @@ npx fit-landmark readiness --email you@example.com
 Expected output:
 
 ```text
-  Readiness: you@example.com (J060 -> J070)
+  Readiness: you@example.com (J060 → J070)
 
     Architecture Design (practitioner):
       [x] Designs services with clear API boundaries (service-boundary-pr)
@@ -48,8 +48,8 @@ Expected output:
       [ ] Defines review standards for the area
 
     5/7 markers evidenced.
-    Missing: Leads architecture for a product or platform area; Mentors others
-    on review quality; Defines review standards for the area
+    Evidence coverage: 18/24 artifacts interpreted (75.0%).
+    Missing: Leads architecture for a product or platform area; Mentors others on review quality; Defines review standards for the area
 ```
 
 Without `--target`, readiness checks against the next level above your current
@@ -61,7 +61,10 @@ npx fit-landmark readiness --email you@example.com --target J080
 
 The summary line at the bottom is the quickest signal: compare the
 evidenced/total ratio to your last check. If the ratio has grown, recent work is
-producing visible results.
+producing visible results. The trailing coverage line shows how much of your
+artifact record backs the checklist — when fewer than 30% of your artifacts
+are interpreted, `readiness` suppresses the checklist entirely and prints the
+coverage figure with guidance on how to lift it instead.
 
 ## Review the evidence behind each marker
 
@@ -81,17 +84,22 @@ Expected output:
     architecture_design: 3 matched, 1 unmatched
       [matched] Designs services with clear API boundaries
         rationale: A recent pull request introduced a new service boundary with documented...
+        provenance: artifact_interpreted
       [matched] Documents trade-offs in design decisions
         rationale: Design doc for auth migration weighed three approaches...
+        provenance: agent_attested
       [matched] Defines module boundaries for a bounded domain
         rationale: RFC-019 established module boundaries for the billing...
+        provenance: artifact_interpreted
       [unmatched] Leads architecture for a product or platform area
 
     Evidence covers 18/24 artifacts.
 ```
 
-Each matched row includes the artifact reference and a rationale explaining the
-match. Reviewing rationales helps you understand what kind of work is being
+Each matched row includes a rationale explaining the match and a provenance
+label naming where the evidence came from (see
+[Know where each piece of evidence comes from](/docs/products/growth-areas/#know-where-each-piece-of-evidence-comes-from)).
+Reviewing rationales helps you understand what kind of work is being
 recognized -- and what kind is not yet strong enough to match.
 
 ## Check your growth timeline
@@ -129,7 +137,9 @@ npx fit-landmark timeline --email you@example.com --skill architecture_design
 If the timeline shows the same proficiency level across multiple quarters with
 no change, either the work has not yet produced artifacts that match the
 next-level markers, or the relevant artifacts have not been ingested. Check
-whether recent pull requests and design documents have been processed.
+whether recent pull requests and design documents have been processed. When
+coverage is below 30%, the timeline opens with a banner reminding you that a
+flat line reflects the measurement floor, not an absence of growth.
 
 ## Look up what the missing markers expect
 
