@@ -235,4 +235,9 @@ every test imports them from there.
   `createDefaultRuntime(...)` (the composition-root factory) is exempt. There
   is no deny-list: the tree is clean, so any hit is a real regression.
 
-All four run under `bun run invariants`.
+These four enforce this policy. They are a subset of the invariant checks
+chained under `bun run invariants` — the `invariants` script in the root
+`package.json` is the authoritative list, and each check states its own rule
+in its header comment. Authoring-facing rules (such as the
+temporal-reference invariant) live in
+[CONTRIBUTING.md § Invariants](CONTRIBUTING.md#invariants).
