@@ -26,7 +26,7 @@ const rules = [
   // checker keeps catching real temporal references in production code
   // without flagging assertion strings.
   {
-    pattern: "\\b(pr|pull)[- ]?#[0-9]{2,5}\\b",
+    pattern: "\\b(pr|pull)[- ]?#?[0-9]{2,5}\\b",
     globs: ["!**/test/**"],
   },
   { pattern: "\\bGH-[0-9]{2,5}\\b" },
