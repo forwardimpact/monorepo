@@ -246,8 +246,8 @@ Behavior: re-reads `data/synthetic/seed/seed_*.sql` (mounted read-only at
 `trials` and `criteria` tables, upserts via PostgREST. Used to refresh
 seed data without re-running full `setup.sh`. The path is deliberate:
 the only mount the `finder-functions` container has on
-`data/synthetic/` is `:seed`, so `sync-listings` reads what `fetch-seed.sh`
-actually places there — no second bind-mount needed.
+`data/synthetic/` is `:seed`, so `sync-listings` reads the seed vendored
+there by part 03 (r2) — no second bind-mount needed.
 
 Request:
 

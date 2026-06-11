@@ -7,13 +7,17 @@ Build the `bionova-apps` external repository to spec
 
 The implementation lives in a new, separate GitHub repository
 (`forwardimpact/bionova-apps`) — not in this monorepo. **bionova-apps does
-NOT run `fit-terrain` itself**: `libterrain`'s bin resolves output paths
-from `__dirname` relative to its install location, so running it from an
-external repo's `node_modules` writes files to the wrong place and would
-need `products/map/schema/json` (not in the published npm package). The
-data pipeline is therefore inverted: the monorepo regenerates terrain
-output via spec 1150's implementation; bionova-apps fetches the committed
-SQL and JSONL artifacts from `raw.githubusercontent.com/forwardimpact/monorepo/<sha>/products/finder/site/supabase/migrations/`
+NOT run `fit-terrain` itself**: `libterrain`'s bin resolves its project
+root by upward `package.json` search from the consumer's CWD
+(`bin/fit-terrain.js:199`, `runtime.finder.findProjectRoot()`), so from an
+external repo it would look for `data/synthetic/story.dsl` and
+`products/map/schema/json` in that repo — neither exists outside the
+monorepo, and the schema dir is not in the published npm package. The
+data pipeline is therefore inverted (r2, see part 03): the implementer
+regenerates terrain output inside the monorepo (spec 1150's
+implementation; output paths are gitignored, never committed) and
+**vendors** the SQL and JSONL artifacts into bionova-apps at
+`data/synthetic/seed/` with recorded provenance. No network fetch occurs
 at `setup.sh` time. Parts are decomposed by surface so they can run in
 parallel where the design allows. Each part is independently verifiable
 end-to-end against a local `docker compose` boot; the final part ties
@@ -38,7 +42,7 @@ this spec; the monorepo PR (`plan-implemented`) updates only
 | Dep | Status | Where checked |
 | --- | --- | --- |
 | Spec 1140 — clinical-output pipeline | implemented (commits `8bbf8f1c`, `0c921e81`) | `libterrain` clinical-output stage emits `supabase_migration` + `embeddings_jsonl` files |
-| Spec 1150 — story.dsl clinical rewrite | **plan approved, not implemented** | story.dsl currently lacks `clinical {}` and `output … supabase_migration {…}` blocks |
+| Spec 1150 — story.dsl clinical rewrite | **implemented** (`wiki/STATUS.md` row `1150 plan implemented`; live-verified 2026-06-11 — `bunx fit-terrain build` at `6010964b`: 0 cache misses, all 10 seed artifacts produced) | story.dsl carries `clinical {}` + `output … supabase_migration {…}` blocks at `data/synthetic/story.dsl:1250–1266` |
 | `@forwardimpact/libcli@0.1.12`, `libui@1.3.0`, `libformat@0.1.18`, `libtemplate@0.2.12`, `librepl@0.1.14` on npm | published — versions verified via `npm view @forwardimpact/<lib> version` at panel-review time | part 01 pins these exact versions; implementer re-runs `npm view @forwardimpact/{libcli,libui,libformat,libtemplate,librepl} version` immediately before `bun install` and bumps in the part-01 PR if any further patch level published since. **libui crossed a minor (1.2 → 1.3): the implementer must scan `CHANGELOG.md` (or the GitHub release notes for `@forwardimpact/libui@1.3.0`) for breaking changes to `createBoundRouter`, `render`, `freezeInvocationContext`, and the exported `components` surface used by plan-a-07; record the scan result in the part-01 PR body** even when no breakage is found. **libterrain is NOT a bionova-apps dependency** — see Approach |
 
 **This plan should not enter implementation until spec 1150 lands on
@@ -56,7 +60,7 @@ implemented`; route `kata-implement` only after that signal flips.
 | --- | --- | --- | --- |
 | [01](plan-a-01.md) | Repo bootstrap + infrastructure | New repo, MONOREPO.md, `package.json`, `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | — |
 | [02](plan-a-02.md) | Schema + RLS + interest_signals migration | Hand-written migration for `interest_signals`, RLS policies, schema verification | 01 |
-| [03](plan-a-03.md) | Data pipeline | story.dsl in `data/synthetic/`, `fit-terrain generate` integration, `setup.sh` data steps | 01, 02, spec 1150 implemented |
+| [03](plan-a-03.md) | Data pipeline (r2) | vendored terrain seed in `data/synthetic/seed/` + `PROVENANCE.md`, `scripts/stage-seed.sh`, `setup.sh` data steps | 01, 02, spec 1150 implemented |
 | [04](plan-a-04.md) | Edge functions | `embed-seed`, `eligibility-check`, `notify-updates`, `sync-listings` under `services/finder-functions/` | 03 |
 | [05](plan-a-05.md) | Shared handlers | `products/finder/handlers/` — `searchTrials`, `showTrial`, `checkEligibility`, `listSites`, `showAbout`, `manageTrial` | 03 |
 | [06](plan-a-06.md) | CLI surface | `products/finder/cli/` + `bin/bionova-finder.js`, libcli wiring, `repl` subcommand | 05 |
@@ -69,21 +73,25 @@ Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationCo
 
 ## Risks
 
-- **Spec 1150 not implemented before this plan starts.** Without spec
-  1150's `products/finder/site/supabase/migrations/seed_*.sql` and
-  `seed_embeddings.jsonl` committed to monorepo `main`, bionova-apps has
-  no data to fetch. Mitigation: hold plan approval until 1150 lands (see
-  Prerequisites). Part 03 step 1 verifies the artifacts exist on `main`
-  via a `curl --fail` probe before any subsequent step.
-- **libterrain not invokable from external repos.** Confirmed at
-  `libraries/libterrain/bin/fit-terrain.js:197`: `monorepoRoot =
-  resolve(__dirname, "../../..")` — from
-  `<consumer>/node_modules/@forwardimpact/libterrain/bin/` this resolves
-  to `<consumer>/node_modules/`, not the consumer's repo root. Additionally `monorepoRoot/products/map/schema/json`
-  (line 198) is referenced but not in libterrain's published `files`
-  field. Conclusion: bionova-apps cannot run terrain; it consumes
-  terrain output produced inside the monorepo. SC6 (regenerable) is
-  satisfied by re-fetching from a pinned monorepo SHA — see part 03.
+- **Spec 1150 not implemented before this plan starts.** Resolved — 1150
+  is implemented and live-verified (see Prerequisites). r1's residual
+  assumption that 1150's artifacts would be *committed* to monorepo
+  `main` was never true (terrain output is generated, never committed —
+  `products/finder/` is gitignored); part 03 (r2) therefore vendors
+  regenerated artifacts instead of fetching committed ones. Part 03
+  step 1 regenerates and verifies the artifact list before vendoring.
+- **libterrain not invokable from external repos.** Re-confirmed at
+  revision time (the mechanism changed since r1, the conclusion holds):
+  `libraries/libterrain/bin/fit-terrain.js:199` now resolves
+  `monorepoRoot` via `runtime.finder.findProjectRoot()` (upward
+  `package.json` search from CWD), so in bionova-apps it would resolve
+  bionova-apps' own root — which has no `data/synthetic/story.dsl` and
+  no `products/map/schema/json` (line 200; the schema dir is absent
+  from libterrain's published `files` field). Conclusion unchanged:
+  bionova-apps cannot run terrain; it consumes terrain output produced
+  inside the monorepo. SC6 (regenerable) is satisfied by regenerating
+  in the monorepo at the provenance SHA and byte-diffing against the
+  vendored copies — see part 03 (r2) and spec SC6 as corrected.
 - **Schema type mismatch: `trials.id` is `text` not `uuid`.** Confirmed
   at `libraries/libsyntheticrender/src/render/render-sql.js:32-33` (the
   trials entity spec) which is rendered by `renderEntityTable` (same
