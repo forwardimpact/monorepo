@@ -1,7 +1,7 @@
 # Spec 1760 — fit-wiki audit admits wiki files by a declared filename grammar
 
-Paired with [Spec 1770](../1770-sealed-part-h1-slot-grammar/spec.md) (sealed-part
-heading semantics), authored in the same `kata-spec` pass per the
+Paired with [Spec 1770](../1770-weekly-log-part-h1-slot-numbering/spec.md)
+(sealed-part heading semantics), authored in the same `kata-spec` pass per the
 [pairing decision](https://github.com/forwardimpact/monorepo/issues/1582#issuecomment-4675802555).
 This spec owns filename **admission** — which files may exist under `wiki/`.
 Spec 1770 owns heading **semantics** — what a sealed part's H1 says. Neither
