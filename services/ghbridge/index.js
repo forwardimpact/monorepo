@@ -267,12 +267,14 @@ export class GhBridgeService {
 
   /** @returns {Promise<void>} */
   async start() {
+    this.#callbacks.startSweepTimer();
     await this.#bridge.start();
     await this.#resume.rearm();
   }
 
   /** @returns {Promise<void>} */
   async stop() {
+    this.#callbacks.stopSweepTimer();
     this.#resume.clear();
     await this.#bridge.stop();
   }
