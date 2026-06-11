@@ -138,6 +138,7 @@ cross-cutting fallback.
 | **kata-storyboard** | Daily 08:00 (Paris)                  | improvement-coach (facilitates 5 agents)                                                                        |
 | **kata-coaching**   | `workflow_dispatch`                  | improvement-coach (facilitates 1 agent)                                                                         |
 | **kata-dispatch**   | Events + bridge dispatch             | release-engineer (facilitates up to 4 agents)                                                                   |
+| **kata-interview**  | `workflow_dispatch`                  | product-manager (supervises 1 interview agent)                                                                  |
 
 **kata-shift** runs the roster sequentially (`max-parallel: 1`, `fail-fast:
 false`). **kata-dispatch** is the event-driven counterpart — the release
