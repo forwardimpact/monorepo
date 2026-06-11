@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libcoaligned",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Co-Aligned architecture checks — enforce instruction-layer length caps and JTBD invariants across the repo.",
   "keywords": [
     "coaligned",

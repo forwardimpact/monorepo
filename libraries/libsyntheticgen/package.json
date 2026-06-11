@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libsyntheticgen",
-  "version": "0.1.28",
+  "version": "0.1.29",
   "description": "DSL parser and deterministic entity graph generator — repeatable eval fixtures so results are reproducible.",
   "keywords": [
     "synthetic",
