@@ -64,9 +64,30 @@ a full-history fetch), caught only by the *external* run-283
 ancestry-verify floor, not by the tool
 ([allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)).
 With #41 the three phantom-class events span the full invisibility
-gradient — #41 object-in-hand, #30 object-reconstructed, #37 no-object —
-so the defect is no longer inferred from source capability alone; it has
-a caught-in-the-act specimen. The acceptance question this evidence sets
+gradient — #41 (`bc982943`) object-in-hand, #30 (`ba1468cf`)
+object-reconstructed, the measures-CSV phantom no-object — so the defect
+is no longer inferred from source capability alone; it has a
+caught-in-the-act specimen. That specimen is no longer alone: a third,
+coach-verified first-hand
+([ledger disposition](https://github.com/forwardimpact/monorepo/issues/1580#issuecomment-4676327242)),
+landed on the **`fit-wiki release` path** — the run-303 release check
+printed `push: committed and pushed` for release commit `704cf95a`
+(01:19:13Z 2026-06-11), which never reached origin because origin had
+advanced via a parallel lane; the external floor caught it and the write
+re-landed as `8b211fe8` 53 seconds later (byte-identical diff,
+NOT-ancestor + value-read verified), with the orphan commit persisting in
+the shared checkout's object store — direct corroboration of the minting
+mechanism. **Specimen census: n=3 in ~26 hours** — founding `ba1468cf`,
+run-302 `bc982943` (`fit-wiki push`), run-303 `704cf95a` (`fit-wiki
+release`) — two in consecutive runs within one session hour, on two
+different CLI surfaces sharing the one operation. **Rate revision
+(coach, 6/11): phantom success is deterministic under origin-advance
+contention** — it fires whenever a push races a parallel lane's landing,
+not as a rare stochastic fault — with ~1 specimen expected per session
+hour at peak facilitated-session cadence until the fix deploys; every
+release meanwhile pays the floor's verification overhead (unshallow +
+ancestry + value-read) as the running price of queue latency.
+The acceptance question this evidence sets
 is therefore: what must be true of the push operation itself so that **no
 external floor is needed** — answered by the grounded-success property in
 § Decisions D2 and its success criteria. Further live instances sit on
@@ -280,7 +301,7 @@ regardless of series order.
 | Claim | Verification |
 |---|---|
 | Landed push ⇒ success reported, and only then. | Healthy fixture, uncontended; run `fit-wiki push`; observe zero exit, success message, and the commit reachable from the remote ref. |
-| Success is grounded in observed remote state — never claimed on the push subprocess's output text alone, so no external floor is needed. | Occurrence-#41 fixture ([#1564 allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)): force the push subprocess to report success (zero exit, success-shaped output) while the remote ref does not advance to contain the commit; run `fit-wiki push`; observe non-zero exit, a D2 failure reason, and the success message **absent** — the command itself surfaces the stranding that the external run-283 ancestry-verify floor previously had to catch. Repeat via `fit-wiki claim`; observe zero exit with the saved-locally warning carrying the reason, never the success message. |
+| Success is grounded in observed remote state — never claimed on the push subprocess's output text alone, so no external floor is needed. | Occurrence-#41 fixture ([#1564 allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)): force the push subprocess to report success (zero exit, success-shaped output) while the remote ref does not advance to contain the commit; run `fit-wiki push`; observe non-zero exit, a D2 failure reason, and the success message **absent** — the command itself surfaces the stranding that the external run-283 ancestry-verify floor previously had to catch. Repeat via `fit-wiki claim` and `fit-wiki release` (the run-303 specimen's surface — `704cf95a`, § Problem Evidence); observe zero exit with the saved-locally warning carrying the reason, never the success message. |
 | Nothing to push ⇒ zero exit with the existing honest message. | Clean fixture with no commits ahead; run `fit-wiki push`; observe zero exit and the nothing-to-push message. |
 | Rebase conflict ⇒ loud failure, remote side never mechanically discarded. | Fixture with a textually overlapping remote advance; run `fit-wiki push`; observe non-zero exit, a conflict-reason message naming resolve-or-retry, the rebase aborted, no merge commit resolving to the local side, and the remote tip unchanged. |
 | Push rejection after a successful fetch ⇒ *rejected* reported, never success. | Fixture whose remote advances without textual overlap between the operation's fetch and push (retry exhausted, see retry rows); observe non-zero exit and the rejected reason — not a success report. |
@@ -322,6 +343,9 @@ evidence framing per the
 occurrence #41 evidence and the grounded-success ("no external floor
 needed") acceptance framing from the
 [improvement-coach allocation pass](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051),
+folded 2026-06-11; run-303 release-path specimen (`704cf95a` →
+`8b211fe8`) and the deterministic-rate revision from the
+[improvement-coach ledger disposition](https://github.com/forwardimpact/monorepo/issues/1580#issuecomment-4676327242),
 folded 2026-06-11.
 
 — Product Manager 🌱
