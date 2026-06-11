@@ -2,11 +2,30 @@
  * Formatters for the `timeline` command.
  */
 
+import { isBelowFloor, floorPercentText } from "../lib/confidence-floor.js";
 import { padRight, renderHeader } from "./shared.js";
+
+const LIFT_HINT =
+  "Add artifact-interpreted evidence, run Guide's evaluate-evidence skill, or hand-attest markers via WriteEvidence to lift the floor.";
+
+function belowFloorBanner(coverage) {
+  const pct = (coverage.ratio * 100).toFixed(1);
+  return `Coverage below floor (${pct}% < ${floorPercentText()}) — timeline reflects measurement floor, not absence of growth.`;
+}
 
 /** Render the growth timeline as plain text with quarter, skill, and highest-level columns. */
 export function toText(view) {
   const lines = [renderHeader(`Growth timeline for ${view.email}`), ""];
+
+  if (
+    view.coverage &&
+    view.coverage.total > 0 &&
+    isBelowFloor(view.coverage.ratio)
+  ) {
+    lines.push(`    ${belowFloorBanner(view.coverage)}`);
+    lines.push(`    ${LIFT_HINT}`);
+    lines.push("");
+  }
 
   const skillWidth = Math.max(
     15,
@@ -29,12 +48,19 @@ export function toJson(view, meta) {
 
 /** Render the growth timeline as a markdown table with quarter, skill, and highest-level columns. */
 export function toMarkdown(view) {
-  const lines = [
-    `# Growth timeline for ${view.email}`,
-    "",
-    "| Quarter | Skill | Highest Level |",
-    "| --- | --- | --- |",
-  ];
+  const lines = [`# Growth timeline for ${view.email}`, ""];
+
+  if (
+    view.coverage &&
+    view.coverage.total > 0 &&
+    isBelowFloor(view.coverage.ratio)
+  ) {
+    lines.push(`**${belowFloorBanner(view.coverage)}**`);
+    lines.push(LIFT_HINT);
+    lines.push("");
+  }
+
+  lines.push("| Quarter | Skill | Highest Level |", "| --- | --- | --- |");
 
   for (const entry of view.timeline) {
     lines.push(

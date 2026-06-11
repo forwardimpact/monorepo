@@ -6,6 +6,7 @@ import {
 } from "@forwardimpact/libmock";
 
 import { runTimelineCommand } from "../src/commands/timeline.js";
+import { toText } from "../src/formatters/timeline.js";
 import { EMPTY_STATES } from "../src/lib/empty-state.js";
 
 // Timeline-specific evidence: spans multiple quarters (2024-Q3 through 2025-Q1)
@@ -44,8 +45,16 @@ const EVIDENCE = [
   },
 ];
 
-function stubQueries({ evidence = EVIDENCE } = {}) {
-  return createMockQueries({ getEvidence: evidence });
+function stubQueries({
+  evidence = EVIDENCE,
+  artifacts = [],
+  unscored = [],
+} = {}) {
+  return createMockQueries({
+    getEvidence: evidence,
+    getArtifacts: artifacts,
+    getUnscoredArtifacts: unscored,
+  });
 }
 
 describe("timeline command", () => {
@@ -73,6 +82,49 @@ describe("timeline command", () => {
     });
     assert.equal(result.view, null);
     assert.equal(result.meta.emptyState, EMPTY_STATES.NO_EVIDENCE);
+  });
+
+  it("attaches coverage and renders the below-floor banner above the table", async () => {
+    const artifacts = Array.from({ length: 100 }, (_, i) => ({
+      artifact_id: `a${i}`,
+    }));
+    const result = await runTimelineCommand({
+      options: { email: "alice@example.com" },
+      supabase: {},
+      format: "text",
+      queries: stubQueries({
+        artifacts,
+        unscored: artifacts.slice(1), // 1/100 = 1%, below floor
+      }),
+    });
+    assert.equal(result.view.coverage.ratio, 0.01);
+    const text = toText(result.view);
+    const lines = text.split("\n");
+    const bannerIdx = lines.findIndex((l) =>
+      l.includes("Coverage below floor"),
+    );
+    const firstEntryIdx = lines.findIndex((l) => l.includes("2024-Q3"));
+    assert.ok(bannerIdx >= 0, "missing below-floor banner");
+    assert.match(
+      text,
+      /timeline reflects measurement floor, not absence of growth/,
+    );
+    assert.ok(
+      firstEntryIdx > bannerIdx,
+      "table should render after the banner",
+    );
+  });
+
+  it("renders no banner for a zero-artifact persona", async () => {
+    const result = await runTimelineCommand({
+      options: { email: "alice@example.com" },
+      supabase: {},
+      format: "text",
+      queries: stubQueries({ artifacts: [] }),
+    });
+    assert.equal(result.view.coverage, null);
+    const text = toText(result.view);
+    assert.doesNotMatch(text, /Coverage below floor/);
   });
 
   it("throws when --email is missing", async () => {

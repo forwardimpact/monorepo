@@ -4,6 +4,7 @@
  */
 
 import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/map/levels";
+import { PROVENANCE_CLASSES } from "@forwardimpact/map/activity/provenance";
 
 /**
  * Group raw evidence rows by skillId.
@@ -145,4 +146,22 @@ function toQuarter(dateStr) {
   const month = d.getMonth(); // 0-based
   const q = Math.floor(month / 3) + 1;
   return `${year}-Q${q}`;
+}
+
+/**
+ * Count evidence rows per provenance class. Rows whose value falls outside
+ * PROVENANCE_CLASSES land in an `unknown` bucket rather than being silently
+ * dropped from the visible total.
+ * @param {Array<object>} evidenceRows
+ * @returns {Record<string, number>}
+ */
+export function groupEvidenceByProvenance(evidenceRows) {
+  const counts = Object.fromEntries(PROVENANCE_CLASSES.map((c) => [c, 0]));
+  counts.unknown = 0;
+  for (const row of evidenceRows) {
+    const p = row.provenance ?? "human_attested"; // DB default
+    if (p in counts) counts[p]++;
+    else counts.unknown++;
+  }
+  return counts;
 }

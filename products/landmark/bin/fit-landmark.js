@@ -15,6 +15,7 @@ import { createProductConfig } from "@forwardimpact/libconfig";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { COMMANDS } from "../src/lib/commands-manifest.js";
+import { floorPercentText } from "../src/lib/confidence-floor.js";
 import { resolveDataDir } from "../src/lib/cli.js";
 import { buildContext } from "../src/lib/context.js";
 import { SupabaseUnavailableError } from "../src/lib/supabase.js";
@@ -227,7 +228,7 @@ const definition = {
     {
       title: "Find Growth Areas and Build Evidence",
       url: "https://www.forwardimpact.team/docs/products/growth-areas/index.md",
-      description: "Identify gaps and track progress toward the next level.",
+      description: `Identify gaps and track progress toward the next level. Readiness, timeline, and coverage commands suppress verdicts and frame output as negative-evidence when coverage falls below ${floorPercentText()}.`,
     },
     {
       title: "Check Progress Toward Next Level",
