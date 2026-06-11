@@ -47,11 +47,22 @@ running.
 ## Probe for sibling PRs
 
 ```sh
-gh pr list --search "<N>" --state open --json number,title
+gh pr list --search "<N>" --state all --json number,title,state
 ```
 
-A second open PR referencing the same issue is a potential duplicate. Comment
-on the issue naming both PRs and assess which route stands — the Step 7
-comment gate applies — before merging either. Use `--state all` when
-reconstructing history: a just-merged sibling is invisible to an open-only
-search.
+A second PR referencing the same issue is a potential duplicate. Comment on
+the issue naming both PRs and assess which route stands — the Step 7 comment
+gate applies — before merging either. `--state all` is load-bearing at the
+gate for the same reason it is in
+[coordination-protocol § Claim → probe → create](../../../agents/references/coordination-protocol.md#claim--probe--create):
+a just-merged sibling settles which route stands, and is invisible to an
+open-only search.
+
+The search index lags by minutes, so an empty result is not absence
+evidence. The comment scan in the announcement check above is the lag-free
+complement: it reads the coordinating issue directly, so a sibling that
+followed the fix-in-flight marker rule appears there even when the index has
+not caught up. Treat the two instruments as a pair — index search for
+unannounced siblings, comment scan for announced ones. The remaining blind
+spot (unannounced **and** index-lagged) is bounded: the sibling's own merge
+gate runs this same probe after the index catches up.
