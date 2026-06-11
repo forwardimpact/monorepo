@@ -60,6 +60,27 @@ A finding can require **multiple channels in parallel** — e.g., a CVE raising
 a policy question is both a `fix/` PR and a Discussion. `fix/` and `spec/`
 branches never share a PR, but either may run alongside a Discussion.
 
+## Fix-in-flight marker
+
+A PR body records a change; the coordinating issue coordinates it. An in-run
+decision is not coordinated until it lands where the next reader looks
+(adopted from obstacle #1446 — duplicate PRs #1584/#1587 on #1581, where a
+route decision lived only in the PR body and a parallel run re-implemented the
+rejected route):
+
+1. **Announce at PR-open.** The implementing run comments on the coordinating
+   issue at or before PR-open: PR link, branch, and any route decision made
+   in-run.
+2. **Close alternatives where they were opened.** When an issue thread poses
+   routes A/B, the selection lands on that thread naming the rejected route
+   ("took A, not B") — so a later reader knows B is rejected, not unexplored.
+3. **Rescopes name in-flight state.** A comment that redefines an issue's
+   actionable scope states what is in flight (claim, branch, or PR) — or the
+   explicit negative: "no fix in flight as of this comment." A rescope is a
+   latest-state beacon; silence reads as an open invitation.
+
+A PR body may repeat a decision, never replace it.
+
 ## Cross-agent escalation
 
 Address another agent by name in plain text — "Hello Product Manager,
