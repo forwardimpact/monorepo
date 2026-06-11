@@ -33,10 +33,13 @@ jobs:
           echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
           # Find the npm package name and directory from the tag
           # Workspaces use glob patterns — resolve them with Glob.sync
-          PKG_JSON=$(bun -e "
+          # The tag name reaches the script via the environment, never by
+          # interpolation into the source text — ref names may legally
+          # contain quotes and shell metacharacters.
+          PKG_JSON=$(TAG_NAME="$TAG_NAME" bun -e "
             const { globSync } = require('node:fs');
             const { workspaces } = require('./package.json');
-            const tag = '${TAG_NAME}';
+            const tag = process.env.TAG_NAME;
             const dirs = workspaces.flatMap(ws => globSync(ws, { withFileTypes: false }));
             for (const dir of dirs) {
               try {
