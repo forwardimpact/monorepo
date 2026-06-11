@@ -12,6 +12,7 @@ const config = await createServiceConfig("oidc", {
   issuer: "https://token.actions.githubusercontent.com",
   audience: "fit-ghserver",
   jwks_ttl_ms: 600_000,
+  jwks_cooldown_ms: 30_000,
   port: 9202,
 });
 
