@@ -175,8 +175,8 @@ Append to the current week's log:
 - **Contributor trust decisions** — audited per KATA.md § Invariants
 - **STATUS rows consumed and written** — gate reads, `plan implemented` writes
 - **PRs merged this run** and **merge failures** with reasons
-- **Announcement self-heals** — Step 8 cross-links posted, with the authoring
-  agent's lane (duplicate-PR falsifier series)
+- **Announcement outcomes** — every run: issue-fix PR count + heals posted
+  with authoring lane, zero-heal rows included (duplicate-PR falsifier series)
 - **Metrics** — Append `prs_merged` and `approvals_recorded_per_run` rows per
   `references/metrics.md` (collection recipe included). See KATA.md § Metrics
   for the recording-eligibility rule.

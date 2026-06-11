@@ -29,13 +29,20 @@ STATUS, not on issues).
 
 ```sh
 gh issue view <N> --json comments \
-  --jq '[.comments[].body | select(contains("#<pr-number>"))] | length'
+  --jq '[.comments[].body | select(test("#<pr-number>([^0-9]|$)"))] | length'
 ```
+
+The boundary pattern matters: a plain substring match lets `#15981` satisfy a
+check for `#1598`, so the gate would skip the heal and the miss would go
+unlogged — exactly the signal loss this step exists to prevent.
 
 Zero means unannounced: post the cross-link from
 [`templates.md`](templates.md) § Announcement Cross-Link, then record the
 adherence miss in the run log with the authoring agent's lane (SKILL.md
-§ Memory).
+§ Memory). Record the Step 8 outcome unconditionally — e.g. "announcement
+backstop: N PRs with coordinating issues, 0 heals" — so a zero-heal run is
+positive evidence of author adherence, distinguishable from the check never
+running.
 
 ## Probe for sibling PRs
 
