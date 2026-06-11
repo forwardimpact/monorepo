@@ -97,8 +97,8 @@ approved`. STATUS is written when a trusted human's signal is observed —
 direct message in an interactive session. `kata-dispatch` validates trust and
 propagates PR-side signals into STATUS; an in-session agent writes STATUS
 when the user explicitly approves. See
-[`approval-signals.md`](../../agents/references/approval-signals.md) and
-[`coordination-protocol.md` § Approval signal](../../agents/references/coordination-protocol.md#approval-signal).
+[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md) and
+[`coordination-protocol.md` § Approval signal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#approval-signal).
 
 Phase progression is derived from `main`: once the spec PR merges,
 `specs/NNN/spec.md` exists on `main` and the next phase may begin. A STATUS

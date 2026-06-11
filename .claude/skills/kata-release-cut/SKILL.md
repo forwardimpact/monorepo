@@ -23,8 +23,8 @@ determine version bumps, and cut releases.
 - [ ] Ran
       `gh run list --branch main --limit 5 --json name,conclusion,headBranch`.
 - [ ] All recent workflows show `conclusion: success`.
-- [ ] Trivial failures (format, lint, lock file) repaired via
-      `bun run check:fix` on `main`, committed, and pushed.
+- [ ] Trivial failures (format, lint, lock file) repaired via the
+      repository's auto-fix command on `main`, committed, and pushed.
 - [ ] CI confirmed green after repairs. **Stop if failures persist** — never
       release from a broken `main`.
 
@@ -33,7 +33,7 @@ determine version bumps, and cut releases.
 <do_confirm_checklist goal="Verify releases were cut correctly before pushing">
 
 - [ ] Each changed package assessed for version bump type.
-- [ ] `bun run check` passes after all version bumps.
+- [ ] The repository's check command passes after all version bumps.
 - [ ] Each tag follows `{prefix}@v{version}` convention.
 - [ ] Tags pushed individually — never `git push --tags`.
 - [ ] Publish workflows verified as triggered for each tag.
@@ -57,19 +57,18 @@ gh run list --branch main --limit 5 --json name,conclusion,headBranch
 
 ```sh
 git checkout main && git pull origin main
-bun run check:fix
-bun run check            # Must pass
+# Run the repository's auto-fix command, then its check command (must pass)
 git add <fixed-files> && git commit -m "chore: fix formatting on main"
 git push origin main
 ```
 
 ### Tag Prefix Mapping
 
-| Directory          | Tag prefix | Example tag         |
-| ------------------ | ---------- | ------------------- |
-| `libraries/libfoo` | `libfoo`   | `libfoo@v0.1.5`     |
-| `products/pathway` | `pathway`  | `pathway@v0.25.0`   |
-| `services/trace`   | `svctrace` | `svctrace@v0.1.110` |
+| Directory          | Tag prefix | Example tag       |
+| ------------------ | ---------- | ----------------- |
+| `libraries/libfoo` | `libfoo`   | `libfoo@v0.1.5`   |
+| `products/foo`     | `foo`      | `foo@v0.25.0`     |
+| `services/bar`     | `svcbar`   | `svcbar@v0.1.110` |
 
 ### Version Rules
 
@@ -105,20 +104,16 @@ npm version patch --no-git-tag-version   # or minor/major
 For **major** bumps, update cross-workspace dependents:
 
 ```sh
-grep -r '"@forwardimpact/<pkg>"' --include=package.json -l
+grep -r '"@<scope>/<pkg>"' --include=package.json -l
 ```
 
-Then sync and verify:
-
-```sh
-bun install
-bun run check:fix && bun run check
-```
+Then re-run the package manager's install and the repository's auto-fix and
+check commands.
 
 ### Step 5: Commit and Tag
 
 ```sh
-git add <package>/package.json package-lock.json
+git add <package>/package.json <lockfile>
 git commit -m "chore(<pkg>): bump to <version>"
 git tag <prefix>@v<version>
 ```
@@ -167,6 +162,5 @@ Append to the current week's log (see agent profile for the file path):
 
 - **First release**: Skip packages with version `0.0.0` or `"private": true`.
 - **Failed publish**: Don't delete the tag. Fix, bump patch, re-tag.
-- **Dependency chain**: Release foundational packages before consumers — for
-  example, `map` and `libskill` must be released before `pathway` (which depends
-  on both). Check `package.json` dependencies before tagging.
+- **Dependency chain**: Release foundational packages before consumers —
+  check `package.json` dependencies before tagging.

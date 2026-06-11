@@ -12,8 +12,8 @@ Verify every open non-Dependabot PR against six gates (trust, type, CI,
 mechanical readiness, approval, open comments) and merge those that pass.
 
 This skill handles external contributions and kata-agent-team PRs alike.
-Contributor trust is the most critical gate (audited per KATA.md § Invariants
-on every advanced PR).
+Contributor trust is the most critical gate — record the trust check in
+memory for every advanced PR.
 
 ## When to Use
 
@@ -64,8 +64,8 @@ gh api repos/{owner}/{repo}/contributors \
   --jq '[.[] | select(.type == "User")] | .[0:7] | .[].login'
 ```
 
-The PR author must appear in this list. If not, mark **blocked** (the
-invariant audit checks this lookup ran on every classified PR).
+The PR author must appear in this list. If not, mark **blocked** (this
+lookup must run on every classified PR).
 
 ### Step 3: Classify PR Type
 
@@ -99,18 +99,18 @@ git checkout <pr-branch> && git rebase origin/main
 **Mechanical conflicts only** (lock file, generated files, formatting):
 
 ```sh
-# Lock file: git checkout --theirs package-lock.json && bun install
-# Generated:  bunx fit-codegen --all
-# Formatting: bun run format:fix
+# Lock file:  take theirs, then re-run the package manager's install
+# Generated:  re-run the repository's codegen command
+# Formatting: run the repository's formatter
 git add <files> && git rebase --continue
 ```
 
 **Substantive conflicts** (overlapping logic, renamed symbols,
 deleted-vs-modified) — `git rebase --abort` and comment the conflicting files.
 
-After rebase, run `bun run check:fix` then `bun run check`. If checks still
-fail, mark **blocked** with the failures and skip to Step 11. Push with
-`git push --force-with-lease origin <pr-branch>`.
+After rebase, run the repository's auto-fix command, then its check command.
+If checks still fail, mark **blocked** with the failures and skip to Step 11.
+Push with `git push --force-with-lease origin <pr-branch>`.
 
 ### Step 6: Approval Gate
 
@@ -124,7 +124,7 @@ Read `wiki/STATUS.md` for the PR's spec id —
 `plan implemented` only once every sub-row does. Absent or `draft`/`cancelled`
 → **blocked** (`awaiting approval signal`). Labels and APPROVED reviews feed
 STATUS via `kata-dispatch`; not consulted here. See
-[`approval-signals.md`](../../agents/references/approval-signals.md).
+[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
 
 ### Step 7: Open Comment Gate
 
@@ -173,7 +173,7 @@ Append to the current week's log:
 
 - **PR classification table** — type, author, trust, CI, STATUS row,
   verdict, consecutive-block count
-- **Contributor trust decisions** — audited per KATA.md § Invariants
+- **Contributor trust decisions** — one row per advanced PR
 - **STATUS rows consumed and written** — gate reads, `plan implemented` writes
 - **PRs merged this run** and **merge failures** with reasons
 - **Announcement outcomes** — every run: issue-fix PR count + heals posted
@@ -185,8 +185,8 @@ Append to the current week's log:
 ## Coordination Channels
 
 Outputs (per
-[coordination-protocol.md](../../agents/references/coordination-protocol.md)):
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
 **PR comment** for trust rationale, gate failures, merge decisions; **PR
 thread escalation** for cross-agent requests addressed by name. Ambiguous
 inbound comments → follow
-[coordination-protocol.md § Inbound: unclear addressed comments](../../agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).

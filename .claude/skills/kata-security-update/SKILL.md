@@ -55,16 +55,12 @@ each check to its policy source and failure action — merge, fix, close, or ski
 | Override-range shadowing | CONTRIBUTING.md § Dependency Policy | **fix** — open follow-up override-bump PR before merging      |
 
 When evaluating the SHA-pinning check, verify the PR updates **all** workflow
-files referencing the action. See `references/sha-inventory.md` for the full
-action-to-workflow mapping. Also verify pin **direction**:
+files referencing the action. See `references/sha-inventory.md` for how to
+derive the action-to-workflow inventory. Also verify pin **direction**:
 `gh api repos/{owner}/{repo}/compare/{old}...{new} --jq .status` must return
 `ahead`; `behind` or `diverged` is a downgrade — **close** even with green CI
 and route a tag-hygiene issue to release-engineer (a mutable major tag lags
 the release Dependabot tracks via the `# v1` comment).
-
-A downgrade close is still **detection evidence** that Dependabot reads SHA
-pins: before closing, check boot memory for an open watchpoint tracking that
-detection and comment there with the closed PR, both SHAs, and compare status.
 
 ## Process
 
@@ -92,13 +88,13 @@ Determine update type from title: **patch** (low risk), **minor** (low risk),
 
 #### Check 8: Peer/Transitive Compatibility (npm major updates)
 
-Run `bun pm ls` on the PR branch. Look for: **`invalid`** (close), **nested
-duplicates** in `bun.lock` (close), or **`deduped` across mismatched majors**
-(investigate before merging).
+List the dependency tree on the PR branch (e.g. `npm ls`). Look for:
+**`invalid`** (close), **nested duplicates** in the lock file (close), or
+**`deduped` across mismatched majors** (investigate before merging).
 
 #### Check 9: Override-Range Shadowing
 
-Bun's resolver **replaces** (does not intersect) workspace ranges with root
+Resolvers **replace** (do not intersect) workspace ranges with root
 `overrides`. A workspace `package.json` bump can be silently shadowed by a
 stale override floor; a root override below a workspace range silently floors
 that workspace under the policy minimum.
@@ -111,10 +107,10 @@ that workspace under the policy minimum.
 1. For every package whose `*/package.json` range is bumped in the diff, grep
    the root `package.json` `overrides` block. If the package appears, verify
    the override range satisfies the bumped workspace range.
-2. Run `bun install` on the PR branch, then `bun audit`.
+2. Run the package manager's install on the PR branch, then its audit.
 3. If audit is **dirty for any package the diff attempts to bump**, the
-   override is shadowing — open a follow-up `fix/security-audit-<date>-<pkg>-override`
-   PR bumping the override floor **before** merging the original PR.
+   override is shadowing — open a follow-up `fix/` PR bumping the override
+   floor **before** merging the original PR.
 4. The inverse direction also fires: if a workspace range is **below** an
    existing override floor, the workspace silently regresses if the override
    is ever removed. Align the workspace range in the same PR.
@@ -134,7 +130,7 @@ to Dependabot branches):
 ```sh
 git fetch origin <dependabot-branch>
 git checkout -b fix/dependabot-<number> origin/<dependabot-branch>
-# Make fixes, run bun run check && bun run test && just audit
+# Make fixes; run the repository's check, test, and audit commands
 git commit -m "fix(deps): <description for PR #number>"
 git push -u origin fix/dependabot-<number>
 gh pr create --title "chore(deps): <description> (fixed)" \
@@ -147,13 +143,13 @@ fix is already on `main` (stale audit base, not a PR-caused issue):
 
 ```sh
 # Confirm: only vuln-scan fails and main has security fixes the PR base lacks
-git log --oneline origin/main ^<pr-merge-base> -- '**/package.json' bun.lock
+git log --oneline origin/main ^<pr-merge-base> -- '**/package.json' <lockfile>
 
 # If commits exist, rebase will fix the scan — create a superseding branch
 git fetch origin <dependabot-branch>
 git checkout -b chore/rebase-dependabot-<number> origin/<dependabot-branch>
 git rebase origin/main
-bun run check && bun run test && just audit
+# Run the repository's check, test, and audit commands
 git push -u origin chore/rebase-dependabot-<number>
 gh pr create --title "chore(deps): <original-title> (rebased)" \
   --body "Rebases Dependabot PR #<number> on current main to pick up security fixes."

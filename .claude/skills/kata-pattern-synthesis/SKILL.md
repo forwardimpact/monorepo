@@ -148,7 +148,7 @@ Stop and route to a coaching session in any of these cases:
 ## Coach Scope Exception
 
 The coach's general "no writing specs or fix PRs" constraint
-([`improvement-coach.md`](../../agents/improvement-coach.md)) is extended
+([`improvement-coach.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/improvement-coach.md)) is extended
 here because the synthesis is observation-as-architecture, not domain work —
 the spec is a write-up of what the team has already implicitly decided
 across the corpus, not a new feature. The exception is scoped to this skill
@@ -174,7 +174,7 @@ Append to the current week's coach log
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](../../agents/references/coordination-protocol.md)):
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
 
 - **PR body** — Synthesis spec/design PR carries an Addresses overview.
 - **Issue comment** — One per addressed item; never on out-of-scope items.

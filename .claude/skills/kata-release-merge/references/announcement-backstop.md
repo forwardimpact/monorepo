@@ -10,7 +10,7 @@ leaves the issue thread silent while the work lands. A parallel run that
 reads the issue during that window sees an unfixed defect and implements it
 again — duplicate work, then merge-gate conflict triage, then a superseded
 close. The announce-at-open duty belongs to the implementing run
-([coordination-protocol.md](../../../agents/references/coordination-protocol.md),
+([coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md),
 fix-in-flight markers); this step is the backstop that guarantees the record
 exists before any merge, regardless of author adherence.
 
@@ -54,7 +54,7 @@ A second PR referencing the same issue is a potential duplicate. Comment on
 the issue naming both PRs and assess which route stands — the Step 7 comment
 gate applies — before merging either. `--state all` is load-bearing at the
 gate for the same reason it is in
-[coordination-protocol § Claim → probe → create](../../../agents/references/coordination-protocol.md#claim--probe--create):
+[coordination-protocol § Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create):
 a just-merged sibling settles which route stands, and is invisible to an
 open-only search.
 

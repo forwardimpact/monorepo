@@ -52,7 +52,7 @@ alongside the skill-specific ones below.
 
 <do_confirm_checklist goal="Confirm implementation is complete before pushing">
 
-- [ ] `bun run check` and `bun run test` pass.
+- [ ] The repository's check and test commands pass.
 - [ ] Spec-specific verification commands from the plan pass.
 - [ ] Full diff reviewed against the spec's success criteria — every criterion
       met.
@@ -71,7 +71,7 @@ Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On
 and blockers.
 
 > **Writing under `.claude/`:** If the plan targets files there, follow
-> [self-improvement.md](../../agents/references/self-improvement.md).
+> [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md).
 
 ### Step 1: Study the spec deeply
 

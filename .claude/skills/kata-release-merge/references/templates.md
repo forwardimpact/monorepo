@@ -61,10 +61,10 @@ If still `OPEN`, note in the summary rather than reporting as merged.
 ```
 | PR     | Title                          | Type | Author | CI    | STATUS         | Action  | Reason                          |
 | ------ | ------------------------------ | ---- | ------ | ----- | -------------- | ------- | ------------------------------- |
-| #fix-a | fix(map): schema validation    | fix  | alice  | green | n/a            | merged  | All gates pass                  |
+| #fix-a | fix(parser): schema validation | fix  | alice  | green | n/a            | merged  | All gates pass                  |
 | #spec-b| spec(security): SSRF hardening | spec | bob    | green | spec draft     | blocked | STATUS row not at spec approved |
-| #feat-c| feat(pathway): export feature  | feat | carol  | red   | plan approved  | blocked | CI failing: format check        |
-| #fix-d | fix(libui): color contrast     | fix  | eve    | green | n/a            | blocked | Author not in top contributors  |
+| #feat-c| feat(export): export feature   | feat | carol  | red   | plan approved  | blocked | CI failing: format check        |
+| #fix-d | fix(ui): color contrast        | fix  | eve    | green | n/a            | blocked | Author not in top contributors  |
 ```
 
 **Flag PRs blocked across 3+ consecutive runs** prominently above the table —

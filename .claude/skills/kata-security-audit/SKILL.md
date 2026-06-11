@@ -19,7 +19,8 @@ description: >
 
 <do_confirm_checklist goal="Confirm audit topic was thoroughly checked">
 
-- [ ] Ran `just audit` locally and reported findings.
+- [ ] Ran the repository's security audit command locally and reported
+      findings.
 - [ ] Read every file in the topic's audit scope — not just grep results.
 - [ ] Each finding cites a specific file path and line number.
 - [ ] Each finding categorized: mechanical fix, structural (spec), or observation.
@@ -66,18 +67,18 @@ YAML/JSON without schema validation).
 Verify publish workflows block on audit failures and CI/local workflows run the
 same checks.
 
-### 6. Library Audit Invariants (libbridge audit-time)
+### 6. Local Audit Invariants
 
-Apply the bridge-parity and timing-parity invariants when the selected topic is `app-security-libraries` or when reviewing any libbridge PR. Both codify SE's audit-time check; structural adoption stays in staff-engineer's lane.
-
-- **Bridge-parity invariant** — Surface gating lives in the identity-contract registry (`IDENTITY_CONTRACTS` in `services/ghuser/src/identity-contracts.js`); unregistered surfaces fail closed through `DEFAULT_CONTRACT` (`bridgePendingDispatchProof`), so the audit target is the registrations: for each surface registered beyond `github-discussions`, verify its contract is at least as strong as the bridge-proof default — a weaker contract (e.g. equality-only) bypasses the `putPendingDispatch` proof while still issuing dispatch; flag it unless the bridge README documents an explicit opt-out rationale.
-- **Timing-parity convention** (libbridge-wide) — Any new `CallbackRegistry` (or sibling registry) lookup method that scans a stored collection MUST maintain a secondary index keyed on the lookup field so hits and misses share an O(1) path, OR carry an explicit `scan-by-design` comment with security review of response-shape parity.
+Libraries and services may declare audit-time invariants in their local
+CLAUDE.md. When the selected topic covers that code, or when reviewing a PR
+that touches it, read the local CLAUDE.md and apply every invariant it
+declares.
 
 ## Process
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find last audit dates per topic in the coverage map. Canonical topic-rotation runs (audit topics under § Audit Areas) write only to the wiki and never open a PR — do **not** `fit-wiki claim` for them; the claim contract applies only when this skill is invoked from `kata-security-update` or otherwise opens a PR (see [memory-protocol § Claims](../../agents/references/memory-protocol.md#claims)).
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find last audit dates per topic in the coverage map. Canonical topic-rotation runs (audit topics under § Audit Areas) write only to the wiki and never open a PR — do **not** `fit-wiki claim` for them; the claim contract applies only when this skill is invoked from `kata-security-update` or otherwise opens a PR (see [memory-protocol § Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#claims)).
 
 ### Step 1: Select Topic
 
@@ -104,50 +105,11 @@ Each run covers **one topic** in depth.
 
 #### Topic-rotation budget rule
 
-PR-review work is high-priority but displaces canonical topic rotation. The
-budget rule restores rotation cadence without breaching PR-review turnaround.
-
-**Rule**: After **2 consecutive PR-review-displacement slots** in the same
-vocabulary class (PR-review note vs canonical-topic note), the next SE Assess
-invocation reserves the slot for canonical topic rotation unless a critical-PR
-safety carve-out applies.
-
-**Counter mechanics** — derived live from
-`wiki/metrics/kata-security-audit/2026.csv`, walking rows backward from latest:
-
-| `note` shape                       | Effect on counter                                  |
-| ---------------------------------- | -------------------------------------------------- |
-| matches `*-pass[0-9]+$`            | **STOP** (reset to 0)                              |
-| matches `*-pr-review-*`            | **+1**                                             |
-| matches `^storyboard-*` (non-pass) | **+1**                                             |
-| matches `*-off-cadence*`           | **+1**                                             |
-| matches `*-ci-red-defer-*`         | **neutral** (safety-deferral does not punish rule) |
-
-Rule fires when counter ≥ 2 at next Assess.
-
-**Safety carve-outs** — rule does NOT fire if any apply:
-
-- **CRITICAL Dependabot PR open** — vulnerability with CVSS ≥ 7.0 in any open
-  Dependabot PR.
-- **Main CI red** — at least one required check on `origin/main` HEAD has
-  `conclusion=failure` (per
-  `gh api repos/forwardimpact/monorepo/commits/<sha>/check-runs`).
-- **Plan-phase PR covers a live security finding** (class rule) — PR branch
-  matches `plan/NNN-*` AND the spec body cites an open security Issue, an
-  active kill-switch, or a HIGH-severity SE audit finding; carve-out remains
-  time-bounded by the release-cut window noted in plan-a § Atomic release
-  coupling. *Replaces case-by-case enumeration of plan-phase PRs covering live
-  security findings — predicate matching means future qualifying plan PRs
-  inherit the carve-out without a SKILL.md amendment.*
-
-**Collision contingency** (main CI red AND reserved rotation slot on the same
-day):
-
-- SE is canonical repair-owner only for `secret-scanning` failures. If
-  root cause = secret-scanning → rule yields, SE repairs, records
-  `note=*-ci-red-secret-scanning-repair`.
-- Otherwise (RE/Staff repair-owner) → rule defers rotation 24h on safety
-  grounds. Assess records `note=*-ci-red-defer-<reason>`.
+PR-review work is high-priority but displaces canonical topic rotation. After
+two consecutive runs displaced by PR review (check this skill's recent
+metrics rows), reserve the next run for topic rotation — unless a critical
+vulnerability is open or `main` CI is red, in which case handle the safety
+issue first and defer rotation to the following run.
 
 ### Step 2: Audit the Topic
 
@@ -159,7 +121,7 @@ paths and line numbers.
 
 Every audit must produce all applicable categories of output. Classify each
 finding with
-[work-definition.md § Classification tests](../../agents/references/work-definition.md#classification-tests)
+[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests)
 (mechanical fix vs structural spec vs unsettled Discussion). Security-specific:
 a cross-team policy question goes to a Discussion **before** any spec or fix
 that depends on the answer.
@@ -185,7 +147,7 @@ Append to the current week's log (see agent profile for the file path):
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](../../agents/references/coordination-protocol.md)):
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
 
 - **Discussion** — Policy questions surfaced from audit (e.g. "should we relax
   SHA-pinning for `actions/*`?") that need cross-team input before a spec.

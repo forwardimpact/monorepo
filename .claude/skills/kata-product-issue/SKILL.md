@@ -48,7 +48,7 @@ artifacts is in `references/trace-discovery.md`.
 ## Classification
 
 The mechanical-vs-structural-vs-unsettled-vs-out-of-scope tests are defined once in
-[work-definition.md § Classification tests](../../agents/references/work-definition.md#classification-tests);
+[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests);
 this table maps those work-types to the triage-specific action and labels.
 Product alignment (the **Product-aligned** row) is this skill's own criterion —
 see § Product Vision Alignment below.
@@ -57,7 +57,7 @@ see § Product Vision Alignment below.
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | **Mechanical fix/bug**   | Fix PR (direct git ops, no spec)                                                                                    |
 | **Product-aligned**      | Write spec via the `kata-spec` skill                                                                                |
-| **Cross-product policy** | Open Discussion (per [coordination-protocol.md](../../agents/references/coordination-protocol.md)); label `triaged` |
+| **Cross-product policy** | Open Discussion (per [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)); label `triaged` |
 | **Out of scope**         | Comment + label `triaged`/`wontfix`                                                                                 |
 
 ## Product Vision Alignment
@@ -121,11 +121,11 @@ Append to the current week's log (see agent profile for the file path):
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](../../agents/references/coordination-protocol.md)):
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
 
 - **Issue comment** — Triage classification, clarification requests, "not now"
   closures with rationale.
 - **Discussion** — Cross-product policy questions surfaced from triage.
 
 If an inbound issue comment addressed to this agent is ambiguous, follow
-[coordination-protocol.md § Inbound: unclear addressed comments](../../agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).

@@ -75,7 +75,7 @@ Hire, Competes With, Forces (Push, Pull, Habit, Anxiety), Fired When.
 
 ### Step 3: Stage the Agent Workspace
 
-The workflow ran `bunx fit-terrain build` and installed `supabase`.
+The workflow ran `npx fit-terrain build` and installed `supabase`.
 Copy the subset the chosen product needs into `$AGENT_CWD`:
 
 | Product          | Stage into `$AGENT_CWD`                                                                                                                            |
@@ -83,7 +83,7 @@ Copy the subset the chosen product needs into `$AGENT_CWD`:
 | Guide, Outpost   | nothing                                                                                                                                            |
 | Pathway          | `data/pathway/`                                                                                                                                    |
 | Map              | `data/pathway/` and `data/activity/`                                                                                                               |
-| Substrate-backed | `data/pathway/`; automated workflows commonly bring up the substrate already — otherwise `bunx fit-map substrate stage --cwd "$AGENT_CWD"`         |
+| Substrate-backed | `data/pathway/`; automated workflows commonly bring up the substrate already — otherwise `npx fit-map substrate stage --cwd "$AGENT_CWD"`         |
 | Summit           | `data/pathway/` and `data/activity/raw/activity/summit.yaml` (as `summit.yaml` at root)                                                            |
 
 Use `cp -r data/pathway "$AGENT_CWD/data/pathway"` and similar.
@@ -92,15 +92,16 @@ Use `cp -r data/pathway "$AGENT_CWD/data/pathway"` and similar.
 
 For **substrate-backed products**, the substrate is already up (per
 Step 3). Pick a persona and seal identity via two `fit-map substrate`
-verbs — see the [`fit-map` skill § Substrate](../fit-map/SKILL.md) for
-verb mechanics, invariants, and exit codes:
+verbs — see the
+[`fit-map` skill § Substrate](https://github.com/forwardimpact/monorepo/blob/main/.claude/skills/fit-map/SKILL.md)
+for verb mechanics, invariants, and exit codes:
 
-1. `bunx fit-map substrate pick --format json` — read `email`, `name`,
+1. `npx fit-map substrate pick --format json` — read `email`, `name`,
    `github_username`, `team_name`, `department_name`,
    `parent.{name,github_username,level}`, `repos`, `teammates`, and
    `scenario` off the returned persona; no follow-up reads of
    `data/synthetic/` are needed.
-2. `bunx fit-map substrate issue --email <picked> --cwd "$AGENT_CWD"
+2. `npx fit-map substrate issue --email <picked> --cwd "$AGENT_CWD"
    --stash "$RUNNER_TEMP/.persona-jwt"` — `--stash` is for the post-run
    log scan; the agent has no `$RUNNER_TEMP` access.
 

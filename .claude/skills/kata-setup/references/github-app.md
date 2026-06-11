@@ -12,7 +12,7 @@ Forward Impact-owned App from its public install URL; the hosted
 from a GitHub Actions OIDC identity, so no `KATA_APP_ID` /
 `KATA_APP_PRIVATE_KEY` secret is configured in the consuming repository.
 Set only the `FIT_OIDC_URL` repository variable and the `ANTHROPIC_API_KEY`
-secret. See [TRUST.md](../../../TRUST.md) for the hosted trust model and
+secret. See [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for the hosted trust model and
 [`services/oidc/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/oidc/README.md)
 for the exchange contract. The rest of this page is the **self-hosted**
 path.
