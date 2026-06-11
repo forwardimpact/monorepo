@@ -61,18 +61,23 @@ condition holds, the agent records **NO CUT OWED** and stops — the sweep is
 not required and skipping it is the codified, defensible path. When any
 condition fails, the full sweep runs; there is no judgment call in between.
 
-**Definition — blocked vs due.** An obligation is *blocked* when its record
-cites an unmet external prerequisite (a spec approval, a discussion
-outcome, a human action); otherwise it is *due*. A due obligation defeats
-the early exit; a blocked one rides as a re-cite.
+**Definition — blocked, verifiable-in-run, due.** An obligation is
+*blocked* when its record cites an unmet external prerequisite (a spec
+approval, a discussion outcome, a human action). It is **verifiable-in-run**
+when the assessment itself can resolve it with the invocations the skill
+already uses (the canonical member of this class: a pending
+publish-workflow verification, resolvable via one `gh run list`) — the
+assessment must resolve it before exiting: verified-success clears it,
+verified-failure makes it due. Every other obligation is *due*. A due
+obligation defeats the early exit; a blocked one rides as a re-cite.
 
 ### Discriminator predicate (all conditions required)
 
 | # | Condition | Why it is load-bearing |
 | --- | --- | --- |
-| 1 | **Verified-clean baseline.** A prior run record establishes a baseline commit `B` — an ancestor of current `HEAD` — at which an assessment verified zero unreleased commits beyond the obligations that run re-cited as blocked. A baseline is established by a full sweep reaching that state, or by a cutting run's post-cut state once its tags exist at that commit (pending publish-workflow verification rides as a condition-3 re-cite; it does not block baseline establishment), or by an earlier early-exit verdict chained to one. | Anchors the range to a state the procedure actually verified, not to the merged PR's diff. Defining cleanliness net of blocked re-cites keeps the predicate satisfiable in the steady state the evidence shows — a standing blocked backlog would otherwise make the exit unreachable forever. |
+| 1 | **Verified-clean baseline.** A prior run record establishes a baseline commit `B` — an ancestor of current `HEAD` — at which an assessment verified zero unreleased commits beyond the obligations that run re-cited as blocked. A baseline is established by a full sweep reaching that state, or by a cutting run's post-cut state once its tags exist at that commit (a pending publish-workflow verification is verifiable-in-run per § Definition — it does not block baseline establishment, and condition 3 resolves it), or by an earlier early-exit verdict chained to one. | Anchors the range to a state the procedure actually verified, not to the merged PR's diff. Defining cleanliness net of blocked re-cites keeps the predicate satisfiable in the steady state the evidence shows — a standing blocked backlog would otherwise make the exit unreachable forever. |
 | 2 | **Zero publishable paths in range.** The union of paths changed by each commit in `B..HEAD` (per-commit semantics, as the sweep's own log comparison uses — not a net diff, which an add-then-revert pair inside the range would fool) includes nothing under any publishable-package directory. The publishable-path set is derived from the workspace manifest (currently `libraries/*`, `products/*`, `services/*`), not hardcoded. | Sound over-approximation: the sweep's per-package check is path-scoped, so if no path under any workspace directory changed in `B..HEAD`, the sweep run at `HEAD` can find nothing beyond what the baseline run already found and re-cited. |
-| 3 | **Carry-forward state re-cited.** Every standing obligation — first-release backlog, held/deferred cuts, pending publish-failure retries and publish-workflow verifications from prior runs — is either empty or explicitly re-cited as blocked, with its blocking reference. Any due obligation defeats the early exit. | Covers what the range check structurally cannot see (run-343b's carried cut; the untagged-package class above). |
+| 3 | **Carry-forward state re-cited.** Every standing obligation — first-release backlog, held/deferred cuts, pending publish-failure retries and publish-workflow verifications from prior runs — is either empty, explicitly re-cited as blocked with its blocking reference, or verifiable-in-run and resolved to verified-success (§ Definition). Any due obligation — including a verifiable-in-run obligation that resolves to failure — defeats the early exit. | Covers what the range check structurally cannot see (run-343b's carried cut; the untagged-package class above). |
 | 4 | **Main CI green.** The existing pre-flight checklist passed. Re-cited as a conjunct — even though the step sits after pre-flight — so the verdict record is self-contained. | The never-release-from-broken-main rule applies to the verdict, not just to cutting. |
 
 ### Authority boundary
@@ -168,7 +173,14 @@ independently of which implementation lands first:
 - **Spec 1500's hazard codification.** Publish-time hazards are a distinct
   concern with its spec in an in-flight PR; this spec is assessment-time
   cost. Whichever implementation lands second rebases over the other's
-  skill-file changes; the headroom constraints above hold either way.
+  skill-file changes. **Residual:** the ≤95% criterion binds only *this*
+  spec's implementation PR — if it lands first, spec 1500's only budget
+  criterion is `bun run check` (the 100% cap), so its later rebase could
+  legally land the combined skill file at 95–100%, eroding the headroom.
+  The residual is registered on
+  [Issue #1613](https://github.com/forwardimpact/monorepo/issues/1613) so
+  the second-landing implementation inherits the ≤95% target as a tracked
+  constraint, whichever spec that turns out to be.
 - **Tooling.** No new scripts, CLI flags, or CI gates; the predicate runs
   with the git/gh invocations the skill already uses.
 - **`kata-release-merge` changes.** The merge gate is a separate procedure.
@@ -191,18 +203,30 @@ independently of which implementation lands first:
    replaces: a cheapness bar, not just a correctness bar (an acceptance
    criterion on the designed mechanism; realized run cost stays
    observed-not-gated per § Excluded).
+   Shallow-clone degradation is part of this shape: on a shallow checkout
+   the baseline may sit below the fetch boundary, so the ancestry check
+   fails safe (unresolvable ⇒ full sweep) but the exit then never fires —
+   the design must check the dispatch checkout depth and state the
+   deepen-or-sweep behaviour.
 2. **Publishable-path derivation.** The design picks the exact derivation
    of the path set from the workspace manifest — including at which commit
    the manifest is read (a manifest change within the range must not narrow
    the set) — and how a brand-new package directory appearing in the range
-   is caught (it must defeat the early exit via condition 2).
+   is caught (it must defeat the early exit via condition 2). The design
+   also pins the merge-commit semantics of the union walk: the traversal
+   must provably remain a superset of every per-directory log the sweep
+   would run — `git log --name-only` and pathspec'd logs diverge under
+   TREESAME merge simplification, so the chosen invocation must be shown
+   not to prune commits the sweep's path-scoped comparison would count.
 3. **Step numbering and references.** The step's position is fixed by
    § What; the design keeps existing step numbering and cross-references
    consistent around it.
 4. **Content placement under the budget.** The design decides what, if
    anything, moves to the `references/` tier so the post-implementation
    file meets the ≤95% criterion without trimming the new step's normative
-   content.
+   content. Any new `references/` relief-valve file carries its own L6
+   budget (128 lines / 768 words) — the displacement math must account for
+   that cap, not treat the tier as unbounded.
 5. **Default re-anchor bound.** The design picks the default bound value
    for cadence-less consumers, and must not lean on the re-anchor for
    publish-failure recovery (out of the boundary's guarantee class).
@@ -215,6 +239,7 @@ independently of which implementation lands first:
 | All four predicate conditions are present and conjunctive. | The skill text names baseline, zero-publishable-paths range (per-commit union semantics), carry-forward re-cite, and green CI, and states that any failure routes to the full sweep. |
 | The run-343b shape routes to the sweep. | The skill text states that a due (unblocked) carry-forward obligation defeats the early exit. |
 | The first-release backlog survives the early exit. | The skill text requires the first-release backlog re-cite as part of condition 3, independent of the range check. |
+| The pending-publish-verification class is deterministic. | The skill text classifies a pending publish-workflow verification as verifiable-in-run: the assessment resolves it before exiting — verified-success clears it, verified-failure is due (⇒ full sweep). No reading classifies it blocked or ambiguously due. |
 | The authority boundary is self-contained. | The skill text states each § Authority boundary rule — amended run classes, who may exit, unclassifiable ⇒ sweep, the re-anchor bound including the cadence-less default — in its own (amended) run-class vocabulary. |
 | The recording contract supports chaining across both verdict kinds. | The skill's recording section requires every assessment verdict to record chainable state per § Recording contract, including the broken-chain rule for due-but-deferred sweeps. |
 | The skill respects its instruction budget with headroom. | `bun run check` passes on the implementation PR, and the skill file lands at ≤95% of both L5 caps (≤1216 words, ≤182 lines), regardless of landing order relative to spec 1500's implementation. |
