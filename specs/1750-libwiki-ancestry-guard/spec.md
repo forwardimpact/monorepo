@@ -2,9 +2,10 @@
 
 `fit-wiki push` on a clone that has lost sight of origin's history would
 today sweep the entire working tree into a snapshot commit before any
-failure surfaces. This spec adds a fail-loudly ancestry guard ahead of the
-commit (#1576). The invariant in one sentence: **unverifiable ⇒ refuse,
-everywhere — before damage.**
+failure surfaces. This spec adds a fail-loudly ancestry guard ahead of
+both halves of the operation — the commit when one would be created, and
+the push even when none is (#1576). The invariant in one sentence:
+**unverifiable ⇒ refuse, everywhere — before damage.**
 
 Scope note: this spec was initially drafted as a fold with #1580 (honest
 push-outcome reporting). That half now belongs to the consolidated
@@ -31,6 +32,7 @@ first failure.**
 |---|---|
 | Unborn HEAD, local remote-tracking ref absent | The whole-tree sweep mints a full snapshot root commit; only then does the commits-ahead check crash — one step too late, with the snapshot already available to a later healthy actor. The crash is loud only on `fit-wiki push`; the `claim`/`release` surfaces swallow it into a saved-locally message, so two of the three surfaces are silent even after the damage. |
 | Severed history, remote-tracking ref resolvable | The unrelated root rebases onto the remote branch; if it applies cleanly the snapshot lands and pushes silently — the worst case. If it conflicts, the failure is loud but the commit was already minted. |
+| Clean tree, unverifiable history already committed locally | No commit is created — the operation's commit gate and push gate are independent by documented design — and the push runs anyway, publishing the unverifiable history without ever entering the commit path. A guard that only runs "before creating any commit" never fires on this shape. |
 
 Status: defense-in-depth. No occurrence has been observed, and no code
 route currently re-initializes a wiki clone; the guard exists so that if
@@ -49,7 +51,7 @@ allowed) with a *failed observation of the remote* on a history-less clone
 
 | Component | What changes |
 |---|---|
-| `WikiSync.commitAndPush` pre-commit verification | Before creating any commit, the clone's ancestry is verified against the remote branch per § Decisions D1. A refusal creates no commit, attempts no push, adds no working-tree changes of its own, and names its recovery path. Both the whole-tree and pathspec-scoped commit modes pass through the same guard. |
+| `WikiSync.commitAndPush` verification on every invocation | The clone's ancestry is verified against the remote branch per § Decisions D1 on every invocation of the operation: before the commit when one would be created, and before the push even when none is — the operation's commit and push gates are independent, so a clean tree whose branch already carries unverifiable committed history must refuse at the push gate rather than publish. A refusal creates no commit, attempts no push, adds no working-tree changes of its own, and names its recovery path. Both the whole-tree and pathspec-scoped commit modes pass through the same guard. |
 | Command surfaces `fit-wiki push`, `claim`, `release` | A guard refusal exits non-zero on every surface (§ Decisions D2): on `push` the Stop hook then surfaces it in session output; on `claim`/`release` it surfaces directly to the invoking session. On `claim`/`release` this pierces the surfaces' existing degradation, which today maps every sync failure to a saved-locally success: a guard refusal propagates to the non-zero exit, and the refusal message states that the locally written claim/release row is **not published** — the row remains as an uncommitted working-tree change. All other failure modes on those surfaces keep today's degradation; their fate belongs to the consolidated spec. |
 | Remote-emptiness evidence | The empty-new-wiki allowance is granted only on a successful, non-swallowed remote observation confirming the branch does not exist on origin (§ Decisions D1). The evidence runs only on the path where the local remote-tracking ref is absent, so the healthy-clone hot path pays no extra remote round-trip. |
 | Documented contract surface | The `commitAndPush` contract documentation describes the guard, traceable to this spec. |
@@ -81,15 +83,29 @@ allowed) with a *failed observation of the remote* on a history-less clone
 **D1 — Ancestry invariant (settled on #1576; restated here).** Refuse to
 commit and to push — creating no commit, adding no working-tree changes,
 naming the recovery — whenever the remote branch exists and HEAD is unborn
-or shares no merge-base with it. The empty-new-wiki allowance (accepting a
+or shares no merge-base with it. The guard holds on **every** invocation
+of the operation, not only when a commit would be created: a clean tree
+contributes nothing new to commit, but if its branch already carries
+unverifiable committed history the push half alone is the D1 damage, and
+the invocation refuses before it. The empty-new-wiki allowance (accepting a
 new wiki's first publication, however many local commits it has
 accumulated) is granted only on positive evidence the remote is empty: a successful, non-swallowed remote observation
 confirming the branch's absence; mere absence of the local remote-tracking
-ref never grants it. When shared ancestry cannot be resolved in a shallow
-clone, verify against full history before refusing; if that deeper
+ref never grants it. The allowance covers the single invocation that earned
+it: if that first publication fails to land — for example, it loses its
+push race to another first-pusher — the remote branch now exists, and any
+retry is judged by the standard rows above (manual recovery, fail-closed);
+no design may auto-re-grant the allowance on retry. When shared ancestry
+cannot be resolved in a shallow clone, verify against full history before
+refusing; if that deeper
 verification itself cannot be completed (network, auth), refuse with a
 distinct could-not-verify error so the operator knows which state they are
-recovering from. Provenance: invariant and positive-evidence standard
+recovering from. Beyond the enumerated shapes, fail closed: any state in
+which the relationship between the history that would be published and the
+remote branch can be neither confirmed nor refuted — a detached HEAD is
+the canonical example — refuses under the same distinct could-not-verify
+class, so "unverifiable ⇒ refuse, everywhere" is operational rather than
+aspirational. Provenance: invariant and positive-evidence standard
 settled at [#1576 issuecomment-4675759237](https://github.com/forwardimpact/monorepo/issues/1576#issuecomment-4675759237);
 fail-closed deepening accepted at [#1576 issuecomment-4675741749](https://github.com/forwardimpact/monorepo/issues/1576#issuecomment-4675741749).
 The evidence and verification mechanisms (probe vs surfaced fetch, how
@@ -122,7 +138,9 @@ observes.
 |---|---|
 | Unborn HEAD with the remote branch present ⇒ refusal: non-zero exit, no commit created, no push attempted, message names re-clone recovery. | History-less clone fixture against a populated remote; run `fit-wiki push`; observe exit code, message, commit state, and the command's remote operations (no push among them). |
 | Severed history (no merge-base, full history) ⇒ refusal: non-zero exit, no new commit, remote tip unchanged. | Fixture with an unrelated local root and a resolvable remote branch; run `fit-wiki push`; observe no snapshot commit exists and the remote tip is unchanged. |
+| Clean tree with committed unverifiable history ahead of the remote ⇒ refusal at the push half: non-zero exit, no push attempted, remote tip unchanged. | Clean-working-tree clone fixture whose branch already carries committed unrelated history ahead of a populated remote; run `fit-wiki push`; observe non-zero exit, no new commit, no push among the command's remote operations, and the remote tip unchanged. |
 | Shallow clone whose shared ancestry lies outside the fetched window ⇒ verified against full history and allowed to proceed. | Depth-limited clone fixture with ancestry beyond the window; run `fit-wiki push`; observe a completed commit-and-push with no refusal. |
+| Shallow clone whose shared ancestry resolves within the fetched window ⇒ proceeds with no deepening fetch. | Depth-limited clone fixture with the merge-base inside the window; run `fit-wiki push`; observe a completed commit-and-push and a remote-operation sequence containing no history-deepening fetch. |
 | Shallow clone where the full-history verification completes and still finds no shared ancestry ⇒ confirmed-unrelated refusal: non-zero exit, no commit. | Depth-limited fixture over a genuinely unrelated history; run `fit-wiki push`; observe the confirmed-unrelated refusal after the deeper verification, and no new commit. |
 | Failure of the deeper verification itself ⇒ distinct could-not-verify refusal: non-zero exit, no commit, error text differs from the confirmed-unrelated refusal. | Shallow fixture with the full-history verification forced to fail; observe the distinct message and absence of any new commit. |
 | Genuinely empty remote with positive evidence ⇒ first commit accepted and pushed. | Fresh wiki fixture against an empty remote; run `fit-wiki push`; observe the commit on the remote. |
