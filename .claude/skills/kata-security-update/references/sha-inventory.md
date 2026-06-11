@@ -5,17 +5,14 @@ workflow files and composite actions that reference the action.
 
 ## Third-Party Actions
 
-| Action                            | Files                                                                                                                                                                                                                                                                                                                                                                                                                |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `actions/checkout`                | check-quality.yml, check-test.yml, check-security.yml, publish-npm.yml, publish-macos.yml, publish-skills.yml (x2), website.yaml, kata-dispatch.yml, agent-product-manager.yml, agent-release-engineer.yml, agent-security-engineer.yml, agent-staff-engineer.yml, agent-technical-writer.yml, kata-coaching.yml, kata-storyboard.yml, interview-\*-setup.yml (x4), kata-action-agent/action.yml, bootstrap/action.yml |
-| `actions/create-github-app-token` | kata-dispatch.yml, interview-\*-setup.yml (x4), publish-skills.yml, kata-action-agent/action.yml                                                                                                                                                                                                                                                                                                                       |
-| `actions/setup-node`              | check-security.yml, publish-npm.yml, website.yaml                                                                                                                                                                                                                                                                                                                                                                    |
-| `actions/cache`                   | check-test.yml                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `actions/upload-artifact`         | kata-action-eval/action.yml (x5)                                                                                                                                                                                                                                                                                                                                                                                     |
-| `actions/configure-pages`         | website.yaml                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `actions/upload-pages-artifact`   | website.yaml                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `actions/deploy-pages`            | website.yaml                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `oven-sh/setup-bun`               | website.yaml, bootstrap/action.yml                                                                                                                                                                                                                                                                                                                                                                                   |
+| Action                            | Files |
+| --------------------------------- | ----- |
+| `actions/checkout`                | build-binaries.yml (x2), check-context.yml (x5), check-data.yml (x2), check-quality.yml (x4), check-security.yml (x3), check-test.yml (x2), eval-guide.yml, eval-kata.yml, eval-wiki.yml, kata-dispatch.yml, kata-interview.yml, outpost-determinism-probe.yml, publish-brew.yml (x2), publish-macos.yml, publish-npm.yml, publish-skills.yml (x4), website-monorepo.yaml, website-fit.yaml, website-kata.yaml, website-coaligned.yaml |
+| `actions/create-github-app-token` | eval-guide.yml, kata-dispatch.yml, kata-interview.yml, publish-brew.yml, publish-skills.yml (x2), website-monorepo.yaml, website-fit.yaml, website-kata.yaml, website-coaligned.yaml |
+| `actions/setup-node`              | check-security.yml, publish-npm.yml, website-monorepo.yaml, website-fit.yaml, website-kata.yaml, website-coaligned.yaml |
+| `actions/cache`                   | check-test.yml (x3) |
+| `actions/upload-artifact`         | build-binaries.yml, outpost-determinism-probe.yml, website-monorepo.yaml, website-fit.yaml, website-kata.yaml, website-coaligned.yaml |
+| `actions/download-artifact`       | publish-brew.yml, publish-macos.yml, publish-native.yml |
 
 ## Composite Actions
 
@@ -24,11 +21,15 @@ Composite actions in `.github/actions/` are consumed by most agent workflows via
 they contain. When updating a SHA used inside a composite action, no workflow
 file changes are needed — only the composite action's `action.yml`.
 
-| Composite action                    | Third-party actions used                              |
-| ----------------------------------- | ----------------------------------------------------- |
-| `.github/actions/bootstrap`         | `oven-sh/setup-bun`                                   |
-| `.github/actions/kata-action-eval`  | `actions/upload-artifact` (x5)                        |
-| `.github/actions/kata-action-agent` | `actions/create-github-app-token`, `actions/checkout` |
+| Composite action                  | Third-party actions used |
+| --------------------------------- | ------------------------ |
+| `.github/actions/audit`           | none                     |
+| `.github/actions/coaligned-check` | none                     |
+
+The former local `bootstrap`, `kata-action-agent`, and `kata-action-eval`
+composites moved to the published siblings `forwardimpact/fit-bootstrap`,
+`forwardimpact/kata-agent`, and `forwardimpact/fit-eval`; their third-party
+refs are pinned in the sibling repos, not here.
 
 ## Verification
 

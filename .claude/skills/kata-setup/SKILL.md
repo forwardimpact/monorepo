@@ -34,8 +34,9 @@ facilitated sessions, and event-driven responses.
 - [ ] Ask which agents to enable — do not assume all six.
 - [ ] Confirm timezone for schedule generation.
 - [ ] Confirm secrets are configured before writing workflows.
-- [ ] Use fully-qualified action references
-      (forwardimpact/kata-action-agent@v1), never local paths.
+- [ ] Use fully-qualified, SHA-pinned action references
+      (`forwardimpact/kata-agent@<full-sha> # vX.Y.Z`), never local paths
+      or mutable tags.
 - [ ] Use npm/npx in all generated content, never bun/bunx/just.
 - [ ] Read [TRUST.md](../../../TRUST.md) — the hosted-vs-self-hosted
       trust model the operator is opting into.
@@ -45,6 +46,8 @@ facilitated sessions, and event-driven responses.
 <do_confirm_checklist goal="Verify generated workflows before reporting">
 
 - [ ] Every generated workflow file uses the published action, not a local path.
+- [ ] Action refs are SHA-pinned to a release-tag commit (`@<full-sha> # <tag>`)
+      and a `github-actions` Dependabot entry exists in the consuming repo.
 - [ ] Cron schedules match the user's requested timezone.
 - [ ] Secrets reference names match what was configured.
 - [ ] Agent profiles match the names the user confirmed.
@@ -104,7 +107,25 @@ Ask these questions. Skip any already answered in the task prompt.
 For each selected agent, write a workflow to `.github/workflows/` using
 templates from `references/workflow-agent.md` (scheduled agents) and
 `references/workflow-facilitate.md` (storyboard/coaching). Use
-`forwardimpact/kata-action-agent@v1` as the action reference.
+`forwardimpact/kata-agent` as the action, SHA-pinned: resolve the
+`{{KATA_AGENT_REF}}` / `{{FIT_EVAL_REF}}` placeholders per
+[`workflow-agent.md` § Resolving action refs](references/workflow-agent.md#resolving-action-refs)
+— list the sibling's release tags with `gh api`, pick the highest `vX.Y.Z`
+tag, and emit `@<full-40-char-sha> # <tag>`. Never emit the mutable `v1`
+tag; if resolution fails, stop and ask the operator.
+
+Pair the pins with a `github-actions` Dependabot config so they receive
+bump PRs instead of rotting. Write `.github/dependabot.yml` (or merge this
+entry into an existing one):
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+```
 
 Emit the variant matching question 8's mode: the **`## Template
 (self-hosted)`** block (the default) or the **`## Template (hosted)`**

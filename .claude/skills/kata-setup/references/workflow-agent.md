@@ -5,13 +5,17 @@ the user's configuration.
 
 ## Placeholders
 
-| Placeholder        | Example                                   |
-| ------------------ | ----------------------------------------- |
-| `{{AGENT_TITLE}}`  | `Product Manager`                         |
-| `{{AGENT_NAME}}`   | `product-manager`                         |
-| `{{CRON_ENTRIES}}` | Three `- cron:` lines from `schedules.md` |
-| `{{MODEL}}`        | `claude-fable-5[1m]`                     |
-| `{{WIKI}}`         | `"true"` or `"false"`                     |
+| Placeholder          | Example                                                  |
+| -------------------- | -------------------------------------------------------- |
+| `{{AGENT_TITLE}}`    | `Product Manager`                                        |
+| `{{AGENT_NAME}}`     | `product-manager`                                        |
+| `{{CRON_ENTRIES}}`   | Three `- cron:` lines from `schedules.md`                |
+| `{{MODEL}}`          | `claude-fable-5[1m]`                                    |
+| `{{WIKI}}`           | `"true"` or `"false"`                                    |
+| `{{KATA_AGENT_REF}}` | `b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0`      |
+
+`{{KATA_AGENT_REF}}` is resolved at generation time — see
+[§ Resolving action refs](#resolving-action-refs).
 
 Emit `## Template (self-hosted)` when the team runs its own GitHub App (the
 default), or apply `## Template (hosted)` when the team uses the Forward
@@ -41,13 +45,13 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
-      - uses: forwardimpact/kata-action-agent@v1
+      - uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           agent-profile: "{{AGENT_NAME}}"
-          model: "{{MODEL}}"
+          agent-model: "{{MODEL}}"
           wiki: "{{WIKI}}"
           task-text: >-
             Assess the current state of your domain and act on the
@@ -83,13 +87,26 @@ the **canonical** hosted recipe — `workflow-facilitate.md` and
              printf 'token=%s\n' "$INSTALL_TOKEN" >> "$GITHUB_OUTPUT"
    ```
 
-3. In the `kata-action-agent@v1` step, drop the `app-id` and
+3. In the `kata-agent` step, drop the `app-id` and
    `app-private-key` inputs and add
    `installation-token: ${{ steps.mint.outputs.token }}`.
 
 `FIT_OIDC_URL` is a repository **variable** (not a secret) — the Forward
 Impact-operated `services/oidc` URL. `::add-mask::` keeps the minted token
 out of logs.
+
+## Resolving action refs
+
+Generated workflows pin the published action to an immutable commit SHA,
+never the mutable `v1` tag. At generation time, list release tags with
+`gh api repos/forwardimpact/kata-agent/tags`
+(`repos/forwardimpact/fit-eval/tags` for `{{FIT_EVAL_REF}}` in
+`workflow-react.md`), pick the highest `vX.Y.Z` tag (ignore the bare `v1`
+marker), and emit `<full-40-char-sha> # <tag>` so the `uses:` line reads
+`forwardimpact/kata-agent@b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0`.
+If resolution fails, stop and ask the operator — never fall back to a
+mutable tag. Pair the pins with the `github-actions` Dependabot config
+from `SKILL.md` Step 2 so they receive bump PRs instead of rotting.
 
 ## Notes
 
@@ -101,8 +118,8 @@ out of logs.
   token carries all other permissions via its installation settings.
 - If wiki is disabled, set `wiki: "false"` -- the action skips wiki checkout and
   sync.
-- If model is the default (`claude-fable-5[1m]`), the `model:` line can be
-  omitted since the action defaults to it.
+- If model is the default (`claude-fable-5[1m]`), the `agent-model:` line
+  can be omitted since the action defaults to it.
 - **Hosted variant** requires the `FIT_OIDC_URL` repository variable and
-  depends on `kata-action-agent@v1` accepting an `installation-token` input
-  (pin the minimum sibling SHA per your security policy).
+  depends on `kata-agent` accepting an `installation-token` input
+  (pin the minimum sibling SHA that does).
