@@ -1,10 +1,11 @@
 # Ambient-dependency allow-list — path globs permitted to use ambient deps.
 #
-# The checker (scripts/check-ambient-deps.mjs) skips these paths entirely, so
-# an entry exempts the whole file from ALL ambient-dep smells, forever. Reserve
-# it for the categories the spec names (default-collaborator factories, bin
-# shims, libcli internals) and for domain files whose flagged construct is a
-# deterministic, non-ambient false positive — each documented inline below.
+# The checker (.coaligned/invariants/ambient-deps.rules.mjs) skips these paths
+# entirely, so an entry exempts the whole file from ALL ambient-dep smells,
+# forever. Reserve it for the sanctioned categories (default-collaborator
+# factories, bin shims, libcli internals) and for domain files whose flagged
+# construct is a deterministic, non-ambient false positive — each documented
+# inline below.
 
 globs:
   # ── Bin shims & service entrypoints: the composition root that *constructs*

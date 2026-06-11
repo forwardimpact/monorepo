@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 // Per-bin smoke tests: spawn each libeval bin with `--version`
 // and assert it exits 0 and prints a semver-shaped line. This is the one
 // legitimate subprocess test per binary, so it lives in an
-// `*.integration.test.js` file (exempt from check-subprocess-in-tests).
+// `*.integration.test.js` file (exempt from the subprocess-in-tests invariant).
 
 const BINS = ["fit-eval", "fit-benchmark", "fit-trace", "fit-selfedit"];
 

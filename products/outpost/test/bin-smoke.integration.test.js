@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 // Per-bin smoke test: spawn the fit-outpost bin with `--version`
 // and assert it exits 0 and prints a semver-shaped line. This is the one
 // legitimate subprocess test for the binary, so it lives in an
-// `*.integration.test.js` file (exempt from check-subprocess-in-tests).
+// `*.integration.test.js` file (exempt from the subprocess-in-tests invariant).
 
 function binPath() {
   return fileURLToPath(new URL("../bin/fit-outpost.js", import.meta.url));

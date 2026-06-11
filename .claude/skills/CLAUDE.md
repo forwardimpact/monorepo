@@ -48,9 +48,9 @@ about HOW — do not prescribe tactics for ordinary engineering work.
   sibling `kata-*` skills and the guaranteed surfaces above. `fit-*` skills ship
   in a separate pack — full URL. Never link this monorepo's issues or PRs:
   provenance rots, and the skill must stand on its own.
-- `scripts/check-skill-genericity.mjs` gates the mechanical subset of these
-  rules in CI (`bun run invariants`). On a false positive, narrow the rule
-  there — do not leave the flagged content in place.
+- `.coaligned/invariants/skill-genericity.rules.mjs` gates the mechanical
+  subset of these rules in CI (`bun run invariants`). On a false positive,
+  narrow the rule there — do not leave the flagged content in place.
 
 ### No incident-fitting
 
