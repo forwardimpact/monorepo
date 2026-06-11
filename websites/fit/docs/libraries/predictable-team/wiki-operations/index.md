@@ -113,10 +113,11 @@ The command scans the file for marker pairs like this:
 <!-- /xmr -->
 ```
 
-Each block is replaced with the current XmR chart, latest value, status, and
-signal descriptions from the referenced CSV. Files without markers are left
-unchanged. The operation is idempotent -- running it twice produces the same
-output.
+Each block is replaced with the current XmR chart from the referenced CSV plus
+a `**Signals:**` line naming any fired rules (`xRule1`, `mrRule1`, ...); when
+the metric has fewer than 15 points the block carries an "Insufficient data"
+line instead. Files without markers are left unchanged. The operation is
+idempotent -- running it twice produces the same output.
 
 ## Syncing wiki state
 

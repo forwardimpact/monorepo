@@ -102,8 +102,10 @@ process group. Oneshot services run their `down` command if one is defined.
 npx fit-rc restart trace
 ```
 
-Equivalent to stopping and then starting the named service. Without a name, all
-services restart.
+This stops the named service and everything after it in the configuration
+array, then starts that same slice again — dependents that were torn down come
+back up, and services before the target are left untouched. Without a name,
+all services restart.
 
 ## Read logs
 
