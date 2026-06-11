@@ -45,6 +45,7 @@ export function createOidcService({
     fetch: fetchFn,
     issuer: config.issuer,
     ttl_ms: config.jwks_ttl_ms,
+    cooldown_ms: config.jwks_cooldown_ms,
   });
   const validator = new OidcValidator({
     jwks,
