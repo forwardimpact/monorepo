@@ -23,10 +23,3 @@ the data point.
 
 Backlog (`gh issue list`) is queried, not recorded — it's a stock, not process
 data.
-
-## Prospective tagging
-
-Rows emitted under this rule during the verification window for the
-uniform-cadence experiment carry the note tag
-`kata-pm-issue-uniform-cadence`. After the verdict horizon the tag is no
-longer required; the recording rule remains.

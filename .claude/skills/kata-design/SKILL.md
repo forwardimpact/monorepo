@@ -50,7 +50,7 @@ is no commitment to implement, and a design has nothing to shape.
 
 - [ ] Under 200 lines.
 - [ ] Design meets the criteria in § Writing a Design.
-- [ ] `bun run format:fix` run and changes committed.
+- [ ] Repository formatter run and changes committed.
 - [ ] Clean sub-agent review panel of `design-a.md` via
       [`kata-review`](../kata-review/SKILL.md) completed (fresh context, panel
       size per caller protocol) and every blocker/high/medium finding addressed.
@@ -118,7 +118,7 @@ approved`. **Human-only**: agents never originate `design approved` — they
 only propagate signals already expressed by a trusted human (label, APPROVED
 review, approval comment, or in-session message), which `kata-dispatch` or
 the active agent writes to STATUS. See
-[`approval-signals.md`](../../agents/references/approval-signals.md).
+[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
 
 ## Reviewing a Design
 
@@ -165,12 +165,8 @@ the PR should not become visible to `kata-dispatch` until the panel is clean.
 
 ### Step 6: Open a design PR
 
-Before pushing, grep `design-a.md` against breaking renames on `main` since
-divergence — `git log origin/main --since '14 days ago' --grep '^feat!:\|^fix!:'`
-lists them; update renamed identifiers before push. After push, verify the
-design landed on origin —
-`git ls-tree origin/<branch> -- specs/<NNN-slug>/design-a.md` returns a blob;
-empty output means a phantom write — re-push and re-verify.
+Before pushing, verify identifiers the design names still exist on
+`origin/main` — update any renamed since the spec merged.
 
 The PR title carries the spec id: `design(NNN): …`. Do not apply the
 `design:approved` label and do not recommend approval — those are human-only

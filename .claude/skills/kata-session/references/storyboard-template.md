@@ -122,7 +122,7 @@ still ahead._
 ## Retention rule
 
 When concluding an obstacle or experiment, post the verdict as a closing comment
-on the issue and close the issue. `bunx fit-wiki refresh` rerenders both
+on the issue and close the issue. `npx fit-wiki refresh` rerenders both
 `Active` and `Concluded (last 7 days)` from GitHub state — no manual storyboard
 edit needed. Items aged out of the 7-day window drop off the next refresh
 automatically. The closed issue is the permanent record.

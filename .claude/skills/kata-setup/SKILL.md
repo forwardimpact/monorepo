@@ -38,7 +38,7 @@ facilitated sessions, and event-driven responses.
       (`forwardimpact/kata-agent@<full-sha> # vX.Y.Z`), never local paths
       or mutable tags.
 - [ ] Use npm/npx in all generated content, never bun/bunx/just.
-- [ ] Read [TRUST.md](../../../TRUST.md) — the hosted-vs-self-hosted
+- [ ] Read [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) — the hosted-vs-self-hosted
       trust model the operator is opting into.
 
 </read_do_checklist>
@@ -95,7 +95,7 @@ Ask these questions. Skip any already answered in the task prompt.
 
 8. **Control plane** — "Are you using the Forward Impact-hosted control
    plane, or self-hosting your own GitHub App?" Default: self-hosted. See
-   [TRUST.md](../../../TRUST.md) for the trust model of each path. In
+   [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for the trust model of each path. In
    **hosted** mode the workflows mint a short-lived installation token
    from `services/oidc` at run time, so the team does **not** configure
    `KATA_APP_ID` / `KATA_APP_PRIVATE_KEY` (question 2 needs only

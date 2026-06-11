@@ -20,8 +20,8 @@ in-progress and excluded by `--status=completed`):
 current_run_start=$(date -u +%FT%TZ)
 prev_run_start=$(gh run list --workflow=kata-shift.yml --status=completed \
   --limit 1 --json startedAt --jq '.[0].startedAt // empty')
-# First-ever recording: fall back to current_run_start - 8h (median schedule
-# gap of the 03:00/12:00/20:00 UTC cadence).
+# First-ever recording: fall back to current_run_start - 8h (an
+# approximate scheduled-run gap).
 [ -z "$prev_run_start" ] && prev_run_start=$(date -u -d "$current_run_start - 8 hours" +%FT%TZ)
 ```
 
@@ -43,7 +43,8 @@ gh api repos/{owner}/{repo}/pulls/<n>/reviews --paginate \
 ```
 
 Filter events to `ts ∈ [prev_run_start, current_run_start)` and sum across all
-cohort PRs to `approvals_recorded_per_run` (no per-event de-dup; design-b § Approval-throughput metric specifies a raw count).
+cohort PRs to `approvals_recorded_per_run` (no per-event de-dup — record the
+raw count).
 
 CSV row schema (mirror existing `prs_merged` rows):
 `run_ts,metric,unit,value,note` — where `note="window=[<prev>,<curr>)"`. Zero is

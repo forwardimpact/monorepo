@@ -12,6 +12,19 @@ Channel-agnostic primitives shared by `services/ghbridge` and `services/msbridge
 - **Caller-injected clock.** `evaluateTrigger(trigger, observed, now)` takes
   `now` as a parameter; never call `Date.now()` from trigger evaluation.
 
+Audit-time invariants (applied by security audits covering libbridge):
+
+- **Bridge-parity.** Every surface registered in `IDENTITY_CONTRACTS`
+  (`services/ghuser/src/identity-contracts.js`) beyond `github-discussions`
+  carries a contract at least as strong as the `bridgePendingDispatchProof`
+  default — a weaker contract (e.g. equality-only) bypasses the
+  `putPendingDispatch` proof while still issuing dispatch. Flag unless the
+  bridge README documents an explicit opt-out rationale.
+- **Timing-parity.** Any `CallbackRegistry` (or sibling registry) lookup that
+  scans a stored collection maintains a secondary index so hits and misses
+  share an O(1) path, or carries an explicit `scan-by-design` comment with
+  security review of response-shape parity.
+
 ## Bridge contract
 
 A "bridge" relays human messages from a channel (GitHub Discussions,

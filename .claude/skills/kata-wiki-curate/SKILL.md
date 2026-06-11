@@ -58,23 +58,23 @@ rest of this Process. Then read every file in `wiki/`: agent summaries
 
 > **Writing under `.claude/`:** If this run edits files under `.claude/agents/`
 > or `.claude/skills/`, follow
-> [self-improvement.md](../../agents/references/self-improvement.md).
+> [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md).
 
 ### Step 1: Contract audit
 
-Run `bunx fit-wiki fix` first — it rotates over-budget weekly logs, re-bisects
+Run `npx fit-wiki fix` first — it rotates over-budget weekly logs, re-bisects
 over-budget sealed parts, hands prose-judgment findings (including a missing
 `### Decision`) to a Haiku technical-writer (re-auditing each round), and exits
 non-zero flagging anything irreducible (a lone over-budget day-section) for a
 human rather than inventing content. Then run
-`bunx fit-wiki audit --format json` to confirm — it checks every wiki file
+`npx fit-wiki audit --format json` to confirm — it checks every wiki file
 (summaries, weekly logs and sealed parts, MEMORY.md, priority and claims rows,
 the current storyboard) against the rule catalogue. The same audit gates
 pre-merge CI, so a clean local run is the bar. Hand-resolve each flagged
 `fail` in the named file:
 
 - **Budgets** (line/word) — trim settled state, or
-  `bunx fit-wiki rotate --agent <agent>` to seal an overflowing weekly log.
+  `npx fit-wiki rotate --agent <agent>` to seal an overflowing weekly log.
 - **Section order / markers** — reorder the summary. The curator is the only
   agent that rewrites summaries; others propose edits via observations.
 - **Decision blocks** — `fit-wiki fix` now inserts a missing `### Decision`
@@ -89,10 +89,10 @@ invariant above.
 ### Step 2: Claims hygiene
 
 Audit warns (`expired-claim`) on every `## Active Claims` row past its
-`expires_at`; clear them with `bunx fit-wiki release --expired` — a stale claim
+`expires_at`; clear them with `npx fit-wiki release --expired` — a stale claim
 falsely signals work in flight. For rows not yet expired but naming a PR/Issue
 that has since merged or closed, verify state per the write-time invariant and
-release each via `bunx fit-wiki release --agent <agent> --target <id>`.
+release each via `npx fit-wiki release --agent <agent> --target <id>`.
 
 ### Step 3: Summary accuracy
 
@@ -100,8 +100,8 @@ Audit checks a summary's _shape_; this step checks its _meaning_. Compare each
 summary against the agent's most recent weekly log entries:
 
 - **Last run date** — matches the latest `## YYYY-MM-DD` entry in their log?
-- **Coverage map** — matches the data in their latest entries? (Agents with
-  coverage maps: security-engineer, improvement-coach, technical-writer.)
+- **Coverage map** — matches the data in their latest entries? (Applies to
+  agents whose skills maintain coverage maps.)
 - **Blockers** — still open, or resolved in later logs? Remove resolved ones.
 - **Stale summaries** — flag any "Last run" >7 days old with no new log entry.
 
@@ -110,17 +110,17 @@ must satisfy the write-time invariant above.
 
 ### Step 4: Inbox follow-up
 
-List each agent's inbox via `bunx fit-wiki inbox list --agent <agent>`. For each
+List each agent's inbox via `npx fit-wiki inbox list --agent <agent>`. For each
 memo:
 
 1. The recipient owns the inbox; the sender is the bold name on the bullet
    (`- [date] **<sender>**: <text>`).
 2. Check the recipient's weekly logs after the memo date for acknowledgement.
 3. A team-level item belongs in Cross-Cutting Priorities —
-   `bunx fit-wiki inbox promote --agent <recipient> --index N` writes the
+   `npx fit-wiki inbox promote --agent <recipient> --index N` writes the
    priority row and removes the bullet in one step.
 4. Flag memos >2 weeks old with no response: re-send a nudge via
-   `bunx fit-wiki memo --from technical-writer --to <recipient> --message "<flag text>"`.
+   `npx fit-wiki memo --from technical-writer --to <recipient> --message "<flag text>"`.
 
 ### Step 5: Memory index & storyboard
 
@@ -132,7 +132,7 @@ checks the content it cannot read.
 - **`wiki/Home.md`** — agent count matches; summary links work; quick links
   current.
 - **`wiki/storyboard-YYYY-MNN.md`** — marker blocks are auto-generated; don't
-  hand-edit them, run `bunx fit-wiki refresh` if stale. Surrounding prose should
+  hand-edit them, run `npx fit-wiki refresh` if stale. Surrounding prose should
   reflect the live condition.
 
 Update MEMORY.md and Home.md if they've drifted.
@@ -160,8 +160,8 @@ context beyond the index entry. Remove resolved items within one curation cycle.
 ### Publishing changes
 
 Wiki changes are not visible to other agents until pushed. After committing,
-push the wiki — `cd wiki && git push origin HEAD:master` (or let the `Stop` hook
-run `just wiki-push`).
+push the wiki — `cd wiki && git push origin HEAD:master` (or let the `Stop`
+hook push it).
 
 If the curation also produced monorepo fixes (e.g., stale spec STATUS, doc
 corrections), branch from `main` as `fix/wiki-curate-YYYY-MM-DD`, commit, push,

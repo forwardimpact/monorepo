@@ -2,7 +2,7 @@
 
 ## Information Architecture
 
-Six-tier hierarchy under `websites/fit/docs/` serving four user groups
+Six-tier hierarchy under `websites/<site>/docs/` serving four user groups
 (Leadership, Engineers, Builders and Agents, Contributors):
 
 | Tier              | Intent                              | Subsections                                                                                                                                                                            |

@@ -32,14 +32,14 @@ vs. expected), update Obstacles, and plan the next experiment.
    expired, update it (planning mode).
 2. **What is the actual condition now?** Each participant follows the
    Participant Protocol: measure with live data, record to CSV, run
-   `bunx fit-xmr analyze` on its own CSV, then report each metric's `status`,
+   `npx fit-xmr analyze` on its own CSV, then report each metric's `status`,
    `μ`, and any fired-rule `signals` via `Answer`; the facilitator relays these
    and runs no analysis itself. Participants flag any metric whose status changed
    since the last meeting.
 3. **What obstacles are preventing us from reaching the target?** Participants
    identify obstacles from their domain; what an obstacle *is* — and
    obstacle-vs-experiment — is defined in
-   [work-definition.md § Classification tests](../../../agents/references/work-definition.md#classification-tests).
+   [work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests).
 4. **What is the next step? What do you expect?** For the obstacle currently
    being addressed, participants propose their next experiment and its expected
    outcome, scoped to one or two daily cycles.
@@ -85,7 +85,7 @@ permanent record.
 
 Per SKILL.md Step 7, the facilitator picks a route per obstacle (parallel
 allowed) and logs it; trigger criteria live in
-[work-definition.md § Classification tests](../../../agents/references/work-definition.md#classification-tests).
+[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests).
 Discussion is delegated to the owning agent, Coaching to the coach's Assess run:
 
 | Trigger                                                                          | Route      |

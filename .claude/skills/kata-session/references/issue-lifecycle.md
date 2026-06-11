@@ -2,7 +2,7 @@
 
 What an obstacle and an experiment *are* — and the obstacle-vs-experiment test —
 is defined in
-[work-definition.md](../../../agents/references/work-definition.md); this file is
+[work-definition.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md); this file is
 the `gh` command shapes for filing and closing them.
 
 The agent being coached — not the facilitator — creates, comments on, and closes
@@ -64,10 +64,3 @@ gh issue close #NNN
 ```
 
 Report the closure via `Answer` so it lands in the session summary.
-
-## Migration (one-time)
-
-At the first session after implementation, each agent creates labeled issues for
-its own active experiments and obstacles that lack a `(#NNN)` suffix, applying
-the `agent:{owner}` label to each experiment issue. Skip entries that already
-have an issue link. Concluded items need no action.

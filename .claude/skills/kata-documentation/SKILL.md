@@ -43,9 +43,8 @@ modes of operation:
 - [ ] Audience purity confirmed (no audience mixing).
 - [ ] Source of truth consulted and docs match current code.
 - [ ] All cross-links resolve.
-- [ ] `bunx fit-doc build --src=websites/fit --out=dist` succeeds (substitute
-      the `websites/<site>` path you touched — `coaligned`, `kata`, or
-      `monorepo`).
+- [ ] `npx fit-doc build --src=websites/<site> --out=dist` succeeds for
+      every site touched.
 - [ ] Terminology matches conventions in `references/standards.md`.
 
 </do_confirm_checklist>
@@ -58,13 +57,13 @@ Each run covers **one topic** in depth.
 
 | Topic                    | What to review                                                                            |
 | ------------------------ | ----------------------------------------------------------------------------------------- |
-| `getting-started`        | `websites/fit/docs/getting-started/` — onboarding accuracy, CLI examples                  |
-| `products`               | `websites/fit/docs/products/` — product-task accuracy, audience purity, completeness      |
-| `libraries`              | `websites/fit/docs/libraries/` — library-task accuracy, audience purity, completeness     |
-| `services`               | `websites/fit/docs/services/` — service-task accuracy, audience purity, completeness     |
-| `reference`              | `websites/fit/docs/reference/` — CLI synopsis, entity definitions, schema                 |
-| `internals`              | `websites/fit/docs/internals/` — architecture accuracy, code path validity                |
-| `product-pages`          | Product overview pages under `websites/fit/` — overviews                                  |
+| `getting-started`        | `websites/<site>/docs/getting-started/` — onboarding accuracy, CLI examples               |
+| `products`               | `websites/<site>/docs/products/` — product-task accuracy, audience purity, completeness   |
+| `libraries`              | `websites/<site>/docs/libraries/` — library-task accuracy, audience purity, completeness  |
+| `services`               | `websites/<site>/docs/services/` — service-task accuracy, audience purity, completeness   |
+| `reference`              | `websites/<site>/docs/reference/` — CLI synopsis, entity definitions, schema              |
+| `internals`              | `websites/<site>/docs/internals/` — architecture accuracy, code path validity             |
+| `product-pages`          | Product overview pages under `websites/<site>/` — overviews                               |
 | `root-docs`              | `CLAUDE.md`, `CONTRIBUTING.md`, `KATA.md`, `SECURITY.md`                                  |
 | `llms-txt-and-seo`       | `websites/<site>/llms.txt`, `websites/<site>/robots.txt`, sitemap completeness            |
 | `cross-page-consistency` | Terminology, proficiency scales, field names across all pages                             |
@@ -74,7 +73,7 @@ Each run covers **one topic** in depth.
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find last review dates per topic in the coverage map.
 
 > **Writing under `.claude/`:** If this run edits files under `.claude/skills/`,
-> follow [self-improvement.md](../../agents/references/self-improvement.md).
+> follow [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md).
 
 ### Topic selection
 
@@ -94,8 +93,8 @@ Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On
 5. Run CLI examples shown in docs, verify output matches.
 6. Check YAML examples against the product's JSON schema directory.
 7. Verify all internal cross-links resolve.
-8. Run `bunx fit-doc build --src=websites/fit --out=dist` (or the matching
-   `websites/<site>` path) to confirm build.
+8. Run `npx fit-doc build --src=websites/<site> --out=dist` to confirm
+   build.
 9. Check `git log --oneline -20 -- <paths>` for recent code changes that may
    have invalidated docs.
 
@@ -119,11 +118,11 @@ Run the DO-CONFIRM checklist at the top of this skill.
 4. **Write for the audience.** Strip content that belongs to a different
    audience.
 5. **Verify accuracy.** Run CLI commands, check YAML against schemas, confirm
-   entity names against `data/pathway/`.
+   entity names against the product's data directories.
 6. **Add cross-links.** Guides → Reference for details. Getting Started → Guides
    for next steps. Internals → Reference for the user-facing model.
-7. **Build and check.** Run `bunx fit-doc build --src=websites/fit --out=dist`
-   (or the matching `websites/<site>` path).
+7. **Build and check.** Run
+   `npx fit-doc build --src=websites/<site> --out=dist`.
 
 ### Updating existing pages
 
@@ -138,7 +137,7 @@ Run the DO-CONFIRM checklist at the top of this skill.
 
 Every review must produce both categories when applicable. Classify each finding
 with
-[work-definition.md § Classification tests](../../agents/references/work-definition.md#classification-tests)
+[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests)
 (mechanical fix vs structural spec). Branch naming, commit conventions, and
 independence rules are defined in the agent profile.
 
@@ -175,7 +174,7 @@ Append to the current week's log (see agent profile for the file path):
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](../../agents/references/coordination-protocol.md)):
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
 
 - **PR comment** — Doc-impact callouts on code PRs that change behaviour
   documented in `websites/`.
@@ -183,4 +182,4 @@ This skill produces these non-wiki outputs (per
   than a writing task.
 
 If an inbound PR comment addressed to this agent is ambiguous, follow
-[coordination-protocol.md § Inbound: unclear addressed comments](../../agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).

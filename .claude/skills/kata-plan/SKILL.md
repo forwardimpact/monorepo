@@ -113,8 +113,8 @@ approved`. Plans may be approved by `staff-engineer` after a clean
 `kata-plan` panel review; alternatively, the same human-driven signals that
 gate spec/design (label, PR comment, APPROVED review, in-session user
 message) also feed STATUS for plans. See
-[`approval-signals.md`](../../agents/references/approval-signals.md) and
-[`coordination-protocol.md` § Approval signal](../../agents/references/coordination-protocol.md#approval-signal).
+[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md) and
+[`coordination-protocol.md` § Approval signal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#approval-signal).
 
 ## Reviewing a Plan
 

@@ -27,9 +27,7 @@ action. Never spawns sub-agents.
 This skill's Process has **no step that launches a sub-agent**. That is the
 property that prevents the spec / plan / implement review loop from recursing —
 if you find yourself wanting to make an `Agent` tool call from inside this
-skill, stop and return findings instead. See
-[KATA.md § Recursion-safe self-review](../../../KATA.md#recursion-safe-self-review)
-for the full design rationale.
+skill, stop and return findings instead.
 
 ## Severity Vocabulary
 
@@ -123,8 +121,8 @@ and CONTRIBUTING.md § Core Rules. Look for:
 - No security regressions (input validation at boundaries, secrets, dangerous
   shell)
 
-You may run `bun run check` and `bun run test` yourself to verify the head
-commit, or trust the caller's assertion that they pass — the caller's Step 7
+You may run the repository's check and test commands yourself to verify the
+head commit, or trust the caller's assertion that they pass — the caller's Step 7
 already requires green checks before delegating to you. Treat any test or lint
 failure you observe as at minimum a **High** finding.
 

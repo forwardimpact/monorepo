@@ -44,8 +44,7 @@ commit type (`fix(<scope>)` vs `spec(<scope>)`), closing keyword (`Closes` vs
 git checkout main && git pull origin main
 git checkout -b <fix|spec>/issue-<number>-<short-description>
 # ... implement fix or write spec ...
-bun run check
-bun run test
+# Run the repository's check and test commands
 git add <paths>
 git commit -m "<fix|spec>(<scope>): <description>
 
@@ -67,7 +66,7 @@ gh pr create \
 
 ## Test plan
 
-- [ ] `bun run check` passes
+- [ ] Repository check command passes
 - [ ] <specific verification>
 EOF
 )"
