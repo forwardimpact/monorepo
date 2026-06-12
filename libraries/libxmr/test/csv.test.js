@@ -12,7 +12,7 @@ import {
 const HEADER_LINE = "date,metric,value,unit,run,note,event_type";
 
 describe("conflict-marker guard", () => {
-  // Issue #1702 repro: both conflict branches interleaved among valid rows.
+  // Corruption shape observed in the field: both conflict branches interleaved among valid rows.
   const MERGE_CONFLICT = [
     HEADER_LINE,
     "2026-06-01,m,1,count,r1,,kata-shift",
