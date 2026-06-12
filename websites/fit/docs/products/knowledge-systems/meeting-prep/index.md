@@ -53,7 +53,7 @@ Projects/Auth Migration.md:18:Status: blocked on identity provider contract
 Topics/Platform Reliability.md:5:Raised by [[Sarah Chen]] in Q1 review
 ```
 
-The results span entity types -- people, projects, and topics -- because the
+The results span people, projects, and topics because the
 librarian agent links entities with `[[backlinks]]` as it processes your email
 and calendar. A single search surfaces the full picture rather than a single
 file.

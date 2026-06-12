@@ -285,7 +285,7 @@ resolves. Re-run the command any time your roster changes — it upserts on
 
 Behind the scenes, `fit-map people push` talks to the same extract and transform
 helpers that the `people-upload` edge function uses. If you prefer to run the
-upload server-side — for example from a form or an admin workflow — POST the
+upload server-side, for example from a form or an admin workflow, POST the
 file to the hosted function instead:
 
 ```sh

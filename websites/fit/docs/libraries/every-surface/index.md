@@ -21,7 +21,7 @@ npm install @forwardimpact/libcli @forwardimpact/libui @forwardimpact/libformat
 
 ## How the shared contract works
 
-Both surfaces produce the same frozen object -- an **InvocationContext** -- from
+Both surfaces produce the same frozen object, an **InvocationContext**, from
 their native inputs. The CLI builds it from `argv`; the web router builds it
 from the URL hash. Handlers receive this object and never know which surface
 called them.

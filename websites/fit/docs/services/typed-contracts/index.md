@@ -3,7 +3,7 @@ title: Expose Backend Services as Agent Tools
 description: Every gRPC endpoint becomes an agent tool from a single configuration file — no per-endpoint integration code.
 ---
 
-You have several gRPC services -- graph, vector, pathway, map -- and you need
+You have several gRPC services (graph, vector, pathway, map) and you need
 agents to reach them as tools. Writing a separate MCP wrapper for each service
 means duplicating schema translation, session management, and authentication
 logic. The MCP service reads a single tool configuration from

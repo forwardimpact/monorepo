@@ -39,8 +39,8 @@ expects.
 
 Start by asking Guide what the gap looks like between your current level and
 your target. Guide reads your organization's skill definitions, behaviour
-expectations, and markers -- not generic career advice -- and returns specific
-areas grounded in your standard.
+expectations, and markers, and returns specific areas grounded in your
+standard rather than generic career advice.
 
 Start Guide and ask a growth question. Lines starting with `>` are prompts you
 type inside the Guide session:
