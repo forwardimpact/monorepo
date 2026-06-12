@@ -1,4 +1,5 @@
 import { createSupabaseClient } from "../_shared/supabase.ts";
+import { createEdgeRuntime } from "../_shared/runtime.ts";
 import { extractGetDX } from "../_shared/activity/extract/getdx.js";
 import { transformAllGetDX } from "../_shared/activity/transform/getdx.js";
 
@@ -12,7 +13,7 @@ Deno.serve(async (_req) => {
   }
 
   const extract = await extractGetDX(supabase, { apiToken, baseUrl });
-  const transform = await transformAllGetDX(supabase);
+  const transform = await transformAllGetDX(supabase, createEdgeRuntime());
 
   const ok = extract.errors.length === 0 && transform.errors.length === 0;
   return json(
