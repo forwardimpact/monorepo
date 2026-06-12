@@ -148,33 +148,39 @@ function checkLauncherPlaceholders(launcher, src, problems) {
 function checkLauncherSchema(launcher, src, problems) {
   const path = `launchers/${launcher.dir}/package.json`;
   const manifest = launcher.manifest;
-  const fail = (message) => problems.push({ kind: "schema", path, message });
-  if (manifest.name !== launcher.dir) {
-    fail(
-      `name must equal the invoked name "${launcher.dir}" — found "${manifest.name}" (npm publishes under name, every other guard keys on the dir)`,
-    );
-  }
-  if (manifest.type !== "module") {
-    fail(`type must be "module" — the two-line launcher bin is ESM`);
-  }
-  for (const key of Object.keys(manifest)) {
-    if (!ALLOWED_KEYS.has(key)) fail(`key "${key}" is outside the allowed set`);
-  }
-  for (const key of REQUIRED_KEYS) {
-    if (!(key in manifest)) fail(`required key "${key}" is missing`);
-  }
   const deps = Object.keys(manifest.dependencies ?? {});
-  if (deps.length !== 1 || deps[0] !== src.srcName) {
-    fail(
-      `dependencies must be exactly {"${src.srcName}": …} — found [${deps.join(", ")}]`,
-    );
-  }
   const files = manifest.files;
-  if (!Array.isArray(files) || files.length !== 1 || files[0] !== "bin/") {
-    fail(`files must be exactly ["bin/"]`);
-  }
-  if (Object.keys(manifest.bin ?? {}).length !== 1) {
-    fail("bin must have exactly one key");
+  const violations = [
+    [
+      manifest.name !== launcher.dir,
+      `name must equal the invoked name "${launcher.dir}" — found "${manifest.name}" (npm publishes under name, every other guard keys on the dir)`,
+    ],
+    [
+      manifest.type !== "module",
+      `type must be "module" — the two-line launcher bin is ESM`,
+    ],
+    ...Object.keys(manifest)
+      .filter((key) => !ALLOWED_KEYS.has(key))
+      .map((key) => [true, `key "${key}" is outside the allowed set`]),
+    ...REQUIRED_KEYS.filter((key) => !(key in manifest)).map((key) => [
+      true,
+      `required key "${key}" is missing`,
+    ]),
+    [
+      deps.length !== 1 || deps[0] !== src.srcName,
+      `dependencies must be exactly {"${src.srcName}": …} — found [${deps.join(", ")}]`,
+    ],
+    [
+      !Array.isArray(files) || files.length !== 1 || files[0] !== "bin/",
+      `files must be exactly ["bin/"]`,
+    ],
+    [
+      Object.keys(manifest.bin ?? {}).length !== 1,
+      "bin must have exactly one key",
+    ],
+  ];
+  for (const [violated, message] of violations) {
+    if (violated) problems.push({ kind: "schema", path, message });
   }
 }
 
