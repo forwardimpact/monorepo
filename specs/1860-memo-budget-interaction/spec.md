@@ -72,9 +72,9 @@ design exists to provide:
    e.g. `wiki/security-engineer.md`'s inbox line), so a bound on memo bodies and
    an exemption on a file region do not cover the same set. Any region the
    design exempts from the summary measures, and any out-of-band store it
-   introduces, must remain subject to at least one enforced, audit-visible bound
-   — otherwise the exemption becomes a budget-evasion surface that limit cycle
-   pressure selects for, the same way it selected for sender-withdrawals.
+   introduces, must remain subject to at least one fail-severity, audit-visible
+   bound — otherwise the exemption becomes a budget-evasion surface that limit
+   cycle pressure selects for, the same way it selected for sender-withdrawals.
 
 ## Alternatives recorded at routing
 
@@ -107,7 +107,7 @@ criteria are mechanism-neutral.
    at, or over a summary budget limit does not create, deepen, or re-publish a
    summary-budget audit finding — verified by `bun test libraries/libwiki`.
 2. Undischarged memo inventory — including memos routed to or held in any
-   out-of-band store the design introduces — has an enforced, audit-visible
+   out-of-band store the design introduces — has a fail-severity, audit-visible
    bound, and a single delivery to a recipient whose inbox conforms to the bound
    does not trip it — verified by `bun test libraries/libwiki`.
 3. A sender uses the same delivery command regardless of the recipient's budget
@@ -117,10 +117,15 @@ criteria are mechanism-neutral.
    states budget figures that match the enforced limits — verified by reading
    `memory-protocol.md`.
 5. Every content region of the summary file, and any out-of-band memo store the
-   design introduces, is subject to at least one enforced, audit-visible bound;
-   no content class is exempt from every measure — verified by
-   `bun test libraries/libwiki` with a negative fixture placing non-memo text in
-   the exempted or out-of-band surface and asserting a bound still measures it.
+   design introduces, is subject to at least one fail-severity, audit-visible
+   bound; no content class is exempt from every measure. Verified by
+   `bun test libraries/libwiki` with a negative fixture: non-memo text planted
+   in whichever surface the design exempts from the summary budgets (or in the
+   out-of-band store, if one is introduced), as the only over-bound content,
+   produces at least one fail-severity audit finding — and the same fixture
+   without the planted text produces none. If the design neither exempts a
+   summary region nor introduces a store, the existing summary-budget tests
+   satisfy this criterion.
 
 ## Constraints and monitoring
 
