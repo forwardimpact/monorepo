@@ -82,11 +82,12 @@ the same interface, with tooling to prove changes actually improved outcomes.
 ## Distribution Model
 
 The monorepo is open source but internal-only — external users consume via
-npm. It's the source of truth for several sibling repos under
+npm. It's the source of truth for sibling repos under
 `forwardimpact/*` we maintain alongside it:
 
 - **npm packages** — `fit-*` and `kata-*` CLIs and libraries, installed via
-  `npx fit-*`. All CLIs use `#!/usr/bin/env node` (no Bun required). gRPC
+  `npx fit-*`; bare names are launchers ([launchers/README.md](launchers/README.md)).
+  All CLIs use `#!/usr/bin/env node` (no Bun required). gRPC
   products (currently Guide) need `npx fit-codegen --all` — see
   [Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md).
 - **Skill packs** — `forwardimpact/fit-skills` and `forwardimpact/kata-skills`
@@ -108,7 +109,7 @@ appear only in internal docs.
 
 ## Contributor Workflow
 
-Everything below this point is for internal contributors. External users should
+Everything below is for internal contributors. External users should
 consult the [Getting Started guides](websites/fit/docs/getting-started/).
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — Invariants, structure, quality
