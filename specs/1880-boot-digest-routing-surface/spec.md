@@ -11,13 +11,15 @@ lands) · **Persona/Job:** Teams Using Agents —
 The memory protocol's On-Boot Routing level 2 promises that the `fit-wiki boot`
 digest delivers "per-agent deliverables plus open experiment issues labeled
 `agent:{self}`". Three independent observers plus a source-mechanism read
-(#1666) established that the promise is broken in both halves:
+(#1666) established that the promise is broken in both halves; a post-review
+staff-lane datum adds the first consequence-grade instance:
 
 | Claim | Evidence |
 | --- | --- |
 | The labeled-issue clause was never implemented — the digest's storyboard parser has no issue source, so level 2 cannot fire | Live boots: `storyboard_items = []` for release-engineer despite open #1625 (`agent:release-engineer` + `experiment`) and for improvement-coach despite open #1648; source verification [#1666 issuecomment-4688844457](https://github.com/forwardimpact/monorepo/issues/1666#issuecomment-4688844457) |
 | Standing carries never reach the digest — the summary extraction returns only the first paragraph (the Last-run block) | Release-engineer's carry stack and the coach's Active Patterns are structurally excluded; every schedule-pinned commitment relies on de-facto full-file reads, not the documented Tier-1 digest path |
 | Three test surfaces — the audit fixtures, the boot-digest golden file, and the integration seed helper — encode a dead storyboard format (`### {agent} — backlog` + bullets), so the gap ships green | The live storyboard carries h4 metrics + fenced XmR blocks and zero agent-section bullets; PR #1669 added one live-format regression test, but the three named surfaces still encode the dead format |
+| The broken clause carries experiment-killing cost, not just missing digest items — Exp #1482's locked in-window measurement procedure was never delivered despite the open labeled issue, so two Route-3 runs (6/08 run-74 → PR #1514, run-75 → PR #1516) executed without it and #1482 closed INCONCLUSIVE-instrumentation | Staff-lane instance datum [#1666 issuecomment-4690343609](https://github.com/forwardimpact/monorepo/issues/1666#issuecomment-4690343609); procedure locked 6/07 in [#1482 issuecomment-4642143890](https://github.com/forwardimpact/monorepo/issues/1482#issuecomment-4642143890); scope unchanged per [this PR's scope assessment](https://github.com/forwardimpact/monorepo/pull/1674#issuecomment-4690382397) |
 
 The team-wide mitigation is "read the storyboard file directly; do not act on
 digest `storyboard_items`" — the full-file read is exactly the path the digest
