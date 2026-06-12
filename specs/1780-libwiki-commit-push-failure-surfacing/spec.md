@@ -157,6 +157,7 @@ three caller rows:
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
 | Foreign content conservation (claim rows the canonical instance) | A push that would delete foreign-writer content present at the observed remote tip — an Active Claims row, a foreign-written row of a shared canonical record, or content in another writer's files (run records, rider bodies, backlog annotations) — refuses or re-merges unless the removal is a deliberate act carried by the pushed history; never silently drops. Detection is a write-time content comparison of the remote tip against the would-be-pushed tree (§ Decisions D5 — file-history inspection is structurally blind to this erasure class). |
 | Unsafe-precondition refusal | A rebase in progress or a detached HEAD refuses before mutating, with a precondition reason and non-zero exit on all three surfaces — the backstop that keeps an interrupted reconcile from minting a success-shaped verdict (§ Decisions D7). |
+| `scripts/wiki-sync.sh` push mode | The second in-tree publication surface — it never enters libwiki and retains the same silent-clobber fallback this spec removes (rebase failure ⇒ `git merge origin/master -X ours --no-edit`, line 69) — stops being a callable unguarded bypass: its push mode delegates to `fit-wiki push` or is retired, revisiting spec 0780's keep ruling (§ Decisions D8; delegate-vs-retire is design latitude). |
 | Operator message contract | Failure messages name the reason class and the recovery path; where uncommitted work is retained in the stash on a failed autostash reapplication, the message names where it went (§ Decisions D3 guarantee). Contract is exit code plus reason class — exact wording is plan territory. |
 | Documented contract surface | The `commitAndPush` contract documentation describes the outcome taxonomy and per-caller mapping, traceable to this spec. |
 
@@ -477,6 +478,46 @@ remediation turn. If the alternative is chosen, the matching § Scope
 refusal row and this decision's criterion row revise in the same approval
 signal.
 
+**D8 — Coverage keyed to publication events, not primitive invocations.**
+Guarding `WikiSync.commitAndPush` binds every invocation of the
+*primitive*; the contract this spec sells binds only if every
+**publication event** — any process that pushes a locally-built tip to the
+wiki remote: agent-invoked CLI, session-end hook wiring,
+background/harness sync cycle — passes through the D5 conservation
+comparison and the D2 outcome contract. That property is currently false
+by construction: the erasure family's sixth member published with **no
+agent push decision**, and the repo carries a second in-tree publication
+surface — `scripts/wiki-sync.sh` push mode — that never enters libwiki,
+emits the same literal commit message (`wiki: update from session`), and
+retains the silent-clobber fallback this spec removes (rebase failure ⇒
+`git merge origin/master -X ours --no-edit`, `scripts/wiki-sync.sh:69`,
+source-confirmed live at main; spec 0780 migrated the primary surfaces but
+kept the script in-tree in its § Out of scope — a ruling this decision
+revisits). History shape cannot discriminate which surface published —
+both produce the same plain-commit + local-side-merge pairs
+([sixth-member extension](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4690227611);
+[coach adjudication](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4690191908)).
+The design therefore delivers coverage **by construction, not
+convention**: enumerate every in-tree publication surface of the wiki
+remote; route each through the guarded primitive — for `wiki-sync.sh` push
+mode, delegate to `fit-wiki push` or retire the push mode — or name the
+unrouted path an accepted residual with a designated owner. A design that
+guards the primitive while a callable in-tree bypass retains the clobber
+fallback **fails this constraint** — the defect reappears on the surface
+the fix didn't cover, which is where the sixth member actually lived.
+**Self-reporting at the guard seam**: every publication event records the
+conservation comparison's outcome class — pass,
+pass-via-designed-exclusion, declared-removal pass, refusal — so whether
+the content-diff floor binds on background-sync pushes becomes observable
+from normal operation instead of awaiting author-luck detection of the
+next erasure; the record's mechanism is design territory, its per-event
+existence is not. *Alternative carried:* keep the keying at the primitive
+("every push attempt through `commitAndPush`") and route the script as a
+separate mechanical fix — rejected in one line: the contract's value is
+voided for any session whose harness publishes through the unguarded
+script, and a fix living in a separate home leaves the bypass callable
+while every criterion in this spec passes.
+
 ## Success Criteria
 
 Each criterion is verified against a fixture wiki clone plus a controllable
@@ -521,6 +562,8 @@ order.
 | Stale revert of a foreign shared-record row refused. | Fixture whose would-be-pushed tree restores a superseded state of a foreign-written ledger row present at the remote tip in an advanced state, with no authored transition to the restored state in the pushed history (the side-pick shape that erases a human approval signal); run `fit-wiki push`; observe refusal or re-merge and the advanced state's survival, read as a content state of the remote-tip tree. |
 | Conservation holds on the claim/release surfaces. | Drive the stale-read deletion fixture through `fit-wiki claim`; observe zero exit with the saved-locally warning (the guard refusal is a push failure under D1), the foreign row's survival on the remote, and no silent drop pushed. |
 | Deliberate removals pass the conservation guard, including when retried by the session-end push. | Targeted release of an owned claim and `release --expired` over a foreign expired claim, each pushing successfully; then a targeted release whose own push is forced to fail, followed by `fit-wiki push` from the same clone — observe the carried removal lands and the push succeeds. Repeat the stranded-retry leg for a declared foreign-content removal: a declared budget-trim push forced to fail, then `fit-wiki push` from the same clone — observe the declaration still classifies the removal as deliberate and the trim lands (§ Decisions D5 retry-survival constraint). |
+| No in-tree publication surface bypasses the guard. | Enumerate the in-tree publication surfaces of the wiki remote (§ Decisions D8); observe each routes through the guarded primitive or is named an accepted residual with a designated owner in the design. For `scripts/wiki-sync.sh` specifically: observe its push mode absent or delegating to `fit-wiki push` — verified by driving the clean-replay erasure fixture through the script's push invocation and observing the same refusal class the CLI surface reports, never the clobber fallback — or the script's push path named as the accepted residual. |
+| Every publication event self-reports its conservation outcome class. | Drive one publication per routed surface (CLI `fit-wiki push`, session-end hook wiring, background/harness sync path) through fixtures producing each § Decisions D8 outcome class — pass, pass-via-designed-exclusion (own-file trim), declared-removal pass, refusal; observe a per-event record of the outcome class at the guard seam in all cases — the record's mechanism is design territory, its per-event existence is what this row verifies. |
 | Whole-tree sweep contract unchanged. | Fixture with changes across multiple files; run `fit-wiki push`; observe a single commit sweeping the tree, as today. |
 | Healthy-clone behavior otherwise unchanged — and the suite's defect-asserting rows are inverted, not preserved. | Run the libwiki test suite — with the rows that assert the removed behaviors revised to the new contract: the silent-clobber recovery rows, and specifically the "commitAndPush tolerates a failing push (WikiRepo fire-and-forget)" test (`wiki-sync.test.js:218` at spec time), which locks in the phantom-success defect and must be **inverted** to assert a failure outcome — plus a healthy-clone fixture through all three surfaces; observe unchanged outcomes and messages apart from the honest-success gating and those revised rows. |
 | The contract documentation describes the taxonomy and per-caller mapping. | Read the `commitAndPush` contract surface documentation; observe it states the outcome taxonomy, the per-caller exit mapping, the conservation guard, and traces to this spec. |
@@ -619,6 +662,16 @@ files measured vs remote tip `71327258`) from the
 adopted by the spec holder 2026-06-12 — completing the mechanism ×
 victim-class matrix the existing rows left open (stale-base × claim-row
 and side-pick × non-claim covered; a design keying the generalized
-guard on resolution events passed both and missed this member).
+guard on resolution events passed both and missed this member);
+publication-event keying (D8), the `wiki-sync.sh` push-mode scope row
+revisiting 0780's keep ruling, the no-unrouted-bypass and
+self-reporting criterion rows from the
+[staff-engineer design-constraint extension](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4690227611)
+(sixth corpus member, no agent push decision;
+[coach adjudication](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4690191908)),
+incorporated by the spec holder 2026-06-12 — the holder's § Scope call:
+the bypass is named in this spec, not a separate mechanical fix, because
+the contract's value is voided while the bypass is callable and one home
+keeps the constraint adjudicable in the same approval signal.
 
 — Product Manager 🌱
