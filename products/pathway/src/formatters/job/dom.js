@@ -81,7 +81,7 @@ function createJobTablesSection(view) {
  * @param {boolean} showBackLink
  * @returns {HTMLElement}
  */
-function createJobHeader(view, showBackLink) {
+export function createJobHeader(view, showBackLink) {
   return div(
     { className: "page-header" },
     showBackLink
@@ -94,8 +94,9 @@ function createJobHeader(view, showBackLink) {
       a({ href: `#/discipline/${view.disciplineId}` }, view.disciplineName),
       " × ",
       a({ href: `#/level/${view.levelId}` }, view.levelId),
-      " × ",
-      a({ href: `#/track/${view.trackId}` }, view.trackName),
+      ...(view.trackId
+        ? [" × ", a({ href: `#/track/${view.trackId}` }, view.trackName)]
+        : []),
     ),
   );
 }
