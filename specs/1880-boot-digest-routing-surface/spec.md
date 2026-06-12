@@ -43,8 +43,9 @@ binding contract properties:
 - **Boot stays offline, file-only, fail-never:** the digest builder reads only
   wiki files — no network, no subprocess, no new failure mode on the path
   every agent runs first.
-- **Freshness is bounded by the sync cadence:** digest items are as fresh as
-  the last materialization, not live tracker state, and the protocol says so.
+- **Freshness is bounded by the last successful sync:** digest items are as
+  fresh as the last successful materialization, not live tracker state; the
+  protocol says so, and the surface itself makes that staleness auditable.
 
 Feasibility evidence (not a binding mechanism choice): the storyboard's
 `## Experiments → ### Active` section is already an auto-generated issue-list
@@ -77,7 +78,15 @@ the full-file read as the real protocol.
    wiping its previous content. For the attributed surface, a failed tracker
    query at sync time must preserve the previously materialized items (warn
    and keep), so boot serves the last good materialization instead of an
-   empty routing surface.
+   empty routing surface. Because keep-previous composes with label re-check
+   into an otherwise unbounded, unobservable revocation window (a de-labeled
+   issue persists for as long as sync keeps failing, with only a sync-time
+   warning no booting agent sees), the materialized surface records the
+   timestamp of the last **successful** sync; a failed sync preserves items
+   but never refreshes the timestamp. Boot delivers items regardless
+   (fail-never), and the staleness of the surface is auditable from the file
+   itself (per SecE review,
+   [PR #1674 issuecomment-4689161283](https://github.com/forwardimpact/monorepo/pull/1674#issuecomment-4689161283)).
 3. **Boot reads the materialized surface.** The boot digest's
    `storyboard_items` include the open experiment issues attributed to the
    booting agent, sourced from the materialized file under the contract
@@ -132,12 +141,19 @@ fields that do cross.
    non-numeric crossing field — title, author identifier, and label-derived
    agent name — is length-capped and sanitized so protocol-markup lookalikes
    (`[ask#N]`, checklist tags, session/memo control structures, auto-generated
-   block markers) render inert. A negative fixture is required: a hostile
-   issue carrying protocol impersonation in title, body, and author must
-   produce a materialized item that is inert and body-free.
+   block markers) render inert; the sanitizer itself enforces single-line
+   output (stripping newlines and control characters) rather than trusting
+   the tracker response shape, since a multi-line value is what would let a
+   crossing field inject headings or fences that move section boundaries. A
+   negative fixture is required: a hostile issue carrying protocol
+   impersonation in title, body, and author — including a multi-line
+   injection attempt — must produce a materialized item that is inert and
+   body-free.
 3. **Provenance on every item.** Each materialized item records issue number,
    author, and owning label, so anything in boot context is auditable back to
-   its source and editor.
+   its source. The author field is the issue **creator**, not the editor of
+   the current title (titles are editable post-labeling by others); the issue
+   number is the audit anchor — edit history lives in the issue timeline.
 
 ## Coherence Constraints
 
@@ -162,8 +178,8 @@ passing with the named coverage present.
 | 1 | A boot digest for an agent includes an open experiment issue labeled `agent:{self}` after a sync that materialized it | libwiki boot test: fixture wiki containing the materialized surface |
 | 2 | The boot path stays offline and fail-never | libwiki boot tests construct the digest builder with only a filesystem surface — no subprocess or network capability injected |
 | 3 | An issue de-labeled since the previous sync is absent from the next successful materialized render | libwiki sync test: label removed between two renders → item dropped |
-| 4 | A failed tracker query at sync time preserves the previously materialized items | libwiki sync test: tracker failure between two renders → prior items intact, warning emitted |
-| 5 | A hostile issue (protocol impersonation in title, body, and author) materializes inert and body-free | libwiki negative fixture test |
+| 4 | A failed tracker query at sync time preserves the previously materialized items and leaves the last-successful-sync timestamp unchanged; a successful sync refreshes it | libwiki sync test: tracker failure between two renders → prior items intact, timestamp unchanged, warning emitted; successful render → timestamp updated |
+| 5 | A hostile issue (protocol impersonation in title, body, and author, including a multi-line injection attempt) materializes inert and body-free | libwiki negative fixture test |
 | 6 | Every materialized item carries issue number, author, and owning label | libwiki sync test asserting provenance fields |
 | 7 | Boot consumes what the sync actually writes — no renderer/parser format drift | libwiki round-trip test: digest built from a file produced by the materialization renderer, not a hand-built lookalike |
 | 8 | A live-format agent-section bullet still yields a digest item for that agent | libwiki boot test against the rewritten live-format fixtures |
