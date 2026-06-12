@@ -363,7 +363,6 @@ and writing findings that are grounded, testable, and actionable -- see the
 
 <!-- part:card:run-eval -->
 <!-- part:card:run-benchmark -->
-<!-- part:card:run-benchmark/ci-workflow -->
 <!-- part:card:trace-analysis -->
 <!-- part:card:generate-dataset -->
 

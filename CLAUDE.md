@@ -15,8 +15,8 @@ maintain the monorepo. See [JTBD.md](JTBD.md) for each persona's jobs.
 
 - **Engineering Leaders** — Define what good engineering looks like, staff teams
   to succeed, and measure outcomes without blaming individuals.
-- **Empowered Engineers** — Understand expectations, find growth areas, prepare
-  for the day ahead, and equip and trust their agent teams.
+- **Empowered Engineers** — See what's expected of them and their agents, get
+  judgment grounded in the standard, and stay prepared.
 - **Teams Using Agents** —
   [Run a continuously improving agent team](JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team).
 
