@@ -41,8 +41,9 @@ benchmarks), `forwardimpact/fit-bootstrap` (the FIT CI environment),
 `forwardimpact/fit-eval` (agent task execution),
 `forwardimpact/fit-wiki` (agent-memory commands with fresh App token), and
 `forwardimpact/kata-agent` (full Kata workflow: auth, checkout, bootstrap,
-eval, wiki push). All are consumed by tag (e.g. `@v1`). Run `kata-setup` to
-generate workflows interactively.
+eval, wiki push). All are consumed by SHA-pinned `uses:` lines; changes
+arrive via append-only patch tags and Dependabot SHA-bump PRs. Run
+`kata-setup` to generate workflows interactively.
 
 ## Simplicity
 
@@ -54,8 +55,9 @@ A differentiating factor of the Kata Agent Team is its simplicity.
   GitHub Actions — no databases, no queues, no custom servers.
 - **Minimal harness.** The orchestration layer is built around the Claude SDK —
   simple yet incredibly capable.
-- **Zero external runtime dependencies.** JavaScript libraries (`libeval`,
-  `libwiki`, etc.) are plain JavaScript with no third-party packages.
+- **Minimal runtime dependencies.** Plain JavaScript throughout — the harness
+  (`libeval`) depends on the Claude Agent SDK plus a few small utilities;
+  memory (`libwiki`) pulls in no third-party packages.
 
 ## Surfaces
 
