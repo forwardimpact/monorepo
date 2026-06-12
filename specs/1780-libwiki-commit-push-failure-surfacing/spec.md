@@ -155,7 +155,7 @@ three caller rows:
 | Command surfaces `fit-wiki push`, `claim`, `release` | Each caller maps every outcome to an honest message per § Decisions D1: `push` exits non-zero whenever the push did not land; `claim`/`release` keep zero exit on a successful local write and print an honest saved-locally warning naming the reason. |
 | Session-end hook surfacing | The Stop-hook wiring maps a push-failure exit to the hook semantics that block the stop and feed the reason back to the agent for a remediation turn, with the CLI's exit status propagated losslessly through every invocation layer in between — no shell-pipeline or wrapper layer may mask it (§ Decisions D4 fidelity clause). |
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
-| Foreign content conservation (claim rows the canonical instance) | A push that would delete foreign-writer content present at the observed remote tip — an Active Claims row, or content in another writer's files (run records, rider bodies, backlog annotations) — refuses or re-merges unless the removal is a deliberate act carried by the pushed history; never silently drops. Detection is a write-time content comparison of the remote tip against the would-be-pushed tree (§ Decisions D5 — file-history inspection is structurally blind to this erasure class). |
+| Foreign content conservation (claim rows the canonical instance) | A push that would delete foreign-writer content present at the observed remote tip — an Active Claims row, a foreign-written row of a shared canonical record, or content in another writer's files (run records, rider bodies, backlog annotations) — refuses or re-merges unless the removal is a deliberate act carried by the pushed history; never silently drops. Detection is a write-time content comparison of the remote tip against the would-be-pushed tree (§ Decisions D5 — file-history inspection is structurally blind to this erasure class). |
 | Unsafe-precondition refusal | A rebase in progress or a detached HEAD refuses before mutating, with a precondition reason and non-zero exit on all three surfaces — the backstop that keeps an interrupted reconcile from minting a success-shaped verdict (§ Decisions D7). |
 | Operator message contract | Failure messages name the reason class and the recovery path; where uncommitted work is retained in the stash on a failed autostash reapplication, the message names where it went (§ Decisions D3 guarantee). Contract is exit code plus reason class — exact wording is plan territory. |
 | Documented contract surface | The `commitAndPush` contract documentation describes the outcome taxonomy and per-caller mapping, traceable to this spec. |
@@ -346,8 +346,9 @@ a prior claim/release invocation whose stranded write the session-end push
 is retrying (D1 makes that push the retry, so the guard must not refuse
 the removals it carries). A push that fails this check refuses or
 re-merges, never silently drops. **The check is a write-time content
-comparison — Active Claims rows present at the observed remote tip checked
-for presence in the tree about to be pushed.** That shape is pinned by
+comparison — foreign-writer content present at the observed remote tip
+checked for presence in the tree about to be pushed (Active Claims rows
+the canonical instance).** That shape is pinned by
 evidence, not preference: the erasure class this guard exists for is
 invisible to file-history inspection — under default merge-history
 simplification a path-limited `git log` TREESAME-prunes the erased commit,
@@ -358,7 +359,7 @@ side-pick-erasure specimen,
 [#1564](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689300925);
 [detection-constraint routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689343074)).
 The same constraint binds verification: the § Success criteria conservation
-rows observe content states — rows present in trees and refs — never log
+rows observe content states — content present in trees and refs — never log
 output, because absence from file history is not evidence of absence. What
 remains design territory: where in the push pipeline the comparison runs,
 and how deliberate-removal intent is recorded and consulted (the
@@ -376,19 +377,36 @@ run records, rider bodies, a backlog authoring-HOLD annotation
 — so a guard conserving only the claims table passes while the memory
 itself is erased, and no other drafted spec owns that victim class. The
 conserved set is therefore **foreign-writer content present at the
-observed remote tip**: content in files owned by another writer (agent
-summaries, weekly logs, shared canonical records), with Active Claims
-rows remaining the named canonical instance and the strictest fixture.
+observed remote tip**: content another writer wrote, whether in that
+writer's own files (agent summaries, weekly logs) or in shared canonical
+records, with Active Claims rows remaining the named canonical instance
+and the strictest fixture.
 The deliberate-removal leg generalizes with it: a removal passes only as
 a deliberate act carried by the pushed history — for claim rows, the
 existing release/expiry records; for other foreign content, an explicit
 removal declaration carried by the pushed history (its mechanism —
 commit-message convention or sideband intent record — is design
-territory, exactly as claim-row intent recording already is; the
-cross-lane mechanical budget-trim of another agent's summary is the
-legitimate shape this leg must keep working). Own-file content stays
-out of the guard's scope: the pusher owns it, and owner trims and
-displacement-at-landing are routine flows — that residual is owned by
+territory, exactly as claim-row intent recording already is, under one
+binding constraint: the declaration must survive a stranded-push retry,
+since D1 makes the session-end `fit-wiki push` the retry for a failed
+removal push — a commit-message convention travels with the retried
+history; a sideband record must persist to that push; the cross-lane
+mechanical budget-trim of another agent's summary is the legitimate
+shape this leg must keep working). Routine shared-record state
+transitions are in the predicate and pass as written: writing a
+foreign-written row to a new state removes that row's prior content, and
+the authored transition carried by the pushed history **is** the
+deliberate act — no separate declaration for the approval-propagation
+flow (how the guard recognizes an authored transition versus a
+resolution artifact is design territory, exactly as intent recording
+is) — while a push that restores a superseded foreign row state with no
+authored transition in its history (the side-pick revert of a ledger
+row, erasing a human approval signal) is the refused shape, not a state
+transition. Own-file content stays
+out of the guard's scope — the exclusion keyed by authorship like the
+conserved set: content the pusher itself wrote, in its own files or in
+its own rows of shared records — the pusher owns it, and owner trims and
+displacement-at-landing are routine flows; that residual is owned by
 the lane floors (pre-push artifact probe, content-read floor) and the
 spec-1900 budget re-validation family, not by D5.
 *Alternative carried (mechanism):* narrow the criterion to "the tool never
@@ -497,9 +515,11 @@ order.
 | Foreign claim-row conservation: clean-rebase drop refused. | Fixture whose local MEMORY.md commit was written from a stale read and deletes a foreign claim row present in both the merge base and the remote tip, with no textually overlapping remote change so the rebase replays clean; run `fit-wiki push`; observe the push refuses or re-merges and the foreign row survives on the remote — read as a content state of the remote-tip tree, never inferred from file-history output, which TREESAME-prunes this erasure class (§ Decisions D5). |
 | Foreign claim-row conservation: post-resolution drop refused. | Fixture where a manual conflict resolution dropped a foreign row; run `fit-wiki push`; observe refusal or re-merge and the row's survival, read as a content state of the remote-tip tree. |
 | Foreign content conservation beyond claim rows: side-pick erasure of a foreign run record refused. | Fixture reproducing the 6/12 family shape: a conflict resolution picks the local side of another writer's weekly-log file, dropping a run-record section present at the remote tip with no claim row touched; run `fit-wiki push`; observe refusal or re-merge and the section's survival, read as a content state of the remote-tip tree (victim classes per the four specimens — run records, rider bodies, backlog annotations; [#1564 assessment](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689377410)). |
-| Declared foreign-content removals pass the conservation guard. | Fixture whose pushed history carries an explicit removal declaration for a foreign-file trim (the cross-lane budget-trim shape); run `fit-wiki push`; observe the push succeeds and the declared removal lands. |
+| Declared foreign-content removals pass the conservation guard. | Fixture whose pushed history carries an explicit removal declaration for a foreign-file trim (the cross-lane budget-trim shape); run `fit-wiki push`; observe the push succeeds and the declared removal lands — the trimmed content absent from the remote-tip tree, read as a content state, never inferred from file-history output (§ Decisions D5). |
+| Shared-record state transition passes with no separate declaration. | Fixture whose pushed history carries an authored commit transitioning a foreign-written row of a shared canonical record to a new state (the approval-propagation shape — `plan approved` written over a row another writer last wrote); run `fit-wiki push`; observe the push succeeds and the row present at the new state on the remote, with no removal declaration involved — an implementation that refuses this flow or demands a declaration for it fails this row. |
+| Stale revert of a foreign shared-record row refused. | Fixture whose would-be-pushed tree restores a superseded state of a foreign-written ledger row present at the remote tip in an advanced state, with no authored transition to the restored state in the pushed history (the side-pick shape that erases a human approval signal); run `fit-wiki push`; observe refusal or re-merge and the advanced state's survival, read as a content state of the remote-tip tree. |
 | Conservation holds on the claim/release surfaces. | Drive the stale-read deletion fixture through `fit-wiki claim`; observe zero exit with the saved-locally warning (the guard refusal is a push failure under D1), the foreign row's survival on the remote, and no silent drop pushed. |
-| Deliberate removals pass the conservation guard, including when retried by the session-end push. | Targeted release of an owned claim and `release --expired` over a foreign expired claim, each pushing successfully; then a targeted release whose own push is forced to fail, followed by `fit-wiki push` from the same clone — observe the carried removal lands and the push succeeds. |
+| Deliberate removals pass the conservation guard, including when retried by the session-end push. | Targeted release of an owned claim and `release --expired` over a foreign expired claim, each pushing successfully; then a targeted release whose own push is forced to fail, followed by `fit-wiki push` from the same clone — observe the carried removal lands and the push succeeds. Repeat the stranded-retry leg for a declared foreign-content removal: a declared budget-trim push forced to fail, then `fit-wiki push` from the same clone — observe the declaration still classifies the removal as deliberate and the trim lands (§ Decisions D5 retry-survival constraint). |
 | Whole-tree sweep contract unchanged. | Fixture with changes across multiple files; run `fit-wiki push`; observe a single commit sweeping the tree, as today. |
 | Healthy-clone behavior otherwise unchanged — and the suite's defect-asserting rows are inverted, not preserved. | Run the libwiki test suite — with the rows that assert the removed behaviors revised to the new contract: the silent-clobber recovery rows, and specifically the "commitAndPush tolerates a failing push (WikiRepo fire-and-forget)" test (`wiki-sync.test.js:218` at spec time), which locks in the phantom-success defect and must be **inverted** to assert a failure outcome — plus a healthy-clone fixture through all three surfaces; observe unchanged outcomes and messages apart from the honest-success gating and those revised rows. |
 | The contract documentation describes the taxonomy and per-caller mapping. | Read the `commitAndPush` contract surface documentation; observe it states the outcome taxonomy, the per-caller exit mapping, the conservation guard, and traces to this spec. |
@@ -580,6 +600,15 @@ question ([family assessment §2](https://github.com/forwardimpact/monorepo/issu
 — all four 6/12 specimens' victims were non-claim-row content; disposed
 by the spec holder 2026-06-12, read by the
 [Exp #1565](https://github.com/forwardimpact/monorepo/issues/1565)
-2026-06-24 scoped-synthesis gate.
+2026-06-24 scoped-synthesis gate; shared-record state-transition disposal
+(row replacement in the predicate, the authored transition itself the
+deliberate act, the no-authored-transition stale revert the refused
+shape) with its two criterion rows, the authorship-keyed conserved-set
+gloss and own-file exclusion, the generalized check and observation-rule
+sentences, the declared-removal pass row's content-state channel, and
+the declaration retry-survival constraint with its stranded-retry leg
+from the
+[staff-engineer pre-gate review](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689730084)
+(M1, L1–L4), disposed by the spec holder 2026-06-12.
 
 — Product Manager 🌱
