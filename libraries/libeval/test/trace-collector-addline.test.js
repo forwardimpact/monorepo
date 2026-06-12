@@ -123,6 +123,83 @@ describe("TraceCollector", () => {
       assert.strictEqual(trace.summary.tokenUsage.inputTokens, 5000);
     });
 
+    test("accumulates summary across multiple result events", () => {
+      const collector = new TraceCollector();
+      collector.addLine(
+        JSON.stringify({
+          type: "result",
+          subtype: "success",
+          is_error: true,
+          total_cost_usd: 1.0,
+          duration_ms: 1000,
+          num_turns: 3,
+          usage: {
+            input_tokens: 100,
+            output_tokens: 50,
+            cache_read_input_tokens: 1000,
+            cache_creation_input_tokens: 10,
+          },
+        }),
+      );
+      collector.addLine(
+        JSON.stringify({
+          type: "result",
+          subtype: "error_max_turns",
+          is_error: false,
+          total_cost_usd: 2.5,
+          duration_ms: 2000,
+          num_turns: 4,
+          usage: {
+            input_tokens: 200,
+            output_tokens: 70,
+            cache_read_input_tokens: 3000,
+            cache_creation_input_tokens: 20,
+          },
+        }),
+      );
+
+      const summary = collector.toJSON().summary;
+      assert.strictEqual(summary.result, "error_max_turns");
+      assert.strictEqual(summary.isError, true);
+      assert.strictEqual(summary.totalCostUsd, 3.5);
+      assert.strictEqual(summary.durationMs, 3000);
+      assert.strictEqual(summary.numTurns, 7);
+      assert.deepStrictEqual(summary.tokenUsage, {
+        inputTokens: 300,
+        outputTokens: 120,
+        cacheReadInputTokens: 4000,
+        cacheCreationInputTokens: 30,
+      });
+    });
+
+    test("carries usage through a result event without usage", () => {
+      const collector = new TraceCollector();
+      collector.addLine(
+        JSON.stringify({
+          type: "result",
+          subtype: "success",
+          total_cost_usd: 1.0,
+          duration_ms: 1000,
+          num_turns: 3,
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      );
+      collector.addLine(
+        JSON.stringify({
+          type: "result",
+          subtype: "success",
+          total_cost_usd: 0.5,
+          duration_ms: 500,
+          num_turns: 1,
+        }),
+      );
+
+      const summary = collector.toJSON().summary;
+      assert.strictEqual(summary.totalCostUsd, 1.5);
+      assert.strictEqual(summary.tokenUsage.inputTokens, 100);
+      assert.strictEqual(summary.tokenUsage.outputTokens, 50);
+    });
+
     test("unwraps combined supervised trace format {source, seq, event}", () => {
       const collector = new TraceCollector();
 
