@@ -39,9 +39,14 @@ Two structural facts follow:
 - **No merge is needed to breach.** SecE 2 breached on a single-lane
   session-close rewrite. Author-side floor discipline demonstrably fails
   exactly when needed: the floor was met at base (1998w), but the reserve
-  (~50w) was smaller than the rewrite delta (+59w). Floors are aspiration;
-  only the landing leg, measuring after all content is final and before
-  publish, can enforce.
+  (~50w) was smaller than the rewrite delta (+59w). The arithmetic
+  generalizes — a ≤2000w floor guarantees at most 48w of reserve against
+  the 2048w cap, and that reserve must absorb every single landing event,
+  authored and delivered alike. Observed single events exceed it on both
+  axes: the +59w rewrite delta above, and a +96w memo delivery the same day
+  ([adjudication](https://github.com/forwardimpact/monorepo/issues/1480#issuecomment-4689493008)).
+  Floors are aspiration; only the landing leg, measuring after all content
+  is final and before publish, can enforce.
 
 The boundary between this gap and its in-flight siblings was settled on the
 issue thread by the staff-engineer
@@ -102,6 +107,13 @@ memo headroom) is automatically what the gate enforces.
 | (b) | Whichever of 1890 and this spec lands second reconciles the refusal-reason taxonomy on the shared flow — reason classes and refusal semantics, including aligning 1890's marker-binding wording to "outgoing push" if needed. |
 | (c) | The refusal binds only what this writer's outgoing **push** introduces — authored and merge-carried regressions alike; never a foreign pre-existing breach, never an unrelated writer's flow. |
 
+Constraint (c)'s "push" wording — the settlement's §3 amendment of
+"outgoing merge" — has independent live confirmation: the 2026-06-12
+memo-trip reached the receiving file by push-borne sync with **no merge on
+the receiving side**
+([adjudication](https://github.com/forwardimpact/monorepo/issues/1480#issuecomment-4689493008)).
+A merge-scoped refusal would not have seen it; a push-scoped one does.
+
 ### The spec-1860 seam — writer-class seam clause
 
 Memo-delivery deliverability semantics are spec 1860's WHAT. A memo
@@ -116,6 +128,25 @@ same push carries adjudicates normally under the per-file, per-predicate
 delta. Once 1860 lands, predicate inheritance retires the exemption
 automatically. Nothing leaks
 into 1860's scope in either direction, in either landing order.
+
+**The seam window carries a known, deterministic residual.** The realized
+memo-trip pair of 2026-06-12
+([adjudication](https://github.com/forwardimpact/monorepo/issues/1480#issuecomment-4689493008))
+live-confirms 1860's A1 boundary from both sides: a memo delivered into
+sufficient headroom did not trip (positive control), and a +96w memo
+delivered into 39w headroom tripped deterministically (2105/2048w published,
+repaired reactively in ~4m26s). During the seam window this gate surfaces
+such breaches but — correctly, per the clause above — does not block them,
+and author-side floors cannot prevent them: the ≤2000w floor's guaranteed
+48w reserve is smaller than both observed single-event magnitudes (+59w
+authored delta, +96w memo). Closing the residual is therefore a
+**calibration requirement on spec 1860**, recorded here so that the
+exemption's automatic retirement actually closes it: 1860's predicate
+change must guarantee delivery headroom ≥ the maximum expected single
+delivery — whether by reserve sizing or by a delivery-time headroom check
+is 1860's design decision, not this spec's. Until 1860 lands, seam-window
+breaches repair reactively, as today, with this gate's surfacing as the
+detection signal.
 
 ## Coordination with the in-flight libwiki series
 
@@ -146,7 +177,9 @@ into 1860's scope in either direction, in either landing order.
   rules) — the gate enforces summary and weekly-log budgets; extending
   coverage is a future decision, not silently absorbed here.
 - Author-side floor conventions (lane discipline; this gate makes them
-  non-load-bearing).
+  non-load-bearing for every class it refuses — though during the spec-1860
+  seam window, memo deliveries remain floor-dependent; see the seam
+  clause's residual note).
 
 ## Success criteria
 
@@ -181,5 +214,9 @@ via the repository's test command.
   [SecE specimen 3](https://github.com/forwardimpact/monorepo/issues/1667#issuecomment-4689146591).
 - Chronic near-cap operation series:
   [#1480](https://github.com/forwardimpact/monorepo/issues/1480).
+- Realized memo-trip datum pair completing 1860's A1 boundary, floor-reserve
+  calibration (48w guaranteed reserve < 59w authored delta and < 96w memo
+  delivery), and push-borne-sync confirmation of constraint (c)'s wording:
+  [improvement-coach adjudication](https://github.com/forwardimpact/monorepo/issues/1480#issuecomment-4689493008).
 
 — Product Manager 🌱
