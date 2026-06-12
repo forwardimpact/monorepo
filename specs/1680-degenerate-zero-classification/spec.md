@@ -21,7 +21,20 @@ as `status: "predictable"`, `classification: "stable"`. Issue
 observation: TW's `docs_pages_over_ceiling` reached the threshold on 2026-06-10
 with every row equal to zero, and the storyboard target TW-2
 (`docs_pages_over_ceiling` reaches `predictable` by 6/30) became mechanically
-MET against an all-zero series.
+MET against an all-zero series. As of 2026-06-12 the series remains all-zero at
+n = 17 with μ = 0, σ̂ = 0, and zero-width limits.
+
+A second independent specimen was pre-flagged at the 2026-06-12 storyboard
+REVIEW (Q3) by the improvement coach on its own facilitation metric series:
+`facilitation_tool_errors` in `wiki/metrics/improvement-coach/2026.csv` is
+all-zero at n = 8 as of 2026-06-12 and, on its current one-row-per-run cadence,
+crosses the library's minimum classification window around 2026-06-19 — at
+which point it flips `insufficient_data` → `predictable` with the identical
+degenerate shape (μ = 0, σ̂ = 0, zero-width limits). The Technical Writer
+corroborated the specimen on Issue #1540 (comment, 2026-06-12). Two independent
+lanes — a TW documentation secondary and the coach's facilitation series —
+producing the same shape confirms the obstacle is a system-level storyboard
+convention gap, not a single-lane artifact.
 
 The verdict conflates two qualitatively different process-behavior shapes under
 one label:
@@ -41,10 +54,11 @@ anchor-exclusion and sub-(c) population-definition preconditions
 also records the 5/5-lane convergence) — adjudication of those preconditions
 remains open, routed to Discussion. This spec generalises the same shape concern
 to secondary metrics that are structurally bounded at zero —
-`docs_pages_over_ceiling` is the first observation; Issue #1540 names
-`findings_count` and `prs_merged` as illustrative future candidates
-under quiet or gate-bound stretches — by moving the discrimination into the
-classifier where every downstream reader sees the same verdict.
+`docs_pages_over_ceiling` and the coach's `facilitation_tool_errors` are the
+two observed specimens; Issue #1540 names `findings_count` and `prs_merged` as
+illustrative future candidates under quiet or gate-bound stretches — by moving
+the discrimination into the classifier where every downstream reader sees the
+same verdict.
 
 ## Scope
 
@@ -56,7 +70,12 @@ In scope:
   observation equals zero and no rules fire. The existing four values
   (`insufficient`, `stable`, `signals`, `chaos`) remain. The `status` field is
   unchanged: a degenerate-zero series still reports `status: "predictable"`
-  because no rule fires; only `classification` distinguishes the shape.
+  because no rule fires; only `classification` distinguishes the shape. The
+  discrimination is a property of the series, not the consuming lane: both
+  observed specimens — TW's `docs_pages_over_ceiling` and the coach's
+  `facilitation_tool_errors` — receive the new verdict from this one change,
+  with no per-lane patches (the lane-local alternative is rejected in
+  § Alternatives considered).
 - The new value is documented at every site that enumerates the existing four,
   plus the library's own README. The user-facing guide at
   [`websites/fit/docs/libraries/predictable-team/xmr-analysis/index.md`](https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md)
@@ -106,7 +125,12 @@ This follow-up consumes this spec but is owned and shipped separately:
   `wiki/storyboard-2026-M06.md` so its predicate requires
   `classification=stable` (substantive predictable), and extend the Cross-lane
   preconditions note to name `degenerate-zero` as the formal mechanism behind
-  the 5/5-lane refusal of chaos → predictable on flat secondaries. The interim
+  the 5/5-lane refusal of chaos → predictable on flat secondaries, naming both
+  observed specimens (`docs_pages_over_ceiling` and `facilitation_tool_errors`)
+  per the scoping adjudication on PR #1541. The convention question the note
+  answers — a degenerate-zero verdict satisfies no lane's predictability
+  target; predictability targets mean `classification=stable` — applies to the
+  coach's series exactly as to TW-2. The interim
   carry label ("MET-deferred (degenerate-zero pending convention)") is routed on
   Issue #1540 independently of this spec and retires when the wording change
   lands.
