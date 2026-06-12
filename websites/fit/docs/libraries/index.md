@@ -17,7 +17,7 @@ toc: false
 
 </div>
 
-## Bridge Threaded Channels to the Agent Team (Builders)
+## Bridge Conversations to the Agent Team (Builders)
 
 <div class="grid">
 
@@ -73,7 +73,7 @@ toc: false
 
 </div>
 
-## Keep Services Running and Visible (Builders)
+## Run a Predictable Platform (Builders)
 
 <div class="grid">
 

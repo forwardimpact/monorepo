@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Keep Services Running and Visible",
-      "trigger": "Debugging a production issue and realizing no trace spans exist for the failing operation.",
-      "bigHire": "make operations observable so problems surface before they escalate.",
+      "goal": "Run a Predictable Platform",
+      "trigger": "A service fails on a customer machine or an agent session goes sideways — the cause is a missing precondition, an unmanaged process, invisible telemetry, or instructions that drifted from reality.",
+      "bigHire": "make platform behavior predictable: preflight checks before anything heavy runs, supervised processes, structured telemetry, and instruction layers that stay honest.",
       "littleHire": "add a log line or trace span without configuring a logging framework.",
-      "competesWith": "console.log debugging; no observability; post-mortem log archaeology"
+      "competesWith": "failing deep in execution instead of at startup; ad-hoc process management; console.log debugging; instruction files nobody validates"
     }
   ],
   "type": "module",

@@ -20,10 +20,10 @@
     {
       "user": "Platform Builders",
       "goal": "Keep Service Contracts Typed",
-      "trigger": "Registering a gRPC service as MCP tools and realizing the tool schema is just the proto definition rewritten by hand.",
-      "bigHire": "register gRPC services as MCP tools from config instead of writing glue code.",
+      "trigger": "A service contract changes and the drift surfaces at runtime — in a client, an endpoint, or an MCP tool that no longer matches the proto.",
+      "bigHire": "keep every service surface — types, clients, endpoints, and MCP tools — generated from one proto source so contracts cannot drift.",
       "littleHire": "expose a new proto method as an agent tool without touching tool registration.",
-      "competesWith": "hand-written tool schemas; per-service MCP adapters; leaving services invisible to agents"
+      "competesWith": "hand-rolled clients and JSON contracts; per-service endpoint boilerplate; hand-written MCP wrappers; trusting that callers and services agree"
     }
   ],
   "type": "module",

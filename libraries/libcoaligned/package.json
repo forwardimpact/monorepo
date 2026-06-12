@@ -21,11 +21,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Keep Instruction Layers Honest",
-      "trigger": "Editing a CLAUDE.md or skill procedure and realizing the layer has quietly grown past its budget.",
-      "bigHire": "enforce instruction-layer length caps and JTBD invariants without hand-rolling repo checks.",
+      "goal": "Run a Predictable Platform",
+      "trigger": "A service fails on a customer machine or an agent session goes sideways — the cause is a missing precondition, an unmanaged process, invisible telemetry, or instructions that drifted from reality.",
+      "bigHire": "make platform behavior predictable: preflight checks before anything heavy runs, supervised processes, structured telemetry, and instruction layers that stay honest.",
       "littleHire": "verify a docs change before commit and trust the layered architecture has not drifted.",
-      "competesWith": "ad-hoc shell scripts; eyeballing word counts; tolerating slow drift in the instruction architecture"
+      "competesWith": "failing deep in execution instead of at startup; ad-hoc process management; console.log debugging; instruction files nobody validates"
     }
   ],
   "type": "module",

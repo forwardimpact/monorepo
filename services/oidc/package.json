@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Exchange a GitHub Actions OIDC token for a repo-scoped installation token",
-      "trigger": "A hosted workflow needs an installation token but the App private key must stay off the public-facing process.",
-      "bigHire": "serve a stateless OIDC exchange that verifies a workflow's GitHub Actions identity and delegates minting to a gRPC backend, keeping the public surface free of signing material.",
+      "goal": "Broker Scoped Credentials for Agents",
+      "trigger": "Agent infrastructure needs GitHub and OAuth tokens, but private keys and long-lived secrets must stay out of workflows and public-facing processes.",
+      "bigHire": "issue short-lived, scoped credentials to agents and workflows while signing material stays in one custody service.",
       "littleHire": "validate the inbound OIDC token's signature, issuer, audience, and repository claim, then call the custody backend to mint a token scoped to the asserted repository.",
-      "competesWith": "shipping the App private key into every customer workflow as a repository secret"
+      "competesWith": "shipping the App private key into every workflow as a repository secret; long-lived personal access tokens; per-provider HTTP services that mix protocol handling with exchange logic"
     }
   ],
   "type": "module",

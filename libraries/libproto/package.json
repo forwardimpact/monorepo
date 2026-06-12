@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Ground Service Contracts in One Source",
-      "trigger": "Shipping a proto that imports tool.proto and discovering the published copy lives in another package the consumer never installed.",
-      "bigHire": "publish service protos that resolve on any external `npm install` without coordinating multiple package homes.",
+      "goal": "Keep Service Contracts Typed",
+      "trigger": "A service contract changes and the drift surfaces at runtime — in a client, an endpoint, or an MCP tool that no longer matches the proto.",
+      "bigHire": "keep every service surface — types, clients, endpoints, and MCP tools — generated from one proto source so contracts cannot drift.",
       "littleHire": "import a shared proto and trust the consumer of my service can read it.",
-      "competesWith": "duplicating .proto files across packages; embedding shared schemas inside transport or codegen libraries; tolerating ENOENT for non-Guide installs"
+      "competesWith": "hand-rolled clients and JSON contracts; per-service endpoint boilerplate; hand-written MCP wrappers; trusting that callers and services agree"
     }
   ],
   "type": "module",

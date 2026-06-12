@@ -19,11 +19,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Keep Services Running and Visible",
-      "trigger": "Debugging a down service and realizing there is no single command to check what is running.",
-      "bigHire": "manage service lifecycle from one interface instead of scripting each start and stop.",
+      "goal": "Run a Predictable Platform",
+      "trigger": "A service fails on a customer machine or an agent session goes sideways — the cause is a missing precondition, an unmanaged process, invisible telemetry, or instructions that drifted from reality.",
+      "bigHire": "make platform behavior predictable: preflight checks before anything heavy runs, supervised processes, structured telemetry, and instruction layers that stay honest.",
       "littleHire": "start, stop, or check a service without remembering its specific incantation.",
-      "competesWith": "ad-hoc shell scripts; manual process management; tolerating stale services"
+      "competesWith": "failing deep in execution instead of at startup; ad-hoc process management; console.log debugging; instruction files nobody validates"
     }
   ],
   "type": "module",

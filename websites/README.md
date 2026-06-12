@@ -101,7 +101,7 @@ Little Hire guides are nested children.
 | Big | `integrate-standard/` | Turn Standard Definitions into Queryable Data |
 | Little | `integrate-standard/derive-profile/` | Derive a Skill Matrix or Agent Profile |
 
-**Keep Service Contracts Typed** (Builders → libcodegen, libmcp, librpc, libtype)
+**Keep Service Contracts Typed** (Builders → libproto, libtype, libcodegen, libmcp, librpc, libhttp)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -109,7 +109,7 @@ Little Hire guides are nested children.
 | Little | `typed-contracts/expose-tool/` | Expose a Proto Method as an Agent Tool |
 | Little | `typed-contracts/ship-endpoint/` | Ship a Service Endpoint |
 
-**Keep Services Running and Visible** (Builders → librc, libsupervise, libtelemetry)
+**Run a Predictable Platform** (Builders → libpreflight, librc, libsupervise, libtelemetry, libcoaligned)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -128,7 +128,7 @@ Little Hire guides are nested children.
 
 ### Service Guides
 
-**Ground Agents in Context** (Builders → graph, vector)
+**Ground Agents in Context** (Builders → graph, vector, embedding, map)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -143,7 +143,7 @@ Little Hire guides are nested children.
 | Big | `integrate-standard/` | Query the Engineering Standard from Any Product |
 | Little | `integrate-standard/fetch-profile/` | Fetch a Derived Role or Agent Profile |
 
-**Keep Service Contracts Typed** (Builders → mcp)
+**Enable Agents on Every Surface** (Builders → mcp)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |

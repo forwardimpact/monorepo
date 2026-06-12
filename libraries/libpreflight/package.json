@@ -21,19 +21,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Ship Predictable CLIs",
-      "trigger": "User runs an npx CLI on an unsupported Node and sees an upstream-authored error.",
-      "bigHire": "enforce a runtime floor before any heavy import evaluates.",
-      "littleHire": "surface a product-authored Node-version error instead of an upstream library's.",
-      "competesWith": "inline checks in each bin; engines-strict; install-time hooks"
-    },
-    {
-      "user": "Platform Builders",
-      "goal": "Ship Predictable Services",
-      "trigger": "Operator starts a service with a required config value unset or empty.",
-      "bigHire": "fail fast at startup before the service constructs partially against an unsafe default.",
-      "littleHire": "surface a product-authored empty-config error before the service constructs partially.",
-      "competesWith": "ad-hoc inline checks; null-coalesced defaults that mask the regression"
+      "goal": "Run a Predictable Platform",
+      "trigger": "A service fails on a customer machine or an agent session goes sideways — the cause is a missing precondition, an unmanaged process, invisible telemetry, or instructions that drifted from reality.",
+      "bigHire": "make platform behavior predictable: preflight checks before anything heavy runs, supervised processes, structured telemetry, and instruction layers that stay honest.",
+      "littleHire": "surface a product-authored error for an unsupported runtime or empty config before anything heavy constructs partially.",
+      "competesWith": "failing deep in execution instead of at startup; ad-hoc process management; console.log debugging; instruction files nobody validates"
     }
   ],
   "type": "module",

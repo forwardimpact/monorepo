@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Ship Service Endpoints Without Boilerplate",
-      "trigger": "Starting a new HTTP service and reaching for last service's copy-pasted Hono wiring.",
-      "bigHire": "ship an HTTP endpoint without reimplementing server lifecycle, security headers, or health checks.",
+      "goal": "Keep Service Contracts Typed",
+      "trigger": "A service contract changes and the drift surfaces at runtime — in a client, an endpoint, or an MCP tool that no longer matches the proto.",
+      "bigHire": "keep every service surface — types, clients, endpoints, and MCP tools — generated from one proto source so contracts cannot drift.",
       "littleHire": "mount routes on a configured app and call start().",
-      "competesWith": "copy-pasting Hono setup; hand-rolling node:http servers; tolerating the duplication"
+      "competesWith": "hand-rolled clients and JSON contracts; per-service endpoint boilerplate; hand-written MCP wrappers; trusting that callers and services agree"
     }
   ],
   "type": "module",

@@ -33,116 +33,76 @@ that let agents consume backend functionality natively.
 
 <!-- BEGIN:jobs — Do not edit. Generated from each service's package.json. -->
 
-<job user="Platform Builders" goal="Bridge Conversation Platforms to the Agent Team">
+<job user="Platform Builders" goal="Bridge Conversations to the Agent Team">
 
-## Platform Builders: Bridge Conversation Platforms to the Agent Team
+## Platform Builders: Bridge Conversations to the Agent Team
 
-**Trigger:** Engineers discuss work in Microsoft Teams and need to
-context-switch to GitHub to invoke the agent team.
+**Trigger:** Engineers discuss work in chat and GitHub Discussions while the
+agent team is reachable only from GitHub — and every new channel adapter
+re-solves intake, thread state, and tenant routing.
 
-**Big Hire:** Help me relay messages between a chat platform and the Kata agent
-team without leaving the conversation. → **msbridge**
+**Big Hire:** Help me relay conversations between the channels engineers already
+use and the agent team, with thread state and tenant resolution handled once. →
+**bridge, ghbridge, msbridge, tenancy**
 
-**Little Hire:** Help me dispatch a facilitate session from a chat message and
-return the verdict to the same thread. → **msbridge**
+**Little Hire:** Help me load or save a discussion record and trust it is
+visible to every bridge; post a structured discussion reply from a workflow
+callback and resume a recessed RFC when humans answer; dispatch a facilitate
+session from a chat message and return the verdict to the same thread; look up a
+tenant by channel key, by GitHub repo, or by tenant id; upsert on installation
+or consent events; record state transitions through
+`pending_consent → active → revoked`. → **bridge, ghbridge, msbridge, tenancy**
 
 **Competes With:** manually creating GitHub issues; copy-pasting between chat
-and GitHub; leaving the agent team unreachable from daily conversation.
+and GitHub; per-channel duplication of intake skeletons; ephemeral thread state
+that vanishes on restart.
 
 </job>
 
-<job user="Platform Builders" goal="Bridge GitHub Discussions to the Agent Team">
+<job user="Platform Builders" goal="Broker Scoped Credentials for Agents">
 
-## Platform Builders: Bridge GitHub Discussions to the Agent Team
+## Platform Builders: Broker Scoped Credentials for Agents
 
-**Trigger:** Engineers run RFCs in GitHub Discussions and need the Kata agent
-team to engage humans across the 14-day coordination horizon.
+**Trigger:** Agent infrastructure needs GitHub and OAuth tokens, but private
+keys and long-lived secrets must stay out of workflows and public-facing
+processes.
 
-**Big Hire:** Help me relay messages between GitHub Discussion threads and the
-Kata agent team without the workflow owning channel-specific reply logic. →
-**ghbridge**
+**Big Hire:** Help me issue short-lived, scoped credentials to agents and
+workflows while signing material stays in one custody service. → **ghserver,
+ghuser, oauth, oidc**
 
-**Little Hire:** Help me post a structured discussion reply from a workflow
-callback and resume a recessed RFC when humans answer. → **ghbridge**
+**Little Hire:** Help me resolve the requesting repo to an active tenant,
+enforce a per-tenant mint-rate ceiling, and return a fresh installation token
+bound to the resolved installation; exchange an authorization code for a
+user-to-server token, store the binding, refresh on expiry, and return a typed
+link/re-auth result when the binding is missing or revoked; redirect an
+authorize request to the upstream provider and exchange a callback code for a
+downstream token; validate the inbound OIDC token's signature, issuer, audience,
+and repository claim, then call the custody backend to mint a token scoped to
+the asserted repository. → **ghserver, ghuser, oauth, oidc**
 
-**Competes With:** composing GraphQL mutation strings inside facilitator
-prompts; one-shot workflow runs that cannot await human responses; per-channel
-duplication of intake skeletons.
-
-</job>
-
-<job user="Platform Builders" goal="Embed Text for Retrieval">
-
-## Platform Builders: Embed Text for Retrieval
-
-**Trigger:** Building a search feature and realizing every product is
-copy-pasting the same HTTP embedding call with its own error handling.
-
-**Big Hire:** Help me get embeddings from a shared service without managing
-inference infrastructure. → **embedding**
-
-**Little Hire:** Help me call one gRPC method instead of wiring HTTP, auth, and
-retries per product. → **embedding**
-
-**Competes With:** inline fetch calls; per-product embedding wrappers; skipping
-semantic search entirely.
+**Competes With:** shipping the App private key into every workflow as a
+repository secret; long-lived personal access tokens; per-provider HTTP services
+that mix protocol handling with exchange logic.
 
 </job>
 
-<job user="Platform Builders" goal="Exchange a GitHub Actions OIDC token for a repo-scoped installation token">
+<job user="Platform Builders" goal="Enable Agents on Every Surface">
 
-## Platform Builders: Exchange a GitHub Actions OIDC token for a repo-scoped installation token
+## Platform Builders: Enable Agents on Every Surface
 
-**Trigger:** A hosted workflow needs an installation token but the App private
-key must stay off the public-facing process.
+**Trigger:** Agents need to call platform services as tools, and every product
+is hand-writing MCP wrappers around the same gRPC methods.
 
-**Big Hire:** Help me serve a stateless OIDC exchange that verifies a workflow's
-GitHub Actions identity and delegates minting to a gRPC backend, keeping the
-public surface free of signing material. → **oidc**
+**Big Hire:** Help me expose typed service contracts as MCP tools so agents
+reach the same capabilities humans do, without per-product wrapper code. →
+**mcp**
 
-**Little Hire:** Help me validate the inbound OIDC token's signature, issuer,
-audience, and repository claim, then call the custody backend to mint a token
-scoped to the asserted repository. → **oidc**
+**Little Hire:** Help me add a service to the MCP surface without writing
+integration code. → **mcp**
 
-**Competes With:** shipping the App private key into every customer workflow as
-a repository secret.
-
-</job>
-
-<job user="Platform Builders" goal="Expose Activity Data to Agents">
-
-## Platform Builders: Expose Activity Data to Agents
-
-**Trigger:** Building an agent feature that reads or writes activity data and
-realizing the agent would need direct DB access.
-
-**Big Hire:** Help me read and write activity data from any agent without
-leaking schema or credentials. → **map**
-
-**Little Hire:** Help me fetch unscored artifacts or write evidence rows without
-touching Supabase directly. → **map**
-
-**Competes With:** opening Supabase directly from the agent; building
-per-product activity endpoints; embedding query logic in the evaluation skill.
-
-</job>
-
-<job user="Platform Builders" goal="Expose an OAuth 2.1 authorization server without provider-specific code">
-
-## Platform Builders: Expose an OAuth 2.1 authorization server without provider-specific code
-
-**Trigger:** A new identity provider needs to plug into the same authorization
-flow without changing the protocol layer.
-
-**Big Hire:** Help me serve standard OAuth 2.1 endpoints that delegate every
-provider-specific step to a gRPC backend, keeping the HTTP surface
-provider-agnostic. → **oauth**
-
-**Little Hire:** Help me redirect an authorize request to the upstream provider
-and exchange a callback code for a downstream token. → **oauth**
-
-**Competes With:** per-provider HTTP services that mix OAuth protocol handling
-with provider-specific exchange logic.
+**Competes With:** hand-written MCP servers per product; HTTP shims around gRPC
+services; agents working without tools.
 
 </job>
 
@@ -150,21 +110,23 @@ with provider-specific exchange logic.
 
 ## Platform Builders: Ground Agents in Context
 
-**Trigger:** Needing to know how two concepts relate and realizing the answer is
-scattered across files no one wants to join by hand; adding semantic search to a
-product and realizing each one would need its own vector store.
+**Trigger:** An agent needs to answer relationship questions, search by meaning,
+or read activity data — and the only alternative is direct database access and
+bespoke retrieval plumbing per product.
 
-**Big Hire:** Help me traverse a knowledge graph from a product without standing
-up my own store; run semantic search from any product without standing up a
-per-product database. → **graph, vector**
+**Big Hire:** Help me give agents typed, retrievable knowledge — graph queries,
+semantic search, embeddings, and activity data — through shared services that
+never leak schema or credentials. → **embedding, graph, map, vector**
 
-**Little Hire:** Help me answer relationship questions without writing join
-logic; search for semantically related content without managing embeddings
-storage. → **graph, vector**
+**Little Hire:** Help me call one gRPC method instead of wiring HTTP, auth, and
+retries per product; answer relationship questions without writing join logic;
+fetch unscored artifacts or write evidence rows without touching Supabase
+directly; search for semantically related content without managing embeddings
+storage. → **embedding, graph, map, vector**
 
-**Competes With:** ad-hoc joins across flat files; embedding a triple store in
-each product; skipping the relationship question entirely; per-product vector
-databases; keyword search instead of semantic; skipping retrieval entirely.
+**Competes With:** direct database access from agents; per-product retrieval
+endpoints; inline fetch calls; external search infrastructure; skipping semantic
+search entirely.
 
 </job>
 
@@ -186,44 +148,6 @@ logic; hardcoding role definitions.
 
 </job>
 
-<job user="Platform Builders" goal="Keep Service Contracts Typed">
-
-## Platform Builders: Keep Service Contracts Typed
-
-**Trigger:** Adding a new gRPC service and realizing each one needs its own MCP
-glue to become an agent tool.
-
-**Big Hire:** Help me expose every backend service as agent tools through one
-server. → **mcp**
-
-**Little Hire:** Help me add a service to the MCP surface without writing
-integration code. → **mcp**
-
-**Competes With:** per-service MCP wrappers; hand-writing tool schemas for each
-endpoint; leaving services unreachable by agents.
-
-</job>
-
-<job user="Platform Builders" goal="Mint a repo-scoped GitHub installation token without holding App signing material">
-
-## Platform Builders: Mint a repo-scoped GitHub installation token without holding App signing material
-
-**Trigger:** A control-plane caller needs an installation token for a customer
-repo and the App private key must stay off the public-facing process.
-
-**Big Hire:** Help me own the hosted GitHub App key custody so every
-control-plane caller mints a repo-scoped, short-lived installation token through
-one gRPC query that checks the tenant registry first. → **ghserver**
-
-**Little Hire:** Help me resolve the requesting repo to an active tenant,
-enforce a per-tenant mint-rate ceiling, and return a fresh installation token
-bound to the resolved installation. → **ghserver**
-
-**Competes With:** embedding the App private key in every bridge and front-end
-process that needs to dispatch a workflow.
-
-</job>
-
 <job user="Platform Builders" goal="Prove Agent Changes">
 
 ## Platform Builders: Prove Agent Changes
@@ -239,66 +163,6 @@ later. → **trace**
 
 **Competes With:** per-product trace files; manual log comparison; skipping
 observability entirely.
-
-</job>
-
-<job user="Platform Builders" goal="Resolve a per-user GitHub token for agent dispatch">
-
-## Platform Builders: Resolve a per-user GitHub token for agent dispatch
-
-**Trigger:** A chat surface needs to dispatch a workflow under the identity of
-the human who asked, not a shared bot token.
-
-**Big Hire:** Help me own the Kata Agent User App credential lifecycle
-end-to-end so every surface resolves a per-user GitHub token through one gRPC
-query. → **ghuser**
-
-**Little Hire:** Help me exchange an authorization code for a user-to-server
-token, store the binding, refresh on expiry, and return a typed link/re-auth
-result when the binding is missing or revoked. → **ghuser**
-
-**Competes With:** per-surface OAuth implementations duplicating the
-authorization-code flow, token storage, and refresh logic across multiple bridge
-services.
-
-</job>
-
-<job user="Platform Builders" goal="Resolve a tenant from a channel event">
-
-## Platform Builders: Resolve a tenant from a channel event
-
-**Trigger:** Hosted bridges receive events from many channels and need to know
-which customer tenant they belong to before processing.
-
-**Big Hire:** Help me own the `(channel, channel_tenant_key) → Tenant` registry
-end-to-end so every bridge resolves through one gRPC query and every callback
-verifies against one source of truth. → **tenancy**
-
-**Little Hire:** Help me look up a tenant by channel key, by GitHub repo, or by
-tenant id; upsert on installation or consent events; record state transitions
-through `pending_consent → active → revoked`. → **tenancy**
-
-**Competes With:** per-bridge tenant tables duplicating the lookup and upsert
-logic across multiple bridge services; callback verification scattered across
-each bridge's process.
-
-</job>
-
-<job user="Platform Builders" goal="Share Threaded Conversation State Across Bridges">
-
-## Platform Builders: Share Threaded Conversation State Across Bridges
-
-**Trigger:** Adding a second bridge and realizing each one owns its own private
-store with no way to query across channels.
-
-**Big Hire:** Help me share threaded conversation state across bridges without
-each one managing its own storage. → **bridge**
-
-**Little Hire:** Help me load or save a discussion record and trust it is
-visible to every bridge. → **bridge**
-
-**Competes With:** per-bridge JSONL files; in-process discussion stores;
-tolerating the partition.
 
 </job>
 
