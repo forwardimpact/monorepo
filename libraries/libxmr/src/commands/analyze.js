@@ -10,6 +10,7 @@ import { analyze, roundStats } from "../analyze.js";
 import { renderChart } from "../chart.js";
 import { fmt1, round1 } from "../format.js";
 import { resolveSlice } from "./slice.js";
+import { withIntegrityGuard } from "./guard.js";
 
 /** Read a CSV, optionally filter to a single metric, and print a full report (chart + stats table + signals) in text mode or a stamped JSON object with source path and generation date. */
 export function runAnalyzeCommand(ctx) {
@@ -38,7 +39,11 @@ export function runAnalyzeCommand(ctx) {
 
   const { eventType, label } = resolveSlice(values["event-type"]);
   const text = fsSync.readFileSync(csvPath, "utf-8");
-  const report = analyze(text, { eventType });
+  const guarded = withIntegrityGuard(csvPath, () =>
+    analyze(text, { eventType }),
+  );
+  if (!guarded.ok) return guarded;
+  const report = guarded.value;
   report.source = csvPath;
   report.generated = isoDate(clock.now());
   report.eventType = eventType;

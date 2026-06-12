@@ -1,4 +1,10 @@
-export { parseCSV, parseLine, validateCSV, listMetrics } from "./csv.js";
+export {
+  parseCSV,
+  parseLine,
+  validateCSV,
+  listMetrics,
+  CSVIntegrityError,
+} from "./csv.js";
 export { computeXmR } from "./stats.js";
 export {
   detectSignals,
