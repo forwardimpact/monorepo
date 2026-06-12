@@ -5,7 +5,14 @@ import "@forwardimpact/libpreflight/node22";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createCli } from "@forwardimpact/libcli";
 import { emitFindingsJson, emitFindingsText } from "@forwardimpact/libutil";
-import { checkInstructions, checkJtbd } from "../src/index.js";
+import {
+  checkInstructions,
+  checkJtbd,
+  findInvariantsRoot,
+  INVARIANTS_DIR,
+  loadRuleModules,
+  runRuleModules,
+} from "../src/index.js";
 
 const runtime = createDefaultRuntime();
 
@@ -20,6 +27,23 @@ const definition = {
       description: "Check L1–L6 length and checklist caps across the repo",
       handler: instructionsHandler,
       examples: ["coaligned instructions"],
+    },
+    {
+      name: "invariants",
+      args: [],
+      description: `Run the repository's invariant rule modules from ${INVARIANTS_DIR}/`,
+      options: {
+        seed: {
+          type: "string",
+          description:
+            "Print the named module's seed output (e.g. a refreshed deny-list) instead of checking",
+        },
+      },
+      handler: invariantsHandler,
+      examples: [
+        "coaligned invariants",
+        "coaligned invariants --seed ambient-deps",
+      ],
     },
     {
       name: "jtbd",
@@ -90,6 +114,39 @@ async function runJtbd(root, fix, jsonOutput, rt) {
 async function instructionsHandler(ctx) {
   const rt = ctx.deps.runtime;
   return runInstructions(ctx.data.root, !!ctx.options.json, rt);
+}
+
+// Unlike instructions/jtbd, invariants resolves the project root through the
+// finder so the rule modules are picked up from `<root>/.coaligned/invariants`
+// no matter which subdirectory the command runs from.
+async function invariantsHandler(ctx) {
+  const rt = ctx.deps.runtime;
+  const root = findInvariantsRoot(rt);
+  const modules = await loadRuleModules({ root, runtime: rt });
+
+  if (ctx.options.seed) {
+    const mod = modules.find((m) => m.name === ctx.options.seed);
+    if (!mod) {
+      cli.error(`no rule module named "${ctx.options.seed}"`);
+      return 1;
+    }
+    if (typeof mod.seed !== "function") {
+      cli.error(`rule module "${mod.name}" has no seed output`);
+      return 1;
+    }
+    rt.proc.stdout.write(await mod.seed({ root, runtime: rt }));
+    return 0;
+  }
+
+  const findings = await runRuleModules(modules, { root, runtime: rt });
+  writeFindings(
+    findings,
+    "coaligned invariants passed",
+    !!ctx.options.json,
+    root,
+    rt,
+  );
+  return findings.length > 0 ? 1 : 0;
 }
 
 async function jtbdHandler(ctx) {

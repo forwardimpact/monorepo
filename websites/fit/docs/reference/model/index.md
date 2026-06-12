@@ -294,7 +294,7 @@ meaningful differentiation between tracks.
 | **Job derivation** | Complete role definitions with skills and behaviours     |
 | **Agent profiles** | Agent instructions derived from discipline and track     |
 | **Skill matrices** | Derived skill proficiencies with track modifiers applied |
-| **Checklists**     | Phase transition criteria from capability definitions    |
+| **Checklists**     | Phase transition criteria from per-skill definitions     |
 | **Progression**    | Career path analysis and gap identification              |
 | **Interviews**     | Role-specific question selection                         |
 | **Job matching**   | Gap analysis between current and target roles            |

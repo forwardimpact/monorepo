@@ -1,11 +1,19 @@
-// Pure detection rules for the libmock inline-fake guard, extracted so a
-// regression test can exercise them without running the file-walking script.
+// Flag test files that inline a mock/fixture helper already available in
+// libmock. Each detection entry keys on the inline shape AND the absence of
+// the canonical libmock import/factory, so legitimate uses never trip.
+
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { collectFiles } from "./lib/walk.mjs";
+
+const SCAN_DIRS = ["libraries", "products", "services", "tests"];
+const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
 
 const LIBMOCK_IMPORT_RE = /from\s+["']@forwardimpact\/libmock["']/;
 
-// Each rule: { test(text, ctx) -> boolean, message }. `ctx.imports` is true
-// when the file imports from libmock at all.
-const RULES = [
+// Each detection: { test(text, ctx) -> boolean, message }. `ctx.imports` is
+// true when the file imports from libmock at all.
+const DETECTIONS = [
   {
     test: (t) =>
       /function\s+(concludeMsg|redirectMsg|tellMsg|shareMsg)\s*\(/.test(t) &&
@@ -97,19 +105,44 @@ const SURFACE_FACTORIES = [
   "createMockGhClient",
 ];
 for (const factory of SURFACE_FACTORIES) {
-  RULES.push({
+  DETECTIONS.push({
     test: (t, c) =>
       new RegExp(`function\\s+${factory}\\s*\\(`).test(t) && !c.imports,
     message: `inline ${factory} — use libmock ${factory}`,
   });
 }
 
-/**
- * Return the inline-fake findings for a single test file's source text.
- * @param {string} text - The test file contents.
- * @returns {string[]} Human-readable finding messages (empty when clean).
- */
-export function libmockFindings(text) {
-  const ctx = { imports: LIBMOCK_IMPORT_RE.test(text) };
-  return RULES.filter((rule) => rule.test(text, ctx)).map((r) => r.message);
-}
+export default {
+  name: "libmock",
+
+  build({ root }) {
+    const subjects = [];
+    for (const dir of SCAN_DIRS) {
+      const files = collectFiles(join(root, dir), {
+        skip: SKIP_DIRS,
+        match: (name) => name.endsWith(".test.js"),
+      });
+      for (const path of files) {
+        // libmock's own self-tests are expected to redefine some helpers.
+        if (path.includes("/libraries/libmock/")) continue;
+        const text = readFileSync(path, "utf8");
+        subjects.push({ path, text, imports: LIBMOCK_IMPORT_RE.test(text) });
+      }
+    }
+    return { subjects: { "test-file": subjects } };
+  },
+
+  rules: [
+    {
+      id: "libmock.inline-fake",
+      scope: "test-file",
+      severity: "fail",
+      check: (s) => {
+        const hits = DETECTIONS.filter((d) => d.test(s.text, s));
+        return hits.length === 0 ? null : hits.map((d) => ({ msg: d.message }));
+      },
+      message: (s, r) => r.msg,
+      hint: "reuse the canonical fake from @forwardimpact/libmock instead of redefining it inline",
+    },
+  ],
+};

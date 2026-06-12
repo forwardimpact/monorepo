@@ -1,7 +1,7 @@
 /**
  * Documentation assertion: `products/CLAUDE.md` records the "workspace
  * imports declare dependencies" rule and references the contributor-side
- * guard by name (`check-workspace-imports`).
+ * guard by name (`workspace-imports`).
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -31,10 +31,10 @@ describe("products/CLAUDE.md documents the workspace imports rule", () => {
     );
   });
 
-  test("references the check-workspace-imports guard by name", () => {
+  test("references the workspace-imports guard by name", () => {
     assert.match(
       doc,
-      /check-workspace-imports/,
+      /workspace-imports/,
       "products/CLAUDE.md must name the guard so a reader who hits its diagnostic can find the rule",
     );
   });

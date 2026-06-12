@@ -218,16 +218,20 @@ every test imports them from there.
 
 ### Enforcement
 
-- `scripts/check-ambient-deps.mjs` flags any new src file that imports
+All of these run as declarative rule modules under
+`.coaligned/invariants/`, executed by `coaligned invariants` via
+`bun run invariants`.
+
+- `ambient-deps.rules.mjs` flags any new src file that imports
   `node:fs` / `node:child_process`, calls `Date.now` / `new Date` /
   `setTimeout`, or reads `process.*` outside the allow-listed factories, bin
   shims, and libcli internals. A monotone deny-list grandfathers files still
   being migrated and shrinks as each unit converts.
-- `scripts/check-subprocess-in-tests.mjs` flags tests that spawn `node` or a
+- `subprocess-in-tests.rules.mjs` flags tests that spawn `node` or a
   project bin, exempting the one `*.integration.test.js` smoke test per binary.
-- `scripts/check-libmock.mjs` flags inline reimplementations of the canonical
+- `libmock.rules.mjs` flags inline reimplementations of the canonical
   fakes.
-- `scripts/check-collaborator-construction.mjs` flags any module under
+- `collaborator-construction.rules.mjs` flags any module under
   `libraries/`, `products/`, or `services/` that constructs a leaf
   collaborator itself — `new Finder(...)`, `createDefaultProc(...)`,
   `createDefaultClock(...)`, or `createDefaultSubprocess(...)` — instead of

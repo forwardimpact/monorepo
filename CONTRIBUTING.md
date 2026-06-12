@@ -36,7 +36,8 @@ Architectural non-negotiables — the shape of the codebase.
   experiment/obstacle labels — provenance lives in PR bodies and git
   history. `specs/`, `wiki/`, `benchmarks/`, and `generated/` are exempt and
   citation-dense; rewrite, don't port, their content into checked files.
-  Enforced by `scripts/check-temporal.mjs` under `bun run invariants`.
+  Enforced by `.coaligned/invariants/temporal.rules.mjs` under
+  `bun run invariants`.
 
 ### READ-DO
 
