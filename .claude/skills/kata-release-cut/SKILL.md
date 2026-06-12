@@ -37,6 +37,9 @@ determine version bumps, and cut releases.
 - [ ] Each tag follows `{prefix}@v{version}` convention.
 - [ ] Tags pushed individually — never `git push --tags`.
 - [ ] Publish workflows verified as triggered for each tag.
+- [ ] Publish-class issues closed by the released changes verified against the
+      publish outcome: verification comment posted citing the green publish run
+      and the live artifact — issue reopened if the publish failed.
 
 </do_confirm_checklist>
 
@@ -136,6 +139,12 @@ gh run list --limit 10 --json name,conclusion,headBranch,event
 ```
 
 If a publish fails, investigate with `gh run view <run-id> --log-failed`.
+
+A publish-class issue — one whose definition of done is a live artifact, not a
+merged fix — auto-closes when its fix PR merges, before the publish outcome
+exists. After verifying the publish, post a verification comment on each such
+issue citing the green publish run and the live artifact; it stays closed only
+with that comment. If the publish failed, reopen the issue.
 
 ### Step 7: Summary
 
