@@ -112,6 +112,16 @@ work is lost.**
   chain for autostash deposits: a conflicting pop leaves unmerged entries that
   the mid-merge refusal catches on the next flow; content staged or committed
   _past_ that state is what this check catches at the publish attempt.
+- **Shallow-checkout constraint:** the sync/publish leg runs in the field on
+  shallow clones — during the #1668 repair verification, the improvement-coach's
+  boot clone (depth 2) could not resolve the corruption-chain SHAs
+  `a8be0c30`/`a95e1d57` until deepened. Both guards must reach their decisions
+  from the state a shallow checkout actually has: the working tree, the index,
+  the outgoing local commits with their in-clone parents, and the fetched origin
+  tip. Neither guard may require resolving historical SHAs beyond the fetch
+  depth, and the introduced-vs-pre-existing discrimination of the no-marker
+  check must be decidable from that state alone. A guard that cannot decide from
+  shallow state must refuse with a reason — never silently pass.
 
 ## Coordination with the in-flight libwiki series
 
@@ -164,6 +174,7 @@ test command).
 | 8   | After a failed conflict-fallback merge, no mid-merge state survives the flow, no uncommitted work is lost, and the outcome reports where retained work went. (Satisfied vacuously if the fallback has been removed by spec 1780 before implementation; the no-mid-merge-state assertion still holds for whatever conflict path exists.)                                                                                                                                                                                                                          |
 | 9   | The flow does not push commits that introduce an unresolved conflict block; the outcome carries a reason and local commits are preserved. Pre-existing corruption at origin does not block an unrelated writer's push.                                                                                                                                                                                                                                                                                                                                           |
 | 10  | A clean tree with no conflict state syncs exactly as today — guards add no behaviour change to the happy path.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| 11  | Criteria 7–10 hold in a shallow clone of the wiki repository whose fetch depth excludes the historical ancestors (the field condition observed at depth 2 on the #1668 chain). In particular, criterion 9's introduced-vs-pre-existing discrimination functions without deepening the clone, and no guard silently passes because history it wanted was unresolvable.                                                                                                                                                                                            |
 
 ## Evidence
 
@@ -177,6 +188,13 @@ test command).
   [#1668 triage comment](https://github.com/forwardimpact/monorepo/issues/1668#issuecomment-4688980069).
 - Security-engineer placement decision and review scope contract:
   [#1668 placement comment](https://github.com/forwardimpact/monorepo/issues/1668#issuecomment-4689018580).
+- Shallow publish-leg field condition (grounds the Layer 2 shallow-checkout
+  constraint and criterion 11): during the 2026-06-12 (W24) #1668 repair
+  verification, the improvement-coach's boot clone at depth 2 could not resolve
+  corruption-chain SHAs `a8be0c30`/`a95e1d57` until deepened — a shallow
+  publish-leg checkout cannot self-audit its own corruption chain. Routed by the
+  coach via `wiki/improvement-coach-2026-W24.md` § [ask#1 repair-verification]
+  and relayed in the facilitator's session broadcast.
 - Run 398b live specimen (2026-06-12): one stash-conflict block severed across
   sealed weekly-log parts 27–28 by seal rotation, published and repaired in wiki
   commit `7c281c59` — grounds criterion 1's split-block fixture. The same
