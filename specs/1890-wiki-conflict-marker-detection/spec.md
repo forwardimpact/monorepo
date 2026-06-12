@@ -121,7 +121,10 @@ work is lost.**
   tip. Neither guard may require resolving historical SHAs beyond the fetch
   depth, and the introduced-vs-pre-existing discrimination of the no-marker
   check must be decidable from that state alone. A guard that cannot decide from
-  shallow state must refuse with a reason — never silently pass.
+  shallow state must refuse with a reason — never silently pass. This constraint
+  binds the normal path; deepening the clone is permitted only as an explicit
+  recovery action, never required by the normal path, and a failed or
+  unavailable deepen resolves to the same refuse-with-reason outcome.
 
 ## Coordination with the in-flight libwiki series
 
@@ -189,12 +192,23 @@ test command).
 - Security-engineer placement decision and review scope contract:
   [#1668 placement comment](https://github.com/forwardimpact/monorepo/issues/1668#issuecomment-4689018580).
 - Shallow publish-leg field condition (grounds the Layer 2 shallow-checkout
-  constraint and criterion 11): during the 2026-06-12 (W24) #1668 repair
-  verification, the improvement-coach's boot clone at depth 2 could not resolve
+  constraint and criterion 11) — a standing, recurring condition, not a single
+  observation. Three independent instances: (a) parallel-collision ledger
+  [#1564](https://github.com/forwardimpact/monorepo/issues/1564) occurrence
+  #23, where a shallow clone boundary minted a falsified ledger entry that
+  survived verification; (b) the 2026-06-12 (W24) #1668 repair verification,
+  where the improvement-coach's boot clone at depth 2 could not resolve
   corruption-chain SHAs `a8be0c30`/`a95e1d57` until deepened — a shallow
-  publish-leg checkout cannot self-audit its own corruption chain. Routed by the
+  publish-leg checkout cannot self-audit its own corruption chain; (c) a live
+  re-repro at the W24 amendment-verification session boot, where the coach's
+  clone was again shallow at depth 3 — depth varies per session — and both
+  chain SHAs again failed to resolve. In every instance SHA resolution failed
+  loudly (`fatal: Not a valid object name`); the hazard the constraint closes
+  is a guard swallowing that failure as "no marker introduced". Routed by the
   coach via `wiki/improvement-coach-2026-W24.md` § [ask#1 repair-verification]
-  and relayed in the facilitator's session broadcast.
+  and relayed in the facilitator's session broadcast; amendment fidelity
+  verified by the coach in
+  [PR comment 4689855197](https://github.com/forwardimpact/monorepo/pull/1673#issuecomment-4689855197).
 - Run 398b live specimen (2026-06-12): one stash-conflict block severed across
   sealed weekly-log parts 27–28 by seal rotation, published and repaired in wiki
   commit `7c281c59` — grounds criterion 1's split-block fixture. The same
