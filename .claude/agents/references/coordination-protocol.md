@@ -75,7 +75,11 @@ reading the issue, which re-implements the rejected route:
    ("took A, not B") — so a later reader knows B is rejected, not unexplored.
 3. **Rescopes name in-flight state.** A comment that redefines an issue's
    actionable scope states what is in flight (claim, branch, or PR) — or the
-   explicit negative: "no fix in flight as of this comment." A rescope is a
+   explicit negative: "no fix in flight as of this comment." Closure and
+   routing comments are rescopes: a comment that closes a thread or routes a
+   decision or disposition to a named owner redefines actionable scope even
+   though it reads as terminal, so it carries the same marker and reminds the
+   routed owner to announce at PR-open. A rescope is a
    latest-state beacon; silence reads as an open invitation.
 
 A PR body may repeat a decision, never replace it.

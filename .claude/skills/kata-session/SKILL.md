@@ -12,8 +12,7 @@ description: >
 
 Shared entry-point skill for Toyota Kata coaching sessions. The improvement
 coach facilitates (Facilitator Process); domain agents participate (Participant
-Protocol). Both share the same five coaching kata questions. The mode-specific
-artifact surface lives in two overlays:
+Protocol). The mode-specific artifact surface lives in two overlays:
 [`team-storyboard.md`](references/team-storyboard.md) and
 [`one-on-one.md`](references/one-on-one.md).
 
@@ -23,9 +22,8 @@ artifact surface lives in two overlays:
 contexts — team storyboard meetings (`kata-storyboard.yml` workflow) and 1-on-1
 coaching sessions (`kata-coaching.yml` workflow).
 
-**Participant**: Answer each `Ask` with `Answer`, quoting the `askId` from the
-`[ask#N]` header. The coach's session-open briefing is sufficient for most
-runs; load this skill only if you need the full Participant Protocol below.
+**Participant**: The coach's session-open briefing covers most runs; load this
+skill only for the full Participant Protocol below.
 
 ## Checklists
 
@@ -54,9 +52,12 @@ runs; load this skill only if you need the full Participant Protocol below.
 - [ ] Every `Ask` received an `Answer`.
 - [ ] Current condition reflects participants' reported numbers and XmR
       `status`/`signals` (not narrative); `insufficient_data` metrics noted.
-- [ ] Both modes: each participant recorded its obstacles/experiments as labeled
-      issues per [`issue-lifecycle.md`](references/issue-lifecycle.md) and
-      reported the `#NNN`s; the facilitator created none.
+- [ ] Each participant recorded its obstacles/experiments as labeled issues per
+      [`issue-lifecycle.md`](references/issue-lifecycle.md) and reported the
+      `#NNN`s; the facilitator created none.
+- [ ] Comments closing a thread or routing a decision to a named owner name
+      what is in flight (owner + artifact) or the explicit negative; routed
+      owners reminded to announce at PR-open.
 - [ ] Weekly log updated under `## YYYY-MM-DD` with meeting type, metrics,
       obstacle, experiment, and Step 7 routing (1-on-1: the coached agent writes
       its own).
@@ -124,8 +125,8 @@ mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    `insufficient_data` metric.
 5. **Run the five questions.** Follow the overlay's wording. In facilitated
    mode, pose each question via `Ask` and collect `Answer` replies before
-   advancing. After the Q3/Q4 answers, `Ask` each participant to record its
-   obstacle (Q3) and experiment (Q4) as labeled issues per
+   advancing. After Q3/Q4, `Ask` each participant to record its
+   obstacle and experiment as labeled issues per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and return the `#NNN`s.
    Use `Announce` for between-question transitions.
 6. **Collect, don't write.** The facilitator writes no files — participants own
@@ -137,8 +138,7 @@ mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    [`team-storyboard.md`](references/team-storyboard.md#q3-obstacle-routing).
    - **Discussion** — shared-artifact change (metric, rule, boundary, policy) or
      same question in ≥2 agents' Q3 answers. The owning agent opens an RFC per
-     [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md):
-     `gh discussion create --category <category> --title "RFC: <q>"`.
+     [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md).
    - **Coaching** — participant-scoped blocker / unanalyzed trace / stalled
      experiment: not dispatched here. The obstacle issue stands; the coach
      dispatches `kata-coaching.yml` in its Assess run.

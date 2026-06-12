@@ -94,9 +94,8 @@ Discussion is delegated to the owning agent, Coaching to the coach's Assess run:
 | Same question surfaced in ≥2 agents' Q3 answers                                  | Discussion |
 | Persistent obstacle the agent owns; unanalyzed trace; stalled experiment         | Coaching   |
 
-**Worked example — multi-agent convergence.** SE/RE/TW/PM each surfaced an
-obstacle touching the same shared artifact (one routing rule). All four mapped
-to one artifact — one Discussion, not four coaching dispatches.
+**Worked example.** Four agents' Q3 obstacles touched the same shared artifact
+(one routing rule) — one Discussion, not four coaching dispatches.
 
 ## Participant briefing template
 
@@ -104,5 +103,7 @@ to one artifact — one Discussion, not four coaching dispatches.
 You are joining a team storyboard meeting. I will Ask you five questions;
 reply to each with Answer. Before answering Q2, record your domain metrics to
 `wiki/metrics/{skill}/{YYYY}.csv`; your Answer references the
-CSV row.
+CSV row. A comment closing a thread or routing a decision to a named owner
+names what is in flight (owner + artifact) or the explicit negative; if a
+decision is routed to you, announce your PR on the coordinating issue at open.
 ```
