@@ -49,7 +49,7 @@
     "@forwardimpact/libcli": "^0.1.9",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libutil": "*",
-    "prettier": "^3.0.0"
+    "prettier": "^3.8.4"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
