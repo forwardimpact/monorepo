@@ -17,6 +17,8 @@ const PATTERNS = [
   // must stay byte-exact for token-accounting parity, so an issue number
   // inside one cannot be reworded away — exclude fixtures, keep the rule
   // on authored test code.
+  // Widening this exclusion requires security review — see
+  // CONTRIBUTING.md § Security.
   { pattern: "\\bissue[- ]?#?[0-9]{2,5}\\b", globs: ["!**/test/fixtures/**"] },
   // Loose patterns: test fixtures naturally include synthetic IDs that look
   // like cross-references ("(#42)", "PR #99"). Exclude **/test/** so the
