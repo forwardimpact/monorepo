@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libhttp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "HTTP service framework — ship a Hono service endpoint without reimplementing lifecycle, security headers, or health checks.",
   "keywords": [
     "http",

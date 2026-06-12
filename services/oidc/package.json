@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcoidc",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "GitHub Actions OIDC exchange front — validates a workflow OIDC token and mints a repo-scoped installation token without holding signing material.",
   "keywords": [
     "oidc",

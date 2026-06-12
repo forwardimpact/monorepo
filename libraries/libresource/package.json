@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libresource",
-  "version": "0.1.115",
+  "version": "0.1.116",
   "description": "Typed resources with identifiers and rich context chunks — trustworthy, retrievable knowledge for agent grounding.",
   "keywords": [
     "resource",

@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcmap",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.",
   "keywords": [
     "map",
