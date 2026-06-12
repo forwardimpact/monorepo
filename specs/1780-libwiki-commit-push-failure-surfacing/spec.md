@@ -515,6 +515,7 @@ order.
 | Foreign claim-row conservation: clean-rebase drop refused. | Fixture whose local MEMORY.md commit was written from a stale read and deletes a foreign claim row present in both the merge base and the remote tip, with no textually overlapping remote change so the rebase replays clean; run `fit-wiki push`; observe the push refuses or re-merges and the foreign row survives on the remote — read as a content state of the remote-tip tree, never inferred from file-history output, which TREESAME-prunes this erasure class (§ Decisions D5). |
 | Foreign claim-row conservation: post-resolution drop refused. | Fixture where a manual conflict resolution dropped a foreign row; run `fit-wiki push`; observe refusal or re-merge and the row's survival, read as a content state of the remote-tip tree. |
 | Foreign content conservation beyond claim rows: side-pick erasure of a foreign run record refused. | Fixture reproducing the 6/12 family shape: a conflict resolution picks the local side of another writer's weekly-log file, dropping a run-record section present at the remote tip with no claim row touched; run `fit-wiki push`; observe refusal or re-merge and the section's survival, read as a content state of the remote-tip tree (victim classes per the four specimens — run records, rider bodies, backlog annotations; [#1564 assessment](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689377410)). |
+| Foreign content conservation beyond claim rows: clean-replay erasure of foreign non-claim content refused. | Fixture whose local commit was written from a stale base — a plain commit, no merge and no conflict raised — and whose tree, diffed against the observed remote tip, deletes another writer's run-record/summary content with no claim row touched (the Run 414b shape, `d21560e8`; [#1564 fifth-member log](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689879562)); run `fit-wiki push`; observe refusal or re-merge and the content's survival, read as a content state of the remote-tip tree — an implementation keyed to merge commits, conflict events, or resolution artifacts fails this row. |
 | Declared foreign-content removals pass the conservation guard. | Fixture whose pushed history carries an explicit removal declaration for a foreign-file trim (the cross-lane budget-trim shape); run `fit-wiki push`; observe the push succeeds and the declared removal lands — the trimmed content absent from the remote-tip tree, read as a content state, never inferred from file-history output (§ Decisions D5). |
 | Shared-record state transition passes with no separate declaration. | Fixture whose pushed history carries an authored commit transitioning a foreign-written row of a shared canonical record to a new state (the approval-propagation shape — `plan approved` written over a row another writer last wrote); run `fit-wiki push`; observe the push succeeds and the row present at the new state on the remote, with no removal declaration involved — an implementation that refuses this flow or demands a declaration for it fails this row. |
 | Stale revert of a foreign shared-record row refused. | Fixture whose would-be-pushed tree restores a superseded state of a foreign-written ledger row present at the remote tip in an advanced state, with no authored transition to the restored state in the pushed history (the side-pick shape that erases a human approval signal); run `fit-wiki push`; observe refusal or re-merge and the advanced state's survival, read as a content state of the remote-tip tree. |
@@ -609,6 +610,15 @@ sentences, the declared-removal pass row's content-state channel, and
 the declaration retry-survival constraint with its stranded-retry leg
 from the
 [staff-engineer pre-gate review](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689730084)
-(M1, L1–L4), disposed by the spec holder 2026-06-12.
+(M1, L1–L4), disposed by the spec holder 2026-06-12; stale-base ×
+non-claim-content fixture row (the family's fifth member and first
+non-merge mechanism — Run 414b, specimen `d21560e8`, −810 lines / 18
+files measured vs remote tip `71327258`) from the
+[staff-engineer design assessment §3](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689966709)
+([fifth-member log](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689879562)),
+adopted by the spec holder 2026-06-12 — completing the mechanism ×
+victim-class matrix the existing rows left open (stale-base × claim-row
+and side-pick × non-claim covered; a design keying the generalized
+guard on resolution events passed both and missed this member).
 
 — Product Manager 🌱
