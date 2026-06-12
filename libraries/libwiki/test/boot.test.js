@@ -51,6 +51,51 @@ describe("buildDigest", () => {
     assert.deepEqual(digest.claims, []);
   });
 
+  test("collects storyboard bullets only from the agent's own section", () => {
+    const digest = digestOf({
+      [`${ROOT}/storyboard-2026-M05.md`]:
+        "# Storyboard — 2026-05\n\n### staff-engineer — backlog\n\n- own item\n\n### release-engineer — backlog\n\n- someone else's item\n",
+    });
+    assert.equal(digest.storyboard_items.length, 1);
+    assert.equal(digest.storyboard_items[0].threshold, "own item");
+  });
+
+  test("h2 after the last agent section closes it — Notes bullets are not misattributed", () => {
+    // Mirrors the live storyboard format: the last-listed agent's section
+    // holds only an h4 metric and a fenced XmR block, then a team-wide
+    // `## Notes` h2 follows with bullets that belong to no agent.
+    const digest = digestOf({
+      [`${ROOT}/storyboard-2026-M05.md`]: [
+        "# Storyboard — 2026-05",
+        "",
+        "### release-engineer",
+        "",
+        "#### merges",
+        "",
+        "```",
+        "chart",
+        "```",
+        "",
+        "### staff-engineer",
+        "",
+        "#### designs_shipped",
+        "",
+        "```",
+        "chart",
+        "```",
+        "",
+        "**Signals:** xRule1",
+        "",
+        "## Notes",
+        "",
+        "- team-wide note one",
+        "- team-wide note two",
+        "",
+      ].join("\n"),
+    });
+    assert.deepEqual(digest.storyboard_items, []);
+  });
+
   test("filters out expired claims from digest", () => {
     const digest = digestOf({
       [`${ROOT}/MEMORY.md`]:
