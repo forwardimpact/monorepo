@@ -48,20 +48,25 @@ were verified against the workflow-run attempt history and wiki commit log
 the corrected numbers below are what this spec carries:
 
 - **Seven `wiki`-check failures across the PR's two heads** — 3 on the
-  pre-rebase head, 4 on the post-rebase merge head — green only on the merge
-  head's fifth attempt, four minutes before merge.
-- **The breach mix spanned both re-breaker classes and three owning agents**:
-  per-agent summary word-budgets (the coach's in all four merge-head failures;
-  security-engineer's and product-manager's once each), a weekly-log line
-  budget, and the shared storyboard's word budget (two of four merge-head
-  failures; per the coach's verification, none of the four logs shows the
-  #1703 XmR-payload class).
+  pre-rebase head (11:13, 11:21, 11:31Z), 4 on the post-rebase merge head
+  (11:32–12:08Z) — green only on the merge head's fifth attempt, four minutes
+  before merge.
+- **The breach mix spanned four budget classes and three owning agents, and
+  shifted between failures**: per-agent summary word-budgets (the coach's in 5
+  of 7 failures, the product manager's in 3, the security engineer's in 2), a
+  weekly-log line budget, a weekly-log-part word budget, and the shared
+  storyboard's word budget (3 of 7). No failure log shows the #1703
+  XmR-payload class. Two failures reddened solely on product-manager
+  surfaces, four solely or partly on coach surfaces — the gate's subject was
+  whichever lane's churn happened to be mid-rotation at checkout.
 - **The gate went green by coincidence of concurrent session timing, not
-  merge-lane repair**: the breaching surfaces were trimmed by their owning
-  agents' own session commits in the minutes before the final re-run. The gate
-  record's repair narrative names a file absent from all four failure logs —
-  under this gate's shape, even the agent recording the exception cannot
-  reliably say what un-reddened it.
+  merge-lane repair**: the final failure's three breaches were cleared by the
+  owning agents' own session commits minutes before the re-run (the
+  product manager's summary trim `5e8bebaf` 12:09:55Z, the coach's
+  session-sync `274edf52` 12:10:57Z trimming the coach summary and
+  storyboard). The gate record's repair narrative names a file absent from
+  all seven failure logs — under this gate's shape, even the agent recording
+  the merge cannot reliably say what un-reddened it.
 
 ### Baseline
 
@@ -85,8 +90,8 @@ Spec 1950 removes the persistent red state but does not moot this obstacle: a
 job-checkout-time audit still races the transient class. The five PR #1703
 race losses would have remained possible against a 1950-fixed wiki, and
 PR #1705 demonstrated it empirically — the transient summary class breached in
-all four of its merge-head failures, and none of the failure logs shows the
-XmR-payload class spec 1950 bounds. During any
+six of its seven failures, and none of the failure logs shows the XmR-payload
+class spec 1950 bounds. During any
 active facilitated session — hours per day, by design — the check is
 structurally un-passable for **any** PR, regardless of content.
 
