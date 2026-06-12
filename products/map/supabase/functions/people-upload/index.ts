@@ -1,4 +1,5 @@
 import { createSupabaseClient } from "../_shared/supabase.ts";
+import { createEdgeRuntime } from "../_shared/runtime.ts";
 import { extractPeopleFile } from "../_shared/activity/extract/people.js";
 import { transformPeople } from "../_shared/activity/transform/people.js";
 
@@ -19,7 +20,10 @@ Deno.serve(async (req) => {
     return json({ ok: false, stored: false, error: extractResult.error }, 500);
   }
 
-  const { imported, errors } = await transformPeople(supabase);
+  const { imported, errors } = await transformPeople(
+    supabase,
+    createEdgeRuntime(),
+  );
 
   return json({
     ok: errors.length === 0,
