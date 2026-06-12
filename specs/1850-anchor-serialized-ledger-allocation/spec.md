@@ -97,12 +97,21 @@ loud-conflict contract reaches. D3 therefore binds the same
 caller-agnostic surface D6 covers, and approving this spec supersedes
 1780 D6's "whole-tree sweep contract unchanged" criterion. Separately,
 1780 leaves the pre-rebase fetch's graceful degradation out of its
-scope; D3 requires positive staleness evidence on the landing path
-(refusal instead of proceed-on-stale-ref) — an addition where 1780
-declined to decide, not a reversal. Every other 1750/1780 decision
-stands; whichever spec lands last carries the reconciling edit. (Should
-1750's D1 positive-evidence posture be revised at its own gate, D3's
-analogous clause stands on its own terms.)
+scope while affirmatively retaining the behavior ("a failed fetch still
+leaves the stale ref in place and the operation proceeds"); D3 requires
+positive staleness evidence on the landing path — refusal instead of
+proceed-on-stale-ref. On the push surface this retires 1780's criterion
+row "Push failure with a failed fetch ⇒ transport, not rejected": the
+push attempt that row exercises is refused before it occurs. Every
+other 1750/1780 decision stands; whichever spec lands last carries the
+reconciling edits. (Should 1750's D1 positive-evidence posture be
+revised at its own gate, D3's analogous clause stands on its own terms.
+Should 1780 itself be rejected or materially revised at its gate, D3
+stands alone: a conflicted landing already falls under D3's refusal
+clause — it cannot publish the session's write-set completely on a
+verified-current base — so conflict-surfacing mechanics become this
+spec's design territory instead of an inherited contract, and the D6
+supersession lapses as moot.)
 
 **Spec 1840 (PR [#1654](https://github.com/forwardimpact/monorepo/pull/1654),
 allocation reservation for contended wiki singletons) is a competing
@@ -118,18 +127,24 @@ Requirement-level map for the adjudicating human:
 
 | 1840 requirement | Status if 1850's allocation contract is approved |
 |---|---|
-| R1 (reserve before mint), R4 (winner determination), R6 (reservation expiry) | Superseded — D1's atomic publication dissolves the reserve/confirm/expire machinery rather than implementing it. |
+| R1 (reserve before mint), R6 (reservation expiry) | Superseded — D1's atomic publication dissolves the reserve/confirm/expire machinery rather than implementing it. |
+| R4 (winner determination) | Replaced with a weaker timing guarantee, not dissolved: 1840 has the loser learn it lost *before* minting; under D1 the loser publishes, is detected at rebuild, and re-mints against the visible sequence (SC7). Prevention versus detection of double-allocation is the live trade between the two contracts. |
 | R2 (reservation-gated landings), R3 (repair passes reserve) | Superseded in their gate-on-reservation semantics — D5 forbids exclusion semantics; landings are bound by D3 instead, repair passes allocate via D1 like any mint. |
-| R5 (allocation of record durable past a dead landing), R7 (record surface never silently loses) | Satisfied by construction — the anchor record is an allocation-of-record on a server-serialized surface; D1 meets both constraints. |
+| R5 (allocation of record durable past a dead landing), R7 (record surface never silently loses) | Satisfied by construction — the anchor record is an allocation-of-record on a server-serialized surface; D1 meets both constraints. One narrowing: R7's loud-refusal-on-contention clause becomes detection-at-rebuild — contention is never refused at publication, only resolved first-published-wins (SC7). |
 | R8 (apparatus write-sets completable) | Compatible with D2; not modified here. |
 
-Two considerations for that adjudication: (a) 1840's problem statement
+Three considerations for that adjudication: (a) 1840's problem statement
 ("the floor has worked once in the field") does not incorporate the
 occurrence-#69/#70 and M38/M39 evidence above, under which the
 reservation apparatus is a three-time victim of the collision class it
 mitigates; (b) approval of either spec's allocation contract supersedes
-the other's. The 6/24 read — 1840's declared adoption-scope gate, and
-an evaluation input for this spec — receives both specs as artifacts.
+the other's; (c) the gating difference — 1840 D2 bounds adoption to the
+interim floor's footprint until the 6/24 read, while this spec carries
+no analogous adoption bound: its approval settles the contract with
+only the design and plan gates as sequencing. Approving 1840 defers
+field adoption to the 6/24 read; approving this spec does not. The 6/24
+read — 1840's declared adoption-scope gate, and an evaluation input for
+this spec — receives both specs as artifacts.
 
 ## Scope
 
@@ -140,7 +155,7 @@ an evaluation input for this spec — receives both specs as artifacts.
 | Identifier allocation (occurrence ordinals, near-miss numbers, fold indexes, meta-instances) | Allocation moves to append-only, server-serialized allocation anchors — a platform-ordered record no merge can erase (§ Decisions D1). An identifier is allocated when its anchor publishes; the ledger page never allocates. The anchor hosting surface and body format are design choices. |
 | Ledger page `wiki/parallel-collision-ledger.md` and the MEMORY.md cross-cutting row | Become derived projections of the anchor record (§ Decisions D2). Erasure of a projection is a cache miss repaired by rebuild, not a loss event demanding forensics. |
 | Existing corpus backfill | Every pre-anchor ledger entry registers its event key in the anchor record — most entries already cite anchors; those without one receive a backfill anchor — so the rebuild guarantee covers the whole corpus, not just prospective mints. |
-| Wiki landing path (the `fit-wiki push` surface of the shared write operation, all callers: Stop hook, CI post-run, manual) | Commit-scoped landings (§ Decisions D3): a landing publishes the session's own write-set, completely, on a verified-current base, or refuses loudly — never a stale side-pick, never a stale fast-forward. |
+| Wiki landing path (the `fit-wiki push` surface of the shared write operation, all callers: Stop hook, CI post-run, manual) | Commit-scoped landings (§ Decisions D3): a landing publishes the session's own write-set, completely, on a verified-current base, or refuses loudly — never a stale side-pick, never a stale fast-forward, never a sweep of a concurrent session's fresh content from a shared tree. |
 | Ledger conventions (today the Conventions section of the ledger page; home per design, discoverable from the ledger page header) | SHA/event-keyed identity codified as the lookup key for every ledger entry; ordinal labels are display-only (§ Decisions D4). |
 | Interim reservation floor | Retained as a tripwire — a double-allocation detector whose claim-row collisions are themselves evidence — and explicitly demoted from serializer (§ Decisions D5). |
 
@@ -174,20 +189,21 @@ an evaluation input for this spec — receives both specs as artifacts.
 |---|---|
 | D1 | **Allocation authority lives at append-only, server-serialized anchors.** An identifier exists iff an allocation anchor for it has published; anchor publication order is the serialization. Concurrent mints still race, but the race is decided by the anchor sequence — first-published wins, the loser re-mints against the visible sequence — and no outcome can be erased by a merge. |
 | D2 | **The ledger page and the MEMORY row are derived projections holding no sole-copy state.** Every allocation and event entry is rebuildable from the anchor record; authored prose whose record of authority is an anchor (adjudications, renumber maps, convention changes) cites that anchor. Any divergence between projection and anchor record resolves to the anchors. |
-| D3 | **Commit-scoped landings, every caller.** The wiki landing path publishes the session's own write-set, completely, on a base verified current against a successful, non-swallowed remote observation; otherwise it refuses loudly, preserving the session's content locally and naming its recovery path. Stale snapshots of paths the session did not write are never republished, by merge or by fast-forward — the property that closes the fold-n=71 shape and that 1750/1780 leave open. Conflict handling itself stays 1780's contract; D3 replaces 1780 D6's sweep-contract criterion as stated in § Relationship. |
+| D3 | **Commit-scoped landings, every caller.** The wiki landing path publishes the session's own write-set, completely, on a base verified current against a successful, non-swallowed remote observation; otherwise it refuses loudly, preserving the session's content locally and naming its recovery path. Stale snapshots of paths the session did not write are never republished, by merge or by fast-forward — the property that closes the fold-n=71 shape and that 1750/1780 leave open. **Concurrent-writer shared trees** — the topology of NM17, NM18, and the run-302/303 shared-checkout specimens, which dominates the evidence corpus — are inside this contract, and there "the session's own write-set" means content attributable to the landing session: a concurrent session's fresh content is never published by this landing (that would re-create the sweep D3 exists to kill) and never reverted, deleted, or otherwise stranded by it — it stays intact in the working tree for its owning session's landing to carry. Where the landing path cannot attribute tree content to its session, it refuses with the same loud-refusal properties. Per-session write-set attribution is therefore a precondition the design must supply for concurrent topologies; per-session working-tree isolation is the canonical mechanism, and the choice of mechanism is design territory. **Named availability cost, accepted:** refusal-on-unverifiable-base means a transient remote failure at session close strands the record locally behind a blocked stop until retried — sessions that today proceed and usually fast-forward harmlessly will refuse instead. D3 trades availability for consistency at the landing seam; the corpus prices silent loss above deferred publication. Conflict handling itself stays 1780's contract (rejection fallback stated in § Relationship); D3 replaces 1780 D6's sweep-contract criterion as stated there. |
 | D4 | **Identity is the event key; labels are display.** Every ledger entry's durable key is its event SHA or anchor id; ordinals, fold indexes, and meta numbers are display labels resolvable through the key, and label changes are lossless by construction. The labeling policy after a detected double-allocation (renumber, as today, vs. stable ordinals with gaps) is an open design parameter — D1 makes the case rare either way. |
 | D5 | **The reservation floor survives as tripwire, not serializer.** Claim-row reservations continue, valued for making double-allocation *visible* pre-mint when they survive; no step treats a surviving claim as exclusion, and a lost claim row voids no allocation (the anchor is the allocation). Whether the tripwire's signal justifies its noise is an input to the Exp #1565 6/24 read, which may retire it. |
 
 **Approving this spec settles D1–D5 as proposed at the WHAT level** —
-including the supersessions named in § Relationship (1780 D6; the 1840
-rows marked superseded). The approval signal may settle the two layers
-separately — allocation (D1/D2/D4/D5) and landing (D3) — by naming the
-split; an unqualified approval settles both. Two parameters stay open by
-declaration: D4's post-detection labeling policy (design chooses) and
-D5's eventual retirement (Exp #1565 read input). Mechanism choices —
-anchor hosting surface and body format, rebuild tooling shape, hook
-wiring, conventions home — are design territory with their own review
-gate.
+including the supersessions named in § Relationship (1780 D6 and the
+failed-fetch⇒transport criterion row retired on the push surface; the
+1840 rows marked superseded or replaced). The approval signal may settle
+the two layers separately — allocation (D1/D2/D4/D5) and landing (D3) —
+by naming the split; an unqualified approval settles both. Two
+parameters stay open by declaration: D4's post-detection labeling policy
+(design chooses) and D5's eventual retirement (Exp #1565 read input).
+Mechanism choices — anchor hosting surface and body format, rebuild
+tooling shape, hook wiring, per-session attribution mechanism,
+conventions home — are design territory with their own review gate.
 
 ## Success criteria
 
@@ -206,6 +222,8 @@ conventions document discoverable from the ledger page header.
 | 7 | Two anchors claiming the same identifier are detected at rebuild time, resolved first-published-wins, and the losing mint is re-issued against the visible sequence rather than silently merged. | Rebuild over a constructed double-allocation flags the conflict, emits the first-published assignment, and the procedure directs the loser's re-mint. |
 | 8 | Exp 51's measurement pipeline records identically before and after: the measures CSV header and event-file format under `wiki/metrics/exp-51-ledger-format/` are unchanged. | Diff of the CSV header and event-file format against the pre-change form: empty. |
 | 9 | The reservation floor carries detection-only semantics: a lost claim row voids no allocation, and a surviving claim collision is recorded as evidence, not treated as exclusion. | The procedure states reservation outcomes carry no exclusion semantics; a simulated claim-row erasure between reservation and mint leaves the allocation valid at rebuild. |
+| 10 | The anchor surface the design chooses exhibits D1's substrate properties: a published anchor survives any wiki landing, merge, or projection loss unchanged, and concurrent anchor publications receive one total order that every observer's read agrees on. | Adversarial replay of the eraser corpus's shapes (stale-tree merge landing, stale fast-forward landing, projection deletion) with a published anchor in place: the anchor is unchanged and resolvable afterward; two concurrently published anchors read back in the same order from independent observers; the surface offers no operation that edits or deletes a published anchor in place. |
+| 11 | A landing in a tree holding a concurrent session's fresh content never publishes that content and never reverts, deletes, or strands it; absent per-session attribution, the landing refuses with criterion 5's properties. | Simulated concurrent-writer tree (leg B's fresh uncommitted edits present when leg A's landing fires): under the design's attribution mechanism, A's write-set is at the landed tip, B's content is absent from it and intact in the working tree; with attribution unavailable, the landing refuses — non-zero exit, no commit, both sessions' content preserved locally. |
 
 ## Evidence index
 
@@ -227,6 +245,13 @@ label (§ Decisions D4).
 - Non-merge stale-tree fast-forward eraser:
   [#1564 issuecomment-4687152288](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4687152288)
   (fold n=71).
+- Concurrent-writer shared-tree topology (D3's attribution clause,
+  criterion 11): NM17 dual-lane shared-tree collision
+  ([#1564 issuecomment-4686191205](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4686191205),
+  reclassification of record), NM18 same-ask third-leg dual-execution
+  ([#1564 issuecomment-4687051395](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4687051395)),
+  and the run-302/303 phantom write-set specimens stranded in the shared
+  checkout's object store (ledger page, floor-assisted-catch family).
 - Segment-loss firings: Exp 51 firing records on
   [#1585](https://github.com/forwardimpact/monorepo/issues/1585) (clause
   fired n=5).
