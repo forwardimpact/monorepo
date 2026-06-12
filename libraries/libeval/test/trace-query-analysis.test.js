@@ -146,6 +146,27 @@ describe("TraceQuery", () => {
       assert.strictEqual(s.totals.totalCostUsd, 0.0523);
     });
 
+    test("totals prefer result-event usage over per-turn sums", () => {
+      const trace = buildTrace({
+        summary: {
+          tokenUsage: {
+            inputTokens: 9446,
+            outputTokens: 11298,
+            cacheReadInputTokens: 649855,
+            cacheCreationInputTokens: 4321,
+          },
+        },
+      });
+      const s = new TraceQuery(trace).stats();
+
+      assert.strictEqual(s.totals.inputTokens, 9446);
+      assert.strictEqual(s.totals.outputTokens, 11298);
+      assert.strictEqual(s.totals.cacheReadInputTokens, 649855);
+      assert.strictEqual(s.totals.cacheCreationInputTokens, 4321);
+      // Per-turn breakdown still reflects per-turn figures.
+      assert.strictEqual(s.perTurn[0].inputTokens, 100);
+    });
+
     test("includes per-turn breakdown", () => {
       const q = new TraceQuery(buildTrace());
       const s = q.stats();

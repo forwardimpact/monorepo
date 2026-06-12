@@ -218,25 +218,24 @@ export class TraceCollector {
   }
 
   /**
+   * Accumulate a result event into the running summary. Facilitated and
+   * supervised sessions emit one result event per runner invocation, so a
+   * single trace can carry several — cost, duration, turn, and token
+   * figures sum across all of them. `result` reflects the latest event;
+   * `isError` is true once any event errored.
    * @param {object} event
    */
   handleResult(event) {
+    const prev = this.result ?? EMPTY_RESULT;
+
     this.result = {
       result: event.subtype ?? "unknown",
-      isError: event.is_error ?? false,
-      totalCostUsd: event.total_cost_usd ?? 0,
-      durationMs: event.duration_ms ?? 0,
-      numTurns: event.num_turns ?? 0,
-      tokenUsage: event.usage
-        ? {
-            inputTokens: event.usage.input_tokens ?? 0,
-            outputTokens: event.usage.output_tokens ?? 0,
-            cacheReadInputTokens: event.usage.cache_read_input_tokens ?? 0,
-            cacheCreationInputTokens:
-              event.usage.cache_creation_input_tokens ?? 0,
-          }
-        : null,
-      modelUsage: event.modelUsage ?? null,
+      isError: prev.isError || (event.is_error ?? false),
+      totalCostUsd: prev.totalCostUsd + (event.total_cost_usd ?? 0),
+      durationMs: prev.durationMs + (event.duration_ms ?? 0),
+      numTurns: prev.numTurns + (event.num_turns ?? 0),
+      tokenUsage: sumTokenUsage(prev.tokenUsage, normalizeUsage(event.usage)),
+      modelUsage: event.modelUsage ?? prev.modelUsage,
     };
   }
 
@@ -303,7 +302,9 @@ export class TraceCollector {
    * Format the trailing result summary line. When an orchestrator
    * summary is present (supervised / facilitated mode), the headline word is
    * the supervisor's verdict ("success" / "failure") rather than the SDK's
-   * per-runner subtype, so the footer aligns with the CI exit code.
+   * per-runner subtype, so the footer aligns with the CI exit code. Turn,
+   * cost, and duration figures are the accumulated totals across every
+   * result event in the trace, not the last event's.
    * @returns {string}
    */
   #formatResultTail() {
@@ -316,6 +317,50 @@ export class TraceCollector {
       `--- Result: ${headline} | Turns: ${this.result.numTurns} | Cost: $${cost} | Duration: ${duration} ---`
     );
   }
+}
+
+/** Identity element for result-event accumulation in handleResult. */
+const EMPTY_RESULT = {
+  isError: false,
+  totalCostUsd: 0,
+  durationMs: 0,
+  numTurns: 0,
+  tokenUsage: null,
+  modelUsage: null,
+};
+
+/**
+ * Normalize an SDK snake_case usage block to camelCase token fields.
+ * @param {object|null|undefined} usage
+ * @returns {object|null}
+ */
+function normalizeUsage(usage) {
+  if (!usage) return null;
+  return {
+    inputTokens: usage.input_tokens ?? 0,
+    outputTokens: usage.output_tokens ?? 0,
+    cacheReadInputTokens: usage.cache_read_input_tokens ?? 0,
+    cacheCreationInputTokens: usage.cache_creation_input_tokens ?? 0,
+  };
+}
+
+/**
+ * Sum two token-usage records field-by-field. Either side may be null
+ * (a result event without usage); the sum is null only when both are.
+ * @param {object|null} a
+ * @param {object|null} b
+ * @returns {object|null}
+ */
+function sumTokenUsage(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  return {
+    inputTokens: a.inputTokens + b.inputTokens,
+    outputTokens: a.outputTokens + b.outputTokens,
+    cacheReadInputTokens: a.cacheReadInputTokens + b.cacheReadInputTokens,
+    cacheCreationInputTokens:
+      a.cacheCreationInputTokens + b.cacheCreationInputTokens,
+  };
 }
 
 /**
