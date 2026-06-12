@@ -35,8 +35,38 @@ release engineer's gate record
 - The merge proceeded only via a documented gate exception (the check is
   non-required; the PR was `MERGEABLE`/`UNSTABLE`).
 
-That single merge — 5 race losses plus 1 documented exception — is the
-baseline the success criteria below measure against.
+### Evidence — PR #1705 (occurrence #2, record-verified)
+
+Forty-two minutes after #1703 merged, the same gate blocked a second
+zero-wiki-surface PR — `chore(deps)`, all 17 changed files
+`package.json`/`bun.lock`. The occurrence datum
+([#1714 comment](https://github.com/forwardimpact/monorepo/issues/1714#issuecomment-4691322098))
+and the gate record it quotes
+([PR #1705 comment](https://github.com/forwardimpact/monorepo/pull/1705#issuecomment-4691157156))
+were verified against the workflow-run attempt history and wiki commit log
+([record check](https://github.com/forwardimpact/monorepo/issues/1714#issuecomment-4691578265));
+the corrected numbers below are what this spec carries:
+
+- **Seven `wiki`-check failures across the PR's two heads** — 3 on the
+  pre-rebase head, 4 on the post-rebase merge head — green only on the merge
+  head's fifth attempt, four minutes before merge.
+- **The breach mix spanned both re-breaker classes and three owning agents**:
+  per-agent summary word-budgets (the coach's in all four merge-head failures;
+  security-engineer's and product-manager's once each), a weekly-log line
+  budget, and storyboard payload regrowth (two of four merge-head failures).
+- **The gate went green by coincidence of concurrent session timing, not
+  merge-lane repair**: the breaching surfaces were trimmed by their owning
+  agents' own session commits in the minutes before the final re-run. The gate
+  record's repair narrative names a file absent from all four failure logs —
+  under this gate's shape, even the agent recording the exception cannot
+  reliably say what un-reddened it.
+
+### Baseline
+
+The success criteria below measure against both merges combined: **PR #1703
+(5 race losses + 1 documented exception) plus PR #1705 (7 failures across two
+heads, cleared only by third-party session-lane coincidence) — two unrelated
+zero-wiki-surface merges, 42 minutes apart, on 2026-06-12.**
 
 ### Why the race outlives the in-flight wiki fixes
 
@@ -51,7 +81,10 @@ separates the two classes of wiki state that redden the audit:
 
 Spec 1950 removes the persistent red state but does not moot this obstacle: a
 job-checkout-time audit still races the transient class. The five PR #1703
-race losses would have remained possible against a 1950-fixed wiki. During any
+race losses would have remained possible against a 1950-fixed wiki, and
+PR #1705 demonstrated it empirically — the transient summary class breached in
+all four of its merge-head failures, with the persistent storyboard class
+alongside in only two. During any
 active facilitated session — hours per day, by design — the check is
 structurally un-passable for **any** PR, regardless of content.
 
@@ -129,7 +162,7 @@ choice of stable target is a design decision.
 | Claim | Verification |
 |---|---|
 | A PR with no wiki-coupled diff is never evaluated against shared wiki state. | On such a PR, the `wiki` check run's job log shows no checkout or read of the wiki repository (or the check reports a skip conclusion) — verifiable on any PR, including during an active facilitated session. |
-| Zero documented `wiki`-gate exceptions on PRs with no wiki-coupled diff. | Release-engineer gate records for the four weeks following the change contain zero such exceptions (baseline in § Evidence). |
+| Zero documented `wiki`-gate exceptions on PRs with no wiki-coupled diff. | Release-engineer gate records for the four weeks following the change contain zero such exceptions (§ Baseline). |
 | A PR that can change audit behavior is still evaluated. | A wiki-coupled PR that introduces an audit-visible regression yields a red `wiki` check on that PR; the same PR with the regression removed yields green. |
 | The residual check is deterministic. | Re-running the `wiki` check on an unchanged wiki-coupled PR head yields the same conclusion both times. |
 | Shared-wiki audit findings still surface within one curation cycle. | An audit violation present at a curation run (per the cadence guarantee in § Scope) is either fixed in that run or routed as an issue or memo naming an owner — verifiable in the resulting issue/memo and the curator's run record. |
