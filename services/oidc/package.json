@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0",
-    "hono": "^4.12.23"
+    "hono": "^4.12.25"
   },
   "engines": {
     "bun": ">=1.2.0",
