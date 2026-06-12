@@ -41,8 +41,8 @@ anchor-exclusion and sub-(c) population-definition preconditions
 also records the 5/5-lane convergence) — adjudication of those preconditions
 remains open, routed to Discussion. This spec generalises the same shape concern
 to secondary metrics that are structurally bounded at zero —
-`docs_pages_over_ceiling` is the first observation; lanes flagged
-`findings_count` and `prs_merged` in Issue #1540 as plausible future candidates
+`docs_pages_over_ceiling` is the first observation; Issue #1540 names
+`findings_count` and `prs_merged` as illustrative future candidates
 under quiet or gate-bound stretches — by moving the discrimination into the
 classifier where every downstream reader sees the same verdict.
 
@@ -57,12 +57,16 @@ In scope:
   (`insufficient`, `stable`, `signals`, `chaos`) remain. The `status` field is
   unchanged: a degenerate-zero series still reports `status: "predictable"`
   because no rule fires; only `classification` distinguishes the shape.
-- The new value is documented on every surface that documents the existing four,
-  plus the library's own README: the classification table in the user-facing
-  guide at
-  [`websites/fit/docs/libraries/predictable-team/xmr-analysis/index.md`](https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md),
-  the published `fit-xmr` skill's report-shape roll-up
-  (`.claude/skills/fit-xmr/SKILL.md` § Report Shape), and
+- The new value is documented at every site that enumerates the existing four,
+  plus the library's own README. The user-facing guide at
+  [`websites/fit/docs/libraries/predictable-team/xmr-analysis/index.md`](https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md)
+  enumerates the values in two places — the `classification` JSON-field bullet
+  and the § Classifications table — and its adjacent guidance prose ("Read
+  `classification` first…", "Do not react to individual data points when the
+  classification is `stable`") currently treats `stable` as the only quiet
+  verdict; both enumeration sites and that guidance must stay accurate with five
+  values. The other surfaces are the published `fit-xmr` skill's report-shape
+  roll-up (`.claude/skills/fit-xmr/SKILL.md` § Report Shape) and
   `libraries/libxmr/README.md` — which today carries no classification
   documentation at all, so the README gains a classification table rather than
   extending one.
@@ -89,7 +93,7 @@ Excluded:
 | 1   | `fit-xmr analyze` of an all-zero series at or above the minimum classification window returns `classification: "degenerate-zero"` and `status: "predictable"`.                                   | New libxmr test fixture covering the all-zero case asserts both fields; `bun test libraries/libxmr` passes.                                                                                 |
 | 2   | `fit-xmr analyze` of a series with positive mean, positive variation, and no signals continues to return `classification: "stable"` and `status: "predictable"`.                                 | Existing libxmr stable-case tests continue to pass; one test explicitly distinguishes the two predictable shapes.                                                                           |
 | 3   | A series below the minimum classification window with all values equal to zero returns `classification: "insufficient"` — the boundary is unchanged.                                             | New test fixture covers the sub-window boundary against the existing constant.                                                                                                              |
-| 4   | The classification value is documented in the libxmr README (new classification table), the user-facing xmr-analysis guide's classification table, and the fit-xmr skill's report-shape roll-up. | `rg degenerate-zero libraries/libxmr/README.md websites/fit/docs/libraries/predictable-team/xmr-analysis/index.md .claude/skills/fit-xmr/SKILL.md` returns at least one match in each file. |
+| 4   | The classification value is documented at every site that enumerates the existing four: the libxmr README's new classification table, the xmr-analysis guide's `classification` JSON-field bullet and its § Classifications table, and the fit-xmr skill's § Report Shape roll-up — and the guide's adjacent guidance prose remains accurate for a five-value taxonomy. | `rg -c degenerate-zero` returns ≥ 1 for `libraries/libxmr/README.md` and `.claude/skills/fit-xmr/SKILL.md` and ≥ 2 for `websites/fit/docs/libraries/predictable-team/xmr-analysis/index.md`; review confirms the guide's "Read `classification` first…" and "Do not react…" guidance correctly accounts for the new value. |
 | 5   | Adding the enum value does not break any existing libxmr golden output (chart, summarize, analyze) or any libwiki storyboard refresh integration test.                                           | `bun test libraries/libxmr libraries/libwiki` passes, including the `libraries/libxmr/test/golden/fit-xmr/` golden snapshots for `chart`, `summarize`, and `analyze`.                       |
 
 ## Downstream
