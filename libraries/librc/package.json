@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/librc",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "description": "Service lifecycle management — start, stop, and check services without manual oversight.",
   "keywords": [
     "service",
