@@ -164,6 +164,25 @@ instrument — the inter-session gap — for one bounded verification per boot.
   push-time home and identity) precisely enough for the owning lane to decide
   restore-vs-rotation without re-deriving the history.
 
+### Carried to design (spec-review minor finding, 2026-06-12)
+
+The
+[design-lane spec review](https://github.com/forwardimpact/monorepo/pull/1718#issuecomment-4691380146)
+confirmed disposition compliance and routed one minor finding to the design
+phase rather than this spec: **session-boundary derivation is undefined at the
+history level**. This spec deliberately fixes only the floor (the previous
+session's full push set, criterion 3), the safety direction (over-widening is
+detection-only and idempotent), and the failure posture (an unresolvable window
+is a detection, criterion 7). The 1960 design owns the two consequences:
+
+- **Window heuristic.** Pick and justify the concrete rule that delimits a
+  session within lane-authored commit history.
+- **Adjudication-load consequence.** "Always safe" is safety of _detection
+  coverage_ only — adjudication load from legitimate condensation and archival
+  grows with window width. The design states the expected load of its chosen
+  heuristic; bounding beyond that remains owner practice, per § Detection
+  semantics.
+
 ## Coordination with the family and in-flight siblings
 
 | Sibling                                              | Boundary with this spec                                                                                                                                                                                                                                                                                                                                    |
