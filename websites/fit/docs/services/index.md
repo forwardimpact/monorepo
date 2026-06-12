@@ -1,6 +1,6 @@
 ---
 title: Service Guides
-description: Guides for platform builders — from per-product infrastructure to shared gRPC services for knowledge graphs, vector search, standard queries, trace collection, and agent tools.
+description: Workflow guides for the shared gRPC services — conversation bridges, knowledge and search, standard queries, agent tools, and trace collection.
 layout: product
 toc: false
 ---

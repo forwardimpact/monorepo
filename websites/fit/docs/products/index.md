@@ -1,6 +1,6 @@
 ---
 title: Product Guides
-description: Guides for engineers and leaders — from unclear expectations to visible standards, from vague growth feedback to concrete evidence, from unverified agent output to trusted delivery.
+description: Workflow guides for leaders and engineers. Each guide starts from a real situation and ends with an outcome grounded in your organization's engineering standard.
 layout: product
 toc: false
 ---
@@ -47,6 +47,10 @@ toc: false
 
 <!-- part:card:trust-output/expected-output -->
 
+<!-- part:card:signing-in-to-landmark -->
+
+<!-- part:card:engineering-data-sources -->
+
 </div>
 
 ## Measure Engineering Outcomes (Leaders)
@@ -55,25 +59,9 @@ toc: false
 
 <!-- part:card:engineering-outcomes -->
 
-</div>
-
-## Provision Landmark Access (Leaders)
-
-<div class="grid">
-
 <!-- part:card:provisioning-engineers -->
 
 <!-- part:card:issuing-service-account-tokens -->
-
-</div>
-
-## Read Engineering Data (Engineers)
-
-<div class="grid">
-
-<!-- part:card:signing-in-to-landmark -->
-
-<!-- part:card:engineering-data-sources -->
 
 </div>
 

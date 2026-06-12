@@ -28,9 +28,9 @@ block in the real file.
 
 ---
 
-## Example A — Software engineer, "Find Growth Areas"
+## Example A — Software engineer, "Get Judgment Grounded in the Standard"
 
-**JTBD:** *Empowered Engineers — Find Growth Areas* (`JTBD.md`).
+**JTBD:** *Empowered Engineers — Get Judgment Grounded in the Standard* (`JTBD.md`).
 **Identity:** `story.dsl:20–25` (drug_discovery, mgr `@thoth`) +
 `oncora_push` scenario (2025-03 → 2025-09).
 

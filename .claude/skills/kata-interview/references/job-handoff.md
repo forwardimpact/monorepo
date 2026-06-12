@@ -28,18 +28,18 @@ Matches the two personas in
 [`example-personas.md`](example-personas.md). Treat BioNova / Oncora /
 MolecularForge specifics as illustrative.
 
-### Example A — *Empowered Engineers: Find Growth Areas*
+### Example A — *Empowered Engineers: Get Judgment Grounded in the Standard*
 
 JTBD source:
-- **Big Hire:** "Help me get guidance and evidence grounded in my
-  organization's standard, not impressions or generic advice." → Guide,
-  Landmark
-- **Little Hire:** "Help me ask a growth question and check whether
-  recent work shows progress." → Guide, Landmark
+- **Big Hire:** "Help me get career guidance and output review grounded
+  in my organization's standard, not impressions or generic advice." →
+  Guide
+- **Little Hire:** "Help me ask a growth question or get a second opinion
+  on a deliverable before approving it." → Guide
 
 Ask 2:
 
-> Today you want to get guidance and evidence grounded in BioNova's
+> Today you want to get career guidance and evidence grounded in BioNova's
 > engineering standard, not impressions or generic advice. Specifically:
 > ask a growth question and check whether your recent Oncora work shows
 > progress toward J070. Start at https://www.forwardimpact.team — that's
@@ -49,9 +49,9 @@ Ask 2:
 
 JTBD source:
 - **Big Hire:** "Help me make staffing decisions I can defend by seeing
-  what each role requires." → Pathway, Summit
+  what each role requires." → Summit
 - **Little Hire:** "Help me spot capability gaps and check whether a
-  candidate fills them." → Pathway, Summit
+  candidate fills them." → Summit
 
 Ask 2:
 

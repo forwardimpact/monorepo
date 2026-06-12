@@ -98,6 +98,7 @@ referenced the original `id`.
 
 <div class="grid">
 
+<!-- part:card:../engineering-outcomes -->
 <!-- part:card:../issuing-service-account-tokens -->
 <!-- part:card:../engineering-data-sources -->
 

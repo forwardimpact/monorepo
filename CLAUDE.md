@@ -81,7 +81,7 @@ the same interface, with tooling to prove changes improved outcomes.
 ## Distribution Model
 
 The monorepo is open source but internal-only — external users consume via
-npm. It is the source of truth for sibling repos under `forwardimpact/*`:
+npm. It is the source of truth for `forwardimpact/*` sibling repos:
 
 - **npm packages** — `fit-*` and `kata-*` CLIs and libraries, installed via
   `npx fit-*`. All CLIs use `#!/usr/bin/env node` (no Bun required). gRPC
@@ -138,9 +138,9 @@ When `.claude/**` writes are blocked, use
 
 ## Writing Style
 
-All prose, from marketing copy to commit messages, is simple and straight to
-the point. Avoid the tells of AI-generated text: em-dash asides, antithesis
-pairs, rhetorical questions, and stacked noun chains. One idea per sentence.
+All prose, from marketing copy to commit messages, is simple and direct.
+Avoid the tells of AI-generated text: em-dash asides, antithesis pairs,
+rhetorical questions, and stacked noun chains. One idea per sentence.
 
 ## Memory and Coordination
 

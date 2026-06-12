@@ -1,6 +1,6 @@
 ---
 title: Library Guides
-description: Guides for engineers and platform builders — from scattered agent state to persistent memory, from isolated knowledge stores to shared infrastructure, from manual service wiring to managed lifecycle.
+description: Workflow guides for the shared libraries that give humans and agents the same capabilities — memory, interfaces, knowledge, contracts, lifecycle, and evals.
 layout: product
 toc: false
 ---

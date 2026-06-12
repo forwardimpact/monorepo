@@ -95,6 +95,7 @@ message; no rows are exposed across scope boundaries.
 
 <div class="grid">
 
+<!-- part:card:../growth-areas -->
 <!-- part:card:../engineering-outcomes -->
 <!-- part:card:../signing-in-to-landmark -->
 

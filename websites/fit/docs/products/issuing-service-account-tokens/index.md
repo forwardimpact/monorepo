@@ -120,6 +120,7 @@ again. Then mint a fresh token; the old one stays inert.
 
 <div class="grid">
 
+<!-- part:card:../engineering-outcomes -->
 <!-- part:card:../provisioning-engineers -->
 <!-- part:card:../signing-in-to-landmark -->
 

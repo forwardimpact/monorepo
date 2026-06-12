@@ -1,5 +1,5 @@
 ---
-title: "Verify Agent Work Against the Standard"
+title: "Get Output Review Grounded in the Standard"
 description: "Catch convention violations that look correct on the surface — review agent output against your engineering standard instead of reading every line."
 ---
 
@@ -8,9 +8,11 @@ the code looked correct, but it violated an organizational convention that was
 only visible in the standard data. Reviewing every line negates the productivity
 gain of using agents. This guide walks you through verifying agent work against
 your organization's actual engineering standard so you can review by exception,
-not by default. Two products work together: **Pathway** makes the role's
+not by default. Two products work together. **Pathway** makes the role's
 expected skills, behaviours, and conventions visible so you know what to look
-for, and **Guide** reviews specific deliverables against those expectations.
+for. **Guide** reviews specific deliverables against those expectations. For
+the other half of this job, career guidance from the same standard, see
+[Get Career Guidance Grounded in the Standard](/docs/products/growth-areas/).
 
 ## Prerequisites
 
@@ -290,5 +292,6 @@ define the quality bar and Guide to apply it.
 
 <!-- part:card:second-opinion -->
 <!-- part:card:expected-output -->
+<!-- part:card:../growth-areas -->
 
 </div>

@@ -226,7 +226,7 @@ const definition = {
       description: "Track initiative impact through outcome trends.",
     },
     {
-      title: "Find Growth Areas and Build Evidence",
+      title: "Get Career Guidance Grounded in the Standard",
       url: "https://www.forwardimpact.team/docs/products/growth-areas/index.md",
       description: `Identify gaps and track progress toward the next level. Readiness, timeline, and coverage commands suppress verdicts and frame output as negative-evidence when coverage falls below ${floorPercentText()}.`,
     },

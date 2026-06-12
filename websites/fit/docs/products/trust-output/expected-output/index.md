@@ -9,7 +9,7 @@ reviewing agent-produced work against it.
 ## Prerequisites
 
 Complete the
-[Verify Agent Work Against the Standard](/docs/products/trust-output/)
+[Get Output Review Grounded in the Standard](/docs/products/trust-output/)
 guide first -- this page assumes you have an agent-aligned engineering standard
 installed and have already run `npx fit-pathway job` at least once.
 
