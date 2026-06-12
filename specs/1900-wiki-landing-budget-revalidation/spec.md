@@ -22,7 +22,7 @@ and three mechanism shapes:
 |---|---|---|---|---|
 | RE 1 | release-engineer summary | 2209/2048w | canonicalization landing adopted a sibling leg's parts wholesale (merge union) | 56s |
 | RE 2 | release-engineer summary | 2071/2048w | session-close block landed at 2027w under cap; sync merge carried +44w from a parallel lane | 2m20s |
-| SecE 1 | security-engineer summary | 2062/2048w | own review landing swept to origin by a sibling lane's carrier commit `21f2be1a` (own-landing class; single-parent value walk 2047w→2062w, merge-free under published-onset keying — [adjudication §2](https://github.com/forwardimpact/monorepo/issues/1480#issuecomment-4689028843)) | ~3m06s |
+| SecE 1 | security-engineer summary | 2062/2048w | own review landing swept to origin by a sibling lane's carrier commit `21f2be1a` (own-landing class; single-parent value walk 2047w→2062w, merge-free under published-onset keying — [adjudication §2](https://github.com/forwardimpact/monorepo/issues/1480#issuecomment-4689028843)) | ~3m06s final segment; full published-onset window ~3m29s incl. ~8s clean dip |
 | SecE 2 | security-engineer summary | 2057/2048w | session-close rewrite +59w over a 1998w base — **no merge, no markers**; published unvalidated | 1m15s |
 | Coach | improvement-coach summary | 2100/2048w | mid-rebase union graft after a crashed push (content-correct, budget-wrong) | 1m28s |
 
