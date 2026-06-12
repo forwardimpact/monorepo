@@ -25,7 +25,7 @@ Little Hire guides are nested children.
 | Little | `authoring-standards/update-standard/` | Validate and Update the Standard |
 | Little | `authoring-standards/define-role/` | Define a New Role |
 
-**See What's Expected — for Humans and Agents** (Engineers → Pathway)
+**See What's Expected of Humans and Agents** (Engineers → Pathway)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |

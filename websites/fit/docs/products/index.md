@@ -17,7 +17,7 @@ toc: false
 
 </div>
 
-## See What's Expected — for Humans and Agents (Engineers)
+## See What's Expected of Humans and Agents (Engineers)
 
 <div class="grid">
 

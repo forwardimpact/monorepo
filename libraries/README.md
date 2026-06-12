@@ -85,7 +85,7 @@ thresholds; ignoring metrics because no one trusts them.
 ## Platform Builders: Bridge Conversations to the Agent Team
 
 **Trigger:** Engineers discuss work in chat and GitHub Discussions while the
-agent team is reachable only from GitHub — and every new channel adapter
+agent team is reachable only from GitHub, and every new channel adapter
 re-solves intake, thread state, and tenant routing.
 
 **Big Hire:** Help me relay conversations between the channels engineers already
@@ -188,12 +188,12 @@ and displaying raw data.
 
 ## Platform Builders: Keep Service Contracts Typed
 
-**Trigger:** A service contract changes and the drift surfaces at runtime — in a
+**Trigger:** A service contract changes and the drift surfaces at runtime, in a
 client, an endpoint, or an MCP tool that no longer matches the proto.
 
-**Big Hire:** Help me keep every service surface — types, clients, endpoints,
-and MCP tools — generated from one proto source so contracts cannot drift. →
-**libcodegen, libhttp, libmcp, libproto, librpc, libtype**
+**Big Hire:** Help me generate types, clients, endpoints, and MCP tools from one
+proto source so contracts cannot drift. → **libcodegen, libhttp, libmcp,
+libproto, librpc, libtype**
 
 **Little Hire:** Help me change a proto definition and trust the JavaScript
 types follow; mount routes on a configured app and call start(); expose a new
@@ -236,14 +236,12 @@ apply.
 
 ## Platform Builders: Run a Predictable Platform
 
-**Trigger:** A service fails on a customer machine or an agent session goes
-sideways — the cause is a missing precondition, an unmanaged process, invisible
-telemetry, or instructions that drifted from reality.
+**Trigger:** A service fails on a customer machine and the cause is a missing
+precondition, an unsupervised process, missing telemetry, or stale instructions.
 
-**Big Hire:** Help me make platform behavior predictable: preflight checks
-before anything heavy runs, supervised processes, structured telemetry, and
-instruction layers that stay honest. → **libcoaligned, libpreflight, librc,
-libsupervise, libtelemetry**
+**Big Hire:** Help me check preconditions before anything heavy runs, supervise
+long-running processes, emit structured telemetry, and keep instruction files
+honest. → **libcoaligned, libpreflight, librc, libsupervise, libtelemetry**
 
 **Little Hire:** Help me verify a docs change before commit and trust the
 layered architecture has not drifted; surface a product-authored error for an

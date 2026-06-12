@@ -38,7 +38,7 @@ that let agents consume backend functionality natively.
 ## Platform Builders: Bridge Conversations to the Agent Team
 
 **Trigger:** Engineers discuss work in chat and GitHub Discussions while the
-agent team is reachable only from GitHub — and every new channel adapter
+agent team is reachable only from GitHub, and every new channel adapter
 re-solves intake, thread state, and tenant routing.
 
 **Big Hire:** Help me relay conversations between the channels engineers already
@@ -111,12 +111,12 @@ services; agents working without tools.
 ## Platform Builders: Ground Agents in Context
 
 **Trigger:** An agent needs to answer relationship questions, search by meaning,
-or read activity data — and the only alternative is direct database access and
-bespoke retrieval plumbing per product.
+or read activity data, and the only alternative is direct database access and
+per-product plumbing.
 
-**Big Hire:** Help me give agents typed, retrievable knowledge — graph queries,
-semantic search, embeddings, and activity data — through shared services that
-never leak schema or credentials. → **embedding, graph, map, vector**
+**Big Hire:** Help me give agents graph queries, semantic search, embeddings,
+and activity data through shared services that never leak schema or credentials.
+→ **embedding, graph, map, vector**
 
 **Little Hire:** Help me call one gRPC method instead of wiring HTTP, auth, and
 retries per product; answer relationship questions without writing join logic;

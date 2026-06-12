@@ -1,13 +1,13 @@
 ---
 title: Forward Impact Engineering
-description: One engineering standard your engineers grow by, your agents are configured by, and your leaders measure and staff by — an open-source suite.
+description: An open-source suite built on one idea — define your engineering standard once, then derive roles, agent profiles, career guidance, measurement, and staffing from it.
 toc: false
 layout: home
 hero:
   image: /assets/scene-concept.svg
   alt: An engineer in a hoodie, an AI robot, and a business professional wave hello
-  title: One standard.<br>Engineers grow by it.<br>Agents are built to it.
-  subtitle: Define what great engineering looks like once — then derive role definitions for people, profiles for agents, grounded career guidance, blame-free measurement, and staffing decisions you can defend. Same standard, different outputs.
+  title: One standard.<br>Engineers grow by it.<br>Agents follow it.
+  subtitle: Define what good engineering looks like once, then derive everything else from it — job definitions, agent profiles, career guidance, measurement, and staffing decisions you can defend. Same standard, different outputs.
   cta:
     - label: Explore the suite
       href: /docs/
@@ -27,8 +27,8 @@ hero:
 ### Map — define the standard
 
 Two managers shouldn't disagree on what 'senior' means. Map turns implicit
-expectations into a validated, plain-text standard — the source of truth
-everything else derives from.
+expectations into a validated, plain-text standard that the rest of the suite
+derives from.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -49,10 +49,10 @@ a complete job definition. Drop the level and get an agent profile instead.
 
 ![Guide](/assets/icon-guide.svg)
 
-### Guide — apply it as judgment
+### Guide — ask the standard
 
-An AI advisor grounded in your standard, not generic advice — career guidance
-for engineers and second opinions on agent output, so you review by exception.
+Career guidance for engineers and second opinions on agent work, grounded in
+your standard instead of generic best practice.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -63,8 +63,8 @@ for engineers and second opinions on agent output, so you review by exception.
 
 ### Landmark — measure without surveillance
 
-Evidence, trends, and engineer voice that show progress at the system level.
-Direction without naming individuals; proof without ticket counts.
+Track progress with evidence, trends, and engineer voice instead of ticket
+counts. Nobody gets singled out.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -75,8 +75,8 @@ Direction without naming individuals; proof without ticket counts.
 
 ### Summit — staff with evidence
 
-Model the team as a system: capability coverage, structural risks, and what-if
-scenarios before the staffing decision — not in the post-mortem after.
+Model the team as a system. See capability coverage, structural risks, and
+what-if scenarios before you make the staffing decision.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -92,24 +92,22 @@ scenarios before the staffing decision — not in the post-mortem after.
 
 ### Outpost
 
-Set up camp. A personal operations center for engineers — email, calendar, and
-notes assembled into briefings so you walk into every meeting already oriented.
+Outpost syncs your email, calendar, and notes into briefings, so you walk into
+every meeting already oriented.
 
 <a href="/outpost/" class="btn btn-ghost">Learn more</a>
 
 ### Kata
 
-Running agents day to day? Kata is an autonomous agent team that plans, ships,
-studies its own traces, and improves — organized as a daily Plan-Do-Study-Act
-cycle.
+An autonomous agent team that runs a daily Plan-Do-Study-Act cycle: it plans
+specs, ships features, studies its own traces, and acts on what it finds.
 
 <a href="https://www.kata.team" class="btn btn-ghost">Visit kata.team</a>
 
 ### Gear
 
-For platform builders: the libraries and services the suite is built from —
-retrieval, typed contracts, evaluation — published to npm, with humans and
-agents sharing the same interface.
+For platform builders: the libraries and services the suite is built from,
+published to npm. Humans and agents share the same interface and docs.
 
 <a href="/gear/" class="btn btn-ghost">Learn more</a>
 
@@ -156,7 +154,7 @@ npx fit-pathway build --url=https://pathway.myorg.com
 
 ### For Empowered Engineers
 
-See what's expected at your level — and generate an agent profile from the
+See what's expected at your level, then generate an agent profile from the
 same standard:
 
 ```sh

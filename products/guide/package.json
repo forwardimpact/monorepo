@@ -25,12 +25,12 @@
       "user": "Empowered Engineers",
       "goal": "Get Judgment Grounded in the Standard",
       "trigger": "The promotion conversation ended with 'not yet' but no specifics, and agent output gets reviewed line by line because nobody can tell whether it meets the bar.",
-      "bigHire": "get assessments grounded in my organization's standard — career guidance and output review — not impressions or generic advice.",
-      "littleHire": "ask a growth question, or get a second opinion on a deliverable before approving it.",
+      "bigHire": "get career guidance and output review grounded in my organization's standard, not impressions or generic advice.",
+      "littleHire": "ask a growth question or get a second opinion on a deliverable before approving it.",
       "competesWith": "annual reviews; mentor conversations; reviewing every line; trusting uncritically; hoping the next project makes readiness obvious",
       "forces": {
         "push": "Career conversations and agent review both run on subjective judgment with no shared evidence base.",
-        "pull": "A second opinion grounded in the standard — for careers and deliverables alike.",
+        "pull": "A second opinion grounded in the standard, whether on a career or a deliverable.",
         "habit": "Waiting for annual feedback and reviewing every line by hand.",
         "anxiety": "Structured assessment might confirm being further behind than assumed."
       },

@@ -23,7 +23,7 @@
     {
       "user": "Platform Builders",
       "goal": "Build Agent-Capable Systems",
-      "trigger": "Building an agent that needs structured knowledge or typed contracts — with no way to prove the next change improves outcomes.",
+      "trigger": "Building an agent that needs structured knowledge or typed contracts, with no way to prove the next change improves outcomes.",
       "bigHire": "give humans and agents shared capabilities through the same interface, with tooling to prove changes improved outcomes.",
       "littleHire": "query graphs, run vector search, expose services as MCP tools, or chart agent metrics without building infrastructure.",
       "competesWith": "hand-rolled retrieval; bespoke wrappers; custom eval harnesses; monolithic platforms; shipping without measuring",

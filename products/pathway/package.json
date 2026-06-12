@@ -23,14 +23,14 @@
   "jobs": [
     {
       "user": "Empowered Engineers",
-      "goal": "See What's Expected — for Humans and Agents",
-      "trigger": "'Meets expectations' on the review form has no definition anyone can point to — and an agent's work was just rejected for following generic practices instead of the organization's.",
-      "bigHire": "see exactly what's expected — of me at my level, and of the agents I configure — from one shared standard.",
+      "goal": "See What's Expected of Humans and Agents",
+      "trigger": "'Meets expectations' on the review form has no definition anyone can point to, and an agent's work was just rejected for following generic practices instead of the organization's.",
+      "bigHire": "see what's expected of me at my level and of the agents I configure, from one shared standard.",
       "littleHire": "generate a job definition, a level comparison, or an agent profile from discipline, track, and level.",
       "competesWith": "asking peers; inferring from manager comments; custom system prompts; copying another team's config; living with ambiguity",
       "forces": {
         "push": "Ambiguous expectations create review anxiety for humans and rejected work from agents.",
-        "pull": "One standard that renders as role definitions for people and as profiles for agents.",
+        "pull": "One standard that produces role definitions for people and profiles for agents.",
         "habit": "Inferring expectations from peer behavior and hand-tuning agent prompts per team.",
         "anxiety": "Looking up the standard might confirm gaps easier left ignored."
       },

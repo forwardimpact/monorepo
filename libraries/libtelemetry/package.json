@@ -21,8 +21,8 @@
     {
       "user": "Platform Builders",
       "goal": "Run a Predictable Platform",
-      "trigger": "A service fails on a customer machine or an agent session goes sideways — the cause is a missing precondition, an unmanaged process, invisible telemetry, or instructions that drifted from reality.",
-      "bigHire": "make platform behavior predictable: preflight checks before anything heavy runs, supervised processes, structured telemetry, and instruction layers that stay honest.",
+      "trigger": "A service fails on a customer machine and the cause is a missing precondition, an unsupervised process, missing telemetry, or stale instructions.",
+      "bigHire": "check preconditions before anything heavy runs, supervise long-running processes, emit structured telemetry, and keep instruction files honest.",
       "littleHire": "add a log line or trace span without configuring a logging framework.",
       "competesWith": "failing deep in execution instead of at startup; ad-hoc process management; console.log debugging; instruction files nobody validates"
     }

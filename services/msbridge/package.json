@@ -21,7 +21,7 @@
     {
       "user": "Platform Builders",
       "goal": "Bridge Conversations to the Agent Team",
-      "trigger": "Engineers discuss work in chat and GitHub Discussions while the agent team is reachable only from GitHub — and every new channel adapter re-solves intake, thread state, and tenant routing.",
+      "trigger": "Engineers discuss work in chat and GitHub Discussions while the agent team is reachable only from GitHub, and every new channel adapter re-solves intake, thread state, and tenant routing.",
       "bigHire": "relay conversations between the channels engineers already use and the agent team, with thread state and tenant resolution handled once.",
       "littleHire": "dispatch a facilitate session from a chat message and return the verdict to the same thread.",
       "competesWith": "manually creating GitHub issues; copy-pasting between chat and GitHub; per-channel duplication of intake skeletons; ephemeral thread state that vanishes on restart"

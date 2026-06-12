@@ -31,11 +31,11 @@ can't use them to grow. Managers can't use them to set clear expectations. And
 nobody can use them to tell an AI agent how the team actually works.
 
 We think the answer is an agent-aligned engineering standard: a living system
-rather than a document. Standards like that
-should be precise enough that a machine can validate them, but readable enough
-that an engineer can understand what's expected at any level. They should
-produce real outputs — job descriptions, agent profiles, interview questions,
-progression plans — not just sit in a wiki.
+rather than a document. It should be precise enough that a machine can
+validate it, but readable enough that an engineer can understand what's
+expected at any level. And it should produce real outputs — job descriptions,
+agent profiles, interview questions, progression plans — not just sit in a
+wiki.
 
 ---
 

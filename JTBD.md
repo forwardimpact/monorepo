@@ -116,11 +116,10 @@ preparation.
 and agent output gets reviewed line by line because nobody can tell whether it
 meets the bar.
 
-**Big Hire:** Help me get assessments grounded in my organization's standard —
-career guidance and output review — not impressions or generic advice. →
-**Guide**
+**Big Hire:** Help me get career guidance and output review grounded in my
+organization's standard, not impressions or generic advice. → **Guide**
 
-**Little Hire:** Help me ask a growth question, or get a second opinion on a
+**Little Hire:** Help me ask a growth question or get a second opinion on a
 deliverable before approving it. → **Guide**
 
 **Competes With:** annual reviews; mentor conversations; reviewing every line;
@@ -129,8 +128,8 @@ trusting uncritically; hoping the next project makes readiness obvious.
 **Forces:**
 - **Push:** Career conversations and agent review both run on subjective
   judgment with no shared evidence base.
-- **Pull:** A second opinion grounded in the standard — for careers and
-  deliverables alike.
+- **Pull:** A second opinion grounded in the standard, whether on a career or a
+  deliverable.
 - **Habit:** Waiting for annual feedback and reviewing every line by hand.
 - **Anxiety:** Structured assessment might confirm being further behind than
   assumed.
@@ -140,16 +139,16 @@ a reorg makes the standard feel irrelevant.
 
 </job>
 
-<job user="Empowered Engineers" goal="See What's Expected — for Humans and Agents">
+<job user="Empowered Engineers" goal="See What's Expected of Humans and Agents">
 
-## Empowered Engineers: See What's Expected — for Humans and Agents
+## Empowered Engineers: See What's Expected of Humans and Agents
 
 **Trigger:** 'Meets expectations' on the review form has no definition anyone
-can point to — and an agent's work was just rejected for following generic
+can point to, and an agent's work was just rejected for following generic
 practices instead of the organization's.
 
-**Big Hire:** Help me see exactly what's expected — of me at my level, and of
-the agents I configure — from one shared standard. → **Pathway**
+**Big Hire:** Help me see what's expected of me at my level and of the agents I
+configure, from one shared standard. → **Pathway**
 
 **Little Hire:** Help me generate a job definition, a level comparison, or an
 agent profile from discipline, track, and level. → **Pathway**
@@ -160,8 +159,8 @@ prompts; copying another team's config; living with ambiguity.
 **Forces:**
 - **Push:** Ambiguous expectations create review anxiety for humans and rejected
   work from agents.
-- **Pull:** One standard that renders as role definitions for people and as
-  profiles for agents.
+- **Pull:** One standard that produces role definitions for people and profiles
+  for agents.
 - **Habit:** Inferring expectations from peer behavior and hand-tuning agent
   prompts per team.
 - **Anxiety:** Looking up the standard might confirm gaps easier left ignored.
@@ -176,7 +175,7 @@ configuration overhead exceeds the quality gain.
 ## Platform Builders: Build Agent-Capable Systems
 
 **Trigger:** Building an agent that needs structured knowledge or typed
-contracts — with no way to prove the next change improves outcomes.
+contracts, with no way to prove the next change improves outcomes.
 
 **Big Hire:** Help me give humans and agents shared capabilities through the
 same interface, with tooling to prove changes improved outcomes. → **Gear**

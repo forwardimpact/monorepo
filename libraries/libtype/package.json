@@ -20,8 +20,8 @@
     {
       "user": "Platform Builders",
       "goal": "Keep Service Contracts Typed",
-      "trigger": "A service contract changes and the drift surfaces at runtime — in a client, an endpoint, or an MCP tool that no longer matches the proto.",
-      "bigHire": "keep every service surface — types, clients, endpoints, and MCP tools — generated from one proto source so contracts cannot drift.",
+      "trigger": "A service contract changes and the drift surfaces at runtime, in a client, an endpoint, or an MCP tool that no longer matches the proto.",
+      "bigHire": "generate types, clients, endpoints, and MCP tools from one proto source so contracts cannot drift.",
       "littleHire": "reference a service type and trust it matches the proto definition.",
       "competesWith": "hand-rolled clients and JSON contracts; per-service endpoint boilerplate; hand-written MCP wrappers; trusting that callers and services agree"
     }

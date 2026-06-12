@@ -29,8 +29,8 @@ ship. [Overview](websites/fit/map/index.md)
 
 ### Pathway — `fit-pathway`
 
-Hired by engineers to see what's expected — of them at their level, and of the
-agents they configure — rendered from one shared standard.
+Hired by engineers to see what's expected of them at their level and of the
+agents they configure, rendered from one shared standard.
 [Overview](websites/fit/pathway/index.md)
 
 ### Guide — `fit-guide`
@@ -42,8 +42,8 @@ organization's actual standard, not generic advice or subjective impressions.
 ### Landmark — `fit-landmark`
 
 Hired by leaders to demonstrate engineering progress without making individuals
-feel surveilled — and where engineers see their own evidence of growth
-accumulate. [Overview](websites/fit/landmark/index.md)
+feel surveilled, and by engineers to see their evidence of growth.
+[Overview](websites/fit/landmark/index.md)
 
 ### Summit — `fit-summit`
 

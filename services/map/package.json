@@ -21,8 +21,8 @@
     {
       "user": "Platform Builders",
       "goal": "Ground Agents in Context",
-      "trigger": "An agent needs to answer relationship questions, search by meaning, or read activity data — and the only alternative is direct database access and bespoke retrieval plumbing per product.",
-      "bigHire": "give agents typed, retrievable knowledge — graph queries, semantic search, embeddings, and activity data — through shared services that never leak schema or credentials.",
+      "trigger": "An agent needs to answer relationship questions, search by meaning, or read activity data, and the only alternative is direct database access and per-product plumbing.",
+      "bigHire": "give agents graph queries, semantic search, embeddings, and activity data through shared services that never leak schema or credentials.",
       "littleHire": "fetch unscored artifacts or write evidence rows without touching Supabase directly.",
       "competesWith": "direct database access from agents; per-product retrieval endpoints; inline fetch calls; external search infrastructure; skipping semantic search entirely"
     }

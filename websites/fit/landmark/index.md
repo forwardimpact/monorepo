@@ -36,9 +36,9 @@ evidence rather than impressions.
 
 ### For Empowered Engineers
 
-See your own evidence trail against the standard — what recent work
-demonstrates, and how it adds up over time. When Guide recommends a growth
-area, Landmark is where the proof of progress accumulates.
+See what your recent work demonstrates against the standard, and how it adds
+up over time. When Guide recommends a growth area, Landmark is where the proof
+of progress shows up.
 
 - Marker evidence linking GitHub artifacts to skill definitions
 - Promotion readiness and growth timeline views

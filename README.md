@@ -41,11 +41,11 @@ Understand expectations, find growth areas, prepare for the day ahead, and
 equip and trust their agent teams — grounded in their organization's
 agent-aligned engineering standard.
 
-| Job                                         | Products |
-| ------------------------------------------- | -------- |
-| See What's Expected — for Humans and Agents | Pathway  |
-| Get Judgment Grounded in the Standard       | Guide    |
-| Be Prepared and Productive                  | Outpost  |
+| Job                                       | Products |
+| ----------------------------------------- | -------- |
+| See What's Expected of Humans and Agents  | Pathway  |
+| Get Judgment Grounded in the Standard     | Guide    |
+| Be Prepared and Productive                | Outpost  |
 
 ## Quick Start
 
