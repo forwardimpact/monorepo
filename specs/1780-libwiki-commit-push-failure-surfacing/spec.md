@@ -155,7 +155,7 @@ three caller rows:
 | Command surfaces `fit-wiki push`, `claim`, `release` | Each caller maps every outcome to an honest message per § Decisions D1: `push` exits non-zero whenever the push did not land; `claim`/`release` keep zero exit on a successful local write and print an honest saved-locally warning naming the reason. |
 | Session-end hook surfacing | The Stop-hook wiring maps a push-failure exit to the hook semantics that block the stop and feed the reason back to the agent for a remediation turn, with the CLI's exit status propagated losslessly through every invocation layer in between — no shell-pipeline or wrapper layer may mask it (§ Decisions D4 fidelity clause). |
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
-| Foreign claim-row conservation | A push that would delete an Active Claims row it was not instructed to remove refuses or re-merges — never silently drops. Detection is a write-time content comparison of remote-tip claim rows against the would-be-pushed tree (§ Decisions D5 — file-history inspection is structurally blind to this erasure class). |
+| Foreign content conservation (claim rows the canonical instance) | A push that would delete foreign-writer content present at the observed remote tip — an Active Claims row, or content in another writer's files (run records, rider bodies, backlog annotations) — refuses or re-merges unless the removal is a deliberate act carried by the pushed history; never silently drops. Detection is a write-time content comparison of the remote tip against the would-be-pushed tree (§ Decisions D5 — file-history inspection is structurally blind to this erasure class). |
 | Unsafe-precondition refusal | A rebase in progress or a detached HEAD refuses before mutating, with a precondition reason and non-zero exit on all three surfaces — the backstop that keeps an interrupted reconcile from minting a success-shaped verdict (§ Decisions D7). |
 | Operator message contract | Failure messages name the reason class and the recovery path; where uncommitted work is retained in the stash on a failed autostash reapplication, the message names where it went (§ Decisions D3 guarantee). Contract is exit code plus reason class — exact wording is plan territory. |
 | Documented contract surface | The `commitAndPush` contract documentation describes the outcome taxonomy and per-caller mapping, traceable to this spec. |
@@ -329,7 +329,8 @@ decisions; that the status arrives unmasked is not.
 log-only guarantee honestly — rejected in one line: #1580's harm is
 precisely the writer not knowing.
 
-**D5 — Foreign claim-row conservation needs its own guard.** The banked
+**D5 — Foreign content conservation needs its own guard (claim rows the
+canonical instance).** The banked
 criterion — foreign Active Claims rows survive conflict resolution
 ([security-engineer review N1](https://github.com/forwardimpact/monorepo/pull/1588#issuecomment-4676068899))
 — is **not** implied by the fallback removal plus reject surfacing: a
@@ -367,12 +368,40 @@ that locally-recorded removal intent satisfies the deliberate-removal leg
 composes with the pinned comparison shape — intent recording classifies a
 detected removal, content comparison detects it). Until this lands, the
 team's adopted "claims are the authority" stance remains conditional.
-*Alternative carried:* narrow the criterion to "the tool never mechanically
-resolves a conflict by discarding the remote side" (which the fallback
-removal alone delivers) and route the conservation guard elsewhere —
-rejected in one line: the consolidation banked the broad criterion against
-a live incident that passes every ancestry check, and claiming it without
-a guard would be indefensible.
+**Conservation scope — generalized beyond claim rows (2026-06-12).** All
+four 6/12 family specimens' erased victims were non-claim-row content —
+run records, rider bodies, a backlog authoring-HOLD annotation
+([coach assessment §2](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689377410);
+[coverage routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689380320))
+— so a guard conserving only the claims table passes while the memory
+itself is erased, and no other drafted spec owns that victim class. The
+conserved set is therefore **foreign-writer content present at the
+observed remote tip**: content in files owned by another writer (agent
+summaries, weekly logs, shared canonical records), with Active Claims
+rows remaining the named canonical instance and the strictest fixture.
+The deliberate-removal leg generalizes with it: a removal passes only as
+a deliberate act carried by the pushed history — for claim rows, the
+existing release/expiry records; for other foreign content, an explicit
+removal declaration carried by the pushed history (its mechanism —
+commit-message convention or sideband intent record — is design
+territory, exactly as claim-row intent recording already is; the
+cross-lane mechanical budget-trim of another agent's summary is the
+legitimate shape this leg must keep working). Own-file content stays
+out of the guard's scope: the pusher owns it, and owner trims and
+displacement-at-landing are routine flows — that residual is owned by
+the lane floors (pre-push artifact probe, content-read floor) and the
+spec-1900 budget re-validation family, not by D5.
+*Alternative carried (mechanism):* narrow the criterion to "the tool never
+mechanically resolves a conflict by discarding the remote side" (which the
+fallback removal alone delivers) and route the conservation guard
+elsewhere — rejected in one line: the consolidation banked the broad
+criterion against a live incident that passes every ancestry check, and
+claiming it without a guard would be indefensible.
+*Alternative carried (scope):* keep the claim-rows-only conserved set and
+record the non-claim-row victim class as accepted-with-floors until
+1840/1850 reduce contention exposure — rejected in one line: four of four
+observed victims sit in that residual, and the floors that caught them
+were authors re-reading their own records — luck, not mechanism.
 
 **D6 — The whole-tree sweep contract stands.** `fit-wiki push` keeps its
 whole-tree commit scope; this spec adds no pathspec option (#1583 item 3
@@ -467,6 +496,8 @@ order.
 | A failed push never loses uncommitted work. | Run `fit-wiki claim` and `fit-wiki release` (the MEMORY.md-scoped surfaces, where uncommitted foreign residue exists at reconcile time — the whole-tree path commits the tree before reconciling) with the work-preservation step forced to conflict on the failure path; observe the residue present in the working tree or retained where the failure message says it went. |
 | Foreign claim-row conservation: clean-rebase drop refused. | Fixture whose local MEMORY.md commit was written from a stale read and deletes a foreign claim row present in both the merge base and the remote tip, with no textually overlapping remote change so the rebase replays clean; run `fit-wiki push`; observe the push refuses or re-merges and the foreign row survives on the remote — read as a content state of the remote-tip tree, never inferred from file-history output, which TREESAME-prunes this erasure class (§ Decisions D5). |
 | Foreign claim-row conservation: post-resolution drop refused. | Fixture where a manual conflict resolution dropped a foreign row; run `fit-wiki push`; observe refusal or re-merge and the row's survival, read as a content state of the remote-tip tree. |
+| Foreign content conservation beyond claim rows: side-pick erasure of a foreign run record refused. | Fixture reproducing the 6/12 family shape: a conflict resolution picks the local side of another writer's weekly-log file, dropping a run-record section present at the remote tip with no claim row touched; run `fit-wiki push`; observe refusal or re-merge and the section's survival, read as a content state of the remote-tip tree (victim classes per the four specimens — run records, rider bodies, backlog annotations; [#1564 assessment](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689377410)). |
+| Declared foreign-content removals pass the conservation guard. | Fixture whose pushed history carries an explicit removal declaration for a foreign-file trim (the cross-lane budget-trim shape); run `fit-wiki push`; observe the push succeeds and the declared removal lands. |
 | Conservation holds on the claim/release surfaces. | Drive the stale-read deletion fixture through `fit-wiki claim`; observe zero exit with the saved-locally warning (the guard refusal is a push failure under D1), the foreign row's survival on the remote, and no silent drop pushed. |
 | Deliberate removals pass the conservation guard, including when retried by the session-end push. | Targeted release of an owned claim and `release --expired` over a foreign expired claim, each pushing successfully; then a targeted release whose own push is forced to fail, followed by `fit-wiki push` from the same clone — observe the carried removal lands and the push succeeds. |
 | Whole-tree sweep contract unchanged. | Fixture with changes across multiple files; run `fit-wiki push`; observe a single commit sweeping the tree, as today. |
@@ -542,6 +573,13 @@ content-state-not-log-output observation rule from the
 [staff-engineer detection-constraint routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689343074)
 (fourth side-pick-erasure specimen,
 [#1564](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689300925)),
-folded 2026-06-12.
+folded 2026-06-12; D5 conservation scope generalized from Active Claims
+rows to foreign-writer content per the improvement-coach coverage
+question ([family assessment §2](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689377410);
+[PR #1601 routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689380320))
+— all four 6/12 specimens' victims were non-claim-row content; disposed
+by the spec holder 2026-06-12, read by the
+[Exp #1565](https://github.com/forwardimpact/monorepo/issues/1565)
+2026-06-24 scoped-synthesis gate.
 
 — Product Manager 🌱
