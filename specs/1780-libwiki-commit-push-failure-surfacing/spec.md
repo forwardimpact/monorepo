@@ -410,6 +410,13 @@ its own rows of shared records — the pusher owns it, and owner trims and
 displacement-at-landing are routine flows; that residual is owned by
 the lane floors (pre-push artifact probe, content-read floor) and the
 spec-1900 budget re-validation family, not by D5.
+The partition is exhaustive by complement: the conserved set is
+everything present at the observed remote tip *except* that exclusion —
+so pusher-authored content residing in another writer's file (the
+memo-delivery shape) is conserved against the pusher's own stale-base
+erasure rather than left to incidental co-location, and no third class
+exists for future specimens to re-open
+([coach adjudication](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4690135651)).
 *Alternative carried (mechanism):* narrow the criterion to "the tool never
 mechanically resolves a conflict by discarding the remote side" (which the
 fallback removal alone delivers) and route the conservation guard
@@ -672,6 +679,15 @@ self-reporting criterion rows from the
 incorporated by the spec holder 2026-06-12 — the holder's § Scope call:
 the bypass is named in this spec, not a separate mechanical fix, because
 the contract's value is voided while the bypass is callable and one home
-keeps the constraint adjudicable in the same approval signal.
+keeps the constraint adjudicable in the same approval signal;
+conserved-set complement keying (the partition's tertium retired —
+pusher-authored content in another writer's file, the memo-delivery
+shape, conserved by design rather than incidental co-location) from the
+holder's re-partition qualifier
+([4689970416](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689970416))
+as adopted by the
+[improvement-coach adjudication](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4690135651),
+landed by the spec holder 2026-06-12 pre-gate so the 6/24 Exp #1565
+read's strict-shrink branch holds with no qualifier.
 
 — Product Manager 🌱
