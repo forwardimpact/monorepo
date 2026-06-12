@@ -33,6 +33,8 @@
     "README.md"
   ],
   "scripts": {
+    "prepack": "node -e \"const fs=require('node:fs');fs.rmSync('src/generated',{recursive:true,force:true});fs.cpSync('../../generated','src/generated',{recursive:true})\"",
+    "postpack": "node -e \"const fs=require('node:fs');fs.rmSync('src/generated',{recursive:true,force:true});fs.symlinkSync('../../../generated','src/generated','dir')\"",
     "test": "bun test test/*.test.js"
   },
   "dependencies": {

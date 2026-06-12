@@ -87,15 +87,20 @@ jobs:
           cd "$PACK_DIR"
           npm init -y
           npm install "$TARBALL" --force
-          # Verify the main entry point is resolvable (skip for bin-only or subpath-only packages)
+          # Execute the main entry point (skip for bin-only or subpath-only packages).
+          # require.resolve only proves the path exists — import() executes the
+          # module graph, catching tarballs that omit transitive sources
+          # (npm pack silently drops symlinked directories from the packlist).
           HAS_MAIN=$(node -e "const p=JSON.parse(require('fs').readFileSync('node_modules/' + process.env.NPM_NAME + '/package.json','utf8')); if(p.main||(p.exports&&(typeof p.exports==='string'||p.exports['.']))) console.log('yes')")
           if [ -n "$HAS_MAIN" ]; then
-            node -e "require.resolve(process.env.NPM_NAME)"
+            node --input-type=module -e "await import(process.env.NPM_NAME)"
           fi
-          # Verify CLI entry point file exists (don't execute — workspace deps missing in isolation)
+          # Execute the CLI entry point with --help. Dependencies resolve from
+          # the registry during the tarball install above, so the bin runs in
+          # true isolation; the timeout guards against a bin that blocks on input.
           BIN=$(node -e "const p=JSON.parse(require('fs').readFileSync('node_modules/' + process.env.NPM_NAME + '/package.json','utf8')); const b=Object.values(p.bin||{})[0]; if(b) console.log(b)")
           if [ -n "$BIN" ]; then
-            test -f "node_modules/$NPM_NAME/$BIN"
+            timeout 30 node "node_modules/$NPM_NAME/$BIN" --help
           fi
           rm -rf "$PACK_DIR"
 
