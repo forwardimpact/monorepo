@@ -62,7 +62,8 @@ Three mechanisms, each confirmed first-hand (staff-engineer verification,
    traces, where stats cost "agrees", are the special case.
 
 The same population confusion shows in `turnCount`: the overview reports
-294 (rendered trace turns, one per stream/content event) against the
+294 (rendered trace turns, one per collected trace event of any type)
+against the
 result event's `num_turns: 41` (API turns), with nothing labeling which
 population either number measures.
 
@@ -86,16 +87,18 @@ commits to it as the contract:
 2. **Per-message counting.** Input, cacheRead, and cacheCreation are
    accounted **once per API message** — the population validated to
    reproduce result-event sums with zero residual on three traces. A
-   message's per-message figure is the field-wise **maximum** across its
-   observed usage snapshots — deterministic, order-insensitive, and for
-   output the tightest available floor. This population defines the
-   `perTurn` breakdown and the no-result-event fallback (decision 4).
-   How message identity is tracked, and whether the accounting lives in
-   the collector or the query layer, are design decisions, with one
-   constraint: turn-by-turn *rendering* commands
-   (timeline, conversation, turn-by-index) keep working — this spec
-   changes measurement populations, not the ability to inspect the
-   stream.
+   message's per-message figure is derived from its observed usage
+   snapshots by a deterministic, order-insensitive rule fixed in the
+   design; the rule reproduces the result-event sums with zero residual
+   on the evidence traces (where a message's duplicate snapshots are
+   byte-identical), and its per-message output figure is a floor — it
+   never overstates. This population defines the `perTurn` breakdown
+   and the no-result-event fallback (decision 4). How message identity
+   is tracked, and whether the accounting lives in the collector or the
+   query layer, are design decisions, with one constraint:
+   stream-rendering commands (timeline, turn-by-index, head/tail) keep
+   working — this spec changes measurement populations, not the ability
+   to inspect the stream.
 3. **Multi-result aggregation sums across all result events.** Per-file
    outputTokens, totalCostUsd, numTurns, and durationMs are sums across
    all result events. Summed durationMs is **cumulative invocation
@@ -128,10 +131,10 @@ commits to it as the contract:
 | Component | What changes |
 |---|---|
 | Token totals in the stats query. | Decisions 1–4: parity with summed result events when present; per-message accounting; labeled fallback otherwise. |
-| Summary/result aggregation in the trace document. | Decision 3: multi-result traces aggregate across all result events (cost, turns, duration, token usage, per-model usage) instead of keeping only the last; where the aggregation lives is a design decision. |
+| Summary/result aggregation in the trace document. | Decision 3: multi-result traces aggregate across all result events (cost, turns, duration, token usage, per-model usage) instead of keeping only the last; where the aggregation lives is a design decision. Consumers of the document summary — including the text-replay result footer — inherit the aggregated figures. |
 | `perTurn` and turn-count reporting. | Decision 5: per-API-message rows; populations labeled in `stats` and overview output. This is a published-CLI output-contract change. |
-| Previously collected structured documents. | `stats` accepts pre-collected structured JSON as well as raw NDJSON. A structured document produced **before** this change preserves only the last-wins summary — no per-result-event record — so parity is unsatisfiable on that input: `stats` reports what the document carries, labeled as such, and the corrected figures come from re-running against the NDJSON source. Structured documents produced **after** this change carry whatever the design needs for `stats` on them to meet decisions 1–5. |
-| Fixture tests. | Both repro files become fixtures with tests pinning the exact figures in the Problem tables (single-result and multi-result cases). Fixtures must preserve the event/usage structure that produces those figures — duplicate message-id sets and all result events intact; non-usage content may be redacted for size. Three further fixtures cover the no-result-event fallback, the divergence-surfacing clause (a synthetic trace whose per-message sums differ from its result-event sums), and a pre-change structured document. |
+| Previously collected structured documents. | `stats` accepts pre-collected structured JSON as well as raw NDJSON. A structured document produced **before** this change preserves only the last-wins summary and turn rows without message identity — neither a per-result-event record nor a per-message population — so result-event parity and per-message reporting are both unsatisfiable on that input: `stats` reports what the document carries, labeled as such, and the corrected figures come from re-running against the NDJSON source. Structured documents produced **after** this change carry whatever the design needs for `stats` on them to meet decisions 1–5. |
+| Fixture tests. | Both repro files become fixtures with tests pinning the exact figures in the Problem tables (single-result and multi-result cases). Fixtures must preserve the event/usage structure that produces those figures — duplicate message-id sets and all result events intact; non-usage content may be redacted for size and must be scrubbed of sensitive content before landing in the repository. Four further fixtures cover the no-result-event fallback, the divergence-surfacing clause (a synthetic trace whose per-message sums differ from its result-event sums), a pre-change structured document, and a merged multi-lane trace (several sources' events in one file). |
 | Published guidance on token measurement from traces. | The `fit-trace` skill and the trace-analysis guide describe the corrected semantics. Any documented interim workaround reads "sum **all** result events" — reading *the* result event on a multi-result trace reproduces the 8× cost distortion. |
 | Release posture. | Changed `stats`/overview output shape and semantics ship with a release-notes entry stating what each figure now measures; version bump per the repo's release procedure for a CLI output-contract change. |
 
@@ -141,9 +144,10 @@ commits to it as the contract:
   internal trace-schema versioning — design decisions, constrained only
   by decision 2's rendering guarantee.
 - **Per-line token snippets in rendering commands** (e.g. the timeline's
-  per-turn `in:`/`out:` figures) — stream-level detail by design;
-  rendering output is not a totals surface and is unchanged by this
-  spec.
+  per-turn `in:`/`out:` figures) — stream-level detail by design and
+  unchanged by this spec. The text-replay result *footer* is not in
+  this exclusion: it is a summary surface and inherits decision 3's
+  aggregated figures (see In scope).
 - **The remaining fit-trace QoL backlog** (#996) — unrelated CLI
   improvements.
 - **Per-invocation breakdown of multi-result traces** (cost/turns per SDK
@@ -161,15 +165,16 @@ Token figures compare as exact integers; cost figures compare at the
 |---|---|
 | Single-result parity. | `npx fit-trace stats` on the fixture derived from run 27329648271 reports totals input 6,301 · output 28,095 · cacheRead 2,524,055 · cacheCreation 160,162 · cost 5.99384 — equal to the file's single result event. |
 | Multi-result parity. | `npx fit-trace stats` on the fixture derived from run 27330905698 (six result events) reports totals input 8,166 · output 7,654 · cacheRead 742,072 · cacheCreation 110,587 · cost 2.58877 · result-event turns 19 — equal to the sum over all six result events, not the last one. |
+| Multi-lane totals. | `npx fit-trace stats` on the merged multi-lane fixture reports totals equal to the sum over all result events across every lane in the file — the file's total spend, per decision 1. |
 | Duration and per-model aggregation. | On the multi-result fixture, the reported duration equals the sum of the six result events' durations, labeled cumulative invocation time; each model's merged `modelUsage` figures (tokens, cost, request counters) equal the field-wise sums across the six result events. |
 | Per-message perTurn. | On the multi-result fixture, `perTurn` contains one entry per unique assistant message id (14, not 34); no byte-identical rows repeated from one API message remain. |
 | Populations labeled. | Fixture tests assert that `stats` and overview output carry an explicit population label on each count and duration — distinguishing at minimum API messages, result-event turns, rendered trace turns, and cumulative invocation time — on both repro fixtures. |
 | Fallback on partial traces. | `stats` on the no-result-event fixture exits zero, reports the per-message totals precomputed from the fixture's message population, labels output as a streaming-snapshot lower bound with the absence of result events stated, and reports cost, duration, and result-event turns as unavailable rather than 0. |
 | Divergence is surfaced. | `stats` on the synthetic divergence fixture (per-message input/cacheRead/cacheCreation sums differing from the result-event sums) reports the result-event totals and surfaces the divergence in its output; the fixture test asserts both. |
 | Pre-existing structured documents stay readable. | `stats` on a structured document collected before this change exits zero and labels its figures as carried-over document summary, not result-event parity. |
-| Rendering output unaffected. | Timeline, conversation, and turn-by-index commands on both repro fixtures render the stream identically before and after the change; only measurement assertions (totals, populations) change in the existing test corpus. |
+| Rendering output unaffected. | Timeline, turn-by-index, and head/tail commands on both repro fixtures render the stream identically before and after the change, except the text-replay result footer, which shows the aggregated document summary per decision 3; only measurement assertions (totals, populations) change in the existing test corpus. |
 | Fixtures pin the defect family. | Running the repository's test command on the new fixture tests fails against the pre-fix behavior (multiply-counted totals, last-wins cost) and passes post-fix. |
-| Guidance is corrected. | The `fit-trace` skill and trace-analysis guide describe result-event-sum semantics; no published guidance says "read the result event" in the singular for multi-result traces. |
+| Guidance is corrected. | The `fit-trace` skill and trace-analysis guide describe result-event-sum semantics; a search of the published skills and docs trees finds no guidance reading "the result event" in the singular for multi-result traces. |
 | Contract change is announced. | The shipping release's notes name the changed `stats`/`perTurn`/turn-count semantics and what each figure now measures. |
 
 — Product Manager 🌱
