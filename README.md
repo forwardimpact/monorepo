@@ -29,11 +29,11 @@ organizational standards.
 Define what good engineering looks like, staff teams to succeed, and measure
 outcomes without blaming individuals.
 
-| Job                              | Products         |
-| -------------------------------- | ---------------- |
-| Define the Engineering Standard  | Map, Pathway     |
-| Staff Teams to Succeed           | Pathway, Summit  |
-| Measure Engineering Outcomes     | Landmark         |
+| Job                             | Products |
+| ------------------------------- | -------- |
+| Define the Engineering Standard | Map      |
+| Staff Teams to Succeed          | Summit   |
+| Measure Engineering Outcomes    | Landmark |
 
 ### Empowered Engineers
 
@@ -41,13 +41,11 @@ Understand expectations, find growth areas, prepare for the day ahead, and
 equip and trust their agent teams — grounded in their organization's
 agent-aligned engineering standard.
 
-| Job                         | Products        |
-| --------------------------- | --------------- |
-| Understand Expectations     | Pathway         |
-| Find Growth Areas           | Guide, Landmark |
-| Trust Agent Output          | Guide, Pathway  |
-| Equip Aligned Agent Teams   | Pathway         |
-| Be Prepared and Productive  | Outpost         |
+| Job                                         | Products |
+| ------------------------------------------- | -------- |
+| See What's Expected — for Humans and Agents | Pathway  |
+| Get Judgment Grounded in the Standard       | Guide    |
+| Be Prepared and Productive                  | Outpost  |
 
 ## Quick Start
 

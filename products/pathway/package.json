@@ -22,79 +22,19 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "jobs": [
     {
-      "user": "Engineering Leaders",
-      "goal": "Define the Engineering Standard",
-      "trigger": "Two managers disagree on what 'senior' means — neither can point to a written definition.",
-      "bigHire": "define what good engineering means so roles have clear, defensible expectations.",
-      "littleHire": "define or update a role's expectations knowing structural mistakes get caught.",
-      "competesWith": "tribal knowledge; borrowed frameworks; per-manager intuition; tolerating the ambiguity",
-      "forces": {
-        "push": "Inconsistent expectations produce contested promotions.",
-        "pull": "A shared definition that makes quality visible and discussable.",
-        "habit": "Each manager carries a private mental model of what 'good' means.",
-        "anxiety": "Getting definitions wrong feels worse than having none."
-      },
-      "firedWhen": "definitions drift from practice; or a reorg removes the mandate."
-    },
-    {
-      "user": "Engineering Leaders",
-      "goal": "Staff Teams to Succeed",
-      "trigger": "A post-mortem surfaces the same skill gap that caused the last incident — nobody saw it before staffing.",
-      "bigHire": "make staffing decisions I can defend by seeing what each role requires.",
-      "littleHire": "spot capability gaps and check whether a candidate fills them.",
-      "competesWith": "résumé screening; gut feel; copying a team that seems to work; accepting gaps as inevitable",
-      "forces": {
-        "push": "Capability gaps appear as incidents, never in advance.",
-        "pull": "Confidence that a staffing change strengthens the team as a system.",
-        "habit": "Hiring on résumés and gut rather than team composition analysis.",
-        "anxiety": "Modeling human capability feels reductive."
-      },
-      "firedWhen": "the skill taxonomy drifts from actual roles; or a hiring freeze removes staffing pressure."
-    },
-    {
       "user": "Empowered Engineers",
-      "goal": "Understand Expectations",
-      "trigger": "'Meets expectations' on the review form has no definition anyone can point to.",
-      "bigHire": "see exactly what's expected at my level so I stop guessing during reviews.",
-      "littleHire": "understand the autonomy and scope my level implies.",
-      "competesWith": "asking peers; inferring from manager comments; browsing LinkedIn; living with ambiguity",
+      "goal": "See What's Expected — for Humans and Agents",
+      "trigger": "'Meets expectations' on the review form has no definition anyone can point to — and an agent's work was just rejected for following generic practices instead of the organization's.",
+      "bigHire": "see exactly what's expected — of me at my level, and of the agents I configure — from one shared standard.",
+      "littleHire": "generate a job definition, a level comparison, or an agent profile from discipline, track, and level.",
+      "competesWith": "asking peers; inferring from manager comments; custom system prompts; copying another team's config; living with ambiguity",
       "forces": {
-        "push": "Ambiguous expectations create anxiety about reviews and readiness.",
-        "pull": "Clarity about what's expected, removing the guesswork from self-assessment.",
-        "habit": "Inferring expectations from peer behavior rather than a standard.",
+        "push": "Ambiguous expectations create review anxiety for humans and rejected work from agents.",
+        "pull": "One standard that renders as role definitions for people and as profiles for agents.",
+        "habit": "Inferring expectations from peer behavior and hand-tuning agent prompts per team.",
         "anxiety": "Looking up the standard might confirm gaps easier left ignored."
       },
-      "firedWhen": "defined expectations diverge from actual promotions; or a reorganization makes the framework feel irrelevant."
-    },
-    {
-      "user": "Empowered Engineers",
-      "goal": "Equip Aligned Agent Teams",
-      "trigger": "An agent's work was rejected because it followed generic practices instead of the organization's standards.",
-      "bigHire": "configure agents to meet the expectations the organization holds for humans.",
-      "littleHire": "give agents organizational context without bespoke prompts.",
-      "competesWith": "custom system prompts; copying another team's config; hoping generic instructions work",
-      "forces": {
-        "push": "Generic configuration misses what the organization expects.",
-        "pull": "Agents that reflect organizational standards without bespoke prompts.",
-        "habit": "Treating agent configuration as a one-time setup, not something that evolves.",
-        "anxiety": "Over-constraining agents might limit their usefulness on novel tasks."
-      },
-      "firedWhen": "configuration overhead exceeds the quality gain; or policy bans custom configuration."
-    },
-    {
-      "user": "Empowered Engineers",
-      "goal": "Trust Agent Output",
-      "trigger": "Reviewing agent output line by line because there's no way to tell whether it meets the quality bar.",
-      "bigHire": "verify agent work against the standard so I review by exception, not by default.",
-      "littleHire": "check expected output and get a second opinion before approving a deliverable.",
-      "competesWith": "reviewing every line; accepting slower delivery; trusting uncritically; not using agents for substantive work",
-      "forces": {
-        "push": "Full review of every deliverable negates the productivity gain.",
-        "pull": "Confident delegation — knowing output meets the standard without reading every line.",
-        "habit": "Reviewing everything because that's how quality has always been caught.",
-        "anxiety": "Delegating quality judgment might miss context-specific issues."
-      },
-      "firedWhen": "verification catches fewer issues than full review; or the team stops using agents."
+      "firedWhen": "defined expectations diverge from actual promotions; or configuration overhead exceeds the quality gain."
     }
   ],
   "type": "module",

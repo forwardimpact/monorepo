@@ -36,9 +36,9 @@ evidence rather than impressions.
 
 ### For Empowered Engineers
 
-Get guidance and evidence grounded in the organization's standard, not
-impressions or generic advice. Ask a growth question and check whether recent
-work shows progress.
+See your own evidence trail against the standard — what recent work
+demonstrates, and how it adds up over time. When Guide recommends a growth
+area, Landmark is where the proof of progress accumulates.
 
 - Marker evidence linking GitHub artifacts to skill definitions
 - Promotion readiness and growth timeline views

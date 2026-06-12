@@ -23,32 +23,17 @@
     {
       "user": "Platform Builders",
       "goal": "Build Agent-Capable Systems",
-      "trigger": "Building an agent that needs structured knowledge or typed contracts — and the alternative is reimplementing plumbing from scratch.",
+      "trigger": "Building an agent that needs structured knowledge or typed contracts — with no way to prove the next change improves outcomes.",
       "bigHire": "give humans and agents shared capabilities through the same interface, with tooling to prove changes improved outcomes.",
-      "littleHire": "query graphs, run vector search, or expose services as MCP tools without building infrastructure.",
-      "competesWith": "hand-rolled retrieval; bespoke wrappers; ad-hoc frameworks; monolithic platforms",
+      "littleHire": "query graphs, run vector search, expose services as MCP tools, or chart agent metrics without building infrastructure.",
+      "competesWith": "hand-rolled retrieval; bespoke wrappers; custom eval harnesses; monolithic platforms; shipping without measuring",
       "forces": {
-        "push": "Every agent project rebuilds retrieval, transport, and interface plumbing.",
-        "pull": "Interoperable libraries that work standalone or together.",
-        "habit": "Copy-pasting infrastructure rather than using shared primitives.",
+        "push": "Every agent project rebuilds plumbing, and improvements are claimed but never measured.",
+        "pull": "Interoperable libraries and reproducible evals that work standalone or together.",
+        "habit": "Copy-pasting infrastructure and assuming changes helped because the prompt looks better.",
         "anxiety": "Shared libraries mean losing control over the interface contract."
       },
-      "firedWhen": "the libraries diverge from how agents consume them; or a monolithic framework absorbs the surface."
-    },
-    {
-      "user": "Platform Builders",
-      "goal": "Evaluate and Improve Agents",
-      "trigger": "An agent change shipped but nobody can tell whether it improved outcomes — the only evidence is anecdotal.",
-      "bigHire": "prove whether agent changes improved outcomes with reproducible evidence.",
-      "littleHire": "generate test data and chart agent metrics to distinguish signal from noise.",
-      "competesWith": "spot-checking; anecdotal feedback; shipping without measuring; custom eval harnesses",
-      "forces": {
-        "push": "Agent improvements are claimed but never measured — regressions hide until users complain.",
-        "pull": "Reproducible evals and control charts that make improvement visible.",
-        "habit": "Assuming changes helped because the prompt looks better.",
-        "anxiety": "Rigorous evaluation might reveal that recent changes made things worse."
-      },
-      "firedWhen": "eval overhead exceeds the value of knowing; or the team stops iterating on agents."
+      "firedWhen": "the libraries diverge from how agents consume them; or eval overhead exceeds the value of knowing."
     }
   ],
   "dependencies": {
