@@ -34,21 +34,6 @@
         "anxiety": "Measurement feels like surveillance regardless of intent."
       },
       "firedWhen": "metrics get used punitively; or leadership turnover deprioritizes measurement."
-    },
-    {
-      "user": "Empowered Engineers",
-      "goal": "Find Growth Areas",
-      "trigger": "The promotion conversation ended with 'not yet' but no specifics — unclear what evidence would change the answer.",
-      "bigHire": "get guidance and evidence grounded in my organization's standard, not impressions or generic advice.",
-      "littleHire": "ask a growth question and check whether recent work shows progress.",
-      "competesWith": "annual reviews; mentor conversations; hoping the next project makes readiness obvious",
-      "forces": {
-        "push": "Career conversations feel subjective with no shared evidence base.",
-        "pull": "A clear picture of what's needed to close the gap, grounded in evidence.",
-        "habit": "Waiting for annual feedback rather than continuously self-assessing.",
-        "anxiety": "Structured analysis might confirm being further behind than assumed."
-      },
-      "firedWhen": "gap analysis disconnects from promotion decisions; or a reorg makes the standard feel irrelevant."
     }
   ],
   "type": "module",

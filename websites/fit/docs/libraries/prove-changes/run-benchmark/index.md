@@ -314,7 +314,7 @@ number.
 ## Compare Before and After
 
 The reproducibility claim is the heart of the tool. Run the family
-twice — once with the old skill manifest, once with the new — and
+twice, once with the old skill manifest and once with the new, then
 compare:
 
 ```sh

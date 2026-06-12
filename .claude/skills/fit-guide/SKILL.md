@@ -1,8 +1,8 @@
 ---
 name: fit-guide
 description: >
-  Find growth areas and verify agent work, both grounded in your
-  organization's engineering standard. Use when a promotion conversation
+  Get career guidance and output review grounded in your organization's
+  engineering standard. Use when a promotion conversation
   ended without specifics and you need evidence of what to improve, when
   reviewing agent output and you want a second opinion against the
   standard, or when asking about skills, levels, and career expectations.
@@ -177,13 +177,13 @@ echo "hello" | npx fit-guide            # Should return an agent response
   — Stop guessing what your level requires
 - [Understand Autonomy and Scope](https://www.forwardimpact.team/docs/products/career-paths/autonomy-scope/index.md)
   — What each level implies for decision-making and ownership
-- [Find Growth Areas and Build Evidence](https://www.forwardimpact.team/docs/products/growth-areas/index.md)
+- [Get Career Guidance Grounded in the Standard](https://www.forwardimpact.team/docs/products/growth-areas/index.md)
   — Identify gaps and track progress toward the next level
 - [Ask a Growth Question](https://www.forwardimpact.team/docs/products/growth-areas/growth-question/index.md)
   — Get context-specific guidance grounded in your standard
 - [Check Progress Toward Next Level](https://www.forwardimpact.team/docs/products/growth-areas/check-progress/index.md)
   — See where you stand against level expectations
-- [Verify Agent Work Against the Standard](https://www.forwardimpact.team/docs/products/trust-output/index.md)
+- [Get Output Review Grounded in the Standard](https://www.forwardimpact.team/docs/products/trust-output/index.md)
   — Know what to expect from agent output
 - [Get a Second Opinion on a Deliverable](https://www.forwardimpact.team/docs/products/trust-output/second-opinion/index.md)
   — Have the Guide review work against quality criteria

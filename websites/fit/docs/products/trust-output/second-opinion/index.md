@@ -9,7 +9,7 @@ engineering standard before deciding whether to approve it.
 ## Prerequisites
 
 Complete the
-[Verify Agent Work Against the Standard](/docs/products/trust-output/)
+[Get Output Review Grounded in the Standard](/docs/products/trust-output/)
 guide first. The steps below assume you have Guide installed, codegen complete,
 and the service stack running.
 
@@ -163,7 +163,7 @@ You have reached the outcome of this guide when:
 
 For the full workflow -- understanding what to expect from agent output at each
 role level and building a systematic review practice -- return to
-[Verify Agent Work Against the Standard](/docs/products/trust-output/).
+[Get Output Review Grounded in the Standard](/docs/products/trust-output/).
 
 ## What's next
 

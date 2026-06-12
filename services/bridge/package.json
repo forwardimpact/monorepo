@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Share Threaded Conversation State Across Bridges",
-      "trigger": "Adding a second bridge and realizing each one owns its own private store with no way to query across channels.",
-      "bigHire": "share threaded conversation state across bridges without each one managing its own storage.",
+      "goal": "Bridge Conversations to the Agent Team",
+      "trigger": "Engineers discuss work in chat and GitHub Discussions while the agent team is reachable only from GitHub, and every new channel adapter re-solves intake, thread state, and tenant routing.",
+      "bigHire": "relay conversations between the channels engineers already use and the agent team, with thread state and tenant resolution handled once.",
       "littleHire": "load or save a discussion record and trust it is visible to every bridge.",
-      "competesWith": "per-bridge JSONL files; in-process discussion stores; tolerating the partition"
+      "competesWith": "manually creating GitHub issues; copy-pasting between chat and GitHub; per-channel duplication of intake skeletons; ephemeral thread state that vanishes on restart"
     }
   ],
   "type": "module",

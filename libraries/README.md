@@ -80,23 +80,24 @@ thresholds; ignoring metrics because no one trusts them.
 
 </job>
 
-<job user="Platform Builders" goal="Bridge Threaded Channels to the Agent Team">
+<job user="Platform Builders" goal="Bridge Conversations to the Agent Team">
 
-## Platform Builders: Bridge Threaded Channels to the Agent Team
+## Platform Builders: Bridge Conversations to the Agent Team
 
-**Trigger:** Building a chat or discussion adapter and reaching for last
-project's callback registry, rate limiter, and history-bound prompt builder.
+**Trigger:** Engineers discuss work in chat and GitHub Discussions while the
+agent team is reachable only from GitHub, and every new channel adapter
+re-solves intake, thread state, and tenant routing.
 
-**Big Hire:** Help me ship a threaded-channel adapter without reimplementing the
-intake skeleton, callback registry, durable thread state, and resume-trigger
-contract. → **libbridge**
+**Big Hire:** Help me relay conversations between the channels engineers already
+use and the agent team, with thread state and tenant resolution handled once. →
+**libbridge**
 
 **Little Hire:** Help me register a callback token, build a bounded prompt, and
 dispatch a workflow without managing each piece directly. → **libbridge**
 
-**Competes With:** copy-pasting channel adapter boilerplate; per-channel
-workflow YAML composition; ephemeral in-memory thread state that vanishes on
-restart.
+**Competes With:** manually creating GitHub issues; copy-pasting between chat
+and GitHub; per-channel duplication of intake skeletons; ephemeral thread state
+that vanishes on restart.
 
 </job>
 
@@ -159,25 +160,6 @@ retrieval entirely.
 
 </job>
 
-<job user="Platform Builders" goal="Ground Service Contracts in One Source">
-
-## Platform Builders: Ground Service Contracts in One Source
-
-**Trigger:** Shipping a proto that imports tool.proto and discovering the
-published copy lives in another package the consumer never installed.
-
-**Big Hire:** Help me publish service protos that resolve on any external
-`npm install` without coordinating multiple package homes. → **libproto**
-
-**Little Hire:** Help me import a shared proto and trust the consumer of my
-service can read it. → **libproto**
-
-**Competes With:** duplicating .proto files across packages; embedding shared
-schemas inside transport or codegen libraries; tolerating ENOENT for non-Guide
-installs.
-
-</job>
-
 <job user="Platform Builders" goal="Integrate with the Engineering Standard">
 
 ## Platform Builders: Integrate with the Engineering Standard
@@ -202,73 +184,28 @@ and displaying raw data.
 
 </job>
 
-<job user="Platform Builders" goal="Keep Instruction Layers Honest">
-
-## Platform Builders: Keep Instruction Layers Honest
-
-**Trigger:** Editing a CLAUDE.md or skill procedure and realizing the layer has
-quietly grown past its budget.
-
-**Big Hire:** Help me enforce instruction-layer length caps and JTBD invariants
-without hand-rolling repo checks. → **libcoaligned**
-
-**Little Hire:** Help me verify a docs change before commit and trust the
-layered architecture has not drifted. → **libcoaligned**
-
-**Competes With:** ad-hoc shell scripts; eyeballing word counts; tolerating slow
-drift in the instruction architecture.
-
-</job>
-
 <job user="Platform Builders" goal="Keep Service Contracts Typed">
 
 ## Platform Builders: Keep Service Contracts Typed
 
-**Trigger:** Adding a proto definition and realizing the JavaScript types are
-already stale; registering a gRPC service as MCP tools and realizing the tool
-schema is just the proto definition rewritten by hand; importing service types
-in a product and finding three different hand-maintained copies of the same
-definition.
+**Trigger:** A service contract changes and the drift surfaces at runtime, in a
+client, an endpoint, or an MCP tool that no longer matches the proto.
 
-**Big Hire:** Help me keep types in sync with proto definitions without
-hand-writing; register gRPC services as MCP tools from config instead of writing
-glue code; import service types from one generated source instead of maintaining
-copies. → **libcodegen, libmcp, libtype**
+**Big Hire:** Help me generate types, clients, endpoints, and MCP tools from one
+proto source so contracts cannot drift. → **libcodegen, libhttp, libmcp,
+libproto, librpc, libtype**
 
 **Little Hire:** Help me change a proto definition and trust the JavaScript
-types follow; expose a new proto method as an agent tool without touching tool
-registration; reference a service type and trust it matches the proto
-definition. → **libcodegen, libmcp, libtype**
+types follow; mount routes on a configured app and call start(); expose a new
+proto method as an agent tool without touching tool registration; import a
+shared proto and trust the consumer of my service can read it; call a service
+without managing connections or retries; reference a service type and trust it
+matches the proto definition. → **libcodegen, libhttp, libmcp, libproto, librpc,
+libtype**
 
-**Competes With:** manual type definitions; hoping hand-written types match;
-skipping types entirely; hand-written tool schemas; per-service MCP adapters;
-leaving services invisible to agents; hand-maintained type copies; inferring
-types from runtime responses.
-
-</job>
-
-<job user="Platform Builders" goal="Keep Services Running and Visible">
-
-## Platform Builders: Keep Services Running and Visible
-
-**Trigger:** Debugging a down service and realizing there is no single command
-to check what is running; a service crashes overnight and no one notices until
-the morning standup; debugging a production issue and realizing no trace spans
-exist for the failing operation.
-
-**Big Hire:** Help me manage service lifecycle from one interface instead of
-scripting each start and stop; keep services running and recoverable without
-manual intervention; make operations observable so problems surface before they
-escalate. → **librc, libsupervise, libtelemetry**
-
-**Little Hire:** Help me start, stop, or check a service without remembering its
-specific incantation; add a daemon to a manifest and trust it restarts on
-failure; add a log line or trace span without configuring a logging framework. →
-**librc, libsupervise, libtelemetry**
-
-**Competes With:** ad-hoc shell scripts; manual process management; tolerating
-stale services; cron restarts; manual process monitoring; tolerating overnight
-outages; console.log debugging; no observability; post-mortem log archaeology.
+**Competes With:** hand-rolled clients and JSON contracts; per-service endpoint
+boilerplate; hand-written MCP wrappers; trusting that callers and services
+agree.
 
 </job>
 
@@ -295,60 +232,27 @@ apply.
 
 </job>
 
-<job user="Platform Builders" goal="Ship Predictable CLIs">
+<job user="Platform Builders" goal="Run a Predictable Platform">
 
-## Platform Builders: Ship Predictable CLIs
+## Platform Builders: Run a Predictable Platform
 
-**Trigger:** User runs an npx CLI on an unsupported Node and sees an
-upstream-authored error.
+**Trigger:** A service fails on a customer machine and the cause is a missing
+precondition, an unsupervised process, missing telemetry, or stale instructions.
 
-**Big Hire:** Help me enforce a runtime floor before any heavy import evaluates.
-→ **libpreflight**
+**Big Hire:** Help me check preconditions before anything heavy runs, supervise
+long-running processes, emit structured telemetry, and keep instruction files
+honest. → **libcoaligned, libpreflight, librc, libsupervise, libtelemetry**
 
-**Little Hire:** Help me surface a product-authored Node-version error instead
-of an upstream library's. → **libpreflight**
+**Little Hire:** Help me verify a docs change before commit and trust the
+layered architecture has not drifted; surface a product-authored error for an
+unsupported runtime or empty config before anything heavy constructs partially;
+start, stop, or check a service without remembering its specific incantation;
+add a daemon to a manifest and trust it restarts on failure; add a log line or
+trace span without configuring a logging framework. → **libcoaligned,
+libpreflight, librc, libsupervise, libtelemetry**
 
-**Competes With:** inline checks in each bin; engines-strict; install-time
-hooks.
-
-</job>
-
-<job user="Platform Builders" goal="Ship Predictable Services">
-
-## Platform Builders: Ship Predictable Services
-
-**Trigger:** Operator starts a service with a required config value unset or
-empty.
-
-**Big Hire:** Help me fail fast at startup before the service constructs
-partially against an unsafe default. → **libpreflight**
-
-**Little Hire:** Help me surface a product-authored empty-config error before
-the service constructs partially. → **libpreflight**
-
-**Competes With:** ad-hoc inline checks; null-coalesced defaults that mask the
-regression.
-
-</job>
-
-<job user="Platform Builders" goal="Ship Service Endpoints Without Boilerplate">
-
-## Platform Builders: Ship Service Endpoints Without Boilerplate
-
-**Trigger:** Starting a new HTTP service and reaching for last service's
-copy-pasted Hono wiring; starting a new service and reaching for last project's
-copy-pasted transport boilerplate.
-
-**Big Hire:** Help me ship an HTTP endpoint without reimplementing server
-lifecycle, security headers, or health checks; ship a gRPC service endpoint
-without reimplementing transport. → **libhttp, librpc**
-
-**Little Hire:** Help me mount routes on a configured app and call start(); call
-a service without managing connections or retries. → **libhttp, librpc**
-
-**Competes With:** copy-pasting Hono setup; hand-rolling node:http servers;
-tolerating the duplication; copy-pasting boilerplate; hand-writing protobuf
-clients.
+**Competes With:** failing deep in execution instead of at startup; ad-hoc
+process management; console.log debugging; instruction files nobody validates.
 
 </job>
 

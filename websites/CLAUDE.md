@@ -40,9 +40,9 @@ Every page is a directory containing `index.md`. No other `.md` filenames.
 - **Cross-links** — every non-hub page ends with `## What's next` using
   partials only (max four cards). When a page has `## Verify`,
   `## What's next` follows it. Card targets follow JTBD structure: Big Hire
-  guides link to Little Hire children; Little Hire guides link back to the
-  parent Big Hire and siblings; Getting Started pages link to the product
-  page and primary guide.
+  guides link to Little Hire children and sibling Big Hire trees; Little Hire
+  guides link back to the parent Big Hire and siblings; Getting Started pages
+  link to the product page and primary guide.
 
 ## Page Types
 
@@ -84,9 +84,14 @@ Guides under `docs/products/`, `docs/libraries/`, and `docs/services/` sit
 under job headings on their hub page. Each job contains two guide types:
 
 - **Big Hire** — end-to-end workflow from situation to outcome (150–400 lines).
-  Directory root for the job.
+  Directory root.
 - **Little Hire** — bounded task assuming the Big Hire is done (80–200 lines).
   Nested under the Big Hire directory.
+
+A job may own several Big Hire trees: when jobs merge, trees stay put. Slugs
+are published URLs in shipped CLI `documentation` arrays and skill packs
+(products/CLAUDE.md § Linking rule) — retitle pages, never move them without
+redirects.
 
 All guides are framed around the reader's progress, not product features. See
 [README.md § Guide Map](README.md#guide-map).

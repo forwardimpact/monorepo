@@ -134,7 +134,7 @@ const repl = new Repl({
       description: "What each level implies for decision-making and ownership.",
     },
     {
-      title: "Find Growth Areas and Build Evidence",
+      title: "Get Career Guidance Grounded in the Standard",
       url: "https://www.forwardimpact.team/docs/products/growth-areas/index.md",
       description: "Identify gaps and track progress toward the next level.",
     },
@@ -149,7 +149,7 @@ const repl = new Repl({
       description: "See where you stand against level expectations.",
     },
     {
-      title: "Verify Agent Work Against the Standard",
+      title: "Get Output Review Grounded in the Standard",
       url: "https://www.forwardimpact.team/docs/products/trust-output/index.md",
       description: "Know what to expect from agent output.",
     },

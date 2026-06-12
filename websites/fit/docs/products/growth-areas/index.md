@@ -1,14 +1,16 @@
 ---
-title: "Find Growth Areas and Build Evidence"
+title: "Get Career Guidance Grounded in the Standard"
 description: "When a promotion conversation ends with 'not yet' and no specifics, use Guide and Landmark to find what's missing and show concrete evidence of growth."
 ---
 
-The promotion conversation ended with "not yet" -- but nobody could point to
-what specific evidence would change the answer. The feedback felt subjective,
-and you left without a clear picture of what to work on or how to show progress.
-This guide walks you through finding the specific gaps between where you are and
+The promotion conversation ended with "not yet", and nobody could point to what
+specific evidence would change the answer. The feedback felt subjective, and you
+left without a clear picture of what to work on or how to show progress. This
+guide walks you through finding the specific gaps between where you are and
 where you need to be, then building a visible evidence record that grounds the
-next conversation in facts.
+next conversation in facts. For the other half of this job, reviewing a
+deliverable against the same standard, see
+[Get Output Review Grounded in the Standard](/docs/products/trust-output/).
 
 Two products work together in this workflow. **Guide** is an AI agent that
 reasons about your organization's engineering standard -- it identifies gaps and
@@ -37,8 +39,8 @@ expects.
 
 Start by asking Guide what the gap looks like between your current level and
 your target. Guide reads your organization's skill definitions, behaviour
-expectations, and markers -- not generic career advice -- and returns specific
-areas grounded in your standard.
+expectations, and markers, and returns specific areas grounded in your
+standard rather than generic career advice.
 
 Start Guide and ask a growth question. Lines starting with `>` are prompts you
 type inside the Guide session:
@@ -351,5 +353,6 @@ start showing as evidenced, you are making progress.
 
 <!-- part:card:growth-question -->
 <!-- part:card:check-progress -->
+<!-- part:card:../trust-output -->
 
 </div>

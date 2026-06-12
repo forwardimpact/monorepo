@@ -9,7 +9,7 @@ for the next level -- without waiting for a formal review to find out.
 ## Prerequisites
 
 Complete
-[Find Growth Areas and Build Evidence](/docs/products/growth-areas/)
+[Get Career Guidance Grounded in the Standard](/docs/products/growth-areas/)
 first. That guide covers setting up Guide and Landmark, identifying your gaps,
 and starting to build evidence. The steps below assume you have an existing
 evidence record and want to measure whether it is growing.

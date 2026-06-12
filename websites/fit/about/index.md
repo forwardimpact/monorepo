@@ -22,20 +22,20 @@ business and customers?"
 
 ---
 
-## The Problem With Agent-Aligned Engineering Standards
+## The Problem With Career Frameworks
 
-Most agent-aligned engineering standards are written once, filed away, and never
-referenced again. They describe levels in vague terms — "demonstrates
-leadership" or "has broad impact" — that mean different things to different
-people. Engineers can't use them to grow. Managers can't use them to set clear
-expectations. And nobody can use them to tell an AI agent how the team actually
-works.
+Most career frameworks are written once, filed away, and never referenced
+again. They describe levels in vague terms — "demonstrates leadership" or "has
+broad impact" — that mean different things to different people. Engineers
+can't use them to grow. Managers can't use them to set clear expectations. And
+nobody can use them to tell an AI agent how the team actually works.
 
-We think agent-aligned engineering standards should be living systems. They
-should be precise enough that a machine can validate them, but readable enough
-that an engineer can understand what's expected at any level. They should
-produce real outputs — job descriptions, agent profiles, interview questions,
-progression plans — not just sit in a wiki.
+We think the answer is an agent-aligned engineering standard: a living system
+rather than a document. It should be precise enough that a machine can
+validate it, but readable enough that an engineer can understand what's
+expected at any level. And it should produce real outputs — job descriptions,
+agent profiles, interview questions, progression plans — not just sit in a
+wiki.
 
 ---
 

@@ -1,11 +1,11 @@
 ---
 title: Service Guides
-description: Guides for platform builders — from per-product infrastructure to shared gRPC services for knowledge graphs, vector search, standard queries, trace collection, and agent tools.
+description: Workflow guides for the shared gRPC services — conversation bridges, knowledge and search, standard queries, agent tools, and trace collection.
 layout: product
 toc: false
 ---
 
-## Bridge Conversation Platforms to the Agent Team (Builders)
+## Bridge Conversations to the Agent Team (Builders)
 
 <div class="grid">
 
@@ -13,25 +13,9 @@ toc: false
 
 <!-- part:card:bridge-conversations/dispatch-from-chat -->
 
-</div>
-
-## Bridge GitHub Discussions to the Agent Team (Builders)
-
-<div class="grid">
-
 <!-- part:card:bridge-discussions -->
 
 <!-- part:card:bridge-discussions/resume-recessed -->
-
-</div>
-
-## Embed Text for Retrieval (Builders)
-
-<div class="grid">
-
-<!-- part:card:embed-text -->
-
-<!-- part:card:embed-text/embed-batch -->
 
 </div>
 
@@ -45,6 +29,10 @@ toc: false
 
 <!-- part:card:ground-agents/search-content -->
 
+<!-- part:card:embed-text -->
+
+<!-- part:card:embed-text/embed-batch -->
+
 </div>
 
 ## Integrate with the Engineering Standard (Builders)
@@ -57,7 +45,7 @@ toc: false
 
 </div>
 
-## Keep Service Contracts Typed (Builders)
+## Enable Agents on Every Surface (Builders)
 
 <div class="grid">
 

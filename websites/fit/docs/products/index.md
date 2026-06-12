@@ -1,6 +1,6 @@
 ---
 title: Product Guides
-description: Guides for engineers and leaders — from unclear expectations to visible standards, from vague growth feedback to concrete evidence, from unverified agent output to trusted delivery.
+description: Workflow guides for leaders and engineers. Each guide starts from a real situation and ends with an outcome grounded in your organization's engineering standard.
 layout: product
 toc: false
 ---
@@ -17,7 +17,7 @@ toc: false
 
 </div>
 
-## Understand Expectations (Engineers)
+## See What's Expected of Humans and Agents (Engineers)
 
 <div class="grid">
 
@@ -25,9 +25,13 @@ toc: false
 
 <!-- part:card:career-paths/autonomy-scope -->
 
+<!-- part:card:agent-teams -->
+
+<!-- part:card:agent-teams/organizational-context -->
+
 </div>
 
-## Find Growth Areas (Engineers)
+## Get Judgment Grounded in the Standard (Engineers)
 
 <div class="grid">
 
@@ -37,27 +41,15 @@ toc: false
 
 <!-- part:card:growth-areas/check-progress -->
 
-</div>
-
-## Trust Agent Output (Engineers)
-
-<div class="grid">
-
 <!-- part:card:trust-output -->
 
 <!-- part:card:trust-output/second-opinion -->
 
 <!-- part:card:trust-output/expected-output -->
 
-</div>
+<!-- part:card:signing-in-to-landmark -->
 
-## Equip Aligned Agent Teams (Engineers)
-
-<div class="grid">
-
-<!-- part:card:agent-teams -->
-
-<!-- part:card:agent-teams/organizational-context -->
+<!-- part:card:engineering-data-sources -->
 
 </div>
 
@@ -67,25 +59,9 @@ toc: false
 
 <!-- part:card:engineering-outcomes -->
 
-</div>
-
-## Provision Landmark Access (Leaders)
-
-<div class="grid">
-
 <!-- part:card:provisioning-engineers -->
 
 <!-- part:card:issuing-service-account-tokens -->
-
-</div>
-
-## Read Engineering Data (Engineers)
-
-<div class="grid">
-
-<!-- part:card:signing-in-to-landmark -->
-
-<!-- part:card:engineering-data-sources -->
 
 </div>
 

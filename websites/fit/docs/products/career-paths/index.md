@@ -8,7 +8,9 @@ but nobody can point to a definition of what that means. Pathway makes those
 expectations visible: the skills your level requires, the behaviours the
 organization values, and the scope and autonomy your role implies. By the end of
 this guide you will have a concrete picture of what your level expects, grounded
-in your organization's own engineering standard.
+in your organization's own engineering standard. For the other half of this
+job, configuring agents against the same standard, see
+[Configure Agents to Meet Your Engineering Standard](/docs/products/agent-teams/).
 
 ## Prerequisites
 
@@ -333,6 +335,7 @@ detail for any skill or behaviour using `npx fit-pathway skill <id>` or
 <div class="grid">
 
 <!-- part:card:autonomy-scope -->
+<!-- part:card:../agent-teams -->
 <!-- part:card:../growth-areas -->
 
 </div>

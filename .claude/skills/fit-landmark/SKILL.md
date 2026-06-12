@@ -2,7 +2,7 @@
 name: fit-landmark
 description: >
   Demonstrate engineering progress without making individuals feel
-  surveilled, and find growth areas backed by evidence. Use when the
+  surveilled, and show evidence of growth. Use when the
   quarterly review has only ticket counts and you need system-level
   trends, when checking promotion readiness, when assessing whether
   culture investments are working, or when exploring GetDX snapshot
@@ -119,7 +119,7 @@ npx fit-landmark health                  # Should display team health overview
   — Show evidence of engineering progress without blaming individuals
 - [Tell Whether Culture Investments Are Working](https://www.forwardimpact.team/docs/products/engineering-outcomes/culture-investments/index.md)
   — Track initiative impact through outcome trends
-- [Find Growth Areas and Build Evidence](https://www.forwardimpact.team/docs/products/growth-areas/index.md)
+- [Get Career Guidance Grounded in the Standard](https://www.forwardimpact.team/docs/products/growth-areas/index.md)
   — Identify gaps and track progress toward the next level
 - [Check Progress Toward Next Level](https://www.forwardimpact.team/docs/products/growth-areas/check-progress/index.md)
   — See where you stand against level expectations

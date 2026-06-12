@@ -9,7 +9,7 @@ grounded in your organization's engineering standard -- not generic advice.
 ## Prerequisites
 
 Complete the
-[Find Growth Areas and Build Evidence](/docs/products/growth-areas/)
+[Get Career Guidance Grounded in the Standard](/docs/products/growth-areas/)
 guide first. The steps below assume you have Guide installed, codegen complete,
 and the service stack running.
 
@@ -179,7 +179,7 @@ You have reached the outcome of this guide when:
   what the next proficiency level expects in concrete terms.
 - **You know how to get back here.** For the full workflow -- finding gaps,
   checking your evidence record, and tracking progress over time -- return to
-  [Find Growth Areas and Build Evidence](/docs/products/growth-areas/).
+  [Get Career Guidance Grounded in the Standard](/docs/products/growth-areas/).
 
 ## What's next
 

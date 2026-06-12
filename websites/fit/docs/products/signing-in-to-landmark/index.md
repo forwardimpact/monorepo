@@ -119,6 +119,7 @@ it grants the same scope your magic-link session would.
 
 <div class="grid">
 
+<!-- part:card:../growth-areas -->
 <!-- part:card:../engineering-data-sources -->
 <!-- part:card:../issuing-service-account-tokens -->
 

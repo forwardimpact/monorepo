@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Ship Service Endpoints Without Boilerplate",
-      "trigger": "Starting a new service and reaching for last project's copy-pasted transport boilerplate.",
-      "bigHire": "ship a gRPC service endpoint without reimplementing transport.",
+      "goal": "Keep Service Contracts Typed",
+      "trigger": "A service contract changes and the drift surfaces at runtime, in a client, an endpoint, or an MCP tool that no longer matches the proto.",
+      "bigHire": "generate types, clients, endpoints, and MCP tools from one proto source so contracts cannot drift.",
       "littleHire": "call a service without managing connections or retries.",
-      "competesWith": "copy-pasting boilerplate; hand-writing protobuf clients; tolerating the duplication"
+      "competesWith": "hand-rolled clients and JSON contracts; per-service endpoint boilerplate; hand-written MCP wrappers; trusting that callers and services agree"
     }
   ],
   "type": "module",

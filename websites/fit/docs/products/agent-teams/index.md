@@ -7,7 +7,9 @@ An agent's work was rejected -- not because the code was wrong, but because it
 followed generic practices instead of the organization's standards. The problem is configuration: the agent has no access to the skills,
 behaviours, and conventions your engineering standard defines. This guide walks
 you through configuring agents against that standard so their output reflects
-what the organization expects from any contributor, human or AI.
+what the organization expects from any contributor, human or AI. For the other
+half of this job, seeing what the standard expects of you, see
+[See What's Expected at Your Level](/docs/products/career-paths/).
 
 ## Prerequisites
 
@@ -177,6 +179,7 @@ confirm the following:
 <div class="grid">
 
 <!-- part:card:organizational-context -->
+<!-- part:card:../career-paths -->
 <!-- part:card:../authoring-standards -->
 
 </div>

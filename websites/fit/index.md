@@ -1,13 +1,13 @@
 ---
 title: Forward Impact Engineering
-description: An open-source suite that helps organizations empower engineers with clear expectations, career growth, and the clarity to do their best work.
+description: An open-source suite built on one idea — define your engineering standard once, then derive roles, agent profiles, career guidance, measurement, and staffing from it.
 toc: false
 layout: home
 hero:
   image: /assets/scene-concept.svg
   alt: An engineer in a hoodie, an AI robot, and a business professional wave hello
-  title: Empowered engineers<br>deliver lasting impact.
-  subtitle: Map, Pathway, Guide, Landmark, Summit, and Outpost — an open-source suite that helps organizations define what great engineering looks like, make expectations visible, measure progress without blame, and staff teams to succeed.
+  title: One standard.<br>Engineers grow by it.<br>Agents follow it.
+  subtitle: Define what good engineering looks like once, then derive everything else from it — job definitions, agent profiles, career guidance, measurement, and staffing decisions you can defend. Same standard, different outputs.
   cta:
     - label: Explore the suite
       href: /docs/
@@ -24,10 +24,11 @@ hero:
 
 ![Map](/assets/icon-map.svg)
 
-### Map
+### Map — define the standard
 
-Chart the territory. Define your engineering standard in plain text — skills,
-behaviours, and levels the whole organization trusts.
+Two managers shouldn't disagree on what 'senior' means. Map turns implicit
+expectations into a validated, plain-text standard that the rest of the suite
+derives from.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -36,10 +37,10 @@ behaviours, and levels the whole organization trusts.
 
 ![Pathway](/assets/icon-pathway.svg)
 
-### Pathway
+### Pathway — derive roles and agents
 
-Navigate the trail. See what's expected at every level and generate job
-definitions, career paths, and agent profiles from one shared standard.
+The compiler for your standard. Feed it a discipline, track, and level and get
+a complete job definition. Drop the level and get an agent profile instead.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -48,10 +49,10 @@ definitions, career paths, and agent profiles from one shared standard.
 
 ![Guide](/assets/icon-guide.svg)
 
-### Guide
+### Guide — ask the standard
 
-Find your bearing. Career guidance and output review grounded in your
-organization's actual engineering standard — not generic advice.
+Career guidance for engineers and second opinions on agent work, grounded in
+your standard instead of generic best practice.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -60,10 +61,10 @@ organization's actual engineering standard — not generic advice.
 
 ![Landmark](/assets/icon-landmark.svg)
 
-### Landmark
+### Landmark — measure without surveillance
 
-Check the cairn. Show engineering progress without making individuals feel
-surveilled — evidence, trends, and engineer voice.
+Track progress with evidence, trends, and engineer voice instead of ticket
+counts. Nobody gets singled out.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -72,22 +73,10 @@ surveilled — evidence, trends, and engineer voice.
 
 ![Summit](/assets/icon-summit.svg)
 
-### Summit
+### Summit — staff with evidence
 
-Reach the peak. See whether a team has the capability to deliver — coverage,
-risks, and what-if scenarios before making a staffing decision.
-
-<div class="btn btn-ghost">Learn more</div>
-</a>
-
-<a class="product-card" href="/outpost/">
-
-![Outpost](/assets/icon-outpost.svg)
-
-### Outpost
-
-Set up camp. Walk into every meeting already oriented — scheduled AI tasks
-assemble your context and keep your knowledge organized.
+Model the team as a system. See capability coverage, structural risks, and
+what-if scenarios before you make the staffing decision.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -99,13 +88,26 @@ assemble your context and keep your knowledge organized.
 <div class="section">
   <div class="page-container content-product">
 
-![Gear](/assets/icon-gear.svg)
+## Companions
+
+### Outpost
+
+Outpost syncs your email, calendar, and notes into briefings, so you walk into
+every meeting already oriented.
+
+<a href="/outpost/" class="btn btn-ghost">Learn more</a>
+
+### Kata
+
+An autonomous agent team that runs a daily Plan-Do-Study-Act cycle: it plans
+specs, ships features, studies its own traces, and acts on what it finds.
+
+<a href="https://www.kata.team" class="btn btn-ghost">Visit kata.team</a>
 
 ### Gear
 
-Carry the right gear. Shared libraries and services for platform builders and
-agents — CLIs, retrieval, evaluation, and infrastructure published to npm and
-the `forwardimpact/fit-skills` skill pack.
+For platform builders: the libraries and services the suite is built from,
+published to npm. Humans and agents share the same interface and docs.
 
 <a href="/gear/" class="btn btn-ghost">Learn more</a>
 
@@ -125,10 +127,10 @@ the `forwardimpact/fit-skills` skill pack.
 
 Forward Impact Engineering puts this into practice. Engineering leaders define
 what great engineering looks like. Engineers see exactly what's expected, find
-growth areas with real evidence, and walk into every day prepared. Leaders
-measure progress and staff teams without blaming individuals or relying on
-guesswork. When expectations are clear and progress is visible, engineers
-deliver with confidence and pride.
+growth areas with real evidence, and configure agents to the same standard
+they're measured by. Leaders demonstrate progress and staff teams without
+blaming individuals or relying on guesswork. When expectations are clear and
+progress is visible, engineers deliver with confidence and pride.
 
   <div class="hero-cta" style="margin-top: var(--space-6);">
     <a href="/about/" class="btn btn-secondary">Read our philosophy</a>
@@ -143,30 +145,29 @@ deliver with confidence and pride.
 
 ### For Engineering Leaders
 
-Define and publish an agent-aligned engineering standard for your team:
+Define your engineering standard and publish it for the whole organization:
 
 ```sh
+npx fit-map init
 npx fit-pathway build --url=https://pathway.myorg.com
-npx fit-pathway serve
 ```
 
 ### For Empowered Engineers
 
-Install the CLI and explore what's available:
+See what's expected at your level, then generate an agent profile from the
+same standard:
 
 ```sh
-npx fit-pathway skill --list        # Browse all skills
-npx fit-pathway job software_engineering J060          # Generate a job definition
-npx fit-outpost init ~/Documents/Team                 # Set up your personal ops center (macOS only)
+npx fit-pathway skill --list
+npx fit-pathway agent software_engineering --track=platform
 ```
 
 ### For Platform Builders
 
-Generate aligned agent profiles and install the shared skill pack:
+Install the shared skill pack and browse the library catalog:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform  # Generate agent profiles
-npx skills add forwardimpact/fit-skills                      # Install the skill pack
+npx skills add forwardimpact/fit-skills
 ```
 
   </div>
