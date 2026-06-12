@@ -236,11 +236,10 @@ function parseTraceEvent(line) {
 }
 
 // Cost, duration, and output_tokens must be summed over ALL "type":"result"
-// events: `fit-trace stats` totals keep only the last result event
-// (handleResult last-wins, libraries/libeval/src/trace-collector.js), which
-// understates multi-result lanes 11x-55x on recorded runs, and its output
-// figure is wrong even on single-result traces until spec 1820 lands.
-// Workaround per Issue #1624 (amended 2026-06-12).
+// events, never read from `fit-trace stats` totals: stats keeps only the
+// last result event (handleResult last-wins in libeval's trace-collector),
+// which understates multi-result lanes 11x-55x, and its output-token figure
+// carries a dedup defect on single-result traces too.
 function sumResultEvents(traceFile) {
   const sums = { count: 0, costUsd: 0, durationMs: 0, outputTokens: 0 };
   for (const line of readFileSync(traceFile, "utf8").split("\n")) {
