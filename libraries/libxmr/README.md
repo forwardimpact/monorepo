@@ -65,6 +65,6 @@ all rows.
 
 ## Documentation
 
-- [XmR Analysis](https://www.forwardimpact.team/docs/libraries/xmr-analysis/index.md)
+- [Chart a Metric and Check Variation](https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md)
   — full guide: CSV schema, commands, the three rules, the chart layout, a
   worked security backlog example, and interpretation guidance.
