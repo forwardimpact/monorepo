@@ -59,6 +59,15 @@ advance routing; only merge of the prior phase's PR puts the artifact on
    and `wiki/STATUS.md` does not yet show `plan implemented` for the spec)
 4. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
 
+**Exp #1694 instrument (window 2026-06-13–14; remove after the 6/15
+verdict):** every `wiki/metrics/kata-implement/2026.csv` row written
+in-window carries `route3_supply=<N>` in its note — N = `awk -F'\t'
+'$2=="plan" && $3=="approved"' wiki/STATUS.md | wc -l` at the fetched wiki
+tip; write `route3_supply=0` rather than omitting. When N>0 add
+`pre_route_check=<specID>:fresh|stale` per candidate (predicate locked on
+issue #1482; phase-artifact `plan(NNNN):` commits are not impl evidence). A
+Route-3 claim without `pre_route_check=` on its row is incomplete.
+
 ### Constraints
 
 - Design, planning, and implementation only — never write specs or cut releases
