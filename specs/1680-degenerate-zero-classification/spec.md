@@ -94,7 +94,18 @@ Excluded:
 
 - Stuck-at-K series where the mean equals a positive constant and variation is
   zero. No open obstacle today requires this and Issue #1540 does not; the
-  naming of any such future class is also out of scope for this spec.
+  naming of any such future class is also out of scope for this spec. Known
+  consequence, verified on current libxmr (PR #1541, comments
+  [4691064843](https://github.com/forwardimpact/monorepo/pull/1541#issuecomment-4691064843)
+  and
+  [4691374219](https://github.com/forwardimpact/monorepo/pull/1541#issuecomment-4691374219)):
+  a stuck-at-K series at or above the minimum classification window classifies
+  `stable` / `predictable` with zero-width limits (μ=K, σ̂=0, UPL=LPL=K), so a
+  bare `classification=stable` predicate does not exclude this informationless
+  shape. Until a future spec names the class, consumers of the predicate pair it
+  with a zero-variation guard (σ̂ > 0). First observed specimen:
+  `facilitation_asks_routed` (structural constant K=5 — five kata questions per
+  session), which crosses the window ~2026-06-19.
 - Auto-rendering storyboard target-row cells. Target rows are hand-typed today;
   introducing a renderer for them is out of scope.
 - Re-classifying historical data or back-filling past storyboard summaries.
@@ -123,14 +134,15 @@ This follow-up consumes this spec but is owned and shipped separately:
   [#1656](https://github.com/forwardimpact/monorepo/issues/1656): once the
   classifier emits the new value, update the TW-2 target row in
   `wiki/storyboard-2026-M06.md` so its predicate requires
-  `classification=stable` (substantive predictable), and extend the Cross-lane
+  `classification=stable` with σ̂ > 0 (substantive predictable), and extend the
+  Cross-lane
   preconditions note to name `degenerate-zero` as the formal mechanism behind
   the 5/5-lane refusal of chaos → predictable on flat secondaries, naming both
   observed specimens (`docs_pages_over_ceiling` and `facilitation_tool_errors`)
   per the scoping adjudication on PR #1541. The convention question the note
   answers — a degenerate-zero verdict satisfies no lane's predictability
-  target; predictability targets mean `classification=stable` — applies to the
-  coach's series exactly as to TW-2. The interim
+  target; predictability targets mean `classification=stable` with σ̂ > 0 —
+  applies to the coach's series exactly as to TW-2. The interim
   carry label ("MET-deferred (degenerate-zero pending convention)") is routed on
   Issue #1540 independently of this spec and retires when the wording change
   lands.
