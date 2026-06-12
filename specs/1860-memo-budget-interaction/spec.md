@@ -52,8 +52,8 @@ instead of `fit-wiki memo`, expressly to avoid breaching the breached file
 
 Resolve the contradiction so that delivering a memo to an agent whose summary is
 near, at, or over a summary budget does not itself create, deepen, or re-publish
-a summary-budget breach — while preserving the two properties the current design
-exists to provide:
+a summary-budget breach — while preserving the three properties the current
+design exists to provide:
 
 1. **Bounded inbox inventory** — undischarged memo bodies remain subject to an
    enforced bound. Today the summary budgets are the only backstop against
@@ -66,6 +66,15 @@ exists to provide:
    command per recipient regardless of the recipient's budget state, and a
    recipient discovers and triages every delivered memo through a single surface
    (`fit-wiki inbox list|ack|promote|drop`).
+3. **No unmeasured content class** — today the summary budgets measure every
+   region of the summary file, memo and non-memo text alike. Non-memo text
+   already lives inline in inbox sections (discharge and lifecycle annotations,
+   e.g. `wiki/security-engineer.md`'s inbox line), so a bound on memo bodies and
+   an exemption on a file region do not cover the same set. Any region the
+   design exempts from the summary measures, and any out-of-band store it
+   introduces, must remain subject to at least one enforced, audit-visible bound
+   — otherwise the exemption becomes a budget-evasion surface that limit cycle
+   pressure selects for, the same way it selected for sender-withdrawals.
 
 ## Alternatives recorded at routing
 
@@ -97,15 +106,21 @@ criteria are mechanism-neutral.
 1. Delivering a memo to a recipient whose summary is near (within one memo of),
    at, or over a summary budget limit does not create, deepen, or re-publish a
    summary-budget audit finding — verified by `bun test libraries/libwiki`.
-2. Undischarged memo inventory has an enforced, audit-visible bound, and a
-   single delivery to a recipient whose inbox conforms to the bound does not
-   trip it — verified by `bun test libraries/libwiki`.
+2. Undischarged memo inventory — including memos routed to or held in any
+   out-of-band store the design introduces — has an enforced, audit-visible
+   bound, and a single delivery to a recipient whose inbox conforms to the bound
+   does not trip it — verified by `bun test libraries/libwiki`.
 3. A sender uses the same delivery command regardless of the recipient's budget
    state, and the recipient discovers every delivered memo via
    `fit-wiki inbox list` — verified by `bun test libraries/libwiki`.
 4. The memory-protocol reference documents the budget/memo interaction and
    states budget figures that match the enforced limits — verified by reading
    `memory-protocol.md`.
+5. Every content region of the summary file, and any out-of-band memo store the
+   design introduces, is subject to at least one enforced, audit-visible bound;
+   no content class is exempt from every measure — verified by
+   `bun test libraries/libwiki` with a negative fixture placing non-memo text in
+   the exempted or out-of-band surface and asserting a bound still measures it.
 
 ## Constraints and monitoring
 
