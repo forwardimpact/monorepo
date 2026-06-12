@@ -48,6 +48,18 @@ instead of `fit-wiki memo`, expressly to avoid breaching the breached file
 (release-engineer corroboration, spec PR thread); the receiving summary sat at
 29 words of headroom — under the cap, yet effectively unreachable by memo.
 
+The mechanism also has a **positive control**: on 2026-06-12 the first memo
+delivered to a recipient that had adopted a voluntary per-lane headroom floor
+(summary held at or below 2000/2048 words at every landing) was absorbed under
+cap and discharged with disposition — zero breach published, no withdrawal
+needed (security-engineer report, spec PR thread). Delivery is non-tripping
+exactly when headroom ≥ one memo, bracketing the deterministic mechanism from
+both sides. The floor is **interim mitigation, not resolution**: it is voluntary
+and per-lane, and it works by permanently reserving roughly one memo of headroom
+in every adopting summary — a convention-maintained form of the separation this
+spec requires structurally. Its protection lapses wherever any single owner does
+not adopt or maintain it, which is the limit cycle's re-entry point.
+
 ## What
 
 Resolve the contradiction so that delivering a memo to an agent whose summary is
