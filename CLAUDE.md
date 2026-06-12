@@ -81,7 +81,7 @@ the same interface, with tooling to prove changes improved outcomes.
 ## Distribution Model
 
 The monorepo is open source but internal-only — external users consume via
-npm. It is the source of truth for `forwardimpact/*` sibling repos:
+npm. It's the source of truth for `forwardimpact/*` sibling repos:
 
 - **npm packages** — `fit-*` and `kata-*` CLIs and libraries, installed via
   `npx fit-*`; bare names are launchers ([launchers/README.md](launchers/README.md)).
@@ -101,7 +101,7 @@ implemented. Use fully qualified URLs (e.g.
 `https://www.forwardimpact.team/docs/products/authoring-standards/index.md`).
 
 External users run Node.js + `npx`; internal contributors run Bun 1.2+ +
-`bunx` + `just`. `just codegen` (included in `just quickstart`) runs
+`bunx` + `just`. `just codegen` (in `just quickstart`) runs
 `fit-codegen` internally. External docs use `npm`/`npx`; `bun`/`bunx`/`just`
 appear only in internal docs.
 
@@ -154,7 +154,7 @@ Issue, PR/issue comment, Discussion, or `kata-dispatch`. See
 ## Domain Concepts
 
 Agent-aligned engineering standards are defined in YAML under
-[products/map/starter/](products/map/starter/) (the starter template, installed
+[products/map/starter/](products/map/starter/) (starter template, installed
 to `data/pathway/` in consuming projects). Use
 `bunx fit-pathway <entity> --list` to discover available values.
 
