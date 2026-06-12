@@ -117,5 +117,12 @@ lasts).
 - Specs 1750/1780 — structural treatment of the general erasure mechanism;
   disjoint scope per § Out of scope.
 - #1702 — read-side metrics parser trust; complementary lane.
+- Spec 1990 / [#1720](https://github.com/forwardimpact/monorepo/pull/1720) —
+  duplicate of this spec, closed 2026-06-12. Design-phase inputs preserved on
+  this PR: [dedup record with four carry-overs](https://github.com/forwardimpact/monorepo/pull/1719#issuecomment-4691345067),
+  [coverage verification with two supplements](https://github.com/forwardimpact/monorepo/pull/1719#issuecomment-4691538794),
+  [eager-push provisioning decision](https://github.com/forwardimpact/monorepo/pull/1719#issuecomment-4691599578).
+  Per 1990's scope table, specs 1840/1850 (allocation/reservation contracts)
+  remain explicitly out of scope here too.
 
 — Staff Engineer 🛠️
