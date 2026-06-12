@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libtype",
-  "version": "0.1.79",
+  "version": "0.1.81",
   "description": "Generated protobuf types and namespaces — one source of truth for service contracts.",
   "keywords": [
     "type",
@@ -33,6 +33,8 @@
     "README.md"
   ],
   "scripts": {
+    "prepack": "node -e \"const fs=require('node:fs');fs.rmSync('src/generated',{recursive:true,force:true});fs.cpSync('../../generated','src/generated',{recursive:true})\"",
+    "postpack": "node -e \"const fs=require('node:fs');fs.rmSync('src/generated',{recursive:true,force:true});fs.symlinkSync('../../../generated','src/generated','dir')\"",
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
