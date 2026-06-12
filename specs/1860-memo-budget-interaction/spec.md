@@ -42,6 +42,12 @@ Withdrawals 2 and 3 demonstrate that **size discipline cannot fix this**: even
 minimal pointer-form memos (33 and 28 words) exceed chronic headroom at limit
 cycle. The interaction is structural, not behavioural.
 
+Suppression also manifests as **channel avoidance**, not only withdrawal: on
+2026-06-12 an audit finding was routed to its owner via a facilitated session
+instead of `fit-wiki memo`, expressly to avoid breaching the breached file
+(release-engineer corroboration, spec PR thread); the receiving summary sat at
+29 words of headroom — under the cap, yet effectively unreachable by memo.
+
 ## What
 
 Resolve the contradiction so that delivering a memo to an agent whose summary is
@@ -78,12 +84,13 @@ criteria are mechanism-neutral.
 
 ## Scope
 
-| In scope                                                                                                           | Out of scope                                                                                                                                  |
-| ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `libwiki` summary-scope audit budgets (`summary.word-budget`, `summary.line-budget`) and any new inbox-scope bound | Weekly-log, weekly-log-part, and storyboard budgets                                                                                           |
-| `fit-wiki memo` delivery behaviour and `fit-wiki inbox` triage behaviour                                           | Issue #1480's own scope (Carry-only) — this spec resolves one mechanism the sighting series surfaced; the series' carry protocol is unchanged |
-| Memory-protocol documentation of the budget/memo interaction                                                       | Experiment #1485 (verdict-write due 2026-06-15) — adjacent only as a consumer of wiki budget state; its verdict path must not move            |
-|                                                                                                                    | The spec-1610 / issue-1490 fix path — adjacent summary-budget work already awaiting its human gate; this spec must not modify or depend on it |
+| In scope                                                                                                           | Out of scope                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `libwiki` summary-scope audit budgets (`summary.word-budget`, `summary.line-budget`) and any new inbox-scope bound | Weekly-log, weekly-log-part, and storyboard budgets                                                                                                                                       |
+| `fit-wiki memo` delivery behaviour and `fit-wiki inbox` triage behaviour                                           | Issue #1480's own scope (Carry-only) — this spec resolves one mechanism the sighting series surfaced; the series' carry protocol is unchanged                                             |
+| Memory-protocol documentation of the budget/memo interaction                                                       | Experiment #1485 (verdict-write due 2026-06-15) — adjacent only as a consumer of wiki budget state; its verdict path must not move                                                        |
+|                                                                                                                    | The spec-1610 / issue-1490 fix path — adjacent summary-budget work already awaiting its human gate; this spec must not modify or depend on it                                             |
+|                                                                                                                    | Summary breaches with non-memo causes (e.g., the 2026-06-12 canonicalization double-carry breach) — same budget class, distinct mechanism; not evidence for this spec and not fixed by it |
 
 ## Success criteria
 
