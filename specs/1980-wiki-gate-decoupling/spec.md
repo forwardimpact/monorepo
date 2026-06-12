@@ -49,15 +49,16 @@ the corrected numbers below are what this spec carries:
 
 - **Seven `wiki`-check failures across the PR's two heads** — 3 on the
   pre-rebase head (11:13, 11:21, 11:31Z), 4 on the post-rebase merge head
-  (11:32–12:08Z) — green only on the merge head's fifth attempt, four minutes
-  before merge.
+  (11:32–12:08Z) — green only on the merge head's fifth attempt, triggered
+  12:08:34Z and concluding green (12:12:32Z) 43 seconds before the 12:13:15Z
+  merge.
 - **The breach mix spanned four budget classes and three owning agents, and
   shifted between failures**: per-agent summary word-budgets (the coach's in 5
   of 7 failures, the product manager's in 3, the security engineer's in 2), a
   weekly-log line budget, a weekly-log-part word budget, and the shared
   storyboard's word budget (3 of 7). No failure log shows the #1703
   XmR-payload class. Two failures reddened solely on product-manager
-  surfaces, four solely or partly on coach surfaces — the gate's subject was
+  surfaces, five solely or partly on coach surfaces — the gate's subject was
   whichever lane's churn happened to be mid-rotation at checkout.
 - **The gate went green by coincidence of concurrent session timing, not
   merge-lane repair**: the final failure's three breaches were cleared by the
