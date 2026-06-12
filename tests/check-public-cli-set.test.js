@@ -22,7 +22,10 @@ function makePackage(overrides = {}) {
     name: SRC,
     dir: "libraries/libdemo",
     bin: { "fit-demo": "./bin/fit-demo.js" },
-    exports: { ".": "./src/index.js", "./bin/fit-demo.js": "./bin/fit-demo.js" },
+    exports: {
+      ".": "./src/index.js",
+      "./bin/fit-demo.js": "./bin/fit-demo.js",
+    },
     ...overrides,
   };
 }
@@ -179,7 +182,9 @@ describe("condition (c) — placeholders", () => {
 
   test("real dependency pin checked in fails", () => {
     const problems = check({
-      launchers: [makeLauncher({ manifest: { dependencies: { [SRC]: "1.2.3" } } })],
+      launchers: [
+        makeLauncher({ manifest: { dependencies: { [SRC]: "1.2.3" } } }),
+      ],
     });
     assert.equal(problems.length, 1);
     assert.equal(problems[0].kind, "placeholder");

@@ -217,6 +217,8 @@ jobs:
             process.exit(1);
           }
           EOF
+            # A physical copy carries "resolved" in npm ls --json; deduped
+            # references are bare {version} objects (npm 10).
             npm ls "$NPM_NAME" --all --json | NPM_NAME="$NPM_NAME" SRC_VERSION="$SRC_VERSION" CLI="$CLI" node -e "
               const data = JSON.parse(require('node:fs').readFileSync(0, 'utf8'));
               const { NPM_NAME, SRC_VERSION, CLI } = process.env;
@@ -224,12 +226,12 @@ jobs:
               const versions = new Set();
               (function walk(node) {
                 for (const [name, dep] of Object.entries(node.dependencies ?? {})) {
-                  if (name === NPM_NAME && !dep.deduped) { copies++; versions.add(dep.version); }
+                  if (name === NPM_NAME && dep.resolved && !dep.deduped) { copies++; versions.add(dep.version); }
                   walk(dep);
                 }
               })(data);
               if (copies !== 1 || !versions.has(SRC_VERSION)) {
-                console.error(\`::error::expected one deduped \${NPM_NAME}@\${SRC_VERSION} for \${CLI} — found \${copies} copy(ies) at [\${[...versions].join(', ')}]\`);
+                console.error(\`::error::expected one physical \${NPM_NAME}@\${SRC_VERSION} for \${CLI} — found \${copies} copy(ies) at [\${[...versions].join(', ')}]\`);
                 process.exit(1);
               }
             "

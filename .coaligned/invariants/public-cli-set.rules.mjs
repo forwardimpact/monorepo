@@ -41,7 +41,14 @@ export const SIBLING_ACTION_CLIS = [
   "fit-wiki",
 ];
 
-const REQUIRED_KEYS = ["name", "version", "type", "bin", "files", "dependencies"];
+const REQUIRED_KEYS = [
+  "name",
+  "version",
+  "type",
+  "bin",
+  "files",
+  "dependencies",
+];
 const ALLOWED_KEYS = new Set([
   ...REQUIRED_KEYS,
   "description",
@@ -97,10 +104,7 @@ function checkLauncherShape(launcher, src, problems) {
       message: `bin must be exactly {"${cli}": "./bin/${cli}.js"}`,
     });
   }
-  if (
-    launcher.binFiles.length !== 1 ||
-    launcher.binFiles[0] !== `${cli}.js`
-  ) {
+  if (launcher.binFiles.length !== 1 || launcher.binFiles[0] !== `${cli}.js`) {
     problems.push({
       kind: "shape",
       path: `launchers/${cli}/bin`,
@@ -153,7 +157,9 @@ function checkLauncherSchema(launcher, src, problems) {
   }
   const deps = Object.keys(manifest.dependencies ?? {});
   if (deps.length !== 1 || deps[0] !== src.srcName) {
-    fail(`dependencies must be exactly {"${src.srcName}": …} — found [${deps.join(", ")}]`);
+    fail(
+      `dependencies must be exactly {"${src.srcName}": …} — found [${deps.join(", ")}]`,
+    );
   }
   const files = manifest.files;
   if (!Array.isArray(files) || files.length !== 1 || files[0] !== "bin/") {
@@ -234,7 +240,9 @@ function collectInvokedNames(root) {
 function collectWorkspacePackages(root) {
   const packages = [];
   for (const scope of SCOPE_DIRS) {
-    for (const entry of readdirSync(join(root, scope), { withFileTypes: true })) {
+    for (const entry of readdirSync(join(root, scope), {
+      withFileTypes: true,
+    })) {
       if (!entry.isDirectory() || SKIP_DIRS.has(entry.name)) continue;
       const dir = `${scope}/${entry.name}`;
       const manifest = readJsonOrNull(join(root, dir, "package.json"));
@@ -258,7 +266,10 @@ function collectLaunchers(root) {
       // no bin/ dir — binFiles stays empty and the shape check reports it
     }
     if (binFiles.length === 1) {
-      binContent = readFileSync(join(launchersRoot, dir, "bin", binFiles[0]), "utf8");
+      binContent = readFileSync(
+        join(launchersRoot, dir, "bin", binFiles[0]),
+        "utf8",
+      );
     }
     launchers.push({
       dir,
