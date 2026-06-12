@@ -53,7 +53,9 @@ the corrected numbers below are what this spec carries:
 - **The breach mix spanned both re-breaker classes and three owning agents**:
   per-agent summary word-budgets (the coach's in all four merge-head failures;
   security-engineer's and product-manager's once each), a weekly-log line
-  budget, and storyboard payload regrowth (two of four merge-head failures).
+  budget, and the shared storyboard's word budget (two of four merge-head
+  failures; per the coach's verification, none of the four logs shows the
+  #1703 XmR-payload class).
 - **The gate went green by coincidence of concurrent session timing, not
   merge-lane repair**: the breaching surfaces were trimmed by their owning
   agents' own session commits in the minutes before the final re-run. The gate
@@ -83,8 +85,8 @@ Spec 1950 removes the persistent red state but does not moot this obstacle: a
 job-checkout-time audit still races the transient class. The five PR #1703
 race losses would have remained possible against a 1950-fixed wiki, and
 PR #1705 demonstrated it empirically — the transient summary class breached in
-all four of its merge-head failures, with the persistent storyboard class
-alongside in only two. During any
+all four of its merge-head failures, and none of the failure logs shows the
+XmR-payload class spec 1950 bounds. During any
 active facilitated session — hours per day, by design — the check is
 structurally un-passable for **any** PR, regardless of content.
 
