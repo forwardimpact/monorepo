@@ -1,4 +1,4 @@
-# Spec 1900 — deterministic per-participant trace harvest
+# Spec 1910 — deterministic per-participant trace harvest
 
 ## Personas and Jobs
 
