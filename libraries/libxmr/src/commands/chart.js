@@ -2,6 +2,7 @@ import { analyze } from "../analyze.js";
 import { renderChart } from "../chart.js";
 import { MIN_POINTS } from "../constants.js";
 import { resolveSlice } from "./slice.js";
+import { withIntegrityGuard } from "./guard.js";
 
 /** Run the chart command: read a CSV, select a metric, and print its XmR control chart to stdout. */
 export function runChartCommand(ctx) {
@@ -37,7 +38,11 @@ export function runChartCommand(ctx) {
 
   const { eventType, label } = resolveSlice(values["event-type"]);
   const text = fsSync.readFileSync(csvPath, "utf-8");
-  const report = analyze(text, { eventType });
+  const guarded = withIntegrityGuard(csvPath, () =>
+    analyze(text, { eventType }),
+  );
+  if (!guarded.ok) return guarded;
+  const report = guarded.value;
 
   if (report.metrics.length === 0) {
     return {

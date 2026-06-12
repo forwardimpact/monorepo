@@ -2,7 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { createMockFs } from "@forwardimpact/libmock";
 import { renderBlock, BlockRenderError } from "../src/block-renderer.js";
-import { analyze, renderChart } from "@forwardimpact/libxmr";
+import { analyze, renderChart, CSVIntegrityError } from "@forwardimpact/libxmr";
 
 const HEADER = "date,metric,value,unit,run,note,event_type";
 const ROOT = "/project";
@@ -73,6 +73,30 @@ describe("renderBlock", () => {
     const chartLine = lines[1];
     assert.ok(chartLine.includes("Insufficient data"));
     assert.ok(chartLine.includes("5 points"));
+  });
+
+  // Fail-visible contract (#1702): a conflict-marker CSV must abort the
+  // render, not produce a chart from duplicated or junk rows.
+  test("propagates CSVIntegrityError from a conflict-marker CSV", () => {
+    const corrupted = [
+      HEADER,
+      "<<<<<<< Updated upstream",
+      "2026-06-12,findings,10,count,,,kata-shift",
+      "=======",
+      "2026-06-12,findings,9,count,,,kata-shift",
+      ">>>>>>> Stashed changes",
+    ].join("\n");
+
+    assert.throws(
+      () =>
+        renderBlock({
+          metric: "findings",
+          csvPath: "test.csv",
+          projectRoot: ROOT,
+          fs: csvFs(corrupted),
+        }),
+      CSVIntegrityError,
+    );
   });
 
   test("throws BlockRenderError for missing metric", () => {

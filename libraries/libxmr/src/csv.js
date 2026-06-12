@@ -5,6 +5,35 @@ import {
   ISO_DATE_RE,
 } from "./constants.js";
 
+/** Error thrown when CSV text is structurally corrupted (git conflict markers) and must not be charted. */
+export class CSVIntegrityError extends Error {
+  /** Create a CSVIntegrityError carrying the 1-based line number and offending line content. */
+  constructor(line, content) {
+    super(`git conflict marker at line ${line}: "${content}"`);
+    this.name = "CSVIntegrityError";
+    this.line = line;
+    this.content = content;
+  }
+}
+
+// Anchored git conflict-marker shapes: `<<<<<<< <label>` (merge HEAD or
+// autostash "Updated upstream"), the bare `=======` separator, and
+// `>>>>>>> <label>`. The schema's first column is an ISO date, so no
+// legitimate row can start with any of these.
+const CONFLICT_MARKER_RE = /^(<{7} |={7}$|>{7} )/;
+
+// A conflict-marker line means the file is a failed merge, not data —
+// downstream stats would silently chart duplicated or junk rows. Line
+// numbers are computed on the raw text so they match the file on disk.
+function assertNoConflictMarkers(text) {
+  const lines = text.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    if (CONFLICT_MARKER_RE.test(lines[i])) {
+      throw new CSVIntegrityError(i + 1, lines[i]);
+    }
+  }
+}
+
 // Parse one CSV line into a row object. Quote-aware but does NOT support
 // the `""` escape inside quoted fields — Kata-metrics CSVs use the `note`
 // field for free text and the schema does not require embedded quotes.
@@ -38,8 +67,9 @@ export function parseLine(line) {
   };
 }
 
-/** Parse a full CSV text (with header) into an array of row objects, skipping the header line. */
+/** Parse a full CSV text (with header) into an array of row objects, skipping the header line. Throws CSVIntegrityError on git conflict markers. */
 export function parseCSV(text) {
+  assertNoConflictMarkers(text);
   const lines = text.trim().split("\n");
   if (lines.length < 2) return [];
   return lines.slice(1).map((line) => {

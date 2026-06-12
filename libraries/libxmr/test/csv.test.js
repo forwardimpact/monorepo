@@ -1,7 +1,101 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-import { parseCSV, parseLine, validateCSV, listMetrics } from "../src/csv.js";
+import {
+  parseCSV,
+  parseLine,
+  validateCSV,
+  listMetrics,
+  CSVIntegrityError,
+} from "../src/csv.js";
+
+const HEADER_LINE = "date,metric,value,unit,run,note,event_type";
+
+describe("conflict-marker guard", () => {
+  // Issue #1702 repro: both conflict branches interleaved among valid rows.
+  const MERGE_CONFLICT = [
+    HEADER_LINE,
+    "2026-06-01,m,1,count,r1,,kata-shift",
+    "<<<<<<< HEAD",
+    "2026-06-02,m,2,count,r2,,kata-shift",
+    "=======",
+    "2026-06-02,m,9,count,r2x,,kata-shift",
+    ">>>>>>> theirs",
+    "2026-06-03,m,3,count,r3,,kata-shift",
+  ].join("\n");
+
+  // Autostash specimen shape (wiki sync rebase round on 2026-06-12).
+  const AUTOSTASH = [
+    HEADER_LINE,
+    "<<<<<<< Updated upstream",
+    "2026-06-12,words,100,count,,,kata-shift",
+    "=======",
+    "2026-06-12,words,90,count,,,kata-shift",
+    ">>>>>>> Stashed changes",
+  ].join("\n");
+
+  test("parseCSV throws CSVIntegrityError on a merge-conflict CSV", () => {
+    assert.throws(() => parseCSV(MERGE_CONFLICT), CSVIntegrityError);
+  });
+
+  test("error carries the first marker's line number and content", () => {
+    try {
+      parseCSV(MERGE_CONFLICT);
+      assert.fail("expected CSVIntegrityError");
+    } catch (err) {
+      assert.strictEqual(err.name, "CSVIntegrityError");
+      assert.strictEqual(err.line, 3);
+      assert.strictEqual(err.content, "<<<<<<< HEAD");
+      assert.match(err.message, /line 3/);
+      assert.match(err.message, /<<<<<<< HEAD/);
+    }
+  });
+
+  test("parseCSV throws on the autostash specimen", () => {
+    assert.throws(
+      () => parseCSV(AUTOSTASH),
+      (err) => {
+        assert.ok(err instanceof CSVIntegrityError);
+        assert.strictEqual(err.line, 2);
+        assert.strictEqual(err.content, "<<<<<<< Updated upstream");
+        return true;
+      },
+    );
+  });
+
+  test("listMetrics throws on a corrupted CSV", () => {
+    assert.throws(() => listMetrics(MERGE_CONFLICT, "*"), CSVIntegrityError);
+  });
+
+  test("a bare separator line alone is rejected", () => {
+    const csv = [
+      HEADER_LINE,
+      "2026-06-01,m,1,count,,,kata-shift",
+      "=======",
+    ].join("\n");
+    assert.throws(() => parseCSV(csv), CSVIntegrityError);
+  });
+
+  test("marker-like text inside a field does not trip the anchor", () => {
+    const csv = [
+      HEADER_LINE,
+      '2026-06-01,m,1,count,,"diff showed ======= and >>>>>>> ours",kata-shift',
+      "2026-06-02,m,2,count,,note with <<<<<<< inside,kata-shift",
+    ].join("\n");
+    const rows = parseCSV(csv);
+    assert.strictEqual(rows.length, 2);
+  });
+
+  test("an eight-equals divider line is not a conflict marker", () => {
+    const csv = [
+      HEADER_LINE,
+      "2026-06-01,m,1,count,,,kata-shift",
+      "========",
+    ].join("\n");
+    const rows = parseCSV(csv);
+    assert.strictEqual(rows.length, 2);
+  });
+});
 
 describe("parseCSV", () => {
   test("parses a simple CSV", () => {
