@@ -12,7 +12,9 @@ The memory protocol's On-Boot Routing level 2 promises that the `fit-wiki boot`
 digest delivers "per-agent deliverables plus open experiment issues labeled
 `agent:{self}`". Three independent observers plus a source-mechanism read
 (#1666) established that the promise is broken in both halves; a post-review
-staff-lane datum adds the first consequence-grade instance:
+staff-lane datum adds the first consequence-grade instance, and a 6/12
+pre-window specimen shows the same failure mode recurring on the successor
+experiment the day before its window:
 
 | Claim | Evidence |
 | --- | --- |
@@ -20,6 +22,7 @@ staff-lane datum adds the first consequence-grade instance:
 | Standing carries never reach the digest — the summary extraction returns only the first paragraph (the Last-run block) | Release-engineer's carry stack and the coach's Active Patterns are structurally excluded; every schedule-pinned commitment relies on de-facto full-file reads, not the documented Tier-1 digest path |
 | Three test surfaces — the audit fixtures, the boot-digest golden file, and the integration seed helper — encode a dead storyboard format (`### {agent} — backlog` + bullets), so the gap ships green | The live storyboard carries h4 metrics + fenced XmR blocks and zero agent-section bullets; PR #1669 added one live-format regression test, but the three named surfaces still encode the dead format |
 | The broken clause carries experiment-killing cost, not just missing digest items — Exp #1482's locked in-window measurement procedure was never delivered despite the open labeled issue, so two Route-3 runs (6/08 run-74 → PR #1514, run-75 → PR #1516) executed without it and #1482 closed INCONCLUSIVE-instrumentation | Staff-lane instance datum [#1666 issuecomment-4690343609](https://github.com/forwardimpact/monorepo/issues/1666#issuecomment-4690343609); procedure locked 6/07 in [#1482 issuecomment-4642143890](https://github.com/forwardimpact/monorepo/issues/1482#issuecomment-4642143890); scope unchanged per [this PR's scope assessment](https://github.com/forwardimpact/monorepo/pull/1674#issuecomment-4690382397) |
+| The failure mode recurred 2026-06-12 on the #1482 successor (Exp #1694), pre-window: the routing contract sat verbatim in the agent's own § Active Experiments and in an inbox memo, yet scored **0 digest hits** — boot inlines only the Last-run paragraph, the inbox surfaces as a bare count, and the memo copy had been archived to a pointer. Both failure shapes were reference-shaped (presence-by-reference, not verbatim delivery); the surviving remediation was verbatim inlining into the Last-run carry. The delivery surface itself is exposed to #1564-class erasure (un-archived memo disappearance `0fe299fb` → `c9ab36b1`, no archive record; pointer-demotion of a do-not-archive-guarded memo) | Coach specimen record [#1666 issuecomment-4690616033](https://github.com/forwardimpact/monorepo/issues/1666#issuecomment-4690616033); full timeline [#1694 issuecomment-4690613392](https://github.com/forwardimpact/monorepo/issues/1694#issuecomment-4690613392); caught only by a first-hand surface walk, not by any routing level |
 
 The team-wide mitigation is "read the storyboard file directly; do not act on
 digest `storyboard_items`" — the full-file read is exactly the path the digest
@@ -97,7 +100,11 @@ the full-file read as the real protocol.
    rewritten fixtures must cover that path in the live format.
 4. **Standing carries reach the digest.** An agent summary may carry a
    designated `## Standing Carries` section; the boot digest delivers its
-   bullets as a distinct `standing_carries` field. The `summary` field stays
+   bullets **verbatim** — full bullet bodies, not a count, a pointer, or a
+   truncated echo (both 6/12 specimen failure shapes were reference-shaped;
+   binding design input
+   [PR #1674 issuecomment-4690823446](https://github.com/forwardimpact/monorepo/pull/1674#issuecomment-4690823446))
+   — as a distinct `standing_carries` field. The `summary` field stays
    the Last-run paragraph. The section is optional — absence yields an empty
    field, and no new audit obligation is created. Standing carries are
    delivered at the On-Boot Read Set layer (own-summary content), not as a new
@@ -185,7 +192,7 @@ passing with the named coverage present.
 | 6 | Every materialized item carries issue number, author, and owning label | libwiki sync test asserting provenance fields |
 | 7 | Boot consumes what the sync actually writes — no renderer/parser format drift | libwiki round-trip test: digest built from a file produced by the materialization renderer, not a hand-built lookalike |
 | 8 | A live-format agent-section bullet still yields a digest item for that agent | libwiki boot test against the rewritten live-format fixtures |
-| 9 | Bullets under `## Standing Carries` appear in the digest's `standing_carries` field; a summary without the section yields an empty field; `summary` remains the Last-run paragraph | libwiki boot tests covering both presence and absence |
+| 9 | Bullets under `## Standing Carries` appear verbatim (full bullet bodies, byte-equal) in the digest's `standing_carries` field; a summary without the section yields an empty field; `summary` remains the Last-run paragraph | libwiki boot tests asserting byte-equality, covering both presence and absence |
 | 10 | memory-protocol.md matches the shipped mechanism, amended in the same change set with technical-writer review recorded | implementation PR diff includes the amendment; TW review comment on the PR |
 | 11 | No libwiki test surface retains the dead storyboard format | `cd libraries/libwiki && bun test` green with the rewritten fixtures, and `grep -rn -- '— backlog' libraries/libwiki/test/` returns no matches |
 | 12 | If the materialized surface lives in the storyboard, the live storyboard stays within its audit budgets after attribution | `fit-wiki audit` passes on the refreshed wiki |
