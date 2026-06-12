@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/outpost",
-  "version": "3.2.2",
+  "version": "3.3.0",
   "description": "Personal operations center — context from email, calendar, and knowledge assembled so preparation is continuous, not a morning scramble.",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
@@ -30,7 +30,8 @@
   "type": "module",
   "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./bin/fit-outpost.js": "./bin/fit-outpost.js"
   },
   "bin": {
     "fit-outpost": "./bin/fit-outpost.js"

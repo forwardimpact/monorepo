@@ -2,6 +2,7 @@ import { isoDate } from "@forwardimpact/libutil";
 import { analyze, roundStats } from "../analyze.js";
 import { round1 } from "../format.js";
 import { resolveSlice } from "./slice.js";
+import { withIntegrityGuard } from "./guard.js";
 
 /** Run the summarize command: analyze a CSV and output a condensed summary as markdown or JSON. */
 export function runSummarizeCommand(ctx) {
@@ -30,7 +31,11 @@ export function runSummarizeCommand(ctx) {
 
   const { eventType, label } = resolveSlice(values["event-type"]);
   const text = fsSync.readFileSync(csvPath, "utf-8");
-  const report = analyze(text, { eventType });
+  const guarded = withIntegrityGuard(csvPath, () =>
+    analyze(text, { eventType }),
+  );
+  if (!guarded.ok) return guarded;
+  const report = guarded.value;
   report.source = csvPath;
   report.generated = isoDate(clock.now());
   report.eventType = eventType;

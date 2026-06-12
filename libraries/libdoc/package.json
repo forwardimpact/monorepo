@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libdoc",
-  "version": "0.2.35",
+  "version": "0.2.36",
   "description": "Static documentation sites from markdown — publish docs without a framework.",
   "keywords": [
     "docs",
@@ -20,6 +20,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-doc.js": "./bin/fit-doc.js",
     "./builder": "./src/builder.js",
     "./server": "./src/server.js",
     "./frontmatter": "./src/frontmatter.js",
@@ -43,7 +44,7 @@
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libutil": "^0.1.0",
     "@hono/node-server": "^2.0.4",
-    "hono": "^4.12.23",
+    "hono": "^4.12.25",
     "marked": "^18.0.5",
     "marked-gfm-heading-id": "^4.1.4",
     "marked-highlight": "^2.2.4",

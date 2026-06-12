@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libterrain",
-  "version": "0.1.38",
+  "version": "0.1.39",
   "description": "Full synthetic data pipeline — generate, render, and validate evaluation datasets end to end.",
   "keywords": [
     "synthetic",
@@ -30,6 +30,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-terrain.js": "./bin/fit-terrain.js",
     "./pipeline": "./src/pipeline.js",
     "./load": "./src/load.js"
   },
@@ -62,7 +63,7 @@
     "prettier": "^3.0.0"
   },
   "optionalDependencies": {
-    "@supabase/supabase-js": "^2.107.0"
+    "@supabase/supabase-js": "^2.108.1"
   },
   "engines": {
     "bun": ">=1.2.0",

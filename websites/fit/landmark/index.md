@@ -50,11 +50,11 @@ of progress shows up.
 
 ### Audience Model
 
-| Audience                | Views                                                                | Privacy                                   |
-| ----------------------- | -------------------------------------------------------------------- | ----------------------------------------- |
-| **Engineer** (own data) | `evidence`, `readiness`, `timeline`, `coverage`, `voice --email`     | Full individual detail                    |
-| **Manager** (1:1 tool)  | `health`, `readiness`, `timeline`, `practiced`, `voice --manager`    | Individual specificity for direct reports |
-| **Director** (planning) | `snapshot`, `coverage`, `practiced`, `voice --manager`              | Aggregated team views                     |
+| Audience                | Views                                                                         | Privacy                                   |
+| ----------------------- | ----------------------------------------------------------------------------- | ----------------------------------------- |
+| **Engineer** (own data) | `evidence`, `readiness`, `timeline`, `coverage`, `sources`, `voice --email`   | Full individual detail                    |
+| **Manager** (1:1 tool)  | `health`, `readiness`, `timeline`, `practiced`, `practice`, `voice --manager` | Individual specificity for direct reports |
+| **Director** (planning) | `snapshot`, `practiced`, `practice`, `voice --manager`                        | Aggregated team views                     |
 
 ### Commands
 

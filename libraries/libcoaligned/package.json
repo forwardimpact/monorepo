@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libcoaligned",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Co-Aligned architecture checks — enforce instruction-layer length caps, JTBD invariants, and the repo's own declarative invariant rule modules.",
   "keywords": [
     "coaligned",
@@ -49,7 +49,7 @@
     "@forwardimpact/libcli": "^0.1.9",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libutil": "*",
-    "prettier": "^3.0.0"
+    "prettier": "^3.8.4"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

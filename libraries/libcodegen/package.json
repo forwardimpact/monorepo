@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libcodegen",
-  "version": "0.1.62",
+  "version": "0.1.63",
   "description": "Protobuf code generation — keep types in sync with proto definitions without hand-writing.",
   "keywords": [
     "codegen",
@@ -52,7 +52,7 @@
     "@forwardimpact/libutil": "^0.1.64",
     "@grpc/proto-loader": "^0.8.1",
     "mustache": "^4.2.0",
-    "protobufjs": "^7.6.2",
+    "protobufjs": "^7.6.3",
     "protobufjs-cli": "1.2.2"
   },
   "devDependencies": {

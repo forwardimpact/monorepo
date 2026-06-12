@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/pathway",
-  "version": "0.26.2",
+  "version": "0.26.4",
   "description": "Explore roles, generate agent profiles, and surface career expectations so progression and team configuration are visible, not guessed.",
   "keywords": [
     "career",
@@ -41,6 +41,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-pathway.js": "./bin/fit-pathway.js",
     "./formatters": "./src/formatters/index.js",
     "./commands": "./src/commands/index.js"
   },
@@ -68,13 +69,13 @@
     "@forwardimpact/libutil": "^0.1.64",
     "@forwardimpact/map": "^0.15.5",
     "@hono/node-server": "^2.0.4",
-    "hono": "^4.12.23",
+    "hono": "^4.12.25",
     "mustache": "^4.2.0",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0",
-    "happy-dom": "^20.10.1"
+    "happy-dom": "^20.10.2"
   },
   "engines": {
     "bun": ">=1.2.0",

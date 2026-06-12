@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libhttp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "HTTP service framework — ship a Hono service endpoint without reimplementing lifecycle, security headers, or health checks.",
   "keywords": [
     "http",
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.0.4",
-    "hono": "^4.12.23"
+    "hono": "^4.12.25"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

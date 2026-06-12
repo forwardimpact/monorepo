@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/summit",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "description": "Model team capability as a system — staffing decisions backed by evidence, not intuition.",
   "keywords": [
     "team",
@@ -39,6 +39,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-summit.js": "./bin/fit-summit.js",
     "./aggregation": "./src/aggregation/index.js",
     "./roster": "./src/roster/index.js"
   },
@@ -64,7 +65,7 @@
     "@forwardimpact/libmock": "^0.1.0"
   },
   "optionalDependencies": {
-    "@supabase/supabase-js": "^2.107.0"
+    "@supabase/supabase-js": "^2.108.1"
   },
   "engines": {
     "bun": ">=1.2.0",

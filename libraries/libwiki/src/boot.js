@@ -98,6 +98,10 @@ function parseStoryboardItems(text, agent) {
       inAgent = h3Match[1].toLowerCase().startsWith(agent.toLowerCase());
       continue;
     }
+    if (/^#{1,2} /.test(line)) {
+      inAgent = false;
+      continue;
+    }
     if (!inAgent) continue;
     const bullet = line.match(/^[-*]\s+(.+)$/);
     if (bullet) {

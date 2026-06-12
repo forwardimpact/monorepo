@@ -8,7 +8,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 import { readFile } from "node:fs/promises";
 
-import { definition } from "../bin/fit-benchmark.js";
+import { definition } from "../src/commands/benchmark-definition.js";
 
 const SKILL_PATH = new URL(
   "../../../.claude/skills/fit-benchmark/SKILL.md",

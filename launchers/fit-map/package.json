@@ -1,0 +1,30 @@
+{
+  "name": "fit-map",
+  "version": "0.0.0",
+  "description": "Run fit-map from the npm registry — launcher for @forwardimpact/map",
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "launchers/fit-map"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "bin": {
+    "fit-map": "./bin/fit-map.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "dependencies": {
+    "@forwardimpact/map": "0.0.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -83,29 +83,207 @@ jobs:
             exit 0
           fi
           PACK_DIR=$(mktemp -d)
-          TARBALL=$(npm pack --workspace="$NPM_NAME" --pack-destination="$PACK_DIR")
+          # prepack/postpack lifecycle banners print to stdout ahead of the
+          # tarball filename, so keep only the last line of npm pack output.
+          TARBALL=$(npm pack --workspace="$NPM_NAME" --pack-destination="$PACK_DIR" | tail -n 1)
           cd "$PACK_DIR"
           npm init -y
           npm install "$TARBALL" --force
-          # Verify the main entry point is resolvable (skip for bin-only or subpath-only packages)
+          # Execute the main entry point (skip for bin-only or subpath-only packages).
+          # require.resolve only proves the path exists — import() executes the
+          # module graph, catching tarballs that omit transitive sources
+          # (npm pack silently drops symlinked directories from the packlist).
           HAS_MAIN=$(node -e "const p=JSON.parse(require('fs').readFileSync('node_modules/' + process.env.NPM_NAME + '/package.json','utf8')); if(p.main||(p.exports&&(typeof p.exports==='string'||p.exports['.']))) console.log('yes')")
           if [ -n "$HAS_MAIN" ]; then
-            node -e "require.resolve(process.env.NPM_NAME)"
+            node --input-type=module -e "await import(process.env.NPM_NAME)"
           fi
-          # Verify CLI entry point file exists (don't execute — workspace deps missing in isolation)
+          # Execute the CLI entry point with --help. Dependencies resolve from
+          # the registry during the tarball install above, so the bin runs in
+          # true isolation; the timeout guards against a bin that blocks on input.
           BIN=$(node -e "const p=JSON.parse(require('fs').readFileSync('node_modules/' + process.env.NPM_NAME + '/package.json','utf8')); const b=Object.values(p.bin||{})[0]; if(b) console.log(b)")
           if [ -n "$BIN" ]; then
-            test -f "node_modules/$NPM_NAME/$BIN"
+            timeout 30 node "node_modules/$NPM_NAME/$BIN" --help
           fi
           rm -rf "$PACK_DIR"
+
+      # In-job so a tag cut from a commit that skipped CI still gets the
+      # guarantee that launchers/ equals the rule's output before anything
+      # is stamped or published. Runs only this rule module — the full
+      # invariant suite assumes a contributor checkout (wiki present).
+      - name: Check public-CLI set
+        run: |
+          node --input-type=module <<'EOF'
+          const mod = (await import("./.coaligned/invariants/public-cli-set.rules.mjs")).default;
+          const { subjects } = await mod.build({ root: process.cwd() });
+          const problems = subjects["public-cli-problem"];
+          for (const p of problems) console.error(`::error::${p.path}: ${p.message}`);
+          process.exit(problems.length ? 1 : 0);
+          EOF
+
+      # A launcher matches when its single dependency is the package this tag
+      # ships. Space-separated list; dir names match fit-[a-z-]+ so later
+      # steps word-split safely. Empty list -> launcher steps no-op.
+      - name: Resolve matching launchers
+        id: launchers
+        env:
+          NPM_NAME: ${{ steps.package.outputs.npm_name }}
+        run: |
+          DIRS=$(node -e "
+            const { globSync } = require('node:fs');
+            const dirs = globSync('launchers/*/package.json')
+              .filter(p => Object.keys(require('./' + p).dependencies ?? {})[0] === process.env.NPM_NAME)
+              .map(p => p.replace('/package.json', ''));
+            console.log(dirs.join(' '));
+          ")
+          echo "dirs=$DIRS" >> $GITHUB_OUTPUT
+          echo "Matching launchers: ${DIRS:-none}"
+
+      # Pre-publish gate (registry untouched on failure): stamp each matching
+      # launcher with the source's package.json version — the value npm
+      # publish actually ships, never the tag string — pack source and
+      # launchers, install all tarballs into a clean dir (each launcher's
+      # exact pin resolves against the sibling source tarball in the same
+      # command), then assert per launcher:
+      #   1. --help exits 0 and the banner names the invoked bin, not a
+      #      sibling (skipped with a notice when the source's os field
+      #      excludes the runner platform; the assertions below always run);
+      #   2. the source version resolved FROM THE LAUNCHER'S OWN CONTEXT
+      #      equals the stamped version — a top-level read is vacuous when a
+      #      wrong pin matches an already-published version: npm hoists the
+      #      tarball copy top-level and nests the registry copy under the
+      #      launcher;
+      #   3. npm ls sees exactly one physical copy and nothing is nested
+      #      under the launcher.
+      - name: Stamp, pack, and smoke launchers
+        if: steps.launchers.outputs.dirs != ''
+        env:
+          NPM_NAME: ${{ steps.package.outputs.npm_name }}
+          DIR_NAME: ${{ steps.package.outputs.dir_name }}
+          LAUNCHER_DIRS: ${{ steps.launchers.outputs.dirs }}
+        run: |
+          SRC_VERSION=$(node -p "require('./$DIR_NAME/package.json').version")
+          for L in $LAUNCHER_DIRS; do
+            (cd "$L" && npm pkg set "version=$SRC_VERSION" "dependencies.$NPM_NAME=$SRC_VERSION")
+          done
+          SKIP_BANNER=$(node -e "
+            const os = require('./${DIR_NAME}/package.json').os ?? [];
+            if (!os.length) process.exit(0);
+            const negated = os.filter(o => o.startsWith('!')).map(o => o.slice(1));
+            const positive = os.filter(o => !o.startsWith('!'));
+            if (negated.includes(process.platform)) { console.log('yes'); process.exit(0); }
+            if (positive.length && !positive.includes(process.platform)) console.log('yes');
+          ")
+          PACK_DIR=$(mktemp -d)
+          npm pack --workspace="$NPM_NAME" --pack-destination="$PACK_DIR"
+          for L in $LAUNCHER_DIRS; do npm pack "./$L" --pack-destination="$PACK_DIR"; done
+          cd "$PACK_DIR"
+          npm init -y
+          # --force downgrades EBADPLATFORM to a warning so the resolution
+          # assertions run even for platform-restricted sources.
+          npm install ./*.tgz --force
+          for L in $LAUNCHER_DIRS; do
+            CLI=$(basename "$L")
+            if [ -z "$SKIP_BANNER" ]; then
+              # Invoke by package path, not node_modules/.bin — the source
+              # tarball ships the same bin names, so the shared install's
+              # .bin shims are a source-vs-launcher collision that --force
+              # resolves arbitrarily; the package path is unambiguous and
+              # still resolves from the launcher's own context.
+              OUT=$(timeout 30 node "node_modules/$CLI/bin/$CLI.js" --help)
+              echo "$OUT" | grep -qF "$CLI" \
+                || { echo "::error::$CLI --help banner does not name $CLI"; exit 1; }
+            else
+              echo "::notice::Skipping $CLI banner run — source os field excludes this platform"
+            fi
+            CLI="$CLI" NPM_NAME="$NPM_NAME" SRC_VERSION="$SRC_VERSION" node --input-type=module <<'EOF'
+          import { createRequire } from "node:module";
+          import { dirname, join, resolve } from "node:path";
+          import { existsSync, readFileSync } from "node:fs";
+          const { CLI, NPM_NAME, SRC_VERSION } = process.env;
+          // Resolve the bin subpath, not <src>/package.json — most sources do
+          // not export ./package.json, and a top-level read is vacuous for
+          // the wrong-pin-at-published-version case this assertion catches.
+          const req = createRequire(resolve(`node_modules/${CLI}/bin/${CLI}.js`));
+          const binPath = req.resolve(`${NPM_NAME}/bin/${CLI}.js`);
+          const pkg = JSON.parse(
+            readFileSync(join(dirname(binPath), "../package.json"), "utf8"),
+          );
+          if (pkg.version !== SRC_VERSION) {
+            console.error(`::error::${CLI} resolves ${NPM_NAME}@${pkg.version}, expected ${SRC_VERSION}`);
+            process.exit(1);
+          }
+          if (existsSync(`node_modules/${CLI}/node_modules`)) {
+            console.error(`::error::${CLI} nests its own ${NPM_NAME} copy — the launcher would run the wrong code`);
+            process.exit(1);
+          }
+          EOF
+            # A physical copy carries "resolved" in npm ls --json; deduped
+            # references are bare {version} objects (npm 10).
+            npm ls "$NPM_NAME" --all --json | NPM_NAME="$NPM_NAME" SRC_VERSION="$SRC_VERSION" CLI="$CLI" node -e "
+              const data = JSON.parse(require('node:fs').readFileSync(0, 'utf8'));
+              const { NPM_NAME, SRC_VERSION, CLI } = process.env;
+              let copies = 0;
+              const versions = new Set();
+              (function walk(node) {
+                for (const [name, dep] of Object.entries(node.dependencies ?? {})) {
+                  if (name === NPM_NAME && dep.resolved && !dep.deduped) { copies++; versions.add(dep.version); }
+                  walk(dep);
+                }
+              })(data);
+              if (copies !== 1 || !versions.has(SRC_VERSION)) {
+                console.error(\`::error::expected one physical \${NPM_NAME}@\${SRC_VERSION} for \${CLI} — found \${copies} copy(ies) at [\${[...versions].join(', ')}]\`);
+                process.exit(1);
+              }
+            "
+          done
 
       - name: Copy LICENSE to package
         env:
           DIR_NAME: ${{ steps.package.outputs.dir_name }}
-        run: cp LICENSE "$DIR_NAME"/
+          LAUNCHER_DIRS: ${{ steps.launchers.outputs.dirs }}
+        run: |
+          cp LICENSE "$DIR_NAME"/
+          for L in $LAUNCHER_DIRS; do cp LICENSE "$L"/; done
 
+      # Idempotent with an ownership check: per package, skip only when the
+      # version is already on the registry AND the registry's maintainers ACL
+      # contains our publisher — "name exists but we never published it"
+      # fails loud instead of silently skipping a squatter's artifact. E404
+      # means absent: proceed (every launcher's first release). A transient
+      # failure mid-loop is recovered by re-running the tag: published
+      # artifacts skip, the rest complete. Source publishes first so no
+      # launcher version ever exists without its implementation.
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_NAME: ${{ steps.package.outputs.npm_name }}
-        run: npm publish --workspace="$NPM_NAME" --access=public
+          DIR_NAME: ${{ steps.package.outputs.dir_name }}
+          LAUNCHER_DIRS: ${{ steps.launchers.outputs.dirs }}
+          # Verified live: npm owner ls @forwardimpact/libxmr -> dickolsson
+          # <hi.npm@senzilla.io>. If the ownership guard ever fails loud,
+          # re-check with that command.
+          NPM_PUBLISHER: dickolsson
+        run: |
+          decide() { # decide <pkg> <ver> <publish-spec...>
+            PKG="$1"; VER="$2"; shift 2
+            set +e; OUT=$(npm view "$PKG@$VER" version 2>&1); CODE=$?; set -e
+            # Skip requires the exact version echoed back — a warning line on
+            # an exit-0 "version absent" response must not read as published.
+            if [ "$CODE" -eq 0 ] && echo "$OUT" | grep -qFx "$VER"; then
+              npm owner ls "$PKG" | grep -q "^$NPM_PUBLISHER " \
+                || { echo "::error::$PKG exists on the registry but is not ours"; exit 1; }
+              echo "::notice::$PKG@$VER already published — skipping"
+            elif [ "$CODE" -eq 0 ] || echo "$OUT" | grep -q "E404"; then
+              # exit 0 with empty output: the package exists but this version
+              # does not (older npm view behavior) — publish.
+              npm publish "$@" --access=public --provenance
+            else
+              echo "$OUT"
+              exit 1
+            fi
+          }
+          SRC_VERSION=$(node -p "require('./$DIR_NAME/package.json').version")
+          decide "$NPM_NAME" "$SRC_VERSION" --workspace="$NPM_NAME"
+          for L in $LAUNCHER_DIRS; do
+            decide "$(basename "$L")" "$SRC_VERSION" "./$L"
+          done

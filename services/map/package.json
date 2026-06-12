@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcmap",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.",
   "keywords": [
     "map",
@@ -50,7 +50,7 @@
     "@forwardimpact/libtype": "^0.1.67",
     "@forwardimpact/libutil": "^0.1.85",
     "@forwardimpact/map": "^0.15.12",
-    "@supabase/supabase-js": "^2.107.0"
+    "@supabase/supabase-js": "^2.108.1"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

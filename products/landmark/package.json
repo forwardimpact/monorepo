@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/landmark",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "description": "Surface engineering progress from activity evidence — outcomes visible without singling out individuals.",
   "keywords": [
     "engineering",
@@ -40,6 +40,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-landmark.js": "./bin/fit-landmark.js",
     "./lib/confidence-floor": "./src/lib/confidence-floor.js"
   },
   "bin": {
@@ -58,7 +59,7 @@
     "@forwardimpact/libutil": "^0.1.72",
     "@forwardimpact/map": "^0.15.18",
     "@forwardimpact/summit": "^0.1.0",
-    "@supabase/supabase-js": "^2.107.0"
+    "@supabase/supabase-js": "^2.108.1"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0",

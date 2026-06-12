@@ -117,6 +117,10 @@ that workspace under the policy minimum.
 
 ### Step 3: Take Action
 
+Commit and push fix work **before** long-running verification; never end the
+session with verification still running in the background — background work
+dies at turn end, and the PR's CI is the verification of record.
+
 **Merge** — all policies pass, CI green:
 
 ```sh

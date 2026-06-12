@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libvector",
-  "version": "0.1.96",
+  "version": "0.1.97",
   "description": "Vector dot-product scoring — find semantically related content without a dedicated database.",
   "keywords": [
     "vector",
@@ -31,6 +31,8 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-process-vectors.js": "./bin/fit-process-vectors.js",
+    "./bin/fit-search.js": "./bin/fit-search.js",
     "./index/vector.js": "./src/index/vector.js",
     "./processor/vector.js": "./src/processor/vector.js"
   },

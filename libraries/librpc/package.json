@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/librpc",
-  "version": "0.1.106",
+  "version": "0.1.108",
   "description": "gRPC server and client framework — ship service endpoints without reimplementing transport.",
   "keywords": [
     "grpc",
@@ -31,6 +31,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-unary.js": "./bin/fit-unary.js",
     "./client.js": "./src/client.js",
     "./base.js": "./src/base.js",
     "./package.json": "./package.json"
@@ -44,6 +45,8 @@
     "README.md"
   ],
   "scripts": {
+    "prepack": "node -e \"const fs=require('node:fs');fs.rmSync('src/generated',{recursive:true,force:true});fs.cpSync('../../generated','src/generated',{recursive:true})\"",
+    "postpack": "node -e \"const fs=require('node:fs');fs.rmSync('src/generated',{recursive:true,force:true});fs.symlinkSync('../../../generated','src/generated','dir')\"",
     "test": "bun test test/*.test.js"
   },
   "dependencies": {

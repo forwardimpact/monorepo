@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/map",
-  "version": "0.15.57",
+  "version": "0.15.58",
   "description": "Validate, store, and publish agent-aligned engineering standards so expectations are operational, not tribal.",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
@@ -31,6 +31,7 @@
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-map.js": "./bin/fit-map.js",
     "./iri": "./src/iri.js",
     "./loader": "./src/loader.js",
     "./contract": "./src/contract.js",
@@ -87,7 +88,7 @@
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libutil": "^0.1.64",
-    "@supabase/supabase-js": "^2.107.0",
+    "@supabase/supabase-js": "^2.108.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "yaml": "^2.9.0"

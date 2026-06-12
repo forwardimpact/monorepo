@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libstorage",
-  "version": "0.1.87",
+  "version": "0.1.88",
   "description": "Pluggable file storage — local, S3, or Supabase behind a single interface.",
   "keywords": [
     "storage",
@@ -35,8 +35,8 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1062.0",
-    "@aws-sdk/credential-providers": "^3.1062.0",
+    "@aws-sdk/client-s3": "^3.1067.0",
+    "@aws-sdk/credential-providers": "^3.1067.0",
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.58",
     "@forwardimpact/libpreflight": "^0.1.0",

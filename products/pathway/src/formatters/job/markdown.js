@@ -20,10 +20,11 @@ import { toolkitToMarkdown } from "../toolkit/markdown.js";
  * @returns {string}
  */
 export function jobToMarkdown(view, entities = {}, jobTemplate) {
+  const trackSegment = view.trackName ? ` × ${view.trackName}` : "";
   const lines = [
     `# ${view.title}`,
     "",
-    `${view.disciplineName} × ${view.levelId} × ${view.trackName}`,
+    `${view.disciplineName} × ${view.levelId}${trackSegment}`,
     "",
   ];
 

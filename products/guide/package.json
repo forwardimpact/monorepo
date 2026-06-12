@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/guide",
-  "version": "0.1.48",
+  "version": "0.1.49",
   "description": "Conversational agent that grounds career guidance and quality review in your organization's engineering standard.",
   "keywords": [
     "agent-aligned-engineering-standard",
@@ -40,7 +40,8 @@
   "type": "module",
   "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./bin/fit-guide.js": "./bin/fit-guide.js"
   },
   "bin": {
     "fit-guide": "./bin/fit-guide.js"

@@ -7,14 +7,12 @@ bun install
 just quickstart
 ```
 
-`ANTHROPIC_API_KEY` is already in the shell environment; `libconfig` reads
-it automatically.
+`ANTHROPIC_API_KEY` is already set; `libconfig` reads it automatically.
 
 ## Core Rules
 
-Organized by _when_ they apply, following Atul Gawande's _Checklist Manifesto_
-(Ch. 6). **READ-DO**: read each item, then do it. **DO-CONFIRM**: do from
-memory, then pause and confirm.
+**READ-DO**: read each item, then do it. **DO-CONFIRM**: do from memory, then
+confirm (Gawande, _Checklist Manifesto_ Ch. 6).
 
 ### Invariants
 
@@ -121,8 +119,7 @@ design/        # design language (brand-agnostic) and brand implementations
 websites/      # public site sources — fit/ → forwardimpact.team, kata/ → kata.team
 ```
 
-Git tracks `*.example.*` templates in `config/`; the live files are
-gitignored, created from examples during setup.
+Git tracks `*.example.*` templates in `config/`; live files are gitignored.
 
 ### Per-package layout
 
@@ -165,8 +162,8 @@ instead.
 ## Pull Request Workflow
 
 All changes go through pull requests — never push directly to `main`. Commit,
-push, and open a PR before finishing; a local commit on an ephemeral runner is
-lost work, and the PR URL is the only valid "done" signal.
+push, and open a PR before finishing; on an ephemeral runner the PR URL is the
+only valid "done" signal.
 
 **Exception:** the release engineer may push trivial CI fixes (formatting, lint,
 lockfile drift) that `bun run check:fix` can resolve directly to `main`. See
@@ -186,7 +183,7 @@ Format: `type(scope): subject`
 ### Releasing
 
 Tag prefix matches the directory name: `libraries/libfoo` → `libfoo@v0.1.5`,
-`products/pathway` → `pathway@v0.25.0`, `services/graph` → `svcgraph@v0.1.60`.
+`services/graph` → `svcgraph@v0.1.60`.
 
 Pre-1.0 packages bump patch for any change. Post-1.0: semver (breaking=major,
 feat=minor, fix/refactor=patch). The release engineer handles bumps, tagging,
@@ -207,21 +204,24 @@ bunx fit-map validate --shacl # Validate with SHACL syntax check
 
 Security policies apply to all contributors — human and agent.
 
-- **Vulnerability audit** — `npm audit --audit-level=high` runs in CI (via
-  temporary lockfile generation) and gates publish workflows.
-- **CI secret scanning** — Gitleaks runs on every push and PR via the
-  `secret-scanning` job in
-  [.github/workflows/check-security.yml](.github/workflows/check-security.yml).
+- **Vulnerability audit** — `npm audit --audit-level=high` runs in CI and
+  gates publish workflows.
+- **CI secret scanning** — Gitleaks runs on every push and PR — see
+  [check-security.yml](.github/workflows/check-security.yml).
 - **GitHub Actions** — All third-party actions, including `forwardimpact/*`
   siblings, are SHA-pinned on `uses:` lines. Use `Dependabot`; never
   change a pin to a tag.
+- **Vendored trace fixtures** — vendor byte-exact only after a security
+  reviewer reads the result prose in full; sensitive prose forces documented
+  redaction or synthesis. Widening fixture exclusions in
+  `.coaligned/invariants/` or any security scan requires security review.
 - **Reporting** — See [SECURITY.md](SECURITY.md). Contact
   `hi.security@senzilla.io`.
 
 ## Dependency Policy
 
-- **Prefer built-ins.** Use Node built-ins over npm (`fetch` not `undici`,
-  `crypto.randomUUID()` not `uuid`); consolidate overlapping packages.
+- **Prefer built-ins.** Use Node built-ins over npm (`fetch` not `undici`);
+  consolidate overlapping packages.
 - **Align versions.** Declare the same range across workspaces. Bun hoists
   matched versions; don't drop a runtime dep just because it deduplicates.
 - **No nested duplicates.** The same package at two major versions is

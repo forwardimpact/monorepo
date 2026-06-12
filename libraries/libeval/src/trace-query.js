@@ -278,44 +278,58 @@ export class TraceQuery {
 
   /**
    * Token usage and cost breakdown per assistant turn, plus totals.
+   *
+   * Token totals prefer the summary's result-event usage — the SDK's
+   * authoritative ledger, accumulated across every result event in the
+   * trace — over per-turn sums, whose stream-time snapshots double-count
+   * re-emitted messages. Traces without a result event (truncated or
+   * in-flight) fall back to the per-turn sums.
    * @returns {object}
    */
   stats() {
-    let totalInput = 0;
-    let totalOutput = 0;
-    let totalCacheRead = 0;
-    let totalCacheCreate = 0;
-    const perTurn = [];
-
-    for (const turn of this.turns) {
-      if (turn.role !== "assistant" || !turn.usage) continue;
-      const u = turn.usage;
-      totalInput += u.inputTokens ?? 0;
-      totalOutput += u.outputTokens ?? 0;
-      totalCacheRead += u.cacheReadInputTokens ?? 0;
-      totalCacheCreate += u.cacheCreationInputTokens ?? 0;
-
-      perTurn.push({
-        index: turn.index,
-        inputTokens: u.inputTokens ?? 0,
-        outputTokens: u.outputTokens ?? 0,
-        cacheReadInputTokens: u.cacheReadInputTokens ?? 0,
-        cacheCreationInputTokens: u.cacheCreationInputTokens ?? 0,
-      });
-    }
-
+    const { perTurn, totals: turnTotals } = perTurnUsage(this.turns);
+    const tokenTotals = this.summary.tokenUsage ?? turnTotals;
     return {
       totals: {
-        inputTokens: totalInput,
-        outputTokens: totalOutput,
-        cacheReadInputTokens: totalCacheRead,
-        cacheCreationInputTokens: totalCacheCreate,
+        ...tokenTotals,
         totalCostUsd: this.summary.totalCostUsd ?? 0,
         durationMs: this.summary.durationMs ?? 0,
       },
       perTurn,
     };
   }
+}
+
+/**
+ * Sum per-turn assistant usage and build the per-turn breakdown rows.
+ * @param {object[]} turns
+ * @returns {{perTurn: object[], totals: object}}
+ */
+function perTurnUsage(turns) {
+  const totals = {
+    inputTokens: 0,
+    outputTokens: 0,
+    cacheReadInputTokens: 0,
+    cacheCreationInputTokens: 0,
+  };
+  const perTurn = [];
+
+  for (const turn of turns) {
+    if (turn.role !== "assistant" || !turn.usage) continue;
+    const row = {
+      index: turn.index,
+      inputTokens: turn.usage.inputTokens ?? 0,
+      outputTokens: turn.usage.outputTokens ?? 0,
+      cacheReadInputTokens: turn.usage.cacheReadInputTokens ?? 0,
+      cacheCreationInputTokens: turn.usage.cacheCreationInputTokens ?? 0,
+    };
+    totals.inputTokens += row.inputTokens;
+    totals.outputTokens += row.outputTokens;
+    totals.cacheReadInputTokens += row.cacheReadInputTokens;
+    totals.cacheCreationInputTokens += row.cacheCreationInputTokens;
+    perTurn.push(row);
+  }
+  return { perTurn, totals };
 }
 
 /**
