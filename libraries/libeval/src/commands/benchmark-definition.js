@@ -1,7 +1,7 @@
 /**
  * `fit-benchmark` CLI definition. Lives in `src/` so the bin stays an
- * execute-on-import entry point (spec 1670 launcher contract) while tests
- * import the definition without running the CLI.
+ * execute-on-import entry point — launcher packages import the bin to run
+ * it — while tests import the definition without running the CLI.
  */
 
 import { runBenchmarkRunCommand } from "./benchmark-run.js";
