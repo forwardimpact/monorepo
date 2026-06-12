@@ -149,6 +149,14 @@ function checkLauncherSchema(launcher, src, problems) {
   const path = `launchers/${launcher.dir}/package.json`;
   const manifest = launcher.manifest;
   const fail = (message) => problems.push({ kind: "schema", path, message });
+  if (manifest.name !== launcher.dir) {
+    fail(
+      `name must equal the invoked name "${launcher.dir}" — found "${manifest.name}" (npm publishes under name, every other guard keys on the dir)`,
+    );
+  }
+  if (manifest.type !== "module") {
+    fail(`type must be "module" — the two-line launcher bin is ESM`);
+  }
   for (const key of Object.keys(manifest)) {
     if (!ALLOWED_KEYS.has(key)) fail(`key "${key}" is outside the allowed set`);
   }

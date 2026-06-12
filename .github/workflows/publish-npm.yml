@@ -267,7 +267,9 @@ jobs:
           decide() { # decide <pkg> <ver> <publish-spec...>
             PKG="$1"; VER="$2"; shift 2
             set +e; OUT=$(npm view "$PKG@$VER" version 2>&1); CODE=$?; set -e
-            if [ "$CODE" -eq 0 ] && [ -n "$OUT" ]; then
+            # Skip requires the exact version echoed back — a warning line on
+            # an exit-0 "version absent" response must not read as published.
+            if [ "$CODE" -eq 0 ] && echo "$OUT" | grep -qFx "$VER"; then
               npm owner ls "$PKG" | grep -q "^$NPM_PUBLISHER " \
                 || { echo "::error::$PKG exists on the registry but is not ours"; exit 1; }
               echo "::notice::$PKG@$VER already published — skipping"

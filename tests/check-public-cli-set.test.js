@@ -206,6 +206,24 @@ describe("condition (d) — manifest schema", () => {
     assert.match(problems[0].message, /dependencies must be exactly/);
   });
 
+  test("package name diverging from the invoked name fails", () => {
+    const problems = check({
+      launchers: [makeLauncher({ manifest: { name: "fit-demo-renamed" } })],
+    });
+    assert.equal(problems.length, 1);
+    assert.equal(problems[0].kind, "schema");
+    assert.match(problems[0].message, /name must equal the invoked name/);
+  });
+
+  test('type other than "module" fails', () => {
+    const problems = check({
+      launchers: [makeLauncher({ manifest: { type: "commonjs" } })],
+    });
+    assert.equal(problems.length, 1);
+    assert.equal(problems[0].kind, "schema");
+    assert.match(problems[0].message, /type must be "module"/);
+  });
+
   test("scripts.postinstall fails the allowed-keys schema", () => {
     const problems = check({
       launchers: [
