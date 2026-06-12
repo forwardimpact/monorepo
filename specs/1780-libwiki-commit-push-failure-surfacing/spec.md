@@ -21,8 +21,8 @@ decision points (§ Decisions D6, D3).
 **Approving this spec PR settles the WHAT-level decisions in § Decisions as
 proposed; choosing a carried alternative revises the matching success
 criteria in the same approval signal.** Mechanism choices the decisions
-defer (channel shape, guard mechanism, hook wiring component) remain design
-territory with their own review gate.
+defer (channel shape, guard placement and intent recording, hook wiring
+component) remain design territory with their own review gate.
 
 ## Personas and Jobs
 
@@ -155,7 +155,7 @@ three caller rows:
 | Command surfaces `fit-wiki push`, `claim`, `release` | Each caller maps every outcome to an honest message per § Decisions D1: `push` exits non-zero whenever the push did not land; `claim`/`release` keep zero exit on a successful local write and print an honest saved-locally warning naming the reason. |
 | Session-end hook surfacing | The Stop-hook wiring maps a push-failure exit to the hook semantics that block the stop and feed the reason back to the agent for a remediation turn, with the CLI's exit status propagated losslessly through every invocation layer in between — no shell-pipeline or wrapper layer may mask it (§ Decisions D4 fidelity clause). |
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
-| Foreign claim-row conservation | A push that would delete an Active Claims row it was not instructed to remove refuses or re-merges — never silently drops (§ Decisions D5). |
+| Foreign claim-row conservation | A push that would delete an Active Claims row it was not instructed to remove refuses or re-merges — never silently drops. Detection is a write-time content comparison of remote-tip claim rows against the would-be-pushed tree (§ Decisions D5 — file-history inspection is structurally blind to this erasure class). |
 | Unsafe-precondition refusal | A rebase in progress or a detached HEAD refuses before mutating, with a precondition reason and non-zero exit on all three surfaces — the backstop that keeps an interrupted reconcile from minting a success-shaped verdict (§ Decisions D7). |
 | Operator message contract | Failure messages name the reason class and the recovery path; where uncommitted work is retained in the stash on a failed autostash reapplication, the message names where it went (§ Decisions D3 guarantee). Contract is exit code plus reason class — exact wording is plan territory. |
 | Documented contract surface | The `commitAndPush` contract documentation describes the outcome taxonomy and per-caller mapping, traceable to this spec. |
@@ -344,9 +344,29 @@ cleanup, whether performed by the pushing invocation itself or recorded by
 a prior claim/release invocation whose stranded write the session-end push
 is retrying (D1 makes that push the retry, so the guard must not refuse
 the removals it carries). A push that fails this check refuses or
-re-merges, never silently drops. The check's mechanism is a design
-decision; the observable behavior is not. Until this lands, the team's
-adopted "claims are the authority" stance remains conditional.
+re-merges, never silently drops. **The check is a write-time content
+comparison — Active Claims rows present at the observed remote tip checked
+for presence in the tree about to be pushed.** That shape is pinned by
+evidence, not preference: the erasure class this guard exists for is
+invisible to file-history inspection — under default merge-history
+simplification a path-limited `git log` TREESAME-prunes the erased commit,
+and `git log -S` shows only the *adding* commit — so a guard built on
+inspecting the branch's history is structurally blind to exactly the damage
+it must refuse, however plausible its fixtures look (fourth
+side-pick-erasure specimen,
+[#1564](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689300925);
+[detection-constraint routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689343074)).
+The same constraint binds verification: the § Success criteria conservation
+rows observe content states — rows present in trees and refs — never log
+output, because absence from file history is not evidence of absence. What
+remains design territory: where in the push pipeline the comparison runs,
+and how deliberate-removal intent is recorded and consulted (the
+staff-engineer's
+[design-seat confirmation](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676414473)
+that locally-recorded removal intent satisfies the deliberate-removal leg
+composes with the pinned comparison shape — intent recording classifies a
+detected removal, content comparison detects it). Until this lands, the
+team's adopted "claims are the authority" stance remains conditional.
 *Alternative carried:* narrow the criterion to "the tool never mechanically
 resolves a conflict by discarding the remote side" (which the fallback
 removal alone delivers) and route the conservation guard elsewhere —
@@ -445,8 +465,8 @@ order.
 | Stop-hook failure blocks the stop and feeds the reason to the agent. | Invoke the session-end hook wiring with a push forced to fail; observe the hook-blocking exit semantics carrying the failure reason, and that a subsequent clean push permits the stop. |
 | Exit-status fidelity: the invocation layer never masks the CLI's failure status. | Wiring fixture where the CLI exits non-zero while every other process in the invocation chain exits zero (the shell-pipeline masking shape, 2026-06-11 03:02Z surface); invoke the session-end wiring; observe the failure classification and the hook-blocking semantics engage — an implementation whose observed status can be a downstream process's (pipeline last-member status, prose keying) fails this row. |
 | A failed push never loses uncommitted work. | Run `fit-wiki claim` and `fit-wiki release` (the MEMORY.md-scoped surfaces, where uncommitted foreign residue exists at reconcile time — the whole-tree path commits the tree before reconciling) with the work-preservation step forced to conflict on the failure path; observe the residue present in the working tree or retained where the failure message says it went. |
-| Foreign claim-row conservation: clean-rebase drop refused. | Fixture whose local MEMORY.md commit was written from a stale read and deletes a foreign claim row present in both the merge base and the remote tip, with no textually overlapping remote change so the rebase replays clean; run `fit-wiki push`; observe the push refuses or re-merges and the foreign row survives on the remote. |
-| Foreign claim-row conservation: post-resolution drop refused. | Fixture where a manual conflict resolution dropped a foreign row; run `fit-wiki push`; observe refusal or re-merge and the row's survival. |
+| Foreign claim-row conservation: clean-rebase drop refused. | Fixture whose local MEMORY.md commit was written from a stale read and deletes a foreign claim row present in both the merge base and the remote tip, with no textually overlapping remote change so the rebase replays clean; run `fit-wiki push`; observe the push refuses or re-merges and the foreign row survives on the remote — read as a content state of the remote-tip tree, never inferred from file-history output, which TREESAME-prunes this erasure class (§ Decisions D5). |
+| Foreign claim-row conservation: post-resolution drop refused. | Fixture where a manual conflict resolution dropped a foreign row; run `fit-wiki push`; observe refusal or re-merge and the row's survival, read as a content state of the remote-tip tree. |
 | Conservation holds on the claim/release surfaces. | Drive the stale-read deletion fixture through `fit-wiki claim`; observe zero exit with the saved-locally warning (the guard refusal is a push failure under D1), the foreign row's survival on the remote, and no silent drop pushed. |
 | Deliberate removals pass the conservation guard, including when retried by the session-end push. | Targeted release of an owned claim and `release --expired` over a foreign expired claim, each pushing successfully; then a targeted release whose own push is forced to fail, followed by `fit-wiki push` from the same clone — observe the carried removal lands and the push succeeds. |
 | Whole-tree sweep contract unchanged. | Fixture with changes across multiple files; run `fit-wiki push`; observe a single commit sweeping the tree, as today. |
@@ -517,6 +537,11 @@ staff-engineer live event (shell-pipeline exit-status masking, fourth
 observation-layer floor-save) routed by the improvement-coach
 ([PR #1601 routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676821202);
 [adjudication anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676820014)),
-folded 2026-06-11.
+folded 2026-06-11; D5 write-time content-comparison constraint and the
+content-state-not-log-output observation rule from the
+[staff-engineer detection-constraint routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689343074)
+(fourth side-pick-erasure specimen,
+[#1564](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689300925)),
+folded 2026-06-12.
 
 — Product Manager 🌱
