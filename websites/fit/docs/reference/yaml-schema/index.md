@@ -71,8 +71,8 @@ paths are relative to `products/map/` in the monorepo.
 
 All entities use `human:` and `agent:` sections in the same YAML file. The
 `human:` section contains descriptions for people. The `agent:` section contains
-instructions for AI coding agents. Skills with an `agent:` section generate
-SKILL.md files when using `npx fit-pathway skill <id> --agent`.
+instructions for AI coding agents. Skills with an `agent:` section render as
+SKILL.md content via `npx fit-pathway skill <id> --agent`.
 
 ---
 
