@@ -17,7 +17,7 @@ toc: false
 
 </div>
 
-## Understand Expectations (Engineers)
+## See What's Expected of Humans and Agents (Engineers)
 
 <div class="grid">
 
@@ -25,9 +25,13 @@ toc: false
 
 <!-- part:card:career-paths/autonomy-scope -->
 
+<!-- part:card:agent-teams -->
+
+<!-- part:card:agent-teams/organizational-context -->
+
 </div>
 
-## Find Growth Areas (Engineers)
+## Get Judgment Grounded in the Standard (Engineers)
 
 <div class="grid">
 
@@ -37,27 +41,11 @@ toc: false
 
 <!-- part:card:growth-areas/check-progress -->
 
-</div>
-
-## Trust Agent Output (Engineers)
-
-<div class="grid">
-
 <!-- part:card:trust-output -->
 
 <!-- part:card:trust-output/second-opinion -->
 
 <!-- part:card:trust-output/expected-output -->
-
-</div>
-
-## Equip Aligned Agent Teams (Engineers)
-
-<div class="grid">
-
-<!-- part:card:agent-teams -->
-
-<!-- part:card:agent-teams/organizational-context -->
 
 </div>
 

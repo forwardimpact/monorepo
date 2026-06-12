@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Bridge Conversation Platforms to the Agent Team",
-      "trigger": "Engineers discuss work in Microsoft Teams and need to context-switch to GitHub to invoke the agent team.",
-      "bigHire": "relay messages between a chat platform and the Kata agent team without leaving the conversation.",
+      "goal": "Bridge Conversations to the Agent Team",
+      "trigger": "Engineers discuss work in chat and GitHub Discussions while the agent team is reachable only from GitHub, and every new channel adapter re-solves intake, thread state, and tenant routing.",
+      "bigHire": "relay conversations between the channels engineers already use and the agent team, with thread state and tenant resolution handled once.",
       "littleHire": "dispatch a facilitate session from a chat message and return the verdict to the same thread.",
-      "competesWith": "manually creating GitHub issues; copy-pasting between chat and GitHub; leaving the agent team unreachable from daily conversation"
+      "competesWith": "manually creating GitHub issues; copy-pasting between chat and GitHub; per-channel duplication of intake skeletons; ephemeral thread state that vanishes on restart"
     }
   ],
   "type": "module",

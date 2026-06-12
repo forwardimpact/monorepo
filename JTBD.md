@@ -10,10 +10,10 @@
 a written definition.
 
 **Big Hire:** Help me define what good engineering means so roles have clear,
-defensible expectations. → **Map, Pathway**
+defensible expectations. → **Map**
 
 **Little Hire:** Help me define or update a role's expectations knowing
-structural mistakes get caught. → **Map, Pathway**
+structural mistakes get caught. → **Map**
 
 **Competes With:** tribal knowledge; borrowed frameworks; per-manager intuition;
 tolerating the ambiguity.
@@ -63,10 +63,10 @@ deprioritizes measurement.
 incident — nobody saw it before staffing.
 
 **Big Hire:** Help me make staffing decisions I can defend by seeing what each
-role requires. → **Pathway, Summit**
+role requires. → **Summit**
 
 **Little Hire:** Help me spot capability gaps and check whether a candidate
-fills them. → **Pathway, Summit**
+fills them. → **Summit**
 
 **Competes With:** résumé screening; gut feel; copying a team that seems to
 work; accepting gaps as inevitable.
@@ -108,120 +108,65 @@ preparation.
 
 </job>
 
-<job user="Empowered Engineers" goal="Equip Aligned Agent Teams">
+<job user="Empowered Engineers" goal="Get Judgment Grounded in the Standard">
 
-## Empowered Engineers: Equip Aligned Agent Teams
+## Empowered Engineers: Get Judgment Grounded in the Standard
 
-**Trigger:** An agent's work was rejected because it followed generic practices
-instead of the organization's standards.
+**Trigger:** The promotion conversation ended with 'not yet' but no specifics,
+and agent output gets reviewed line by line because nobody can tell whether it
+meets the bar.
 
-**Big Hire:** Help me configure agents to meet the expectations the organization
-holds for humans. → **Pathway**
+**Big Hire:** Help me get career guidance and output review grounded in my
+organization's standard, not impressions or generic advice. → **Guide**
 
-**Little Hire:** Help me give agents organizational context without bespoke
-prompts. → **Pathway**
+**Little Hire:** Help me ask a growth question or get a second opinion on a
+deliverable before approving it. → **Guide**
 
-**Competes With:** custom system prompts; copying another team's config; hoping
-generic instructions work.
-
-**Forces:**
-- **Push:** Generic configuration misses what the organization expects.
-- **Pull:** Agents that reflect organizational standards without bespoke
-  prompts.
-- **Habit:** Treating agent configuration as a one-time setup, not something
-  that evolves.
-- **Anxiety:** Over-constraining agents might limit their usefulness on novel
-  tasks.
-
-**Fired When:** configuration overhead exceeds the quality gain; or policy bans
-custom configuration.
-
-</job>
-
-<job user="Empowered Engineers" goal="Find Growth Areas">
-
-## Empowered Engineers: Find Growth Areas
-
-**Trigger:** The promotion conversation ended with 'not yet' but no specifics —
-unclear what evidence would change the answer.
-
-**Big Hire:** Help me get guidance and evidence grounded in my organization's
-standard, not impressions or generic advice. → **Guide, Landmark**
-
-**Little Hire:** Help me ask a growth question and check whether recent work
-shows progress. → **Guide, Landmark**
-
-**Competes With:** annual reviews; mentor conversations; hoping the next project
-makes readiness obvious.
+**Competes With:** annual reviews; mentor conversations; reviewing every line;
+trusting uncritically; hoping the next project makes readiness obvious.
 
 **Forces:**
-- **Push:** Career conversations feel subjective with no shared evidence base.
-- **Pull:** A clear picture of what's needed to close the gap, grounded in
-  evidence.
-- **Habit:** Waiting for annual feedback rather than continuously
-  self-assessing.
-- **Anxiety:** Structured analysis might confirm being further behind than
+- **Push:** Career conversations and agent review both run on subjective
+  judgment with no shared evidence base.
+- **Pull:** A second opinion grounded in the standard, whether on a career or a
+  deliverable.
+- **Habit:** Waiting for annual feedback and reviewing every line by hand.
+- **Anxiety:** Structured assessment might confirm being further behind than
   assumed.
 
-**Fired When:** gap analysis disconnects from promotion decisions; or a reorg
-makes the standard feel irrelevant.
+**Fired When:** assessments disconnect from promotion and approval decisions; or
+a reorg makes the standard feel irrelevant.
 
 </job>
 
-<job user="Empowered Engineers" goal="Trust Agent Output">
+<job user="Empowered Engineers" goal="See What's Expected of Humans and Agents">
 
-## Empowered Engineers: Trust Agent Output
-
-**Trigger:** Reviewing agent output line by line because there's no way to tell
-whether it meets the quality bar.
-
-**Big Hire:** Help me verify agent work against the standard so I review by
-exception, not by default. → **Guide, Pathway**
-
-**Little Hire:** Help me check expected output and get a second opinion before
-approving a deliverable. → **Guide, Pathway**
-
-**Competes With:** reviewing every line; accepting slower delivery; trusting
-uncritically; not using agents for substantive work.
-
-**Forces:**
-- **Push:** Full review of every deliverable negates the productivity gain.
-- **Pull:** Confident delegation — knowing output meets the standard without
-  reading every line.
-- **Habit:** Reviewing everything because that's how quality has always been
-  caught.
-- **Anxiety:** Delegating quality judgment might miss context-specific issues.
-
-**Fired When:** verification catches fewer issues than full review; or the team
-stops using agents.
-
-</job>
-
-<job user="Empowered Engineers" goal="Understand Expectations">
-
-## Empowered Engineers: Understand Expectations
+## Empowered Engineers: See What's Expected of Humans and Agents
 
 **Trigger:** 'Meets expectations' on the review form has no definition anyone
-can point to.
+can point to, and an agent's work was just rejected for following generic
+practices instead of the organization's.
 
-**Big Hire:** Help me see exactly what's expected at my level so I stop guessing
-during reviews. → **Pathway**
+**Big Hire:** Help me see what's expected of me at my level and of the agents I
+configure, from one shared standard. → **Pathway**
 
-**Little Hire:** Help me understand the autonomy and scope my level implies. →
-**Pathway**
+**Little Hire:** Help me generate a job definition, a level comparison, or an
+agent profile from discipline, track, and level. → **Pathway**
 
-**Competes With:** asking peers; inferring from manager comments; browsing
-LinkedIn; living with ambiguity.
+**Competes With:** asking peers; inferring from manager comments; custom system
+prompts; copying another team's config; living with ambiguity.
 
 **Forces:**
-- **Push:** Ambiguous expectations create anxiety about reviews and readiness.
-- **Pull:** Clarity about what's expected, removing the guesswork from
-  self-assessment.
-- **Habit:** Inferring expectations from peer behavior rather than a standard.
+- **Push:** Ambiguous expectations create review anxiety for humans and rejected
+  work from agents.
+- **Pull:** One standard that produces role definitions for people and profiles
+  for agents.
+- **Habit:** Inferring expectations from peer behavior and hand-tuning agent
+  prompts per team.
 - **Anxiety:** Looking up the standard might confirm gaps easier left ignored.
 
-**Fired When:** defined expectations diverge from actual promotions; or a
-reorganization makes the framework feel irrelevant.
+**Fired When:** defined expectations diverge from actual promotions; or
+configuration overhead exceeds the quality gain.
 
 </job>
 
@@ -230,55 +175,28 @@ reorganization makes the framework feel irrelevant.
 ## Platform Builders: Build Agent-Capable Systems
 
 **Trigger:** Building an agent that needs structured knowledge or typed
-contracts — and the alternative is reimplementing plumbing from scratch.
+contracts, with no way to prove the next change improves outcomes.
 
 **Big Hire:** Help me give humans and agents shared capabilities through the
 same interface, with tooling to prove changes improved outcomes. → **Gear**
 
-**Little Hire:** Help me query graphs, run vector search, or expose services as
-MCP tools without building infrastructure. → **Gear**
+**Little Hire:** Help me query graphs, run vector search, expose services as MCP
+tools, or chart agent metrics without building infrastructure. → **Gear**
 
-**Competes With:** hand-rolled retrieval; bespoke wrappers; ad-hoc frameworks;
-monolithic platforms.
+**Competes With:** hand-rolled retrieval; bespoke wrappers; custom eval
+harnesses; monolithic platforms; shipping without measuring.
 
 **Forces:**
-- **Push:** Every agent project rebuilds retrieval, transport, and interface
-  plumbing.
-- **Pull:** Interoperable libraries that work standalone or together.
-- **Habit:** Copy-pasting infrastructure rather than using shared primitives.
+- **Push:** Every agent project rebuilds plumbing, and improvements are claimed
+  but never measured.
+- **Pull:** Interoperable libraries and reproducible evals that work standalone
+  or together.
+- **Habit:** Copy-pasting infrastructure and assuming changes helped because the
+  prompt looks better.
 - **Anxiety:** Shared libraries mean losing control over the interface contract.
 
-**Fired When:** the libraries diverge from how agents consume them; or a
-monolithic framework absorbs the surface.
-
-</job>
-
-<job user="Platform Builders" goal="Evaluate and Improve Agents">
-
-## Platform Builders: Evaluate and Improve Agents
-
-**Trigger:** An agent change shipped but nobody can tell whether it improved
-outcomes — the only evidence is anecdotal.
-
-**Big Hire:** Help me prove whether agent changes improved outcomes with
-reproducible evidence. → **Gear**
-
-**Little Hire:** Help me generate test data and chart agent metrics to
-distinguish signal from noise. → **Gear**
-
-**Competes With:** spot-checking; anecdotal feedback; shipping without
-measuring; custom eval harnesses.
-
-**Forces:**
-- **Push:** Agent improvements are claimed but never measured — regressions hide
-  until users complain.
-- **Pull:** Reproducible evals and control charts that make improvement visible.
-- **Habit:** Assuming changes helped because the prompt looks better.
-- **Anxiety:** Rigorous evaluation might reveal that recent changes made things
-  worse.
-
-**Fired When:** eval overhead exceeds the value of knowing; or the team stops
-iterating on agents.
+**Fired When:** the libraries diverge from how agents consume them; or eval
+overhead exceeds the value of knowing.
 
 </job>
 

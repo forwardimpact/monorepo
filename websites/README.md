@@ -17,7 +17,7 @@ Little Hire guides are nested children.
 
 ### Product Guides
 
-**Define the Engineering Standard** (Leaders → Map, Pathway)
+**Define the Engineering Standard** (Leaders → Map)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -25,35 +25,25 @@ Little Hire guides are nested children.
 | Little | `authoring-standards/update-standard/` | Validate and Update the Standard |
 | Little | `authoring-standards/define-role/` | Define a New Role |
 
-**Understand Expectations** (Engineers → Pathway)
+**See What's Expected of Humans and Agents** (Engineers → Pathway)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
 | Big | `career-paths/` | See What's Expected at Your Level |
 | Little | `career-paths/autonomy-scope/` | Understand Autonomy and Scope |
+| Big | `agent-teams/` | Configure Agents to Meet Your Engineering Standard |
+| Little | `agent-teams/organizational-context/` | Give Agents Organizational Context |
 
-**Find Growth Areas** (Engineers → Guide, Landmark)
+**Get Judgment Grounded in the Standard** (Engineers → Guide)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
 | Big | `growth-areas/` | Find Growth Areas and Build Evidence |
 | Little | `growth-areas/growth-question/` | Ask a Growth Question |
 | Little | `growth-areas/check-progress/` | Check Progress Toward Next Level |
-
-**Trust Agent Output** (Engineers → Guide, Pathway)
-
-| Hire | Path | Title |
-| ---- | ---- | ----- |
 | Big | `trust-output/` | Verify Agent Work Against the Standard |
 | Little | `trust-output/second-opinion/` | Get a Second Opinion on a Deliverable |
 | Little | `trust-output/expected-output/` | See What the Standard Expects Before Reviewing |
-
-**Equip Aligned Agent Teams** (Engineers → Pathway)
-
-| Hire | Path | Title |
-| ---- | ---- | ----- |
-| Big | `agent-teams/` | Configure Agents to Meet Your Engineering Standard |
-| Little | `agent-teams/organizational-context/` | Give Agents Organizational Context |
 
 **Measure Engineering Outcomes** (Leaders → Landmark)
 
@@ -62,7 +52,7 @@ Little Hire guides are nested children.
 | Big | `engineering-outcomes/` | Demonstrate Engineering Progress |
 | Little | `engineering-outcomes/culture-investments/` | Tell Whether Culture Investments Are Working |
 
-**Staff Teams to Succeed** (Leaders → Pathway, Summit)
+**Staff Teams to Succeed** (Leaders → Summit)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -111,7 +101,7 @@ Little Hire guides are nested children.
 | Big | `integrate-standard/` | Turn Standard Definitions into Queryable Data |
 | Little | `integrate-standard/derive-profile/` | Derive a Skill Matrix or Agent Profile |
 
-**Keep Service Contracts Typed** (Builders → libcodegen, libmcp, librpc, libtype)
+**Keep Service Contracts Typed** (Builders → libproto, libtype, libcodegen, libmcp, librpc, libhttp)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -119,7 +109,7 @@ Little Hire guides are nested children.
 | Little | `typed-contracts/expose-tool/` | Expose a Proto Method as an Agent Tool |
 | Little | `typed-contracts/ship-endpoint/` | Ship a Service Endpoint |
 
-**Keep Services Running and Visible** (Builders → librc, libsupervise, libtelemetry)
+**Run a Predictable Platform** (Builders → libpreflight, librc, libsupervise, libtelemetry, libcoaligned)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -138,7 +128,7 @@ Little Hire guides are nested children.
 
 ### Service Guides
 
-**Ground Agents in Context** (Builders → graph, vector)
+**Ground Agents in Context** (Builders → graph, vector, embedding, map)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -153,7 +143,7 @@ Little Hire guides are nested children.
 | Big | `integrate-standard/` | Query the Engineering Standard from Any Product |
 | Little | `integrate-standard/fetch-profile/` | Fetch a Derived Role or Agent Profile |
 
-**Keep Service Contracts Typed** (Builders → mcp)
+**Enable Agents on Every Surface** (Builders → mcp)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |

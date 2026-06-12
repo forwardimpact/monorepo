@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Resolve a per-user GitHub token for agent dispatch",
-      "trigger": "A chat surface needs to dispatch a workflow under the identity of the human who asked, not a shared bot token.",
-      "bigHire": "own the Kata Agent User App credential lifecycle end-to-end so every surface resolves a per-user GitHub token through one gRPC query.",
+      "goal": "Broker Scoped Credentials for Agents",
+      "trigger": "Agent infrastructure needs GitHub and OAuth tokens, but private keys and long-lived secrets must stay out of workflows and public-facing processes.",
+      "bigHire": "issue short-lived, scoped credentials to agents and workflows while signing material stays in one custody service.",
       "littleHire": "exchange an authorization code for a user-to-server token, store the binding, refresh on expiry, and return a typed link/re-auth result when the binding is missing or revoked.",
-      "competesWith": "per-surface OAuth implementations duplicating the authorization-code flow, token storage, and refresh logic across multiple bridge services"
+      "competesWith": "shipping the App private key into every workflow as a repository secret; long-lived personal access tokens; per-provider HTTP services that mix protocol handling with exchange logic"
     }
   ],
   "type": "module",

@@ -75,10 +75,10 @@ from config, and ship endpoints without reimplementing transport.
 
 <a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#jobs-to-be-done">
 
-### Keep Services Running and Visible
+### Run a Predictable Platform
 
-Manage service lifecycle from one interface, keep services recoverable without
-manual intervention, and make operations observable.
+Preflight checks before anything heavy runs, supervised processes, structured
+telemetry, and instruction layers that stay honest.
 
 </a>
 

@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Mint a repo-scoped GitHub installation token without holding App signing material",
-      "trigger": "A control-plane caller needs an installation token for a customer repo and the App private key must stay off the public-facing process.",
-      "bigHire": "own the hosted GitHub App key custody so every control-plane caller mints a repo-scoped, short-lived installation token through one gRPC query that checks the tenant registry first.",
+      "goal": "Broker Scoped Credentials for Agents",
+      "trigger": "Agent infrastructure needs GitHub and OAuth tokens, but private keys and long-lived secrets must stay out of workflows and public-facing processes.",
+      "bigHire": "issue short-lived, scoped credentials to agents and workflows while signing material stays in one custody service.",
       "littleHire": "resolve the requesting repo to an active tenant, enforce a per-tenant mint-rate ceiling, and return a fresh installation token bound to the resolved installation.",
-      "competesWith": "embedding the App private key in every bridge and front-end process that needs to dispatch a workflow"
+      "competesWith": "shipping the App private key into every workflow as a repository secret; long-lived personal access tokens; per-provider HTTP services that mix protocol handling with exchange logic"
     }
   ],
   "type": "module",

@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Bridge Threaded Channels to the Agent Team",
-      "trigger": "Building a chat or discussion adapter and reaching for last project's callback registry, rate limiter, and history-bound prompt builder.",
-      "bigHire": "ship a threaded-channel adapter without reimplementing the intake skeleton, callback registry, durable thread state, and resume-trigger contract.",
+      "goal": "Bridge Conversations to the Agent Team",
+      "trigger": "Engineers discuss work in chat and GitHub Discussions while the agent team is reachable only from GitHub, and every new channel adapter re-solves intake, thread state, and tenant routing.",
+      "bigHire": "relay conversations between the channels engineers already use and the agent team, with thread state and tenant resolution handled once.",
       "littleHire": "register a callback token, build a bounded prompt, and dispatch a workflow without managing each piece directly.",
-      "competesWith": "copy-pasting channel adapter boilerplate; per-channel workflow YAML composition; ephemeral in-memory thread state that vanishes on restart"
+      "competesWith": "manually creating GitHub issues; copy-pasting between chat and GitHub; per-channel duplication of intake skeletons; ephemeral thread state that vanishes on restart"
     }
   ],
   "type": "module",

@@ -21,10 +21,10 @@
     {
       "user": "Platform Builders",
       "goal": "Ground Agents in Context",
-      "trigger": "Adding semantic search to a product and realizing each one would need its own vector store.",
-      "bigHire": "run semantic search from any product without standing up a per-product database.",
+      "trigger": "An agent needs to answer relationship questions, search by meaning, or read activity data, and the only alternative is direct database access and per-product plumbing.",
+      "bigHire": "give agents graph queries, semantic search, embeddings, and activity data through shared services that never leak schema or credentials.",
       "littleHire": "search for semantically related content without managing embeddings storage.",
-      "competesWith": "per-product vector databases; keyword search instead of semantic; skipping retrieval entirely"
+      "competesWith": "direct database access from agents; per-product retrieval endpoints; inline fetch calls; external search infrastructure; skipping semantic search entirely"
     }
   ],
   "type": "module",

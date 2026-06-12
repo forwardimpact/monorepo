@@ -20,11 +20,11 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Expose an OAuth 2.1 authorization server without provider-specific code",
-      "trigger": "A new identity provider needs to plug into the same authorization flow without changing the protocol layer.",
-      "bigHire": "serve standard OAuth 2.1 endpoints that delegate every provider-specific step to a gRPC backend, keeping the HTTP surface provider-agnostic.",
+      "goal": "Broker Scoped Credentials for Agents",
+      "trigger": "Agent infrastructure needs GitHub and OAuth tokens, but private keys and long-lived secrets must stay out of workflows and public-facing processes.",
+      "bigHire": "issue short-lived, scoped credentials to agents and workflows while signing material stays in one custody service.",
       "littleHire": "redirect an authorize request to the upstream provider and exchange a callback code for a downstream token.",
-      "competesWith": "per-provider HTTP services that mix OAuth protocol handling with provider-specific exchange logic"
+      "competesWith": "shipping the App private key into every workflow as a repository secret; long-lived personal access tokens; per-provider HTTP services that mix protocol handling with exchange logic"
     }
   ],
   "type": "module",
