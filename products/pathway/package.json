@@ -101,6 +101,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-pathway.js": "./bin/fit-pathway.js",
     "./formatters": "./src/formatters/index.js",
     "./commands": "./src/commands/index.js"
   },

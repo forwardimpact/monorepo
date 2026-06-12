@@ -55,7 +55,8 @@
   "type": "module",
   "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./bin/fit-guide.js": "./bin/fit-guide.js"
   },
   "bin": {
     "fit-guide": "./bin/fit-guide.js"

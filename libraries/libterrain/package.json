@@ -30,6 +30,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-terrain.js": "./bin/fit-terrain.js",
     "./pipeline": "./src/pipeline.js",
     "./load": "./src/load.js"
   },

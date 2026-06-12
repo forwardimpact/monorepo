@@ -20,6 +20,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-doc.js": "./bin/fit-doc.js",
     "./builder": "./src/builder.js",
     "./server": "./src/server.js",
     "./frontmatter": "./src/frontmatter.js",
