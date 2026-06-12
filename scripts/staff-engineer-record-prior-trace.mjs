@@ -29,6 +29,10 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CSV_PATH = join(ROOT, "wiki/metrics/staff-engineer/2026.csv");
+// Per-agent metrics CSVs carry a 7th `event_type` column (libxmr schema);
+// dispatch-boot rows are tagged `kata-dispatch` so they form their own
+// analysis slice, separate from the default `kata-shift` slice.
+const EVENT_TYPE = "kata-dispatch";
 const KATA_DISPATCH_WORKFLOW_ID = 281527270;
 const REPO = process.env.GITHUB_REPOSITORY || "forwardimpact/monorepo";
 
@@ -307,7 +311,15 @@ function recordRun(run, runLabel, dryRun, existingRunIds) {
     `resultEvents=${metrics._resultEvents}; ` +
     `durationMs=${metrics._durationMs ?? "missing"}`;
   const rows = METRICS.filter(([metric]) => metrics[metric] !== null).map(
-    ([metric, unit]) => [date, metric, metrics[metric], unit, runLabel, note],
+    ([metric, unit]) => [
+      date,
+      metric,
+      metrics[metric],
+      unit,
+      runLabel,
+      note,
+      EVENT_TYPE,
+    ],
   );
   const block = rows.map((r) => r.map(csvEscape).join(",")).join("\n") + "\n";
   if (dryRun) {
