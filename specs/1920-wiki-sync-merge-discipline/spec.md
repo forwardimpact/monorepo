@@ -59,6 +59,18 @@ until the owner's post-push re-probe caught it and re-applied by hand
 (coach capture
 [#1564 issuecomment-4689812401 § 2](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689812401)).
 
+**Live corroboration during this spec's own landing** (2026-06-12): the
+first landing of this spec's authoring record (wiki commit `113935f4`,
+10:22:00Z) was side-pick-erased 58 seconds later by merge `74376bb1` —
+the parent carrying the section lost to a sibling leg that had appended
+a different section in the same region — and re-applied at 10:23:52Z
+(`0ae3ec53`). The Active Claims `spec-1920` row, registered before
+writing (`f38d2be2`, 10:01:25Z), was erased 27 seconds after
+registration by merge `ae91b28c` under the same side-pick class, stayed
+absent through the spec's landing window, and was re-applied via
+`fit-wiki claim` at 10:29:08Z (`35a9097e`). Both repairs are the
+operation-level re-apply of § Decisions D1, executed by hand.
+
 **The dominant mechanism is a named behavior, not weather**: the
 rebase-conflict fallback in `WikiSync.commitAndPush` resolves conflicted
 hunks with an ours-side strategy option, inside the shared session-end
