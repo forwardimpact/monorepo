@@ -30,7 +30,8 @@
   "type": "module",
   "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./bin/fit-outpost.js": "./bin/fit-outpost.js"
   },
   "bin": {
     "fit-outpost": "./bin/fit-outpost.js"

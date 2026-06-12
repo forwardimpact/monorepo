@@ -55,6 +55,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-landmark.js": "./bin/fit-landmark.js",
     "./lib/confidence-floor": "./src/lib/confidence-floor.js"
   },
   "bin": {

@@ -39,6 +39,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./bin/fit-summit.js": "./bin/fit-summit.js",
     "./aggregation": "./src/aggregation/index.js",
     "./roster": "./src/roster/index.js"
   },
