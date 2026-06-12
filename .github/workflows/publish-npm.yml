@@ -83,7 +83,9 @@ jobs:
             exit 0
           fi
           PACK_DIR=$(mktemp -d)
-          TARBALL=$(npm pack --workspace="$NPM_NAME" --pack-destination="$PACK_DIR")
+          # prepack/postpack lifecycle banners print to stdout ahead of the
+          # tarball filename, so keep only the last line of npm pack output.
+          TARBALL=$(npm pack --workspace="$NPM_NAME" --pack-destination="$PACK_DIR" | tail -n 1)
           cd "$PACK_DIR"
           npm init -y
           npm install "$TARBALL" --force
