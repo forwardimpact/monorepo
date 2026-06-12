@@ -219,8 +219,43 @@ function fitTraceJson(args, label) {
   return JSON.parse(r.stdout);
 }
 
+function parseTraceEvent(line) {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+  let event;
+  try {
+    event = JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+  // Combined supervised traces wrap each event as {source, seq, event}.
+  if (event.event && !event.type && typeof event.source === "string") {
+    return event.event;
+  }
+  return event;
+}
+
+// Cost, duration, and output_tokens must be summed over ALL "type":"result"
+// events: `fit-trace stats` totals keep only the last result event
+// (handleResult last-wins, libraries/libeval/src/trace-collector.js), which
+// understates multi-result lanes 11x-55x on recorded runs, and its output
+// figure is wrong even on single-result traces until spec 1820 lands.
+// Workaround per Issue #1624 (amended 2026-06-12).
+function sumResultEvents(traceFile) {
+  const sums = { count: 0, costUsd: 0, durationMs: 0, outputTokens: 0 };
+  for (const line of readFileSync(traceFile, "utf8").split("\n")) {
+    const event = parseTraceEvent(line);
+    if (!event || event.type !== "result") continue;
+    sums.count++;
+    sums.costUsd += event.total_cost_usd ?? 0;
+    sums.durationMs += event.duration_ms ?? 0;
+    sums.outputTokens += event.usage?.output_tokens ?? 0;
+  }
+  return sums;
+}
+
 function extractMetrics(traceFile) {
-  const totals = fitTraceJson(["stats", traceFile], "stats").totals;
+  const results = sumResultEvents(traceFile);
   const tools = fitTraceJson(["tools", traceFile], "tools");
   const toolMap = new Map(tools.map((t) => [t.tool, t.count]));
 
@@ -233,17 +268,22 @@ function extractMetrics(traceFile) {
   const totalCalls = tools.reduce((s, t) => s + t.count, 0);
   const fileWrites = (toolMap.get("Write") || 0) + (toolMap.get("Edit") || 0);
 
+  // A zero-result lane has no cost/duration/output observation — record those
+  // metrics as missing (null rows are dropped), never as 0, so degenerate
+  // zeros don't contaminate the XmR series.
+  const hasResults = results.count > 0;
   return {
-    duration_seconds: Math.round((totals.durationMs || 0) / 1000),
+    duration_seconds: hasResults ? Math.round(results.durationMs / 1000) : null,
     tool_calls_total: totalCalls,
     bash_calls: bashCalls,
-    output_tokens: totals.outputTokens || 0,
-    cost_usd_per_run: Number((totals.totalCostUsd || 0).toFixed(4)),
+    output_tokens: hasResults ? results.outputTokens : null,
+    cost_usd_per_run: hasResults ? Number(results.costUsd.toFixed(4)) : null,
     file_writes: fileWrites,
     commits_pushed: commitsPushed,
     prs_opened: prsOpened,
     tool_errors: toolErrors,
-    _durationMs: totals.durationMs,
+    _durationMs: hasResults ? results.durationMs : null,
+    _resultEvents: results.count,
   };
 }
 
@@ -263,15 +303,13 @@ function recordRun(run, runLabel, dryRun, existingRunIds) {
   }
 
   const date = run.created_at.substring(0, 10);
-  const note = `boot-append from Kata: Dispatch ${run.id}; durationMs=${metrics._durationMs}`;
-  const rows = METRICS.map(([metric, unit]) => [
-    date,
-    metric,
-    metrics[metric],
-    unit,
-    runLabel,
-    note,
-  ]);
+  const note =
+    `boot-append from Kata: Dispatch ${run.id}; ` +
+    `resultEvents=${metrics._resultEvents}; ` +
+    `durationMs=${metrics._durationMs ?? "missing"}`;
+  const rows = METRICS.filter(([metric]) => metrics[metric] !== null).map(
+    ([metric, unit]) => [date, metric, metrics[metric], unit, runLabel, note],
+  );
   const block = rows.map((r) => r.map(csvEscape).join(",")).join("\n") + "\n";
   if (dryRun) {
     process.stdout.write(block);
