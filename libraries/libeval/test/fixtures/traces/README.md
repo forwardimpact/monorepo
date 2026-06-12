@@ -1,8 +1,9 @@
-# Trace fixtures (spec 1820)
+# Trace fixtures — result-event parity
 
-Real-trace fixtures for spec 1820 (`fit-trace` stats / result-event parity, PR
-#1649). Fixture-family home for the spec's implementation; see the spec's Scope
-§ Fixture tests for the full set.
+Real-trace fixtures for the `fit-trace` stats result-event-parity spec
+(`specs/1820-fit-trace-stats-result-event-parity/`, PR #1649). Fixture-family
+home for the spec's implementation; see the spec's Scope § Fixture tests for the
+full set.
 
 ## run-481-divergence.scrubbed.ndjson
 
@@ -45,7 +46,7 @@ and per-type counts are unchanged from the source.
 | Result events                              | 1 (`subtype: success`, byte-exact from source) |
 
 A scrub or edit that perturbs any figure above has destroyed the fixture's job:
-it exists to pin the divergence-surfacing clause (spec 1820 decision 1) on a
-real trace. Secret-scanned with gitleaks 8.24.3 (CI-pinned build) before
-landing; any future hit on this file is a scrub failure, never an allowlist
-candidate.
+it exists to pin the divergence-surfacing clause (the spec's decision 1 — result
+events win, divergence surfaced) on a real trace. Secret-scanned with gitleaks
+8.24.3 (CI-pinned build) before landing; any future hit on this file is a scrub
+failure, never an allowlist candidate.

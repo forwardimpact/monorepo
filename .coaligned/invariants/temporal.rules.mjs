@@ -13,7 +13,11 @@ const PATTERNS = [
   { pattern: "\\bspec[- ][0-9]{2,5}\\b" },
   { pattern: "\\bdesign[- ][0-9]{2,5}\\b" },
   { pattern: "\\bplan[- ][0-9]{2,5}\\b" },
-  { pattern: "\\bissue[- ]?#?[0-9]{2,5}\\b" },
+  // Trace fixtures are byte-exact captures of real agent output, which
+  // naturally narrates the issues it touched ("issue #1663"); rewriting the
+  // capture destroys the fixture. Same trade-off as the loose patterns
+  // below: exclude **/test/** and keep catching the form in production code.
+  { pattern: "\\bissue[- ]?#?[0-9]{2,5}\\b", globs: ["!**/test/**"] },
   // Loose patterns: test fixtures naturally include synthetic IDs that look
   // like cross-references ("(#42)", "PR #99"). Exclude **/test/** so the
   // checker keeps catching real temporal references in production code
