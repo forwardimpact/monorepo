@@ -10,7 +10,7 @@ the user's configuration.
 | `{{AGENT_TITLE}}`    | `Product Manager`                                        |
 | `{{AGENT_NAME}}`     | `product-manager`                                        |
 | `{{CRON_ENTRIES}}`   | Three `- cron:` lines from `schedules.md`                |
-| `{{MODEL}}`          | `claude-fable-5[1m]`                                    |
+| `{{MODEL}}`          | `claude-opus-4-8[1m]`                                    |
 | `{{WIKI}}`           | `"true"` or `"false"`                                    |
 | `{{KATA_AGENT_REF}}` | `b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0`      |
 
@@ -118,7 +118,7 @@ from `SKILL.md` Step 2 so they receive bump PRs instead of rotting.
   token carries all other permissions via its installation settings.
 - If wiki is disabled, set `wiki: "false"` -- the action skips wiki checkout and
   sync.
-- If model is the default (`claude-fable-5[1m]`), the `agent-model:` line
+- If model is the default (`claude-opus-4-8[1m]`), the `agent-model:` line
   can be omitted since the action defaults to it.
 - **Hosted variant** requires the `FIT_OIDC_URL` repository variable and
   depends on `kata-agent` accepting an `installation-token` input

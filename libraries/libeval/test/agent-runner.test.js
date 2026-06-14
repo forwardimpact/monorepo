@@ -204,6 +204,86 @@ describe("AgentRunner", () => {
     assert.strictEqual(result.text, "Stopped");
   });
 
+  test("run() returns success=false when result reports success but did no model work", async () => {
+    // The SDK reports a failed init (e.g. invalid API key) as a clean
+    // "success" with zero turns, zero cost, and zero token usage. That must
+    // not pass as a green run — require evidence the model actually ran.
+    const messages = [
+      { type: "system", subtype: "init", session_id: "sess-noauth" },
+      {
+        type: "result",
+        subtype: "success",
+        result: "",
+        num_turns: 1,
+        total_cost_usd: 0,
+        usage: { input_tokens: 0, output_tokens: 0 },
+      },
+    ];
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: mockQuery(messages),
+      output,
+      redactor: noop(),
+    });
+
+    const result = await runner.run("Task");
+    assert.strictEqual(result.success, false);
+    assert.ok(result.error);
+    assert.match(result.error.message, /no model work|authentication/i);
+  });
+
+  test("run() returns success=true when result reports success with real token usage", async () => {
+    const messages = [
+      { type: "system", subtype: "init", session_id: "sess-ok" },
+      {
+        type: "result",
+        subtype: "success",
+        result: "Done.",
+        num_turns: 5,
+        total_cost_usd: 0.0523,
+        usage: { input_tokens: 350, output_tokens: 42 },
+      },
+    ];
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: mockQuery(messages),
+      output,
+      redactor: noop(),
+    });
+
+    const result = await runner.run("Task");
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.error, null);
+  });
+
+  test("run() returns success=false when result is flagged is_error despite success subtype", async () => {
+    const messages = [
+      {
+        type: "result",
+        subtype: "success",
+        is_error: true,
+        result: "",
+        total_cost_usd: 0.01,
+        usage: { input_tokens: 100, output_tokens: 5 },
+      },
+    ];
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: mockQuery(messages),
+      output,
+      redactor: noop(),
+    });
+
+    const result = await runner.run("Task");
+    assert.strictEqual(result.success, false);
+  });
+
   test("resume() passes sessionId via options.resume", async () => {
     let resumeCapture = null;
 

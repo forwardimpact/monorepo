@@ -140,5 +140,7 @@ export async function runRunCommand(ctx) {
     await new Promise((r) => fileStream.end(r));
   }
 
-  return result.success ? { ok: true } : { ok: false, code: 1, error: "" };
+  return result.success
+    ? { ok: true }
+    : { ok: false, code: 1, error: result.error?.message ?? "" };
 }

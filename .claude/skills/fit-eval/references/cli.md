@@ -22,7 +22,7 @@ npx fit-eval <command> [options]
 | `--task-file`   | Path to a markdown task file                                                |
 | `--task-text`   | Inline task text (alternative to `--task-file`)                             |
 | `--task-amend`  | Additional text appended to the task                                        |
-| `--agent-model` | Claude model for agents (default: `claude-fable-5[1m]`)                    |
+| `--agent-model` | Claude model for agents (default: `claude-opus-4-8[1m]`)                    |
 | `--max-turns`   | Max agentic turns per runner invocation (default: 50 run, 200 supervise, 20 facilitate, 40 discuss; 0 = unlimited) |
 | `--output`      | Write the NDJSON trace to a file                                            |
 
@@ -39,7 +39,7 @@ npx fit-eval <command> [options]
 | Flag             | Purpose                                                          |
 | ---------------- | ---------------------------------------------------------------- |
 | `--lead-profile` | Lead role profile name (supervisor / facilitator / chair)        |
-| `--lead-model`   | Claude model for the lead role (default: `claude-fable-5[1m]`)  |
+| `--lead-model`   | Claude model for the lead role (default: `claude-opus-4-8[1m]`)  |
 
 ## Supervise-Only Options
 

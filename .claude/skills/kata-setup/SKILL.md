@@ -87,7 +87,7 @@ Ask these questions. Skip any already answered in the task prompt.
 5. **Wiki** — "Do you want agents to share persistent memory via a GitHub
    wiki?" Default: yes. If no, set `wiki: "false"` in generated workflows.
 
-6. **Model** — "Which Claude model?" Default: `claude-fable-5[1m]`.
+6. **Model** — "Which Claude model?" Default: `claude-opus-4-8[1m]`.
 
 7. **Agent profiles** — "Do you have custom agent profiles, or should I use the
    defaults from kata-skills?" If defaults, confirm

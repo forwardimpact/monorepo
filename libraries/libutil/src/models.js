@@ -13,7 +13,7 @@
  * Long-horizon agents under direct evaluation (eval sessions) — most
  * capable model with the 1M-context suffix.
  */
-export const AGENT_MODEL = "claude-fable-5[1m]";
+export const AGENT_MODEL = "claude-opus-4-8[1m]";
 
 /**
  * Lead roles — supervisor, facilitator, discussion lead, benchmark
@@ -22,7 +22,7 @@ export const AGENT_MODEL = "claude-fable-5[1m]";
  * suffix is an Agent SDK identifier; use CHAT_MODEL or FAST_MODEL for
  * direct Messages API calls.
  */
-export const LEAD_MODEL = "claude-fable-5[1m]";
+export const LEAD_MODEL = "claude-opus-4-8[1m]";
 
 /**
  * Benchmark agent-under-test — a pinned reference model so pass@k

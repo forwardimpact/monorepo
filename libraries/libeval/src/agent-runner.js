@@ -10,6 +10,32 @@ import { AGENT_MODEL } from "@forwardimpact/libutil/models";
 
 const DEFAULT_ALLOWED_TOOLS = ["Bash", "Read", "Glob", "Grep", "Write", "Edit"];
 
+/**
+ * Did the session actually invoke the model? A genuine run always bills
+ * tokens (the system prompt alone is thousands of input tokens) and costs
+ * more than zero. A `result` message with `subtype: "success"` but zero
+ * token usage and zero cost means the model was never reached — the
+ * canonical signature of a Claude Code init/auth failure (e.g. an invalid
+ * `ANTHROPIC_API_KEY`), which the SDK otherwise reports as a clean success.
+ *
+ * If the SDK gave us neither a `usage` object nor `total_cost_usd`, don't
+ * second-guess the subtype — trust the reported success.
+ * @param {object|null} result - The SDK `result` message, or null.
+ * @returns {boolean}
+ */
+function modelDidWork(result) {
+  if (!result) return false;
+  const { usage, total_cost_usd: cost } = result;
+  if (usage == null && cost == null) return true;
+  const tokens = usage
+    ? (usage.input_tokens ?? 0) +
+      (usage.output_tokens ?? 0) +
+      (usage.cache_creation_input_tokens ?? 0) +
+      (usage.cache_read_input_tokens ?? 0)
+    : 0;
+  return tokens > 0 || (cost ?? 0) > 0;
+}
+
 // fit-eval and kata-action run headless in CI/CD with no human to answer
 // permission prompts. The SDK is always launched in bypass mode — not
 // overridable — so a future caller can't accidentally reduce permissions.
@@ -148,6 +174,7 @@ export class AgentRunner {
   async #consumeQuery(iterator) {
     let text = "";
     let stopReason = null;
+    let resultMessage = null;
     let error = null;
     let aborted = false;
 
@@ -157,6 +184,7 @@ export class AgentRunner {
         if (message.type === "result") {
           text = message.result ?? "";
           stopReason = message.subtype;
+          resultMessage = message;
         }
       }
     } catch (err) {
@@ -167,8 +195,23 @@ export class AgentRunner {
       }
     }
 
+    // A "success" subtype is necessary but not sufficient: the SDK reports a
+    // failed init (e.g. an invalid API key) as success with zero model work.
+    // Require evidence the model actually ran, and surface a clear error when
+    // it didn't, so the masked failure can't be reported as a green run.
+    const reportedSuccess = stopReason === "success";
+    const success =
+      reportedSuccess &&
+      resultMessage?.is_error !== true &&
+      modelDidWork(resultMessage);
+    if (reportedSuccess && !success && !error) {
+      error = new Error(
+        "agent reported success but performed no model work (zero token usage) — likely a Claude Code init or authentication failure",
+      );
+    }
+
     return {
-      success: stopReason === "success",
+      success,
       text,
       sessionId: this.sessionId,
       error,
