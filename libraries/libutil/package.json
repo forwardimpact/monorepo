@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libutil",
-  "version": "0.1.93",
+  "version": "0.1.94",
   "description": "Cross-cutting utilities: retry, hashing, token counting, and project discovery.",
   "keywords": [
     "util",
