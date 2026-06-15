@@ -157,6 +157,7 @@ three caller rows:
 | Bounded retry | At most one reconcile-and-retry on rejection, under two binding constraints (§ Decisions D3). |
 | Foreign content conservation (claim rows the canonical instance) | A push that would delete foreign-writer content present at the observed remote tip — an Active Claims row, a foreign-written row of a shared canonical record, or content in another writer's files (run records, rider bodies, backlog annotations) — refuses or re-merges unless the removal is a deliberate act carried by the pushed history; never silently drops. Detection is a write-time content comparison of the remote tip against the would-be-pushed tree (§ Decisions D5 — file-history inspection is structurally blind to this erasure class). |
 | Unsafe-precondition refusal | A rebase in progress or a detached HEAD refuses before mutating, with a precondition reason and non-zero exit on all three surfaces — the backstop that keeps an interrupted reconcile from minting a success-shaped verdict (§ Decisions D7). |
+| Autostash pop-conflict surfacing (`claim`/`release`) | On the pathspec-scoped surfaces foreign residue stays uncommitted and rides the `--autostash` rebase; a pop conflict — which `git rebase --autostash` leaves with `UU` markers in the tree and the entry in `refs/stash` while exiting 0 — is detected by tree state, surfaces as a `residue-conflict` reason with non-zero exit on all three surfaces, suppresses the push, and preserves the stash named by SHA rather than auto-resolving it (§ Decisions D9). |
 | `scripts/wiki-sync.sh` push mode | The second in-tree publication surface — it never enters libwiki and retains the same silent-clobber fallback this spec removes (rebase failure ⇒ `git merge origin/master -X ours --no-edit`, line 69) — stops being a callable unguarded bypass: its push mode delegates to `fit-wiki push` or is retired, revisiting spec 0780's keep ruling (§ Decisions D8; delegate-vs-retire is design latitude). |
 | Operator message contract | Failure messages name the reason class and the recovery path; where uncommitted work is retained in the stash on a failed autostash reapplication, the message names where it went (§ Decisions D3 guarantee). Contract is exit code plus reason class — exact wording is plan territory. |
 | Documented contract surface | The `commitAndPush` contract documentation describes the outcome taxonomy and per-caller mapping, traceable to this spec. |
@@ -209,7 +210,9 @@ usually land.
 **D2 — Outcome-reason taxonomy, conditioned on the fetch outcome.**
 Distinguish at minimum: *landed*, *nothing to push*, *rejected by remote*
 (non-fast-forward — actionable now: rerun from the true tip), *conflict*
-(rebase conflict — resolve or retry from the true tip),
+(rebase conflict — resolve or retry from the true tip), *residue-conflict*
+(§ Decisions D9 — the autostash pop left unmerged paths after an exit-0
+rebase, distinct from *conflict*, which keys on the rebase itself),
 *transport/credential failure* (possibly transient), and *precondition*
 (§ Decisions D7 — the repository state invalidated the operation's
 instruments before it could run). **Grounded-success
@@ -525,6 +528,54 @@ voided for any session whose harness publishes through the unguarded
 script, and a fix living in a separate home leaves the bypass callable
 while every criterion in this spec passes.
 
+**D9 — Autostash pop-conflict is an unsafe-state outcome, detected by tree
+state, conserving the residue.** On the `claim`/`release` surfaces the
+commit is pathspec-scoped (`commitPaths`, PR #1571 / #1568 lineage), so
+foreign residue stays uncommitted and `commitAndPush` rebases with
+`--autostash` (`wiki-sync.js:154`). This face sits on that *existing*
+scoped-commit-plus-autostash path — D1 governs it and D6 keeps the sweep
+whole-tree (item 3 resolved out) — so it is live on `main` today,
+independent of whether item 3 ever lands; it is not a consequence of item
+3. `git rebase --autostash` **exits 0 when the rebase succeeds but the
+autostash pop conflicts** (reproduced: "Successfully rebased", exit 0, `UU`
+in the tree, the entry kept in `refs/stash`). **Detection is grounded in
+working-tree state, never the rebase exit code or its prose** (consistent
+with D2's grounded rule): after the rebase returns, unmerged paths (`git
+status --porcelain` XY in `UU/AA/DD/AU/UA/DU/UD`) mean the pop conflicted,
+since a clean rebase leaves none — a porcelain read on the existing
+`status()` seam, no new plumbing (the precise method is design territory).
+**Both autostash sites are checked:** the rebase-success path (exit 0, pop
+conflicted) *and* the rebase-conflict/abort path — `git rebase --abort`
+re-applies the autostash too, and `rebaseAbort` currently runs
+`allowFailure` (`git-client.js:76`), so its pop result is discarded today;
+the tree-state check after the abort catches it rather than letting it pass
+silently. On detection the operation: **does not push**; **does not**
+`stash drop`/`pop`/`checkout`/`reset` — it leaves `refs/stash` intact (git
+already kept it); throws the `residue-conflict` reason, **exits non-zero on
+all three surfaces** (uniform with D7's unsafe-state family, *not* D1's
+zero-exit), surfaces the conflict in session output, and **names the
+recovery path including the stash identity by SHA** (`refs/stash` / `git
+stash list` → resolve or pop from the true tip). It **never auto-resolves
+with `ours`/`theirs`** — that is the silent-overwrite mode item 1 removes
+from the rebase path, not to be reintroduced one layer down. Any stash the
+tool ever drops is addressed **by SHA, never by stack position**
+(`stash@{N}`), so a parallel writer's stash can never be dropped by index.
+A retained, still-conflicted stash on re-invocation is itself an unsafe
+precondition (D7 family): the operation **refuses rather than retrying
+through it** (D3 — no bounded retry that re-pops and compounds foreign
+residue). The exit-code rationale is the discriminator: D1's zero-exit is
+keyed to "a claim whose *own* row landed locally, tree otherwise clean."
+On a pop conflict the agent's own commit did rebase clean — D1's key is
+literally satisfied — but the tree carries conflict markers in a
+**foreign** writer's files, and D1's "session-end push is the retry"
+rationale fails because the retry cannot resolve foreign residue: it
+re-hits the same wall, or a later whole-tree `fit-wiki push` sweep commits
+the `UU` markers into the canonical ledger. That is verdict eligibility
+(D7), not landed-locally (D1). *Alternative carried:* zero-exit-with-warning
+on `claim`/`release` per D1 — rejected: the conserved content is a foreign
+writer's and the tree is left unsafe for a later whole-tree sweep, so this
+is an unsafe-state refusal (D7), not a saved-locally success (D1).
+
 ## Success Criteria
 
 Each criterion is verified against a fixture wiki clone plus a controllable
@@ -560,6 +611,7 @@ order.
 | Stop-hook failure blocks the stop and feeds the reason to the agent. | Invoke the session-end hook wiring with a push forced to fail; observe the hook-blocking exit semantics carrying the failure reason, and that a subsequent clean push permits the stop. |
 | Exit-status fidelity: the invocation layer never masks the CLI's failure status. | Wiring fixture where the CLI exits non-zero while every other process in the invocation chain exits zero (the shell-pipeline masking shape, 2026-06-11 03:02Z surface); invoke the session-end wiring; observe the failure classification and the hook-blocking semantics engage — an implementation whose observed status can be a downstream process's (pipeline last-member status, prose keying) fails this row. |
 | A failed push never loses uncommitted work. | Run `fit-wiki claim` and `fit-wiki release` (the MEMORY.md-scoped surfaces, where uncommitted foreign residue exists at reconcile time — the whole-tree path commits the tree before reconciling) with the work-preservation step forced to conflict on the failure path; observe the residue present in the working tree or retained where the failure message says it went. |
+| Autostash pop conflict ⇒ `residue-conflict` failure, push suppressed, stash preserved and named. | Scoped MEMORY.md commit plus a foreign residue overlapping a remote advance, driven through `fit-wiki release` and `fit-wiki claim`; observe **non-zero exit** with the `residue-conflict` reason on every surface, a message **naming `refs/stash` and the stash SHA**, the push **not attempted** (remote ref unchanged), the agent's own rebased commit **not** reported landed, and the `autostash` entry present in `git stash list` with the residue recoverable — read as stash/tree content state, never inferred from log output. Abort-path leg: a rebase-conflict fixture whose abort re-applies an autostash that also conflicts ⇒ same `residue-conflict` outcome, the abort's status **not swallowed** (`git-client.js:76` `allowFailure`). Retry/precondition leg: re-invoke with a retained conflicted stash ⇒ precondition refusal (§ Decisions D7), never a retry that re-pops the residue. |
 | Foreign claim-row conservation: clean-rebase drop refused. | Fixture whose local MEMORY.md commit was written from a stale read and deletes a foreign claim row present in both the merge base and the remote tip, with no textually overlapping remote change so the rebase replays clean; run `fit-wiki push`; observe the push refuses or re-merges and the foreign row survives on the remote — read as a content state of the remote-tip tree, never inferred from file-history output, which TREESAME-prunes this erasure class (§ Decisions D5). |
 | Foreign claim-row conservation: post-resolution drop refused. | Fixture where a manual conflict resolution dropped a foreign row; run `fit-wiki push`; observe refusal or re-merge and the row's survival, read as a content state of the remote-tip tree. |
 | Foreign content conservation beyond claim rows: side-pick erasure of a foreign run record refused. | Fixture reproducing the 6/12 family shape: a conflict resolution picks the local side of another writer's weekly-log file, dropping a run-record section present at the remote tip with no claim row touched; run `fit-wiki push`; observe refusal or re-merge and the section's survival, read as a content state of the remote-tip tree (victim classes per the four specimens — run records, rider bodies, backlog annotations; [#1564 assessment](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689377410)). |
@@ -688,6 +740,16 @@ holder's re-partition qualifier
 as adopted by the
 [improvement-coach adjudication](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4690135651),
 landed by the spec holder 2026-06-12 pre-gate so the 6/24 Exp #1565
-read's strict-shrink branch holds with no qualifier.
+read's strict-shrink branch holds with no qualifier; autostash
+pop-conflict contract (D9 — tree-state detection on both autostash sites,
+the `residue-conflict` exit class added to the D2 taxonomy, stash-by-SHA,
+no-retry-through-retained-stash, and the framing correction attributing the
+pop face to the existing scoped-commit-plus-autostash path D1 governs
+rather than to item 3) from the
+[release-engineer assessment](https://github.com/forwardimpact/monorepo/issues/1583#issuecomment-4705169584)
+and the security-engineer conservation review, settled by the
+[staff-engineer 2026-06-15 ruling](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4705197459)
+over the [scope-add](https://github.com/forwardimpact/monorepo/issues/1583#issuecomment-4705134298)
+and routed to the spec holder, folded by the spec holder 2026-06-15.
 
 — Product Manager 🌱
