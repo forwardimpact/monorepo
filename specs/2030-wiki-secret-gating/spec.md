@@ -14,11 +14,8 @@ not discovered after the fact in a public history.
 ## Problem
 
 `fit-wiki` writes agent memory by committing and pushing through one behaviour,
-`WikiSync.commitAndPush` (in `libwiki`). It is reached by the commands that
-write the wiki — `claim`, `release`, and `push` — through two call sites: the
-shared `pushWiki` helper in `commands/claim.js` (used by both `claim` and
-`release`) and the push command in `commands/sync.js`. That behaviour stages,
-commits, and
+`WikiSync.commitAndPush` (in `libwiki`). Every command that writes the wiki —
+`claim`, `release`, and `push` — reaches it. That behaviour stages, commits, and
 pushes to the wiki remote with **no secret scan anywhere on the path**.
 `libwiki` contains zero secret-scanner references; the wiki checkout carries no
 workflow and no scanner config.
@@ -47,9 +44,10 @@ Add a **fail-closed pre-push secret scan** to the wiki push path so no
 the same secret scanner the repository already standardises on (gitleaks) so
 the wiki path enforces the same detection the monorepo's `main` already does.
 
-- **Single choke point.** Gate at the `commitAndPush` behaviour so the control
-  covers every command that pushes the wiki (`claim`, `release`, `push`)
-  without per-command duplication.
+- **Single choke point.** One gate covers every command that pushes the wiki
+  (`claim`, `release`, `push`), enforced once rather than duplicated per
+  command. Which behaviour hosts that gate is a design decision; `commitAndPush`
+  is the single push path the commands share today.
 - **Scope of the scan.** The content being pushed — what the commit introduces
   relative to the wiki remote — is scanned before the push.
 - **Fail-closed.** A detection **blocks the push** and surfaces the finding to
@@ -86,14 +84,11 @@ depend on 2010 landing — it gates a different axis and stands alone.
 ## Design caveats (for the design/plan to resolve, not decided here)
 
 - **Scanner availability in the `fit-wiki` runtime.** The scanner runs today
-  only in CI (the `audit` action). The local `audit-secrets` task already
-  discovers a scanner on the host via `command -v` and errors out when it is
-  absent — a
-  runtime-discovery precedent the design can build on. How the scanner is made
-  available, verified, and version-controlled in the `fit-wiki` runtime, and
-  what happens when it is absent, is a design decision. Absence must itself
-  fail closed or be an explicit, recorded operator choice — never a silent
-  skip.
+  only in CI (the `audit` action). How the scanner is made available, verified,
+  and version-controlled in the `fit-wiki` runtime, and what happens when it is
+  absent, is a design decision. The fixed constraint: scanner absence must
+  itself fail closed or be an explicit, recorded operator choice — never a
+  silent skip.
 - **Scan-window correctness.** The push path reconciles with the remote before
   pushing. The design must define the scan window so it covers exactly the
   content this push introduces, under every reconciliation path the push takes.
@@ -102,12 +97,12 @@ depend on 2010 landing — it gates a different axis and stands alone.
 
 | # | Criterion | Verified by |
 | --- | --- | --- |
-| 1 | A `fit-wiki` write whose pushed content contains a detectable secret does not reach the wiki remote. | Integration test against the push path with content carrying a fixture secret: the remote is unchanged and the command reports the detection. |
+| 1 | A `fit-wiki` write whose pushed content contains a detectable secret does not reach the wiki remote. | Integration test against the push path with content carrying a fixture secret: the scan rejects the content and the push is never attempted (no remote contact), and the command reports the detection. |
 | 2 | A detection fails closed — the command exits non-zero and reports no success. | Test asserts non-zero exit and absence of a success result on detection. |
-| 3 | A clean write pushes unchanged — no behavioural regression to existing writers. | Existing libwiki push-path tests (the `wiki-sync` and `cli-claim` suites) pass; a clean fixture pushes. |
+| 3 | A clean write pushes unchanged — no behavioural regression to existing writers. | Existing libwiki push-path tests pass — the `wiki-sync` unit suite, the `cli-claim` suite, and the `wiki-sync.integration` suite (real-git `commitAndPush` push assertions) — and a clean fixture pushes through the gate. |
 | 4a | Without the break-glass override, a detection blocks the push. | Test: detection with no override → push blocked. |
 | 4b | The break-glass override is off by default and, when used, permits the push despite a detection. | Test: same detection with the override set → push proceeds. |
-| 4c | Using the override leaves a durable record of who overrode and why. | Test asserts the override writes an inspectable record (e.g. the commit/its trailer or an audit line). |
+| 4c | Using the override leaves a durable record of who overrode and why. | Test asserts that after an override the recorded who and why are present in a durable, inspectable record that survives the run. The record's form is a design decision. |
 | 5 | A network/credential push failure still degrades to "saved locally" — today's fire-and-forget behaviour is preserved, distinct from a secret-detection block. | Existing fire-and-forget push test passes unchanged. |
 | 6 | The wiki-operations documentation describes the gate and the break-glass procedure. | `websites/fit/docs/libraries/predictable-team/wiki-operations/index.md` covers both. |
 
