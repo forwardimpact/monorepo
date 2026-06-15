@@ -132,7 +132,12 @@ work, and a sanctioned exception channel would blunt the success signal below
 stable audit target — re-running the check on an unchanged PR head yields the
 same conclusion. This applies direction 2's pinning property narrowly, inside
 direction 1's scope, where the conflation objection no longer applies. The
-choice of stable target is a design decision.
+stable target must be content-stable across re-runs of the same PR head:
+pinning to the wiki's live HEAD at first run does not qualify, since that
+target keeps mutating and re-introduces the race the determinism criterion
+exists to close. The target must still exercise the real audit rules, so a
+wiki-coupled regression still reddens (see Success Criteria). Which
+content-stable target meets both constraints is a design decision.
 
 ## Scope
 
@@ -141,10 +146,10 @@ choice of stable target is a design decision.
 | Component | What changes |
 |---|---|
 | The `wiki` job in the per-PR Context workflow (`.github/workflows/check-context.yml`). | Gains a wiki-coupled-surface condition: PRs whose diff touches no wiki-coupled surface are not evaluated against shared wiki state (skip vs. trivial pass is a design decision, under the constraint that the check's conclusion stays interpretable in the PR checks UI and in gate records). PRs whose diff does touch a wiki-coupled surface are evaluated per the determinism rider. |
-| The same workflow's push-to-main run of the `wiki` job. | In scope — it audits the same shared state outside any PR context; design dispositions it under the same principle (the shared-state verdict lives in the curation lane, not in a commit-status check on `main`). |
+| The same workflow's push-to-main run of the `wiki` job. | In scope — it audits the same shared state outside any PR context. A push-to-main run has no PR diff to scope against, so the path-scope condition does not transfer; the disposition follows from the principle alone — the shared-state audit verdict does not live in a commit-status check on `main` — and the exact form (remove the shared-state gate from the push path vs. another disposition routing the verdict to the curation lane) is a design decision. |
 | The shared-state audit step inside the repository's composite check command (`check` → `wiki` in the root `package.json` scripts). | In scope — it is the same conflation's second home: a contributor running the composite check on a code-only change fails on shared wiki state during a live session. Design dispositions it under the same principle; the standalone `wiki` script stays available for whoever is actually auditing the wiki. |
 | The wiki-coupled-surface definition. | Enumerated and documented where the gate is defined. Must include at minimum the wiki tooling library that implements the audit (`libraries/libwiki`), the audit invocation it gates through, and the check definition itself; the exact enumeration is a design decision. |
-| The wiki-curation lane's cadence guarantee and routing contract. | The shared-state audit runs on a defined cadence (today it runs only when the technical writer's shift triage routes to it — a conditional ceiling of three shift runs per day), and findings the curator cannot fix in-run surface as issues or memos to named owners within one such cycle. The cadence definition and the guarantee's home are design decisions, constrained to monorepo-local surfaces (agent profile, schedule, workflow) — not published skill text. |
+| The wiki-curation lane's cadence guarantee and routing contract. | Two commitments. (1) **A defined cadence exists**: the shared-state audit runs on a stated cadence rather than only when shift triage happens to route to it (today it runs only on that conditional path — at most the three shift runs per day, when triage selects it). (2) **A routing contract**: findings the curator cannot fix in-run surface as issues or memos to named owners within one such cycle. The cadence's exact value and the guarantee's home are design decisions, constrained to monorepo-local surfaces (agent profile, schedule, workflow) — not published skill text. |
 | Gate-meaning documentation. | The check's documentation — homed in `.github/CLAUDE.md` or alongside the workflow definition — states what the per-PR `wiki` check verifies, when it runs, and where shared-state audit findings route instead. |
 
 ### Out of scope
@@ -169,10 +174,11 @@ choice of stable target is a design decision.
 
 | Claim | Verification |
 |---|---|
-| A PR with no wiki-coupled diff is never evaluated against shared wiki state. | On such a PR, the `wiki` check run's job log shows no checkout or read of the wiki repository (or the check reports a skip conclusion) — verifiable on any PR, including during an active facilitated session. |
-| Zero documented `wiki`-gate exceptions on PRs with no wiki-coupled diff. | Release-engineer gate records for the four weeks following the change contain zero such exceptions (§ Baseline). |
+| A PR with no wiki-coupled diff has its `wiki` check conclude without running the shared-state audit. | On such a PR, the `wiki` check run's job log shows the shared-state audit (`fit-wiki audit` against the wiki repository's current HEAD) did not run — whether the disposition is a skipped job, an early exit, or a trivial pass — so the conclusion cannot depend on shared wiki state; verifiable on any PR, including during an active facilitated session. |
+| Zero documented `wiki`-gate exceptions on PRs with no wiki-coupled diff. | A trailing outcome, not checkable at merge: the release-engineer merge-gate disposition comments on PRs merged in the four weeks following the change contain zero such exceptions (§ Baseline). |
 | A PR that can change audit behavior is still evaluated. | A wiki-coupled PR that introduces an audit-visible regression yields a red `wiki` check on that PR; the same PR with the regression removed yields green. |
-| The residual check is deterministic. | Re-running the `wiki` check on an unchanged wiki-coupled PR head yields the same conclusion both times. |
+| The residual check is deterministic. | Re-running the `wiki` check on an unchanged wiki-coupled PR head yields the same conclusion both times — against the content-stable target named in design, not the wiki's live HEAD. |
+| The shared-state audit runs on a defined cadence. | The cadence is stated in its monorepo-local home (per § Scope) and a curator audit run is observable at that cadence in the run record — independent of whether a PR is in flight. |
 | Shared-wiki audit findings still surface within one curation cycle. | An audit violation present at a curation run (per the cadence guarantee in § Scope) is either fixed in that run or routed as an issue or memo naming an owner — verifiable in the resulting issue/memo and the curator's run record. |
 | The gate's meaning is documented. | The check documentation named in § Scope answers "what does a red `wiki` check mean, and who owns shared-state findings" without reference to this spec. |
 
