@@ -63,16 +63,20 @@ The `fit-*` and `kata-*` skill trees sync to the published skill packs
 `main`, so an unresolved reference in skill content publishes externally on the
 same day it lands.
 
-### What the in-flight fix changes about the surface
+### What the #1551 fix changed about the surface
 
-Issue #1551 parts 1–2 (the staff-engineer's mechanical fix, in flight) correct
-the repo names and change how the templates express refs: the fenced template
-lines move to generation-time placeholders (currently
-`uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}`), and the skill instructs
-the generator to resolve each placeholder to the SHA-pinned form
+Issue #1551 parts 1–2 (the staff-engineer's mechanical fix) merged to `main` on
+2026-06-11, when the issue closed. It corrected the repo names and changed how
+the templates express refs: the fenced template lines now carry generation-time
+placeholders (`uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}` in
+`workflow-agent.md` and `workflow-facilitate.md`,
+`uses: forwardimpact/fit-eval@{{FIT_EVAL_REF}}` in `workflow-react.md`), and the
+skill instructs the generator to resolve each placeholder to the SHA-pinned form
 `@<40-hex-sha> # vX.Y.Z` in the _consumer's_ generated workflow. Literal pins
-remain in skill content as documentation examples and as placeholder-resolution
-table values (`<sha> # <tag>` cells mapped to a placeholder).
+are present in skill content today both as documentation examples and as
+placeholder-resolution table values — e.g. `{{KATA_AGENT_REF}}` maps to
+`b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0` in `workflow-agent.md` and
+`workflow-facilitate.md`.
 
 This reshapes, rather than removes, the unvalidated surface:
 
@@ -98,14 +102,16 @@ name. Three assertions:
    in published skills (`fit-*`, `kata-*`) must resolve publicly — external
    consumers fetch them anonymously; references in internal skills must resolve
    under the credentials the check runs with. This is the #1551 defect class,
-   assertable today with no dependency on any in-flight work.
+   assertable today with no dependency on any other work.
 2. **Ref resolves within the repository.** For references whose post-`@` token
    is a literal — tag, branch, or 40-hex SHA — that token exists in the
    repository.
 3. **Pinned-form agreement.** For literal pins — `@<sha> # vX.Y.Z` references,
    and `<sha> # <tag>` placeholder-resolution values — the named tag exists and
-   points at that SHA (the #1549 mismatch class). When skill content carries
-   zero literal pins, this assertion passes vacuously.
+   points at that SHA (the #1549 mismatch class). The current tree carries
+   literal pins (the placeholder-resolution table values in `workflow-agent.md`
+   and `workflow-facilitate.md`), so this assertion has live subjects to check;
+   on a tree with zero literal pins it has nothing to check.
 
 ### Reference classes and how each is validated
 
@@ -116,10 +122,10 @@ them:
 | Class                                                                                                                                                                                                                                               | Stance                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Fully-qualified `owner/repo@ref` and `owner/repo/path@ref` (fenced or prose)                                                                                                                                                                        | Assertions 1–2 apply directly; assertion 3 applies to its literal-pin sub-form.                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Placeholder and schematic refs with a real repo half — post-`@` token is a generation-time placeholder (the syntax the `kata-setup` templates define at the time the lint lands; currently `@{{NAME}}`) or an illustrative token like `@<full-sha>` | Assertion 1 applies to the repo half; assertions 2–3 are inapplicable by design — resolution happens at install time or the ref is illustrative.                                                                                                                                                                                                                                                                                                                                                            |
-| Placeholder-resolution table values (`<sha> # <tag>`)                                                                                                                                                                                               | Assertion 3, with the repository association taken from the placeholder's qualified reference in the same skill directory.                                                                                                                                                                                                                                                                                                                                                                                  |
-| Contextual tokens — fully-qualified `owner/repo` without `@ref`, owner-less `name@ref`, and bare action-name mentions                                                                                                                               | Validated by **in-skill anchoring**: a contextual token whose repo name matches a fully-qualified action reference — literal or placeholder form — in the same skill directory is covered by that anchor's assertions and reported as its own finding site when those assertions fail; where the token carries its own literal post-`@` ref, that ref is additionally checked against the anchored repository. A contextual token matching no anchor is **out of scope** — see the recorded residual below. |
-| Tokens without a real repository half (`./.github/actions/<name>` local paths, `<name>/action.yml` path strings, npm package specifiers like `@forwardimpact/<pkg>`, fully schematic tokens like `<owner>/<repo>@<ref>`)                            | **Out of scope** — they name repo-local, package-registry, or illustrative entities with no action-repository reality to check. Historical-audit inventories such as the `kata-security-update` SHA tables fall out of scope through this row and the unanchored-contextual residual below.                                                                                                                                                                                                                 |
+| Placeholder and schematic refs with a real repo half — post-`@` token is a generation-time placeholder or an illustrative token like `@<full-sha>` | Assertion 1 applies to the repo half; assertions 2–3 are inapplicable by design — resolution happens at install time or the ref is illustrative. A valid placeholder is a `@{{NAME}}` token whose `NAME` is one the `kata-setup` templates define (on the current tree: `{{KATA_AGENT_REF}}` and `{{FIT_EVAL_REF}}`); a `@{{…}}` token whose name is not a defined placeholder is **malformed** and fails the lint — it names neither a resolvable ref nor a known generation-time substitution.                                                                                                                                                                                                                                                                                                                                                            |
+| Placeholder-resolution table values (`<sha> # <tag>`)                                                                                                                                                                                               | Assertion 3, with the repository association taken from the `uses:` reference that resolves the **same placeholder name**, not from directory proximity: the `kata-setup` directory carries more than one placeholder (`{{KATA_AGENT_REF}}` → `forwardimpact/kata-agent`, `{{FIT_EVAL_REF}}` → `forwardimpact/fit-eval`), so a `<sha> # <tag>` value binds to the repository its named placeholder resolves to.                                                                                                                                                                                                                                                                                                                                                                                  |
+| Contextual tokens — fully-qualified `owner/repo` without `@ref`, owner-less `name@ref`, and bare action-name mentions                                                                                                                               | Validated by **in-skill anchoring**: a contextual token whose repo name matches a fully-qualified action reference — literal or placeholder form — in the same skill directory is covered by that anchor's assertions and reported as its own finding site when those assertions fail; where the token carries its own literal post-`@` ref, that ref is additionally checked against the anchored repository. The match is on the full `repo` segment of an `owner/repo` anchor, compared exactly and case-sensitively — not a suffix or substring match (`kata-agent` matches the `repo` of `forwardimpact/kata-agent`; a bare `agent` matches nothing). A contextual token matching no anchor is **out of scope** — see the recorded residual below. |
+| Tokens without a real repository half (`./.github/actions/<name>` local paths, `<name>/action.yml` path strings, npm package specifiers like `@forwardimpact/<pkg>`, fully schematic tokens like `<owner>/<repo>@<ref>`)                            | **Out of scope** — they name repo-local, package-registry, or illustrative entities with no action-repository reality to check. Local-path inventories such as the `./.github/actions/<name>` references in `kata-security-update`'s `sha-inventory.md` fall out of scope through this row.                                                                                                                                                                                                                 |
 
 **Recorded residual — unanchored contextual tokens.** Tokens like
 `libfoo@v0.1.5`, `pathway@v0.25.0`, `pass@k`, or a bare `fit-codegen` pervade
@@ -172,8 +178,8 @@ failure modes are part of the WHAT:
 - **Mechanical repair.** A failure names the file and the offending reference,
   so fixing a finding requires no rediscovery.
 
-Sequencing: the lint lands against a tree whose references resolve, so the #1551
-mechanical fix precedes or accompanies it.
+Sequencing: the #1551 mechanical fix is already merged to `main` (issue closed
+2026-06-11), so the lint lands against a tree whose references already resolve.
 
 ### Acceptance corpus
 
@@ -199,7 +205,8 @@ below), the fixture expectation is re-pointed, not invalidated.
 
 - **Fixing the broken references themselves.** Issue #1551's mechanical fix —
   name corrections, placeholder emission, and the consumer-repo Dependabot
-  config — is the staff-engineer's work, in flight on its own branch.
+  config — is the staff-engineer's work, merged to `main` on 2026-06-11 (#1551
+  closed). This spec is the guard against the class recurring.
 - **Reference-form policy.** Whether skill content _must_ use the SHA-pinned
   form is a per-skill editorial decision (the `fit-benchmark` doc example
   legitimately shows `@v1` as the published identifier, consistent with spec
@@ -223,16 +230,18 @@ below), the fixture expectation is re-pointed, not invalidated.
 | Claim                                                                                | Verifies via                                                                                                                                                                                                                                                                                        |
 | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A skill file referencing a nonexistent action repository fails the lint.             | On a branch, add `uses: forwardimpact/does-not-exist@v1` inside a fenced block in any skill file; the check fails, naming the file and the reference.                                                                                                                                               |
-| The full #1551 defect, in every form it took, is detected.                           | Run the lint (invoked out-of-tree) against the content at `main` commit `9e7852d7`; it fails, naming both nonexistent repositories, and its findings enumerate all 11 sites in the § Acceptance corpus table — contextual-token sites reported as their own findings via their in-skill anchors.    |
+| The full #1551 defect, in every form it took, is detected.                           | Run the lint (invoked out-of-tree) against the content at `main` commit `9e7852d7`; it fails, naming both nonexistent repositories, and its findings cover all 11 sites in the § Acceptance corpus table — contextual-token sites reported as their own findings via their in-skill anchors. A site is a reference-carrying line; the `workflow-react.md` bare-name site carries two tokens (`kata-action-eval` and `kata-action-agent`), so that one site yields a finding per token.    |
 | A published-skill reference to an existing but non-public repository fails the lint. | An executable test exercises a non-public repository (real or simulated) referenced from a `fit-*`/`kata-*` skill and asserts a finding — anonymous resolvability, not mere existence, is what published-skill references are held to.                                                              |
 | A real repository with a nonexistent literal ref fails the lint.                     | On a branch, change a known-good reference's post-`@` token to a tag that does not exist in that repository; the check fails, naming the file and the reference.                                                                                                                                    |
 | Placeholder refs are repo-checked, and their tokens produce no finding.              | On a branch, change a placeholder reference's repo half to a nonexistent repository; the check fails, naming the file and the reference — while the unmodified placeholder references in the merged `kata-setup` templates yield zero findings.                                                     |
 | An anchored contextual token's own stale ref fails the lint.                         | On a branch, add an owner-less prose token whose name matches an in-skill qualified action reference but whose `@ref` does not exist in that repository (e.g. `kata-agent@v99.0.0` in `kata-setup`); the check fails, naming the file and the token.                                                |
 | A literal pin whose tag disagrees with its SHA fails the lint.                       | On a branch, add or alter a literal pin (an `@<sha> # vX.Y.Z` reference or a placeholder-resolution `<sha> # <tag>` value) so the named tag does not point at that SHA; the check fails, naming the file and the reference.                                                                         |
-| The lint passes on a skill tree containing only resolvable references.               | The check reports zero findings against a tree whose references all resolve under the class table (expected first instance: `main` after the #1551 mechanical fix lands); unanchored contextual tokens (`libfoo@v0.1.5`, `pass@k`), path-form rows, and schematic tokens produce no findings.       |
+| The lint passes on a skill tree containing only resolvable references.               | The check reports zero findings against a tree whose references all resolve under the class table — including literal pins whose tags agree with their SHAs, the non-vacuous case (expected first instance: `main` today, the #1551 mechanical fix having merged); unanchored contextual tokens (`libfoo@v0.1.5`, `pass@k`), path-form rows, and schematic tokens produce no findings.       |
 | Source-of-truth unavailability is not a pass.                                        | An executable test exercises the unreachable-reality state of whichever component resolves references against reality and asserts it exits in a distinct error state — not success, and distinguishable from a reference finding.                                                                   |
 | The check gates skill-content changes.                                               | A PR touching `.claude/skills/**` runs the check among its CI checks.                                                                                                                                                                                                                               |
 | The publish path runs the check before shipping skill content.                       | The workflow that syncs `.claude/skills/` content to the external skill packs contains the check as a blocking step ordered before the sync (config-verifiable on the implementing PR; the first post-merge publish run confirms execution).                                                        |
-| Upstream drift surfaces without a content edit, where the team will see it.          | A recurring trigger for the check exists whose failure lands on a surface the team already triages (a failing run on the repository's Actions surface, or an issue), and invoking that same path on demand against fixture content with an injected stale pin produces the standard finding format. |
+| A recurring trigger re-validates references without a content edit.                  | A recurring trigger for the check exists (a scheduled run or equivalent) that re-runs the full assertion set against `main` with no content change, so a reference invalidated by upstream reality alone is re-checked.                                                                              |
+| A drift failure lands on a surface the team already triages.                         | When a recurring run finds a reference that has gone stale through upstream change alone, the failure surfaces where the team already looks (a failing run on the repository's Actions surface, or an issue), in the same finding format as a change-triggered failure.                              |
+| The recurring path is invocable on demand and exercises the drift class.            | Invoking the recurring path on demand against fixture content that has drifted with no content edit — the named repository renamed or removed, or a tag moved off the SHA a still-unedited pin names (reality varied while content is held fixed, not a stale pin freshly injected into content) — produces the standard finding format. |
 
 — Product Manager 🌱
