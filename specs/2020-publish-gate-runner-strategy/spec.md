@@ -16,13 +16,16 @@ Experiment [#1738](https://github.com/forwardimpact/monorepo/issues/1738).
 ## Problem
 
 **The gate, named precisely.** The release-blocking test gate is the
-**"Run tests" step of the `Publish: Package` workflow**, which runs the
-repository's `test` script. That script enumerates the **gate set** — the test
-files it runs — and executes them under `bun test`. (The separate "Smoke test
-npm package" step only installs the built package; it is not the test gate.)
-Throughout this spec, "the gate" means that "Run tests" step, "the gate set"
-means the files its `test` script enumerates, and "publish cycle" means one run
-of that workflow on a release.
+**"Run tests" step of the publish workflows** — there are **two**:
+`Publish: Package` (npm, `publish-npm.yml:60`) and `Publish: macOS App`
+(`publish-macos.yml:41`). Each runs the repository's `test` script, which
+enumerates the **gate set** — the test files it runs — and executes them under
+`bun test`. Both carry identical bun#5090 flake exposure, so both are in scope
+for the flip. (The separate "Smoke test npm package" step only installs the
+built package; it is not the test gate.) Throughout this spec, "the gate" means
+those "Run tests" steps, "the gate set" means the files the `test` script
+enumerates, and "publish cycle" means one run of either publish workflow on a
+release.
 
 The gate intermittently fails on the critical path. The failure class is bun's
 incomplete `node:test` shim
@@ -100,21 +103,21 @@ time a new unimplemented `node:test` method surfaces.
 
 ## Resolved runner strategy (the settled trade)
 
-**Define the gate once, run it in all three places it must block.** The gate is
+**Define the gate once, run it in every place it must block.** The gate is
 a single named script — **`test:gate`** — that runs `node --test`. The name
 names the release-blocking **role**, not the runner. It reuses the **same
 `find` file-selector as the existing `test` script** so there is one source of
 truth for the gate set: if the selector forks, the gate set forks. That one
-script is invoked in **three places** — the PR `Test / gate` job (node,
-**required**), `main`, and the `Publish: Package` "Run tests" step. "Define
-once" is load-bearing: there must never be two hand-maintained `node --test`
-invocations that drift. The publish step is kept as belt-and-suspenders,
-pointed at the same script.
+script is invoked in **four places** — the PR `Test / gate` job (node,
+**required**), `main`, and the "Run tests" step of **both** publish workflows
+(`Publish: Package` and `Publish: macOS App`). "Define once" is load-bearing:
+there must never be two hand-maintained `node --test` invocations that drift.
+Both publish steps are kept as belt-and-suspenders, pointed at the same script.
 
 | Surface | Runner | Blocking? | Why |
 | --- | --- | --- | --- |
 | `Test / gate` job — PR + `main` (runs `bun run test:gate`) | `node --test` | **Blocking (required)** | Reference-correct runner; `describe`-in-`test` (163 files) is valid `node:test`. The single blocking PR check; node-only failures block the PR, not the release tag. |
-| `Publish: Package` "Run tests" step (same `test:gate` script) | `node --test` | Blocking | Belt-and-suspenders at the release, identical logic to the PR gate. |
+| "Run tests" step of **both** publish workflows — `Publish: Package` and `Publish: macOS App` (same `test:gate` script) | `node --test` | Blocking | Belt-and-suspenders at the release, identical logic to the PR gate. Both run `bun run test` today with identical bun#5090 exposure, so both must converge or the macOS release path keeps the flake. |
 | `Test / test` job + local dev inner loop | `bun test` | **Non-blocking / informational** | Keeps the ~25.8 s inner-loop speed for fast, re-runnable iteration. It surfaces the 290-fail bun#5090 cascade, so it must stay informational — making it blocking would just move the flaky blocker from the release tag to the PR queue. |
 
 This makes **correct-on-the-critical-path the default path** and pushes
@@ -127,7 +130,7 @@ failure escape review and surface on the release tag, which is exactly the
 
 | Change | In scope |
 | --- | --- |
-| Define `test:gate` (one script, `node --test`, reusing the **same `find` selector as `test`**) and invoke it in three places: a **required** `Test / gate` PR/`main` job (`bun run test:gate`) and the `Publish: Package` "Run tests" step | Yes — one source of truth for the gate set; no second hand-maintained `node --test` invocation that can drift |
+| Define `test:gate` (one script, `node --test`, reusing the **same `find` selector as `test`**) and invoke it in four places: a **required** `Test / gate` PR/`main` job (`bun run test:gate`) and the "Run tests" step of **both** publish workflows — `Publish: Package` **and** `Publish: macOS App` (both run `bun run test` today with identical bun#5090 exposure) | Yes — one source of truth for the gate set; no second hand-maintained `node --test` invocation that can drift, and no publish path left on the flaky runner |
 | Local/PR dev inner loop continues under `bun test` (`Test / test` job) | Yes (retain) — **non-blocking / informational only**; it shows the 290-fail bun#5090 cascade, so the single blocking PR check stays `Test / gate` (node) |
 | **49-file `bun:test` → `node:test` convergence via a new `expect` shim**, so the gate runner can run them | Yes — converge the 49 importers onto `node:test`. The work is an **`expect` API conversion**, *not* a mechanical import drop: 0/49 use `spy()`/`mock.fn` (0650's test-double helper covers nothing here) and all 49 import `expect` (880 callsites) which `node:test` does not ship. Build a **new dependency-free, runner-independent `expect` shim** (Jest-style matchers, runnable under both `node --test` and `bun test`), mirroring how 0650's `spy()` replaced `mock.fn`. Matcher surface is bounded/enumerable from usage (`toBe` 439, `toHaveLength` 105, `toEqual` 103, `toThrow` 78, `toContain` 56, `toBeNull` 39, `toBeUndefined` 22, `.not` 18, short tail). The 8 dual-idiom files converge together. The shim's API and the per-file mechanics are a design/plan concern; any file needing `bun:test`-only semantics the shim cannot reproduce re-bounds the sweep and is surfaced in `kata-design`. |
 | **The `expect` shim ships with its own test** | Yes — explicit coverage of the semantics drift the 49 files rely on: `toEqual` deep-equality on `Map`/`Set`, `toThrow` substring-vs-`RegExp` matching, and async `.rejects`. The shim must be green under both `node --test` and `bun test`. |
@@ -162,9 +165,10 @@ leaves CI red.
    still calls `bun run test` here — the gate is **not** flipped. The required
    node job proves the sweep is complete and keeps `main` continuously green
    under the node gate before anything depends on it.
-2. **PR 2 — flip the publish step.** Change the `Publish: Package` "Run tests"
-   step from `bun run test` to `bun run test:gate` — a one-line, revertable
-   change. By the time this lands, `main` has been continuously green under the
+2. **PR 2 — flip the publish steps.** Change the "Run tests" step of **both**
+   publish workflows (`Publish: Package` and `Publish: macOS App`) from
+   `bun run test` to `bun run test:gate` — a one-line, revertable change in
+   each. By the time this lands, `main` has been continuously green under the
    required node gate, so the flip is over a suite already proven to pass.
 
 Splitting this way keeps each PR independently green and reviewable, and means
@@ -185,18 +189,20 @@ may not merge until a required `node --test` job has been green on `main`.**
 | `test:gate` is one script (`node --test`) reusing the same `find` selector as `test`. | PR 1 | `package.json` shows `test:gate` and `test` share the file-selector command; there is no second hand-maintained `node --test` invocation. |
 | The `Test / gate` node job is required (blocking) on PR and `main`. | PR 1 | The `Test / gate` job runs `bun run test:gate` and is a required check; an introduced node-only failure reddens it on a PR. |
 | `node --test` runs the gate set green. | PR 1 | A `node --test` run over the gate set exits 0, with 0 `NotImplementedError: describe()…` and 0 `ERR_UNSUPPORTED_ESM_URL_SCHEME: protocol 'bun:'`. |
+| The gate is non-vacuously green — swept tests still fail when the code under test is broken. | PR 1 | A mutation/negative check: a representative swept assertion is inverted (or its code-under-test deliberately broken) and `node --test` over that file exits **non-zero**, proving the `expect` shim's matchers assert rather than silently pass. Run on the converted set, not just the shim's own test. |
+| The gate executes at least a known floor of tests. | PR 1 | `node --test` exits 0 on **zero** registered tests, so the gate asserts the executed-test count ≥ a recorded floor (e.g. node's reported `# tests` / `# pass` total ≥ the pre-flip baseline captured in the same PR). A run that registers zero tests — selector glob miss, discovery failure — fails the gate instead of passing. |
 | No file in the gate set has a `bun:test` import statement. | PR 1 | A search for `bun:test` **import statements** (not string mentions) across the gate set returns zero. |
 | The swept files still pass under `bun test` locally. | PR 1 | A `bun test` run over the converged files exits 0. |
 | The bun `Test / test` job is non-blocking / informational. | PR 1 | The `Test / test` job runs `bun test` and is not a required check; its failure does not block merge. |
 | A guard fails CI on any new `bun:test` import anywhere in the repo. | PR 1 | `scripts/check-bun-test-imports.mjs` (run by `bun run check` under `context:check-bun-test`) fails on a `bun:test` **import statement** introduced anywhere and passes on a clean tree. |
-| The publish "Run tests" step runs the same `test:gate` script. | PR 2 | The `Publish: Package` "Run tests" step invokes `bun run test:gate`; the change from `bun run test` is the one-line diff and main was green under the required node job before merge. |
+| **Both** publish "Run tests" steps run the same `test:gate` script. | PR 2 | The "Run tests" step of `Publish: Package` **and** `Publish: macOS App` each invoke `bun run test:gate`; the change from `bun run test` is a one-line diff in each, and main was green under the required node job before merge. No publish path is left on `bun run test`. |
 
 **Outcome criterion (go-see)** — the durable target, measured on the live gate
 *after* merge; tracked on experiment #1738, not a merge gate:
 
 | Criterion | Verification |
 | --- | --- |
-| First-attempt shim-class (bun#5090 / describe-in-test) failures on the gate = 0, sustained. | `Publish: Package` run history shows 0 such failures across publish cycles after merge. Initial go-see window: the first 2 cycles (confirms no immediate regression); the **durable target is 0 over 20 consecutive cycles** per the obstacle's target condition. |
+| First-attempt shim-class (bun#5090 / describe-in-test) failures on the gate = 0, sustained. | `Publish: Package` and `Publish: macOS App` run history shows 0 such failures across publish cycles after merge. Initial go-see window: the first 2 cycles (confirms no immediate regression); the **durable target is 0 over 20 consecutive cycles** per the obstacle's target condition. |
 
 ## Path to approval
 
