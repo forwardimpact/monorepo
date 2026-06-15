@@ -573,12 +573,22 @@ with D2's grounded rule): after the rebase returns, unmerged paths (`git
 status --porcelain` XY in `UU/AA/DD/AU/UA/DU/UD`) mean the pop conflicted,
 since a clean rebase leaves none — a porcelain read on the existing
 `status()` seam, no new plumbing (the precise method is design territory).
-**Both autostash sites are checked:** the rebase-success path (exit 0, pop
-conflicted) *and* the rebase-conflict/abort path — `git rebase --abort`
-re-applies the autostash too, and `rebaseAbort` currently runs
-`allowFailure` (`git-client.js:76`), so its pop result is discarded today;
-the tree-state check after the abort catches it rather than letting it pass
-silently. On detection the operation: **does not push**; **does not**
+**The grounded check runs once after the reconcile returns** and covers
+whatever tree state any reconcile path left — it is the one general
+`#hasUnmergedPaths()`/porcelain-UU read, not a per-site enumeration. After
+item 1 removes the `mergeOursStrategy({ autostash: true })` fallback
+(`wiki-sync.js:158`), exactly **one conflict-capable autostash site
+remains** — the rebase-success pop, where the stash re-applies onto the
+*new* base (`origin/master`) and divergence is real (RE-reproduced, git
+2.54.0). The rebase-conflict/abort path is **not** a second conflict-capable
+site: `git rebase --abort` resets to `orig_head` — exactly the base the
+autostash was taken against — so the pop is a zero-divergence three-way
+apply that **cannot raise a conflict** (RE could not reproduce one).
+`rebaseAbort` does run `allowFailure` (`git-client.js:77`), but for
+autostash that swallow is **inert** — there is nothing to discard. The
+single post-reconcile check still runs after the abort as near-free
+defense-in-depth; it simply cannot fire there for autostash. On detection
+the operation: **does not push**; **does not**
 `stash drop`/`pop`/`checkout`/`reset` — it leaves `refs/stash` intact (git
 already kept it); throws the `residue-conflict` reason, **exits non-zero on
 all three surfaces** (uniform with D7's unsafe-state family, *not* D1's
@@ -640,7 +650,7 @@ order.
 | Stop-hook failure blocks the stop and feeds the reason to the agent. | Invoke the session-end hook wiring with a push forced to fail; observe the hook-blocking exit semantics carrying the failure reason, and that a subsequent clean push permits the stop. |
 | Exit-status fidelity: the invocation layer never masks the CLI's failure status. | Wiring fixture where the CLI exits non-zero while every other process in the invocation chain exits zero (the shell-pipeline masking shape, 2026-06-11 03:02Z surface); invoke the session-end wiring; observe the failure classification and the hook-blocking semantics engage — an implementation whose observed status can be a downstream process's (pipeline last-member status, prose keying) fails this row. |
 | A failed push never loses uncommitted work. | Run `fit-wiki claim` and `fit-wiki release` (the MEMORY.md-scoped surfaces, where uncommitted foreign residue exists at reconcile time — the whole-tree path commits the tree before reconciling) with the work-preservation step forced to conflict on the failure path; observe the residue present in the working tree or retained where the failure message says it went. |
-| Autostash pop conflict ⇒ `residue-conflict` failure, push suppressed, stash preserved and named. | Scoped MEMORY.md commit plus a foreign residue overlapping a remote advance, driven through `fit-wiki release` and `fit-wiki claim`; observe **non-zero exit** with the `residue-conflict` reason on every surface, a message **naming `refs/stash` and the stash SHA**, the push **not attempted** (remote ref unchanged), the agent's own rebased commit **not** reported landed, and the `autostash` entry present in `git stash list` with the residue recoverable — read as stash/tree content state, never inferred from log output. Abort-path leg: a rebase-conflict fixture whose abort re-applies an autostash that also conflicts ⇒ same `residue-conflict` outcome, the abort's status **not swallowed** (`git-client.js:76` `allowFailure`). Retry/precondition leg: re-invoke with a retained conflicted stash ⇒ precondition refusal (§ Decisions D7), never a retry that re-pops the residue. |
+| Autostash pop conflict ⇒ `residue-conflict` failure, push suppressed, stash preserved and named. | Scoped MEMORY.md commit plus a foreign residue overlapping a remote advance, driven through `fit-wiki release` and `fit-wiki claim`; observe **non-zero exit** with the `residue-conflict` reason on every surface, a message **naming `refs/stash` and the stash SHA**, the push **not attempted** (remote ref unchanged), the agent's own rebased commit **not** reported landed, and the `autostash` entry present in `git stash list` with the residue recoverable — read as stash/tree content state, never inferred from log output. (No separate abort-path leg: after item 1 removes the `mergeOursStrategy({ autostash: true })` fallback the rebase-success pop is the sole conflict-capable autostash site — `git rebase --abort` re-applies onto `orig_head` = the autostash's own base, a zero-divergence apply that cannot conflict; the single grounded post-reconcile check covers the abort path as defense-in-depth but is unconstructable as a conflict fixture. § Decisions D9.) Retry/precondition leg: re-invoke with a retained conflicted stash ⇒ precondition refusal (§ Decisions D7), never a retry that re-pops the residue. |
 | Foreign claim-row conservation: clean-rebase drop refused. | Fixture whose local MEMORY.md commit was written from a stale read and deletes a foreign claim row present in both the merge base and the remote tip, with no textually overlapping remote change so the rebase replays clean; run `fit-wiki push`; observe the push refuses or re-merges and the foreign row survives on the remote — read as a content state of the remote-tip tree, never inferred from file-history output, which TREESAME-prunes this erasure class (§ Decisions D5). |
 | Foreign claim-row conservation: post-resolution drop refused. | Fixture where a manual conflict resolution dropped a foreign row; run `fit-wiki push`; observe refusal or re-merge and the row's survival, read as a content state of the remote-tip tree. |
 | Foreign content conservation beyond claim rows: side-pick erasure of a foreign run record refused. | Fixture reproducing the 6/12 family shape: a conflict resolution picks the local side of another writer's weekly-log file, dropping a run-record section present at the remote tip with no claim row touched; run `fit-wiki push`; observe refusal or re-merge and the section's survival, read as a content state of the remote-tip tree (victim classes per the four specimens — run records, rider bodies, backlog annotations; [#1564 assessment](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689377410)). |
@@ -770,8 +780,9 @@ as adopted by the
 [improvement-coach adjudication](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4690135651),
 landed by the spec holder 2026-06-12 pre-gate so the 6/24 Exp #1565
 read's strict-shrink branch holds with no qualifier; autostash
-pop-conflict contract (D9 — tree-state detection on both autostash sites,
-the `residue-conflict` exit class added to the D2 taxonomy, stash-by-SHA,
+pop-conflict contract (D9 — one general grounded post-reconcile tree-state
+check (`#hasUnmergedPaths()`/porcelain-UU), the `residue-conflict` exit
+class added to the D2 taxonomy, stash-by-SHA,
 no-retry-through-retained-stash, and the framing correction attributing the
 pop face to the existing scoped-commit-plus-autostash path D1 governs
 rather than to item 3) from the
@@ -779,6 +790,18 @@ rather than to item 3) from the
 and the security-engineer conservation review, settled by the
 [staff-engineer 2026-06-15 ruling](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4705197459)
 over the [scope-add](https://github.com/forwardimpact/monorepo/issues/1583#issuecomment-4705134298)
-and routed to the spec holder, folded by the spec holder 2026-06-15.
+and routed to the spec holder, folded by the spec holder 2026-06-15;
+single-grounded-check finalization (RE empirical correction, git 2.54.0,
+reproduced in the commitAndPush shape: `git rebase --abort` resets to
+`orig_head` = the autostash's own base, so the abort pop is a
+zero-divergence three-way apply that cannot conflict and the
+`allowFailure` swallow is inert for it; the conflict-capable second site
+was `mergeOursStrategy({ autostash: true })` at `wiki-sync.js:158`, which
+item 1 removes — leaving the rebase-success pop as the sole
+conflict-capable site) — both reviewers converged on a single general
+grounded detection rather than per-site assertions and on dropping the
+abort-path criterion leg as an unconstructable fixture; the post-abort
+check is retained as near-free defense-in-depth that cannot fire for
+autostash, folded by the spec holder 2026-06-15.
 
 — Product Manager 🌱
