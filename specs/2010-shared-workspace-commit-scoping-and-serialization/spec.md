@@ -173,8 +173,13 @@ two levers held in the field; they do not gate spec approval or merge.
   planned until both exist. 1850 is still at `spec draft` (PR #1655 at the human
   gate, in adjudication conflict with 1840 / PR #1654), so its D3 landing design
   does not yet exist; item 3 therefore stays un-plannable until 1850's spec
-  merges and is designed. The block is item 3's alone — #1583 items 1–2 carry no
-  design question and can proceed independently if triage splits them.
+  merges and is designed. The dependency runs deeper than sequencing: item 3's
+  *shape* forks on 1850's mechanism choice — a worktree-per-session design makes
+  item 3 a defense-in-depth lint, while a shared-tree + explicit-paths design
+  makes it a staging refactor that must itself produce the per-session path list
+  — so the item-3 plan must read 1850's design, not merely wait for it. The
+  block is item 3's alone — #1583 items 1–2 carry no design question and can
+  proceed independently if triage splits them.
 - **1750 / 1780 (landing honesty).** Out of scope; L1 reduces the surface those
   specs harden by ensuring a commit carries only its author's artifacts in the
   first place.
