@@ -69,7 +69,7 @@ adding that one.
 | Lever | What changes |
 |---|---|
 | **L1 — path-scoped staging discipline** | Every shared-workspace commit path stages only the artifacts it owns, named by explicit path, never by `git add -A` / `commit -am` breadth. The discipline covers agent feature commits, activation sweep-commits, and tool commits. PR #1571 is the cited precedent for one path; the `fit-wiki push`/sync sweep (#1583 item 3) is the **sole remaining un-scoped application site** — see § Relationship. L1 is also a security control: a whole-tree sweep into the wiki repo, which carries no gitleaks / push-protection, is a latent credential-leak surface, so scoping the staging shrinks that surface as well as preventing committed loss. (Gating the wiki repo itself is a separate, complementary control — see § Non-Goals.) |
-| **L2 — facilitator-side serialization of wiki-touching asks** | A facilitator routes a wiki-touching (or otherwise same-mutable-surface) ask only after the prior ask on that surface has returned its Answer or explicitly released. Each such ask names its edit-intent (surface + own-artifact paths) so a receiver can scope its staging under L1. |
+| **L2 — facilitator-side serialization of wiki-touching asks** | A facilitator routes a wiki-touching (or otherwise same-mutable-surface) ask only after the prior ask on that surface has returned its Answer or explicitly released. Each such ask names its edit-intent (surface + own-artifact paths) so a receiver can scope its staging under L1. A single-owner directive routes to exactly one acting lane; co-recipients get a no-staging FYI that carries no edit-intent and requires no action. This single-routing cardinality is the complement to the temporal ordering above — with one acting lane there is no fan-out to serialize. |
 
 **Out of scope** (named so they are not reopened here):
 
@@ -84,9 +84,9 @@ adding that one.
 
 ## Success Criteria
 
-All five are checkable at implementation time, without waiting on a future
-session-accrual window. The longitudinal zero-collision result is stated
-separately as a post-deployment validation target below.
+All six are checkable at implementation time, without waiting on a future
+session-accrual window. The longitudinal zero-collision results are stated
+separately as post-deployment validation targets below.
 
 | # | Criterion | Verified by |
 |---|---|---|
@@ -95,15 +95,30 @@ separately as a post-deployment validation target below.
 | S3 | The facilitated-ask format requires an edit-intent field naming the surface and the own-artifact paths the receiver will stage. | The ask-format definition mandates the field — the controllable artifact and the pass/fail; a routed ask is illustrative. |
 | S4 | A deployed facilitated session carries both levers and exercises them: the serialization rule is active and at least one ask shows edit-intent driving scoped staging. | A structural check on one session: protocol active, ask exercised — verifiable at implementation, independent of any accrual window. |
 | S5 | The fix introduces no lock, mutex, lease, or lock service over the workspace or the claim handshake. | The design and implementation contain no such component; the non-goal stands as a review gate. |
+| S6 | A single-owner directive routes to exactly one lane; co-recipients receive a no-staging FYI that carries no edit-intent and requires no action. | The facilitator protocol states the single-routing cardinality rule as a requirement — the controllable artifact and the pass/fail; a session transcript is illustrative, not the gate. |
 
-**Post-deployment validation target (not an acceptance gate):** across ≥5
-facilitated sessions with both levers applied, new committed-loss occurrences in
-the #1564 facilitated-session sub-family are zero (the parallel-collision ledger
-over the window). This measures the **committed-loss sub-shape only**; Exp
-#1565's broader predicate P1 ("0 shared-workspace collisions of any sub-shape")
-is unchanged and owned by #1565 — this spec does not narrow it. The target is
-the standing meter for whether the two levers held in the field; it does not
-gate spec approval or merge.
+S6 is the cardinality complement to L2's temporal serialization, attached at
+L2's existing facilitator-dispatch gate: it bounds **how many** lanes act on one
+directive, where L2's ordering rule bounds **when** same-surface asks run. With a
+single acting lane there is no fan-out to serialize, so S6 alone closes #1725's
+Mode A (the single-owner directive "fanned to six agents"). S6 introduces no
+lock, lease, or mutual exclusion — it constrains routing cardinality only — so S5
+still holds.
+
+**Post-deployment validation targets (not acceptance gates):** two falsifiers
+run over the window, one per failure mode.
+
+- **Mode B — committed loss.** Across ≥5 facilitated sessions with both levers
+  applied, new committed-loss occurrences in the #1564 facilitated-session
+  sub-family are zero (the parallel-collision ledger over the window).
+- **Mode A — single-owner fan-out** (#1725's falsifier). The next ≥5
+  single-owner close-out directives each produce ≤1 reconciliation record and 0
+  duplicate-leg wiki collisions attributable to this directive class.
+
+Each measures its own sub-shape only; Exp #1565's broader predicate P1 ("0
+shared-workspace collisions of any sub-shape") is unchanged and owned by #1565 —
+this spec does not narrow it. The targets are the standing meters for whether the
+two levers held in the field; they do not gate spec approval or merge.
 
 ## Non-Goals
 
