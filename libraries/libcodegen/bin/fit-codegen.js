@@ -316,17 +316,9 @@ async function executeGeneration(codegens, sourcePath, flags) {
  * @param {string[]} protoDirs - Discovered proto directories
  * @param {string} projectRoot - Project root directory path
  * @param {object} finder - Finder instance for path management
+ * @param {object} parsedFlags - Parsed generation flags
  */
-async function runCodegen(protoDirs, projectRoot, finder) {
-  const parsedFlags = parseFlags();
-
-  if (!parsedFlags.hasGenerationFlags()) {
-    cli.usageError(
-      "no generation flags specified (use --all, --type, --service, --client, --definition, or --metadata)",
-    );
-    process.exit(2);
-  }
-
+async function runCodegen(protoDirs, projectRoot, finder, parsedFlags) {
   const generatedStorage = createStorage("generated", "local");
   const sourcePath = generatedStorage.path();
 
@@ -375,6 +367,17 @@ async function runCodegen(protoDirs, projectRoot, finder) {
  */
 async function main() {
   try {
+    // Flags must parse before project-root and proto discovery: --help and
+    // --version have to exit 0 from a bare directory, and discovery throws
+    // outside a proto-bearing project.
+    const parsedFlags = parseFlags();
+    if (!parsedFlags.hasGenerationFlags()) {
+      cli.usageError(
+        "no generation flags specified (use --all, --type, --service, --client, --definition, or --metadata)",
+      );
+      process.exit(2);
+    }
+
     const logger = new Logger("codegen", runtime);
     // The shared runtime.finder carries a no-op logger; bind this CLI's logger
     // so createPackageSymlinks (the one logging Finder consumer) keeps emitting
@@ -391,7 +394,7 @@ async function main() {
       );
     }
 
-    await runCodegen(protoDirs, projectRoot, finder);
+    await runCodegen(protoDirs, projectRoot, finder, parsedFlags);
   } catch (err) {
     const logger = new Logger("codegen", runtime);
     logger.exception("main", err);

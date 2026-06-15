@@ -29,9 +29,6 @@
   ],
   "type": "module",
   "main": "index.js",
-  "bin": {
-    "fit-svcmap": "./server.js"
-  },
   "files": [
     "proto/",
     "server.js"

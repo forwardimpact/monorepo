@@ -29,9 +29,6 @@
   ],
   "type": "module",
   "main": "./index.js",
-  "bin": {
-    "fit-svcoidc": "./server.js"
-  },
   "files": [
     "index.js",
     "server.js",
