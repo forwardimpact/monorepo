@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libcodegen",
-  "version": "0.1.63",
+  "version": "0.1.64",
   "description": "Protobuf code generation — keep types in sync with proto definitions without hand-writing.",
   "keywords": [
     "codegen",
