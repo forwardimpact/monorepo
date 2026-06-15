@@ -50,6 +50,20 @@ broken credentials, a push rejection against that stale ref would be
 indistinguishable from genuine contention unless the fetch outcome feeds
 the classification (§ Decisions D2).
 
+A fifth behavior on the same path is the autostash pop face. On the
+`claim`/`release` surfaces the commit is already pathspec-scoped
+(`commitPaths`, PR #1571 / #1568 lineage), so foreign residue stays
+uncommitted, and `commitAndPush` already passes `autostash: true`
+(`wiki-sync.js:154`). `git rebase --autostash` exits 0 when the rebase
+succeeds but the autostash *pop* conflicts, leaving `UU` markers in the
+working tree and the entry in `refs/stash` — so a clean rebase of the
+agent's own scoped commit still strands a foreign writer's conflicted
+residue under a success-shaped exit. This face is a property of that
+existing scoped-commit + autostash on `claim`/`release` — **live on `main`
+today and governed by D1's per-caller contract, not a consequence of the
+#1583 item 3 sweep-scoping question** (D6 resolves item 3 out and keeps the
+sweep whole-tree). Its honest-outcome contract is § Decisions D9.
+
 These defects are the local members of a wider pattern the team's
 forensics surfaced: **four landing-verification instruments produced false
 positives inside one 36-hour window** (coach record:
@@ -296,6 +310,16 @@ elsewhere by the tool, in which case the failure message names where it
 went. *Alternative carried:* no retry — report *rejected* immediately with
 rerun guidance.
 
+*The retry never spins through stranded autostash residue.* The bounded
+retry helps only the clean fetch-stale race; it does not re-pop a
+conflicted autostash. A *residue-conflict* outcome, and a retained
+still-conflicted stash found on re-invocation, is a D7-family unsafe-state
+refused rather than retried (§ Decisions D9) — a retry that re-popped
+foreign residue would re-hit the same wall or compound it. This bound is
+independent of the #1583 item 3 sweep-scoping question; the pop face it
+governs lives on the existing scoped-commit + autostash on `claim`/`release`
+that D1 governs (§ Problem; D6 keeps the sweep whole-tree).
+
 **D4 — Session-end hook surfacing maps failure to a remediation turn.** A
 plain non-zero exit at the Stop hook only logs after the agent has stopped
 — in headless CI, a line in a long workflow log. The hook semantics that
@@ -438,7 +462,12 @@ resolved as out). The unscoped sweep was the *carrier* in the observed
 losses only because the silent-clobber fallback turned its conflicts into
 overwrites; with that fallback removed, a stale contended file riding the
 sweep produces a loud conflict from the true tip instead of silent damage.
-Contention frequency belongs to the W26 row-format work.
+Contention frequency belongs to the W26 row-format work. Resolving item 3
+out does not retire the autostash pop face (§ Decisions D9): that face lives
+on the *already* pathspec-scoped `claim`/`release` commit, where foreign
+residue stays uncommitted and conflicts on the autostash pop — live on
+`main` independent of any sweep-scoping decision, governed by D1, not by
+this row.
 *Alternative carried:* a pathspec option for the sweep — reverses a settled
 scoping decision (#1568 lineage) for frequency relief this spec's honesty
 goal does not require; revisit only if post-1780 evidence shows loud sweep
