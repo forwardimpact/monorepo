@@ -68,7 +68,7 @@ adding that one.
 
 | Lever | What changes |
 |---|---|
-| **L1 — path-scoped staging discipline** | Every shared-workspace commit path stages only the artifacts it owns, named by explicit path, never by `git add -A` / `commit -am` breadth. The discipline covers agent feature commits, activation sweep-commits, and tool commits. PR #1571 is the cited precedent for one path. |
+| **L1 — path-scoped staging discipline** | Every shared-workspace commit path stages only the artifacts it owns, named by explicit path, never by `git add -A` / `commit -am` breadth. The discipline covers agent feature commits, activation sweep-commits, and tool commits. PR #1571 is the cited precedent for one path; the `fit-wiki push`/sync sweep (#1583 item 3) is the **sole remaining un-scoped application site** — see § Relationship. L1 is also a security control: a whole-tree sweep into the wiki repo, which carries no gitleaks / push-protection, is a latent credential-leak surface, so scoping the staging shrinks that surface as well as preventing committed loss. (Gating the wiki repo itself is a separate, complementary control — see § Non-Goals.) |
 | **L2 — facilitator-side serialization of wiki-touching asks** | A facilitator routes a wiki-touching (or otherwise same-mutable-surface) ask only after the prior ask on that surface has returned its Answer or explicitly released. Each such ask names its edit-intent (surface + own-artifact paths) so a receiver can scope its staging under L1. |
 
 **Out of scope** (named so they are not reopened here):
@@ -77,7 +77,7 @@ adding that one.
 |---|---|
 | Allocation identity — how occurrence ordinals, fold indexes, and meta numbers are minted | The competing WHAT of specs 1840 (PR #1654) and 1850 (PR #1655); approval of either supersedes the other. This spec touches neither. |
 | The `fit-wiki` push primitive's landing discipline — stale-tree refusal, whole-tree landing semantics | Spec 1850 D3 (with 1750/1780). See § Relationship for the L1↔D3 seam. |
-| Push-rejection honesty, `-X ours` clobber, conflict-marker publication | Specs 1780 / #1668, and #1583 items 1–2 — the landing primitive, not the staging boundary. (#1583 item 3, scoping the push/sync sweep, is the one part adjacent to L1; its push-primitive specifics defer to 1850 D3, while its evidence that the sweep exists motivates L1.) |
+| Push-rejection honesty, `-X ours` clobber, conflict-marker publication | Specs 1780 / #1668, and #1583 items **1–2** — the landing primitive, not the staging boundary. (#1583 **item 3** — scoping the push/sync sweep — is *in scope as an L1 application site*, not excluded; only its push-primitive landing specifics coordinate with 1850 D3. See § Relationship.) |
 | Post-merge budget revalidation; coordination-comment and summary-surface floors | #1667; #1647 / #1732 (spec-1890/1900 attachment points). |
 | Shallow-clone forensic artifacts | Observation-layer cross-cutting item (#1577); #1575 resolved. |
 | A distributed lock, mutex, or lock service over the workspace or claim | **Non-goal** — see below. |
@@ -90,7 +90,7 @@ separately as a post-deployment validation target below.
 
 | # | Criterion | Verified by |
 |---|---|---|
-| S1 | Every commit produced in the shared checkout contains only the committing activation's own artifacts — no path a concurrent activation authored. | An audit enumerates the closed set of commit paths (every skill or tool that commits inside the shared checkout) and confirms each stages an explicit own-artifact path list rather than a whole-tree sweep; repeatable as a check. |
+| S1 | Every commit produced in the shared checkout contains only the committing activation's own artifacts — no path a concurrent activation authored. | An audit enumerates the closed set of commit paths (every skill or tool that commits inside the shared checkout) and confirms each stages an explicit own-artifact path list rather than a whole-tree sweep. The check is automatable as a static lint over commit-path source — forbidding whole-tree staging APIs (`git add -A`, `commit -am`, `commitAll`) outside an allowlisted path — so it gates continuously, not as a one-time audit; this is distinct from the runtime authorship hook design D1 rejects (the lint reads source, not working-tree authorship). Exact lint form is a plan concern. |
 | S2 | The facilitated-session protocol mandates that a wiki-touching ask is routed only after the prior same-surface ask returns its Answer or explicitly releases. | The facilitator protocol document states the rule as a requirement — the controllable artifact and the pass/fail; a session transcript is illustrative, not the gate. |
 | S3 | The facilitated-ask format requires an edit-intent field naming the surface and the own-artifact paths the receiver will stage. | The ask-format definition mandates the field — the controllable artifact and the pass/fail; a routed ask is illustrative. |
 | S4 | A deployed facilitated session carries both levers and exercises them: the serialization rule is active and at least one ask shows edit-intent driving scoped staging. | A structural check on one session: protocol active, ask exercised — verifiable at implementation, independent of any accrual window. |
@@ -116,6 +116,13 @@ gate spec approval or merge.
   S5.
 - **No allocation-contract change.** This spec does not alter how identifiers
   are minted; that is the 1840/1850 adjudication.
+- **No wiki-repo destination gating.** Standing up gitleaks / push-protection on
+  the separate wiki repository is a complementary security control that gates the
+  *destination* repo, orthogonal to L1's staging *scope* — a perfectly scoped
+  commit can still carry a secret into an ungated repo. That gap is a standing
+  known issue tracked on its own line (security-engineer), not folded into this
+  spec's two levers. L1 shrinks the leak surface; closing the destination gap is
+  separate work.
 
 ## Relationship to in-flight siblings
 
@@ -131,6 +138,20 @@ gate spec approval or merge.
 - **1750 / 1780 (landing honesty).** Out of scope; L1 reduces the surface those
   specs harden by ensuring a commit carries only its author's artifacts in the
   first place.
+- **#1583 (libwiki sync path) — L1's sole remaining application site.** #1583
+  item 3 ("pathspec-scope the sweep") is the one shared-workspace commit path L1
+  names that PR #1571 did not yet scope: the `fit-wiki push`/sync sweep. #1583's
+  body frames item 3 as *reversing* the settled "whole-tree is its contract"
+  decision (#1576 § Out of scope, #1568 lineage). This spec supplies the
+  rationale that makes it an *application* of a named discipline instead — so the
+  discipline and its sole application site do not graduate as two specs in
+  tension. The sync's design intent (publish this session's own memory) is
+  preserved by staging the session's own-authored paths; what L1 removes is only
+  the capture of a concurrent activation's in-flight residue from the shared
+  checkout. Scoping the sweep is therefore L1, not a contract reversal. The
+  push-primitive landing specifics (stale-tree refusal, fast-forward honesty)
+  remain 1850 D3's; #1583 stays the tracking item for the implementation, citing
+  this spec as its authority.
 
 This spec does not pre-empt the 6/24 Exp #1565 read or the 7/02 RFC #873
 verdict; it gives both a proposed structure to evaluate instead of an unbounded
