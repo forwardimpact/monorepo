@@ -80,6 +80,18 @@ cluster in recently churned code — libbridge (20), ghbridge (10), msbridge (9)
 libpack (6), with the remaining 4 in libeval, libhttp, and pathway. Neither
 runner can run the whole suite green today.
 
+**What the 49 actually import — the convergence is an `expect` conversion, not
+an import drop.** Measured on `main` 2026-06-15: **0 of the 49** importers use
+`spy()` or `mock.fn`, so 0650's runner-independent test-double helper covers
+**nothing** here. **All 49** import `expect` from `bun:test` — **880 `expect()`
+callsites**. `node:test` ships `node:assert`, **not** `expect`. Dropping the
+`bun:test` import therefore leaves 880 unresolved `expect()` calls; the real
+work is an **`expect` API conversion**. The matcher surface is bounded and
+enumerable from usage: `toBe` 439, `toHaveLength` 105, `toEqual` 103, `toThrow`
+78, `toContain` 56, `toBeNull` 39, `toBeUndefined` 22, `.not` 18, with a short
+tail below that. This mirrors 0650's own move — there a `spy()` helper replaced
+bun's `mock.fn`; here an `expect` shim replaces bun's `expect`.
+
 ## Goal
 
 Settle the runner strategy so the publish gate is deterministic on the critical
@@ -88,23 +100,34 @@ time a new unimplemented `node:test` method surfaces.
 
 ## Resolved runner strategy (the settled trade)
 
+**Define the gate once, run it everywhere it must block.** The gate is a single
+named script — `test:gate` — that runs `node --test` over the gate set. That
+exact script is the **blocking check on PR and `main`** *and* the "Run tests"
+step of `Publish: Package`. Defining it once means PR, `main`, and publish all
+run byte-identical gate logic; a node-only failure surfaces on the PR, not at
+the already-pushed release tag.
+
 | Surface | Runner | Why |
 | --- | --- | --- |
-| The "Run tests" gate of `Publish: Package` (critical path) | `node --test` | Reference-correct runner; `describe`-in-`test` (163 files) is valid `node:test`. Flake here blocks a release, so correctness wins over the 70.3 s runtime. |
-| Local + PR test runs | `bun test` | Keeps the ~25.8 s inner-loop speed where a flake is cheap and re-runnable, not a release blocker. |
+| `test:gate` blocking check (PR + `main` + `Publish: Package` "Run tests") | `node --test` | Reference-correct runner; `describe`-in-`test` (163 files) is valid `node:test`. The same script gates the PR and the release, so node-only failures block the PR rather than reaching the publish tag. Correctness wins over the 70.3 s runtime. |
+| Local + PR dev inner loop | `bun test` | Keeps the ~25.8 s inner-loop speed for fast, re-runnable local iteration. On PR it is informational only — `test:gate` is the blocking check. |
 
 This makes **correct-on-the-critical-path the default path** and pushes
 fast-but-flaky to where flakes cost little — inverting the obstacle in #1737.
+The earlier design (node only at publish) is rejected here: it lets a node-only
+failure escape review and surface on the release tag, which is exactly the
+"flake blocks a release" failure mode this spec exists to remove.
 
 ## Scope
 
 | Change | In scope |
 | --- | --- |
-| The "Run tests" gate runs the gate set under `node --test` | Yes |
-| Local/PR continue under `bun test` | Yes (retain) |
-| **49-file `bun:test` → `node:test` convergence**, so the gate runner can run them | Yes — converge the 49 importers onto the `node:test` idiom. Expected to be mechanical and upstream-independent (a runner-independent test-double helper already exists from 0650), with the 8 dual-idiom files converging together. The convergence mechanism is a design/plan concern; any file that turns out to need `bun:test`-only semantics a mechanical convergence cannot reproduce re-bounds the sweep and is surfaced in `kata-design`. |
-| The swept files must still pass locally under the retained `bun test` | Yes — convergence onto `node:test` must not break the inner loop |
-| A guard preventing re-divergence (new `bun:test` imports, or `describe`-in-`test` regressions on the gated surface) | Yes — the missing mitigation 0650 named |
+| Define `test:gate` (a `node --test` run over the gate set) and wire it as the blocking PR/`main` check and the `Publish: Package` "Run tests" step | Yes — one named script, identical logic on PR, `main`, and publish |
+| Local/PR dev inner loop continues under `bun test` | Yes (retain) — informational on PR, blocking gate is `test:gate` |
+| **49-file `bun:test` → `node:test` convergence via a new `expect` shim**, so the gate runner can run them | Yes — converge the 49 importers onto `node:test`. The work is an **`expect` API conversion**, *not* a mechanical import drop: 0/49 use `spy()`/`mock.fn` (0650's test-double helper covers nothing here) and all 49 import `expect` (880 callsites) which `node:test` does not ship. Build a **new dependency-free, runner-independent `expect` shim** (Jest-style matchers, runnable under both `node --test` and `bun test`), mirroring how 0650's `spy()` replaced `mock.fn`. Matcher surface is bounded/enumerable from usage (`toBe` 439, `toHaveLength` 105, `toEqual` 103, `toThrow` 78, `toContain` 56, `toBeNull` 39, `toBeUndefined` 22, `.not` 18, short tail). The 8 dual-idiom files converge together. The shim's API and the per-file mechanics are a design/plan concern; any file needing `bun:test`-only semantics the shim cannot reproduce re-bounds the sweep and is surfaced in `kata-design`. |
+| **The `expect` shim ships with its own test** | Yes — explicit coverage of the semantics drift the 49 files rely on: `toEqual` deep-equality on `Map`/`Set`, `toThrow` substring-vs-`RegExp` matching, and async `.rejects`. The shim must be green under both `node --test` and `bun test`. |
+| The swept files must still pass locally under the retained `bun test` | Yes — convergence onto `node:test` (and the shim) must not break the inner loop |
+| A guard preventing re-divergence — CI fails on **any** new `bun:test` import **repo-wide** (not only the gated surface), and on `describe`-in-`test` regressions on the gated surface | Yes — the missing mitigation 0650 named, broadened per the release-engineer's ask so a `bun:test` import anywhere fails CI |
 | Document the resolved trade as the settled runner strategy | Yes |
 
 ### Excluded
@@ -118,19 +141,43 @@ fast-but-flaky to where flakes cost little — inverting the obstacle in #1737.
 - Coverage tooling and reporter format — unchanged; CI consumes pass/fail
   counts.
 
+## Sequencing constraint (two PRs)
+
+The sweep and the gate-flip **must land as two separate PRs, in this order**.
+`node --test` hard-fails on any remaining `bun:` import, so a single PR that
+both flips the gate and migrates the 49 files can never go green incrementally —
+the gate is red until the very last file converges, and any mid-review push
+leaves CI red.
+
+1. **PR 1 — convergence.** Land the 49-file `bun:test` → `node:test` sweep
+   (including the new `expect` shim and its test). Prove it green on a
+   **`node --test` dry-run job** over the gate set. This PR does **not** flip the
+   release gate; the existing `bun test` gate stays in place so the PR is
+   mergeable on the current gate.
+2. **PR 2 — flip + guard.** Once PR 1 is on `main` and the dry-run is green,
+   define `test:gate` as the blocking PR/`main`/publish check (replacing the
+   `bun test` gate) and add the re-divergence guard.
+
+Splitting this way keeps each PR independently green and reviewable, and means
+the gate is only flipped over a suite already proven to pass under `node --test`.
+
 ## Success criteria
 
 **Acceptance criteria** — verifiable at merge time; these gate this spec's
-implementation:
+implementation. Criteria are tagged **[PR 1]** (convergence) or **[PR 2]**
+(flip + guard) per the sequencing constraint above:
 
-| Criterion | Verification |
-| --- | --- |
-| The "Run tests" gate executes the gate set under `node --test`, not `bun test`. | The `Publish: Package` workflow's "Run tests" step log shows the `node --test` runner ran the gate set and the `bun test` path did not. |
-| `node --test` runs the gate set green. | A `node --test` run over the gate set exits 0, with 0 `NotImplementedError: describe()…` and 0 `ERR_UNSUPPORTED_ESM_URL_SCHEME: protocol 'bun:'`. |
-| No file in the gate set has a `bun:test` import statement. | A search for `bun:test` **import statements** (not string mentions) across the gate set returns zero. |
-| The swept files still pass under `bun test` locally. | A `bun test` run over the converged files exits 0. |
-| Local/PR test runs still use `bun test`. | The local/PR test command resolves to `bun test`. |
-| A guard fails CI when a new `bun:test` import is added to the gated surface. | The guard fails on an introduced `bun:test` import and passes on a clean tree. |
+| Criterion | PR | Verification |
+| --- | --- | --- |
+| The new `expect` shim is dependency-free and runs under both runners. | PR 1 | The shim imports nothing outside the standard library; its own test exits 0 under both `node --test` and `bun test`. |
+| The shim's test covers the semantics drift the 49 files rely on. | PR 1 | The shim test has explicit cases for `toEqual` deep-equality on `Map`/`Set`, `toThrow` substring-vs-`RegExp`, and async `.rejects`. |
+| `node --test` runs the gate set green on a dry-run job. | PR 1 | A `node --test` run over the gate set exits 0, with 0 `NotImplementedError: describe()…` and 0 `ERR_UNSUPPORTED_ESM_URL_SCHEME: protocol 'bun:'`. |
+| No file in the gate set has a `bun:test` import statement. | PR 1 | A search for `bun:test` **import statements** (not string mentions) across the gate set returns zero. |
+| The swept files still pass under `bun test` locally. | PR 1 | A `bun test` run over the converged files exits 0. |
+| `test:gate` is one named script running `node --test`, wired as the blocking PR/`main` check **and** the `Publish: Package` "Run tests" step. | PR 2 | The PR/`main` workflow and the publish workflow both invoke the same `test:gate` script; its log shows `node --test` ran the gate set and the `bun test` path did not gate. |
+| A node-only failure blocks the PR, not the release tag. | PR 2 | An introduced node-only failure reddens the blocking PR check (not only `Publish: Package`). |
+| Local/PR dev inner loop still uses `bun test`. | PR 2 | The local/PR dev test command resolves to `bun test`; it is informational, not the blocking gate. |
+| A guard fails CI on any new `bun:test` import repo-wide. | PR 2 | The guard fails on a `bun:test` import introduced anywhere in the repo and passes on a clean tree. |
 
 **Outcome criterion (go-see)** — the durable target, measured on the live gate
 *after* merge; tracked on experiment #1738, not a merge gate:
@@ -147,7 +194,8 @@ shows the `2020` row at `spec approved`, written from a trusted human signal
 (`spec:approved` label, APPROVED review, approval comment, or in-session
 approval). The `spec:approved` signal is the owner-decision that settles 0650's
 reopened question; until then the runner strategy remains proposed, not settled.
-On approval, the spec proceeds to `kata-design` (WHICH/WHERE — gate workflow
-wiring, sweep mechanics, the re-divergence guard) and then `kata-plan`.
+On approval, the spec proceeds to `kata-design` (WHICH/WHERE — the `expect`
+shim's API, the `test:gate` script and its workflow wiring, sweep mechanics,
+the two-PR sequencing, and the re-divergence guard) and then `kata-plan`.
 
 — Staff Engineer 🛠️
