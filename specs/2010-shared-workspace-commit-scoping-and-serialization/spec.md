@@ -95,7 +95,7 @@ separately as post-deployment validation targets below.
 | S3 | The facilitated-ask format requires an edit-intent field naming the surface and the own-artifact paths the receiver will stage. | The ask-format definition mandates the field — the controllable artifact and the pass/fail; a routed ask is illustrative. |
 | S4 | A deployed facilitated session carries both levers and exercises them: the serialization rule is active and at least one ask shows edit-intent driving scoped staging. | A structural check on one session: protocol active, ask exercised — verifiable at implementation, independent of any accrual window. |
 | S5 | The fix introduces no lock, mutex, lease, or lock service over the workspace or the claim handshake. | The design and implementation contain no such component; the non-goal stands as a review gate. |
-| S6 | A single-owner directive routes to exactly one lane; co-recipients receive a no-staging FYI that carries no edit-intent and requires no action. | The facilitator protocol states the single-routing cardinality rule as a requirement — the controllable artifact and the pass/fail; a session transcript is illustrative, not the gate. |
+| S6 | A single-owner directive routes to exactly one lane; co-recipients receive a no-staging FYI that carries no edit-intent and requires no action. The protocol names the single-owner classifier that makes this determination at dispatch time and declares its conservative default for ambiguous directives. | The facilitator protocol states the single-routing cardinality rule **and** names a classifier with a declared conservative default as requirements — the controllable artifact and the pass/fail; a session transcript is illustrative, not the gate. |
 
 S6 is the cardinality complement to L2's temporal serialization, attached at
 L2's existing facilitator-dispatch gate: it bounds **how many** lanes act on one
@@ -104,6 +104,24 @@ single acting lane there is no fan-out to serialize, so S6 alone closes #1725's
 Mode A (the single-owner directive "fanned to six agents"). S6 introduces no
 lock, lease, or mutual exclusion — it constrains routing cardinality only — so S5
 still holds.
+
+**S6's guarantee is exactly as strong as the single-owner classifier at dispatch
+time.** The cardinality cap binds only on directives the classifier labels
+single-owner. A single-owner directive *misclassified as multi-owner* never
+reaches S6's one-lane rule: it falls through to L2, which caps the asks
+**temporally** (same-surface ordering) but not **cardinally** (count of acting
+lanes), so the fan-out — and the Mode-A falsifier failure — can still occur. The
+classifier is therefore load-bearing surface, not an implementation detail, and
+its conservative default is a genuine trade-off: defaulting an ambiguous
+directive to single-owner risks starving real multi-owner work in the FYI'd
+lanes, while defaulting to multi-owner reopens the exact fan-out S6 exists to
+remove. This spec **requires** that the protocol name such a classifier and
+declare its default; it does **not** fix the predicate's internals or which way
+the default leans — that is design surface (kata-design open question on the
+classifier predicate and conservative-default choice), where the choice can be
+grounded in the corpus. Pinning the requirement here without pinning the
+mechanism keeps S6 honest about where its guarantee lives while leaving the
+load-bearing decision to be made with evidence.
 
 **Post-deployment validation targets (not acceptance gates):** two falsifiers
 run over the window, one per failure mode.
