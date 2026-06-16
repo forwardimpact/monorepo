@@ -11,7 +11,7 @@ The block below is the **self-hosted** variant. For the **hosted** control
 plane (see [`SKILL.md`](../SKILL.md) `--hosted`), apply the hosted delta
 under [§ Hosted variant](#hosted-variant) — no `KATA_APP_PRIVATE_KEY`.
 
-## Template (self-hosted)
+## Template (Self-Hosted)
 
 ```yaml
 name: "Agent: React"
@@ -110,7 +110,7 @@ prevents loops when agents respond to each other. The `fit-eval` ref is
 SHA-pinned at generation time, never the mutable `v1` tag — pair it with
 the Dependabot config from `SKILL.md` Step 2.
 
-## Hosted variant
+## Hosted Variant
 
 This workflow mints its own App token via `actions/create-github-app-token`
 rather than passing `app-private-key` to the action, so the hosted delta

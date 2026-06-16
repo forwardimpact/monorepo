@@ -168,7 +168,7 @@ PRs not referencing a spec (one-off fixes, doc patches) skip this step.
 Per PR record: number, title, type, author, trust check, CI, approval source
 (label / review / blocked), final verdict.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log:
 

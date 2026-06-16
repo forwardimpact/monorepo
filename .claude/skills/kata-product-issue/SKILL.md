@@ -107,7 +107,7 @@ Label each processed issue `triaged`.
 
 The READ-DO checklist defines this phase boundary.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

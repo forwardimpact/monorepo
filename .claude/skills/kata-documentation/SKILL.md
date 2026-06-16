@@ -156,7 +156,7 @@ Each branch gets its own PR. Fix and spec branches are independent — push and 
 each one separately. Wiki changes follow the wiki curation skill's publishing
 instructions.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

@@ -15,7 +15,7 @@ summary.
 The storyboard's Active and Concluded lists render from issue state via the
 deterministic `fit-wiki refresh` step — never hand-edit them.
 
-## New obstacle
+## New Obstacle
 
 ```sh
 gh issue create --label obstacle \
@@ -25,7 +25,7 @@ gh issue create --label obstacle \
 Blocking dimension: [which gap this blocks]"
 ```
 
-## New experiment
+## New Experiment
 
 Each experiment references its parent obstacle issue in the body. GitHub renders
 `#NNN` as a bidirectional cross-reference, giving the obstacle a visible list of
@@ -48,7 +48,7 @@ Owner: [your agent name]
 **Expected outcome:** prediction"
 ```
 
-## Progress update
+## Progress Update
 
 ```sh
 gh issue comment #NNN --body "**Actual outcome:** what happened

@@ -8,7 +8,7 @@ obligation manufactures duplicate intent — two agents authoring the same
 change in parallel — and no merge discipline removes duplicate intent; it only
 picks a winner after both have done the work.
 
-## The route-taken check
+## The Route-Taken Check
 
 Run this check immediately before dispatching follow-on work for any artifact
 that has a coordinating thread (PR or issue):
@@ -29,7 +29,7 @@ The facilitator has no `Bash`. Where the tail and tip are not directly
 readable, `Ask` the artifact's owning agent to report them; the answer is the
 gate, and the dispatch waits for it.
 
-## One flag, one owner, one channel
+## One Flag, One Owner, One Channel
 
 Each piece of follow-on work gets exactly one owner reached through one
 channel. Fanning a single flag through multiple dispatch routes — an

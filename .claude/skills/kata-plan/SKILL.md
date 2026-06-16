@@ -176,7 +176,7 @@ When the panel passes and the DO-CONFIRM checks are met, edit
 wiki edit alongside any other wiki updates from this session; the Stop hook
 pushes the wiki commit. `kata-release-merge` will then merge the plan PR.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

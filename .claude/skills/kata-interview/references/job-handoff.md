@@ -3,7 +3,7 @@
 Templates and worked examples for the two `Ask` calls in
 `SKILL.md` § Step 5.
 
-## Ask 1 — introduction
+## Ask 1 — Introduction
 
 Short, uniform across every interview, phrased like a human interviewer
 opening a conversation. Do **not** mention `CLAUDE.md` (the harness loads
@@ -13,7 +13,7 @@ it automatically).
 > yourself: who you are, your role and team, and what's been on your plate
 > lately.
 
-## Ask 2 — job delivery
+## Ask 2 — Job Delivery
 
 Three sentences, composed from the chosen JTBD entry. No product name.
 
@@ -22,7 +22,7 @@ Three sentences, composed from the chosen JTBD entry. No product name.
 > https://www.forwardimpact.team — that's the only entry point. Note
 > friction in your final output, not in files.
 
-## Worked examples
+## Worked Examples
 
 Matches the two personas in
 [`example-personas.md`](example-personas.md). Treat BioNova / Oncora /

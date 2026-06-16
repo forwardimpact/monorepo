@@ -25,13 +25,13 @@ trace's run-level findings. One facilitator, one participant, turn-taking via
 5. **When will you see the effect?** (Q5 — typically the next scheduled workflow
    run.)
 
-## Trace access
+## Trace Access
 
 The participant runs `fit-trace` against its own agent's trace artifact. The
 coach does not pre-load the trace content into the participant's context; the
 participant fetches it under Q2.
 
-## Participant briefing template
+## Participant Briefing Template
 
 ```markdown
 You are in a 1-on-1 coaching session. I will Ask you five questions; reply to

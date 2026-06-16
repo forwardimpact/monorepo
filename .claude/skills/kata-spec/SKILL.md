@@ -164,7 +164,7 @@ The PR title carries the spec id: `spec(NNN): …`. Merge of that PR is what
 advances the phase. Do not apply the `spec:approved` label and do not
 recommend approval — those are human-only actions; see § Approval.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

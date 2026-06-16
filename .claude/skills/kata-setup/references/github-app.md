@@ -3,7 +3,7 @@
 Create a GitHub App to authenticate Kata agent workflows. The App generates
 short-lived installation tokens -- no long-lived PATs to rotate.
 
-## Hosted alternative
+## Hosted Alternative
 
 Teams using the Forward Impact-hosted control plane **skip this entire
 page**. Instead of registering and self-hosting an App, install the
@@ -55,7 +55,7 @@ The App delivers two event families through different channels. Subscribe to
 all five events on the App, and both channels will fire when their respective
 events arrive.
 
-### App webhook (served by `services/ghbridge`)
+### App Webhook (served by `services/ghbridge`)
 
 Discussion events reach `kata-dispatch` only through the App webhook URL
 configured above:
@@ -63,7 +63,7 @@ configured above:
 - **Discussion** -- a new discussion is created, edited, or closed
 - **Discussion comment** -- a reply lands on a discussion thread
 
-### GitHub Actions triggers (no webhook URL needed)
+### GitHub Actions Triggers (no webhook URL needed)
 
 PR and issue events reach `kata-dispatch` via workflow triggers in
 `.github/workflows/kata-dispatch.yml`; the App webhook URL is not consulted
@@ -73,7 +73,7 @@ for these:
 - **Pull request review** -- triggers on submitted reviews
 - **Pull request review comment** -- triggers on review thread replies
 
-## Webhook events
+## Webhook Events
 
 The App webhook URL receives the two Discussion subscriptions listed above.
 `services/ghbridge` verifies the `X-Hub-Signature-256` header against the

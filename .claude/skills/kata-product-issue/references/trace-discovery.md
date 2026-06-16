@@ -3,7 +3,7 @@
 How to locate a PM activation's trace slice inside `Kata: Dispatch` artifacts
 when studying product-manager behavior from dispatch runs.
 
-## Why this runbook exists
+## Why This Runbook Exists
 
 `fit-trace runs <pattern>` filters on **workflow name**, not participant name.
 PM activations run under workflow `Kata: Dispatch`, so
