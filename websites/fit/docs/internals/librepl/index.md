@@ -62,17 +62,19 @@ const repl = new Repl({
 });
 ```
 
-| Property     | Type                                     | Purpose                                      |
-| ------------ | ---------------------------------------- | -------------------------------------------- |
-| `prompt`     | `string`                                 | Prompt string (default `"> "`)               |
-| `usage`      | `string`                                 | Static help text shown before command list   |
-| `state`      | `object`                                 | Initial state values                         |
-| `storage`    | `StorageInterface`                       | Optional storage for state persistence       |
-| `commands`   | `object`                                 | Custom command definitions                   |
-| `setup`      | `(state) => Promise<void>`               | Runs once before the REPL accepts input      |
-| `onLine`     | `(line, state, output) => Promise<void>` | Handles non-command input (line is trimmed)  |
-| `beforeLine` | `(state) => Promise<void>`               | Hook before each non-empty line is processed |
-| `afterLine`  | `(state) => Promise<void>`               | Hook called after each line is processed     |
+| Property        | Type                                     | Purpose                                         |
+| --------------- | ---------------------------------------- | ----------------------------------------------- |
+| `prompt`        | `string`                                 | Prompt string (default `"> "`)                  |
+| `usage`         | `string`                                 | Static help text shown before command list      |
+| `documentation` | `Array<{title, url, description?}>`      | External doc links rendered after the command list (mirrors the matching SKILL.md `## Documentation` section) |
+| `state`         | `object`                                 | Initial state values                            |
+| `storage`       | `StorageInterface`                       | Optional storage for state persistence          |
+| `commands`      | `object`                                 | Custom command definitions                      |
+| `setup`         | `(state) => Promise<void>`               | Runs once before the REPL accepts input         |
+| `onLine`        | `(line, state, output) => Promise<void>` | Handles non-command input (line is trimmed)     |
+| `beforeLine`    | `(state) => Promise<void>`               | Hook before each non-empty line is processed    |
+| `afterLine`     | `(state) => Promise<void>`               | Hook called after each line is processed        |
+| `indent`        | `string`                                 | Prefix prepended to each output line (default `""`) |
 
 ---
 
