@@ -30,15 +30,12 @@ export class {{className}} extends Client {
    * @returns { import("@grpc/grpc-js").ClientReadableStream<{{responseTypeNamespace}}.{{responseType}}> } Response stream emitting typed messages.
    */
   {{name}}({{paramName}}) {
-    // Type validation
-    if (!({{paramName}} instanceof {{requestTypeNamespace}}.{{requestType}})) {
-      throw new TypeError(
-        `{{name}}: Expected parameter to be instanceof {{requestTypeNamespace}}.{{requestType}}`,
-      );
-    }
-    
-    // Convert to plain object
-    const request = {{requestTypeNamespace}}.{{requestType}}.toObject({{paramName}});
+    // Accept a typed message or a plain init object (coerced to the typed type).
+    const message =
+      {{paramName}} instanceof {{requestTypeNamespace}}.{{requestType}}
+        ? {{paramName}}
+        : new {{requestTypeNamespace}}.{{requestType}}({{paramName}});
+    const request = {{requestTypeNamespace}}.{{requestType}}.toObject(message);
     
     // Make gRPC call
     return this.callStream("{{name}}", request, (res) => {{responseTypeNamespace}}.{{responseType}}.fromObject(res));
@@ -51,15 +48,12 @@ export class {{className}} extends Client {
    * @returns { Promise<{{responseTypeNamespace}}.{{responseType}}> } Typed response message.
    */
   async {{name}}({{paramName}}) {
-    // Type validation
-    if (!({{paramName}} instanceof {{requestTypeNamespace}}.{{requestType}})) {
-      throw new TypeError(
-        `{{name}}: Expected parameter to be instanceof {{requestTypeNamespace}}.{{requestType}}`,
-      );
-    }
-    
-    // Convert to plain object
-    const request = {{requestTypeNamespace}}.{{requestType}}.toObject({{paramName}});
+    // Accept a typed message or a plain init object (coerced to the typed type).
+    const message =
+      {{paramName}} instanceof {{requestTypeNamespace}}.{{requestType}}
+        ? {{paramName}}
+        : new {{requestTypeNamespace}}.{{requestType}}({{paramName}});
+    const request = {{requestTypeNamespace}}.{{requestType}}.toObject(message);
     
     // Make gRPC call (tracing handled by base Client class)
     return this.callUnary("{{name}}", request, (res) => {{responseTypeNamespace}}.{{responseType}}.fromObject(res));
