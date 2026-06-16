@@ -104,8 +104,9 @@ plan or implementation → a merge that introduces trust-surface code. The backs
 must not depend on the agent pipeline honestly reporting its own approval as
 agent-origin — that would relocate the very self-certification this spec removes
 from the STATUS verdict onto the `origin` field. So the gate rests on two
-principles: **`origin = human` is gate-verifiable, never self-asserted**, and on a
-trust-surface diff **field-absence fails toward arming**.
+principles: **`origin = human` is verifiable from a gate-observable PR-side human
+signal, never self-asserted**, and on a trust-surface diff **field-absence fails
+toward arming**.
 
 The gate first evaluates the **implementation PR's merging diff** against the
 trust-surface denylist, against the trusted base (`origin/main`) copy. If the
@@ -114,40 +115,70 @@ the existing `plan implemented` + CI gate. If it **does** intersect (a
 trust-surface diff), the gate **refuses the merge unless one of these holds**:
 
 - **The PR carries an approval chain and *every* leg of it is verifiably human.**
-  A leg counts as human only when the gate can tie it to an **independent
-  trusted-human signal** — the same trust check `kata-dispatch` already runs on a
-  label, review, or comment, or an in-session human. An agent-written approval
-  record **cannot declare itself human**: a leg that is `origin = agent`, missing,
-  unreadable, or not tied to a verifiable human signal does not count as human,
-  and *any* such leg on a trust-surface diff arms the backstop. There is no "but
-  another leg already reads agent" qualifier — the attacker controls whether its
-  own leg says agent, so the discriminator is "verifiably human on every leg,"
-  not "does any leg happen to say agent." Either the whole chain is verifiably
-  human or the change stays human-only.
+  A leg counts as human only when its approval is a **gate-observable,
+  human-actor-attributed PR-side signal** the gate checks against the GitHub
+  event — never the wiki `origin` field, and never an in-session approval (which
+  leaves no GitHub artifact to verify against). Two signals qualify:
+  - **Canonical** — an **APPROVED pull-request review by a top-7 human account**.
+    GitHub binds the review to the human identity; a bot token cannot forge it,
+    and the review is retained on the merged PR.
+  - **Acceptable** — a `<phase>:approved` **label whose `labeled` timeline event
+    actor is a top-7 human account**. A bot applying the label is recorded as the
+    bot and rejected.
+
+  An agent-authored STATUS stamp, an in-session-only approval, and an approval
+  comment do **not** qualify. Each leg's signal lives on its own merged
+  design/plan PR, which retains the review and timeline for the cross-PR lookup.
+  A leg that is `origin = agent`, missing, unreadable, or lacking a qualifying
+  signal does not count as human, and *any* such leg on a trust-surface diff arms
+  the backstop. There is no "but another leg already reads agent" qualifier — the
+  attacker controls its own leg's stamp — so the discriminator is "a verifiable
+  human signal on every leg," not "does any leg happen to say agent." Either the
+  whole chain is verifiably human or the change stays human-only.
 - **The PR carries no approval chain at all** — spec-less trusted-human
   trust-surface maintenance, a maintainer's one-off `fix:`/`refactor:` touching
   `.claude/agents/**` or a phase-gate skill. It falls back to the **existing
-  author-trust + CI gate, unchanged**, merging on the same kind of verifiable
-  trusted-human signal (author trust plus a human approval on the PR) that an
-  agent cannot satisfy. 2040 invents no new block for legitimate human
-  maintenance — rev 5's fix for spec-less human work stands.
+  author-trust + CI gate, unchanged**, which already rests on a gate-observable
+  human identity (a top-7 human author/approver) that an agent cannot satisfy.
+  2040 invents no new block for legitimate human maintenance — rev 5's fix for
+  spec-less human work stands.
 
 This closes the dodges a self-asserted field allowed. An agent that **omits** its
 plan leg's `origin` no longer reads as "no agent chain" — the chain exists, the
-leg is not verifiably human, so on a trust-surface diff it arms. An agent that
-**writes `origin = human`** no longer counts — the stamp must tie to an
-independent human signal the gate checks. And a new agent record can no longer
-**impersonate a legacy one** (below).
+leg carries no qualifying signal, so on a trust-surface diff it arms. An agent
+that **writes `origin = human`** no longer counts — the wiki stamp is not a
+signal the gate trusts; only the PR-side GitHub event is. And a new agent record
+can no longer **impersonate a legacy one** (below).
+
+**This is a real operational change, scoped to the trust-surface class.**
+Trust-surface (denylist-intersecting) approvals must henceforth be emitted as a
+PR-side human signal — an APPROVED review or a human-applied `<phase>:approved`
+label — **not in-session**, or the leg does not count and the backstop arms (the
+change stays human-only). The live queue emits neither today: across the last 40
+merged PRs there were 0 APPROVED reviews, across 50 PRs 0 human `labeled` events,
+and STATUS is authored by `kata-agent-team[bot]`. So this genuinely changes how
+trust-surface approvals are recorded — but only for that class.
+
+It is **not** a throughput regression. Verification only bites when a chain would
+otherwise avoid the denylist on a **trust-surface** diff — and trust-surface
+*designs* are human-only anyway under Bound 1. Ordinary product and library
+designs whose diff does **not** intersect the denylist are unaffected: arming is
+harmless there because the denylist check passes regardless, so an unverifiable
+or in-session human leg costs nothing. The verification burden falls solely on
+the high-risk class, which is where it belongs.
 
 **Legacy transition is a precondition, not a deferred ambiguity.** Designs and
-plans approved before 2040 ships carry no `origin` field, and a missing field is
-otherwise byte-indistinguishable from an agent record that simply omitted it.
-Relying on the legacy fallback therefore **requires a one-time backfill that
-stamps every pre-2040 approval record with an explicit `origin` first**. After
-the backfill there are zero missing-`origin` records, so a missing field
-thereafter **always arms** on a trust-surface diff. The backfill mechanism and
-its cutoff are HOW; that the backfill eliminates the missing-vs-legacy ambiguity
-*before* the legacy fallback is trusted is WHAT (SC9).
+plans approved before 2040 ships carry no `origin` field and emit no qualifying
+PR-side signal, so **field-absence alone no longer proves trusted origin**. A
+legacy record cannot stand the backstop down on absence: relying on a legacy
+chain on a trust-surface diff **requires a one-time re-attestation that produces
+a verifiable signal** (an APPROVED human review or a human-applied label on the
+record's PR). A legacy chain that is not re-attested arms. After this one-time
+pass there are no unverifiable trust-surface approvals left, so a missing field
+or absent signal thereafter **always arms** on a trust-surface diff. The
+re-attestation mechanism and its cutoff are HOW; that legacy records cannot stand
+down on absence alone and must carry a verifiable signal before the fallback is
+trusted is WHAT (SC9).
 
 Reading only the design's `origin` is not enough — code is authorized through the
 plan leg — which is why `origin` is required on the **plan** approval record too
@@ -182,8 +213,10 @@ backstop cannot enforce it, because the backstop — the agent-chain origin chec
 the plan-`origin` field, the denylist naming `kata-plan` and `kata-release-merge`
 — does not exist until 2040's implementation PR creates it. A gate cannot fire on
 the PR that introduces it: 2040's own implementation merges under the *pre-2040*
-gate, which has no denylist and no origin check. So the bootstrap rests on human
-approval, as revision 3 stated.
+gate, which has no denylist and no origin check. The verifiable-signal rule
+deepens this — 2040's own machinery cannot emit a gate-checkable signal for
+itself before it exists — so the bootstrap rests on human approval, as revision 3
+stated.
 
 What *is* mechanism-backed is the **steady state**: once 2040 has shipped, no
 future agent chain can weaken the machinery, because any such PR intersects the
@@ -215,14 +248,17 @@ Every approval record carries two **required** fields — for a design *or* a
 plan, written by an agent *or* a human: **`origin`** (`agent` | `human`) and a
 **`digest`** of that artifact's reviewed change-set (Bound 3). Both legs stamp
 `origin`. Crucially, **`origin = human` is gate-verifiable, not self-asserted**:
-a leg counts as human only when the gate can tie it to an independent
-trusted-human signal — the trust check `kata-dispatch` already runs on a label,
-review, or comment, or an in-session human — and an **agent-written record
-cannot declare itself human**. The agent path writes `origin = agent`; a leg
-that is `origin = agent`, missing, unreadable, or not tied to a verifiable human
-signal does not count as human, so on a trust-surface diff Bound 1 arms (the safe
-direction — field-absence fails toward arming, and a self-asserted human stamp
-buys nothing). These are write-side WHAT, not row-shape HOW: the merge gate
+on a trust-surface chain a leg counts as human only when the gate can tie it to a
+**gate-observable, human-actor-attributed PR-side signal** — an APPROVED
+pull-request review by a top-7 human account (canonical) or a `<phase>:approved`
+label whose `labeled` event actor is a top-7 human account (acceptable; a bot
+actor is rejected). An **in-session approval does not qualify** — it leaves no
+GitHub artifact to verify against — nor does an agent-written STATUS stamp or an
+approval comment; an **agent-written record cannot declare itself human**. The
+agent path writes `origin = agent`; a leg that is `origin = agent`, missing,
+unreadable, or lacking a qualifying signal does not count as human, so on a
+trust-surface diff Bound 1 arms (the safe direction — field-absence fails toward
+arming, and a self-asserted human stamp buys nothing). These are write-side WHAT, not row-shape HOW: the merge gate
 cannot run its fail-closed backstop without a verifiable `origin` on each leg,
 and cannot re-check content drift without each artifact's `digest`. Everything
 else about how the record is laid out on the STATUS row stays HOW.
@@ -284,9 +320,12 @@ or reverse any agent-approved design before its merge.
   including that a trust locus distinct from **both the author and the
   enforcement (merge-gate) locus** records the approval. Every approval record —
   design and plan, agent and human — carries the required `origin` and `digest`
-  fields, with `origin = human` **gate-verifiable against an independent
-  trusted-human signal, never self-asserted** by an agent-written record, so the
-  gate can prove a chain human-origin leg by leg.
+  fields, with `origin = human` on a trust-surface chain **verifiable only
+  against a gate-observable, human-actor-attributed PR-side signal** — an APPROVED
+  review by a top-7 human account, or a `<phase>:approved` label whose `labeled`
+  actor is a top-7 human — never a self-asserted wiki stamp and never an
+  in-session approval. The reference states plainly that trust-surface approvals
+  must be emitted as such a PR-side signal.
 - The **plan approval write path** (`kata-plan` and the locus that records a
   plan approval) — gains the same `origin` and `digest` stamping on its approval
   record. This does not change who may approve a plan or the clean-panel bar
@@ -296,20 +335,24 @@ or reverse any agent-approved design before its merge.
   1, evaluated at the **implementation PR**. It checks the merging diff against
   the trust-surface denylist (trusted base `origin/main` copy); on a
   **trust-surface (intersecting) diff** it refuses the merge unless either
-  *every* leg of the PR's approval chain is **verifiably human** (tied to an
-  independent trusted-human signal, never a self-asserted `origin` field — any
-  leg that is `origin = agent`, missing, unreadable, or unverifiable arms it,
-  with no "another leg already reads agent" qualifier) **or** the PR carries no
-  approval chain at all and clears the existing author-trust + CI gate (spec-less
-  human maintenance). The Bound 3 digest is checked separately, at each reviewed
+  *every* leg of the PR's approval chain is **verifiably human** — backed by a
+  gate-observable PR-side signal (an APPROVED review by a top-7 human, or a
+  `<phase>:approved` label whose `labeled` actor is a top-7 human), never a
+  self-asserted `origin` field and never an in-session approval; any leg that is
+  `origin = agent`, missing, unreadable, or lacking that signal arms it, with no
+  "another leg already reads agent" qualifier — **or** the PR carries no approval
+  chain at all and clears the existing author-trust + CI gate (spec-less human
+  maintenance). The Bound 3 digest is checked separately, at each reviewed
   artifact's own PR head, not at the implementation PR.
-- A **one-time legacy backfill** of `origin` onto every pre-2040 approval record
-  is a **deployment precondition** of the no-chain / legacy fallback: until every
-  legacy record is explicitly stamped, a missing field is indistinguishable from
-  an agent record that omitted one. After the backfill there are zero
-  missing-`origin` records, so a missing field thereafter always arms on a
-  trust-surface diff. The backfill mechanism and its cutoff are HOW; that it runs
-  before the fallback is trusted is WHAT (SC9).
+- A **one-time legacy re-attestation** is a **deployment precondition** of the
+  legacy fallback. Pre-2040 records carry no `origin` and emit no PR-side signal,
+  so field-absence alone no longer proves trusted origin: a legacy chain on a
+  trust-surface diff stands down only if it is re-attested with a verifiable
+  signal (an APPROVED human review or a human-applied label on its PR); an
+  un-re-attested legacy chain arms. After this one-time pass no unverifiable
+  trust-surface approval remains, so a missing field or absent signal thereafter
+  always arms on a trust-surface diff. The re-attestation mechanism and cutoff
+  are HOW; that legacy cannot stand down on absence alone is WHAT (SC9).
 - The **design skill's frontmatter description, Approval, and Reviewing
   sections** — replace the unconditional human-only statements (the frontmatter
   `description` also asserts human-originated approval) with the bounded
@@ -334,12 +377,14 @@ or reverse any agent-approved design before its merge.
   syntax, and the digest algorithm** are HOW for the design and plan phases.
   What is *not* deferred: that every approval record carries the required
   `origin` and `digest` fields (Bound 2 — write-side WHAT, distinct from row
-  layout); that `origin = human` is **gate-verifiable against an independent
-  trusted-human signal, not self-asserted**; that on a trust-surface diff Bound 1
-  refuses the merge unless **every** chain leg is verifiably human (no-chain PRs
-  fall back to the existing author-trust + CI gate), with the denylist read
-  against the trusted base; that the legacy backfill runs **before** the legacy
-  fallback is trusted; that Bound 3's digest is re-checked at **each reviewed
+  layout); that `origin = human` on a trust-surface chain is **verifiable only
+  against a gate-observable PR-side human signal (APPROVED review or human-applied
+  label), never self-asserted and never in-session**; that on a trust-surface
+  diff Bound 1 refuses the merge unless **every** chain leg carries that signal
+  (no-chain PRs fall back to the existing author-trust + CI gate), with the
+  denylist read against the trusted base; that legacy chains must be re-attested
+  with a verifiable signal **before** the legacy fallback is trusted; that Bound
+  3's digest is re-checked at **each reviewed
   artifact's own PR head** (not stretched to the implementation diff); and that
   an approval locus distinct from both author and enforcement exists (Bound 2).
   Default-deny governs ambiguous eligibility until the denylist covers it.
@@ -354,14 +399,14 @@ or reverse any agent-approved design before its merge.
 | # | Criterion | Verified by |
 |---|---|---|
 | 1 | The approval-signals trust rule documents a design agent-approval path conditioned on a clean independent review panel, and no longer states design approval is unconditionally human-only. | Read the approval-signals reference. |
-| 2 | The signals table carries a design panel-clean signal row analogous to the plan panel-clean row, recording that a trust locus distinct from both the author and the enforcement (merge-gate) locus writes the approval. Every approval record — design and plan, agent and human — carries two required fields: `origin` (`agent` \| `human`) and a `digest` of that artifact's reviewed change-set. `origin = human` is **gate-verifiable against an independent trusted-human signal, not self-asserted** — an agent-written record cannot declare itself human — and a leg that is `origin = agent`, missing, unreadable, or unverifiable does not count as human. | Read the approval-signals reference. |
+| 2 | The signals table carries a design panel-clean signal row analogous to the plan panel-clean row, recording that a trust locus distinct from both the author and the enforcement (merge-gate) locus writes the approval. Every approval record — design and plan, agent and human — carries two required fields: `origin` (`agent` \| `human`) and a `digest` of that artifact's reviewed change-set. `origin = human` on a trust-surface chain is **verifiable only against a gate-observable, human-actor-attributed PR-side signal** — an APPROVED review by a top-7 human account, or a `<phase>:approved` label whose `labeled` actor is a top-7 human — never a self-asserted wiki stamp, an in-session approval, or a comment. The reference states that trust-surface approvals must be emitted as such a PR-side signal. | Read the approval-signals reference. |
 | 3 | The design skill's Approval section states the bounded agent-approval condition and the trust-surface human-only carve-out, consistent with the plan skill's Approval section. | Read the design skill. |
 | 4 | "Clean panel" is defined explicitly as no unresolved blocker, high, or medium findings on the design artifact — the same bar the plan path sets in its DO-CONFIRM checklist (that checklist, not the plan skill's Approval section, is the source of the bar) — not left implicit. | Read the design skill and approval-signals reference; compare to the plan skill's DO-CONFIRM checklist. |
 | 5 | The eligibility carve-out names the trust-surface class (approval-policy references and the gate machinery they govern, phase-gate skills, agent profiles and authority policies) and states the default-deny rule for ambiguous cases, resolving to a decidable denylist test (enforced per SC9). | Read the approval-signals reference or design skill. |
 | 6 | The independence (anti-self-certification) bound is stated: every panel reviewer is independent of the author and runs cold, the panel meets a minimum quorum, and the approver clears it against the panel's own posted verdict artifact rather than an author-written summary; **and** approval is recorded by a trust locus in a role distinct from **both** the author and the enforcement (merge-gate) locus — not a second instance of the author's role — so no agent approves its own design and the merge-gate backstop stays independent. The spec requires such a distinct locus to exist (the which-role binding may defer to HOW) and states that the existence precondition is discharged at design time by naming the bound role, not merely assumed. | Read the design skill or approval-signals reference. |
 | 7 | The reviewed-content and human-override bounds are stated: a change after approval returns the design to unapproved; humans may approve directly and reverse an agent approval before merge. | Read the design skill or approval-signals reference. |
 | 8 | Spec-phase approval remains human-only: the spec skill's Approval section and the approval-signals spec-row treatment still state that `spec approved` originates only from a trusted human, with no agent panel-clean path added for specs; where spec and design share prose, the spec-applicable wording stays human-only. | Read the spec skill's Approval section and the approval-signals spec row; confirm no design-phase agent path bled into the spec treatment. |
-| 9 | Bound 1 is backstopped at the merge gate against the **implementation PR**, named as the enforcement point: `kata-release-merge` checks the merging diff against a checked-in trust-surface denylist evaluated against the trusted base (`origin/main`) copy. On a **trust-surface (intersecting) diff** it refuses the merge unless either *every* leg of the PR's approval chain is **verifiably human** — tied to an independent trusted-human signal, never a self-asserted `origin` field; any leg that is `origin = agent`, missing, unreadable, or unverifiable arms it, with **no "another leg already reads agent" qualifier** — or the PR has no approval chain at all and clears the existing author-trust + CI gate (spec-less human maintenance preserved). A **one-time legacy backfill** of `origin` onto all pre-2040 records is a precondition of trusting the fallback, so post-backfill a missing field always arms on a trust-surface diff. The denylist covers the whole Bound 1 trust-surface class, naming the merge-gate skill, the settings file, the gate workflows, `kata-design`, `kata-plan`, and `.claude/agents/**` as a non-exhaustive minimum. | Read the merge-gate skill and the denylist. |
+| 9 | Bound 1 is backstopped at the merge gate against the **implementation PR**, named as the enforcement point: `kata-release-merge` checks the merging diff against a checked-in trust-surface denylist evaluated against the trusted base (`origin/main`) copy. On a **trust-surface (intersecting) diff** it refuses the merge unless either *every* leg of the PR's approval chain is **verifiably human** — backed by a gate-observable PR-side signal (an APPROVED review by a top-7 human, or a `<phase>:approved` label whose `labeled` actor is a top-7 human), never a self-asserted `origin` field and never an in-session approval; any leg that is `origin = agent`, missing, unreadable, or lacking that signal arms it, with **no "another leg already reads agent" qualifier** — or the PR has no approval chain at all and clears the existing author-trust + CI gate (spec-less human maintenance preserved). A **one-time legacy re-attestation** producing a verifiable signal is a precondition of trusting the fallback (field-absence alone no longer proves trusted origin), so post-transition a missing field or absent signal always arms on a trust-surface diff. This is a real operational change scoped to the trust-surface class: trust-surface approvals must now be emitted as a PR-side human signal, not in-session. The denylist covers the whole Bound 1 trust-surface class, naming the merge-gate skill, the settings file, the gate workflows, `kata-design`, `kata-plan`, and `.claude/agents/**` as a non-exhaustive minimum. | Read the merge-gate skill and the denylist. |
 | 10 | Bound 3 is the anti-staleness check, bound to the reviewed artifact and not stretched across the design→implementation boundary: each approval (design and plan) is bound to a `digest` of **that artifact's full reviewed change-set** (every file in the reviewed PR, not only the design or plan text), `kata-release-merge` recomputes the digest **at that artifact's own PR head**, and any change re-opens approval (mismatch → unapproved). The implementation PR is checked by the Bound 1 denylist only; the digest is not recomputed over the implementation diff. | Read the merge-gate skill and the approval-signals reference. |
 | 11 | 2040's own design and implementation are classified as trust-surface changes and remain human-only — the agent-approval path cannot be agent-approved into existence. The spec states that 2040's **own introduction** is gated **procedurally** (a human approves and merges its spec, design, and implementation), because the backstop does not exist until 2040's implementation PR creates it — a gate cannot fire on the PR that introduces it. The **steady-state** claim is mechanism-backed: once shipped, any future agent chain that would weaken the machinery intersects the self-naming denylist and is refused fail-closed. | Read the design skill or approval-signals reference for the self-referential carve-out; confirm 2040's design/plan STATUS rows reach `approved` only by a human signal. |
 
