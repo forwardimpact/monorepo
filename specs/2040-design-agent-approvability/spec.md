@@ -65,14 +65,17 @@ own work clean. Anti-self-certification is phase-independent, so 2040 closes the
 gap for designs with a distinct approval locus rather than propagating the gap
 one phase upstream.
 
-The plan path's gap is not a future-tightening nicety — it is the **live soft
-target**. Trust-surface *code* lands through the plan and implementation phases,
-not through the markdown design, so the plan path's self-certification gap is
-what an attacker actually wants. 2040's design control raises the cost of one
-route, but its security value stays limited until the plan path is tightened to
-the same anti-self-certification bar. The divergence between the two gates is
-explained, not silent — and is named here as a known live gap, not a cosmetic
-follow-up.
+Trust-surface *code* lands through the plan and implementation phases, not
+through the markdown design — so the plan leg, not the design, is where an
+attacker would route an escalation. The fail-closed merge-gate backstop (Bound
+1) is built around exactly that: it stands down only for a chain that is provably
+human-origin end to end, so any agent-approved plan leg arms the denylist check
+on the implementation diff and refuses trust-surface code. What that does **not**
+reach is the plan path's self-certification of *non*-trust-surface content — an
+author recording its own plan panel's verdict on ordinary code. That residual
+independence gap is real and is **flagged here for the same Bound 2 tightening**,
+out of scope for 2040's text but named, not deferred to silence. The divergence
+between the two gates is explained, not silent.
 
 ### Bound 1 — eligibility carve-out for trust-surface designs, default-deny
 
@@ -93,15 +96,22 @@ the honor step is recorded. A design PR is markdown — the design document — 
 almost never touches the trust surface, so gating only the design-approval step
 catches a near-empty intersection: it is enforceable theater. The trust-surface
 **code** lands downstream in the **implementation PR**, which 2040 otherwise
-gates only on `plan implemented` plus CI. The end-to-end attack route is a
-benign agent-approved design → an uncarved plan → an ungated implementation
-merge that introduces trust-surface code. To close it, the merge gate evaluates
-the **implementation PR's merging diff** against the trust-surface denylist
-whenever that PR descends from an agent-approved design or plan chain — it reads
-the approval record's `origin` field (Bound 2) to tell an agent chain from a
-human one, so the human path is never blocked. The **implementation PR is the
-named enforcement point** (SC9). An intersection returns the chain to
-human-only.
+gates only on `plan implemented` plus CI. The attack route the carve-out must
+close is: a benign design → an agent-approved plan or implementation → a merge
+that introduces trust-surface code. To close it, the merge gate evaluates the
+**implementation PR's merging diff** against the trust-surface denylist, and it
+**fails closed**: the backstop arms on every implementation PR **unless that
+PR's chain is provably human-origin end to end** — that is, every approval leg
+in the chain (design *and* plan) is present and stamped `origin = human`. A
+missing or unreadable `origin` on any leg reads as not-human, so the backstop
+arms; a default-to-allow would fail open in exactly the direction that matters.
+Reading only the design's `origin` is not enough: code is authorized through the
+plan leg, so an agent-approved plan under a human-approved design would slip a
+design-only check. The gate therefore requires the **whole chain** to be
+human-stamped before it stands down, which means `origin` is required on the
+**plan** approval record too (Bound 2, scope) and the human paths stamp
+`origin = human` explicitly. The **implementation PR is the named enforcement
+point** (SC9). An intersection returns the chain to human-only.
 
 The denylist is the operational form of the **whole** Bound 1 trust-surface
 class, not a narrower floor. It covers the approval-policy references and the
@@ -125,15 +135,16 @@ spec 1830, which keeps the spec-less experiment merge path human-originated.
 **Bootstrap, self-consistently human-gated.** 2040's own design and
 implementation modify the approval machinery, so they are themselves
 trust-surface changes and remain human-only under this bound (SC11). The gate
-that creates agent-approval cannot be agent-approved into existence. The limit
-of the guarantee is worth stating plainly: the design gate forces 2040's design
-human-only by mechanism, but its *implementation* is protected **procedurally**,
-not mechanically. Because that implementation descends from a **human**-approved
-design (`origin = human`), the agent-chain denylist backstop does not fire on
-it — a human reviewing the whole human-origin chain is what holds the
-trust-surface line for 2040's own rollout. The backstop is mechanical only for
-agent-origin chains; the bootstrap window relies on the human design gate
-upstream.
+that creates agent-approval cannot be agent-approved into existence. The
+fail-closed end-to-end rule makes this hold by mechanism, not by convention
+alone: 2040's design stays human-only by the carve-out, and its implementation
+PR stands the backstop down only if every leg of its chain is provably
+`origin = human`. Any agent-approved leg leaves the chain not-provably-human, so
+the backstop arms — and because 2040's own diff intersects the denylist, the
+merge is refused, forcing the human path. So 2040's rollout is held human either
+by a genuine end-to-end human approval or by the fail-closed gate catching an
+agent leg; there is no agent-approvable path into the machinery that creates
+agent-approval.
 
 ### Bound 2 — anti-self-certification: independent panel and independent approver
 
@@ -156,46 +167,63 @@ certifies it clean:
   only. Keeping the approver distinct from both the author and the enforcement
   locus is what preserves the backstop's independence.
 
-When it records an agent approval, the approver writes two **required** fields
-onto the approval record: **`origin`** (`agent` | `human`) and a **`digest`** of
-the reviewed change-set (Bound 3). These two write-side fields are WHAT, not
-row-shape HOW: the merge gate cannot scope its backstop without them — it must
-tell an agent-originated `design approved` from a human one (or it would block
-the human path SC11 depends on), and it must hold the digest to re-check it.
-Everything else about how the record is laid out on the STATUS row stays HOW.
+Every approval record carries two **required** fields — for a design *or* a
+plan, written by an agent *or* a human: **`origin`** (`agent` | `human`) and a
+**`digest`** of that artifact's reviewed change-set (Bound 3). Both legs and
+both paths stamp `origin`: the agent path writes `origin = agent`, and the human
+paths (`kata-dispatch` propagation of a PR-side signal and in-session human
+approval) write `origin = human`. The gate can prove a chain human-origin only
+when every leg actually says so, so a missing or unreadable field reads as
+not-human, never as human — the safe direction. These are write-side WHAT, not
+row-shape HOW: the merge gate cannot run its fail-closed backstop without an
+`origin` on each leg, and cannot re-check content drift without each artifact's
+`digest`. Everything else about how the record is laid out on the STATUS row
+stays HOW.
 
 The approver must be a different trust **locus**, not merely a different
 *instance* of the author's role — two instances of one role are correlated, and
 the bound becomes cosmetic. **Which** non-author, non-enforcement role binds is
 HOW; **that** such a distinct locus exists is a precondition this spec requires
-before any agent design-approval is claimed (SC6). No agent approves its own
-design.
+before any agent design-approval is claimed (SC6). The role population that
+qualifies (non-author, non-enforcement) is non-empty, so the precondition is
+satisfiable — but it must be **discharged at design time by naming the bound
+role, not assumed**; until a design names it, no agent design-approval is
+eligible. No agent approves its own design.
 
-### Bound 3 — approval covers the reviewed change-set; human override
+### Bound 3 — approval covers the reviewed artifact; human override
 
-An agent approval covers only the content the panel actually reviewed. If that
-content changes after approval, the approval no longer holds and the work
-returns to unapproved until a fresh clean panel or a human signal covers the new
-content. This too is enforced at the merge gate: the agent approval is bound to
-a **`digest` of the full reviewed change-set — every file the panel reviewed,
-not only the design text** — so a PR cannot smuggle unreviewed files past both
-the digest and the denylist checks. The gate recomputes the digest over the
-merging change-set of the implementation PR that descends from the agent-approved
-chain, and treats any mismatch as unapproved. The digest algorithm is HOW; that
-approval is bound to a digest of the **whole** reviewed change-set and re-checked
-at the gate is WHAT (SC10). Humans retain the standing ability to approve any
-design directly and to reclaim or reverse any agent-approved design before its
-merge.
+An agent approval covers only the content the panel actually reviewed — and the
+panel reviews the *artifact*: the design on the design leg, the plan on the plan
+leg. The approval is bound to a **`digest` of that artifact's full reviewed
+change-set — every file in the reviewed PR, not only the design or plan text**,
+so the reviewed PR cannot smuggle unreviewed files alongside the artifact. If
+the artifact changes after approval the digest stops matching and the approval
+no longer holds: the gate recomputes the digest **at that artifact's own PR
+head** and returns it to unapproved until a fresh clean panel or a human signal
+covers the new content.
+
+This anti-staleness check stays on the boundary the panel actually read. A
+design-phase review cannot vouch for an implementation-phase diff — they are
+disjoint file populations and nothing pre-reviews the implementation code — so
+the digest is **not** stretched across the design→implementation boundary. At
+the implementation PR the **denylist (Bound 1) is the sole 2040 check**. Any
+anti-smuggle protection at the implementation rests on its own basis — the
+implementation conforming to the *approved plan* — which belongs to the
+unchanged plan and implementation gates, not to this digest. The digest
+algorithm is HOW; that each approval is bound to a digest of its **whole**
+reviewed artifact and re-checked at that artifact's PR head is WHAT (SC10).
+Humans retain the standing ability to approve any design directly and to reclaim
+or reverse any agent-approved design before its merge.
 
 ### Why bounded agent-approvability over the alternatives
 
 | Axis | (a) keep design human-only | (b) unbounded agent-approval | (c) bounded agent-approval — chosen |
 |---|---|---|---|
 | Throughput ceiling | Unchanged — the obstacle persists | Lifted | Lifted for the class that pools |
-| Self-amendment risk | None | A gate can approve loosening its own authority | Closed by Bound 1 — denylist enforced against the implementation PR's merging diff, not the markdown design |
+| Self-amendment risk | None | A gate can approve loosening its own authority | Closed by Bound 1 — denylist on the implementation PR's merging diff, armed fail-closed unless the chain is provably human-origin end to end |
 | Author self-certification risk | None | Author convenes own panel and records its verdict | Closed by Bound 2 — cold panel **and** an approval locus distinct from both author and enforcement |
-| Stale-content risk | Human re-reads | Approval drifts from reviewed content | Closed by Bound 3 — digest of the **full** reviewed change-set re-checked at the gate |
-| Enforcement | — | Bounds unwired, asserted only in prose | Bounds 1 & 3 backstopped at the **implementation PR** (denylist vs trusted base; digest vs reviewed change-set) |
+| Stale-content risk | Human re-reads | Approval drifts from reviewed content | Closed by Bound 3 — each leg's digest re-checked at that artifact's own PR head, re-opening approval on change |
+| Enforcement | — | Bounds unwired, asserted only in prose | Bound 1 denylist at the implementation PR (vs trusted base, fail-closed end-to-end); Bound 3 digest at each reviewed artifact's PR head |
 | Human oversight | Total, and the bottleneck | None | Retained as override + the trust-surface gate |
 | Precedent fit | — | — | Extends the plan panel model; the plan path's identical self-certification gap is the live soft target, named not copied |
 
@@ -207,15 +235,23 @@ merge.
   panel-clean row analogous to the existing plan panel-clean row, and the trust
   rule documents the bounded design agent-approval path with all three bounds,
   including that a trust locus distinct from **both the author and the
-  enforcement (merge-gate) locus** records the approval and writes the required
-  `origin` and `digest` fields onto the approval record.
-- The **merge gate (`kata-release-merge`)** — the decidable backstop for Bounds
-  1 and 3, evaluated at the **implementation PR** that descends from an
-  agent-approved chain (read from the `origin` field, so human-origin chains are
-  untouched): it refuses to let that PR merge when its merging diff intersects
-  the trust-surface denylist — checked against the trusted base (`origin/main`)
-  copy — or when the digest of the merging change-set does not match the digest
-  of the full reviewed change-set.
+  enforcement (merge-gate) locus** records the approval. Every approval record —
+  design and plan, agent and human — carries the required `origin` and `digest`
+  fields, with the human paths stamping `origin = human`, so the gate can prove
+  a chain human-origin end to end.
+- The **plan approval write path** (`kata-plan` and the locus that records a
+  plan approval) — gains the same `origin` and `digest` stamping on its approval
+  record. This does not change who may approve a plan or the clean-panel bar
+  (agents still may, after a clean panel); it adds only the provenance the
+  end-to-end fail-closed check needs in order to see an agent-approved plan leg.
+- The **merge gate (`kata-release-merge`)** — the decidable backstop for Bound
+  1, evaluated at the **implementation PR** and armed **fail-closed**: it
+  refuses the merge unless the PR's chain is provably human-origin end to end
+  (every design and plan leg present and `origin = human`); on any agent or
+  missing leg it checks the merging diff against the trust-surface denylist —
+  against the trusted base (`origin/main`) copy — and refuses on intersection.
+  The Bound 3 digest is checked separately, at each reviewed artifact's own PR
+  head, not at the implementation PR.
 - The **design skill's frontmatter description, Approval, and Reviewing
   sections** — replace the unconditional human-only statements (the frontmatter
   `description` also asserts human-originated approval) with the bounded
@@ -232,16 +268,21 @@ merge.
 - **Spec-phase approval** stays human-only. The obstacle evidence is
   design-specific (all 6 pooled PRs are designs); specs are not the named
   bottleneck. No change to the spec gate.
-- **Plan and implementation gates** — already have agent paths; unchanged.
+- **Plan and implementation approval logic** — who may approve, and the
+  clean-panel bar, are unchanged: agents still approve plans after a clean panel.
+  The only addition is provenance — the plan approval record now stamps
+  `origin`/`digest` so the fail-closed end-to-end check can read the plan leg.
 - **The STATUS row layout, the exact panel size, the denylist's exact glob
   syntax, and the digest algorithm** are HOW for the design and plan phases.
-  What is *not* deferred: that the approval record carries the required `origin`
-  and `digest` fields (Bound 2 — write-side WHAT, distinct from row layout);
-  that eligibility (Bound 1) and digest-match (Bound 3) are enforced at the
-  **implementation PR's** merging diff whenever it descends from an agent-approved
-  chain, with the denylist read against the trusted base; and that an approval
-  locus distinct from both author and enforcement exists (Bound 2). Default-deny
-  governs ambiguous eligibility until the denylist covers it.
+  What is *not* deferred: that every approval record carries the required
+  `origin` and `digest` fields (Bound 2 — write-side WHAT, distinct from row
+  layout); that Bound 1 eligibility is enforced at the **implementation PR's**
+  merging diff, **fail-closed unless the chain is provably human-origin end to
+  end**, with the denylist read against the trusted base; that Bound 3's digest
+  is re-checked at **each reviewed artifact's own PR head** (not stretched to the
+  implementation diff); and that an approval locus distinct from both author and
+  enforcement exists (Bound 2). Default-deny governs ambiguous eligibility until
+  the denylist covers it.
 - **Which** non-author, non-enforcement trust locus binds as the approver may
   defer to the design and plan phases; **that** such a locus exists may not — it
   is a precondition of Bound 2.
@@ -253,32 +294,32 @@ merge.
 | # | Criterion | Verified by |
 |---|---|---|
 | 1 | The approval-signals trust rule documents a design agent-approval path conditioned on a clean independent review panel, and no longer states design approval is unconditionally human-only. | Read the approval-signals reference. |
-| 2 | The signals table carries a design panel-clean signal row analogous to the plan panel-clean row, recording that a trust locus distinct from both the author and the enforcement (merge-gate) locus writes the approval, and that it writes two required fields onto the approval record: `origin` (`agent` \| `human`) and a `digest` of the reviewed change-set. | Read the approval-signals reference. |
+| 2 | The signals table carries a design panel-clean signal row analogous to the plan panel-clean row, recording that a trust locus distinct from both the author and the enforcement (merge-gate) locus writes the approval. Every approval record — design and plan, agent and human — carries two required fields: `origin` (`agent` \| `human`) and a `digest` of that artifact's reviewed change-set; the human paths (`kata-dispatch` and in-session approval) stamp `origin = human`, and a missing field is read as not-human. | Read the approval-signals reference. |
 | 3 | The design skill's Approval section states the bounded agent-approval condition and the trust-surface human-only carve-out, consistent with the plan skill's Approval section. | Read the design skill. |
 | 4 | "Clean panel" is defined explicitly as no unresolved blocker, high, or medium findings on the design artifact — the same bar the plan path sets in its DO-CONFIRM checklist (that checklist, not the plan skill's Approval section, is the source of the bar) — not left implicit. | Read the design skill and approval-signals reference; compare to the plan skill's DO-CONFIRM checklist. |
 | 5 | The eligibility carve-out names the trust-surface class (approval-policy references and the gate machinery they govern, phase-gate skills, agent profiles and authority policies) and states the default-deny rule for ambiguous cases, resolving to a decidable denylist test (enforced per SC9). | Read the approval-signals reference or design skill. |
-| 6 | The independence (anti-self-certification) bound is stated: every panel reviewer is independent of the author and runs cold, the panel meets a minimum quorum, and the approver clears it against the panel's own posted verdict artifact rather than an author-written summary; **and** approval is recorded by a trust locus in a role distinct from **both** the author and the enforcement (merge-gate) locus — not a second instance of the author's role — so no agent approves its own design and the merge-gate backstop stays independent. The spec requires such a distinct locus to exist (the which-role binding may defer to HOW). | Read the design skill or approval-signals reference. |
+| 6 | The independence (anti-self-certification) bound is stated: every panel reviewer is independent of the author and runs cold, the panel meets a minimum quorum, and the approver clears it against the panel's own posted verdict artifact rather than an author-written summary; **and** approval is recorded by a trust locus in a role distinct from **both** the author and the enforcement (merge-gate) locus — not a second instance of the author's role — so no agent approves its own design and the merge-gate backstop stays independent. The spec requires such a distinct locus to exist (the which-role binding may defer to HOW) and states that the existence precondition is discharged at design time by naming the bound role, not merely assumed. | Read the design skill or approval-signals reference. |
 | 7 | The reviewed-content and human-override bounds are stated: a change after approval returns the design to unapproved; humans may approve directly and reverse an agent approval before merge. | Read the design skill or approval-signals reference. |
 | 8 | Spec-phase approval remains human-only: the spec skill's Approval section and the approval-signals spec-row treatment still state that `spec approved` originates only from a trusted human, with no agent panel-clean path added for specs; where spec and design share prose, the spec-applicable wording stays human-only. | Read the spec skill's Approval section and the approval-signals spec row; confirm no design-phase agent path bled into the spec treatment. |
-| 9 | Bound 1 is backstopped at the merge gate against the **implementation PR**, named as the enforcement point: `kata-release-merge` refuses to merge an implementation PR that descends from an agent-approved design/plan chain (read from the `origin` field) when its merging diff intersects a checked-in trust-surface denylist evaluated against the trusted base (`origin/main`) copy. The denylist covers the whole Bound 1 trust-surface class, naming the merge-gate skill, the settings file, the gate workflows, `kata-design`, `kata-plan`, and `.claude/agents/**` as a non-exhaustive minimum. | Read the merge-gate skill and the denylist. |
-| 10 | Bound 3 is backstopped at the merge gate: the agent approval is bound to a `digest` of the **full reviewed change-set** (every file the panel reviewed, not only the design text), and at the implementation PR descending from the agent-approved chain `kata-release-merge` recomputes the digest over the merging change-set and treats any mismatch — including unreviewed files riding along — as unapproved (merge refused). | Read the merge-gate skill and the approval-signals reference. |
-| 11 | 2040's own design and implementation are classified as trust-surface changes and remain human-only — the agent-approval path cannot be agent-approved into existence. The spec states plainly that 2040's own implementation is protected procedurally (its chain is human-origin, so the agent-chain backstop does not fire), not by the implementation-PR mechanism. | Read the design skill or approval-signals reference for the self-referential carve-out; confirm 2040's design/plan STATUS rows reach `approved` only by a human signal. |
+| 9 | Bound 1 is backstopped at the merge gate against the **implementation PR**, named as the enforcement point, and armed **fail-closed**: `kata-release-merge` refuses the merge unless the PR's chain is provably human-origin end to end (every design *and* plan approval leg present and stamped `origin = human`); a missing or non-human leg arms the backstop, which checks the merging diff against a checked-in trust-surface denylist evaluated against the trusted base (`origin/main`) copy and refuses on intersection. The denylist covers the whole Bound 1 trust-surface class, naming the merge-gate skill, the settings file, the gate workflows, `kata-design`, `kata-plan`, and `.claude/agents/**` as a non-exhaustive minimum. | Read the merge-gate skill and the denylist. |
+| 10 | Bound 3 is the anti-staleness check, bound to the reviewed artifact and not stretched across the design→implementation boundary: each approval (design and plan) is bound to a `digest` of **that artifact's full reviewed change-set** (every file in the reviewed PR, not only the design or plan text), `kata-release-merge` recomputes the digest **at that artifact's own PR head**, and any change re-opens approval (mismatch → unapproved). The implementation PR is checked by the Bound 1 denylist only; the digest is not recomputed over the implementation diff. | Read the merge-gate skill and the approval-signals reference. |
+| 11 | 2040's own design and implementation are classified as trust-surface changes and remain human-only — the agent-approval path cannot be agent-approved into existence. The spec states that the fail-closed end-to-end rule holds this by mechanism: 2040's design stays human-only by the carve-out, and any agent-approved leg in its chain arms the backstop on 2040's own implementation PR, which intersects the denylist and is refused. | Read the design skill or approval-signals reference for the self-referential carve-out; confirm 2040's design/plan STATUS rows reach `approved` only by a human signal. |
 
 ## Relationship to adjacent work
 
 - **Plan-approval path** — the precedent this extends (`staff-engineer`, the
   author, writes STATUS after a clean review panel). 2040 adopts the panel model
-  and adds two things the plan path lacks: a distinct approval locus (Bound 2)
-  and merge-gate enforcement of eligibility and reviewed-content at the
-  implementation PR (Bounds 1, 3). The plan path carries the same
-  self-certification gap — the author records its own panel's verdict — and that
-  gap is the **live soft target, not a future-tightening nicety**: trust-surface
-  *code* lands through the plan and implementation phases, so the plan path is
-  where an attacker actually operates. 2040's design control raises the cost of
-  one route but does not close this one; its security value stays limited until
-  the plan path is tightened to the same anti-self-certification bar. This is
-  named as a known open gap, out of scope for 2040's text but not deferred to
-  silence.
+  and adds: a distinct approval locus for designs (Bound 2), merge-gate
+  enforcement of eligibility at the implementation PR (Bound 1), and digest-bound
+  anti-staleness at each reviewed artifact's own PR head (Bound 3). The plan leg
+  now stamps `origin`, so an agent-approved plan is visible to the fail-closed
+  gate — which is load-bearing, because the trust-surface code an attacker wants
+  routes through the plan, and the denylist now refuses it on any agent-approved
+  leg. What the denylist does **not** close is the plan path's self-certification
+  of *non*-trust-surface content — an author recording its own plan panel's
+  verdict on ordinary code. That residual is flagged for the same Bound 2
+  anti-self-certification tightening; out of scope for 2040's text but named, not
+  deferred to silence.
 - **Spec 1830 (spec-less experiment merge-gate,
   [issue #1651](https://github.com/forwardimpact/monorepo/issues/1651), still at
   `spec draft`)** — adjacent approval-policy work on a different surface (the
