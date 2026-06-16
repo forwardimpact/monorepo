@@ -1,6 +1,6 @@
 import { join, dirname } from "node:path";
 import { isoTimestamp } from "@forwardimpact/libutil";
-import { createTraceCollector } from "@forwardimpact/libeval";
+import { createTraceCollector, sumTraceCost } from "@forwardimpact/libeval";
 import { createTraceQuery } from "../trace-query.js";
 import { createTraceGitHub } from "../trace-github.js";
 import { stripSignatures } from "../signature-filter.js";
@@ -193,6 +193,51 @@ export async function runStatsCommand(ctx) {
   return { ok: true };
 }
 
+/**
+ * Total run cost across every participant (agent, supervisor, judge, and any
+ * named profile), summed from each `result` event in the trace and attributed
+ * per source. The combined trace from a supervised, facilitated, or discuss
+ * session already interleaves all participants, so one file yields the whole
+ * run's spend. Default output is `{totalCostUsd, bySource}` JSON; `--markdown`
+ * emits a GitHub-flavored block to redirect into `$GITHUB_STEP_SUMMARY`.
+ *
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ */
+export async function runCostCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const cost = computeTraceCost(
+    runtime.fsSync.readFileSync(ctx.args.file, "utf8"),
+  );
+  if (ctx.options.markdown) {
+    runtime.proc.stdout.write(renderCostMarkdown(cost));
+  } else {
+    writeJSON(runtime, cost, ctx.options);
+  }
+  return { ok: true };
+}
+
+/**
+ * Render a cost summary as a GitHub-flavored markdown block for a CI step
+ * summary: a headline total plus a per-participant table (descending).
+ * @param {{totalCostUsd: number, bySource: Record<string, number>}} cost
+ * @returns {string}
+ */
+function renderCostMarkdown(cost) {
+  const lines = [
+    `### 💰 Run cost: $${cost.totalCostUsd.toFixed(4)}`,
+    "",
+    "Summed across every participant (agent, supervisor, judge, named profiles).",
+  ];
+  const sources = Object.entries(cost.bySource).sort((a, b) => b[1] - a[1]);
+  if (sources.length > 0) {
+    lines.push("", "| Participant | Cost (USD) |", "| --- | --- |");
+    for (const [source, usd] of sources) {
+      lines.push(`| ${source} | ${usd.toFixed(4)} |`);
+    }
+  }
+  return lines.join("\n") + "\n";
+}
+
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runInitCommand(ctx) {
   const { runtime } = ctx.deps;
@@ -308,6 +353,25 @@ function parseBuckets(content) {
 }
 
 // --- Shared helpers ---
+
+/**
+ * Compute total + per-source cost from raw file content. A structured JSON
+ * trace (from `fit-trace download`) carries its total in `summary.totalCostUsd`
+ * but no per-source split; raw NDJSON is summed via `sumTraceCost`.
+ * @param {string} content - Raw file content (structured JSON or NDJSON).
+ * @returns {{totalCostUsd: number, bySource: Record<string, number>}}
+ */
+function computeTraceCost(content) {
+  try {
+    const parsed = JSON.parse(content);
+    if (parsed && typeof parsed.summary?.totalCostUsd === "number") {
+      return { totalCostUsd: parsed.summary.totalCostUsd, bySource: {} };
+    }
+  } catch {
+    // Not a single JSON object — treat as NDJSON below.
+  }
+  return sumTraceCost(content.split("\n"));
+}
 
 /**
  * Load a trace file. Supports structured JSON and raw NDJSON.

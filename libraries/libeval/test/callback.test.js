@@ -110,6 +110,7 @@ describe("fit-eval callback", () => {
         verdict: "success",
         summary: "Routed to staff-engineer.",
         run_url: "https://github.com/foo/bar/actions/runs/42",
+        cost_usd: 0,
         replies: [],
         last_acted_seq: -1,
       });
@@ -173,6 +174,43 @@ describe("fit-eval callback", () => {
       assert.ok(req.body.summary.length > 0);
       assert.strictEqual(req.body.correlation_id, "x");
       assert.deepStrictEqual(req.body.replies, []);
+    } finally {
+      await server.close();
+    }
+  });
+
+  test("sums cost_usd across every participant's result events", async () => {
+    const server = await startServer(200);
+    const { tracePath, fsSync } = writeTrace([
+      {
+        source: "agent",
+        seq: 0,
+        event: { type: "result", total_cost_usd: 0.02 },
+      },
+      {
+        source: "supervisor",
+        seq: 1,
+        event: { type: "result", total_cost_usd: 0.05 },
+      },
+      {
+        source: "orchestrator",
+        seq: 2,
+        event: { type: "summary", verdict: "success", summary: "done" },
+      },
+    ]);
+
+    try {
+      await callback(
+        {
+          "trace-file": tracePath,
+          "callback-url": `${server.url}/api/callback/cost`,
+          "correlation-id": "c",
+        },
+        fsSync,
+      );
+
+      const req = server.getLastRequest();
+      assert.ok(Math.abs(req.body.cost_usd - 0.07) < 1e-9);
     } finally {
       await server.close();
     }

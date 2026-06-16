@@ -1,5 +1,6 @@
 export { TraceCollector, createTraceCollector } from "./trace-collector.js";
 export { TraceQuery, createTraceQuery } from "./trace-query.js";
+export { sumTraceCost, UNSOURCED } from "./cost.js";
 export { stripSignatures } from "./signature-filter.js";
 export {
   TraceGitHub,

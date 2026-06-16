@@ -134,6 +134,18 @@ jobs:
           discussion-id: ${{ inputs.discussion_id }}
           resume-context: ${{ inputs.resume_context }}
 
+      - name: Report run cost
+        if: always()
+        shell: bash
+        env:
+          TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
+        run: |
+          if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
+            bunx fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No trace file produced — cost not reported."
+          fi
+
       # Push agent memory back with a freshly minted token — the token from
       # job start expires after an hour and this run can take up to five.
       - name: Push wiki changes

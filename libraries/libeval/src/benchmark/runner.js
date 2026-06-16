@@ -18,6 +18,7 @@ import { createInterface } from "node:readline";
 import { join, resolve as resolvePath } from "node:path";
 
 import { DEFAULT_ENV_ALLOWLIST, createRedactor } from "../redaction.js";
+import { sumTraceCost } from "../cost.js";
 import { createSupervisor } from "../supervisor.js";
 import { installApm as defaultInstallApm } from "./apm-installer.js";
 import { installNpm as defaultInstallNpm } from "./npm-installer.js";
@@ -193,8 +194,9 @@ export class BenchmarkRunner {
           resultsRecordKey(task, runIndex),
         );
       }
-      const { costUsd, turns, submission, agentError } =
-        await this.#runAgentSafe(task, workdir);
+      const agentRun = await this.#runAgentSafe(task, workdir);
+      const { costUsd, turns, submission, agentError } = agentRun;
+      const breakdown = agentRun.costBreakdown ?? { agent: 0, supervisor: 0 };
       const invariants = await this._runInvariantsHook(
         task,
         {
@@ -206,13 +208,14 @@ export class BenchmarkRunner {
         this.runtime,
       );
       let judgeVerdict = null;
+      let judgeCost = 0;
       if (task.paths.judge) {
         const judgeContext = await this.#buildJudgeContext(
           task,
           workdir,
           skillSetHash,
         );
-        judgeVerdict = await this._runJudgeHook(
+        const judgeResult = await this._runJudgeHook(
           task,
           workdir,
           invariants,
@@ -225,6 +228,13 @@ export class BenchmarkRunner {
           },
           judgeContext,
         );
+        judgeCost = judgeResult.costUsd ?? 0;
+        // The record's judgeVerdict carries only the verdict + summary; the
+        // judge's cost is folded into costUsd / costBreakdown instead.
+        judgeVerdict = {
+          verdict: judgeResult.verdict,
+          summary: judgeResult.summary,
+        };
       }
       const verdict =
         invariants.verdict === "pass" &&
@@ -238,7 +248,12 @@ export class BenchmarkRunner {
         invariants,
         submission,
         ...(judgeVerdict && { judgeVerdict }),
-        costUsd,
+        costUsd: costUsd + judgeCost,
+        costBreakdown: {
+          agent: breakdown.agent ?? 0,
+          supervisor: breakdown.supervisor ?? 0,
+          judge: judgeCost,
+        },
         turns,
         agentTracePath: workdir.agentTracePath,
         supervisorTracePath: workdir.supervisorTracePath,
@@ -280,6 +295,7 @@ export class BenchmarkRunner {
     } catch (e) {
       return {
         costUsd: 0,
+        costBreakdown: { agent: 0, supervisor: 0 },
         turns: 0,
         submission: "",
         agentError: { message: e.message ?? String(e), aborted: false },
@@ -334,8 +350,20 @@ export class BenchmarkRunner {
       workdir.agentTracePath,
       workdir.supervisorTracePath,
     );
+    // Cost is summed across every participant's result events from the one
+    // combined trace, attributed per source. Read before unlinking.
+    const combined = await fs.readFile(combinedPath, "utf8");
+    const { totalCostUsd, bySource } = sumTraceCost(combined.split("\n"));
     await fs.unlink(combinedPath).catch(() => {});
-    return { ...summary, agentError };
+    return {
+      ...summary,
+      costUsd: totalCostUsd,
+      costBreakdown: {
+        agent: bySource.agent ?? 0,
+        supervisor: bySource.supervisor ?? 0,
+      },
+      agentError,
+    };
   }
 
   async #buildJudgeContext(task, workdir, skillSetHash) {
@@ -441,10 +469,13 @@ async function writeRecord(stream, record) {
 }
 
 /**
- * Split the combined supervisor trace into agent and supervisor files, and
- * extract cost, turn count, and submission in a single pass. Agent-source
- * events go to `agentPath`; supervisor and orchestrator events go to
- * `supervisorPath`.
+ * Split the combined supervisor trace into agent and supervisor files and
+ * extract turn count and submission in a single pass. Agent-source events go
+ * to `agentPath`; supervisor and orchestrator events go to `supervisorPath`.
+ *
+ * Cost is deliberately not summed here — the caller derives it from the same
+ * combined trace via `sumTraceCost`, so there is one cost path across the
+ * benchmark, callback, and `fit-trace cost` consumers.
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: stream-splitting state machine
 async function splitAndSummarize(
@@ -460,8 +491,6 @@ async function splitAndSummarize(
     input: fs.createReadStream(combinedPath),
     crlfDelay: Infinity,
   });
-  let agentCost = 0;
-  let supervisorCost = 0;
   let turns = 0;
   let submission = "";
   for await (const line of rl) {
@@ -476,19 +505,9 @@ async function splitAndSummarize(
     target.write(line + "\n");
     const inner = event.event;
     if (!inner) continue;
-    if (event.source === "agent") {
-      if (inner.type === "result" && typeof inner.total_cost_usd === "number") {
-        agentCost = inner.total_cost_usd;
-      }
-      if (inner.type === "assistant") {
-        const text = extractText(inner);
-        if (text) submission = text;
-      }
-    }
-    if (event.source === "supervisor") {
-      if (inner.type === "result" && typeof inner.total_cost_usd === "number") {
-        supervisorCost = inner.total_cost_usd;
-      }
+    if (event.source === "agent" && inner.type === "assistant") {
+      const text = extractText(inner);
+      if (text) submission = text;
     }
     if (event.source === "orchestrator" && inner.type === "summary") {
       turns = inner.turns ?? 0;
@@ -498,7 +517,7 @@ async function splitAndSummarize(
     new Promise((r) => agentStream.end(r)),
     new Promise((r) => supStream.end(r)),
   ]);
-  return { costUsd: agentCost + supervisorCost, turns, submission };
+  return { turns, submission };
 }
 
 function extractText(inner) {
