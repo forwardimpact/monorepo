@@ -1,3 +1,5 @@
+import { sumTraceCost } from "../cost.js";
+
 /**
  * Scan an NDJSON trace and return the last orchestrator summary event,
  * the first `meta` event's `discussion_id`, and any structured replies
@@ -8,15 +10,14 @@
  * "adjourned"/"recessed"/"failed" from discuss). The bridge layer maps to
  * its channel semantics.
  *
- * @param {string} traceFile
- * @param {object} fsSync - Sync filesystem surface (`runtime.fsSync`).
+ * @param {string} content - Raw NDJSON trace content.
  * @returns {{verdict: string, summary: string, replies: object[], trigger?: object, discussionId?: string} | null}
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: NDJSON scan with malformed-line tolerance + meta/summary dual extraction
-function readTraceSummary(traceFile, fsSync) {
+function readTraceSummary(content) {
   let summary = null;
   let metaDiscussionId = null;
-  for (const line of fsSync.readFileSync(traceFile, "utf8").split("\n")) {
+  for (const line of content.split("\n")) {
     if (!line.trim()) continue;
     let record;
     try {
@@ -83,11 +84,15 @@ export async function runCallbackCommand(ctx) {
   if (!callbackUrl)
     return { ok: false, code: 1, error: "--callback-url is required" };
 
-  const found = readTraceSummary(traceFile, runtime.fsSync) ?? {
+  const content = runtime.fsSync.readFileSync(traceFile, "utf8");
+  const found = readTraceSummary(content) ?? {
     verdict: "failed",
     summary: "Run ended without producing a summary.",
     replies: [],
   };
+  // Total spend across every participant in the trace — the bridge surfaces
+  // it alongside the verdict so a dispatched run reports what it cost.
+  const { totalCostUsd } = sumTraceCost(content.split("\n"));
 
   const discussionId = found.discussionId ?? discussionIdOverride ?? null;
   const payload = {
@@ -96,6 +101,7 @@ export async function runCallbackCommand(ctx) {
     verdict: found.verdict,
     summary: found.summary,
     run_url: runUrl,
+    cost_usd: totalCostUsd,
     replies: found.replies,
     last_acted_seq: found.lastActedSeq ?? -1,
     ...(discussionId && { discussion_id: discussionId }),

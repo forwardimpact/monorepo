@@ -27,6 +27,17 @@ const JUDGE_VERDICT_SHAPE = z.object({
   summary: z.string(),
 });
 
+/**
+ * Per-participant cost attribution. `costUsd` is the sum of these; the
+ * breakdown lets reports show where the spend went. The judge runs as its
+ * own SDK session, so its cost is tracked separately from agent/supervisor.
+ */
+const COST_BREAKDOWN_SHAPE = z.object({
+  agent: z.number(),
+  supervisor: z.number(),
+  judge: z.number(),
+});
+
 const PROFILES_SHAPE = z.object({
   agent: z.union([z.string(), z.null()]),
   supervisor: z.union([z.string(), z.null()]),
@@ -44,6 +55,7 @@ const COMMON_FIELDS = {
   runIndex: z.number().int().min(0),
   verdict: VERDICT_ENUM,
   costUsd: z.number(),
+  costBreakdown: COST_BREAKDOWN_SHAPE.optional(),
   turns: z.number().int().min(0),
   profiles: PROFILES_SHAPE,
   model: z.object({

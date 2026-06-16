@@ -86,6 +86,22 @@ describe("validateResultRecord", () => {
     };
     assert.doesNotThrow(() => validateResultRecord(withSupervisor));
   });
+
+  test("accepts a costBreakdown of agent/supervisor/judge", () => {
+    const withBreakdown = {
+      ...happy,
+      costBreakdown: { agent: 0.08, supervisor: 0.03, judge: 0.013 },
+    };
+    assert.doesNotThrow(() => validateResultRecord(withBreakdown));
+  });
+
+  test("rejects a costBreakdown missing the judge field", () => {
+    const broken = {
+      ...happy,
+      costBreakdown: { agent: 0.08, supervisor: 0.03 },
+    };
+    assert.throws(() => validateResultRecord(broken));
+  });
 });
 
 describe("validateInvariantsRecord", () => {

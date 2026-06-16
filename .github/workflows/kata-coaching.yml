@@ -23,7 +23,8 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
-      - uses: forwardimpact/kata-agent@b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1
+      - uses: forwardimpact/kata-agent@159e107c83fbfffaced24f126fdc3c3bff4cb81a # v1
+        id: agent
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
@@ -34,3 +35,18 @@ jobs:
           lead-profile: "improvement-coach"
           agent-profiles: "${{ inputs.agent }}"
           task-amend: ${{ inputs.task-amend }}
+
+      # Sum spend across every participant from the trace kata-agent exposes.
+      # Cost logic lives in the `fit-trace` CLI; this step only reads the
+      # path and redirects the markdown summary.
+      - name: Report run cost
+        if: always()
+        shell: bash
+        env:
+          TRACE_FILE: ${{ steps.agent.outputs.trace-file }}
+        run: |
+          if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
+            bunx fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No trace file produced — cost not reported."
+          fi

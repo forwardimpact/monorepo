@@ -22,6 +22,7 @@ import {
   runReasoningCommand,
   runTimelineCommand,
   runStatsCommand,
+  runCostCommand,
   runInitCommand,
   runTurnCommand,
   runFilterCommand,
@@ -174,6 +175,21 @@ const definition = {
       description: "Token usage and cost breakdown",
     },
     {
+      name: "cost",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runCostCommand,
+      description:
+        "Total run cost across every participant (agent, supervisor, judge, named profiles), with a per-source breakdown",
+      options: {
+        markdown: {
+          type: "boolean",
+          description:
+            "Emit a GitHub-flavored markdown block (redirect into $GITHUB_STEP_SUMMARY)",
+        },
+      },
+    },
+    {
       name: "init",
       args: ["file"],
       argsUsage: "<file>",
@@ -299,6 +315,8 @@ const definition = {
     "fit-trace overview structured.json",
     "fit-trace timeline structured.json",
     "fit-trace stats structured.json",
+    "fit-trace cost trace.ndjson",
+    "fit-trace cost trace.ndjson --markdown",
     "fit-trace tool structured.json Conclude",
     "fit-trace search structured.json 'error|fail' --context 1",
     "fit-trace filter structured.json --tool Bash --error",

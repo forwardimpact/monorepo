@@ -23,11 +23,13 @@
 
 import { createJudge } from "../judge.js";
 import { createRedactor } from "../redaction.js";
+import { sumTraceCost } from "../cost.js";
 
 /**
  * @typedef {object} JudgeVerdict
  * @property {"pass" | "fail"} verdict
  * @property {string} summary
+ * @property {number} costUsd - Cost of the judge's own SDK session.
  */
 
 /**
@@ -81,12 +83,25 @@ export async function runJudge(task, workdir, invariants, deps, context) {
     await new Promise((r) => output.end(r));
   }
 
+  // The judge is its own SDK session; its spend lands in the judge trace we
+  // just wrote, not in the supervisor's combined trace. Read it back so the
+  // benchmark record's cost includes the judge.
+  const judgeTrace = await fs
+    .readFile(workdir.judgeTracePath, "utf8")
+    .catch(() => "");
+  const { totalCostUsd } = sumTraceCost(judgeTrace.split("\n"));
+
   if (outcome.verdict === null) {
-    return { verdict: "fail", summary: "judge did not conclude" };
+    return {
+      verdict: "fail",
+      summary: "judge did not conclude",
+      costUsd: totalCostUsd,
+    };
   }
   return {
     verdict: outcome.verdict === "success" ? "pass" : "fail",
     summary: outcome.summary ?? "",
+    costUsd: totalCostUsd,
   };
 }
 

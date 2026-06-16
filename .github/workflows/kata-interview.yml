@@ -112,6 +112,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Run interview
+        id: interview
         uses: forwardimpact/fit-eval@c616487598df0840ce237ee375ad7a9837213714 # v1
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -135,6 +136,18 @@ jobs:
           allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,WebFetch,WebSearch"
           supervisor-allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,Skill,TodoWrite"
           task-amend: ${{ steps.amend.outputs.amend }}
+
+      - name: Report run cost
+        if: always()
+        shell: bash
+        env:
+          TRACE_FILE: ${{ steps.interview.outputs.trace-file }}
+        run: |
+          if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
+            bunx fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No trace file produced — cost not reported."
+          fi
 
       - name: Push wiki changes
         if: always()
