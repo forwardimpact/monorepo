@@ -46,6 +46,20 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
+      # Killswitch: fail fast when the KATA_KILLSWITCH variable holds a truthy
+      # value, so an operator can halt every kata workflow from one place
+      # without disabling each one. Keep it the first step so the run fails
+      # before any token minting, checkout, or agent work.
+      - name: Kata killswitch
+        shell: bash
+        env:
+          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
+        run: |
+          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
+            ""|0|false|no|off) echo "Kata killswitch not engaged; proceeding." ;;
+            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2; exit 1 ;;
+          esac
+
       - uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
@@ -88,6 +102,20 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
+      # Killswitch: fail fast when the KATA_KILLSWITCH variable holds a truthy
+      # value, so an operator can halt every kata workflow from one place
+      # without disabling each one. Keep it the first step so the run fails
+      # before any token minting, checkout, or agent work.
+      - name: Kata killswitch
+        shell: bash
+        env:
+          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
+        run: |
+          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
+            ""|0|false|no|off) echo "Kata killswitch not engaged; proceeding." ;;
+            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2; exit 1 ;;
+          esac
+
       - uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
@@ -110,9 +138,9 @@ jobs:
 Both templates above are `kata-agent` workflows, so the hosted
 delta is identical to
 [`workflow-agent.md` § Template (hosted)](workflow-agent.md): add
-`id-token: write` to `permissions`, insert the OIDC mint step as the first
-step, and replace the `app-id` / `app-private-key` inputs with
-`installation-token: ${{ steps.mint.outputs.token }}`.
+`id-token: write` to `permissions`, insert the OIDC mint step directly after
+the `Kata killswitch` step, and replace the `app-id` / `app-private-key`
+inputs with `installation-token: ${{ steps.mint.outputs.token }}`.
 
 ## Notes
 

@@ -45,6 +45,20 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
+      # Killswitch: fail fast when the KATA_KILLSWITCH variable holds a truthy
+      # value, so an operator can halt every kata workflow from one place
+      # without disabling each one. Keep it the first step so the run fails
+      # before any token minting, checkout, or agent work.
+      - name: Kata killswitch
+        shell: bash
+        env:
+          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
+        run: |
+          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
+            ""|0|false|no|off) echo "Kata killswitch not engaged; proceeding." ;;
+            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2; exit 1 ;;
+          esac
+
       - uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
@@ -66,7 +80,9 @@ the **canonical** hosted recipe — `workflow-facilitate.md` and
 `workflow-react.md` reference the mint step below.
 
 1. Add `id-token: write` to `permissions` (keep `contents: write`).
-2. Insert this OIDC mint step as the first entry under `steps:`:
+2. Insert this OIDC mint step directly **after** the `Kata killswitch` step
+   (the killswitch stays first so an engaged switch fails before any token
+   mint):
 
    ```yaml
          - name: Mint installation token via Forward Impact OIDC

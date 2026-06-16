@@ -49,6 +49,19 @@ jobs:
       github.event_name == 'discussion_comment'
     runs-on: ubuntu-latest
     steps:
+      # Killswitch: fail fast when the KATA_KILLSWITCH variable holds a truthy
+      # value, so an operator can halt every kata workflow from one place
+      # without disabling each one. Keep it the first step so the run fails
+      # before any token minting, checkout, or agent work.
+      - name: Kata killswitch
+        shell: bash
+        env:
+          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
+        run: |
+          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
+            ""|0|false|no|off) echo "Kata killswitch not engaged; proceeding." ;;
+            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2; exit 1 ;;
+          esac
       - name: Generate token
         id: ci-app
         uses: actions/create-github-app-token@v3

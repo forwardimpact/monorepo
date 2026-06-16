@@ -52,6 +52,8 @@ facilitated sessions, and event-driven responses.
 - [ ] Secrets reference names match what was configured.
 - [ ] Agent profiles match the names the user confirmed.
 - [ ] kata-dispatch workflow includes the recursion guard.
+- [ ] Every generated workflow's first step is the `Kata killswitch` gate
+      (before any token mint or checkout).
 
 </do_confirm_checklist>
 
@@ -136,6 +138,13 @@ the first workflow run." The hosted blocks carry no `KATA_APP_PRIVATE_KEY`.
 Generate one workflow per agent. Storyboard and coaching workflows are generated
 only when `improvement-coach` is selected.
 
+Every template's first step is a `Kata killswitch` gate that reads the
+`KATA_KILLSWITCH` repository (or org) Actions variable and fails the run when it
+holds a truthy value (anything other than empty, `0`, `false`, `no`, or `off`).
+Keep it first so an engaged switch halts the run before any token mint, checkout,
+or agent work. It is unset by default, so it has no effect until an operator sets
+it.
+
 ### Step 3: Generate kata-dispatch
 
 If `product-manager` is selected, ask: "Do you want agents to respond to PR
@@ -165,5 +174,8 @@ Summarize what was created and suggest next steps:
 
 - Customize agent profiles if using defaults
 - Adjust schedules after observing initial runs
+- To halt all kata workflows at once (an emergency stop), set the
+  `KATA_KILLSWITCH` repository variable to a truthy value (e.g. `1`); clear or
+  unset it to resume
 - Read the [Kata internals](https://www.forwardimpact.team/docs/internals/kata/)
   for architecture details
