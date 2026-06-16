@@ -1,0 +1,154 @@
+# Spec 2040 — Bounded agent-approvability for designs gated on a clean review panel
+
+## Personas and Jobs
+
+| Persona | Job | How the gap blocks progress |
+|---|---|---|
+| Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team) | Design approval is the one phase gate with no agent path, so it depends entirely on scarce human bandwidth. Designs pool there while plans drain, capping the implementation throughput the whole PDSA loop exists to produce. |
+
+## Problem
+
+The phase pipeline is spec → design → plan → implement. Three of the four
+approval gates already define an agent path:
+
+| Phase | Who may originate `approved` | Trust substitute |
+|---|---|---|
+| Spec | Human only | — |
+| **Design** | **Human only** | **none — the gap** |
+| Plan | `staff-engineer` after a clean review panel | the panel |
+| Implement | Release engineer on merge | merge gate |
+
+Plans became agent-approvable because a plan translates an *already-approved*
+design: the architecture is locked upstream, so an independent review panel
+verifying faithful translation is a sound substitute for a human signal.
+Designs have no such path — `design approved` is human-only — even though an
+approved spec already locks WHAT/WHY upstream and a review panel can verify the
+design against it.
+
+Obstacle [#1361](https://github.com/forwardimpact/monorepo/issues/1361)
+identifies this gap as the binding throughput constraint. The supporting
+readings below were verified directly against the live PR queue and the cited
+metric on 2026-06-16; the obstacle issue, re-scoped the same day, is the source
+of the freshness-vs-bandwidth segmentation, not of the live counts.
+
+| Reading (verified 2026-06-16) | Source | What it shows |
+|---|---|---|
+| All 6 open SE artifact PRs at the gate are `design(...)`; zero plans. The one plan in the obstacle's 2026-06-02 snapshot (plan #1064) has since drained. | Live `gh pr list` re-count + #1361 snapshot | The agent-approvable class drains to 0; the human-only class pools. |
+| Oldest design PR aged 16d → 24d under the re-ping (freshness) treatment 6/4–6/15; backlog 7 → 6. | #1361 re-scope comment | Freshness is not the lever — a fresh comment cannot lift a capacity ceiling. |
+| `implementations_shipped` never recovered ≥3 consecutive days at-or-above μ=1.7 anywhere in June (xRule2 secondary measure tracked by experiment [#1392](https://github.com/forwardimpact/monorepo/issues/1392)). | #1392 verdict | The throughput cap is real and persistent, confirmed independently from the metric side. |
+| Human merge rate on SE artifacts ≈ 1 / 4 days → gap of ~9 implementation merges against the ≥16 June target. | #1361 | Human design-approval bandwidth, holding freshness constant, is the isolated binding constraint. |
+
+Same freshness treatment across both classes, opposite outcomes: the only
+material difference is that one class has an agent path and the other does not.
+
+## Decision — extend the plan-approval trust model to designs, bounded
+
+A trusted agent independent of the design's author may originate `design
+approved` after an independent review panel of the design comes back clean —
+mirroring the plan-approval path, with the panel as the human-trust substitute.
+**Clean** carries the same bar the plan path already sets: no unresolved
+blocker, high, or medium findings on the design artifact. The existing human
+approval paths remain available in parallel and unchanged, and the approving
+agent writes the STATUS row directly (as `staff-engineer` does for plans), so
+`kata-dispatch`'s propagation of human PR-side signals is untouched. Three
+bounds keep the loosening safe rather than total.
+
+### Bound 1 — eligibility carve-out for trust-surface designs, default-deny
+
+Designs that modify the trust or approval machinery itself, or the agent
+profiles and policies that govern agent authority, remain **human-only**. A
+gate that can approve changes to its own authority is self-amending; the
+carve-out forecloses that. The trust-surface class names the approval-policy
+references, the phase-gate skills, agent profiles under `.claude/agents/**`, and
+the self-edit governance surface (`self-improvement.md`). **When eligibility is
+ambiguous, the design defaults to human-only** — the safety-critical
+classification resolves to the safe side, so the bound holds even before a
+mechanical test exists. The eligible class is ordinary product and library
+designs whose approved spec bounds the intent.
+
+This carve-out keeps the same surfaces human-only that the existing trust rule
+(spec and design approvals originate from a trusted human) and the self-edit
+governance policy already treat as highest-risk. It is consistent with — but
+does not depend on — the adjacent spec 1830, which keeps the spec-less
+experiment merge path human-originated.
+
+### Bound 2 — independence
+
+The approving agent and every panel reviewer must be independent of the
+design's author. The panel runs cold, with fresh context and no authoring bias,
+sized per the review skill's caller protocol. An agent never approves its own
+design, and a single agent never both reviews and approves.
+
+### Bound 3 — approval covers reviewed content; human override
+
+An agent approval covers only the design content the panel reviewed. If the
+design changes after approval, the approval no longer holds and the design
+returns to unapproved until a fresh clean panel or a human signal covers the
+new content. Humans retain the standing ability to approve any design directly
+and to reclaim or reverse any agent-approved design before its merge.
+
+### Why bounded agent-approvability over the alternatives
+
+| Axis | (a) keep design human-only | (b) unbounded agent-approval | (c) bounded agent-approval — chosen |
+|---|---|---|---|
+| Throughput ceiling | Unchanged — the obstacle persists | Lifted | Lifted for the class that pools |
+| Self-amendment risk | None | A gate can approve loosening its own authority | Closed by Bound 1 |
+| Author rubber-stamp risk | None | Author could approve own design | Closed by Bound 2 |
+| Stale-content risk | Human re-reads | Approval drifts from reviewed content | Closed by Bound 3 |
+| Human oversight | Total, and the bottleneck | None | Retained as override + the trust-surface gate |
+| Precedent fit | — | — | Reuses the plan path's trust model intact |
+
+## Scope
+
+**In scope** — the canonical approval policy surfaces that encode the gate:
+
+- The **approval-signals reference** — the signals table gains a design
+  panel-clean row analogous to the existing plan panel-clean row, and the trust
+  rule documents the bounded design agent-approval path with all three bounds,
+  including who writes the STATUS row.
+- The **design skill's Approval and Reviewing sections** — replace the
+  unconditional human-only statement with the bounded condition and the
+  trust-surface carve-out, mirroring the plan skill's Approval section.
+- The **coordination protocol's approval-signal section** — kept consistent
+  with the above.
+
+**Out of scope:**
+
+- **Spec-phase approval** stays human-only. The obstacle evidence is
+  design-specific (all 6 pooled PRs are designs); specs are not the named
+  bottleneck. No change to the spec gate.
+- **Plan and implementation gates** — already have agent paths; unchanged.
+- **The exact STATUS row representation, the approving agent's role binding, the
+  panel size, and the mechanical eligibility test** for the trust-surface
+  carve-out — these are WHICH/WHERE/HOW for the design and plan phases. The
+  default-deny rule (Bound 1) governs ambiguity until that test exists.
+- **The re-ping / freshness ritual** (spec 1440, re-ping cadence) —
+  necessary-but-not-sufficient and orthogonal; it does not touch this obstacle.
+
+## Success Criteria
+
+| # | Criterion | Verified by |
+|---|---|---|
+| 1 | The approval-signals trust rule documents a design agent-approval path conditioned on a clean independent review panel, and no longer states design approval is unconditionally human-only. | Read the approval-signals reference. |
+| 2 | The signals table carries a design panel-clean signal row analogous to the plan panel-clean row, naming the agent that writes the STATUS row. | Read the approval-signals reference. |
+| 3 | The design skill's Approval section states the bounded agent-approval condition and the trust-surface human-only carve-out, consistent with the plan skill's Approval section. | Read the design skill. |
+| 4 | "Clean panel" is defined explicitly as no unresolved blocker, high, or medium findings on the design artifact — the same bar the plan path sets — not left implicit. | Read the design skill and approval-signals reference; compare to the plan skill's DO-CONFIRM. |
+| 5 | The eligibility carve-out names the trust-surface class (approval-policy references, phase-gate skills, agent profiles, self-edit governance) and states the default-deny rule for ambiguous cases. | Read the approval-signals reference or design skill. |
+| 6 | The independence bound is stated: approving agent and panel reviewers are independent of the design author; an agent never approves its own design. | Read the design skill or approval-signals reference. |
+| 7 | The reviewed-content and human-override bounds are stated: a change after approval returns the design to unapproved; humans may approve directly and reverse an agent approval before merge. | Read the design skill or approval-signals reference. |
+| 8 | Spec-phase approval remains human-only: the spec skill's Approval section and the approval-signals spec-row treatment are unchanged from their pre-2040 `main` baseline. | Diff the spec skill's Approval section and the approval-signals spec row against `main` at merge. |
+
+## Relationship to adjacent work
+
+- **Plan-approval path** — the precedent this mirrors (`staff-engineer` writes
+  STATUS after a clean review panel). Reuses its trust model; the only new
+  element is applying it one phase upstream with the trust-surface carve-out.
+- **Spec 1830 (spec-less experiment merge-gate,
+  [issue #1651](https://github.com/forwardimpact/monorepo/issues/1651), still at
+  `spec draft`)** — adjacent approval-policy work on a different surface (the
+  merge gate for PRs with no phase artifact). Consistent in posture: both keep
+  the highest-risk class human-originated. Disjoint surfaces — 1830 has no
+  reviewable design artifact; 2040 turns on the fact that designs do. Bound 1
+  does not depend on 1830 landing. No contention.
+- **Spec 1440 (re-ping cadence)** — out of scope per above; the obstacle's own
+  evidence shows freshness is not the lever.
