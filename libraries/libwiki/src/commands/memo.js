@@ -1,4 +1,5 @@
 import path from "node:path";
+import { createLogger } from "@forwardimpact/libtelemetry";
 import { writeMemo } from "../memo-writer.js";
 import { listAgents } from "../agent-roster.js";
 import { BROADCAST_TARGET } from "../constants.js";
@@ -11,8 +12,9 @@ function writeAndCheck(runtime, summaryPath, sender, message, today) {
     runtime.fsSync,
   );
   if (!result.written) {
-    runtime.proc.stderr.write(
-      `summary lacks memo:inbox marker: ${result.path}\n`,
+    createLogger("wiki", runtime).warn(
+      "memo",
+      `summary lacks memo:inbox marker: ${result.path}`,
     );
     return { ok: false, code: 2 };
   }

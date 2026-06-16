@@ -1,4 +1,5 @@
 import path from "node:path";
+import { createLogger } from "@forwardimpact/libtelemetry";
 import { listSkills } from "../skill-roster.js";
 import { resolveProjectRoot, resolveWikiRoot } from "../util/wiki-dir.js";
 import {
@@ -53,19 +54,19 @@ function scaffoldActiveClaims(runtime, memoryPath) {
 }
 
 async function maybeCloneWiki(wikiSync, gitClient, projectRoot, runtime) {
+  const logger = createLogger("wiki", runtime);
   const wikiUrl = await deriveWikiUrl(gitClient, projectRoot, runtime.proc.env);
   if (!wikiUrl) {
-    runtime.proc.stderr.write(
-      "init: could not determine wiki URL from origin remote\n",
-    );
+    logger.warn("init", "could not determine wiki URL from origin remote");
     return;
   }
   const cloneResult = await wikiSync.ensureCloned(wikiUrl);
   if (cloneResult.cloned) {
     await wikiSync.inheritIdentity();
   } else {
-    runtime.proc.stderr.write(
-      "init: could not clone wiki, continuing with local-only steps\n",
+    logger.warn(
+      "init",
+      "could not clone wiki, continuing with local-only steps",
     );
   }
 }

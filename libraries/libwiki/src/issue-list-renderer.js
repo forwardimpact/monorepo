@@ -1,4 +1,5 @@
 import { addDays } from "@forwardimpact/libutil";
+import { createLogger } from "@forwardimpact/libtelemetry";
 
 /** Parse `owner/repo` from a git origin URL. Tolerates http(s), ssh, and proxy-rewritten URLs (e.g. `http://host/git/owner/repo`) by taking the last two path segments after stripping `.git`. Returns null when nothing parseable is found. */
 export function parseRepoSlug(originUrl) {
@@ -54,8 +55,9 @@ export async function renderIssueList({
   const env = token ? { ...runtime.proc.env, GH_TOKEN: token } : undefined;
   const result = await runtime.subprocess.run("gh", args, { cwd, env });
   if (result.exitCode !== 0) {
-    runtime.proc.stderr.write(
-      `refresh: gh issue list failed for ${topic}:${state}\n`,
+    createLogger("wiki", runtime).warn(
+      "refresh",
+      `gh issue list failed for ${topic}:${state}`,
     );
     return [];
   }
@@ -63,8 +65,9 @@ export async function renderIssueList({
   try {
     issues = JSON.parse(result.stdout || "[]");
   } catch {
-    runtime.proc.stderr.write(
-      `refresh: gh issue list JSON parse failed for ${topic}:${state}\n`,
+    createLogger("wiki", runtime).warn(
+      "refresh",
+      `gh issue list JSON parse failed for ${topic}:${state}`,
     );
     return [];
   }

@@ -23,12 +23,12 @@
  *       handler invocation under a real logger must not produce any
  *       captured log line carrying the link_token.
  *
- * Pattern: `@forwardimpact/libtelemetry` `Logger` writes via `console.error`
- * (see `libraries/libtelemetry/src/logger.js:94,108,130,159`), not
- * `process.stdout`. Rebind `console.error` for the duration of the test
- * matching the existing pattern at `libraries/libutil/test/logger.test.js:16-22`
- * (`originalConsoleError = console.error; console.error = (m) =>
- * consoleOutput.push(m);` with restore in `afterEach`).
+ * Pattern: `@forwardimpact/libtelemetry` `Logger` writes through its injected
+ * `runtime.proc.stderr` (see `libraries/libtelemetry/src/logger.js` `#emit`).
+ * The loggers under test are therefore built on a `captureRuntime` whose
+ * `proc.stderr` pushes into `captured`. The global `console.error`/`console.log`
+ * are also captured as a defensive secondary net, so a future leak via either
+ * sink still trips the assertion.
  *
  * Future ghuser (b) and services/bridge (d) integration with full logger
  * wiring would extend this fixture to assert the same invariant across the
@@ -57,6 +57,29 @@ const TRUSTED = loadTrustedIdpOrigins("https://github.com");
 const NOW = 1_700_000_000_000;
 const clock = { now: () => NOW };
 
+/**
+ * Runtime whose `proc.stderr` captures each line into `sink`, so logger output
+ * lands where the test can assert on it. The Logger writes through the injected
+ * `runtime.proc.stderr`, never the global `console`.
+ * @param {string[]} sink - Array that receives each written line.
+ * @returns {import("@forwardimpact/libutil/runtime").Runtime}
+ */
+function captureRuntime(sink) {
+  const base = createDefaultRuntime();
+  return {
+    ...base,
+    proc: {
+      ...base.proc,
+      stderr: {
+        write: (s) => {
+          sink.push(String(s));
+          return true;
+        },
+      },
+    },
+  };
+}
+
 describe("link-resume log redaction (O4 (a))", () => {
   let originalConsoleError;
   let originalConsoleLog;
@@ -81,7 +104,7 @@ describe("link-resume log redaction (O4 (a))", () => {
   }
 
   test("loader (a): refused entries log a warn but never the link token", () => {
-    const runtime = createDefaultRuntime();
+    const runtime = captureRuntime(captured);
     const bridgeLogger = createLogger("ghbridge", runtime);
     loadTrustedIdpOrigins(`not-a-url, http://github.com, https://github.com`, {
       logger: bridgeLogger,
@@ -144,7 +167,7 @@ describe("link-resume log redaction (O4 (a))", () => {
   });
 
   test("end-to-end mint→prepare→consume drives every libbridge primitive with a real logger and leaks no token", async () => {
-    const runtime = createDefaultRuntime();
+    const runtime = captureRuntime(captured);
     const bridgeLogger = createLogger("ghbridge", runtime);
 
     const trusted = loadTrustedIdpOrigins("https://github.com", {

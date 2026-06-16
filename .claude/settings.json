@@ -35,12 +35,22 @@
         ]
       }
     ],
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/bootstrap.sh"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "just wiki-push"
+            "command": "bunx fit-wiki push"
           }
         ]
       }

@@ -1,5 +1,6 @@
 import path from "node:path";
 import { addDays } from "@forwardimpact/libutil";
+import { createLogger } from "@forwardimpact/libtelemetry";
 import {
   appendClaim,
   removeClaim,
@@ -28,7 +29,10 @@ async function pushWiki(wikiSync, runtime, message) {
     if (result.pushed)
       runtime.proc.stdout.write("push: committed and pushed\n");
   } catch (err) {
-    runtime.proc.stderr.write(`push failed (saved locally): ${err.message}\n`);
+    createLogger("wiki", runtime).warn(
+      "claim",
+      `push failed (saved locally): ${err.message}`,
+    );
   }
 }
 
@@ -64,8 +68,9 @@ export async function runClaimCommand(ctx) {
     expires_at: expires,
   });
   if (!result.inserted) {
-    runtime.proc.stderr.write(
-      `claim already exists for ${agent}/${options.target}\n`,
+    createLogger("wiki", runtime).warn(
+      "claim",
+      `claim already exists for ${agent}/${options.target}`,
     );
     return { ok: false, code: 2 };
   }

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { createLogger } from "@forwardimpact/libtelemetry";
 import {
   MEMO_INBOX_MARKER,
   PRIORITY_INDEX_HEADING,
@@ -11,8 +12,9 @@ function paths(runtime, options) {
   const wikiRoot = resolveWikiRoot(runtime, options);
   const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
-    runtime.proc.stderr.write(
-      "inbox requires --agent or LIBEVAL_AGENT_PROFILE\n",
+    createLogger("wiki", runtime).warn(
+      "inbox",
+      "inbox requires --agent or LIBEVAL_AGENT_PROFILE",
     );
     return { error: { ok: false, code: 2 } };
   }
@@ -67,13 +69,13 @@ function ackOrDropCmd(runtime, options) {
   const { summaryPath } = p;
   const idx = Number.parseInt(options.index ?? "", 10);
   if (!Number.isInteger(idx) || idx < 0) {
-    runtime.proc.stderr.write("inbox requires --index <n>\n");
+    createLogger("wiki", runtime).warn("inbox", "inbox requires --index <n>");
     return { ok: false, code: 2 };
   }
   const text = runtime.fsSync.readFileSync(summaryPath, "utf-8");
   const { lines, bulletIdxs } = readInboxBullets(text);
   if (idx >= bulletIdxs.length) {
-    runtime.proc.stderr.write(`no bullet at index ${idx}\n`);
+    createLogger("wiki", runtime).warn("inbox", `no bullet at index ${idx}`);
     return { ok: false, code: 2 };
   }
   removeBulletAt(lines, bulletIdxs[idx]);
@@ -134,13 +136,16 @@ function promoteCmd(runtime, options) {
   const { summaryPath, memoryPath, agent } = p;
   const idx = Number.parseInt(options.index ?? "", 10);
   if (!Number.isInteger(idx) || idx < 0) {
-    runtime.proc.stderr.write("inbox promote requires --index <n>\n");
+    createLogger("wiki", runtime).warn(
+      "inbox",
+      "inbox promote requires --index <n>",
+    );
     return { ok: false, code: 2 };
   }
   const text = runtime.fsSync.readFileSync(summaryPath, "utf-8");
   const { lines, bullets, bulletIdxs } = readInboxBullets(text);
   if (idx >= bullets.length) {
-    runtime.proc.stderr.write(`no bullet at index ${idx}\n`);
+    createLogger("wiki", runtime).warn("inbox", `no bullet at index ${idx}`);
     return { ok: false, code: 2 };
   }
   const bulletText = bullets[idx].replace(/^[-*]\s+/, "");

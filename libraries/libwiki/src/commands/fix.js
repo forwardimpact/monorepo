@@ -16,6 +16,7 @@ import {
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot } from "../util/wiki-dir.js";
 import { FAST_MODEL } from "@forwardimpact/libutil/models";
+import { createLogger } from "@forwardimpact/libtelemetry";
 
 // Pipeline: audit → deterministic rotation (the one fix needing a file seal the
 // agent can't do) → re-audit → Haiku agent on the prose-judgment residual →
@@ -276,7 +277,8 @@ export async function runFixCommand(ctx) {
   const wikiRoot = ctx.options["wiki-root"] || path.join(projectRoot, "wiki");
   const today = ctx.options.today || currentDayIso(runtime);
   const out = (s) => runtime.proc.stdout.write(s);
-  const err = (s) => runtime.proc.stderr.write(s);
+  const logger = createLogger("wiki", runtime);
+  const err = (s) => logger.warn("fix", String(s).replace(/\n+$/, ""));
 
   // The agent's edits change the result, so re-read and re-audit each round.
   const audit = () =>
