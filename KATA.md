@@ -151,6 +151,14 @@ artifact (issue/PR) with `cancel-in-progress: false` so cascaded events stack;
 storyboard, coaching, and interview each use a single global group. All
 workflows support `workflow_dispatch`.
 
+**Killswitch** — every `kata-*` workflow checks the `KATA_KILLSWITCH`
+repository (or org) Actions variable as its first step and fails fast when it
+holds a truthy value (anything other than empty, `0`, `false`, `no`, or `off`).
+Set it from the repository's Settings → Secrets and variables → Actions →
+Variables to halt all kata automation at once — scheduled shifts, the
+event-driven dispatcher, and manual dispatches — without disabling each workflow
+individually. Clear or unset it to resume.
+
 ## Skills
 
 All Kata skills use the `kata-` prefix and own exactly one PDSA phase (or none

@@ -23,6 +23,23 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
+      # Killswitch: abort early when the KATA_KILLSWITCH variable is set to a
+      # truthy value. Lets an operator halt every kata-* workflow from one
+      # place without disabling each one individually. Kept as the first step
+      # so the run fails before any token minting, checkout, or agent work.
+      - name: Kata killswitch
+        shell: bash
+        env:
+          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
+        run: |
+          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
+            ""|0|false|no|off)
+              echo "Kata killswitch not engaged — proceeding." ;;
+            *)
+              echo "::error::KATA_KILLSWITCH is engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2
+              exit 1 ;;
+          esac
+
       - uses: forwardimpact/kata-agent@159e107c83fbfffaced24f126fdc3c3bff4cb81a # v1
         id: agent
         with:
