@@ -1,3 +1,4 @@
+import { createLogger } from "@forwardimpact/libtelemetry";
 import { rotateIfOverBudget, weeklyLogPath } from "../weekly-log.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
@@ -5,6 +6,7 @@ import { resolveWikiRoot } from "../util/wiki-dir.js";
 /** Force-rotate the current weekly log to a sealed part file. */
 export function runRotateCommand(ctx) {
   const { runtime } = ctx.deps;
+  const logger = createLogger("wiki", runtime);
   const options = ctx.options;
   const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
@@ -34,7 +36,7 @@ export function runRotateCommand(ctx) {
       runtime.fsSync,
     );
   } catch (e) {
-    runtime.proc.stderr.write(`rotate failed: ${e.message}\n`);
+    logger.error("rotate", `rotate failed: ${e.message}`);
     return { ok: false, code: 1 };
   }
   switch (result.status) {
@@ -51,12 +53,13 @@ export function runRotateCommand(ctx) {
         runtime.proc.stdout.write(`sealed → ${part}\n`);
       }
       const { section, lines, words, path: residuePath } = result.residue;
-      runtime.proc.stderr.write(
+      logger.error(
+        "rotate",
         `day-section ${section} alone exceeds the budget ` +
           `(${lines} lines, ${words} words) and cannot be split at a day ` +
           `seam: ${residuePath}\n` +
           `recover it by hand — bisect the section at a finer seam ` +
-          `(see the memory protocol's manual-recovery convention)\n`,
+          `(see the memory protocol's manual-recovery convention)`,
       );
       return { ok: false, code: 1 };
     }

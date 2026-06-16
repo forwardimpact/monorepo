@@ -1,5 +1,6 @@
 import path from "node:path";
 import { yearMonth } from "@forwardimpact/libutil";
+import { createLogger } from "@forwardimpact/libtelemetry";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { scanMarkers } from "../marker-scanner.js";
 import { renderBlock, BlockRenderError } from "../block-renderer.js";
@@ -69,6 +70,7 @@ function readStoryboardOrNull(runtime, storyboardPath) {
 export async function runRefreshCommand(ctx) {
   const { runtime, gitClient } = ctx.deps;
   const options = ctx.options;
+  const logger = createLogger("wiki", runtime);
   const projectRoot = resolveProjectRoot(runtime);
 
   const storyboardPath = path.resolve(
@@ -77,11 +79,11 @@ export async function runRefreshCommand(ctx) {
   );
   const text = readStoryboardOrNull(runtime, storyboardPath);
   if (text === null) {
-    runtime.proc.stderr.write(`refresh: no storyboard at ${storyboardPath}\n`);
+    logger.warn("refresh", `no storyboard at ${storyboardPath}`);
     return { ok: true };
   }
   const blocks = scanMarkers(text, {
-    warn: (message) => runtime.proc.stderr.write(message),
+    warn: (message) => logger.warn("refresh", message),
   });
   if (blocks.length === 0) return { ok: true };
 
@@ -122,8 +124,9 @@ export async function runRefreshCommand(ctx) {
       spliced = true;
     } catch (err) {
       if (!(err instanceof BlockRenderError)) throw err;
-      runtime.proc.stderr.write(
-        `refresh-error ${storyboardPath}:${block.openLine + 1} ${err.message}\n`,
+      logger.error(
+        "refresh",
+        `refresh-error ${storyboardPath}:${block.openLine + 1} ${err.message}`,
       );
     }
   }

@@ -1,3 +1,4 @@
+import { createLogger } from "@forwardimpact/libtelemetry";
 import {
   weeklyLogPath,
   rotateIfOverBudget,
@@ -10,8 +11,9 @@ import { resolveWikiRoot } from "../util/wiki-dir.js";
 function commonContext(runtime, options) {
   const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
-    runtime.proc.stderr.write(
-      "log requires --agent <name> or LIBEVAL_AGENT_PROFILE env var\n",
+    createLogger("wiki", runtime).warn(
+      "log",
+      "log requires --agent <name> or LIBEVAL_AGENT_PROFILE env var",
     );
     return { error: { ok: false, code: 2 } };
   }
@@ -49,14 +51,15 @@ function rotateBeforeAppend(wikiRoot, agent, today, appendLines, runtime) {
       runtime.fsSync,
     );
     if (res.status === "incomplete") {
-      runtime.proc.stderr.write(
-        `note: day-section ${res.residue.section} alone exceeds the budget ` +
+      createLogger("wiki", runtime).warn(
+        "log",
+        `day-section ${res.residue.section} alone exceeds the budget ` +
           `(${res.residue.lines} lines, ${res.residue.words} words); ` +
-          `sealed as ${res.residue.path} for manual recovery\n`,
+          `sealed as ${res.residue.path} for manual recovery`,
       );
     }
   } catch (e) {
-    runtime.proc.stderr.write(`note: rotation failed: ${e.message}\n`);
+    createLogger("wiki", runtime).warn("log", `rotation failed: ${e.message}`);
   }
 }
 
@@ -95,7 +98,10 @@ function runNote(runtime, options) {
   if (ctx.error) return ctx.error;
   const { agent, wikiRoot, today } = ctx;
   if (!options.field || !options.body) {
-    runtime.proc.stderr.write("log note requires --field and --body\n");
+    createLogger("wiki", runtime).warn(
+      "log",
+      "log note requires --field and --body",
+    );
     return { ok: false, code: 2 };
   }
   const fieldBlock = `### ${options.field}\n\n${options.body}\n`;

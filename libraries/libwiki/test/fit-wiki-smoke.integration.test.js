@@ -9,7 +9,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 
 // The one allow-listed smoke test per binary: it spawns the real bin to
 // prove the runtime/dispatch wiring end-to-end. Every other libwiki command is
@@ -55,5 +55,22 @@ describe("fit-wiki bin smoke", () => {
       readFileSync(memoryPath, "utf-8"),
       /staff-engineer \| test-smoke \| test/,
     );
+  });
+
+  test("warns and exits 0 when the wiki tree is missing", () => {
+    // A project root with no wiki/ — e.g. a fresh worktree where bootstrap.sh
+    // never ran. The session Stop hook (`fit-wiki push`) must not fail loudly.
+    const bare = mkdtempSync(join(tmpdir(), "fit-wiki-nowiki-"));
+    writeFileSync(join(bare, "package.json"), '{"name":"root"}');
+    try {
+      const result = spawnSync("node", [CLI_PATH, "push"], {
+        cwd: bare,
+        encoding: "utf-8",
+      });
+      assert.equal(result.status, 0, "missing wiki exits 0");
+      assert.match(result.stderr, /no wiki at/);
+    } finally {
+      rmSync(bare, { recursive: true, force: true });
+    }
   });
 });

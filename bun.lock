@@ -577,6 +577,7 @@
         "@forwardimpact/libconfig": "^0.1.77",
         "@forwardimpact/libeval": "^0.1.49",
         "@forwardimpact/libpreflight": "^0.1.0",
+        "@forwardimpact/libtelemetry": "^0.1.47",
         "@forwardimpact/libutil": "^0.1.0",
         "@forwardimpact/libxmr": "^2.0.0",
       },

@@ -1,3 +1,4 @@
+import { createLogger } from "@forwardimpact/libtelemetry";
 import { WikiPullConflict } from "../wiki-sync.js";
 
 /** Commit all wiki changes and push them to the remote wiki repository. */
@@ -25,8 +26,9 @@ export async function runPullCommand(ctx) {
     return { ok: true };
   } catch (err) {
     if (err instanceof WikiPullConflict) {
-      runtime.proc.stderr.write(
-        "fit-wiki pull: rebase conflict — local divergence detected; resolve manually or push first\n",
+      createLogger("wiki", runtime).error(
+        "pull",
+        "rebase conflict — local divergence detected; resolve manually or push first",
       );
       return { ok: false, code: 1 };
     }
