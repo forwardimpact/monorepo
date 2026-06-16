@@ -63,15 +63,16 @@
     "brace-expansion": "^5.0.6",
     "fast-uri": "^3.1.2",
     "fast-xml-builder": "^1.1.7",
+    "form-data": "^4.0.6",
     "hono": "^4.12.25",
     "ip-address": "^10.2.0",
     "lodash": "^4.18.0",
     "postcss": "^8.5.10",
     "protobufjs": "^7.6.3",
     "qs": "^6.15.2",
-    "tmp": "^0.2.6",
+    "tmp": "^0.2.7",
     "uuid": "^11.1.1",
-    "ws": "^8.20.1"
+    "ws": "^8.21.0"
   },
   "engines": {
     "bun": ">=1.2.0",
