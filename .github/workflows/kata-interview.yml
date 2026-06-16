@@ -44,9 +44,9 @@ jobs:
         run: |
           case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
             ""|0|false|no|off)
-              echo "Kata killswitch not engaged — proceeding." ;;
+              echo "Kata killswitch not engaged; proceeding." ;;
             *)
-              echo "::error::KATA_KILLSWITCH is engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2
+              echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2
               exit 1 ;;
           esac
 
