@@ -126,3 +126,25 @@ deployment and must not regress (criterion 9).
 - **Revoke and resume interact (items 4 and 5).** Revoke must also dispose of a
   tenant's in-flight recesses and queued callbacks, not only flip the row state;
   criterion 6 covers the "no longer resume" property explicitly.
+
+## Field findings (post-approval)
+
+- **2026-06-16 — multi-tenant Azure Bot resources are deprecated.** Manual e2e
+  testing hit a hard wall: Microsoft no longer permits creating a multi-tenant
+  Azure Bot resource, in the portal **or** the CLI
+  (`az bot create --app-type MultiTenant` → `InvalidBotCreationData: Multitenant
+  bot creation is deprecated. Please use SingleTenant or UserAssignedMSI`).
+  Existing multi-tenant bots are grandfathered; multi-tenant Entra **app**
+  registrations are still allowed — only the Bot *resource* type is gone. This
+  invalidates the spec 1270 operator commitment of "a multi-tenant Azure AD app
+  and Bot Framework resource… installable by any consenting Entra tenant"; the
+  hosted Teams path as designed cannot be stood up fresh. The supported
+  replacement (researched 2026-06-16) is a **single-tenant Azure Bot resource +
+  multi-tenant Entra app (`signInAudience = AzureADMultipleOrgs`) + Teams Store /
+  AppSource distribution** — one shared app reaches every tenant, not a
+  per-customer bot and not Graph change-notifications. Relatedly the **Bot
+  Framework SDK is end-of-life** (support ends 2025-12-31); the conversational
+  bot evolves into a Teams **custom engine agent** on the **Microsoft 365 Agents
+  SDK**. This transport re-architecture is a new spec, not a tweak here. The
+  `services/tenancy` mapping and the Move B `/onboard` repo-mapping verifier are
+  transport-agnostic and survive.
