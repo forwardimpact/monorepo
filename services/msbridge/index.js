@@ -256,17 +256,19 @@ export class MsBridgeService {
   /**
    * Mount the multi-tenant `POST /onboard` endpoint. The caller's Microsoft
    * Entra tenant id is verified by `authenticateTenant` (injectable for
-   * tests) and resolved to its registry row before any write. Default-deny:
-   * a missing verifier never authenticates a caller — production injects a
-   * verifier that validates the Bot Framework bearer JWT and returns its
-   * `tid` claim (deferred substrate tracked in services/msbridge/README.md).
+   * tests) and resolved to its registry row before any write. Multi-tenant
+   * mode injects a real Bot Framework JWT verifier (`server.js` builds it from
+   * the same authenticator the `/api/messages` path uses); a forged or absent
+   * proof is rejected with 401. Single-tenant deployments never reach here, so
+   * the endpoint is unrouted rather than default-denied. A missing verifier in
+   * multi mode is a wiring error and fails fast in `createOnboardHandler`.
    *
-   * @param {((c: object) => Promise<string | null> | (string | null)) | undefined} authenticateTenant
+   * @param {(c: object) => Promise<string | null> | (string | null)} authenticateTenant
    * @param {object} logger
    */
   #mountOnboard(authenticateTenant, logger) {
     const onboard = createOnboardHandler({
-      authenticateTenant: authenticateTenant ?? (() => null),
+      authenticateTenant,
       tenancyClient: this.#tenancyClient,
       logger,
     });

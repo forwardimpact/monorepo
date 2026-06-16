@@ -14,6 +14,8 @@ import {
 } from "@forwardimpact/libbridge";
 
 import { MsBridgeService } from "./index.js";
+import { createOnboardVerifier } from "./src/onboard-verifier.js";
+import { createBotFrameworkAuthentication } from "./src/teams.js";
 
 const config = await createServiceConfig("msbridge", {
   github_repo: "",
@@ -81,17 +83,18 @@ const discussionClient = new BridgeClient(
 
 const { clock } = runtime;
 
-// `authenticateTenant` verifies the inbound Bot Framework bearer JWT and
-// returns its Entra `tid` claim (or null). Full Bot Framework JWT signature
-// validation — fetching Microsoft's OpenID metadata and signing keys via
-// botframework-connector's JwtTokenValidation — is a peer-authentication
-// substrate tracked as a plan concern (design § services/ghserver). Until that
-// substrate lands, no production verifier is injected: the onboarding endpoint
-// stays default-deny (every /onboard returns 401) rather than trusting an
-// unvalidated claim. A verifier injected here makes the happy path reachable;
-// the resolved-tid → registry-row → SetRepo contract is exercised by
-// services/msbridge/test/onboard-handler.test.js.
-const authenticateTenant = undefined;
+// Multi-tenant `/onboard` accepts only a cryptographically proven Entra `tid`.
+// The verifier wraps the same Bot Framework authenticator the `/api/messages`
+// path uses (one SDK validation path), so a forged or absent proof is rejected
+// with 401 and a proven `tid` transitions the tenant `active` and maps its
+// repo. Single-tenant deployments never mount `/onboard`, so no verifier is
+// built.
+let authenticateTenant;
+if (config.tenancy_mode === "multi") {
+  authenticateTenant = createOnboardVerifier(
+    createBotFrameworkAuthentication(config),
+  );
+}
 
 const service = new MsBridgeService(config, {
   logger,

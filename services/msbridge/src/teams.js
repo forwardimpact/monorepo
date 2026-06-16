@@ -62,30 +62,43 @@ export async function sendReply(adapter, msAppIdFn, ref, text) {
 }
 
 /**
+ * Build the Bot Framework authenticator for the configured app type. The app
+ * type follows whether `MICROSOFT_APP_TENANT_ID` is set, independent of
+ * `tenancy_mode`: when present the authenticator runs SingleTenant bound to
+ * that tenant (the supported shape — Microsoft deprecated multi-tenant Azure
+ * Bot resources, so a hosted bot is a single-tenant resource in the operator's
+ * home tenant); when absent it runs MultiTenant for a grandfathered
+ * multi-tenant resource. The same authenticator validates both the
+ * `/api/messages` activity stream and the `/onboard` JWT, so there is one SDK
+ * validation path to maintain.
+ *
+ * @param {object} config
+ * @returns {object} ConfigurationBotFrameworkAuthentication
+ */
+export function createBotFrameworkAuthentication(config) {
+  const tenantId = config.msAppTenantId();
+  if (tenantId) {
+    return new ConfigurationBotFrameworkAuthentication({
+      MicrosoftAppId: config.msAppId(),
+      MicrosoftAppPassword: config.msAppPassword(),
+      MicrosoftAppTenantId: tenantId,
+      MicrosoftAppType: "SingleTenant",
+    });
+  }
+  return new ConfigurationBotFrameworkAuthentication({
+    MicrosoftAppId: config.msAppId(),
+    MicrosoftAppPassword: config.msAppPassword(),
+    MicrosoftAppType: "MultiTenant",
+  });
+}
+
+/**
  * Build the default Bot Framework CloudAdapter wired to the service config.
  * @param {object} config
  * @returns {object}
  */
 export function createDefaultAdapter(config) {
-  // Multi-tenant (hosted) uses Microsoft's documented MultiTenant mode: the
-  // app type is "MultiTenant" and the tenant id is omitted, so the Bot
-  // Framework SDK accepts JWTs issued by any consenting Entra tenant.
-  // Single-tenant (self-hosted) keeps the static tenant id binding.
-  if (config.tenancy_mode === "multi") {
-    const auth = new ConfigurationBotFrameworkAuthentication({
-      MicrosoftAppId: config.msAppId(),
-      MicrosoftAppPassword: config.msAppPassword(),
-      MicrosoftAppType: "MultiTenant",
-    });
-    return new CloudAdapter(auth);
-  }
-  const auth = new ConfigurationBotFrameworkAuthentication({
-    MicrosoftAppId: config.msAppId(),
-    MicrosoftAppPassword: config.msAppPassword(),
-    MicrosoftAppTenantId: config.msAppTenantId(),
-    MicrosoftAppType: "SingleTenant",
-  });
-  return new CloudAdapter(auth);
+  return new CloudAdapter(createBotFrameworkAuthentication(config));
 }
 
 /**
