@@ -177,7 +177,7 @@ briefing.
    create an experiment issue (`experiment` + `agent:{self}`) per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and report its `#NNN`.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

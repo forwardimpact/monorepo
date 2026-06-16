@@ -154,7 +154,7 @@ the spec is a write-up of what the team has already implicitly decided
 across the corpus, not a new feature. The exception is scoped to this skill
 only.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's coach log
 (`wiki/improvement-coach-$(date +%G-W%V).md`):

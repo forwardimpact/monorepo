@@ -178,7 +178,7 @@ announce the PR and route on the coordinating issue per
   Rules (Invariants and the READ-DO / DO-CONFIRM checklists). Do not ask for
   permission on routine decisions — only flag genuine ambiguity.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

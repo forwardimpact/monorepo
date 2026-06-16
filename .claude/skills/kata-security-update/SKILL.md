@@ -180,7 +180,7 @@ gh pr close <number> --comment "Dependabot triage: closing because <reason>. Pol
 | #dep-b  | bump upload-pages-artifact ... | fix    | Missing SHA pins           |
 ```
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

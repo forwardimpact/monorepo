@@ -129,7 +129,7 @@ that depends on the answer.
 Branch naming, commit conventions, and independence rules are defined in the
 agent profile.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

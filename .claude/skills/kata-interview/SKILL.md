@@ -183,7 +183,7 @@ finding to the report table with its issue number.
 Final summary: product and job; whether the persona got it done; which JTBD
 forces materialised; table of findings and issues created or updated.
 
-## Memory: what to record
+## Memory: What to Record
 
 Using your own Bash, append to the current week's log: product interviewed;
 job (`<user>: <goal>`); outcome (done / abandoned / partial); forces observed

@@ -167,7 +167,7 @@ If the curation also produced monorepo fixes (e.g., stale spec STATUS, doc
 corrections), branch from `main` as `fix/wiki-curate-YYYY-MM-DD`, commit, push,
 and open a PR — same discipline as doc-review fixes.
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

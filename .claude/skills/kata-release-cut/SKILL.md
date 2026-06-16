@@ -154,7 +154,7 @@ with that comment. If the publish failed, reopen the issue.
 | libskill | 4.0.3    | 4.0.4  | libskill@v4.0.4 | ✓       |
 ```
 
-## Memory: what to record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 
