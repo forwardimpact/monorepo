@@ -72,14 +72,18 @@ aggregator verbs are variadic.
 | `toolCalls()` | `[{turnIndex, name, toolUseId, input, result}]` | `result` is `{content, isError}` joined by `toolUseId`; orphaned calls emit `result: null` (see Key Decisions) |
 | `commands(re?)` | `[{turnIndex, toolUseId, command}]` | Filters `tool_use` blocks where `name === "Bash"`; optional regex tested against `input.command` |
 | `paths(prefix?)` | `[{path, count}]` sorted by `count desc`, `path asc` tiebreak | Distinct `input.file_path` across `Read`, `Edit`, `Write`; optional `startsWith` prefix |
-| `compare(other)` | `{a, b, toolDelta, pathDelta}` (see below) | `other` is a peer `TraceQuery`. See Key Decisions rows "`compare()` return shape" and "`compare()` per-trace surface" for shape rationale and rejected alternatives |
+| `compare(other, {aIdentity, bIdentity})` | `{a, b, toolDelta, pathDelta}` (see below) | `other` is a peer `TraceQuery`; identities are basename-derived `{caseName, participant}` (the query has no filename). See Key Decisions rows "`compare()` return shape", "`compare()` per-trace surface", "`compare` identity source" |
 | `statsByTool()` | `{perTool:[{tool, turns, inputTokens, outputTokens, costShare}], totals}` | Each `tool_use` block gets an equal share of its host turn's usage; assistant turns lacking any `tool_use` go to the `(no-tool)` bucket. Cost-share basis and rounding rule live in Key Decisions. The criterion-6 invariant — `Σ(inputTokens)` and `Σ(outputTokens)` across buckets equal the totals from `stats()` — holds by construction |
 | `statsSummary()` | `{totals}` | Existing `stats().totals`; suppresses `perTurn` |
 
 Per-side shape for `compare`: each of `a` and `b` carries
 `{metadata:{caseName, participant}, turnCount, tools:string[], paths:string[],
-pathCount, cost}` — `metadata` is sourced from the trace's `metadata` block;
-`tools` is the distinct tool-name list (criterion 4 "distinct tools used");
+pathCount, cost}` — `caseName`/`participant` are parsed from each input's
+basename against the `split` convention `trace--<case>--<participant>.<role>.ndjson`,
+falling back to the raw basename as `caseName` (with `participant: null`) when a
+name doesn't match (`compare` accepts arbitrary files). The trace's own
+`metadata` block carries no case/participant — see Key Decisions row "`compare`
+identity source"; `tools` is the distinct tool-name list (criterion 4 "distinct tools used");
 `paths` is the distinct file-path list (criterion 4 "paths touched");
 `pathCount` is `paths.length` for at-a-glance asymmetry; `cost` is
 `stats().totals.totalCostUsd`. `toolDelta` is `[{tool, a, b, diff}]` over the
@@ -99,7 +103,7 @@ block (optionally filtered by name) — the shared join key feeding
 | --- | --- |
 | `runOver(files, query)` | Loads each file (basename → `TraceQuery`), calls `query(tq)`, tags each emitted record with `source: <basename>` only when N>1. Concatenates file-then-record order. |
 | `aggregate(files, query, key)` | Merges record arrays keyed by `key(record)` summing `count`; produces a single frequency-sorted list. Used by `paths` and `tools`. Records carry `sources: string[]` only when N>1 (see Key Decisions row "Aggregated `sources` plurality") |
-| `compareTwo(a, b)` | Loads two files and returns `traceA.compare(traceB)`. Not variadic. |
+| `compareTwo(a, b)` | Loads two files, derives each side's `{caseName, participant}` from its basename (the convention parse), and threads them into `traceA.compare(traceB, {aIdentity, bIdentity})` — the `TraceQuery` has no filename of its own. Not variadic. |
 
 Two functions, not one with a branching policy parameter — the verb-class
 table above pins which function each handler reaches for.
@@ -154,7 +158,8 @@ block. Source attribution is suppressed when N==1.
 | `paths` filter semantics | Prefix via `String.prototype.startsWith` | Regex | Spec calls out prefix; matches the file-path mental model; avoids regex-escaping path separators |
 | `compare()` return shape | `{a, b, toolDelta, pathDelta}` — per-side objects carry the per-trace facts, two delta arrays keyed by metric type (tool / path) | Flat `{metric, a, b, diff}[]` with per-trace facts as delta metadata | Per-side objects keep "distinct tools used" / "paths touched" structurally separate from "per-tool/per-path delta" the way criterion 4 reads them; flat shape forces consumers to filter metadata rows out of metric rows and loses the natural shape of "two traces, two sets, two deltas" |
 | `compare()` per-trace surface | Per-side `tools: string[]`, `paths: string[]`, plus `pathDelta` to mirror `toolDelta` | Cardinality-only (`tools: number`, `paths: number`) with no `pathDelta` | Cardinality-only drops comparison signal criterion 4 promises (tool/path identity is lost; per-path delta has no surface). The set-plus-cardinality shape costs ~one extra field per side and one delta array |
-| `compare` edge cases | Empty trace emits zeroed counters with `metadata.marker = "(empty)"` | Throw on empty | Spec criterion 4 requires non-error behaviour; sentinel parenthesised string mirrors `(no-tool)` |
+| `compare` identity source | Parse `caseName`/`participant` from the input basename via the `split` convention `trace--<case>--<participant>.<role>.ndjson`; raw basename as `caseName` when it doesn't match | Read `metadata:{caseName, participant}` from the trace's `metadata` block | `TraceCollector` only writes `metadata` on the `init` event (`{timestamp, sessionId, model, claudeCodeVersion, tools, permissionMode}`) — no case/participant — so reading them there yields `undefined` and criterion 4 ("case name, participant MUST appear") fails. The basename is the only carrier of that identity, consistent with the `source: <basename>` attribution; the fallback keeps `compare` non-error on arbitrary filenames |
+| `compare` edge cases | Empty trace emits zeroed counters with `metadata.marker = "(empty)"`; `caseName`/`participant` still resolve from the basename | Throw on empty | Spec criterion 4 requires non-error behaviour; sentinel parenthesised string mirrors `(no-tool)`. Basename-derived identity means even an init-less empty trace still names its side |
 | Orphan-call sentinel in `tool-calls` | `result: null` (key always present) | `{}` empty object; omitting the key | Spec line 136 requires "present and explicitly empty, never silently dropped". `null` carries that signal in one token without inventing a sub-object shape (`{}` would also have to define what "missing fields" means for `content`/`isError`, expanding the contract); always-present key keeps the JSON shape uniform so downstream `jq` queries don't branch |
 | `stats --by-tool` non-tool bucket | Sentinel `(no-tool)` | Bucket name like `_text` or `null` | Claude API tool names are camelCase identifiers; parentheses are guaranteed never to collide |
 | `stats --by-tool` cost-share basis | Total tokens — `(input + output) / Σ(input + output)` | Output-only; model-priced USD; input-only | Spec wording is "token-proportional cost share"; total-tokens captures both sides of the bill, doesn't depend on a model-price table that drifts, and stays inside the `[0,1]` invariant. Model-priced share would tie the contract to pricing data outside the trace; output-only ignores the input cost dominant on Sonnet/Opus |
