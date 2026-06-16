@@ -24,7 +24,9 @@ export class Logger {
    * Creates a new Logger instance
    * @param {string} domain - Domain or service area for this logger instance
    * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected
-   *   runtime bag; supplies the `proc` (env access) and `clock` collaborators.
+   *   runtime bag; supplies the `proc` (env access plus the `stderr` sink) and
+   *   `clock` collaborators. All output goes to `runtime.proc.stderr` so logs
+   *   follow the injected runtime and are captured wherever it is.
    */
   constructor(domain, runtime) {
     if (!domain || typeof domain !== "string") {
@@ -91,7 +93,7 @@ export class Logger {
       return;
     }
 
-    console.error(this.#formatLine("DEBUG", appId, message, attributes));
+    this.#emit(this.#formatLine("DEBUG", appId, message, attributes));
   }
 
   /**
@@ -105,7 +107,21 @@ export class Logger {
       return;
     }
 
-    console.error(this.#formatLine("INFO", appId, message, attributes));
+    this.#emit(this.#formatLine("INFO", appId, message, attributes));
+  }
+
+  /**
+   * Logs a warning message unless LOG_LEVEL is set below warn (i.e. error).
+   * @param {string} [appId] - Application identifier or method name
+   * @param {string} [message] - The log message
+   * @param {object} [attributes] - Optional key-value pairs to append to the message
+   */
+  warn(appId, message, attributes = {}) {
+    if (this.#level < LEVELS.warn) {
+      return;
+    }
+
+    this.#emit(this.#formatLine("WARN", appId, message, attributes));
   }
 
   /**
@@ -127,7 +143,7 @@ export class Logger {
     // Merge trace context with provided attributes
     const enrichedAttributes = { ...traceContext, ...attributes };
 
-    console.error(
+    this.#emit(
       this.#formatLine("ERROR", appId, errorMessage, enrichedAttributes),
     );
   }
@@ -156,9 +172,18 @@ export class Logger {
     // Merge trace context with provided attributes
     const enrichedAttributes = { ...traceContext, ...attributes };
 
-    console.error(
-      this.#formatLine("ERROR", appId, message, enrichedAttributes),
-    );
+    this.#emit(this.#formatLine("ERROR", appId, message, enrichedAttributes));
+  }
+
+  /**
+   * Write a formatted line to the injected process's stderr. The Logger emits
+   * to `runtime.proc.stderr` — never the global `console` — so output follows
+   * the injected runtime and is captured wherever that runtime is.
+   * @param {string} line - The formatted log line (no trailing newline).
+   * @private
+   */
+  #emit(line) {
+    this.#process.stderr.write(line + "\n");
   }
 
   /**
