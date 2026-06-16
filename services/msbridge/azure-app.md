@@ -89,14 +89,59 @@ own Azure app.
    (`action = add`) → the tenant is registered `pending_consent` in
    `services/tenancy`, keyed by its Entra tenant id.
 2. The customer calls `POST /onboard` with `{ repo: { owner, name } }`; the
-   handler verifies the caller's Entra `tid`, transitions that tenant to
-   `active`, and binds the repo. Activities from non-active tenants are
-   rejected.
+   handler verifies the caller's Entra `tid` by validating the inbound Bot
+   Framework bearer JWT (same `ConfigurationBotFrameworkAuthentication` as the
+   `/api/messages` path), transitions that tenant to `active`, and binds the
+   repo. An absent or forged proof returns 401; activities from non-active
+   tenants are rejected.
 
-> Full Bot Framework JWT signature validation for `/onboard` and custody
-> hardening of the Bot Framework credential are deferred; until the verifier
-> lands, `/onboard` is **default-deny** in production. Both are tracked in the
-> [hosted control-plane hardening spec](https://github.com/forwardimpact/monorepo/blob/main/specs/1272-hosted-control-plane-hardening/spec.md).
+> Custody hardening of the Bot Framework credential remains deferred — it has no
+> cross-workflow fanout, unlike the GitHub App key — and is tracked in the
+> [hosted control-plane hardening spec](https://github.com/forwardimpact/monorepo/blob/main/specs/1272-hosted-control-plane-hardening/spec.md)
+> § Out of scope.
+
+## Manual testing of the tenancy path (local)
+
+Exercise the `tenancy` → `ghserver` mint → dispatch path on one developer
+machine, reusing one GitHub App.
+
+> Microsoft does not permit creating multi-tenant Azure Bot resources, so the
+> bot resource here is **Single Tenant**. The bridge's `multi` tenancy mode
+> still drives the registry resolver + `ghserver` minting; only the Bot
+> Framework app type follows `MICROSOFT_APP_TENANT_ID` (SingleTenant when set).
+> A true multi-tenant offering uses a single-tenant bot + a multi-tenant Entra
+> app distributed through the Teams Store, built on the Microsoft 365 Agents SDK.
+
+1. **Azure** — register an Entra app (a multi-tenant audience is fine and also
+   serves Store distribution), then create an **Azure Bot resource as Single
+   Tenant** bound to your home tenant, App ID = that app. Enable the Microsoft
+   Teams channel.
+2. **`.env`** — set `SERVICE_MSBRIDGE_TENANCY_MODE=multi`; **keep
+   `MICROSOFT_APP_TENANT_ID`** set to your home tenant (the bridge runs
+   SingleTenant Bot Framework auth to match the bot, and the seed script uses it
+   as the Entra tenant id); point `ghserver` at a GitHub App installed on the
+   test repo with **`actions: write`** (the self-hosted `ghbridge` App works if
+   it carries that permission) via `SERVICE_GHSERVER_APP_ID` /
+   `SERVICE_GHSERVER_PRIVATE_KEY`.
+3. **`config/config.json`** — add `tenancy` and `ghserver` ahead of `msbridge`
+   (see [`config/CLAUDE.md`](../../config/CLAUDE.md) § `init`).
+4. **Start** the stack (`bunx fit-rc start`) and set the Azure Bot messaging
+   endpoint to the fresh tunnel (`README.md` § Azure Bot messaging endpoint).
+5. **Seed the registry** against the running `tenancy` service:
+   ```sh
+   bun scripts/seed-tenancy.mjs        # values default from .env
+   ```
+   It creates the `github-discussions` row first (so `services/ghserver` can
+   split the installation id) then the `msteams` row, and fails loudly if
+   `ResolveByRepo` would return an unmintable row.
+6. **Smoke test** — send `@Kata Agent hello` from the test tenant; watch
+   `data/logs/msbridge/current` and `data/logs/ghserver/current` for the resolve
+   → mint → dispatch chain.
+
+> Seeding is the practical path because `POST /onboard` requires a **Bot
+> Framework-issued** bearer token (audience = the bot's `MICROSOFT_APP_ID`); an
+> Entra user or Graph token is rejected. The seed step also creates the
+> `github-discussions` row that `/onboard` never writes.
 
 ## See also
 

@@ -80,12 +80,15 @@ legacy `data/bridges/msbridge/` files; they expire under their existing
    `active`, since the `tid` is signature-bound (the caller provably owns that
    Entra tenant).
 
-Full Bot Framework JWT signature validation (fetching Microsoft's OpenID
-metadata and signing keys) is a peer-authentication substrate tracked as a
-plan concern. Until it lands, no production verifier is injected and
-`POST /onboard` is **default-deny** (every request returns 401); the
+The injected `authenticateTenant` verifier validates the inbound Bot Framework
+bearer JWT through the same `ConfigurationBotFrameworkAuthentication` the
+`/api/messages` path uses (one SDK validation path), so the caller's `tid` is
+cryptographically proven. A request whose `tid` is proven onboards as above; an
+absent or forged proof returns 401 before any registry read. The caller must
+present a Bot Framework-issued bearer token whose audience is the bot's
+`MICROSOFT_APP_ID` — a Graph or Entra user token is rejected. The
 resolved-`tid` → registry-row → `SetRepo` contract is exercised by
-`test/onboard-handler.test.js` with an injected verifier.
+`test/onboard-handler.test.js` and the verifier by `test/onboard-verifier.test.js`.
 
 ### Documented limitation: multi-tenant elapsed-recess re-arm on restart
 

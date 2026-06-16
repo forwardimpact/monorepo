@@ -11,12 +11,12 @@ import { TenantStore } from "./src/tenant-store.js";
 
 const config = await createServiceConfig("tenancy", {});
 
-const logger = createLogger("tenancy");
+const runtime = createDefaultRuntime();
+const { clock } = runtime;
+const logger = createLogger("tenancy", runtime);
 const tracer = await createTracer("tenancy");
 const storage = createStorage("tenancy");
 
-const runtime = createDefaultRuntime();
-const { clock } = runtime;
 const tenants = new TenantStore(storage, { clock });
 
 const service = new TenancyService(config, { tenants });

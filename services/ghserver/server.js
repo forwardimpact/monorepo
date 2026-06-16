@@ -19,11 +19,16 @@ const config = await createServiceConfig("ghserver", {
   rate_ceiling_per_tenant_per_minute: 10,
 });
 
+// GitHub App ids are all-digits, so libconfig coerces SERVICE_GHSERVER_APP_ID
+// to a number; normalise to a string for the (string-only) assert and for
+// @octokit/auth-app downstream.
+const appId = String(config.app_id ?? "");
+
 // The App private key is the only signing material in the control plane.
 // It resolves from SERVICE_GHSERVER_PRIVATE_KEY at runtime; substrate
 // hardening (KMS/HSM custody) is the deferred follow-on per
 // design § "What this design does not cover".
-assertNonEmpty(config.app_id, "app_id");
+assertNonEmpty(appId, "app_id");
 assertNonEmpty(config.private_key, "private_key");
 
 // Refuse a public bind unless explicitly opted in (see src/bind-guard.js).
@@ -39,7 +44,7 @@ const tenancyConfig = await createServiceConfig("tenancy");
 const tenancy = new TenancyClient(tenancyConfig, runtime, logger, tracer);
 
 const appAuth = createAppAuthCustody({
-  app_id: config.app_id,
+  app_id: appId,
   private_key: config.private_key,
 });
 const rateCeiling = new RateCeiling({

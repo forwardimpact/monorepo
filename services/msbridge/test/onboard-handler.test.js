@@ -1,15 +1,34 @@
 import { describe, expect, test } from "bun:test";
 
 import { createOnboardHandler } from "../src/onboard-handler.js";
+import { createOnboardVerifier } from "../src/onboard-verifier.js";
 import { handleConsent } from "../src/consent-handler.js";
 
-function fakeContext(body) {
+function fakeContext(body, authHeader) {
   return {
     req: {
       json: async () => body,
-      header: () => undefined,
+      header: (name) =>
+        name?.toLowerCase() === "authorization" ? authHeader : undefined,
     },
     json: (payload, status) => ({ payload, status: status ?? 200 }),
+  };
+}
+
+/**
+ * Bot Framework authenticator stub for the end-to-end verifier integration:
+ * returns a `ClaimsIdentity`-shaped object carrying `tid`, or throws to model
+ * a forged token.
+ */
+function fakeAuth({ tid, throws = false } = {}) {
+  return {
+    authenticateChannelRequest() {
+      if (throws) throw new Error("token validation failed");
+      return Promise.resolve({
+        isAuthenticated: true,
+        getClaimValue: (claim) => (claim === "tid" ? tid : null),
+      });
+    },
   };
 }
 
@@ -235,5 +254,82 @@ describe("msbridge onboard handler", () => {
     expect(tenancyClient.rows[0].state).toBe("active");
     expect(tenancyClient.rows[0].tenant_id).toBe(uuid);
     expect(tenancyClient.rows[0].repo).toEqual({ owner: "acme", name: "web" });
+  });
+});
+
+// End-to-end through the real Bot Framework verifier (over a fake authenticator):
+// proves criterion 5's trio — a cryptographically proven tid onboards; a forged
+// or absent proof returns 401 with no registry write.
+describe("msbridge onboard handler with the Bot Framework verifier", () => {
+  test("a proven tid transitions the tenant active and maps its repo", async () => {
+    const tenancyClient = fakeTenancyClient([
+      {
+        channel_tenant_key: "entra-acme",
+        tenant_id: "uuid-acme",
+        state: "pending_consent",
+      },
+    ]);
+    const onboard = createOnboardHandler({
+      authenticateTenant: createOnboardVerifier(
+        fakeAuth({ tid: "entra-acme" }),
+      ),
+      tenancyClient,
+    });
+    const res = await onboard(
+      fakeContext(
+        { repo: { owner: "acme", name: "web" } },
+        "Bearer proven.jwt",
+      ),
+    );
+    expect(res.status).toBe(200);
+    expect(tenancyClient.rows[0].state).toBe("active");
+    expect(tenancyClient.calls.setRepo).toEqual([
+      { tenant_id: "uuid-acme", repo: { owner: "acme", name: "web" } },
+    ]);
+  });
+
+  test("a forged proof returns 401 and writes nothing", async () => {
+    const tenancyClient = fakeTenancyClient([
+      {
+        channel_tenant_key: "entra-acme",
+        tenant_id: "uuid-acme",
+        state: "pending_consent",
+      },
+    ]);
+    const onboard = createOnboardHandler({
+      authenticateTenant: createOnboardVerifier(fakeAuth({ throws: true })),
+      tenancyClient,
+    });
+    const res = await onboard(
+      fakeContext(
+        { repo: { owner: "acme", name: "web" } },
+        "Bearer forged.jwt",
+      ),
+    );
+    expect(res.status).toBe(401);
+    expect(tenancyClient.calls.upsert.length).toBe(0);
+    expect(tenancyClient.calls.setRepo.length).toBe(0);
+  });
+
+  test("an absent proof returns 401 and writes nothing", async () => {
+    const tenancyClient = fakeTenancyClient([
+      {
+        channel_tenant_key: "entra-acme",
+        tenant_id: "uuid-acme",
+        state: "pending_consent",
+      },
+    ]);
+    const onboard = createOnboardHandler({
+      authenticateTenant: createOnboardVerifier(
+        fakeAuth({ tid: "entra-acme" }),
+      ),
+      tenancyClient,
+    });
+    const res = await onboard(
+      fakeContext({ repo: { owner: "acme", name: "web" } }, undefined),
+    );
+    expect(res.status).toBe(401);
+    expect(tenancyClient.calls.upsert.length).toBe(0);
+    expect(tenancyClient.calls.setRepo.length).toBe(0);
   });
 });

@@ -138,6 +138,10 @@ for (const mode of ["single", "multi"]) {
             return { installation_token: "ghs_minted" };
           },
         };
+        // Multi-tenant mounts /onboard, which now requires a real verifier
+        // (no default-deny fallback). These tests exercise dispatch/inbox, not
+        // onboarding, so a stub verifier suffices.
+        deps.authenticateTenant = () => "entra-test";
       }
       service = new MsBridgeService(
         makeConfig(
