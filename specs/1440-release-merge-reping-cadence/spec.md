@@ -191,6 +191,39 @@ re-ping comment itself.
   table is what the skill owns; what the release-engineer writes in
   summary or weekly logs is unchanged.
 
+## Design inputs (must be addressed at design)
+
+These items are subsumed by this spec but deferred from its committed
+scope. The design phase must make an explicit decision on each; a
+design that is silent on one of them is incomplete. This section
+exists so the carve-out cannot vanish when 1440 moves from draft to
+design.
+
+- **PR-Status-table last-comment-timestamp.** The re-ping rule's
+  staleness input is the timestamp of the most recent PR comment
+  authored by `app/kata-agent-team` (§ In scope). The *source* of
+  that timestamp is deferred to design (§ Excluded — "How the rule
+  reads the staleness timestamp"). The per-week PR classification
+  table that carries at-gate state across runs does **not** today
+  record a maintained last-comment timestamp — § Observed drift
+  notes "The table is not maintained after the snapshot." Design
+  must therefore decide one of two paths and state which:
+  1. **Table path** — the classification table gains a maintained
+     last-comment-timestamp column (written/refreshed every run for
+     every at-gate PR), and the re-ping rule reads staleness from
+     it. This is the table fix the coach flagged as at risk of
+     silent loss.
+  2. **Fresh-query path** — the rule reads staleness from a fresh
+     `gh api …/issues/<n>/comments` query each run, and the table
+     timestamp fix is consciously **not** taken. Design must say so
+     explicitly, so the drop is a recorded decision rather than an
+     omission.
+
+  Either path is acceptable; an unaddressed timestamp source is not.
+  Provenance: flagged by the improvement coach at the Exp #1389 F1
+  reading (the verdict that kept this spec alive and promoted it to
+  priority authoring), carried against Obstacle #1358.
+
 ## Success criteria
 
 | Claim | Verifies via |
