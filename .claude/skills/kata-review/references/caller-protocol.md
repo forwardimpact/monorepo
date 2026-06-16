@@ -5,7 +5,7 @@ Shared protocol for callers of `kata-review`. Used by:
 - `kata-spec` Step 5, `kata-design` Step 5, `kata-plan` Step 5 — panel of 3
 - `kata-implement` Step 7 — panel of 5
 
-## Panel composition
+## Panel Composition
 
 Each panel has a role (`subagent_type`) and a size. Callers launch all panels
 for a given artifact in a single message so they run in parallel.
@@ -21,7 +21,7 @@ for a given artifact in a single message so they run in parallel.
 Rationale for panels, sizes, and the spec-only product panel:
 [panel-rationale.md](panel-rationale.md).
 
-## How to invoke
+## How to Invoke
 
 1. **Launch all panels in a single message** via one `Agent` tool call per
    reviewer. All reviewers across all panels launch in parallel, so the caller
@@ -42,7 +42,7 @@ Rationale for panels, sizes, and the spec-only product panel:
 3. **Collect all N findings reports** before merging. A missing report is not a
    pass — re-spawn that reviewer.
 
-## How to merge findings
+## How to Merge Findings
 
 Merge findings **within each panel independently**. When an artifact has
 multiple panels (e.g., technical + product for specs), run the steps below once
@@ -69,7 +69,7 @@ hash in place of `file:line` for diffs).
    user intent for specs). Exception: consensus "scope-creep in the diff"
    findings stand.
 
-## How to handle findings
+## How to Handle Findings
 
 - **Verify** every unique finding against the actual artifact before acting on
   it. The caller is accountable, not the panel.

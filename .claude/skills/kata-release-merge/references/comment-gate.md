@@ -13,7 +13,7 @@ concern, question, or objection that has not been resolved by a **later**
 comment from the **same** human acknowledging or accepting the response, mark
 **blocked** with reason `awaiting trusted-contributor reply`.
 
-## What does and does not resolve the gate
+## What Does and Does Not Resolve the Gate
 
 - **A bot reply** (`product-manager`, `staff-engineer`, etc.) addressing the
   concern does **not** resolve it — the trusted human must respond. The bot
@@ -25,7 +25,7 @@ comment from the **same** human acknowledging or accepting the response, mark
   gate. These are direct resolution: the human has spoken with their hands on
   the keyboard.
 
-## Why this matters
+## Why This Matters
 
 Speed of merge is not consent. A merge posted seconds after a substantive
 revision request, citing "all gates pass," treats the comment thread as

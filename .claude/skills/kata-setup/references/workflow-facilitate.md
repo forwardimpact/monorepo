@@ -105,7 +105,7 @@ jobs:
           task-amend: ${{ inputs.task-amend }}
 ```
 
-## Hosted variant
+## Hosted Variant
 
 Both templates above are `kata-agent` workflows, so the hosted
 delta is identical to

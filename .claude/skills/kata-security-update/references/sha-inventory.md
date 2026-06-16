@@ -4,7 +4,7 @@ When evaluating SHA pinning (Policy Check 2), verify the PR updates **all**
 workflow files and composite actions that reference the action. Derive the
 inventory live — never rely on a remembered or written-down mapping.
 
-## Deriving the inventory
+## Deriving the Inventory
 
 List every reference to the bumped action across workflows and composite
 actions:

@@ -8,7 +8,7 @@ one row per run.
 | errors_found            | count | Factual or staleness errors this run                                    | Review                                                  |
 | docs_pages_over_ceiling | count | EOD count of rotation-pool topics whose `age_days > 14` (strict, not ≥) | `wiki/technical-writer.md` § Documentation Review State |
 
-## `docs_pages_over_ceiling` — definition
+## `docs_pages_over_ceiling` — Definition
 
 **Pool:** the rows in the `wiki/technical-writer.md` § Documentation Review State
 table. This is the operational rotation pool the scheduled review skill draws

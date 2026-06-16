@@ -3,7 +3,7 @@
 Procedure detail for SKILL.md Step 8 — the coordinating-issue announcement
 self-heal.
 
-## Why this step exists
+## Why This Step Exists
 
 A fix PR that merges without ever being named on its coordinating issue
 leaves the issue thread silent while the work lands. A parallel run that
@@ -19,13 +19,13 @@ would cost a full dispatch cycle (gate fails → author's next run announces →
 re-gate) for a comment the gate can post in seconds. Blocking is reserved for
 gates that need judgment — trust, approval, unresolved human concerns.
 
-## Detect the coordinating issue
+## Detect the Coordinating Issue
 
 Parse the PR body and title for `Fixes #N`, `Closes #N`, `Resolves #N`, or a
 trailing `(#N)` where `N` is an issue (not a spec id — spec-typed PRs gate on
 STATUS, not on issues).
 
-## Check for an existing announcement
+## Check for an Existing Announcement
 
 ```sh
 gh issue view <N> --json comments \
@@ -44,7 +44,7 @@ backstop: N PRs with coordinating issues, 0 heals" — so a zero-heal run is
 positive evidence of author adherence, distinguishable from the check never
 running.
 
-## Probe for sibling PRs
+## Probe for Sibling PRs
 
 ```sh
 gh pr list --search "<N>" --state all --json number,title,state

@@ -6,7 +6,7 @@ Record per KATA.md § Metrics.
 | -------------- | ----- | ----------------------- | ----------- |
 | issues_triaged | count | Issues triaged this run | Run actions |
 
-## Recording rule — uniform per-activation
+## Recording Rule — Uniform Per-Activation
 
 Append exactly one row per `kata-product-issue` activation. The `### Decision`
 block the agent appends to its weekly log is the activation marker: every

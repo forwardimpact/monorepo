@@ -23,7 +23,7 @@ Impact-hosted control plane (see [`SKILL.md`](../SKILL.md) `--hosted`). The
 hosted variant carries no `KATA_APP_PRIVATE_KEY`; it mints a short-lived
 installation token from `services/oidc` at run time.
 
-## Template (self-hosted)
+## Template (Self-Hosted)
 
 ```yaml
 name: "Agent: {{AGENT_TITLE}}"
@@ -59,7 +59,7 @@ jobs:
           task-amend: ${{ inputs.task-amend }}
 ```
 
-## Template (hosted)
+## Template (Hosted)
 
 The hosted variant is the self-hosted template with three changes. This is
 the **canonical** hosted recipe — `workflow-facilitate.md` and
@@ -95,7 +95,7 @@ the **canonical** hosted recipe — `workflow-facilitate.md` and
 Impact-operated `services/oidc` URL. `::add-mask::` keeps the minted token
 out of logs.
 
-## Resolving action refs
+## Resolving Action Refs
 
 Generated workflows pin the published action to an immutable commit SHA,
 never the mutable `v1` tag. At generation time, list release tags with
