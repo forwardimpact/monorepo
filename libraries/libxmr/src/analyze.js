@@ -11,7 +11,7 @@ import { round1, round2 } from "./format.js";
 //
 // Each metric record carries:
 //   - status: 'insufficient_data' | 'predictable' | 'signals_present'
-//   - classification: 'insufficient' | 'stable' | 'signals' | 'chaos'
+//   - classification: 'insufficient' | 'stable' | 'signals' | 'chaos' | 'degenerate-zero'
 //   - stats: full-precision numeric stats (consumers round at display time)
 //   - signals: keyed-by-rule signal records
 //   - values, dates: ordered series for chart rendering
