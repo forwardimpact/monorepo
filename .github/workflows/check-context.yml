@@ -35,14 +35,27 @@ jobs:
         with:
           command: jtbd
 
+  # The wiki gate.
+  #
+  # A RED `wiki` check — on a PR or on the push-to-`main` run — means THIS
+  # commit's diff broke a wiki audit RULE or its tooling, NOT that the shared
+  # wiki is currently dirty. The job runs `bun run wiki:rules` against committed
+  # libwiki fixtures and never reads the live wiki, so the verdict is a function
+  # of the PR head alone — deterministic across re-runs and immune to concurrent
+  # wiki writes. Shared-wiki audit findings are owned by the daily curation run
+  # (curate-wiki.yml); they route to one `wiki-curation` issue addressed to the
+  # technical-writer and never redden a commit-status gate.
+  #
+  # Wiki-coupled surfaces — a change here can alter what the audit verifies or
+  # how, so it is exercised by this gate's `wiki:rules` run:
+  #   - libraries/libwiki/**            (audit rules, engine, CLI, their tests)
+  #   - package.json `wiki`/`wiki:rules` scripts
+  #   - .github/workflows/check-context.yml (this check's own definition)
+  # This is documentation, not a runtime path filter: `wiki:rules` runs these
+  # surfaces' tests, so the verdict is already scoped to them.
   wiki:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: forwardimpact/fit-bootstrap@22e7a8a053c22cf56d6f4efb95fcf0b3d42267c8 # v1
-      - name: Checkout wiki (read-only)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-        with:
-          repository: ${{ github.repository }}.wiki
-          path: wiki
-      - run: bun run wiki
+      - run: bun run wiki:rules

@@ -44,8 +44,8 @@ Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 _Skip when handed a specific task._ Survey domain state, then choose the
 highest-priority action:
 
-1. **Stale or inaccurate cross-agent observations?** -- `kata-wiki-curate`
-   (check agent summaries for unacknowledged observations or stale data)
+1. **Stale observations, or a `wiki-curation` issue?** -- `kata-wiki-curate`
+   (daily `curate-wiki.yml` routes wiki audit findings to that issue you own).
 2. **Documentation topic due for review?** -- Review one topic in depth
    (`kata-documentation`; check: coverage map in `wiki/technical-writer.md`)
 3. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
