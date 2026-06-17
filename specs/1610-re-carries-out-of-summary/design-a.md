@@ -65,13 +65,17 @@ each block for the clearance-trigger line, the same `fileLines`-walk pattern
 ## Carry-entry shape (C3 r3 + C5)
 
 A Carry entry is an H3 block. The fail-able rule (r3) is **"every H3 under
-the surface carries a clearance-trigger line"** — a line matching
-`/^\*\*Clears(?: when)?\*\*:/` (exact marker is C4's call). This is the
-rule SC #2 requires: a reviewer drops the line from one entry and `audit`
-emits a finding against the file; the migrated wiki at HEAD has the line on
-every entry and emits none. The per-entry referenced-surface pointer that
-spec 1490's reconciliation arm consults rides in the same block; 1610 only
-guarantees the surface admits and audits it.
+the surface carries a clearance-trigger line"** — a line matching the
+existing live convention `**Carry-clearance:**` (the marker
+`wiki/release-engineer.md § Message Inbox` already uses; preserved verbatim so
+the migration is a relocation, not a re-marking). This is the rule SC #2
+requires: a reviewer drops the line from one entry and `audit` emits a
+finding against the file; the migrated wiki at HEAD has the line on every
+entry and emits none. The per-entry referenced-surface pointer that spec
+1490's reconciliation arm consults rides in the same block; 1610 only
+guarantees the surface admits and audits it. The migration reshapes today's
+`-` bullet entries into H3 blocks (each keeping its `**Carry-clearance:**`
+line) — a structural relocation, in scope per spec § Scope.
 
 ## Data flow at boot (C5)
 
