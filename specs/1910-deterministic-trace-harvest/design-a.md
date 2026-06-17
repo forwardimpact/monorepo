@@ -32,10 +32,14 @@ flowchart TD
   Q["fit-trace runs --participant release"] --> LR["listRuns(pattern, participant)"]
   LR --> WF["GET /actions/runs<br/>filter by workflow name"]
   WF --> EACH{"per run"}
-  EACH -->|"artifacts exist"| ART["GET /runs/:id/artifacts<br/>scan names for participant"]
+  EACH -->|"artifacts exist"| ART["GET /runs/:id/artifacts"]
   EACH -->|"in_progress / no artifacts<br/>but workflow mints traces"| CAND["candidate: status +<br/>unconfirmed-pending-artifacts"]
-  ART -->|"name matches"| MATCH["confirmed match"]
-  ART -->|"no match"| DROP["omit"]
+  ART -->|"matrix: artifact name"| NM["match on inventory name<br/>(no download)"]
+  ART -->|"dispatch: shared artifact"| DL["download + list member<br/>filenames (fs.readdir)"]
+  NM --> CHK{"participant in names?"}
+  DL --> CHK
+  CHK -->|"yes"| MATCH["confirmed match"]
+  CHK -->|"no"| DROP["omit"]
   MATCH --> OUT["result rows<br/>(retrieval cost disclosed)"]
   CAND --> OUT
 ```
@@ -46,15 +50,21 @@ lane on whichever host shape produced the run. Both levels read _names_, never
 trace _content_ (Decision 4 / Criterion 8):
 
 - **Matrix host** — the participant is the artifact name
-  (`trace--<participant>`). Confirmation matches at the artifact-inventory
-  level; this is exactly the level `pickTraceArtifact` already matches on.
+  (`trace--<participant>`). Confirmation matches at the artifact-inventory level
+  returned by `GET /runs/:id/artifacts`; this is exactly the level
+  `pickTraceArtifact` already matches on. No download.
 - **Dispatch host** — one shared `trace--*` artifact whose member _filenames_
-  carry `trace--<case>--<participant>.<role>.ndjson`. The artifact name does not
-  name the participant, so confirmation matches against the member-file list
-  from the artifact's manifest, a level below `pickTraceArtifact`.
+  carry `trace--<case>--<participant>.<role>.ndjson`. The GitHub artifacts API
+  exposes only artifact-level metadata, not the zip's member list, so the
+  artifact name alone cannot name the participant. Confirmation downloads the
+  single shared artifact (the bounded retrieval Decision 1 permits — "not zero
+  downloads") and matches the participant against the **extracted member
+  filenames** (`fs.readdir`, the same listing `downloadTrace` already produces),
+  never against any `.ndjson` body.
 
-Confirmation is therefore "participant ∈ {artifact names} ∪ {member filenames}",
-not a single artifact-name lookup — the distinction the two host shapes force.
+Confirmation is therefore "participant ∈ {artifact names} ∪ {member filenames}".
+The matrix level resolves from the inventory alone; the dispatch level costs one
+artifact download per candidate run, disclosed in the query's retrieval cost.
 
 Candidacy (Decision 2) is shaped in `listRuns`'s own output rows, derived from
 **workflow identity**, not artifacts: a run whose workflow is one that mints
@@ -67,14 +77,15 @@ names. The set of trace-minting workflows is matched by the same name pattern
 
 ### Keyed lookup — `find`
 
-`findByKey(runId, participant)` is the deferred-read path (Decision 5): fetch
-the run's artifact list and resolve the lane by the same two-level name scan —
-the artifact name on a matrix host, the member filename inside the shared
-artifact on a dispatch host — then return the trace path with no enumeration and
-no content read. `pickTraceArtifact` covers the artifact-name level directly;
-the dispatch-host level reuses the same filename grammar against the member
-list. The `find` CLI subcommand wraps it. Given (run id, participant) it
-produces the lane trace in one operation.
+`findByKey(runId, participant)` is the deferred-read path (Decision 5): given a
+known run id, resolve the lane by the same two-level name scan — the artifact
+name on a matrix host (`pickTraceArtifact`, no download), or, on a dispatch
+host, the member filename in the one shared artifact it downloads and lists.
+Either way it reads only names, never a trace body (criterion 8), and touches
+exactly one run — no run enumeration (criterion 7). "One operation" is the
+single keyed lookup against a known run, not a promise of zero bytes
+transferred; the dispatch path's one download is the cost the spec already
+frames as acceptable. The `find` CLI subcommand wraps it.
 
 **Rejected — content-grep attribution.** Reading trace bodies to attribute a
 lane is the status-quo fallback the spec exists to kill: it is inference, and
@@ -108,24 +119,24 @@ eighth trailing column `host_run`** (Decision 3):
 same `parseCSV`/`validateCSV` path. Current-year files on disk are 7-column. The
 schema change must not break them:
 
-- `parseLine` reads `host_run` as `fields[7] || ""` — a 7-field legacy row
-  yields `host_run: ""`, parsing unchanged for every existing consumer.
-  `event_type` stays at `fields[6]`, so `validateRow`'s required-field check on
-  `event_type` keeps reading the same index — the trailing add moves nothing.
-- The 7-column schema is encoded in three places that must change in lockstep:
-  `HEADER` and `COLUMNS` (`constants.js`), and `validateCSV` /
-  `headerMismatchMessage` (`csv.js`). `validateCSV` accepts the header **with or
+- `host_run` is the **trailing** column, so every existing column keeps its
+  position. `parseLine` reads it as an optional last field — a legacy row
+  without it parses exactly as before, and `event_type` stays where it is, so
+  `validateRow`'s required-`event_type` check is untouched. The parser exists;
+  it gains one optional trailing field.
+- The 7-column schema is encoded in three coupled places that change in
+  lockstep: the `HEADER` and `COLUMNS` constants, and the `validateCSV` /
+  `headerMismatchMessage` pair. `validateCSV` accepts the header **with or
   without** the trailing `host_run` column (legacy 7-col header stays valid);
-  `host_run` is never a required field. This trailing-optional treatment is the
-  compat the spec names in criterion 6 — not a fallback path, a
-  forward-compatible column addition. `record.js` always writes the 8-column
-  header on new files.
+  `host_run` is never required. This trailing-optional treatment is the compat
+  the spec names in criterion 6 — not a fallback path, a forward-compatible
+  column addition. New files are written with the 8-column header.
 
 ```mermaid
 flowchart LR
   R["record (CI)"] -->|"host_run=$GITHUB_RUN_ID"| CSV[("metrics CSV<br/>8 columns")]
   R2["record (local)"] -->|"host_run=local"| CSV
-  LEGACY[("legacy 7-col rows")] --> P["parseLine<br/>host_run = fields[7] || ''"]
+  LEGACY[("legacy 7-col rows")] --> P["parseLine<br/>host_run optional trailing"]
   CSV --> P
   P --> XMR["fit-xmr analyze / storyboard<br/>(value/metric/event_type unchanged)"]
 ```
@@ -149,6 +160,13 @@ every consumer. A trailing optional column is the minimal change that leaves
   exact header-string compare today; it must change to accept both the 7- and
   8-column header. If only `record.js` changes, validation of new files fails.
   The two must land together.
+- **Dispatch-host confirmation costs a download.** The GitHub artifacts API
+  lists artifacts but not their zip members, so confirming a dispatch lane
+  requires downloading and listing the one shared artifact. This is the
+  retrieval cost Decision 1 discloses in the query output, not a content read
+  (criterion 8 holds — only filenames are inspected). A participant query over
+  many dispatch candidates therefore costs one download per candidate; the
+  workflow-name pattern keeps that candidate set small.
 - **Workflow-identity candidacy can over-include.** By design (Decision 2); the
   `unconfirmed-pending-artifacts` label is the contract that keeps an
   over-included run from being read as a confirmed match.
