@@ -111,11 +111,11 @@ Or start it individually during development:
 MCP_TOKEN=your-token node --watch services/mcp/server.js
 ```
 
-The server listens on port 3008 by default (configurable in
+The server listens on port 3011 by default (configurable in
 `config/config.json` or `SERVICE_MCP_URL` in `.env`). Verify it is running:
 
 ```sh
-curl http://localhost:3008/health
+curl http://localhost:3011/health
 ```
 
 Expected output:
@@ -134,7 +134,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const transport = new StreamableHTTPClientTransport(
-  new URL("http://localhost:3008"),
+  new URL("http://localhost:3011"),
   {
     requestInit: {
       headers: {
