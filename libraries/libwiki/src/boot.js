@@ -101,66 +101,68 @@ function splitPriorities(rows, agent) {
   return { owned, cross };
 }
 
+// Parse an attributed item line from the materialized block for `agent`.
+// Returns the unified item shape or null (wrong agent / not an item line).
+function parseBlockItem(line, agent) {
+  const m = line.match(AGENT_EXPERIMENT_ITEM_RE);
+  if (!m || m[2] !== agent) return null;
+  return {
+    dim: agent,
+    threshold: m[3],
+    status: "open",
+    link: null,
+    issue: Number(m[1]),
+    author: m[4],
+    source: "experiment",
+  };
+}
+
+function bulletItem(threshold, agent) {
+  return {
+    dim: agent,
+    threshold,
+    status: "open",
+    link: null,
+    issue: null,
+    author: null,
+    source: "bullet",
+  };
+}
+
+// Advance the agent-section scan for one storyboard line that is NOT inside the
+// materialized block. Returns the next `inAgent` state and pushes an h3-bullet
+// item for the booting agent when one is found. An h2 ends the agent-section
+// scan (team-wide sections follow the last agent h3 — without this the scan ran
+// past the agent sections, #1669).
+function scanAgentLine(line, agent, inAgent, items) {
+  if (/^## /.test(line)) return false;
+  const h3Match = line.match(/^### (.+)$/);
+  if (h3Match) {
+    return h3Match[1].toLowerCase().startsWith(agent.toLowerCase());
+  }
+  const bullet = inAgent && line.match(/^[-*]\s+(.+)$/);
+  if (bullet) items.push(bulletItem(bullet[1], agent));
+  return inAgent;
+}
+
 function parseStoryboardItems(text, agent) {
   if (!text) return [];
-  const lines = text.split("\n");
   const items = [];
   let inAgent = false;
   let inBlock = false;
-  for (const line of lines) {
-    // The materialized block carries `- #N [agent] …` bullets that the h3 scan
-    // must never capture; track it so the legacy bullet loop skips inside it.
+  for (const line of text.split("\n")) {
+    // The materialized block carries `- #N [agent] …` bullets that the agent
+    // scan must never capture; track it so the bullet loop skips inside it.
     if (AGENT_EXPERIMENTS_OPEN_RE.test(line)) {
       inBlock = true;
       inAgent = false;
-      continue;
-    }
-    if (AGENT_EXPERIMENTS_CLOSE_RE.test(line)) {
+    } else if (AGENT_EXPERIMENTS_CLOSE_RE.test(line)) {
       inBlock = false;
-      continue;
-    }
-    if (inBlock) {
-      const m = line.match(AGENT_EXPERIMENT_ITEM_RE);
-      if (m && m[2] === agent) {
-        items.push({
-          dim: agent,
-          threshold: m[3],
-          status: "open",
-          link: null,
-          issue: Number(m[1]),
-          author: m[4],
-          source: "experiment",
-        });
-      }
-      continue;
-    }
-    // Any h2 closes the agent-section scan (team-wide sections follow the last
-    // agent h3); without this the h3 scan ran past the agent sections (#1669).
-    if (/^## /.test(line)) {
-      inAgent = false;
-      continue;
-    }
-    const h3Match = line.match(/^### (.+)$/);
-    if (h3Match) {
-      inAgent = h3Match[1].toLowerCase().startsWith(agent.toLowerCase());
-      continue;
-    }
-    if (/^#{1,2} /.test(line)) {
-      inAgent = false;
-      continue;
-    }
-    if (!inAgent) continue;
-    const bullet = line.match(/^[-*]\s+(.+)$/);
-    if (bullet) {
-      items.push({
-        dim: agent,
-        threshold: bullet[1],
-        status: "open",
-        link: null,
-        issue: null,
-        author: null,
-        source: "bullet",
-      });
+    } else if (inBlock) {
+      const item = parseBlockItem(line, agent);
+      if (item) items.push(item);
+    } else {
+      inAgent = scanAgentLine(line, agent, inAgent, items);
     }
   }
   return items;
@@ -169,9 +171,7 @@ function parseStoryboardItems(text, agent) {
 function extractStandingCarries(text) {
   if (!text) return [];
   const lines = text.split("\n");
-  const start = lines.findIndex(
-    (l) => l.trim() === STANDING_CARRIES_HEADING,
-  );
+  const start = lines.findIndex((l) => l.trim() === STANDING_CARRIES_HEADING);
   if (start === -1) return [];
   const carries = [];
   for (let i = start + 1; i < lines.length; i++) {

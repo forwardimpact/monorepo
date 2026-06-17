@@ -173,7 +173,9 @@ describe("buildDigest", () => {
         "<!-- /agent-experiments -->",
       ].join("\n"),
     });
-    const exp = digest.storyboard_items.filter((i) => i.source === "experiment");
+    const exp = digest.storyboard_items.filter(
+      (i) => i.source === "experiment",
+    );
     assert.equal(exp.length, 1);
     assert.equal(exp[0].issue, 1694); // criterion 6: provenance fields present
     assert.equal(exp[0].author, "dickolsson");
@@ -193,7 +195,9 @@ describe("buildDigest", () => {
         "- not mine",
       ].join("\n"),
     });
-    const bullets = digest.storyboard_items.filter((i) => i.source === "bullet");
+    const bullets = digest.storyboard_items.filter(
+      (i) => i.source === "bullet",
+    );
     assert.equal(bullets.length, 1);
     assert.equal(bullets[0].threshold, "ship the materialization surface");
   });
@@ -218,10 +222,14 @@ describe("buildDigest", () => {
     });
     // exactly one bullet (the agent's own h3 bullet) + one experiment item;
     // the team-wide note and the block bullet must NOT appear as h3 bullets.
-    const bullets = digest.storyboard_items.filter((i) => i.source === "bullet");
+    const bullets = digest.storyboard_items.filter(
+      (i) => i.source === "bullet",
+    );
     assert.equal(bullets.length, 1);
     assert.equal(bullets[0].threshold, "mine");
-    const exp = digest.storyboard_items.filter((i) => i.source === "experiment");
+    const exp = digest.storyboard_items.filter(
+      (i) => i.source === "experiment",
+    );
     assert.equal(exp.length, 1);
     assert.equal(exp[0].issue, 1);
   });
@@ -296,7 +304,9 @@ describe("buildDigest", () => {
       "<!-- /agent-experiments -->",
     ].join("\n");
     const digest = digestOf({ [STORYBOARD]: storyboard });
-    const exp = digest.storyboard_items.filter((i) => i.source === "experiment");
+    const exp = digest.storyboard_items.filter(
+      (i) => i.source === "experiment",
+    );
     assert.equal(exp.length, 1);
     assert.equal(exp[0].issue, 1694);
     assert.equal(exp[0].threshold, "Exp Staff — round trip");

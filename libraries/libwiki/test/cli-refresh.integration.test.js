@@ -250,12 +250,21 @@ describe("fit-wiki refresh CLI (in-process)", () => {
     assert.ok(!body.includes("#22"), "de-labeled issue must drop out");
 
     // Day 3 (2026-05-12): tracker fails → body byte-identical, stamp stays 05-11.
-    const harness = await refreshGh(dir, "storyboard.md", Date.UTC(2026, 4, 12), {
-      stdout: "",
-      exitCode: 1,
-    });
+    const harness = await refreshGh(
+      dir,
+      "storyboard.md",
+      Date.UTC(2026, 4, 12),
+      {
+        stdout: "",
+        exitCode: 1,
+      },
+    );
     const afterFail = readFileSync(storyboard, "utf-8");
-    assert.equal(afterFail, body, "failed sync preserves block byte-identically");
+    assert.equal(
+      afterFail,
+      body,
+      "failed sync preserves block byte-identically",
+    );
     assert.ok(afterFail.includes("<!-- last-successful-sync: 2026-05-11 -->"));
     assert.ok(
       !afterFail.includes("2026-05-12"),
