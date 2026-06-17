@@ -28,12 +28,16 @@ describe("fit-wiki rotate CLI (in-process)", () => {
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  const run = (today = "2026-05-24", agent = "staff-engineer") => {
+  const run = (
+    today = "2026-05-24",
+    agent = "staff-engineer",
+    force = false,
+  ) => {
     const harness = makeRuntime({ cwd: dir });
     const result = runRotateCommand(
       ctxFor({
         runtime: harness.runtime,
-        options: { agent, "wiki-root": wikiRoot, today },
+        options: { agent, "wiki-root": wikiRoot, today, force },
       }),
     );
     return { result, harness };
@@ -67,12 +71,41 @@ describe("fit-wiki rotate CLI (in-process)", () => {
     assert.ok(existsSync(logPath), "fresh main created");
   });
 
-  test("no rotation needed (missing file) prints a message and exits 0", () => {
-    // The CLI forces, so an existing file with content always seals; the noops
-    // are the missing-file and header-only paths.
-    const { result, harness } = run();
-    assert.deepEqual(result, { ok: true });
-    assert.match(harness.stdout, /no rotation needed for staff-engineer/);
+  test("a missing target exits 2 and names the absent file", () => {
+    // A typo'd agent (or a target that was already rotated away) must fail
+    // closed rather than report a silent success.
+    const { result } = run();
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(result.error, /no weekly log for staff-engineer at .*\.md$/);
+  });
+
+  test("an under-budget target exits 2 unless --force seals it", () => {
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
+    writeFileSync(
+      logPath,
+      "# Staff Engineer — 2026-W21\n## 2026-05-18\nshort\n",
+    );
+
+    const refused = run();
+    assert.equal(refused.result.ok, false);
+    assert.equal(refused.result.code, 2);
+    assert.match(
+      refused.result.error,
+      /is under budget \(\d+ lines, \d+ words\); pass --force to seal it early/,
+    );
+    assert.equal(
+      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      false,
+      "no part minted on the refused run",
+    );
+
+    const forced = run("2026-05-24", "staff-engineer", true);
+    assert.deepEqual(forced.result, { ok: true });
+    assert.ok(
+      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      "--force seals the under-budget log above the floor",
+    );
   });
 
   test("prints the resolved target before any seal output", () => {
@@ -83,31 +116,32 @@ describe("fit-wiki rotate CLI (in-process)", () => {
     assert.match(lines[0], /^target → .*staff-engineer-2026-W21\.md$/);
   });
 
-  test("a header-only log is a noop even though the CLI forces (#1581)", () => {
+  test("a header-only log is a zero-exit noop, and --force cannot override the floor (#1581)", () => {
     const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
     writeFileSync(logPath, "# Staff Engineer — 2026-W21\n");
-    const { result, harness } = run();
+    const { result, harness } = run("2026-05-24", "staff-engineer", true);
     assert.deepEqual(result, { ok: true });
     assert.match(harness.stdout, /no rotation needed for staff-engineer/);
     assert.equal(
       existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
       false,
-      "no empty part minted",
+      "no empty part minted, even under --force",
     );
   });
 
-  test("#1581 repro: never touches a sibling's over-budget log, and a repeat run mints nothing", () => {
+  test("#1581 repro: never touches a sibling's log, and a repeat --force run mints nothing", () => {
     // The incident shape: the audit flags product-manager's log, but rotate is
-    // invoked as staff-engineer. The PM file must be left byte-identical, and
-    // the second invocation — against the freshly-reset staff-engineer main —
-    // must noop instead of minting an empty part.
+    // invoked as staff-engineer. The PM file must be left byte-identical. The
+    // deliberate early seal now needs --force; the second invocation — against
+    // the freshly-reset header-only staff-engineer main — is a floor noop, so
+    // no empty part is minted.
     const pmSource = multiDayLog("Product Manager");
     const pmLog = weeklyLogPath(wikiRoot, "product-manager", "2026-05-24");
     writeFileSync(pmLog, pmSource);
     const seLog = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
     writeFileSync(seLog, "# Staff Engineer — 2026-W21\n## 2026-05-18\nshort\n");
 
-    const first = run();
+    const first = run("2026-05-24", "staff-engineer", true);
     assert.deepEqual(first.result, { ok: true });
     assert.match(
       first.harness.stdout,
@@ -115,17 +149,17 @@ describe("fit-wiki rotate CLI (in-process)", () => {
     );
     assert.ok(
       existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
-      "a non-empty under-budget log still force-seals",
+      "an under-budget log seals under --force",
     );
     assert.equal(readFileSync(pmLog, "utf-8"), pmSource, "sibling untouched");
 
-    const second = run();
+    const second = run("2026-05-24", "staff-engineer", true);
     assert.deepEqual(second.result, { ok: true });
     assert.match(second.harness.stdout, /no rotation needed/);
     assert.equal(
       existsSync(join(wikiRoot, "staff-engineer-2026-W21-part2.md")),
       false,
-      "no junk part minted on the repeat run",
+      "no junk part minted on the repeat run (floor holds under --force)",
     );
   });
 

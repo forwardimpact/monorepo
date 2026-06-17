@@ -5,19 +5,19 @@ import {
 } from "../weekly-log.js";
 import { DECISION_HEADING } from "../constants.js";
 import { currentDayIso } from "../util/clock.js";
+import { requireAgentFlag } from "../util/agent-flag.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 
 function commonContext(runtime, options) {
-  const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
-  if (!agent) {
-    runtime.proc.stderr.write(
-      "log requires --agent <name> or LIBEVAL_AGENT_PROFILE env var\n",
-    );
-    return { error: { ok: false, code: 2 } };
-  }
+  const resolved = requireAgentFlag(options, {
+    command: "log",
+    example:
+      'fit-wiki log decision --agent staff-engineer --chosen "..." --rationale "..."',
+  });
+  if (!resolved.ok) return { error: resolved };
   const wikiRoot = resolveWikiRoot(runtime, options);
   const today = options.today || currentDayIso(runtime);
-  return { agent, wikiRoot, today };
+  return { agent: resolved.agent, wikiRoot, today };
 }
 
 function lastDateHeading(text) {

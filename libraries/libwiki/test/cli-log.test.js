@@ -43,6 +43,33 @@ describe("fit-wiki log CLI (in-process)", () => {
     assert.match(text, /\*\*Chosen:\*\* implement spec NNNN/);
   });
 
+  test("log decision without --agent fails closed in both env states", async () => {
+    for (const env of [{}, { LIBEVAL_AGENT_PROFILE: "product-manager" }]) {
+      const fsSync = createMockFs();
+      const harness = makeRuntime({ fsSync, env });
+      const result = await runLogCommand(
+        ctxFor({
+          runtime: harness.runtime,
+          options: { "wiki-root": WIKI_ROOT, today: "2026-05-19" },
+          args: { subcommand: "decision" },
+        }),
+      );
+      assert.equal(result.ok, false);
+      assert.equal(result.code, 2);
+      assert.match(result.error, /^log requires --agent <name>; e\.g\. /);
+      assert.doesNotMatch(result.error, /LIBEVAL_AGENT_PROFILE/);
+      // No weekly log minted for any agent.
+      assert.equal(
+        fsSync.existsSync(`${WIKI_ROOT}/product-manager-2026-W21.md`),
+        false,
+      );
+      assert.equal(
+        fsSync.existsSync(`${WIKI_ROOT}/staff-engineer-2026-W21.md`),
+        false,
+      );
+    }
+  });
+
   test("missing subcommand exits 2", async () => {
     const { run } = makeWiki();
     const result = await run(undefined, { agent: "staff-engineer" });

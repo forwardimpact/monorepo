@@ -77,7 +77,16 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
     );
   });
 
-  test("release --expired clears expired rows", async () => {
+  test("release --target without --agent fails closed", async () => {
+    const { make } = makeWiki();
+    const result = await runReleaseCommand(make({ target: "spec-NNNN" }).ctx);
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(result.error, /^release requires --agent <name>; e\.g\. /);
+    assert.doesNotMatch(result.error, /LIBEVAL_AGENT_PROFILE/);
+  });
+
+  test("release --expired clears expired rows agent-less", async () => {
     const { fsSync, make } = makeWiki(
       "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| staff-engineer | old | feat/o | — | 2026-04-01 | 2026-04-08 |\n| staff-engineer | new | feat/n | — | 2026-05-19 | 2026-05-26 |\n",
     );
@@ -87,16 +96,15 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
     assert.match(text, /\| new \|/);
   });
 
-  test("claim missing --agent returns a usage envelope", async () => {
+  test("claim missing --agent fails closed, naming the flag and an example", async () => {
     const { make } = makeWiki();
     const result = await runClaimCommand(
       make({ target: "x", branch: "b" }).ctx,
     );
-    assert.deepEqual(result, {
-      ok: false,
-      code: 2,
-      error: "claim requires --agent or LIBEVAL_AGENT_PROFILE",
-    });
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(result.error, /^claim requires --agent <name>; e\.g\. /);
+    assert.doesNotMatch(result.error, /LIBEVAL_AGENT_PROFILE/);
   });
 
   test("claim and release push with a MEMORY.md pathspec only", async () => {

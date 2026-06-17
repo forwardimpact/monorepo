@@ -63,13 +63,12 @@ The sender is automatically excluded from the broadcast.
 
 | Flag          | Required | Description                                                            |
 | ------------- | -------- | ---------------------------------------------------------------------- |
-| `--from`      | No       | Sender name (falls back to `LIBEVAL_AGENT_PROFILE` env var)            |
+| `--from`      | Yes      | Sender name (no environment fallback)                                  |
 | `--to`        | Yes      | Target agent name, or `all` to broadcast                               |
 | `--message`   | Yes      | Message text                                                           |
 | `--wiki-root` | No       | Override wiki root directory (default: auto-detected from project root) |
 
-If `--from` is omitted and `LIBEVAL_AGENT_PROFILE` is not set, the command exits
-with an error.
+If `--from` is omitted the command exits with an error before writing anything.
 
 ### The marker contract
 

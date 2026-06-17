@@ -16,7 +16,7 @@ const NEEDS_WIKI_SYNC = new Set(["claim", "release", "push", "pull", "init"]);
 
 async function main() {
   const runtime = createDefaultRuntime();
-  const definition = createDefinition(runtime.proc.env);
+  const definition = createDefinition();
   const cli = createCli(definition, {
     runtime,
     packageJsonUrl: new URL("../package.json", import.meta.url),

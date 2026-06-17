@@ -1,11 +1,12 @@
-fit-wiki rotate — Force-rotate the current weekly log to a sealed part
+fit-wiki rotate — Rotate the current weekly log to a sealed part
 
 Usage: fit-wiki rotate [options]
 
 Options:
-  --agent=<string>      Agent name (falls back to LIBEVAL_AGENT_PROFILE, then staff-engineer)
+  --agent=<string>      Agent name (required; no environment fallback)
   --wiki-root=<string>  Override wiki root directory (default: wiki)
   --today=<string>      Override today's ISO date (testing)
+  --force               Seal even an under-budget log (the header-only floor still holds)
 
 Global options:
   --help, -h  Show this help

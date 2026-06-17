@@ -7,6 +7,7 @@ import {
   filterExpired,
 } from "../active-claims.js";
 import { currentDayIso } from "../util/clock.js";
+import { requireAgentFlag } from "../util/agent-flag.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 
 function readMemory(runtime, memPath) {
@@ -36,14 +37,13 @@ async function pushWiki(wikiSync, runtime, message) {
 export async function runClaimCommand(ctx) {
   const { runtime, wikiSync } = ctx.deps;
   const options = ctx.options;
-  const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
-  if (!agent) {
-    return {
-      ok: false,
-      code: 2,
-      error: "claim requires --agent or LIBEVAL_AGENT_PROFILE",
-    };
-  }
+  const resolved = requireAgentFlag(options, {
+    command: "claim",
+    example:
+      "fit-wiki claim --agent staff-engineer --target spec-NNNN --branch claude/...",
+  });
+  if (!resolved.ok) return resolved;
+  const agent = resolved.agent;
   if (!options.target || !options.branch) {
     return {
       ok: false,
@@ -101,14 +101,12 @@ export async function runReleaseCommand(ctx) {
     return { ok: true };
   }
 
-  const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
-  if (!agent) {
-    return {
-      ok: false,
-      code: 2,
-      error: "release requires --agent or --expired",
-    };
-  }
+  const resolved = requireAgentFlag(options, {
+    command: "release",
+    example: "fit-wiki release --agent staff-engineer --target spec-NNNN",
+  });
+  if (!resolved.ok) return resolved;
+  const agent = resolved.agent;
   if (!options.target) {
     return {
       ok: false,

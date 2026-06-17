@@ -11,18 +11,17 @@ import { runAuditCommand } from "./commands/audit.js";
 import { runFixCommand } from "./commands/fix.js";
 
 /**
- * Build the `fit-wiki` libcli definition. The agent/sender defaults read the
- * injected `env` rather than the ambient `process.env` so this module carries
- * no ambient dependency; the bin shim passes `runtime.proc.env`. The version is
- * resolved by libcli's `createCli` from the bin's `packageJsonUrl`. Each
- * subcommand carries a `handler` and (for subcommand-bearing commands)
- * `args`/`argsUsage` so `cli.dispatch` can route to the per-command handler
- * with a frozen `ctx`.
+ * Build the `fit-wiki` libcli definition. Agent identity is never resolved from
+ * the environment: agent-scoped subcommands require an explicit `--agent`
+ * (`--from` for `memo`) and fail closed without it, so this module carries no
+ * ambient agent identity. The version is resolved by libcli's `createCli` from
+ * the bin's `packageJsonUrl`. Each subcommand carries a `handler` and (for
+ * subcommand-bearing commands) `args`/`argsUsage` so `cli.dispatch` can route to
+ * the per-command handler with a frozen `ctx`.
  *
- * @param {Record<string, string>} env - The process env (`runtime.proc.env`).
  * @returns {object} The libcli definition.
  */
-export function createDefinition(env) {
+export function createDefinition() {
   const wikiRootOpt = {
     "wiki-root": {
       type: "string",
@@ -33,9 +32,7 @@ export function createDefinition(env) {
   const agentOpt = {
     agent: {
       type: "string",
-      description:
-        "Agent name (falls back to LIBEVAL_AGENT_PROFILE, then staff-engineer)",
-      default: env.LIBEVAL_AGENT_PROFILE || "staff-engineer",
+      description: "Agent name (required; no environment fallback)",
     },
   };
 
@@ -148,12 +145,17 @@ export function createDefinition(env) {
       },
       {
         name: "rotate",
-        description: "Force-rotate the current weekly log to a sealed part",
+        description: "Rotate the current weekly log to a sealed part",
         handler: runRotateCommand,
         options: {
           ...agentOpt,
           ...wikiRootOpt,
           ...todayOpt,
+          force: {
+            type: "boolean",
+            description:
+              "Seal even an under-budget log (the header-only floor still holds)",
+          },
         },
       },
       {
@@ -188,8 +190,7 @@ export function createDefinition(env) {
           from: {
             type: "string",
             description:
-              "Sender agent name (falls back to LIBEVAL_AGENT_PROFILE env var)",
-            default: env.LIBEVAL_AGENT_PROFILE,
+              "Sender agent name (required; no environment fallback)",
           },
           to: {
             type: "string",
