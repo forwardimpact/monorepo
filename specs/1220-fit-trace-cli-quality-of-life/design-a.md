@@ -47,8 +47,7 @@ sequenceDiagram
   participant R as trace-render
   H->>M: runOver(resolveFiles(ctx), q, load)  [per-record verbs]
   loop file in files
-    M->>Q: q(load(file)) — load reads via runtime.fsSync
-    Q-->>M: records
+    M->>Q: q(load(file)) — load reads via runtime.fsSync → records
   end
   M-->>H: concat; tag source iff N>1
   Note over H,M: aggregate(files, q, key, load) merges by key, sums count,<br/>emits sources:[] iff N>1
@@ -58,9 +57,10 @@ sequenceDiagram
 
 `runOver` is the per-record path; `aggregate` the frequency rollup; both take
 an injected `load` so `trace-multi` stays IO-policy-free. The handler resolves
-`ctx.options.file` into a sorted flat list, expanding glob values via
-`runtime.fsSync.globSync` (Node 22). The resolved-file count — not the `--file`
-flag count — drives the multi decision and source attribution.
+`ctx.options.file` into a sorted flat list (literal paths pass through, globs
+expand via `runtime.fsSync.globSync` — see Key Decisions). The resolved-file
+count — not the `--file` flag count — drives the multi decision and source
+attribution.
 
 ## Verb classification
 
@@ -155,10 +155,10 @@ positionals.
 | `paths` flag `--prefix <string>` | Filters by `startsWith` |
 | `stats` flags `--by-tool`, `--summary` | Existing per-turn output is the default when neither flag is set. Flags compose: `--by-tool` switches the per-turn array to per-tool buckets; `--summary` further suppresses any per-bucket/per-turn array, emitting `totals` only. Behaviour under multi-file invocation is governed by Key Decisions row "Multi-file `stats` aggregation" |
 
-A shared `resolveFiles(runtime, ctx)` helper in `commands/trace.js` reads
-`ctx.options.file`, expands globs, sorts, and returns `{ ok: false }` when zero
-files resolve. `--signatures` is preserved; `--format json` honours it on every
-verb. `compare`'s two positionals bypass the orchestrator.
+A shared `resolveFiles(runtime, ctx)` helper in `commands/trace.js` does the
+resolution above and returns `{ ok: false }` when zero files resolve.
+`--signatures` is preserved; `--format json` honours it on every verb.
+`compare`'s two positionals bypass the orchestrator.
 
 ## Key decisions
 
@@ -167,8 +167,8 @@ verb. `compare`'s two positionals bypass the orchestrator.
 | Text renderer location | New `src/trace-render.js` | Inline in `commands/trace.js` | Existing `src/render/` is for live-stream renderers; trace renderers are query-output formatters with a different lifecycle. A separate module keeps `commands/trace.js` focused on dispatch and lets tests import the renderers directly |
 | Multi-file orchestrator location | New `src/trace-multi.js`, IO-policy-free via an injected `load` | Inline per handler; orchestrator imports `node:fs` | The same load-tag-concat / aggregate-and-sort logic repeats across 14 cross-trace verbs; central residence is the only way to keep source-attribution and aggregation rules consistent. Injecting `load` keeps the module off the `ctx.deps.runtime` IO seam so it unit-tests with a stub loader |
 | Aggregating vs per-record dispatch | Two functions (`runOver`, `aggregate`) | One function with a branching policy parameter | A split read cleaner than a parameter switch; the verb-class table pins membership so the choice is not a per-call-site decision |
-| Multi-file input mechanism | Repeated `--file <path-or-glob>` option (`multiple:true`), globs expanded via `runtime.fsSync.globSync` | Variadic positionals (`<files...>`); a positional file slot plus shell-glob | libcli's `dispatch()` binds each declared positional name to exactly one argv token ([`cli.js`:151-154](../../libraries/libcli/src/cli.js)) — there is no variadic positional, and extra shell-glob tokens past the first slot are silently dropped. `--file` is the only mechanism that carries an unbounded file list inside libcli's named-slot contract. The owner directed this over changing libcli. Glob expansion is in-handler so a quoted `--file 'traces/*.ndjson'` works regardless of shell, while an unquoted glob the shell already expanded arrives as several `--file` values and is handled identically |
-| `head`/`tail` `[n]` positional | Move to `--lines <n>` flag | Keep the optional `[n]` positional alongside `--file` | With files now in `--file`, a lone `[n]` positional would parse, but `--lines` keeps line-count on a flag like every other tuning knob and avoids a stray bare-number positional whose meaning isn't obvious next to `--file`. The flag migration is bounded by spec Risks row 1c |
+| Multi-file input mechanism | Repeated `--file <path-or-glob>` option (`multiple:true`); a value is treated as a literal path unless it contains glob metacharacters (`*?[{`), in which case it is expanded via `runtime.fsSync.globSync` | Variadic positionals (`<files...>`); a positional file slot plus shell-glob; always calling `globSync` | libcli's `dispatch()` binds each declared positional name to exactly one argv token ([`cli.js`:151-154](../../libraries/libcli/src/cli.js)) — no variadic positional, and shell-glob tokens past the first slot are silently dropped. `--file` is the only mechanism carrying an unbounded file list inside the named-slot contract; the owner directed this over changing libcli. The literal-path fast path means the common single-file and shell-pre-expanded cases never touch `globSync` (which is on `node:fs`/Node 22 but not enumerated in the runtime typedef and not stubbed by the libmock fs), so those tests need no glob stub; quoted-glob tests use `createDefaultRuntime()` |
+| `head`/`tail` `[n]` positional | Move to `--lines <n>` flag | Keep the optional `[n]` positional alongside `--file` | A lone `[n]` positional would parse, but `--lines` keeps line-count on a flag like every tuning knob and avoids a bare-number positional whose meaning is unclear next to `--file`; the flag migration is bounded by spec Risks row 1c |
 | Multi-file `stats` aggregation | One block per file via `runOver`; no cross-file token sum | Cross-file sum into a single combined block | Per-file blocks preserve the criterion-6 invariant inside each block and let the analyst spot per-trace cost asymmetry; cross-file sums hide which trace contributed which bucket and break the structural-equivalence story under multi-file. Structural equivalence is excluded under multi-file per criterion 5 |
 | `tool-calls` name | Keep the spec's proposed `tool-calls` | Rename to `calls` / `invocations` | Risk row 5 in the spec accepts cross-referencing in `--help` and the published guide as the mitigation; renaming creates a search-term the existing reflection doesn't anticipate |
 | `commands` filter semantics | Regex via `new RegExp(val)` tested against `input.command` | Substring | `search` already uses regex on trace content; consistency wins over a second pattern syntax. Substring is achievable via literal regex |
