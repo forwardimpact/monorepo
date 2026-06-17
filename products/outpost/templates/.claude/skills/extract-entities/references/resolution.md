@@ -48,10 +48,25 @@ Apply for entities not resolved to existing notes (meetings only).
 - Transactional service providers (bank employees, support reps).
 - One-time administrative contacts.
 - Large-group attendees you didn't interact with.
+- Calendar-only attendees — people who appear solely on an invite's
+  attendee list with no interaction, decision, or discussion attributed to them.
 - Assistants handling only logistics.
 
 People who don't get their own note go in the Organization note's `## Contacts`
 section instead.
+
+## Minimum content bar — no stubs
+
+A People note is only worth creating if you can write a substantive `## Summary`
+(who they are, why you know them, what you're working on together) grounded in
+the source. **If you cannot write that Summary from the source, do not create
+the note** — record the contact in the Organization's `## Contacts` section
+instead.
+
+Never write a placeholder profile (name + email + generic role + a boilerplate
+"created from…" line and nothing else). An email address and a meeting invite
+are not, on their own, a reason to create a profile. These stubs add noise
+without signal and must not be produced.
 
 ## Role inference
 

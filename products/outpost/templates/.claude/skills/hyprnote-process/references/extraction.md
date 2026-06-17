@@ -34,7 +34,7 @@ or is strategically important.
 ## Self-exclusion
 
 Never create or update a note for the user — match against name, email, or
-`@domain` from `USER.md`.
+`@domain` from `~/.cache/fit/outpost/state/identity.md`.
 
 ## Interview sessions (special case)
 

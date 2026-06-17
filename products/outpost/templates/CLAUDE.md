@@ -45,10 +45,8 @@ destructive actions.
 ./
 ├── knowledge/         # Obsidian-compatible graph: People/ Organizations/
 │   Projects/ Topics/ Candidates/ Goals/ Priorities/ Conditions/ Roles/
-│   Tasks/ Weeklies/
 ├── .claude/skills/    # Auto-discovered skill files
 ├── drafts/            # Email drafts (draft-emails skill)
-├── USER.md            # Your identity — gitignored
 ├── CLAUDE.md          # This file
 └── .mcp.json          # MCP server configurations (optional)
 ```
@@ -63,10 +61,10 @@ execute.
 | ------------------ | ------------------------------- | --------------- | -------------------------------------------------------------------------------------------- |
 | **postman**        | Communication triage and drafts | Every 5 min     | sync-apple-mail, sync-teams, draft-emails                                                    |
 | **concierge**      | Meeting prep and transcripts    | Every 10 min    | sync-apple-calendar, meeting-prep, hyprnote-process                                          |
-| **librarian**      | Knowledge graph maintenance     | Every 15 min    | extract-entities, organize-files, manage-tasks                                               |
+| **librarian**      | Knowledge graph maintenance     | Every 15 min    | extract-entities, organize-files                                                             |
 | **recruiter**      | Engineering recruitment         | Every 30 min    | req-track, req-screen, req-assess, req-decide, req-workday, req-forget, fit-pathway, fit-map |
 | **head-hunter**    | Passive talent scouting         | Every 60 min    | req-scan, fit-pathway, fit-map                                                               |
-| **chief-of-staff** | Daily briefings and priorities  | 7am, Mon 7:30am | weekly-update _(Mon)_, _(reads all state for daily briefings)_                               |
+| **chief-of-staff** | Daily briefings and priorities  | 7am, Mon 7:30am | _(reads all state for daily briefings)_                                                      |
 
 Each agent writes `~/.cache/fit/outpost/state/{agent}_triage.md` per wake. The
 **chief-of-staff** reads all five triage files to synthesize daily briefings in
@@ -114,13 +112,15 @@ For upcoming meetings, recent emails, or messages, read directly from:
 
 Skills auto-discover from `.claude/skills/` and load by context. They cluster
 around three functions: data sync (Apple Mail/Calendar, Teams), knowledge-graph
-maintenance (extract-entities, manage-tasks, recruitment pipeline), and
+maintenance (extract-entities, recruitment pipeline), and
 communication (draft-emails, send-chat, meeting-prep, document and deck
 generation).
 
 ## User Identity
 
-@import USER.md
+The current user's identity is cached at
+`~/.cache/fit/outpost/state/identity.md` — read it directly. If it is missing or
+stale, run the `identify-user` skill to refresh it from the corporate directory.
 
 ## Working Outside This Directory
 

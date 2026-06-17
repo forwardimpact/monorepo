@@ -106,7 +106,6 @@ describe("KBManager", () => {
     test("creates knowledge base structure", async () => {
       const built = makeRuntime({
         "/tpl/CLAUDE.md": "# Instructions",
-        "/tpl/USER.md": "# User",
         "/tpl/apm.yml": "name: outpost\nversion: 0.0.0\n",
         "/tpl/.claude/settings.json": '{"permissions":{}}',
         "/tpl/.claude/agents/postman.md": "postman",
@@ -116,7 +115,6 @@ describe("KBManager", () => {
 
       assert.strictEqual(result.ok, true);
       assert.ok(built.fs.data.has("/kb/CLAUDE.md"));
-      assert.ok(built.fs.data.has("/kb/USER.md"));
       assert.ok(built.fs.data.has("/kb/apm.yml"));
       assert.ok(built.fs.data.has("/kb/.claude/agents/postman.md"));
     });

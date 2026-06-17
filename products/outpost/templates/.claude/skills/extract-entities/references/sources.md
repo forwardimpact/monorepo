@@ -19,6 +19,13 @@ Calendar events. Internal-only meetings still enrich Project and Topic notes
 (decisions, agenda items). Only skip all-day placeholders with no attendees and
 no description (e.g. "Block", "OOO").
 
+**Stub guard:** calendar attendance alone never creates a People note — calendar
+events only *enrich* existing notes (see the table below). An attendee who is
+only on the invite list, with no interaction or decision attributed to them, is
+not profiled. If they matter, they go in the Organization's `## Contacts`. Never
+write a placeholder profile; see the
+[minimum content bar](resolution.md#minimum-content-bar--no-stubs).
+
 ## Skip entirely
 
 - Newsletters (unsubscribe links, "View in browser", bulk-sender indicators).
@@ -54,7 +61,7 @@ CC'd.
 ## Self-exclusion
 
 Never create or update notes for the user (matches name, email, or @domain from
-`USER.md`) or for `@{user.domain}` colleagues.
+`~/.cache/fit/outpost/state/identity.md`) or for `@{user.domain}` colleagues.
 
 ## Source-type rules summary
 
