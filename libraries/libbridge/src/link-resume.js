@@ -18,6 +18,11 @@ import { buildPrompt } from "./prompt.js";
  *   per-bridge `/api/link-complete` is composed from this.
  * @param {Set<string>} args.trustedOrigins Trusted-origin set produced by
  *   `loadTrustedIdpOrigins`. Required — a missing or non-Set value throws.
+ * @param {string} [args.tenantId] Resolved tenant the dispatch is scoped to.
+ *   When present, set as the `tenant_id` query param so the authorize round
+ *   trip carries it to `ghuser` `Begin` → `VerifyPendingDispatch`, matching
+ *   the `PutPendingDispatch` write key by construction. Absent leaves the URL
+ *   unchanged.
  * @returns {{linkToken: string, augmentedUrl: string} | {skipped: true, reason: string}}
  *   On a trusted, parseable URL: `{ linkToken, augmentedUrl }`. On any
  *   refusal: `{ skipped: true, reason: "untrusted_origin" }`.
@@ -26,6 +31,7 @@ export function prepareLinkResume({
   authorizeUrl,
   callbackBaseUrl,
   trustedOrigins,
+  tenantId,
 }) {
   if (!(trustedOrigins instanceof Set))
     throw new TypeError("prepareLinkResume: trustedOrigins must be a Set");
@@ -44,6 +50,7 @@ export function prepareLinkResume({
     `${normalizeBaseUrl(callbackBaseUrl)}/api/link-complete`,
   );
   originUrl.searchParams.set("client_state", linkToken);
+  if (tenantId) originUrl.searchParams.set("tenant_id", tenantId);
   return { linkToken, augmentedUrl: originUrl.toString() };
 }
 

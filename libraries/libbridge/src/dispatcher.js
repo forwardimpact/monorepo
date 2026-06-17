@@ -105,7 +105,7 @@ export class Dispatcher {
       requester,
       tenant,
     );
-    if (auth.kind !== "token") return auth;
+    if (auth.kind !== "token") return { ...auth, tenant_id };
 
     const correlationId = randomUUID();
     const mergedMeta = { ...(callbackMeta ?? {}), requester, tenant_id };

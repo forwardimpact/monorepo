@@ -71,21 +71,11 @@ export function createReplyRender({
   }
 
   async function stashAndPostLink(ctx, result, requester) {
-    // The per-user OAuth link path is single-tenant only. In multi-tenant mode
-    // the Dispatcher uses the App-token resolver (no per-user link), so this is
-    // unreachable — and `putPendingDispatch` would resolve the bare channel
-    // string as a tenant key and throw `tenant_unresolved`. Guard against a
-    // future regression rather than leaving that hazard live.
-    if (multiTenant) {
-      logger.error("link-resume", "link path is single-tenant only", {
-        discussion_id: ctx.discussion_id,
-      });
-      return;
-    }
     const prepared = prepareLinkResume({
       authorizeUrl: result.authorizeUrl,
       callbackBaseUrl: config.callback_base_url,
       trustedOrigins,
+      tenantId: result.tenant_id,
     });
     if (prepared.skipped) {
       logger.info("link-resume", "skipped", {
@@ -100,6 +90,7 @@ export function createReplyRender({
       surface_user_id: requester,
       discussion_id: ctx.discussion_id,
       created_at: clock.now(),
+      tenant_id: result.tenant_id,
     });
     await postSingleDiscussionReply(
       await graphqlFor(ctx),

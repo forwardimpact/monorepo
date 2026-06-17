@@ -69,6 +69,7 @@ export function createOauthService({ config, logger, providerClient }) {
           code_challenge,
           scope,
           client_state,
+          tenant_id,
         } = c.req.query();
         if (!surface || !surface_user_id) {
           return c.json({ error: "invalid_request" }, 400);
@@ -83,6 +84,7 @@ export function createOauthService({ config, logger, providerClient }) {
             code_challenge: code_challenge || undefined,
             scopes,
             client_state: client_state || undefined,
+            tenant_id: tenant_id || undefined,
           }),
         );
 

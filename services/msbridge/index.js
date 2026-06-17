@@ -5,7 +5,6 @@ import {
   CallbackRegistry,
   DefaultTenantResolver,
   Dispatcher,
-  GhServerTokenResolver,
   RateLimiter,
   ResumeScheduler,
   TokenResolver,
@@ -110,7 +109,6 @@ export class MsBridgeService {
       ticketSecret,
       tenantResolver: injectedTenantResolver,
       tenancyClient,
-      ghserverClient,
       authenticateTenant,
     },
   ) {
@@ -173,15 +171,10 @@ export class MsBridgeService {
         typingAdapter: buildTypingAdapter(this.#adapter, this.#msAppId),
         logger,
       });
-    // Hosted dispatch identity: multi-tenant mode fires workflow_dispatch with
-    // a repo-scoped GitHub App installation token minted by services/ghserver
-    // for the resolved tenant repo (design § Hosted dispatch identity). The
-    // Bot Framework reply credential stays in-process. Single-tenant keeps the
-    // per-user OAuth token via services/ghuser.
-    const dispatchTokenResolver =
-      this.#multiTenant && ghserverClient
-        ? new GhServerTokenResolver(ghserverClient, { requestedBy: "msbridge" })
-        : new TokenResolver(ghuserClient);
+    // Dispatch identity is the dispatching user's per-user OAuth token via
+    // services/ghuser in both tenancy modes (design § Unified dispatch
+    // identity). The Bot Framework reply credential stays in-process.
+    const dispatchTokenResolver = new TokenResolver(ghuserClient);
     this.#dispatcher = new Dispatcher({
       clock: this.#clock,
       callbacks: this.#callbacks,
@@ -579,6 +572,7 @@ export class MsBridgeService {
       authorizeUrl: result.authorizeUrl,
       callbackBaseUrl: this.#config.callback_base_url,
       trustedOrigins: this.#trustedOrigins,
+      tenantId: result.tenant_id,
     });
     if (prepared.skipped) {
       this.#logger.info("link-resume", "skipped", {
@@ -594,6 +588,7 @@ export class MsBridgeService {
       surface_user_id: requester,
       discussion_id: ctx.discussion_id,
       created_at: this.#clock.now(),
+      tenant_id: result.tenant_id,
     });
 
     const ref = ctx.participants?.[0]?.metadata;

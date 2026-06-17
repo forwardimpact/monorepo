@@ -206,12 +206,13 @@ export class DiscussionAdapter {
    *
    */
   async putPendingDispatch(target) {
-    const tenant_id = await this.#tenantForChannel(
-      target.surface ?? "github-discussions",
-    );
+    const { tenant_id: targetTenant, ...pending } = target;
+    const tenant_id =
+      targetTenant ??
+      (await this.#tenantForChannel(pending.surface ?? "github-discussions"));
     await this.#client.PutPendingDispatch(
       bridge.PutPendingDispatchRequest.fromObject({
-        pending: target,
+        pending,
         tenant_id,
       }),
     );

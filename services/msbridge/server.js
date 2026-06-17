@@ -25,8 +25,7 @@ const config = await createServiceConfig("msbridge", {
   trusted_idp_origins: "",
   link_completion_ticket_secret: "",
   // "single" (default, self-hosted) binds a static Microsoft tenant id;
-  // "multi" (hosted) accepts any consenting Entra tenant and mints
-  // repo-scoped GitHub tokens through services/ghserver.
+  // "multi" (hosted) accepts any consenting Entra tenant.
   tenancy_mode: "single",
 });
 
@@ -52,19 +51,16 @@ const trustedOrigins = loadTrustedIdpOrigins(config.trusted_idp_origins, {
 });
 assertNonEmpty(trustedOrigins, "trusted_idp_origins (loaded)");
 
-const { GhuserClient, BridgeClient, TenancyClient, GhserverClient } = clients;
+const { GhuserClient, BridgeClient, TenancyClient } = clients;
 
 // Pick the tenant resolver and the control-plane clients from the mode.
-// Multi-tenant resolves tenants through services/tenancy and mints GitHub
-// tokens through services/ghserver; single-tenant reaches neither.
+// Multi-tenant resolves tenants through services/tenancy; single-tenant
+// reaches neither.
 let tenantResolver;
-let ghserverClient;
 let tenancyClient;
 if (config.tenancy_mode === "multi") {
   const tenancyConfig = await createServiceConfig("tenancy");
   tenancyClient = new TenancyClient(tenancyConfig, runtime, logger, tracer);
-  const ghserverConfig = await createServiceConfig("ghserver");
-  ghserverClient = new GhserverClient(ghserverConfig, runtime, logger, tracer);
   tenantResolver = new RegistryTenantResolver({ client: tenancyClient });
 } else {
   tenantResolver = new DefaultTenantResolver({
@@ -104,7 +100,6 @@ const service = new MsBridgeService(config, {
   discussionClient,
   ghuserClient,
   tenantResolver,
-  ghserverClient,
   tenancyClient,
   authenticateTenant,
   clock,
