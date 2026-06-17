@@ -110,17 +110,20 @@ jobs:
       # Capture mint time and pair it with the issuing job execution's identity
       # into a single stamp env var. Travels on the same step env as GH_TOKEN
       # (below) so no carried/resumed session state can pair a token with
-      # another token's stamp. `exp` is mint + 3600s — the create-github-app-token
-      # action exports no expiry, and the App installation token's ~1h TTL makes a
-      # fixed 3600s a conservative floor, never an over-estimate. Run id + run
-      # attempt make "issuing job execution ≠ current ⇒ presumed revoked" a local
-      # comparison (a re-run attempt shares GITHUB_RUN_ID but revokes attempt 1's
-      # token). Consumed by the auth-anomaly playbook's accounting checks.
+      # another token's stamp. The create-github-app-token action exports no
+      # expiry, so `exp` is derived from the ~1h (3600s) installation-token TTL.
+      # `mint` is captured here, one step AFTER the token mint, so it trails the
+      # token's true mint by the inter-step latency; to keep `exp` a conservative
+      # UNDER-estimate of true expiry (the accounting must never report a dead
+      # token as alive in the boundary), `exp` = mint + 3600 − 120s margin. Run
+      # id + run attempt make "issuing job execution ≠ current ⇒ presumed
+      # revoked" a local comparison (a re-run attempt shares GITHUB_RUN_ID but
+      # revokes attempt 1's token). Consumed by the auth-anomaly playbook.
       - name: Stamp installation token
         run: |
           set -euo pipefail
           mint=$(date +%s)
-          echo "KATA_GH_TOKEN_STAMP=mint=${mint};exp=$((mint + 3600));run=${GITHUB_RUN_ID};attempt=${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "KATA_GH_TOKEN_STAMP=mint=${mint};exp=$((mint + 3600 - 120));run=${GITHUB_RUN_ID};attempt=${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
