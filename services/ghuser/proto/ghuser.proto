@@ -19,6 +19,7 @@ message BeginRequest {
   optional string code_challenge = 4;
   repeated string scopes = 5;
   optional string client_state = 6;
+  optional string tenant_id = 7;
 }
 message BeginResponse { string upstream_authorize_url = 1; string state = 2; optional string outcome = 3; }
 
