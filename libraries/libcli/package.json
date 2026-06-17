@@ -30,7 +30,8 @@
   "type": "module",
   "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./server-flags": "./src/server-flags.js"
   },
   "files": [
     "src/**/*.js",
