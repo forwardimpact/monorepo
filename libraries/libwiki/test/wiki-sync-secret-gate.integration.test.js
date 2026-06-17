@@ -81,8 +81,8 @@ describe("WikiSync secret gate (real git + gitleaks)", () => {
     writeFileSync(join(wikiDir, "MEMORY.md"), "# Memory\nno secrets here\n");
     const result = await makeSync(wikiDir, parent).commitAndPush("wiki: clean");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
     assert.equal(git(wikiDir, "diff", "origin/master"), "");
@@ -104,8 +104,8 @@ describe("WikiSync secret gate (real git + gitleaks)", () => {
       }).commitAndPush("wiki: override leak");
 
       assert.deepEqual(result, {
-        pushed: true,
-        reason: "pushed",
+        landed: true,
+        reason: "landed",
         detections: [],
       });
       assert.equal(git(wikiDir, "diff", "origin/master"), "");

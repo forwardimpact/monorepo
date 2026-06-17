@@ -1,6 +1,10 @@
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { refusalEnvelope } from "../secret-gate.js";
-import { AncestryRefusal, WikiPullConflict } from "../wiki-sync.js";
+import {
+  AncestryRefusal,
+  WikiPullConflict,
+  WikiPushFailure,
+} from "../wiki-sync.js";
 import { sweepTier2, renderDetections } from "../integrity.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 
@@ -19,7 +23,10 @@ export async function runPushCommand(ctx) {
   try {
     result = await wikiSync.commitAndPush("wiki: update from session");
   } catch (err) {
-    if (err instanceof AncestryRefusal) {
+    // Honest CLI contract (spec 1780 D1): non-zero on any non-land push
+    // failure, and on the ancestry guard's refusal (spec 1750). The Stop-hook
+    // recipe maps this to a stop-blocking exit; CI steps see a loud failure.
+    if (err instanceof WikiPushFailure || err instanceof AncestryRefusal) {
       runtime.proc.stderr.write(`${err.message}\n`);
       return { ok: false, code: 1 };
     }
@@ -29,7 +36,7 @@ export async function runPushCommand(ctx) {
   // unavailable); a clean push falls through to the normal reporting below.
   const refusal = refusalEnvelope(runtime, result);
   if (refusal) return refusal;
-  if (result.pushed) {
+  if (result.landed) {
     runtime.proc.stdout.write("push: committed and pushed\n");
   } else {
     runtime.proc.stdout.write("push: nothing to push\n");

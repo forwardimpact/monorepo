@@ -11,9 +11,13 @@ ARGS := ""
 wiki-pull:
     bunx fit-wiki pull
 
-# Commit and push agent memory to wiki
+# Commit and push agent memory to wiki. Run as the session-end Stop hook: a
+# push failure (non-zero CLI exit) is translated to exit 2 so Claude Code
+# blocks the stop and feeds the failure reason back for a remediation turn
+# (spec 1780 D4). The CLI status is read directly — a single command, no
+# pipeline that could mask it with another process's status.
 wiki-push:
-    bunx fit-wiki push
+    bunx fit-wiki push || exit 2
 
 # Audit agent memory against the wiki contract
 wiki-audit:

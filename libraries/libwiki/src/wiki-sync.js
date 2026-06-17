@@ -13,6 +13,25 @@ const REMOTE_BRANCH = `${REMOTE}/${BRANCH}`;
 /** The commit range a wiki push introduces relative to the remote it reconciles against. */
 const PUSH_RANGE = "origin/master..HEAD";
 
+/** Working-tree status XY codes that signal an unmerged (conflicted) path. */
+const UNMERGED_CODES = new Set(["UU", "AA", "DD", "AU", "UA", "DU", "UD"]);
+
+/**
+ * The honest push-outcome reason taxonomy (spec 1780 D2). Success-shaped
+ * outcomes (`landed`, `nothing-to-push`) are returned; every other reason is
+ * carried by a thrown {@link WikiPushFailure}.
+ */
+export const PUSH_REASONS = Object.freeze({
+  LANDED: "landed",
+  NOTHING: "nothing-to-push",
+  REJECTED: "rejected",
+  CONFLICT: "conflict",
+  RESIDUE_CONFLICT: "residue-conflict",
+  TRANSPORT: "transport",
+  PRECONDITION: "precondition",
+  CONSERVATION: "conservation",
+});
+
 /** Error thrown when a wiki pull encounters a rebase conflict that cannot be resolved automatically. */
 export class WikiPullConflict extends Error {
   /** Create a WikiPullConflict with the stderr output from the failed rebase. */
@@ -110,6 +129,27 @@ export class WikiSyncRefusal {
 function pushFenceExempt(filePath) {
   const base = path.basename(filePath);
   return filePath.endsWith(".md") && base !== "STATUS.md";
+}
+
+/**
+ * Error thrown when `commitAndPush` cannot honestly report a landed push
+ * (spec 1780). `reason` is one of {@link PUSH_REASONS} other than `landed` /
+ * `nothing-to-push`; `stashSha` names a preserved autostash on a
+ * `residue-conflict`.
+ */
+export class WikiPushFailure extends Error {
+  /**
+   * @param {string} reason - A {@link PUSH_REASONS} value.
+   * @param {string} message - Operator message naming the reason and recovery.
+   * @param {object} [opts]
+   * @param {string} [opts.stashSha] - Preserved stash SHA (residue-conflict).
+   */
+  constructor(reason, message, { stashSha } = {}) {
+    super(message);
+    this.name = "WikiPushFailure";
+    this.reason = reason;
+    if (stashSha) this.stashSha = stashSha;
+  }
 }
 
 /**
@@ -225,16 +265,38 @@ export class WikiSync {
   }
 
   /**
-   * Stage and commit working-tree changes, then fetch, rebase on
-   * origin/master (falling back to a merge with -X ours if the rebase fails),
-   * and push if HEAD is ahead of origin/master. The commit gate and the push
-   * gate are independent so a clean tree with local commits still pushes.
+   * Stage and commit working-tree changes, then reconcile on origin/master and
+   * push — reporting an honest outcome (spec 1780). The commit gate and the
+   * push gate are independent so a clean tree with local commits still pushes.
    *
    * Without `paths` the commit sweeps the whole tree (`fit-wiki push`
    * contract). With `paths` the commit is pathspec-scoped so foreign residue
    * from parallel writers in the shared workspace is never swept in; the
-   * rebase and merge fallback then run with --autostash because that residue
-   * stays uncommitted in the tree.
+   * rebase runs with --autostash because that residue stays uncommitted.
+   *
+   * Outcome contract (D2 taxonomy):
+   * - Returns `{ landed: true, reason: "landed" }` only when the push is
+   *   **grounded** in observed remote state — the per-ref `--porcelain` report,
+   *   or a post-push read of the remote tip containing HEAD — never inferred
+   *   from the subprocess's exit or prose.
+   * - Returns `{ landed: false, reason: "nothing-to-push" }` only when the
+   *   observed remote ref already contains local HEAD (never pre-fetch
+   *   arithmetic), so a stranded-resume tree re-pushes.
+   * - Throws {@link WikiPushFailure} for every failure reason: `precondition`
+   *   (rebase-in-progress / detached HEAD, before mutating), `conflict`
+   *   (rebase conflict — aborted, the remote side never mechanically
+   *   discarded), `residue-conflict` (autostash pop left unmerged paths — stash
+   *   preserved by SHA), `conservation` (the push would drop foreign content),
+   *   `rejected` (non-fast-forward after a successful fetch), `transport`
+   *   (push/fetch transport failure). A failed push never loses uncommitted
+   *   work.
+   *
+   * Bounded retry (D3) is in contract: 1750's ancestry judgment is present
+   * (this is the second lander), so a `rejected` outcome reconciles once and
+   * re-pushes, re-entering {@link #assertPublishable} before the replay so the
+   * empty-remote allowance is never auto-re-granted. The retry is bounded at
+   * one, never re-pops a conflicted autostash, and never masks the final
+   * outcome — exhaustion reports `rejected`.
    *
    * Ancestry guard: before the commit and again before the push,
    * {@link AncestryRefusal} is thrown when the published history's relationship
@@ -286,11 +348,25 @@ export class WikiSync {
    *   `reapply` re-derives the registered file's content from the operation's
    *   own row edit against the fresh tip text; returns the new text or null when
    *   the op is already satisfied on the tip.
-   * @returns {Promise<{pushed: boolean, reason: "pushed"|"clean"|"secret-detected"|"scanner-unavailable"|"mid-merge"|"stranded-merge"|"would-publish-markers"|"introduced-scan-failed", findings?: Array<{file: string, line: number, rule: string}>, detections?: object[], workAt?: string}>}
+   * @returns {Promise<{landed?: boolean, pushed?: boolean, reason: string, findings?: Array<{file: string, line: number, rule: string}>, detections?: object[], workAt?: string}>}
+   *   A grounded landing (`{landed: true, reason: "landed"}`), a grounded
+   *   nothing-to-push (`{landed: false, reason: "nothing-to-push"}`), a
+   *   re-apply landing (`{pushed: true, reason: "reapplied"}` / `already-satisfied`),
+   *   or a pre-push gate refusal ({@link WikiSyncRefusal}: `mid-merge`,
+   *   `would-publish-markers`, `introduced-scan-failed`, `secret-detected`,
+   *   `scanner-unavailable`).
+   * @throws {WikiPushFailure} On a non-landed push outcome (D2 taxonomy:
+   *   `precondition`, `conflict`, `residue-conflict`, `conservation`,
+   *   `rejected`, `transport`).
    * @throws {AncestryRefusal} When the published history cannot be verified.
    * @throws {WikiSyncConflict} When the re-apply budget is exhausted.
    */
   async commitAndPush(message, paths, { reapply, maxReapply = 3 } = {}) {
+    // Precondition (D7, spec 1780): refuse mid-rebase before mutating. A
+    // detached HEAD is judged by the ancestry guard below (its `unverifiable`
+    // refusal and this `precondition` collapse to one observable refusal); the
+    // rebase-in-progress check is the residual this guard owns.
+    await this.#assertPreconditions();
     // Guard 1 (hole 1): refuse mid-merge before staging. An abandoned merge
     // leaves unmerged hunks or a pinned MERGE_HEAD; sweeping them would
     // silently "complete" the merge and publish the markers. Decidable from
@@ -298,6 +374,8 @@ export class WikiSync {
     if (await this.#git.isMidMerge({ cwd: this.#wikiDir })) {
       return WikiSyncRefusal.result("mid-merge");
     }
+    // Ancestry guard (spec 1750): refuse a detached/unborn/unrelated history
+    // before any mutation.
     await this.#assertPublishable();
     const gitattributesChanged = ensureMetricsCsvMergeAttribute(
       this.#wikiDir,
@@ -320,46 +398,119 @@ export class WikiSync {
         await this.#git.commitAll(message, { cwd: this.#wikiDir });
       }
     }
-    if (!(await this.#hasCommitsAhead())) {
-      return { pushed: false, reason: "clean", detections: [] };
+
+    // Grounded nothing-to-push (D2, spec 1780): assert it only when the
+    // observed remote ref already contains local HEAD — never pre-fetch
+    // arithmetic, so a stranded-resume tree (clean, ahead) re-pushes.
+    const preTip = await this.#observeRemoteTip();
+    if (preTip && (await this.#headContainedIn(preTip))) {
+      return { landed: false, reason: PUSH_REASONS.NOTHING };
     }
+
+    // Ancestry guard again before the push (the empty-remote allowance is
+    // re-derived per call so a failed first publication is re-judged).
     await this.#assertPublishable();
-    await this.fetch();
-    const rebase = await this.#git.rebase("origin/master", {
-      cwd: this.#wikiDir,
-      autostash: true,
+    return this.#reconcileAndPush(message, paths, preTip, {
+      reapply,
+      maxReapply,
     });
-    if (rebase.exitCode !== 0) {
-      const resolved = await this.#resolveRebaseConflict(message, paths, {
-        reapply,
-        maxReapply,
+  }
+
+  /**
+   * Reconcile on the remote and push, grounding the outcome (spec 1780 D2/D3).
+   * Split from {@link commitAndPush} so the bounded ×1 retry (D3) re-enters the
+   * ancestry judgment and re-reconciles without duplicating the gates. On a
+   * `rejected` outcome it retries once: re-asserts {@link #assertPublishable}
+   * (no auto-re-grant), refreshes the observed tip, and replays. The retry
+   * never re-pops a conflicted autostash — a `residue-conflict` is refused, not
+   * retried.
+   *
+   * @param {string} message
+   * @param {string[]} [paths] - The caller's pathspec (singleton-discipline scope).
+   * @param {string[]} [commitPaths] - The effective commit pathspec.
+   * @param {string} preTip - The remote tip observed before the first reconcile.
+   * @param {{reapply?: function, maxReapply: number}} options
+   */
+  async #reconcileAndPush(message, paths, preTip, opts) {
+    // Bounded retry (D3): at most one reconcile-and-retry on `rejected`. The
+    // first iteration uses `preTip`; the retry re-asserts the ancestry judgment
+    // (no auto-re-grant) and re-observes the tip before replaying. `transport`,
+    // `conflict`, `residue-conflict`, and `conservation` are never retried.
+    let tip = preTip;
+    for (let attempt = 0; attempt <= 1; attempt++) {
+      const fetched = await this.#fetchObserved();
+      const rebase = await this.#git.rebase(REMOTE_BRANCH, {
+        cwd: this.#wikiDir,
+        autostash: true,
       });
-      if (resolved) return resolved;
+
+      // Rebase conflict (D2): a non-zero rebase exit is a conflict on the rebase
+      // itself. For a registered singleton with a `reapply` op the merge
+      // discipline (spec 1920) re-derives the row against the fresh tip; the
+      // no-intent path fails loud (the `mergeOursStrategy` clobber fallback is
+      // removed — spec 1780 lands 1920's joint fail-loud floor). Checked before
+      // the residue read because a stopped rebase also leaves UU markers.
+      if (rebase.exitCode !== 0) {
+        const resolved = await this.#resolveRebaseConflict(message, paths, opts);
+        if (resolved) return resolved;
+      }
+
+      // Residue check (D9): the rebase exited 0 but the autostash pop conflicted,
+      // leaving unmerged paths — grounded in tree state, the sole conflict-capable
+      // autostash site after the clobber fallback's removal. Never retried (D3).
+      if (await this.#hasUnmergedPaths()) {
+        const stashSha = await this.#git.revParse("refs/stash", {
+          cwd: this.#wikiDir,
+        });
+        throw new WikiPushFailure(
+          PUSH_REASONS.RESIDUE_CONFLICT,
+          "fit-wiki: refusing to push — a foreign writer's residue conflicted " +
+            "on the autostash pop; your stash is preserved at " +
+            `${stashSha || "refs/stash"} (git stash list). Resolve or pop it ` +
+            "from the true tip.",
+          { stashSha: stashSha || undefined },
+        );
+      }
+
+      // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
+      // unresolved conflict block (spec 1890).
+      const markerRefusal = await this.#refuseIfIntroducedMarkers();
+      if (markerRefusal) return markerRefusal;
+
+      // Conservation guard (D5): refuse to drop foreign content present at the
+      // observed remote tip unless the removal is a deliberate act.
+      await this.#assertConserved(tip, message);
+
+      // Capture the pushed delta now: HEAD is the final (rebased) local tip and
+      // origin/master is still the pre-push base (spec 1960 tier-1 probe).
+      const pushedDelta = await this.#capturePushedDelta();
+
+      // Fail-closed secret gate. Scan exactly the commits this push introduces
+      // (the reconcile above made the range correct) before any remote contact;
+      // a finding or missing scanner refuses unless its own override is set.
+      const refusal = await this.#gateOrRefuse();
+      if (refusal) return refusal;
+
+      const verdict = await this.#groundedPush(fetched);
+      if (verdict.landed) {
+        // The push landed; any declared removal it carried is now published, so
+        // clear the intent sidecar — it must not leak into an unrelated push.
+        this.#clearIntentSidecar();
+        const detections = await this.#tier1Probe(pushedDelta);
+        return { landed: true, reason: PUSH_REASONS.LANDED, detections };
+      }
+      // Non-landed. `transport` is never retried; `rejected` retries once,
+      // re-entering the ancestry judgment first so the empty-remote allowance
+      // is never auto-re-granted. The final outcome is never masked.
+      if (verdict.reason === PUSH_REASONS.TRANSPORT || attempt === 1) {
+        throw verdict.error;
+      }
+      await this.#assertPublishable();
+      tip = await this.#observeRemoteTip();
     }
-    // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
-    // unresolved conflict block.
-    const markerRefusal = await this.#refuseIfIntroducedMarkers();
-    if (markerRefusal) return markerRefusal;
-    // Capture the pushed delta now: HEAD is the final (rebased/merged) local
-    // tip and origin/master is still the pre-push base.
-    const pushedDelta = await this.#capturePushedDelta();
-    // Fail-closed secret gate. Scan exactly the commits this push introduces
-    // (the reconcile above made the range correct) before any remote contact;
-    // a finding or missing scanner refuses unless its own override is set.
-    const refusal = await this.#gateOrRefuse();
-    if (refusal) return refusal;
-    // Resolve auth first so a misconfigured `resolveToken` still surfaces; the
-    // push itself is fire-and-forget like WikiRepo (which ignored the push
-    // result and reported pushed:true regardless), so a network/credential
-    // failure degrades to "saved locally" rather than crashing the command.
-    const client = this.#authed();
-    try {
-      await client.push("origin", "master", { cwd: this.#wikiDir });
-    } catch {
-      // Intentionally ignored — preserves WikiRepo's fire-and-forget push.
-    }
-    const detections = await this.#tier1Probe(pushedDelta);
-    return { pushed: true, reason: "pushed", detections };
+    // Unreachable: the loop returns or throws on every path.
+    /* c8 ignore next */
+    throw new Error("commitAndPush: retry loop fell through");
   }
 
   /**
@@ -382,15 +533,19 @@ export class WikiSync {
   /**
    * Resolve a failed rebase against the fresh tip. Aborts the rebase, then for a
    * registered singleton with a `reapply` op re-derives the row against the tip
-   * via the bounded re-apply loop; otherwise falls back to the `-X ours` merge
-   * with failure allowance (Guard 2). A conflicting merge is aborted and refused
-   * rather than left mid-merge for the next sweep (hole 1) to publish.
+   * via the bounded re-apply loop (spec 1920). Without a registered `reapply`
+   * the conflict fails loud: the `-X ours` clobber fallback is **removed** (spec
+   * 1780 D-clobber + 1920's joint fail-loud floor), so the remote side is never
+   * mechanically discarded. The rebase is already aborted, leaving the working
+   * tree at `orig_head` with the autostash re-applied, so a `conflict` throw
+   * loses no uncommitted work.
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs committed.
    * @param {{reapply?: (freshText: string) => string | null, maxReapply: number}} options
-   * @returns {Promise<object|null>} A terminal result (re-apply outcome or a
-   *   stranded-merge refusal), or null when the conflict resolved and the push
-   *   should proceed.
+   * @returns {Promise<object|null>} A terminal re-apply result, or null when the
+   *   conflict resolved (registered op satisfied on the tip) and the push should
+   *   proceed.
+   * @throws {WikiPushFailure} `conflict` when a non-registered rebase conflicts.
    */
   async #resolveRebaseConflict(message, paths, { reapply, maxReapply }) {
     await this.#git.rebaseAbort({ cwd: this.#wikiDir });
@@ -401,21 +556,12 @@ export class WikiSync {
     if (registered) {
       return this.#reapplyLoop(message, paths, reapply, maxReapply);
     }
-    // Guard 2 (hole 2/3): the ours-strategy fallback runs with failure
-    // allowance. On a conflict it would otherwise throw and strand a mid-merge
-    // tree for the next sweep (hole 1) to publish; instead abort and refuse,
-    // reporting where retained work went (the autostash stash).
-    const merge = await this.#git.mergeOursStrategy({
-      cwd: this.#wikiDir,
-      ref: "origin/master",
-      autostash: true,
-      allowFailure: true,
-    });
-    if (merge.exitCode !== 0) {
-      await this.#git.mergeAbort({ cwd: this.#wikiDir });
-      return WikiSyncRefusal.result("stranded-merge", { workAt: "stash" });
-    }
-    return null;
+    // No-intent path: fail loud rather than discard the remote side (D2).
+    throw new WikiPushFailure(
+      PUSH_REASONS.CONFLICT,
+      "fit-wiki: refusing to push — rebase conflict with the remote. " +
+        "Resolve or retry from the true tip (fit-wiki pull, then push).",
+    );
   }
 
   /**
@@ -587,11 +733,354 @@ export class WikiSync {
     return null;
   }
 
-  async #hasCommitsAhead() {
-    const count = await this.#git.revListCount("origin/master..HEAD", {
+  /**
+   * Refuse before mutating when a rebase is mid-flight (D7). The other D7
+   * fixture — a detached HEAD — is deferred to the ancestry guard
+   * ({@link #assertPublishable}), where it surfaces as an `AncestryRefusal`
+   * ("unverifiable"): the two refusals collapse to one observable refusal, and
+   * spec 1780 D7 defers reason naming to 1750's landed guard. This guard owns
+   * only the rebase-in-progress residual, which the ancestry guard does not
+   * cover.
+   */
+  async #assertPreconditions() {
+    if (this.#rebaseInProgress()) {
+      throw new WikiPushFailure(
+        PUSH_REASONS.PRECONDITION,
+        "fit-wiki: refusing to act — a rebase is in progress. Resolve or " +
+          "abort it before retrying; your uncommitted edit is preserved.",
+      );
+    }
+  }
+
+  /** Whether a rebase is mid-flight (`.git/rebase-merge` or `rebase-apply`). */
+  #rebaseInProgress() {
+    const gitDir = path.join(this.#wikiDir, ".git");
+    return (
+      this.#runtime.fsSync.existsSync(path.join(gitDir, "rebase-merge")) ||
+      this.#runtime.fsSync.existsSync(path.join(gitDir, "rebase-apply"))
+    );
+  }
+
+  /** Read the remote ref tip fresh, or "" when absent/unobservable. */
+  async #observeRemoteTip() {
+    try {
+      return await this.#authed().remoteRefTip(REMOTE, BRANCH, {
+        cwd: this.#wikiDir,
+      });
+    } catch {
+      return "";
+    }
+  }
+
+  /** Whether HEAD is contained in `tip` (grounded nothing-to-push). */
+  async #headContainedIn(tip) {
+    return this.#git.isAncestor("HEAD", tip, { cwd: this.#wikiDir });
+  }
+
+  /** Fetch, returning whether it succeeded (feeds the rejected-vs-transport split). */
+  async #fetchObserved() {
+    try {
+      await this.#authed().fetch(REMOTE, BRANCH, { cwd: this.#wikiDir });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Whether the working tree carries unmerged (conflicted) paths. */
+  async #hasUnmergedPaths() {
+    const r = await this.#git.statusPorcelain({ cwd: this.#wikiDir });
+    return r.stdout
+      .split("\n")
+      .some((line) => UNMERGED_CODES.has(line.slice(0, 2)));
+  }
+
+  /**
+   * Refuse (`conservation`) when the would-be-pushed tree drops foreign content
+   * present at the observed remote tip, unless a deliberate removal carries it
+   * (D5). After a clean rebase HEAD descends from the remote tip, so the
+   * tip-first diff (`D`/`M`) is exactly the net effect of the pushed history:
+   * a `D` is a foreign file deleted; an `M` carries the pushed history's
+   * authored changes, where a row rewritten to a new state is an authored
+   * transition (passes) but a row removed without replacement is a drop
+   * (refuses). Row identity is the line's leading field, so a `plan approved`
+   * written over a foreign row keeps the row key and passes.
+   *
+   * @param {string} remoteTip - The observed remote tip SHA.
+   * @param {string} message - The pushed commit message (carries release intent).
+   */
+  async #assertConserved(remoteTip, message) {
+    if (!remoteTip) {
+      this.#reportConservation("pass");
+      return;
+    }
+    const status = await this.#git.diffNameStatus(remoteTip, "HEAD", {
       cwd: this.#wikiDir,
     });
-    return count > 0;
+    // When HEAD does not descend from the observed remote tip, the pushed
+    // history was written from a stale base and never saw the remote's advance,
+    // so a surviving-key row whose value differs from the remote is a stale
+    // revert (no authored transition to the restored state in the pushed
+    // history), not an approval-propagating transition. Only a HEAD that
+    // descends from the remote tip can have authored a transition over it.
+    const headAuthoredOverRemote = await this.#git.isAncestor(
+      remoteTip,
+      "HEAD",
+      { cwd: this.#wikiDir },
+    );
+    const sidecar = this.#readIntentSidecar();
+    let declaredAny = false;
+    for (const line of status.split("\n")) {
+      if (!line) continue;
+      const [code, file] = line.split("\t");
+      if (code !== "D" && code !== "M") continue; // A/R/etc. add nothing to drop
+
+      const remoteContent = await this.#git.showFile(remoteTip, file, {
+        cwd: this.#wikiDir,
+      });
+      const headContent = await this.#git.showFile("HEAD", file, {
+        cwd: this.#wikiDir,
+      });
+      if (
+        !this.#dropsForeignContent(
+          remoteContent,
+          headContent,
+          headAuthoredOverRemote,
+        )
+      )
+        continue;
+
+      if (
+        this.#removalDeclared(file, message, sidecar, headAuthoredOverRemote)
+      ) {
+        declaredAny = true;
+        continue;
+      }
+      this.#reportConservation("refusal");
+      throw new WikiPushFailure(
+        PUSH_REASONS.CONSERVATION,
+        "fit-wiki: refusing to push — it would drop another writer's " +
+          `content in ${file} that is present on the remote. Pull and ` +
+          "re-apply, or declare the removal if it is deliberate.",
+      );
+    }
+    this.#reportConservation(declaredAny ? "declared-removal" : "pass");
+  }
+
+  /**
+   * Whether the pushed tree drops foreign content present at the remote tip.
+   * A whole-file deletion drops it. Otherwise a remote line is dropped only
+   * when neither it **nor a line sharing its identity key** survives in HEAD —
+   * so a row rewritten to a new state (an authored transition) is conserved,
+   * while a row removed outright is a drop. The pusher's own additive edits
+   * never trip this because they remove no remote line.
+   *
+   * A surviving key with a changed value is an authored transition **only when
+   * the pushed history descends from the remote tip** (`headAuthoredOverRemote`).
+   * When it does not — a stale-base commit that never saw the remote's advance —
+   * the changed value restores a superseded state with no authoring commit, so
+   * it is a stale revert and counts as a drop (erases the foreign advance).
+   *
+   * `showFile` returns `null` for an absent blob; both `null` and `""` mean the
+   * file is gone at that ref.
+   */
+  #dropsForeignContent(remoteContent, headContent, headAuthoredOverRemote) {
+    if (remoteContent == null || remoteContent === "") return false;
+    if (headContent == null || headContent === "") return true;
+    const headLines = headContent.split("\n");
+    const headSet = new Set(headLines);
+    const headKeys = new Set(headLines.map((l) => this.#rowKey(l)));
+    return remoteContent.split("\n").some((line) => {
+      if (line.trim() === "") return false;
+      if (headSet.has(line)) return false; // exact line survives
+      const key = this.#rowKey(line);
+      if (key === null) {
+        // Unkeyed prose absent from HEAD. When the pushed history descends from
+        // the remote tip, the pusher saw this line and authored its edit — a
+        // legitimate prose change, not a foreign drop. Only a stale-base commit
+        // that never saw the line (a side-pick / clean-replay erasure) drops it.
+        return !headAuthoredOverRemote;
+      }
+      if (!headKeys.has(key)) return true; // key gone outright ⇒ drop
+      // Key survives with a changed value: an authored transition only if the
+      // pushed history was built over the remote tip; otherwise a stale revert.
+      return !headAuthoredOverRemote;
+    });
+  }
+
+  /**
+   * The identity key of a structured row, used to tell an authored transition
+   * (same row, new state) from a drop (row gone). For a Markdown table row the
+   * key is the **first two cells** — the canonical Active Claims table is keyed
+   * by `(agent, target)`, and `agent` alone is non-unique (one agent holds many
+   * rows), so a single-cell key would let a real foreign-row drop masquerade as
+   * a transition. For a tab-delimited ledger row (e.g. STATUS
+   * `id<TAB>phase<TAB>status`) the key is the first field, whose later fields
+   * are the state that transitions. Unstructured prose has no stable key
+   * (`null`) and is conserved by exact-line match only.
+   */
+  #rowKey(line) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("|")) {
+      const cells = trimmed
+        .split("|")
+        .slice(1, -1)
+        .map((c) => c.trim());
+      const a = cells[0] ?? "";
+      const b = cells[1] ?? "";
+      return a || b ? `|${a}|${b}` : null;
+    }
+    if (line.includes("\t")) return `\t${line.split("\t")[0]}`;
+    return null;
+  }
+
+  /** Whether the removal of `file` is declared deliberate (release/expiry/sidecar). */
+  #removalDeclared(file, message, sidecar, headAuthoredOverRemote) {
+    // A claim release/expiry records the deliberate act in the commit message,
+    // and a claim/release commit is pathspec-scoped to MEMORY.md — so the
+    // exemption is confined to that file, never a whole-tree trim. The blanket
+    // message exemption is honored only when HEAD descends from the remote tip:
+    // a release authored over current state drops exactly the row it released,
+    // but a stale-base release never saw a foreign row another writer added, so
+    // it must not blanket-exempt that collateral live-row drop (D5 — the
+    // deliberate act is the released row, not a file-level pass).
+    if (
+      headAuthoredOverRemote &&
+      /^wiki: release\b/.test(message) &&
+      file === "MEMORY.md"
+    )
+      return true;
+    // The intent sidecar names the specific file and survives a stranded-push
+    // retry, so it passes regardless of base freshness (D5 retry-survival).
+    return sidecar.includes(file);
+  }
+
+  /**
+   * Declare that the next push deliberately removes foreign content in `paths`
+   * (the cross-lane budget-trim shape, D5). The declaration is recorded
+   * clone-locally so it survives a stranded-push retry from the same clone, and
+   * is cleared only once a push lands (so the declaration never leaks into an
+   * unrelated later push).
+   * @param {string[]} paths - Files whose foreign-content removal is deliberate.
+   */
+  declareRemoval(paths) {
+    if (!paths?.length) return;
+    const existing = this.#readIntentSidecar();
+    const merged = [...new Set([...existing, ...paths])];
+    this.#runtime.fsSync.writeFileSync(
+      this.#sidecarPath(),
+      `${merged.join("\n")}\n`,
+    );
+  }
+
+  #sidecarPath() {
+    return path.join(this.#wikiDir, ".git", "fit-wiki-removal-intent");
+  }
+
+  /** Read the clone-local removal-intent sidecar (declared deliberate removals). */
+  #readIntentSidecar() {
+    const sidecar = this.#sidecarPath();
+    if (!this.#runtime.fsSync.existsSync(sidecar)) return [];
+    return this.#runtime.fsSync
+      .readFileSync(sidecar, "utf-8")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+  }
+
+  /** Clear the removal-intent sidecar after a landed push. */
+  #clearIntentSidecar() {
+    const sidecar = this.#sidecarPath();
+    if (this.#runtime.fsSync.existsSync(sidecar)) {
+      this.#runtime.fsSync.unlinkSync(sidecar);
+    }
+  }
+
+  /** Emit the per-event conservation self-report at the guard seam (D8). */
+  #reportConservation(outcomeClass) {
+    this.#runtime.proc.stderr.write(`wiki-conservation: ${outcomeClass}\n`);
+  }
+
+  /**
+   * Push once and classify the outcome, grounding *landed* in the
+   * remote-originated per-ref report or a post-push remote-tip read. Returns a
+   * verdict the retry loop reads (it carries the {@link WikiPushFailure} to
+   * throw on a terminal non-land so the loop owns the retry decision): a
+   * non-landed push is `rejected` when the fetch succeeded, `transport` when it
+   * failed or the push itself raised a transport error.
+   * @param {boolean} fetched - Whether the pre-push fetch observed the remote.
+   * @returns {Promise<{landed: boolean, reason: string, error?: WikiPushFailure}>}
+   */
+  async #groundedPush(fetched) {
+    const client = this.#authed();
+    let result;
+    try {
+      result = await client.pushPorcelain(REMOTE, BRANCH, {
+        cwd: this.#wikiDir,
+      });
+    } catch {
+      return {
+        landed: false,
+        reason: PUSH_REASONS.TRANSPORT,
+        error: new WikiPushFailure(
+          PUSH_REASONS.TRANSPORT,
+          "fit-wiki: push failed at transport (network or credentials). " +
+            "Your work is committed locally; retry when connectivity returns.",
+        ),
+      };
+    }
+    if (await this.#pushLanded(result)) {
+      return { landed: true, reason: PUSH_REASONS.LANDED };
+    }
+    if (!fetched) {
+      return {
+        landed: false,
+        reason: PUSH_REASONS.TRANSPORT,
+        error: new WikiPushFailure(
+          PUSH_REASONS.TRANSPORT,
+          "fit-wiki: push did not land and the remote could not be observed " +
+            "(network or credentials). Your work is committed locally.",
+        ),
+      };
+    }
+    return {
+      landed: false,
+      reason: PUSH_REASONS.REJECTED,
+      error: new WikiPushFailure(
+        PUSH_REASONS.REJECTED,
+        "fit-wiki: push rejected — the remote advanced. Rerun from the true " +
+          "tip (fit-wiki pull, then push).",
+      ),
+    };
+  }
+
+  /**
+   * Whether the push landed, grounded in observed remote state: the per-ref
+   * `--porcelain` report for `refs/heads/master` (flag ` `/`=` accepted, `!`
+   * rejected), falling back to a post-push remote-tip read when the report is
+   * unparseable.
+   */
+  async #pushLanded(result) {
+    const verdict = this.#parsePorcelain(result.stdout);
+    if (verdict === "accepted") return true;
+    if (verdict === "rejected") return false;
+    // Ambiguous report ⇒ ground in a fresh remote-tip read.
+    const tip = await this.#observeRemoteTip();
+    return tip ? this.#headContainedIn(tip) : false;
+  }
+
+  /** Classify a `push --porcelain` report for the pushed branch ref. */
+  #parsePorcelain(stdout) {
+    for (const line of stdout.split("\n")) {
+      const fields = line.split("\t");
+      if (fields.length < 2) continue;
+      const flag = fields[0];
+      const refspec = fields[1];
+      if (!refspec.includes(`refs/heads/${BRANCH}`)) continue;
+      if (flag === " " || flag === "=") return "accepted";
+      if (flag === "!") return "rejected";
+    }
+    return "ambiguous";
   }
 
   /** Whether the wiki clone is shallow (has a `.git/shallow` file). */

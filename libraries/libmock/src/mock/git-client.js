@@ -30,6 +30,13 @@ const GIT_METHODS = [
   "mergeBaseExists",
   "remoteBranchExists",
   "fetchDeepen",
+  "pushPorcelain",
+  "remoteRefTip",
+  "isAncestor",
+  "statusPorcelain",
+  "revParse",
+  "diffNameStatus",
+  "stashDropBySha",
 ];
 
 // A response descriptor models one git failure: an `Error` thrown as-is, or

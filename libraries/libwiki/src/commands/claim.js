@@ -11,13 +11,23 @@ import { currentDayIso } from "../util/clock.js";
 import { requireAgentFlag } from "../util/agent-flag.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 import { refusalEnvelope } from "../secret-gate.js";
-import { AncestryRefusal } from "../wiki-sync.js";
+import { AncestryRefusal, PUSH_REASONS, WikiPushFailure } from "../wiki-sync.js";
 
 /** Non-zero envelope returned when the ancestry guard refused publication. */
 const NOT_PUBLISHED = {
   ok: false,
   code: 1,
 };
+
+// Failure reasons that, on the claim/release surfaces, are an unsafe-state
+// refusal (D7/D9 family) rather than a saved-locally success (D1): the refusal
+// fires before the local write is publishable, or leaves the tree unsafe for a
+// later whole-tree sweep, so the surface must exit non-zero.
+const UNSAFE_STATE_REASONS = new Set([
+  PUSH_REASONS.PRECONDITION,
+  PUSH_REASONS.RESIDUE_CONFLICT,
+  PUSH_REASONS.CONSERVATION,
+]);
 
 /** Build the not-published refusal message for the given guard refusal. */
 function notPublishedMessage(err) {
@@ -38,17 +48,23 @@ function memoryPath(runtime, options) {
 }
 
 /**
- * Push the claim/release MEMORY.md change through the secret-gated push path
- * and translate the result into a command envelope. A secret block fails the
- * command closed (`{ ok: false, code: 1 }`) and names the finding or the
- * scanner absence on stderr — distinct from a *network* push failure, which
- * still degrades to "saved locally" and succeeds (`{ ok: true }`).
+ * Push the claim/release MEMORY.md change and translate the honest outcome
+ * (spec 1780 D1) into a command envelope, composed with the singleton merge
+ * discipline (spec 1920) and the secret/ancestry guards:
+ * - landed (grounded or re-applied) ⇒ `{ ok: true }`, success message printed;
+ * - `rejected`/`transport` ⇒ `{ ok: true }` with a saved-locally warning (the
+ *   landed-locally row is complete; the session-end push is its retry);
+ * - `precondition`/`residue-conflict`/`conservation` ⇒ `{ ok: false, code: 1 }`
+ *   (D7/D9 unsafe-state family — the row is not published and the tree may be
+ *   left unsafe for a later whole-tree sweep);
+ * - a secret-gate refusal ⇒ `{ ok: false, code: 1 }` ({@link refusalEnvelope});
+ * - an {@link AncestryRefusal} is rethrown so `pushRowOrRefuse` maps it to the
+ *   not-published non-zero envelope;
+ * - any other thrown error is a network/credential failure that degrades to
+ *   "saved locally" (`{ ok: true }`).
  *
  * The `reapply` closure re-derives this row against the fresh tip if the
- * landing contends, so a parallel writer's row is never erased. An
- * ancestry-guard refusal ({@link AncestryRefusal}) is rethrown so the caller's
- * `pushRowOrRefuse` can map it to the not-published non-zero envelope; every
- * other throw is a network/credential failure that degrades to "saved locally".
+ * landing contends, so a parallel writer's row is never erased.
  *
  * @param {object} wikiSync - The WikiSync collaborator (may be absent in tests).
  * @param {object} runtime - The runtime bag (for stdout/stderr).
@@ -65,37 +81,54 @@ async function pushWiki(wikiSync, runtime, message, reapply) {
     // claim/release contract is a 1-line MEMORY.md change; the pathspec keeps
     // foreign uncommitted files from parallel writers out of the commit. The
     // `reapply` closure re-derives this row against the fresh tip if the landing
-    // contends, so a parallel writer's row is never erased.
+    // contends (spec 1920), so a parallel writer's row is never erased.
     result = await wikiSync.commitAndPush(message, ["MEMORY.md"], { reapply });
   } catch (err) {
-    // An ancestry-guard refusal pierces the saved-locally degradation: it must
-    // reach a non-zero exit so the session stops rather than scroll past. Every
-    // other failure is a network/credential failure: preserve fire-and-forget
-    // "saved locally" — the change is on disk and the command still succeeds.
+    // An ancestry-guard refusal pierces the saved-locally degradation: rethrow
+    // so pushRowOrRefuse maps it to the not-published non-zero envelope.
     if (err instanceof AncestryRefusal) throw err;
+    if (err instanceof WikiPushFailure) {
+      // D7/D9 unsafe-state family: the row is not published and the tree may be
+      // left unsafe for a later sweep — fail the command closed (non-zero).
+      if (UNSAFE_STATE_REASONS.has(err.reason)) {
+        runtime.proc.stderr.write(`${err.message}\n`);
+        return { ok: false, code: 1 };
+      }
+      // rejected / transport: the local row landed; warn and keep zero exit.
+      runtime.proc.stderr.write(
+        `saved locally — not yet visible to parallel sessions (${err.reason}): ${err.message}\n`,
+      );
+      return { ok: true };
+    }
+    // Any other failure: preserve fire-and-forget "saved locally" — the change
+    // is on disk and the command still succeeds.
     createLogger("wiki", runtime).warn(
       "claim",
       `push failed (saved locally): ${err.message}`,
     );
     return { ok: true };
   }
+  // A secret-gate refusal fails the command closed; a grounded-landed or a
+  // re-applied push reports success.
   const refusal = refusalEnvelope(runtime, result);
   if (refusal) return refusal;
-  if (result.pushed) runtime.proc.stdout.write("push: committed and pushed\n");
+  if (result.landed || result.pushed) {
+    runtime.proc.stdout.write("push: committed and pushed\n");
+  }
   return { ok: true };
 }
 
 /**
  * Push a written claim/release row, mapping an ancestry-guard refusal to the
- * not-published non-zero envelope and any other outcome to `{ ok: true }`. The
- * row is already written to MEMORY.md; on refusal it stays as an uncommitted
- * working-tree change. The `reapply` closure re-derives the same row against
- * the fresh tip when the landing contends.
+ * not-published non-zero envelope and any other outcome to `pushWiki`'s
+ * envelope. The row is already written to MEMORY.md; on refusal it stays as an
+ * uncommitted working-tree change. The `reapply` closure re-derives the same
+ * row against the fresh tip when the landing contends.
  */
 async function pushRowOrRefuse(wikiSync, runtime, message, reapply) {
   try {
-    // Propagate pushWiki's envelope so a secret-gate refusal ({ ok: false })
-    // fails the command closed; a clean push returns { ok: true }.
+    // Propagate pushWiki's envelope so a secret-gate or unsafe-state refusal
+    // ({ ok: false }) fails the command closed; a clean push returns { ok: true }.
     return await pushWiki(wikiSync, runtime, message, reapply);
   } catch (err) {
     if (err instanceof AncestryRefusal) {

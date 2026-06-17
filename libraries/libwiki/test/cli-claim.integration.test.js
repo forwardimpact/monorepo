@@ -192,7 +192,7 @@ describe("claim/release push integration (real git)", () => {
     };
   }
 
-  test("claim refuses on a detached HEAD: non-zero, row written but not published", async () => {
+  test("claim with a detached HEAD refuses non-zero (ancestry guard — not published)", async () => {
     const head = git(wikiDir, "rev-parse", "HEAD");
     git(wikiDir, "checkout", head); // detach
     const { harness, wikiSync } = harnessFor();
@@ -209,6 +209,9 @@ describe("claim/release push integration (real git)", () => {
         },
       }),
     );
+    // The detached-HEAD D7 fixture collapses onto 1750's ancestry guard, which
+    // refuses with an AncestryRefusal (spec 1780 D7 seam defers to 1750). On the
+    // claim surface that maps to the not-published non-zero envelope.
     assert.equal(result.ok, false);
     assert.equal(result.code, 1);
     assert.match(harness.stderr, /not published/i);

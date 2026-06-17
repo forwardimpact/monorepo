@@ -1,8 +1,21 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { createTestRuntime, createMockFs } from "@forwardimpact/libmock";
-import { WikiSync, WikiPullConflict } from "../src/wiki-sync.js";
-import { WIKI, HEALTHY_ANCESTRY, make } from "./wiki-sync-harness.js";
+import {
+  WikiSync,
+  WikiPullConflict,
+  WikiPushFailure,
+  AncestryRefusal,
+  PUSH_REASONS,
+} from "../src/wiki-sync.js";
+import {
+  WIKI,
+  HEALTHY_ANCESTRY,
+  HEALTHY_PUSH,
+  HEALTHY,
+  REMOTE_TIP,
+  make,
+} from "./wiki-sync-harness.js";
 
 // A mock fsSync whose wiki already carries the metrics-CSV union declaration,
 // so `commitAndPush`'s ensure-before-gate is a no-op and the git call sequence
@@ -78,66 +91,42 @@ describe("WikiSync", () => {
     assert.deepEqual(methods(), ["fetch", "rebase", "rebaseAbort"]);
   });
 
-  test("commitAndPush commits, rebases, and pushes a dirty ahead tree", async () => {
-    const { wikiSync, flowMethods } = make({
+  test("commitAndPush lands a dirty ahead tree, grounded in the per-ref report", async () => {
+    const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
-        revListCount: 1,
         introducedByFile: new Map([["MEMORY.md", "clean content"]]),
       },
     });
     const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
-      detections: [],
-    });
-    assert.deepEqual(flowMethods(), [
-      "isMidMerge",
-      "status",
-      "commitAll",
-      "revListCount",
-      "fetch",
-      "rebase",
-      "introducedByFile",
-      "diffRange",
-      "push",
-    ]);
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, PUSH_REASONS.LANDED);
+    const m = methods();
+    assert.ok(m.includes("commitAll"));
+    assert.ok(m.includes("pushPorcelain"));
+    assert.ok(m.includes("isMidMerge"), "the mid-merge guard still runs");
+    assert.ok(m.includes("introducedByFile"), "the marker guard still runs");
+    assert.ok(!m.includes("mergeOursStrategy"), "clobber fallback is gone");
   });
 
   test("commitAndPush with paths scopes the status check and commit", async () => {
-    const { git, wikiSync, flowMethods } = make({
+    const { git, wikiSync } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
-        revListCount: 1,
         introducedByFile: new Map([["MEMORY.md", "clean content"]]),
       },
     });
     const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
-    assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
-      detections: [],
-    });
-    assert.deepEqual(flowMethods(), [
-      "isMidMerge",
-      "status",
-      "commitPaths",
-      "revListCount",
-      "fetch",
-      "rebase",
-      "introducedByFile",
-      "diffRange",
-      "push",
-    ]);
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, PUSH_REASONS.LANDED);
     const status = git.calls.find((c) => c.method === "status");
     assert.deepEqual(status.args, [{ cwd: WIKI, paths: ["MEMORY.md"] }]);
     const commit = git.calls.find((c) => c.method === "commitPaths");
@@ -152,11 +141,10 @@ describe("WikiSync", () => {
     const { git, wikiSync } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
-        revListCount: 1,
         introducedByFile: new Map(),
       },
     });
@@ -168,42 +156,61 @@ describe("WikiSync", () => {
     ]);
   });
 
-  test("commitAndPush with paths is a no-op when only foreign files are dirty", async () => {
-    const { wikiSync, flowMethods } = make({
+  test("commitAndPush reports grounded nothing-to-push when the remote contains HEAD", async () => {
+    const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY,
         isMidMerge: false,
         status: { stdout: "", stderr: "", exitCode: 0 },
-        revListCount: 0,
-      },
-    });
-    const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
-    assert.deepEqual(result, {
-      pushed: false,
-      reason: "clean",
-      detections: [],
-    });
-    assert.deepEqual(flowMethods(), ["isMidMerge", "status", "revListCount"]);
-  });
-
-  test("commitAndPush is a no-op on a clean tree with nothing ahead", async () => {
-    const { wikiSync, flowMethods } = make({
-      fsSync: provisionedFs(),
-      responses: {
-        ...HEALTHY_ANCESTRY,
-        isMidMerge: false,
-        status: { stdout: "", stderr: "", exitCode: 0 },
-        revListCount: 0,
+        isAncestor: true, // remote tip already contains HEAD
       },
     });
     const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, {
-      pushed: false,
-      reason: "clean",
-      detections: [],
+    assert.deepEqual(result, { landed: false, reason: PUSH_REASONS.NOTHING });
+    assert.ok(
+      !methods().includes("pushPorcelain"),
+      "no push when grounded clean",
+    );
+  });
+
+  test("stranded-resume (clean tree, ahead, stale ref) re-pushes — never nothing-to-push", async () => {
+    const { wikiSync, methods } = make({
+      fsSync: provisionedFs(),
+      responses: {
+        ...HEALTHY,
+        isMidMerge: false,
+        status: { stdout: "", stderr: "", exitCode: 0 }, // clean tree
+        isAncestor: false, // remote does NOT contain HEAD
+        rebase: { exitCode: 0, stderr: "" },
+        introducedByFile: new Map(),
+      },
     });
-    assert.deepEqual(flowMethods(), ["isMidMerge", "status", "revListCount"]);
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, PUSH_REASONS.LANDED);
+    assert.ok(methods().includes("pushPorcelain"), "stranded tree re-pushes");
+  });
+
+  test("commitAndPush fails loud on a rebase conflict — no -X ours, remote untouched", async () => {
+    const { wikiSync, methods } = make({
+      fsSync: provisionedFs(),
+      responses: {
+        ...HEALTHY,
+        isMidMerge: false,
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 1, stderr: "CONFLICT" },
+      },
+    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) =>
+        err instanceof WikiPushFailure && err.reason === PUSH_REASONS.CONFLICT,
+    );
+    const m = methods();
+    assert.ok(m.includes("rebaseAbort"), "the rebase is aborted");
+    assert.ok(!m.includes("mergeOursStrategy"), "remote side never discarded");
+    assert.ok(!m.includes("pushPorcelain"), "no push on conflict");
   });
 
   test("commitAndPush folds .gitattributes into a scoped commit when the ensure writes it", async () => {
@@ -212,11 +219,10 @@ describe("WikiSync", () => {
     const { git, wikiSync } = make({
       fsSync: createMockFs({}),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
-        revListCount: 1,
         introducedByFile: new Map(),
       },
     });
@@ -229,42 +235,12 @@ describe("WikiSync", () => {
     ]);
   });
 
-  test("commitAndPush recovers via merge -X ours when the rebase fails", async () => {
-    const { wikiSync, flowMethods } = make({
-      fsSync: provisionedFs(),
-      responses: {
-        ...HEALTHY_ANCESTRY,
-        isMidMerge: false,
-        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
-        rebase: { exitCode: 1, stderr: "CONFLICT" },
-        mergeOursStrategy: { exitCode: 0, stderr: "" },
-        revListCount: 1,
-        introducedByFile: new Map(),
-      },
-    });
-    await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(flowMethods(), [
-      "isMidMerge",
-      "status",
-      "commitAll",
-      "revListCount",
-      "fetch",
-      "rebase",
-      "rebaseAbort",
-      "mergeOursStrategy",
-      "introducedByFile",
-      "diffRange",
-      "push",
-    ]);
-  });
-
   test("registered op re-applies on rebase conflict instead of merging textually", async () => {
     const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip content\n" });
     const { wikiSync, methods } = make({
       fsSync,
       responses: {
-        ...HEALTHY_ANCESTRY,
-        isMidMerge: false,
+        ...HEALTHY_PUSH,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -303,8 +279,7 @@ describe("WikiSync", () => {
     const { wikiSync, methods } = make({
       fsSync,
       responses: {
-        ...HEALTHY_ANCESTRY,
-        isMidMerge: false,
+        ...HEALTHY_PUSH,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -327,8 +302,7 @@ describe("WikiSync", () => {
     const { wikiSync, git } = make({
       fsSync,
       responses: {
-        ...HEALTHY_ANCESTRY,
-        isMidMerge: false,
+        ...HEALTHY_PUSH,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -353,8 +327,7 @@ describe("WikiSync", () => {
     const { wikiSync } = make({
       fsSync,
       responses: {
-        ...HEALTHY_ANCESTRY,
-        isMidMerge: false,
+        ...HEALTHY_PUSH,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -375,8 +348,7 @@ describe("WikiSync", () => {
     const { wikiSync, git } = make({
       fsSync,
       responses: {
-        ...HEALTHY_ANCESTRY,
-        isMidMerge: false,
+        ...HEALTHY_PUSH,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -399,23 +371,26 @@ describe("WikiSync", () => {
     );
   });
 
-  test("a conflict without a reapply keeps the mergeOursStrategy floor", async () => {
+  test("a conflict without a reapply fails loud — the mergeOursStrategy floor is removed (1780 lands 1920's joint fail-loud)", async () => {
     const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip\n" });
     const { wikiSync, methods } = make({
       fsSync,
       responses: {
-        ...HEALTHY_ANCESTRY,
-        isMidMerge: false,
+        ...HEALTHY_PUSH,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
-        revListCount: 1,
-        introducedByFile: new Map(),
       },
     });
-    // No reapply: the no-intent path is byte-unchanged from today.
-    await wikiSync.commitAndPush("wiki: update", ["MEMORY.md"]);
+    // No reapply: spec 1780 removes the silent-clobber fallback, so the
+    // no-intent conflict path fails loud rather than discarding the remote side.
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update", ["MEMORY.md"]),
+      (err) =>
+        err instanceof WikiPushFailure && err.reason === PUSH_REASONS.CONFLICT,
+    );
     const seq = methods();
-    assert.ok(seq.includes("mergeOursStrategy"));
+    assert.ok(seq.includes("rebaseAbort"), "the rebase is aborted");
+    assert.ok(!seq.includes("mergeOursStrategy"), "the clobber floor is gone");
     assert.ok(!seq.includes("resetSoft"));
   });
 
@@ -438,27 +413,28 @@ describe("WikiSync", () => {
     });
   });
 
-  test("commitAndPush tolerates a failing push (WikiRepo fire-and-forget)", async () => {
+  test("commitAndPush does NOT mint success on a failing push (inverted: phantom-success defect)", async () => {
+    // This row formerly locked in the fire-and-forget phantom-success defect
+    // (returned pushed:true regardless). Inverted per spec 1780: a push that
+    // throws at transport surfaces a transport failure, never a landed success.
     const { git, wikiSync } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
-        revListCount: 1,
         introducedByFile: new Map(),
       },
     });
-    git.push = async () => {
+    git.pushPorcelain = async () => {
       throw new Error("could not read Username (no credentials)");
     };
-    const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
-      detections: [],
-    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) =>
+        err instanceof WikiPushFailure && err.reason === PUSH_REASONS.TRANSPORT,
+    );
   });
 
   test("pull tolerates a failing fetch and still rebases", async () => {
@@ -478,5 +454,279 @@ describe("WikiSync", () => {
       },
     });
     await assert.rejects(() => wikiSync.fetch(), /not configured/);
+  });
+});
+
+describe("WikiSync honest-outcome contract (spec 1780)", () => {
+  const DIRTY = { stdout: " M MEMORY.md", stderr: "", exitCode: 0 };
+
+  function rejectsReason(promiseFn, reason) {
+    return assert.rejects(
+      promiseFn,
+      (err) => err instanceof WikiPushFailure && err.reason === reason,
+    );
+  }
+
+  test("precondition: rebase-in-progress refuses before mutating", async () => {
+    const { git, wikiSync } = make({
+      responses: { ...HEALTHY_PUSH, status: DIRTY, rebase: { exitCode: 0 } },
+      fsSync: createMockFs({ [`${WIKI}/.git/rebase-merge`]: "" }),
+    });
+    await rejectsReason(
+      () => wikiSync.commitAndPush("wiki: update"),
+      PUSH_REASONS.PRECONDITION,
+    );
+    const m = git.calls.map((c) => c.method);
+    assert.ok(!m.includes("commitAll"), "no commit on a precondition refusal");
+    assert.ok(
+      !m.includes("pushPorcelain"),
+      "no push on a precondition refusal",
+    );
+  });
+
+  test("detached HEAD refuses before mutating (ancestry guard — D7 seam defers to 1750)", async () => {
+    // The detached-HEAD D7 fixture collapses onto 1750's ancestry guard, which
+    // refuses with an AncestryRefusal ("unverifiable") before any mutation —
+    // spec 1780 D7 defers reason naming to 1750's landed guard.
+    const { git, wikiSync } = make({
+      responses: { ...HEALTHY_PUSH, headBranch: "", refExists: true, status: DIRTY },
+    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal && err.kind === "unverifiable",
+    );
+    const m = git.calls.map((c) => c.method);
+    assert.ok(!m.includes("commitAll") && !m.includes("pushPorcelain"));
+  });
+
+  test("residue-conflict: autostash pop leaves UU ⇒ refuse, stash preserved by SHA", async () => {
+    const { git, wikiSync } = make({
+      responses: {
+        ...HEALTHY_PUSH,
+        status: DIRTY,
+        rebase: { exitCode: 0, stderr: "" }, // rebase succeeds; pop conflicts
+        statusPorcelain: { stdout: "UU foreign.md\n", stderr: "", exitCode: 0 },
+        revParse: "stash5ha",
+      },
+    });
+    let caught;
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]),
+      (err) => {
+        caught = err;
+        return (
+          err instanceof WikiPushFailure &&
+          err.reason === PUSH_REASONS.RESIDUE_CONFLICT
+        );
+      },
+    );
+    assert.equal(caught.stashSha, "stash5ha");
+    const m = git.calls.map((c) => c.method);
+    assert.ok(!m.includes("pushPorcelain"), "no push on residue-conflict");
+    assert.ok(!m.includes("stashDropBySha"), "stash is preserved, not dropped");
+  });
+
+  test("rejected after a successful fetch", async () => {
+    const { wikiSync } = make({
+      responses: {
+        ...HEALTHY_PUSH,
+        status: DIRTY,
+        rebase: { exitCode: 0 },
+        pushPorcelain: {
+          stdout: "!\trefs/heads/master:refs/heads/master\t[rejected]\n",
+          stderr: "",
+          exitCode: 1,
+        },
+      },
+    });
+    await rejectsReason(
+      () => wikiSync.commitAndPush("wiki: update"),
+      PUSH_REASONS.REJECTED,
+    );
+  });
+
+  test("transport when the fetch failed (rejection against a stale ref)", async () => {
+    const { git, wikiSync } = make({
+      responses: {
+        ...HEALTHY_PUSH,
+        status: DIRTY,
+        rebase: { exitCode: 0 },
+        pushPorcelain: {
+          stdout: "!\trefs/heads/master:refs/heads/master\t[rejected]\n",
+          stderr: "",
+          exitCode: 1,
+        },
+      },
+    });
+    git.fetch = async () => {
+      throw new Error("could not read Username");
+    };
+    await rejectsReason(
+      () => wikiSync.commitAndPush("wiki: update"),
+      PUSH_REASONS.TRANSPORT,
+    );
+  });
+
+  test("transport on the push itself, exactly one push attempt", async () => {
+    const { git, wikiSync } = make({
+      responses: { ...HEALTHY_PUSH, status: DIRTY, rebase: { exitCode: 0 } },
+    });
+    git.pushPorcelain = async () => {
+      throw new Error("network down");
+    };
+    await rejectsReason(
+      () => wikiSync.commitAndPush("wiki: update"),
+      PUSH_REASONS.TRANSPORT,
+    );
+  });
+
+  test("occurrence-#41: success prose + zero exit but ref not updated ⇒ failure", async () => {
+    // Inadmissible channels report success (prose, exit 0) while the per-ref
+    // report says NOT updated and the remote tip does not advance.
+    const { wikiSync } = make({
+      responses: {
+        ...HEALTHY_PUSH,
+        status: DIRTY,
+        rebase: { exitCode: 0 },
+        pushPorcelain: {
+          // exit 0 + reassuring prose, but the per-ref flag is `!` (rejected)
+          stdout:
+            "Everything up-to-date\n!\trefs/heads/master:refs/heads/master\t[remote rejected]\n",
+          stderr: "",
+          exitCode: 0,
+        },
+      },
+    });
+    await rejectsReason(
+      () => wikiSync.commitAndPush("wiki: update"),
+      PUSH_REASONS.REJECTED,
+    );
+  });
+
+  test("ambiguous push report ⇒ grounded in a fresh remote-tip read", async () => {
+    let tipCalls = 0;
+    const { git, wikiSync } = make({
+      responses: {
+        ...HEALTHY_PUSH,
+        status: DIRTY,
+        rebase: { exitCode: 0 },
+        pushPorcelain: { stdout: "garbage\n", stderr: "", exitCode: 0 },
+      },
+    });
+    // First remoteRefTip = pre-push grounding (not contained); second = post-push
+    // grounding after the ambiguous report. isAncestor true on the post-push read.
+    git.isAncestor = async (_a, _b) => tipCalls++ > 0;
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, PUSH_REASONS.LANDED);
+  });
+
+  // ── Conservation guard (D5) ──
+
+  function conservationFixture(extra) {
+    return make({
+      responses: {
+        ...HEALTHY_PUSH,
+        status: DIRTY,
+        rebase: { exitCode: 0 },
+        ...extra,
+      },
+    });
+  }
+
+  test("conservation: clean-replay drop of a foreign file ⇒ refuse", async () => {
+    const { git, wikiSync } = conservationFixture({
+      diffNameStatus: "D\tweekly-log.md",
+    });
+    // Remote has content; HEAD dropped the whole file.
+    git.showFile = async (ref) =>
+      ref === REMOTE_TIP ? "foreign run record\n" : "";
+    await rejectsReason(
+      () => wikiSync.commitAndPush("wiki: update"),
+      PUSH_REASONS.CONSERVATION,
+    );
+    assert.ok(!git.calls.map((c) => c.method).includes("pushPorcelain"));
+  });
+
+  test("conservation: row-level drop in a shared record ⇒ refuse", async () => {
+    const { git, wikiSync } = conservationFixture({
+      diffNameStatus: "M\tMEMORY.md",
+    });
+    git.showFile = async (ref) =>
+      ref === REMOTE_TIP
+        ? "| foreign-agent | spec-9 | b | - | d | e |\n| keep | row |\n"
+        : "| keep | row |\n"; // the foreign row is gone
+    await rejectsReason(
+      () => wikiSync.commitAndPush("wiki: update"),
+      PUSH_REASONS.CONSERVATION,
+    );
+  });
+
+  test("conservation: declared release removal passes (commit-message act)", async () => {
+    const { git, wikiSync } = conservationFixture({
+      diffNameStatus: "M\tMEMORY.md",
+    });
+    // The release exemption is honored only when HEAD descends from the remote
+    // tip (an authored release, not a stale-base drop). isAncestor("HEAD", tip)
+    // is false (so not nothing-to-push); isAncestor(tip, "HEAD") is true.
+    git.isAncestor = async (ancestor) => ancestor === REMOTE_TIP;
+    git.showFile = async (ref) =>
+      ref === REMOTE_TIP ? "| me | spec-9 | b | - | d | e |\n" : "";
+    const result = await wikiSync.commitAndPush("wiki: release spec-9", [
+      "MEMORY.md",
+    ]);
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, PUSH_REASONS.LANDED);
+  });
+
+  test("conservation: declared removal via the intent sidecar passes (and survives retry)", async () => {
+    const { git, wikiSync } = make({
+      responses: {
+        ...HEALTHY_PUSH,
+        status: DIRTY,
+        rebase: { exitCode: 0 },
+        diffNameStatus: "D\tother-agent-summary.md",
+      },
+      fsSync: createMockFs({
+        [`${WIKI}/.git/fit-wiki-removal-intent`]: "other-agent-summary.md\n",
+      }),
+    });
+    git.showFile = async (ref) =>
+      ref === REMOTE_TIP ? "trimmed budget content\n" : "";
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, PUSH_REASONS.LANDED);
+  });
+
+  test("conservation: pusher's own additive change passes (no foreign drop)", async () => {
+    const { wikiSync } = conservationFixture({
+      diffNameStatus: "M\tMEMORY.md",
+    });
+    // Remote content is fully present in HEAD (HEAD only added) ⇒ no drop.
+    // showFile default ("" both sides) ⇒ #dropsForeignContent returns false.
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, PUSH_REASONS.LANDED);
+  });
+
+  // ── Self-report (D8) ──
+
+  test("self-report: a landed push emits a conservation pass line on stderr", async () => {
+    const { wikiSync, stderr, runtime } = make({
+      responses: { ...HEALTHY_PUSH, status: DIRTY, rebase: { exitCode: 0 } },
+    });
+    await wikiSync.commitAndPush("wiki: update");
+    assert.match(stderr(), /wiki-conservation: pass/);
+    // The self-report never lands on stdout (surfaces parse stdout).
+    assert.equal(runtime.proc.stdout.chunks.join(""), "");
+  });
+
+  test("self-report: a refusal emits a conservation refusal line on stderr", async () => {
+    const { git, wikiSync, stderr } = conservationFixture({
+      diffNameStatus: "D\tweekly-log.md",
+    });
+    git.showFile = async (ref) => (ref === REMOTE_TIP ? "foreign\n" : "");
+    await assert.rejects(() => wikiSync.commitAndPush("wiki: update"));
+    assert.match(stderr(), /wiki-conservation: refusal/);
   });
 });

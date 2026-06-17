@@ -1,7 +1,8 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { createMockFs } from "@forwardimpact/libmock";
-import { HEALTHY_ANCESTRY, WIKI, make } from "./wiki-sync-harness.js";
+import { WikiPushFailure, PUSH_REASONS } from "../src/wiki-sync.js";
+import { HEALTHY_PUSH, WIKI, make } from "./wiki-sync-harness.js";
 
 describe("WikiSync commit-and-push conflict-marker publish guards", () => {
   const MARKER_ADDED = [
@@ -32,33 +33,34 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     assert.ok(!m.includes("push"));
   });
 
-  test("C8: aborts and refuses when the ours-strategy fallback conflicts", async () => {
+  test("C8: a no-intent rebase conflict fails loud (the ours-strategy fallback is removed)", async () => {
+    // Spec 1780 removes the silent -X ours clobber on the no-reapply path
+    // (1920's joint fail-loud floor). A whole-tree rebase conflict now throws
+    // `conflict` and never discards the remote side.
     const { wikiSync, methods } = make({
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
-        mergeOursStrategy: { exitCode: 1, stderr: "CONFLICT" },
-        revListCount: 1,
       },
     });
-    const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, {
-      pushed: false,
-      reason: "stranded-merge",
-      workAt: "stash",
-    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) =>
+        err instanceof WikiPushFailure && err.reason === PUSH_REASONS.CONFLICT,
+    );
     const m = methods();
-    assert.ok(m.includes("mergeAbort"));
-    assert.ok(!m.includes("push"));
+    assert.ok(m.includes("rebaseAbort"), "the rebase is aborted");
+    assert.ok(!m.includes("mergeOursStrategy"), "the clobber fallback is gone");
+    assert.ok(!m.includes("pushPorcelain"));
   });
 
   test("C9: refuses to push commits introducing a conflict block; commits stay local", async () => {
     const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -80,7 +82,7 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     const lane = (added) =>
       make({
         responses: {
-          ...HEALTHY_ANCESTRY,
+          ...HEALTHY_PUSH,
           isMidMerge: false,
           status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
           rebase: { exitCode: 0, stderr: "" },
@@ -99,7 +101,7 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
   test("C9: an unrelated writer with a clean added side still pushes", async () => {
     const { wikiSync } = make({
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -111,8 +113,8 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
   });
@@ -127,7 +129,7 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     ].join("\n");
     const { wikiSync } = make({
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M STATUS.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -145,7 +147,7 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
   test("C10: clean tree with clean introduced diff syncs exactly as today", async () => {
     const { wikiSync, methods } = make({
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -155,17 +157,17 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
-    assert.ok(methods().includes("push"));
+    assert.ok(methods().includes("pushPorcelain"));
   });
 
   test("C11: introduced scan resolves shallow without deepening; a throw refuses", async () => {
     const ok = make({
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -174,13 +176,13 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
       },
     });
     const okResult = await ok.wikiSync.commitAndPush("wiki: update");
-    assert.equal(okResult.pushed, true);
+    assert.equal(okResult.landed, true);
     // No clone/deepen on the normal path — the diff decides from in-clone state.
     assert.ok(!ok.methods().includes("clone"));
 
     const thrown = make({
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },

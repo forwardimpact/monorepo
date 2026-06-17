@@ -412,4 +412,86 @@ describe("GitClient", () => {
       GitError,
     );
   });
+
+  test("pushPorcelain passes --porcelain and allows failure", async () => {
+    const { client, subprocess } = clientWith({
+      git: {
+        stdout: "!\trefs/heads/master:refs/heads/master\t[rejected]\n",
+        exitCode: 1,
+      },
+    });
+    const r = await client.pushPorcelain("origin", "master", { cwd: "/r" });
+    assert.strictEqual(r.exitCode, 1); // does not throw on a rejected push
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "push",
+      "--porcelain",
+      "origin",
+      "master",
+    ]);
+    assert.match(r.stdout, /refs\/heads\/master/);
+  });
+
+  test("remoteRefTip returns the SHA before the tab, '' when absent", async () => {
+    const present = clientWith({
+      git: { stdout: "deadbeef\trefs/heads/master\n", exitCode: 0 },
+    });
+    assert.strictEqual(
+      await present.client.remoteRefTip("origin", "master", { cwd: "/r" }),
+      "deadbeef",
+    );
+    assert.deepStrictEqual(present.subprocess.calls.at(-1).args, [
+      "ls-remote",
+      "origin",
+      "master",
+    ]);
+    const absent = clientWith({ git: { stdout: "", exitCode: 0 } });
+    assert.strictEqual(
+      await absent.client.remoteRefTip("origin", "master", { cwd: "/r" }),
+      "",
+    );
+  });
+
+  test("isAncestor maps exit 0/1 to true/false", async () => {
+    const yes = clientWith({ git: { exitCode: 0 } });
+    assert.strictEqual(
+      await yes.client.isAncestor("HEAD", "tip", { cwd: "/r" }),
+      true,
+    );
+    assert.deepStrictEqual(yes.subprocess.calls.at(-1).args, [
+      "merge-base",
+      "--is-ancestor",
+      "HEAD",
+      "tip",
+    ]);
+    const no = clientWith({ git: { exitCode: 1 } });
+    assert.strictEqual(
+      await no.client.isAncestor("HEAD", "tip", { cwd: "/r" }),
+      false,
+    );
+  });
+
+  test("diffNameStatus returns trimmed name-status output", async () => {
+    const { client, subprocess } = clientWith({
+      git: { stdout: "D\tweekly-log.md\nM\tMEMORY.md\n", exitCode: 0 },
+    });
+    const out = await client.diffNameStatus("tip", "HEAD", { cwd: "/r" });
+    assert.strictEqual(out, "D\tweekly-log.md\nM\tMEMORY.md");
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "diff",
+      "--name-status",
+      "tip",
+      "HEAD",
+    ]);
+  });
+
+  test("stashDropBySha drops by SHA (never stack position) and allows failure", async () => {
+    const { client, subprocess } = clientWith({ git: { exitCode: 1 } });
+    const r = await client.stashDropBySha("sha5", { cwd: "/r" });
+    assert.strictEqual(r.exitCode, 1); // does not throw
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "stash",
+      "drop",
+      "sha5",
+    ]);
+  });
 });
