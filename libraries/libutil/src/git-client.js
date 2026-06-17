@@ -18,6 +18,26 @@ export class GitError extends Error {
 }
 
 /**
+ * Reject `:`-prefixed pathspec entries before they reach git. A leading `:`
+ * marks git pathspec magic (`:/`, `:(exclude)…`, `:(glob)…`), which the `--`
+ * separator does NOT neutralise — `--` ends OPTION parsing, not pathspec magic.
+ * A dynamically derived filename starting with `:` could therefore widen a
+ * scoped commit beyond the named files, so the path-forwarding methods
+ * (`commitPaths`, `status`) reject it at entry rather than passing it to git.
+ * @param {string[]} [paths]
+ */
+function assertSafePaths(paths) {
+  for (const p of paths ?? []) {
+    if (typeof p === "string" && p.startsWith(":")) {
+      throw new Error(
+        `unsafe pathspec: ':'-prefixed entries are rejected (got '${p}'); ` +
+          "':' magic survives the '--' separator and could widen the commit",
+      );
+    }
+  }
+}
+
+/**
  * Typed wrapper over the `git` CLI. All shelling-out flows through the
  * injected `runtime.subprocess`, so callers never import `node:child_process`
  * and tests inject `createMockSubprocess`. Methods resolve to the
@@ -56,8 +76,15 @@ export class GitClient {
     return this.#runRaw(args, { cwd });
   }
 
-  /** Return `git status --porcelain` output, optionally limited to `paths`. */
+  /**
+   * Return `git status --porcelain` output, optionally limited to `paths`.
+   * @param {object} [options]
+   * @param {string} [options.cwd]
+   * @param {string[]} [options.paths] - Pathspecs to scope the status to.
+   *   `:`-prefixed entries are rejected ({@link assertSafePaths}).
+   */
   async status({ cwd, paths } = {}) {
+    assertSafePaths(paths);
     const args = ["status", "--porcelain"];
     if (paths?.length) args.push("--", ...paths);
     return this.#runRaw(args, { cwd });
@@ -97,8 +124,14 @@ export class GitClient {
    * Stage and commit only `paths`, leaving the rest of the working tree
    * untouched. The commit carries the same pathspec so content staged by
    * other writers is never swept in.
+   * @param {string} message
+   * @param {string[]} paths - Pathspecs to stage and commit. `:`-prefixed
+   *   entries are rejected ({@link assertSafePaths}) so a dynamically derived
+   *   filename can never widen the commit beyond the named files.
+   * @param {{cwd?: string, author?: string}} [options]
    */
   async commitPaths(message, paths, { cwd, author } = {}) {
+    assertSafePaths(paths);
     await this.#runRaw(["add", "--", ...paths], { cwd });
     const args = ["commit", "-m", message];
     if (author) args.push("--author", author);

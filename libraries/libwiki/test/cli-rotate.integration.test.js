@@ -139,10 +139,7 @@ describe("fit-wiki rotate CLI (in-process)", () => {
     const { result, harness } = run();
     assert.equal(result.ok, false);
     assert.equal(result.code, 1);
-    assert.match(
-      harness.stderr,
-      /day-section 2026-05-19 alone exceeds the budget/,
-    );
+    assert.match(harness.stderr, /section 2026-05-19 alone exceeds the budget/);
     assert.match(harness.stderr, /recover it by hand/);
   });
 });

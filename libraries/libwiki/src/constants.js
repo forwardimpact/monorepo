@@ -53,6 +53,14 @@ export const WEEKLY_LOG_NAME_RE = /^([a-z][a-z-]*)-(\d{4})-W(\d{2})\.md$/;
 export const WEEKLY_LOG_PART_NAME_RE =
   /^([a-z][a-z-]*)-(\d{4})-W(\d{2})-part\d+\.md$/;
 
+// Day-section seam: `## YYYY-MM-DD` at line start, a trailing suffix tolerated
+// (e.g. `## 2026-05-19 (third activation)`). One home so the rotation
+// seam-finder (weekly-log.js), the `log` command's last-entry probe
+// (commands/log.js), and the audit's heading-grammar-drift rule (audit/rules.js)
+// cannot disagree on what a conforming entry heading is. Source has no flags;
+// call sites add `g`/`m` as needed via `new RegExp(WEEKLY_LOG_SEAM_RE.source, …)`.
+export const WEEKLY_LOG_SEAM_RE = /^## (\d{4}-\d{2}-\d{2})/;
+
 // Storyboard marker syntax. An open or close marker tolerates optional trailing
 // text after the tag (typically an inline "Do not edit. Generated from fit-wiki
 // refresh." notice). One home so the marker scanner (marker-scanner.js) and the

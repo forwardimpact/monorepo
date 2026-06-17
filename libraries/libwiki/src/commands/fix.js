@@ -106,7 +106,7 @@ function sealMainLog(agent, { wikiRoot, today, projectRoot, fs, out, err }) {
       wikiRoot,
       agent,
       today,
-      0,
+      { lines: 0, words: 0 },
       { force: true },
       fs,
     );

@@ -248,6 +248,62 @@ describe("bisectWeeklyLog", () => {
     assert.equal(residue.partIndex, 0);
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
   });
+
+  // Build a `## YYYY-MM-DD` day-section whose body is `blockCount` `### ` blocks
+  // of `linesPerBlock` lines each, so a single over-cap day is splittable at its
+  // block seams (spec 1730 capability 2).
+  function daySectionWithBlocks(date, blockCount, linesPerBlock) {
+    const rows = [`## ${date}`];
+    for (let b = 1; b <= blockCount; b++) {
+      rows.push(`### Block ${b}`);
+      for (let i = 1; i < linesPerBlock; i++) rows.push("word");
+    }
+    return rows.join("\n") + "\n";
+  }
+
+  test("lone over-cap day with multiple ### blocks → split at block seams (criteria 2, 4)", () => {
+    // One day-section ~600 lines (over the 496 line cap) made of 4 blocks; no
+    // single block exceeds the cap, so it splits cleanly with no residue.
+    const text = source(
+      H1,
+      daySection("2026-05-18", 30),
+      daySectionWithBlocks("2026-05-19", 4, 150),
+      daySection("2026-05-20", 30),
+    );
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    assert.equal(residue, null, "no residue — every block fits a part");
+    // Content-equal with the input (move-not-copy at the finer grain).
+    assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
+    // No part exceeds a cap.
+    for (const p of parts) {
+      const rendered = `${p.h1}\n${p.body}`;
+      assert.ok(countLines(rendered) <= WEEKLY_LOG_LINE_BUDGET);
+      assert.ok(countWords(rendered) <= WEEKLY_LOG_WORD_BUDGET);
+    }
+    // The `## 2026-05-19` heading rides the first block-part of that day.
+    assert.ok(parts.some((p) => p.body.includes("## 2026-05-19\n### Block 1")));
+  });
+
+  test("single ### block alone over cap → declared residue naming the block (criterion 3)", () => {
+    // A day with one 600-line `### ` block that itself busts the cap: the day
+    // splits, but that block remains an irreducible, declared residue.
+    const big = daySectionWithBlocks("2026-05-19", 1, 600);
+    const text = source(H1, daySection("2026-05-18", 30), big);
+    const { parts, residue } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    assert.ok(residue, "the over-cap block is declared, not silently shipped");
+    assert.equal(residue.section, "### Block 1");
+    assert.ok(residue.lines > WEEKLY_LOG_LINE_BUDGET);
+    assert.match(parts[residue.partIndex].body, /### Block 1/);
+    assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
+  });
 });
 
 // The split branch of rebisectOverBudgetPart uses fs.renameSync (not modelled

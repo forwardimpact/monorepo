@@ -83,6 +83,38 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     assert.equal(rejoined, bodyOf(original), "content preserved byte-for-byte");
   });
 
+  test("a lone over-cap day with ### blocks re-splits at block seams (spec 1730 criterion 2, fix path)", () => {
+    // A single day-section (~600 lines, over the line cap) made of 4 `### `
+    // blocks, none of which alone exceeds the cap. `fit-wiki fix` calls this and
+    // must now sub-split the day rather than report it irreducible.
+    const partPath = join(wikiRoot, SOURCE);
+    let day = `${PART_H1}\n## 2026-05-19\n`;
+    for (let b = 1; b <= 4; b++) {
+      day += `### Block ${b}\n`;
+      for (let i = 1; i < 150; i++) day += "filler\n";
+    }
+    writeFileSync(partPath, day);
+
+    const r = rebisectOverBudgetPart(partPath, nodeFs);
+
+    assert.equal(
+      r.status,
+      "resealed",
+      "the day is split, not left irreducible",
+    );
+    assert.ok(r.parts.length >= 2);
+    for (const p of r.parts) {
+      assert.ok(
+        readFileSync(p, "utf-8").split("\n").length - 1 <=
+          WEEKLY_LOG_LINE_BUDGET,
+      );
+    }
+    const rejoined = r.parts
+      .map((p) => bodyOf(readFileSync(p, "utf-8")))
+      .join("");
+    assert.equal(rejoined, bodyOf(day), "content preserved byte-for-byte");
+  });
+
   test("appends overflow to the next free main-log slots, skipping occupied siblings", () => {
     // Source is part2; part1 and part4 already exist. Overflow must claim the
     // next free slot (part3), never clobbering the occupied part4.

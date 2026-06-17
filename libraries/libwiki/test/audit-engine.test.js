@@ -201,6 +201,45 @@ describe("runRules", () => {
     assert.deepEqual(offenders, []);
   });
 
+  test("heading-grammar drift fires on `## ` headings that defeat the seam-finder (spec 1730 criterion 7)", () => {
+    const seed = cleanSeed("2026-06-22", {
+      [`${WIKI}/staff-engineer-2026-W25.md`]: [
+        "# Staff Engineer — 2026-W25",
+        "",
+        "## Run 220 — 2026-06-22 something", // drifted: not the dated grammar
+        "",
+        "### Decision",
+        "",
+        "## 2026-06-23", // conforming — must NOT fire
+        "",
+        "### Decision",
+        "",
+        "## Mon 2026-06-24 — note", // drifted
+      ].join("\n"),
+    });
+    const offenders = audit(seed, "2026-06-22").filter(
+      (f) => f.id === "weekly-log.heading-grammar",
+    );
+    assert.equal(offenders.length, 2);
+    assert.match(offenders[0].message, /does not match the dated grammar/);
+    assert.match(offenders[0].hint, /fit-wiki log/);
+  });
+
+  test("heading-grammar drift fires on sealed parts too (criterion 7)", () => {
+    const seed = cleanSeed("2026-06-22", {
+      [`${WIKI}/staff-engineer-2026-W25-part1.md`]: [
+        "# Staff Engineer — 2026-W25 (part 1 of 2)",
+        "",
+        "## Run 9 — drifted heading",
+      ].join("\n"),
+    });
+    assert.ok(
+      idsOf(audit(seed, "2026-06-22")).includes(
+        "weekly-log-part.heading-grammar",
+      ),
+    );
+  });
+
   test("missing storyboard fires storyboard.current-month-exists", () => {
     const seed = { [`${WIKI}/MEMORY.md`]: MEMORY_NONE };
     assert.ok(idsOf(audit(seed)).includes("storyboard.current-month-exists"));

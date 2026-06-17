@@ -105,6 +105,13 @@ Overflow rotates: `log` seals the current file as
 `<agent>-YYYY-Www.md`. No part is ever rewritten — the append-only audit
 guarantee is preserved by rename, not in-place edit.
 
+New entries always go through `fit-wiki log`, which emits a conforming
+heading and decision block by construction. Direct edits of a weekly-log
+file are reserved for **repair** of an existing entry (fixing a broken
+heading or block, recovering a hand-split); never compose a new entry by
+direct file edit, where heading-grammar drift and budget breaches go
+unchecked until the shared gate turns red.
+
 Every dated `## YYYY-MM-DD` entry opens with `### Decision` (required;
 `audit` enforces).
 

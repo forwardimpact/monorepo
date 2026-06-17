@@ -103,3 +103,32 @@ describe("fit-wiki log CLI (in-process)", () => {
     assert.match(text, /^## 2026-05-20/m);
   });
 });
+
+describe("fit-wiki log — budget feedback and word-cap rotation (spec 1730)", () => {
+  function runOnce(fsSync, subcommand, options) {
+    const harness = makeRuntime({ fsSync });
+    const r = runLogCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        options: { "wiki-root": WIKI_ROOT, ...options },
+        args: { subcommand },
+      }),
+    );
+    return { result: r, stdout: harness.stdout, stderr: harness.stderr };
+  }
+
+  test("every append reports value, cap, and remaining for both budgets (criterion 5)", () => {
+    const fsSync = createMockFs();
+    const { stdout } = runOnce(fsSync, "decision", {
+      agent: "staff-engineer",
+      today: "2026-05-19",
+      surveyed: "s",
+      chosen: "c",
+      rationale: "r",
+    });
+    assert.match(
+      stdout,
+      /budget: \d+\/496 lines \(\d+ remaining\), \d+\/6400 words \(\d+ remaining\)/,
+    );
+  });
+});

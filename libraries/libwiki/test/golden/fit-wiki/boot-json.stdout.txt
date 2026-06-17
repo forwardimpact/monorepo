@@ -12,5 +12,21 @@
     }
   ],
   "inbox_count": 0,
+  "summary_headroom": {
+    "words": 0,
+    "lines": 1,
+    "word_cap": 2048,
+    "line_cap": 496,
+    "words_remaining": 2048,
+    "lines_remaining": 495
+  },
+  "weekly_log_headroom": {
+    "words": 0,
+    "lines": 1,
+    "word_cap": 6400,
+    "line_cap": 496,
+    "words_remaining": 6400,
+    "lines_remaining": 495
+  },
   "storyboard_path": "fixture/storyboard-2026-M05.md"
 }

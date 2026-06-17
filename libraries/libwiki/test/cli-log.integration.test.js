@@ -13,7 +13,11 @@ import { tmpdir } from "node:os";
 
 import { runLogCommand } from "../src/commands/log.js";
 import { weeklyLogPath } from "../src/weekly-log.js";
-import { WEEKLY_LOG_LINE_BUDGET } from "../src/constants.js";
+import { countLines, countWords } from "../src/budget.js";
+import {
+  WEEKLY_LOG_LINE_BUDGET,
+  WEEKLY_LOG_WORD_BUDGET,
+} from "../src/constants.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
 // The append path seals via fs.renameSync (no createMockFs renameSync), so the
@@ -120,5 +124,50 @@ describe("fit-wiki log CLI seal-on-append (in-process)", () => {
     assert.match(fresh, /^# Staff Engineer — 2026-W21\n/);
     assert.match(fresh, /### Findings/);
     assert.ok(fresh.split("\n").length - 1 <= WEEKLY_LOG_LINE_BUDGET);
+  });
+
+  test("append over only the word cap rotates first, then lands (spec 1730 criterion 1)", () => {
+    const today = "2026-05-24"; // ISO 2026-W21
+    const logPath = weeklyLogPath(wikiRoot, "staff-engineer", today);
+    // ~474 lines (under the 496 line cap) but ~6117 words (near the 6400 word
+    // cap); the next note tips words over 6400 with lines still under, so only
+    // the word-budget trigger can fire the seal (the delta over spec 1450).
+    const rows = ["# Staff Engineer — 2026-W21", "", "## 2026-05-24", ""];
+    for (let i = 0; i < 470; i++) rows.push(Array(13).fill("w").join(" "));
+    writeFileSync(logPath, rows.join("\n") + "\n");
+
+    const harness = makeRuntime({ cwd: dir });
+    const result = runLogCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        options: {
+          agent: "staff-engineer",
+          "wiki-root": wikiRoot,
+          today,
+          field: "Followup",
+          body: Array(80).fill("more words here today").join(" "),
+        },
+        args: { subcommand: "note" },
+      }),
+    );
+
+    assert.deepEqual(result, { ok: true });
+    assert.ok(
+      existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
+      "word-cap rotation sealed a part before the note appended",
+    );
+    const fresh = readFileSync(logPath, "utf-8");
+    assert.match(fresh, /Followup/);
+    // The sealed part and the fresh current log both clear the word and line
+    // budgets the audit enforces — what "audit passes on the result" requires
+    // for the rotated file (criterion 1).
+    const part = readFileSync(
+      join(wikiRoot, "staff-engineer-2026-W21-part1.md"),
+      "utf-8",
+    );
+    for (const t of [fresh, part]) {
+      assert.ok(countWords(t) <= WEEKLY_LOG_WORD_BUDGET, "word budget");
+      assert.ok(countLines(t) <= WEEKLY_LOG_LINE_BUDGET, "line budget");
+    }
   });
 });
