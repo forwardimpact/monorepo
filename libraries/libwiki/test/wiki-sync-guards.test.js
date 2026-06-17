@@ -1,6 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { HEALTHY_ANCESTRY, make } from "./wiki-sync-harness.js";
+import { createMockFs } from "@forwardimpact/libmock";
+import { HEALTHY_ANCESTRY, WIKI, make } from "./wiki-sync-harness.js";
 
 describe("WikiSync commit-and-push conflict-marker publish guards", () => {
   const MARKER_ADDED = [
@@ -10,6 +11,14 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     "x",
     ">>>>>>> y",
   ].join("\n");
+
+  // A wiki that already carries the metrics-CSV union declaration, so
+  // `commitAndPush`'s ensure-before-gate is a no-op and the no-payload sweep
+  // commits via commitAll exactly as before the union-merge provisioning.
+  const provisionedFs = () =>
+    createMockFs({
+      [`${WIKI}/.gitattributes`]: "metrics/**/*.csv merge=union\n",
+    });
 
   test("C7: refuses mid-merge before staging or committing", async () => {
     const { wikiSync, methods } = make({
@@ -47,6 +56,7 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
 
   test("C9: refuses to push commits introducing a conflict block; commits stay local", async () => {
     const { wikiSync, methods } = make({
+      fsSync: provisionedFs(),
       responses: {
         ...HEALTHY_ANCESTRY,
         isMidMerge: false,

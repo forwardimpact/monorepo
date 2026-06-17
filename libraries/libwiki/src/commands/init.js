@@ -1,5 +1,6 @@
 import path from "node:path";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { ensureMetricsCsvMergeAttribute } from "../gitattributes.js";
 import { listSkills } from "../skill-roster.js";
 import { resolveProjectRoot, resolveWikiRoot } from "../util/wiki-dir.js";
 import {
@@ -98,6 +99,11 @@ export async function runInitCommand(ctx) {
     if (scaffoldActiveClaims(runtime, memoryPath)) {
       runtime.proc.stdout.write(
         `init: scaffolded ${ACTIVE_CLAIMS_HEADING} in ${memoryPath}\n`,
+      );
+    }
+    if (ensureMetricsCsvMergeAttribute(wikiDir, runtime.fsSync).changed) {
+      runtime.proc.stdout.write(
+        "init: declared metrics-CSV union merge in .gitattributes\n",
       );
     }
   }

@@ -409,3 +409,175 @@ describe("WikiSync resolveToken (real git)", () => {
     assert.ok(!tip.includes("<<<<<<<"), "no conflict markers / textual merge");
   });
 });
+
+// Concurrent appends to metrics CSVs must keep both sides' rows on every
+// publish path (rebase and the merge -X ours fallback), while non-CSV surfaces
+// keep their keep-local behavior.
+describe("WikiSync metrics-CSV union merge", () => {
+  const CSV = "metrics/coach/2026.csv";
+  const HEADER = "date,metric,value,unit,run,note,event_type\n";
+
+  // Read a file at the remote tip without disturbing the working clones.
+  function remoteFile(bare, relPath) {
+    const { wikiDir } = cloneRepo(bare, "reader");
+    git(wikiDir, "checkout", "master");
+    return readFileSync(join(wikiDir, relPath), "utf-8");
+  }
+
+  function appendLine(dir, relPath, line) {
+    const full = join(dir, relPath);
+    writeFileSync(full, readFileSync(full, "utf-8") + line);
+  }
+
+  test("concurrent distinct appends both survive the rebase path", async () => {
+    const bare = createBareRepo();
+    seedBareRepo(bare, { files: { [CSV]: HEADER } });
+
+    const { parent: pA, wikiDir: wA } = cloneRepo(bare, "u-rebaseA");
+    const { parent: pB, wikiDir: wB } = cloneRepo(bare, "u-rebaseB");
+    git(wA, "checkout", "master");
+    git(wB, "checkout", "master");
+
+    appendLine(wA, CSV, "2026-06-01,a,1,count,,,\n");
+    await makeSync(wA, pA).commitAndPush("wiki: A append", [CSV]);
+
+    // B diverged from the same base; its publish rebases over A's tip.
+    appendLine(wB, CSV, "2026-06-01,b,2,count,,,\n");
+    await makeSync(wB, pB).commitAndPush("wiki: B append", [CSV]);
+
+    const tip = remoteFile(bare, CSV);
+    assert.match(tip, /,a,1,/, "A's row survived");
+    assert.match(tip, /,b,2,/, "B's row survived");
+  });
+
+  test("the merge -X ours fallback also preserves both CSV rows", async () => {
+    const bare = createBareRepo();
+    seedBareRepo(bare, {
+      files: { [CSV]: HEADER, "notes.md": "# Notes\nshared line\n" },
+    });
+
+    const { parent: pA, wikiDir: wA } = cloneRepo(bare, "u-mergeA");
+    const { parent: pB, wikiDir: wB } = cloneRepo(bare, "u-mergeB");
+    git(wA, "checkout", "master");
+    git(wB, "checkout", "master");
+
+    appendLine(wA, CSV, "2026-06-01,a,1,count,,,\n");
+    writeFileSync(join(wA, "notes.md"), "# Notes\nA edits the shared line\n");
+    await makeSync(wA, pA).commitAndPush("wiki: A append+note");
+
+    // B conflicts with A on the SAME markdown line, forcing the rebase to fail
+    // and the merge -X ours fallback to run. The CSV must still union.
+    appendLine(wB, CSV, "2026-06-01,b,2,count,,,\n");
+    writeFileSync(join(wB, "notes.md"), "# Notes\nB edits the shared line\n");
+    await makeSync(wB, pB).commitAndPush("wiki: B append+note");
+
+    const tip = remoteFile(bare, CSV);
+    assert.match(tip, /,a,1,/, "A's row survived the fallback merge");
+    assert.match(tip, /,b,2,/, "B's row survived the fallback merge");
+  });
+
+  test("non-CSV conflicts still resolve local-side on the fallback path", async () => {
+    const bare = createBareRepo();
+    seedBareRepo(bare, { files: { "notes.md": "# Notes\nshared line\n" } });
+
+    const { parent: pA, wikiDir: wA } = cloneRepo(bare, "u-mdA");
+    const { parent: pB, wikiDir: wB } = cloneRepo(bare, "u-mdB");
+    git(wA, "checkout", "master");
+    git(wB, "checkout", "master");
+
+    writeFileSync(join(wA, "notes.md"), "# Notes\nremote line\n");
+    await makeSync(wA, pA).commitAndPush("wiki: A note");
+
+    writeFileSync(join(wB, "notes.md"), "# Notes\nlocal wins\n");
+    await makeSync(wB, pB).commitAndPush("wiki: B note");
+
+    // B published last; the fallback keeps B's local side, exactly as today.
+    assert.match(remoteFile(bare, "notes.md"), /local wins/);
+  });
+
+  test("existing wiki acquires the declaration in exactly one commit, idempotently", async () => {
+    const bare = createBareRepo();
+    seedBareRepo(bare, { gitattributes: false });
+
+    const { parent, wikiDir } = cloneRepo(bare, "u-provision");
+    git(wikiDir, "checkout", "master");
+    const baseHead = git(wikiDir, "rev-parse", "HEAD");
+
+    // No payload: the ensure introduces .gitattributes in one commit and pushes.
+    const first = await makeSync(wikiDir, parent).commitAndPush(
+      "wiki: provision",
+    );
+    assert.equal(first.pushed, true);
+    assert.notEqual(git(wikiDir, "rev-parse", "HEAD"), baseHead);
+    assert.equal(
+      git(wikiDir, "show", "--name-only", "--format=", "HEAD").trim(),
+      ".gitattributes",
+    );
+    assert.equal(git(wikiDir, "diff", "origin/master"), "");
+
+    // Steady state (pushed): a second sync is a clean no-op, zero commits.
+    const headAfter = git(wikiDir, "rev-parse", "HEAD");
+    const second = await makeSync(wikiDir, parent).commitAndPush(
+      "wiki: provision",
+    );
+    assert.deepEqual(second, {
+      pushed: false,
+      reason: "clean",
+      detections: [],
+    });
+    assert.equal(git(wikiDir, "rev-parse", "HEAD"), headAfter);
+  });
+
+  test("scoped-payload sync commits both the payload and the declaration", async () => {
+    const bare = createBareRepo();
+    seedBareRepo(bare, {
+      gitattributes: false,
+      files: { "MEMORY.md": "# M\n" },
+    });
+
+    const { parent, wikiDir } = cloneRepo(bare, "u-scoped");
+    git(wikiDir, "checkout", "master");
+
+    writeFileSync(join(wikiDir, "MEMORY.md"), "# M\nclaim row\n");
+    const result = await makeSync(wikiDir, parent).commitAndPush(
+      "wiki: claim",
+      ["MEMORY.md"],
+    );
+    assert.equal(result.pushed, true);
+    const committed = git(wikiDir, "show", "--name-only", "--format=", "HEAD")
+      .split("\n")
+      .filter(Boolean)
+      .sort();
+    assert.deepEqual(committed, [".gitattributes", "MEMORY.md"]);
+  });
+
+  test("a wiki provisioned from scratch survives concurrent appends end-to-end", async () => {
+    // Spec criterion 3: bootstrap a wiki with no declaration, let provisioning
+    // introduce it, then run the two-clone append with no further setup — both
+    // rows survive. Proves the fresh-creation path end-to-end, not by composition.
+    const bare = createBareRepo();
+    seedBareRepo(bare, { gitattributes: false, files: { [CSV]: HEADER } });
+
+    // First clone provisions the declaration (the ensure writes and commits it),
+    // exactly as init/the first sync of a fresh wiki would.
+    const { parent: pP, wikiDir: wP } = cloneRepo(bare, "u-fresh-provision");
+    git(wP, "checkout", "master");
+    await makeSync(wP, pP).commitAndPush("wiki: provision");
+
+    // Two fresh clones taken AFTER provisioning each append a distinct row.
+    const { parent: pA, wikiDir: wA } = cloneRepo(bare, "u-freshA");
+    const { parent: pB, wikiDir: wB } = cloneRepo(bare, "u-freshB");
+    git(wA, "checkout", "master");
+    git(wB, "checkout", "master");
+
+    appendLine(wA, CSV, "2026-06-01,a,1,count,,,\n");
+    await makeSync(wA, pA).commitAndPush("wiki: A append", [CSV]);
+
+    appendLine(wB, CSV, "2026-06-01,b,2,count,,,\n");
+    await makeSync(wB, pB).commitAndPush("wiki: B append", [CSV]);
+
+    const tip = remoteFile(bare, CSV);
+    assert.match(tip, /,a,1,/, "A's row survived on a from-scratch wiki");
+    assert.match(tip, /,b,2,/, "B's row survived on a from-scratch wiki");
+  });
+});

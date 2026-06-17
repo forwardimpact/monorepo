@@ -555,4 +555,7 @@ describe("runRules", () => {
     assert.ok(ids.includes("memory.file-exists"));
     assert.ok(!ids.includes("memory.priority-heading"));
   });
+
+  // The metrics-csv.duplicate-row behaviour family lives in the sibling
+  // audit-engine-metrics.test.js (split to keep each file under the line cap).
 });

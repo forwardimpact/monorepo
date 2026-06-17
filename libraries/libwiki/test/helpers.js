@@ -185,8 +185,21 @@ export function createBareRepo() {
   return dir;
 }
 
-/** Clone a bare repo into a temp directory, commit a README, and push to master. */
-export function seedBareRepo(bare) {
+/**
+ * Clone a bare repo into a temp directory, commit a README, and push to master.
+ *
+ * By default the seed carries the metrics-CSV union merge declaration in
+ * `.gitattributes`, matching a provisioned wiki's steady state. Pass
+ * `gitattributes: false` to seed an un-provisioned wiki (e.g. to test that the
+ * first sync introduces the declaration). Pass `files` to seed extra files
+ * (relative path → contents), creating parent directories as needed.
+ *
+ * @param {string} bare - The bare repo path.
+ * @param {object} [options]
+ * @param {boolean} [options.gitattributes=true] - Seed the `.gitattributes` line.
+ * @param {Record<string,string>} [options.files] - Extra files to seed.
+ */
+export function seedBareRepo(bare, { gitattributes = true, files = {} } = {}) {
   const tmp = mkdtempSync(join(tmpdir(), "wiki-seed-"));
   execFileSync("git", ["clone", bare, tmp], { stdio: "pipe" });
   git(tmp, "config", "user.name", "Seed");
@@ -196,6 +209,17 @@ export function seedBareRepo(bare) {
   git(tmp, "config", "tag.gpgsign", "false");
   git(tmp, "checkout", "-b", "master");
   writeFileSync(join(tmp, "README.md"), "# Wiki\n");
+  if (gitattributes) {
+    writeFileSync(
+      join(tmp, ".gitattributes"),
+      "metrics/**/*.csv merge=union\n",
+    );
+  }
+  for (const [rel, contents] of Object.entries(files)) {
+    const full = join(tmp, rel);
+    mkdirSync(join(full, ".."), { recursive: true });
+    writeFileSync(full, contents);
+  }
   git(tmp, "add", "-A");
   git(tmp, "commit", "-m", "init");
   git(tmp, "push", "origin", "master");

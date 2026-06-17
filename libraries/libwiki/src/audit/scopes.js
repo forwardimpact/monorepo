@@ -33,6 +33,34 @@ function listMdFiles(wikiRoot, fs) {
     .map((e) => path.join(wikiRoot, e));
 }
 
+// Recursively collect every *.csv under `<wikiRoot>/metrics/`. The real layout
+// is `metrics/<skill>/<year>.csv` (two levels), so the walk recurses rather
+// than assuming a fixed depth. Uses readdirSync + statSync (rather than
+// `withFileTypes` Dirents) so it runs unchanged under the in-memory mock fs.
+function listCsvFiles(wikiRoot, fs) {
+  const metricsRoot = path.join(wikiRoot, "metrics");
+  if (!fs.existsSync(metricsRoot)) return [];
+  const found = [];
+  const walk = (dir) => {
+    for (const name of fs.readdirSync(dir)) {
+      const full = path.join(dir, name);
+      if (fs.statSync(full).isDirectory()) walk(full);
+      else if (name.endsWith(".csv")) found.push(full);
+    }
+  };
+  walk(metricsRoot);
+  return found;
+}
+
+// Load a metrics CSV as an audit subject: `rows` is the array of line strings,
+// so a rule indexes `rows[i]` (a string) and `i + 1` is its line number.
+function loadCsv(filePath, fs) {
+  return {
+    path: filePath,
+    rows: fs.readFileSync(filePath, "utf-8").split("\n"),
+  };
+}
+
 function loadFile(filePath, fs) {
   const text = fs.readFileSync(filePath, "utf-8");
   const fileLines = text.split("\n");
@@ -177,6 +205,7 @@ const SCOPE_RESOLVERS = {
   summary: (ctx) => ctx.subjects.summary,
   "weekly-log-main": (ctx) => ctx.subjects["weekly-log-main"],
   "weekly-log-part": (ctx) => ctx.subjects["weekly-log-part"],
+  "metrics-csv": (ctx) => ctx.subjects["metrics-csv"],
   memory: (ctx) => [ctx.memory],
   "claims-row": (ctx) =>
     parseClaims(ctx.memory.text).map((c) => ({ ...c, path: ctx.memory.path })),
@@ -249,10 +278,14 @@ export function buildContext({ wikiRoot, today, fs }) {
     summary: [],
     "weekly-log-main": [],
     "weekly-log-part": [],
+    "metrics-csv": [],
   };
   for (const file of listMdFiles(wikiRoot, fs)) {
     const classified = classifyFile(file, fs);
     if (classified) subjects[classified.kind].push(classified.subject);
+  }
+  for (const file of listCsvFiles(wikiRoot, fs)) {
+    subjects["metrics-csv"].push(loadCsv(file, fs));
   }
   return {
     wikiRoot,

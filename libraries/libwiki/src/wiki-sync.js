@@ -1,6 +1,7 @@
 import path from "node:path";
 import { scanConflictMarkers } from "./conflict-markers.js";
-import { SINGLETON_PATHS } from "./constants.js";
+import { GITATTRIBUTES_FILE, SINGLETON_PATHS } from "./constants.js";
+import { ensureMetricsCsvMergeAttribute } from "./gitattributes.js";
 import { parseDiff, findAbsent, makeDetection, normLine } from "./integrity.js";
 
 /** The branch the wiki clone publishes (hard-coded in fetch / rebase / push). */
@@ -242,6 +243,15 @@ export class WikiSync {
    * first publication is re-judged rather than auto-re-granted. The guard
    * creates no commit, attempts no push, and adds no working-tree changes.
    *
+   * Before the gates, the metrics-CSV union merge declaration is ensured in
+   * `.gitattributes`. When the ensure writes the file, the commit must carry it
+   * regardless of the session's payload: on the pathspec-scoped path the
+   * declaration is outside `paths` and would otherwise be autostashed aside, and
+   * on a no-payload sync there would be no commit at all. So `.gitattributes` is
+   * appended to the effective commit pathspec only when the ensure changed it;
+   * when it is already present-and-correct, behavior is byte-identical to a
+   * commit-and-push that ensures nothing.
+   *
    * **Singleton merge discipline.** The discipline applies when a
    * rebase conflict arises for a *registered* row-structured singleton (the
    * single committed path is in `SINGLETON_PATHS`) and the caller supplied a
@@ -273,9 +283,23 @@ export class WikiSync {
       return WikiSyncRefusal.result("mid-merge");
     }
     await this.#assertPublishable();
-    if (!(await this.isClean(paths))) {
-      if (paths?.length) {
-        await this.#git.commitPaths(message, paths, { cwd: this.#wikiDir });
+    const gitattributesChanged = ensureMetricsCsvMergeAttribute(
+      this.#wikiDir,
+      this.#runtime.fsSync,
+    ).changed;
+    // The metrics-CSV declaration must be committed when it was just written,
+    // even on the pathspec-scoped path; fold it into the effective pathspec.
+    // On a no-payload sweep (`paths` absent), this becomes the sole pathspec
+    // [GITATTRIBUTES_FILE], so provisioning still produces exactly one commit
+    // rather than sweeping the whole tree via commitAll.
+    const commitPaths = gitattributesChanged
+      ? [...(paths ?? []), GITATTRIBUTES_FILE]
+      : paths;
+    if (!(await this.isClean(commitPaths))) {
+      if (commitPaths?.length) {
+        await this.#git.commitPaths(message, commitPaths, {
+          cwd: this.#wikiDir,
+        });
       } else {
         await this.#git.commitAll(message, { cwd: this.#wikiDir });
       }

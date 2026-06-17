@@ -4,6 +4,16 @@ import { createTestRuntime, createMockFs } from "@forwardimpact/libmock";
 import { WikiSync, WikiPullConflict } from "../src/wiki-sync.js";
 import { WIKI, HEALTHY_ANCESTRY, make } from "./wiki-sync-harness.js";
 
+// A mock fsSync whose wiki already carries the metrics-CSV union declaration,
+// so `commitAndPush`'s ensure-before-gate is a no-op and the git call sequence
+// is byte-identical to a commit-and-push that ensures nothing. Provisioning
+// behavior (the ensure writing the file) is covered in
+// wiki-sync.integration.test.js against real git.
+const provisionedFs = () =>
+  createMockFs({
+    [`${WIKI}/.gitattributes`]: "metrics/**/*.csv merge=union\n",
+  });
+
 describe("WikiSync", () => {
   test("constructor rejects a missing gitClient", () => {
     assert.throws(
@@ -70,6 +80,7 @@ describe("WikiSync", () => {
 
   test("commitAndPush commits, rebases, and pushes a dirty ahead tree", async () => {
     const { wikiSync, flowMethods } = make({
+      fsSync: provisionedFs(),
       responses: {
         ...HEALTHY_ANCESTRY,
         isMidMerge: false,
@@ -100,6 +111,7 @@ describe("WikiSync", () => {
 
   test("commitAndPush with paths scopes the status check and commit", async () => {
     const { git, wikiSync, flowMethods } = make({
+      fsSync: provisionedFs(),
       responses: {
         ...HEALTHY_ANCESTRY,
         isMidMerge: false,
@@ -138,6 +150,7 @@ describe("WikiSync", () => {
 
   test("commitAndPush rebases with autostash so foreign dirt survives the pull", async () => {
     const { git, wikiSync } = make({
+      fsSync: provisionedFs(),
       responses: {
         ...HEALTHY_ANCESTRY,
         isMidMerge: false,
@@ -157,6 +170,7 @@ describe("WikiSync", () => {
 
   test("commitAndPush with paths is a no-op when only foreign files are dirty", async () => {
     const { wikiSync, flowMethods } = make({
+      fsSync: provisionedFs(),
       responses: {
         ...HEALTHY_ANCESTRY,
         isMidMerge: false,
@@ -175,6 +189,7 @@ describe("WikiSync", () => {
 
   test("commitAndPush is a no-op on a clean tree with nothing ahead", async () => {
     const { wikiSync, flowMethods } = make({
+      fsSync: provisionedFs(),
       responses: {
         ...HEALTHY_ANCESTRY,
         isMidMerge: false,
@@ -191,8 +206,32 @@ describe("WikiSync", () => {
     assert.deepEqual(flowMethods(), ["isMidMerge", "status", "revListCount"]);
   });
 
+  test("commitAndPush folds .gitattributes into a scoped commit when the ensure writes it", async () => {
+    // No .gitattributes in the wiki → ensure writes it → it must be appended to
+    // the scoped commit pathspec so it is not autostashed aside.
+    const { git, wikiSync } = make({
+      fsSync: createMockFs({}),
+      responses: {
+        ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 0, stderr: "" },
+        revListCount: 1,
+        introducedByFile: new Map(),
+      },
+    });
+    await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
+    const commit = git.calls.find((c) => c.method === "commitPaths");
+    assert.deepEqual(commit.args, [
+      "wiki: claim x",
+      ["MEMORY.md", ".gitattributes"],
+      { cwd: WIKI },
+    ]);
+  });
+
   test("commitAndPush recovers via merge -X ours when the rebase fails", async () => {
     const { wikiSync, flowMethods } = make({
+      fsSync: provisionedFs(),
       responses: {
         ...HEALTHY_ANCESTRY,
         isMidMerge: false,
@@ -401,6 +440,7 @@ describe("WikiSync", () => {
 
   test("commitAndPush tolerates a failing push (WikiRepo fire-and-forget)", async () => {
     const { git, wikiSync } = make({
+      fsSync: provisionedFs(),
       responses: {
         ...HEALTHY_ANCESTRY,
         isMidMerge: false,

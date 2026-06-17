@@ -140,11 +140,40 @@ npx fit-wiki push
 push: committed and pushed
 ```
 
-`push` is a no-op when no local changes exist. On conflicts, local state wins.
-`pull` exits non-zero with a diagnostic when a conflict is detected.
+`push` is a no-op when no local changes exist. On conflicts in markdown
+surfaces -- summaries, memos, the storyboard -- local state wins. Metrics CSVs
+are the one exception: they merge by keeping both sides (see
+[Concurrent metrics appends](#concurrent-metrics-appends) below). `pull` exits
+non-zero with a diagnostic when a conflict is detected.
 
 Both commands are designed for use in Claude Code hooks (e.g., `pull` in
 SessionStart, `push` in Stop) and GitHub Actions post-run steps.
+
+### Concurrent metrics appends
+
+Two sessions often append metric rows to the same `metrics/**/*.csv` file at
+once. For these files the sync keeps the rows from both sides instead of
+letting the last writer win. A concurrent append never erases another session's
+row.
+
+This behavior is carried by a tracked `.gitattributes` line in the wiki:
+
+```
+metrics/**/*.csv merge=union
+```
+
+Because the file is tracked, the rule governs every clone. Fresh wikis get it at
+`init`. Existing wikis get it on their next sync, and protection begins the sync
+after the line lands.
+
+Keeping both sides can leave an identical row twice. The sync never removes a
+duplicate on its own. Instead, `fit-wiki audit` reports a
+`metrics-csv.duplicate-row` finding that names the file and the line. The row's
+owner then resolves it one of two ways:
+
+- Delete the surplus row if it is an accidental repeat.
+- Edit any column -- a run id or a note -- if the rows are genuinely distinct
+  measurements. The edit makes the rows differ, and the finding stops firing.
 
 ## Bootstrapping the wiki
 
