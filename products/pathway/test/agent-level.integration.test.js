@@ -46,7 +46,27 @@ function stageDataDir({ stripOrgContext = true } = {}) {
   return { work, dataDir };
 }
 
-async function runAgent({ dataDir, args, options, outputDir = null }) {
+// Build a runtime whose `proc.stdout` captures into an array, so the command's
+// output can be read without patching the global `process.stdout` — patching
+// the global collides with `node --test`'s own stdout reporter stream.
+function captureRuntime() {
+  const base = createDefaultRuntime();
+  const chunks = [];
+  const proc = Object.create(base.proc);
+  proc.stdout = { write: (chunk) => (chunks.push(String(chunk)), true) };
+  return {
+    runtime: Object.freeze({ ...base, proc }),
+    text: () => chunks.join(""),
+  };
+}
+
+async function runAgent({
+  dataDir,
+  args,
+  options,
+  outputDir = null,
+  runtime = createDefaultRuntime(),
+}) {
   const loader = createDataLoader(createDefaultRuntime());
   const templateLoader = createTemplateLoader(
     templatesDir,
@@ -62,7 +82,7 @@ async function runAgent({ dataDir, args, options, outputDir = null }) {
     dataDir,
     templateLoader,
     loader,
-    runtime: createDefaultRuntime(),
+    runtime,
   });
 }
 
@@ -253,32 +273,26 @@ describe("agent --level integration", () => {
   test("LIST — --list short-circuits before --level resolution (C-5)", async () => {
     const { work, dataDir } = stageDataDir({ stripOrgContext: false });
     try {
-      const baselineCapture = captureWrite(process.stdout);
-      try {
-        await silent(() =>
-          runAgent({
-            dataDir,
-            args: [],
-            options: { list: true },
-          }),
-        );
-      } finally {
-        baselineCapture.restore();
-      }
+      const baselineCapture = captureRuntime();
+      await silent(() =>
+        runAgent({
+          dataDir,
+          args: [],
+          options: { list: true },
+          runtime: baselineCapture.runtime,
+        }),
+      );
       const baseline = baselineCapture.text();
 
-      const bogusCapture = captureWrite(process.stdout);
-      try {
-        await silent(() =>
-          runAgent({
-            dataDir,
-            args: [],
-            options: { list: true, level: "BOGUS" },
-          }),
-        );
-      } finally {
-        bogusCapture.restore();
-      }
+      const bogusCapture = captureRuntime();
+      await silent(() =>
+        runAgent({
+          dataDir,
+          args: [],
+          options: { list: true, level: "BOGUS" },
+          runtime: bogusCapture.runtime,
+        }),
+      );
       const bogus = bogusCapture.text();
 
       assert.strictEqual(
