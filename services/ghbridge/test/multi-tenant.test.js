@@ -19,9 +19,9 @@ import { ADD_DISCUSSION_COMMENT_MUTATION } from "../src/graphql.js";
 const SECRET = "ghbridge-test-secret-long-enough";
 
 // Full multi-tenant path against the tightened stateful mock. Both modes run
-// the same code, the same tenant-scoped store RPCs, and — since spec 1273 — the
-// same dispatch credential (the dispatching user's per-user OAuth token via
-// services/ghuser). Only the tenant resolver and the resolved repo differ.
+// the same code, the same tenant-scoped store RPCs, and the same dispatch
+// credential (the dispatching user's per-user OAuth token via services/ghuser).
+// Only the tenant resolver and the resolved repo differ.
 
 /**
  * Stub tenancy client backing a `RegistryTenantResolver`. One active tenant
@@ -128,8 +128,8 @@ async function newService({ multi, tokenResult } = {}) {
     getInstallationToken: async () => "ghs_test",
     graphqlClient,
     makeGraphqlClient,
-    // Dispatch identity is the per-user OAuth token in both modes (spec 1273).
-    // A test may override the result to exercise the link_required path.
+    // Dispatch identity is the per-user OAuth token in both modes. A test may
+    // override the result to exercise the link_required path.
     ghuserClient: {
       GetToken: async () =>
         tokenResult ?? { result: "token", token: "ghs_per_user" },
@@ -365,10 +365,10 @@ for (const mode of ["single", "multi"]) {
       });
 
       test("hosted dispatch uses the per-user OAuth token, not a ghserver App-token mint", async () => {
-        // Unified dispatch identity (spec 1273): hosted mode dispatches with
-        // the dispatching user's per-user OAuth token on the resolved tenant
-        // repo. No ghserver App-token mint happens for dispatch — the
-        // reply/reaction path keeps its own ghserver credential.
+        // Unified dispatch identity: hosted mode dispatches with the
+        // dispatching user's per-user OAuth token on the resolved tenant repo.
+        // No ghserver App-token mint happens for dispatch; the reply/reaction
+        // path keeps its own ghserver credential.
         const res = await postSigned(
           baseUrl,
           "discussion",

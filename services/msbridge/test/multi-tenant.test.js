@@ -20,9 +20,9 @@ import {
 
 // Full multi-tenant path for msbridge against the tightened stateful mock:
 // inbound activity → Entra-tid extraction → resolve → dispatch → callback.
-// Both modes run the same code and the same dispatch credential — the
-// dispatching user's per-user OAuth token (spec 1273); only the tenant
-// resolver and the resolved repo differ.
+// Both modes run the same code and the same dispatch credential (the
+// dispatching user's per-user OAuth token); only the tenant resolver and the
+// resolved repo differ.
 
 const ENTRA_TID = "entra-acme";
 
@@ -169,10 +169,10 @@ for (const mode of ["single", "multi"]) {
       expect(sent.inputs.callback_url).toContain(`/api/callback/${tenantId}/`);
       expect(sent.inputs.inbox_url).toContain(`/api/inbox/${tenantId}/`);
       if (multi) {
-        // Unified dispatch identity (spec 1273): the workflow_dispatch fires on
-        // the resolved tenant repo, but the credential is the dispatching
-        // user's per-user OAuth token in both modes — no ghserver App-token
-        // mint. Repo resolution is unchanged (criterion 8).
+        // Unified dispatch identity: the workflow_dispatch fires on the
+        // resolved tenant repo, but the credential is the dispatching user's
+        // per-user OAuth token in both modes, with no ghserver App-token mint.
+        // Repo resolution is unchanged (criterion 8).
         expect(dispatches[0].url).toContain("/repos/acme/web/actions/");
         expect(dispatches[0].init.headers.Authorization).toBe(
           "Bearer ghs_per_user",
@@ -226,10 +226,10 @@ for (const mode of ["single", "multi"]) {
       });
 
       test("unlinked multi-tenant dispatcher gets the link prompt, fires no workflow_dispatch", async () => {
-        // Unified dispatch identity (spec 1273): an unlinked dispatcher
-        // resolves through TokenResolver → link_required in multi-tenant mode
-        // too (criterion 4). The bridge posts the link prompt with the resolved
-        // tenant on the authorize URL and fires no workflow_dispatch.
+        // Unified dispatch identity: an unlinked dispatcher resolves through
+        // TokenResolver → link_required in multi-tenant mode too (criterion 4).
+        // The bridge posts the link prompt with the resolved tenant on the
+        // authorize URL and fires no workflow_dispatch.
         const linkAdapter = makeDrivableAdapter();
         const tenancy = stubTenancyClient();
         const linkService = new MsBridgeService(
