@@ -59,7 +59,7 @@ export class CodegenDefinitions {
     const definitions = [];
 
     if (this.#base.fs.existsSync(definitionsDir)) {
-      for (const file of this.#base.fs.readdirSync(definitionsDir)) {
+      for (const file of this.#base.fs.readdirSync(definitionsDir).sort()) {
         if (!file.endsWith(".js") || file === "exports.js") continue;
 
         const serviceName = this.#base.path.basename(file, ".js");

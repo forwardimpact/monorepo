@@ -17,7 +17,11 @@ import { execFileSync } from "node:child_process";
 import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
 
-import { createCli, SummaryRenderer } from "@forwardimpact/libcli";
+import {
+  createCli,
+  SummaryRenderer,
+  withEmbeddedAssets,
+} from "@forwardimpact/libcli";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { Logger } from "@forwardimpact/libtelemetry";
 import {
@@ -345,13 +349,18 @@ async function runCodegen(protoDirs, projectRoot, finder, parsedFlags) {
     );
   }
 
+  // Inject the embedded-overlay sync fs so loadTemplate's reads of the virtual
+  // template mount hit the inlined registry in a compiled binary. In
+  // source/npx execution withEmbeddedAssets is a no-op and this is the full
+  // node:fs sync surface, identical to the bare `fs` used elsewhere in this bin.
+  const codegenFs = withEmbeddedAssets(runtime).fsSync;
   const codegens = createCodegen(
     protoDirs,
     projectRoot,
     path,
     mustache,
     protoLoader,
-    fs,
+    codegenFs,
     runtime,
   );
   await executeGeneration(codegens, sourcePath, parsedFlags);

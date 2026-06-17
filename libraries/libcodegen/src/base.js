@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { embeddedAssetsActive, embeddedDir } from "@forwardimpact/libcli";
 import protobuf from "protobufjs";
 import "./long-init.js";
 
@@ -165,14 +166,22 @@ export class CodegenBase {
    * @returns {string} Template content
    */
   loadTemplate(kind) {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = this.#path.dirname(__filename);
-    const templatePath = this.#path.join(
-      __dirname,
-      "..",
-      "templates",
-      `${kind}.js.mustache`,
-    );
+    // A `bun build --compile` binary inlines the templates and registers them
+    // under the "libcodegen/templates" mount (see the CLI's assets block in
+    // build/cli-manifest.json), which flips embeddedAssetsActive() true. In
+    // that case resolve through the virtual mount the embedded-fs overlay
+    // serves. The on-disk path would not work there: import.meta.url points
+    // into the /$bunfs root, which carries no templates directory. In
+    // source/npx/test execution nothing registers, so resolve the on-disk path
+    // relative to this module.
+    const templatesDir = embeddedAssetsActive()
+      ? embeddedDir("libcodegen/templates")
+      : this.#path.join(
+          this.#path.dirname(fileURLToPath(import.meta.url)),
+          "..",
+          "templates",
+        );
+    const templatePath = this.#path.join(templatesDir, `${kind}.js.mustache`);
 
     if (!this.#fs.existsSync(templatePath)) {
       throw new Error(`Missing ${kind}.js.mustache template`);
