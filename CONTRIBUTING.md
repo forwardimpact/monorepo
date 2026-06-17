@@ -201,11 +201,28 @@ and publishing — see [kata-release-cut](.claude/skills/kata-release-cut).
 ```sh
 bun run check                 # All quality gates (run before every commit)
 bun run check:fix             # Auto-fix format and lint issues
-bun run test                  # Unit tests (run before every commit)
+bun run test                  # Unit tests, bun runner (fast local/PR loop)
+bun run test:gate             # The blocking gate — node --test + count floor
 bun run test:e2e              # Playwright E2E tests (requires generated data)
 bunx fit-map validate         # Validate data files
 bunx fit-map validate --shacl # Validate with SHACL syntax check
 ```
+
+### Test-runner strategy
+
+The runner choice is settled per surface (spec 2020, superseding spec 0650):
+
+- **`node --test` is the blocking gate.** `bun run test:gate` (the `Test / gate`
+  CI job and both publish "Run tests" steps) is the release-blocking, required
+  check. `node --test` is the reference-correct runner: `describe`-inside-`test`
+  is valid there, where bun throws on it
+  ([bun#5090](https://github.com/oven-sh/bun/issues/5090)).
+- **`bun test` is the informational local/PR loop.** `bun run test` keeps the
+  fast inner loop for iteration. It is **not** a required check.
+- **No new `bun:test` imports.** `node --test` cannot resolve a `bun:`
+  specifier, so a `bun:test` import anywhere reddens the required guard
+  (`scripts/check-bun-test-imports.mjs`). Import `describe`/`test`/hooks from
+  `node:test` and `expect` from `@forwardimpact/libmock/expect`.
 
 ## Security
 
