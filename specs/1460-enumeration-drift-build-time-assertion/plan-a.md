@@ -22,7 +22,8 @@ registry parse). No new dependencies (Security C2).
 
 ```
 .coaligned/invariants/enumeration-drift.topics.yml      (new — registry)
-.coaligned/invariants/enumeration-drift.rules.mjs        (new — rule module)
+.coaligned/invariants/enumeration-drift.rules.mjs        (new — rule module: build/seed/rules + re-exports)
+.coaligned/invariants/lib/enum-drift.mjs                 (new — pure helpers: probes, parser, grammar, extracted from the module to stay under the per-file size/complexity ceilings)
 libraries/libcoaligned/test/enumeration-drift.test.js    (new — unit tests, in the test-glob roots)
 CONTRIBUTING.md                                          (fences: products-tree)
 CLAUDE.md                                                (fences: sibling-composite-actions)
