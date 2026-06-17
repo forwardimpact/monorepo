@@ -45,6 +45,7 @@ describe("RULES catalogue", () => {
         "status-row.id-format",
         "status-row.phase",
         "status-row.status",
+        "conflict.markers",
       ],
     );
   });

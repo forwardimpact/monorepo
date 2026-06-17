@@ -191,7 +191,46 @@ const SCOPE_RESOLVERS = {
       ...r,
       path: ctx.status.path,
     })),
+  "conflict-scan": (ctx) => conflictScanSubjects(ctx),
 };
+
+// Normalize every audited surface into a uniform `{ path, text, fenceExempt }`
+// subject for the conflict-marker scan. The per-file subjects (summaries,
+// weekly logs and sealed parts, storyboard) carry `fileLines`; MEMORY.md and
+// STATUS.md carry `text` (readOptional shape). `fenceExempt` is true for prose
+// surfaces, where a fence quotes content, and false for STATUS.md, whose fenced
+// rows are data — a marker there is never legitimate (per-surface fence
+// contract). Files absent from disk (missing MEMORY/STATUS/storyboard) yield
+// empty text and produce no findings.
+function conflictScanSubjects(ctx) {
+  const subjects = [];
+  const fileScopes = ["summary", "weekly-log-main", "weekly-log-part"];
+  for (const scope of fileScopes) {
+    for (const s of ctx.subjects[scope]) {
+      subjects.push({
+        path: s.path,
+        text: s.fileLines.join("\n"),
+        fenceExempt: true,
+      });
+    }
+  }
+  subjects.push({
+    path: ctx.storyboard.path,
+    text: ctx.storyboard.text,
+    fenceExempt: true,
+  });
+  subjects.push({
+    path: ctx.memory.path,
+    text: ctx.memory.text,
+    fenceExempt: true,
+  });
+  subjects.push({
+    path: ctx.status.path,
+    text: ctx.status.text,
+    fenceExempt: false,
+  });
+  return subjects;
+}
 
 /** Resolve a scope key into the list of subjects the engine should iterate. */
 export function resolveScope(scopeKey, ctx) {
