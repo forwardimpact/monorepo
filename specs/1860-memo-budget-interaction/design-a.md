@@ -23,7 +23,7 @@ The inbox region is already the file's first H2 (enforced by
 |---|---|---|
 | KD1 | **The summary budgets measure the summary file minus its inbox region.** The audit subject loader splits each summary into an inbox span (`## Message Inbox` to the next `## `) and a body; `summary.word-budget`/`summary.line-budget` count the body only. Delivery into the inbox can no longer move a summary budget. | Measuring the whole file and exempting nothing (status quo): the destructive interaction the spec exists to remove. Routing breached-file memos out of band (A2): forks the delivery command on receiver state and weakens the one-inbox contract. |
 | KD2 | **A new `inbox` scope carries its own fail-severity budgets** (`inbox.word-budget`, `inbox.line-budget`), so the inbox region the summary budgets now exempt is still measured. No content class becomes unmeasured. | Leaving the inbox unmeasured: re-opens the unbounded-inbox growth the summary budget was the only backstop against, and becomes the budget-evasion surface limit-cycle pressure selects for. |
-| KD3 | **Both inbox bounds reserve at least one maximum delivery as headroom, on each dimension.** `inbox.word-budget` and `inbox.line-budget` each sit one maximum memo (in words, and in lines) below their respective hard ceilings, so a conforming inbox plus one delivery still fits on both dimensions. A single delivery to a conforming inbox trips neither bound; only accumulated undischarged bodies do, which is recipient triage, not sender delivery. The plan owns the two numeric limits and the max-memo figure; the design fixes only the relation that each limit must hold (limit = ceiling minus one max delivery). | A bound equal to the old summary headroom: re-creates the withdraw-or-breach dilemma one level down, the spec's explicit no-recursion requirement. A word-only bound that ignores the line dimension: a multi-line memo could trip `inbox.line-budget` even when words have headroom. A soft (warn) bound: the spec requires a fail-severity, audit-visible bound. |
+| KD3 | **The inbox bound is the hard ceiling; "conforming" reserves one maximum delivery of headroom below it, on each dimension.** `inbox.word-budget` and `inbox.line-budget` breach at the inbox region's hard ceiling (in words, and in lines). An inbox conforms when it sits at or below ceiling minus one maximum delivery, so a single delivery to a conforming inbox lands at most at the ceiling and does not breach on either dimension. A breach therefore requires the inbox to have already crossed the reserve before the delivery, which is accumulated undischarged debt, recipient triage rather than sender delivery. The plan owns the ceiling figures and the maximum-delivery figure; the design fixes the relation: a delivery of at most one maximum memo to an inbox at or below ceiling minus one maximum delivery never breaches. | A bound set one max-delivery below the ceiling, with "conforming" meaning at-limit: an at-limit inbox plus any delivery breaches, which re-creates the withdraw-or-breach dilemma one level down. A word-only bound that ignores the line dimension: a multi-line memo could trip the line bound even when words have headroom. A soft (warn) bound: the spec requires a fail-severity, audit-visible bound. |
 | KD4 | **Delivery and triage are unchanged: one command, one surface.** `fit-wiki memo` still appends to the recipient's `## Message Inbox` under the existing `<!-- memo:inbox -->` marker regardless of budget state; `fit-wiki inbox list\|ack\|promote\|drop` still triages it. Only the *measurement* split changes. | A budget-state-conditional delivery path: forks the command, the A2 coupling the spec rejects. |
 
 ## Component view
@@ -60,14 +60,15 @@ flowchart TD
 The interim mitigation was a voluntary per-lane headroom floor, a reserve each
 owner held below the summary cap by hand. The field showed that reserve too
 small: single memos overran it, which is what the withdrawals record. This
-design replaces the hand-held reserve with an enforced inbox limit set a full
-maximum delivery below the hard ceiling on both the word and line dimensions, so
-the reserve is structural rather than voluntary. A delivery trips an inbox bound
-only when the inbox already sat within one maximum delivery of the limit. That
-state means the inbox is carrying undischarged bodies the recipient has not
-triaged, so the breach is attributable to triage debt, not to the sender. The
-plan owns the numeric limits and the maximum-delivery figure; this design fixes
-only the relation each limit must hold.
+design replaces the hand-held reserve with a structural one. The inbox bounds
+breach only at the hard ceiling. An inbox conforms when it sits at or below the
+ceiling minus one maximum delivery, so a single delivery to a conforming inbox
+lands at most at the ceiling and breaches neither the word nor the line bound. A
+breach therefore requires the inbox to have crossed that reserve before the
+delivery arrived, which means it was carrying undischarged bodies the recipient
+had not triaged. The breach is then attributable to triage debt, not to the
+sender. The plan owns the ceiling figures and the maximum-delivery figure; this
+design fixes the relation that makes one delivery to a conforming inbox safe.
 
 ## Rejected: a single combined file budget raised to fit
 
