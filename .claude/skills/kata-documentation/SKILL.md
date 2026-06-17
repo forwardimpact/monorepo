@@ -102,6 +102,12 @@ Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On
 
 Run the DO-CONFIRM checklist at the top of this skill.
 
+### Cross-page-consistency: `<sh>+<text>` re-execution
+
+Re-execute each `<sh prompt>` block against starter data or the local CLI,
+diff against the adjacent `<text>`, and emit a row in
+`wiki/metrics/kata-documentation/{YYYY}.csv` tagged `kata-documentation-cross-page-consistency-sh-output-reexec` per divergence; scope: `<sh>+<text>` pairs only, staleness-class-3 stays local-to-topic.
+
 ## Interactive Writing
 
 ### Writing a new page
