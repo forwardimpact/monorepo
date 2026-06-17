@@ -27,7 +27,7 @@ function storyboard(yyyy, mm) {
   return [
     `# Storyboard — ${yyyy}-${mm}`,
     "",
-    ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
+    ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
     "",
   ].join("\n");
 }
@@ -251,7 +251,7 @@ describe("runRules", () => {
       [`${WIKI}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",
         "",
-        "### product-manager — backlog",
+        "### product-manager",
         "- item",
         "",
       ].join("\n"),
@@ -267,7 +267,7 @@ describe("runRules", () => {
       [`${WIKI}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",
         "",
-        ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
+        ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
         "",
         "<!-- xmr:metric:path.csv -->",
         "content with no close",
@@ -285,7 +285,7 @@ describe("runRules", () => {
       [`${WIKI}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",
         "",
-        ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
+        ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
         "",
         "<!-- agent-experiments -->",
         "<!-- last-successful-sync: 2026-05-24 -->",
@@ -304,7 +304,7 @@ describe("runRules", () => {
       [`${WIKI}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",
         "",
-        ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
+        ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
         "",
         "<!-- agent-experiments -->",
         "- #1 [staff-engineer] x (by a)",

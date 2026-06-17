@@ -6,11 +6,24 @@
   "storyboard_items": [
     {
       "dim": "staff-engineer",
-      "threshold": "item",
+      "threshold": "staff-engineer live-format note",
       "status": "open",
-      "link": null
+      "link": null,
+      "issue": null,
+      "author": null,
+      "source": "bullet"
+    },
+    {
+      "dim": "staff-engineer",
+      "threshold": "Exp Staff materialization",
+      "status": "open",
+      "link": null,
+      "issue": 1694,
+      "author": "dickolsson",
+      "source": "experiment"
     }
   ],
+  "standing_carries": [],
   "inbox_count": 0,
   "summary_headroom": {
     "words": 0,

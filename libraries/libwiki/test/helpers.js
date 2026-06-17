@@ -94,13 +94,48 @@ export function ctxFor({
   return { deps: { runtime, wikiSync, gitClient, query }, options, args };
 }
 
-const STORYBOARD_AGENTS = [
+export const STORYBOARD_AGENTS = [
   "product-manager",
   "release-engineer",
   "security-engineer",
   "staff-engineer",
   "technical-writer",
 ];
+
+/**
+ * The live storyboard shape (spec 1880): per-agent `### {agent}` h3 with an h4
+ * metric + fenced XmR block and at least one live-format agent-section bullet, a
+ * team-wide `## ` h2 immediately after the last agent section (PR #1669
+ * regression shape), and the materialized `agent-experiments` block with a
+ * stamp + one attributed item. No dead-format agent-section bullets.
+ * @param {string} [yyyymm] - e.g. "2026-05".
+ * @returns {string}
+ */
+export function liveStoryboard(yyyymm = "2026-05") {
+  const agentSections = STORYBOARD_AGENTS.flatMap((a) => [
+    `### ${a}`,
+    "#### metric",
+    "```",
+    "n=1 mean=1",
+    "```",
+    "**Signals:** —",
+    `- ${a} live-format note`,
+    "",
+  ]);
+  return [
+    `# Storyboard — ${yyyymm}`,
+    "",
+    ...agentSections,
+    "## Experiments",
+    "",
+    "### Active",
+    "<!-- agent-experiments -->",
+    "<!-- last-successful-sync: 2026-05-18 -->",
+    "- #1 [staff-engineer] seed experiment (by tester)",
+    "<!-- /agent-experiments -->",
+    "",
+  ].join("\n");
+}
 
 /** Seed a wiki root with an audit-clean MEMORY.md and current-month storyboard. */
 export function seedCleanWiki(wikiRoot) {
@@ -115,15 +150,7 @@ export function seedCleanWiki(wikiRoot) {
       "",
     ].join("\n"),
   );
-  writeFileSync(
-    join(wikiRoot, "storyboard-2026-M05.md"),
-    [
-      "# Storyboard — 2026-05",
-      "",
-      ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
-      "",
-    ].join("\n"),
-  );
+  writeFileSync(join(wikiRoot, "storyboard-2026-M05.md"), liveStoryboard());
 }
 
 /** Write a minimal technical-writer profile so composeProfilePrompt can read it. */
