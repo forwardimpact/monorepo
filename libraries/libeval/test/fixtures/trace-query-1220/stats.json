@@ -1,0 +1,68 @@
+{
+  "totals": {
+    "inputTokens": 1220,
+    "outputTokens": 123,
+    "cacheReadInputTokens": 3900,
+    "cacheCreationInputTokens": 50,
+    "totalCostUsd": 0.0523,
+    "durationMs": 5200
+  },
+  "perTurn": [
+    {
+      "index": 2,
+      "inputTokens": 100,
+      "outputTokens": 15,
+      "cacheReadInputTokens": 200,
+      "cacheCreationInputTokens": 50
+    },
+    {
+      "index": 3,
+      "inputTokens": 120,
+      "outputTokens": 20,
+      "cacheReadInputTokens": 300,
+      "cacheCreationInputTokens": 0
+    },
+    {
+      "index": 5,
+      "inputTokens": 150,
+      "outputTokens": 25,
+      "cacheReadInputTokens": 400,
+      "cacheCreationInputTokens": 0
+    },
+    {
+      "index": 7,
+      "inputTokens": 160,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 500,
+      "cacheCreationInputTokens": 0
+    },
+    {
+      "index": 9,
+      "inputTokens": 165,
+      "outputTokens": 14,
+      "cacheReadInputTokens": 550,
+      "cacheCreationInputTokens": 0
+    },
+    {
+      "index": 11,
+      "inputTokens": 170,
+      "outputTokens": 12,
+      "cacheReadInputTokens": 600,
+      "cacheCreationInputTokens": 0
+    },
+    {
+      "index": 13,
+      "inputTokens": 175,
+      "outputTokens": 9,
+      "cacheReadInputTokens": 650,
+      "cacheCreationInputTokens": 0
+    },
+    {
+      "index": 14,
+      "inputTokens": 180,
+      "outputTokens": 10,
+      "cacheReadInputTokens": 700,
+      "cacheCreationInputTokens": 0
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "index": 0,
+    "role": "system",
+    "source": null,
+    "subtype": "init",
+    "data": {
+      "subtype": "init",
+      "timestamp": "2026-05-16T00:00:00Z",
+      "session_id": "sess-1220",
+      "model": "claude-opus-4-6",
+      "claude_code_version": "2.1.87",
+      "tools": [
+        "Bash",
+        "Read",
+        "Edit",
+        "Write"
+      ],
+      "permissionMode": "default"
+    }
+  },
+  {
+    "index": 1,
+    "role": "user",
+    "source": null,
+    "content": [
+      {
+        "type": "text",
+        "text": "Investigate the failing test and fix the config."
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "text",
+        "text": "Let me check the files first."
+      }
+    ],
+    "usage": {
+      "inputTokens": 100,
+      "outputTokens": 15,
+      "cacheReadInputTokens": 200,
+      "cacheCreationInputTokens": 50
+    }
+  }
+]

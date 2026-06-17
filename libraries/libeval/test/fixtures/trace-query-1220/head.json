@@ -1,0 +1,169 @@
+[
+  {
+    "index": 0,
+    "role": "system",
+    "source": null,
+    "subtype": "init",
+    "data": {
+      "subtype": "init",
+      "timestamp": "2026-05-16T00:00:00Z",
+      "session_id": "sess-1220",
+      "model": "claude-opus-4-6",
+      "claude_code_version": "2.1.87",
+      "tools": [
+        "Bash",
+        "Read",
+        "Edit",
+        "Write"
+      ],
+      "permissionMode": "default"
+    }
+  },
+  {
+    "index": 1,
+    "role": "user",
+    "source": null,
+    "content": [
+      {
+        "type": "text",
+        "text": "Investigate the failing test and fix the config."
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "text",
+        "text": "Let me check the files first."
+      }
+    ],
+    "usage": {
+      "inputTokens": 100,
+      "outputTokens": 15,
+      "cacheReadInputTokens": 200,
+      "cacheCreationInputTokens": 50
+    }
+  },
+  {
+    "index": 3,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_01",
+        "name": "Bash",
+        "input": {
+          "command": "ls -la /app"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 120,
+      "outputTokens": 20,
+      "cacheReadInputTokens": 300,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 4,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_01",
+    "content": "total 42\ndrwxr-xr-x  5 user user 4096 May 16 12:00 .",
+    "isError": false
+  },
+  {
+    "index": 5,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "text",
+        "text": "Now reading the config file."
+      },
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_02",
+        "name": "Read",
+        "input": {
+          "file_path": "/app/config.json"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 150,
+      "outputTokens": 25,
+      "cacheReadInputTokens": 400,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 6,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_02",
+    "content": "{\"port\": 3000, \"debug\": true}",
+    "isError": false
+  },
+  {
+    "index": 7,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The debug flag should be false in production."
+      },
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_03",
+        "name": "Edit",
+        "input": {
+          "file_path": "/app/config.json",
+          "old_string": "\"debug\": true",
+          "new_string": "\"debug\": false"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 160,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 500,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 8,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_03",
+    "content": "File updated successfully.",
+    "isError": false
+  },
+  {
+    "index": 9,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_04",
+        "name": "Write",
+        "input": {
+          "file_path": "/app/notes.md",
+          "content": "# Notes\nDisabled debug."
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 165,
+      "outputTokens": 14,
+      "cacheReadInputTokens": 550,
+      "cacheCreationInputTokens": 0
+    }
+  }
+]

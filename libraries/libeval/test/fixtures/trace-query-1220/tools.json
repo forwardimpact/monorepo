@@ -1,0 +1,18 @@
+[
+  {
+    "tool": "Bash",
+    "count": 3
+  },
+  {
+    "tool": "Read",
+    "count": 1
+  },
+  {
+    "tool": "Edit",
+    "count": 1
+  },
+  {
+    "tool": "Write",
+    "count": 1
+  }
+]

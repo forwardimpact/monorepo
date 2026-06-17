@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "timestamp": "2026-05-16T00:00:00Z",
+    "sessionId": "sess-1220",
+    "model": "claude-opus-4-6",
+    "claudeCodeVersion": "2.1.87",
+    "tools": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write"
+    ],
+    "permissionMode": "default"
+  },
+  "summary": {
+    "result": "success",
+    "isError": false,
+    "totalCostUsd": 0.0523,
+    "durationMs": 5200,
+    "numTurns": 7,
+    "tokenUsage": null,
+    "modelUsage": null
+  },
+  "turnCount": 15,
+  "tools": [
+    {
+      "tool": "Bash",
+      "count": 3
+    },
+    {
+      "tool": "Read",
+      "count": 1
+    },
+    {
+      "tool": "Edit",
+      "count": 1
+    },
+    {
+      "tool": "Write",
+      "count": 1
+    }
+  ],
+  "taskPrompt": "Investigate the failing test and fix the config."
+}

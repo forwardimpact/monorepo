@@ -1,0 +1,167 @@
+[
+  {
+    "index": 5,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "text",
+        "text": "Now reading the config file."
+      },
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_02",
+        "name": "Read",
+        "input": {
+          "file_path": "/app/config.json"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 150,
+      "outputTokens": 25,
+      "cacheReadInputTokens": 400,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 6,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_02",
+    "content": "{\"port\": 3000, \"debug\": true}",
+    "isError": false
+  },
+  {
+    "index": 7,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The debug flag should be false in production."
+      },
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_03",
+        "name": "Edit",
+        "input": {
+          "file_path": "/app/config.json",
+          "old_string": "\"debug\": true",
+          "new_string": "\"debug\": false"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 160,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 500,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 8,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_03",
+    "content": "File updated successfully.",
+    "isError": false
+  },
+  {
+    "index": 9,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_04",
+        "name": "Write",
+        "input": {
+          "file_path": "/app/notes.md",
+          "content": "# Notes\nDisabled debug."
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 165,
+      "outputTokens": 14,
+      "cacheReadInputTokens": 550,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 10,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_04",
+    "content": "File created.",
+    "isError": false
+  },
+  {
+    "index": 11,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_05",
+        "name": "Bash",
+        "input": {
+          "command": "npm test"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 170,
+      "outputTokens": 12,
+      "cacheReadInputTokens": 600,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 12,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_05",
+    "content": "Error: test suite failed\n  at runTests (test.js:42)",
+    "isError": true
+  },
+  {
+    "index": 13,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_06",
+        "name": "Bash",
+        "input": {
+          "command": "cat /app/config.json"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 175,
+      "outputTokens": 9,
+      "cacheReadInputTokens": 650,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 14,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "text",
+        "text": "The tests failed. Let me fix the issue."
+      }
+    ],
+    "usage": {
+      "inputTokens": 180,
+      "outputTokens": 10,
+      "cacheReadInputTokens": 700,
+      "cacheCreationInputTokens": 0
+    }
+  }
+]

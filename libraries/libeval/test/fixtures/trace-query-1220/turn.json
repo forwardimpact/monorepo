@@ -1,0 +1,21 @@
+{
+  "index": 3,
+  "role": "assistant",
+  "source": null,
+  "content": [
+    {
+      "type": "tool_use",
+      "toolUseId": "toolu_01",
+      "name": "Bash",
+      "input": {
+        "command": "ls -la /app"
+      }
+    }
+  ],
+  "usage": {
+    "inputTokens": 120,
+    "outputTokens": 20,
+    "cacheReadInputTokens": 300,
+    "cacheCreationInputTokens": 0
+  }
+}

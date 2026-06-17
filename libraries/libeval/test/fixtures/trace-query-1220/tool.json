@@ -1,0 +1,81 @@
+[
+  {
+    "index": 3,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_01",
+        "name": "Bash",
+        "input": {
+          "command": "ls -la /app"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 120,
+      "outputTokens": 20,
+      "cacheReadInputTokens": 300,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 4,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_01",
+    "content": "total 42\ndrwxr-xr-x  5 user user 4096 May 16 12:00 .",
+    "isError": false
+  },
+  {
+    "index": 11,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_05",
+        "name": "Bash",
+        "input": {
+          "command": "npm test"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 170,
+      "outputTokens": 12,
+      "cacheReadInputTokens": 600,
+      "cacheCreationInputTokens": 0
+    }
+  },
+  {
+    "index": 12,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_05",
+    "content": "Error: test suite failed\n  at runTests (test.js:42)",
+    "isError": true
+  },
+  {
+    "index": 13,
+    "role": "assistant",
+    "source": null,
+    "content": [
+      {
+        "type": "tool_use",
+        "toolUseId": "toolu_06",
+        "name": "Bash",
+        "input": {
+          "command": "cat /app/config.json"
+        }
+      }
+    ],
+    "usage": {
+      "inputTokens": 175,
+      "outputTokens": 9,
+      "cacheReadInputTokens": 650,
+      "cacheCreationInputTokens": 0
+    }
+  }
+]
