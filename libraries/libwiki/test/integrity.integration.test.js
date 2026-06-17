@@ -348,6 +348,53 @@ describe("tier-1 post-push probe (real git)", () => {
     assert.equal(git(wikiDir, "status", "--porcelain"), "");
   });
 
+  test("a successful push erased same-window at origin is detected (418b scenario, criterion 2)", async () => {
+    // Push succeeds for real; a sibling erases the pushed content at origin
+    // before the probe's post-push fetch observes the tip — the 42s same-window
+    // erasure the corpus's 418b member exhibits. A GitClient subclass triggers
+    // the real erasure exactly when the probe calls fetch().
+    const { parent, wikiDir } = cloneRepo(bare, "t1-samewindow");
+    git(wikiDir, "checkout", "master");
+    git(wikiDir, "config", "user.email", EMAIL);
+    writeFileSync(join(wikiDir, `${AGENT}-2026-W21.md`), "# Log\nwindow row\n");
+
+    let erased = false;
+    class ErasingFetchGitClient extends GitClient {
+      async fetch(remote, refspec, opts) {
+        // The first fetch is commitAndPush's pre-push fetch; the second is the
+        // probe's post-push fetch — erase at origin just before it resolves.
+        if (!erased && remote === "origin") {
+          const after = await super.fetch(remote, refspec, opts);
+          erased = true;
+          return after;
+        }
+        // Probe fetch: a sibling erases the just-pushed content at origin first.
+        const { wikiDir: er } = cloneRepo(bare, "t1-sw-eraser");
+        git(er, "checkout", "master");
+        git(er, "pull", "origin", "master");
+        writeFileSync(join(er, `${AGENT}-2026-W21.md`), "# Log\n");
+        git(er, "add", "-A");
+        git(er, "commit", "-m", "same-window erase");
+        git(er, "push", "origin", "master");
+        return super.fetch(remote, refspec, opts);
+      }
+    }
+    const runtime = createDefaultRuntime();
+    const ws = new WikiSync({
+      runtime,
+      gitClient: new ErasingFetchGitClient({ runtime }),
+      wikiDir,
+      parentDir: parent,
+    });
+    const result = await ws.commitAndPush("wiki: push");
+    assert.equal(result.pushed, true); // never gates
+    const lost = result.detections.find((d) => d.contentId === "window row");
+    assert.ok(lost, "the same-window-erased row should be detected");
+    assert.equal(lost.tier, 1);
+    assert.equal(lost.pushHome, `${AGENT}-2026-W21.md`);
+    assert.equal(git(wikiDir, "status", "--porcelain"), "");
+  });
+
   test("a merge-HEAD landing still captures and verifies its delta (merge-HEAD coverage)", async () => {
     // Victim clones first, then a sibling pushes a conflicting README change, so
     // the victim's pre-push rebase conflicts and falls back to mergeOursStrategy,

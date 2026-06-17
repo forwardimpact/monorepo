@@ -53,10 +53,11 @@ export async function runPullCommand(ctx) {
   try {
     const wikiDir = resolveWikiRoot(runtime, ctx.options);
     // `--today` (ISO date) overrides the wall clock for deterministic tests;
-    // otherwise the binding stamp is the runtime clock.
-    const now = ctx.options.today
+    // a malformed value falls back to the runtime clock rather than NaN.
+    const today = ctx.options.today
       ? Date.parse(ctx.options.today)
-      : runtime.clock.now();
+      : Number.NaN;
+    const now = Number.isNaN(today) ? runtime.clock.now() : today;
     const detections = await sweepTier2({
       runtime,
       gitClient,
