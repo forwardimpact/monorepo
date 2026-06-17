@@ -24,7 +24,11 @@ const driver = join(repoRoot, "scripts", "check-skill-refs.mjs");
 const OFFLINE = process.env.SKILL_REF_LINT_OFFLINE === "1";
 
 describe("check-skill-refs driver (integration)", { skip: OFFLINE }, () => {
-  test("fails with finding-format output against the pre-fix corpus", () => {
+  // Generous timeout: the driver makes live `git ls-remote` probes (the gate
+  // anchor plus the corpus repos), which exceed the 5s default on a slow link.
+  test("fails with finding-format output against the pre-fix corpus", {
+    timeout: 60000,
+  }, () => {
     // Build a skills layout the driver walks: `<root>/.claude/skills/kata-setup/`.
     const root = mkdtempSync(join(tmpdir(), "skill-ref-lint-"));
     try {
