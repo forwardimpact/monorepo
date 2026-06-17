@@ -1,4 +1,5 @@
-import { describe, test, expect } from "bun:test";
+import { describe, test } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 const runtime = createDefaultRuntime();
 import { mkdtemp, readFile, readdir, stat } from "fs/promises";

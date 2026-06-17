@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { describe, test, beforeEach, afterEach } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { sign } from "@octokit/webhooks-methods";
 import {
   createMockConfig,
@@ -34,7 +35,7 @@ async function newService() {
     const target = String(url);
     if (target.startsWith("https://api.github.com/")) {
       dispatches.push({ url: target, init });
-      return new Response("{}", { status: 204 });
+      return new Response(null, { status: 204 });
     }
     return originalFetch(url, init);
   };

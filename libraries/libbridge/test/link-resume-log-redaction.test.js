@@ -38,7 +38,8 @@
  * Removal of any of the exercised logger calls weakens this regression
  * catcher and must be flagged in review (folds design observation O4 (a)).
  */
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { describe, test, beforeEach, afterEach } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { Hono } from "hono";
 
 import { createLogger } from "@forwardimpact/libtelemetry";

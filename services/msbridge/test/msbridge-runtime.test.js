@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-
+import { describe, test, beforeEach, afterEach } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { createMockLogger } from "@forwardimpact/libmock";
 
 import { newService, makeAdapter } from "./msbridge-helpers.js";
@@ -217,7 +217,7 @@ describe("msbridge service", () => {
       globalThis.fetch = async (url, init) => {
         const target = String(url);
         if (target.startsWith("https://api.github.com/")) {
-          return new Response("{}", { status: 204 });
+          return new Response(null, { status: 204 });
         }
         return originalFetch(url, init);
       };

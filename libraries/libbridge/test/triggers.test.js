@@ -1,5 +1,5 @@
-import { describe, expect, test } from "bun:test";
-
+import { describe, test } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { evaluateTrigger, parseIsoDuration } from "../src/triggers.js";
 
 describe("parseIsoDuration", () => {

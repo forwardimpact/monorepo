@@ -1,5 +1,5 @@
-import { describe, expect, test } from "bun:test";
-
+import { describe, test } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { ProgressTicker } from "../src/progress-ticker.js";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));

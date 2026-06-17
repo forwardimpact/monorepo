@@ -1,4 +1,5 @@
-import { describe, test, expect } from "bun:test";
+import { describe, test } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { stringifySorted, parseFrontmatter } from "../src/util.js";
 
 describe("stringifySorted", () => {

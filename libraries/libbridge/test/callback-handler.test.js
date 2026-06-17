@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { describe, test, beforeEach, afterEach } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 import { Acknowledgement } from "../src/acknowledgement.js";

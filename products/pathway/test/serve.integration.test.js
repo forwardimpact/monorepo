@@ -1,4 +1,5 @@
-import { describe, test, expect, afterAll } from "bun:test";
+import { describe, test, after } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { mkdtemp, mkdir, writeFile, readFile, chmod } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
@@ -58,7 +59,7 @@ describe("fit-pathway serve", () => {
   let proc;
   let port;
 
-  afterAll(() => {
+  after(() => {
     if (proc) proc.kill();
   });
 
@@ -68,7 +69,7 @@ describe("fit-pathway serve", () => {
     const cloneDir = join(siteDir, "clone-output");
 
     // Start the serve command
-    const cliPath = join(import.meta.dir, "..", "bin", "fit-pathway.js");
+    const cliPath = join(import.meta.dirname, "..", "bin", "fit-pathway.js");
     proc = spawn("bun", [cliPath, "serve", siteDir, `--port=${port}`], {
       env: { ...CLEAN_ENV, PATH: process.env.PATH },
       stdio: "pipe",
