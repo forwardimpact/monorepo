@@ -120,6 +120,7 @@ describe("ghuser identity verification", () => {
       surface: "msteams",
       surface_user_id: "aad-victim",
       client_state: "link-token-xyz",
+      tenant_id: "default",
     });
     assert.ok(first.state, "first Begin returns state");
     const completion = await service.Complete({
@@ -134,6 +135,7 @@ describe("ghuser identity verification", () => {
       surface: "msteams",
       surface_user_id: "aad-victim",
       client_state: "link-token-xyz",
+      tenant_id: "default",
     });
     assert.strictEqual(second.outcome, "proof_missing");
     assert.strictEqual(calls, 2, "both Begin calls reached bridge");
@@ -150,6 +152,35 @@ describe("ghuser identity verification", () => {
       expected_surface: "msteams",
       expected_surface_user_id: "aad-victim",
       tenant_id: "default",
+    });
+  });
+
+  test("bridge-proof keys VerifyPendingDispatch on the resolved tenant, not a literal", async () => {
+    const storage = createMockStorage();
+    const verifyCalls = [];
+    const { service } = createService(storage, {
+      bridgeClient: {
+        VerifyPendingDispatch: async (req) => {
+          verifyCalls.push(req);
+          return {};
+        },
+      },
+    });
+
+    await service.Begin({
+      surface: "msteams",
+      surface_user_id: "aad-victim",
+      client_state: "link-token-xyz",
+      tenant_id: "tenant-b",
+    });
+
+    // The proof must be scoped to the tenant carried in on Begin (criterion
+    // 3); a regression to a hard-coded literal fails this assertion.
+    assert.deepStrictEqual(verifyCalls[0], {
+      link_token: "link-token-xyz",
+      expected_surface: "msteams",
+      expected_surface_user_id: "aad-victim",
+      tenant_id: "tenant-b",
     });
   });
 

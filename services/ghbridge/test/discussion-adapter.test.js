@@ -84,6 +84,33 @@ describe("ghbridge DiscussionAdapter tenant threading", () => {
     expect(client.seen.ResolvePendingDispatch.tenant_id).toBe("default");
   });
 
+  test("putPendingDispatch uses the target's tenant_id as the sibling field, not a resolver lookup", async () => {
+    const client = recordingClient();
+    // A resolver whose lookup would throw — proving the supplied tenant_id is
+    // used directly, never resolved from the bare channel string.
+    const adapter = new DiscussionAdapter(client, {
+      tenantResolver: {
+        resolve: async () => {
+          throw new Error("resolver must not be consulted");
+        },
+      },
+    });
+
+    await adapter.putPendingDispatch({
+      link_token: "lt",
+      surface: CHANNEL,
+      surface_user_id: "u",
+      discussion_id: "D_1",
+      tenant_id: "t-acme",
+    });
+
+    const req = client.seen.PutPendingDispatch;
+    expect(req.tenant_id).toBe("t-acme");
+    // tenant_id is a sibling of pending, never nested inside it.
+    expect(req.pending?.tenant_id).toBeUndefined();
+    expect(req.pending.link_token).toBe("lt");
+  });
+
   test("RegistryTenantResolver threads the resolved tenant_id on every RPC", async () => {
     const client = recordingClient();
     const tenancyClient = {
