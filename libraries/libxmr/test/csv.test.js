@@ -288,3 +288,61 @@ describe("listMetrics", () => {
     assert.strictEqual(metrics[1].unit, "days");
   });
 });
+
+describe("route-decision context", () => {
+  test("parseLine stamps route fields from the note grammar", () => {
+    const row = parseLine(
+      '2026-06-20,implementations_shipped,0,count,run-1,"route_taken=3; routes_eligible=[3,4]; tail",kata-shift',
+    );
+    assert.strictEqual(row.routeTaken, "3");
+    assert.deepStrictEqual(row.routesEligible, ["3", "4"]);
+  });
+
+  test("parseLine leaves route fields empty for a plain note", () => {
+    const row = parseLine(
+      "2026-04-14,implementations_shipped,4,count,gh-backfill,merged PRs,kata-shift",
+    );
+    assert.strictEqual(row.routeTaken, "");
+    assert.deepStrictEqual(row.routesEligible, []);
+  });
+
+  test("validate rejects a post-convention route-bearing row missing route", () => {
+    const csv = [
+      HEADER_LINE,
+      "2026-06-20,implementations_shipped,0,count,run-1,no grammar here,kata-shift",
+    ].join("\n");
+    const { valid, errors } = validateCSV(csv);
+    assert.strictEqual(valid, false);
+    assert.ok(errors.some((e) => e.field === "route_taken" && e.line === 2));
+  });
+
+  test("validate rejects an unknown route on a post-convention row", () => {
+    const csv = [
+      HEADER_LINE,
+      '2026-06-20,implementations_shipped,0,count,run-1,"route_taken=9; routes_eligible=[]",kata-shift',
+    ].join("\n");
+    const { valid, errors } = validateCSV(csv);
+    assert.strictEqual(valid, false);
+    assert.ok(
+      errors.some(
+        (e) => e.field === "route_taken" && /unknown route/.test(e.message),
+      ),
+    );
+  });
+
+  test("validate leaves pre-convention route-bearing rows valid", () => {
+    const csv = [
+      HEADER_LINE,
+      "2026-06-05,implementations_shipped,0,count,run-1,no grammar,kata-shift",
+    ].join("\n");
+    assert.strictEqual(validateCSV(csv).valid, true);
+  });
+
+  test("validate ignores route context on non-route-bearing metrics", () => {
+    const csv = [
+      HEADER_LINE,
+      "2026-06-20,specs_drafted,1,count,run-1,plain note,kata-shift",
+    ].join("\n");
+    assert.strictEqual(validateCSV(csv).valid, true);
+  });
+});

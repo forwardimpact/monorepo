@@ -22,14 +22,29 @@ import { round1, round2 } from "./format.js";
 // date, each fired signal record gains a `provenance` value relative to that
 // slot. A non-corresponding anchor (backfill, correction, beyond series end)
 // and no anchor both leave records untouched.
-/** Group rows by metric (restricted to one event_type, default kata-shift; "*" for all rows), compute XmR statistics and signals, and classify each metric's process behavior; with a corresponding `priorReadAnchor` date, stamp per-signal provenance. */
+/** Group rows by metric (restricted to one event_type, default kata-shift; "*" for all rows), optionally partition by route-decision context, compute XmR statistics and signals, and classify each metric's process behavior; with a corresponding `priorReadAnchor` date, stamp per-signal provenance. */
 export function analyze(
   csvText,
-  { eventType = DEFAULT_SHIFT_TYPE, priorReadAnchor } = {},
+  {
+    eventType = DEFAULT_SHIFT_TYPE,
+    priorReadAnchor,
+    route,
+    routesEligibleIncludes,
+  } = {},
 ) {
   let rows = parseCSV(csvText);
   if (eventType !== "*") {
     rows = rows.filter((row) => row.eventType === eventType);
+  }
+  // Route partition is inert unless a filter is passed, so a plain analyze
+  // returns the same series it always has.
+  if (route !== undefined) {
+    rows = rows.filter((row) => row.routeTaken === String(route));
+  }
+  if (routesEligibleIncludes !== undefined) {
+    rows = rows.filter((row) =>
+      row.routesEligible.includes(String(routesEligibleIncludes)),
+    );
   }
 
   const groups = {};

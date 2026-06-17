@@ -5,6 +5,12 @@ import {
   ISO_DATE_RE,
   LEGACY_HEADER,
 } from "./constants.js";
+import {
+  CONVENTION_START,
+  isKnownRoute,
+  parseRouteContext,
+  ROUTE_BEARING_METRICS,
+} from "./routes.js";
 
 /** Error thrown when CSV text is structurally corrupted (git conflict markers) and must not be charted. */
 export class CSVIntegrityError extends Error {
@@ -56,15 +62,21 @@ export function parseLine(line) {
     current += char;
   }
   fields.push(current);
+  const note = fields[5] || "";
+  // Quote stripping above has already run, so parseRouteContext reads the
+  // unquoted note; route fields are empty for rows without the grammar.
+  const { routeTaken, routesEligible } = parseRouteContext(note);
   return {
     date: fields[0],
     metric: fields[1],
     value: Number(fields[2]),
     unit: fields[3] || "",
     run: fields[4] || "",
-    note: fields[5] || "",
+    note,
     eventType: fields[6] || "",
     hostRun: fields[7] || "",
+    routeTaken,
+    routesEligible,
     raw: { fields },
   };
 }
@@ -141,6 +153,35 @@ function validateRow(row, lineNumber, errors) {
       line: lineNumber,
       field: "event_type",
       message: "missing event_type",
+    });
+  }
+  validateRouteContext(row, lineNumber, errors);
+}
+
+// Forward-only route-decision check: a route-bearing metric row dated on or
+// after the convention start must carry a known route. Pre-convention rows
+// and non-route-bearing metrics are left untouched, so existing CSVs stay
+// valid.
+function validateRouteContext(row, lineNumber, errors) {
+  if (
+    !ROUTE_BEARING_METRICS.includes(row.metric) ||
+    !row.date ||
+    row.date < CONVENTION_START
+  ) {
+    return;
+  }
+  const { routeTaken } = parseRouteContext(row.note);
+  if (!routeTaken) {
+    errors.push({
+      line: lineNumber,
+      field: "route_taken",
+      message: "missing route-decision context on a route-bearing row",
+    });
+  } else if (!isKnownRoute(routeTaken)) {
+    errors.push({
+      line: lineNumber,
+      field: "route_taken",
+      message: `unknown route "${routeTaken}"`,
     });
   }
 }

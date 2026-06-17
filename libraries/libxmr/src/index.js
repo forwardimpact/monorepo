@@ -19,6 +19,15 @@ export { classify } from "./classify.js";
 export { analyze, roundStats } from "./analyze.js";
 export { fmt1, round1, round2 } from "./format.js";
 export {
+  ROUTES,
+  ROUTE_NONE,
+  ROUTE_BEARING_METRICS,
+  CONVENTION_START,
+  parseRouteContext,
+  formatRouteContext,
+  isKnownRoute,
+} from "./routes.js";
+export {
   d2,
   E2,
   D4,

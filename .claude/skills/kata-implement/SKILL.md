@@ -189,4 +189,6 @@ Append to the current week's log (see agent profile for the file path):
 - **Deferred specs** — Specs skipped and why (not ready, missing plan, etc.)
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
   per `references/metrics.md`. See KATA.md § Metrics for the
-  recording-eligibility rule.
+  recording-eligibility rule. The implementation metric is route-bearing:
+  record the route taken and routes eligible per
+  [`references/route-decision.md`](references/route-decision.md).

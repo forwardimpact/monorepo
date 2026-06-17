@@ -40,6 +40,15 @@ const definition = {
           description:
             "Prior-read anchor date (YYYY-MM-DD) — stamps each fired signal with recomputation-revealed or new-point provenance",
         },
+        route: {
+          type: "string",
+          description: "Partition to rows whose recorded route_taken matches",
+        },
+        "routes-eligible-includes": {
+          type: "string",
+          description:
+            "Partition to rows whose routes_eligible set includes this id",
+        },
       },
       handler: runAnalyzeCommand,
     },
@@ -134,6 +143,16 @@ const definition = {
         note: {
           type: "string",
           description: "Contextual note (optional)",
+        },
+        route: {
+          type: "string",
+          description:
+            "Route taken (required for route-bearing metrics, e.g. implementations_shipped)",
+        },
+        "routes-eligible": {
+          type: "string",
+          description:
+            "Comma-separated route ids that were eligible-but-not-taken",
         },
         "event-type": {
           type: "string",
