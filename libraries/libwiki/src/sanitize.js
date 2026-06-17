@@ -1,6 +1,6 @@
 const FIELD_CAP = 200;
 const ELLIPSIS = "…";
-const ZERO_WIDTH_SPACE = "​";
+const ZERO_WIDTH_SPACE = "\u200b";
 
 // Replace every newline, control character, or whitespace code point with a
 // single space, then collapse runs. Done by code-point inspection rather than a
