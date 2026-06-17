@@ -120,11 +120,14 @@ The JSON report for each metric carries:
   unusual?"
 - **`signals`** -- keyed by rule (`xRule1`, `xRule2`, `xRule3`, `mrRule1`). Each
   entry carries `slots` (1-indexed positions) and a `description`.
-- **`classification`** -- `stable`, `signals`, `chaos`, or `insufficient`.
+- **`classification`** -- `stable`, `signals`, `chaos`, `insufficient`, or
+  `degenerate-zero`.
 
 Read `classification` first. If it says `stable`, the latest point is within
-expected variation and no action is needed. If it says `signals`, look at the
-`signals` object to see which rules fired and where.
+expected variation and no action is needed. If it says `degenerate-zero`, the
+series is also quiet, but every observation is zero: it carries no process
+signal at all, so a predictability target is not substantively met by it. If it
+says `signals`, look at the `signals` object to see which rules fired and where.
 
 ## One process per chart
 
@@ -165,6 +168,7 @@ whole carries the diagnostic information, not just the final point.
 | `signals`        | At least one X-chart rule activated.                       | Investigate what changed.                           |
 | `chaos`          | mR Rule 1 activated. The variation itself is unstable.     | Investigate the outsized moves before trusting any limits. |
 | `insufficient`   | Fewer than 15 points. Limits are not computed.             | Keep recording.                                     |
+| `degenerate-zero` | Every observation is zero. Predictable, but the series carries no process signal. | Nothing to react to; a predictability target is not substantively met by it. |
 
 ## Summarize across metrics
 
@@ -205,9 +209,10 @@ Prints one row per metric with the observation count and date range.
 Do not set targets based on the natural process limits. They describe what the
 process does, not what it should do.
 
-Do not react to individual data points when the classification is `stable`.
-Routine variation is common-cause noise; treating it as a problem and
-intervening makes the process worse on average.
+Do not react to individual data points when the classification is `stable` or
+`degenerate-zero`. Both are quiet verdicts: `stable` is routine common-cause
+noise, and `degenerate-zero` is a flat-zero series with no signal at all.
+Treating either as a problem and intervening makes the process worse on average.
 
 ## What's next
 
