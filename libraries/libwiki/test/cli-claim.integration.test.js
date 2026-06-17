@@ -439,4 +439,54 @@ describe("claim/release push integration (real git)", () => {
       "foreign row conserved",
     );
   });
+
+  test("claim with a transport-failing push keeps zero exit + saved-locally warning (D1)", async () => {
+    // Break the remote so fetch and push fail at transport: the claim row
+    // landed locally, so the surface keeps a zero exit and warns saved-locally.
+    git(wikiDir, "remote", "set-url", "origin", "/nonexistent/remote.git");
+    const { harness, wikiSync } = harnessFor();
+    const result = await runClaimCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "spec-TTTT",
+          branch: "feat/x",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, true, "landed-locally claim keeps zero exit");
+    assert.match(harness.stderr, /saved locally/i);
+    assert.match(harness.stderr, /transport/);
+    assert.doesNotMatch(harness.stdout, /committed and pushed/);
+    assert.match(readFileSync(memPath, "utf-8"), /spec-TTTT/);
+  });
+
+  test("release --expired maps outcomes like claim (lands when healthy)", async () => {
+    // Seed an expired foreign claim, then release --expired and observe a
+    // healthy landed push removing the expired row.
+    writeFileSync(
+      memPath,
+      "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| old-agent | spec-OLD | b | - | 2000-01-01 | 2000-01-08 |\n",
+    );
+    const { harness, wikiSync } = harnessFor();
+    const result = await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          expired: true,
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, true);
+    assert.match(harness.stdout, /push: committed and pushed/);
+    // The expired row's removal landed (content state, not log output).
+    assert.doesNotMatch(git(wikiDir, "show", "HEAD:MEMORY.md"), /spec-OLD/);
+  });
 });

@@ -333,6 +333,51 @@ describe("WikiSync (real git)", () => {
       /foreign \| spec-9/,
     );
   });
+
+  test("residue-conflict: autostash pop conflict ⇒ refuse, stash preserved, push not attempted", async () => {
+    // Seed a shared file, then advance it on the remote AND leave a conflicting
+    // uncommitted foreign edit in the clone, while the agent's own scoped commit
+    // is on MEMORY.md. The scoped commit rebases clean (exit 0) but the autostash
+    // pop of the foreign residue conflicts — D9's sole conflict-capable site.
+    const { wikiDir: w1 } = cloneRepo(bare, "residue-seed");
+    git(w1, "checkout", "master");
+    writeFileSync(join(w1, "shared.md"), "base\n");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "seed shared");
+    git(w1, "push", "origin", "master");
+
+    const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "residue-clone");
+    git(w2, "checkout", "master");
+    // Sync w2 to the seed so its base matches, then advance the remote.
+    git(w2, "pull", "origin", "master");
+    writeFileSync(join(w1, "shared.md"), "remote advance\n");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "remote advance");
+    git(w1, "push", "origin", "master");
+
+    // Agent's own scoped change on MEMORY.md + a conflicting foreign edit on
+    // shared.md left uncommitted (autostashed during the rebase).
+    writeFileSync(join(w2, "MEMORY.md"), "# Memory\nmy row\n");
+    writeFileSync(join(w2, "shared.md"), "local conflicting edit\n");
+
+    let caught;
+    await assert.rejects(
+      () => makeSync(w2, p2).commitAndPush("wiki: claim", ["MEMORY.md"]),
+      (err) => {
+        caught = err;
+        return (
+          err instanceof WikiPushFailure && err.reason === "residue-conflict"
+        );
+      },
+    );
+    // The stash is preserved (named by SHA in the message) and the push never ran.
+    assert.ok(caught.stashSha, "stash SHA named on the refusal");
+    assert.match(
+      git(w2, "stash", "list"),
+      /stash@\{0\}/,
+      "the autostash entry is preserved",
+    );
+  });
 });
 
 describe("WikiSync resolveToken (real git)", () => {
