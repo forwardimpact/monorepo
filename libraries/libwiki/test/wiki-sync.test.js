@@ -404,40 +404,54 @@ describe("WikiSync ancestry guard (spec 1750)", () => {
     assert.deepEqual(result, { pushed: true, reason: "pushed" });
   });
 
-  test("shallow clone, deeper verification still unrelated ⇒ unrelated refusal", async () => {
+  // Captures the two shallow-clone refusal messages so the test below can
+  // assert their text differs (spec criterion 7: the could-not-verify error
+  // must read differently from the confirmed-unrelated refusal).
+  async function shallowRefusal(fetchDeepen) {
     const { git, wikiSync } = make({
       responses: {
         ...DIRTY_AHEAD,
         headBranch: "master",
         refExists: true,
         mergeBaseExists: false,
-        fetchDeepen: { stdout: "", stderr: "", exitCode: 0 },
+        fetchDeepen,
       },
       fsSync: createMockFs({ [`${WIKI}/.git/shallow`]: "" }),
     });
+    let caught;
     await assert.rejects(
       () => wikiSync.commitAndPush("wiki: update"),
-      (err) => err instanceof AncestryRefusal && err.kind === "unrelated",
+      (err) => {
+        caught = err;
+        return err instanceof AncestryRefusal;
+      },
     );
     assertNoWrite(git);
+    return caught;
+  }
+
+  test("shallow clone, deeper verification still unrelated ⇒ unrelated refusal", async () => {
+    const err = await shallowRefusal({ stdout: "", stderr: "", exitCode: 0 });
+    assert.equal(err.kind, "unrelated");
   });
 
-  test("shallow clone, deepening fetch fails ⇒ unverifiable refusal", async () => {
-    const { git, wikiSync } = make({
-      responses: {
-        ...DIRTY_AHEAD,
-        headBranch: "master",
-        refExists: true,
-        mergeBaseExists: false,
-        fetchDeepen: { stdout: "", stderr: "no network", exitCode: 1 },
-      },
-      fsSync: createMockFs({ [`${WIKI}/.git/shallow`]: "" }),
+  test("shallow clone, deepening fetch fails ⇒ unverifiable refusal, distinct text", async () => {
+    const confirmed = await shallowRefusal({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
     });
-    await assert.rejects(
-      () => wikiSync.commitAndPush("wiki: update"),
-      (err) => err instanceof AncestryRefusal && err.kind === "unverifiable",
+    const couldNotVerify = await shallowRefusal({
+      stdout: "",
+      stderr: "no network",
+      exitCode: 1,
+    });
+    assert.equal(couldNotVerify.kind, "unverifiable");
+    assert.notEqual(
+      couldNotVerify.message,
+      confirmed.message,
+      "could-not-verify text must differ from confirmed-unrelated",
     );
-    assertNoWrite(git);
   });
 
   test("genuinely empty remote with positive evidence ⇒ first commit accepted", async () => {

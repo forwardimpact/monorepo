@@ -224,5 +224,10 @@ describe("claim/release push integration (real git)", () => {
     assert.equal(result.code, 1);
     assert.match(harness.stderr, /not published/i);
     assert.equal(git(wikiDir, "rev-parse", "HEAD"), head);
+    // No release commit reached the remote.
+    assert.doesNotMatch(
+      git(bare, "log", "--oneline", "-5", "master"),
+      /wiki: release spec-NNNN/,
+    );
   });
 });
