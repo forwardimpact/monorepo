@@ -128,6 +128,62 @@ describe("runRules", () => {
     assert.ok(idsOf(audit(seed)).includes("weekly-log.h1-shape"));
   });
 
+  test("sealed parts of every legacy + new shape pass on day one (1770)", () => {
+    // Mirrors the live tree: legacy `(part N of M)`, bare title-cased, bare
+    // slug-cased on a staff-engineer file, and the new `(part N)` shape.
+    const seed = cleanSeed("2026-05-24", {
+      [`${WIKI}/staff-engineer-2026-W23-part1.md`]:
+        "# Staff Engineer — 2026-W23 (part 1 of 4)\n\nbody\n",
+      [`${WIKI}/staff-engineer-2026-W23-part2.md`]:
+        "# Staff Engineer — 2026-W23\n\nbody\n",
+      [`${WIKI}/staff-engineer-2026-W23-part3.md`]:
+        "# staff-engineer — 2026-W23\n\nbody\n",
+      [`${WIKI}/staff-engineer-2026-W23-part4.md`]:
+        "# Staff Engineer — 2026-W23 (part 4)\n\nbody\n",
+    });
+    const ids = idsOf(audit(seed));
+    assert.ok(!ids.includes("weekly-log-part.h1-shape"), "no shape finding");
+    assert.ok(
+      !ids.includes("weekly-log-part.h1-agent-matches-filename"),
+      "no agent-prefix finding (slug-match covers casing)",
+    );
+  });
+
+  test("new (part N) shape valid; structurally broken still fails (1770)", () => {
+    const seed = cleanSeed("2026-05-24", {
+      [`${WIKI}/staff-engineer-2026-W23-part1.md`]:
+        "# Staff Engineer — 2026-W23 (part 1 of 2)\n\nbody\n",
+      [`${WIKI}/staff-engineer-2026-W23-part2.md`]:
+        "# Staff Engineer — 2026-W23\n\nbody\n",
+      [`${WIKI}/staff-engineer-2026-W23-part3.md`]:
+        "# Staff Engineer — 2026-W23 (part 3)\n\nbody\n",
+      // Bad week token (W2 not W23) → the only shape finding.
+      [`${WIKI}/staff-engineer-2026-W23-part4.md`]:
+        "# Staff Engineer — 2026-W2 (part 4)\n\nbody\n",
+    });
+    const shapeFindings = audit(seed).filter(
+      (f) => f.id === "weekly-log-part.h1-shape",
+    );
+    assert.equal(shapeFindings.length, 1);
+    assert.match(shapeFindings[0].path, /part4\.md$/);
+  });
+
+  test("agent-prefix mismatch flagged on a (part N) part; slug-equal not (1770)", () => {
+    const seed = cleanSeed("2026-05-24", {
+      // Title slug 'wrong-title' ≠ filename prefix 'staff-engineer' → flagged.
+      [`${WIKI}/staff-engineer-2026-W23-part1.md`]:
+        "# Wrong Title — 2026-W23 (part 1)\n\nbody\n",
+      // Casing/separator-only difference is slug-equal → not flagged.
+      [`${WIKI}/staff-engineer-2026-W23-part2.md`]:
+        "# staff-engineer — 2026-W23 (part 2)\n\nbody\n",
+    });
+    const mism = audit(seed).filter(
+      (f) => f.id === "weekly-log-part.h1-agent-matches-filename",
+    );
+    assert.equal(mism.length, 1);
+    assert.match(mism[0].path, /part1\.md$/);
+  });
+
   test("decision-block: each missing entry produces one finding", () => {
     const seed = cleanSeed("2026-06-22", {
       [`${WIKI}/staff-engineer-2026-W25.md`]: [

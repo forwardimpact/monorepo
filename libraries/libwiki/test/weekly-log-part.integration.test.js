@@ -11,7 +11,10 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { rebisectOverBudgetPart } from "../src/weekly-log.js";
+import {
+  rebisectOverBudgetPart,
+  rotateIfOverBudget,
+} from "../src/weekly-log.js";
 import { WEEKLY_LOG_LINE_BUDGET } from "../src/constants.js";
 
 // rebisectOverBudgetPart's split branch seals via fs.renameSync, which the
@@ -162,10 +165,21 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     assert.equal(r.status, "resealed");
     assert.equal(r.parts[0], partPath, "the past-week source slot is reused");
     assert.match(r.parts[1], /staff-engineer-2026-W10-part2\.md$/);
+    // The H1 carries the part's own (past) week and numbers the slot it
+    // occupies — (part 2) on part2.md, no stale "of M" total (spec 1770).
     assert.match(
       readFileSync(r.parts[1], "utf-8"),
-      /^# Staff Engineer — 2026-W10 \(part \d+ of \d+\)/,
-      "produced H1s carry the part's own (past) week",
+      /^# Staff Engineer — 2026-W10 \(part 2\)/,
+      "produced H1 numbers its own slot and carries the part's week",
+    );
+    assert.doesNotMatch(
+      readFileSync(r.parts[1], "utf-8"),
+      /\(part \d+ of \d+\)/,
+    );
+    // The reused source slot keeps part 1.
+    assert.match(
+      readFileSync(r.parts[0], "utf-8"),
+      /^# Staff Engineer — 2026-W10 \(part 1\)/,
     );
   });
 
@@ -236,5 +250,130 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     assert.equal(readFileSync(partPath, "utf-8"), original, "source intact");
     assert.equal(statSync(partPath).ino, inodeBefore, "source inode unchanged");
     assert.deepEqual(leftoversBesidesSource(), [], "no staged temps survive");
+  });
+});
+
+// Seal-path H1 numbering: every produced part's H1 equals the slot it occupies
+// (spec 1770), on both the rotation path and beside pre-occupied siblings.
+describe("rotateIfOverBudget — H1 numbers the filename slot (1770)", () => {
+  let wikiRoot;
+  beforeEach(() => {
+    wikiRoot = mkdtempSync(join(tmpdir(), "weekly-log-rotate-"));
+  });
+  afterEach(() => rmSync(wikiRoot, { recursive: true, force: true }));
+
+  const H1 = (n) =>
+    n === undefined
+      ? "# Staff Engineer — 2026-W21"
+      : `# Staff Engineer — 2026-W21 (part ${n})`;
+  const mainPath = () => join(wikiRoot, "staff-engineer-2026-W21.md");
+  const slot = (n) => join(wikiRoot, `staff-engineer-2026-W21-part${n}.md`);
+  const multiDay = (sections, lines = 150) => {
+    let t = `${H1()}\n`;
+    for (let s = 0; s < sections; s++) {
+      t += `## 2026-05-${String(18 + s).padStart(2, "0")}\n`;
+      for (let i = 1; i < lines; i++) t += "filler\n";
+    }
+    return t;
+  };
+
+  test("first rotation: each produced part opens with its slot number, no of-M", () => {
+    writeFileSync(mainPath(), multiDay(4));
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      "staff-engineer",
+      "2026-05-24",
+      0,
+      { force: true },
+      nodeFs,
+    );
+    assert.equal(r.status, "sealed");
+    assert.ok(r.parts.length >= 2);
+    r.parts.forEach((p) => {
+      const n = Number(p.match(/-part(\d+)\.md$/)[1]);
+      assert.ok(
+        readFileSync(p, "utf-8").startsWith(`${H1(n)}\n`),
+        `slot ${n} H1`,
+      );
+      assert.doesNotMatch(readFileSync(p, "utf-8"), /\(part \d+ of \d+\)/);
+    });
+  });
+
+  test("rotation beside occupied slots 1–4 continues the sequence in the headers", () => {
+    for (let n = 1; n <= 4; n++) writeFileSync(slot(n), `${H1(n)}\nold\n`);
+    writeFileSync(mainPath(), multiDay(4));
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      "staff-engineer",
+      "2026-05-24",
+      0,
+      { force: true },
+      nodeFs,
+    );
+    assert.equal(r.status, "sealed");
+    // New parts land on slots ≥5 with matching headers; the legacy 1–4 untouched.
+    r.parts.forEach((p) => {
+      const n = Number(p.match(/-part(\d+)\.md$/)[1]);
+      assert.ok(n >= 5, "new parts continue past the occupied slots");
+      assert.ok(
+        readFileSync(p, "utf-8").startsWith(`${H1(n)}\n`),
+        `slot ${n} H1`,
+      );
+    });
+    for (let n = 1; n <= 4; n++) {
+      assert.equal(readFileSync(slot(n), "utf-8"), `${H1(n)}\nold\n`);
+    }
+  });
+
+  test("force-rotate of a single chunk onto slot 5 reads (part 5), not (part 1 of 1)", () => {
+    for (let n = 1; n <= 4; n++) writeFileSync(slot(n), `${H1(n)}\nold\n`);
+    // A small single-day log: seals as one chunk onto the next free slot (5).
+    writeFileSync(mainPath(), `${H1()}\n## 2026-05-19\nfiller\nfiller\n`);
+    const r = rotateIfOverBudget(
+      wikiRoot,
+      "staff-engineer",
+      "2026-05-24",
+      0,
+      { force: true },
+      nodeFs,
+    );
+    assert.equal(r.status, "sealed");
+    assert.equal(r.parts.length, 1);
+    assert.match(r.parts[0], /-part5\.md$/);
+    assert.match(
+      readFileSync(r.parts[0], "utf-8"),
+      /^# Staff Engineer — 2026-W21 \(part 5\)\n/,
+    );
+    assert.doesNotMatch(readFileSync(r.parts[0], "utf-8"), /part 1 of 1/);
+  });
+
+  test("re-bisecting a part on slot 2 beside parts 1,3 numbers each sub-part by its slot", () => {
+    // Occupy slots 1 and 3; slot 2 is the over-budget part to re-bisect.
+    writeFileSync(slot(1), `${H1(1)}\nkept\n`);
+    writeFileSync(slot(3), `${H1(3)}\nkept\n`);
+    let over = `${H1(2)}\n`;
+    for (let s = 0; s < 4; s++) {
+      over += `## 2026-05-${String(18 + s).padStart(2, "0")}\n`;
+      for (let i = 1; i < 150; i++) over += "filler\n";
+    }
+    writeFileSync(slot(2), over);
+    const r = rebisectOverBudgetPart(slot(2), nodeFs);
+    assert.equal(r.status, "resealed");
+    // Source slot 2 keeps (part 2); fresh siblings take the next free slots (≥4).
+    assert.match(
+      readFileSync(slot(2), "utf-8"),
+      /^# Staff Engineer — 2026-W21 \(part 2\)\n/,
+    );
+    r.parts.slice(1).forEach((p) => {
+      const n = Number(p.match(/-part(\d+)\.md$/)[1]);
+      assert.ok(n >= 4, "fresh siblings skip occupied slots 1,2,3");
+      assert.ok(
+        readFileSync(p, "utf-8").startsWith(`${H1(n)}\n`),
+        `slot ${n} H1`,
+      );
+    });
+    // Slots 1 and 3 are byte-identical (never renumbered).
+    assert.equal(readFileSync(slot(1), "utf-8"), `${H1(1)}\nkept\n`);
+    assert.equal(readFileSync(slot(3), "utf-8"), `${H1(3)}\nkept\n`);
   });
 });

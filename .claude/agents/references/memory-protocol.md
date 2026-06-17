@@ -102,11 +102,31 @@ limits can diverge later.
 
 Overflow rotates: `log` seals the current file as
 `<agent>-YYYY-Www-partN.md` and writes the day's append into a fresh
-`<agent>-YYYY-Www.md`. No part is ever rewritten — the append-only audit
-guarantee is preserved by rename, not in-place edit.
+`<agent>-YYYY-Www.md`. A sealed part is never rewritten for cosmetics and a
+sibling is never renumbered — the append-only guarantee is preserved by rename,
+not in-place edit. The one sanctioned rewrite is the in-place re-bisection of a
+single over-budget part (`fit-wiki fix`), which splits that part's own content
+across fresh sibling slots without touching any other part. The sealed-part H1
+grammar lives in [§ Wiki Filename Grammar](#wiki-filename-grammar).
 
 Every dated `## YYYY-MM-DD` entry opens with `### Decision` (required;
 `audit` enforces).
+
+## Wiki Filename Grammar
+
+The single home for what the wiki tree's structured files are named and titled.
+
+**Sealed weekly-log part heading.** A freshly sealed part's H1 is
+`# <agent> — YYYY-Www (part N)`, where **N is the part's own filename slot** (the
+`N` in `<agent>-YYYY-Www-partN.md`). The header therefore agrees with the
+filename at seal time and forever after, on both seal paths — whole-log rotation
+and over-budget re-bisection. There is no "of M" total: under the
+never-renumber invariant M is unknowable at seal time and goes stale on the next
+seal. The main (unsealed) log keeps the suffix-less `# <agent> — YYYY-Www`.
+
+Legacy parts are grandfathered: the audit accepts the bare heading and the
+historical `(part N of M)` shape alongside `(part N)`, with no scheduled sunset.
+Structurally broken headings (bad week token, missing separator) still fail.
 
 ## Cross-Cutting Priorities
 

@@ -136,10 +136,12 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
   const nl = text.indexOf("\n");
   const body = nl === -1 ? "" : text.slice(nl + 1);
   const title = agentTitle(agent);
-  // `(part N of M)` costs the same 1 line and 4 word-tokens regardless of the
-  // digits in N/M, so a fixed template measures every part exactly without
-  // needing to know M before packing finishes.
-  const h1Template = `# ${title} — ${isoWeekStr} (part 1 of 1)`;
+  // The `(part N)` suffix costs 1 line and 2 word-tokens regardless of the
+  // digits in N (`countWords` tokenises N as one token), so a fixed-N template
+  // measures every part exactly. The slot number N is not known here — it is
+  // discovered by the seal's `nextFreeSlots` — so the bisector renders only
+  // bodies and hands the seal a `renderH1(n)` to call with the real slot.
+  const h1Template = `# ${title} — ${isoWeekStr} (part 1)`;
   const measure = (chunk) => {
     const rendered = `${h1Template}\n${chunk}`;
     return { lines: countLines(rendered), words: countWords(rendered) };
@@ -148,14 +150,12 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
     const { lines, words } = measure(chunk);
     return lines > WEEKLY_LOG_LINE_BUDGET || words > WEEKLY_LOG_WORD_BUDGET;
   };
-  const partH1 = (n, m) => `# ${title} — ${isoWeekStr} (part ${n} of ${m})`;
-  const finish = (partBodies, residue) => {
-    const m = partBodies.length;
-    return {
-      parts: partBodies.map((b, i) => ({ h1: partH1(i + 1, m), body: b })),
-      residue,
-    };
-  };
+  const renderH1 = (n) => `# ${title} — ${isoWeekStr} (part ${n})`;
+  const finish = (partBodies, residue) => ({
+    parts: partBodies.map((b) => ({ body: b })),
+    residue,
+    renderH1,
+  });
 
   // Locate the day-section seams (date at line-start, trailing suffix
   // tolerated, e.g. `## 2026-05-19 (third activation)`).
@@ -238,17 +238,18 @@ function commitAtomic(leading, anchor, fs) {
  * `-partN.md` slot paths in part order.
  *
  * @param {string} filePath - The current weekly-log path.
- * @param {Array<{h1: string, body: string}>} parts - Ordered parts to seal.
+ * @param {Array<{body: string}>} parts - Ordered part bodies to seal.
+ * @param {(n: number) => string} renderH1 - Renders `(part N)` for slot N.
  * @param {string} agent
  * @param {string} isoWeekStr
  * @param {object} fs - Sync filesystem surface.
  * @returns {string[]} The `-partN.md` slot paths, in part order.
  */
-function atomicSeal(filePath, parts, agent, isoWeekStr, fs) {
+function atomicSeal(filePath, parts, renderH1, agent, isoWeekStr, fs) {
   const slots = nextFreeSlots(filePath, parts.length, fs);
-  const leading = slots.map((path, i) => ({
-    path,
-    content: `${parts[i].h1}\n${parts[i].body}`,
+  const leading = slots.map((slotPath, i) => ({
+    path: slotPath,
+    content: `${renderH1(parsePartPath(slotPath).partNumber)}\n${parts[i].body}`,
   }));
   const anchor = { path: filePath, content: defaultH1(agent, isoWeekStr) };
   return commitAtomic(leading, anchor, fs);
@@ -293,8 +294,8 @@ export function rotateIfOverBudget(
     return { status: "noop", fromPath: filePath };
   }
   const isoWeekStr = isoWeekString(today);
-  const { parts, residue } = bisectWeeklyLog(text, agent, isoWeekStr);
-  const slots = atomicSeal(filePath, parts, agent, isoWeekStr, fs);
+  const { parts, residue, renderH1 } = bisectWeeklyLog(text, agent, isoWeekStr);
+  const slots = atomicSeal(filePath, parts, renderH1, agent, isoWeekStr, fs);
   if (residue === null) {
     return { status: "sealed", fromPath: filePath, parts: slots };
   }
@@ -322,11 +323,12 @@ export function rotateIfOverBudget(
 function parsePartPath(partPath) {
   const m = path.basename(partPath).match(WEEKLY_LOG_PART_NAME_RE);
   if (!m) return null;
-  const [, agent, year, week] = m;
+  const [, agent, year, week, part] = m;
   const isoWeekStr = `${year}-W${week}`;
   return {
     agent,
     isoWeekStr,
+    partNumber: Number(part),
     mainLogPath: path.join(path.dirname(partPath), `${agent}-${isoWeekStr}.md`),
   };
 }
@@ -338,15 +340,15 @@ function parsePartPath(partPath) {
  * commit never clobbers a sibling nor a rollback unlinks a pre-existing one.
  * Returns `[partPath, ...newSlots]` in part order.
  */
-function atomicResealPart(partPath, mainLogPath, parts, fs) {
+function atomicResealPart(partPath, mainLogPath, parts, renderH1, fs) {
   const newSlots = nextFreeSlots(mainLogPath, parts.length - 1, fs);
-  const leading = newSlots.map((path, i) => ({
-    path,
-    content: `${parts[i + 1].h1}\n${parts[i + 1].body}`,
+  const leading = newSlots.map((slotPath, i) => ({
+    path: slotPath,
+    content: `${renderH1(parsePartPath(slotPath).partNumber)}\n${parts[i + 1].body}`,
   }));
   const anchor = {
     path: partPath,
-    content: `${parts[0].h1}\n${parts[0].body}`,
+    content: `${renderH1(parsePartPath(partPath).partNumber)}\n${parts[0].body}`,
   };
   commitAtomic(leading, anchor, fs);
   return [partPath, ...newSlots];
@@ -379,7 +381,7 @@ export function rebisectOverBudgetPart(partPath, fs) {
   if (lines <= WEEKLY_LOG_LINE_BUDGET && words <= WEEKLY_LOG_WORD_BUDGET) {
     return { status: "noop", fromPath: partPath };
   }
-  const { parts, residue } = bisectWeeklyLog(
+  const { parts, residue, renderH1 } = bisectWeeklyLog(
     text,
     parsed.agent,
     parsed.isoWeekStr,
@@ -406,7 +408,13 @@ export function rebisectOverBudgetPart(partPath, fs) {
       },
     };
   }
-  const slots = atomicResealPart(partPath, parsed.mainLogPath, parts, fs);
+  const slots = atomicResealPart(
+    partPath,
+    parsed.mainLogPath,
+    parts,
+    renderH1,
+    fs,
+  );
   if (residue === null) {
     return { status: "resealed", fromPath: partPath, parts: slots };
   }

@@ -68,9 +68,11 @@ describe("isoWeek", () => {
 });
 
 describe("bisectWeeklyLog", () => {
-  // Every part's rendered text (H1 + body) is at-or-under both budgets.
-  const partConforms = (p) => {
-    const rendered = `${p.h1}\n${p.body}`;
+  // Every part's rendered text (H1 + body) is at-or-under both budgets. The
+  // bisector renders bodies only; the seal renders the `(part N)` H1, so the
+  // header is measured here via the returned renderH1 at a representative slot.
+  const partConforms = (p, renderH1, n) => {
+    const rendered = `${renderH1(n)}\n${p.body}`;
     return (
       countLines(rendered) <= WEEKLY_LOG_LINE_BUDGET &&
       countWords(rendered) <= WEEKLY_LOG_WORD_BUDGET
@@ -87,14 +89,16 @@ describe("bisectWeeklyLog", () => {
       daySection("2026-05-20", 150),
       daySection("2026-05-21", 150),
     );
-    const { parts, residue } = bisectWeeklyLog(
+    const { parts, residue, renderH1 } = bisectWeeklyLog(
       text,
       "staff-engineer",
       "2026-W21",
     );
     assert.equal(residue, null);
     assert.ok(parts.length >= 2, "splits into multiple parts");
-    for (const p of parts) assert.ok(partConforms(p), "every part conforms");
+    parts.forEach((p, i) =>
+      assert.ok(partConforms(p, renderH1, i + 1), "every part conforms"),
+    );
   });
 
   test("over only the word budget across days → ≥2 conforming parts", () => {
@@ -107,14 +111,14 @@ describe("bisectWeeklyLog", () => {
     );
     assert.ok(countLines(text) <= WEEKLY_LOG_LINE_BUDGET, "under the line cap");
     assert.ok(countWords(text) > WEEKLY_LOG_WORD_BUDGET, "over the word cap");
-    const { parts, residue } = bisectWeeklyLog(
+    const { parts, residue, renderH1 } = bisectWeeklyLog(
       text,
       "staff-engineer",
       "2026-W21",
     );
     assert.equal(residue, null);
     assert.ok(parts.length >= 2);
-    for (const p of parts) assert.ok(partConforms(p));
+    parts.forEach((p, i) => assert.ok(partConforms(p, renderH1, i + 1)));
   });
 
   test("loses and duplicates no content; cuts only at day seams", () => {
@@ -142,7 +146,7 @@ describe("bisectWeeklyLog", () => {
     );
   });
 
-  test("H1s number (part 1 of M) … (part M of M)", () => {
+  test("renderH1 numbers each part by its slot N — (part N), never of M", () => {
     const text = source(
       H1,
       daySection("2026-05-18", 150),
@@ -150,11 +154,22 @@ describe("bisectWeeklyLog", () => {
       daySection("2026-05-20", 150),
       daySection("2026-05-21", 150),
     );
-    const { parts } = bisectWeeklyLog(text, "staff-engineer", "2026-W21");
-    const m = parts.length;
-    parts.forEach((p, i) => {
-      assert.equal(p.h1, `# Staff Engineer — 2026-W21 (part ${i + 1} of ${m})`);
-    });
+    const { parts, renderH1 } = bisectWeeklyLog(
+      text,
+      "staff-engineer",
+      "2026-W21",
+    );
+    // The header carries the slot number alone — no stale-prone "of M" total.
+    assert.ok(parts.length >= 2);
+    assert.equal(renderH1(1), "# Staff Engineer — 2026-W21 (part 1)");
+    assert.equal(renderH1(5), "# Staff Engineer — 2026-W21 (part 5)");
+    assert.doesNotMatch(renderH1(1), / of /);
+    // D4: the bisector's measurement template equals the seal's rendered header
+    // even at a two-digit slot — one line, two word-tokens regardless of digits.
+    const m1 = `# Staff Engineer — 2026-W21 (part 1)`;
+    const m12 = renderH1(12);
+    assert.equal(countLines(m1), countLines(m12));
+    assert.equal(countWords(m1), countWords(m12));
   });
 
   test("irreducible lone day-section → residue named with its date", () => {
@@ -165,7 +180,7 @@ describe("bisectWeeklyLog", () => {
       daySection("2026-05-19", 600),
       daySection("2026-05-20", 50),
     );
-    const { parts, residue } = bisectWeeklyLog(
+    const { parts, residue, renderH1 } = bisectWeeklyLog(
       text,
       "staff-engineer",
       "2026-W21",
@@ -177,7 +192,7 @@ describe("bisectWeeklyLog", () => {
     assert.match(parts[residue.partIndex].body, /^## 2026-05-19/);
     parts.forEach((p, i) => {
       if (i !== residue.partIndex) {
-        const rendered = `${p.h1}\n${p.body}`;
+        const rendered = `${renderH1(i + 1)}\n${p.body}`;
         assert.ok(countLines(rendered) <= WEEKLY_LOG_LINE_BUDGET);
       }
     });
@@ -218,7 +233,7 @@ describe("bisectWeeklyLog", () => {
       daySection("2026-05-19", 50),
       daySection("2026-05-20", 600),
     );
-    const { parts, residue } = bisectWeeklyLog(
+    const { parts, residue, renderH1 } = bisectWeeklyLog(
       text,
       "staff-engineer",
       "2026-W21",
@@ -229,7 +244,8 @@ describe("bisectWeeklyLog", () => {
     // part — none ships silently.
     assert.equal(residue.section, "2026-05-18");
     const overCap = parts.filter(
-      (p) => countLines(`${p.h1}\n${p.body}`) > WEEKLY_LOG_LINE_BUDGET,
+      (p, i) =>
+        countLines(`${renderH1(i + 1)}\n${p.body}`) > WEEKLY_LOG_LINE_BUDGET,
     );
     assert.equal(overCap.length, 2, "both irreducible parts are present");
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));

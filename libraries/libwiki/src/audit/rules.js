@@ -295,7 +295,7 @@ export const RULES = [
     severity: "fail",
     check: firstLineMatches(WEEKLY_LOG_H1_RE),
     message: () => "Missing valid H1 heading",
-    hint: "set the H1 to '# <agent> — YYYY-Www (part N of M)'",
+    hint: "set the H1 to '# <agent> — YYYY-Www (part N)' where N is the filename slot; legacy '(part N of M)' and bare headings remain valid on historical parts",
   },
   {
     id: "weekly-log-part.line-budget",
