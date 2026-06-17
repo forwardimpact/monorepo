@@ -14,7 +14,7 @@ shared-state verdict.
 | `check` and `wiki` scripts | root `package.json` | `check` drops its trailing `&& bun run wiki` (the shared-state audit); local rule coverage now rides solely on `bun run test`, by intent. New `wiki:rules` script runs `bun test` over `libraries/libwiki/test/audit-*.test.js`. Standalone `wiki` (live `fit-wiki audit`) stays for whoever is actually auditing the wiki. |
 | Scheduled wiki-curation audit | `.github/workflows/curate-wiki.yml` (new, `permissions: { contents: read, issues: write }`, single-`concurrency` group) | Daily cron: read-only checkout of the `.wiki` repo + `bunx fit-wiki audit --format json` (no agent), then on findings opens/updates one labeled issue addressed to the technical-writer via the job's `GITHUB_TOKEN`. Reuses the per-PR job's existing checkout pattern — no sibling action. Sole home of the shared-state verdict. |
 | Curation cadence statement | technical-writer agent profile | One line naming the cadence and pointing at `curate-wiki.yml`. |
-| Wiki-coupled surfaces + gate meaning | `.github/CLAUDE.md` § Wiki gate | Enumerated surface list and the gate-meaning paragraph below. |
+| Wiki-coupled surfaces + gate meaning | comment beside the `wiki` job in `.github/workflows/check-context.yml` | Enumerated surface list and the gate-meaning paragraph below. Spec § Scope permits the workflow-adjacent home; `.github/CLAUDE.md` has no instruction-budget headroom for it. |
 
 ## Data flow
 
@@ -47,7 +47,7 @@ The PR lane never reads live wiki state; the curation lane never gates a PR.
 | Curation cadence home | A concrete cron in `curate-wiki.yml` plus a one-line statement in the technical-writer agent profile | Add the cadence to the published `kata-wiki-curate` skill | Spec § Out of scope forbids incident-fitting published skill text; the cadence is monorepo-local infrastructure, observable in the workflow run record (spec success criterion). |
 | Routing contract | The scheduled audit opens-or-updates one issue with a fixed title-key (search-by-title, comment-or-create), via the job's `GITHUB_TOKEN` with `issues: write`; a `concurrency` group serializes overlapping runs so the check-then-create cannot duplicate. "Naming an owner" is satisfied by the `wiki-curation` label and body text addressing the technical-writer, not a GitHub assignee (an App/agent profile is not a reliably assignable user) | A fresh issue per tick, or a `fit-wiki memo` from CI | A stable title-key plus concurrency gives the idempotent "single labeled issue" the success criterion checks. CI has no agent session to author a memo; the issue is the durable named-owner artifact. |
 
-## Wiki-coupled surfaces (documented in `.github/CLAUDE.md`)
+## Wiki-coupled surfaces (documented beside the `wiki` job)
 
 A change is wiki-coupled when it can alter what the audit verifies or how:
 
@@ -59,7 +59,7 @@ This is the answer to "what can change the `wiki` check's verdict." It is
 documentation, not a runtime path filter — the residual check exercises these
 surfaces by running their tests.
 
-## Gate meaning (documented in `.github/CLAUDE.md`)
+## Gate meaning (documented beside the `wiki` job in `check-context.yml`)
 
 > A red `wiki` check — on a PR or on the `main` push run — means **this commit's
 > diff broke a wiki audit rule or its tooling**, not that the shared wiki is

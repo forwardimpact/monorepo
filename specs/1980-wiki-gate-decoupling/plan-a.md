@@ -122,12 +122,12 @@ than opening a second.
 
 Intent: the gate's meaning, the wiki-coupled surfaces, and the cadence are
 documented in monorepo-local homes.
-Files modified: `.github/CLAUDE.md`; `.claude/agents/technical-writer.md`.
+Files modified: `.github/workflows/check-context.yml`; `.claude/agents/technical-writer.md`.
 
-- `.github/CLAUDE.md`: add a `## Wiki gate` section with (a) the wiki-coupled-surface list (`libraries/libwiki/**`; the `wiki`/`wiki:rules` scripts; `.github/workflows/check-context.yml`), and (b) the gate-meaning paragraph from design-a § Gate meaning.
-- Technical-writer agent profile: one line stating the shared-state audit runs daily (06:00 UTC) via `curate-wiki.yml` — the same value as the cron, stated once — and that the curator services its routed `wiki-curation` issues.
+- `.github/workflows/check-context.yml`: a comment block beside the `wiki` job with (a) the wiki-coupled-surface list (`libraries/libwiki/**`; the `wiki`/`wiki:rules` scripts; `.github/workflows/check-context.yml`), and (b) the gate-meaning paragraph from design-a § Gate meaning. (Spec § Scope permits this workflow-adjacent home; `.github/CLAUDE.md` has no instruction-budget headroom, so the doc lands here rather than there.)
+- Technical-writer agent profile: one line stating the shared-state audit runs daily via `curate-wiki.yml` and that the curator services its routed `wiki-curation` issues. The exact cron value (06:00 UTC) lives once, in `curate-wiki.yml`.
 
-Verify: `.github/CLAUDE.md` answers "what does a red `wiki` check mean / who owns shared-state findings" without referencing the spec; the agent profile line names the daily cadence and points at `curate-wiki.yml`.
+Verify: the gate doc answers "what does a red `wiki` check mean / who owns shared-state findings" without referencing the spec; the agent profile line names the cadence and points at `curate-wiki.yml`.
 
 ## Risks
 

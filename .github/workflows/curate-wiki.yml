@@ -2,7 +2,8 @@ name: Curate wiki
 
 # The shared-state wiki audit, on a defined cadence. This is the SOLE home of
 # the shared-wiki audit verdict — the per-PR `wiki` check (check-context.yml)
-# no longer reads live wiki state. See .github/CLAUDE.md § Wiki gate.
+# no longer reads live wiki state. See the gate doc beside the `wiki` job in
+# check-context.yml.
 on:
   schedule:
     - cron: "0 6 * * *" # daily 06:00 UTC

@@ -123,28 +123,3 @@ collisions. Example from `kata-shift.yml`:
 ```yaml
 case: ${{ matrix.agent.name }}
 ```
-
-## Wiki gate
-
-The `wiki` job in `check-context.yml` (PR and push-to-`main`) runs
-`bun run wiki:rules` — the libwiki audit-rule tests against committed
-fixtures. A **red `wiki` check means this commit's diff broke a wiki audit
-rule or its tooling**, not that the shared wiki is currently dirty. The check
-never reads the live wiki, so it is deterministic across re-runs and immune to
-concurrent wiki writes.
-
-Shared-wiki audit findings are owned by the scheduled curation run
-(`curate-wiki.yml`, daily): it audits the live wiki read-only and routes
-findings to a single `wiki-curation` issue addressed to the technical-writer.
-They never redden a commit-status gate.
-
-A change is **wiki-coupled** — it can alter what the audit verifies or how —
-when it touches:
-
-- `libraries/libwiki/**` — the audit rules, engine, CLI, and their tests.
-- The `wiki` and `wiki:rules` scripts in the root `package.json`.
-- `.github/workflows/check-context.yml` — the check's own definition.
-
-This list is documentation, not a runtime path filter: `wiki:rules` exercises
-these surfaces by running their tests, so the verdict is already scoped to
-them.
