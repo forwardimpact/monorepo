@@ -8,6 +8,7 @@ export {
 export { computeXmR } from "./stats.js";
 export {
   detectSignals,
+  stampProvenance,
   buildSignalMask,
   buildMRSignalMask,
   hasAnySignal,
