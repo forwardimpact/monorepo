@@ -86,6 +86,15 @@ gh pr checks <number>
 Clean (mergeable, CI green, up-to-date) → continue to Step 6. Behind, stale, or
 conflicting → rebase (Step 5). CI failing → fix (Step 5) or block.
 
+**Experiment-PR exception (no rebase while pinned).** Before routing a
+behind/stale PR to Step 5, check whether it is an experiment PR (Step 6's
+discriminator) with an `approved`-and-pinned `exp:{issue}` STATUS row. If so,
+**do not rebase it** — a rebase moves the head and silently invalidates the
+pin. Skip Step 5 and take it straight to Step 6, where the head-pin check
+re-blocks it (`awaiting approval signal`) until a fresh human signal covers the
+new base. The rebase exception is decided here, before Step 5 runs, so the
+gate never auto-rebases a pinned experiment PR.
+
 ### Step 5: Rebase + Mechanical Fixes
 
 ```sh
