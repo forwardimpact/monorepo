@@ -116,6 +116,9 @@ message) also feed STATUS for plans. See
 [`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md) and
 [`coordination-protocol.md` § Approval signal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#approval-signal).
 
+**Post-panel coverage.** A commit between the panel and the STATUS write must not let the row silently claim head coverage: record a scoped panel re-read on the PR, or a dual-SHA PR comment naming the panel-clean and amendment SHAs.
+Retires when approval rows carry a commit pin.
+
 ## Reviewing a Plan
 
 Evaluate the plan against the DO-CONFIRM checklist. If all criteria are

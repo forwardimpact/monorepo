@@ -44,32 +44,31 @@ Verification: `kata-plan` SKILL.md diff shows (i) the § Approval convention
 with both options (a)/(b) and the generic interim marker, and (ii) the Step 7
 guard sentence preceding the STATUS-write instruction (criteria 1, 4).
 
-## Step 2: Gate-side fail-closed clause in `kata-release-merge` Step 6
+## Step 2: Gate-side fail-closed clause in `kata-release-merge` Step 6 (consolidated — no edit)
 
 Intent: the gate blocks on disclosed post-panel head movement absent coverage
 evidence, and carries the two-state record verbatim when it passes on (b).
 
-Files modified: `.claude/skills/kata-release-merge/SKILL.md`.
+Files modified: none. This step is **superseded on `main`** and consolidated
+away. After this plan was drafted, the spec-1635 interim fail-closed sentence
+landed in `kata-release-merge` Step 6 (`When the PR's review record shows
+commits landed after the last clean review round, fail closed — blocked
+(review coverage unverifiable at head) — until SHA-anchored evidence covers
+the gap: a scoped delta review of those commits, or a record naming both the
+reviewed SHA and the head (interim — retires when approval rows carry a commit
+pin).`). That sentence already expresses this step's gate-side rule — block on
+post-panel head movement until a scoped delta re-read or a dual-SHA record
+covers the gap, retiring at the commit pin. Adding a second block here would
+duplicate one rule across two homes (per the master-plan #1758 consolidation of
+the 1790/1810 overlap). The durable pin mechanism arrives via spec 1790.
 
-Append to Step 6, immediately after the existing prohibitive sentence
-(verbatim in the current file: "Timestamp ordering between a STATUS write and
-head commits is not coverage evidence; never cite it as such in merge
-rationale."):
+The gate-side half therefore needs no skill edit; only the writer-side
+convention (Step 1, `kata-plan`) is new. The success criteria below that
+referenced this step's skill diff are met by the existing Step 6 sentence.
 
-> When gate-readable evidence on the PR (a panel-coverage annotation, a
-> disclosure, or a panel record) shows the head moved beyond the panel-certified
-> state, **block** (`awaiting coverage evidence`) unless the PR also carries
-> positive coverage evidence: a scoped delta re-read record, or a dual-SHA
-> annotation naming the panel-clean SHA and the not-panel-read amendment SHA.
-> When passing on a dual-SHA annotation, the merge rationale reproduces both
-> SHAs verbatim and never claims head coverage. Absent any such gate-readable
-> evidence of post-panel movement, the bare-row pass stands. This rule is
-> interim; it retires when approval rows carry a commit pin.
-
-Verification: `kata-release-merge` SKILL.md Step 6 diff shows the positive
-block clause keyed to disclosed movement, the verbatim-rationale requirement,
-and the generic interim marker (criteria 2, 4); the explicit bare-row residual
-sentence is present (criterion 2 zero-evidence default).
+Verification: `kata-release-merge` SKILL.md Step 6 carries the spec-1635
+fail-closed sentence (`review coverage unverifiable at head`); no second
+gate-side coverage block is added.
 
 ## Step 3: Two-state walkthrough + genericity/length self-check on the PR
 
