@@ -58,7 +58,7 @@ export function runRotateCommand(ctx) {
         `section ${section} alone exceeds the budget ` +
           `(${lines} lines, ${words} words) and has no finer seam to split ` +
           `at: ${residuePath}\n` +
-          `recover it by hand — shorten the block ` +
+          `recover it by hand — shorten the section ` +
           `(see the memory protocol's manual-recovery convention)`,
       );
       return { ok: false, code: 1 };
