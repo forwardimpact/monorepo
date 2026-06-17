@@ -35,14 +35,11 @@ jobs:
         with:
           command: jtbd
 
+  # Verifies this PR's diff against the wiki audit RULES (committed fixtures) —
+  # not the shared wiki's live state. See .github/CLAUDE.md § Wiki gate.
   wiki:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: forwardimpact/fit-bootstrap@22e7a8a053c22cf56d6f4efb95fcf0b3d42267c8 # v1
-      - name: Checkout wiki (read-only)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-        with:
-          repository: ${{ github.repository }}.wiki
-          path: wiki
-      - run: bun run wiki
+      - run: bun run wiki:rules

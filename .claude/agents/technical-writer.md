@@ -44,8 +44,12 @@ Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 _Skip when handed a specific task._ Survey domain state, then choose the
 highest-priority action:
 
-1. **Stale or inaccurate cross-agent observations?** -- `kata-wiki-curate`
-   (check agent summaries for unacknowledged observations or stale data)
+1. **Stale or inaccurate cross-agent observations, or an open `wiki-curation`
+   issue?** -- `kata-wiki-curate` (check agent summaries for unacknowledged
+   observations or stale data). The shared-state audit runs daily (06:00 UTC)
+   via `.github/workflows/curate-wiki.yml`, which routes findings it cannot
+   fix to a single `wiki-curation` issue addressed to you; service those here.
+   The per-PR `wiki` gate no longer carries shared-state findings.
 2. **Documentation topic due for review?** -- Review one topic in depth
    (`kata-documentation`; check: coverage map in `wiki/technical-writer.md`)
 3. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
