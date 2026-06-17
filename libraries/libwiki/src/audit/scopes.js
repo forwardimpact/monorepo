@@ -4,6 +4,8 @@ import { parseClaims } from "../active-claims.js";
 import { countLines, countWords } from "../budget.js";
 import { parseStatusRowId } from "../status.js";
 import {
+  CARRY_SURFACE_H1_RE,
+  CARRY_SURFACE_NAME_RE,
   PRIORITY_INDEX_HEADING,
   WEEKLY_LOG_NAME_RE,
   WEEKLY_LOG_PART_NAME_RE,
@@ -75,6 +77,11 @@ function loadFile(filePath, fs) {
   const base = path.basename(filePath);
   const weekMatch =
     base.match(WEEKLY_LOG_NAME_RE) || base.match(WEEKLY_LOG_PART_NAME_RE);
+  const carryMatch = base.match(CARRY_SURFACE_NAME_RE);
+  let agentPrefix;
+  if (weekMatch) agentPrefix = weekMatch[1];
+  else if (carryMatch) agentPrefix = carryMatch[1];
+  else agentPrefix = base.replace(/\.md$/, "");
   return {
     path: filePath,
     text,
@@ -83,7 +90,7 @@ function loadFile(filePath, fs) {
     h2s,
     lines: countLines(text),
     words: countWords(text),
-    agentPrefix: weekMatch ? weekMatch[1] : base.replace(/\.md$/, ""),
+    agentPrefix,
   };
 }
 
@@ -101,6 +108,17 @@ function classifyFile(filePath, fs) {
     return { kind: "weekly-log-part", subject: loadFile(filePath, fs) };
   }
   const subject = loadFile(filePath, fs);
+  // Carry surface: a `<agent>-carries.md` whose H1 matches the Carry H1 RE.
+  // Both axes must match (filename prefix and H1), mirroring the summary
+  // classifier. The two H1 REs end in distinct literals (`— Carries` vs
+  // `— Summary`) so the branches cannot cross-capture regardless of order;
+  // a name-match + H1-miss is left unclassified, like a malformed summary.
+  if (CARRY_SURFACE_NAME_RE.test(base)) {
+    if (CARRY_SURFACE_H1_RE.test(subject.firstLine)) {
+      return { kind: "carry-surface", subject };
+    }
+    return null;
+  }
   // Files that do not match a summary or weekly-log shape are left
   // unclassified: stray files are not audited.
   if (!SUMMARY_H1_RE.test(subject.firstLine)) return null;
@@ -219,6 +237,7 @@ const SCOPE_RESOLVERS = {
   "weekly-log-main": (ctx) => ctx.subjects["weekly-log-main"],
   "weekly-log-part": (ctx) => ctx.subjects["weekly-log-part"],
   "metrics-csv": (ctx) => ctx.subjects["metrics-csv"],
+  "carry-surface": (ctx) => ctx.subjects["carry-surface"],
   memory: (ctx) => [ctx.memory],
   "claims-row": (ctx) =>
     parseClaims(ctx.memory.text).map((c) => ({ ...c, path: ctx.memory.path })),
@@ -322,6 +341,7 @@ export function buildContext({ wikiRoot, today, fs, subprocess }) {
     "weekly-log-main": [],
     "weekly-log-part": [],
     "metrics-csv": [],
+    "carry-surface": [],
   };
   for (const file of listMdFiles(wikiRoot, fs)) {
     const classified = classifyFile(file, fs);

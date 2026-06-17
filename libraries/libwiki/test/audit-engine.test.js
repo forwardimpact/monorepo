@@ -240,6 +240,77 @@ describe("runRules", () => {
     );
   });
 
+  test("valid carry surface: no carry-surface findings", () => {
+    const seed = cleanSeed("2026-05-24", {
+      [`${WIKI}/release-engineer-carries.md`]: [
+        "# release-engineer — Carries",
+        "",
+        "### Dependent-spec carry",
+        "",
+        "**Carry-clearance:** spec merges + plan-approved.",
+        "",
+        "### Experiment-verdict carry",
+        "",
+        "**Carry-clearance:** verdict horizon reached.",
+        "",
+      ].join("\n"),
+    });
+    const carry = idsOf(audit(seed)).filter((id) =>
+      id.startsWith("carry-surface."),
+    );
+    assert.deepEqual(carry, []);
+  });
+
+  test("carry entry missing clearance trigger: one finding per block", () => {
+    const seed = cleanSeed("2026-05-24", {
+      [`${WIKI}/release-engineer-carries.md`]: [
+        "# release-engineer — Carries",
+        "",
+        "### Has trigger",
+        "",
+        "**Carry-clearance:** verdict horizon.",
+        "",
+        "### Missing trigger",
+        "",
+        "body with no clearance line",
+        "",
+      ].join("\n"),
+    });
+    const offenders = audit(seed).filter(
+      (f) => f.id === "carry-surface.entry-has-clearance",
+    );
+    assert.equal(offenders.length, 1);
+  });
+
+  test("carry surface H1 slug mismatch fires", () => {
+    const seed = cleanSeed("2026-05-24", {
+      [`${WIKI}/release-engineer-carries.md`]: [
+        "# wrong-agent — Carries",
+        "",
+        "### Entry",
+        "",
+        "**Carry-clearance:** verdict.",
+        "",
+      ].join("\n"),
+    });
+    const finding = audit(seed).find(
+      (f) => f.id === "carry-surface.h1-agent-matches-filename",
+    );
+    assert.ok(finding);
+    assert.match(finding.message, /slug 'wrong-agent'/);
+  });
+
+  test("carry-named file without the Carry H1 is unclassified", () => {
+    const seed = cleanSeed("2026-05-24", {
+      [`${WIKI}/release-engineer-carries.md`]:
+        "# Not A Carry Surface\n\nbody\n",
+    });
+    const carry = idsOf(audit(seed)).filter((id) =>
+      id.startsWith("carry-surface."),
+    );
+    assert.deepEqual(carry, []);
+  });
+
   test("missing storyboard fires storyboard.current-month-exists", () => {
     const seed = { [`${WIKI}/MEMORY.md`]: MEMORY_NONE };
     assert.ok(idsOf(audit(seed)).includes("storyboard.current-month-exists"));

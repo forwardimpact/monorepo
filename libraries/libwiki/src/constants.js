@@ -80,6 +80,17 @@ export const WEEKLY_LOG_SEAM_RE = /^## (\d{4}-\d{2}-\d{2})/;
 // than this delimit sessions in the wiki history. 30 minutes.
 export const SESSION_GAP_MS = 30 * 60 * 1000;
 
+// Carry-surface filename and H1 convention: `<agent>-carries.md` with an H1
+// `# <agent> — Carries`. The name capture group is the agent prefix (used by
+// the H1↔filename agreement rule). A Carry entry names its clearance trigger
+// with the `**Carry-clearance:**` marker — the existing live convention in
+// `wiki/release-engineer.md § Message Inbox`, preserved verbatim so the
+// migration relocates without re-marking. One home so the audit's classifier
+// (audit/scopes.js) and rules (audit/rules.js) cannot drift on the syntax.
+export const CARRY_SURFACE_NAME_RE = /^(.+)-carries\.md$/;
+export const CARRY_SURFACE_H1_RE = /^# (.+) — Carries$/;
+export const CARRY_CLEARANCE_MARKER_RE = /\*\*Carry-clearance:\*\*/;
+
 // Storyboard marker syntax. An open or close marker tolerates optional trailing
 // text after the tag (typically an inline "Do not edit. Generated from fit-wiki
 // refresh." notice). One home so the marker scanner (marker-scanner.js) and the

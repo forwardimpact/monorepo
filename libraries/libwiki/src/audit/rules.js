@@ -5,6 +5,8 @@ import {
   ACTIVE_CLAIMS_TABLE_HEADER,
   AGENT_EXPERIMENTS_CLOSE_RE,
   AGENT_EXPERIMENTS_OPEN_RE,
+  CARRY_CLEARANCE_MARKER_RE,
+  CARRY_SURFACE_H1_RE,
   DECISION_HEADING,
   ISSUE_CLOSE_RE,
   ISSUE_OPEN_RE,
@@ -183,6 +185,44 @@ const weeklyAgentMismatch = (s) => {
   if (!m) return null;
   const titleSlug = slugify(m[1]);
   return titleSlug === s.agentPrefix ? null : { titleSlug };
+};
+
+// Carry surface: the H1 agent slug (`# <agent> — Carries`) must agree with the
+// filename prefix (`<agent>-carries.md`), the carry analogue of the summary /
+// weekly-log agreement rules. The H1 is the slug form already, so slugify is a
+// no-op for well-formed files; it normalises a stray capitalisation otherwise.
+const carryAgentMismatch = (s) => {
+  const m = s.firstLine.match(CARRY_SURFACE_H1_RE);
+  if (!m) return null;
+  const titleSlug = slugify(m[1]);
+  return titleSlug === s.agentPrefix ? null : { titleSlug };
+};
+
+// Each Carry entry is an H3 block; every block must name a clearance trigger
+// (the `**Carry-clearance:**` marker). Walk the file's H3 boundaries and emit
+// one finding per block missing the marker — the finding[]-returning shape
+// `nothingAfterH2` uses.
+const carryEntryHasClearance = (s) => {
+  const offenders = [];
+  let blockStart = -1;
+  let hasMarker = false;
+  const close = () => {
+    if (blockStart !== -1 && !hasMarker) {
+      offenders.push({ lineNo: blockStart + 1 });
+    }
+  };
+  for (let i = 0; i < s.fileLines.length; i++) {
+    const line = s.fileLines[i];
+    if (/^### /.test(line)) {
+      close();
+      blockStart = i;
+      hasMarker = false;
+    } else if (blockStart !== -1 && CARRY_CLEARANCE_MARKER_RE.test(line)) {
+      hasMarker = true;
+    }
+  }
+  close();
+  return offenders.length === 0 ? null : offenders;
 };
 
 const AGENT_H3_REQUIREMENTS = STORYBOARD_DOMAIN_AGENTS.map((agent) => ({
@@ -388,6 +428,30 @@ export const RULES = [
     message: (s, r) =>
       `H1 title slug '${r.titleSlug}' does not match filename prefix '${s.agentPrefix}'`,
     hint: "rename either the H1 or the file so they agree",
+  },
+
+  // -- Carry surfaces --
+  // No `h1-shape` rule: unlike the weekly logs (classified on filename alone),
+  // the carry classifier (scopes.js) requires the Carry H1 before assigning the
+  // scope, so a malformed-H1 file is left unclassified rather than reaching an
+  // h1-shape rule. The two rules below are the reachable, failable set (SC #2).
+
+  {
+    id: "carry-surface.h1-agent-matches-filename",
+    scope: "carry-surface",
+    severity: "fail",
+    check: carryAgentMismatch,
+    message: (s, r) =>
+      `H1 title slug '${r.titleSlug}' does not match filename prefix '${s.agentPrefix}'`,
+    hint: "rename either the H1 ('# <agent> — Carries') or the file so they agree",
+  },
+  {
+    id: "carry-surface.entry-has-clearance",
+    scope: "carry-surface",
+    severity: "fail",
+    check: carryEntryHasClearance,
+    message: () => "Carry entry lacks a '**Carry-clearance:**' trigger line",
+    hint: "every '### ' Carry entry must name its clearance trigger with a '**Carry-clearance:**' line so the surface stays enumerable at boot",
   },
 
   // -- MEMORY.md --
