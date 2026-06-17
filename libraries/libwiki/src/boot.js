@@ -132,8 +132,8 @@ function bulletItem(threshold, agent) {
 // Advance the agent-section scan for one storyboard line that is NOT inside the
 // materialized block. Returns the next `inAgent` state and pushes an h3-bullet
 // item for the booting agent when one is found. An h2 ends the agent-section
-// scan (team-wide sections follow the last agent h3 — without this the scan ran
-// past the agent sections, #1669).
+// scan (team-wide sections follow the last agent h3 — without this the scan
+// would run past the agent sections and misattribute team-wide bullets).
 function scanAgentLine(line, agent, inAgent, items) {
   if (/^## /.test(line)) return false;
   const h3Match = line.match(/^### (.+)$/);
@@ -153,6 +153,7 @@ function parseStoryboardItems(text, agent) {
   for (const line of text.split("\n")) {
     // The materialized block carries `- #N [agent] …` bullets that the agent
     // scan must never capture; track it so the bullet loop skips inside it.
+    // (Without it the legacy scan double-counted these as the last agent's bullets.)
     if (AGENT_EXPERIMENTS_OPEN_RE.test(line)) {
       inBlock = true;
       inAgent = false;

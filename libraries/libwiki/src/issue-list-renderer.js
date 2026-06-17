@@ -6,7 +6,7 @@ import { sanitizeCrossingField, sanitizeTitle } from "./sanitize.js";
  * Thrown when the tracker query for the agent-experiments materialization fails
  * (non-zero exit or unparseable JSON). Distinct from returning `[]` so the
  * refresh command can keep the previously materialized block instead of wiping
- * the routing surface (spec 1880, What Changes item 2).
+ * the routing surface when the tracker is briefly unavailable.
  */
 export class TrackerQueryError extends Error {
   /** @param {string} reason */
@@ -107,7 +107,7 @@ export async function renderIssueList({
 }
 
 /**
- * Render the attributed per-agent experiments surface (spec 1880). Fetches open
+ * Render the attributed per-agent experiments surface. Fetches open
  * issues labeled `experiment`, keeps only those also carrying an
  * `agent:{name}` label, and emits one sanitized, body-free line per issue:
  * `- #<number> [<agent>] <title> (by <author>)`. Issue bodies are never read.

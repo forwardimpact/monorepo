@@ -103,10 +103,11 @@ export const STORYBOARD_AGENTS = [
 ];
 
 /**
- * The live storyboard shape (spec 1880): per-agent `### {agent}` h3 with an h4
+ * The live storyboard shape: per-agent `### {agent}` h3 with an h4
  * metric + fenced XmR block and at least one live-format agent-section bullet, a
- * team-wide `## ` h2 immediately after the last agent section (PR #1669
- * regression shape), and the materialized `agent-experiments` block with a
+ * team-wide `## ` h2 immediately after the last agent section (the
+ * h2-after-last-agent regression shape), and the materialized
+ * `agent-experiments` block with a
  * stamp + one attributed item. No dead-format agent-section bullets.
  * @param {string} [yyyymm] - e.g. "2026-05".
  * @returns {string}

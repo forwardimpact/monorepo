@@ -32,7 +32,7 @@ async function deriveParentRepo(gitClient, parentDir, env) {
 // label-re-checked, sanitized item lines. On a tracker failure the previously
 // materialized body (stamp + items) is preserved verbatim so boot keeps serving
 // the last good routing surface instead of an empty one, and the timestamp is
-// not advanced (spec 1880, What Changes item 2; criteria 3, 4).
+// not advanced, so staleness stays auditable from the stamp.
 async function renderAgentExperimentsBlock(block, lines, ghContext, runtime) {
   const priorBody = lines.slice(block.openLine + 1, block.closeLine);
   try {

@@ -95,7 +95,7 @@ export const ISSUE_OPEN_RE =
 export const ISSUE_CLOSE_RE =
   /^<!--\s*\/(obstacles|experiments)(?:\s+[^>]*?)?\s*-->\s*$/;
 
-// Materialized per-agent experiments surface (spec 1880). A distinct marker
+// Materialized per-agent experiments surface. A distinct marker
 // kind from `experiments:open` — it carries attributed, sanitized items plus a
 // last-successful-sync stamp, and is read offline by `fit-wiki boot`. One home
 // so the scanner (marker-scanner.js), the refresh renderer (commands/refresh.js),
