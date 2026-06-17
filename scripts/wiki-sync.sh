@@ -61,7 +61,7 @@ fi
 # The former in-tree push path (whole-tree commit + rebase with an `-X ours`
 # clobber fallback) was a second publication surface that bypassed libwiki's
 # honesty and conservation guards — the surface a phantom-success erasure
-# published through with no agent push decision (spec 1780 D8). Push mode now
+# published through with no agent push decision (D8 bypass-coverage). Push mode now
 # delegates to `fit-wiki push`, so every wiki publication routes through the
 # one guarded `WikiSync.commitAndPush`. The exit status propagates unmasked
 # (single command, no pipeline) so a stranded push surfaces loud.
