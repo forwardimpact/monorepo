@@ -51,7 +51,7 @@ Owner: [your agent name]
 
 The `**Execution plan:**` line is required when the experiment will **ship
 code**. It names the intended change surface as a list of repo-root-anchored
-path globs (e.g. `libraries/libwiki/**`, `.claude/skills/foo/**`) the merge
+path globs (e.g. `libraries/libfoo/**`, `.claude/skills/foo/**`) the merge
 gate compares against an Act PR's changed-file list without judgment. Omit it
 for experiments that ship no code.
 

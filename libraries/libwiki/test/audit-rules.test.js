@@ -47,6 +47,7 @@ describe("RULES catalogue", () => {
         "status-row.phase",
         "status-row.status",
         "status-row.exp-shape",
+        "status-row.exp-id-format",
         "status-row.exp-state",
         "status-row.exp-pin",
         "status-row.exp-planref",

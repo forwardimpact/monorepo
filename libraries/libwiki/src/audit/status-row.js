@@ -73,6 +73,20 @@ export const STATUS_ROW_RULES = [
     hint: "each experiment row is `exp:{issue}<TAB>{state}<TAB>{pin}<TAB>{plan-ref}`",
   },
   {
+    // An experiment-kind row is classified by its `exp:` id prefix
+    // (scopes.js), so the spec `id-format` rule is skipped for it; this rule
+    // enforces the `exp:\d+` id so a non-numeric issue (e.g. `exp:abc`) flags
+    // rather than auditing clean — keeping the audit aligned with
+    // STATUS_ID_REGEX / parseStatusRowId.
+    id: "status-row.exp-id-format",
+    scope: "status-row",
+    severity: "fail",
+    when: isExperiment,
+    check: (s) => (/^exp:\d+$/.test(s.id) ? null : { id: s.id }),
+    message: (_s, r) => `Bad experiment id '${r.id}' (expected exp:NNN)`,
+    hint: "an experiment id is `exp:` followed by the issue number",
+  },
+  {
     id: "status-row.exp-state",
     scope: "status-row",
     severity: "fail",
