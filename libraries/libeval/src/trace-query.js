@@ -408,12 +408,12 @@ function carriedPerTurn(turns) {
  */
 function isPreChangeDoc(version) {
   if (typeof version !== "string") return false;
-  const [major = 0, minor = 0, patch = 0] = version
+  const [major = 0, minor = 0] = version
     .split(".")
     .map((part) => parseInt(part, 10) || 0);
   if (major !== 1) return major < 1;
-  if (minor !== 2) return minor < 2;
-  return patch < 0;
+  // Per-message accounting arrived in 1.2.0; any 1.2.x is post-change.
+  return minor < 2;
 }
 
 /**
