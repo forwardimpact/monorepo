@@ -339,6 +339,34 @@ describe("WikiSync", () => {
     );
   });
 
+  test("an auth/network push failure is not contention: it rethrows, not loops", async () => {
+    const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip\n" });
+    const { wikiSync, git } = make({
+      fsSync,
+      responses: {
+        ...HEALTHY_ANCESTRY,
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 1, stderr: "CONFLICT" },
+        revListCount: 1,
+        // A credential failure — not a non-fast-forward rejection.
+        push: { throw: "could not read Username: terminal prompts disabled" },
+      },
+    });
+    await assert.rejects(
+      wikiSync.commitAndPush("wiki: claim t", ["MEMORY.md"], {
+        reapply: (fresh) => `${fresh}row\n`,
+        maxReapply: 3,
+      }),
+      /could not read Username/,
+    );
+    // The auth failure rethrew on the first push — it did not burn the budget.
+    assert.equal(
+      git.calls.filter((c) => c.method === "push").length,
+      1,
+      "auth failure must not retry across rounds",
+    );
+  });
+
   test("a conflict without a reapply keeps the mergeOursStrategy floor", async () => {
     const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip\n" });
     const { wikiSync, methods } = make({

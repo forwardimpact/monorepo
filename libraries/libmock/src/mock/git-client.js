@@ -28,8 +28,10 @@ const GIT_METHODS = [
 // A response may be a per-call sequence: an array is consumed one entry per
 // invocation, reusing the last entry once exhausted, so a test can express
 // "push rejected on call 1, succeeds on call 2". A sequence entry that is an
-// Error (or `{ throw: <message> }`) is thrown — modelling a method like `push`
-// that surfaces a rejection by throwing through GitClient's `#runRaw`.
+// Error is thrown as-is; `{ throw: <message>, stderr?: <text> }` is thrown as an
+// Error carrying that stderr — modelling how GitClient's `#runRaw` surfaces a
+// failure (the real GitError exposes `.stderr`), so a caller inspecting stderr
+// (e.g. to tell a push rejection from an auth failure) sees a faithful shape.
 function makeResponder(configured) {
   if (!Array.isArray(configured)) return () => configured;
   let i = 0;
@@ -40,7 +42,9 @@ function resolveResponse(responder) {
   const value = responder();
   if (value instanceof Error) throw value;
   if (value && typeof value === "object" && "throw" in value) {
-    throw new Error(value.throw);
+    const err = new Error(value.throw);
+    err.stderr = value.stderr ?? value.throw;
+    throw err;
   }
   return value;
 }

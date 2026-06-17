@@ -16,6 +16,18 @@ export class WikiPullConflict extends Error {
   }
 }
 
+// A push rejected because the remote tip moved (non-fast-forward) is the
+// re-apply loop's retry signal; an auth or network failure is not contention.
+// git surfaces a rejection on stderr with these markers.
+const PUSH_REJECTION_RE =
+  /\b(rejected|non-fast-forward|fetch first|tip of your current branch is behind)\b/i;
+
+/** Whether a thrown push error is a non-fast-forward rejection (vs. auth/network). */
+function isPushRejection(err) {
+  const text = `${err?.stderr ?? ""}\n${err?.message ?? ""}`;
+  return PUSH_REJECTION_RE.test(text);
+}
+
 /**
  * Error thrown when the ancestry guard refuses to commit or push because the
  * relationship between the history that would be published and the remote
@@ -186,18 +198,19 @@ export class WikiSync {
    * first publication is re-judged rather than auto-re-granted. The guard
    * creates no commit, attempts no push, and adds no working-tree changes.
    *
-   * **Singleton merge discipline (spec 1920).** When a rebase conflict arises
-   * for a *registered* row-structured singleton (every committed path is in
-   * `SINGLETON_PATHS`) and the caller supplied a `reapply` operation, the
-   * contended hunk is never resolved textually: the conflicting commit is
-   * dropped (`resetSoft`, working tree preserved), only the registered file is
-   * reset to the fresh tip (`checkoutPaths`), the operation is re-derived
-   * against that tip's content, re-committed, and pushed — bounded by
-   * `maxReapply`. Push rejection (a newer tip) drives the retry; exhaustion
-   * fails loud with {@link WikiSyncConflict}. Foreign rows and untouched prose
-   * ride through from the tip. Without a `reapply` the conflict keeps the
-   * `-X ours` fallback (spec 1780's floor to remove later); prose surfaces and
-   * unregistered paths therefore stay on today's behavior.
+   * **Singleton merge discipline (spec 1920).** The discipline applies when a
+   * rebase conflict arises for a *registered* row-structured singleton (the
+   * single committed path is in `SINGLETON_PATHS`) and the caller supplied a
+   * `reapply` operation. The contended hunk is then never resolved textually.
+   * The conflicting local commit is dropped with `resetSoft`, which preserves
+   * the working tree. Only the registered file is reset to the fresh tip with
+   * `checkoutPaths`. The operation is re-derived against that tip's content,
+   * re-committed, and pushed, bounded by `maxReapply`. A rejected push (the tip
+   * moved again) drives the retry; exhaustion fails loud with
+   * {@link WikiSyncConflict}. Foreign rows and untouched prose ride through from
+   * the tip. Without a `reapply` the conflict keeps the `-X ours` fallback, the
+   * floor spec 1780 will later remove, so prose surfaces and unregistered paths
+   * stay on today's behavior.
    *
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs limiting what gets committed.
@@ -269,13 +282,19 @@ export class WikiSync {
     for (let round = 0; round < maxReapply; round++) {
       await this.fetch();
       await this.#git.resetSoft("origin/master", { cwd: this.#wikiDir });
-      await this.#git.checkoutPaths("origin/master", paths, {
+      // Reset only the registered file to the tip. `resetSoft` leaves the
+      // working tree (so the dropped commit's copy of the file may linger), so
+      // a non-zero checkout — the tip lacks the file (a founding write) — means
+      // the fresh base is empty, NOT the lingering local copy.
+      const checkout = await this.#git.checkoutPaths("origin/master", paths, {
         cwd: this.#wikiDir,
         allowMissing: true,
       });
-      const freshText = this.#runtime.fsSync.existsSync(filePath)
-        ? this.#runtime.fsSync.readFileSync(filePath, "utf-8")
-        : "";
+      const tipHasFile = (checkout?.exitCode ?? 0) === 0;
+      const freshText =
+        tipHasFile && this.#runtime.fsSync.existsSync(filePath)
+          ? this.#runtime.fsSync.readFileSync(filePath, "utf-8")
+          : "";
       const newText = reapply(freshText);
       if (newText === null) {
         // The op is already satisfied on the tip; HEAD now equals the tip.
@@ -286,8 +305,12 @@ export class WikiSync {
       try {
         await this.#authed().push("origin", "master", { cwd: this.#wikiDir });
         return { pushed: true, reason: "reapplied" };
-      } catch {
-        // Push rejected by a newer tip — re-derive against it next round.
+      } catch (err) {
+        // Only a rejected push (the tip moved again) is a retry signal. An auth
+        // or network failure is not contention: rethrow it so the caller
+        // degrades to "saved locally" rather than burning the budget and
+        // misreporting a conflict that never happened.
+        if (!isPushRejection(err)) throw err;
       }
     }
     throw new WikiSyncConflict(paths, "reapply-bound");

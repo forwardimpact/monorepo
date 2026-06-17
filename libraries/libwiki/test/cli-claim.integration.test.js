@@ -337,4 +337,103 @@ describe("claim/release push integration (real git)", () => {
       "the released row is gone from the tip",
     );
   });
+
+  test("re-applying a release after the row is already gone leaves it absent (criterion 3)", async () => {
+    // Seed with the SE row, push; a sibling then BOTH adds a foreign row AND
+    // removes the SE row on the tip. The local release must not resurrect it.
+    writeFileSync(
+      memPath,
+      appendClaim(EMPTY_CLAIMS, makeClaim("staff-engineer", "1910")).text,
+    );
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed se row");
+    git(wikiDir, "push", "origin", "master");
+    // Sibling tip: only the foreign row remains (SE row already released there).
+    const { wikiDir: sib } = cloneRepo(bare, "sib-release");
+    git(sib, "checkout", "master");
+    writeFileSync(
+      join(sib, "MEMORY.md"),
+      appendClaim(EMPTY_CLAIMS, makeClaim("product-manager", "1900")).text,
+    );
+    git(sib, "add", "-A");
+    git(sib, "commit", "-m", "foreign release+claim");
+    git(sib, "push", "origin", "master");
+
+    const { harness, wikiSync } = harnessFor();
+    await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "1910",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    const { wikiDir: verify } = cloneRepo(bare, "rel-absent-verify");
+    git(verify, "checkout", "master");
+    const targets = parseClaims(
+      readFileSync(join(verify, "MEMORY.md"), "utf-8"),
+    ).map((c) => `${c.agent}/${c.target}`);
+    assert.ok(targets.includes("product-manager/1900"), "foreign row intact");
+    assert.ok(
+      !targets.includes("staff-engineer/1910"),
+      "released row stays absent — re-apply did not resurrect it",
+    );
+  });
+
+  test("--expired re-derived on a renewed tip leaves the renewal intact (criterion 3 freshness)", async () => {
+    // Local read sees an expired SE row; the tip carries a RENEWED (future
+    // expiry) SE row landed since the stale read, plus a foreign row. The
+    // expiry re-apply must re-derive against the tip and spare the renewal.
+    const expired = {
+      ...makeClaim("staff-engineer", "1910"),
+      expires_at: "2000-01-01",
+    };
+    writeFileSync(memPath, appendClaim(EMPTY_CLAIMS, expired).text);
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed expired");
+    git(wikiDir, "push", "origin", "master");
+    // Sibling renews the SE row (future expiry) and adds a foreign row.
+    const { wikiDir: sib } = cloneRepo(bare, "sib-renew");
+    git(sib, "checkout", "master");
+    let tipText = appendClaim(
+      EMPTY_CLAIMS,
+      makeClaim("staff-engineer", "1910"), // 2099 expiry = renewed
+    ).text;
+    tipText = appendClaim(tipText, makeClaim("product-manager", "1900")).text;
+    writeFileSync(join(sib, "MEMORY.md"), tipText);
+    git(sib, "add", "-A");
+    git(sib, "commit", "-m", "renew + foreign");
+    git(sib, "push", "origin", "master");
+
+    const { harness, wikiSync } = harnessFor();
+    await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          expired: true,
+          today: "2099-01-01",
+        },
+      }),
+    );
+    const { wikiDir: verify } = cloneRepo(bare, "expired-verify");
+    git(verify, "checkout", "master");
+    const claims = parseClaims(
+      readFileSync(join(verify, "MEMORY.md"), "utf-8"),
+    );
+    const se = claims.find(
+      (c) => c.agent === "staff-engineer" && c.target === "1910",
+    );
+    assert.ok(se, "the renewed SE row survives the expiry re-apply");
+    assert.equal(se.expires_at, "2099-01-08", "the renewal, not the stale row");
+    assert.ok(
+      claims.some((c) => c.target === "1900"),
+      "foreign row conserved",
+    );
+  });
 });
