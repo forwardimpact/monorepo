@@ -3,6 +3,7 @@ import {
   DEFAULT_SHIFT_TYPE,
   HEADER,
   ISO_DATE_RE,
+  LEGACY_HEADER,
 } from "./constants.js";
 
 /** Error thrown when CSV text is structurally corrupted (git conflict markers) and must not be charted. */
@@ -37,7 +38,7 @@ function assertNoConflictMarkers(text) {
 // Parse one CSV line into a row object. Quote-aware but does NOT support
 // the `""` escape inside quoted fields — Kata-metrics CSVs use the `note`
 // field for free text and the schema does not require embedded quotes.
-/** Parse a single CSV line into a row object with date, metric, value, unit, run, and note fields. */
+/** Parse a single CSV line into a row object with date, metric, value, unit, run, note, event_type, and host_run fields. */
 export function parseLine(line) {
   const fields = [];
   let current = "";
@@ -63,6 +64,7 @@ export function parseLine(line) {
     run: fields[4] || "",
     note: fields[5] || "",
     eventType: fields[6] || "",
+    hostRun: fields[7] || "",
     raw: { fields },
   };
 }
@@ -90,8 +92,12 @@ export function validateCSV(text) {
 
   const lines = text.trim().split("\n");
 
-  if (lines[0].trim() !== HEADER) {
-    errors.push({ line: 1, message: headerMismatchMessage(lines[0].trim()) });
+  const header = lines[0].trim();
+  // Accept the current 8-column header or the legacy 7-column header (spec
+  // 1910 added the trailing optional `host_run` column). Current-year files
+  // written before the change stay valid for `fit-xmr` and the storyboard.
+  if (header !== HEADER && header !== LEGACY_HEADER) {
+    errors.push({ line: 1, message: headerMismatchMessage(header) });
   }
 
   let dataRows = 0;
