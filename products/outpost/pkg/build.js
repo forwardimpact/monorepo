@@ -4,7 +4,7 @@
 //
 // Usage:
 //   bun pkg/build.js                    Compile launcher
-//   bun pkg/build.js --app              Above + assemble Outpost.app
+//   bun pkg/build.js --app              Above + assemble fit-outpost.app
 //   bun pkg/build.js --pkg              Above + .pkg installer
 //   bun pkg/build.js --launcher         Compile Swift launcher only
 //
@@ -84,11 +84,11 @@ function compileLauncher() {
 }
 
 // ---------------------------------------------------------------------------
-// Assemble Outpost.app bundle
+// Assemble fit-outpost.app bundle
 // ---------------------------------------------------------------------------
 
 function buildApp() {
-  console.log("\nAssembling Outpost.app...");
+  console.log("\nAssembling fit-outpost.app...");
 
   if (!existsSync(join(DIST_DIR, APP_NAME))) {
     throw new Error(
@@ -110,7 +110,7 @@ function buildApp() {
   run(
     [
       `bash "${script}"`,
-      `--bundle-name "Outpost"`,
+      `--bundle-name "fit-outpost"`,
       `--primary-exec "${join(DIST_DIR, LAUNCHER_NAME)}"`,
       `--extra-exec "${join(DIST_DIR, APP_NAME)}"`,
       `--info-plist "${join(PROJECT_DIR, "macos", "Info.plist")}"`,

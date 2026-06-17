@@ -49,15 +49,14 @@
   <body>
     <h1>Outpost is installed</h1>
     <p>
-      Open <strong>Outpost</strong> from <code>/Applications/</code> to start
-      the scheduler. It runs as a menu bar app — look for the tent icon.
+      Open <strong>Outpost</strong> from
+      <code>/Applications/Forward Impact/</code> to start the scheduler. It runs
+      as a menu bar app — look for the tent icon.
     </p>
     <p><strong>Grant privacy access:</strong></p>
     <p>
       Outpost reads from Apple Mail, Calendar, and Contacts. macOS requires
-      three separate grants on first launch &mdash; existing grants for prior
-      <em>Basecamp</em> installs do not carry over because the bundle
-      identifier changed:
+      three separate grants on first launch:
     </p>
     <p>
       <strong>1. Files &amp; Folders</strong> &mdash;
@@ -69,7 +68,7 @@
     </p>
     <ul>
       <li>
-        <strong>Outpost.app</strong> &mdash; the TCC responsible process (Swift
+        <strong>Outpost</strong> &mdash; the TCC responsible process (Swift
         launcher)
       </li>
       <li>
@@ -89,9 +88,9 @@
         Access</code
       >. The <code>sync-apple-mail</code> and <code>sync-apple-calendar</code>
       skills read the macOS Mail and Calendar SQLite databases directly. Click
-      <strong>+</strong> and add <strong>Outpost.app</strong> from
-      <code>/Applications/</code>. Without this, calendar and mail sync fail
-      silently.
+      <strong>+</strong> and add <strong>Outpost</strong> from
+      <code>/Applications/Forward Impact/</code>. Without this, calendar and mail
+      sync fail silently.
     </p>
     <p>
       <strong>3. Automation</strong> &mdash;
@@ -106,12 +105,6 @@
       working, toggle its entry <strong>off</strong> then <strong>on</strong>
       again in the same panel &mdash; macOS revokes the permission when the
       binary changes.
-    </p>
-    <p>
-      If you are upgrading from <em>Basecamp</em> (bundle identifier renamed in
-      v3.0.0), repeat all three grants for the new
-      <strong>Outpost.app</strong>. Your old Basecamp grants are now orphaned
-      and can be removed safely.
     </p>
     <p><strong>Next steps:</strong></p>
     <p>1. Populate your identity from the corporate directory:</p>

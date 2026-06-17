@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# Build a macOS installer package (.pkg) for Outpost.app.
+# Build a macOS installer package (.pkg) for fit-outpost.app.
 #
-# Creates a .pkg that installs Outpost.app to /Applications/ and runs a
-# postinstall script to set up config and default KB.
-# Also removes old loose-binary installs if present.
+# Creates a .pkg that installs fit-outpost.app to "/Applications/Forward Impact/"
+# (matching the Homebrew cask) and runs a postinstall script to set up config
+# and default KB.
 #
 # Usage: build-pkg.sh <dist_dir> <version>
 #   e.g.  build-pkg.sh dist 1.0.0
@@ -15,13 +15,13 @@ VERSION="${2:?Usage: build-pkg.sh <dist_dir> <version>}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-APP_PATH="$DIST_DIR/Outpost.app"
+APP_PATH="$DIST_DIR/fit-outpost.app"
 APP_NAME="fit-outpost"
 IDENTIFIER="team.forwardimpact.outpost"
 
 if [ ! -d "$APP_PATH" ]; then
-  echo "Error: Outpost.app not found at $APP_PATH"
-  echo "Run 'just build-app' first."
+  echo "Error: fit-outpost.app not found at $APP_PATH"
+  echo "Run 'bun pkg/build.js --app' first."
   exit 1
 fi
 
@@ -40,10 +40,10 @@ echo "Building pkg: $PKG_NAME..."
 rm -rf "$PAYLOAD_DIR" "$SCRIPTS_DIR" "$RESOURCES_DIR" "$COMPONENT_PKG"
 rm -f "$PKG_PATH"
 
-# --- Create payload (Outpost.app → /Applications/) -------------------------
+# --- Create payload (fit-outpost.app → /Applications/Forward Impact/) --------
 
-mkdir -p "$PAYLOAD_DIR/Applications"
-cp -R "$APP_PATH" "$PAYLOAD_DIR/Applications/Outpost.app"
+mkdir -p "$PAYLOAD_DIR/Applications/Forward Impact"
+cp -R "$APP_PATH" "$PAYLOAD_DIR/Applications/Forward Impact/fit-outpost.app"
 
 # --- Create scripts directory ------------------------------------------------
 

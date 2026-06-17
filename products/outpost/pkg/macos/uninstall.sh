@@ -3,9 +3,10 @@ set -e
 
 # Outpost Uninstaller
 #
-# Removes Outpost.app and any remaining old artifacts.
-# User data at ~/Documents/Personal/ and config at ~/.fit/outpost/
-# are preserved.
+# Removes fit-outpost.app. User data at ~/Documents/Personal/ and config at
+# ~/.fit/outpost/ are preserved.
+
+APP_PATH="/Applications/Forward Impact/fit-outpost.app"
 
 echo ""
 echo "Outpost Uninstaller"
@@ -15,78 +16,38 @@ echo ""
 # --- Stop running processes --------------------------------------------------
 
 # Try graceful shutdown first (stops running agents cleanly), then killall as fallback.
-if [ -f "/Applications/Outpost.app/Contents/MacOS/fit-outpost" ]; then
-  /Applications/Outpost.app/Contents/MacOS/fit-outpost stop 2>/dev/null || true
+if [ -f "$APP_PATH/Contents/MacOS/fit-outpost" ]; then
+  "$APP_PATH/Contents/MacOS/fit-outpost" stop 2>/dev/null || true
 fi
 killall Outpost 2>/dev/null || true
 killall fit-outpost 2>/dev/null || true
-# Legacy Basecamp processes (pre-rename) — kept for upgrade cleanup.
-# BasecampStatus was a pre-app-bundle binary; no OutpostStatus equivalent exists.
-killall Basecamp 2>/dev/null || true
-killall fit-basecamp 2>/dev/null || true
-killall BasecampStatus 2>/dev/null || true
 
-# --- Remove any leftover LaunchAgents (from older versions) ------------------
-
-# Includes legacy basecamp labels so users upgrading from Basecamp get a clean state.
-# `bootout gui/<uid>` is the modern (macOS 10.11+) replacement for `launchctl unload`.
-USER_UID=$(id -u)
-for LABEL in \
-    "com.forwardimpact.outpost" "com.fit-outpost.scheduler" "com.fit-outpost.status-menu" \
-    "com.forwardimpact.basecamp" "com.fit-basecamp.scheduler" "com.fit-basecamp.status-menu"; do
-  PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
-  if [ -f "$PLIST" ]; then
-    launchctl bootout "gui/$USER_UID" "$PLIST" 2>/dev/null || true
-    rm -f "$PLIST"
-    echo "  Removed old LaunchAgent ($LABEL)"
-  fi
-done
-
-# --- Remove stale socket file -----------------------------------------------
+# --- Remove stale socket file ------------------------------------------------
 
 rm -f "$HOME/.fit/outpost/outpost.sock"
 
-# --- Remove Outpost.app ----------------------------------------------------
+# --- Remove the app bundle ---------------------------------------------------
 
-if [ -d "/Applications/Outpost.app" ]; then
-  sudo rm -rf "/Applications/Outpost.app"
-  echo "  Removed /Applications/Outpost.app"
-elif [ -d "$HOME/Applications/Outpost.app" ]; then
-  rm -rf "$HOME/Applications/Outpost.app"
-  echo "  Removed ~/Applications/Outpost.app"
+if [ -d "$APP_PATH" ]; then
+  sudo rm -rf "$APP_PATH"
+  echo "  Removed $APP_PATH"
 else
-  echo "  Outpost.app not found, skipping."
+  echo "  fit-outpost.app not found, skipping."
 fi
 
-# --- Remove CLI symlink and old loose binaries -------------------------------
+# --- Remove CLI symlink ------------------------------------------------------
 
-# BasecampStatus was a pre-app-bundle binary in older Basecamp installs.
-# No OutpostStatus binary is built post-bundling, so it is intentionally absent.
-for BIN in "/usr/local/bin/fit-outpost" "/usr/local/bin/fit-basecamp" "/usr/local/bin/BasecampStatus"; do
-  if [ -f "$BIN" ] || [ -L "$BIN" ]; then
-    sudo rm -f "$BIN"
-    echo "  Removed $BIN"
-  fi
-done
-
-# --- Remove old shared data -------------------------------------------------
-
-if [ -d "/usr/local/share/fit-outpost" ]; then
-  sudo rm -rf "/usr/local/share/fit-outpost"
-  echo "  Removed /usr/local/share/fit-outpost/"
+if [ -f "/usr/local/bin/fit-outpost" ] || [ -L "/usr/local/bin/fit-outpost" ]; then
+  sudo rm -f "/usr/local/bin/fit-outpost"
+  echo "  Removed /usr/local/bin/fit-outpost"
 fi
 
-# --- Forget pkg receipts ----------------------------------------------------
+# --- Forget pkg receipt ------------------------------------------------------
 
-# Legacy basecamp receipts kept for upgrade cleanup.
-for RECEIPT in \
-    "team.forwardimpact.outpost" "com.forwardimpact.outpost" "com.fit-outpost.scheduler" \
-    "team.forwardimpact.basecamp" "com.forwardimpact.basecamp" "com.fit-basecamp.scheduler"; do
-  pkgutil --pkgs 2>/dev/null | grep -q "$RECEIPT" && {
-    sudo pkgutil --forget "$RECEIPT" >/dev/null 2>&1
-    echo "  Removed installer receipt ($RECEIPT)"
-  } || true
-done
+if pkgutil --pkgs 2>/dev/null | grep -q "team.forwardimpact.outpost"; then
+  sudo pkgutil --forget "team.forwardimpact.outpost" >/dev/null 2>&1
+  echo "  Removed installer receipt"
+fi
 
 echo ""
 echo "Outpost uninstalled."

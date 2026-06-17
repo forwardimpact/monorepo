@@ -4,79 +4,21 @@
 #
 # Sets up per-user config and default knowledge base for the console user
 # (the person who double-clicked the installer).
-#
-# Also removes old loose-binary install artifacts (pre-app-bundle era)
-# and any LaunchAgent from previous versions.
 
 REAL_USER=$(/usr/bin/stat -f "%Su" /dev/console)
-REAL_UID=$(/usr/bin/id -u "$REAL_USER")
 REAL_HOME=$(/usr/bin/dscl . -read "/Users/$REAL_USER" NFSHomeDirectory | /usr/bin/awk '{print $2}')
 
 OUTPOST_HOME="$REAL_HOME/.fit/outpost"
 DEFAULT_KB="$REAL_HOME/Documents/Personal"
-APP_PATH="/Applications/Outpost.app"
-LEGACY_APP_PATH="/Applications/Basecamp.app"
+APP_PATH="/Applications/Forward Impact/fit-outpost.app"
 
 # --- Stop running instance gracefully ----------------------------------------
 
-# Order matters: graceful stop → killall → LaunchAgent bootout. Unloading the
-# agent first lets launchd's SIGTERM race the in-process graceful shutdown.
 if [ -f "$APP_PATH/Contents/MacOS/fit-outpost" ]; then
   /usr/bin/sudo -u "$REAL_USER" "$APP_PATH/Contents/MacOS/fit-outpost" stop 2>/dev/null || true
 fi
-# Legacy Basecamp app may still exist on upgrade — try its graceful stop too.
-if [ -f "$LEGACY_APP_PATH/Contents/MacOS/fit-basecamp" ]; then
-  /usr/bin/sudo -u "$REAL_USER" "$LEGACY_APP_PATH/Contents/MacOS/fit-basecamp" stop 2>/dev/null || true
-fi
 /usr/bin/killall Outpost 2>/dev/null || true
 /usr/bin/killall fit-outpost 2>/dev/null || true
-# Legacy Basecamp processes (BasecampStatus was a pre-app-bundle binary).
-/usr/bin/killall Basecamp 2>/dev/null || true
-/usr/bin/killall fit-basecamp 2>/dev/null || true
-/usr/bin/killall BasecampStatus 2>/dev/null || true
-
-# --- Unload old LaunchAgents -------------------------------------------------
-
-# Pre-app-bundle, pre-FQDN-rename, and pre-Basecamp-to-Outpost-rename labels.
-# Legacy basecamp labels are kept so upgrades from a prior Basecamp install clean up.
-# `bootout gui/<uid>` is the modern (macOS 10.11+) replacement for `launchctl unload`,
-# which does not reliably evict agents from the user's GUI domain when invoked
-# via `sudo -u <user>` from a root postinstall context.
-for OLD_LABEL in \
-    "com.fit-outpost.scheduler" \
-    "com.fit-outpost.status-menu" \
-    "com.forwardimpact.outpost" \
-    "com.fit-basecamp.scheduler" \
-    "com.fit-basecamp.status-menu" \
-    "com.forwardimpact.basecamp"; do
-  OLD_PLIST="$REAL_HOME/Library/LaunchAgents/$OLD_LABEL.plist"
-  if [ -f "$OLD_PLIST" ]; then
-    /bin/launchctl bootout "gui/$REAL_UID" "$OLD_PLIST" 2>/dev/null || true
-    /bin/rm -f "$OLD_PLIST"
-  fi
-done
-
-# --- Remove orphan binaries and the legacy Basecamp.app bundle ---------------
-
-/bin/rm -f "/usr/local/bin/fit-outpost"
-/bin/rm -f "/usr/local/bin/fit-basecamp"
-/bin/rm -f "/usr/local/bin/BasecampStatus"
-
-# Remove the legacy app bundle so the Dock doesn't show two icons after upgrade.
-if [ -d "$LEGACY_APP_PATH" ]; then
-  /bin/rm -rf "$LEGACY_APP_PATH"
-fi
-
-# Old shared resources and pkg receipts (legacy basecamp + new outpost paths).
-/bin/rm -rf "/usr/local/share/fit-outpost"
-/bin/rm -rf "/usr/local/share/fit-basecamp"
-for OLD_RECEIPT in \
-    "com.fit-outpost.scheduler" "com.forwardimpact.outpost" "team.forwardimpact.outpost" \
-    "com.fit-basecamp.scheduler" "com.forwardimpact.basecamp" "team.forwardimpact.basecamp"; do
-  /usr/sbin/pkgutil --pkgs 2>/dev/null | /usr/bin/grep -q "$OLD_RECEIPT" && {
-    /usr/sbin/pkgutil --forget "$OLD_RECEIPT" >/dev/null 2>&1
-  } || true
-done
 
 # --- Config home -------------------------------------------------------------
 

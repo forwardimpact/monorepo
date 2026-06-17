@@ -12,7 +12,7 @@ description: >
 
 Personal knowledge system with scheduled Claude Code agents. No server, no
 database — just plain files, markdown, and the `claude` CLI. Packaged as a
-native macOS app bundle (`Outpost.app`) with TCC-compliant process management.
+native macOS app bundle (`fit-outpost.app`) with TCC-compliant process management.
 
 ## When to Use
 
@@ -82,7 +82,7 @@ See [`references/cli.md`](references/cli.md) for full command listings.
 ### Process Tree (App Bundle)
 
 ```
-Outpost.app/Contents/MacOS/Outpost      ← Swift launcher, TCC responsible
+fit-outpost.app/Contents/MacOS/Outpost  ← Swift launcher, TCC responsible
 ├── fit-outpost daemon                   ← Node.js scheduler (posix_spawn)
 │   └── claude --print ...                ← spawned via posix_spawn FFI
 └── [status menu UI]                      ← AppKit menu bar, in-process
