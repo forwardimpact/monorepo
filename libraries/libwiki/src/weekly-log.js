@@ -127,10 +127,13 @@ function packSections(sections, prologue, budget) {
  * whole prologue when the source has no day-sections — it is sealed as its own
  * (over-budget) part and named in `residue`; the rest still packs normally.
  *
+ * Returns part bodies and a `renderH1(n)` the seal calls with each part's
+ * filename slot — the bisector does not know the slot, so it renders no header.
+ *
  * @param {string} text - The full weekly-log source (H1 + body).
  * @param {string} agent - Agent profile id (e.g. "staff-engineer").
  * @param {string} isoWeekStr - ISO week label (e.g. "2026-W21").
- * @returns {{parts: Array<{h1: string, body: string}>, residue: null | {section: string, lines: number, words: number, partIndex: number}}}
+ * @returns {{parts: Array<{body: string}>, residue: null | {section: string, lines: number, words: number, partIndex: number}, renderH1: (n: number) => string}}
  */
 export function bisectWeeklyLog(text, agent, isoWeekStr) {
   const nl = text.indexOf("\n");
@@ -283,8 +286,8 @@ export function rotateIfOverBudget(
   if (!fs.existsSync(filePath)) return { status: "noop", fromPath: filePath };
   const text = fs.readFileSync(filePath, "utf-8");
   // A header-only (or empty) log has nothing to seal. Without this floor,
-  // force-rotating a freshly-reset main would mint an empty `(part 1 of 1)`
-  // file and reset the main again — once per invocation, forever.
+  // force-rotating a freshly-reset main would mint an empty `(part N)` file and
+  // reset the main again — once per invocation, forever.
   const nl = text.indexOf("\n");
   if ((nl === -1 ? "" : text.slice(nl + 1)).trim() === "") {
     return { status: "noop", fromPath: filePath };
@@ -363,9 +366,11 @@ function atomicResealPart(partPath, mainLogPath, parts, renderH1, fs) {
  * overwrites `partPath` (slot reused) and the remaining sub-parts land on fresh
  * sibling slots, with full rollback (source untouched on any failure).
  *
- * The produced sub-parts carry `bisectWeeklyLog`'s `(part i of M)` H1s, where M
- * is LOCAL to this part's split — not a global count of the week's parts.
- * Sibling parts are never renumbered (the audit does not validate the numbers).
+ * Each produced sub-part's H1 numbers the slot it occupies — the reused source
+ * slot keeps its own number, fresh siblings take their allocated slot numbers —
+ * rendered by the seal via `bisectWeeklyLog`'s `renderH1(n)`. No "of M" total,
+ * so the header agrees with the filename forever; sibling parts are never
+ * renumbered.
  *
  * @param {string} partPath - Absolute path to an `<agent>-YYYY-Www-partN.md`.
  * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
