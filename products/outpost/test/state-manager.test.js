@@ -266,6 +266,42 @@ describe("StateManager", () => {
       assert.strictEqual(mockFs.data.get(outputPath), stdout);
     });
 
+    test("rejects a traversal agent name without writing the state file", async () => {
+      const agentState = {};
+      const stdout = "Decision: x\nAction: y";
+      const logged = [];
+
+      const sm = new StateManager("/tmp/state.json", runtime);
+      await sm.updateAgentState(
+        agentState,
+        stdout,
+        "../escape",
+        "/tmp/cache",
+        (l) => logged.push(l),
+      );
+
+      // No state file was written for the traversal name.
+      const writtenPaths = [...mockFs.data.keys()].filter((p) =>
+        p.includes("/tmp/cache/state/"),
+      );
+      assert.strictEqual(writtenPaths.length, 0);
+      // The in-memory state fields are still updated before the write guard.
+      assert.strictEqual(agentState.status, "idle");
+      assert.strictEqual(agentState.wakeCount, 1);
+      // One structured rejection record was logged.
+      const rejections = logged
+        .map((l) => {
+          try {
+            return JSON.parse(l);
+          } catch {
+            return null;
+          }
+        })
+        .filter((r) => r && r.event === "outpost.state_path.rejected");
+      assert.strictEqual(rejections.length, 1);
+      assert.strictEqual(rejections[0].agent, "../escape");
+    });
+
     test("initializes wakeCount from zero", async () => {
       const agentState = {};
 

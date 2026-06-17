@@ -10,11 +10,31 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 /**
+ * Build a Set whose mutators are neutralised. `Object.freeze` alone does not
+ * stop `Set.prototype.add`/`delete`/`clear` from mutating internal state, so
+ * the trust contract (design Decision #1) is only durable if the mutators
+ * themselves throw.
+ * @param {string[]} keys
+ * @returns {ReadonlySet<string>}
+ */
+function frozenSet(keys) {
+  const set = new Set(keys);
+  for (const m of ["add", "delete", "clear"]) {
+    Object.defineProperty(set, m, {
+      value: () => {
+        throw new TypeError(`AGENT_ENV_ALLOWSET is immutable: ${m}() denied`);
+      },
+    });
+  }
+  return Object.freeze(set);
+}
+
+/**
  * Env keys the daemon honors for spawned agents. Add new keys here under
  * code review — this is the trust contract (design Decision #1).
  * @type {ReadonlySet<string>}
  */
-export const AGENT_ENV_ALLOWSET = Object.freeze(new Set(["ANTHROPIC_API_KEY"]));
+export const AGENT_ENV_ALLOWSET = frozenSet(["ANTHROPIC_API_KEY"]);
 
 /**
  * Build the spawn environment from a base env plus allow-set members of

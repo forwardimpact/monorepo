@@ -4,6 +4,7 @@
 
 import { dirname, join } from "node:path";
 import { isoTimestamp } from "@forwardimpact/libutil";
+import { agentNameToStatePrefix, UnsafeAgentNameError } from "./agent-path.js";
 
 /** Persist and query agent scheduler state from a JSON file on disk. */
 export class StateManager {
@@ -92,9 +93,10 @@ export class StateManager {
    * @param {string} stdout
    * @param {string} agentName
    * @param {string} cacheDir - Cache directory for state files
+   * @param {Function} [logFn] - Optional logger for rejection records
    * @returns {Promise<void>}
    */
-  async updateAgentState(agentState, stdout, agentName, cacheDir) {
+  async updateAgentState(agentState, stdout, agentName, cacheDir, logFn) {
     const lines = stdout.split("\n");
     const decisionLine = lines.find((l) => l.startsWith("Decision:"));
     const actionLine = lines.find((l) => l.startsWith("Action:"));
@@ -113,8 +115,21 @@ export class StateManager {
 
     // Save output as briefing fallback
     const stateDir = join(cacheDir, "state");
+    let prefix;
+    try {
+      prefix = agentNameToStatePrefix(agentName);
+    } catch (err) {
+      if (!(err instanceof UnsafeAgentNameError)) throw err;
+      if (logFn)
+        logFn(
+          JSON.stringify({
+            event: "outpost.state_path.rejected",
+            agent: agentName,
+          }),
+        );
+      return;
+    }
     await this.#fs.mkdir(stateDir, { recursive: true });
-    const prefix = agentName.replace(/-/g, "_");
     await this.#fs.writeFile(
       join(stateDir, `${prefix}_last_output.md`),
       stdout,

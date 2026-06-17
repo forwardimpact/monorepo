@@ -115,7 +115,32 @@ describe("AgentRunner", () => {
       assert.strictEqual(calls[0].env.PATH, "/usr/bin");
     });
 
-    test("merges configEnv into spawn environment", async () => {
+    test("merges allow-set configEnv into spawn environment", async () => {
+      const { module: spawnMod, calls } = createMockSpawn();
+      const runner = new AgentRunner(
+        spawnMod,
+        createMockStateManager(),
+        () => {},
+        "/tmp/cache",
+        makeRuntime({ HOME: "/home/u" }),
+        postureCfg(),
+      );
+
+      const configEnv = { ANTHROPIC_API_KEY: "sk-test-123" };
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB },
+        { agents: {} },
+        configEnv,
+      );
+
+      assert.strictEqual(calls.length, 1);
+      const env = calls[0].env;
+      assert.strictEqual(env.ANTHROPIC_API_KEY, "sk-test-123");
+      assert.strictEqual(env.HOME, "/home/u");
+    });
+
+    test("drops configEnv keys outside the allow-set", async () => {
       const { module: spawnMod, calls } = createMockSpawn();
       const runner = new AgentRunner(
         spawnMod,
@@ -135,35 +160,33 @@ describe("AgentRunner", () => {
       );
 
       assert.strictEqual(calls.length, 1);
-      assert.strictEqual(
-        calls[0].env.NODE_EXTRA_CA_CERTS,
-        "/etc/ssl/custom-ca.pem",
-      );
+      assert.strictEqual(calls[0].env.NODE_EXTRA_CA_CERTS, undefined);
       assert.strictEqual(calls[0].env.HOME, "/home/u");
     });
 
-    test("configEnv overrides runtime.proc.env values", async () => {
+    test("allow-set configEnv overrides runtime.proc.env values", async () => {
       const { module: spawnMod, calls } = createMockSpawn();
       const runner = new AgentRunner(
         spawnMod,
         createMockStateManager(),
         () => {},
         "/tmp/cache",
-        makeRuntime({ TERM: "xterm" }),
+        makeRuntime({ ANTHROPIC_API_KEY: "sk-from-process" }),
         postureCfg(),
       );
 
+      const configEnv = { ANTHROPIC_API_KEY: "sk-from-config" };
       await runner.wake(
         "test-agent",
         { kb: TEST_KB },
         { agents: {} },
-        { TERM: "dumb" },
+        configEnv,
       );
 
-      assert.strictEqual(calls[0].env.TERM, "dumb");
+      assert.strictEqual(calls[0].env.ANTHROPIC_API_KEY, "sk-from-config");
     });
 
-    test("expands ~ in configEnv values", async () => {
+    test("expands ~ in allow-set configEnv values", async () => {
       const { module: spawnMod, calls } = createMockSpawn();
       const runner = new AgentRunner(
         spawnMod,
@@ -178,18 +201,52 @@ describe("AgentRunner", () => {
         "test-agent",
         { kb: TEST_KB },
         { agents: {} },
-        { NODE_EXTRA_CA_CERTS: "~/certs/ca-bundle.pem" },
+        { ANTHROPIC_API_KEY: "~/certs/ca-bundle.pem" },
       );
 
       const env = calls[0].env;
+      assert.ok(!env.ANTHROPIC_API_KEY.startsWith("~"), "~ should be expanded");
       assert.ok(
-        !env.NODE_EXTRA_CA_CERTS.startsWith("~"),
-        "~ should be expanded",
-      );
-      assert.ok(
-        env.NODE_EXTRA_CA_CERTS.endsWith("/certs/ca-bundle.pem"),
+        env.ANTHROPIC_API_KEY.endsWith("/certs/ca-bundle.pem"),
         "path suffix should be preserved",
       );
+    });
+
+    test("drops a non-allow-set key and logs one rejection", async () => {
+      const { module: spawnMod, calls } = createMockSpawn();
+      const logged = [];
+      const runner = new AgentRunner(
+        spawnMod,
+        createMockStateManager(),
+        (line) => logged.push(line),
+        "/tmp/cache",
+        makeRuntime({ HOME: "/home/u" }),
+        postureCfg(),
+      );
+
+      const agent = { kb: TEST_KB };
+      const state = { agents: {} };
+      const configEnv = { NODE_OPTIONS: "--require=/tmp/evil.js" };
+      await runner.wake("test-agent", agent, state, configEnv);
+
+      // The attacker's config value must never reach the spawn env. (The
+      // daemon's own inherited NODE_OPTIONS, if any, is not config-supplied.)
+      assert.notStrictEqual(
+        calls[0].env.NODE_OPTIONS,
+        "--require=/tmp/evil.js",
+      );
+      const rejections = logged
+        .map((l) => {
+          try {
+            return JSON.parse(l);
+          } catch {
+            return null;
+          }
+        })
+        .filter((r) => r && r.event === "outpost.spawn_env.rejected");
+      assert.strictEqual(rejections.length, 1);
+      assert.strictEqual(rejections[0].key, "NODE_OPTIONS");
+      assert.strictEqual(rejections[0].agent, "test-agent");
     });
 
     test("handles undefined configEnv (no extra vars)", async () => {
