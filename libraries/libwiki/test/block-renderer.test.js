@@ -99,6 +99,52 @@ describe("renderBlock", () => {
     );
   });
 
+  test("surfaces recomputation-revealed vs new-point provenance with a prior-read anchor", () => {
+    // #1692 shape: early high cluster (slots 6/7/8), then a favorable zero-run
+    // (slots 13..32) tightening limits. Slot 12 = anchor date 2026-01-12.
+    const values = [
+      2, 3, 2, 3, 2, 9, 8, 9, 3, 2, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0,
+    ];
+    // Month-rolling dates: index i -> 2026-MM-DD, day=(i%28)+1, month=floor(i/28)+1.
+    const header = "date,metric,value,unit,run,note,event_type";
+    const rows = values.map((v, i) => {
+      const day = String((i % 28) + 1).padStart(2, "0");
+      const month = String(Math.floor(i / 28) + 1).padStart(2, "0");
+      return `2026-${month}-${day},corrections,${v},count,,,kata-shift`;
+    });
+    const csv = [header, ...rows].join("\n");
+
+    const lines = renderBlock({
+      metric: "corrections",
+      csvPath: "test.csv",
+      projectRoot: ROOT,
+      fs: csvFs(csv),
+      priorReadAnchor: "2026-01-12",
+    });
+
+    const signalLine = lines[lines.length - 1];
+    // X Rule 1 fires only on the pre-anchor cluster — purely recomputation-revealed.
+    assert.ok(signalLine.includes("xRule1 (recomputation-revealed)"));
+    // X Rule 2 fires on both the pre-anchor run and the post-anchor zero-run,
+    // so it carries both tags — the new-point tag is attached to xRule2.
+    assert.ok(
+      signalLine.includes("xRule2 (recomputation-revealed, new-point)"),
+    );
+  });
+
+  test("renders bare rule names when no prior-read anchor is supplied", () => {
+    const values = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 50];
+    const lines = renderBlock({
+      metric: "outlier",
+      csvPath: "test.csv",
+      projectRoot: ROOT,
+      fs: csvFs(makeCSV("outlier", values)),
+    });
+    const signalLine = lines[lines.length - 1];
+    assert.ok(!signalLine.includes("("));
+  });
+
   test("throws BlockRenderError for missing metric", () => {
     assert.throws(
       () =>

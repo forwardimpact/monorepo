@@ -27,6 +27,7 @@ async function renderForBlock(block, projectRoot, ghContext, runtime) {
     return renderBlock({
       metric: block.metric,
       csvPath: block.csvPath,
+      priorReadAnchor: block.priorReadAnchor,
       projectRoot,
       fs: runtime.fsSync,
     });
