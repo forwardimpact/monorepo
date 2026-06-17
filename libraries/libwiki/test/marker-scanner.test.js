@@ -138,4 +138,29 @@ describe("scanMarkers", () => {
     assert.equal(pairs[0].state, "closed");
     assert.equal(pairs[0].window, "30d");
   });
+
+  test("recognizes a paired agent-experiments block", () => {
+    const text = [
+      "<!-- agent-experiments Do not edit. Auto-generated. -->",
+      "<!-- last-successful-sync: 2026-06-17 -->",
+      "- #1694 [staff-engineer] Exp Staff (by dickolsson)",
+      "<!-- /agent-experiments -->",
+    ].join("\n");
+
+    const pairs = scanMarkers(text);
+    assert.equal(pairs.length, 1);
+    assert.equal(pairs[0].kind, "agent-experiments");
+    assert.equal(pairs[0].openLine, 0);
+    assert.equal(pairs[0].closeLine, 3);
+  });
+
+  test("warns on a dangling agent-experiments open marker", () => {
+    const warnings = [];
+    const text = ["<!-- agent-experiments -->", "- #1 [pm] x (by a)"].join(
+      "\n",
+    );
+    const pairs = scanMarkers(text, { warn: (m) => warnings.push(m) });
+    assert.equal(pairs.length, 0);
+    assert.ok(warnings.some((w) => w.includes("agent-experiments")));
+  });
 });

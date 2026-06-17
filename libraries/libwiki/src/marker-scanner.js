@@ -1,4 +1,6 @@
 import {
+  AGENT_EXPERIMENTS_CLOSE_RE,
+  AGENT_EXPERIMENTS_OPEN_RE,
   ISSUE_CLOSE_RE,
   ISSUE_OPEN_RE,
   XMR_CLOSE_RE,
@@ -6,7 +8,9 @@ import {
 } from "./constants.js";
 
 function openLabel(open) {
-  return open.kind === "xmr" ? open.metric : open.topic;
+  if (open.kind === "xmr") return open.metric;
+  if (open.kind === "agent-experiments") return "agent-experiments";
+  return open.topic;
 }
 
 function warnDangling(open, warn) {
@@ -34,6 +38,9 @@ function tryOpen(line, i) {
       openLine: i,
     };
   }
+  if (AGENT_EXPERIMENTS_OPEN_RE.test(line)) {
+    return { kind: "agent-experiments", openLine: i };
+  }
   return null;
 }
 
@@ -44,6 +51,13 @@ function closePair(open, i) {
       metric: open.metric,
       csvPath: open.csvPath,
       priorReadAnchor: open.priorReadAnchor,
+      openLine: open.openLine,
+      closeLine: i,
+    };
+  }
+  if (open.kind === "agent-experiments") {
+    return {
+      kind: "agent-experiments",
       openLine: open.openLine,
       closeLine: i,
     };
@@ -61,6 +75,9 @@ function closePair(open, i) {
 function matchClose(line, open) {
   if (!open) return false;
   if (open.kind === "xmr") return XMR_CLOSE_RE.test(line);
+  if (open.kind === "agent-experiments") {
+    return AGENT_EXPERIMENTS_CLOSE_RE.test(line);
+  }
   const m = line.match(ISSUE_CLOSE_RE);
   return Boolean(m && open.kind === "issue-list" && open.topic === m[1]);
 }
