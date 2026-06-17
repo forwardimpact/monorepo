@@ -101,6 +101,19 @@ export function agentNameToStatePrefix(name);
 
 ## Key Decisions
 
+> **Premise note (spec amendment, PR #1251).** Spec SC#3 was narrowed by owner
+> decision. It no longer claims writes are rejected "regardless of how the write
+> is routed"; it now claims only that the built-in `Edit` tool and recognized
+> Bash file commands are rejected. A 3/3 reviewer panel confirmed the
+> unconditional guarantee is infeasible at the template-permission layer:
+> interpreter subprocesses and shell redirection bypass the denies, and only an
+> OS sandbox (out of scope, spec 0600) closes them. Decision #6, Open Question
+> Q2, and Open Question Q3 were written against the old premise. Read them
+> against the narrowed criterion: the Edit + Bash deny is now a defense-in-depth
+> layer, not the load-bearing closure. Surfaces 1 (env allow-set) and 2
+> (state-name validation) carry that load. See spec § Residual risk. This note
+> records the change; the rest of the design stands.
+
 | # | Decision | Rejected alternative | Why |
 |---|---|---|---|
 | 1 | **Allow-set** for env keys, with initial membership = `ANTHROPIC_API_KEY` alone (no shipped `scheduler.json` examples exist under `products/outpost/templates/` today; future keys are added here under code review) | Deny-set of dangerous keys (`NODE_OPTIONS`, `DYLD_*`, `LD_*`, `PATH`) | Deny-set is open-ended: new Node releases, new dynamic-linker flags, and platform-specific knobs (`NODE_DEBUG_NATIVE`, `BUN_INSTALL`) keep arriving. Allow-set forces every new key through a code review at the same place that owns the trust contract. |
