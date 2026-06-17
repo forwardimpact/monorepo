@@ -30,6 +30,34 @@ The release engineer's trust gate (top-7 contributor or `kata-agent-team`)
 is the canonical trust check. `kata-dispatch` runs the same check before
 writing STATUS in response to a PR-side signal.
 
+## Signal invalidation
+
+The signals table above defines which signals count. This section defines
+what un-counts them when a phase PR's head moves after approval. The full
+four-point mechanics live in
+[`kata-release-merge/references/review-transfer.md`](../../skills/kata-release-merge/references/review-transfer.md);
+this section names the per-class pin source and the head-move consequence.
+
+| Signal class | Pin source | On head move |
+|---|---|---|
+| `<phase>:approved` label | head SHA at the label event | re-verify per review-transfer.md; human-originated, so any delta voids and needs fresh human re-approval |
+| `gh pr review --approve` | the review's commit SHA | same as label (human-originated) |
+| Approval comment | head SHA when the comment was posted | same as label (human-originated) |
+| In-session user message | head SHA recorded with the STATUS write (§ In-session approval) | same as label (human-originated) |
+| `kata-plan` panel-clean | head SHA on the PR-side panel record | agent-originated; any delta voids and needs fresh `staff-engineer` re-approval |
+
+Rules:
+
+- A signal with **no establishable pin** transfers to no other head. It is
+  valid only on a head where it is freshly re-confirmed.
+- Patch-id equivalence alone never establishes a transfer.
+- A content-identical move (review-transfer.md points 1 to 3) permits a
+  recorded transfer. Any non-identical delta voids it.
+- STATUS is untouched by voiding. A voided transfer leaves the row as-is.
+  Re-approval is a fresh signal with a fresh pin, not a STATUS rewrite.
+- The "Merged phase PR" and "Implementation merge" classes are inert. A
+  closed PR has no head move, so they need no pin beyond their existing record.
+
 ## In-session approval
 
 When a trusted user explicitly approves a spec, design, or plan in an
@@ -38,6 +66,12 @@ mark it approved"), the active agent edits `wiki/STATUS.md` to set the
 matching row, commits the wiki, and lets the Stop hook push. No GitHub
 action is required — STATUS is the canonical record. The merge happens on
 the next `kata-release-merge` run.
+
+The active agent also records the approved head SHA alongside the STATUS
+write, so the signal carries a pin. Record it as a PR comment when a PR
+exists, or with the wiki commit otherwise. An approval given before any push
+is pinned by the same agent at first push. The same recording duty covers
+`kata-plan` panel-clean approvals through their existing on-PR record.
 
 ## Writing STATUS
 
