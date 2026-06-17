@@ -13,7 +13,7 @@
 // Usage:
 //   node scripts/check-bun-test-imports.mjs   # non-zero on a violation
 
-import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, lstatSync, existsSync } from "node:fs";
 import { join, resolve, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { bunTestFindings } from "./check-bun-test-imports-rules.mjs";
@@ -32,6 +32,12 @@ const SCOPE = [
   ".claude/skills/kata-interview/test",
 ];
 const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
+// JS source/module extensions acorn parses as ES modules. The source-file ban
+// covers every non-test file under scope; .ts/.mts/.cts are TypeScript that
+// acorn cannot parse and are out of this guard's surface (a TypeScript test
+// extension is the named follow-up in CONTRIBUTING.md § Invariants). Only
+// .test.js counts as a test file; every other extension here is non-test source.
+const SOURCE_EXTS = [".js", ".mjs", ".cjs"];
 // The guard's own regression test embeds the very shapes it detects.
 const SELF_TEST = "check-bun-test-imports-rules.test.js";
 
@@ -40,8 +46,12 @@ function collectFiles(dir, out) {
   for (const entry of readdirSync(dir)) {
     if (SKIP_DIRS.has(entry)) continue;
     const full = join(dir, entry);
-    if (statSync(full).isDirectory()) collectFiles(full, out);
-    else if (entry.endsWith(".js")) out.push(full);
+    // lstat (not stat) so a symlinked directory is treated as a leaf, never
+    // descended — no symlink-cycle recursion.
+    const st = lstatSync(full);
+    if (st.isDirectory()) collectFiles(full, out);
+    else if (st.isFile() && SOURCE_EXTS.some((e) => entry.endsWith(e)))
+      out.push(full);
   }
   return out;
 }
