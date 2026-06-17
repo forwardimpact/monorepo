@@ -40,9 +40,9 @@ needed before limits are computed.
 workflow that recorded it (its filename without `.yml`). `record` takes the
 value from `--event-type`, falls back to parsing `$GITHUB_WORKFLOW_REF`, and
 rejects the row when neither resolves. The read commands (`analyze`, `chart`,
-`summarize`, `list`) default to the `kata-shift` slice, name the active slice
-in their output, and accept `--event-type <name>` or `--event-type '*'` for
-all rows.
+`summarize`, `list`) default to the `kata-shift` slice, name the active slice in
+their output, and accept `--event-type <name>` or `--event-type '*'` for all
+rows.
 
 ## Example output
 
@@ -75,6 +75,32 @@ process-behavior shape:
 | `chaos`           | mR Rule 1 fired. The variation itself is unstable; limits are unreliable. |
 | `insufficient`    | Fewer than 15 points. Limits are not computed.                            |
 | `degenerate-zero` | Predictable, but every observation equals zero — no variation around zero, so the series carries no process signal and a predictability target is not substantively met by it. |
+
+## Signal records
+
+`analyze` reports fired signals keyed by rule (`xRule1`, `xRule2`, `xRule3`,
+`mrRule1`). Each record carries `slots` (1-indexed positions in the series) and
+a `description`.
+
+Pass a **prior-read anchor** — the metric's series-end date as of the prior read
+— and every fired record also carries `provenance`:
+
+- `recomputation-revealed` — every participating slot was already present at the
+  prior read (`max(slots)` is at or before the anchor slot). The signal surfaced
+  only because recomputing limits over newer data shifted them, not because a
+  new point breached anything.
+- `new-point` — at least one participating slot postdates the anchor.
+
+```sh
+npx fit-xmr analyze corrections.csv --prior-read 2026-06-04
+```
+
+The value records anchor-relative **data membership**, not novelty: a signal
+that also fired at the prior read still carries `recomputation-revealed`. With
+no anchor — or an anchor that does not match a series date — records carry no
+`provenance` field and the report is otherwise unchanged. The storyboard refresh
+surfaces the value at the cell so a reader tells recomputation-revealed signals
+from new-point signals without prose disclaimers.
 
 ## Documentation
 

@@ -2,10 +2,10 @@
 name: fit-xmr
 description: >
   Distinguish signal from noise so the team acts on real changes, not
-  fluctuations. Use when a metric changes and the team debates whether it
-  is a real shift or just noise, when you need a compact status chart for
-  a wiki, PR, or report, or when recording and analyzing time-series
-  metrics with Wheeler/Vacanti XmR control charts.
+  fluctuations. Use when a metric changes and the team debates whether it is a
+  real shift or just noise, when you need a compact status chart for a wiki, PR,
+  or report, or when recording and analyzing time-series metrics with
+  Wheeler/Vacanti XmR control charts.
 ---
 
 # XmR Analysis
@@ -22,8 +22,10 @@ three-rule formulation as adopted by Vacanti for agile flow metrics.
 
 **Decide whether a change is signal or noise:**
 
-- Analyzing a metric over time — `npx fit-xmr analyze observations.csv --metric <name>`
-- Viewing the 14-line control chart — `npx fit-xmr chart observations.csv --metric <name>`
+- Analyzing a metric over time —
+  `npx fit-xmr analyze observations.csv --metric <name>`
+- Viewing the 14-line control chart —
+  `npx fit-xmr chart observations.csv --metric <name>`
 - Recording a new observation — `npx fit-xmr record`
 
 **Report on process stability:**
@@ -50,8 +52,8 @@ date,metric,value,unit,run,note,event_type
 - `unit` — free text (`count`, `days`, `pct`, ...)
 - `run` — optional URL or run id
 - `note` — annotate when a signal appears, with what you discovered
-- `event_type` — recording workflow's filename without `.yml`; reads default
-  to the `kata-shift` slice
+- `event_type` — recording workflow's filename without `.yml`; reads default to
+  the `kata-shift` slice
 
 Validate before analysis: `npx fit-xmr validate observations.csv`
 
@@ -70,17 +72,17 @@ npx fit-xmr <command> <csv-path> [options]
 | `analyze <csv>`   | Full XmR report: chart, limits, signals, classification               |
 | `chart <csv>`     | The 14-line Wheeler/Vacanti chart for one metric                      |
 | `summarize <csv>` | Compact markdown table across metrics with classification and signals |
-| `record`           | Append a metric row to the skill CSV and print a one-line XmR summary |
+| `record`          | Append a metric row to the skill CSV and print a one-line XmR summary |
 
 ### Common Options
 
-| Flag                     | Purpose                                                                                                                                               |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--metric <name>` / `-m` | Filter to a single metric. Optional on `chart` when the CSV has exactly one metric; otherwise required. Filters `analyze` and `summarize` when given. |
+| Flag                     | Purpose                                                                                                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--metric <name>` / `-m` | Filter to a single metric. Optional on `chart` when the CSV has exactly one metric; otherwise required. Filters `analyze` and `summarize` when given.                    |
 | `--event-type <name>`    | Restrict read commands to one `event_type` slice (default: `kata-shift`; `'*'` for all rows). On `record`, sets the row's value, falling back to `$GITHUB_WORKFLOW_REF`. |
-| `--format <text\|json>`  | Output format (default: text). `chart` is text-only.                                                                                                  |
-| `--ascii`                | Substitute ASCII glyphs for Unicode in chart rendering                                                                                                |
-| `--help` / `-h`          | Show help (`--json` formats help itself as JSON)                                                                                                      |
+| `--format <text\|json>`  | Output format (default: text). `chart` is text-only.                                                                                                                     |
+| `--ascii`                | Substitute ASCII glyphs for Unicode in chart rendering                                                                                                                   |
+| `--help` / `-h`          | Show help (`--json` formats help itself as JSON)                                                                                                                         |
 
 `validate` exits non-zero on schema errors so it can gate CI. Missing CSV path
 exits 2 with a friendly error, not a stack trace.
@@ -149,6 +151,15 @@ across processes.
 description), `latest` observation, and `stats` (μ, R, σ̂, UPL, LPL, URL, zone
 bounds).
 
+Pass `--prior-read <YYYY-MM-DD>` (the metric's series-end date at the prior
+read) and each fired signal record also carries `provenance`:
+`recomputation-revealed` when every participating slot was already present at
+the prior read, or `new-point` when at least one postdates it. A
+`recomputation-revealed` signal surfaced because recomputing limits over newer
+data tightened them over old history, not because a new point breached anything.
+Without the anchor, no `provenance` field is present and the report is otherwise
+unchanged.
+
 `status` is one of `predictable`, `signals_present`, or `insufficient_data` (n <
 15). `classification` rolls these up into `stable`, `signals` (X chart rule
 fires), `chaos` (mR Rule 1 fires — limits unreliable), `insufficient`, or
@@ -187,5 +198,5 @@ npx fit-xmr summarize observations.csv               # paste into a status page
 - [Operate a Predictable Agent Team](https://www.forwardimpact.team/docs/libraries/predictable-team/index.md)
   — End-to-end guide to wiki memory, XmR charts, and team coordination
 - [Chart a Metric and Check Variation](https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md)
-  — CSV schema, the three detection rules, the 14-line chart, and
-  interpretation guidance
+  — CSV schema, the three detection rules, the 14-line chart, and interpretation
+  guidance
