@@ -1,8 +1,13 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 
-import { createRedactor } from "../src/redaction.js";
+import { createRedactor, DEFAULT_ENV_ALLOWLIST } from "../src/redaction.js";
 import { rt as _rt, assertJsonStableSentinel } from "./redaction-helpers.js";
+
+/** Standard base64 of a UTF-8 string. */
+const b64 = (s) => Buffer.from(s, "utf8").toString("base64");
+/** Strip trailing `=` padding to get the unpadded standard-base64 variant. */
+const unpad = (s) => s.replace(/=+$/, "");
 
 describe("Redactor — env-var allowlist (criterion 1)", () => {
   test("replaces sentinels with [REDACTED:env:NAME] across deep-walked carrier shapes", () => {
@@ -276,6 +281,117 @@ describe("Redactor — credential patterns (criterion 2)", () => {
     const out = JSON.stringify(r.redactValue(message));
     assert.ok(!out.includes(anth));
     assert.ok(out.includes("[REDACTED:pattern:anthropic]"));
+  });
+});
+
+describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
+  // criterion 2: the standard base64 of any env-allowlisted secret, at any
+  // byte offset within the encoded plaintext, padded and unpadded.
+  for (const name of DEFAULT_ENV_ALLOWLIST) {
+    // Synthetic, credential-length value derived from the name — never the
+    // captured fixture's bytes (spec anti-fixture requirement).
+    const value = `${name}-0123456789abcdef0123456789abcdef`;
+
+    test(`${name}: bare base64 redacted (padded + unpadded)`, () => {
+      const r = createRedactor({ runtime: _rt, env: { [name]: value } });
+      for (const blob of [b64(value), unpad(b64(value))]) {
+        const out = r.redactValue(`prefix ${blob} suffix`);
+        assert.ok(!out.includes(blob), `bare b64 leaked for ${name}`);
+        assert.ok(out.includes(`[REDACTED:env:${name}]`));
+      }
+    });
+
+    test(`${name}: embedded at all three byte offsets redacted (padded + unpadded)`, () => {
+      const r = createRedactor({ runtime: _rt, env: { [name]: value } });
+      // Usernames of length 0/1/2 mod 3 put the secret at each alignment;
+      // a trailing run forces a non-trivial suffix group.
+      for (const user of ["", "u", "me"]) {
+        const plaintext = `${user}:${value}:trailing-data`;
+        for (const blob of [b64(plaintext), unpad(b64(plaintext))]) {
+          const out = r.redactValue(blob);
+          assert.ok(
+            !out.includes(b64(value).slice(4, -4)),
+            `embedded b64 secret recoverable for ${name} user="${user}"`,
+          );
+          assert.ok(
+            out.includes(`[REDACTED:env:${name}]`),
+            `no placeholder for ${name} user="${user}"`,
+          );
+        }
+      }
+    });
+  }
+
+  test("criterion 1 — extraheader basic-auth via env layer (all alignments)", () => {
+    const token = `ghs_${"D".repeat(36)}`;
+    const r = createRedactor({ runtime: _rt, env: { GITHUB_TOKEN: token } });
+    // x-access-token: is 15 bytes (0 mod 3) → token at k=0; user:/me: shift it.
+    for (const prefix of ["x-access-token:", "user:", "me:"]) {
+      const blob = b64(`${prefix}${token}`);
+      const out = r.redactValue(`AUTHORIZATION: basic ${blob}`);
+      assert.ok(
+        !out.includes(b64(`${prefix}${token}`).slice(4, -4)),
+        `extraheader token recoverable for prefix "${prefix}"`,
+      );
+      assert.ok(out.includes("[REDACTED:env:GITHUB_TOKEN]"));
+    }
+  });
+
+  test("criterion 4 — reconstructed run 27288359408 leak shape fully redacted", () => {
+    // Synthetic token (the literal leaked bytes were never recorded).
+    const token = `ghs_${"E".repeat(36)}`;
+    const blob = b64(`x-access-token:${token}`);
+    const r = createRedactor({ runtime: _rt, env: { GITHUB_TOKEN: token } });
+    const event = {
+      type: "user",
+      message: {
+        content: [
+          {
+            type: "tool_result",
+            content: JSON.stringify({
+              stdout: `http.https://github.com/.extraheader AUTHORIZATION: basic ${blob}\n`,
+            }),
+          },
+        ],
+      },
+    };
+    const out = JSON.stringify(r.redactValue(event));
+    assert.ok(!out.includes(blob), "leaked extraheader blob survived");
+    assert.ok(!out.includes(b64(`x-access-token:${token}`).slice(4, -4)));
+    assert.ok(out.includes("[REDACTED:env:GITHUB_TOKEN]"));
+  });
+
+  test("criterion 5 — benign base64 carrying no secret is unchanged", () => {
+    // Empty allowlist: ordinary base64 content must round-trip.
+    const r0 = createRedactor({ runtime: _rt, env: {} });
+    const fileBlob = b64(
+      "The quick brown fox jumps over the lazy dog. ".repeat(8),
+    );
+    const toolOut = b64(JSON.stringify({ files: ["a.js", "b.js"], count: 2 }));
+    for (const content of [fileBlob, toolOut]) {
+      assert.strictEqual(r0.redactValue(content), content);
+    }
+    // Populated allowlist whose secrets do not appear: still unchanged.
+    const r1 = createRedactor({
+      runtime: _rt,
+      env: {
+        GITHUB_TOKEN: `ghs_${"F".repeat(36)}`,
+        ANTHROPIC_API_KEY: "anth-secret-value-123",
+      },
+    });
+    assert.strictEqual(r1.redactValue(fileBlob), fileBlob);
+    assert.strictEqual(r1.redactValue(toolOut), toolOut);
+  });
+
+  test("short secret (below floor) is not matched in encoded form", () => {
+    // An 8-byte secret is below MIN_ENCODED_SECRET_BYTES (9): no encoded
+    // needle is generated, so its base64 passes the env layer untouched.
+    const short = "abcdefgh";
+    const r = createRedactor({ runtime: _rt, env: { GH_TOKEN: short } });
+    const blob = b64(`x:${short}:y`);
+    assert.strictEqual(r.redactValue(blob), blob);
+    // Raw form still redacts.
+    assert.strictEqual(r.redactValue(short), "[REDACTED:env:GH_TOKEN]");
   });
 });
 
