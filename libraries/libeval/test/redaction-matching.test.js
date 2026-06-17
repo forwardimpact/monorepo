@@ -8,6 +8,18 @@ import { rt as _rt, assertJsonStableSentinel } from "./redaction-helpers.js";
 const b64 = (s) => Buffer.from(s, "utf8").toString("base64");
 /** Strip trailing `=` padding to get the unpadded standard-base64 variant. */
 const unpad = (s) => s.replace(/=+$/, "");
+/**
+ * The offset-invariant base64 core of `secret` at byte alignment k (0/1/2),
+ * mirroring the production recipe — the substring that actually carries the
+ * secret's interior bytes when it sits at alignment k inside a larger
+ * plaintext. Asserting this is absent after redaction is the load-bearing
+ * non-recoverability check (a bare-encoding slice is absent at non-zero
+ * alignments anyway and would pass vacuously).
+ */
+const offsetCore = (secret, k) => {
+  const enc = b64("\0".repeat(k) + secret).replace(/=+$/, "");
+  return enc.slice([0, 2, 3][k], enc.length - 4);
+};
 
 describe("Redactor — env-var allowlist (criterion 1)", () => {
   test("replaces sentinels with [REDACTED:env:NAME] across deep-walked carrier shapes", () => {
@@ -306,11 +318,20 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
       // Usernames of length 0/1/2 mod 3 put the secret at each alignment;
       // a trailing run forces a non-trivial suffix group.
       for (const user of ["", "u", "me"]) {
-        const plaintext = `${user}:${value}:trailing-data`;
+        const prefix = `${user}:`;
+        const k = Buffer.byteLength(prefix, "utf8") % 3;
+        const core = offsetCore(value, k);
+        const plaintext = `${prefix}${value}:trailing-data`;
         for (const blob of [b64(plaintext), unpad(b64(plaintext))]) {
+          // Sanity: the alignment-k core is genuinely present in the blob,
+          // so the post-redaction absence check below is non-vacuous.
+          assert.ok(
+            blob.includes(core),
+            `test bug: core absent from blob for ${name} user="${user}"`,
+          );
           const out = r.redactValue(blob);
           assert.ok(
-            !out.includes(b64(value).slice(4, -4)),
+            !out.includes(core),
             `embedded b64 secret recoverable for ${name} user="${user}"`,
           );
           assert.ok(
@@ -327,10 +348,13 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
     const r = createRedactor({ runtime: _rt, env: { GITHUB_TOKEN: token } });
     // x-access-token: is 15 bytes (0 mod 3) → token at k=0; user:/me: shift it.
     for (const prefix of ["x-access-token:", "user:", "me:"]) {
+      const k = Buffer.byteLength(prefix, "utf8") % 3;
+      const core = offsetCore(token, k);
       const blob = b64(`${prefix}${token}`);
+      assert.ok(blob.includes(core), `test bug: core absent for "${prefix}"`);
       const out = r.redactValue(`AUTHORIZATION: basic ${blob}`);
       assert.ok(
-        !out.includes(b64(`${prefix}${token}`).slice(4, -4)),
+        !out.includes(core),
         `extraheader token recoverable for prefix "${prefix}"`,
       );
       assert.ok(out.includes("[REDACTED:env:GITHUB_TOKEN]"));
@@ -357,7 +381,8 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
     };
     const out = JSON.stringify(r.redactValue(event));
     assert.ok(!out.includes(blob), "leaked extraheader blob survived");
-    assert.ok(!out.includes(b64(`x-access-token:${token}`).slice(4, -4)));
+    // x-access-token: is 15 bytes (0 mod 3) → the token sits at alignment 0.
+    assert.ok(!out.includes(offsetCore(token, 0)), "token core survived");
     assert.ok(out.includes("[REDACTED:env:GITHUB_TOKEN]"));
   });
 
