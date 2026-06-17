@@ -1,0 +1,6 @@
+[
+  {
+    "file": "libraries/libwiki/src/wiki-sync.js",
+    "reason": "fit-wiki push/sync sweep — scoping it to own-authored paths coordinates with the wiki push-primitive landing design and is tracked as a separate follow-up; its shell twin scripts/wiki-sync.sh shares this exemption"
+  }
+]

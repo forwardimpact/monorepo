@@ -58,6 +58,11 @@ skill only for the full Participant Protocol below.
 - [ ] Comments closing a thread or routing a decision to a named owner name
       what is in flight (owner + artifact) or the explicit negative; routed
       owners reminded to announce at PR-open.
+- [ ] Shared-workspace discipline held (see
+      [`dispatch-discipline.md`](references/dispatch-discipline.md) §
+      Shared-workspace commit discipline): wiki-touching asks were serialized on
+      their surface, each work-producing ask carried edit-intent, and
+      single-owner directives routed to exactly one acting lane.
 - [ ] Weekly log updated under `## YYYY-MM-DD` with meeting type, metrics,
       obstacle, experiment, and Step 7 routing (1-on-1: the coached agent writes
       its own).
@@ -128,7 +133,10 @@ mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    advancing. After Q3/Q4, `Ask` each participant to record its
    obstacle and experiment as labeled issues per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and return the `#NNN`s.
-   Use `Announce` for between-question transitions.
+   Use `Announce` for between-question transitions. When an `Ask` has a receiver
+   commit in the shared checkout, carry edit-intent and serialize same-surface
+   asks per [`dispatch-discipline.md`](references/dispatch-discipline.md) §
+   Shared-workspace commit discipline.
 6. **Collect, don't write.** The facilitator writes no files — participants own
    every write (CSVs, weekly-log memory, issues). Collect reported `#NNN`s and
    numbers via `Answer` for the summary.

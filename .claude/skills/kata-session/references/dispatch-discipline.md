@@ -37,3 +37,72 @@ orchestration `Ask` plus a protocol-internal continuation plus a queued memo —
 produces duplicate intent even when every individual route is plausible. If
 two routes could both plausibly carry an obligation, the coordinating
 artifact's tail decides which one holds it; the other route stands down.
+
+## Shared-workspace commit discipline
+
+When concurrent activations share one checkout, committed loss (a teammate's
+in-flight edit shipped under the wrong author) requires two conditions at once:
+two writers in one workspace, and a commit that stages by sweep. Removing either
+prevents it. These rules remove both — without a lock. **No lock, lease, or
+mutex over the workspace or any claim:** an advisory hold whose liveness signal
+is the `Answer` is the only serializer here; a real lock's dominant failure is a
+lock held by a crashed activation with no lease, a failure this protocol does
+not introduce.
+
+### Edit-intent on a work-producing ask
+
+Every ask that asks a receiver to *commit* in the shared checkout carries an
+**edit-intent** with two structurally distinct classes:
+
+| Class | Declared by | Receiver stages it? | Dispatch orders on it? |
+| --- | --- | --- | --- |
+| `staged_paths` — the own-artifact paths the receiver will commit | facilitator | yes | yes |
+| `output_surfaces` — non-staged shared targets (a shared reconciliation thread, a session summary doc, an Announce) the directive writes but no activation stages | facilitator | **no** | yes |
+
+The split is a hard boundary, not a flag: a receiver stages **only**
+`staged_paths`, and **never** an `output_surface`. Both classes name the
+specific target (a concrete file path, a specific thread) — never a coarse key
+like "the wiki" — so unrelated work does not serialize. A worked example:
+
+```
+Ask(to: agent-x, edit-intent: {
+  staged_paths: ["wiki/<own-weekly-log>.md", "wiki/metrics/<skill>/<year>.csv"],
+  output_surfaces: ["<coordinating-issue> thread"]
+})
+```
+
+### Path-scoped staging (receiver side)
+
+The receiver commits its own artifacts by explicit path — exactly the
+`staged_paths` it was given — never a whole-tree sweep. This mirrors the
+tool-side discipline: a commit stages what its author named, not whatever the
+shared tree happens to hold.
+
+### Same-surface serialization (facilitator side)
+
+Route a wiki-touching (or otherwise same-mutable-surface) ask only after the
+prior ask whose edit-intent union (`staged_paths` ∪ `output_surfaces`)
+intersects this ask's surface has returned its `Answer` or explicitly released.
+Key the hold on the **specific surface**, not the whole session — two asks
+touching unrelated targets run concurrently. The hold is advisory facilitator
+discipline; if an `Answer` never arrives the facilitator releases on its own
+judgment (no automated lease).
+
+### Single-owner routing
+
+A **single-owner** directive routes to exactly one acting lane; co-recipients
+receive a no-staging FYI that carries no edit-intent and requires no action.
+With one acting lane there is no fan-out to serialize.
+
+Classify at dispatch: a directive is **multi-owner iff it explicitly names two
+or more distinct acting recipients, each given a work-producing instruction.**
+Everything else — one named owner, an unaddressed "someone should…", a
+close-out or decision directive — is **single-owner**. **Ambiguous directives
+default to single-owner.** The fan-out of a misclassified directive ships
+duplicate records (committed-loss-adjacent), while a starved FYI lane is
+recoverable by re-dispatch on the next turn; bias toward the recoverable error.
+A genuinely multi-owner directive misread as single-owner only delays its other
+lanes by one dispatch cycle — the facilitator re-routes them once the owner
+answers.
+
+Single-owner routing is cardinality only — no lock, lease, or mutual exclusion.
