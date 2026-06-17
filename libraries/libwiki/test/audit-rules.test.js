@@ -41,6 +41,7 @@ describe("RULES catalogue", () => {
         "storyboard.word-budget",
         "storyboard.markers-balanced.xmr",
         "storyboard.markers-balanced.issues",
+        "storyboard.markers-balanced.agent-experiments",
         "metrics-csv.duplicate-row",
         "status-row.shape",
         "status-row.id-format",
