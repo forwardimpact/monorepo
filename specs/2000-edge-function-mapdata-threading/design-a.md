@@ -13,7 +13,8 @@ skipped producer distinctly from an empty one.
 | Standard-data bundle               | `products/map/supabase/functions/_shared/activity/standard-data.json` (generated) | The serialized `loadAllData` shape, emitted at deploy build and read by the hosted surface             |
 | `loadHostedMapData`                | `products/map/supabase/functions/_shared/activity/map-data.ts`                    | Reads the bundle; the single home for the skip-reason contract (see Interfaces)                         |
 | `createHostedRuntime`              | `products/map/supabase/functions/_shared/runtime.ts`                              | Constructs the minimal runtime the transforms touch — a `clock` with `now()` only — as a frozen bag    |
-| Four Edge Function handlers        | `products/map/supabase/functions/{transform,getdx-sync,people-upload,github-webhook}/index.ts` | Thread the runtime (all clock-touching) and `mapData` (orchestrator) into the transform calls           |
+| Handler logic modules              | `products/map/supabase/functions/{transform,getdx-sync,people-upload}/handler.js` | Pure `handle(supabase, runtime, …)` per function — no `Deno`/esm.sh imports. Each runs the function's full extract→transform sequence and threads the runtime into both phases (the extracts read the clock too); `transform` also threads `mapData`. Returns the response body |
+| Edge Function wrappers             | `.../index.ts` | Thin `Deno.serve` wrappers that build the Deno-only collaborators (esm.sh supabase client, `createHostedRuntime`), read `Deno.env` config, call the handler, and map the body to an HTTP status. Not imported by tests |
 | Bundle generator                   | `products/map/bin/fit-map.js` (`activity bundle-standard-data` subcommand)        | Resolves the data dir via the CLI's existing `findDataDir`, loads via the CLI loader, writes the bundle |
 | Hosted test harness                | `products/map/test/activity/hosted/*.test.js`                                     | Imports each handler module and drives it against a fake Supabase + fixture bundle                      |
 
@@ -45,6 +46,7 @@ flowchart TD
 | D3 | **Handlers thread collaborators explicitly** at each call site (runtime to the three clock-touching functions; `mapData` to the orchestrator only), matching the CLI's threading shape. | _Default `runtime`/`mapData` inside the transforms_: hides the dependency and re-creates the silent-skip the spec is closing — the same defect, moved one layer down. |
 | D4 | **`loadHostedMapData` returns a typed skip** rather than throwing; the orchestrator surfaces it (see D5).                                                          | _Throw on missing bundle_: a missing bundle is an operating condition (D1 freshness boundary), not a fault; throwing would regress to the indistinguishable failure the spec rejects.            |
 | D5 | **The producer result reports run/no-run with an additive distinct field.** `transformEvidenceArtifact` already returns a `skipped` *count* (per-row no-match); the orchestrator (in `src/activity/transform/index.js`, not the `_shared` shim) adds `producerRan: boolean` to the `evidenceArtifact` result on both branches, plus `missingCollaborator` when `mapData` is absent. The `inserted`/`skipped`/`errors` fields are retained on both branches, so the CLI readers (`transformAllTargets` and the `seed` path) are unaffected — criterion 5 holds. | _Overload the existing `skipped` field_: collides with the per-row no-match count and re-creates the indistinguishable shape criterion 4 rejects. _Infer skip from zero counts in the handler_: counts cannot distinguish "no match" from "did not run." |
+| D6 | **Handler logic is a pure `handle(...)` in a sibling `handler.js`**, free of `Deno`/esm.sh imports; the `.ts` `index.ts` wraps it in `Deno.serve` and supplies the Deno-only collaborators. Collaborator loaders (`loadMapData`, the `readBundle` reader) are parameters, so the Node test runner drives the real handler. The `transform` handler surfaces `loadHostedMapData`'s skip `reason` and the producer's `missingCollaborator` (criterion 4: names *why*). | _Keep logic inline in `Deno.serve`_: the module has no export and references `Deno`/esm.sh at top level, so it cannot be imported by the repository's Node test runner — criteria 1, 3, 4 require driving the handler, not the shared transform. _Mock the `Deno` global_: brittle and tests the wrapper, not the wiring. |
 
 ## Interfaces
 
@@ -73,9 +75,9 @@ flowchart TD
 | Edge Function    | Threads runtime | Threads mapData | Why                                                                 |
 | ---------------- | --------------- | --------------- | ------------------------------------------------------------------- |
 | `transform`      | yes             | yes             | Calls the orchestrator; needs both for clock branches and producer  |
-| `getdx-sync`     | yes             | no              | `transformAllGetDX` reads the clock when snapshot-comment files exist; no `mapData` |
-| `people-upload`  | yes             | no              | `transformPeople` reads the clock unconditionally on every upload (live failure) |
-| `github-webhook` | no              | no              | `transformGitHubWebhook` takes neither; out of scope per spec § Scope             |
+| `getdx-sync`     | yes             | no              | `extractGetDX` reads the clock to timestamp stored docs; `transformAllGetDX` reads it for snapshot-comment files; no `mapData` |
+| `people-upload`  | yes             | no              | `extractPeopleFile` reads the clock to name the stored file, and `transformPeople` reads it on every upload (live failure); both phases get the runtime |
+| `github-webhook` | no              | no              | `transformGitHubWebhook` / `extractGitHubWebhook` take neither; out of scope per spec § Scope |
 
 ## Clean break
 
