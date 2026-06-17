@@ -31,6 +31,7 @@ native macOS app bundle (`Outpost.app`) with TCC-compliant process management.
 - Updating with latest templates and skills — `npx fit-outpost update`
 - Stopping the scheduler — `npx fit-outpost stop`
 - Validating agent/skill references — `npx fit-outpost validate`
+- Adding, removing, disabling, or changing agent schedules — edit `~/.fit/outpost/scheduler.json`
 
 ---
 
@@ -100,6 +101,43 @@ Synced data lives outside the KB:
 ---
 
 ## Common Tasks
+
+### Managing Agent Schedules
+
+Agent schedules are configured in `~/.fit/outpost/scheduler.json`. The file has
+this structure:
+
+```json
+{
+  "env": { ... },
+  "agents": {
+    "agent-name": {
+      "kb": "~/path/to/knowledge-base",
+      "schedule": { "type": "cron", "expression": "0 9 * * 1-5" },
+      "enabled": true
+    }
+  }
+}
+```
+
+Each key in `agents` is the agent name matching a definition in
+`.claude/agents/`. The schedule types are:
+
+- `{"type": "cron", "expression": "<5-field cron>"}` — standard cron
+- `{"type": "interval", "minutes": N}` — every N minutes since last wake
+- `{"type": "once"}` — fires once then never again
+
+**Remove an agent** — delete its key from the `agents` object.
+
+**Disable without removing** — set `"enabled": false` to keep the config but
+stop the scheduler from waking it. Set back to `true` to re-enable.
+
+**Change schedule** — edit the `schedule` object. Examples:
+
+```json
+"schedule": { "type": "cron", "expression": "*/15 8-18 * * 1-5" }
+"schedule": { "type": "interval", "minutes": 30 }
+```
 
 ### Adding a New KB Skill
 
