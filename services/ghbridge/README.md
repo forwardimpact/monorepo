@@ -54,8 +54,10 @@ legacy `data/bridges/ghbridge/` files; they expire under their existing
   (`services/ghuser`) supplies the `workflow_dispatch` credential.
 - **`multi`** (hosted) — the bridge holds no App key. It resolves the tenant
   per inbound webhook from the delivery's repository (`resolveByRepo`), mints
-  repo-scoped tokens through `services/ghserver`, and scopes every store RPC
-  by the resolved tenant. `installation.created` /
+  repo-scoped tokens through `services/ghserver` for the reply/reaction path,
+  and scopes every store RPC by the resolved tenant. The `workflow_dispatch`
+  credential is the dispatching user's per-user OAuth token (`services/ghuser`),
+  the same per-user path as single-tenant. `installation.created` /
   `installation.repositories_added` deliveries onboard repositories into the
   registry (`services/tenancy`) with `state = active`.
 

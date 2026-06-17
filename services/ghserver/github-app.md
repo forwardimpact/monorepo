@@ -6,8 +6,9 @@ deployment model. `services/ghserver` is the App's key-custody service in the
 hosted model; `services/ghbridge` holds the same key in the self-hosted model.
 
 > **Two GitHub apps, do not conflate them.** This guide covers the **server
-> App** (installation tokens). The separate **user App** — per-user OAuth, used
-> for dispatch identity in self-hosted deployments — is documented in
+> App** (installation tokens for the discussion-reply / reaction path). The
+> separate **user App** — per-user OAuth, the `workflow_dispatch` credential in
+> **both** deployment models — is documented in
 > [`services/ghuser` § GitHub user App configuration](https://github.com/forwardimpact/monorepo/blob/main/services/ghuser/github-app.md).
 
 This is the GitHub counterpart of

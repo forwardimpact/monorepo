@@ -54,7 +54,7 @@ by tenant, so no list or aggregate response crosses tenants. See
 
 | Surface | Hosted | Self-hosted |
 | --- | --- | --- |
-| Workflow dispatch metadata | Visible: `services/ghbridge` issues `workflow_dispatch` using the installation token minted by `services/ghserver`, so the target repo and the dispatch inputs are part of the request the bridge constructs. | Visible to the customer; same shape. |
+| Workflow dispatch metadata | Visible: `services/ghbridge` issues `workflow_dispatch` under the dispatching user's per-user OAuth token (`services/ghuser`) in both modes, so the target repo and the dispatch inputs are part of the request the bridge constructs. | Visible to the customer; same shape. |
 | Workflow run logs | **Not visible.** Logs are written to the customer's GitHub Actions log stream. The hosted operator holds no installation-token scope that grants log read and does not poll the GitHub Actions API for runs. | Visible to the customer. |
 | Workflow exit status | Visible only to the extent the workflow callback carries it. The hosted operator does not poll for run completion. | Visible to the customer; same shape. |
 | Mid-run mint requests | Visible at `services/oidc` (OIDC claims) and `services/ghserver` (mint requests) for audit — the OIDC `repository` claim and the requesting tenant are observable. The minted token itself is not part of the audit surface the design describes. | The customer's `services/ghserver` deployment carries the same audit surface. |
