@@ -57,7 +57,7 @@ scheduler. Each wake: observe state, decide the most valuable action, execute.
 | Agent              | Domain                          | Schedule        | Skills                                                                                       |
 | ------------------ | ------------------------------- | --------------- | -------------------------------------------------------------------------------------------- |
 | **postman**        | Communication triage and drafts | Every 5 min     | sync-apple-mail, sync-teams, draft-emails                                                    |
-| **concierge**      | Meeting prep and transcripts    | Every 10 min    | sync-apple-calendar, meeting-prep, hyprnote-process                                          |
+| **concierge**      | Meeting prep and transcripts    | Every 10 min    | sync-apple-calendar, meeting-prep, anarlog-process                                          |
 | **librarian**      | Knowledge graph maintenance     | Every 15 min    | extract-entities, organize-files                                                             |
 | **recruiter**      | Engineering recruitment         | Every 30 min    | req-track, req-screen, req-assess, req-decide, req-workday, req-forget, fit-pathway, fit-map |
 | **head-hunter**    | Passive talent scouting         | Every 60 min    | req-scan, fit-pathway, fit-map                                                               |

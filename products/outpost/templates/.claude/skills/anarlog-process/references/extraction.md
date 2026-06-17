@@ -1,6 +1,6 @@
 # Entity Extraction Signals
 
-Reference for `hyprnote-process` Steps 3 and 4. Combine `_memo.md` and
+Reference for `anarlog-process` Steps 3 and 4. Combine `_memo.md` and
 `_summary.md` (prefer the summary when both exist).
 
 ## People

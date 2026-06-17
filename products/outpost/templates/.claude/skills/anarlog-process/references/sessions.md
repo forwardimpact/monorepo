@@ -1,7 +1,7 @@
-# Hyprnote Session Files
+# Anarlog Session Files
 
-Reference for `hyprnote-process` Step 1. Each session lives at
-`~/Library/Application Support/hyprnote/sessions/{uuid}/`.
+Reference for `anarlog-process` Step 1. Each session lives at
+`~/Library/Application Support/anarlog/sessions/{uuid}/`.
 
 ## `_meta.json`
 
@@ -16,7 +16,7 @@ Reference for `hyprnote-process` Step 1. Each session lives at
 ```
 
 Use: session date (from `created_at`), title, participants (often empty —
-Hyprnote doesn't reliably populate this).
+Anarlog doesn't reliably populate this).
 
 ## `_memo.md`
 
@@ -75,7 +75,7 @@ A session is skipped when **all** of:
 
 - `_memo.md` body is empty or only `&nbsp;` / whitespace.
 - No `_summary.md` exists.
-- Title is empty or generic ("Hello", "Welcome to Hyprnote", "Test").
+- Title is empty or generic ("Hello", "Welcome to Anarlog", "Test").
 
 Process a session if it has **either** a substantive memo **or** a
 `_summary.md`.

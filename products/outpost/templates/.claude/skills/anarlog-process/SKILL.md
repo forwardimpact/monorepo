@@ -1,31 +1,31 @@
 ---
-name: hyprnote-process
-description: Process Hyprnote meeting sessions (memos, summaries, transcripts) into the knowledge graph. Extracts people, organizations, projects, and topics from AI-generated meeting summaries and user notes, creating or updating Obsidian-compatible notes in knowledge/. Use when the user asks to process meeting notes or after Hyprnote sessions.
+name: anarlog-process
+description: Process Anarlog meeting sessions (memos, summaries, transcripts) into the knowledge graph. Extracts people, organizations, projects, and topics from AI-generated meeting summaries and user notes, creating or updating Obsidian-compatible notes in knowledge/. Use when the user asks to process meeting notes or after Anarlog sessions.
 ---
 
-# Process Hyprnote
+# Process Anarlog
 
-Process meeting sessions from Hyprnote (a local AI meeting-notes app) into the
-knowledge graph. Hyprnote records meetings, transcribes them, and generates AI
+Process meeting sessions from Anarlog (a local AI meeting-notes app) into the
+knowledge graph. Anarlog records meetings, transcribes them, and generates AI
 summaries; this skill reads that output and feeds it into `knowledge/` — the
 same way `extract-entities` processes emails and calendar events.
 
 ## Trigger
 
-- The user asks to process meeting notes or Hyprnote sessions.
+- The user asks to process meeting notes or Anarlog sessions.
 - New meetings have been recorded.
 - The user asks to update the knowledge base from recent meetings.
 
 ## Prerequisites
 
-- Hyprnote installed; sessions at
-  `~/Library/Application Support/hyprnote/sessions/`.
+- Anarlog installed; sessions at
+  `~/Library/Application Support/anarlog/sessions/`.
 - User identity from running the `identify-user` skill, which writes
   `~/.cache/fit/outpost/state/identity.md`.
 
 ## Inputs
 
-- `~/Library/Application Support/hyprnote/sessions/{uuid}/` — see
+- `~/Library/Application Support/anarlog/sessions/{uuid}/` — see
   [references/sessions.md](references/sessions.md) for the file shape and skip
   rules.
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (TSV,
@@ -66,7 +66,7 @@ Read the user's identity from `~/.cache/fit/outpost/state/identity.md` (run the
 sessions:
 
 ```bash
-node .claude/skills/hyprnote-process/scripts/scan.mjs
+node .claude/skills/anarlog-process/scripts/scan.mjs
 ```
 
 Flags: `--changed` (also detect changed memo/summary hashes), `--json`
@@ -100,7 +100,7 @@ it). File shapes and skip rules:
 
 ### 3. Classify the source
 
-Hyprnote sessions are **meetings** and follow the meeting rules from
+Anarlog sessions are **meetings** and follow the meeting rules from
 `extract-entities`:
 
 - **Can create** People, Organization, Project, and Topic notes.
@@ -142,10 +142,10 @@ For each processed session:
 
 ```bash
 node .claude/skills/extract-entities/scripts/state.mjs update \
-  "$HOME/Library/Application Support/hyprnote/sessions/{uuid}/_memo.md"
+  "$HOME/Library/Application Support/anarlog/sessions/{uuid}/_memo.md"
 
 node .claude/skills/extract-entities/scripts/state.mjs update \
-  "$HOME/Library/Application Support/hyprnote/sessions/{uuid}/_summary.md"
+  "$HOME/Library/Application Support/anarlog/sessions/{uuid}/_summary.md"
 ```
 
 (Skip the summary call if `_summary.md` doesn't exist.)

@@ -1,16 +1,16 @@
 ---
-name: hyprnote-follow
+name: anarlog-follow
 description: >
-  Follow a live Hyprnote session in real-time, coaching the user through a
+  Follow a live Anarlog session in real-time, coaching the user through a
   meeting or interview. Understands context from the session title, knowledge
   base, and candidate pipeline. Provides talking points, flags gaps in
   coverage, and suggests follow-up questions as the conversation unfolds.
   Use when the user asks to follow, shadow, or coach them through a live meeting.
 ---
 
-# Hyprnote Follow
+# Anarlog Follow
 
-Follow a live Hyprnote recording, read the transcript as it grows, and coach the
+Follow a live Anarlog recording, read the transcript as it grows, and coach the
 user through the meeting in real time. Gather knowledge-base context once before
 the session, then poll the transcript and provide actionable nudges as new
 content appears.
@@ -19,12 +19,12 @@ content appears.
 
 - The user asks to follow, shadow, or coach them through a live meeting.
 - "Follow my meeting", "coach me", "shadow this call".
-- The user starts a Hyprnote recording and wants real-time support.
+- The user starts a Anarlog recording and wants real-time support.
 
 ## Prerequisites
 
-- Hyprnote installed; sessions at
-  `~/Library/Application Support/hyprnote/sessions/`.
+- Anarlog installed; sessions at
+  `~/Library/Application Support/anarlog/sessions/`.
 - An active or about-to-start session.
 - Knowledge base populated (attendee / candidate context).
 
@@ -49,7 +49,7 @@ content appears.
 - [ ] Coaching nudges were actionable and concise (1–3 lines each).
 - [ ] Coverage gaps tracked and surfaced before the meeting ended.
 - [ ] End-of-meeting detected; debrief provided.
-- [ ] Next steps offered (`req-assess` / `hyprnote-process`); user decided
+- [ ] Next steps offered (`req-assess` / `anarlog-process`); user decided
       whether to run them.
 - [ ] No files were modified during the session.
 
@@ -62,7 +62,7 @@ content appears.
 #### 1. Find the active session
 
 ```bash
-node .claude/skills/hyprnote-follow/scripts/follow.mjs --detect
+node .claude/skills/anarlog-follow/scripts/follow.mjs --detect
 ```
 
 Returns the most recently modified session, whether it's live, and its title. If
@@ -73,7 +73,7 @@ the user.
 #### 2. Read session metadata
 
 ```bash
-node .claude/skills/hyprnote-follow/scripts/follow.mjs <session-id> --meta
+node .claude/skills/anarlog-follow/scripts/follow.mjs <session-id> --meta
 ```
 
 Capture **title**, **created_at**, **participants**.
@@ -124,13 +124,13 @@ print it to the user.
 First read (no `--after`):
 
 ```bash
-node .claude/skills/hyprnote-follow/scripts/follow.mjs <session-id>
+node .claude/skills/anarlog-follow/scripts/follow.mjs <session-id>
 ```
 
 Subsequent reads (pass the last word ID):
 
 ```bash
-node .claude/skills/hyprnote-follow/scripts/follow.mjs <session-id> --after <last-word-id>
+node .claude/skills/anarlog-follow/scripts/follow.mjs <session-id> --after <last-word-id>
 ```
 
 Returns JSON with grouped text segments, channel labels, and the next last-word

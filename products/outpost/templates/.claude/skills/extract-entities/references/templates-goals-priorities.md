@@ -2,7 +2,7 @@
 
 Goals and Priorities are **never auto-created** by `extract-entities`. They are
 set deliberately by the user. These templates are for manual creation only —
-`extract-entities` and `hyprnote-process` only **link to** and **update progress
+`extract-entities` and `anarlog-process` only **link to** and **update progress
 on** existing notes.
 
 ## Priorities

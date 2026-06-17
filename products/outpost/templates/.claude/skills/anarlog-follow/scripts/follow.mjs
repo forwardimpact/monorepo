@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * follow.mjs — Read a live Hyprnote transcript and output new content since
+ * follow.mjs — Read a live Anarlog transcript and output new content since
  * the last read. Designed to be called repeatedly during a live session.
  *
  * Usage:
@@ -36,7 +36,7 @@ import { homedir } from "node:os";
 
 const SESSIONS_DIR = join(
   homedir(),
-  "Library/Application Support/hyprnote/sessions",
+  "Library/Application Support/anarlog/sessions",
 );
 
 function parseArgs() {
@@ -80,7 +80,7 @@ function detectActiveSession() {
   }
 
   if (!best) {
-    console.error("No active Hyprnote session found.");
+    console.error("No active Anarlog session found.");
     process.exit(1);
   }
 

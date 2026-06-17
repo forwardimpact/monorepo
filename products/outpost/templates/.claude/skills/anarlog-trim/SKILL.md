@@ -1,12 +1,12 @@
 ---
-name: hyprnote-trim
-description: Trim a Hyprnote transcript to its logical end. Recordings are often left running after a meeting finishes — this skill finds the natural conclusion (goodbyes, sign-offs) and cuts the transcript there. Use when the user asks to trim, cut, or clean up a Hyprnote transcript.
+name: anarlog-trim
+description: Trim a Anarlog transcript to its logical end. Recordings are often left running after a meeting finishes — this skill finds the natural conclusion (goodbyes, sign-offs) and cuts the transcript there. Use when the user asks to trim, cut, or clean up a Anarlog transcript.
 ---
 
 # Trim Transcript
 
-Find the logical end of a Hyprnote meeting transcript and trim everything after
-it. Meetings recorded with Hyprnote often have trailing noise — the mic stays on
+Find the logical end of a Anarlog meeting transcript and trim everything after
+it. Meetings recorded with Anarlog often have trailing noise — the mic stays on
 after goodbyes, capturing ambient sound, unrelated chatter, or silence. This
 skill identifies the natural conclusion and edits the transcript in place.
 
@@ -14,27 +14,27 @@ skill identifies the natural conclusion and edits the transcript in place.
 
 Run this skill:
 
-- When the user asks to trim, cut, or clean up a Hyprnote transcript
+- When the user asks to trim, cut, or clean up a Anarlog transcript
 - When given a specific session ID to trim
-- When another skill (e.g., hyprnote-process) flags a transcript as having
+- When another skill (e.g., anarlog-process) flags a transcript as having
   excessive trailing content
 
 ## Prerequisites
 
-- Hyprnote installed with session data at
-  `~/Library/Application Support/hyprnote/sessions/`
+- Anarlog installed with session data at
+  `~/Library/Application Support/anarlog/sessions/`
 
 ## Inputs
 
-- **Session ID** — a UUID identifying the Hyprnote session to trim
-- `~/Library/Application Support/hyprnote/sessions/{uuid}/transcript.json` — the
+- **Session ID** — a UUID identifying the Anarlog session to trim
+- `~/Library/Application Support/anarlog/sessions/{uuid}/transcript.json` — the
   word-level transcript
 
 ## Outputs
 
-- `~/Library/Application Support/hyprnote/sessions/{uuid}/transcript.json` —
+- `~/Library/Application Support/anarlog/sessions/{uuid}/transcript.json` —
   edited in place with words after the logical end removed
-- `~/Library/Application Support/hyprnote/sessions/{uuid}/audio.mp3` — deleted.
+- `~/Library/Application Support/anarlog/sessions/{uuid}/audio.mp3` — deleted.
   Trimming indicates the recording captured audio beyond the consented meeting,
   so the full audio must be removed to respect participant privacy.
 - Printed summary: original duration, trim point, new duration, words removed
@@ -47,7 +47,7 @@ Run this skill:
 
 1. Confirm the session directory exists:
    ```
-   ~/Library/Application Support/hyprnote/sessions/{uuid}/
+   ~/Library/Application Support/anarlog/sessions/{uuid}/
    ```
 2. Confirm `transcript.json` exists and has at least one transcript with words.
 3. Read `_meta.json` to get the session title for context.
@@ -125,7 +125,7 @@ Once approved:
 ```python
 import json
 
-path = f'~/Library/Application Support/hyprnote/sessions/{uuid}/transcript.json'
+path = f'~/Library/Application Support/anarlog/sessions/{uuid}/transcript.json'
 data = json.load(open(path))
 data['transcripts'][0]['words'] = data['transcripts'][0]['words'][:trim_index]
 json.dump(data, open(path, 'w'), indent=2)
@@ -148,7 +148,7 @@ deleted to respect participant privacy.
 
 1. Delete the audio file:
    ```bash
-   rm "~/Library/Application Support/hyprnote/sessions/{uuid}/audio.mp3"
+   rm "~/Library/Application Support/anarlog/sessions/{uuid}/audio.mp3"
    ```
 2. Confirm deletion and inform the user:
    ```

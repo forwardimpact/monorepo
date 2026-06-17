@@ -49,7 +49,7 @@ fields (plus title, department, company, employee ID, office, and manager):
 - **Domain:** example.com
 ```
 
-Other skills (e.g. `extract-entities`, `hyprnote-process`, `req-track`,
+Other skills (e.g. `extract-entities`, `anarlog-process`, `req-track`,
 `req-workday`, `candidate-report`, `sync-teams`) read this file for the user's
 name/email/domain — for self-exclusion and author attribution. They run this
 skill first if the cache is missing or stale. Never hand-edit the cache; re-run

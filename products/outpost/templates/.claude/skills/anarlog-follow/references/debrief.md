@@ -1,6 +1,6 @@
 # Debrief Templates
 
-Reference for `hyprnote-follow` Phase 4 (Steps 12–13).
+Reference for `anarlog-follow` Phase 4 (Steps 12–13).
 
 ## Interview debrief
 
@@ -53,7 +53,7 @@ Reference for `hyprnote-follow` Phase 4 (Steps 12–13).
 
 After the debrief, **offer** (don't ask) logical follow-ups:
 
-- **Interviews:** "I can run `req-assess` on this transcript when Hyprnote
+- **Interviews:** "I can run `req-assess` on this transcript when Anarlog
   finishes processing."
 - **Meetings:** "I can extract entities from this session into the knowledge
   graph when ready."

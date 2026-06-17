@@ -1,6 +1,6 @@
 # Coaching Reference
 
-Reference for `hyprnote-follow` Phases 2 and 3.
+Reference for `anarlog-follow` Phases 2 and 3.
 
 ## Pre-meeting brief format
 
@@ -108,9 +108,9 @@ Capture: decision made on {topic} — {who} will {what}
 
 ## Constraints
 
-- **Read-only.** Never modify Hyprnote files, knowledge notes, or state.
+- **Read-only.** Never modify Anarlog files, knowledge notes, or state.
 - **No post-processing during follow.** Don't run `extract-entities`,
-  `req-assess`, or `hyprnote-process`. Offer them after.
+  `req-assess`, or `anarlog-process`. Offer them after.
 - **Channel 0 = user.** Always.
 - **Transcription noise.** Live transcripts are messy. Don't coach from a single
   ambiguous word — wait for context.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Scan for unprocessed Hyprnote sessions.
+ * Scan for unprocessed Anarlog sessions.
  *
  * Compares session _memo.md and _summary.md files against the graph_processed
  * state file to identify sessions that need processing. Reports unprocessed
@@ -19,14 +19,11 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 
 const HOME = homedir();
-const SESSIONS_DIR = join(
-  HOME,
-  "Library/Application Support/hyprnote/sessions",
-);
+const SESSIONS_DIR = join(HOME, "Library/Application Support/anarlog/sessions");
 const STATE_FILE = join(HOME, ".cache/fit/outpost/state/graph_processed");
 
 if (process.argv.includes("-h") || process.argv.includes("--help")) {
-  console.log(`scan — find unprocessed Hyprnote sessions
+  console.log(`scan — find unprocessed Anarlog sessions
 
 Usage:
   node scripts/scan.mjs [options]
@@ -38,7 +35,7 @@ Options:
   --limit N    Max sessions to display (default: 20)
   -h, --help   Show this help message
 
-Sessions dir: ~/Library/Application Support/hyprnote/sessions/
+Sessions dir: ~/Library/Application Support/anarlog/sessions/
 State file:   ~/.cache/fit/outpost/state/graph_processed`);
   process.exit(0);
 }
@@ -129,7 +126,7 @@ function readMeta(sessionDir) {
 // --- Scan sessions ---
 
 if (!existsSync(SESSIONS_DIR)) {
-  console.error(`Hyprnote sessions directory not found: ${SESSIONS_DIR}`);
+  console.error(`Anarlog sessions directory not found: ${SESSIONS_DIR}`);
   process.exit(1);
 }
 

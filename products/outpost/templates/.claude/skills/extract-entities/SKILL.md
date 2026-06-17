@@ -29,7 +29,7 @@ under `knowledge/`. The core knowledge-graph builder.
   `~/.cache/fit/outpost/teams_chat/*.md`.
 - Ad-hoc paths: `.pdf`, `.txt`, `.md`, `.rtf`, `.doc`, `.docx`, `.csv`, `.xlsx`.
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (TSV,
-  shared with `req-track` and `hyprnote-process`).
+  shared with `req-track` and `anarlog-process`).
 - `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
   (written by the `identify-user` skill).
 
@@ -188,5 +188,5 @@ node scripts/state.mjs update "$FILE"
 ```
 
 Run for every processed file. The state file is shared with `req-track` and
-`hyprnote-process`, so this prevents either skill from re-scanning the same
+`anarlog-process`, so this prevents either skill from re-scanning the same
 input.

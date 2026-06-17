@@ -31,23 +31,23 @@ was invisible without structured gender data.
 
 ## New skill
 
-`.claude/skills/hyprnote-process/CHANGELOG.md`:
+`.claude/skills/anarlog-process/CHANGELOG.md`:
 
 ```markdown
-# hyprnote-process Changelog
+# anarlog-process Changelog
 
 Changes to this skill that should be considered for upstream inclusion in
 the Forward Impact monorepo.
 
 ## 2026-03-01
 
-**What:** New skill for processing Hyprnote meeting recordings
+**What:** New skill for processing Anarlog meeting recordings
 
-**Why:** Meeting notes were being lost — Hyprnote captures transcriptions
+**Why:** Meeting notes were being lost — Anarlog captures transcriptions
 but they weren't being integrated into the knowledge base.
 
 **Details:**
-- Reads transcription files from `~/.cache/fit/outpost/hyprnote/`
+- Reads transcription files from `~/.cache/fit/outpost/anarlog/`
 - Extracts people, decisions, and action items
 - Creates meeting notes in `knowledge/Meetings/`
 - Links attendees to `knowledge/People/` entries

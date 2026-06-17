@@ -25,7 +25,7 @@ This is **Stage 2** of the three-stage hiring pipeline:
 - A new `transcript-*.md` file appears in `knowledge/Candidates/{Name}/`.
 - The user asks to analyze an interview or debrief.
 - The user asks to prepare a panel brief.
-- The concierge agent processes a Hyprnote interview recording.
+- The concierge agent processes a Anarlog interview recording.
 
 ## Prerequisites
 

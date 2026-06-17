@@ -1,6 +1,6 @@
 # Meeting-Type Classification
 
-Reference for `hyprnote-follow` Phase 1, Step 3. Classify from the session
+Reference for `anarlog-follow` Phase 1, Step 3. Classify from the session
 title.
 
 | Title pattern                               | Type                        | Coaching focus                                                 |
