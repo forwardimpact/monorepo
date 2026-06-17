@@ -5,10 +5,33 @@ import {
   createMockGitClient,
   createMockFs,
 } from "@forwardimpact/libmock";
-import { WikiSync, WikiPullConflict } from "../src/wiki-sync.js";
+import {
+  AncestryRefusal,
+  WikiSync,
+  WikiPullConflict,
+} from "../src/wiki-sync.js";
 
 const WIKI = "/repo/wiki";
 const PARENT = "/repo";
+
+// Mock responses placing the clone in a healthy, publishable ancestry state:
+// HEAD on `master`, the remote-tracking ref and HEAD both resolve, and a
+// merge-base exists — so #assertPublishable allows on the local-only path.
+const HEALTHY_ANCESTRY = {
+  headBranch: "master",
+  refExists: true,
+  mergeBaseExists: true,
+};
+
+// Git methods the ancestry guard issues; filtered out of flow-sequence
+// assertions that care only about the commit/rebase/push flow.
+const GUARD_METHODS = new Set([
+  "headBranch",
+  "refExists",
+  "mergeBaseExists",
+  "remoteBranchExists",
+  "fetchDeepen",
+]);
 
 function make({ responses, fsSync, resolveToken } = {}) {
   const git = createMockGitClient({ responses });
@@ -20,7 +43,13 @@ function make({ responses, fsSync, resolveToken } = {}) {
     parentDir: PARENT,
     resolveToken,
   });
-  return { git, wikiSync, methods: () => git.calls.map((c) => c.method) };
+  return {
+    git,
+    wikiSync,
+    methods: () => git.calls.map((c) => c.method),
+    flowMethods: () =>
+      git.calls.map((c) => c.method).filter((m) => !GUARD_METHODS.has(m)),
+  };
 }
 
 describe("WikiSync", () => {
@@ -88,8 +117,9 @@ describe("WikiSync", () => {
   });
 
   test("commitAndPush commits, rebases, and pushes a dirty ahead tree", async () => {
-    const { wikiSync, methods } = make({
+    const { wikiSync, flowMethods } = make({
       responses: {
+        ...HEALTHY_ANCESTRY,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
         revListCount: 1,
@@ -97,7 +127,7 @@ describe("WikiSync", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, { pushed: true, reason: "pushed" });
-    assert.deepEqual(methods(), [
+    assert.deepEqual(flowMethods(), [
       "status",
       "commitAll",
       "revListCount",
@@ -108,8 +138,9 @@ describe("WikiSync", () => {
   });
 
   test("commitAndPush with paths scopes the status check and commit", async () => {
-    const { git, wikiSync, methods } = make({
+    const { git, wikiSync, flowMethods } = make({
       responses: {
+        ...HEALTHY_ANCESTRY,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
         revListCount: 1,
@@ -117,7 +148,7 @@ describe("WikiSync", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
     assert.deepEqual(result, { pushed: true, reason: "pushed" });
-    assert.deepEqual(methods(), [
+    assert.deepEqual(flowMethods(), [
       "status",
       "commitPaths",
       "revListCount",
@@ -138,6 +169,7 @@ describe("WikiSync", () => {
   test("commitAndPush rebases with autostash so foreign dirt survives the pull", async () => {
     const { git, wikiSync } = make({
       responses: {
+        ...HEALTHY_ANCESTRY,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
         revListCount: 1,
@@ -152,39 +184,42 @@ describe("WikiSync", () => {
   });
 
   test("commitAndPush with paths is a no-op when only foreign files are dirty", async () => {
-    const { wikiSync, methods } = make({
+    const { wikiSync, flowMethods } = make({
       responses: {
+        ...HEALTHY_ANCESTRY,
         status: { stdout: "", stderr: "", exitCode: 0 },
         revListCount: 0,
       },
     });
     const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
     assert.deepEqual(result, { pushed: false, reason: "clean" });
-    assert.deepEqual(methods(), ["status", "revListCount"]);
+    assert.deepEqual(flowMethods(), ["status", "revListCount"]);
   });
 
   test("commitAndPush is a no-op on a clean tree with nothing ahead", async () => {
-    const { wikiSync, methods } = make({
+    const { wikiSync, flowMethods } = make({
       responses: {
+        ...HEALTHY_ANCESTRY,
         status: { stdout: "", stderr: "", exitCode: 0 },
         revListCount: 0,
       },
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, { pushed: false, reason: "clean" });
-    assert.deepEqual(methods(), ["status", "revListCount"]);
+    assert.deepEqual(flowMethods(), ["status", "revListCount"]);
   });
 
   test("commitAndPush recovers via merge -X ours when the rebase fails", async () => {
-    const { wikiSync, methods } = make({
+    const { wikiSync, flowMethods } = make({
       responses: {
+        ...HEALTHY_ANCESTRY,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
       },
     });
     await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(methods(), [
+    assert.deepEqual(flowMethods(), [
       "status",
       "commitAll",
       "revListCount",
@@ -218,6 +253,7 @@ describe("WikiSync", () => {
   test("commitAndPush tolerates a failing push (WikiRepo fire-and-forget)", async () => {
     const { git, wikiSync } = make({
       responses: {
+        ...HEALTHY_ANCESTRY,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
         revListCount: 1,
@@ -247,5 +283,231 @@ describe("WikiSync", () => {
       },
     });
     await assert.rejects(() => wikiSync.fetch(), /not configured/);
+  });
+});
+
+describe("WikiSync ancestry guard (spec 1750)", () => {
+  // A dirty, ahead tree so the guard, not the no-op gate, decides the outcome.
+  const DIRTY_AHEAD = {
+    status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+    rebase: { exitCode: 0, stderr: "" },
+    revListCount: 1,
+  };
+
+  function assertNoWrite(git) {
+    const wrote = git.calls.find((c) =>
+      ["commitAll", "commitPaths", "push"].includes(c.method),
+    );
+    assert.equal(wrote, undefined, "guard must not commit or push on refusal");
+  }
+
+  test("detached HEAD ⇒ unverifiable refusal, no commit or push", async () => {
+    const { git, wikiSync } = make({
+      responses: { ...DIRTY_AHEAD, headBranch: "", refExists: true },
+    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal && err.kind === "unverifiable",
+    );
+    assertNoWrite(git);
+  });
+
+  test("unborn HEAD against an existing remote branch ⇒ unrelated refusal", async () => {
+    const { git, wikiSync } = make({
+      responses: {
+        ...DIRTY_AHEAD,
+        headBranch: "master",
+        // origin/master resolves (branch present); HEAD does not (unborn).
+        refExists: false,
+        remoteBranchExists: true,
+      },
+    });
+    // refExists is false for both origin/master and HEAD here, so the remote
+    // probe runs and confirms the branch is present, then unborn HEAD refuses.
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal && err.kind === "unrelated",
+    );
+    assertNoWrite(git);
+  });
+
+  test("severed history on a complete clone ⇒ unrelated refusal", async () => {
+    const { git, wikiSync } = make({
+      responses: {
+        ...DIRTY_AHEAD,
+        headBranch: "master",
+        refExists: true,
+        mergeBaseExists: false,
+      },
+      fsSync: createMockFs({}), // no .git/shallow ⇒ complete clone
+    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal && err.kind === "unrelated",
+    );
+    assertNoWrite(git);
+  });
+
+  test("clean tree with committed unverifiable history ⇒ refusal at the push half", async () => {
+    // Clean tree (nothing to commit) but ahead of the remote: only the
+    // second #assertPublishable, before the push, can catch this.
+    const { git, wikiSync } = make({
+      responses: {
+        status: { stdout: "", stderr: "", exitCode: 0 },
+        revListCount: 1,
+        headBranch: "master",
+        refExists: true,
+        mergeBaseExists: false,
+      },
+      fsSync: createMockFs({}),
+    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal && err.kind === "unrelated",
+    );
+    const pushed = git.calls.find((c) => c.method === "push");
+    assert.equal(pushed, undefined, "no push on a push-half refusal");
+  });
+
+  test("shallow clone, ancestry within window ⇒ allowed, no deepening fetch", async () => {
+    const { git, wikiSync } = make({
+      responses: { ...DIRTY_AHEAD, ...HEALTHY_ANCESTRY },
+      fsSync: createMockFs({ [`${WIKI}/.git/shallow`]: "" }),
+    });
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    const deepen = git.calls.find((c) => c.method === "fetchDeepen");
+    assert.equal(deepen, undefined, "no deepen when the merge-base resolves");
+  });
+
+  test("shallow clone, ancestry outside window ⇒ deepen then allow", async () => {
+    const git = createMockGitClient({
+      responses: { ...DIRTY_AHEAD, headBranch: "master", refExists: true },
+    });
+    // First merge-base check fails (outside window); after the deepen it passes.
+    let mergeBaseCalls = 0;
+    git.mergeBaseExists = async () => {
+      mergeBaseCalls++;
+      return mergeBaseCalls > 1;
+    };
+    git.fetchDeepen = async () => ({ stdout: "", stderr: "", exitCode: 0 });
+    const runtime = createTestRuntime({
+      fsSync: createMockFs({ [`${WIKI}/.git/shallow`]: "" }),
+    });
+    const wikiSync = new WikiSync({
+      runtime,
+      gitClient: git,
+      wikiDir: WIKI,
+      parentDir: PARENT,
+    });
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+  });
+
+  test("shallow clone, deeper verification still unrelated ⇒ unrelated refusal", async () => {
+    const { git, wikiSync } = make({
+      responses: {
+        ...DIRTY_AHEAD,
+        headBranch: "master",
+        refExists: true,
+        mergeBaseExists: false,
+        fetchDeepen: { stdout: "", stderr: "", exitCode: 0 },
+      },
+      fsSync: createMockFs({ [`${WIKI}/.git/shallow`]: "" }),
+    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal && err.kind === "unrelated",
+    );
+    assertNoWrite(git);
+  });
+
+  test("shallow clone, deepening fetch fails ⇒ unverifiable refusal", async () => {
+    const { git, wikiSync } = make({
+      responses: {
+        ...DIRTY_AHEAD,
+        headBranch: "master",
+        refExists: true,
+        mergeBaseExists: false,
+        fetchDeepen: { stdout: "", stderr: "no network", exitCode: 1 },
+      },
+      fsSync: createMockFs({ [`${WIKI}/.git/shallow`]: "" }),
+    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal && err.kind === "unverifiable",
+    );
+    assertNoWrite(git);
+  });
+
+  test("genuinely empty remote with positive evidence ⇒ first commit accepted", async () => {
+    const { wikiSync } = make({
+      responses: {
+        ...DIRTY_AHEAD,
+        headBranch: "master",
+        refExists: false, // origin/master does not resolve
+        remoteBranchExists: false, // probe confirms the remote is empty
+      },
+    });
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+  });
+
+  test("absent tracking ref and unobservable remote ⇒ unverifiable refusal", async () => {
+    const git = createMockGitClient({
+      responses: { ...DIRTY_AHEAD, headBranch: "master", refExists: false },
+    });
+    git.remoteBranchExists = async () => {
+      throw new Error("could not read Username");
+    };
+    const runtime = createTestRuntime();
+    const wikiSync = new WikiSync({
+      runtime,
+      gitClient: git,
+      wikiDir: WIKI,
+      parentDir: PARENT,
+    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal && err.kind === "unverifiable",
+    );
+    assertNoWrite(git);
+  });
+
+  test("absent tracking ref, observable, shared ancestry ⇒ allowed", async () => {
+    // origin/master does not resolve locally; the probe finds the branch
+    // present; HEAD resolves and shares a merge-base ⇒ allow.
+    const git = createMockGitClient({
+      responses: {
+        ...DIRTY_AHEAD,
+        headBranch: "master",
+        remoteBranchExists: true,
+        mergeBaseExists: true,
+      },
+    });
+    // refExists must answer false for origin/master but true for HEAD.
+    git.refExists = async (ref) => ref === "HEAD";
+    const runtime = createTestRuntime();
+    const wikiSync = new WikiSync({
+      runtime,
+      gitClient: git,
+      wikiDir: WIKI,
+      parentDir: PARENT,
+    });
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+  });
+
+  test("healthy hot path issues no ls-remote and no deepening fetch", async () => {
+    const { git, wikiSync } = make({
+      responses: { ...DIRTY_AHEAD, ...HEALTHY_ANCESTRY },
+    });
+    await wikiSync.commitAndPush("wiki: update");
+    const names = git.calls.map((c) => c.method);
+    assert.ok(
+      !names.includes("remoteBranchExists"),
+      "hot path adds no remote round-trip",
+    );
+    assert.ok(!names.includes("fetchDeepen"), "hot path adds no deepening");
   });
 });

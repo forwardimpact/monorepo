@@ -1,5 +1,10 @@
 import path from "node:path";
 
+/** The branch the wiki clone publishes (hard-coded in fetch / rebase / push). */
+const BRANCH = "master";
+const REMOTE = "origin";
+const REMOTE_BRANCH = `${REMOTE}/${BRANCH}`;
+
 /** Error thrown when a wiki pull encounters a rebase conflict that cannot be resolved automatically. */
 export class WikiPullConflict extends Error {
   /** Create a WikiPullConflict with the stderr output from the failed rebase. */
@@ -7,6 +12,26 @@ export class WikiPullConflict extends Error {
     super("rebase conflict on pull");
     this.name = "WikiPullConflict";
     this.stderr = stderr;
+  }
+}
+
+/**
+ * Error thrown when the ancestry guard refuses to commit or push because the
+ * relationship between the history that would be published and the remote
+ * branch cannot be positively confirmed (spec 1750). `kind` is `"unrelated"`
+ * (confirmed no shared history) or `"unverifiable"` (the relationship could be
+ * neither confirmed nor refuted). The two kinds carry distinct messages so the
+ * operator knows which state they are recovering from.
+ */
+export class AncestryRefusal extends Error {
+  /**
+   * @param {"unrelated"|"unverifiable"} kind
+   * @param {string} message - Recovery-naming message.
+   */
+  constructor(kind, message) {
+    super(message);
+    this.name = "AncestryRefusal";
+    this.kind = kind;
   }
 }
 
@@ -134,10 +159,23 @@ export class WikiSync {
    * rebase and merge fallback then run with --autostash because that residue
    * stays uncommitted in the tree.
    *
+   * Ancestry guard (spec 1750): before the commit and again before the push,
+   * {@link AncestryRefusal} is thrown when the published history's relationship
+   * to `origin/master` cannot be positively confirmed — a detached HEAD, an
+   * unborn HEAD or unrelated history against an existing remote branch, or a
+   * remote that cannot be observed. A new wiki's first publication is allowed
+   * only on positive evidence the remote branch is absent (a non-swallowed
+   * `ls-remote`); mere absence of the local remote-tracking ref never grants
+   * it, and the allowance is re-derived from live git on every call so a failed
+   * first publication is re-judged rather than auto-re-granted. The guard
+   * creates no commit, attempts no push, and adds no working-tree changes.
+   *
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs limiting what gets committed.
+   * @throws {AncestryRefusal} When the published history cannot be verified.
    */
   async commitAndPush(message, paths) {
+    await this.#assertPublishable();
     if (!(await this.isClean(paths))) {
       if (paths?.length) {
         await this.#git.commitPaths(message, paths, { cwd: this.#wikiDir });
@@ -148,6 +186,7 @@ export class WikiSync {
     if (!(await this.#hasCommitsAhead())) {
       return { pushed: false, reason: "clean" };
     }
+    await this.#assertPublishable();
     await this.fetch();
     const rebase = await this.#git.rebase("origin/master", {
       cwd: this.#wikiDir,
@@ -179,5 +218,92 @@ export class WikiSync {
       cwd: this.#wikiDir,
     });
     return count > 0;
+  }
+
+  /** Whether the wiki clone is shallow (has a `.git/shallow` file). */
+  #isShallow() {
+    return this.#runtime.fsSync.existsSync(
+      path.join(this.#wikiDir, ".git", "shallow"),
+    );
+  }
+
+  /**
+   * Refuse, before any commit or push, whenever the relationship between the
+   * history that would be published (the `master` branch ref, never bare HEAD)
+   * and the remote branch can be neither confirmed nor refuted. Implements the
+   * spec 1750 decision table; throws {@link AncestryRefusal} on refusal and
+   * returns silently when publication is verified or the remote is positively
+   * empty. The emptiness probe runs only on the absent-tracking-ref path, so
+   * the healthy hot path adds no remote round-trip.
+   */
+  async #assertPublishable() {
+    const cwd = this.#wikiDir;
+
+    // 1. Detached HEAD: the push publishes the branch ref, not HEAD, so the
+    //    session's commits would be silently lost. Verify nothing — refuse.
+    if ((await this.#git.headBranch({ cwd })) !== BRANCH) {
+      throw new AncestryRefusal(
+        "unverifiable",
+        "fit-wiki: refusing to publish — HEAD is detached, so the configured " +
+          "branch would be pushed instead of your work. Re-clone the wiki.",
+      );
+    }
+
+    // 2. Establish whether the remote branch is present. A resolvable local
+    //    remote-tracking ref is sufficient; otherwise probe the remote (the
+    //    only added round-trip, and only here).
+    let branchPresent = await this.#git.refExists(REMOTE_BRANCH, { cwd });
+    if (!branchPresent) {
+      let observed;
+      try {
+        observed = await this.#git.remoteBranchExists(REMOTE, BRANCH, { cwd });
+      } catch {
+        throw new AncestryRefusal(
+          "unverifiable",
+          "fit-wiki: refusing to publish — could not observe the remote to " +
+            "verify ancestry; the local change is not published.",
+        );
+      }
+      // Positive evidence the remote branch is absent ⇒ empty-new-wiki.
+      if (!observed) return;
+      branchPresent = true;
+    }
+
+    // 3. Branch present + unborn HEAD ⇒ confirmed unrelated.
+    if (!(await this.#git.refExists("HEAD", { cwd }))) {
+      throw new AncestryRefusal(
+        "unrelated",
+        "fit-wiki: refusing to publish — HEAD is unborn but the remote " +
+          "branch exists. Re-clone the wiki.",
+      );
+    }
+
+    // 4. Shared ancestry within the fetched window ⇒ allow.
+    if (await this.#git.mergeBaseExists(REMOTE_BRANCH, "HEAD", { cwd })) return;
+
+    // 5. No merge-base on a complete clone ⇒ confirmed unrelated.
+    if (!this.#isShallow()) {
+      throw new AncestryRefusal(
+        "unrelated",
+        "fit-wiki: refusing to publish — local history is unrelated to the " +
+          "remote branch. Re-clone the wiki.",
+      );
+    }
+
+    // 6. Shallow clone: deepen to full history, then re-judge.
+    const deepen = await this.#git.fetchDeepen(REMOTE, BRANCH, { cwd });
+    if (deepen.exitCode !== 0) {
+      throw new AncestryRefusal(
+        "unverifiable",
+        "fit-wiki: refusing to publish — could not deepen history to verify " +
+          "ancestry; the local change is not published.",
+      );
+    }
+    if (await this.#git.mergeBaseExists(REMOTE_BRANCH, "HEAD", { cwd })) return;
+    throw new AncestryRefusal(
+      "unrelated",
+      "fit-wiki: refusing to publish — local history is unrelated to the " +
+        "remote branch (confirmed against full history). Re-clone the wiki.",
+    );
   }
 }

@@ -16,6 +16,11 @@ const GIT_METHODS = [
   "configSet",
   "aheadCount",
   "remoteGetUrl",
+  "headBranch",
+  "refExists",
+  "mergeBaseExists",
+  "remoteBranchExists",
+  "fetchDeepen",
 ];
 
 /**

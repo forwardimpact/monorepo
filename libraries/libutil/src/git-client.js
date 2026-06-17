@@ -145,6 +145,66 @@ export class GitClient {
     return result.stdout.trim();
   }
 
+  /**
+   * The short name of the branch HEAD points at, or "" when HEAD is detached.
+   * An unborn HEAD on a branch (no commits yet) still returns that branch name —
+   * `symbolic-ref` reads the ref HEAD targets, not whether it resolves.
+   */
+  async headBranch({ cwd } = {}) {
+    const r = await this.#runRaw(["symbolic-ref", "--short", "-q", "HEAD"], {
+      cwd,
+      allowFailure: true,
+    });
+    return r.stdout.trim();
+  }
+
+  /** Whether `ref` resolves to a commit (`rev-parse --verify`). */
+  async refExists(ref, { cwd } = {}) {
+    const r = await this.#runRaw(
+      ["rev-parse", "--verify", "-q", `${ref}^{commit}`],
+      { cwd, allowFailure: true },
+    );
+    return r.exitCode === 0;
+  }
+
+  /**
+   * Whether `a` and `b` share a merge-base within the fetched history.
+   * `git merge-base` exits 1 (not an error) when no base exists, so this runs
+   * with `allowFailure` and reads the exit code rather than throwing.
+   */
+  async mergeBaseExists(a, b, { cwd } = {}) {
+    const r = await this.#runRaw(["merge-base", a, b], {
+      cwd,
+      allowFailure: true,
+    });
+    return r.exitCode === 0;
+  }
+
+  /**
+   * Whether `branch` exists on `remote` (`ls-remote --heads`). Throws a
+   * {@link GitError} when the remote cannot be observed, so callers can
+   * distinguish a genuinely empty remote from a failed observation.
+   */
+  async remoteBranchExists(remote, branch, { cwd } = {}) {
+    const r = await this.#runRaw(["ls-remote", "--heads", remote, branch], {
+      cwd,
+    });
+    return r.stdout.trim() !== "";
+  }
+
+  /**
+   * Deepen history to full depth for `branch` from `remote`. Runs with
+   * `allowFailure` because `--unshallow` errors on a complete clone; callers
+   * gate this behind a shallow-clone check and treat a non-zero exit as
+   * "deepening failed".
+   */
+  async fetchDeepen(remote, branch, { cwd } = {}) {
+    return this.#runRaw(["fetch", "--unshallow", remote, branch], {
+      cwd,
+      allowFailure: true,
+    });
+  }
+
   /** Return a new client that threads `token` into the git env. */
   withAuth(token) {
     return new GitClient({ runtime: this.#runtime, token });

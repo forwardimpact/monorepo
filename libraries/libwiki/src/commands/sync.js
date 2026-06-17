@@ -1,12 +1,21 @@
 import { createLogger } from "@forwardimpact/libtelemetry";
-import { WikiPullConflict } from "../wiki-sync.js";
+import { AncestryRefusal, WikiPullConflict } from "../wiki-sync.js";
 
 /** Commit all wiki changes and push them to the remote wiki repository. */
 export async function runPushCommand(ctx) {
   const { runtime, wikiSync } = ctx.deps;
   await wikiSync.inheritIdentity();
 
-  const result = await wikiSync.commitAndPush("wiki: update from session");
+  let result;
+  try {
+    result = await wikiSync.commitAndPush("wiki: update from session");
+  } catch (err) {
+    if (err instanceof AncestryRefusal) {
+      runtime.proc.stderr.write(`${err.message}\n`);
+      return { ok: false, code: 1 };
+    }
+    throw err;
+  }
   if (result.pushed) {
     runtime.proc.stdout.write("push: committed and pushed\n");
   } else {
