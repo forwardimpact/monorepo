@@ -137,10 +137,11 @@ jobs:
           case "$KIND" in
             product)  "$BUNDLE/Contents/MacOS/fit-${NAME}" --help ;;
             gear)
-              # Smoke every non-server gear CLI, not just the first — the gear
-              # bundle ships ~25 and a single startup-crash binary would
-              # otherwise ship signed. Servers boot rather than honour --help.
-              for cli in $(jq -r '.clis[] | select(.bundle == "gear" and (.server != true)) | .name' build/cli-manifest.json); do
+              # Smoke every gear CLI, not just the first — the gear bundle ships
+              # ~25 and a single startup-crash binary would otherwise ship
+              # signed. The server entries now honour --help (spec 1620), so they
+              # are smoked alongside the rest rather than carved out.
+              for cli in $(jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json); do
                 "$BUNDLE/Contents/MacOS/$cli" --help >/dev/null
               done
               ;;
