@@ -69,3 +69,5 @@ branch each work-type lands on:
   `websites/<site>` path) before committing doc changes
 - **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
 - **Coordination**: [coordination-protocol](.claude/agents/references/coordination-protocol.md). In Assess/memory writes, every cited SHA must resolve on its referenced repo or the body is not published — [§ Citation integrity](.claude/agents/references/citation-integrity.md).
+- **Auth anomalies**:
+  [auth-anomaly](.claude/agents/references/auth-anomaly.md)
