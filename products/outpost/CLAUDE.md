@@ -32,10 +32,17 @@ set never reach the spawn environment, and each rejection is logged as
 
 - Current membership: **`ANTHROPIC_API_KEY`** only.
 - **Add a key only here, under code review.** This is the trust contract. An
-  allow-set (not a deny-set) forces every new key — `NODE_OPTIONS`, `PATH`,
-  `DYLD_*`, `LD_*`, and the next linker flag nobody has invented yet — through
-  this review point. Never widen it to admit a key that changes how the child
-  process or its subprocesses load code.
+  allow-set rather than a deny-set forces every new key through this review
+  point. A deny-set would have to keep chasing each new code-loading knob
+  (`NODE_OPTIONS`, `PATH`, `DYLD_*`, `LD_*`, and the next linker flag). Never
+  widen the allow-set to admit a key that changes how the child process or its
+  subprocesses load code.
+
+The allow-set governs `config.env` only. The spawn environment is seeded from
+the daemon's own `process.env`, which is inherited unfiltered. The daemon's
+environment is a user-only trust assumption, the same as the two roots above. A
+spawned agent cannot influence it, so the injection chain runs through
+`config.env`, which the allow-set closes.
 
 All three wake paths (scheduler tick `src/scheduler.js`, socket-mediated wake
 `src/socket-server.js`, direct-CLI `fit-outpost wake` in `src/outpost.js`)
@@ -63,10 +70,10 @@ commands (`cat`/`head`/`tail`/`sed`). This is **not** the load-bearing closure.
 **Known residual:** an allow-listed interpreter (`Bash(bun *)`, `Bash(bunx *)`,
 `node`) running a script that calls `writeFileSync`, and shell redirection
 (`echo > …`, `tee`, `awk`'s `print > file`), both bypass template permissions.
-Only an OS sandbox closes those routes (out of scope here; ties to spec 0600).
-The allow-set and state-name validator above are what actually stop the
-escalation chain even when an interpreter route lets an agent edit the config
-file.
+Only an OS sandbox closes those routes. Sandboxing the spawned process is out of
+scope here and is tracked as separate native-distribution work. The allow-set
+and state-name validator above are what actually stop the escalation chain even
+when an interpreter route lets an agent edit the config file.
 
 ## Contract for Future Template Changes
 

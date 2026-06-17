@@ -5,7 +5,8 @@
  * The agent-state writer maps an agent name to a per-agent state filename.
  * A name carrying `/` or `..` segments would let a rewritten `scheduler.json`
  * direct writes outside `~/.cache/fit/outpost/state/`. This module validates
- * and rejects rather than silently sanitising (design Decision #4).
+ * and rejects rather than silently sanitising, so an unexpected path segment
+ * surfaces as an intrusion signal instead of a quietly rewritten filename.
  */
 
 /** Raised when an agent name cannot map to a safe state-file prefix. */
