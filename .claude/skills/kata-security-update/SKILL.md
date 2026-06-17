@@ -66,7 +66,7 @@ the release Dependabot tracks via the `# v1` comment).
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed this Process.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed this Process.
 Extract previous triage outcomes and packages that repeatedly fail Check 8.
 
 ### Step 1: List Open Dependabot PRs

@@ -49,7 +49,7 @@ corrections: re-verify the named artifact rather than transcribing it verbatim.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
 [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
 The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed the
 rest of this Process. Then read every file in `wiki/`: agent summaries
