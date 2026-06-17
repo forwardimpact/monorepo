@@ -32,6 +32,7 @@ export function makeRuntime({
   fs: fsOverride = nodeFs,
   fsSync: fsSyncOverride = nodeFsSync,
   finder: finderOverride,
+  subprocess: subprocessOverride,
 } = {}) {
   const out = [];
   const err = [];
@@ -58,7 +59,7 @@ export function makeRuntime({
     fsSync: fsSyncOverride,
     proc,
     clock,
-    subprocess: createDefaultSubprocess(),
+    subprocess: subprocessOverride ?? createDefaultSubprocess(),
     // findProjectRoot is called with an explicit start path (proc.cwd()), so
     // the shared real-fs finder traverses fixtures correctly without needing
     // the test's custom proc bound into it. Tests that drive a command against
