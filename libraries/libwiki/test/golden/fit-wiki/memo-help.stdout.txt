@@ -3,7 +3,7 @@ fit-wiki memo — Send a cross-team memo into a teammate's Message Inbox
 Usage: fit-wiki memo [options]
 
 Options:
-  --from=<string>       Sender agent name (falls back to LIBEVAL_AGENT_PROFILE env var)
+  --from=<string>       Sender agent name (required; no environment fallback)
   --to=<string>         Target agent name, or "all" to broadcast (sender is skipped)
   --message=<string>    Memo text
   --wiki-root=<string>  Override wiki root directory (default: wiki)

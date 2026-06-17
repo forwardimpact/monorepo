@@ -42,7 +42,7 @@ npx fit-wiki boot --agent staff-engineer [--format markdown]
 
 | Flag | Description |
 | --- | --- |
-| `--agent` | Falls back to `LIBEVAL_AGENT_PROFILE` |
+| `--agent` | Required; no environment fallback |
 | `--format` | `json` (default) or `markdown` |
 | `--wiki-root` | Override wiki root |
 

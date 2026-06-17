@@ -6,18 +6,17 @@ import {
   PRIORITY_INDEX_TABLE_HEADER,
 } from "../constants.js";
 import { currentDayIso } from "../util/clock.js";
+import { requireAgentFlag } from "../util/agent-flag.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 
 function paths(runtime, options) {
   const wikiRoot = resolveWikiRoot(runtime, options);
-  const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
-  if (!agent) {
-    createLogger("wiki", runtime).warn(
-      "inbox",
-      "inbox requires --agent or LIBEVAL_AGENT_PROFILE",
-    );
-    return { error: { ok: false, code: 2 } };
-  }
+  const resolved = requireAgentFlag(options, {
+    command: "inbox",
+    example: "fit-wiki inbox list --agent staff-engineer",
+  });
+  if (!resolved.ok) return { error: resolved };
+  const agent = resolved.agent;
   return {
     summaryPath: path.join(wikiRoot, `${agent}.md`),
     memoryPath: path.join(wikiRoot, "MEMORY.md"),

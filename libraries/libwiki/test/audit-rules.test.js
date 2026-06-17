@@ -82,6 +82,28 @@ describe("RULES catalogue", () => {
     }
   });
 
+  test("weekly-log budget hints are functions resolving to a correctly-targeted rotate command", () => {
+    // Copy-paste-safe: the agent comes from the flagged file's prefix, with no
+    // placeholder for the caller to substitute. The libutil engine resolves a
+    // function hint once per finding (covered in libutil's rules.test.js); here
+    // we assert the rule definition produces the right command from the subject.
+    const subject = { agentPrefix: "product-manager" };
+    const budgetRules = RULES.filter(
+      (r) =>
+        r.id === "weekly-log.line-budget" || r.id === "weekly-log.word-budget",
+    );
+    assert.equal(budgetRules.length, 2, "both budget rules present");
+    for (const r of budgetRules) {
+      assert.equal(typeof r.hint, "function", `${r.id} hint is a function`);
+      const hint = r.hint(subject);
+      assert.equal(
+        hint,
+        "run `bunx fit-wiki rotate --agent product-manager` to seal this file as a sealed part and start a fresh weekly log",
+      );
+      assert.doesNotMatch(hint, /<agent>|<prefix>/);
+    }
+  });
+
   test("remediation classes match the annotated set", () => {
     // `fit-wiki fix` dispatches on this field: rotate deterministically,
     // flag for a human, or (default, absent) hand to the agent.

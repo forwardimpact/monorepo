@@ -4,6 +4,7 @@ import { writeMemo } from "../memo-writer.js";
 import { listAgents } from "../agent-roster.js";
 import { BROADCAST_TARGET } from "../constants.js";
 import { currentDayIso } from "../util/clock.js";
+import { requireAgentFlag } from "../util/agent-flag.js";
 import { resolveProjectRoot } from "../util/wiki-dir.js";
 
 function writeAndCheck(runtime, summaryPath, sender, message, today) {
@@ -63,19 +64,19 @@ function writeBroadcast(
   return { ok: true };
 }
 
-/** Write a memo to a target agent's summary file (or broadcast to all except the sender); sender is --from or LIBEVAL_AGENT_PROFILE env var. */
+/** Write a memo to a target agent's summary file (or broadcast to all except the sender); the sender is the required --from flag. */
 export function runMemoCommand(ctx) {
   const { runtime } = ctx.deps;
   const options = ctx.options;
-  const sender = options.from || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
+  const resolved = requireAgentFlag(options, {
+    command: "memo",
+    flag: "--from",
+    example:
+      'fit-wiki memo --from staff-engineer --to security-engineer --message "..."',
+  });
+  if (!resolved.ok) return resolved;
+  const sender = resolved.agent;
 
-  if (!sender) {
-    return {
-      ok: false,
-      code: 2,
-      error: "memo requires --from <sender> or LIBEVAL_AGENT_PROFILE env var",
-    };
-  }
   if (!options.to) {
     return { ok: false, code: 2, error: "memo requires --to <target|all>" };
   }

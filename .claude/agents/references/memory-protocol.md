@@ -15,6 +15,10 @@ Three Tier 1 surfaces, all in `wiki/`:
 | Cross-cutting memory | `wiki/MEMORY.md` | direct `Read` + `fit-wiki boot` |
 | Current storyboard | `wiki/storyboard-YYYY-MNN.md` | `fit-wiki boot` (slice) |
 
+Every agent-scoped `fit-wiki` invocation below requires an explicit
+`--agent <self>` (`--from <self>` for `memo`); there is no environment
+fallback. `release --expired` is the one agent-less form.
+
 **Step 0 contract — two tool calls within the first ten:**
 
 1. `Read wiki/MEMORY.md` — the priority surface and `## Active Claims`.

@@ -333,7 +333,14 @@ function atomicSeal(filePath, parts, agent, isoWeekStr, fs) {
  * into one-or-more conforming parts), or `{status:"incomplete",parts,residue}`
  * (a lone day-section exceeds a budget and is named).
  *
- * @returns {{status: "noop"|"sealed"|"incomplete", fromPath: string, parts?: string[], residue?: {path: string, section: string, lines: number, words: number}}}
+ * A `noop` return carries a `reason` — `"missing"` (no file; no size measured),
+ * `"floor"` (header-only/empty body; nothing to seal), or `"under-budget"`
+ * (under both budgets without `--force`) — plus the measured `lines`/`words`
+ * for the two reasons that read the file, so the CLI guard need not re-read it.
+ * "Over budget" is decided here over *either* budget (lines or words), so a
+ * caller never needs `force: true` to seal a word-over/line-under log.
+ *
+ * @returns {{status: "noop"|"sealed"|"incomplete", reason?: "missing"|"floor"|"under-budget", lines?: number, words?: number, fromPath: string, parts?: string[], residue?: {path: string, section: string, lines: number, words: number}}}
  * @param {string} wikiRoot
  * @param {string} agent
  * @param {string} today - ISO date string.
@@ -353,24 +360,46 @@ export function rotateIfOverBudget(
 ) {
   const filePath = weeklyLogPath(wikiRoot, agent, today);
   const { force = false } = options;
-  if (!fs.existsSync(filePath)) return { status: "noop", fromPath: filePath };
+  if (!fs.existsSync(filePath)) {
+    return { status: "noop", reason: "missing", fromPath: filePath };
+  }
   const text = fs.readFileSync(filePath, "utf-8");
+  const lines = countLines(text);
+  const words = countWords(text);
   // A header-only (or empty) log has nothing to seal. Without this floor,
   // force-rotating a freshly-reset main would mint an empty `(part 1 of 1)`
-  // file and reset the main again — once per invocation, forever.
+  // file and reset the main again — once per invocation, forever. The floor
+  // holds even under `--force`, so it is checked before the force branch.
   const nl = text.indexOf("\n");
   if ((nl === -1 ? "" : text.slice(nl + 1)).trim() === "") {
-    return { status: "noop", fromPath: filePath };
+    return {
+      status: "noop",
+      reason: "floor",
+      lines,
+      words,
+      fromPath: filePath,
+    };
   }
+  // Over either budget (lines or words), decided once here in core: a
+  // word-over/line-under log seals without `--force`. The projection folds in
+  // the caller's append delta so a pre-append rotate fires on the post-append
+  // size. The `noop`/`under-budget` arm carries the measured size so the CLI
+  // handler can report the resolved target without re-reading the file.
   const { lines: dLines = 0, words: dWords = 0 } = delta;
-  const projectedLines = countLines(text) + dLines;
-  const projectedWords = countWords(text) + dWords;
+  const projectedLines = lines + dLines;
+  const projectedWords = words + dWords;
   if (
     !force &&
     projectedLines <= WEEKLY_LOG_LINE_BUDGET &&
     projectedWords <= WEEKLY_LOG_WORD_BUDGET
   ) {
-    return { status: "noop", fromPath: filePath };
+    return {
+      status: "noop",
+      reason: "under-budget",
+      lines,
+      words,
+      fromPath: filePath,
+    };
   }
   const isoWeekStr = isoWeekString(today);
   const { parts, residue } = bisectWeeklyLog(text, agent, isoWeekStr);
