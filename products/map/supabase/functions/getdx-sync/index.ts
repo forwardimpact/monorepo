@@ -1,10 +1,8 @@
 import { createSupabaseClient } from "../_shared/supabase.ts";
-import { createEdgeRuntime } from "../_shared/runtime.ts";
-import { extractGetDX } from "../_shared/activity/extract/getdx.js";
-import { transformAllGetDX } from "../_shared/activity/transform/getdx.js";
+import { createHostedRuntime } from "../_shared/runtime.ts";
+import { handleGetDXSync } from "./handler.js";
 
 Deno.serve(async (_req) => {
-  const supabase = createSupabaseClient();
   const apiToken = Deno.env.get("GETDX_API_TOKEN");
   const baseUrl = Deno.env.get("GETDX_BASE_URL") || "https://api.getdx.com";
 
@@ -12,18 +10,13 @@ Deno.serve(async (_req) => {
     return json({ ok: false, error: "GETDX_API_TOKEN not set" }, 500);
   }
 
-  const extract = await extractGetDX(supabase, { apiToken, baseUrl });
-  const transform = await transformAllGetDX(supabase, createEdgeRuntime());
-
-  const ok = extract.errors.length === 0 && transform.errors.length === 0;
-  return json(
-    {
-      ok,
-      extract: { files: extract.files, errors: extract.errors },
-      transform,
-    },
-    ok ? 200 : 500,
+  const result = await handleGetDXSync(
+    createSupabaseClient(),
+    createHostedRuntime(),
+    { apiToken, baseUrl },
   );
+
+  return json(result, result.ok ? 200 : 500);
 });
 
 function json(body: unknown, status = 200) {
