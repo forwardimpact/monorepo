@@ -1,7 +1,12 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { createMockFs } from "@forwardimpact/libmock";
+import {
+  createMockFs,
+  createTestRuntime,
+  createMockSubprocess,
+} from "@forwardimpact/libmock";
 import { buildDigest } from "../src/boot.js";
+import { renderAgentExperiments } from "../src/issue-list-renderer.js";
 
 const ROOT = "/wiki";
 
@@ -253,5 +258,48 @@ describe("buildDigest", () => {
     const digest = digestOf();
     assert.deepEqual(digest.standing_carries, []);
     assert.deepEqual(digest.storyboard_items, []);
+  });
+
+  test("round-trip: boot consumes exactly what the renderer writes (criterion 7)", async () => {
+    // Render the block from issues via the real renderer (no hand-built
+    // lookalike), drop it into a storyboard file, then build the digest from
+    // that file. Renderer grammar and parser grammar must agree.
+    const subprocess = createMockSubprocess({
+      responses: {
+        gh: {
+          stdout: JSON.stringify([
+            {
+              number: 1694,
+              title: "Exp Staff — round trip",
+              labels: [
+                { name: "experiment" },
+                { name: "agent:staff-engineer" },
+              ],
+              author: { login: "dickolsson" },
+            },
+          ]),
+          exitCode: 0,
+        },
+      },
+    });
+    const itemLines = await renderAgentExperiments({
+      cwd: "/repo",
+      runtime: createTestRuntime({ subprocess }),
+    });
+    const storyboard = [
+      "# Storyboard — 2026-05",
+      "",
+      "## Experiments",
+      "<!-- agent-experiments -->",
+      "<!-- last-successful-sync: 2026-05-18 -->",
+      ...itemLines,
+      "<!-- /agent-experiments -->",
+    ].join("\n");
+    const digest = digestOf({ [STORYBOARD]: storyboard });
+    const exp = digest.storyboard_items.filter((i) => i.source === "experiment");
+    assert.equal(exp.length, 1);
+    assert.equal(exp[0].issue, 1694);
+    assert.equal(exp[0].threshold, "Exp Staff — round trip");
+    assert.equal(exp[0].author, "dickolsson");
   });
 });
