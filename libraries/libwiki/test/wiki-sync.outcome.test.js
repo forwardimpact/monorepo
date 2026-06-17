@@ -333,6 +333,23 @@ describe("WikiSync honest-outcome contract (spec 1780)", () => {
     );
   });
 
+  test("conservation: drop of one claim row of a multi-row agent refused (non-unique key)", async () => {
+    // The Active Claims table is keyed by (agent, target): agent alone fans out
+    // to many rows. Dropping agent X's spec-200 row while X's spec-100 survives
+    // must refuse — a single-cell key would wrongly read it as a transition.
+    const { git, wikiSync } = conservationFixture({
+      diffNameStatus: "M\tMEMORY.md",
+    });
+    git.showFile = async (ref) =>
+      ref === REMOTE_TIP
+        ? "| X | spec-100 | b | - | d | e |\n| X | spec-200 | b | - | d | e |\n"
+        : "| X | spec-100 | b | - | d | e |\n"; // spec-200 row dropped
+    await rejectsReason(
+      () => wikiSync.commitAndPush("wiki: update"),
+      PUSH_REASONS.CONSERVATION,
+    );
+  });
+
   test("conservation: clean-replay drop of a foreign non-claim file refused (Run 414b shape)", async () => {
     const { git, wikiSync } = conservationFixture({
       diffNameStatus: "D\tother-summary.md", // whole foreign file deleted
