@@ -18,6 +18,8 @@ import { createOnboardVerifier } from "./src/onboard-verifier.js";
 import { createBotFrameworkAuthentication } from "./src/teams.js";
 
 const config = await createServiceConfig("msbridge", {
+  protocol: "http",
+  port: 3014,
   github_repo: "",
   callback_base_url: "",
   trusted_idp_origins: "",

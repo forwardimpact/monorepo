@@ -58,7 +58,7 @@ Loaded via `createServiceConfig("ghserver")`:
 | `SERVICE_GHSERVER_APP_ID`                     | —             | GitHub App id (required)                             |
 | `SERVICE_GHSERVER_PRIVATE_KEY`                | —             | GitHub App private key, PEM (required)               |
 | `SERVICE_GHSERVER_HOST`                       | `127.0.0.1`   | Bind address (loopback / private only by default)    |
-| `SERVICE_GHSERVER_PORT`                       | `9201`        | Listen port                                          |
+| `SERVICE_GHSERVER_PORT`                       | `3007`        | Listen port                                          |
 | `SERVICE_GHSERVER_ALLOW_PUBLIC_BIND`          | `false`       | Opt in to a non-private bind address                 |
 | `SERVICE_GHSERVER_RATE_CEILING_PER_TENANT_PER_MINUTE` | `10`  | Per-tenant mint ceiling (60s sliding window)         |
 

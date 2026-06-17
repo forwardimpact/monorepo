@@ -9,7 +9,9 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { TenancyService } from "./index.js";
 import { TenantStore } from "./src/tenant-store.js";
 
-const config = await createServiceConfig("tenancy", {});
+const config = await createServiceConfig("tenancy", {
+  port: 3006,
+});
 
 const runtime = createDefaultRuntime();
 const { clock } = runtime;

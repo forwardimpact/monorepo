@@ -10,6 +10,8 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createMcpService } from "./index.js";
 
 const config = await createServiceConfig("mcp", {
+  protocol: "http",
+  port: 3011,
   system_prompt: "",
   tools: "",
 });

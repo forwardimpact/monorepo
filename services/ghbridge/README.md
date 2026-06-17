@@ -95,7 +95,7 @@ Loaded via `createServiceConfig("ghbridge")`):
 
 | Env var | Purpose |
 | --- | --- |
-| `SERVICE_GHBRIDGE_URL` | Listen URL (default `http://localhost:3009`) |
+| `SERVICE_GHBRIDGE_URL` | Listen URL (default `http://localhost:3013`) |
 | `SERVICE_GHBRIDGE_GITHUB_REPO` | `owner/repo` target |
 | `SERVICE_GHBRIDGE_CALLBACK_BASE_URL` | Public URL the workflow POSTs callbacks to |
 | `SERVICE_GHUSER_URL` | gRPC address of the ghuser service |

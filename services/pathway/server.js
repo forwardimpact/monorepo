@@ -12,6 +12,7 @@ import { join } from "path";
 import { PathwayService } from "./index.js";
 
 const config = await createServiceConfig("pathway", {
+  port: 3005,
   data_dir: "",
 });
 

@@ -10,7 +10,9 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { GraphService } from "./index.js";
 
-const config = await createServiceConfig("graph");
+const config = await createServiceConfig("graph", {
+  port: 3003,
+});
 
 // Initialize observability
 const runtime = createDefaultRuntime();

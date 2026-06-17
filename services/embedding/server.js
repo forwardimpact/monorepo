@@ -11,6 +11,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { EmbeddingService } from "./index.js";
 
 const config = await createServiceConfig("embedding", {
+  port: 3015,
   backend_port: 8090,
   model: "BAAI/bge-small-en-v1.5",
 });

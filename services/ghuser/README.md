@@ -22,7 +22,7 @@ Configuration (loaded via `createServiceConfig("ghuser")`):
 
 | Env var | Purpose |
 | --- | --- |
-| `SERVICE_GHUSER_URL` | Listen URL (default `grpc://localhost:3006`) |
+| `SERVICE_GHUSER_URL` | Listen URL (default `grpc://localhost:3009`) |
 | `SERVICE_GHUSER_CLIENT_ID` | Kata Agent User App client ID |
 | `SERVICE_GHUSER_CLIENT_SECRET` | Kata Agent User App client secret |
 | `SERVICE_GHUSER_LINK_BASE_URL` | Public URL of the `oauth` service (used in `LinkRequired.authorize_url`) |
