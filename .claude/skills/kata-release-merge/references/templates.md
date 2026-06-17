@@ -41,6 +41,32 @@ naming the PR. Adapt the verb to the PR's state at gate time:
 gh issue comment <issue-number> --body "Release merge (announcement backstop): PR #<pr-number> — \`<title>\` — is in flight for this issue and has reached the merge gate. Cross-link posted by the gate because no prior comment here named the PR; recorded as an adherence miss per coordination-protocol.md fix-in-flight markers."
 ```
 
+## Re-ping Comments
+
+Posted by the **Re-ping Rule** (SKILL.md Step 10, item 4) when a blocked PR's
+silence window has expired. Post the one template below, filling `<state>`,
+`<owner>`, and `<next-action>` from the row matching the PR's block reason —
+already computed in this run's Steps 2–8; the Re-ping Rule does not re-run the gates.
+
+```sh
+gh pr comment <number> --body "$(cat <<'BODY'
+Release merge Re-ping Rule — gate still open after 3 calendar days:
+- state: <state>
+- owner: <owner>
+- next_action: <next-action>
+BODY
+)"
+```
+
+| Block reason | `<state>` | `<owner>` | `<next-action>` |
+| --- | --- | --- | --- |
+| Untrusted Author | author `<login>` not in the top 7 contributors | a trusted top-7 contributor | review and merge, or close the PR |
+| Unsupported PR Type | PR type `<type>` unsupported | a trusted human | re-title to a supported `type(scope): subject`, or close |
+| CI Failing | checks `<failing-checks>` still red | the PR author | push a fix; the next sweep re-checks |
+| Substantive Conflict | conflicts in `<files>`; not mergeable | the PR author | rebase on `main` and resolve the files |
+| Awaiting Approval Signal | row still not `<phase>\tapproved` | a trusted human | apply the `<phase>:approved` label / APPROVED review / approval comment; `kata-dispatch` propagates it |
+| Awaiting trusted-contributor reply | concern from `<contributor>` still open | `<contributor>` | accept the response or post an override signal |
+
 ## Merge Comment
 
 ```sh
@@ -65,7 +91,13 @@ If still `OPEN`, note in the summary rather than reporting as merged.
 | #spec-b| spec(security): SSRF hardening | spec | bob    | green | spec draft     | blocked | STATUS row not at spec approved |
 | #feat-c| feat(export): export feature   | feat | carol  | red   | plan approved  | blocked | CI failing: format check        |
 | #fix-d | fix(ui): color contrast        | fix  | eve    | green | n/a            | blocked | Author not in top contributors  |
+| #dsgn-e| design(map): ingest pipeline   | design| dan   | green | design draft   | re-pinged | Awaiting approval signal; silent >3 days |
 ```
+
+`Action` is `merged`, `blocked`, or `re-pinged`. A PR the Re-ping Rule
+(SKILL.md Step 10, item 4) commented on this run reports `re-pinged` — one row
+per re-pinged PR — distinct from `blocked`. A blocked PR still inside its 3-day
+silence window stays `blocked`.
 
 **Flag PRs blocked across 3+ consecutive runs** prominently above the table —
 these may need human escalation.

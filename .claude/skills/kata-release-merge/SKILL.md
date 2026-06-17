@@ -104,9 +104,8 @@ git add <files> && git rebase --continue
 **Substantive conflicts** (overlapping logic, renamed symbols,
 deleted-vs-modified) — `git rebase --abort` and comment the conflicting files.
 
-After rebase, run the repository's auto-fix command, then its check command.
-If checks still fail, mark **blocked** with the failures and skip to Step 11.
-Push with `git push --force-with-lease origin <pr-branch>`.
+After rebase, run auto-fix then check; if checks still fail, mark **blocked**
+and skip to Step 11. Push with `git push --force-with-lease origin <pr-branch>`.
 
 ### Step 6: Approval Gate
 
@@ -162,18 +161,19 @@ PRs not referencing a spec (one-off fixes, doc patches) skip this step.
 2. `gh pr merge <number> --merge --delete-branch`
 3. Verify state is `MERGED`. On race or branch-protection failure, record and
    move on — do **not** retry without re-running Steps 1–9.
+4. **Re-ping Rule** — re-comment on any still-blocked PR past its 3-day silence window ([`reping-rule.md`](references/reping-rule.md)).
 
 ### Step 11: Produce the Classification Report
 
 Per PR record: number, title, type, author, trust check, CI, approval source
-(label / review / blocked), final verdict.
+(label / review / blocked), verdict — `merged`, `blocked`, or `re-pinged`.
 
 ## Memory: What to Record
 
 Append to the current week's log:
 
-- **PR classification table** — type, author, trust, CI, STATUS row,
-  verdict, consecutive-block count
+- **PR classification table** — type, author, trust, CI, STATUS row, verdict
+  (`merged` / `blocked` / `re-pinged`), consecutive-block count
 - **Contributor trust decisions** — one row per advanced PR
 - **STATUS rows consumed and written** — gate reads, `plan implemented` writes
 - **PRs merged this run** and **merge failures** with reasons
