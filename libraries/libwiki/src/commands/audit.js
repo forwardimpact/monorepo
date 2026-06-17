@@ -17,7 +17,12 @@ export function runAuditCommand(ctx) {
   const wikiRoot = options["wiki-root"] || path.join(projectRoot, "wiki");
   const today = options.today || currentDayIso(runtime);
 
-  const auditCtx = buildContext({ wikiRoot, today, fs: runtime.fsSync });
+  const auditCtx = buildContext({
+    wikiRoot,
+    today,
+    fs: runtime.fsSync,
+    subprocess: runtime.subprocess,
+  });
   const findings = runRules(RULES, auditCtx, { resolveScope });
 
   runtime.proc.stdout.write(

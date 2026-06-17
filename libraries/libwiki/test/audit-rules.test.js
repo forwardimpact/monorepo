@@ -47,6 +47,7 @@ describe("RULES catalogue", () => {
         "status-row.phase",
         "status-row.status",
         "conflict.markers",
+        "admission.not-in-grammar",
       ],
     );
   });
@@ -91,6 +92,9 @@ describe("RULES catalogue", () => {
       // the heading); part budgets re-bisect deterministically like main logs.
       "weekly-log-part.line-budget": "rotate",
       "weekly-log-part.word-budget": "rotate",
+      // A non-grammar filename is flagged for a human — a wrong automated move
+      // or delete destroys memory (spec 1760 Decision 3).
+      "admission.not-in-grammar": "flag",
     };
     for (const rule of RULES) {
       if ("remediation" in rule) {

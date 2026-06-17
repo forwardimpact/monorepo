@@ -563,4 +563,21 @@ export const RULES = [
   // -- Conflict markers (structural; all audited surfaces) --
 
   CONFLICT_MARKER_RULE,
+
+  // -- Filename admission (spec 1760) --
+
+  // The `admission` resolver yields one subject per git-tracked path the
+  // filename grammar rejects, so the check always fires. Flag-for-human: a
+  // wrong automated move or delete destroys memory, so `fix` routes this to the
+  // human report (any non-`agent` remediation class does) and never touches the
+  // file.
+  {
+    id: "admission.not-in-grammar",
+    scope: "admission",
+    severity: "fail",
+    remediation: "flag",
+    check: () => ({}),
+    message: (s) => `${s.relPath} matches no wiki filename grammar class`,
+    hint: "rename to an admitted class, or extend the Wiki Filename Grammar section in memory-protocol.md and audit/grammar.js together (the single admission path)",
+  },
 ];
