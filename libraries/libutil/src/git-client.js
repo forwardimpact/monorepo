@@ -397,6 +397,22 @@ export class GitClient {
     });
   }
 
+  /**
+   * List the tags and heads a remote `url` exposes, without cloning. Returns
+   * the raw `{ stdout, stderr, exitCode }` so callers can distinguish exit 0
+   * (refs listed), exit 128 (auth demand — absent or private), and transport
+   * faults. Auth and env are handled by `#runRaw`: a tokenless client transports
+   * anonymously, and `GIT_TERMINAL_PROMPT` is whatever the runtime's `proc.env`
+   * carries.
+   * @param {string} url - The repository URL (e.g. `https://github.com/owner/repo`).
+   * @returns {Promise<{stdout: string, stderr: string, exitCode: number}>}
+   */
+  async lsRemote(url) {
+    return this.#runRaw(["ls-remote", "--tags", "--heads", url], {
+      allowFailure: true,
+    });
+  }
+
   /** Return a new client that threads `token` into the git env. */
   withAuth(token) {
     return new GitClient({ runtime: this.#runtime, token });
