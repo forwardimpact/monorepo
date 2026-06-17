@@ -104,6 +104,32 @@ export class GitClient {
     return this.#runRaw(["rebase", "--abort"], { cwd, allowFailure: true });
   }
 
+  /**
+   * Move HEAD to `ref` without touching the index or working tree
+   * (`git reset --soft`). Drops local commits ahead of `ref` while leaving every
+   * uncommitted change — including foreign residue from parallel writers — in
+   * place, unlike a `--hard` reset.
+   */
+  async resetSoft(ref, { cwd } = {}) {
+    return this.#runRaw(["reset", "--soft", ref], { cwd });
+  }
+
+  /**
+   * Reset only `paths` to their content at `ref` (`git checkout <ref> --
+   * <paths>`), leaving the rest of the working tree untouched. With
+   * `allowMissing`, a path absent on `ref` (e.g. a founding write of a file the
+   * tip does not yet carry) yields a non-zero result instead of throwing.
+   * @param {string} ref
+   * @param {string[]} paths
+   * @param {{cwd?: string, allowMissing?: boolean}} [options]
+   */
+  async checkoutPaths(ref, paths, { cwd, allowMissing = false } = {}) {
+    return this.#runRaw(["checkout", ref, "--", ...paths], {
+      cwd,
+      allowFailure: allowMissing,
+    });
+  }
+
   /** Merge `ref` into the current branch resolving conflicts with `-X ours`. */
   async mergeOursStrategy({ cwd, ref, autostash = false }) {
     const args = ["merge"];

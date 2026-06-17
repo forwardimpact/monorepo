@@ -1,4 +1,5 @@
 import path from "node:path";
+import { SINGLETON_PATHS } from "./constants.js";
 
 /** The branch the wiki clone publishes (hard-coded in fetch / rebase / push). */
 const BRANCH = "master";
@@ -32,6 +33,21 @@ export class AncestryRefusal extends Error {
     super(message);
     this.name = "AncestryRefusal";
     this.kind = kind;
+  }
+}
+
+/**
+ * Error thrown when a registered-singleton operation cannot land within the
+ * bounded re-apply budget (spec 1920): contention persisted on every round, so
+ * the publish fails loud rather than resolving the contended hunk textually.
+ */
+export class WikiSyncConflict extends Error {
+  /** @param {string[]} paths @param {string} reason */
+  constructor(paths, reason) {
+    super(`wiki sync conflict on ${paths.join(", ")} (${reason})`);
+    this.name = "WikiSyncConflict";
+    this.paths = paths;
+    this.reason = reason;
   }
 }
 
@@ -170,11 +186,29 @@ export class WikiSync {
    * first publication is re-judged rather than auto-re-granted. The guard
    * creates no commit, attempts no push, and adds no working-tree changes.
    *
+   * **Singleton merge discipline (spec 1920).** When a rebase conflict arises
+   * for a *registered* row-structured singleton (every committed path is in
+   * `SINGLETON_PATHS`) and the caller supplied a `reapply` operation, the
+   * contended hunk is never resolved textually: the conflicting commit is
+   * dropped (`resetSoft`, working tree preserved), only the registered file is
+   * reset to the fresh tip (`checkoutPaths`), the operation is re-derived
+   * against that tip's content, re-committed, and pushed — bounded by
+   * `maxReapply`. Push rejection (a newer tip) drives the retry; exhaustion
+   * fails loud with {@link WikiSyncConflict}. Foreign rows and untouched prose
+   * ride through from the tip. Without a `reapply` the conflict keeps the
+   * `-X ours` fallback (spec 1780's floor to remove later); prose surfaces and
+   * unregistered paths therefore stay on today's behavior.
+   *
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs limiting what gets committed.
+   * @param {{reapply?: (freshText: string) => string | null, maxReapply?: number}} [options]
+   *   `reapply` re-derives the registered file's content from the operation's
+   *   own row edit against the fresh tip text; returns the new text or null when
+   *   the op is already satisfied on the tip.
    * @throws {AncestryRefusal} When the published history cannot be verified.
+   * @throws {WikiSyncConflict} When the re-apply budget is exhausted.
    */
-  async commitAndPush(message, paths) {
+  async commitAndPush(message, paths, { reapply, maxReapply = 3 } = {}) {
     await this.#assertPublishable();
     if (!(await this.isClean(paths))) {
       if (paths?.length) {
@@ -194,6 +228,13 @@ export class WikiSync {
     });
     if (rebase.exitCode !== 0) {
       await this.#git.rebaseAbort({ cwd: this.#wikiDir });
+      const registered =
+        typeof reapply === "function" &&
+        paths?.length === 1 &&
+        paths.every((p) => SINGLETON_PATHS.has(p));
+      if (registered) {
+        return this.#reapplyLoop(message, paths, reapply, maxReapply);
+      }
       await this.#git.mergeOursStrategy({
         cwd: this.#wikiDir,
         ref: "origin/master",
@@ -211,6 +252,45 @@ export class WikiSync {
       // Intentionally ignored — preserves WikiRepo's fire-and-forget push.
     }
     return { pushed: true, reason: "pushed" };
+  }
+
+  /**
+   * Re-apply a registered singleton operation against the fresh remote tip,
+   * bounded by `maxReapply` rounds. The caller has already aborted the rebase.
+   * Each round: refresh the tip, drop the stale local commit (`resetSoft`,
+   * working tree untouched so foreign residue survives), reset only the
+   * registered file to the tip (`checkoutPaths`, tolerating a tip that lacks
+   * it), re-derive via `reapply`, and — when the op still changes the tip —
+   * re-commit and push. A rejected push (the tip moved again) loops; an
+   * unchanged op is already satisfied; bound exhaustion throws.
+   */
+  async #reapplyLoop(message, paths, reapply, maxReapply) {
+    const filePath = path.join(this.#wikiDir, paths[0]);
+    for (let round = 0; round < maxReapply; round++) {
+      await this.fetch();
+      await this.#git.resetSoft("origin/master", { cwd: this.#wikiDir });
+      await this.#git.checkoutPaths("origin/master", paths, {
+        cwd: this.#wikiDir,
+        allowMissing: true,
+      });
+      const freshText = this.#runtime.fsSync.existsSync(filePath)
+        ? this.#runtime.fsSync.readFileSync(filePath, "utf-8")
+        : "";
+      const newText = reapply(freshText);
+      if (newText === null) {
+        // The op is already satisfied on the tip; HEAD now equals the tip.
+        return { pushed: false, reason: "already-satisfied" };
+      }
+      this.#runtime.fsSync.writeFileSync(filePath, newText);
+      await this.#git.commitPaths(message, paths, { cwd: this.#wikiDir });
+      try {
+        await this.#authed().push("origin", "master", { cwd: this.#wikiDir });
+        return { pushed: true, reason: "reapplied" };
+      } catch {
+        // Push rejected by a newer tip — re-derive against it next round.
+      }
+    }
+    throw new WikiSyncConflict(paths, "reapply-bound");
   }
 
   async #hasCommitsAhead() {

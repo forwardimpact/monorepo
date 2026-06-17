@@ -6,7 +6,22 @@ import { tmpdir } from "node:os";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { GitClient } from "@forwardimpact/libutil/git-client";
 import { WikiSync, WikiPullConflict } from "../src/wiki-sync.js";
+import { appendClaim, parseClaims } from "../src/active-claims.js";
 import { git, createBareRepo, seedBareRepo, cloneRepo } from "./helpers.js";
+
+const CLAIMS_HEADER =
+  "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n";
+
+function claimRow(agent, target) {
+  return {
+    agent,
+    target,
+    branch: `feat/${target}`,
+    pr: null,
+    claimed_at: "2026-06-12",
+    expires_at: "2026-06-19",
+  };
+}
 
 function makeSync(wikiDir, parentDir, resolveToken = () => null) {
   const runtime = createDefaultRuntime();
@@ -296,5 +311,64 @@ describe("WikiSync resolveToken (real git)", () => {
       throw new Error("not configured");
     });
     await assert.rejects(() => ws.fetch(), /not configured/);
+  });
+
+  // Seed the bare origin with a one-row Active Claims table on master.
+  function seedClaims(seedClone) {
+    const memPath = join(seedClone, "MEMORY.md");
+    writeFileSync(memPath, CLAIMS_HEADER);
+    git(seedClone, "add", "-A");
+    git(seedClone, "commit", "-m", "seed claims");
+    git(seedClone, "push", "origin", "master");
+  }
+
+  test("storm geometry: a stale-base claim re-applies, conserving the sibling row (spec 1920, criteria 1/4/5)", async () => {
+    // Seed origin with the claims table.
+    const { wikiDir: seed } = cloneRepo(bare, "claimseed");
+    git(seed, "checkout", "master");
+    seedClaims(seed);
+
+    // Clone A lands a sibling's row on the tip first.
+    const { wikiDir: wa } = cloneRepo(bare, "claimA");
+    git(wa, "checkout", "master");
+    const aText = readFileSync(join(wa, "MEMORY.md"), "utf-8");
+    writeFileSync(
+      join(wa, "MEMORY.md"),
+      appendClaim(aText, claimRow("product-manager", "1900")).text,
+    );
+    git(wa, "add", "-A");
+    git(wa, "commit", "-m", "wiki: claim 1900");
+    git(wa, "push", "origin", "master");
+
+    // Clone B, on the now-stale base, writes its own row and commits, then
+    // commitAndPush with a reapply closure. Its rebase conflicts on the tail.
+    const { parent: pb, wikiDir: wb } = cloneRepo(bare, "claimB");
+    git(wb, "checkout", "master");
+    const bClaim = claimRow("staff-engineer", "1910");
+    const bText = readFileSync(join(wb, "MEMORY.md"), "utf-8");
+    writeFileSync(join(wb, "MEMORY.md"), appendClaim(bText, bClaim).text);
+
+    const ws = makeSync(wb, pb);
+    const reapply = (fresh) => {
+      const r = appendClaim(fresh, bClaim);
+      return r.inserted ? r.text : null;
+    };
+    const result = await ws.commitAndPush("wiki: claim 1910", ["MEMORY.md"], {
+      reapply,
+    });
+    assert.equal(result.pushed, true);
+
+    // The bare origin tip now holds BOTH rows — the sibling's was conserved,
+    // not erased; the resolution is the re-applied row set, never textual.
+    const { wikiDir: verify } = cloneRepo(bare, "claimverify");
+    git(verify, "checkout", "master");
+    const tip = readFileSync(join(verify, "MEMORY.md"), "utf-8");
+    const targets = parseClaims(tip).map((c) => `${c.agent}/${c.target}`);
+    assert.ok(
+      targets.includes("product-manager/1900"),
+      "sibling row conserved",
+    );
+    assert.ok(targets.includes("staff-engineer/1910"), "own row landed");
+    assert.ok(!tip.includes("<<<<<<<"), "no conflict markers / textual merge");
   });
 });

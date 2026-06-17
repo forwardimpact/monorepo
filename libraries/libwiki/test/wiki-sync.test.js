@@ -231,6 +231,132 @@ describe("WikiSync", () => {
     ]);
   });
 
+  test("registered op re-applies on rebase conflict instead of merging textually (spec 1920)", async () => {
+    const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip content\n" });
+    const { wikiSync, methods } = make({
+      fsSync,
+      responses: {
+        ...HEALTHY_ANCESTRY,
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 1, stderr: "CONFLICT" },
+        revListCount: 1,
+      },
+    });
+    const reapply = (fresh) => `${fresh}| me | t | b | — | d | e |\n`;
+    const result = await wikiSync.commitAndPush(
+      "wiki: claim t",
+      ["MEMORY.md"],
+      {
+        reapply,
+      },
+    );
+    assert.deepEqual(result, { pushed: true, reason: "reapplied" });
+    const seq = methods();
+    // The conflict path re-applies; it never calls mergeOursStrategy.
+    assert.ok(seq.includes("resetSoft"));
+    assert.ok(seq.includes("checkoutPaths"));
+    assert.ok(seq.includes("commitPaths"));
+    assert.ok(!seq.includes("mergeOursStrategy"));
+    // The re-derived row landed on the tip's content (no textual merge).
+    assert.match(
+      fsSync.readFileSync(`${WIKI}/MEMORY.md`, "utf-8"),
+      /tip content/,
+    );
+    assert.match(
+      fsSync.readFileSync(`${WIKI}/MEMORY.md`, "utf-8"),
+      /\| me \| t \|/,
+    );
+  });
+
+  test("re-apply returning null is an already-satisfied no-op (criterion 3)", async () => {
+    const fsSync = createMockFs({
+      [`${WIKI}/MEMORY.md`]: "tip already has it\n",
+    });
+    const { wikiSync, methods } = make({
+      fsSync,
+      responses: {
+        ...HEALTHY_ANCESTRY,
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 1, stderr: "CONFLICT" },
+        revListCount: 1,
+      },
+    });
+    const result = await wikiSync.commitAndPush(
+      "wiki: claim t",
+      ["MEMORY.md"],
+      {
+        reapply: () => null,
+      },
+    );
+    assert.deepEqual(result, { pushed: false, reason: "already-satisfied" });
+    // Only the initial pre-conflict commit; the loop makes no second commit.
+    assert.equal(methods().filter((m) => m === "commitPaths").length, 1);
+  });
+
+  test("a rejected push drives a bounded re-apply retry, then succeeds", async () => {
+    const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip\n" });
+    const { wikiSync, git } = make({
+      fsSync,
+      responses: {
+        ...HEALTHY_ANCESTRY,
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 1, stderr: "CONFLICT" },
+        revListCount: 1,
+        // push: reject round 1, succeed round 2.
+        push: [{ throw: "rejected" }, { stdout: "", stderr: "", exitCode: 0 }],
+      },
+    });
+    const result = await wikiSync.commitAndPush(
+      "wiki: claim t",
+      ["MEMORY.md"],
+      {
+        reapply: (fresh) => `${fresh}row\n`,
+      },
+    );
+    assert.deepEqual(result, { pushed: true, reason: "reapplied" });
+    const pushCalls = git.calls.filter((c) => c.method === "push").length;
+    assert.equal(pushCalls, 2, "pushed once per round until it landed");
+  });
+
+  test("bound exhaustion fails loud with WikiSyncConflict", async () => {
+    const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip\n" });
+    const { wikiSync } = make({
+      fsSync,
+      responses: {
+        ...HEALTHY_ANCESTRY,
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 1, stderr: "CONFLICT" },
+        revListCount: 1,
+        push: { throw: "rejected" }, // rejected on every round
+      },
+    });
+    await assert.rejects(
+      wikiSync.commitAndPush("wiki: claim t", ["MEMORY.md"], {
+        reapply: (fresh) => `${fresh}row\n`,
+        maxReapply: 2,
+      }),
+      /wiki sync conflict/,
+    );
+  });
+
+  test("a conflict without a reapply keeps the mergeOursStrategy floor", async () => {
+    const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip\n" });
+    const { wikiSync, methods } = make({
+      fsSync,
+      responses: {
+        ...HEALTHY_ANCESTRY,
+        status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
+        rebase: { exitCode: 1, stderr: "CONFLICT" },
+        revListCount: 1,
+      },
+    });
+    // No reapply: the no-intent path is byte-unchanged from today.
+    await wikiSync.commitAndPush("wiki: update", ["MEMORY.md"]);
+    const seq = methods();
+    assert.ok(seq.includes("mergeOursStrategy"));
+    assert.ok(!seq.includes("resetSoft"));
+  });
+
   test("network operations resolve and thread the token; local ones do not", async () => {
     let calls = 0;
     const { git, wikiSync } = make({

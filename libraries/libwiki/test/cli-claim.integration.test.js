@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { GitClient } from "@forwardimpact/libutil/git-client";
 import { runClaimCommand, runReleaseCommand } from "../src/commands/claim.js";
 import { WikiSync } from "../src/wiki-sync.js";
+import { appendClaim, parseClaims } from "../src/active-claims.js";
 import {
   git,
   createBareRepo,
@@ -159,6 +160,38 @@ describe("claim/release push integration (real git)", () => {
     );
   });
 
+  // Advance the bare origin's master with a foreign claim row so the local
+  // claim/release lands on a stale base and must re-apply (spec 1920).
+  function advanceOriginWithClaim(name, claim) {
+    const { wikiDir: other } = cloneRepo(bare, name);
+    git(other, "checkout", "master");
+    const op = join(other, "MEMORY.md");
+    // The origin master has no MEMORY.md yet in this suite's seed, so write the
+    // full table first; if a prior advance committed one, build on it.
+    const base = (() => {
+      try {
+        return git(other, "show", "master:MEMORY.md");
+      } catch {
+        return EMPTY_CLAIMS;
+      }
+    })();
+    writeFileSync(op, appendClaim(base, claim).text);
+    git(other, "add", "-A");
+    git(other, "commit", "-m", `wiki: claim ${claim.target}`);
+    git(other, "push", "origin", "master");
+  }
+
+  function makeClaim(agent, target) {
+    return {
+      agent,
+      target,
+      branch: `feat/${target}`,
+      pr: null,
+      claimed_at: "2099-01-01",
+      expires_at: "2099-01-08",
+    };
+  }
+
   test("claim refuses on a detached HEAD: non-zero, row written but not published", async () => {
     const head = git(wikiDir, "rev-parse", "HEAD");
     git(wikiDir, "checkout", head); // detach
@@ -188,6 +221,38 @@ describe("claim/release push integration (real git)", () => {
       git(bare, "log", "--oneline", "-5", "master"),
       /wiki: claim spec-NNNN/,
     );
+  });
+
+  test("a claim racing a sibling's claim on the tail lands both (spec 1920, criterion 1)", async () => {
+    // Commit the empty table to origin, then a sibling advances the tip.
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed claims");
+    git(wikiDir, "push", "origin", "master");
+    advanceOriginWithClaim("sibling-a", makeClaim("product-manager", "1900"));
+
+    const { harness, wikiSync } = harnessFor();
+    const result = await runClaimCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "1910",
+          branch: "feat/1910",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, true);
+
+    const { wikiDir: verify } = cloneRepo(bare, "claim-verify");
+    git(verify, "checkout", "master");
+    const targets = parseClaims(
+      readFileSync(join(verify, "MEMORY.md"), "utf-8"),
+    ).map((c) => `${c.agent}/${c.target}`);
+    assert.ok(targets.includes("product-manager/1900"), "sibling conserved");
+    assert.ok(targets.includes("staff-engineer/1910"), "own claim landed");
   });
 
   test("release refuses on a detached HEAD: non-zero, not published", async () => {
@@ -228,6 +293,48 @@ describe("claim/release push integration (real git)", () => {
     assert.doesNotMatch(
       git(bare, "log", "--oneline", "-5", "master"),
       /wiki: release spec-NNNN/,
+    );
+  });
+
+  test("a release racing a foreign claim lands both outcomes (spec 1920, criterion 2)", async () => {
+    // Origin starts with the releasing agent's row already present.
+    writeFileSync(
+      memPath,
+      appendClaim(EMPTY_CLAIMS, makeClaim("staff-engineer", "1910")).text,
+    );
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed with se row");
+    git(wikiDir, "push", "origin", "master");
+    // A sibling adds a foreign claim on the tip after the local read.
+    advanceOriginWithClaim("sibling-b", makeClaim("product-manager", "1900"));
+
+    const { harness, wikiSync } = harnessFor();
+    const result = await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "1910",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, true);
+
+    const { wikiDir: verify } = cloneRepo(bare, "release-verify");
+    git(verify, "checkout", "master");
+    const targets = parseClaims(
+      readFileSync(join(verify, "MEMORY.md"), "utf-8"),
+    ).map((c) => `${c.agent}/${c.target}`);
+    assert.ok(
+      targets.includes("product-manager/1900"),
+      "foreign claim conserved",
+    );
+    assert.ok(
+      !targets.includes("staff-engineer/1910"),
+      "the released row is gone from the tip",
     );
   });
 });
