@@ -20,7 +20,8 @@ pipeline from scattered email threads.
 
 - Synced email data in `~/.cache/fit/outpost/apple_mail/` (from
   `sync-apple-mail`).
-- User identity configured in `USER.md`.
+- User identity — run the `identify-user` skill to populate
+  `~/.cache/fit/outpost/state/identity.md`.
 
 ## Inputs
 
@@ -31,7 +32,8 @@ pipeline from scattered email threads.
 - `knowledge/Roles/*.md` — open role/requisition files (metadata inheritance).
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (shared
   with `extract-entities`).
-- `USER.md` — user identity for self-exclusion.
+- `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
+  (written by the `identify-user` skill).
 
 ## Outputs
 
@@ -68,8 +70,9 @@ Process **10 files per run**.
 
 ### 1. Load context and pick the batch
 
-Read `USER.md` for the user's name, email, and domain. List new or changed
-source files:
+Read the user's name, email, and domain from
+`~/.cache/fit/outpost/state/identity.md` (run the `identify-user` skill first if
+it is missing or stale). List new or changed source files:
 
 ```bash
 node .claude/skills/extract-entities/scripts/state.mjs check

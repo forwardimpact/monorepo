@@ -19,7 +19,8 @@ under `knowledge/`. The core knowledge-graph builder.
 ## Prerequisites
 
 - Synced data in `~/.cache/fit/outpost/` and/or ad-hoc paths.
-- User identity in `USER.md` (Name, Email, Domain).
+- User identity from running the `identify-user` skill, which writes
+  `~/.cache/fit/outpost/state/identity.md` (Name, Email, Domain).
 
 ## Inputs
 
@@ -29,7 +30,8 @@ under `knowledge/`. The core knowledge-graph builder.
 - Ad-hoc paths: `.pdf`, `.txt`, `.md`, `.rtf`, `.doc`, `.docx`, `.csv`, `.xlsx`.
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (TSV,
   shared with `req-track` and `hyprnote-process`).
-- `USER.md` — user identity for self-exclusion.
+- `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
+  (written by the `identify-user` skill).
 
 ## Outputs
 
@@ -49,7 +51,9 @@ well-grounded notes">
 - [ ] Source type correctly identified; meeting-vs-email rules applied (meetings
       create, emails only update).
 - [ ] Self and `@user.domain` excluded from extraction.
-- [ ] "Would I prep?" test applied to each person.
+- [ ] "Would I prep?" test applied; no stub profiles — every new People note has
+      a substantive `## Summary`, calendar-only attendees routed to Organization
+      `## Contacts`.
 - [ ] All links use absolute paths `[[Folder/Name]]`; bidirectional links
       consistent (incl. Goal ↔ Project, Priority ↔ Goal).
 - [ ] Summaries describe relationship, not communication method; key facts are
@@ -71,7 +75,8 @@ writes.
 
 ### 0. Load context and pick the batch
 
-Read `USER.md`. Find new/changed files:
+Read the user's identity from `~/.cache/fit/outpost/state/identity.md` (run the
+`identify-user` skill first if it is missing or stale). Find new/changed files:
 
 ```bash
 node scripts/state.mjs check

@@ -62,10 +62,12 @@ code, and stderr are tracked in `state.json`.
 ### Knowledge Base Initialization
 
 Running `init <path>` copies the bundled template into the target directory:
-`CLAUDE.md` (instructions), `USER.md` (identity), `.claude/skills/` (built-in
-skills), and `.claude/settings.json` (permissions). Running `update` on an
-existing KB merges new files without overwriting user customizations — settings
-permissions are reconciled rather than replaced.
+`CLAUDE.md` (instructions), `.claude/skills/` (built-in skills), and
+`.claude/settings.json` (permissions). User identity is not a copied file — it
+is resolved live by the `identify-user` skill, which caches it at
+`~/.cache/fit/outpost/state/identity.md`. Running `update` on an existing KB
+merges new files without overwriting user customizations — settings permissions
+are reconciled rather than replaced.
 
 ---
 

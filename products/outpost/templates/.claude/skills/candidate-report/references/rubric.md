@@ -50,18 +50,18 @@ Write a one-line headline and a brief detail sentence.
 
 Drives the placeholder substitution in Step 5.
 
-| Section           | Source                                               |
-| ----------------- | ---------------------------------------------------- |
-| Header            | Candidate name, title, org, location from `brief.md` |
-| Verdict           | This file's verdict table                            |
-| Snapshot          | 5–6 key facts (experience, education, source, stack) |
-| Strengths         | 3–5 bullet points — what the candidate brings        |
-| Level gauge       | Estimated vs target level                            |
-| Benchmark grid    | Top skills per capability area with pills            |
-| Behaviours        | Bar chart items with widths and colours              |
-| Coverage counters | Gap / Partial / Unknown / Met counts                 |
-| Recommendation    | 2–4 actionable next steps                            |
-| Footer            | Author name and role from `USER.md`                  |
+| Section           | Source                                                             |
+| ----------------- | ------------------------------------------------------------------ |
+| Header            | Candidate name, title, org, location from `brief.md`               |
+| Verdict           | This file's verdict table                                          |
+| Snapshot          | 5–6 key facts (experience, education, source, stack)               |
+| Strengths         | 3–5 bullet points — what the candidate brings                      |
+| Level gauge       | Estimated vs target level                                          |
+| Benchmark grid    | Top skills per capability area with pills                          |
+| Behaviours        | Bar chart items with widths and colours                            |
+| Coverage counters | Gap / Partial / Unknown / Met counts                               |
+| Recommendation    | 2–4 actionable next steps                                          |
+| Footer            | Author name and role from `~/.cache/fit/outpost/state/identity.md` |
 
 ## A4 single-page budget
 

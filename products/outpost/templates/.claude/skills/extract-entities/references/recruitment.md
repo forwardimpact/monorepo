@@ -21,7 +21,8 @@ When a calendar event title matches an interview pattern — "Interview",
 "Candidate" — combined with a person name:
 
 1. Cross-reference the candidate against `knowledge/Candidates/`.
-2. Extract the **organizer**. If the organizer isn't the user (per `USER.md`),
+2. Extract the **organizer**. If the organizer isn't the user (per
+   `~/.cache/fit/outpost/state/identity.md`),
    they are likely the hiring manager.
 3. Confirm: look up the organizer in `knowledge/People/` for a manager/HM role
    indication.

@@ -267,11 +267,12 @@ function writeChatMarkdown(
 
 function loadUserIdentity() {
   try {
-    const userMd = readFileSync(join(process.cwd(), "USER.md"), "utf-8");
-    const nameMatch = userMd.match(/\*\*Name:\*\*\s*(.+)/);
+    // Identity cache written by the identify-user skill (replaces USER.md).
+    const identityMd = readFileSync(join(STATE_DIR, "identity.md"), "utf-8");
+    const nameMatch = identityMd.match(/\*\*Name:\*\*\s*(.+)/);
     if (nameMatch) return nameMatch[1].trim();
   } catch {
-    // USER.md not found or not readable
+    // identity cache not found or not readable — run the identify-user skill
   }
   return "";
 }

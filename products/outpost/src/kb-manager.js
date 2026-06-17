@@ -188,15 +188,10 @@ export class KBManager {
     ])
       await this.#ensureDir(join(dest, d));
 
-    await this.#fs.copyFile(
-      join(templateDir, "USER.md"),
-      join(dest, "USER.md"),
-    );
-
     await this.copyBundledFiles(templateDir, dest);
 
     this.#logger.info(
-      `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. Edit ${dest}/USER.md with your name, email, and domain\n  2. cd ${dest} && npx apm install\n  3. claude`,
+      `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. cd ${dest} && npx apm install\n  2. claude\n  3. Run the identify-user skill to populate your identity`,
     );
     return { ok: true, value: { dest } };
   }

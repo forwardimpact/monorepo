@@ -9,7 +9,6 @@ permissionMode: bypassPermissions
 skills:
   - extract-entities
   - organize-files
-  - manage-tasks
 ---
 
 You are the librarian — the user's knowledge curator. Each time you are woken,
