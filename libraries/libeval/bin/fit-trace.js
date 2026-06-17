@@ -28,9 +28,24 @@ import {
   runTurnCommand,
   runFilterCommand,
   runSplitCommand,
+  runToolCallsCommand,
+  runCommandsCommand,
+  runPathsCommand,
+  runCompareCommand,
 } from "../src/commands/trace.js";
 import { runAssertCommand } from "../src/commands/assert.js";
 import { runByDiscussionCommand } from "../src/commands/by-discussion.js";
+
+// Cross-trace verbs take one or more trace files via repeated `--file`
+// (libcli's named-slot `dispatch()` has no variadic positional). A value with
+// glob metacharacters is expanded by the handler via `runtime.fsSync.globSync`.
+const fileOption = () => ({
+  file: {
+    type: "string",
+    multiple: true,
+    description: "Trace file (repeat or pass a quoted glob for several)",
+  },
+});
 
 const definition = {
   name: "fit-trace",
@@ -99,17 +114,17 @@ const definition = {
     },
     {
       name: "overview",
-      args: ["file"],
-      argsUsage: "<file>",
+      args: [],
       handler: runOverviewCommand,
       description: "Metadata, summary, turn count, tool frequency",
+      options: fileOption(),
     },
     {
       name: "count",
-      args: ["file"],
-      argsUsage: "<file>",
+      args: [],
       handler: runCountCommand,
       description: "Number of turns",
+      options: fileOption(),
     },
     {
       name: "batch",
@@ -120,17 +135,23 @@ const definition = {
     },
     {
       name: "head",
-      args: ["file", "n"],
-      argsUsage: "<file> [N]",
+      args: [],
       handler: runHeadCommand,
-      description: "First N turns (default 10)",
+      description: "First N turns (default 10; set with --lines)",
+      options: {
+        ...fileOption(),
+        lines: { type: "string", description: "Number of turns (default: 10)" },
+      },
     },
     {
       name: "tail",
-      args: ["file", "n"],
-      argsUsage: "<file> [N]",
+      args: [],
       handler: runTailCommand,
-      description: "Last N turns (default 10)",
+      description: "Last N turns (default 10; set with --lines)",
+      options: {
+        ...fileOption(),
+        lines: { type: "string", description: "Number of turns (default: 10)" },
+      },
     },
     {
       name: "search",
@@ -155,49 +176,105 @@ const definition = {
     },
     {
       name: "tools",
-      args: ["file"],
-      argsUsage: "<file>",
+      args: [],
       handler: runToolsCommand,
-      description: "Tool usage frequency (descending)",
+      description:
+        "Tool usage frequency (descending). See also `tool` (turns for one tool) and `tool-calls` (paired use+result records)",
+      options: fileOption(),
     },
     {
       name: "tool",
       args: ["file", "name"],
       argsUsage: "<file> <name>",
       handler: runToolCommand,
-      description: "All turns involving a specific tool",
+      description:
+        "All turns involving a specific tool. See also `tools` (frequency) and `tool-calls` (paired use+result records)",
+    },
+    {
+      name: "tool-calls",
+      args: [],
+      handler: runToolCallsCommand,
+      description:
+        "One record per tool_use block, each paired with its tool_result by toolUseId (orphans emit result:null). See also `tool` and `tools`",
+      options: fileOption(),
+    },
+    {
+      name: "commands",
+      args: [],
+      handler: runCommandsCommand,
+      description:
+        "One record per Bash tool_use block, carrying the command text",
+      options: {
+        ...fileOption(),
+        match: {
+          type: "string",
+          description: "Filter to commands whose text matches this regex",
+        },
+      },
+    },
+    {
+      name: "paths",
+      args: [],
+      handler: runPathsCommand,
+      description:
+        "Distinct Read/Edit/Write file_path arguments, frequency-sorted",
+      options: {
+        ...fileOption(),
+        prefix: {
+          type: "string",
+          description: "Filter to paths beginning with this prefix",
+        },
+      },
+    },
+    {
+      name: "compare",
+      args: ["file-a", "file-b"],
+      argsUsage: "<file-a> <file-b>",
+      handler: runCompareCommand,
+      description:
+        "Side-by-side comparison of two traces: turns, tools, paths, cost, and per-tool delta",
     },
     {
       name: "errors",
-      args: ["file"],
-      argsUsage: "<file>",
+      args: [],
       handler: runErrorsCommand,
       description: "Tool results with isError=true",
+      options: fileOption(),
     },
     {
       name: "reasoning",
-      args: ["file"],
-      argsUsage: "<file>",
+      args: [],
       handler: runReasoningCommand,
       description: "Agent reasoning text only",
       options: {
+        ...fileOption(),
         from: { type: "string", description: "Start at turn index" },
         to: { type: "string", description: "Stop before turn index" },
       },
     },
     {
       name: "timeline",
-      args: ["file"],
-      argsUsage: "<file>",
+      args: [],
       handler: runTimelineCommand,
       description: "Compact one-line-per-turn overview",
+      options: fileOption(),
     },
     {
       name: "stats",
-      args: ["file"],
-      argsUsage: "<file>",
+      args: [],
       handler: runStatsCommand,
       description: "Token usage and cost breakdown",
+      options: {
+        ...fileOption(),
+        "by-tool": {
+          type: "boolean",
+          description: "Per-tool token attribution and cost share",
+        },
+        summary: {
+          type: "boolean",
+          description: "Totals only (suppress the per-turn array)",
+        },
+      },
     },
     {
       name: "cost",
@@ -216,10 +293,10 @@ const definition = {
     },
     {
       name: "init",
-      args: ["file"],
-      argsUsage: "<file>",
+      args: [],
       handler: runInitCommand,
       description: "Full system/init event",
+      options: fileOption(),
     },
     {
       name: "turn",
@@ -244,11 +321,11 @@ const definition = {
     },
     {
       name: "filter",
-      args: ["file"],
-      argsUsage: "<file>",
+      args: [],
       handler: runFilterCommand,
       description: "Filter turns by role, tool, or error status",
       options: {
+        ...fileOption(),
         role: {
           type: "string",
           description: "Turn role (system, user, assistant, tool_result)",
@@ -327,7 +404,15 @@ const definition = {
   globalOptions: {
     help: { type: "boolean", short: "h", description: "Show this help" },
     version: { type: "boolean", description: "Show version" },
-    json: { type: "boolean", description: "Output help as JSON" },
+    json: {
+      type: "boolean",
+      description: "Output help as JSON (use --format json for command output)",
+    },
+    format: {
+      type: "string",
+      default: "text",
+      description: "Command output format: text (default) or json",
+    },
     signatures: {
       type: "boolean",
       description: "Include thinking.signature blobs in output",
@@ -339,14 +424,19 @@ const definition = {
     "fit-trace find 27401632821 release-engineer",
     "fit-trace download 24497273755",
     "fit-trace split structured.json --mode=facilitate",
-    "fit-trace overview structured.json",
-    "fit-trace timeline structured.json",
-    "fit-trace stats structured.json",
+    "fit-trace overview --file structured.json",
+    "fit-trace overview --file structured.json --format json",
+    "fit-trace timeline --file structured.json",
+    "fit-trace stats --file structured.json --by-tool",
     "fit-trace cost trace.ndjson",
     "fit-trace cost trace.ndjson --markdown",
     "fit-trace tool structured.json Conclude",
+    "fit-trace tool-calls --file structured.json",
+    "fit-trace commands --file structured.json --match '^git'",
+    "fit-trace paths --file 'traces/*.ndjson' --prefix /app",
+    "fit-trace compare trace-a.ndjson trace-b.ndjson",
     "fit-trace search structured.json 'error|fail' --context 1",
-    "fit-trace filter structured.json --tool Bash --error",
+    "fit-trace filter --file structured.json --tool Bash --error",
     "fit-trace turn structured.json 3",
     "fit-trace assert has-heading --grep '^## Problem' spec.md",
     "fit-trace assert no-leak --not --grep 'password' output.log",
