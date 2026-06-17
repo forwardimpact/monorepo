@@ -71,10 +71,7 @@ describe("extractRefs", () => {
       !refs.some((r) => r.owner === "<owner>"),
       "schematic token dropped",
     );
-    assert.ok(
-      !refs.some((r) => r.owner === "."),
-      "local path dropped",
-    );
+    assert.ok(!refs.some((r) => r.owner === "."), "local path dropped");
   });
 
   test("owner-less package/metric prose extracts as contextual (not dropped)", () => {
@@ -88,7 +85,9 @@ describe("extractRefs", () => {
         ].join("\n"),
       },
     ]);
-    assert.ok(refs.some((r) => r.repo === "libfoo" && r.class === "contextual"));
+    assert.ok(
+      refs.some((r) => r.repo === "libfoo" && r.class === "contextual"),
+    );
     assert.ok(
       refs.some((r) => r.repo === "pathway" && r.class === "contextual"),
     );

@@ -110,6 +110,127 @@ function isRealRepoHalf(owner, repo) {
 }
 
 /**
+ * Map a non-`none` ref-token kind to its qualified reference class.
+ * @param {RefToken} refToken
+ * @returns {'qualified'|'placeholder'|'illustrative'|'contextual-qualified'}
+ */
+function qualifiedClass(refToken) {
+  if (refToken.kind === "none") return "contextual-qualified";
+  if (refToken.kind === "placeholder") return "placeholder";
+  if (refToken.kind === "illustrative") return "illustrative";
+  return "qualified";
+}
+
+/** Does `start` fall inside any already-claimed `[s, e)` span? */
+function inSpan(spans, start) {
+  return spans.some(([s, e]) => start >= s && start < e);
+}
+
+/**
+ * Scan one line for qualified `owner/repo[@ref]` references, pushing each onto
+ * `refs` and recording its span on `spans`.
+ * @param {string} line
+ * @param {string} file
+ * @param {number} lineNo
+ * @param {Ref[]} refs
+ * @param {Array<[number, number]>} spans
+ */
+function scanQualified(line, file, lineNo, refs, spans) {
+  QUALIFIED.lastIndex = 0;
+  let m;
+  while ((m = QUALIFIED.exec(line)) !== null) {
+    const [, lead, owner, repo, token] = m;
+    if (!isRealRepoHalf(owner, repo)) continue;
+    const refToken = classifyToken(token);
+    // For a SHA-pinned literal, capture a trailing `# <tag>` claim so
+    // assertion 3 can check it (the match ended at the SHA).
+    if (refToken.kind === "literal" && SHA.test(refToken.value)) {
+      const pin = line.slice(m.index + m[0].length).match(PIN_TAG);
+      if (pin) refToken.pinTag = pin[1];
+    }
+    refs.push({
+      file,
+      line: lineNo,
+      class: qualifiedClass(refToken),
+      owner,
+      repo,
+      refToken,
+    });
+    const start = m.index + lead.length;
+    spans.push([start, start + m[0].length - lead.length]);
+  }
+}
+
+/**
+ * Scan one line for owner-less `name@ref` contextual tokens, skipping spans a
+ * qualified match already claimed.
+ * @param {string} line
+ * @param {string} file
+ * @param {number} lineNo
+ * @param {Ref[]} refs
+ * @param {Array<[number, number]>} spans
+ */
+function scanOwnerless(line, file, lineNo, refs, spans) {
+  OWNERLESS.lastIndex = 0;
+  let m;
+  while ((m = OWNERLESS.exec(line)) !== null) {
+    const start = m.index + m[1].length;
+    if (inSpan(spans, start)) continue;
+    const refToken = classifyToken(m[3]);
+    // Owner-less placeholder/illustrative tokens are not action refs.
+    if (refToken.kind !== "literal") continue;
+    refs.push({ file, line: lineNo, class: "contextual", repo: m[2], refToken });
+    spans.push([start, start + m[0].length - m[1].length]);
+  }
+}
+
+/**
+ * Scan one line for bare action-name mentions in inline code.
+ * @param {string} line
+ * @param {string} file
+ * @param {number} lineNo
+ * @param {Ref[]} refs
+ * @param {Array<[number, number]>} spans
+ */
+function scanBare(line, file, lineNo, refs, spans) {
+  BARE_CODE.lastIndex = 0;
+  let m;
+  while ((m = BARE_CODE.exec(line)) !== null) {
+    const start = m.index + 1; // skip the opening backtick
+    if (inSpan(spans, start)) continue;
+    refs.push({
+      file,
+      line: lineNo,
+      class: "contextual",
+      repo: m[1],
+      refToken: { kind: "none" },
+    });
+    spans.push([start, start + m[1].length]);
+  }
+}
+
+/**
+ * Scan one line for a placeholder-resolution table value
+ * (`| {{NAME}} | <sha> # <tag> |`), binding the pin to its placeholder name.
+ * @param {string} line
+ * @param {string} file
+ * @param {number} lineNo
+ * @param {Ref[]} refs
+ */
+function scanPinRow(line, file, lineNo, refs) {
+  const pinRow = line.match(PIN_ROW);
+  if (!pinRow) return;
+  const [, placeholderName, sha, pinTag] = pinRow;
+  refs.push({
+    file,
+    line: lineNo,
+    class: "pin",
+    placeholderName,
+    refToken: { kind: "literal", value: sha, pinTag },
+  });
+}
+
+/**
  * Extract typed action references from skill files.
  * @param {Array<{path: string, text: string}>} files
  * @returns {Ref[]} References ordered by `(file, line)`.
@@ -117,106 +238,18 @@ function isRealRepoHalf(owner, repo) {
 export function extractRefs(files) {
   /** @type {Ref[]} */
   const refs = [];
-
   for (const { path, text } of files) {
     const lines = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const lineNo = i + 1;
-      const seenSpans = [];
-
-      // Qualified `owner/repo[@ref]` (fenced `uses:` or prose).
-      QUALIFIED.lastIndex = 0;
-      let m;
-      while ((m = QUALIFIED.exec(line)) !== null) {
-        const owner = m[2];
-        const repo = m[3];
-        const token = m[4];
-        if (!isRealRepoHalf(owner, repo)) continue;
-        const refToken = classifyToken(token);
-        // For a SHA-pinned literal, capture a trailing `# <tag>` claim so
-        // assertion 3 can check it. The match ended at the SHA; the remainder
-        // of the line carries the comment.
-        if (refToken.kind === "literal" && SHA.test(refToken.value)) {
-          const rest = line.slice(m.index + m[0].length);
-          const pin = rest.match(PIN_TAG);
-          if (pin) refToken.pinTag = pin[1];
-        }
-        const cls =
-          refToken.kind === "none"
-            ? "contextual-qualified"
-            : refToken.kind === "placeholder"
-              ? "placeholder"
-              : refToken.kind === "illustrative"
-                ? "illustrative"
-                : "qualified";
-        refs.push({
-          file: path,
-          line: lineNo,
-          class: cls,
-          owner,
-          repo,
-          refToken,
-        });
-        // Record the matched span so owner-less/bare scans don't double-count
-        // the `repo@ref` sub-token of a qualified match.
-        const start = m.index + m[1].length;
-        seenSpans.push([start, start + m[0].length - m[1].length]);
-      }
-
-      // Owner-less `name@ref` prose tokens (contextual). Skip spans already
-      // claimed by a qualified match.
-      OWNERLESS.lastIndex = 0;
-      while ((m = OWNERLESS.exec(line)) !== null) {
-        const start = m.index + m[1].length;
-        if (seenSpans.some(([s, e]) => start >= s && start < e)) continue;
-        const repo = m[2];
-        const token = m[3];
-        const refToken = classifyToken(token);
-        // Owner-less placeholders/illustrative tokens are not action refs.
-        if (refToken.kind !== "literal") continue;
-        refs.push({
-          file: path,
-          line: lineNo,
-          class: "contextual",
-          repo,
-          refToken,
-        });
-        seenSpans.push([start, start + m[0].length - m[1].length]);
-      }
-
-      // Bare action-name mentions in inline code (contextual, no ref).
-      BARE_CODE.lastIndex = 0;
-      while ((m = BARE_CODE.exec(line)) !== null) {
-        const start = m.index + 1; // skip the opening backtick
-        if (seenSpans.some(([s, e]) => start >= s && start < e)) continue;
-        const repo = m[1];
-        refs.push({
-          file: path,
-          line: lineNo,
-          class: "contextual",
-          repo,
-          refToken: { kind: "none" },
-        });
-        seenSpans.push([start, start + repo.length]);
-      }
-
-      // Placeholder-resolution table value: `| {{NAME}} | <sha> # <tag> |`.
-      // The repo association binds (in the linter) to the placeholder of the
-      // same name, not to inline `owner/repo`.
-      const pinRow = line.match(PIN_ROW);
-      if (pinRow) {
-        const [, placeholderName, sha, pinTag] = pinRow;
-        refs.push({
-          file: path,
-          line: lineNo,
-          class: "pin",
-          placeholderName,
-          refToken: { kind: "literal", value: sha, pinTag },
-        });
-      }
+      /** @type {Array<[number, number]>} */
+      const spans = [];
+      scanQualified(line, path, lineNo, refs, spans);
+      scanOwnerless(line, path, lineNo, refs, spans);
+      scanBare(line, path, lineNo, refs, spans);
+      scanPinRow(line, path, lineNo, refs);
     }
   }
-
   return refs;
 }
