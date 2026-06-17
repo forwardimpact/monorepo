@@ -35,18 +35,8 @@ recorded on its `errors_found` row with a `note` that begins:
 enumeration-drift:<topic-id>:
 ```
 
-`<topic-id>` is the registry topic the drift belongs to. Tagging this way lets
-post-window analysis isolate enumeration-class findings from the broader
-`errors_found` series without re-reading every note. Findings filed before the
-gate landed keep their existing free-text notes and are not part of the tagged
-series.
-
-## Enumeration-drift findings
-
-When a documentation review run records an enumeration-class finding — a count
-or list in the docs that no longer matches the on-disk set it paraphrases (a
-services or libraries list, a sibling-action table, a skill catalog, a products
-or workflow tree) — tag the row's `note` field `enumeration-drift:<topic-id>:`
-followed by a short description, where `<topic-id>` names the source-of-truth
-set that drifted. The shared prefix lets post-window analysis filter
-enumeration-class findings cleanly from free-text notes.
+`<topic-id>` names the registry source-of-truth set the drift belongs to,
+followed by a short description. Tagging this way lets post-window analysis
+isolate enumeration-class findings from the broader `errors_found` series
+without re-reading every note. Findings filed before the gate landed keep
+their existing free-text notes and are not part of the tagged series.

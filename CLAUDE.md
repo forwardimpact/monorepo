@@ -80,22 +80,21 @@ the same interface, with tooling to prove changes improved outcomes.
 
 ## Distribution Model
 
-The monorepo is open source but internal-only — external users consume via
-npm. It's the source of truth for `forwardimpact/*` sibling repos:
+The monorepo is open source but internal-only; external users consume via
+npm. It is the source of truth for `forwardimpact/*` sibling repos:
 
 - **npm packages** — `fit-*` and `kata-*` CLIs and libraries, installed via
-  `npx fit-*`; bare names are launchers ([launchers/README.md](launchers/README.md)).
-  All CLIs use `#!/usr/bin/env node` (no Bun required). gRPC
-  products (currently Guide) need `npx fit-codegen --all` — see
+  `npx fit-*`; bare names are launchers
+  ([launchers/README.md](launchers/README.md)). CLIs use
+  `#!/usr/bin/env node`, no Bun. gRPC
+  products need `npx fit-codegen --all` — see
   [Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md).
 - **Skill packs** — `forwardimpact/fit-skills` and `forwardimpact/kata-skills`
   sync on push to `main`. Install: `npx skills add forwardimpact/fit-skills`
   (or `kata-skills`). Internal skills (`libs-*`, product internals) never
   publish.
 - **Composite actions** —
-<!-- enum:sibling-composite-actions:list -->
-  `forwardimpact/{fit-benchmark,fit-bootstrap,fit-eval,fit-wiki,kata-agent}`
-<!-- /enum -->
+  <!-- enum:sibling-composite-actions:list -->`forwardimpact/{fit-benchmark,fit-bootstrap,fit-eval,fit-wiki,kata-agent}`<!-- /enum -->
   released via append-only `v1.0.x` tags. Edit procedure in
   [`.github/CLAUDE.md`](.github/CLAUDE.md).
 

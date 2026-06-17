@@ -115,14 +115,14 @@ The `products/` directory holds one directory per product:
 
 <!-- enum:products-tree:list -->
 ```
-map/         # fit-map — data, validation, schema
-pathway/     # fit-pathway — web app, CLI
-guide/       # fit-guide — LLM agent
-landmark/    # fit-landmark
-summit/      # fit-summit
-outpost/     # fit-outpost — macOS knowledge system
-gear/        # fit-skills catalog CLI
-kata/        # kata-skills pack
+map/
+pathway/
+guide/
+landmark/
+summit/
+outpost/
+gear/
+kata/
 ```
 <!-- /enum -->
 
