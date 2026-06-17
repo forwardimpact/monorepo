@@ -33,6 +33,11 @@ export class TraceQuery {
       metadata: this.metadata,
       summary: this.summary,
       turnCount: this.turns.length,
+      resultEventTurns: this.summary.numTurns ?? null,
+      turnPopulations: {
+        turnCount: "rendered-trace-turns",
+        resultEventTurns: "result-event-turns",
+      },
       tools: this.toolFrequency(),
       taskPrompt,
     };
@@ -277,59 +282,234 @@ export class TraceQuery {
   }
 
   /**
-   * Token usage and cost breakdown per assistant turn, plus totals.
+   * Token usage and cost breakdown, accounted once per API message, plus
+   * totals that name their population.
    *
-   * Token totals prefer the summary's result-event usage — the SDK's
-   * authoritative ledger, accumulated across every result event in the
-   * trace — over per-turn sums, whose stream-time snapshots double-count
-   * re-emitted messages. Traces without a result event (truncated or
-   * in-flight) fall back to the per-turn sums.
+   * A structured document collected before this change (version < 1.2.0)
+   * carries no message identity, so it reports its carried last-wins summary
+   * labeled as such — corrected figures come from re-running the NDJSON source.
+   *
+   * Otherwise: when the trace carries result events, totals are the SDK's
+   * accumulated result-event sums (authoritative); the per-message sums are
+   * compared against them and any divergence on input/cacheRead/cacheCreation
+   * is surfaced, never silently absorbed. A trace with no result event
+   * (truncated or in-flight) falls back to the per-message sums, with output
+   * flagged as a streaming-snapshot lower bound and cost/duration/turns
+   * reported as unavailable rather than a silent 0.
    * @returns {object}
    */
   stats() {
-    const { perTurn, totals: turnTotals } = perTurnUsage(this.turns);
-    const tokenTotals = this.summary.tokenUsage ?? turnTotals;
+    if (isPreChangeDoc(this.trace.version)) {
+      return this.#carriedDocumentStats();
+    }
+
+    const { perMessage, totals: perMessageTotals } = perMessageUsage(
+      this.turns,
+    );
+    const re = this.summary.tokenUsage;
+
+    if (re) {
+      return {
+        totals: {
+          inputTokens: re.inputTokens ?? 0,
+          outputTokens: re.outputTokens ?? 0,
+          cacheReadInputTokens: re.cacheReadInputTokens ?? 0,
+          cacheCreationInputTokens: re.cacheCreationInputTokens ?? 0,
+          totalCostUsd: this.summary.totalCostUsd ?? 0,
+          durationMs: this.summary.durationMs ?? 0,
+          durationLabel: "cumulative invocation time",
+          resultEventTurns: this.summary.numTurns ?? 0,
+          population: "result-event-sum",
+          resultEventsPresent: true,
+        },
+        perTurn: perMessage,
+        modelUsage: this.summary.modelUsage ?? null,
+        divergence: computeDivergence(perMessageTotals, re),
+      };
+    }
+
     return {
       totals: {
-        ...tokenTotals,
+        ...perMessageTotals,
+        outputIsStreamingSnapshot: true,
+        totalCostUsd: null,
+        durationMs: null,
+        resultEventTurns: null,
+        population: "per-message-fallback",
+        resultEventsPresent: false,
+      },
+      perTurn: perMessage,
+      modelUsage: this.summary.modelUsage ?? null,
+      divergence: null,
+    };
+  }
+
+  /**
+   * Stats for a pre-change structured document: report the carried last-wins
+   * summary and per-stream-event breakdown, each labeled, without claiming
+   * result-event parity (the document lacks the message identity it needs).
+   * @returns {object}
+   */
+  #carriedDocumentStats() {
+    const re = this.summary.tokenUsage ?? ZERO_USAGE;
+    return {
+      totals: {
+        inputTokens: re.inputTokens ?? 0,
+        outputTokens: re.outputTokens ?? 0,
+        cacheReadInputTokens: re.cacheReadInputTokens ?? 0,
+        cacheCreationInputTokens: re.cacheCreationInputTokens ?? 0,
         totalCostUsd: this.summary.totalCostUsd ?? 0,
         durationMs: this.summary.durationMs ?? 0,
+        population: "carried-document-summary",
       },
-      perTurn,
+      perTurn: carriedPerTurn(this.turns),
+      modelUsage: this.summary.modelUsage ?? null,
+      divergence: null,
     };
   }
 }
 
+/** Zero-valued token usage, used as the carried-document fallback. */
+const ZERO_USAGE = {
+  inputTokens: 0,
+  outputTokens: 0,
+  cacheReadInputTokens: 0,
+  cacheCreationInputTokens: 0,
+};
+
 /**
- * Sum per-turn assistant usage and build the per-turn breakdown rows.
+ * Per-stream-event breakdown for a pre-change document, labeled as carried —
+ * old documents lack message identity, so rows stay keyed by turn index.
  * @param {object[]} turns
- * @returns {{perTurn: object[], totals: object}}
+ * @returns {object[]}
  */
-function perTurnUsage(turns) {
+function carriedPerTurn(turns) {
+  const perTurn = [];
+  for (const turn of turns) {
+    if (turn.role !== "assistant" || !turn.usage) continue;
+    perTurn.push({
+      index: turn.index,
+      inputTokens: turn.usage.inputTokens ?? 0,
+      outputTokens: turn.usage.outputTokens ?? 0,
+      cacheReadInputTokens: turn.usage.cacheReadInputTokens ?? 0,
+      cacheCreationInputTokens: turn.usage.cacheCreationInputTokens ?? 0,
+      population: "carried-document-per-turn",
+    });
+  }
+  return perTurn;
+}
+
+/**
+ * Whether a structured-document version predates per-message accounting
+ * (1.2.0). A trace with no version (collected by this build from NDJSON) is
+ * not pre-change. Compares numeric version parts so 1.10.0 reads as post-change.
+ * @param {string|undefined|null} version
+ * @returns {boolean}
+ */
+function isPreChangeDoc(version) {
+  if (typeof version !== "string") return false;
+  const [major = 0, minor = 0, patch = 0] = version
+    .split(".")
+    .map((part) => parseInt(part, 10) || 0);
+  if (major !== 1) return major < 1;
+  if (minor !== 2) return minor < 2;
+  return patch < 0;
+}
+
+/**
+ * Account assistant usage once per API message. Turns are grouped by
+ * `messageId` (a null id is its own singleton message); per message the
+ * field-wise max across its snapshots is taken — order-insensitive, equal to
+ * the single value when a message's duplicate snapshots are byte-identical
+ * (zero residual against result-event sums), and a floor for output (the
+ * largest streaming snapshot, never an overstatement).
+ * @param {object[]} turns
+ * @returns {{perMessage: object[], totals: object}}
+ */
+function perMessageUsage(turns) {
+  const byMessage = new Map();
+  let singletonSeq = 0;
+
+  for (const turn of turns) {
+    if (turn.role !== "assistant" || !turn.usage) continue;
+    const key = turn.messageId ?? `__null__${singletonSeq++}`;
+    accumulateMessage(byMessage, key, turn);
+  }
+
   const totals = {
     inputTokens: 0,
     outputTokens: 0,
     cacheReadInputTokens: 0,
     cacheCreationInputTokens: 0,
   };
-  const perTurn = [];
-
-  for (const turn of turns) {
-    if (turn.role !== "assistant" || !turn.usage) continue;
-    const row = {
-      index: turn.index,
-      inputTokens: turn.usage.inputTokens ?? 0,
-      outputTokens: turn.usage.outputTokens ?? 0,
-      cacheReadInputTokens: turn.usage.cacheReadInputTokens ?? 0,
-      cacheCreationInputTokens: turn.usage.cacheCreationInputTokens ?? 0,
-    };
+  const perMessage = [];
+  for (const row of byMessage.values()) {
     totals.inputTokens += row.inputTokens;
     totals.outputTokens += row.outputTokens;
     totals.cacheReadInputTokens += row.cacheReadInputTokens;
     totals.cacheCreationInputTokens += row.cacheCreationInputTokens;
-    perTurn.push(row);
+    perMessage.push({
+      ...row,
+      outputIsStreamingSnapshot: true,
+      population: "api-message",
+    });
   }
-  return { perTurn, totals };
+  return { perMessage, totals };
+}
+
+/**
+ * Fold one assistant turn's usage into its message bucket by field-wise max.
+ * @param {Map<string, object>} byMessage
+ * @param {string} key
+ * @param {object} turn
+ */
+function accumulateMessage(byMessage, key, turn) {
+  const u = turn.usage;
+  const prev = byMessage.get(key);
+  if (!prev) {
+    byMessage.set(key, {
+      messageId: turn.messageId ?? null,
+      inputTokens: u.inputTokens ?? 0,
+      outputTokens: u.outputTokens ?? 0,
+      cacheReadInputTokens: u.cacheReadInputTokens ?? 0,
+      cacheCreationInputTokens: u.cacheCreationInputTokens ?? 0,
+    });
+    return;
+  }
+  prev.inputTokens = Math.max(prev.inputTokens, u.inputTokens ?? 0);
+  prev.outputTokens = Math.max(prev.outputTokens, u.outputTokens ?? 0);
+  prev.cacheReadInputTokens = Math.max(
+    prev.cacheReadInputTokens,
+    u.cacheReadInputTokens ?? 0,
+  );
+  prev.cacheCreationInputTokens = Math.max(
+    prev.cacheCreationInputTokens,
+    u.cacheCreationInputTokens ?? 0,
+  );
+}
+
+/**
+ * Compare per-message sums against the result-event sums on the fields the
+ * spec guarantees parity for (input, cacheRead, cacheCreation — never output,
+ * which always diverges by mechanism 2). Returns the first divergent field as
+ * `{field, perMessageSum, resultEventSum}`, or null when all agree.
+ * @param {object} perMessageTotals
+ * @param {object} resultEventUsage
+ * @returns {object|null}
+ */
+function computeDivergence(perMessageTotals, resultEventUsage) {
+  for (const field of [
+    "inputTokens",
+    "cacheReadInputTokens",
+    "cacheCreationInputTokens",
+  ]) {
+    const perMessageSum = perMessageTotals[field] ?? 0;
+    const resultEventSum = resultEventUsage[field] ?? 0;
+    if (perMessageSum !== resultEventSum) {
+      return { field, perMessageSum, resultEventSum };
+    }
+  }
+  return null;
 }
 
 /**

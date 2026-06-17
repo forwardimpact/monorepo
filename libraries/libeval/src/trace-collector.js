@@ -171,6 +171,7 @@ export class TraceCollector {
       index: this.turnIndex++,
       role: "assistant",
       source,
+      messageId: message.id ?? null,
       content,
       usage,
     });
@@ -235,7 +236,7 @@ export class TraceCollector {
       durationMs: prev.durationMs + (event.duration_ms ?? 0),
       numTurns: prev.numTurns + (event.num_turns ?? 0),
       tokenUsage: sumTokenUsage(prev.tokenUsage, normalizeUsage(event.usage)),
-      modelUsage: event.modelUsage ?? prev.modelUsage,
+      modelUsage: mergeModelUsage(prev.modelUsage, event.modelUsage),
     };
   }
 
@@ -245,7 +246,7 @@ export class TraceCollector {
    */
   toJSON() {
     return {
-      version: "1.1.0",
+      version: "1.2.0",
       metadata: this.metadata ?? {
         timestamp: this.now(),
         sessionId: null,
@@ -361,6 +362,61 @@ function sumTokenUsage(a, b) {
     cacheCreationInputTokens:
       a.cacheCreationInputTokens + b.cacheCreationInputTokens,
   };
+}
+
+/**
+ * Per-model fields that sum additively across result events — token counts,
+ * per-model cost, and request counters. Every other per-model field (e.g. a
+ * context-window size) is carried first-seen, never summed.
+ */
+const ADDITIVE_MODEL_FIELDS = [
+  "inputTokens",
+  "outputTokens",
+  "cacheReadInputTokens",
+  "cacheCreationInputTokens",
+  "costUSD",
+  "webSearchRequests",
+];
+
+/**
+ * Merge two per-model usage maps across result events. Additive fields
+ * (token counts, cost, request counters) sum; non-additive fields are carried
+ * from the first event that set them (prev wins). Either side may be null.
+ * @param {object|null} prevMU
+ * @param {object|null} nextMU
+ * @returns {object|null}
+ */
+function mergeModelUsage(prevMU, nextMU) {
+  if (!prevMU) return nextMU ?? null;
+  if (!nextMU) return prevMU;
+
+  const merged = {};
+  for (const model of new Set([
+    ...Object.keys(prevMU),
+    ...Object.keys(nextMU),
+  ])) {
+    merged[model] = mergeOneModel(prevMU[model] ?? {}, nextMU[model] ?? {});
+  }
+  return merged;
+}
+
+/**
+ * Merge one model's usage: additive fields sum, others carry first-seen (a).
+ * @param {object} a - First-seen (prev) per-model usage.
+ * @param {object} b - Next per-model usage.
+ * @returns {object}
+ */
+function mergeOneModel(a, b) {
+  const entry = { ...a, ...b };
+  for (const field of ADDITIVE_MODEL_FIELDS) {
+    if (field in a || field in b) {
+      entry[field] = (a[field] ?? 0) + (b[field] ?? 0);
+    }
+  }
+  for (const field of Object.keys(a)) {
+    if (!ADDITIVE_MODEL_FIELDS.includes(field)) entry[field] = a[field];
+  }
+  return entry;
 }
 
 /**

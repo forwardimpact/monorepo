@@ -136,7 +136,7 @@ describe("TraceQuery", () => {
   });
 
   describe("stats", () => {
-    test("aggregates token totals", () => {
+    test("aggregates token totals from result-event sums", () => {
       const q = new TraceQuery(buildTrace());
       const s = q.stats();
 
@@ -144,9 +144,11 @@ describe("TraceQuery", () => {
       assert.ok(s.totals.outputTokens > 0);
       assert.ok(s.totals.cacheReadInputTokens > 0);
       assert.strictEqual(s.totals.totalCostUsd, 0.0523);
+      assert.strictEqual(s.totals.population, "result-event-sum");
+      assert.strictEqual(s.totals.resultEventsPresent, true);
     });
 
-    test("totals prefer result-event usage over per-turn sums", () => {
+    test("totals prefer result-event usage over per-message sums", () => {
       const trace = buildTrace({
         summary: {
           tokenUsage: {
@@ -163,18 +165,28 @@ describe("TraceQuery", () => {
       assert.strictEqual(s.totals.outputTokens, 11298);
       assert.strictEqual(s.totals.cacheReadInputTokens, 649855);
       assert.strictEqual(s.totals.cacheCreationInputTokens, 4321);
-      // Per-turn breakdown still reflects per-turn figures.
+      // Per-message breakdown still reflects each message's own figures.
       assert.strictEqual(s.perTurn[0].inputTokens, 100);
     });
 
-    test("includes per-turn breakdown", () => {
+    test("includes per-message breakdown labeled by API message", () => {
       const q = new TraceQuery(buildTrace());
       const s = q.stats();
 
-      // 6 assistant turns have usage (indexes 0,1,3,5,7,9)
+      // 6 assistant turns, each a distinct messageId (msg_a..msg_f).
       assert.strictEqual(s.perTurn.length, 6);
-      assert.strictEqual(s.perTurn[0].index, 0);
+      assert.strictEqual(s.perTurn[0].messageId, "msg_a");
+      assert.strictEqual(s.perTurn[0].population, "api-message");
       assert.strictEqual(s.perTurn[0].inputTokens, 100);
+    });
+
+    test("labels a pre-change structured document as carried-over", () => {
+      const trace = buildTrace({ summary: {} });
+      trace.version = "1.1.0";
+      const s = new TraceQuery(trace).stats();
+
+      assert.strictEqual(s.totals.population, "carried-document-summary");
+      assert.strictEqual(s.perTurn[0].population, "carried-document-per-turn");
     });
   });
 });

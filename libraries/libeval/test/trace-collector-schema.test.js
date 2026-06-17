@@ -17,7 +17,7 @@ function collectFixture() {
   return collector;
 }
 
-describe("TraceCollector v1.1 schema expansion", () => {
+describe("TraceCollector v1.2 schema expansion", () => {
   describe("system turns", () => {
     test("stores init as a system turn with full payload", () => {
       const collector = new TraceCollector();
@@ -102,6 +102,15 @@ describe("TraceCollector v1.1 schema expansion", () => {
     });
   });
 
+  describe("assistant message identity", () => {
+    test("assistant turns carry the API message id", () => {
+      const trace = collectFixture().toJSON();
+      const assistant = trace.turns.filter((t) => t.role === "assistant");
+      assert.ok(assistant.length > 0);
+      assert.strictEqual(assistant[0].messageId, "msg_01");
+    });
+  });
+
   describe("user turns", () => {
     test("stores user text messages as user turns", () => {
       const collector = new TraceCollector();
@@ -167,6 +176,36 @@ describe("TraceCollector v1.1 schema expansion", () => {
       const text = collector.toText();
 
       assert.ok(text.includes("[user] Check the repository"));
+    });
+  });
+
+  describe("modelUsage additive merge across result events", () => {
+    test("sums additive fields and carries non-additive first-seen", () => {
+      const collector = new TraceCollector();
+      const result = (cost, inTok, contextWindow) =>
+        JSON.stringify({
+          type: "result",
+          subtype: "success",
+          total_cost_usd: cost,
+          modelUsage: {
+            "claude-opus-4-x": {
+              inputTokens: inTok,
+              outputTokens: 10,
+              costUSD: cost,
+              contextWindow,
+            },
+          },
+        });
+      collector.addLine(result(1.0, 100, 200000));
+      collector.addLine(result(2.0, 50, 999999));
+
+      const mu = collector.toJSON().summary.modelUsage["claude-opus-4-x"];
+      // Additive fields sum.
+      assert.strictEqual(mu.inputTokens, 150);
+      assert.strictEqual(mu.outputTokens, 20);
+      assert.strictEqual(mu.costUSD, 3.0);
+      // Non-additive field carried first-seen, never summed.
+      assert.strictEqual(mu.contextWindow, 200000);
     });
   });
 });
