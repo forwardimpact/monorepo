@@ -179,7 +179,13 @@ function scanOwnerless(line, file, lineNo, refs, spans) {
     const refToken = classifyToken(m[3]);
     // Owner-less placeholder/illustrative tokens are not action refs.
     if (refToken.kind !== "literal") continue;
-    refs.push({ file, line: lineNo, class: "contextual", repo: m[2], refToken });
+    refs.push({
+      file,
+      line: lineNo,
+      class: "contextual",
+      repo: m[2],
+      refToken,
+    });
     spans.push([start, start + m[0].length - m[1].length]);
   }
 }
