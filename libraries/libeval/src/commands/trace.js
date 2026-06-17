@@ -187,7 +187,11 @@ export async function runCountCommand(ctx) {
   const files = resolveFiles(runtime, ctx);
   if (files.length === 0) return noFiles("count");
   const multi = files.length > 1;
-  const result = runOver(files, (tq) => [{ count: tq.count() }], loader(runtime));
+  const result = runOver(
+    files,
+    (tq) => [{ count: tq.count() }],
+    loader(runtime),
+  );
   for (const r of result) {
     const prefix = multi && r.source ? `${r.source}:` : "";
     runtime.proc.stdout.write(`${prefix}${r.count}\n`);

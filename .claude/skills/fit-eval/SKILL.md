@@ -95,7 +95,7 @@ npx fit-eval run \
 npx fit-eval output --format=text < trace.ndjson
 
 # 3. Hand off to fit-trace for structured analysis
-npx fit-trace overview trace.ndjson
+npx fit-trace overview --file trace.ndjson
 ```
 
 For a supervised run, swap `run` for `supervise` and add a supervisor profile:
@@ -123,8 +123,10 @@ npx fit-eval facilitate \
 
 Every `fit-eval` execution command produces NDJSON. Once it's on disk, the work
 shifts from running to understanding — that's where `fit-trace` takes over. Use
-`fit-trace overview`, `timeline`, `search`, `errors`, and `stats` against the
-same file to study what the agent did and why.
+`fit-trace overview`, `timeline`, `errors`, and `stats` (cross-trace verbs take
+`--file`; `search` takes a positional file) against the same trace to study
+what the agent did and why. These print text by default; add `--format json`
+for a machine-parseable envelope.
 
 The `fit-eval` skill stops at the trace file. The `fit-trace` skill picks up
 from there.

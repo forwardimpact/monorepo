@@ -179,7 +179,7 @@ cost, turn count, and (on pre-flight failure) a `preflightError`.
 ## Handing Off to `fit-trace`
 
 Each run produces agent and judge NDJSON traces, both consumable by
-`fit-trace overview`.
+`fit-trace overview --file <trace>`.
 
 ---
 

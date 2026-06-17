@@ -46,7 +46,9 @@ async function capture(handler, options, args = {}) {
   await handler({
     options: { format: "json", ...options },
     args,
-    deps: { runtime: { fsSync, proc: { stdout: { write: (s) => (out += s) } } } },
+    deps: {
+      runtime: { fsSync, proc: { stdout: { write: (s) => (out += s) } } },
+    },
   });
   return out;
 }
@@ -56,7 +58,9 @@ async function capture(handler, options, args = {}) {
  * and the committed baseline fixture, and assert deep structural equality.
  */
 async function assertEquivalentMulti(handler, name, options = {}) {
-  const actual = JSON.parse(await capture(handler, { file: [FILE], ...options }));
+  const actual = JSON.parse(
+    await capture(handler, { file: [FILE], ...options }),
+  );
   const expected = JSON.parse(
     readFileSync(join(fixtureDir, `${name}.json`), "utf8"),
   );
@@ -67,7 +71,9 @@ async function assertEquivalentMulti(handler, name, options = {}) {
  * Same as above for a single-file verb whose file is a positional in args.
  */
 async function assertEquivalentArgs(handler, name, args) {
-  const actual = JSON.parse(await capture(handler, {}, { file: FILE, ...args }));
+  const actual = JSON.parse(
+    await capture(handler, {}, { file: FILE, ...args }),
+  );
   const expected = JSON.parse(
     readFileSync(join(fixtureDir, `${name}.json`), "utf8"),
   );

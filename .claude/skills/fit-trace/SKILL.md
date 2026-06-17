@@ -18,15 +18,21 @@ understanding what an agent did, why, and what happened as a result.
 
 **Understand what an agent did:**
 
-- Getting an overview of a run — `npx fit-trace overview <file>`
-- Walking through the timeline — `npx fit-trace timeline <file>`
-- Inspecting token usage and cost — `npx fit-trace stats <file>`
+- Getting an overview of a run — `npx fit-trace overview --file <file>`
+- Walking through the timeline — `npx fit-trace timeline --file <file>`
+- Inspecting token usage and cost — `npx fit-trace stats --file <file>`
+- Pairing tool calls with results — `npx fit-trace tool-calls --file <file>`
 
 **Debug agent failures:**
 
-- Finding errors in tool calls — `npx fit-trace errors <file>`
+- Finding errors in tool calls — `npx fit-trace errors --file <file>`
 - Searching for patterns — `npx fit-trace search <file> 'permission denied'`
-- Filtering by tool — `npx fit-trace filter <file> --tool <name>`
+- Filtering by tool — `npx fit-trace filter --file <file> --tool <name>`
+
+Cross-trace verbs take their file(s) through `--file` (repeat it or pass a
+quoted glob) and print text by default; add `--format json` for the
+machine-parseable envelope. `tool`, `turn`, `batch`, `search`, and `compare`
+take their file(s) as positionals.
 
 **Download traces from CI:**
 
@@ -48,39 +54,55 @@ Once you have a structured trace file, query it:
 
 | Command                    | Purpose                                   |
 | -------------------------- | ----------------------------------------- |
-| `overview <file>`          | Metadata, summary, turn count, tool usage |
-| `timeline <file>`          | Compact one-line-per-turn overview        |
-| `count <file>`             | Number of turns                           |
-| `head <file> [N]`          | First N turns (default 10)                |
-| `tail <file> [N]`          | Last N turns (default 10)                 |
+| `overview --file <file>`   | Metadata, summary, turn count, tool usage |
+| `timeline --file <file>`   | Compact one-line-per-turn overview        |
+| `count --file <file>`      | Number of turns                           |
+| `head --file <file> --lines N` | First N turns (default 10)            |
+| `tail --file <file> --lines N` | Last N turns (default 10)             |
 | `batch <file> <from> <to>` | Turns in range [from, to)                 |
 | `turn <file> <index>`      | Single turn by index                      |
-| `init <file>`              | Full system/init event                    |
+| `init --file <file>`       | Full system/init event                    |
 
 ### Search and Filter
 
-| Command                       | Purpose                                               |
-| ----------------------------- | ----------------------------------------------------- |
-| `search <file> <pattern>`     | Regex search across all content                       |
-| `filter <file> --role <role>` | Filter by role (system, user, assistant, tool_result) |
-| `filter <file> --tool <name>` | Filter by tool name                                   |
-| `filter <file> --error`       | Error tool results only                               |
+| Command                          | Purpose                                               |
+| -------------------------------- | ----------------------------------------------------- |
+| `search <file> <pattern>`        | Regex search across all content                       |
+| `filter --file <file> --role <role>` | Filter by role (system, user, assistant, tool_result) |
+| `filter --file <file> --tool <name>` | Filter by tool name                               |
+| `filter --file <file> --error`   | Error tool results only                               |
 
 Search options: `--limit N` (max results), `--context N` (surrounding turns),
 `--full` (full content blocks in match descriptions).
 
 ### Analysis
 
-| Command                      | Purpose                                    |
-| ---------------------------- | ------------------------------------------ |
-| `stats <file>`               | Token/cost totals (summed over all result events) + per-API-message breakdown |
-| `tools <file>`               | Tool usage frequency (descending)          |
-| `tool <file> <name>`         | All turns involving a specific tool        |
-| `errors <file>`              | All tool results with isError=true         |
-| `reasoning <file>`           | Agent reasoning text only                  |
-| `split <file> --mode <mode>` | Split combined trace into per-source files |
+| Command                          | Purpose                                          |
+| -------------------------------- | ------------------------------------------------ |
+| `stats --file <file>`            | Token/cost totals (summed over all result events) + per-API-message breakdown |
+| `stats --file <file> --by-tool`  | Per-tool token attribution and cost share        |
+| `stats --file <file> --summary`  | Totals only (suppress the per-turn array)         |
+| `tools --file <file>`            | Tool usage frequency (descending)                |
+| `tool <file> <name>`             | All turns involving a specific tool              |
+| `tool-calls --file <file>`       | One record per tool_use, paired with its result  |
+| `commands --file <file> [--match <regex>]` | One record per Bash command            |
+| `paths --file <file> [--prefix <p>]` | Distinct Read/Edit/Write paths, freq-sorted   |
+| `compare <file-a> <file-b>`      | Side-by-side comparison of two traces            |
+| `errors --file <file>`           | All tool results with isError=true               |
+| `reasoning --file <file>`        | Agent reasoning text only                        |
+| `split <file> --mode <mode>`     | Split combined trace into per-source files       |
+
+`tool`, `tools`, and `tool-calls` are adjacent on purpose: `tool <name>` lists
+every turn for one tool, `tools` ranks tools by frequency, and `tool-calls`
+emits one record per `tool_use` block paired with its `tool_result`.
 
 Reasoning options: `--from N` and `--to N` to limit turn range.
+
+Multi-file: cross-trace verbs (`overview`, `count`, `head`, `tail`, `tools`,
+`errors`, `reasoning`, `timeline`, `stats`, `init`, `filter`, `tool-calls`,
+`commands`, `paths`) accept several files via repeated `--file` or a quoted
+glob. With more than one resolved file, each record carries its source
+basename; a single file (or a glob matching one) carries no prefix.
 
 Split modes: `run`, `supervise`, or `facilitate`. Produces files named
 `trace--<case>--<participant>.<role>.ndjson` (e.g.,
@@ -92,10 +114,11 @@ files are written.
 
 ### Global Options
 
-| Flag           | Purpose                                                |
-| -------------- | ------------------------------------------------------ |
-| `--signatures` | Include thinking.signature blobs (stripped by default) |
-| `--json`       | Output help as JSON                                    |
+| Flag                  | Purpose                                                |
+| --------------------- | ------------------------------------------------------ |
+| `--format <text\|json>` | Command output format (default `text`)               |
+| `--signatures`        | Include thinking.signature blobs (stripped by default) |
+| `--json`              | Output **help** as JSON (not command output — use `--format json` for that) |
 
 ### Run Listing Options
 
@@ -112,14 +135,15 @@ files are written.
 npx fit-trace runs                          # find the run you want
 npx fit-trace download 24497273755          # download and structure the trace
 npx fit-trace split /tmp/trace-24497273755/structured.json --mode=facilitate
-npx fit-trace overview /tmp/trace-24497273755/structured.json
-npx fit-trace timeline /tmp/trace-24497273755/structured.json
-npx fit-trace errors /tmp/trace-24497273755/structured.json
+npx fit-trace overview --file /tmp/trace-24497273755/structured.json
+npx fit-trace timeline --file /tmp/trace-24497273755/structured.json
+npx fit-trace errors --file /tmp/trace-24497273755/structured.json
 npx fit-trace search /tmp/trace-24497273755/structured.json 'permission denied' --context 1
 ```
 
 Start with `overview` and `timeline` to orient, then drill into specific areas
-with `search`, `filter`, `tool`, and `errors`.
+with `search`, `filter`, `tool`, `tool-calls`, and `errors`. To aggregate
+across several traces, repeat `--file` or pass a quoted glob.
 
 ---
 

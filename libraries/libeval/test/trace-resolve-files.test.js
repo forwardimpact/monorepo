@@ -21,7 +21,12 @@ function traceBody(path) {
         message: {
           role: "assistant",
           content: [
-            { type: "tool_use", id: "t1", name: "Read", input: { file_path: path } },
+            {
+              type: "tool_use",
+              id: "t1",
+              name: "Read",
+              input: { file_path: path },
+            },
           ],
         },
       },

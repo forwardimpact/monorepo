@@ -306,14 +306,16 @@ After the run, confirm the trace file exists and contains the expected structure
 before investing time in analysis:
 
 ```sh
-npx fit-trace overview trace--demo.raw.ndjson
-npx fit-trace timeline trace--demo.raw.ndjson
-npx fit-trace stats trace--demo.raw.ndjson
+npx fit-trace overview --file trace--demo.raw.ndjson
+npx fit-trace timeline --file trace--demo.raw.ndjson
+npx fit-trace stats --file trace--demo.raw.ndjson
 ```
 
 `overview` reports metadata, turn count, and tool usage frequency. `timeline`
 prints one line per turn so you can see the shape of the session at a glance.
-`stats` breaks down token usage and cost.
+`stats` breaks down token usage and cost. Cross-trace verbs take their files
+through `--file` (repeat it, or pass a quoted glob) and print text by default;
+add `--format json` for the machine-parseable envelope.
 
 For supervised and facilitated runs, split the combined trace into per-source
 files:
@@ -343,10 +345,13 @@ message exchanges:
 npx fit-trace tool trace--demo.raw.ndjson Conclude
 npx fit-trace tool trace--demo.raw.ndjson Ask
 npx fit-trace tool trace--demo.raw.ndjson Announce
-npx fit-trace filter trace--demo.raw.ndjson --tool Edit
+npx fit-trace filter --file trace--demo.raw.ndjson --tool Edit
 npx fit-trace search trace--demo.raw.ndjson 'error|fail' --context 1
-npx fit-trace reasoning trace--demo.raw.ndjson
+npx fit-trace reasoning --file trace--demo.raw.ndjson
 ```
+
+`tool` and `search` pin a single trace, so they take the file as a positional;
+the cross-trace verbs (`filter`, `reasoning`, and the rest) take `--file`.
 
 The `Conclude` call carries the verdict -- start there when an eval fails, then
 follow the timeline backwards. For facilitated sessions, walk `Announce`

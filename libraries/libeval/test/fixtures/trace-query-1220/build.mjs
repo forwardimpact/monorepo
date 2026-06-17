@@ -8,9 +8,12 @@
  * runtime re-derivation (spec 1220 Risks row 1b).
  *
  * This is NOT a throwaway: re-run it after a legitimate trace-schema change to
- * regenerate the frozen reference.
+ * regenerate the frozen reference, then `biome format --write` the output so
+ * the committed JSON matches repo formatting (the equivalence test compares via
+ * JSON.parse, so whitespace does not affect the binding):
  *
  *   node libraries/libeval/test/fixtures/trace-query-1220/build.mjs
+ *   bunx biome format --write libraries/libeval/test/fixtures/trace-query-1220
  *
  * `head`/`tail` are captured at the post-change default `n = 10` so the
  * equivalence comparison (which invokes `--lines 10`) is apples-to-apples.

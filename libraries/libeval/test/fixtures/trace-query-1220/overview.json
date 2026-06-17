@@ -4,12 +4,7 @@
     "sessionId": "sess-1220",
     "model": "claude-opus-4-6",
     "claudeCodeVersion": "2.1.87",
-    "tools": [
-      "Bash",
-      "Read",
-      "Edit",
-      "Write"
-    ],
+    "tools": ["Bash", "Read", "Edit", "Write"],
     "permissionMode": "default"
   },
   "summary": {

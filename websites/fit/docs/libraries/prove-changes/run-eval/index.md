@@ -160,10 +160,14 @@ When an eval fails, download the artifact and start with `overview` and
 ```sh
 npx fit-trace runs                              # find the failed run
 npx fit-trace download <run-id>                 # downloads and auto-converts
-npx fit-trace overview structured.json
-npx fit-trace timeline structured.json
+npx fit-trace overview --file structured.json
+npx fit-trace timeline --file structured.json
 npx fit-trace tool structured.json Conclude
 ```
+
+Cross-trace verbs (`overview`, `timeline`, …) take their file through `--file`
+and print text by default; `tool` pins a single trace, so it takes a
+positional. Add `--format json` to any verb for the machine-parseable shape.
 
 The `Conclude` tool call carries the judge's verdict and summary. From there,
 follow the timeline backwards to find the turn where the agent went wrong.
