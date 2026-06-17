@@ -3,13 +3,14 @@
 // Build script for Outpost (arm64 macOS).
 //
 // Usage:
-//   bun pkg/build.js                    Compile launcher
-//   bun pkg/build.js --app              Above + assemble fit-outpost.app
-//   bun pkg/build.js --pkg              Above + .pkg installer
-//   bun pkg/build.js --launcher         Compile Swift launcher only
+//   bun pkg/build.js                    Compile the Swift launcher
+//   bun pkg/build.js --launcher         Compile the Swift launcher only
 //
 // The fit-outpost scheduler binary is produced by the shared
-// `just build-binary fit-outpost` and must be present in dist/ before --app/--pkg.
+// `just build-binary fit-outpost`. The .app bundle and .pkg installer are
+// assembled by the release workflow via `just build-app-product outpost` and
+// `pkg/macos/build-pkg.sh` against the canonical dist/apps/fit-outpost.app —
+// this script only compiles the launcher they consume.
 
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -19,7 +20,6 @@ const __dirname =
   import.meta.dirname || dirname(new URL(import.meta.url).pathname);
 const PROJECT_DIR = join(__dirname, "..");
 const DIST_DIR = join(PROJECT_DIR, "dist");
-const APP_NAME = "fit-outpost";
 const LAUNCHER_NAME = "Outpost";
 const LAUNCHER_DIR = join(PROJECT_DIR, "macos", "Outpost");
 const VERSION = JSON.parse(
@@ -84,83 +84,13 @@ function compileLauncher() {
 }
 
 // ---------------------------------------------------------------------------
-// Assemble fit-outpost.app bundle
-// ---------------------------------------------------------------------------
-
-function buildApp() {
-  console.log("\nAssembling fit-outpost.app...");
-
-  if (!existsSync(join(DIST_DIR, APP_NAME))) {
-    throw new Error(
-      `${APP_NAME} binary not found in dist/ — build it with \`just build-binary fit-outpost\` or supply it from the native build before assembling the app.`,
-    );
-  }
-
-  const LIBMACOS = join(PROJECT_DIR, "..", "..", "libraries", "libmacos");
-  const script = join(LIBMACOS, "scripts", "build-app.sh");
-  const iconPath = join(
-    PROJECT_DIR,
-    "..",
-    "..",
-    "design",
-    "fit",
-    "assets",
-    "icon-outpost.svg",
-  );
-  run(
-    [
-      `bash "${script}"`,
-      `--bundle-name "fit-outpost"`,
-      `--primary-exec "${join(DIST_DIR, LAUNCHER_NAME)}"`,
-      `--extra-exec "${join(DIST_DIR, APP_NAME)}"`,
-      `--info-plist "${join(PROJECT_DIR, "macos", "Info.plist")}"`,
-      `--entitlements "${join(PROJECT_DIR, "macos", "Outpost.entitlements")}"`,
-      `--resource "${join(PROJECT_DIR, "config")}"`,
-      `--resource "${join(PROJECT_DIR, "templates")}"`,
-      `--resource "${iconPath}"`,
-      `--version "${VERSION}"`,
-      `--out-dir "${DIST_DIR}"`,
-    ].join(" "),
-    { cwd: PROJECT_DIR },
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Build macOS installer package (.pkg)
-// ---------------------------------------------------------------------------
-
-function buildPKG() {
-  const pkgName = `${APP_NAME}-${VERSION}.pkg`;
-
-  console.log(`\nBuilding pkg: ${pkgName}...`);
-
-  const buildPkg = join(__dirname, "macos", "build-pkg.sh");
-  run(`bash "${buildPkg}" "${DIST_DIR}" "${VERSION}"`, { cwd: PROJECT_DIR });
-
-  console.log(`  -> ${join(DIST_DIR, pkgName)}`);
-}
-
-// ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
 
-const args = process.argv.slice(2);
-
-// No flags → default build (launcher only; the fit-outpost scheduler binary
-// comes from the shared `just build-binary fit-outpost`, not this script).
-// Explicit flags → run only those steps; --app/--pkg imply the launcher.
-const all = args.length === 0;
-const want = {
-  launcher: all || args.includes("--launcher"),
-  app: args.includes("--app") || args.includes("--pkg"),
-  pkg: args.includes("--pkg"),
-};
-if (want.app || want.pkg) want.launcher = true;
-
+// The only build step this script owns is the Swift launcher. With no flags or
+// with --launcher it compiles the launcher; there are no other steps.
 console.log(`Outpost Build (v${VERSION})`);
 console.log("==========================");
-if (want.launcher) compileLauncher();
-if (want.app) buildApp();
-if (want.pkg) buildPKG();
+compileLauncher();
 
 console.log("\nBuild complete! Output in dist/");
