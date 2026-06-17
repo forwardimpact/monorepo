@@ -3,6 +3,9 @@ import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims, filterExpired } from "./active-claims.js";
 import { countLines, countWords } from "./budget.js";
 import {
+  AGENT_EXPERIMENTS_CLOSE_RE,
+  AGENT_EXPERIMENTS_OPEN_RE,
+  AGENT_EXPERIMENT_ITEM_RE,
   MEMO_INBOX_MARKER,
   PRIORITY_INDEX_HEADING,
   SUMMARY_LINE_BUDGET,
@@ -11,6 +14,8 @@ import {
   WEEKLY_LOG_WORD_BUDGET,
 } from "./constants.js";
 import { weeklyLogPath } from "./weekly-log.js";
+
+const STANDING_CARRIES_HEADING = "## Standing Carries";
 
 function readIfExists(fs, filePath) {
   if (!fs.existsSync(filePath)) return null;
@@ -101,7 +106,40 @@ function parseStoryboardItems(text, agent) {
   const lines = text.split("\n");
   const items = [];
   let inAgent = false;
+  let inBlock = false;
   for (const line of lines) {
+    // The materialized block carries `- #N [agent] …` bullets that the h3 scan
+    // must never capture; track it so the legacy bullet loop skips inside it.
+    if (AGENT_EXPERIMENTS_OPEN_RE.test(line)) {
+      inBlock = true;
+      inAgent = false;
+      continue;
+    }
+    if (AGENT_EXPERIMENTS_CLOSE_RE.test(line)) {
+      inBlock = false;
+      continue;
+    }
+    if (inBlock) {
+      const m = line.match(AGENT_EXPERIMENT_ITEM_RE);
+      if (m && m[2] === agent) {
+        items.push({
+          dim: agent,
+          threshold: m[3],
+          status: "open",
+          link: null,
+          issue: Number(m[1]),
+          author: m[4],
+          source: "experiment",
+        });
+      }
+      continue;
+    }
+    // Any h2 closes the agent-section scan (team-wide sections follow the last
+    // agent h3); without this the h3 scan ran past the agent sections (#1669).
+    if (/^## /.test(line)) {
+      inAgent = false;
+      continue;
+    }
     const h3Match = line.match(/^### (.+)$/);
     if (h3Match) {
       inAgent = h3Match[1].toLowerCase().startsWith(agent.toLowerCase());
@@ -119,10 +157,30 @@ function parseStoryboardItems(text, agent) {
         threshold: bullet[1],
         status: "open",
         link: null,
+        issue: null,
+        author: null,
+        source: "bullet",
       });
     }
   }
   return items;
+}
+
+function extractStandingCarries(text) {
+  if (!text) return [];
+  const lines = text.split("\n");
+  const start = lines.findIndex(
+    (l) => l.trim() === STANDING_CARRIES_HEADING,
+  );
+  if (start === -1) return [];
+  const carries = [];
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^## /.test(line)) break;
+    const bullet = line.match(/^[-*] (.*)$/);
+    if (bullet) carries.push(bullet[1]);
+  }
+  return carries;
 }
 
 function countInbox(text) {
@@ -203,6 +261,7 @@ export function buildDigest({ wikiRoot, agent, today, fs }) {
     cross_cutting: cross.map(mapPriority),
     claims: active.map(mapClaim),
     storyboard_items: parseStoryboardItems(storyboardText ?? "", agent),
+    standing_carries: extractStandingCarries(summaryText),
     inbox_count: countInbox(summaryText),
     summary_headroom: headroom(
       summaryText ?? "",

@@ -149,4 +149,109 @@ describe("buildDigest", () => {
     assert.equal(digest.weekly_log_headroom.words, 0);
     assert.equal(digest.weekly_log_headroom.words_remaining, 6400);
   });
+
+  const STORYBOARD = `${ROOT}/storyboard-2026-M05.md`;
+
+  test("materialized block yields an experiment item for the booting agent only", () => {
+    const digest = digestOf({
+      [STORYBOARD]: [
+        "# Storyboard — 2026-05",
+        "",
+        "### staff-engineer",
+        "#### implementations_shipped",
+        "",
+        "## Experiments",
+        "<!-- agent-experiments -->",
+        "<!-- last-successful-sync: 2026-05-18 -->",
+        "- #1694 [staff-engineer] Exp Staff June 12 (by dickolsson)",
+        "- #1625 [release-engineer] Exp RE June 11 (by someone)",
+        "<!-- /agent-experiments -->",
+      ].join("\n"),
+    });
+    const exp = digest.storyboard_items.filter((i) => i.source === "experiment");
+    assert.equal(exp.length, 1);
+    assert.equal(exp[0].issue, 1694); // criterion 6: provenance fields present
+    assert.equal(exp[0].author, "dickolsson");
+    assert.equal(exp[0].dim, "staff-engineer");
+    assert.equal(exp[0].threshold, "Exp Staff June 12");
+  });
+
+  test("a live-format agent-section bullet still yields a digest item (criterion 8)", () => {
+    const digest = digestOf({
+      [STORYBOARD]: [
+        "# Storyboard — 2026-05",
+        "",
+        "### staff-engineer",
+        "- ship the materialization surface",
+        "",
+        "### release-engineer",
+        "- not mine",
+      ].join("\n"),
+    });
+    const bullets = digest.storyboard_items.filter((i) => i.source === "bullet");
+    assert.equal(bullets.length, 1);
+    assert.equal(bullets[0].threshold, "ship the materialization surface");
+  });
+
+  test("h3 scan does not double-parse block bullets or run past agent sections", () => {
+    const digest = digestOf({
+      [STORYBOARD]: [
+        "# Storyboard — 2026-05",
+        "",
+        "### staff-engineer",
+        "- mine",
+        "",
+        "## Notes",
+        "- team-wide note, not mine",
+        "",
+        "## Experiments",
+        "<!-- agent-experiments -->",
+        "<!-- last-successful-sync: 2026-05-18 -->",
+        "- #1 [staff-engineer] block item (by a)",
+        "<!-- /agent-experiments -->",
+      ].join("\n"),
+    });
+    // exactly one bullet (the agent's own h3 bullet) + one experiment item;
+    // the team-wide note and the block bullet must NOT appear as h3 bullets.
+    const bullets = digest.storyboard_items.filter((i) => i.source === "bullet");
+    assert.equal(bullets.length, 1);
+    assert.equal(bullets[0].threshold, "mine");
+    const exp = digest.storyboard_items.filter((i) => i.source === "experiment");
+    assert.equal(exp.length, 1);
+    assert.equal(exp[0].issue, 1);
+  });
+
+  test("standing carries delivered verbatim; absence yields empty; summary unchanged", () => {
+    const withCarries = digestOf({
+      [`${ROOT}/staff-engineer.md`]: [
+        "# Staff Engineer — Summary",
+        "",
+        "Last-run paragraph stays the summary.",
+        "",
+        "## Standing Carries",
+        "- carry **one** with `markup` and #123",
+        "- carry two",
+      ].join("\n"),
+    });
+    assert.equal(withCarries.summary, "Last-run paragraph stays the summary.");
+    assert.deepEqual(withCarries.standing_carries, [
+      "carry **one** with `markup` and #123",
+      "carry two",
+    ]);
+
+    const noCarries = digestOf({
+      [`${ROOT}/staff-engineer.md`]:
+        "# Staff Engineer — Summary\n\nOnly a last-run paragraph.\n",
+    });
+    assert.deepEqual(noCarries.standing_carries, []);
+    assert.equal(noCarries.summary, "Only a last-run paragraph.");
+  });
+
+  test("buildDigest needs only a filesystem surface (offline, fail-never)", () => {
+    // digestOf constructs buildDigest with `fs` only — no subprocess/network
+    // capability is injected, so the boot path cannot reach the tracker.
+    const digest = digestOf();
+    assert.deepEqual(digest.standing_carries, []);
+    assert.deepEqual(digest.storyboard_items, []);
+  });
 });
