@@ -11,21 +11,21 @@ description: >
 # Backlog Synthesis
 
 When the backlog sprawls into overlapping issues and PRs, partition it into
-single-pattern clusters, then take each cluster through grounded coding to one
+single-pattern clusters, then take each through grounded coding to one
 spec + design that addresses the root cause, instruments any binding
-constraint, and codifies the moves the team has been inventing per case.
-Closing the loop means retiring the cluster: close the redundant issues and
-superseded PRs, each pointing at the new spec.
+constraint, and codifies the moves the team keeps reinventing per case.
+Retire the cluster: close the redundant issues and superseded PRs, each
+pointing at the new spec.
 
 ## When to Use
 
 - A storyboard meeting Q3 surfaces multiple obstacles whose repair shapes
-  visibly rhyme.
+  rhyme.
 - A producer-orphaning event lands on `main` (skill removed, renamed, or
   split) and a metric loses its producer — immediate trigger.
 - The same RFC shape has appeared more than once because a richer channel was
-  unavailable.
-- A user explicitly requests a backlog synthesis run.
+  missing.
+- A user requests a backlog synthesis run.
 
 Do not run on a small corpus (under ~10 open obstacle+experiment items) or
 fewer than 3 distinct repair-adjacent moves — premature synthesis manufactures
@@ -34,13 +34,15 @@ patterns from noise.
 ## Triggers
 
 ```sh
-# Eligibility — at least one threshold must hold
-gh issue list --label obstacle,experiment --state open --json number \
-  | jq 'length'   # ≥10 → eligible
+# Eligibility — at least one threshold must hold. Comma-separated `--label` ANDs;
+# query each label separately, raise `--limit` past 30, and dedupe for the OR-union.
+{ gh issue list --label obstacle --state open --json number --limit 1000;
+  gh issue list --label experiment --state open --json number --limit 1000; } \
+  | jq -s 'add | unique_by(.number) | length'   # ≥10 → eligible
 ```
 
-A sweep processes every eligible cluster and runs at most once per ISO week,
-unless a producer-orphaning event forces it.
+A sweep processes every eligible cluster, at most once per ISO week, unless a
+producer-orphaning event forces it.
 
 ## Checklists
 
@@ -50,8 +52,8 @@ unless a producer-orphaning event forces it.
 - [ ] Partition the backlog into single-pattern clusters. Each cluster is one
       corpus; run the method once per cluster.
 - [ ] Close each corpus before coding it; later items do not bias the codes.
-- [ ] Memos and codes go to a scratch location, not to the wiki, until the
-      proposition is selected.
+- [ ] Memos and codes go to scratch, not the wiki, until the proposition is
+      selected.
 - [ ] No claim enters the spec or design without an issue/PR number anchor.
 - [ ] Stop at one core category per cluster. If two compete, the cluster is
       really two — split it and run each separately.
@@ -79,24 +81,24 @@ unless a producer-orphaning event forces it.
 
 ## Method
 
-Use **grounded theory**: let the pattern emerge from the corpus rather than
-testing a preformed hypothesis. The non-obvious disciplines:
+Use **grounded theory**: let the pattern emerge from the corpus, not from a
+preformed hypothesis. The non-obvious disciplines:
 
 - **Begin with no proposition**, and read every item — titles that rhyme often
   diverge in the body.
 - **Code in the corpus's own language** (in-vivo phrases), not categories you
   bring to the analysis.
 - **Memo as you go** (3–5 sentences per item): the central incident and what
-  makes it surprising. Retrospective summaries are worth far less.
+  makes it surprising. Retrospective summaries are worth less.
 - **Seek one central explanation, not a category list.** Group codes by asking
   what triggered each item, what discipline applied, and what failed when it
   lapsed. Look for repair moves invented per case, binding constraints never
-  measured directly, disciplines with no canonical home, and producer/consumer
-  couplings where one change rippled unexpectedly.
+  measured, disciplines with no canonical home, and producer/consumer
+  couplings where one change rippled.
 
 The strongest propositions are **grounded** (traceable to cited items),
-**testable** (a future corpus can confirm or refute), and **actionable** (they
-imply a single spec).
+**testable** (a future corpus can confirm or refute), and **actionable** (imply
+a single spec).
 
 ### Phase Boundaries
 
@@ -115,7 +117,7 @@ Six checkpoints; output of each feeds the next.
 
 Re-read the corpus, classify every item, then act on its disposition. The PR
 body lists only the addressed buckets; **out-of-scope items receive no comment
-and stay open** — signal hygiene matters.
+and stay open**.
 
 | Category | Trigger | Disposition |
 | --- | --- | --- |
@@ -129,8 +131,8 @@ and stay open** — signal hygiene matters.
 
 Halt the cluster and adjust in any of these cases:
 
-- A single cluster splits into two competing core categories — that cluster
-  was mis-drawn; split it and run each subset.
+- A single cluster splits into two competing core categories — it was
+  mis-drawn; split it and run each subset.
 - Open coding produces a category with one code and one incident — the
   corpus is too small for that category to be a pattern.
 - The spec's Problem section cannot ground every claim in a cited item — the
@@ -141,7 +143,7 @@ Halt the cluster and adjust in any of these cases:
 The coach's general "no writing specs or fix PRs" constraint
 ([`improvement-coach.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/improvement-coach.md))
 is extended here: the spec writes up what the corpus already implicitly
-decided, not a new feature. Scoped to this skill only.
+decided, not a new feature. Scoped to this skill.
 
 ## Memory: What to Record
 
@@ -156,8 +158,7 @@ Append to the current week's coach log
 - **Corpus map** — Item → category table; out-of-scope items recorded here
   though they get no comment.
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
-  per `references/metrics.md`. See KATA.md § Metrics for the
-  recording-eligibility rule.
+  per `references/metrics.md`. See KATA.md § Metrics for eligibility.
 
 ## Coordination Channels
 
@@ -167,10 +168,10 @@ This skill produces these non-wiki outputs (per
 - **PR body** — Consolidated spec/design PR carries an Addresses overview
   listing the issues closed and the PRs it supersedes.
 - **Issue/PR close** — Addressed issues and superseded PRs closed as duplicate,
-  each with a comment pointing at the spec; never on out-of-scope items.
+  each commenting the spec link; never on out-of-scope items.
 - **Storyboard headline** — The next storyboard meeting after a sweep surfaces
   the consolidated PR as a Q1 target-condition reference.
 
-If two storyboard meetings pass without the spec PR being approved, file an
-obstacle — the consolidated PR is itself subject to whatever binding constraint
+If two storyboard meetings pass without the spec PR approved, file an
+obstacle — the consolidated PR is itself subject to the binding constraint
 the spec proposed.
