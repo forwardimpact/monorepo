@@ -72,7 +72,13 @@ describe("serverFlagsShortCircuit version tokens", () => {
 });
 
 describe("serverFlagsShortCircuit non-token first argument", () => {
-  for (const argv of [["--port", "8080"], ["8080"], [], ["start", "--help"], ["--help=1"]]) {
+  for (const argv of [
+    ["--port", "8080"],
+    ["8080"],
+    [],
+    ["start", "--help"],
+    ["--help=1"],
+  ]) {
     test(`${JSON.stringify(argv)} returns false and writes nothing`, () => {
       const { handled, output } = call(argv);
       assert.equal(handled, false);

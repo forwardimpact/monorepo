@@ -9,7 +9,11 @@ import { fileURLToPath } from "node:url";
 // user has). Each token must print output and exit 0 without binding a port —
 // the "listening" log line is written via the telemetry logger to stderr, so
 // the capture merges stdout and stderr to make the no-port-bind guard real.
-const serverJs = join(dirname(fileURLToPath(import.meta.url)), "..", "server.js");
+const serverJs = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "server.js",
+);
 const TOKENS = ["--help", "-h", "--version", "-V"];
 
 function run(token) {
