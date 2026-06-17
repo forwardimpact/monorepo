@@ -74,8 +74,9 @@ describe("per-signal recomputation-revealed provenance", () => {
   test("non-corresponding anchor: no provenance, report unchanged (criterion 3)", () => {
     const csv = makeCSV("summary_corrections", SHAPE_1692);
     const baseline = analyze(csv).metrics[0];
-    // A date not present in the series (between slots, append-only violated).
-    const m = analyze(csv, { priorReadAnchor: "2025-12-31" }).metrics[0];
+    // A date beyond the series end — no slot matches, so the anchor is
+    // non-corresponding (spec § Scope: backfill, correction, or beyond end).
+    const m = analyze(csv, { priorReadAnchor: "2026-12-31" }).metrics[0];
     for (const rec of allRecords(m.signals)) {
       assert.ok(!("provenance" in rec));
     }
