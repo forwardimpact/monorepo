@@ -3,7 +3,9 @@ fit-wiki pull — Pull remote wiki changes into the local working tree
 Usage: fit-wiki pull [options]
 
 Options:
+  --agent=<string>      Agent name (falls back to LIBEVAL_AGENT_PROFILE, then staff-engineer)
   --wiki-root=<string>  Override wiki root directory (default: wiki)
+  --today=<string>      Override today's ISO date (testing)
 
 Global options:
   --help, -h  Show this help

@@ -129,7 +129,11 @@ describe("WikiSync (real git)", () => {
     const { parent, wikiDir } = cloneRepo(bare, "clean");
     git(wikiDir, "checkout", "master");
     const result = await makeSync(wikiDir, parent).commitAndPush("test");
-    assert.deepEqual(result, { pushed: false, reason: "clean" });
+    assert.deepEqual(result, {
+      pushed: false,
+      reason: "clean",
+      detections: [],
+    });
   });
 
   test("commitAndPush commits and pushes a dirty tree", async () => {
@@ -159,7 +163,11 @@ describe("WikiSync (real git)", () => {
     const result = await makeSync(wikiDir, parent).commitAndPush(
       "wiki: should not be used",
     );
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
     assert.equal(
       git(wikiDir, "rev-parse", "HEAD"),
       headBefore,
@@ -188,7 +196,11 @@ describe("WikiSync (real git)", () => {
       "wiki: claim x",
       ["MEMORY.md"],
     );
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
     assert.equal(
       git(wikiDir, "show", "--name-only", "--format=", "HEAD"),
       "MEMORY.md",
@@ -207,7 +219,11 @@ describe("WikiSync (real git)", () => {
       "wiki: claim x",
       ["MEMORY.md"],
     );
-    assert.deepEqual(result, { pushed: false, reason: "clean" });
+    assert.deepEqual(result, {
+      pushed: false,
+      reason: "clean",
+      detections: [],
+    });
     assert.match(
       git(wikiDir, "status", "--porcelain"),
       /^ ?M README\.md$/m,
@@ -237,7 +253,11 @@ describe("WikiSync (real git)", () => {
     const result = await makeSync(w2, p2).commitAndPush("wiki: claim x", [
       "MEMORY.md",
     ]);
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
     assert.equal(
       readFileSync(join(w2, "remote-change.md"), "utf-8").trim(),
       "from clone1",

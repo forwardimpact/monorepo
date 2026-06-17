@@ -70,6 +70,10 @@ export const WEEKLY_LOG_PART_NAME_RE =
 // call sites add `g`/`m` as needed via `new RegExp(WEEKLY_LOG_SEAM_RE.source, …)`.
 export const WEEKLY_LOG_SEAM_RE = /^## (\d{4}-\d{2}-\d{2})/;
 
+// Tier-2 integrity sweep idle-gap (spec 1960): lane-authored commits separated
+// by more than this delimit sessions in the wiki history. 30 minutes.
+export const SESSION_GAP_MS = 30 * 60 * 1000;
+
 // Storyboard marker syntax. An open or close marker tolerates optional trailing
 // text after the tag (typically an inline "Do not edit. Generated from fit-wiki
 // refresh." notice). One home so the marker scanner (marker-scanner.js) and the
