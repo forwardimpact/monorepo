@@ -159,7 +159,7 @@ jobs:
             "dist/apps/${ASSET}.sha256" \
             --clobber
 
-  tap-pr:
+  tap-update:
     needs: build
     runs-on: ubuntu-latest
 
@@ -233,19 +233,12 @@ jobs:
             -e "s|^  sha256 \".*\"|  sha256 \"${SHA256}\"|" \
             "$CASK_FILE"
 
-      - name: Open cask-update PR
+      - name: Commit cask update to main
         working-directory: tap
         env:
-          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
           CASK: ${{ steps.meta.outputs.cask }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          BRANCH="update/${CASK}-${VERSION}"
-          git checkout -b "$BRANCH"
           git add "Casks/${CASK}.rb"
           git commit -m "Update ${CASK} to ${VERSION}"
-          git push origin "$BRANCH"
-          gh pr create \
-            --title "Update ${CASK} to ${VERSION}" \
-            --body "Automated cask update from monorepo release ${GITHUB_REF_NAME}." \
-            --base main
+          git push origin HEAD:main
