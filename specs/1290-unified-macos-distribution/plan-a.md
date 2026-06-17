@@ -21,17 +21,17 @@ Files modified: `products/outpost/pkg/build.js`
 - Delete the `--app`/`--pkg` CLI arms: the `want` object keeps only `launcher`;
   remove the `app`/`pkg` keys, the `if (want.app || want.pkg)` line, and the
   `if (want.app) buildApp();` / `if (want.pkg) buildPKG();` calls.
-- Remove the now-unused module-level `APP_NAME` constant and any imports that
-  only `buildApp()`/`buildPKG()` used (e.g. `existsSync` if no longer
-  referenced); keep what `compileLauncher()` still needs.
+- Remove the now-unused module-level `APP_NAME` constant. Keep all `node:fs`
+  imports — `existsSync`/`mkdirSync`/`rmSync`/`readFileSync` stay live in
+  `ensureDir()` and `compileLauncher()`; nothing becomes orphaned.
 - Remove **every** `--app`/`--pkg` mention from comments, not just the usage
   block: the header usage lines, the "before `--app`/`--pkg`" note, and the
   "`--app`/`--pkg` imply the launcher" CLI comment. After this step no `--app`
   or `--pkg` token remains anywhere in the file.
 
-Verification: `grep -c -- '--app\|--pkg' products/outpost/pkg/build.js` returns
-`0` (catches leftover comment references too); `cd products/outpost && bun
-pkg/build.js --launcher` compiles the launcher to `dist/Outpost` and exits 0.
+Verification: `grep -cE -- '--app|--pkg' products/outpost/pkg/build.js` returns
+`0` (catches leftover comment references too); `(cd products/outpost && bun
+pkg/build.js --launcher)` compiles the launcher to `dist/Outpost` and exits 0.
 
 ### 2. Retire the dead package.json scripts
 
@@ -70,39 +70,55 @@ brew body.
 
 Files modified: `.github/workflows/publish-macos.yml`
 
-- **Download step:** change the artifact `path:` from `products/outpost/dist` to
+All edits target the `build` job. Today it has (in order): a download step
+(`:45–46`), one combined "Build .pkg installer" step with
+`working-directory: products/outpost` doing chmod + `bun pkg/build.js --pkg`
+(`:48–52`), a "Verify .pkg exists" step also with
+`working-directory: products/outpost` (`:54–66`), and an "Upload release assets"
+step that uploads `products/outpost/$PKG_FILE` (`:84–91`). After this step **no
+step in the job carries `working-directory: products/outpost`** — every path is
+repo-root-relative.
+
+- **Download step (`:45–46`):** change `path:` from `products/outpost/dist` to
   `dist/binaries` so the binary lands at `dist/binaries/fit-outpost` (where
-  `build-app-product.sh:25` reads it). Keep the single `name:
-  fit-outpost-bun-darwin-arm64` (the lane needs only that binary; do not adopt
-  the brew lane's `pattern:`/`merge-multiple:`).
-- **Remove `working-directory: products/outpost`** from the step that restores
-  the executable bit and from the assemble step — they now operate on repo-root
-  paths (`dist/binaries`, `dist/apps`). Restore the bit with `chmod +x
-  dist/binaries/fit-outpost` (artifact upload drops it).
-- **Replace the "Build .pkg installer" step** with three steps:
-  1. *Assemble bundle* — `just build-app-product outpost` (compiles the launcher
-     and emits `dist/apps/fit-outpost.app`).
+  `build-app-product.sh:25` reads it). Keep the single
+  `name: fit-outpost-bun-darwin-arm64` (do not adopt the brew lane's
+  `pattern:`/`merge-multiple:`; this lane needs only that binary).
+- **Replace the combined "Build .pkg installer" step (`:48–52`)** — including
+  dropping its `working-directory: products/outpost` — with these steps, all
+  repo-root-relative:
+  1. *Restore bit + assemble* — `chmod +x dist/binaries/fit-outpost` (artifact
+     upload drops it), then `just build-app-product outpost` (compiles the
+     launcher, emits `dist/apps/fit-outpost.app`).
   2. *Verify cdhash stability* — outpost-specialised gate: `BUNDLE=dist/apps/fit-outpost.app`;
      baseline `codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash`; `rm -rf dist/apps
      products/outpost/dist`; rebuild `just build-app-product outpost`; record
-     after; `exit 1` with the brew lane's `::error::cdhash drift` message on
-     mismatch. The baseline/rebuild/compare predicate is identical to
-     `publish-brew.yml`'s; only the `$BUNDLE`/`NAME` constants are inlined.
+     after; on mismatch echo the brew lane's
+     `::error::cdhash drift detected — bundle is not deterministic` and `exit 1`.
+     The baseline → rm+rebuild → compare predicate is identical to
+     `publish-brew.yml`'s; only the `$BUNDLE`/name constants are inlined (no
+     `case "$KIND"`).
   3. *Build the `.pkg`* — `bash products/outpost/pkg/macos/build-pkg.sh dist/apps
-     "$VERSION"`; the `.pkg` lands at `dist/apps/fit-outpost-$VERSION.pkg`.
-- **Update "Verify .pkg exists"** and the upload step paths from
-  `products/outpost/dist/fit-outpost-$VERSION.pkg` to
-  `dist/apps/fit-outpost-$VERSION.pkg`.
-- Leave the `binaries` job, runner (`macos-14`), tag trigger, and the
-  idempotent `gh release create` / upload steps unchanged.
+     "$VERSION"`, with `env: VERSION: ${{ steps.meta.outputs.version }}` on the
+     step (the old step read the version from package.json; the direct call
+     needs it in env). The `.pkg` lands at `dist/apps/fit-outpost-$VERSION.pkg`.
+- **"Verify .pkg exists" step (`:54–66`):** remove its
+  `working-directory: products/outpost` and repoint `PKG_FILE` from
+  `dist/fit-outpost-${VERSION}.pkg` to `dist/apps/fit-outpost-${VERSION}.pkg`.
+  The `pkg_file` it writes to `$GITHUB_OUTPUT` is now repo-root-relative.
+- **"Upload release assets" step (`:84–91`):** drop the `products/outpost/`
+  prefix — upload `"$PKG_FILE"` (already `dist/apps/...` from the verify step's
+  output), not `"products/outpost/$PKG_FILE"`.
+- Leave the `binaries` job, runner (`macos-14`), tag trigger, and the idempotent
+  `gh release create` step unchanged.
 
-Verification: the repo's workflow lint passes; the gate runs the same
+Verification: the repo's workflow lint passes; `grep -c 'working-directory'
+.github/workflows/publish-macos.yml` is `0`; the gate runs the same
 baseline → `rm` + rebuild-via-`build-app-product` → compare predicate as
-`publish-brew.yml` (`diff <(grep -A1 CDHash publish-macos.yml) …` is not
-expected to match byte-for-byte — confirm the three predicate parts are present
-and that the `rm`+rebuild sits **between** baseline and after, not skipped); the
-gate step precedes the `.pkg` build and upload (`grep -n 'CDHash\|build-pkg.sh\|release upload'`
-shows that order).
+`publish-brew.yml` (a byte diff is not expected — confirm the three predicate
+parts are present and the `rm`+rebuild sits **between** baseline and after, not
+skipped); `grep -n 'CDHash\|build-pkg.sh\|release upload'` shows the gate before
+the `.pkg` build before the upload.
 
 ## Risks
 
