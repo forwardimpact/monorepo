@@ -281,6 +281,13 @@ End-to-end skills record per-run counts as CSV rows in
 `wiki/metrics/{skill}/{YYYY}.csv`. The storyboard reads these via `fit-xmr`
 for control limits.
 
+Every metrics CSV row carries a `host_run` field — `$GITHUB_RUN_ID` when the
+row is written in CI, the literal `local` otherwise — so a row resolves to the
+workflow run that produced it by keyed lookup, not a forensic time-window
+sweep. `fit-xmr record` fills it automatically. Narrative log entries are
+exempt; they are prose memory, recoverable through the keyed rows they
+accompany.
+
 ## Design Principles
 
 - **Simplicity over machinery.** Fewer moving parts, fewer failure modes, easier

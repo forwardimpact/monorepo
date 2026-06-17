@@ -1,12 +1,14 @@
-import { describe, test } from "node:test";
+import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import {
+  TraceGitHub,
   createTraceGitHub,
   detectRepoSlug,
   parseGitRemote,
+  participantInNames,
   pickTraceArtifact,
 } from "@forwardimpact/libeval";
 
@@ -215,6 +217,194 @@ describe("listRuns default pattern", () => {
     const re = new RegExp("agent", "i");
     assert.strictEqual(re.test("Kata: Shift"), false);
     assert.strictEqual(re.test("Kata: Dispatch"), false);
+  });
+});
+
+describe("participantInNames", () => {
+  test("matrix artifact name matches the whole participant", () => {
+    assert.ok(
+      participantInNames(["trace--release-engineer"], "release-engineer"),
+    );
+  });
+
+  test("dispatch member filename matches the participant segment", () => {
+    assert.ok(
+      participantInNames(
+        ["trace--default--release-engineer.agent.ndjson"],
+        "release-engineer",
+      ),
+    );
+  });
+
+  test("does not match a participant that is only a prefix (criterion 8 over-match guard)", () => {
+    assert.strictEqual(
+      participantInNames(["trace--release-engineer"], "release"),
+      false,
+    );
+    assert.strictEqual(
+      participantInNames(
+        ["trace--default--release-engineer.agent.ndjson"],
+        "release",
+      ),
+      false,
+    );
+  });
+
+  test("ignores non-trace names", () => {
+    assert.strictEqual(
+      participantInNames(["logs", "report.json"], "release-engineer"),
+      false,
+    );
+  });
+});
+
+describe("participant-keyed discovery (spec 1910)", () => {
+  let originalFetch;
+  beforeEach(() => {
+    originalFetch = globalThis.fetch;
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const RUNS = {
+    workflow_runs: [
+      {
+        id: 100,
+        name: "Kata: Shift",
+        status: "completed",
+        conclusion: "success",
+        created_at: "2026-06-12T00:00:00Z",
+        head_branch: "main",
+        html_url: "https://gh/100",
+      },
+      {
+        id: 200,
+        name: "Kata: Dispatch",
+        status: "completed",
+        conclusion: "success",
+        created_at: "2026-06-12T00:00:00Z",
+        head_branch: "main",
+        html_url: "https://gh/200",
+      },
+      {
+        id: 300,
+        name: "Kata: Dispatch",
+        status: "in_progress",
+        conclusion: null,
+        created_at: "2026-06-12T00:00:00Z",
+        head_branch: "main",
+        html_url: "https://gh/300",
+      },
+    ],
+  };
+
+  // Matrix host (run 100): per-participant artifact names.
+  // Dispatch host (run 200): one shared artifact; participant lives in members.
+  // Candidate host (run 300): no artifacts yet.
+  function jsonResponse(body) {
+    return { ok: true, status: 200, statusText: "OK", json: async () => body };
+  }
+  function stubFetch() {
+    globalThis.fetch = async (url) => {
+      if (url.includes("/actions/runs?")) return jsonResponse(RUNS);
+      if (url.includes("/runs/100/artifacts"))
+        return jsonResponse({
+          artifacts: [
+            { id: 1, name: "trace--release-engineer" },
+            { id: 2, name: "trace--staff-engineer" },
+          ],
+        });
+      if (url.includes("/runs/200/artifacts"))
+        return jsonResponse({ artifacts: [{ id: 3, name: "trace--shared" }] });
+      if (url.includes("/runs/300/artifacts"))
+        return jsonResponse({ artifacts: [] });
+      throw new Error(`unexpected fetch ${url}`);
+    };
+  }
+
+  // A TraceGitHub whose downloadTrace is stubbed to return the dispatch host's
+  // extracted member filenames — no real download, names only.
+  function ghWithDispatchMembers(members) {
+    const gh = new TraceGitHub({
+      token: "t",
+      owner: "o",
+      repo: "r",
+      runtime: RT,
+    });
+    gh.downloadTrace = async (runId, opts) => ({
+      dir: `/tmp/trace-${runId}`,
+      artifact: opts.name,
+      files: members,
+    });
+    return gh;
+  }
+
+  test("listRuns confirms a matrix-host lane (criterion 1)", async () => {
+    stubFetch();
+    const gh = ghWithDispatchMembers([]);
+    const runs = await gh.listRuns({ participant: "release-engineer" });
+    const matrix = runs.find((r) => r.runId === 100);
+    assert.ok(matrix, "matrix host present");
+    assert.strictEqual(matrix.match, "confirmed");
+  });
+
+  test("listRuns confirms a dispatch-host lane via downloaded member names (criterion 1)", async () => {
+    stubFetch();
+    const gh = ghWithDispatchMembers([
+      "trace--default--release-engineer.agent.ndjson",
+      "trace--default--staff-engineer.agent.ndjson",
+    ]);
+    const runs = await gh.listRuns({ participant: "release-engineer" });
+    const dispatch = runs.find((r) => r.runId === 200);
+    assert.ok(dispatch, "dispatch host present");
+    assert.strictEqual(dispatch.match, "confirmed");
+  });
+
+  test("listRuns labels an in-progress candidate, never drops it (criterion 2)", async () => {
+    stubFetch();
+    const gh = ghWithDispatchMembers([]);
+    const runs = await gh.listRuns({ participant: "release-engineer" });
+    const candidate = runs.find((r) => r.runId === 300);
+    assert.ok(candidate, "candidate host present");
+    assert.strictEqual(candidate.match, "unconfirmed-pending-artifacts");
+  });
+
+  test("findByKey resolves a matrix lane from the artifact name (criterion 7)", async () => {
+    stubFetch();
+    const gh = ghWithDispatchMembers([]);
+    const result = await gh.findByKey(100, "release-engineer");
+    assert.strictEqual(result.host, "matrix");
+    assert.strictEqual(result.path, "trace--release-engineer");
+  });
+
+  test("findByKey resolves a dispatch lane from a downloaded member filename (criterion 7)", async () => {
+    stubFetch();
+    const gh = ghWithDispatchMembers([
+      "trace--default--release-engineer.agent.ndjson",
+    ]);
+    const result = await gh.findByKey(200, "release-engineer");
+    assert.strictEqual(result.host, "dispatch");
+    assert.ok(
+      result.path.endsWith("trace--default--release-engineer.agent.ndjson"),
+    );
+  });
+
+  test("attribution never reads trace content — an echo-contaminated body is irrelevant (criterion 8)", async () => {
+    stubFetch();
+    // The dispatch member files name release-engineer; their bodies (never
+    // read) could quote any run id. Resolution depends only on the filename.
+    const gh = ghWithDispatchMembers([
+      "trace--default--release-engineer.agent.ndjson",
+    ]);
+    const result = await gh.findByKey(200, "release-engineer");
+    assert.strictEqual(result.host, "dispatch");
+    // staff-engineer is absent from the member names, so it must not resolve,
+    // regardless of any run-id strings echoed inside the .ndjson bodies.
+    await assert.rejects(
+      () => gh.findByKey(200, "staff-engineer"),
+      /No trace lane/,
+    );
   });
 });
 

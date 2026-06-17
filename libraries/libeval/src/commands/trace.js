@@ -26,8 +26,30 @@ export async function runRunsCommand(ctx) {
     runtime,
   });
   const lookback = ctx.options.lookback ?? "7d";
-  const runs = await gh.listRuns({ pattern: ctx.args.pattern, lookback });
+  const runs = await gh.listRuns({
+    pattern: ctx.args.pattern,
+    lookback,
+    participant: ctx.options.participant,
+  });
   writeJSON(runtime, runs, ctx.options);
+  return { ok: true };
+}
+
+/**
+ * Resolve a participant's lane trace for a known run id in one keyed lookup.
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ */
+export async function runFindCommand(ctx) {
+  const { runtime, config } = ctx.deps;
+  const gh = await createTraceGitHub({
+    token: config.ghToken(),
+    repo: ctx.options.repo,
+    runtime,
+  });
+  const result = await gh.findByKey(ctx.args["run-id"], ctx.args.participant, {
+    dir: ctx.options.dir,
+  });
+  writeJSON(runtime, result, ctx.options);
   return { ok: true };
 }
 
