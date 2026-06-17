@@ -3,6 +3,7 @@ import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims } from "../active-claims.js";
 import { countLines, countWords } from "../budget.js";
 import {
+  INBOX_HEADING,
   PRIORITY_INDEX_HEADING,
   WEEKLY_LOG_NAME_RE,
   WEEKLY_LOG_PART_NAME_RE,
@@ -33,6 +34,45 @@ function listMdFiles(wikiRoot, fs) {
     .map((e) => path.join(wikiRoot, e));
 }
 
+/**
+ * Partition a summary's lines into its Message Inbox region and its body. The
+ * inbox span runs from the first `INBOX_HEADING` line through the line before
+ * the next `## ` heading (or end of file when none follows); every other line
+ * is body. A file with no `INBOX_HEADING` line has an empty inbox and a
+ * whole-file body, so heading-less, renamed-heading, and not-first-H2 summaries
+ * are fully measured by the body budgets. The two line arrays concatenate back
+ * to `fileLines` in order, so the partition covers the file once with no gap or
+ * overlap.
+ *
+ * @param {string[]} fileLines - The file split on "\n".
+ * @returns {{ inboxLines: string[], bodyLines: string[] }} The partitioned
+ *   content lines; their lengths sum to the whole-file line count.
+ */
+export function partitionInbox(fileLines) {
+  // Drop a single trailing empty element (the file's final newline) so the
+  // body and inbox line counts partition the content lines exactly, then sum to
+  // the same count the whole-file `countLines` reports.
+  const content =
+    fileLines.length > 0 && fileLines[fileLines.length - 1] === ""
+      ? fileLines.slice(0, -1)
+      : fileLines;
+  const start = content.findIndex((l) => l === INBOX_HEADING);
+  if (start === -1) {
+    return { inboxLines: [], bodyLines: content };
+  }
+  let end = content.length;
+  for (let i = start + 1; i < content.length; i++) {
+    if (/^## /.test(content[i])) {
+      end = i;
+      break;
+    }
+  }
+  return {
+    inboxLines: content.slice(start, end),
+    bodyLines: [...content.slice(0, start), ...content.slice(end)],
+  };
+}
+
 function loadFile(filePath, fs) {
   const text = fs.readFileSync(filePath, "utf-8");
   const fileLines = text.split("\n");
@@ -44,6 +84,7 @@ function loadFile(filePath, fs) {
   const base = path.basename(filePath);
   const weekMatch =
     base.match(WEEKLY_LOG_NAME_RE) || base.match(WEEKLY_LOG_PART_NAME_RE);
+  const { inboxLines, bodyLines } = partitionInbox(fileLines);
   return {
     path: filePath,
     text,
@@ -52,6 +93,14 @@ function loadFile(filePath, fs) {
     h2s,
     lines: countLines(text),
     words: countWords(text),
+    // Body and inbox counts back the summary-body and inbox-region budgets
+    // respectively; a heading-less file routes all content to the body. Line
+    // counts are the partitioned content-line counts (they sum to the
+    // whole-file `lines`); word counts use the shared counter on each span.
+    bodyLines: bodyLines.length,
+    bodyWords: countWords(bodyLines.join("\n")),
+    inboxLines: inboxLines.length,
+    inboxWords: countWords(inboxLines.join("\n")),
     agentPrefix: weekMatch ? weekMatch[1] : base.replace(/\.md$/, ""),
   };
 }
@@ -175,6 +224,10 @@ function parsePriorityRows(memoryText) {
 
 const SCOPE_RESOLVERS = {
   summary: (ctx) => ctx.subjects.summary,
+  // The inbox scope iterates the same summary subjects; a summary with no
+  // inbox region reads zero inbox words/lines, which never breaches, so a
+  // summary cannot escape the inbox bound by dropping the heading.
+  inbox: (ctx) => ctx.subjects.summary,
   "weekly-log-main": (ctx) => ctx.subjects["weekly-log-main"],
   "weekly-log-part": (ctx) => ctx.subjects["weekly-log-part"],
   memory: (ctx) => [ctx.memory],

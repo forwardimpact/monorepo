@@ -126,4 +126,34 @@ describe("fit-wiki memo CLI (in-process)", () => {
     );
     assert.equal(result.code, 2);
   });
+
+  // SC3: the same delivery command appends under the marker regardless of the
+  // recipient's budget state — delivery never forks on whether the recipient
+  // summary is under or over its budget.
+  test("delivery does not fork on recipient budget state", () => {
+    const inbox = `## Message Inbox\n\n${MEMO_INBOX_MARKER}\n\n- old bullet\n`;
+    const overBudgetBody = `\n## Open Blockers\n\n${Array(3000).fill("w").join(" ")}\n`;
+
+    // Under-budget recipient.
+    writeFileSync(join(wikiRoot, "staff-engineer.md"), `# SE\n\n${inbox}`);
+    const under = run({ from: "x", to: "staff-engineer", message: "to under" });
+    assert.match(under.harness.stdout, /wrote/);
+    assert.ok(
+      readFileSync(join(wikiRoot, "staff-engineer.md"), "utf-8").includes(
+        "to under",
+      ),
+    );
+
+    // Over-budget recipient — same command, same surface, same outcome.
+    writeFileSync(
+      join(wikiRoot, "product-manager.md"),
+      `# PM\n\n${inbox}${overBudgetBody}`,
+    );
+    const over = run({ from: "x", to: "product-manager", message: "to over" });
+    assert.match(over.harness.stdout, /wrote/);
+    const pm = readFileSync(join(wikiRoot, "product-manager.md"), "utf-8");
+    assert.ok(pm.includes("to over"));
+    // Appended under the marker, the one triage surface, in both states.
+    assert.ok(pm.indexOf("to over") > pm.indexOf(MEMO_INBOX_MARKER));
+  });
 });

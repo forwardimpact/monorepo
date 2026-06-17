@@ -40,6 +40,20 @@ export const DECISION_HEADING = "### Decision";
 // context-tax model says one surface should be looser or tighter.
 export const SUMMARY_LINE_BUDGET = 496;
 export const SUMMARY_WORD_BUDGET = 2048;
+
+// The Message Inbox region is measured on its own budget, separate from the
+// summary body, so delivering a memo into a near-full summary cannot move the
+// summary body budget. INBOX_WORD_BUDGET / INBOX_LINE_BUDGET are the inbox
+// region's own hard ceilings (a per-region envelope, not the file total). The
+// no-recursion reserve is MAX_MEMO_WORDS / MAX_MEMO_LINES: an inbox is
+// "conforming" at or below ceiling minus one maximum delivery, so a single
+// delivery to a conforming inbox lands at most at the ceiling and never
+// breaches. MAX_MEMO_WORDS 256 covers the largest observed delivery (174 words)
+// with margin; MAX_MEMO_LINES 64 is a generous ceiling for one memo body.
+export const INBOX_WORD_BUDGET = 2048;
+export const INBOX_LINE_BUDGET = 496;
+export const MAX_MEMO_WORDS = 256;
+export const MAX_MEMO_LINES = 64;
 export const WEEKLY_LOG_LINE_BUDGET = 496;
 export const WEEKLY_LOG_WORD_BUDGET = 6400;
 export const STORYBOARD_LINE_BUDGET = 496;

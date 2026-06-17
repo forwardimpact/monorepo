@@ -53,8 +53,10 @@ describe("fit-wiki audit CLI (in-process)", () => {
     return { harness, result };
   }
 
+  // Big content lives in a body section after the inbox, so it counts against
+  // the summary body budget (summary.line-budget), not the inbox budget.
   const OVER_BUDGET = {
-    [`${WIKI_ROOT}/staff-engineer.md`]: `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${Array(600).fill("x").join("\n")}\n`,
+    [`${WIKI_ROOT}/staff-engineer.md`]: `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n## Open Blockers\n\n${Array(600).fill("x").join("\n")}\n`,
   };
 
   test("clean wiki: JSON shape and exit 0", () => {
@@ -78,7 +80,7 @@ describe("fit-wiki audit CLI (in-process)", () => {
     assert.ok(lineBudget, "expected a summary.line-budget failure");
     assert.match(lineBudget.path, /staff-engineer\.md$/);
     assert.equal(lineBudget.level, "fail");
-    assert.match(lineBudget.message, /^\d+ lines \(limit 496\)$/);
+    assert.match(lineBudget.message, /^\d+ body lines \(limit 496\)$/);
   });
 
   test("text emitter: WARN before FAIL, RESULT trailer", () => {

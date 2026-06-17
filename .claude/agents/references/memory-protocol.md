@@ -87,7 +87,17 @@ Each `wiki/<agent>.md` conforms to a mechanically-checkable contract —
 `**Last run**:` → `## Message Inbox` (with `<!-- memo:inbox -->` marker —
 MUST be the first H2) → agent-specific H2 sections → `## Open Blockers`.
 
-**Budgets:** 496 lines, 6 400 words. State, not history.
+**Budgets — body and inbox measured separately.** The summary body (everything
+outside the `## Message Inbox` region) is bounded by `summary.line-budget`
+(496 lines) and `summary.word-budget` (2 048 words). The `## Message Inbox`
+region is bounded on its own by `inbox.line-budget` (496 lines) and
+`inbox.word-budget` (2 048 words). Splitting the measures means delivering a
+memo into a near-full summary moves only the inbox budget, never the body
+budget, so a sender's delivery cannot publish a body breach. The inbox bound
+breaches only on accumulated undischarged memos (recipient triage debt), not on
+a single delivery: it reserves headroom for one maximum delivery
+(256 words / 64 lines) below its ceiling. Triage with `fit-wiki inbox` to keep
+the inbox region under its bound. The body holds state, not history.
 
 ## Weekly Log Contract
 

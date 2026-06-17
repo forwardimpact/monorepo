@@ -13,6 +13,8 @@ describe("RULES catalogue", () => {
         "summary.open-blockers-last",
         "summary.line-budget",
         "summary.word-budget",
+        "inbox.line-budget",
+        "inbox.word-budget",
         "summary.h1-agent-matches-filename",
         "weekly-log.h1-shape",
         "weekly-log.line-budget",

@@ -4,6 +4,8 @@ import {
   ACTIVE_CLAIMS_SEPARATOR_RE,
   ACTIVE_CLAIMS_TABLE_HEADER,
   DECISION_HEADING,
+  INBOX_LINE_BUDGET,
+  INBOX_WORD_BUDGET,
   ISSUE_CLOSE_RE,
   ISSUE_OPEN_RE,
   MEMO_INBOX_MARKER,
@@ -55,6 +57,12 @@ const lineBudget = (limit) => (s) =>
   s.lines > limit ? { value: s.lines } : null;
 const wordBudget = (limit) => (s) =>
   s.words > limit ? { value: s.words } : null;
+// Field-scoped budgets read a named count so the summary body and the inbox
+// region are measured separately on the same file.
+const fieldLineBudget = (field, limit) => (s) =>
+  s[field] > limit ? { value: s[field] } : null;
+const fieldWordBudget = (field, limit) => (s) =>
+  s[field] > limit ? { value: s[field] } : null;
 
 const firstH2Is = (expected) => (s) =>
   s.h2s.length === 0 || s.h2s[0] === expected ? null : { observed: s.h2s[0] };
@@ -218,17 +226,33 @@ export const RULES = [
     id: "summary.line-budget",
     scope: "summary",
     severity: "fail",
-    check: lineBudget(SUMMARY_LINE_BUDGET),
-    message: (_s, r) => `${r.value} lines (limit ${SUMMARY_LINE_BUDGET})`,
+    check: fieldLineBudget("bodyLines", SUMMARY_LINE_BUDGET),
+    message: (_s, r) => `${r.value} body lines (limit ${SUMMARY_LINE_BUDGET})`,
     hint: "trim history into the weekly log; the summary holds settled state, not history",
   },
   {
     id: "summary.word-budget",
     scope: "summary",
     severity: "fail",
-    check: wordBudget(SUMMARY_WORD_BUDGET),
-    message: (_s, r) => `${r.value} words (limit ${SUMMARY_WORD_BUDGET})`,
+    check: fieldWordBudget("bodyWords", SUMMARY_WORD_BUDGET),
+    message: (_s, r) => `${r.value} body words (limit ${SUMMARY_WORD_BUDGET})`,
     hint: "trim history into the weekly log; the summary holds settled state, not history",
+  },
+  {
+    id: "inbox.line-budget",
+    scope: "inbox",
+    severity: "fail",
+    check: fieldLineBudget("inboxLines", INBOX_LINE_BUDGET),
+    message: (_s, r) => `${r.value} inbox lines (limit ${INBOX_LINE_BUDGET})`,
+    hint: "triage the Message Inbox with `fit-wiki inbox ack|promote|drop`",
+  },
+  {
+    id: "inbox.word-budget",
+    scope: "inbox",
+    severity: "fail",
+    check: fieldWordBudget("inboxWords", INBOX_WORD_BUDGET),
+    message: (_s, r) => `${r.value} inbox words (limit ${INBOX_WORD_BUDGET})`,
+    hint: "triage the Message Inbox with `fit-wiki inbox ack|promote|drop`",
   },
   {
     id: "summary.h1-agent-matches-filename",
