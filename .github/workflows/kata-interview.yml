@@ -33,6 +33,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
+      # Killswitch: abort early when the KATA_KILLSWITCH variable is set to a
+      # truthy value. Lets an operator halt every kata-* workflow from one
+      # place without disabling each one individually. Kept as the first step
+      # so the run fails before any token minting, checkout, or agent work.
+      - name: Kata killswitch
+        shell: bash
+        env:
+          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
+        run: |
+          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
+            ""|0|false|no|off)
+              echo "Kata killswitch not engaged; proceeding." ;;
+            *)
+              echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2
+              exit 1 ;;
+          esac
+
       - name: Generate installation token
         id: ci-app
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3

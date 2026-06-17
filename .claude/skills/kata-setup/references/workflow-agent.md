@@ -14,14 +14,14 @@ the user's configuration.
 | `{{WIKI}}`           | `"true"` or `"false"`                                    |
 | `{{KATA_AGENT_REF}}` | `b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0`      |
 
-`{{KATA_AGENT_REF}}` is resolved at generation time — see
-[§ Resolving action refs](#resolving-action-refs).
+`{{KATA_AGENT_REF}}` is resolved at generation time (see [§ Resolving action
+refs](#resolving-action-refs)). The `Kata killswitch` step below is the canonical
+copy `workflow-facilitate.md` and `workflow-react.md` reference.
 
-Emit `## Template (self-hosted)` when the team runs its own GitHub App (the
-default), or apply `## Template (hosted)` when the team uses the Forward
-Impact-hosted control plane (see [`SKILL.md`](../SKILL.md) `--hosted`). The
-hosted variant carries no `KATA_APP_PRIVATE_KEY`; it mints a short-lived
-installation token from `services/oidc` at run time.
+Emit `## Template (self-hosted)` for a team's own GitHub App (default), or
+`## Template (hosted)` for the Forward Impact-hosted control plane (see
+[`SKILL.md`](../SKILL.md) `--hosted`) — no `KATA_APP_PRIVATE_KEY`, mints a
+short-lived `services/oidc` token at run time.
 
 ## Template (Self-Hosted)
 
@@ -45,6 +45,18 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
+      # Killswitch: halt every kata workflow by setting KATA_KILLSWITCH truthy.
+      # Keep it first so it fails before any token mint, checkout, or agent work.
+      - name: Kata killswitch
+        shell: bash
+        env:
+          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
+        run: |
+          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
+            ""|0|false|no|off) echo "Kata killswitch not engaged; proceeding." ;;
+            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2; exit 1 ;;
+          esac
+
       - uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
@@ -61,12 +73,12 @@ jobs:
 
 ## Template (Hosted)
 
-The hosted variant is the self-hosted template with three changes. This is
-the **canonical** hosted recipe — `workflow-facilitate.md` and
-`workflow-react.md` reference the mint step below.
+The hosted variant is the self-hosted template with three changes (the
+**canonical** hosted recipe the other workflow files reference):
 
 1. Add `id-token: write` to `permissions` (keep `contents: write`).
-2. Insert this OIDC mint step as the first entry under `steps:`:
+2. Insert this OIDC mint step directly **after** the `Kata killswitch` step
+   (the killswitch stays first):
 
    ```yaml
          - name: Mint installation token via Forward Impact OIDC
@@ -87,39 +99,30 @@ the **canonical** hosted recipe — `workflow-facilitate.md` and
              printf 'token=%s\n' "$INSTALL_TOKEN" >> "$GITHUB_OUTPUT"
    ```
 
-3. In the `kata-agent` step, drop the `app-id` and
-   `app-private-key` inputs and add
+3. In the `kata-agent` step, drop `app-id`/`app-private-key` and add
    `installation-token: ${{ steps.mint.outputs.token }}`.
 
-`FIT_OIDC_URL` is a repository **variable** (not a secret) — the Forward
-Impact-operated `services/oidc` URL. `::add-mask::` keeps the minted token
-out of logs.
+`FIT_OIDC_URL` is a repository **variable** (not a secret): the Forward Impact
+`services/oidc` URL. `::add-mask::` keeps the minted token out of logs.
 
 ## Resolving Action Refs
 
-Generated workflows pin the published action to an immutable commit SHA,
-never the mutable `v1` tag. At generation time, list release tags with
-`gh api repos/forwardimpact/kata-agent/tags`
+Pin the published action to an immutable SHA, never the mutable `v1` tag. At
+generation time list release tags with `gh api repos/forwardimpact/kata-agent/tags`
 (`repos/forwardimpact/fit-eval/tags` for `{{FIT_EVAL_REF}}` in
-`workflow-react.md`), pick the highest `vX.Y.Z` tag (ignore the bare `v1`
-marker), and emit `<full-40-char-sha> # <tag>` so the `uses:` line reads
-`forwardimpact/kata-agent@b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0`.
-If resolution fails, stop and ask the operator — never fall back to a
-mutable tag. Pair the pins with the `github-actions` Dependabot config
-from `SKILL.md` Step 2 so they receive bump PRs instead of rotting.
+`workflow-react.md`), pick the highest `vX.Y.Z` tag, and emit
+`<full-40-char-sha> # <tag>`. If resolution fails, stop and ask the operator —
+never fall back to a mutable tag. Pair the pins with the `github-actions`
+Dependabot config from `SKILL.md` Step 2.
 
 ## Notes
 
-- **Cron entries** come from `schedules.md`. Agents with only a night shift
-  (security-engineer, technical-writer) get one cron line; agents with all three
-  shifts get three.
-- **File name** follows `agent-{name}.yml` (e.g., `agent-product-manager.yml`).
-- The `permissions: contents: write` block restricts `GITHUB_TOKEN`. The App
-  token carries all other permissions via its installation settings.
-- If wiki is disabled, set `wiki: "false"` -- the action skips wiki checkout and
-  sync.
-- If model is the default (`claude-opus-4-8[1m]`), the `agent-model:` line
-  can be omitted since the action defaults to it.
-- **Hosted variant** requires the `FIT_OIDC_URL` repository variable and
-  depends on `kata-agent` accepting an `installation-token` input
-  (pin the minimum sibling SHA that does).
+- **Cron** comes from `schedules.md` — one line for night-only agents
+  (security-engineer, technical-writer), three for the rest.
+- **File name** is `agent-{name}.yml`.
+- `permissions: contents: write` scopes `GITHUB_TOKEN`; the App token carries the
+  rest via its installation.
+- Set `wiki: "false"` to skip wiki checkout/sync; omit `agent-model:` when it is
+  the default (`claude-opus-4-8[1m]`).
+- **Hosted variant** needs the `FIT_OIDC_URL` variable and a `kata-agent` SHA
+  that accepts `installation-token`.

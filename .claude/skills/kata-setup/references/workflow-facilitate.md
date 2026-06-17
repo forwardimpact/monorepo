@@ -46,6 +46,7 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
+      # First step: copy the `Kata killswitch` step verbatim from workflow-agent.md.
       - uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
@@ -88,6 +89,7 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
+      # First step: copy the `Kata killswitch` step verbatim from workflow-agent.md.
       - uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
@@ -110,9 +112,9 @@ jobs:
 Both templates above are `kata-agent` workflows, so the hosted
 delta is identical to
 [`workflow-agent.md` § Template (hosted)](workflow-agent.md): add
-`id-token: write` to `permissions`, insert the OIDC mint step as the first
-step, and replace the `app-id` / `app-private-key` inputs with
-`installation-token: ${{ steps.mint.outputs.token }}`.
+`id-token: write` to `permissions`, insert the OIDC mint step directly after
+the `Kata killswitch` step, and replace the `app-id` / `app-private-key`
+inputs with `installation-token: ${{ steps.mint.outputs.token }}`.
 
 ## Notes
 

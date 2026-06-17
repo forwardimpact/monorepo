@@ -49,6 +49,7 @@ jobs:
       github.event_name == 'discussion_comment'
     runs-on: ubuntu-latest
     steps:
+      # First step: copy the `Kata killswitch` step verbatim from workflow-agent.md.
       - name: Generate token
         id: ci-app
         uses: actions/create-github-app-token@v3
