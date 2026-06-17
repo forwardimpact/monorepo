@@ -286,7 +286,7 @@ describe("WikiSync", () => {
   });
 });
 
-describe("WikiSync ancestry guard (spec 1750)", () => {
+describe("WikiSync ancestry guard", () => {
   // A dirty, ahead tree so the guard, not the no-op gate, decides the outcome.
   const DIRTY_AHEAD = {
     status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
@@ -490,17 +490,30 @@ describe("WikiSync ancestry guard (spec 1750)", () => {
 
   test("absent tracking ref, observable, shared ancestry ⇒ allowed", async () => {
     // origin/master does not resolve locally; the probe finds the branch
-    // present; HEAD resolves and shares a merge-base ⇒ allow.
+    // present; HEAD resolves and shares a merge-base ⇒ allow. The guard must
+    // first fetch the branch into the tracking ref, because merge-base is
+    // judged against the probed branch tip, not an unresolvable ref (the path
+    // real git would otherwise reject).
     const git = createMockGitClient({
       responses: {
         ...DIRTY_AHEAD,
         headBranch: "master",
         remoteBranchExists: true,
-        mergeBaseExists: true,
       },
     });
-    // refExists must answer false for origin/master but true for HEAD.
-    git.refExists = async (ref) => ref === "HEAD";
+    // Model real git: origin/master resolves only after the branch is fetched
+    // into the tracking ref, and merge-base resolves only once it does.
+    let trackingFetched = false;
+    git.refExists = async (ref) =>
+      ref === "HEAD" || (ref === "origin/master" && trackingFetched);
+    git.fetch = async (remote, refspec) => {
+      git.calls.push({ method: "fetch", args: [remote, refspec] });
+      if (refspec === "master:refs/remotes/origin/master")
+        trackingFetched = true;
+      return { stdout: "", stderr: "", exitCode: 0 };
+    };
+    git.mergeBaseExists = async (a) =>
+      a === "origin/master" ? trackingFetched : false;
     const runtime = createTestRuntime();
     const wikiSync = new WikiSync({
       runtime,
@@ -510,6 +523,43 @@ describe("WikiSync ancestry guard (spec 1750)", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    const trackingFetch = git.calls.find(
+      (c) =>
+        c.method === "fetch" &&
+        c.args?.[1] === "master:refs/remotes/origin/master",
+    );
+    assert.ok(
+      trackingFetch,
+      "must fetch the probed branch into the tracking ref before judging merge-base",
+    );
+  });
+
+  test("absent tracking ref, observable, but tracking fetch fails ⇒ unverifiable refusal", async () => {
+    const git = createMockGitClient({
+      responses: {
+        ...DIRTY_AHEAD,
+        headBranch: "master",
+        remoteBranchExists: true,
+      },
+    });
+    git.refExists = async (ref) => ref === "HEAD";
+    git.fetch = async (_remote, refspec) => {
+      if (refspec === "master:refs/remotes/origin/master")
+        throw new Error("fetch failed");
+      return { stdout: "", stderr: "", exitCode: 0 };
+    };
+    const runtime = createTestRuntime();
+    const wikiSync = new WikiSync({
+      runtime,
+      gitClient: git,
+      wikiDir: WIKI,
+      parentDir: PARENT,
+    });
+    await assert.rejects(
+      () => wikiSync.commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal && err.kind === "unverifiable",
+    );
+    assertNoWrite(git);
   });
 
   test("healthy hot path issues no ls-remote and no deepening fetch", async () => {

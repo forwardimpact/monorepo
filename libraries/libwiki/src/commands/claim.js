@@ -47,7 +47,7 @@ async function pushWiki(wikiSync, runtime, message) {
   } catch (err) {
     // An ancestry-guard refusal pierces the saved-locally degradation: it must
     // reach a non-zero exit so the session stops rather than scroll past. Every
-    // other failure keeps degrading to a saved-locally warning (spec 1750 D2).
+    // other failure keeps degrading to a saved-locally warning.
     if (err instanceof AncestryRefusal) throw err;
     createLogger("wiki", runtime).warn(
       "claim",
@@ -60,7 +60,7 @@ async function pushWiki(wikiSync, runtime, message) {
  * Push a written claim/release row, mapping an ancestry-guard refusal to the
  * not-published non-zero envelope and any other outcome to `{ ok: true }`. The
  * row is already written to MEMORY.md; on refusal it stays as an uncommitted
- * working-tree change (spec 1750 D2).
+ * working-tree change.
  */
 async function pushRowOrRefuse(wikiSync, runtime, message) {
   try {

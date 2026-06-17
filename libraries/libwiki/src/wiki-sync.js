@@ -18,7 +18,7 @@ export class WikiPullConflict extends Error {
 /**
  * Error thrown when the ancestry guard refuses to commit or push because the
  * relationship between the history that would be published and the remote
- * branch cannot be positively confirmed (spec 1750). `kind` is `"unrelated"`
+ * branch cannot be positively confirmed. `kind` is `"unrelated"`
  * (confirmed no shared history) or `"unverifiable"` (the relationship could be
  * neither confirmed nor refuted). The two kinds carry distinct messages so the
  * operator knows which state they are recovering from.
@@ -159,7 +159,7 @@ export class WikiSync {
    * rebase and merge fallback then run with --autostash because that residue
    * stays uncommitted in the tree.
    *
-   * Ancestry guard (spec 1750): before the commit and again before the push,
+   * Ancestry guard: before the commit and again before the push,
    * {@link AncestryRefusal} is thrown when the published history's relationship
    * to `origin/master` cannot be positively confirmed — a detached HEAD, an
    * unborn HEAD or unrelated history against an existing remote branch, or a
@@ -231,7 +231,7 @@ export class WikiSync {
    * Refuse, before any commit or push, whenever the relationship between the
    * history that would be published (the `master` branch ref, never bare HEAD)
    * and the remote branch can be neither confirmed nor refuted. Implements the
-   * spec 1750 decision table; throws {@link AncestryRefusal} on refusal and
+   * the ancestry decision table; throws {@link AncestryRefusal} on refusal and
    * returns silently when publication is verified or the remote is positively
    * empty. The emptiness probe runs only on the absent-tracking-ref path, so
    * the healthy hot path adds no remote round-trip.
@@ -252,7 +252,7 @@ export class WikiSync {
     // 2. Establish whether the remote branch is present. A resolvable local
     //    remote-tracking ref is sufficient; otherwise probe the remote (the
     //    only added round-trip, and only here).
-    let branchPresent = await this.#git.refExists(REMOTE_BRANCH, { cwd });
+    const branchPresent = await this.#git.refExists(REMOTE_BRANCH, { cwd });
     if (!branchPresent) {
       let observed;
       try {
@@ -266,7 +266,24 @@ export class WikiSync {
       }
       // Positive evidence the remote branch is absent ⇒ empty-new-wiki.
       if (!observed) return;
-      branchPresent = true;
+      // Remote branch present but no local tracking ref: fetch it into the
+      // tracking ref so the unborn-HEAD and merge-base steps below judge
+      // against the probed branch tip rather than an unresolvable ref.
+      try {
+        await this.#git.fetch(
+          REMOTE,
+          `${BRANCH}:refs/remotes/${REMOTE_BRANCH}`,
+          {
+            cwd,
+          },
+        );
+      } catch {
+        throw new AncestryRefusal(
+          "unverifiable",
+          "fit-wiki: refusing to publish — could not fetch the remote branch " +
+            "to verify ancestry; the local change is not published.",
+        );
+      }
     }
 
     // 3. Branch present + unborn HEAD ⇒ confirmed unrelated.
