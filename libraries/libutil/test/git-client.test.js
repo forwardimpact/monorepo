@@ -338,4 +338,78 @@ describe("GitClient", () => {
       null,
     );
   });
+
+  test("mergeOursStrategy allowFailure resolves a non-zero exit instead of throwing", async () => {
+    const { client } = clientWith({
+      git: { stdout: "", stderr: "CONFLICT", exitCode: 1 },
+    });
+    const result = await client.mergeOursStrategy({
+      cwd: "/r",
+      ref: "origin/master",
+      allowFailure: true,
+    });
+    assert.strictEqual(result.exitCode, 1);
+  });
+
+  test("mergeAbort runs git merge --abort tolerantly", async () => {
+    const { client, subprocess } = clientWith();
+    await client.mergeAbort({ cwd: "/r" });
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, ["merge", "--abort"]);
+  });
+
+  test("unmergedPaths returns only U-family status rows", async () => {
+    const { client } = clientWith({
+      git: {
+        stdout: "UU both.md\n M clean.md\nAA added.md\n?? new.md\n",
+        exitCode: 0,
+      },
+    });
+    assert.deepStrictEqual(await client.unmergedPaths({ cwd: "/r" }), [
+      "both.md",
+      "added.md",
+    ]);
+  });
+
+  test("isMidMerge is true when an unmerged entry exists", async () => {
+    const { client } = clientWith({
+      git: { stdout: "UU both.md\n", exitCode: 0 },
+    });
+    assert.strictEqual(await client.isMidMerge({ cwd: "/r" }), true);
+  });
+
+  test("introducedByFile groups added lines per path with the leading + stripped", async () => {
+    const diff = [
+      "diff --git a/file.md b/file.md",
+      "index 1111..2222 100644",
+      "--- a/file.md",
+      "+++ b/file.md",
+      "@@ -1,1 +1,3 @@",
+      " context",
+      "+<<<<<<< HEAD",
+      "+content",
+      "-removed",
+      "diff --git a/other.csv b/other.csv",
+      "--- a/other.csv",
+      "+++ b/other.csv",
+      "@@ -0,0 +1,1 @@",
+      "+a,b,c",
+      "",
+    ].join("\n");
+    const { client } = clientWith({ git: { stdout: diff, exitCode: 0 } });
+    const byFile = await client.introducedByFile("origin/master..HEAD", {
+      cwd: "/r",
+    });
+    assert.strictEqual(byFile.get("file.md"), "<<<<<<< HEAD\ncontent");
+    assert.strictEqual(byFile.get("other.csv"), "a,b,c");
+  });
+
+  test("introducedByFile throws GitError on an unresolvable ref", async () => {
+    const { client } = clientWith({
+      git: { stderr: "fatal: bad revision", exitCode: 128 },
+    });
+    await assert.rejects(
+      () => client.introducedByFile("origin/master..HEAD", { cwd: "/r" }),
+      GitError,
+    );
+  });
 });
