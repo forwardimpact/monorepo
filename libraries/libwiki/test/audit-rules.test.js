@@ -62,6 +62,23 @@ describe("RULES catalogue", () => {
     }
   });
 
+  test("structure hints steer to the log commands; part-budget hints drop the by-hand clause (spec 1730 criterion 7)", () => {
+    const hintOf = (id) => RULES.find((r) => r.id === id).hint;
+    // The drift rule and the decision-block rule both name a log command.
+    assert.match(hintOf("weekly-log.heading-grammar"), /fit-wiki log/);
+    assert.match(hintOf("weekly-log-part.heading-grammar"), /fit-wiki log/);
+    assert.match(hintOf("decision-block.heading-within-5"), /fit-wiki log/);
+    // The sealed-part budget hints no longer direct a hand-split; `fit-wiki fix`
+    // now sub-splits at the block seam.
+    for (const id of [
+      "weekly-log-part.line-budget",
+      "weekly-log-part.word-budget",
+    ]) {
+      assert.doesNotMatch(hintOf(id), /by hand/);
+      assert.match(hintOf(id), /### . block seams/);
+    }
+  });
+
   test("remediation classes match the annotated set", () => {
     // `fit-wiki fix` dispatches on this field: rotate deterministically,
     // flag for a human, or (default, absent) hand to the agent.

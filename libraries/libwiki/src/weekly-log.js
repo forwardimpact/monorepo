@@ -468,7 +468,7 @@ export function rebisectOverBudgetPart(partPath, fs) {
   // surface a residue (synthesised from the file when the bisector did not name
   // one) so the caller's re-audit re-flags it.
   if (parts.length === 1) {
-    const seam = text.match(/^## (\d{4}-\d{2}-\d{2})/m);
+    const seam = text.match(new RegExp(WEEKLY_LOG_SEAM_RE.source, "m"));
     const r = residue ?? {
       section: seam ? seam[1] : "prologue",
       lines,

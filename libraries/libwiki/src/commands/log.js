@@ -83,7 +83,7 @@ function reportBudget(target, runtime) {
   const lines = countLines(text);
   const words = countWords(text);
   runtime.proc.stdout.write(
-    `budget: ${lines}/${WEEKLY_LOG_LINE_BUDGET} lines ` +
+    `weekly log budget: ${lines}/${WEEKLY_LOG_LINE_BUDGET} lines ` +
       `(${WEEKLY_LOG_LINE_BUDGET - lines} remaining), ` +
       `${words}/${WEEKLY_LOG_WORD_BUDGET} words ` +
       `(${WEEKLY_LOG_WORD_BUDGET - words} remaining)\n`,
