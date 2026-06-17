@@ -70,6 +70,11 @@ for (const file of walk(repoRoot, [])) {
   }
   const lines = readFileSync(file, "utf8").split("\n");
   lines.forEach((line, i) => {
+    // Skip whole-line comments — a commented-out import is not an import and the
+    // guard's contract is to flag imports, not mentions.
+    if (/^\s*(\/\/|\*|\/\*)/.test(line)) {
+      return;
+    }
     if (SPECIFIER.test(line)) {
       offenders.push(`${relative(repoRoot, file)}:${i + 1}`);
     }

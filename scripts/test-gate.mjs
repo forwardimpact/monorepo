@@ -21,6 +21,7 @@ import { execFile, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
@@ -28,10 +29,10 @@ const execFileAsync = promisify(execFile);
 const repoRoot = resolve(new URL("..", import.meta.url).pathname);
 const floorPath = join(repoRoot, "scripts/test-gate.floor.json");
 
-// SINGLE SOURCE OF TRUTH for the gate set. This selector MUST stay byte-identical
-// to the `test` script's selector in package.json — if it forks, the gate set
-// forks. (A test asserts the two are identical.)
-const SELECTOR_DIRS = [
+// SINGLE SOURCE OF TRUTH for the gate set. These MUST stay byte-identical to the
+// `test` script's selector in package.json — if they fork, the gate set forks.
+// `tests/test-gate-selector.test.js` asserts the two are identical.
+export const SELECTOR_DIRS = [
   "./tests",
   "./libraries",
   "./products",
@@ -40,106 +41,137 @@ const SELECTOR_DIRS = [
   "./.claude/skills/kata-interview/test",
 ];
 
+// The `find` predicate, shared with the `test` script's selector.
+export const SELECTOR_PREDICATE = [
+  "-name",
+  "*.test.js",
+  "-not",
+  "-path",
+  "*/node_modules/*",
+];
+
 function fail(message) {
   console.error(`test:gate: ${message}`);
   process.exit(1);
 }
 
-// Step 1 — expand the selector to a file list (same predicate as `test`).
-const find = spawnSync(
-  "find",
-  [...SELECTOR_DIRS, "-name", "*.test.js", "-not", "-path", "*/node_modules/*"],
-  { cwd: repoRoot, encoding: "utf8" },
-);
-const files = (find.stdout || "")
-  .split("\n")
-  .map((s) => s.trim())
-  .filter(Boolean);
-
-if (files.length === 0) {
-  fail(
-    "the gate selector matched zero files — discovery failed or the glob is wrong",
-  );
-}
-
-// Step 2/3 — run node --test per file, parse each run's summary.
 function parseCount(stdout, field) {
   const m = stdout.match(new RegExp(`^# ${field} (\\d+)$`, "m"));
   return m ? Number(m[1]) : null;
 }
 
-let totalTests = 0;
-const failures = [];
-
-// Run one `node --test` per file (the only path that yields a per-file count —
-// a batched run counts a zero-registration file as 1 via a synthetic subtest).
-// Bounded concurrency keeps wall-clock reasonable; correctness is unaffected.
-async function runFile(file) {
-  let out;
-  let status = 0;
-  try {
-    const { stdout, stderr } = await execFileAsync(
-      process.execPath,
-      ["--test", file],
-      { cwd: repoRoot, maxBuffer: 64 * 1024 * 1024 },
-    );
-    out = `${stdout}${stderr}`;
-  } catch (err) {
-    status = typeof err.code === "number" ? err.code : 1;
-    out = `${err.stdout || ""}${err.stderr || ""}`;
-  }
+// Classify one file's `node --test` run. Returns { tests } on success or
+// { error } describing the gate violation.
+function classifyRun(out, status) {
   const tests = parseCount(out, "tests");
   const fails = parseCount(out, "fail");
   if (tests === null || fails === null) {
-    failures.push(`${file}: unparseable test summary (exit ${status})`);
-    return;
+    return { error: `unparseable test summary (exit ${status})` };
   }
   if (status !== 0 || fails > 0) {
-    failures.push(`${file}: ${fails} failing test(s) (exit ${status})`);
-    return;
+    return { error: `${fails} failing test(s) (exit ${status})` };
   }
   if (tests < 1) {
-    failures.push(`${file}: registered 0 tests (dropped/erroring describe?)`);
-    return;
+    return { error: "registered 0 tests (dropped/erroring describe?)" };
   }
-  totalTests += tests;
+  return { tests };
 }
 
-const concurrency = Math.max(2, availableParallelism());
-const queue = [...files];
-async function worker() {
-  while (queue.length > 0) {
-    const file = queue.shift();
-    if (file !== undefined) {
-      await runFile(file);
+async function main() {
+  // Step 1 — expand the selector to a file list (same predicate as `test`).
+  const find = spawnSync("find", [...SELECTOR_DIRS, ...SELECTOR_PREDICATE], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  if (find.status !== 0 || find.error) {
+    fail(
+      `file discovery failed: ${find.error?.message ?? `exit ${find.status}`}`,
+    );
+  }
+  const files = (find.stdout || "")
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (files.length === 0) {
+    fail(
+      "the gate selector matched zero files — discovery failed or the glob is wrong",
+    );
+  }
+
+  // Step 2/3 — run one `node --test` per file (the only path that yields a
+  // per-file count — a batched run counts a zero-registration file as 1 via a
+  // synthetic subtest). Bounded concurrency keeps wall-clock reasonable.
+  let totalTests = 0;
+  const failures = [];
+
+  async function runFile(file) {
+    let out;
+    let status = 0;
+    try {
+      const { stdout, stderr } = await execFileAsync(
+        process.execPath,
+        ["--test", file],
+        { cwd: repoRoot, maxBuffer: 64 * 1024 * 1024 },
+      );
+      out = `${stdout}${stderr}`;
+    } catch (err) {
+      status = typeof err.code === "number" ? err.code : 1;
+      out = `${err.stdout || ""}${err.stderr || ""}`;
+    }
+    const result = classifyRun(out, status);
+    if (result.error) {
+      failures.push(`${file}: ${result.error}`);
+      return;
+    }
+    totalTests += result.tests;
+  }
+
+  const concurrency = Math.max(2, availableParallelism());
+  const queue = [...files];
+  async function worker() {
+    while (queue.length > 0) {
+      const file = queue.shift();
+      if (file !== undefined) {
+        await runFile(file);
+      }
     }
   }
-}
-await Promise.all(Array.from({ length: concurrency }, worker));
+  await Promise.all(Array.from({ length: concurrency }, worker));
 
-if (failures.length > 0) {
-  fail(
-    `${failures.length} file(s) failed the gate:\n  ${failures.join("\n  ")}`,
+  if (failures.length > 0) {
+    fail(
+      `${failures.length} file(s) failed the gate:\n  ${failures.join("\n  ")}`,
+    );
+  }
+
+  // Step 4 — enforce the committed floor.
+  let floor;
+  try {
+    floor = JSON.parse(readFileSync(floorPath, "utf8")).floor;
+  } catch (err) {
+    fail(`could not read floor from ${floorPath}: ${err.message}`);
+  }
+  if (typeof floor !== "number") {
+    fail(`floor in ${floorPath} is not a number`);
+  }
+  if (totalTests < floor) {
+    fail(
+      `observed ${totalTests} tests across ${files.length} files, below the pinned floor ${floor}. ` +
+        `If the population legitimately shrank, commit { "floor": ${totalTests} } to ${floorPath}.`,
+    );
+  }
+
+  console.log(
+    `test:gate: ${totalTests} tests across ${files.length} files, floor ${floor} — OK`,
   );
 }
 
-// Step 4 — enforce the committed floor.
-let floor;
-try {
-  floor = JSON.parse(readFileSync(floorPath, "utf8")).floor;
-} catch (err) {
-  fail(`could not read floor from ${floorPath}: ${err.message}`);
+// Run only when invoked as the entry script, so the selector constants can be
+// imported by tests without executing the whole gate.
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  await main();
 }
-if (typeof floor !== "number") {
-  fail(`floor in ${floorPath} is not a number`);
-}
-if (totalTests < floor) {
-  fail(
-    `observed ${totalTests} tests across ${files.length} files, below the pinned floor ${floor}. ` +
-      `If the population legitimately shrank, commit { "floor": ${totalTests} } to ${floorPath}.`,
-  );
-}
-
-console.log(
-  `test:gate: ${totalTests} tests across ${files.length} files, floor ${floor} — OK`,
-);
