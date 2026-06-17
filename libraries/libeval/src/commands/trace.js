@@ -202,14 +202,11 @@ export async function runCountCommand(ctx) {
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runBatchCommand(ctx) {
   const { runtime } = ctx.deps;
-  writeJSON(
-    runtime,
-    loadTrace(runtime, ctx.args.file).batch(
-      parseInt(ctx.args.from, 10),
-      parseInt(ctx.args.to, 10),
-    ),
-    ctx.options,
+  const result = loadTrace(runtime, ctx.args.file).batch(
+    parseInt(ctx.args.from, 10),
+    parseInt(ctx.args.to, 10),
   );
+  emit(runtime, result, renderDefault, ctx, false);
   return { ok: true };
 }
 
