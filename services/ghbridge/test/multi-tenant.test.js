@@ -416,7 +416,9 @@ for (const mode of ["single", "multi"]) {
             (c) => c.query === ADD_DISCUSSION_COMMENT_MUTATION,
           );
           expect(commentCalls).toHaveLength(1);
-          expect(commentCalls[0].variables.i.body).toContain("tenant_id=");
+          expect(commentCalls[0].variables.i.body).toContain(
+            "tenant_id=uuid-acme",
+          );
         } finally {
           await built.service.stop();
           built.harness.restore();

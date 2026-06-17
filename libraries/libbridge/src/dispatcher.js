@@ -86,11 +86,12 @@ export class Dispatcher {
     if (typeof prompt !== "string") throw new Error("prompt is required");
     if (typeof requester !== "string") throw new Error("requester is required");
 
-    // Resolve the tenant before the dispatch credential. The hosted dispatch
-    // identity is a repo-scoped App installation token (see design § Hosted
-    // dispatch identity), so a token resolver that mints per repo needs the
-    // resolved tenant's `repo`. The third argument is additive — the
-    // self-hosted `TokenResolver` (per-user OAuth) ignores it.
+    // Resolve the tenant before the dispatch credential. The resolved tenant
+    // scopes the callback/inbox URLs and the dispatch repo, and is the value
+    // the declined link/reauth result carries back so the bridge keys the
+    // pending-dispatch write to the same tenant the verify side reads. The
+    // tenant is passed to the resolver so a repo-scoped resolver could use it;
+    // the per-user `TokenResolver` ignores it.
     const tenant = await this.#tenantResolver.resolve({
       channel: ctx.channel,
       key: ctx.channel_tenant_key,

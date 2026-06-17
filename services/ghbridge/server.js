@@ -157,7 +157,6 @@ const service = new GhBridgeService(config, {
   makeGraphqlClient,
   ghuserClient,
   tenantResolver,
-  ghserverClient,
   tenancyClient,
   clock,
   trustedOrigins,

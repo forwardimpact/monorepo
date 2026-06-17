@@ -131,7 +131,7 @@ export class MsBridgeService {
     // /onboard repo mapping. Single-tenant deployments never reach tenancy.
     this.#tenancyClient = tenancyClient;
     // Deployment mode is config-driven — `tenancy_mode` is the single source of
-    // truth; server.js injects the tenancy/ghserver clients only in "multi".
+    // truth; server.js injects the tenancy client only in "multi".
     this.#multiTenant = config.tenancy_mode === "multi";
     assertMultiTenantDeps(this.#multiTenant, tenancyClient);
 

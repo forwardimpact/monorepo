@@ -66,7 +66,8 @@ legacy `data/bridges/ghbridge/` files; they expire under their existing
 | Service | Why |
 | --- | --- |
 | `services/tenancy` | Tenant registry — resolves a delivery's repo to a tenant and records onboarding upserts |
-| `services/ghserver` | Mints repo-scoped App installation tokens for replies, reactions, and `workflow_dispatch` (the bridge never holds the App key) |
+| `services/ghuser` | Per-user GitHub token for `workflow_dispatch` (the dispatch credential in both modes) |
+| `services/ghserver` | Mints repo-scoped App installation tokens for replies and reactions (the bridge never holds the App key) |
 
 ### Deferred: `installation.repositories_removed` revoke
 
