@@ -1,4 +1,5 @@
 import path from "node:path";
+import { scanConflictMarkers } from "./conflict-markers.js";
 import { SINGLETON_PATHS } from "./constants.js";
 import { parseDiff, findAbsent, makeDetection, normLine } from "./integrity.js";
 
@@ -62,6 +63,34 @@ export class WikiSyncConflict extends Error {
     this.paths = paths;
     this.reason = reason;
   }
+}
+
+/**
+ * Reason a {@link WikiSync.commitAndPush} flow refused to publish, surfaced in
+ * the result rather than thrown so callers reading the result keep working.
+ * `reason` is one of `mid-merge`, `stranded-merge`, `would-publish-markers`,
+ * `introduced-scan-failed`; `workAt` (only for `stranded-merge`) names where
+ * retained work lives. The reason set is additive to the existing `clean` and
+ * `pushed` outcomes — the seam with spec 1780's refusal taxonomy.
+ */
+export class WikiSyncRefusal extends Error {
+  /** @param {string} reason - The refusal reason class. @param {{workAt?: string}} [details] */
+  constructor(reason, { workAt } = {}) {
+    super(`wiki sync refused: ${reason}`);
+    this.name = "WikiSyncRefusal";
+    this.reason = reason;
+    if (workAt) this.workAt = workAt;
+  }
+}
+
+// Markers introduced into a prose markdown surface may be legitimately quoted
+// inside a fenced code block (the false-positive surface Layer 1 exempts).
+// STATUS.md is data, not prose — its fenced rows are never legitimately marked
+// — and non-markdown files (e.g. metrics CSVs) have no quoted-form idiom, so
+// neither is fence-exempt on the publish path.
+function pushFenceExempt(filePath) {
+  const base = path.basename(filePath);
+  return filePath.endsWith(".md") && base !== "STATUS.md";
 }
 
 /**
@@ -222,6 +251,13 @@ export class WikiSync {
    * @throws {WikiSyncConflict} When the re-apply budget is exhausted.
    */
   async commitAndPush(message, paths, { reapply, maxReapply = 3 } = {}) {
+    // Guard 1 (hole 1): refuse mid-merge before staging. An abandoned merge
+    // leaves unmerged hunks or a pinned MERGE_HEAD; sweeping them would
+    // silently "complete" the merge and publish the markers. Decidable from
+    // the index/working tree alone, so it holds on a shallow clone.
+    if (await this.#git.isMidMerge({ cwd: this.#wikiDir })) {
+      return { pushed: false, reason: "mid-merge" };
+    }
     await this.#assertPublishable();
     if (!(await this.isClean(paths))) {
       if (paths?.length) {
@@ -248,11 +284,43 @@ export class WikiSync {
       if (registered) {
         return this.#reapplyLoop(message, paths, reapply, maxReapply);
       }
-      await this.#git.mergeOursStrategy({
+      // Guard 2 (hole 2/3): the ours-strategy fallback runs with failure
+      // allowance. On a conflict it would otherwise throw and strand a
+      // mid-merge tree for the next sweep (hole 1) to publish; instead abort
+      // and refuse, reporting where retained work went (the autostash stash).
+      const merge = await this.#git.mergeOursStrategy({
         cwd: this.#wikiDir,
         ref: "origin/master",
         autostash: true,
+        allowFailure: true,
       });
+      if (merge.exitCode !== 0) {
+        await this.#git.mergeAbort({ cwd: this.#wikiDir });
+        return { pushed: false, reason: "stranded-merge", workAt: "stash" };
+      }
+    }
+    // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
+    // unresolved conflict block. Runs after the fetch + rebase/merge resolve,
+    // so the diff is against the freshly-fetched origin tip; pre-existing
+    // origin corruption is on the base side, never the added side, so an
+    // unrelated writer's push is not blocked. A throw from the scan
+    // (unresolvable ref on a shallow clone) refuses with a reason — never a
+    // silent pass.
+    let introduced;
+    try {
+      introduced = await this.#git.introducedByFile("origin/master..HEAD", {
+        cwd: this.#wikiDir,
+      });
+    } catch {
+      return { pushed: false, reason: "introduced-scan-failed" };
+    }
+    for (const [filePath, addedText] of introduced) {
+      const hits = scanConflictMarkers(addedText, {
+        fenceExempt: pushFenceExempt(filePath),
+      });
+      if (hits.length > 0) {
+        return { pushed: false, reason: "would-publish-markers" };
+      }
     }
     // Capture the pushed delta now: HEAD is the final (rebased/merged) local
     // tip and origin/master is still the pre-push base. A two-tree range diff

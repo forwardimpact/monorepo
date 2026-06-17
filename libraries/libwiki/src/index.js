@@ -21,7 +21,7 @@ export { scanMarkers } from "./marker-scanner.js";
 export { scanConflictMarkers } from "./conflict-markers.js";
 export { renderBlock } from "./block-renderer.js";
 export { renderIssueList } from "./issue-list-renderer.js";
-export { WikiSync, WikiPullConflict } from "./wiki-sync.js";
+export { WikiSync, WikiPullConflict, WikiSyncRefusal } from "./wiki-sync.js";
 export { listSkills } from "./skill-roster.js";
 export {
   parseClaims,
