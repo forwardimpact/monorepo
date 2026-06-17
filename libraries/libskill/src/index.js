@@ -118,3 +118,9 @@ export {
   prepareBaseProfile,
   prepareAgentProfile,
 } from "./profile.js";
+
+// Skill-content action-reference lint
+export { extractRefs } from "./action-refs.js";
+export { buildPlaceholderAllowlist, anchorContextual } from "./ref-anchors.js";
+export { createGitResolver } from "./ref-resolver.js";
+export { lintActionRefs } from "./ref-lint.js";

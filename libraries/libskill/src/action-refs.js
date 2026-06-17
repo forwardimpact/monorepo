@@ -10,19 +10,28 @@
  *   token shape. `none` when the reference carries no `@ref`.
  * @property {string} [value] - The raw token text (absent when `kind` is
  *   `none`).
+ * @property {string} [pinTag] - For a SHA-pinned literal written
+ *   `@<sha> # vX.Y.Z`, the tag named in the trailing comment. Carries the
+ *   internal claim assertion 3 checks (the tag points at this SHA).
  *
  * @typedef {object} Ref
  * @property {string} file - The file path the reference was found in.
  * @property {number} line - 1-based line number of the reference site.
- * @property {'qualified'|'placeholder'|'illustrative'|'contextual-qualified'|'contextual'} class
+ * @property {'qualified'|'placeholder'|'illustrative'|'contextual-qualified'|'contextual'|'pin'} class
  *   The reference class. `qualified`/`placeholder`/`illustrative` carry an
  *   `owner/repo`; `contextual-qualified` is an `owner/repo` with no `@ref`;
- *   `contextual` is an owner-less `name@ref` or bare action-name mention.
+ *   `contextual` is an owner-less `name@ref` or bare action-name mention;
+ *   `pin` is a placeholder-resolution table value (`<sha> # <tag>`) bound to a
+ *   placeholder name rather than an inline `owner/repo`.
  * @property {string} [owner] - The `owner` segment (absent for owner-less
- *   `contextual` tokens).
+ *   `contextual` and `pin` tokens).
  * @property {string} repo - The `repo` segment (the action name for
- *   owner-less/bare `contextual` tokens).
- * @property {RefToken} refToken - The classified post-`@` token.
+ *   owner-less/bare `contextual` tokens); absent for `pin` tokens.
+ * @property {string} [placeholderName] - For a `pin`, the `{{NAME}}` whose
+ *   resolution-table row this value sits in; the linter binds the pin's repo
+ *   association from the placeholder of the same name.
+ * @property {RefToken} refToken - The classified post-`@` token. For a `pin`,
+ *   `kind` is `literal`, `value` is the SHA, and `pinTag` is the named tag.
  */
 
 // A `repo`/`owner` segment: alphanumerics plus `.`, `_`, `-`. No slashes.
@@ -51,6 +60,18 @@ const OWNERLESS = new RegExp(
 // A bare action-name mention in inline code: a backtick-wrapped token that
 // looks like an action name (contains a hyphen, e.g. `kata-action-eval`).
 const BARE_CODE = /`([A-Za-z0-9._]+-[A-Za-z0-9._-]+)`/g;
+
+// A placeholder-resolution table value: a 40-hex SHA followed by `# <tag>`,
+// sitting in a markdown table cell whose first cell names a `{{NAME}}`. Matched
+// per line so the row's placeholder name and the pin value are read together.
+const PIN_ROW =
+  /\{\{([A-Z0-9_]+)\}\}.*?\b([0-9a-f]{40})\b\s*#\s*([A-Za-z0-9._-]+)/;
+
+// A trailing `# <tag>` comment after a SHA-pinned literal `uses:`/inline ref.
+const PIN_TAG = /^\s*#\s*([A-Za-z0-9._-]+)/;
+
+// A 40-hex SHA — the literal-pin form whose tag claim assertion 3 checks.
+const SHA = /^[0-9a-f]{40}$/;
 
 /**
  * Classify a post-`@` token.
@@ -113,6 +134,14 @@ export function extractRefs(files) {
         const token = m[4];
         if (!isRealRepoHalf(owner, repo)) continue;
         const refToken = classifyToken(token);
+        // For a SHA-pinned literal, capture a trailing `# <tag>` claim so
+        // assertion 3 can check it. The match ended at the SHA; the remainder
+        // of the line carries the comment.
+        if (refToken.kind === "literal" && SHA.test(refToken.value)) {
+          const rest = line.slice(m.index + m[0].length);
+          const pin = rest.match(PIN_TAG);
+          if (pin) refToken.pinTag = pin[1];
+        }
         const cls =
           refToken.kind === "none"
             ? "contextual-qualified"
@@ -121,7 +150,14 @@ export function extractRefs(files) {
               : refToken.kind === "illustrative"
                 ? "illustrative"
                 : "qualified";
-        refs.push({ file: path, line: lineNo, class: cls, owner, repo, refToken });
+        refs.push({
+          file: path,
+          line: lineNo,
+          class: cls,
+          owner,
+          repo,
+          refToken,
+        });
         // Record the matched span so owner-less/bare scans don't double-count
         // the `repo@ref` sub-token of a qualified match.
         const start = m.index + m[1].length;
@@ -163,6 +199,21 @@ export function extractRefs(files) {
           refToken: { kind: "none" },
         });
         seenSpans.push([start, start + repo.length]);
+      }
+
+      // Placeholder-resolution table value: `| {{NAME}} | <sha> # <tag> |`.
+      // The repo association binds (in the linter) to the placeholder of the
+      // same name, not to inline `owner/repo`.
+      const pinRow = line.match(PIN_ROW);
+      if (pinRow) {
+        const [, placeholderName, sha, pinTag] = pinRow;
+        refs.push({
+          file: path,
+          line: lineNo,
+          class: "pin",
+          placeholderName,
+          refToken: { kind: "literal", value: sha, pinTag },
+        });
       }
     }
   }
