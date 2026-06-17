@@ -127,6 +127,19 @@ the head (interim — retires when approval rows carry a commit pin). Labels
 and APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See
 [`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
 
+**Experiment PRs.** An implementation-typed PR referencing no spec id whose
+lineage is a single experiment-labeled issue with a named owning agent takes
+the experiment path instead of the spec-row read above: a resolution-based
+discriminator (ambiguous, owner-less, both-match, zero, or multiple references
+block fail-closed), an `exp:{issue}` STATUS read across `registered` /
+`approved` / `cancelled` (absent/`registered`/`cancelled` →
+`awaiting approval signal`; a `cancelled` row blocks even if once approved),
+and a head-pin re-block — `approved` passes only when the pinned SHA equals the
+PR head; any later commit, **including a gate rebase, re-blocks**, so do not
+rebase an approved-and-pinned experiment PR. At a consecutive-block count of 3
+the gate re-surfaces the signal request rather than silently re-blocking. Full
+algorithm: [`experiment-path.md`](references/experiment-path.md).
+
 ### Step 7: Open Comment Gate
 
 If any top-7 human contributor's most-recent PR comment is an unresolved
@@ -153,7 +166,15 @@ spec id (e.g. `feat(...): … (#NNN)` or "implements spec NNN"):
 - Update `wiki/STATUS.md` before merging — set the spec's row to
   `{NNN}\tplan\timplemented`. Commit the wiki change; the Stop hook pushes it.
 
-PRs not referencing a spec (one-off fixes, doc patches) skip this step.
+For an **experiment PR** that took the experiment path at Step 6 and passed
+there, run the diff-scope check in place of the spec check: every changed file
+must match a glob in the execution plan registered on the experiment issue;
+any out-of-surface file blocks. Agent-profile and skill self-edit paths pass
+only when a registered glob names them and the head pin holds. Merge does
+**not** advance the row. See
+[`experiment-path.md`](references/experiment-path.md).
+
+Other PRs not referencing a spec (one-off fixes, doc patches) skip this step.
 
 ### Step 10: Merge Mergeable PRs
 
@@ -179,6 +200,9 @@ Append to the current week's log:
 - **PRs merged this run** and **merge failures** with reasons
 - **Announcement outcomes** — every run: issue-fix PR count + heals posted
   with authoring lane, zero-heal rows included (duplicate-PR falsifier series)
+- **Experiment-PR timestamps** — Per experiment PR merged, record the PR-open,
+  human-signal, merge, and (when present) experiment-verdict timestamps, so
+  verdict→merge and request→signal latency are derivable.
 - **Metrics** — Append `prs_merged` and `approvals_recorded_per_run` rows per
   `references/metrics.md` (collection recipe included). See KATA.md § Metrics
   for the recording-eligibility rule.

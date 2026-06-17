@@ -51,6 +51,37 @@ plan draft → plan approved → plan implemented`. Cancelled is terminal.
 Commit the wiki edit alongside any other wiki updates from the same
 session; the Stop hook pushes wiki commits.
 
+## Experiment rows
+
+A spec-less experiment whose execution plan ships code carries its own
+approval row, keyed `exp:{issue}` (the experiment issue number). The row is
+four tab cells: `exp:{issue}<TAB>{state}<TAB>{pin}<TAB>{plan-ref}`. States are
+`registered` → `approved` → `cancelled`; `plan-ref` is the `#NNN` of the issue
+holding the gate-comparable execution plan.
+
+| State | Meaning | Writer |
+|---|---|---|
+| `registered` | Experiment registered with a code-shipping plan, no approval yet; pin is `-`. | Owning agent (bookkeeping) |
+| `approved` | A trusted human's PR-side signal observed; pin is the head SHA at signal time. | `kata-dispatch` or in-session agent, on a human signal |
+| `cancelled` | Experiment adjudicated FAIL or VOID, or retired; pin retained if it was ever approved, else `-`. | Owning agent (bookkeeping) |
+
+`registered` and `cancelled` are bookkeeping states the owning agent writes —
+the agent that creates, comments on, and closes its own experiment issues. The
+session facilitator writes no files. Only `approved` requires a human origin,
+and propagation requires a pre-existing `registered` row: on an absent row the
+signal does not propagate until the owner backfills registration.
+
+**Head pin.** The `approved` write records the PR head SHA at signal time, read
+from the row at the gate. Any later commit — including a gate-performed
+mechanical rebase — re-blocks the PR until a fresh human signal covers the new
+head. The gate does not rebase an approved-and-pinned experiment PR. This pin
+is stricter than the pin-less spec-row approvals because no spec, design, or
+plan artifact bounds what the approved commits contain.
+
+The signal types feeding `approved` are the trusted-human PR-side signals in
+§ The signals (label, `--approve` review, approval comment, in-session
+message); an agent verdict is never one of them.
+
 ## Labels remain as input signals
 
 Humans may still apply `<phase>:approved` labels for PR UI visibility.

@@ -117,6 +117,6 @@ export const STATUS_ROW_RULES = [
     when: hasFourCells,
     check: (s) => (/^#\d+$/.test(s.cells[3]) ? null : { planRef: s.cells[3] }),
     message: (_s, r) => `Bad plan-ref '${r.planRef}' (expected #NNN)`,
-    hint: "the plan-ref names the issue carrying the execution plan, e.g. #1351",
+    hint: "the plan-ref names the issue carrying the execution plan, e.g. #NNN",
   },
 ];
