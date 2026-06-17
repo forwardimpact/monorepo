@@ -35,13 +35,21 @@ domain knowledge. **Memory** (`libwiki` + `wiki/`) persists state across
 surfaces and sessions.
 
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
-`audit/` and `coaligned-check/`. Five external composite actions are published
-under `forwardimpact/`: `forwardimpact/fit-benchmark` (coding-agent
-benchmarks), `forwardimpact/fit-bootstrap` (the FIT CI environment),
-`forwardimpact/fit-eval` (agent task execution),
-`forwardimpact/fit-wiki` (agent-memory commands with fresh App token), and
-`forwardimpact/kata-agent` (full Kata workflow: auth, checkout, bootstrap,
-eval, wiki push). All are consumed by SHA-pinned `uses:` lines; changes
+`audit/` and `coaligned-check/`.
+<!-- enum:sibling-composite-actions:count -->
+Five external composite actions are published
+under `forwardimpact/`:
+<!-- /enum -->
+
+<!-- enum:sibling-composite-actions:list -->
+- `forwardimpact/fit-benchmark` — coding-agent benchmarks
+- `forwardimpact/fit-bootstrap` — the FIT CI environment
+- `forwardimpact/fit-eval` — agent task execution
+- `forwardimpact/fit-wiki` — agent-memory commands with fresh App token
+- `forwardimpact/kata-agent` — full Kata workflow (auth, checkout, bootstrap, eval, wiki push)
+<!-- /enum -->
+
+All are consumed by SHA-pinned `uses:` lines; changes
 arrive via append-only patch tags and Dependabot SHA-bump PRs. Run
 `kata-setup` to generate workflows interactively.
 
@@ -49,7 +57,7 @@ arrive via append-only patch tags and Dependabot SHA-bump PRs. Run
 
 A differentiating factor of the Kata Agent Team is its simplicity.
 
-- **15 curated skills** (excluding the setup utility), each under 3k tokens
+- **Curated skills**, each under 3k tokens
   (~200 lines of text). Small enough to read in full, audit in minutes.
 - **No additional infrastructure.** All core surfaces work with only skills and
   GitHub Actions — no databases, no queues, no custom servers.
@@ -134,13 +142,20 @@ cross-cutting fallback.
 
 ## Workflows
 
+The four PDSA workflows:
+
+<!-- enum:kata-workflows:list -->
 | Workflow            | Trigger                              | Agent(s)                                                                                                        |
 | ------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | **kata-shift**      | Daily 03:00 · 12:00 · 20:00 (Paris) | product-manager → staff-engineer → security-engineer → technical-writer → release-engineer → improvement-coach  |
 | **kata-storyboard** | Daily 08:00 (Paris)                  | improvement-coach (facilitates 5 agents)                                                                        |
 | **kata-coaching**   | `workflow_dispatch`                  | improvement-coach (facilitates 1 agent)                                                                         |
 | **kata-dispatch**   | Events + bridge dispatch             | release-engineer (facilitates up to 4 agents)                                                                   |
-| **kata-interview**  | `workflow_dispatch`                  | product-manager (supervises 1 interview agent)                                                                  |
+<!-- /enum -->
+
+A separate `workflow_dispatch`-only utility, **kata-interview**
+(product-manager, supervises 1 interview agent), runs JTBD product-testing
+interviews outside the PDSA cycle.
 
 **kata-shift** runs the roster sequentially (`max-parallel: 1`, `fail-fast:
 false`). **kata-dispatch** is the event-driven counterpart — the release
@@ -164,6 +179,8 @@ individually. Clear or unset it to resume.
 All Kata skills use the `kata-` prefix and own exactly one PDSA phase (or none
 for utilities).
 
+<!-- enum:published-skills:list -->
+
 | Skill                     | Phase   | Purpose                                       |
 | ------------------------- | ------- | --------------------------------------------- |
 | `kata-design`             | Plan    | Specs to architectural design documents       |
@@ -182,6 +199,7 @@ for utilities).
 | `kata-review`             | Utility | Grade a single artifact (leaf, no sub-agents) |
 | `kata-session`            | Utility | Toyota Kata coaching protocol for sessions    |
 | `kata-setup`              | Utility | Interactive Kata Agent Team setup             |
+<!-- /enum -->
 
 ## Shared Memory
 

@@ -17,7 +17,9 @@ layout: home
     <text class="wheel-label" x="17" y="24">A</text>
   </svg>
   <h1 class="hero-title">Autonomous coding agents that continuously improve</h1>
-  <p class="hero-subtitle">An autonomous agent team that keeps getting better — organized as a daily Plan-Do-Study-Act cycle. Six agents. Sixteen skills. Zero infrastructure.</p>
+  <!-- enum:published-skills:count -->
+  <p class="hero-subtitle">An autonomous agent team that keeps getting better — organized as a daily Plan-Do-Study-Act cycle. Sixteen skills. A focused agent roster. Zero infrastructure.</p>
+  <!-- /enum -->
   <div class="scroll-hint">
     <span>Scroll</span>
     <div class="scroll-line"></div>
@@ -33,7 +35,9 @@ layout: home
     </div>
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
+        <!-- enum:published-skills:count -->
         <div class="stat-number">16</div>
+        <!-- /enum -->
         <div class="stat-label">Skills</div>
         <div class="stat-detail">Each under 200 lines of text</div>
       </div>

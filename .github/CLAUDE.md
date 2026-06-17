@@ -5,7 +5,10 @@ actions (`actions/`) they consume.
 
 ## Third-party actions
 
-Five actions are published under `forwardimpact/` — sibling repos this
+<!-- enum:sibling-composite-actions:count -->
+Five actions
+<!-- /enum -->
+are published under `forwardimpact/` — sibling repos this
 monorepo maintains, SHA-pinned with a `# v1` marker on `uses:` lines:
 
 | Action (`@v1`) | Purpose |

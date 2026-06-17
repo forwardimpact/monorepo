@@ -69,14 +69,55 @@ bun run check:fix
 ## Understand the structure
 
 ```
-products/       Eight products (map, pathway, outpost, guide, summit, landmark, kata, gear)
+products/       Products that turn the standard into tooling
 libraries/      Shared libraries (libskill, libdoc, libbridge, etc.)
-services/       Microservices (bridge, embedding, ghbridge, ghserver, ghuser, graph, map, mcp, msbridge, oauth, oidc, pathway, tenancy, trace, vector)
+services/       gRPC microservices supervised by fit-rc
 data/           Generated and standard data
 config/         Service and tool configuration
 specs/          Feature specifications and plans
 websites/       Public site sources (websites/fit/, websites/kata/, …)
 ```
+
+The products tree holds these
+<!-- enum:products-tree:count -->
+eight
+<!-- /enum -->
+products:
+
+<!-- enum:products-tree:list -->
+
+- gear
+- guide
+- kata
+- landmark
+- map
+- outpost
+- pathway
+- summit
+
+<!-- /enum -->
+
+The services tree holds these gRPC microservices:
+
+<!-- enum:services-tree:list -->
+
+- bridge
+- embedding
+- ghbridge
+- ghserver
+- ghuser
+- graph
+- map
+- mcp
+- msbridge
+- oauth
+- oidc
+- pathway
+- tenancy
+- trace
+- vector
+
+<!-- /enum -->
 
 **Products** answer specific questions for specific users. Map defines what good
 engineering looks like. Pathway renders agent-aligned engineering standards.
