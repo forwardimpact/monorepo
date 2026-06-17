@@ -5,23 +5,27 @@ Implements [design-a](design-a.md) for [spec 1220](spec.md).
 ## Approach
 
 Land the whole bundle in one PR so the default-output flip and `--format json`
-opt-in ship together (spec Risks row 1a). Sequence: capture per-verb JSON
-fixtures from the current behaviour **first** (step 1), so the
-structural-equivalence contract has a frozen reference before any renderer
-exists; export `loadTrace` and add the query primitives (step 2), build the two
-orchestrator/render modules (steps 3-4), wire the CLI verbs and `--format`
-switch (step 5), flip handlers to route through render + multi (step 6), extend
-`stats` (step 7), sweep in-repo caller examples (step 8), update the two method
-surfaces and the CHANGELOG (steps 9-10). Each step is independently verifiable
-against `bun test libraries/libeval` and the spec's six criteria. Internal
-contributors run the binary as `bunx fit-trace …` (or `node
-libraries/libeval/bin/fit-trace.js …`); `npx` appears only in caller-facing
-docs.
+opt-in ship together (spec Risks row 1a). Handlers run on libcli's
+`InvocationContext` convention already on `main` (spec 1370): one `ctx`, flags
+via `ctx.options`, named positionals via `ctx.args.<name>`, IO via
+`ctx.deps.runtime`, returning `{ ok: true }`. Multiple files arrive via the
+repeated `--file` option (libcli's named-slot `dispatch()` has no variadic
+positional). Sequence: capture per-verb JSON fixtures from current behaviour
+**first** (step 1), so the structural-equivalence contract has a frozen
+reference before any renderer exists; export `loadTrace` (now
+`loadTrace(runtime, file)`) and add the query primitives (step 2), build the two
+orchestrator/render modules (steps 3-4), wire the CLI verbs, `--file`, and the
+`--format` switch (step 5), flip handlers to route through render + multi
+(step 6), extend `stats` (step 7), sweep in-repo caller examples (step 8),
+update the two method surfaces and the CHANGELOG (steps 9-10). Each step is
+independently verifiable against `bun test libraries/libeval` and the spec's six
+criteria. Internal contributors run the binary as `bunx fit-trace …`; `npx`
+appears only in caller-facing docs.
 
-Libraries used: libeval (TraceQuery, and the existing `loadTrace` wrapping
-TraceCollector), libcli (createCli — positionals pass through as a raw array, so
-variadic needs no parser change), libconfig (createScriptConfig), libtelemetry
-(logger).
+Libraries used: libeval (TraceQuery, `loadTrace` wrapping TraceCollector),
+libcli (createCli, the InvocationContext `dispatch()` with `--file`
+`multiple:true`), libutil (the injected `runtime` and `runtime.fsSync.globSync`),
+libconfig (createScriptConfig), libtelemetry (logger).
 
 ## Step 1: Capture baseline JSON fixtures (structural-equivalence reference)
 
@@ -49,14 +53,15 @@ output; in this step the fixtures and the builder are committed.
 
 ## Step 2: Query primitives + export `loadTrace` — `src/trace-query.js`, `src/commands/trace.js`
 
-Intent: add the six analysis methods, generalise the ID helper, and make
-`loadTrace` injectable so the step-3 orchestrator can load files without
-duplicating IO policy.
+Intent: add the six analysis methods, generalise the ID helper, and export the
+existing `loadTrace(runtime, file)` so the step-3 orchestrator can load files
+through one IO seam.
 
 - Modified: `libraries/libeval/src/trace-query.js`
-- Modified: `libraries/libeval/src/commands/trace.js` — change `loadTrace`
-  (line 240) from module-private to `export function loadTrace(file)`; no
-  body change. This is the single load entry point step 3 injects.
+- Modified: `libraries/libeval/src/commands/trace.js` — make the existing
+  module-private `loadTrace(runtime, file)` (already reading via
+  `runtime.fsSync.readFileSync`) an `export function`; no body change. This is
+  the single load entry point step 3 injects as `(file) => loadTrace(runtime, file)`.
 
 Add to `TraceQuery`:
 
@@ -76,7 +81,7 @@ statsSummary()   // {totals} — this.stats().totals, no perTurn
   `Map<toolUseId, {turnIndex, name, input}>` over every assistant `tool_use`
   block (name filter optional). `toolCalls` and `commands` consume it. Keep the
   existing `collectToolUseIds(turns, name)` (the `Set`-returning helper at line
-  359) and the existing `tool(name)` body byte-unchanged so `tool()`'s ordering
+  373 on HEAD) and the existing `tool(name)` body byte-unchanged so `tool()`'s ordering
   (assistant turns then matching result turns, sorted by `index`) is preserved;
   `collectToolUseIds` may delegate to `new Set(collectToolUseBlocks(turns, name).keys())`
   only if the existing `tool()` test still passes unchanged.
@@ -127,8 +132,9 @@ compareTwo(a, b, load)             // load two files, derive each {caseName,part
                                    // a.compare(b, {aIdentity, bIdentity})
 ```
 
-- `load` is injected (the now-exported `loadTrace` from `commands/trace.js`,
-  step 2) so the module stays IO-policy-free and unit-testable with a stub.
+- `load` is injected (the handler passes `(file) => loadTrace(runtime, file)`,
+  the export from step 2) so the module imports no `node:fs` and unit-tests with
+  a stub loader.
 - `aggregate` keys: `paths` uses `key = r => r.path` and sums `r.count`; `tools`
   uses `key = r => r.tool` and sums `r.count` (both query results already carry
   `count`, so the merge sums the existing field rather than re-counting). The
@@ -175,84 +181,121 @@ and the `(none)`/`(no result)`/`(empty)` sentinels. `bun test libraries/libeval/
 
 ## Step 5: CLI surface — `bin/fit-trace.js`
 
-Intent: register the four new verbs, switch cross-trace verbs to variadic
-`<files...>`, add the global `--format` option and the new per-verb flags.
+Intent: register the four new verbs, switch cross-trace verbs from a file
+positional to the repeated `--file` option, add the global `--format` option
+and the new per-verb flags. The registry uses the array-form `args` plus
+`argsUsage` that spec 1370 established on `main`, and `handler:` references.
 
 - Modified: `libraries/libeval/bin/fit-trace.js`
 
-- Register `tool-calls` (`<files...>`), `commands` (`<files...>`, option
-  `--match <regex>`), `paths` (`<files...>`, option `--prefix <string>`),
-  `compare` (`<file-a> <file-b>`).
-- Change `args` to `<files...>` on `overview`, `count`, `head`, `tail`, `tools`,
-  `errors`, `reasoning`, `timeline`, `stats`, `init`, `filter`.
-- `head`/`tail`: drop the `[N]` positional, add option `--lines <n>` (default
-  10).
-- Global option `--format`: `{ type: "string", description: "Output format: text (default) or json", default: "text" }`. This is distinct
+- Register `tool-calls` (`args: []`, `--file`), `commands` (`args: []`,
+  `--file`, option `--match <regex>`), `paths` (`args: []`, `--file`, option
+  `--prefix <string>`), `compare` (`args: ["file-a", "file-b"]`,
+  `argsUsage: "<file-a> <file-b>"`). Add their `handler:` entries.
+- Change cross-trace verbs `overview`, `count`, `head`, `tail`, `tools`,
+  `errors`, `reasoning`, `timeline`, `stats`, `init`, `filter` from
+  `args: ["file"]` to `args: []`, and add `--file <path-or-glob>`
+  (`{ type: "string", multiple: true }`) to each. `argsUsage` drops the `<file>`
+  token. Single-file verbs (`batch`, `tool`, `turn`, `search`) keep their
+  positionals unchanged.
+- `head`/`tail`: drop the optional `[n]` positional, add option `--lines <n>`
+  (default 10 in the handler).
+- Global option `--format`: `{ type: "string", default: "text" }`. Distinct
   from the pre-existing global `json` boolean, which only controls `--help`
-  rendering (`cli.js:54` `#renderHelp(command, values.json)`) and never fires
-  during normal command dispatch — leave `json` unchanged. The new help text
-  for `--format` makes the split explicit so callers don't confuse `--format
-  json` (command output) with `--json` (help output). No rename of `json`:
-  renaming would break the documented help-as-JSON surface for no gain.
+  rendering (`cli.js:55` `#renderHelp(command, values.json)`) — leave `json`
+  unchanged. `--format` help text makes the `--format json` (command output)
+  vs `--json` (help output) split explicit.
 - `stats` options `--by-tool`, `--summary` (both `type: "boolean"`).
-- Add the new handler imports and `COMMANDS` entries
-  (`runToolCallsCommand`, `runCommandsCommand`, `runPathsCommand`,
-  `runCompareCommand`).
+- Add the new handler imports (`runToolCallsCommand`, `runCommandsCommand`,
+  `runPathsCommand`, `runCompareCommand`). Dispatch is via libcli `handler:`
+  references, not a `COMMANDS` map; `NEEDS_CONFIG` stays `{runs, download}`.
 - `--help` cross-references: `tool-calls`, `tool`, `tools` descriptions each
-  name the other two (spec Risks row 5). Add `examples` entries for the four new
-  verbs and a `--format json` example.
+  name the other two (spec Risks row 5). Add `examples` for the four new verbs
+  (using `--file`) and a `--format json` example.
 
-Verification: `node libraries/libeval/bin/fit-trace.js --help` lists the four
-new verbs and `--format`; `node ... tool-calls --help` cross-references `tool`
-and `tools`.
+Verification: `bunx fit-trace --help` lists the four new verbs and `--format`;
+`bunx fit-trace tool-calls --help` cross-references `tool` and `tools` and
+shows `--file`.
 
 ## Step 6: Flip handlers through render + multi — `src/commands/trace.js`
 
-Intent: every analyst-facing handler routes its query result through the
-matching renderer by default and emits today's JSON only under `--format json`;
-cross-trace handlers consume the variadic file list via `trace-multi`.
+Intent: every analyst-facing handler takes one `ctx`, routes its query result
+through the matching renderer by default, emits today's JSON only under
+`--format json`, reads/writes exclusively through `ctx.deps.runtime`, and
+returns `{ ok: true }`; cross-trace handlers consume the resolved file list via
+`trace-multi`.
 
 - Modified: `libraries/libeval/src/commands/trace.js`
 
-- Replace each cross-trace handler body with: gather `files` from all leading
-  positional args, call `runOver`/`aggregate` (per the verb-class table) with
-  the verb's query closure, then `emit(result, renderer, values)` where `emit`
-  writes `renderer(result, {multi: files.length>1, signatures})` unless
-  `values.format === "json"`, in which case it calls the existing `writeJSON`.
+- Add a `resolveFiles(runtime, ctx)` helper: normalise `ctx.options.file` to an
+  array, resolve each value (literal path pass-through; values with glob
+  metacharacters `*?[{` expanded via `runtime.fsSync.globSync`), flatten, sort.
+  Return `{ ok: false, code: 1, error: "<verb>: no files (use --file)" }` (the
+  handler surfaces it) when zero resolve.
+- Replace each cross-trace handler body with the `ctx` shape: destructure
+  `const { runtime } = ctx.deps`; `const files = resolveFiles(runtime, ctx)`
+  (return the `{ ok:false }` envelope on zero); build `load = (f) =>
+  loadTrace(runtime, f)`; call `runOver`/`aggregate` (per the verb-class table)
+  with the verb's query closure; then `emit(runtime, result, renderer, ctx,
+  files.length > 1)` where `emit` writes `renderer(result, {multi,
+  signatures: !!ctx.options.signatures})` to `runtime.proc.stdout` unless
+  `ctx.options.format === "json"`, in which case it calls `writeJSON(runtime,
+  payload, ctx.options)`. Return `{ ok: true }`.
 - `paths` and `tools` use `aggregate`; the other cross-trace verbs use `runOver`.
 - Add handlers `runToolCallsCommand`, `runCommandsCommand` (reads
-  `values.match`), `runPathsCommand` (reads `values.prefix`),
-  `runCompareCommand` (calls `compareTwo(args[0], args[1], loadTrace)`).
-- `head`/`tail` read `values.lines` (default 10) instead of `args[1]`.
-- `search`/`tool`/`turn`/`batch` keep their extra positional and stay
-  single-file. Under `--format json`, `tool`/`turn`/`batch` emit today's shape
-  unchanged; `search` keeps today's top-level array but its matched-block
-  interior carries the new machine-parseable representation `renderSearch`
-  introduces (criterion 5 `search` exception — interior changes, envelope does
-  not).
+  `ctx.options.match`), `runPathsCommand` (reads `ctx.options.prefix`),
+  `runCompareCommand` (reads the two positionals `ctx.args["file-a"]`,
+  `ctx.args["file-b"]`, calls `compareTwo(...)` with the injected `load`).
+- `head`/`tail` read `ctx.options.lines` (default 10) instead of a positional.
+- `search`/`tool`/`turn`/`batch` keep their positionals (`ctx.args.file` etc.)
+  and stay single-file. Under `--format json`, `tool`/`turn`/`batch` emit
+  today's shape unchanged; `search` keeps today's top-level array but its
+  matched-block interior carries the new machine-parseable representation
+  `renderSearch` introduces (criterion 5 `search` exception — interior changes,
+  envelope does not).
 - `count`/`timeline` keep emitting their exact current plain text under both
-  `--format` settings. They route through `runOver` **only** to gain the
-  `# <basename>` block header when N>1; under N==1 `runOver` suppresses the
-  prefix, so single-file output is byte-identical to today (criterion 5 "count,
-  timeline are unchanged"). The handlers pass `count`/`timeline` query results
-  straight to `process.stdout.write` as today, not through a record renderer.
-- `loadTrace` is the injected loader (exported in step 2); the orchestrator
-  receives it as the `load` argument — no second loader path.
+  `--format` settings, writing to `runtime.proc.stdout`. They route through
+  `runOver` **only** to gain the `# <basename>` block header when N>1; under
+  N==1 the prefix is suppressed so single-file output is byte-identical to
+  today (criterion 5 "count, timeline unchanged"). They do not pass through a
+  record renderer.
 
-- Created: `libraries/libeval/test/trace-1220-equivalence.test.js` — for each
-  verb in step 1's fixture set, capture the post-change handler's stdout by
-  stubbing `process.stdout.write` (push each chunk to an array, restore in a
-  `finally`), invoke the handler with a single file and `values.format = "json"`,
-  then `JSON.parse` the captured string and the committed baseline fixture and
-  assert `assert.deepStrictEqual`. `search` asserts only that both parse to a
+- Created: `libraries/libeval/test/trace-1220-equivalence.test.js` — follow the
+  package's established handler-test pattern (`trace-cost.test.js`:16-28):
+  hand-build a `ctx` `{ options, args, deps: { runtime } }` where `runtime` is
+  `{ fsSync: createMockFs({ [FILE]: body }), proc: { stdout: { write: (s) =>
+  (out += s) } } }` (`createDefaultRuntime()` is unusable here — its frozen bag
+  forwards `proc.stdout` to the real stdout and cannot be captured). Read the
+  fixture's NDJSON content once, seed it into the mock fs under a literal path,
+  and pass that path via `options.file: [FILE]` (cross-trace verbs) or
+  `args.file` (single-file verbs). Set `options.format = "json"`, run the
+  handler, `JSON.parse` the captured `out` and the committed baseline fixture,
+  and `assert.deepStrictEqual`. Literal paths never reach `globSync`, so the
+  mock fs needs no glob stub. `search` asserts only that both parse to a
   top-level array of equal length (criterion 5 exception). Each verb is run with
-  and without `values.signatures` to confirm signature behaviour matches the
-  fixture.
+  and without `options.signatures`.
+- The one quoted-glob case (a `paths` multi-file test asserting `--file
+  'glob'` expansion and source attribution) lives in a separate small test that
+  builds its `runtime` from `createDefaultRuntime()` against two on-disk fixture
+  copies (the only place `globSync` runs) and captures stdout via a substituted
+  `proc.stdout` stub layered over the default runtime's other deps; or, simpler,
+  asserts the resolution by passing two literal `--file` values (no glob) so it
+  too uses the mock-fs pattern, leaving `globSync` exercised by a direct
+  `resolveFiles` unit test.
+
+- Add a `resolveFiles` unit test (in `trace-multi.test.js` or a small new file):
+  a literal path returns `[path]` without touching `globSync`; a value with glob
+  metacharacters calls `runtime.fsSync.globSync` (stubbed/spied) and flattens the
+  result; multiple `--file` values concatenate and sort; zero resolved files
+  returns `{ ok: false }`. This isolates the only `globSync` dependency from the
+  handler suite.
 
 Verification: `bun test libraries/libeval/test/trace-1220-equivalence.test.js`
-plus the full `bun test libraries/libeval`; manual single-file vs multi-file run
-of `paths`/`tool-calls`/`count` confirms source attribution appears only when
-N>1.
+plus the full `bun test libraries/libeval`; the equivalence suite confirms the
+post-change `head`/`tail` `--lines` default (10) reproduces the pre-change
+positional default by binding against the `n=10` baseline fixtures from step 1;
+a manual `--file a --file b` run of `paths`/`tool-calls`/`count` confirms source
+attribution appears only when N>1.
 
 ## Step 7: Extend `stats` handler
 
@@ -275,27 +318,33 @@ the equivalence test.
 ## Step 8: In-repo caller sweep — working-tree consistency at merge
 
 Intent: keep every in-repo `fit-trace` analysis-verb invocation correct under
-the default-output flip in the same PR (spec Risks row 1c; design lines 182-185
-defer only the enumeration to here).
+the default-output flip **and the file-input surface change** in the same PR
+(spec Risks row 1c; the design defers only the enumeration to here).
 
 The enumeration (from `rg 'fit-trace (overview|count|batch|head|tail|search|tools|tool|errors|reasoning|timeline|stats|init|turn|filter)' --glob '!specs/**'`)
 is documentation and skill examples only — no committed script parses
-`fit-trace` JSON output, so the flip breaks no in-repo automation; the sweep is
-example-text alignment.
+`fit-trace` JSON output, so neither change breaks in-repo automation; the sweep
+is example-text alignment. Two transforms: (a) default-output — note
+`--format json` where an example previously implied a JSON envelope; (b)
+file-input — every cross-trace-verb example `fit-trace <verb> <file>` becomes
+`fit-trace <verb> --file <file>` (the 11 existing cross-trace verbs plus the
+four new ones); single-file verbs (`tool`, `turn`, `batch`, `search`) keep their
+positional file.
 
-- Modified: `.claude/skills/fit-eval/SKILL.md` (lines ~98, 126) — example
-  `overview`/`timeline`/`search`/`errors`/`stats` invocations now print text by
-  default; note `--format json` where an example previously implied a JSON
-  envelope.
+- Modified: `.claude/skills/fit-eval/SKILL.md` (lines ~98, 126) — cross-trace
+  `overview`/`timeline`/`errors`/`stats` examples take `--file`; `search` keeps
+  its positional; note text default / `--format json`.
 - Modified: `websites/fit/docs/libraries/prove-changes/index.md` (lines
-  ~299-338) and `.../run-eval/index.md` (lines ~163-165) — same default-output
-  note; `head`/`tail` examples switch `N` positional to `--lines N`.
+  ~299-338) and `.../run-eval/index.md` (lines ~163-165) — same `--file` and
+  default-output transforms; `head`/`tail` examples switch the `N` positional to
+  `--lines N`.
 - Modified: `.claude/skills/fit-benchmark/SKILL.md` (line ~180) — the
-  `fit-trace overview` reference is consumption-agnostic; confirm it reads
-  correctly under text default (no change expected, verified not assumed).
+  `fit-trace overview` reference takes `--file`; confirm it reads correctly
+  under text default.
 
-Verification: `rg -n 'fit-trace .* [0-9]+$' .claude/skills websites/fit/docs`
-finds no surviving `head`/`tail` positional-`N` example; `just check` passes.
+Verification: `rg -n 'fit-trace (overview|count|head|tail|tools|errors|reasoning|timeline|stats|init|filter) [^-]' .claude/skills websites/fit/docs`
+finds no surviving cross-trace positional-file example, and
+`rg -n 'fit-trace (head|tail) .* [0-9]+$'` finds no positional-`N`; `just check` passes.
 
 ## Step 9: Method-surface documentation
 
@@ -308,9 +357,10 @@ SKILL.md and the guide; Risks row 5 cross-references).
   show `tool-calls`/`tool`/`tools` adjacently.
 - Modified:
   `websites/fit/docs/libraries/prove-changes/trace-analysis/index.md` — same
-  additions in the caller-facing guide, including a multi-file glob example
-  showing source attribution and the basename-collision caveat (design Key
-  Decisions "Source attribution shape").
+  additions in the caller-facing guide, including a repeated-`--file` and a
+  quoted-glob example (`--file 'traces/*.ndjson'`) showing source attribution
+  and the basename-collision caveat (design Key Decisions "Source attribution
+  shape"), and the `--file` input convention for cross-trace verbs.
 
 Writing under `.claude/`: follow self-improvement.md; if blocked, use
 `echo … | bunx fit-selfedit <path>`.
@@ -323,20 +373,26 @@ Intent: document the default-output flip and the `--format json` migration
 (spec Risks row 1d).
 
 - Created: `libraries/libeval/CHANGELOG.md` — one entry under an unreleased
-  heading describing the six changes and the single-flag (`--format json`)
-  migration for scripted consumers. No `CHANGELOG.md` exists in-repo today and
+  heading describing the six changes, the single-flag (`--format json`)
+  migration for scripted consumers, and the cross-trace-verb file-input change
+  (positional file → `--file`). No `CHANGELOG.md` exists in-repo today and
   release tooling (`kata-release-cut`) does not consume one, so this file is
-  documentation-only; confirm `just check` accepts it (it is plain Markdown
-  under a package dir, which the doc lint already covers).
+  documentation-only; confirm `just check` accepts it (plain Markdown under a
+  package dir, which the doc lint already covers).
 
-Verification: file exists and names `--format json` as the migration path.
+Verification: file exists and names both `--format json` and `--file` as the
+migration changes.
 
 ## Risks
 
-- **libcli help rendering for `<files...>`.** The `args` string is descriptive
-  only (positionals pass through raw), so variadic parsing already works; the
-  risk is purely that help text reads naturally. Mitigation: verify `--help`
-  output in step 5.
+- **`--file` resolution and the mock runtime.** Cross-trace verbs read files
+  from `ctx.options.file` (libcli `multiple:true` always yields an array) and
+  expand glob values via `runtime.fsSync.globSync` — which is on `node:fs`
+  (Node 22) but not stubbed by libmock's fs. Mitigation: `resolveFiles` only
+  calls `globSync` when a value carries glob metacharacters, so literal-path
+  tests (the equivalence suite) need no glob stub; the one quoted-glob test uses
+  `createDefaultRuntime()`. Verify `--help` reads naturally with `--file` in
+  step 5.
 - **Token-share residual on a single bucket.** Absorbing the rounding residual
   into the largest bucket can shift its share by up to (bucket-count × float
   epsilon); the binding test asserts `sum === 1.0` and per-bucket `≥ 0`, which
