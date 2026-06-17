@@ -30,9 +30,9 @@ cardinality rule (D6) rides the same dispatch gate.
 
 | Component | Role | Lever |
 |---|---|---|
-| Commit paths (shared-checkout committers) | The closed set of skills/tools that commit inside the shared checkout — agent feature commits, activation sweep-commits, and tool commits (`fit-wiki claim`/`release`, already scoped by PR #1571). | L1 |
-| Edit-intent field | A structured field on a facilitated ask with two distinct classes (D5): the own-artifact **staged paths** the receiver will commit (L1), and the **output surfaces** — non-staged shared targets such as the #1702 reconciliation thread — that L2 orders on but L1 never stages. | L1↔L2 seam |
-| Facilitator dispatch gate | The routing step that holds a same-surface ask until the prior one Answers or releases (L2), and that routes a single-owner directive to exactly one acting lane with co-recipients getting a no-staging FYI (D6/S6). | L2 |
+| Commit paths (shared-checkout committers) | The set of skills/tools that commit inside the shared checkout — agent feature commits, activation sweep-commits, and tool commits (`fit-wiki claim`/`release`, already scoped by PR #1571). The deny-by-default lint (S1) holds this set closed continuously: a commit path not on the own-artifact allowlist fails, so closedness is enforced, not assumed once. | L1 |
+| Edit-intent field | A structured field on a facilitated ask with two distinct classes (D5): the own-artifact **staged paths** the receiver will commit (L1), and the **output surfaces** — non-staged shared targets such as a shared reconciliation thread or session summary doc — that L2 orders on but L1 never stages. | L1↔L2 seam |
+| Facilitator dispatch gate | The routing step that holds a same-surface ask until the prior one Answers or releases (L2). The single-routing cardinality rule (D6) and the classifier that drives it (D7) attach here too. | L2 |
 | `fit-wiki` push primitive | Unchanged here; its landing discipline is Spec 1850 D3. L1 only governs what a commit stages, upstream of the push. | (boundary) |
 
 ## Key decisions
@@ -78,7 +78,7 @@ actually collide.
 ### D5 — Edit-intent declares two surface classes; D4's order-key is their union
 
 Genuinely multi-owner directives can legitimately target one shared output that
-no activation stages — the #1702 reconciliation thread, a session summary doc, an
+no activation stages — a shared reconciliation thread, a session summary doc, an
 Announce. Edit-intent therefore carries two structurally distinct classes:
 **staged paths** (L1 stages; D4 also orders on them) and **output surfaces** (D4
 orders on them; L1 never stages). D4's serialization order-key is the **union** of
@@ -104,12 +104,42 @@ D3/D4 bound **when** same-surface asks run — with one correctly-classified act
 lane there is no fan-out to serialize. S6's guarantee is exactly as strong as the
 single-owner classifier at the gate (spec.md S6): a directive *misclassified as
 multi-owner* falls through to L2's temporal ordering, which caps asks in time but
-not in lane count, so the fan-out can still occur. The classifier predicate and
-its conservative-default direction are therefore load-bearing design surface, not
-an implementation detail — see open questions. **Rejected:** deduplicating the
+not in lane count, so the fan-out can still occur. This design therefore fixes
+the predicate and its default (D7), per spec.md S6's assignment of that choice to
+design surface. **Rejected:** deduplicating the
 duplicate records after fan-out — that is the coordination-comment floor's job
 (#1667 / #1647 / #1732); S6 prevents the fan-out, upstream of it. Cardinality is
 routing only — no lock, lease, or mutual exclusion — so S5 holds.
+
+### D7 — Single-owner classifier: a directive is single-owner unless it names ≥2 distinct acting lanes; ambiguous defaults to single-owner
+
+The classifier predicate is structural, not semantic: a directive is **multi-owner
+iff it explicitly names two or more distinct acting recipients each given a
+work-producing instruction**; everything else — one named owner, an unaddressed
+"someone should…", a close-out/decision directive — is **single-owner**. The
+conservative default for ambiguity is therefore **single-owner** (one acting
+lane, the rest FYI). **Rejected:** defaulting ambiguous directives to
+multi-owner. The corpus shows the failure that *ships* is the fan-out (#1725
+Mode A, committed-loss-adjacent duplicate records); a starved FYI lane is
+recoverable by re-dispatch on the next turn, while a fanned-out duplicate-write
+collision is committed loss the repair economy must clean up. Biasing toward the
+recoverable error is the conservative choice the spec's S6 trade-off calls for.
+The cost — a genuinely multi-owner directive misread as single-owner delays its
+other lanes by one dispatch cycle — is bounded and self-correcting; the
+facilitator re-routes the held lanes once the owner Answers.
+
+### D8 — Output surfaces are declared by the facilitator at dispatch, not the receiver
+
+The forcing function D4 needs comes from *where* output surfaces are declared.
+Staged paths self-force (a receiver that omits its own path loses its work), but
+an output surface has no such pressure on the receiver. So the **facilitator**
+names the output surfaces when it forms a multi-owner ask (it already knows the
+shared target it is fanning work toward — that is why it is fanning), and the
+dispatch gate orders on the facilitator-declared set. **Rejected:** relying on
+each receiver to declare output surfaces — an undeclared one silently defeats D4,
+and the receiver has no incentive to declare a surface it merely writes to. Moving
+the declaration to the party with both the knowledge and the ordering
+responsibility closes the gap without a new enforcement mechanism.
 
 ## Data flow
 
@@ -144,20 +174,15 @@ routing only — no lock, lease, or mutual exclusion — so S5 holds.
 - Where the edit-intent field lives in the ask schema, and how receiver
   compliance is detected — split by class (D5): staged-path drift surfaces in
   the S1 commit audit, but an output surface is never committed, so its
-  compliance has no commit to audit and falls to a dispatch-gate compare of
-  declared output surfaces plus the post-hoc Mode-A ≤1-record falsifier.
-- The closed set of **output surfaces** a directive can collide on (sibling to
-  the commit-path enumeration above, but on the L2 side). Unlike committers it is
-  open-ended (any API write target) and has no forcing function: a receiver must
-  name its staged paths or its own work won't land, but nothing comparable
-  compels it to declare an output surface — so an undeclared one defeats D4.
-- The single-owner classifier predicate D6/S6 keys on, and which way its
-  conservative default leans for ambiguous directives (spec.md S6 requires the
-  protocol name a classifier and declare a default; the predicate internals and
-  default direction are this design's to choose, grounded in the corpus).
-  Defaulting ambiguous directives to single-owner risks starving real
-  multi-owner work in the FYI'd lanes; defaulting to multi-owner reopens the
-  fan-out S6 exists to remove.
+  compliance has no commit to audit and is checked at the dispatch gate by
+  comparing the facilitator-declared output surfaces against in-flight asks
+  (D8). (The Mode-A ≤1-record measure is a post-deployment validation target,
+  not an acceptance gate — spec.md treats it as a meter, not a check.)
 - Whether the dispatch gate is advisory guidance to the facilitator or a
   mechanized hold — and the liveness fallback if an Answer never arrives
   (without reintroducing a lease, per S5).
+
+(The classifier predicate and default are now fixed in D7; output-surface
+declaration in D8. The open-ended output-surface *closed set* is no longer a gap:
+D8 moves declaration to the facilitator, so there is no undeclared-by-receiver
+case to enumerate.)
