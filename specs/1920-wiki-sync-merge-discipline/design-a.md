@@ -12,7 +12,7 @@ the conflict branch ahead of any fallback (D5: deliverable on 1920 alone).
 | Component | File | Role today | Change |
 |---|---|---|---|
 | Sync primitive | `wiki-sync.js` `commitAndPush` | Commits, rebases, falls back to `mergeOursStrategy` (textual `-X ours`), pushes | Accept a `reapply` operation; on a rebase conflict for a registered op, re-derive on the fresh tip's file and retry (bounded) instead of merging textually; fail loud when no `reapply` is given. The `mergeOursStrategy` fallback stays only on the no-intent path (1780 removes it). |
-| Git client | `libutil/git-client.js` | `rebase`/`rebaseAbort`/`mergeOursStrategy`/`status`/`commitPaths`; no reset | Add `resetSoft(ref)` (`git reset --soft <ref>` — moves HEAD only, never touches the working tree) and `checkoutPaths(ref, paths)` (`git checkout <ref> -- <paths>`, path-scoped). `showFile` is not needed — the re-applied file is read from the working tree after the checkout via the existing fs surface. |
+| Git client | `libutil/git-client.js` | `rebase`/`rebaseAbort`/`mergeOursStrategy`/`status`/`commitPaths`; `push` throws `GitError` on a rejected push (the existing fire-and-forget caller swallows it) | Add `resetSoft(ref)` (`git reset --soft <ref>`, HEAD only, never touches the working tree) and `checkoutPaths(ref, paths, {allowMissing})` (`git checkout <ref> -- <paths>`, path-scoped; tolerates a path absent on the ref). No `push` signature change — the re-apply path **catches** the `GitError` a rejected push throws (instead of swallowing it) as its retry signal. |
 | Row operations | `active-claims.js` `appendClaim`/`removeClaim`/`filterExpired` | Pure, idempotent text→text row edits returning `{text, inserted}`/`{text, removed}` | Reused unchanged as the re-derivation primitives — no edit |
 | Claim/release surfaces | `commands/claim.js` | Write MEMORY.md, then `commitAndPush(msg, ["MEMORY.md"])` | Pass a `reapply` closure that re-runs the same row op against fresh text the sync hands it |
 | Singleton registry | `constants.js` | `MEMORY_FILE`, Active Claims literals live here | Add `SINGLETON_PATHS` (founding member `MEMORY.md`); `commitAndPush` consults it |
@@ -29,18 +29,16 @@ flowchart TD
   E -- yes --> P[push]
   E -- no --> F{reapply given AND\npaths ⊆ SINGLETON_PATHS?}
   F -- no --> NN[rebaseAbort;\nmergeOursStrategy fallback\n— unchanged; 1780 removes it] --> P
-  F -- yes --> G[rebaseAbort restores tree;\nresetSoft origin/master drops the local commit, HEAD now at tip;\ncheckoutPaths origin/master -- MEMORY.md]
-  G --> H["freshText = read MEMORY.md;\nreapply(freshText) → newText | null"]
-  H --> I{newText !== null?}
-  I -- null --> Y[op already satisfied on the tip:\nHEAD = tip, working tree clean of the row delta] --> Z[return grounded landed/clean]
+  F -- yes --> AB[rebaseAbort restores tree] --> G
+  G[fetch; resetSoft origin/master\nHEAD→tip, tree untouched;\ncheckoutPaths origin/master -- MEMORY.md] --> H
+  H["freshText = read MEMORY.md;\nreapply(freshText) → newText | null"] --> I{newText !== null?}
+  I -- null --> Y[op already satisfied on the tip:\nHEAD = tip, nothing ahead] --> Z[return grounded already-satisfied]
   I -- yes --> K[write newText to MEMORY.md;\ncommitPaths a fresh commit on the tip]
-  K --> M{commits ahead?}
-  M -- yes --> P
-  M -- no --> Z
-  P --> RR{push rejected\nby a newer tip?}
-  RR -- no --> Z2[return grounded landed]
+  K --> P2[push catching GitError]
+  P2 --> RR{push rejected\nGitError?}
+  RR -- no --> Z2[return grounded reapplied]
   RR -- yes --> L{bound left?}
-  L -- yes --> D
+  L -- yes --> G
   L -- no --> X[throw WikiSyncConflict — fail loud]
 ```
 
@@ -56,8 +54,15 @@ the operation's own `appendClaim`/`removeClaim` and returns the new text, or
 **null** when the op leaves the fresh text unchanged (the primitives'
 `{inserted:false}`/`{removed:false}` map to null) — an add whose row the tip
 already carries, or a release whose row is already gone. A non-null result is
-committed as a fresh commit *on the tip* and pushed; if the push is rejected
-because the tip moved again, the bounded loop re-fetches and re-derives. Because
+committed as a fresh commit *on the tip* and pushed. The push goes through a
+result-aware call that **catches** the `GitError` a rejected push throws (the
+tip moved again between fetch and push); on rejection the bounded loop re-enters
+`G` — re-fetch, resetSoft, checkout, re-derive — covering the clean-rebase /
+stale-push race the table tail produces. The no-intent fallback path keeps the
+existing swallow-and-report-pushed behavior. The three outcomes carry distinct
+grounded reasons: `reapplied` (a fresh row landed), `already-satisfied` (the op
+was a no-op on the tip), and the `WikiSyncConflict` throw on bound exhaustion —
+none reuses the early gate's `clean`. Because
 re-derivation runs on the tip's MEMORY.md, every foreign claims-table row **and**
 every prose section the op does not touch is preserved from the tip; only the
 operation's own row changes. The file-scoped registry entry thus behaves
@@ -90,16 +95,21 @@ properties are consequences of reusing these functions, not new code.
 - `commitAndPush(message, paths, options?)` gains
   `options.reapply?: (freshFileText: string) => string | null` and
   `options.maxReapply?: number` (default 3). After the path-scoped checkout
-  `WikiSync` reads the now-tip working-tree file via `runtime.fsSync` and hands
-  the text to `reapply`; the closure never reads the stale local commit. D3's
-  guard requires **every** committed path to be in `SINGLETON_PATHS` (claim and
-  release commit exactly the one file). Existing two-arg callers (`fit-wiki
-  push` whole-tree) are unchanged: no `reapply`, so a conflict keeps today's
-  `mergeOursStrategy` fallback (1780's floor, not 1920's).
+  `WikiSync` reads the now-tip working-tree file (joining `wikiDir` + the
+  registered path) via `runtime.fsSync` and hands the text to `reapply`; the
+  closure never reads the stale local commit. D3's guard requires **every**
+  committed path to be in `SINGLETON_PATHS` (claim and release commit exactly the
+  one file). The re-apply path's push runs through a result-aware call that lets
+  the `GitError` on a rejected push reach the loop; the no-intent path keeps the
+  existing swallow. Return reasons: `reapplied`, `already-satisfied`,
+  `pushed`/`clean` (unchanged for the non-conflict paths). Existing two-arg
+  callers (`fit-wiki push` whole-tree) are unchanged: no `reapply`, so a conflict
+  keeps today's `mergeOursStrategy` fallback (1780's floor, not 1920's).
 - `GitClient` gains `resetSoft(ref, {cwd})` (`git reset --soft <ref>`, moves
-  HEAD only) and `checkoutPaths(ref, paths, {cwd})` (`git checkout <ref> --
-  <paths>`, path-scoped, rejecting `:`-prefixed paths the same way once 1730
-  lands).
+  HEAD only) and `checkoutPaths(ref, paths, {cwd, allowMissing})` (`git checkout
+  <ref> -- <paths>`, path-scoped, rejecting `:`-prefixed paths the same way once
+  1730 lands; `allowMissing` tolerates a path absent on `ref` so a founding
+  claim into a MEMORY.md-less tip reads empty rather than throwing).
 - New `WikiSyncConflict extends Error` (sibling of `WikiPullConflict`),
   carrying the conflicting paths and the exhausted-bound reason, so callers
   report through 1780's taxonomy once landed.
@@ -120,17 +130,22 @@ properties are consequences of reusing these functions, not new code.
 - **No-op outcome is a grounded landing, not a silent skip.** When `reapply`
   returns null, HEAD already equals the tip after `resetSoft` (no fresh commit
   is made), so there is nothing to push and nothing dangling; the path returns a
-  grounded *landed/clean* (criterion 7) — it must not report an ungrounded
-  success.
+  grounded `already-satisfied` (criterion 7), distinct from the early gate's
+  `clean` — it must not report an ungrounded success.
+- **Push-rejection is the loop's signal, not rebase re-conflict.** Two parallel
+  tail appends rebase cleanly (different rows), so the loser is caught only at
+  push. The re-apply path must route its push through the result-aware call and
+  loop on the rejected-push `GitError`; looping on rebase conflict alone would
+  miss the dominant table-tail race (criterion 1).
 - **Bound exhaustion leaves a recoverable tree.** At exhaustion the path throws
   `WikiSyncConflict`; because only `resetSoft` (HEAD-only) and a path-scoped
   checkout ever ran, the working tree retains the foreign residue and the
   operator's worst case is the current manual-repair turn — never a destroyed
   local commit or a hang.
 - **Reading MEMORY.md on a tip without the file.** A first-ever claim into a
-  wiki whose `origin/master` has no MEMORY.md: `checkoutPaths` of a path absent
-  on the ref must be tolerated (or the read fall back to empty text) so the row
-  ops create the section, rather than aborting the founding claim.
+  wiki whose `origin/master` has no MEMORY.md: `checkoutPaths(..., {allowMissing:
+  true})` tolerates the absent path and the subsequent read falls back to empty
+  text, so the row ops create the section rather than aborting the founding claim.
 
 ## Out of scope (per spec)
 
