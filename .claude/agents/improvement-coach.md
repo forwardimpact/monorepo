@@ -67,3 +67,4 @@ highest-priority action:
 - **Coordination**:
   [coordination-protocol.md](.claude/agents/references/coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
+- **Citation integrity**: in Assess/memory writes, every cited SHA must resolve on its referenced repo or the body is not published — [§ Citation integrity](.claude/agents/references/coordination-protocol.md#citation-integrity).

@@ -172,6 +172,8 @@ The PR title carries the spec id: `design(NNN): …`. Do not apply the
 `design:approved` label and do not recommend approval — those are human-only
 actions; see § Approval.
 
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+
 ## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):

@@ -172,6 +172,8 @@ This skill produces these non-wiki outputs (per
 - **Storyboard headline** — The next storyboard meeting after a sweep surfaces
   the consolidated PR as a Q1 target-condition reference.
 
+Apply [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity) before publishing: cited SHAs must resolve on their referenced repo.
+
 If two storyboard meetings pass without the spec PR approved, file an
 obstacle — the consolidated PR is itself subject to the binding constraint
 the spec proposed.

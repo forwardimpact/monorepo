@@ -190,3 +190,4 @@ Outputs (per [coordination-protocol.md](https://github.com/forwardimpact/monorep
 thread escalation** for cross-agent requests addressed by name. Ambiguous
 inbound comments → follow
 [coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+Before publishing any PR comment, hold to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.

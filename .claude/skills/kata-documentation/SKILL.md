@@ -153,6 +153,8 @@ Verbs: `add` for new pages, `update` for changes, `fix` for corrections.
 
 ### Publishing changes
 
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+
 Commits are not visible until pushed. After committing on a branch:
 
 1. **Push the branch** — `git push -u origin <branch>`

@@ -170,8 +170,8 @@ Applies in both modes; expands the coach's session-open briefing.
    `Answer(askId=N, message=…)`, quoting the `askId` from the `[ask#N]` header
    on the question. Reference the CSV rows; include each metric's XmR `status`,
    `μ`, and any fired-rule `signals` from your `fit-xmr analyze` run. Use counts
-   and durations — not narratives like "improving." Use `Announce` only for
-   unsolicited team-wide context.
+   and durations, not narratives. Use `Announce` only for unsolicited team-wide
+   context.
 4. **Identify obstacles, then record them.** For Q3, each participant names the
    obstacles in its domain, then creates an obstacle issue per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and reports its `#NNN`.
@@ -179,6 +179,8 @@ Applies in both modes; expands the coach's session-open briefing.
    experiment (scoped to one or two daily cycles) and its expected outcome, then
    create an experiment issue (`experiment` + `agent:{self}`) per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and report its `#NNN`.
+
+Participant writes only — apply [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity) before publishing: cited SHAs must resolve on their referenced repo.
 
 ## Memory: What to Record
 

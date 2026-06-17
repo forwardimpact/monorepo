@@ -69,3 +69,4 @@ branch each work-type lands on:
 - **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
 - **Coordination**:
   [coordination-protocol](.claude/agents/references/coordination-protocol.md)
+- **Citation integrity**: in Assess/memory writes, every cited SHA must resolve on its referenced repo or the body is not published — [§ Citation integrity](.claude/agents/references/coordination-protocol.md#citation-integrity).

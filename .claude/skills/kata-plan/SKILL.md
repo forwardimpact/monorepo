@@ -172,6 +172,8 @@ panel is clean.
 
 The PR title carries the spec id: `plan(NNN): …`.
 
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+
 ### Step 7: Write STATUS
 
 When the panel passes and the DO-CONFIRM checks are met, edit

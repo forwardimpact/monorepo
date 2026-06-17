@@ -45,6 +45,58 @@ only propagates signals already expressed by a trusted human.
 authorizes merge; it does not advance the phase. The next phase begins only
 when the prior phase's artifact is on `main`.
 
+`kata-dispatch` lands STATUS rows and PR-side comments; those are bodies on
+in-scope surfaces, so apply § Citation integrity before propagating them.
+
+## Citation integrity
+
+Agent-authored bodies are consumed by downstream agents as evidence. A body
+that cites a commit SHA which does not resolve on the repository the citation
+references reads as authoritative and propagates unchallenged. Before an
+authoring path publishes a body on an in-scope surface — an Issue body, a PR
+body, an Issue or PR comment body, or wiki file content — it holds to three
+properties.
+
+1. **Resolution against the referenced repository.** Every SHA-shaped token the
+   body asserts as existing resolves on the repository its citation references.
+   Repository context is per-citation: one body may cite commits on more than
+   one repository, and each token is judged against the repository its
+   surrounding text references. A token whose surrounding text references no
+   repository is judged against the repository hosting the body's surface. That
+   host is the host repository for an Issue, PR, or comment, or the wiki
+   repository for wiki file content. **Negative citations are exempt:** a token the body explicitly
+   cites as non-resolving (a forensic correction, a quoted block record, an
+   audit finding) is not required to resolve.
+2. **No publish on failure, loud to the author.** A body with a token that
+   fails this check is not published on the surface by the authoring path. The
+   block is surfaced to the authoring agent so it can correct the citation and
+   republish. Silently dropping the body is not a conforming outcome. On the
+   wiki surface this binds the content the authoring path commits (authored
+   landings); transient publication of working-tree state by session-sync
+   infrastructure operates outside the authoring path and is out of scope.
+3. **Audit-readable block record.** Every block emits a record carrying at
+   minimum the offending token, the repository it was checked against, the
+   originating authoring path (skill or profile routine), an identifier of the
+   blocked body's surface, the block time, and enough of the citation's
+   surrounding context to re-judge it later. The record is durable.
+
+**Resolution procedure.** For each SHA-shaped token the body asserts as
+existing, infer the referenced repository from the citation's surrounding
+context, then resolve the token via the host's commit-lookup capability:
+
+- For the host repository and any other hosted repository, query
+  `gh api repos/{owner}/{repo}/commits/{sha}` — a non-2xx response is
+  non-resolution.
+- For wiki file content, check the wiki repository with
+  `git -C wiki cat-file -e {sha}^{commit}` — a non-zero exit is non-resolution.
+
+A token that does not resolve blocks the publish and emits the record from
+property 3. A token citing a repository the installation cannot reach is
+recorded rather than blocked. The commands above are illustrative of the
+capability; the discriminator that recognizes a SHA-shaped token and the marker
+that distinguishes a negative citation are an authoring-path detail, not fixed
+here.
+
 ## Decision questions
 
 When an output could fit multiple channels, ask in order:

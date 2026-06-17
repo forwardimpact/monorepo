@@ -164,6 +164,8 @@ title references the spec id: `feat(scope): ... (#NNN)`. After opening,
 announce the PR and route on the coordinating issue per
 [coordination-protocol § Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create).
 
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+
 ## Handling Problems
 
 - **Plan step is unclear.** Read the spec for intent, then use your judgement.

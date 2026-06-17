@@ -178,6 +178,8 @@ duplicates; create a new issue or comment on a matching one (templates in
 Testing) naming the JTBD job (`<user>: <goal>`) in the body; add the
 finding to the report table with its issue number.
 
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+
 ### Step 9: Report
 
 Final summary: product and job; whether the persona got it done; which JTBD

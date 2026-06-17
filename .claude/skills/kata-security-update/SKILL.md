@@ -121,6 +121,8 @@ Commit and push fix work **before** long-running verification; never end the
 session with verification still running in the background — background work
 dies at turn end, and the PR's CI is the verification of record.
 
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+
 **Merge** — all policies pass, CI green:
 
 ```sh

@@ -68,5 +68,4 @@ branch each work-type lands on:
 - Run `bunx fit-doc build --src=websites/fit --out=dist` (or the matching
   `websites/<site>` path) before committing doc changes
 - **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
-- **Coordination**:
-  [coordination-protocol](.claude/agents/references/coordination-protocol.md)
+- **Coordination**: [coordination-protocol](.claude/agents/references/coordination-protocol.md). In Assess/memory writes, every cited SHA must resolve on its referenced repo or the body is not published — [§ Citation integrity](.claude/agents/references/coordination-protocol.md#citation-integrity).
