@@ -50,7 +50,7 @@ The invariant text states, in repository-agnostic terms:
 | Decision | Choice | Rejected alternative |
 |---|---|---|
 | Invariant home | **coordination-protocol.md** (shared agent reference) — bodies are coordination artifacts; one home, every path links it | A new top-level doc — fragments policy; per-skill copies — drift across the ~14 paths and the genericity rules forbid duplicated normative text |
-| Binding mechanism | Each authoring path carries a **one-line pointer** to C1 at its publish step; the normative text is never copied | Inlining the check in each skill — N copies to keep in sync; SC3 coverage becomes per-copy attestation with no single source |
+| Binding mechanism | Each authoring path carries a **one-line pointer** at its publish step. `coordination-protocol.md` is **not shipped** in the published packs, so a skill's pointer uses the **fully-qualified public URL** form the genericity rule already prescribes for `agents/` references (the same form skills use to link other non-shipped surfaces); a pointer in an agent profile or in `coordination-protocol.md`-adjacent references uses the in-repo path. The normative text is never copied | Inlining the check in each skill — N copies to drift, and SC3 coverage becomes per-copy attestation; a relative `agents/` link from a skill — the genericity invariant rejects it (the reference is not in the pack) |
 | Enforcement layer | **Agent-side reasoning gated by the invariant** — read tokens, infer the referenced repo, resolve each via the host's commit-lookup capability, block on non-resolution — no new tooling; the exact resolution invocation is the plan's call | A `fit-*` CLI validator — heavier, and the spec frames the check as a cheap precondition inside today's paths; tooling can follow as its own spec |
 | SHA discriminator | A **hex-token shape** (7–40 hex chars in code span or bare) recognized at authoring; the audit chooses its own discriminator independently and verifies it a superset (spec § Trial audit) | Reusing the implementation's discriminator for the audit — the spec forbids; audit must judge independently |
 | Negative-citation marking | Author marks a non-resolving token (e.g. prose "does not exist", "returns 422", or an explicit marker the design fixes); **audit judges negativity from text**, never trusting the implementation's marking | Trusting an implementation flag — lets a wrong block self-exempt; spec § What changes property 1 forbids |
@@ -80,10 +80,17 @@ spec-fixed. The window-open record is the gate artifact.
 
 ## Genericity
 
-The bindings ship in **published** skills. C1's text and each pointer name
-the *capability* ("the repository the citation references", "resolve via the
-host's commit lookup"), never this monorepo's repos, URLs, or the run-198
-incident. The incident lives in the spec/design provenance only.
+The bindings ship in **published** skills. C1's text names the *capability*
+("the repository the citation references", "resolve via the host's commit
+lookup"), never this monorepo's repos or the run-198 incident (which lives in
+spec/design provenance only). A published skill's pointer is the one place a
+fully-qualified public URL is correct (the genericity rule's prescribed form
+for `agents/` references): the canonical invariant text lives once in
+`coordination-protocol.md`, and a downstream installation follows the URL to
+it — the same way every other skill cross-references a non-shipped surface.
+The invariant *outcome* is enforceable in any installation because the
+agent-side check (resolve-then-publish) needs no monorepo-specific file, only
+the host's commit-lookup capability.
 
 ## Out of scope (per spec)
 
