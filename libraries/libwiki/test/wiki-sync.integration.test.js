@@ -322,15 +322,15 @@ describe("WikiSync resolveToken (real git)", () => {
     git(seedClone, "push", "origin", "master");
   }
 
-  test("storm geometry: a stale-base claim re-applies, conserving the sibling row (spec 1920, criteria 1/4/5)", async () => {
+  test("storm geometry: a stale-base claim re-applies, conserving the sibling row", async () => {
     // Seed origin with the claims table.
     const { wikiDir: seed } = cloneRepo(bare, "claimseed");
     git(seed, "checkout", "master");
     seedClaims(seed);
 
     // Clone A lands a sibling's row on the tip first — with a POPULATED pr
-    // field, the spec-1900 collateral the Problem table named (pr=1681 reverting
-    // to unset). Criterion 4's field-revert half needs a non-null field.
+    // field, so the field-revert path (a populated field reverting to unset)
+    // has a non-null value to exercise.
     const { wikiDir: wa } = cloneRepo(bare, "claimA");
     git(wa, "checkout", "master");
     const aText = readFileSync(join(wa, "MEMORY.md"), "utf-8");

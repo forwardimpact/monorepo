@@ -42,7 +42,7 @@ async function pushWiki(wikiSync, runtime, message, reapply) {
     // claim/release contract is a 1-line MEMORY.md change; the pathspec keeps
     // foreign uncommitted files from parallel writers out of the commit. The
     // `reapply` closure re-derives this row against the fresh tip if the landing
-    // contends (spec 1920), so a parallel writer's row is never erased.
+    // contends, so a parallel writer's row is never erased.
     const result = await wikiSync.commitAndPush(message, ["MEMORY.md"], {
       reapply,
     });
@@ -65,7 +65,7 @@ async function pushWiki(wikiSync, runtime, message, reapply) {
  * not-published non-zero envelope and any other outcome to `{ ok: true }`. The
  * row is already written to MEMORY.md; on refusal it stays as an uncommitted
  * working-tree change. The `reapply` closure re-derives the same row against
- * the fresh tip when the landing contends (spec 1920).
+ * the fresh tip when the landing contends.
  */
 async function pushRowOrRefuse(wikiSync, runtime, message, reapply) {
   try {

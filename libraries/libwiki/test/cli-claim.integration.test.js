@@ -161,7 +161,7 @@ describe("claim/release push integration (real git)", () => {
   });
 
   // Advance the bare origin's master with a foreign claim row so the local
-  // claim/release lands on a stale base and must re-apply (spec 1920).
+  // claim/release lands on a stale base and must re-apply.
   function advanceOriginWithClaim(name, claim) {
     const { wikiDir: other } = cloneRepo(bare, name);
     git(other, "checkout", "master");
@@ -223,7 +223,7 @@ describe("claim/release push integration (real git)", () => {
     );
   });
 
-  test("a claim racing a sibling's claim on the tail lands both (spec 1920, criterion 1)", async () => {
+  test("a claim racing a sibling's claim on the tail lands both", async () => {
     // Commit the empty table to origin, then a sibling advances the tip.
     git(wikiDir, "add", "-A");
     git(wikiDir, "commit", "-m", "seed claims");
@@ -296,7 +296,7 @@ describe("claim/release push integration (real git)", () => {
     );
   });
 
-  test("a release racing a foreign claim lands both outcomes (spec 1920, criterion 2)", async () => {
+  test("a release racing a foreign claim lands both outcomes", async () => {
     // Origin starts with the releasing agent's row already present.
     writeFileSync(
       memPath,

@@ -50,8 +50,8 @@ export class AncestryRefusal extends Error {
 
 /**
  * Error thrown when a registered-singleton operation cannot land within the
- * bounded re-apply budget (spec 1920): contention persisted on every round, so
- * the publish fails loud rather than resolving the contended hunk textually.
+ * bounded re-apply budget: contention recurred on each round, so the publish
+ * fails loud rather than resolving the contended hunk textually.
  */
 export class WikiSyncConflict extends Error {
   /** @param {string[]} paths @param {string} reason */
@@ -198,7 +198,7 @@ export class WikiSync {
    * first publication is re-judged rather than auto-re-granted. The guard
    * creates no commit, attempts no push, and adds no working-tree changes.
    *
-   * **Singleton merge discipline (spec 1920).** The discipline applies when a
+   * **Singleton merge discipline.** The discipline applies when a
    * rebase conflict arises for a *registered* row-structured singleton (the
    * single committed path is in `SINGLETON_PATHS`) and the caller supplied a
    * `reapply` operation. The contended hunk is then never resolved textually.
@@ -208,9 +208,8 @@ export class WikiSync {
    * re-committed, and pushed, bounded by `maxReapply`. A rejected push (the tip
    * moved again) drives the retry; exhaustion fails loud with
    * {@link WikiSyncConflict}. Foreign rows and untouched prose ride through from
-   * the tip. Without a `reapply` the conflict keeps the `-X ours` fallback, the
-   * floor spec 1780 will later remove, so prose surfaces and unregistered paths
-   * stay on today's behavior.
+   * the tip. Without a `reapply` the conflict keeps the `-X ours` fallback, so
+   * prose surfaces and unregistered paths stay on the side-biased behavior.
    *
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs limiting what gets committed.

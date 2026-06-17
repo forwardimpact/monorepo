@@ -88,7 +88,7 @@ describe("GitClient", () => {
     assert.strictEqual(subprocess.calls.length, before);
   });
 
-  test("resetSoft moves HEAD only (spec 1920)", async () => {
+  test("resetSoft moves HEAD only, preserving the working tree", async () => {
     const { client, subprocess } = clientWith();
     await client.resetSoft("origin/master", { cwd: "/r" });
     assert.deepStrictEqual(subprocess.calls.at(-1).args, [
@@ -98,7 +98,7 @@ describe("GitClient", () => {
     ]);
   });
 
-  test("checkoutPaths resets only the named paths to a ref (spec 1920)", async () => {
+  test("checkoutPaths resets only the named paths to a ref", async () => {
     const { client, subprocess } = clientWith();
     await client.checkoutPaths("origin/master", ["MEMORY.md"], { cwd: "/r" });
     assert.deepStrictEqual(subprocess.calls.at(-1).args, [

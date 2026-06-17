@@ -231,7 +231,7 @@ describe("WikiSync", () => {
     ]);
   });
 
-  test("registered op re-applies on rebase conflict instead of merging textually (spec 1920)", async () => {
+  test("registered op re-applies on rebase conflict instead of merging textually", async () => {
     const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip content\n" });
     const { wikiSync, methods } = make({
       fsSync,

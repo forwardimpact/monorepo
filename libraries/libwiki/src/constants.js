@@ -4,12 +4,12 @@ export const BROADCAST_TARGET = "all";
 
 export const MEMORY_FILE = "MEMORY.md";
 
-// Surfaces governed by spec 1920's sync-merge discipline: when a landing on one
-// of these row-structured singletons is contended, the resolution re-runs the
-// row operation against the fresh remote tip (rebase the operation, not the
+// Row-structured singleton surfaces under the sync-merge discipline: when a
+// landing on one of these is contended, the resolution re-runs the row
+// operation against the fresh remote tip (rebase the operation, not the
 // lines), never a textual merge. Founding member: MEMORY.md (the Active Claims
-// table). STATUS.md phase rows and metrics CSV appends are future members, each
-// gated by its own spec approval.
+// table). STATUS.md phase rows and metrics CSV appends join as their own
+// re-apply operations land.
 export const SINGLETON_PATHS = new Set([MEMORY_FILE]);
 
 export const ACTIVE_CLAIMS_HEADING = "## Active Claims";
