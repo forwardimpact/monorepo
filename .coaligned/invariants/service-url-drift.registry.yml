@@ -1,0 +1,117 @@
+# Service URL-default source-of-truth registry.
+#
+# Each service's listen URL is declared in its createServiceConfig manifest
+# (protocol+port; host stays the bind-default 0.0.0.0, except ghserver which
+# keeps host: 127.0.0.1 per its bind-guard). The service-url-drift invariant
+# asserts every consumer surface below restates the URL the manifest produces,
+# normalizing 0.0.0.0 / localhost / 127.0.0.1 / <name>.guide.local.
+#
+# Consumer kinds:
+#   env   — a SERVICE_<NAME>_URL= line in an .env.*.example (commented or not)
+#   init  — the SERVICE_<NAME>_URL: literal in products/guide init.js env block
+#   docs  — a code-block / curl URL on a docs page, pinned by `pattern`
+#
+# Out of registry by design: _CALLBACK_BASE_URL /
+# _LINK_BASE_URL (per-deployment, no in-repo default); the docker-host
+# embedding row `grpc://embedding.local:3015` (deployment hostname); free-prose
+# port mentions; service README "Listen URL" rows (not one of the four surface
+# kinds — kept consistent by hand when a manifest port changes, not gated).
+
+services:
+  trace:
+    manifest: services/trace/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+      - { kind: init, path: products/guide/src/commands/init.js }
+  vector:
+    manifest: services/vector/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+      - { kind: init, path: products/guide/src/commands/init.js }
+  graph:
+    manifest: services/graph/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+      - { kind: init, path: products/guide/src/commands/init.js }
+  map:
+    manifest: services/map/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+      - { kind: init, path: products/guide/src/commands/init.js }
+  pathway:
+    manifest: services/pathway/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+      - { kind: init, path: products/guide/src/commands/init.js }
+  tenancy:
+    manifest: services/tenancy/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+  ghserver:
+    manifest: services/ghserver/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+  oidc:
+    manifest: services/oidc/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+  ghuser:
+    manifest: services/ghuser/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+  oauth:
+    manifest: services/oauth/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+  mcp:
+    manifest: services/mcp/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+      - { kind: init, path: products/guide/src/commands/init.js }
+      - { kind: docs, path: websites/fit/docs/services/typed-contracts/index.md, pattern: "http://localhost:[0-9]+" }
+  bridge:
+    manifest: services/bridge/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+  ghbridge:
+    manifest: services/ghbridge/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+  msbridge:
+    manifest: services/msbridge/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: env, path: .env.docker-native.example }
+      - { kind: env, path: .env.docker-supabase.example }
+  embedding:
+    manifest: services/embedding/server.js
+    consumers:
+      - { kind: env, path: .env.local.example }
+      - { kind: init, path: products/guide/src/commands/init.js }
+      - { kind: docs, path: websites/fit/docs/internals/vectors/index.md, pattern: "grpc://localhost:[0-9]+" }
