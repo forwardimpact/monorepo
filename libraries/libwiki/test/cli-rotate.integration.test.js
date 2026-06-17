@@ -143,7 +143,7 @@ describe("fit-wiki rotate CLI (in-process)", () => {
     assert.match(harness.stderr, /recover it by hand/);
   });
 
-  test("force-rotate splits a lone over-cap day at its ### block seams (spec 1730 criterion 2, force path)", () => {
+  test("force-rotate splits a lone over-cap day at its ### block seams (force path)", () => {
     // One dated entry over the line cap, built from 4 `### ` blocks none of
     // which alone exceeds the cap. `fit-wiki rotate` must sub-split the day.
     let text = "# Staff Engineer — 2026-W21\n## 2026-05-19\n";

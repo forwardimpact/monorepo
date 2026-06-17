@@ -62,7 +62,7 @@ describe("RULES catalogue", () => {
     }
   });
 
-  test("structure hints steer to the log commands; part-budget hints drop the by-hand clause (spec 1730 criterion 7)", () => {
+  test("structure hints steer to the log commands; part-budget hints drop the by-hand clause", () => {
     const hintOf = (id) => RULES.find((r) => r.id === id).hint;
     // The drift rule and the decision-block rule both name a log command.
     assert.match(hintOf("weekly-log.heading-grammar"), /fit-wiki log/);

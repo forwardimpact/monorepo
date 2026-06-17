@@ -140,12 +140,13 @@ describe("fit-wiki log CLI seal-on-append (in-process)", () => {
     assert.ok(fresh.split("\n").length - 1 <= WEEKLY_LOG_LINE_BUDGET);
   });
 
-  test("append over only the word cap rotates first, then lands (spec 1730 criterion 1)", () => {
+  test("append over only the word cap rotates first, then lands", () => {
     const today = "2026-05-24"; // ISO 2026-W21
     const logPath = weeklyLogPath(wikiRoot, "staff-engineer", today);
     // ~474 lines (under the 496 line cap) but ~6117 words (near the 6400 word
     // cap); the next note tips words over 6400 with lines still under, so only
-    // the word-budget trigger can fire the seal (the delta over spec 1450).
+    // the word-budget trigger can fire the seal (word-cap rotation, not just
+    // the line-cap path).
     const rows = ["# Staff Engineer — 2026-W21", "", "## 2026-05-24", ""];
     for (let i = 0; i < 470; i++) rows.push(Array(13).fill("w").join(" "));
     writeFileSync(logPath, rows.join("\n") + "\n");

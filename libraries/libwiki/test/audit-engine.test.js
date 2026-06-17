@@ -201,7 +201,7 @@ describe("runRules", () => {
     assert.deepEqual(offenders, []);
   });
 
-  test("heading-grammar drift fires on `## ` headings that defeat the seam-finder (spec 1730 criterion 7)", () => {
+  test("heading-grammar drift fires on `## ` headings that defeat the seam-finder", () => {
     const seed = cleanSeed("2026-06-22", {
       [`${WIKI}/staff-engineer-2026-W25.md`]: [
         "# Staff Engineer — 2026-W25",

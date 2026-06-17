@@ -65,7 +65,7 @@ describe("GitClient", () => {
     ]);
   });
 
-  test("commitPaths rejects a ':'-prefixed pathspec without spawning git (spec 1730 criterion 9)", async () => {
+  test("commitPaths rejects a ':'-prefixed pathspec without spawning git", async () => {
     const { client, subprocess } = clientWith();
     const before = subprocess.calls.length;
     await assert.rejects(

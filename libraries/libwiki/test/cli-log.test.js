@@ -104,7 +104,7 @@ describe("fit-wiki log CLI (in-process)", () => {
   });
 });
 
-describe("fit-wiki log — budget feedback and word-cap rotation (spec 1730)", () => {
+describe("fit-wiki log — budget feedback and word-cap rotation", () => {
   function runOnce(fsSync, subcommand, options) {
     const harness = makeRuntime({ fsSync });
     const r = runLogCommand(

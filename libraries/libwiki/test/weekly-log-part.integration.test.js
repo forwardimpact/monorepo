@@ -83,7 +83,7 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     assert.equal(rejoined, bodyOf(original), "content preserved byte-for-byte");
   });
 
-  test("a lone over-cap day with ### blocks re-splits at block seams (spec 1730 criterion 2, fix path)", () => {
+  test("a lone over-cap day with ### blocks re-splits at block seams (fix path)", () => {
     // A single day-section (~600 lines, over the line cap) made of 4 `### `
     // blocks, none of which alone exceeds the cap. `fit-wiki fix` calls this and
     // must now sub-split the day rather than report it irreducible.

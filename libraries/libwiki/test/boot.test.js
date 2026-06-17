@@ -105,7 +105,7 @@ describe("buildDigest", () => {
     assert.equal(digest.claims[0].target, "new");
   });
 
-  test("reports summary and weekly-log headroom for both budgets (spec 1730 criterion 6)", () => {
+  test("reports summary and weekly-log headroom for both budgets", () => {
     const summary = `# Staff Engineer — Summary\n${Array(40)
       .fill("settled state line")
       .join("\n")}\n`;

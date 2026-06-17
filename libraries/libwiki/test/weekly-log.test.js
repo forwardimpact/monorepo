@@ -251,7 +251,7 @@ describe("bisectWeeklyLog", () => {
 
   // Build a `## YYYY-MM-DD` day-section whose body is `blockCount` `### ` blocks
   // of `linesPerBlock` lines each, so a single over-cap day is splittable at its
-  // block seams (spec 1730 capability 2).
+  // block seams.
   function daySectionWithBlocks(date, blockCount, linesPerBlock) {
     const rows = [`## ${date}`];
     for (let b = 1; b <= blockCount; b++) {
