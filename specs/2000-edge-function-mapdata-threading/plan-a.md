@@ -37,7 +37,9 @@ Read the deploy-bundled standard data through an injectable reader so the loader
 runs under both Deno and the Node test runner; return a typed skip when absent or
 malformed.
 
-- Created: `products/map/supabase/functions/_shared/activity/map-data.ts`
+- Created: `products/map/supabase/functions/_shared/activity/map-data.js` (the
+  `.js` variant per the risk note below — the `.ts` import did not resolve under
+  the Node test runner)
 
 ```ts
 /** @typedef {"bundle_absent" | "bundle_malformed"} SkipReason */
