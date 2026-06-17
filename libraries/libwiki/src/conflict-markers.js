@@ -56,15 +56,20 @@ export function scanConflictMarkers(text, { fenceExempt = true } = {}) {
       continue;
     }
     if (fenceExempt && insideFence) continue;
-    if (OPEN_RE.test(line)) {
-      hits.push({ lineNo: i + 1, kind: "open" });
-      openDepth++;
-    } else if (CLOSE_RE.test(line)) {
-      hits.push({ lineNo: i + 1, kind: "close" });
-      if (openDepth > 0) openDepth--;
-    } else if (openDepth > 0 && SEPARATOR_RE.test(line)) {
-      hits.push({ lineNo: i + 1, kind: "separator" });
-    }
+    const kind = classify(line, openDepth);
+    if (!kind) continue;
+    hits.push({ lineNo: i + 1, kind });
+    if (kind === "open") openDepth++;
+    else if (kind === "close" && openDepth > 0) openDepth--;
   }
   return hits;
+}
+
+// Classify a single line as a marker kind, or null. The separator is
+// block-conditioned: it only counts while a conflict block is open.
+function classify(line, openDepth) {
+  if (OPEN_RE.test(line)) return "open";
+  if (CLOSE_RE.test(line)) return "close";
+  if (openDepth > 0 && SEPARATOR_RE.test(line)) return "separator";
+  return null;
 }

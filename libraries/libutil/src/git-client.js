@@ -17,6 +17,13 @@ export class GitError extends Error {
   }
 }
 
+// Resolve a `git diff` "+++ <target>" header to a working-tree path, or null
+// for a deletion ("+++ /dev/null"). The "b/" prefix is git's destination side.
+function parseDiffTarget(headerLine) {
+  const target = headerLine.slice(4).trim();
+  return target.startsWith("b/") ? target.slice(2) : null;
+}
+
 /**
  * Reject `:`-prefixed pathspec entries before they reach git. A leading `:`
  * marks git pathspec magic (`:/`, `:(exclude)…`, `:(glob)…`), which the `--`
@@ -198,20 +205,13 @@ export class GitClient {
     let current = null;
     for (const line of result.stdout.split("\n")) {
       if (line.startsWith("+++ ")) {
-        // "+++ b/path" or "+++ /dev/null" for a deletion.
-        const target = line.slice(4).trim();
-        current = target.startsWith("b/") ? target.slice(2) : null;
+        current = parseDiffTarget(line);
         if (current && !byFile.has(current)) byFile.set(current, []);
-        continue;
-      }
-      if (line.startsWith("--- ")) continue;
-      if (current && line.startsWith("+")) {
+      } else if (current && line.startsWith("+")) {
         byFile.get(current).push(line.slice(1));
       }
     }
-    return new Map(
-      [...byFile].map(([path, lines]) => [path, lines.join("\n")]),
-    );
+    return new Map([...byFile].map(([p, lines]) => [p, lines.join("\n")]));
   }
 
   /** Stage all changes and commit with `message`. */
