@@ -249,10 +249,11 @@ export async function sweepTier2({ runtime, gitClient, wikiDir, agent, now }) {
     .join("\n");
 
   for (const absent of findAbsent(changes, tipText, normLine)) {
-    const change = changes.find((c) => c.home === absent.pushHome);
-    const exposureSeconds = change
-      ? Math.round(now / 1000 - change.when)
-      : undefined;
+    // Exposure runs from the LAST window commit that added this exact line
+    // (its most recent assertion at origin), not merely a same-home commit.
+    const when = lastAssertionTime(changes, absent.contentId);
+    const exposureSeconds =
+      when != null ? Math.round(now / 1000 - when) : undefined;
     detections.push(
       makeDetection({
         tier: 2,
@@ -264,6 +265,17 @@ export async function sweepTier2({ runtime, gitClient, wikiDir, agent, now }) {
     );
   }
   return detections;
+}
+
+/** The `when` of the latest window change whose normalized additions include `contentId`. */
+function lastAssertionTime(changes, contentId) {
+  let when;
+  for (const change of changes) {
+    if (change.added.some((line) => normLine(line) === contentId)) {
+      when = change.when;
+    }
+  }
+  return when;
 }
 
 function readFileOrEmpty(fsSync, wikiDir, rel) {

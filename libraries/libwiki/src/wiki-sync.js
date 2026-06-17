@@ -257,9 +257,15 @@ export class WikiSync {
     // Capture the pushed delta now: HEAD is the final (rebased/merged) local
     // tip and origin/master is still the pre-push base. A two-tree range diff
     // (not a single-commit show) is correct even when HEAD is a merge commit.
-    const pushedDelta = await this.#git.diffRange("origin/master HEAD", {
-      cwd: this.#wikiDir,
-    });
+    // Wrapped so the detection-only probe never gates the push it follows.
+    let pushedDelta = null;
+    try {
+      pushedDelta = await this.#git.diffRange("origin/master HEAD", {
+        cwd: this.#wikiDir,
+      });
+    } catch {
+      // Detection-only: a capture failure degrades to no tier-1 detections.
+    }
     // Resolve auth first so a misconfigured `resolveToken` still surfaces; the
     // push itself is fire-and-forget like WikiRepo (which ignored the push
     // result and reported pushed:true regardless), so a network/credential
@@ -289,10 +295,13 @@ export class WikiSync {
       if (changes.length === 0) return [];
       // A new post-push fetch advances origin/master to the current tip.
       await this.fetch();
+      const homes = [
+        ...new Set(changes.map((c) => c.home).filter((h) => h !== "/dev/null")),
+      ];
       const tipText = (
         await Promise.all(
-          changes.map((c) =>
-            this.#git.showFile("origin/master", c.home, { cwd: this.#wikiDir }),
+          homes.map((home) =>
+            this.#git.showFile("origin/master", home, { cwd: this.#wikiDir }),
           ),
         )
       )

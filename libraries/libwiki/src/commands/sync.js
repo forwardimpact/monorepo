@@ -52,12 +52,17 @@ export async function runPullCommand(ctx) {
   // to no detections, never throws into the flow, never changes the exit code.
   try {
     const wikiDir = resolveWikiRoot(runtime, ctx.options);
+    // `--today` (ISO date) overrides the wall clock for deterministic tests;
+    // otherwise the binding stamp is the runtime clock.
+    const now = ctx.options.today
+      ? Date.parse(ctx.options.today)
+      : runtime.clock.now();
     const detections = await sweepTier2({
       runtime,
       gitClient,
       wikiDir,
       agent: ctx.options.agent,
-      now: runtime.clock.now(),
+      now,
     });
     if (detections.length)
       runtime.proc.stdout.write(renderDetections(detections));

@@ -7,7 +7,7 @@ import { GitClient } from "@forwardimpact/libutil/git-client";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { sweepTier2 } from "../src/integrity.js";
-import { runPullCommand } from "../src/commands/sync.js";
+import { runPullCommand, runPushCommand } from "../src/commands/sync.js";
 import { WikiSync } from "../src/wiki-sync.js";
 import {
   git,
@@ -292,5 +292,161 @@ describe("tier-2 in runPullCommand (real git)", () => {
     assert.equal(result.ok, true); // never gates the flow
     assert.match(harness.stdout, /integrity\[tier 2\]/);
     assert.match(harness.stdout, /pulled row/);
+  });
+});
+
+describe("tier-1 post-push probe (real git)", () => {
+  let bare;
+  test.beforeEach(() => {
+    bare = createBareRepo();
+    seedBareRepo(bare);
+  });
+
+  // A GitClient whose push is a no-op, modelling the fire-and-forget push
+  // silently failing: HEAD never reaches origin, so the post-push probe's fetch
+  // sees a tip without the just-"pushed" content — a deterministic tier-1
+  // absence. The probe's own read path (fetch + showFile) runs for real.
+  class DroppedPushGitClient extends GitClient {
+    async push() {
+      return { stdout: "", stderr: "", exitCode: 0 };
+    }
+  }
+
+  function syncWithDroppedPush(wikiDir, parent, runtime) {
+    const gitClient = new DroppedPushGitClient({ runtime });
+    return new WikiSync({ runtime, gitClient, wikiDir, parentDir: parent });
+  }
+
+  test("clean push surfaces no tier-1 detection (criterion 1)", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "t1-clean");
+    git(wikiDir, "checkout", "master");
+    git(wikiDir, "config", "user.email", EMAIL);
+    writeFileSync(join(wikiDir, `${AGENT}-2026-W21.md`), "# Log\nclean row\n");
+    const runtime = createDefaultRuntime();
+    const gitClient = new GitClient({ runtime });
+    const ws = new WikiSync({ runtime, gitClient, wikiDir, parentDir: parent });
+    const result = await ws.commitAndPush("wiki: push");
+    assert.equal(result.pushed, true);
+    assert.deepEqual(result.detections, []);
+  });
+
+  test("a push absent at the origin tip surfaces a named tier-1 detection (criterion 2)", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "t1-absent");
+    git(wikiDir, "checkout", "master");
+    git(wikiDir, "config", "user.email", EMAIL);
+    writeFileSync(join(wikiDir, `${AGENT}-2026-W21.md`), "# Log\nlost row\n");
+    const runtime = createDefaultRuntime();
+    const ws = syncWithDroppedPush(wikiDir, parent, runtime);
+    const result = await ws.commitAndPush("wiki: push");
+    assert.equal(result.pushed, true); // never gates
+    const lost = result.detections.find((d) => d.contentId === "lost row");
+    assert.ok(lost, "the absent lane row should be detected");
+    assert.equal(lost.tier, 1);
+    assert.equal(lost.pushHome, `${AGENT}-2026-W21.md`);
+    assert.match(lost.detectedAt, /^\d{4}-\d{2}-\d{2}T/);
+    // The probe wrote nothing.
+    assert.equal(git(wikiDir, "status", "--porcelain"), "");
+  });
+
+  test("a merge-HEAD landing still captures and verifies its delta (merge-HEAD coverage)", async () => {
+    // Victim clones first, then a sibling pushes a conflicting README change, so
+    // the victim's pre-push rebase conflicts and falls back to mergeOursStrategy,
+    // making HEAD a merge commit.
+    const { parent, wikiDir } = cloneRepo(bare, "t1-merge");
+    git(wikiDir, "checkout", "master");
+    git(wikiDir, "config", "user.email", EMAIL);
+
+    const { wikiDir: other } = cloneRepo(bare, "t1-merge-other");
+    git(other, "checkout", "master");
+    writeFileSync(join(other, "README.md"), "# Wiki\nremote edit\n");
+    git(other, "add", "-A");
+    git(other, "commit", "-m", "remote");
+    git(other, "push", "origin", "master");
+
+    writeFileSync(join(wikiDir, "README.md"), "# Wiki\nvictim edit\n");
+    writeFileSync(join(wikiDir, `${AGENT}-2026-W21.md`), "# Log\nmerge row\n");
+
+    const runtime = createDefaultRuntime();
+    const ws = syncWithDroppedPush(wikiDir, parent, runtime);
+    const result = await ws.commitAndPush("wiki: push");
+    assert.equal(result.pushed, true);
+    // HEAD is a merge commit; diffRange captured the real delta, so the probe
+    // names the absent lane row (would be empty under a single-commit `show`).
+    const ids = result.detections.map((d) => d.contentId);
+    assert.ok(
+      ids.includes("merge row"),
+      `expected merge-HEAD delta captured, got ${JSON.stringify(ids)}`,
+    );
+    // HEAD has two parents — a merge commit — confirming diffRange (a two-tree
+    // range diff) captured the delta a single-commit `git show` would miss.
+    const parents = git(wikiDir, "rev-list", "--parents", "-1", "HEAD").split(
+      " ",
+    );
+    assert.equal(
+      parents.length,
+      3,
+      "HEAD should be a merge commit (2 parents)",
+    );
+  });
+
+  test("a probe git failure degrades to no detections; push still succeeds (criterion 13)", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "t1-degrade");
+    git(wikiDir, "checkout", "master");
+    git(wikiDir, "config", "user.email", EMAIL);
+    writeFileSync(join(wikiDir, `${AGENT}-2026-W21.md`), "# Log\nrow\n");
+    const runtime = createDefaultRuntime();
+    // The probe's tip read throws; the probe must swallow it (never gates).
+    class BrokenShowFileGitClient extends GitClient {
+      async showFile() {
+        throw new Error("simulated git failure");
+      }
+    }
+    const ws = new WikiSync({
+      runtime,
+      gitClient: new BrokenShowFileGitClient({ runtime }),
+      wikiDir,
+      parentDir: parent,
+    });
+    const result = await ws.commitAndPush("wiki: push");
+    assert.equal(result.pushed, true);
+    assert.deepEqual(result.detections, []);
+  });
+
+  test("identical tier-1 semantics across lanes (criterion 11)", async () => {
+    for (const agent of ["staff-engineer", "product-manager"]) {
+      const b = createBareRepo();
+      seedBareRepo(b);
+      const { parent, wikiDir } = cloneRepo(b, `t1-lane-${agent}`);
+      git(wikiDir, "checkout", "master");
+      git(wikiDir, "config", "user.email", `${agent}@example.com`);
+      writeFileSync(
+        join(wikiDir, `${agent}-2026-W21.md`),
+        `# Log\nrow for ${agent}\n`,
+      );
+      const runtime = createDefaultRuntime();
+      const ws = syncWithDroppedPush(wikiDir, parent, runtime);
+      const result = await ws.commitAndPush("wiki: push");
+      const laneRow = result.detections.find(
+        (d) => d.contentId === `row for ${agent}`,
+      );
+      assert.ok(laneRow, `lane ${agent} row should be detected`);
+      assert.equal(laneRow.tier, 1);
+      assert.equal(laneRow.pushHome, `${agent}-2026-W21.md`);
+    }
+  });
+
+  test("runPushCommand renders a tier-1 detection in its output", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "t1-render");
+    git(wikiDir, "checkout", "master");
+    git(wikiDir, "config", "user.email", EMAIL);
+    writeFileSync(join(wikiDir, `${AGENT}-2026-W21.md`), "# Log\nrender row\n");
+    const harness = makeRuntime({ cwd: parent });
+    const ws = syncWithDroppedPush(wikiDir, parent, harness.runtime);
+    const ctx = ctxFor({ runtime: harness.runtime, wikiSync: ws });
+    const result = await runPushCommand(ctx);
+    assert.equal(result.ok, true);
+    assert.match(harness.stdout, /push: committed and pushed/);
+    assert.match(harness.stdout, /integrity\[tier 1\]/);
+    assert.match(harness.stdout, /render row/);
   });
 });
