@@ -66,20 +66,33 @@ export class WikiSyncConflict extends Error {
 }
 
 /**
- * Reason a {@link WikiSync.commitAndPush} flow refused to publish, surfaced in
- * the result rather than thrown so callers reading the result keep working.
+ * The refusal reason taxonomy for {@link WikiSync.commitAndPush}. A refusal is
+ * surfaced in the result rather than thrown, so callers reading the result keep
+ * working; `WikiSyncRefusal.result(reason, details)` builds that result object.
  * `reason` is one of `mid-merge`, `stranded-merge`, `would-publish-markers`,
  * `introduced-scan-failed`; `workAt` (only for `stranded-merge`) names where
  * retained work lives. The reason set is additive to the existing `clean` and
  * `pushed` outcomes — the seam with spec 1780's refusal taxonomy.
  */
-export class WikiSyncRefusal extends Error {
-  /** @param {string} reason - The refusal reason class. @param {{workAt?: string}} [details] */
-  constructor(reason, { workAt } = {}) {
-    super(`wiki sync refused: ${reason}`);
-    this.name = "WikiSyncRefusal";
-    this.reason = reason;
-    if (workAt) this.workAt = workAt;
+export class WikiSyncRefusal {
+  /** @type {readonly string[]} The recognized refusal reasons. */
+  static REASONS = Object.freeze([
+    "mid-merge",
+    "stranded-merge",
+    "would-publish-markers",
+    "introduced-scan-failed",
+  ]);
+
+  /**
+   * Build a `commitAndPush` refusal result.
+   * @param {string} reason - One of {@link WikiSyncRefusal.REASONS}.
+   * @param {{workAt?: string}} [details] - `workAt` names where retained work lives.
+   * @returns {{pushed: false, reason: string, workAt?: string}}
+   */
+  static result(reason, { workAt } = {}) {
+    const result = { pushed: false, reason };
+    if (workAt) result.workAt = workAt;
+    return result;
   }
 }
 
@@ -256,7 +269,7 @@ export class WikiSync {
     // silently "complete" the merge and publish the markers. Decidable from
     // the index/working tree alone, so it holds on a shallow clone.
     if (await this.#git.isMidMerge({ cwd: this.#wikiDir })) {
-      return { pushed: false, reason: "mid-merge" };
+      return WikiSyncRefusal.result("mid-merge");
     }
     await this.#assertPublishable();
     if (!(await this.isClean(paths))) {
@@ -296,7 +309,7 @@ export class WikiSync {
       });
       if (merge.exitCode !== 0) {
         await this.#git.mergeAbort({ cwd: this.#wikiDir });
-        return { pushed: false, reason: "stranded-merge", workAt: "stash" };
+        return WikiSyncRefusal.result("stranded-merge", { workAt: "stash" });
       }
     }
     // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
@@ -312,14 +325,14 @@ export class WikiSync {
         cwd: this.#wikiDir,
       });
     } catch {
-      return { pushed: false, reason: "introduced-scan-failed" };
+      return WikiSyncRefusal.result("introduced-scan-failed");
     }
     for (const [filePath, addedText] of introduced) {
       const hits = scanConflictMarkers(addedText, {
         fenceExempt: pushFenceExempt(filePath),
       });
       if (hits.length > 0) {
-        return { pushed: false, reason: "would-publish-markers" };
+        return WikiSyncRefusal.result("would-publish-markers");
       }
     }
     // Capture the pushed delta now: HEAD is the final (rebased/merged) local

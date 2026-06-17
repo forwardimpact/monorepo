@@ -94,6 +94,17 @@ describe("scanConflictMarkers", () => {
     assert.deepEqual(scanConflictMarkers(text), []);
   });
 
+  test("fires on a bare CRLF marker block (CR before the line ending)", () => {
+    // A CRLF checkout leaves "<<<<<<<\r" / ">>>>>>>\r"; the CR must not let an
+    // unlabeled block escape the anchor.
+    const text = "<<<<<<<\r\nours\r\n=======\r\ntheirs\r\n>>>>>>>\r\n";
+    assert.deepEqual(kinds(scanConflictMarkers(text)), [
+      "open",
+      "separator",
+      "close",
+    ]);
+  });
+
   test("separator inside an open block but tilde-fenced is still suppressed when prose", () => {
     const text = ["~~~", "<<<<<<< a", "=======", ">>>>>>> b", "~~~"].join("\n");
     assert.deepEqual(scanConflictMarkers(text, { fenceExempt: true }), []);

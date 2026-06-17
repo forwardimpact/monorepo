@@ -50,7 +50,10 @@ export function scanConflictMarkers(text, { fenceExempt = true } = {}) {
   let insideFence = false;
   let openDepth = 0;
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    // Strip a trailing CR so a CRLF checkout is matched identically to LF — a
+    // bare marker (`<<<<<<<\r`) would otherwise escape the `( |$)` anchor and
+    // a CRLF corruption block would publish undetected.
+    const line = lines[i].replace(/\r$/, "");
     if (FENCE_RE.test(line)) {
       insideFence = !insideFence;
       continue;
