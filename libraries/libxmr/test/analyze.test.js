@@ -65,6 +65,45 @@ describe("analyze", () => {
     assert.strictEqual(m.signals.mrRule1.length, 1);
   });
 
+  test("all-zero series at the window → predictable / degenerate-zero", () => {
+    const csv = makeCSV(
+      "flat",
+      Array.from({ length: 15 }, () => 0),
+    );
+    const m = analyze(csv).metrics[0];
+    assert.strictEqual(m.status, "predictable");
+    assert.strictEqual(m.classification, "degenerate-zero");
+  });
+
+  test("distinguishes degenerate-zero from substantive stable", () => {
+    const flat = analyze(
+      makeCSV(
+        "flat",
+        Array.from({ length: 15 }, () => 0),
+      ),
+    ).metrics[0];
+    const stable = analyze(
+      makeCSV(
+        "stable",
+        Array.from({ length: 20 }, (_, i) => 10 + (i % 2)),
+      ),
+    ).metrics[0];
+    assert.strictEqual(flat.status, "predictable");
+    assert.strictEqual(stable.status, "predictable");
+    assert.strictEqual(flat.classification, "degenerate-zero");
+    assert.strictEqual(stable.classification, "stable");
+  });
+
+  test("all-zero series below the window → insufficient (boundary unchanged)", () => {
+    const csv = makeCSV(
+      "flat",
+      Array.from({ length: 14 }, () => 0),
+    );
+    const m = analyze(csv).metrics[0];
+    assert.strictEqual(m.status, "insufficient_data");
+    assert.strictEqual(m.classification, "insufficient");
+  });
+
   test("exposes raw stats and full series for chart rendering", () => {
     const csv = makeCSV(
       "ex",

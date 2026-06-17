@@ -63,6 +63,19 @@ all rows.
              1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
 ```
 
+## Classifications
+
+`analyze` stamps each metric with a `classification` that names its
+process-behavior shape:
+
+| Classification    | Meaning                                                                   |
+| ----------------- | ------------------------------------------------------------------------- |
+| `stable`          | Predictable: no rules fire and the series varies within its limits.       |
+| `signals`         | At least one X-chart rule fired. Investigate what changed.                |
+| `chaos`           | mR Rule 1 fired. The variation itself is unstable; limits are unreliable. |
+| `insufficient`    | Fewer than 15 points. Limits are not computed.                            |
+| `degenerate-zero` | Predictable, but every observation equals zero — no variation around zero, so the series carries no process signal and a predictability target is not substantively met by it. |
+
 ## Documentation
 
 - [Chart a Metric and Check Variation](https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md)

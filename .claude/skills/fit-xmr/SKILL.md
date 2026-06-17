@@ -150,9 +150,9 @@ description), `latest` observation, and `stats` (μ, R, σ̂, UPL, LPL, URL, zon
 bounds).
 
 `status` is one of `predictable`, `signals_present`, or `insufficient_data` (n <
-15 — limits not computed). `classification` rolls these up into `stable`,
-`signals` (X chart rule fires), `chaos` (mR Rule 1 fires — variation itself is
-unstable, making X-chart limits unreliable), or `insufficient`.
+15). `classification` rolls these up into `stable`, `signals` (X chart rule
+fires), `chaos` (mR Rule 1 fires — limits unreliable), `insufficient`, or
+`degenerate-zero` (every observation zero — no signal at all).
 
 `summarize` reduces the report to a markdown table with a compact signal column
 (`R1×k`, `R2×len`, `R3×slots`, `mR1×k`). See the linked guide for the full JSON

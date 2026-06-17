@@ -50,4 +50,28 @@ describe("classify", () => {
   test("missing signals object → stable", () => {
     assert.strictEqual(classify({}), "stable");
   });
+
+  test("all-zero series with no signals → degenerate-zero", () => {
+    assert.strictEqual(
+      classify({ signals: empty, values: [0, 0, 0] }),
+      "degenerate-zero",
+    );
+  });
+
+  test("positive-variation series with no signals → stable (distinct shape)", () => {
+    assert.strictEqual(
+      classify({ signals: empty, values: [10, 11, 10, 11] }),
+      "stable",
+    );
+  });
+
+  test("a signal on an all-zero series wins over degenerate-zero", () => {
+    assert.strictEqual(
+      classify({
+        signals: { ...empty, xRule1: [{ slots: [3] }] },
+        values: [0, 0, 0],
+      }),
+      "signals",
+    );
+  });
 });
