@@ -2,7 +2,17 @@ name: "Publish: Native"
 
 on:
   push:
-    tags: ["native@v*"]
+    # Product release tags. publish-native builds every native binary once and
+    # publishes them as release assets; publish-brew (on release:published) and
+    # publish-macos (chained off brew) consume them — neither compiles a binary.
+    tags:
+      - "outpost@v*"
+      - "guide@v*"
+      - "landmark@v*"
+      - "map@v*"
+      - "pathway@v*"
+      - "summit@v*"
+      - "gear@v*"
 
 permissions:
   contents: read
@@ -48,14 +58,26 @@ jobs:
             install -m 0755 "$bin" "dist/release/$key"
             cp "$bin.sha256" "dist/release/$key.sha256"
           done
-      - name: Create or reuse GitHub Release
+      # Create the release with an App token, not GITHUB_TOKEN: releases authored
+      # by GITHUB_TOKEN do not trigger other workflows, so publish-brew's
+      # release:published trigger would never fire.
+      - name: Generate installation token
+        id: ci-app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.KATA_APP_ID }}
+          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+
+      # Create the release as a draft, upload the binaries, then publish last.
+      # release:published — which triggers publish-brew.yml — fires only after
+      # the assets exist, so brew never sees an asset-less release and cannot
+      # race the upload.
+      - name: Publish release with native binaries
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
-            --title "$GITHUB_REF_NAME" --generate-notes 2>/dev/null \
-            || echo "Release $GITHUB_REF_NAME already exists"
-      - name: Upload binaries + checksums
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber dist/release/*
+            --title "$GITHUB_REF_NAME" --generate-notes --draft 2>/dev/null \
+            || echo "Draft release $GITHUB_REF_NAME already exists"
+          gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber dist/release/*
+          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false
