@@ -81,6 +81,48 @@ describe("checkInstructions", () => {
     assert.match(f.message, /agent reference/);
   });
 
+  test("admits kata-release-merge SKILL.md above the default L5 cap", async () => {
+    // 250 lines exceeds the 192-line default skill cap but stays under the
+    // kata-release-merge override (320) — proves the per-skill budget applies.
+    const oversize = "line\n".repeat(250);
+    const findings = await checkInstructions({
+      root: ROOT,
+      runtime: runtimeWith({
+        [`${ROOT}/.claude/skills/kata-release-merge/SKILL.md`]: oversize,
+      }),
+    });
+    const f = findings.find(
+      (x) =>
+        x.id === "instructions.line-budget" &&
+        x.path.endsWith("kata-release-merge/SKILL.md"),
+    );
+    assert.equal(
+      f,
+      undefined,
+      `expected no line-budget finding under the override, got: ${JSON.stringify(findings)}`,
+    );
+  });
+
+  test("flags kata-release-merge SKILL.md above its override cap", async () => {
+    const oversize = "line\n".repeat(330);
+    const findings = await checkInstructions({
+      root: ROOT,
+      runtime: runtimeWith({
+        [`${ROOT}/.claude/skills/kata-release-merge/SKILL.md`]: oversize,
+      }),
+    });
+    const f = findings.find(
+      (x) =>
+        x.id === "instructions.line-budget" &&
+        x.path.endsWith("kata-release-merge/SKILL.md"),
+    );
+    assert.ok(
+      f,
+      `expected a line-budget finding above the override, got: ${JSON.stringify(findings)}`,
+    );
+    assert.match(f.message, /kata-release-merge skill procedure/);
+  });
+
   test("flags a checklist that exceeds 9 items", async () => {
     const items = Array.from({ length: 12 }, (_, i) => `- [ ] item ${i + 1}.`);
     const skill = [

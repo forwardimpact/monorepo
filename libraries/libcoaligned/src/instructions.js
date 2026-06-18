@@ -184,7 +184,24 @@ async function buildLayers(root, fs) {
         name: "skill procedure",
         maxLines: 192,
         maxWords: 1280,
-        files: skillDirs.map((d) => `${d}/SKILL.md`),
+        files: skillDirs
+          .map((d) => `${d}/SKILL.md`)
+          .filter((p) => !p.endsWith("/kata-release-merge/SKILL.md")),
+      },
+      {
+        id: "L5",
+        name: "kata-release-merge skill procedure",
+        // Larger than the L5 default to absorb four consolidated merge-gate
+        // rule sets that govern adjacent corners of one gate: phase-PR review
+        // transfer (pin-based head coverage), post-panel coverage (folded into
+        // the pin mechanism rather than duplicated), the spec-less
+        // experiment-PR approval path, and the block-comment re-ping cadence.
+        // Sized to the consolidated content, not open-ended.
+        maxLines: 320,
+        maxWords: 2304,
+        files: skillDirs
+          .map((d) => `${d}/SKILL.md`)
+          .filter((p) => p.endsWith("/kata-release-merge/SKILL.md")),
       },
       {
         id: "L6",
