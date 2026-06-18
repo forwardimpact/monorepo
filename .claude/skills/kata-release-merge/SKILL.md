@@ -1,17 +1,17 @@
 ---
 name: kata-release-merge
 description: >
-  Merge gate for open pull requests. Verify contributor trust, classify PR
-  type, rebase on main, fix mechanical CI failures, gate on `wiki/STATUS.md`
-  approval state, and merge passing PRs. Sole external merge point.
+  Merge gate for open pull requests. Verify contributor trust, classify PR type,
+  rebase on main, fix mechanical CI failures, gate on `wiki/STATUS.md` approval
+  state, and merge passing PRs. Sole external merge point.
 ---
 
 # Release Merge
 
-Verify every open non-Dependabot PR — external contributions and
-kata-agent-team PRs alike — against six gates (trust, type, CI, mechanical
-readiness, approval, open comments) and merge those that pass. Contributor
-trust is the most critical gate — record each advanced PR's trust check in memory.
+Verify every open non-Dependabot PR — external contributions and kata-agent-team
+PRs alike — against six gates (trust, type, CI, mechanical readiness, approval,
+open comments) and merge those that pass. Contributor trust is the most critical
+gate — record each advanced PR's trust check in memory.
 
 ## When to Use
 
@@ -52,17 +52,17 @@ Skip PRs authored by `app/dependabot` — handled by `kata-security-update`.
 
 ### Step 2: Verify Contributor Trust
 
-Check the author: `gh pr view <number> --json author --jq '.author.login'`.
-If `app/kata-agent-team`, the PR is **trusted by definition**. Otherwise, look
-up the top 7 human contributors:
+Check the author: `gh pr view <number> --json author --jq '.author.login'`. If
+`app/kata-agent-team`, the PR is **trusted by definition**. Otherwise, look up
+the top 7 human contributors:
 
 ```sh
 gh api repos/{owner}/{repo}/contributors \
   --jq '[.[] | select(.type == "User")] | .[0:7] | .[].login'
 ```
 
-The PR author must appear in this list. If not, mark **blocked** (this
-lookup must run on every classified PR).
+The PR author must appear in this list. If not, mark **blocked** (this lookup
+must run on every classified PR).
 
 ### Step 3: Classify PR Type
 
@@ -84,16 +84,9 @@ gh pr checks <number>
 ```
 
 Clean (mergeable, CI green, up-to-date) → continue to Step 6. Behind, stale, or
-conflicting → rebase (Step 5). CI failing → fix (Step 5) or block.
-
-**Experiment-PR exception (no rebase while pinned).** Before routing a
-behind/stale PR to Step 5, check whether it is an experiment PR (Step 6's
-discriminator) with an `approved`-and-pinned `exp:{issue}` STATUS row. If so,
-**do not rebase it** — a rebase moves the head and silently invalidates the
-pin. Skip Step 5 and take it straight to Step 6, where the head-pin check
-re-blocks it (`awaiting approval signal`) until a fresh human signal covers the
-new base. The rebase exception is decided here, before Step 5 runs, so the
-gate never auto-rebases a pinned experiment PR.
+conflicting → rebase (Step 5). CI failing → fix (Step 5) or block. An
+approved-and-pinned experiment PR never rebases — skip Step 5 and let Step 6
+re-block ([`experiment-path.md`](references/experiment-path.md)).
 
 ### Step 5: Rebase + Mechanical Fixes
 
@@ -121,49 +114,29 @@ and skip to Step 11. Push with `git push --force-with-lease origin <pr-branch>`.
 **Docs fast-path**: A `docs`-typed PR whose changed files are all `.md`/`.mdx`
 passes on trust (Step 2) alone — skip the STATUS check below.
 
-Read `wiki/STATUS.md` for the PR's spec id —
-`grep -P "^${spec_id}(/[a-z0-9-]+)?\t"` matches the master `NNNN` row and any
-`NNNN/<unit>` sub-rows. Pass when the row shows the classified phase at
-`approved` (`implemented` for the terminal plan row); the master row reaches
-`plan implemented` only once every sub-row does. Absent or `draft`/`cancelled`
-→ **blocked** (`awaiting approval signal`). Timestamp ordering between a
-STATUS write and head commits is not coverage evidence; never cite it as such
-in merge rationale. When the PR's review record shows commits landed after
-the last clean review round, fail closed — **blocked** (`review coverage
-unverifiable at head`) — until SHA-anchored evidence covers the gap: a scoped
-delta review of those commits, or a record naming both the reviewed SHA and
-the head (interim — retires when approval rows carry a commit pin). Labels
-and APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See
-[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
+Read `wiki/STATUS.md` for the PR's spec id — `grep -P "^${spec_id}(/[a-z0-9-]+)?\t"` matches the master `NNNN` row and any `NNNN/<unit>` sub-rows. Pass when the row shows the classified phase at `approved` (`implemented` for the terminal plan row); the master row reaches `plan implemented` only once every sub-row does. Absent or `draft`/`cancelled` → **blocked** (`awaiting approval signal`). STATUS-vs-head timestamp ordering is not coverage evidence: when commits land after the last clean review round, fail closed — **blocked** (`review coverage unverifiable at head`) — until a scoped delta review or a reviewed-SHA-plus-head record covers the gap. Labels and APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See [`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
 
-**Experiment PRs.** An implementation-typed PR referencing no spec id whose
-lineage is a single experiment-labeled issue with a named owning agent takes
-the experiment path instead of the spec-row read above: a resolution-based
-discriminator (ambiguous, owner-less, both-match, zero, or multiple references
-block fail-closed), an `exp:{issue}` STATUS read across `registered` /
-`approved` / `cancelled` (absent/`registered`/`cancelled` →
-`awaiting approval signal`; a `cancelled` row blocks even if once approved),
-and a head-pin re-block — `approved` passes only when the pinned SHA equals the
-PR head; any later commit, **including a gate rebase, re-blocks**, so do not
-rebase an approved-and-pinned experiment PR. At a consecutive-block count of 3
-the gate re-surfaces the signal request rather than silently re-blocking. Full
-algorithm: [`experiment-path.md`](references/experiment-path.md).
+**Experiment PRs** (no spec id, one experiment-labeled issue with a named owner)
+take the experiment path instead of the spec-row read — fail-closed
+discriminator, `exp:{issue}` STATUS read, head-pin re-block:
+[`experiment-path.md`](references/experiment-path.md).
 
 ### Step 7: Open Comment Gate
 
-If any top-7 human contributor's most-recent PR comment is an unresolved
-concern not accepted by a **later** same-human comment, mark **blocked**
-(`awaiting trusted-contributor reply`). See [`comment-gate.md`](references/comment-gate.md) for the resolution model.
+If any top-7 human contributor's most-recent PR comment is an unresolved concern
+not accepted by a **later** same-human comment, mark **blocked**
+(`awaiting trusted-contributor reply`). See
+[`comment-gate.md`](references/comment-gate.md) for the resolution model.
 
 ### Step 8: Coordinating Issue Announcement (self-heal)
 
-If no comment on the PR's coordinating issue (`Fixes #N` and variants) names
-the PR, post the cross-link yourself and log the adherence miss — **self-heal,
-never block** — so a parallel run sees the fix in flight. Probe sibling PRs on
-the same issue (`--state all`, paired with the issue-comment scan — index
-search alone lags) and resolve duplicates there before merging any. Details:
-[`announcement-backstop.md`](references/announcement-backstop.md); no
-coordinating issue → skip.
+If no comment on the PR's coordinating issue (`Fixes #N` and variants) names the
+PR, post the cross-link yourself and log the adherence miss — **self-heal, never
+block** — so a parallel run sees the fix in flight. Probe sibling PRs on the same
+issue (`--state all`, paired with the issue-comment scan — index search alone
+lags) and resolve duplicates there before merging any. Details:
+[`announcement-backstop.md`](references/announcement-backstop.md); no coordinating
+issue → skip.
 
 ### Step 9: Implementation PR Spec Check
 
@@ -175,15 +148,10 @@ spec id (e.g. `feat(...): … (#NNN)` or "implements spec NNN"):
 - Update `wiki/STATUS.md` before merging — set the spec's row to
   `{NNN}\tplan\timplemented`. Commit the wiki change; the Stop hook pushes it.
 
-For an **experiment PR** that took the experiment path at Step 6 and passed
-there, run the diff-scope check in place of the spec check: every changed file
-must match a glob in the execution plan registered on the experiment issue;
-any out-of-surface file blocks. Agent-profile and skill self-edit paths pass
-only when a registered glob names them and the head pin holds. Merge does
-**not** advance the row. See
-[`experiment-path.md`](references/experiment-path.md).
-
-Other PRs not referencing a spec (one-off fixes, doc patches) skip this step.
+An **experiment PR** that passed Step 6 runs the diff-scope check in place of
+this check, not advancing the row
+([`experiment-path.md`](references/experiment-path.md)). Other PRs not referencing
+a spec (one-off fixes, doc patches) skip this step.
 
 ### Step 10: Merge Mergeable PRs
 
@@ -207,11 +175,11 @@ Append to the current week's log:
 - **Contributor trust decisions** — one row per advanced PR
 - **STATUS rows consumed and written** — gate reads, `plan implemented` writes
 - **PRs merged this run** and **merge failures** with reasons
-- **Announcement outcomes** — every run: issue-fix PR count + heals posted
-  with authoring lane, zero-heal rows included (duplicate-PR falsifier series)
-- **Experiment-PR timestamps** — Per experiment PR merged, record the PR-open,
-  human-signal, merge, and (when present) experiment-verdict timestamps, so
-  verdict→merge and request→signal latency are derivable.
+- **Announcement outcomes** — every run: issue-fix PR count + heals posted with
+  authoring lane, zero-heal rows included (duplicate-PR falsifier series)
+- **Experiment-PR timestamps** — Per experiment PR merged, record PR-open,
+  human-signal, merge, and (when present) verdict timestamps
+  ([`experiment-path.md`](references/experiment-path.md)).
 - **Metrics** — Append `prs_merged` and `approvals_recorded_per_run` rows per
   `references/metrics.md` (collection recipe included). See KATA.md § Metrics
   for the recording-eligibility rule.
@@ -219,7 +187,5 @@ Append to the current week's log:
 ## Coordination Channels
 
 Outputs (per [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
-**PR comment** for trust rationale, gate failures, merge decisions; **PR
-thread escalation** for cross-agent requests addressed by name. Ambiguous
-inbound comments → follow [coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+**PR comment** for trust rationale, gate failures, merge decisions; **PR thread escalation** for cross-agent requests addressed by name. Ambiguous inbound comments → follow [coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
 Hold every PR comment to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
