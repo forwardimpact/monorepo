@@ -3,7 +3,7 @@ import { AncestryRefusal, WikiPullConflict } from "../wiki-sync.js";
 import { sweepTier2, renderDetections } from "../integrity.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 
-/** Commit all wiki changes and push them to the remote wiki repository. The post-push tier-1 integrity detections (spec 1960) surface in the output; they never gate the push. */
+/** Commit all wiki changes and push them to the remote wiki repository. The post-push tier-1 integrity detections surface in the output; they never gate the push. */
 export async function runPushCommand(ctx) {
   const { runtime, wikiSync } = ctx.deps;
   await wikiSync.inheritIdentity();
@@ -29,7 +29,7 @@ export async function runPushCommand(ctx) {
   return { ok: true };
 }
 
-/** Fetch and rebase the local wiki on origin/master; on rebase conflict, return a non-zero envelope with a message to resolve manually or push first. After a clean pull, the tier-2 lane-record sweep (spec 1960) surfaces any previous-session content absent at the fetched tip; it never gates the boot. */
+/** Fetch and rebase the local wiki on origin/master; on rebase conflict, return a non-zero envelope with a message to resolve manually or push first. After a clean pull, the tier-2 lane-record sweep surfaces any previous-session content absent at the fetched tip; it never gates the boot. */
 export async function runPullCommand(ctx) {
   const { runtime, wikiSync, gitClient } = ctx.deps;
   await wikiSync.inheritIdentity();

@@ -281,8 +281,8 @@ export class WikiSync {
   }
 
   /**
-   * Tier-1 post-push integrity probe (spec 1960): re-fetch the origin tip and
-   * verify the just-pushed delta — the full delta including shared surfaces —
+   * Tier-1 post-push integrity probe: re-fetch the origin tip and verify the
+   * just-pushed delta — the full delta including shared surfaces —
    * is still content-present, returning detections for any absence. Reads only;
    * any error degrades to no detections so the probe never gates the push.
    * @param {string|null} pushedDelta - `diffRange` text of the pushed delta.
