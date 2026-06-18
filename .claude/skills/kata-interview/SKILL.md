@@ -174,11 +174,9 @@ Classify each for action:
 
 For each actionable finding, with your own `gh`: extract; search for
 duplicates; create a new issue or comment on a matching one (templates in
-`../kata-product-issue/references/templates.md` § New Issues from User
-Testing) naming the JTBD job (`<user>: <goal>`) in the body; add the
-finding to the report table with its issue number.
-
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+`../kata-product-issue/references/templates.md`) naming the JTBD job
+(`<user>: <goal>`) in the body; add it to the report table with its issue
+number, holding each body to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
 
 ### Step 9: Report
 

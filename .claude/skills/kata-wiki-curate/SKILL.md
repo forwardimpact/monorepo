@@ -159,7 +159,7 @@ context beyond the index entry. Remove resolved items within one curation cycle.
 
 ### Publishing changes
 
-Apply [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity) before publishing: cited SHAs must resolve on their referenced repo.
+Hold wiki content to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md) before publishing.
 
 Wiki changes are not visible to other agents until pushed. After committing,
 push the wiki — `cd wiki && git push origin HEAD:master` (or let the `Stop`

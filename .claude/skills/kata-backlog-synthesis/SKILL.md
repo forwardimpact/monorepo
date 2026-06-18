@@ -168,12 +168,9 @@ This skill produces these non-wiki outputs (per
 - **PR body** — Consolidated spec/design PR carries an Addresses overview
   listing the issues closed and the PRs it supersedes.
 - **Issue/PR close** — Addressed issues and superseded PRs closed as duplicate,
-  each commenting the spec link; never on out-of-scope items.
+  each commenting the spec link (held to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md)); never on out-of-scope items.
 - **Storyboard headline** — The next storyboard meeting after a sweep surfaces
   the consolidated PR as a Q1 target-condition reference.
 
-Apply [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity) before publishing: cited SHAs must resolve on their referenced repo.
-
 If two storyboard meetings pass without the spec PR approved, file an
-obstacle — the consolidated PR is itself subject to the binding constraint
-the spec proposed.
+obstacle — the consolidated PR is subject to the spec's constraint.
