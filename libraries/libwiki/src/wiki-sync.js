@@ -72,7 +72,8 @@ export class WikiSyncConflict extends Error {
  * `reason` is one of `mid-merge`, `stranded-merge`, `would-publish-markers`,
  * `introduced-scan-failed`; `workAt` (only for `stranded-merge`) names where
  * retained work lives. The reason set is additive to the existing `clean` and
- * `pushed` outcomes — the seam with spec 1780's refusal taxonomy.
+ * `pushed` outcomes, so a future refusal taxonomy on this flow can union new
+ * reasons in without rewriting the existing ones.
  */
 export class WikiSyncRefusal {
   /** @type {readonly string[]} The recognized refusal reasons. */

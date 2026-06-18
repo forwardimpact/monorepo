@@ -414,7 +414,7 @@ describe("WikiSync", () => {
     });
   });
 
-  // -- spec 1890 publish guards (criteria 7–11) --
+  // -- commit-and-push conflict-marker publish guards --
 
   const MARKER_ADDED = [
     "<<<<<<< HEAD",

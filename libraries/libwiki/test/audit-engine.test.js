@@ -365,7 +365,7 @@ describe("runRules", () => {
     assert.ok(!idsOf(audit(seed)).includes("wiki.stray-file"));
   });
 
-  // -- conflict.markers (spec 1890, criteria 1–6) --
+  // -- conflict.markers audit rule: structural conflict-block detection --
 
   const OPEN = "<<<<<<< HEAD";
   const SEP = "=======";
