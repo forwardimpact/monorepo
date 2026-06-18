@@ -64,13 +64,25 @@ with no output.
 
 ## Local composite actions
 
-Under `actions/`, referenced as `./.github/actions/<name>`:
+Workflow jobs read as a sequence of `uses:` steps — **not** walls of inline
+bash. Any step that is reused, exceeds a few lines, or is a self-contained unit
+of logic (resolve, build, sign, notarize, smoke, publish) lives as a composite
+action under `actions/` and is invoked by name. Workflows orchestrate; actions
+implement — keeping critical release logic lintable and reviewable in one place.
+Pass secrets as `inputs:` (composite actions cannot read `secrets.*` directly).
+
+Referenced as `./.github/actions/<name>`:
 
 | Action | Purpose |
 |---|---|
 | `audit` | `npm audit` + gitleaks secret scanning |
 | `coaligned-check` | `bunx coaligned` checks (instructions, jtbd) |
-| `macos-signing` | Import Developer ID certs into a temp keychain for codesign/productbuild |
+| `macos-signing` | Import Developer ID certs into a temp keychain |
+| `notarize` | Notarize + staple a `.app`/`.pkg` via the notary API |
+| `resolve-package` | npm name + workspace dir from a `<pkg>@v*` tag |
+| `npm-smoke` | Pack, install, and run a package in isolation |
+| `npm-launcher-smoke` | Stamp, pack, assert launcher resolution pre-publish |
+| `npm-publish` | Idempotent, ownership-checked npm publish |
 
 **Path resolution:** `uses: ./path` inside a composite action resolves against
 `$GITHUB_WORKSPACE` (the caller's checkout), not the action's own dir. So

@@ -1,0 +1,61 @@
+name: Publish to npm
+description: >
+  Publish the source package and its matching launchers to npm, idempotently.
+  Per package: skip only when the version is already on the registry AND the
+  registry's maintainer ACL contains our publisher ("name exists but we never
+  published it" fails loud, not silently). Source publishes first so no launcher
+  version ever exists without its implementation. Re-running a tag recovers a
+  partial failure: published artifacts skip, the rest complete.
+
+inputs:
+  npm-name:
+    description: The source npm package name
+    required: true
+  dir-name:
+    description: The source workspace directory
+    required: true
+  launcher-dirs:
+    description: Space-separated launcher directories to publish alongside
+    required: false
+    default: ""
+  npm-publisher:
+    description: The expected npm maintainer login (ownership guard)
+    required: true
+  npm-token:
+    description: npm auth token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        NODE_AUTH_TOKEN: ${{ inputs.npm-token }}
+        NPM_NAME: ${{ inputs.npm-name }}
+        DIR_NAME: ${{ inputs.dir-name }}
+        LAUNCHER_DIRS: ${{ inputs.launcher-dirs }}
+        NPM_PUBLISHER: ${{ inputs.npm-publisher }}
+      run: |
+        decide() { # decide <pkg> <ver> <publish-spec...>
+          PKG="$1"; VER="$2"; shift 2
+          set +e; OUT=$(npm view "$PKG@$VER" version 2>&1); CODE=$?; set -e
+          # Skip requires the exact version echoed back — a warning line on
+          # an exit-0 "version absent" response must not read as published.
+          if [ "$CODE" -eq 0 ] && echo "$OUT" | grep -qFx "$VER"; then
+            npm owner ls "$PKG" | grep -q "^$NPM_PUBLISHER " \
+              || { echo "::error::$PKG exists on the registry but is not ours"; exit 1; }
+            echo "::notice::$PKG@$VER already published — skipping"
+          elif [ "$CODE" -eq 0 ] || echo "$OUT" | grep -q "E404"; then
+            # exit 0 with empty output: the package exists but this version
+            # does not (older npm view behavior) — publish.
+            npm publish "$@" --access=public --provenance
+          else
+            echo "$OUT"
+            exit 1
+          fi
+        }
+        SRC_VERSION=$(node -p "require('./$DIR_NAME/package.json').version")
+        decide "$NPM_NAME" "$SRC_VERSION" --workspace="$NPM_NAME"
+        for L in $LAUNCHER_DIRS; do
+          decide "$(basename "$L")" "$SRC_VERSION" "./$L"
+        done

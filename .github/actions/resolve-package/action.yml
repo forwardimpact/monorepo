@@ -1,0 +1,44 @@
+name: Resolve package from tag
+description: >
+  Resolve the npm package name and workspace directory for the current
+  `<name>@v<version>` tag. The tag name reaches the script via the environment,
+  never by interpolation into the source text — ref names may legally contain
+  quotes and shell metacharacters.
+
+outputs:
+  tag_name:
+    description: The tag's package short name (the part before @v)
+    value: ${{ steps.r.outputs.tag_name }}
+  npm_name:
+    description: The resolved npm package name (e.g. @forwardimpact/libxmr)
+    value: ${{ steps.r.outputs.npm_name }}
+  dir_name:
+    description: The workspace directory holding that package
+    value: ${{ steps.r.outputs.dir_name }}
+
+runs:
+  using: composite
+  steps:
+    - id: r
+      shell: bash
+      run: |
+        TAG_NAME="${GITHUB_REF_NAME%%@v*}"
+        echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+        # Workspaces use glob patterns — resolve them with globSync.
+        PKG_JSON=$(TAG_NAME="$TAG_NAME" bun -e "
+          const { globSync } = require('node:fs');
+          const { workspaces } = require('./package.json');
+          const tag = process.env.TAG_NAME;
+          const dirs = workspaces.flatMap(ws => globSync(ws, { withFileTypes: false }));
+          for (const dir of dirs) {
+            try {
+              const pkg = require('./' + dir + '/package.json');
+              if (pkg.name.endsWith('/' + tag)) {
+                console.log(JSON.stringify({ name: pkg.name, path: dir }));
+                break;
+              }
+            } catch {}
+          }
+        ")
+        echo "npm_name=$(echo "$PKG_JSON" | jq -r '.name')" >> "$GITHUB_OUTPUT"
+        echo "dir_name=$(echo "$PKG_JSON" | jq -r '.path')" >> "$GITHUB_OUTPUT"

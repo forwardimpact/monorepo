@@ -1,0 +1,50 @@
+name: Notarize and staple
+description: >
+  Submit a macOS artifact to Apple's notary service and staple the ticket. If
+  `path` is a bundle directory (.app) it is zipped for submission and the
+  bundle itself is stapled; if it is a file (.pkg) it is submitted and stapled
+  directly. The App Store Connect API key is written to a temp file and removed
+  on exit (including on failure).
+
+inputs:
+  path:
+    description: The .app bundle or .pkg file to notarize and staple
+    required: true
+  api-key-base64:
+    description: Base64-encoded App Store Connect API key (.p8)
+    required: true
+  api-key-id:
+    description: App Store Connect API key ID
+    required: true
+  api-issuer:
+    description: App Store Connect API issuer ID
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        ARTIFACT: ${{ inputs.path }}
+        API_KEY_B64: ${{ inputs.api-key-base64 }}
+        API_KEY_ID: ${{ inputs.api-key-id }}
+        API_ISSUER: ${{ inputs.api-issuer }}
+      run: |
+        set -euo pipefail
+        KEY="$RUNNER_TEMP/notary_key.p8"
+        ZIP="$RUNNER_TEMP/notarize.zip"
+        trap 'rm -f "$KEY" "$ZIP"' EXIT
+        printf '%s' "$API_KEY_B64" | base64 --decode > "$KEY"
+
+        if [ -d "$ARTIFACT" ]; then
+          # notarytool consumes an archive; ditto preserves codesign metadata.
+          # The ticket is stapled onto the bundle itself, not the zip.
+          ditto -c -k --sequesterRsrc --keepParent "$ARTIFACT" "$ZIP"
+          SUBMIT="$ZIP"
+        else
+          SUBMIT="$ARTIFACT"
+        fi
+
+        xcrun notarytool submit "$SUBMIT" \
+          --key "$KEY" --key-id "$API_KEY_ID" --issuer "$API_ISSUER" --wait
+        xcrun stapler staple "$ARTIFACT"

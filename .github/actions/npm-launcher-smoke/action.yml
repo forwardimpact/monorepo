@@ -1,0 +1,104 @@
+name: Stamp, pack, and smoke launchers
+description: >
+  Pre-publish gate (registry untouched on failure): stamp each matching launcher
+  with the source's package.json version, pack source + launchers, install all
+  tarballs into a clean dir, then assert per launcher that (1) --help names the
+  invoked bin, (2) the source version resolved from the launcher's own context
+  equals the stamped version, and (3) exactly one physical copy exists, nothing
+  nested under the launcher.
+
+inputs:
+  npm-name:
+    description: The source npm package name
+    required: true
+  dir-name:
+    description: The source workspace directory
+    required: true
+  launcher-dirs:
+    description: Space-separated launcher directories that depend on the source
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        NPM_NAME: ${{ inputs.npm-name }}
+        DIR_NAME: ${{ inputs.dir-name }}
+        LAUNCHER_DIRS: ${{ inputs.launcher-dirs }}
+      run: |
+        SRC_VERSION=$(node -p "require('./$DIR_NAME/package.json').version")
+        for L in $LAUNCHER_DIRS; do
+          (cd "$L" && npm pkg set "version=$SRC_VERSION" "dependencies.$NPM_NAME=$SRC_VERSION")
+        done
+        SKIP_BANNER=$(node -e "
+          const os = require('./${DIR_NAME}/package.json').os ?? [];
+          if (!os.length) process.exit(0);
+          const negated = os.filter(o => o.startsWith('!')).map(o => o.slice(1));
+          const positive = os.filter(o => !o.startsWith('!'));
+          if (negated.includes(process.platform)) { console.log('yes'); process.exit(0); }
+          if (positive.length && !positive.includes(process.platform)) console.log('yes');
+        ")
+        PACK_DIR=$(mktemp -d)
+        npm pack --workspace="$NPM_NAME" --pack-destination="$PACK_DIR"
+        for L in $LAUNCHER_DIRS; do npm pack "./$L" --pack-destination="$PACK_DIR"; done
+        cd "$PACK_DIR"
+        npm init -y
+        # --force downgrades EBADPLATFORM to a warning so the resolution
+        # assertions run even for platform-restricted sources.
+        npm install ./*.tgz --force
+        for L in $LAUNCHER_DIRS; do
+          CLI=$(basename "$L")
+          if [ -z "$SKIP_BANNER" ]; then
+            # Invoke by package path, not node_modules/.bin — the source
+            # tarball ships the same bin names, so the shared install's
+            # .bin shims are a source-vs-launcher collision that --force
+            # resolves arbitrarily; the package path is unambiguous and
+            # still resolves from the launcher's own context.
+            OUT=$(timeout 30 node "node_modules/$CLI/bin/$CLI.js" --help)
+            echo "$OUT" | grep -qF "$CLI" \
+              || { echo "::error::$CLI --help banner does not name $CLI"; exit 1; }
+          else
+            echo "::notice::Skipping $CLI banner run — source os field excludes this platform"
+          fi
+          CLI="$CLI" NPM_NAME="$NPM_NAME" SRC_VERSION="$SRC_VERSION" node --input-type=module <<'EOF'
+        import { createRequire } from "node:module";
+        import { dirname, join, resolve } from "node:path";
+        import { existsSync, readFileSync } from "node:fs";
+        const { CLI, NPM_NAME, SRC_VERSION } = process.env;
+        // Resolve the bin subpath, not <src>/package.json — most sources do
+        // not export ./package.json, and a top-level read is vacuous for
+        // the wrong-pin-at-published-version case this assertion catches.
+        const req = createRequire(resolve(`node_modules/${CLI}/bin/${CLI}.js`));
+        const binPath = req.resolve(`${NPM_NAME}/bin/${CLI}.js`);
+        const pkg = JSON.parse(
+          readFileSync(join(dirname(binPath), "../package.json"), "utf8"),
+        );
+        if (pkg.version !== SRC_VERSION) {
+          console.error(`::error::${CLI} resolves ${NPM_NAME}@${pkg.version}, expected ${SRC_VERSION}`);
+          process.exit(1);
+        }
+        if (existsSync(`node_modules/${CLI}/node_modules`)) {
+          console.error(`::error::${CLI} nests its own ${NPM_NAME} copy — the launcher would run the wrong code`);
+          process.exit(1);
+        }
+        EOF
+          # A physical copy carries "resolved" in npm ls --json; deduped
+          # references are bare {version} objects (npm 10).
+          npm ls "$NPM_NAME" --all --json | NPM_NAME="$NPM_NAME" SRC_VERSION="$SRC_VERSION" CLI="$CLI" node -e "
+            const data = JSON.parse(require('node:fs').readFileSync(0, 'utf8'));
+            const { NPM_NAME, SRC_VERSION, CLI } = process.env;
+            let copies = 0;
+            const versions = new Set();
+            (function walk(node) {
+              for (const [name, dep] of Object.entries(node.dependencies ?? {})) {
+                if (name === NPM_NAME && dep.resolved && !dep.deduped) { copies++; versions.add(dep.version); }
+                walk(dep);
+              }
+            })(data);
+            if (copies !== 1 || !versions.has(SRC_VERSION)) {
+              console.error(\`::error::expected one physical \${NPM_NAME}@\${SRC_VERSION} for \${CLI} — found \${copies} copy(ies) at [\${[...versions].join(', ')}]\`);
+              process.exit(1);
+            }
+          "
+        done

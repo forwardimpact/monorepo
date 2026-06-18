@@ -1,0 +1,64 @@
+name: Smoke-test npm package
+description: >
+  Pack the workspace package, install the tarball into a clean directory, and
+  execute its main entry (import) and CLI bin (--help) in true isolation —
+  catching tarballs that omit transitive sources. Skips the install when the
+  package's `os` field excludes the runner platform.
+
+inputs:
+  npm-name:
+    description: The npm package name to pack and smoke
+    required: true
+  dir-name:
+    description: The workspace directory holding the package
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        NPM_NAME: ${{ inputs.npm-name }}
+        DIR_NAME: ${{ inputs.dir-name }}
+      run: |
+        # Skip smoke install when the package's `os` field excludes the runner's
+        # platform (npm install would fail with EBADPLATFORM). Negated entries
+        # (e.g. "!win32") exclude that platform; positive entries form an
+        # allowlist. Empty/missing field → install everywhere.
+        SKIP=$(node -e "
+          const p = require('./${DIR_NAME}/package.json');
+          const os = Array.isArray(p.os) ? p.os : [];
+          if (!os.length) process.exit(0);
+          const negated = os.filter(o => o.startsWith('!')).map(o => o.slice(1));
+          const positive = os.filter(o => !o.startsWith('!'));
+          const platform = process.platform;
+          if (negated.includes(platform)) { console.log('yes'); process.exit(0); }
+          if (positive.length && !positive.includes(platform)) console.log('yes');
+        ")
+        if [ -n "$SKIP" ]; then
+          echo "::notice::Skipping smoke install for $NPM_NAME — package os field excludes $(node -e 'console.log(process.platform)')"
+          exit 0
+        fi
+        PACK_DIR=$(mktemp -d)
+        # prepack/postpack lifecycle banners print to stdout ahead of the
+        # tarball filename, so keep only the last line of npm pack output.
+        TARBALL=$(npm pack --workspace="$NPM_NAME" --pack-destination="$PACK_DIR" | tail -n 1)
+        cd "$PACK_DIR"
+        npm init -y
+        npm install "$TARBALL" --force
+        # Execute the main entry point (skip for bin-only or subpath-only packages).
+        # require.resolve only proves the path exists — import() executes the
+        # module graph, catching tarballs that omit transitive sources
+        # (npm pack silently drops symlinked directories from the packlist).
+        HAS_MAIN=$(node -e "const p=JSON.parse(require('fs').readFileSync('node_modules/' + process.env.NPM_NAME + '/package.json','utf8')); if(p.main||(p.exports&&(typeof p.exports==='string'||p.exports['.']))) console.log('yes')")
+        if [ -n "$HAS_MAIN" ]; then
+          node --input-type=module -e "await import(process.env.NPM_NAME)"
+        fi
+        # Execute the CLI entry point with --help. Dependencies resolve from
+        # the registry during the tarball install above, so the bin runs in
+        # true isolation; the timeout guards against a bin that blocks on input.
+        BIN=$(node -e "const p=JSON.parse(require('fs').readFileSync('node_modules/' + process.env.NPM_NAME + '/package.json','utf8')); const b=Object.values(p.bin||{})[0]; if(b) console.log(b)")
+        if [ -n "$BIN" ]; then
+          timeout 30 node "node_modules/$NPM_NAME/$BIN" --help
+        fi
+        rm -rf "$PACK_DIR"

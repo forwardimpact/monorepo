@@ -160,21 +160,12 @@ jobs:
 
       - name: Notarize and staple app
         if: steps.signing.outputs.enabled == 'true'
-        env:
-          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
-          API_KEY_B64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
-          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          API_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
-        run: |
-          set -euo pipefail
-          BUNDLE="dist/apps/${BUNDLE_NAME}"
-          KEY="$RUNNER_TEMP/api_key.p8"
-          trap 'rm -f "$KEY" "$RUNNER_TEMP/notarize.zip"' EXIT
-          printf '%s' "$API_KEY_B64" | base64 --decode > "$KEY"
-          ditto -c -k --sequesterRsrc --keepParent "$BUNDLE" "$RUNNER_TEMP/notarize.zip"
-          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" \
-            --key "$KEY" --key-id "$API_KEY_ID" --issuer "$API_ISSUER" --wait
-          xcrun stapler staple "$BUNDLE"
+        uses: ./.github/actions/notarize
+        with:
+          path: dist/apps/${{ needs.meta.outputs.bundle_name }}
+          api-key-base64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
+          api-key-id: ${{ secrets.APPLE_API_KEY_ID }}
+          api-issuer: ${{ secrets.APPLE_API_ISSUER_ID }}
 
       - name: Verify app is signed, notarized, and stapled
         if: steps.signing.outputs.enabled == 'true'
@@ -204,30 +195,26 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent "$BUNDLE" "dist/release/${ASSET}"
           shasum -a 256 "dist/release/${ASSET}" | awk '{print $1}' > "dist/release/${ASSET}.sha256"
 
-      - name: Build, sign, notarize, and staple .pkg
+      - name: Build .pkg
         if: needs.meta.outputs.name == 'outpost'
         env:
           VERSION: ${{ needs.meta.outputs.version }}
-          SIGNING_ENABLED: ${{ steps.signing.outputs.enabled }}
-          API_KEY_B64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
-          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          API_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
         run: |
           set -euo pipefail
           # Wrap the same signed + notarized + stapled app built above — no
           # rebuild, no re-download. build-pkg.sh signs the .pkg with the
           # installer identity (MACOS_INSTALLER_IDENTITY) when set.
           bash products/outpost/pkg/macos/build-pkg.sh "$PWD/dist/apps" "$VERSION"
-          PKG="dist/apps/fit-outpost-${VERSION}.pkg"
-          cp "$PKG" "dist/release/"
-          if [ "$SIGNING_ENABLED" = "true" ]; then
-            KEY="$RUNNER_TEMP/api_key.p8"
-            trap 'rm -f "$KEY"' EXIT
-            printf '%s' "$API_KEY_B64" | base64 --decode > "$KEY"
-            xcrun notarytool submit "dist/release/fit-outpost-${VERSION}.pkg" \
-              --key "$KEY" --key-id "$API_KEY_ID" --issuer "$API_ISSUER" --wait
-            xcrun stapler staple "dist/release/fit-outpost-${VERSION}.pkg"
-          fi
+          cp "dist/apps/fit-outpost-${VERSION}.pkg" dist/release/
+
+      - name: Notarize and staple .pkg
+        if: needs.meta.outputs.name == 'outpost' && steps.signing.outputs.enabled == 'true'
+        uses: ./.github/actions/notarize
+        with:
+          path: dist/release/fit-outpost-${{ needs.meta.outputs.version }}.pkg
+          api-key-base64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
+          api-key-id: ${{ secrets.APPLE_API_KEY_ID }}
+          api-issuer: ${{ secrets.APPLE_API_ISSUER_ID }}
 
       - name: Upload release-bound package assets
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
