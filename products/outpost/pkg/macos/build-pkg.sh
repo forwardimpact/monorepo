@@ -99,10 +99,18 @@ EOF
 
 # --- Build distribution package ----------------------------------------------
 
+# Sign the installer with a Developer ID Installer identity when provided
+# (set only in the publish workflow, from environment-scoped secrets). Unsigned
+# otherwise, for local builds. Notarization + stapling happen in the workflow.
+INSTALLER_IDENTITY="${MACOS_INSTALLER_IDENTITY:-}"
+SIGN_ARGS=()
+[ -n "$INSTALLER_IDENTITY" ] && SIGN_ARGS=(--sign "$INSTALLER_IDENTITY")
+
 productbuild \
   --distribution "$DIST_XML" \
   --resources "$RESOURCES_DIR" \
   --package-path "$DIST_DIR" \
+  "${SIGN_ARGS[@]}" \
   "$PKG_PATH"
 
 # --- Clean up staging --------------------------------------------------------

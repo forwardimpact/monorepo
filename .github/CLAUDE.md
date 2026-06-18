@@ -5,120 +5,93 @@ actions (`actions/`) they consume.
 
 ## Third-party actions
 
-Five composite actions are published under `forwardimpact/` and
-SHA-pinned with a `# v1` marker on workflow `uses:` lines — sibling
-repos this monorepo maintains, not external dependencies:
+Five actions are published under `forwardimpact/` — sibling repos this
+monorepo maintains, SHA-pinned with a `# v1` marker on `uses:` lines:
 
-| Action | Repo | Purpose |
-|---|---|---|
-| `forwardimpact/fit-bootstrap@v1` | [fit-bootstrap](https://github.com/forwardimpact/fit-bootstrap) | Single source of truth for the FIT CI environment (Bun, cached deps, cached workspace, wiki checkout, `./scripts/bootstrap.sh`) |
-| `forwardimpact/fit-wiki@v1` | [fit-wiki](https://github.com/forwardimpact/fit-wiki) | Run a `fit-wiki` agent-memory command (push, pull, audit), minting a fresh App token first |
-| `forwardimpact/fit-benchmark@v1` | [fit-benchmark](https://github.com/forwardimpact/fit-benchmark) | Coding-agent benchmarks via `fit-benchmark` CLI |
-| `forwardimpact/fit-eval@v1` | [fit-eval](https://github.com/forwardimpact/fit-eval) | Agent task execution via `fit-eval` CLI |
-| `forwardimpact/kata-agent@v1` | [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata workflow (auth, checkout, `fit-bootstrap`, `fit-eval`, `fit-wiki`) |
+| Action (`@v1`) | Purpose |
+|---|---|
+| [fit-bootstrap](https://github.com/forwardimpact/fit-bootstrap) | FIT CI environment: Bun, cached deps/workspace, wiki checkout, `bootstrap.sh` |
+| [fit-wiki](https://github.com/forwardimpact/fit-wiki) | Run a `fit-wiki` agent-memory command (push/pull/audit); mints a fresh App token first |
+| [fit-benchmark](https://github.com/forwardimpact/fit-benchmark) | Coding-agent benchmarks |
+| [fit-eval](https://github.com/forwardimpact/fit-eval) | Agent task execution |
+| [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, fit-bootstrap, fit-eval, fit-wiki) |
 
-`kata-agent` delegates to `fit-bootstrap@v1`, `fit-eval@v1`, and
-`fit-wiki@v1` internally; every workflow calls `fit-bootstrap@v1`
-directly for the CI environment, and the agent workflows call
-`fit-wiki@v1` to push memory back after the run. When changing any
-interface, update and tag the sibling first.
-
-`fit-bootstrap` only **checks out** the wiki (when given a `token`).
-The start-of-job App token expires after one hour, so long
-agent runs push with `fit-wiki@v1` as an `always()` step after the agent,
-which mints a fresh token first.
+Every workflow calls `fit-bootstrap@v1` for the environment; `kata-agent`
+delegates to bootstrap/eval/wiki internally. `fit-bootstrap` only **checks
+out** the wiki (given a `token`); its App token expires after an hour, so agent
+runs push memory with `fit-wiki@v1` as an `always()` step (which mints a fresh
+token). Change a sibling's interface — and tag it — before the consumer.
 
 ### Editing a published action
 
-Workflow `uses:` lines target an immutable SHA with a `# v1` marker.
-Edits land via append-only patch tag + Dependabot SHA-bump PR — moving
-`v1` is never how a change reaches this repo:
+`uses:` lines pin an immutable SHA; the `# v1` marker is advisory and never
+affects resolution. Edits land via an append-only patch tag on the sibling,
+then a Dependabot SHA-bump PR — moving `v1` is never how a change reaches here:
 
 ```sh
 gh repo clone forwardimpact/fit-eval tmp/fit-eval
-# edit, commit, tag the next unused patch (start v1.0.0):
-gh api repos/forwardimpact/fit-eval/tags --jq '.[].name'
-git tag v1.0.<N>            # append-only
-git push origin main && git push origin v1.0.<N>
+gh api repos/forwardimpact/fit-eval/tags --jq '.[].name'  # next unused patch
+git tag v1.0.<N> && git push origin main v1.0.<N>          # append-only
 ```
 
-`.github/dependabot.yml` runs `github-actions` weekly and opens a
-SHA-bump PR on the next sweep; merge through branch protection. The
-`# v1` marker is advisory and never affects resolution.
+`.github/dependabot.yml` opens the SHA-bump PR on its weekly sweep; merge
+through branch protection.
 
-Sibling pushes need rights on the sibling. The `kata-agent-team` App
-installation deliberately covers this monorepo only (least privilege):
-sibling writes fail 401/403 by design, not misconfiguration
-([#1549](https://github.com/forwardimpact/monorepo/issues/1549) runs
-240 and 255). Changing that boundary is a security decision requiring
-security-engineer review. For agent-driven edits, file an Issue with
-the diff.
-
-**Scope.** This pinning policy governs workflow `uses:` references to
-sibling actions; sibling-internal references (a sibling's calls inside
-its own `action.yml`, including `kata-agent`'s call to
-`forwardimpact/fit-bootstrap@v1`) are governed — and durably closed —
-only by the sibling repos.
+Sibling writes need rights on the sibling. The `kata-agent-team` App covers
+this monorepo only (least privilege), so sibling writes fail 401/403 **by
+design** — changing that boundary needs security-engineer review; for
+agent-driven edits, file an Issue with the diff. This pinning policy governs
+workflow `uses:` only; a sibling's internal `uses:` (e.g. `kata-agent`'s call
+to `fit-bootstrap@v1`) is governed solely by the sibling repo.
 
 ### Moving a sibling's `v1` tag
 
-Monorepo consumption stays SHA-pinned regardless; `v1` exists solely
-for external consumers. On any sibling, a human with tag rights may
-move `v1` only to the commit of an existing `v1.x.y` release tag —
-reachable from the sibling's `main`, a descendant of `v1`'s current
-target, recorded in that release's notes. Never untagged, never
-backward, never off-`main`. Any other `v1` move is a compromise
-indicator.
+Monorepo consumption stays SHA-pinned; `v1` exists only for external
+consumers. A human with tag rights may move `v1` only to an existing `v1.x.y`
+release commit — reachable from the sibling's `main` and a descendant of
+`v1`'s current target. Never backward, untagged, or off-`main`; any other move
+is a compromise indicator.
 
 ### `IS_SANDBOX` for headless agents
 
-Every published action that drives the Claude Agent SDK runs it in
-**bypass-permissions** mode, which Claude Code refuses under `uid 0` unless
-the process is marked sandboxed. Runners may run as root, so each such action
-sets `IS_SANDBOX=1` on the agent-spawning step:
-
-- `fit-eval` — the `Run fit-eval` step.
-- `fit-benchmark` — the `Run benchmark` step.
-- `fit-wiki` — the `Run fit-wiki command` step (`fit-wiki fix` is an agent run).
-- `kata-agent` — the `Assess and Act` step.
-
-(`fit-bootstrap` spawns no agent.) The SDK forwards the parent
-environment, so setting it on the action's environment is sufficient —
-deliberately **not** hard-coded in `libeval` so the value stays an environment
-decision. Without it the agent exits 1 with no NDJSON output before its
-first turn.
+Bypass-permissions mode (every Agent-SDK action) is refused under `uid 0`
+unless the process is marked sandboxed, and runners may be root. So `fit-eval`,
+`fit-benchmark`, `fit-wiki`, and `kata-agent` set `IS_SANDBOX=1` on their
+agent-spawning step (`fit-bootstrap` spawns no agent). The SDK forwards the
+parent env, so setting it on the action environment suffices — kept out of
+`libeval` so it stays an environment decision. Without it the agent exits 1
+with no output.
 
 ## Local composite actions
 
-Live under `actions/`. Workflows reference them via the workspace path
-`./.github/actions/<name>`.
+Under `actions/`, referenced as `./.github/actions/<name>`:
 
 | Action | Purpose |
 |---|---|
-| `audit` | Dependency `npm audit` + gitleaks secret scanning |
-| `coaligned-check` | Run `bunx coaligned` checks (instructions, jtbd) |
+| `audit` | `npm audit` + gitleaks secret scanning |
+| `coaligned-check` | `bunx coaligned` checks (instructions, jtbd) |
+| `macos-signing` | Import Developer ID certs into a temp keychain for codesign/productbuild |
 
-The environment-bootstrap action is `forwardimpact/fit-bootstrap@v1`,
-called directly by workflows; no local wrapper exists.
+**Path resolution:** `uses: ./path` inside a composite action resolves against
+`$GITHUB_WORKSPACE` (the caller's checkout), not the action's own dir. So
+workflows use `./.github/actions/<name>`, but a published composite action
+reaching its own subdir must use the full `{owner}/{repo}/{path}@{ref}` form
+(e.g. `forwardimpact/fit-bootstrap/sub-action@v1`), never `./sub`.
 
-### Composite-action path resolution
+## macOS code signing & notarization
 
-`uses: ./path` inside a composite action's steps is resolved by GitHub
-against `$GITHUB_WORKSPACE` (the caller's checkout), **not** against the
-action's own directory. Two consequences:
-
-- **Workflows** reference these local actions as
-  `./.github/actions/<name>` — the path they have at the workspace root.
-- **A published composite action** cannot reach into its own subdirectory
-  with `./sub` (the caller does not have it). Use the full repo form
-  `{owner}/{repo}/{path}@{ref}` instead — e.g.
-  `forwardimpact/fit-bootstrap/sub-action@v1` references the action's
-  own `sub-action/` subdirectory at the same tag.
+`publish-macos.yml` / `publish-brew.yml` sign release bundles with a Developer
+ID identity and notarize them. Signing secrets live in the **`macos-signing`
+GitHub Environment, never as repo/org secrets** — only jobs declaring
+`environment: macos-signing` can read them, so `kata-*` agents cannot. Signing
+is gated: with no secrets, builds fall back to ad-hoc and notarize steps skip.
+Setup, secrets, and threat model:
+[`actions/macos-signing/README.md`](actions/macos-signing/README.md).
 
 ## Matrix workflows and trace artifacts
 
-When a matrix runs the same action, pass `case` to avoid artifact name
-collisions. Example from `kata-shift.yml`:
+When a matrix runs the same action, pass `case` to avoid artifact-name
+collisions (see `kata-shift.yml`):
 
 ```yaml
 case: ${{ matrix.agent.name }}

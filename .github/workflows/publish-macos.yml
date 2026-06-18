@@ -19,6 +19,10 @@ jobs:
     needs: binaries
     runs-on: macos-14
 
+    # Environment-scoped signing secrets — only jobs that declare this
+    # environment can read them, so kata-* agent workflows cannot.
+    environment: macos-signing
+
     permissions:
       contents: write
 
@@ -45,11 +49,41 @@ jobs:
           name: fit-outpost-bun-darwin-arm64
           path: products/outpost/dist   # workspace-root-relative → products/outpost/dist/fit-outpost
 
+      - name: Set up code signing
+        id: signing
+        uses: ./.github/actions/macos-signing
+        with:
+          app-cert-base64: ${{ secrets.APPLE_DEV_ID_APP_P12_BASE64 }}
+          app-cert-password: ${{ secrets.APPLE_DEV_ID_APP_P12_PASSWORD }}
+          installer-cert-base64: ${{ secrets.APPLE_DEV_ID_INSTALLER_P12_BASE64 }}
+          installer-cert-password: ${{ secrets.APPLE_DEV_ID_INSTALLER_P12_PASSWORD }}
+
       - name: Build .pkg installer
         working-directory: products/outpost
         run: |
           chmod +x dist/fit-outpost   # upload-artifact dropped the +x bit
+          # Signs the .app (MACOS_SIGN_IDENTITY) and the .pkg
+          # (MACOS_INSTALLER_IDENTITY) when the signing step imported certs;
+          # ad-hoc / unsigned otherwise.
           bun pkg/build.js --pkg      # launcher + .app + .pkg; consumes dist/fit-outpost, no scheduler compile
+
+      - name: Notarize and staple pkg
+        if: steps.signing.outputs.enabled == 'true'
+        working-directory: products/outpost
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          API_KEY_B64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          PKG="dist/fit-outpost-${VERSION}.pkg"
+          KEY="$RUNNER_TEMP/api_key.p8"
+          printf '%s' "$API_KEY_B64" | base64 --decode > "$KEY"
+          xcrun notarytool submit "$PKG" \
+            --key "$KEY" --key-id "$API_KEY_ID" --issuer "$API_ISSUER" --wait
+          xcrun stapler staple "$PKG"
+          rm -f "$KEY"
 
       - name: Verify .pkg exists
         working-directory: products/outpost

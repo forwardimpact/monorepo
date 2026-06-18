@@ -29,6 +29,10 @@ jobs:
     needs: binaries
     runs-on: macos-14
 
+    # Environment-scoped signing secrets — only jobs that declare this
+    # environment can read them, so kata-* agent workflows cannot.
+    environment: macos-signing
+
     permissions:
       contents: write
 
@@ -61,6 +65,13 @@ jobs:
           pattern: "*-bun-darwin-arm64"
           path: dist/binaries
           merge-multiple: true
+
+      - name: Set up code signing
+        id: signing
+        uses: ./.github/actions/macos-signing
+        with:
+          app-cert-base64: ${{ secrets.APPLE_DEV_ID_APP_P12_BASE64 }}
+          app-cert-password: ${{ secrets.APPLE_DEV_ID_APP_P12_PASSWORD }}
 
       - name: Assemble bundle
         env:
@@ -122,6 +133,26 @@ jobs:
             exit 1
           fi
           echo "cdhash stable: $AFTER"
+
+      - name: Notarize and staple app
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          BUNDLE_NAME: ${{ steps.meta.outputs.bundle }}
+          API_KEY_B64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          BUNDLE="dist/apps/${BUNDLE_NAME}"
+          KEY="$RUNNER_TEMP/api_key.p8"
+          printf '%s' "$API_KEY_B64" | base64 --decode > "$KEY"
+          # Notarization consumes a zip; the ticket is then stapled onto the
+          # .app itself (the cask asset is re-zipped from the stapled bundle).
+          ditto -c -k --sequesterRsrc --keepParent "$BUNDLE" "$RUNNER_TEMP/notarize.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" \
+            --key "$KEY" --key-id "$API_KEY_ID" --issuer "$API_ISSUER" --wait
+          xcrun stapler staple "$BUNDLE"
+          rm -f "$KEY" "$RUNNER_TEMP/notarize.zip"
 
       - name: Zip bundle and hash
         id: hash
