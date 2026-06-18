@@ -164,7 +164,7 @@ The PR title carries the spec id: `spec(NNN): …`. Merge of that PR is what
 advances the phase. Do not apply the `spec:approved` label and do not
 recommend approval — those are human-only actions; see § Approval.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
 
 ## Memory: What to Record
 

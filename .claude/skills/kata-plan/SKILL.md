@@ -172,7 +172,7 @@ panel is clean.
 
 The PR title carries the spec id: `plan(NNN): …`.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
 
 ### Step 7: Write STATUS
 
@@ -186,9 +186,7 @@ pushes the wiki commit. `kata-release-merge` will then merge the plan PR.
 Append to the current week's log (see agent profile for the file path):
 
 - **Specs planned** — Spec number, name, and status transition
-- **Plan decisions** — Key approach choices and why (so the implementer has
-  context)
+- **Plan decisions** — Key approach choices and why (context for the implementer)
 - **Deferred specs** — Specs skipped and why (not approved, missing info, etc.)
-- **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
-  per `references/metrics.md`. See KATA.md § Metrics for the
-  recording-eligibility rule.
+- **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
+  `references/metrics.md`. See KATA.md § Metrics for the recording-eligibility rule.

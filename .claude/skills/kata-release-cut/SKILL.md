@@ -156,7 +156,7 @@ Report a per-package table — previous → new version, tag, publish status
 
 ## Memory: What to Record
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity): every cited SHA must resolve on its referenced repo, or the body is not published.
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
 
 Append to the current week's log (see agent profile for the file path):
 

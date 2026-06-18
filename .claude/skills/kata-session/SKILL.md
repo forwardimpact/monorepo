@@ -115,9 +115,8 @@ mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    solo mode — use direct file reads.
 2. **Select the overlay.** For team storyboard runs, load
    [`references/team-storyboard.md`](references/team-storyboard.md). For 1-on-1
-   coaching runs, load [`references/one-on-one.md`](references/one-on-one.md).
-   The overlay owns the mode-specific artifact surface, the question wording,
-   and the participant briefing template.
+   coaching runs, load [`references/one-on-one.md`](references/one-on-one.md). The
+   overlay owns the artifact surface, question wording, and briefing template.
 3. **Brief participants.** Deliver the overlay's briefing template before Q1.
    Team mode: broadcast once via `Announce` at session open. 1-on-1: prepend
    it to the Q1 `Ask` body.
@@ -164,14 +163,13 @@ Applies in both modes; expands the coach's session-open briefing.
 2. **Record metrics to CSV and analyze them.** Before answering, append one row
    per metric to `wiki/metrics/{skill}/{YYYY}.csv` per the skill's
    `references/metrics.md`, creating the directory and header if needed. Then run
-   `npx fit-xmr analyze <csv> --format json` on your CSV(s). The CSV is
-   authoritative; your `Answer` summarizes it.
+   `npx fit-xmr analyze <csv> --format json`. The CSV is authoritative; your
+   `Answer` summarizes it.
 3. **Answer with measured data.** Report numbers via
-   `Answer(askId=N, message=…)`, quoting the `askId` from the `[ask#N]` header
-   on the question. Reference the CSV rows; include each metric's XmR `status`,
-   `μ`, and any fired-rule `signals` from your `fit-xmr analyze` run. Use counts
-   and durations, not narratives. Use `Announce` only for unsolicited team-wide
-   context.
+   `Answer(askId=N, message=…)`, quoting the `askId` from the `[ask#N]` header.
+   Reference the CSV rows; include each metric's XmR `status`, `μ`, and any
+   fired-rule `signals` from your `fit-xmr analyze` run. Use counts and durations
+   — not narratives like "improving." Use `Announce` only for team-wide context.
 4. **Identify obstacles, then record them.** For Q3, each participant names the
    obstacles in its domain, then creates an obstacle issue per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and reports its `#NNN`.
@@ -180,7 +178,7 @@ Applies in both modes; expands the coach's session-open briefing.
    create an experiment issue (`experiment` + `agent:{self}`) per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and report its `#NNN`.
 
-Participant writes only — apply [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#citation-integrity) before publishing: cited SHAs must resolve on their referenced repo.
+Hold participant writes to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
 
 ## Memory: What to Record
 
