@@ -8,7 +8,8 @@ gate never infers validity.
 
 The standard governs head moves. A PR whose head has not moved since its
 approving signal is covered by that signal directly and needs no transfer
-record.
+record, even when the signal predates this standard and so carries no recorded
+pin. The coverage check applies once a head moves.
 
 ## Applicability
 
@@ -24,8 +25,8 @@ stay outside this standard.
 
 An approval signal certifies the specific head it was given on. It never
 certifies a bare phase. The pin source per signal class is defined in
-[`approval-signals.md`](../../../agents/references/approval-signals.md) §
-Signal invalidation. A signal whose pin cannot be established transfers to no
+[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md)
+§ Signal invalidation. A signal whose pin cannot be established transfers to no
 other head. It is valid only on a head where the signal is freshly
 re-confirmed.
 
@@ -76,10 +77,11 @@ signal routes there, not to human escalation.
 ## Transfer record
 
 Record every transfer as a PR comment. Name the pinned SHA, the new head SHA,
-and the per-point evidence. This is the shape the PR #1578 provenance audit
-produced by hand. A void notice is the same comment in the negative: it names
-the now-void signal, whether it is human- or agent-originated, and the
-re-approval awaited.
+and the per-point evidence. The record carries this shape so any later audit
+can recompute the claim from the comment alone. A void notice is the same
+comment in the negative: it names the now-void signal, whether it is human- or
+agent-originated, and the re-approval awaited. The gate may hold a
+delta-producing rebase until re-approval is in hand rather than void eagerly.
 
 ## Patch-id prohibition
 
