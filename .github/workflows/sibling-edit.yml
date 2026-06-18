@@ -1,0 +1,249 @@
+name: "Sibling edit"
+
+# Permission-scoped, audited edit of one sibling composite-action repo
+# (forwardimpact/{fit-bootstrap,fit-eval,fit-benchmark,fit-wiki,kata-agent}).
+# The in-workflow token is monorepo-scoped and cannot push to a sibling, so
+# this dispatch is the only first-class path to a legitimate sibling edit. The
+# five guardrails (G1-G5) below are enforced verbatim.
+#
+# G1: workflow_dispatch only — the only `on:` key below.
+# G2: actor gate — the `gate` job validates github.actor against an in-source
+#     allowlist (kata-agent-team[bot] only; trusted-human membership is a
+#     separate spec). The allowlist is echoed to the log on entry.
+# G3: single-sibling input matched by literal equality against the fixed five,
+#     before any token mint or shell interpolation of the value.
+# G4: the edit token is minted scoped to the one validated sibling and
+#     `contents:write` ONLY (no actions/workflows/other resource); the edit
+#     step's env exposes only that token + the validated sibling.
+# G5: every attempt — including a rejection or a crash — appends an audit
+#     comment to the "Sibling-edit audit log" issue (number in AUDIT_ISSUE
+#     below; named in .github/CLAUDE.md) using the monorepo GITHUB_TOKEN
+#     identity, carrying {actor, sibling, commit_sha_being_pushed,
+#     invocation_time, workflow_run_id} plus an outcome reason code.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sibling:
+        description: "Sibling repo to edit (one of: fit-bootstrap, fit-eval, fit-benchmark, fit-wiki, kata-agent)"
+        required: true
+        type: string
+      edit-command:
+        description: "Shell command run once inside the cloned sibling working tree (operator-supplied; runs under the minted contents:write token)"
+        required: true
+        type: string
+
+# Monorepo-side scope is minimal: the audit-write needs issues:write; the
+# checkout needs contents:read. No actions/workflows/write-all (G4).
+permissions:
+  contents: read
+  issues: write
+
+env:
+  # The persistent audit destination (G5); named in .github/CLAUDE.md.
+  AUDIT_ISSUE: "1768"
+
+jobs:
+  # The gate job carries NO job-level `if:` on purpose: a false job-level
+  # condition would skip the job and its audit step, leaving a rejected actor
+  # unrecorded and defeating G5. Instead the job always runs, evaluates the
+  # actor (G2) and sibling (G3) within itself, writes the audit comment with an
+  # `if: always()` step, and only then sets a failing exit code on rejection so
+  # the edit job (which `needs: gate`) never starts. This deliberately
+  # supersedes G2's "job-level `if:`" surface text while honouring its property.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      outcome: ${{ steps.evaluate.outputs.outcome }}
+      sibling_validated: ${{ steps.evaluate.outputs.sibling_validated }}
+    steps:
+      - name: Show actor allowlist (G2 visibility)
+        run: |
+          echo "Actor allowlist (in-source, G2): kata-agent-team[bot]"
+          echo "Dispatching actor: ${GITHUB_ACTOR}"
+
+      # Outcome-computation step that itself never fails (always exits 0) so the
+      # always() audit step below records the attempt regardless. The sibling
+      # input is compared by literal equality (case-sensitive, no whitespace
+      # trim beyond the exact match, no glob/regex/substring, no shell
+      # expansion) and is NOT interpolated into any command before the test.
+      - name: Evaluate gates (G2 actor, G3 sibling)
+        id: evaluate
+        env:
+          SIBLING_INPUT: ${{ inputs.sibling }}
+        run: |
+          set -u
+          outcome="intent"
+          sibling_validated=""
+
+          # G2: actor allowlist (literal, in-source).
+          if [ "${GITHUB_ACTOR}" != "kata-agent-team[bot]" ]; then
+            outcome="actor-rejected"
+          else
+            # G3: literal equality against exactly the fixed five.
+            case "${SIBLING_INPUT}" in
+              "fit-bootstrap"|"fit-eval"|"fit-benchmark"|"fit-wiki"|"kata-agent")
+                sibling_validated="${SIBLING_INPUT}" ;;
+              *)
+                outcome="sibling-rejected" ;;
+            esac
+          fi
+
+          echo "outcome=${outcome}" >> "$GITHUB_OUTPUT"
+          echo "sibling_validated=${sibling_validated}" >> "$GITHUB_OUTPUT"
+          echo "Gate outcome: ${outcome}"
+
+      # G5 crash-durability: if: always() so a crash/cancel in an earlier step
+      # still records the attempt. Uses the monorepo GITHUB_TOKEN identity (the
+      # minted sibling token cannot reach a monorepo issue) so the audit-write
+      # is itself observable in the issue history.
+      - name: Audit intent / rejection (G5)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ steps.evaluate.outputs.outcome }}
+          SIBLING_INPUT: ${{ inputs.sibling }}
+        run: |
+          set -u
+          # On a crash before `evaluate` ran, OUTCOME is empty — record it as a
+          # generic crashed-before-evaluation intent record so no attempt past
+          # the dispatch is silent.
+          outcome="${OUTCOME:-edit-failed}"
+          {
+            printf '**sibling-edit attempt — gate**\n\n'
+            printf -- '- outcome: `%s`\n' "${outcome}"
+            printf -- '- actor: `%s`\n' "${GITHUB_ACTOR}"
+            printf -- '- sibling: `%s`\n' "${SIBLING_INPUT}"
+            printf -- '- commit_sha_being_pushed: `n/a`\n'
+            printf -- '- invocation_time: `%s`\n' "${GITHUB_RUN_STARTED_AT:-unknown}"
+            printf -- '- workflow_run_id: `%s`\n' "${GITHUB_RUN_ID}"
+          } > /tmp/audit-body.md
+          gh issue comment "${AUDIT_ISSUE}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --body-file /tmp/audit-body.md
+
+      # Final step: fail the job on any non-intent outcome so the edit job does
+      # not run. The audit step above already fired (it is always()).
+      - name: Enforce gate exit code
+        env:
+          OUTCOME: ${{ steps.evaluate.outputs.outcome }}
+        run: |
+          if [ "${OUTCOME}" != "intent" ]; then
+            echo "::error::Gate rejected attempt (${OUTCOME}); edit job will not run." >&2
+            exit 1
+          fi
+
+  edit:
+    needs: gate
+    runs-on: ubuntu-latest
+    # Monorepo-side scope for this job: issues:write for the terminal audit
+    # comment; contents:read for the action checkout. The sibling write is
+    # carried solely by the minted token, never by GITHUB_TOKEN (G4).
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      # G4: mint a token scoped to the ONE validated sibling and contents:write
+      # ONLY. The action grants the App installation's full permission set if no
+      # `permission-*` input is given, so the contents-only scope is a positive
+      # constraint: permission-contents: write and no other permission-* input.
+      # `repositories` carries the gate-validated value, never the raw input.
+      - name: Mint sibling-scoped token (G4)
+        id: mint
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.KATA_APP_ID }}
+          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+          repositories: ${{ needs.gate.outputs.sibling_validated }}
+          permission-contents: write
+
+      # Clone the validated sibling and run the operator-supplied edit-command in
+      # its working tree, then commit-if-changed and push with the minted token.
+      # The step env exposes ONLY the minted token and the validated sibling —
+      # never toJSON(secrets) or any pre-existing secret (G4). The outcome and
+      # pushed SHA are written to step outputs for the terminal audit.
+      - name: Clone, edit, push sibling
+        id: apply
+        env:
+          GH_TOKEN: ${{ steps.mint.outputs.token }}
+          SIBLING: ${{ needs.gate.outputs.sibling_validated }}
+          EDIT_COMMAND: ${{ inputs.edit-command }}
+        run: |
+          set -u
+          outcome="no-change"
+          pushed_sha="n/a"
+
+          git config --global user.name "kata-agent-team[bot]"
+          git config --global user.email "${{ secrets.KATA_APP_ID }}+kata-agent-team[bot]@users.noreply.github.com"
+
+          # Clone with the minted token (contents:write on this sibling only).
+          if ! git clone "https://x-access-token:${GH_TOKEN}@github.com/forwardimpact/${SIBLING}.git" sibling; then
+            echo "outcome=edit-failed" >> "$GITHUB_OUTPUT"
+            echo "pushed_sha=n/a" >> "$GITHUB_OUTPUT"
+            echo "::error::Clone of forwardimpact/${SIBLING} failed (token scope or App install)." >&2
+            exit 1
+          fi
+
+          cd sibling
+          # Run the operator-supplied edit. It is arbitrary code under the minted
+          # token (PR residual); bounded by the actor gate (G2) and the
+          # single-sibling contents-only token (G4). Do NOT widen the token to
+          # make richer edits convenient — that is a separate spec.
+          if ! bash -c "${EDIT_COMMAND}"; then
+            echo "outcome=edit-failed" >> "$GITHUB_OUTPUT"
+            echo "pushed_sha=n/a" >> "$GITHUB_OUTPUT"
+            echo "::error::edit-command exited non-zero." >&2
+            exit 1
+          fi
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No change produced by edit-command; nothing to push."
+            echo "outcome=no-change" >> "$GITHUB_OUTPUT"
+            echo "pushed_sha=n/a" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "chore: sibling edit via sibling-edit.yml (run ${GITHUB_RUN_ID})"
+          if ! git push origin HEAD; then
+            echo "outcome=push-rejected" >> "$GITHUB_OUTPUT"
+            echo "pushed_sha=n/a" >> "$GITHUB_OUTPUT"
+            echo "::error::push rejected (branch protection or token scope)." >&2
+            exit 1
+          fi
+          pushed_sha="$(git rev-parse HEAD)"
+          echo "outcome=pushed" >> "$GITHUB_OUTPUT"
+          echo "pushed_sha=${pushed_sha}" >> "$GITHUB_OUTPUT"
+          echo "Pushed ${pushed_sha} to forwardimpact/${SIBLING}."
+
+      # Terminal audit (G5): if: always() so a crash in the edit step still
+      # records a terminal outcome. Uses the monorepo GITHUB_TOKEN identity, not
+      # the minted token. Records the minted credential's DECLARED scope
+      # (repositories = the validated sibling; permissions = contents:write) so
+      # a reviewer can verify runtime scope after the fact (G4 final clause).
+      - name: Audit terminal (G5)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ steps.apply.outputs.outcome }}
+          PUSHED_SHA: ${{ steps.apply.outputs.pushed_sha }}
+          SIBLING: ${{ needs.gate.outputs.sibling_validated }}
+        run: |
+          set -u
+          # On a crash before `apply` set outputs, default to edit-failed.
+          outcome="${OUTCOME:-edit-failed}"
+          pushed_sha="${PUSHED_SHA:-n/a}"
+          {
+            printf '**sibling-edit attempt — terminal**\n\n'
+            printf -- '- outcome: `%s`\n' "${outcome}"
+            printf -- '- actor: `%s`\n' "${GITHUB_ACTOR}"
+            printf -- '- sibling: `%s`\n' "${SIBLING}"
+            printf -- '- commit_sha_being_pushed: `%s`\n' "${pushed_sha}"
+            printf -- '- invocation_time: `%s`\n' "${GITHUB_RUN_STARTED_AT:-unknown}"
+            printf -- '- workflow_run_id: `%s`\n' "${GITHUB_RUN_ID}"
+            printf -- '- minted_token_repositories: `%s`\n' "${SIBLING}"
+            printf -- '- minted_token_permissions: `contents:write`\n'
+          } > /tmp/audit-terminal.md
+          gh issue comment "${AUDIT_ISSUE}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --body-file /tmp/audit-terminal.md

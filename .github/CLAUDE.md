@@ -26,23 +26,23 @@ token). Change a sibling's interface — and tag it — before the consumer.
 
 `uses:` lines pin an immutable SHA; the `# v1` marker is advisory and never
 affects resolution. Edits land via an append-only patch tag on the sibling,
-then a Dependabot SHA-bump PR — moving `v1` is never how a change reaches here:
-
-```sh
-gh repo clone forwardimpact/fit-eval tmp/fit-eval
-gh api repos/forwardimpact/fit-eval/tags --jq '.[].name'  # next unused patch
-git tag v1.0.<N> && git push origin main v1.0.<N>          # append-only
-```
-
+then a Dependabot SHA-bump PR — moving `v1` is never how a change reaches here.
 `.github/dependabot.yml` opens the SHA-bump PR on its weekly sweep; merge
 through branch protection.
 
-Sibling writes need rights on the sibling. The `kata-agent-team` App covers
-this monorepo only (least privilege), so sibling writes fail 401/403 **by
-design** — changing that boundary needs security-engineer review; for
-agent-driven edits, file an Issue with the diff. This pinning policy governs
-workflow `uses:` only; a sibling's internal `uses:` (e.g. `kata-agent`'s call
-to `fit-bootstrap@v1`) is governed solely by the sibling repo.
+The in-workflow `GITHUB_TOKEN` (and any token minted from `KATA_APP_*`) is
+scoped to the `kata-agent-team` App installation — **this monorepo only** — so
+a direct clone-and-push to a sibling fails 403 **by design**; do not reach for a
+personal token. The supported path is the dispatchable
+[`sibling-edit.yml`](workflows/sibling-edit.yml): per run it mints a
+`contents:write`-only token scoped to one named sibling, runs one edit step in
+the clone, pushes, and appends a per-attempt audit record (rejections included)
+to the **Sibling-edit audit log** issue
+([#1768](https://github.com/forwardimpact/monorepo/issues/1768)). Widening a
+standing token scope needs security-engineer review.
+
+This pinning policy governs workflow `uses:` only; a sibling's internal `uses:`
+(e.g. `kata-agent`'s call to `fit-bootstrap@v1`) is governed by the sibling.
 
 ### Moving a sibling's `v1` tag
 
