@@ -23,10 +23,37 @@ export const GUARD_METHODS = new Set([
   "fetchDeepen",
 ]);
 
+/**
+ * A `runtime.subprocess` that gives the secret gate distinct verdicts for its
+ * `gitleaks version` probe and `gitleaks detect` scan (the libmock subprocess
+ * keys responses by command name only, so the two `gitleaks` calls collide).
+ * `version`/`detect` exit codes default to clean.
+ */
+export function gateSubprocess({ version = 0, detect = 0, report = "" } = {}) {
+  return {
+    run: async (_cmd, args = []) =>
+      args[0] === "version"
+        ? { stdout: "", stderr: "", exitCode: version, signal: null }
+        : { stdout: report, stderr: "", exitCode: detect, signal: null },
+    runSync: () => ({ stdout: "", stderr: "", exitCode: 0 }),
+    spawn: () => ({}),
+  };
+}
+
 /** Build a WikiSync over a mock git client and runtime for unit tests. */
-export function make({ responses, fsSync, resolveToken } = {}) {
+export function make({
+  responses,
+  fsSync,
+  resolveToken,
+  subprocess,
+  env,
+} = {}) {
   const git = createMockGitClient({ responses });
-  const runtime = createTestRuntime(fsSync ? { fsSync } : {});
+  const runtime = createTestRuntime({
+    ...(fsSync ? { fsSync } : {}),
+    ...(subprocess ? { subprocess } : {}),
+    ...(env ? { proc: { env } } : {}),
+  });
   const wikiSync = new WikiSync({
     runtime,
     gitClient: git,
@@ -36,6 +63,7 @@ export function make({ responses, fsSync, resolveToken } = {}) {
   });
   return {
     git,
+    runtime,
     wikiSync,
     methods: () => git.calls.map((c) => c.method),
     flowMethods: () =>
