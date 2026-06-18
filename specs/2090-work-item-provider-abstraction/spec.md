@@ -90,8 +90,11 @@ Affected entities:
 
 Excluded:
 
-- **No new library or CLI.** The abstraction is a shared resource plus skill
-  wording; agents run provider-specific commands directly.
+- **No CLI or library in this spec.** The abstraction ships as a shared
+  resource plus skill wording, and agents run provider-specific commands
+  directly. A `fit-work`-style CLI that wraps the same provider matrix behind
+  one verb set is a planned follow-up spec; the matrix here is designed as the
+  seam that CLI will adopt, not a throwaway.
 - **No Jira or GitLab implementation.** This spec establishes the seam only.
 - **No change to GitHub as the production default.**
 - **No storage-format decision.** How the filesystem provider lays out its files
@@ -108,7 +111,8 @@ genericization of the references and `gh`-invoking skills is the necessary means
 to it — a coordination task cannot be benchmarked offline unless the skills it
 exercises stop calling `gh` directly. Multi-forge portability (Jira, GitLab) is
 an enabled consequence of the same seam; building those providers is future
-work.
+work. A `fit-work` CLI over the matrix is a sequenced follow-up — the matrix is
+specified now so that CLI inherits a stable seam rather than reinventing one.
 
 ## Success Criteria
 
