@@ -5,7 +5,8 @@ release workflows can codesign and notarize macOS bundles. Without it, bundles
 are only ad-hoc signed and Gatekeeper blocks the download ("Apple could not
 verify … is free of malware").
 
-Used by `publish-macos.yml` (`.pkg`) and `publish-brew.yml` (`.app` / cask).
+Used by `publish-binaries.yml`'s `package` job, which signs both the `.app`
+(cask) and the `.pkg` (outpost) on one runner.
 
 ## Secret isolation — environment-scoped, not repo
 
@@ -38,9 +39,8 @@ one Apple Developer Program membership ($99/yr).
 | `APPLE_API_KEY_ID` | API key ID |
 | `APPLE_API_ISSUER_ID` | API key issuer ID |
 
-The Installer cert and API key are only needed by `publish-macos.yml` (the
-`.pkg`); `publish-brew.yml` (the `.app`) needs the Application cert and the API
-key.
+The `package` job uses the Application cert for the `.app`, the Installer cert
+for the `.pkg` (outpost only), and the API key to notarize both.
 
 ## How it fits together
 

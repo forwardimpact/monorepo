@@ -1,0 +1,341 @@
+name: "Publish: Binaries"
+
+# One pipeline per product release tag (outpost@v*, guide@v*, …, gear@v*).
+# Builds the bundle's native binaries once, publishes them on the GitHub
+# release, then signs + notarizes the .app and (for outpost) the .pkg on a
+# single macOS runner, and updates the Homebrew tap. Everything runs on the tag
+# ref in one observable run; a mid-pipeline failure fails the release visibly.
+# Generic: a future cask product folds in by adding its tag below.
+on:
+  push:
+    tags:
+      - "outpost@v*"
+      - "guide@v*"
+      - "landmark@v*"
+      - "map@v*"
+      - "pathway@v*"
+      - "summit@v*"
+      - "gear@v*"
+
+permissions:
+  contents: read
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.m.outputs.name }}
+      version: ${{ steps.m.outputs.version }}
+      kind: ${{ steps.m.outputs.kind }}
+      bundle: ${{ steps.m.outputs.bundle }}
+      bundle_name: ${{ steps.m.outputs.bundle_name }}
+      cask: ${{ steps.m.outputs.cask }}
+    steps:
+      - id: m
+        run: |
+          NAME="${GITHUB_REF_NAME%%@v*}"
+          VERSION="${GITHUB_REF_NAME#*@v}"
+          case "$NAME" in
+            gear)  KIND=gear;    BUNDLE=gear;     BUNDLE_NAME="fit-gear.app";    CASK=fit-gear    ;;
+            *)     KIND=product; BUNDLE="$NAME";  BUNDLE_NAME="fit-${NAME}.app"; CASK="fit-${NAME}" ;;
+          esac
+          {
+            echo "name=${NAME}"
+            echo "version=${VERSION}"
+            echo "kind=${KIND}"
+            echo "bundle=${BUNDLE}"
+            echo "bundle_name=${BUNDLE_NAME}"
+            echo "cask=${CASK}"
+          } >> "$GITHUB_OUTPUT"
+
+  # Build only the tagged bundle's CLIs (both targets), once. Each is run inside
+  # the build and uploaded with a checksum.
+  binaries:
+    needs: meta
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      targets: '["bun-linux-x64", "bun-darwin-arm64"]'
+      bundle: ${{ needs.meta.outputs.bundle }}
+
+  # Assemble + sign + notarize the .app and (outpost) the .pkg on one runner,
+  # reusing the same signed bundle. No cross-workflow handoff.
+  package:
+    needs: [meta, binaries]
+    runs-on: macos-14
+    # Environment-scoped signing secrets — only jobs that declare this
+    # environment can read them, so kata-* agent workflows cannot.
+    environment: macos-signing
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - uses: forwardimpact/fit-bootstrap@22e7a8a053c22cf56d6f4efb95fcf0b3d42267c8 # v1
+
+      - uses: ./.github/actions/audit
+
+      - name: Download macOS binaries
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: "*-bun-darwin-arm64"
+          path: dist/dl
+
+      - name: Verify checksums and stage binaries
+        run: |
+          set -euo pipefail
+          mkdir -p dist/binaries
+          # Each artifact dir holds a bare {cli} + {cli}.sha256. Verify the
+          # checksum before signing so the bytes we sign are provably the bytes
+          # the build produced, then stage as dist/binaries/{cli}.
+          for dir in dist/dl/*/; do
+            bin="$(find "$dir" -maxdepth 1 -type f ! -name '*.sha256')"
+            test -n "$bin" || { echo "::error::artifact in $dir has no binary"; exit 1; }
+            ( cd "$dir" && shasum -a 256 -c "$(basename "$bin").sha256" )
+            install -m 0755 "$bin" "dist/binaries/$(basename "$bin")"
+          done
+
+      - name: Set up code signing
+        id: signing
+        uses: ./.github/actions/macos-signing
+        with:
+          app-cert-base64: ${{ secrets.APPLE_DEV_ID_APP_P12_BASE64 }}
+          app-cert-password: ${{ secrets.APPLE_DEV_ID_APP_P12_PASSWORD }}
+          installer-cert-base64: ${{ secrets.APPLE_DEV_ID_INSTALLER_P12_BASE64 }}
+          installer-cert-password: ${{ secrets.APPLE_DEV_ID_INSTALLER_P12_PASSWORD }}
+
+      - name: Assemble bundle
+        env:
+          KIND: ${{ needs.meta.outputs.kind }}
+          NAME: ${{ needs.meta.outputs.name }}
+        run: |
+          case "$KIND" in
+            gear)     just build-app-gear ;;
+            product)  just build-app-product "$NAME" ;;
+          esac
+
+      - name: Smoke test
+        env:
+          KIND: ${{ needs.meta.outputs.kind }}
+          NAME: ${{ needs.meta.outputs.name }}
+          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
+        run: |
+          BUNDLE="dist/apps/${BUNDLE_NAME}"
+          codesign --verify --deep --strict "$BUNDLE"
+          case "$KIND" in
+            product)  "$BUNDLE/Contents/MacOS/fit-${NAME}" --help ;;
+            gear)
+              # Smoke every non-server gear CLI, not just the first — the gear
+              # bundle ships ~25 and a single startup-crash binary would
+              # otherwise ship signed. Servers boot rather than honour --help.
+              for cli in $(jq -r '.clis[] | select(.bundle == "gear" and (.server != true)) | .name' build/cli-manifest.json); do
+                "$BUNDLE/Contents/MacOS/$cli" --help >/dev/null
+              done
+              ;;
+          esac
+
+      - name: Verify cdhash stability
+        # Rebuild from the same (already checksum-verified) binaries and confirm
+        # the signed cdhash is identical. A drifting cdhash wipes TCC grants on
+        # `brew upgrade`, so a non-deterministic wrap must fail the release.
+        env:
+          KIND: ${{ needs.meta.outputs.kind }}
+          NAME: ${{ needs.meta.outputs.name }}
+          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
+        run: |
+          BUNDLE="dist/apps/${BUNDLE_NAME}"
+          BASELINE=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
+          rm -rf dist/apps products/outpost/dist   # keep dist/binaries
+          case "$KIND" in
+            gear)     just build-app-gear ;;
+            product)  just build-app-product "$NAME" ;;
+          esac
+          AFTER=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
+          if [ "$BASELINE" != "$AFTER" ]; then
+            echo "::error::cdhash drift detected — bundle is not deterministic"
+            echo "baseline: $BASELINE"; echo "after: $AFTER"; exit 1
+          fi
+          echo "cdhash stable: $AFTER"
+
+      - name: Notarize and staple app
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
+          API_KEY_B64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          BUNDLE="dist/apps/${BUNDLE_NAME}"
+          KEY="$RUNNER_TEMP/api_key.p8"
+          trap 'rm -f "$KEY" "$RUNNER_TEMP/notarize.zip"' EXIT
+          printf '%s' "$API_KEY_B64" | base64 --decode > "$KEY"
+          ditto -c -k --sequesterRsrc --keepParent "$BUNDLE" "$RUNNER_TEMP/notarize.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" \
+            --key "$KEY" --key-id "$API_KEY_ID" --issuer "$API_ISSUER" --wait
+          xcrun stapler staple "$BUNDLE"
+
+      - name: Verify app is signed, notarized, and stapled
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
+        run: |
+          set -euo pipefail
+          BUNDLE="dist/apps/${BUNDLE_NAME}"
+          codesign --verify --deep --strict --verbose=2 "$BUNDLE"
+          # Gatekeeper assessment + stapled ticket — the .pkg must never wrap an
+          # un-notarized app.
+          spctl --assess --type exec --verbose=4 "$BUNDLE"
+          xcrun stapler validate "$BUNDLE"
+
+      - name: Zip cask and hash
+        id: hash
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+          CASK: ${{ needs.meta.outputs.cask }}
+          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
+        run: |
+          set -euo pipefail
+          BUNDLE="dist/apps/${BUNDLE_NAME}"
+          ASSET="${CASK}-${VERSION}-darwin-arm64.zip"
+          mkdir -p dist/release
+          # ditto preserves codesign metadata through zip; a plain zip does not.
+          ditto -c -k --sequesterRsrc --keepParent "$BUNDLE" "dist/release/${ASSET}"
+          shasum -a 256 "dist/release/${ASSET}" | awk '{print $1}' > "dist/release/${ASSET}.sha256"
+
+      - name: Build, sign, notarize, and staple .pkg
+        if: needs.meta.outputs.name == 'outpost'
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+          SIGNING_ENABLED: ${{ steps.signing.outputs.enabled }}
+          API_KEY_B64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          # Wrap the same signed + notarized + stapled app built above — no
+          # rebuild, no re-download. build-pkg.sh signs the .pkg with the
+          # installer identity (MACOS_INSTALLER_IDENTITY) when set.
+          bash products/outpost/pkg/macos/build-pkg.sh "$PWD/dist/apps" "$VERSION"
+          PKG="dist/apps/fit-outpost-${VERSION}.pkg"
+          cp "$PKG" "dist/release/"
+          if [ "$SIGNING_ENABLED" = "true" ]; then
+            KEY="$RUNNER_TEMP/api_key.p8"
+            trap 'rm -f "$KEY"' EXIT
+            printf '%s' "$API_KEY_B64" | base64 --decode > "$KEY"
+            xcrun notarytool submit "dist/release/fit-outpost-${VERSION}.pkg" \
+              --key "$KEY" --key-id "$API_KEY_ID" --issuer "$API_ISSUER" --wait
+            xcrun stapler staple "dist/release/fit-outpost-${VERSION}.pkg"
+          fi
+
+      - name: Upload release-bound package assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: package-assets
+          path: dist/release/
+          if-no-files-found: error
+          retention-days: 1
+
+  # Publish the GitHub release with the raw binaries + cask zip (+ pkg).
+  # Created with GITHUB_TOKEN: this is one workflow, so nothing downstream needs
+  # the release event to fire.
+  release:
+    needs: [meta, binaries, package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download binary artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: dist/artifacts
+
+      - name: Stage raw binary assets
+        run: |
+          set -euo pipefail
+          mkdir -p dist/release
+          # Per-target artifacts are named {cli}-{target} and hold a bare {cli} +
+          # {cli}.sha256; re-emit each with the target in the asset name. The
+          # package-assets artifact (cask zip, sha, pkg) is staged as-is.
+          for dir in dist/artifacts/*/; do
+            key="$(basename "$dir")"
+            [ "$key" = "package-assets" ] && continue
+            bin="$(find "$dir" -maxdepth 1 -type f ! -name '*.sha256')"
+            test -n "$bin" || { echo "::error::artifact $key has no binary"; exit 1; }
+            install -m 0755 "$bin" "dist/release/$key"
+            cp "$bin.sha256" "dist/release/$key.sha256"
+          done
+          cp -R dist/artifacts/package-assets/. dist/release/
+
+      - name: Create release and upload assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" --generate-notes 2>/dev/null \
+            || echo "Release $GITHUB_REF_NAME already exists"
+          gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber dist/release/*
+
+  # Update the Homebrew cask. Separate job: it pushes to another repo with a
+  # tap-scoped App token (least privilege), and recomputes the hash from the
+  # actual zip rather than trusting the sidecar.
+  tap:
+    needs: [meta, package, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Download package assets
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: package-assets
+          path: dist/release
+
+      - name: Compute cask sha256
+        id: hash
+        env:
+          CASK: ${{ needs.meta.outputs.cask }}
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          ZIP="dist/release/${CASK}-${VERSION}-darwin-arm64.zip"
+          echo "sha256=$(shasum -a 256 "$ZIP" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Generate installation token
+        id: ci-app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.KATA_APP_ID }}
+          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+          repositories: homebrew-tap
+
+      - name: Checkout tap repo
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          repository: forwardimpact/homebrew-tap
+          token: ${{ steps.ci-app.outputs.token }}
+          path: tap
+
+      - name: Update cask and push to tap main
+        working-directory: tap
+        env:
+          CASK: ${{ needs.meta.outputs.cask }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          SHA256: ${{ steps.hash.outputs.sha256 }}
+          KATA_APP_ID: ${{ secrets.KATA_APP_ID }}
+        run: |
+          set -euo pipefail
+          git config user.name "kata-agent-team[bot]"
+          git config user.email "${KATA_APP_ID}+kata-agent-team[bot]@users.noreply.github.com"
+          # Only version + sha256 are bumped per release; the cask body (binary
+          # stanzas, livecheck) is human-edited and survives.
+          CASK_FILE="Casks/${CASK}.rb"
+          sed -i \
+            -e "s|^  version \".*\"|  version \"${VERSION}\"|" \
+            -e "s|^  sha256 \".*\"|  sha256 \"${SHA256}\"|" \
+            "$CASK_FILE"
+          git add "$CASK_FILE"
+          git commit -m "Update ${CASK} to ${VERSION}"
+          git push origin HEAD:main

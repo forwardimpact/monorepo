@@ -8,6 +8,11 @@ on:
         type: string
         required: false
         default: '["bun-linux-x64", "bun-darwin-arm64"]'
+      bundle:
+        description: "Restrict to one app bundle (manifest .bundle, e.g. outpost, gear). Empty builds every CLI."
+        type: string
+        required: false
+        default: ""
   workflow_dispatch:
     inputs:
       targets:
@@ -15,6 +20,11 @@ on:
         type: string
         required: false
         default: '["bun-linux-x64", "bun-darwin-arm64"]'
+      bundle:
+        description: "Restrict to one app bundle (manifest .bundle, e.g. outpost, gear). Empty builds every CLI."
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -29,22 +39,27 @@ jobs:
       - id: gen
         env:
           TARGETS: ${{ inputs.targets }}
+          BUNDLE: ${{ inputs.bundle }}
         run: |
           # `server: true` entries (long-running gRPC services) are still built,
           # checksummed, uploaded, and bundled — the flag only tells the smoke
           # step below to skip executing them, since their bin starts a server
           # rather than honouring --help. Defaults to false for every other CLI.
-          CELLS=$(jq -c --argjson req "$TARGETS" '
-            [ .clis[] as $c | $c.targets[]
+          # An empty BUNDLE builds every CLI; a bundle name restricts the matrix
+          # to that app's CLIs so a single-product tag doesn't compile all ~30.
+          CELLS=$(jq -c --argjson req "$TARGETS" --arg bundle "$BUNDLE" '
+            [ .clis[] as $c
+              | select($bundle == "" or $c.bundle == $bundle)
+              | $c.targets[]
               | select(. as $t | $req | index($t))
               | { cli: $c.name, target: .,
                   os: (if . == "bun-linux-x64" then "ubuntu-latest" else "macos-14" end),
                   server: ($c.server // false) } ]
           ' build/cli-manifest.json)
-          # Fail loudly on a bad `targets` input rather than emit an empty
-          # matrix that silently skips every build.
+          # Fail loudly on a bad `targets`/`bundle` input rather than emit an
+          # empty matrix that silently skips every build.
           test "$(jq 'length' <<<"$CELLS")" -gt 0 \
-            || { echo "::error::no manifest CLI matches targets ${TARGETS}"; exit 1; }
+            || { echo "::error::no manifest CLI matches targets ${TARGETS} bundle '${BUNDLE}'"; exit 1; }
           echo "cells={\"include\":${CELLS}}" >> "$GITHUB_OUTPUT"
 
   build:

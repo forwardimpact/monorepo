@@ -80,8 +80,8 @@ reaching its own subdir must use the full `{owner}/{repo}/{path}@{ref}` form
 
 ## macOS code signing & notarization
 
-`publish-macos.yml` / `publish-brew.yml` sign release bundles with a Developer
-ID identity and notarize them. Signing secrets live in the **`macos-signing`
+`publish-binaries.yml`'s `package` job signs release bundles with a Developer
+ID identity and notarizes them. Signing secrets live in the **`macos-signing`
 GitHub Environment, never as repo/org secrets** — only jobs declaring
 `environment: macos-signing` can read them, so `kata-*` agents cannot. Signing
 is gated: with no secrets, builds fall back to ad-hoc and notarize steps skip.
