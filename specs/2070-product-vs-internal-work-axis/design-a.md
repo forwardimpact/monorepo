@@ -25,7 +25,7 @@ graph TD
     M -->|tie-break + Decision block| W["Work selected"]
     W -->|direct-fix author labels| PR
     PR -->|label present?| G["kata-release-merge<br/>gate check"]
-    G -->|merged + labeled| C["New fit-wiki mix emitter →<br/>wiki/metrics/product-mix/{YYYY}.csv"]
+    G -->|merged + labeled| C["fit-wiki mix emitter →<br/>wiki/metrics/product-mix/{YYYY}.csv"]
     C -->|existing xmr marker| SB["Storyboard product_share<br/>(product-manager section)"]
 ```
 
@@ -43,9 +43,9 @@ mechanical-vs-structural fork.
 | **Spec authoring** — `kata-spec`                     | A required stated product-vs-internal classification in `spec.md`; the spec PR carries the matching label per the rubric.                                                                                                                                                                                                                                            | `spec.md` classification field; PR label.                                                                    |
 | **Issue triage** — `kata-product-issue`              | Triage assigns each issue's value from the shared rubric; the resulting spec or fix carries the matching label.                                                                                                                                                                                                                                                      | Issue/PR label, derived from the rubric.                                                                     |
 | **Classification label** — `product` / `internal`    | A durable per-item repository label, created once and applied at PR open by the agent authoring the work — spec PR, issue-sourced fix, and direct fix alike.                                                                                                                                                                                                         | The aggregation surface for the metric.                                                                      |
-| **Merge-gate check** — `kata-release-merge`          | Verifies the classification label is present before merge (the gate already classifies PR type and reads PR labels), so no PR enters `main` unlabeled.                                                                                                                                                                                                               | Blocks merge on a missing label; makes the merged-PR population complete.                                    |
-| **Mix emitter** — new `fit-wiki` subcommand          | Counts the period's merged PRs by classification label and appends one standard metric row (`date,metric,value,unit,run,note,event_type`) for `product_share`. Deterministic, not authored by an agent; invoked in the product-manager scheduled run.                                                                                                                | Reads merged-PR labels via `gh`; writes `wiki/metrics/product-mix/{YYYY}.csv`.                               |
-| **Storyboard metric** — storyboard file              | A `#### product_share` block under the existing `### product-manager` section, carrying an `xmr:product_share` marker over the product-mix CSV.                                                                                                                                                                                                                      | Rendered by the existing `fit-wiki refresh` xmr path via `fit-xmr`; never hand-edited.                       |
+| **Merge-gate check** — `kata-release-merge`          | Verifies the classification label is present before merge (the gate already classifies PR type and reads PR labels), so no PR enters `main` unlabeled. This is the design's mechanism for the spec's "computed from recorded data, not asserted" completeness criterion.                                                                                             | Blocks merge on a missing label; makes the merged-PR population complete.                                    |
+| **Mix emitter** — new `fit-wiki` subcommand          | Counts the period's merged PRs by classification label and appends a standard metric row for `product_share`. Deterministic, not authored by an agent; invoked in the product-manager scheduled run.                                                                                                                                                                 | Reads merged-PR labels via `gh`; writes `wiki/metrics/product-mix/{YYYY}.csv`.                               |
+| **Storyboard metric** — storyboard file              | A `#### product_share` block under the existing `### product-manager` section, carrying an `xmr:product_share:wiki/metrics/product-mix/{YYYY}.csv` marker.                                                                                                                                                                                                           | Rendered by the existing `fit-wiki refresh` xmr path via `fit-xmr`; never hand-edited.                       |
 
 ## Key Decisions
 
@@ -69,20 +69,19 @@ The ratio is never typed into the storyboard. The emitter computes
 `product_share` as product-labeled merged PRs over all merged PRs in the period,
 and appends it as one time-series row; re-running it over the same merged PRs
 yields the same value. The series begins at the first period after the gate
-check lands — earlier PRs are out of scope and never enter the denominator.
-`fit-xmr` charts the series, so a sustained drift fires a signal the team
-reviews.
+check lands; earlier PRs never enter the denominator, per the spec's
+no-retroactive-reclassification exclusion. `fit-xmr` charts the series, so a
+sustained drift fires a signal the team reviews.
 
 ## Routing bias
 
-The bias is a tie-break inside the existing strictly-ordered levels (an owned
-priority still preempts everything below it). Two details the spec requires live
-here. The exception: internal work that lifts a constraint currently blocking
-product delivery keeps its place over a tied product candidate, because it buys
-product throughput. The record: whichever case applies, the agent names the
-chosen axis value in its weekly-log `### Decision` entry, and when it picks
-internal over a tied product candidate it names the constraint that work lifts —
-that entry is the verification surface for the spec's sample-run criterion.
+Two details the spec requires live here, beyond the placement decided above. The
+exception: internal work that lifts a constraint currently blocking product
+delivery keeps its place over a tied product candidate, because it buys product
+throughput. The record: whichever case applies, the agent names the chosen axis
+value in its weekly-log `### Decision` entry, and when it picks internal over a
+tied product candidate it names the constraint that work lifts — that entry is
+the verification surface for the spec's sample-run criterion.
 
 ## Out of scope
 
