@@ -171,6 +171,19 @@ jobs:
             echo "sha256=$(cat "dist/apps/${ASSET}.sha256")"
           } >> "$GITHUB_OUTPUT"
 
+      # Hand the signed + notarized + stapled bundle to publish-macos.yml (which
+      # is chained off this workflow's completion) so the .pkg reuses it instead
+      # of rebuilding and re-notarizing the app. The ditto archive preserves
+      # codesign metadata that a plain zip would corrupt. Outpost only — it is
+      # the sole product that also ships a .pkg.
+      - name: Upload signed app for the .pkg workflow
+        if: steps.meta.outputs.name == 'outpost'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: fit-outpost-app-stapled
+          path: dist/apps/${{ steps.hash.outputs.asset }}
+          retention-days: 1
+
       - name: Create or reuse GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
