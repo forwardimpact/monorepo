@@ -4,6 +4,7 @@
 [![Data](https://github.com/forwardimpact/monorepo/actions/workflows/check-data.yml/badge.svg)](https://github.com/forwardimpact/monorepo/actions/workflows/check-data.yml)
 [![Quality](https://github.com/forwardimpact/monorepo/actions/workflows/check-quality.yml/badge.svg)](https://github.com/forwardimpact/monorepo/actions/workflows/check-quality.yml)
 [![Test](https://github.com/forwardimpact/monorepo/actions/workflows/check-test.yml/badge.svg)](https://github.com/forwardimpact/monorepo/actions/workflows/check-test.yml)
+[![Build](https://github.com/forwardimpact/monorepo/actions/workflows/check-build.yml/badge.svg)](https://github.com/forwardimpact/monorepo/actions/workflows/check-build.yml)
 [![Security](https://github.com/forwardimpact/monorepo/actions/workflows/check-security.yml/badge.svg)](https://github.com/forwardimpact/monorepo/actions/workflows/check-security.yml)
 
 ## The Problem

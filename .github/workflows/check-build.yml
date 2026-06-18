@@ -1,0 +1,22 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # Compile + smoke every CLI as a standalone binary on Linux, so a CLI that
+  # runs from source but breaks under `bun --compile` is caught here rather than
+  # at release. The full linux+mac matrix runs at release time
+  # (publish-binaries.yml); macOS-specific compile breakage surfaces there.
+  build:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      targets: '["bun-linux-x64"]'
