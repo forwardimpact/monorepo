@@ -47,6 +47,7 @@ Identity, JWT issuance, and the anon-key read client are unchanged from spec
 | GetDX transform (adapted) | `activity/transform/getdx.js` | Resolve GetDX team ids to `team_id` via `source_refs`; write scores and comments against `team_id` (the comment path's `getdx_teams.manager_email` derivation is replaced by `source_refs` resolution); skip+count unresolved; no longer writes `getdx_teams` or membership. |
 | Synthetic pipeline (adapted) | `libsyntheticgen`, `libsyntheticrender` | Generator mints vendor-neutral `team_id`s and emits a teams roster; renderer and `validate-activity.js` write and assert `team_id`. |
 | `people push` (adapted) | `products/map/src/commands/people.js` + people transform | Sole writer of `organization_people.team_id` from the roster. |
+| Substrate (adapted) | `activity.js` seed, `substrate-persona-query.js`, `persona-enricher.js`, `substrate roster`/`pick` | Seed gains a teams step before people/getdx; persona discovery reads `activity.teams` and keys peers by `team_id`; `enrichPersonaRow` resolves the DSL team by `team_id` directly. |
 | `fit-landmark adoption` | `products/landmark/src/commands/adoption.js` | Render the Team x Platform matrix, XmR trend, and usage x DX correlation under the caller JWT. |
 
 ## Key interfaces
@@ -92,6 +93,7 @@ change. Descendant membership is the containment test `ancestors ? <led-id>`.
 | Subtree expansion | Materialized `ancestors` slug path maintained by `teams push`; containment check. | Recursive CTE per query — re-walks the tree on every read; no path column to keep correct. |
 | Usage/Goodhart guardrail | `metric_kind` column; a `(platform_id, metric_id)` has one kind; read renders `usage` only beside an `outcome`. | Convention/docs only — nothing structural stops a usage-only individual scoreboard. |
 | k-anonymity | Dropped at ingest (collector), and applied to the GetDX side at correlation display. | Display-time suppression only — the de-anonymizing cell still sits in storage. |
+| Substrate-DSL coupling | DSL team id == registry `team_id`; `enrichPersonaRow` looks up by `team_id`. | Keep a `gdx_team_`/synthetic prefix — forces a mapping table and re-introduces a vendor-shaped id in the neutral registry. |
 | Clean break | Remove `getdx_teams`/`getdx_team_id` everywhere incl. the synthetic pipeline; rewrite base + RLS migrations. | Additive migration keeping the old columns — dual team identity, the gap this spec closes. |
 
 ## Data flow
@@ -121,11 +123,12 @@ period to the snapshot cycle whose `scheduled_for` window covers the period.
 | `activity.snapshot_ids_for_person` | re-keyed to join on `team_id`; stays SECURITY INVOKER, membership-scoped |
 | RLS table-name allowlists | REVOKE/GRANT lists, retention `COMMENT` set, `_validate_retention_blob`, `retention_blob`, and the `DO` block extended; `teams`/`platforms` are null-window classes (like `organization_people`), `platform_usage` is windowed on `imported_at` |
 | `activity.get_team` (management-tree helper) | unchanged; `snapshots.js` re-points only its composition with team identity |
-| synthetic pipeline | `libsyntheticgen` mints vendor-neutral `team_id`; `libsyntheticrender` raw + validator assert `team_id` |
+| synthetic pipeline | `libsyntheticgen` mints vendor-neutral `team_id` and emits the teams roster; `libsyntheticrender` raw + validator assert `team_id` |
+| `activity.js` seed pipeline | gains a teams target ordered before people/getdx; people seed sets `team_id` |
 | `migrations/20250504000001_org_people_getdx_team_id.sql` | removed; folded into base |
 | base activity-schema + landmark-RLS migrations | rewritten to the new shape |
 | `transform/getdx.js` team/score/comment transforms | resolver, not a writer of `getdx_teams`/membership |
-| `queries/snapshots.js`, `substrate-persona-query.js`, `persona-enricher.js` (drop `gdx_team_` prefix), `landmark/src/commands/sources.js`, `services/map/test/map.test.js` | re-pointed to `teams`/`team_id` |
+| `queries/snapshots.js`, `substrate-persona-query.js`, `persona-enricher.js` (drop `gdx_team_` prefix), `substrate roster`/`pick`, `landmark/src/commands/sources.js`, `services/map/test/map.test.js` | re-pointed to `teams`/`team_id` |
 
 ## Risks
 
