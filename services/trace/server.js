@@ -9,7 +9,9 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { TraceService } from "./index.js";
 
-const config = await createServiceConfig("trace");
+const config = await createServiceConfig("trace", {
+  port: 3001,
+});
 const runtime = createDefaultRuntime();
 const { clock } = runtime;
 

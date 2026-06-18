@@ -8,6 +8,8 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createOauthService } from "./index.js";
 
 const config = await createServiceConfig("oauth", {
+  protocol: "http",
+  port: 3010,
   provider: "ghuser",
   issuer: "",
 });

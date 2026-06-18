@@ -10,6 +10,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { BridgeService } from "./index.js";
 
 const config = await createServiceConfig("bridge", {
+  port: 3012,
   discussion_flush_interval_ms: 5_000,
   discussion_max_buffer_size: 1_000,
   origin_flush_interval_ms: 1_000,

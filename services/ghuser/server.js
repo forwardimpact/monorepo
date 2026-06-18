@@ -13,6 +13,7 @@ import { BindingStore, FlowStore, GrantStore } from "./src/stores.js";
 import { createGithubOAuth } from "./src/github-oauth.js";
 
 const config = await createServiceConfig("ghuser", {
+  port: 3009,
   client_id: "",
   client_secret: "",
   link_base_url: "",

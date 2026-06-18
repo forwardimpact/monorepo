@@ -16,7 +16,7 @@ Configuration (loaded via `createServiceConfig("oauth")`):
 
 | Env var | Purpose |
 | --- | --- |
-| `SERVICE_OAUTH_URL` | Listen URL (default `http://localhost:3007`) |
+| `SERVICE_OAUTH_URL` | Listen URL (default `http://localhost:3010`) |
 | `SERVICE_OAUTH_ISSUER` | Authorization server issuer URL (used in metadata document) |
 | `SERVICE_OAUTH_PROVIDER` | Backend provider service name, resolved via `createClient` (default `ghuser`) |
 

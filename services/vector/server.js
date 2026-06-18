@@ -13,7 +13,9 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { VectorService } from "./index.js";
 
-const config = await createServiceConfig("vector");
+const config = await createServiceConfig("vector", {
+  port: 3002,
+});
 
 // Initialize observability
 const runtime = createDefaultRuntime();

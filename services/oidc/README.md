@@ -62,7 +62,7 @@ Loaded via `createServiceConfig("oidc")`:
 | `SERVICE_OIDC_ISSUER`      | `https://token.actions.githubusercontent.com`     | Expected OIDC `iss`                       |
 | `SERVICE_OIDC_AUDIENCE`    | `fit-ghserver`                                     | Expected OIDC `aud`                       |
 | `SERVICE_OIDC_JWKS_TTL_MS` | `600000`                                          | JWKS cache TTL (ms)                      |
-| `SERVICE_OIDC_PORT`        | `9202`                                            | Listen port                              |
+| `SERVICE_OIDC_PORT`        | `3008`                                            | Listen port                              |
 
 ## Running
 

@@ -8,12 +8,13 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createOidcService } from "./index.js";
 
 const config = await createServiceConfig("oidc", {
+  protocol: "http",
+  port: 3008,
   provider: "ghserver",
   issuer: "https://token.actions.githubusercontent.com",
   audience: "fit-ghserver",
   jwks_ttl_ms: 600_000,
   jwks_cooldown_ms: 30_000,
-  port: 9202,
 });
 
 const runtime = createDefaultRuntime();

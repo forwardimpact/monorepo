@@ -14,7 +14,7 @@ const config = await createServiceConfig("ghserver", {
   app_id: "",
   private_key: "",
   host: "127.0.0.1",
-  port: 9201,
+  port: 3007,
   allow_public_bind: false,
   rate_ceiling_per_tenant_per_minute: 10,
 });

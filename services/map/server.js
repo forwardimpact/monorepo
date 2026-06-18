@@ -9,7 +9,9 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 import { MapService } from "./index.js";
 
-const config = await createServiceConfig("map");
+const config = await createServiceConfig("map", {
+  port: 3004,
+});
 const runtime = createDefaultRuntime();
 const logger = createLogger("map", runtime);
 const tracer = await createTracer("map");

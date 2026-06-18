@@ -53,10 +53,10 @@ export async function runInitCommand(runtime) {
       SERVICE_TRACE_URL: "grpc://localhost:3001",
       SERVICE_VECTOR_URL: "grpc://localhost:3002",
       SERVICE_GRAPH_URL: "grpc://localhost:3003",
-      SERVICE_PATHWAY_URL: "grpc://localhost:3004",
-      SERVICE_MAP_URL: "grpc://localhost:3006",
-      SERVICE_MCP_URL: "http://localhost:3005",
-      SERVICE_EMBEDDING_URL: "grpc://localhost:3007",
+      SERVICE_PATHWAY_URL: "grpc://localhost:3005",
+      SERVICE_MAP_URL: "grpc://localhost:3004",
+      SERVICE_MCP_URL: "http://localhost:3011",
+      SERVICE_EMBEDDING_URL: "grpc://localhost:3015",
     },
   });
 
@@ -88,7 +88,7 @@ export async function runInitCommand(runtime) {
     items: [
       { label: "SERVICE_SECRET", description: "generated" },
       { label: "MCP_TOKEN", description: "generated" },
-      { label: "Service URLs", description: "ports 3001–3005" },
+      { label: "Service URLs", description: "ports 3001–3015" },
       {
         label: "ANTHROPIC_API_KEY",
         description: "set manually or run fit-guide login",
