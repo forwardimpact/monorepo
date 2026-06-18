@@ -81,20 +81,31 @@ jobs:
         with:
           pattern: "*-bun-darwin-arm64"
           path: dist/dl
+          # Merge every matched artifact into dist/dl as bare {cli} +
+          # {cli}.sha256 (no per-artifact subdir). Deterministic for 1 CLI
+          # (outpost) or 25 (gear) — names don't collide.
+          merge-multiple: true
 
       - name: Verify checksums and stage binaries
         run: |
           set -euo pipefail
+          shopt -s nullglob
           mkdir -p dist/binaries
-          # Each artifact dir holds a bare {cli} + {cli}.sha256. Verify the
-          # checksum before signing so the bytes we sign are provably the bytes
-          # the build produced, then stage as dist/binaries/{cli}.
-          for dir in dist/dl/*/; do
-            bin="$(find "$dir" -maxdepth 1 -type f ! -name '*.sha256')"
-            test -n "$bin" || { echo "::error::artifact in $dir has no binary"; exit 1; }
-            ( cd "$dir" && shasum -a 256 -c "$(basename "$bin").sha256" )
+          # The .sha256 sibling holds only the hash (build-binaries emits
+          # `shasum | awk '{print $1}'`), so compare rather than `shasum -c`.
+          # Verifying before signing proves the bytes we sign are the bytes the
+          # build produced.
+          found=0
+          for sha in dist/dl/*.sha256; do
+            bin="${sha%.sha256}"
+            test -f "$bin" || { echo "::error::$sha has no matching binary"; exit 1; }
+            want="$(cat "$sha")"
+            got="$(shasum -a 256 "$bin" | awk '{print $1}')"
+            [ "$want" = "$got" ] || { echo "::error::checksum mismatch for $bin"; exit 1; }
             install -m 0755 "$bin" "dist/binaries/$(basename "$bin")"
+            found=$((found + 1))
           done
+          [ "$found" -gt 0 ] || { echo "::error::no binaries downloaded to dist/dl"; exit 1; }
 
       - name: Set up code signing
         id: signing
