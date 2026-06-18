@@ -184,11 +184,9 @@ Append to the current week's log (see agent profile for the file path):
 
 - **Spec implemented** — Spec number, name, and branch
 - **PR opened** — PR number and branch name
-- **Blockers encountered** — Plan deviations, codebase divergences, test
-  failures, and how they were resolved
-- **Deferred specs** — Specs skipped and why (not ready, missing plan, etc.)
-- **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
-  per `references/metrics.md`. See KATA.md § Metrics for the
-  recording-eligibility rule. The implementation metric is route-bearing:
-  record the route taken and routes eligible per
+- **Blockers encountered** — Plan deviations, divergences, test failures, and fixes
+- **Deferred specs** — Specs skipped and why
+- **Metrics** — One row per run to `wiki/metrics/{skill}/` per
+  `references/metrics.md` (eligibility in KATA.md § Metrics). The metric is
+  route-bearing: record the route taken and routes eligible per
   [`references/route-decision.md`](references/route-decision.md).
