@@ -167,15 +167,37 @@ function multiPrefix(record, { multi }) {
 }
 
 /**
- * Default renderer for every other renderable verb: textifies one record per
- * line via JSON, prefixed with `<source>:` when multi-file.
+ * Default renderer for every other renderable verb: one record per block,
+ * fields rendered as `key: value` lines (no JSON braces or quotes, so the
+ * output does not parse as JSON — spec 1220 criterion 5). Nested values are
+ * collapsed to a single grep-friendly line. Multi-file output separates
+ * source groups with `# <source>` headers (`renderBlocks` convention).
  * @param {object[]|object} result
  * @param {{multi: boolean}} opts
  * @returns {string}
  */
 export function renderDefault(result, opts = {}) {
   const records = Array.isArray(result) ? result : [result];
-  return renderLines(records, (r) => oneLine(stripSource(r)), opts);
+  return renderBlocks(records, (r) => recordBlock(stripSource(r)), opts);
+}
+
+/**
+ * Render one record as `key: value` lines. Scalars render verbatim; objects
+ * and arrays collapse to a single line via `oneLine`. A non-object record
+ * (string/number) renders as its own single line.
+ * @param {*} record
+ * @returns {string}
+ */
+function recordBlock(record) {
+  if (record == null || typeof record !== "object" || Array.isArray(record)) {
+    return oneLine(record);
+  }
+  return Object.entries(record)
+    .map(([key, value]) => {
+      const scalar = value == null || typeof value !== "object";
+      return `${key}: ${scalar ? String(value) : oneLine(value)}`;
+    })
+    .join("\n");
 }
 
 /** Drop the orchestrator-injected `source` field before textifying. */

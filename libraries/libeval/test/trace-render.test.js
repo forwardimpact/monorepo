@@ -124,10 +124,23 @@ describe("trace-render", () => {
     assert.strictEqual(text, "[4] text: hello\n[4] result: world");
   });
 
-  test("renderDefault textifies records and drops source", () => {
-    const text = renderDefault([{ a: 1, source: "x.ndjson" }], {
+  test("renderDefault emits key: value lines, drops source, no JSON braces", () => {
+    const text = renderDefault([{ a: 1, b: { c: 2 }, source: "x.ndjson" }], {
       multi: false,
     });
-    assert.strictEqual(text, '{"a":1}');
+    assert.strictEqual(text, 'a: 1\nb: {"c":2}');
+    // Top-level output must not parse as JSON (criterion 5).
+    assert.throws(() => JSON.parse(text));
+  });
+
+  test("renderDefault prefixes source groups with # header when multi", () => {
+    const text = renderDefault(
+      [
+        { a: 1, source: "x.ndjson" },
+        { a: 2, source: "y.ndjson" },
+      ],
+      { multi: true },
+    );
+    assert.strictEqual(text, "# x.ndjson\na: 1\n# y.ndjson\na: 2");
   });
 });
