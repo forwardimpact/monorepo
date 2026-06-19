@@ -188,6 +188,25 @@ const AGENT_H3_REQUIREMENTS = STORYBOARD_DOMAIN_AGENTS.map((agent) => ({
   pattern: new RegExp(`^### ${agent}(\\s|$|—|-)`),
 }));
 
+// -- Metrics CSV duplicate rows --
+
+// Report every data line byte-identical to an earlier data line in the same
+// CSV. Line 1 is the header (positionally) and blank lines are skipped; the
+// header is never a duplicate subject. Keying on exact line equality gives the
+// spec's exit path for free: any column edit (run id or note) on one row makes
+// the pair non-identical and stops the finding firing.
+const duplicateCsvRows = (s) => {
+  const seen = new Set();
+  const findings = [];
+  s.rows.forEach((text, i) => {
+    const lineNo = i + 1;
+    if (lineNo === 1 || text.trim() === "") return;
+    if (seen.has(text)) findings.push({ lineNo });
+    else seen.add(text);
+  });
+  return findings.length === 0 ? null : findings;
+};
+
 const memoryExists = (s) => s.exists;
 const memoryHasPriorityHeader = (s) =>
   s.exists && PRIORITY_HEADER_RE.test(s.text);
@@ -522,6 +541,19 @@ export const RULES = [
     message: (_s, r) =>
       `${r.reason} issue-list marker${r.label ? ` (${r.label})` : ""}`,
     hint: "every '<!-- obstacles:* -->' or '<!-- experiments:* -->' needs a matching close marker",
+  },
+
+  // -- Metrics CSVs (union merge keeps both sides on concurrent appends;
+  // exact-duplicate rows are surfaced here, never silently removed) --
+
+  {
+    id: "metrics-csv.duplicate-row",
+    scope: "metrics-csv",
+    severity: "fail",
+    check: duplicateCsvRows,
+    message: (_s, r) =>
+      `Duplicate metrics row at line ${r.lineNo} (exact match of an earlier row)`,
+    hint: "remove the surplus row, or differentiate a genuinely-distinct measurement by editing its run id or note so the rows are no longer identical",
   },
 
   // -- STATUS.md rows (per-migration-unit sub-row schema) --

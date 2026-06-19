@@ -76,6 +76,22 @@ describe("init command (real git)", () => {
     assert.equal(result.ok, true);
     assert.ok(existsSync(join(wikiDir, "metrics", "kata-spec")));
   });
+
+  test("declares the metrics-CSV union merge in a fresh wiki .gitattributes", async () => {
+    // Re-seed the bare repo without the declaration so init must introduce it.
+    bare = createBareRepo();
+    seedBareRepo(bare, { gitattributes: false });
+    await runInit();
+    const attrs = readFileSync(join(wikiDir, ".gitattributes"), "utf-8");
+    assert.ok(attrs.includes("metrics/**/*.csv merge=union"));
+    // A second init leaves it unchanged (no duplicate line).
+    await runInit();
+    const after = readFileSync(join(wikiDir, ".gitattributes"), "utf-8");
+    const count = after
+      .split("\n")
+      .filter((l) => l.trim() === "metrics/**/*.csv merge=union").length;
+    assert.equal(count, 1);
+  });
 });
 
 // Real-fs scaffolding: init resolves the project root via the real finder over
