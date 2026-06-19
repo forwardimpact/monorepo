@@ -68,6 +68,46 @@ If your network requires a custom CA bundle, add an `env` block to
 }
 ```
 
+### Where your data lives
+
+Outpost runs on your Mac and keeps your data on it. This answers where your
+context lives, where AI calls go, and Forward Impact's role — a different
+question from the enterprise-CA note above.
+
+**On-device storage.** Every place Outpost-handled content lands is on your
+device:
+
+- The knowledge base at the path you pass to `npx fit-outpost init`, including
+  the `drafts/` directory inside it where drafted emails are written.
+- Outpost's cache directory (`~/.cache/fit/outpost/`), holding all synced source
+  content and each agent's per-wake output.
+- Apple Mail's local store, which Outpost reads from.
+- Apple Calendar's local store, which Outpost reads from. (See
+  [Getting Started](#getting-started) for which accounts are picked up.)
+- Outpost's scheduler home (`~/.fit/outpost/`) — config, runtime state, logs,
+  and a local socket; the log and state files retain bounded excerpts of agent
+  output.
+
+**Where AI calls go.** Outpost delegates every AI call to the Claude Code CLI
+already installed on your Mac; it does not select or override the endpoint. The
+endpoint is therefore whichever provider your Claude Code is configured to reach
+— by default the [Anthropic API](https://docs.claude.com/en/docs/claude-code/settings).
+Each call's prompt carries the user content the agent assembled for that wake
+(knowledge-graph excerpts, synced mail and calendar content).
+
+The model endpoint is not the only egress. Agents in the default install
+templates also make outbound calls beyond it: scheduled scans of public sources,
+and browser automation that sends messages through your chat web apps.
+
+**Forward Impact's role.** The Outpost product runs no Forward Impact-operated
+server that processes your content — it is a local scheduler around your own
+Claude Code installation, and AI calls reach the provider you configured
+(Anthropic by default), not Forward Impact.
+
+**Regulated workloads.** No BAA, SOC 2 attestation, or enterprise
+data-processing agreement exists for Outpost today. If your data is under a
+regulated gate, run your own approval process before adopting it.
+
 ---
 
 ## Choosing your posture
