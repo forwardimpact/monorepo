@@ -34,8 +34,8 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
   });
 
   test("C8: a no-intent rebase conflict fails loud (the ours-strategy fallback is removed)", async () => {
-    // Spec 1780 removes the silent -X ours clobber on the no-reapply path
-    // (1920's joint fail-loud floor). A whole-tree rebase conflict now throws
+    // The silent -X ours clobber on the no-reapply path is removed
+    // (the merge-discipline fail-loud floor). A whole-tree rebase conflict now throws
     // `conflict` and never discards the remote side.
     const { wikiSync, methods } = make({
       responses: {

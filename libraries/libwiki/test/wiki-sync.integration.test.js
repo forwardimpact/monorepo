@@ -292,8 +292,8 @@ describe("WikiSync (real git)", () => {
     const head = git(wikiDir, "rev-parse", "HEAD");
     git(wikiDir, "checkout", head); // detach
     writeFileSync(join(wikiDir, "pending.md"), "session work");
-    // The detached-HEAD D7 fixture collapses onto 1750's ancestry guard, which
-    // refuses with AncestryRefusal before any mutation (spec 1780 D7 seam).
+    // The detached-HEAD D7 fixture collapses onto the ancestry guard, which
+    // refuses with AncestryRefusal before any mutation (the precondition-vs-ancestry seam).
     await assert.rejects(
       () => makeSync(wikiDir, parent).commitAndPush("wiki: update"),
       (err) => err instanceof AncestryRefusal,
@@ -562,11 +562,11 @@ describe("WikiSync metrics-CSV union merge", () => {
     await makeSync(wA, pA).commitAndPush("wiki: A append+note");
 
     // B conflicts with A on the SAME markdown line. The whole-tree push carries
-    // no registered `reapply`, so spec 1780 removes the silent -X ours fallback:
+    // no registered `reapply`, so the silent -X ours fallback is removed:
     // the rebase conflict now fails loud rather than discarding A's side.
     appendLine(wB, CSV, "2026-06-01,b,2,count,,,\n");
     writeFileSync(join(wB, "notes.md"), "# Notes\nB edits the shared line\n");
-    // No registered `reapply`: spec 1780 removes the silent -X ours fallback,
+    // No registered `reapply`: the silent -X ours fallback is removed,
     // so the divergence fails loud — a rebase `conflict`, or a `conservation`
     // refusal when the stale replay drops A's remote line without a textual
     // rebase conflict. Either way A's side is never discarded.

@@ -21,8 +21,8 @@ export const HEALTHY_ANCESTRY = {
 export const REMOTE_TIP = "aaaa111";
 
 // Mock responses placing the clone in a healthy, publishable PUSH state for the
-// honest commitAndPush (spec 1780). It folds in HEALTHY_ANCESTRY because the
-// composed flow always runs the ancestry guard (spec 1750) before the push, so
+// honest commitAndPush (the honest commitAndPush contract). It folds in HEALTHY_ANCESTRY because the
+// composed flow always runs the ancestry guard (the ancestry guard) before the push, so
 // a push-focused test still needs `headBranch`/`refExists`/`mergeBaseExists`
 // satisfied. Adds: a remote tip the push lands onto, HEAD not yet contained (so
 // not nothing-to-push), no unmerged paths, no foreign drops, and an accepted
@@ -90,7 +90,7 @@ export function make({
     ...(subprocess ? { subprocess } : {}),
     // Build a full mock proc carrying the custom env so capturing
     // stdout/stderr stay available (the conservation self-report writes to
-    // proc.stderr — spec 1780 D8).
+    // proc.stderr — the honest commitAndPush contract).
     ...(env ? { proc: createMockProcess({ env }) } : {}),
   });
   const wikiSync = new WikiSync({

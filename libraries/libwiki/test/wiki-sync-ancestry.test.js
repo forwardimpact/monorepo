@@ -19,7 +19,7 @@ describe("WikiSync ancestry guard", () => {
   // `isMidMerge: false` so the mid-merge guard does not short-circuit before the
   // ancestry guard under test. Folds in the honest push-flow responses
   // (HEALTHY_PUSH) so the allow-path tests reach a grounded landing under the
-  // spec 1780 composed flow.
+  // the honest commitAndPush contract composed flow.
   const DIRTY_AHEAD = {
     ...HEALTHY_PUSH,
     isMidMerge: false,
@@ -323,7 +323,7 @@ describe("WikiSync ancestry guard", () => {
     const names = git.calls.map((c) => c.method);
     // The ancestry guard's emptiness probe (`remoteBranchExists`) and the
     // shallow-clone deepen stay off the hot path. The grounded nothing-to-push
-    // read (`remoteRefTip`) is a separate, expected round-trip (spec 1780 D2).
+    // read (`remoteRefTip`) is a separate, expected round-trip (the grounded-outcome contract).
     assert.ok(
       !names.includes("remoteBranchExists"),
       "hot path adds no ancestry-probe round-trip",

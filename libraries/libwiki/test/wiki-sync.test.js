@@ -381,7 +381,7 @@ describe("WikiSync", () => {
         rebase: { exitCode: 1, stderr: "CONFLICT" },
       },
     });
-    // No reapply: spec 1780 removes the silent-clobber fallback, so the
+    // No reapply: the silent-clobber fallback is removed, so the
     // no-intent conflict path fails loud rather than discarding the remote side.
     await assert.rejects(
       () => wikiSync.commitAndPush("wiki: update", ["MEMORY.md"]),
@@ -415,7 +415,7 @@ describe("WikiSync", () => {
 
   test("commitAndPush does NOT mint success on a failing push (inverted: phantom-success defect)", async () => {
     // This row formerly locked in the fire-and-forget phantom-success defect
-    // (returned pushed:true regardless). Inverted per spec 1780: a push that
+    // (returned pushed:true regardless). Inverted to the honest contract: a push that
     // throws at transport surfaces a transport failure, never a landed success.
     const { git, wikiSync } = make({
       fsSync: provisionedFs(),
@@ -457,7 +457,7 @@ describe("WikiSync", () => {
   });
 });
 
-describe("WikiSync honest-outcome contract (spec 1780)", () => {
+describe("WikiSync honest-outcome contract (the honest commitAndPush contract)", () => {
   const DIRTY = { stdout: " M MEMORY.md", stderr: "", exitCode: 0 };
 
   function rejectsReason(promiseFn, reason) {
@@ -487,7 +487,7 @@ describe("WikiSync honest-outcome contract (spec 1780)", () => {
   test("detached HEAD refuses before mutating (ancestry guard — D7 seam defers to 1750)", async () => {
     // The detached-HEAD D7 fixture collapses onto 1750's ancestry guard, which
     // refuses with an AncestryRefusal ("unverifiable") before any mutation —
-    // spec 1780 D7 defers reason naming to 1750's landed guard.
+    // the ancestry guard owns the reason naming for that fixture.
     const { git, wikiSync } = make({
       responses: {
         ...HEALTHY_PUSH,

@@ -9,8 +9,8 @@ import {
 } from "../src/wiki-sync.js";
 // The shared harness composes the honest push-flow responses (HEALTHY_PUSH)
 // with the foundation guards (mid-merge, ancestry, marker, secret) so a
-// push-focused test reaches a grounded landing under the spec 1780 composed
-// flow (1750 ancestry guard + 1920 merge discipline + 1960 probe).
+// push-focused test reaches a grounded landing under the composed
+// composed flow (ancestry guard + merge discipline + integrity probe).
 import { WIKI, HEALTHY_PUSH, REMOTE_TIP, make } from "./wiki-sync-harness.js";
 
 describe("WikiSync honest-outcome contract", () => {
@@ -41,9 +41,9 @@ describe("WikiSync honest-outcome contract", () => {
   });
 
   test("detached HEAD refuses before mutating (ancestry guard — D7 seam defers to 1750)", async () => {
-    // The detached-HEAD D7 fixture collapses onto 1750's ancestry guard, which
+    // The detached-HEAD D7 fixture collapses onto the ancestry guard, which
     // refuses with an AncestryRefusal ("unverifiable") before any mutation —
-    // spec 1780 D7 defers reason naming to 1750's landed guard.
+    // the ancestry guard owns the reason naming for that fixture.
     const { git, wikiSync } = make({
       responses: {
         ...HEALTHY_PUSH,

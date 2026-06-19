@@ -23,8 +23,8 @@ export async function runPushCommand(ctx) {
   try {
     result = await wikiSync.commitAndPush("wiki: update from session");
   } catch (err) {
-    // Honest CLI contract (spec 1780 D1): non-zero on any non-land push
-    // failure, and on the ancestry guard's refusal (spec 1750). The Stop-hook
+    // Honest CLI contract (the honest-CLI contract): non-zero on any non-land push
+    // failure, and on the ancestry guard's refusal (the ancestry guard). The Stop-hook
     // recipe maps this to a stop-blocking exit; CI steps see a loud failure.
     if (err instanceof WikiPushFailure || err instanceof AncestryRefusal) {
       runtime.proc.stderr.write(`${err.message}\n`);

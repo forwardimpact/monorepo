@@ -305,8 +305,8 @@ describe("tier-1 post-push probe (real git)", () => {
   // A GitClient whose push is a no-op that still reports the ref accepted,
   // modelling a push the remote's per-ref report attests landed while the
   // commit never reaches origin (same-window erasure / 418b). The honest
-  // commitAndPush (spec 1780) grounds `landed` in that remote-originated
-  // per-ref report, so the post-push tier-1 probe (spec 1960) is the backstop
+  // commitAndPush (the honest commitAndPush contract) grounds `landed` in that remote-originated
+  // per-ref report, so the post-push tier-1 probe (the tier-1 integrity probe) is the backstop
   // that re-reads origin and surfaces the absence — the two contracts compose.
   // The probe's own read path (fetch + showFile) runs for real.
   class DroppedPushGitClient extends GitClient {
@@ -406,11 +406,11 @@ describe("tier-1 post-push probe (real git)", () => {
     assert.equal(git(wikiDir, "status", "--porcelain"), "");
   });
 
-  test("a conflicting whole-tree divergence fails loud — never a merge-HEAD clobber (spec 1780 inverts the -X ours fallback)", async () => {
+  test("a conflicting whole-tree divergence fails loud — never a merge-HEAD clobber (the -X ours fallback is removed)", async () => {
     // Victim clones first, then a sibling pushes a conflicting README change, so
-    // the victim's pre-push rebase conflicts. Before spec 1780 this fell back to
+    // the victim's pre-push rebase conflicts. Before this change it fell back to
     // mergeOursStrategy, making HEAD a merge commit that discarded the remote
-    // side; 1780 removes that clobber, so the divergence now fails loud and the
+    // side; this change removes that clobber, so the divergence now fails loud and the
     // post-push tier-1 probe never runs (no push was attempted).
     const { parent, wikiDir } = cloneRepo(bare, "t1-merge");
     git(wikiDir, "checkout", "master");

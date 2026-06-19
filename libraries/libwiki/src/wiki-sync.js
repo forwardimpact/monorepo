@@ -17,7 +17,7 @@ const PUSH_RANGE = "origin/master..HEAD";
 const UNMERGED_CODES = new Set(["UU", "AA", "DD", "AU", "UA", "DU", "UD"]);
 
 /**
- * The honest push-outcome reason taxonomy (spec 1780 D2). Success-shaped
+ * The honest push-outcome reason taxonomy (D2). Success-shaped
  * outcomes (`landed`, `nothing-to-push`) are returned; every other reason is
  * carried by a thrown {@link WikiPushFailure}.
  */
@@ -133,7 +133,7 @@ function pushFenceExempt(filePath) {
 
 /**
  * Error thrown when `commitAndPush` cannot honestly report a landed push
- * (spec 1780). `reason` is one of {@link PUSH_REASONS} other than `landed` /
+ *  `reason` is one of {@link PUSH_REASONS} other than `landed` /
  * `nothing-to-push`; `stashSha` names a preserved autostash on a
  * `residue-conflict`.
  */
@@ -266,7 +266,7 @@ export class WikiSync {
 
   /**
    * Stage and commit working-tree changes, then reconcile on origin/master and
-   * push — reporting an honest outcome (spec 1780). The commit gate and the
+   * push — reporting an honest outcome  The commit gate and the
    * push gate are independent so a clean tree with local commits still pushes.
    *
    * Without `paths` the commit sweeps the whole tree (`fit-wiki push`
@@ -291,7 +291,7 @@ export class WikiSync {
    *   (push/fetch transport failure). A failed push never loses uncommitted
    *   work.
    *
-   * Bounded retry (D3) is in contract: 1750's ancestry judgment is present
+   * Bounded retry (D3) is in contract: the ancestry judgment is present
    * (this is the second lander), so a `rejected` outcome reconciles once and
    * re-pushes, re-entering {@link #assertPublishable} before the replay so the
    * empty-remote allowance is never auto-re-granted. The retry is bounded at
@@ -362,7 +362,7 @@ export class WikiSync {
    * @throws {WikiSyncConflict} When the re-apply budget is exhausted.
    */
   async commitAndPush(message, paths, { reapply, maxReapply = 3 } = {}) {
-    // Precondition (D7, spec 1780): refuse mid-rebase before mutating. A
+    // Precondition (D7): refuse mid-rebase before mutating. A
     // detached HEAD is judged by the ancestry guard below (its `unverifiable`
     // refusal and this `precondition` collapse to one observable refusal); the
     // rebase-in-progress check is the residual this guard owns.
@@ -374,7 +374,7 @@ export class WikiSync {
     if (await this.#git.isMidMerge({ cwd: this.#wikiDir })) {
       return WikiSyncRefusal.result("mid-merge");
     }
-    // Ancestry guard (spec 1750): refuse a detached/unborn/unrelated history
+    // Ancestry guard: refuse a detached/unborn/unrelated history
     // before any mutation.
     await this.#assertPublishable();
     const gitattributesChanged = ensureMetricsCsvMergeAttribute(
@@ -399,7 +399,7 @@ export class WikiSync {
       }
     }
 
-    // Grounded nothing-to-push (D2, spec 1780): assert it only when the
+    // Grounded nothing-to-push (D2): assert it only when the
     // observed remote ref already contains local HEAD — never pre-fetch
     // arithmetic, so a stranded-resume tree (clean, ahead) re-pushes.
     const preTip = await this.#observeRemoteTip();
@@ -417,7 +417,7 @@ export class WikiSync {
   }
 
   /**
-   * Reconcile on the remote and push, grounding the outcome (spec 1780 D2/D3).
+   * Reconcile on the remote and push, grounding the outcome (D2/D3).
    * Split from {@link commitAndPush} so the bounded ×1 retry (D3) re-enters the
    * ancestry judgment and re-reconciles without duplicating the gates. On a
    * `rejected` outcome it retries once: re-asserts {@link #assertPublishable}
@@ -473,11 +473,11 @@ export class WikiSync {
     });
 
     // Rebase conflict (D2): a non-zero rebase exit is a conflict on the rebase
-    // itself. For a registered singleton with a `reapply` op the merge
-    // discipline (spec 1920) re-derives the row against the fresh tip; the
-    // no-intent path fails loud (the `mergeOursStrategy` clobber fallback is
-    // removed — spec 1780 lands 1920's joint fail-loud floor). Checked before
-    // the residue read because a stopped rebase also leaves UU markers.
+    // itself. For a registered singleton with a `reapply` op the singleton merge
+    // discipline re-derives the row against the fresh tip; the no-intent path
+    // fails loud (the `mergeOursStrategy` clobber fallback is removed — the
+    // merge-discipline fail-loud floor applies). Checked before the residue read
+    // because a stopped rebase also leaves UU markers.
     if (rebase.exitCode !== 0) {
       const resolved = await this.#resolveRebaseConflict(message, paths, opts);
       if (resolved) return { result: resolved };
@@ -489,7 +489,7 @@ export class WikiSync {
     await this.#assertNoResidue();
 
     // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
-    // unresolved conflict block (spec 1890).
+    // unresolved conflict block (the conflict-marker guard).
     const markerRefusal = await this.#refuseIfIntroducedMarkers();
     if (markerRefusal) return { result: markerRefusal };
 
@@ -498,7 +498,7 @@ export class WikiSync {
     await this.#assertConserved(tip, message);
 
     // Capture the pushed delta now: HEAD is the final (rebased) local tip and
-    // origin/master is still the pre-push base (spec 1960 tier-1 probe).
+    // origin/master is still the pre-push base (the tier-1 integrity probe).
     const pushedDelta = await this.#capturePushedDelta();
 
     // Fail-closed secret gate. Scan exactly the commits this push introduces
@@ -561,10 +561,10 @@ export class WikiSync {
   /**
    * Resolve a failed rebase against the fresh tip. Aborts the rebase, then for a
    * registered singleton with a `reapply` op re-derives the row against the tip
-   * via the bounded re-apply loop (spec 1920). Without a registered `reapply`
-   * the conflict fails loud: the `-X ours` clobber fallback is **removed** (spec
-   * 1780 D-clobber + 1920's joint fail-loud floor), so the remote side is never
-   * mechanically discarded. The rebase is already aborted, leaving the working
+   * via the bounded re-apply loop (the singleton merge discipline). Without a
+   * registered `reapply` the conflict fails loud: the `-X ours` clobber fallback
+   * is **removed** (the merge-discipline fail-loud floor), so the remote side is
+   * never mechanically discarded. The rebase is already aborted, leaving the working
    * tree at `orig_head` with the autostash re-applied, so a `conflict` throw
    * loses no uncommitted work.
    * @param {string} message - The commit message.
@@ -766,7 +766,7 @@ export class WikiSync {
    * fixture — a detached HEAD — is deferred to the ancestry guard
    * ({@link #assertPublishable}), where it surfaces as an `AncestryRefusal`
    * ("unverifiable"): the two refusals collapse to one observable refusal, and
-   * spec 1780 D7 defers reason naming to 1750's landed guard. This guard owns
+   * the ancestry guard owns the reason naming for that fixture. This guard owns
    * only the rebase-in-progress residual, which the ancestry guard does not
    * cover.
    */

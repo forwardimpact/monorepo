@@ -209,8 +209,8 @@ describe("claim/release push integration (real git)", () => {
         },
       }),
     );
-    // The detached-HEAD D7 fixture collapses onto 1750's ancestry guard, which
-    // refuses with an AncestryRefusal (spec 1780 D7 seam defers to 1750). On the
+    // The detached-HEAD D7 fixture collapses onto the ancestry guard, which
+    // refuses with an AncestryRefusal. On the
     // claim surface that maps to the not-published non-zero envelope.
     assert.equal(result.ok, false);
     assert.equal(result.code, 1);

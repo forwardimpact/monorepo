@@ -53,8 +53,8 @@ function memoryPath(runtime, options) {
 
 /**
  * Push the claim/release MEMORY.md change and translate the honest outcome
- * (spec 1780 D1) into a command envelope, composed with the singleton merge
- * discipline (spec 1920) and the secret/ancestry guards:
+ * (the honest-CLI contract) into a command envelope, composed with the singleton merge
+ * discipline (the singleton merge discipline) and the secret/ancestry guards:
  * - landed (grounded or re-applied) ⇒ `{ ok: true }`, success message printed;
  * - `rejected`/`transport` ⇒ `{ ok: true }` with a saved-locally warning (the
  *   landed-locally row is complete; the session-end push is its retry);
@@ -85,7 +85,7 @@ async function pushWiki(wikiSync, runtime, message, reapply) {
     // claim/release contract is a 1-line MEMORY.md change; the pathspec keeps
     // foreign uncommitted files from parallel writers out of the commit. The
     // `reapply` closure re-derives this row against the fresh tip if the landing
-    // contends (spec 1920), so a parallel writer's row is never erased.
+    // contends (the singleton merge discipline), so a parallel writer's row is never erased.
     result = await wikiSync.commitAndPush(message, ["MEMORY.md"], { reapply });
   } catch (err) {
     // An ancestry-guard refusal pierces the saved-locally degradation: rethrow
