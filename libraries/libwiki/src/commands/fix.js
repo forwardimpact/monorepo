@@ -282,7 +282,11 @@ export async function runFixCommand(ctx) {
 
   // The agent's edits change the result, so re-read and re-audit each round.
   const audit = () =>
-    runRules(RULES, buildContext({ wikiRoot, today, fs }), { resolveScope });
+    runRules(
+      RULES,
+      buildContext({ wikiRoot, today, fs, subprocess: runtime.subprocess }),
+      { resolveScope },
+    );
   // The agent only ever gets prose-judgment (`agent`-class) findings. A
   // `rotate` finding that survived the pre-pass (e.g. a prior-week log) is
   // unfixable by the agent — and trimming append-only history to satisfy a

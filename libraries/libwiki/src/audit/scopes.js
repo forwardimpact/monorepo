@@ -7,6 +7,8 @@ import {
   WEEKLY_LOG_NAME_RE,
   WEEKLY_LOG_PART_NAME_RE,
 } from "../constants.js";
+import { listAdmissionPaths } from "./admission.js";
+import { classifyPath, rootSummaryStem } from "./grammar.js";
 
 // Capture the agent-title group so the same regex both classifies a file
 // (`.test`) and yields the title for the agent-prefix audit (`.match[1]`).
@@ -221,6 +223,13 @@ const SCOPE_RESOLVERS = {
       path: ctx.status.path,
     })),
   "conflict-scan": (ctx) => conflictScanSubjects(ctx),
+  admission: (ctx) =>
+    ctx.admission.paths
+      .filter((p) => classifyPath(p, ctx.admission) === "rejected")
+      .map((relPath) => ({
+        path: path.join(ctx.wikiRoot, relPath),
+        relPath,
+      })),
 };
 
 // Normalize every audited surface into a uniform `{ path, text, fenceExempt }`
@@ -269,11 +278,34 @@ export function resolveScope(scopeKey, ctx) {
 }
 
 /**
- * Build the audit context: classifies and loads every wiki file once.
- * @param {{wikiRoot: string, today: string, fs: object}} options
- *   `fs` is the sync filesystem surface (`runtime.fsSync`).
+ * Build the admission slice: the tracked-file universe plus the
+ * `rootSummaryAgents` set that gates `<agent>/` sidecar directories. The agent
+ * set is derived first (a root-level summary-class file's stem) so the
+ * `admission` scope can classify sidecar directories against it.
+ *
+ * Returns the empty universe when `subprocess` is absent — callers that only
+ * read `.subjects` (the rotation pre-pass) skip the git read and the tree walk
+ * entirely, and produce no `admission` findings.
  */
-export function buildContext({ wikiRoot, today, fs }) {
+function buildAdmission(wikiRoot, fs, subprocess) {
+  if (!subprocess) return { paths: [], rootSummaryAgents: new Set() };
+  const paths = listAdmissionPaths({ wikiRoot, fs, subprocess });
+  const rootSummaryAgents = new Set();
+  for (const p of paths) {
+    if (p.includes("/")) continue; // root-level files only
+    const stem = rootSummaryStem(p);
+    if (stem) rootSummaryAgents.add(stem);
+  }
+  return { paths, rootSummaryAgents };
+}
+
+/**
+ * Build the audit context: classifies and loads every wiki file once.
+ * @param {{wikiRoot: string, today: string, fs: object, subprocess: object}} options
+ *   `fs` is the sync filesystem surface (`runtime.fsSync`); `subprocess` is
+ *   `runtime.subprocess` (its `runSync` backs the admission scope's git read).
+ */
+export function buildContext({ wikiRoot, today, fs, subprocess }) {
   const subjects = {
     summary: [],
     "weekly-log-main": [],
@@ -294,5 +326,6 @@ export function buildContext({ wikiRoot, today, fs }) {
     memory: readOptional(path.join(wikiRoot, "MEMORY.md"), fs),
     status: readOptional(path.join(wikiRoot, "STATUS.md"), fs),
     storyboard: loadStoryboard(wikiRoot, today, fs),
+    admission: buildAdmission(wikiRoot, fs, subprocess),
   };
 }

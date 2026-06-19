@@ -558,4 +558,6 @@ describe("runRules", () => {
 
   // The metrics-csv.duplicate-row behaviour family lives in the sibling
   // audit-engine-metrics.test.js (split to keep each file under the line cap).
+  // The admission-scope behaviour family lives in the sibling
+  // audit-engine-admission.test.js (same split rationale).
 });

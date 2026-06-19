@@ -277,4 +277,25 @@ describe("fit-wiki fix CLI (in-process)", () => {
     assert.deepEqual(result, { ok: true, code: 0 });
     assert.doesNotMatch(harness.stderr, /need human judgment/);
   });
+
+  test("a non-grammar file is flagged for a human and left byte-identical", async () => {
+    seedCleanWiki(wikiRoot);
+    // No git state under wikiRoot, so the admission universe is the whole walk:
+    // this rogue is in scope and rejected by the grammar.
+    const roguePath = join(wikiRoot, "product-manager-2026-W24-history.md");
+    const ROGUE = "# rogue narrative\n\nsome memory siphoned here\n";
+    writeFileSync(roguePath, ROGUE);
+    const harness = makeRuntime({ cwd: dir });
+
+    // No agent query is supplied: a flag-only run must never spawn the writer.
+    const result = await runFixCommand(
+      ctxFor({ runtime: harness.runtime, options: { today: "2026-05-24" } }),
+    );
+
+    assert.deepEqual(result, { ok: false, code: 2 });
+    assert.match(harness.stderr, /need human judgment/);
+    assert.match(harness.stderr, /product-manager-2026-W24-history\.md/);
+    // The flagged file is never moved or rewritten.
+    assert.equal(readFileSync(roguePath, "utf-8"), ROGUE);
+  });
 });
