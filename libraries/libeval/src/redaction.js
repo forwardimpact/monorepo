@@ -3,6 +3,14 @@
  * the trace artifact. Composes two layers: an env-var value allowlist and a
  * set of credential-shape regexes. Both run on every primitive string.
  *
+ * Coverage includes encoded credential forms, not only raw bytes: the env
+ * layer matches each allowlisted secret both raw and in its **standard
+ * base64** form at any byte offset within the encoded plaintext, and the
+ * pattern layer covers the git `extraheader` basic-auth wrapper. Boundary:
+ * **standard base64 only** — URL-safe base64, hex, and percent-encoding are
+ * not covered — and the **trace-write sink only**; content an agent authors
+ * into a wiki commit is never passed through this redactor.
+ *
  * Stateless after construction: `env` is captured once so in-process
  * `process.env` writes (e.g. agent-runner.js LIBEVAL_SKILL, commands/run.js
  * LIBEVAL_AGENT_PROFILE) cannot smuggle a value past the redactor.
@@ -52,15 +60,55 @@ const ENV_PLACEHOLDER = (name) => `[REDACTED:env:${name}]`;
 const PATTERN_PLACEHOLDER = (kind) => `[REDACTED:pattern:${kind}]`;
 
 /**
- * Build a frozen { name → value } snapshot of the requested env vars.
- * Empty strings are skipped — a leaked empty env var would otherwise
- * cause every empty string in the trace to be replaced.
+ * Minimum secret byte length for encoded-form matching. At 9 bytes the
+ * shortest offset core is exactly 8 chars; below 9 it drops under 8 — too
+ * short to be a sound needle against ordinary base64 trace content (margin of
+ * safety, false positives). Every DEFAULT_ENV_ALLOWLIST value (token, key,
+ * password) far exceeds it.
+ */
+const MIN_ENCODED_SECRET_BYTES = 9;
+
+// Leading base64 chars contaminated by the k filler bytes, per alignment.
+const ENCODED_LEAD_STRIP = [0, 2, 3];
+
+/**
+ * The three offset-invariant standard-base64 core substrings of `secret`, one
+ * per byte alignment (k = 0/1/2). base64 maps disjoint 3-byte groups to 4 chars
+ * independently, so the chars covering a secret's interior groups depend only
+ * on the secret's bytes — never on the bytes surrounding it. Only the partial
+ * groups at each edge are neighbour-dependent; stripping them leaves a core
+ * that appears in the base64 of any plaintext placing `secret` at that
+ * alignment. Padding lives only in the final partial group, which is stripped,
+ * so each core is padding-free and one needle matches padded and unpadded
+ * haystack content. Returns [] below MIN_ENCODED_SECRET_BYTES.
+ * @param {string} secret
+ * @returns {string[]}
+ */
+function encodedNeedles(secret) {
+  if (Buffer.byteLength(secret, "utf8") < MIN_ENCODED_SECRET_BYTES) return [];
+  const needles = [];
+  for (let k = 0; k < 3; k++) {
+    const enc = Buffer.from("\0".repeat(k) + secret, "utf8")
+      .toString("base64")
+      .replace(/=+$/, "");
+    needles.push(enc.slice(ENCODED_LEAD_STRIP[k], enc.length - 4));
+  }
+  return needles;
+}
+
+/**
+ * Build a frozen { name → { secret, needles } } snapshot of the requested env
+ * vars. Empty strings are skipped — a leaked empty env var would otherwise
+ * cause every empty string in the trace to be replaced. `needles` are the
+ * precomputed standard-base64 cores (empty for sub-floor secrets).
  */
 function snapshotEnv(env, allowlist) {
   const snap = {};
   for (const name of allowlist) {
     const v = env[name];
-    if (typeof v === "string" && v.length > 0) snap[name] = v;
+    if (typeof v === "string" && v.length > 0) {
+      snap[name] = { secret: v, needles: encodedNeedles(v) };
+    }
   }
   return Object.freeze(snap);
 }
@@ -81,7 +129,7 @@ function walk(value, redactString) {
 export class Redactor {
   /**
    * @param {object} deps
-   * @param {Readonly<Record<string, string>>} deps.envSnapshot - Frozen { name → secret } map captured at construction time.
+   * @param {Readonly<Record<string, {secret: string, needles: string[]}>>} deps.envSnapshot - Frozen { name → { secret, needles } } map captured at construction time; `needles` are the precomputed standard-base64 cores of `secret`.
    * @param {ReadonlyArray<{kind: string, regex: RegExp}>} deps.patterns - Credential-shape regexes; each match becomes `[REDACTED:pattern:KIND]`.
    * @param {boolean} deps.enabled - When false, `redactValue` returns its input by reference.
    */
@@ -109,9 +157,20 @@ export class Redactor {
    */
   #redactString(s) {
     let out = s;
-    for (const [name, secret] of Object.entries(this.envSnapshot)) {
+    for (const [name, { secret, needles }] of Object.entries(
+      this.envSnapshot,
+    )) {
       if (out.includes(secret)) {
         out = out.split(secret).join(ENV_PLACEHOLDER(name));
+      }
+      // Standard-base64 form at any byte offset. Order among the three needles
+      // is irrelevant: once a region is replaced by the placeholder (which
+      // shares no base64 run with any needle) those bytes are gone, so a later
+      // needle cannot re-match them. The floor keeps every needle ≥ 8 chars.
+      for (const needle of needles) {
+        if (out.includes(needle)) {
+          out = out.split(needle).join(ENV_PLACEHOLDER(name));
+        }
       }
     }
     for (const { kind, regex } of this.patterns) {
