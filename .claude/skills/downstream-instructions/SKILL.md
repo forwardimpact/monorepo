@@ -9,14 +9,9 @@ Study downstream Outpost installations, read the **single root `CHANGELOG.md`**
 each one produces, and bring field-tested improvements upstream into the
 monorepo's Outpost template. "Instructions" means all three surfaces, treated
 equally — the same surfaces the downstream **upstream-instructions** skill
-tracks:
-
-- **`CLAUDE.md`** (root) — installation-wide instructions →
-  `products/outpost/templates/CLAUDE.md`
-- **`.claude/agents/*.md`** — agent profiles →
-  `products/outpost/templates/.claude/agents/`
-- **`.claude/skills/*/`** — skills (`SKILL.md` and references) →
-  `products/outpost/templates/.claude/skills/`
+tracks. Each maps to its counterpart under `products/outpost/templates/`:
+root `CLAUDE.md`, `.claude/agents/*.md` (agent profiles), and
+`.claude/skills/*/` (skills — `SKILL.md` and references).
 
 ## Trigger
 
@@ -164,23 +159,13 @@ bunx fit-map validate
 
 After applying upstream changes:
 
-1. **Diff the template** to confirm only intended changes were made:
-
-```bash
-git diff products/outpost/templates/
-```
-
-2. **Run validation** if capability data was changed:
-
-```bash
-bunx fit-map validate
-```
-
+1. **Diff the template** (`git diff products/outpost/templates/`) to confirm
+   only intended changes were made.
+2. **Re-run `bunx fit-map validate`** if capability data was changed.
 3. **Check for consistency** across surfaces — if a skill, agent, or CLAUDE.md
    changed, ensure related surfaces weren't left inconsistent (e.g., if a skill
-   changed its output format, do skills and agents that consume that output
-   still work? If CLAUDE.md dropped a directory, did every agent and skill stop
-   referencing it?).
+   changed its output format, do its consumers still work? If CLAUDE.md dropped
+   a directory, did every agent and skill stop referencing it?).
 
 ### Step 6: Report
 
