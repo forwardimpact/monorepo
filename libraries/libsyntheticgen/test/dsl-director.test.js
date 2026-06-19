@@ -2,9 +2,9 @@
  * Coverage for the synthetic DSL's `director` sub-block under a `department`.
  * Asserts both the parser shape and the entity-generation pipeline: a director
  * is a real organization_people row (is_manager, no team, no manager_email)
- * and the department's team managers are re-pointed to report to it.
- *
- * Spec 1330 — landmark director-tier rollup.
+ * and the department's team managers are re-pointed to report to it, so a
+ * single recursive get_team from the director's email resolves the whole
+ * department.
  */
 
 import { describe, test } from "node:test";
@@ -108,7 +108,10 @@ describe("DSL director block", () => {
       people.filter((p) => p.is_manager && p.team_id === null).length,
       0,
     );
-    assert.equal(people.some((p) => p.email === "zeus@example.test"), false);
+    assert.equal(
+      people.some((p) => p.email === "zeus@example.test"),
+      false,
+    );
     const athena = people.find((p) => p.name === "Athena");
     assert.equal(athena.manager_email, null);
   });

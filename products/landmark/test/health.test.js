@@ -210,8 +210,8 @@ describe("health command", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Director-tier rollup (spec 1330): when the resolved members span >=2 GetDX
-// teams, the view carries a per-team rollup + scope instead of a flat table.
+// Director-tier rollup: when the resolved members span >=2 GetDX teams, the
+// view carries a per-team rollup + scope instead of a flat table.
 // ---------------------------------------------------------------------------
 
 // A two-team director scope. `getTeam(director)` returns members of both teams
@@ -291,7 +291,7 @@ describe("health command — director-tier rollup", () => {
     assert.equal(result.view.teamRollup, undefined);
   });
 
-  it("SC-5: a team's rollup rows equal the single-team projection", async () => {
+  it("a team's rollup rows equal that team's single-team projection", async () => {
     // Single-team run for Team Alpha.
     const oneTeam = ROLLUP_TEAM.filter((p) => p.getdx_team_id === "gdx_team_a");
     const oneTeamScores = ROLLUP_SCORES.filter(
@@ -351,7 +351,7 @@ describe("health command — director-tier rollup", () => {
     assert.match(out, /Across 2 teams/);
     assert.match(out, /Team: Team Alpha/);
     assert.match(out, /Team: Team Beta/);
-    // SC-6: no ranking / singling-out vocabulary.
+    // No ranking or singling-out vocabulary — the surface must not rank teams.
     assert.doesNotMatch(out, /lowest|highest|leaderboard|top \d|rank/i);
   });
 });

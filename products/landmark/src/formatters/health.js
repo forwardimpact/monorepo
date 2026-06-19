@@ -371,10 +371,14 @@ export function toText(view, meta) {
  * Render a director-tier rollup as a scope line plus one symmetric block per
  * team, in resolution order. No team is sorted, ranked, or compared against
  * another — each block is the same default driver table the team-manager view
- * produces for that team (spec 1330 SC-4, SC-6).
+ * produces for that team. The scope line distinguishes a director view from a
+ * team view; the symmetric, unranked layout keeps the surface from singling
+ * out any one team.
  */
 function renderTextRollup(view, meta, lines) {
-  lines.push(`  Across ${view.scope.teamCount} teams (${view.scope.tierLabel})`);
+  lines.push(
+    `  Across ${view.scope.teamCount} teams (${view.scope.tierLabel})`,
+  );
   lines.push("");
   for (const team of view.teamRollup) {
     lines.push(`  Team: ${team.teamName}`);
@@ -425,10 +429,13 @@ export function toMarkdown(view, meta) {
 
 /**
  * Markdown form of the director-tier rollup: a scope heading plus one section
- * per team in resolution order, symmetric and unranked (spec 1330 SC-4, SC-6).
+ * per team in resolution order, symmetric and unranked so no team is singled
+ * out.
  */
 function renderMdRollup(view, meta, lines) {
-  lines.push(`Across **${view.scope.teamCount} teams** (${view.scope.tierLabel})`);
+  lines.push(
+    `Across **${view.scope.teamCount} teams** (${view.scope.tierLabel})`,
+  );
   lines.push("");
   for (const team of view.teamRollup) {
     lines.push(`# Team: ${team.teamName}`);
