@@ -5,6 +5,23 @@
 import { resolve, join } from "node:path";
 import { homedir } from "node:os";
 import { isoTimestamp } from "@forwardimpact/libutil";
+import {
+  readPosture,
+  effectivePosture,
+  loadManifest,
+  draftSkills,
+} from "./posture.js";
+
+/**
+ * System-prompt directive injected under the `brief` posture. Neutralises any
+ * draft-side prose in a materialised agent definition and forbids writing the
+ * posture record.
+ */
+const BRIEF_DIRECTIVE =
+  "Adoption posture: brief. Run only read-and-brief work. Do not draft or " +
+  "send content on the user's behalf for delivery to anyone else, do not move " +
+  "or write files outside the knowledge base, and never write the posture " +
+  "record (~/.fit/outpost/posture.json).";
 
 /** Spawn agent CLI processes, capture their output, and update agent state. */
 export class AgentRunner {
@@ -17,6 +34,8 @@ export class AgentRunner {
   #proc;
   #clock;
   #runtime;
+  #posturePath;
+  #manifestPath;
 
   /**
    * @param {Object | (() => Object | Promise<{default?: Object}>)} spawn -
@@ -28,8 +47,11 @@ export class AgentRunner {
    * @param {string} cacheDir - Cache directory for state files
    * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
    *   Injected runtime bag (uses `fs` (async), `proc`, `clock`).
+   * @param {{posturePath: string, manifestPath: string}} posture - Paths to the
+   *   posture record (read-only on the wake path) and the skill-posture
+   *   membership manifest.
    */
-  constructor(spawn, stateManager, logFn, cacheDir, runtime) {
+  constructor(spawn, stateManager, logFn, cacheDir, runtime, posture) {
     if (!spawn) throw new Error("spawn is required");
     if (!stateManager) throw new Error("stateManager is required");
     if (!logFn) throw new Error("logFn is required");
@@ -37,6 +59,10 @@ export class AgentRunner {
     if (!runtime?.fs) throw new Error("runtime.fs is required");
     if (!runtime?.proc) throw new Error("runtime.proc is required");
     if (!runtime?.clock) throw new Error("runtime.clock is required");
+    if (!posture?.posturePath)
+      throw new Error("posture.posturePath is required");
+    if (!posture?.manifestPath)
+      throw new Error("posture.manifestPath is required");
     this.#spawn = spawn;
     this.#stateManager = stateManager;
     this.#log = logFn;
@@ -45,6 +71,8 @@ export class AgentRunner {
     this.#proc = runtime.proc;
     this.#clock = runtime.clock;
     this.#runtime = runtime;
+    this.#posturePath = posture.posturePath;
+    this.#manifestPath = posture.manifestPath;
     this.#activeChildren = new Set();
   }
 
@@ -118,6 +146,28 @@ export class AgentRunner {
   }
 
   /**
+   * Resolve the spawn flags the recorded posture adds. Under `brief` (also the
+   * default when no posture is recorded), deny every draft-side skill by name
+   * and inject the brief directive — a deterministic gate the woken agent
+   * cannot override under `bypassPermissions`. Under `brief+draft`, add
+   * nothing. The posture record is read here, never written.
+   * @returns {Promise<string[]>} Extra args to append to the spawn argv.
+   */
+  async #postureArgs() {
+    const posture = effectivePosture(
+      await readPosture(this.#fs, this.#posturePath),
+    );
+    if (posture !== "brief") return [];
+    const manifest = await loadManifest(this.#fs, this.#manifestPath);
+    const denied = draftSkills(manifest)
+      .map((s) => `Skill(${s})`)
+      .join(" ");
+    const args = ["--append-system-prompt", BRIEF_DIRECTIVE];
+    if (denied) args.unshift("--disallowedTools", denied);
+    return args;
+  }
+
+  /**
    * Build environment for a child process.
    * Merges the current process env with config-level env overrides.
    * Expands ~ in values to the user's home directory.
@@ -170,6 +220,7 @@ export class AgentRunner {
       "--agent",
       agentName,
       "--print",
+      ...(await this.#postureArgs()),
       "-p",
       "Observe and act.",
     ];

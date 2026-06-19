@@ -27,6 +27,13 @@ import { AgentRunner } from "./agent-runner.js";
 import { Scheduler, formatLocalTime } from "./scheduler.js";
 import { KBManager } from "./kb-manager.js";
 import { SocketServer, requestShutdown } from "./socket-server.js";
+import {
+  readPosture,
+  writePosture,
+  effectivePosture,
+  loadManifest,
+  POSTURES,
+} from "./posture.js";
 
 const SHARE_DIR = "/usr/local/share/fit-outpost";
 
@@ -65,6 +72,11 @@ function buildDefinition(version) {
       },
       { name: "validate", description: "Validate agent definitions exist" },
       { name: "status", description: "Show agent status" },
+      {
+        name: "posture",
+        args: "[brief|brief+draft]",
+        description: "Show or set the adoption posture (brief or brief+draft)",
+      },
     ],
     globalOptions: {
       help: { type: "boolean", short: "h", description: "Show this help" },
@@ -147,10 +159,12 @@ export async function run(runtime, version) {
   const OUTPOST_HOME = join(HOME, ".fit", "outpost");
   const CONFIG_PATH = join(OUTPOST_HOME, "scheduler.json");
   const STATE_PATH = join(OUTPOST_HOME, "state.json");
+  const POSTURE_PATH = join(OUTPOST_HOME, "posture.json");
   const LOG_DIR = join(OUTPOST_HOME, "logs");
   const CACHE_DIR = join(HOME, ".cache", "fit", "outpost");
   const SOCKET_PATH = join(OUTPOST_HOME, "outpost.sock");
   const PKG_DIR = dirname(import.meta.dirname);
+  const MANIFEST_PATH = join(PKG_DIR, "config", "skill-postures.json");
 
   // --- Logging ---------------------------------------------------------------
   await fs.mkdir(LOG_DIR, { recursive: true });
@@ -190,6 +204,7 @@ export async function run(runtime, version) {
     log,
     CACHE_DIR,
     runtime,
+    { posturePath: POSTURE_PATH, manifestPath: MANIFEST_PATH },
   );
   const scheduler = new Scheduler(
     loadConfig,
@@ -333,7 +348,12 @@ export async function run(runtime, version) {
   async function showStatus() {
     const config = await loadConfig();
     const state = await stateManager.load();
+    const posture = await readPosture(fs, POSTURE_PATH);
     logger.info("\nOutpost Scheduler\n==================\n");
+    // The posture must be observable on a line matching
+    // `^posture: (brief|brief+draft|unset)$`, so write it as plain text to
+    // stdout rather than through the RFC5424-prefixed logger.
+    proc.stdout.write(`posture: ${posture ?? "unset"}\n`);
 
     const agents = Object.entries(config.agents || {});
     if (agents.length === 0) {
@@ -440,6 +460,12 @@ export async function run(runtime, version) {
         proc.stderr.write(result.error + "\n");
         return result.code;
       }
+      // A fresh init defaults the posture to `brief`, the opted-into trust
+      // contract. Only write when none is recorded so re-running never flips
+      // an existing posture.
+      if ((await readPosture(fs, POSTURE_PATH)) === null) {
+        await writePosture(fs, POSTURE_PATH, "brief");
+      }
       return 0;
     },
     update: () => runUpdate(args),
@@ -449,6 +475,22 @@ export async function run(runtime, version) {
     },
     validate,
     status: showStatus,
+    posture: async () => {
+      if (!args[0]) {
+        const current = effectivePosture(await readPosture(fs, POSTURE_PATH));
+        proc.stdout.write(`posture: ${current}\n`);
+        return 0;
+      }
+      if (!POSTURES.includes(args[0])) {
+        cli.usageError(
+          `invalid posture "${args[0]}"; expected one of ${POSTURES.join(", ")}`,
+        );
+        return 2;
+      }
+      await writePosture(fs, POSTURE_PATH, args[0]);
+      logger.info(`Posture recorded: ${args[0]}`);
+      return 0;
+    },
   };
 
   const handler = COMMANDS[command];
