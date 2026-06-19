@@ -60,7 +60,7 @@ The embedding service wraps TEI — it starts a gRPC server and spawns
 ```json
 {
   "name": "embedding",
-  "command": "node services/embedding/server.js",
+  "command": "node -e \"import('@forwardimpact/svcembedding/server.js')\"",
   "optional": true
 }
 ```

@@ -52,7 +52,8 @@ credentials works out of the box.
 
 - `init.services` — Ordered list of service objects (`name`, `command`,
   optional `optional: true`) for `fit-rc` to supervise (trace, vector, graph,
-  pathway, map, mcp)
+  map, pathway); optional services such as `mcp` are added to the list when
+  working on those features
 - `init.log_dir` / `init.shutdown_timeout` — Logging and shutdown
 - `service.*` — Per-service settings (e.g. MCP tool routing)
 
