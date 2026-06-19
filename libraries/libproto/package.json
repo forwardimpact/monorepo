@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libproto",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Shared protobuf schemas — one editable source for the service contracts every product imports.",
   "keywords": [
     "proto",

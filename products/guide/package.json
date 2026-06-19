@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/guide",
-  "version": "0.1.50",
+  "version": "0.1.51",
   "description": "Conversational agent that grounds career guidance and quality review in your organization's engineering standard.",
   "keywords": [
     "agent-aligned-engineering-standard",

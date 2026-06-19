@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svctrace",
-  "version": "0.1.47",
+  "version": "0.1.48",
   "description": "OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.",
   "keywords": [
     "trace",

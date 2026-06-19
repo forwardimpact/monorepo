@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libwiki",
-  "version": "0.2.25",
+  "version": "0.2.26",
   "description": "Wiki lifecycle primitives — stable memory for agent teams so coordination persists across sessions.",
   "keywords": [
     "wiki",

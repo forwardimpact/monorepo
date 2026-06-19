@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcghbridge",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.",
   "keywords": [
     "github",

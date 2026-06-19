@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libtype",
-  "version": "0.1.82",
+  "version": "0.1.83",
   "description": "Generated protobuf types and namespaces — one source of truth for service contracts.",
   "keywords": [
     "type",

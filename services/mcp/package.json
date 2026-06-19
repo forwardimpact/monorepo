@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcmcp",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Unified MCP server — agents reach backend services as tools without per-service integration.",
   "keywords": [
     "mcp",

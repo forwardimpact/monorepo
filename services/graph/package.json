@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcgraph",
-  "version": "0.1.74",
+  "version": "0.1.75",
   "description": "RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.",
   "keywords": [
     "graph",
