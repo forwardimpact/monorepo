@@ -231,7 +231,7 @@ describe("fit-wiki refresh CLI (in-process)", () => {
     assert.ok(body.includes("- #22 [release-engineer] Exp B (by bob)"));
     assert.ok(body.includes("trailing prose"));
 
-    // Day 2 (2026-05-11): issue 22 lost its agent label → dropped; stamp advances.
+    // A later refresh where Exp B lost its agent label → dropped; stamp advances.
     await refreshGh(dir, "storyboard.md", Date.UTC(2026, 4, 11), {
       stdout: JSON.stringify([
         issueJson(11, "staff-engineer", "Exp A", "alice"),

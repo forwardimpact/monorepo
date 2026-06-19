@@ -280,42 +280,8 @@ describe("runRules", () => {
     assert.match(finding.message, /dangling-open/);
   });
 
-  test("agent-experiments markers: balanced yields no finding", () => {
-    const seed = cleanSeed("2026-05-24", {
-      [`${WIKI}/storyboard-2026-M05.md`]: [
-        "# Storyboard — 2026-05",
-        "",
-        ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
-        "",
-        "<!-- agent-experiments -->",
-        "<!-- last-successful-sync: 2026-05-24 -->",
-        "- #1 [staff-engineer] x (by a)",
-        "<!-- /agent-experiments -->",
-      ].join("\n"),
-    });
-    const finding = audit(seed).find(
-      (f) => f.id === "storyboard.markers-balanced.agent-experiments",
-    );
-    assert.equal(finding, undefined);
-  });
-
-  test("agent-experiments markers: dangling-open detected", () => {
-    const seed = cleanSeed("2026-05-24", {
-      [`${WIKI}/storyboard-2026-M05.md`]: [
-        "# Storyboard — 2026-05",
-        "",
-        ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
-        "",
-        "<!-- agent-experiments -->",
-        "- #1 [staff-engineer] x (by a)",
-      ].join("\n"),
-    });
-    const finding = audit(seed).find(
-      (f) => f.id === "storyboard.markers-balanced.agent-experiments",
-    );
-    assert.ok(finding);
-    assert.match(finding.message, /dangling-open/);
-  });
+  // The agent-experiments marker-balance behaviour family lives in the sibling
+  // audit-engine-agent-experiments.test.js (test-file-shape split).
 
   test("priority-row column count mismatch", () => {
     const seed = {
