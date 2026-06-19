@@ -344,6 +344,10 @@ function noMatchMarkdown(driverJoin) {
  * per-driver paragraph layout with all anchors disclosed. */
 export function toText(view, meta) {
   const lines = [renderHeader(`${view.teamLabel} — health view`), ""];
+  if (view.scope) {
+    renderTextRollup(view, meta, lines);
+    return lines.join("\n");
+  }
   if (view.driverJoin?.state === "NO_DRIVERS") {
     lines.push(...noDriversText());
     return lines.join("\n");
@@ -363,6 +367,29 @@ export function toText(view, meta) {
   return lines.join("\n");
 }
 
+/**
+ * Render a director-tier rollup as a scope line plus one symmetric block per
+ * team, in resolution order. No team is sorted, ranked, or compared against
+ * another — each block is the same default driver table the team-manager view
+ * produces for that team (spec 1330 SC-4, SC-6).
+ */
+function renderTextRollup(view, meta, lines) {
+  lines.push(`  Across ${view.scope.teamCount} teams (${view.scope.tierLabel})`);
+  lines.push("");
+  for (const team of view.teamRollup) {
+    lines.push(`  Team: ${team.teamName}`);
+    const deduped = dedupeRecommendations(team.drivers);
+    if (meta?.verbose) {
+      for (const driver of team.drivers) {
+        renderTextDriver(driver, lines, deduped);
+      }
+    } else {
+      renderTextDefault(team, deduped, lines);
+    }
+    lines.push("");
+  }
+}
+
 /** Serialize the health view and metadata as formatted JSON. */
 export function toJson(view, meta) {
   return JSON.stringify({ ...view, meta }, null, 2);
@@ -373,6 +400,10 @@ export function toJson(view, meta) {
  * per-driver section layout with all anchors disclosed. */
 export function toMarkdown(view, meta) {
   const lines = [`# ${view.teamLabel} — health view`, ""];
+  if (view.scope) {
+    renderMdRollup(view, meta, lines);
+    return lines.join("\n");
+  }
   if (view.driverJoin?.state === "NO_DRIVERS") {
     lines.push(...noDriversMarkdown());
     return lines.join("\n");
@@ -390,4 +421,26 @@ export function toMarkdown(view, meta) {
     renderMdDefault(view, deduped, lines);
   }
   return lines.join("\n");
+}
+
+/**
+ * Markdown form of the director-tier rollup: a scope heading plus one section
+ * per team in resolution order, symmetric and unranked (spec 1330 SC-4, SC-6).
+ */
+function renderMdRollup(view, meta, lines) {
+  lines.push(`Across **${view.scope.teamCount} teams** (${view.scope.tierLabel})`);
+  lines.push("");
+  for (const team of view.teamRollup) {
+    lines.push(`# Team: ${team.teamName}`);
+    lines.push("");
+    const deduped = dedupeRecommendations(team.drivers);
+    if (meta?.verbose) {
+      for (const driver of team.drivers) {
+        renderMdDriver(driver, lines, deduped);
+      }
+    } else {
+      renderMdDefault(team, deduped, lines);
+    }
+    lines.push("");
+  }
 }

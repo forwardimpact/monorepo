@@ -114,7 +114,12 @@ const definition = {
       name: "health",
       description: "Show health view with driver scores and evidence",
       options: {
-        manager: { type: "string", description: "Filter by manager email" },
+        manager: {
+          type: "string",
+          description:
+            "Filter by manager email; resolves transitively, so a director " +
+            "email rolls up every team beneath it across the department",
+        },
         verbose: {
           type: "boolean",
           description:
@@ -201,6 +206,7 @@ const definition = {
     "fit-landmark snapshot list",
     "fit-landmark marker task_completion",
     "fit-landmark health --manager alice@example.com",
+    "fit-landmark health --manager zeus@bionova.example",
     "fit-landmark sources --email self@example.com",
   ],
   documentation: [

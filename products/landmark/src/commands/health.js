@@ -62,8 +62,90 @@ export async function runHealthCommand({
     { managerEmail: options.manager },
   );
 
-  // 4. Join scores to drivers and build driver rows
-  const teamEmails = new Set(team.map((p) => p.email));
+  // Snapshot comments are fetched once for the whole resolved set; each team's
+  // driver section filters them by its own contributing-skill keywords.
+  const allComments = await fetchComments(
+    q,
+    supabase,
+    latestSnapshot,
+    options,
+    meta,
+  );
+
+  const ctx = { mapData, q, supabase, options, growth, meta };
+
+  // 4. When the resolved members span two or more GetDX teams (a director-tier
+  // rollup), emit one symmetric per-team section instead of a single collapsed
+  // driver table. Each section is built from that team's own members and score
+  // subset, so it equals the output of the existing per-team-manager filter.
+  const teamIds = [
+    ...new Set(team.map((p) => p.getdx_team_id).filter(Boolean)),
+  ];
+
+  if (teamIds.length >= 2) {
+    const teamRollup = [];
+    for (const teamId of teamIds) {
+      const teamMembers = team.filter((p) => p.getdx_team_id === teamId);
+      const teamScores = scores.filter((s) => s.getdx_team_id === teamId);
+      const section = await buildTeamSection(
+        ctx,
+        teamMembers,
+        teamScores,
+        allComments,
+      );
+      teamRollup.push({
+        teamId,
+        teamName: teamScores[0]?.team_name ?? teamId,
+        ...section,
+      });
+    }
+    meta.warnings = [...new Set(meta.warnings)];
+    return {
+      view: {
+        teamLabel,
+        snapshotId: latestSnapshot.snapshot_id,
+        snapshotDate: latestSnapshot.scheduled_for,
+        scope: { teamCount: teamIds.length, tierLabel: teamLabel },
+        teamRollup,
+      },
+      meta,
+    };
+  }
+
+  // Single-team (or org-wide) path — unchanged shape.
+  const section = await buildTeamSection(ctx, team, scores, allComments);
+  meta.warnings = [...new Set(meta.warnings)];
+
+  return {
+    view: {
+      teamLabel,
+      snapshotId: latestSnapshot.snapshot_id,
+      snapshotDate: latestSnapshot.scheduled_for,
+      drivers: section.drivers,
+      driverJoin: section.driverJoin,
+      summitAvailable: section.summitAvailable,
+    },
+    meta,
+  };
+}
+
+/**
+ * Build the driver rows, driver-join state, and Summit availability for one
+ * scope (a single team's members and score subset). Shared by the single-team
+ * path and each per-team rollup section so they produce identical row shapes.
+ *
+ * @param {{mapData: object, q: object, supabase: object, options: object,
+ *   growth: Function, meta: object}} ctx
+ * @param {Array<object>} members - Resolved people for this scope
+ * @param {Array<object>} scores - Score rows for this scope
+ * @param {Array<object>} allComments - Snapshot comments for the whole set
+ * @returns {Promise<{drivers: Array<object>, driverJoin: object,
+ *   summitAvailable: boolean}>}
+ */
+async function buildTeamSection(ctx, members, scores, allComments) {
+  const { mapData, q, supabase, options, growth, meta } = ctx;
+  const teamEmails = new Set(members.map((p) => p.email));
+
   const { drivers, collectedEvidence } = await buildDriverRows(
     scores,
     mapData,
@@ -74,42 +156,20 @@ export async function runHealthCommand({
     meta,
   );
 
-  // Attach comments to drivers
-  const allComments = await fetchComments(
-    q,
-    supabase,
-    latestSnapshot,
-    options,
-    meta,
-  );
   attachComments(drivers, allComments);
 
   const driverJoin = computeDriverJoin(mapData, scores, drivers);
 
-  // Deduplicate warnings
-  meta.warnings = [...new Set(meta.warnings)];
-
-  // 5. Growth recommendations from Summit
   const growthResult = await computeGrowthRecommendations(
     growth,
-    team,
+    members,
     mapData,
     collectedEvidence,
     drivers,
     meta,
   );
 
-  return {
-    view: {
-      teamLabel,
-      snapshotId: latestSnapshot.snapshot_id,
-      snapshotDate: latestSnapshot.scheduled_for,
-      drivers,
-      driverJoin,
-      summitAvailable: growthResult.available,
-    },
-    meta,
-  };
+  return { drivers, driverJoin, summitAvailable: growthResult.available };
 }
 
 /**
