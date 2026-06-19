@@ -56,7 +56,7 @@
     },
     "libraries/libcodegen": {
       "name": "@forwardimpact/libcodegen",
-      "version": "0.1.64",
+      "version": "0.1.65",
       "bin": {
         "fit-codegen": "./bin/fit-codegen.js",
       },
@@ -446,7 +446,7 @@
     },
     "libraries/libtelemetry": {
       "name": "@forwardimpact/libtelemetry",
-      "version": "0.1.47",
+      "version": "0.1.48",
       "bin": {
         "fit-visualize": "./bin/fit-visualize.js",
       },
@@ -568,7 +568,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.24",
+      "version": "0.2.25",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
@@ -715,7 +715,7 @@
     },
     "products/outpost": {
       "name": "@forwardimpact/outpost",
-      "version": "3.3.0",
+      "version": "3.3.4",
       "bin": {
         "fit-outpost": "./bin/fit-outpost.js",
       },
@@ -885,6 +885,7 @@
         "fit-svcgraph": "./server.js",
       },
       "dependencies": {
+        "@forwardimpact/libcli": "^0.1.14",
         "@forwardimpact/libconfig": "^0.1.58",
         "@forwardimpact/libgraph": "^0.1.49",
         "@forwardimpact/libpreflight": "^0.1.0",
@@ -923,6 +924,7 @@
         "fit-svcmcp": "./server.js",
       },
       "dependencies": {
+        "@forwardimpact/libcli": "^0.1.14",
         "@forwardimpact/libconfig": "^0.1.67",
         "@forwardimpact/libhttp": "^0.1.0",
         "@forwardimpact/libmcp": "^0.1.0",
@@ -1004,6 +1006,7 @@
         "fit-svcpathway": "./server.js",
       },
       "dependencies": {
+        "@forwardimpact/libcli": "^0.1.14",
         "@forwardimpact/libconfig": "^0.1.58",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libproto": "^0.1.0",
@@ -1045,6 +1048,7 @@
         "fit-svctrace": "./server.js",
       },
       "dependencies": {
+        "@forwardimpact/libcli": "^0.1.14",
         "@forwardimpact/libconfig": "^0.1.58",
         "@forwardimpact/libindex": "^0.1.27",
         "@forwardimpact/libpreflight": "^0.1.0",
@@ -1065,6 +1069,7 @@
         "fit-svcvector": "./server.js",
       },
       "dependencies": {
+        "@forwardimpact/libcli": "^0.1.14",
         "@forwardimpact/libconfig": "^0.1.58",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libproto": "^0.1.0",
