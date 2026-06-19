@@ -3,7 +3,7 @@ fit-wiki boot — Print on-boot digest (priorities, claims, storyboard items) as
 Usage: fit-wiki boot [options]
 
 Options:
-  --agent=<string>      Agent name (falls back to LIBEVAL_AGENT_PROFILE, then staff-engineer)
+  --agent=<string>      Agent name (required; no environment fallback)
   --wiki-root=<string>  Override wiki root directory (default: wiki)
   --today=<string>      Override today's ISO date (testing)
   --format=<string>     Output format: json (default) or markdown

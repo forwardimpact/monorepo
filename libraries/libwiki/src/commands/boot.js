@@ -1,5 +1,6 @@
 import { buildDigest } from "../boot.js";
 import { currentDayIso } from "../util/clock.js";
+import { requireAgentFlag } from "../util/agent-flag.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 
 function renderMarkdown(digest) {
@@ -43,8 +44,12 @@ function renderMarkdown(digest) {
 export function runBootCommand(ctx) {
   const { runtime } = ctx.deps;
   const options = ctx.options;
-  const agent =
-    options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE || "staff-engineer";
+  const resolved = requireAgentFlag(options, {
+    command: "boot",
+    example: "fit-wiki boot --agent staff-engineer",
+  });
+  if (!resolved.ok) return resolved;
+  const agent = resolved.agent;
 
   const wikiRoot = resolveWikiRoot(runtime, options);
   const today = options.today || currentDayIso(runtime);

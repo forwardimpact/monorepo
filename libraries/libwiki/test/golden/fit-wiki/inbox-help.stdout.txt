@@ -3,7 +3,7 @@ fit-wiki inbox [subcommand] — Triage the agent's Message Inbox (list/ack/promo
 Usage: fit-wiki inbox [subcommand] [options]
 
 Options:
-  --agent=<string>      Agent name (falls back to LIBEVAL_AGENT_PROFILE, then staff-engineer)
+  --agent=<string>      Agent name (required; no environment fallback)
   --wiki-root=<string>  Override wiki root directory (default: wiki)
   --today=<string>      Override today's ISO date (testing)
   --index=<string>      Bullet index (0-based) for ack/promote/drop

@@ -38,14 +38,18 @@ function classOf(finding) {
  * Handing the agent the full contract for the files it edits — not just the
  * failing rules — stops it fixing one finding by breaking another (dropping
  * the `**Last run**:` line, appending a section after `## Open Blockers`, …).
+ *
+ * Only static-string hints are listed: a function hint is a per-finding
+ * resolved command (a `rotate` remediation the agent never performs), not a
+ * file invariant, so listing it would leak its source text into the prompt.
  */
 function invariantContract(findings) {
   const scopes = new Set(
     findings.map((f) => RULES.find((r) => r.id === f.id)?.scope),
   );
-  return RULES.filter((r) => scopes.has(r.scope) && r.hint).map(
-    (r) => `- ${r.id} — ${r.hint}`,
-  );
+  return RULES.filter(
+    (r) => scopes.has(r.scope) && typeof r.hint === "string",
+  ).map((r) => `- ${r.id} — ${r.hint}`);
 }
 
 /**

@@ -3,7 +3,7 @@ fit-wiki log [subcommand] — Append a decision/note/done entry to the current w
 Usage: fit-wiki log [subcommand] [options]
 
 Options:
-  --agent=<string>         Agent name (falls back to LIBEVAL_AGENT_PROFILE, then staff-engineer)
+  --agent=<string>         Agent name (required; no environment fallback)
   --wiki-root=<string>     Override wiki root directory (default: wiki)
   --today=<string>         Override today's ISO date (testing)
   --surveyed=<string>      Decision: routing levels surveyed

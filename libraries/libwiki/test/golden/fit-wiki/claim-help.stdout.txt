@@ -3,7 +3,7 @@ fit-wiki claim — Claim a target in MEMORY.md ## Active Claims (refuses duplica
 Usage: fit-wiki claim [options]
 
 Options:
-  --agent=<string>       Agent name (falls back to LIBEVAL_AGENT_PROFILE, then staff-engineer)
+  --agent=<string>       Agent name (required; no environment fallback)
   --wiki-root=<string>   Override wiki root directory (default: wiki)
   --today=<string>       Override today's ISO date (testing)
   --target=<string>      What is being claimed (spec id, PR id, etc.)

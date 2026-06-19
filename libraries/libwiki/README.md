@@ -27,8 +27,10 @@ npx fit-wiki audit
 ## CLI
 
 Every command accepts `--wiki-root` (default `wiki/`) and `--today` (default
-today, ISO date). Agent commands take `--agent <name>` or read
-`LIBEVAL_AGENT_PROFILE` from the environment.
+today, ISO date). Agent-scoped commands require an explicit `--agent <name>`
+(`--from` for `memo`) and fail closed without it — there is no environment
+fallback. The only exception is `release --expired`, a cross-agent cleanup
+sweep that runs without `--agent`.
 
 ### `boot` — start a session
 
@@ -55,7 +57,7 @@ line budget would be exceeded.
 ```sh
 npx fit-wiki claim   --agent X --target spec-NNNN --branch claude/spec-NNNN
 npx fit-wiki release --agent X --target spec-NNNN
-npx fit-wiki release --agent X --expired
+npx fit-wiki release --expired
 ```
 
 Maintains the `## Active Claims` table in `MEMORY.md`. Duplicates refused;

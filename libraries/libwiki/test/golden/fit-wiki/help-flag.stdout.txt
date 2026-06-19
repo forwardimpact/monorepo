@@ -8,7 +8,7 @@ Commands:
   claim                      Claim a target in MEMORY.md ## Active Claims (refuses duplicates)
   release                    Release a claim (or all expired claims with --expired)
   inbox [subcommand]         Triage the agent's Message Inbox (list/ack/promote/drop)
-  rotate                     Force-rotate the current weekly log to a sealed part
+  rotate                     Rotate the current weekly log to a sealed part
   audit                      Audit the wiki against the declarative rule catalogue (line and word budgets, headings, decision blocks, storyboards, claims)
   fix                        Auto-fix wiki audit findings: rotate weekly logs, fix the rest with an AI agent (technical-writer, Haiku), flag the unresolvable
   memo                       Send a cross-team memo into a teammate's Message Inbox

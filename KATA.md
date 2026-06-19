@@ -210,7 +210,7 @@ read and write the same wiki files.
 
 The canonical read-summary, append-log, update-summary cadence is defined in
 [memory-protocol.md](.claude/agents/references/memory-protocol.md). Read
-contract: `Read wiki/MEMORY.md` + `Bash: fit-wiki boot`.
+contract: `Read wiki/MEMORY.md` + `Bash: fit-wiki boot --agent <self>`.
 
 ## Coordination
 
