@@ -88,6 +88,38 @@ describe("GitClient", () => {
     assert.strictEqual(subprocess.calls.length, before);
   });
 
+  test("resetSoft moves HEAD only, preserving the working tree", async () => {
+    const { client, subprocess } = clientWith();
+    await client.resetSoft("origin/master", { cwd: "/r" });
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "reset",
+      "--soft",
+      "origin/master",
+    ]);
+  });
+
+  test("checkoutPaths resets only the named paths to a ref", async () => {
+    const { client, subprocess } = clientWith();
+    await client.checkoutPaths("origin/master", ["MEMORY.md"], { cwd: "/r" });
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "checkout",
+      "origin/master",
+      "--",
+      "MEMORY.md",
+    ]);
+  });
+
+  test("checkoutPaths with allowMissing does not throw on a non-zero result", async () => {
+    const { client } = clientWith({
+      git: { stdout: "", stderr: "pathspec did not match", exitCode: 1 },
+    });
+    // A founding write where the ref lacks the path must not throw.
+    await client.checkoutPaths("origin/master", ["MEMORY.md"], {
+      cwd: "/r",
+      allowMissing: true,
+    });
+  });
+
   test("rebase adds --autostash when autostash is set", async () => {
     const { client, subprocess } = clientWith();
     await client.rebase("origin/master", { cwd: "/r", autostash: true });

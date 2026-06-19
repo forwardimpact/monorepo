@@ -6,7 +6,22 @@ import { tmpdir } from "node:os";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { GitClient } from "@forwardimpact/libutil/git-client";
 import { WikiSync, WikiPullConflict } from "../src/wiki-sync.js";
+import { appendClaim, parseClaims } from "../src/active-claims.js";
 import { git, createBareRepo, seedBareRepo, cloneRepo } from "./helpers.js";
+
+const CLAIMS_HEADER =
+  "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n";
+
+function claimRow(agent, target, pr = null) {
+  return {
+    agent,
+    target,
+    branch: `feat/${target}`,
+    pr,
+    claimed_at: "2026-06-12",
+    expires_at: "2026-06-19",
+  };
+}
 
 function makeSync(wikiDir, parentDir, resolveToken = () => null) {
   const runtime = createDefaultRuntime();
@@ -296,5 +311,81 @@ describe("WikiSync resolveToken (real git)", () => {
       throw new Error("not configured");
     });
     await assert.rejects(() => ws.fetch(), /not configured/);
+  });
+
+  // Seed the bare origin with a one-row Active Claims table on master.
+  function seedClaims(seedClone) {
+    const memPath = join(seedClone, "MEMORY.md");
+    writeFileSync(memPath, CLAIMS_HEADER);
+    git(seedClone, "add", "-A");
+    git(seedClone, "commit", "-m", "seed claims");
+    git(seedClone, "push", "origin", "master");
+  }
+
+  test("storm geometry: a stale-base claim re-applies, conserving the sibling row", async () => {
+    // Seed origin with the claims table.
+    const { wikiDir: seed } = cloneRepo(bare, "claimseed");
+    git(seed, "checkout", "master");
+    seedClaims(seed);
+
+    // Clone A lands a sibling's row on the tip first — with a POPULATED pr
+    // field, so the field-revert path (a populated field reverting to unset)
+    // has a non-null value to exercise.
+    const { wikiDir: wa } = cloneRepo(bare, "claimA");
+    git(wa, "checkout", "master");
+    const aText = readFileSync(join(wa, "MEMORY.md"), "utf-8");
+    writeFileSync(
+      join(wa, "MEMORY.md"),
+      appendClaim(aText, claimRow("product-manager", "1900", "1681")).text,
+    );
+    git(wa, "add", "-A");
+    git(wa, "commit", "-m", "wiki: claim 1900");
+    git(wa, "push", "origin", "master");
+
+    // Clone B, on the now-stale base, writes its own row and commits, then
+    // commitAndPush with a reapply closure. Its rebase conflicts on the tail.
+    // It also carries a foreign uncommitted edit to another file — the residue
+    // resetSoft (HEAD-only) must preserve through the loop.
+    const { parent: pb, wikiDir: wb } = cloneRepo(bare, "claimB");
+    git(wb, "checkout", "master");
+    const bClaim = claimRow("staff-engineer", "1910");
+    const bText = readFileSync(join(wb, "MEMORY.md"), "utf-8");
+    writeFileSync(join(wb, "MEMORY.md"), appendClaim(bText, bClaim).text);
+    writeFileSync(join(wb, "README.md"), "# Wiki\nforeign uncommitted edit\n");
+
+    const ws = makeSync(wb, pb);
+    const reapply = (fresh) => {
+      const r = appendClaim(fresh, bClaim);
+      return r.inserted ? r.text : null;
+    };
+    const result = await ws.commitAndPush("wiki: claim 1910", ["MEMORY.md"], {
+      reapply,
+    });
+    assert.equal(result.pushed, true);
+
+    // The foreign uncommitted edit to README.md survived the re-apply loop
+    // (resetSoft is HEAD-only; checkoutPaths is scoped to MEMORY.md).
+    assert.match(
+      readFileSync(join(wb, "README.md"), "utf-8"),
+      /foreign uncommitted edit/,
+      "resetSoft + path-scoped checkout preserved foreign residue",
+    );
+
+    // The bare origin tip now holds BOTH rows — the sibling's was conserved,
+    // not erased; the resolution is the re-applied row set, never textual.
+    const { wikiDir: verify } = cloneRepo(bare, "claimverify");
+    git(verify, "checkout", "master");
+    const tip = readFileSync(join(verify, "MEMORY.md"), "utf-8");
+    const claims = parseClaims(tip);
+    const targets = claims.map((c) => `${c.agent}/${c.target}`);
+    assert.ok(
+      targets.includes("product-manager/1900"),
+      "sibling row conserved",
+    );
+    assert.ok(targets.includes("staff-engineer/1910"), "own row landed");
+    // The sibling's populated pr field is intact — not reverted (criterion 4).
+    const sibling = claims.find((c) => c.target === "1900");
+    assert.equal(sibling.pr, "1681", "sibling pr field not reverted");
+    assert.ok(!tip.includes("<<<<<<<"), "no conflict markers / textual merge");
   });
 });

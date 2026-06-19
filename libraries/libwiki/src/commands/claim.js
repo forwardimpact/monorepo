@@ -35,13 +35,17 @@ function memoryPath(runtime, options) {
   return path.join(resolveWikiRoot(runtime, options), "MEMORY.md");
 }
 
-async function pushWiki(wikiSync, runtime, message) {
+async function pushWiki(wikiSync, runtime, message, reapply) {
   if (!wikiSync) return;
   try {
     await wikiSync.inheritIdentity();
     // claim/release contract is a 1-line MEMORY.md change; the pathspec keeps
-    // foreign uncommitted files from parallel writers out of the commit.
-    const result = await wikiSync.commitAndPush(message, ["MEMORY.md"]);
+    // foreign uncommitted files from parallel writers out of the commit. The
+    // `reapply` closure re-derives this row against the fresh tip if the landing
+    // contends, so a parallel writer's row is never erased.
+    const result = await wikiSync.commitAndPush(message, ["MEMORY.md"], {
+      reapply,
+    });
     if (result.pushed)
       runtime.proc.stdout.write("push: committed and pushed\n");
   } catch (err) {
@@ -60,11 +64,12 @@ async function pushWiki(wikiSync, runtime, message) {
  * Push a written claim/release row, mapping an ancestry-guard refusal to the
  * not-published non-zero envelope and any other outcome to `{ ok: true }`. The
  * row is already written to MEMORY.md; on refusal it stays as an uncommitted
- * working-tree change.
+ * working-tree change. The `reapply` closure re-derives the same row against
+ * the fresh tip when the landing contends.
  */
-async function pushRowOrRefuse(wikiSync, runtime, message) {
+async function pushRowOrRefuse(wikiSync, runtime, message, reapply) {
   try {
-    await pushWiki(wikiSync, runtime, message);
+    await pushWiki(wikiSync, runtime, message, reapply);
   } catch (err) {
     if (err instanceof AncestryRefusal) {
       runtime.proc.stderr.write(notPublishedMessage(err));
@@ -98,14 +103,15 @@ export async function runClaimCommand(ctx) {
   const expires = options["expires-at"] || addDays(today, 7);
   const memPath = memoryPath(runtime, options);
   const text = readMemory(runtime, memPath);
-  const result = appendClaim(text, {
+  const claim = {
     agent,
     target: options.target,
     branch: options.branch,
     pr: options.pr || null,
     claimed_at: today,
     expires_at: expires,
-  });
+  };
+  const result = appendClaim(text, claim);
   if (!result.inserted) {
     createLogger("wiki", runtime).warn(
       "claim",
@@ -115,7 +121,17 @@ export async function runClaimCommand(ctx) {
   }
   runtime.fsSync.writeFileSync(memPath, result.text);
   runtime.proc.stdout.write(`claimed ${options.target} (expires ${expires})\n`);
-  return pushRowOrRefuse(wikiSync, runtime, `wiki: claim ${options.target}`);
+  // Re-apply the same append against the fresh tip if the landing contends.
+  const reapply = (fresh) => {
+    const r = appendClaim(fresh, claim);
+    return r.inserted ? r.text : null;
+  };
+  return pushRowOrRefuse(
+    wikiSync,
+    runtime,
+    `wiki: claim ${options.target}`,
+    reapply,
+  );
 }
 
 /** Remove a claim row. `--expired` cleans every row past expires_at. */
@@ -140,7 +156,27 @@ export async function runReleaseCommand(ctx) {
     }
     runtime.fsSync.writeFileSync(memPath, current);
     runtime.proc.stdout.write(`released ${count} expired claim(s)\n`);
-    return pushRowOrRefuse(wikiSync, runtime, "wiki: release expired claims");
+    // Re-derive expiry against the fresh tip so a renewal landed since the stale
+    // read survives; only still-expired rows are removed.
+    const reapply = (fresh) => {
+      const freshExpired = filterExpired(parseClaims(fresh), today).expired;
+      let next = fresh;
+      let anyRemoved = false;
+      for (const c of freshExpired) {
+        const r = removeClaim(next, { agent: c.agent, target: c.target });
+        if (r.removed) {
+          next = r.text;
+          anyRemoved = true;
+        }
+      }
+      return anyRemoved ? next : null;
+    };
+    return pushRowOrRefuse(
+      wikiSync,
+      runtime,
+      "wiki: release expired claims",
+      reapply,
+    );
   }
 
   const agent = options.agent || runtime.proc.env.LIBEVAL_AGENT_PROFILE;
@@ -166,10 +202,17 @@ export async function runReleaseCommand(ctx) {
     );
   } else {
     runtime.proc.stdout.write(`released ${options.target}\n`);
+    // Re-apply the same removal against the fresh tip if the landing contends;
+    // re-removing an absent row is a no-op, so a re-release never resurrects it.
+    const reapply = (fresh) => {
+      const r = removeClaim(fresh, { agent, target: options.target });
+      return r.removed ? r.text : null;
+    };
     return pushRowOrRefuse(
       wikiSync,
       runtime,
       `wiki: release ${options.target}`,
+      reapply,
     );
   }
   return { ok: true };

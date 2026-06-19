@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { GitClient } from "@forwardimpact/libutil/git-client";
 import { runClaimCommand, runReleaseCommand } from "../src/commands/claim.js";
 import { WikiSync } from "../src/wiki-sync.js";
+import { appendClaim, parseClaims } from "../src/active-claims.js";
 import {
   git,
   createBareRepo,
@@ -159,6 +160,38 @@ describe("claim/release push integration (real git)", () => {
     );
   });
 
+  // Advance the bare origin's master with a foreign claim row so the local
+  // claim/release lands on a stale base and must re-apply.
+  function advanceOriginWithClaim(name, claim) {
+    const { wikiDir: other } = cloneRepo(bare, name);
+    git(other, "checkout", "master");
+    const op = join(other, "MEMORY.md");
+    // The origin master has no MEMORY.md yet in this suite's seed, so write the
+    // full table first; if a prior advance committed one, build on it.
+    const base = (() => {
+      try {
+        return git(other, "show", "master:MEMORY.md");
+      } catch {
+        return EMPTY_CLAIMS;
+      }
+    })();
+    writeFileSync(op, appendClaim(base, claim).text);
+    git(other, "add", "-A");
+    git(other, "commit", "-m", `wiki: claim ${claim.target}`);
+    git(other, "push", "origin", "master");
+  }
+
+  function makeClaim(agent, target) {
+    return {
+      agent,
+      target,
+      branch: `feat/${target}`,
+      pr: null,
+      claimed_at: "2099-01-01",
+      expires_at: "2099-01-08",
+    };
+  }
+
   test("claim refuses on a detached HEAD: non-zero, row written but not published", async () => {
     const head = git(wikiDir, "rev-parse", "HEAD");
     git(wikiDir, "checkout", head); // detach
@@ -188,6 +221,38 @@ describe("claim/release push integration (real git)", () => {
       git(bare, "log", "--oneline", "-5", "master"),
       /wiki: claim spec-NNNN/,
     );
+  });
+
+  test("a claim racing a sibling's claim on the tail lands both", async () => {
+    // Commit the empty table to origin, then a sibling advances the tip.
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed claims");
+    git(wikiDir, "push", "origin", "master");
+    advanceOriginWithClaim("sibling-a", makeClaim("product-manager", "1900"));
+
+    const { harness, wikiSync } = harnessFor();
+    const result = await runClaimCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "1910",
+          branch: "feat/1910",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, true);
+
+    const { wikiDir: verify } = cloneRepo(bare, "claim-verify");
+    git(verify, "checkout", "master");
+    const targets = parseClaims(
+      readFileSync(join(verify, "MEMORY.md"), "utf-8"),
+    ).map((c) => `${c.agent}/${c.target}`);
+    assert.ok(targets.includes("product-manager/1900"), "sibling conserved");
+    assert.ok(targets.includes("staff-engineer/1910"), "own claim landed");
   });
 
   test("release refuses on a detached HEAD: non-zero, not published", async () => {
@@ -228,6 +293,147 @@ describe("claim/release push integration (real git)", () => {
     assert.doesNotMatch(
       git(bare, "log", "--oneline", "-5", "master"),
       /wiki: release spec-NNNN/,
+    );
+  });
+
+  test("a release racing a foreign claim lands both outcomes", async () => {
+    // Origin starts with the releasing agent's row already present.
+    writeFileSync(
+      memPath,
+      appendClaim(EMPTY_CLAIMS, makeClaim("staff-engineer", "1910")).text,
+    );
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed with se row");
+    git(wikiDir, "push", "origin", "master");
+    // A sibling adds a foreign claim on the tip after the local read.
+    advanceOriginWithClaim("sibling-b", makeClaim("product-manager", "1900"));
+
+    const { harness, wikiSync } = harnessFor();
+    const result = await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "1910",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, true);
+
+    const { wikiDir: verify } = cloneRepo(bare, "release-verify");
+    git(verify, "checkout", "master");
+    const targets = parseClaims(
+      readFileSync(join(verify, "MEMORY.md"), "utf-8"),
+    ).map((c) => `${c.agent}/${c.target}`);
+    assert.ok(
+      targets.includes("product-manager/1900"),
+      "foreign claim conserved",
+    );
+    assert.ok(
+      !targets.includes("staff-engineer/1910"),
+      "the released row is gone from the tip",
+    );
+  });
+
+  test("re-applying a release after the row is already gone leaves it absent (criterion 3)", async () => {
+    // Seed with the SE row, push; a sibling then BOTH adds a foreign row AND
+    // removes the SE row on the tip. The local release must not resurrect it.
+    writeFileSync(
+      memPath,
+      appendClaim(EMPTY_CLAIMS, makeClaim("staff-engineer", "1910")).text,
+    );
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed se row");
+    git(wikiDir, "push", "origin", "master");
+    // Sibling tip: only the foreign row remains (SE row already released there).
+    const { wikiDir: sib } = cloneRepo(bare, "sib-release");
+    git(sib, "checkout", "master");
+    writeFileSync(
+      join(sib, "MEMORY.md"),
+      appendClaim(EMPTY_CLAIMS, makeClaim("product-manager", "1900")).text,
+    );
+    git(sib, "add", "-A");
+    git(sib, "commit", "-m", "foreign release+claim");
+    git(sib, "push", "origin", "master");
+
+    const { harness, wikiSync } = harnessFor();
+    await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "1910",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    const { wikiDir: verify } = cloneRepo(bare, "rel-absent-verify");
+    git(verify, "checkout", "master");
+    const targets = parseClaims(
+      readFileSync(join(verify, "MEMORY.md"), "utf-8"),
+    ).map((c) => `${c.agent}/${c.target}`);
+    assert.ok(targets.includes("product-manager/1900"), "foreign row intact");
+    assert.ok(
+      !targets.includes("staff-engineer/1910"),
+      "released row stays absent — re-apply did not resurrect it",
+    );
+  });
+
+  test("--expired re-derived on a renewed tip leaves the renewal intact (criterion 3 freshness)", async () => {
+    // Local read sees an expired SE row; the tip carries a RENEWED (future
+    // expiry) SE row landed since the stale read, plus a foreign row. The
+    // expiry re-apply must re-derive against the tip and spare the renewal.
+    const expired = {
+      ...makeClaim("staff-engineer", "1910"),
+      expires_at: "2000-01-01",
+    };
+    writeFileSync(memPath, appendClaim(EMPTY_CLAIMS, expired).text);
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed expired");
+    git(wikiDir, "push", "origin", "master");
+    // Sibling renews the SE row (future expiry) and adds a foreign row.
+    const { wikiDir: sib } = cloneRepo(bare, "sib-renew");
+    git(sib, "checkout", "master");
+    let tipText = appendClaim(
+      EMPTY_CLAIMS,
+      makeClaim("staff-engineer", "1910"), // 2099 expiry = renewed
+    ).text;
+    tipText = appendClaim(tipText, makeClaim("product-manager", "1900")).text;
+    writeFileSync(join(sib, "MEMORY.md"), tipText);
+    git(sib, "add", "-A");
+    git(sib, "commit", "-m", "renew + foreign");
+    git(sib, "push", "origin", "master");
+
+    const { harness, wikiSync } = harnessFor();
+    await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          expired: true,
+          today: "2099-01-01",
+        },
+      }),
+    );
+    const { wikiDir: verify } = cloneRepo(bare, "expired-verify");
+    git(verify, "checkout", "master");
+    const claims = parseClaims(
+      readFileSync(join(verify, "MEMORY.md"), "utf-8"),
+    );
+    const se = claims.find(
+      (c) => c.agent === "staff-engineer" && c.target === "1910",
+    );
+    assert.ok(se, "the renewed SE row survives the expiry re-apply");
+    assert.equal(se.expires_at, "2099-01-08", "the renewal, not the stale row");
+    assert.ok(
+      claims.some((c) => c.target === "1900"),
+      "foreign row conserved",
     );
   });
 });

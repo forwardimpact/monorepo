@@ -1,4 +1,5 @@
 import path from "node:path";
+import { SINGLETON_PATHS } from "./constants.js";
 
 /** The branch the wiki clone publishes (hard-coded in fetch / rebase / push). */
 const BRANCH = "master";
@@ -13,6 +14,18 @@ export class WikiPullConflict extends Error {
     this.name = "WikiPullConflict";
     this.stderr = stderr;
   }
+}
+
+// A push rejected because the remote tip moved (non-fast-forward) is the
+// re-apply loop's retry signal; an auth or network failure is not contention.
+// git surfaces a rejection on stderr with these markers.
+const PUSH_REJECTION_RE =
+  /\b(rejected|non-fast-forward|fetch first|tip of your current branch is behind)\b/i;
+
+/** Whether a thrown push error is a non-fast-forward rejection (vs. auth/network). */
+function isPushRejection(err) {
+  const text = `${err?.stderr ?? ""}\n${err?.message ?? ""}`;
+  return PUSH_REJECTION_RE.test(text);
 }
 
 /**
@@ -32,6 +45,21 @@ export class AncestryRefusal extends Error {
     super(message);
     this.name = "AncestryRefusal";
     this.kind = kind;
+  }
+}
+
+/**
+ * Error thrown when a registered-singleton operation cannot land within the
+ * bounded re-apply budget: contention recurred on each round, so the publish
+ * fails loud rather than resolving the contended hunk textually.
+ */
+export class WikiSyncConflict extends Error {
+  /** @param {string[]} paths @param {string} reason */
+  constructor(paths, reason) {
+    super(`wiki sync conflict on ${paths.join(", ")} (${reason})`);
+    this.name = "WikiSyncConflict";
+    this.paths = paths;
+    this.reason = reason;
   }
 }
 
@@ -170,11 +198,29 @@ export class WikiSync {
    * first publication is re-judged rather than auto-re-granted. The guard
    * creates no commit, attempts no push, and adds no working-tree changes.
    *
+   * **Singleton merge discipline.** The discipline applies when a
+   * rebase conflict arises for a *registered* row-structured singleton (the
+   * single committed path is in `SINGLETON_PATHS`) and the caller supplied a
+   * `reapply` operation. The contended hunk is then never resolved textually.
+   * The conflicting local commit is dropped with `resetSoft`, which preserves
+   * the working tree. Only the registered file is reset to the fresh tip with
+   * `checkoutPaths`. The operation is re-derived against that tip's content,
+   * re-committed, and pushed, bounded by `maxReapply`. A rejected push (the tip
+   * moved again) drives the retry; exhaustion fails loud with
+   * {@link WikiSyncConflict}. Foreign rows and untouched prose ride through from
+   * the tip. Without a `reapply` the conflict keeps the `-X ours` fallback, so
+   * prose surfaces and unregistered paths stay on the side-biased behavior.
+   *
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs limiting what gets committed.
+   * @param {{reapply?: (freshText: string) => string | null, maxReapply?: number}} [options]
+   *   `reapply` re-derives the registered file's content from the operation's
+   *   own row edit against the fresh tip text; returns the new text or null when
+   *   the op is already satisfied on the tip.
    * @throws {AncestryRefusal} When the published history cannot be verified.
+   * @throws {WikiSyncConflict} When the re-apply budget is exhausted.
    */
-  async commitAndPush(message, paths) {
+  async commitAndPush(message, paths, { reapply, maxReapply = 3 } = {}) {
     await this.#assertPublishable();
     if (!(await this.isClean(paths))) {
       if (paths?.length) {
@@ -194,6 +240,13 @@ export class WikiSync {
     });
     if (rebase.exitCode !== 0) {
       await this.#git.rebaseAbort({ cwd: this.#wikiDir });
+      const registered =
+        typeof reapply === "function" &&
+        paths?.length === 1 &&
+        paths.every((p) => SINGLETON_PATHS.has(p));
+      if (registered) {
+        return this.#reapplyLoop(message, paths, reapply, maxReapply);
+      }
       await this.#git.mergeOursStrategy({
         cwd: this.#wikiDir,
         ref: "origin/master",
@@ -211,6 +264,55 @@ export class WikiSync {
       // Intentionally ignored — preserves WikiRepo's fire-and-forget push.
     }
     return { pushed: true, reason: "pushed" };
+  }
+
+  /**
+   * Re-apply a registered singleton operation against the fresh remote tip,
+   * bounded by `maxReapply` rounds. The caller has already aborted the rebase.
+   * Each round: refresh the tip, drop the stale local commit (`resetSoft`,
+   * working tree untouched so foreign residue survives), reset only the
+   * registered file to the tip (`checkoutPaths`, tolerating a tip that lacks
+   * it), re-derive via `reapply`, and — when the op still changes the tip —
+   * re-commit and push. A rejected push (the tip moved again) loops; an
+   * unchanged op is already satisfied; bound exhaustion throws.
+   */
+  async #reapplyLoop(message, paths, reapply, maxReapply) {
+    const filePath = path.join(this.#wikiDir, paths[0]);
+    for (let round = 0; round < maxReapply; round++) {
+      await this.fetch();
+      await this.#git.resetSoft("origin/master", { cwd: this.#wikiDir });
+      // Reset only the registered file to the tip. `resetSoft` leaves the
+      // working tree (so the dropped commit's copy of the file may linger), so
+      // a non-zero checkout — the tip lacks the file (a founding write) — means
+      // the fresh base is empty, NOT the lingering local copy.
+      const checkout = await this.#git.checkoutPaths("origin/master", paths, {
+        cwd: this.#wikiDir,
+        allowMissing: true,
+      });
+      const tipHasFile = (checkout?.exitCode ?? 0) === 0;
+      const freshText =
+        tipHasFile && this.#runtime.fsSync.existsSync(filePath)
+          ? this.#runtime.fsSync.readFileSync(filePath, "utf-8")
+          : "";
+      const newText = reapply(freshText);
+      if (newText === null) {
+        // The op is already satisfied on the tip; HEAD now equals the tip.
+        return { pushed: false, reason: "already-satisfied" };
+      }
+      this.#runtime.fsSync.writeFileSync(filePath, newText);
+      await this.#git.commitPaths(message, paths, { cwd: this.#wikiDir });
+      try {
+        await this.#authed().push("origin", "master", { cwd: this.#wikiDir });
+        return { pushed: true, reason: "reapplied" };
+      } catch (err) {
+        // Only a rejected push (the tip moved again) is a retry signal. An auth
+        // or network failure is not contention: rethrow it so the caller
+        // degrades to "saved locally" rather than burning the budget and
+        // misreporting a conflict that never happened.
+        if (!isPushRejection(err)) throw err;
+      }
+    }
+    throw new WikiSyncConflict(paths, "reapply-bound");
   }
 
   async #hasCommitsAhead() {
