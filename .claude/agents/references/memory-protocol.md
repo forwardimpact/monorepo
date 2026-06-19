@@ -60,19 +60,18 @@ Append entries to the current weekly log via `fit-wiki log`:
 - `fit-wiki log done --agent <self>` — close the entry.
 
 Rotation is implicit: when the next append would exceed the 500-line cap, `log`
-seals the current file as `…-Www-partN.md` and writes the new entry to a fresh
-`…-Www.md` (`fit-wiki rotate` is the operator escape).
+seals the current file as `…-Www-partN.md` and writes to a fresh `…-Www.md`
+(`fit-wiki rotate` is the operator escape).
 
 Triage the Message Inbox via `fit-wiki inbox {list|ack|promote|drop}`.
 `promote --index N` writes a row into `## Cross-Cutting Priorities` and removes
 the inbox bullet. Cross-agent memos use `fit-wiki memo` (writer-side); the
-recipient triages via `inbox`. Update `wiki/{agent}.md` directly with Actions
-taken and Open Blockers as needed at run end.
+recipient triages via `inbox`. Update `wiki/{agent}.md` directly at run end.
 
 Keep your own summary and weekly log passing `audit` before run end — it
 gates the Stop-hook: trim settled state, and `rotate` a full weekly log.
-Whole-wiki auto-fix (`fit-wiki fix`) — which rewrites any agent's files — is
-the curator's tool (`kata-wiki-curate`), not a per-run step.
+Whole-wiki auto-fix (`fit-wiki fix`) is the curator's tool
+(`kata-wiki-curate`), not a per-run step.
 
 ## Summary Contract
 
@@ -83,41 +82,36 @@ Each `wiki/<agent>.md` conforms to a mechanically-checkable contract —
 `**Last run**:` → `## Message Inbox` (with `<!-- memo:inbox -->` marker —
 MUST be the first H2) → agent-specific H2 sections → `## Open Blockers`.
 
-**Budgets:** 496 lines, 6 400 words. State, not history. Filename shapes:
+**Budgets:** 496 lines, 6 400 words. State, not history. Shapes:
 § Wiki Filename Grammar.
 
 ## Weekly Log Contract
 
 Weekly logs (`wiki/<agent>-YYYY-Www.md`) are append-only Tier 2 records.
 Named readers: `kata-wiki-curate` (always), `kata-session` (for experiment
-verification), agents explicitly investigating past decisions. Filename shapes:
-§ Wiki Filename Grammar.
+verification), agents investigating past decisions. Shapes: § Wiki Filename
+Grammar.
 
 **Budgets:** 496 lines, 6 400 words. Storyboards
-(`wiki/storyboard-YYYY-MNN.md`) share the budgets, gated by separate
-`storyboard.line-budget` / `storyboard.word-budget` rules so limits can diverge.
+(`wiki/storyboard-YYYY-MNN.md`) share the budgets under separate
+`storyboard.*-budget` rules, so limits can diverge.
 
-Overflow rotates (see § During Each Run): `log` seals the current file as a
-`-partN.md` and appends to a fresh main. No part is ever rewritten — the
-append-only guarantee is preserved by rename, not in-place edit. Every dated
-`## YYYY-MM-DD` entry opens with `### Decision` (required; `audit` enforces).
-
+Overflow rotates by rename (see § During Each Run); no part is ever rewritten.
 New entries always go through `fit-wiki log`, which emits a conforming
-heading and decision block by construction. Direct edits of a weekly-log
-file are reserved for **repair** of an existing entry, such as fixing a
-broken heading or decision block. Never compose a new entry by direct file
-edit. A hand-composed entry skips the append-time checks, so heading-grammar
-drift and budget breaches go unnoticed until the shared gate turns red.
+`## YYYY-MM-DD` heading and required `### Decision` block by construction
+(`audit` enforces both). Reserve direct file edits for **repair** of an
+existing entry; a hand-composed entry skips the append-time checks, so
+grammar drift and budget breaches go unnoticed until the gate turns red.
 
 ## Wiki Filename Grammar
 
 Which files may exist under `wiki/`. The `audit` `admission` rule enforces it
 (`audit/grammar.js`); this section and that classifier are one home — extend
-both together. **Universe:** git-tracked files under `wiki/`; with no git state
-(fresh bootstrap, test fixture) every file is governed. **Calendar tokens** are
-hyphen-delimited segments — week `YYYY-Www`, month `YYYY-MNN`, date
-`YYYY-MM-DD`, bare year `YYYY` — segment-anchored, so digits in a longer segment
-(`release8080-notes`) are not a token. Admitted **root-file** classes:
+both together. **Universe:** git-tracked files under `wiki/` (with no git
+state, every file is governed). **Calendar tokens** are hyphen-delimited
+segments — week `YYYY-Www`, month `YYYY-MNN`, date `YYYY-MM-DD`, bare year
+`YYYY` — segment-anchored, so digits in a longer segment are not a token.
+Admitted **root-file** classes:
 
 | Class | Shape |
 |---|---|
@@ -127,21 +121,17 @@ hyphen-delimited segments — week `YYYY-Www`, month `YYYY-MNN`, date
 | Storyboard | `storyboard-YYYY-MNN.md` |
 | Dated deliverable | `<topic>-YYYY-MM-DD.md`, `<topic>` token-free |
 
-A root file with a calendar token must match a weekly-log, storyboard, or
-dated-deliverable shape *exactly*; the token-free `<slug>`/`<topic>` constraints
-block trailing-date smuggling. Any other root file (non-`.md`, or token-bearing
-non-match) is flagged. **Directories** evaluate at the wiki root only: admitted
-iff `metrics/` or an `<agent>/` sidecar where `<agent>.md` is a root summary;
-files beneath an admitted directory are admitted by membership (innards
-unpoliced).
+A token-bearing root file must match a weekly-log, storyboard, or dated
+shape *exactly*; the token-free `<slug>`/`<topic>` constraints block
+trailing-date smuggling. Any other root file is flagged. **Directories**
+evaluate at the wiki root only: admitted iff `metrics/` or an `<agent>/`
+sidecar of a root summary; files beneath are admitted by membership.
 
-**Remediation is flag-for-human** — never auto-fixed; a wrong move or delete
-destroys memory, so `fix` routes it to the human report untouched. **Admission
-path (the only mechanism):** to admit a new convention, extend this section and
-`audit/grammar.js` in one reviewed change — never a second mechanism (a
-token-free companion filename is already admissible via the summary class). This
-section also hosts the sealed-part heading grammar; whichever paired
-implementation lands first creates it, the second extends it.
+**Remediation is flag-for-human** — never auto-fixed; a wrong move destroys
+memory. To admit a new convention, extend this section and `audit/grammar.js`
+together in one reviewed change — the single admission path, never a second
+mechanism. This section also hosts the sealed-part heading grammar; the first
+paired implementation to land creates it, the second extends it.
 
 ## Cross-Cutting Priorities
 
@@ -178,20 +168,19 @@ deletion; the prior commit preserves the claim record.
 ### Claim gate — before first code write
 
 A claim row MUST exist before the first code write — branch creation or
-worktree entry, whichever comes first. This strengthens the older "claim
-before opening any PR" floor; it does not replace it. The claim is atomic
-with its push — **the wiki git push is the serialization point**:
+worktree entry, whichever comes first (strengthening, not replacing, the
+older "claim before opening any PR" floor). The claim is atomic with its
+push — **the wiki git push is the serialization point**:
 
 1. `fit-wiki pull`
-2. Read `## Active Claims` for foreign rows on the same target. Slug
-   equality is **not** the test — parallel runs naming one deliverable
-   independently produce different slugs. Compare on the coordinating
-   artifact (issue or spec number) and judge deliverable overlap; on
-   overlap, stop and read the in-flight branch or PR instead of claiming.
+2. Read `## Active Claims` for foreign rows on the same target. Slug equality
+   is **not** the test — parallel runs naming one deliverable produce
+   different slugs. Compare on the coordinating artifact (issue or spec
+   number); on overlap, stop and read the in-flight branch or PR.
 3. `fit-wiki claim --agent <self> --target <id> --branch <name>`
 4. `fit-wiki push`
-5. If the push rebases in a foreign row covering the same deliverable,
-   abort: `release` your row, push, and re-route.
+5. If the push rebases in a foreign row for the same deliverable, abort:
+   `release` your row, push, and re-route.
 
 Pair the gate with the pre-PR freshness probe —
 [coordination-protocol.md § Claim → probe → create](coordination-protocol.md#claim--probe--create).

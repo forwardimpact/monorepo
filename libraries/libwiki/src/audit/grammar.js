@@ -1,7 +1,7 @@
 import path from "node:path";
 import { WEEKLY_LOG_NAME_RE, WEEKLY_LOG_PART_NAME_RE } from "../constants.js";
 
-// The wiki filename admission grammar (spec 1760). A pure classifier: given a
+// The wiki filename admission grammar. A pure classifier: given a
 // wiki-relative path, decide whether the filename grammar admits it. The
 // normative prose lives in memory-protocol.md's "Wiki Filename Grammar"
 // section; this module is its enforcement — one home per policy, so the two
@@ -60,11 +60,11 @@ function classifyRootFile(base) {
   if (STORYBOARD_RE.test(base)) return "admitted";
   const dated = base.match(DATED_DELIVERABLE_RE);
   // A dated deliverable's `<topic>` must itself be token-free, so a trailing
-  // date cannot smuggle a token-bearing stem (`…-history-2026-06-11.md`) in.
+  // date cannot smuggle a token-bearing stem (`…-history-YYYY-MM-DD.md`) in.
   if (dated && !hasCalendarToken(dated[1])) return "admitted";
   if (isSummaryName(base)) return "admitted";
   // Anything else at the root — non-`.md`, or a token-bearing name matching no
-  // exact shape (the #1570 rogue) — is rejected.
+  // exact dated shape — is rejected.
   return "rejected";
 }
 

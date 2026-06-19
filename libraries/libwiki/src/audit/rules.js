@@ -564,7 +564,7 @@ export const RULES = [
 
   CONFLICT_MARKER_RULE,
 
-  // -- Filename admission (spec 1760) --
+  // -- Filename admission --
 
   // The `admission` resolver yields one subject per git-tracked path the
   // filename grammar rejects, so the check always fires. Flag-for-human: a

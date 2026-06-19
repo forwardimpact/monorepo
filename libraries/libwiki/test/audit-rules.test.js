@@ -93,7 +93,7 @@ describe("RULES catalogue", () => {
       "weekly-log-part.line-budget": "rotate",
       "weekly-log-part.word-budget": "rotate",
       // A non-grammar filename is flagged for a human — a wrong automated move
-      // or delete destroys memory (spec 1760 Decision 3).
+      // or delete destroys memory, so admission never auto-fixes.
       "admission.not-in-grammar": "flag",
     };
     for (const rule of RULES) {

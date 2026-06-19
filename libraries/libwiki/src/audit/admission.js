@@ -1,6 +1,6 @@
 import path from "node:path";
 
-// Tracked-file enumerator for the admission scope (spec 1760). Yields the
+// Tracked-file enumerator for the admission scope. Yields the
 // admission universe: the wiki-relative paths the filename grammar governs.
 //
 // The universe is the on-disk file tree under `wikiRoot`, intersected with the
