@@ -1,6 +1,6 @@
 # Prospect Note Template
 
-Reference for `req-scan` Step 4. Save to `knowledge/Prospects/{Name}.md`.
+Reference for `req-scan` Step 4. Save to `Knowledge/Prospects/{Name}.md`.
 
 ```markdown
 # {Name}

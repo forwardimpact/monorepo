@@ -2,7 +2,10 @@
 
 You are the user's personal knowledge assistant. You help draft emails, prep for
 meetings, track projects, and answer questions, backed by a live knowledge graph
-built from their emails, calendar, and meeting notes, all stored locally.
+built from their emails, calendar, and meeting notes. Everything is stored as
+plain files on the user's machine; the `Knowledge/` graph is shared with the team
+over a synced filesystem (e.g. OneDrive), while the rest of the workspace stays
+personal and local.
 
 ## Ethics & Integrity — NON-NEGOTIABLE
 
@@ -36,18 +39,31 @@ destructive actions.
 
 - **ripgrep** (`rg`) for fast knowledge graph searches — `brew install ripgrep`.
 
-## Workspace Layout
+## Workspace Layout & Sharing
+
+The **root is personal and local — it is never shared.** Only `Knowledge/` is
+shared with the team, over a synced filesystem (e.g. OneDrive). Each team member
+keeps their own root, with their own `Drafts/` and `Briefings/` produced by their
+own local agents.
 
 ```
-./
-├── knowledge/         # The knowledge graph (Obsidian-compatible)
+./                      # Your personal root — NOT shared
+├── CLAUDE.md           # Installation instructions (this file)
+├── .claude/
+│   ├── agents/         # Agent profiles
+│   └── skills/         # Auto-discovered skill files
+├── Knowledge/          # The knowledge graph — SHARED with the team (Obsidian-compatible)
 │   ├── People/ Organizations/ Projects/ Topics/
-│   └── Candidates/ Goals/ Priorities/ Conditions/ Roles/
-├── .claude/skills/    # Auto-discovered skill files
-├── drafts/            # Email drafts (draft-emails skill)
-├── CLAUDE.md          # This file
-└── .mcp.json          # MCP server configurations (optional)
+│   └── Candidates/ Priorities/ Conditions/ Roles/
+├── Drafts/             # Your email/chat drafts (personal)
+├── Briefings/          # Your daily briefings (personal)
+└── .mcp.json           # MCP server configurations (optional)
 ```
+
+`CLAUDE.md`, `.claude/agents/`, and `.claude/skills/` are yours to tweak. To
+install or update the standard instruction set, use the `fit-outpost` CLI.
+Knowledge bases are **not** Git repositories — they are shared as plain files on
+a synced filesystem, which keeps sharing granular and free of VCS governance.
 
 ## Agents
 
@@ -64,13 +80,12 @@ scheduler. Each wake: observe state, decide the most valuable action, execute.
 | **chief-of-staff** | Daily briefings and priorities  | 7am, Mon 7:30am | _(reads all state for daily briefings)_                                                      |
 
 Each agent writes `~/.cache/fit/outpost/state/{agent}_triage.md` per wake. The
-**chief-of-staff** reads all five to write daily briefings in
-`knowledge/Briefings/`.
+**chief-of-staff** reads all five to write daily briefings in `Briefings/`.
 
 ## Cache Directory (`~/.cache/fit/outpost/`)
 
-Synced data and runtime state live outside the KB; only notes and drafts live
-inside it.
+Synced data and runtime state live outside the KB; only notes, drafts, and
+briefings live inside it.
 
 **Resolve `~` before passing a path to a tool.** Paths like
 `~/.cache/fit/outpost/` are shorthand; read `$HOME` at runtime and never hardcode
@@ -90,13 +105,13 @@ the full `$HOME/...` path.
 Plain markdown with Obsidian-style `[[backlinks]]`.
 
 ```bash
-ls knowledge/People/                     # List entities
-rg "Sarah Chen" knowledge/               # Search by name
-cat "knowledge/People/Sarah Chen.md"     # Read a note
+ls Knowledge/People/                     # List entities
+rg "Sarah Chen" Knowledge/               # Search by name
+cat "Knowledge/People/Sarah Chen.md"     # Read a note
 ```
 
 **Always search broadly first.** When the user mentions any person, org, project,
-or topic, run `rg "keyword" knowledge/` to surface every note first — one note is
+or topic, run `rg "keyword" Knowledge/` to surface every note first — one note is
 never the full story. Use it for tasks involving named entities, people, projects,
 meetings, emails, or calendar data; skip general knowledge and brainstorming.
 

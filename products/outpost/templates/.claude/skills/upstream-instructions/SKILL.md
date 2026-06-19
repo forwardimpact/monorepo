@@ -111,7 +111,7 @@ Every entry must answer:
 2. **Why?** — the problem encountered or improvement discovered in use.
 3. **Details** — a summary of the actual change (not a full diff).
 
-Good: "Agents now read `knowledge/Priorities/` at the start of every wake and
+Good: "Agents now read `Knowledge/Priorities/` at the start of every wake and
 flag anything that threatens a priority — drafts and triage were ignoring
 strategic context."
 

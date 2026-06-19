@@ -7,8 +7,8 @@ index.
 - [templates-people-orgs.md](templates-people-orgs.md) — People, Organizations.
 - [templates-projects-topics.md](templates-projects-topics.md) — Projects,
   Topics.
-- [templates-goals-priorities.md](templates-goals-priorities.md) — Goals,
-  Priorities. **Never auto-created** by `extract-entities` or `anarlog-process`
+- [templates-priorities.md](templates-priorities.md) — Priorities.
+  **Never auto-created** by `extract-entities` or `anarlog-process`
   — set by the user.
 - [templates-conditions.md](templates-conditions.md) — Conditions (time-bound
   cross-cutting states).

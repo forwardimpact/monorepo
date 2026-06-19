@@ -5,7 +5,7 @@ Reference templates for `req-workday` Steps 1b, 4, and 5.
 ## Role file stub
 
 Use when no Role file exists for the requisition. Filename:
-`knowledge/Roles/{Req ID} — {Short Title}.md`.
+`Knowledge/Roles/{Req ID} — {Short Title}.md`.
 
 ```markdown
 # {Requisition Title}
@@ -41,7 +41,7 @@ provides one and the field is `—`; update `Last activity` to today; append
 
 ## CV.md template
 
-Save to `knowledge/Candidates/{Clean Name}/CV.md` when resume text exists. Skip
+Save to `Knowledge/Candidates/{Clean Name}/CV.md` when resume text exists. Skip
 when it doesn't.
 
 ```markdown
@@ -60,7 +60,7 @@ when it doesn't.
 
 ## Candidate brief
 
-Save to `knowledge/Candidates/{Clean Name}/brief.md`. Format follows
+Save to `Knowledge/Candidates/{Clean Name}/brief.md`. Format follows
 `req-track`.
 
 ```markdown

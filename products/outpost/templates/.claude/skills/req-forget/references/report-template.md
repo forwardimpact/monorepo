@@ -1,7 +1,7 @@
 # Erasure Report Template
 
 Audit trail for `req-forget` Step 4. Save to
-`knowledge/Erasure/{Name}--{YYYY-MM-DD}.md`.
+`Knowledge/Erasure/{Name}--{YYYY-MM-DD}.md`.
 
 **The report itself must not contain personal data** beyond the subject's name
 and the actions taken. Do not copy CV content, skills, or assessments into the
@@ -22,15 +22,15 @@ report — record only what was deleted, not what it contained.
 ## Actions Taken
 
 ### Deleted Files
-- `knowledge/Candidates/{Name}/brief.md`
-- `knowledge/Candidates/{Name}/CV.pdf`
-- `knowledge/Candidates/{Name}/screening.md`
-- `knowledge/People/{Name}.md`
+- `Knowledge/Candidates/{Name}/brief.md`
+- `Knowledge/Candidates/{Name}/CV.pdf`
+- `Knowledge/Candidates/{Name}/screening.md`
+- `Knowledge/People/{Name}.md`
 - {list all deleted files}
 
 ### Redacted References
-- `knowledge/Organizations/{Agency}.md` — removed backlink
-- `knowledge/Candidates/Insights.md` — removed {N} bullet(s)
+- `Knowledge/Organizations/{Agency}.md` — removed backlink
+- `Knowledge/Candidates/Insights.md` — removed {N} bullet(s)
 - {list all redacted files and what was removed}
 
 ### Cached Data Removed
@@ -57,7 +57,7 @@ The following are outside this tool's reach:
 ## Verification
 
 ```bash
-rg "{Name}" knowledge/ ~/.cache/fit/outpost/
+rg "{Name}" Knowledge/ ~/.cache/fit/outpost/
 ````
 
 Expected: no matches except this erasure report.

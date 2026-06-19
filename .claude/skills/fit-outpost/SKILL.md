@@ -61,10 +61,14 @@ code, and stderr are tracked in `state.json`.
 
 ### Knowledge Base Initialization
 
-Running `init <path>` copies the bundled template into the target directory:
-`CLAUDE.md` (instructions), `.claude/skills/` (built-in skills), and
-`.claude/settings.json` (permissions). User identity is not a copied file — it
-is resolved live by the `identify-user` skill, which caches it at
+Running `init <path>` copies the bundled template into the target directory —
+`CLAUDE.md` (instructions), `.claude/agents/` and `.claude/skills/` (built-in
+agents and skills), and `.claude/settings.json` (permissions) — and scaffolds the
+knowledge base structure. The `Knowledge/` graph (People, Organizations,
+Projects, Topics) is meant to be shared with the team over a synced filesystem;
+the personal `Briefings/` directory sits at the KB root, outside the shared
+graph. User identity is not a copied file — it is resolved live by the
+`identify-user` skill, which caches it at
 `~/.cache/fit/outpost/state/identity.md`. Running `update` on an existing KB
 merges new files without overwriting user customizations — settings permissions
 are reconciled rather than replaced.
@@ -90,13 +94,14 @@ fit-outpost.app/Contents/MacOS/Outpost  ← Swift launcher, TCC responsible
 
 ### Cache Directory
 
-Synced data lives outside the KB:
+Synced data and runtime state live outside the KB; notes, drafts, and briefings
+live inside it.
 
 ```
 ~/.cache/fit/outpost/
 ├── apple_mail/         # Synced email threads (.md)
 ├── apple_calendar/     # Synced calendar events (.json)
-├── drafts/             # Email drafts (.md)
+├── teams_chat/         # Synced Teams chats (.md)
 └── state/              # Runtime state (plain text files)
 ```
 

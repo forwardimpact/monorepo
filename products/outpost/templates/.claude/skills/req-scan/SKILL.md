@@ -3,7 +3,7 @@ name: req-scan
 description: >
   Scan publicly available sources for candidates who indicate they are open for
   hire. Uses WebFetch to read public APIs (HN Algolia, GitHub, dev.to).
-  Writes prospect notes to knowledge/Prospects/. Maintains
+  Writes prospect notes to Knowledge/Prospects/. Maintains
   cursor/dedup state in ~/.cache/fit/outpost/head-hunter/. Use when the
   head-hunter agent is woken or when the user asks to scan for open candidates.
 ---
@@ -34,7 +34,7 @@ updates.
 
 ## Outputs
 
-- `knowledge/Prospects/{Name}.md`.
+- `Knowledge/Prospects/{Name}.md`.
 - Updated `cursor.tsv`, `seen.tsv`, `prospects.tsv`, and `log.md`.
 - `~/.cache/fit/outpost/state/head_hunter_triage.md`.
 
@@ -103,7 +103,7 @@ Write notes for **strong** and **moderate** matches only, using the template in
 [references/template.md](references/template.md).
 
 ```bash
-mkdir -p "knowledge/Prospects"
+mkdir -p "Knowledge/Prospects"
 ```
 
 ### 5. Update state

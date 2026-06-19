@@ -6,21 +6,21 @@ inventory.
 ## Knowledge base — direct notes
 
 ```bash
-ls -d "knowledge/Candidates/{Name}/" 2>/dev/null
-ls "knowledge/People/{Name}.md" 2>/dev/null
+ls -d "Knowledge/Candidates/{Name}/" 2>/dev/null
+ls "Knowledge/People/{Name}.md" 2>/dev/null
 
 # Common name variations
-ls "knowledge/People/{First} {Last}.md" 2>/dev/null
-ls "knowledge/People/{Last}, {First}.md" 2>/dev/null
+ls "Knowledge/People/{First} {Last}.md" 2>/dev/null
+ls "Knowledge/People/{Last}, {First}.md" 2>/dev/null
 ```
 
 ## Knowledge base — backlinks and mentions
 
 ```bash
-rg -l "{Name}" knowledge/
-rg -l "{First name} {Last name}" knowledge/
-rg -l "\[\[.*{Name}.*\]\]" knowledge/
-rg -l "{email}" knowledge/
+rg -l "{Name}" Knowledge/
+rg -l "{First name} {Last name}" Knowledge/
+rg -l "\[\[.*{Name}.*\]\]" Knowledge/
+rg -l "{email}" Knowledge/
 ```
 
 ## Cached email threads
@@ -47,13 +47,13 @@ rg -l "{Name}" ~/.cache/fit/outpost/state/ 2>/dev/null
 ## Drafts
 
 ```bash
-rg -l "{Name}" drafts/ 2>/dev/null
+rg -l "{Name}" Drafts/ 2>/dev/null
 ```
 
 ## Final verification
 
 ```bash
-rg "{Name}" knowledge/ ~/.cache/fit/outpost/ drafts/
+rg "{Name}" Knowledge/ ~/.cache/fit/outpost/ Drafts/
 ```
 
 Expected: only the erasure report matches.

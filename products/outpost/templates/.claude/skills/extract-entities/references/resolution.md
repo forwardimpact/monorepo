@@ -11,10 +11,8 @@ Extract every way each entity is referenced.
 - **Organizations:** full names, short names, abbreviations, email domains.
 - **Projects:** explicit names, descriptive references ("the pilot", "the
   deal").
-- **Goals:** references to time-bound targets, OKRs, or measurable outcomes that
-  match `knowledge/Goals/` entries.
-- **Priorities:** references to strategic directions that match
-  `knowledge/Priorities/` entries.
+- **Priorities:** references to strategic directions, time-bound targets, or
+  measurable outcomes that match `Knowledge/Priorities/` entries.
 
 ## Matching
 
@@ -82,5 +80,5 @@ Format: `**Role:** Product Lead (inferred from evaluation discussions)`.
 
 ## Never auto-create
 
-`Goals/` and `Priorities/`. Link to existing entries when referenced; update
+`Priorities/`. Link to existing entries when referenced; update
 progress / backlinks; never create new ones from extracted content.

@@ -20,7 +20,7 @@ strategic layer.
 Priorities, removing the Project↔Goal↔Priority coupling that earned nothing.
 
 **Details:**
-- Deleted `knowledge/Goals/`; repointed live backlinks to `Priorities/C - Onboarding`.
+- Deleted `Knowledge/Goals/`; repointed live backlinks to `Priorities/C - Onboarding`.
 - CLAUDE.md workspace-layout tree no longer lists `Goals/`.
 - Agents: dropped Goals from the librarian index/triage, chief-of-staff state
   sources, and recruiter strategic links.
@@ -61,7 +61,7 @@ invisible without structured gender data.
 **Scope:** agents: all six profiles
 **Type:** modified
 
-**What:** Agents now read `knowledge/Priorities/` at the start of every wake and
+**What:** Agents now read `Knowledge/Priorities/` at the start of every wake and
 flag anything that threatens a priority.
 
 **Why:** Sync, triage, and drafting were ignoring strategic context; signals that
@@ -91,7 +91,7 @@ weren't integrated into the knowledge base.
 
 **Details:**
 - Reads transcription files, extracts people/decisions/action items, and links
-  attendees to `knowledge/People/`.
+  attendees to `Knowledge/People/`.
 
 ---
 ```

@@ -43,13 +43,13 @@ Field map and resolution rules for Step 2 of `req-track`.
 
 Stop at the first match:
 
-1. **Req-first inheritance** — look up `knowledge/Roles/*.md` for the matching
+1. **Req-first inheritance** — look up `Knowledge/Roles/*.md` for the matching
    Req; inherit Hiring manager and Domain lead from the Role file.
 2. **Calendar inference** —
    `rg -l "{Candidate Name}" ~/.cache/fit/outpost/apple_calendar/`. The non-user
    organizer of an interview event is likely the hiring manager.
 3. **Email inference** — internal To/CC recipients (besides the user)
-   cross-checked against `knowledge/People/`.
+   cross-checked against `Knowledge/People/`.
 4. **Reporting chain** — read the hiring manager's `**Reports to:**` field; walk
    up to a VP / senior leader for the domain lead.
 5. **Staffing project timeline** — search staffing notes for the candidate or
@@ -71,7 +71,7 @@ hiring decisions, assessment criteria, or candidate visibility.
 
 ## Source and recruiter
 
-- Map sender email domain to an organization in `knowledge/Organizations/`.
+- Map sender email domain to an organization in `Knowledge/Organizations/`.
 - The person who sent or forwarded the profile is the recruiter — link with
   `[[People/Name]]`.
 - Create the organization or recruiter notes if missing.
@@ -80,9 +80,9 @@ hiring decisions, assessment criteria, or candidate visibility.
 
 ```bash
 ls ~/.cache/fit/outpost/apple_mail/attachments/{thread_id}/
-mkdir -p "knowledge/Candidates/{Full Name}"
+mkdir -p "Knowledge/Candidates/{Full Name}"
 cp "~/.cache/fit/outpost/apple_mail/attachments/{thread_id}/{file}" \
-   "knowledge/Candidates/{Full Name}/CV.pdf"
+   "Knowledge/Candidates/{Full Name}/CV.pdf"
 ```
 
 Use `CV.pdf` (PDF) or `CV.docx` (Word). The `## CV` link is `./CV.pdf`.
@@ -106,9 +106,9 @@ Match by name fragment (case-insensitive). Prefer the Downloads match. Always
 write `headshot.jpeg`:
 
 ```bash
-cp "{src}" "knowledge/Candidates/{Full Name}/headshot.jpeg"
+cp "{src}" "Knowledge/Candidates/{Full Name}/headshot.jpeg"
 # PNG → JPEG
-magick "{src}.png" "knowledge/Candidates/{Full Name}/headshot.jpeg"
+magick "{src}.png" "Knowledge/Candidates/{Full Name}/headshot.jpeg"
 # HEIC → JPEG
-magick "{src}.heic" "knowledge/Candidates/{Full Name}/headshot.jpeg"
+magick "{src}.heic" "Knowledge/Candidates/{Full Name}/headshot.jpeg"
 ```

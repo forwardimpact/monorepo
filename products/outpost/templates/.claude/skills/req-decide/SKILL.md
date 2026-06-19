@@ -29,25 +29,25 @@ This is **Stage 3** of the three-stage pipeline:
 ## Prerequisites
 
 - `fit-pathway` CLI installed.
-- `knowledge/Candidates/{Name}/screening.md` exists.
-- At least one `knowledge/Candidates/{Name}/interview-*.md`.
-- `knowledge/Candidates/{Name}/brief.md` exists.
+- `Knowledge/Candidates/{Name}/screening.md` exists.
+- At least one `Knowledge/Candidates/{Name}/interview-*.md`.
+- `Knowledge/Candidates/{Name}/brief.md` exists.
 
 ## Inputs
 
-- All artifacts in `knowledge/Candidates/{Name}/`.
+- All artifacts in `Knowledge/Candidates/{Name}/`.
 - Standard data via `fit-pathway`.
-- `knowledge/Candidates/Insights.md` — cross-candidate context.
-- `knowledge/Roles/*.md` — the candidate's requisition (positions, hiring
+- `Knowledge/Candidates/Insights.md` — cross-candidate context.
+- `Knowledge/Roles/*.md` — the candidate's requisition (positions, hiring
   manager, domain lead).
-- `knowledge/Goals/*.md`, `knowledge/Priorities/*.md` — strategic context.
+- `Knowledge/Priorities/*.md` — strategic context.
 - Other active candidates at the same level — relative positioning.
 
 ## Outputs
 
-- `knowledge/Candidates/{Name}/recommendation.md` — final recommendation.
-- Updated `knowledge/Candidates/{Name}/brief.md` — status and link.
-- Updated `knowledge/Candidates/Insights.md` — cross-candidate observations.
+- `Knowledge/Candidates/{Name}/recommendation.md` — final recommendation.
+- Updated `Knowledge/Candidates/{Name}/brief.md` — status and link.
+- Updated `Knowledge/Candidates/Insights.md` — cross-candidate observations.
 
 <do_confirm_checklist goal="Verify the recommendation is grounded and
 audit-ready">
@@ -71,7 +71,7 @@ audit-ready">
 ### 1. Gather all evidence
 
 ```bash
-ls knowledge/Candidates/{Name}/
+ls Knowledge/Candidates/{Name}/
 ```
 
 Read in order: `brief.md`, `screening.md`, every `interview-*.md`, relevant
@@ -114,8 +114,8 @@ Apply the level-confirmation criteria in
 If `brief.md` carries a `Req`:
 
 ```bash
-ls knowledge/Roles/ | grep "{req_number}"
-cat "knowledge/Roles/{matching file}"
+ls Knowledge/Roles/ | grep "{req_number}"
+cat "Knowledge/Roles/{matching file}"
 ```
 
 Capture remaining positions, hiring manager, domain lead, goal alignment, other
@@ -125,9 +125,9 @@ in terms of strategic impact.
 ### 6. Assess against the active pipeline
 
 ```bash
-cat knowledge/Candidates/Insights.md
+cat Knowledge/Candidates/Insights.md
 
-for dir in knowledge/Candidates/*/; do
+for dir in Knowledge/Candidates/*/; do
   if [ -f "$dir/screening.md" ]; then
     head -5 "$dir/screening.md"
   fi
@@ -144,7 +144,7 @@ Apply the [decision rules](references/rubric.md#decision-rules) and run the
 
 ### 8. Write the recommendation
 
-Save to `knowledge/Candidates/{Name}/recommendation.md` using the template in
+Save to `Knowledge/Candidates/{Name}/recommendation.md` using the template in
 [references/template.md](references/template.md). Carry the **advisory-only**
 banner. Cite specific evidence in skill, behaviour, level, and track sections.
 
@@ -156,7 +156,7 @@ Update `brief.md`:
 - Append `- [Hiring Recommendation](./recommendation.md)`.
 - Add the final pipeline entry with date and outcome.
 
-Update `knowledge/Candidates/Insights.md` only when there's a cross-candidate
+Update `Knowledge/Candidates/Insights.md` only when there's a cross-candidate
 observation worth keeping (strongest at level, sourcing channel pattern,
 level-adjustment implications).
 

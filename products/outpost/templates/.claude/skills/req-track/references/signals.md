@@ -10,7 +10,7 @@ no signal — most email is not.
 
 ## Recruiter sender domains
 
-Sender domain maps to an organization in `knowledge/Organizations/` tagged as a
+Sender domain maps to an organization in `Knowledge/Organizations/` tagged as a
 recruitment agency. When no agencies are catalogued yet, treat these patterns as
 hints:
 
@@ -38,5 +38,5 @@ Structured candidate descriptions containing:
 
 ## Follow-up on existing candidates
 
-A thread mentions a candidate already in `knowledge/Candidates/` by name —
+A thread mentions a candidate already in `Knowledge/Candidates/` by name —
 process it to update pipeline status.

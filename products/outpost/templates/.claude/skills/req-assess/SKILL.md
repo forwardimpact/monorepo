@@ -22,7 +22,7 @@ This is **Stage 2** of the three-stage hiring pipeline:
 
 ## Trigger
 
-- A new `transcript-*.md` file appears in `knowledge/Candidates/{Name}/`.
+- A new `transcript-*.md` file appears in `Knowledge/Candidates/{Name}/`.
 - The user asks to analyze an interview or debrief.
 - The user asks to prepare a panel brief.
 - The concierge agent processes a Anarlog interview recording.
@@ -30,22 +30,22 @@ This is **Stage 2** of the three-stage hiring pipeline:
 ## Prerequisites
 
 - `fit-pathway` CLI installed.
-- At least one transcript in `knowledge/Candidates/{Name}/`.
+- At least one transcript in `Knowledge/Candidates/{Name}/`.
 - `screening.md` should exist; if missing, run `req-screen` first (proceed
   regardless).
 
 ## Inputs
 
-- `knowledge/Candidates/{Name}/transcript-{date}.md`.
-- `knowledge/Candidates/{Name}/screening.md`.
-- `knowledge/Candidates/{Name}/brief.md` — target role.
+- `Knowledge/Candidates/{Name}/transcript-{date}.md`.
+- `Knowledge/Candidates/{Name}/screening.md`.
+- `Knowledge/Candidates/{Name}/brief.md` — target role.
 
 ## Outputs
 
-- `knowledge/Candidates/{Name}/interview-{date}.md`.
-- `knowledge/Candidates/{Name}/panel.md` — only when more interviews are
+- `Knowledge/Candidates/{Name}/interview-{date}.md`.
+- `Knowledge/Candidates/{Name}/panel.md` — only when more interviews are
   planned.
-- Updated `knowledge/Candidates/{Name}/brief.md`.
+- Updated `Knowledge/Candidates/{Name}/brief.md`.
 
 <do_confirm_checklist goal="Verify the assessment is grounded in transcript
 evidence">
@@ -105,7 +105,7 @@ Apply the [level signals](references/rubric.md#level-signals).
 
 ### 6. Write the interview assessment
 
-Save to `knowledge/Candidates/{Name}/interview-{date}.md` using
+Save to `Knowledge/Candidates/{Name}/interview-{date}.md` using
 [references/interview-template.md](references/interview-template.md). Include
 only skills with new evidence — don't repeat the full matrix.
 
@@ -118,14 +118,14 @@ candidates:
 bunx fit-pathway interview {discipline} {level} --track={track}
 ```
 
-Save `knowledge/Candidates/{Name}/panel.md` using
+Save `Knowledge/Candidates/{Name}/panel.md` using
 [references/panel-template.md](references/panel-template.md). Audience:
 next-stage interviewers, often non-engineers — explain without jargon and tie
 suggested questions to remaining gaps.
 
 ### 8. Update the candidate brief
 
-Apply targeted Edit operations to `knowledge/Candidates/{Name}/brief.md`:
+Apply targeted Edit operations to `Knowledge/Candidates/{Name}/brief.md`:
 
 - Append a Pipeline entry with date, type, and outcome.
 - Add `## Interview Notes` if missing, with key observations.

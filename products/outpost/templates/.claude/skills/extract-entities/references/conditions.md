@@ -20,7 +20,7 @@ same constraint or state, suspect a Condition.
 
 ## Creating a Condition
 
-1. Check existing: `ls knowledge/Conditions/ 2>/dev/null`.
+1. Check existing: `ls Knowledge/Conditions/ 2>/dev/null`.
 2. **No match:** create a new Condition note using
    [templates-conditions.md](templates-conditions.md). Name descriptively
    ("Hiring Freeze Q2", "Division Reorg").
@@ -31,8 +31,8 @@ same constraint or state, suspect a Condition.
 
 When a Condition is created or updated:
 
-1. Add `[[Conditions/{Condition}]]` to the `## Blockers` section of affected
-   Goals.
+1. Add `[[Conditions/{Condition}]]` to the `## Affects` section of affected
+   Priorities.
 2. Add `[Status → on hold]` state changes to affected Projects where
    appropriate.
 3. Add a `## Blockers` entry to affected Role files if recruitment is frozen.
@@ -45,7 +45,7 @@ Source content indicates the Condition has ended: "approved", "freeze lifted",
 "reorg complete", "back on track".
 
 - Set `**Status:** resolved`, `**Resolved:** {date}`.
-- Remove `[[Conditions/{Condition}]]` from affected Goal `## Blockers`.
+- Remove `[[Conditions/{Condition}]]` from affected Priority `## Affects`.
 - Log with `[Status → resolved]`.
 
 ## Conservatism

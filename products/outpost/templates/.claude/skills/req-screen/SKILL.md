@@ -22,7 +22,7 @@ This is **Stage 1** of a three-stage hiring pipeline:
 
 ## Trigger
 
-- A new CV is added to `knowledge/Candidates/{Name}/`.
+- A new CV is added to `Knowledge/Candidates/{Name}/`.
 - A CV appears in `~/Downloads/` and is associated with a candidate.
 - The user asks to screen, evaluate, or assess a CV.
 - The user asks "is this person worth interviewing?".
@@ -35,16 +35,16 @@ This is **Stage 1** of a three-stage hiring pipeline:
 
 ## Inputs
 
-- CV file path (e.g. `knowledge/Candidates/{Name}/CV.pdf`).
+- CV file path (e.g. `Knowledge/Candidates/{Name}/CV.pdf`).
 - Target role (optional).
-- Existing `knowledge/Candidates/{Name}/brief.md`, if any.
-- `knowledge/Roles/*.md` matching the candidate's `Req` (provides `Level`,
+- Existing `Knowledge/Candidates/{Name}/brief.md`, if any.
+- `Knowledge/Roles/*.md` matching the candidate's `Req` (provides `Level`,
   `Discipline`, `Hiring manager`, `Domain lead`).
 
 ## Outputs
 
-- `knowledge/Candidates/{Name}/screening.md` — structured assessment.
-- Updated `knowledge/Candidates/{Name}/brief.md` — skills + summary enriched.
+- `Knowledge/Candidates/{Name}/screening.md` — structured assessment.
+- Updated `Knowledge/Candidates/{Name}/brief.md` — skills + summary enriched.
 
 <do_confirm_checklist goal="Verify the screening is grounded and
 decision-rule-compliant">
@@ -76,8 +76,8 @@ Extract the fields listed in
 If `brief.md` carries a `Req`, look up the matching Role file:
 
 ```bash
-ls knowledge/Roles/ | grep "{req_number}"
-cat "knowledge/Roles/{matching file}"
+ls Knowledge/Roles/ | grep "{req_number}"
+cat "Knowledge/Roles/{matching file}"
 ```
 
 Use the Role's `Level` and `Discipline` as the target unless the user specified
@@ -127,7 +127,7 @@ Pick the recommendation using the decision rules and threshold rule in
 
 ### 7. Write the screening
 
-Save to `knowledge/Candidates/{Name}/screening.md` using the template in
+Save to `Knowledge/Candidates/{Name}/screening.md` using the template in
 [references/template.md](references/template.md). Include the **Suggested
 Interview Questions** when the recommendation is "Interview" or "Interview with
 focus areas":

@@ -179,13 +179,11 @@ export class KBManager {
     }
 
     await this.#ensureDir(dest);
-    for (const d of [
-      "knowledge/People",
-      "knowledge/Organizations",
-      "knowledge/Projects",
-      "knowledge/Topics",
-      "knowledge/Briefings",
-    ])
+    // Create the top-level roots only. `Knowledge/` is the shared graph (synced
+    // with the team); `Drafts/` and `Briefings/` are personal and local. Entity
+    // subdirectories (People, Organizations, ...) are created on demand by the
+    // skills that write into them.
+    for (const d of ["Knowledge", "Drafts", "Briefings"])
       await this.#ensureDir(join(dest, d));
 
     await this.copyBundledFiles(templateDir, dest);

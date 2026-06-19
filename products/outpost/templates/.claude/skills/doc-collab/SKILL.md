@@ -20,12 +20,12 @@ Run when the user asks to create, edit, review, or collaborate on a document.
 ## Inputs
 
 - User's editing instructions
-- `knowledge/` — existing notes and documents
+- `Knowledge/` — existing notes and documents
 - Document to edit (user-specified or searched)
 
 ## Outputs
 
-- Created or modified documents in `knowledge/` or user-specified location
+- Created or modified documents in `Knowledge/` or user-specified location
 
 ---
 
@@ -54,8 +54,8 @@ Follow their choice for the entire session.
 Search thoroughly before saying a document doesn't exist:
 
 ```bash
-rg -l -i "roadmap" knowledge/
-find knowledge/ -iname "*roadmap*" 2>/dev/null
+rg -l -i "roadmap" Knowledge/
+find Knowledge/ -iname "*roadmap*" 2>/dev/null
 ```
 
 **If found:** Read it and proceed. **If NOT found:** Ask "I couldn't find
@@ -63,7 +63,7 @@ find knowledge/ -iname "*roadmap*" 2>/dev/null
 
 **Creating new documents:**
 
-1. Ask: "Shall I create knowledge/[name].md?"
+1. Ask: "Shall I create Knowledge/[name].md?"
 2. Create with just a title — don't pre-populate with structure
 3. Ask: "What would you like in this?"
 
@@ -97,9 +97,9 @@ don't reorganize unless asked.
 When the user mentions people, companies, or projects:
 
 ```bash
-rg -l "Name" knowledge/
-cat "knowledge/People/Person.md"
-cat "knowledge/Organizations/Company.md"
+rg -l "Name" Knowledge/
+cat "Knowledge/People/Person.md"
+cat "Knowledge/Organizations/Company.md"
 ```
 
 Use `[[wiki-links]]` to connect to other notes. Only link to notes that exist.

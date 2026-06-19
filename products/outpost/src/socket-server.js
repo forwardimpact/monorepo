@@ -140,11 +140,7 @@ export class SocketServer {
     }
 
     if (agentConfig.kb) {
-      const dir = join(
-        this.#expandPath(agentConfig.kb),
-        "knowledge",
-        "Briefings",
-      );
+      const dir = join(this.#expandPath(agentConfig.kb), "Briefings");
       if (this.#fsSync.existsSync(dir)) {
         const files = this.#fsSync
           .readdirSync(dir)

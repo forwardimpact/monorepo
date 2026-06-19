@@ -1,13 +1,13 @@
 ---
 name: req-track
-description: Scan synced email threads for recruitment candidates, extract structured profiles, and create/update notes in knowledge/Candidates/. Use when the user asks to track candidates, process recruitment emails, or update the hiring pipeline.
+description: Scan synced email threads for recruitment candidates, extract structured profiles, and create/update notes in Knowledge/Candidates/. Use when the user asks to track candidates, process recruitment emails, or update the hiring pipeline.
 ---
 
 # Track Candidates
 
 Scan synced email threads from `~/.cache/fit/outpost/apple_mail/` for
 recruitment candidates. Extract structured candidate profiles and create or
-update notes in `knowledge/Candidates/`. Builds a local, searchable recruitment
+update notes in `Knowledge/Candidates/`. Builds a local, searchable recruitment
 pipeline from scattered email threads.
 
 ## Trigger
@@ -29,7 +29,7 @@ pipeline from scattered email threads.
 - `~/.cache/fit/outpost/apple_mail/attachments/` — CV/resume attachments.
 - `~/.cache/fit/outpost/apple_calendar/*.json` — calendar events (for
   cross-source inference).
-- `knowledge/Roles/*.md` — open role/requisition files (metadata inheritance).
+- `Knowledge/Roles/*.md` — open role/requisition files (metadata inheritance).
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (shared
   with `extract-entities`).
 - `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
@@ -37,10 +37,10 @@ pipeline from scattered email threads.
 
 ## Outputs
 
-- `knowledge/Candidates/{Full Name}/brief.md` — candidate profile note.
-- `knowledge/Candidates/{Full Name}/CV.pdf` (or `CV.docx`) — local CV copy.
-- `knowledge/Candidates/{Full Name}/headshot.jpeg` — candidate photo.
-- `knowledge/Roles/*.md` — created/updated role files (Candidates tables
+- `Knowledge/Candidates/{Full Name}/brief.md` — candidate profile note.
+- `Knowledge/Candidates/{Full Name}/CV.pdf` (or `CV.docx`) — local CV copy.
+- `Knowledge/Candidates/{Full Name}/headshot.jpeg` — candidate photo.
+- `Knowledge/Roles/*.md` — created/updated role files (Candidates tables
   rebuilt).
 - `~/.cache/fit/outpost/state/graph_processed` — updated with processed threads.
 
@@ -84,31 +84,31 @@ here.
 ### 2. Build candidate, people, and org indexes
 
 ```bash
-ls -d knowledge/Candidates/*/
+ls -d Knowledge/Candidates/*/
 ```
 
 Read each existing brief's header (Name, Role, Source, Status) to build a mental
-index. Also scan `knowledge/People/`, `knowledge/Organizations/`, and
-`knowledge/Projects/` to resolve recruiter names, agency orgs, and project
+index. Also scan `Knowledge/People/`, `Knowledge/Organizations/`, and
+`Knowledge/Projects/` to resolve recruiter names, agency orgs, and project
 links.
 
-### 3. Sync `knowledge/Roles/`
+### 3. Sync `Knowledge/Roles/`
 
 This keeps role metadata current and enables inheritance.
 
 1. Read each Role file's Info block to map Req → Role file path, Hiring manager,
    Domain lead, recruiter, Channel.
 2. Find Reqs referenced by candidate briefs but missing a Role file:
-   `rg "^\*\*Req:\*\*" knowledge/Candidates/*/brief.md`. For each missing Req,
+   `rg "^\*\*Req:\*\*" Knowledge/Candidates/*/brief.md`. For each missing Req,
    create a stub using the **Role file stub** in
    [references/templates.md](references/templates.md), then enrich by searching
-   the graph: `rg "{req_number}" knowledge/`.
+   the graph: `rg "{req_number}" Knowledge/`.
 3. Rebuild each Role file's `## Candidates` table by scanning briefs:
-   `rg -l "Req:.*{req_number}" knowledge/Candidates/*/brief.md`. Use the **Role
+   `rg -l "Req:.*{req_number}" Knowledge/Candidates/*/brief.md`. Use the **Role
    Candidates table** format from `references/templates.md`. Sort by First seen,
    newest first.
 4. If a Role file has a hiring manager but no domain lead, walk the
-   `**Reports to:**` chain in `knowledge/People/` to a VP or senior leader.
+   `**Reports to:**` chain in `Knowledge/People/` to a VP or senior leader.
 
 ### 4. Identify recruitment threads
 
@@ -137,7 +137,7 @@ forwarded headers).
 
 ### 8. Write or update the candidate note
 
-For **new** candidates, create `knowledge/Candidates/{Full Name}/brief.md` from
+For **new** candidates, create `Knowledge/Candidates/{Full Name}/brief.md` from
 the **Candidate brief** template in
 [references/templates.md](references/templates.md). Place the **Extra Info
 fields** after `Last activity` in the order shown there. Add the **Optional
@@ -149,7 +149,7 @@ known Info fields, and add new Skills.
 
 ### 9. Capture cross-candidate insights
 
-Update `knowledge/Candidates/Insights.md` only when an observation is
+Update `Knowledge/Candidates/Insights.md` only when an observation is
 high-signal: candidate may suit a **different role**, is a **strong match** for
 a specific team or leader, a meaningful **comparison between candidates**, or a
 hiring trade-off needs to be **remembered across sessions**.

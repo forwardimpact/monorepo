@@ -50,7 +50,7 @@ Sort by First seen, newest first.
 ## Candidate brief
 
 Used by Step 5 for new candidates. File:
-`knowledge/Candidates/{Full Name}/brief.md`.
+`Knowledge/Candidates/{Full Name}/brief.md`.
 
 ```markdown
 # {Full Name}
