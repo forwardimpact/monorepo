@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // The release-blocking test gate. Runs `node --test` over the gate set — the
-// SAME file selector the `test` script uses — once per file, then enforces:
+// SAME file selector the `test` script uses, minus the bun-only paths in
+// GATE_EXEMPT_PATHS that `node --test` structurally cannot load — once per file,
+// then enforces:
 //
 //   1. the file list is non-empty               (a zero-file selector fails;
 //      `node --test` would otherwise exit 0)
@@ -50,6 +52,34 @@ export const SELECTOR_PREDICATE = [
   "*/node_modules/*",
 ];
 
+// Paths the node gate must NOT run even though they match the shared selector,
+// because `node --test` structurally cannot load them. Each is bun-only by
+// design and stays fully covered by the informational bun `test` job; the shared
+// `find` selector is left byte-identical to the `test` script's (so the bun loop
+// still runs them and the single-source invariant holds), and the gate prunes
+// them here after expansion. The set is enumerated explicitly so it is reviewable
+// and a new unrunnable file is a deliberate addition, never a silent drop.
+//
+//   - tests/bun-test-imports.test.js — the regression test for the sanctioned
+//     `bun:test` universal-subset allowlist invariant. It deliberately imports
+//     the allowlisted subset from `bun:test`, so `node --test` cannot resolve it
+//     (ERR_UNSUPPORTED_ESM_URL_SCHEME). The matching exemption in
+//     `scripts/check-bun-test-imports.mjs` keeps the re-divergence guard from
+//     flagging the same sanctioned import.
+//   - products/map/test/activity/hosted/*.test.js — these import the Supabase
+//     edge-function shared runtime `_shared/runtime.ts`; `node --test` on the
+//     pinned node major has no TypeScript loader (ERR_UNKNOWN_FILE_EXTENSION
+//     ".ts"), while bun transpiles it. They already run on `node:test` structural
+//     names — they carry no `bun:test` import — but their `.ts` dependency keeps
+//     them bun-only until the edge-function runtime is node-loadable.
+export const GATE_EXEMPT_PATHS = [
+  "tests/bun-test-imports.test.js",
+  "products/map/test/activity/hosted/getdx-sync.test.js",
+  "products/map/test/activity/hosted/people-upload.test.js",
+  "products/map/test/activity/hosted/runtime.test.js",
+  "products/map/test/activity/hosted/transform.test.js",
+];
+
 function fail(message) {
   console.error(`test:gate: ${message}`);
   process.exit(1);
@@ -88,10 +118,15 @@ async function main() {
       `file discovery failed: ${find.error?.message ?? `exit ${find.status}`}`,
     );
   }
+  const exempt = new Set(GATE_EXEMPT_PATHS.map((p) => resolve(repoRoot, p)));
   const files = (find.stdout || "")
     .split("\n")
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    // Prune the sanctioned bun-only paths; `find` prints them relative to
+    // repoRoot (e.g. ./tests/...), so resolve before comparing (see
+    // GATE_EXEMPT_PATHS).
+    .filter((f) => !exempt.has(resolve(repoRoot, f)));
 
   if (files.length === 0) {
     fail(
