@@ -70,7 +70,10 @@ export default {
       cwd: root,
       pattern: MODEL_ID,
       caseSensitive: true,
-      globs: ["*.md", ...BASE_GLOBS],
+      // Test fixtures hold frozen sample content (e.g. a historical regression
+      // corpus copied verbatim), not live defaults — out of scope per the
+      // header, the same as the code rule above.
+      globs: ["*.md", "!**/test/**", ...BASE_GLOBS],
       onlyMatching: true,
     }).map((m) => ({
       path: resolve(root, m.path),
