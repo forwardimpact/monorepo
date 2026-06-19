@@ -7,6 +7,7 @@ on:
       - ".claude/skills/fit-*/**"
       - ".claude/skills/kata-*/**"
       - ".claude/agents/*.md"
+      - ".claude/agents/references/**"
       - "products/gear/package.json"
       - ".github/workflows/publish-skills.yml"
   workflow_dispatch:
@@ -240,6 +241,11 @@ jobs:
             agent_name=$(basename "$agent_file" .md)
             cp "$agent_file" "skills-repo/agents/${agent_name}.agent.md"
           done
+          # Ship the agent references the profiles and skills cite (e.g. the
+          # work-item tracker matrix); APM installs them alongside the skills.
+          if [ -d .claude/agents/references ]; then
+            cp -r .claude/agents/references skills-repo/agents/references
+          fi
 
       - name: Generate apm.yml
         run: |
