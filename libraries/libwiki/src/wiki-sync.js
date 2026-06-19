@@ -1,4 +1,5 @@
 import path from "node:path";
+import { scanConflictMarkers } from "./conflict-markers.js";
 import { SINGLETON_PATHS } from "./constants.js";
 import { parseDiff, findAbsent, makeDetection, normLine } from "./integrity.js";
 
@@ -62,6 +63,48 @@ export class WikiSyncConflict extends Error {
     this.paths = paths;
     this.reason = reason;
   }
+}
+
+/**
+ * The refusal reason taxonomy for {@link WikiSync.commitAndPush}. A refusal is
+ * surfaced in the result rather than thrown, so callers reading the result keep
+ * working; `WikiSyncRefusal.result(reason, details)` builds that result object.
+ * `reason` is one of `mid-merge`, `stranded-merge`, `would-publish-markers`,
+ * `introduced-scan-failed`; `workAt` (only for `stranded-merge`) names where
+ * retained work lives. The reason set is additive to the existing `clean` and
+ * `pushed` outcomes, so a future refusal taxonomy on this flow can union new
+ * reasons in without rewriting the existing ones.
+ */
+export class WikiSyncRefusal {
+  /** @type {readonly string[]} The recognized refusal reasons. */
+  static REASONS = Object.freeze([
+    "mid-merge",
+    "stranded-merge",
+    "would-publish-markers",
+    "introduced-scan-failed",
+  ]);
+
+  /**
+   * Build a `commitAndPush` refusal result.
+   * @param {string} reason - One of {@link WikiSyncRefusal.REASONS}.
+   * @param {{workAt?: string}} [details] - `workAt` names where retained work lives.
+   * @returns {{pushed: false, reason: string, workAt?: string}}
+   */
+  static result(reason, { workAt } = {}) {
+    const result = { pushed: false, reason };
+    if (workAt) result.workAt = workAt;
+    return result;
+  }
+}
+
+// Markers introduced into a prose markdown surface may be legitimately quoted
+// inside a fenced code block (the false-positive surface Layer 1 exempts).
+// STATUS.md is data, not prose — its fenced rows are never legitimately marked
+// — and non-markdown files (e.g. metrics CSVs) have no quoted-form idiom, so
+// neither is fence-exempt on the publish path.
+function pushFenceExempt(filePath) {
+  const base = path.basename(filePath);
+  return filePath.endsWith(".md") && base !== "STATUS.md";
 }
 
 /**
@@ -222,6 +265,13 @@ export class WikiSync {
    * @throws {WikiSyncConflict} When the re-apply budget is exhausted.
    */
   async commitAndPush(message, paths, { reapply, maxReapply = 3 } = {}) {
+    // Guard 1 (hole 1): refuse mid-merge before staging. An abandoned merge
+    // leaves unmerged hunks or a pinned MERGE_HEAD; sweeping them would
+    // silently "complete" the merge and publish the markers. Decidable from
+    // the index/working tree alone, so it holds on a shallow clone.
+    if (await this.#git.isMidMerge({ cwd: this.#wikiDir })) {
+      return WikiSyncRefusal.result("mid-merge");
+    }
     await this.#assertPublishable();
     if (!(await this.isClean(paths))) {
       if (paths?.length) {
@@ -240,20 +290,16 @@ export class WikiSync {
       autostash: true,
     });
     if (rebase.exitCode !== 0) {
-      await this.#git.rebaseAbort({ cwd: this.#wikiDir });
-      const registered =
-        typeof reapply === "function" &&
-        paths?.length === 1 &&
-        paths.every((p) => SINGLETON_PATHS.has(p));
-      if (registered) {
-        return this.#reapplyLoop(message, paths, reapply, maxReapply);
-      }
-      await this.#git.mergeOursStrategy({
-        cwd: this.#wikiDir,
-        ref: "origin/master",
-        autostash: true,
+      const resolved = await this.#resolveRebaseConflict(message, paths, {
+        reapply,
+        maxReapply,
       });
+      if (resolved) return resolved;
     }
+    // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
+    // unresolved conflict block.
+    const markerRefusal = await this.#refuseIfIntroducedMarkers();
+    if (markerRefusal) return markerRefusal;
     // Capture the pushed delta now: HEAD is the final (rebased/merged) local
     // tip and origin/master is still the pre-push base. A two-tree range diff
     // (not a single-commit show) is correct even when HEAD is a merge commit.
@@ -278,6 +324,75 @@ export class WikiSync {
     }
     const detections = await this.#tier1Probe(pushedDelta);
     return { pushed: true, reason: "pushed", detections };
+  }
+
+  /**
+   * Resolve a failed rebase against the fresh tip. Aborts the rebase, then for a
+   * registered singleton with a `reapply` op re-derives the row against the tip
+   * via the bounded re-apply loop; otherwise falls back to the `-X ours` merge
+   * with failure allowance (Guard 2). A conflicting merge is aborted and refused
+   * rather than left mid-merge for the next sweep (hole 1) to publish.
+   * @param {string} message - The commit message.
+   * @param {string[]} [paths] - Pathspecs committed.
+   * @param {{reapply?: (freshText: string) => string | null, maxReapply: number}} options
+   * @returns {Promise<object|null>} A terminal result (re-apply outcome or a
+   *   stranded-merge refusal), or null when the conflict resolved and the push
+   *   should proceed.
+   */
+  async #resolveRebaseConflict(message, paths, { reapply, maxReapply }) {
+    await this.#git.rebaseAbort({ cwd: this.#wikiDir });
+    const registered =
+      typeof reapply === "function" &&
+      paths?.length === 1 &&
+      paths.every((p) => SINGLETON_PATHS.has(p));
+    if (registered) {
+      return this.#reapplyLoop(message, paths, reapply, maxReapply);
+    }
+    // Guard 2 (hole 2/3): the ours-strategy fallback runs with failure
+    // allowance. On a conflict it would otherwise throw and strand a mid-merge
+    // tree for the next sweep (hole 1) to publish; instead abort and refuse,
+    // reporting where retained work went (the autostash stash).
+    const merge = await this.#git.mergeOursStrategy({
+      cwd: this.#wikiDir,
+      ref: "origin/master",
+      autostash: true,
+      allowFailure: true,
+    });
+    if (merge.exitCode !== 0) {
+      await this.#git.mergeAbort({ cwd: this.#wikiDir });
+      return WikiSyncRefusal.result("stranded-merge", { workAt: "stash" });
+    }
+    return null;
+  }
+
+  /**
+   * Scan the content introduced by `origin/master..HEAD` for unresolved
+   * conflict-marker blocks (Guard 3). Runs after the fetch + rebase/merge
+   * resolve, so the diff is against the freshly-fetched origin tip; pre-existing
+   * origin corruption is on the base side, never the added side, so an unrelated
+   * writer's push is not blocked. A throw from the scan (unresolvable ref on a
+   * shallow clone) refuses with a reason — never a silent pass.
+   * @returns {Promise<{pushed: false, reason: string}|null>} A refusal result, or
+   *   null when nothing introduced would publish a marker.
+   */
+  async #refuseIfIntroducedMarkers() {
+    let introduced;
+    try {
+      introduced = await this.#git.introducedByFile("origin/master..HEAD", {
+        cwd: this.#wikiDir,
+      });
+    } catch {
+      return WikiSyncRefusal.result("introduced-scan-failed");
+    }
+    for (const [filePath, addedText] of introduced) {
+      const hits = scanConflictMarkers(addedText, {
+        fenceExempt: pushFenceExempt(filePath),
+      });
+      if (hits.length > 0) {
+        return WikiSyncRefusal.result("would-publish-markers");
+      }
+    }
+    return null;
   }
 
   /**

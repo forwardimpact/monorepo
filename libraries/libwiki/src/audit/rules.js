@@ -23,6 +23,7 @@ import {
   SUMMARY_H1_RE,
   WEEKLY_LOG_H1_RE,
 } from "./scopes.js";
+import { CONFLICT_MARKER_RULE } from "./conflict-markers-rule.js";
 import { STATUS_ROW_RULES } from "./status-row.js";
 
 const PRIORITY_INDEX_HEADING_RE = new RegExp(
@@ -526,4 +527,8 @@ export const RULES = [
   // -- STATUS.md rows (per-migration-unit sub-row schema) --
 
   ...STATUS_ROW_RULES,
+
+  // -- Conflict markers (structural; all audited surfaces) --
+
+  CONFLICT_MARKER_RULE,
 ];

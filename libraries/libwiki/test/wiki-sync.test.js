@@ -72,9 +72,11 @@ describe("WikiSync", () => {
     const { wikiSync, flowMethods } = make({
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
         revListCount: 1,
+        introducedByFile: new Map([["MEMORY.md", "clean content"]]),
       },
     });
     const result = await wikiSync.commitAndPush("wiki: update");
@@ -84,11 +86,13 @@ describe("WikiSync", () => {
       detections: [],
     });
     assert.deepEqual(flowMethods(), [
+      "isMidMerge",
       "status",
       "commitAll",
       "revListCount",
       "fetch",
       "rebase",
+      "introducedByFile",
       "diffRange",
       "push",
     ]);
@@ -98,9 +102,11 @@ describe("WikiSync", () => {
     const { git, wikiSync, flowMethods } = make({
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
         revListCount: 1,
+        introducedByFile: new Map([["MEMORY.md", "clean content"]]),
       },
     });
     const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
@@ -110,11 +116,13 @@ describe("WikiSync", () => {
       detections: [],
     });
     assert.deepEqual(flowMethods(), [
+      "isMidMerge",
       "status",
       "commitPaths",
       "revListCount",
       "fetch",
       "rebase",
+      "introducedByFile",
       "diffRange",
       "push",
     ]);
@@ -132,9 +140,11 @@ describe("WikiSync", () => {
     const { git, wikiSync } = make({
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
         revListCount: 1,
+        introducedByFile: new Map(),
       },
     });
     await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
@@ -149,6 +159,7 @@ describe("WikiSync", () => {
     const { wikiSync, flowMethods } = make({
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: "", stderr: "", exitCode: 0 },
         revListCount: 0,
       },
@@ -159,13 +170,14 @@ describe("WikiSync", () => {
       reason: "clean",
       detections: [],
     });
-    assert.deepEqual(flowMethods(), ["status", "revListCount"]);
+    assert.deepEqual(flowMethods(), ["isMidMerge", "status", "revListCount"]);
   });
 
   test("commitAndPush is a no-op on a clean tree with nothing ahead", async () => {
     const { wikiSync, flowMethods } = make({
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: "", stderr: "", exitCode: 0 },
         revListCount: 0,
       },
@@ -176,20 +188,24 @@ describe("WikiSync", () => {
       reason: "clean",
       detections: [],
     });
-    assert.deepEqual(flowMethods(), ["status", "revListCount"]);
+    assert.deepEqual(flowMethods(), ["isMidMerge", "status", "revListCount"]);
   });
 
   test("commitAndPush recovers via merge -X ours when the rebase fails", async () => {
     const { wikiSync, flowMethods } = make({
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
+        mergeOursStrategy: { exitCode: 0, stderr: "" },
         revListCount: 1,
+        introducedByFile: new Map(),
       },
     });
     await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(flowMethods(), [
+      "isMidMerge",
       "status",
       "commitAll",
       "revListCount",
@@ -197,6 +213,7 @@ describe("WikiSync", () => {
       "rebase",
       "rebaseAbort",
       "mergeOursStrategy",
+      "introducedByFile",
       "diffRange",
       "push",
     ]);
@@ -208,6 +225,7 @@ describe("WikiSync", () => {
       fsSync,
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -247,6 +265,7 @@ describe("WikiSync", () => {
       fsSync,
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -270,6 +289,7 @@ describe("WikiSync", () => {
       fsSync,
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -295,6 +315,7 @@ describe("WikiSync", () => {
       fsSync,
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -316,6 +337,7 @@ describe("WikiSync", () => {
       fsSync,
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
@@ -344,9 +366,11 @@ describe("WikiSync", () => {
       fsSync,
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
+        introducedByFile: new Map(),
       },
     });
     // No reapply: the no-intent path is byte-unchanged from today.
@@ -379,9 +403,11 @@ describe("WikiSync", () => {
     const { git, wikiSync } = make({
       responses: {
         ...HEALTHY_ANCESTRY,
+        isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
         revListCount: 1,
+        introducedByFile: new Map(),
       },
     });
     git.push = async () => {

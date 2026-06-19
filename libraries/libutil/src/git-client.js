@@ -17,6 +17,13 @@ export class GitError extends Error {
   }
 }
 
+// Resolve a `git diff` "+++ <target>" header to a working-tree path, or null
+// for a deletion ("+++ /dev/null"). The "b/" prefix is git's destination side.
+function parseDiffTarget(headerLine) {
+  const target = headerLine.slice(4).trim();
+  return target.startsWith("b/") ? target.slice(2) : null;
+}
+
 /**
  * Reject `:`-prefixed pathspec entries before they reach git. A leading `:`
  * marks git pathspec magic (`:/`, `:(exclude)…`, `:(glob)…`), which the `--`
@@ -130,12 +137,81 @@ export class GitClient {
     });
   }
 
-  /** Merge `ref` into the current branch resolving conflicts with `-X ours`. */
-  async mergeOursStrategy({ cwd, ref, autostash = false }) {
+  /**
+   * Merge `ref` into the current branch resolving conflicts with `-X ours`.
+   * With `allowFailure`, a non-zero exit resolves to the raw result instead of
+   * throwing, so the caller can abort and refuse rather than strand a
+   * mid-merge tree.
+   */
+  async mergeOursStrategy({
+    cwd,
+    ref,
+    autostash = false,
+    allowFailure = false,
+  }) {
     const args = ["merge"];
     if (autostash) args.push("--autostash");
     args.push("-X", "ours", "--no-edit", ref);
-    return this.#runRaw(args, { cwd });
+    return this.#runRaw(args, { cwd, allowFailure });
+  }
+
+  /** Abort an in-progress merge, restoring the pre-merge state. */
+  async mergeAbort({ cwd } = {}) {
+    return this.#runRaw(["merge", "--abort"], { cwd, allowFailure: true });
+  }
+
+  /**
+   * Paths with an unmerged index entry (`git status --porcelain` rows whose XY
+   * status is a U-family code: `UU`/`AA`/`DD`/`AU`/`UA`/`DU`/`UD`). Decidable
+   * from the index alone — no history resolution — so it holds on a shallow
+   * clone.
+   */
+  async unmergedPaths({ cwd } = {}) {
+    const result = await this.#runRaw(["status", "--porcelain"], { cwd });
+    const unmerged = /^(DD|AU|UD|UA|DU|AA|UU)/;
+    return result.stdout
+      .split("\n")
+      .filter((line) => unmerged.test(line))
+      .map((line) => line.slice(3).trim())
+      .filter(Boolean);
+  }
+
+  /**
+   * Whether the repository is mid-merge: an unmerged index entry exists or a
+   * MERGE_HEAD is pinned. Both signals are local to the clone, so this holds at
+   * any fetch depth.
+   */
+  async isMidMerge({ cwd } = {}) {
+    if ((await this.unmergedPaths({ cwd })).length > 0) return true;
+    const head = await this.#runRaw(
+      ["rev-parse", "-q", "--verify", "MERGE_HEAD"],
+      { cwd, allowFailure: true },
+    );
+    return head.exitCode === 0;
+  }
+
+  /**
+   * The content introduced by `range` (e.g. `origin/master..HEAD`), grouped by
+   * path. Returns a `Map<path, addedText>` where `addedText` is the added side
+   * of the diff with the leading `+` of each hunk line stripped and the
+   * `+++`/`---` file headers excluded, so line-anchored scanners match at
+   * column 1. Throws {@link GitError} on a non-zero exit (e.g. an unresolvable
+   * ref) — callers must treat a throw as refuse-with-reason, never a silent
+   * pass.
+   */
+  async introducedByFile(range, { cwd } = {}) {
+    const result = await this.#runRaw(["diff", "--no-color", range], { cwd });
+    const byFile = new Map();
+    let current = null;
+    for (const line of result.stdout.split("\n")) {
+      if (line.startsWith("+++ ")) {
+        current = parseDiffTarget(line);
+        if (current && !byFile.has(current)) byFile.set(current, []);
+      } else if (current && line.startsWith("+")) {
+        byFile.get(current).push(line.slice(1));
+      }
+    }
+    return new Map([...byFile].map(([p, lines]) => [p, lines.join("\n")]));
   }
 
   /** Stage all changes and commit with `message`. */
