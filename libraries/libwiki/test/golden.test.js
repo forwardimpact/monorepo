@@ -45,6 +45,7 @@ const HELP_CASES = [
   [["fix", "--help"], "fix-help.stdout.txt"],
   [["memo", "--help"], "memo-help.stdout.txt"],
   [["refresh", "--help"], "refresh-help.stdout.txt"],
+  [["product-mix", "--help"], "product-mix-help.stdout.txt"],
   [["init", "--help"], "init-help.stdout.txt"],
   [["push", "--help"], "push-help.stdout.txt"],
   [["pull", "--help"], "pull-help.stdout.txt"],

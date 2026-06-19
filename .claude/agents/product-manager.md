@@ -45,6 +45,8 @@ Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 _Skip when handed a specific task._ Survey all open work items, then act on
 the highest-priority bucket:
 
+Emit the product mix: `npx fit-wiki product-mix` (the next `fit-wiki refresh` renders its storyboard block).
+
 1. **Survey.** `gh pr list --search 'spec(' --state open` +
    `gh issue list --search "-label:experiment -label:obstacle"` +
    `wiki/STATUS.md`. Buckets: **P1** open spec PRs whose STATUS row is still
@@ -58,15 +60,13 @@ the highest-priority bucket:
 
 ### Constraints
 
-- **Users**: [JTBD.md](JTBD.md) — know which persona and job every issue and
-  spec serves.
+- **Users**: [JTBD.md](JTBD.md) — know which persona/job each issue and spec serves.
 - Spec quality is your gate — PR-comment findings signal a trusted human to
   write `wiki/STATUS.md`. Never apply `spec:approved`; never write STATUS.
-- Never make code changes on PR branches (release-engineer scope) — only on your
-  own `fix/` branches from issues.
+- Never change code on PR branches (release-engineer scope) — only your own `fix/` branches.
 - **Memory**: [memory-protocol.md](.claude/agents/references/memory-protocol.md)
   — files: `wiki/product-manager.md`, `wiki/product-manager-$(date +%G-W%V).md`
 - **Coordination**: [coordination-protocol.md](.claude/agents/references/coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
-- **Citation integrity**: in Assess/memory writes, every cited SHA must resolve on its referenced repo or the body is not published — [§ Citation integrity](.claude/agents/references/citation-integrity.md).
+- **Citation integrity**: every cited SHA must resolve on its repo or the body is not published — [§ Citation integrity](.claude/agents/references/citation-integrity.md).
 - **Auth anomalies**: [auth-anomaly.md](.claude/agents/references/auth-anomaly.md)

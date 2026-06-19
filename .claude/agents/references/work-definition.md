@@ -46,6 +46,22 @@ type](coordination-protocol.md#channel-by-output-type); gating is in
 - **Tie-breaker** — if you cannot state the change as a single verifiable diff
   *without* first making a design decision, it is structural.
 
+### Product-aligned vs internal
+
+A second axis, independent of the mechanical-vs-structural fork — a fix or a
+spec can be either value.
+
+- **Product-aligned** — changes a product or service surface a JTBD persona
+  hires (CLAUDE.md § Products, [JTBD.md](../../../JTBD.md)).
+- **Internal** — changes the agent team's own machinery, infrastructure, or
+  process.
+- **Decision test** — does the change alter a surface a JTBD persona hires? If
+  yes, it is product-aligned; if it touches only the team's own machinery,
+  infrastructure, or process, it is internal.
+
+The agent opening any work PR — spec PR, issue-sourced fix, or direct fix —
+applies the matching `product` / `internal` label.
+
 ### Unsettled → Discussion
 
 Open a Discussion/RFC — **before** any dependent fix or spec — when any holds:
@@ -68,8 +84,8 @@ the product vision, a duplicate, unclear, or already addressed.
 ### Bug vs feature vs documentation — issue intake
 
 - **Bug** — a crash, error, or output that contradicts documented behaviour.
-- **Feature / product-aligned** — a missing capability that serves a JTBD
-  persona and job (CLAUDE.md § Products, [JTBD.md](../../../JTBD.md)).
+- **Feature / product-aligned** — a missing capability that is
+  [product-aligned](#product-aligned-vs-internal) rather than internal.
 - **Documentation** — the behaviour is correct, but the docs are unclear,
   missing, or stale.
 

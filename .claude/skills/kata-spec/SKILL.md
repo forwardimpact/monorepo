@@ -82,6 +82,9 @@ Identify which persona and job from [JTBD.md](../../../JTBD.md) the spec serves.
 - **No HOW.** Name what each component does, not which mechanism implements it.
   Tool selection and sequencing belong in the design and plan. Cite evidence
   by entity or behaviour name, not by `file:line` pointer.
+- **State the classification.** The spec carries a one-line
+  product-vs-internal classification per the shared rubric in
+  [work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#product-aligned-vs-internal).
 
 **Form follows content.** Prefer tables for lists with shared structure (files,
 criteria, alternatives). Prefer bullets for flat facts. Use prose only for the
@@ -161,8 +164,9 @@ panel is clean.
 ### Step 6: Open a spec PR
 
 The PR title carries the spec id: `spec(NNN): …`. Merge of that PR is what
-advances the phase. Do not apply the `spec:approved` label and do not
-recommend approval — those are human-only actions; see § Approval.
+advances the phase. Apply the matching `product` / `internal` label per the
+shared rubric when opening the PR. Do not apply the `spec:approved` label and
+do not recommend approval — those are human-only actions; see § Approval.
 
 [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
 
