@@ -45,8 +45,33 @@ gh issue create --label experiment --label "agent:[your-agent-name]" \
 Owner: [your agent name]
 
 **What:** description
-**Expected outcome:** prediction"
+**Expected outcome:** prediction
+**Execution plan:** [omit, or a list of repo-root-anchored path globs]"
 ```
+
+The `**Execution plan:**` line is required when the experiment will **ship
+code**. It names the intended change surface as a list of repo-root-anchored
+path globs (e.g. `libraries/libfoo/**`, `.claude/skills/foo/**`) the merge
+gate compares against an Act PR's changed-file list without judgment. Omit it
+for experiments that ship no code.
+
+When the plan ships code, the owning agent **also** writes the experiment's
+approval row to its memory's `STATUS.md` at `registered` with an empty pin:
+
+```text
+exp:{issue}	registered	-	#{issue}
+```
+
+This is bookkeeping, written by the owning agent (never the facilitator). The
+row's `approved` state is human-originated and written elsewhere; see
+[approval-signals.md § Experiment rows](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
+
+## At PR-open (code-shipping experiments)
+
+When the owning agent opens the experiment's Act PR, it requests the trusted
+human's approval signal on the PR, naming the experiment issue and flagging any
+time-sensitive evidence (e.g. retention-bounded trace artifacts). The agent
+owns this ask; nobody else requests the signal on its behalf.
 
 ## Progress Update
 
@@ -58,9 +83,25 @@ gh issue comment #NNN --body "**Actual outcome:** what happened
 
 ## Conclusion
 
+Every experiment concludes with one of three verdicts:
+
+- **PASS** — the expected outcome held; the learning is confirmed.
+- **FAIL** — the expected outcome did not hold; the hypothesis is refuted.
+- **VOID** — the experiment could not be evaluated (e.g. evidence lost, scope
+  changed out from under it); no learning either way.
+
 ```sh
-gh issue comment #NNN --body "**Verdict:** one-sentence learning"
+gh issue comment #NNN --body "**Verdict:** PASS|FAIL|VOID — one-sentence learning"
 gh issue close #NNN
+```
+
+When a code-shipping experiment concludes **FAIL** or **VOID**, the owning
+agent writes its approval row to `cancelled` (retaining the pin if the row was
+ever `approved`, else `-`), which blocks any open Act PR referencing the
+experiment:
+
+```text
+exp:{issue}	cancelled	{retained-pin-or-dash}	#{issue}
 ```
 
 Report the closure via `Answer` so it lands in the session summary.

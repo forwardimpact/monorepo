@@ -65,4 +65,69 @@ describe("status-row audit", () => {
     );
     assert.deepEqual(findings, []);
   });
+
+  const PIN = "a".repeat(40);
+
+  test("experiment rows pass cleanly in every state", () => {
+    const findings = auditStatus(
+      fence([
+        `exp:1351\tregistered\t-\t#1351`,
+        `exp:1351\tapproved\t${PIN}\t#1351`,
+        `exp:1351\tcancelled\t${PIN}\t#1351`,
+        `exp:1351\tcancelled\t-\t#1351`,
+        "1370\tplan\tapproved",
+      ]),
+    );
+    assert.deepEqual(findings, []);
+  });
+
+  test("flags an experiment row without four fields", () => {
+    const ids = auditStatus(fence([`exp:1351\tregistered\t-`])).map(
+      (f) => f.id,
+    );
+    assert.ok(ids.includes("status-row.exp-shape"));
+  });
+
+  test("flags a bad experiment state", () => {
+    const ids = auditStatus(fence([`exp:1351\tdraft\t-\t#1351`])).map(
+      (f) => f.id,
+    );
+    assert.ok(ids.includes("status-row.exp-state"));
+  });
+
+  test("flags a non-hex pin on an approved row and a pin on a registered row", () => {
+    const ids = auditStatus(
+      fence([
+        `exp:1351\tapproved\tnothex\t#1351`,
+        `exp:1352\tregistered\t${PIN}\t#1352`,
+      ]),
+    ).map((f) => f.id);
+    assert.ok(ids.includes("status-row.exp-pin"));
+    assert.equal(ids.filter((i) => i === "status-row.exp-pin").length, 2);
+  });
+
+  test("flags a four-cell row with a non-numeric experiment id", () => {
+    const ids = auditStatus(fence([`exp:abc\tregistered\t-\t#1`])).map(
+      (f) => f.id,
+    );
+    assert.ok(ids.includes("status-row.exp-id-format"));
+    // and it is not silently passed through the spec-shaped rules
+    assert.ok(!ids.includes("status-row.id-format"));
+  });
+
+  test("flags a malformed plan-ref", () => {
+    const ids = auditStatus(fence([`exp:1351\tapproved\t${PIN}\t1351`])).map(
+      (f) => f.id,
+    );
+    assert.ok(ids.includes("status-row.exp-planref"));
+  });
+
+  test("does not apply spec-shaped rules to experiment rows", () => {
+    const ids = auditStatus(fence([`exp:1351\tregistered\t-\t#1351`])).map(
+      (f) => f.id,
+    );
+    assert.ok(!ids.includes("status-row.shape"));
+    assert.ok(!ids.includes("status-row.id-format"));
+    assert.ok(!ids.includes("status-row.phase"));
+  });
 });

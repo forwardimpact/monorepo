@@ -2,6 +2,7 @@ import path from "node:path";
 import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims } from "../active-claims.js";
 import { countLines, countWords } from "../budget.js";
+import { parseStatusRowId } from "../status.js";
 import {
   PRIORITY_INDEX_HEADING,
   WEEKLY_LOG_NAME_RE,
@@ -120,9 +121,12 @@ function readOptional(filePath, fs) {
 
 /**
  * Parse the rows inside STATUS.md's fenced block into audit subjects. Lines
- * outside the ``` fence (header prose) and blank lines are skipped.
+ * outside the ``` fence (header prose) and blank lines are skipped. Each row
+ * carries a `kind` from {@link parseStatusRowId} (`"spec"`, `"experiment"`, or
+ * `null` for an unrecognized id); spec-shaped rules read the positional
+ * `id`/`phase`/`status` fields, experiment rules read `cells`.
  * @param {string} statusText - The full STATUS.md contents.
- * @returns {Array<{lineNo: number, text: string, cells: string[], id: string, phase: string, status: string}>}
+ * @returns {Array<{lineNo: number, text: string, cells: string[], id: string, phase: string, status: string, kind: string|null}>}
  */
 function parseStatusRows(statusText) {
   const lines = statusText.split("\n");
@@ -136,6 +140,12 @@ function parseStatusRows(statusText) {
     }
     if (!inFence || line.trim() === "") continue;
     const cells = line.split("\t");
+    // Classify by id prefix so a malformed `exp:` row (e.g. wrong cell count)
+    // is still routed to the experiment rules, which flag it — rather than
+    // slipping through the spec-shaped rules. parseStatusRowId returns the
+    // structured fields only for a well-formed row; the rules read `cells`.
+    const isExp = typeof cells[0] === "string" && cells[0].startsWith("exp:");
+    const parsed = parseStatusRowId(cells[0], cells);
     rows.push({
       lineNo: i + 1,
       text: line,
@@ -143,6 +153,7 @@ function parseStatusRows(statusText) {
       id: cells[0],
       phase: cells[1],
       status: cells[2],
+      kind: isExp ? "experiment" : parsed ? parsed.kind : null,
     });
   }
   return rows;
