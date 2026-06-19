@@ -45,9 +45,7 @@
   "scripts": {
     "start": "bun ./bin/fit-outpost.js",
     "status": "bun ./bin/fit-outpost.js status",
-    "build": "bun pkg/build.js",
-    "build:app": "bun pkg/build.js --app",
-    "build:pkg": "bun pkg/build.js --pkg"
+    "build": "bun pkg/build.js"
   },
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
