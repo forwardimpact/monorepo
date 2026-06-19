@@ -44,17 +44,12 @@ Write triage results to `~/.cache/fit/outpost/state/librarian_triage.md`:
 
 ```
 # Knowledge Triage — {YYYY-MM-DD HH:MM}
-
 ## Pending Processing
 - {count} unprocessed synced files
-
 ## Knowledge Graph
-- {count} People / {count} Organizations / {count} Projects / {count} Topics
-- {count} Priorities
-
+- {count} People / {count} Orgs / {count} Projects / {count} Topics / {count} Priorities
 ## Priority Watch
 - {priority risks found while processing, or "none"}
-
 ## Summary
 {unprocessed} files to process, graph has {total} entities
 ```
