@@ -121,7 +121,7 @@ describe("analyze", () => {
     assert.strictEqual(m.values.length, m.n);
   });
 
-  test("reads a file mixing legacy 7-col and 8-col host_run rows (spec 1910 criterion 6)", () => {
+  test("reads a file mixing legacy 7-col and 8-col host_run rows", () => {
     // Build a 20-point series where odd rows are legacy (7 columns, no
     // host_run) and even rows carry the trailing host_run column. host_run
     // never feeds analysis, so the result must match the host_run-free series.

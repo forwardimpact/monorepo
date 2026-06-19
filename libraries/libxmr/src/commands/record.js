@@ -46,7 +46,7 @@ function parseRecordOptions(values, runtime) {
 
   // A CI session knows its own host workflow run id; a local session does not.
   // Record the run id when present, the explicit `local` marker otherwise —
-  // never a silent empty field (spec 1910). Lets a deferred backfill resolve a
+  // never a silent empty field. Lets a deferred backfill resolve a
   // row to its host run with a keyed lookup instead of a forensic sweep.
   const hostRun = runtime.proc.env.GITHUB_RUN_ID || "local";
 

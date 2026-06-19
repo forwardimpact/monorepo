@@ -258,7 +258,7 @@ describe("participantInNames", () => {
   });
 });
 
-describe("participant-keyed discovery (spec 1910)", () => {
+describe("participant-keyed discovery", () => {
   let originalFetch;
   beforeEach(() => {
     originalFetch = globalThis.fetch;

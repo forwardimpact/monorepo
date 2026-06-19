@@ -41,7 +41,7 @@ describe("fit-xmr record", () => {
     assert.equal(lines[0], HEADER);
     assert.equal(lines.length, 2);
     assert.ok(lines[1].startsWith("2026-05-02,test_count,5,count,"));
-    // spec 1910: row carries the trailing host_run column; no GITHUB_RUN_ID in
+    // Row carries the trailing host_run column; no GITHUB_RUN_ID in
     // this run, so the host marker is `local`.
     assert.ok(lines[1].endsWith(",kata-test,local"));
   });
@@ -225,7 +225,7 @@ describe("fit-xmr record", () => {
     assert.equal(result.code, 2);
   });
 
-  test("CI row carries the host workflow run id (spec 1910 criterion 4)", () => {
+  test("CI row carries the host workflow run id", () => {
     const { fs } = run(
       {
         skill: "kata-test",
@@ -244,7 +244,7 @@ describe("fit-xmr record", () => {
     assert.ok(lines[1].endsWith(",kata-dispatch,27401632821"));
   });
 
-  test("local row carries the explicit no-host marker (spec 1910 criterion 5)", () => {
+  test("local row carries the explicit no-host marker", () => {
     const { fs } = run({
       skill: "kata-test",
       metric: "test_count",

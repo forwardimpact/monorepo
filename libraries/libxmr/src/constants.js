@@ -19,8 +19,8 @@ export const COLUMNS = [
   "event_type",
   "host_run",
 ];
-// Header before spec 1910 added the trailing `host_run` column. Legacy
-// current-year files written with this 7-column header stay valid.
+// The 7-column header predating the trailing `host_run` column. Legacy
+// current-year files written with this header stay valid.
 export const LEGACY_HEADER = "date,metric,value,unit,run,note,event_type";
 export const EVENT_TYPE_COLUMN = "event_type";
 // Default read slice. Couples to the workflow filename
