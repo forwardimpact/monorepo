@@ -1,5 +1,6 @@
 import path from "node:path";
 import { SINGLETON_PATHS } from "./constants.js";
+import { parseDiff, findAbsent, makeDetection, normLine } from "./integrity.js";
 
 /** The branch the wiki clone publishes (hard-coded in fetch / rebase / push). */
 const BRANCH = "master";
@@ -230,7 +231,7 @@ export class WikiSync {
       }
     }
     if (!(await this.#hasCommitsAhead())) {
-      return { pushed: false, reason: "clean" };
+      return { pushed: false, reason: "clean", detections: [] };
     }
     await this.#assertPublishable();
     await this.fetch();
@@ -253,6 +254,18 @@ export class WikiSync {
         autostash: true,
       });
     }
+    // Capture the pushed delta now: HEAD is the final (rebased/merged) local
+    // tip and origin/master is still the pre-push base. A two-tree range diff
+    // (not a single-commit show) is correct even when HEAD is a merge commit.
+    // Wrapped so the detection-only probe never gates the push it follows.
+    let pushedDelta = null;
+    try {
+      pushedDelta = await this.#git.diffRange("origin/master HEAD", {
+        cwd: this.#wikiDir,
+      });
+    } catch {
+      // Detection-only: a capture failure degrades to no tier-1 detections.
+    }
     // Resolve auth first so a misconfigured `resolveToken` still surfaces; the
     // push itself is fire-and-forget like WikiRepo (which ignored the push
     // result and reported pushed:true regardless), so a network/credential
@@ -263,7 +276,49 @@ export class WikiSync {
     } catch {
       // Intentionally ignored — preserves WikiRepo's fire-and-forget push.
     }
-    return { pushed: true, reason: "pushed" };
+    const detections = await this.#tier1Probe(pushedDelta);
+    return { pushed: true, reason: "pushed", detections };
+  }
+
+  /**
+   * Tier-1 post-push integrity probe: re-fetch the origin tip and verify the
+   * just-pushed delta — the full delta including shared surfaces —
+   * is still content-present, returning detections for any absence. Reads only;
+   * any error degrades to no detections so the probe never gates the push.
+   * @param {string|null} pushedDelta - `diffRange` text of the pushed delta.
+   * @returns {Promise<object[]>}
+   */
+  async #tier1Probe(pushedDelta) {
+    try {
+      if (pushedDelta == null) return [];
+      const changes = parseDiff(pushedDelta);
+      if (changes.length === 0) return [];
+      // A new post-push fetch advances origin/master to the current tip.
+      await this.fetch();
+      const homes = [
+        ...new Set(changes.map((c) => c.home).filter((h) => h !== "/dev/null")),
+      ];
+      const tipText = (
+        await Promise.all(
+          homes.map((home) =>
+            this.#git.showFile("origin/master", home, { cwd: this.#wikiDir }),
+          ),
+        )
+      )
+        .filter((t) => t != null)
+        .join("\n");
+      const now = this.#runtime.clock.now();
+      return findAbsent(changes, tipText, normLine).map((a) =>
+        makeDetection({
+          tier: 1,
+          contentId: a.contentId,
+          pushHome: a.pushHome,
+          now,
+        }),
+      );
+    } catch {
+      return [];
+    }
   }
 
   /**

@@ -97,7 +97,11 @@ describe("WikiSync ancestry guard", () => {
       fsSync: createMockFs({ [`${WIKI}/.git/shallow`]: "" }),
     });
     const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
     const deepen = git.calls.find((c) => c.method === "fetchDeepen");
     assert.equal(deepen, undefined, "no deepen when the merge-base resolves");
   });
@@ -123,7 +127,11 @@ describe("WikiSync ancestry guard", () => {
       parentDir: PARENT,
     });
     const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
   });
 
   // Captures the two shallow-clone refusal messages so the test below can
@@ -186,7 +194,11 @@ describe("WikiSync ancestry guard", () => {
       },
     });
     const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
   });
 
   test("absent tracking ref and unobservable remote ⇒ unverifiable refusal", async () => {
@@ -244,7 +256,11 @@ describe("WikiSync ancestry guard", () => {
       parentDir: PARENT,
     });
     const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
     const trackingFetch = git.calls.find(
       (c) =>
         c.method === "fetch" &&

@@ -155,11 +155,26 @@ export function scriptedQuery(summaryPath, versions, calls) {
   };
 }
 
-/** Run a git command in the given directory and return its trimmed stdout. */
+/**
+ * Run a git command in the given directory and return its trimmed stdout. A
+ * trailing `{ env }` object (recognized by its `env` key) is merged onto the
+ * process env — used to back-date commits via `GIT_AUTHOR_DATE` /
+ * `GIT_COMMITTER_DATE`. Everything else is passed verbatim as git args.
+ */
 export function git(dir, ...args) {
+  let env;
+  if (
+    args.length > 0 &&
+    typeof args.at(-1) === "object" &&
+    args.at(-1) !== null &&
+    "env" in args.at(-1)
+  ) {
+    env = args.pop().env;
+  }
   return execFileSync("git", ["-C", dir, ...args], {
     encoding: "utf-8",
     stdio: "pipe",
+    ...(env ? { env: { ...process.env, ...env } } : {}),
   }).trim();
 }
 

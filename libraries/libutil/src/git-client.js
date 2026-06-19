@@ -173,6 +173,63 @@ export class GitClient {
     return this.#runRaw(args, { cwd });
   }
 
+  /**
+   * List commits in `ref` authored by `author`, newest first, as
+   * `{sha, when}` where `when` is the commit epoch seconds (`%ct`). Excludes
+   * merge commits. Returns `[]` on any git failure (e.g. an unborn ref).
+   * @param {string} author - Author match (git `--author=` pattern).
+   * @param {{cwd?: string, ref?: string}} [opts]
+   * @returns {Promise<Array<{sha: string, when: number}>>}
+   */
+  async logByAuthor(author, { cwd, ref = "HEAD" } = {}) {
+    const r = await this.#runRaw(
+      ["log", ref, `--author=${author}`, "--no-merges", "--format=%H %ct"],
+      { cwd, allowFailure: true },
+    );
+    if (r.exitCode !== 0) return [];
+    return r.stdout
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        const [sha, ct] = line.split(" ");
+        return { sha, when: Number.parseInt(ct, 10) };
+      });
+  }
+
+  /**
+   * Unified-diff text (`--unified=0`) of a two-tree `range` (e.g. `"A B"` or
+   * `"A..B"`), or `null` on git failure. A two-tree range diff (never a
+   * single-commit `git show`) diffs merge commits correctly. An empty string
+   * is a legitimate empty diff; `null` is an error — callers distinguish them.
+   * @param {string} range - Range spec; split on spaces into git args.
+   * @param {{cwd?: string}} [opts]
+   * @returns {Promise<string|null>}
+   */
+  async diffRange(range, { cwd } = {}) {
+    const r = await this.#runRaw(
+      ["diff", "--no-color", "--unified=0", ...range.split(" ")],
+      { cwd, allowFailure: true },
+    );
+    return r.exitCode === 0 ? r.stdout : null;
+  }
+
+  /**
+   * Contents of `filePath` at `ref` (`git show ref:path`), or `null` when the
+   * path is absent at that ref.
+   * @param {string} ref - The ref to read from (e.g. `"origin/master"`).
+   * @param {string} filePath - Repo-relative path.
+   * @param {{cwd?: string}} [opts]
+   * @returns {Promise<string|null>}
+   */
+  async showFile(ref, filePath, { cwd } = {}) {
+    const r = await this.#runRaw(["show", `${ref}:${filePath}`], {
+      cwd,
+      allowFailure: true,
+    });
+    return r.exitCode === 0 ? r.stdout : null;
+  }
+
   /** Count commits in `range` (`git rev-list --count`). */
   async revListCount(range, { cwd }) {
     const result = await this.#runRaw(["rev-list", "--count", range], { cwd });

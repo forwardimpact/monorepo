@@ -78,13 +78,18 @@ describe("WikiSync", () => {
       },
     });
     const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
     assert.deepEqual(flowMethods(), [
       "status",
       "commitAll",
       "revListCount",
       "fetch",
       "rebase",
+      "diffRange",
       "push",
     ]);
   });
@@ -99,13 +104,18 @@ describe("WikiSync", () => {
       },
     });
     const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
     assert.deepEqual(flowMethods(), [
       "status",
       "commitPaths",
       "revListCount",
       "fetch",
       "rebase",
+      "diffRange",
       "push",
     ]);
     const status = git.calls.find((c) => c.method === "status");
@@ -144,7 +154,11 @@ describe("WikiSync", () => {
       },
     });
     const result = await wikiSync.commitAndPush("wiki: claim x", ["MEMORY.md"]);
-    assert.deepEqual(result, { pushed: false, reason: "clean" });
+    assert.deepEqual(result, {
+      pushed: false,
+      reason: "clean",
+      detections: [],
+    });
     assert.deepEqual(flowMethods(), ["status", "revListCount"]);
   });
 
@@ -157,7 +171,11 @@ describe("WikiSync", () => {
       },
     });
     const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, { pushed: false, reason: "clean" });
+    assert.deepEqual(result, {
+      pushed: false,
+      reason: "clean",
+      detections: [],
+    });
     assert.deepEqual(flowMethods(), ["status", "revListCount"]);
   });
 
@@ -179,6 +197,7 @@ describe("WikiSync", () => {
       "rebase",
       "rebaseAbort",
       "mergeOursStrategy",
+      "diffRange",
       "push",
     ]);
   });
@@ -369,7 +388,11 @@ describe("WikiSync", () => {
       throw new Error("could not read Username (no credentials)");
     };
     const result = await wikiSync.commitAndPush("wiki: update");
-    assert.deepEqual(result, { pushed: true, reason: "pushed" });
+    assert.deepEqual(result, {
+      pushed: true,
+      reason: "pushed",
+      detections: [],
+    });
   });
 
   test("pull tolerates a failing fetch and still rebases", async () => {

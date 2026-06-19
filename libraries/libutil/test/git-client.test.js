@@ -287,4 +287,55 @@ describe("GitClient", () => {
       "master",
     ]);
   });
+
+  test("logByAuthor parses %H %ct rows newest-first", async () => {
+    const { client, subprocess } = clientWith({
+      git: { stdout: "aaa 1700000000\nbbb 1699990000\n", exitCode: 0 },
+    });
+    const commits = await client.logByAuthor("me@x", { cwd: "/r" });
+    assert.deepStrictEqual(commits, [
+      { sha: "aaa", when: 1700000000 },
+      { sha: "bbb", when: 1699990000 },
+    ]);
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "log",
+      "HEAD",
+      "--author=me@x",
+      "--no-merges",
+      "--format=%H %ct",
+    ]);
+  });
+
+  test("logByAuthor returns [] on non-zero exit", async () => {
+    const { client } = clientWith({ git: { stdout: "", exitCode: 128 } });
+    assert.deepStrictEqual(await client.logByAuthor("me@x", { cwd: "/r" }), []);
+  });
+
+  test("diffRange splits the range and returns stdout on success", async () => {
+    const { client, subprocess } = clientWith({
+      git: { stdout: "+++ b/a.md\n+hi\n", exitCode: 0 },
+    });
+    const out = await client.diffRange("x~1 x", { cwd: "/r" });
+    assert.strictEqual(out, "+++ b/a.md\n+hi\n");
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "diff",
+      "--no-color",
+      "--unified=0",
+      "x~1",
+      "x",
+    ]);
+  });
+
+  test("diffRange returns null on git failure (distinct from empty diff)", async () => {
+    const { client } = clientWith({ git: { stdout: "", exitCode: 128 } });
+    assert.strictEqual(await client.diffRange("x~1 x", { cwd: "/r" }), null);
+  });
+
+  test("showFile returns null when the path is absent at the ref", async () => {
+    const { client } = clientWith({ git: { stdout: "", exitCode: 128 } });
+    assert.strictEqual(
+      await client.showFile("origin/master", "gone.md", { cwd: "/r" }),
+      null,
+    );
+  });
 });

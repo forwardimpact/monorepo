@@ -239,7 +239,7 @@ export function createDefinition(env) {
         name: "pull",
         description: "Pull remote wiki changes into the local working tree",
         handler: runPullCommand,
-        options: { ...wikiRootOpt },
+        options: { ...agentOpt, ...wikiRootOpt, ...todayOpt },
       },
     ],
     globalOptions: {
