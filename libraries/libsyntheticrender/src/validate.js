@@ -75,9 +75,19 @@ export function validateCrossContent(entities) {
 
 // ─── Check functions ─────────────────────────────
 
+// Department directors manage across every team in a department rather than
+// within one, so they carry a `department` but no `team_id`. They are the
+// resolution root for the director-tier rollup, never a leaf-team member, so
+// team-membership and manager-team checks do not apply to them.
+function isDirectorTier(person) {
+  return person.team_id == null && person.department != null;
+}
+
 function checkPeopleCoverage(entities) {
   const teamIds = new Set(entities.teams.map((t) => t.id));
-  const uncovered = entities.people.filter((p) => !teamIds.has(p.team_id));
+  const uncovered = entities.people.filter(
+    (p) => !isDirectorTier(p) && !teamIds.has(p.team_id),
+  );
   return {
     name: "people_coverage",
     passed: uncovered.length === 0,
@@ -193,7 +203,9 @@ function checkTeamAssignments(entities) {
 }
 
 function checkManagerReferences(entities) {
-  const managers = entities.people.filter((p) => p.is_manager);
+  const managers = entities.people.filter(
+    (p) => p.is_manager && !isDirectorTier(p),
+  );
   const teamIds = new Set(entities.teams.map((t) => t.id));
   const orphaned = managers.filter((m) => !teamIds.has(m.team_id));
   return {
