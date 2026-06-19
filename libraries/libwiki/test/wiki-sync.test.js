@@ -489,7 +489,12 @@ describe("WikiSync honest-outcome contract (spec 1780)", () => {
     // refuses with an AncestryRefusal ("unverifiable") before any mutation —
     // spec 1780 D7 defers reason naming to 1750's landed guard.
     const { git, wikiSync } = make({
-      responses: { ...HEALTHY_PUSH, headBranch: "", refExists: true, status: DIRTY },
+      responses: {
+        ...HEALTHY_PUSH,
+        headBranch: "",
+        refExists: true,
+        status: DIRTY,
+      },
     });
     await assert.rejects(
       () => wikiSync.commitAndPush("wiki: update"),

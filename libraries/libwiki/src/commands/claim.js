@@ -11,7 +11,11 @@ import { currentDayIso } from "../util/clock.js";
 import { requireAgentFlag } from "../util/agent-flag.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 import { refusalEnvelope } from "../secret-gate.js";
-import { AncestryRefusal, PUSH_REASONS, WikiPushFailure } from "../wiki-sync.js";
+import {
+  AncestryRefusal,
+  PUSH_REASONS,
+  WikiPushFailure,
+} from "../wiki-sync.js";
 
 /** Non-zero envelope returned when the ancestry guard refused publication. */
 const NOT_PUBLISHED = {

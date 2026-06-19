@@ -170,6 +170,23 @@
           "nursery": { "noExcessiveLinesPerFile": "off" }
         }
       }
+    },
+    {
+      "includes": [
+        "libraries/libwiki/src/wiki-sync.js",
+        "libraries/libwiki/test/wiki-sync.test.js",
+        "libraries/libwiki/test/wiki-sync.integration.test.js"
+      ],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "noExcessiveLinesPerFile": {
+              "level": "error",
+              "options": { "maxLines": 720, "skipBlankLines": true }
+            }
+          }
+        }
+      }
     }
   ],
   "assist": { "enabled": false }

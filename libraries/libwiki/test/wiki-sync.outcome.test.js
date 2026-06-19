@@ -194,10 +194,14 @@ describe("WikiSync honest-outcome contract", () => {
   function conservationFixture(extra = {}) {
     const { staleBase = false, ...rest } = extra;
     const fx = make({
-      responses: { ...HEALTHY_PUSH, status: DIRTY, rebase: { exitCode: 0 }, ...rest },
+      responses: {
+        ...HEALTHY_PUSH,
+        status: DIRTY,
+        rebase: { exitCode: 0 },
+        ...rest,
+      },
     });
-    fx.git.isAncestor = async (a) =>
-      a === "HEAD" ? false : !staleBase; // nothing-to-push: no; descends: yes unless stale
+    fx.git.isAncestor = async (a) => (a === "HEAD" ? false : !staleBase); // nothing-to-push: no; descends: yes unless stale
     return fx;
   }
 
@@ -258,7 +262,8 @@ describe("WikiSync honest-outcome contract", () => {
         ? "| other | live-target | b | - | d | e |\n" // live foreign row at tip
         : ""; // stale HEAD never had it
     await rejectsReason(
-      () => wikiSync.commitAndPush("wiki: release expired claims", ["MEMORY.md"]),
+      () =>
+        wikiSync.commitAndPush("wiki: release expired claims", ["MEMORY.md"]),
       PUSH_REASONS.CONSERVATION,
     );
   });

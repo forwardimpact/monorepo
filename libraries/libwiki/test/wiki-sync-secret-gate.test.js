@@ -41,7 +41,10 @@ describe("WikiSync secret gate", () => {
       reason: "secret-detected",
       findings: [{ file: "MEMORY.md", line: 7, rule: "github-pat" }],
     });
-    assert.ok(!methods().includes("pushPorcelain"), "no push attempted on a finding");
+    assert.ok(
+      !methods().includes("pushPorcelain"),
+      "no push attempted on a finding",
+    );
   });
 
   test("commitAndPush refuses with scanner-unavailable and never pushes when the scanner is absent", async () => {
@@ -84,7 +87,10 @@ describe("WikiSync secret gate", () => {
       reason: "landed",
       detections: [],
     });
-    assert.ok(methods().includes("pushPorcelain"), "clean scan proceeds to push");
+    assert.ok(
+      methods().includes("pushPorcelain"),
+      "clean scan proceeds to push",
+    );
   });
 
   test("FIT_WIKI_SECRET_OVERRIDE permits a finding, records it, then pushes", async () => {
@@ -142,6 +148,9 @@ describe("WikiSync secret gate", () => {
       reason: "landed",
       detections: [],
     });
-    assert.ok(methods().includes("pushPorcelain"), "absence override proceeds to push");
+    assert.ok(
+      methods().includes("pushPorcelain"),
+      "absence override proceeds to push",
+    );
   });
 });

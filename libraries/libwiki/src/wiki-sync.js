@@ -438,79 +438,107 @@ export class WikiSync {
     // `conflict`, `residue-conflict`, and `conservation` are never retried.
     let tip = preTip;
     for (let attempt = 0; attempt <= 1; attempt++) {
-      const fetched = await this.#fetchObserved();
-      const rebase = await this.#git.rebase(REMOTE_BRANCH, {
-        cwd: this.#wikiDir,
-        autostash: true,
-      });
-
-      // Rebase conflict (D2): a non-zero rebase exit is a conflict on the rebase
-      // itself. For a registered singleton with a `reapply` op the merge
-      // discipline (spec 1920) re-derives the row against the fresh tip; the
-      // no-intent path fails loud (the `mergeOursStrategy` clobber fallback is
-      // removed — spec 1780 lands 1920's joint fail-loud floor). Checked before
-      // the residue read because a stopped rebase also leaves UU markers.
-      if (rebase.exitCode !== 0) {
-        const resolved = await this.#resolveRebaseConflict(message, paths, opts);
-        if (resolved) return resolved;
-      }
-
-      // Residue check (D9): the rebase exited 0 but the autostash pop conflicted,
-      // leaving unmerged paths — grounded in tree state, the sole conflict-capable
-      // autostash site after the clobber fallback's removal. Never retried (D3).
-      if (await this.#hasUnmergedPaths()) {
-        const stashSha = await this.#git.revParse("refs/stash", {
-          cwd: this.#wikiDir,
-        });
-        throw new WikiPushFailure(
-          PUSH_REASONS.RESIDUE_CONFLICT,
-          "fit-wiki: refusing to push — a foreign writer's residue conflicted " +
-            "on the autostash pop; your stash is preserved at " +
-            `${stashSha || "refs/stash"} (git stash list). Resolve or pop it ` +
-            "from the true tip.",
-          { stashSha: stashSha || undefined },
-        );
-      }
-
-      // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
-      // unresolved conflict block (spec 1890).
-      const markerRefusal = await this.#refuseIfIntroducedMarkers();
-      if (markerRefusal) return markerRefusal;
-
-      // Conservation guard (D5): refuse to drop foreign content present at the
-      // observed remote tip unless the removal is a deliberate act.
-      await this.#assertConserved(tip, message);
-
-      // Capture the pushed delta now: HEAD is the final (rebased) local tip and
-      // origin/master is still the pre-push base (spec 1960 tier-1 probe).
-      const pushedDelta = await this.#capturePushedDelta();
-
-      // Fail-closed secret gate. Scan exactly the commits this push introduces
-      // (the reconcile above made the range correct) before any remote contact;
-      // a finding or missing scanner refuses unless its own override is set.
-      const refusal = await this.#gateOrRefuse();
-      if (refusal) return refusal;
-
-      const verdict = await this.#groundedPush(fetched);
-      if (verdict.landed) {
-        // The push landed; any declared removal it carried is now published, so
-        // clear the intent sidecar — it must not leak into an unrelated push.
-        this.#clearIntentSidecar();
-        const detections = await this.#tier1Probe(pushedDelta);
-        return { landed: true, reason: PUSH_REASONS.LANDED, detections };
-      }
-      // Non-landed. `transport` is never retried; `rejected` retries once,
-      // re-entering the ancestry judgment first so the empty-remote allowance
-      // is never auto-re-granted. The final outcome is never masked.
-      if (verdict.reason === PUSH_REASONS.TRANSPORT || attempt === 1) {
-        throw verdict.error;
+      const outcome = await this.#reconcileAttempt(message, paths, tip, opts);
+      if (outcome.result) return outcome.result;
+      // A non-landed grounded verdict. `transport` is never retried; `rejected`
+      // retries once, re-entering the ancestry judgment first so the
+      // empty-remote allowance is never auto-re-granted. Outcome never masked.
+      if (outcome.verdict.reason === PUSH_REASONS.TRANSPORT || attempt === 1) {
+        throw outcome.verdict.error;
       }
       await this.#assertPublishable();
       tip = await this.#observeRemoteTip();
     }
-    // Unreachable: the loop returns or throws on every path.
+    // Unreachable: attempt 1 always returns a result or throws above.
     /* c8 ignore next */
     throw new Error("commitAndPush: retry loop fell through");
+  }
+
+  /**
+   * One reconcile-guards-push attempt. Returns `{ result }` for a terminal
+   * outcome (a landed/re-applied push, or a pre-push gate refusal), or
+   * `{ verdict }` carrying a non-landed grounded verdict the retry loop reads
+   * (it owns the retry decision). Throws for the unsafe-state refusals that are
+   * never retried: `conflict`, `residue-conflict`, `conservation`.
+   * @param {string} message
+   * @param {string[]} [paths] - The caller's pathspec (singleton-discipline scope).
+   * @param {string} tip - The remote tip observed before this attempt's reconcile.
+   * @param {{reapply?: function, maxReapply: number}} opts
+   */
+  async #reconcileAttempt(message, paths, tip, opts) {
+    const fetched = await this.#fetchObserved();
+    const rebase = await this.#git.rebase(REMOTE_BRANCH, {
+      cwd: this.#wikiDir,
+      autostash: true,
+    });
+
+    // Rebase conflict (D2): a non-zero rebase exit is a conflict on the rebase
+    // itself. For a registered singleton with a `reapply` op the merge
+    // discipline (spec 1920) re-derives the row against the fresh tip; the
+    // no-intent path fails loud (the `mergeOursStrategy` clobber fallback is
+    // removed — spec 1780 lands 1920's joint fail-loud floor). Checked before
+    // the residue read because a stopped rebase also leaves UU markers.
+    if (rebase.exitCode !== 0) {
+      const resolved = await this.#resolveRebaseConflict(message, paths, opts);
+      if (resolved) return { result: resolved };
+    }
+
+    // Residue check (D9): the rebase exited 0 but the autostash pop conflicted,
+    // leaving unmerged paths — grounded in tree state, the sole conflict-capable
+    // autostash site after the clobber fallback's removal. Never retried (D3).
+    await this.#assertNoResidue();
+
+    // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
+    // unresolved conflict block (spec 1890).
+    const markerRefusal = await this.#refuseIfIntroducedMarkers();
+    if (markerRefusal) return { result: markerRefusal };
+
+    // Conservation guard (D5): refuse to drop foreign content present at the
+    // observed remote tip unless the removal is a deliberate act.
+    await this.#assertConserved(tip, message);
+
+    // Capture the pushed delta now: HEAD is the final (rebased) local tip and
+    // origin/master is still the pre-push base (spec 1960 tier-1 probe).
+    const pushedDelta = await this.#capturePushedDelta();
+
+    // Fail-closed secret gate. Scan exactly the commits this push introduces
+    // (the reconcile above made the range correct) before any remote contact;
+    // a finding or missing scanner refuses unless its own override is set.
+    const refusal = await this.#gateOrRefuse();
+    if (refusal) return { result: refusal };
+
+    const verdict = await this.#groundedPush(fetched);
+    if (verdict.landed) {
+      // The push landed; any declared removal it carried is now published, so
+      // clear the intent sidecar — it must not leak into an unrelated push.
+      this.#clearIntentSidecar();
+      const detections = await this.#tier1Probe(pushedDelta);
+      return {
+        result: { landed: true, reason: PUSH_REASONS.LANDED, detections },
+      };
+    }
+    return { verdict };
+  }
+
+  /**
+   * Refuse (`residue-conflict`) when the reconcile left unmerged paths — the
+   * autostash pop conflicted under an exit-0 rebase (D9). The stash is left
+   * intact (git already kept it) and named by SHA for recovery.
+   * @throws {WikiPushFailure} `residue-conflict` when the tree carries UU paths.
+   */
+  async #assertNoResidue() {
+    if (!(await this.#hasUnmergedPaths())) return;
+    const stashSha = await this.#git.revParse("refs/stash", {
+      cwd: this.#wikiDir,
+    });
+    throw new WikiPushFailure(
+      PUSH_REASONS.RESIDUE_CONFLICT,
+      "fit-wiki: refusing to push — a foreign writer's residue conflicted " +
+        "on the autostash pop; your stash is preserved at " +
+        `${stashSha || "refs/stash"} (git stash list). Resolve or pop it ` +
+        "from the true tip.",
+      { stashSha: stashSha || undefined },
+    );
   }
 
   /**
