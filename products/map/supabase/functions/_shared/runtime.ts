@@ -1,11 +1,14 @@
 /**
- * Deno-safe runtime for Edge Function entry points.
+ * Minimal hosted runtime.
  *
- * The transform modules take an injected runtime, but libutil's
- * `createDefaultRuntime` pulls Node-only imports, so Edge Functions
- * construct the one collaborator the transforms use here.
+ * The hosted Edge Function surface needs only the `clock` that the activity
+ * transforms and extracts dereference (`runtime.clock.now()`). It deliberately
+ * omits the fs/proc/subprocess/finder surface of the CLI's default runtime,
+ * which has no equivalent under the Deno runtime and which no hosted transform
+ * touches.
+ *
+ * @returns {{ clock: { now: () => number } }}
  */
-
-export function createEdgeRuntime() {
-  return { clock: { now: () => Date.now() } };
+export function createHostedRuntime() {
+  return Object.freeze({ clock: Object.freeze({ now: () => Date.now() }) });
 }

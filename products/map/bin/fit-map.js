@@ -11,6 +11,7 @@ import "@forwardimpact/libpreflight/node22";
 
 import { join, resolve, dirname } from "path";
 import { homedir } from "os";
+import { fileURLToPath } from "node:url";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createProductConfig } from "@forwardimpact/libconfig";
 import { findDataDir } from "../src/lib/data-dir.js";
@@ -63,8 +64,9 @@ const definition = {
     },
     {
       name: "activity",
-      args: "<start|stop|status|migrate|transform|verify|seed>",
+      args: "<start|stop|status|migrate|transform|verify|seed|bundle-standard-data>",
       description: "Manage activity stack",
+      options: { out: { type: "string", description: "bundle output path" } },
     },
     {
       name: "getdx",
@@ -430,6 +432,13 @@ async function dispatchPeople(subcommand, rest, values) {
   }
 }
 
+async function loadMapDataFor(values) {
+  const dataDir = await findDataDir(values.data, runtime);
+  const { createDataLoader } = await import("../src/index.js");
+  const mapData = await createDataLoader(runtime).loadAllData(dataDir);
+  return { dataDir, mapData };
+}
+
 async function dispatchActivity(subcommand, rest, values) {
   const activity = await import("../src/commands/activity.js");
   switch (subcommand) {
@@ -445,26 +454,26 @@ async function dispatchActivity(subcommand, rest, values) {
       const target = rest[0] ?? "all";
       let mapData;
       if (target === "all" || target === "evidence-artifact") {
-        const dataDir = await findDataDir(values.data, runtime);
-        const { createDataLoader } = await import("../src/index.js");
-        const loader = createDataLoader(runtime);
-        mapData = await loader.loadAllData(dataDir);
+        ({ mapData } = await loadMapDataFor(values));
       }
       return activity.transform(target, await mapClient(), runtime, {
         mapData,
       });
     }
+    case "bundle-standard-data": {
+      const { mapData } = await loadMapDataFor(values);
+      const rel = "../supabase/functions/_shared/activity/standard-data.json";
+      const outPath =
+        values.out ?? fileURLToPath(new URL(rel, import.meta.url));
+      return activity.bundleStandardData({ runtime, mapData, outPath });
+    }
     case "verify":
       return activity.verify(await mapClient(), runtime);
     case "seed": {
-      const dataDir = await findDataDir(values.data, runtime);
+      const { dataDir, mapData } = await loadMapDataFor(values);
       // findDataDir returns .../pathway; seed needs the parent data/ dir
-      const data = dirname(dataDir);
-      const { createDataLoader } = await import("../src/index.js");
-      const loader = createDataLoader(runtime);
-      const mapData = await loader.loadAllData(dataDir);
       return activity.seed({
-        data,
+        data: dirname(dataDir),
         supabase: await mapClient(),
         runtime,
         mapData,

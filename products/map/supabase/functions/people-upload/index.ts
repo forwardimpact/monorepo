@@ -1,7 +1,6 @@
 import { createSupabaseClient } from "../_shared/supabase.ts";
-import { createEdgeRuntime } from "../_shared/runtime.ts";
-import { extractPeopleFile } from "../_shared/activity/extract/people.js";
-import { transformPeople } from "../_shared/activity/transform/people.js";
+import { createHostedRuntime } from "../_shared/runtime.ts";
+import { handlePeopleUpload } from "./handler.js";
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
@@ -13,25 +12,14 @@ Deno.serve(async (req) => {
   const format = isCSV ? "csv" : "yaml";
   const body = await req.text();
 
-  const supabase = createSupabaseClient();
-
-  const extractResult = await extractPeopleFile(supabase, body, format);
-  if (!extractResult.stored) {
-    return json({ ok: false, stored: false, error: extractResult.error }, 500);
-  }
-
-  const { imported, errors } = await transformPeople(
-    supabase,
-    createEdgeRuntime(),
+  const result = await handlePeopleUpload(
+    createSupabaseClient(),
+    createHostedRuntime(),
+    body,
+    format,
   );
 
-  return json({
-    ok: errors.length === 0,
-    stored: true,
-    path: extractResult.path,
-    imported,
-    errors,
-  });
+  return json(result, result.stored ? 200 : 500);
 });
 
 function json(body: unknown, status = 200) {

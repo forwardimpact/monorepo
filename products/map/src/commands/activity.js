@@ -47,6 +47,15 @@ export async function status({ runtime } = {}) {
   return 0;
 }
 
+/**
+ * Write the standard-data bundle the hosted Edge Functions read.
+ * @param {{ runtime: object, mapData: object, outPath: string }} args
+ */
+export async function bundleStandardData({ runtime, mapData, outPath }) {
+  await runtime.fs.writeFile(outPath, JSON.stringify(mapData, null, 2));
+  return 0;
+}
+
 /** Reset the local Supabase database by re-applying all migrations. */
 export async function migrate({ runtime } = {}) {
   await createSupabaseCli({ runtime }).run(["db", "reset"]);

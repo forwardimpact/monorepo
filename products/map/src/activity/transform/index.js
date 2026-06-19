@@ -21,16 +21,28 @@ import { transformEvidence } from "./evidence.js";
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (clock).
  * @param {object} [collaborators]
  * @param {object} [collaborators.mapData] - Standard data; required for the
- *   artifact-driven evidence producer. When omitted, that producer is skipped.
+ *   artifact-driven evidence producer. When omitted, that producer is skipped:
+ *   `evidenceArtifact` then carries `producerRan: false` and
+ *   `missingCollaborator: "mapData"` alongside the zero counts. When supplied,
+ *   it carries `producerRan: true` with the producer's counts.
  * @returns {Promise<{people: object, getdx: object, github: object, evidenceArtifact: object, evidence: object}>}
  */
 export async function transformAll(supabase, runtime, { mapData } = {}) {
   const people = await transformPeople(supabase, runtime);
   const getdx = await transformAllGetDX(supabase, runtime);
   const github = await transformAllGitHub(supabase);
-  let evidenceArtifact = { inserted: 0, skipped: 0, errors: [] };
+  let evidenceArtifact;
   if (mapData) {
-    evidenceArtifact = await transformEvidenceArtifact(supabase, { mapData });
+    const result = await transformEvidenceArtifact(supabase, { mapData });
+    evidenceArtifact = { ...result, producerRan: true };
+  } else {
+    evidenceArtifact = {
+      inserted: 0,
+      skipped: 0,
+      errors: [],
+      producerRan: false,
+      missingCollaborator: "mapData",
+    };
   }
   const evidence = await transformEvidence(supabase);
 
