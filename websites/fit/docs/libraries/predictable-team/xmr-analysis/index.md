@@ -1,6 +1,8 @@
 ---
 title: Chart a Metric and Check Variation
-description: Know whether a metric has actually changed or just varied — natural process limits and Wheeler's detection rules separate signal from noise.
+description:
+  Know whether a metric has actually changed or just varied — natural process
+  limits and Wheeler's detection rules separate signal from noise.
 ---
 
 You need to chart a metric and see whether the latest point is within expected
@@ -14,8 +16,8 @@ behaves.
 ## Prerequisites
 
 - Node.js 18+
-- A CSV with at least 15 data points (fewer points are accepted but limits
-  will not be computed)
+- A CSV with at least 15 data points (fewer points are accepted but limits will
+  not be computed)
 
 ## Prepare the CSV
 
@@ -29,15 +31,15 @@ date,metric,value,unit,run,note,event_type
 2026-01-08,cycle_time,5.1,days,,first Monday spike,kata-shift
 ```
 
-| Field        | Required | Notes                                                               |
-| ------------ | -------- | ------------------------------------------------------------------- |
-| `date`       | yes      | ISO 8601 (`YYYY-MM-DD`). Sort key.                                  |
-| `metric`     | yes      | Metric name. One CSV may carry multiple metrics; they are grouped.  |
-| `value`      | yes      | Numeric. Non-numeric values are rejected by `validate`.             |
-| `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). Empty `unit` is rejected.  |
-| `run`        | no       | URL or identifier of the run that produced this observation.        |
-| `note`       | no       | Free text. Use it to record what you discovered when a signal fires.|
-| `event_type` | yes      | The workflow that recorded the row — its filename without `.yml`.   |
+| Field        | Required | Notes                                                                |
+| ------------ | -------- | -------------------------------------------------------------------- |
+| `date`       | yes      | ISO 8601 (`YYYY-MM-DD`). Sort key.                                   |
+| `metric`     | yes      | Metric name. One CSV may carry multiple metrics; they are grouped.   |
+| `value`      | yes      | Numeric. Non-numeric values are rejected by `validate`.              |
+| `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). Empty `unit` is rejected.   |
+| `run`        | no       | URL or identifier of the run that produced this observation.         |
+| `note`       | no       | Free text. Use it to record what you discovered when a signal fires. |
+| `event_type` | yes      | The workflow that recorded the row — its filename without `.yml`.    |
 
 `event_type` keeps structurally different work out of the same baseline: a
 30-second boot-and-yield and a 20-minute end-to-end run recorded against one
@@ -119,7 +121,13 @@ The JSON report for each metric carries:
   field is the moving range at that point, answering "is today's change
   unusual?"
 - **`signals`** -- keyed by rule (`xRule1`, `xRule2`, `xRule3`, `mrRule1`). Each
-  entry carries `slots` (1-indexed positions) and a `description`.
+  entry carries `slots` (1-indexed positions) and a `description`. When you pass
+  a prior-read anchor (`analyze`'s `priorReadAnchor`, the CLI's `--prior-read`),
+  each entry also carries `provenance`: `recomputation-revealed` when every
+  participating slot was already present at the prior read, or `new-point` when
+  at least one postdates it. A `recomputation-revealed` signal surfaced because
+  recomputing limits over newer data shifted them, not because a new point
+  breached anything. Without an anchor, no `provenance` field is present.
 - **`classification`** -- `stable`, `signals`, `chaos`, `insufficient`, or
   `degenerate-zero`.
 
@@ -127,33 +135,35 @@ Read `classification` first. If it says `stable`, the latest point is within
 expected variation and no action is needed. If it says `degenerate-zero`, the
 series is also quiet, but every observation is zero: it carries no process
 signal at all, so a predictability target is not substantively met by it. If it
-says `signals`, look at the `signals` object to see which rules fired and where.
+says `signals`, look at the `signals` object to see which rules fired and where
+-- and, when `provenance` is present, whether the fired signals are
+`recomputation-revealed` (old data crossing freshly tightened limits) before
+treating the flip as a new event.
 
 ## One process per chart
 
-Before the rules mean anything, the centerline (μ) and average moving range
-(R̄) must come from a single process. If a CSV mixes two processes -- for
-example, fast dispatch-boots interleaved with much slower shift-work -- μ and
-R̄ are computed across the mixture and the limits describe neither. The rules
-still fire, but they fire on the mixture artifact, not on either underlying
-system.
+Before the rules mean anything, the centerline (μ) and average moving range (R̄)
+must come from a single process. If a CSV mixes two processes -- for example,
+fast dispatch-boots interleaved with much slower shift-work -- μ and R̄ are
+computed across the mixture and the limits describe neither. The rules still
+fire, but they fire on the mixture artifact, not on either underlying system.
 
-If your CSV mixes processes, split them into separate metrics (or separate
-CSVs) before charting. The `metric` column is the natural seam: name each
-process distinctly so they group separately. After a confirmed shift in a
-single process, see the recompute step in
+If your CSV mixes processes, split them into separate metrics (or separate CSVs)
+before charting. The `metric` column is the natural seam: name each process
+distinctly so they group separately. After a confirmed shift in a single
+process, see the recompute step in
 [What to do when signals appear](#what-to-do-when-signals-appear).
 
 ## The three detection rules
 
 `fit-xmr` applies the three rules from Wheeler's _Understanding Variation_:
 
-| Rule          | What it catches                                                      | Applied to |
-| ------------- | -------------------------------------------------------------------- | ---------- |
-| **X-Rule 1**  | A point outside the natural process limits (UPL or LPL)              | X chart    |
-| **X-Rule 2**  | 8 consecutive points on the same side of the centerline              | X chart    |
+| Rule          | What it catches                                                        | Applied to |
+| ------------- | ---------------------------------------------------------------------- | ---------- |
+| **X-Rule 1**  | A point outside the natural process limits (UPL or LPL)                | X chart    |
+| **X-Rule 2**  | 8 consecutive points on the same side of the centerline                | X chart    |
 | **X-Rule 3**  | 3 of any 4 consecutive points strictly beyond +/-1.5 sigma on one side | X chart    |
-| **mR-Rule 1** | A moving range point exceeds URL                                     | mR chart   |
+| **mR-Rule 1** | A moving range point exceeds URL                                       | mR chart   |
 
 Treat each fired rule as a prompt to investigate, not a verdict.
 

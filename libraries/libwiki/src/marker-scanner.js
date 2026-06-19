@@ -20,6 +20,7 @@ function tryOpen(line, i) {
       kind: "xmr",
       metric: xmrMatch[1],
       csvPath: xmrMatch[2],
+      priorReadAnchor: xmrMatch[3] || null,
       openLine: i,
     };
   }
@@ -42,6 +43,7 @@ function closePair(open, i) {
       kind: "xmr",
       metric: open.metric,
       csvPath: open.csvPath,
+      priorReadAnchor: open.priorReadAnchor,
       openLine: open.openLine,
       closeLine: i,
     };

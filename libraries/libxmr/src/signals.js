@@ -194,6 +194,26 @@ export function buildMRSignalMask(signals, n) {
   return mask;
 }
 
+// Stamp each fired signal record with anchor-relative provenance. A record is
+// `recomputation-revealed` when every participating slot was present at the
+// prior read (max slot <= anchorSlot), and `new-point` when at least one
+// participating slot postdates the anchor. mR-Rule 1 records carry the later
+// of the two points (slot i+2), so the same comparison holds across all four
+// rules. The value records data membership, not signal novelty: a signal that
+// also fired at the prior read carries `recomputation-revealed`.
+/** Add a `provenance` value to every fired signal record relative to a 1-indexed anchor slot. */
+export function stampProvenance(signals, anchorSlot) {
+  for (const rule of ["xRule1", "xRule2", "xRule3", "mrRule1"]) {
+    for (const sig of signals[rule]) {
+      sig.provenance =
+        Math.max(...sig.slots) <= anchorSlot
+          ? "recomputation-revealed"
+          : "new-point";
+    }
+  }
+  return signals;
+}
+
 // Does any rule fire at all? Used by the analyze orchestrator and the
 // classifier to avoid recomputing the same boolean.
 /** Return true if any detection rule (X or mR) fired at least once. */

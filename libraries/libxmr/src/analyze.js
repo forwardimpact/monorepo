@@ -1,7 +1,7 @@
 import { DEFAULT_SHIFT_TYPE, MIN_POINTS } from "./constants.js";
 import { parseCSV } from "./csv.js";
 import { computeXmR } from "./stats.js";
-import { detectSignals, hasAnySignal } from "./signals.js";
+import { detectSignals, hasAnySignal, stampProvenance } from "./signals.js";
 import { classify } from "./classify.js";
 import { round1, round2 } from "./format.js";
 
@@ -18,8 +18,15 @@ import { round1, round2 } from "./format.js";
 // The eventType default lives here (not in the command layer) so
 // single-argument callers — e.g. libwiki's block renderer — inherit the
 // shift-work slice without a code change. Pass "*" to disable filtering.
-/** Group rows by metric (restricted to one event_type, default kata-shift; "*" for all rows), compute XmR statistics and signals, and classify each metric's process behavior. */
-export function analyze(csvText, { eventType = DEFAULT_SHIFT_TYPE } = {}) {
+// When `priorReadAnchor` (a YYYY-MM-DD date) exact-matches a metric's slot
+// date, each fired signal record gains a `provenance` value relative to that
+// slot. A non-corresponding anchor (backfill, correction, beyond series end)
+// and no anchor both leave records untouched.
+/** Group rows by metric (restricted to one event_type, default kata-shift; "*" for all rows), compute XmR statistics and signals, and classify each metric's process behavior; with a corresponding `priorReadAnchor` date, stamp per-signal provenance. */
+export function analyze(
+  csvText,
+  { eventType = DEFAULT_SHIFT_TYPE, priorReadAnchor } = {},
+) {
   let rows = parseCSV(csvText);
   if (eventType !== "*") {
     rows = rows.filter((row) => row.eventType === eventType);
@@ -57,6 +64,10 @@ export function analyze(csvText, { eventType = DEFAULT_SHIFT_TYPE } = {}) {
 
     const stats = computeXmR(values);
     const signals = detectSignals(values, stats.mrs, stats);
+    if (priorReadAnchor) {
+      const idx = dates.indexOf(priorReadAnchor);
+      if (idx !== -1) stampProvenance(signals, idx + 1);
+    }
     const lastMR = Math.abs(values[n - 1] - values[n - 2]);
 
     const metric = {

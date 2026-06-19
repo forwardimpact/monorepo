@@ -84,8 +84,11 @@ export const SESSION_GAP_MS = 30 * 60 * 1000;
 // text after the tag (typically an inline "Do not edit. Generated from fit-wiki
 // refresh." notice). One home so the marker scanner (marker-scanner.js) and the
 // audit's balance check (audit/rules.js) cannot drift on the syntax.
+// Capture groups: 1 metric, 2 csvPath, 3 optional prior-read anchor date. The
+// `prior=YYYY-MM-DD` token sits before the trailing-text group so the "Do not
+// edit" notice is still tolerated and does not swallow the anchor.
 export const XMR_OPEN_RE =
-  /^<!--\s*xmr:([^:\s]+):(\S+)(?:\s+[^>]*?)?\s*-->\s*$/;
+  /^<!--\s*xmr:([^:\s]+):(\S+)(?:\s+prior=(\d{4}-\d{2}-\d{2}))?(?:\s+[^>]*?)?\s*-->\s*$/;
 export const XMR_CLOSE_RE = /^<!--\s*\/xmr(?:\s+[^>]*?)?\s*-->\s*$/;
 export const ISSUE_OPEN_RE =
   /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?(?:\s+[^>]*?)?\s*-->\s*$/;

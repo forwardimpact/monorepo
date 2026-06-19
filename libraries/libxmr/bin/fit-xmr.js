@@ -35,6 +35,11 @@ const definition = {
           description:
             "Filter rows by event_type machine name; use '*' for all rows",
         },
+        "prior-read": {
+          type: "string",
+          description:
+            "Prior-read anchor date (YYYY-MM-DD) — stamps each fired signal with recomputation-revealed or new-point provenance",
+        },
       },
       handler: runAnalyzeCommand,
     },

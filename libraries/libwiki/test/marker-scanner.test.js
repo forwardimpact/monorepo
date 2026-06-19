@@ -21,8 +21,23 @@ describe("scanMarkers", () => {
     assert.equal(pairs.length, 1);
     assert.equal(pairs[0].metric, "findings_count");
     assert.equal(pairs[0].csvPath, "wiki/metrics/kata-spec/2026.csv");
+    assert.equal(pairs[0].priorReadAnchor, null);
     assert.equal(pairs[0].openLine, 1);
     assert.equal(pairs[0].closeLine, 3);
+  });
+
+  test("parses a prior= anchor token alongside csvPath and trailing notice", () => {
+    const text = [
+      "<!-- xmr:summary_corrections:wiki/metrics/kata-doc/2026.csv prior=2026-06-04 Do not edit. Auto-generated. -->",
+      "**Signals:** —",
+      "<!-- /xmr -->",
+    ].join("\n");
+
+    const pairs = scanMarkers(text);
+    assert.equal(pairs.length, 1);
+    assert.equal(pairs[0].metric, "summary_corrections");
+    assert.equal(pairs[0].csvPath, "wiki/metrics/kata-doc/2026.csv");
+    assert.equal(pairs[0].priorReadAnchor, "2026-06-04");
   });
 
   test("finds two marker pairs separated by prose", () => {
