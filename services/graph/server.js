@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import "@forwardimpact/libpreflight/node22";
 
+import { serverFlagsShortCircuit } from "@forwardimpact/libcli/server-flags";
 import { Server } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createGraphIndex } from "@forwardimpact/libgraph";
@@ -10,18 +11,27 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { GraphService } from "./index.js";
 
-const config = await createServiceConfig("graph", {
-  port: 3003,
+const handled = serverFlagsShortCircuit({
+  name: "fit-svcgraph",
+  description: "Graph index gRPC service",
+  packageJsonUrl: new URL("./package.json", import.meta.url),
+  argv: process.argv.slice(2),
 });
 
-// Initialize observability
-const runtime = createDefaultRuntime();
-const logger = createLogger("graph", runtime);
-const tracer = await createTracer("graph");
+if (!handled) {
+  const config = await createServiceConfig("graph", {
+    port: 3003,
+  });
 
-const graphIndex = createGraphIndex("graphs", runtime.clock);
+  // Initialize observability
+  const runtime = createDefaultRuntime();
+  const logger = createLogger("graph", runtime);
+  const tracer = await createTracer("graph");
 
-const service = new GraphService(config, graphIndex);
-const server = new Server(service, config, { logger, tracer, runtime });
+  const graphIndex = createGraphIndex("graphs", runtime.clock);
 
-await server.start();
+  const service = new GraphService(config, graphIndex);
+  const server = new Server(service, config, { logger, tracer, runtime });
+
+  await server.start();
+}

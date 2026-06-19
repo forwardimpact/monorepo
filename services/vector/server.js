@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import "@forwardimpact/libpreflight/node22";
 
+import { serverFlagsShortCircuit } from "@forwardimpact/libcli/server-flags";
 import { Server } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { clients } from "@forwardimpact/librpc";
@@ -13,37 +14,46 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { VectorService } from "./index.js";
 
-const config = await createServiceConfig("vector", {
-  port: 3002,
+const handled = serverFlagsShortCircuit({
+  name: "fit-svcvector",
+  description: "Vector index gRPC service",
+  packageJsonUrl: new URL("./package.json", import.meta.url),
+  argv: process.argv.slice(2),
 });
 
-// Initialize observability
-const runtime = createDefaultRuntime();
-const logger = createLogger("vector", runtime);
-const tracer = await createTracer("vector");
-
-// gRPC embedding client
-const { EmbeddingClient } = clients;
-const embeddingClient = new EmbeddingClient(
-  await createServiceConfig("embedding"),
-  runtime,
-  logger,
-  tracer,
-);
-
-async function createEmbeddings(input) {
-  const req = new embedding.EmbeddingsRequest({
-    input: Array.isArray(input) ? input : [input],
+if (!handled) {
+  const config = await createServiceConfig("vector", {
+    port: 3002,
   });
-  const res = await embeddingClient.CreateEmbeddings(req);
-  return { data: res.data.map((v) => ({ embedding: Array.from(v.values) })) };
+
+  // Initialize observability
+  const runtime = createDefaultRuntime();
+  const logger = createLogger("vector", runtime);
+  const tracer = await createTracer("vector");
+
+  // gRPC embedding client
+  const { EmbeddingClient } = clients;
+  const embeddingClient = new EmbeddingClient(
+    await createServiceConfig("embedding"),
+    runtime,
+    logger,
+    tracer,
+  );
+
+  const createEmbeddings = async (input) => {
+    const req = new embedding.EmbeddingsRequest({
+      input: Array.isArray(input) ? input : [input],
+    });
+    const res = await embeddingClient.CreateEmbeddings(req);
+    return { data: res.data.map((v) => ({ embedding: Array.from(v.values) })) };
+  };
+
+  // Initialize vector index
+  const vectorStorage = createStorage("vectors");
+  const vectorIndex = new VectorIndex(vectorStorage);
+
+  const service = new VectorService(config, vectorIndex, createEmbeddings);
+  const server = new Server(service, config, { logger, tracer, runtime });
+
+  await server.start();
 }
-
-// Initialize vector index
-const vectorStorage = createStorage("vectors");
-const vectorIndex = new VectorIndex(vectorStorage);
-
-const service = new VectorService(config, vectorIndex, createEmbeddings);
-const server = new Server(service, config, { logger, tracer, runtime });
-
-await server.start();

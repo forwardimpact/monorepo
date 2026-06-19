@@ -41,10 +41,6 @@ jobs:
           TARGETS: ${{ inputs.targets }}
           BUNDLE: ${{ inputs.bundle }}
         run: |
-          # `server: true` entries (long-running gRPC services) are still built,
-          # checksummed, uploaded, and bundled — the flag only tells the smoke
-          # step below to skip executing them, since their bin starts a server
-          # rather than honouring --help. Defaults to false for every other CLI.
           # An empty BUNDLE builds every CLI; a bundle name restricts the matrix
           # to that app's CLIs so a single-product tag doesn't compile all ~30.
           CELLS=$(jq -c --argjson req "$TARGETS" --arg bundle "$BUNDLE" '
@@ -53,8 +49,7 @@ jobs:
               | $c.targets[]
               | select(. as $t | $req | index($t))
               | { cli: $c.name, target: .,
-                  os: (if . == "bun-linux-x64" then "ubuntu-latest" else "macos-14" end),
-                  server: ($c.server // false) } ]
+                  os: (if . == "bun-linux-x64" then "ubuntu-latest" else "macos-14" end) } ]
           ' build/cli-manifest.json)
           # Fail loudly on a bad `targets`/`bundle` input rather than emit an
           # empty matrix that silently skips every build.
@@ -69,8 +64,8 @@ jobs:
       matrix: ${{ fromJSON(needs.matrix.outputs.cells) }}
     runs-on: ${{ matrix.os }}
     # Bound the cell: bootstrap + codegen + compile + smoke is a few minutes, so
-    # a stuck cell (e.g. a future non-server CLI that hangs on --help) fails fast
-    # instead of burning the default job budget.
+    # a stuck cell (e.g. a CLI that hangs on --help) fails fast instead of
+    # burning the default job budget.
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
@@ -80,9 +75,6 @@ jobs:
       - name: Compile
         run: just build-binary "${{ matrix.cli }}" "${{ matrix.target }}"
       - name: Smoke gate
-        # Servers boot on any invocation and never exit, so --help would hang
-        # the cell; they are excluded until they support a print-and-exit flag.
-        if: ${{ matrix.server != true }}
         run: |
           BIN="dist/binaries/${{ matrix.cli }}"
           # Capture stdout+stderr: a CLI that prints --help to stderr must still
