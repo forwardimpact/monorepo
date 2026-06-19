@@ -11,19 +11,17 @@
 // Discovery-based: future bins, packages, and pages land under the check
 // without amending this module.
 
-import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
-import { collectFiles, readJsonOrNull } from "./lib/walk.mjs";
 
 const SCOPE_DIRS = ["products", "libraries", "services"];
-const SKIP_DIRS = new Set([
+const SKIP_DIRS = [
   "node_modules",
   ".git",
   "generated",
   "tmp",
   "dist",
   "worktrees",
-]);
+];
 const REQUIRED_FLOOR = 22;
 const DOC_ROOT = "websites/fit/docs/getting-started";
 const DOC_AUDIENCES = ["leaders", "engineers"];
@@ -42,22 +40,15 @@ function parseLowerBoundMajor(range) {
   return Number.parseInt(match[1], 10);
 }
 
-function lineNoAt(text, offset) {
-  let line = 1;
-  for (let i = 0; i < offset && i < text.length; i++) {
-    if (text.charCodeAt(i) === 10) line++;
-  }
-  return line;
-}
-
-function manifestSubjects(root) {
+function manifestSubjects({ scan, readJson }) {
   const subjects = [];
-  const files = collectFiles(root, {
+  for (const { path } of scan({
+    dirs: ["."],
     skip: SKIP_DIRS,
     match: (name) => name === "package.json",
-  });
-  for (const path of files) {
-    const pkg = readJsonOrNull(path);
+    read: false,
+  })) {
+    const pkg = readJson(path);
     if (!pkg) {
       subjects.push({ path, parseError: "unparseable package.json" });
       continue;
@@ -69,8 +60,8 @@ function manifestSubjects(root) {
   return subjects;
 }
 
-function packageBinSubjects(root, pkgDir) {
-  const pkg = readJsonOrNull(join(pkgDir, "package.json"));
+function packageBinSubjects(root, pkgDir, { readJson, runtime }) {
+  const pkg = readJson(join(pkgDir, "package.json"));
   if (!pkg?.bin) return [];
   const bins = typeof pkg.bin === "string" ? { [pkg.name]: pkg.bin } : pkg.bin;
   const floor = parseLowerBoundMajor(pkg.engines?.node ?? "");
@@ -78,7 +69,7 @@ function packageBinSubjects(root, pkgDir) {
     const path = join(pkgDir, binPath.replace(/^\.\//, ""));
     const subject = { path, pkgDir: relative(root, pkgDir), floor };
     try {
-      subject.src = readFileSync(path, "utf8");
+      subject.src = runtime.fsSync.readFileSync(path, "utf8");
     } catch (err) {
       subject.readError = err.message;
     }
@@ -86,30 +77,26 @@ function packageBinSubjects(root, pkgDir) {
   });
 }
 
-function binSubjects(root) {
+function binSubjects(root, kit) {
   const subjects = [];
   for (const scope of SCOPE_DIRS) {
-    const scopeDir = join(root, scope);
-    if (!existsSync(scopeDir)) continue;
-    for (const entry of readdirSync(scopeDir, { withFileTypes: true })) {
-      if (!entry.isDirectory()) continue;
-      subjects.push(...packageBinSubjects(root, join(scopeDir, entry.name)));
+    for (const name of kit.listDir(scope, { dirsOnly: true })) {
+      subjects.push(...packageBinSubjects(root, join(root, scope, name), kit));
     }
   }
   return subjects;
 }
 
-function docSubjects(root) {
+function docSubjects({ scan, lineAt }) {
   const subjects = [];
   for (const audience of DOC_AUDIENCES) {
-    const files = collectFiles(join(root, DOC_ROOT, audience), {
+    for (const { path, text } of scan({
+      dirs: [`${DOC_ROOT}/${audience}`],
       skip: SKIP_DIRS,
       match: (name) => name === "index.md",
-    });
-    for (const path of files) {
-      const text = readFileSync(path, "utf8");
+    })) {
       const mentions = [...text.matchAll(NODEJS_VERSION_RE)].map((m) => ({
-        lineNo: lineNoAt(text, m.index),
+        lineNo: lineAt(text, m.index),
         major: Number.parseInt(m[1], 10),
       }));
       if (mentions.length > 0) subjects.push({ path, mentions });
@@ -120,10 +107,10 @@ function docSubjects(root) {
 
 // The three canonical floor declarations that must agree: the workspace
 // manifest, one getting-started page, and the libpreflight entry body.
-function floorSources(root) {
+function floorSources(root, { readJson, readText }) {
   const sources = [];
 
-  const rootPkg = readJsonOrNull(join(root, "package.json"));
+  const rootPkg = readJson("package.json");
   sources.push({
     path: join(root, "package.json"),
     label: "workspace manifest",
@@ -131,35 +118,35 @@ function floorSources(root) {
     error: rootPkg ? null : "workspace root package.json not parseable",
   });
 
-  const docPath = join(root, CANONICAL_DOC);
+  const docText = readText(CANONICAL_DOC);
   let docMajor = null;
   let docError = null;
-  try {
-    const m = /Node\.js\s+(\d+)\+/.exec(readFileSync(docPath, "utf8"));
+  if (docText == null) {
+    docError = "canonical doc page missing";
+  } else {
+    const m = /Node\.js\s+(\d+)\+/.exec(docText);
     if (m) docMajor = Number.parseInt(m[1], 10);
     else docError = 'canonical doc page does not name "Node.js N+"';
-  } catch {
-    docError = "canonical doc page missing";
   }
   sources.push({
-    path: docPath,
+    path: join(root, CANONICAL_DOC),
     label: "doc page",
     major: docMajor,
     error: docError,
   });
 
-  const checkPath = join(root, PREFLIGHT_ENTRY);
+  const checkText = readText(PREFLIGHT_ENTRY);
   let checkMajor = null;
   let checkError = null;
-  try {
-    const m = /check\(\s*(\d+)\s*\)/.exec(readFileSync(checkPath, "utf8"));
+  if (checkText == null) {
+    checkError = "libpreflight node entry missing";
+  } else {
+    const m = /check\(\s*(\d+)\s*\)/.exec(checkText);
     if (m) checkMajor = Number.parseInt(m[1], 10);
     else checkError = "libpreflight entry does not call check(N)";
-  } catch {
-    checkError = "libpreflight node entry missing";
   }
   sources.push({
-    path: checkPath,
+    path: join(root, PREFLIGHT_ENTRY),
     label: "libpreflight check",
     major: checkMajor,
     error: checkError,
@@ -171,31 +158,28 @@ function floorSources(root) {
 export default {
   name: "node-floor",
 
-  build({ root }) {
-    const sources = floorSources(root);
+  build(kit) {
+    const { root } = kit;
+    const sources = floorSources(root, kit);
     const agreement = sources.every((s) => s.major !== null)
       ? [{ path: join(root, "package.json"), sources }]
       : [];
     return {
       subjects: {
-        manifest: manifestSubjects(root),
-        "bin-target": binSubjects(root),
-        "doc-page": docSubjects(root),
+        manifest: manifestSubjects(kit),
+        "bin-target": binSubjects(root, kit),
+        "doc-page": docSubjects(kit),
         "floor-source": sources,
         "floor-agreement": agreement,
       },
     };
   },
 
-  rules: [
-    {
+  rules: ({ parseError }) => [
+    parseError("manifest", {
       id: "node-floor.manifest-unparseable",
-      scope: "manifest",
-      severity: "fail",
-      check: (s) => (s.parseError ? { msg: s.parseError } : null),
-      message: (s, r) => r.msg,
       hint: "fix the JSON so the engines floor can be read",
-    },
+    }),
     {
       id: "node-floor.unparseable-range",
       scope: "manifest",

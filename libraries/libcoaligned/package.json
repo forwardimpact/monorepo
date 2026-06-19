@@ -49,7 +49,9 @@
     "@forwardimpact/libcli": "^0.1.9",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libutil": "*",
-    "prettier": "^3.8.4"
+    "acorn": "^8.17.0",
+    "prettier": "^3.8.4",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

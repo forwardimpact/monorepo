@@ -2,12 +2,15 @@
 
 import "@forwardimpact/libpreflight/node22";
 
+import { resolve } from "node:path";
+
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createCli } from "@forwardimpact/libcli";
 import { emitFindingsJson, emitFindingsText } from "@forwardimpact/libutil";
 import {
   checkInstructions,
   checkJtbd,
+  createBuildKit,
   findInvariantsRoot,
   INVARIANTS_DIR,
   loadRuleModules,
@@ -134,7 +137,10 @@ async function invariantsHandler(ctx) {
       cli.error(`rule module "${mod.name}" has no seed output`);
       return 1;
     }
-    rt.proc.stdout.write(await mod.seed({ root, runtime: rt }));
+    const dir = resolve(root, INVARIANTS_DIR);
+    rt.proc.stdout.write(
+      await mod.seed(createBuildKit({ root, dir, runtime: rt })),
+    );
     return 0;
   }
 

@@ -12,13 +12,10 @@
 // Scope: `products/*`, `libraries/*`, `services/*` — every tree listed in
 // the workspace globs of the root `package.json`.
 
-import { readFileSync } from "node:fs";
-import { join, relative } from "node:path";
-import { parseModule, walkAst } from "./lib/ast.mjs";
-import { collectFiles, readJsonOrNull } from "./lib/walk.mjs";
+import { join } from "node:path";
 
 const SCOPE_DIRS = ["products", "libraries", "services"];
-const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
+const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp"];
 const WORKSPACE_PREFIX = "@forwardimpact/";
 
 const STATIC_IMPORT_TYPES = new Set([
@@ -54,10 +51,9 @@ function packageName(spec) {
   return spec.split("/").slice(0, 2).join("/");
 }
 
-function workspaceImports(source, filePath) {
-  const ast = parseModule(source, filePath, { locations: true });
+function workspaceImports(ast, walk) {
   const found = [];
-  walkAst(ast, (node) => {
+  walk(ast, (node) => {
     const imp = importFromNode(node);
     if (imp) found.push({ pkg: packageName(imp.spec), line: imp.line });
   });
@@ -79,53 +75,48 @@ function declaredDeps(manifest) {
 
 // <scope>/<pkg>/... → repo-relative path to <scope>/<pkg>, or null when the
 // file sits outside a workspace package.
-function packageDirFor(root, filePath) {
-  const parts = relative(root, filePath).split("/");
+function packageDirFor(rel) {
+  const parts = rel.split("/");
   if (!SCOPE_DIRS.includes(parts[0]) || parts.length < 2) return null;
   return `${parts[0]}/${parts[1]}`;
-}
-
-function subjectFor(root, path, manifests) {
-  const packageDir = packageDirFor(root, path);
-  if (!packageDir) return null;
-  if (!manifests.has(packageDir)) {
-    manifests.set(
-      packageDir,
-      readJsonOrNull(join(root, packageDir, "package.json")),
-    );
-  }
-  const manifest = manifests.get(packageDir);
-  if (!manifest) return null;
-  const subject = {
-    path,
-    packageDir,
-    selfName: manifest.name,
-    declared: declaredDeps(manifest),
-  };
-  try {
-    subject.imports = workspaceImports(readFileSync(path, "utf8"), path);
-  } catch (err) {
-    subject.parseError = err.message;
-  }
-  return subject;
 }
 
 export default {
   name: "workspace-imports",
 
-  build({ root }) {
+  build({ root, scanAst, walk, readJson }) {
     const manifests = new Map();
-    const subjects = [];
-    for (const scope of SCOPE_DIRS) {
-      const files = collectFiles(join(root, scope), {
-        skip: SKIP_DIRS,
-        match: (name) => name.endsWith(".js"),
-      });
-      for (const path of files) {
-        const subject = subjectFor(root, path, manifests);
-        if (subject) subjects.push(subject);
+    const manifestFor = (packageDir) => {
+      if (!manifests.has(packageDir)) {
+        manifests.set(packageDir, readJson(`${packageDir}/package.json`));
       }
+      return manifests.get(packageDir);
+    };
+
+    const subjects = [];
+    const scanned = scanAst({
+      dirs: SCOPE_DIRS,
+      skip: SKIP_DIRS,
+      match: (name) => name.endsWith(".js"),
+      locations: true,
+      extract: (ast) => ({ imports: workspaceImports(ast, walk) }),
+    });
+    for (const s of scanned) {
+      const packageDir = packageDirFor(s.rel);
+      if (!packageDir) continue;
+      const manifest = manifestFor(packageDir);
+      if (!manifest) continue;
+      const subject = {
+        path: s.path,
+        packageDir,
+        selfName: manifest.name,
+        declared: declaredDeps(manifest),
+      };
+      if (s.parseError) subject.parseError = s.parseError;
+      else subject.imports = s.imports;
+      subjects.push(subject);
     }
+
     // A package whose manifest is missing or malformed can't be checked at
     // all — surface that loudly (once per package) instead of silently
     // skipping its files.
@@ -146,24 +137,17 @@ export default {
     };
   },
 
-  rules: [
-    {
+  rules: ({ parseError, failAll }) => [
+    failAll("manifest-gap", {
       id: "workspace.manifest-unreadable",
-      scope: "manifest-gap",
-      severity: "fail",
-      check: () => ({}),
       message: (s) =>
         `${s.packageDir} contains source files but its package.json is missing or malformed`,
       hint: "fix the manifest so the package's imports can be checked against its declared dependencies",
-    },
-    {
+    }),
+    parseError("package-file", {
       id: "workspace.parse-error",
-      scope: "package-file",
-      severity: "fail",
-      check: (s) => (s.parseError ? { msg: s.parseError } : null),
-      message: (s, r) => r.msg,
       hint: "fix the syntax error so the import scan can parse the module",
-    },
+    }),
     {
       id: "workspace.undeclared-import",
       scope: "package-file",

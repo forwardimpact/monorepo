@@ -15,7 +15,6 @@
 
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { assertRgAvailable, rgMatches } from "./lib/rg.mjs";
 
 const MODELS_PATH = "libraries/libutil/src/models.js";
 
@@ -39,16 +38,14 @@ const BASE_GLOBS = [
 export default {
   name: "model-defaults",
 
-  async build({ root }) {
-    assertRgAvailable();
+  async build({ root, grep }) {
     const allowed = new Set(
       Object.values(await import(pathToFileURL(resolve(root, MODELS_PATH)))),
     );
 
     // ripgrep gives the *last* matching glob precedence, so the shared
     // exclusions come after each rule's include globs to win.
-    const codeHits = rgMatches({
-      cwd: root,
+    const codeHits = grep({
       pattern: MODEL_ID,
       caseSensitive: true,
       paths: ["libraries", "products", "services", "scripts", ".coaligned"],
@@ -60,14 +57,9 @@ export default {
         `!${MODELS_PATH}`,
         ...BASE_GLOBS,
       ],
-    }).map((m) => ({
-      path: resolve(root, m.path),
-      lineNo: m.lineNo,
-      text: m.text,
-    }));
+    });
 
-    const docHits = rgMatches({
-      cwd: root,
+    const docHits = grep({
       pattern: MODEL_ID,
       caseSensitive: true,
       // Test fixtures hold frozen sample content (e.g. a historical regression
@@ -75,11 +67,7 @@ export default {
       // header, the same as the code rule above.
       globs: ["*.md", "!**/test/**", ...BASE_GLOBS],
       onlyMatching: true,
-    }).map((m) => ({
-      path: resolve(root, m.path),
-      lineNo: m.lineNo,
-      id: m.text,
-    }));
+    }).map((m) => ({ path: m.path, lineNo: m.lineNo, id: m.text }));
 
     return {
       subjects: { "code-hit": codeHits, "doc-hit": docHits },
@@ -87,15 +75,12 @@ export default {
     };
   },
 
-  rules: [
-    {
+  rules: ({ failAll }) => [
+    failAll("code-hit", {
       id: "model.literal-in-code",
-      scope: "code-hit",
-      severity: "fail",
-      check: () => ({}),
       message: (s) => `model-ID literal in code: ${s.text.trim()}`,
       hint: "import the role constant from @forwardimpact/libutil/models so a model upgrade is a values-only edit in one file",
-    },
+    }),
     {
       id: "model.stale-doc-id",
       scope: "doc-hit",

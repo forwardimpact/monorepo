@@ -12,10 +12,7 @@
 // allowlist policy enumerates. The pure verdict function `bunTestFindings` is
 // exported so a regression test can exercise it directly.
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { parseModule } from "./lib/ast.mjs";
-import { collectFiles } from "./lib/walk.mjs";
+import { parse as acornParse } from "acorn";
 
 // The bun test invocation roots (verified against package.json scripts.test)
 // plus websites/ as preemptive coverage.
@@ -28,7 +25,23 @@ const SCAN_DIRS = [
   ".github/workflows/test",
   ".claude/skills/kata-interview/test",
 ];
-const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
+const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp"];
+
+// Minimal acorn parse. `bunTestFindings` is an exported pure function a
+// regression test drives directly (outside the invariant engine), so this
+// module carries its own parser rather than the injected kit's.
+function parseModule(source, filePath, { locations = false } = {}) {
+  try {
+    return acornParse(source, {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      locations,
+      allowAwaitOutsideFunction: true,
+    });
+  } catch (err) {
+    throw new Error(`failed to parse ${filePath}: ${err.message}`);
+  }
+}
 // JS source/module extensions acorn parses as ES modules. The source-file ban
 // covers every non-test file under scope; .ts/.mts/.cts are TypeScript that
 // acorn cannot parse and are out of this guard's surface (a TypeScript test
@@ -150,17 +163,12 @@ export function bunTestFindings(text, isTestFile, filePath = "<source>") {
 export default {
   name: "bun-test-imports",
 
-  build({ root }) {
-    const subjects = [];
-    for (const dir of SCAN_DIRS) {
-      const files = collectFiles(join(root, dir), {
-        skip: SKIP_DIRS,
-        match: (name) => SOURCE_EXTS.some((e) => name.endsWith(e)),
-      });
-      for (const path of files) {
-        subjects.push({ path, text: readFileSync(path, "utf8") });
-      }
-    }
+  build({ scan }) {
+    const subjects = scan({
+      dirs: SCAN_DIRS,
+      skip: SKIP_DIRS,
+      match: (name) => SOURCE_EXTS.some((e) => name.endsWith(e)),
+    }).map(({ path, text }) => ({ path, text }));
     return { subjects: { "scoped-file": subjects } };
   },
 

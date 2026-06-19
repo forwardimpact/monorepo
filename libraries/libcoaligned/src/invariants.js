@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { runRules } from "@forwardimpact/libutil";
+import { createBuildKit, RULE_KIT } from "./invariant-kit.js";
 
 // The conventional rules location, relative to the project root.
 export const INVARIANTS_DIR = ".coaligned/invariants";
@@ -45,12 +46,18 @@ function assertModuleShape(mod, fileName) {
     mod &&
     typeof mod.name === "string" &&
     typeof mod.build === "function" &&
-    Array.isArray(mod.rules);
+    (Array.isArray(mod.rules) || typeof mod.rules === "function");
   if (!ok) {
     throw new Error(
-      `${fileName}: default export must be { name, build, rules }`,
+      `${fileName}: default export must be { name, build, rules } (rules is an array or a (ruleKit) => array)`,
     );
   }
+}
+
+// A module's rules are either a static array or a `(ruleKit) => array` factory
+// that builds them from the shared rule helpers.
+function resolveRules(mod) {
+  return typeof mod.rules === "function" ? mod.rules(RULE_KIT) : mod.rules;
 }
 
 /**
@@ -89,20 +96,26 @@ export async function loadRuleModules({
 }
 
 /**
- * Run already-loaded rule modules: build each module's subjects, then apply
- * its rule catalogue through the shared rules engine.
+ * Run already-loaded rule modules: inject the build kit, build each module's
+ * subjects, then apply its rule catalogue through the shared rules engine.
  *
  * @param {object[]} modules - Rule-module default exports.
- * @param {{ root: string, runtime: import('@forwardimpact/libutil/runtime').Runtime }} options
+ * @param {{ root: string, runtime: import('@forwardimpact/libutil/runtime').Runtime, dir?: string }} options
+ *   `dir` is the modules' directory (for co-located config); defaults to
+ *   `<root>/.coaligned/invariants`.
  * @returns {Promise<object[]>} Structured findings; empty when conformant.
  */
-export async function runRuleModules(modules, { root, runtime }) {
+export async function runRuleModules(
+  modules,
+  { root, runtime, dir = resolve(root, INVARIANTS_DIR) },
+) {
   const findings = [];
   for (const mod of modules) {
-    const { subjects, ctx = {} } = await mod.build({ root, runtime });
+    const kit = createBuildKit({ root, dir, runtime });
+    const { subjects, ctx = {} } = await mod.build(kit);
     findings.push(
       ...runRules(
-        mod.rules,
+        resolveRules(mod),
         { ...ctx, subjects },
         { resolveScope: (key, c) => c.subjects[key] ?? [] },
       ),
@@ -125,6 +138,7 @@ export async function checkInvariants({
   runtime,
 }) {
   if (!runtime) throw new Error("runtime is required");
+  const dir = resolve(root, rulesDir);
   const modules = await loadRuleModules({ root, rulesDir, runtime });
-  return runRuleModules(modules, { root, runtime });
+  return runRuleModules(modules, { root, runtime, dir });
 }

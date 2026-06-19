@@ -2,12 +2,8 @@
 // libmock. Each detection entry keys on the inline shape AND the absence of
 // the canonical libmock import/factory, so legitimate uses never trip.
 
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { collectFiles } from "./lib/walk.mjs";
-
 const SCAN_DIRS = ["libraries", "products", "services", "tests"];
-const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
+const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp"];
 
 const LIBMOCK_IMPORT_RE = /from\s+["']@forwardimpact\/libmock["']/;
 
@@ -115,20 +111,19 @@ for (const factory of SURFACE_FACTORIES) {
 export default {
   name: "libmock",
 
-  build({ root }) {
-    const subjects = [];
-    for (const dir of SCAN_DIRS) {
-      const files = collectFiles(join(root, dir), {
-        skip: SKIP_DIRS,
-        match: (name) => name.endsWith(".test.js"),
-      });
-      for (const path of files) {
-        // libmock's own self-tests are expected to redefine some helpers.
-        if (path.includes("/libraries/libmock/")) continue;
-        const text = readFileSync(path, "utf8");
-        subjects.push({ path, text, imports: LIBMOCK_IMPORT_RE.test(text) });
-      }
-    }
+  build({ scan }) {
+    const subjects = scan({
+      dirs: SCAN_DIRS,
+      skip: SKIP_DIRS,
+      match: (name) => name.endsWith(".test.js"),
+    })
+      // libmock's own self-tests are expected to redefine some helpers.
+      .filter((s) => !s.path.includes("/libraries/libmock/"))
+      .map(({ path, text }) => ({
+        path,
+        text,
+        imports: LIBMOCK_IMPORT_RE.test(text),
+      }));
     return { subjects: { "test-file": subjects } };
   },
 

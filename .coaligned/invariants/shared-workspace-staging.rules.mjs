@@ -25,24 +25,16 @@
 // Refresh the violator list:
 //   bunx coaligned invariants --seed shared-workspace-staging
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-import { parseModule, walkAst } from "./lib/ast.mjs";
-import { collectFiles, readJsonOrNull } from "./lib/walk.mjs";
-
 const SCOPE_DIRS = ["libraries", "products", "services"];
-const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp", "test"]);
+const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp", "test"];
 const SWEEP_METHOD = "commitAll";
 
 // Files that define or mock the primitive — not commit paths.
 const EXCLUDE_RELS = new Set(["libraries/libutil/src/git-client.js"]);
 const EXCLUDE_PREFIXES = ["libraries/libmock/"];
 
-function loadAllow() {
-  const entries =
-    readJsonOrNull(
-      join(import.meta.dirname, "shared-workspace-staging.allow.json"),
-    ) ?? [];
+function loadAllow(config) {
+  const entries = config("shared-workspace-staging.allow.json", []);
   return new Set(entries.map((e) => e.file));
 }
 
@@ -57,87 +49,57 @@ function calleeName(callee) {
   return null;
 }
 
-function sourceFiles(root) {
-  const out = [];
-  for (const scope of SCOPE_DIRS) {
-    const scopeDir = join(root, scope);
-    if (!existsSync(scopeDir)) continue;
-    for (const pkg of readdirSync(scopeDir)) {
-      const pkgDir = join(scopeDir, pkg);
-      if (!statSync(pkgDir).isDirectory()) continue;
-      out.push(
-        ...collectFiles(pkgDir, {
-          skip: SKIP_DIRS,
-          match: (name) =>
-            (name.endsWith(".js") || name.endsWith(".mjs")) &&
-            !name.endsWith(".test.js") &&
-            !name.endsWith(".test.mjs"),
-        }),
-      );
-    }
-  }
-  return out;
-}
-
 function isExcluded(rel) {
   return (
     EXCLUDE_RELS.has(rel) || EXCLUDE_PREFIXES.some((p) => rel.startsWith(p))
   );
 }
 
-function sweepsWholeTree(source, filePath) {
+function sweepsWholeTree(ast, walk) {
   let hit = false;
-  walkAst(parseModule(source, filePath), (node) => {
+  walk(ast, (node) => {
     if (node.type !== "CallExpression") return;
     if (calleeName(node.callee) === SWEEP_METHOD) hit = true;
   });
   return hit;
 }
 
-function buildSubjects(root) {
-  const subjects = [];
-  for (const file of sourceFiles(root)) {
-    const rel = relative(root, file);
-    if (isExcluded(rel)) continue;
-    const subject = { path: file, rel };
-    try {
-      subject.sweeps = sweepsWholeTree(readFileSync(file, "utf8"), rel);
-    } catch (err) {
-      subject.parseError = err.message;
-    }
-    subjects.push(subject);
-  }
-  return subjects;
+function buildSubjects({ scanAst, walk }) {
+  return scanAst({
+    dirs: SCOPE_DIRS,
+    skip: SKIP_DIRS,
+    match: (name) =>
+      (name.endsWith(".js") || name.endsWith(".mjs")) &&
+      !name.endsWith(".test.js") &&
+      !name.endsWith(".test.mjs"),
+    extract: (ast) => ({ sweeps: sweepsWholeTree(ast, walk) }),
+  }).filter((s) => !isExcluded(s.rel));
 }
 
 export default {
   name: "shared-workspace-staging",
 
-  build({ root }) {
+  build(kit) {
     return {
-      subjects: { "commit-path": buildSubjects(root) },
-      ctx: { allow: loadAllow() },
+      subjects: { "commit-path": buildSubjects(kit) },
+      ctx: { allow: loadAllow(kit.config) },
     };
   },
 
   // Print the current violators, for seeding shared-workspace-staging.allow.json.
-  seed({ root }) {
-    const violators = buildSubjects(root)
+  seed(kit) {
+    const violators = buildSubjects(kit)
       .filter((s) => s.sweeps)
       .map((s) => s.rel)
       .sort();
     return `${JSON.stringify(violators, null, 2)}\n`;
   },
 
-  rules: [
-    {
+  rules: ({ parseError }) => [
+    parseError("commit-path", {
       id: "staging.parse-error",
-      scope: "commit-path",
-      severity: "fail",
-      check: (s) => (s.parseError ? { msg: s.parseError } : null),
-      message: (s, r) => r.msg,
       hint: "fix the syntax error so the staging scan can parse the file",
-    },
+    }),
     {
       id: "staging.whole-tree-sweep",
       scope: "commit-path",

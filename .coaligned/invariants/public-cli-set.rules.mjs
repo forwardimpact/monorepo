@@ -19,9 +19,7 @@
 //       publish verbatim from the working tree, so this pins the full
 //       published surface (no smuggled deps, scripts, or extra files)
 
-import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { collectFiles, readJsonOrNull } from "./lib/walk.mjs";
 
 const SCOPE_DIRS = ["libraries", "products", "services"];
 const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
@@ -230,64 +228,47 @@ export function checkPublicCliSet({ invokedNames, packages, launchers }) {
   return problems;
 }
 
-function collectInvokedNames(root) {
+function collectInvokedNames({ listDir, scan }) {
   const names = new Set(SIBLING_ACTION_CLIS);
-  const dirs = [join(root, "websites/fit/docs")];
-  const skillsRoot = join(root, ".claude/skills");
-  for (const entry of readdirSync(skillsRoot)) {
-    if (/^(fit|kata)-/.test(entry)) dirs.push(join(skillsRoot, entry));
+  const dirs = ["websites/fit/docs"];
+  for (const entry of listDir(".claude/skills")) {
+    if (/^(fit|kata)-/.test(entry)) dirs.push(`.claude/skills/${entry}`);
   }
-  for (const dir of dirs) {
-    const files = collectFiles(dir, {
-      skip: SKIP_DIRS,
-      match: (name) => name.endsWith(".md"),
-    });
-    for (const file of files) {
-      for (const m of readFileSync(file, "utf8").matchAll(INVOKE_RE)) {
-        names.add(m[1]);
-      }
-    }
+  for (const { text } of scan({
+    dirs,
+    skip: SKIP_DIRS,
+    match: (name) => name.endsWith(".md"),
+  })) {
+    for (const m of text.matchAll(INVOKE_RE)) names.add(m[1]);
   }
   return names;
 }
 
-function collectWorkspacePackages(root) {
+function collectWorkspacePackages({ listDir, readJson }) {
   const packages = [];
   for (const scope of SCOPE_DIRS) {
-    for (const entry of readdirSync(join(root, scope), {
-      withFileTypes: true,
-    })) {
-      if (!entry.isDirectory() || SKIP_DIRS.has(entry.name)) continue;
-      const dir = `${scope}/${entry.name}`;
-      const manifest = readJsonOrNull(join(root, dir, "package.json"));
+    for (const name of listDir(scope, { dirsOnly: true })) {
+      if (SKIP_DIRS.has(name)) continue;
+      const dir = `${scope}/${name}`;
+      const manifest = readJson(`${dir}/package.json`);
       if (manifest) packages.push({ ...manifest, dir });
     }
   }
   return packages;
 }
 
-function collectLaunchers(root) {
-  const launchersRoot = join(root, "launchers");
+function collectLaunchers({ listDir, readJson, readText }) {
   const launchers = [];
-  for (const entry of readdirSync(launchersRoot, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const dir = entry.name;
-    let binFiles = [];
-    let binContent = null;
-    try {
-      binFiles = readdirSync(join(launchersRoot, dir, "bin")).sort();
-    } catch {
-      // no bin/ dir — binFiles stays empty and the shape check reports it
-    }
-    if (binFiles.length === 1) {
-      binContent = readFileSync(
-        join(launchersRoot, dir, "bin", binFiles[0]),
-        "utf8",
-      );
-    }
+  for (const dir of listDir("launchers", { dirsOnly: true })) {
+    // No bin/ dir — binFiles stays empty and the shape check reports it.
+    const binFiles = listDir(`launchers/${dir}/bin`).sort();
+    const binContent =
+      binFiles.length === 1
+        ? readText(`launchers/${dir}/bin/${binFiles[0]}`)
+        : null;
     launchers.push({
       dir,
-      manifest: readJsonOrNull(join(launchersRoot, dir, "package.json")),
+      manifest: readJson(`launchers/${dir}/package.json`),
       binFiles,
       binContent,
     });
@@ -309,17 +290,17 @@ const HINTS = {
 export default {
   name: "public-cli-set",
 
-  build({ root }) {
+  build(kit) {
     const problems = checkPublicCliSet({
-      invokedNames: collectInvokedNames(root),
-      packages: collectWorkspacePackages(root),
-      launchers: collectLaunchers(root),
+      invokedNames: collectInvokedNames(kit),
+      packages: collectWorkspacePackages(kit),
+      launchers: collectLaunchers(kit),
     });
     return {
       subjects: {
         "public-cli-problem": problems.map((p) => ({
           ...p,
-          path: join(root, p.path),
+          path: join(kit.root, p.path),
         })),
       },
     };

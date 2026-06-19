@@ -1,4 +1,6 @@
-// Shared helper for the service-url-drift invariant.
+// Domain helper for the service-url-drift invariant (and the adjacent audit
+// script + test). NOT generic mechanism — it lives beside its rule, not in a
+// shared kit: it encodes how a service's listen URL is derived.
 //
 // A service's listen URL is the single source of truth declared in its
 // `createServiceConfig("<name>", { … })` defaults. `server.js` is a
@@ -10,7 +12,32 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { parseModule, walkAst } from "./ast.mjs";
+import { parse as acornParse } from "acorn";
+
+// Minimal acorn parse + depth-first walk. This file is imported directly by a
+// test and an audit script (outside the invariant engine), so it carries its
+// own AST helpers rather than depending on the kit it cannot import.
+function parseModule(source, filePath) {
+  try {
+    return acornParse(source, { ecmaVersion: "latest", sourceType: "module" });
+  } catch (err) {
+    throw new Error(`failed to parse ${filePath}: ${err.message}`);
+  }
+}
+
+function walkAst(node, visit) {
+  if (!node || typeof node !== "object") return;
+  if (Array.isArray(node)) {
+    for (const child of node) walkAst(child, visit);
+    return;
+  }
+  if (typeof node.type !== "string") return;
+  visit(node);
+  for (const key of Object.keys(node)) {
+    if (key === "loc" || key === "start" || key === "end") continue;
+    walkAst(node[key], visit);
+  }
+}
 
 /**
  * Error thrown when a service's `createServiceConfig` defaults are not a static
@@ -26,15 +53,6 @@ function literalValue(node) {
   return undefined;
 }
 
-/**
- * Extract the static `protocol`/`host`/`port`/`path` defaults a service passes
- * to `createServiceConfig`, or `{}` when the call has no defaults argument.
- *
- * @param {string} source - Module source text.
- * @param {string} filePath - Path used in parse-error messages.
- * @param {string} serviceName - The first `createServiceConfig` argument.
- * @returns {{ protocol?: string, host?: string, port?: number, path?: string }}
- */
 const NETWORK_KEYS = new Set(["protocol", "host", "port", "path"]);
 
 function isCreateServiceConfigCall(node) {
