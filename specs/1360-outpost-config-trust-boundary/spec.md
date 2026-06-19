@@ -70,7 +70,7 @@ account.
 | Component | What changes |
 |---|---|
 | Outpost agent-spawn env build | Keys in `config.env` outside a defined set do not reach the spawn environment, and rejections are observable in the daemon log. Behaviour applies uniformly across the scheduler-loop wake, the socket-mediated wake, and the direct-CLI wake. |
-| Outpost agent template permissions | Writes targeting `~/.fit/outpost/scheduler.json`, `~/.fit/outpost/state.json`, or any path under `~/.cache/fit/outpost/state/` from inside an agent session are rejected regardless of how the write is routed. |
+| Outpost agent template permissions | Writes targeting `~/.fit/outpost/scheduler.json`, `~/.fit/outpost/state.json`, or any path under `~/.cache/fit/outpost/state/` via the built-in `Edit` tool or a recognized Bash file command are rejected from inside an agent session. Writes routed through allow-listed interpreters or shell redirection are not closed here (see § Residual risk). |
 | Outpost agent-state file naming | Config-supplied identifiers used as filesystem path components cannot produce a path that resolves outside the per-agent state directory. |
 | Trust-boundary documentation | A new `products/outpost/CLAUDE.md` (the Outpost-internal contributor doc, sibling to `products/outpost/README.md`) names `~/.fit/outpost/` and `~/.cache/fit/outpost/state/` as user-only trust roots, names the env key set the spawn surface honors, and states the contract for anyone reviewing future template changes. |
 
@@ -90,12 +90,30 @@ account.
   Pathway, Map — separate audit; none of them today expose a comparable
   user-config / agent-write trust boundary).
 
+### Residual risk
+
+Template permissions cannot fully prevent config edits by a compromised agent.
+The `Edit` tool and recognized Bash file commands are closable, but two routes
+remain open. An allow-listed interpreter (`bun`, `bunx`, `node`) can run a
+script that writes any file. Shell redirection (`> path`, `>> path`) can write
+any file. Both bypass `Edit` and Bash-command path denies. Closing them
+requires an OS sandbox that confines the spawned process, which is out of scope
+here and ties to spec 0600.
+
+So the template deny is a defense-in-depth layer, not the load-bearing closure
+for the injection→persistence chain. The two surfaces that do close the chain
+are surface 1 (the env-merge allow-set) and surface 2 (state-name validation).
+Surface 1 stops attacker-chosen environment variables from reaching any spawned
+process, and surface 2 stops a config-supplied name from writing state outside
+the per-agent directory. The injected `scheduler.json` cannot escalate through
+either, even when an interpreter route lets the agent edit the file.
+
 ## Success Criteria
 
 | Claim | Verification |
 |---|---|
 | Keys in `config.env` outside the defined set do not appear in the spawn environment, and each rejection produces an observable record in the daemon log. | Drive the env-build surface with a `config.env` containing a member of the defined set and several non-members; observe that the spawn environment contains the member and no non-member, and the log contains one rejection record per non-member. |
 | The three operational wake paths (scheduler tick, socket-mediated wake, direct-CLI wake) produce the same spawn environment for the same `config.env`. | Exercise each path against an identical `config.env` and observe the resulting spawn environment matches across paths. |
-| No allow-listed template permission lets an agent session write to `~/.fit/outpost/scheduler.json`, `~/.fit/outpost/state.json`, or any path under `~/.cache/fit/outpost/state/`. | Drive writes from inside the merged agent template's permission context targeting each path; observe each is rejected. |
+| A write via the built-in `Edit` tool or a recognized Bash file command (`cat`, `head`, `tail`, `sed`, and the like) targeting `~/.fit/outpost/scheduler.json`, `~/.fit/outpost/state.json`, or any path under `~/.cache/fit/outpost/state/` is rejected. | Drive writes from inside the merged agent template's permission context using `Edit` and each recognized Bash file command against each path; observe each is rejected. |
 | The agent-name → state-filename mapping cannot escape the per-agent state directory. | Feed agent names containing `..`, `/`, and absolute paths; observe the resulting state-file path resolves inside `~/.cache/fit/outpost/state/`. |
 | The trust-boundary contract is documented in `products/outpost/CLAUDE.md` and names both user-only roots and the env key set the spawn surface honors. | Read `products/outpost/CLAUDE.md`; observe it names `~/.fit/outpost/` and `~/.cache/fit/outpost/state/` as user-only, and enumerates the env key set. |

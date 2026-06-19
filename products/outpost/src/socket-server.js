@@ -8,6 +8,7 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
 import { computeNextWakeAt, nowFromClock } from "./scheduler.js";
+import { agentNameToStatePrefix, UnsafeAgentNameError } from "./agent-path.js";
 
 /** Unix-socket IPC server that handles status queries, wake requests, and shutdown commands. */
 export class SocketServer {
@@ -131,7 +132,19 @@ export class SocketServer {
   #resolveBriefingFile(agentName, agentConfig) {
     const stateDir = join(this.#cacheDir, "state");
     if (this.#fsSync.existsSync(stateDir)) {
-      const prefix = agentName.replace(/-/g, "_") + "_";
+      let prefix;
+      try {
+        prefix = agentNameToStatePrefix(agentName) + "_";
+      } catch (err) {
+        if (!(err instanceof UnsafeAgentNameError)) throw err;
+        this.#log(
+          JSON.stringify({
+            event: "outpost.state_path.rejected",
+            agent: agentName,
+          }),
+        );
+        return null;
+      }
       const found = this.#latestFileByMtime(
         stateDir,
         (f) => f.startsWith(prefix) && f.endsWith(".md"),

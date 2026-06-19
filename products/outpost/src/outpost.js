@@ -445,7 +445,7 @@ export async function run(runtime, version) {
         );
         return 1;
       }
-      await agentRunner.wake(args[0], agent, state);
+      await agentRunner.wake(args[0], agent, state, config.env);
       return 0;
     },
     init: async () => {

@@ -11,6 +11,7 @@ import {
   loadManifest,
   draftSkills,
 } from "./posture.js";
+import { buildSpawnEnv } from "./spawn-env.js";
 
 /**
  * System-prompt directive injected under the `brief` posture. Neutralises any
@@ -168,25 +169,6 @@ export class AgentRunner {
   }
 
   /**
-   * Build environment for a child process.
-   * Merges the current process env with config-level env overrides.
-   * Expands ~ in values to the user's home directory.
-   * @param {Record<string, string>} [configEnv]
-   * @returns {Record<string, string>}
-   */
-  #buildSpawnEnv(configEnv) {
-    const env = { ...this.#proc.env };
-    if (configEnv) {
-      const home = homedir();
-      for (const [key, value] of Object.entries(configEnv)) {
-        const v = String(value);
-        env[key] = v.startsWith("~/") ? join(home, v.slice(2)) : v;
-      }
-    }
-    return env;
-  }
-
-  /**
    * Validate the agent's kb path exists, spawn `claude --agent` with the prompt "Observe and act.", and update agent state to active/idle/failed.
    * @param {string} agentName
    * @param {Object} agent
@@ -225,7 +207,16 @@ export class AgentRunner {
       "Observe and act.",
     ];
 
-    const env = this.#buildSpawnEnv(configEnv);
+    const { env, rejections } = buildSpawnEnv(configEnv, this.#proc.env);
+    for (const key of rejections) {
+      this.#log(
+        JSON.stringify({
+          event: "outpost.spawn_env.rejected",
+          key,
+          agent: agentName,
+        }),
+      );
+    }
     const spawnMod = await this.#resolveSpawn();
 
     try {
@@ -257,6 +248,7 @@ export class AgentRunner {
           stdout,
           agentName,
           this.#cacheDir,
+          this.#log,
         );
       } else {
         const errMsg = stderr || stdout || `Exit code ${exitCode}`;
