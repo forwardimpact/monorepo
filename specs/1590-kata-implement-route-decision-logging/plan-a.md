@@ -11,8 +11,8 @@ with a `.coaligned` invariant. Route context is a parsed sub-grammar inside
 the existing `note` field; the global CSV header is untouched, so existing
 rows stay byte-identical. Validation is gated on a metric allowlist and a
 `CONVENTION_START` date set strictly after every existing route-bearing row
-(the file carries non-grammar `implementations_shipped` rows through
-2026-06-17), so the whole pre-convention file (slots 40–66) stays valid and
+(the live file has since accrued non-grammar `implementations_shipped` rows
+through 2026-06-19), so the whole pre-convention file stays valid and
 only rows the shipped surface writes are checked. Steps are ordered so the
 registry (Step 1) lands before its consumers; Steps 2–5 are independent
 given Step 1.
@@ -40,10 +40,10 @@ export const ROUTE_NONE = "none"; // fired no implementation route
 export const ROUTE_BEARING_METRICS = ["implementations_shipped"];
 // Convention applies to rows the shipped recording surface writes, which
 // are strictly after every existing route-bearing row (latest is
-// 2026-06-17). A concrete date is committed now — NOT a placeholder — so
+// 2026-06-19). A concrete date is committed now — NOT a placeholder — so
 // validation cannot be silently disabled; Step 6 asserts it is a valid ISO
 // date strictly greater than the latest existing CSV row's date.
-export const CONVENTION_START = "2026-06-18"; // ISO yyyy-mm-dd
+export const CONVENTION_START = "2026-06-20"; // ISO yyyy-mm-dd
 
 // route_taken is required; routes_eligible is optional so the on-disk
 // `route_taken=none (…)` form (no eligible clause) parses to {none, []}.
@@ -79,7 +79,7 @@ in Step 6, which is this step's standalone verification gate) covers parse
 of a present prefix, an absent prefix, the bare `route_taken=none (…)` form
 with no eligible clause, an empty eligible list, `isKnownRoute` accepting
 `none` and `1`–`4` and rejecting `5`/`x`, and an assertion that
-`CONVENTION_START` is a valid ISO date `> "2026-06-17"`.
+`CONVENTION_START` is a valid ISO date `> "2026-06-19"`.
 
 ## Step 2 — parseLine stamps route fields
 
@@ -237,14 +237,14 @@ fails naming the divergence.
 ## Risks
 
 - **`CONVENTION_START` must clear every existing route-bearing row.** The
-  CSV already carries `implementations_shipped` rows through 2026-06-17,
-  several without the grammar (e.g. the 2026-06-17 `W25-1810-impl` row and
-  three 2026-06-11/12 storyboard rows). A merge-date value would validate
-  those and break the build. The plan pins `2026-06-18` (strictly after the
-  latest existing row); Step 6 asserts this invariant in a test so a future
-  row backdated before it cannot silently slip the gate. Pilot rows 40–66
-  all predate it: not validated, and excluded from SC7's count, whose
-  follow-up query filters `date >= CONVENTION_START`.
+  live CSV carries non-grammar `implementations_shipped` rows through
+  2026-06-19 (the file accrued sibling-agent rows after this plan was first
+  drafted). A date at or before the latest such row would validate it and
+  fail any `fit-xmr validate` of the live file. The plan pins `2026-06-20`
+  (strictly after the latest existing row); Step 6 asserts this invariant in
+  a test so a future row backdated before it cannot silently slip the gate.
+  Pre-convention rows all predate it: not validated, and excluded from SC7's
+  count, whose follow-up query filters `date >= CONVENTION_START`.
 - **`route_taken=none (…)` on-disk form** (pre-convention row 78) carries no
   `routes_eligible` clause. The two-regex parser (Step 1) parses it to
   `{none, []}` rather than failing, so an `analyze --route none` matches the

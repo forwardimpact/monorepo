@@ -78,6 +78,6 @@ describe("isKnownRoute", () => {
 describe("CONVENTION_START", () => {
   test("is a valid ISO date strictly after the latest pre-convention row", () => {
     assert.match(CONVENTION_START, /^\d{4}-\d{2}-\d{2}$/);
-    assert.ok(CONVENTION_START > "2026-06-17");
+    assert.ok(CONVENTION_START > "2026-06-19");
   });
 });

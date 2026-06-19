@@ -22,15 +22,15 @@ export const ROUTE_NONE = "none";
 /** Metrics whose rows carry route-decision context. */
 export const ROUTE_BEARING_METRICS = ["implementations_shipped"];
 
-// The convention applies to rows the shipped recording surface writes,
-// which are strictly after every route-bearing row that existed when the
-// convention shipped. The binding case is the latest pre-convention
-// `implementations_shipped` rows dated 2026-06-17 that carry no route
-// grammar; pinning a date strictly greater than that keeps the whole
-// pre-convention file valid and makes the forward-only gate impossible to
-// silently disable. A test asserts this stays a valid ISO date >
-// "2026-06-17".
-export const CONVENTION_START = "2026-06-18";
+// Route validation is forward-only: it applies only to rows the shipped
+// recording surface writes, which are strictly after every route-bearing
+// row that existed when the convention shipped. The binding case is the
+// latest pre-convention `implementations_shipped` rows that carry no route
+// grammar; pinning the gate strictly after them keeps the whole
+// pre-convention file valid and makes the gate impossible to silently
+// disable. routes.test.js asserts this stays a valid ISO date after the
+// latest pre-convention row.
+export const CONVENTION_START = "2026-06-20"; // forward-only validation gate
 
 // route_taken is required and parsed independently of routes_eligible so
 // the legacy `route_taken=none (parenthetical)` form — which carries no

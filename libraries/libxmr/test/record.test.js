@@ -277,7 +277,7 @@ describe("fit-xmr record — route-decision context", () => {
     "wiki-root": WIKI_ROOT,
   };
 
-  test("prepends the route grammar to the note (criterion SC1)", () => {
+  test("prepends the route grammar to the note", () => {
     const { result, fs } = run({
       ...base,
       route: "3",
