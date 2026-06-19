@@ -1,3 +1,13 @@
+import {
+  ZERO_USAGE,
+  bucketUsageByTool,
+  carriedPerTurn,
+  computeDivergence,
+  isPreChangeDoc,
+  perMessageUsage,
+  reconcileBucketsToTotals,
+} from "./trace-usage.js";
+
 /**
  * Query engine for structured trace documents produced by TraceCollector.
  *
@@ -468,73 +478,21 @@ export class TraceQuery {
   /**
    * Per-tool token attribution: each `tool_use` block gets an equal share of
    * its host turn's usage; assistant turns with no `tool_use` block contribute
-   * full usage to the `(no-tool)` bucket. `costShare` is total-token
-   * proportional and sums to exactly 1.0 (largest bucket absorbs the residual).
+   * full usage to the `(no-tool)` bucket. Per-bucket sums are scaled onto
+   * `stats().totals` — the authoritative population (result-event sums when the
+   * trace carries them, the per-message fallback otherwise) — so the buckets
+   * answer "of the reported total, what share did each tool drive" rather than
+   * a separate per-turn re-count that drifts from the headline figure. The
+   * largest bucket absorbs the rounding residual on each axis, so the input,
+   * output, and `costShare` columns each sum to the corresponding `totals`
+   * value (and `1.0`) exactly (criterion-6 invariant).
    * @returns {{perTool: Array<{tool: string, turns: number, inputTokens: number, outputTokens: number, costShare: number}>, totals: object}}
    */
   statsByTool() {
-    const NO_TOOL = "(no-tool)";
-    const buckets = new Map();
-    const bucketTurns = new Map();
-
-    const ensure = (name) => {
-      if (!buckets.has(name)) {
-        buckets.set(name, { inputTokens: 0, outputTokens: 0 });
-        bucketTurns.set(name, new Set());
-      }
-      return buckets.get(name);
-    };
-
-    for (const turn of this.turns) {
-      if (turn.role !== "assistant" || !turn.usage) continue;
-      const input = turn.usage.inputTokens ?? 0;
-      const output = turn.usage.outputTokens ?? 0;
-      const toolBlocks = turn.content.filter((b) => b.type === "tool_use");
-
-      if (toolBlocks.length === 0) {
-        const bucket = ensure(NO_TOOL);
-        bucket.inputTokens += input;
-        bucket.outputTokens += output;
-        bucketTurns.get(NO_TOOL).add(turn.index);
-        continue;
-      }
-
-      const shareIn = input / toolBlocks.length;
-      const shareOut = output / toolBlocks.length;
-      for (const block of toolBlocks) {
-        const bucket = ensure(block.name);
-        bucket.inputTokens += shareIn;
-        bucket.outputTokens += shareOut;
-        bucketTurns.get(block.name).add(turn.index);
-      }
-    }
-
-    const totalTokens = [...buckets.values()].reduce(
-      (sum, b) => sum + b.inputTokens + b.outputTokens,
-      0,
-    );
-
-    const perTool = [...buckets.entries()].map(([tool, b]) => ({
-      tool,
-      turns: bucketTurns.get(tool).size,
-      inputTokens: b.inputTokens,
-      outputTokens: b.outputTokens,
-      costShare:
-        totalTokens === 0 ? 0 : (b.inputTokens + b.outputTokens) / totalTokens,
-    }));
-
-    perTool.sort(
-      (x, y) => y.costShare - x.costShare || x.tool.localeCompare(y.tool),
-    );
-
-    // Absorb the float residual into the largest-share bucket so the column
-    // sums to exactly 1.0 (criterion-6 invariant).
-    if (perTool.length > 0) {
-      const sum = perTool.reduce((s, r) => s + r.costShare, 0);
-      perTool[0].costShare += 1 - sum;
-    }
-
-    return { perTool, totals: this.stats().totals };
+    const { buckets, bucketTurns } = bucketUsageByTool(this.turns);
+    const totals = this.stats().totals;
+    const perTool = reconcileBucketsToTotals(buckets, bucketTurns, totals);
+    return { perTool, totals };
   }
 
   /**
@@ -544,149 +502,6 @@ export class TraceQuery {
   statsSummary() {
     return { totals: this.stats().totals };
   }
-}
-
-/** Zero-valued token usage, used as the carried-document fallback. */
-const ZERO_USAGE = {
-  inputTokens: 0,
-  outputTokens: 0,
-  cacheReadInputTokens: 0,
-  cacheCreationInputTokens: 0,
-};
-
-/**
- * Per-stream-event breakdown for a pre-change document, labeled as carried —
- * old documents lack message identity, so rows stay keyed by turn index.
- * @param {object[]} turns
- * @returns {object[]}
- */
-function carriedPerTurn(turns) {
-  const perTurn = [];
-  for (const turn of turns) {
-    if (turn.role !== "assistant" || !turn.usage) continue;
-    perTurn.push({
-      index: turn.index,
-      inputTokens: turn.usage.inputTokens ?? 0,
-      outputTokens: turn.usage.outputTokens ?? 0,
-      cacheReadInputTokens: turn.usage.cacheReadInputTokens ?? 0,
-      cacheCreationInputTokens: turn.usage.cacheCreationInputTokens ?? 0,
-      population: "carried-document-per-turn",
-    });
-  }
-  return perTurn;
-}
-
-/**
- * Whether a structured-document version predates per-message accounting
- * (1.2.0). A trace with no version (collected by this build from NDJSON) is
- * not pre-change. Compares numeric version parts so 1.10.0 reads as post-change.
- * @param {string|undefined|null} version
- * @returns {boolean}
- */
-function isPreChangeDoc(version) {
-  if (typeof version !== "string") return false;
-  const [major = 0, minor = 0] = version
-    .split(".")
-    .map((part) => parseInt(part, 10) || 0);
-  if (major !== 1) return major < 1;
-  // Per-message accounting arrived in 1.2.0; any 1.2.x is post-change.
-  return minor < 2;
-}
-
-/**
- * Account assistant usage once per API message. Turns are grouped by
- * `messageId` (a null id is its own singleton message); per message the
- * field-wise max across its snapshots is taken — order-insensitive, equal to
- * the single value when a message's duplicate snapshots are byte-identical
- * (zero residual against result-event sums), and a floor for output (the
- * largest streaming snapshot, never an overstatement).
- * @param {object[]} turns
- * @returns {{perMessage: object[], totals: object}}
- */
-function perMessageUsage(turns) {
-  const byMessage = new Map();
-  let singletonSeq = 0;
-
-  for (const turn of turns) {
-    if (turn.role !== "assistant" || !turn.usage) continue;
-    const key = turn.messageId ?? `__null__${singletonSeq++}`;
-    accumulateMessage(byMessage, key, turn);
-  }
-
-  const totals = {
-    inputTokens: 0,
-    outputTokens: 0,
-    cacheReadInputTokens: 0,
-    cacheCreationInputTokens: 0,
-  };
-  const perMessage = [];
-  for (const row of byMessage.values()) {
-    totals.inputTokens += row.inputTokens;
-    totals.outputTokens += row.outputTokens;
-    totals.cacheReadInputTokens += row.cacheReadInputTokens;
-    totals.cacheCreationInputTokens += row.cacheCreationInputTokens;
-    perMessage.push({
-      ...row,
-      outputIsStreamingSnapshot: true,
-      population: "api-message",
-    });
-  }
-  return { perMessage, totals };
-}
-
-/**
- * Fold one assistant turn's usage into its message bucket by field-wise max.
- * @param {Map<string, object>} byMessage
- * @param {string} key
- * @param {object} turn
- */
-function accumulateMessage(byMessage, key, turn) {
-  const u = turn.usage;
-  const prev = byMessage.get(key);
-  if (!prev) {
-    byMessage.set(key, {
-      messageId: turn.messageId ?? null,
-      inputTokens: u.inputTokens ?? 0,
-      outputTokens: u.outputTokens ?? 0,
-      cacheReadInputTokens: u.cacheReadInputTokens ?? 0,
-      cacheCreationInputTokens: u.cacheCreationInputTokens ?? 0,
-    });
-    return;
-  }
-  prev.inputTokens = Math.max(prev.inputTokens, u.inputTokens ?? 0);
-  prev.outputTokens = Math.max(prev.outputTokens, u.outputTokens ?? 0);
-  prev.cacheReadInputTokens = Math.max(
-    prev.cacheReadInputTokens,
-    u.cacheReadInputTokens ?? 0,
-  );
-  prev.cacheCreationInputTokens = Math.max(
-    prev.cacheCreationInputTokens,
-    u.cacheCreationInputTokens ?? 0,
-  );
-}
-
-/**
- * Compare per-message sums against the result-event sums on the fields the
- * spec guarantees parity for (input, cacheRead, cacheCreation — never output,
- * which always diverges by mechanism 2). Returns the first divergent field as
- * `{field, perMessageSum, resultEventSum}`, or null when all agree.
- * @param {object} perMessageTotals
- * @param {object} resultEventUsage
- * @returns {object|null}
- */
-function computeDivergence(perMessageTotals, resultEventUsage) {
-  for (const field of [
-    "inputTokens",
-    "cacheReadInputTokens",
-    "cacheCreationInputTokens",
-  ]) {
-    const perMessageSum = perMessageTotals[field] ?? 0;
-    const resultEventSum = resultEventUsage[field] ?? 0;
-    if (perMessageSum !== resultEventSum) {
-      return { field, perMessageSum, resultEventSum };
-    }
-  }
-  return null;
 }
 
 /**

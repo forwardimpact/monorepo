@@ -16,28 +16,15 @@ understanding what an agent did, why, and what happened as a result.
 
 ## When to Use
 
-**Understand what an agent did:**
-
-- Getting an overview of a run — `npx fit-trace overview --file <file>`
-- Walking through the timeline — `npx fit-trace timeline --file <file>`
-- Inspecting token usage and cost — `npx fit-trace stats --file <file>`
-- Pairing tool calls with results — `npx fit-trace tool-calls --file <file>`
-
-**Debug agent failures:**
-
-- Finding errors in tool calls — `npx fit-trace errors --file <file>`
-- Searching for patterns — `npx fit-trace search <file> 'permission denied'`
-- Filtering by tool — `npx fit-trace filter --file <file> --tool <name>`
+- **Understand what an agent did** — `overview`, `timeline`, `stats`,
+  `tool-calls`.
+- **Debug agent failures** — `errors`, `search`, `filter`.
+- **Download traces from CI** — `runs`, then `download <run-id>`.
 
 Cross-trace verbs take their file(s) through `--file` (repeat it or pass a
 quoted glob) and print text by default; add `--format json` for the
 machine-parseable envelope. `tool`, `turn`, `batch`, `search`, and `compare`
 take their file(s) as positionals.
-
-**Download traces from CI:**
-
-- Listing recent workflow runs — `npx fit-trace runs`
-- Downloading a specific run — `npx fit-trace download <run-id>`
 
 ## CLI Reference
 
@@ -105,12 +92,10 @@ glob. With more than one resolved file, each record carries its source
 basename; a single file (or a glob matching one) carries no prefix.
 
 Split modes: `run`, `supervise`, or `facilitate`. Produces files named
-`trace--<case>--<participant>.<role>.ndjson` (e.g.,
-`trace--default--agent.agent.ndjson`,
-`trace--default--facilitator.facilitator.ndjson`,
-`trace--demo--security-engineer.agent.ndjson`). Pass `--case <id>` to embed a
-case identifier (defaults to `default`) and `--output-dir` to control where
-files are written.
+`trace--<case>--<participant>.<role>.ndjson` (e.g.
+`trace--default--agent.agent.ndjson`). Pass `--case <id>` to embed a case
+identifier (defaults to `default`) and `--output-dir` to control where files
+are written.
 
 ### Global Options
 
@@ -177,8 +162,7 @@ related codes into categories by asking: what caused this, what happened, what
 was the context, how did the agent react, and what were the consequences?
 
 Look for: causal chains, repeated patterns, contrasts (same operation succeeded
-in one context but failed in another), and temporal patterns (early vs. late
-behavior).
+in one context but failed in another), and temporal patterns (early vs. late).
 
 The strongest findings are **grounded** (traceable to specific turns),
 **testable** (future traces can confirm or refute them), and **actionable**
@@ -186,12 +170,9 @@ The strongest findings are **grounded** (traceable to specific turns),
 
 ### What to Measure
 
-- **Token usage** — `stats` totals are the sum over **all** result events in
-  the trace (a multi-invocation trace carries several; reading only the last one
-  undercounts session cost). The `perTurn` breakdown is one row per API message,
-  not per stream event, and its output figure is a streaming-snapshot lower
-  bound. Each total names its population; a trace with no result event reports
-  per-message totals with cost and duration marked unavailable.
+- **Token usage** — `stats` totals sum over **all** result events (the last one
+  alone undercounts). Each total names its population; a trace with no result
+  event falls back to per-message totals (cost and duration unavailable).
 - **Retry counts** — search for repeated identical tool calls.
 - **Wasted turns** — turns that produced no useful progress.
 - **Error recovery** — did the agent diagnose and adapt, or retry blindly?

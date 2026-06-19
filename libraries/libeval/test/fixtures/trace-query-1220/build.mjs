@@ -1,11 +1,11 @@
 /**
- * Retained baseline-fixture builder for spec 1220.
+ * Retained baseline-fixture builder for the `fit-trace` query verbs.
  *
  * Captures the JSON output of each affected `fit-trace` verb's current query
  * code path over `test/fixtures/trace-1220.ndjson`, so the structural-
  * equivalence test (`test/trace-1220-equivalence.test.js`) binds the
- * post-change `--format json` output against a frozen reference rather than a
- * runtime re-derivation (spec 1220 Risks row 1b).
+ * `--format json` output against a frozen reference rather than re-deriving it
+ * at runtime — the binding must be a fixed point, not the code grading itself.
  *
  * This is NOT a throwaway: re-run it after a legitimate trace-schema change to
  * regenerate the frozen reference, then `biome format --write` the output so

@@ -2,6 +2,7 @@
   "index": 3,
   "role": "assistant",
   "source": null,
+  "messageId": null,
   "content": [
     {
       "type": "tool_use",

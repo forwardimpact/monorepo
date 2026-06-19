@@ -5,7 +5,7 @@ here.
 
 ## Unreleased
 
-### fit-trace browse-mode analysis (spec 1220)
+### fit-trace browse-mode analysis
 
 Six user-visible changes that let the documented grounded-theory analysis
 method run without Python wrappers:

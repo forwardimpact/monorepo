@@ -3,6 +3,7 @@
     "index": 3,
     "role": "assistant",
     "source": null,
+    "messageId": null,
     "content": [
       {
         "type": "tool_use",
@@ -32,6 +33,7 @@
     "index": 11,
     "role": "assistant",
     "source": null,
+    "messageId": null,
     "content": [
       {
         "type": "tool_use",
@@ -61,6 +63,7 @@
     "index": 13,
     "role": "assistant",
     "source": null,
+    "messageId": null,
     "content": [
       {
         "type": "tool_use",

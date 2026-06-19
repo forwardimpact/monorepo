@@ -29,6 +29,7 @@
     "index": 2,
     "role": "assistant",
     "source": null,
+    "messageId": null,
     "content": [
       {
         "type": "text",

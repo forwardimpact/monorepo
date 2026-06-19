@@ -169,9 +169,10 @@ function multiPrefix(record, { multi }) {
 /**
  * Default renderer for every other renderable verb: one record per block,
  * fields rendered as `key: value` lines (no JSON braces or quotes, so the
- * output does not parse as JSON — spec 1220 criterion 5). Nested values are
- * collapsed to a single grep-friendly line. Multi-file output separates
- * source groups with `# <source>` headers (`renderBlocks` convention).
+ * default output is grep/awk-friendly and does not parse as JSON). Nested
+ * values are collapsed to a single grep-friendly line. Multi-file output
+ * separates source groups with `# <source>` headers (`renderBlocks`
+ * convention).
  * @param {object[]|object} result
  * @param {{multi: boolean}} opts
  * @returns {string}

@@ -434,7 +434,7 @@ export async function runFilterCommand(ctx) {
   return { ok: true };
 }
 
-// --- Aggregator verbs (spec 1220 changes 1-2 + compare) ---
+// --- Aggregator verbs (tool-calls, commands, paths, compare) ---
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runToolCallsCommand(ctx) {

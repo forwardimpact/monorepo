@@ -17,6 +17,11 @@
     "modelUsage": null
   },
   "turnCount": 15,
+  "resultEventTurns": 7,
+  "turnPopulations": {
+    "turnCount": "rendered-trace-turns",
+    "resultEventTurns": "result-event-turns"
+  },
   "tools": [
     {
       "tool": "Bash",

@@ -80,7 +80,7 @@ async function assertEquivalentArgs(handler, name, args) {
   assert.deepStrictEqual(actual, expected);
 }
 
-describe("spec 1220 structural-equivalence", () => {
+describe("fit-trace --format json structural-equivalence", () => {
   test("overview", () => assertEquivalentMulti(runOverviewCommand, "overview"));
   test("head (--lines 10)", () =>
     assertEquivalentMulti(runHeadCommand, "head", { lines: "10" }));
