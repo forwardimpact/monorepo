@@ -128,8 +128,14 @@ Path B insulates us from future churn in either runner's mock API.
 
 - Migrating away from `node:test`'s `describe`/`test`/`beforeEach`/etc. — bun
   supports these identically; no change needed.
-- Adding `bun:test`-specific features (snapshot testing, etc.) — out of scope;
-  this spec is purely about the runner switch.
+- Adding `bun:test`-specific features to `libmock`/`libpack` **source**
+  (snapshot testing, fake timers, etc.) — out of scope. The universal
+  test-surface subset (per spec 1410 allowlist) is permitted in `*.test.js`
+  files under the directory set named in
+  [spec 1410 § Scope](../1410-bun-test-allowlist-outside-libpack/spec.md).
+  Non-test source files under the same set must not import from `bun:test` —
+  see spec 1410 § Scope.
+  *[amended by spec 1410](../1410-bun-test-allowlist-outside-libpack/spec.md)*
 
 ## Risks
 
