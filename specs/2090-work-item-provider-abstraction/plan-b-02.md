@@ -1,7 +1,7 @@
 # Plan 2090-b, Part 02: Re-point the coordination references
 
 Re-express the three shared coordination references and the session
-issue-lifecycle recipes over the abstract operations, moving their forge shapes
+issue-lifecycle recipes over the abstract operations, moving their tracker shapes
 into the matrix. Depends on Part 01. Conventions: [plan-b.md](plan-b.md).
 
 Libraries used: none.

@@ -9,7 +9,7 @@ the rejected alternative. Spec, criteria, and exclusions: [spec.md](spec.md).
 ## Approach
 
 Build the tracker matrix as one new agent reference, re-point every in-scope
-forge call-site at the abstract operation it now names, wire `--work-tracker`
+tracker call-site at the abstract operation it now names, wire `--work-tracker`
 into the libeval harness the way `--agent-profile` is already wired, and add an
 offline coordination benchmark task that the harness drives under the filesystem
 tracker. The publish workflow, genericity gate, and `self-improvement.md`
@@ -30,7 +30,7 @@ verifies they stay green rather than reapplying them.
 ### Scope boundary (the criterion-2 set)
 
 Criterion 2 is a mechanical grep. Parts 01–03 are correct only against one fixed
-definition of "commands that act on a forge's work item". This table is that
+definition of "commands that act on a tracker's work item". This table is that
 definition; every part references it rather than re-deriving it.
 
 | Class | In scope — relocate to matrix github column | Out of scope — stays in place |
@@ -59,7 +59,7 @@ The matrix (Part 01) defines these; every other part may only use these names.
 `label`, `link`, `open-change`, `update-change`, `gate`, `merge-change`, `close`,
 `create-discussion`, `comment-discussion`. `triage` = label + comment + close;
 `patch` = open-change + merge-change (compositions, not operations). `read` and
-`list` cover the metric-grade forge queries (`gh pr list`, `gh pr view/diff`,
+`list` cover the metric-grade tracker queries (`gh pr list`, `gh pr view/diff`,
 `gh issue view`); their rich github realizations live in the matrix and degrade
 on filesystem to front-matter globs.
 

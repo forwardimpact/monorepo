@@ -14,7 +14,7 @@ flowchart TD
   S[kata-* skill / agent reference<br/>names an abstract operation] --> SEL{active tracker<br/>KATA_WORK_TRACKER}
   SEL -->|github default| GH[github column<br/>gh CLI shapes]
   SEL -->|filesystem| FS[filesystem column<br/>file-write recipes]
-  GH --> FORGE[(GitHub forge<br/>issues, PRs, discussions)]
+  GH --> REMOTE[(GitHub<br/>issues, PRs, discussions)]
   FS --> TREE[(working tree<br/>.tracker/ files)]
   MATRIX[tracker matrix<br/>operations × trackers] -.realizes.-> GH
   MATRIX -.realizes.-> FS
@@ -25,15 +25,15 @@ flowchart TD
 A skill names a tracker-independent operation. The active tracker, chosen by
 one environment variable, selects which matrix column realizes it: the `github`
 column (existing `gh` shapes) or the `filesystem` column (file-write recipes
-against `.tracker/`). The matrix is the single home for any forge-specific command.
+against `.tracker/`). The matrix is the single home for any tracker-specific command.
 
 ## Components
 
 | Component | Home | Role |
 | --- | --- | --- |
 | **Work-item model** | new `kata-coordinate` skill | Defines issue, change, and the shared envelope plus the abstract operation vocabulary. |
-| **Tracker matrix** | a reference in `kata-coordinate` | Maps each operation to its `github` and `filesystem` realization; states per-tracker degradation and the selection rule. The only place forge commands appear. |
-| **github column** | matrix | Absorbs every forge command now outside it — the `gh` shapes in `coordination-protocol.md`, `issue-lifecycle.md`, `approval-signals.md`, and the kata-* skills, plus the remote-git operations (branch, push) the spec names — into one column (the spec's § Problem grep set bounds the file set). |
+| **Tracker matrix** | a reference in `kata-coordinate` | Maps each operation to its `github` and `filesystem` realization; states per-tracker degradation and the selection rule. The only place tracker commands appear. |
+| **github column** | matrix | Absorbs every tracker command now outside it — the `gh` shapes in `coordination-protocol.md`, `issue-lifecycle.md`, `approval-signals.md`, and the kata-* skills, plus the remote-git operations (branch, push) the spec names — into one column (the spec's § Problem grep set bounds the file set). |
 | **filesystem column** | matrix | New. File-write recipes over the `.tracker/` layout below. |
 | **Re-pointed references** | `work-definition.md`, `coordination-protocol.md`, `approval-signals.md` | Re-expressed over operations: `work-definition.md`'s "Created via" and `coordination-protocol.md`'s routing name operations and move their `gh` shapes to the matrix; `approval-signals.md` generalizes its signal vocabulary, its one `gh` shape (`gh pr review --approve`) moving to the matrix github column. |
 | **Re-pointed skills** | the kata-* skills that call `gh` | Call sites replaced by an operation name + matrix link. |
@@ -138,7 +138,7 @@ filesystem the `approval` field records the granting signal (an approval marker,
 optionally the approver); trust that the setter is authorized is out-of-band —
 the actor that runs `gate` is trusted by construction (the benchmark harness or
 a human). Emulating contributor-list trust offline is rejected as unverifiable
-without the forge.
+without the tracker.
 
 ## Benchmark coordination task
 
@@ -156,7 +156,7 @@ tasks use.
 | Spec criterion | Satisfied by |
 | --- | --- |
 | 1 model + matrix + selection | Work-item model, tracker matrix, env-var selection |
-| 2 forge commands only in github column | Matrix is the single command home; skills/references re-pointed |
+| 2 tracker commands only in github column | Matrix is the single command home; skills/references re-pointed |
 | 3 three references over operations | Re-pointed references component |
 | 4 benchmark runs offline | Filesystem tracker needs no network; task exports it |
 | 5 tracker-independent wording | Skills name operations; branching lives only in the matrix |
