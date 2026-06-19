@@ -10,10 +10,16 @@ import { WIKI, PARENT, HEALTHY_ANCESTRY, make } from "./wiki-sync-harness.js";
 
 describe("WikiSync ancestry guard", () => {
   // A dirty, ahead tree so the guard, not the no-op gate, decides the outcome.
+  // `isMidMerge: false` so the mid-merge guard does not short-circuit before the
+  // ancestry guard under test.
   const DIRTY_AHEAD = {
+    isMidMerge: false,
     status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
     rebase: { exitCode: 0, stderr: "" },
     revListCount: 1,
+    // Clean introduced diff so the publish-marker guard (Guard 3) lets the
+    // allow-path tests reach the push the ancestry guard is gating.
+    introducedByFile: new Map(),
   };
 
   function assertNoWrite(git) {
@@ -75,6 +81,7 @@ describe("WikiSync ancestry guard", () => {
     // second #assertPublishable, before the push, can catch this.
     const { git, wikiSync } = make({
       responses: {
+        isMidMerge: false,
         status: { stdout: "", stderr: "", exitCode: 0 },
         revListCount: 1,
         headBranch: "master",
