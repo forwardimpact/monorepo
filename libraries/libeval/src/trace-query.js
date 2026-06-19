@@ -1,3 +1,13 @@
+import {
+  ZERO_USAGE,
+  bucketUsageByTool,
+  carriedPerTurn,
+  computeDivergence,
+  isPreChangeDoc,
+  perMessageUsage,
+  reconcileBucketsToTotals,
+} from "./trace-usage.js";
+
 /**
  * Query engine for structured trace documents produced by TraceCollector.
  *
@@ -367,149 +377,131 @@ export class TraceQuery {
       divergence: null,
     };
   }
-}
 
-/** Zero-valued token usage, used as the carried-document fallback. */
-const ZERO_USAGE = {
-  inputTokens: 0,
-  outputTokens: 0,
-  cacheReadInputTokens: 0,
-  cacheCreationInputTokens: 0,
-};
-
-/**
- * Per-stream-event breakdown for a pre-change document, labeled as carried —
- * old documents lack message identity, so rows stay keyed by turn index.
- * @param {object[]} turns
- * @returns {object[]}
- */
-function carriedPerTurn(turns) {
-  const perTurn = [];
-  for (const turn of turns) {
-    if (turn.role !== "assistant" || !turn.usage) continue;
-    perTurn.push({
-      index: turn.index,
-      inputTokens: turn.usage.inputTokens ?? 0,
-      outputTokens: turn.usage.outputTokens ?? 0,
-      cacheReadInputTokens: turn.usage.cacheReadInputTokens ?? 0,
-      cacheCreationInputTokens: turn.usage.cacheCreationInputTokens ?? 0,
-      population: "carried-document-per-turn",
-    });
-  }
-  return perTurn;
-}
-
-/**
- * Whether a structured-document version predates per-message accounting
- * (1.2.0). A trace with no version (collected by this build from NDJSON) is
- * not pre-change. Compares numeric version parts so 1.10.0 reads as post-change.
- * @param {string|undefined|null} version
- * @returns {boolean}
- */
-function isPreChangeDoc(version) {
-  if (typeof version !== "string") return false;
-  const [major = 0, minor = 0] = version
-    .split(".")
-    .map((part) => parseInt(part, 10) || 0);
-  if (major !== 1) return major < 1;
-  // Per-message accounting arrived in 1.2.0; any 1.2.x is post-change.
-  return minor < 2;
-}
-
-/**
- * Account assistant usage once per API message. Turns are grouped by
- * `messageId` (a null id is its own singleton message); per message the
- * field-wise max across its snapshots is taken — order-insensitive, equal to
- * the single value when a message's duplicate snapshots are byte-identical
- * (zero residual against result-event sums), and a floor for output (the
- * largest streaming snapshot, never an overstatement).
- * @param {object[]} turns
- * @returns {{perMessage: object[], totals: object}}
- */
-function perMessageUsage(turns) {
-  const byMessage = new Map();
-  let singletonSeq = 0;
-
-  for (const turn of turns) {
-    if (turn.role !== "assistant" || !turn.usage) continue;
-    const key = turn.messageId ?? `__null__${singletonSeq++}`;
-    accumulateMessage(byMessage, key, turn);
-  }
-
-  const totals = {
-    inputTokens: 0,
-    outputTokens: 0,
-    cacheReadInputTokens: 0,
-    cacheCreationInputTokens: 0,
-  };
-  const perMessage = [];
-  for (const row of byMessage.values()) {
-    totals.inputTokens += row.inputTokens;
-    totals.outputTokens += row.outputTokens;
-    totals.cacheReadInputTokens += row.cacheReadInputTokens;
-    totals.cacheCreationInputTokens += row.cacheCreationInputTokens;
-    perMessage.push({
-      ...row,
-      outputIsStreamingSnapshot: true,
-      population: "api-message",
-    });
-  }
-  return { perMessage, totals };
-}
-
-/**
- * Fold one assistant turn's usage into its message bucket by field-wise max.
- * @param {Map<string, object>} byMessage
- * @param {string} key
- * @param {object} turn
- */
-function accumulateMessage(byMessage, key, turn) {
-  const u = turn.usage;
-  const prev = byMessage.get(key);
-  if (!prev) {
-    byMessage.set(key, {
-      messageId: turn.messageId ?? null,
-      inputTokens: u.inputTokens ?? 0,
-      outputTokens: u.outputTokens ?? 0,
-      cacheReadInputTokens: u.cacheReadInputTokens ?? 0,
-      cacheCreationInputTokens: u.cacheCreationInputTokens ?? 0,
-    });
-    return;
-  }
-  prev.inputTokens = Math.max(prev.inputTokens, u.inputTokens ?? 0);
-  prev.outputTokens = Math.max(prev.outputTokens, u.outputTokens ?? 0);
-  prev.cacheReadInputTokens = Math.max(
-    prev.cacheReadInputTokens,
-    u.cacheReadInputTokens ?? 0,
-  );
-  prev.cacheCreationInputTokens = Math.max(
-    prev.cacheCreationInputTokens,
-    u.cacheCreationInputTokens ?? 0,
-  );
-}
-
-/**
- * Compare per-message sums against the result-event sums on the fields the
- * spec guarantees parity for (input, cacheRead, cacheCreation — never output,
- * which always diverges by mechanism 2). Returns the first divergent field as
- * `{field, perMessageSum, resultEventSum}`, or null when all agree.
- * @param {object} perMessageTotals
- * @param {object} resultEventUsage
- * @returns {object|null}
- */
-function computeDivergence(perMessageTotals, resultEventUsage) {
-  for (const field of [
-    "inputTokens",
-    "cacheReadInputTokens",
-    "cacheCreationInputTokens",
-  ]) {
-    const perMessageSum = perMessageTotals[field] ?? 0;
-    const resultEventSum = resultEventUsage[field] ?? 0;
-    if (perMessageSum !== resultEventSum) {
-      return { field, perMessageSum, resultEventSum };
+  /**
+   * One record per `tool_use` block, each paired with its `tool_result`
+   * (joined by `toolUseId`) or `result: null` for orphaned calls.
+   * @returns {Array<{turnIndex: number, name: string, toolUseId: string, input: object, result: {content: *, isError: boolean}|null}>}
+   */
+  toolCalls() {
+    const blocks = collectToolUseBlocks(this.turns);
+    const results = new Map();
+    for (const turn of this.turns) {
+      if (turn.role === "tool_result" && turn.toolUseId) {
+        results.set(turn.toolUseId, {
+          content: turn.content ?? null,
+          isError: turn.isError ?? false,
+        });
+      }
     }
+    return [...blocks.entries()].map(([toolUseId, b]) => ({
+      turnIndex: b.turnIndex,
+      name: b.name,
+      toolUseId,
+      input: b.input,
+      result: results.get(toolUseId) ?? null,
+    }));
   }
-  return null;
+
+  /**
+   * One record per `Bash` `tool_use` block, carrying its command text.
+   * @param {string} [re] - Optional regex source tested against `input.command`.
+   * @returns {Array<{turnIndex: number, toolUseId: string, command: string}>}
+   */
+  commands(re) {
+    const filter = re === undefined ? null : new RegExp(re);
+    const out = [];
+    for (const [toolUseId, b] of collectToolUseBlocks(this.turns, "Bash")) {
+      const command = b.input?.command ?? "";
+      if (filter && !filter.test(command)) continue;
+      out.push({ turnIndex: b.turnIndex, toolUseId, command });
+    }
+    return out;
+  }
+
+  /**
+   * Distinct `file_path` arguments across `Read`/`Edit`/`Write` tool calls,
+   * frequency-sorted (count desc, path asc tiebreak).
+   * @param {string} [prefix] - Optional `startsWith` filter.
+   * @returns {Array<{path: string, count: number}>}
+   */
+  paths(prefix) {
+    return [...collectFilePaths(this.turns).entries()]
+      .filter(([path]) => prefix === undefined || path.startsWith(prefix))
+      .map(([path, count]) => ({ path, count }))
+      .sort((a, b) => b.count - a.count || a.path.localeCompare(b.path));
+  }
+
+  /**
+   * Side-by-side comparison of this trace against another peer `TraceQuery`.
+   * Identity (case name, participant) comes from the caller — the trace
+   * carries no filename.
+   * @param {TraceQuery} other
+   * @param {{aIdentity: {caseName: string, participant: string|null}, bIdentity: {caseName: string, participant: string|null}}} identities
+   * @returns {{a: object, b: object, toolDelta: Array, pathDelta: Array}}
+   */
+  compare(other, { aIdentity, bIdentity } = {}) {
+    const a = sideSummary(this, aIdentity);
+    const b = sideSummary(other, bIdentity);
+
+    const toolNames = [
+      ...new Set([...a.toolFreq.keys(), ...b.toolFreq.keys()]),
+    ];
+    const toolDelta = toolNames
+      .map((tool) => {
+        const av = a.toolFreq.get(tool) ?? 0;
+        const bv = b.toolFreq.get(tool) ?? 0;
+        return { tool, a: av, b: bv, diff: bv - av };
+      })
+      .sort(
+        (x, y) =>
+          Math.abs(y.diff) - Math.abs(x.diff) || x.tool.localeCompare(y.tool),
+      );
+
+    const pathNames = [
+      ...new Set([...a.pathFreq.keys(), ...b.pathFreq.keys()]),
+    ];
+    const pathDelta = pathNames
+      .map((path) => {
+        const av = a.pathFreq.get(path) ?? 0;
+        const bv = b.pathFreq.get(path) ?? 0;
+        return { path, a: av, b: bv, diff: bv - av };
+      })
+      .sort(
+        (x, y) =>
+          Math.abs(y.diff) - Math.abs(x.diff) || x.path.localeCompare(y.path),
+      );
+
+    return { a: a.surface, b: b.surface, toolDelta, pathDelta };
+  }
+
+  /**
+   * Per-tool token attribution: each `tool_use` block gets an equal share of
+   * its host turn's usage; assistant turns with no `tool_use` block contribute
+   * full usage to the `(no-tool)` bucket. Per-bucket sums are scaled onto
+   * `stats().totals` — the authoritative population (result-event sums when the
+   * trace carries them, the per-message fallback otherwise) — so the buckets
+   * answer "of the reported total, what share did each tool drive" rather than
+   * a separate per-turn re-count that drifts from the headline figure. The
+   * largest bucket absorbs the rounding residual on each axis, so the input,
+   * output, and `costShare` columns each sum to the corresponding `totals`
+   * value (and `1.0`) exactly (criterion-6 invariant).
+   * @returns {{perTool: Array<{tool: string, turns: number, inputTokens: number, outputTokens: number, costShare: number}>, totals: object}}
+   */
+  statsByTool() {
+    const { buckets, bucketTurns } = bucketUsageByTool(this.turns);
+    const totals = this.stats().totals;
+    const perTool = reconcileBucketsToTotals(buckets, bucketTurns, totals);
+    return { perTool, totals };
+  }
+
+  /**
+   * Totals-only view — `stats().totals` with no per-turn array.
+   * @returns {{totals: object}}
+   */
+  statsSummary() {
+    return { totals: this.stats().totals };
+  }
 }
 
 /**
@@ -545,22 +537,99 @@ function matchesToolName(turn, toolName) {
 }
 
 /**
+ * Collect every assistant `tool_use` block keyed by `toolUseId`, optionally
+ * filtered by tool name. The shared join-key source feeding `toolCalls()`,
+ * `commands()`, and `collectToolUseIds()`. Insertion order follows turn order.
+ * @param {object[]} turns
+ * @param {string} [name] - Optional tool-name filter.
+ * @returns {Map<string, {turnIndex: number, name: string, input: object}>}
+ */
+function collectToolUseBlocks(turns, name) {
+  const blocks = new Map();
+  for (const turn of turns) {
+    if (turn.role !== "assistant") continue;
+    for (const b of turn.content) {
+      if (b.type !== "tool_use" || !b.toolUseId) continue;
+      if (name !== undefined && b.name !== name) continue;
+      blocks.set(b.toolUseId, {
+        turnIndex: turn.index,
+        name: b.name,
+        input: b.input,
+      });
+    }
+  }
+  return blocks;
+}
+
+/**
  * Collect all toolUseIds for a given tool name from assistant turns.
  * @param {object[]} turns
  * @param {string} name
  * @returns {Set<string>}
  */
 function collectToolUseIds(turns, name) {
-  const ids = new Set();
+  return new Set(collectToolUseBlocks(turns, name).keys());
+}
+
+/** Tool names in `Read`/`Edit`/`Write` that carry a `file_path` argument. */
+const PATH_TOOLS = new Set(["Read", "Edit", "Write"]);
+
+/**
+ * Frequency map of distinct `file_path` arguments across `Read`/`Edit`/`Write`
+ * tool calls, in first-seen insertion order.
+ * @param {object[]} turns
+ * @returns {Map<string, number>}
+ */
+function collectFilePaths(turns) {
+  const counts = new Map();
   for (const turn of turns) {
     if (turn.role !== "assistant") continue;
-    for (const b of turn.content) {
-      if (b.type === "tool_use" && b.name === name && b.toolUseId) {
-        ids.add(b.toolUseId);
-      }
+    for (const block of turn.content) {
+      if (block.type !== "tool_use" || !PATH_TOOLS.has(block.name)) continue;
+      const p = block.input?.file_path;
+      if (typeof p !== "string") continue;
+      counts.set(p, (counts.get(p) ?? 0) + 1);
     }
   }
-  return ids;
+  return counts;
+}
+
+/**
+ * Build the per-side comparison surface plus the tool/path frequency maps
+ * the delta computation consumes. Empty traces emit a `(empty)` marker.
+ * @param {TraceQuery} query
+ * @param {{caseName: string, participant: string|null}} [identity]
+ * @returns {{surface: object, toolFreq: Map<string, number>, pathFreq: Map<string, number>}}
+ */
+function sideSummary(
+  query,
+  identity = { caseName: "(unknown)", participant: null },
+) {
+  const toolFreq = new Map(query.toolFrequency().map((t) => [t.tool, t.count]));
+  const pathFreq = collectFilePaths(query.turns);
+
+  const isEmpty = query.turns.length === 0;
+  const metadata = {
+    caseName: identity.caseName,
+    participant: identity.participant ?? null,
+  };
+  if (isEmpty) metadata.marker = "(empty)";
+
+  const tools = [...toolFreq.keys()].sort();
+  const paths = [...pathFreq.keys()].sort();
+
+  return {
+    surface: {
+      metadata,
+      turnCount: query.turns.length,
+      tools,
+      paths,
+      pathCount: paths.length,
+      cost: query.stats().totals.totalCostUsd,
+    },
+    toolFreq,
+    pathFreq,
+  };
 }
 
 /**

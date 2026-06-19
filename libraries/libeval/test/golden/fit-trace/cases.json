@@ -16,14 +16,14 @@
   },
   {
     "name": "count",
-    "args": ["count", "test/golden/fit-trace/trace.ndjson"],
+    "args": ["count", "--file", "test/golden/fit-trace/trace.ndjson"],
     "exitCode": 0,
     "stdoutFile": "count.stdout.txt",
     "stderrFile": "count.stderr.txt"
   },
   {
     "name": "timeline",
-    "args": ["timeline", "test/golden/fit-trace/trace.ndjson"],
+    "args": ["timeline", "--file", "test/golden/fit-trace/trace.ndjson"],
     "exitCode": 0,
     "stdoutFile": "timeline.stdout.txt",
     "stderrFile": "timeline.stderr.txt"

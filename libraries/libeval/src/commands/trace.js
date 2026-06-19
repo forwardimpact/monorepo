@@ -1,9 +1,20 @@
-import { join, dirname } from "node:path";
+import { join, dirname, basename } from "node:path";
 import { isoTimestamp } from "@forwardimpact/libutil";
 import { createTraceCollector, sumTraceCost } from "@forwardimpact/libeval";
 import { createTraceQuery } from "../trace-query.js";
 import { createTraceGitHub } from "../trace-github.js";
 import { stripSignatures } from "../signature-filter.js";
+import { runOver, aggregate, compareTwo } from "../trace-multi.js";
+import {
+  renderToolCalls,
+  renderCommands,
+  renderPaths,
+  renderCompare,
+  renderStatsByTool,
+  renderStatsSummary,
+  renderSearch,
+  renderDefault,
+} from "../trace-render.js";
 
 // Every handler receives a libcli `InvocationContext`:
 //   ctx.options — parsed flag values (`cli.parse().values`)
@@ -11,6 +22,58 @@ import { stripSignatures } from "../signature-filter.js";
 //   ctx.deps    — host-injected collaborators: `{ runtime, config }`
 // Handlers read/write the filesystem and stdout exclusively through
 // `ctx.deps.runtime` and return `{ ok: true }` on success.
+
+/** Characters whose presence in a `--file` value marks it as a glob. */
+const GLOB_CHARS = /[*?[\]{}]/;
+
+/**
+ * Resolve the cross-trace `--file` option (`ctx.options.file`) into a sorted
+ * flat list of file paths. A literal path passes through; a value carrying
+ * glob metacharacters expands via `runtime.fsSync.globSync`. The literal-path
+ * fast path means the common single-file and shell-pre-expanded cases never
+ * touch `globSync`.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {string[]}
+ */
+function resolveFiles(runtime, ctx) {
+  const raw = ctx.options.file;
+  const values = raw === undefined ? [] : Array.isArray(raw) ? raw : [raw];
+  const out = [];
+  for (const value of values) {
+    if (GLOB_CHARS.test(value)) {
+      out.push(...runtime.fsSync.globSync(value));
+    } else {
+      out.push(value);
+    }
+  }
+  return out.sort();
+}
+
+/**
+ * Emit a query result for a cross-trace verb: under `--format json` write the
+ * JSON payload (single-object verbs unwrap when single-file so the envelope
+ * deep-equals today's output); otherwise render text to stdout. Source
+ * attribution is the renderer's job, gated by `multi`.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @param {object|object[]} result
+ * @param {Function} renderer
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @param {boolean} multi
+ * @param {boolean} [unwrap=false] - Single-object verb wrapped in a one-element array.
+ */
+function emit(runtime, result, renderer, ctx, multi, unwrap = false) {
+  if (ctx.options.format === "json") {
+    const payload = unwrap && !multi ? result[0] : result;
+    writeJSON(runtime, payload, ctx.options);
+    return;
+  }
+  const text = renderer(result, {
+    multi,
+    signatures: !!ctx.options.signatures,
+  });
+  runtime.proc.stdout.write(text + "\n");
+}
 
 // --- GitHub commands ---
 
@@ -94,49 +157,78 @@ export async function runDownloadCommand(ctx) {
 
 // --- Query commands ---
 
+/**
+ * Build the injected loader the orchestrator uses (wires the runtime IO seam).
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @returns {(file: string) => import("../trace-query.js").TraceQuery}
+ */
+function loader(runtime) {
+  return (file) => loadTrace(runtime, file);
+}
+
+/** No-files error envelope for a cross-trace verb. */
+function noFiles(verb) {
+  return { ok: false, code: 1, error: `${verb}: no files (use --file)` };
+}
+
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runOverviewCommand(ctx) {
   const { runtime } = ctx.deps;
-  writeJSON(runtime, loadTrace(runtime, ctx.args.file).overview(), ctx.options);
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("overview");
+  const result = runOver(files, (tq) => [tq.overview()], loader(runtime));
+  emit(runtime, result, renderDefault, ctx, files.length > 1, true);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runCountCommand(ctx) {
   const { runtime } = ctx.deps;
-  runtime.proc.stdout.write(
-    String(loadTrace(runtime, ctx.args.file).count()) + "\n",
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("count");
+  const multi = files.length > 1;
+  const result = runOver(
+    files,
+    (tq) => [{ count: tq.count() }],
+    loader(runtime),
   );
+  for (const r of result) {
+    const prefix = multi && r.source ? `${r.source}:` : "";
+    runtime.proc.stdout.write(`${prefix}${r.count}\n`);
+  }
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runBatchCommand(ctx) {
   const { runtime } = ctx.deps;
-  writeJSON(
-    runtime,
-    loadTrace(runtime, ctx.args.file).batch(
-      parseInt(ctx.args.from, 10),
-      parseInt(ctx.args.to, 10),
-    ),
-    ctx.options,
+  const result = loadTrace(runtime, ctx.args.file).batch(
+    parseInt(ctx.args.from, 10),
+    parseInt(ctx.args.to, 10),
   );
+  emit(runtime, result, renderDefault, ctx, false);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runHeadCommand(ctx) {
   const { runtime } = ctx.deps;
-  const n = ctx.args.n ? parseInt(ctx.args.n, 10) : 10;
-  writeJSON(runtime, loadTrace(runtime, ctx.args.file).head(n), ctx.options);
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("head");
+  const n = ctx.options.lines ? parseInt(ctx.options.lines, 10) : 10;
+  const result = runOver(files, (tq) => tq.head(n), loader(runtime));
+  emit(runtime, result, renderDefault, ctx, files.length > 1);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runTailCommand(ctx) {
   const { runtime } = ctx.deps;
-  const n = ctx.args.n ? parseInt(ctx.args.n, 10) : 10;
-  writeJSON(runtime, loadTrace(runtime, ctx.args.file).tail(n), ctx.options);
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("tail");
+  const n = ctx.options.lines ? parseInt(ctx.options.lines, 10) : 10;
+  const result = runOver(files, (tq) => tq.tail(n), loader(runtime));
+  emit(runtime, result, renderDefault, ctx, files.length > 1);
   return { ok: true };
 }
 
@@ -146,72 +238,120 @@ export async function runSearchCommand(ctx) {
   const limit = ctx.options.limit ? parseInt(ctx.options.limit, 10) : 50;
   const context = ctx.options.context ? parseInt(ctx.options.context, 10) : 0;
   const full = ctx.options.full ?? false;
-  writeJSON(
-    runtime,
-    loadTrace(runtime, ctx.args.file).search(ctx.args.pattern, {
-      limit,
-      context,
-      full,
-    }),
-    ctx.options,
-  );
+  const result = loadTrace(runtime, ctx.args.file).search(ctx.args.pattern, {
+    limit,
+    context,
+    full,
+  });
+  emit(runtime, result, renderSearch, ctx, false);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runToolsCommand(ctx) {
   const { runtime } = ctx.deps;
-  writeJSON(
-    runtime,
-    loadTrace(runtime, ctx.args.file).toolFrequency(),
-    ctx.options,
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("tools");
+  const result = aggregate(
+    files,
+    (tq) => tq.toolFrequency(),
+    (r) => r.tool,
+    loader(runtime),
   );
+  emit(runtime, result, renderDefault, ctx, files.length > 1);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runToolCommand(ctx) {
   const { runtime } = ctx.deps;
-  writeJSON(
-    runtime,
-    loadTrace(runtime, ctx.args.file).tool(ctx.args.name),
-    ctx.options,
-  );
+  const result = loadTrace(runtime, ctx.args.file).tool(ctx.args.name);
+  emit(runtime, result, renderDefault, ctx, false);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runErrorsCommand(ctx) {
   const { runtime } = ctx.deps;
-  writeJSON(runtime, loadTrace(runtime, ctx.args.file).errors(), ctx.options);
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("errors");
+  const result = runOver(files, (tq) => tq.errors(), loader(runtime));
+  emit(runtime, result, renderDefault, ctx, files.length > 1);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runReasoningCommand(ctx) {
   const { runtime } = ctx.deps;
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("reasoning");
   const from = ctx.options.from ? parseInt(ctx.options.from, 10) : undefined;
   const to = ctx.options.to ? parseInt(ctx.options.to, 10) : undefined;
-  writeJSON(
-    runtime,
-    loadTrace(runtime, ctx.args.file).reasoning({ from, to }),
-    ctx.options,
+  const result = runOver(
+    files,
+    (tq) => tq.reasoning({ from, to }),
+    loader(runtime),
   );
+  emit(runtime, result, renderDefault, ctx, files.length > 1);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runTimelineCommand(ctx) {
   const { runtime } = ctx.deps;
-  const lines = loadTrace(runtime, ctx.args.file).timeline();
-  runtime.proc.stdout.write(lines.join("\n") + "\n");
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("timeline");
+  const multi = files.length > 1;
+  for (const file of files) {
+    if (multi) runtime.proc.stdout.write(`# ${basename(file)}\n`);
+    runtime.proc.stdout.write(
+      loadTrace(runtime, file).timeline().join("\n") + "\n",
+    );
+  }
   return { ok: true };
+}
+
+/** Select the per-file `stats` query for the active flag combination. */
+function statsQuery(ctx) {
+  if (ctx.options.summary) return (tq) => tq.statsSummary();
+  if (ctx.options["by-tool"]) return (tq) => tq.statsByTool();
+  return (tq) => tq.stats();
+}
+
+/** Select the `stats` text renderer for the active flag combination. */
+function statsRenderer(ctx) {
+  if (ctx.options.summary) return renderStatsSummary;
+  if (ctx.options["by-tool"]) return renderStatsByTool;
+  return (result) => renderDefault(result);
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runStatsCommand(ctx) {
   const { runtime } = ctx.deps;
-  writeJSON(runtime, loadTrace(runtime, ctx.args.file).stats(), ctx.options);
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("stats");
+  const multi = files.length > 1;
+  const query = statsQuery(ctx);
+  // stats results are per-file objects; one block per file (no cross-file sum),
+  // tagged with source only when multi-file.
+  const results = files.map((file) => ({
+    result: query(loadTrace(runtime, file)),
+    source: multi ? basename(file) : undefined,
+  }));
+
+  if (ctx.options.format === "json") {
+    const payloads = results.map((r) =>
+      multi ? { ...r.result, source: r.source } : r.result,
+    );
+    writeJSON(runtime, multi ? payloads : payloads[0], ctx.options);
+    return { ok: true };
+  }
+
+  const render = statsRenderer(ctx);
+  const blocks = results.map((r) =>
+    multi ? `# ${r.source}\n${render(r.result)}` : render(r.result),
+  );
+  runtime.proc.stdout.write(blocks.join("\n") + "\n");
   return { ok: true };
 }
 
@@ -263,33 +403,87 @@ function renderCostMarkdown(cost) {
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runInitCommand(ctx) {
   const { runtime } = ctx.deps;
-  writeJSON(runtime, loadTrace(runtime, ctx.args.file).init(), ctx.options);
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("init");
+  const result = runOver(files, (tq) => [tq.init()], loader(runtime));
+  emit(runtime, result, renderDefault, ctx, files.length > 1, true);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runTurnCommand(ctx) {
   const { runtime } = ctx.deps;
-  writeJSON(
-    runtime,
-    loadTrace(runtime, ctx.args.file).turn(parseInt(ctx.args.index, 10)),
-    ctx.options,
+  const result = loadTrace(runtime, ctx.args.file).turn(
+    parseInt(ctx.args.index, 10),
   );
+  emit(runtime, result, renderDefault, ctx, false);
   return { ok: true };
 }
 
 /** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
 export async function runFilterCommand(ctx) {
   const { runtime } = ctx.deps;
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("filter");
   const opts = {};
   if (ctx.options.role) opts.role = ctx.options.role;
   if (ctx.options.tool) opts.toolName = ctx.options.tool;
   if (ctx.options.error) opts.isError = true;
-  writeJSON(
-    runtime,
-    loadTrace(runtime, ctx.args.file).filter(opts),
-    ctx.options,
+  const result = runOver(files, (tq) => tq.filter(opts), loader(runtime));
+  emit(runtime, result, renderDefault, ctx, files.length > 1);
+  return { ok: true };
+}
+
+// --- Aggregator verbs (tool-calls, commands, paths, compare) ---
+
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runToolCallsCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("tool-calls");
+  const result = runOver(files, (tq) => tq.toolCalls(), loader(runtime));
+  emit(runtime, result, renderToolCalls, ctx, files.length > 1);
+  return { ok: true };
+}
+
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runCommandsCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("commands");
+  const result = runOver(
+    files,
+    (tq) => tq.commands(ctx.options.match),
+    loader(runtime),
   );
+  emit(runtime, result, renderCommands, ctx, files.length > 1);
+  return { ok: true };
+}
+
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runPathsCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const files = resolveFiles(runtime, ctx);
+  if (files.length === 0) return noFiles("paths");
+  const result = aggregate(
+    files,
+    (tq) => tq.paths(ctx.options.prefix),
+    (r) => r.path,
+    loader(runtime),
+  );
+  emit(runtime, result, renderPaths, ctx, files.length > 1);
+  return { ok: true };
+}
+
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runCompareCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const result = compareTwo(
+    ctx.args["file-a"],
+    ctx.args["file-b"],
+    loader(runtime),
+  );
+  emit(runtime, result, renderCompare, ctx, false);
   return { ok: true };
 }
 
@@ -401,7 +595,7 @@ function computeTraceCost(content) {
  * @param {string} file
  * @returns {import("../trace-query.js").TraceQuery}
  */
-function loadTrace(runtime, file) {
+export function loadTrace(runtime, file) {
   const content = runtime.fsSync.readFileSync(file, "utf8");
 
   try {

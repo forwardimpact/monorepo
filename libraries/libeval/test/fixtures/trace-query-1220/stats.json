@@ -1,0 +1,90 @@
+{
+  "totals": {
+    "inputTokens": 1220,
+    "outputTokens": 123,
+    "cacheReadInputTokens": 3900,
+    "cacheCreationInputTokens": 50,
+    "outputIsStreamingSnapshot": true,
+    "totalCostUsd": null,
+    "durationMs": null,
+    "resultEventTurns": null,
+    "population": "per-message-fallback",
+    "resultEventsPresent": false
+  },
+  "perTurn": [
+    {
+      "messageId": null,
+      "inputTokens": 100,
+      "outputTokens": 15,
+      "cacheReadInputTokens": 200,
+      "cacheCreationInputTokens": 50,
+      "outputIsStreamingSnapshot": true,
+      "population": "api-message"
+    },
+    {
+      "messageId": null,
+      "inputTokens": 120,
+      "outputTokens": 20,
+      "cacheReadInputTokens": 300,
+      "cacheCreationInputTokens": 0,
+      "outputIsStreamingSnapshot": true,
+      "population": "api-message"
+    },
+    {
+      "messageId": null,
+      "inputTokens": 150,
+      "outputTokens": 25,
+      "cacheReadInputTokens": 400,
+      "cacheCreationInputTokens": 0,
+      "outputIsStreamingSnapshot": true,
+      "population": "api-message"
+    },
+    {
+      "messageId": null,
+      "inputTokens": 160,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 500,
+      "cacheCreationInputTokens": 0,
+      "outputIsStreamingSnapshot": true,
+      "population": "api-message"
+    },
+    {
+      "messageId": null,
+      "inputTokens": 165,
+      "outputTokens": 14,
+      "cacheReadInputTokens": 550,
+      "cacheCreationInputTokens": 0,
+      "outputIsStreamingSnapshot": true,
+      "population": "api-message"
+    },
+    {
+      "messageId": null,
+      "inputTokens": 170,
+      "outputTokens": 12,
+      "cacheReadInputTokens": 600,
+      "cacheCreationInputTokens": 0,
+      "outputIsStreamingSnapshot": true,
+      "population": "api-message"
+    },
+    {
+      "messageId": null,
+      "inputTokens": 175,
+      "outputTokens": 9,
+      "cacheReadInputTokens": 650,
+      "cacheCreationInputTokens": 0,
+      "outputIsStreamingSnapshot": true,
+      "population": "api-message"
+    },
+    {
+      "messageId": null,
+      "inputTokens": 180,
+      "outputTokens": 10,
+      "cacheReadInputTokens": 700,
+      "cacheCreationInputTokens": 0,
+      "outputIsStreamingSnapshot": true,
+      "population": "api-message"
+    }
+  ],
+  "modelUsage": null,
+  "divergence": null
+}

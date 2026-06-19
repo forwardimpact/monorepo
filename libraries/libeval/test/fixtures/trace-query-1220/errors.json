@@ -1,0 +1,10 @@
+[
+  {
+    "index": 12,
+    "role": "tool_result",
+    "source": null,
+    "toolUseId": "toolu_05",
+    "content": "Error: test suite failed\n  at runTests (test.js:42)",
+    "isError": true
+  }
+]

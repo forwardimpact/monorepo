@@ -1,0 +1,14 @@
+[
+  {
+    "index": 2,
+    "text": "Let me check the files first."
+  },
+  {
+    "index": 5,
+    "text": "Now reading the config file."
+  },
+  {
+    "index": 14,
+    "text": "The tests failed. Let me fix the issue."
+  }
+]
