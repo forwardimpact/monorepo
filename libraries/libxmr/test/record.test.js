@@ -41,7 +41,9 @@ describe("fit-xmr record", () => {
     assert.equal(lines[0], HEADER);
     assert.equal(lines.length, 2);
     assert.ok(lines[1].startsWith("2026-05-02,test_count,5,count,"));
-    assert.ok(lines[1].endsWith(",kata-test"));
+    // Row carries the trailing host_run column; no GITHUB_RUN_ID in
+    // this run, so the host marker is `local`.
+    assert.ok(lines[1].endsWith(",kata-test,local"));
   });
 
   test("append-only on existing file", () => {
@@ -147,7 +149,7 @@ describe("fit-xmr record", () => {
 
     const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
     const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
-    assert.ok(lines[1].endsWith(",kata-dispatch"));
+    assert.ok(lines[1].endsWith(",kata-dispatch,local"));
   });
 
   test("$GITHUB_WORKFLOW_REF with a .yaml extension resolves the same way", () => {
@@ -169,7 +171,7 @@ describe("fit-xmr record", () => {
 
     const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
     const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
-    assert.ok(lines[1].endsWith(",eval-guide"));
+    assert.ok(lines[1].endsWith(",eval-guide,local"));
   });
 
   test("--event-type wins over $GITHUB_WORKFLOW_REF", () => {
@@ -192,7 +194,7 @@ describe("fit-xmr record", () => {
 
     const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
     const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
-    assert.ok(lines[1].endsWith(",kata-local"));
+    assert.ok(lines[1].endsWith(",kata-local,local"));
   });
 
   test("returns code 2 when neither --event-type nor $GITHUB_WORKFLOW_REF set", () => {
@@ -221,5 +223,39 @@ describe("fit-xmr record", () => {
 
     assert.equal(result.ok, false);
     assert.equal(result.code, 2);
+  });
+
+  test("CI row carries the host workflow run id", () => {
+    const { fs } = run(
+      {
+        skill: "kata-test",
+        metric: "test_count",
+        value: "5",
+        date: "2026-05-02",
+        "event-type": "kata-dispatch",
+        "wiki-root": WIKI_ROOT,
+      },
+      { env: { GITHUB_RUN_ID: "27401632821" } },
+    );
+
+    const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
+    const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
+    assert.equal(lines[0], HEADER);
+    assert.ok(lines[1].endsWith(",kata-dispatch,27401632821"));
+  });
+
+  test("local row carries the explicit no-host marker", () => {
+    const { fs } = run({
+      skill: "kata-test",
+      metric: "test_count",
+      value: "5",
+      date: "2026-05-02",
+      "event-type": "kata-dispatch",
+      "wiki-root": WIKI_ROOT,
+    });
+
+    const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
+    const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
+    assert.ok(lines[1].endsWith(",kata-dispatch,local"));
   });
 });

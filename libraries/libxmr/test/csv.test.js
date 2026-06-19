@@ -174,7 +174,31 @@ describe("validateCSV", () => {
     const result = validateCSV(csv);
     assert.strictEqual(result.valid, false);
     assert.ok(result.errors[0].message.includes("header mismatch"));
-    assert.ok(result.errors[0].message.includes("missing=[event_type]"));
+    // `host_run` belongs to COLUMNS, so the column diff lists both
+    // trailing columns as missing from this 6-column header.
+    assert.ok(
+      result.errors[0].message.includes("missing=[event_type,host_run]"),
+    );
+  });
+
+  test("accepts the 8-column header with host_run", () => {
+    const csv = [
+      "date,metric,value,unit,run,note,event_type,host_run",
+      "2026-01-01,bugs,3,count,https://example.com,,kata-shift,27401632821",
+    ].join("\n");
+    const result = validateCSV(csv);
+    assert.strictEqual(result.valid, true);
+    assert.strictEqual(result.errors.length, 0);
+  });
+
+  test("accepts the legacy 7-column header", () => {
+    const csv = [
+      "date,metric,value,unit,run,note,event_type",
+      "2026-01-01,bugs,3,count,https://example.com,,kata-shift",
+    ].join("\n");
+    const result = validateCSV(csv);
+    assert.strictEqual(result.valid, true);
+    assert.strictEqual(result.errors.length, 0);
   });
 
   test("rejects non-numeric value", () => {

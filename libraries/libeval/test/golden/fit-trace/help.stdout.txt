@@ -1,10 +1,11 @@
-fit-trace 0.1.50 — Download, query, and analyze agent execution traces — read NDJSON output from fit-eval as qualitative research
+fit-trace 0.1.60 — Download, query, and analyze agent execution traces — read NDJSON output from fit-eval as qualitative research
 
 Usage: fit-trace <command> [options]
 
 Commands:
-  runs [pattern]                             List recent GitHub Actions workflow runs (default pattern: agent)
-  download <run-id>                          Download trace artifact and convert to structured JSON
+  runs [pattern]                             List recent GitHub Actions workflow runs (default pattern: kata|agent)
+  find <run-id> <participant>                Resolve a participant's lane trace for a known run id in one keyed lookup (no run enumeration, no content inspection)
+  download <run-id>                          Download trace artifact and convert to structured JSON; pass --artifact to pick one when a matrix workflow emits multiple `trace--*` artifacts
   overview <file>                            Metadata, summary, turn count, tool frequency
   count <file>                               Number of turns
   batch <file> <from> <to>                   Turns in range [from, to) (zero-indexed)
@@ -32,6 +33,8 @@ Options:
 
 Examples:
   fit-trace runs --lookback 7d
+  fit-trace runs --participant release-engineer
+  fit-trace find 27401632821 release-engineer
   fit-trace download 24497273755
   fit-trace split structured.json --mode=facilitate
   fit-trace overview structured.json

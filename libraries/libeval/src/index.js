@@ -7,6 +7,7 @@ export {
   createTraceGitHub,
   detectRepoSlug,
   parseGitRemote,
+  participantInNames,
   pickTraceArtifact,
 } from "./trace-github.js";
 export { AgentRunner, createAgentRunner } from "./agent-runner.js";

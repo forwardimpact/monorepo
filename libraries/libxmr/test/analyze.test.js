@@ -120,6 +120,26 @@ describe("analyze", () => {
     assert.ok(Array.isArray(m.dates));
     assert.strictEqual(m.values.length, m.n);
   });
+
+  test("reads a file mixing legacy 7-col and 8-col host_run rows", () => {
+    // Build a 20-point series where odd rows are legacy (7 columns, no
+    // host_run) and even rows carry the trailing host_run column. host_run
+    // never feeds analysis, so the result must match the host_run-free series.
+    const values = Array.from({ length: 20 }, (_, i) => 10 + (i % 2));
+    const header = "date,metric,value,unit,run,note,event_type,host_run";
+    const rows = values.map((v, i) => {
+      const day = String((i % 28) + 1).padStart(2, "0");
+      const base = `2026-01-${day},mix,${v},count,,,kata-shift`;
+      return i % 2 === 0 ? `${base},27401632821` : base;
+    });
+    const mixed = analyze([header, ...rows].join("\n")).metrics[0];
+    const plain = analyze(makeCSV("mix", values)).metrics[0];
+
+    assert.strictEqual(mixed.n, plain.n);
+    assert.deepStrictEqual(mixed.values, plain.values);
+    assert.strictEqual(mixed.status, plain.status);
+    assert.strictEqual(mixed.stats.mu, plain.stats.mu);
+  });
 });
 
 describe("analyze event_type slicing", () => {

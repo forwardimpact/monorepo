@@ -8,7 +8,7 @@ export const ZONE_SIGMAS = 1.5;
 
 export const MIN_POINTS = 15;
 
-export const HEADER = "date,metric,value,unit,run,note,event_type";
+export const HEADER = "date,metric,value,unit,run,note,event_type,host_run";
 export const COLUMNS = [
   "date",
   "metric",
@@ -17,7 +17,11 @@ export const COLUMNS = [
   "run",
   "note",
   "event_type",
+  "host_run",
 ];
+// The 7-column header predating the trailing `host_run` column. Legacy
+// current-year files written with this header stay valid.
+export const LEGACY_HEADER = "date,metric,value,unit,run,note,event_type";
 export const EVENT_TYPE_COLUMN = "event_type";
 // Default read slice. Couples to the workflow filename
 // `.github/workflows/kata-shift.yml` — if that file is ever renamed,

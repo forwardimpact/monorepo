@@ -28,13 +28,28 @@ export class TraceGitHub {
   }
 
   /**
-   * List recent workflow runs, optionally filtered by name pattern.
+   * List recent workflow runs, optionally filtered by name pattern and by the
+   * participant whose trace lane a run carries.
+   *
+   * Without `participant`, behaviour is unchanged: the workflow-name pattern is
+   * the only filter. With `participant`, each name-matched run is resolved
+   * against its trace lane (see {@link runMatchesParticipant}) and annotated
+   * with a `match` field:
+   *   - `"confirmed"` — the participant's lane is present in the run's
+   *     artifacts (matrix artifact name, or a member filename in the shared
+   *     dispatch artifact).
+   *   - `"unconfirmed-pending-artifacts"` — the run's workflow mints trace
+   *     artifacts but none exist yet (still running, or completed-but-not-yet
+   *     uploaded); reported as a candidate, never silently dropped.
+   * Runs that have artifacts but no matching lane are omitted. Participant
+   * identity is read from artifact/file *names* only, never from trace content.
    *
    * @param {object} [opts]
    * @param {string} [opts.pattern] - Case-insensitive regex to match workflow name (default: "kata|agent" — covers `Kata: Shift`, `Kata: Dispatch`, and any `agent`-named workflow)
    * @param {number} [opts.limit=50] - Max runs to return from GitHub API
    * @param {string} [opts.lookback="7d"] - How far back to search (e.g. "7d", "24h", "2w")
-   * @returns {Promise<object[]>} Array of {workflow, runId, status, conclusion, createdAt, branch, url}
+   * @param {string} [opts.participant] - Participant name; when set, filter/annotate runs by trace lane
+   * @returns {Promise<object[]>} Array of {workflow, runId, status, conclusion, createdAt, branch, url[, match]}
    */
   async listRuns(opts = {}) {
     const { pattern = "kata|agent", limit = 50, lookback = "7d" } = opts;
@@ -52,7 +67,7 @@ export class TraceGitHub {
     const runs = data.workflow_runs ?? [];
 
     const re = new RegExp(pattern, "i");
-    return runs
+    const matched = runs
       .filter((r) => re.test(r.name))
       .map((r) => ({
         workflow: r.name,
@@ -63,6 +78,133 @@ export class TraceGitHub {
         branch: r.head_branch,
         url: r.html_url,
       }));
+
+    if (!opts.participant) return matched;
+
+    const out = [];
+    for (const run of matched) {
+      const verdict = await this.runMatchesParticipant(
+        run.runId,
+        opts.participant,
+      );
+      if (verdict === "omit") continue;
+      out.push({ ...run, match: verdict });
+    }
+    return out;
+  }
+
+  /**
+   * Decide whether a run carries a participant's trace lane.
+   *
+   * Matrix hosts name the participant in an artifact name
+   * (`trace--<participant>`); dispatch hosts name it in a member filename
+   * (`trace--<case>--<participant>.<role>.ndjson`) inside one shared `trace--*`
+   * artifact. The GitHub artifacts API exposes only artifact-level metadata, so
+   * a matrix lane confirms from the inventory alone, while a dispatch lane
+   * requires downloading the shared artifact and listing its extracted member
+   * filenames — names only, never trace content.
+   *
+   * A run whose trace artifacts are absent (still running, or
+   * completed-but-not-yet-uploaded) is a candidate, not a drop.
+   *
+   * @param {number|string} runId
+   * @param {string} participant
+   * @returns {Promise<"confirmed"|"unconfirmed-pending-artifacts"|"omit">}
+   */
+  async runMatchesParticipant(runId, participant) {
+    const url = `${API}/repos/${this.owner}/${this.repo}/actions/runs/${runId}/artifacts`;
+    const data = await this.#get(url);
+    const artifacts = data.artifacts ?? [];
+    const traceArtifacts = artifacts.filter((a) =>
+      a.name.startsWith("trace--"),
+    );
+
+    // No trace artifacts yet: a candidate the matcher must report, not drop —
+    // the lane may upload when the host completes.
+    if (traceArtifacts.length === 0) return "unconfirmed-pending-artifacts";
+
+    // Matrix host: the participant is an artifact name. No download.
+    if (
+      participantInNames(
+        traceArtifacts.map((a) => a.name),
+        participant,
+      )
+    ) {
+      return "confirmed";
+    }
+
+    // Dispatch host: one shared artifact whose members name the participant.
+    // Download and list member filenames (names only).
+    for (const artifact of traceArtifacts) {
+      const { files } = await this.downloadTrace(runId, {
+        name: artifact.name,
+      });
+      if (participantInNames(files, participant)) return "confirmed";
+    }
+    return "omit";
+  }
+
+  /**
+   * Resolve a participant's lane trace path for a known run in one keyed
+   * lookup — no run enumeration, no trace-content inspection.
+   *
+   * Matrix host: the artifact name carries the participant (no download).
+   * Dispatch host: download the shared `trace--*` artifact and return the
+   * extracted member file whose name carries the participant.
+   *
+   * @param {number|string} runId
+   * @param {string} participant
+   * @param {object} [opts]
+   * @param {string} [opts.dir] - Output directory for a downloaded dispatch artifact
+   * @returns {Promise<{runId: (number|string), participant: string, host: "matrix"|"dispatch", artifact: string, path: string}>}
+   * @throws {Error} when the run has no trace artifacts, or none carries the participant's lane.
+   */
+  async findByKey(runId, participant, opts = {}) {
+    const url = `${API}/repos/${this.owner}/${this.repo}/actions/runs/${runId}/artifacts`;
+    const data = await this.#get(url);
+    const artifacts = data.artifacts ?? [];
+    const traceArtifacts = artifacts.filter((a) =>
+      a.name.startsWith("trace--"),
+    );
+    if (traceArtifacts.length === 0) {
+      throw new Error(`No trace artifacts for run ${runId}`);
+    }
+
+    // Matrix host: the artifact name carries the participant. No download.
+    const matrix = traceArtifacts.find((a) =>
+      participantInNames([a.name], participant),
+    );
+    if (matrix) {
+      return {
+        runId,
+        participant,
+        host: "matrix",
+        artifact: matrix.name,
+        path: matrix.name,
+      };
+    }
+
+    // Dispatch host: download the shared artifact and match a member filename.
+    for (const artifact of traceArtifacts) {
+      const { dir, files } = await this.downloadTrace(runId, {
+        name: artifact.name,
+        dir: opts.dir,
+      });
+      const member = files.find((f) => participantInNames([f], participant));
+      if (member) {
+        return {
+          runId,
+          participant,
+          host: "dispatch",
+          artifact: artifact.name,
+          path: path.join(dir, member),
+        };
+      }
+    }
+
+    throw new Error(
+      `No trace lane for participant "${participant}" in run ${runId}`,
+    );
   }
 
   /**
@@ -149,6 +291,36 @@ export class TraceGitHub {
       "X-GitHub-Api-Version": "2022-11-28",
     };
   }
+}
+
+/**
+ * Test whether a participant's trace lane is present in a list of names.
+ *
+ * Matches the two trace-naming shapes by *name* only (never by content):
+ *   - matrix artifact name: `trace--<participant>`
+ *   - dispatch member filename: `trace--<case>--<participant>.<role>.ndjson`
+ *
+ * The participant segment is delimited by `--` and ends at the next `--`, `.`,
+ * or end-of-string, so a substring like `release` does not match
+ * `release-engineer` and vice versa.
+ *
+ * @param {string[]} names - Artifact names or extracted member filenames.
+ * @param {string} participant - Participant name to look for.
+ * @returns {boolean}
+ */
+export function participantInNames(names, participant) {
+  return names.some((name) => {
+    if (!name.startsWith("trace--")) return false;
+    const rest = name.slice("trace--".length);
+    // Matrix: `<participant>` is the whole remainder (artifact name).
+    if (rest === participant) return true;
+    // Dispatch: `<case>--<participant>.<role>.ndjson`.
+    const sep = rest.indexOf("--");
+    if (sep === -1) return false;
+    const afterCase = rest.slice(sep + 2);
+    const participantSegment = afterCase.split(".")[0];
+    return participantSegment === participant;
+  });
 }
 
 /**

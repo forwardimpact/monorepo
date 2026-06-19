@@ -9,6 +9,7 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 
 import {
   runRunsCommand,
+  runFindCommand,
   runDownloadCommand,
   runOverviewCommand,
   runCountCommand,
@@ -47,6 +48,30 @@ const definition = {
         lookback: {
           type: "string",
           description: "How far back to search (default: 7d)",
+        },
+        participant: {
+          type: "string",
+          description:
+            "Filter to runs carrying this participant's trace lane; in-progress candidates are labeled, not dropped",
+        },
+        repo: {
+          type: "string",
+          description:
+            "GitHub repo override (default: $GITHUB_REPOSITORY or 'origin' git remote)",
+        },
+      },
+    },
+    {
+      name: "find",
+      args: ["run-id", "participant"],
+      argsUsage: "<run-id> <participant>",
+      handler: runFindCommand,
+      description:
+        "Resolve a participant's lane trace for a known run id in one keyed lookup (no run enumeration, no content inspection)",
+      options: {
+        dir: {
+          type: "string",
+          description: "Output directory for a downloaded dispatch artifact",
         },
         repo: {
           type: "string",
@@ -310,6 +335,8 @@ const definition = {
   },
   examples: [
     "fit-trace runs --lookback 7d",
+    "fit-trace runs --participant release-engineer",
+    "fit-trace find 27401632821 release-engineer",
     "fit-trace download 24497273755",
     "fit-trace split structured.json --mode=facilitate",
     "fit-trace overview structured.json",
@@ -354,7 +381,7 @@ const logger = createLogger("trace", runtime);
 
 // Commands that talk to the GitHub API need a config-backed token resolver;
 // the rest only read local trace files through the runtime.
-const NEEDS_CONFIG = new Set(["runs", "download"]);
+const NEEDS_CONFIG = new Set(["runs", "find", "download"]);
 
 async function main() {
   const cli = createCli(definition, {
