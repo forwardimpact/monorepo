@@ -1,5 +1,6 @@
 import { runMemoCommand } from "./commands/memo.js";
 import { runRefreshCommand } from "./commands/refresh.js";
+import { runProductMixCommand } from "./commands/product-mix.js";
 import { runInitCommand } from "./commands/init.js";
 import { runPushCommand, runPullCommand } from "./commands/sync.js";
 import { runBootCommand } from "./commands/boot.js";
@@ -219,6 +220,31 @@ export function createDefinition() {
         },
       },
       {
+        name: "product-mix",
+        description:
+          "Emit the product-vs-internal mix of merged PRs as a `product_share` metric row",
+        handler: runProductMixCommand,
+        options: {
+          until: {
+            type: "string",
+            description: "Window end ISO date (default: today)",
+          },
+          since: {
+            type: "string",
+            description: "Window start ISO date (default: until − 7 days)",
+          },
+          run: {
+            type: "string",
+            description: "Run id recorded on the metric row (default: gh-live)",
+          },
+          repo: {
+            type: "string",
+            description: "owner/repo slug (default: origin remote)",
+          },
+          ...wikiRootOpt,
+        },
+      },
+      {
         name: "init",
         description: "Bootstrap a wiki working tree and scaffold Active Claims",
         handler: runInitCommand,
@@ -262,6 +288,7 @@ export function createDefinition() {
       "fit-wiki fix",
       'fit-wiki memo --from staff-engineer --to security-engineer --message "audit d642ff0c"',
       "fit-wiki refresh",
+      "fit-wiki product-mix",
       "fit-wiki init",
       "fit-wiki push",
       "fit-wiki pull",

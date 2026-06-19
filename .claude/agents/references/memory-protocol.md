@@ -1,8 +1,7 @@
 # Memory Protocol
 
 Governs **agent memory and action routing** via the `fit-wiki` CLI. Every
-contract below maps to `fit-wiki` subcommands — the CLI is the path, not an
-alternative. For non-wiki outputs see
+contract below maps to a `fit-wiki` subcommand. For non-wiki outputs see
 [coordination-protocol.md](coordination-protocol.md).
 
 ## On-Boot Read Set
@@ -15,15 +14,14 @@ Three Tier 1 surfaces, all in `wiki/`:
 | Cross-cutting memory | `wiki/MEMORY.md` | direct `Read` + `fit-wiki boot` |
 | Current storyboard | `wiki/storyboard-YYYY-MNN.md` | `fit-wiki boot` (slice) |
 
-Every agent-scoped `fit-wiki` invocation requires explicit `--agent <self>`
+Every agent-scoped `fit-wiki` call requires explicit `--agent <self>`
 (`--from <self>` for `memo`), no environment fallback; `release --expired` is
 the lone agent-less form.
 
 **Step 0 contract — two tool calls within the first ten:**
 
 1. `Read wiki/MEMORY.md` — the priority surface and `## Active Claims`.
-2. `Bash: fit-wiki boot --agent <self>` — JSON digest of the other Tier 1
-   surfaces (`--format markdown` for prose).
+2. `Bash: fit-wiki boot --agent <self>` — JSON digest of the other Tier 1 surfaces (`--format markdown` for prose).
 
 ## On-Boot Routing
 
@@ -38,15 +36,24 @@ actionable work wins:
 4. **Cross-cutting fallback** (`cross_cutting[]`) — rows listing you under
    `Agents` (not Owner). Report clean only after checking all four.
 
-**Skip-self rule:** treat your own `claims[]` row as preempting routing — the
-work is in flight. Other agents' claims are settled state. The `### Decision`
-block records which level produced the chosen action.
+**Skip-self rule:** treat your own `claims[]` row as preempting routing — work
+in flight; other agents' claims are settled state. The `### Decision` block
+records which level produced the chosen action.
+
+**Product-priority tie-break:** among candidates tying *within* a level (levels
+stay strictly ordered — an owned priority still preempts all below),
+product-aligned work outranks internal. **Exception:** internal work lifting a
+constraint that currently blocks product delivery keeps its place, buying
+product throughput. The bias is a default, not a quota — it never overrides an
+owned priority or active claim, nor forbids internal work. When the tie was
+product-vs-internal, the `### Decision` entry names the chosen
+[axis value](work-definition.md#product-aligned-vs-internal) and, if internal
+won, the constraint it lifts.
 
 ## Tool-vs-Memory Habit
 
-When the next answer can come from either memory or `gh`/`git`/source
-re-derivation, **prefer memory** — every primitive is calibrated to cost fewer
-tool calls than the alternative.
+Prefer memory over re-deriving from `gh`/`git`/source — primitives cost fewer
+tool calls.
 
 ## During Each Run
 
@@ -63,31 +70,28 @@ seals the current file as `…-Www-partN.md` and opens a fresh `…-Www.md`
 (`fit-wiki rotate` is the operator escape).
 
 Triage the Message Inbox via `fit-wiki inbox {list|ack|promote|drop}`; `promote
---index N` writes a `## Cross-Cutting Priorities` row and drops the bullet.
-Cross-agent memos use `fit-wiki memo` (writer-side), triaged via `inbox`. Update
-`wiki/{agent}.md` directly at run end.
+--index N` writes a `## Cross-Cutting Priorities` row. Cross-agent memos use
+`fit-wiki memo`, triaged via `inbox`. Update `wiki/{agent}.md` at run end.
 
 Keep your own summary and weekly log passing `audit` before run end — it gates
 the Stop-hook: trim settled state, `rotate` a full weekly log. Whole-wiki
-`fit-wiki fix` is the curator's tool (`kata-wiki-curate`), not a per-run step.
+`fit-wiki fix` is the curator's tool, not a per-run step.
 
 ## Summary Contract
 
-Each `wiki/<agent>.md` conforms to a mechanically-checkable contract —
-`audit` gates it on Stop-hook and pre-merge CI.
+Each `wiki/<agent>.md` conforms to a mechanically-checkable contract `audit` gates on Stop-hook and pre-merge CI.
 
 **Permitted sections (in order):** `# {Agent Title} — Summary` (H1) →
 `**Last run**:` → `## Message Inbox` (with `<!-- memo:inbox -->` marker —
 MUST be the first H2) → agent-specific H2 sections → `## Open Blockers`.
 
-**Budgets:** 496 lines, 6 400 words. State, not history. Shapes:
-§ Wiki Filename Grammar.
+**Budgets:** 496 lines, 6 400 words. State, not history. Shapes: § Wiki Filename Grammar.
 
 ## Weekly Log Contract
 
 Weekly logs (`wiki/<agent>-YYYY-Www.md`) are append-only Tier 2 records. Named
-readers: `kata-wiki-curate` (always), `kata-session` (experiment verification),
-agents investigating past decisions. Shapes: § Wiki Filename Grammar.
+readers: `kata-wiki-curate` (always), `kata-session` (experiment verification).
+Shapes: § Wiki Filename Grammar.
 
 **Budgets:** 496 lines, 6 400 words. Storyboards (`wiki/storyboard-YYYY-MNN.md`)
 share these under separate `storyboard.*-budget` rules, so limits can diverge.
@@ -96,16 +100,16 @@ Overflow rotates by rename (see § During Each Run); no part is ever rewritten.
 New entries always go through `fit-wiki log`, which emits a conforming
 `## YYYY-MM-DD` heading and `### Decision` block by construction (`audit`
 enforces both). Reserve direct edits for **repair** — a hand-composed entry
-skips the append-time checks, so drift and breaches go unnoticed until CI reds.
+skips the append-time checks.
 
 ## Wiki Filename Grammar
 
 Which files may exist under `wiki/`. The `audit` `admission` rule
 (`audit/grammar.js`) enforces it; this section and that classifier are one home,
-extended together. **Universe:** git-tracked files under `wiki/` (no git state →
-every file is governed). **Calendar tokens** are hyphen-anchored segments — week
-`YYYY-Www`, month `YYYY-MNN`, date `YYYY-MM-DD`, bare year `YYYY` (digits inside
-a longer segment are not a token). Admitted **root-file** classes:
+extended together. **Universe:** git-tracked files under `wiki/`. **Calendar
+tokens** are hyphen-anchored segments — week `YYYY-Www`, month `YYYY-MNN`, date
+`YYYY-MM-DD`, bare year `YYYY` (digits inside a longer segment are not a token).
+Admitted **root-file** classes:
 
 | Class | Shape |
 |---|---|
@@ -123,8 +127,7 @@ membership.
 
 **Remediation is flag-for-human** — never auto-fixed; a wrong move destroys
 memory. To admit a new convention, extend this section and `audit/grammar.js`
-together in one reviewed change — the single admission path. This section also
-hosts the sealed-part heading grammar.
+together in one reviewed change — the single admission path.
 
 ## Cross-Cutting Priorities
 
@@ -136,8 +139,8 @@ hosts the sealed-part heading grammar.
 ## Active Claims
 
 Sibling H2 to Cross-Cutting Priorities in `wiki/MEMORY.md`. A *claim* asserts an
-agent is actively working a named target and will ship the next observable state
-change. **Row present = active; row absent = settled.**
+agent is working a named target and will ship the next state change. **Row
+present = active; row absent = settled.**
 
 Schema (header copied verbatim from `libwiki/constants.js`):
 
@@ -147,8 +150,7 @@ Schema (header copied verbatim from `libwiki/constants.js`):
 
 Lifecycle:
 
-- `fit-wiki claim --agent <self> --target <id> --branch <name> [--pr <id>]
-  [--expires-at YYYY-MM-DD]` — defaults `expires_at = +7 days`; exit 2 on dupes.
+- `fit-wiki claim --agent <self> --target <id> --branch <name> [--pr <id>] [--expires-at YYYY-MM-DD]` — defaults `expires_at = +7 days`; exit 2 on dupes.
 - `fit-wiki release --agent <self> --target <id>` — normal removal.
 - `fit-wiki release --expired` — operator cleanup; removes every expired row.
 
@@ -161,13 +163,10 @@ entry, whichever first. The claim is atomic with its push — **the push is the
 serialization point**:
 
 1. `fit-wiki pull`
-2. Read `## Active Claims` for foreign rows on the same target. Slug equality is
-   **not** the test — compare on the coordinating artifact (issue/spec number),
-   then read any overlapping branch or PR.
+2. Read `## Active Claims` for foreign rows on the same target. Compare on the coordinating artifact (issue/spec number), not slug equality; then read any overlapping branch or PR.
 3. `fit-wiki claim --agent <self> --target <id> --branch <name>`
 4. `fit-wiki push`
-5. If the push rebases in a foreign row for the same deliverable, abort:
-   `release` your row, push, and re-route.
+5. If the push rebases in a foreign row for the same deliverable, abort: `release` your row, push, and re-route.
 
 Pair the gate with the pre-PR freshness probe —
 [coordination-protocol.md § Claim → probe → create](coordination-protocol.md#claim--probe--create).

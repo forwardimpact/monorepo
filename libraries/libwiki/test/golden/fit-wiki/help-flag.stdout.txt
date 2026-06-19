@@ -13,6 +13,7 @@ Commands:
   fix                        Auto-fix wiki audit findings: rotate weekly logs, fix the rest with an AI agent (technical-writer, Haiku), flag the unresolvable
   memo                       Send a cross-team memo into a teammate's Message Inbox
   refresh [storyboard-path]  Regenerate XmR and obstacle/experiment marker blocks in a storyboard
+  product-mix                Emit the product-vs-internal mix of merged PRs as a `product_share` metric row
   init                       Bootstrap a wiki working tree and scaffold Active Claims
   push                       Commit and push local wiki changes to the remote
   pull                       Pull remote wiki changes into the local working tree
@@ -33,6 +34,7 @@ Examples:
   fit-wiki fix
   fit-wiki memo --from staff-engineer --to security-engineer --message "audit d642ff0c"
   fit-wiki refresh
+  fit-wiki product-mix
   fit-wiki init
   fit-wiki push
   fit-wiki pull

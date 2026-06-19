@@ -8,10 +8,9 @@ description: >
 
 # Release Merge
 
-Verify every open non-Dependabot PR — external contributions and kata-agent-team
-PRs alike — against six gates (trust, type, CI, mechanical readiness, approval,
-open comments) and merge those that pass. Contributor trust is the most critical
-gate — record each advanced PR's trust check in memory.
+Verify every open non-Dependabot PR against seven gates — trust, type, CI,
+mechanical readiness, approval, open comments, classification label — and merge
+those that pass. Trust is the most critical — record each PR's trust check.
 
 ## When to Use
 
@@ -29,11 +28,12 @@ gate — record each advanced PR's trust check in memory.
       `approved` (or `implemented` for the terminal plan row).
 - [ ] For implementation PRs: parent spec's `plan-a.md` exists on `main`.
 - [ ] No unresolved trusted-human concern in the PR comment thread.
+- [ ] Classification label (`product` / `internal`) is present on the PR.
 - [ ] Coordinating issue (if any) names the PR — self-healed when missing.
 
 </do_confirm_checklist>
 
-A PR that fails any gate is **blocked** with reason; passing PRs merge in Step 10.
+A PR that fails any gate is **blocked** with reason; passing PRs merge in Step 11.
 
 ## Process
 
@@ -61,8 +61,8 @@ gh api repos/{owner}/{repo}/contributors \
   --jq '[.[] | select(.type == "User")] | .[0:7] | .[].login'
 ```
 
-The PR author must appear in this list. If not, mark **blocked** (this lookup
-must run on every classified PR).
+The PR author must appear, or mark **blocked**; run this lookup on every
+classified PR.
 
 ### Step 3: Classify PR Type
 
@@ -83,10 +83,7 @@ gh pr view <number> --json mergeable,mergeStateStatus
 gh pr checks <number>
 ```
 
-Clean (mergeable, CI green, up-to-date) → continue to Step 6. Behind, stale, or
-conflicting → rebase (Step 5). CI failing → fix (Step 5) or block. An
-approved-and-pinned experiment PR never rebases — skip Step 5 and let Step 6
-re-block ([`experiment-path.md`](references/experiment-path.md)).
+Clean (mergeable, CI green, up-to-date) → continue to Step 6. Behind, stale, or conflicting → rebase (Step 5). CI failing → fix (Step 5) or block. An approved-and-pinned experiment PR never rebases — skip to Step 6 re-block ([`experiment-path.md`](references/experiment-path.md)).
 
 ### Step 5: Rebase + Mechanical Fixes
 
@@ -98,8 +95,7 @@ git checkout <pr-branch> && git rebase origin/main
 **Mechanical conflicts only** (lock file, generated files, formatting):
 
 ```sh
-# Lock file: take theirs, then re-run the install. Generated: re-run the
-# repository's codegen. Formatting: run the repository's formatter.
+# Lock file: take theirs, re-run install. Generated: re-run codegen. Formatting: run the formatter.
 git add <files> && git rebase --continue
 ```
 
@@ -107,7 +103,7 @@ git add <files> && git rebase --continue
 deleted-vs-modified) — `git rebase --abort` and comment the conflicting files.
 
 After rebase, run auto-fix then check; if checks still fail, mark **blocked**
-and skip to Step 11. Push with `git push --force-with-lease origin <pr-branch>`.
+and skip to Step 12. Push with `git push --force-with-lease origin <pr-branch>`.
 
 ### Step 6: Approval Gate
 
@@ -123,18 +119,14 @@ discriminator, `exp:{issue}` STATUS read, head-pin re-block:
 
 ### Step 7: Open Comment Gate
 
-If any top-7 human contributor's most-recent PR comment is an unresolved concern
-not accepted by a **later** same-human comment, mark **blocked**
-(`awaiting trusted-contributor reply`). See
-[`comment-gate.md`](references/comment-gate.md) for the resolution model.
+If a top-7 contributor's most-recent PR comment is an unresolved concern not accepted by a **later** same-human comment, mark **blocked** (`awaiting trusted-contributor reply`); see [`comment-gate.md`](references/comment-gate.md).
 
 ### Step 8: Coordinating Issue Announcement (self-heal)
 
 If no comment on the PR's coordinating issue (`Fixes #N` and variants) names the
-PR, post the cross-link yourself and log the adherence miss — **self-heal, never
-block** — so a parallel run sees the fix in flight. Probe sibling PRs on the same
-issue (`--state all`, paired with the issue-comment scan — index search alone
-lags) and resolve duplicates there before merging any. Details:
+PR, post the cross-link and log the miss — **self-heal, never
+block**. Probe sibling PRs on the same issue (`--state all`, paired with the
+issue-comment scan) and resolve duplicates before merging any. Details:
 [`announcement-backstop.md`](references/announcement-backstop.md); no coordinating
 issue → skip.
 
@@ -148,20 +140,28 @@ spec id (e.g. `feat(...): … (#NNN)` or "implements spec NNN"):
 - Update `wiki/STATUS.md` before merging — set the spec's row to
   `{NNN}\tplan\timplemented`. Commit the wiki change; the Stop hook pushes it.
 
-An **experiment PR** that passed Step 6 runs the diff-scope check in place of
-this check, not advancing the row
-([`experiment-path.md`](references/experiment-path.md)). Other PRs not referencing
-a spec (one-off fixes, doc patches) skip this step.
+An **experiment PR** that passed Step 6 runs the diff-scope check here instead,
+not advancing the row
+([`experiment-path.md`](references/experiment-path.md)). PRs not referencing a
+spec skip this step.
 
-### Step 10: Merge Mergeable PRs
+### Step 10: Classification Label Gate
+
+Read the PR's labels (fetched in Step 1). If neither `product` nor `internal`
+is present, mark **blocked** (`awaiting classification label`). No fast-path
+exemption: a `.md`/`.mdx` PR skips only the Step 6 approval gate, not this one —
+docs PRs are completed work in the denominator and must carry the label
+per [work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#product-aligned-vs-internal).
+
+### Step 11: Merge Mergeable PRs
 
 1. Post the merge comment from `references/templates.md` § Merge Comment.
 2. `gh pr merge <number> --merge --delete-branch`
 3. Verify state is `MERGED`. On race or branch-protection failure, record and
-   move on — do **not** retry without re-running Steps 1–9.
+   move on — do **not** retry without re-running Steps 1–10.
 4. **Re-ping Rule** — re-comment on any still-blocked PR past its 3-day silence window ([`reping-rule.md`](references/reping-rule.md)).
 
-### Step 11: Produce the Classification Report
+### Step 12: Produce the Classification Report
 
 Per PR record: number, title, type, author, trust check, CI, approval source
 (label / review / blocked), verdict — `merged`, `blocked`, or `re-pinged`.

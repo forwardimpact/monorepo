@@ -16,7 +16,9 @@ Experiments. Full template, with per-section word budgets, at
 Create the storyboard from [`storyboard-template.md`](storyboard-template.md):
 for every `wiki/metrics/{skill}/{YYYY}.csv`, instantiate one
 `#### {metric_name}` block under `### {skill}` with its
-`<!-- xmr:{metric}:{csv} -->` / `<!-- /xmr -->` marker pair. Then lead the
+`<!-- xmr:{metric}:{csv} -->` / `<!-- /xmr -->` marker pair. Besides the
+per-skill blocks, instantiate a `#### product_share` block under
+`### product-manager` from `wiki/metrics/product-mix/{YYYY}.csv`. Then lead the
 team through: the Challenge, the Target Condition (measurable, by month end),
 the Current Condition from metrics CSVs, initial Obstacles, and the first
 Experiment.
@@ -67,8 +69,7 @@ If a metric is missing its marker pair, a participant seeds it from
 Markers are the contract — never paste charts or issue lists by hand.
 
 Above the agent-domain sections, write a tight `### Headlines` list naming only
-metrics whose status changed since the last meeting. Agents add cross-reference
-notes only where they help.
+metrics whose status changed since the last meeting.
 
 ## Active / Concluded Partition
 

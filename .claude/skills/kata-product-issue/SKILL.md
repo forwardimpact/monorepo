@@ -53,6 +53,13 @@ this table maps those work-types to the triage-specific action and labels.
 Product alignment (the **Product-aligned** row) is this skill's own criterion —
 see § Product Vision Alignment below.
 
+Triage also assigns each issue's product-vs-internal value from the shared
+rubric in
+[work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#product-aligned-vs-internal),
+and the resulting spec or fix carries the matching `product` / `internal`
+label. The § Product Vision Alignment judgement decides whether an issue is in
+scope; the axis value itself comes from the rubric, not a private definition.
+
 | Category                 | Recommended action                                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | **Mechanical fix/bug**   | Fix PR (direct git ops, no spec)                                                                                    |
