@@ -5,6 +5,25 @@ import { detectSignals, hasAnySignal, stampProvenance } from "./signals.js";
 import { classify } from "./classify.js";
 import { round1, round2 } from "./format.js";
 
+// Apply the event-type slice and the optional route-decision partitions.
+// Each filter is inert unless its option is passed, so a plain analyze
+// returns the same series it always has.
+function selectRows(rows, { eventType, route, routesEligibleIncludes }) {
+  let selected = rows;
+  if (eventType !== "*") {
+    selected = selected.filter((row) => row.eventType === eventType);
+  }
+  if (route !== undefined) {
+    selected = selected.filter((row) => row.routeTaken === String(route));
+  }
+  if (routesEligibleIncludes !== undefined) {
+    selected = selected.filter((row) =>
+      row.routesEligible.includes(String(routesEligibleIncludes)),
+    );
+  }
+  return selected;
+}
+
 // Analyze a Kata-metrics CSV. Groups rows by metric, sorts each group by
 // date, computes Wheeler/Vacanti statistics and signals for groups with
 // at least MIN_POINTS observations, and stamps a classification on each.
@@ -32,20 +51,11 @@ export function analyze(
     routesEligibleIncludes,
   } = {},
 ) {
-  let rows = parseCSV(csvText);
-  if (eventType !== "*") {
-    rows = rows.filter((row) => row.eventType === eventType);
-  }
-  // Route partition is inert unless a filter is passed, so a plain analyze
-  // returns the same series it always has.
-  if (route !== undefined) {
-    rows = rows.filter((row) => row.routeTaken === String(route));
-  }
-  if (routesEligibleIncludes !== undefined) {
-    rows = rows.filter((row) =>
-      row.routesEligible.includes(String(routesEligibleIncludes)),
-    );
-  }
+  const rows = selectRows(parseCSV(csvText), {
+    eventType,
+    route,
+    routesEligibleIncludes,
+  });
 
   const groups = {};
   for (const row of rows) {
