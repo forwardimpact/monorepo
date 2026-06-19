@@ -61,7 +61,7 @@ flowchart TD
   SEL -->|github default| GH[github column<br/>gh CLI shapes]
   SEL -->|filesystem| FS[filesystem column<br/>file-write recipes]
   GH --> FORGE[(GitHub forge)]
-  FS --> TREE[(working tree<br/>.kata/ files)]
+  FS --> TREE[(working tree<br/>.tracker/ files)]
   MATRIX[work-trackers.md<br/>agents/references] -.realizes.-> GH
   MATRIX -.realizes.-> FS
   TREE -->|invariants.sh reads| VERDICT[pass/fail verdict]
@@ -77,12 +77,12 @@ commands.
 | --- | --- | --- |
 | **Work-item model + matrix** | new `.claude/agents/references/work-trackers.md` | One reference defining issue, change, the shared envelope, the abstract operation vocabulary, the `github`/`filesystem` columns, per-tracker degradation, and the selection rule. The only place forge commands appear. |
 | **github column** | inside `work-trackers.md` | Absorbs every forge command now outside it — the `gh` shapes in the coordination references, `issue-lifecycle.md`, and the kata-* skills, plus the remote-git operations (branch, push) the spec names. The § Problem grep set bounds the file set. |
-| **filesystem column** | inside `work-trackers.md` | New. File-write recipes over the `.kata/` layout below. |
+| **filesystem column** | inside `work-trackers.md` | New. File-write recipes over the `.tracker/` layout below. |
 | **Re-pointed references** | `work-definition.md`, `coordination-protocol.md`, `approval-signals.md` | Re-expressed over operations; their `gh` shapes move to the matrix; they cite it by directory-relative path. |
 | **Re-pointed skills** | the kata-* skills that call `gh` | Call sites replaced by an operation name + a relative matrix link, valid now that agents ship in the same pack. |
 | **Tracker selection** | libeval command layer + `fit-eval`/`fit-benchmark` | `--work-tracker` sets `LIBEVAL_WORK_TRACKER`; the harness forwards it to the agent, mirroring the existing `--agent-profile` → `LIBEVAL_AGENT_PROFILE` path. |
 | **Published surface + gate** | the publish workflow + the genericity invariant | Ship and gate the references tree (rationale in § Reaching installations). |
-| **Benchmark task** | `benchmarks/kata-skills/tasks/coordinate-finding/` | End-to-end coordination graded by `invariants.sh` against `.kata/` files. |
+| **Benchmark task** | `benchmarks/kata-skills/tasks/coordinate-finding/` | End-to-end coordination graded by `invariants.sh` against `.tracker/` files. |
 
 ## Work-item model
 
@@ -115,11 +115,11 @@ matrix rather than carrying `gh`.
 
 ## Filesystem storage format
 
-A coordination root `.kata/` in the working tree, tracker-owned and disjoint
+A coordination root `.tracker/` in the working tree, tracker-owned and disjoint
 from app files:
 
 ```
-.kata/
+.tracker/
   issues/{id}.md       # envelope front-matter + body; ## Comments appended
   changes/{id}.md      # envelope (kind: change) + links to its issue(s)
   discussions/{id}.md  # RFC threads
@@ -139,6 +139,10 @@ caller-supplied slugs (so a `{id}.md` path is the identity) rather than
 tracker-minted monotonic ids, which would be non-deterministic and defeat
 path-based assertions. A change file carries only its envelope; the changeset is
 the working tree, not a materialized patch that duplicates it.
+
+The root is named `.tracker/` — not a product- or methodology-specific name — so
+an agent reading the working tree infers it is the active tracker's store
+directly, without consulting the matrix.
 
 ## Tracker selection
 
@@ -174,7 +178,7 @@ agent, judge, and supervisor task files, a workdir overlay, and the preflight
 and invariants hooks. Invoked with `--work-tracker filesystem`, the agent is given a finding
 and runs the loop: `create-issue`, `open-change` linking it, `gate` with a
 trusted signal, `merge-change`, networking unavailable. The invariants hook
-asserts on the resulting `.kata/` files — issue exists and is linked, change
+asserts on the resulting `.tracker/` files — issue exists and is linked, change
 reached `state: merged`, `approval` recorded — using the same `assert` harness
 the rubric tasks (spec/design/plan) use.
 
