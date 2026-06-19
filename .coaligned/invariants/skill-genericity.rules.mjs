@@ -22,9 +22,6 @@
 // published CLIs and legitimately name @forwardimpact packages and tool
 // integrations.
 
-import { resolve } from "node:path";
-import { assertRgAvailable, rgMatches } from "./lib/rg.mjs";
-
 const PATTERNS = [
   // --- Group 1: internal-only tooling ---
   {
@@ -110,41 +107,25 @@ const PATTERNS = [
 export default {
   name: "skill-genericity",
 
-  build({ root }) {
-    assertRgAvailable();
-    const seen = new Set();
-    const subjects = [];
-    for (const rule of PATTERNS) {
-      const matches = rgMatches({
-        cwd: root,
-        pattern: rule.pattern,
-        paths: [".claude/skills/"],
-        globs: [".claude/skills/kata-*/**"],
-        caseSensitive: true,
-      });
-      for (const m of matches) {
-        const key = `${m.raw}|${rule.reason}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        subjects.push({
-          path: resolve(root, m.path),
-          lineNo: m.lineNo,
-          text: m.text,
-          reason: rule.reason,
-        });
-      }
-    }
-    return { subjects: { "skill-match": subjects } };
+  build({ grep }) {
+    return {
+      subjects: {
+        "skill-match": grep({
+          patterns: PATTERNS,
+          paths: [".claude/skills/"],
+          globs: [".claude/skills/kata-*/**"],
+          caseSensitive: true,
+          dedupe: (m) => `${m.raw}|${m.reason}`,
+        }),
+      },
+    };
   },
 
-  rules: [
-    {
+  rules: ({ failAll }) => [
+    failAll("skill-match", {
       id: "skills.monorepo-specific",
-      scope: "skill-match",
-      severity: "fail",
-      check: () => ({}),
       message: (s) => `${s.text.trim()} — ${s.reason}`,
       hint: "kata-* skills must hold in a repo that installed the pack yesterday (.claude/skills/CLAUDE.md § Generic by design); narrow the rule in .coaligned/invariants/skill-genericity.rules.mjs only for a legitimate generic usage",
-    },
+    }),
   ],
 };

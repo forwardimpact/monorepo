@@ -41,19 +41,56 @@ A rule module's default export is:
 ```js
 export default {
   name: "ambient-deps",
-  // Walk the repo and return plain subjects per scope (plus optional
-  // shared ctx the rules read).
-  build: async ({ root, runtime }) => ({
-    subjects: { "src-file": [{ path, smells }] },
-    ctx: { deny },
+  // `build` (and `seed`) receive the injected build kit; the module never
+  // imports the engine (it loads into consuming repos via npx, where the
+  // package is not resolvable from `.coaligned/`). Return plain subjects per
+  // scope, plus optional shared ctx the rules read.
+  build: (kit) => ({
+    subjects: { "src-file": kit.scanAst({ dirs, match, extract }) },
+    ctx: { deny: kit.config("ambient-deps.deny.yml", {}) },
   }),
-  // Declarative rules over those subjects.
-  rules: [{ id, scope, severity, when, check, message, hint }],
+  // Declarative rules over those subjects: either a static array, or a
+  // `(ruleKit) => array` factory that builds them from the rule helpers.
+  rules: ({ parseError, failAll }) => [
+    parseError("src-file"),
+    { id, scope, severity, when, check, message, hint },
+  ],
   // Optional: text for `coaligned invariants --seed <name>` — e.g. a
-  // regenerated grandfather deny-list.
-  seed: async ({ root, runtime }) => "…",
+  // regenerated grandfather deny-list. Also receives the build kit.
+  seed: (kit) => "…",
 };
 ```
+
+### The build kit
+
+The engine binds a kit per run to the repo `root`, the module's own `dir`
+(for co-located config), and the `runtime` bag (fs and ripgrep route through
+it, so the engine carries no ambient dependencies). The module declares only
+policy; the kit owns the mechanism:
+
+- `scan({ dirs, match, skip?, under?, read? })` — collect files as
+  `{ path, rel, text? }`; `under` restricts to the per-package `src`/`test`
+  shape.
+- `scanAst({ dirs, match, extract, locations?, … })` — read + parse each file
+  and merge `extract(ast)`; a parse failure becomes `{ path, rel, parseError }`.
+- `parse(src, path, opts?)`, `walk(ast, visit)` — the lower-level AST seam.
+- `grep({ pattern | patterns, paths?, globs?, caseSensitive?, onlyMatching?,
+  dedupe? })` — ripgrep matches as `{ path, lineNo, text, reason? }`, with
+  per-entry `exclude` and built-in de-duplication.
+- `restatementDrift({ entries, equal })` — the shared "single source restated
+  across consumers" scan + compare (service URLs, scalar values).
+- `readText`, `readJson`, `config(name, fallback?)` (co-located JSON/YAML),
+  `listDir(path, { dirsOnly? })`.
+- `lineAt(text, offset)`, `glob(pattern)`.
+
+### The rule kit
+
+When `rules` is a function it receives the rule helpers:
+
+- `parseError(scope, { id?, hint? })` — fails any subject carrying a
+  `parseError` (paired with `scanAst`).
+- `failAll(scope, { id, message, hint?, when? })` — fails every subject in
+  scope (the build step already decided each is a violation).
 
 Findings render in the same ESLint-style format as the other subcommands
 (`--json` for machine output); any finding fails the run.

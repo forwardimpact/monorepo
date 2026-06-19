@@ -16,14 +16,10 @@
 // Refresh the deny-list for current violators:
 //   bunx coaligned invariants --seed ambient-deps
 
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, relative } from "node:path";
-import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
-import { parseModule, walkAst } from "./lib/ast.mjs";
-import { collectFiles } from "./lib/walk.mjs";
+import { stringify as stringifyYaml } from "yaml";
 
 const SCOPE_DIRS = ["libraries", "products", "services"];
-const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp", "test"]);
+const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp", "test"];
 
 const FS_MODULES = new Set([
   "fs",
@@ -32,25 +28,6 @@ const FS_MODULES = new Set([
   "node:fs/promises",
 ]);
 const CHILD_PROCESS_MODULES = new Set(["child_process", "node:child_process"]);
-
-function loadConfig(name, fallback) {
-  const p = join(import.meta.dirname, name);
-  if (!existsSync(p)) return fallback;
-  const text = readFileSync(p, "utf8").trim();
-  if (text === "") return fallback;
-  return parseYaml(text) ?? fallback;
-}
-
-function globToRegExp(glob) {
-  // Minimal glob: ** matches any path segments, * matches a non-slash run.
-  const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(
-    `^${escaped
-      .replace(/\*\*/g, "DOUBLESTAR")
-      .replace(/\*/g, "[^/]*")
-      .replace(/DOUBLESTAR/g, ".*")}$`,
-  );
-}
 
 function isMember(node, objName, propName) {
   return (
@@ -129,9 +106,9 @@ function detectFsBoth(node, smells) {
   }
 }
 
-function smellsInSource(source, filePath) {
+function smellsInAst(ast, walk) {
   const smells = new Set();
-  walkAst(parseModule(source, filePath), (node) => {
+  walk(ast, (node) => {
     detectImport(node, smells);
     detectClock(node, smells);
     detectProcess(node, smells);
@@ -153,36 +130,21 @@ function flaggedSmells(smells, allowed) {
   return { flagged: [...flagged].sort(), grandfathered };
 }
 
-function srcFiles(root) {
-  const out = [];
-  for (const scope of SCOPE_DIRS) {
-    const scopeDir = join(root, scope);
-    if (!existsSync(scopeDir)) continue;
-    for (const pkg of readdirSync(scopeDir)) {
-      out.push(
-        ...collectFiles(join(scopeDir, pkg, "src"), {
-          skip: SKIP_DIRS,
-          match: (name) => name.endsWith(".js"),
-        }),
-      );
-    }
-  }
-  return out;
-}
-
-function buildSubjects(root) {
+function buildSubjects({ scan, parse, walk, config, glob }) {
   const allowRes = (
-    loadConfig("ambient-deps.allow.yml", { globs: [] }).globs ?? []
-  ).map(globToRegExp);
+    config("ambient-deps.allow.yml", { globs: [] }).globs ?? []
+  ).map(glob);
   const subjects = [];
-  for (const file of srcFiles(root)) {
-    const rel = relative(root, file);
+  for (const { path, rel, text } of scan({
+    dirs: SCOPE_DIRS,
+    under: "src",
+    skip: SKIP_DIRS,
+    match: (name) => name.endsWith(".js"),
+  })) {
     if (allowRes.some((re) => re.test(rel))) continue;
-    const subject = { path: file, rel };
+    const subject = { path, rel };
     try {
-      subject.smells = [
-        ...smellsInSource(readFileSync(file, "utf8"), rel),
-      ].sort();
+      subject.smells = [...smellsInAst(parse(text, rel), walk)].sort();
     } catch (err) {
       subject.parseError = err.message;
     }
@@ -194,32 +156,28 @@ function buildSubjects(root) {
 export default {
   name: "ambient-deps",
 
-  build({ root }) {
+  build(kit) {
     return {
-      subjects: { "src-file": buildSubjects(root) },
-      ctx: { deny: loadConfig("ambient-deps.deny.yml", {}) },
+      subjects: { "src-file": buildSubjects(kit) },
+      ctx: { deny: kit.config("ambient-deps.deny.yml", {}) },
     };
   },
 
   // Print a deny-list for the current violators, for seeding/refreshing
   // ambient-deps.deny.yml.
-  seed({ root }) {
+  seed(kit) {
     const map = {};
-    for (const s of buildSubjects(root)) {
+    for (const s of buildSubjects(kit)) {
       if (s.smells?.length > 0) map[s.rel] = s.smells;
     }
     return stringifyYaml(map);
   },
 
-  rules: [
-    {
+  rules: ({ parseError }) => [
+    parseError("src-file", {
       id: "ambient.parse-error",
-      scope: "src-file",
-      severity: "fail",
-      check: (s) => (s.parseError ? { msg: s.parseError } : null),
-      message: (s, r) => r.msg,
       hint: "fix the syntax error so the smell scan can parse the module",
-    },
+    }),
     {
       id: "ambient.runtime-deps",
       scope: "src-file",

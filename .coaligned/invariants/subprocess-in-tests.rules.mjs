@@ -12,13 +12,8 @@
 // Refresh the deny-list for current violators:
 //   bunx coaligned invariants --seed subprocess-in-tests
 
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, relative } from "node:path";
-import { parseModule, walkAst } from "./lib/ast.mjs";
-import { collectFiles, readJsonOrNull } from "./lib/walk.mjs";
-
 const SCOPE_DIRS = ["libraries", "products", "services"];
-const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
+const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp"];
 const SPAWN_FNS = new Set([
   "execFileSync",
   "spawnSync",
@@ -26,10 +21,6 @@ const SPAWN_FNS = new Set([
   "execFile",
   "exec",
 ]);
-
-function loadJson(name, fallback) {
-  return readJsonOrNull(join(import.meta.dirname, name)) ?? fallback;
-}
 
 function calleeName(callee) {
   if (callee?.type === "Identifier") return callee.name;
@@ -55,9 +46,9 @@ function targetsNodeOrBin(arg) {
   return false;
 }
 
-function spawnsProjectBin(source, filePath) {
+function spawnsProjectBin(ast, walk) {
   let hit = false;
-  walkAst(parseModule(source, filePath), (node) => {
+  walk(ast, (node) => {
     if (node.type !== "CallExpression") return;
     const name = calleeName(node.callee);
     if (!name || !SPAWN_FNS.has(name)) return;
@@ -66,35 +57,22 @@ function spawnsProjectBin(source, filePath) {
   return hit;
 }
 
-function testFiles(root) {
-  const out = [];
-  for (const scope of SCOPE_DIRS) {
-    const scopeDir = join(root, scope);
-    if (!existsSync(scopeDir)) continue;
-    for (const pkg of readdirSync(scopeDir)) {
-      out.push(
-        ...collectFiles(join(scopeDir, pkg, "test"), {
-          skip: SKIP_DIRS,
-          match: (name) => name.endsWith(".test.js"),
-        }),
-      );
-    }
-  }
-  return out;
-}
-
-function buildSubjects(root) {
+function buildSubjects({ scan, parse, walk, config }) {
   const allowTests = new Set(
-    loadJson("subprocess-in-tests.allow.json", []).map((e) => e.test),
+    config("subprocess-in-tests.allow.json", []).map((e) => e.test),
   );
   const subjects = [];
-  for (const file of testFiles(root)) {
-    const rel = relative(root, file);
+  for (const { path, rel, text } of scan({
+    dirs: SCOPE_DIRS,
+    under: "test",
+    skip: SKIP_DIRS,
+    match: (name) => name.endsWith(".test.js"),
+  })) {
     if (rel.endsWith(".integration.test.js")) continue;
     if (allowTests.has(rel)) continue;
-    const subject = { path: file, rel };
+    const subject = { path, rel };
     try {
-      subject.spawns = spawnsProjectBin(readFileSync(file, "utf8"), rel);
+      subject.spawns = spawnsProjectBin(parse(text, rel), walk);
     } catch (err) {
       subject.parseError = err.message;
     }
@@ -106,32 +84,28 @@ function buildSubjects(root) {
 export default {
   name: "subprocess-in-tests",
 
-  build({ root }) {
+  build(kit) {
     return {
-      subjects: { "test-file": buildSubjects(root) },
-      ctx: { deny: new Set(loadJson("subprocess-in-tests.deny.json", [])) },
+      subjects: { "test-file": buildSubjects(kit) },
+      ctx: { deny: new Set(kit.config("subprocess-in-tests.deny.json", [])) },
     };
   },
 
   // Print a deny-list of the current violators, for seeding/refreshing
   // subprocess-in-tests.deny.json.
-  seed({ root }) {
-    const violators = buildSubjects(root)
+  seed(kit) {
+    const violators = buildSubjects(kit)
       .filter((s) => s.spawns)
       .map((s) => s.rel)
       .sort();
     return `${JSON.stringify(violators, null, 2)}\n`;
   },
 
-  rules: [
-    {
+  rules: ({ parseError }) => [
+    parseError("test-file", {
       id: "subprocess.parse-error",
-      scope: "test-file",
-      severity: "fail",
-      check: (s) => (s.parseError ? { msg: s.parseError } : null),
-      message: (s, r) => r.msg,
       hint: "fix the syntax error so the spawn scan can parse the test",
-    },
+    }),
     {
       id: "subprocess.spawns-bin",
       scope: "test-file",

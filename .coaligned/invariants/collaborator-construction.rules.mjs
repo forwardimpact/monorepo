@@ -18,13 +18,8 @@
 // `createDefaultProc/Clock/Subprocess` deliberately. Every other file (`src/`,
 // `bin/`, package roots) is flagged for all four.
 
-import { readFileSync } from "node:fs";
-import { join, relative } from "node:path";
-import { parseModule, walkAst } from "./lib/ast.mjs";
-import { collectFiles } from "./lib/walk.mjs";
-
 const SCOPE_DIRS = ["libraries", "products", "services"];
-const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
+const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp"];
 // Construction inside libutil is the one sanctioned place.
 const LIBUTIL_PREFIX = "libraries/libutil/";
 // The three leaf default-collaborator factories. createDefaultRuntime is the
@@ -40,9 +35,9 @@ function isTestPath(relPath) {
   return relPath.split("/").includes("test") || /\.test\.m?js$/.test(relPath);
 }
 
-function findConstructions(source, filePath) {
+function findConstructions(ast, walk) {
   const tags = new Set();
-  walkAst(parseModule(source, filePath), (node) => {
+  walk(ast, (node) => {
     if (
       node.type === "NewExpression" &&
       node.callee?.type === "Identifier" &&
@@ -64,37 +59,23 @@ function findConstructions(source, filePath) {
 export default {
   name: "collaborator-construction",
 
-  build({ root }) {
-    const subjects = [];
-    for (const scope of SCOPE_DIRS) {
-      const files = collectFiles(join(root, scope), {
-        skip: SKIP_DIRS,
-        match: (name) => name.endsWith(".js"),
-      });
-      for (const file of files) {
-        const rel = relative(root, file);
-        if (rel.startsWith(LIBUTIL_PREFIX)) continue;
-        const subject = { path: file, rel, isTest: isTestPath(rel) };
-        try {
-          subject.tags = findConstructions(readFileSync(file, "utf8"), rel);
-        } catch (err) {
-          subject.parseError = err.message;
-        }
-        subjects.push(subject);
-      }
-    }
+  build({ scanAst, walk }) {
+    const subjects = scanAst({
+      dirs: SCOPE_DIRS,
+      skip: SKIP_DIRS,
+      match: (name) => name.endsWith(".js"),
+      extract: (ast) => ({ tags: findConstructions(ast, walk) }),
+    })
+      .filter((s) => !s.rel.startsWith(LIBUTIL_PREFIX))
+      .map((s) => ({ ...s, isTest: isTestPath(s.rel) }));
     return { subjects: { "js-file": subjects } };
   },
 
-  rules: [
-    {
+  rules: ({ parseError }) => [
+    parseError("js-file", {
       id: "collaborator.parse-error",
-      scope: "js-file",
-      severity: "fail",
-      check: (s) => (s.parseError ? { msg: s.parseError } : null),
-      message: (s, r) => r.msg,
       hint: "fix the syntax error so the construction scan can parse the module",
-    },
+    }),
     {
       id: "collaborator.construction",
       scope: "js-file",

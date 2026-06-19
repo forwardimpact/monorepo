@@ -9,12 +9,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, test } from "node:test";
 
+import { createBuildKit, RULE_KIT } from "@forwardimpact/libcoaligned";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 import {
   extractDefaults,
   normalizeHost,
   urlsEqual,
   NonLiteralDefaultsError,
-} from "../.coaligned/invariants/lib/expected-url.mjs";
+} from "../.coaligned/invariants/service-url-drift.url.mjs";
 import ruleModule from "../.coaligned/invariants/service-url-drift.rules.mjs";
 
 const manifest = (name, defaults) =>
@@ -31,9 +34,12 @@ function expectedUrlFromSource(name, source) {
   return `${protocol}://${host}:${port}${path}`;
 }
 
-// Mirrors libutil/src/rules.js applyRule — the production host supplies the
-// real runRules; .coaligned cannot import @forwardimpact/* directly.
+// Mirrors libutil/src/rules.js applyRule (including the `when` guard) — the
+// production host supplies the real runRules. The rule module itself cannot
+// import @forwardimpact/*; this test, which runs from the repo root, drives it
+// through the real build kit and rule kit.
 function applyRule(rule, subject) {
+  if (rule.when && !rule.when(subject, {})) return [];
   const result = rule.check(subject, {});
   if (result == null) return [];
   const items = Array.isArray(result) ? result : [result];
@@ -48,7 +54,9 @@ function applyRule(rule, subject) {
 }
 
 function runModuleRules(mod, subjects) {
-  return mod.rules.flatMap((rule) =>
+  const rules =
+    typeof mod.rules === "function" ? mod.rules(RULE_KIT) : mod.rules;
+  return rules.flatMap((rule) =>
     (subjects[rule.scope] ?? []).flatMap((subject) => applyRule(rule, subject)),
   );
 }
@@ -157,7 +165,12 @@ function fixtureRepo({ manifestDefaults, envValue }) {
 }
 
 async function findingsFor(root) {
-  const { subjects } = await ruleModule.build({ root });
+  const kit = createBuildKit({
+    root,
+    dir: join(root, ".coaligned", "invariants"),
+    runtime: createDefaultRuntime(),
+  });
+  const { subjects } = await ruleModule.build(kit);
   return runModuleRules(ruleModule, subjects);
 }
 

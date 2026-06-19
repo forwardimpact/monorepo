@@ -7,7 +7,6 @@
 // rule parses its id → route table and fails when an id or label drifts
 // from ROUTES in either direction.
 
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -31,10 +30,9 @@ function parseDocRoutes(text) {
 export default {
   name: "route-registry",
 
-  async build({ root }) {
+  async build({ root, readText }) {
     const { ROUTES } = await import(pathToFileURL(resolve(root, ROUTES_PATH)));
-    const docText = readFileSync(resolve(root, DOC_PATH), "utf8");
-    const docRoutes = parseDocRoutes(docText);
+    const docRoutes = parseDocRoutes(readText(DOC_PATH) ?? "");
     const docPath = resolve(root, DOC_PATH);
 
     const problems = [];

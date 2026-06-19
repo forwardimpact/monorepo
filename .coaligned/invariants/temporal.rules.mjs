@@ -6,9 +6,6 @@
 //
 // Out of scope: specs/, wiki/, benchmarks/, generated/, node_modules/, .git/.
 
-import { resolve } from "node:path";
-import { assertRgAvailable, rgMatches } from "./lib/rg.mjs";
-
 const PATTERNS = [
   { pattern: "\\bspec[- ][0-9]{2,5}\\b" },
   { pattern: "\\bdesign[- ][0-9]{2,5}\\b" },
@@ -105,39 +102,23 @@ const BASE_GLOBS = [
 export default {
   name: "temporal",
 
-  build({ root }) {
-    assertRgAvailable();
-    const seen = new Set();
-    const subjects = [];
-    for (const rule of PATTERNS) {
-      const matches = rgMatches({
-        cwd: root,
-        pattern: rule.pattern,
-        globs: [...BASE_GLOBS, ...(rule.globs ?? [])],
-        caseSensitive: rule.caseSensitive ?? false,
-      });
-      for (const m of matches) {
-        if (rule.exclude && rule.exclude.test(m.raw)) continue;
-        if (seen.has(m.raw)) continue;
-        seen.add(m.raw);
-        subjects.push({
-          path: resolve(root, m.path),
-          lineNo: m.lineNo,
-          text: m.text,
-        });
-      }
-    }
-    return { subjects: { "temporal-match": subjects } };
+  build({ grep }) {
+    return {
+      subjects: {
+        "temporal-match": grep({
+          patterns: PATTERNS,
+          globs: BASE_GLOBS,
+          dedupe: true,
+        }),
+      },
+    };
   },
 
-  rules: [
-    {
+  rules: ({ failAll }) => [
+    failAll("temporal-match", {
       id: "temporal.reference",
-      scope: "temporal-match",
-      severity: "fail",
-      check: () => ({}),
       message: (s) => `temporal reference: ${s.text.trim()}`,
       hint: "replace with a short, non-temporal WHY; for a false positive (CSS hex, HTML entity, runtime ID, opaque fixture ID), narrow the rule in .coaligned/invariants/temporal.rules.mjs",
-    },
+    }),
   ],
 };

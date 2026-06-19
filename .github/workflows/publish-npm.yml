@@ -53,8 +53,16 @@ jobs:
       - name: Check public-CLI set
         run: |
           node --input-type=module <<'EOF'
+          const { createBuildKit } = await import("@forwardimpact/libcoaligned");
+          const { createDefaultRuntime } = await import("@forwardimpact/libutil/runtime");
           const mod = (await import("./.coaligned/invariants/public-cli-set.rules.mjs")).default;
-          const { subjects } = await mod.build({ root: process.cwd() });
+          const root = process.cwd();
+          const kit = createBuildKit({
+            root,
+            dir: `${root}/.coaligned/invariants`,
+            runtime: createDefaultRuntime(),
+          });
+          const { subjects } = await mod.build(kit);
           const problems = subjects["public-cli-problem"];
           for (const p of problems) console.error(`::error::${p.path}: ${p.message}`);
           process.exit(problems.length ? 1 : 0);

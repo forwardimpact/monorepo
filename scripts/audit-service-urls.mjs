@@ -17,7 +17,7 @@ import { parse as parseYaml } from "yaml";
 import {
   expectedUrl,
   urlsEqual,
-} from "../.coaligned/invariants/lib/expected-url.mjs";
+} from "../.coaligned/invariants/service-url-drift.url.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const REGISTRY = ".coaligned/invariants/service-url-drift.registry.yml";

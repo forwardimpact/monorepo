@@ -20,9 +20,7 @@
 // The manifest is the single source of truth for the hosted control-plane
 // directory list.
 
-import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { collectFiles, readJsonOrNull } from "./lib/walk.mjs";
 
 const CONTROL_PLANE_DIRS = [
   "services/ghserver",
@@ -34,7 +32,9 @@ const CONTROL_PLANE_DIRS = [
   "libraries/libbridge",
 ];
 
-const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
+const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp"];
+
+const WORKFLOW_REFS = ".claude/skills/kata-setup/references";
 
 const ANTHROPIC_IMPORT = /@anthropic-ai\//;
 // Catch every shape that reads an ANTHROPIC_* env var:
@@ -49,51 +49,63 @@ const ANTHROPIC_IMPORT = /@anthropic-ai\//;
 const ANTHROPIC_ENV =
   /process\.env\.ANTHROPIC_|process\.env\[["']ANTHROPIC_|\{[^}]*\bANTHROPIC_[^}]*\}\s*=\s*process\.env/s;
 
-function scanDir(root, dir) {
-  const abs = join(root, dir);
-  const violations = [];
-
-  const pkgPath = join(abs, "package.json");
-  if (existsSync(pkgPath)) {
-    const pkg = readJsonOrNull(pkgPath);
-    if (!pkg) {
-      violations.push({ path: pkgPath, reason: "unparseable package.json" });
-    }
-    for (const dep of Object.keys(pkg?.dependencies ?? {})) {
-      if (dep.startsWith("@anthropic-ai/")) {
-        violations.push({
-          path: pkgPath,
-          reason: `top-level @anthropic-ai dependency: ${dep}`,
-        });
-      }
-    }
+function scanManifest(pkgPath, pkgText) {
+  if (pkgText == null) return [];
+  let pkg = null;
+  try {
+    pkg = JSON.parse(pkgText);
+  } catch {
+    pkg = null;
   }
-
-  const files = collectFiles(abs, {
-    skip: SKIP_DIRS,
-    match: (name) => name.endsWith(".js") || name.endsWith(".mjs"),
-  });
-  for (const path of files) {
-    const src = readFileSync(path, "utf8");
-    if (ANTHROPIC_IMPORT.test(src)) {
-      violations.push({ path, reason: "imports from @anthropic-ai/*" });
-    }
-    if (ANTHROPIC_ENV.test(src)) {
+  const violations = [];
+  if (!pkg) {
+    violations.push({ path: pkgPath, reason: "unparseable package.json" });
+  }
+  for (const dep of Object.keys(pkg?.dependencies ?? {})) {
+    if (dep.startsWith("@anthropic-ai/")) {
       violations.push({
-        path,
-        reason: "reads an ANTHROPIC_* environment variable",
+        path: pkgPath,
+        reason: `top-level @anthropic-ai dependency: ${dep}`,
       });
     }
   }
+  return violations;
+}
 
+// Flag the two code-level BYOK breaches in a source text.
+function scanSource(path, text) {
+  const violations = [];
+  if (ANTHROPIC_IMPORT.test(text)) {
+    violations.push({ path, reason: "imports from @anthropic-ai/*" });
+  }
+  if (ANTHROPIC_ENV.test(text)) {
+    violations.push({
+      path,
+      reason: "reads an ANTHROPIC_* environment variable",
+    });
+  }
+  return violations;
+}
+
+function scanDir(root, dir, { readText, scan }) {
+  const violations = scanManifest(
+    join(root, dir, "package.json"),
+    readText(`${dir}/package.json`),
+  );
+  for (const { path, text } of scan({
+    dirs: [dir],
+    skip: SKIP_DIRS,
+    match: (name) => name.endsWith(".js") || name.endsWith(".mjs"),
+  })) {
+    violations.push(...scanSource(path, text));
+  }
   return violations;
 }
 
 // Scan a kata-setup workflow markdown file's fenced code blocks for the
 // code-level BYOK patterns.
-function scanWorkflowMarkdown(path) {
+function scanWorkflowMarkdown(path, text) {
   const violations = [];
-  const text = readFileSync(path, "utf8");
   const fenced = [...text.matchAll(/```[a-zA-Z]*\n([\s\S]*?)```/g)].map(
     (m) => m[1],
   );
@@ -114,36 +126,30 @@ function scanWorkflowMarkdown(path) {
   return violations;
 }
 
-function workflowMarkdownFiles(root) {
-  const dir = join(root, ".claude/skills/kata-setup/references");
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((e) => /^workflow-.*\.md$/.test(e))
-    .map((e) => join(dir, e));
-}
-
 export default {
   name: "byok-boundary",
 
-  build({ root }) {
+  build({ root, readText, scan, listDir }) {
     const subjects = [];
     for (const dir of CONTROL_PLANE_DIRS) {
-      subjects.push(...scanDir(root, dir));
+      subjects.push(...scanDir(root, dir, { readText, scan }));
     }
-    for (const file of workflowMarkdownFiles(root)) {
-      subjects.push(...scanWorkflowMarkdown(file));
+    for (const name of listDir(WORKFLOW_REFS)) {
+      if (!/^workflow-.*\.md$/.test(name)) continue;
+      const text = readText(`${WORKFLOW_REFS}/${name}`);
+      if (text == null) continue;
+      subjects.push(
+        ...scanWorkflowMarkdown(join(root, WORKFLOW_REFS, name), text),
+      );
     }
     return { subjects: { "byok-violation": subjects } };
   },
 
-  rules: [
-    {
+  rules: ({ failAll }) => [
+    failAll("byok-violation", {
       id: "byok.boundary",
-      scope: "byok-violation",
-      severity: "fail",
-      check: () => ({}),
       message: (s) => `${s.reason} (BYOK boundary breach)`,
       hint: "the hosted control plane never touches the customer's Anthropic key — move the key read to the customer-runner side",
-    },
+    }),
   ],
 };
