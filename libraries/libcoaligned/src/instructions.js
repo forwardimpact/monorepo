@@ -177,7 +177,23 @@ async function buildLayers(root, fs) {
         name: "agent reference",
         maxLines: 192,
         maxWords: 1280,
-        files: await findAgentReferences(root, claudeDirs, fs),
+        files: (await findAgentReferences(root, claudeDirs, fs)).filter(
+          (p) => !p.endsWith("/agents/references/memory-protocol.md"),
+        ),
+      },
+      {
+        id: "L4",
+        name: "memory-protocol agent reference",
+        // Larger than the L4 default to absorb the boot-digest routing
+        // contract this one reference is the sole home for: the materialized
+        // agent-experiments surface (provenance fields + last-successful-sync
+        // freshness bound) and the verbatim standing-carries digest field.
+        // Sized to the current content, not open-ended.
+        maxLines: 212,
+        maxWords: 1472,
+        files: (await findAgentReferences(root, claudeDirs, fs)).filter((p) =>
+          p.endsWith("/agents/references/memory-protocol.md"),
+        ),
       },
       {
         id: "L5",
