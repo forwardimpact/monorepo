@@ -101,7 +101,11 @@ async function main() {
 
   // Step 2/3 — run one `node --test` per file (the only path that yields a
   // per-file count — a batched run counts a zero-registration file as 1 via a
-  // synthetic subtest). Bounded concurrency keeps wall-clock reasonable.
+  // synthetic subtest). The TAP reporter is pinned (`--test-reporter=tap`) so
+  // the `# tests`/`# fail` summary the parser reads is deterministic across node
+  // versions: node 22 emitted TAP by default, but node 23+ defaults to the spec
+  // reporter (`ℹ tests N`) when piped, which this parser would not match.
+  // Bounded concurrency keeps wall-clock reasonable.
   let totalTests = 0;
   const failures = [];
 
@@ -111,7 +115,7 @@ async function main() {
     try {
       const { stdout, stderr } = await execFileAsync(
         process.execPath,
-        ["--test", file],
+        ["--test", "--test-reporter=tap", file],
         { cwd: repoRoot, maxBuffer: 64 * 1024 * 1024 },
       );
       out = `${stdout}${stderr}`;
