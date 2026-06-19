@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createMockFs } from "@forwardimpact/libmock";
 
 import { runClaimCommand, runReleaseCommand } from "../src/commands/claim.js";
+import { WikiPushFailure, PUSH_REASONS } from "../src/wiki-sync.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
 const WIKI_ROOT = "/wiki";
@@ -114,7 +115,7 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
       async inheritIdentity() {},
       async commitAndPush(message, paths) {
         pushes.push({ message, paths });
-        return { pushed: true, reason: "pushed" };
+        return { landed: true, reason: "landed" };
       },
     };
     const ctxWith = (options) =>
@@ -251,5 +252,70 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
       /staff-engineer \| spec-NNNN/,
     );
     assert.match(harness.stderr, /push failed.*network down/);
+  });
+
+  test("claim keeps zero exit + saved-locally warning on a rejected push (D1)", async () => {
+    const fsSync = createMockFs({ [MEMORY_PATH]: EMPTY_CLAIMS });
+    const harness = makeRuntime({ fsSync });
+    const wikiSync = {
+      async inheritIdentity() {},
+      async commitAndPush() {
+        throw new WikiPushFailure(
+          PUSH_REASONS.REJECTED,
+          "fit-wiki: push rejected — the remote advanced.",
+        );
+      },
+    };
+    const result = await runClaimCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": WIKI_ROOT,
+          agent: "staff-engineer",
+          target: "spec-RRRR",
+          branch: "feat/x",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(
+      result.ok,
+      true,
+      "rejected push keeps zero exit (landed locally)",
+    );
+    assert.match(harness.stderr, /saved locally/i);
+    assert.match(harness.stderr, /rejected/);
+    assert.doesNotMatch(harness.stdout, /committed and pushed/);
+  });
+
+  test("claim exits non-zero on a conservation refusal (unsafe-state, D5)", async () => {
+    const fsSync = createMockFs({ [MEMORY_PATH]: EMPTY_CLAIMS });
+    const harness = makeRuntime({ fsSync });
+    const wikiSync = {
+      async inheritIdentity() {},
+      async commitAndPush() {
+        throw new WikiPushFailure(
+          PUSH_REASONS.CONSERVATION,
+          "fit-wiki: refusing to push — it would drop another writer's content.",
+        );
+      },
+    };
+    const result = await runClaimCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": WIKI_ROOT,
+          agent: "staff-engineer",
+          target: "spec-CCCC",
+          branch: "feat/x",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 1);
+    assert.match(harness.stderr, /drop another writer/);
   });
 });

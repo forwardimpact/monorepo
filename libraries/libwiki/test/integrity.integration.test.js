@@ -8,7 +8,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { sweepTier2 } from "../src/integrity.js";
 import { runPullCommand, runPushCommand } from "../src/commands/sync.js";
-import { WikiSync } from "../src/wiki-sync.js";
+import { WikiSync, WikiPushFailure, PUSH_REASONS } from "../src/wiki-sync.js";
 import {
   git,
   createBareRepo,
@@ -302,13 +302,24 @@ describe("tier-1 post-push probe (real git)", () => {
     seedBareRepo(bare);
   });
 
-  // A GitClient whose push is a no-op, modelling the fire-and-forget push
-  // silently failing: HEAD never reaches origin, so the post-push probe's fetch
-  // sees a tip without the just-"pushed" content — a deterministic tier-1
-  // absence. The probe's own read path (fetch + showFile) runs for real.
+  // A GitClient whose push is a no-op that still reports the ref accepted,
+  // modelling a push the remote's per-ref report attests landed while the
+  // commit never reaches origin (same-window erasure / 418b). The honest
+  // commitAndPush (the honest commitAndPush contract) grounds `landed` in that remote-originated
+  // per-ref report, so the post-push tier-1 probe (the tier-1 integrity probe) is the backstop
+  // that re-reads origin and surfaces the absence — the two contracts compose.
+  // The probe's own read path (fetch + showFile) runs for real.
   class DroppedPushGitClient extends GitClient {
     async push() {
       return { stdout: "", stderr: "", exitCode: 0 };
+    }
+    async pushPorcelain() {
+      // An accepted-shaped per-ref report, but no commit reaches origin.
+      return {
+        stdout: "=\trefs/heads/master:refs/heads/master\t[up to date]\n",
+        stderr: "",
+        exitCode: 0,
+      };
     }
   }
 
@@ -326,7 +337,7 @@ describe("tier-1 post-push probe (real git)", () => {
     const gitClient = new GitClient({ runtime });
     const ws = new WikiSync({ runtime, gitClient, wikiDir, parentDir: parent });
     const result = await ws.commitAndPush("wiki: push");
-    assert.equal(result.pushed, true);
+    assert.equal(result.landed, true);
     assert.deepEqual(result.detections, []);
   });
 
@@ -338,7 +349,7 @@ describe("tier-1 post-push probe (real git)", () => {
     const runtime = createDefaultRuntime();
     const ws = syncWithDroppedPush(wikiDir, parent, runtime);
     const result = await ws.commitAndPush("wiki: push");
-    assert.equal(result.pushed, true); // never gates
+    assert.equal(result.landed, true); // never gates
     const lost = result.detections.find((d) => d.contentId === "lost row");
     assert.ok(lost, "the absent lane row should be detected");
     assert.equal(lost.tier, 1);
@@ -387,7 +398,7 @@ describe("tier-1 post-push probe (real git)", () => {
       parentDir: parent,
     });
     const result = await ws.commitAndPush("wiki: push");
-    assert.equal(result.pushed, true); // never gates
+    assert.equal(result.landed, true); // never gates
     const lost = result.detections.find((d) => d.contentId === "window row");
     assert.ok(lost, "the same-window-erased row should be detected");
     assert.equal(lost.tier, 1);
@@ -395,10 +406,12 @@ describe("tier-1 post-push probe (real git)", () => {
     assert.equal(git(wikiDir, "status", "--porcelain"), "");
   });
 
-  test("a merge-HEAD landing still captures and verifies its delta (merge-HEAD coverage)", async () => {
+  test("a conflicting whole-tree divergence fails loud — never a merge-HEAD clobber (the -X ours fallback is removed)", async () => {
     // Victim clones first, then a sibling pushes a conflicting README change, so
-    // the victim's pre-push rebase conflicts and falls back to mergeOursStrategy,
-    // making HEAD a merge commit.
+    // the victim's pre-push rebase conflicts. Before this change it fell back to
+    // mergeOursStrategy, making HEAD a merge commit that discarded the remote
+    // side; this change removes that clobber, so the divergence now fails loud and the
+    // post-push tier-1 probe never runs (no push was attempted).
     const { parent, wikiDir } = cloneRepo(bare, "t1-merge");
     git(wikiDir, "checkout", "master");
     git(wikiDir, "config", "user.email", EMAIL);
@@ -409,31 +422,26 @@ describe("tier-1 post-push probe (real git)", () => {
     git(other, "add", "-A");
     git(other, "commit", "-m", "remote");
     git(other, "push", "origin", "master");
+    const remoteTip = git(other, "rev-parse", "HEAD");
 
     writeFileSync(join(wikiDir, "README.md"), "# Wiki\nvictim edit\n");
     writeFileSync(join(wikiDir, `${AGENT}-2026-W21.md`), "# Log\nmerge row\n");
 
     const runtime = createDefaultRuntime();
     const ws = syncWithDroppedPush(wikiDir, parent, runtime);
-    const result = await ws.commitAndPush("wiki: push");
-    assert.equal(result.pushed, true);
-    // HEAD is a merge commit; diffRange captured the real delta, so the probe
-    // names the absent lane row (would be empty under a single-commit `show`).
-    const ids = result.detections.map((d) => d.contentId);
-    assert.ok(
-      ids.includes("merge row"),
-      `expected merge-HEAD delta captured, got ${JSON.stringify(ids)}`,
+    await assert.rejects(
+      () => ws.commitAndPush("wiki: push"),
+      (err) =>
+        err instanceof WikiPushFailure && err.reason === PUSH_REASONS.CONFLICT,
     );
-    // HEAD has two parents — a merge commit — confirming diffRange (a two-tree
-    // range diff) captured the delta a single-commit `git show` would miss.
+    // No merge commit was created — the clobber is gone. The remote side is
+    // intact (origin tip unchanged) and HEAD is not a merge commit.
+    git(wikiDir, "fetch", "origin", "master");
+    assert.equal(git(wikiDir, "rev-parse", "origin/master"), remoteTip);
     const parents = git(wikiDir, "rev-list", "--parents", "-1", "HEAD").split(
       " ",
     );
-    assert.equal(
-      parents.length,
-      3,
-      "HEAD should be a merge commit (2 parents)",
-    );
+    assert.notEqual(parents.length, 3, "HEAD must not be a merge commit");
   });
 
   test("a probe git failure degrades to no detections; push still succeeds (criterion 13)", async () => {
@@ -455,7 +463,7 @@ describe("tier-1 post-push probe (real git)", () => {
       parentDir: parent,
     });
     const result = await ws.commitAndPush("wiki: push");
-    assert.equal(result.pushed, true);
+    assert.equal(result.landed, true);
     assert.deepEqual(result.detections, []);
   });
 

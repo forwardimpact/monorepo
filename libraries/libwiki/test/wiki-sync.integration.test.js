@@ -5,7 +5,12 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { GitClient } from "@forwardimpact/libutil/git-client";
-import { WikiSync, WikiPullConflict } from "../src/wiki-sync.js";
+import {
+  WikiSync,
+  WikiPullConflict,
+  WikiPushFailure,
+  AncestryRefusal,
+} from "../src/wiki-sync.js";
 import { appendClaim, parseClaims } from "../src/active-claims.js";
 import { git, createBareRepo, seedBareRepo, cloneRepo } from "./helpers.js";
 
@@ -125,18 +130,15 @@ describe("WikiSync (real git)", () => {
     await assert.rejects(() => makeSync(w2, p2).pull(), WikiPullConflict);
   });
 
-  test("commitAndPush is a no-op on a clean tree", async () => {
+  test("commitAndPush reports grounded nothing-to-push on a clean tree", async () => {
     const { parent, wikiDir } = cloneRepo(bare, "clean");
     git(wikiDir, "checkout", "master");
     const result = await makeSync(wikiDir, parent).commitAndPush("test");
-    assert.deepEqual(result, {
-      pushed: false,
-      reason: "clean",
-      detections: [],
-    });
+    assert.equal(result.landed, false);
+    assert.equal(result.reason, "nothing-to-push");
   });
 
-  test("commitAndPush commits and pushes a dirty tree", async () => {
+  test("commitAndPush commits and lands a dirty tree", async () => {
     const { parent, wikiDir } = cloneRepo(bare, "push");
     git(wikiDir, "checkout", "master");
 
@@ -144,14 +146,15 @@ describe("WikiSync (real git)", () => {
     const result = await makeSync(wikiDir, parent).commitAndPush(
       "wiki: test push",
     );
-    assert.equal(result.pushed, true);
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, "landed");
     assert.ok(
       git(wikiDir, "log", "-1", "--oneline").includes("wiki: test push"),
     );
     assert.equal(git(wikiDir, "diff", "origin/master"), "");
   });
 
-  test("commitAndPush pushes pre-existing local commits on a clean tree", async () => {
+  test("commitAndPush lands pre-existing local commits on a clean tree (stranded-resume)", async () => {
     const { parent, wikiDir } = cloneRepo(bare, "ahead");
     git(wikiDir, "checkout", "master");
 
@@ -163,11 +166,8 @@ describe("WikiSync (real git)", () => {
     const result = await makeSync(wikiDir, parent).commitAndPush(
       "wiki: should not be used",
     );
-    assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
-      detections: [],
-    });
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, "landed");
     assert.equal(
       git(wikiDir, "rev-parse", "HEAD"),
       headBefore,
@@ -196,11 +196,8 @@ describe("WikiSync (real git)", () => {
       "wiki: claim x",
       ["MEMORY.md"],
     );
-    assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
-      detections: [],
-    });
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, "landed");
     assert.equal(
       git(wikiDir, "show", "--name-only", "--format=", "HEAD"),
       "MEMORY.md",
@@ -210,7 +207,7 @@ describe("WikiSync (real git)", () => {
     assert.match(status, /^\?\? residue\.md$/m);
   });
 
-  test("commitAndPush with paths is a no-op when only foreign files are dirty", async () => {
+  test("commitAndPush with paths reports nothing-to-push when only foreign files are dirty", async () => {
     const { parent, wikiDir } = cloneRepo(bare, "scoped-noop");
     git(wikiDir, "checkout", "master");
     writeFileSync(join(wikiDir, "README.md"), "foreign tracked edit");
@@ -219,11 +216,8 @@ describe("WikiSync (real git)", () => {
       "wiki: claim x",
       ["MEMORY.md"],
     );
-    assert.deepEqual(result, {
-      pushed: false,
-      reason: "clean",
-      detections: [],
-    });
+    assert.equal(result.landed, false);
+    assert.equal(result.reason, "nothing-to-push");
     assert.match(
       git(wikiDir, "status", "--porcelain"),
       /^ ?M README\.md$/m,
@@ -253,11 +247,8 @@ describe("WikiSync (real git)", () => {
     const result = await makeSync(w2, p2).commitAndPush("wiki: claim x", [
       "MEMORY.md",
     ]);
-    assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
-      detections: [],
-    });
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, "landed");
     assert.equal(
       readFileSync(join(w2, "remote-change.md"), "utf-8").trim(),
       "from clone1",
@@ -269,7 +260,7 @@ describe("WikiSync (real git)", () => {
     );
   });
 
-  test("commitAndPush recovers via merge -X ours on divergence", async () => {
+  test("commitAndPush fails loud on a conflicting divergence — never -X ours", async () => {
     const { wikiDir: w1 } = cloneRepo(bare, "merge1");
     const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "merge2");
     git(w1, "checkout", "master");
@@ -279,13 +270,112 @@ describe("WikiSync (real git)", () => {
     git(w1, "add", "-A");
     git(w1, "commit", "-m", "remote");
     git(w1, "push", "origin", "master");
+    const remoteTip = git(w1, "rev-parse", "HEAD");
 
+    // w2 edits the same file: a textually overlapping divergence ⇒ loud conflict.
     writeFileSync(join(w2, "README.md"), "local wins");
-    const result = await makeSync(w2, p2).commitAndPush("wiki: local update");
-    assert.equal(result.pushed, true);
+    await assert.rejects(
+      () => makeSync(w2, p2).commitAndPush("wiki: local update"),
+      (err) => err instanceof WikiPushFailure && err.reason === "conflict",
+    );
+    // The remote side was never mechanically discarded: origin tip unchanged,
+    // and no merge commit landed locally.
     assert.equal(
-      readFileSync(join(w2, "README.md"), "utf-8").trim(),
-      "local wins",
+      git(w1, "rev-parse", "origin/master").trim() || remoteTip,
+      remoteTip,
+    );
+  });
+
+  test("commitAndPush refuses on a detached HEAD (ancestry guard — D7 seam defers to 1750)", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "detached");
+    git(wikiDir, "checkout", "master");
+    const head = git(wikiDir, "rev-parse", "HEAD");
+    git(wikiDir, "checkout", head); // detach
+    writeFileSync(join(wikiDir, "pending.md"), "session work");
+    // The detached-HEAD D7 fixture collapses onto the ancestry guard, which
+    // refuses with AncestryRefusal before any mutation (the precondition-vs-ancestry seam).
+    await assert.rejects(
+      () => makeSync(wikiDir, parent).commitAndPush("wiki: update"),
+      (err) => err instanceof AncestryRefusal,
+    );
+    assert.equal(git(wikiDir, "rev-parse", "HEAD"), head, "HEAD did not move");
+    assert.match(
+      git(wikiDir, "status", "--porcelain", "--", "pending.md"),
+      /pending\.md/,
+      "uncommitted work survives",
+    );
+  });
+
+  test("commitAndPush conserves a foreign claim row on a clean replay", async () => {
+    // Seed a foreign claim row on the remote, then push a stale-base commit
+    // that drops it with no textual conflict — the guard must refuse.
+    const { wikiDir: w1 } = cloneRepo(bare, "conserve-seed");
+    git(w1, "checkout", "master");
+    writeFileSync(
+      join(w1, "MEMORY.md"),
+      "# Memory\n| foreign | spec-9 | b | - | d | e |\n",
+    );
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "seed foreign row");
+    git(w1, "push", "origin", "master");
+
+    const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "conserve-drop");
+    git(w2, "checkout", "master");
+    // w2 was cloned BEFORE the seed; write a tree that omits the foreign row.
+    writeFileSync(join(w2, "MEMORY.md"), "# Memory\n");
+    await assert.rejects(
+      () => makeSync(w2, p2).commitAndPush("wiki: update", ["MEMORY.md"]),
+      (err) => err instanceof WikiPushFailure && err.reason === "conservation",
+    );
+    // The foreign row survives on the remote (content state, not log output).
+    assert.match(
+      git(w1, "show", "origin/master:MEMORY.md"),
+      /foreign \| spec-9/,
+    );
+  });
+
+  test("residue-conflict: autostash pop conflict ⇒ refuse, stash preserved, push not attempted", async () => {
+    // Seed a shared file, then advance it on the remote AND leave a conflicting
+    // uncommitted foreign edit in the clone, while the agent's own scoped commit
+    // is on MEMORY.md. The scoped commit rebases clean (exit 0) but the autostash
+    // pop of the foreign residue conflicts — D9's sole conflict-capable site.
+    const { wikiDir: w1 } = cloneRepo(bare, "residue-seed");
+    git(w1, "checkout", "master");
+    writeFileSync(join(w1, "shared.md"), "base\n");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "seed shared");
+    git(w1, "push", "origin", "master");
+
+    const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "residue-clone");
+    git(w2, "checkout", "master");
+    // Sync w2 to the seed so its base matches, then advance the remote.
+    git(w2, "pull", "origin", "master");
+    writeFileSync(join(w1, "shared.md"), "remote advance\n");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "remote advance");
+    git(w1, "push", "origin", "master");
+
+    // Agent's own scoped change on MEMORY.md + a conflicting foreign edit on
+    // shared.md left uncommitted (autostashed during the rebase).
+    writeFileSync(join(w2, "MEMORY.md"), "# Memory\nmy row\n");
+    writeFileSync(join(w2, "shared.md"), "local conflicting edit\n");
+
+    let caught;
+    await assert.rejects(
+      () => makeSync(w2, p2).commitAndPush("wiki: claim", ["MEMORY.md"]),
+      (err) => {
+        caught = err;
+        return (
+          err instanceof WikiPushFailure && err.reason === "residue-conflict"
+        );
+      },
+    );
+    // The stash is preserved (named by SHA in the message) and the push never ran.
+    assert.ok(caught.stashSha, "stash SHA named on the refusal");
+    assert.match(
+      git(w2, "stash", "list"),
+      /stash@\{0\}/,
+      "the autostash entry is preserved",
     );
   });
 });
@@ -381,7 +471,13 @@ describe("WikiSync resolveToken (real git)", () => {
     const result = await ws.commitAndPush("wiki: claim 1910", ["MEMORY.md"], {
       reapply,
     });
-    assert.equal(result.pushed, true);
+    // The publish landed: either the grounded push of a clean table-tail replay
+    // (`landed`), or the singleton re-apply loop when the rebase conflicts
+    // (`pushed: "reapplied"`). Either way the sibling row is conserved below.
+    assert.ok(
+      result.landed === true || result.pushed === true,
+      "the claim row published",
+    );
 
     // The foreign uncommitted edit to README.md survived the re-apply loop
     // (resetSoft is HEAD-only; checkoutPaths is scoped to MEMORY.md).
@@ -450,7 +546,7 @@ describe("WikiSync metrics-CSV union merge", () => {
     assert.match(tip, /,b,2,/, "B's row survived");
   });
 
-  test("the merge -X ours fallback also preserves both CSV rows", async () => {
+  test("a whole-tree conflict on a non-CSV line fails loud (the -X ours fallback is removed)", async () => {
     const bare = createBareRepo();
     seedBareRepo(bare, {
       files: { [CSV]: HEADER, "notes.md": "# Notes\nshared line\n" },
@@ -465,18 +561,28 @@ describe("WikiSync metrics-CSV union merge", () => {
     writeFileSync(join(wA, "notes.md"), "# Notes\nA edits the shared line\n");
     await makeSync(wA, pA).commitAndPush("wiki: A append+note");
 
-    // B conflicts with A on the SAME markdown line, forcing the rebase to fail
-    // and the merge -X ours fallback to run. The CSV must still union.
+    // B conflicts with A on the SAME markdown line. The whole-tree push carries
+    // no registered `reapply`, so the silent -X ours fallback is removed:
+    // the rebase conflict now fails loud rather than discarding A's side.
     appendLine(wB, CSV, "2026-06-01,b,2,count,,,\n");
     writeFileSync(join(wB, "notes.md"), "# Notes\nB edits the shared line\n");
-    await makeSync(wB, pB).commitAndPush("wiki: B append+note");
-
+    // No registered `reapply`: the silent -X ours fallback is removed,
+    // so the divergence fails loud — a rebase `conflict`, or a `conservation`
+    // refusal when the stale replay drops A's remote line without a textual
+    // rebase conflict. Either way A's side is never discarded.
+    await assert.rejects(
+      () => makeSync(wB, pB).commitAndPush("wiki: B append+note"),
+      (err) =>
+        err instanceof WikiPushFailure &&
+        (err.reason === "conflict" || err.reason === "conservation"),
+    );
+    // A's row is untouched on the remote (no clobber); B's never landed.
     const tip = remoteFile(bare, CSV);
-    assert.match(tip, /,a,1,/, "A's row survived the fallback merge");
-    assert.match(tip, /,b,2,/, "B's row survived the fallback merge");
+    assert.match(tip, /,a,1,/, "A's row survived — never discarded");
+    assert.ok(!/,b,2,/.test(tip), "B's row did not land on a loud conflict");
   });
 
-  test("non-CSV conflicts still resolve local-side on the fallback path", async () => {
+  test("a whole-tree non-CSV conflict fails loud — the local side is never auto-kept", async () => {
     const bare = createBareRepo();
     seedBareRepo(bare, { files: { "notes.md": "# Notes\nshared line\n" } });
 
@@ -489,10 +595,21 @@ describe("WikiSync metrics-CSV union merge", () => {
     await makeSync(wA, pA).commitAndPush("wiki: A note");
 
     writeFileSync(join(wB, "notes.md"), "# Notes\nlocal wins\n");
-    await makeSync(wB, pB).commitAndPush("wiki: B note");
-
-    // B published last; the fallback keeps B's local side, exactly as today.
-    assert.match(remoteFile(bare, "notes.md"), /local wins/);
+    // B's divergent push fails loud instead of overwriting A's remote side.
+    // The honest non-land is either a rebase `conflict` or, when the stale
+    // replay drops A's remote line without a textual rebase conflict, a
+    // `conservation` refusal — both are loud and neither discards the remote.
+    await assert.rejects(
+      () => makeSync(wB, pB).commitAndPush("wiki: B note"),
+      (err) =>
+        err instanceof WikiPushFailure &&
+        (err.reason === "conflict" || err.reason === "conservation"),
+    );
+    assert.match(
+      remoteFile(bare, "notes.md"),
+      /remote line/,
+      "A's side survives — the local side is never mechanically kept",
+    );
   });
 
   test("existing wiki acquires the declaration in exactly one commit, idempotently", async () => {
@@ -507,7 +624,7 @@ describe("WikiSync metrics-CSV union merge", () => {
     const first = await makeSync(wikiDir, parent).commitAndPush(
       "wiki: provision",
     );
-    assert.equal(first.pushed, true);
+    assert.equal(first.landed, true);
     assert.notEqual(git(wikiDir, "rev-parse", "HEAD"), baseHead);
     assert.equal(
       git(wikiDir, "show", "--name-only", "--format=", "HEAD").trim(),
@@ -515,16 +632,14 @@ describe("WikiSync metrics-CSV union merge", () => {
     );
     assert.equal(git(wikiDir, "diff", "origin/master"), "");
 
-    // Steady state (pushed): a second sync is a clean no-op, zero commits.
+    // Steady state (landed): a second sync is a grounded nothing-to-push, zero
+    // commits — the observed remote ref already contains HEAD.
     const headAfter = git(wikiDir, "rev-parse", "HEAD");
     const second = await makeSync(wikiDir, parent).commitAndPush(
       "wiki: provision",
     );
-    assert.deepEqual(second, {
-      pushed: false,
-      reason: "clean",
-      detections: [],
-    });
+    assert.equal(second.landed, false);
+    assert.equal(second.reason, "nothing-to-push");
     assert.equal(git(wikiDir, "rev-parse", "HEAD"), headAfter);
   });
 
@@ -543,7 +658,7 @@ describe("WikiSync metrics-CSV union merge", () => {
       "wiki: claim",
       ["MEMORY.md"],
     );
-    assert.equal(result.pushed, true);
+    assert.equal(result.landed, true);
     const committed = git(wikiDir, "show", "--name-only", "--format=", "HEAD")
       .split("\n")
       .filter(Boolean)

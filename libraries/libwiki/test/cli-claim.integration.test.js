@@ -192,7 +192,7 @@ describe("claim/release push integration (real git)", () => {
     };
   }
 
-  test("claim refuses on a detached HEAD: non-zero, row written but not published", async () => {
+  test("claim with a detached HEAD refuses non-zero (ancestry guard — not published)", async () => {
     const head = git(wikiDir, "rev-parse", "HEAD");
     git(wikiDir, "checkout", head); // detach
     const { harness, wikiSync } = harnessFor();
@@ -209,6 +209,9 @@ describe("claim/release push integration (real git)", () => {
         },
       }),
     );
+    // The detached-HEAD D7 fixture collapses onto the ancestry guard, which
+    // refuses with an AncestryRefusal. On the
+    // claim surface that maps to the not-published non-zero envelope.
     assert.equal(result.ok, false);
     assert.equal(result.code, 1);
     assert.match(harness.stderr, /not published/i);
@@ -435,5 +438,55 @@ describe("claim/release push integration (real git)", () => {
       claims.some((c) => c.target === "1900"),
       "foreign row conserved",
     );
+  });
+
+  test("claim with a transport-failing push keeps zero exit + saved-locally warning (D1)", async () => {
+    // Break the remote so fetch and push fail at transport: the claim row
+    // landed locally, so the surface keeps a zero exit and warns saved-locally.
+    git(wikiDir, "remote", "set-url", "origin", "/nonexistent/remote.git");
+    const { harness, wikiSync } = harnessFor();
+    const result = await runClaimCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "spec-TTTT",
+          branch: "feat/x",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, true, "landed-locally claim keeps zero exit");
+    assert.match(harness.stderr, /saved locally/i);
+    assert.match(harness.stderr, /transport/);
+    assert.doesNotMatch(harness.stdout, /committed and pushed/);
+    assert.match(readFileSync(memPath, "utf-8"), /spec-TTTT/);
+  });
+
+  test("release --expired maps outcomes like claim (lands when healthy)", async () => {
+    // Seed an expired foreign claim, then release --expired and observe a
+    // healthy landed push removing the expired row.
+    writeFileSync(
+      memPath,
+      "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| old-agent | spec-OLD | b | - | 2000-01-01 | 2000-01-08 |\n",
+    );
+    const { harness, wikiSync } = harnessFor();
+    const result = await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          expired: true,
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, true);
+    assert.match(harness.stdout, /push: committed and pushed/);
+    // The expired row's removal landed (content state, not log output).
+    assert.doesNotMatch(git(wikiDir, "show", "HEAD:MEMORY.md"), /spec-OLD/);
   });
 });

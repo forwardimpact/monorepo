@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createMockFs } from "@forwardimpact/libmock";
 import {
   WIKI,
-  HEALTHY_ANCESTRY,
+  HEALTHY_PUSH,
   make,
   gateSubprocess,
 } from "./wiki-sync-harness.js";
@@ -26,7 +26,7 @@ describe("WikiSync secret gate", () => {
     const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -41,14 +41,17 @@ describe("WikiSync secret gate", () => {
       reason: "secret-detected",
       findings: [{ file: "MEMORY.md", line: 7, rule: "github-pat" }],
     });
-    assert.ok(!methods().includes("push"), "no push attempted on a finding");
+    assert.ok(
+      !methods().includes("pushPorcelain"),
+      "no push attempted on a finding",
+    );
   });
 
   test("commitAndPush refuses with scanner-unavailable and never pushes when the scanner is absent", async () => {
     const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -60,7 +63,7 @@ describe("WikiSync secret gate", () => {
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, { pushed: false, reason: "scanner-unavailable" });
     assert.ok(
-      !methods().includes("push"),
+      !methods().includes("pushPorcelain"),
       "no push attempted when scanner absent",
     );
   });
@@ -69,7 +72,7 @@ describe("WikiSync secret gate", () => {
     const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -80,11 +83,14 @@ describe("WikiSync secret gate", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
-    assert.ok(methods().includes("push"), "clean scan proceeds to push");
+    assert.ok(
+      methods().includes("pushPorcelain"),
+      "clean scan proceeds to push",
+    );
   });
 
   test("FIT_WIKI_SECRET_OVERRIDE permits a finding, records it, then pushes", async () => {
@@ -94,7 +100,7 @@ describe("WikiSync secret gate", () => {
     const { wikiSync, methods, git } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -107,11 +113,11 @@ describe("WikiSync secret gate", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
-    assert.ok(methods().includes("push"), "override proceeds to push");
+    assert.ok(methods().includes("pushPorcelain"), "override proceeds to push");
     // The audit log is committed path-scoped into the same push.
     const overrideCommit = git.calls.find(
       (c) =>
@@ -125,7 +131,7 @@ describe("WikiSync secret gate", () => {
     const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
-        ...HEALTHY_ANCESTRY,
+        ...HEALTHY_PUSH,
         isMidMerge: false,
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
@@ -138,10 +144,13 @@ describe("WikiSync secret gate", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
-    assert.ok(methods().includes("push"), "absence override proceeds to push");
+    assert.ok(
+      methods().includes("pushPorcelain"),
+      "absence override proceeds to push",
+    );
   });
 });

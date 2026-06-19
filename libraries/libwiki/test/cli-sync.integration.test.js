@@ -59,6 +59,26 @@ describe("push/pull commands (real git)", () => {
     assert.equal(git(wikiDir, "diff", "origin/master"), "");
   });
 
+  test("push exits non-zero on a loud conflict (D1 push surface)", async () => {
+    // Remote advances the same file the local push touches ⇒ rebase conflict.
+    const { wikiDir: w1 } = cloneRepo(bare, "push-fail1");
+    const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "push-fail2");
+    git(w1, "checkout", "master");
+    git(w2, "checkout", "master");
+    writeFileSync(join(w1, "README.md"), "remote edit");
+    git(w1, "add", "-A");
+    git(w1, "commit", "-m", "remote");
+    git(w1, "push", "origin", "master");
+
+    writeFileSync(join(w2, "README.md"), "local edit");
+    const { harness, ctx } = harnessFor(w2, p2);
+    const result = await runPushCommand(ctx);
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 1);
+    assert.match(harness.stderr, /conflict/i);
+    assert.doesNotMatch(harness.stdout, /committed and pushed/);
+  });
+
   test("pull picks up an external commit", async () => {
     const { wikiDir: w1 } = cloneRepo(bare, "pull-ext1");
     const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "pull-ext2");

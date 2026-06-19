@@ -6,17 +6,25 @@ import {
   createMockFs,
 } from "@forwardimpact/libmock";
 import { AncestryRefusal, WikiSync } from "../src/wiki-sync.js";
-import { WIKI, PARENT, HEALTHY_ANCESTRY, make } from "./wiki-sync-harness.js";
+import {
+  WIKI,
+  PARENT,
+  HEALTHY_ANCESTRY,
+  HEALTHY_PUSH,
+  make,
+} from "./wiki-sync-harness.js";
 
 describe("WikiSync ancestry guard", () => {
   // A dirty, ahead tree so the guard, not the no-op gate, decides the outcome.
   // `isMidMerge: false` so the mid-merge guard does not short-circuit before the
-  // ancestry guard under test.
+  // ancestry guard under test. Folds in the honest push-flow responses
+  // (HEALTHY_PUSH) so the allow-path tests reach a grounded landing under the
+  // the honest commitAndPush contract composed flow.
   const DIRTY_AHEAD = {
+    ...HEALTHY_PUSH,
     isMidMerge: false,
     status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
     rebase: { exitCode: 0, stderr: "" },
-    revListCount: 1,
     // Clean introduced diff so the publish-marker guard (Guard 3) lets the
     // allow-path tests reach the push the ancestry guard is gating.
     introducedByFile: new Map(),
@@ -105,8 +113,8 @@ describe("WikiSync ancestry guard", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
     const deepen = git.calls.find((c) => c.method === "fetchDeepen");
@@ -135,8 +143,8 @@ describe("WikiSync ancestry guard", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
   });
@@ -202,8 +210,8 @@ describe("WikiSync ancestry guard", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
   });
@@ -264,8 +272,8 @@ describe("WikiSync ancestry guard", () => {
     });
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.deepEqual(result, {
-      pushed: true,
-      reason: "pushed",
+      landed: true,
+      reason: "landed",
       detections: [],
     });
     const trackingFetch = git.calls.find(
@@ -307,15 +315,18 @@ describe("WikiSync ancestry guard", () => {
     assertNoWrite(git);
   });
 
-  test("healthy hot path issues no ls-remote and no deepening fetch", async () => {
+  test("healthy hot path issues no ancestry remote-branch probe and no deepening fetch", async () => {
     const { git, wikiSync } = make({
       responses: { ...DIRTY_AHEAD, ...HEALTHY_ANCESTRY },
     });
     await wikiSync.commitAndPush("wiki: update");
     const names = git.calls.map((c) => c.method);
+    // The ancestry guard's emptiness probe (`remoteBranchExists`) and the
+    // shallow-clone deepen stay off the hot path. The grounded nothing-to-push
+    // read (`remoteRefTip`) is a separate, expected round-trip (the grounded-outcome contract).
     assert.ok(
       !names.includes("remoteBranchExists"),
-      "hot path adds no remote round-trip",
+      "hot path adds no ancestry-probe round-trip",
     );
     assert.ok(!names.includes("fetchDeepen"), "hot path adds no deepening");
   });

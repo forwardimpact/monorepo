@@ -338,9 +338,47 @@ export class GitClient {
   }
 
   /**
+   * Push `branch` to `remote` with the machine-readable per-ref status
+   * (`--porcelain`). Runs with `allowFailure` so the caller classifies the
+   * outcome from the remote-originated per-ref line rather than the exit code:
+   * the line is `<flag>\t<src>:<dst>\t<summary>`, flag ` `/`=` accepted,
+   * `!` rejected.
+   */
+  async pushPorcelain(remote = "origin", branch, { cwd } = {}) {
+    const args = ["push", "--porcelain", remote];
+    if (branch) args.push(branch);
+    return this.#runRaw(args, { cwd, allowFailure: true });
+  }
+
+  /**
+   * The commit SHA the remote ref points at, read fresh with `ls-remote`.
+   * Throws a {@link GitError} on transport failure; returns "" when the ref
+   * does not exist on the remote.
+   */
+  async remoteRefTip(remote = "origin", branch, { cwd } = {}) {
+    const r = await this.#runRaw(["ls-remote", remote, branch], { cwd });
+    return r.stdout.split("\t")[0]?.trim() ?? "";
+  }
+
+  /** Whether `ancestor` is an ancestor of `descendant` (`merge-base --is-ancestor`). */
+  async isAncestor(ancestor, descendant, { cwd } = {}) {
+    const r = await this.#runRaw(
+      ["merge-base", "--is-ancestor", ancestor, descendant],
+      { cwd, allowFailure: true },
+    );
+    return r.exitCode === 0;
+  }
+
+  /** `git status --porcelain` output (for unmerged-path detection). */
+  async statusPorcelain({ cwd } = {}) {
+    return this.#runRaw(["status", "--porcelain"], { cwd });
+  }
+
+  /**
    * The short name of the branch HEAD points at, or "" when HEAD is detached.
    * An unborn HEAD on a branch (no commits yet) still returns that branch name —
    * `symbolic-ref` reads the ref HEAD targets, not whether it resolves.
+   * `symbolic-ref -q HEAD` exits non-zero on a detached HEAD, swallowed here.
    */
   async headBranch({ cwd } = {}) {
     const r = await this.#runRaw(["symbolic-ref", "--short", "-q", "HEAD"], {
@@ -411,6 +449,34 @@ export class GitClient {
     return this.#runRaw(["ls-remote", "--tags", "--heads", url], {
       allowFailure: true,
     });
+  }
+
+  /**
+   * Resolve `ref` to a commit SHA, or "" when it does not resolve
+   * (`rev-parse --verify -q`, swallowed).
+   */
+  async revParse(ref, { cwd } = {}) {
+    const r = await this.#runRaw(["rev-parse", "--verify", "-q", ref], {
+      cwd,
+      allowFailure: true,
+    });
+    return r.exitCode === 0 ? r.stdout.trim() : "";
+  }
+
+  /**
+   * Name-status lines between two tree-ish (`<code>\t<path>`). Codes read
+   * going `a`→`b`: a path present in `a` but gone in `b` is `D`, modified `M`,
+   * added `A`. The conservation guard calls it tip-first (a = remote tip,
+   * b = HEAD) so a dropped foreign file reads `D`.
+   */
+  async diffNameStatus(a, b, { cwd } = {}) {
+    const r = await this.#runRaw(["diff", "--name-status", a, b], { cwd });
+    return r.stdout.trim();
+  }
+
+  /** Drop a stash addressed by SHA, never by stack position (`stash drop <sha>`). */
+  async stashDropBySha(sha, { cwd } = {}) {
+    return this.#runRaw(["stash", "drop", sha], { cwd, allowFailure: true });
   }
 
   /** Return a new client that threads `token` into the git env. */
