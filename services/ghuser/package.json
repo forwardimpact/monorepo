@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcghuser",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "GitHub user authentication — per-user OAuth token lifecycle for the Kata Agent User App.",
   "keywords": [
     "github",

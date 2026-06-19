@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svctenancy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tenant registry — `(channel, channel_tenant_key) → Tenant` lookup for the hosted control plane.",
   "keywords": [
     "tenant",

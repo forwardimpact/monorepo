@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcoauth",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "OAuth 2.1 authorization server adapter — protocol-only HTTP front that delegates to a configured provider backend over gRPC.",
   "keywords": [
     "oauth",
