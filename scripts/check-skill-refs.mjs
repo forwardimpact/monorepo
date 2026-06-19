@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Skill ref lint driver (spec 1720). Walks the skill content under
-// `.claude/skills/`, extracts GitHub Action references, and validates each
-// against reality with `git ls-remote` behind the two-stage reachability gate.
+// Skill ref lint driver. Walks the skill content under `.claude/skills/`,
+// extracts GitHub Action references, and validates each against reality with
+// `git ls-remote` behind the two-stage reachability gate, so a skill-content
+// reference that no longer resolves fails loudly in CI before it publishes.
 //
 // Wires the pure libskill modules (extractor, allowlist, anchoring, linter)
 // into a real resolver built on two libutil GitClients — a token-bearing one
