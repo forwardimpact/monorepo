@@ -1,7 +1,18 @@
-import { describe, test } from "bun:test";
-import assert from "node:assert/strict";
+// Regression test for the bun:test universal-subset allowlist invariant.
+// Lives in tests/ (the repo-root test set the `bun run test` glob scans)
+// rather than co-located in .coaligned/, matching tests/service-url-drift.test.js,
+// so the rule module's workspace dep (acorn) resolves from the repo root.
+//
+// Exercises every allowed/disallowed partition leaf against the pure verdict
+// function `bunTestFindings`, then confirms the rule module's `check` surfaces
+// those findings with the structured fields (kind, name, pointer) intact.
 
-import { bunTestFindings } from "../scripts/check-bun-test-imports-rules.mjs";
+import assert from "node:assert/strict";
+import { describe, test } from "bun:test";
+
+import ruleModule, {
+  bunTestFindings,
+} from "../.coaligned/invariants/bun-test-imports.rules.mjs";
 
 const only = (src, isTestFile) => {
   const findings = bunTestFindings(src, isTestFile);
@@ -9,7 +20,7 @@ const only = (src, isTestFile) => {
   return findings[0];
 };
 
-describe("check-bun-test-imports allowlist rules", () => {
+describe("bun-test-imports allowlist rules", () => {
   // (i) named import of an allowlisted symbol — clean.
   test("allows a named allowlisted import in a test file", () => {
     assert.deepEqual(
@@ -92,5 +103,56 @@ describe("check-bun-test-imports allowlist rules", () => {
     const f = only(`import { describe } from "bun:test";`, false);
     assert.equal(f.kind, "symbol");
     assert.equal(f.name, "describe");
+  });
+});
+
+// Mirrors libutil/src/rules.js applyRule — the production host supplies the
+// real runRules; .coaligned cannot import @forwardimpact/* directly.
+function applyRule(rule, subject) {
+  const result = rule.check(subject, {});
+  if (result == null) return [];
+  const items = Array.isArray(result) ? result : [result];
+  return items.map((item) => ({
+    id: rule.id,
+    level: rule.severity,
+    path: subject.path ?? null,
+    lineNo: item.lineNo ?? subject.lineNo ?? null,
+    message: rule.message(subject, item, {}),
+    hint: rule.hint ?? null,
+  }));
+}
+
+describe("bun-test-imports rule module", () => {
+  const [rule] = ruleModule.rules;
+
+  test("a test file with a banned import yields a structured finding", () => {
+    const findings = applyRule(rule, {
+      path: "services/demo/test/demo.test.js",
+      text: `import { spyOn } from "bun:test";`,
+    });
+    assert.equal(findings.length, 1);
+    assert.equal(findings[0].id, "bun-test.import-allowlist");
+    assert.equal(findings[0].level, "fail");
+    assert.equal(findings[0].lineNo, 1);
+    assert.match(findings[0].message, /symbol/);
+    assert.match(findings[0].message, /spyOn/);
+    assert.ok(findings[0].hint);
+  });
+
+  test("a non-test source file importing bun:test yields a finding", () => {
+    const findings = applyRule(rule, {
+      path: "services/demo/src/demo.js",
+      text: `import { describe } from "bun:test";`,
+    });
+    assert.equal(findings.length, 1);
+    assert.match(findings[0].message, /describe/);
+  });
+
+  test("a clean test file yields no finding", () => {
+    const findings = applyRule(rule, {
+      path: "services/demo/test/demo.test.js",
+      text: `import { describe, test, expect } from "bun:test";`,
+    });
+    assert.deepEqual(findings, []);
   });
 });

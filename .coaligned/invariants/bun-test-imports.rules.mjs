@@ -1,15 +1,45 @@
-// Pure detection rules for the bun:test universal-subset allowlist guard,
-// extracted so a regression test can exercise them without running the
-// file-walking script. AST-based via acorn so the verdict can distinguish the
-// imported name from a local alias and tell apart the six import/export shapes
-// the allowlist policy enumerates. Policy: CONTRIBUTING.md § Invariants.
+// Invariant: enforce the bun:test universal-subset allowlist.
+//
+// In *.test.js files, only the named symbols on the allowlist may be imported
+// from "bun:test"; default/namespace/side-effect imports and every re-export
+// shape are rejected. In every other file under the scope set (non-test
+// source), all bun:test imports and re-exports are rejected — this keeps
+// libmock/libpack source decoupled from the runner. Policy:
+// CONTRIBUTING.md § Invariants.
+//
+// Detection is AST-based via acorn so the verdict can distinguish the imported
+// name from a local alias and tell apart the six import/export shapes the
+// allowlist policy enumerates. The pure verdict function `bunTestFindings` is
+// exported so a regression test can exercise it directly.
 
-import { parse } from "acorn";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { parseModule } from "./lib/ast.mjs";
+import { collectFiles } from "./lib/walk.mjs";
+
+// The bun test invocation roots (verified against package.json scripts.test)
+// plus websites/ as preemptive coverage. See CONTRIBUTING.md § Invariants.
+const SCAN_DIRS = [
+  "libraries",
+  "services",
+  "products",
+  "tests",
+  "websites",
+  ".github/workflows/test",
+  ".claude/skills/kata-interview/test",
+];
+const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
+// JS source/module extensions acorn parses as ES modules. The source-file ban
+// covers every non-test file under scope; .ts/.mts/.cts are TypeScript that
+// acorn cannot parse and are out of this guard's surface (a TypeScript test
+// extension is the named follow-up in CONTRIBUTING.md § Invariants). Only
+// .test.js counts as a test file; every other extension here is non-test source.
+const SOURCE_EXTS = [".js", ".mjs", ".cjs"];
 
 // The universal-subset allowlist: the cross-runner test symbols (describe,
 // test, expect, lifecycle hooks) plus two forward-compat aliases (`it`,
 // `beforeAll`). Permitted as named imports from "bun:test" in *.test.js files
-// only. See CONTRIBUTING.md § Invariants.
+// only.
 export const ALLOWLIST = new Set([
   "describe",
   "test",
@@ -81,17 +111,14 @@ function reExportFindings(node, line) {
  * Detect bun:test import/export violations in a single file's source text.
  * @param {string} text - The file contents.
  * @param {boolean} isTestFile - True when the path matches `**\/*.test.js`.
+ * @param {string} [filePath] - Path used in parse-error messages.
  * @returns {Array<{line: number, kind: "symbol"|"shape", name: string, pointer: string}>}
  *   One record per rejection; empty when clean.
  */
-export function bunTestFindings(text, isTestFile) {
+export function bunTestFindings(text, isTestFile, filePath = "<source>") {
   let ast;
   try {
-    ast = parse(text, {
-      sourceType: "module",
-      ecmaVersion: "latest",
-      locations: true,
-    });
+    ast = parseModule(text, filePath, { locations: true });
   } catch {
     return [
       {
@@ -119,3 +146,39 @@ export function bunTestFindings(text, isTestFile) {
 
   return findings;
 }
+
+export default {
+  name: "bun-test-imports",
+
+  build({ root }) {
+    const subjects = [];
+    for (const dir of SCAN_DIRS) {
+      const files = collectFiles(join(root, dir), {
+        skip: SKIP_DIRS,
+        match: (name) => SOURCE_EXTS.some((e) => name.endsWith(e)),
+      });
+      for (const path of files) {
+        subjects.push({ path, text: readFileSync(path, "utf8") });
+      }
+    }
+    return { subjects: { "scoped-file": subjects } };
+  },
+
+  rules: [
+    {
+      id: "bun-test.import-allowlist",
+      scope: "scoped-file",
+      severity: "fail",
+      check: (s) => {
+        const isTestFile = s.path.endsWith(".test.js");
+        const findings = bunTestFindings(s.text, isTestFile, s.path);
+        return findings.length === 0
+          ? null
+          : findings.map((f) => ({ ...f, lineNo: f.line }));
+      },
+      message: (_s, f) =>
+        `bun:test ${f.kind} "${f.name}" is not permitted here — ${f.pointer}`,
+      hint: "import only the allowlisted named symbols from bun:test in *.test.js files; non-test source must not import bun:test at all",
+    },
+  ],
+};
