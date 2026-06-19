@@ -1,0 +1,44 @@
+{
+  "version": "1.1.0",
+  "metadata": {
+    "timestamp": "2026-01-01T00:00:00Z",
+    "sessionId": "old",
+    "model": "claude-opus-4-x",
+    "claudeCodeVersion": "2.0.0",
+    "tools": [],
+    "permissionMode": "default"
+  },
+  "initEvent": null,
+  "turns": [
+    {
+      "index": 0,
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "."
+        }
+      ],
+      "usage": {
+        "inputTokens": 100,
+        "outputTokens": 15,
+        "cacheReadInputTokens": 200,
+        "cacheCreationInputTokens": 50
+      }
+    }
+  ],
+  "summary": {
+    "result": "success",
+    "isError": false,
+    "totalCostUsd": 0.5,
+    "durationMs": 3000,
+    "numTurns": 2,
+    "tokenUsage": {
+      "inputTokens": 100,
+      "outputTokens": 15,
+      "cacheReadInputTokens": 200,
+      "cacheCreationInputTokens": 50
+    },
+    "modelUsage": null
+  }
+}

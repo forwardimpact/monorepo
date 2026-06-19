@@ -35,7 +35,7 @@ describe("TraceCollector", () => {
       const collector = collectFixture();
       const trace = collector.toJSON();
 
-      assert.strictEqual(trace.version, "1.1.0");
+      assert.strictEqual(trace.version, "1.2.0");
       assert.strictEqual(trace.metadata.sessionId, "abc-123");
       assert.strictEqual(trace.metadata.model, "claude-opus-4-6");
       assert.strictEqual(trace.metadata.claudeCodeVersion, "2.1.87");
@@ -60,7 +60,7 @@ describe("TraceCollector", () => {
       const collector = new TraceCollector();
       const trace = collector.toJSON();
 
-      assert.strictEqual(trace.version, "1.1.0");
+      assert.strictEqual(trace.version, "1.2.0");
       assert.strictEqual(trace.metadata.sessionId, null);
       assert.strictEqual(trace.initEvent, null);
       assert.strictEqual(trace.turns.length, 0);

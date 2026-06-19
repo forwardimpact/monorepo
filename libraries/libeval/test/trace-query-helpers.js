@@ -8,7 +8,7 @@
  */
 export function buildTrace(overrides = {}) {
   return {
-    version: "1.1.0",
+    version: "1.2.0",
     metadata: {
       timestamp: "2026-01-01T00:00:00Z",
       sessionId: "test-session",
@@ -22,6 +22,7 @@ export function buildTrace(overrides = {}) {
       {
         index: 0,
         role: "assistant",
+        messageId: "msg_a",
         content: [{ type: "text", text: "Let me check the files." }],
         usage: {
           inputTokens: 100,
@@ -33,6 +34,7 @@ export function buildTrace(overrides = {}) {
       {
         index: 1,
         role: "assistant",
+        messageId: "msg_b",
         content: [
           {
             type: "tool_use",
@@ -58,6 +60,7 @@ export function buildTrace(overrides = {}) {
       {
         index: 3,
         role: "assistant",
+        messageId: "msg_c",
         content: [
           { type: "text", text: "Now reading the config file." },
           {
@@ -84,6 +87,7 @@ export function buildTrace(overrides = {}) {
       {
         index: 5,
         role: "assistant",
+        messageId: "msg_d",
         content: [
           {
             type: "tool_use",
@@ -113,6 +117,7 @@ export function buildTrace(overrides = {}) {
       {
         index: 7,
         role: "assistant",
+        messageId: "msg_e",
         content: [
           {
             type: "tool_use",
@@ -138,6 +143,7 @@ export function buildTrace(overrides = {}) {
       {
         index: 9,
         role: "assistant",
+        messageId: "msg_f",
         content: [
           { type: "text", text: "The tests failed. Let me fix the issue." },
         ],
@@ -155,7 +161,12 @@ export function buildTrace(overrides = {}) {
       totalCostUsd: 0.0523,
       durationMs: 5200,
       numTurns: 5,
-      tokenUsage: null,
+      tokenUsage: {
+        inputTokens: 880,
+        outputTokens: 100,
+        cacheReadInputTokens: 2700,
+        cacheCreationInputTokens: 50,
+      },
       modelUsage: null,
       ...overrides.summary,
     },

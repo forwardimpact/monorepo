@@ -73,7 +73,7 @@ Search options: `--limit N` (max results), `--context N` (surrounding turns),
 
 | Command                      | Purpose                                    |
 | ---------------------------- | ------------------------------------------ |
-| `stats <file>`               | Token usage and cost breakdown             |
+| `stats <file>`               | Token/cost totals (summed over all result events) + per-API-message breakdown |
 | `tools <file>`               | Tool usage frequency (descending)          |
 | `tool <file> <name>`         | All turns involving a specific tool        |
 | `errors <file>`              | All tool results with isError=true         |
@@ -162,7 +162,12 @@ The strongest findings are **grounded** (traceable to specific turns),
 
 ### What to Measure
 
-- **Token usage** — `stats` breaks down input vs. output tokens and cost.
+- **Token usage** — `stats` totals are the sum over **all** result events in
+  the trace (a multi-invocation trace carries several; reading only the last one
+  undercounts session cost). The `perTurn` breakdown is one row per API message,
+  not per stream event, and its output figure is a streaming-snapshot lower
+  bound. Each total names its population; a trace with no result event reports
+  per-message totals with cost and duration marked unavailable.
 - **Retry counts** — search for repeated identical tool calls.
 - **Wasted turns** — turns that produced no useful progress.
 - **Error recovery** — did the agent diagnose and adapt, or retry blindly?

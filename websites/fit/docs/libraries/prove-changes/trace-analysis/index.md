@@ -126,10 +126,23 @@ npx fit-trace stats /tmp/trace-24497273755/structured.json
 
 ```json
 {
-  "totals": { "inputTokens": 142800, "outputTokens": 18400, "totalCostUsd": 0.42, "durationMs": 94200 },
-  "perTurn": [{ "index": 1, "inputTokens": 12300, "outputTokens": 800, ... }]
+  "totals": {
+    "inputTokens": 142800, "outputTokens": 18400,
+    "totalCostUsd": 0.42, "durationMs": 94200,
+    "durationLabel": "cumulative invocation time",
+    "resultEventTurns": 18, "population": "result-event-sum"
+  },
+  "perTurn": [{ "messageId": "msg_01", "inputTokens": 12300, "outputTokens": 800, "population": "api-message", ... }]
 }
 ```
+
+The totals are the sum over **all** result events in the trace — a supervised or
+facilitated session carries one per invocation, and reading only the last one
+undercounts session cost. The `perTurn` breakdown is one row per API message
+(its `outputTokens` is a streaming-snapshot lower bound, not the final count),
+and every figure names its population. A trace with no result event still
+reports per-message totals, with cost and duration marked unavailable rather
+than a misleading `0`.
 
 Track these numbers across runs over time. A single trace is a snapshot; a
 series shows whether changes are landing.
