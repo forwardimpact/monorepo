@@ -25,7 +25,7 @@ topics:
     consumers:
       - { path: "websites/fit/gear/index.md", property: count }
   - id: sibling-composite-actions
-    source: { type: md-table, file: ".github/CLAUDE.md", section: "Third-party actions", column: "Action", filter: "^forwardimpact/" }
+    source: { type: md-table, file: ".github/CLAUDE.md", section: "Third-party actions", column: "Action (`@v1`)", filter: "forwardimpact/" }
     consumers:
       - { path: "CLAUDE.md", property: list }
       - { path: "KATA.md", property: both }

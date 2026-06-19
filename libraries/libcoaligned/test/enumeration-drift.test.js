@@ -150,6 +150,19 @@ describe("bareSlug + probeMdTable", () => {
     assert.equal(bareSlug("forwardimpact/kata-agent"), "kata-agent");
   });
 
+  test("bareSlug unwraps a markdown-link cell to its link text", () => {
+    assert.equal(
+      bareSlug(
+        "[fit-bootstrap](https://github.com/forwardimpact/fit-bootstrap)",
+      ),
+      "fit-bootstrap",
+    );
+    assert.equal(
+      bareSlug("[kata-agent](https://github.com/forwardimpact/kata-agent)"),
+      "kata-agent",
+    );
+  });
+
   test("md-table filter + identifier normalization", () => {
     const root = withRepo({
       ".github/CLAUDE.md": [
@@ -176,6 +189,37 @@ describe("bareSlug + probeMdTable", () => {
       root,
     );
     assert.deepEqual([...set].sort(), ["fit-wiki", "kata-agent"]);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  // The real `.github/CLAUDE.md` table: a `Action (`@v1`)` header and
+  // markdown-link cells whose URL carries the `forwardimpact/` org. The
+  // selector must match this shape, not the bare-token form above.
+  test("md-table matches the real sibling-action table shape", () => {
+    const root = withRepo({
+      ".github/CLAUDE.md": [
+        "# Doc",
+        "",
+        "## Third-party actions",
+        "",
+        "| Action (`@v1`) | Purpose |",
+        "|---|---|",
+        "| [fit-bootstrap](https://github.com/forwardimpact/fit-bootstrap) | env |",
+        "| [kata-agent](https://github.com/forwardimpact/kata-agent) | full run |",
+        "",
+        "## Next",
+      ].join("\n"),
+    });
+    const set = probeMdTable(
+      {
+        file: ".github/CLAUDE.md",
+        section: "Third-party actions",
+        column: "Action (`@v1`)",
+        filter: "forwardimpact/",
+      },
+      root,
+    );
+    assert.deepEqual([...set].sort(), ["fit-bootstrap", "kata-agent"]);
     rmSync(root, { recursive: true, force: true });
   });
 });

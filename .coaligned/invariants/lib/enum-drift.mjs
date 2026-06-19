@@ -113,9 +113,16 @@ export function probeFsGlob(source, root) {
 
 // --- md-table probe --------------------------------------------------------
 
-/** Reduce a composite-action token to its bare slug (drop scope + @version). */
+/**
+ * Reduce a composite-action cell to its bare slug. Unwraps a leading
+ * `[text](url)` markdown link to its link text (the form the real
+ * `.github/CLAUDE.md` table uses), then drops backticks, the
+ * `forwardimpact/` scope, and a trailing `@version`.
+ */
 export function bareSlug(cell) {
-  return cell
+  const trimmed = cell.trim();
+  const link = trimmed.match(/^\[([^\]]+)\]\([^)]*\)/);
+  return (link ? link[1] : trimmed)
     .trim()
     .replace(/^`+|`+$/g, "")
     .trim()
