@@ -43,6 +43,16 @@ jobs:
           vulnerability-scanning: "false"
           secret-scanning: "true"
 
+      - uses: forwardimpact/fit-bootstrap@22e7a8a053c22cf56d6f4efb95fcf0b3d42267c8 # v1
+        with:
+          path: monorepo
+
+      - name: Skill ref lint
+        working-directory: monorepo
+        run: bun run check-skill-refs
+        env:
+          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
+
       - name: Read version
         run: |
           VERSION=$(jq -r '.version' monorepo/products/gear/package.json)
@@ -190,6 +200,16 @@ jobs:
           working-directory: monorepo
           vulnerability-scanning: "false"
           secret-scanning: "true"
+
+      - uses: forwardimpact/fit-bootstrap@22e7a8a053c22cf56d6f4efb95fcf0b3d42267c8 # v1
+        with:
+          path: monorepo
+
+      - name: Skill ref lint
+        working-directory: monorepo
+        run: bun run check-skill-refs
+        env:
+          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
 
       - name: Read version
         run: |
