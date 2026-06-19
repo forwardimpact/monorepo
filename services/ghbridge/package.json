@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@forwardimpact/libbridge": "^0.1.0",
+    "@forwardimpact/libcli": "^0.1.14",
     "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/librpc": "^0.1.99",
