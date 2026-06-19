@@ -49,15 +49,18 @@ type](coordination-protocol.md#channel-by-output-type); gating is in
 ### Product-aligned vs internal
 
 A second axis, independent of the mechanical-vs-structural fork — a fix or a
-spec can be either value.
+spec can be either value. The test is the surface the change lands on, by
+MONOREPO.md tree:
 
-- **Product-aligned** — changes a product or service surface a JTBD persona
-  hires (CLAUDE.md § Products, [JTBD.md](../../../JTBD.md)).
-- **Internal** — changes the agent team's own machinery, infrastructure, or
-  process.
-- **Decision test** — does the change alter a surface a JTBD persona hires? If
-  yes, it is product-aligned; if it touches only the team's own machinery,
-  infrastructure, or process, it is internal.
+- **Product-aligned** — the change is a shipped product or service surface a
+  persona hires: the `products/` or `services/` trees, or the documentation of
+  those surfaces.
+- **Internal** — everything else: shared libraries (`libraries/`), agent
+  configuration (`.claude/`), CI and automation (`.github/`), build, release,
+  and repository tooling.
+- **Decision test** — does the change land under `products/` or `services/` (or
+  document one of those surfaces)? If yes, it is product-aligned; otherwise it
+  is internal.
 
 The agent opening any work PR — spec PR, issue-sourced fix, or direct fix —
 applies the matching `product` / `internal` label.
