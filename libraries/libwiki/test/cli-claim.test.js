@@ -133,6 +133,88 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
     }
   });
 
+  test("claim and release fail closed when the gate detects a secret", async () => {
+    const fsSync = createMockFs({ [MEMORY_PATH]: EMPTY_CLAIMS });
+    const wikiSync = {
+      async inheritIdentity() {},
+      async commitAndPush() {
+        return {
+          pushed: false,
+          reason: "secret-detected",
+          findings: [{ file: "MEMORY.md", line: 7, rule: "github-pat" }],
+        };
+      },
+    };
+    const runClaim = (options) => {
+      const harness = makeRuntime({ fsSync });
+      return {
+        harness,
+        promise: runClaimCommand(
+          ctxFor({
+            runtime: harness.runtime,
+            wikiSync,
+            options: { "wiki-root": WIKI_ROOT, ...options },
+          }),
+        ),
+      };
+    };
+    const claim = runClaim({
+      agent: "staff-engineer",
+      target: "spec-NNNN",
+      branch: "feat/x",
+      today: "2099-01-01",
+    });
+    const claimResult = await claim.promise;
+    assert.deepEqual(claimResult, { ok: false, code: 1 });
+    assert.match(claim.harness.stderr, /secret detected/);
+    assert.match(claim.harness.stderr, /MEMORY\.md:7:github-pat/);
+    assert.doesNotMatch(claim.harness.stdout, /pushed|saved locally/);
+
+    // The local MEMORY.md edit still landed (claim row written) — the block is
+    // on the push, not the local write.
+    const releaseHarness = makeRuntime({ fsSync });
+    const releaseResult = await runReleaseCommand(
+      ctxFor({
+        runtime: releaseHarness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": WIKI_ROOT,
+          agent: "staff-engineer",
+          target: "spec-NNNN",
+        },
+      }),
+    );
+    assert.deepEqual(releaseResult, { ok: false, code: 1 });
+    assert.match(releaseHarness.stderr, /secret detected/);
+  });
+
+  test("claim fails closed when the scanner is unavailable", async () => {
+    const fsSync = createMockFs({ [MEMORY_PATH]: EMPTY_CLAIMS });
+    const harness = makeRuntime({ fsSync });
+    const wikiSync = {
+      async inheritIdentity() {},
+      async commitAndPush() {
+        return { pushed: false, reason: "scanner-unavailable" };
+      },
+    };
+    const result = await runClaimCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": WIKI_ROOT,
+          agent: "staff-engineer",
+          target: "spec-NNNN",
+          branch: "feat/x",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.deepEqual(result, { ok: false, code: 1 });
+    assert.match(harness.stderr, /scanner.*unavailable|gitleaks/i);
+    assert.match(harness.stderr, /FIT_WIKI_SCANNER_ABSENT_OK/);
+  });
+
   test("claim succeeds locally when the wiki push fails", async () => {
     const fsSync = createMockFs({ [MEMORY_PATH]: EMPTY_CLAIMS });
     const harness = makeRuntime({ fsSync });

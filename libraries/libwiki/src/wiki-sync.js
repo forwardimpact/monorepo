@@ -3,11 +3,15 @@ import { scanConflictMarkers } from "./conflict-markers.js";
 import { GITATTRIBUTES_FILE, SINGLETON_PATHS } from "./constants.js";
 import { ensureMetricsCsvMergeAttribute } from "./gitattributes.js";
 import { parseDiff, findAbsent, makeDetection, normLine } from "./integrity.js";
+import { scanPushWindow, appendOverrideRecord } from "./secret-gate.js";
 
 /** The branch the wiki clone publishes (hard-coded in fetch / rebase / push). */
 const BRANCH = "master";
 const REMOTE = "origin";
 const REMOTE_BRANCH = `${REMOTE}/${BRANCH}`;
+
+/** The commit range a wiki push introduces relative to the remote it reconciles against. */
+const PUSH_RANGE = "origin/master..HEAD";
 
 /** Error thrown when a wiki pull encounters a rebase conflict that cannot be resolved automatically. */
 export class WikiPullConflict extends Error {
@@ -265,12 +269,24 @@ export class WikiSync {
    * the tip. Without a `reapply` the conflict keeps the `-X ours` fallback, so
    * prose surfaces and unregistered paths stay on the side-biased behavior.
    *
+   * **Fail-closed secret gate.** After the reconcile and before the push, the
+   * content the push introduces (the commit range `origin/master..HEAD`) is
+   * secret-scanned fail-closed. A detected secret or an unavailable scanner
+   * refuses the push with a distinct reason and no remote contact, unless the
+   * matching off-by-default override is set in the environment —
+   * `FIT_WIKI_SECRET_OVERRIDE` permits a finding, `FIT_WIKI_SCANNER_ABSENT_OK`
+   * permits a scanner absence. Each override appends an audited line to the wiki
+   * tree's `secret-overrides.log` before the push. A *network/credential* push
+   * failure is distinct: it still degrades to "saved locally" (the preserved
+   * fire-and-forget behaviour).
+   *
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs limiting what gets committed.
    * @param {{reapply?: (freshText: string) => string | null, maxReapply?: number}} [options]
    *   `reapply` re-derives the registered file's content from the operation's
    *   own row edit against the fresh tip text; returns the new text or null when
    *   the op is already satisfied on the tip.
+   * @returns {Promise<{pushed: boolean, reason: "pushed"|"clean"|"secret-detected"|"scanner-unavailable"|"mid-merge"|"stranded-merge"|"would-publish-markers"|"introduced-scan-failed", findings?: Array<{file: string, line: number, rule: string}>, detections?: object[], workAt?: string}>}
    * @throws {AncestryRefusal} When the published history cannot be verified.
    * @throws {WikiSyncConflict} When the re-apply budget is exhausted.
    */
@@ -325,17 +341,13 @@ export class WikiSync {
     const markerRefusal = await this.#refuseIfIntroducedMarkers();
     if (markerRefusal) return markerRefusal;
     // Capture the pushed delta now: HEAD is the final (rebased/merged) local
-    // tip and origin/master is still the pre-push base. A two-tree range diff
-    // (not a single-commit show) is correct even when HEAD is a merge commit.
-    // Wrapped so the detection-only probe never gates the push it follows.
-    let pushedDelta = null;
-    try {
-      pushedDelta = await this.#git.diffRange("origin/master HEAD", {
-        cwd: this.#wikiDir,
-      });
-    } catch {
-      // Detection-only: a capture failure degrades to no tier-1 detections.
-    }
+    // tip and origin/master is still the pre-push base.
+    const pushedDelta = await this.#capturePushedDelta();
+    // Fail-closed secret gate. Scan exactly the commits this push introduces
+    // (the reconcile above made the range correct) before any remote contact;
+    // a finding or missing scanner refuses unless its own override is set.
+    const refusal = await this.#gateOrRefuse();
+    if (refusal) return refusal;
     // Resolve auth first so a misconfigured `resolveToken` still surfaces; the
     // push itself is fire-and-forget like WikiRepo (which ignored the push
     // result and reported pushed:true regardless), so a network/credential
@@ -348,6 +360,23 @@ export class WikiSync {
     }
     const detections = await this.#tier1Probe(pushedDelta);
     return { pushed: true, reason: "pushed", detections };
+  }
+
+  /**
+   * Capture the `origin/master..HEAD` delta for the post-push tier-1 probe. A
+   * two-tree range diff (not a single-commit show) is correct even when HEAD is
+   * a merge commit. Detection-only: a capture failure degrades to `null` so the
+   * probe never gates the push it follows.
+   * @returns {Promise<string|null>}
+   */
+  async #capturePushedDelta() {
+    try {
+      return await this.#git.diffRange("origin/master HEAD", {
+        cwd: this.#wikiDir,
+      });
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -507,6 +536,55 @@ export class WikiSync {
       }
     }
     throw new WikiSyncConflict(paths, "reapply-bound");
+  }
+
+  /**
+   * Run the secret gate over the push window and decide whether to refuse.
+   * Returns a refusal envelope to short-circuit the push, or `null` to proceed
+   * (clean, or an override that wrote its audit record). An override appends a
+   * secret-free line to `secret-overrides.log` and commits it into the push
+   * range before returning `null`.
+   *
+   * @returns {Promise<{pushed: false, reason: "secret-detected"|"scanner-unavailable", findings?: Array<{file: string, line: number, rule: string}>}|null>}
+   */
+  async #gateOrRefuse() {
+    const env = this.#runtime.proc.env;
+    const verdict = await scanPushWindow({
+      runtime: this.#runtime,
+      wikiDir: this.#wikiDir,
+      range: PUSH_RANGE,
+    });
+    if (verdict.status === "finding") {
+      const reason = env.FIT_WIKI_SECRET_OVERRIDE;
+      if (!reason) {
+        return {
+          pushed: false,
+          reason: "secret-detected",
+          findings: verdict.findings,
+        };
+      }
+      await appendOverrideRecord({
+        runtime: this.#runtime,
+        gitClient: this.#git,
+        wikiDir: this.#wikiDir,
+        klass: "finding",
+        reason,
+        findings: verdict.findings,
+      });
+    } else if (verdict.status === "scanner-absent") {
+      const reason = env.FIT_WIKI_SCANNER_ABSENT_OK;
+      if (!reason) {
+        return { pushed: false, reason: "scanner-unavailable" };
+      }
+      await appendOverrideRecord({
+        runtime: this.#runtime,
+        gitClient: this.#git,
+        wikiDir: this.#wikiDir,
+        klass: "scanner-absent",
+        reason,
+      });
+    }
+    return null;
   }
 
   async #hasCommitsAhead() {

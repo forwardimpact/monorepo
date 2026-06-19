@@ -175,6 +175,71 @@ owner then resolves it one of two ways:
 - Edit any column -- a run id or a note -- if the rows are genuinely distinct
   measurements. The edit makes the rows differ, and the finding stops firing.
 
+## Secret scanning in wiki pushes
+
+Your wiki is public the moment it pushes, and a GitHub Wiki repository cannot
+run GitHub Actions or GitHub secret-scanning. The push path is therefore the
+only place a secret-leak control can live. Every command that pushes the wiki
+(`claim`, `release`, `push`) runs a fail-closed secret scan over the content
+the push introduces before any network contact.
+
+When the scan finds a secret, the command stops. It does not push, it does not
+fall back to "saved locally", and it exits non-zero with the finding location:
+
+```
+push blocked: secret detected in wiki content (MEMORY.md:42:github-pat); the push was not attempted.
+```
+
+A network or credential failure is different. That still degrades to "saved
+locally" and succeeds — the change is on disk and a later push retries it. Only
+a detected secret or a missing scanner blocks the command.
+
+### Provisioning the scanner
+
+The scan uses [gitleaks](https://github.com/gitleaks/gitleaks). Install it on
+the machine that runs `fit-wiki` and make it resolvable on `PATH`. Pin the same
+version the repository's CI standardises on:
+
+```sh
+gitleaks version   # expect 8.24.3
+```
+
+If gitleaks is not available, the push fails closed rather than skipping the
+scan:
+
+```
+push blocked: the secret scanner (gitleaks) is unavailable; the push was not attempted.
+```
+
+A detective control that silently disables itself is not a control, so a
+missing scanner is treated as a refusal, never a pass.
+
+### Break-glass overrides
+
+Two off-by-default overrides let an operator proceed past a confirmed false
+positive or an unavoidable missing scanner. Each is a separate environment
+variable, so clearing a routine false positive can never silently bypass a
+later missing-scanner refusal. Each must carry a reason, and using either one
+writes a durable audit line.
+
+| Override | Permits | Set it to |
+| --- | --- | --- |
+| `FIT_WIKI_SECRET_OVERRIDE` | A detected finding | The reason for overriding |
+| `FIT_WIKI_SCANNER_ABSENT_OK` | A missing scanner | The reason for overriding |
+
+```sh
+FIT_WIKI_SECRET_OVERRIDE="example token in MEMORY.md is a documented sample" npx fit-wiki push
+```
+
+Each override appends one line to `secret-overrides.log` in the wiki tree and
+commits it in the same push. The line records the timestamp, the operator
+identity, the override class, the reason, and — for a finding — the location
+(`file:line:rule`). It never records the matched secret value.
+
+The recorded identity is read from `git config user.email`. It is a
+self-asserted attribution of intent, not an authenticated identity. Treat the
+log as a record of who claimed responsibility, not cryptographic proof.
+
 ## Bootstrapping the wiki
 
 If your project does not have a wiki yet, `init` sets one up:

@@ -9,6 +9,7 @@ import {
 } from "../active-claims.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
+import { refusalEnvelope } from "../secret-gate.js";
 import { AncestryRefusal } from "../wiki-sync.js";
 
 /** Non-zero envelope returned when the ancestry guard refused publication. */
@@ -35,29 +36,52 @@ function memoryPath(runtime, options) {
   return path.join(resolveWikiRoot(runtime, options), "MEMORY.md");
 }
 
+/**
+ * Push the claim/release MEMORY.md change through the secret-gated push path
+ * and translate the result into a command envelope. A secret block fails the
+ * command closed (`{ ok: false, code: 1 }`) and names the finding or the
+ * scanner absence on stderr — distinct from a *network* push failure, which
+ * still degrades to "saved locally" and succeeds (`{ ok: true }`).
+ *
+ * The `reapply` closure re-derives this row against the fresh tip if the
+ * landing contends, so a parallel writer's row is never erased. An
+ * ancestry-guard refusal ({@link AncestryRefusal}) is rethrown so the caller's
+ * `pushRowOrRefuse` can map it to the not-published non-zero envelope; every
+ * other throw is a network/credential failure that degrades to "saved locally".
+ *
+ * @param {object} wikiSync - The WikiSync collaborator (may be absent in tests).
+ * @param {object} runtime - The runtime bag (for stdout/stderr).
+ * @param {string} message - The commit message.
+ * @param {(freshText: string) => string | null} [reapply] - Re-derives the row
+ *   against the fresh tip when the landing contends.
+ * @returns {Promise<{ok: boolean, code?: number}>}
+ */
 async function pushWiki(wikiSync, runtime, message, reapply) {
-  if (!wikiSync) return;
+  if (!wikiSync) return { ok: true };
+  let result;
   try {
     await wikiSync.inheritIdentity();
     // claim/release contract is a 1-line MEMORY.md change; the pathspec keeps
     // foreign uncommitted files from parallel writers out of the commit. The
     // `reapply` closure re-derives this row against the fresh tip if the landing
     // contends, so a parallel writer's row is never erased.
-    const result = await wikiSync.commitAndPush(message, ["MEMORY.md"], {
-      reapply,
-    });
-    if (result.pushed)
-      runtime.proc.stdout.write("push: committed and pushed\n");
+    result = await wikiSync.commitAndPush(message, ["MEMORY.md"], { reapply });
   } catch (err) {
     // An ancestry-guard refusal pierces the saved-locally degradation: it must
     // reach a non-zero exit so the session stops rather than scroll past. Every
-    // other failure keeps degrading to a saved-locally warning.
+    // other failure is a network/credential failure: preserve fire-and-forget
+    // "saved locally" — the change is on disk and the command still succeeds.
     if (err instanceof AncestryRefusal) throw err;
     createLogger("wiki", runtime).warn(
       "claim",
       `push failed (saved locally): ${err.message}`,
     );
+    return { ok: true };
   }
+  const refusal = refusalEnvelope(runtime, result);
+  if (refusal) return refusal;
+  if (result.pushed) runtime.proc.stdout.write("push: committed and pushed\n");
+  return { ok: true };
 }
 
 /**
@@ -69,7 +93,9 @@ async function pushWiki(wikiSync, runtime, message, reapply) {
  */
 async function pushRowOrRefuse(wikiSync, runtime, message, reapply) {
   try {
-    await pushWiki(wikiSync, runtime, message, reapply);
+    // Propagate pushWiki's envelope so a secret-gate refusal ({ ok: false })
+    // fails the command closed; a clean push returns { ok: true }.
+    return await pushWiki(wikiSync, runtime, message, reapply);
   } catch (err) {
     if (err instanceof AncestryRefusal) {
       runtime.proc.stderr.write(notPublishedMessage(err));
@@ -77,7 +103,6 @@ async function pushRowOrRefuse(wikiSync, runtime, message, reapply) {
     }
     throw err;
   }
-  return { ok: true };
 }
 
 /** Insert a row into MEMORY.md `## Active Claims`. Refuses if (agent, target) already present. */
@@ -200,20 +225,19 @@ export async function runReleaseCommand(ctx) {
     runtime.proc.stdout.write(
       `no matching claim for ${agent}/${options.target}\n`,
     );
-  } else {
-    runtime.proc.stdout.write(`released ${options.target}\n`);
-    // Re-apply the same removal against the fresh tip if the landing contends;
-    // re-removing an absent row is a no-op, so a re-release never resurrects it.
-    const reapply = (fresh) => {
-      const r = removeClaim(fresh, { agent, target: options.target });
-      return r.removed ? r.text : null;
-    };
-    return pushRowOrRefuse(
-      wikiSync,
-      runtime,
-      `wiki: release ${options.target}`,
-      reapply,
-    );
+    return { ok: true };
   }
-  return { ok: true };
+  runtime.proc.stdout.write(`released ${options.target}\n`);
+  // Re-apply the same removal against the fresh tip if the landing contends;
+  // re-removing an absent row is a no-op, so a re-release never resurrects it.
+  const reapply = (fresh) => {
+    const r = removeClaim(fresh, { agent, target: options.target });
+    return r.removed ? r.text : null;
+  };
+  return pushRowOrRefuse(
+    wikiSync,
+    runtime,
+    `wiki: release ${options.target}`,
+    reapply,
+  );
 }

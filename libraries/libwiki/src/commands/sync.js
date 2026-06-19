@@ -1,9 +1,16 @@
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { refusalEnvelope } from "../secret-gate.js";
 import { AncestryRefusal, WikiPullConflict } from "../wiki-sync.js";
 import { sweepTier2, renderDetections } from "../integrity.js";
 import { resolveWikiRoot } from "../util/wiki-dir.js";
 
-/** Commit all wiki changes and push them to the remote wiki repository. The post-push tier-1 integrity detections surface in the output; they never gate the push. */
+/**
+ * Commit all wiki changes and push them through the secret-gated push path.
+ * A detected secret or unavailable scanner fails the command closed and names
+ * the cause on stderr without attempting the push; a clean write pushes or
+ * reports nothing to push. The post-push tier-1 integrity detections surface in
+ * the output; they never gate the push.
+ */
 export async function runPushCommand(ctx) {
   const { runtime, wikiSync } = ctx.deps;
   await wikiSync.inheritIdentity();
@@ -18,6 +25,10 @@ export async function runPushCommand(ctx) {
     }
     throw err;
   }
+  // Fail the command closed on a secret-gate refusal (secret detected or scanner
+  // unavailable); a clean push falls through to the normal reporting below.
+  const refusal = refusalEnvelope(runtime, result);
+  if (refusal) return refusal;
   if (result.pushed) {
     runtime.proc.stdout.write("push: committed and pushed\n");
   } else {
