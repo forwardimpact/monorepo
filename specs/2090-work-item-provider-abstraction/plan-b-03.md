@@ -1,6 +1,6 @@
 # Plan 2090-b, Part 03: Re-point the kata-* skills
 
-Replace every in-scope forge call-site in the kata-* skills and their references
+Replace every in-scope tracker call-site in the kata-* skills and their references
 with an operation name plus a link to `work-trackers.md`. Depends on Part 01.
 Scope boundary (what counts, and the `kata-setup` exclusion) is in
 [plan-b.md](plan-b.md) § Scope boundary. Conventions: [plan-b.md](plan-b.md).
@@ -73,7 +73,7 @@ surfaces.
 Verification: only release-tag/release pushes and reads remain; no `gh pr/issue`
 shape outside the matrix.
 
-## Step 6 — Metric-grade forge reads
+## Step 6 — Metric-grade tracker reads
 
 Files: modify the `references/metrics.md` of `kata-spec`, `kata-design`,
 `kata-plan`, `kata-implement`, `kata-interview`, `kata-product-issue`,

@@ -60,7 +60,7 @@ flowchart TD
   S --> SEL{active tracker<br/>LIBEVAL_WORK_TRACKER}
   SEL -->|github default| GH[github column<br/>gh CLI shapes]
   SEL -->|filesystem| FS[filesystem column<br/>file-write recipes]
-  GH --> FORGE[(GitHub forge)]
+  GH --> FORGE[(GitHub tracker)]
   FS --> TREE[(working tree<br/>.tracker/ files)]
   MATRIX[work-trackers.md<br/>agents/references] -.realizes.-> GH
   MATRIX -.realizes.-> FS
@@ -68,15 +68,15 @@ flowchart TD
 ```
 
 The active tracker, chosen by the harness-set env var, selects which matrix
-column realizes each operation. The matrix is the single home for forge
+column realizes each operation. The matrix is the single home for tracker
 commands.
 
 ## Components
 
 | Component | Home | Role |
 | --- | --- | --- |
-| **Work-item model + matrix** | new `.claude/agents/references/work-trackers.md` | One reference defining issue, change, the shared envelope, the abstract operation vocabulary, the `github`/`filesystem` columns, per-tracker degradation, and the selection rule. The only place forge commands appear. |
-| **github column** | inside `work-trackers.md` | Absorbs every forge command now outside it — the `gh` shapes in the coordination references, `issue-lifecycle.md`, and the kata-* skills, plus the remote-git operations (branch, push) the spec names. The § Problem grep set bounds the file set. |
+| **Work-item model + matrix** | new `.claude/agents/references/work-trackers.md` | One reference defining issue, change, the shared envelope, the abstract operation vocabulary, the `github`/`filesystem` columns, per-tracker degradation, and the selection rule. The only place tracker commands appear. |
+| **github column** | inside `work-trackers.md` | Absorbs every tracker command now outside it — the `gh` shapes in the coordination references, `issue-lifecycle.md`, and the kata-* skills, plus the remote-git operations (branch, push) the spec names. The § Problem grep set bounds the file set. |
 | **filesystem column** | inside `work-trackers.md` | New. File-write recipes over the `.tracker/` layout below. |
 | **Re-pointed references** | `work-definition.md`, `coordination-protocol.md`, `approval-signals.md` | Re-expressed over operations; their `gh` shapes move to the matrix; they cite it by directory-relative path. |
 | **Re-pointed skills** | the kata-* skills that call `gh` | Call sites replaced by an operation name + a relative matrix link, valid now that agents ship in the same pack. |
@@ -90,13 +90,13 @@ Two kinds share one **envelope** carried as YAML front-matter:
 
 | Field | Meaning | github | filesystem |
 | --- | --- | --- | --- |
-| `id` | stable identity | issue/PR number + URL | caller-supplied slug = repo-relative path |
-| `kind` | `issue` \| `change` | issue \| pull request | file under `issues/` \| `changes/` |
-| `state` | `open` \| `closed` \| `merged` | issue/PR state | front-matter value |
-| `labels` | classification incl. `agent:*` | issue/PR labels | front-matter list |
-| `links` | related work-item ids | issue refs | front-matter list |
+| `id` | stable identity | issue/PR number + URL | caller-supplied slug; the file path is the id |
+| `kind` | issue or change | issue or pull request | file under `issues/` or `changes/` |
+| `state` | lifecycle: open, closed, or merged | issue/PR state | front-matter value |
+| `labels` | classification, including `agent:*` | issue/PR labels | front-matter list |
+| `links` | related work-item ids | issue references | front-matter list |
 | `discussion` | comment thread | native issue/PR thread | appended `## Comments` section |
-| `approval` | change-only trusted gate | PR label/review by trusted human | front-matter value |
+| `approval` | change-only trusted gate | PR label or review by a trusted human | front-matter value |
 
 The matrix records how each capability degrades per tracker. Front-matter is the
 envelope carrier, chosen over a sidecar manifest or JSON store so one
@@ -104,9 +104,23 @@ human-readable file holds metadata and body and an agent edits it without a tool
 
 ## Abstract operations
 
-`create-issue`, `list-issues`, `comment`, `label`, `link`, `open-change`,
-`gate`, `merge-change`, `close`, and the discussion pair `create-discussion` /
-`comment-discussion`. The spec's `triage` and `patch` are compositions
+Each operation has one realization per tracker. The matrix maps them:
+
+| Operation | github | filesystem |
+| --- | --- | --- |
+| `create-issue` | `gh issue create` | write `issues/{id}.md` from the envelope template |
+| `list-issues` | `gh issue list` | glob `issues/` and filter on front-matter |
+| `comment` | `gh issue comment` / `gh pr comment` | append to the item's `## Comments` |
+| `label` | `gh issue edit --add-label` | edit the `labels` front-matter |
+| `link` | issue/PR cross-reference | edit the `links` front-matter |
+| `open-change` | push a branch + `gh pr create` | write `changes/{id}.md`; remote-git steps are no-ops |
+| `gate` | PR review or label by a trusted human | set the `approval` field |
+| `merge-change` | `gh pr merge` | set `state: merged` |
+| `close` | `gh issue close` / `gh pr close` | set `state: closed` |
+| `create-discussion` / `comment-discussion` | `gh api graphql addDiscussion*` | write or append `discussions/{id}.md` |
+
+The shapes above are illustrative; `work-trackers.md` carries the full,
+genericized commands. The spec's `triage` and `patch` are compositions
 (label / comment / close, and open-change / merge-change), not first-class
 operations, keeping each tracker's surface small and fixed. Obstacle and
 experiment are issues distinguished by label, so `issue-lifecycle.md` becomes
@@ -168,7 +182,7 @@ benchmark exercises the filesystem realization directly, without webhooks. On
 filesystem the `approval` field records the granting signal; trust that the
 setter is authorized is out-of-band — the actor that runs `gate` is trusted by
 construction (the benchmark harness or a human). Emulating contributor-list
-trust offline is rejected as unverifiable without the forge.
+trust offline is rejected as unverifiable without the tracker.
 
 ## Benchmark coordination task
 
@@ -187,7 +201,7 @@ the rubric tasks (spec/design/plan) use.
 | Spec criterion | Satisfied by |
 | --- | --- |
 | 1 model + matrix + selection | `work-trackers.md`: model, matrix, env-var selection rule |
-| 2 forge commands only in github column | Matrix is the single command home; skills/references re-pointed |
+| 2 tracker commands only in github column | Matrix is the single command home; skills/references re-pointed |
 | 3 three references over operations | Re-pointed references component |
 | 4 `--work-tracker` flag + offline benchmark | libeval selection wiring; `coordinate-finding` runs `--work-tracker filesystem` |
 | 5 tracker-independent wording | Skills name operations; branching lives only in the matrix |

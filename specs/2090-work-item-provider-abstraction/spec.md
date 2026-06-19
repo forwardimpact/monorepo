@@ -19,8 +19,8 @@ blocks two outcomes:
 
 1. **The coordination half of each skill goes unmeasured.** `fit-benchmark` runs
    each task in an ephemeral working directory seeded only with the family's
-   fixtures, with no forge credentials and no remote configured; a coordination
-   step that calls a remote forge cannot run there, and a benchmark must stay
+   fixtures, with no tracker credentials and no remote configured; a coordination
+   step that calls a remote tracker cannot run there, and a benchmark must stay
    reproducible and offline regardless. The `kata-skills` benchmark family is
    four independent tasks — three grade a single produced artifact each (spec,
    design, plan) by rubric and judge, and the fourth grades the implementation
@@ -29,7 +29,7 @@ blocks two outcomes:
    it. Coordination is half of what the kata skills do, so a change to filing,
    gating, or merging ships with no evidence it improved anything.
 
-2. **There is no seam for other forges.** A team running the standard against
+2. **There is no seam for other trackers.** A team running the standard against
    Jira or GitLab has nowhere to fit those systems, because the skills and
    references name `gh` rather than an operation.
 
@@ -65,7 +65,7 @@ tracker, plus how an installation selects its active tracker:
 | Tracker | Role |
 | --- | --- |
 | **github** | The current behaviour. Remains the default and production binding. |
-| **filesystem** | New. Issues and changes live as files in the working tree, so coordination needs no network or remote forge. |
+| **filesystem** | New. Issues and changes live as files in the working tree, so coordination needs no network or remote tracker. |
 | **jira**, **gitlab** | Future. Enabled by the seam; not built in this spec. |
 
 Active-tracker selection is a libeval harness concern. The harness reads one
@@ -129,7 +129,7 @@ coordination becomes benchmarkable offline via the filesystem tracker. The
 genericization of the references and `gh`-invoking skills is the necessary means
 to it — a coordination task cannot be benchmarked offline unless the skills it
 exercises stop calling `gh` directly, and the harness can select the offline
-tracker. Multi-forge portability (Jira, GitLab) is an enabled consequence of the
+tracker. Multi-tracker portability (Jira, GitLab) is an enabled consequence of the
 same seam; building those trackers is future work. A `fit-work` operations CLI
 over the matrix is a sequenced follow-up — the matrix is specified now so that
 CLI inherits a stable seam rather than reinventing one.
@@ -139,9 +139,9 @@ CLI inherits a stable seam rather than reinventing one.
 | # | Criterion | Verified by |
 | --- | --- | --- |
 | 1 | A shared resource defines the work-item model (issue, change, envelope) and a tracker matrix listing the abstract operations with at least `github` and `filesystem` columns and a tracker-selection rule. | The resource exists; it contains both columns, every listed operation, and the selection rule. |
-| 2 | Commands that act on a forge's work items (issue, pull-request, discussion, review, label, and remote-git operations) appear in the kata-* skills and shared references only within the github column of the matrix. | Grep for those commands across the kata-* skills and shared references returns hits only inside the matrix. |
+| 2 | Commands that act on a tracker's work items (issue, pull-request, discussion, review, label, and remote-git operations) appear in the kata-* skills and shared references only within the github column of the matrix. | Grep for those commands across the kata-* skills and shared references returns hits only inside the matrix. |
 | 3 | `work-definition.md`, `coordination-protocol.md`, and `approval-signals.md` express work-types, routing, and approval signals over work-item operations, with no GitHub-noun routing outside the matrix. | Review of the three references finds zero coordination instructions naming a GitHub primitive directly. |
-| 4 | `fit-eval` and `fit-benchmark` accept `--work-tracker`, which sets `LIBEVAL_WORK_TRACKER` on the harness; the end-to-end coordination benchmark task completes under `--work-tracker filesystem` with no network access and no remote forge. | The flag appears in each CLI's golden help; the task runs to a verdict in the sandbox with networking unavailable. |
+| 4 | `fit-eval` and `fit-benchmark` accept `--work-tracker`, which sets `LIBEVAL_WORK_TRACKER` on the harness; the end-to-end coordination benchmark task completes under `--work-tracker filesystem` with no network access and no remote tracker. | The flag appears in each CLI's golden help; the task runs to a verdict in the sandbox with networking unavailable. |
 | 5 | The abstract operation names the skills use are tracker-independent; any tracker-specific behaviour appears only in the matrix (including stated degradations per the envelope). | Skill and reference wording outside the matrix contains no tracker-specific branching. |
 | 6 | The `kata-skills` benchmark family includes an end-to-end coordination task graded by invariants asserting on the resulting work-item files. | The task directory exists; its `invariants.sh` asserts on the work-item files. |
 | 7 | The shared resource reaches consuming installations along with the skills that cite it. | The resource resides on the surface that syncs to installations (the published pack), not a tree that stays in-repo. |
