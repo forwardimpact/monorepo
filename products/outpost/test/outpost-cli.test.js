@@ -62,6 +62,11 @@ const definition = {
     },
     { name: "validate", description: "Validate agent definitions exist" },
     { name: "status", description: "Show agent status" },
+    {
+      name: "posture",
+      args: "[brief|brief+draft]",
+      description: "Show or set the adoption posture (brief or brief+draft)",
+    },
   ],
   globalOptions: {
     help: { type: "boolean", short: "h", description: "Show this help" },

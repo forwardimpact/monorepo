@@ -70,6 +70,26 @@ If your network requires a custom CA bundle, add an `env` block to
 
 ---
 
+## Choosing your posture
+
+Before you turn Outpost on, decide how much it acts on your behalf. You record
+this choice at `init`, and the scheduler honours it on every wake. There are two
+postures, named the same in the CLI and in `fit-outpost status`:
+
+- **`brief`** — the default. Outpost runs only skills whose every output stays
+  inside its own knowledge base or cache: syncing your mail and calendar,
+  building the knowledge graph, and preparing briefings. It never composes a
+  reply, message, or document for someone else, and never moves files outside
+  the knowledge base. This is the read-and-brief side of the line.
+- **`brief+draft`** — everything `brief` does, plus the skills that compose
+  content as you: email replies, chat messages, and documents. Outpost only
+  drafts these for you to stage for review; nothing leaves until you give
+  explicit approval. Choose this posture when you want help writing, not just
+  awareness.
+
+A fresh `init` defaults to `brief`. You opt into drafting deliberately — the
+trust contract is something you turn on, not something you discover later.
+
 ## Getting Started
 
 > **Outpost currently requires macOS.** Email and calendar sync read from

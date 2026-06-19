@@ -15,6 +15,23 @@ import {
 } from "@forwardimpact/libmock";
 
 const TEST_KB = "/work/outpost-test-kb";
+const POSTURE_PATH = "/home/u/.fit/outpost/posture.json";
+const MANIFEST_PATH = "/pkg/config/skill-postures.json";
+const MANIFEST = {
+  "draft-emails": "draft",
+  "organize-files": "draft",
+  "send-chat": "draft",
+  "meeting-prep": "brief",
+  "extract-entities": "brief",
+};
+const DRAFT_TOKENS =
+  "Skill(draft-emails) Skill(organize-files) Skill(send-chat)";
+
+/** The posture-config object every AgentRunner construction needs. */
+const postureCfg = () => ({
+  posturePath: POSTURE_PATH,
+  manifestPath: MANIFEST_PATH,
+});
 
 /**
  * Create a mock spawn module that records calls and returns a successful result.
@@ -54,8 +71,11 @@ function createMockStateManager() {
  * carries the supplied vars.
  * @param {Record<string,string>} env
  */
-function makeRuntime(env) {
-  const fs = createMockFs({});
+function makeRuntime(env, files = {}) {
+  const fs = createMockFs({
+    [MANIFEST_PATH]: JSON.stringify(MANIFEST),
+    ...files,
+  });
   fs.dirs.add(TEST_KB);
   return createTestRuntime({ fs, proc: createMockProcess({ env }) });
 }
@@ -85,6 +105,7 @@ describe("AgentRunner", () => {
         () => {},
         "/tmp/cache",
         makeRuntime({ HOME: "/home/u", PATH: "/usr/bin" }),
+        postureCfg(),
       );
 
       await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
@@ -102,6 +123,7 @@ describe("AgentRunner", () => {
         () => {},
         "/tmp/cache",
         makeRuntime({ HOME: "/home/u" }),
+        postureCfg(),
       );
 
       const configEnv = { NODE_EXTRA_CA_CERTS: "/etc/ssl/custom-ca.pem" };
@@ -128,6 +150,7 @@ describe("AgentRunner", () => {
         () => {},
         "/tmp/cache",
         makeRuntime({ TERM: "xterm" }),
+        postureCfg(),
       );
 
       await runner.wake(
@@ -148,6 +171,7 @@ describe("AgentRunner", () => {
         () => {},
         "/tmp/cache",
         makeRuntime({}),
+        postureCfg(),
       );
 
       await runner.wake(
@@ -176,6 +200,7 @@ describe("AgentRunner", () => {
         () => {},
         "/tmp/cache",
         makeRuntime({ HOME: "/home/u" }),
+        postureCfg(),
       );
 
       await runner.wake(
@@ -200,6 +225,7 @@ describe("AgentRunner", () => {
         () => {},
         "/tmp/cache",
         runtime,
+        postureCfg(),
       );
 
       await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
@@ -210,6 +236,96 @@ describe("AgentRunner", () => {
       assert.deepStrictEqual(runtime.proc.kills, [
         { pid: 4242, signal: "SIGTERM" },
       ]);
+    });
+  });
+
+  describe("posture gate (via wake)", () => {
+    test("brief posture denies draft skills and injects the brief directive", async () => {
+      const { module: spawnMod, calls } = createMockSpawn();
+      const runtime = makeRuntime(
+        { HOME: "/home/u" },
+        { [POSTURE_PATH]: JSON.stringify({ posture: "brief" }) },
+      );
+      const runner = new AgentRunner(
+        spawnMod,
+        createMockStateManager(),
+        () => {},
+        "/tmp/cache",
+        runtime,
+        postureCfg(),
+      );
+
+      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+
+      const args = calls[0].args;
+      const denyIdx = args.indexOf("--disallowedTools");
+      assert.ok(denyIdx >= 0, "--disallowedTools present under brief");
+      assert.strictEqual(args[denyIdx + 1], DRAFT_TOKENS);
+      const promptIdx = args.indexOf("--append-system-prompt");
+      assert.ok(promptIdx >= 0, "--append-system-prompt present under brief");
+      assert.match(args[promptIdx + 1], /posture: brief/i);
+      assert.match(args[promptIdx + 1], /knowledge base/i);
+    });
+
+    test("absent posture record defaults to brief", async () => {
+      const { module: spawnMod, calls } = createMockSpawn();
+      // No posture.json seeded — reads as null, effective = brief.
+      const runner = new AgentRunner(
+        spawnMod,
+        createMockStateManager(),
+        () => {},
+        "/tmp/cache",
+        makeRuntime({ HOME: "/home/u" }),
+        postureCfg(),
+      );
+
+      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+
+      assert.ok(calls[0].args.includes("--disallowedTools"));
+    });
+
+    test("brief+draft posture adds no gating flags", async () => {
+      const { module: spawnMod, calls } = createMockSpawn();
+      const runner = new AgentRunner(
+        spawnMod,
+        createMockStateManager(),
+        () => {},
+        "/tmp/cache",
+        makeRuntime(
+          { HOME: "/home/u" },
+          { [POSTURE_PATH]: JSON.stringify({ posture: "brief+draft" }) },
+        ),
+        postureCfg(),
+      );
+
+      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+
+      const args = calls[0].args;
+      assert.ok(!args.includes("--disallowedTools"));
+      assert.ok(!args.includes("--append-system-prompt"));
+    });
+
+    test("a brief wake never writes the posture record", async () => {
+      const { module: spawnMod } = createMockSpawn();
+      const runtime = makeRuntime(
+        { HOME: "/home/u" },
+        { [POSTURE_PATH]: JSON.stringify({ posture: "brief" }) },
+      );
+      const runner = new AgentRunner(
+        spawnMod,
+        createMockStateManager(),
+        () => {},
+        "/tmp/cache",
+        runtime,
+        postureCfg(),
+      );
+
+      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+
+      const wrotePosture = runtime.fs.writeFile.mock.calls.some(
+        (c) => c.arguments[0] === POSTURE_PATH,
+      );
+      assert.ok(!wrotePosture, "wake must not write posture.json");
     });
   });
 });

@@ -1,15 +1,16 @@
-fit-outpost 3.1.3 — Schedule autonomous agents across knowledge bases
+fit-outpost 3.3.4 — Schedule autonomous agents across knowledge bases
 
 Usage: fit-outpost <command> [options]
 
 Commands:
-  daemon         Run continuously (poll every 60s)
-  wake <agent>   Wake a specific agent immediately
-  init <path>    Initialize a new knowledge base
-  update [path]  Update KB with latest CLAUDE.md, agents and skills
-  stop           Gracefully stop daemon and all running agents
-  validate       Validate agent definitions exist
-  status         Show agent status
+  daemon                       Run continuously (poll every 60s)
+  wake <agent>                 Wake a specific agent immediately
+  init <path>                  Initialize a new knowledge base
+  update [path]                Update KB with latest CLAUDE.md, agents and skills
+  stop                         Gracefully stop daemon and all running agents
+  validate                     Validate agent definitions exist
+  status                       Show agent status
+  posture [brief|brief+draft]  Show or set the adoption posture (brief or brief+draft)
 
 Options:
   --help, -h  Show this help
