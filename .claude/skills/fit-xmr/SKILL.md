@@ -22,11 +22,9 @@ three-rule formulation as adopted by Vacanti for agile flow metrics.
 
 **Decide whether a change is signal or noise:**
 
-- Analyzing a metric over time —
-  `npx fit-xmr analyze observations.csv --metric <name>`
-- Viewing the 14-line control chart —
-  `npx fit-xmr chart observations.csv --metric <name>`
-- Recording a new observation — `npx fit-xmr record`
+- Analyze a metric — `npx fit-xmr analyze observations.csv --metric <name>`
+- View the 14-line chart — `npx fit-xmr chart observations.csv --metric <name>`
+- Record a new observation — `npx fit-xmr record`
 
 **Report on process stability:**
 
@@ -34,9 +32,9 @@ three-rule formulation as adopted by Vacanti for agile flow metrics.
 - Listing available metrics — `npx fit-xmr list observations.csv`
 - Validating CSV schema — `npx fit-xmr validate observations.csv`
 
-If the question is _"how is this metric trending?"_ — this is the right tool. If
-the question is _"what target should we set?"_ — this is **not** the right tool.
-Natural process limits describe what a process _does_, not what it _should_ do.
+For _"how is this metric trending?"_ this is the right tool; for _"what target
+should we set?"_ it is not. Natural process limits describe what a process
+_does_, not what it _should_ do.
 
 ## CSV Schema
 
@@ -87,8 +85,6 @@ npx fit-xmr <command> <csv-path> [options]
 `validate` exits non-zero on schema errors so it can gate CI. Missing CSV path
 exits 2 with a friendly error, not a stack trace.
 
----
-
 ## The Three Rules
 
 The three rules from Wheeler's _Understanding Variation_, applied as Vacanti
@@ -101,12 +97,10 @@ applies them in _Actionable Agile Metrics_:
 | **X-Rule 3**  | 3 of any 4 consecutive points fall in the outer zone (beyond ±1.5σ̂) | X chart    |
 | **mR-Rule 1** | A moving range point exceeds URL                                    | mR chart   |
 
-Rules 2 and 3 are not applied to the mR chart — its distribution is asymmetric,
-so symmetric zone tests don't behave the way they do on the X chart.
-
-When a run-pattern rule fires (Rule 2 or Rule 3), **all** participating slots
-are marked, not just the trigger. **No additional rules** — Western Electric,
-Nelson, and trend tests are deliberately omitted; they inflate false-alarm rates
+Rules 2 and 3 are not applied to the mR chart — its asymmetric distribution
+breaks symmetric zone tests. When a run-pattern rule fires, **all** participating
+slots are marked, not just the trigger. **No additional rules** — Western
+Electric, Nelson, and trend tests are omitted; they inflate false-alarm rates
 for the small-sample contexts XmR charts target.
 
 ## The Chart
@@ -133,16 +127,15 @@ both charts).
 ```
 
 - `·` is a non-signal point; `●` is a signal point.
-- Drop your eye straight down from any point in the X chart to find its time
-  index in the shared axis.
+- Drop straight down from any X-chart point to find its index in the shared axis.
 - `+1.5σ̂` and `−1.5σ̂` mark the **outer-zone boundary** for X-Rule 3.
 
 ### Computed quantities
 
 `μ` (mean), `R` (mean moving range), `σ̂ = R / 1.128`, `UPL/LPL = μ ± 2.660 × R`
 (LPL not clipped to zero), `URL = 3.268 × R`. The constants are exact for
-individuals charts and not tunable — that's what makes XmR limits comparable
-across processes.
+individuals charts and not tunable, which makes XmR limits comparable across
+processes.
 
 ## Report Shape
 
@@ -151,22 +144,20 @@ across processes.
 description), `latest` observation, and `stats` (μ, R, σ̂, UPL, LPL, URL, zone
 bounds).
 
-Pass `--prior-read <YYYY-MM-DD>` (the metric's series-end date at the prior
-read) and each fired signal record also carries `provenance`:
-`recomputation-revealed` when every participating slot was already present at
-the prior read, or `new-point` when at least one postdates it. A
-`recomputation-revealed` signal surfaced because recomputing limits over newer
-data tightened them over old history, not because a new point breached anything.
-Without the anchor, no `provenance` field is present and the report is otherwise
-unchanged.
+Pass `--prior-read <YYYY-MM-DD>` (the series-end date at the prior read) and
+each fired record also carries `provenance`: `recomputation-revealed` when every
+participating slot was present at the prior read, `new-point` when at least one
+postdates it. A `recomputation-revealed` signal surfaced because recomputing
+limits over newer data tightened them, not because a new point breached
+anything. Without the anchor, no `provenance` field is present.
 
-`status` is one of `predictable`, `signals_present`, or `insufficient_data` (n <
-15). `classification` rolls these up into `stable`, `signals` (X chart rule
-fires), `chaos` (mR Rule 1 fires — limits unreliable), `insufficient`, or
-`degenerate-zero` (every observation zero — no signal at all).
+`status` is `predictable`, `signals_present`, or `insufficient_data` (n < 15).
+`classification` rolls these up into `stable`, `signals` (X chart fires),
+`chaos` (mR Rule 1 — limits unreliable), `insufficient`, or `degenerate-zero`
+(every observation zero — no signal at all).
 
 `summarize` reduces the report to a markdown table with a compact signal column
-(`R1×k`, `R2×len`, `R3×slots`, `mR1×k`). See the linked guide for the full JSON
+(`R1×k`, `R2×len`, `R3×slots`, `mR1×k`); the linked guide has the full JSON
 schema and a worked example.
 
 ## Typical Workflow
@@ -183,15 +174,12 @@ npx fit-xmr summarize observations.csv               # paste into a status page
   single point is tampering — it makes the process worse on average.
 - **X-Rule 1** confirms magnitude; **X-Rule 2 runs** mean the centerline
   shifted; **X-Rule 3 clusters** catch smaller shifts before Rule 2 fires.
-- **mR Rule 1 (chaos)** says volatility itself spiked. The X-chart limits are
-  computed from `R`, so the rest of the report is unreliable until you
-  investigate.
-- **Annotate the CSV `note` field** when you investigate a signal — future
+- **mR Rule 1 (chaos)** says volatility spiked. X-chart limits derive from `R`,
+  so the rest of the report is unreliable until you investigate.
+- **Annotate the CSV `note` field** when investigating a signal — future
   analyses depend on the record of why the process changed.
 - **Don't set targets from the limits.** Targets come from the work; limits
-  describe the work. See the linked guide for fuller interpretation guidance.
-
----
+  describe it. See the linked guide for fuller interpretation guidance.
 
 ## Documentation
 
