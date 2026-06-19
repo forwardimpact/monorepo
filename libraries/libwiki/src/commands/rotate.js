@@ -31,7 +31,7 @@ export function runRotateCommand(ctx) {
       wikiRoot,
       agent,
       today,
-      0,
+      { lines: 0, words: 0 },
       { force: true },
       runtime.fsSync,
     );
@@ -55,10 +55,10 @@ export function runRotateCommand(ctx) {
       const { section, lines, words, path: residuePath } = result.residue;
       logger.error(
         "rotate",
-        `day-section ${section} alone exceeds the budget ` +
-          `(${lines} lines, ${words} words) and cannot be split at a day ` +
-          `seam: ${residuePath}\n` +
-          `recover it by hand — bisect the section at a finer seam ` +
+        `section ${section} alone exceeds the budget ` +
+          `(${lines} lines, ${words} words) and has no finer seam to split ` +
+          `at: ${residuePath}\n` +
+          `recover it by hand — shorten the section ` +
           `(see the memory protocol's manual-recovery convention)`,
       );
       return { ok: false, code: 1 };

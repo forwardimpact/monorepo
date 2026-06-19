@@ -4,8 +4,13 @@ import { countLines, countWords } from "./budget.js";
 import {
   WEEKLY_LOG_LINE_BUDGET,
   WEEKLY_LOG_PART_NAME_RE,
+  WEEKLY_LOG_SEAM_RE,
   WEEKLY_LOG_WORD_BUDGET,
 } from "./constants.js";
+
+// Block seam inside a day-section: a `### ` heading at line start. The finer
+// grain rotation falls to when a lone day-section alone exceeds a budget.
+const BLOCK_SEAM_RE = /^### /;
 
 // ISO week computation lives in libutil's calendar util (the one place a
 // `new Date` is allowed); re-exported here for the existing public surface.
@@ -48,10 +53,11 @@ function defaultH1(agent, isoWeekStr) {
   return `# ${agentTitle(agent)} — ${isoWeekStr}\n`;
 }
 
-/** Describe a lone over-cap day-section as a residue at its part index. */
+/** Describe a lone over-cap section as a residue at its part index. The
+ * section label is a day date (`## ` seam) or a block heading (`### ` seam). */
 function residueOf(sec, partIndex, measure) {
   const { lines, words } = measure(sec.text);
-  return { section: sec.date, lines, words, partIndex };
+  return { section: sec.label, lines, words, partIndex };
 }
 
 /**
@@ -93,7 +99,7 @@ function packSections(sections, prologue, budget) {
   };
   for (const sec of sections) {
     if (overBudget(sec.text)) {
-      // Irreducible lone day-section: flush the open part, then seal it alone.
+      // Irreducible lone section: flush the open part, then seal it alone.
       flush();
       residue ??= residueOf(sec, partBodies.length, measure);
       partBodies.push(sec.text);
@@ -112,6 +118,37 @@ function packSections(sections, prologue, budget) {
 }
 
 /**
+ * Slice `body` at `seamRe` seam offsets into `{label, text}` sections, the
+ * label being the seam's full matched heading line (date or `### ` heading).
+ * Returns `{prologue, sections}` where the prologue is everything above the
+ * first seam (the whole body when there are no seams). Concatenating the
+ * prologue and every section's text reproduces `body` byte-for-byte.
+ */
+function findSections(body, seamRe) {
+  const re = new RegExp(seamRe.source, "gm");
+  const seams = [];
+  let match;
+  while ((match = re.exec(body)) !== null) {
+    const eol = body.indexOf("\n", match.index);
+    const headingLine = body.slice(match.index, eol === -1 ? body.length : eol);
+    // A captured group (the day seam's date) labels the section; otherwise the
+    // full heading line (a `### ` block heading) is the label.
+    const label = match[1] ?? headingLine;
+    seams.push({ offset: match.index, label });
+  }
+  if (seams.length === 0) return { prologue: body, sections: [] };
+  const prologue = body.slice(0, seams[0].offset);
+  const sections = seams.map((s, i) => ({
+    label: s.label,
+    text: body.slice(
+      s.offset,
+      i + 1 < seams.length ? seams[i + 1].offset : body.length,
+    ),
+  }));
+  return { prologue, sections };
+}
+
+/**
  * Split an over-budget weekly-log source at its `## YYYY-MM-DD` day-section
  * seams into an ordered list of conforming parts. Pure — no I/O.
  *
@@ -123,9 +160,13 @@ function packSections(sections, prologue, budget) {
  * are greedily packed left-to-right under both the line- and word-budget, with
  * each candidate part measured H1-included so its own H1 is charged.
  *
- * When a single chunk alone exceeds a budget — a lone day-section, or the
- * whole prologue when the source has no day-sections — it is sealed as its own
- * (over-budget) part and named in `residue`; the rest still packs normally.
+ * When a lone day-section alone exceeds a budget, it is re-bisected at its
+ * `### ` block seams (one grain finer) and the resulting block-parts replace it,
+ * so a single over-cap day no longer forces a hand-split. Only a single `### `
+ * block that alone exceeds a budget — or an over-cap seamless prologue — remains
+ * an irreducible residue: it is sealed as its own (over-budget) part and named
+ * in `residue` (the residue's `section` then names the block heading, not a
+ * date); the rest still packs normally.
  *
  * @param {string} text - The full weekly-log source (H1 + body).
  * @param {string} agent - Agent profile id (e.g. "staff-engineer").
@@ -157,35 +198,66 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
     };
   };
 
+  const budget = { overBudget, measure };
   // Locate the day-section seams (date at line-start, trailing suffix
   // tolerated, e.g. `## 2026-05-19 (third activation)`).
-  const seamRe = /^## (\d{4}-\d{2}-\d{2})/gm;
-  const seams = [];
-  let match;
-  while ((match = seamRe.exec(body)) !== null) {
-    seams.push({ offset: match.index, date: match[1] });
-  }
+  const { prologue, sections } = findSections(body, WEEKLY_LOG_SEAM_RE);
 
   // Zero day-sections: the whole body is the prologue and its own single part,
   // flagged as a residue when it alone exceeds a budget.
-  if (seams.length === 0) {
-    return finish([body], prologueResidue(body, { overBudget, measure }));
+  if (sections.length === 0) {
+    return finish([body], prologueResidue(body, budget));
   }
 
-  const prologue = body.slice(0, seams[0].offset);
-  const sections = seams.map((s, i) => ({
-    date: s.date,
-    text: body.slice(
-      s.offset,
-      i + 1 < seams.length ? seams[i + 1].offset : body.length,
-    ),
-  }));
-
-  const { partBodies, residue } = packSections(sections, prologue, {
-    overBudget,
-    measure,
-  });
+  const { partBodies, residue } = packSections(sections, prologue, budget);
+  // A lone day-section that alone exceeds a budget is the only residue
+  // `packSections` can produce here (the prologue rides part 1). Re-bisect that
+  // day at its `### ` block seams and splice the block-parts in for it; the
+  // surfaced residue becomes the inner one (an over-cap block) or null.
+  if (residue !== null) {
+    const sub = resplitDaySection(partBodies, residue, budget);
+    return finish(sub.partBodies, sub.residue);
+  }
   return finish(partBodies, residue);
+}
+
+/**
+ * Re-bisect the lone over-cap day-section that `packSections` flagged as the
+ * residue: split that part's body at its `### ` block seams and splice the
+ * resulting block-bodies into `partBodies` in its place. The day-section's body
+ * carries its own `## ` heading as a prologue above the first `### ` block, so
+ * that heading rides the first block-part. Returns the spliced `partBodies` and
+ * the inner residue (a single over-cap `### ` block, or null when every block
+ * now conforms), re-indexed to its position in the spliced list.
+ */
+function resplitDaySection(partBodies, residue, budget) {
+  const dayBody = partBodies[residue.partIndex];
+  // Only a day-section (its body opens with a `## ` heading) is re-split at the
+  // block grain; an over-cap seamless prologue has no day to descend into and
+  // stays the terminal residue.
+  if (!dayBody.startsWith("## ")) return { partBodies, residue };
+  const { prologue, sections } = findSections(dayBody, BLOCK_SEAM_RE);
+  // No `### ` block seam inside the day: nothing finer to cut — keep the day as
+  // the irreducible residue (criterion 3's terminal case at the day grain).
+  if (sections.length === 0) return { partBodies, residue };
+  const { partBodies: blockBodies, residue: blockResidue } = packSections(
+    sections,
+    prologue,
+    budget,
+  );
+  const spliced = [
+    ...partBodies.slice(0, residue.partIndex),
+    ...blockBodies,
+    ...partBodies.slice(residue.partIndex + 1),
+  ];
+  if (blockResidue === null) return { partBodies: spliced, residue: null };
+  return {
+    partBodies: spliced,
+    residue: {
+      ...blockResidue,
+      partIndex: residue.partIndex + blockResidue.partIndex,
+    },
+  };
 }
 
 /**
@@ -265,7 +337,9 @@ function atomicSeal(filePath, parts, agent, isoWeekStr, fs) {
  * @param {string} wikiRoot
  * @param {string} agent
  * @param {string} today - ISO date string.
- * @param {number} [appendLines=0]
+ * @param {{lines?: number, words?: number}} [delta={}] - Projected post-append
+ *   line/word delta; the trigger fires when the current file plus this delta
+ *   would breach either budget. Force-rotate callers pass `{}`.
  * @param {{force?: boolean}} [options]
  * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
  */
@@ -273,7 +347,7 @@ export function rotateIfOverBudget(
   wikiRoot,
   agent,
   today,
-  appendLines = 0,
+  delta = {},
   options = {},
   fs,
 ) {
@@ -288,8 +362,14 @@ export function rotateIfOverBudget(
   if ((nl === -1 ? "" : text.slice(nl + 1)).trim() === "") {
     return { status: "noop", fromPath: filePath };
   }
-  const current = countLines(text);
-  if (!force && current + appendLines <= WEEKLY_LOG_LINE_BUDGET) {
+  const { lines: dLines = 0, words: dWords = 0 } = delta;
+  const projectedLines = countLines(text) + dLines;
+  const projectedWords = countWords(text) + dWords;
+  if (
+    !force &&
+    projectedLines <= WEEKLY_LOG_LINE_BUDGET &&
+    projectedWords <= WEEKLY_LOG_WORD_BUDGET
+  ) {
     return { status: "noop", fromPath: filePath };
   }
   const isoWeekStr = isoWeekString(today);
@@ -388,7 +468,7 @@ export function rebisectOverBudgetPart(partPath, fs) {
   // surface a residue (synthesised from the file when the bisector did not name
   // one) so the caller's re-audit re-flags it.
   if (parts.length === 1) {
-    const seam = text.match(/^## (\d{4}-\d{2}-\d{2})/m);
+    const seam = text.match(new RegExp(WEEKLY_LOG_SEAM_RE.source, "m"));
     const r = residue ?? {
       section: seam ? seam[1] : "prologue",
       lines,

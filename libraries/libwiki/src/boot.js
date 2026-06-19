@@ -1,7 +1,16 @@
 import path from "node:path";
 import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims, filterExpired } from "./active-claims.js";
-import { MEMO_INBOX_MARKER, PRIORITY_INDEX_HEADING } from "./constants.js";
+import { countLines, countWords } from "./budget.js";
+import {
+  MEMO_INBOX_MARKER,
+  PRIORITY_INDEX_HEADING,
+  SUMMARY_LINE_BUDGET,
+  SUMMARY_WORD_BUDGET,
+  WEEKLY_LOG_LINE_BUDGET,
+  WEEKLY_LOG_WORD_BUDGET,
+} from "./constants.js";
+import { weeklyLogPath } from "./weekly-log.js";
 
 function readIfExists(fs, filePath) {
   if (!fs.existsSync(filePath)) return null;
@@ -133,6 +142,24 @@ function countInbox(text) {
   return n;
 }
 
+/**
+ * Remaining budget for a budgeted surface: current value, cap, and headroom for
+ * both the line and word budget. An absent file (empty text) reports zero usage
+ * and full headroom so a writer sees the ceiling before composing.
+ */
+function headroom(text, lineCap, wordCap) {
+  const lines = countLines(text);
+  const words = countWords(text);
+  return {
+    words,
+    lines,
+    word_cap: wordCap,
+    line_cap: lineCap,
+    words_remaining: wordCap - words,
+    lines_remaining: lineCap - lines,
+  };
+}
+
 function mapPriority(r) {
   return { item: r.item, status: r.status, added: r.added, link: r.link };
 }
@@ -162,6 +189,7 @@ export function buildDigest({ wikiRoot, agent, today, fs }) {
   const summaryText = readIfExists(fs, summaryPath);
   const memoryText = readIfExists(fs, memoryPath);
   const storyboardText = readIfExists(fs, storyboardPath);
+  const weeklyLogText = readIfExists(fs, weeklyLogPath(wikiRoot, agent, today));
 
   const { active } = filterExpired(parseClaims(memoryText ?? ""), today);
   const { owned, cross } = splitPriorities(
@@ -176,6 +204,16 @@ export function buildDigest({ wikiRoot, agent, today, fs }) {
     claims: active.map(mapClaim),
     storyboard_items: parseStoryboardItems(storyboardText ?? "", agent),
     inbox_count: countInbox(summaryText),
+    summary_headroom: headroom(
+      summaryText ?? "",
+      SUMMARY_LINE_BUDGET,
+      SUMMARY_WORD_BUDGET,
+    ),
+    weekly_log_headroom: headroom(
+      weeklyLogText ?? "",
+      WEEKLY_LOG_LINE_BUDGET,
+      WEEKLY_LOG_WORD_BUDGET,
+    ),
     storyboard_path: fs.existsSync(storyboardPath)
       ? path.relative(path.dirname(wikiRoot) || ".", storyboardPath)
       : "",

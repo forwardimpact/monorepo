@@ -13,6 +13,7 @@ import {
   SUMMARY_LINE_BUDGET,
   SUMMARY_WORD_BUDGET,
   WEEKLY_LOG_LINE_BUDGET,
+  WEEKLY_LOG_SEAM_RE,
   WEEKLY_LOG_WORD_BUDGET,
   XMR_CLOSE_RE,
   XMR_OPEN_RE,
@@ -104,6 +105,22 @@ const decisionWithin5 =
     }
     return offenders.length === 0 ? null : offenders;
   };
+
+// Flag entry-shaped `## ` headings that the rotation seam-finder would skip —
+// the grammar-drift that degrades a whole file to one unsplittable prologue and
+// is otherwise silent (the decision-block rule matches only dated headings).
+// Uses the same WEEKLY_LOG_SEAM_RE the seam-finder uses, so the flagged set is
+// exactly the complement of the rotatable set.
+const headingGrammarDrift = (s) => {
+  const offenders = [];
+  for (let i = 0; i < s.fileLines.length; i++) {
+    const line = s.fileLines[i];
+    if (/^## /.test(line) && !WEEKLY_LOG_SEAM_RE.test(line)) {
+      offenders.push({ lineNo: i + 1, observed: line.trim() });
+    }
+  }
+  return offenders.length === 0 ? null : offenders;
+};
 
 function scanMarkers(fileLines, openRe, closeRe, label) {
   const openings = [];
@@ -278,6 +295,15 @@ export const RULES = [
     hint: "rename either the H1 or the file so they agree",
   },
   {
+    id: "weekly-log.heading-grammar",
+    scope: "weekly-log-main",
+    severity: "fail",
+    check: headingGrammarDrift,
+    message: (_s, r) =>
+      `Entry heading '${r.observed}' does not match the dated grammar`,
+    hint: "weekly-log entry headings must be '## YYYY-MM-DD'; open entries with `fit-wiki log decision/note`, which emit a conforming heading the rotation seam-finder can split",
+  },
+  {
     id: "decision-block.heading-within-5",
     scope: "weekly-log-main",
     severity: "fail",
@@ -290,7 +316,7 @@ export const RULES = [
       r.nearMiss
         ? `Entry opens with '${r.nearMiss}'; the heading must be exactly '${DECISION_HEADING}' — move the suffix into the body`
         : `Entry lacks a line that is exactly '${DECISION_HEADING}'`,
-    hint: `open each '## YYYY-MM-DD' entry with a line containing exactly '${DECISION_HEADING}' (no suffix — the check is an exact match); put the one-line summary in the body below it, drawn from the entry's own narrative — do not invent rationale the entry does not support`,
+    hint: `open each '## YYYY-MM-DD' entry with \`fit-wiki log decision\`, which emits a line containing exactly '${DECISION_HEADING}' (no suffix — the check is an exact match); put the one-line summary in the body below it, drawn from the entry's own narrative — do not invent rationale the entry does not support`,
   },
 
   // -- Weekly logs (sealed parts) --
@@ -304,13 +330,22 @@ export const RULES = [
     hint: "set the H1 to '# <agent> — YYYY-Www (part N of M)'",
   },
   {
+    id: "weekly-log-part.heading-grammar",
+    scope: "weekly-log-part",
+    severity: "fail",
+    check: headingGrammarDrift,
+    message: (_s, r) =>
+      `Entry heading '${r.observed}' does not match the dated grammar`,
+    hint: "weekly-log entry headings must be '## YYYY-MM-DD'; open entries with `fit-wiki log decision/note`, which emit a conforming heading the rotation seam-finder can split",
+  },
+  {
     id: "weekly-log-part.line-budget",
     scope: "weekly-log-part",
     severity: "fail",
     remediation: "rotate",
     check: lineBudget(WEEKLY_LOG_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
-    hint: "`bunx fit-wiki fix` re-bisects an over-budget part with day-section seams; an irreducible single-day section that alone exceeds the budget must be split at a finer seam by hand",
+    hint: "`bunx fit-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams; only a single '### ' block that alone exceeds the budget remains for a human to shorten",
   },
   {
     id: "weekly-log-part.word-budget",
@@ -319,7 +354,7 @@ export const RULES = [
     remediation: "rotate",
     check: wordBudget(WEEKLY_LOG_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
-    hint: "`bunx fit-wiki fix` re-bisects an over-budget part with day-section seams; an irreducible single-day section that alone exceeds the budget must be split at a finer seam by hand",
+    hint: "`bunx fit-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams; only a single '### ' block that alone exceeds the budget remains for a human to shorten",
   },
   {
     id: "weekly-log-part.h1-agent-matches-filename",

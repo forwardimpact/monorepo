@@ -104,4 +104,49 @@ describe("buildDigest", () => {
     assert.equal(digest.claims.length, 1);
     assert.equal(digest.claims[0].target, "new");
   });
+
+  test("reports summary and weekly-log headroom for both budgets", () => {
+    const summary = `# Staff Engineer — Summary\n${Array(40)
+      .fill("settled state line")
+      .join("\n")}\n`;
+    const weekly = `# Staff Engineer — 2026-W21\n${Array(60)
+      .fill("## 2026-05-19 entry line")
+      .join("\n")}\n`;
+    const digest = digestOf({
+      "/wiki/staff-engineer.md": summary,
+      "/wiki/staff-engineer-2026-W21.md": weekly,
+    });
+    // Field shape exactly matches the design interface.
+    assert.deepEqual(Object.keys(digest.summary_headroom).sort(), [
+      "line_cap",
+      "lines",
+      "lines_remaining",
+      "word_cap",
+      "words",
+      "words_remaining",
+    ]);
+    assert.equal(digest.summary_headroom.line_cap, 496);
+    assert.equal(digest.summary_headroom.word_cap, 2048);
+    assert.equal(
+      digest.summary_headroom.lines_remaining,
+      496 - digest.summary_headroom.lines,
+    );
+    assert.equal(digest.weekly_log_headroom.line_cap, 496);
+    assert.equal(digest.weekly_log_headroom.word_cap, 6400);
+    assert.ok(digest.weekly_log_headroom.lines > 0);
+    assert.equal(
+      digest.weekly_log_headroom.words_remaining,
+      6400 - digest.weekly_log_headroom.words,
+    );
+  });
+
+  test("absent files report near-full headroom (criterion 6)", () => {
+    // The canonical countLines treats "" as one line, so an absent file reports
+    // 1 line / 0 words — effectively the full ceiling for a fresh surface.
+    const digest = digestOf();
+    assert.equal(digest.summary_headroom.lines, 1);
+    assert.equal(digest.summary_headroom.lines_remaining, 495);
+    assert.equal(digest.weekly_log_headroom.words, 0);
+    assert.equal(digest.weekly_log_headroom.words_remaining, 6400);
+  });
 });

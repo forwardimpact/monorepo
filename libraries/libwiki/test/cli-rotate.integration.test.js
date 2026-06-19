@@ -139,10 +139,33 @@ describe("fit-wiki rotate CLI (in-process)", () => {
     const { result, harness } = run();
     assert.equal(result.ok, false);
     assert.equal(result.code, 1);
-    assert.match(
-      harness.stderr,
-      /day-section 2026-05-19 alone exceeds the budget/,
-    );
+    assert.match(harness.stderr, /section 2026-05-19 alone exceeds the budget/);
     assert.match(harness.stderr, /recover it by hand/);
+  });
+
+  test("force-rotate splits a lone over-cap day at its ### block seams (force path)", () => {
+    // One dated entry over the line cap, built from 4 `### ` blocks none of
+    // which alone exceeds the cap. `fit-wiki rotate` must sub-split the day.
+    let text = "# Staff Engineer — 2026-W21\n## 2026-05-19\n";
+    for (let b = 1; b <= 4; b++) {
+      text += `### Block ${b}\n`;
+      for (let i = 1; i < 150; i++) text += "filler\n";
+    }
+    writeFileSync(
+      weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24"),
+      text,
+    );
+    const { result, harness } = run();
+    assert.deepEqual(result, { ok: true }, "the day is split, not irreducible");
+    assert.match(harness.stdout, /sealed → /);
+    // ≥2 conforming parts exist; none over the line budget.
+    assert.ok(existsSync(join(wikiRoot, "staff-engineer-2026-W21-part2.md")));
+    for (const n of [1, 2]) {
+      const part = readFileSync(
+        join(wikiRoot, `staff-engineer-2026-W21-part${n}.md`),
+        "utf-8",
+      );
+      assert.ok(part.split("\n").length - 1 <= 496);
+    }
   });
 });

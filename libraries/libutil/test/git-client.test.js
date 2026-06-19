@@ -65,6 +65,29 @@ describe("GitClient", () => {
     ]);
   });
 
+  test("commitPaths rejects a ':'-prefixed pathspec without spawning git", async () => {
+    const { client, subprocess } = clientWith();
+    const before = subprocess.calls.length;
+    await assert.rejects(
+      client.commitPaths("msg", ["MEMORY.md", ":/etc/passwd"], {
+        cwd: "/repo",
+      }),
+      /unsafe pathspec/,
+    );
+    // No git was spawned — the guard fired before `add`/`commit`.
+    assert.strictEqual(subprocess.calls.length, before);
+  });
+
+  test("status rejects a ':'-prefixed pathspec without spawning git (criterion 9)", async () => {
+    const { client, subprocess } = clientWith();
+    const before = subprocess.calls.length;
+    await assert.rejects(
+      client.status({ cwd: "/repo", paths: [":(glob)**"] }),
+      /unsafe pathspec/,
+    );
+    assert.strictEqual(subprocess.calls.length, before);
+  });
+
   test("rebase adds --autostash when autostash is set", async () => {
     const { client, subprocess } = clientWith();
     await client.rebase("origin/master", { cwd: "/r", autostash: true });

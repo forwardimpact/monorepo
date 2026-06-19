@@ -18,8 +18,10 @@ describe("RULES catalogue", () => {
         "weekly-log.line-budget",
         "weekly-log.word-budget",
         "weekly-log.h1-agent-matches-filename",
+        "weekly-log.heading-grammar",
         "decision-block.heading-within-5",
         "weekly-log-part.h1-shape",
+        "weekly-log-part.heading-grammar",
         "weekly-log-part.line-budget",
         "weekly-log-part.word-budget",
         "weekly-log-part.h1-agent-matches-filename",
@@ -57,6 +59,23 @@ describe("RULES catalogue", () => {
       assert.equal(typeof rule.message, "function");
       assert.ok(!ids.has(rule.id), `duplicate id: ${rule.id}`);
       ids.add(rule.id);
+    }
+  });
+
+  test("structure hints steer to the log commands; part-budget hints drop the by-hand clause", () => {
+    const hintOf = (id) => RULES.find((r) => r.id === id).hint;
+    // The drift rule and the decision-block rule both name a log command.
+    assert.match(hintOf("weekly-log.heading-grammar"), /fit-wiki log/);
+    assert.match(hintOf("weekly-log-part.heading-grammar"), /fit-wiki log/);
+    assert.match(hintOf("decision-block.heading-within-5"), /fit-wiki log/);
+    // The sealed-part budget hints no longer direct a hand-split; `fit-wiki fix`
+    // now sub-splits at the block seam.
+    for (const id of [
+      "weekly-log-part.line-budget",
+      "weekly-log-part.word-budget",
+    ]) {
+      assert.doesNotMatch(hintOf(id), /by hand/);
+      assert.match(hintOf(id), /### . block seams/);
     }
   });
 
