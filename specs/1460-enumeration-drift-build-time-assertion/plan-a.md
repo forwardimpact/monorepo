@@ -64,7 +64,7 @@ topics:
     consumers:
       - { path: "websites/fit/gear/index.md", property: count }
   - id: sibling-composite-actions
-    source: { type: md-table, file: ".github/CLAUDE.md", section: "Third-party actions", column: "Action", filter: "^forwardimpact/" }
+    source: { type: md-table, file: ".github/CLAUDE.md", section: "Third-party actions", column: "Action (`@v1`)", filter: "forwardimpact/" }
     consumers:
       - { path: "CLAUDE.md", property: list }
       - { path: "KATA.md", property: both }
@@ -77,7 +77,7 @@ topics:
       - { path: "websites/kata/llms.txt", property: count }
       - { path: "websites/fit/docs/internals/kata/index.md", property: count }
   - id: products-tree
-    source: { type: fs-glob, pattern: "products/*", id: basename, exclude: ["README.md", "CLAUDE.md"] }
+    source: { type: fs-glob, pattern: "products/*/package.json", id: dirname }
     consumers:
       - { path: "CONTRIBUTING.md", property: list }
       - { path: "websites/fit/docs/getting-started/contributors/index.md", property: both }
