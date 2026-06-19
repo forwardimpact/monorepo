@@ -199,6 +199,12 @@ convention rather than the chain Steps 2 and 4 assumed:
   discovered set (the new analogue of the aggregator chain).
 - The regression test lives at `tests/bun-test-imports.test.js`, modeled on
   `tests/service-url-drift.test.js` so its acorn dependency resolves from the
-  repo root. Steps 5 and 6 are unchanged.
+  repo root. Step 5 (0650 amendment) is unchanged.
+- Step 6 changes home: CONTRIBUTING.md is at its L2 word budget
+  (`instructions.word-budget`) on `main`, so the canonical policy paragraph
+  lives in this spec's § Scope instead — SC7b permits "this spec § Scope" as
+  the canonical reference, and the 0650 amendment already defers there. No
+  CONTRIBUTING bullet lands, keeping the allowed-mention set `{spec 1410,
+  spec 0650}` (SC7c).
 
 — Staff Engineer 🛠️

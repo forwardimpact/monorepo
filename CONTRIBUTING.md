@@ -36,17 +36,6 @@ Architectural non-negotiables — the shape of the codebase.
   citation-dense; rewrite, don't port, their content into checked files.
   Enforced by `.coaligned/invariants/temporal.rules.mjs` under
   `bun run invariants`.
-- **`bun:test` universal-subset only** — `*.test.js` files may import a fixed
-  allowlist of named symbols from `bun:test` (`describe`, `test`, `it`,
-  `expect`, `beforeAll`, `beforeEach`, `afterEach`, `afterAll`). `mock`/`spyOn`
-  are banned — use `libmock`'s runtime-independent `spy()`; so are bun timer
-  manipulation, default/namespace/side-effect imports, and re-exports. Non-test
-  source files must not import from `bun:test` at all, which keeps
-  `libmock`/`libpack` source decoupled from the runner. Snapshot serializers
-  are out of scope (not import-guarded). Enforced by
-  `.coaligned/invariants/bun-test-imports.rules.mjs` under `bun run invariants`;
-  the full policy lives in
-  [the bun:test allowlist spec § Scope](specs/1410-bun-test-allowlist-outside-libpack/spec.md).
 
 ### READ-DO
 

@@ -4,8 +4,8 @@
 // from "bun:test"; default/namespace/side-effect imports and every re-export
 // shape are rejected. In every other file under the scope set (non-test
 // source), all bun:test imports and re-exports are rejected — this keeps
-// libmock/libpack source decoupled from the runner. Policy:
-// CONTRIBUTING.md § Invariants.
+// libmock/libpack source decoupled from the runner. The full allowlist policy
+// is the canonical bun:test allowlist specification under specs/.
 //
 // Detection is AST-based via acorn so the verdict can distinguish the imported
 // name from a local alias and tell apart the six import/export shapes the
@@ -18,7 +18,7 @@ import { parseModule } from "./lib/ast.mjs";
 import { collectFiles } from "./lib/walk.mjs";
 
 // The bun test invocation roots (verified against package.json scripts.test)
-// plus websites/ as preemptive coverage. See CONTRIBUTING.md § Invariants.
+// plus websites/ as preemptive coverage.
 const SCAN_DIRS = [
   "libraries",
   "services",
@@ -32,7 +32,7 @@ const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
 // JS source/module extensions acorn parses as ES modules. The source-file ban
 // covers every non-test file under scope; .ts/.mts/.cts are TypeScript that
 // acorn cannot parse and are out of this guard's surface (a TypeScript test
-// extension is the named follow-up in CONTRIBUTING.md § Invariants). Only
+// extension is a named follow-up in the allowlist specification). Only
 // .test.js counts as a test file; every other extension here is non-test source.
 const SOURCE_EXTS = [".js", ".mjs", ".cjs"];
 
@@ -53,7 +53,7 @@ export const ALLOWLIST = new Set([
 
 // Reference carried on every rejection that has no more specific pointer.
 const ALLOWLIST_REF =
-  "not on the bun:test allowlist — see CONTRIBUTING.md § Invariants";
+  "not on the bun:test allowlist — see the bun:test allowlist policy";
 
 // Per-symbol replacement pointers for banned symbols. Any off-allowlist
 // symbol not listed here falls back to ALLOWLIST_REF.

@@ -158,4 +158,15 @@ The acorn-AST detection, the eight-symbol allowlist, the structured
 `{line,kind,name,pointer}` records, and the source/test split are unchanged from
 the tables above.
 
+**Canonical policy home.** CONTRIBUTING.md is at its L2 word budget
+(`instructions.word-budget`, 1407/1408) on `main`, so a new invariant bullet
+cannot land there without trimming unrelated governance prose. The spec
+anticipated this — SC7b permits the canonical reference to be "the canonical
+doc **or to this spec § Scope**," and the References note makes CONTRIBUTING the
+home only "unless design surfaces a stronger candidate." The word budget is that
+signal: this spec's § Scope is the canonical human-facing policy. The 0650
+amendment (SC6) already defers to `spec 1410 § Scope` (SC7b), and the allowed
+mention set (SC7c) is `{spec 1410, spec 0650}` — no CONTRIBUTING bullet, no
+contradiction.
+
 — Staff Engineer 🛠️
