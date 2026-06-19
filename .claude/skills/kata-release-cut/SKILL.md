@@ -13,8 +13,13 @@ determine version bumps, and cut releases.
 
 ## When to Use
 
-- Scheduled weekly to cut releases for changed packages
-- On-demand when a release is needed outside the regular cadence
+Two run classes, with different verdict authority (a run that cannot determine
+its class performs the full sweep):
+
+- **Full-sweep run** — the scheduled cadence, and any on-demand run asked to
+  sweep. Always performs the per-package sweep; never early-exits.
+- **Event-driven post-merge assessment** — runs after a merge to decide
+  whether that merge owes a cut. May early-exit with `NO-CUT-OWED` (Step 2).
 
 ## Checklists
 
@@ -37,9 +42,8 @@ determine version bumps, and cut releases.
 - [ ] Each tag follows `{prefix}@v{version}` convention.
 - [ ] Tags pushed individually — never `git push --tags`.
 - [ ] Publish workflows verified as triggered for each tag.
-- [ ] Publish-class issues closed by the released changes verified against the
-      publish outcome: verification comment posted citing the green publish run
-      and the live artifact — issue reopened if the publish failed.
+- [ ] Publish-class issues verified against the publish outcome: comment citing
+      the green run and live artifact, or reopened if the publish failed.
 
 </do_confirm_checklist>
 
@@ -52,124 +56,127 @@ had publish failures from prior entries.
 
 ### Step 1: Pre-Flight — Verify Main Branch CI
 
-Run the READ-DO checklist above before proceeding. Worked examples:
+Run the READ-DO checklist above before proceeding. Tag prefix mapping:
+[`references/procedure.md`](references/procedure.md).
 
-```sh
-gh run list --branch main --limit 5 --json name,conclusion,headBranch
-```
+### Step 2: Classify — Discriminator Predicate
 
-```sh
-git checkout main && git pull origin main
-# Run the repository's auto-fix command, then its check command (must pass)
-git add <fixed-files> && git commit -m "chore: fix formatting on main"
-git push origin main
-```
+The **first assessment step** after Pre-Flight; the per-package sweep
+(Step 3 onward) runs **only** on `SWEEP-REQUIRED` or unclassifiable. The gate is
+this step's position, not an ordering hint (mechanics:
+[`references/early-exit.md`](references/early-exit.md)). A `NO-CUT-OWED` verdict
+is a **four-conjunct** claim; any failure ⇒ `SWEEP-REQUIRED`:
 
-### Tag Prefix Mapping
+1. **Verified-clean baseline `B`** — a commit cited by a prior run record,
+   ancestor of `HEAD`, at which an assessment verified zero unreleased commits
+   beyond what it re-cited as blocked. Set by a full sweep reaching that state,
+   a post-cut state, or a chained earlier early-exit.
+2. **Zero publishable paths over `B..HEAD`** by **per-commit union** (each
+   commit's changed paths, not a net diff), in two tiers at the frozen
+   `range_to`. *Directory rule:* a path under no publishable-package directory
+   (from the workspace manifest) never defeats this. *Packlist membership*
+   (in-directory paths only): non-publishable **iff** `private: true` or absent
+   from the packer's own publish list. Four invariants: **any doubt classifies
+   publishable** — tool error, unparseable output, `.npmignore` present, a path
+   absent at `range_to`, or a change to a pack-manifest-influencing file
+   (`package.json`/`.npmignore`/`.gitignore` at any level in the dir); failure
+   mode is **forgone savings only, never a missed cut**; a package with
+   `prepack`/`prepare`/`prepublishOnly` is **excluded** (paths stay publishable);
+   the always-included set needs no special-casing; npm inclusion semantics are
+   **not** re-implemented.
+3. **Standing-set re-cite** — every standing obligation (first-release backlog,
+   held/deferred cuts, pending publish-failure retries and publish-workflow
+   verifications) is empty, re-cited as blocked with its reference, or
+   verifiable-in-run and resolved to verified-success. A pending publish-workflow
+   verification is **verifiable-in-run**: resolve it before exiting
+   (`gh run list`) — success clears it; failure or a still-in-progress outcome is
+   **due** ⇒ `SWEEP-REQUIRED`. Any due (unblocked) obligation defeats the exit.
+4. **Main CI green** — the Pre-Flight checklist passed, re-cited so the verdict
+   record stands alone.
 
-| Directory          | Tag prefix | Example tag       |
-| ------------------ | ---------- | ----------------- |
-| `libraries/libfoo` | `libfoo`   | `libfoo@v0.1.5`   |
-| `products/foo`     | `foo`      | `foo@v0.25.0`     |
-| `services/bar`     | `svcbar`   | `svcbar@v0.1.110` |
+Each classification binds and records the SHA pair (`range_from` = `B`,
+`range_to` = `HEAD` here); the verdict is a claim about that pair, never live
+`HEAD`.
 
-### Version Rules
+#### Authority boundary
 
-- **Pre-1.0** (`0.x.y`) — bump **patch** for any change
-- **Post-1.0** — breaking (`!` suffix) → **major**; `feat` → **minor**; else →
-  **patch**
+- **Who may exit.** Only an event-driven post-merge assessment; full-sweep runs
+  always sweep.
+- **Unclassifiable ⇒ sweep.** A run that cannot determine its class or resolve
+  an unambiguous valid baseline records the unresolvable state and sweeps. On a
+  shallow checkout where `B` is below the fetch boundary the ancestry check is
+  unresolvable: deepen to reach `B`, else sweep.
+- **Re-anchor bound.** The chain must re-anchor to a real per-package sweep (any
+  run class) at least once per scheduled cadence interval; cadence-less consumers
+  use a default **maximum chain length of 20 early-exits**. A chain older than
+  the applicable bound is unresolvable ⇒ full sweep. The bound caps drift to
+  commit-accumulation only; publish-failure recovery stays record-dependent (see
+  [`references/early-exit.md`](references/early-exit.md)).
 
-### Step 2: Enumerate Changed Packages
+### Step 3: Enumerate Changed Packages
 
 ```sh
 latest=$(git tag --sort=-creatordate --list "${prefix}@v*" | head -1)
-if [ -z "$latest" ]; then
-  git log --oneline -- "${directory}"
-else
-  git log "${latest}..HEAD" --oneline -- "${directory}"
-fi
+[ -z "$latest" ] && git log --oneline -- "${directory}" \
+  || git log "${latest}..HEAD" --oneline -- "${directory}"
 ```
 
 Skip packages with no unreleased commits.
 
-### Step 3: Determine Version Bumps
+### Step 4: Determine Version Bumps
 
-Read current version from `package.json` and scan commit log since last tag.
-Apply version rules above.
+Read the version from `package.json` and scan the commit log since the last tag.
+**Pre-1.0** (`0.x.y`): **patch** for any change. **Post-1.0**: breaking (`!`) →
+**major**, `feat` → **minor**, else → **patch**.
 
-### Step 4: Bump, Sync, Verify
+### Step 5: Bump, Sync, Verify
 
-```sh
-cd <package-directory>
-npm version patch --no-git-tag-version   # or minor/major
-```
+Run `npm version <patch|minor|major> --no-git-tag-version` in the package, then
+the package manager's install and the repository's auto-fix and check commands.
+For **major** bumps, first update cross-workspace dependents (grep
+`"@<scope>/<pkg>"`).
 
-For **major** bumps, update cross-workspace dependents:
+### Step 6: Commit and Tag
 
-```sh
-grep -r '"@<scope>/<pkg>"' --include=package.json -l
-```
+Commit all bumps (`git commit`), then tag each package
+(`git tag <prefix>@v<version>`) — for multiple packages, commit all then tag.
 
-Then re-run the package manager's install and the repository's auto-fix and
-check commands.
+### Step 7: Push and Verify
 
-### Step 5: Commit and Tag
+Push the commit (`git push origin main`), then each tag individually
+(`git push origin <prefix>@v<version>`) — never `--tags`. Verify publish
+workflows triggered (`gh run list`); on a failure, `gh run view <id> --log-failed`.
+Verify and re-cite any publish-class issue (done = a live artifact) per
+[`procedure.md`](references/procedure.md).
 
-```sh
-git add <package>/package.json <lockfile>
-git commit -m "chore(<pkg>): bump to <version>"
-git tag <prefix>@v<version>
-```
+### Step 8: Summary
 
-For multiple packages: commit all bumps, then tag each.
-
-### Step 6: Push and Verify
-
-Push commit first, then each tag individually:
-
-```sh
-git push origin main
-git push origin <prefix>@v<version>    # one per package — never --tags
-```
-
-Verify publish workflows triggered:
-
-```sh
-gh run list --limit 10 --json name,conclusion,headBranch,event
-```
-
-If a publish fails, investigate with `gh run view <run-id> --log-failed`.
-
-A publish-class issue — one whose definition of done is a live artifact, not a
-merged fix — auto-closes when its fix PR merges, before the publish outcome
-exists. After verifying the publish, post a verification comment on each such
-issue citing the green publish run and the live artifact; it stays closed only
-with that comment. If the publish failed, reopen the issue.
-
-### Step 7: Summary
-
-```
-| Package  | Previous | New    | Tag             | Publish |
-| -------- | -------- | ------ | --------------- | ------- |
-| libskill | 4.0.3    | 4.0.4  | libskill@v4.0.4 | ✓       |
-```
+Report a per-package table — previous → new version, tag, publish status
+([`procedure.md`](references/procedure.md) has the format).
 
 ## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 
-- **Packages assessed** — Which packages had unreleased changes
-- **Releases cut** — Package name, previous version, new version, tag, publish
-  status
-- **Publish failures** — Package and reason (so the next run can revisit)
-- **Main branch CI state** — Green or broken, and what was repaired
-- **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
-  per `references/metrics.md`. See KATA.md § Metrics for the
-  recording-eligibility rule.
+- **Packages assessed / releases cut** — packages with unreleased changes;
+  per release the previous and new version, tag, and publish status.
+- **Publish failures** — package and reason (so the next run can revisit).
+- **Main branch CI state** — green or broken, and what was repaired.
+- **Chainable state (every verdict kind).** Into the existing free-form
+  surfaces (no new CSV columns), against the skill's own surfaces so a consumer
+  with no monorepo wiki can chain: every classification records its SHA pair
+  (`range_from`, `range_to`), `NO-CUT-OWED` and `SWEEP-REQUIRED` alike; an
+  early-exit also records the range-check path summary. A verified-clean or
+  post-cut verdict records that commit as `B` plus each carry re-cite with its
+  blocking reference. A full-sweep ending **due-but-deferred** records **no
+  chainable baseline** — chain broken; subsequent assessments full-sweep until a
+  run reaches a verified-clean/post-cut state. An unclassifiable run records the
+  unresolvable state and sweeps (no SHA pair).
+- **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
+  `references/metrics.md`. See KATA.md § Metrics for the eligibility rule.
 
 ## Edge Cases
 
-- **First release**: Skip packages with version `0.0.0` or `"private": true`.
-- **Failed publish**: Don't delete the tag. Fix, bump patch, re-tag.
-- **Dependency chain**: Release foundational packages before consumers —
-  check `package.json` dependencies before tagging.
+Release foundational packages before consumers (check `package.json`
+dependencies before tagging). First-release and failed-publish handling:
+[`procedure.md`](references/procedure.md).
