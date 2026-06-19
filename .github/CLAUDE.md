@@ -20,8 +20,8 @@ marker on `uses:` lines — sibling repos this monorepo maintains:
 Every workflow calls `fit-bootstrap@v1` for the environment; `kata-agent`
 delegates to bootstrap/eval/wiki internally. `fit-bootstrap` only **checks
 out** the wiki (given a `token`); its App token expires after an hour, so agent
-runs push memory with `fit-wiki@v1` as an `always()` step (which mints a fresh
-token). Change a sibling's interface — and tag it — before the consumer.
+runs push memory with `fit-wiki@v1` as an `always()` step. Change a sibling's
+interface — and tag it — before the consumer.
 
 ### Editing a published action
 
@@ -70,7 +70,7 @@ bash. Any step that is reused, exceeds a few lines, or is a self-contained unit
 of logic (resolve, build, sign, notarize, smoke, publish) lives as a composite
 action under `actions/` and is invoked by name. Workflows orchestrate; actions
 implement — keeping critical release logic lintable and reviewable in one place.
-Pass secrets as `inputs:` (composite actions cannot read `secrets.*` directly).
+Pass secrets as `inputs:` (composite actions cannot read `secrets.*`).
 
 Referenced as `./.github/actions/<name>`:
 
