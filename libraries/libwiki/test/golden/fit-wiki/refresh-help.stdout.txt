@@ -1,4 +1,4 @@
-fit-wiki refresh [storyboard-path] — Regenerate XmR and obstacle/experiment marker blocks in a storyboard
+fit-wiki refresh [storyboard-path] — Regenerate storyboard XmR/marker blocks and clear expired MEMORY.md claims
 
 Usage: fit-wiki refresh [storyboard-path] [options]
 

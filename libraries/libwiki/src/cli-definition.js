@@ -105,7 +105,7 @@ export function createDefinition() {
           pr: { type: "string", description: "Optional PR id" },
           "expires-at": {
             type: "string",
-            description: "Override expiry ISO date (default claim+7d)",
+            description: "Override expiry ISO date (default claim+1d)",
           },
         },
       },
@@ -208,7 +208,7 @@ export function createDefinition() {
       {
         name: "refresh",
         description:
-          "Regenerate XmR and obstacle/experiment marker blocks in a storyboard",
+          "Regenerate storyboard XmR/marker blocks and clear expired MEMORY.md claims",
         args: ["storyboard-path"],
         argsUsage: "[storyboard-path]",
         handler: runRefreshCommand,

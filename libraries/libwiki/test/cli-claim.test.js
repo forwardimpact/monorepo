@@ -46,6 +46,23 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
     );
   });
 
+  test("claim defaults expiry to claimed_at + 1 day", async () => {
+    const { fsSync, make } = makeWiki();
+    const result = await runClaimCommand(
+      make({
+        agent: "staff-engineer",
+        target: "spec-NNNN",
+        branch: "feat/x",
+        today: "2026-05-19",
+      }).ctx,
+    );
+    assert.equal(result.ok, true);
+    assert.match(
+      fsSync.readFileSync(MEMORY_PATH, "utf-8"),
+      /\| 2026-05-19 \| 2026-05-20 \|/,
+    );
+  });
+
   test("claim refuses duplicates with exit 2", async () => {
     const { make } = makeWiki();
     await runClaimCommand(

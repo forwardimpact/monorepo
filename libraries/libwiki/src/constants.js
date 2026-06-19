@@ -48,17 +48,19 @@ export const PRIORITY_INDEX_TABLE_HEADER =
   "| Item | Agents | Owner | Status | Added |";
 export const DECISION_HEADING = "### Decision";
 
-// Unified budgets for the three audited surfaces (summary, weekly-log,
-// storyboard). They share the same numeric limits today so the
-// context-tax floor is symmetric across surfaces; each surface keeps
-// its own audit rule pair so the limits can diverge later if the
-// context-tax model says one surface should be looser or tighter.
+// Unified budgets for the audited surfaces (summary, weekly-log, storyboard,
+// memory). They keep per-surface rule pairs so the limits can diverge as the
+// context-tax model says one surface should be looser or tighter. MEMORY.md is
+// the tightest: it is read on every boot and holds settled cross-cutting state,
+// not history, so its budget is sized to keep the on-boot read cheap.
 export const SUMMARY_LINE_BUDGET = 496;
 export const SUMMARY_WORD_BUDGET = 2048;
 export const WEEKLY_LOG_LINE_BUDGET = 496;
 export const WEEKLY_LOG_WORD_BUDGET = 6400;
 export const STORYBOARD_LINE_BUDGET = 496;
 export const STORYBOARD_WORD_BUDGET = 6400;
+export const MEMORY_LINE_BUDGET = 128;
+export const MEMORY_WORD_BUDGET = 2048;
 
 // Weekly-log filename convention: `<agent>-YYYY-Www.md` for the live main log
 // and `<agent>-YYYY-Www-partN.md` for a sealed part. Capture groups are

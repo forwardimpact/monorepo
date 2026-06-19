@@ -9,7 +9,7 @@ Options:
   --target=<string>      What is being claimed (spec id, PR id, etc.)
   --branch=<string>      Branch carrying the work
   --pr=<string>          Optional PR id
-  --expires-at=<string>  Override expiry ISO date (default claim+7d)
+  --expires-at=<string>  Override expiry ISO date (default claim+1d)
 
 Global options:
   --help, -h  Show this help

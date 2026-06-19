@@ -28,6 +28,8 @@ describe("RULES catalogue", () => {
         "carry-surface.h1-agent-matches-filename",
         "carry-surface.entry-has-clearance",
         "memory.file-exists",
+        "memory.line-budget",
+        "memory.word-budget",
         "memory.priority-heading",
         "memory.priority-table-header",
         "memory.priority-separator-row",

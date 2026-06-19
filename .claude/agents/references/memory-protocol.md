@@ -175,7 +175,7 @@ Schema (header copied verbatim from `libwiki/constants.js`):
 
 Lifecycle:
 
-- `fit-wiki claim --agent <self> --target <id> --branch <name> [--pr <id>] [--expires-at YYYY-MM-DD]` — defaults `expires_at = +7 days`; exit 2 on dupes.
+- `fit-wiki claim --agent <self> --target <id> --branch <name> [--pr <id>] [--expires-at YYYY-MM-DD]` — defaults `expires_at = +1 day`; exit 2 on dupes.
 - `fit-wiki release --agent <self> --target <id>` — normal removal.
 - `fit-wiki release --expired` — operator cleanup; removes every expired row.
 
@@ -213,4 +213,4 @@ Pair the gate with the pre-PR freshness probe —
 | `memo` | Cross-agent memo writer |
 | `push` / `pull` | Wiki git lifecycle |
 | `init` | Active Claims scaffold; Stop-hook installation |
-| `refresh` | Storyboard + obstacle/experiment marker refresh |
+| `refresh` | Storyboard marker refresh; expired-claim sweep |

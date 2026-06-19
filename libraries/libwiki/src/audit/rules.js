@@ -8,6 +8,8 @@ import {
   ISSUE_CLOSE_RE,
   ISSUE_OPEN_RE,
   MEMO_INBOX_MARKER,
+  MEMORY_LINE_BUDGET,
+  MEMORY_WORD_BUDGET,
   PRIORITY_INDEX_HEADING,
   STORYBOARD_LINE_BUDGET,
   STORYBOARD_WORD_BUDGET,
@@ -261,6 +263,24 @@ export const RULES = [
     hint: "run `bunx fit-wiki init` to scaffold the canonical sections",
   },
   {
+    id: "memory.line-budget",
+    scope: "memory",
+    severity: "fail",
+    when: memoryExists,
+    check: lineBudget(MEMORY_LINE_BUDGET),
+    message: (_s, r) => `${r.value} lines (limit ${MEMORY_LINE_BUDGET})`,
+    hint: "MEMORY.md holds settled cross-cutting state, not history; release settled claims, prune stale priority rows, and move event-by-event detail to the relevant ledger page or weekly log",
+  },
+  {
+    id: "memory.word-budget",
+    scope: "memory",
+    severity: "fail",
+    when: memoryExists,
+    check: wordBudget(MEMORY_WORD_BUDGET),
+    message: (_s, r) => `${r.value} words (limit ${MEMORY_WORD_BUDGET})`,
+    hint: "MEMORY.md holds settled cross-cutting state, not history; release settled claims, prune stale priority rows, and move event-by-event detail to the relevant ledger page or weekly log",
+  },
+  {
     id: "memory.priority-heading",
     scope: "memory",
     severity: "fail",
@@ -338,7 +358,7 @@ export const RULES = [
     severity: "warn",
     check: expired,
     message: (s) => `${s.agent}/${s.target} expired ${s.expires_at}`,
-    hint: "run `bunx fit-wiki release --expired` to clear expired claims",
+    hint: "run `bunx fit-wiki refresh` (or `release --expired`) to clear expired claims",
   },
 
   // -- Storyboards --

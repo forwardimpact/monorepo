@@ -162,7 +162,9 @@ export async function runClaimCommand(ctx) {
     };
   }
   const today = options.today || currentDayIso(runtime);
-  const expires = options["expires-at"] || addDays(today, 7);
+  // Default expiry is claim+1 day: a claim is a short-lived "actively shipping
+  // this now" assertion, not a long lease. A run that outlives one day re-claims.
+  const expires = options["expires-at"] || addDays(today, 1);
   const memPath = memoryPath(runtime, options);
   const text = readMemory(runtime, memPath);
   const claim = {
