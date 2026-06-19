@@ -1,6 +1,7 @@
-// Flag monorepo-specific content in the published kata-* skills. The kata-*
-// skill pack syncs unchanged into consuming repositories, so every line must
-// hold in a repo that installed the pack yesterday (.claude/skills/CLAUDE.md
+// Flag monorepo-specific content in the published pack. The pack syncs
+// unchanged into consuming repositories — APM installs the kata-* skills and
+// the agent profiles plus their references together — so every line must hold
+// in a repo that installed the pack yesterday (.claude/skills/CLAUDE.md
 // § Generic by design). Three rule groups guard the classes that creep back:
 //
 // 1. Internal-only tooling — bun, bunx, and just are internal contributor
@@ -79,17 +80,13 @@ const PATTERNS = [
     reason: "hardcoded date — derive the data live or use YYYY-MM-DD",
   },
   // --- Group 3: links broken in the published pack ---
-  // The pack ships only skills/kata-*/ and renamed top-level agent profiles;
-  // .claude/agents/references/, root TRUST.md, and the fit-* skills (a
-  // separate pack) are not synced, so relative links to them dangle in every
-  // consuming installation. Guaranteed surfaces (CONTRIBUTING.md, JTBD.md,
-  // KATA.md) stay relative — the consuming repo carries its own. Links to
-  // this monorepo's issues and PRs are provenance that rots — the skill must
-  // stand on its own.
-  {
-    pattern: "\\]\\((\\.\\./)+agents/",
-    reason: "agents/ is not shipped with the pack — use the full GitHub URL",
-  },
+  // The pack ships skills/kata-*/ and the agent profiles plus their
+  // references, so relative links among them resolve in a consuming install.
+  // Root TRUST.md and the fit-* skills (a separate pack) are not synced, so
+  // relative links to them dangle. Guaranteed surfaces (CONTRIBUTING.md,
+  // JTBD.md, KATA.md) stay relative — the consuming repo carries its own.
+  // Links to this monorepo's issues and PRs are provenance that rots — the
+  // skill must stand on its own.
   {
     pattern: "\\]\\((\\.\\./)+TRUST\\.md",
     reason: "TRUST.md is not shipped with the pack — use the full GitHub URL",
@@ -112,8 +109,8 @@ export default {
       subjects: {
         "skill-match": grep({
           patterns: PATTERNS,
-          paths: [".claude/skills/"],
-          globs: [".claude/skills/kata-*/**"],
+          paths: [".claude/skills/", ".claude/agents/references/"],
+          globs: [".claude/skills/kata-*/**", ".claude/agents/references/**"],
           caseSensitive: true,
           dedupe: (m) => `${m.raw}|${m.reason}`,
         }),
@@ -125,7 +122,7 @@ export default {
     failAll("skill-match", {
       id: "skills.monorepo-specific",
       message: (s) => `${s.text.trim()} — ${s.reason}`,
-      hint: "kata-* skills must hold in a repo that installed the pack yesterday (.claude/skills/CLAUDE.md § Generic by design); narrow the rule in .coaligned/invariants/skill-genericity.rules.mjs only for a legitimate generic usage",
+      hint: "published pack content (kata-* skills and agent references) must hold in a repo that installed the pack yesterday (.claude/skills/CLAUDE.md § Generic by design); narrow the rule in .coaligned/invariants/skill-genericity.rules.mjs only for a legitimate generic usage",
     }),
   ],
 };
