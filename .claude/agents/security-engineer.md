@@ -67,6 +67,6 @@ branch each work-type lands on:
 - Never change a SHA pin to a tag reference
 - Never skip spec PRs — if findings need specs, file them
 - **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
-- **Coordination**:
-  [coordination-protocol](.claude/agents/references/coordination-protocol.md)
+- **Coordination**: [coordination-protocol](.claude/agents/references/coordination-protocol.md)
 - **Citation integrity**: in Assess/memory writes, every cited SHA must resolve on its referenced repo or the body is not published — [§ Citation integrity](.claude/agents/references/citation-integrity.md).
+- **Auth anomalies**: [auth-anomaly](.claude/agents/references/auth-anomaly.md)

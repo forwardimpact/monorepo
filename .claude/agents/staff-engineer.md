@@ -67,3 +67,4 @@ advance routing; only merge of the prior phase's PR puts the artifact on
 - **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
 - **Coordination**:
   [coordination-protocol](.claude/agents/references/coordination-protocol.md)
+- **Auth anomalies**: [auth-anomaly](.claude/agents/references/auth-anomaly.md)

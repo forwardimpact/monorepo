@@ -67,4 +67,5 @@ highest-priority action:
 - **Coordination**:
   [coordination-protocol.md](.claude/agents/references/coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
-- **Citation integrity**: cited SHAs must resolve on their referenced repo or the body is not published — [§ Citation integrity](.claude/agents/references/citation-integrity.md).
+- **Citation integrity**: cited SHAs must resolve or the body is not published — [§ Citation integrity](.claude/agents/references/citation-integrity.md).
+- **Auth anomalies**: [auth-anomaly.md](.claude/agents/references/auth-anomaly.md)
