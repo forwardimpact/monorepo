@@ -54,10 +54,10 @@ legacy `data/bridges/msbridge/` files; they expire under their existing
   consenting Entra tenant. Each inbound activity's Entra tenant id
   (`channelData.tenant.id`) resolves to a registry tenant; non-active
   (`pending_consent`) tenants are rejected. The GitHub `workflow_dispatch`
-  credential shifts from per-user OAuth to a repo-scoped App installation
-  token minted by `services/ghserver` for the resolved tenant repo — so
-  hosted workflow commits are authored as the App, not the human dispatcher.
-  The Bot Framework reply credential stays in process.
+  credential is the dispatching user's per-user OAuth token (`services/ghuser`),
+  the same per-user path as single-tenant — so hosted workflow commits are
+  authored as the human dispatcher. The Bot Framework reply credential stays in
+  process.
 
 ### Multi-tenant onboarding
 
@@ -108,7 +108,7 @@ Self-hosted (`single`) re-arm behaviour is unchanged.
 | Service | Why |
 | --- | --- |
 | `services/tenancy` | Tenant registry — consent registration, Entra-tid → tenant resolution, repo mapping |
-| `services/ghserver` | Mints repo-scoped App installation tokens for the hosted `workflow_dispatch` |
+| `services/ghuser` | Per-user GitHub token for `workflow_dispatch` (the dispatch credential in both modes) |
 
 ### Configuration
 

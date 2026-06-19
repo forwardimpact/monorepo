@@ -2,9 +2,9 @@
 
 How to configure the **GitHub user App** — the Kata Agent **User** App that
 issues per-user OAuth (user-to-server) tokens through `services/ghuser`. Both
-bridges share it: in self-hosted deployments it supplies the GitHub identity a
-`workflow_dispatch` runs under, so commits are authored as the human who asked
-rather than a shared bot.
+bridges share it, and it supplies the GitHub identity a `workflow_dispatch` runs
+under in **both** deployment models, so commits are authored as the human who
+asked rather than a shared bot.
 
 > **Two GitHub apps, do not conflate them.** This guide covers the **user App**
 > (per-user OAuth). The separate **server App** — the installation App whose key
@@ -20,10 +20,10 @@ the trust model.
 | --- | --- | --- |
 | Who registers / owns the App | the adopting team | Forward Impact (one shared App) |
 | App type | a GitHub App (or OAuth App) issuing **user-to-server** tokens | same |
-| Role in dispatch | **the** `workflow_dispatch` identity — each dispatch runs as the linked user | **not on the dispatch path** — hosted `workflow_dispatch` uses the server App's installation token (`services/ghserver`) instead |
+| Role in dispatch | **the** `workflow_dispatch` identity — each dispatch runs as the linked user | **the** `workflow_dispatch` identity — each dispatch runs as the linked user, the same per-user path as self-hosted |
 | Credential | OAuth `client_id` + `client_secret` | OAuth `client_id` + `client_secret` |
-| Per-user linking | users link once via the OAuth flow; the bridge prompts on the channel when a link is missing | same flow where per-user identity is still wanted (e.g. attribution), but not required for dispatch |
-| Services required | `ghuser` (+ the bridge that consumes it) | optional — `ghuser` need not run if only App-token dispatch is used |
+| Per-user linking | users link once via the OAuth flow; the bridge prompts on the channel when a link is missing | same flow; every hosted dispatcher links once before dispatch |
+| Services required | `ghuser` (+ the bridge that consumes it) | **required** — `ghuser` is on the dispatch path in both models |
 
 ## Self-hosted (single-tenant)
 
@@ -47,15 +47,16 @@ resolves the per-user token through `ghuser` at dispatch time.
 
 ## Hosted (multi-tenant)
 
-Hosted `workflow_dispatch` does **not** use the user App. The dispatch
-credential shifts to the **server App** installation token minted by
-`services/ghserver` for the resolved tenant repo (so hosted workflow commits
-are authored as the App, not the human dispatcher — the design's explicit
-trade-off to avoid requiring every dispatcher to complete a per-user link
-flow). `services/ghuser` therefore need not run on the hosted dispatch path.
+Hosted `workflow_dispatch` uses the user App, exactly as self-hosted does. The
+dispatch credential is the dispatching user's per-user OAuth token resolved
+through `services/ghuser`, so hosted workflow commits are authored as the human
+dispatcher (the per-user attribution the design's later trade-off restored). The
+resolved tenant repo comes from `services/tenancy`; the dispatch credential does
+not vary by mode.
 
-Where per-user attribution is still desired on a hosted surface, the same OAuth
-flow and configuration above apply; it simply no longer gates dispatch.
+Every hosted dispatcher links their GitHub account once before dispatch, the
+same OAuth flow and configuration as self-hosted above. `services/ghuser` is
+therefore required on the dispatch path in both models.
 
 ## See also
 
@@ -63,7 +64,7 @@ flow and configuration above apply; it simply no longer gates dispatch.
   — the other GitHub app (installation tokens), with the self-hosted vs hosted
   scenarios.
 - [Azure AD app configuration](https://github.com/forwardimpact/monorepo/blob/main/services/msbridge/azure-app.md)
-  — the Teams app; it shares this user App for self-hosted dispatch identity.
+  — the Teams app; it shares this user App for dispatch identity in both models.
 - [`services/ghuser` README](README.md) — the service's RPC surface and runtime
   configuration.
 - [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md)

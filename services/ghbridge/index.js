@@ -3,7 +3,6 @@ import {
   CallbackRegistry,
   DefaultTenantResolver,
   Dispatcher,
-  GhServerTokenResolver,
   RateLimiter,
   ResumeScheduler,
   TokenResolver,
@@ -63,7 +62,6 @@ export class GhBridgeService {
   #trustedOrigins;
   #tenancyClient;
   #tenantResolver;
-  #ghserverClient;
   #makeGraphqlClient;
   #multiTenant;
   #replyRender;
@@ -137,10 +135,6 @@ export class GhBridgeService {
         repo: parseRepo(config.github_repo),
       });
     this.#tenantResolver = tenantResolver;
-    // Present only in multi-tenant mode; mints the per-tenant App
-    // installation token for the reply/reaction path. Single-tenant
-    // deployments use the static `graphqlClient` closure.
-    this.#ghserverClient = deps.ghserverClient;
 
     this.#store = new DiscussionAdapter(discussionClient, { tenantResolver });
     this.#client = discussionClient;
@@ -167,20 +161,12 @@ export class GhBridgeService {
         ),
         logger,
       });
-    // Hosted dispatch identity: multi-tenant mode fires workflow_dispatch with
-    // a repo-scoped GitHub App installation token minted by services/ghserver
-    // for the resolved tenant repo (design § Hosted dispatch identity). This is
-    // the SAME resolver msbridge uses in multi-tenant mode; sharing it removes
-    // the per-user OAuth link path from hosted ghbridge entirely — and with it
-    // the `putPendingDispatch` → bare-channel resolve that otherwise threw
-    // `tenant_unresolved`. Single-tenant keeps the per-user OAuth token via
-    // services/ghuser exactly as before.
-    const dispatchTokenResolver =
-      this.#multiTenant && this.#ghserverClient
-        ? new GhServerTokenResolver(this.#ghserverClient, {
-            requestedBy: "ghbridge",
-          })
-        : new TokenResolver(deps.ghuserClient);
+    // Dispatch identity is the dispatching user's per-user OAuth token via
+    // services/ghuser in both tenancy modes (design § Unified dispatch
+    // identity). The reply/reaction path mints its own per-repo install token
+    // through the `makeGraphqlClient` / `graphqlClient` closures injected by
+    // server.js, independent of dispatch.
+    const dispatchTokenResolver = new TokenResolver(deps.ghuserClient);
     this.#dispatcher = new Dispatcher({
       clock: this.#clock,
       callbacks: this.#callbacks,

@@ -19,9 +19,9 @@ import { ADD_DISCUSSION_COMMENT_MUTATION } from "../src/graphql.js";
 const SECRET = "ghbridge-test-secret-long-enough";
 
 // Full multi-tenant path against the tightened stateful mock. Both modes run
-// the same code; only the resolver and token source differ. Every assertion
-// below fails against pre-fix code (raw callers omitted tenant_id, so the mock
-// rejected with INVALID_ARGUMENT before any reply or inbox round-trip).
+// the same code, the same tenant-scoped store RPCs, and the same dispatch
+// credential (the dispatching user's per-user OAuth token via services/ghuser).
+// Only the tenant resolver and the resolved repo differ.
 
 /**
  * Stub tenancy client backing a `RegistryTenantResolver`. One active tenant
@@ -80,10 +80,16 @@ function buildFetchHarness() {
 /**
  * Build a service in single- or multi-tenant mode. Multi-tenant injects a
  * `RegistryTenantResolver` (over the stub tenancy client), a `tenancyClient`,
- * a `ghserverClient` mock, and a `makeGraphqlClient` factory so the reply path
- * mints per the resolved tenant repo.
+ * a `ghserverClient` mock (for the reply/reaction path only), and a
+ * `makeGraphqlClient` factory so the reply path mints per the resolved tenant
+ * repo. Dispatch credential is the per-user OAuth token in both modes.
+ *
+ * @param {object} [opts]
+ * @param {boolean} [opts.multi]
+ * @param {object} [opts.tokenResult] Override the ghuser `GetToken` result
+ *   (e.g. to exercise the `link_required` path).
  */
-async function newService({ multi } = {}) {
+async function newService({ multi, tokenResult } = {}) {
   const harness = buildFetchHarness();
   const graphqlCalls = [];
   let commentCounter = 0;
@@ -122,19 +128,13 @@ async function newService({ multi } = {}) {
     getInstallationToken: async () => "ghs_test",
     graphqlClient,
     makeGraphqlClient,
-    // In multi-tenant mode the per-user OAuth path must NOT be consulted: wire
-    // a ghuser client that would force the link_required path so any regression
-    // back to per-user OAuth is caught (the dispatch would decline + try to
-    // putPendingDispatch a bare channel key). Single-tenant keeps a real token.
+    // Dispatch identity is the per-user OAuth token in both modes. A test may
+    // override the result to exercise the link_required path.
     ghuserClient: {
       GetToken: async () =>
-        multi
-          ? {
-              result: "link_required",
-              link_required: { authorize_url: "https://github.com/login/x" },
-            }
-          : { result: "token", token: "ghs_per_user" },
+        tokenResult ?? { result: "token", token: "ghs_per_user" },
     },
+    // Reply/reaction path only; dispatch no longer consults ghserver.
     ghserverClient: {
       MintInstallationToken: async (req) => {
         mints.push(req);
@@ -364,13 +364,11 @@ for (const mode of ["single", "multi"]) {
         expect(harness.dispatches).toHaveLength(0);
       });
 
-      test("hosted dispatch uses the ghserver-minted App token, not per-user OAuth", async () => {
-        // A discussion with no per-user GitHub link still dispatches: hosted
-        // mode wires the Dispatcher's tokenResolver to the App-token resolver
-        // (ghserver MintInstallationToken) for the resolved tenant repo. The
-        // ghuser client here would return link_required (it is unused in multi
-        // mode); pre-fix code used it and took the per-user link path, which
-        // additionally hit putPendingDispatch → bare-channel resolve → throw.
+      test("hosted dispatch uses the per-user OAuth token, not a ghserver App-token mint", async () => {
+        // Unified dispatch identity: hosted mode dispatches with the
+        // dispatching user's per-user OAuth token on the resolved tenant repo.
+        // No ghserver App-token mint happens for dispatch; the reply/reaction
+        // path keeps its own ghserver credential.
         const res = await postSigned(
           baseUrl,
           "discussion",
@@ -378,23 +376,53 @@ for (const mode of ["single", "multi"]) {
         );
         expect(res.status).toBe(200);
         expect(harness.dispatches).toHaveLength(1);
-        // The dispatch fired on the resolved tenant repo with the App token.
         const dispatched = harness.dispatches[0];
         expect(dispatched.url).toContain(`/repos/${inboundRepo}/actions/`);
-        expect(dispatched.init.headers.Authorization).toBe("Bearer ghs_minted");
-        // The mint targeted exactly the resolved tenant repo, audit-tagged
-        // ghbridge.
-        expect(mints).toEqual([
-          { owner: "acme", name: "web", requested_by: "ghbridge" },
-        ]);
-        // No per-user link path was taken: PutPendingDispatch never fired (it
-        // would have resolved a bare channel string as a tenant key and thrown).
+        expect(dispatched.init.headers.Authorization).toBe(
+          "Bearer ghs_per_user",
+        );
+        // Dispatch consults no ghserver mint.
+        expect(mints).toHaveLength(0);
         const ctx = await service.store.loadByChannel(
           "github-discussions",
           "D_kw1",
           tenantId,
         );
         expect(Object.keys(ctx.pending_callbacks)).toHaveLength(1);
+      });
+
+      test("unlinked multi-tenant dispatcher gets the link prompt, fires no workflow_dispatch", async () => {
+        // An unlinked dispatcher resolves through TokenResolver → link_required
+        // in multi-tenant mode too (criterion 4). The bridge posts the link
+        // prompt on the resolved repo and writes the pending row under the
+        // resolved tenant — proving the tenant carrier threads through.
+        const built = await newService({
+          multi: true,
+          tokenResult: {
+            result: "link_required",
+            link_required: { authorize_url: "https://github.com/login/x" },
+          },
+        });
+        const linkBaseUrl = `http://127.0.0.1:${built.service.address().port}`;
+        try {
+          const res = await postSigned(
+            linkBaseUrl,
+            "discussion",
+            discussionEvent({ repo: inboundRepo }),
+          );
+          expect(res.status).toBe(200);
+          expect(built.harness.dispatches).toHaveLength(0);
+          const commentCalls = built.graphqlCalls.filter(
+            (c) => c.query === ADD_DISCUSSION_COMMENT_MUTATION,
+          );
+          expect(commentCalls).toHaveLength(1);
+          expect(commentCalls[0].variables.i.body).toContain(
+            "tenant_id=uuid-acme",
+          );
+        } finally {
+          await built.service.stop();
+          built.harness.restore();
+        }
       });
     }
   });

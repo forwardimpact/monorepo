@@ -111,6 +111,32 @@ describe("oauth authorize (SC#2)", () => {
     assert.strictEqual(capturedClientState, "link-tok-99");
   });
 
+  test("/authorize with tenant_id passes it to Begin", async () => {
+    let capturedTenantId;
+    const { app } = createOauthService({
+      config: {
+        issuer: "http://localhost:3007",
+        host: "0.0.0.0",
+        port: 0,
+        provider: "ghuser",
+      },
+      logger: { info: () => {}, error: () => {} },
+      providerClient: {
+        Begin: async (req) => {
+          capturedTenantId = req.tenant_id;
+          return { upstream_authorize_url: "http://gh", state: "s1" };
+        },
+        Complete: async () => ({}),
+        Redeem: async () => ({}),
+      },
+    });
+
+    await app.request(
+      "/authorize?surface=github-discussions&surface_user_id=u1&tenant_id=t1",
+    );
+    assert.strictEqual(capturedTenantId, "t1");
+  });
+
   test("/authorize maps Begin proof_missing outcome to 503", async () => {
     const { app } = createOauthService({
       config: {

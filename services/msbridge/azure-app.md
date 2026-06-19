@@ -22,11 +22,11 @@ trust model.
 | Tenant binding | `MICROSOFT_APP_TENANT_ID` set | `MICROSOFT_APP_TENANT_ID` **omitted**; resolved per activity from `channelData.tenant.id` |
 | Auth credential | client secret (`MICROSOFT_APP_PASSWORD`) | client secret (`MICROSOFT_APP_PASSWORD`) |
 | Where the credential lives | in the `msbridge` process | in the `msbridge` process — the Bot Framework credential is **not** centralized the way the GitHub App key is (no cross-workflow fanout); custody hardening is deferred (see below) |
-| Workflow credential | GitHub `workflow_dispatch` runs under per-user OAuth via the GitHub user App (`services/ghuser`) | GitHub `workflow_dispatch` runs under a repo-scoped GitHub server-App installation token minted by `services/ghserver` (Teams is not a GitHub Actions runner, so there is no `services/oidc` exchange on this path) |
+| Workflow credential | GitHub `workflow_dispatch` runs under per-user OAuth via the GitHub user App (`services/ghuser`) | GitHub `workflow_dispatch` runs under per-user OAuth via the GitHub user App (`services/ghuser`) — the same per-user path as single-tenant (Teams is not a GitHub Actions runner, so there is no `services/oidc` exchange on this path) |
 | Chat-reply credential | in-process Bot Framework credential | in-process Bot Framework credential |
 | Bridge mode flag | `SERVICE_MSBRIDGE_TENANCY_MODE=single` (default) | `SERVICE_MSBRIDGE_TENANCY_MODE=multi` |
 | Onboarding | register the Azure app and sideload the Teams app by hand | install the shared Teams app; `installationUpdate` consent + `POST /onboard` map the repo into `services/tenancy` |
-| Services required | `msbridge`, `bridge`, `ghuser` | `msbridge`, `bridge`, `ghserver`, `tenancy` |
+| Services required | `msbridge`, `bridge`, `ghuser` | `msbridge`, `bridge`, `ghuser`, `tenancy` |
 
 ## Self-hosted (single-tenant)
 
@@ -80,7 +80,7 @@ own Azure app.
 | Service | Key configuration |
 | --- | --- |
 | `services/msbridge` | `SERVICE_MSBRIDGE_TENANCY_MODE=multi`; `MICROSOFT_APP_ID` / `MICROSOFT_APP_PASSWORD` set, `MICROSOFT_APP_TENANT_ID` omitted |
-| `services/ghserver` | mints the repo-scoped GitHub server-App installation token used for hosted `workflow_dispatch` |
+| `services/ghuser` | per-user OAuth — supplies the `workflow_dispatch` credential as the dispatching user, the same per-user path as single-tenant |
 | `services/tenancy` | tenant registry — consent registration, Entra-tid → tenant resolution, repo mapping |
 
 **Onboarding** is self-service:
@@ -102,13 +102,14 @@ own Azure app.
 
 ## Manual testing of the tenancy path (local)
 
-Exercise the `tenancy` → `ghserver` mint → dispatch path on one developer
+Exercise the `tenancy` → resolve → per-user dispatch path on one developer
 machine, reusing one GitHub App.
 
 > Microsoft does not permit creating multi-tenant Azure Bot resources, so the
 > bot resource here is **Single Tenant**. The bridge's `multi` tenancy mode
-> still drives the registry resolver + `ghserver` minting; only the Bot
-> Framework app type follows `MICROSOFT_APP_TENANT_ID` (SingleTenant when set).
+> still drives the registry resolver; dispatch uses the per-user OAuth token via
+> `services/ghuser`. Only the Bot Framework app type follows
+> `MICROSOFT_APP_TENANT_ID` (SingleTenant when set).
 > A true multi-tenant offering uses a single-tenant bot + a multi-tenant Entra
 > app distributed through the Teams Store, built on the Microsoft 365 Agents SDK.
 

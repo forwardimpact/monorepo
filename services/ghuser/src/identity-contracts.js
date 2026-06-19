@@ -18,17 +18,6 @@
  * @property {(args: BeginContractArgs | CompleteContractArgs) => Promise<{outcome: "ok" | "proof_missing" | "identity_mismatch"}>} evaluate
  */
 
-// Single-tenant value carried by every bridge RPC. msbridge writes
-// `PutPendingDispatch` entries under this tenant id via
-// `DefaultTenantResolver` (libraries/libbridge/src/tenant-resolver.js:39);
-// ghuser must use the same value or the scoped-key lookup
-// (`services/bridge/index.js:324`) cannot match. The forward-looking
-// multi-tenant case (thread real tenant through `/authorize`) is
-// deferred to a future multi-tenant spec — `VerifyPendingDispatch` and
-// `PutPendingDispatch` must update in the same tag so the keyspace
-// stays uniform (design § Key decisions row "tenant_id plumbing").
-const SINGLE_TENANT_ID = "default";
-
 /**
  * `bridge_pending_dispatch_proof` — cross-validates the asserted
  * `(surface, surface_user_id, client_state)` against a single-use
@@ -60,7 +49,7 @@ export const bridgePendingDispatchProof = {
         link_token: req.client_state,
         expected_surface: req.surface,
         expected_surface_user_id: req.surface_user_id,
-        tenant_id: SINGLE_TENANT_ID,
+        tenant_id: req.tenant_id,
       });
       return { outcome: "ok" };
     } catch (err) {

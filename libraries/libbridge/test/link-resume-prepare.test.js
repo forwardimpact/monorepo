@@ -47,6 +47,27 @@ describe("prepareLinkResume — keyword args, discriminated return", () => {
     );
   });
 
+  test("sets tenant_id on the URL when tenantId is supplied", () => {
+    const { augmentedUrl } = prepareLinkResume({
+      authorizeUrl: "https://oauth.example/authorize",
+      callbackBaseUrl: "https://bridge.example",
+      trustedOrigins: TRUSTED,
+      tenantId: "tenant-b",
+    });
+    expect(new URL(augmentedUrl).searchParams.get("tenant_id")).toBe(
+      "tenant-b",
+    );
+  });
+
+  test("omits tenant_id when tenantId is absent", () => {
+    const { augmentedUrl } = prepareLinkResume({
+      authorizeUrl: "https://oauth.example/authorize",
+      callbackBaseUrl: "https://bridge.example",
+      trustedOrigins: TRUSTED,
+    });
+    expect(new URL(augmentedUrl).searchParams.has("tenant_id")).toBe(false);
+  });
+
   test("untrusted origin → { skipped, reason: 'untrusted_origin' }", () => {
     const r = prepareLinkResume({
       authorizeUrl: "https://attacker.example/login",

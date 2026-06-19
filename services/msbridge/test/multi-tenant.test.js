@@ -19,11 +19,10 @@ import {
 } from "./helpers.js";
 
 // Full multi-tenant path for msbridge against the tightened stateful mock:
-// inbound activity → Entra-tid extraction → resolve → ghserver mint → dispatch
-// → callback. Both modes run the same code; only the resolver and dispatch
-// credential differ. Each assertion fails against pre-fix code (raw inbox
-// callers omitted tenant_id; msbridge multi used per-user OAuth instead of the
-// ghserver-minted App token).
+// inbound activity → Entra-tid extraction → resolve → dispatch → callback.
+// Both modes run the same code and the same dispatch credential (the
+// dispatching user's per-user OAuth token); only the tenant resolver and the
+// resolved repo differ.
 
 const ENTRA_TID = "entra-acme";
 
@@ -132,12 +131,6 @@ for (const mode of ["single", "multi"]) {
       if (multi) {
         deps.tenantResolver = new RegistryTenantResolver({ client: tenancy });
         deps.tenancyClient = tenancy;
-        deps.ghserverClient = {
-          MintInstallationToken: async (req) => {
-            mints.push(req);
-            return { installation_token: "ghs_minted" };
-          },
-        };
         // Multi-tenant mounts /onboard, which now requires a real verifier
         // (no default-deny fallback). These tests exercise dispatch/inbox, not
         // onboarding, so a stub verifier suffices.
@@ -176,16 +169,15 @@ for (const mode of ["single", "multi"]) {
       expect(sent.inputs.callback_url).toContain(`/api/callback/${tenantId}/`);
       expect(sent.inputs.inbox_url).toContain(`/api/inbox/${tenantId}/`);
       if (multi) {
-        // Hosted dispatch identity: the workflow_dispatch fires on the
-        // resolved tenant repo with the ghserver-minted App token, not the
-        // per-user OAuth token.
+        // Unified dispatch identity: the workflow_dispatch fires on the
+        // resolved tenant repo, but the credential is the dispatching user's
+        // per-user OAuth token in both modes, with no ghserver App-token mint.
+        // Repo resolution is unchanged (criterion 8).
         expect(dispatches[0].url).toContain("/repos/acme/web/actions/");
         expect(dispatches[0].init.headers.Authorization).toBe(
-          "Bearer ghs_minted",
+          "Bearer ghs_per_user",
         );
-        expect(mints).toEqual([
-          { owner: "acme", name: "web", requested_by: "msbridge" },
-        ]);
+        expect(mints).toHaveLength(0);
       } else {
         expect(dispatches[0].url).toContain("/repos/owner/repo/actions/");
         expect(dispatches[0].init.headers.Authorization).toBe(
@@ -231,6 +223,63 @@ for (const mode of ["single", "multi"]) {
       test("an activity from an unknown tenant is dropped (no dispatch)", async () => {
         await deliver(messageActivity({ tid: "entra-stranger" }));
         expect(dispatches).toHaveLength(0);
+      });
+
+      test("unlinked multi-tenant dispatcher gets the link prompt, fires no workflow_dispatch", async () => {
+        // Unified dispatch identity: an unlinked dispatcher resolves through
+        // TokenResolver → link_required in multi-tenant mode too (criterion 4).
+        // The bridge posts the link prompt with the resolved tenant on the
+        // authorize URL and fires no workflow_dispatch.
+        const linkAdapter = makeDrivableAdapter();
+        const tenancy = stubTenancyClient();
+        const linkService = new MsBridgeService(
+          makeConfig({ tenancy_mode: "multi", github_repo: "" }),
+          {
+            logger: createMockLogger(),
+            tracer: createMockTracer(),
+            clock: createMockClock(),
+            discussionClient: createStatefulDiscussionClient(),
+            ghuserClient: {
+              GetToken: async () => ({
+                result: "link_required",
+                link_required: { authorize_url: "https://github.com/login/x" },
+              }),
+            },
+            adapter: linkAdapter,
+            tenantResolver: new RegistryTenantResolver({ client: tenancy }),
+            tenancyClient: tenancy,
+            authenticateTenant: () => "entra-test",
+            trustedOrigins: DEFAULT_TRUSTED_ORIGINS,
+            ticketSecret: DEFAULT_TICKET_SECRET,
+          },
+        );
+        await linkService.start();
+        try {
+          const before = dispatches.length;
+          linkAdapter.setActivity(messageActivity({ tid: ENTRA_TID }));
+          await fetch(
+            `http://127.0.0.1:${linkService.address().port}/api/messages`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({}),
+            },
+          );
+          // No workflow_dispatch fired: the unlinked user took the link path
+          // in multi-tenant mode, exactly as in single-tenant (criterion 4).
+          expect(dispatches.length).toBe(before);
+          // The link path was reached — the bridge posted a link-related
+          // prompt rather than dispatching. (The personal-conversation gate
+          // intercepts the URL-bearing reply in a group thread; the end-to-end
+          // tenant_id-on-authorize-URL threading is asserted by the ghbridge
+          // multi-tenant suite, which has no such gate.)
+          const prompt = linkAdapter.sent.find(
+            (a) => typeof a === "string" && a.toLowerCase().includes("link"),
+          );
+          expect(prompt).toBeDefined();
+        } finally {
+          await linkService.stop();
+        }
       });
     }
   });

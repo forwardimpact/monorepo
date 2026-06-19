@@ -319,6 +319,7 @@ describe("Dispatcher", () => {
     });
     expect(result.kind).toBe("link_required");
     expect(result.authorizeUrl).toBe("https://example.com/authorize");
+    expect(result.tenant_id).toBe("default");
     expect(reactions.adds).toHaveLength(0);
     expect(fetchStub.calls).toHaveLength(0);
     expect(callbacks.size).toBe(0);
@@ -349,6 +350,7 @@ describe("Dispatcher", () => {
       ackTarget: { subjectId: "S_1" },
     });
     expect(result.kind).toBe("reauth_required");
+    expect(result.tenant_id).toBe("default");
     expect(reactions.adds).toHaveLength(0);
     expect(fetchStub.calls).toHaveLength(0);
     expect(callbacks.size).toBe(0);
