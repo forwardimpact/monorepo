@@ -26,6 +26,8 @@ those that pass. Trust is the most critical — record each PR's trust check.
 - [ ] All CI checks pass (after mechanical fixes if needed).
 - [ ] `wiki/STATUS.md` row for the spec id shows the matching phase at
       `approved` (or `implemented` for the terminal plan row).
+- [ ] For phase PRs (spec/design/plan): an approving signal of the required
+      class verifiably covers the current head, per `references/review-transfer.md`.
 - [ ] For implementation PRs: parent spec's `plan-a.md` exists on `main`.
 - [ ] No unresolved trusted-human concern in the PR comment thread.
 - [ ] Classification label (`product` / `internal`) is present on the PR.
@@ -105,6 +107,12 @@ deleted-vs-modified) — `git rebase --abort` and comment the conflicting files.
 After rebase, run auto-fix then check; if checks still fail, mark **blocked**
 and skip to Step 12. Push with `git push --force-with-lease origin <pr-branch>`.
 
+**Phase-PR review transfer.** Before force-pushing a `spec`/`design`/`plan` PR,
+if the current head carries an approval signal, apply
+[`references/review-transfer.md`](references/review-transfer.md): post its
+transfer record on a content-identical move, or its void notice on a
+delta-producing move — this step's own mechanical fixes included.
+
 ### Step 6: Approval Gate
 
 **Docs fast-path**: A `docs`-typed PR whose changed files are all `.md`/`.mdx`
@@ -116,6 +124,15 @@ Read `wiki/STATUS.md` for the PR's spec id — `grep -P "^${spec_id}(/[a-z0-9-]+
 take the experiment path instead of the spec-row read — fail-closed
 discriminator, `exp:{issue}` STATUS read, head-pin re-block:
 [`experiment-path.md`](references/experiment-path.md).
+
+**Phase-PR head coverage.** For `spec`/`design`/`plan` PRs, a STATUS row at
+`approved` is **necessary but not sufficient**: additionally verify, per
+[`references/review-transfer.md`](references/review-transfer.md), that an
+approving signal of the required class (spec→spec, design→design, plan→plan)
+verifiably covers the current head; when none does, fail closed — **blocked**,
+reason naming the voided or unverifiable transfer. This narrows the boundary
+above: the PR-side read is for pins and transfer records only; STATUS stays the
+approval source.
 
 ### Step 7: Open Comment Gate
 
