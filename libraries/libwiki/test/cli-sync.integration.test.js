@@ -98,4 +98,42 @@ describe("push/pull commands (real git)", () => {
     assert.equal(result.code, 1);
     assert.match(harness.stderr, /rebase conflict/);
   });
+
+  test("push refuses on a detached HEAD with pending writes (no silent loss)", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "push-detached");
+    git(wikiDir, "checkout", "master");
+    const head = git(wikiDir, "rev-parse", "HEAD");
+    git(wikiDir, "checkout", head); // detach
+    writeFileSync(join(wikiDir, "pending.md"), "session work");
+    const { harness, ctx } = harnessFor(wikiDir, parent);
+    const result = await runPushCommand(ctx);
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 1);
+    assert.match(harness.stderr, /detached/);
+    // No commit was created and HEAD did not move; the pending work survives as
+    // an uncommitted change rather than being swept into a lost detached commit.
+    assert.equal(git(wikiDir, "rev-parse", "HEAD"), head);
+    assert.match(
+      git(wikiDir, "status", "--porcelain", "--", "pending.md"),
+      /pending\.md/,
+    );
+  });
+
+  test("push refuses on severed (unrelated) local history", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "push-severed");
+    git(wikiDir, "checkout", "master");
+    // Replace master with an unrelated root sharing no merge-base.
+    git(wikiDir, "checkout", "--orphan", "severed");
+    writeFileSync(join(wikiDir, "alien.md"), "unrelated");
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "alien root");
+    git(wikiDir, "branch", "-M", "master");
+    const tip = git(wikiDir, "rev-parse", "HEAD");
+    const { harness, ctx } = harnessFor(wikiDir, parent);
+    const result = await runPushCommand(ctx);
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 1);
+    assert.match(harness.stderr, /unrelated/);
+    assert.equal(git(wikiDir, "rev-parse", "HEAD"), tip); // no new commit
+  });
 });

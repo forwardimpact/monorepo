@@ -140,4 +140,96 @@ describe("GitClient", () => {
     await client.fetch("origin", undefined, { cwd: "/r" });
     assert.strictEqual(subprocess.calls.at(-1).args[0], "fetch");
   });
+
+  test("headBranch returns the trimmed symbolic-ref short name", async () => {
+    const { client, subprocess } = clientWith({
+      git: { stdout: "master\n", exitCode: 0 },
+    });
+    assert.strictEqual(await client.headBranch({ cwd: "/r" }), "master");
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "symbolic-ref",
+      "--short",
+      "-q",
+      "HEAD",
+    ]);
+  });
+
+  test("headBranch returns '' on a detached HEAD (non-zero, swallowed)", async () => {
+    const { client } = clientWith({ git: { stdout: "", exitCode: 1 } });
+    assert.strictEqual(await client.headBranch({ cwd: "/r" }), "");
+  });
+
+  test("refExists maps exit 0 to true and exit 1 to false", async () => {
+    const ok = clientWith({ git: { exitCode: 0 } });
+    assert.strictEqual(await ok.client.refExists("HEAD", { cwd: "/r" }), true);
+    assert.deepStrictEqual(ok.subprocess.calls.at(-1).args, [
+      "rev-parse",
+      "--verify",
+      "-q",
+      "HEAD^{commit}",
+    ]);
+    const absent = clientWith({ git: { exitCode: 1 } });
+    assert.strictEqual(
+      await absent.client.refExists("origin/master", { cwd: "/r" }),
+      false,
+    );
+  });
+
+  test("mergeBaseExists maps exit 0/1 to true/false without throwing", async () => {
+    const has = clientWith({ git: { exitCode: 0 } });
+    assert.strictEqual(
+      await has.client.mergeBaseExists("origin/master", "HEAD", { cwd: "/r" }),
+      true,
+    );
+    assert.deepStrictEqual(has.subprocess.calls.at(-1).args, [
+      "merge-base",
+      "origin/master",
+      "HEAD",
+    ]);
+    const none = clientWith({ git: { exitCode: 1 } });
+    assert.strictEqual(
+      await none.client.mergeBaseExists("origin/master", "HEAD", { cwd: "/r" }),
+      false,
+    );
+  });
+
+  test("remoteBranchExists reads ls-remote stdout and throws on probe failure", async () => {
+    const present = clientWith({
+      git: { stdout: "abc123\trefs/heads/master\n", exitCode: 0 },
+    });
+    assert.strictEqual(
+      await present.client.remoteBranchExists("origin", "master", {
+        cwd: "/r",
+      }),
+      true,
+    );
+    assert.deepStrictEqual(present.subprocess.calls.at(-1).args, [
+      "ls-remote",
+      "--heads",
+      "origin",
+      "master",
+    ]);
+    const empty = clientWith({ git: { stdout: "", exitCode: 0 } });
+    assert.strictEqual(
+      await empty.client.remoteBranchExists("origin", "master", { cwd: "/r" }),
+      false,
+    );
+    const failed = clientWith({ git: { stderr: "no auth", exitCode: 128 } });
+    await assert.rejects(
+      () => failed.client.remoteBranchExists("origin", "master", { cwd: "/r" }),
+      GitError,
+    );
+  });
+
+  test("fetchDeepen runs --unshallow with allowFailure", async () => {
+    const { client, subprocess } = clientWith({ git: { exitCode: 1 } });
+    const r = await client.fetchDeepen("origin", "master", { cwd: "/r" });
+    assert.strictEqual(r.exitCode, 1); // does not throw despite non-zero
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "fetch",
+      "--unshallow",
+      "origin",
+      "master",
+    ]);
+  });
 });

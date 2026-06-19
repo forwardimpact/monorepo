@@ -1,6 +1,6 @@
 import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { GitClient } from "@forwardimpact/libutil/git-client";
 import { runClaimCommand, runReleaseCommand } from "../src/commands/claim.js";
@@ -156,6 +156,78 @@ describe("claim/release push integration (real git)", () => {
       git(wikiDir, "status", "--porcelain"),
       /M README\.md/,
       "foreign edit survives in the tree",
+    );
+  });
+
+  test("claim refuses on a detached HEAD: non-zero, row written but not published", async () => {
+    const head = git(wikiDir, "rev-parse", "HEAD");
+    git(wikiDir, "checkout", head); // detach
+    const { harness, wikiSync } = harnessFor();
+    const result = await runClaimCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "spec-NNNN",
+          branch: "feat/x",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 1);
+    assert.match(harness.stderr, /not published/i);
+    // The row was written to MEMORY.md but never committed: present only as an
+    // uncommitted working-tree change, and no push landed on the remote.
+    assert.match(readFileSync(memPath, "utf-8"), /spec-NNNN/);
+    assert.match(git(wikiDir, "status", "--porcelain"), /MEMORY\.md/);
+    assert.equal(git(wikiDir, "rev-parse", "HEAD"), head);
+    assert.doesNotMatch(
+      git(bare, "log", "--oneline", "-5", "master"),
+      /wiki: claim spec-NNNN/,
+    );
+  });
+
+  test("release refuses on a detached HEAD: non-zero, not published", async () => {
+    // First land a claim cleanly on master, then detach and try to release it.
+    const seed = harnessFor();
+    await runClaimCommand(
+      ctxFor({
+        runtime: seed.harness.runtime,
+        wikiSync: seed.wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "spec-NNNN",
+          branch: "feat/x",
+          today: "2099-01-01",
+        },
+      }),
+    );
+    const head = git(wikiDir, "rev-parse", "HEAD");
+    git(wikiDir, "checkout", head); // detach
+    const { harness, wikiSync } = harnessFor();
+    const result = await runReleaseCommand(
+      ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        options: {
+          "wiki-root": wikiDir,
+          agent: "staff-engineer",
+          target: "spec-NNNN",
+        },
+      }),
+    );
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 1);
+    assert.match(harness.stderr, /not published/i);
+    assert.equal(git(wikiDir, "rev-parse", "HEAD"), head);
+    // No release commit reached the remote.
+    assert.doesNotMatch(
+      git(bare, "log", "--oneline", "-5", "master"),
+      /wiki: release spec-NNNN/,
     );
   });
 });
