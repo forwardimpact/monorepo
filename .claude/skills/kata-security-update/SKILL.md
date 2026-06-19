@@ -118,8 +118,9 @@ that workspace under the policy minimum.
 ### Step 3: Take Action
 
 Commit and push fix work **before** long-running verification; never end the
-session with verification still running in the background — background work
-dies at turn end, and the PR's CI is the verification of record.
+session with verification still in the background — it dies at turn end, and the
+PR's CI is the verification of record. Hold every PR or comment body to
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
 
 **Merge** — all policies pass, CI green:
 
@@ -161,9 +162,9 @@ gh pr close <number> --comment "Superseded by #<new-pr> — rebased on main to r
 ```
 
 > **Do not use `@dependabot rebase`.** GitHub Apps cannot trigger Dependabot
-> comment commands — the command will always fail with "only users with push
-> access." If a prior run already posted `@dependabot rebase` and received this
-> reply, use the "Rebase on new branch" flow above. Do not retry the comment.
+> comment commands; the command always fails with "only users with push access."
+> If a prior run posted `@dependabot rebase` and got this reply, use the "Rebase
+> on new branch" flow above instead of retrying the comment.
 
 **Close** — policy violation cannot be fixed:
 
@@ -187,6 +188,5 @@ Append to the current week's log (see agent profile for the file path):
 - **PR triage table** — Each PR with action, failed checks, and reason
 - **Compatibility blockers** — Packages closed due to Check 8
 - **Reverted merges** — PRs merged then reverted, with root cause
-- **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
-  per `references/metrics.md`. See KATA.md § Metrics for the
-  recording-eligibility rule.
+- **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
+  `references/metrics.md`. See KATA.md § Metrics for the eligibility rule.

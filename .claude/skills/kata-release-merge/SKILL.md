@@ -188,5 +188,5 @@ Append to the current week's log:
 Outputs (per [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
 **PR comment** for trust rationale, gate failures, merge decisions; **PR
 thread escalation** for cross-agent requests addressed by name. Ambiguous
-inbound comments → follow
-[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+inbound comments → follow [coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+Hold every PR comment to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).

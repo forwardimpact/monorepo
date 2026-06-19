@@ -158,11 +158,11 @@ before advancing.
 
 ### Step 8: Open an implementation PR
 
-Push all commits to the remote branch only after the panel review is clean.
-Re-run the READ-DO freshness probe before `gh pr create`. The PR
-title references the spec id: `feat(scope): ... (#NNN)`. After opening,
-announce the PR and route on the coordinating issue per
-[coordination-protocol § Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create).
+Push commits only after the panel is clean; re-run the READ-DO freshness probe
+before `gh pr create`. Title the PR with the spec id: `feat(scope): ... (#NNN)`.
+After opening, announce and route on the coordinating issue per
+[coordination-protocol § Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create),
+and hold the PR body to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
 
 ## Handling Problems
 

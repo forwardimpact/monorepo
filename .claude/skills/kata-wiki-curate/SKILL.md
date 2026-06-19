@@ -153,31 +153,33 @@ context beyond the index entry. Remove resolved items within one curation cycle.
 - **Direct wiki fixes** — Summary corrections, MEMORY.md updates, stale blocker
   removal. Commit directly in `wiki/`.
 - **Cross-agent observations** — Note unacted teammate observations in the
-  technical-writer's summary for target agents to see.
+  technical-writer's summary for target agents.
 - **Structural improvements** — Spec via `kata-spec` if the wiki structure
   itself needs redesign.
 
 ### Publishing changes
 
+Hold wiki content to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md) before publishing.
+
 Wiki changes are not visible to other agents until pushed. After committing,
 push the wiki — `cd wiki && git push origin HEAD:master` (or let the `Stop`
 hook push it).
 
-If the curation also produced monorepo fixes (e.g., stale spec STATUS, doc
-corrections), branch from `main` as `fix/wiki-curate-YYYY-MM-DD`, commit, push,
-and open a PR — same discipline as doc-review fixes.
+If the curation also produced monorepo fixes (e.g. stale spec STATUS, doc
+corrections), open a PR from a `fix/wiki-curate-YYYY-MM-DD` branch off `main` —
+same discipline as doc-review fixes.
 
 ## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 
 - **Areas curated** — Which areas checked
-- **Audit findings** — Contract `fail`s fixed and `warn`s actioned (e.g. expired
+- **Audit findings** — Contract `fail`s fixed and `warn`s actioned (expired
   claims released)
 - **Summary corrections** — Which agent summaries were updated and why
 - **Stale memos** — Inbox entries >2 weeks old with no response
 - **MEMORY.md changes** — What was added/updated
-- **Memos sent** — Specific callouts dispatched via `fit-wiki memo`
+- **Memos sent** — Callouts dispatched via `fit-wiki memo`
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
   `references/metrics.md`. See KATA.md § Metrics for the recording-eligibility
   rule.

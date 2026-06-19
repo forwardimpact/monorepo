@@ -1,11 +1,10 @@
 # Coordination Protocol
 
 Pick the channel by what the output **is**, not where context happens to be.
-What each output type *is*, and how to classify a finding into one, is defined
-in [work-definition.md](work-definition.md); this protocol routes each type to
-its channel. Wiki cadence and structure are governed by
-[memory-protocol.md](memory-protocol.md); this protocol covers every other
-output an agent produces.
+[work-definition.md](work-definition.md) defines each output type and how to
+classify a finding into one; this protocol routes each type to its channel.
+[memory-protocol.md](memory-protocol.md) governs wiki cadence and structure;
+this protocol covers every other output an agent produces.
 
 ## Channel by output type
 
@@ -43,7 +42,18 @@ only propagates signals already expressed by a trusted human.
 
 **Approval is not phase progression.** A STATUS row at `{phase} approved`
 authorizes merge; it does not advance the phase. The next phase begins only
-when the prior phase's artifact is on `main`.
+when the prior phase's artifact is on `main`. The STATUS rows and PR-side
+comments `kata-dispatch` lands are bodies on in-scope surfaces, so apply
+§ Citation integrity before propagating them.
+
+## Citation integrity
+
+Before an authoring path publishes a body on an in-scope surface — an Issue, PR,
+or comment body, or wiki file content — every existence-asserting SHA-shaped
+token it cites must resolve on the repository that citation references, or the
+publish is blocked loudly and a record appended to `wiki/citation-blocks.md`.
+The three properties and the resolution procedure live in
+[citation-integrity.md](citation-integrity.md).
 
 ## Decision questions
 
