@@ -60,7 +60,7 @@ flowchart TD
   S --> SEL{active tracker<br/>LIBEVAL_WORK_TRACKER}
   SEL -->|github default| GH[github column<br/>gh CLI shapes]
   SEL -->|filesystem| FS[filesystem column<br/>file-write recipes]
-  GH --> FORGE[(GitHub tracker)]
+  GH --> REMOTE[(GitHub)]
   FS --> TREE[(working tree<br/>.tracker/ files)]
   MATRIX[work-trackers.md<br/>agents/references] -.realizes.-> GH
   MATRIX -.realizes.-> FS
