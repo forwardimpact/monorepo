@@ -25,11 +25,11 @@ before deciding whether to invest interview time.
 - `@forwardimpact/pathway` CLI installed (`bunx fit-pathway --help`).
 - Playwright for PDF output
   (`bun install playwright && bunx playwright install chromium`).
-- Candidate has a `brief.md` in `knowledge/Candidates/{Name}/`.
+- Candidate has a `brief.md` in `Knowledge/Candidates/{Name}/`.
 
 ## Inputs
 
-- **Candidate name** — locates `knowledge/Candidates/{Name}/brief.md`.
+- **Candidate name** — locates `Knowledge/Candidates/{Name}/brief.md`.
 - **Target role** — discipline, level, track (e.g.
   `software_engineering J070 forward_deployed`). If not given, infer from the
   candidate's `Req` field → Role file. Ask the user if it can't be inferred.
@@ -38,7 +38,7 @@ before deciding whether to invest interview time.
 
 ## Outputs
 
-- `drafts/{Recipient}-{CandidateSurname}-Report.html` — the A4 one-pager.
+- `Drafts/{Recipient}-{CandidateSurname}-Report.html` — the A4 one-pager.
 - Optional PDF via `scripts/render-pdf.mjs`.
 
 <do_confirm_checklist goal="Verify the report before delivering it">
@@ -62,16 +62,16 @@ before deciding whether to invest interview time.
 Read whatever exists for the candidate:
 
 ```
-knowledge/Candidates/{Name}/brief.md        # required
-knowledge/Candidates/{Name}/screening.md    # if produced by req-screen
-knowledge/Candidates/{Name}/interview-*.md  # if produced by req-assess
-knowledge/Candidates/{Name}/CV.pdf|CV.md    # raw CV if needed
+Knowledge/Candidates/{Name}/brief.md        # required
+Knowledge/Candidates/{Name}/screening.md    # if produced by req-screen
+Knowledge/Candidates/{Name}/interview-*.md  # if produced by req-assess
+Knowledge/Candidates/{Name}/CV.pdf|CV.md    # raw CV if needed
 ```
 
 If `screening.md` exists, treat its skill and behaviour ratings as the primary
 source — they're already standard-calibrated. Otherwise map manually in Step 3.
 
-Search the graph for surrounding context: `rg "{Candidate Name}" knowledge/`.
+Search the graph for surrounding context: `rg "{Candidate Name}" Knowledge/`.
 
 ### 2. Load the standard benchmark
 
@@ -119,7 +119,7 @@ preview overflows, cut content.
 Save the completed HTML to:
 
 ```
-drafts/{Recipient}-{CandidateSurname}-Report.html
+Drafts/{Recipient}-{CandidateSurname}-Report.html
 ```
 
 `{Recipient}` is the first name of the person the report is for.

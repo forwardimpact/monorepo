@@ -81,21 +81,23 @@ have candidate data in your knowledge base.
 ## Understand the knowledge graph
 
 As agents sync email, calendar, and chat data, the librarian processes it into
-a knowledge graph -- plain markdown files organized by entity type:
+a knowledge graph -- plain markdown files organized by entity type. Only the
+`Knowledge/` graph is shared with the team over a synced filesystem (e.g.
+OneDrive); the rest of the workspace stays personal and local:
 
 ```text
-~/Documents/Personal/
-├── knowledge/
-│   ├── People/           # One note per person you interact with
-│   ├── Organizations/    # Companies, teams, departments
-│   ├── Projects/         # Active projects and initiatives
-│   ├── Topics/           # Technical topics and recurring themes
-│   └── Briefings/        # Daily briefings compiled by chief-of-staff
-├── CLAUDE.md             # Agent instructions for this KB
-├── USER.md               # Your name, email, and domain
+~/Documents/Personal/          # Your personal root -- NOT shared
+├── Knowledge/                 # The knowledge graph -- SHARED with the team
+│   ├── People/                # One note per person you interact with
+│   ├── Organizations/         # Companies, teams, departments
+│   ├── Projects/              # Active projects and initiatives
+│   └── Topics/                # Technical topics and recurring themes
+├── Briefings/                 # Daily briefings compiled by chief-of-staff
+├── Drafts/                    # Email and chat drafts
+├── CLAUDE.md                  # Agent instructions for this KB
 └── .claude/
-    ├── agents/           # Agent definitions (one per agent)
-    └── skills/           # Skill definitions agents use
+    ├── agents/                # Agent definitions (one per agent)
+    └── skills/                # Skill definitions agents use
 ```
 
 Notes use Obsidian-compatible `[[backlinks]]`, so the graph is browsable in
@@ -106,7 +108,7 @@ background you would otherwise reconstruct from memory before a meeting.
 You can search the graph directly:
 
 ```sh
-rg "Sarah Chen" ~/Documents/Personal/knowledge/
+rg "Sarah Chen" ~/Documents/Personal/Knowledge/
 ```
 
 ```text
@@ -196,7 +198,7 @@ Waking chief-of-staff...
 ```
 
 The chief-of-staff reads triage files from all other agents and compiles a
-briefing in `knowledge/Briefings/`. Each briefing summarizes what changed since
+briefing in `Briefings/`. Each briefing summarizes what changed since
 the last one -- new emails, upcoming meetings, open threads, and action items.
 
 ## Update agents and skills
@@ -263,12 +265,12 @@ You have reached the outcome of this guide when:
 
 - `npx fit-outpost status` shows agents with recent wake times and action
   summaries -- context is being tracked automatically.
-- Your knowledge base contains notes under `knowledge/People/`,
-  `knowledge/Projects/`, and `knowledge/Organizations/` -- the knowledge graph
+- Your knowledge base contains notes under `Knowledge/People/`,
+  `Knowledge/Projects/`, and `Knowledge/Organizations/` -- the knowledge graph
   is being built from your email and calendar.
-- `knowledge/Briefings/` contains at least one daily briefing -- the
+- `Briefings/` contains at least one daily briefing -- the
   chief-of-staff is compiling context across all agents.
-- You can search the graph with `rg "name" knowledge/` and find cross-referenced
+- You can search the graph with `rg "name" Knowledge/` and find cross-referenced
   context about a person or project.
 
 If any of these are missing, check `npx fit-outpost status` for errors and

@@ -30,7 +30,7 @@ from a slide deck; or understand what a project deck is actually asking for.
 ## Outputs
 
 - One markdown file per deck (or one combined file for related decks) written to
-  `knowledge/Projects/{Project Name} - Engineering Brief.md`.
+  `Knowledge/Projects/{Project Name} - Engineering Brief.md`.
 
 <do_confirm_checklist goal="Verify the brief is engineer-actionable before
 delivering">
@@ -125,7 +125,7 @@ mismatches.
 
 Use the structure in
 [references/brief-template.md](references/brief-template.md). Save to
-`knowledge/Projects/{Project Name} - Engineering Brief.md`. For multiple related
+`Knowledge/Projects/{Project Name} - Engineering Brief.md`. For multiple related
 decks, write one combined brief with shared dependencies.
 
 ### 9. Save and report

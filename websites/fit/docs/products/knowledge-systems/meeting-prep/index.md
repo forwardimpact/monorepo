@@ -41,7 +41,7 @@ Before generating a briefing, search the knowledge graph for each attendee.
 This is the step that turns a generic calendar entry into useful preparation:
 
 ```sh
-rg "Sarah Chen" ~/Documents/Personal/knowledge/
+rg "Sarah Chen" ~/Documents/Personal/Knowledge/
 ```
 
 ```text
@@ -61,7 +61,7 @@ file.
 Read the person note for the full picture:
 
 ```sh
-cat ~/Documents/Personal/knowledge/People/Sarah\ Chen.md
+cat ~/Documents/Personal/Knowledge/People/Sarah\ Chen.md
 ```
 
 The note contains context (role, what they focus on), a reverse-chronological
@@ -105,7 +105,7 @@ Waking chief-of-staff...
   Done (7.2s)
 ```
 
-The result is saved to `knowledge/Briefings/2026-05-04-morning.md`. It
+The result is saved to `Briefings/2026-05-04-morning.md`. It
 includes today's schedule (meetings marked `PREPPED` have attendee context
 already assembled), priority actions linked to today's meetings, and open
 commitments to the people you are seeing.
@@ -148,7 +148,7 @@ project status, and interaction history. Talking points are specific to this
 meeting and these attendees, not generic templates.
 
 For interview meetings, the briefing also surfaces candidate briefs from
-`knowledge/Candidates/` and pipeline status from `knowledge/Roles/`.
+`Knowledge/Candidates/` and pipeline status from `Knowledge/Roles/`.
 
 ## Verify
 
@@ -156,18 +156,18 @@ You have reached the outcome of this guide when:
 
 - You can query your calendar with `--today` or `--upcoming 2h` and see
   meetings with attendee names.
-- Searching the knowledge graph with `rg "name" knowledge/` returns
+- Searching the knowledge graph with `rg "name" Knowledge/` returns
   cross-referenced context about the people you are meeting.
 - `npx fit-outpost wake concierge` produces a briefing for an upcoming meeting,
   drawing on knowledge graph data rather than generic placeholders.
-- The chief-of-staff's daily briefing in `knowledge/Briefings/` includes your
+- The chief-of-staff's daily briefing in `Briefings/` includes your
   schedule, priority actions tied to today's meetings, and open commitments to
   the people you are seeing.
 
 If attendee context is thin, your knowledge graph may need more time to
 accumulate data. Check that the postman and librarian agents are running --
 `npx fit-outpost status` -- and that email sync is producing notes under
-`knowledge/People/`.
+`Knowledge/People/`.
 
 ## What's next
 

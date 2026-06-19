@@ -40,7 +40,7 @@ write a placeholder profile; see the
 
 ## Process — update existing notes only
 
-- Emails from people already in `knowledge/People/`.
+- Emails from people already in `Knowledge/People/`.
 - Emails referencing existing projects or organizations.
 
 ## Process — can create new notes

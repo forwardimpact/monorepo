@@ -39,8 +39,8 @@ Never create or update a note for the user — match against name, email, or
 ## Interview sessions (special case)
 
 If the title or memo indicates "interview with {Name}", the interviewee is a
-**candidate** — create or update their note in `knowledge/Candidates/` (using
-the candidate brief template from `req-track`), **not** in `knowledge/People/`.
+**candidate** — create or update their note in `Knowledge/Candidates/` (using
+the candidate brief template from `req-track`), **not** in `Knowledge/People/`.
 
 ## Content signals
 
@@ -77,8 +77,8 @@ strengths and concerns, any interview scoring or decisions.
 ## Linking rules
 
 Use absolute paths everywhere: `[[People/Name]]`, `[[Organizations/Name]]`,
-`[[Projects/Name]]`, `[[Goals/Goal Name]]`, `[[Priorities/Priority Name]]`.
+`[[Projects/Name]]`, `[[Priorities/Priority Name]]`.
 
-When meeting content references an existing Goal or Priority, follow the linking
+When meeting content references an existing Priority, follow the linking
 rules in `extract-entities` Step 7c — update progress and add backlinks, but
-**never** auto-create Goal or Priority notes.
+**never** auto-create Priority notes.

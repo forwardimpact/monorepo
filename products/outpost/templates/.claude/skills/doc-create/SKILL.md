@@ -23,18 +23,18 @@ submission, brief, or any multi-page PDF that is not a slide deck.
 ## Inputs
 
 - User's description of the document
-- `knowledge/` — optional context about company, product, team, projects
+- `Knowledge/` — optional context about company, product, team, projects
 
 ## Outputs
 
 - An HTML file and a PDF rendered from it, placed where the user specifies
-  (default: `knowledge/Projects/`)
+  (default: `Knowledge/Projects/`)
 
 ---
 
 ## Workflow
 
-1.  Check `knowledge/` for relevant context about the company, product, team,
+1.  Check `Knowledge/` for relevant context about the company, product, team,
     projects, or people mentioned.
 2.  Ensure Playwright is installed:
     `bun install playwright && bunx playwright install chromium`

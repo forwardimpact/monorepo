@@ -22,13 +22,13 @@ The user asks to draft, reply to, respond to, or send an email.
 
 | Data            | Location                                     |
 | --------------- | -------------------------------------------- |
-| People          | `knowledge/People/*.md`                      |
-| Organizations   | `knowledge/Organizations/*.md`               |
+| People          | `Knowledge/People/*.md`                      |
+| Organizations   | `Knowledge/Organizations/*.md`               |
 | Email threads   | `~/.cache/fit/outpost/apple_mail/*.md`       |
 | Calendar events | `~/.cache/fit/outpost/apple_calendar/*.json` |
-| Handled IDs     | `drafts/handled` (one ID per line)           |
-| Ignored IDs     | `drafts/ignored` (one ID per line)           |
-| Draft files     | `drafts/{email_id}_draft.md`                 |
+| Handled IDs     | `Drafts/handled` (one ID per line)           |
+| Ignored IDs     | `Drafts/ignored` (one ID per line)           |
+| Draft files     | `Drafts/{email_id}_draft.md`                 |
 
 `handled` and `ignored` both exclude threads from `scan-emails.mjs`. Use
 `handled` for resolved threads (sent here, replied manually, resolved via DM);
@@ -37,7 +37,7 @@ reply).
 
 <do_confirm_checklist goal="Verify a draft is safe and ready before sending">
 
-- [ ] Sender and organization were looked up in `knowledge/` before drafting.
+- [ ] Sender and organization were looked up in `Knowledge/` before drafting.
 - [ ] Draft is a single email (not multiple variants) and matches the incoming
       tone.
 - [ ] Body has no sign-off / name / "Best" — Apple Mail signature handles it.
@@ -45,7 +45,7 @@ reply).
       direct-to-candidate draft is flagged `⚠️ RECRUITER ONLY`.
 - [ ] No sensitive personal data (health, politics, etc.) was included.
 - [ ] User has explicitly approved the draft before any send.
-- [ ] Send used `--draft <path>` so cleanup and `drafts/handled` happen
+- [ ] Send used `--draft <path>` so cleanup and `Drafts/handled` happen
       automatically.
 
 </do_confirm_checklist>
@@ -59,11 +59,11 @@ node scripts/scan-emails.mjs
 ```
 
 Outputs `email_id<TAB>subject` for unprocessed emails (those not in
-`drafts/handled` or `drafts/ignored`).
+`Drafts/handled` or `Drafts/ignored`).
 
 ### 2. Classify
 
-**Ignore** (append ID to `drafts/ignored`): newsletters, marketing, automated
+**Ignore** (append ID to `Drafts/ignored`): newsletters, marketing, automated
 notifications, spam, outbound with no reply.
 
 **Draft a response**: meeting requests, personal mail from known contacts,
@@ -73,12 +73,12 @@ Be conservative with ignore — when in doubt, draft.
 
 ### 3. Gather context
 
-Before drafting, look up the sender and organization in `knowledge/`:
+Before drafting, look up the sender and organization in `Knowledge/`:
 
 ```bash
-rg -l "sender_name" knowledge/
-cat "knowledge/People/Sender Name.md"
-cat "knowledge/Organizations/Company Name.md"
+rg -l "sender_name" Knowledge/
+cat "Knowledge/People/Sender Name.md"
+cat "Knowledge/Organizations/Company Name.md"
 ```
 
 For scheduling emails, also read the relevant calendar event:
@@ -93,7 +93,7 @@ unclear or the person has multiple contexts, **ask** rather than guess.
 
 ### 4. Write the draft
 
-Save to `drafts/{email_id}_draft.md` using the template in
+Save to `Drafts/{email_id}_draft.md` using the template in
 [references/template.md](references/template.md). Reference past interactions
 naturally; for scheduling, propose specific times from calendar availability.
 
@@ -101,7 +101,7 @@ naturally; for scheduling, propose specific times from calendar availability.
 
 Candidates **must never** be copied on internal threads about them.
 
-- Identify the candidate from the thread and `knowledge/Candidates/`.
+- Identify the candidate from the thread and `Knowledge/Candidates/`.
 - Strip the candidate from To/CC; draft to internal stakeholders only.
 - Direct-to-candidate emails carry the warning header
   `⚠️ RECRUITER ONLY — This email goes directly to the candidate.`
@@ -124,18 +124,18 @@ node scripts/send-email.mjs \
   --cc "other@example.com" \
   --subject "Re: Subject" \
   --body "Plain text body" \
-  --draft "drafts/12345_draft.md"
+  --draft "Drafts/12345_draft.md"
 ```
 
 Required: `--to`, `--subject`, `--body` (plain text). Optional: `--cc`, `--bcc`,
 `--draft`. With `--draft`, the draft file is deleted and the email ID is
-appended to `drafts/handled` automatically.
+appended to `Drafts/handled` automatically.
 
 ### 8. Mark handled without sending
 
 When a thread is resolved through other channels:
 
 ```bash
-echo "$EMAIL_ID" >> drafts/handled
-rm -f "drafts/${EMAIL_ID}_draft.md"
+echo "$EMAIL_ID" >> Drafts/handled
+rm -f "Drafts/${EMAIL_ID}_draft.md"
 ```

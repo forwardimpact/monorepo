@@ -30,7 +30,7 @@ Options:
   --bcc <addrs>      Comma-separated BCC recipients
   --subject <subj>   Email subject line (required)
   --body <text>      Plain-text email body (required)
-  --draft <path>     Draft file — deleted after send, ID appended to drafts/handled
+  --draft <path>     Draft file — deleted after send, ID appended to Drafts/handled
   -h, --help         Show this help message and exit
 
 Mail.app must be running. No signature or sign-off needed — Apple Mail appends it.`;
@@ -113,7 +113,7 @@ function handleDraftCleanup(draft) {
   const draftBasename = basename(draft, ".md");
   const emailId = draftBasename.replace(/_draft$/, "");
   if (emailId) {
-    appendFileSync("drafts/handled", emailId + "\n");
+    appendFileSync("Drafts/handled", emailId + "\n");
     console.log(`Marked as handled: ${emailId}`);
   }
 }

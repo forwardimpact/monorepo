@@ -31,8 +31,8 @@ content appears.
 ## Inputs
 
 - Live `transcript.json` (growing during the session).
-- `knowledge/People/`, `knowledge/Candidates/{Name}/{brief,screening,panel}.md`,
-  `knowledge/Roles/`, `knowledge/Organizations/`, `knowledge/Projects/`.
+- `Knowledge/People/`, `Knowledge/Candidates/{Name}/{brief,screening,panel}.md`,
+  `Knowledge/Roles/`, `Knowledge/Organizations/`, `Knowledge/Projects/`.
 - `~/.cache/fit/outpost/apple_calendar/*.json` for context.
 
 ## Outputs
@@ -91,8 +91,8 @@ Phase 2 context loading and Phase 3 dimensions.
 Extract names from title and participant list. For each:
 
 ```bash
-rg -l "{name}" knowledge/People/
-rg -l "{name}" knowledge/Candidates/
+rg -l "{name}" Knowledge/People/
+rg -l "{name}" Knowledge/Candidates/
 ```
 
 Read matching notes for role, organization, history, open items, prior
@@ -100,8 +100,8 @@ interactions.
 
 #### 5. Load type-specific context
 
-**Interviews:** read `knowledge/Candidates/{Name}/{brief,screening,panel}.md`,
-look up the `Req` field's matching `knowledge/Roles/*.md`, and load standard
+**Interviews:** read `Knowledge/Candidates/{Name}/{brief,screening,panel}.md`,
+look up the `Req` field's matching `Knowledge/Roles/*.md`, and load standard
 expectations:
 
 ```bash
@@ -109,7 +109,7 @@ bunx fit-pathway job {discipline} {level} --track={track}
 ```
 
 **General meetings:** read attendee People notes plus referenced
-Project/Organization notes. Check open tasks: `rg "{name}" knowledge/Tasks/`.
+Project/Organization notes. Check open tasks: `rg "{name}" Knowledge/Tasks/`.
 
 #### 6. Build the coaching brief
 

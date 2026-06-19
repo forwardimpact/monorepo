@@ -1,13 +1,13 @@
 ---
 name: anarlog-process
-description: Process Anarlog meeting sessions (memos, summaries, transcripts) into the knowledge graph. Extracts people, organizations, projects, and topics from AI-generated meeting summaries and user notes, creating or updating Obsidian-compatible notes in knowledge/. Use when the user asks to process meeting notes or after Anarlog sessions.
+description: Process Anarlog meeting sessions (memos, summaries, transcripts) into the knowledge graph. Extracts people, organizations, projects, and topics from AI-generated meeting summaries and user notes, creating or updating Obsidian-compatible notes in Knowledge/. Use when the user asks to process meeting notes or after Anarlog sessions.
 ---
 
 # Process Anarlog
 
 Process meeting sessions from Anarlog (a local AI meeting-notes app) into the
 knowledge graph. Anarlog records meetings, transcribes them, and generates AI
-summaries; this skill reads that output and feeds it into `knowledge/` — the
+summaries; this skill reads that output and feeds it into `Knowledge/` — the
 same way `extract-entities` processes emails and calendar events.
 
 ## Trigger
@@ -35,9 +35,9 @@ same way `extract-entities` processes emails and calendar events.
 
 ## Outputs
 
-- `knowledge/People/`, `knowledge/Organizations/`, `knowledge/Projects/`,
-  `knowledge/Topics/` — created or updated.
-- `knowledge/Goals/`, `knowledge/Priorities/` — **updated only**, never
+- `Knowledge/People/`, `Knowledge/Organizations/`, `Knowledge/Projects/`,
+  `Knowledge/Topics/` — created or updated.
+- `Knowledge/Priorities/` — **updated only**, never
   auto-created.
 - `~/.cache/fit/outpost/state/graph_processed` — updated.
 
@@ -47,12 +47,12 @@ same way `extract-entities` processes emails and calendar events.
 - [ ] Both `_memo.md` and `_summary.md` read (when present); transcript
       consulted only for disambiguation.
 - [ ] "Would I prep?" test applied to each person; self excluded.
-- [ ] Interview sessions wrote to `knowledge/Candidates/`, not
-      `knowledge/People/`.
+- [ ] Interview sessions wrote to `Knowledge/Candidates/`, not
+      `Knowledge/People/`.
 - [ ] All links use absolute paths `[[Folder/Name]]`.
 - [ ] Activity entries describe relationship, not communication method.
-- [ ] No new `Goals/` or `Priorities/` auto-created (user-set only); any
-      referenced goal had its progress updated.
+- [ ] No new `Priorities/` auto-created (user-set only); any
+      referenced priority had its progress updated.
 - [ ] `graph_processed` updated for every processed file (memo + summary).
 
 </do_confirm_checklist>
@@ -83,9 +83,9 @@ metadata fallback).
 ### 1. Build the knowledge index
 
 ```bash
-ls knowledge/People/ knowledge/Organizations/ knowledge/Projects/ \
-   knowledge/Topics/ knowledge/Goals/ knowledge/Priorities/ \
-   knowledge/Conditions/ 2>/dev/null
+ls Knowledge/People/ Knowledge/Organizations/ Knowledge/Projects/ \
+   Knowledge/Topics/ Knowledge/Priorities/ \
+   Knowledge/Conditions/ 2>/dev/null
 ```
 
 Read each note's header to build a mental index of known entities (same approach
@@ -104,7 +104,7 @@ Anarlog sessions are **meetings** and follow the meeting rules from
 `extract-entities`:
 
 - **Can create** People, Organization, Project, and Topic notes.
-- **Can update** existing notes — including Goals and Priorities, which are
+- **Can update** existing notes — including Priorities, which are
   user-set and never auto-created.
 - **Can detect** state changes.
 
@@ -123,7 +123,7 @@ interview-note rules, and linking rules — live in
 For **new** entities, use the templates in
 `.claude/skills/extract-entities/references/TEMPLATES.md`. For interview
 sessions, use the candidate brief template from `req-track` (under
-`knowledge/Candidates/`).
+`Knowledge/Candidates/`).
 
 For **existing** entities, apply targeted edits — never rewrite the file:
 
@@ -133,8 +133,7 @@ For **existing** entities, apply targeted edits — never rewrite the file:
 - Update open items (mark completed, add new).
 - Apply state changes.
 
-Verify bidirectional links per `extract-entities` Step 10 (Goal ↔ Project, Goal
-↔ Priority, Project ↔ Priority).
+Verify bidirectional links per `extract-entities` Step 10 (Project ↔ Priority).
 
 ### 6. Update graph state
 

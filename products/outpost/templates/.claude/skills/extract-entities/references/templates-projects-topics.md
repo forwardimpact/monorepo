@@ -14,8 +14,8 @@
 ## Summary
 {2-3 sentences}
 
-## Goals
-- [[Goals/{Goal}]] — {how this project contributes}
+## Priorities
+- [[Priorities/{Priority}]] — {how this project contributes}
 
 ## People
 - [[People/{Person}]] — {role}

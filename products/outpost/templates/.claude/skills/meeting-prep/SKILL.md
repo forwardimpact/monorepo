@@ -22,13 +22,12 @@ meetings.
 ## Inputs
 
 - `~/.cache/fit/outpost/apple_calendar/*.json` — calendar events
-- `knowledge/People/*.md` — attendee context
-- `knowledge/Organizations/*.md` — company context
-- `knowledge/Projects/*.md` — project context
-- `knowledge/Goals/*.md` — active goals relevant to the meeting topic
-- `knowledge/Priorities/*.md` — strategic context for framing
-- `knowledge/Candidates/*/brief.md` — candidate context (for interview meetings)
-- `knowledge/Roles/*.md` — role/requisition context (for interview meetings)
+- `Knowledge/People/*.md` — attendee context
+- `Knowledge/Organizations/*.md` — company context
+- `Knowledge/Projects/*.md` — project context
+- `Knowledge/Priorities/*.md` — active priorities and strategic context for framing
+- `Knowledge/Candidates/*/brief.md` — candidate context (for interview meetings)
+- `Knowledge/Roles/*.md` — role/requisition context (for interview meetings)
 
 ## Outputs
 
@@ -44,8 +43,8 @@ knowledge base.**
 When the user asks to prep for a meeting:
 
 1. **STOP** — Do not create a generic brief
-2. **SEARCH** — Look up each attendee: `rg -l "Attendee Name" knowledge/`
-3. **READ** — Read their notes: `cat "knowledge/People/Attendee Name.md"`
+2. **SEARCH** — Look up each attendee: `rg -l "Attendee Name" Knowledge/`
+3. **READ** — Read their notes: `cat "Knowledge/People/Attendee Name.md"`
 4. **UNDERSTAND** — Extract role, organization, history, open items
 5. **THEN BRIEF** — Create the meeting brief using this context
 
@@ -92,18 +91,18 @@ Extract: summary, start/end time, attendees (names and emails), description.
 For each attendee:
 
 ```bash
-rg -l "attendee_name" knowledge/People/
-rg -l "attendee_email" knowledge/People/
-cat "knowledge/People/Attendee Name.md"
-cat "knowledge/Organizations/Their Company.md"
-rg -l "attendee_name" knowledge/Projects/
+rg -l "attendee_name" Knowledge/People/
+rg -l "attendee_email" Knowledge/People/
+cat "Knowledge/People/Attendee Name.md"
+cat "Knowledge/Organizations/Their Company.md"
+rg -l "attendee_name" Knowledge/Projects/
 ```
 
 Extract: role/title, company, key facts, previous interactions, open items.
 
-Also check `knowledge/Goals/` and `knowledge/Priorities/` for context relevant
+Also check `Knowledge/Priorities/` for context relevant
 to the meeting topic — e.g. if the meeting is about hiring, surface the relevant
-hiring Goal's status and progress.
+hiring Priority's status and progress.
 
 ### Step 4: Create Meeting Brief
 
@@ -141,11 +140,11 @@ Suggested Talking Points
 ### Interview Meeting Context
 
 When preparing for interview meetings (title contains "Interview", "Screening",
-"Decomposition", "Panel", or a candidate name from `knowledge/Candidates/`):
+"Decomposition", "Panel", or a candidate name from `Knowledge/Candidates/`):
 
-1. **Read the candidate brief:** `knowledge/Candidates/{Name}/brief.md`
+1. **Read the candidate brief:** `Knowledge/Candidates/{Name}/brief.md`
 2. **Read the Role file:** Look up the `Req` field and read the corresponding
-   `knowledge/Roles/*.md` file.
+   `Knowledge/Roles/*.md` file.
 3. **Include in the briefing:**
    - Candidate's current status, skills, and screening recommendation
    - Role context: hiring manager, domain lead, remaining positions

@@ -35,7 +35,7 @@ Run when the user asks to:
 When the user mentions ANY person:
 
 1. **STOP** — Do not open the chat platform yet
-2. **SEARCH** — Look them up: `rg -l "{name}" knowledge/People/`
+2. **SEARCH** — Look them up: `rg -l "{name}" Knowledge/People/`
 3. **READ** — Read their note to understand context, role, recent interactions
 4. **UNDERSTAND** — Know who they are, what you've been working on together
 5. **THEN PROCEED** — Only now compose the message and use browser automation
@@ -53,10 +53,10 @@ a full name using the knowledge graph:
 
 ```bash
 # Find person by partial name
-rg -l -i "{name}" knowledge/People/
+rg -l -i "{name}" Knowledge/People/
 
 # If ambiguous, read candidates to disambiguate
-cat "knowledge/People/{Candidate}.md"
+cat "Knowledge/People/{Candidate}.md"
 ```
 
 **If ambiguous** (multiple matches), ask the user which person they mean — list
@@ -73,7 +73,7 @@ can review and edit the exact message before it's sent.
 ### Draft Workflow
 
 1. **Compose the message** based on context and user intent.
-2. **Write it to a draft file** at `drafts/chat-{recipient-slug}-{date}.md`
+2. **Write it to a draft file** at `Drafts/chat-{recipient-slug}-{date}.md`
    - `{recipient-slug}` = lowercase, hyphenated full name (e.g. `sarah-chen`)
    - `{date}` = ISO date (e.g. `2026-02-19`)
 3. **Show the user the draft** — display the file path and contents.

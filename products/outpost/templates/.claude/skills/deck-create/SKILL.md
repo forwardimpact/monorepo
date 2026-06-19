@@ -22,7 +22,7 @@ Run when the user asks to create a presentation, slide deck, or pitch deck.
 ## Inputs
 
 - User's description of the presentation
-- `knowledge/` — optional context about company, product, team, projects
+- `Knowledge/` — optional context about company, product, team, projects
 
 ## Outputs
 
@@ -32,7 +32,7 @@ Run when the user asks to create a presentation, slide deck, or pitch deck.
 
 ## Workflow
 
-1.  Check `knowledge/` for relevant context about the company, product, team,
+1.  Check `Knowledge/` for relevant context about the company, product, team,
     etc.
 2.  Ensure Playwright is installed:
     `bun install playwright && bunx playwright install chromium`

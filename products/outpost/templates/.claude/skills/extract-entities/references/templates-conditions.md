@@ -16,8 +16,8 @@ are detected, or manually created by the user. Lifecycle: active → resolved.
 **Resolution signal:** {What would indicate this condition has ended}
 
 ## Affects
-{Goals, Projects, Roles, and People impacted by this condition}
-- [[Goals/{Goal}]] — {how it's affected}
+{Priorities, Projects, Roles, and People impacted by this condition}
+- [[Priorities/{Priority}]] — {how it's affected}
 - [[Projects/{Project}]] — {how it's affected}
 - [[Roles/{Role}]] — {how it's affected}
 

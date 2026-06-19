@@ -1,7 +1,7 @@
 # Engineering Brief Template
 
 Reference template for `deck-summarize` Step 8. Save the assembled brief to
-`knowledge/Projects/{Project Name} - Engineering Brief.md`.
+`Knowledge/Projects/{Project Name} - Engineering Brief.md`.
 
 ```markdown
 ---

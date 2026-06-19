@@ -3,7 +3,7 @@
  * Scan for unprocessed emails and output their IDs and subjects.
  *
  * Checks ~/.cache/fit/outpost/apple_mail/ for email thread markdown files not
- * yet listed in drafts/handled or drafts/ignored. Outputs one tab-separated
+ * yet listed in Drafts/handled or Drafts/ignored. Outputs one tab-separated
  * line per unprocessed thread: email_id<TAB>subject. Used by the draft-emails
  * skill to identify threads that need a reply.
  */
@@ -17,7 +17,7 @@ const HELP = `scan-emails — list unprocessed email threads
 Usage: node scripts/scan-emails.mjs [-h|--help]
 
 Scans ~/.cache/fit/outpost/apple_mail/ for .md thread files not yet
-recorded in drafts/handled or drafts/ignored. Outputs one line per
+recorded in Drafts/handled or Drafts/ignored. Outputs one line per
 unprocessed thread as: email_id<TAB>subject`;
 
 if (process.argv.includes("-h") || process.argv.includes("--help")) {
@@ -49,8 +49,8 @@ function extractSubject(filePath) {
 function main() {
   if (!existsSync(MAIL_DIR)) return;
 
-  const handled = loadIdSet("drafts/handled");
-  const ignored = loadIdSet("drafts/ignored");
+  const handled = loadIdSet("Drafts/handled");
+  const ignored = loadIdSet("Drafts/ignored");
 
   for (const name of readdirSync(MAIL_DIR).sort()) {
     if (!name.endsWith(".md")) continue;

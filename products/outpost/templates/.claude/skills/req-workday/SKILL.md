@@ -2,7 +2,7 @@
 name: req-workday
 description: >
   Import candidates from a Workday requisition export (.xlsx) into
-  knowledge/Candidates/. Parses requisition metadata and candidate data,
+  Knowledge/Candidates/. Parses requisition metadata and candidate data,
   creates candidate briefs and CV.md files from resume text, and integrates
   with the existing req-track pipeline. Use when the user provides a
   Workday export file or asks to import candidates from an XLSX requisition
@@ -12,7 +12,7 @@ description: >
 # Workday Requisition Import
 
 Import candidates from a Workday requisition export (`.xlsx`) into
-`knowledge/Candidates/`. Extract requisition metadata and candidate profiles,
+`Knowledge/Candidates/`. Extract requisition metadata and candidate profiles,
 create standardized briefs and `CV.md` files from the embedded resume text, and
 integrate with the `req-track` pipeline format.
 
@@ -36,9 +36,9 @@ integrate with the `req-track` pipeline format.
 
 ## Outputs
 
-- `knowledge/Candidates/{Clean Name}/brief.md` — candidate profile.
-- `knowledge/Candidates/{Clean Name}/CV.md` — resume text as markdown.
-- `knowledge/Roles/{Req ID} — {Title}.md` — created or updated.
+- `Knowledge/Candidates/{Clean Name}/brief.md` — candidate profile.
+- `Knowledge/Candidates/{Clean Name}/CV.md` — resume text as markdown.
+- `Knowledge/Roles/{Req ID} — {Title}.md` — created or updated.
 - Updated existing briefs when a candidate already exists.
 
 <do_confirm_checklist goal="Verify the Workday import is consistent with
@@ -46,7 +46,7 @@ req-track">
 
 - [ ] XLSX parsed; candidate count matches the parser summary.
 - [ ] Requisition metadata extracted (ID, title; HM/recruiter when available).
-- [ ] Each candidate has a directory under `knowledge/Candidates/{Clean Name}/`
+- [ ] Each candidate has a directory under `Knowledge/Candidates/{Clean Name}/`
       (annotation stripped).
 - [ ] `CV.md` created for every candidate with resume text — faithfully
       reproduced (no rewriting).
@@ -93,13 +93,13 @@ header indices, name annotations) are in
 ### 3. Create or update the Role file
 
 ```bash
-ls knowledge/Roles/ | grep "{Req ID}"
+ls Knowledge/Roles/ | grep "{Req ID}"
 ```
 
 Use the **Role file stub** in
 [references/templates.md](references/templates.md). Resolve the domain lead by:
 
-1. `rg "{Req ID}" knowledge/` — look in project timelines, People notes, Topics
+1. `rg "{Req ID}" Knowledge/` — look in project timelines, People notes, Topics
    for context.
 2. Reading the hiring manager's People note for `**Reports to:**` and walking up
    to a VP or senior leader.
@@ -111,7 +111,7 @@ If the Role file already exists, follow the existing-file rules in
 ### 4. Build the candidate index
 
 ```bash
-ls -d knowledge/Candidates/*/ 2>/dev/null
+ls -d Knowledge/Candidates/*/ 2>/dev/null
 ```
 
 Match imported candidates against existing notes by name (fuzzy — middle names,
@@ -126,7 +126,7 @@ step value in the Pipeline entry.
 ### 6. Write `CV.md`
 
 For every candidate with resume text, create
-`knowledge/Candidates/{Clean Name}/CV.md` using the **CV.md template** in
+`Knowledge/Candidates/{Clean Name}/CV.md` using the **CV.md template** in
 [references/templates.md](references/templates.md).
 
 ### 7. Write or update the brief
@@ -136,7 +136,7 @@ Brief layout (new candidates) and edit rules (existing candidates):
 [references/templates.md](references/templates.md).
 
 ```bash
-mkdir -p "knowledge/Candidates/{Clean Name}"
+mkdir -p "Knowledge/Candidates/{Clean Name}"
 ```
 
 For existing candidates, apply targeted Edit operations only — never rewrite the
@@ -145,7 +145,7 @@ file.
 ### 8. Capture insights
 
 After the batch, review for strategic observations and add bullets to
-`knowledge/Candidates/Insights.md` under `## Placement Notes` with
+`Knowledge/Candidates/Insights.md` under `## Placement Notes` with
 `[[Candidates/Name/brief|Name]]` links. See `req-track` Step 5b for the
 inclusion criteria.
 

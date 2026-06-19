@@ -1,13 +1,13 @@
 ---
 name: extract-entities
-description: Process synced email/calendar files from ~/.cache/fit/outpost/ and ad-hoc document files (e.g. from ~/Desktop/ or ~/Downloads/) to extract structured knowledge into knowledge/ as Obsidian-compatible markdown notes. Use on a schedule, when the user asks to process/extract entities, or when invoked by another skill (e.g. organize-files). Builds the core knowledge graph from raw data.
+description: Process synced email/calendar files from ~/.cache/fit/outpost/ and ad-hoc document files (e.g. from ~/Desktop/ or ~/Downloads/) to extract structured knowledge into Knowledge/ as Obsidian-compatible markdown notes. Use on a schedule, when the user asks to process/extract entities, or when invoked by another skill (e.g. organize-files). Builds the core knowledge graph from raw data.
 ---
 
 # Extract Entities
 
 Process synced email and calendar files from `~/.cache/fit/outpost/`, plus
 ad-hoc documents passed by other skills, into Obsidian-compatible markdown notes
-under `knowledge/`. The core knowledge-graph builder.
+under `Knowledge/`. The core knowledge-graph builder.
 
 ## Trigger
 
@@ -35,13 +35,13 @@ under `knowledge/`. The core knowledge-graph builder.
 
 ## Outputs
 
-- `knowledge/People/`, `knowledge/Organizations/`, `knowledge/Projects/`,
-  `knowledge/Topics/` — created or updated.
-- `knowledge/Goals/`, `knowledge/Priorities/` — **updated only**, never
+- `Knowledge/People/`, `Knowledge/Organizations/`, `Knowledge/Projects/`,
+  `Knowledge/Topics/` — created or updated.
+- `Knowledge/Priorities/` — **updated only**, never
   auto-created.
-- `knowledge/Conditions/` — created when cross-cutting patterns are detected, or
+- `Knowledge/Conditions/` — created when cross-cutting patterns are detected, or
   updated.
-- `knowledge/Roles/`, `knowledge/Candidates/*/brief.md` — enriched with inferred
+- `Knowledge/Roles/`, `Knowledge/Candidates/*/brief.md` — enriched with inferred
   metadata.
 - `~/.cache/fit/outpost/state/graph_processed` — updated.
 
@@ -55,10 +55,10 @@ well-grounded notes">
       a substantive `## Summary`, calendar-only attendees routed to Organization
       `## Contacts`.
 - [ ] All links use absolute paths `[[Folder/Name]]`; bidirectional links
-      consistent (incl. Goal ↔ Project, Priority ↔ Goal).
+      consistent (incl. Project ↔ Priority).
 - [ ] Summaries describe relationship, not communication method; key facts are
       substantive; open items are commitments.
-- [ ] State changes logged with `[Field → value]`; no Goal or Priority entities
+- [ ] State changes logged with `[Field → value]`; no Priority entities
       auto-created.
 - [ ] Conditions created only when ≥ 3 entities reference the same cross-cutting
       state; resolution detected when evidence supports.
@@ -89,13 +89,13 @@ instead of scanning `~/.cache/fit/outpost/` — still check each against
 ### 1. Build the knowledge index
 
 ```bash
-find knowledge/People knowledge/Organizations knowledge/Projects \
-     knowledge/Topics knowledge/Goals knowledge/Priorities \
-     knowledge/Conditions -name "*.md" 2>/dev/null
+find Knowledge/People Knowledge/Organizations Knowledge/Projects \
+     Knowledge/Topics Knowledge/Priorities \
+     Knowledge/Conditions -name "*.md" 2>/dev/null
 ```
 
 For each note, `head -20` to capture key fields. Build a mental index of People,
-Organizations, Projects, Goals, Priorities, Topics by name, email, organization,
+Organizations, Projects, Priorities, Topics by name, email, organization,
 role, status, and aliases.
 
 ### 2. Classify the source
@@ -123,7 +123,7 @@ Collect every name variant per
 For each variant, search the knowledge index. Apply the
 [matching table](references/resolution.md#matching) and the
 [disambiguation priority](references/resolution.md#disambiguation-priority).
-Goals and Priorities are
+Priorities are
 [never auto-created](references/resolution.md#never-auto-create) — link to
 existing entries only.
 
@@ -150,9 +150,8 @@ filler or meta-commentary.
 - **Recruitment** (Req-number detection, hiring-manager / recruiter /
   domain-lead inference):
   [references/recruitment.md](references/recruitment.md).
-- **Goal & Priority links** (Step 7c): rules in
-  [references/links.md](references/links.md#goals-step-7c) and
-  [Priorities](references/links.md#priorities-step-7c). **Never auto-create.**
+- **Priority links** (Step 7c): rules in
+  [references/links.md](references/links.md#priorities-step-7c). **Never auto-create.**
 - **Conditions** (cross-cutting states affecting ≥ 3 entities):
   [references/conditions.md](references/conditions.md).
 

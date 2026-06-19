@@ -117,6 +117,14 @@ describe("KBManager", () => {
       assert.ok(built.fs.data.has("/kb/CLAUDE.md"));
       assert.ok(built.fs.data.has("/kb/apm.yml"));
       assert.ok(built.fs.data.has("/kb/.claude/agents/postman.md"));
+      // Only the top-level roots are created: the shared `Knowledge/` graph and
+      // the personal `Drafts/` and `Briefings/`. Entity subdirs are created on
+      // demand by the skills, so `Knowledge/` starts empty.
+      assert.ok(built.fs.dirs.has("/kb/Knowledge"));
+      assert.ok(built.fs.dirs.has("/kb/Drafts"));
+      assert.ok(built.fs.dirs.has("/kb/Briefings"));
+      assert.ok(!built.fs.dirs.has("/kb/Knowledge/People"));
+      assert.ok(!built.fs.dirs.has("/kb/Knowledge/Briefings"));
     });
 
     test("returns error envelope when KB already exists", async () => {

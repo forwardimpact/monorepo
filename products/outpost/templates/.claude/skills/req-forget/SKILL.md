@@ -37,7 +37,7 @@ what was found, deleted, and redacted — the compliance audit trail.
 
 ## Outputs
 
-- `knowledge/Erasure/{Name}--{YYYY-MM-DD}.md` — erasure report.
+- `Knowledge/Erasure/{Name}--{YYYY-MM-DD}.md` — erasure report.
 - Deleted files and redacted references across the knowledge base.
 
 <do_confirm_checklist goal="Verify erasure is complete and the audit trail is
@@ -92,8 +92,8 @@ Process most-specific to most-general.
 **3a. Dedicated files and directories:**
 
 ```bash
-rm -rf "knowledge/Candidates/{Name}/"
-rm -f "knowledge/People/{Name}.md"
+rm -rf "Knowledge/Candidates/{Name}/"
+rm -f "Knowledge/People/{Name}.md"
 find ~/.cache/fit/outpost/apple_mail/attachments/ -iname "*{Name}*" -delete
 ```
 
@@ -126,14 +126,14 @@ rg -v "{deleted_path}" ~/.cache/fit/outpost/state/graph_processed \
 
 ### 4. Write the erasure report
 
-Save to `knowledge/Erasure/{Name}--{YYYY-MM-DD}.md` using the template in
+Save to `Knowledge/Erasure/{Name}--{YYYY-MM-DD}.md` using the template in
 [references/report-template.md](references/report-template.md). Record **only**
 what was deleted — never CV content, skills, or assessments.
 
 ### 5. Verify
 
 ```bash
-rg "{Name}" knowledge/ ~/.cache/fit/outpost/ drafts/
+rg "{Name}" Knowledge/ ~/.cache/fit/outpost/ Drafts/
 ```
 
 The only match should be the erasure report. If other matches remain, process
@@ -143,12 +143,12 @@ them and update the report.
 
 **`recruitment-only`** limits erasure to:
 
-- `knowledge/Candidates/{Name}/`
-- `knowledge/Candidates/Insights.md` mentions
+- `Knowledge/Candidates/{Name}/`
+- `Knowledge/Candidates/Insights.md` mentions
 - Recruitment threads (known agency domains)
 - `recruiter_triage.md`
 
-Leaves `knowledge/People/{Name}.md` and the wider graph intact — the person may
+Leaves `Knowledge/People/{Name}.md` and the wider graph intact — the person may
 be a colleague or non-recruitment contact.
 
 **`all`** (default): full erasure across knowledge base, cache, and state.
