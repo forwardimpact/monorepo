@@ -58,6 +58,13 @@ terrain BioNova {
     parent headquarters
     headcount 65
 
+    director @zeus {
+      name "Zeus"
+      title "Director of Engineering"
+      level J090
+      discipline engineering_management
+    }
+
     team platform_engineering {
       name "Platform Engineering Team"
       size 15

@@ -146,6 +146,13 @@ function generatePeople(ast, rng, teams, domain, logger) {
     }
   }
 
+  // Reserve director names so the fill pass does not hand the same name (and
+  // therefore the same name-derived email) to a generated person — that would
+  // collide on the organization_people primary key and make get_team ambiguous.
+  for (const dept of ast.departments ?? []) {
+    if (dept.director) usedNames.add(directorName(dept.director));
+  }
+
   const levelKeys = Object.keys(distribution);
   const levelWeights = Object.values(distribution);
   const discKeys = Object.keys(disciplines);
@@ -179,6 +186,14 @@ function generatePeople(ast, rng, teams, domain, logger) {
     domain,
   );
 
+  // Department directors sit one level above the team managers. Each is a real
+  // organization_people row (so the recursive get_team resolves the union of a
+  // department's teams from the director's email); the department's team
+  // managers are re-pointed to report to it. Directors carry no team_id or
+  // getdx_team_id — they manage across teams, not within one, so they never
+  // appear as a leaf-team rollup row.
+  addDepartmentDirectors(ast, teams, people, domain);
+
   if (people.length < count && logger) {
     logger.warn(
       `People shortfall: requested ${count}, generated ${people.length} (name pool exhausted)`,
@@ -194,6 +209,74 @@ function generatePeople(ast, rng, teams, domain, logger) {
   }
 
   return people;
+}
+
+/**
+ * For each department that declares a `director`, append a director person and
+ * re-point that department's team managers to report to it. Mutates `people`.
+ * @param {import('../dsl/parser.js').TerrainAST} ast
+ * @param {object[]} teams
+ * @param {object[]} people
+ * @param {string} domain
+ */
+function addDepartmentDirectors(ast, teams, people, domain) {
+  for (const dept of ast.departments ?? []) {
+    if (!dept.director) continue;
+    const director = makeDirector(dept.director, dept.id, domain);
+    people.push(director);
+
+    const deptTeamIds = new Set(
+      teams.filter((t) => t.department === dept.id).map((t) => t.id),
+    );
+    for (const p of people) {
+      if (p.is_manager && deptTeamIds.has(p.team_id)) {
+        p.manager_email = director.email;
+      }
+    }
+  }
+}
+
+/**
+ * Build a department-director person row. Directors are managers with no team
+ * and no getdx_team_id (they manage across teams), so they are not leaf-team
+ * rollup rows; they exist as the resolution root and the named tier identity.
+ * @param {{handle: string, name?: string, title?: string, level?: string, discipline?: string}} d
+ * @param {string} departmentId
+ * @param {string} domain
+ * @returns {object}
+ */
+/**
+ * Resolve a director's display name: explicit DSL `name`, else the
+ * MANAGER_NAMES mapping for its handle, else the bare handle.
+ * @param {{handle: string, name?: string}} d
+ * @returns {string}
+ */
+function directorName(d) {
+  return d.name || MANAGER_NAMES[d.handle] || d.handle;
+}
+
+function makeDirector(d, departmentId, domain) {
+  const name = directorName(d);
+  const id = name.toLowerCase().replace(/\s+/g, "-");
+  return {
+    id,
+    name,
+    email: toEmail(name, domain),
+    github: toGithubUsername(name),
+    github_username: toGithubUsername(name),
+    discipline: d.discipline || "engineering_management",
+    level: d.level || "J090",
+    track: null,
+    team_id: null,
+    department: departmentId,
+    is_manager: true,
+    manager_email: null,
+    hire_date: "2023-01-15",
+    archetype: "steady_contributor",
+    kind: "human",
+    title: d.title || null,
+    iri: `https://${domain}/id/person/${id}`,
+  };
 }
 
 function makePerson(
