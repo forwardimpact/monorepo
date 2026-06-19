@@ -1,6 +1,6 @@
 [
   {
     "file": "libraries/libwiki/src/wiki-sync.js",
-    "reason": "fit-wiki push/sync sweep — scoping it to own-authored paths coordinates with spec 1850 D3 (commit-scoped landings) and is tracked as #1583 item 3; lift this entry when that landing scopes the sweep. Its shell twin scripts/wiki-sync.sh shares this exemption"
+    "reason": "fit-wiki push/sync sweep is the only whole-tree committer on the tree; scoping it to own-authored paths depends on the wiki push-primitive landing design and is a tracked follow-up. Its shell twin scripts/wiki-sync.sh shares this exemption"
   }
 ]
