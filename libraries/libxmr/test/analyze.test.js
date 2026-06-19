@@ -207,3 +207,40 @@ describe("analyze command slice naming", () => {
     assert.strictEqual(JSON.parse(stdout).event_type, "kata-shift");
   });
 });
+
+describe("analyze — route partition", () => {
+  const header = "date,metric,value,unit,run,note,event_type";
+  const csv = [
+    header,
+    '2026-06-20,implementations_shipped,1,count,r1,"route_taken=1; routes_eligible=[1,3]",kata-shift',
+    '2026-06-21,implementations_shipped,0,count,r2,"route_taken=3; routes_eligible=[3,4]",kata-shift',
+    '2026-06-22,implementations_shipped,1,count,r3,"route_taken=1; routes_eligible=[1]",kata-shift',
+  ].join("\n");
+
+  function metricN(report) {
+    const m = report.metrics.find(
+      (x) => x.metric === "implementations_shipped",
+    );
+    return m ? m.n : 0;
+  }
+
+  test("--route filters to rows whose route_taken matches", () => {
+    assert.strictEqual(metricN(analyze(csv, { route: "1" })), 2);
+    assert.strictEqual(metricN(analyze(csv, { route: "3" })), 1);
+  });
+
+  test("--routes-eligible-includes filters by eligible-set membership", () => {
+    assert.strictEqual(
+      metricN(analyze(csv, { routesEligibleIncludes: "3" })),
+      2,
+    );
+    assert.strictEqual(
+      metricN(analyze(csv, { routesEligibleIncludes: "4" })),
+      1,
+    );
+  });
+
+  test("no route filter returns the full series unchanged", () => {
+    assert.strictEqual(metricN(analyze(csv)), 3);
+  });
+});

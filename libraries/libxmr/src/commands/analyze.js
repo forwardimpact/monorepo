@@ -40,7 +40,12 @@ export function runAnalyzeCommand(ctx) {
   const { eventType, label } = resolveSlice(values["event-type"]);
   const text = fsSync.readFileSync(csvPath, "utf-8");
   const guarded = withIntegrityGuard(csvPath, () =>
-    analyze(text, { eventType, priorReadAnchor: values["prior-read"] }),
+    analyze(text, {
+      eventType,
+      priorReadAnchor: values["prior-read"],
+      route: values.route,
+      routesEligibleIncludes: values["routes-eligible-includes"],
+    }),
   );
   if (!guarded.ok) return guarded;
   const report = guarded.value;

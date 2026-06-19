@@ -76,9 +76,15 @@ const PATTERNS = [
   { pattern: "\\bpre-migration\\b" },
   { pattern: "\\bduring spec [0-9]+ migration\\b" },
   {
+    // An ISO date in source is a temporal reference ("landed 2026-…") unless
+    // it is the operative value of a named constant — a date the code reads
+    // at runtime, not a note about when something happened. Skip the
+    // `const NAME = "YYYY-MM-DD"` declaration form; rot-prone prose dates
+    // elsewhere on the line, or anywhere else, still trip.
     pattern: "\\b20[0-9]{2}-[0-1][0-9]-[0-3][0-9]\\b",
     globs: ["*.js", "!**/test/**", "!**/*synthetic*/**"],
-    exclude: /version|e\.g\.|example/i,
+    exclude:
+      /version|e\.g\.|example|const\s+[A-Z0-9_]+\s*=\s*"20[0-9]{2}-[0-1][0-9]-[0-3][0-9]"/i,
   },
 ];
 

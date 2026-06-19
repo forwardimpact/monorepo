@@ -259,3 +259,66 @@ describe("fit-xmr record", () => {
     assert.ok(lines[1].endsWith(",kata-dispatch,local"));
   });
 });
+
+describe("fit-xmr record — route-decision context", () => {
+  function run(options) {
+    const fs = createMockFs({});
+    const rt = makeRuntime({ cwd: process.cwd(), env: {}, fs, fsSync: fs });
+    const ctx = ctxFor({ runtime: rt.runtime, options });
+    return { result: runRecordCommand(ctx), fs };
+  }
+
+  const base = {
+    skill: "kata-implement",
+    metric: "implementations_shipped",
+    value: "0",
+    date: "2026-06-20",
+    "event-type": "kata-shift",
+    "wiki-root": WIKI_ROOT,
+  };
+
+  test("prepends the route grammar to the note", () => {
+    const { result, fs } = run({
+      ...base,
+      route: "3",
+      "routes-eligible": "3,4",
+      note: "opened PR",
+    });
+    assert.ok(result.ok, JSON.stringify(result));
+    const csvPath = join(WIKI_ROOT, "metrics", "kata-implement", "2026.csv");
+    const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
+    assert.match(lines[1], /route_taken=3; routes_eligible=\[3,4\]; opened PR/);
+  });
+
+  test("rejects a route-bearing record with no --route", () => {
+    const { result } = run({ ...base });
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(result.error, /--route/);
+  });
+
+  test("rejects an unknown --route", () => {
+    const { result } = run({ ...base, route: "9", "routes-eligible": "" });
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(result.error, /unknown route/);
+  });
+
+  test("non-route-bearing metric is unaffected by route logic", () => {
+    const fs = createMockFs({});
+    const rt = makeRuntime({ cwd: process.cwd(), env: {}, fs, fsSync: fs });
+    const ctx = ctxFor({
+      runtime: rt.runtime,
+      options: {
+        skill: "kata-spec",
+        metric: "specs_drafted",
+        value: "1",
+        date: "2026-06-20",
+        "event-type": "kata-shift",
+        "wiki-root": WIKI_ROOT,
+      },
+    });
+    const result = runRecordCommand(ctx);
+    assert.ok(result.ok, JSON.stringify(result));
+  });
+});

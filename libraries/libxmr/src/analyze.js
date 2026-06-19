@@ -5,6 +5,25 @@ import { detectSignals, hasAnySignal, stampProvenance } from "./signals.js";
 import { classify } from "./classify.js";
 import { round1, round2 } from "./format.js";
 
+// Apply the event-type slice and the optional route-decision partitions.
+// Each filter is inert unless its option is passed, so a plain analyze
+// returns the same series it always has.
+function selectRows(rows, { eventType, route, routesEligibleIncludes }) {
+  let selected = rows;
+  if (eventType !== "*") {
+    selected = selected.filter((row) => row.eventType === eventType);
+  }
+  if (route !== undefined) {
+    selected = selected.filter((row) => row.routeTaken === String(route));
+  }
+  if (routesEligibleIncludes !== undefined) {
+    selected = selected.filter((row) =>
+      row.routesEligible.includes(String(routesEligibleIncludes)),
+    );
+  }
+  return selected;
+}
+
 // Analyze a Kata-metrics CSV. Groups rows by metric, sorts each group by
 // date, computes Wheeler/Vacanti statistics and signals for groups with
 // at least MIN_POINTS observations, and stamps a classification on each.
@@ -22,15 +41,21 @@ import { round1, round2 } from "./format.js";
 // date, each fired signal record gains a `provenance` value relative to that
 // slot. A non-corresponding anchor (backfill, correction, beyond series end)
 // and no anchor both leave records untouched.
-/** Group rows by metric (restricted to one event_type, default kata-shift; "*" for all rows), compute XmR statistics and signals, and classify each metric's process behavior; with a corresponding `priorReadAnchor` date, stamp per-signal provenance. */
+/** Group rows by metric (restricted to one event_type, default kata-shift; "*" for all rows), optionally partition by route-decision context, compute XmR statistics and signals, and classify each metric's process behavior; with a corresponding `priorReadAnchor` date, stamp per-signal provenance. */
 export function analyze(
   csvText,
-  { eventType = DEFAULT_SHIFT_TYPE, priorReadAnchor } = {},
+  {
+    eventType = DEFAULT_SHIFT_TYPE,
+    priorReadAnchor,
+    route,
+    routesEligibleIncludes,
+  } = {},
 ) {
-  let rows = parseCSV(csvText);
-  if (eventType !== "*") {
-    rows = rows.filter((row) => row.eventType === eventType);
-  }
+  const rows = selectRows(parseCSV(csvText), {
+    eventType,
+    route,
+    routesEligibleIncludes,
+  });
 
   const groups = {};
   for (const row of rows) {

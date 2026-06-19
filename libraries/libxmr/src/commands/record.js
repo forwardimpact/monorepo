@@ -2,6 +2,11 @@ import path from "node:path";
 import { isoDate } from "@forwardimpact/libutil";
 import { analyze } from "../analyze.js";
 import { HEADER } from "../constants.js";
+import {
+  formatRouteContext,
+  isKnownRoute,
+  ROUTE_BEARING_METRICS,
+} from "../routes.js";
 
 const csvField = (v) => {
   const s = String(v);
@@ -44,6 +49,9 @@ function parseRecordOptions(values, runtime) {
     };
   }
 
+  const noteResult = buildNote(values);
+  if (noteResult.error) return { error: noteResult.error };
+
   // A CI session knows its own host workflow run id; a local session does not.
   // Record the run id when present, the explicit `local` marker otherwise —
   // never a silent empty field. Lets a deferred backfill resolve a
@@ -58,12 +66,42 @@ function parseRecordOptions(values, runtime) {
       date: values.date || isoDate(runtime.clock.now()),
       unit: values.unit || "count",
       run: values.run || "",
-      note: values.note || "",
+      note: noteResult.note,
       eventType,
       hostRun,
       wikiRootOverride: values["wiki-root"],
     },
   };
+}
+
+// A route-bearing metric must carry a known route; the route-decision
+// grammar is prepended to the note so a downstream reader partitions the
+// row without parsing free text. Non-route-bearing metrics pass through.
+function buildNote(values) {
+  const note = values.note || "";
+  if (!ROUTE_BEARING_METRICS.includes(values.metric)) return { note };
+
+  const routeTaken = values.route;
+  if (!routeTaken) {
+    return {
+      error: {
+        ok: false,
+        code: 2,
+        error: `record of "${values.metric}" requires --route <id>`,
+      },
+    };
+  }
+  if (!isKnownRoute(routeTaken)) {
+    return {
+      error: { ok: false, code: 2, error: `unknown route "${routeTaken}"` },
+    };
+  }
+  const routesEligible = (values["routes-eligible"] || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const prefix = formatRouteContext({ routeTaken, routesEligible });
+  return { note: note ? `${prefix}; ${note}` : `${prefix};` };
 }
 
 // $GITHUB_WORKFLOW_REF looks like
