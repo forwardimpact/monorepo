@@ -139,4 +139,23 @@ shapes it detects.
 - `scripts/check-ambient-deps.mjs` — acorn-based module walking precedent.
 - `package.json` `scripts.invariants` — aggregator chain.
 
+## Implementation note
+
+The precedent moved before the guard landed: the repository migrated every
+`scripts/check-*.mjs` invariant (including `check-libmock`) into the discovered
+`.coaligned/invariants/*.rules.mjs` host that `bunx coaligned invariants` runs,
+and retired the per-script `package.json` chain. The guard landed in that
+convention, which preserves the design's module split intact — a pure detection
+core plus a thin discovered host:
+
+| Designed component | Landed as |
+| --- | --- |
+| Rules module + check script | `.coaligned/invariants/bun-test-imports.rules.mjs` — exports `bunTestFindings` (the pure verdict, unchanged) and the `{ name, build, rules }` host shape; reuses shared `lib/ast.mjs` (acorn) and `lib/walk.mjs`. |
+| Regression test | `tests/bun-test-imports.test.js` — same nine-leaf partition; repo-root so acorn resolves. |
+| Aggregator entry | Membership in `.coaligned/invariants/` (no `package.json` entry). |
+
+The acorn-AST detection, the eight-symbol allowlist, the structured
+`{line,kind,name,pointer}` records, and the source/test split are unchanged from
+the tables above.
+
 — Staff Engineer 🛠️

@@ -182,4 +182,23 @@ Single engineering agent, steps in order. Steps 1→2→3 are sequential (2 impo
 1; 3 imports 1). Steps 4, 5, 6 are independent of each other and may follow in
 any order once 1–3 land.
 
+## Implementation note
+
+The invariants mechanism changed between approval and landing: the repository
+moved every `scripts/check-*.mjs` invariant into the discovered
+`.coaligned/invariants/*.rules.mjs` host that `bunx coaligned invariants` runs,
+and retired the per-script `package.json` chain. The guard landed in that
+convention rather than the chain Steps 2 and 4 assumed:
+
+- Steps 1–3 collapse into one rules module,
+  `.coaligned/invariants/bun-test-imports.rules.mjs`, exporting the `{ name,
+  build, rules }` shape the host discovers. The pure `bunTestFindings` verdict
+  is unchanged and still exported; the module reuses the shared `lib/ast.mjs`
+  and `lib/walk.mjs` helpers instead of a standalone walker.
+- Step 4 needs no `package.json` edit — the guard is wired by membership in the
+  discovered set (the new analogue of the aggregator chain).
+- The regression test lives at `tests/bun-test-imports.test.js`, modeled on
+  `tests/service-url-drift.test.js` so its acorn dependency resolves from the
+  repo root. Steps 5 and 6 are unchanged.
+
 — Staff Engineer 🛠️
