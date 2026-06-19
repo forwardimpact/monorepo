@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcpathway",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products.",
   "keywords": [
     "pathway",
@@ -34,7 +34,9 @@
   },
   "files": [
     "proto/",
-    "server.js"
+    "index.js",
+    "server.js",
+    "src/**/*.js"
   ],
   "scripts": {
     "dev": "node --watch server.js",
