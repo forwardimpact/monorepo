@@ -1,4 +1,4 @@
-import { test, describe } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
@@ -7,7 +7,11 @@ import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
 
 import { CodegenBase } from "@forwardimpact/libcodegen";
-import { registerAssets, withEmbeddedAssets } from "@forwardimpact/libcli";
+import {
+  registerAssets,
+  resetEmbeddedAssets,
+  withEmbeddedAssets,
+} from "@forwardimpact/libcli";
 import { createTestRuntime } from "@forwardimpact/libmock";
 
 const projectRoot = path.resolve(
@@ -43,10 +47,16 @@ function createBase(injectedFs = fs) {
   );
 }
 
-// Declared FIRST: `registerAssets` (called in the embedded block below) writes a
-// process-global registry that flips `embeddedAssetsActive()` true for the rest
-// of the file, so loadTemplate's on-disk branch must be exercised before any
-// registration. node:test runs top-level describe/test in declaration order.
+// `registerAssets` writes a module-global registry shared across the whole
+// `bun test` process; any earlier test file (e.g. libcli's embed.test.js) that
+// registers a mount leaves `embeddedAssetsActive()` true. Reset before each
+// test so loadTemplate's on-disk branch is exercised from a clean,
+// unregistered state regardless of file ordering — the source-branch assertions
+// no longer depend on running before the embedded block.
+beforeEach(() => {
+  resetEmbeddedAssets();
+});
+
 describe("CodegenBase.loadTemplate (source branch)", () => {
   test("returns each of the five rendered template kinds", () => {
     const base = createBase();
@@ -74,8 +84,10 @@ describe("CodegenBase.loadTemplate (source branch)", () => {
   });
 });
 
-// Declared LAST: registering a mount flips the global flag, so loadTemplate
-// takes the embedded branch (embeddedDir + overlay) for the rest of the process.
+// The `beforeEach` reset leaves an empty registry; registering a mount here
+// flips the global flag so loadTemplate takes the embedded branch (embeddedDir
+// + overlay). The reset confines that flag to this test, so ordering against
+// the source-branch block above no longer matters.
 describe("CodegenBase.loadTemplate (embedded branch)", () => {
   test("resolves templates from the registered mount via the overlay fs", () => {
     registerAssets("libcodegen/templates", {
