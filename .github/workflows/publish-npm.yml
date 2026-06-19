@@ -32,6 +32,11 @@ jobs:
 
       - uses: ./.github/actions/audit
 
+      # libwiki's push path secret-scans with gitleaks (fail-closed); the
+      # wiki-sync push tests need the binary present on PATH (mirrors
+      # check-test.yml). Without it the real-git tests fail-close here.
+      - uses: ./.github/actions/install-gitleaks
+
       - name: Run tests
         run: bun run test
 
