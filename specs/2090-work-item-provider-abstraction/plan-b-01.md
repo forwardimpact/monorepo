@@ -81,17 +81,17 @@ boundary.
 
 Verification: each shape uses placeholder repo forms; no `repos/forwardimpact/monorepo`.
 
-## Step 4 — The filesystem column, `.kata/` format, degradation
+## Step 4 — The filesystem column, `.tracker/` format, degradation
 
 Intent: give every operation an offline file-write realization and state where
 capabilities degrade.
 
 Files: modify `work-trackers.md`.
 
-Change: the `.kata/` layout —
+Change: the `.tracker/` layout —
 
 ```
-.kata/
+.tracker/
   issues/{id}.md       # envelope front-matter + body; ## Comments appended
   changes/{id}.md      # envelope (kind: change) + links to its issue(s)
   discussions/{id}.md  # RFC threads

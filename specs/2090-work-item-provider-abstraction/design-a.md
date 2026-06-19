@@ -15,7 +15,7 @@ flowchart TD
   SEL -->|github default| GH[github column<br/>gh CLI shapes]
   SEL -->|filesystem| FS[filesystem column<br/>file-write recipes]
   GH --> FORGE[(GitHub forge<br/>issues, PRs, discussions)]
-  FS --> TREE[(working tree<br/>.kata/ files)]
+  FS --> TREE[(working tree<br/>.tracker/ files)]
   MATRIX[tracker matrix<br/>operations × trackers] -.realizes.-> GH
   MATRIX -.realizes.-> FS
   BENCH[coordinate-finding benchmark task] -->|sets filesystem, no network| FS
@@ -25,7 +25,7 @@ flowchart TD
 A skill names a tracker-independent operation. The active tracker, chosen by
 one environment variable, selects which matrix column realizes it: the `github`
 column (existing `gh` shapes) or the `filesystem` column (file-write recipes
-against `.kata/`). The matrix is the single home for any forge-specific command.
+against `.tracker/`). The matrix is the single home for any forge-specific command.
 
 ## Components
 
@@ -34,10 +34,10 @@ against `.kata/`). The matrix is the single home for any forge-specific command.
 | **Work-item model** | new `kata-coordinate` skill | Defines issue, change, and the shared envelope plus the abstract operation vocabulary. |
 | **Tracker matrix** | a reference in `kata-coordinate` | Maps each operation to its `github` and `filesystem` realization; states per-tracker degradation and the selection rule. The only place forge commands appear. |
 | **github column** | matrix | Absorbs every forge command now outside it — the `gh` shapes in `coordination-protocol.md`, `issue-lifecycle.md`, `approval-signals.md`, and the kata-* skills, plus the remote-git operations (branch, push) the spec names — into one column (the spec's § Problem grep set bounds the file set). |
-| **filesystem column** | matrix | New. File-write recipes over the `.kata/` layout below. |
+| **filesystem column** | matrix | New. File-write recipes over the `.tracker/` layout below. |
 | **Re-pointed references** | `work-definition.md`, `coordination-protocol.md`, `approval-signals.md` | Re-expressed over operations: `work-definition.md`'s "Created via" and `coordination-protocol.md`'s routing name operations and move their `gh` shapes to the matrix; `approval-signals.md` generalizes its signal vocabulary, its one `gh` shape (`gh pr review --approve`) moving to the matrix github column. |
 | **Re-pointed skills** | the kata-* skills that call `gh` | Call sites replaced by an operation name + matrix link. |
-| **Benchmark task** | `benchmarks/kata-skills/tasks/coordinate-finding/` | End-to-end coordination graded by `invariants.sh` against `.kata/` files. |
+| **Benchmark task** | `benchmarks/kata-skills/tasks/coordinate-finding/` | End-to-end coordination graded by `invariants.sh` against `.tracker/` files. |
 
 ## Delivery and linkage
 
@@ -89,11 +89,11 @@ operations. Obstacle and experiment are issues distinguished by label, so
 
 ## Filesystem storage format
 
-A coordination root `.kata/` in the working tree, tracker-owned and disjoint
+A coordination root `.tracker/` in the working tree, tracker-owned and disjoint
 from app files:
 
 ```
-.kata/
+.tracker/
   issues/{id}.md      # envelope front-matter + body; ## Comments appended
   changes/{id}.md      # envelope (kind: change) + links to its issue(s)
   discussions/{id}.md  # RFC threads
@@ -112,6 +112,10 @@ tracker-minted monotonic ids, which would be non-deterministic and defeat
 path-based assertions. A change file carries only its envelope; the diff is the
 working tree at merge time, rather than a materialized patch object that
 duplicates the tree and adds an apply step the benchmark does not need.
+
+The root is named `.tracker/` — not a product- or methodology-specific name — so
+an agent reading the working tree infers it is the active tracker's store
+directly, without consulting the matrix.
 
 ## Tracker selection
 
@@ -143,7 +147,7 @@ and supervisor task files, a workdir overlay, and the preflight and invariants
 hooks. The agent is given a finding and runs the loop: `create-issue`,
 `open-change` linking it, `gate` with a trusted signal, `merge-change`, all under
 the filesystem tracker with networking unavailable. The invariants hook asserts
-on the resulting `.kata/` files — issue exists and is linked, change reached
+on the resulting `.tracker/` files — issue exists and is linked, change reached
 `state: merged`, `approval` recorded — using the same `assert` harness the other
 tasks use.
 

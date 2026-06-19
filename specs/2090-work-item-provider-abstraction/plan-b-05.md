@@ -1,7 +1,7 @@
 # Plan 2090-b, Part 05: The coordination benchmark task
 
 Add `coordinate-finding/` to the `kata-skills` benchmark family: an end-to-end
-file → open-change → gate → merge loop graded offline against `.kata/` files.
+file → open-change → gate → merge loop graded offline against `.tracker/` files.
 Depends on Part 01 (operation names) and Part 04 (`--work-tracker`). Conventions:
 [plan-b.md](plan-b.md).
 
@@ -34,7 +34,7 @@ Intent: seed the finding input and a clean coordination root.
 Files: create `benchmarks/kata-skills/tasks/coordinate-finding/workdir/finding.md`
 (and any seed the agent reads).
 
-Change: a short finding brief the agent files. No pre-existing `.kata/` (the
+Change: a short finding brief the agent files. No pre-existing `.tracker/` (the
 agent creates it); no app/network seed required.
 
 Verification: `workdir/` materializes; no remote or network dependency.
@@ -45,9 +45,9 @@ Intent: smoke-check preconditions and assert on the resulting files.
 
 Files: create `hooks/preflight.sh` and `hooks/invariants.sh`.
 
-Change: `preflight.sh` confirms the workdir is sane and `.kata/` is absent at
+Change: `preflight.sh` confirms the workdir is sane and `.tracker/` is absent at
 start. `invariants.sh` uses the `fit-trace assert` harness (as
-`spec-feature/hooks/invariants.sh` does) against `$WORKDIR/cwd/.kata/`:
+`spec-feature/hooks/invariants.sh` does) against `$WORKDIR/cwd/.tracker/`:
 
 - `file-present` — an `issues/*.md` exists,
 - the change `links` back to that issue,
@@ -55,7 +55,7 @@ start. `invariants.sh` uses the `fit-trace assert` harness (as
 - `approval` is recorded on the change.
 
 Verification:
-`fit-benchmark invariants --family=benchmarks/kata-skills --task=coordinate-finding --workdir=<hand-authored .kata fixture>`
+`fit-benchmark invariants --family=benchmarks/kata-skills --task=coordinate-finding --workdir=<hand-authored .tracker fixture>`
 passes on a correct fixture and fails on one missing `state: merged`.
 
 ## Step 4 — Family wiring and offline run
