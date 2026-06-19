@@ -237,15 +237,6 @@ function addDepartmentDirectors(ast, teams, people, domain) {
 }
 
 /**
- * Build a department-director person row. Directors are managers with no team
- * and no getdx_team_id (they manage across teams), so they are not leaf-team
- * rollup rows; they exist as the resolution root and the named tier identity.
- * @param {{handle: string, name?: string, title?: string, level?: string, discipline?: string}} d
- * @param {string} departmentId
- * @param {string} domain
- * @returns {object}
- */
-/**
  * Resolve a director's display name: explicit DSL `name`, else the
  * MANAGER_NAMES mapping for its handle, else the bare handle.
  * @param {{handle: string, name?: string}} d
@@ -255,6 +246,15 @@ function directorName(d) {
   return d.name || MANAGER_NAMES[d.handle] || d.handle;
 }
 
+/**
+ * Build a department-director person row. Directors are managers with no team
+ * and no getdx_team_id (they manage across teams), so they are not leaf-team
+ * rollup rows; they exist as the resolution root and the named tier identity.
+ * @param {{handle: string, name?: string, title?: string, level?: string, discipline?: string}} d
+ * @param {string} departmentId
+ * @param {string} domain
+ * @returns {object}
+ */
 function makeDirector(d, departmentId, domain) {
   const name = directorName(d);
   const id = name.toLowerCase().replace(/\s+/g, "-");
