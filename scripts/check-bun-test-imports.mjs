@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Re-divergence guard: fail CI on any `bun:test` module-specifier statement
-// anywhere in the repo. After the spec-2020 convergence the baseline is zero,
-// so "zero repo-wide" is simpler and strictly safer than scoping to the gate
-// set. This is the mitigation spec 0650 named but never built.
+// anywhere in the repo. The whole suite is converged onto `node:test`, so the
+// baseline is zero — "zero repo-wide" is simpler and strictly safer than
+// scoping to the gate set, and keeps the gate runner able to load every file.
 //
 // Matches static import, re-export, `require()`, and dynamic `import()` of
 // `bun:test` — NOT comment or doc-string mentions. `node --test` cannot resolve
@@ -84,7 +84,7 @@ for (const file of walk(repoRoot, [])) {
 if (offenders.length > 0) {
   console.error(
     `check-bun-test-imports: found ${offenders.length} bun:test import statement(s) — ` +
-      `node --test cannot resolve 'bun:' (see spec 2020). Convert to node:test + ` +
+      `node --test cannot resolve 'bun:' specifiers. Convert to node:test + ` +
       `@forwardimpact/libmock/expect:\n  ${offenders.join("\n  ")}`,
   );
   process.exit(1);

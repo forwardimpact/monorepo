@@ -18,24 +18,21 @@ confirm (Gawande, _Checklist Manifesto_ Ch. 6).
 
 Architectural non-negotiables — the shape of the codebase.
 
-- **OO+DI everywhere** — Classes accept collaborators through constructors.
-  Factory functions (`createXxx`) wire real implementations. Composition roots
-  (CLI `bin/` entry points) wire all instances. Tests bypass factories and
-  inject mocks directly. No module-level singletons, no inline dependency
-  creation. Exceptions: libskill (pure functions), libui (functional DOM),
-  libsecret (stateless crypto), libtype (generated protobuf) — pure stateless
-  functions do not need DI.
+- **OO+DI everywhere** — Classes accept collaborators via constructors. Factory
+  functions (`createXxx`) wire implementations; composition roots (CLI `bin/`
+  entry points) wire instances; tests inject mocks directly. No module-level
+  singletons or inline dependency creation. Exempt — pure stateless functions
+  need no DI: libskill, libui (functional DOM), libsecret (crypto), libtype
+  (generated protobuf).
 - **No frontend frameworks** — Vanilla JS, ESM modules only, no CommonJS.
-- **FIT upstream of Kata** — Skills and docs in the FIT project (`fit-*` skills,
-  `websites/fit/`, shared `libraries/`) must not reference the Kata Agent Team.
-  Kata may reference FIT concepts; the dependency points one way.
-- **Explain WHY, not WHEN** — Comments, log messages, and durable docs state
-  the present contract: no spec/design/plan numbers, issue/PR references, or
-  experiment/obstacle labels — provenance lives in PR bodies and git
-  history. `specs/`, `wiki/`, `benchmarks/`, and `generated/` are exempt and
-  citation-dense; rewrite, don't port, their content into checked files.
-  Enforced by `.coaligned/invariants/temporal.rules.mjs` under
-  `bun run invariants`.
+- **FIT upstream of Kata** — FIT skills and docs (`fit-*`, `websites/fit/`,
+  shared `libraries/`) must not reference the Kata Agent Team. Kata may
+  reference FIT; the dependency points one way.
+- **Explain WHY, not WHEN** — Comments, logs, and durable docs state the present
+  contract: no spec/design/plan numbers, issue/PR references, or
+  experiment/obstacle labels. Provenance lives in PR bodies and git history.
+  `specs/`, `wiki/`, `benchmarks/`, `generated/` are exempt; rewrite, don't port,
+  their content. Enforced by `bun run invariants`.
 
 ### READ-DO
 
@@ -94,21 +91,21 @@ Exit gate — verify every item before committing.
 ### Monorepo layout
 
 ```
-.claude/       # agent and skills, edited via `bunx fit-selfedit`
+.claude/       # agents and skills, edited via `bunx fit-selfedit`
 products/      # one directory per product — see the products list below
 libraries/
   lib*/        # shared libraries
 services/
-  <name>/      # one directory per service — see config/config.json
+  <name>/      # one per service — see config/config.json
 config/
   config.json  # service definitions
 data/
-  synthetic/   # synthetic data DSL and generated artifacts
+  synthetic/   # synthetic data DSL and artifacts
 specs/
-  {feature}/   # feature specifications and plans
+  {feature}/   # specifications and plans
 wiki/          # GitHub wiki — shared agent memory
-design/        # design language (brand-agnostic) and brand implementations
-websites/      # public site sources — fit/ → forwardimpact.team, kata/ → kata.team
+design/        # design language and brand implementations
+websites/      # public sites — fit/ → forwardimpact.team, kata/ → kata.team
 ```
 
 The `products/` directory holds one directory per product:
@@ -137,34 +134,33 @@ or `.ts` files at the package root.
 <package>/
   package.json     Required
   justfile         Per-package task runner (optional)
-  src/             All source files (index.js + any domain subdirs)
-  bin/             One file per declared CLI binary — thin entry points only
-  config/          Checked-in configuration files (optional)
-  macos/           Packaged macOS app bundle (optional)
-  pkg/             Packaging/distribution artifacts, non-source (optional)
-  proto/           Protobuf source files (optional)
-  schema/          Published schemas (JSON Schema, SHACL, etc.) (optional)
-  starter/         Starter data that installs to a consumer's data dir (optional)
+  src/             All source (index.js + domain subdirs)
+  bin/             Thin CLI entry points, one per binary
+  config/          Checked-in configuration (optional)
+  macos/           macOS app bundle (optional)
+  pkg/             Packaging artifacts, non-source (optional)
+  proto/           Protobuf source (optional)
+  schema/          Published schemas (optional)
+  starter/         Starter data installed to a consumer (optional)
   supabase/        Supabase edge project (optional)
-  templates/       Template files consumed at runtime (optional)
+  templates/       Runtime template files (optional)
   test/            Test files
 ```
 
 Subcommand handlers live under `src/commands/`, helpers under `src/lib/`.
-Published `exports` point at `src/`; consumers import via subpath aliases.
-No build step, no root-level proxy file.
+Published `exports` point at `src/`; consumers import via subpath aliases. No
+build step or root-level proxy file.
 
 ### Services — the one exception
 
 Services keep `index.js` and `server.js` at the package root (loaded by fixed
-path from `config/config.example.json`), plus `proto/`, `src/`, `test/`, and
-`package.json`. No `bin/` directory, no `src/index.js`.
+path from `config/config.example.json`), plus `proto/`, `src/`, `test/`,
+`package.json`. No `bin/`, no `src/index.js`.
 
 ### `.claude/` — agent configuration
 
-`Edit` and `Write` are denied on `.claude/**` paths. Use
-[`bunx fit-selfedit`](.claude/agents/references/self-improvement.md)
-instead.
+`Edit` and `Write` are denied on `.claude/**`. Use
+[`bunx fit-selfedit`](.claude/agents/references/self-improvement.md) instead.
 
 ## Pull Request Workflow
 
@@ -172,57 +168,49 @@ All changes go through pull requests — never push directly to `main`. Commit,
 push, and open a PR before finishing; on an ephemeral runner the PR URL is the
 only valid "done" signal.
 
-**Exception:** the release engineer may push trivial CI fixes (formatting, lint,
-lockfile drift) that `bun run check:fix` can resolve directly to `main`. See
-[.claude/agents/release-engineer.md](.claude/agents/release-engineer.md).
+**Exception:** the release engineer may push trivial CI fixes (format, lint,
+lockfile drift) that `bun run check:fix` resolves directly to `main`. See
+[release-engineer.md](.claude/agents/release-engineer.md).
 
 ## Git Conventions
 
 Format: `type(scope): subject`
 
 - **Types**: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `spec`
-- **Scope**: package name (`map`, `libskill`, `libui`, `pathway`, `outpost`), or
-  domain area (`security`) for specs
+- **Scope**: package name (`map`, `libui`, `pathway`), or `security` for specs
 - **Breaking**: add `!` after scope
 
 `spec` = new specification documents in `specs/`.
 
 ### Releasing
 
-Tag prefix matches the directory name: `libraries/libfoo` → `libfoo@v0.1.5`,
+Tag prefix matches the directory: `libraries/libfoo` → `libfoo@v0.1.5`,
 `services/graph` → `svcgraph@v0.1.60`.
 
 Pre-1.0 packages bump patch for any change. Post-1.0: semver (breaking=major,
-feat=minor, fix/refactor=patch). The release engineer handles bumps, tagging,
-and publishing — see [kata-release-cut](.claude/skills/kata-release-cut).
+feat=minor, fix/refactor=patch). The release engineer handles bumps, tags, and
+publishing — see [kata-release-cut](.claude/skills/kata-release-cut).
 
 ## Quality Commands
 
 ```sh
 bun run check                 # All quality gates (run before every commit)
 bun run check:fix             # Auto-fix format and lint issues
-bun run test                  # Unit tests, bun runner (fast local/PR loop)
-bun run test:gate             # The blocking gate — node --test + count floor
-bun run test:e2e              # Playwright E2E tests (requires generated data)
+bun run test                  # Unit tests, bun runner (local/PR loop)
+bun run test:gate             # The blocking gate (see Test-runner strategy)
+bun run test:e2e              # Playwright E2E tests
 bunx fit-map validate         # Validate data files
 bunx fit-map validate --shacl # Validate with SHACL syntax check
 ```
 
 ### Test-runner strategy
 
-The runner choice is settled per surface (spec 2020, superseding spec 0650):
-
-- **`node --test` is the blocking gate.** `bun run test:gate` (the `Test / gate`
-  CI job and both publish "Run tests" steps) is the release-blocking, required
-  check. `node --test` is the reference-correct runner: `describe`-inside-`test`
-  is valid there, where bun throws on it
-  ([bun#5090](https://github.com/oven-sh/bun/issues/5090)).
-- **`bun test` is the informational local/PR loop.** `bun run test` keeps the
-  fast inner loop for iteration. It is **not** a required check.
-- **No new `bun:test` imports.** `node --test` cannot resolve a `bun:`
-  specifier, so a `bun:test` import anywhere reddens the required guard
-  (`scripts/check-bun-test-imports.mjs`). Import `describe`/`test`/hooks from
-  `node:test` and `expect` from `@forwardimpact/libmock/expect`.
+Settled per surface. `node --test` (`bun run test:gate`) is the blocking gate:
+reference-correct, since `describe`-inside-`test` is valid where bun throws
+([bun#5090](https://github.com/oven-sh/bun/issues/5090)). `bun test`
+(`bun run test`) is the fast, non-required loop. Never import `bun:test` — node
+cannot resolve `bun:`; `scripts/check-bun-test-imports.mjs` reddens on any.
+Import from `node:test` and `@forwardimpact/libmock/expect`.
 
 ## Security
 
