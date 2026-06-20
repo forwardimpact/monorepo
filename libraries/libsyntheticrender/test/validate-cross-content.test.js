@@ -42,6 +42,55 @@ describe("validateCrossContent", () => {
     });
   });
 
+  describe("director-tier coverage", () => {
+    test("exempts a director (department, no team_id) from people coverage", () => {
+      const entities = buildEntities({
+        people: [
+          {
+            name: "Zeus",
+            email: "zeus@acme.com",
+            github: "zeus-bio",
+            team_id: null,
+            department: "it",
+            is_manager: true,
+          },
+          {
+            name: "Athena",
+            email: "athena@acme.com",
+            github: "athena-bio",
+            team_id: "team_a",
+            is_manager: true,
+          },
+        ],
+      });
+      const result = validateCrossContent(entities);
+      const coverage = result.checks.find((c) => c.name === "people_coverage");
+      const managers = result.checks.find(
+        (c) => c.name === "manager_references",
+      );
+      assert.strictEqual(coverage.passed, true);
+      assert.strictEqual(managers.passed, true);
+    });
+
+    test("still flags a non-director with an unknown team and no department", () => {
+      const entities = buildEntities({
+        people: [
+          {
+            name: "Zeus",
+            email: "zeus@acme.com",
+            github: "zeus-bio",
+            team_id: "nonexistent_team",
+            department: null,
+            is_manager: false,
+          },
+        ],
+      });
+      const result = validateCrossContent(entities);
+      const coverage = result.checks.find((c) => c.name === "people_coverage");
+      assert.strictEqual(coverage.passed, false);
+    });
+  });
+
   describe("team assignments", () => {
     test("fails when a team has no members", () => {
       const entities = buildEntities({

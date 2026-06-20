@@ -179,6 +179,14 @@ function generatePeople(ast, rng, teams, domain, logger) {
     domain,
   );
 
+  // Department directors sit one level above the team managers. Each is a real
+  // organization_people row (so the recursive get_team resolves the union of a
+  // department's teams from the director's email); the department's team
+  // managers are re-pointed to report to it. Directors carry no team_id or
+  // getdx_team_id — they manage across teams, not within one, so they never
+  // appear as a leaf-team rollup row.
+  addDepartmentDirectors(ast, teams, people, domain, available);
+
   if (people.length < count && logger) {
     logger.warn(
       `People shortfall: requested ${count}, generated ${people.length} (name pool exhausted)`,
@@ -194,6 +202,116 @@ function generatePeople(ast, rng, teams, domain, logger) {
   }
 
   return people;
+}
+
+/**
+ * For each department that declares a `director`, append a director person and
+ * re-point that department's team managers to report to it. Mutates `people`.
+ *
+ * Directors are additive: the fill pass runs identically with or without a
+ * director declared, so every generated person is byte-identical to a run with
+ * no director. The only conflict is a name collision — a director's
+ * name-derived email may equal a fill person's email (the IT director "Zeus"
+ * collides with a fill engineer drawn from the same Greek-name pool). That one
+ * fill person is renamed to the first pool name no person already holds (the
+ * unconsumed shuffle tail), keeping the rename deterministic and leaving the
+ * primary key unambiguous. No other person changes, so the prose cache stays
+ * valid for every entity except the single renamed fill row.
+ *
+ * @param {import('../dsl/parser.js').TerrainAST} ast
+ * @param {object[]} teams
+ * @param {object[]} people
+ * @param {string} domain
+ * @param {string[]} namePool - shuffled Greek-name pool (rename source)
+ */
+function addDepartmentDirectors(ast, teams, people, domain, namePool = []) {
+  for (const dept of ast.departments ?? []) {
+    if (!dept.director) continue;
+    const director = makeDirector(dept.director, dept.id, domain);
+
+    const clash = people.find((p) => p.email === director.email);
+    if (clash) renameToFreeName(clash, people, namePool, domain);
+
+    people.push(director);
+
+    const deptTeamIds = new Set(
+      teams.filter((t) => t.department === dept.id).map((t) => t.id),
+    );
+    for (const p of people) {
+      if (p.is_manager && deptTeamIds.has(p.team_id)) {
+        p.manager_email = director.email;
+      }
+    }
+  }
+}
+
+/**
+ * Rename a person in place to the first pool name no person already holds,
+ * re-deriving every name-derived field. Deterministic given the shuffled pool.
+ * @param {object} person - person row to rename (mutated)
+ * @param {object[]} people - all people (used to test name freedom)
+ * @param {string[]} namePool - shuffled Greek-name pool
+ * @param {string} domain
+ */
+function renameToFreeName(person, people, namePool, domain) {
+  const takenEmails = new Set(people.map((p) => p.email));
+  const replacement = namePool.find(
+    (n) => !takenEmails.has(toEmail(n, domain)),
+  );
+  if (!replacement) {
+    throw new Error(
+      `No free name to resolve director collision for ${person.email}`,
+    );
+  }
+  person.name = replacement;
+  person.id = replacement.toLowerCase().replace(/\s+/g, "-");
+  person.email = toEmail(replacement, domain);
+  person.github = toGithubUsername(replacement);
+  person.github_username = toGithubUsername(replacement);
+  person.iri = `https://${domain}/id/person/${person.id}`;
+}
+
+/**
+ * Resolve a director's display name: explicit DSL `name`, else the
+ * MANAGER_NAMES mapping for its handle, else the bare handle.
+ * @param {{handle: string, name?: string}} d
+ * @returns {string}
+ */
+function directorName(d) {
+  return d.name || MANAGER_NAMES[d.handle] || d.handle;
+}
+
+/**
+ * Build a department-director person row. Directors are managers with no team
+ * and no getdx_team_id (they manage across teams), so they are not leaf-team
+ * rollup rows; they exist as the resolution root and the named tier identity.
+ * @param {{handle: string, name?: string, title?: string, level?: string, discipline?: string}} d
+ * @param {string} departmentId
+ * @param {string} domain
+ * @returns {object}
+ */
+function makeDirector(d, departmentId, domain) {
+  const name = directorName(d);
+  const id = name.toLowerCase().replace(/\s+/g, "-");
+  return {
+    id,
+    name,
+    email: toEmail(name, domain),
+    github: toGithubUsername(name),
+    github_username: toGithubUsername(name),
+    discipline: d.discipline || "engineering_management",
+    level: d.level || "J090",
+    track: null,
+    team_id: null,
+    department: departmentId,
+    is_manager: true,
+    manager_email: null,
+    hire_date: "2023-01-15",
+    archetype: "steady_contributor",
+    kind: "human",
+    title: d.title || null,
+    iri: `https://${domain}/id/person/${id}`,
+  };
 }
 
 function makePerson(

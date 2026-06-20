@@ -71,6 +71,31 @@ export function createBlockParsers(helpers) {
     return team;
   }
 
+  function parseDirector() {
+    const handle = advance().value; // AT_IDENT — '@' already stripped
+    expect("LBRACE");
+    const director = { handle };
+    consumeFields(
+      {
+        name: () => {
+          director.name = parseStringValue();
+        },
+        title: () => {
+          director.title = parseStringValue();
+        },
+        level: () => {
+          director.level = parseStringOrIdent();
+        },
+        discipline: () => {
+          director.discipline = parseStringOrIdent();
+        },
+      },
+      "director",
+    );
+    expect("RBRACE");
+    return director;
+  }
+
   function parseDepartment() {
     const id = parseStringOrIdent();
     expect("LBRACE");
@@ -86,6 +111,9 @@ export function createBlockParsers(helpers) {
         },
         headcount: () => {
           dept.headcount = parseNumberValue();
+        },
+        director: () => {
+          dept.director = parseDirector();
         },
         team: () => {
           teams.push(parseTeam(id));
