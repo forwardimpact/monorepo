@@ -146,13 +146,6 @@ function generatePeople(ast, rng, teams, domain, logger) {
     }
   }
 
-  // Reserve director names so the fill pass does not hand the same name (and
-  // therefore the same name-derived email) to a generated person — that would
-  // collide on the organization_people primary key and make get_team ambiguous.
-  for (const dept of ast.departments ?? []) {
-    if (dept.director) usedNames.add(directorName(dept.director));
-  }
-
   const levelKeys = Object.keys(distribution);
   const levelWeights = Object.values(distribution);
   const discKeys = Object.keys(disciplines);
@@ -192,7 +185,7 @@ function generatePeople(ast, rng, teams, domain, logger) {
   // managers are re-pointed to report to it. Directors carry no team_id or
   // getdx_team_id — they manage across teams, not within one, so they never
   // appear as a leaf-team rollup row.
-  addDepartmentDirectors(ast, teams, people, domain);
+  addDepartmentDirectors(ast, teams, people, domain, available);
 
   if (people.length < count && logger) {
     logger.warn(
@@ -214,15 +207,31 @@ function generatePeople(ast, rng, teams, domain, logger) {
 /**
  * For each department that declares a `director`, append a director person and
  * re-point that department's team managers to report to it. Mutates `people`.
+ *
+ * Directors are additive: the fill pass runs identically with or without a
+ * director declared, so every generated person is byte-identical to a run with
+ * no director. The only conflict is a name collision — a director's
+ * name-derived email may equal a fill person's email (the IT director "Zeus"
+ * collides with a fill engineer drawn from the same Greek-name pool). That one
+ * fill person is renamed to the first pool name no person already holds (the
+ * unconsumed shuffle tail), keeping the rename deterministic and leaving the
+ * primary key unambiguous. No other person changes, so the prose cache stays
+ * valid for every entity except the single renamed fill row.
+ *
  * @param {import('../dsl/parser.js').TerrainAST} ast
  * @param {object[]} teams
  * @param {object[]} people
  * @param {string} domain
+ * @param {string[]} namePool - shuffled Greek-name pool (rename source)
  */
-function addDepartmentDirectors(ast, teams, people, domain) {
+function addDepartmentDirectors(ast, teams, people, domain, namePool = []) {
   for (const dept of ast.departments ?? []) {
     if (!dept.director) continue;
     const director = makeDirector(dept.director, dept.id, domain);
+
+    const clash = people.find((p) => p.email === director.email);
+    if (clash) renameToFreeName(clash, people, namePool, domain);
+
     people.push(director);
 
     const deptTeamIds = new Set(
@@ -234,6 +243,32 @@ function addDepartmentDirectors(ast, teams, people, domain) {
       }
     }
   }
+}
+
+/**
+ * Rename a person in place to the first pool name no person already holds,
+ * re-deriving every name-derived field. Deterministic given the shuffled pool.
+ * @param {object} person - person row to rename (mutated)
+ * @param {object[]} people - all people (used to test name freedom)
+ * @param {string[]} namePool - shuffled Greek-name pool
+ * @param {string} domain
+ */
+function renameToFreeName(person, people, namePool, domain) {
+  const takenEmails = new Set(people.map((p) => p.email));
+  const replacement = namePool.find(
+    (n) => !takenEmails.has(toEmail(n, domain)),
+  );
+  if (!replacement) {
+    throw new Error(
+      `No free name to resolve director collision for ${person.email}`,
+    );
+  }
+  person.name = replacement;
+  person.id = replacement.toLowerCase().replace(/\s+/g, "-");
+  person.email = toEmail(replacement, domain);
+  person.github = toGithubUsername(replacement);
+  person.github_username = toGithubUsername(replacement);
+  person.iri = `https://${domain}/id/person/${person.id}`;
 }
 
 /**

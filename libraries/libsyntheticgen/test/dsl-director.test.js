@@ -116,7 +116,7 @@ describe("DSL director block", () => {
     assert.equal(athena.manager_email, null);
   });
 
-  test("director name is reserved so no fill person collides on email", () => {
+  test("a director email collision yields no duplicate, exactly one director", () => {
     const { people } = build(DSL(DIRECTOR_BLOCK));
     const emails = people.map((p) => p.email);
     assert.equal(emails.length, new Set(emails).size);
@@ -124,5 +124,48 @@ describe("DSL director block", () => {
       people.filter((p) => p.email === "zeus@example.test").length,
       1,
     );
+  });
+
+  // The director must be purely additive: declaring one does not perturb the
+  // RNG-driven fill pass, so every non-director, non-renamed person is
+  // byte-identical to a run with no director. This is the property that keeps
+  // the committed prose cache valid — a perturbed fill pass shifts the prompt
+  // hashes of unrelated PR/review/comment prose and forces a full regenerate.
+  test("declaring a director leaves the fill pass byte-identical", () => {
+    const withDirector = build(DSL(DIRECTOR_BLOCK)).people;
+    const withoutDirector = build(DSL("")).people;
+
+    const director = withDirector.find(
+      (p) => p.is_manager && p.team_id === null,
+    );
+    // The fill person whose name-derived email the director took over is the
+    // only one allowed to differ. Identify it as the email present without a
+    // director but absent (under that email) with one.
+    const withEmails = new Set(withDirector.map((p) => p.email));
+    const renamed = withoutDirector.filter(
+      (p) => !withEmails.has(p.email) && p.email !== director.email,
+    );
+    assert.ok(renamed.length <= 1, "at most one fill person is renamed");
+
+    const renamedEmails = new Set(renamed.map((p) => p.email));
+    const isItManager = (p) =>
+      p.is_manager && ["alpha", "beta"].includes(p.team_id);
+
+    // Everyone except the director, the renamed person, and the re-pointed IT
+    // managers must be present and identical across both runs.
+    const baseline = new Map(
+      withoutDirector
+        .filter((p) => !renamedEmails.has(p.email))
+        .map((p) => [p.email, p]),
+    );
+    for (const p of withDirector) {
+      if (p === director) continue;
+      const before = baseline.get(p.email);
+      assert.ok(before, `person ${p.email} should exist without a director`);
+      const after = isItManager(p)
+        ? { ...p, manager_email: before.manager_email }
+        : p;
+      assert.deepEqual(after, before, `person ${p.email} drifted`);
+    }
   });
 });
