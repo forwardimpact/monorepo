@@ -12,7 +12,7 @@ Commands:
   audit                      Audit the wiki against the declarative rule catalogue (line and word budgets, headings, decision blocks, storyboards, claims)
   fix                        Auto-fix wiki audit findings: rotate weekly logs, fix the rest with an AI agent (technical-writer, Haiku), flag the unresolvable
   memo                       Send a cross-team memo into a teammate's Message Inbox
-  refresh [storyboard-path]  Regenerate XmR and obstacle/experiment marker blocks in a storyboard
+  refresh [storyboard-path]  Regenerate storyboard XmR/marker blocks and clear expired MEMORY.md claims
   product-mix                Emit the product-vs-internal mix of merged PRs as a `product_share` metric row
   init                       Bootstrap a wiki working tree and scaffold Active Claims
   push                       Commit and push local wiki changes to the remote

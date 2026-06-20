@@ -27,7 +27,7 @@ with audited surfaces. `fit-wiki fix` auto-clears findings; run it first, then
 | Area               | What to check                                            | Tool                         |
 | ------------------ | -------------------------------------------------------- | ---------------------------- |
 | `contract-audit`   | Every mechanical contract rule passes                    | `fit-wiki fix`, then `audit` |
-| `claims-hygiene`   | Expired or settled claims cleared                        | `fit-wiki release --expired` |
+| `claims-hygiene`   | Expired or settled claims cleared                        | `fit-wiki refresh` |
 | `summary-accuracy` | Each summary _means_ what the agent's latest logs say    | manual (audit can't read it) |
 | `inbox-follow-up`  | `## Message Inbox` entries are acknowledged and acted on | `fit-wiki inbox`             |
 | `memory-index`     | MEMORY.md / Home.md agent descriptions and links current | manual                       |
@@ -89,7 +89,7 @@ invariant above.
 ### Step 2: Claims hygiene
 
 Audit warns (`expired-claim`) on every `## Active Claims` row past its
-`expires_at`; clear them with `npx fit-wiki release --expired` — a stale claim
+`expires_at`; clear them with `npx fit-wiki refresh` — a stale claim
 falsely signals work in flight. For rows not yet expired but naming a PR/Issue
 that has since merged or closed, verify state per the write-time invariant and
 release each via `npx fit-wiki release --agent <agent> --target <id>`.

@@ -61,8 +61,10 @@ npx fit-wiki log done --agent staff-engineer
 
 ### `claim` / `release` — Active Claims
 
-`claim` refuses duplicates with exit 2. `release --expired` clears every
-row past `expires_at`.
+`claim` refuses duplicates with exit 2 and defaults `expires_at` to
+`claimed_at + 1 day` — a claim is a short-lived "shipping this now" assertion,
+not a lease; override with `--expires-at`. `release --expired` clears every row
+past `expires_at` (so does `refresh`).
 
 ```sh
 npx fit-wiki claim --agent staff-engineer --target spec-NNNN --branch feat/x [--pr NNNN] [--expires-at YYYY-MM-DD]
@@ -115,10 +117,11 @@ npx fit-wiki memo --from technical-writer --to all --message "new XmR baseline"
 | `--to` | Agent name, or `all` to broadcast |
 | `--message` | Memo text |
 
-### `refresh` — Regenerate storyboard charts
+### `refresh` — Regenerate storyboard charts, clear expired claims
 
-Scans for marker pairs and regenerates each. Defaults to the current
-month's storyboard. Idempotent.
+Scans for marker pairs and regenerates each, and sweeps every expired row from
+`MEMORY.md ## Active Claims`. Defaults to the current month's storyboard.
+Idempotent.
 
 ```sh
 npx fit-wiki refresh [storyboard-path]

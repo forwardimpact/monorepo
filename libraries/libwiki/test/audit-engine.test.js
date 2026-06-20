@@ -418,6 +418,29 @@ describe("runRules", () => {
     assert.equal(finding.level, "warn");
   });
 
+  test("over-budget MEMORY.md fires line and word budget rules", () => {
+    // 200 lines × 13 words = 2600 words: over both the 128-line and 2048-word
+    // MEMORY budgets. The canonical sections stay valid so only the budgets fire.
+    const filler = Array.from(
+      { length: 200 },
+      (_, i) =>
+        `word ${i} lorem ipsum dolor sit amet consectetur adipiscing elit sed do`,
+    ).join("\n");
+    const seed = {
+      [`${WIKI}/MEMORY.md`]: `${MEMORY_NONE}\n${filler}\n`,
+      [`${WIKI}/storyboard-2026-M05.md`]: storyboard("2026", "05"),
+    };
+    const ids = idsOf(audit(seed));
+    assert.ok(ids.includes("memory.line-budget"));
+    assert.ok(ids.includes("memory.word-budget"));
+  });
+
+  test("clean MEMORY.md does not fire the budget rules", () => {
+    const ids = idsOf(audit(cleanSeed()));
+    assert.ok(!ids.includes("memory.line-budget"));
+    assert.ok(!ids.includes("memory.word-budget"));
+  });
+
   test("priority separator row missing", () => {
     const seed = {
       [`${WIKI}/MEMORY.md`]: [

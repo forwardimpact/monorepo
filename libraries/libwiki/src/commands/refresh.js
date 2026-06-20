@@ -10,8 +10,9 @@ import {
   TrackerQueryError,
   parseRepoSlug,
 } from "../issue-list-renderer.js";
+import { parseClaims, filterExpired, removeClaim } from "../active-claims.js";
 import { currentDayIso } from "../util/clock.js";
-import { resolveProjectRoot } from "../util/wiki-dir.js";
+import { resolveProjectRoot, resolveWikiRoot } from "../util/wiki-dir.js";
 
 function currentStoryboardRelPath(runtime) {
   return `wiki/storyboard-${yearMonth(currentDayIso(runtime))}.md`;
@@ -101,12 +102,41 @@ function readStoryboardOrNull(runtime, storyboardPath) {
   }
 }
 
-/** Re-render XmR chart blocks and issue-list blocks in a storyboard file. */
+// Drop every MEMORY.md `## Active Claims` row past its `expires_at`, writing the
+// trimmed table back in place. Refresh is the deterministic "freshen the wiki"
+// step, so clearing lapsed claims belongs here alongside the storyboard render;
+// it runs whether or not the storyboard has marker blocks to regenerate. The
+// write is local, mirroring the storyboard splice — the caller's push publishes
+// it. A missing wiki or claims table is a clean no-op.
+function clearExpiredClaims(runtime, options, today, logger) {
+  const memPath = path.join(resolveWikiRoot(runtime, options), "MEMORY.md");
+  if (!runtime.fsSync.existsSync(memPath)) return;
+  const text = runtime.fsSync.readFileSync(memPath, "utf-8");
+  const { expired } = filterExpired(parseClaims(text), today);
+  if (expired.length === 0) return;
+  let current = text;
+  for (const c of expired) {
+    const result = removeClaim(current, { agent: c.agent, target: c.target });
+    if (result.removed) current = result.text;
+  }
+  if (current !== text) {
+    runtime.fsSync.writeFileSync(memPath, current);
+    logger.info("refresh", `cleared ${expired.length} expired claim(s)`);
+  }
+}
+
+/**
+ * Re-render storyboard XmR/issue-list blocks and clear expired MEMORY.md claims.
+ */
 export async function runRefreshCommand(ctx) {
   const { runtime, gitClient } = ctx.deps;
   const options = ctx.options;
   const logger = createLogger("wiki", runtime);
   const projectRoot = resolveProjectRoot(runtime);
+
+  // Independent of the storyboard render below (and its early returns), so a
+  // wiki with no storyboard or no marker blocks still gets its claims swept.
+  clearExpiredClaims(runtime, options, currentDayIso(runtime), logger);
 
   const storyboardPath = path.resolve(
     projectRoot,

@@ -118,6 +118,11 @@ the metric has fewer than 15 points the block carries an "Insufficient data"
 line instead. Files without markers are left unchanged. The operation is
 idempotent -- running it twice produces the same output.
 
+`refresh` also sweeps expired rows from `MEMORY.md`'s `## Active Claims` table
+as part of the same pass, so a stale claim no longer falsely signals work in
+flight. A claim's expiry defaults to one day after it was made, so this keeps
+the table to genuinely active work.
+
 ## Syncing wiki state
 
 The wiki is a separate git repository cloned into `wiki/` within your project.

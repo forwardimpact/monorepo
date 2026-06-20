@@ -125,6 +125,29 @@ describe("fit-wiki refresh CLI (in-process)", () => {
     await assert.doesNotReject(() => refresh(dir, "storyboard.md"));
   });
 
+  test("clears expired MEMORY.md claims even with no storyboard", async () => {
+    const dir = createProject();
+    const wikiDir = join(dir, "wiki");
+    mkdirSync(wikiDir, { recursive: true });
+    // FIXED_NOW is 2026-05-15: the first row is past its expiry, the second is not.
+    writeFileSync(
+      join(wikiDir, "MEMORY.md"),
+      [
+        "## Active Claims",
+        "",
+        "| agent | target | branch | pr | claimed_at | expires_at |",
+        "| --- | --- | --- | --- | --- | --- |",
+        "| staff-engineer | old | feat/o | — | 2026-04-01 | 2026-05-01 |",
+        "| staff-engineer | new | feat/n | — | 2026-05-10 | 2026-06-01 |",
+        "",
+      ].join("\n"),
+    );
+    await refresh(dir, "storyboard.md"); // no storyboard file on disk
+    const after = readFileSync(join(wikiDir, "MEMORY.md"), "utf-8");
+    assert.ok(!after.includes("| old |"), "expired row removed");
+    assert.ok(after.includes("| new |"), "unexpired row kept");
+  });
+
   test("working-directory independence", async () => {
     const dir = createProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");

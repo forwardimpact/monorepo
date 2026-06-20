@@ -61,7 +61,8 @@ npx fit-wiki release --expired
 ```
 
 Maintains the `## Active Claims` table in `MEMORY.md`. Duplicates refused;
-row absent means settled.
+row absent means settled. `expires_at` defaults to `claimed_at + 1 day` — a
+claim is a short-lived "shipping this now" assertion, not a lease.
 
 ### `inbox` — triage memos
 
@@ -119,7 +120,9 @@ npx fit-wiki refresh [storyboard-path]
 
 Re-renders `<!-- xmr:metric:csv-path -->` and `<!-- obstacles:open[:Nd] -->`
 marker blocks inside a storyboard from their backing CSV / GitHub state.
-Default path: `wiki/storyboard-YYYY-MMM.md` for the current month.
+Default path: `wiki/storyboard-YYYY-MMM.md` for the current month. Also sweeps
+every expired row from `MEMORY.md ## Active Claims` as part of the same
+deterministic refresh.
 
 ### `init` / `push` / `pull` — wiki working tree
 

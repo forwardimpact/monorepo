@@ -137,6 +137,18 @@ function readOptional(filePath, fs) {
   };
 }
 
+// MEMORY.md carries the same line/word budget rules as the prose surfaces, so
+// its subject needs the `lines`/`words` counters those check builders read.
+// Counted off the canonical budget.js pair, like every other budgeted surface.
+function loadMemory(filePath, fs) {
+  const base = readOptional(filePath, fs);
+  return {
+    ...base,
+    lines: countLines(base.text),
+    words: countWords(base.text),
+  };
+}
+
 /**
  * Parse the rows inside STATUS.md's fenced block into audit subjects. Lines
  * outside the ``` fence (header prose) and blank lines are skipped. Each row
@@ -354,7 +366,7 @@ export function buildContext({ wikiRoot, today, fs, subprocess }) {
     wikiRoot,
     today,
     subjects,
-    memory: readOptional(path.join(wikiRoot, "MEMORY.md"), fs),
+    memory: loadMemory(path.join(wikiRoot, "MEMORY.md"), fs),
     status: readOptional(path.join(wikiRoot, "STATUS.md"), fs),
     storyboard: loadStoryboard(wikiRoot, today, fs),
     admission: buildAdmission(wikiRoot, fs, subprocess),
