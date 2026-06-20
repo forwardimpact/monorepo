@@ -5,7 +5,7 @@ one row per run.
 
 | Metric                  | Unit  | Description                                  | Data source |
 | ----------------------- | ----- | -------------------------------------------- | ----------- |
-| implementations_shipped | count | Implementation PRs opened or merged this run | gh pr list  |
+| implementations_shipped | count | Implementation PRs opened or merged this run | `list` changes ([work-trackers.md](../../../agents/references/work-trackers.md)) |
 
 `implementations_shipped` is route-bearing: every row records which route
 the activation took and which were eligible-but-not-taken. See

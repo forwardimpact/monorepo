@@ -79,6 +79,11 @@ const definition = {
           type: "string",
           description: "Agent profile name to load",
         },
+        "work-tracker": {
+          type: "string",
+          description:
+            "Active work-item tracker (github|filesystem, default: github)",
+        },
         "allowed-tools": {
           type: "string",
           description: "Comma-separated tool allowlist",
@@ -114,6 +119,11 @@ const definition = {
           description: "Write the NDJSON trace to a file",
         },
         "agent-profile": { type: "string", description: "Agent profile name" },
+        "work-tracker": {
+          type: "string",
+          description:
+            "Active work-item tracker (github|filesystem, default: github)",
+        },
         "allowed-tools": {
           type: "string",
           description: "Agent tool allowlist",
@@ -169,6 +179,11 @@ const definition = {
           type: "string",
           description: "Working directory shared by participants (default: .)",
         },
+        "work-tracker": {
+          type: "string",
+          description:
+            "Active work-item tracker (github|filesystem, default: github)",
+        },
       },
     },
     {
@@ -209,6 +224,11 @@ const definition = {
         "resume-context": {
           type: "string",
           description: "JSON-serialized prior state for a resumed run",
+        },
+        "work-tracker": {
+          type: "string",
+          description:
+            "Active work-item tracker (github|filesystem, default: github)",
         },
       },
     },
@@ -268,6 +288,7 @@ const definition = {
   },
   examples: [
     "fit-eval run --task-file=task.md --output=trace.ndjson",
+    "fit-eval run --task-file=task.md --work-tracker=filesystem --output=trace.ndjson",
     "fit-eval supervise --task-file=task.md --lead-profile=judge --agent-profile=coder --output=trace.ndjson",
     'fit-eval facilitate --task-file=task.md --lead-profile=lead --agent-profiles="security-engineer,technical-writer" --output=trace.ndjson',
     'fit-eval discuss --task-file=task.md --lead-profile=release-engineer --agent-profiles="staff-engineer,security-engineer" --discussion-id=GD_kw...',

@@ -4,6 +4,7 @@ import { createDiscusser } from "../discusser.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { resolveTaskContent } from "./task-input.js";
+import { resolveWorkTracker } from "./work-tracker.js";
 import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 function parseAgentProfiles(raw, cwd, maxTurns) {
@@ -58,6 +59,7 @@ export function parseDiscussOptions(values, runtime) {
     maxTurns,
     maxLeadTurns,
     outputPath: values.output,
+    workTracker: resolveWorkTracker(values),
     discussionId: values["discussion-id"] ?? null,
     resumeContext,
     callbackUrl: runtime.proc.env.CALLBACK_URL ?? null,
@@ -95,6 +97,9 @@ export async function runDiscussCommand(ctx) {
   if (opts.leadProfile) {
     runtime.proc.env.LIBEVAL_AGENT_PROFILE = opts.leadProfile;
   }
+  // Unconditional so the default "github" is observable to the agent's
+  // active-tracker resolution, mirroring --agent-profile's env write above.
+  runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const discusser = createDiscusser({

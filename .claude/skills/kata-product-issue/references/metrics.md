@@ -21,5 +21,6 @@ Suppressing zero-rows on clean assesses contaminates the XmR signal with
 selection bias — runs get dropped precisely when no work happened, which is
 the data point.
 
-Backlog (`gh issue list`) is queried, not recorded — it's a stock, not process
-data.
+Backlog (`list` issues —
+[work-trackers.md](../../../agents/references/work-trackers.md)) is queried, not
+recorded — it's a stock, not process data.

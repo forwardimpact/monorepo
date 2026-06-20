@@ -5,6 +5,8 @@ one row per run.
 
 | Metric        | Unit  | Description                        | Data source |
 | ------------- | ----- | ---------------------------------- | ----------- |
-| specs_drafted | count | Spec PRs opened or pushed this run | gh pr list  |
+| specs_drafted | count | Spec PRs opened or pushed this run | `list` changes |
 
-Open spec PRs and draft age (`gh pr list`, `git log`) are queried, not recorded.
+Open spec PRs and draft age (`list` changes —
+[work-trackers.md](../../../agents/references/work-trackers.md) — plus `git log`)
+are queried, not recorded.

@@ -3,27 +3,33 @@
 What an obstacle and an experiment *are* — and the obstacle-vs-experiment test —
 is defined in
 [work-definition.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md); this file is
-the `gh` command shapes for filing and closing them.
+the operation recipes for filing and closing them. Each recipe names an
+[abstract operation](../../agents/references/work-trackers.md#abstract-operations);
+its concrete shape per tracker lives in the
+[matrix](../../agents/references/work-trackers.md#the-matrix). Obstacle and
+experiment are both issues, distinguished only by label.
 
 The agent being coached — not the facilitator — creates, comments on, and closes
-**its own** obstacle and experiment issues with `gh`, in both team storyboard and
+**its own** obstacle and experiment issues, in both team storyboard and
 1-on-1 sessions. The facilitator has no `Bash`: it `Ask`s the agent to record
 each one, and the agent **reports the `#NNN` back via `Answer`** (the facilitator
-can't `gh issue list` to find it) for the storyboard headlines and `Conclude`
-summary.
+can't `list` to find it) for the storyboard headlines and `Conclude` summary.
 
 The storyboard's Active and Concluded lists render from issue state via the
 deterministic `fit-wiki refresh` step — never hand-edit them.
 
 ## New Obstacle
 
-```sh
-gh issue create --label obstacle \
-  --title "Obstacle name" \
-  --body "Description.
+`create-issue` with the `obstacle` label:
 
-Blocking dimension: [which gap this blocks]"
-```
+- **Title:** `Obstacle name`
+- **Body:**
+
+  ```text
+  Description.
+
+  Blocking dimension: [which gap this blocks]
+  ```
 
 ## New Experiment
 
@@ -38,16 +44,19 @@ cannot resolve in one run — split into one prediction per skill / run type.
 The `agent:` label and `Owner:` name the **coached agent itself** (the one
 running this command):
 
-```sh
-gh issue create --label experiment --label "agent:[your-agent-name]" \
-  --title "Exp N — short name" \
-  --body "Obstacle: #NNN
-Owner: [your agent name]
+`create-issue` with the `experiment` and `agent:[your-agent-name]` labels:
 
-**What:** description
-**Expected outcome:** prediction
-**Execution plan:** [omit, or a list of repo-root-anchored path globs]"
-```
+- **Title:** `Exp N — short name`
+- **Body:**
+
+  ```text
+  Obstacle: #NNN
+  Owner: [your agent name]
+
+  **What:** description
+  **Expected outcome:** prediction
+  **Execution plan:** [omit, or a list of repo-root-anchored path globs]
+  ```
 
 The `**Execution plan:**` line is required when the experiment will **ship
 code**. It names the intended change surface as a list of repo-root-anchored
@@ -66,19 +75,22 @@ This is bookkeeping, written by the owning agent (never the facilitator). The
 row's `approved` state is human-originated and written elsewhere; see
 [approval-signals.md § Experiment rows](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
 
-## At PR-open (code-shipping experiments)
+## At open-change (code-shipping experiments)
 
-When the owning agent opens the experiment's Act PR, it requests the trusted
-human's approval signal on the PR, naming the experiment issue and flagging any
-time-sensitive evidence (e.g. retention-bounded trace artifacts). The agent
-owns this ask; nobody else requests the signal on its behalf.
+When the owning agent runs `open-change` for the experiment's Act change, it
+requests the trusted human's `gate` signal on the change, naming the experiment
+issue and flagging any time-sensitive evidence (e.g. retention-bounded trace
+artifacts). The agent owns this ask; nobody else requests the signal on its
+behalf.
 
 ## Progress Update
 
-```sh
-gh issue comment #NNN --body "**Actual outcome:** what happened
+`comment` on the experiment issue:
+
+```text
+**Actual outcome:** what happened
 **Learning:** what we learned
-**Next step:** continue / pivot / new"
+**Next step:** continue / pivot / new
 ```
 
 ## Conclusion
@@ -90,9 +102,10 @@ Every experiment concludes with one of three verdicts:
 - **VOID** — the experiment could not be evaluated (e.g. evidence lost, scope
   changed out from under it); no learning either way.
 
-```sh
-gh issue comment #NNN --body "**Verdict:** PASS|FAIL|VOID — one-sentence learning"
-gh issue close #NNN
+`comment` the verdict, then `close` the issue:
+
+```text
+**Verdict:** PASS|FAIL|VOID — one-sentence learning
 ```
 
 When a code-shipping experiment concludes **FAIL** or **VOID**, the owning

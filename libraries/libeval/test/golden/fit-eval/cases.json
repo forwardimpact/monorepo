@@ -7,6 +7,13 @@
     "stderrFile": "help.stderr.txt"
   },
   {
+    "name": "run-help",
+    "args": ["run", "--help"],
+    "exitCode": 0,
+    "stdoutFile": "run-help.stdout.txt",
+    "stderrFile": "run-help.stderr.txt"
+  },
+  {
     "name": "version",
     "args": ["--version"],
     "exitCode": 0,

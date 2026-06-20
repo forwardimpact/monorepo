@@ -83,20 +83,16 @@ from prior entries.
 
 ### Step 1: List Open Issues
 
-```sh
-gh issue list --state open --limit 50 \
-  --search "-label:experiment -label:obstacle" \
-  --json number,title,body,author,labels,createdAt,updatedAt \
-  --jq '.[] | {number, title, author: .author.login, labels: [.labels[].name], created: .createdAt}'
-```
+`list` open issues (cap ~50), excluding `experiment` and `obstacle` labels,
+reading number, title, body, author, labels, and timestamps
+([work-trackers.md](../../agents/references/work-trackers.md)).
 
 Skip issues with `triaged` or `wontfix` labels.
 
 ### Step 2: Read and Classify Each Issue
 
-```sh
-gh issue view <number> --json title,body,comments,labels,author
-```
+`read` the issue's title, body, comments, labels, and author
+([work-trackers.md](../../agents/references/work-trackers.md)).
 
 Classify against the table above. Record reasoning briefly so a future run can
 audit the decision.

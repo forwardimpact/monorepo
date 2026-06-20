@@ -4,6 +4,7 @@ import { createSupervisor } from "../supervisor.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { resolveTaskContent } from "./task-input.js";
+import { resolveWorkTracker } from "./work-tracker.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
@@ -40,6 +41,7 @@ export async function parseSuperviseOptions(values, runtime) {
     outputPath: values.output,
     supervisorProfile: values["lead-profile"] ?? undefined,
     agentProfile: values["agent-profile"] ?? undefined,
+    workTracker: resolveWorkTracker(values),
     allowedTools: (
       values["allowed-tools"] ??
       "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
@@ -100,6 +102,9 @@ export async function runSuperviseCommand(ctx) {
   if (opts.agentProfile) {
     runtime.proc.env.LIBEVAL_AGENT_PROFILE = opts.agentProfile;
   }
+  // Unconditional so the default "github" is observable to the agent's
+  // active-tracker resolution, mirroring --agent-profile's env write above.
+  runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const supervisor = createSupervisor({

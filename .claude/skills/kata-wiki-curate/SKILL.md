@@ -39,8 +39,8 @@ If time-constrained, run `contract-audit` to completion, then prioritize
 
 **Verify state before writing.** When adding or editing any agent-summary entry
 that names a PR or Issue (Watching-list, "Recently merged", Open Blockers,
-Observations to Teammates), query state at write time via
-`gh pr view <num> --json state,mergedAt` or `gh issue view <num> --json state` —
+Observations to Teammates), `read` the work item's state at write time
+([work-trackers.md](../../agents/references/work-trackers.md)) —
 never infer it from teammate summaries, memos, or prior curation entries, which
 may be stale by hours. The same applies to edits triggered by cross-agent
 corrections: re-verify the named artifact rather than transcribing it verbatim.

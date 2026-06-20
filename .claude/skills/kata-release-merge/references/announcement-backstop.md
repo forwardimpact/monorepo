@@ -27,10 +27,9 @@ STATUS, not on issues).
 
 ## Check for an Existing Announcement
 
-```sh
-gh issue view <N> --json comments \
-  --jq '[.comments[].body | select(test("#<pr-number>([^0-9]|$)"))] | length'
-```
+`read` the coordinating issue's comments
+([work-trackers.md](../../../agents/references/work-trackers.md)) and count those
+whose body matches the PR number with a boundary pattern (`#<pr-number>([^0-9]|$)`).
 
 The boundary pattern matters: a plain substring match lets `#15981` satisfy a
 check for `#1598`, so the gate would skip the heal and the miss would go
@@ -46,9 +45,8 @@ running.
 
 ## Probe for Sibling PRs
 
-```sh
-gh pr list --search "<N>" --state all --json number,title,state
-```
+`list` all changes (any state) searching for the issue number `<N>`, reading
+number, title, and state ([work-trackers.md](../../../agents/references/work-trackers.md)).
 
 A second PR referencing the same issue is a potential duplicate. Comment on
 the issue naming both PRs and assess which route stands — the Step 7 comment

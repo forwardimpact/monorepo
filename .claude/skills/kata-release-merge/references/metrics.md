@@ -6,9 +6,11 @@ Record per KATA.md § Metrics. Append one row per metric per run to
 | Metric                     | Unit  | Description                                                                                                    | Data source                                                                |
 | -------------------------- | ----- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | prs_merged                 | count | PRs merged this run                                                                                            | Run actions                                                                |
-| approvals_recorded_per_run | count | Inbound human approval signals — `<phase>:approved` label-add events + APPROVED review events — observed in `[prev_run_start, current_run_start)`. These signals feed `wiki/STATUS.md` via `kata-dispatch`. | `gh api repos/{owner}/{repo}/issues/<n>/timeline` + `.../pulls/<n>/reviews` |
+| approvals_recorded_per_run | count | Inbound human approval signals — `<phase>:approved` label-add events + APPROVED review events — observed in `[prev_run_start, current_run_start)`. These signals feed `wiki/STATUS.md` via `kata-dispatch`. | `read` each item's label-add and review events ([work-trackers.md](../../../agents/references/work-trackers.md)) |
 
-Backlog (`gh pr list`) is queried, not recorded.
+Backlog (`list` changes —
+[work-trackers.md](../../../agents/references/work-trackers.md)) is queried, not
+recorded.
 
 ## Collection
 
@@ -32,15 +34,10 @@ merged this run (Step 8). The cohort undercounts approvals on PRs merged in a
 prior run still within the window — accepted at boundaries; the storyboard
 meeting reads run-over-run, not per-PR.
 
-For each cohort PR, fetch label-add events and APPROVED reviews:
-
-```sh
-gh api repos/{owner}/{repo}/issues/<n>/timeline --paginate \
-  --jq '.[] | select(.event=="labeled" and (.label.name|test("^(spec|design|plan):approved$"))) | {ts: .created_at}'
-
-gh api repos/{owner}/{repo}/pulls/<n>/reviews --paginate \
-  --jq '.[] | select(.state=="APPROVED") | {ts: .submitted_at}'
-```
+For each cohort PR, `read` its label-add events (filtering
+`event=="labeled"` with `label.name` matching `^(spec|design|plan):approved$`,
+keyed by `created_at`) and its APPROVED reviews (filtering `state=="APPROVED"`,
+keyed by `submitted_at`) — [work-trackers.md](../../../agents/references/work-trackers.md).
 
 Filter events to `ts ∈ [prev_run_start, current_run_start)` and sum across all
 cohort PRs to `approvals_recorded_per_run` (no per-event de-dup — record the

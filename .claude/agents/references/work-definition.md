@@ -10,7 +10,9 @@ rubric; the sibling references own the rest.
   [`coordination-protocol.md`](coordination-protocol.md).
 - **Gating** — how phase artifacts enter `main` — lives in
   [`approval-signals.md`](approval-signals.md).
-- **Commands** — the `gh` shapes for obstacle/experiment issues — live in
+- **Commands** — the concrete shapes for each operation live in
+  [`work-trackers.md`](work-trackers.md); the obstacle/experiment recipes that
+  compose them are in
   [`issue-lifecycle.md`](../../skills/kata-session/references/issue-lifecycle.md)
   and the agent profiles (branch names).
 
@@ -18,16 +20,21 @@ rubric; the sibling references own the rest.
 
 Cross-references only — see the owning reference for routing/gate detail.
 
-| Work-type          | What it is                                                   | Created via          |
-| ------------------ | ----------------------------------------------------------- | -------------------- |
-| **fix / bug**      | A mechanical, bounded correction with an obvious resolution | Direct git ops       |
-| **spec**           | The WHAT/WHY of a structural change                         | `kata-spec`          |
-| **design**         | The WHICH/WHERE — an architectural sketch for a spec        | `kata-design`        |
-| **plan**           | The HOW/WHEN — executable steps for a design                | `kata-plan`          |
-| **implementation** | The diff that executes an approved plan                     | `kata-implement`     |
-| **obstacle**       | A measured gap blocking a target condition                  | labeled issue        |
-| **experiment**     | The next testable step against an obstacle                  | labeled issue        |
-| **Discussion/RFC** | An unsettled cross-cutting question                         | `gh` Discussion      |
+Each "Created via" names an [abstract
+operation](work-trackers.md#abstract-operations) or the skill that drives it;
+the operation's concrete shape lives in the
+[matrix](work-trackers.md#the-matrix).
+
+| Work-type          | What it is                                                   | Created via                       |
+| ------------------ | ----------------------------------------------------------- | --------------------------------- |
+| **fix / bug**      | A mechanical, bounded correction with an obvious resolution | `open-change`                     |
+| **spec**           | The WHAT/WHY of a structural change                         | `kata-spec`                       |
+| **design**         | The WHICH/WHERE — an architectural sketch for a spec        | `kata-design`                     |
+| **plan**           | The HOW/WHEN — executable steps for a design                | `kata-plan`                       |
+| **implementation** | The diff that executes an approved plan                     | `kata-implement`                  |
+| **obstacle**       | A measured gap blocking a target condition                  | `create-issue` + `obstacle` label |
+| **experiment**     | The next testable step against an obstacle                  | `create-issue` + `experiment` label |
+| **Discussion/RFC** | An unsettled cross-cutting question                         | `create-discussion`               |
 
 Routing per work-type is in [`coordination-protocol.md` § Channel by output
 type](coordination-protocol.md#channel-by-output-type); gating is in
@@ -39,7 +46,7 @@ type](coordination-protocol.md#channel-by-output-type); gating is in
 
 - **Mechanical (fix)** — the resolution is clear and bounded; it replaces no
   architecture, introduces no component or contract, and crosses no scope
-  boundary. → `fix/` branch, direct git ops.
+  boundary. → `fix/` branch via `open-change`.
 - **Structural (spec)** — it needs a design decision, introduces or changes a
   component or contract, or exceeds the finder's scope. → `spec/` via
   `kata-spec`.
@@ -113,8 +120,10 @@ branches from mixing (`KATA.md` § Agents, § Design Principles).
   carries each work-type, and the decision-question order.
 - [`approval-signals.md`](approval-signals.md) — how phase artifacts are gated
   into `main`.
+- [`work-trackers.md`](work-trackers.md) — the concrete shape for each abstract
+  operation, per tracker.
 - [`issue-lifecycle.md`](../../skills/kata-session/references/issue-lifecycle.md)
-  — the `gh` recipes for obstacle and experiment issues.
+  — the operation recipes for obstacle and experiment issues.
 - `kata-pattern-synthesis` (corpus mapping) and `kata-session`
   [team-storyboard](../../skills/kata-session/references/team-storyboard.md)
   Q3 routing are **specializations** that build on this rubric.

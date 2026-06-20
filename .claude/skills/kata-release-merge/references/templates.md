@@ -2,44 +2,39 @@
 
 Comment templates and report formats for the merge gate.
 
+Each template is a `comment` on a change or issue
+([work-trackers.md](../../../agents/references/work-trackers.md)); fill the body
+shown and post it.
+
 ## Skip Comments
 
 ### Untrusted Author
 
-```sh
-gh pr comment <number> --body "Release merge: skipping — author \`<login>\` is not in the top 7 contributors. Requires human review."
-```
+> Release merge: skipping — author `<login>` is not in the top 7 contributors. Requires human review.
 
 ### Unsupported PR Type
 
-```sh
-gh pr comment <number> --body "Release merge: skipping — PR type \`<type>\` requires human review."
-```
+> Release merge: skipping — PR type `<type>` requires human review.
 
 ### Awaiting Approval Signal
 
-```sh
-gh pr comment <number> --body "Release merge: blocked — \`wiki/STATUS.md\` row for the spec does not yet show \`<phase>\tapproved\`. Apply \`<phase>:approved\` label, submit an APPROVED review, or post an approval comment from a trusted account; \`kata-dispatch\` will propagate it into STATUS."
-```
+> Release merge: blocked — `wiki/STATUS.md` row for the spec does not yet show `<phase>\tapproved`. Apply `<phase>:approved` label, submit an APPROVED review, or post an approval comment from a trusted account; `kata-dispatch` will propagate it into STATUS.
 
 ### CI Failing
 
-Comment with the specific failing checks from `gh pr checks`.
+Comment with the specific failing checks from the change's CI `read`.
 
 ### Substantive Conflict
 
-```sh
-gh pr comment <number> --body "Release merge: blocked — substantive conflicts in <files>. Author judgement needed; aborting rebase."
-```
+> Release merge: blocked — substantive conflicts in <files>. Author judgement needed; aborting rebase.
 
 ## Announcement Cross-Link
 
-Posted on the **coordinating issue** (not the PR) when Step 8 finds no comment
-naming the PR. Adapt the verb to the PR's state at gate time:
+`comment` on the **coordinating issue** (not the change) when Step 8 finds no
+comment naming the PR ([work-trackers.md](../../../agents/references/work-trackers.md)).
+Adapt the verb to the PR's state at gate time:
 
-```sh
-gh issue comment <issue-number> --body "Release merge (announcement backstop): PR #<pr-number> — \`<title>\` — is in flight for this issue and has reached the merge gate. Cross-link posted by the gate because no prior comment here named the PR; recorded as an adherence miss per coordination-protocol.md fix-in-flight markers."
-```
+> Release merge (announcement backstop): PR #<pr-number> — `<title>` — is in flight for this issue and has reached the merge gate. Cross-link posted by the gate because no prior comment here named the PR; recorded as an adherence miss per coordination-protocol.md fix-in-flight markers.
 
 ## Re-ping Comments
 
@@ -47,16 +42,12 @@ Posted by the **Re-ping Rule** (SKILL.md Step 10, item 4) when a blocked PR's
 silence window has expired. Post the one template below, filling `<state>`,
 `<owner>`, and `<next-action>` from the row matching the PR's block reason —
 already computed in this run's Steps 2–8; the Re-ping Rule does not re-run the gates.
+Post it as a `comment` on the change ([work-trackers.md](../../../agents/references/work-trackers.md)):
 
-```sh
-gh pr comment <number> --body "$(cat <<'BODY'
-Release merge Re-ping Rule — gate still open after 3 calendar days:
-- state: <state>
-- owner: <owner>
-- next_action: <next-action>
-BODY
-)"
-```
+> Release merge Re-ping Rule — gate still open after 3 calendar days:
+> - state: <state>
+> - owner: <owner>
+> - next_action: <next-action>
 
 | Block reason | `<state>` | `<owner>` | `<next-action>` |
 | --- | --- | --- | --- |
@@ -69,18 +60,13 @@ BODY
 
 ## Merge Comment
 
-```sh
-gh pr comment <number> --body "Release merge: all gates pass — type \`<type>\`, CI green, author trusted, STATUS row \`<phase>\tapproved\`. Merging."
-gh pr merge <number> --merge --delete-branch
-```
+`comment` then `merge-change`
+([work-trackers.md](../../../agents/references/work-trackers.md)):
 
-After merging, verify state:
+> Release merge: all gates pass — type `<type>`, CI green, author trusted, STATUS row `<phase>\tapproved`. Merging.
 
-```sh
-gh pr view <number> --json state --jq '.state'
-```
-
-If still `OPEN`, note in the summary rather than reporting as merged.
+After merging, `read` the change's state. If still `OPEN`, note in the summary
+rather than reporting as merged.
 
 ## Report Summary
 

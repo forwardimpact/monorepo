@@ -8,32 +8,33 @@ this protocol covers every other output an agent produces.
 
 ## Channel by output type
 
-| Output                                          | Channel           |
-| ----------------------------------------------- | ----------------- |
-| Settled decision; weekly progress; agent state  | Wiki              |
-| Time-series measurement                         | Metrics CSV       |
-| Open question, RFC, cross-product policy debate | Discussion        |
-| Reply tied to one PR or one issue               | PR / issue thread |
-| Experiment or obstacle PDSA state               | Labeled issue     |
-| Mechanical fix or vulnerability patch           | `fix/` branch PR  |
-| Structural finding requiring design             | `spec/` branch PR |
-| Specialized work needed mid-run                 | Sub-agent         |
+Each channel names an [abstract
+operation](work-trackers.md#abstract-operations) (or a non-tracker surface); its
+concrete per-tracker shape lives in the [matrix](work-trackers.md#the-matrix).
+
+| Output                                          | Channel                                  |
+| ----------------------------------------------- | ---------------------------------------- |
+| Settled decision; weekly progress; agent state  | Wiki                                     |
+| Time-series measurement                         | Metrics CSV                              |
+| Open question, RFC, cross-product policy debate | `create-discussion` / `comment-discussion` |
+| Reply tied to one change or one issue           | `comment`                                |
+| Experiment or obstacle PDSA state               | `create-issue` + `label`                 |
+| Mechanical fix or vulnerability patch           | `open-change` (`fix/` branch)            |
+| Structural finding requiring design             | `open-change` (`spec/` branch)           |
+| Specialized work needed mid-run                 | Sub-agent                                |
 
 ## Agent labels on experiment issues
 
 Experiment issues carry an `agent:{name}` label so agents find their work
-during [on-boot routing](memory-protocol.md#on-boot-routing):
-
-```sh
-gh issue list --state open --label experiment --label "agent:staff-engineer"
-```
+during [on-boot routing](memory-protocol.md#on-boot-routing): `list` open issues
+filtered to the `experiment` and `agent:{self}` labels.
 
 Valid labels: `agent:staff-engineer`, `agent:product-manager`,
 `agent:release-engineer`, `agent:security-engineer`, `agent:technical-writer`.
 
 ## Approval signal
 
-Phase artifacts (specs, designs, plans, implementations) are gated into `main`
+Phase artifacts are gated into `main`
 by `kata-release-merge` against `wiki/STATUS.md`. See
 [`approval-signals.md`](approval-signals.md) for the full signal catalogue,
 trust rule, and write protocol. `kata-dispatch` is the bridge from PR-side
@@ -67,32 +68,32 @@ When an output could fit multiple channels, ask in order:
 4. Otherwise → wiki.
 
 A finding can require **multiple channels in parallel** — e.g., a CVE raising
-a policy question is both a `fix/` PR and a Discussion. `fix/` and `spec/`
-branches never share a PR, but either may run alongside a Discussion.
+a policy question is both a `fix/` change and a Discussion. `fix/` and `spec/`
+branches never share a change, but either may run alongside a Discussion.
 
 ## Fix-in-flight marker
 
-A PR body records a change; the coordinating issue coordinates it. An in-run
+A change carries the diff; the coordinating issue coordinates it. An in-run
 decision is not coordinated until it lands where the next reader looks — a
-route decision that lives only in a PR body is invisible to a parallel run
+route decision that lives only in a change body is invisible to a parallel run
 reading the issue, which re-implements the rejected route:
 
-1. **Announce at PR-open.** The implementing run comments on the coordinating
-   issue at or before PR-open: PR link, branch, and any route decision made
-   in-run.
+1. **Announce at `open-change`.** The implementing run comments on the
+   coordinating issue at or before `open-change`: the change link, branch, and
+   any route decision made in-run.
 2. **Close alternatives where they were opened.** When an issue thread poses
    routes A/B, the selection lands on that thread naming the rejected route
    ("took A, not B") — so a later reader knows B is rejected, not unexplored.
 3. **Rescopes name in-flight state.** A comment that redefines an issue's
-   actionable scope states what is in flight (claim, branch, or PR) — or the
+   actionable scope states what is in flight (claim, branch, or change) — or the
    explicit negative: "no fix in flight as of this comment." Closure and
    routing comments are rescopes: a comment that closes a thread or routes a
    decision or disposition to a named owner redefines actionable scope even
    though it reads as terminal, so it carries the same marker and reminds the
-   routed owner to announce at PR-open. A rescope is a
+   routed owner to announce at `open-change`. A rescope is a
    latest-state beacon; silence reads as an open invitation.
 
-A PR body may repeat a decision, never replace it.
+A change body may repeat a decision, never replace it.
 
 ## Cross-agent escalation
 
@@ -117,19 +118,23 @@ lands where the next reader looks.
    point-in-time and can false-negative against a moving origin — none is
    sufficient absence evidence alone, and a false "nothing exists" mints
    duplicate work with no concurrency required:
+   The change-existence probes are the `list` operation (concrete shape per
+   tracker in the [matrix](work-trackers.md#the-matrix)); branch existence is a
+   canonical-state read, not a tracker operation:
    - **Branch existence:** `git ls-remote origin "refs/heads/<branch>"` —
      exact ref only; glob refspecs fail silent on a miss.
-   - **PR existence:** `gh pr list --head <branch> --state all` — catches
-     a branch pushed before its PR opens, the costliest duplicate window.
-   - **Topic search:** `gh pr list --search "<issue#>" --state all`.
-     `--state all` is load-bearing — a merged or closed PR on the target
-     changes the route as much as an open one does.
+   - **Change existence:** `list` changes by head branch, across **all**
+     states — catches a branch pushed before its change opens, the costliest
+     duplicate window.
+   - **Topic search:** `list` changes searching the `<issue#>`, across **all**
+     states. All-states is load-bearing — a merged or closed change on the
+     target changes the route as much as an open one does.
    Run the probes twice: at implementation start, and again immediately
-   before `gh pr create` — the search index lags by minutes, and minutes
+   before `open-change` — the search index lags by minutes, and minutes
    are exactly the collision window. The probe complements the claim
    handshake; it never replaces it.
-3. **Create** the PR, then announce it on the coordinating issue per the
-   fix-in-flight marker rule.
+3. **Create** the change (`open-change`), then announce it on the coordinating
+   issue per the fix-in-flight marker rule.
 
 ## Inbound: unclear addressed comments
 
@@ -161,23 +166,18 @@ their behalf.
 Cite every non-wiki output in the wiki log so the deliberation trail stays
 linked. Format: `<Channel> <ref>: <one-line topic> (<URL>)`.
 
-## Creating outputs (gh CLI)
+## Creating outputs
 
-`gh` is the authorized tool for every non-wiki output. Capture the returned
-URL for the citation format above.
-
-- **Issue comment:** `gh issue comment <N> --body "<text>"`
-- **PR comment:** `gh pr comment <N> --body "<text>"`
-- **New Discussion:**
-  `gh api graphql -f query='mutation { createDiscussion(input: {...}) {...} }'`
-- **Discussion comment:**
-  `gh api graphql -f query='mutation { addDiscussionComment(input: {...}) {...} }'`
-  — pass `replyToId` to thread.
+Each non-wiki output names an operation — `comment`,
+`create-discussion` / `comment-discussion`, `create-issue`, `open-change`. The
+shape realizing each on the active tracker lives in
+[`work-trackers.md`](work-trackers.md); capture the returned id/URL for the
+citation above.
 
 ## `## Coordination Channels` block in a skill
 
 A skill carries this block when its procedure produces non-wiki, non-fix/spec
-outputs needing cross-agent or external visibility — typically PR comments,
-issue comments, or Discussions. Skills whose only outputs are wiki appends
+outputs needing cross-agent visibility — typically `comment` on a
+change or issue, or Discussions. Skills whose only outputs are wiki appends
 and fix/spec branches don't need the block; this file plus
 `memory-protocol.md` govern routing for those.
