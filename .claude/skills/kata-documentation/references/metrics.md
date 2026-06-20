@@ -23,3 +23,20 @@ is `today − last_reviewed`, the same value the wiki table reports.
 
 **Tagging:** the `note`/`run` column carries the experiment's tag so
 post-window XmR analysis can filter the window cleanly.
+
+## `errors_found` — Enumeration-drift tagging
+
+When a build-time enumeration-drift gate covers the repo's restated
+enumerations (services lists, library and skill counts, sibling-action
+tables, products and workflow lists), a finding the gate would have caught is
+recorded on its `errors_found` row with a `note` that begins:
+
+```
+enumeration-drift:<topic-id>:
+```
+
+`<topic-id>` names the registry source-of-truth set the drift belongs to,
+followed by a short description. Tagging this way lets post-window analysis
+isolate enumeration-class findings from the broader `errors_found` series
+without re-reading every note. Findings filed before the gate landed keep
+their existing free-text notes and are not part of the tagged series.

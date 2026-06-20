@@ -29,7 +29,7 @@ tooling to prove changes improved outcomes. Every CLI prints
 grep-friendly help and JSON output; every library ships a matching skill in the
 `forwardimpact/fit-skills` pack so agents land on the same docs as humans.
 
-39 libraries and 15 services, all published to npm under
+<!-- enum:libraries-list:count -->39<!-- /enum --> libraries and <!-- enum:services-tree:count -->15<!-- /enum --> services, all published to npm under
 `@forwardimpact/lib*` and `@forwardimpact/svc*`. Browse the full tables in
 [libraries/README.md](https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md)
 and

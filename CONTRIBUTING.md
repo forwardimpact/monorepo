@@ -95,15 +95,7 @@ Exit gate — verify every item before committing.
 
 ```
 .claude/       # agent and skills, edited via `bunx fit-selfedit`
-products/
-  map/         # fit-map — data, validation, schema
-  pathway/     # fit-pathway — web app, CLI
-  guide/       # fit-guide — LLM agent
-  landmark/    # fit-landmark
-  summit/      # fit-summit
-  outpost/     # fit-outpost — macOS knowledge system
-  gear/        # fit-skills catalog CLI
-  kata/        # kata-skills pack
+products/      # one directory per product — see the products list below
 libraries/
   lib*/        # shared libraries
 services/
@@ -118,6 +110,21 @@ wiki/          # GitHub wiki — shared agent memory
 design/        # design language (brand-agnostic) and brand implementations
 websites/      # public site sources — fit/ → forwardimpact.team, kata/ → kata.team
 ```
+
+The `products/` directory holds one directory per product:
+
+<!-- enum:products-tree:list -->
+```
+map/
+pathway/
+guide/
+landmark/
+summit/
+outpost/
+gear/
+kata/
+```
+<!-- /enum -->
 
 Git tracks `*.example.*` templates in `config/`; live files are gitignored.
 
