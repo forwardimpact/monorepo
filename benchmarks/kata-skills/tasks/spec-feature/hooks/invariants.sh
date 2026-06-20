@@ -1,9 +1,9 @@
 #!/bin/sh
 set -u
-SPEC="$WORKDIR/specs/042-todo-filter/spec.md"
-JTBD="$WORKDIR/jtbd-excerpt.md"
+SPEC="$AGENT_CWD/specs/042-todo-filter/spec.md"
+JTBD="$AGENT_CWD/jtbd-excerpt.md"
 FAIL=0
-assert() { fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
+assert() { bunx fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
 
 assert file-present --exists "$SPEC"
 [ "$FAIL" = 1 ] && exit 1

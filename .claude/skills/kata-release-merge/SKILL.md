@@ -45,16 +45,15 @@ Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory
 
 ### Step 1: List Open PRs
 
-```sh
-gh pr list --state open --base main \
-  --json number,title,headRefName,author,updatedAt,mergeable,mergeStateStatus,labels,reviews
-```
+`list` open changes against `main` ([work-trackers.md](../../agents/references/work-trackers.md)),
+reading number, title, head branch, author, update time, mergeability, labels,
+and reviews.
 
 Skip PRs authored by `app/dependabot` — handled by `kata-security-update`.
 
 ### Step 2: Verify Contributor Trust
 
-Check the author: `gh pr view <number> --json author --jq '.author.login'`. If
+`read` the change's author ([work-trackers.md](../../agents/references/work-trackers.md)). If
 `app/kata-agent-team`, the PR is **trusted by definition**. Otherwise, look up
 the top 7 human contributors:
 
@@ -80,10 +79,8 @@ Parse the title using `type(scope): subject`. Each type maps to a phase:
 
 ### Step 4: Assess Merge State
 
-```sh
-gh pr view <number> --json mergeable,mergeStateStatus
-gh pr checks <number>
-```
+`read` the change's mergeability and CI checks
+([work-trackers.md](../../agents/references/work-trackers.md)).
 
 Clean (mergeable, CI green, up-to-date) → continue to Step 6. Behind, stale, or conflicting → rebase (Step 5). CI failing → fix (Step 5) or block. An approved-and-pinned experiment PR never rebases — skip to Step 6 re-block ([`experiment-path.md`](references/experiment-path.md)).
 
@@ -105,7 +102,8 @@ git add <files> && git rebase --continue
 deleted-vs-modified) — `git rebase --abort` and comment the conflicting files.
 
 After rebase, run auto-fix then check; if checks still fail, mark **blocked**
-and skip to Step 12. Push with `git push --force-with-lease origin <pr-branch>`.
+and skip to Step 12. `update-change` to publish the rebased branch
+([work-trackers.md](../../agents/references/work-trackers.md)).
 
 **Phase-PR review transfer.** Before force-pushing a `spec`/`design`/`plan` PR,
 if the current head carries an approval signal, apply
@@ -173,7 +171,7 @@ per [work-definition.md § Product-aligned vs internal](https://github.com/forwa
 ### Step 11: Merge Mergeable PRs
 
 1. Post the merge comment from `references/templates.md` § Merge Comment.
-2. `gh pr merge <number> --merge --delete-branch`
+2. `merge-change` ([work-trackers.md](../../agents/references/work-trackers.md)).
 3. Verify state is `MERGED`. On race or branch-protection failure, record and
    move on — do **not** retry without re-running Steps 1–10.
 4. **Re-ping Rule** — re-comment on any still-blocked PR past its 3-day silence window ([`reping-rule.md`](references/reping-rule.md)).

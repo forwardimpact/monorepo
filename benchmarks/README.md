@@ -39,7 +39,7 @@ automatically. Task IDs are directory names under `tasks/`.
 A family-level `workdir/` or `specs/` (if present) is copied into every task's
 agent CWD as a shared base; the per-task `workdir/`/`specs/` overlay on top.
 Use it to maintain one fixture (e.g. an app under test) across many tasks
-rather than duplicating it per task. Hooks receive `$WORKDIR`, `$PORT`,
+rather than duplicating it per task. Hooks receive `$AGENT_CWD`, `$PORT`,
 `$TASK_ID`, `$TASK_DIR`, `$HOOKS_DIR`, `$FAMILY_DIR` (and `invariants.sh` also
 `$RESULTS_FD`).
 

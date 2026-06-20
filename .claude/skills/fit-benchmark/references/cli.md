@@ -19,6 +19,9 @@ npx fit-benchmark <command> [options]
 | Flag               | Required | Purpose                                                                                          |
 | ------------------ | -------- | ------------------------------------------------------------------------------------------------ |
 | `--family`         | yes      | Path or git URL of the task family                                                               |
+| `--task`           | no       | Run only this task id (directory under `tasks/`); default runs every task                        |
+| `--skills-from`    | no       | Stage `.claude/` from this directory (a root containing `.claude/`) instead of running apm install — benchmark local, unpublished skills |
+| `--work-tracker`   | no       | Active work-item tracker the agent coordinates through: `github` or `filesystem` (default `github`) |
 | `--output`         | no       | Run-output directory (created if missing, default `benchmark-runs`)                              |
 | `--runs`           | no       | Runs per task (default `5`)                                                                      |
 | `--agent-model`    | no       | Claude model for the agent-under-test (default `claude-sonnet-4-6`)                              |
@@ -40,7 +43,7 @@ subcommand. Exit code is `0` if every record's combined verdict is
 | ------------ | -------- | ---------------------------------------------------------------------------------------- |
 | `--family`   | yes      | Path or git URL of the task family                                                       |
 | `--task`     | yes      | Task id (directory name under `tasks/`)                                        |
-| `--workdir`  | yes      | Post-run directory. `<workdir>/cwd/` is the agent CWD; invariants run against it.        |
+| `--run-dir`  | yes      | Post-run directory whose `cwd/` subdir is the agent CWD; invariants run against that cwd (the path hooks see as `$AGENT_CWD`). |
 | `--output`   | no       | Output file path (defaults to stdout; one JSONL line)                                    |
 
 `invariants` emits an `InvariantsRecord` (narrower than the full `ResultRecord` —

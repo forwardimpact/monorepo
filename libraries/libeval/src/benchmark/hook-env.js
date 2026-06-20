@@ -12,7 +12,7 @@
 /**
  * @param {Record<string, string>} baseEnv - Inherited env (`runtime.proc.env`).
  * @param {object} vars
- * @param {string} vars.cwd - Agent CWD → `$WORKDIR`.
+ * @param {string} vars.cwd - Agent CWD → `$AGENT_CWD`.
  * @param {number} vars.port - Allocated TCP port → `$PORT`.
  * @param {string} vars.taskId - Task id → `$TASK_ID`.
  * @param {string} vars.taskDir - Task directory on host → `$TASK_DIR`.
@@ -27,7 +27,10 @@ export function buildHookEnv(
 ) {
   return {
     ...baseEnv,
-    WORKDIR: cwd,
+    // The agent CWD itself — hooks reference emitted files as `$AGENT_CWD/<path>`.
+    // Distinct from the `invariants` CLI's `--run-dir` (the parent that
+    // *contains* `cwd/`), so the two are never confused.
+    AGENT_CWD: cwd,
     PORT: String(port),
     TASK_ID: taskId,
     TASK_DIR: taskDir,

@@ -16,7 +16,8 @@ describe("buildHookEnv", () => {
         familyDir: "/fam",
       },
     );
-    assert.equal(env.WORKDIR, "/run/cwd");
+    assert.equal(env.AGENT_CWD, "/run/cwd");
+    assert.equal(env.WORKDIR, undefined, "no legacy WORKDIR alias");
     assert.equal(env.PORT, "4242");
     assert.equal(env.TASK_ID, "spec-feature");
     assert.equal(env.TASK_DIR, "/fam/tasks/spec-feature");

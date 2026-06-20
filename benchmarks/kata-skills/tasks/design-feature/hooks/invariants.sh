@@ -1,8 +1,8 @@
 #!/bin/sh
 set -u
-DESIGN="$WORKDIR/specs/042-todo-filter/design-a.md"
+DESIGN="$AGENT_CWD/specs/042-todo-filter/design-a.md"
 FAIL=0
-assert() { fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
+assert() { bunx fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
 
 assert file-present --exists "$DESIGN"
 [ "$FAIL" = 1 ] && exit 1

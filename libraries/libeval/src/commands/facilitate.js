@@ -4,6 +4,7 @@ import { createFacilitator } from "../facilitator.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { resolveTaskContent } from "./task-input.js";
+import { resolveWorkTracker } from "./work-tracker.js";
 import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 /**
@@ -56,6 +57,7 @@ export function parseFacilitateOptions(values, runtime) {
     maxTurns,
     outputPath: values.output,
     facilitatorProfile: values["lead-profile"] ?? undefined,
+    workTracker: resolveWorkTracker(values),
   };
 }
 
@@ -91,6 +93,9 @@ export async function runFacilitateCommand(ctx) {
   if (opts.facilitatorProfile) {
     runtime.proc.env.LIBEVAL_AGENT_PROFILE = opts.facilitatorProfile;
   }
+  // Unconditional so the default "github" is observable to the agent's
+  // active-tracker resolution, mirroring --agent-profile's env write above.
+  runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const facilitator = createFacilitator({

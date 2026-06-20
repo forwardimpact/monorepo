@@ -185,7 +185,7 @@ export class WorkdirManager {
  * Spawn preflight. Stays detached so we can SIGTERM the whole process group.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string} script
- * @param {string} cwd - Agent CWD passed via $WORKDIR.
+ * @param {string} cwd - Agent CWD passed via $AGENT_CWD.
  * @param {number} port - Free TCP port passed via $PORT.
  * @param {{taskId: string, taskDir: string, hooksDir: string, familyDir: string|null}} vars - Extra hook env vars.
  * @returns {Promise<{pgid: number, error?: {phase: string, message: string, exitCode: number}}>}

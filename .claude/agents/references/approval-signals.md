@@ -8,12 +8,19 @@ writes the row.
 
 ## The signals
 
+Each signal is a work-item event — a trusted approval marker on a change
+(`gate`) or a change reaching `merged` (`merge-change`). The concrete shape that
+realizes each on the active tracker lives in the
+[matrix](work-trackers.md#the-matrix) (github: PR label, review, or merge event,
+relayed by the `kata-dispatch` bridge; filesystem: the `approval` field and
+`state: merged`).
+
 | Signal | Source | Captured by |
 |---|---|---|
-| `<phase>:approved` label on PR | Human or `/ship-it` | `kata-dispatch` (label event) |
-| `gh pr review --approve` | Trusted-account approver | `kata-dispatch` (review event) |
-| Approval comment ("approve", "LGTM", "ship it") | Trusted contributor on PR | `kata-dispatch` (comment event) |
-| Merged phase PR | Trusted merger (`kata-release-merge` or human) | `kata-dispatch` (PR close event with `merged: true`) |
+| `<phase>:approved` label on a change | Human or `/ship-it` | `kata-dispatch` (label event) |
+| `gate` — trusted approval marker on a change | Trusted-account approver | `kata-dispatch` (review event) |
+| Approval comment ("approve", "LGTM", "ship it") | Trusted contributor on the change | `kata-dispatch` (comment event) |
+| `merge-change` — a change reaches `merged` | Trusted merger (`kata-release-merge` or human) | `kata-dispatch` (close event with `merged: true`) |
 | Direct user message in interactive session | Trusted user | Active agent (in-session) |
 | `kata-plan` panel-clean | `staff-engineer` (plans only) | `kata-plan` skill |
 | Implementation merge | `kata-release-merge` | Skill (writes `plan implemented`) |
@@ -113,7 +120,7 @@ is stricter than the pin-less spec-row approvals because no spec, design, or
 plan artifact bounds what the approved commits contain.
 
 The signal types feeding `approved` are the trusted-human PR-side signals in
-§ The signals (label, `--approve` review, approval comment, in-session
+§ The signals (label, a `gate` approval marker, approval comment, in-session
 message); an agent verdict is never one of them.
 
 ## Labels remain as input signals

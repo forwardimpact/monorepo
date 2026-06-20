@@ -6,6 +6,7 @@ import { composeProfilePrompt } from "../profile-prompt.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { SequenceCounter } from "../sequence-counter.js";
+import { resolveWorkTracker } from "./work-tracker.js";
 import { resolveTaskContent } from "./task-input.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { AGENT_MODEL } from "@forwardimpact/libutil/models";
@@ -14,9 +15,9 @@ import { AGENT_MODEL } from "@forwardimpact/libutil/models";
  * Parse and validate run command options from parsed values.
  * @param {object} values - Parsed option values from cli.parse()
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
- * @returns {{ taskContent: string, cwd: string, model: string, maxTurns: number, outputPath: string|undefined, agentProfile: string|undefined, allowedTools: string[] }}
+ * @returns {{ taskContent: string, cwd: string, model: string, maxTurns: number, outputPath: string|undefined, agentProfile: string|undefined, workTracker: string, allowedTools: string[] }}
  */
-function parseRunOptions(values, runtime) {
+export function parseRunOptions(values, runtime) {
   const { task: taskContent, amend: taskAmend } = resolveTaskContent(
     values,
     runtime,
@@ -31,6 +32,7 @@ function parseRunOptions(values, runtime) {
     maxTurns: maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10),
     outputPath: values.output,
     agentProfile: values["agent-profile"] ?? undefined,
+    workTracker: resolveWorkTracker(values),
     allowedTools: (
       values["allowed-tools"] ??
       "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
@@ -57,6 +59,7 @@ export async function runRunCommand(ctx) {
     maxTurns,
     outputPath,
     agentProfile,
+    workTracker,
     allowedTools,
     mcpServer,
   } = parseRunOptions(ctx.options, runtime);
@@ -108,6 +111,9 @@ export async function runRunCommand(ctx) {
   if (agentProfile) {
     runtime.proc.env.LIBEVAL_AGENT_PROFILE = agentProfile;
   }
+  // Unconditional so the default "github" is observable to the agent's
+  // active-tracker resolution, mirroring --agent-profile's env write above.
+  runtime.proc.env.LIBEVAL_WORK_TRACKER = workTracker;
 
   const systemPrompt = agentProfile
     ? composeProfilePrompt(agentProfile, {

@@ -153,11 +153,10 @@ Verbs: `add` for new pages, `update` for changes, `fix` for corrections.
 
 ### Publishing changes
 
-Commits are not visible until pushed. After committing on a branch:
-
-1. **Push the branch** — `git push -u origin <branch>`
-2. **Open a PR** — `gh pr create --title "<title>" --body "<body>"`, holding the
-   PR body to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
+Commits are not visible until pushed. After committing on a branch, `open-change`
+([work-trackers.md](../../agents/references/work-trackers.md)) with the title and
+body, holding the PR body to
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
 
 Each branch gets its own PR. Fix and spec branches are independent — push and PR
 each one separately. Wiki changes follow the wiki curation skill's publishing

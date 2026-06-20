@@ -23,16 +23,15 @@ export async function runBenchmarkInvariantsCommand(ctx) {
     return { ok: false, code: 1, error: "--family is required" };
   const taskId = values.task;
   if (!taskId) return { ok: false, code: 1, error: "--task is required" };
-  const workdirArg = values.workdir;
-  if (!workdirArg)
-    return { ok: false, code: 1, error: "--workdir is required" };
+  const runDirArg = values["run-dir"];
+  if (!runDirArg) return { ok: false, code: 1, error: "--run-dir is required" };
 
   const family = await loadTaskFamily(familyInput, runtime);
   const task = family.tasks().find((t) => t.id === taskId);
   if (!task)
     return { ok: false, code: 1, error: `task not found in family: ${taskId}` };
 
-  const runDir = resolve(workdirArg);
+  const runDir = resolve(runDirArg);
   const cwd = join(runDir, "cwd");
   const port = await allocatePort();
 

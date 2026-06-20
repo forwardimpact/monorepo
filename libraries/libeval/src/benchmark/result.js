@@ -20,6 +20,7 @@ const INVARIANTS_SHAPE = z.object({
   verdict: VERDICT_ENUM,
   details: z.array(z.unknown()),
   exitCode: z.number().int(),
+  stderr: z.string().optional(),
 });
 
 const JUDGE_VERDICT_SHAPE = z.object({

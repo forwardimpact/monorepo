@@ -5,32 +5,29 @@ comment and PR body is signed `— Product Manager 🌱`.
 
 ## Issue Comments
 
-Use `gh issue comment <number> --body "<text>"` with the text below, selecting
-the variant that matches the triage decision. For `wontfix` and duplicate
-outcomes, chain `gh issue edit --add-label` and/or `gh issue close` after the
+`comment` on the issue with the text below, selecting the variant that matches
+the triage decision ([work-trackers.md](../../../agents/references/work-trackers.md)).
+For `wontfix` and duplicate outcomes, chain `label` and/or `close` after the
 comment.
 
 | Outcome             | Body text                                                                                                                                 | Follow-up                                   |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | **Mechanical fix**  | Thanks for reporting this! I can see the problem — I'll put together a fix now.                                                           | —                                           |
 | **Product-aligned** | Thanks for this suggestion! This aligns with our product direction. I'm going to write up a spec so we can plan the implementation.       | —                                           |
-| **Out of scope**    | Thanks for taking the time to open this! After reviewing it against our product direction, this falls outside our current scope. _<why>_. | `--add-label wontfix`; `gh issue close`     |
-| **Duplicate**       | Thanks for reporting this! This is already tracked in #<original>, so I'll close this one as a duplicate.                                 | `gh issue close --reason "not planned"`     |
-| **Needs info**      | Thanks for opening this! I'd like to help, but I need a bit more context: _<specific questions>_.                                         | `--add-label needs-info` (do **not** close) |
+| **Out of scope**    | Thanks for taking the time to open this! After reviewing it against our product direction, this falls outside our current scope. _<why>_. | `label` wontfix; `close`                    |
+| **Duplicate**       | Thanks for reporting this! This is already tracked in #<original>, so I'll close this one as a duplicate.                                 | `close` (reason "not planned")              |
+| **Needs info**      | Thanks for opening this! I'd like to help, but I need a bit more context: _<specific questions>_.                                         | `label` needs-info (do **not** close)       |
 
 ### Adding Feedback to Existing Issues
 
-```sh
-gh issue comment <number> --body "$(cat <<'EOF'
-Additional feedback observed during user testing of **<product>** in the
-`<scenario>` evaluation scenario:
+`comment` on the issue ([work-trackers.md](../../../agents/references/work-trackers.md)):
 
-<description>
-
-— Product Manager 🌱
-EOF
-)"
-```
+> Additional feedback observed during user testing of **<product>** in the
+> `<scenario>` evaluation scenario:
+>
+> <description>
+>
+> — Product Manager 🌱
 
 ## Fix and Spec PRs
 
@@ -40,24 +37,16 @@ commit type (`fix(<scope>)` vs `spec(<scope>)`), closing keyword (`Closes` vs
 
 ### Branch and Commit
 
-```sh
-git checkout main && git pull origin main
-git checkout -b <fix|spec>/issue-<number>-<short-description>
-# ... implement fix or write spec ...
-# Run the repository's check and test commands
-git add <paths>
-git commit -m "<fix|spec>(<scope>): <description>
-
-<Closes|Addresses> #<number>"
-git push -u origin <fix|spec>/issue-<number>-<short-description>
-```
+Implement the fix or write the spec on a `<fix|spec>/issue-<number>-…` branch,
+run the repository's check and test commands, and commit with subject
+`<fix|spec>(<scope>): <description>` and a `<Closes|Addresses> #<number>` trailer.
 
 ### PR Body
 
-```sh
-gh pr create \
-  --title "<fix|spec>(<scope>): <description>" \
-  --body "$(cat <<'EOF'
+`open-change` ([work-trackers.md](../../../agents/references/work-trackers.md))
+titled `<fix|spec>(<scope>): <description>` with this body:
+
+```markdown
 ## Summary
 
 <description>
@@ -68,8 +57,6 @@ gh pr create \
 
 - [ ] Repository check command passes
 - [ ] <specific verification>
-EOF
-)"
 ```
 
 Spec PRs replace the Test plan with a Review section:
@@ -83,11 +70,11 @@ Spec for issue #<number>. Needs review before implementation — see the
 
 ## New Issues from User Testing
 
-```sh
-gh issue create \
-  --title "<bug|docs|feat>(<product>): <concise description>" \
-  --label "user-testing" \
-  --body "$(cat <<'EOF'
+`create-issue` ([work-trackers.md](../../../agents/references/work-trackers.md))
+titled `<bug|docs|feat>(<product>): <concise description>`, labeled
+`user-testing`, with this body:
+
+```markdown
 ## Context
 Observed during user testing of **<product>** in the `<scenario>` scenario.
 
@@ -99,8 +86,6 @@ Expected: <what the user expected>
 Actual: <what happened>
 
 — Product Manager 🌱
-EOF
-)"
 ```
 
 ## Report Summary Tables

@@ -38,9 +38,9 @@ alongside the skill-specific ones below.
       `push` per
       [memory-protocol § Active Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#active-claims).
 - [ ] Probe the remote of record: `git ls-remote origin
-      "refs/heads/<branch>"`, `gh pr list --head <branch> --state all`,
-      and `--search "<spec #>" --state all`
-      ([§ Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create)).
+      "refs/heads/<branch>"` and `list` changes by head branch and by spec
+      number, any state ([work-trackers.md](../../agents/references/work-trackers.md);
+      [§ Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create)).
 - [ ] Read the full spec and all plan files before writing any code.
 - [ ] Implement plan-a unless explicitly directed to a different variant.
 - [ ] Implement only what the plan describes — no unrequested refactors,
@@ -159,7 +159,7 @@ before advancing.
 ### Step 8: Open an implementation PR
 
 Push commits only after the panel is clean; re-run the READ-DO freshness probe
-before `gh pr create`. Title the PR with the spec id: `feat(scope): ... (#NNN)`.
+before the `open-change`. Title the PR with the spec id: `feat(scope): ... (#NNN)`.
 After opening, announce and route on the coordinating issue per
 [coordination-protocol § Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create),
 and hold the PR body to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).

@@ -11,7 +11,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 /** Installs apm and stages `.claude/` for a task family. */
 export class ApmInstaller {
@@ -28,19 +28,30 @@ export class ApmInstaller {
   /**
    * @param {import("./task-family.js").TaskFamily} family
    * @param {string} outputDir - The benchmark run's output directory.
+   * @param {object} [options]
+   * @param {string|null} [options.skillsFrom] - Stage `.claude/` from this
+   *   directory instead of running apm install. The path is a root containing
+   *   a `.claude/` tree (e.g. a working tree), letting a run exercise local,
+   *   unpublished skills.
    * @returns {Promise<{stagingDir: string, skillSetHash: string, judgeProfilesDir: string}>}
    */
-  async install(family, outputDir) {
+  async install(family, outputDir, { skillsFrom } = {}) {
     const fs = this.runtime.fs;
     const stagingDir = join(outputDir, ".apm-staging");
     const stagedClaude = join(stagingDir, ".claude");
-    const sourceClaude = join(family.rootPath, ".claude");
+    const sourceClaude = skillsFrom
+      ? join(resolve(skillsFrom), ".claude")
+      : join(family.rootPath, ".claude");
     const apmYml = join(family.rootPath, "apm.yml");
 
-    const hasApm = await fs
-      .access(apmYml)
-      .then(() => true)
-      .catch(() => false);
+    // --skills-from takes precedence over apm install: the caller is supplying
+    // the skill tree explicitly, so no remote fetch runs.
+    const hasApm =
+      !skillsFrom &&
+      (await fs
+        .access(apmYml)
+        .then(() => true)
+        .catch(() => false));
 
     if (hasApm) {
       await this.#runApmInstall(family.rootPath);
@@ -58,6 +69,9 @@ export class ApmInstaller {
       .access(sourceClaude)
       .then(() => true)
       .catch(() => false);
+    if (skillsFrom && !hasClaudeDir) {
+      throw new Error(`--skills-from has no .claude/ tree at ${sourceClaude}`);
+    }
     if (hasClaudeDir) {
       await fs.cp(sourceClaude, stagedClaude, { recursive: true });
     } else {
@@ -134,7 +148,9 @@ export function createApmInstaller(deps) {
  * @param {import("./task-family.js").TaskFamily} family
  * @param {string} outputDir
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @param {object} [options] - Forwarded to `ApmInstaller.install` (e.g.
+ *   `{ skillsFrom }`).
  */
-export function installApm(family, outputDir, runtime) {
-  return new ApmInstaller({ runtime }).install(family, outputDir);
+export function installApm(family, outputDir, runtime, options = {}) {
+  return new ApmInstaller({ runtime }).install(family, outputDir, options);
 }

@@ -22,17 +22,13 @@ Open PRs still **blocked** after this run's merges (Step 10 items 1–3). PRs
 that passed all gates merged and are gone. There is no prior-run-membership
 check — the silence window test below filters out PRs first blocked this run.
 
-For each candidate, read the most-recent bot comment timestamp on the PR
-thread:
-
-```sh
-gh api repos/{owner}/{repo}/issues/<number>/comments \
-  --jq '[.[] | select(.user.login == "kata-agent-team[bot]")] | last | .created_at'
-```
+For each candidate, `read` the change's discussion
+([work-trackers.md](../../../agents/references/work-trackers.md)) and take the
+most-recent bot comment timestamp (`user.login == "kata-agent-team[bot]"`).
 
 This is the same conversation thread the open-comment gate reads
 ([`comment-gate.md`](comment-gate.md)); every block, re-ping, and merge comment
-this skill posts goes through `gh pr comment` and lands here, so the
+this skill posts is a `comment` on the change and lands here, so the
 most-recent bot comment is the true silence anchor. The login on this endpoint
 is `kata-agent-team[bot]` — pin that, not the `app/kata-agent-team` identity
 slug.
@@ -53,8 +49,9 @@ table state — a maintained column is per-run state that drifts silently.
 When due, post the matching re-ping variant from
 [`templates.md`](templates.md) § Re-ping Comments for the PR's block reason
 **already computed in this run's Steps 2–8** — do not re-run the gates or
-re-query `gh pr checks`; the failing checks and reason carry from the run's own
-classification.
+re-`read` the change's CI checks
+([work-trackers.md](../../../agents/references/work-trackers.md)); the failing
+checks and reason carry from the run's own classification.
 
 ## Owner taxonomy
 

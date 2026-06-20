@@ -1,6 +1,6 @@
 #!/bin/sh
 set -u
-APP="$WORKDIR/app"
+APP="$AGENT_CWD/app"
 FAIL=0
 
 if [ ! -d "$APP" ]; then

@@ -33,13 +33,11 @@ patterns from noise.
 
 ## Triggers
 
-```sh
-# Eligibility — at least one threshold must hold. Comma-separated `--label` ANDs;
-# query each label separately, raise `--limit` past 30, and dedupe for the OR-union.
-{ gh issue list --label obstacle --state open --json number --limit 1000;
-  gh issue list --label experiment --state open --json number --limit 1000; } \
-  | jq -s 'add | unique_by(.number) | length'   # ≥10 → eligible
-```
+Eligibility — at least one threshold must hold. `list` open issues for the
+`obstacle` and `experiment` labels separately, then dedupe by number for the
+OR-union (a label filter ANDs, so a single combined query would miss items
+carrying only one label); ≥10 unique items → eligible
+([work-trackers.md](../../agents/references/work-trackers.md)).
 
 A sweep processes every eligible cluster, at most once per ISO week, unless a
 producer-orphaning event forces it.

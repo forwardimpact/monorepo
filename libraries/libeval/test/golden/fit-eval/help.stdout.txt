@@ -1,4 +1,4 @@
-fit-eval 0.1.50 — Run agents and capture NDJSON traces — for agent evaluations or multi-agent collaboration
+fit-eval 0.1.64 — Run agents and capture NDJSON traces — for agent evaluations or multi-agent collaboration
 
 Usage: fit-eval <command> [options]
 
@@ -19,6 +19,7 @@ Options:
 
 Examples:
   fit-eval run --task-file=task.md --output=trace.ndjson
+  fit-eval run --task-file=task.md --work-tracker=filesystem --output=trace.ndjson
   fit-eval supervise --task-file=task.md --lead-profile=judge --agent-profile=coder --output=trace.ndjson
   fit-eval facilitate --task-file=task.md --lead-profile=lead --agent-profiles="security-engineer,technical-writer" --output=trace.ndjson
   fit-eval discuss --task-file=task.md --lead-profile=release-engineer --agent-profiles="staff-engineer,security-engineer" --discussion-id=GD_kw...

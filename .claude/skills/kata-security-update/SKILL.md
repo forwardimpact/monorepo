@@ -71,17 +71,15 @@ Extract previous triage outcomes and packages that repeatedly fail Check 8.
 
 ### Step 1: List Open Dependabot PRs
 
-```sh
-gh pr list --author 'app/dependabot' --state open \
-  --json number,title,headRefName,labels,createdAt
-```
+`list` open changes authored by `app/dependabot`, reading number, title, head
+branch, labels, and creation time
+([work-trackers.md](../../agents/references/work-trackers.md)).
 
 ### Step 2: Evaluate Each PR
 
-```sh
-gh pr view <number> --json title,body,headRefName,files,commits,statusCheckRollup,mergeable,mergeStateStatus
-gh pr diff <number>
-```
+`read` the change's title, body, head branch, files, commits, CI status,
+mergeability, and diff
+([work-trackers.md](../../agents/references/work-trackers.md)).
 
 Determine update type from title: **patch** (low risk), **minor** (low risk),
 **major** (check changelogs for breaking changes and transitive deps).
@@ -122,26 +120,18 @@ session with verification still in the background — it dies at turn end, and t
 PR's CI is the verification of record. Hold every PR or comment body to
 [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
 
-**Merge** — all policies pass, CI green:
+Each disposition uses tracker operations from
+[work-trackers.md](../../agents/references/work-trackers.md).
 
-```sh
-gh pr comment <number> --body "Dependabot triage: all policies pass, CI green. Merging."
-gh pr merge <number> --squash --auto
-```
+**Merge** — all policies pass, CI green: `comment` "Dependabot triage: all
+policies pass, CI green. Merging.", then `merge-change` (squash).
 
 **Fix on new branch** — minor policy violations fixable (Claude Code cannot push
-to Dependabot branches):
-
-```sh
-git fetch origin <dependabot-branch>
-git checkout -b fix/dependabot-<number> origin/<dependabot-branch>
-# Make fixes; run the repository's check, test, and audit commands
-git commit -m "fix(deps): <description for PR #number>"
-git push -u origin fix/dependabot-<number>
-gh pr create --title "chore(deps): <description> (fixed)" \
-  --body "Fixes policy violations in Dependabot PR #<number>."
-gh pr close <number> --comment "Superseded by #<new-pr> with policy fixes."
-```
+to Dependabot branches). Branch off the Dependabot branch, make the fixes, run
+the repository's check/test/audit commands, then `open-change` titled
+`chore(deps): <description> (fixed)` with body "Fixes policy violations in
+Dependabot PR #<number>." Finally `close` the original change with comment
+"Superseded by #<new-pr> with policy fixes."
 
 **Rebase on new branch** — only CI failure is `vulnerability-scanning` and the
 fix is already on `main` (stale audit base, not a PR-caused issue):
@@ -149,28 +139,24 @@ fix is already on `main` (stale audit base, not a PR-caused issue):
 ```sh
 # Confirm: only vuln-scan fails and main has security fixes the PR base lacks
 git log --oneline origin/main ^<pr-merge-base> -- '**/package.json' <lockfile>
-
-# If commits exist, rebase will fix the scan — create a superseding branch
-git fetch origin <dependabot-branch>
-git checkout -b chore/rebase-dependabot-<number> origin/<dependabot-branch>
-git rebase origin/main
-# Run the repository's check, test, and audit commands
-git push -u origin chore/rebase-dependabot-<number>
-gh pr create --title "chore(deps): <original-title> (rebased)" \
-  --body "Rebases Dependabot PR #<number> on current main to pick up security fixes."
-gh pr close <number> --comment "Superseded by #<new-pr> — rebased on main to resolve stale vulnerability-scanning base."
 ```
+
+If commits exist, rebasing the Dependabot branch on `origin/main` will fix the
+scan. Run the repository's check/test/audit commands, then `open-change` titled
+`chore(deps): <original-title> (rebased)` with body "Rebases Dependabot PR
+#<number> on current main to pick up security fixes." Then `close` the original
+change with comment "Superseded by #<new-pr> — rebased on main to resolve stale
+vulnerability-scanning base." (`open-change` and `close`:
+[work-trackers.md](../../agents/references/work-trackers.md).)
 
 > **Do not use `@dependabot rebase`.** GitHub Apps cannot trigger Dependabot
 > comment commands; the command always fails with "only users with push access."
 > If a prior run posted `@dependabot rebase` and got this reply, use the "Rebase
 > on new branch" flow above instead of retrying the comment.
 
-**Close** — policy violation cannot be fixed:
-
-```sh
-gh pr close <number> --comment "Dependabot triage: closing because <reason>. Policy: <which>."
-```
+**Close** — policy violation cannot be fixed: `close` the change with comment
+"Dependabot triage: closing because <reason>. Policy: <which>."
+([work-trackers.md](../../agents/references/work-trackers.md)).
 
 ### Step 4: Summary
 
