@@ -1,6 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
-import { access, cp, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -61,6 +61,34 @@ describe("ApmInstaller.install", () => {
     const apmCalls = runtime.subprocess.calls.filter((c) => c.cmd === "apm");
     assert.strictEqual(apmCalls.length, 0, "apm install must be skipped");
     await rm(skillsRoot, { recursive: true, force: true });
+  });
+
+  test("stages a pack's agents/ subtree from apm_modules into .claude/agents/", async () => {
+    // apm's claude target deploys skills/ only; the installer must still carry
+    // a pack's agents/ (profiles + references) so a skill that cites an agent
+    // reference (e.g. the work-tracker matrix) resolves in the agent CWD.
+    const runtime = rt();
+    const root = await mkdtemp(join(tmpdir(), "benchmark-agents-"));
+    const refDir = join(
+      root,
+      "apm_modules",
+      "acme",
+      "pack",
+      "agents",
+      "references",
+    );
+    await mkdir(refDir, { recursive: true });
+    await writeFile(join(refDir, "work-trackers.md"), "# matrix\n");
+    const out = await mkdtemp(join(tmpdir(), "benchmark-agents-out-"));
+    // No apm.yml at root → apm install is skipped; staging still pulls agents.
+    const { stagingDir } = await createApmInstaller({ runtime }).install(
+      { rootPath: root },
+      out,
+    );
+    await access(
+      join(stagingDir, ".claude", "agents", "references", "work-trackers.md"),
+    );
+    await rm(root, { recursive: true, force: true });
   });
 
   test("--skills-from with no .claude/ tree throws", async () => {

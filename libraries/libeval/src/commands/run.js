@@ -32,7 +32,7 @@ export function parseRunOptions(values, runtime) {
     maxTurns: maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10),
     outputPath: values.output,
     agentProfile: values["agent-profile"] ?? undefined,
-    workTracker: resolveWorkTracker(values),
+    workTracker: resolveWorkTracker(values, runtime?.proc?.env),
     allowedTools: (
       values["allowed-tools"] ??
       "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"

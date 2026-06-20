@@ -59,7 +59,7 @@ export function parseDiscussOptions(values, runtime) {
     maxTurns,
     maxLeadTurns,
     outputPath: values.output,
-    workTracker: resolveWorkTracker(values),
+    workTracker: resolveWorkTracker(values, runtime?.proc?.env),
     discussionId: values["discussion-id"] ?? null,
     resumeContext,
     callbackUrl: runtime.proc.env.CALLBACK_URL ?? null,

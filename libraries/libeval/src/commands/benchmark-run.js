@@ -23,7 +23,7 @@ export async function runBenchmarkRunCommand(ctx) {
   const runtime = ctx.deps.runtime;
   let opts;
   try {
-    opts = parseRunOptions(values);
+    opts = parseRunOptions(values, runtime.proc.env);
   } catch (err) {
     return { ok: false, code: 1, error: err.message };
   }
@@ -45,9 +45,22 @@ export async function runBenchmarkRunCommand(ctx) {
   const runner = createBenchmarkRunner({ ...opts, query, runtime });
 
   let anyFail = false;
+  let count = 0;
   for await (const record of runner.run()) {
+    count++;
     runtime.proc.stdout.write(JSON.stringify(record) + "\n");
     if (record.verdict !== "pass") anyFail = true;
+  }
+  // A run that emits zero records did nothing (no tasks discovered, or the
+  // agent never produced output). That is a failure, not a silent success —
+  // surface it loudly so CI does not go green on an empty benchmark.
+  if (count === 0) {
+    return {
+      ok: false,
+      code: 1,
+      error:
+        "benchmark produced no result records — no task ran to completion; check the family's tasks/, apm install, and agent availability (ANTHROPIC_API_KEY / claude CLI / IS_SANDBOX)",
+    };
   }
   return anyFail ? { ok: false, code: 1, error: "" } : { ok: true };
 }
@@ -56,9 +69,11 @@ export async function runBenchmarkRunCommand(ctx) {
  * Parse and validate benchmark run options. Exported so tests can verify
  * defaults, including the resolved work tracker.
  * @param {Record<string, string|undefined>} values - Parsed option values
+ * @param {Record<string, string|undefined>} [env] - Process environment, read
+ *   for the `LIBEVAL_WORK_TRACKER` fallback when `--work-tracker` is absent.
  * @returns {object}
  */
-export function parseRunOptions(values) {
+export function parseRunOptions(values, env = {}) {
   const family = values.family;
   if (!family) throw new Error("--family is required");
   const output = values.output ?? "benchmark-runs";
@@ -74,7 +89,7 @@ export function parseRunOptions(values) {
     agentModel: values["agent-model"] || BENCHMARK_AGENT_MODEL,
     supervisorModel: values["lead-model"] || LEAD_MODEL,
     judgeModel: values["judge-model"] || LEAD_MODEL,
-    workTracker: resolveWorkTracker(values),
+    workTracker: resolveWorkTracker(values, env),
     profiles: {
       agent: values["agent-profile"] ?? null,
       judge: values["judge-profile"] ?? null,

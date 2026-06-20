@@ -57,7 +57,7 @@ export function parseFacilitateOptions(values, runtime) {
     maxTurns,
     outputPath: values.output,
     facilitatorProfile: values["lead-profile"] ?? undefined,
-    workTracker: resolveWorkTracker(values),
+    workTracker: resolveWorkTracker(values, runtime?.proc?.env),
   };
 }
 

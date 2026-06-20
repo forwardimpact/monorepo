@@ -2,7 +2,7 @@
 set -u
 PLAN="$AGENT_CWD/specs/042-todo-filter/plan-a.md"
 FAIL=0
-assert() { bunx fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
+assert() { fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
 
 assert file-present --exists "$PLAN"
 [ "$FAIL" = 1 ] && exit 1

@@ -78,6 +78,16 @@ export class ApmInstaller {
       await fs.mkdir(stagedClaude, { recursive: true });
     }
 
+    // apm's claude target deploys a pack's skills/ into .claude/skills/ but
+    // never its agents/ subtree (agent profiles + references). Stage that from
+    // the installed apm_modules into .claude/agents/ so a skill that cites an
+    // agent reference (e.g. the work-item tracker matrix) resolves in the
+    // agent CWD. No-op when --skills-from supplied a tree or no apm_modules
+    // exist.
+    if (!skillsFrom) {
+      await this.#stageApmAgents(family.rootPath, stagedClaude);
+    }
+
     // Stage the family-local judge profile outside .claude/ so it is available
     // to the judge but never copied into the agent-under-test's CWD.
     const judgeSource = join(family.rootPath, "judge.md");
@@ -100,6 +110,47 @@ export class ApmInstaller {
     }
 
     return { stagingDir, skillSetHash, judgeProfilesDir };
+  }
+
+  /**
+   * Merge each installed pack's `agents/` subtree (profiles + references) from
+   * `apm_modules/<owner>/<pack>/agents/` into the staged `.claude/agents/`.
+   * apm's claude target deploys `skills/` only, so without this an agent
+   * reference a skill cites is absent from the agent CWD.
+   * @param {string} familyRoot
+   * @param {string} stagedClaude
+   */
+  async #stageApmAgents(familyRoot, stagedClaude) {
+    const fs = this.runtime.fs;
+    const modulesRoot = join(familyRoot, "apm_modules");
+    let owners;
+    try {
+      owners = await fs.readdir(modulesRoot, { withFileTypes: true });
+    } catch {
+      return; // no apm_modules — nothing to stage
+    }
+    const stagedAgents = join(stagedClaude, "agents");
+    for (const owner of owners) {
+      if (!owner.isDirectory()) continue;
+      const ownerDir = join(modulesRoot, owner.name);
+      let packs;
+      try {
+        packs = await fs.readdir(ownerDir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const pack of packs) {
+        if (!pack.isDirectory()) continue;
+        const agentsDir = join(ownerDir, pack.name, "agents");
+        const hasAgents = await fs
+          .access(agentsDir)
+          .then(() => true)
+          .catch(() => false);
+        if (hasAgents) {
+          await fs.cp(agentsDir, stagedAgents, { recursive: true });
+        }
+      }
+    }
   }
 
   async #runApmInstall(cwd) {

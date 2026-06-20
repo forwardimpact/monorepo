@@ -2,7 +2,7 @@
 set -u
 TRACKER="$AGENT_CWD/.tracker"
 FAIL=0
-assert() { bunx fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
+assert() { fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
 
 # Resolve the single issue and change the loop should have produced. The ids are
 # caller-supplied slugs, so glob the tracker store rather than assume a name.
