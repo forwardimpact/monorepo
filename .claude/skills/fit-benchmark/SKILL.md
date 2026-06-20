@@ -91,7 +91,7 @@ paths instead of reconstructing them from `$0`):
 
 | Var | Value |
 | --- | --- |
-| `WORKDIR` | Agent CWD (the per-task copy). |
+| `AGENT_CWD` | Agent CWD (the per-task copy) — reference emitted files as `$AGENT_CWD/<path>`. |
 | `PORT` | Allocated free TCP port. |
 | `TASK_ID` | Task name (directory under `tasks/`). |
 | `TASK_DIR` | Task directory on the host. |
@@ -107,7 +107,7 @@ Install and run via npm:
 npx fit-benchmark <command> [options]
 ```
 
-The full flag surface lives in [references/cli.md](references/cli.md).
+The full flag surface lives in [references/cli.md](references/cli.md); task-authoring guidance (local skills, invariants, fast iteration, file-grading) in [references/authoring.md](references/authoring.md).
 
 ## GitHub Action
 
@@ -165,8 +165,8 @@ The `judge.task.md` template supports these variables:
 | Surface | Example |
 | --- | --- |
 | **Running service** | HTTP-probe `http://127.0.0.1:$PORT/` and assert the response shape. |
-| **Repository state** | Assert the SHA-256 of `$WORKDIR/result.txt`. |
-| **Process exit** | Run a command in `$WORKDIR` and treat exit-zero as pass. |
+| **Repository state** | Assert the SHA-256 of `$AGENT_CWD/result.txt`. |
+| **Process exit** | Run a command in `$AGENT_CWD` and treat exit-zero as pass. |
 
 ## Result Records
 
