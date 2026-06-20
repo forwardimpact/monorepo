@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libeval",
-  "version": "0.1.64",
+  "version": "0.1.65",
   "description": "Agent evaluation framework — prove whether agent changes improved outcomes with reproducible evidence.",
   "keywords": [
     "eval",
