@@ -25,6 +25,8 @@ describe("RULES catalogue", () => {
         "weekly-log-part.line-budget",
         "weekly-log-part.word-budget",
         "weekly-log-part.h1-agent-matches-filename",
+        "carry-surface.h1-agent-matches-filename",
+        "carry-surface.entry-has-clearance",
         "memory.file-exists",
         "memory.priority-heading",
         "memory.priority-table-header",

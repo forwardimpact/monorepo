@@ -6,13 +6,14 @@ contract below maps to a `fit-wiki` subcommand. For non-wiki outputs see
 
 ## On-Boot Read Set
 
-Three Tier 1 surfaces, all in `wiki/`:
+Tier 1 surfaces, all in `wiki/`:
 
 | Surface | Path | Reader |
 | --- | --- | --- |
 | Own summary | `wiki/{self}.md` | `fit-wiki boot` (digest) |
 | Cross-cutting memory | `wiki/MEMORY.md` | direct `Read` + `fit-wiki boot` |
 | Current storyboard | `wiki/storyboard-YYYY-MNN.md` | `fit-wiki boot` (slice) |
+| Own Carry surface | `wiki/{self}-carries.md` (when present) | `Read` (§ Carry Surface) |
 
 Every agent-scoped `fit-wiki` call requires explicit `--agent <self>`
 (`--from <self>` for `memo`), no environment fallback; `release --expired` is
@@ -106,6 +107,10 @@ Each `wiki/<agent>.md` conforms to a mechanically-checkable contract `audit` gat
 MUST be the first H2) → agent-specific H2 sections → `## Open Blockers`.
 
 **Budgets:** 496 lines, 6 400 words. State, not history. Shapes: § Wiki Filename Grammar.
+
+## Carry Surface
+
+A **Carry** is a durable per-Assess obligation: a predicate or routing protocol plus a future clearance trigger (experiment verdict, dependent-spec merge, release-tag publication). Carries are neither settled state nor history, so they live off the summary budget on `wiki/<agent>-carries.md` (one per agent, H1 `# <agent> — Carries`). Classified on both axes with Carry-semantic fields, so the surface generalises. Each Carry is an H3 block naming its trigger on a `**Carry-clearance:**` line; `carry-surface.entry-has-clearance` fails a block without one. Reconciliation against another surface uses a `**Referenced surface**:` line. No budget, so falsifier text stays verbatim. **At boot:** walk the `### ` blocks.
 
 ## Weekly Log Contract
 
