@@ -54,6 +54,22 @@ describe("--work-tracker resolution across fit-eval agent commands", () => {
     );
   });
 
+  test("falls back to LIBEVAL_WORK_TRACKER env when the flag is absent", () => {
+    const opts = parseRunOptionsEval(
+      { "task-text": "do a thing" },
+      makeRuntime({ LIBEVAL_WORK_TRACKER: "filesystem" }),
+    );
+    assert.strictEqual(opts.workTracker, "filesystem");
+  });
+
+  test("the --work-tracker flag overrides the env fallback", () => {
+    const opts = parseRunOptionsEval(
+      { "task-text": "do a thing", "work-tracker": "github" },
+      makeRuntime({ LIBEVAL_WORK_TRACKER: "filesystem" }),
+    );
+    assert.strictEqual(opts.workTracker, "github");
+  });
+
   test("supervise resolves --work-tracker filesystem", async () => {
     const opts = await parseSuperviseOptions(
       {
@@ -150,6 +166,14 @@ describe("fit-benchmark run resolves --work-tracker", () => {
   test("defaults to github when --work-tracker is absent", () => {
     const opts = parseBenchmarkRunOptions({ family: "./families/coding" });
     assert.strictEqual(opts.workTracker, "github");
+  });
+
+  test("falls back to LIBEVAL_WORK_TRACKER env (CI selects without a flag)", () => {
+    const opts = parseBenchmarkRunOptions(
+      { family: "./families/coding" },
+      { LIBEVAL_WORK_TRACKER: "filesystem" },
+    );
+    assert.strictEqual(opts.workTracker, "filesystem");
   });
 
   test("the env var is set from opts.workTracker before the runner starts", () => {

@@ -41,7 +41,7 @@ export async function parseSuperviseOptions(values, runtime) {
     outputPath: values.output,
     supervisorProfile: values["lead-profile"] ?? undefined,
     agentProfile: values["agent-profile"] ?? undefined,
-    workTracker: resolveWorkTracker(values),
+    workTracker: resolveWorkTracker(values, runtime?.proc?.env),
     allowedTools: (
       values["allowed-tools"] ??
       "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"

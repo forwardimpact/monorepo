@@ -23,7 +23,7 @@ export async function runBenchmarkRunCommand(ctx) {
   const runtime = ctx.deps.runtime;
   let opts;
   try {
-    opts = parseRunOptions(values);
+    opts = parseRunOptions(values, runtime.proc.env);
   } catch (err) {
     return { ok: false, code: 1, error: err.message };
   }
@@ -69,9 +69,11 @@ export async function runBenchmarkRunCommand(ctx) {
  * Parse and validate benchmark run options. Exported so tests can verify
  * defaults, including the resolved work tracker.
  * @param {Record<string, string|undefined>} values - Parsed option values
+ * @param {Record<string, string|undefined>} [env] - Process environment, read
+ *   for the `LIBEVAL_WORK_TRACKER` fallback when `--work-tracker` is absent.
  * @returns {object}
  */
-export function parseRunOptions(values) {
+export function parseRunOptions(values, env = {}) {
   const family = values.family;
   if (!family) throw new Error("--family is required");
   const output = values.output ?? "benchmark-runs";
@@ -87,7 +89,7 @@ export function parseRunOptions(values) {
     agentModel: values["agent-model"] || BENCHMARK_AGENT_MODEL,
     supervisorModel: values["lead-model"] || LEAD_MODEL,
     judgeModel: values["judge-model"] || LEAD_MODEL,
-    workTracker: resolveWorkTracker(values),
+    workTracker: resolveWorkTracker(values, env),
     profiles: {
       agent: values["agent-profile"] ?? null,
       judge: values["judge-profile"] ?? null,
