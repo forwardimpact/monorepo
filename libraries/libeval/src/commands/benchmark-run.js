@@ -45,9 +45,22 @@ export async function runBenchmarkRunCommand(ctx) {
   const runner = createBenchmarkRunner({ ...opts, query, runtime });
 
   let anyFail = false;
+  let count = 0;
   for await (const record of runner.run()) {
+    count++;
     runtime.proc.stdout.write(JSON.stringify(record) + "\n");
     if (record.verdict !== "pass") anyFail = true;
+  }
+  // A run that emits zero records did nothing (no tasks discovered, or the
+  // agent never produced output). That is a failure, not a silent success —
+  // surface it loudly so CI does not go green on an empty benchmark.
+  if (count === 0) {
+    return {
+      ok: false,
+      code: 1,
+      error:
+        "benchmark produced no result records — no task ran to completion; check the family's tasks/, apm install, and agent availability (ANTHROPIC_API_KEY / claude CLI / IS_SANDBOX)",
+    };
   }
   return anyFail ? { ok: false, code: 1, error: "" } : { ok: true };
 }

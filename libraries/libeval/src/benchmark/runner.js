@@ -39,6 +39,11 @@ const BASE_TOOLS = [
   "TodoWrite",
 ];
 
+// Upper bound on a single supervised agent run. A run that produces no terminal
+// message within this window is treated as a stall and recorded as an
+// agentError, so the benchmark never hangs the event loop into a silent exit.
+const AGENT_WATCHDOG_MS = 20 * 60 * 1000;
+
 /** Sole orchestrator for a task-family benchmark run. */
 export class BenchmarkRunner {
   /**
@@ -350,14 +355,34 @@ export class BenchmarkRunner {
     });
     const instructions = await fs.readFile(task.paths.instructions, "utf8");
     let agentError = null;
+    // Watchdog: a supervised session can hang without settling (e.g. the agent
+    // SDK subprocess exits without a terminal message), which would empty the
+    // event loop and exit the process mid-run with zero records. Race the run
+    // against a bounded timer so a stall becomes an `agentError` record instead
+    // of a silent exit; the timer also keeps the loop alive until it fires.
+    let watchdog;
     try {
-      const result = await supervisor.run(instructions);
+      const result = await Promise.race([
+        supervisor.run(instructions),
+        new Promise((_, reject) => {
+          watchdog = this.runtime.clock.setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `agent run produced no result within ${AGENT_WATCHDOG_MS}ms (possible stall)`,
+                ),
+              ),
+            AGENT_WATCHDOG_MS,
+          );
+        }),
+      ]);
       if (!result.success && !result.concluded) {
         agentError = { message: "supervisor did not succeed", aborted: false };
       }
     } catch (e) {
       agentError = { message: e.message ?? String(e), aborted: false };
     } finally {
+      this.runtime.clock.clearTimeout(watchdog);
       await new Promise((r) => combinedStream.end(r));
     }
     const summary = await splitAndSummarize(

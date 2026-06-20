@@ -1,4 +1,4 @@
-fit-benchmark 0.1.64 — Run coding-agent task families, grade hidden tests, and aggregate pass@k across runs.
+fit-benchmark 0.1.65 — Run coding-agent task families, grade hidden tests, and aggregate pass@k across runs.
 
 Usage: fit-benchmark <command> [options]
 

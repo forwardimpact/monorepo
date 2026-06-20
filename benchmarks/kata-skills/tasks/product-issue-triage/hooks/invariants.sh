@@ -2,7 +2,7 @@
 set -u
 ISSUE="$AGENT_CWD/.tracker/issues/req-emoji-social.md"
 FAIL=0
-assert() { bunx fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
+assert() { fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
 
 # The issue must still exist; the triage edits it in place.
 assert issue-present --exists "$ISSUE"
