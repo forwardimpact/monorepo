@@ -23,6 +23,14 @@ the lone agent-less form.
 1. `Read wiki/MEMORY.md` — the priority surface and `## Active Claims`.
 2. `Bash: fit-wiki boot --agent <self>` — JSON digest of the other Tier 1 surfaces (`--format markdown` for prose).
 
+**Standing Carries.** An own-summary (`wiki/{self}.md`) may carry an optional
+`## Standing Carries` section. The boot digest delivers its bullets **verbatim**
+(full bullet bodies, byte-equal) as a distinct `standing_carries[]` field; the
+`summary` field stays the Last-run paragraph. Absence yields an empty field and
+no audit obligation. Standing carries are own-summary content, not a new routing
+level — acting on a carry remains governed by the carry's own predicate. Moving
+existing carries into the section is each agent's own adoption step.
+
 ## On-Boot Routing
 
 Apply this priority against the `boot` digest's JSON fields — first level with
@@ -31,8 +39,20 @@ actionable work wins:
 1. **Owned priorities** (`owned_priorities[]`) — MEMORY.md `## Cross-Cutting
    Priorities` rows where you are `Owner`; team work preempts domain work.
 2. **Storyboard items** (`storyboard_items[]`) — per-agent deliverables plus
-   open experiment issues labeled `agent:{self}`.
-3. **Domain assess** — the numbered steps in your profile's Assess section.
+   open experiment issues labeled `agent:{self}`. The labeled issues reach the
+   digest through a **materialized** surface: the `fit-wiki refresh` step renders
+   open `experiment`-labeled issues carrying an `agent:{name}` label into an
+   `agent-experiments` block in the current storyboard (issue number, title,
+   author, owning label — bodies never cross, all crossing fields sanitized).
+   `boot` reads that block file-only and offline; it never queries the tracker.
+   Items are therefore as fresh as the **last successful sync**, whose date the
+   block records in a `<!-- last-successful-sync: … -->` stamp; a failed sync
+   keeps the previously materialized items and does not advance the stamp, so
+   staleness is auditable from the file. Each item carries `source`
+   (`"experiment"` or `"bullet"`), and experiment items add `issue`/`author`
+   provenance.
+3. **Domain assess** — the numbered steps in your agent profile's Assess
+   section.
 4. **Cross-cutting fallback** (`cross_cutting[]`) — rows listing you under
    `Agents` (not Owner). Report clean only after checking all four.
 
@@ -175,7 +195,7 @@ Pair the gate with the pre-PR freshness probe —
 
 | Subcommand | Contract(s) realized |
 | --- | --- |
-| `boot` | On-Boot Read Set; On-Boot Routing |
+| `boot` | On-Boot Read Set (incl. `standing_carries`); On-Boot Routing (materialized `agent-experiments`) |
 | `log decision` | Decision-block opening (write) |
 | `log note` / `log done` | Weekly log field append / close |
 | `claim` / `release` | Active Claims write |

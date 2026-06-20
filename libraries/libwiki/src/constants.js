@@ -94,3 +94,21 @@ export const ISSUE_OPEN_RE =
   /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?(?:\s+[^>]*?)?\s*-->\s*$/;
 export const ISSUE_CLOSE_RE =
   /^<!--\s*\/(obstacles|experiments)(?:\s+[^>]*?)?\s*-->\s*$/;
+
+// Materialized per-agent experiments surface. A distinct marker
+// kind from `experiments:open` — it carries attributed, sanitized items plus a
+// last-successful-sync stamp, and is read offline by `fit-wiki boot`. One home
+// so the scanner (marker-scanner.js), the refresh renderer (commands/refresh.js),
+// the boot parser (boot.js), and the audit balance check (audit/rules.js) cannot
+// drift on the syntax.
+export const AGENT_EXPERIMENTS_OPEN_RE =
+  /^<!--\s*agent-experiments(?:\s+[^>]*?)?\s*-->\s*$/;
+export const AGENT_EXPERIMENTS_CLOSE_RE =
+  /^<!--\s*\/agent-experiments(?:\s+[^>]*?)?\s*-->\s*$/;
+export const LAST_SYNC_RE =
+  /^<!--\s*last-successful-sync:\s*(\d{4}-\d{2}-\d{2})\s*-->\s*$/;
+// Attributed item line: `- #<n> [<agent>] <title> (by <author>)`. The author
+// suffix is mandatory and anchored at end; the title group is greedy, which is
+// unambiguous because sanitizeTitle defuses any embedded ` (by ` token.
+export const AGENT_EXPERIMENT_ITEM_RE =
+  /^- #(\d+) \[([a-z][a-z-]*)\] (.*) \(by (.+)\)$/;

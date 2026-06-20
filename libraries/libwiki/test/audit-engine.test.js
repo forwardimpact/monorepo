@@ -27,7 +27,7 @@ function storyboard(yyyy, mm) {
   return [
     `# Storyboard — ${yyyy}-${mm}`,
     "",
-    ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
+    ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
     "",
   ].join("\n");
 }
@@ -251,7 +251,7 @@ describe("runRules", () => {
       [`${WIKI}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",
         "",
-        "### product-manager — backlog",
+        "### product-manager",
         "- item",
         "",
       ].join("\n"),
@@ -267,7 +267,7 @@ describe("runRules", () => {
       [`${WIKI}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",
         "",
-        ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
+        ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
         "",
         "<!-- xmr:metric:path.csv -->",
         "content with no close",
@@ -279,6 +279,9 @@ describe("runRules", () => {
     assert.ok(finding);
     assert.match(finding.message, /dangling-open/);
   });
+
+  // The agent-experiments marker-balance behaviour family lives in the sibling
+  // audit-engine-agent-experiments.test.js (test-file-shape split).
 
   test("priority-row column count mismatch", () => {
     const seed = {

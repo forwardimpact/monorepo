@@ -3,6 +3,8 @@ import {
   ACTIVE_CLAIMS_HEADING,
   ACTIVE_CLAIMS_SEPARATOR_RE,
   ACTIVE_CLAIMS_TABLE_HEADER,
+  AGENT_EXPERIMENTS_CLOSE_RE,
+  AGENT_EXPERIMENTS_OPEN_RE,
   DECISION_HEADING,
   ISSUE_CLOSE_RE,
   ISSUE_OPEN_RE,
@@ -543,6 +545,20 @@ export const RULES = [
     message: (_s, r) =>
       `${r.reason} issue-list marker${r.label ? ` (${r.label})` : ""}`,
     hint: "every '<!-- obstacles:* -->' or '<!-- experiments:* -->' needs a matching close marker",
+  },
+  {
+    id: "storyboard.markers-balanced.agent-experiments",
+    scope: "storyboard",
+    severity: "fail",
+    when: storyboardExists,
+    check: markersBalanced({
+      openRe: AGENT_EXPERIMENTS_OPEN_RE,
+      closeRe: AGENT_EXPERIMENTS_CLOSE_RE,
+      label: "agent-experiments",
+    }),
+    message: (_s, r) =>
+      `${r.reason} agent-experiments marker${r.label ? ` (${r.label})` : ""}`,
+    hint: "every '<!-- agent-experiments -->' needs a matching '<!-- /agent-experiments -->'",
   },
 
   // -- Metrics CSVs (union merge keeps both sides on concurrent appends;

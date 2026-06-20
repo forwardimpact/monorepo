@@ -4,7 +4,12 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { scanMarkers } from "../marker-scanner.js";
 import { renderBlock, BlockRenderError } from "../block-renderer.js";
-import { renderIssueList, parseRepoSlug } from "../issue-list-renderer.js";
+import {
+  renderIssueList,
+  renderAgentExperiments,
+  TrackerQueryError,
+  parseRepoSlug,
+} from "../issue-list-renderer.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot } from "../util/wiki-dir.js";
 
@@ -22,7 +27,33 @@ async function deriveParentRepo(gitClient, parentDir, env) {
   }
 }
 
-async function renderForBlock(block, projectRoot, ghContext, runtime) {
+// Compose the agent-experiments block body. On a successful tracker query the
+// body is a fresh last-successful-sync stamp followed by freshly rendered,
+// label-re-checked, sanitized item lines. On a tracker failure the previously
+// materialized body (stamp + items) is preserved verbatim so boot keeps serving
+// the last good routing surface instead of an empty one, and the timestamp is
+// not advanced, so staleness stays auditable from the stamp.
+async function renderAgentExperimentsBlock(block, lines, ghContext, runtime) {
+  const priorBody = lines.slice(block.openLine + 1, block.closeLine);
+  try {
+    const items = await renderAgentExperiments({
+      cwd: ghContext.cwd,
+      repo: ghContext.repo,
+      token: ghContext.token,
+      runtime,
+    });
+    const today = currentDayIso(runtime);
+    return [`<!-- last-successful-sync: ${today} -->`, ...items];
+  } catch (err) {
+    if (!(err instanceof TrackerQueryError)) throw err;
+    runtime.proc.stderr.write(
+      "refresh: gh issue list failed for agent-experiments; keeping previous materialized items\n",
+    );
+    return priorBody;
+  }
+}
+
+async function renderForBlock(block, lines, projectRoot, ghContext, runtime) {
   if (block.kind === "xmr") {
     return renderBlock({
       metric: block.metric,
@@ -43,6 +74,9 @@ async function renderForBlock(block, projectRoot, ghContext, runtime) {
       today: currentDayIso(runtime),
       runtime,
     });
+  }
+  if (block.kind === "agent-experiments") {
+    return renderAgentExperimentsBlock(block, lines, ghContext, runtime);
   }
   return null;
 }
@@ -116,6 +150,7 @@ export async function runRefreshCommand(ctx) {
     try {
       const rendered = await renderForBlock(
         block,
+        lines,
         projectRoot,
         ghContext,
         runtime,

@@ -3,6 +3,9 @@ import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims, filterExpired } from "./active-claims.js";
 import { countLines, countWords } from "./budget.js";
 import {
+  AGENT_EXPERIMENTS_CLOSE_RE,
+  AGENT_EXPERIMENTS_OPEN_RE,
+  AGENT_EXPERIMENT_ITEM_RE,
   MEMO_INBOX_MARKER,
   PRIORITY_INDEX_HEADING,
   SUMMARY_LINE_BUDGET,
@@ -11,6 +14,8 @@ import {
   WEEKLY_LOG_WORD_BUDGET,
 } from "./constants.js";
 import { weeklyLogPath } from "./weekly-log.js";
+
+const STANDING_CARRIES_HEADING = "## Standing Carries";
 
 function readIfExists(fs, filePath) {
   if (!fs.existsSync(filePath)) return null;
@@ -96,33 +101,87 @@ function splitPriorities(rows, agent) {
   return { owned, cross };
 }
 
+// Parse an attributed item line from the materialized block for `agent`.
+// Returns the unified item shape or null (wrong agent / not an item line).
+function parseBlockItem(line, agent) {
+  const m = line.match(AGENT_EXPERIMENT_ITEM_RE);
+  if (!m || m[2] !== agent) return null;
+  return {
+    dim: agent,
+    threshold: m[3],
+    status: "open",
+    link: null,
+    issue: Number(m[1]),
+    author: m[4],
+    source: "experiment",
+  };
+}
+
+function bulletItem(threshold, agent) {
+  return {
+    dim: agent,
+    threshold,
+    status: "open",
+    link: null,
+    issue: null,
+    author: null,
+    source: "bullet",
+  };
+}
+
+// Advance the agent-section scan for one storyboard line that is NOT inside the
+// materialized block. Returns the next `inAgent` state and pushes an h3-bullet
+// item for the booting agent when one is found. An h2 ends the agent-section
+// scan (team-wide sections follow the last agent h3 — without this the scan
+// would run past the agent sections and misattribute team-wide bullets).
+function scanAgentLine(line, agent, inAgent, items) {
+  if (/^## /.test(line)) return false;
+  const h3Match = line.match(/^### (.+)$/);
+  if (h3Match) {
+    return h3Match[1].toLowerCase().startsWith(agent.toLowerCase());
+  }
+  const bullet = inAgent && line.match(/^[-*]\s+(.+)$/);
+  if (bullet) items.push(bulletItem(bullet[1], agent));
+  return inAgent;
+}
+
 function parseStoryboardItems(text, agent) {
   if (!text) return [];
-  const lines = text.split("\n");
   const items = [];
   let inAgent = false;
-  for (const line of lines) {
-    const h3Match = line.match(/^### (.+)$/);
-    if (h3Match) {
-      inAgent = h3Match[1].toLowerCase().startsWith(agent.toLowerCase());
-      continue;
-    }
-    if (/^#{1,2} /.test(line)) {
+  let inBlock = false;
+  for (const line of text.split("\n")) {
+    // The materialized block carries `- #N [agent] …` bullets that the agent
+    // scan must never capture; track it so the bullet loop skips inside it.
+    // (Without it the legacy scan double-counted these as the last agent's bullets.)
+    if (AGENT_EXPERIMENTS_OPEN_RE.test(line)) {
+      inBlock = true;
       inAgent = false;
-      continue;
-    }
-    if (!inAgent) continue;
-    const bullet = line.match(/^[-*]\s+(.+)$/);
-    if (bullet) {
-      items.push({
-        dim: agent,
-        threshold: bullet[1],
-        status: "open",
-        link: null,
-      });
+    } else if (AGENT_EXPERIMENTS_CLOSE_RE.test(line)) {
+      inBlock = false;
+    } else if (inBlock) {
+      const item = parseBlockItem(line, agent);
+      if (item) items.push(item);
+    } else {
+      inAgent = scanAgentLine(line, agent, inAgent, items);
     }
   }
   return items;
+}
+
+function extractStandingCarries(text) {
+  if (!text) return [];
+  const lines = text.split("\n");
+  const start = lines.findIndex((l) => l.trim() === STANDING_CARRIES_HEADING);
+  if (start === -1) return [];
+  const carries = [];
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^## /.test(line)) break;
+    const bullet = line.match(/^[-*] (.*)$/);
+    if (bullet) carries.push(bullet[1]);
+  }
+  return carries;
 }
 
 function countInbox(text) {
@@ -203,6 +262,7 @@ export function buildDigest({ wikiRoot, agent, today, fs }) {
     cross_cutting: cross.map(mapPriority),
     claims: active.map(mapClaim),
     storyboard_items: parseStoryboardItems(storyboardText ?? "", agent),
+    standing_carries: extractStandingCarries(summaryText),
     inbox_count: countInbox(summaryText),
     summary_headroom: headroom(
       summaryText ?? "",

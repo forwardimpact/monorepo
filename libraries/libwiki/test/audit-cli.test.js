@@ -34,7 +34,7 @@ function cleanWiki(extra = {}) {
     [`${WIKI_ROOT}/storyboard-2026-M05.md`]: [
       "# Storyboard — 2026-05",
       "",
-      ...STORYBOARD_AGENTS.map((a) => `### ${a} — backlog\n- item`),
+      ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
       "",
     ].join("\n"),
     ...extra,
