@@ -17,6 +17,9 @@ import { buildHookEnv } from "./hook-env.js";
  * @property {"pass" | "fail"} verdict
  * @property {Array<object>} details
  * @property {number} exitCode
+ * @property {string} [stderr] - Trimmed script stderr, present only when the
+ *   script wrote to stderr. Surfaces hook failures (e.g. a missing tool) that
+ *   leave `details` empty, so they read distinctly from a real invariant miss.
  */
 
 /**
@@ -81,11 +84,14 @@ export async function runInvariants(task, ctx, runtime) {
   const details = [];
   parseFd3Buffer(raw, details);
   const exitCode = typeof code === "number" ? code : -1;
-  return {
+  const result = {
     verdict: exitCode === 0 ? "pass" : "fail",
     details,
     exitCode,
   };
+  const trimmedStderr = stderr.trim();
+  if (trimmedStderr) result.stderr = trimmedStderr;
+  return result;
 }
 
 function pushRow(line, details) {

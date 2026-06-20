@@ -1,7 +1,7 @@
 #!/bin/sh
 # Running-service probe: HTTP-GET / on $PORT, expect `{"ok":true}`.
 RESP="$(curl -sf --max-time 2 "http://127.0.0.1:$PORT/" 2>/dev/null)"
-SENTINEL="$WORKDIR/sentinel-pass-file"
+SENTINEL="$AGENT_CWD/sentinel-pass-file"
 # The sentinel file's name is part of the invariants-isolation property —
 # its content should never appear in the agent trace because hooks/
 # is never copied to the agent CWD.

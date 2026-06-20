@@ -86,6 +86,8 @@ export class BenchmarkRunner {
     query,
     allowedTools,
     maxTurns,
+    task,
+    skillsFrom,
     termGraceMs,
     runtime,
     // Test seams — default to the real implementations.
@@ -110,6 +112,8 @@ export class BenchmarkRunner {
     };
     this.query = query;
     this.maxTurns = maxTurns;
+    this.taskFilter = task ?? null;
+    this.skillsFrom = skillsFrom ?? null;
     this.termGraceMs = termGraceMs;
     this._runAgentHook = runAgent ?? null;
     this._runInvariantsHook = runInvariantsHook ?? runInvariants;
@@ -131,10 +135,22 @@ export class BenchmarkRunner {
 
     await runtime.fs.mkdir(this.output, { recursive: true });
     const { stagingDir, skillSetHash, judgeProfilesDir } =
-      await this._installApmHook(family, this.output, runtime);
+      await this._installApmHook(family, this.output, runtime, {
+        skillsFrom: this.skillsFrom,
+      });
     await this._installNpmHook(family, stagingDir, runtime);
 
-    const tasks = family.tasks();
+    let tasks = family.tasks();
+    if (this.taskFilter) {
+      const matched = tasks.filter((t) => t.id === this.taskFilter);
+      if (matched.length === 0) {
+        const available = tasks.map((t) => t.id).join(", ");
+        throw new Error(
+          `no task '${this.taskFilter}' in family; available: ${available}`,
+        );
+      }
+      tasks = matched;
+    }
     if (this.profiles.judge) {
       await assertJudgeProfileStaged(
         family,

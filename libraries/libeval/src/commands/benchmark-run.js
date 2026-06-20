@@ -8,6 +8,7 @@ import { resolve } from "node:path";
 
 import { createConfig } from "@forwardimpact/libconfig";
 import { createBenchmarkRunner } from "../benchmark/runner.js";
+import { resolveWorkTracker } from "./work-tracker.js";
 import {
   BENCHMARK_AGENT_MODEL,
   LEAD_MODEL,
@@ -28,6 +29,10 @@ export async function runBenchmarkRunCommand(ctx) {
   }
   const config = await createConfig("script", "benchmark");
   runtime.proc.env.ANTHROPIC_API_KEY = await config.anthropicToken();
+  // The benchmark agent runs via createBenchmarkRunner, not the supervise
+  // command, so the active-tracker env must land here before the runner
+  // spawns the subprocess that inherits process.env.
+  runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker;
 
   // The Claude Agent SDK spawns a `claude` subprocess that inherits
   // process.env. NODE_EXTRA_CA_CERTS causes undici (the HTTP client
@@ -47,7 +52,13 @@ export async function runBenchmarkRunCommand(ctx) {
   return anyFail ? { ok: false, code: 1, error: "" } : { ok: true };
 }
 
-function parseRunOptions(values) {
+/**
+ * Parse and validate benchmark run options. Exported so tests can verify
+ * defaults, including the resolved work tracker.
+ * @param {Record<string, string|undefined>} values - Parsed option values
+ * @returns {object}
+ */
+export function parseRunOptions(values) {
   const family = values.family;
   if (!family) throw new Error("--family is required");
   const output = values.output ?? "benchmark-runs";
@@ -57,10 +68,13 @@ function parseRunOptions(values) {
   return {
     family,
     runs,
+    task: values.task ?? null,
+    skillsFrom: values["skills-from"] ?? null,
     output: resolve(output),
     agentModel: values["agent-model"] || BENCHMARK_AGENT_MODEL,
     supervisorModel: values["lead-model"] || LEAD_MODEL,
     judgeModel: values["judge-model"] || LEAD_MODEL,
+    workTracker: resolveWorkTracker(values),
     profiles: {
       agent: values["agent-profile"] ?? null,
       judge: values["judge-profile"] ?? null,

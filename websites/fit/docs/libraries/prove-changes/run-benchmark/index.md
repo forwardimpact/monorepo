@@ -86,7 +86,7 @@ neither script is ever copied to the agent's working directory:
 
 | Var | Value |
 | --- | --- |
-| `$WORKDIR` | The per-task agent CWD. |
+| `$AGENT_CWD` | The per-task agent CWD. |
 | `$PORT` | A pre-allocated free TCP port. |
 | `$TASK_ID` | The task name. |
 | `$TASK_DIR` | The task directory on the host. |
@@ -108,7 +108,7 @@ test against:
 
 ```sh
 #!/bin/sh
-node "$WORKDIR/app.js" >/dev/null 2>&1 &
+node "$AGENT_CWD/app.js" >/dev/null 2>&1 &
 sleep 0.2
 exit 0
 ```
@@ -137,13 +137,13 @@ test "$RESP" = '[]' && exit 0 || exit 1
 
 ```sh
 # Repository state
-sha256sum "$WORKDIR/dist/build.tar.gz" \
+sha256sum "$AGENT_CWD/dist/build.tar.gz" \
   | grep -q '^expected-sha256-prefix' && exit 0 || exit 1
 ```
 
 ```sh
 # Process exit
-( cd "$WORKDIR" && bun test ) && exit 0 || exit 1
+( cd "$AGENT_CWD" && bun test ) && exit 0 || exit 1
 ```
 
 #### Writing to fd 3 from non-bash interpreters
@@ -279,7 +279,7 @@ For ad-hoc grading without an agent run:
 npx fit-benchmark invariants \
   --family=./my-coding-family \
   --task=todo-api \
-  --workdir=./runs/2026-05-11/runs/todo-api/0 \
+  --run-dir=./runs/2026-05-11/runs/todo-api/0 \
   --output=invariants.jsonl
 ```
 

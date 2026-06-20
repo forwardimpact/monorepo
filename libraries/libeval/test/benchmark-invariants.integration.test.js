@@ -65,6 +65,34 @@ exit 3
     assert.strictEqual(out.details.length, 0);
   });
 
+  test("script stderr is surfaced so a hook failure reads distinctly", async () => {
+    // A failing hook tool (here a command that does not exist) writes to
+    // stderr and exits non-zero while emitting no fd-3 rows — the signature of
+    // a harness problem, not a real invariant miss. The stderr must survive.
+    const { task, ctx } = await buildStubTask(
+      `#!/bin/sh
+this-tool-does-not-exist assert --exists /nope
+exit 1
+`,
+    );
+    const out = await runInvariants(task, ctx, RT);
+    assert.strictEqual(out.verdict, "fail");
+    assert.strictEqual(out.details.length, 0);
+    assert.match(out.stderr, /not found/i);
+  });
+
+  test("a clean run carries no stderr field", async () => {
+    const { task, ctx } = await buildStubTask(
+      `#!/bin/sh
+printf '%s\\n' '{"test":"t","pass":true}' >&"$RESULTS_FD"
+exit 0
+`,
+    );
+    const out = await runInvariants(task, ctx, RT);
+    assert.strictEqual(out.verdict, "pass");
+    assert.ok(!("stderr" in out), "clean run should omit stderr");
+  });
+
   test("malformed fd-3 lines survive as raw rows with parseError", async () => {
     const { task, ctx } = await buildStubTask(
       `#!/bin/sh
@@ -83,17 +111,17 @@ exit 0
     assert.deepStrictEqual(out.details[1], { test: "t1", pass: true });
   });
 
-  test("WORKDIR, PORT, RESULTS_FD env vars reach the script", async () => {
+  test("AGENT_CWD, PORT, RESULTS_FD env vars reach the script", async () => {
     const { task, ctx } = await buildStubTask(
       `#!/bin/sh
-printf '%s\n' "{\\"workdir\\":\\"$WORKDIR\\",\\"port\\":$PORT,\\"fd\\":$RESULTS_FD,\\"pass\\":true}" >&"$RESULTS_FD"
+printf '%s\n' "{\\"cwd\\":\\"$AGENT_CWD\\",\\"port\\":$PORT,\\"fd\\":$RESULTS_FD,\\"pass\\":true}" >&"$RESULTS_FD"
 exit 0
 `,
     );
     ctx.port = 12345;
     const out = await runInvariants(task, ctx, RT);
     assert.strictEqual(out.verdict, "pass");
-    assert.strictEqual(out.details[0].workdir, ctx.cwd);
+    assert.strictEqual(out.details[0].cwd, ctx.cwd);
     assert.strictEqual(out.details[0].port, 12345);
     assert.strictEqual(out.details[0].fd, 3);
   });

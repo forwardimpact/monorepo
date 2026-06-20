@@ -125,7 +125,7 @@ async function mockRunJudge(_task, workdir, invariants) {
   };
 }
 
-async function setupRunner({ runs = 2, runAgent = mockRunAgent } = {}) {
+async function setupRunner({ runs = 2, runAgent = mockRunAgent, task } = {}) {
   const out = await mkdtemp(join(tmpdir(), "benchmark-e2e-"));
   const noopQuery = async function* () {};
   const runner = new BenchmarkRunner({
@@ -142,6 +142,7 @@ async function setupRunner({ runs = 2, runAgent = mockRunAgent } = {}) {
     runJudge: mockRunJudge,
     installApm: mockInstallApm,
     installNpm: async () => {},
+    task,
     termGraceMs: 100,
   });
   return { runner, out };
@@ -295,5 +296,24 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     assert.strictEqual(passRec.agentError.aborted, false);
     assert.strictEqual(passRec.costUsd, 0);
     assert.strictEqual(passRec.submission, "");
+  });
+
+  test("--task runs only the named task", { timeout: 30_000 }, async () => {
+    const { runner } = await setupRunner({ runs: 2, task: "pass" });
+    const records = await collectRecords(runner);
+    // 1 task × 2 runs, and only the filtered task appears.
+    assert.strictEqual(records.length, 2);
+    assert.ok(
+      records.every((r) => r.taskId === "pass"),
+      "task filter leaked other tasks",
+    );
+  });
+
+  test("--task with an unknown id throws, listing available tasks", async () => {
+    const { runner } = await setupRunner({ runs: 1, task: "nope" });
+    await assert.rejects(
+      () => collectRecords(runner),
+      /no task 'nope' in family; available:.*\bpass\b/,
+    );
   });
 });

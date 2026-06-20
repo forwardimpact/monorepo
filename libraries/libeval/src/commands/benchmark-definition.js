@@ -28,6 +28,16 @@ export const definition = {
           type: "string",
           description: "Path or git URL to a task family",
         },
+        task: {
+          type: "string",
+          description:
+            "Run only this task id (directory name under tasks/, default: every task)",
+        },
+        "skills-from": {
+          type: "string",
+          description:
+            "Stage .claude/ from this directory (a root containing .claude/) instead of running apm install — exercise local, unpublished skills",
+        },
         output: {
           type: "string",
           description:
@@ -57,6 +67,11 @@ export const definition = {
           type: "string",
           description: "Judge profile name",
         },
+        "work-tracker": {
+          type: "string",
+          description:
+            "Active work-item tracker (github|filesystem, default: github)",
+        },
         "max-turns": {
           type: "string",
           description:
@@ -84,10 +99,10 @@ export const definition = {
           type: "string",
           description: "Task id (directory name under tasks/)",
         },
-        workdir: {
+        "run-dir": {
           type: "string",
           description:
-            "Post-run directory; <workdir>/cwd/ is the agent CWD invariants run against",
+            "Post-run directory whose cwd/ subdir is the agent CWD; invariants run against that cwd — the path hooks receive as $AGENT_CWD",
         },
         output: {
           type: "string",
@@ -125,8 +140,11 @@ export const definition = {
   },
   examples: [
     "fit-benchmark run --family=./families/coding",
+    "fit-benchmark run --family=./families/coding --task=todo-api --runs=1",
+    "fit-benchmark run --family=./families/coding --work-tracker=filesystem",
+    "fit-benchmark run --family=./families/coding --skills-from=. --task=todo-api",
     `fit-benchmark run --family=./families/coding --runs=10 --agent-model=${BENCHMARK_AGENT_MODEL}`,
-    "fit-benchmark invariants --family=./families/coding --task=todo-api --workdir=./benchmark-runs/runs/todo-api/0",
+    "fit-benchmark invariants --family=./families/coding --task=todo-api --run-dir=./benchmark-runs/runs/todo-api/0",
     "fit-benchmark report --format=text",
     "fit-benchmark report --input=./runs/today --k=1,3,5 --format=text",
   ],

@@ -3,11 +3,13 @@
 Task family for `fit-benchmark` targeting the `forwardimpact/kata-skills`
 skill pack. Runs on manual dispatch via `eval-kata.yml`.
 
-The four tasks exercise the Plan→Do artifact spine — spec → design → plan →
+Four tasks exercise the Plan→Do artifact spine — spec → design → plan →
 implement — against **one shared mock app and one feature** (`todo list
 --filter`, spec 042). The app is maintained once at the family level; each task
 is seeded with its own *frozen* upstream artifacts, so it runs independently
-while sharing a single coherent narrative.
+while sharing a single coherent narrative. A fifth task, `coordinate-finding`,
+exercises the **coordination half** of the loop — file → open change → gate →
+merge — offline under the filesystem work tracker.
 
 ## Tasks
 
@@ -17,6 +19,19 @@ while sharing a single coherent narrative.
 | `design-feature` | `kata-design` | `design-a.md` | Rubric (exists, <200 lines, decisions, named trade-off) + judge |
 | `plan-feature` | `kata-plan` | `plan-a.md` | Rubric (Libraries-used line, Risks, design ref, verification) + judge |
 | `implement-feature` | `kata-implement` | edits under `app/` | Hidden test suite (baseline regression + feature) + judge (scope discipline) |
+| `coordinate-finding` | work-tracker operations | `.tracker/` work items | Invariants (issue filed, change links it, `state: merged`, approval recorded) + judge |
+| `product-issue-triage` | `kata-product-issue` | triaged `.tracker/` issue | Invariants (out-of-scope issue closed, `wontfix`-labelled, rationale comment) + judge |
+
+The work-tracking tasks are offline — run them under the filesystem tracker.
+Run a single task with `--task`:
+
+```
+fit-benchmark run --family=benchmarks/kata-skills --task=product-issue-triage --work-tracker=filesystem
+```
+
+Omit `--task` to run every task. The default tracker is `github`; production
+leaves it. The artifact-spine tasks never read `LIBEVAL_WORK_TRACKER`, so they
+are inert under `--work-tracker`.
 
 ## The shared app — family-level `workdir/`
 

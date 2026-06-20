@@ -42,6 +42,41 @@ describe("ApmInstaller.install", () => {
     assert.strictEqual(apmCalls[0].options.cwd, family.rootPath);
   });
 
+  test("--skills-from stages the given .claude/ and skips apm install", async () => {
+    const runtime = rt();
+    const family = await loadTaskFamily(FIXTURE, runtime);
+    // A local skills root containing a .claude/ tree, standing in for a
+    // working tree with unpublished skills.
+    const skillsRoot = await mkdtemp(join(tmpdir(), "benchmark-skills-"));
+    await cp(join(FIXTURE, ".claude"), join(skillsRoot, ".claude"), {
+      recursive: true,
+    });
+    const out = await mkdtemp(join(tmpdir(), "benchmark-apm-sf-"));
+    const { stagingDir } = await createApmInstaller({ runtime }).install(
+      family,
+      out,
+      { skillsFrom: skillsRoot },
+    );
+    await access(join(stagingDir, ".claude", "skills", "noop", "SKILL.md"));
+    const apmCalls = runtime.subprocess.calls.filter((c) => c.cmd === "apm");
+    assert.strictEqual(apmCalls.length, 0, "apm install must be skipped");
+    await rm(skillsRoot, { recursive: true, force: true });
+  });
+
+  test("--skills-from with no .claude/ tree throws", async () => {
+    const runtime = rt();
+    const family = await loadTaskFamily(FIXTURE, runtime);
+    const emptyRoot = await mkdtemp(join(tmpdir(), "benchmark-skills-empty-"));
+    const out = await mkdtemp(join(tmpdir(), "benchmark-apm-sf-empty-"));
+    await assert.rejects(
+      () =>
+        createApmInstaller({ runtime }).install(family, out, {
+          skillsFrom: emptyRoot,
+        }),
+      /--skills-from has no \.claude\/ tree/,
+    );
+  });
+
   test("two consecutive runs on the same family produce the same skillSetHash", async () => {
     const family = await loadTaskFamily(FIXTURE, rt());
     const a = await newInstaller().install(
