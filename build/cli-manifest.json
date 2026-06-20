@@ -63,7 +63,13 @@
     {
       "name": "fit-codegen",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
-      "bundle": "gear"
+      "bundle": "gear",
+      "assets": [
+        {
+          "from": "libraries/libcodegen/templates",
+          "mount": "libcodegen/templates"
+        }
+      ]
     },
     {
       "name": "fit-terrain",

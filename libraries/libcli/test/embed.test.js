@@ -1,18 +1,25 @@
-import { test, describe } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 import { join } from "node:path";
 
 import {
   registerAssets,
+  resetEmbeddedAssets,
   embeddedAssetsActive,
   embeddedDir,
   withEmbeddedAssets,
   LIBCLI_IS_COMPILED,
 } from "../src/embed.js";
 
-// The registry is module-global; these tests register a unique mount so they
-// neither depend on order nor collide with each other.
+// The registry is module-global and shared across the whole `bun test` process.
+// Reset before each test so this file neither leaks the active flag into later
+// test files nor lets one test's mounts bleed into the next — the no-op-when-
+// unregistered assertion below depends on starting from a clean registry.
 describe("embed", () => {
+  beforeEach(() => {
+    resetEmbeddedAssets();
+  });
+
   test("embeddedAssetsActive flips to true once a mount is registered", () => {
     registerAssets("test/active", { "x.md": "hello" });
     assert.strictEqual(embeddedAssetsActive(), true);
@@ -78,14 +85,22 @@ describe("embed", () => {
     assert.strictEqual(LIBCLI_IS_COMPILED, false);
   });
 
-  test("overlay returns the same runtime when no assets are registered", () => {
-    // A fresh registry would make this a no-op; once anything is registered the
-    // overlay wraps. We assert the wrapped runtime is a distinct frozen object
-    // so callers can rely on the contract regardless of registration order.
+  test("overlay is a no-op when no assets are registered", () => {
+    // With an empty registry (the beforeEach reset guarantees this), the overlay
+    // returns the runtime unchanged so source/npx execution keeps its on-disk fs.
+    const base = {
+      fsSync: { existsSync: () => false, readFileSync: () => "" },
+    };
+    assert.strictEqual(withEmbeddedAssets(base), base);
+  });
+
+  test("overlay wraps into a distinct frozen runtime once a mount is registered", () => {
+    registerAssets("test/frozen", { "a.md": "embedded" });
     const base = {
       fsSync: { existsSync: () => false, readFileSync: () => "" },
     };
     const wrapped = withEmbeddedAssets(base);
+    assert.notStrictEqual(wrapped, base);
     assert.ok(Object.isFrozen(wrapped));
   });
 });

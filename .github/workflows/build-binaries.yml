@@ -77,12 +77,24 @@ jobs:
       - name: Smoke gate
         run: |
           BIN="dist/binaries/${{ matrix.cli }}"
-          # Capture stdout+stderr: a CLI that prints --help to stderr must still
-          # count as non-empty output (the gate is "starts and writes output").
-          # `set -e` (the default shell) fails the gate when the binary exits
-          # non-zero — the fit-codegen / fit-outpost startup-crash failure mode.
-          OUT="$("$BIN" --help 2>&1)"
-          test -n "$OUT" || { echo "::error::${{ matrix.cli }} produced no output"; exit 1; }
+          if [ "${{ matrix.cli }}" = "fit-codegen" ]; then
+            # fit-codegen's job is generation, not --help. Gate it on a real
+            # generation invocation against the proto set the codegen step above
+            # already resolved. --service --client --definition exercises all
+            # five mustache render paths (service, client, definition, plus the
+            # services-exports and definitions-exports runExports) — the kinds a
+            # compiled binary previously failed on with "Missing *.mustache". It
+            # skips --type (pbjs subprocess, a separate concern). `set -e` (the
+            # default shell) fails the gate on the binary's non-zero exit.
+            "$BIN" --service --client --definition
+          else
+            # Capture stdout+stderr: a CLI that prints --help to stderr must
+            # still count as non-empty output (the gate is "starts and writes
+            # output"). `set -e` fails the gate when the binary exits non-zero —
+            # the startup-crash failure mode.
+            OUT="$("$BIN" --help 2>&1)"
+            test -n "$OUT" || { echo "::error::${{ matrix.cli }} produced no output"; exit 1; }
+          fi
       - name: Checksum
         run: shasum -a 256 "dist/binaries/${{ matrix.cli }}" | awk '{print $1}' > "dist/binaries/${{ matrix.cli }}.sha256"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

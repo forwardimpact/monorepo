@@ -52,7 +52,7 @@ export class CodegenServices {
     const clients = [];
 
     if (this.#base.fs.existsSync(serviceDir)) {
-      for (const dir of this.#base.fs.readdirSync(serviceDir)) {
+      for (const dir of this.#base.fs.readdirSync(serviceDir).sort()) {
         const servicePath = this.#base.path.join(serviceDir, dir);
         if (!this.#base.fs.statSync(servicePath).isDirectory()) continue;
 

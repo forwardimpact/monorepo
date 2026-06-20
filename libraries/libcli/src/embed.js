@@ -48,6 +48,20 @@ export function embeddedAssetsActive() {
 }
 
 /**
+ * Clear every registered mount, restoring the unregistered state in which
+ * {@link embeddedAssetsActive} is false and {@link withEmbeddedAssets} is a
+ * no-op. Production never calls this: a compiled binary registers once at
+ * startup via the generated barrel and never resets. It exists so a test
+ * exercising the on-disk (unregistered) branch is hermetic regardless of the
+ * order tests run in a shared `bun test` process — `registerAssets` writes a
+ * module-global registry, so a test that registers a mount would otherwise leak
+ * the active flag into every later test file.
+ */
+export function resetEmbeddedAssets() {
+  registry.clear();
+}
+
+/**
  * True when this process is a `bun build --compile` standalone binary.
  *
  * `build/build-binary.sh` passes `--define process.env.LIBCLI_IS_COMPILED="1"`,

@@ -2,6 +2,7 @@ export { Cli, createCli } from "./cli.js";
 export { resolveVersion } from "./version.js";
 export {
   registerAssets,
+  resetEmbeddedAssets,
   embeddedAssetsActive,
   LIBCLI_IS_COMPILED,
   embeddedDir,
