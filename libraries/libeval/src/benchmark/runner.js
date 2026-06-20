@@ -39,10 +39,51 @@ const BASE_TOOLS = [
   "TodoWrite",
 ];
 
-// Upper bound on a single supervised agent run. A run that produces no terminal
-// message within this window is treated as a stall and recorded as an
-// agentError, so the benchmark never hangs the event loop into a silent exit.
-const AGENT_WATCHDOG_MS = 20 * 60 * 1000;
+// Idle ceiling for a supervised agent run: if no trace line is written for this
+// long the run is treated as a stall and recorded as an agentError, so the
+// benchmark never hangs the event loop into a silent exit. Keyed on activity,
+// not total runtime, so a healthy streaming run is never cut while a stalled one
+// ends within a run-budget that lets the whole task matrix finish in time. Three
+// minutes clears observed sub-minute inter-turn gaps with margin.
+const AGENT_IDLE_MS = 3 * 60 * 1000;
+
+/**
+ * Race `work` against an idle watchdog. The watchdog rejects when no trace
+ * activity has been seen for `idleMs` — `activity.at` is a timestamp ref the
+ * caller bumps on every trace write. Unlike a fixed total-runtime cap, a
+ * healthy run that keeps streaming output is never cut; only a run that goes
+ * (or starts) silent for `idleMs` is aborted as a stall. Exported for test.
+ * @param {Promise<{success: boolean}>} work - The supervised run promise.
+ * @param {{at: number}} activity - Last-activity timestamp ref (clock.now()).
+ * @param {{now: () => number, setTimeout: Function, clearTimeout: Function}} clock
+ * @param {number} idleMs - Idle threshold before the run is treated as stalled.
+ * @returns {Promise<{success: boolean}>}
+ */
+export async function raceIdleWatchdog(work, activity, clock, idleMs) {
+  let timer;
+  try {
+    return await Promise.race([
+      work,
+      new Promise((_, reject) => {
+        const tick = () => {
+          const idleFor = clock.now() - activity.at;
+          if (idleFor >= idleMs) {
+            reject(
+              new Error(
+                `agent run produced no trace output for ${idleMs}ms (possible stall)`,
+              ),
+            );
+            return;
+          }
+          timer = clock.setTimeout(tick, idleMs - idleFor);
+        };
+        timer = clock.setTimeout(tick, idleMs);
+      }),
+    ]);
+  } finally {
+    clock.clearTimeout(timer);
+  }
+}
 
 /** Sole orchestrator for a task-family benchmark run. */
 export class BenchmarkRunner {
@@ -355,34 +396,34 @@ export class BenchmarkRunner {
     });
     const instructions = await fs.readFile(task.paths.instructions, "utf8");
     let agentError = null;
-    // Watchdog: a supervised session can hang without settling (e.g. the agent
-    // SDK subprocess exits without a terminal message), which would empty the
-    // event loop and exit the process mid-run with zero records. Race the run
-    // against a bounded timer so a stall becomes an `agentError` record instead
-    // of a silent exit; the timer also keeps the loop alive until it fires.
-    let watchdog;
+    // Watchdog: a supervised session settles only when the lead calls
+    // `Conclude`. An LLM lead may finish the work yet never conclude (leaving
+    // `run()` pending forever), or a misconfigured run may produce nothing at
+    // all (e.g. an unusable API key the SDK retries indefinitely). Both show up
+    // as a trace that goes — or starts — silent. Race the run against an *idle*
+    // timer keyed on trace activity, not a fixed total cap: a healthy run that
+    // streams output then settles resolves normally, while a stalled one is cut
+    // shortly after it stops producing — so one bad run can't burn the whole
+    // job budget, and a dead run fails fast instead of hanging for 20 minutes.
+    const activity = { at: this.runtime.clock.now() };
+    const origWrite = combinedStream.write.bind(combinedStream);
+    combinedStream.write = (...args) => {
+      activity.at = this.runtime.clock.now();
+      return origWrite(...args);
+    };
     try {
-      const result = await Promise.race([
+      const result = await raceIdleWatchdog(
         supervisor.run(instructions),
-        new Promise((_, reject) => {
-          watchdog = this.runtime.clock.setTimeout(
-            () =>
-              reject(
-                new Error(
-                  `agent run produced no result within ${AGENT_WATCHDOG_MS}ms (possible stall)`,
-                ),
-              ),
-            AGENT_WATCHDOG_MS,
-          );
-        }),
-      ]);
+        activity,
+        this.runtime.clock,
+        AGENT_IDLE_MS,
+      );
       if (!result.success && !result.concluded) {
         agentError = { message: "supervisor did not succeed", aborted: false };
       }
     } catch (e) {
       agentError = { message: e.message ?? String(e), aborted: false };
     } finally {
-      this.runtime.clock.clearTimeout(watchdog);
       await new Promise((r) => combinedStream.end(r));
     }
     const summary = await splitAndSummarize(

@@ -2,6 +2,13 @@ name: "Eval: Kata"
 
 on:
   workflow_dispatch:
+    inputs:
+      runs:
+        description: "Runs per task (lower for a quick diagnostic dispatch)"
+        default: "5"
+      max-turns:
+        description: "Max agent turns per run"
+        default: "25"
 
 concurrency:
   group: eval-kata-${{ github.ref }}
@@ -26,9 +33,20 @@ jobs:
       - uses: forwardimpact/fit-benchmark@c5764e7213832cbe28978517aa8547c4834ad50a # v1
         with:
           family: ./benchmarks/kata-skills
-          runs: "5"
-          max-turns: "25"
+          runs: ${{ inputs.runs || '5' }}
+          max-turns: ${{ inputs.max-turns || '25' }}
           judge-profile: judge
           # runs:5 × 4 tasks ≈ 90+ min of sequential agent+judge sessions;
           # the default 60 timed out mid-run (see run 23).
           timeout-minutes: "120"
+      # The action uploads results.jsonl but not the per-run traces. When a run
+      # records an agentError (e.g. a supervisor that never produces a turn),
+      # only the agent/supervisor/judge ndjson reveals why — auth rejection,
+      # subprocess spawn failure, network stall. Upload them so any stall is
+      # diagnosable without re-running the whole 90+ min benchmark.
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: benchmark-traces
+          path: benchmark-runs/runs/**
+          if-no-files-found: warn
