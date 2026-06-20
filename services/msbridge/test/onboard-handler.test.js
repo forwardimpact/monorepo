@@ -1,5 +1,5 @@
-import { describe, expect, test } from "bun:test";
-
+import { describe, test } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { createOnboardHandler } from "../src/onboard-handler.js";
 import { createOnboardVerifier } from "../src/onboard-verifier.js";
 import { handleConsent } from "../src/consent-handler.js";

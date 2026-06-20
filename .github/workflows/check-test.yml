@@ -10,6 +10,28 @@ permissions:
   contents: read
 
 jobs:
+  # Blocking gate: node --test is the reference-correct runner on the critical
+  # path. This is the single required PR + main test check (mark it required in
+  # branch protection). The bun `test` job below stays informational.
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: forwardimpact/fit-bootstrap@22e7a8a053c22cf56d6f4efb95fcf0b3d42267c8 # v1
+      # libwiki's push path secret-scans with gitleaks (fail-closed); the
+      # wiki-sync integration tests in the gate set need the binary on PATH,
+      # exactly as the informational bun `test` job below does.
+      - uses: ./.github/actions/install-gitleaks
+      - run: bunx fit-terrain build
+      - name: Guard against bun:test re-divergence
+        run: bun scripts/check-bun-test-imports.mjs
+      - name: Run gate (node --test)
+        run: bun run test:gate
+
+  # Informational only: keeps the fast bun inner-loop visible. It surfaces the
+  # bun#5090 describe-in-test cascade, so it must NOT be a required check —
+  # making it blocking would move the flaky blocker from the release tag to the
+  # PR queue.
   test:
     runs-on: ubuntu-latest
     steps:

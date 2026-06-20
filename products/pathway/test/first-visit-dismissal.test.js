@@ -14,13 +14,21 @@ beforeEach(() => {
   win = new Window({ url: "http://localhost/" });
   globalThis.window = win;
   globalThis.document = win.document;
-  globalThis.navigator = win.navigator;
+  Object.defineProperty(globalThis, "navigator", {
+    value: win.navigator,
+    configurable: true,
+    writable: true,
+  });
 });
 
 afterEach(() => {
   globalThis.window = savedWindow;
   globalThis.document = savedDocument;
-  globalThis.navigator = savedNavigator;
+  Object.defineProperty(globalThis, "navigator", {
+    value: savedNavigator,
+    configurable: true,
+    writable: true,
+  });
 });
 
 /**

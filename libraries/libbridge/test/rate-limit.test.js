@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 import { RateLimiter } from "../src/rate-limit.js";

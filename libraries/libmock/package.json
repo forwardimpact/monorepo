@@ -22,7 +22,8 @@
     ".": "./src/index.js",
     "./mock": "./src/mock/index.js",
     "./fixture": "./src/fixture/index.js",
-    "./runtime": "./src/runtime.js"
+    "./runtime": "./src/runtime.js",
+    "./expect": "./src/expect/index.js"
   },
   "files": [
     "src/**/*.js",

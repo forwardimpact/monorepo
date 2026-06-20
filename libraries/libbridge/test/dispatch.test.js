@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-
+import { describe, test, beforeEach, afterEach } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { dispatchWorkflow } from "../src/dispatch.js";
 
 describe("dispatchWorkflow", () => {
@@ -11,7 +11,7 @@ describe("dispatchWorkflow", () => {
     captured = null;
     globalThis.fetch = async (url, init) => {
       captured = { url, init };
-      return new Response(JSON.stringify({ ok: true }), { status: 204 });
+      return new Response(null, { status: 204 });
     };
   });
 

@@ -1,5 +1,5 @@
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-
+import { describe, test, beforeEach, afterEach } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { ReplyEmitter } from "../src/reply-emitter.js";
 import { SequenceCounter } from "../src/sequence-counter.js";
 

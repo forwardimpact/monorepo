@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { describe, test, beforeEach, afterEach } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { createMockLogger } from "@forwardimpact/libmock/mock";
 
 import { createHttpService } from "../src/server.js";

@@ -1,4 +1,5 @@
-import { describe, expect, test, afterEach, beforeEach } from "bun:test";
+import { describe, test, beforeEach, afterEach } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { createTestRuntime } from "@forwardimpact/libmock";
 const _rt = createTestRuntime();
 

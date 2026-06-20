@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { describe, test, beforeEach, afterEach } from "node:test";
+import { expect } from "@forwardimpact/libmock/expect";
 import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 import { Acknowledgement } from "../src/acknowledgement.js";
@@ -77,7 +78,7 @@ function stubFetch({ onWorkflowDispatch } = {}) {
     if (target.startsWith("https://api.github.com/")) {
       calls.push({ url: target, init });
       if (onWorkflowDispatch) return onWorkflowDispatch(url, init);
-      return new Response("{}", { status: 204 });
+      return new Response(null, { status: 204 });
     }
     return original(url, init);
   };

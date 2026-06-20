@@ -1,5 +1,13 @@
 # Spec 0650 — Switch Test Runner from `node:test` to `bun test`
 
+> **Superseded by [spec 2020](../2020-publish-gate-runner-strategy/spec.md).**
+> 0650's "speed-over-correctness, `bun test` as the default everywhere" decision
+> proved false on the critical path: bun does not support `describe()` inside
+> `test()` (bun#5090), which intermittently reddened the publish gate. Spec 2020
+> settles the runner per surface — `node --test` owns the blocking gate,
+> `bun test` is retained as the informational local/PR loop — and converges the
+> `bun:test` importers back onto `node:test`. Read 2020 for the current strategy.
+
 ## Problem
 
 Spec 0640 cut test-file LOC and lifted libmock adoption but left wall-clock
