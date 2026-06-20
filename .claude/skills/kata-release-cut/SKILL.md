@@ -181,4 +181,12 @@ Append to the current week's log (see agent profile for the file path):
 
 Release foundational packages before consumers (check `package.json`
 dependencies before tagging). First-release and failed-publish handling:
-[`procedure.md`](references/procedure.md).
+[`procedure.md`](references/procedure.md). Related hazards: (c), (d), (b)/(h).
+
+## Hazards
+
+The letter is the stable identifier; each fires-when and recovery resolves in
+[references/hazards.md](references/hazards.md): (a) bump-noise stderr,
+(b) first-release dependency race, (c) non-zero first version, (d) credential
+expiry, (e) propagation lag, (f) JSDoc after auto-fix, (g) wiki budget
+overage, (h) new library dependency of tagged consumers.
