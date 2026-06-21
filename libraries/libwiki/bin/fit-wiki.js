@@ -4,6 +4,7 @@ import "@forwardimpact/libpreflight/node22";
 
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { GitClient } from "@forwardimpact/libutil/git-client";
+import { GhClient } from "@forwardimpact/libutil/gh-client";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createCli } from "@forwardimpact/libcli";
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -18,6 +19,10 @@ import { createDefinition } from "../src/cli-definition.js";
 // Commands that mutate or sync the remote wiki need a constructed WikiSync
 // (and its config-backed token resolver); the rest run against the local tree.
 const NEEDS_WIKI_SYNC = new Set(["claim", "release", "push", "pull", "init"]);
+
+// The ledger command reads and writes the allocation-anchor surface (the
+// obstacle issue's comments) over the GitHub API, so it needs a GhClient.
+const NEEDS_GH_CLIENT = new Set(["ledger"]);
 
 async function main() {
   const runtime = createDefaultRuntime();
@@ -72,8 +77,13 @@ async function main() {
     });
   }
 
+  let ghClient;
+  if (NEEDS_GH_CLIENT.has(command)) {
+    ghClient = new GhClient({ runtime });
+  }
+
   const result = await cli.dispatch(parsed, {
-    deps: { runtime, wikiSync, gitClient },
+    deps: { runtime, wikiSync, gitClient, ghClient },
   });
 
   const envelope = result ?? { ok: true };

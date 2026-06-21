@@ -91,8 +91,8 @@ describe("WikiSync", () => {
     assert.deepEqual(methods(), ["fetch", "rebase", "rebaseAbort"]);
   });
 
-  test("commitAndPush lands a dirty ahead tree, grounded in the per-ref report", async () => {
-    const { wikiSync, methods } = make({
+  test("commitAndPush without paths commits the session's dirty set, never sweeps the whole tree (1850 D3/KD6)", async () => {
+    const { git, wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
         ...HEALTHY,
@@ -106,11 +106,39 @@ describe("WikiSync", () => {
     assert.equal(result.landed, true);
     assert.equal(result.reason, PUSH_REASONS.LANDED);
     const m = methods();
-    assert.ok(m.includes("commitAll"));
+    // The bare push collects its own dirty set and commits it pathspec-scoped;
+    // the whole-tree `add -A` sweep that carried the eraser never runs.
+    assert.ok(!m.includes("commitAll"), "the whole-tree sweep is gone");
+    const commit = git.calls.find((c) => c.method === "commitPaths");
+    assert.deepEqual(commit.args, [
+      "wiki: update",
+      ["MEMORY.md"],
+      { cwd: WIKI },
+    ]);
     assert.ok(m.includes("pushPorcelain"));
     assert.ok(m.includes("isMidMerge"), "the mid-merge guard still runs");
     assert.ok(m.includes("introducedByFile"), "the marker guard still runs");
     assert.ok(!m.includes("mergeOursStrategy"), "clobber fallback is gone");
+  });
+
+  test("commitAndPush without paths returns nothing-to-push on a clean tree", async () => {
+    const { wikiSync, methods } = make({
+      fsSync: provisionedFs(),
+      responses: {
+        ...HEALTHY,
+        isMidMerge: false,
+        status: { stdout: "", stderr: "", exitCode: 0 },
+        // Remote tip already contains HEAD ⇒ grounded nothing-to-push.
+        remoteRefTip: "deadbeef",
+        isAncestor: true,
+      },
+    });
+    const result = await wikiSync.commitAndPush("wiki: update");
+    assert.equal(result.landed, false);
+    assert.equal(result.reason, PUSH_REASONS.NOTHING);
+    const m = methods();
+    assert.ok(!m.includes("commitPaths"), "an empty dirty set commits nothing");
+    assert.ok(!m.includes("commitAll"), "the whole-tree sweep is gone");
   });
 
   test("commitAndPush with paths scopes the status check and commit", async () => {

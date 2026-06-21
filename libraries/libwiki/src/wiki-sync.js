@@ -269,10 +269,13 @@ export class WikiSync {
    * push — reporting an honest outcome  The commit gate and the
    * push gate are independent so a clean tree with local commits still pushes.
    *
-   * Without `paths` the commit sweeps the whole tree (`fit-wiki push`
-   * contract). With `paths` the commit is pathspec-scoped so foreign residue
-   * from parallel writers in the shared workspace is never swept in; the
-   * rebase runs with --autostash because that residue stays uncommitted.
+   * The commit is always pathspec-scoped: with `paths` the scope is the
+   * caller's declared write-set, and without `paths` it is the session's own
+   * dirty set (`#dirtyPaths`, the `fit-wiki push` contract under per-session
+   * checkout isolation). The whole-tree `add -A` sweep is gone, so foreign
+   * content on undeclared paths is never staged and the stale fast-forward
+   * eraser it carried no longer exists; the rebase runs with --autostash
+   * because any foreign residue stays uncommitted.
    *
    * Outcome contract (D2 taxonomy):
    * - Returns `{ landed: true, reason: "landed" }` only when the push is
@@ -381,22 +384,25 @@ export class WikiSync {
       this.#wikiDir,
       this.#runtime.fsSync,
     ).changed;
+    // Attribute the commit's write-set. A caller that knows
+    // its narrower write-set passes `paths` (the claim/release path, scoped to
+    // MEMORY.md). The session-close `fit-wiki push` passes none and the
+    // write-set is the session's own dirty set, read from the working tree —
+    // correct because the canonical mechanism runs it in a per-session isolated
+    // checkout where the dirty set holds no foreign content. The whole-tree
+    // `commitAll` sweep is gone: it carried the stale fast-forward eraser, a
+    // clean fast-forward no loud-conflict contract could reach, so the scoped
+    // commit closes it at the source rather than relying on a later conflict.
+    const writeSet = paths ?? (await this.#dirtyPaths());
     // The metrics-CSV declaration must be committed when it was just written,
     // even on the pathspec-scoped path; fold it into the effective pathspec.
-    // On a no-payload sweep (`paths` absent), this becomes the sole pathspec
-    // [GITATTRIBUTES_FILE], so provisioning still produces exactly one commit
-    // rather than sweeping the whole tree via commitAll.
     const commitPaths = gitattributesChanged
-      ? [...(paths ?? []), GITATTRIBUTES_FILE]
-      : paths;
-    if (!(await this.isClean(commitPaths))) {
-      if (commitPaths?.length) {
-        await this.#git.commitPaths(message, commitPaths, {
-          cwd: this.#wikiDir,
-        });
-      } else {
-        await this.#git.commitAll(message, { cwd: this.#wikiDir });
-      }
+      ? [...writeSet, GITATTRIBUTES_FILE]
+      : writeSet;
+    if (commitPaths.length && !(await this.isClean(commitPaths))) {
+      await this.#git.commitPaths(message, commitPaths, {
+        cwd: this.#wikiDir,
+      });
     }
 
     // Grounded nothing-to-push (D2): assert it only when the
@@ -821,6 +827,31 @@ export class WikiSync {
     return r.stdout
       .split("\n")
       .some((line) => UNMERGED_CODES.has(line.slice(0, 2)));
+  }
+
+  /**
+   * The paths dirty in the working tree — the session's own write-set when no
+   * explicit pathspec was supplied. Each porcelain v1 line is `XY <path>` or,
+   * for a rename, `XY <orig> -> <new>`; the destination is the path that exists
+   * in the tree and is the one emitted (a `git mv` source no longer exists, so
+   * adding it to the pathspec would fault). A `"`-quoted path (a name with a
+   * space or non-ASCII byte) is unquoted so the pathspec matches the
+   * working-tree entry. Under the canonical per-session isolated checkout this
+   * set holds no foreign content, so committing exactly it stages the session's
+   * own work and nothing else; wiki session writes are edits and appends, not
+   * renames, so the destination-only scope covers the real workload.
+   */
+  async #dirtyPaths() {
+    const r = await this.#git.status({ cwd: this.#wikiDir });
+    return r.stdout
+      .split("\n")
+      .map((line) => line.slice(3))
+      .map((entry) => {
+        const arrow = entry.indexOf(" -> ");
+        return arrow === -1 ? entry : entry.slice(arrow + 4);
+      })
+      .map((p) => p.trim().replace(/^"(.*)"$/, "$1"))
+      .filter(Boolean);
   }
 
   /**

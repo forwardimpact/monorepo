@@ -49,6 +49,7 @@ const HELP_CASES = [
   [["init", "--help"], "init-help.stdout.txt"],
   [["push", "--help"], "push-help.stdout.txt"],
   [["pull", "--help"], "pull-help.stdout.txt"],
+  [["ledger", "--help"], "ledger-help.stdout.txt"],
 ];
 
 describe("fit-wiki golden CLI contract", () => {

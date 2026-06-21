@@ -19,9 +19,14 @@ export async function runPushCommand(ctx) {
   const { runtime, wikiSync } = ctx.deps;
   await wikiSync.inheritIdentity();
 
+  // A caller that knows its narrower write-set passes `--paths` (repeatable);
+  // the bare session-close invocation passes none and lands the session's own
+  // dirty set under per-session checkout isolation.
+  const paths = ctx.options?.paths?.length ? ctx.options.paths : undefined;
+
   let result;
   try {
-    result = await wikiSync.commitAndPush("wiki: update from session");
+    result = await wikiSync.commitAndPush("wiki: update from session", paths);
   } catch (err) {
     // Honest CLI contract (the honest-CLI contract): non-zero on any non-land push
     // failure, and on the ancestry guard's refusal (the ancestry guard). The Stop-hook

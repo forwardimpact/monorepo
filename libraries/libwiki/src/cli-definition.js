@@ -10,6 +10,7 @@ import { runInboxCommand } from "./commands/inbox.js";
 import { runRotateCommand } from "./commands/rotate.js";
 import { runAuditCommand } from "./commands/audit.js";
 import { runFixCommand } from "./commands/fix.js";
+import { runLedgerCommand } from "./commands/ledger.js";
 
 /**
  * Build the `fit-wiki` libcli definition. Agent identity is never resolved from
@@ -260,13 +261,62 @@ export function createDefinition() {
         name: "push",
         description: "Commit and push local wiki changes to the remote",
         handler: runPushCommand,
-        options: { ...wikiRootOpt },
+        options: {
+          ...wikiRootOpt,
+          paths: {
+            type: "string",
+            multiple: true,
+            description:
+              "Pathspec(s) limiting the write-set; omit to land the session's dirty set",
+          },
+        },
       },
       {
         name: "pull",
         description: "Pull remote wiki changes into the local working tree",
         handler: runPullCommand,
         options: { ...agentOpt, ...wikiRootOpt, ...todayOpt },
+      },
+      {
+        name: "ledger",
+        description:
+          "Allocate collision-ledger ids at anchors and rebuild projections",
+        args: ["subcommand"],
+        argsUsage: "<allocate|rebuild|verify>",
+        handler: runLedgerCommand,
+        options: {
+          ...wikiRootOpt,
+          kind: {
+            type: "string",
+            description: "Allocation kind: occ | nm | fold | meta",
+          },
+          count: {
+            type: "string",
+            description: "How many ids to allocate (default 1)",
+          },
+          ids: {
+            type: "string",
+            description:
+              "Comma-separated ids to backfill an anchor for (instead of --count)",
+          },
+          event: {
+            type: "string",
+            description: "Durable key for the allocation (SHA or anchor id)",
+          },
+          note: {
+            type: "string",
+            description: "Free-text note for the anchor",
+          },
+          gapped: {
+            type: "boolean",
+            description:
+              "Render double-allocation losers as a gap, not a renumber",
+          },
+          issue: {
+            type: "string",
+            description: "Anchor issue number (default obstacle issue)",
+          },
+        },
       },
     ],
     globalOptions: {
