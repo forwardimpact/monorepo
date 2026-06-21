@@ -58,15 +58,19 @@ function compileLauncher() {
   //     -gnone — last-resort drop of DWARF debug info entirely;
   //     without it, timestamp-shaped 4-byte writes leak into
   //     Contents/MacOS/Outpost.
-  // (c) -Xlinker -no_uuid — suppress LC_UUID which ld64 derives from
-  //     content + build-time entropy; pairs with (a)/(b) to leave
-  //     the Mach-O byte-identical across rebuilds.
+  //
+  // LC_UUID is intentionally left in place. dyld on macOS 26+ aborts a
+  // main executable that has no LC_UUID ("missing LC_UUID load command"),
+  // so stripping it with `-Xlinker -no_uuid` makes the app fail to launch.
+  // ld-prime derives LC_UUID from a content hash, so with (a)/(b) holding
+  // the linked content byte-stable the UUID is already deterministic — two
+  // builds of the same tree yield a byte-identical Mach-O (verified). The
+  // cdhash-determinism gate (spec 1170) stays green without the flag.
   const swiftCmd = [
     "swift build -c release",
     "-Xswiftc -no-clang-module-breadcrumbs",
     `-Xswiftc -file-prefix-map -Xswiftc "${LAUNCHER_DIR}=."`,
     "-Xswiftc -gnone",
-    "-Xlinker -no_uuid",
   ].join(" ");
   run(swiftCmd, {
     cwd: LAUNCHER_DIR,
