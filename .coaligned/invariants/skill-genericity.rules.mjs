@@ -19,9 +19,10 @@
 //
 // Fully-qualified https://github.com/forwardimpact/monorepo/blob/main/...
 // links are sanctioned (canonical-protocol references) and do not match
-// these rules. fit-* skills are out of scope: they document their own
-// published CLIs and legitimately name @forwardimpact packages and tool
-// integrations.
+// these rules. fit-* and coaligned-* skills are out of scope: they document
+// their own published CLIs and legitimately name @forwardimpact packages and
+// tool integrations. Only kata-* skills (plus the agent references) are
+// scanned — see the glob in build().
 
 const PATTERNS = [
   // --- Group 1: internal-only tooling ---

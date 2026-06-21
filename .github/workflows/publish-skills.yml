@@ -6,9 +6,11 @@ on:
     paths:
       - ".claude/skills/fit-*/**"
       - ".claude/skills/kata-*/**"
+      - ".claude/skills/coaligned-*/**"
       - ".claude/agents/*.md"
       - ".claude/agents/references/**"
       - "products/gear/package.json"
+      - "libraries/libcoaligned/package.json"
       - ".github/workflows/publish-skills.yml"
   workflow_dispatch:
 
@@ -112,6 +114,160 @@ jobs:
 
           ```bash
           npx skills add forwardimpact/fit-skills
+          ```
+
+          ## Available Skills
+
+          | Skill | Description |
+          | --- | --- |
+          EOF
+
+          sed -i 's/^          //' skills-repo/README.md
+
+          extract_desc() {
+            awk '
+              /^description:/ {
+                sub(/^description: *>? */, "")
+                if ($0 != "") { desc = $0 }
+                while (getline > 0) {
+                  if (/^  /) { gsub(/^  /, ""); desc = desc " " $0 }
+                  else { break }
+                }
+                gsub(/^ +/, "", desc)
+                gsub(/ +$/, "", desc)
+                print desc
+                exit
+              }
+            ' "$1"
+          }
+
+          for skill_dir in skills-repo/skills/*/; do
+            skill_md="$skill_dir/SKILL.md"
+            if [ -f "$skill_md" ]; then
+              name=$(sed -n 's/^name: *//p' "$skill_md" | head -1)
+              desc=$(extract_desc "$skill_md")
+              echo "| **${name}** | ${desc} |" >> skills-repo/README.md
+            fi
+          done
+
+      - name: Commit, push, tag
+        working-directory: skills-repo
+        run: |
+          git config user.name "kata-agent-team[bot]"
+          git config user.email "${{ secrets.KATA_APP_ID }}+kata-agent-team[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+          else
+            git commit -m "chore: sync skills from monorepo @ v${VERSION}"
+            git push
+          fi
+
+          if git ls-remote --exit-code --tags origin "v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${VERSION} already exists upstream"
+          else
+            git tag "v${VERSION}"
+            git push origin "v${VERSION}"
+          fi
+
+  publish-coaligned-skills:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate installation token
+        id: ci-app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.KATA_APP_ID }}
+          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+          repositories: coaligned-skills
+
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          repository: forwardimpact/coaligned-skills
+          token: ${{ steps.ci-app.outputs.token }}
+          path: skills-repo
+          fetch-depth: 0
+
+      - uses: ./.github/actions/audit
+        with:
+          vulnerability-scanning: "false"
+          secret-scanning: "true"
+
+      - uses: forwardimpact/fit-bootstrap@22e7a8a053c22cf56d6f4efb95fcf0b3d42267c8 # v1
+
+      - name: Skill ref lint
+        run: bun run check-skill-refs
+        env:
+          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
+
+      - name: Read version
+        run: |
+          VERSION=$(jq -r '.version' libraries/libcoaligned/package.json)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Sync skills
+        run: |
+          inject_skill_frontmatter() {
+            local file="$1" version="$2"
+            awk -v ver="$version" '
+              NR == 1 && $0 == "---" { print; in_fm = 1; next }
+              in_fm && $0 == "---" {
+                print "license: Apache-2.0"
+                print "metadata:"
+                print "  version: \"" ver "\""
+                print "  author: forwardimpact"
+                print
+                in_fm = 0
+                next
+              }
+              { print }
+            ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+          }
+
+          rm -rf skills-repo/skills
+          mkdir -p skills-repo/skills
+          for skill_dir in .claude/skills/coaligned-*/; do
+            skill_name=$(basename "$skill_dir")
+            cp -r "$skill_dir" "skills-repo/skills/$skill_name"
+            inject_skill_frontmatter "skills-repo/skills/$skill_name/SKILL.md" "$VERSION"
+          done
+
+      - name: Generate apm.yml
+        run: |
+          cat > skills-repo/apm.yml <<EOF
+          name: coaligned-skills
+          version: ${VERSION}
+          description: >-
+            Skills for maintaining the Co-Aligned instruction architecture —
+            setup, instruction layers, jobs, invariants, and the check suite.
+          author: forwardimpact
+          license: Apache-2.0
+          includes: auto
+          EOF
+
+      - name: Generate README
+        run: |
+          cat > skills-repo/README.md << 'EOF'
+          # Co-Aligned Skills
+
+          Skills for maintaining the
+          [Co-Aligned](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+          instruction architecture with the `coaligned` CLI.
+
+          ## Install
+
+          With [APM](https://microsoft.github.io/apm/):
+
+          ```bash
+          apm install forwardimpact/coaligned-skills
+          ```
+
+          With [npx skills](https://github.com/vercel-labs/skills):
+
+          ```bash
+          npx skills add forwardimpact/coaligned-skills
           ```
 
           ## Available Skills
