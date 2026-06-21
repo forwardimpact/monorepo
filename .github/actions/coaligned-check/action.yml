@@ -4,7 +4,8 @@ description: |
   instruction architecture defined in COALIGNED.md.
 
   When `command` is omitted, every check runs (instructions and jtbd). When
-  `command` is set to "instructions" or "jtbd", only that subcommand runs.
+  `command` is set to "instructions", "jtbd", or "invariants", only that
+  subcommand runs.
 
   Assumes the workspace has already been bootstrapped (Bun installed,
   dependencies linked) so `bunx coaligned` resolves. When this action is
@@ -13,7 +14,7 @@ description: |
 
 inputs:
   command:
-    description: 'Subcommand to run: "instructions" or "jtbd". Leave empty to run every check.'
+    description: 'Subcommand to run: "instructions", "jtbd", or "invariants". Leave empty to run every check.'
     required: false
     default: ""
   fix:
@@ -35,9 +36,9 @@ runs:
         FIX: ${{ inputs.fix }}
       run: |
         case "$COMMAND" in
-          ""|instructions|jtbd) ;;
+          ""|instructions|jtbd|invariants) ;;
           *)
-            echo "::error::coaligned-check: unknown command \"$COMMAND\". Expected one of: \"\" (run every check), instructions, jtbd."
+            echo "::error::coaligned-check: unknown command \"$COMMAND\". Expected one of: \"\" (run every check), instructions, jtbd, invariants."
             exit 2
             ;;
         esac
