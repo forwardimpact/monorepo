@@ -77,7 +77,7 @@ Referenced as `./.github/actions/<name>`:
 | Action | Purpose |
 |---|---|
 | `audit` | `npm audit` + gitleaks secret scanning |
-| `coaligned-check` | `bunx coaligned` checks (instructions, jtbd) |
+| `coaligned-check` | `bunx coaligned` checks (instructions, jtbd, invariants) |
 | `macos-signing` | Import Developer ID certs into a temp keychain |
 | `notarize` | Notarize + staple a `.app`/`.pkg` via the notary API |
 | `resolve-package` | npm name + workspace dir from a `<pkg>@v*` tag |
