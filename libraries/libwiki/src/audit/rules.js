@@ -55,6 +55,19 @@ import {
 } from "./rule-builders.js";
 import { STATUS_ROW_RULES } from "./status-row.js";
 
+// The budget predicates the post-landing pre-push gate re-runs over the
+// outgoing tree. Naming the ids here keeps the gate selecting rules by
+// membership of this set, so a future predicate change to any of these
+// rules flows through the gate with no gate-code change.
+export const BUDGET_RULE_IDS = new Set([
+  "summary.line-budget",
+  "summary.word-budget",
+  "weekly-log.line-budget",
+  "weekly-log.word-budget",
+  "weekly-log-part.line-budget",
+  "weekly-log-part.word-budget",
+]);
+
 export const RULES = [
   // -- Summary files --
 
