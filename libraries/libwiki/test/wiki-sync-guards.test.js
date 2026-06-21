@@ -14,8 +14,8 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
   ].join("\n");
 
   // A wiki that already carries the metrics-CSV union declaration, so
-  // `commitAndPush`'s ensure-before-gate is a no-op and the no-payload sweep
-  // commits via commitAll exactly as before the union-merge provisioning.
+  // `commitAndPush`'s ensure-before-gate is a no-op and the bare push commits
+  // its own dirty set pathspec-scoped (1850 D3/KD6), never the whole tree.
   const provisionedFs = () =>
     createMockFs({
       [`${WIKI}/.gitattributes`]: "metrics/**/*.csv merge=union\n",
@@ -74,7 +74,11 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
       reason: "would-publish-markers",
     });
     const m = methods();
-    assert.ok(m.includes("commitAll"), "the commit is kept local");
+    assert.ok(m.includes("commitPaths"), "the commit is kept local");
+    assert.ok(
+      !m.includes("commitAll"),
+      "the whole-tree sweep is gone (1850 D3)",
+    );
     assert.ok(!m.includes("push"));
   });
 

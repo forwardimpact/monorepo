@@ -207,6 +207,34 @@ describe("WikiSync (real git)", () => {
     assert.match(status, /^\?\? residue\.md$/m);
   });
 
+  test("bare commitAndPush commits the session's own dirty set via commitPaths (1850 D3/KD6)", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "bare-dirtyset");
+    git(wikiDir, "checkout", "master");
+    writeFileSync(join(wikiDir, "MEMORY.md"), "# Memory\n");
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "seed");
+    git(wikiDir, "push", "origin", "master");
+
+    // Under the canonical per-session isolated checkout (KD6) the working tree
+    // holds only the session's own writes: a modified tracked file and a new
+    // file. The bare landing attributes that dirty set from real
+    // `git status --porcelain` (#dirtyPaths) and commits it pathspec-scoped —
+    // the whole-tree `add -A` sweep that carried the eraser never runs.
+    writeFileSync(join(wikiDir, "MEMORY.md"), "# Memory\nclaim row\n");
+    writeFileSync(join(wikiDir, "staff-engineer.md"), "session log\n");
+
+    const result = await makeSync(wikiDir, parent).commitAndPush(
+      "wiki: update from session",
+    );
+    assert.equal(result.landed, true);
+    assert.equal(result.reason, "landed");
+    const landed = git(wikiDir, "show", "--name-status", "--format=", "HEAD");
+    assert.match(landed, /M\s+MEMORY\.md/);
+    assert.match(landed, /A\s+staff-engineer\.md/);
+    assert.equal(git(wikiDir, "diff", "origin/master"), "");
+    assert.equal(git(wikiDir, "status", "--porcelain"), "");
+  });
+
   test("commitAndPush with paths reports nothing-to-push when only foreign files are dirty", async () => {
     const { parent, wikiDir } = cloneRepo(bare, "scoped-noop");
     git(wikiDir, "checkout", "master");
