@@ -64,8 +64,8 @@ function compileLauncher() {
   // so stripping it with `-Xlinker -no_uuid` makes the app fail to launch.
   // ld-prime derives LC_UUID from a content hash, so with (a)/(b) holding
   // the linked content byte-stable the UUID is already deterministic — two
-  // builds of the same tree yield a byte-identical Mach-O (verified). The
-  // cdhash-determinism gate (spec 1170) stays green without the flag.
+  // builds of the same tree yield a byte-identical Mach-O (verified), so
+  // dropping the flag preserves the cdhash determinism the brew lane needs.
   const swiftCmd = [
     "swift build -c release",
     "-Xswiftc -no-clang-module-breadcrumbs",
