@@ -89,10 +89,10 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
   `#!/usr/bin/env node`, no Bun. gRPC
   products need `npx fit-codegen --all` — see
   [Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md).
-- **Skill packs** — `forwardimpact/fit-skills` and `forwardimpact/kata-skills`
+- **Skill packs** — `forwardimpact/{fit-skills,kata-skills,coaligned-skills}`
   sync on push to `main`. Install: `npx skills add forwardimpact/fit-skills`
-  (or `kata-skills`). Internal skills (`libs-*`, product internals) never
-  publish.
+  (or `kata-skills`, `coaligned-skills`). Internal skills (`libs-*`, product
+  internals) never publish.
 - **Composite actions** —
   <!-- enum:sibling-composite-actions:list -->`forwardimpact/{fit-benchmark,fit-bootstrap,fit-eval,fit-wiki,kata-agent}`<!-- /enum -->
   released via append-only `v1.0.x` tags. Edit procedure in
