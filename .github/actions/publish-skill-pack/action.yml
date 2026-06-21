@@ -1,0 +1,213 @@
+name: Publish skill pack
+description: >
+  Sync one skill pack (and, for kata, its agents) from the monorepo into the
+  checked-out sibling repo, regenerate apm.yml and README.md, then commit, push,
+  and tag at the pack's package version. All pack-specific values arrive via
+  inputs so the three packs share one implementation. Prose and repo names reach
+  the scripts through the environment, never by interpolation into source text.
+
+inputs:
+  pack-prefix:
+    description: Skill directory prefix under .claude/skills (e.g. fit, coaligned, kata).
+    required: true
+  sibling-repo:
+    description: >
+      Sibling repo short name (e.g. fit-skills). Names the apm package and the
+      `forwardimpact/<repo>` install commands.
+    required: true
+  version-file:
+    description: package.json whose `.version` stamps the apm package and release tag.
+    required: true
+  apm-description:
+    description: Description block written into apm.yml.
+    required: true
+  readme-title:
+    description: README H1 title.
+    required: true
+  readme-intro:
+    description: README intro paragraph rendered under the title.
+    required: true
+  sync-agents:
+    description: When "true", also sync .claude/agents into the pack and list them in the README.
+    default: "false"
+  app-id:
+    description: GitHub App id used to form the committer email.
+    required: true
+  target-dir:
+    description: Path of the checked-out sibling repo.
+    default: skills-repo
+
+runs:
+  using: composite
+  steps:
+    - name: Read version
+      shell: bash
+      env:
+        VERSION_FILE: ${{ inputs.version-file }}
+      run: |
+        VERSION=$(jq -r '.version' "$VERSION_FILE")
+        echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+    - name: Sync skills
+      shell: bash
+      env:
+        PACK_PREFIX: ${{ inputs.pack-prefix }}
+        TARGET_DIR: ${{ inputs.target-dir }}
+      run: |
+        inject_skill_frontmatter() {
+          local file="$1" version="$2"
+          awk -v ver="$version" '
+            NR == 1 && $0 == "---" { print; in_fm = 1; next }
+            in_fm && $0 == "---" {
+              print "license: Apache-2.0"
+              print "metadata:"
+              print "  version: \"" ver "\""
+              print "  author: forwardimpact"
+              print
+              in_fm = 0
+              next
+            }
+            { print }
+          ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+        }
+
+        rm -rf "$TARGET_DIR/skills"
+        mkdir -p "$TARGET_DIR/skills"
+        for skill_dir in ".claude/skills/${PACK_PREFIX}-"*/; do
+          skill_name=$(basename "$skill_dir")
+          cp -r "$skill_dir" "$TARGET_DIR/skills/$skill_name"
+          inject_skill_frontmatter "$TARGET_DIR/skills/$skill_name/SKILL.md" "$VERSION"
+        done
+
+    - name: Sync agents
+      if: inputs.sync-agents == 'true'
+      shell: bash
+      env:
+        TARGET_DIR: ${{ inputs.target-dir }}
+      run: |
+        rm -rf "$TARGET_DIR/agents"
+        mkdir -p "$TARGET_DIR/agents"
+        for agent_file in .claude/agents/*.md; do
+          [ -f "$agent_file" ] || continue
+          agent_name=$(basename "$agent_file" .md)
+          cp "$agent_file" "$TARGET_DIR/agents/${agent_name}.agent.md"
+        done
+        # Ship the agent references the profiles and skills cite (e.g. the
+        # work-item tracker matrix); APM installs them alongside the skills.
+        if [ -d .claude/agents/references ]; then
+          cp -r .claude/agents/references "$TARGET_DIR/agents/references"
+        fi
+
+    - name: Generate apm.yml
+      shell: bash
+      env:
+        TARGET_DIR: ${{ inputs.target-dir }}
+        APM_NAME: ${{ inputs.sibling-repo }}
+        APM_DESCRIPTION: ${{ inputs.apm-description }}
+      run: |
+        cat > "$TARGET_DIR/apm.yml" <<EOF
+        name: ${APM_NAME}
+        version: ${VERSION}
+        description: >-
+          ${APM_DESCRIPTION}
+        author: forwardimpact
+        license: Apache-2.0
+        includes: auto
+        EOF
+
+    - name: Generate README
+      shell: bash
+      env:
+        TARGET_DIR: ${{ inputs.target-dir }}
+        SIBLING_REPO: ${{ inputs.sibling-repo }}
+        README_TITLE: ${{ inputs.readme-title }}
+        README_INTRO: ${{ inputs.readme-intro }}
+        SYNC_AGENTS: ${{ inputs.sync-agents }}
+      run: |
+        extract_desc() {
+          awk '
+            /^description:/ {
+              sub(/^description: *>? */, "")
+              if ($0 != "") { desc = $0 }
+              while (getline > 0) {
+                if (/^  /) { gsub(/^  /, ""); desc = desc " " $0 }
+                else { break }
+              }
+              gsub(/^ +/, "", desc)
+              gsub(/ +$/, "", desc)
+              print desc
+              exit
+            }
+          ' "$1"
+        }
+
+        readme="$TARGET_DIR/README.md"
+        printf '# %s\n\n%s\n\n' "$README_TITLE" "$README_INTRO" > "$readme"
+        cat >> "$readme" <<EOF
+        ## Install
+
+        With [APM](https://microsoft.github.io/apm/):
+
+        \`\`\`bash
+        apm install forwardimpact/${SIBLING_REPO}
+        \`\`\`
+
+        With [npx skills](https://github.com/vercel-labs/skills):
+
+        \`\`\`bash
+        npx skills add forwardimpact/${SIBLING_REPO}
+        \`\`\`
+
+        ## Available Skills
+
+        | Skill | Description |
+        | --- | --- |
+        EOF
+
+        for skill_dir in "$TARGET_DIR"/skills/*/; do
+          skill_md="$skill_dir/SKILL.md"
+          if [ -f "$skill_md" ]; then
+            name=$(sed -n 's/^name: *//p' "$skill_md" | head -1)
+            desc=$(extract_desc "$skill_md")
+            echo "| **${name}** | ${desc} |" >> "$readme"
+          fi
+        done
+
+        if [ "$SYNC_AGENTS" = "true" ]; then
+          cat >> "$readme" <<'EOF'
+
+        ## Available Agents
+
+        | Agent | Description |
+        | --- | --- |
+        EOF
+          for agent_file in "$TARGET_DIR"/agents/*.agent.md; do
+            [ -f "$agent_file" ] || continue
+            name=$(sed -n 's/^name: *//p' "$agent_file" | head -1)
+            desc=$(extract_desc "$agent_file")
+            echo "| **${name}** | ${desc} |" >> "$readme"
+          done
+        fi
+
+    - name: Commit, push, tag
+      shell: bash
+      working-directory: ${{ inputs.target-dir }}
+      env:
+        APP_ID: ${{ inputs.app-id }}
+      run: |
+        git config user.name "kata-agent-team[bot]"
+        git config user.email "${APP_ID}+kata-agent-team[bot]@users.noreply.github.com"
+        git add -A
+        if git diff --cached --quiet; then
+          echo "No changes to publish"
+        else
+          git commit -m "chore: sync skills from monorepo @ v${VERSION}"
+          git push
+        fi
+
+        if git ls-remote --exit-code --tags origin "v${VERSION}" >/dev/null 2>&1; then
+          echo "Tag v${VERSION} already exists upstream"
+        else
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
+        fi
