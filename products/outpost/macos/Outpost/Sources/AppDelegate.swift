@@ -21,7 +21,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusMenu = StatusMenu(processManager: processManager)
     }
 
-    func applicationWillTerminate(_: Notification) {
-        processManager.stopScheduler()
+    func applicationShouldTerminate(
+        _: NSApplication
+    ) -> NSApplication.TerminateReply {
+        // Reap the scheduler off the main thread, then let the app exit.
+        // Returning .terminateLater keeps the run loop spinning so the UI
+        // stays responsive (no beachball) while the daemon shuts down.
+        processManager.stopScheduler {
+            NSApp.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
     }
 }

@@ -114,17 +114,14 @@ class ProcessManager {
     }
 
     /// Send SIGTERM to the scheduler and wait for it to exit.
-    /// Called on app quit — stops everything.
-    func stopScheduler() {
+    /// Called on app quit — stops everything. `completion` runs on the
+    /// main queue once the scheduler is reaped.
+    func stopScheduler(completion: @escaping () -> Void = {}) {
         isRunning = false
-        monitorTimer?.invalidate()
-        monitorTimer = nil
-        guard schedulerPID > 0 else { return }
-        kill(schedulerPID, SIGTERM)
-        var status: Int32 = 0
-        waitpid(schedulerPID, &status, 0)
-        schedulerPID = 0
-        NSLog("Scheduler stopped")
+        terminateScheduler(gracePeriod: 5) {
+            NSLog("Scheduler stopped")
+            completion()
+        }
     }
 
     /// Pause the scheduler without quitting the app.
@@ -132,14 +129,91 @@ class ProcessManager {
     /// prevents auto-restart until `resumeScheduler()` is called.
     func pauseScheduler() {
         isRunning = false
+        terminateScheduler(gracePeriod: 5) {
+            NSLog("Scheduler paused")
+        }
+    }
+
+    /// Terminate the scheduler without blocking the main thread.
+    ///
+    /// SIGTERM lets the daemon shut its children down gracefully. The
+    /// reap is a blocking `waitpid`, so it runs on a background queue —
+    /// doing it on the main thread is what froze the UI (the beachball)
+    /// while the daemon tore down its `claude` children. If the daemon
+    /// has not exited within `gracePeriod`, escalate to SIGKILL so the
+    /// wait is always bounded. `completion` is delivered on the main
+    /// queue after the process is reaped.
+    private func terminateScheduler(
+        gracePeriod: TimeInterval, completion: @escaping () -> Void
+    ) {
         monitorTimer?.invalidate()
         monitorTimer = nil
-        guard schedulerPID > 0 else { return }
-        kill(schedulerPID, SIGTERM)
-        var status: Int32 = 0
-        waitpid(schedulerPID, &status, 0)
+
+        // Capture and clear the PID on the main thread so the monitor
+        // timer can never race the background reap for the same child.
+        let pid = schedulerPID
         schedulerPID = 0
-        NSLog("Scheduler paused")
+        guard pid > 0 else {
+            completion()
+            return
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            kill(pid, SIGTERM)
+
+            let deadline = Date().addingTimeInterval(gracePeriod)
+            var reaped = false
+            while Date() < deadline {
+                var status: Int32 = 0
+                let result = waitpid(pid, &status, WNOHANG)
+                if result == pid || (result == -1 && errno == ECHILD) {
+                    reaped = true
+                    break
+                }
+                Thread.sleep(forTimeInterval: 0.05)
+            }
+
+            if !reaped {
+                // Graceful shutdown timed out; force-kill and reap.
+                NSLog("Scheduler did not exit in %.0fs, sending SIGKILL", gracePeriod)
+                kill(pid, SIGKILL)
+                var status: Int32 = 0
+                waitpid(pid, &status, 0)
+            }
+
+            Self.deliverOnMain(completion)
+        }
+    }
+
+    /// Run `block` on the main thread, even while the main run loop is
+    /// parked in a non-default mode.
+    ///
+    /// On app quit `applicationShouldTerminate` returns `.terminateLater`,
+    /// which parks the main run loop in `NSModalPanelRunLoopMode` until the
+    /// termination reply arrives. The libdispatch main queue is only drained
+    /// in the common modes, so `DispatchQueue.main.async` would stall there —
+    /// the reply never fired and "Quit Outpost" took two clicks. Scheduling
+    /// the block in every termination-relevant mode (and waking the loop)
+    /// delivers it on the first pass instead. A latch keeps it to one run no
+    /// matter which mode fires first; all calls run serially on the main
+    /// thread, so the latch needs no locking.
+    private static func deliverOnMain(_ block: @escaping () -> Void) {
+        var fired = false
+        let once = {
+            if fired { return }
+            fired = true
+            block()
+        }
+        let mainLoop = CFRunLoopGetMain()
+        let modes: [CFString] = [
+            CFRunLoopMode.commonModes.rawValue,
+            "NSModalPanelRunLoopMode" as CFString,
+            "NSEventTrackingRunLoopMode" as CFString,
+        ]
+        for mode in modes {
+            CFRunLoopPerformBlock(mainLoop, mode, once)
+        }
+        CFRunLoopWakeUp(mainLoop)
     }
 
     /// Resume a paused scheduler by spawning it again.
