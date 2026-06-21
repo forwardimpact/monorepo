@@ -4,6 +4,7 @@ Usage: fit-wiki push [options]
 
 Options:
   --wiki-root=<string>  Override wiki root directory (default: wiki)
+  --paths=<string>      Pathspec(s) limiting the write-set; omit to land the session's dirty set
 
 Global options:
   --help, -h  Show this help

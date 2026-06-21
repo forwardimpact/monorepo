@@ -153,6 +153,15 @@
     "transform": []
   },
   {
+    "name": "ledger help",
+    "args": ["ledger", "--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "ledger-help.stdout.txt",
+    "stderrFile": "ledger-help.stderr.txt",
+    "transform": []
+  },
+  {
     "name": "unknown command",
     "args": ["bogus"],
     "env": {},

@@ -60,6 +60,27 @@ describe("GhClient", () => {
     ]);
   });
 
+  test("apiGetPaginated slurps and flattens the page array", async () => {
+    const { client, subprocess } = clientWith({
+      gh: { stdout: '[[{"id":1},{"id":2}],[{"id":3}]]', exitCode: 0 },
+    });
+    const comments = await client.apiGetPaginated(
+      "/repos/x/y/issues/1/comments",
+    );
+    assert.deepStrictEqual(comments, [{ id: 1 }, { id: 2 }, { id: 3 }]);
+    assert.deepStrictEqual(subprocess.calls.at(-1).args, [
+      "api",
+      "--paginate",
+      "--slurp",
+      "/repos/x/y/issues/1/comments",
+    ]);
+  });
+
+  test("apiGetPaginated returns [] on empty stdout", async () => {
+    const { client } = clientWith({ gh: { stdout: "", exitCode: 0 } });
+    assert.deepStrictEqual(await client.apiGetPaginated("/x"), []);
+  });
+
   test("throws GhError on a non-zero exit", async () => {
     const { client } = clientWith({ gh: { stderr: "no", exitCode: 1 } });
     await assert.rejects(() => client.prMerge(5), GhError);

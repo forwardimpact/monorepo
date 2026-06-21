@@ -56,6 +56,22 @@ export class GhClient {
     return result.stdout.trim() ? JSON.parse(result.stdout) : null;
   }
 
+  /**
+   * GET every page of a paginated API `path`. Uses `gh api --paginate --slurp`,
+   * which wraps the per-page response arrays in one outer JSON array of pages;
+   * this parses that once and flattens it into a single array, avoiding the
+   * concatenated-but-separate-documents shape a bare `--paginate` produces.
+   * Returns `[]` when the response is empty.
+   */
+  async apiGetPaginated(path, { cwd } = {}) {
+    const result = await this.#run(["api", "--paginate", "--slurp", path], {
+      cwd,
+    });
+    if (!result.stdout.trim()) return [];
+    const pages = JSON.parse(result.stdout);
+    return Array.isArray(pages) ? pages.flat() : pages;
+  }
+
   /** POST to an API path with `fields`; returns parsed JSON. */
   async apiPost(path, fields = {}, { cwd } = {}) {
     const args = ["api", "--method", "POST", path];

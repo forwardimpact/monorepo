@@ -1,6 +1,12 @@
 import { spy } from "./spy.js";
 
-const GH_METHODS = ["prCreate", "prMerge", "apiGet", "apiPost"];
+const GH_METHODS = [
+  "prCreate",
+  "prMerge",
+  "apiGet",
+  "apiGetPaginated",
+  "apiPost",
+];
 
 /**
  * Creates a mock `GhClient` collaborator. Each method is a spy returning the
@@ -20,6 +26,7 @@ export function createMockGhClient({ responses = {} } = {}) {
       calls.push({ method, args });
       if (method in responses) return responses[method];
       if (method === "prCreate") return "";
+      if (method === "apiGetPaginated") return [];
       return null;
     });
   }

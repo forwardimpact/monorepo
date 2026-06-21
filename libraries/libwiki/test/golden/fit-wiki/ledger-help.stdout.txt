@@ -1,0 +1,17 @@
+fit-wiki ledger <allocate|rebuild|verify> — Allocate collision-ledger ids at anchors and rebuild projections
+
+Usage: fit-wiki ledger <allocate|rebuild|verify> [options]
+
+Options:
+  --wiki-root=<string>  Override wiki root directory (default: wiki)
+  --kind=<string>       Allocation kind: occ | nm | fold | meta
+  --count=<string>      How many ids to allocate (default 1)
+  --ids=<string>        Comma-separated ids to backfill an anchor for (instead of --count)
+  --event=<string>      Durable key for the allocation (SHA or anchor id)
+  --note=<string>       Free-text note for the anchor
+  --gapped              Render double-allocation losers as a gap, not a renumber
+  --issue=<string>      Anchor issue number (default obstacle issue)
+
+Global options:
+  --help, -h  Show this help
+  --json      Render --help output as JSON
