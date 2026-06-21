@@ -331,11 +331,31 @@ describe("GitClient", () => {
     assert.strictEqual(await client.diffRange("x~1 x", { cwd: "/r" }), null);
   });
 
-  test("showFile returns null when the path is absent at the ref", async () => {
-    const { client } = clientWith({ git: { stdout: "", exitCode: 128 } });
+  test("showFile returns null when the path is absent at a valid ref", async () => {
+    const { client } = clientWith({
+      git: {
+        stdout: "",
+        stderr: "fatal: path 'gone.md' does not exist in 'origin/master'",
+        exitCode: 128,
+      },
+    });
     assert.strictEqual(
       await client.showFile("origin/master", "gone.md", { cwd: "/r" }),
       null,
+    );
+  });
+
+  test("showFile throws GitError for an unreadable ref", async () => {
+    const { client } = clientWith({
+      git: {
+        stdout: "",
+        stderr: "fatal: invalid object name 'deadbeef'",
+        exitCode: 128,
+      },
+    });
+    await assert.rejects(
+      () => client.showFile("deadbeef", "MEMORY.md", { cwd: "/r" }),
+      GitError,
     );
   });
 

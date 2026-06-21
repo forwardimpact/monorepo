@@ -291,8 +291,11 @@ export class GitClient {
   }
 
   /**
-   * Contents of `filePath` at `ref` (`git show ref:path`), or `null` when the
-   * path is absent at that ref.
+   * Read the text of `filePath` at tree-ish `ref` via `git show <ref>:<path>`.
+   * Returns `null` when the path is absent at that ref; throws {@link GitError}
+   * when the ref itself is unreadable (e.g. pruned below a shallow boundary) —
+   * so a caller measuring a tree never silently mistakes an unreadable ref for
+   * an empty file.
    * @param {string} ref - The ref to read from (e.g. `"origin/master"`).
    * @param {string} filePath - Repo-relative path.
    * @param {{cwd?: string}} [opts]
@@ -303,7 +306,14 @@ export class GitClient {
       cwd,
       allowFailure: true,
     });
-    return r.exitCode === 0 ? r.stdout : null;
+    if (r.exitCode === 0) return r.stdout;
+    // An absent path at a valid ref ("does not exist in" / "exists on disk,
+    // but not in"); any other failure (e.g. "invalid object name") is an
+    // unreadable ref and must throw rather than degrade to an empty blob.
+    if (/does not exist in|exists on disk, but not in/.test(r.stderr)) {
+      return null;
+    }
+    throw new GitError(`show ${ref}:${filePath}`, r);
   }
 
   /** Count commits in `range` (`git rev-list --count`). */

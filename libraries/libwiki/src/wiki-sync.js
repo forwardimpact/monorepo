@@ -4,6 +4,8 @@ import { GITATTRIBUTES_FILE, SINGLETON_PATHS } from "./constants.js";
 import { ensureMetricsCsvMergeAttribute } from "./gitattributes.js";
 import { parseDiff, findAbsent, makeDetection, normLine } from "./integrity.js";
 import { scanPushWindow, appendOverrideRecord } from "./secret-gate.js";
+import { runBudgetGate } from "./budget-gate.js";
+import { currentDayIso } from "./util/clock.js";
 
 /** The branch the wiki clone publishes (hard-coded in fetch / rebase / push). */
 const BRANCH = "master";
@@ -30,6 +32,7 @@ export const PUSH_REASONS = Object.freeze({
   TRANSPORT: "transport",
   PRECONDITION: "precondition",
   CONSERVATION: "conservation",
+  BUDGET: "budget",
 });
 
 /** Error thrown when a wiki pull encounters a rebase conflict that cannot be resolved automatically. */
@@ -132,10 +135,12 @@ function pushFenceExempt(filePath) {
 }
 
 /**
- * Error thrown when `commitAndPush` cannot honestly report a landed push
- *  `reason` is one of {@link PUSH_REASONS} other than `landed` /
+ * Error thrown when `commitAndPush` cannot honestly report a landed push.
+ * `reason` is one of {@link PUSH_REASONS} other than `landed` /
  * `nothing-to-push`; `stashSha` names a preserved autostash on a
- * `residue-conflict`.
+ * `residue-conflict`; on a `budget` refusal `refusals` and `surfaced` carry the
+ * offending and surfaced-only `(file, ruleId, baseline, value)` tuples from the
+ * size-axis re-validation gate.
  */
 export class WikiPushFailure extends Error {
   /**
@@ -143,12 +148,16 @@ export class WikiPushFailure extends Error {
    * @param {string} message - Operator message naming the reason and recovery.
    * @param {object} [opts]
    * @param {string} [opts.stashSha] - Preserved stash SHA (residue-conflict).
+   * @param {Array<object>} [opts.refusals] - Budget refusal tuples (budget).
+   * @param {Array<object>} [opts.surfaced] - Surfaced-only budget tuples (budget).
    */
-  constructor(reason, message, { stashSha } = {}) {
+  constructor(reason, message, { stashSha, refusals, surfaced } = {}) {
     super(message);
     this.name = "WikiPushFailure";
     this.reason = reason;
     if (stashSha) this.stashSha = stashSha;
+    if (refusals) this.refusals = refusals;
+    if (surfaced) this.surfaced = surfaced;
   }
 }
 
@@ -345,14 +354,34 @@ export class WikiSync {
    * failure is distinct: it still degrades to "saved locally" (the preserved
    * fire-and-forget behaviour).
    *
+   * **Budget re-validation gate (size axis).** After the reconcile
+   * (rebase / singleton re-apply re-derives content against the fresh tip) and
+   * after the secret gate, before the push, the flow re-runs the wiki audit's
+   * budget predicates over the **outgoing committed `HEAD`** (the tree that
+   * publishes — not the working dir, so autostash residue never counts). The
+   * push is refused with {@link WikiPushFailure} `budget` when it introduces or
+   * deepens a per-file/per-predicate budget breach relative to the worse of the
+   * writer's pre-fetch session base and the landed origin tip; the failure
+   * carries the offending and surfaced `(file, ruleId, baseline, value)` tuples.
+   * Equal-or-better states and foreign pre-existing breaches the writer did not
+   * worsen pass. Summary breaches on `exemptSummaryFiles` are surfaced (rode on
+   * the landed result's `surfaced`) rather than refused — the memo-delivery
+   * seam, so a delivery into deficient headroom is reported, not blocked.
+   * An unreadable baseline ref aborts the gate without refusing (the gate only
+   * refuses a regression it can prove), never fabricating a value-0 baseline.
+   * Inheriting the audit's rule objects by id, a future predicate change flows
+   * through the gate with no gate-code change.
+   *
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs limiting what gets committed.
-   * @param {{reapply?: (freshText: string) => string | null, maxReapply?: number}} [options]
+   * @param {{reapply?: (freshText: string) => string | null, maxReapply?: number, exemptSummaryFiles?: string[]}} [options]
    *   `reapply` re-derives the registered file's content from the operation's
    *   own row edit against the fresh tip text; returns the new text or null when
-   *   the op is already satisfied on the tip.
-   * @returns {Promise<{landed?: boolean, pushed?: boolean, reason: string, findings?: Array<{file: string, line: number, rule: string}>, detections?: object[], workAt?: string}>}
-   *   A grounded landing (`{landed: true, reason: "landed"}`), a grounded
+   *   the op is already satisfied on the tip. `exemptSummaryFiles` lists files
+   *   (relative to the wiki root) whose summary budget breach is surfaced rather
+   *   than refused (the memo-delivery seam).
+   * @returns {Promise<{landed?: boolean, pushed?: boolean, reason: string, findings?: Array<{file: string, line: number, rule: string}>, detections?: object[], surfaced?: object[], workAt?: string}>}
+   *   A grounded landing (`{landed: true, reason: "landed", surfaced}`), a grounded
    *   nothing-to-push (`{landed: false, reason: "nothing-to-push"}`), a
    *   re-apply landing (`{pushed: true, reason: "reapplied"}` / `already-satisfied`),
    *   or a pre-push gate refusal ({@link WikiSyncRefusal}: `mid-merge`,
@@ -360,11 +389,15 @@ export class WikiSync {
    *   `scanner-unavailable`).
    * @throws {WikiPushFailure} On a non-landed push outcome (D2 taxonomy:
    *   `precondition`, `conflict`, `residue-conflict`, `conservation`,
-   *   `rejected`, `transport`).
+   *   `rejected`, `transport`) or a `budget` breach.
    * @throws {AncestryRefusal} When the published history cannot be verified.
    * @throws {WikiSyncConflict} When the re-apply budget is exhausted.
    */
-  async commitAndPush(message, paths, { reapply, maxReapply = 3 } = {}) {
+  async commitAndPush(
+    message,
+    paths,
+    { reapply, maxReapply = 3, exemptSummaryFiles = [] } = {},
+  ) {
     // Precondition (D7): refuse mid-rebase before mutating. A
     // detached HEAD is judged by the ancestry guard below (its `unverifiable`
     // refusal and this `precondition` collapse to one observable refusal); the
@@ -377,6 +410,13 @@ export class WikiSync {
     if (await this.#git.isMidMerge({ cwd: this.#wikiDir })) {
       return WikiSyncRefusal.result("mid-merge");
     }
+    // Capture the writer's branch point before the reconcile's fetch advances
+    // origin/master. The local commit below does not move origin/master, so
+    // reading it here yields the pre-edit session base; "" means an unborn
+    // origin (a fresh clone), which the gate treats as a value-0 baseline.
+    const sessionBaseSha = await this.#git.revParse("origin/master", {
+      cwd: this.#wikiDir,
+    });
     // Ancestry guard: refuse a detached/unborn/unrelated history
     // before any mutation.
     await this.#assertPublishable();
@@ -419,6 +459,8 @@ export class WikiSync {
     return this.#reconcileAndPush(message, paths, preTip, {
       reapply,
       maxReapply,
+      sessionBaseSha,
+      exemptSummaryFiles,
     });
   }
 
@@ -435,7 +477,9 @@ export class WikiSync {
    * @param {string[]} [paths] - The caller's pathspec (singleton-discipline scope).
    * @param {string[]} [commitPaths] - The effective commit pathspec.
    * @param {string} preTip - The remote tip observed before the first reconcile.
-   * @param {{reapply?: function, maxReapply: number}} options
+   * @param {{reapply?: function, maxReapply: number, sessionBaseSha?: string, exemptSummaryFiles?: string[]}} opts
+   *   `sessionBaseSha` is the writer's pre-fetch branch point and
+   *   `exemptSummaryFiles` the memo-delivery seam set, both for the budget gate.
    */
   async #reconcileAndPush(message, paths, preTip, opts) {
     // Bounded retry (D3): at most one reconcile-and-retry on `rejected`. The
@@ -469,7 +513,7 @@ export class WikiSync {
    * @param {string} message
    * @param {string[]} [paths] - The caller's pathspec (singleton-discipline scope).
    * @param {string} tip - The remote tip observed before this attempt's reconcile.
-   * @param {{reapply?: function, maxReapply: number}} opts
+   * @param {{reapply?: function, maxReapply: number, sessionBaseSha?: string, exemptSummaryFiles?: string[]}} opts
    */
   async #reconcileAttempt(message, paths, tip, opts) {
     const fetched = await this.#fetchObserved();
@@ -513,17 +557,77 @@ export class WikiSync {
     const refusal = await this.#gateOrRefuse();
     if (refusal) return { result: refusal };
 
+    // Budget re-validation gate (size axis). The reconcile above made HEAD the
+    // final outgoing tree (rebase / singleton re-apply re-derived its
+    // content against the fresh tip), so measuring HEAD here measures exactly
+    // what publishes. A breach this push introduces or deepens throws `budget`;
+    // surfaced-only memo-delivery breaches ride the landed result.
+    const gate = await this.#revalidateBudgets(opts.sessionBaseSha, {
+      exemptSummaryFiles: opts.exemptSummaryFiles ?? [],
+    });
+    if (gate.refusals.length > 0) {
+      throw this.#budgetFailure(gate);
+    }
+
     const verdict = await this.#groundedPush(fetched);
     if (verdict.landed) {
       // The push landed; any declared removal it carried is now published, so
       // clear the intent sidecar — it must not leak into an unrelated push.
       this.#clearIntentSidecar();
       const detections = await this.#tier1Probe(pushedDelta);
-      return {
-        result: { landed: true, reason: PUSH_REASONS.LANDED, detections },
-      };
+      const result = { landed: true, reason: PUSH_REASONS.LANDED, detections };
+      // Attach `surfaced` only when the gate surfaced a (memo-delivery exempt)
+      // breach, so a clean under-budget sync's landed result is byte-identical
+      // to today's — the gate adds no happy-path behaviour change (criterion 10).
+      if (gate.surfaced.length > 0) result.surfaced = gate.surfaced;
+      return { result };
     }
     return { verdict };
+  }
+
+  /**
+   * Build the `budget` {@link WikiPushFailure} for a refusing gate result,
+   * naming the worst offending file and carrying every refusal and surfaced
+   * tuple so the operator can adjudicate (trim own content, or surface the
+   * carried content to its owner). The gate never edits — it refuses, keeping
+   * the commits local for re-push after the breach is resolved.
+   * @param {{refusals: Array<object>, surfaced: Array<object>}} gate
+   * @returns {WikiPushFailure}
+   */
+  #budgetFailure(gate) {
+    const lead = gate.refusals[0];
+    const files = [...new Set(gate.refusals.map((r) => r.file))].join(", ");
+    return new WikiPushFailure(
+      PUSH_REASONS.BUDGET,
+      "fit-wiki: refusing to push — it would introduce or deepen a budget " +
+        `breach in ${files} (${lead.ruleId}: ${lead.value} vs baseline ` +
+        `${lead.baseline}). Trim your own content or surface the carried ` +
+        "content to its owner, then re-push; your work is committed locally.",
+      { refusals: gate.refusals, surfaced: gate.surfaced },
+    );
+  }
+
+  /**
+   * Run the budget gate over the outgoing tree, measuring the committed `HEAD`
+   * against the pre-fetch session base and the landed origin tip. Delegates the
+   * measurement, the unreadable-ref fail-visible posture, and the delta to
+   * {@link runBudgetGate}; this method binds only the clone's git/fs/clock.
+   * @param {string} sessionBaseSha - origin/master before fetch, or "" when unborn.
+   * @param {{exemptSummaryFiles: string[]}} options
+   * @returns {Promise<{refusals: Array<object>, surfaced: Array<object>}>}
+   */
+  async #revalidateBudgets(sessionBaseSha, { exemptSummaryFiles }) {
+    return runBudgetGate({
+      showFile: (ref, file) =>
+        this.#git.showFile(ref, file, { cwd: this.#wikiDir }),
+      wikiRoot: this.#wikiDir,
+      today: currentDayIso(this.#runtime),
+      fs: this.#runtime.fsSync,
+      headRef: "HEAD",
+      originRef: REMOTE_BRANCH,
+      sessionBaseSha,
+      exemptSummaryFiles,
+    });
   }
 
   /**

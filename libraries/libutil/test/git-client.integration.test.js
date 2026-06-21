@@ -37,6 +37,24 @@ describe("GitClient (integration)", () => {
     assert.strictEqual(await client.revListCount("HEAD", { cwd: dir }), 2);
   });
 
+  test("showFile reads a blob at a ref, returns null for an absent path, throws for a bad ref", async () => {
+    await writeFile(path.join(dir, "doc.md"), "hello world\n");
+    await client.commitAll("doc", { cwd: dir });
+
+    assert.strictEqual(
+      await client.showFile("HEAD", "doc.md", { cwd: dir }),
+      "hello world\n",
+    );
+    assert.strictEqual(
+      await client.showFile("HEAD", "missing.md", { cwd: dir }),
+      null,
+    );
+    await assert.rejects(
+      () => client.showFile("deadbeef", "doc.md", { cwd: dir }),
+      /show deadbeef:doc\.md/,
+    );
+  });
+
   test("configGet reads a value back", async () => {
     assert.strictEqual(
       await client.configGet("user.email", { cwd: dir }),
