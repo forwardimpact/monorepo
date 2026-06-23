@@ -45,8 +45,16 @@ function makeJob() {
       },
     ],
     skillMatrix: [
-      { capability: "lead", proficiency: "expert", skillName: "Vision Setting" },
-      { capability: "people", proficiency: "practitioner", skillName: "Coaching" },
+      {
+        capability: "lead",
+        proficiency: "expert",
+        skillName: "Vision Setting",
+      },
+      {
+        capability: "people",
+        proficiency: "practitioner",
+        skillName: "Coaching",
+      },
       { capability: "delivery", proficiency: "working", skillName: "Planning" },
     ],
   };
