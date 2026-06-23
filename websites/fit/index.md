@@ -167,7 +167,7 @@ npx fit-pathway agent software_engineering --track=platform
 Install the shared skill pack and browse the library catalog:
 
 ```sh
-npx skills add forwardimpact/fit-skills
+apm install forwardimpact/fit-skills
 ```
 
   </div>

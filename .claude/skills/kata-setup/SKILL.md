@@ -25,7 +25,7 @@ facilitated sessions, and event-driven responses.
 - Node.js 18+
 - GitHub repository with Actions enabled
 - Anthropic API key
-- `npx skills add forwardimpact/kata-skills`
+- `apm install forwardimpact/kata-skills`
 
 ## Checklists
 
@@ -97,7 +97,7 @@ Ask these questions. Skip any already answered in the task prompt.
 
 7. **Agent profiles** — "Do you have custom agent profiles, or should I use the
    defaults from kata-skills?" If defaults, confirm
-   `npx skills add forwardimpact/kata-skills` is installed.
+   `apm install forwardimpact/kata-skills` is installed.
 
 8. **Control plane** — "Are you using the Forward Impact-hosted control
    plane, or self-hosting your own GitHub App?" Default: self-hosted. See
