@@ -32,10 +32,7 @@ skills:
 ## Working style
 
 {{#workingStyles}}
-**{{title}}**
-
-{{{content}}}
-
+- **{{title}}** — {{{content}}}
 {{/workingStyles}}
 {{/hasWorkingStyles}}
 {{#hasSkills}}

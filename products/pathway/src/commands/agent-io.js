@@ -137,6 +137,20 @@ export async function writeTeamInstructions(
   );
   if (!content) return null;
   const filePath = join(baseDir, ".claude", "CLAUDE.md");
+  // Exporting several agents into one --output directory makes them share this
+  // single CLAUDE.md. That is fine when their team instructions match, but a
+  // silent overwrite would lose differing content (e.g. per-track teams). Warn
+  // rather than clobber quietly.
+  if (await pathExists(runtime.fs, filePath)) {
+    const existing = await runtime.fs.readFile(filePath, "utf-8");
+    if (existing !== content) {
+      logger.warn(
+        `Overwriting ${filePath} with different team instructions — ` +
+          `exporting agents with distinct team content into one directory ` +
+          `loses all but the last. Use separate --output directories.`,
+      );
+    }
+  }
   await ensureDir(filePath, runtime);
   await runtime.fs.writeFile(filePath, content, "utf-8");
   logger.info(formatSuccess(`Created: ${filePath}`));
