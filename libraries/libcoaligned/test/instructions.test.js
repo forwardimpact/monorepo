@@ -193,4 +193,50 @@ describe("checkInstructions", () => {
     assert.ok(f.path.endsWith(".claude/skills/demo/SKILL.md"));
     assert.ok(typeof f.lineNo === "number" && f.lineNo > 0);
   });
+
+  test("excludes YAML frontmatter from the line budget", async () => {
+    // 8 frontmatter lines + a 190-line body = 198 raw lines, but only the
+    // body counts against the 192-line L1 cap. Mirrors a published skill whose
+    // source body fits but whose injected `license`/`metadata` push it over.
+    const frontmatter = [
+      "---",
+      "name: demo",
+      "description: >",
+      "  a skill",
+      "license: Apache-2.0",
+      "metadata:",
+      '  version: "0.1.0"',
+      "---",
+    ].join("\n");
+    const body = `\n${"line\n".repeat(190)}`;
+    const findings = await checkInstructions({
+      root: ROOT,
+      runtime: runtimeWith({ [`${ROOT}/CLAUDE.md`]: frontmatter + body }),
+    });
+    const f = findings.find(
+      (x) =>
+        x.id === "instructions.line-budget" && x.path.endsWith("CLAUDE.md"),
+    );
+    assert.equal(
+      f,
+      undefined,
+      `frontmatter must not count toward the budget, got: ${JSON.stringify(findings)}`,
+    );
+  });
+
+  test("flags body overage and reports the body line count, not raw", async () => {
+    const frontmatter = ["---", "name: demo", "---"].join("\n");
+    const body = `\n${"line\n".repeat(200)}`;
+    const findings = await checkInstructions({
+      root: ROOT,
+      runtime: runtimeWith({ [`${ROOT}/CLAUDE.md`]: frontmatter + body }),
+    });
+    const f = findings.find(
+      (x) =>
+        x.id === "instructions.line-budget" && x.path.endsWith("CLAUDE.md"),
+    );
+    assert.ok(f, `expected a line-budget finding, got: ${JSON.stringify(findings)}`);
+    // The body is 200 lines; the 3 frontmatter lines are excluded.
+    assert.match(f.message, /200 lines/);
+  });
 });
