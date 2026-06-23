@@ -1,5 +1,6 @@
 import { join } from "path";
 
+import { APM_AGENTS_DIR, APM_SKILLS_DIR, apmAgentFilename } from "./layout.js";
 import { collectFiles } from "./util.js";
 
 /** Stage directory trees per layout (full, APM, skills). */
@@ -152,15 +153,18 @@ export class PackStager {
   }
 
   /** Stage the APM git repo layout from a full staging dir.
-   *  Skills live at root; agents live under .apm/agents/ (APM's
-   *  canonical source layout for agent discovery and integration).
+   *  Skills and agents both live under APM's canonical `.apm/` source root
+   *  (`.apm/skills/<name>/`, `.apm/agents/<name>.agent.md`) so `apm install`
+   *  discovers and installs both. The `.agent.md` suffix is required — APM's
+   *  agent discovery keys on it. Shared with the sibling-repo publisher via
+   *  `./layout.js` so the two staging paths cannot drift.
    */
   async stageApmGit(fullDir, gitDir, packName, version) {
     const { mkdir, readdir, cp, writeFile, copyFile } = this.#fs;
     const srcSkillsDir = join(fullDir, ".claude", "skills");
     const srcAgentsDir = join(fullDir, ".claude", "agents");
-    const destSkillsDir = join(gitDir, "skills");
-    const destAgentsDir = join(gitDir, ".apm", "agents");
+    const destSkillsDir = join(gitDir, APM_SKILLS_DIR);
+    const destAgentsDir = join(gitDir, APM_AGENTS_DIR);
 
     await mkdir(destSkillsDir, { recursive: true });
     await mkdir(destAgentsDir, { recursive: true });
@@ -178,7 +182,11 @@ export class PackStager {
       f.endsWith(".md"),
     );
     for (const file of agentFiles) {
-      await cp(join(srcAgentsDir, file), join(destAgentsDir, file));
+      const stem = file.slice(0, -".md".length);
+      await cp(
+        join(srcAgentsDir, file),
+        join(destAgentsDir, apmAgentFilename(stem)),
+      );
     }
 
     const srcClaudeMd = join(fullDir, ".claude", "CLAUDE.md");
