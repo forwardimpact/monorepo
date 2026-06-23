@@ -103,5 +103,13 @@ toc: false
 
 </div>
 
+## Distribute Skill Packs (Builders)
+
+<div class="grid">
+
+<!-- part:card:distribute-skill-packs -->
+
+</div>
+
 Looking for product workflows? See [Product Guides](/docs/products/). For shared
 gRPC service integration, see [Service Guides](/docs/services/).
