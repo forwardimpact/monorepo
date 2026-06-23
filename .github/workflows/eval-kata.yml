@@ -29,6 +29,9 @@ jobs:
           runs: "5"
           max-turns: "25"
           judge-profile: judge
-          # runs:5 × 4 tasks ≈ 90+ min of sequential agent+judge sessions;
-          # the default 60 timed out mid-run (see run 23).
-          timeout-minutes: "120"
+          # Use the full GitHub-hosted job budget (360 min is the hard
+          # per-job ceiling). runs:5 × 4 tasks is long, and a single stalled
+          # agent run can burn ~20 min before its per-agent timeout fires;
+          # 120 min left no margin and timed out mid-run (see run
+          # 27922619997, where 5 coordinate-finding stalls exhausted it).
+          timeout-minutes: "360"
