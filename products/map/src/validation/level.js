@@ -223,14 +223,15 @@ export function validateCapability(capability, index) {
 export const CONTRACT_URL =
   "https://www.forwardimpact.team/docs/products/authoring-standards/index.md#level-field-conventions";
 
-const PROFESSIONAL_TITLE_SHAPE = /^(?:Level [IVX]+|Level \d+|[A-Z][a-z]+)$/;
+const PROFESSIONAL_TITLE_SHAPE =
+  /^(?:Level [IVX]+|Level \d+|Senior (?:Staff|Principal)|[A-Z][a-z]+)$/;
 
 /** @param {string} value */
 export function checkProfessionalTitleShape(value) {
   if (typeof value !== "string" || !PROFESSIONAL_TITLE_SHAPE.test(value)) {
     return {
       ok: false,
-      reason: `professionalTitle must be a single capitalised rank word or "Level <numeral>"; got ${JSON.stringify(value)}`,
+      reason: `professionalTitle must be a single capitalised rank word, a "Senior Staff"/"Senior Principal" seniority-qualified rank, or "Level <numeral>"; got ${JSON.stringify(value)}`,
     };
   }
   return { ok: true };

@@ -46,7 +46,7 @@ export function buildLevelPrompt(levels, ctx, schema) {
       "- Output a JSON array of level objects.",
       "- For each level, generate:",
       "  - id: Use the provided ID (uppercase, e.g., J040).",
-      '  - professionalTitle: A single capitalised rank word (e.g. "Associate", "Senior", "Staff", "Principal") OR "Level <roman>" / "Level <digit>".',
+      '  - professionalTitle: A single capitalised rank word (e.g. "Associate", "Senior", "Staff", "Principal"), a seniority-qualified rank ("Senior Staff" / "Senior Principal"), OR "Level <roman>" / "Level <digit>".',
       "    When the level skeleton supplies professionalTitle, pass it through verbatim.",
       '    Otherwise emit "Level <roman>" derived from the supplied rank (1→I, 2→II, …).',
       '    NEVER emit a multi-word role-complete title (e.g. "Senior Engineer") — the discipline supplies the role.',
