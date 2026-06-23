@@ -58,10 +58,10 @@ exists to prevent:
 
 ## Stage the pack
 
-Run `fit-pack sync` against your checked-out target repository:
+Run `fit-pack stage` against your checked-out target repository:
 
 ```sh
-npx fit-pack sync \
+npx fit-pack stage \
   --from .claude \
   --prefix kata \
   --into ./skills-repo \
@@ -154,13 +154,13 @@ single command:
 apm install <owner>/skills-repo
 ```
 
-## Re-sync to update or migrate
+## Re-stage to update or migrate
 
-Running `fit-pack sync` again is the update path. It rewrites `.apm/`, the
+Running `fit-pack stage` again is the update path. It rewrites `.apm/`, the
 manifest, and the README from the current source, and it **retires any earlier
 flat layout** — a root `skills/` or `agents/` directory left over from a hand-built
 pack is removed in the same run. Migrating an existing pack repository to the
-correct layout is therefore a single `sync` followed by a commit.
+correct layout is therefore a single `stage` followed by a commit.
 
 Because the output is deterministic, an unchanged source produces an unchanged
 tree: re-running when nothing changed leaves `git status` clean, so you only
@@ -170,7 +170,7 @@ ever commit real differences.
 
 You have reached the outcome of this guide when:
 
-- `npx fit-pack sync` writes `.apm/skills/<name>/`, `.apm/agents/<name>.agent.md`,
+- `npx fit-pack stage` writes `.apm/skills/<name>/`, `.apm/agents/<name>.agent.md`,
   `.apm/agents/references/`, `apm.yml`, and `README.md` into your target
   repository.
 - Each staged `SKILL.md` carries the injected `license` and `metadata.version`.

@@ -13,17 +13,17 @@ Pack distribution — tarballs, bare git repos, and skill discovery indices
 - `TarEmitter` — deterministic `.tar.gz` from a staged directory
 - `GitEmitter` — static bare git repo from a staged directory
 - `DiscEmitter` — `.well-known/skills/` discovery index
-- `SkillPackPublisher` — sync a skill pack into a sibling repo working tree in
+- `SkillPackPublisher` — stage a skill pack into a sibling repo working tree in
   APM's canonical `.apm/` layout (drives the `fit-pack` CLI)
 - `APM_SKILLS_DIR` / `APM_AGENTS_DIR` / `apmAgentFilename` — the one definition
   of APM's source layout, shared by every staging path
 
 ## CLI
 
-`fit-pack sync` stages a skill pack into a checked-out sibling repository:
+`fit-pack stage` writes a skill pack into a checked-out sibling repository:
 
 ```bash
-fit-pack sync --prefix kata --with-agents \
+fit-pack stage --prefix kata --with-agents \
   --into skills-repo --name kata-skills --pack-version 1.2.3 \
   --description "…" --readme-title "Kata Skills" --readme-intro "…"
 ```

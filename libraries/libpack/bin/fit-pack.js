@@ -12,9 +12,9 @@ const definition = {
   description: "Stage skill packs into APM's .apm/ source layout",
   commands: [
     {
-      name: "sync",
+      name: "stage",
       description:
-        "Sync a skill pack into a sibling repo working tree (APM .apm/ layout)",
+        "Stage a skill pack into a sibling repo working tree (APM .apm/ layout)",
       options: {
         from: {
           type: "string",
@@ -48,7 +48,7 @@ const definition = {
         },
         "with-agents": {
           type: "boolean",
-          description: "Also sync agent profiles into .apm/agents/",
+          description: "Also stage agent profiles into .apm/agents/",
         },
       },
     },
@@ -59,7 +59,7 @@ const definition = {
     json: { type: "boolean", description: "Output help as JSON" },
   },
   examples: [
-    "fit-pack sync --prefix kata --with-agents --into skills-repo --name kata-skills --pack-version 1.2.3",
+    "fit-pack stage --prefix kata --with-agents --into skills-repo --name kata-skills --pack-version 1.2.3",
   ],
   documentation: [
     {
@@ -83,7 +83,7 @@ const { values, positionals } = parsed;
 const [command] = positionals;
 
 const commands = {
-  async sync() {
+  async stage() {
     for (const required of ["prefix", "into", "name", "pack-version"]) {
       if (!values[required]) {
         cli.usageError(`--${required} is required`);

@@ -26,10 +26,10 @@ agents together.
 
 ## Layout it produces
 
-Run `npx fit-pack sync` against a checked-out target repository:
+Run `npx fit-pack stage` against a checked-out target repository:
 
 ```sh
-npx fit-pack sync \
+npx fit-pack stage \
   --from .claude \
   --prefix <pack> \
   --into <target-repo> \
@@ -56,13 +56,13 @@ It writes into `<target-repo>`:
 
 1. **Check out the target repository** you publish the pack from. `fit-pack`
    writes into its working tree; it does not commit or push.
-2. **Stage** with `npx fit-pack sync`. Pass `--prefix` to select which skills
+2. **Stage** with `npx fit-pack stage`. Pass `--prefix` to select which skills
    ship (`--prefix kata` selects `skills/kata-*`). Omit `--with-agents` for a
    skills-only pack; references still ship.
 3. **Review** the generated `.apm/` tree, `apm.yml`, and `README.md`.
 4. **Commit and push** the target repository, then tag the release.
 
-A re-sync retires any earlier flat `skills/` or `agents/` layout, so migrating
+Re-staging retires any earlier flat `skills/` or `agents/` layout, so migrating
 an existing pack repository is a single run.
 
 ## Documentation
