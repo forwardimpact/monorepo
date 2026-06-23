@@ -68,12 +68,13 @@ entry checklist.
 
 ### Step 5 — Add the check CI
 
-`coaligned-setup` wires `coaligned` into the check task; add a CI workflow that
-runs it on push and pull request — separate from the agent workflows
-`kata-setup` generates. SHA-pin every action. Template in
-[references/repo-skeleton.md].
+`coaligned-setup` wires `coaligned` into the check task; add the check workflows
+that run on push and pull request — separate from the agent workflows
+`kata-setup` generates. One workflow per concern, never a single `check.yml`: at
+minimum `check-quality.yml`, `check-test.yml`, and `check-context.yml`. SHA-pin
+every action. Templates in [references/check-workflows.md].
 
-### Step 6 — Create and seed the remote
+### Step 6 — Create the remote, then seed and initialize the wiki
 
 `gh repo create <owner>/<name> --source=. --push` at the chosen visibility, then
 enable the wiki and **pre-engage the killswitch** (`gh variable set
@@ -81,10 +82,16 @@ KATA_KILLSWITCH --body 1`) so the agent workflows stay dormant until the
 operator finishes `kata-setup`'s App and secret steps. Those credential-bound
 steps cannot run from here — record them in an operator runbook (`SETUP.md`).
 
+Then stand up the agent team's memory: add the `.claude/settings.json` wiki
+hooks, `fit-wiki init` the wiki, seed the three named ledgers (`Home.md`,
+`MEMORY.md`, `STATUS.md`) empty-but-scaffolded, and `fit-wiki push`. Full
+sequence in [references/wiki-init.md].
+
 ### Step 7 — Verify the composition
 
 Run the check task: `coaligned` passes clean with the vendored packs and agent
-profiles present. Confirm `gh workflow list` shows the generated workflows.
+profiles present. Confirm `gh workflow list` shows the generated workflows, and
+that the wiki clones with its three ledgers via `fit-wiki pull`.
 
 ## Done When
 
@@ -93,8 +100,11 @@ profiles present. Confirm `gh workflow list` shows the generated workflows.
 - [ ] Git, the root `package.json`, and the MONOREPO.md directory tree exist.
 - [ ] Both skill packs and the kata agent profiles are under `.claude/`.
 - [ ] `coaligned-setup` and `kata-setup` both completed.
-- [ ] The check task and CI run `coaligned` clean.
+- [ ] The check workflows exist (`check-quality`, `check-test`, `check-context`)
+      and `coaligned` runs clean.
 - [ ] The remote exists, the wiki is on, and `KATA_KILLSWITCH` is engaged.
+- [ ] `.claude/settings.json` drives the wiki lifecycle, and the wiki holds
+      `Home.md`, `MEMORY.md`, and `STATUS.md`.
 - [ ] `SETUP.md` lists the operator's remaining credential steps.
 
 </do_confirm_checklist>
