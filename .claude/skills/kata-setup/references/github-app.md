@@ -52,12 +52,12 @@ for deployment, tunnel, and configuration steps.
 ## Event Subscriptions
 
 The App delivers two event families through different channels. Subscribe to
-all five events on the App, and both channels will fire when their respective
+the events below on the App, and both channels will fire when their respective
 events arrive.
 
 ### App Webhook (served by `services/ghbridge`)
 
-Discussion events reach `kata-dispatch` only through the App webhook URL
+Discussion events reach `agent-dispatch` only through the App webhook URL
 configured above:
 
 - **Discussion** -- a new discussion is created, edited, or closed
@@ -65,19 +65,21 @@ configured above:
 
 ### GitHub Actions Triggers (no webhook URL needed)
 
-PR and issue events reach `kata-dispatch` via workflow triggers in
-`.github/workflows/kata-dispatch.yml`; the App webhook URL is not consulted
+PR and issue events reach `agent-dispatch` via workflow triggers in
+`.github/workflows/agent-dispatch.yml`; the App webhook URL is not consulted
 for these:
 
+- **Issues** -- new issues and routing/approval labels
 - **Issue comment** -- triggers on PR and issue comments
-- **Pull request review** -- triggers on submitted reviews
-- **Pull request review comment** -- triggers on review thread replies
+- **Pull request** -- routing/approval labels and merges
+- **Pull request review** -- submitted reviews (the payload carries every inline
+  comment, so no separate review-comment trigger is needed)
 
 ## Webhook Events
 
 The App webhook URL receives the two Discussion subscriptions listed above.
 `services/ghbridge` verifies the `X-Hub-Signature-256` header against the
-shared secret, persists thread state, and dispatches `kata-dispatch` via
+shared secret, persists thread state, and dispatches `agent-dispatch` via
 `workflow_dispatch`. See
 [`services/ghbridge/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
 for the full request/response shape, callback verdicts (`adjourned`,

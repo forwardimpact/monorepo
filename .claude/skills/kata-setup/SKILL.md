@@ -51,7 +51,11 @@ facilitated sessions, and event-driven responses.
 - [ ] Cron schedules match the user's requested timezone.
 - [ ] Secrets reference names match what was configured.
 - [ ] Agent profiles match the names the user confirmed.
-- [ ] kata-dispatch workflow includes the recursion guard.
+- [ ] `agent-shift.yml` lists every selected agent in the matrix and serializes
+      them with `max-parallel: 1`.
+- [ ] The dispatch workflow does no prompt assembly — it passes
+      `task-event: ${{ github.event_path }}` and lets the action compose the
+      task (including the recursion guard).
 - [ ] Every generated workflow's first step is the `Kata killswitch` gate
       (before any token mint or checkout).
 
@@ -106,12 +110,14 @@ Ask these questions. Skip any already answered in the task prompt.
 
 ### Step 2: Generate Workflow Files
 
-For each selected agent, write a workflow to `.github/workflows/` using
-templates from `references/workflow-agent.md` (scheduled agents) and
-`references/workflow-facilitate.md` (storyboard/coaching). Use
-`forwardimpact/kata-agent` as the action, SHA-pinned: resolve the
-`{{KATA_AGENT_REF}}` / `{{FIT_EVAL_REF}}` placeholders per
-[`workflow-agent.md` § Resolving action refs](references/workflow-agent.md#resolving-action-refs)
+Write the scheduled roster to a single `.github/workflows/agent-shift.yml`
+using `references/workflow-shift.md` — a matrix of all selected agents that
+runs in declaration order, one at a time. Write storyboard and coaching
+workflows from `references/workflow-facilitate.md` only when
+`improvement-coach` is selected. Use `forwardimpact/kata-agent` as the action,
+SHA-pinned: resolve the `{{KATA_AGENT_REF}}` / `{{FIT_EVAL_REF}}` /
+`{{FIT_WIKI_REF}}` placeholders per
+[`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs)
 — list the sibling's release tags with `gh api`, pick the highest `vX.Y.Z`
 tag, and emit `@<full-40-char-sha> # <tag>`. Never emit the mutable `v1`
 tag; if resolution fails, stop and ask the operator.
@@ -135,8 +141,9 @@ block. Each reference carries both. On hosted setup, remind the operator:
 "Set the `FIT_OIDC_URL` repository variable to your hosted OIDC URL before
 the first workflow run." The hosted blocks carry no `KATA_APP_PRIVATE_KEY`.
 
-Generate one workflow per agent. Storyboard and coaching workflows are generated
-only when `improvement-coach` is selected.
+The matrix in `agent-shift.yml` carries one line per selected agent, in
+producer → reviewer → shipper order (see `references/schedules.md`). Storyboard
+and coaching workflows are generated only when `improvement-coach` is selected.
 
 Every template's first step is a `Kata killswitch` gate that reads the
 `KATA_KILLSWITCH` repository (or org) Actions variable and fails the run when it
@@ -145,16 +152,18 @@ Keep it first so an engaged switch halts the run before any token mint, checkout
 or agent work. It is unset by default, so it has no effect until an operator sets
 it.
 
-### Step 3: Generate kata-dispatch
+### Step 3: Generate agent-dispatch
 
 If `product-manager` is selected, ask: "Do you want agents to respond to PR
-comments, issue comments, and discussions?" If yes, generate `kata-dispatch.yml`
-from `references/workflow-react.md` — emit the `## Template (hosted)` block in
-hosted mode (question 8) or `## Template (self-hosted)` otherwise.
+comments, issue comments, and discussions?" If yes, generate
+`agent-dispatch.yml` from `references/workflow-dispatch.md` — emit the
+`## Template (hosted)` block in hosted mode (question 8) or
+`## Template (self-hosted)` otherwise. The workflow does no prompt assembly: it
+passes the event payload via `task-event` and the action composes the task.
 
 If discussion replies are wanted, also instruct the operator to deploy
 `services/ghbridge` before flipping the App webhook URL to point at it. PR,
-issue, and review events reach `kata-dispatch` directly via workflow triggers
+issue, and review events reach `agent-dispatch` directly via workflow triggers
 and need no bridge, but Discussion events arrive through the App webhook and
 require a running ghbridge instance. Point them at
 [`services/ghbridge/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
@@ -166,7 +175,7 @@ Run verification:
 
 - `gh secret list` — confirm secrets are configured
 - Confirm workflow files were written to `.github/workflows/`
-- Suggest a test run: `gh workflow run "Agent: <name>"`
+- Suggest a test run: `gh workflow run "Agent: Shift"`
 
 ### Step 5: Report
 
