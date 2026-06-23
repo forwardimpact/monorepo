@@ -1,73 +1,72 @@
 # Schedule Templates
 
-Kata agents run on a **three-shift** (night, day, swing) producer-reviewer-
-shipper chain:
+One `agent-shift.yml` runs the whole roster each shift, in declaration order,
+serialized by `max-parallel: 1`. Order the matrix as a producer → reviewer →
+shipper chain so each agent acts on the previous one's output:
 
 1. **product-manager** — triages a fresh backlog
 2. **engineering agent** — implements from the backlog (default profile:
    `staff-engineer`)
-3. **security-engineer** — reviews code (night only)
-4. **technical-writer** — reviews docs (night only)
+3. **security-engineer** — reviews code
+4. **technical-writer** — reviews docs
 5. **release-engineer** — ships what passed review
-6. **improvement-coach** — storyboard, daily after night
+6. **improvement-coach** — assesses team improvement
 
-Security and technical-writer run only at night.
+Because the matrix serializes the roster, the schedule is **three shift-start
+crons** (night, day, swing) — not a per-agent stagger. The storyboard runs once
+daily, after the night shift finishes.
 
-## Cron Expressions by Timezone
+## `{{SHIFT_CRONS}}` by Timezone
 
-All crons are UTC. Local times use the tighter summer offset.
+All crons are UTC. Local times use the tighter summer offset. Shifts start at
+roughly 03:00 (night), 12:00 (day), and 20:00 (swing) local.
 
 ### Europe/Paris (CEST UTC+2 / CET UTC+1)
 
-| Agent             | Night (by 07:00) | Day (by 15:00) | Swing (by 23:00) |
-| ----------------- | ---------------- | -------------- | ---------------- |
-| product-manager   | `23 1 * * *`     | `17 10 * * *`  | `17 18 * * *`    |
-| staff-engineer    | `11 2 * * *`     | `11 11 * * *`  | `11 19 * * *`    |
-| security-engineer | `53 2 * * *`     | --             | --               |
-| technical-writer  | `37 3 * * *`     | --             | --               |
-| release-engineer  | `23 4 * * *`     | `23 12 * * *`  | `23 20 * * *`    |
-| storyboard        | `0 6 * * *`      | --             | --               |
+```yaml
+    - cron: "0 1 * * *"   # 03:00 night
+    - cron: "0 10 * * *"  # 12:00 day
+    - cron: "0 18 * * *"  # 20:00 swing
+```
+
+Storyboard: `0 6 * * *` (08:00 local).
 
 ### US East / New York (EDT UTC-4 / EST UTC-5)
 
-| Agent             | Night (by 07:00) | Day (by 15:00) | Swing (by 23:00) |
-| ----------------- | ---------------- | -------------- | ---------------- |
-| product-manager   | `23 7 * * *`     | `17 16 * * *`  | `17 0 * * *`     |
-| staff-engineer    | `11 8 * * *`     | `11 17 * * *`  | `11 1 * * *`     |
-| security-engineer | `53 8 * * *`     | --             | --               |
-| technical-writer  | `37 9 * * *`     | --             | --               |
-| release-engineer  | `23 10 * * *`    | `23 18 * * *`  | `23 2 * * *`     |
-| storyboard        | `0 12 * * *`     | --             | --               |
+```yaml
+    - cron: "0 7 * * *"   # 03:00 night
+    - cron: "0 16 * * *"  # 12:00 day
+    - cron: "0 0 * * *"   # 20:00 swing
+```
+
+Storyboard: `0 12 * * *` (08:00 local).
 
 ### US West / Los Angeles (PDT UTC-7 / PST UTC-8)
 
-| Agent             | Night (by 07:00) | Day (by 15:00) | Swing (by 23:00) |
-| ----------------- | ---------------- | -------------- | ---------------- |
-| product-manager   | `23 10 * * *`    | `17 19 * * *`  | `17 3 * * *`     |
-| staff-engineer    | `11 11 * * *`    | `11 20 * * *`  | `11 4 * * *`     |
-| security-engineer | `53 11 * * *`    | --             | --               |
-| technical-writer  | `37 12 * * *`    | --             | --               |
-| release-engineer  | `23 13 * * *`    | `23 21 * * *`  | `23 5 * * *`     |
-| storyboard        | `0 15 * * *`     | --             | --               |
+```yaml
+    - cron: "0 10 * * *"  # 03:00 night
+    - cron: "0 19 * * *"  # 12:00 day
+    - cron: "0 3 * * *"   # 20:00 swing
+```
+
+Storyboard: `0 15 * * *` (08:00 local).
 
 ### Asia Pacific / Tokyo (JST UTC+9)
 
-| Agent             | Night (by 07:00) | Day (by 15:00) | Swing (by 23:00) |
-| ----------------- | ---------------- | -------------- | ---------------- |
-| product-manager   | `23 18 * * *`    | `17 3 * * *`   | `17 11 * * *`    |
-| staff-engineer    | `11 19 * * *`    | `11 4 * * *`   | `11 12 * * *`    |
-| security-engineer | `53 19 * * *`    | --             | --               |
-| technical-writer  | `37 20 * * *`    | --             | --               |
-| release-engineer  | `23 21 * * *`    | `23 5 * * *`   | `23 13 * * *`    |
-| storyboard        | `0 23 * * *`     | --             | --               |
+```yaml
+    - cron: "0 18 * * *"  # 03:00 night
+    - cron: "0 3 * * *"   # 12:00 day
+    - cron: "0 11 * * *"  # 20:00 swing
+```
+
+Storyboard: `0 23 * * *` (08:00 local).
 
 ### Asia Pacific / Sydney (AEST UTC+10 / AEDT UTC+11)
 
-| Agent             | Night (by 07:00) | Day (by 15:00) | Swing (by 23:00) |
-| ----------------- | ---------------- | -------------- | ---------------- |
-| product-manager   | `23 17 * * *`    | `17 2 * * *`   | `17 10 * * *`    |
-| staff-engineer    | `11 18 * * *`    | `11 3 * * *`   | `11 11 * * *`    |
-| security-engineer | `53 18 * * *`    | --             | --               |
-| technical-writer  | `37 19 * * *`    | --             | --               |
-| release-engineer  | `23 20 * * *`    | `23 4 * * *`   | `23 12 * * *`    |
-| storyboard        | `0 22 * * *`     | --             | --               |
+```yaml
+    - cron: "0 17 * * *"  # 03:00 night
+    - cron: "0 2 * * *"   # 12:00 day
+    - cron: "0 10 * * *"  # 20:00 swing
+```
+
+Storyboard: `0 22 * * *` (08:00 local).
