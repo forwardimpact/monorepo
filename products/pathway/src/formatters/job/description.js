@@ -65,22 +65,46 @@ function buildExpectationsParagraph(expectations) {
 }
 
 /**
- * Build capability skill sections at the highest proficiency
+ * Build capability skill sections at the job's top proficiency level(s).
+ *
+ * Each derived responsibility sits at its capability's own highest proficiency,
+ * and the list is sorted by proficiency descending. Individual-contributor jobs
+ * show only the single highest proficiency. Management jobs concentrate fewer
+ * skills at the very top, so showing one level leaves their descriptions sparse;
+ * they include the top two proficiency levels instead.
  * @param {Object} job
+ * @param {Object} [options]
+ * @param {boolean} [options.isManagement] - Whether the role is a management role
  * @returns {Array}
  */
-function buildCapabilitySkills(job) {
+function buildCapabilitySkills(job, { isManagement = false } = {}) {
   const derivedResponsibilities = job.derivedResponsibilities || [];
   if (derivedResponsibilities.length === 0) return [];
 
-  const highestProficiency = derivedResponsibilities[0].proficiency;
-  const topResponsibilities = derivedResponsibilities.filter(
-    (r) => r.proficiency === highestProficiency,
+  // Collect the top N distinct proficiency levels present in the job.
+  const levelsToShow = isManagement ? 2 : 1;
+  const allowedProficiencies = new Set();
+  for (const r of derivedResponsibilities) {
+    if (!allowedProficiencies.has(r.proficiency)) {
+      if (allowedProficiencies.size >= levelsToShow) break;
+      allowedProficiencies.add(r.proficiency);
+    }
+  }
+
+  const topResponsibilities = derivedResponsibilities.filter((r) =>
+    allowedProficiencies.has(r.proficiency),
   );
 
+  // Each capability lists the skills at its own responsibility proficiency, so
+  // a capability shown at the second level keeps its second-level skills.
+  const proficiencyByCapability = new Map(
+    topResponsibilities.map((r) => [r.capability, r.proficiency]),
+  );
   const skillsByCapability = {};
   for (const skill of job.skillMatrix) {
-    if (skill.proficiency !== highestProficiency) continue;
+    if (proficiencyByCapability.get(skill.capability) !== skill.proficiency) {
+      continue;
+    }
     if (!skillsByCapability[skill.capability]) {
       skillsByCapability[skill.capability] = [];
     }
@@ -132,7 +156,9 @@ function prepareJobDescriptionData({ job, discipline, level, track }) {
     return indexB - indexA;
   });
 
-  const capabilitySkills = buildCapabilitySkills(job);
+  const capabilitySkills = buildCapabilitySkills(job, {
+    isManagement: !!discipline?.isManagement,
+  });
 
   // Build qualification summary with placeholder replacement
   const qualificationSummary =
