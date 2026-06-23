@@ -229,7 +229,7 @@ layout: home
       </div>
       <div class="terminal-lines">
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">cd my-repo/</span></div>
-        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">npx skills add forwardimpact/kata-skills</span></div>
+        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">apm install forwardimpact/kata-skills</span></div>
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">echo </span><span class="terminal-string">"Setup the Kata Team"</span><span class="terminal-cmd"> | claude</span></div>
       </div>
     </div>

@@ -30,15 +30,22 @@
   "type": "module",
   "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./bin/fit-pack.js": "./bin/fit-pack.js"
+  },
+  "bin": {
+    "fit-pack": "./bin/fit-pack.js"
   },
   "files": [
-    "src/**/*.js"
+    "src/**/*.js",
+    "bin/**/*.js"
   ],
   "scripts": {
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
+    "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libutil": "^0.1.84"
   },
   "devDependencies": {

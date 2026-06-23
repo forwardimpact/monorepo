@@ -7,6 +7,12 @@ description: >
   inputs so the three packs share one implementation. Prose and repo names reach
   the scripts through the environment, never by interpolation into source text.
 
+  Primitives are laid out under APM's conventional `.apm/` source root
+  (`.apm/skills/<name>/`, `.apm/agents/<name>.agent.md`) so that a bare
+  `apm install forwardimpact/<repo>` discovers and installs every primitive,
+  agents included. A root-level `agents/` directory is not an APM-recognized
+  package form, so agents placed there install for nobody.
+
 inputs:
   pack-prefix:
     description: Skill directory prefix under .claude/skills (e.g. fit, coaligned, kata).
@@ -49,158 +55,36 @@ runs:
         VERSION=$(jq -r '.version' "$VERSION_FILE")
         echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-    - name: Sync skills
+    # Stage the sibling repo's `.apm/` tree, apm.yml, and README in one tested
+    # code path. `fit-pack` (libpack) owns the APM layout — skills under
+    # `.apm/skills/`, agents under `.apm/agents/<name>.agent.md` — shared with
+    # the Pathway git packs so the two cannot drift. Workflows orchestrate;
+    # the staging logic lives in the library, not in walls of inline bash.
+    - name: Stage pack
       shell: bash
       env:
         PACK_PREFIX: ${{ inputs.pack-prefix }}
         TARGET_DIR: ${{ inputs.target-dir }}
-      run: |
-        inject_skill_frontmatter() {
-          local file="$1" version="$2"
-          awk -v ver="$version" '
-            NR == 1 && $0 == "---" { print; in_fm = 1; next }
-            in_fm && $0 == "---" {
-              print "license: Apache-2.0"
-              print "metadata:"
-              print "  version: \"" ver "\""
-              print "  author: forwardimpact"
-              print
-              in_fm = 0
-              next
-            }
-            { print }
-          ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
-        }
-
-        rm -rf "$TARGET_DIR/skills"
-        mkdir -p "$TARGET_DIR/skills"
-        for skill_dir in ".claude/skills/${PACK_PREFIX}-"*/; do
-          skill_name=$(basename "$skill_dir")
-          cp -r "$skill_dir" "$TARGET_DIR/skills/$skill_name"
-          inject_skill_frontmatter "$TARGET_DIR/skills/$skill_name/SKILL.md" "$VERSION"
-        done
-
-    - name: Sync agents
-      if: inputs.sync-agents == 'true'
-      shell: bash
-      env:
-        TARGET_DIR: ${{ inputs.target-dir }}
-      run: |
-        rm -rf "$TARGET_DIR/agents"
-        mkdir -p "$TARGET_DIR/agents"
-        for agent_file in .claude/agents/*.md; do
-          [ -f "$agent_file" ] || continue
-          agent_name=$(basename "$agent_file" .md)
-          cp "$agent_file" "$TARGET_DIR/agents/${agent_name}.agent.md"
-        done
-
-    # Always ship the agent references that profiles and skills cite (e.g. the
-    # work-item tracker matrix). Every pack gets them, not only the
-    # agent-syncing ones. Skills in any pack may resolve a
-    # `.claude/agents/references/*` path, and benchmark task CWDs need them
-    # present. APM installs them alongside the skills. Runs after Sync agents
-    # so kata's `rm -rf agents` cannot wipe the references dir.
-    - name: Sync agent references
-      shell: bash
-      env:
-        TARGET_DIR: ${{ inputs.target-dir }}
-      run: |
-        rm -rf "$TARGET_DIR/agents/references"
-        if [ -d .claude/agents/references ]; then
-          mkdir -p "$TARGET_DIR/agents"
-          cp -r .claude/agents/references "$TARGET_DIR/agents/references"
-        fi
-
-    - name: Generate apm.yml
-      shell: bash
-      env:
-        TARGET_DIR: ${{ inputs.target-dir }}
         APM_NAME: ${{ inputs.sibling-repo }}
         APM_DESCRIPTION: ${{ inputs.apm-description }}
-      run: |
-        cat > "$TARGET_DIR/apm.yml" <<EOF
-        name: ${APM_NAME}
-        version: ${VERSION}
-        description: >-
-          ${APM_DESCRIPTION}
-        author: forwardimpact
-        license: Apache-2.0
-        includes: auto
-        EOF
-
-    - name: Generate README
-      shell: bash
-      env:
-        TARGET_DIR: ${{ inputs.target-dir }}
-        SIBLING_REPO: ${{ inputs.sibling-repo }}
         README_TITLE: ${{ inputs.readme-title }}
         README_INTRO: ${{ inputs.readme-intro }}
         SYNC_AGENTS: ${{ inputs.sync-agents }}
       run: |
-        extract_desc() {
-          awk '
-            /^description:/ {
-              sub(/^description: *>? */, "")
-              if ($0 != "") { desc = $0 }
-              while (getline > 0) {
-                if (/^  /) { gsub(/^  /, ""); desc = desc " " $0 }
-                else { break }
-              }
-              gsub(/^ +/, "", desc)
-              gsub(/ +$/, "", desc)
-              print desc
-              exit
-            }
-          ' "$1"
-        }
-
-        readme="$TARGET_DIR/README.md"
-        printf '# %s\n\n%s\n\n' "$README_TITLE" "$README_INTRO" > "$readme"
-        cat >> "$readme" <<EOF
-        ## Install
-
-        With [APM](https://microsoft.github.io/apm/):
-
-        \`\`\`bash
-        apm install forwardimpact/${SIBLING_REPO}
-        \`\`\`
-
-        With [npx skills](https://github.com/vercel-labs/skills):
-
-        \`\`\`bash
-        npx skills add forwardimpact/${SIBLING_REPO}
-        \`\`\`
-
-        ## Available Skills
-
-        | Skill | Description |
-        | --- | --- |
-        EOF
-
-        for skill_dir in "$TARGET_DIR"/skills/*/; do
-          skill_md="$skill_dir/SKILL.md"
-          if [ -f "$skill_md" ]; then
-            name=$(sed -n 's/^name: *//p' "$skill_md" | head -1)
-            desc=$(extract_desc "$skill_md")
-            echo "| **${name}** | ${desc} |" >> "$readme"
-          fi
-        done
-
+        agents_flag=""
         if [ "$SYNC_AGENTS" = "true" ]; then
-          cat >> "$readme" <<'EOF'
-
-        ## Available Agents
-
-        | Agent | Description |
-        | --- | --- |
-        EOF
-          for agent_file in "$TARGET_DIR"/agents/*.agent.md; do
-            [ -f "$agent_file" ] || continue
-            name=$(sed -n 's/^name: *//p' "$agent_file" | head -1)
-            desc=$(extract_desc "$agent_file")
-            echo "| **${name}** | ${desc} |" >> "$readme"
-          done
+          agents_flag="--with-agents"
         fi
+        bunx fit-pack stage \
+          --from .claude \
+          --prefix "$PACK_PREFIX" \
+          --into "$TARGET_DIR" \
+          --name "$APM_NAME" \
+          --pack-version "$VERSION" \
+          --description "$APM_DESCRIPTION" \
+          --readme-title "$README_TITLE" \
+          --readme-intro "$README_INTRO" \
+          $agents_flag
 
     - name: Commit, push, tag
       shell: bash

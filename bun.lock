@@ -33,14 +33,14 @@
     },
     "libraries/libcli": {
       "name": "@forwardimpact/libcli",
-      "version": "0.1.15",
+      "version": "0.1.16",
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libcoaligned": {
       "name": "@forwardimpact/libcoaligned",
-      "version": "0.1.11",
+      "version": "0.1.14",
       "bin": {
         "coaligned": "./bin/coaligned.js",
       },
@@ -58,7 +58,7 @@
     },
     "libraries/libcodegen": {
       "name": "@forwardimpact/libcodegen",
-      "version": "0.1.66",
+      "version": "0.1.67",
       "bin": {
         "fit-codegen": "./bin/fit-codegen.js",
       },
@@ -117,7 +117,7 @@
     },
     "libraries/libeval": {
       "name": "@forwardimpact/libeval",
-      "version": "0.1.64",
+      "version": "0.1.66",
       "bin": {
         "fit-eval": "./bin/fit-eval.js",
         "fit-trace": "./bin/fit-trace.js",
@@ -220,7 +220,7 @@
     },
     "libraries/libmock": {
       "name": "@forwardimpact/libmock",
-      "version": "0.1.8",
+      "version": "0.1.11",
       "dependencies": {
         "@grpc/grpc-js": "^1.14.4",
       },
@@ -231,7 +231,12 @@
     "libraries/libpack": {
       "name": "@forwardimpact/libpack",
       "version": "0.1.7",
+      "bin": {
+        "fit-pack": "./bin/fit-pack.js",
+      },
       "dependencies": {
+        "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libutil": "^0.1.84",
       },
       "devDependencies": {
@@ -397,7 +402,7 @@
     },
     "libraries/libsyntheticgen": {
       "name": "@forwardimpact/libsyntheticgen",
-      "version": "0.1.29",
+      "version": "0.1.30",
       "dependencies": {
         "@forwardimpact/libutil": "^0.1.61",
         "seedrandom": "^3.0.5",
@@ -429,7 +434,7 @@
     },
     "libraries/libsyntheticrender": {
       "name": "@forwardimpact/libsyntheticrender",
-      "version": "0.1.31",
+      "version": "0.1.32",
       "dependencies": {
         "@forwardimpact/libsyntheticgen": "^0.1.0",
         "@forwardimpact/libtemplate": "^0.2.0",
@@ -532,7 +537,7 @@
     },
     "libraries/libutil": {
       "name": "@forwardimpact/libutil",
-      "version": "0.1.95",
+      "version": "0.1.97",
       "bin": {
         "fit-download-bundle": "./bin/fit-download-bundle.js",
         "fit-tiktoken": "./bin/fit-tiktoken.js",
@@ -573,7 +578,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.26",
+      "version": "0.2.30",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
@@ -667,7 +672,7 @@
     },
     "products/landmark": {
       "name": "@forwardimpact/landmark",
-      "version": "0.1.27",
+      "version": "0.1.28",
       "bin": {
         "fit-landmark": "./bin/fit-landmark.js",
       },
@@ -720,7 +725,7 @@
     },
     "products/outpost": {
       "name": "@forwardimpact/outpost",
-      "version": "3.4.0",
+      "version": "3.5.1",
       "bin": {
         "fit-outpost": "./bin/fit-outpost.js",
       },
@@ -739,7 +744,7 @@
     },
     "products/pathway": {
       "name": "@forwardimpact/pathway",
-      "version": "0.26.5",
+      "version": "0.26.6",
       "bin": {
         "fit-pathway": "./bin/fit-pathway.js",
       },
@@ -788,7 +793,7 @@
     },
     "services/bridge": {
       "name": "@forwardimpact/svcbridge",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "bin": {
         "fit-svcbridge": "./server.js",
       },
@@ -809,7 +814,7 @@
     },
     "services/embedding": {
       "name": "@forwardimpact/svcembedding",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "fit-svcembedding": "./server.js",
       },
@@ -827,7 +832,7 @@
     },
     "services/ghbridge": {
       "name": "@forwardimpact/svcghbridge",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "bin": {
         "fit-svcghbridge": "./server.js",
       },
@@ -850,7 +855,7 @@
     },
     "services/ghserver": {
       "name": "@forwardimpact/svcghserver",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "bin": {
         "fit-svcghserver": "./server.js",
       },
@@ -869,7 +874,7 @@
     },
     "services/ghuser": {
       "name": "@forwardimpact/svcghuser",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "bin": {
         "fit-svcghuser": "./server.js",
       },
@@ -954,7 +959,7 @@
     },
     "services/msbridge": {
       "name": "@forwardimpact/svcmsbridge",
-      "version": "0.1.6",
+      "version": "0.1.8",
       "bin": {
         "fit-svcmsbridge": "./server.js",
       },
@@ -975,7 +980,7 @@
     },
     "services/oauth": {
       "name": "@forwardimpact/svcoauth",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "bin": {
         "fit-svcoauth": "./server.js",
       },
@@ -1013,7 +1018,7 @@
     },
     "services/pathway": {
       "name": "@forwardimpact/svcpathway",
-      "version": "0.1.21",
+      "version": "0.1.22",
       "bin": {
         "fit-svcpathway": "./server.js",
       },
@@ -1036,7 +1041,7 @@
     },
     "services/tenancy": {
       "name": "@forwardimpact/svctenancy",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "fit-svctenancy": "./server.js",
       },

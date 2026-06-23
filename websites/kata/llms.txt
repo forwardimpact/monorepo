@@ -18,7 +18,7 @@ The team runs on plain
 JavaScript with no databases, no queues, and no third-party dependencies;
 shared state lives as markdown in a Git repository.
 
-Install via `npx skills add forwardimpact/kata-skills`, then ask Claude to set
+Install via `apm install forwardimpact/kata-skills`, then ask Claude to set
 up the team.
 
 ## Optional

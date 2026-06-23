@@ -172,7 +172,7 @@ whether its latest move is a real change or just expected variation.
 
 ```sh
 npm install @forwardimpact/libcli @forwardimpact/libstorage  # any subset
-npx skills add forwardimpact/fit-skills
+apm install forwardimpact/fit-skills
 ```
 
 <div class="grid">

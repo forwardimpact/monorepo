@@ -90,7 +90,7 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
   products need `npx fit-codegen --all` — see
   [Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md).
 - **Skill packs** — `forwardimpact/{fit-skills,kata-skills,coaligned-skills}`
-  sync on push to `main`. Install: `npx skills add forwardimpact/fit-skills`
+  sync on push to `main`. Install: `apm install forwardimpact/fit-skills`
   (or `kata-skills`, `coaligned-skills`). Internal skills (`libs-*`, product
   internals) never publish.
 - **Composite actions** —
