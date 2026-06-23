@@ -1,6 +1,6 @@
 # Plan 1160-a-07 — Web surface
 
-Build the Next.js App Router web frontend under `products/finder/site/`,
+Build the Next.js App Router web frontend under `products/polaris/site/`,
 styled with Tailwind + shadcn/ui, dispatching to shared handlers via
 `@forwardimpact/libui`.
 
@@ -8,10 +8,10 @@ All paths are inside `bionova-apps/`.
 
 ## Step 1 — Scaffold Next.js project
 
-Created: `products/finder/site/` initialized via
+Created: `products/polaris/site/` initialized via
 
 ```sh
-cd products/finder/site
+cd products/polaris/site
 npx create-next-app@14.2 . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --no-git
 # create-next-app@14.2 does not document --use-bun; let npm scaffold, then
 # regenerate the lockfile under bun at workspace root:
@@ -28,7 +28,7 @@ part-07 PR description.
 Resulting layout:
 
 ```
-products/finder/site/
+products/polaris/site/
   src/app/
   public/
   next.config.mjs
@@ -44,7 +44,7 @@ Edit `package.json` to add workspace deps:
 "dependencies": {
   "@forwardimpact/libui": "1.2.1",
   "@forwardimpact/libformat": "0.1.15",
-  "@bionova/finder-handlers": "workspace:*",
+  "@bionova/polaris-handlers": "workspace:*",
   "next": "14.2.5",
   "react": "18.3.1",
   "react-dom": "18.3.1"
@@ -54,12 +54,12 @@ Edit `package.json` to add workspace deps:
 Add `output: "standalone"` to `next.config.mjs` so the Dockerfile builds a
 minimal runtime image.
 
-Verify: `cd products/finder/site && bun install && bun run build` exits 0.
+Verify: `cd products/polaris/site && bun install && bun run build` exits 0.
 
 ## Step 2 — Initialize shadcn/ui
 
 ```sh
-cd products/finder/site
+cd products/polaris/site
 npx shadcn@latest init
 ```
 
@@ -119,7 +119,7 @@ Shape of every Route Handler:
 
 ```ts
 import { NextResponse, type NextRequest } from "next/server";
-import { searchTrials } from "@bionova/finder-handlers";
+import { searchTrials } from "@bionova/polaris-handlers";
 import { buildCtxFromRequest } from "@/lib/build-ctx";
 
 export async function GET(request: NextRequest) {
@@ -157,7 +157,7 @@ error rather than silently performing an anon PATCH.
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { freezeInvocationContext } from "@forwardimpact/libui";
-import { createDataContext } from "@bionova/finder-handlers/context";
+import { createDataContext } from "@bionova/polaris-handlers/context";
 
 const STAFF_JWT_COOKIE = "sb-staff-jwt";
 
@@ -231,7 +231,7 @@ header for the bound session.
 Example `src/app/search/page.tsx`:
 
 ```tsx
-import { searchTrials } from "@bionova/finder-handlers";
+import { searchTrials } from "@bionova/polaris-handlers";
 import { buildCtx } from "@/lib/build-ctx";
 import { TrialCard } from "@/components/trial-card";
 
@@ -261,7 +261,7 @@ JSON; `/admin/trials/<id>` 200s when the staff cookie is set and
 
 ## Step 4 — Author shared components
 
-Created under `products/finder/site/src/components/`:
+Created under `products/polaris/site/src/components/`:
 
 | Component | File | Purpose |
 | --- | --- | --- |
@@ -293,7 +293,7 @@ score in query string; success criterion #3.
 
 ## Step 6 — Dockerfile + healthcheck
 
-Edit `products/finder/site/Dockerfile`. Compose builds this with
+Edit `products/polaris/site/Dockerfile`. Compose builds this with
 `context: .` (repo root — set in part 01 step 4); all COPY paths below
 are repo-root-relative:
 
@@ -303,23 +303,23 @@ WORKDIR /app
 RUN npm install -g bun@1.2
 # Copy workspace root metadata first for caching
 COPY package.json bun.lockb ./
-COPY products/finder/handlers ./products/finder/handlers
-COPY products/finder/site ./products/finder/site
+COPY products/polaris/handlers ./products/polaris/handlers
+COPY products/polaris/site ./products/polaris/site
 RUN bun install --production=false
-RUN cd products/finder/site && bun run build
+RUN cd products/polaris/site && bun run build
 
 FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/products/finder/site/.next/standalone ./
-COPY --from=builder /app/products/finder/site/.next/static ./products/finder/site/.next/static
-COPY --from=builder /app/products/finder/site/public ./products/finder/site/public
+COPY --from=builder /app/products/polaris/site/.next/standalone ./
+COPY --from=builder /app/products/polaris/site/.next/static ./products/polaris/site/.next/static
+COPY --from=builder /app/products/polaris/site/public ./products/polaris/site/public
 EXPOSE 3000
-CMD ["node", "products/finder/site/server.js"]
+CMD ["node", "products/polaris/site/server.js"]
 ```
 
 The `bun install` step in the builder stage resolves the `workspace:*`
-dep `@bionova/finder-handlers` because both directories are present
+dep `@bionova/polaris-handlers` because both directories are present
 under `/app/`.
 
 Add `src/app/api/health/route.ts`:
@@ -330,12 +330,12 @@ export const GET = () => new Response("ok");
 
 (matches the part-01 healthcheck `curl -f http://localhost:3000/api/health`.)
 
-Verify: `docker compose up -d finder-site` reaches `(healthy)` within 60s;
+Verify: `docker compose up -d polaris-site` reaches `(healthy)` within 60s;
 `curl http://localhost:3001/` returns the homepage HTML.
 
 ## Step 7 — Tests
 
-Created: `products/finder/site/src/__tests__/`:
+Created: `products/polaris/site/src/__tests__/`:
 
 | Test file | Coverage |
 | --- | --- |
@@ -347,16 +347,16 @@ Created: `products/finder/site/src/__tests__/`:
 
 Test runner: `vitest` (added to devDeps) with `@testing-library/react`.
 
-Verify: `cd products/finder/site && bun run test` exits 0.
+Verify: `cd products/polaris/site && bun run test` exits 0.
 
 ## Step 8 — Open part-07 PR
 
 ```sh
-git checkout -b products/finder-site
-git add products/finder/site/
-git commit -m "products: bionova-finder web (Next.js + Tailwind + shadcn)"
-git push -u origin products/finder-site
-gh pr create --title "products: bionova-finder web (Next.js + Tailwind + shadcn)" --body "Implements plan-a-07 of spec 1160. App Router dispatches to shared handlers; admin routes gated by staff JWT in Supabase cookie."
+git checkout -b products/polaris-site
+git add products/polaris/site/
+git commit -m "products: bionova-polaris web (Next.js + Tailwind + shadcn)"
+git push -u origin products/polaris-site
+gh pr create --title "products: bionova-polaris web (Next.js + Tailwind + shadcn)" --body "Implements plan-a-07 of spec 1160. App Router dispatches to shared handlers; admin routes gated by staff JWT in Supabase cookie."
 ```
 
 Verify: PR CI green (lint + build + vitest); preview link (if Vercel
@@ -364,13 +364,13 @@ preview enabled, else local Docker compose smoke documented).
 
 ## Verification (end of part 07)
 
-- [ ] `bun run build` in `products/finder/site/` exits 0.
+- [ ] `bun run build` in `products/polaris/site/` exits 0.
 - [ ] All 7 routes render without runtime errors (manual against `bun run dev`).
 - [ ] `/search?condition=high+blood+sugar` returns diabetes-related trials (success criterion #2).
 - [ ] `/trials/[id]/eligibility` form submits to route handler, inserts interest signal, shows score badge (success criterion #3).
 - [ ] `/sites?specialty=oncology` filters site list.
 - [ ] `/admin/trials/[id]` returns 401 without staff JWT; returns admin view with signal aggregates with staff JWT.
 - [ ] `vitest run` exits 0.
-- [ ] `docker compose up -d finder-site` reaches `(healthy)` within 60s.
+- [ ] `docker compose up -d polaris-site` reaches `(healthy)` within 60s.
 
 — Staff Engineer 🛠️

@@ -274,8 +274,8 @@ terrain BioNova {
     prose_tone "collaborative, strategic"
   }
 
-  project finder {
-    name "Clinical Research Finder"
+  project polaris {
+    name "BioNova Polaris"
     type "application"
     teams [platform_engineering, developer_experience, clinical_development]
     timeline_start 2025-04
@@ -607,9 +607,9 @@ terrain BioNova {
     }
   }
 
-  scenario finder_mvp_push {
-    name "Finder MVP Push"
-    narrative "Platform, DX, and clinical development teams sprint toward the Finder MVP, requiring elevated velocity on search API, embedding pipeline, and clinical data integration"
+  scenario polaris_mvp_push {
+    name "Polaris MVP Push"
+    narrative "Platform, DX, and clinical development teams sprint toward Polaris MVP, requiring elevated velocity on search API, embedding pipeline, and clinical data integration"
     timerange_start 2025-06
     timerange_end 2025-09
 
@@ -648,9 +648,9 @@ terrain BioNova {
     }
   }
 
-  scenario finder_ga_release {
-    name "Finder GA Release"
-    narrative "Platform and DX teams stabilize the Finder for general availability, focusing on performance, security hardening, and production readiness"
+  scenario polaris_ga_release {
+    name "Polaris GA Release"
+    narrative "Platform and DX teams stabilize Polaris for general availability, focusing on performance, security hardening, and production readiness"
     timerange_start 2025-10
     timerange_end 2026-03
 
@@ -1254,16 +1254,16 @@ terrain BioNova {
   output trial_patients_condition json   { path "output/trial_conditions.json" }
   output claims_claims parquet           { path "output/claims.parquet" }
   output claims_claims sql               { path "output/claims.sql" table "bionova_claims" }
-  output finder_seed supabase_migration {
-    path "products/finder/site/supabase/migrations/"
+  output polaris_seed supabase_migration {
+    path "products/polaris/site/supabase/migrations/"
     prefix "seed"
     entities [clinical.conditions, clinical.sites,
               clinical.researchers, clinical.trials, clinical.criteria]
     include_embeddings true
   }
 
-  output finder_embeddings embeddings_jsonl {
-    path "products/finder/site/supabase/migrations/seed_embeddings.jsonl"
+  output polaris_embeddings embeddings_jsonl {
+    path "products/polaris/site/supabase/migrations/seed_embeddings.jsonl"
     entities [clinical.conditions, clinical.trials]
     text_fields {
       clinical.conditions [name, synonyms, prose_explainer]

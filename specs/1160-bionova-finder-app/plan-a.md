@@ -1,7 +1,17 @@
-# Plan 1160-a — Clinical Research Finder Application
+# Plan 1160-a — BioNova Polaris Application
 
 Build the `bionova-apps` external repository to spec
 [1160](spec.md) / design [a](design-a.md).
+
+> **`bionova-apps` is a SEPARATE GitHub repository — its own monorepo.**
+> It is created as a brand-new repo at `forwardimpact/bionova-apps`, owns its
+> own `MONOREPO.md`, workspaces, and CI, and consumes Forward Impact code only
+> as published npm packages. It is **not** a directory inside this monorepo and
+> is **never** vendored, submoduled, or checked in here. Nothing in this plan
+> creates files under this monorepo except the trailing `wiki/STATUS.md` +
+> metrics update (part 08). If you find yourself writing `bionova-apps` files
+> inside this repo, stop — you are in the wrong working tree. See
+> [§ Where this lives](#where-this-lives).
 
 ## Approach
 
@@ -61,10 +71,10 @@ implemented`; route `kata-implement` only after that signal flips.
 | [01](plan-a-01.md) | Repo bootstrap + infrastructure | New repo, MONOREPO.md, `package.json`, `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | — |
 | [02](plan-a-02.md) | Schema + RLS + interest_signals migration | Hand-written migration for `interest_signals`, RLS policies, schema verification | 01 |
 | [03](plan-a-03.md) | Data pipeline (r2) | vendored terrain seed in `data/synthetic/seed/` + `PROVENANCE.md`, `scripts/stage-seed.sh`, `setup.sh` data steps | 01, 02, spec 1150 implemented |
-| [04](plan-a-04.md) | Edge functions | `embed-seed`, `eligibility-check`, `notify-updates`, `sync-listings` under `services/finder-functions/` | 03 |
-| [05](plan-a-05.md) | Shared handlers | `products/finder/handlers/` — `searchTrials`, `showTrial`, `checkEligibility`, `listSites`, `showAbout`, `manageTrial` | 03 |
-| [06](plan-a-06.md) | CLI surface | `products/finder/cli/` + `bin/bionova-finder.js`, libcli wiring, `repl` subcommand | 05 |
-| [07](plan-a-07.md) | Web surface | `products/finder/site/` — Next.js App Router, Tailwind, shadcn/ui, libui routing | 05 |
+| [04](plan-a-04.md) | Edge functions | `embed-seed`, `eligibility-check`, `notify-updates`, `sync-listings` under `services/polaris-functions/` | 03 |
+| [05](plan-a-05.md) | Shared handlers | `products/polaris/handlers/` — `searchTrials`, `showTrial`, `checkEligibility`, `listSites`, `showAbout`, `manageTrial` | 03 |
+| [06](plan-a-06.md) | CLI surface | `products/polaris/cli/` + `bin/bionova-polaris.js`, libcli wiring, `repl` subcommand | 05 |
+| [07](plan-a-07.md) | Web surface | `products/polaris/site/` — Next.js App Router, Tailwind, shadcn/ui, libui routing | 05 |
 | [08](plan-a-08.md) | Deployment + smoke tests | Railway watch-path config per service, success-criteria verification script | 01–07 |
 
 ## Libraries used
@@ -77,7 +87,7 @@ Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationCo
   is implemented and live-verified (see Prerequisites). r1's residual
   assumption that 1150's artifacts would be *committed* to monorepo
   `main` was never true (terrain output is generated, never committed —
-  `products/finder/` is gitignored); part 03 (r2) therefore vendors
+  `products/polaris/` is gitignored); part 03 (r2) therefore vendors
   regenerated artifacts instead of fetching committed ones. Part 03
   step 1 regenerates and verifies the artifact list before vendoring.
 - **libterrain not invokable from external repos.** Re-confirmed at

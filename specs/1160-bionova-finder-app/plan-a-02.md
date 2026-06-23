@@ -25,11 +25,11 @@ hand-written migrations dated `20260601*` and later sort after every
 terrain migration regardless of regeneration.
 
 Decision: hand-written migrations live in
-`products/finder/site/supabase/migrations/` with prefix `2026060100*`.
+`products/polaris/site/supabase/migrations/` with prefix `2026060100*`.
 `setup.sh` (filled in step 5) copies terrain output then applies migrations
 in directory order via `supabase db push`.
 
-Verify: `ls products/finder/site/supabase/migrations/` (after part 03 runs)
+Verify: `ls products/polaris/site/supabase/migrations/` (after part 03 runs)
 shows terrain files first, then hand-written.
 
 ## Step 2 — Create `supabase/` directory + config
@@ -38,16 +38,16 @@ Created:
 
 | File | Purpose |
 | --- | --- |
-| `products/finder/site/supabase/config.toml` | Supabase CLI config — `project_id = "bionova-finder"`, `[db] port = 5432`, `[auth] enabled = true`, `[storage] enabled = true` |
-| `products/finder/site/supabase/migrations/.gitkeep` | Placeholder; terrain populates and part 02 adds the hand-written file |
-| `products/finder/site/supabase/seed.sql` | empty (terrain handles seeding) |
+| `products/polaris/site/supabase/config.toml` | Supabase CLI config — `project_id = "bionova-polaris"`, `[db] port = 5432`, `[auth] enabled = true`, `[storage] enabled = true` |
+| `products/polaris/site/supabase/migrations/.gitkeep` | Placeholder; terrain populates and part 02 adds the hand-written file |
+| `products/polaris/site/supabase/seed.sql` | empty (terrain handles seeding) |
 
 Verify: `supabase --version` succeeds (CLI assumed installed via `npx
 supabase`); `supabase db lint` parses config.toml without error.
 
 ## Step 3 — Author `interest_signals` migration
 
-Created: `products/finder/site/supabase/migrations/20260601000000_interest_signals.sql`
+Created: `products/polaris/site/supabase/migrations/20260601000000_interest_signals.sql`
 
 Content:
 
@@ -75,7 +75,7 @@ terrain output to have applied first).
 
 ## Step 3b — Author `condition_embeddings` unique-constraint migration
 
-Created: `products/finder/site/supabase/migrations/20260601000000a_condition_embeddings_unique.sql`
+Created: `products/polaris/site/supabase/migrations/20260601000000a_condition_embeddings_unique.sql`
 
 ```sql
 -- libsyntheticrender emits condition_embeddings.condition_id without a UNIQUE
@@ -93,7 +93,7 @@ unique index `condition_embeddings_condition_id_uidx`.
 
 ## Step 4 — Author RLS policies migration
 
-Created: `products/finder/site/supabase/migrations/20260601000001_rls_policies.sql`
+Created: `products/polaris/site/supabase/migrations/20260601000001_rls_policies.sql`
 
 Content (covers every table per design):
 
@@ -199,7 +199,7 @@ is added in part 03 after terrain output exists):
 # Migration ordering is filename-sorted: terrain's 20260101* files apply before
 # hand-written 20260601* files, so the interest_signals FK to trials(id) resolves.
 echo "Running supabase db push…"
-cd "$ROOT/products/finder/site"
+cd "$ROOT/products/polaris/site"
 npx -y supabase@1.219.2 db push --db-url "postgres://postgres:${POSTGRES_PASSWORD}@localhost:5432/postgres"
 cd "$ROOT"
 ```
@@ -210,7 +210,7 @@ static SQL lint only).
 
 ## Step 7 — Author RLS test fixture (run at part-03 verification time)
 
-Created: `products/finder/site/supabase/tests/rls.test.sql` —
+Created: `products/polaris/site/supabase/tests/rls.test.sql` —
 pgTAP-format SQL test asserting:
 
 - anon can SELECT from trials
@@ -219,7 +219,7 @@ pgTAP-format SQL test asserting:
 - anon cannot SELECT from interest_signals
 - staff (with JWT role claim) can INSERT trials
 
-Test runner: `supabase test db` from `products/finder/site/`. Part-02 PR
+Test runner: `supabase test db` from `products/polaris/site/`. Part-02 PR
 CI does NOT run this test (no terrain output → no trials table); the test
 is exercised at the end of part 03 once the full schema is applied.
 
@@ -227,7 +227,7 @@ is exercised at the end of part 03 once the full schema is applied.
 
 ```sh
 git checkout -b db/interest-signals-rls
-git add products/finder/site/supabase/
+git add products/polaris/site/supabase/
 git add setup.sh
 git commit -m "db: interest_signals migration + RLS policies"
 git push -u origin db/interest-signals-rls
@@ -238,8 +238,8 @@ Verify: PR CI passes (`supabase db lint` + `bun run lint`).
 
 ## Verification (end of part 02)
 
-- [ ] `products/finder/site/supabase/migrations/20260601000000_interest_signals.sql` exists with table, indexes, RLS enable.
-- [ ] `products/finder/site/supabase/migrations/20260601000001_rls_policies.sql` exists; does not duplicate any terrain-emitted policy name.
+- [ ] `products/polaris/site/supabase/migrations/20260601000000_interest_signals.sql` exists with table, indexes, RLS enable.
+- [ ] `products/polaris/site/supabase/migrations/20260601000001_rls_policies.sql` exists; does not duplicate any terrain-emitted policy name.
 - [ ] `supabase db lint` (static SQL syntax check, no DB needed) exits 0 on the migrations directory.
 - [ ] `setup.sh` Step B invokes `npx -y supabase@1.219.2 db push` (full DB application validated at end of part 03).
 - [ ] PR CI runs only static checks; e2e DB tests are deferred to part 03's verification list.

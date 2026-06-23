@@ -1,4 +1,4 @@
-# Design 1160 — BioNova Finder Application
+# Design 1160 — BioNova Polaris Application
 
 All paths below are within the `bionova-apps` repository — a separate,
 MONOREPO.md-compliant repo that consumes Forward Impact libraries from npm.
@@ -7,10 +7,10 @@ MONOREPO.md-compliant repo that consumes Forward Impact libraries from npm.
 
 | Component | Location | Purpose |
 | --- | --- | --- |
-| Handlers | `products/finder/handlers/` | Surface-agnostic business logic |
-| Web frontend | `products/finder/site/` | Next.js App Router + Tailwind + shadcn/ui |
-| CLI | `products/finder/cli/` | `bionova-finder` via libcli |
-| Edge Functions | `services/finder-functions/` | Deno functions for eligibility, seeding, sync |
+| Handlers | `products/polaris/handlers/` | Surface-agnostic business logic |
+| Web frontend | `products/polaris/site/` | Next.js App Router + Tailwind + shadcn/ui |
+| CLI | `products/polaris/cli/` | `bionova-polaris` via libcli |
+| Edge Functions | `services/polaris-functions/` | Deno functions for eligibility, seeding, sync |
 | Infrastructure | `infrastructure/` | PG On Rails self-hosted Supabase stack |
 | Seed data | `data/synthetic/` | story.dsl + terrain-generated SQL and JSONL |
 
@@ -18,14 +18,14 @@ MONOREPO.md-compliant repo that consumes Forward Impact libraries from npm.
 
 ```mermaid
 graph TD
-    subgraph "products/finder/"
+    subgraph "products/polaris/"
         site["site/ — Next.js"]
-        cli["cli/ — bionova-finder"]
+        cli["cli/ — bionova-polaris"]
         handlers["handlers/ — InvocationContext"]
     end
 
     subgraph "services/"
-        ef["finder-functions/ — Edge Functions"]
+        ef["polaris-functions/ — Edge Functions"]
     end
 
     subgraph "infrastructure/"
@@ -54,11 +54,11 @@ graph TD
 
 | Library | Consumer | Role |
 | --- | --- | --- |
-| `libcli` | `products/finder/cli/` | CLI dispatch, `--help`, subcommand routing |
-| `libui` | `products/finder/site/` | Routing, reactive state, and `freezeInvocationContext` for the web surface |
-| `libformat` | `products/finder/handlers/` | Render handler output to ANSI (CLI) or HTML (web) |
-| `libtemplate` | `products/finder/handlers/` | Mustache templates for trial cards, eligibility reports |
-| `librepl` | `products/finder/cli/` | `bionova-finder repl` — staff interactive trial data exploration |
+| `libcli` | `products/polaris/cli/` | CLI dispatch, `--help`, subcommand routing |
+| `libui` | `products/polaris/site/` | Routing, reactive state, and `freezeInvocationContext` for the web surface |
+| `libformat` | `products/polaris/handlers/` | Render handler output to ANSI (CLI) or HTML (web) |
+| `libtemplate` | `products/polaris/handlers/` | Mustache templates for trial cards, eligibility reports |
+| `librepl` | `products/polaris/cli/` | `bionova-polaris repl` — staff interactive trial data exploration |
 
 ## Shared Surface Architecture
 
@@ -75,7 +75,7 @@ Handlers return surface-agnostic data; `libformat` renders to ANSI or HTML.
 | `showAbout` | `about` | `/about` | none |
 | `manageTrial` | `admin trial <id>` | `/admin/trials/:id` | `id` positional (staff auth); includes interest signal aggregates |
 
-The CLI entry point (`bin/bionova-finder.js`) uses `createCli` from
+The CLI entry point (`bin/bionova-polaris.js`) uses `createCli` from
 `@forwardimpact/libcli`. The `admin` subcommand group requires GoTrue JWT
 via `--token` or `SUPABASE_SERVICE_ROLE_KEY`.
 
@@ -95,7 +95,7 @@ Tables seeded by the terrain pipeline (`supabase_migration` output via
 | `trial_sites` | `trial_id fk`, `site_id fk` (composite pk) | Junction from `trial.sites[]` |
 | `condition_embeddings` | `id pk`, `condition_id fk`, `embedding vector(384)` | `renderSql(include_embeddings: true)` + `embed-seed` edge function |
 
-Hand-written migrations at `products/finder/site/supabase/migrations/` (not
+Hand-written migrations at `products/polaris/site/supabase/migrations/` (not
 terrain-generated; sequenced after seed migrations):
 
 ```sql
@@ -165,7 +165,7 @@ question source — no runtime LLM dependency.
 data/synthetic/story.dsl
   → npx fit-terrain generate
   → data/synthetic/output/seed_*.sql + seed_embeddings.jsonl
-  → setup.sh copies to products/finder/site/supabase/migrations/
+  → setup.sh copies to products/polaris/site/supabase/migrations/
   → docker compose up → supabase db push → schema + seed data
   → setup.sh invokes embed-seed edge function
   → TEI (tei:8080) generates 384-dim vectors
@@ -176,7 +176,7 @@ data/synthetic/story.dsl
 
 | Decision | Chosen | Rejected | Why |
 | --- | --- | --- | --- |
-| Terrain output path | `data/synthetic/output/` with `setup.sh` copy to migrations | Direct output to `products/finder/site/supabase/migrations/` | `writeFiles()` in sinks.js joins the first two path segments of each output file into a directory and `rm -rf`'s it before writing — outputting to `products/finder/...` would delete `products/finder/` including `cli/`, `handlers/`, and authored code. Routing to `data/synthetic/output/` keeps generated files in the disposable zone; `setup.sh` copies them into the migration directory. |
+| Terrain output path | `data/synthetic/output/` with `setup.sh` copy to migrations | Direct output to `products/polaris/site/supabase/migrations/` | `writeFiles()` in sinks.js joins the first two path segments of each output file into a directory and `rm -rf`'s it before writing — outputting to `products/polaris/...` would delete `products/polaris/` including `cli/`, `handlers/`, and authored code. Routing to `data/synthetic/output/` keeps generated files in the disposable zone; `setup.sh` copies them into the migration directory. |
 | Deployment | Railway watch-path CI/CD — one service per `infrastructure/` subdirectory | Kubernetes, Fly.io | PG On Rails provides Railway config out of the box; watch-paths limit rebuilds to changed services. |
 | API layer | PostgREST auto-generated from schema | Hand-written API routes | Schema-driven REST eliminates boilerplate; handlers call PostgREST via Kong. Staff writes also go through PostgREST with GoTrue JWT for RLS enforcement. |
 | Screener questions | Derived from `criteria.custom[]` strings at display time | Pre-generated `screener_questions` JSONB column | `custom[]` already contains plain-language criteria from the DSL. Displaying them as yes/no questions is a presentation concern, not a data concern. Avoids an extra prose pipeline key. |
@@ -200,5 +200,5 @@ Docker Compose orchestrates these PG On Rails services under
 | `storage` | MinIO + `supabase/storage-api` | 5000 | `trial-documents` bucket; `manageTrial` uploads via Kong |
 | `imgproxy` | `darthsim/imgproxy` | 8081 | PG On Rails baseline (not wired for MVP) |
 | `tei` | `ghcr.io/huggingface/text-embeddings-inference` | 8080 | Embedding generation |
-| `finder-site` | `products/finder/site/Dockerfile` | 3001 | Next.js frontend |
-| `finder-functions` | `services/finder-functions/` | 8082 | Deno edge functions |
+| `polaris-site` | `products/polaris/site/Dockerfile` | 3001 | Next.js frontend |
+| `polaris-functions` | `services/polaris-functions/` | 8082 | Deno edge functions |

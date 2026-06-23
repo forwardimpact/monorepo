@@ -39,8 +39,8 @@ Created: one `railway.toml` per service.
 | storage | `infrastructure/storage/railway.toml` | `infrastructure/storage/**` | image |
 | tei | `infrastructure/tei/railway.toml` | `infrastructure/tei/**` | image |
 | kong | `infrastructure/kong/railway.toml` | `infrastructure/kong/**` | Dockerfile |
-| finder-site | `products/finder/site/railway.toml` | `products/finder/site/**`, `products/finder/handlers/**` | Dockerfile |
-| finder-functions | `services/finder-functions/railway.toml` | `services/finder-functions/**` | Dockerfile |
+| polaris-site | `products/polaris/site/railway.toml` | `products/polaris/site/**`, `products/polaris/handlers/**` | Dockerfile |
+| polaris-functions | `services/polaris-functions/railway.toml` | `services/polaris-functions/**` | Dockerfile |
 
 Each `railway.toml` shape:
 
@@ -56,7 +56,7 @@ healthcheckPath = "/health"  # or service-specific
 ```
 
 Verify: `railway up --service postgres` deploys; subsequent push touching
-only `products/finder/site/` triggers redeploy of `finder-site` only (not
+only `products/polaris/site/` triggers redeploy of `polaris-site` only (not
 postgres).
 
 ## Step 3 — Wire deploy workflow
@@ -83,13 +83,13 @@ jobs:
         run: |
           changed=$(git diff --name-only HEAD~1 HEAD)
           services=()
-          for d in infrastructure/postgres infrastructure/kong infrastructure/postgrest infrastructure/gotrue infrastructure/storage infrastructure/tei products/finder/site services/finder-functions; do
+          for d in infrastructure/postgres infrastructure/kong infrastructure/postgrest infrastructure/gotrue infrastructure/storage infrastructure/tei products/polaris/site services/polaris-functions; do
             if echo "$changed" | grep -q "^$d/"; then
               services+=("$(basename "$d")")
             fi
           done
-          # finder-site also depends on handlers
-          if echo "$changed" | grep -q "^products/finder/handlers/" && [[ ! " ${services[*]} " =~ " site " ]]; then
+          # polaris-site also depends on handlers
+          if echo "$changed" | grep -q "^products/polaris/handlers/" && [[ ! " ${services[*]} " =~ " site " ]]; then
             services+=("site")
           fi
           echo "services=$(printf '%s\n' "${services[@]}" | jq -R -s 'split("\n") | map(select(length>0))' -c)" >> $GITHUB_OUTPUT
@@ -119,7 +119,7 @@ project-scoped token from Railway dashboard, set as repo secret.
 
 Verify: a no-op commit to `main` runs the `detect` job, which emits an
 empty `services` array, and the `deploy` job is skipped. A commit
-touching `products/finder/site/src/app/page.tsx` triggers a `site`-only
+touching `products/polaris/site/src/app/page.tsx` triggers a `site`-only
 deploy.
 
 ## Step 4 — Author the success-criteria smoke script
@@ -154,10 +154,10 @@ pg() {
 # regardless. `expected` lists exactly the 12 services defined as
 # top-level keys in `docker-compose.yml` from part 01 (kong, postgres,
 # pgbouncer, postgrest, gotrue, realtime, storage, minio, imgproxy, tei,
-# finder-site, finder-functions). Keep this list in sync with plan-a-01
+# polaris-site, polaris-functions). Keep this list in sync with plan-a-01
 # step 4.
 note "SC1: stack boots and seeds"
-expected=(kong postgres pgbouncer postgrest gotrue realtime storage minio imgproxy tei finder-site finder-functions)
+expected=(kong postgres pgbouncer postgrest gotrue realtime storage minio imgproxy tei polaris-site polaris-functions)
 sc1_fail=0
 for svc in "${expected[@]}"; do
   raw=$(docker compose ps "$svc" --format json 2>/dev/null || true)
@@ -217,7 +217,7 @@ fi
 note "SC4: CLI search matches web"
 web_ids=$(curl -fsS "http://localhost:3001/api/search?condition=diabetes" \
   | jq -r '[.trials[].id] | sort | join(",")')
-cli_ids=$(node products/finder/cli/bin/bionova-finder.js search --condition=diabetes --json \
+cli_ids=$(node products/polaris/cli/bin/bionova-polaris.js search --condition=diabetes --json \
   | jq -r '[.trials[].id] | sort | join(",")')
 [ -n "$cli_ids" ] && [ "$cli_ids" = "$web_ids" ] && ok "cli ids = web ids" \
   || bad "cli=$cli_ids web=$web_ids"
@@ -237,7 +237,7 @@ if [ -z "$sc5_trial_id" ] || [ "$sc5_trial_id" = "null" ]; then
   bad "no recruiting trial to update"
 else
   SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
-    node products/finder/cli/bin/bionova-finder.js admin trial "$sc5_trial_id" --update '{"status":"completed"}'
+    node products/polaris/cli/bin/bionova-polaris.js admin trial "$sc5_trial_id" --update '{"status":"completed"}'
   # Verify via PostgREST (anon role)
   new_status=$(curl -fsS "http://localhost:8000/rest/v1/trials?id=eq.${sc5_trial_id}&select=status" \
     -H "apikey:$ANON_KEY" | jq -r '.[0].status')
@@ -277,7 +277,7 @@ else
     # TRUNCATE clears data tables only, not the migration ledger.
     docker compose exec -T postgres psql -U postgres -c \
       "DELETE FROM supabase_migrations.schema_migrations WHERE version LIKE '20250101000%';"
-    find "$ROOT/products/finder/site/supabase/migrations" -maxdepth 1 -name "20250101000*_seed_*.sql" -delete
+    find "$ROOT/products/polaris/site/supabase/migrations" -maxdepth 1 -name "20250101000*_seed_*.sql" -delete
     (cd "$ROOT" && ./setup.sh)
     REGEN=$(pg "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
     [ "$ORIG" = "$REGEN" ] && ok "deterministic regen from vendored seed" \
@@ -400,7 +400,7 @@ Verify: docs link from root README; `markdownlint docs/` passes.
 Edit `README.md` (from part 01):
 
 ```markdown
-# Clinical Research Finder
+# BioNova Polaris
 
 Patient-facing clinical trial discovery built on Forward Impact libraries.
 
@@ -414,7 +414,7 @@ docker compose up -d --wait
 ./setup.sh
 \`\`\`
 
-Visit http://localhost:3001/ — or run \`bionova-finder search --condition=diabetes\` from the CLI.
+Visit http://localhost:3001/ — or run \`bionova-polaris search --condition=diabetes\` from the CLI.
 
 ## Architecture
 
@@ -428,7 +428,7 @@ what `scripts/smoke.sh` exercises.
 
 ```sh
 git checkout -b deploy/smoke-and-railway
-git add infrastructure/railway/ products/finder/site/railway.toml services/finder-functions/railway.toml products/finder/site/Dockerfile services/finder-functions/Dockerfile .github/workflows/ scripts/smoke.sh docs/ README.md
+git add infrastructure/railway/ products/polaris/site/railway.toml services/polaris-functions/railway.toml products/polaris/site/Dockerfile services/polaris-functions/Dockerfile .github/workflows/ scripts/smoke.sh docs/ README.md
 git commit -m "deploy: railway configs + e2e smoke verifying SC1–SC6"
 git push -u origin deploy/smoke-and-railway
 gh pr create --title "deploy: railway configs + e2e smoke verifying SC1–SC6" --body "Implements plan-a-08 of spec 1160. CI e2e job verifies all six success criteria against a fresh stack."
@@ -486,10 +486,10 @@ bionova-apps merged PRs (substitute real URLs from \`gh pr list --repo forwardim
 - part 01 \`infra/repo-bootstrap\` — <URL>
 - part 02 \`db/interest-signals-rls\` — <URL>
 - part 03 \`data/vendored-seed\` — <URL>
-- part 04 \`services/finder-functions\` — <URL>
-- part 05 \`products/finder-handlers\` — <URL>
-- part 06 \`products/finder-cli\` — <URL>
-- part 07 \`products/finder-site\` — <URL>
+- part 04 \`services/polaris-functions\` — <URL>
+- part 05 \`products/polaris-handlers\` — <URL>
+- part 06 \`products/polaris-cli\` — <URL>
+- part 07 \`products/polaris-site\` — <URL>
 - part 08 \`deploy/smoke-and-railway\` — <URL>
 
 bionova-apps@main green smoke-CI run: <URL of the Actions run>

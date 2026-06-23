@@ -1,23 +1,23 @@
 # Plan 1160-a-04 — Edge functions
 
 Implement the four Supabase Edge Functions under
-`services/finder-functions/`. All four are Deno modules served through Kong
+`services/polaris-functions/`. All four are Deno modules served through Kong
 at `/functions/v1/{name}`.
 
 All paths are inside `bionova-apps/`.
 
-## Step 1 — Scaffold `services/finder-functions/`
+## Step 1 — Scaffold `services/polaris-functions/`
 
 Created:
 
 | File | Purpose |
 | --- | --- |
-| `services/finder-functions/deno.json` | Deno config: import map, `tasks.start: "deno run --allow-net --allow-env --allow-read main.ts"` |
-| `services/finder-functions/import_map.json` | `{"imports": {"std/": "https://deno.land/std@0.224.0/", "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.0"}}` |
-| `services/finder-functions/Dockerfile` | FROM `denoland/deno:1.46.3`; copies module dirs; ENTRYPOINT `deno task start` |
-| `services/finder-functions/main.ts` | HTTP router — dispatches `/{name}` to the matching module's `handle(req, env)` export |
-| `services/finder-functions/env.ts` | Reads `SUPABASE_URL` (`http://kong:8000`), `SUPABASE_SERVICE_ROLE_KEY`, `TEI_URL` (`http://tei:80` — internal Docker DNS, NOT `tei:8080` which is the host-side mapping), `PGREST_URL` (`http://kong:8000/rest/v1`); throws if any missing |
-| `services/finder-functions/README.md` | One-page describing each function + how to invoke locally via `curl http://localhost:8082/<name>` |
+| `services/polaris-functions/deno.json` | Deno config: import map, `tasks.start: "deno run --allow-net --allow-env --allow-read main.ts"` |
+| `services/polaris-functions/import_map.json` | `{"imports": {"std/": "https://deno.land/std@0.224.0/", "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.0"}}` |
+| `services/polaris-functions/Dockerfile` | FROM `denoland/deno:1.46.3`; copies module dirs; ENTRYPOINT `deno task start` |
+| `services/polaris-functions/main.ts` | HTTP router — dispatches `/{name}` to the matching module's `handle(req, env)` export |
+| `services/polaris-functions/env.ts` | Reads `SUPABASE_URL` (`http://kong:8000`), `SUPABASE_SERVICE_ROLE_KEY`, `TEI_URL` (`http://tei:80` — internal Docker DNS, NOT `tei:8080` which is the host-side mapping), `PGREST_URL` (`http://kong:8000/rest/v1`); throws if any missing |
+| `services/polaris-functions/README.md` | One-page describing each function + how to invoke locally via `curl http://localhost:8082/<name>` |
 
 `main.ts` router shape:
 
@@ -53,13 +53,13 @@ serve(async (req) => {
 });
 ```
 
-Verify: `deno check services/finder-functions/main.ts` exits 0;
+Verify: `deno check services/polaris-functions/main.ts` exits 0;
 `curl http://localhost:8082/health` returns `ok` after `docker compose up
-finder-functions`.
+polaris-functions`.
 
 ## Step 2 — `embed-seed` function
 
-Created: `services/finder-functions/embed-seed/mod.ts`
+Created: `services/polaris-functions/embed-seed/mod.ts`
 
 Behavior: reads JSONL from a path on disk (default
 `/data/synthetic/seed/seed_embeddings.jsonl`); for each row whose `table`
@@ -140,7 +140,7 @@ FROM condition_embeddings;"` matches the JSONL row count.
 
 ## Step 3 — `eligibility-check` function
 
-Created: `services/finder-functions/eligibility-check/mod.ts`
+Created: `services/polaris-functions/eligibility-check/mod.ts`
 
 Behavior: given a `trial_id` and a screener answer payload, reads
 `criteria` for that trial via PostgREST, evaluates each `inclusion.custom[]`
@@ -182,7 +182,7 @@ matching trial returns `eligible`; with an excluded patient returns
 
 ## Step 4 — `notify-updates` function
 
-Created: `services/finder-functions/notify-updates/mod.ts`
+Created: `services/polaris-functions/notify-updates/mod.ts`
 
 Behavior: triggered by a DB trigger on `trials.status` change. Queries
 `interest_signals` for affected trial; for each interested
@@ -190,7 +190,7 @@ Behavior: triggered by a DB trigger on `trials.status` change. Queries
 will usually be empty), logs a "would-notify" line. Email sending is
 stubbed (GoTrue email integration deferred per design).
 
-Created: `products/finder/site/supabase/migrations/20260601000002_notify_trigger.sql`
+Created: `products/polaris/site/supabase/migrations/20260601000002_notify_trigger.sql`
 
 The trigger uses `pg_net.http_post` (already created in part 01's
 `00-extensions.sql` via the `supabase/postgres` image). Kong requires an
@@ -234,18 +234,18 @@ psql -h localhost -U postgres -c "ALTER DATABASE postgres SET app.service_role_k
 ```
 
 Verify: `UPDATE trials SET status='completed' WHERE id=<some_id>;` logs a
-`would-notify` line in `docker compose logs finder-functions`.
+`would-notify` line in `docker compose logs polaris-functions`.
 
 ## Step 5 — `sync-listings` function
 
-Created: `services/finder-functions/sync-listings/mod.ts`
+Created: `services/polaris-functions/sync-listings/mod.ts`
 
 Behavior: re-reads `data/synthetic/seed/seed_*.sql` (mounted read-only at
 `/data/synthetic/seed/` per plan-a-03 step 6 — same volume the
 `embed-seed` function already uses), parses out `INSERT` statements for
 `trials` and `criteria` tables, upserts via PostgREST. Used to refresh
 seed data without re-running full `setup.sh`. The path is deliberate:
-the only mount the `finder-functions` container has on
+the only mount the `polaris-functions` container has on
 `data/synthetic/` is `:seed`, so `sync-listings` reads the seed vendored
 there by part 03 (r2) — no second bind-mount needed.
 
@@ -257,7 +257,7 @@ type SyncResponse = { trials_upserted: number; criteria_upserted: number; dry_ru
 ```
 
 `pg_cron` schedule (added to a new migration
-`products/finder/site/supabase/migrations/20260601000003_sync_schedule.sql`):
+`products/polaris/site/supabase/migrations/20260601000003_sync_schedule.sql`):
 
 ```sql
 -- Reuses app.service_role_key set in 20260601000002_notify_trigger.sql's setup
@@ -289,12 +289,12 @@ Created:
 
 | File | Tests |
 | --- | --- |
-| `services/finder-functions/embed-seed/test.ts` | Unit: TEI mock returns vector; upsert called per row. Integration: against running stack, seeds correct count |
-| `services/finder-functions/eligibility-check/test.ts` | Unit: each scoring branch (`eligible`, `not_eligible`, `possibly_eligible`); reads canned criteria fixture |
-| `services/finder-functions/notify-updates/test.ts` | Unit: builds correct log line; idempotent on repeat trigger |
-| `services/finder-functions/sync-listings/test.ts` | Unit: parses SQL INSERTs; dry_run returns counts without writes |
+| `services/polaris-functions/embed-seed/test.ts` | Unit: TEI mock returns vector; upsert called per row. Integration: against running stack, seeds correct count |
+| `services/polaris-functions/eligibility-check/test.ts` | Unit: each scoring branch (`eligible`, `not_eligible`, `possibly_eligible`); reads canned criteria fixture |
+| `services/polaris-functions/notify-updates/test.ts` | Unit: builds correct log line; idempotent on repeat trigger |
+| `services/polaris-functions/sync-listings/test.ts` | Unit: parses SQL INSERTs; dry_run returns counts without writes |
 
-Test runner: `deno test --allow-net --allow-read --allow-env services/finder-functions/`.
+Test runner: `deno test --allow-net --allow-read --allow-env services/polaris-functions/`.
 
 Verify: `deno test` exits 0; CI runs this in a new job `edge-functions` in
 `.github/workflows/ci.yml`.
@@ -302,11 +302,11 @@ Verify: `deno test` exits 0; CI runs this in a new job `edge-functions` in
 ## Step 7 — Open part-04 PR
 
 ```sh
-git checkout -b services/finder-functions
-git add services/finder-functions/ products/finder/site/supabase/migrations/20260601000002_notify_trigger.sql products/finder/site/supabase/migrations/20260601000003_sync_schedule.sql docker-compose.yml setup.sh .github/workflows/ci.yml
-git commit -m "services: finder-functions edge functions"
-git push -u origin services/finder-functions
-gh pr create --title "services: finder-functions edge functions" --body "Implements plan-a-04 of spec 1160. Adds embed-seed, eligibility-check, notify-updates, sync-listings; wires pg_net + cron triggers."
+git checkout -b services/polaris-functions
+git add services/polaris-functions/ products/polaris/site/supabase/migrations/20260601000002_notify_trigger.sql products/polaris/site/supabase/migrations/20260601000003_sync_schedule.sql docker-compose.yml setup.sh .github/workflows/ci.yml
+git commit -m "services: polaris-functions edge functions"
+git push -u origin services/polaris-functions
+gh pr create --title "services: polaris-functions edge functions" --body "Implements plan-a-04 of spec 1160. Adds embed-seed, eligibility-check, notify-updates, sync-listings; wires pg_net + cron triggers."
 ```
 
 Verify: PR CI green (deno check + deno test + compose validate).
@@ -318,6 +318,6 @@ Verify: PR CI green (deno check + deno test + compose validate).
 - [ ] `eligibility-check` returns each of `eligible`, `possibly_eligible`, `not_eligible` for the appropriate seeded patient × trial pairing.
 - [ ] `UPDATE trials SET status=…` fires `notify-updates`; log line appears.
 - [ ] `sync-listings` upserts seeded SQL idempotently; `pg_cron` schedule listed.
-- [ ] `deno test services/finder-functions/` exits 0.
+- [ ] `deno test services/polaris-functions/` exits 0.
 
 — Staff Engineer 🛠️

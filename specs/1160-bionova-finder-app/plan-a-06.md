@@ -1,64 +1,64 @@
 # Plan 1160-a-06 — CLI surface
 
-Build the `bionova-finder` CLI under `products/finder/cli/` using
+Build the `bionova-polaris` CLI under `products/polaris/cli/` using
 `@forwardimpact/libcli`. Every subcommand dispatches into the
 corresponding handler from part 05.
 
 All paths are inside `bionova-apps/`.
 
-## Step 1 — Scaffold `products/finder/cli/`
+## Step 1 — Scaffold `products/polaris/cli/`
 
 Created:
 
 | File | Purpose |
 | --- | --- |
-| `products/finder/cli/package.json` | `bionova-finder`, `bin: { "bionova-finder": "bin/bionova-finder.js" }`, deps on libcli, librepl, libformat, libtemplate, handlers workspace |
-| `products/finder/cli/bin/bionova-finder.js` | `#!/usr/bin/env node` entry, parses argv, dispatches |
-| `products/finder/cli/src/definition.js` | libcli definition object: commands, args, options, handlers, documentation |
-| `products/finder/cli/src/repl.js` | librepl session wiring for `bionova-finder repl` |
-| `products/finder/cli/test/cli.test.js` | end-to-end argv parsing tests |
-| `products/finder/cli/README.md` | Usage examples (search, eligibility, admin) |
+| `products/polaris/cli/package.json` | `bionova-polaris`, `bin: { "bionova-polaris": "bin/bionova-polaris.js" }`, deps on libcli, librepl, libformat, libtemplate, handlers workspace |
+| `products/polaris/cli/bin/bionova-polaris.js` | `#!/usr/bin/env node` entry, parses argv, dispatches |
+| `products/polaris/cli/src/definition.js` | libcli definition object: commands, args, options, handlers, documentation |
+| `products/polaris/cli/src/repl.js` | librepl session wiring for `bionova-polaris repl` |
+| `products/polaris/cli/test/cli.test.js` | end-to-end argv parsing tests |
+| `products/polaris/cli/README.md` | Usage examples (search, eligibility, admin) |
 
 `package.json`:
 
 ```json
 {
-  "name": "bionova-finder",
+  "name": "bionova-polaris",
   "version": "0.0.0",
   "type": "module",
-  "bin": { "bionova-finder": "bin/bionova-finder.js" },
+  "bin": { "bionova-polaris": "bin/bionova-polaris.js" },
   "dependencies": {
     "@forwardimpact/libcli": "0.1.9",
     "@forwardimpact/librepl": "0.1.12",
     "@forwardimpact/libformat": "0.1.15",
     "@forwardimpact/libtemplate": "0.2.10",
-    "@bionova/finder-handlers": "workspace:*"
+    "@bionova/polaris-handlers": "workspace:*"
   }
 }
 ```
 
-Verify: `bun install` resolves workspace dep; `bunx bionova-finder --help`
+Verify: `bun install` resolves workspace dep; `bunx bionova-polaris --help`
 prints CLI help (after step 2 lands).
 
 ## Step 2 — Author libcli definition
 
-Created: `products/finder/cli/src/definition.js`
+Created: `products/polaris/cli/src/definition.js`
 
 ```js
 import { createCli } from "@forwardimpact/libcli";
 import { createTemplateLoader } from "@forwardimpact/libtemplate";
 import { createTerminalFormatter } from "@forwardimpact/libformat";
-import * as handlers from "@bionova/finder-handlers";
+import * as handlers from "@bionova/polaris-handlers";
 
 const docs = [
   {
-    title: "Clinical Research Finder Guide",
-    url: "https://github.com/forwardimpact/bionova-apps/blob/main/products/finder/README.md",
-    description: "How to use bionova-finder to discover trials.",
+    title: "BioNova Polaris Guide",
+    url: "https://github.com/forwardimpact/bionova-apps/blob/main/products/polaris/README.md",
+    description: "How to use bionova-polaris to discover trials.",
   },
 ];
 
-import { TEMPLATES_DIR } from "@bionova/finder-handlers/templates";
+import { TEMPLATES_DIR } from "@bionova/polaris-handlers/templates";
 
 export function createBionovaCli({ data }) {
   const templates = createTemplateLoader(TEMPLATES_DIR);
@@ -79,7 +79,7 @@ export function createBionovaCli({ data }) {
   };
 
   return createCli({
-    name: "bionova-finder",
+    name: "bionova-polaris",
     description: "Find clinical trials for which you may be eligible.",
     documentation: docs,
     commands: [
@@ -147,17 +147,17 @@ export function createBionovaCli({ data }) {
 }
 ```
 
-Verify: `bunx bionova-finder --help` lists all 7 commands; `bunx bionova-finder
+Verify: `bunx bionova-polaris --help` lists all 7 commands; `bunx bionova-polaris
 search --help` shows the four options.
 
 ## Step 3 — Author bin entry
 
-Created: `products/finder/cli/bin/bionova-finder.js`
+Created: `products/polaris/cli/bin/bionova-polaris.js`
 
 ```js
 #!/usr/bin/env node
 import { createBionovaCli } from "../src/definition.js";
-import { createDataContext } from "@bionova/finder-handlers/context";
+import { createDataContext } from "@bionova/polaris-handlers/context";
 
 const env = {
   SUPABASE_URL: process.env.SUPABASE_URL ?? "http://localhost:8000",
@@ -182,15 +182,15 @@ if (parsed) {
 }
 ```
 
-Make executable: `chmod +x products/finder/cli/bin/bionova-finder.js`.
+Make executable: `chmod +x products/polaris/cli/bin/bionova-polaris.js`.
 
-Verify: `./products/finder/cli/bin/bionova-finder.js search --condition=diabetes`
+Verify: `./products/polaris/cli/bin/bionova-polaris.js search --condition=diabetes`
 (against running stack) prints a list of diabetes trials in ANSI-formatted
 output.
 
 ## Step 4 — Implement REPL
 
-Created: `products/finder/cli/src/repl.js`
+Created: `products/polaris/cli/src/repl.js`
 
 Per librepl's real API (verified against
 `libraries/librepl/src/index.js:268,316`):
@@ -212,7 +212,7 @@ return `false` (signal "I handled output").
 ```js
 import { Readable } from "stream";
 import { Repl } from "@forwardimpact/librepl";
-import * as handlers from "@bionova/finder-handlers";
+import * as handlers from "@bionova/polaris-handlers";
 
 const out = (text) => Readable.from([text.endsWith("\n") ? text : text + "\n"]);
 
@@ -222,7 +222,7 @@ export async function startRepl(ctx) {
     state: { lastResults: null },
     documentation: [{
       title: "REPL Guide",
-      url: "https://github.com/forwardimpact/bionova-apps/blob/main/products/finder/cli/README.md#repl",
+      url: "https://github.com/forwardimpact/bionova-apps/blob/main/products/polaris/cli/README.md#repl",
     }],
     commands: {
       search: {
@@ -277,12 +277,12 @@ bionova> /help
 bionova> /exit
 ```
 
-Verify: `bunx bionova-finder repl` opens an interactive prompt; `search
+Verify: `bunx bionova-polaris repl` opens an interactive prompt; `search
 --condition=diabetes` then `trial 0` shows the first trial's details.
 
 ## Step 5 — Tests
 
-Created: `products/finder/cli/test/cli.test.js`
+Created: `products/polaris/cli/test/cli.test.js`
 
 Tests:
 
@@ -292,18 +292,18 @@ Tests:
 - handler dispatch goes through frozen InvocationContext (asserts `Object.isFrozen`)
 - output formatting uses ANSI (assert ESC sequences present in result)
 
-Verify: `bun test products/finder/cli/` exits 0; mocked handler context
+Verify: `bun test products/polaris/cli/` exits 0; mocked handler context
 asserts work.
 
 ## Step 6 — End-to-end smoke against running stack
 
-Created: `products/finder/cli/test/e2e.sh`
+Created: `products/polaris/cli/test/e2e.sh`
 
 ```sh
 #!/usr/bin/env bash
 set -euo pipefail
 # Requires docker compose up && ./setup.sh
-NODE="$(dirname "${BASH_SOURCE[0]}")/../bin/bionova-finder.js"
+NODE="$(dirname "${BASH_SOURCE[0]}")/../bin/bionova-polaris.js"
 
 echo "Test 1: search diabetes"
 output=$("$NODE" search --condition=diabetes)
@@ -319,17 +319,17 @@ echo "Test 3: sites"
 echo "All CLI smoke tests pass."
 ```
 
-Verify: `bash products/finder/cli/test/e2e.sh` exits 0 against a freshly
+Verify: `bash products/polaris/cli/test/e2e.sh` exits 0 against a freshly
 seeded stack.
 
 ## Step 7 — Open part-06 PR
 
 ```sh
-git checkout -b products/finder-cli
-git add products/finder/cli/
-git commit -m "products: bionova-finder CLI"
-git push -u origin products/finder-cli
-gh pr create --title "products: bionova-finder CLI" --body "Implements plan-a-06 of spec 1160. CLI dispatches into shared handlers; REPL subcommand wired via librepl."
+git checkout -b products/polaris-cli
+git add products/polaris/cli/
+git commit -m "products: bionova-polaris CLI"
+git push -u origin products/polaris-cli
+gh pr create --title "products: bionova-polaris CLI" --body "Implements plan-a-06 of spec 1160. CLI dispatches into shared handlers; REPL subcommand wired via librepl."
 ```
 
 Verify: PR CI green (lint + bun test); manual smoke against local stack
@@ -337,12 +337,12 @@ documented in PR description.
 
 ## Verification (end of part 06)
 
-- [ ] `bunx bionova-finder --help` lists all 7 commands.
-- [ ] `bionova-finder search --condition=diabetes` returns trials matching diabetes (success criterion #4 partial — matches web search result; full match deferred to part 08).
-- [ ] `bionova-finder repl` opens librepl-based session. Typing `/search --condition=diabetes` then `/trial 0` shows trial detail. (Bare `search` without slash prefix triggers `/help` per librepl convention.)
-- [ ] `bionova-finder admin trial <id>` fails without `--token` or `SUPABASE_SERVICE_ROLE_KEY` env.
-- [ ] `bionova-finder admin trial <id>` with service role succeeds and shows interest signal aggregates (success criterion #5 partial — verified end-to-end in part 08).
-- [ ] `bun test products/finder/cli/` exits 0.
-- [ ] `bash products/finder/cli/test/e2e.sh` exits 0 against running stack.
+- [ ] `bunx bionova-polaris --help` lists all 7 commands.
+- [ ] `bionova-polaris search --condition=diabetes` returns trials matching diabetes (success criterion #4 partial — matches web search result; full match deferred to part 08).
+- [ ] `bionova-polaris repl` opens librepl-based session. Typing `/search --condition=diabetes` then `/trial 0` shows trial detail. (Bare `search` without slash prefix triggers `/help` per librepl convention.)
+- [ ] `bionova-polaris admin trial <id>` fails without `--token` or `SUPABASE_SERVICE_ROLE_KEY` env.
+- [ ] `bionova-polaris admin trial <id>` with service role succeeds and shows interest signal aggregates (success criterion #5 partial — verified end-to-end in part 08).
+- [ ] `bun test products/polaris/cli/` exits 0.
+- [ ] `bash products/polaris/cli/test/e2e.sh` exits 0 against running stack.
 
 — Staff Engineer 🛠️
