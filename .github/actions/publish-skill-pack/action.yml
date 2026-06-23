@@ -1,7 +1,8 @@
 name: Publish skill pack
 description: >
-  Sync one skill pack (and, for kata, its agents) from the monorepo into the
-  checked-out sibling repo, regenerate apm.yml and README.md, then commit, push,
+  Sync one skill pack (its agent references always, and for kata its agent
+  profiles) from the monorepo into the checked-out sibling repo, regenerate
+  apm.yml and README.md, then commit, push,
   and tag at the pack's package version. All pack-specific values arrive via
   inputs so the three packs share one implementation. Prose and repo names reach
   the scripts through the environment, never by interpolation into source text.
@@ -92,9 +93,21 @@ runs:
           agent_name=$(basename "$agent_file" .md)
           cp "$agent_file" "$TARGET_DIR/agents/${agent_name}.agent.md"
         done
-        # Ship the agent references the profiles and skills cite (e.g. the
-        # work-item tracker matrix); APM installs them alongside the skills.
+
+    # Always ship the agent references that profiles and skills cite (e.g. the
+    # work-item tracker matrix). Every pack gets them, not only the
+    # agent-syncing ones. Skills in any pack may resolve a
+    # `.claude/agents/references/*` path, and benchmark task CWDs need them
+    # present. APM installs them alongside the skills. Runs after Sync agents
+    # so kata's `rm -rf agents` cannot wipe the references dir.
+    - name: Sync agent references
+      shell: bash
+      env:
+        TARGET_DIR: ${{ inputs.target-dir }}
+      run: |
+        rm -rf "$TARGET_DIR/agents/references"
         if [ -d .claude/agents/references ]; then
+          mkdir -p "$TARGET_DIR/agents"
           cp -r .claude/agents/references "$TARGET_DIR/agents/references"
         fi
 
