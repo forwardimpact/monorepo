@@ -23,6 +23,15 @@ const ITEM_SPLIT_RE = /^\s*-\s*\[[ xX]\]\s*/m;
 const lineCount = (text) => (text.match(/\n/g) || []).length;
 const wordCount = (text) => (text.match(/\S+/g) || []).length;
 
+// A leading YAML frontmatter block carries metadata, not instruction prose:
+// a skill's `name`/`description`, plus the `license` and `metadata` fields the
+// publish pipeline injects. Exclude it from the line/word budget so a published
+// copy of a layer counts the same as its in-repo source. Only a fenced block
+// that opens on the first line is stripped; the closing fence is the first
+// `---` line that follows.
+const FRONTMATTER_RE = /^---[ \t]*\r?\n[\s\S]*?\r?\n---[ \t]*\r?\n?/;
+const stripFrontmatter = (text) => text.replace(FRONTMATTER_RE, "");
+
 async function walk(root, dir, visit, fs) {
   let entries;
   try {
@@ -250,11 +259,13 @@ async function buildFileSubjects(root, layers, fs) {
     for (const relPath of layer.files) {
       const text = await readText(root, relPath, fs);
       if (text == null) continue;
+      // Budget the instruction prose only — metadata frontmatter is exempt.
+      const body = stripFrontmatter(text);
       subjects.push({
         path: resolve(root, relPath),
         layer: { id: layer.id, name: layer.name },
-        lines: lineCount(text),
-        words: wordCount(text),
+        lines: lineCount(body),
+        words: wordCount(body),
         maxLines: layer.maxLines,
         maxWords: layer.maxWords,
       });
