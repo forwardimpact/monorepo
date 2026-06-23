@@ -7,6 +7,7 @@ on:
       - ".claude/skills/fit-*/**"
       - ".claude/skills/kata-*/**"
       - ".claude/skills/coaligned-*/**"
+      - ".claude/skills/monorepo-*/**"
       - ".claude/agents/*.md"
       - ".claude/agents/references/**"
       - "products/gear/package.json"
@@ -64,6 +65,19 @@ jobs:
               Forward Impact Kata Agent Team — domain agents and skills for the
               spec → design → plan → implement workflow, releases, security, and
               product-issue triage.
+          - prefix: monorepo
+            repo: monorepo-skills
+            version-file: products/gear/package.json
+            sync-agents: "false"
+            readme-title: Monorepo Skills
+            readme-intro: >-
+              Skills for standing up and maintaining a
+              [Forward Impact](https://forwardimpact.team)-style monorepo — the
+              cross-cutting setup that composes the Co-Aligned and Kata packs.
+            apm-description: >-
+              Skills for bootstrapping a Forward Impact-style monorepo end to
+              end — repository structure, instruction architecture, and the Kata
+              Agent Team — composing the Co-Aligned and Kata packs.
     steps:
       - name: Generate installation token
         id: ci-app
