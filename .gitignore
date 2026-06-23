@@ -8,8 +8,8 @@ data
 generated/
 **/generated
 
-# Finder seed data (terrain-generated output; see data/synthetic/story.dsl)
-products/finder/
+# Polaris seed data (terrain-generated output; see data/synthetic/story.dsl)
+products/polaris/
 
 # Sensitive files
 *.pem

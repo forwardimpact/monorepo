@@ -235,7 +235,10 @@ describe("checkInstructions", () => {
       (x) =>
         x.id === "instructions.line-budget" && x.path.endsWith("CLAUDE.md"),
     );
-    assert.ok(f, `expected a line-budget finding, got: ${JSON.stringify(findings)}`);
+    assert.ok(
+      f,
+      `expected a line-budget finding, got: ${JSON.stringify(findings)}`,
+    );
     // The body is 200 lines; the 3 frontmatter lines are excluded.
     assert.match(f.message, /200 lines/);
   });
