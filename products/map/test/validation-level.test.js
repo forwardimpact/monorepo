@@ -18,12 +18,15 @@ describe("checkProfessionalTitleShape", () => {
     "Staff",
     "Principal",
     "Distinguished",
+    "Senior Staff",
+    "Senior Principal",
   ]) {
     test(`accepts ${JSON.stringify(ok)}`, () =>
       assert.equal(checkProfessionalTitleShape(ok).ok, true));
   }
   for (const bad of [
     "Senior Engineer",
+    "Senior Manager",
     "Engineer I",
     "engineer",
     "",
