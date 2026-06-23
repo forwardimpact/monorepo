@@ -1,6 +1,6 @@
 # Workflows & Actions
 
-Covers GitHub Actions workflows (`workflows/`) and the local composite
+Covers GitHub Actions workflows (`workflows/`) and local composite
 actions (`actions/`) they consume.
 
 ## Third-party actions
