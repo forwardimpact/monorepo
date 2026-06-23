@@ -1,9 +1,10 @@
 # Repo skeleton
 
-Copy-paste seam artifacts for [monorepo-setup](../SKILL.md) Steps 1, 2, and 5 —
-the files neither `coaligned-setup` nor `kata-setup` creates. Rename to the
-repo; do not commit the lockfile until the pinned `@forwardimpact/*` versions
-are published.
+Copy-paste seam artifacts for [monorepo-setup](../SKILL.md) Steps 1 and 2 — the
+skeleton files neither `coaligned-setup` nor `kata-setup` creates. CI templates
+live in [check-workflows.md](check-workflows.md) (Step 5); the wiki lifecycle
+and ledgers in [wiki-init.md](wiki-init.md) (Step 6). Rename to the repo; do not
+commit the lockfile until the pinned `@forwardimpact/*` versions are published.
 
 ## Directory layout
 
@@ -49,25 +50,14 @@ apm_modules/      # APM writes this on first install
 Pin a version whose budgets exempt YAML frontmatter (0.1.15+); published skill
 packs carry publish-injected frontmatter that otherwise breaches the caps.
 
-## .github/workflows/check.yml
+## Check workflows
 
-```yaml
-name: check
-on:
-  push: { branches: [main] }
-  pull_request:
-permissions: { contents: read }
-jobs:
-  coaligned:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@<sha> # v4
-      - uses: actions/setup-node@<sha> # v4
-        with: { node-version: "22" }
-      - run: npm ci
-      - run: npx coaligned
-```
+Never a single `check.yml`. Generate one workflow per concern — at minimum
+`check-quality.yml`, `check-test.yml`, and `check-context.yml`. Templates and
+the SHA-pinning rule are in [check-workflows.md](check-workflows.md).
 
-Resolve `<sha>` for each action at generation time (`gh api
-repos/<action>/git/ref/tags/<tag>`) and pin it. The `github-actions` Dependabot
-entry that `kata-setup` adds keeps these pins fresh.
+## Wiki lifecycle and ledgers
+
+The `.claude/settings.json` hooks that drive the wiki and the three named
+ledgers (`Home.md`, `MEMORY.md`, `STATUS.md`) are in
+[wiki-init.md](wiki-init.md).
