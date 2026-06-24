@@ -27,7 +27,7 @@ integrate with the `req-track` pipeline format.
 - A Workday requisition export accessible on the filesystem.
 - `read-excel-file` package installed:
   `bun pm ls read-excel-file 2>/dev/null || bun install read-excel-file`.
-- User identity — run the `identify-user` skill to populate
+- User identity — run the `person-identify` skill to populate
   `~/.cache/fit/outpost/state/identity.md`.
 
 ## Inputs
@@ -66,7 +66,7 @@ Process **10 candidates per run**.
 ### 1. Set up
 
 Read the user's identity from `~/.cache/fit/outpost/state/identity.md` (run the
-`identify-user` skill first if it is missing or stale). Confirm the XLSX path.
+`person-identify` skill first if it is missing or stale). Confirm the XLSX path.
 Ensure the parser dependency is installed:
 
 ```bash

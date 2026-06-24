@@ -113,7 +113,7 @@ knowledge-graph maintenance, recruitment, and communication.
 
 The current user's identity is cached at
 `~/.cache/fit/outpost/state/identity.md` — read it directly. If missing or stale,
-run the `identify-user` skill to refresh it from the corporate directory.
+run the `person-identify` skill to refresh it from the corporate directory.
 
 ## Working Outside This Directory
 

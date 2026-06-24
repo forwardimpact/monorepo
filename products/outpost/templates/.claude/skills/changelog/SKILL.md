@@ -67,7 +67,7 @@ head -30 Knowledge/CHANGELOG.md 2>/dev/null     # newest date already logged, if
 cat "$HOME/.cache/fit/outpost/state/identity.md"  # Name → the author for this session's entries
 ```
 
-If `identity.md` is missing or stale, run the `identify-user` skill to refresh
+If `identity.md` is missing or stale, run the `person-identify` skill to refresh
 it before logging — don't guess the author.
 
 ### 2. Reconstruct this session's changes

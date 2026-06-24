@@ -20,7 +20,7 @@ pipeline from scattered email threads.
 
 - Synced email data in `~/.cache/fit/outpost/apple_mail/` (from
   `sync-apple-mail`).
-- User identity — run the `identify-user` skill to populate
+- User identity — run the `person-identify` skill to populate
   `~/.cache/fit/outpost/state/identity.md`.
 
 ## Inputs
@@ -33,7 +33,7 @@ pipeline from scattered email threads.
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (shared
   with `extract-entities`).
 - `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
-  (written by the `identify-user` skill).
+  (written by the `person-identify` skill).
 
 ## Outputs
 
@@ -71,7 +71,7 @@ Process **10 files per run**.
 ### 1. Load context and pick the batch
 
 Read the user's name, email, and domain from
-`~/.cache/fit/outpost/state/identity.md` (run the `identify-user` skill first if
+`~/.cache/fit/outpost/state/identity.md` (run the `person-identify` skill first if
 it is missing or stale). List new or changed source files:
 
 ```bash

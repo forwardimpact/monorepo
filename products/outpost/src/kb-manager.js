@@ -189,7 +189,7 @@ export class KBManager {
     await this.copyBundledFiles(templateDir, dest);
 
     this.#logger.info(
-      `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. cd ${dest} && npx apm install\n  2. claude\n  3. Run the identify-user skill to populate your identity`,
+      `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. cd ${dest} && npx apm install\n  2. claude\n  3. Run the person-identify skill to populate your identity`,
     );
     return { ok: true, value: { dest } };
   }

@@ -19,7 +19,7 @@ under `Knowledge/`. The core knowledge-graph builder.
 ## Prerequisites
 
 - Synced data in `~/.cache/fit/outpost/` and/or ad-hoc paths.
-- User identity from running the `identify-user` skill, which writes
+- User identity from running the `person-identify` skill, which writes
   `~/.cache/fit/outpost/state/identity.md` (Name, Email, Domain).
 
 ## Inputs
@@ -31,7 +31,7 @@ under `Knowledge/`. The core knowledge-graph builder.
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (TSV,
   shared with `req-track` and `anarlog-process`).
 - `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
-  (written by the `identify-user` skill).
+  (written by the `person-identify` skill).
 
 ## Outputs
 
@@ -76,7 +76,7 @@ writes.
 ### 0. Load context and pick the batch
 
 Read the user's identity from `~/.cache/fit/outpost/state/identity.md` (run the
-`identify-user` skill first if it is missing or stale). Find new/changed files:
+`person-identify` skill first if it is missing or stale). Find new/changed files:
 
 ```bash
 node scripts/state.mjs check

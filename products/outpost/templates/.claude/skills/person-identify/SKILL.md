@@ -1,9 +1,9 @@
 ---
-name: identify-user
-description: Look up the current user's identity (real name, company, job title, department, email, employee ID, and manager) from the corporate directory via LDAP, authenticated with the existing Kerberos ticket. Use to establish who the knowledge base belongs to, when CLAUDE.md needs the user's identity, or when the user asks "who am I" / for their own directory record.
+name: person-identify
+description: Look up the current user's identity (real name, company, job title, department, email, employee ID, and manager) from the corporate directory via LDAP, authenticated with the existing Kerberos ticket. Use to establish who the knowledge base belongs to, when CLAUDE.md needs the user's identity, or when the user asks "who am I" / for their own directory record. To look up someone *other* than the current user, use the sibling `person-lookup` skill instead.
 ---
 
-# Identify User
+# Person Identify
 
 Resolve the current user's identity from the corporate Active Directory over
 LDAP. This is the canonical way to establish **who the knowledge base belongs
@@ -30,7 +30,7 @@ the bind uses SASL/GSSAPI against the existing ticket.
 ## Usage
 
 ```bash
-bash .claude/skills/identify-user/scripts/identify.sh
+bash .claude/skills/person-identify/scripts/identify.sh
 ```
 
 This prints the user's directory record, resolves the manager to a name, and
@@ -96,8 +96,9 @@ Key attributes returned (names per Active Directory schema):
 
 ## Notes
 
-- To look up **someone else**, swap `sAMAccountName=<their network ID>` and, for
-  another region, point `-H`/`-b` at their domain or use the Global Catalog
-  (`ldap://$dc:3268 -b ''`) for a forest-wide search.
+- To look up **someone else**, use the sibling `person-lookup` skill — it takes
+  free-text input (email or name), searches the Global Catalog forest-wide
+  (`ldap://$dc:3268 -b ''`), handles multiple matches, and does **not** touch the
+  identity cache.
 - Not Active Directory? The same `ldapsearch -Y GSSAPI` shape works against any
   Kerberos-backed LDAP directory; only the attribute names differ.

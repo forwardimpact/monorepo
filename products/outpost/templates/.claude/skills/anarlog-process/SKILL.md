@@ -20,7 +20,7 @@ same way `extract-entities` processes emails and calendar events.
 
 - Anarlog installed; sessions at
   `~/Library/Application Support/anarlog/sessions/`.
-- User identity from running the `identify-user` skill, which writes
+- User identity from running the `person-identify` skill, which writes
   `~/.cache/fit/outpost/state/identity.md`.
 
 ## Inputs
@@ -31,7 +31,7 @@ same way `extract-entities` processes emails and calendar events.
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (TSV,
   shared with `extract-entities`).
 - `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
-  (written by the `identify-user` skill).
+  (written by the `person-identify` skill).
 
 ## Outputs
 
@@ -62,7 +62,7 @@ same way `extract-entities` processes emails and calendar events.
 ### 0. Set up
 
 Read the user's identity from `~/.cache/fit/outpost/state/identity.md` (run the
-`identify-user` skill first if it is missing or stale). Scan unprocessed
+`person-identify` skill first if it is missing or stale). Scan unprocessed
 sessions:
 
 ```bash
