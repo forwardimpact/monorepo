@@ -24,15 +24,15 @@ monorepo. "Instructions" means all three surfaces, treated equally:
 
 - A working Outpost installation with `CLAUDE.md`, `.claude/agents/`, and
   `.claude/skills/`.
-- Git available for change detection.
 
 ## Inputs
 
 - `CLAUDE.md` — root installation instructions.
 - `.claude/agents/*.md` — agent profiles.
 - `.claude/skills/*/SKILL.md` and reference files — skills.
-- `CHANGELOG.md` (root) — the existing changelog, for the last documented date.
-- Git history and working tree — change detection.
+- `CHANGELOG.md` (root) — the existing changelog, for what's already recorded.
+- The changes made in the current working session — the source of truth for what
+  changed, since the KB lives on a synced filesystem and is not version-controlled.
 
 ## Outputs
 
@@ -49,8 +49,7 @@ monorepo. "Instructions" means all three surfaces, treated equally:
       "updated CLAUDE.md" / "fixed stuff").
 - [ ] New skills/agents include a brief description of their purpose; removed
       ones explain why.
-- [ ] Dates come from git history (or the date the change was made for
-      uncommitted edits), not guessed.
+- [ ] Dates are the date the change was made, not guessed.
 - [ ] No duplicate entries for the same change.
 
 </do_confirm_checklist>
@@ -65,18 +64,15 @@ head -20 CHANGELOG.md 2>/dev/null   # newest date already recorded, if any
 
 ### 2. Identify changed instructions
 
-Detect changes across all three surfaces — committed and uncommitted:
+Knowledge bases live on a synced filesystem, not in Git, so there is no commit
+history to diff. Identify what changed from the work just done **this session**:
+recall every edit, addition, removal, and rename made to `CLAUDE.md`,
+`.claude/agents/`, and `.claude/skills/` during the current conversation, and
+list them per surface.
 
-```bash
-# Committed changes since the last documented date (or all history)
-git log --after="<last-entry-date>" --name-status -- \
-  CLAUDE.md '.claude/agents/' '.claude/skills/'
-
-# Uncommitted working-tree changes (common in a live installation)
-git status --short -- CLAUDE.md '.claude/agents/' '.claude/skills/'
-```
-
-If no `CHANGELOG.md` exists yet, consider all changes since the initial commit.
+Use `CHANGELOG.md` only to see what's already recorded so you don't duplicate an
+existing entry. If something was clearly changed but you can't reconstruct what
+or why from the session, flag it as needing review rather than guessing.
 
 ### 3. Classify each change
 
@@ -95,13 +91,8 @@ If no `CHANGELOG.md` exists yet, consider all changes since the initial commit.
 
 A single change often spans surfaces (e.g. a KB-structure change touching
 `CLAUDE.md`, several agents, and several skills) — record it as **one entry**
-whose Scope lists every surface touched. Diff to confirm the actual change:
-
-```bash
-git diff <commit> -- CLAUDE.md
-git diff <commit> -- '.claude/agents/<agent>.md'
-git diff <commit> -- '.claude/skills/<skill>/'
-```
+whose Scope lists every surface touched. Re-read the affected files to confirm
+the change landed as intended before describing it.
 
 ### 4. Describe each change
 

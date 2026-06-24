@@ -67,9 +67,49 @@ Defaults: input = `/tmp/outpost-presentation.html`, output =
 5. **No footers or headers** — No fixed/absolute positioned footer/header
    elements
 
+## Interactive HTML Decks — Navigation & Event Standards
+
+When the deck is delivered as a **standalone interactive HTML file** (animated /
+navigable in the browser) rather than a static PDF, keep input handling
+deliberately minimal. Rich event handling fights with two things the user needs:
+selecting/copying text on a slide, and typing into overlay tools (e.g. the
+`slide-annotator.js` review overlay).
+
+**Required:**
+
+1. **Arrow keys are the only navigation.** `→` / `ArrowRight` = next,
+   `←` / `ArrowLeft` = previous. Nothing else advances slides.
+2. **No click-to-advance.** Do NOT add click regions on the slide/stage that
+   navigate (e.g. "click left/right third"). They fire on the mouse-up that ends
+   a text-selection drag and jump the slide unexpectedly.
+3. **No spacebar, PageUp/PageDown, or other global key bindings.** Space conflicts
+   with typing in overlay inputs; the rest are redundant and surprising.
+4. **A progress indicator may be clickable**, but it must live in the footer/chrome
+   and never overlap slide content.
+5. **Expose `window.deckGoto(index)`** (0-based) right after the slide-show
+   function, so review/overlay tools can jump to a slide without simulating clicks
+   or keys:
+
+        function go(n) { /* ...show slide n... */ }
+        window.deckGoto = go;
+
+6. **Keep the hint honest** — the on-screen nav hint should read `← → to navigate`
+   (don't advertise click/space).
+7. **Use stable structural hooks.** Make each slide one element with class
+   `.slide`, and put the slide-number label (if any) in a `.slide-num` element.
+   The review overlay defaults to these selectors to detect and index slides.
+
+These rules keep decks compatible with the **`deck-review`** skill, which installs
+the `slide-annotator.js` review overlay (highlight text on a slide → sidecar JSON
+of feedback that an agent acts on). After producing an interactive HTML deck, you
+can offer to run `deck-review` to make it reviewable; see that skill for the
+install steps and the sidecar JSON schema.
+
 ## Constraints
 
 - Always use the knowledge base for context when available
 - Output to `~/Desktop/presentation.pdf` unless user specifies otherwise
 - Keep slides clean and readable — max 5-6 bullet points per slide
 - Use consistent styling throughout
+- For interactive HTML decks, follow the navigation & event standards above
+  (arrow-keys-only; no click-to-advance or spacebar)

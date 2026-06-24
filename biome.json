@@ -12,6 +12,7 @@
       "!wiki/**",
       "!playwright-report/**",
       "!data/knowledge/**",
+      "!products/outpost/templates/.claude/skills/deck-review/assets/**",
       "!**/*.html",
       "!**/*.proto",
       "!**/*.hbs",

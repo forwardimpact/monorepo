@@ -97,6 +97,10 @@ const BASE_GLOBS = [
   "!*.lock",
   // This module carries the patterns themselves and would match them.
   "!.coaligned/invariants/temporal.rules.mjs",
+  // Vendored, self-contained browser overlay shipped verbatim into user KBs.
+  // Its inline CSS hex colours (` #000`, ` #111`) trip the space-prefixed
+  // numeric pattern; it is not authored monorepo source where references rot.
+  "!products/outpost/templates/.claude/skills/deck-review/assets/**",
 ];
 
 export default {
