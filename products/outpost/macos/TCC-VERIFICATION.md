@@ -7,11 +7,6 @@ equivalent — TCC state cannot be exercised on Linux or in a headless runner �
 this runbook is the durable guard, run once to diagnose and once per release to
 re-check.
 
-It implements
-[spec 2100](../../../specs/2100-outpost-tcc-grant-inheritance/spec.md) via
-[design-a](../../../specs/2100-outpost-tcc-grant-inheritance/design-a.md) and
-[plan-a](../../../specs/2100-outpost-tcc-grant-inheritance/plan-a.md).
-
 ## What this measures
 
 macOS attributes a TCC-gated access to the accessing process's **responsible
@@ -146,11 +141,11 @@ ad-hoc build with a deterministic cdhash survives a `brew upgrade`).
   work is internal.
 - **Axis 1 fails (a hop resolves to its child)** → the disclaim setting at that
   hop misattributes; apply the recorded attribution-preserving setting to both
-  hops (plan Step 3) and re-run.
+  hops and re-run.
 - **A service fails (Axis 2)** → document the single direct grant for that
-  service on `Outpost.app` (plan Step 4 / Step 6).
+  service on `Outpost.app`.
 - **Grant lost on upgrade (Axis 3)** → ship a Developer ID-signed bundle so the
-  grant pins to the designated requirement (plan Step 5).
+  grant pins to the designated requirement.
 
 ## Results
 
