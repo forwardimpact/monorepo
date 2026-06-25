@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libmacos",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "macOS bundle assembly, code signing, and OS permission helpers — desktop delivery without platform ceremony.",
   "keywords": [
     "macos",
