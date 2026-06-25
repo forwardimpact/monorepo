@@ -219,10 +219,11 @@ Updating ~/Documents/Personal...
   Done.
 ```
 
-If you have multiple knowledge bases configured, omit the path to update all
-of them:
+Omit the path to update the knowledge base in the current directory, so you
+can run it from inside the KB itself:
 
 ```sh
+cd ~/Documents/Personal
 npx fit-outpost update
 ```
 
@@ -257,7 +258,8 @@ All OK.
 The validator checks that each configured agent has a matching agent definition
 file in `.claude/agents/` (either in the knowledge base or in your global
 `~/.claude/agents/` directory). A `[FAIL]` result means the agent definition
-is missing -- run `npx fit-outpost update` to restore it.
+is missing -- run `npx fit-outpost update <path>` (or `npx fit-outpost update`
+from inside the knowledge base) to restore it.
 
 ## Verify
 

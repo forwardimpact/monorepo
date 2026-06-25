@@ -6,7 +6,7 @@ Commands:
   daemon                       Run continuously (poll every 60s)
   wake <agent>                 Wake a specific agent immediately
   init <path>                  Initialize a new knowledge base
-  update [path]                Update KB with latest CLAUDE.md, agents and skills
+  update [path]                Update KB with latest CLAUDE.md, agents and skills (defaults to current directory)
   stop                         Gracefully stop daemon and all running agents
   validate                     Validate agent definitions exist
   status                       Show agent status

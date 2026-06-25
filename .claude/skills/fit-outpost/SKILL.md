@@ -153,7 +153,9 @@ stop the scheduler from waking it. Set back to `true` to re-enable.
 3. Write the skill workflow (trigger, prerequisites, inputs, outputs, steps)
 4. Update `template/CLAUDE.md` to list the new skill
 5. If scheduled, add a default task entry to `config/scheduler.json`
-6. Run `npx fit-outpost update` to push the new skill to existing KBs
+6. Run `npx fit-outpost update <kb-path>` for each existing KB to push the new
+   skill (or run `npx fit-outpost update` from inside the KB to update the
+   current directory)
 
 ## Verification
 
