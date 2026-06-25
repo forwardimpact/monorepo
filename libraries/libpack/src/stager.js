@@ -39,6 +39,13 @@ export class PackStager {
     }
 
     for (const skill of content.skills) {
+      if (!skill.dirname) {
+        throw new Error(
+          "PackStager.stageFull: skill is missing a dirname (the skill id / " +
+            "agent skill name); cannot stage its directory. Offending skill: " +
+            JSON.stringify(skill).slice(0, 300),
+        );
+      }
       const skillDir = join(skillsDir, skill.dirname);
       await mkdir(skillDir, { recursive: true });
 
