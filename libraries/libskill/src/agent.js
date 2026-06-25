@@ -141,15 +141,24 @@ export function deriveAgentBehaviours({
  * @returns {Object} Structured skill data with frontmatter, title, focus, checklists, etc.
  */
 export function generateSkillMarkdown({ skillData }) {
-  const { agent, name } = skillData;
+  const { agent, id, name } = skillData;
 
   if (!agent) {
-    throw new Error(`Skill ${skillData.id} has no agent section`);
+    throw new Error(`Skill ${id} has no agent section`);
+  }
+  // The skill id IS the agent skill name and the SKILL.md directory name
+  // (since skill.agent.name was removed). A skill without an id cannot produce
+  // a valid SKILL.md frontmatter `name` or a directory — fail loudly here
+  // rather than emitting an empty `name:` and crashing downstream in the packer.
+  if (!id) {
+    throw new Error(
+      `Skill "${name ?? "(unnamed)"}" has no id; cannot derive its agent skill name`,
+    );
   }
 
   return {
     frontmatter: {
-      name: skillData.id,
+      name: id,
       description: agent.description,
       useWhen: agent.useWhen || "",
     },
@@ -161,7 +170,7 @@ export function generateSkillMarkdown({ skillData }) {
     installScript: skillData.installScript || "",
     references: skillData.references || [],
     toolReferences: skillData.toolReferences || [],
-    dirname: skillData.id,
+    dirname: id,
   };
 }
 
