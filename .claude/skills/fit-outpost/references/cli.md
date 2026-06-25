@@ -15,7 +15,7 @@ npx fit-outpost validate                # Validate agent definitions exist
 
 ```sh
 npx fit-outpost init <path>             # Initialize a new knowledge base
-npx fit-outpost update [path]           # Update KB with latest CLAUDE.md, agents, skills
+npx fit-outpost update [path]           # Update KB at [path] (default: current dir)
 ```
 
 ### Key Paths

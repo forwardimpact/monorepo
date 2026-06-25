@@ -5,7 +5,7 @@
 //   fit-outpost daemon              Run continuously (poll every 60s)
 //   fit-outpost wake <agent>        Wake a specific agent immediately
 //   fit-outpost init <path>         Initialize a new knowledge base
-//   fit-outpost update [path]       Update KB with latest CLAUDE.md, agents and skills
+//   fit-outpost update [path]       Update KB with latest CLAUDE.md, agents and skills (defaults to current directory)
 //   fit-outpost stop                Gracefully stop daemon and all running agents
 //   fit-outpost validate            Validate agent definitions exist
 //   fit-outpost status              Show agent status
@@ -64,7 +64,8 @@ function buildDefinition(version) {
       {
         name: "update",
         args: "[path]",
-        description: "Update KB with latest CLAUDE.md, agents and skills",
+        description:
+          "Update KB with latest CLAUDE.md, agents and skills (defaults to current directory)",
       },
       {
         name: "stop",
@@ -302,39 +303,11 @@ export async function run(runtime, version) {
     const tpl = await requireTemplateDir();
     if (tpl === null) return 1;
 
-    if (args[0]) {
-      const result = await kbManager.update(args[0], tpl);
-      if (!result.ok) {
-        proc.stderr.write(result.error + "\n");
-        return result.code;
-      }
-      return 0;
-    }
-
-    const config = await loadConfig();
-    const kbPaths = [
-      ...new Set(
-        Object.values(config.agents)
-          .filter((a) => a.kb)
-          .map((a) => expandPath(a.kb)),
-      ),
-    ];
-
-    if (kbPaths.length === 0) {
-      proc.stderr.write(
-        "No knowledge bases configured and no path given.\n" +
-          "Usage: fit-outpost update [path]\n",
-      );
-      return 1;
-    }
-
-    for (const kb of kbPaths) {
-      logger.info(`\nUpdating ${kb}...`);
-      const result = await kbManager.update(kb, tpl);
-      if (!result.ok) {
-        proc.stderr.write(result.error + "\n");
-        return result.code;
-      }
+    const target = args[0] ?? proc.cwd();
+    const result = await kbManager.update(target, tpl);
+    if (!result.ok) {
+      proc.stderr.write(result.error + "\n");
+      return result.code;
     }
     return 0;
   }

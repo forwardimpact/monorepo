@@ -54,7 +54,8 @@ const definition = {
     {
       name: "update",
       args: "[path]",
-      description: "Update KB with latest CLAUDE.md, agents and skills",
+      description:
+        "Update KB with latest CLAUDE.md, agents and skills (defaults to current directory)",
     },
     {
       name: "stop",
