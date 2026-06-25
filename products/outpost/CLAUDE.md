@@ -44,11 +44,14 @@ environment is a user-only trust assumption, the same as the two roots above. A
 spawned agent cannot influence it, so the injection chain runs through
 `config.env`, which the allow-set closes.
 
-All three wake paths (scheduler tick `src/scheduler.js`, socket-mediated wake
-`src/socket-server.js`, direct-CLI `fit-outpost wake` in `src/outpost.js`)
-forward `config.env` into the one `buildSpawnEnv` function, so they produce an
-identical filtered env from identical config. Do not re-introduce a per-path env
-merge.
+Both spawn paths (scheduler tick `src/scheduler.js`, socket-mediated wake
+`src/socket-server.js`) forward `config.env` into the one `buildSpawnEnv`
+function, so they produce an identical filtered env from identical config. The
+`fit-outpost wake` CLI (`src/outpost.js`) does **not** spawn itself — it
+forwards the wake over the daemon socket (so the spawn descends from
+`fit-outpost.app` for TCC attribution), which routes it through the
+socket-mediated path. Do not re-introduce a per-path env merge, and do not
+re-introduce a local CLI spawn that would bypass `buildSpawnEnv`.
 
 ## State-File Naming (load-bearing)
 

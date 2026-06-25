@@ -161,7 +161,7 @@ Outpost agents need access to specific folders (Documents, Mail, Calendar). When
 macOS prompts, grant only the folders each process needs via **System Settings >
 Privacy & Security > Files & Folders**:
 
-- **Outpost.app** — the TCC responsible process (Swift launcher)
+- **fit-outpost.app** — the TCC responsible process (Swift launcher)
 - **node** — runs skill scripts with `#!/usr/bin/env node` shebangs
 - **"2.1.72"** (or another version number) — this is the **Claude Code CLI**.
   macOS shows its version string instead of a name. Safe to grant per-folder

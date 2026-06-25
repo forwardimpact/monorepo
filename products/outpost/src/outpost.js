@@ -26,7 +26,7 @@ import { StateManager } from "./state-manager.js";
 import { AgentRunner } from "./agent-runner.js";
 import { Scheduler, formatLocalTime } from "./scheduler.js";
 import { KBManager } from "./kb-manager.js";
-import { SocketServer, requestShutdown } from "./socket-server.js";
+import { SocketServer, requestShutdown, requestWake } from "./socket-server.js";
 import {
   readPosture,
   writePosture,
@@ -436,17 +436,28 @@ export async function run(runtime, version) {
         cli.usageError("missing required argument <agent>");
         return 2;
       }
-      const config = await loadConfig();
-      const state = await stateManager.load();
-      const agent = config.agents[args[0]];
-      if (!agent) {
-        cli.error(
-          `agent "${args[0]}" not found. Available: ${Object.keys(config.agents).join(", ") || "(none)"}`,
-        );
-        return 1;
+      // Always route the wake through the running daemon. The daemon is the
+      // only spawn site that descends from fit-outpost.app, so a `claude`
+      // spawned there inherits the app as its TCC responsible process and a
+      // single grant to the app covers it. Spawning from this CLI process
+      // would attribute the access to the terminal instead, breaking the
+      // single-grant model. If no daemon is running there is nowhere to wake
+      // with correct attribution, so this errors rather than spawning locally.
+      const result = await requestWake(SOCKET_PATH, args[0], runtime);
+      if (result.ok) {
+        log(`Wake dispatched to daemon for "${args[0]}".`);
+        return 0;
       }
-      await agentRunner.wake(args[0], agent, state, config.env);
-      return 0;
+      if (result.reason === "not-running") {
+        cli.error(
+          "daemon not running. Start fit-outpost.app (or run `fit-outpost daemon`) before waking an agent.",
+        );
+      } else if (result.reason === "timeout") {
+        cli.error("daemon did not respond to the wake request.");
+      } else {
+        cli.error(result.message);
+      }
+      return 1;
     },
     init: async () => {
       if (!args[0]) {

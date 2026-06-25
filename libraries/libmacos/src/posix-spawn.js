@@ -2,7 +2,7 @@
 
 // Bun FFI wrapper for posix_spawn (macOS only).
 //
-// Used by the scheduler when running inside Outpost.app so that child
+// Used by the scheduler when running inside fit-outpost.app so that child
 // processes (claude) inherit TCC attributes from the responsible binary.
 
 import { dlopen, ptr } from "bun:ffi";
@@ -10,9 +10,11 @@ import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-// responsibility_spawnattrs_setdisclaim makes the spawned child disclaim
-// TCC "responsible process" status, so macOS checks the parent's responsible
-// process (Outpost.app) instead.
+// responsibility_spawnattrs_setdisclaim controls the spawned child's TCC
+// "responsible process". With disclaim = 1 the child becomes responsible for
+// itself; with disclaim = 0 (what we pass below) it keeps the parent chain's
+// responsible process, so macOS attributes the child's access to
+// fit-outpost.app.
 const {
   symbols: { responsibility_spawnattrs_setdisclaim: setDisclaim },
 } = dlopen("/usr/lib/system/libquarantine.dylib", {
@@ -155,9 +157,12 @@ export function spawn(executable, args, env, cwd, runtime) {
 
   libc.symbols.posix_spawnattr_init(attr);
 
-  // Disclaim TCC responsibility so the child inherits the responsible
-  // process from the parent chain (ultimately Outpost.app).
-  setDisclaim(attr, 1);
+  // Do NOT disclaim TCC responsibility: with disclaim = 0 the child keeps the
+  // parent chain's responsible process, so its access is attributed to
+  // fit-outpost.app and a single grant to the app covers the whole subtree.
+  // (disclaim = 1 makes the child responsible for itself, defeating the
+  // single-grant model — see products/outpost/macos/TCC-VERIFICATION.md.)
+  setDisclaim(attr, 0);
 
   libc.symbols.posix_spawn_file_actions_init(fa);
 

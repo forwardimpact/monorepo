@@ -324,6 +324,71 @@ export class SocketServer {
 }
 
 /**
+ * Connect to the running daemon and ask it to wake an agent.
+ *
+ * The wake runs inside the daemon process, which is the only spawn site that
+ * descends from fit-outpost.app — so the spawned `claude` inherits the app as
+ * its TCC responsible process. Routing every wake through the daemon is what
+ * keeps the single-grant model intact; a wake spawned from this CLI process
+ * would be attributed to the terminal instead. The daemon acknowledges
+ * (`ack`) once it has accepted the request and then runs the wake
+ * asynchronously, so this resolves on the ack rather than on completion.
+ *
+ * @param {string} socketPath
+ * @param {string} agent - Agent name to wake.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ *   Injected runtime bag (uses `fsSync` and `clock`).
+ * @returns {Promise<{ ok: boolean, reason?: "not-running"|"timeout"|"error", message?: string }>}
+ */
+export async function requestWake(socketPath, agent, runtime) {
+  if (!runtime?.fsSync) throw new Error("runtime.fsSync is required");
+  if (!runtime?.clock) throw new Error("runtime.clock is required");
+  if (!runtime.fsSync.existsSync(socketPath)) {
+    return { ok: false, reason: "not-running" };
+  }
+
+  return new Promise((resolve) => {
+    const timeout = runtime.clock.setTimeout(() => {
+      socket.destroy();
+      resolve({ ok: false, reason: "timeout" });
+    }, 5000);
+
+    const socket = createConnection(socketPath, () => {
+      socket.write(JSON.stringify({ type: "wake", agent }) + "\n");
+    });
+
+    let buffer = "";
+    socket.on("data", (data) => {
+      buffer += data.toString();
+      const idx = buffer.indexOf("\n");
+      if (idx === -1) return;
+      runtime.clock.clearTimeout(timeout);
+      let msg = null;
+      try {
+        msg = JSON.parse(buffer.slice(0, idx));
+      } catch {}
+      socket.destroy();
+      if (msg && msg.type === "ack" && msg.command === "wake") {
+        resolve({ ok: true });
+      } else {
+        resolve({
+          ok: false,
+          reason: "error",
+          message: msg?.message || "daemon rejected wake request",
+        });
+      }
+    });
+
+    // A stale socket file (daemon crashed) refuses the connection; treat it
+    // the same as a missing daemon.
+    socket.on("error", () => {
+      runtime.clock.clearTimeout(timeout);
+      resolve({ ok: false, reason: "not-running" });
+    });
+  });
+}
+
+/**
  * Connect to the daemon socket and request graceful shutdown.
  * @param {string} socketPath
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
