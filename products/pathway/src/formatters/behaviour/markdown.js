@@ -36,7 +36,7 @@ export function behaviourToMarkdown(behaviour, { drivers }) {
   // Maturity descriptions table
   lines.push("## Maturity Levels", "");
   const maturityRows = Object.entries(view.maturityDescriptions).map(
-    ([maturity, desc]) => [capitalize(maturity.replace(/_/g, " ")), desc],
+    ([maturity, desc]) => [capitalize(maturity.replace(/[-_]/g, " ")), desc],
   );
   lines.push(tableToMarkdown(["Maturity", "Description"], maturityRows));
   lines.push("");

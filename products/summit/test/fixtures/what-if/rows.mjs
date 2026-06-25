@@ -2,13 +2,13 @@ export const ROWS = [
   {
     id: "add-reporting",
     target: { teamId: "platform" },
-    cliOpts: { add: "{ discipline: software_engineering, level: J060 }" },
+    cliOpts: { add: "{ discipline: software-engineering, level: J060 }" },
   },
   {
     id: "add-project",
     target: { projectId: "migration-q2" },
     cliOpts: {
-      add: "{ discipline: software_engineering, level: J060 }",
+      add: "{ discipline: software-engineering, level: J060 }",
       allocation: "0.5",
     },
   },

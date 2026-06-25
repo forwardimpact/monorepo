@@ -13,8 +13,8 @@ emerge.
 ### "Should we hire a senior or a mid-level?"
 
 ```sh
-npx fit-summit what-if platform --add '{ discipline: software_engineering, level: J060 }'
-npx fit-summit what-if platform --add '{ discipline: software_engineering, level: J040 }'
+npx fit-summit what-if platform --add '{ discipline: software-engineering, level: J060 }'
+npx fit-summit what-if platform --add '{ discipline: software-engineering, level: J040 }'
 ```
 
 Compare the coverage diff from each scenario to see which addresses more gaps.

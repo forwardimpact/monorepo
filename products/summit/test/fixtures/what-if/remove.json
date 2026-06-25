@@ -7,7 +7,7 @@
   "diff": {
     "capabilityChanges": [
       {
-        "skillId": "incident_response",
+        "skillId": "incident-response",
         "skillName": "Incident Response",
         "capabilityId": "reliability",
         "before": {
@@ -39,7 +39,7 @@
         "direction": "same"
       },
       {
-        "skillId": "task_completion",
+        "skillId": "task-completion",
         "skillName": "Task Completion",
         "capabilityId": "delivery",
         "before": {
@@ -60,10 +60,10 @@
         "singlePoints": [],
         "criticalGaps": [
           {
-            "skillId": "task_completion",
+            "skillId": "task-completion",
             "skillName": "Task Completion",
             "capabilityId": "delivery",
-            "reason": "core skill for software_engineering discipline"
+            "reason": "core skill for software-engineering discipline"
           }
         ],
         "concentrationRisks": []
@@ -71,7 +71,7 @@
       "removed": {
         "singlePoints": [
           {
-            "skillId": "task_completion",
+            "skillId": "task-completion",
             "skillName": "Task Completion",
             "holder": {
               "email": "bob@example.com",
@@ -89,16 +89,16 @@
         "singlePoints": [],
         "criticalGaps": [
           {
-            "skillId": "incident_response",
+            "skillId": "incident-response",
             "skillName": "Incident Response",
             "capabilityId": "reliability",
-            "reason": "broad skill for software_engineering discipline"
+            "reason": "broad skill for software-engineering discipline"
           },
           {
             "skillId": "planning",
             "skillName": "Planning",
             "capabilityId": "delivery",
-            "reason": "supporting skill for software_engineering discipline"
+            "reason": "supporting skill for software-engineering discipline"
           }
         ],
         "concentrationRisks": []

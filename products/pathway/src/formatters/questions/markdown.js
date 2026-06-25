@@ -24,7 +24,7 @@ const MATURITY_ABBREVS = {
   emerging: "emerg",
   developing: "dev",
   practicing: "pract",
-  role_modeling: "role",
+  "role-modeling": "role",
   exemplifying: "exemp",
 };
 
@@ -147,7 +147,7 @@ function formatStats(view, skills) {
     const skill = skills.find((s) => s.id === id);
     return skill ? truncate(skill.name, 28) : id;
   };
-  const behaviourName = (id) => truncate(id.replace(/_/g, " "), 28);
+  const behaviourName = (id) => truncate(id.replace(/[-_]/g, " "), 28);
 
   const lines = [
     ...formatStatsTable({

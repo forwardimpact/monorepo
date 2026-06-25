@@ -189,7 +189,6 @@ To make a skill available to AI coding agents, add an `agent:` section:
 
 ```yaml
     agent:
-      name: task-execution
       description: Breaking down and completing engineering tasks
       useWhen: Implementing features, fixing bugs, or completing work
       focus: Complete implementation with tests
@@ -220,11 +219,10 @@ SKILL.md body.
 `instructions` is the procedural workflow the agent follows between those gates.
 
 ```yaml
-  - id: code_review
+  - id: code-review
     name: Code Review
     human: # ...
     agent:
-      name: code-review
       # ... description, useWhen, focus, checklists
     instructions: |
       ## Workflow
@@ -256,11 +254,10 @@ Names must be unique within a skill and match the pattern
 `^[a-z0-9][a-z0-9_-]*$`.
 
 ```yaml
-  - id: incident_response
+  - id: incident-response
     name: Incident Response
     human: # ...
     agent:
-      name: incident-response
       # ... description, useWhen, focus, checklists
     references:
       - name: runbooks
@@ -323,7 +320,7 @@ discipline classifies skills from your capability files into three tiers:
 - `broadSkills` -- general awareness expected (maps to `broad`)
 
 ```yaml
-# data/pathway/disciplines/software_engineering.yaml
+# data/pathway/disciplines/software-engineering.yaml
 specialization: Software Engineering
 roleTitle: Software Engineer
 isProfessional: true
@@ -331,18 +328,18 @@ isProfessional: true
 validTracks:
   - null           # allow trackless (generalist)
   - platform
-  - forward_deployed
+  - forward-deployed
 
 coreSkills:
-  - architecture_design
-  - code_quality
-  - full_stack_development
+  - architecture-design
+  - code-quality
+  - full-stack-development
 supportingSkills:
   - devops
-  - cloud_platforms
+  - cloud-platforms
 broadSkills:
-  - data_modeling
-  - stakeholder_management
+  - data-modeling
+  - stakeholder-management
 ```
 
 The `validTracks` array is required. Use `null` to allow a generalist
@@ -373,7 +370,7 @@ skillModifiers:
   reliability: 1
   delivery: -1
 behaviourModifiers:
-  systems_thinking: 1
+  systems-thinking: 1
 ```
 
 Track `skillModifiers` target capability IDs (not individual skill IDs). A
@@ -410,7 +407,7 @@ maturity scale:
 | `emerging`      | Shows interest, needs prompting                      |
 | `developing`    | Regularly applies with some guidance                 |
 | `practicing`    | Consistently demonstrates in daily work              |
-| `role_modeling` | Influences the team's approach, others seek them out |
+| `role-modeling` | Influences the team's approach, others seek them out |
 | `exemplifying`  | Shapes organizational culture in this area           |
 
 Create one file per behaviour in `data/pathway/behaviours/`:
@@ -432,7 +429,7 @@ human:
       trade-offs between speed and polish
     practicing: >
       Takes end-to-end ownership of features and business outcomes
-    role_modeling: >
+    role-modeling: >
       Drives accountability culture focused on outcomes not
       deliverables
     exemplifying: >
@@ -452,16 +449,16 @@ Edit `data/pathway/drivers.yaml`:
 
 ```yaml
 # data/pathway/drivers.yaml
-- id: clear_direction
+- id: clear-direction
   name: Clear Direction
   description: The degree to which developers understand their team's mission and goals
   contributingSkills:
-    - stakeholder_management
-    - product_thinking
+    - stakeholder-management
+    - product-thinking
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
-- id: requirements_quality
+- id: requirements-quality
   name: Requirements Quality
   description: How well specifications are defined for tasks and projects
   contributingSkills:
@@ -550,7 +547,7 @@ expect for each discipline.
 **Generate a role to confirm derivation:**
 
 ```sh
-npx fit-pathway job software_engineering J060 --track=platform
+npx fit-pathway job software-engineering J060 --track=platform
 ```
 
 Expected output (abbreviated):

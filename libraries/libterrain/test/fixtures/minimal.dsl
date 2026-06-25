@@ -27,7 +27,7 @@ terrain minimal {
       J050 40%
     }
     disciplines {
-      software_engineering 100%
+      software-engineering 100%
     }
   }
 
@@ -41,7 +41,7 @@ terrain minimal {
 
   standard {
     proficiencies [awareness, foundational, working, practitioner, expert]
-    maturities [emerging, developing, practicing, role_modeling, exemplifying]
+    maturities [emerging, developing, practicing, role-modeling, exemplifying]
 
     levels {
       J040 { title "Software Engineer" rank 1 experience "0-2 years" }
@@ -49,7 +49,7 @@ terrain minimal {
     }
 
     capabilities {
-      coding { name "Coding" skills [python_dev, code_review] }
+      coding { name "Coding" skills [python-dev, code-review] }
     }
 
     behaviours {
@@ -57,10 +57,10 @@ terrain minimal {
     }
 
     disciplines {
-      software_engineering {
+      software-engineering {
         roleTitle "Software Engineer"
-        core [python_dev]
-        supporting [code_review]
+        core [python-dev]
+        supporting [code-review]
       }
     }
 
@@ -69,9 +69,9 @@ terrain minimal {
     }
 
     drivers {
-      clear_direction {
+      clear-direction {
         name "Clear Direction"
-        skills [python_dev]
+        skills [python-dev]
         behaviours [collaboration]
       }
     }
@@ -86,14 +86,14 @@ terrain minimal {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
-        clear_direction { trajectory "rising" magnitude 3 }
+        clear-direction { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [python_dev]
+      evidence_skills [python-dev]
       evidence_floor "foundational"
     }
   }
 
-  content guide_html {
+  content guide-html {
     courses 2
     events 1
     blogs 3

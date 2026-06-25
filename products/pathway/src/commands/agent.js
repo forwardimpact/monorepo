@@ -15,8 +15,8 @@
  *   npx fit-pathway agent --list
  *
  * Examples:
- *   npx fit-pathway agent software_engineering --track=platform
- *   npx fit-pathway agent software_engineering --track=platform --output=./agents
+ *   npx fit-pathway agent software-engineering --track=platform
+ *   npx fit-pathway agent software-engineering --track=platform --output=./agents
  */
 
 import { createDataLoader } from "@forwardimpact/map/loader";

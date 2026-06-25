@@ -25,7 +25,7 @@ function page(templates, title, body, domain) {
 }
 
 function titleCase(str) {
-  return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return str.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function renderStructuralPages(files, entities, templates, domain) {
@@ -138,7 +138,7 @@ function renderContentPages(
           ...article,
           prose:
             prose.get(`article_${article.topic}`) ||
-            `Article about ${article.topic.replace(/_/g, " ")}.`,
+            `Article about ${article.topic.replace(/[-_]/g, " ")}.`,
         },
       ],
     });
@@ -245,7 +245,7 @@ function renderHowtoPages(files, gc, prose, templates, domain) {
       title: titleCase(topic),
       prose:
         prose.get(`howto_${topic}`) ||
-        `How-to guide for ${topic.replace(/_/g, " ")}.`,
+        `How-to guide for ${topic.replace(/[-_]/g, " ")}.`,
     });
     files.set(
       `howto-${topic.replace(/_/g, "-")}.html`,
@@ -339,7 +339,7 @@ function extractDateRange(entities) {
 
 /**
  * Extract count and topic fields from a guide content config entry.
- * @param {object|undefined} gc - Guide content config (courses, events, blogs, article_topics, blog_topics)
+ * @param {object|undefined} gc - Guide content config (courses, events, blogs, article_topics, blog-topics)
  * @returns {{ courseCount: number, eventCount: number, blogCount: number, articleTopics: string[], blogTopics: string[]|null }}
  */
 function extractGuideConfig(gc) {
@@ -348,12 +348,12 @@ function extractGuideConfig(gc) {
     eventCount: gc?.events || 0,
     blogCount: gc?.blogs || 0,
     articleTopics: gc?.article_topics || [],
-    blogTopics: gc?.blog_topics || null,
+    blogTopics: gc?.["blog-topics"] || null,
   };
 }
 
 function buildLinkedEntities(entities, domain, runtime) {
-  const gc = entities.content.find((c) => c.id === "guide_html");
+  const gc = entities.content.find((c) => c.id === "guide-html");
   const { startYear, endYear } = extractDateRange(entities);
   const seed = entities.activity?.seed || 42;
   const orgName = entities.orgs?.[0]?.name || domain;

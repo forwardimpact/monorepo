@@ -19,7 +19,7 @@ optional track) and have already run `npx fit-pathway job` at least once.
 Generate your role definition and focus on the Expectations section:
 
 ```sh
-npx fit-pathway job software_engineering J060
+npx fit-pathway job software-engineering J060
 ```
 
 The Expectations section appears at the top of the output:
@@ -42,7 +42,7 @@ Each expectation describes a different dimension of your role:
 | **Influence Scope**      | Whose technical decisions can you shape?                 |
 | **Complexity Handled**   | How ambiguous and multi-variable are your problems?      |
 
-Replace `software_engineering J060` with your own discipline and level to see
+Replace `software-engineering J060` with your own discipline and level to see
 the expectations that apply to your role.
 
 ## Compare expectations across levels
@@ -54,8 +54,8 @@ definition at two levels and compare the Expectations sections side by side.
 Generate your current level and the next one:
 
 ```sh
-npx fit-pathway job software_engineering J060
-npx fit-pathway job software_engineering J070
+npx fit-pathway job software-engineering J060
+npx fit-pathway job software-engineering J070
 ```
 
 Here is what the Expectations section looks like at each of those levels:
@@ -94,8 +94,8 @@ If your role includes a track, add the `--track` flag to both commands to see
 how specialization affects expectations:
 
 ```sh
-npx fit-pathway job software_engineering J060 --track=platform
-npx fit-pathway job software_engineering J070 --track=platform
+npx fit-pathway job software-engineering J060 --track=platform
+npx fit-pathway job software-engineering J070 --track=platform
 ```
 
 ## Connect expectations to skill and behaviour changes
@@ -105,7 +105,7 @@ corresponding changes in skills and behaviours. Use the `progress` command to
 see those changes:
 
 ```sh
-npx fit-pathway progress software_engineering J060
+npx fit-pathway progress software-engineering J060
 ```
 
 ```text
@@ -137,10 +137,10 @@ To see how expectations evolve across the entire career ladder, generate role
 definitions at multiple levels:
 
 ```sh
-npx fit-pathway job software_engineering J040
-npx fit-pathway job software_engineering J060
-npx fit-pathway job software_engineering J070
-npx fit-pathway job software_engineering J080
+npx fit-pathway job software-engineering J040
+npx fit-pathway job software-engineering J060
+npx fit-pathway job software-engineering J070
+npx fit-pathway job software-engineering J080
 ```
 
 Read only the Expectations section from each output. The progression tells a

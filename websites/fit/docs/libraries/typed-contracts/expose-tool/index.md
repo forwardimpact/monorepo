@@ -134,7 +134,7 @@ inspecting the tool schema:
 
 ```protobuf
 message DescribeJobRequest {
-  // Discipline id (e.g. 'software_engineering')
+  // Discipline id (e.g. 'software-engineering')
   string discipline = 1;
   // Level id (e.g. 'J060')
   string level = 2;
@@ -142,7 +142,7 @@ message DescribeJobRequest {
 ```
 
 These comments produce tool parameters described as "Discipline id (e.g.
-'software_engineering')" and "Level id (e.g. 'J060')".
+'software-engineering')" and "Level id (e.g. 'J060')".
 
 ## Checklist
 

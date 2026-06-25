@@ -31,7 +31,7 @@
  * @typedef {Object} BehaviourProfileItem
  * @property {string} behaviourId - Behaviour ID for linking
  * @property {string} behaviourName - Display name
- * @property {'emerging'|'developing'|'practicing'|'role_modeling'|'exemplifying'} maturity - Maturity level
+ * @property {'emerging'|'developing'|'practicing'|'role-modeling'|'exemplifying'} maturity - Maturity level
  * @property {string} maturityDescription - Human-readable maturity description
 
  */

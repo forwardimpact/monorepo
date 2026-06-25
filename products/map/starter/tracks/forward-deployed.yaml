@@ -15,7 +15,7 @@ skillModifiers:
   delivery: 1
   reliability: -1
 behaviourModifiers:
-  systems_thinking: -1
+  systems-thinking: -1
 assessmentWeights:
   skillWeight: 0.4
   behaviourWeight: 0.6
@@ -31,3 +31,7 @@ agent:
     - Deliver working solutions in days, not weeks
     - Document trade-offs explicitly
     - Identify candidates for platform generalization
+  teamInstructions: |
+    This team is embedded with business units. Speed matters more than
+    perfection. Deliver working solutions quickly and document trade-offs
+    explicitly. Flag reusable patterns for platform generalization.

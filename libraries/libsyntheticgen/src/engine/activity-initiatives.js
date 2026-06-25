@@ -28,7 +28,7 @@ function computePriority(isDeclining, magnitude) {
 function buildChecks(scorecardId, skills) {
   return (skills || []).map((skillId, i) => ({
     id: `chk_${scorecardId}_${i}`,
-    name: skillId.replace(/_/g, " "),
+    name: skillId.replace(/[-_]/g, " "),
     ordering: i,
     published: true,
     level: {

@@ -42,7 +42,7 @@ configured to work at. For example, if the agent operates as a Software
 Engineer (J060) on a platform track:
 
 ```sh
-npx fit-pathway job software_engineering J060 --track=platform
+npx fit-pathway job software-engineering J060 --track=platform
 ```
 
 The output has four sections:
@@ -80,7 +80,7 @@ If the agent's deliverable involves architecture decisions, inspect the skill
 definition to see what the expected proficiency level looks like in practice:
 
 ```sh
-npx fit-pathway skill architecture_design
+npx fit-pathway skill architecture-design
 ```
 
 ```text
@@ -123,7 +123,7 @@ If the agent was supposed to demonstrate systems thinking in its design, check
 what the standard expects:
 
 ```sh
-npx fit-pathway behaviour systems_thinking
+npx fit-pathway behaviour systems-thinking
 ```
 
 ```text
@@ -235,29 +235,29 @@ standard.
 Generate the skill IDs relevant to the agent's role:
 
 ```sh
-npx fit-pathway job software_engineering J060 --track=platform --skills
+npx fit-pathway job software-engineering J060 --track=platform --skills
 ```
 
 ```text
-architecture_design
-code_quality
-full_stack_development
-cloud_platforms
-sre_practices
-change_management
-incident_management
+architecture-design
+code-quality
+full-stack-development
+cloud-platforms
+sre-practices
+change-management
+incident-management
 observability
-performance_optimization
-data_modeling
-stakeholder_management
+performance-optimization
+data-modeling
+stakeholder-management
 ```
 
 Each skill ID maps to a set of concrete expectations in your standard. For the
-skills most relevant to the deliverable type (e.g., `architecture_design` and
-`code_quality` for a new service PR), look up the proficiency descriptions:
+skills most relevant to the deliverable type (e.g., `architecture-design` and
+`code-quality` for a new service PR), look up the proficiency descriptions:
 
 ```sh
-npx fit-pathway skill code_quality
+npx fit-pathway skill code-quality
 ```
 
 The proficiency description at the expected level becomes a checklist item. For

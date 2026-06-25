@@ -11,7 +11,7 @@ const HEALTH_SNAPSHOTS = [SNAPSHOTS[0]];
 
 const HEALTH_EVIDENCE = [
   {
-    skill_id: "task_completion",
+    skill_id: "task-completion",
     level_id: "working",
     matched: true,
     artifact_id: "art-1",
@@ -19,7 +19,7 @@ const HEALTH_EVIDENCE = [
     github_artifacts: { email: "alice@example.com" },
   },
   {
-    skill_id: "task_completion",
+    skill_id: "task-completion",
     level_id: "foundational",
     matched: true,
     artifact_id: "art-2",
@@ -179,8 +179,8 @@ describe("health command", () => {
 
   it("driverJoin.state is NO_MATCH when scores carry ids disjoint from drivers.yaml", async () => {
     const disjointScores = [
-      { snapshot_id: "snap-1", item_id: "clear_direction", score: 50 },
-      { snapshot_id: "snap-1", item_id: "deep_work", score: 60 },
+      { snapshot_id: "snap-1", item_id: "clear-direction", score: 50 },
+      { snapshot_id: "snap-1", item_id: "deep-work", score: 60 },
     ];
     const result = await runHealthCommand({
       options: { manager: "alice@example.com" },

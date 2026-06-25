@@ -30,7 +30,7 @@ const runtime = createDefaultRuntime();
 const REFERENCE_TEMPLATE = "# {{{title}}}\n\n{{{body}}}\n";
 
 const baseSkill = {
-  id: "incident_response",
+  id: "incident-response",
   name: "Incident Response",
   capability: "reliability",
   description: "Handle incidents.",

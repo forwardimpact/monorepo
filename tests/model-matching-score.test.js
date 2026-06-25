@@ -31,8 +31,8 @@ describe("Matching", () => {
           skill_c: "foundational",
         },
         behaviourMaturities: {
-          behaviour_x: "role_modeling",
-          behaviour_y: "role_modeling",
+          behaviour_x: "role-modeling",
+          behaviour_y: "role-modeling",
         },
       };
 
@@ -70,7 +70,7 @@ describe("Matching", () => {
     it("identifies gaps correctly", () => {
       const weakAssessment = {
         skillProficiencies: { skill_a: "awareness" }, // Much lower than expert
-        behaviourMaturities: { behaviour_x: "emerging" }, // Much lower than role_modeling
+        behaviourMaturities: { behaviour_x: "emerging" }, // Much lower than role-modeling
       };
 
       const match = calculateJobMatch(weakAssessment, job);
@@ -83,7 +83,7 @@ describe("Matching", () => {
     it("gives partial credit for close levels with smooth decay", () => {
       // One level below should give 0.7 credit (smooth decay scoring)
       // Job requires: skill_a=practitioner, skill_b=foundational, skill_c=foundational
-      // Job requires: behaviour_x=role_modeling, behaviour_y=role_modeling
+      // Job requires: behaviour_x=role-modeling, behaviour_y=role-modeling
       const closeAssessment = {
         skillProficiencies: {
           skill_a: "working", // One below practitioner
@@ -91,8 +91,8 @@ describe("Matching", () => {
           skill_c: "awareness", // One below foundational
         },
         behaviourMaturities: {
-          behaviour_x: "practicing", // One below role_modeling
-          behaviour_y: "practicing", // One below role_modeling
+          behaviour_x: "practicing", // One below role-modeling
+          behaviour_y: "practicing", // One below role-modeling
         },
       };
 
@@ -111,8 +111,8 @@ describe("Matching", () => {
           skill_c: "foundational",
         },
         behaviourMaturities: {
-          behaviour_x: "role_modeling",
-          behaviour_y: "role_modeling",
+          behaviour_x: "role-modeling",
+          behaviour_y: "role-modeling",
         },
       };
 
@@ -128,7 +128,7 @@ describe("Matching", () => {
     it("includes priority gaps (top 3)", () => {
       const weakAssessment = {
         skillProficiencies: { skill_a: "awareness" }, // Much lower than expert
-        behaviourMaturities: { behaviour_x: "emerging" }, // Much lower than role_modeling
+        behaviourMaturities: { behaviour_x: "emerging" }, // Much lower than role-modeling
       };
 
       const match = calculateJobMatch(weakAssessment, job);
@@ -150,7 +150,7 @@ describe("Matching", () => {
           supporting: "practitioner",
           broad: "working",
         },
-        baseBehaviourMaturity: "role_modeling",
+        baseBehaviourMaturity: "role-modeling",
         expectations: {
           impactScope: "Organization-wide",
           autonomyExpectation: "Strategic direction",
@@ -174,8 +174,8 @@ describe("Matching", () => {
           skill_c: "working",
         },
         behaviourMaturities: {
-          behaviour_x: "role_modeling",
-          behaviour_y: "role_modeling",
+          behaviour_x: "role-modeling",
+          behaviour_y: "role-modeling",
         },
         expectations: {
           impactScope: "Organization-wide",
@@ -199,8 +199,8 @@ describe("Matching", () => {
           skill_c: "foundational",
         },
         behaviourMaturities: {
-          behaviour_x: "role_modeling",
-          behaviour_y: "role_modeling",
+          behaviour_x: "role-modeling",
+          behaviour_y: "role-modeling",
         },
         expectations: {
           impactScope: "Team level",

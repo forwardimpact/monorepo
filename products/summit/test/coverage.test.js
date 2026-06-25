@@ -25,7 +25,7 @@ test("derivePersonMatrix returns a non-empty matrix for a valid job", () => {
     name: "Alice",
     email: "alice@example.com",
     job: {
-      discipline: "software_engineering",
+      discipline: "software-engineering",
       level: "J060",
       track: "platform",
     },
@@ -40,7 +40,7 @@ test("derivePersonMatrix honours explicit allocation", () => {
   const person = {
     name: "Alice",
     email: "alice@example.com",
-    job: { discipline: "software_engineering", level: "J060" },
+    job: { discipline: "software-engineering", level: "J060" },
     allocation: 0.4,
   };
   const matrix = derivePersonMatrix(person, data);
@@ -82,20 +82,20 @@ test("computeCoverage aggregates per-skill headcount and effective depth", () =>
   assert.equal(coverage.teamId, "platform");
   assert.equal(coverage.memberCount, 3);
   // Every starter skill is represented in the coverage map.
-  assert.ok(coverage.skills.has("task_completion"));
+  assert.ok(coverage.skills.has("task-completion"));
   assert.ok(coverage.skills.has("planning"));
-  assert.ok(coverage.skills.has("incident_response"));
+  assert.ok(coverage.skills.has("incident-response"));
 
   // Bob (J060, no track) is the only trackless J060 in the team — the
-  // other two are platform-tracked so their task_completion lands at
+  // other two are platform-tracked so their task-completion lands at
   // foundational (below working).
-  const task = coverage.skills.get("task_completion");
+  const task = coverage.skills.get("task-completion");
   assert.equal(task.headcountDepth, 1);
   assert.equal(task.effectiveDepth, 1);
 
-  // incident_response: Alice (J060, platform) gets reliability +1 bump
+  // incident-response: Alice (J060, platform) gets reliability +1 bump
   // from awareness → foundational (still below working), so depth is 0.
-  const incident = coverage.skills.get("incident_response");
+  const incident = coverage.skills.get("incident-response");
   assert.equal(incident.headcountDepth, 0);
 });
 
@@ -104,9 +104,9 @@ test("computeCoverage allocates effective depth proportionally for projects", ()
   const resolved = resolveTeam(roster, data, { projectId: "migration-q2" });
   const coverage = computeCoverage(resolved, data);
 
-  const task = coverage.skills.get("task_completion");
-  // Bob at 0.6 + External at 1.0, both trackless J060 → task_completion
-  // at working (core of software_engineering). Effective depth = 1.6.
+  const task = coverage.skills.get("task-completion");
+  // Bob at 0.6 + External at 1.0, both trackless J060 → task-completion
+  // at working (core of software-engineering). Effective depth = 1.6.
   assert.equal(task.headcountDepth, 2);
   assert.ok(Math.abs(task.effectiveDepth - 1.6) < 0.001);
 });
@@ -119,8 +119,8 @@ test("withAudienceFilter strips holder identity at director audience", () => {
   const manager = withAudienceFilter(coverage, Audience.MANAGER);
   const director = withAudienceFilter(coverage, Audience.DIRECTOR);
 
-  const managerHolders = manager.skills.get("task_completion").holders;
-  const directorHolders = director.skills.get("task_completion").holders;
+  const managerHolders = manager.skills.get("task-completion").holders;
+  const directorHolders = director.skills.get("task-completion").holders;
 
   assert.ok(managerHolders.length > 0);
   assert.ok(managerHolders[0].email);
@@ -142,7 +142,7 @@ test("coverageToJson round-trips through JSON.stringify", () => {
   const roundTrip = JSON.parse(JSON.stringify(payload));
   assert.equal(roundTrip.team, "platform");
   assert.equal(roundTrip.type, "reporting");
-  assert.ok(roundTrip.coverage.task_completion);
+  assert.ok(roundTrip.coverage["task-completion"]);
 });
 
 test("coverageToText includes growth hint when gaps are present", () => {
@@ -150,8 +150,8 @@ test("coverageToText includes growth hint when gaps are present", () => {
   const resolved = resolveTeam(roster, data, { teamId: "platform" });
   const coverage = computeCoverage(resolved, data);
 
-  // The platform team has incident_response at depth 0 — a gap.
-  assert.equal(coverage.skills.get("incident_response").headcountDepth, 0);
+  // The platform team has incident-response at depth 0 — a gap.
+  assert.equal(coverage.skills.get("incident-response").headcountDepth, 0);
 
   const text = coverageToText(coverage, data);
   assert.ok(

@@ -148,8 +148,8 @@ describe("Matching", () => {
           skill_c: "working",
         },
         behaviourMaturities: {
-          behaviour_x: "role_modeling",
-          behaviour_y: "role_modeling",
+          behaviour_x: "role-modeling",
+          behaviour_y: "role-modeling",
         },
       };
 

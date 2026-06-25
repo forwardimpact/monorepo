@@ -32,8 +32,8 @@ const TEMPLATE_DIR = join(
 );
 const PATIENT_UUID = "44444444-4444-4444-8444-444444444444";
 const PATIENT_IRI = `https://test.example/id/clinical/patient/${PATIENT_UUID}`;
-const TRIAL_IRI = "https://test.example/id/clinical/trial/oncora_p3";
-const CONDITION_IRI = "https://test.example/id/clinical/condition/diabetes_t2";
+const TRIAL_IRI = "https://test.example/id/clinical/trial/oncora-p3";
+const CONDITION_IRI = "https://test.example/id/clinical/condition/diabetes-t2";
 const SITE_IRI = "https://test.example/id/clinical/site/cambridge";
 
 const PRED = {
@@ -77,7 +77,7 @@ function makeFhirToolFactory() {
               resourceType: "Condition",
               subject: { reference: `urn:uuid:${PATIENT_UUID}` },
               code: {
-                coding: [{ code: "diabetes_t2", display: "Type 2 Diabetes" }],
+                coding: [{ code: "diabetes-t2", display: "Type 2 Diabetes" }],
                 text: "Type 2 Diabetes",
               },
               onsetDateTime: "2020-01-01",

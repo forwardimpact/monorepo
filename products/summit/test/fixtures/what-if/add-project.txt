@@ -1,7 +1,7 @@
-  Adding software_engineering J060 to migration-q2:
+  Adding software-engineering J060 to migration-q2:
 
   Capability changes:
-    + task_completion  depth: 2 → 3
+    + task-completion  depth: 2 → 3
 
   Risk changes:
     + delivery concentration at J060 working

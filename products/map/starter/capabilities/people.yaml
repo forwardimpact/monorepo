@@ -35,7 +35,7 @@ managementResponsibilities:
     You shape engineering culture and leadership growth across the business
     unit
 skills:
-  - id: team_collaboration
+  - id: team-collaboration
     name: Team Collaboration
     human:
       description:
@@ -85,7 +85,6 @@ skills:
           - Mediated a disagreement between options by surfacing the
             underlying trade-offs and proposing a resolution path
     agent:
-      name: team-collaboration
       description: |
         Guide for working effectively with the rest of the team — pairing,
         reviewing, co-designing, and resolving disagreement.
@@ -152,7 +151,6 @@ skills:
           - Produced a mentoring plan covering goals, milestones, and the
             evidence each milestone is measured against
     agent:
-      name: mentoring
       description: |
         Guide for growing the engineers around you through knowledge
         transfer, coaching, and feedback.

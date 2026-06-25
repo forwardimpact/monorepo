@@ -6,12 +6,12 @@ import { runMarkerCommand } from "../src/commands/marker.js";
 import { MAP_DATA } from "./fixtures.js";
 
 // Marker tests exercise per-skill marker lookup. We derive two variants from
-// the shared MAP_DATA: one where task_completion keeps its markers but
+// the shared MAP_DATA: one where task-completion keeps its markers but
 // planning has no markers block, and one where no skill has any markers.
 const MAP_DATA_WITH_MARKERS = {
   ...MAP_DATA,
   skills: [
-    MAP_DATA.skills.find((s) => s.id === "task_completion"),
+    MAP_DATA.skills.find((s) => s.id === "task-completion"),
     { id: "planning", name: "Planning" /* No markers */ },
   ],
 };
@@ -19,7 +19,7 @@ const MAP_DATA_WITH_MARKERS = {
 const MAP_DATA_NO_MARKERS = {
   ...MAP_DATA,
   skills: [
-    { id: "task_completion", name: "Task Completion" },
+    { id: "task-completion", name: "Task Completion" },
     { id: "planning", name: "Planning" },
   ],
 };
@@ -27,12 +27,12 @@ const MAP_DATA_NO_MARKERS = {
 describe("marker command", () => {
   it("returns markers for a skill that has them", async () => {
     const result = await runMarkerCommand({
-      args: ["task_completion"],
+      args: ["task-completion"],
       options: {},
       mapData: MAP_DATA_WITH_MARKERS,
       format: "text",
     });
-    assert.equal(result.view.skill, "task_completion");
+    assert.equal(result.view.skill, "task-completion");
     assert.ok(result.view.markers.awareness);
     assert.ok(result.view.markers.working);
     assert.equal(result.meta.emptyState, undefined);
@@ -51,18 +51,18 @@ describe("marker command", () => {
 
   it("returns empty state when no markers exist in data", async () => {
     const result = await runMarkerCommand({
-      args: ["task_completion"],
+      args: ["task-completion"],
       options: {},
       mapData: MAP_DATA_NO_MARKERS,
       format: "text",
     });
     assert.equal(result.view, null);
-    assert.ok(result.meta.emptyState.includes("task_completion"));
+    assert.ok(result.meta.emptyState.includes("task-completion"));
   });
 
   it("filters by --level", async () => {
     const result = await runMarkerCommand({
-      args: ["task_completion"],
+      args: ["task-completion"],
       options: { level: "working" },
       mapData: MAP_DATA_WITH_MARKERS,
       format: "text",
@@ -73,7 +73,7 @@ describe("marker command", () => {
 
   it("returns empty state for unknown level filter", async () => {
     const result = await runMarkerCommand({
-      args: ["task_completion"],
+      args: ["task-completion"],
       options: { level: "expert" },
       mapData: MAP_DATA_WITH_MARKERS,
       format: "text",

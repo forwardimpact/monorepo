@@ -97,11 +97,11 @@ describe("activity generation", () => {
         "should generate at least one initiative",
       );
 
-      // Declining deep_work with magnitude -6 should produce priority 0
+      // Declining deep-work with magnitude -6 should produce priority 0
       const deepWorkInit = initiatives.find(
-        (i) => i._driver_id === "deep_work",
+        (i) => i._driver_id === "deep-work",
       );
-      assert.ok(deepWorkInit, "should have initiative for deep_work driver");
+      assert.ok(deepWorkInit, "should have initiative for deep-work driver");
       assert.strictEqual(deepWorkInit.priority, 0);
       assert.ok(deepWorkInit.name.includes("Alpha Team"));
       assert.ok(deepWorkInit.scorecard_id);
@@ -111,7 +111,7 @@ describe("activity generation", () => {
     test("generates initiatives from rising scenario drivers", () => {
       const { activity } = generateFromDsl(MINI_TERRAIN);
       const risingInit = activity.initiatives.find(
-        (i) => i._driver_id === "learning_culture",
+        (i) => i._driver_id === "learning-culture",
       );
       assert.ok(risingInit, "should have initiative for rising driver");
       assert.ok(

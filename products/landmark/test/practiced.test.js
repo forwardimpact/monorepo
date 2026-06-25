@@ -11,7 +11,7 @@ const PRACTICED_TEAM = [
   {
     email: "carol@example.com",
     name: "Carol",
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     level: "J040",
     track: "platform",
   },
@@ -47,7 +47,7 @@ describe("practiced command", () => {
     assert.equal(result.view.teamSize, 3);
 
     const taskComp = result.view.skills.find(
-      (s) => s.skillId === "task_completion",
+      (s) => s.skillId === "task-completion",
     );
     assert.ok(taskComp.derivedDepth);
     assert.equal(taskComp.evidencedCount, 5);

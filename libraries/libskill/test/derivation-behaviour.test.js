@@ -70,7 +70,7 @@ describe("deriveBehaviourMaturity", () => {
       track,
       behaviourId: "collaboration",
     });
-    assert.strictEqual(result, "role_modeling"); // 1 + 1 + 1 = 3 = role_modeling
+    assert.strictEqual(result, "role-modeling"); // 1 + 1 + 1 = 3 = role-modeling
   });
 
   test("clamps to exemplifying at upper bound", () => {

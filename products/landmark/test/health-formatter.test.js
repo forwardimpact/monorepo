@@ -13,7 +13,7 @@ function makeDriver(overrides = {}) {
     vs_50th: null,
     vs_75th: null,
     vs_90th: null,
-    contributingSkills: [{ skillId: "task_completion", count: 3 }],
+    contributingSkills: [{ skillId: "task-completion", count: 3 }],
     comments: [],
     recommendations: [],
     ...overrides,
@@ -51,7 +51,7 @@ const SIX_DRIVERS = [
     vs_90th: null,
     recommendations: [
       {
-        skill: "incident_response",
+        skill: "incident-response",
         impact: "high",
         candidates: [
           {
@@ -64,7 +64,7 @@ const SIX_DRIVERS = [
     ],
   }),
   makeDriver({
-    id: "code_review",
+    id: "code-review",
     name: "Code Review",
     score: 60,
     vs_prev: 1,
@@ -195,7 +195,7 @@ describe("health formatter — default mode", () => {
   it("emits each (candidate, skill) recommendation only once across drivers", () => {
     const out = toText(SIX_DRIVER_VIEW, { format: "text", warnings: [] });
     const occurrences = out.match(/could develop/g) ?? [];
-    // Bob/planning spans Quality + Delivery (1), Alice/incident_response on
+    // Bob/planning spans Quality + Delivery (1), Alice/incident-response on
     // Reliability (1) — total 2 unique pairs.
     assert.equal(occurrences.length, 2);
   });

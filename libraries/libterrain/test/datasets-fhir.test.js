@@ -31,7 +31,7 @@ function makeFhirFactory() {
               resourceType: "Condition",
               subject: { reference: `urn:uuid:${PATIENT_UUID}` },
               code: {
-                coding: [{ code: "diabetes_t2", display: "Type 2 Diabetes" }],
+                coding: [{ code: "diabetes-t2", display: "Type 2 Diabetes" }],
                 text: "Type 2 Diabetes",
               },
             },
@@ -46,13 +46,13 @@ function makeClinicalEntities() {
   return {
     domain: "test.example",
     clinical: {
-      conditions: [{ id: "diabetes_t2", name: "Type 2 Diabetes" }],
+      conditions: [{ id: "diabetes-t2", name: "Type 2 Diabetes" }],
       trials: [
         {
-          id: "oncora_p3",
-          conditions: ["diabetes_t2"],
+          id: "oncora-p3",
+          conditions: ["diabetes-t2"],
           sites: ["cambridge"],
-          iri: "https://test.example/id/clinical/trial/oncora_p3",
+          iri: "https://test.example/id/clinical/trial/oncora-p3",
         },
       ],
       sites: [
@@ -142,7 +142,7 @@ describe("fhir-cross-ref node", () => {
       factory: makeFhirFactory(),
     });
     assert.ok(crossRef, "crossRef should be non-null");
-    assert.ok(crossRef.conditionIdToPatientIris.get("diabetes_t2"));
+    assert.ok(crossRef.conditionIdToPatientIris.get("diabetes-t2"));
   });
 });
 

@@ -114,5 +114,5 @@ export const runInterviewCommand = createCompositeCommand({
     }
   },
   usageExample:
-    "npx fit-pathway interview software_engineering J090 --track=platform --type=mission",
+    "npx fit-pathway interview software-engineering J090 --track=platform --type=mission",
 });

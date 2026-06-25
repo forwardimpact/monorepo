@@ -29,14 +29,14 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Carol
       email: carol@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
   b:
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 `;
 
 let data;
@@ -83,38 +83,38 @@ test("text formatter renders both team sections for --move", () => {
   const dstSection = output.slice(dstIdx);
 
   assert.ok(
-    srcSection.includes("- task_completion  depth: 2 → 1"),
-    "source section: task_completion depth 2 → 1",
+    srcSection.includes("- task-completion  depth: 2 → 1"),
+    "source section: task-completion depth 2 → 1",
   );
   assert.ok(
-    srcSection.includes("+ task_completion became single point of failure"),
-    "source section: task_completion became SPOF",
-  );
-
-  assert.ok(
-    dstSection.includes("+ task_completion  depth: 1 → 2"),
-    "destination section: task_completion depth 1 → 2",
-  );
-  assert.ok(
-    dstSection.includes("- task_completion no longer single point of failure"),
-    "destination section: task_completion no longer SPOF",
+    srcSection.includes("+ task-completion became single point of failure"),
+    "source section: task-completion became SPOF",
   );
 
   assert.ok(
-    !dstSection.includes("- task_completion  depth:"),
+    dstSection.includes("+ task-completion  depth: 1 → 2"),
+    "destination section: task-completion depth 1 → 2",
+  );
+  assert.ok(
+    dstSection.includes("- task-completion no longer single point of failure"),
+    "destination section: task-completion no longer SPOF",
+  );
+
+  assert.ok(
+    !dstSection.includes("- task-completion  depth:"),
     "destination section does not carry source-side capability direction",
   );
   assert.ok(
-    !dstSection.includes("+ task_completion became single point of failure"),
+    !dstSection.includes("+ task-completion became single point of failure"),
     "destination section does not carry source-side risk line",
   );
 
   assert.ok(
-    !srcSection.includes("+ task_completion  depth:"),
+    !srcSection.includes("+ task-completion  depth:"),
     "source section does not carry destination-side capability direction",
   );
   assert.ok(
-    !srcSection.includes("- task_completion no longer single point of failure"),
+    !srcSection.includes("- task-completion no longer single point of failure"),
     "source section does not carry destination-side risk line",
   );
 });

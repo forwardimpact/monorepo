@@ -7,8 +7,8 @@
 
 /**
  * Minimal but complete standard keyed around a "delivery" capability,
- * "planning" skill, "platform" track, "quality" driver, "systems_thinking"
- * behaviour, "software_engineering" discipline, and a J040 level.
+ * "planning" skill, "platform" track, "quality" driver, "systems-thinking"
+ * behaviour, "software-engineering" discipline, and a J040 level.
  *
  * Shared by exporter.test.js and pipeline.test.js — both assert on the same
  * IRIs (skill/planning, capability/delivery, etc.), so the fixture must keep
@@ -42,7 +42,7 @@ export const DATA = {
   ],
   disciplines: [
     {
-      id: "software_engineering",
+      id: "software-engineering",
       specialization: "Software Engineering",
       coreSkills: ["planning"],
       description: "...",
@@ -66,7 +66,7 @@ export const DATA = {
   ],
   behaviours: [
     {
-      id: "systems_thinking",
+      id: "systems-thinking",
       name: "Think in Systems",
       description: "...",
       maturityDescriptions: { emerging: "..." },
@@ -98,13 +98,13 @@ export const PIPELINE_DATA = {
 
 /**
  * People fixtures for validate-people tests. STARTER_DIR exposes J040 as a
- * valid level and "software_engineering" as a valid discipline.
+ * valid level and "software-engineering" as a valid discipline.
  */
 export const PEOPLE_VALID = [
   {
     email: "a@x",
     name: "A",
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     level: "J040",
   },
 ];
@@ -113,7 +113,7 @@ export const PEOPLE_UNKNOWN_LEVEL = [
   {
     email: "a@x",
     name: "A",
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     level: "L999",
   },
 ];

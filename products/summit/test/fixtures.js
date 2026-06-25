@@ -37,19 +37,19 @@ export function loadStarterData() {
  * - project `migration-q2` — Bob @ 0.6, External (J060) @ 1.0
  *
  * Proficiency math under the starter standard:
- * - software_engineering has task_completion as its CORE skill,
- *   planning as SUPPORTING, incident_response as BROAD.
+ * - software-engineering has task-completion as its CORE skill,
+ *   planning as SUPPORTING, incident-response as BROAD.
  * - J060 base proficiencies: core=working, supporting=foundational,
  *   broad=awareness.
  * - J040 base proficiencies: core=foundational, supporting=awareness,
  *   broad=awareness.
  * - platform track modifies reliability: +1 and delivery: -1. Because
- *   task_completion/planning live in delivery, a platform member loses one
- *   step in those; reliability (incident_response) gains one capped by the
+ *   task-completion/planning live in delivery, a platform member loses one
+ *   step in those; reliability (incident-response) gains one capped by the
  *   level's max.
  *
- * So at J060 without a track, task_completion = working (working+).
- * At J060 with platform, task_completion = foundational (below working).
+ * So at J060 without a track, task-completion = working (working+).
+ * At J060 with platform, task-completion = foundational (below working).
  *
  * Fixture below lets the reporting team have one working+ holder (Bob) and
  * the project team have two working+ holders (Bob + External) via J060
@@ -61,18 +61,18 @@ teams:
     - name: Alice
       email: alice@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
         track: platform
     - name: Bob
       email: bob@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
     - name: Carol
       email: carol@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J040
         track: platform
 
@@ -82,7 +82,7 @@ projects:
       allocation: 0.6
     - name: External
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
       allocation: 1.0
 `;

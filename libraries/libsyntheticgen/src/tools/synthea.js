@@ -109,7 +109,7 @@ export class SyntheaTool {
     const datasets = [];
     for (const [type, records] of byType) {
       datasets.push({
-        name: `${config.name}_${type.toLowerCase()}`,
+        name: `${config.name}-${type.toLowerCase()}`,
         schema: null,
         records,
         metadata: { tool: "synthea", resourceType: type },

@@ -44,10 +44,10 @@ describe("PathwayService integration (starter standard)", () => {
 
   test("DescribeJob skill matrix matches deriveJob output for the same inputs", async () => {
     const discipline = data.disciplines.find(
-      (d) => d.id === "software_engineering",
+      (d) => d.id === "software-engineering",
     );
     const level = data.levels.find((l) => l.id === "J060");
-    assert.ok(discipline, "expected software_engineering discipline");
+    assert.ok(discipline, "expected software-engineering discipline");
     assert.ok(level, "expected J060 level");
 
     const expected = deriveJob({
@@ -62,12 +62,12 @@ describe("PathwayService integration (starter standard)", () => {
     assert.ok(expected, "expected deriveJob to return a job");
 
     const result = await service.DescribeJob({
-      discipline: "software_engineering",
+      discipline: "software-engineering",
       level: "J060",
     });
 
     const quads = parseQuads(result.content);
-    const jobIri = `${FIT}job/software_engineering/J060`;
+    const jobIri = `${FIT}job/software-engineering/J060`;
     assert.ok(
       findOne(quads, {
         subject: jobIri,
@@ -109,7 +109,7 @@ describe("PathwayService integration (starter standard)", () => {
 
   test("DescribeProgression skill changes match analyzeProgression output", async () => {
     const discipline = data.disciplines.find(
-      (d) => d.id === "software_engineering",
+      (d) => d.id === "software-engineering",
     );
     const fromLevel = data.levels.find((l) => l.id === "J040");
     const toLevel = data.levels.find((l) => l.id === "J060");
@@ -135,13 +135,13 @@ describe("PathwayService integration (starter standard)", () => {
     const expected = analyzeProgression(currentJob, targetJob);
 
     const result = await service.DescribeProgression({
-      discipline: "software_engineering",
+      discipline: "software-engineering",
       from_level: "J040",
       to_level: "J060",
     });
 
     const quads = parseQuads(result.content);
-    const progNode = `${FIT}progression/software_engineering/J040-J060`;
+    const progNode = `${FIT}progression/software-engineering/J040-J060`;
     assert.ok(
       findOne(quads, {
         subject: progNode,

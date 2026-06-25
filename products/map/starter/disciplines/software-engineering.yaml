@@ -7,7 +7,7 @@ isProfessional: true
 # null = allow trackless (generalist)
 validTracks:
   - null
-  - forward_deployed
+  - forward-deployed
   - platform
 
 description:
@@ -16,13 +16,13 @@ description:
 
 # Derivation inputs — one skill per tier
 coreSkills:
-  - task_completion
+  - task-completion
 supportingSkills:
   - planning
 broadSkills:
-  - incident_response
+  - incident-response
 behaviourModifiers:
-  systems_thinking: 1
+  systems-thinking: 1
 
 # Human-specific content
 human:

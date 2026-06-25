@@ -15,17 +15,17 @@ description:
 
 # Derivation inputs — substrate-aligned skill set
 coreSkills:
-  - data_integration
-  - data_modeling
-  - performance_optimization
+  - data-integration
+  - data-modeling
+  - performance-optimization
 supportingSkills:
-  - architecture_design
-  - cloud_platforms
+  - architecture-design
+  - cloud-platforms
 broadSkills:
-  - stakeholder_management
-  - regulatory_compliance
+  - stakeholder-management
+  - regulatory-compliance
 behaviourModifiers:
-  systems_thinking: 1
+  systems-thinking: 1
 
 # Human-specific content
 human:

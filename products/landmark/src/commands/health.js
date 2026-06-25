@@ -314,7 +314,7 @@ function attachComments(drivers, allComments) {
   if (allComments.length === 0) return;
   for (const d of drivers) {
     const skillKeywords = (d.contributingSkills ?? []).map((s) =>
-      s.skillId.replace(/_/g, " ").toLowerCase(),
+      s.skillId.replace(/[-_]/g, " ").toLowerCase(),
     );
     d.comments = allComments
       .filter((c) => {

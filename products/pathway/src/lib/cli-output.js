@@ -35,11 +35,11 @@ export function formatBehaviourMaturity(maturity) {
     emerging: colors.gray,
     developing: colors.blue,
     practicing: colors.green,
-    role_modeling: colors.yellow,
+    "role-modeling": colors.yellow,
     exemplifying: colors.magenta,
   };
   const color = maturityColors[maturity] || colors.reset;
-  const displayName = maturity.replace(/_/g, " ");
+  const displayName = maturity.replace(/-/g, " ");
   return colorize(displayName, color);
 }
 

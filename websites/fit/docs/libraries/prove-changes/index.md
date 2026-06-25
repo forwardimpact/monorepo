@@ -74,14 +74,14 @@ terrain Acme {
       J080 20%
     }
     disciplines {
-      software_engineering 80%
-      data_engineering 20%
+      software-engineering 80%
+      data-engineering 20%
     }
   }
 
   standard {
     proficiencies [awareness, foundational, working, practitioner, expert]
-    maturities [emerging, developing, practicing, role_modeling, exemplifying]
+    maturities [emerging, developing, practicing, role-modeling, exemplifying]
 
     levels {
       J060 { title "Engineer" rank 2 experience "2-4 years" }
@@ -96,28 +96,28 @@ terrain Acme {
       }
       reliability {
         name "Reliability"
-        skills [sre_practices, incident_management]
+        skills [sre_practices, incident-management]
       }
     }
 
     behaviours {
       outcome_ownership { name "Own the Outcome" }
-      systems_thinking { name "Think in Systems" }
+      systems-thinking { name "Think in Systems" }
     }
 
     disciplines {
-      software_engineering {
+      software-engineering {
         roleTitle "Software Engineer"
         specialization "Software Engineering"
         core [full_stack_development, sre_practices]
         supporting [problem_discovery]
-        broad [incident_management]
+        broad [incident-management]
         validTracks [null]
       }
-      data_engineering {
+      data-engineering {
         roleTitle "Data Engineer"
         specialization "Data Engineering"
-        core [problem_discovery, incident_management]
+        core [problem_discovery, incident-management]
         supporting [full_stack_development]
         broad [sre_practices]
         validTracks [null]

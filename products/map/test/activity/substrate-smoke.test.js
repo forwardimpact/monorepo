@@ -325,7 +325,7 @@ describe("assertNonEmpty row-class trigger", () => {
   test("accepts non-empty object (e.g. evidence by skillId)", () => {
     assert.doesNotThrow(() =>
       assertNonEmpty(
-        JSON.stringify({ evidence: { task_completion: [{ id: 1 }] } }),
+        JSON.stringify({ evidence: { "task-completion": [{ id: 1 }] } }),
         "evidence",
       ),
     );

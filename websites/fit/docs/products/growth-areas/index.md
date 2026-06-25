@@ -126,7 +126,7 @@ npx fit-landmark evidence --email you@example.com
 ```text
   Evidence
 
-    architecture_design: 3 matched, 1 unmatched
+    architecture-design: 3 matched, 1 unmatched
       [matched] Designs services with clear API boundaries
         rationale: A recent pull request introduced a new service boundary with documented...
         provenance: artifact_interpreted
@@ -138,7 +138,7 @@ npx fit-landmark evidence --email you@example.com
         provenance: artifact_interpreted
       [unmatched] Leads architecture for a product or platform area
 
-    code_review: 2 matched, 0 unmatched
+    code-review: 2 matched, 0 unmatched
       [matched] Provides actionable feedback on design intent, not just style
         rationale: Review of a recent pull request identified a coupling risk between...
         provenance: artifact_interpreted
@@ -154,7 +154,7 @@ provenance label naming where the evidence came from. Filter by skill to
 focus on a specific gap:
 
 ```sh
-npx fit-landmark evidence --skill architecture_design --email you@example.com
+npx fit-landmark evidence --skill architecture-design --email you@example.com
 ```
 
 ### Know where each piece of evidence comes from
@@ -232,7 +232,7 @@ npx fit-landmark coverage --email you@example.com
       human_attested            3
 
     By type:
-      code_review           2/4 interpreted
+      code-review           2/4 interpreted
       design_document       4/5 interpreted
       pull_request          12/15 interpreted
 ```
@@ -285,14 +285,14 @@ To see the full set of markers defined for a skill at any proficiency level,
 use Landmark's `marker` command:
 
 ```sh
-npx fit-landmark marker architecture_design
+npx fit-landmark marker architecture-design
 ```
 
 This shows all markers across all proficiency levels. Filter to a specific
 level:
 
 ```sh
-npx fit-landmark marker architecture_design --level practitioner
+npx fit-landmark marker architecture-design --level practitioner
 ```
 
 Markers are the observable indicators defined in your capability YAML. They
@@ -311,11 +311,11 @@ npx fit-landmark timeline --email you@example.com
 ```text
   Growth timeline for you@example.com
 
-    2025-Q1     architecture_design  working
-    2025-Q2     architecture_design  working
-    2025-Q3     architecture_design  practitioner
-    2025-Q1     code_review          working
-    2025-Q2     code_review          working
+    2025-Q1     architecture-design  working
+    2025-Q2     architecture-design  working
+    2025-Q3     architecture-design  practitioner
+    2025-Q1     code-review          working
+    2025-Q2     code-review          working
 ```
 
 The timeline shows the highest evidenced proficiency level per skill per
@@ -323,7 +323,7 @@ quarter. A level appearing for the first time tells you the evidence record
 has caught up to your growth. Filter by skill to focus on one area:
 
 ```sh
-npx fit-landmark timeline --email you@example.com --skill architecture_design
+npx fit-landmark timeline --email you@example.com --skill architecture-design
 ```
 
 ## Verify

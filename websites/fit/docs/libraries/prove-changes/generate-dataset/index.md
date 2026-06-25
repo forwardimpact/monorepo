@@ -62,7 +62,7 @@ terrain Acme {
   people {
     count 20
     distribution { J060 50%  J070 30%  J080 20% }
-    disciplines  { software_engineering 80%  data_engineering 20% }
+    disciplines  { software-engineering 80%  data-engineering 20% }
   }
 
   standard {

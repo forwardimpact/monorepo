@@ -68,17 +68,17 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 `);
   const q2 = parseRosterYaml(`
 teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 `);
 
   const trajectory = computeTrajectory({
@@ -93,6 +93,6 @@ teams:
   assert.equal(trajectory.quarters.length, 2);
   assert.equal(trajectory.quarters[0].memberCount, 1);
   assert.equal(trajectory.quarters[1].memberCount, 2);
-  assert.equal(trajectory.trends.task_completion, "improving");
-  assert.ok(trajectory.persistentGaps.includes("incident_response"));
+  assert.equal(trajectory.trends["task-completion"], "improving");
+  assert.ok(trajectory.persistentGaps.includes("incident-response"));
 });

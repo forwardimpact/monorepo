@@ -61,7 +61,7 @@ Generate a complete job definition by combining a discipline, level, and
 optional track:
 
 ```sh
-npx fit-pathway job software_engineering J040 --track=platform
+npx fit-pathway job software-engineering J040 --track=platform
 ```
 
 This produces a full view of the skills, behaviours, and expectations for that
@@ -72,7 +72,7 @@ role.
 Create AI agent definitions matched to your role's skill profile:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --output=./agents
+npx fit-pathway agent software-engineering --track=platform --output=./agents
 ```
 
 This generates a `.claude/` directory (and a matching `.vscode/`) under

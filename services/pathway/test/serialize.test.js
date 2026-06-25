@@ -19,11 +19,11 @@ const RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const { parseQuads, findAll, findOne } = createTurtleHelpers(Parser);
 
 const fakeJob = {
-  id: "fde-l3-forward_deployed",
+  id: "fde-l3-forward-deployed",
   title: "FDE L3 (Forward Deployed)",
   discipline: { id: "fde" },
   level: { id: "l3" },
-  track: { id: "forward_deployed" },
+  track: { id: "forward-deployed" },
   skillMatrix: [
     { skillId: "python", proficiency: "practitioner" },
     { skillId: "cloud-architecture", proficiency: "foundational" },
@@ -36,7 +36,7 @@ describe("jobToTurtle", () => {
   test("emits a fit:Job with discipline, level, track, label, skill matrix", async () => {
     const turtle = await jobToTurtle(fakeJob);
     const quads = parseQuads(turtle);
-    const jobIri = `${FIT}job/fde/l3/forward_deployed`;
+    const jobIri = `${FIT}job/fde/l3/forward-deployed`;
 
     assert.ok(
       findOne(quads, {
@@ -64,7 +64,7 @@ describe("jobToTurtle", () => {
       findOne(quads, {
         subject: jobIri,
         predicate: `${FIT}track`,
-        object: `${FIT}track/forward_deployed`,
+        object: `${FIT}track/forward-deployed`,
       }),
     );
 
@@ -118,7 +118,7 @@ describe("jobListToTurtle", () => {
         title: "A",
         discipline: { id: "fde" },
         level: { id: "l3" },
-        track: { id: "forward_deployed" },
+        track: { id: "forward-deployed" },
       },
       {
         title: "B",
@@ -148,7 +148,7 @@ describe("agentProfileToTurtle", () => {
   test("emits fit:AgentProfile with skills and behaviours", async () => {
     const turtle = await agentProfileToTurtle({
       discipline: { id: "fde" },
-      track: { id: "forward_deployed" },
+      track: { id: "forward-deployed" },
       profile: {
         frontmatter: { name: "fde-fwd", model: "opus" },
         bodyData: {
@@ -158,7 +158,7 @@ describe("agentProfileToTurtle", () => {
       },
     });
     const quads = parseQuads(turtle);
-    const node = `${FIT}agent-profile/fde/forward_deployed`;
+    const node = `${FIT}agent-profile/fde/forward-deployed`;
 
     assert.ok(
       findOne(quads, {
@@ -198,7 +198,7 @@ describe("agentProfileListToTurtle", () => {
     const turtle = await agentProfileListToTurtle([
       {
         discipline: { id: "fde" },
-        track: { id: "forward_deployed" },
+        track: { id: "forward-deployed" },
         stage: null,
         profile: null,
       },
@@ -224,12 +224,12 @@ describe("progressionToTurtle", () => {
       current: {
         discipline: { id: "fde" },
         level: { id: "l2" },
-        track: { id: "forward_deployed" },
+        track: { id: "forward-deployed" },
       },
       target: {
         discipline: { id: "fde" },
         level: { id: "l3" },
-        track: { id: "forward_deployed" },
+        track: { id: "forward-deployed" },
       },
       // Fixture uses the canonical libskill shape from progression.js:
       // { id, currentLevel, targetLevel, change, isGained, isLost }.
@@ -263,7 +263,7 @@ describe("progressionToTurtle", () => {
 
     const turtle = await progressionToTurtle(progression);
     const quads = parseQuads(turtle);
-    const progNode = `${FIT}progression/fde/l2-l3/forward_deployed`;
+    const progNode = `${FIT}progression/fde/l2-l3/forward-deployed`;
 
     assert.ok(
       findOne(quads, {
@@ -276,14 +276,14 @@ describe("progressionToTurtle", () => {
       findOne(quads, {
         subject: progNode,
         predicate: `${FIT}fromJob`,
-        object: `${FIT}job/fde/l2/forward_deployed`,
+        object: `${FIT}job/fde/l2/forward-deployed`,
       }),
     );
     assert.ok(
       findOne(quads, {
         subject: progNode,
         predicate: `${FIT}toJob`,
-        object: `${FIT}job/fde/l3/forward_deployed`,
+        object: `${FIT}job/fde/l3/forward-deployed`,
       }),
     );
 
@@ -359,7 +359,7 @@ describe("jobSoftwareToTurtle", () => {
       title: "FDE L3",
       discipline: { id: "fde" },
       level: { id: "l3" },
-      track: { id: "forward_deployed" },
+      track: { id: "forward-deployed" },
     };
     const toolkit = [
       { name: "Python", description: "..." },
@@ -367,7 +367,7 @@ describe("jobSoftwareToTurtle", () => {
     ];
     const turtle = await jobSoftwareToTurtle(job, toolkit);
     const quads = parseQuads(turtle);
-    const jobIri = `${FIT}job/fde/l3/forward_deployed`;
+    const jobIri = `${FIT}job/fde/l3/forward-deployed`;
 
     const softwareQuads = findAll(quads, {
       subject: jobIri,

@@ -92,7 +92,7 @@ If no target is available, estimate one using the level heuristics in
 ```bash
 bunx fit-pathway job {discipline} {level} --track={track}
 bunx fit-pathway job {discipline} {level} --track={track} --skills
-bunx fit-pathway track forward_deployed
+bunx fit-pathway track forward-deployed
 bunx fit-pathway track platform
 ```
 

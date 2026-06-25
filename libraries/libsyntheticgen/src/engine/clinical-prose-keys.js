@@ -277,7 +277,7 @@ function* therapyDescriptionKeys(clinical, base, promptLoader) {
   if (!clinical.content) return;
   for (const topic of clinical.content.therapy_topics || []) {
     const context = {
-      topic: `${topic.replace(/_/g, " ")} treatment overview`,
+      topic: `${topic.replace(/[-_]/g, " ")} treatment overview`,
       tone: "balanced, factual, accessible",
       length: "300-500 words",
       ...base,

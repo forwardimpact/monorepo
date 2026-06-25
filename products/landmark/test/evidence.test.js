@@ -26,8 +26,8 @@ describe("evidence command", () => {
       format: "text",
       queries: stubQueries(),
     });
-    assert.ok(result.view.evidence.task_completion);
-    assert.equal(result.view.evidence.task_completion.matched, 1);
+    assert.ok(result.view.evidence["task-completion"]);
+    assert.equal(result.view.evidence["task-completion"].matched, 1);
     assert.equal(result.view.coverage.scored, 2);
     assert.equal(result.view.coverage.total, 3);
   });

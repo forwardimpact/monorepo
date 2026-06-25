@@ -102,7 +102,7 @@ export function parseScenario(options, context = {}) {
 export function parseJobExpression(input) {
   if (typeof input !== "string" || input.trim().length === 0) {
     throw new ScenarioError(
-      'summit: --add requires a job expression like "{ discipline: software_engineering, level: J060 }".',
+      'summit: --add requires a job expression like "{ discipline: software-engineering, level: J060 }".',
     );
   }
   let parsed;

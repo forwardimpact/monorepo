@@ -6,7 +6,7 @@ import { createFakeSupabase } from "./fake-supabase.js";
 
 const YAML = `- email: daedalus@bionova.example
   name: Daedalus
-  discipline: data_engineering
+  discipline: data-engineering
   level: J080
 `;
 

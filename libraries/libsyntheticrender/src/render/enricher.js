@@ -36,8 +36,8 @@ function enrichProject(linked, id) {
   const narrative = {};
   if (proj.milestones?.length) narrative.milestones = proj.milestones;
   if (proj.risks?.length) narrative.risks = proj.risks;
-  if (proj.technical_choices?.length)
-    narrative.technical_choices = proj.technical_choices;
+  if (proj["technical-choices"]?.length)
+    narrative["technical-choices"] = proj["technical-choices"];
   return {
     entityType: "Project",
     entityName: proj.name,

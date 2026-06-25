@@ -21,7 +21,7 @@ managementResponsibilities:
   practitioner: You drive delivery excellence across multiple teams
   expert: You shape delivery culture across the business unit
 skills:
-  - id: task_completion
+  - id: task-completion
     name: Task Completion
     human:
       description:
@@ -44,7 +44,6 @@ skills:
           You define delivery practices across the organization and drive
           completion of the most complex initiatives.
     agent:
-      name: task-completion
       description: |
         Guide for completing work items reliably from requirements through
         verification.
@@ -86,7 +85,6 @@ skills:
           You shape planning strategy across the organization and drive delivery
           of the most complex programmes.
     agent:
-      name: planning
       description: |
         Guide for breaking down work, estimating effort, and sequencing
         delivery.

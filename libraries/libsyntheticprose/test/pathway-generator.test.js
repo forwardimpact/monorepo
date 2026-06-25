@@ -39,7 +39,7 @@ function makeMockProseGenerator() {
         };
       }
       if (key.includes("drivers")) {
-        return [{ id: "clear_direction", name: "Clear Direction" }];
+        return [{ id: "clear-direction", name: "Clear Direction" }];
       }
       if (key.includes("discipline")) {
         return { roleTitle: "Software Engineer" };
@@ -70,7 +70,7 @@ describe("PathwayGenerator", () => {
       behaviours: [{ id: "collab", name: "Collaboration" }],
       capabilities: [{ id: "coding", name: "Coding", skills: ["python"] }],
       drivers: [
-        { id: "clear_direction", name: "Clear Direction", skills: ["python"] },
+        { id: "clear-direction", name: "Clear Direction", skills: ["python"] },
       ],
       disciplines: [
         {
@@ -158,7 +158,7 @@ describe("PathwayGenerator", () => {
       "emerging",
       "developing",
       "practicing",
-      "role_modeling",
+      "role-modeling",
       "exemplifying",
     ]);
 

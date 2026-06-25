@@ -104,7 +104,7 @@ fit:BehaviourQuestionShape a sh:NodeShape ;
     sh:property [
         sh:path fit:forBehaviour ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "forBehaviour" ;
@@ -112,7 +112,7 @@ fit:BehaviourQuestionShape a sh:NodeShape ;
     ] ;
     sh:property [
         sh:path fit:atMaturity ;
-        sh:in ( fit:emerging fit:developing fit:practicing fit:role_modeling fit:exemplifying ) ;
+        sh:in ( fit:emerging fit:developing fit:practicing fit:role-modeling fit:exemplifying ) ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "atMaturity" ;

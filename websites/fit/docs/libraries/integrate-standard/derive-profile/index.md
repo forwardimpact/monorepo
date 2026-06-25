@@ -28,7 +28,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 const loader = createDataLoader(createDefaultRuntime());
 const data = await loader.loadAllData("data/pathway");
 
-const discipline = data.disciplines.find((d) => d.id === "software_engineering");
+const discipline = data.disciplines.find((d) => d.id === "software-engineering");
 const level = data.levels.find((l) => l.id === "J070");
 const track = data.tracks.find((t) => t.id === "platform");
 ```
@@ -95,11 +95,11 @@ for (const entry of profile) {
 Expected output (abbreviated):
 
 ```text
-Build Polymathic Knowledge     role_modeling
+Build Polymathic Knowledge     role-modeling
 Communicate with Precision     practicing
 Own the Outcome                practicing
 Stay Relentlessly Curious      practicing
-Think in Systems               role_modeling
+Think in Systems               role-modeling
 ```
 
 ## Derive an agent profile instead

@@ -82,7 +82,7 @@ export function createTestLevels() {
         supporting: "practitioner",
         broad: "working",
       },
-      baseBehaviourMaturity: "role_modeling",
+      baseBehaviourMaturity: "role-modeling",
     }),
   ];
 }
@@ -156,7 +156,7 @@ export function createTestSkills() {
  */
 export function createTestDiscipline(overrides = {}) {
   return {
-    id: "software_engineering",
+    id: "software-engineering",
     name: "Software Engineering",
     roleTitle: "Software Engineer",
     isProfessional: true,
@@ -198,7 +198,7 @@ export function createTestBehaviour(overrides = {}) {
       emerging: "Beginning to collaborate",
       developing: "Developing collaboration",
       practicing: "Practicing collaboration",
-      role_modeling: "Role modeling collaboration",
+      "role-modeling": "Role modeling collaboration",
       exemplifying: "Exemplifying collaboration",
     },
     ...overrides,
@@ -337,7 +337,7 @@ export function createTestTracks() {
       skillModifiers: { scale: 1, delivery: -1 },
     }),
     createTestTrack({
-      id: "forward_deployed",
+      id: "forward-deployed",
       name: "Forward Deployed",
       skillModifiers: { delivery: 1, scale: -1 },
     }),
@@ -351,7 +351,7 @@ export function createTestTracks() {
 export function createTestDisciplines() {
   return [
     createTestDiscipline({
-      id: "software_engineering",
+      id: "software-engineering",
       name: "Software Engineering",
       roleTitle: "Software Engineer",
     }),
@@ -396,7 +396,7 @@ export function createTestPerson(overrides = {}) {
     name: "Alice",
     email: "alice@example.com",
     level: "mid",
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     track: "platform",
     ...overrides,
   };

@@ -17,14 +17,14 @@ terrain BioNova {
     parent headquarters
     headcount 55
 
-    team drug_discovery {
+    team drug-discovery {
       name "Drug Discovery Team"
       size 12
       manager @thoth
       repos ["oncology-pipelines", "cell-assay-lib", "molecular-screening"]
     }
 
-    team clinical_development {
+    team clinical-development {
       name "Clinical Development Team"
       size 10
       manager @chronos
@@ -45,7 +45,7 @@ terrain BioNova {
       repos ["stat-engine", "trial-analyzer"]
     }
 
-    team regulatory_science {
+    team regulatory-science {
       name "Regulatory Science Team"
       size 7
       manager @themis
@@ -62,45 +62,45 @@ terrain BioNova {
       name "Zeus"
       title "Director of Engineering"
       level J090
-      discipline engineering_management
+      discipline engineering-management
     }
 
-    team platform_engineering {
+    team platform-engineering {
       name "Platform Engineering Team"
       size 15
       manager @athena
       repos ["molecularforge", "data-lake-infra", "api-gateway"]
     }
 
-    team data_science_ai {
+    team data-science-ai {
       name "Data Science & AI Team"
       size 12
       manager @prometheus
       repos ["ml-pipeline", "prediction-models", "feature-store"]
     }
 
-    team cloud_infrastructure {
+    team cloud-infrastructure {
       name "Cloud Infrastructure Team"
       size 10
       manager @hephaestus
       repos ["terraform-bionova", "k8s-configs", "monitoring-stack"]
     }
 
-    team security_compliance {
+    team security-compliance {
       name "Security & Compliance Team"
       size 8
       manager @ares
       repos ["soc2-automation", "vulnerability-scanner"]
     }
 
-    team enterprise_applications {
+    team enterprise-applications {
       name "Enterprise Applications Team"
       size 10
       manager @hermes
       repos ["erp-integrations", "identity-hub"]
     }
 
-    team developer_experience {
+    team developer-experience {
       name "Developer Experience Team"
       size 10
       manager @iris
@@ -113,28 +113,28 @@ terrain BioNova {
     parent headquarters
     headcount 40
 
-    team process_engineering {
+    team process-engineering {
       name "Process Engineering Team"
       size 10
       manager @demeter
       repos ["batch-control", "gmp-workflow"]
     }
 
-    team quality_assurance {
+    team quality-assurance {
       name "Quality Assurance Team"
       size 10
       manager @astraea
       repos ["qa-automation", "capa-tracker"]
     }
 
-    team supply_chain {
+    team supply-chain {
       name "Supply Chain Team"
       size 10
       manager @tyche
       repos ["supply-optimizer", "logistics-api"]
     }
 
-    team manufacturing_it {
+    team manufacturing-it {
       name "Manufacturing IT Team"
       size 10
       manager @daedalus
@@ -147,42 +147,42 @@ terrain BioNova {
     parent headquarters
     headcount 51
 
-    team medical_affairs {
+    team medical-affairs {
       name "Medical Affairs Team"
       size 8
       manager @asclepius
       repos ["medical-info-portal", "kol-tracker"]
     }
 
-    team market_access {
+    team market-access {
       name "Market Access Team"
       size 8
       manager @plutus
       repos ["pricing-engine", "payer-analytics"]
     }
 
-    team digital_marketing {
+    team digital-marketing {
       name "Digital Marketing Team"
       size 10
       manager @aphrodite
       repos ["campaign-platform", "analytics-dashboard"]
     }
 
-    team field_operations {
+    team field-operations {
       name "Field Operations Team"
       size 10
       manager @artemis
       repos ["field-force-app", "territory-planner"]
     }
 
-    team customer_support {
+    team customer-support {
       name "Customer Support Team"
       size 8
       manager @hestia
       repos ["support-portal", "knowledge-base"]
     }
 
-    team commercial_analytics {
+    team commercial-analytics {
       name "Commercial Analytics Team"
       size 7
       manager @metis
@@ -203,14 +203,14 @@ terrain BioNova {
       J090 5%
     }
     disciplines {
-      software_engineering 60%
-      data_engineering 25%
-      engineering_management 15%
+      software-engineering 60%
+      data-engineering 25%
+      engineering-management 15%
     }
     archetypes {
-      high_performer 15%
-      steady_contributor 55%
-      new_hire 20%
+      high-performer 15%
+      steady-contributor 55%
+      new-hire 20%
       struggling 10%
     }
   }
@@ -221,53 +221,53 @@ terrain BioNova {
     name "Oncora"
     type "drug"
     phase "clinical_trial_phase_3"
-    teams [drug_discovery, clinical_development]
+    teams [drug-discovery, clinical-development]
     timeline_start 2024-01
     timeline_end 2026-06
     prose_topic "oncology drug in Phase 3 clinical trials"
     prose_tone "technical, optimistic"
     milestones ["Phase 2 completion", "Phase 3 enrollment start", "Interim analysis", "NDA submission"]
     risks ["enrollment delays", "manufacturing scale-up", "regulatory feedback cycles"]
-    technical_choices ["mAb platform", "companion diagnostic", "adaptive trial design"]
+    technical-choices ["mAb platform", "companion diagnostic", "adaptive trial design"]
   }
 
   project molecularforge {
     name "MolecularForge"
     type "platform"
-    teams [platform_engineering, data_science_ai]
+    teams [platform-engineering, data-science-ai]
     timeline_start 2023-06
     timeline_end 2026-12
     prose_topic "AI-powered drug discovery platform rewrite"
     prose_tone "technical"
     milestones ["v2 architecture design", "ML pipeline migration", "Beta launch", "GA release"]
     risks ["model accuracy regression", "data migration complexity", "API backward compatibility"]
-    technical_choices ["PyTorch for ML inference", "graph database for molecular data", "gRPC API layer"]
+    technical-choices ["PyTorch for ML inference", "graph database for molecular data", "gRPC API layer"]
   }
 
-  project compliance_remediation {
+  project compliance-remediation {
     name "SOC2 Compliance Remediation"
     type "program"
-    teams [security_compliance, cloud_infrastructure]
+    teams [security-compliance, cloud-infrastructure]
     timeline_start 2025-01
     timeline_end 2025-06
     prose_topic "SOC2 compliance remediation after audit findings"
     prose_tone "formal, urgent"
   }
 
-  project datalake_v2 {
+  project datalake-v2 {
     name "DataLake v2"
     type "platform"
-    teams [cloud_infrastructure, data_science_ai, platform_engineering]
+    teams [cloud-infrastructure, data-science-ai, platform-engineering]
     timeline_start 2024-06
     timeline_end 2026-03
     prose_topic "next-generation data lake migration to cloud-native architecture"
     prose_tone "technical"
   }
 
-  project cross_func_initiative {
+  project cross-func-initiative {
     name "One BioNova"
     type "program"
-    teams [developer_experience, platform_engineering, process_engineering, digital_marketing]
+    teams [developer-experience, platform-engineering, process-engineering, digital-marketing]
     timeline_start 2025-04
     timeline_end 2025-12
     prose_topic "company-wide engineering culture and tooling unification"
@@ -277,40 +277,40 @@ terrain BioNova {
   project polaris {
     name "BioNova Polaris"
     type "application"
-    teams [platform_engineering, developer_experience, clinical_development]
+    teams [platform-engineering, developer-experience, clinical-development]
     timeline_start 2025-04
     timeline_end 2026-06
     prose_topic "patient-facing clinical trial search and matching application"
     prose_tone "technical, user-focused"
     milestones ["Data model design", "Search API MVP", "Embedding pipeline", "Patient matching GA"]
     risks ["embedding quality for medical terms", "regulatory review of patient-facing content", "Supabase migration coordination"]
-    technical_choices ["Supabase for data and auth", "pgvector for semantic search", "Edge Functions for matching"]
+    technical-choices ["Supabase for data and auth", "pgvector for semantic search", "Edge Functions for matching"]
   }
 
-  project patient_portal {
+  project patient-portal {
     name "BioNova Patient Portal"
     type "application"
-    teams [enterprise_applications, security_compliance, clinical_development]
+    teams [enterprise-applications, security-compliance, clinical-development]
     timeline_start 2025-06
     timeline_end 2026-09
     prose_topic "secure patient portal for trial enrollment and health record access"
     prose_tone "technical, compliance-focused"
     milestones ["Identity integration", "PHI access controls", "Enrollment workflow", "Audit trail GA"]
     risks ["HIPAA compliance gaps", "EHR integration complexity", "identity federation edge cases"]
-    technical_choices ["OIDC for identity", "row-level security in Supabase", "FHIR R4 for EHR interop"]
+    technical-choices ["OIDC for identity", "row-level security in Supabase", "FHIR R4 for EHR interop"]
   }
 
-  project trial_management {
+  project trial-management {
     name "BioNova Trial Management System"
     type "platform"
-    teams [clinical_development, data_science_ai, platform_engineering]
+    teams [clinical-development, data-science-ai, platform-engineering]
     timeline_start 2025-03
     timeline_end 2026-12
     prose_topic "end-to-end clinical trial management and analytics platform"
     prose_tone "technical"
     milestones ["Trial registry import", "Site management module", "Enrollment analytics", "Regulatory submission export"]
     risks ["data migration from legacy CTMS", "multi-site enrollment sync", "audit trail completeness"]
-    technical_choices ["event-sourced enrollment", "CDISC ODM for regulatory export", "real-time dashboards"]
+    technical-choices ["event-sourced enrollment", "CDISC ODM for regulatory export", "real-time dashboards"]
   }
 
   // ─── Scenarios ──────────────────────────────────
@@ -323,192 +323,192 @@ terrain BioNova {
     webhook_prose_cap 1000
   }
 
-  scenario oncora_push {
+  scenario oncora-push {
     name "Oncora Drug Discovery Push"
     narrative "Drug discovery team ramps up for Phase 3 enrollment, requiring elevated code velocity and cross-team coordination with clinical development"
     timerange_start 2025-03
     timerange_end 2025-09
 
-    affect drug_discovery {
+    affect drug-discovery {
       github_commits "spike"
       github_prs "elevated"
       dx_drivers {
-        clear_direction  { trajectory "rising" magnitude 5 }
-        learning_culture { trajectory "rising" magnitude 3 }
+        clear-direction  { trajectory "rising" magnitude 5 }
+        learning-culture { trajectory "rising" magnitude 3 }
         connectedness    { trajectory "rising" magnitude 4 }
       }
-      evidence_skills [data_integration, data_modeling]
+      evidence_skills [data-integration, data-modeling]
       evidence_floor "working"
     }
 
-    affect clinical_development {
+    affect clinical-development {
       github_commits "elevated"
       github_prs "moderate"
       dx_drivers {
-        clear_direction       { trajectory "rising" magnitude 4 }
-        efficient_processes   { trajectory "rising" magnitude 3 }
-        requirements_quality  { trajectory "rising" magnitude 2 }
+        clear-direction       { trajectory "rising" magnitude 4 }
+        efficient-processes   { trajectory "rising" magnitude 3 }
+        requirements-quality  { trajectory "rising" magnitude 2 }
       }
-      evidence_skills [stakeholder_management]
+      evidence_skills [stakeholder-management]
       evidence_floor "foundational"
     }
   }
 
-  scenario molecularforge_release {
+  scenario molecularforge-release {
     name "MolecularForge Major Release"
     narrative "Platform team pushes toward GA release of MolecularForge v2, with ML pipeline migration and API stabilization as critical path items"
     timerange_start 2025-06
     timerange_end 2025-12
 
-    affect platform_engineering {
+    affect platform-engineering {
       github_commits "sustained_spike"
       github_prs "very_high"
       dx_drivers {
-        deep_work           { trajectory "declining" magnitude -8 }
-        managing_tech_debt  { trajectory "declining" magnitude -5 }
-        ease_of_release     { trajectory "declining" magnitude -6 }
-        code_review         { trajectory "declining" magnitude -3 }
+        deep-work           { trajectory "declining" magnitude -8 }
+        managing-tech-debt  { trajectory "declining" magnitude -5 }
+        ease-of-release     { trajectory "declining" magnitude -6 }
+        code-review         { trajectory "declining" magnitude -3 }
       }
-      evidence_skills [architecture_design, sre_practices]
+      evidence_skills [architecture-design, sre-practices]
       evidence_floor "practitioner"
     }
   }
 
-  scenario compliance_audit {
+  scenario compliance-audit {
     name "SOC2 Compliance Remediation"
     timerange_start 2025-01
     timerange_end 2025-06
 
-    affect security_compliance {
+    affect security-compliance {
       github_commits "elevated"
       github_prs "elevated"
       dx_drivers {
-        clear_direction     { trajectory "rising" magnitude 6 }
+        clear-direction     { trajectory "rising" magnitude 6 }
         documentation       { trajectory "rising" magnitude 5 }
-        efficient_processes { trajectory "rising" magnitude 4 }
+        efficient-processes { trajectory "rising" magnitude 4 }
       }
-      evidence_skills [sre_practices, cloud_platforms]
+      evidence_skills [sre-practices, cloud-platforms]
       evidence_floor "working"
     }
 
-    affect cloud_infrastructure {
+    affect cloud-infrastructure {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
-        managing_tech_debt { trajectory "rising" magnitude 3 }
+        managing-tech-debt { trajectory "rising" magnitude 3 }
         documentation      { trajectory "rising" magnitude 4 }
       }
-      evidence_skills [cloud_platforms]
+      evidence_skills [cloud-platforms]
       evidence_floor "foundational"
     }
 
-    affect quality_assurance {
+    affect quality-assurance {
       github_commits "elevated"
       github_prs "elevated"
       dx_drivers {
         documentation       { trajectory "rising" magnitude 5 }
-        efficient_processes { trajectory "rising" magnitude 4 }
+        efficient-processes { trajectory "rising" magnitude 4 }
       }
-      evidence_skills [regulatory_compliance]
+      evidence_skills [regulatory-compliance]
       evidence_floor "working"
     }
 
-    affect regulatory_science {
+    affect regulatory-science {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         documentation { trajectory "rising" magnitude 4 }
       }
-      evidence_skills [regulatory_compliance, stakeholder_management]
+      evidence_skills [regulatory-compliance, stakeholder-management]
       evidence_floor "foundational"
     }
 
-    affect enterprise_applications {
+    affect enterprise-applications {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
-        managing_tech_debt { trajectory "rising" magnitude 3 }
+        managing-tech-debt { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [cloud_platforms]
+      evidence_skills [cloud-platforms]
       evidence_floor "foundational"
     }
   }
 
-  scenario datalake_adoption {
+  scenario datalake-adoption {
     name "DataLake v2 Technology Adoption"
     timerange_start 2025-02
     timerange_end 2025-10
 
-    affect data_science_ai {
+    affect data-science-ai {
       github_commits "elevated"
       github_prs "elevated"
       dx_drivers {
         experimentation     { trajectory "rising" magnitude 5 }
-        learning_culture    { trajectory "rising" magnitude 4 }
-        codebase_experience { trajectory "rising" magnitude 3 }
+        learning-culture    { trajectory "rising" magnitude 4 }
+        codebase-experience { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [data_integration, data_modeling]
+      evidence_skills [data-integration, data-modeling]
       evidence_floor "working"
     }
 
-    affect cloud_infrastructure {
+    affect cloud-infrastructure {
       github_commits "sustained_spike"
       github_prs "elevated"
       dx_drivers {
-        ease_of_release    { trajectory "declining" magnitude -4 }
-        deep_work          { trajectory "declining" magnitude -3 }
-        managing_tech_debt { trajectory "rising" magnitude 2 }
+        ease-of-release    { trajectory "declining" magnitude -4 }
+        deep-work          { trajectory "declining" magnitude -3 }
+        managing-tech-debt { trajectory "rising" magnitude 2 }
       }
-      evidence_skills [cloud_platforms, devops]
+      evidence_skills [cloud-platforms, devops]
       evidence_floor "practitioner"
     }
   }
 
-  scenario one_bionova {
+  scenario one-bionova {
     name "One BioNova Cross-Functional Initiative"
     timerange_start 2025-04
     timerange_end 2025-12
 
-    affect developer_experience {
+    affect developer-experience {
       github_commits "elevated"
       github_prs "elevated"
       dx_drivers {
         connectedness       { trajectory "rising" magnitude 6 }
-        efficient_processes { trajectory "rising" magnitude 5 }
-        learning_culture    { trajectory "rising" magnitude 4 }
+        efficient-processes { trajectory "rising" magnitude 5 }
+        learning-culture    { trajectory "rising" magnitude 4 }
       }
-      evidence_skills [team_collaboration, technical_writing]
+      evidence_skills [team-collaboration, technical-writing]
       evidence_floor "foundational"
     }
 
-    affect platform_engineering {
+    affect platform-engineering {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         connectedness { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [team_collaboration]
+      evidence_skills [team-collaboration]
       evidence_floor "foundational"
     }
 
-    affect process_engineering {
+    affect process-engineering {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         connectedness       { trajectory "rising" magnitude 5 }
-        efficient_processes { trajectory "rising" magnitude 3 }
+        efficient-processes { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [team_collaboration]
+      evidence_skills [team-collaboration]
       evidence_floor "awareness"
     }
 
-    affect digital_marketing {
+    affect digital-marketing {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         connectedness { trajectory "rising" magnitude 4 }
       }
-      evidence_skills [stakeholder_management]
+      evidence_skills [stakeholder-management]
       evidence_floor "awareness"
     }
 
@@ -517,9 +517,9 @@ terrain BioNova {
       github_prs "moderate"
       dx_drivers {
         connectedness    { trajectory "rising" magnitude 3 }
-        learning_culture { trajectory "rising" magnitude 2 }
+        learning-culture { trajectory "rising" magnitude 2 }
       }
-      evidence_skills [data_integration]
+      evidence_skills [data-integration]
       evidence_floor "working"
     }
 
@@ -529,151 +529,151 @@ terrain BioNova {
       dx_drivers {
         connectedness { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [data_modeling]
+      evidence_skills [data-modeling]
       evidence_floor "working"
     }
 
-    affect supply_chain {
+    affect supply-chain {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
-        efficient_processes { trajectory "rising" magnitude 4 }
+        efficient-processes { trajectory "rising" magnitude 4 }
         connectedness       { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [stakeholder_management]
+      evidence_skills [stakeholder-management]
       evidence_floor "foundational"
     }
 
-    affect manufacturing_it {
+    affect manufacturing-it {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         connectedness       { trajectory "rising" magnitude 4 }
-        efficient_processes { trajectory "rising" magnitude 3 }
+        efficient-processes { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [cloud_platforms, team_collaboration]
+      evidence_skills [cloud-platforms, team-collaboration]
       evidence_floor "foundational"
     }
 
-    affect medical_affairs {
+    affect medical-affairs {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         connectedness { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [stakeholder_management]
+      evidence_skills [stakeholder-management]
       evidence_floor "awareness"
     }
 
-    affect market_access {
+    affect market-access {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         connectedness { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [stakeholder_management]
+      evidence_skills [stakeholder-management]
       evidence_floor "awareness"
     }
 
-    affect field_operations {
+    affect field-operations {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         connectedness { trajectory "rising" magnitude 2 }
       }
-      evidence_skills [team_collaboration]
+      evidence_skills [team-collaboration]
       evidence_floor "awareness"
     }
 
-    affect customer_support {
+    affect customer-support {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         connectedness { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [team_collaboration]
+      evidence_skills [team-collaboration]
       evidence_floor "awareness"
     }
 
-    affect commercial_analytics {
+    affect commercial-analytics {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         connectedness       { trajectory "rising" magnitude 3 }
-        learning_culture    { trajectory "rising" magnitude 2 }
+        learning-culture    { trajectory "rising" magnitude 2 }
       }
-      evidence_skills [data_modeling, data_integration]
+      evidence_skills [data-modeling, data-integration]
       evidence_floor "foundational"
     }
   }
 
-  scenario polaris_mvp_push {
+  scenario polaris-mvp-push {
     name "Polaris MVP Push"
     narrative "Platform, DX, and clinical development teams sprint toward Polaris MVP, requiring elevated velocity on search API, embedding pipeline, and clinical data integration"
     timerange_start 2025-06
     timerange_end 2025-09
 
-    affect platform_engineering {
+    affect platform-engineering {
       github_commits "sustained_spike"
       github_prs "very_high"
       dx_drivers {
-        deep_work          { trajectory "declining" magnitude -6 }
-        managing_tech_debt { trajectory "declining" magnitude -4 }
-        ease_of_release    { trajectory "declining" magnitude -5 }
+        deep-work          { trajectory "declining" magnitude -6 }
+        managing-tech-debt { trajectory "declining" magnitude -4 }
+        ease-of-release    { trajectory "declining" magnitude -5 }
       }
-      evidence_skills [architecture_design, data_integration]
+      evidence_skills [architecture-design, data-integration]
       evidence_floor "practitioner"
     }
 
-    affect developer_experience {
+    affect developer-experience {
       github_commits "elevated"
       github_prs "elevated"
       dx_drivers {
-        efficient_processes { trajectory "rising" magnitude 4 }
+        efficient-processes { trajectory "rising" magnitude 4 }
         connectedness       { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [full_stack_development, technical_writing]
+      evidence_skills [full-stack-development, technical-writing]
       evidence_floor "working"
     }
 
-    affect clinical_development {
+    affect clinical-development {
       github_commits "elevated"
       github_prs "moderate"
       dx_drivers {
-        clear_direction      { trajectory "rising" magnitude 5 }
-        requirements_quality { trajectory "rising" magnitude 4 }
+        clear-direction      { trajectory "rising" magnitude 5 }
+        requirements-quality { trajectory "rising" magnitude 4 }
       }
-      evidence_skills [data_integration, stakeholder_management]
+      evidence_skills [data-integration, stakeholder-management]
       evidence_floor "foundational"
     }
   }
 
-  scenario polaris_ga_release {
+  scenario polaris-ga-release {
     name "Polaris GA Release"
     narrative "Platform and DX teams stabilize Polaris for general availability, focusing on performance, security hardening, and production readiness"
     timerange_start 2025-10
     timerange_end 2026-03
 
-    affect platform_engineering {
+    affect platform-engineering {
       github_commits "elevated"
       github_prs "elevated"
       dx_drivers {
-        ease_of_release    { trajectory "rising" magnitude 5 }
-        managing_tech_debt { trajectory "rising" magnitude 4 }
-        code_review        { trajectory "rising" magnitude 3 }
+        ease-of-release    { trajectory "rising" magnitude 5 }
+        managing-tech-debt { trajectory "rising" magnitude 4 }
+        code-review        { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [sre_practices, performance_optimization]
+      evidence_skills [sre-practices, performance-optimization]
       evidence_floor "practitioner"
     }
 
-    affect developer_experience {
+    affect developer-experience {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
         documentation       { trajectory "rising" magnitude 5 }
-        efficient_processes { trajectory "rising" magnitude 3 }
+        efficient-processes { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [technical_writing, team_collaboration]
+      evidence_skills [technical-writing, team-collaboration]
       evidence_floor "working"
     }
   }
@@ -682,7 +682,7 @@ terrain BioNova {
 
   standard {
     proficiencies [awareness, foundational, working, practitioner, expert]
-    maturities [emerging, developing, practicing, role_modeling, exemplifying]
+    maturities [emerging, developing, practicing, role-modeling, exemplifying]
 
     // Level titles must comply with the professionalTitle contract:
     // single capitalised rank word — see
@@ -699,74 +699,74 @@ terrain BioNova {
     capabilities {
       delivery {
         name "Delivery"
-        skills [data_integration, full_stack_development, problem_discovery, rapid_prototyping]
+        skills [data-integration, full-stack-development, problem-discovery, rapid-prototyping]
       }
       scale {
         name "Scale"
-        skills [architecture_design, data_modeling, performance_optimization, cloud_platforms]
+        skills [architecture-design, data-modeling, performance-optimization, cloud-platforms]
       }
       reliability {
         name "Reliability"
-        skills [sre_practices, incident_management, observability, change_management]
+        skills [sre-practices, incident-management, observability, change-management]
       }
       business {
         name "Business"
-        skills [stakeholder_management, product_thinking, regulatory_compliance, risk_management]
+        skills [stakeholder-management, product-thinking, regulatory-compliance, risk-management]
       }
       people {
         name "People"
-        skills [team_collaboration, technical_writing, mentoring, code_review]
+        skills [team-collaboration, technical-writing, mentoring, code-review]
       }
     }
 
     behaviours {
-      outcome_ownership { name "Own the Outcome" }
-      systems_thinking { name "Think in Systems" }
-      relentless_curiosity { name "Stay Relentlessly Curious" }
-      precise_communication { name "Communicate with Precision" }
-      polymathic_knowledge { name "Build Polymathic Knowledge" }
+      outcome-ownership { name "Own the Outcome" }
+      systems-thinking { name "Think in Systems" }
+      relentless-curiosity { name "Stay Relentlessly Curious" }
+      precise-communication { name "Communicate with Precision" }
+      polymathic-knowledge { name "Build Polymathic Knowledge" }
     }
 
     disciplines {
-      software_engineering {
+      software-engineering {
         roleTitle "Software Engineer"
         specialization "Software Engineering"
-        core [architecture_design, code_review, full_stack_development]
-        supporting [sre_practices, cloud_platforms]
-        broad [data_modeling, stakeholder_management]
+        core [architecture-design, code-review, full-stack-development]
+        supporting [sre-practices, cloud-platforms]
+        broad [data-modeling, stakeholder-management]
         validTracks [null, platform, sre]
       }
-      data_engineering {
+      data-engineering {
         roleTitle "Data Engineer"
         specialization "Data Engineering"
-        core [data_integration, data_modeling, performance_optimization]
-        supporting [architecture_design, cloud_platforms]
-        broad [stakeholder_management, regulatory_compliance]
+        core [data-integration, data-modeling, performance-optimization]
+        supporting [architecture-design, cloud-platforms]
+        broad [stakeholder-management, regulatory-compliance]
         validTracks [null, platform]
       }
-      engineering_management {
+      engineering-management {
         roleTitle "Engineering Manager"
         specialization "Engineering Management"
         isProfessional false
-        core [stakeholder_management, team_collaboration, mentoring]
-        supporting [product_thinking, risk_management]
-        broad [architecture_design, incident_management]
+        core [stakeholder-management, team-collaboration, mentoring]
+        supporting [product-thinking, risk-management]
+        broad [architecture-design, incident-management]
         validTracks [null]
       }
-      clinical_informatics {
+      clinical-informatics {
         roleTitle "Clinical Informatics Engineer"
         specialization "Clinical Informatics"
-        core [data_integration, regulatory_compliance, data_modeling]
-        supporting [stakeholder_management, risk_management]
-        broad [full_stack_development, observability]
+        core [data-integration, regulatory-compliance, data-modeling]
+        supporting [stakeholder-management, risk-management]
+        broad [full-stack-development, observability]
         validTracks [null]
       }
-      quality_engineering {
+      quality-engineering {
         roleTitle "Quality Engineer"
         specialization "Quality Engineering"
-        core [observability, change_management, regulatory_compliance]
-        supporting [sre_practices, incident_management]
-        broad [code_review, technical_writing]
+        core [observability, change-management, regulatory-compliance]
+        supporting [sre-practices, incident-management]
+        broad [code-review, technical-writing]
         validTracks [null, sre]
       }
     }
@@ -774,117 +774,117 @@ terrain BioNova {
     tracks {
       platform { name "Platform Engineering" }
       sre { name "Site Reliability Engineering" }
-      ml_ops { name "ML Operations" }
+      ml-ops { name "ML Operations" }
       security { name "Security Engineering" }
     }
 
     drivers {
-      clear_direction {
+      clear-direction {
         name "Clear Direction"
-        skills [stakeholder_management, product_thinking]
-        behaviours [outcome_ownership, precise_communication]
+        skills [stakeholder-management, product-thinking]
+        behaviours [outcome-ownership, precise-communication]
       }
-      say_on_priorities {
+      say-on-priorities {
         name "Say on Priorities"
-        skills [stakeholder_management, risk_management]
-        behaviours [outcome_ownership, systems_thinking]
+        skills [stakeholder-management, risk-management]
+        behaviours [outcome-ownership, systems-thinking]
       }
-      requirements_quality {
+      requirements-quality {
         name "Requirements Quality"
-        skills [problem_discovery, product_thinking]
-        behaviours [precise_communication, relentless_curiosity]
+        skills [problem-discovery, product-thinking]
+        behaviours [precise-communication, relentless-curiosity]
       }
-      ease_of_release {
+      ease-of-release {
         name "Ease of Release"
-        skills [change_management, sre_practices]
-        behaviours [systems_thinking, outcome_ownership]
+        skills [change-management, sre-practices]
+        behaviours [systems-thinking, outcome-ownership]
       }
-      test_efficiency {
+      test-efficiency {
         name "Test Efficiency"
-        skills [observability, rapid_prototyping]
-        behaviours [relentless_curiosity, systems_thinking]
+        skills [observability, rapid-prototyping]
+        behaviours [relentless-curiosity, systems-thinking]
       }
-      managing_tech_debt {
+      managing-tech-debt {
         name "Managing Tech Debt"
-        skills [architecture_design, code_review]
-        behaviours [systems_thinking, polymathic_knowledge]
+        skills [architecture-design, code-review]
+        behaviours [systems-thinking, polymathic-knowledge]
       }
-      code_review {
+      code-review {
         name "Code Review"
-        skills [code_review, mentoring]
-        behaviours [precise_communication, polymathic_knowledge]
+        skills [code-review, mentoring]
+        behaviours [precise-communication, polymathic-knowledge]
       }
       documentation {
         name "Documentation"
-        skills [technical_writing, regulatory_compliance]
-        behaviours [precise_communication, polymathic_knowledge]
+        skills [technical-writing, regulatory-compliance]
+        behaviours [precise-communication, polymathic-knowledge]
       }
-      codebase_experience {
+      codebase-experience {
         name "Codebase Experience"
-        skills [full_stack_development, architecture_design]
-        behaviours [polymathic_knowledge, systems_thinking]
+        skills [full-stack-development, architecture-design]
+        behaviours [polymathic-knowledge, systems-thinking]
       }
-      incident_response {
+      incident-response {
         name "Incident Response"
-        skills [incident_management, sre_practices]
-        behaviours [outcome_ownership, systems_thinking]
+        skills [incident-management, sre-practices]
+        behaviours [outcome-ownership, systems-thinking]
       }
-      learning_culture {
+      learning-culture {
         name "Learning Culture"
-        skills [mentoring, technical_writing]
-        behaviours [relentless_curiosity, polymathic_knowledge]
+        skills [mentoring, technical-writing]
+        behaviours [relentless-curiosity, polymathic-knowledge]
       }
       experimentation {
         name "Experimentation"
-        skills [rapid_prototyping, data_modeling]
-        behaviours [relentless_curiosity, outcome_ownership]
+        skills [rapid-prototyping, data-modeling]
+        behaviours [relentless-curiosity, outcome-ownership]
       }
       connectedness {
         name "Connectedness"
-        skills [team_collaboration, stakeholder_management]
-        behaviours [precise_communication, outcome_ownership]
+        skills [team-collaboration, stakeholder-management]
+        behaviours [precise-communication, outcome-ownership]
       }
-      efficient_processes {
+      efficient-processes {
         name "Efficient Processes"
-        skills [change_management, performance_optimization]
-        behaviours [systems_thinking, outcome_ownership]
+        skills [change-management, performance-optimization]
+        behaviours [systems-thinking, outcome-ownership]
       }
-      deep_work {
+      deep-work {
         name "Deep Work"
-        skills [architecture_design, data_integration]
-        behaviours [relentless_curiosity, systems_thinking]
+        skills [architecture-design, data-integration]
+        behaviours [relentless-curiosity, systems-thinking]
       }
-      leveraging_user_feedback {
+      leveraging-user-feedback {
         name "Leveraging User Feedback"
-        skills [product_thinking, problem_discovery]
-        behaviours [relentless_curiosity, precise_communication]
+        skills [product-thinking, problem-discovery]
+        behaviours [relentless-curiosity, precise-communication]
       }
     }
   }
 
   // ─── Content Types ──────────────────────────────
 
-  content guide_html {
+  content guide-html {
     articles 4
-    article_topics [clinical, data_ai, drug_discovery, manufacturing]
+    article_topics [clinical, data-ai, drug-discovery, manufacturing]
     blogs 45
-    blog_topics {
-      drug_discovery 30%
-      platform_engineering 25%
-      clinical_development 20%
-      data_science 15%
-      engineering_culture 10%
+    blog-topics {
+      drug-discovery 30%
+      platform-engineering 25%
+      clinical-development 20%
+      data-science 15%
+      engineering-culture 10%
     }
     faqs 35
     howtos 2
-    howto_topics [clinical_data, gmp_procedures]
+    howto_topics [clinical-data, gmp-procedures]
     reviews 40
     comments 55
     courses 16
     events 8
   }
 
-  content outpost_markdown {
+  content outpost-markdown {
     personas 5
     persona_levels [L1, L2, L3, L4, L5]
     briefings_per_persona 8
@@ -893,11 +893,11 @@ terrain BioNova {
 
   // ─── Datasets ─────────────────────────────────
 
-  dataset trial_patients {
+  dataset trial-patients {
     tool synthea
     population 200
-    conditions [lung_cancer, diabetes_t2, cardiovascular,
-                breast_cancer, hypertension, copd]
+    conditions [lung-cancer, diabetes-t2, cardiovascular,
+                breast-cancer, hypertension, copd]
   }
 
   dataset claims {
@@ -912,17 +912,17 @@ terrain BioNova {
   // ─── Clinical ──────────────────────────────────
 
   clinical {
-    condition lung_cancer {
+    condition lung-cancer {
       name "Non-Small Cell Lung Cancer"
       icd10 ["C34", "C34.9"]
       synonyms ["NSCLC", "lung tumor", "lung malignancy"]
-      synthea_module lung_cancer
+      synthea_module lung-cancer
       severity acute
       prose_topic "NSCLC immunotherapy and targeted therapy trials"
       prose_tone "supportive, clear"
     }
 
-    condition diabetes_t2 {
+    condition diabetes-t2 {
       name "Type 2 Diabetes Mellitus"
       icd10 ["E11", "E11.9"]
       synonyms ["high blood sugar", "adult-onset diabetes", "insulin resistance"]
@@ -936,17 +936,17 @@ terrain BioNova {
       name "Cardiovascular Disease"
       icd10 ["I25", "I25.1"]
       synonyms ["heart disease", "coronary artery disease", "ischemic heart disease"]
-      synthea_module cardiovascular_disease
+      synthea_module cardiovascular-disease
       severity chronic
       prose_topic "cardiovascular disease risk factors and intervention trials"
       prose_tone "empathetic, accessible"
     }
 
-    condition breast_cancer {
+    condition breast-cancer {
       name "HER2-Positive Breast Cancer"
       icd10 ["C50", "C50.9"]
       synonyms ["HER2+ breast cancer", "breast malignancy", "breast tumor"]
-      synthea_module breast_cancer
+      synthea_module breast-cancer
       severity acute
       prose_topic "HER2-positive breast cancer targeted therapy and clinical trials"
       prose_tone "supportive, clear"
@@ -994,7 +994,7 @@ terrain BioNova {
       specialties [oncology, pulmonology]
     }
 
-    site new_york {
+    site new-york {
       name "BioNova New York Satellite"
       address "525 East 68th Street"
       city "New York"
@@ -1016,7 +1016,7 @@ terrain BioNova {
       specialties [oncology, cardiology]
     }
 
-    site san_francisco {
+    site san-francisco {
       name "BioNova San Francisco Trials Center"
       address "505 Parnassus Avenue"
       city "San Francisco"
@@ -1027,13 +1027,13 @@ terrain BioNova {
       specialties [pulmonology, endocrinology]
     }
 
-    trial oncora_phase3 {
+    trial oncora-phase3 {
       name "ONCORA-301"
       protocol_id "BNV-ONC-2024-301"
       project oncora
       phase "Phase 3"
       therapeutic_area "oncology"
-      conditions [lung_cancer]
+      conditions [lung-cancer]
       sites [cambridge, boston, chicago]
       principal_investigator @thoth
       sponsor "BioNova Therapeutics"
@@ -1062,13 +1062,13 @@ terrain BioNova {
       }
     }
 
-    trial oncora_phase1 {
+    trial oncora-phase1 {
       name "ONCORA-101"
       protocol_id "BNV-ONC-2025-101"
       project oncora
       phase "Phase 1"
       therapeutic_area "oncology"
-      conditions [lung_cancer]
+      conditions [lung-cancer]
       sites [cambridge, boston]
       principal_investigator @thoth
       sponsor "BioNova Therapeutics"
@@ -1097,13 +1097,13 @@ terrain BioNova {
       }
     }
 
-    trial cardio_outcomes {
+    trial cardio-outcomes {
       name "CARDIO-301"
       protocol_id "BNV-CRD-2024-301"
       phase "Phase 3"
       therapeutic_area "cardiology"
       conditions [cardiovascular, hypertension]
-      sites [cambridge, new_york, chicago]
+      sites [cambridge, new-york, chicago]
       principal_investigator @chronos
       sponsor "BioNova Therapeutics"
       status "recruiting"
@@ -1131,13 +1131,13 @@ terrain BioNova {
       }
     }
 
-    trial diabetes_prevention {
+    trial diabetes-prevention {
       name "DIABPREV-201"
       protocol_id "BNV-DBX-2024-201"
       phase "Phase 2"
       therapeutic_area "endocrinology"
-      conditions [diabetes_t2]
-      sites [cambridge, new_york, chicago, san_francisco]
+      conditions [diabetes-t2]
+      sites [cambridge, new-york, chicago, san-francisco]
       principal_investigator @hygieia
       sponsor "BioNova Therapeutics"
       status "active_not_recruiting"
@@ -1165,13 +1165,13 @@ terrain BioNova {
       }
     }
 
-    trial her2_combo {
+    trial her2-combo {
       name "HER2COMBO-201"
       protocol_id "BNV-HER-2025-201"
       phase "Phase 2"
       therapeutic_area "oncology"
-      conditions [breast_cancer]
-      sites [cambridge, boston, new_york]
+      conditions [breast-cancer]
+      sites [cambridge, boston, new-york]
       principal_investigator @asclepius
       sponsor "BioNova Therapeutics"
       status "recruiting"
@@ -1199,13 +1199,13 @@ terrain BioNova {
       }
     }
 
-    trial copd_inhaler {
+    trial copd-inhaler {
       name "BREATHE-101"
       protocol_id "BNV-CPD-2025-101"
       phase "Phase 1"
       therapeutic_area "pulmonology"
       conditions [copd]
-      sites [boston, san_francisco]
+      sites [boston, san-francisco]
       principal_investigator @apollo
       sponsor "BioNova Therapeutics"
       status "not_yet_recruiting"
@@ -1236,25 +1236,25 @@ terrain BioNova {
     content {
       condition_explainers per_condition
       therapy_descriptions 6
-      therapy_topics [mab_therapy, immunotherapy, targeted_therapy,
-                      chemotherapy, radiation, clinical_trials_101]
+      therapy_topics [mab-therapy, immunotherapy, targeted-therapy,
+                      chemotherapy, radiation, clinical-trials-101]
       trial_faqs per_trial
       consent_summaries per_trial
       site_descriptions per_site
       patient_stories 10
-      patient_story_conditions [lung_cancer, diabetes_t2,
-                                cardiovascular, breast_cancer]
+      patient_story_conditions [lung-cancer, diabetes-t2,
+                                cardiovascular, breast-cancer]
     }
   }
 
   // ─── Outputs ──────────────────────────────────
 
-  output trial_patients_patient json     { path "output/trial_patients.json" }
-  output trial_patients_patient csv      { path "output/trial_patients.csv" }
-  output trial_patients_condition json   { path "output/trial_conditions.json" }
-  output claims_claims parquet           { path "output/claims.parquet" }
-  output claims_claims sql               { path "output/claims.sql" table "bionova_claims" }
-  output polaris_seed supabase_migration {
+  output trial-patients-patient json     { path "output/trial_patients.json" }
+  output trial-patients-patient csv      { path "output/trial_patients.csv" }
+  output trial-patients-condition json   { path "output/trial_conditions.json" }
+  output claims-claims parquet           { path "output/claims.parquet" }
+  output claims-claims sql               { path "output/claims.sql" table "bionova_claims" }
+  output polaris-seed supabase_migration {
     path "products/polaris/site/supabase/migrations/"
     prefix "seed"
     entities [clinical.conditions, clinical.sites,
@@ -1262,12 +1262,12 @@ terrain BioNova {
     include_embeddings true
   }
 
-  output polaris_embeddings embeddings_jsonl {
+  output polaris-embeddings embeddings_jsonl {
     path "products/polaris/site/supabase/migrations/seed_embeddings.jsonl"
     entities [clinical.conditions, clinical.trials]
     text_fields {
-      clinical.conditions [name, synonyms, prose_explainer]
-      clinical.trials [name, arms, prose_description]
+      clinical.conditions [name, synonyms, prose-explainer]
+      clinical.trials [name, arms, prose-description]
     }
   }
 }

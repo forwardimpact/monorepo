@@ -35,7 +35,7 @@ managementResponsibilities:
     You shape business strategy across the business unit and own enterprise
     stakeholder outcomes
 skills:
-  - id: stakeholder_management
+  - id: stakeholder-management
     name: Stakeholder Management
     human:
       description:
@@ -85,7 +85,6 @@ skills:
           - Produced a stakeholder briefing covering options, trade-offs,
             and a recommendation in the format the stakeholder asked for
     agent:
-      name: stakeholder-management
       description: |
         Guide for engaging stakeholders — keeping them informed at the right
         cadence, in language that fits their outcomes.
@@ -103,7 +102,7 @@ skills:
         - Trade-offs were surfaced before commitments were made
         - Decisions and follow-ups are recorded where stakeholders can find them
 
-  - id: product_thinking
+  - id: product-thinking
     name: Product Thinking
     human:
       description:
@@ -153,7 +152,6 @@ skills:
           - Produced a product brief connecting the user problem, the
             evidence, the options, and the recommendation
     agent:
-      name: product-thinking
       description: |
         Guide for connecting engineering work to the user problem and the
         business outcome it serves.
@@ -171,7 +169,7 @@ skills:
         - Alternatives have been considered against the evidence
         - The recommendation is connected to a measurable change
 
-  - id: regulatory_compliance
+  - id: regulatory-compliance
     name: Regulatory Compliance
     human:
       description:
@@ -221,7 +219,6 @@ skills:
           - Produced a compliance design that names the regime, the
             controls, and the evidence collection mechanism
     agent:
-      name: regulatory-compliance
       description: |
         Guide for building systems that satisfy the regulatory and policy
         constraints they have to live in.
@@ -239,7 +236,7 @@ skills:
         - Evidence is captured in the agreed format and location
         - Deviations are documented and owned
 
-  - id: risk_management
+  - id: risk-management
     name: Risk Management
     human:
       description:
@@ -287,7 +284,6 @@ skills:
           - Produced a risk review across a programme of work covering
             top risks, sizing, and current mitigation state
     agent:
-      name: risk-management
       description: |
         Guide for surfacing, sizing, and choosing how to handle risks
         before they bite.

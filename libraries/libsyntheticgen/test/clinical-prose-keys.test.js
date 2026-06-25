@@ -25,14 +25,14 @@ function makeClinicalEntities() {
   return {
     conditions: [
       {
-        id: "diabetes_t2",
+        id: "diabetes-t2",
         name: "Type 2 Diabetes",
         icd10: ["E11"],
         synonyms: ["high blood sugar"],
         severity: "chronic",
         prose_topic: "diabetes for patients",
         prose_tone: "empathetic",
-        trials: ["oncora_p3"],
+        trials: ["oncora-p3"],
       },
       {
         id: "cardiovascular",
@@ -42,7 +42,7 @@ function makeClinicalEntities() {
         severity: "chronic",
         prose_topic: null,
         prose_tone: null,
-        trials: ["oncora_p3"],
+        trials: ["oncora-p3"],
       },
     ],
     sites: [
@@ -52,16 +52,16 @@ function makeClinicalEntities() {
         city: "Cambridge",
         state: "MA",
         specialties: ["oncology", "cardiology"],
-        trials: ["oncora_p3"],
+        trials: ["oncora-p3"],
       },
     ],
     trials: [
       {
-        id: "oncora_p3",
+        id: "oncora-p3",
         name: "ONCORA-301",
         phase: "phase_3",
         therapeutic_area: "oncology",
-        conditions: ["diabetes_t2", "cardiovascular"],
+        conditions: ["diabetes-t2", "cardiovascular"],
         sites: ["cambridge"],
         sponsor: "BioNova",
         status: "recruiting",
@@ -74,12 +74,12 @@ function makeClinicalEntities() {
     ],
     criteria: [
       {
-        trial_id: "oncora_p3",
+        trial_id: "oncora-p3",
         inclusion: {
           age_min: 18,
           age_max: 75,
           ecog_max: 2,
-          conditions_required: ["diabetes_t2"],
+          conditions_required: ["diabetes-t2"],
         },
         exclusion: {
           conditions_excluded: ["cardiovascular"],
@@ -90,7 +90,7 @@ function makeClinicalEntities() {
     researchers: [],
     content: {
       patient_stories: 4,
-      patient_story_conditions: ["diabetes_t2", "cardiovascular"],
+      patient_story_conditions: ["diabetes-t2", "cardiovascular"],
       therapy_topics: ["immunotherapy", "biologics"],
     },
   };
@@ -155,7 +155,7 @@ describe("clinical prose key generation", () => {
     const keys = Array.from(
       clinicalProseKeys(clinical, "example.com", "BioNova", loader),
     );
-    const [, ctx] = keys.find(([k]) => k.includes("diabetes_t2"));
+    const [, ctx] = keys.find(([k]) => k.includes("diabetes-t2"));
     assert.strictEqual(ctx.topic, "diabetes for patients");
     assert.strictEqual(ctx.tone, "empathetic");
   });
@@ -190,7 +190,7 @@ describe("clinical prose key generation", () => {
     const stories = keys.filter(([k]) =>
       k.startsWith("clinical_patient_story_"),
     );
-    const diabetesStories = stories.filter(([k]) => k.includes("diabetes_t2"));
+    const diabetesStories = stories.filter(([k]) => k.includes("diabetes-t2"));
     const cardioStories = stories.filter(([k]) => k.includes("cardiovascular"));
     assert.strictEqual(diabetesStories.length, 2);
     assert.strictEqual(cardioStories.length, 2);

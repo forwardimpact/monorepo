@@ -51,12 +51,12 @@ function createFakeClient({ joinedArtifacts = [] } = {}) {
   };
 }
 
-const PERSON = { discipline: "data_engineering", level: "J080", track: null };
+const PERSON = { discipline: "data-engineering", level: "J080", track: null };
 
 /** Minimal standard: one core skill at working proficiency with markers. */
 function makeMapData({ markers }) {
   return {
-    disciplines: [{ id: "data_engineering", coreSkills: ["task_completion"] }],
+    disciplines: [{ id: "data-engineering", coreSkills: ["task-completion"] }],
     levels: [
       {
         id: "J080",
@@ -71,7 +71,7 @@ function makeMapData({ markers }) {
     capabilities: [{ id: "delivery", ordinalRank: 1 }],
     skills: [
       {
-        id: "task_completion",
+        id: "task-completion",
         name: "Task Completion",
         capability: "delivery",
         markers: { working: markers },

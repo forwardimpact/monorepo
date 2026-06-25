@@ -74,7 +74,7 @@ function makeFhirToolFactory() {
               resourceType: "Condition",
               subject: { reference: `urn:uuid:${FIXTURE_PATIENT_UUID}` },
               code: {
-                coding: [{ code: "diabetes_t2", display: "Type 2 Diabetes" }],
+                coding: [{ code: "diabetes-t2", display: "Type 2 Diabetes" }],
                 text: "Type 2 Diabetes",
               },
               onsetDateTime: "2020-01-01",

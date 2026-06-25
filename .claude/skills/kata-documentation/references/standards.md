@@ -74,7 +74,7 @@ guess from examples.
 
 **Casing** — Table cells lowercase unless proper nouns or sentence starts.
 Proficiency levels always lowercase (`awareness`). Behaviour maturities
-lowercase with underscores (`role_modeling`). Entity field names in backticks
+lowercase with underscores (`role-modeling`). Entity field names in backticks
 (`` `baseSkillProficiencies` ``).
 
 ## Repository Documentation

@@ -26,7 +26,7 @@ around the screening question — is this worth an interview?}
 | Dimension      | Assessment                             |
 | -------------- | -------------------------------------- |
 | **Level**      | {estimated level and confidence}       |
-| **Track fit**  | {forward_deployed / platform / either} |
+| **Track fit**  | {forward-deployed / platform / either} |
 | **Discipline** | {best discipline match}                |
 | **Gender**     | {Woman / Man / —}                      |
 
@@ -54,7 +54,7 @@ Standard reference: `{discipline} {level} --track={track}`
 
 ## Track Fit Analysis
 
-{Paragraph explaining why the candidate fits forward_deployed,
+{Paragraph explaining why the candidate fits forward-deployed,
 platform, or either. Reference specific CV evidence.}
 
 ## Screening Recommendation

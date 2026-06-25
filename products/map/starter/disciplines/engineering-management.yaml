@@ -16,15 +16,15 @@ description:
 
 # Derivation inputs — substrate-aligned skill set
 coreSkills:
-  - stakeholder_management
-  - team_collaboration
+  - stakeholder-management
+  - team-collaboration
   - mentoring
 supportingSkills:
-  - product_thinking
-  - risk_management
+  - product-thinking
+  - risk-management
 broadSkills:
-  - architecture_design
-  - incident_management
+  - architecture-design
+  - incident-management
 
 # Human-specific content
 human:

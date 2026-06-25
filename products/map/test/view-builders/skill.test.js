@@ -19,7 +19,7 @@ const CTX = {
   capabilities: [{ id: "foundations", name: "Foundations" }],
   disciplines: [
     {
-      id: "software_engineering",
+      id: "software-engineering",
       specialization: "Software Engineering",
       coreSkills: ["python"],
     },
@@ -52,7 +52,7 @@ describe("buildSkillView", () => {
   test("collects related disciplines from coreSkills/supportingSkills/broadSkills", () => {
     const view = buildSkillView(SKILL, CTX);
     assert.strictEqual(view.relatedDisciplines.length, 1);
-    assert.strictEqual(view.relatedDisciplines[0].id, "software_engineering");
+    assert.strictEqual(view.relatedDisciplines[0].id, "software-engineering");
   });
 
   test("collects related tracks with their modifier value", () => {

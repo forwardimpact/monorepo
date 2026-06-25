@@ -265,40 +265,40 @@ export function assignLinks({
     "Open Source in Pharmaceutical R&D",
   ];
 
-  // Weighted topic selection from DSL blog_topics or fallback to BLOG_TOPICS
+  // Weighted topic selection from DSL blog-topics or fallback to BLOG_TOPICS
   const weightedTopicEntries = blogTopics
     ? Object.entries(blogTopics).map(([name, weight]) => ({ name, weight }))
     : null;
 
   // Title templates per topic — cycle through for variety
   const TOPIC_TITLES = {
-    drug_discovery: [
+    "drug-discovery": [
       "Advances in AI-Driven Drug Discovery",
       "Accelerating Lead Optimization with Computational Methods",
       "From Target Identification to Clinical Candidate",
       "Novel Approaches to Drug Screening and Design",
       "Machine Learning in Molecular Discovery",
     ],
-    platform_engineering: [
+    "platform-engineering": [
       "Building Scalable Platform Infrastructure",
       "Platform Engineering at Scale",
       "Cloud-Native Architecture for Life Sciences",
       "Developer Experience and Platform Tooling",
       "Infrastructure as Code in Practice",
     ],
-    clinical_development: [
+    "clinical-development": [
       "Navigating Complex Clinical Trial Design",
       "Real-World Evidence in Clinical Development",
       "Adaptive Trial Strategies for Modern Therapeutics",
       "Biomarker-Driven Clinical Programs",
     ],
-    data_science: [
+    "data-science": [
       "Data Science in Pharmaceutical R&D",
       "Building Robust Data Pipelines for Drug Development",
       "Machine Learning Models for Bioprocess Optimization",
       "Data Mesh Architecture for Pharma",
     ],
-    engineering_culture: [
+    "engineering-culture": [
       "Building a Culture of Engineering Excellence",
       "Cross-Functional Collaboration in Drug Development",
       "Developer Experience: Lessons Learned",
@@ -323,7 +323,7 @@ export function assignLinks({
     const titles = TOPIC_TITLES[selectedKey];
     if (!titles)
       return selectedKey
-        .replace(/_/g, " ")
+        .replace(/[-_]/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase());
     const count = topicCounters[selectedKey] || 0;
     topicCounters[selectedKey] = count + 1;
@@ -368,8 +368,8 @@ export function assignLinks({
         ["oncora", "cardioguard", "immunex-pro"].includes(d.id),
       platformCategory: "Clinical",
     },
-    data_ai: { drugFilter: () => true, platformCategory: "AI/ML" },
-    drug_discovery: {
+    "data-ai": { drugFilter: () => true, platformCategory: "AI/ML" },
+    "drug-discovery": {
       drugFilter: () => true,
       platformCategory: "Drug Discovery",
     },
@@ -381,7 +381,7 @@ export function assignLinks({
 
   const linkedArticles = articleTopics.map((topic, i) => {
     const topicTitle = topic
-      .replace(/_/g, " ")
+      .replace(/[-_]/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase());
     const mapping = TOPIC_ENTITY_MAP[topic] || {
       drugFilter: () => true,

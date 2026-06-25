@@ -94,7 +94,7 @@ discipline:
 
 ```js
 const request = pathway.ListJobsRequest.fromObject({
-  discipline: "software_engineering",
+  discipline: "software-engineering",
 });
 
 const result = await pathwayClient.ListJobs(request);
@@ -107,7 +107,7 @@ responsibilities, expectations -- for a discipline, level, and optional track:
 
 ```js
 const request = pathway.DescribeJobRequest.fromObject({
-  discipline: "software_engineering",
+  discipline: "software-engineering",
   level: "J070",
   track: "platform",
 });
@@ -122,9 +122,9 @@ Expected output (Turtle RDF, abbreviated):
 @prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
 @prefix schema: <https://schema.org/> .
 
-<urn:fit:job:software_engineering:J070:platform> a fit:Job ;
+<urn:fit:job:software-engineering:J070:platform> a fit:Job ;
   schema:title "Senior Engineer Software Engineer - Platform Engineering" ;
-  fit:discipline "software_engineering" ;
+  fit:discipline "software-engineering" ;
   fit:level "J070" ;
   fit:track "platform" ;
   fit:skillCount 16 ;
@@ -143,7 +143,7 @@ track but is called without one), the service returns a gRPC error:
 ```js
 try {
   const request = pathway.DescribeJobRequest.fromObject({
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     level: "J070",
     // no track -- may be invalid depending on your standard
   });
@@ -162,7 +162,7 @@ strength descending. To derive one:
 
 ```js
 const request = pathway.DescribeAgentProfileRequest.fromObject({
-  discipline: "software_engineering",
+  discipline: "software-engineering",
   track: "platform",
 });
 
@@ -179,7 +179,7 @@ Compute the delta between two levels to see which skills and behaviours change:
 
 ```js
 const request = pathway.DescribeProgressionRequest.fromObject({
-  discipline: "software_engineering",
+  discipline: "software-engineering",
   from_level: "J060",
   to_level: "J070",
   track: "platform",
@@ -198,7 +198,7 @@ Derive the software tools expected for a role based on its skill matrix:
 
 ```js
 const request = pathway.ListJobSoftwareRequest.fromObject({
-  discipline: "software_engineering",
+  discipline: "software-engineering",
   level: "J070",
   track: "platform",
 });

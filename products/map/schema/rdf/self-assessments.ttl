@@ -107,7 +107,7 @@ fit:SkillAssessmentShape a sh:NodeShape ;
     sh:property [
         sh:path fit:assessedSkill ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "assessedSkill" ;
@@ -131,7 +131,7 @@ fit:BehaviourAssessmentShape a sh:NodeShape ;
     sh:property [
         sh:path fit:assessedBehaviour ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "assessedBehaviour" ;
@@ -139,7 +139,7 @@ fit:BehaviourAssessmentShape a sh:NodeShape ;
     ] ;
     sh:property [
         sh:path fit:assessedMaturity ;
-        sh:in ( fit:emerging fit:developing fit:practicing fit:role_modeling fit:exemplifying ) ;
+        sh:in ( fit:emerging fit:developing fit:practicing fit:role-modeling fit:exemplifying ) ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "assessedMaturity" ;

@@ -23,7 +23,7 @@
       "description": "Modifiers by capability ID (not individual skill IDs)",
       "propertyNames": {
         "type": "string",
-        "pattern": "^[a-z][a-z0-9_]*$",
+        "pattern": "^[a-z][a-z0-9-]*$",
         "description": "Must be a capability ID (e.g., delivery, scale, reliability)"
       },
       "additionalProperties": {

@@ -60,9 +60,9 @@ export function deriveReferenceLevel(levels) {
  * @type {Object.<string, string>}
  */
 const DISCIPLINE_ABBREVIATIONS = {
-  software_engineering: "se",
-  data_engineering: "de",
-  data_science: "ds",
+  "software-engineering": "se",
+  "data-engineering": "de",
+  "data-science": "ds",
 };
 
 /**
@@ -149,7 +149,7 @@ export function generateSkillMarkdown({ skillData }) {
 
   return {
     frontmatter: {
-      name: agent.name,
+      name: skillData.id,
       description: agent.description,
       useWhen: agent.useWhen || "",
     },
@@ -161,7 +161,7 @@ export function generateSkillMarkdown({ skillData }) {
     installScript: skillData.installScript || "",
     references: skillData.references || [],
     toolReferences: skillData.toolReferences || [],
-    dirname: agent.name,
+    dirname: skillData.id,
   };
 }
 
@@ -245,7 +245,7 @@ function buildSkillIndex(focusedSkills, skills) {
       if (!skill?.agent) return null;
       return {
         name: derived.skillName,
-        dirname: skill.agent.name,
+        dirname: skill.id,
         useWhen: lcFirst(skill.agent.useWhen?.trim() || ""),
       };
     })
@@ -340,7 +340,7 @@ export function generateAgentProfile({
   const kebabRole = toKebabCase(roleTitle.toLowerCase().replace(/\s+/g, "-"));
   const hasTrack = track && track.id !== "null";
   const filename = hasTrack
-    ? `${kebabRole}--${toKebabCase(track.id)}.agent.md`
+    ? `${kebabRole}--${track.id}.agent.md`
     : `${kebabRole}.agent.md`;
   const profileName = filename.replace(/\.agent\.md$/, "");
 
@@ -406,7 +406,7 @@ export function buildAgentIndex({
       });
     } else {
       for (const track of validTracks) {
-        const id = `${kebabRole}--${toKebabCase(track.id)}`;
+        const id = `${kebabRole}--${track.id}`;
         const name = `${specialization} - ${track.name}`;
         const description = `${specialization} (${track.name}).`;
         agents.push({ id, name, description });

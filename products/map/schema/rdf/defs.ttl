@@ -80,7 +80,7 @@ fit:practicing a fit:BehaviourMaturity ;
     fit:ordinal 3 ;
     rdfs:comment "Consistent application, proactive"@en .
 
-fit:role_modeling a fit:BehaviourMaturity ;
+fit:role-modeling a fit:BehaviourMaturity ;
     rdfs:label "Role Modeling"@en ;
     fit:ordinal 4 ;
     rdfs:comment "Influences team culture"@en .
@@ -217,7 +217,7 @@ fit:practicingDescription a rdf:Property ;
 
 fit:roleModelingDescription a rdf:Property ;
     rdfs:label "roleModelingDescription"@en ;
-    rdfs:comment "Description for role_modeling maturity"@en ;
+    rdfs:comment "Description for role-modeling maturity"@en ;
     rdfs:range xsd:string .
 
 fit:exemplifyingDescription a rdf:Property ;
@@ -303,7 +303,7 @@ fit:MaturityDescriptionsShape a sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:name "role_modeling" ;
+        sh:name "role-modeling" ;
     ] ;
     sh:property [
         sh:path fit:exemplifyingDescription ;

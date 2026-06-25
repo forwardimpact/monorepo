@@ -37,7 +37,7 @@ export function makeDiscipline(overrides = {}) {
 /** Create a management discipline fixture with people-focused core skills and management flags. */
 export function makeManagementDiscipline(overrides = {}) {
   return makeDiscipline({
-    id: "engineering_management",
+    id: "engineering-management",
     roleTitle: "Engineering",
     specialization: "Engineering Management",
     isManagement: true,
@@ -178,7 +178,7 @@ export function makeBehaviours() {
         emerging: "Works with others",
         developing: "Contributes to team",
         practicing: "Facilitates collaboration",
-        role_modeling: "Models collaboration",
+        "role-modeling": "Models collaboration",
         exemplifying: "Shapes collaborative culture",
       },
     }),
@@ -189,7 +189,7 @@ export function makeBehaviours() {
         emerging: "Takes responsibility",
         developing: "Owns deliverables",
         practicing: "Owns outcomes",
-        role_modeling: "Models ownership",
+        "role-modeling": "Models ownership",
         exemplifying: "Shapes ownership culture",
       },
     }),

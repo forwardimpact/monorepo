@@ -41,7 +41,7 @@ describe("buildBehaviourView", () => {
   test("collects maturity descriptions and related drivers", () => {
     const view = buildBehaviourView(
       {
-        id: "systems_thinking",
+        id: "systems-thinking",
         name: "Think in Systems",
         description: "...",
         maturityDescriptions: { emerging: "...", developing: "..." },
@@ -51,12 +51,12 @@ describe("buildBehaviourView", () => {
           {
             id: "quality",
             name: "Quality",
-            contributingBehaviours: ["systems_thinking"],
+            contributingBehaviours: ["systems-thinking"],
           },
         ],
       },
     );
-    assert.strictEqual(view.iri, behaviourIri("systems_thinking"));
+    assert.strictEqual(view.iri, behaviourIri("systems-thinking"));
     assert.strictEqual(view.maturities.length, 2);
     assert.strictEqual(view.relatedDrivers[0].iri, driverIriFn("quality"));
   });
@@ -65,17 +65,17 @@ describe("buildBehaviourView", () => {
 describe("buildDisciplineView", () => {
   test("flattens skill tier IRIs", () => {
     const view = buildDisciplineView({
-      id: "software_engineering",
+      id: "software-engineering",
       specialization: "Software Engineering",
       description: "...",
       coreSkills: ["python"],
       supportingSkills: ["planning"],
-      broadSkills: ["incident_response"],
+      broadSkills: ["incident-response"],
     });
-    assert.strictEqual(view.iri, disciplineIri("software_engineering"));
+    assert.strictEqual(view.iri, disciplineIri("software-engineering"));
     assert.strictEqual(view.coreSkills[0].iri, skillIri("python"));
     assert.strictEqual(view.supportingSkills[0].iri, skillIri("planning"));
-    assert.strictEqual(view.broadSkills[0].iri, skillIri("incident_response"));
+    assert.strictEqual(view.broadSkills[0].iri, skillIri("incident-response"));
   });
 });
 
@@ -100,13 +100,13 @@ describe("buildDriverView", () => {
       name: "Quality",
       description: "...",
       contributingSkills: ["python"],
-      contributingBehaviours: ["systems_thinking"],
+      contributingBehaviours: ["systems-thinking"],
     });
     assert.strictEqual(view.iri, driverIri("quality"));
     assert.strictEqual(view.contributingSkills[0].iri, skillIri("python"));
     assert.strictEqual(
       view.contributingBehaviours[0].iri,
-      behaviourIri("systems_thinking"),
+      behaviourIri("systems-thinking"),
     );
   });
 });

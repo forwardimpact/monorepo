@@ -78,7 +78,7 @@ const CTX = {
   skills: [SKILL],
   disciplines: [
     {
-      id: "software_engineering",
+      id: "software-engineering",
       specialization: "Software Engineering",
       coreSkills: ["python"],
       description: "Builds software.",
@@ -98,7 +98,7 @@ const CTX = {
       name: "Quality",
       description: "...",
       contributingSkills: ["python"],
-      contributingBehaviours: ["systems_thinking"],
+      contributingBehaviours: ["systems-thinking"],
     },
   ],
   behaviours: [],
@@ -186,7 +186,7 @@ describe("Renderer", () => {
   test("renderBehaviour emits fit:Behaviour", async () => {
     const html = renderer.renderBehaviour(
       {
-        id: "systems_thinking",
+        id: "systems-thinking",
         name: "Think in Systems",
         description: "...",
         maturityDescriptions: { emerging: "..." },
@@ -197,7 +197,7 @@ describe("Renderer", () => {
     assert.ok(typesOf(quads).includes(`${VOCAB_BASE}Behaviour`));
     assert.ok(
       hasQuad(quads, {
-        subject: behaviourIri("systems_thinking"),
+        subject: behaviourIri("systems-thinking"),
         predicate: `${VOCAB_BASE}name`,
       }),
     );
@@ -209,7 +209,7 @@ describe("Renderer", () => {
     assert.ok(typesOf(quads).includes(`${VOCAB_BASE}Discipline`));
     assert.ok(
       hasQuad(quads, {
-        subject: disciplineIri("software_engineering"),
+        subject: disciplineIri("software-engineering"),
         predicate: `${VOCAB_BASE}coreSkill`,
         object: skillIri("python"),
       }),
@@ -285,7 +285,7 @@ describe("Renderer", () => {
       }),
       renderer.renderBehaviour(
         {
-          id: "systems_thinking",
+          id: "systems-thinking",
           name: "Think in Systems",
           description: "...",
           maturityDescriptions: { emerging: "..." },

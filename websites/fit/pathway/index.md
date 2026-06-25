@@ -61,7 +61,7 @@ without bespoke prompts.
 ```sh
 npm install @forwardimpact/pathway
 npx fit-pathway dev                                       # Launch web app
-npx fit-pathway job software_engineering J060 --track=platform  # Job definition
+npx fit-pathway job software-engineering J060 --track=platform  # Job definition
 ```
 
 <div class="grid">

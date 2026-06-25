@@ -2,8 +2,8 @@
  * Shared MINI_TERRAIN DSL fixture for activity tests.
  *
  * Two scenarios over different timeranges hit team alpha (declining on
- * deep_work/ease_of_release) and team beta (rising on
- * learning_culture/connectedness). Used by `activity.test.js`,
+ * deep-work/ease-of-release) and team beta (rising on
+ * learning-culture/connectedness). Used by `activity.test.js`,
  * `prose-activity.test.js`, and `file-path-parity.test.js` so all three
  * test files share the same generated entity graph and the file-path
  * baseline asserts post-refactor parity against the same input.
@@ -48,8 +48,8 @@ export const MINI_TERRAIN = `terrain test {
       L4 10%
     }
     disciplines {
-      software_engineering 80%
-      data_engineering 20%
+      software-engineering 80%
+      data-engineering 20%
     }
   }
 
@@ -77,10 +77,10 @@ export const MINI_TERRAIN = `terrain test {
       github_commits "spike"
       github_prs "elevated"
       dx_drivers {
-        deep_work { trajectory "declining" magnitude -6 }
-        ease_of_release { trajectory "declining" magnitude -4 }
+        deep-work { trajectory "declining" magnitude -6 }
+        ease-of-release { trajectory "declining" magnitude -4 }
       }
-      evidence_skills [architecture_design]
+      evidence_skills [architecture-design]
       evidence_floor "working"
     }
   }
@@ -94,10 +94,10 @@ export const MINI_TERRAIN = `terrain test {
       github_commits "moderate"
       github_prs "moderate"
       dx_drivers {
-        learning_culture { trajectory "rising" magnitude 5 }
+        learning-culture { trajectory "rising" magnitude 5 }
         connectedness { trajectory "rising" magnitude 3 }
       }
-      evidence_skills [team_collaboration]
+      evidence_skills [team-collaboration]
       evidence_floor "foundational"
     }
   }
@@ -105,24 +105,24 @@ export const MINI_TERRAIN = `terrain test {
   standard {
     proficiencies [awareness, foundational, working, practitioner, expert]
     drivers {
-      deep_work {
+      deep-work {
         name "Deep Work"
-        skills [architecture_design, data_integration]
+        skills [architecture-design, data-integration]
         behaviours []
       }
-      ease_of_release {
+      ease-of-release {
         name "Ease of Release"
-        skills [change_management, sre_practices]
+        skills [change-management, sre-practices]
         behaviours []
       }
-      learning_culture {
+      learning-culture {
         name "Learning Culture"
-        skills [mentoring, technical_writing]
+        skills [mentoring, technical-writing]
         behaviours []
       }
       connectedness {
         name "Connectedness"
-        skills [team_collaboration, stakeholder_management]
+        skills [team-collaboration, stakeholder-management]
         behaviours []
       }
     }

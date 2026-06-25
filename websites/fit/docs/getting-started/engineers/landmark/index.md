@@ -49,11 +49,11 @@ Look up the observable indicators defined for any skill — useful for
 understanding what evidence is expected at each proficiency level:
 
 ```sh
-npx fit-landmark marker data_integration
+npx fit-landmark marker data-integration
 ```
 
 ```text
-  Markers for Data Integration (data_integration)
+  Markers for Data Integration (data-integration)
 
     awareness:
       human:
@@ -73,7 +73,7 @@ npx fit-landmark marker data_integration
 Filter to a specific proficiency level:
 
 ```sh
-npx fit-landmark marker data_integration --level working
+npx fit-landmark marker data-integration --level working
 ```
 
 ## Check your evidence
@@ -87,11 +87,11 @@ npx fit-landmark evidence --email you@example.com
 ```text
   Evidence
 
-    code_review: 0 matched, 4 unmatched
+    code-review: 0 matched, 4 unmatched
       [unmatched] Reviewed moderate-complexity changes independently.
         rationale: Commit artifact; review behavior cannot be assessed.
 
-    architecture_design: 1 matched, 2 unmatched
+    architecture-design: 1 matched, 2 unmatched
       [matched] Owned the architecture of a service through delivery and validation.
         rationale: A recent pull request introduced a new service boundary with documented API contracts.
       [unmatched] Evaluated alternatives and justified trade-offs in a written design review.

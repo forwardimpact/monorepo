@@ -31,7 +31,7 @@ before deciding whether to invest interview time.
 
 - **Candidate name** — locates `Knowledge/Candidates/{Name}/brief.md`.
 - **Target role** — discipline, level, track (e.g.
-  `software_engineering J070 forward_deployed`). If not given, infer from the
+  `software-engineering J070 forward-deployed`). If not given, infer from the
   candidate's `Req` field → Role file. Ask the user if it can't be inferred.
 - **Recipient** — pod lead or hiring manager the report is for.
 - **CV file** (optional) — read directly when no `screening.md` exists.

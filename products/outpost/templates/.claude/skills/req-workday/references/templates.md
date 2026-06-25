@@ -15,7 +15,7 @@ Use when no Role file exists for the requisition. Filename:
 **Title:** {Full title from export}
 **Level:** {Infer from title: "Principal" → J100, "Staff" → J090, "Director" → J100 M-track, "Senior" → J070}
 **Track:** {P-track for IC roles, M-track for Director/Manager roles}
-**Discipline:** {Infer: "Software Engineer" → software_engineering, "Data Engineer" → data_engineering, "Data Scientist" → data_science}
+**Discipline:** {Infer: "Software Engineer" → software-engineering, "Data Engineer" → data-engineering, "Data Scientist" → data-science}
 **Domain lead:** —
 **Hiring manager:** {From export metadata if available, or "—"}
 **Locations:** {Primary Location from export}

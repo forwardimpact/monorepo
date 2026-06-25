@@ -62,7 +62,7 @@ paths are relative to `products/map/` in the monorepo.
 | `emerging`      | 0     | Shows interest, needs prompting                      |
 | `developing`    | 1     | Regularly applies with some guidance                 |
 | `practicing`    | 2     | Consistently demonstrates in daily work              |
-| `role_modeling` | 3     | Influences the team's approach, others seek them out |
+| `role-modeling` | 3     | Influences the team's approach, others seek them out |
 | `exemplifying`  | 4     | Shapes organizational culture in this area           |
 
 ---
@@ -124,11 +124,11 @@ isProfessional: true
 isManagement: false
 validTracks: [null, platform, product]
 minLevel: L1
-coreSkills: [code_quality, testing, system_design]
-supportingSkills: [ci_cd, documentation]
+coreSkills: [code-quality, testing, system-design]
+supportingSkills: [ci-cd, documentation]
 broadSkills: [security, observability]
 behaviourModifiers:
-  analytical_thinking: 1
+  analytical-thinking: 1
 human:
   roleSummary: >
     {roleTitle}s in {specialization} design, build, and maintain
@@ -154,7 +154,7 @@ skillModifiers:
   reliability: 1
   delivery: -1
 behaviourModifiers:
-  systems_thinking: 1
+  systems-thinking: 1
 agent:
   identity: >
     You are a {roleTitle} specializing in platform infrastructure.
@@ -180,7 +180,7 @@ managementResponsibilities:
   practitioner: Coordinate delivery across multiple teams
   expert: Shape organizational delivery culture
 skills:
-  - id: ci_cd
+  - id: ci-cd
     name: CI/CD
     human:
       description: Continuous integration and deployment pipelines
@@ -191,7 +191,6 @@ skills:
         practitioner: Optimizes pipeline performance
         expert: Architects CI/CD platform standards
     agent:
-      name: ci-cd
       description: CI/CD pipeline configuration and maintenance
       useWhen: Creating or modifying CI/CD pipelines
       focus: Implement pipeline changes safely with rollback awareness
@@ -217,7 +216,7 @@ human:
     emerging: Shows interest in understanding problems before jumping to solutions
     developing: Regularly decomposes problems into smaller parts with guidance
     practicing: Consistently identifies root causes and considers multiple perspectives
-    role_modeling: Influences the team's approach to systematic problem-solving
+    role-modeling: Influences the team's approach to systematic problem-solving
     exemplifying: Shapes organizational culture around evidence-based decisions
 agent:
   title: Systematic Problem Decomposition
@@ -234,9 +233,9 @@ agent:
   description: Delivering reliable, well-tested software
   contributingSkills:
     - testing
-    - code_quality
+    - code-quality
   contributingBehaviours:
-    - analytical_thinking
+    - analytical-thinking
 ```
 
 ---
@@ -246,13 +245,12 @@ agent:
 | Entity     | Pattern           | Example              |
 | ---------- | ----------------- | -------------------- |
 | Level      | `[A-Z][A-Z0-9]*`  | L1, L2, L3           |
-| Discipline | `[a-z][a-z0-9_]*` | software_engineering |
-| Track      | `[a-z][a-z0-9_]*` | platform             |
-| Capability | `[a-z][a-z0-9_]*` | delivery             |
-| Skill      | `[a-z][a-z0-9_]*` | ci_cd                |
-| Behaviour  | `[a-z][a-z0-9_]*` | analytical_thinking  |
-| Driver     | `[a-z][a-z0-9_]*` | quality              |
-| Agent name | `[a-z][a-z0-9-]*` | ci-cd (kebab-case)   |
+| Discipline | `[a-z][a-z0-9-]*` | software-engineering |
+| Track      | `[a-z][a-z0-9-]*` | platform             |
+| Capability | `[a-z][a-z0-9-]*` | delivery             |
+| Skill      | `[a-z][a-z0-9-]*` | ci-cd                |
+| Behaviour  | `[a-z][a-z0-9-]*` | analytical-thinking  |
+| Driver     | `[a-z][a-z0-9-]*` | quality              |
 
 ---
 

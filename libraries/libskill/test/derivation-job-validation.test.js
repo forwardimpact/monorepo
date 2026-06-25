@@ -135,7 +135,7 @@ describe("isValidJobCombination", () => {
     const validationRules = {
       invalidCombinations: [
         {
-          discipline: "software_engineering",
+          discipline: "software-engineering",
           track: "platform",
           level: "level_3",
         },
@@ -157,7 +157,7 @@ describe("isValidJobCombination", () => {
     const track = makeTrack({ id: "platform" });
     const validationRules = {
       invalidCombinations: [
-        { discipline: "software_engineering", track: "platform" },
+        { discipline: "software-engineering", track: "platform" },
       ],
     };
 

@@ -13,7 +13,7 @@ import { createJobHeader } from "../src/formatters/job/dom.js";
 function makeView(overrides = {}) {
   return {
     title: "Software Engineer Level II",
-    disciplineId: "software_engineering",
+    disciplineId: "software-engineering",
     disciplineName: "Software Engineering",
     levelId: "J060",
     levelName: "Level II",

@@ -14,8 +14,8 @@
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "description": "Unique driver identifier (snake_case)"
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Unique driver identifier (kebab-case)"
         },
         "name": {
           "type": "string",
@@ -30,7 +30,7 @@
           "description": "Skills that contribute to this driver (references skill IDs)",
           "items": {
             "type": "string",
-            "pattern": "^[a-z][a-z0-9_]*$"
+            "pattern": "^[a-z][a-z0-9-]*$"
           }
         },
         "contributingBehaviours": {
@@ -38,7 +38,7 @@
           "description": "Behaviours that contribute to this driver (references behaviour IDs)",
           "items": {
             "type": "string",
-            "pattern": "^[a-z][a-z0-9_]*$"
+            "pattern": "^[a-z][a-z0-9-]*$"
           }
         }
       },

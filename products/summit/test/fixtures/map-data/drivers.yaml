@@ -4,7 +4,7 @@
   name: Quality
   description: Deliver work that meets expectations consistently.
   contributingSkills:
-    - task_completion
+    - task-completion
     - planning
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking

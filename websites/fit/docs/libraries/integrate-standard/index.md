@@ -57,7 +57,7 @@ discipline, level, and optionally a track:
 ```js
 import { deriveSkillMatrix } from "@forwardimpact/libskill";
 
-const discipline = data.disciplines.find((d) => d.id === "software_engineering");
+const discipline = data.disciplines.find((d) => d.id === "software-engineering");
 const level = data.levels.find((l) => l.id === "J070");
 
 const matrix = deriveSkillMatrix({
@@ -74,7 +74,7 @@ Expected output (one entry):
 
 ```json
 {
-  "skillId": "architecture_design",
+  "skillId": "architecture-design",
   "skillName": "Architecture Design",
   "capability": "design",
   "capabilityRank": 1,
@@ -159,9 +159,9 @@ Expected output (one entry):
 
 ```json
 {
-  "behaviourId": "systems_thinking",
+  "behaviourId": "systems-thinking",
   "behaviourName": "Think in Systems",
-  "maturity": "role_modeling",
+  "maturity": "role-modeling",
   "maturityDescription": "You shape how teams approach problems..."
 }
 ```

@@ -113,7 +113,7 @@ describe("parse — content and validation", () => {
           name "Test"
           affect team_a {
             dx_drivers {
-              code_review {
+              code-review {
                 trajectory "improving"
                 magnitude 5
               }
@@ -123,7 +123,7 @@ describe("parse — content and validation", () => {
       }`);
       const affect = ast.scenarios[0].affects[0];
       assert.strictEqual(affect.dx_drivers.length, 1);
-      assert.strictEqual(affect.dx_drivers[0].driver_id, "code_review");
+      assert.strictEqual(affect.dx_drivers[0].driver_id, "code-review");
       assert.strictEqual(affect.dx_drivers[0].trajectory, "improving");
       assert.strictEqual(affect.dx_drivers[0].magnitude, 5);
     });

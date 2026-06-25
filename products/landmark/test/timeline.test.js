@@ -32,13 +32,13 @@ const EVIDENCE = [
     created_at: "2025-02-01T00:00:00Z",
   },
   {
-    skill_id: "task_completion",
+    skill_id: "task-completion",
     level_id: "working",
     matched: true,
     created_at: "2024-07-10T00:00:00Z",
   },
   {
-    skill_id: "task_completion",
+    skill_id: "task-completion",
     level_id: "working",
     matched: true,
     created_at: "2025-01-05T00:00:00Z",
@@ -66,7 +66,7 @@ describe("timeline command", () => {
       queries: stubQueries(),
     });
     assert.ok(result.view.timeline.length > 0);
-    // Q3 2024 has planning at awareness and task_completion at working
+    // Q3 2024 has planning at awareness and task-completion at working
     const q3Planning = result.view.timeline.find(
       (t) => t.quarter === "2024-Q3" && t.skillId === "planning",
     );

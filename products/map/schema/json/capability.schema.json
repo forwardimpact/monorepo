@@ -8,7 +8,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_]*$",
+      "pattern": "^[a-z][a-z0-9-]*$",
       "description": "Capability identifier (derived from filename if not specified)"
     },
     "name": {
@@ -70,8 +70,8 @@
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "description": "Unique skill identifier (snake_case)"
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Unique skill identifier (kebab-case)"
         },
         "name": {
           "type": "string",
@@ -223,7 +223,6 @@
     "skillAgentSection": {
       "type": "object",
       "required": [
-        "name",
         "description",
         "useWhen",
         "focus",
@@ -231,11 +230,6 @@
         "confirmChecklist"
       ],
       "properties": {
-        "name": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9-]*$",
-          "description": "Agent skill name (kebab-case)"
-        },
         "description": {
           "type": "string",
           "description": "Brief description of what this skill provides"

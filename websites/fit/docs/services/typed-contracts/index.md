@@ -186,7 +186,7 @@ Available tools: 15
 const result = await client.callTool({
   name: "DescribeJob",
   arguments: {
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     level: "J070",
     track: "platform",
   },

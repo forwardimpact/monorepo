@@ -99,11 +99,11 @@ diving into the health view, check how a specific driver has moved over time.
 Track a driver's trend across snapshots, scoped to your team:
 
 ```sh
-npx fit-landmark snapshot trend --item code_review --manager alice@example.com
+npx fit-landmark snapshot trend --item code-review --manager alice@example.com
 ```
 
 ```text
-  Trend for code_review
+  Trend for code-review
 
     2025-03-15       72
     2025-06-14       78
@@ -111,8 +111,8 @@ npx fit-landmark snapshot trend --item code_review --manager alice@example.com
 ```
 
 The output shows the driver's score at each snapshot date, making the direction
-visible. Replace `code_review` with any driver ID from your `drivers.yaml` --
-the starter data includes `code_review`, `incident_response`, and `deep_work`.
+visible. Replace `code-review` with any driver ID from your `drivers.yaml` --
+the starter data includes `code-review`, `incident-response`, and `deep-work`.
 
 Compare the latest snapshot against organizational benchmarks:
 
@@ -151,12 +151,12 @@ npx fit-landmark health --manager alice@example.com
   Drivers (2)
   ────────────────────────────────────────────────────────────
   #  Driver             Percentile  vs_org  More
-  1  code_review        72nd        +5      -
-  2  incident_response  48th        -3      -
+  1  code-review        72nd        +5      -
+  2  incident-response  48th        -3      -
 
   Recommendations (1 unique)
   ────────────────────────────────────────────────────────────
-  - Carol Davis (working) could develop planning — for code_review (high)
+  - Carol Davis (working) could develop planning — for code-review (high)
 ```
 
 The default output is a compact table organized by driver, followed by deduped
@@ -185,10 +185,10 @@ npx fit-landmark health --manager alice@example.com --verbose
 ```text
   alice@example.com team — health view
 
-    Driver: code_review (72nd percentile)
+    Driver: code-review (72nd percentile)
       Anchors: percentile=72, vs_org=+5
-      Contributing skills: task_completion, planning
-      Evidence: 12 artifacts for task_completion, 8 artifacts for planning
+      Contributing skills: task-completion, planning
+      Evidence: 12 artifacts for task-completion, 8 artifacts for planning
       GetDX comments: "We've been catching more issues in review lately"
                       "Design docs are getting better but still inconsistent"
 
@@ -229,7 +229,7 @@ npx fit-landmark voice --manager alice@example.com
       testing               1 comments   "Integration tests saved us twice this month"
 
     Below-50th driver alignment:
-      incident_response (48th percentile) — 3 incident comments
+      incident-response (48th percentile) — 3 incident comments
 ```
 
 The manager view buckets comments by theme and counts how many mention each,
@@ -238,7 +238,7 @@ drivers scoring below the 50th percentile where engineer comments align --
 where sentiment matches the quantitative data.
 
 This is valuable for quarterly reviews because it grounds numerical scores in
-the team's own words. A low `incident_response` score paired with three
+the team's own words. A low `incident-response` score paired with three
 incident comments tells a clearer story than the score alone.
 
 ## Check where evidence supports the standard
@@ -256,9 +256,9 @@ npx fit-landmark practice --manager alice@example.com
 ```text
   Practice patterns
 
-    task_completion       matched: 12  unmatched: 4   total: 16
+    task-completion       matched: 12  unmatched: 4   total: 16
     planning              matched: 8   unmatched: 2   total: 10
-    incident_response     matched: 4   unmatched: 6   total: 10
+    incident-response     matched: 4   unmatched: 6   total: 10
     sre_practices         matched: 2   unmatched: 5   total: 7
 ```
 
@@ -269,7 +269,7 @@ unmatched signal where the evidence pipeline is light. Filter to a specific
 skill for detail:
 
 ```sh
-npx fit-landmark practice --skill task_completion --manager alice@example.com
+npx fit-landmark practice --skill task-completion --manager alice@example.com
 ```
 
 Compare what the standard predicts the team should be capable of against what
@@ -307,7 +307,7 @@ You have demonstrated engineering progress without surveillance when:
    alice@example.com` shows at least one driver with a score, contributing
    skills, and evidence counts. No "No GetDX snapshot data available" messages.
 
-2. **Trends show direction.** `npx fit-landmark snapshot trend --item code_review
+2. **Trends show direction.** `npx fit-landmark snapshot trend --item code-review
    --manager alice@example.com` shows scores across multiple snapshots, making
    the trajectory visible.
 

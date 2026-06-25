@@ -134,7 +134,7 @@ fit:DisciplineShape a sh:NodeShape ;
     sh:property [
         sh:path fit:id ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:maxCount 1 ;
         sh:name "id" ;
         sh:description "Discipline identifier (derived from filename)" ;
@@ -182,7 +182,7 @@ fit:DisciplineShape a sh:NodeShape ;
         sh:name "validTracks" ;
         sh:description "REQUIRED. Valid track configurations. Use null for trackless (generalist)." ;
         sh:or (
-            [ sh:datatype xsd:string ; sh:pattern "^[a-z][a-z0-9_]*$" ]
+            [ sh:datatype xsd:string ; sh:pattern "^[a-z][a-z0-9-]*$" ]
             [ sh:nodeKind sh:Literal ; sh:hasValue "null" ]
         ) ;
     ] ;
@@ -204,7 +204,7 @@ fit:DisciplineShape a sh:NodeShape ;
     sh:property [
         sh:path fit:coreSkills ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:minCount 1 ;
         sh:name "coreSkills" ;
         sh:description "Core skills requiring deep expertise (skill IDs)" ;
@@ -212,14 +212,14 @@ fit:DisciplineShape a sh:NodeShape ;
     sh:property [
         sh:path fit:supportingSkills ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:name "supportingSkills" ;
         sh:description "Supporting skills for solid competence in related capabilities (skill IDs)" ;
     ] ;
     sh:property [
         sh:path fit:broadSkills ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:name "broadSkills" ;
         sh:description "Skills for general awareness (skill IDs)" ;
     ] ;
@@ -295,7 +295,7 @@ fit:BehaviourModifierShape a sh:NodeShape ;
     sh:property [
         sh:path fit:targetBehaviour ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "targetBehaviour" ;

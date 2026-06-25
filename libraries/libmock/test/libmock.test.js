@@ -200,7 +200,7 @@ describe("libmock", () => {
 
     test("createTestDiscipline creates valid discipline", () => {
       const discipline = createTestDiscipline();
-      assert.strictEqual(discipline.id, "software_engineering");
+      assert.strictEqual(discipline.id, "software-engineering");
       assert.ok(Array.isArray(discipline.coreSkills));
       assert.strictEqual(discipline.isManagement, false);
     });

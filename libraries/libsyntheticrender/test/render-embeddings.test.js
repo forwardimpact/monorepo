@@ -6,7 +6,7 @@ function makeClinical() {
   return {
     conditions: [
       {
-        id: "diabetes_t2",
+        id: "diabetes-t2",
         name: "Type 2 Diabetes",
         synonyms: ["high blood sugar", "T2D"],
         prose_topic: "diabetes",
@@ -19,7 +19,7 @@ function makeClinical() {
     ],
     trials: [
       {
-        id: "oncora_p3",
+        id: "oncora-p3",
         name: "ONCORA-301",
         therapeutic_area: "oncology",
         arms: ["mAb + SoC", "placebo + SoC"],
@@ -56,7 +56,7 @@ describe("renderEmbeddings", () => {
       text_fields: { "clinical.conditions": ["name"] },
     });
     const first = JSON.parse(out.get("out/embed.jsonl").trim().split("\n")[0]);
-    assert.strictEqual(first.id, "diabetes_t2");
+    assert.strictEqual(first.id, "diabetes-t2");
     assert.strictEqual(first.table, "conditions");
     assert.strictEqual(first.text, "Type 2 Diabetes");
   });
@@ -71,10 +71,10 @@ describe("renderEmbeddings", () => {
     assert.strictEqual(first.text, "Type 2 Diabetes high blood sugar T2D");
   });
 
-  test("synthetic prose_explainer resolves against cache", () => {
+  test("synthetic prose-explainer resolves against cache", () => {
     const cache = new Map([
       [
-        "clinical_condition_explainer_diabetes_t2",
+        "clinical_condition_explainer_diabetes-t2",
         "Diabetes happens when your body cannot use sugar well.",
       ],
     ]);
@@ -82,23 +82,23 @@ describe("renderEmbeddings", () => {
       path: "out/embed.jsonl",
       entities: ["clinical.conditions"],
       text_fields: {
-        "clinical.conditions": ["name", "prose_explainer"],
+        "clinical.conditions": ["name", "prose-explainer"],
       },
     });
     const lines = out.get("out/embed.jsonl").trim().split("\n").map(JSON.parse);
-    const diabetes = lines.find((l) => l.id === "diabetes_t2");
+    const diabetes = lines.find((l) => l.id === "diabetes-t2");
     assert.ok(diabetes.text.includes("Diabetes happens"));
   });
 
-  test("synthetic prose_description resolves against consent summary key", () => {
+  test("synthetic prose-description resolves against consent summary key", () => {
     const cache = new Map([
-      ["clinical_consent_summary_oncora_p3", "Consent summary text."],
+      ["clinical_consent_summary_oncora-p3", "Consent summary text."],
     ]);
     const out = renderEmbeddings(makeClinical(), cache, {
       path: "out/embed.jsonl",
       entities: ["clinical.trials"],
       text_fields: {
-        "clinical.trials": ["name", "prose_description"],
+        "clinical.trials": ["name", "prose-description"],
       },
     });
     const trial = JSON.parse(out.get("out/embed.jsonl").trim().split("\n")[0]);
@@ -110,7 +110,7 @@ describe("renderEmbeddings", () => {
       path: "out/embed.jsonl",
       entities: ["clinical.conditions"],
       text_fields: {
-        "clinical.conditions": ["name", "prose_explainer"],
+        "clinical.conditions": ["name", "prose-explainer"],
       },
     });
     const lines = out.get("out/embed.jsonl").trim().split("\n").map(JSON.parse);
@@ -128,7 +128,7 @@ describe("renderEmbeddings", () => {
         path: "out/embed.jsonl",
         entities: ["clinical.conditions"],
         text_fields: {
-          "clinical.conditions": ["name", "prose_explainer"],
+          "clinical.conditions": ["name", "prose-explainer"],
         },
       },
     );

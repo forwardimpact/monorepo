@@ -54,7 +54,7 @@ fit:BehaviourShape a sh:NodeShape ;
     sh:property [
         sh:path fit:id ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:maxCount 1 ;
         sh:name "id" ;
         sh:description "Behaviour identifier (derived from filename)" ;

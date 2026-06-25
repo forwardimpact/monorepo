@@ -9,9 +9,9 @@ DX context for the author's team:
 {{{driverContext}}}
 Reflect these conditions in the writing style:
 - If documentation is declining, omit explanatory context.
-- If code_review is declining, keep feedback brief and surface-level.
-- If deep_work is declining, the code may show signs of interruption-driven work.
-- If managing_tech_debt is declining, the change may skip cleanup opportunities.
-- If ease_of_release is declining, the PR may lack deployment notes.
-- If clear_direction is declining, the description may be vague about motivation.
+- If code-review is declining, keep feedback brief and surface-level.
+- If deep-work is declining, the code may show signs of interruption-driven work.
+- If managing-tech-debt is declining, the change may skip cleanup opportunities.
+- If ease-of-release is declining, the PR may lack deployment notes.
+- If clear-direction is declining, the description may be vague about motivation.
 {{/driverContext}} Output the text only, no explanations.
