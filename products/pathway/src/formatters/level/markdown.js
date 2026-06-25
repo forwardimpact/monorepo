@@ -68,7 +68,7 @@ export function levelToMarkdown(level, standard) {
   // Base behaviour maturity
   if (view.baseBehaviourMaturity) {
     lines.push("## Base Behaviour Maturity", "");
-    lines.push(capitalize(view.baseBehaviourMaturity.replace(/_/g, " ")));
+    lines.push(capitalize(view.baseBehaviourMaturity.replace(/[-_]/g, " ")));
     lines.push("");
   }
 

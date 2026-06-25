@@ -10,8 +10,8 @@
  */
 
 const SYNTHETIC_FIELDS = {
-  prose_explainer: (id) => `clinical_condition_explainer_${id}`,
-  prose_description: (id) => `clinical_consent_summary_${id}`,
+  "prose-explainer": (id) => `clinical_condition_explainer_${id}`,
+  "prose-description": (id) => `clinical_consent_summary_${id}`,
 };
 
 /**

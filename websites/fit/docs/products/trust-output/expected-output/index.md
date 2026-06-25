@@ -19,7 +19,7 @@ Generate the role definition for the discipline and level you are reviewing
 against:
 
 ```sh
-npx fit-pathway job software_engineering J060
+npx fit-pathway job software-engineering J060
 ```
 
 The Skill Matrix section lists every skill and the proficiency level the
@@ -42,7 +42,7 @@ expected proficiency -- not a higher or lower one.
 If the role includes a track specialization, add the `--track` flag:
 
 ```sh
-npx fit-pathway job software_engineering J060 --track=platform
+npx fit-pathway job software-engineering J060 --track=platform
 ```
 
 Track specializations shift expectations. The Platform track for J060, for
@@ -55,7 +55,7 @@ The skill name and proficiency level alone may not tell you what to look for in
 a review. Inspect the skill to see the description for each proficiency level:
 
 ```sh
-npx fit-pathway skill task_completion
+npx fit-pathway skill task-completion
 ```
 
 ```text
@@ -88,7 +88,7 @@ The Behaviour Profile section of the role definition shows expected maturity
 levels:
 
 ```sh
-npx fit-pathway job software_engineering J060
+npx fit-pathway job software-engineering J060
 ```
 
 ```text
@@ -102,7 +102,7 @@ npx fit-pathway job software_engineering J060
 To see what "Practicing" means for a specific behaviour:
 
 ```sh
-npx fit-pathway behaviour systems_thinking
+npx fit-pathway behaviour systems-thinking
 ```
 
 ```text
@@ -151,19 +151,19 @@ When you need to check multiple skills programmatically, use the `--skills`
 flag to get a plain list of skill IDs:
 
 ```sh
-npx fit-pathway job software_engineering J060 --skills
+npx fit-pathway job software-engineering J060 --skills
 ```
 
 ```text
-task_completion
+task-completion
 planning
-incident_response
+incident-response
 ```
 
 Pipe these IDs into `npx fit-pathway skill` to inspect each one:
 
 ```sh
-npx fit-pathway job software_engineering J060 --skills | while read id; do
+npx fit-pathway job software-engineering J060 --skills | while read id; do
   npx fit-pathway skill "$id"
   echo "---"
 done

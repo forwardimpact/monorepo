@@ -11,22 +11,22 @@ import { deriveInitiatives } from "./activity-initiatives.js";
 import { generateRosterSnapshots } from "./activity-roster.js";
 
 export const ALL_DRIVERS = [
-  "clear_direction",
-  "say_on_priorities",
-  "requirements_quality",
-  "ease_of_release",
-  "test_efficiency",
-  "managing_tech_debt",
-  "code_review",
+  "clear-direction",
+  "say-on-priorities",
+  "requirements-quality",
+  "ease-of-release",
+  "test-efficiency",
+  "managing-tech-debt",
+  "code-review",
   "documentation",
-  "codebase_experience",
-  "incident_response",
-  "learning_culture",
+  "codebase-experience",
+  "incident-response",
+  "learning-culture",
   "experimentation",
   "connectedness",
-  "efficient_processes",
-  "deep_work",
-  "leveraging_user_feedback",
+  "efficient-processes",
+  "deep-work",
+  "leveraging-user-feedback",
 ];
 
 const DRIVER_NAMES = Object.fromEntries(

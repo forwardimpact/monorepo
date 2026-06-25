@@ -111,7 +111,7 @@ Behaviours represent mindsets and approaches to work.
 
 ```mermaid
 flowchart LR
-    emerging --> developing --> practicing --> role_modeling --> exemplifying
+    emerging --> developing --> practicing --> role-modeling --> exemplifying
 ```
 
 | Maturity        | Description                                          |
@@ -119,7 +119,7 @@ flowchart LR
 | `emerging`      | Shows interest, needs prompting                      |
 | `developing`    | Regularly applies with some guidance                 |
 | `practicing`    | Consistently demonstrates in daily work              |
-| `role_modeling` | Influences the team's approach, others seek them out |
+| `role-modeling` | Influences the team's approach, others seek them out |
 | `exemplifying`  | Shapes organizational culture in this area           |
 
 ---
@@ -156,7 +156,7 @@ Tracks define two kinds of modifiers:
 - **skillModifiers** -- Shift skill proficiencies for all skills in a capability
   (e.g. `delivery: +1`)
 - **behaviourModifiers** -- Shift behaviour maturity expectations for specific
-  behaviours (e.g. `systems_thinking: +1`)
+  behaviours (e.g. `systems-thinking: +1`)
 
 ---
 

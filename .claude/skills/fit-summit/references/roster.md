@@ -8,13 +8,13 @@ teams:
     - name: Alice
       email: alice@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
         track: platform
     - name: Bob
       email: bob@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J040
 
 projects:
@@ -23,7 +23,7 @@ projects:
       allocation: 0.6
     - name: External Consultant      # Inline job definition
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
         track: platform
       allocation: 1.0

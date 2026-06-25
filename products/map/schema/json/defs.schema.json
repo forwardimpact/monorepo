@@ -21,7 +21,7 @@
         "emerging",
         "developing",
         "practicing",
-        "role_modeling",
+        "role-modeling",
         "exemplifying"
       ],
       "description": "Behaviour maturity level from lowest to highest"
@@ -52,14 +52,14 @@
         "emerging": { "type": "string" },
         "developing": { "type": "string" },
         "practicing": { "type": "string" },
-        "role_modeling": { "type": "string" },
+        "role-modeling": { "type": "string" },
         "exemplifying": { "type": "string" }
       },
       "required": [
         "emerging",
         "developing",
         "practicing",
-        "role_modeling",
+        "role-modeling",
         "exemplifying"
       ],
       "additionalProperties": false
@@ -85,18 +85,18 @@
     },
     "skillId": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_]*$",
-      "description": "Skill identifier (snake_case)"
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Skill identifier (kebab-case)"
     },
     "behaviourId": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_]*$",
-      "description": "Behaviour identifier (snake_case)"
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Behaviour identifier (kebab-case)"
     },
     "capabilityId": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_]*$",
-      "description": "Capability identifier (snake_case)"
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Capability identifier (kebab-case)"
     },
     "levelId": {
       "type": "string",
@@ -105,13 +105,13 @@
     },
     "disciplineId": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_]*$",
-      "description": "Discipline identifier (snake_case)"
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Discipline identifier (kebab-case)"
     },
     "trackId": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_]*$",
-      "description": "Track identifier (snake_case)"
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Track identifier (kebab-case)"
     },
     "modifier": {
       "type": "integer",

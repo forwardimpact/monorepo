@@ -39,8 +39,8 @@ const DSL = (directorBlock) => `terrain test {
     count 12
     names "greek"
     distribution { J070 100% }
-    disciplines { software_engineering 100% }
-    archetypes { steady_contributor 100% }
+    disciplines { software-engineering 100% }
+    archetypes { steady-contributor 100% }
   }
 }`;
 
@@ -48,7 +48,7 @@ const DIRECTOR_BLOCK = `director @zeus {
       name "Zeus"
       title "Director of Engineering"
       level J090
-      discipline engineering_management
+      discipline engineering-management
     }`;
 
 function build(source) {
@@ -66,7 +66,7 @@ describe("DSL director block", () => {
       name: "Zeus",
       title: "Director of Engineering",
       level: "J090",
-      discipline: "engineering_management",
+      discipline: "engineering-management",
     });
     const rd = ast.departments.find((d) => d.id === "rd");
     assert.equal(rd.director, undefined);
@@ -84,7 +84,7 @@ describe("DSL director block", () => {
     assert.equal(zeus.team_id, null);
     assert.equal(zeus.getdx_team_id, undefined);
     assert.equal(zeus.level, "J090");
-    assert.equal(zeus.discipline, "engineering_management");
+    assert.equal(zeus.discipline, "engineering-management");
     assert.equal(zeus.title, "Director of Engineering");
   });
 

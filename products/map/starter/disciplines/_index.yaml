@@ -1,6 +1,6 @@
 # Auto-generated index for browser loading
 # Do not edit manually - regenerate with: bunx pathway --generate-index
 files:
-  - data_engineering
-  - engineering_management
-  - software_engineering
+  - data-engineering
+  - engineering-management
+  - software-engineering

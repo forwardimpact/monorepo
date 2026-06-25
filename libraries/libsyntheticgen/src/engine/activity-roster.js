@@ -47,9 +47,9 @@ function simulateHires(rng, roster, teams, people, domain, hireCounter) {
     const team = rng.pick(teams);
     const level = rng.pick(["J040", "J040", "J060", "J060", "J070"]);
     const discipline = rng.pick([
-      "software_engineering",
-      "software_engineering",
-      "data_engineering",
+      "software-engineering",
+      "software-engineering",
+      "data-engineering",
     ]);
     const email = `hire_${hireCounter.value}@${domain || "example.com"}`;
     const name = `NewHire_${hireCounter.value}`;

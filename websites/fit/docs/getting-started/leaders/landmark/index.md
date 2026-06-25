@@ -100,8 +100,8 @@ Look up the observable indicators defined for any skill in your agent-aligned
 engineering standard:
 
 ```sh
-npx fit-landmark marker task_completion
-npx fit-landmark marker task_completion --level working
+npx fit-landmark marker task-completion
+npx fit-landmark marker task-completion --level working
 ```
 
 This is a reference view — it reads directly from your standard YAML and does

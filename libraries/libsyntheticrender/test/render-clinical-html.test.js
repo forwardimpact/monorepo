@@ -38,22 +38,22 @@ function makeClinicalFixture() {
   return {
     conditions: [
       {
-        id: "diabetes_t2",
+        id: "diabetes-t2",
         name: "Type 2 Diabetes",
         icd10: ["E11"],
         synonyms: ["high blood sugar"],
         severity: "chronic",
-        trials: ["oncora_p3"],
-        iri: "https://example.com/id/clinical/condition/diabetes_t2",
+        trials: ["oncora-p3"],
+        iri: "https://example.com/id/clinical/condition/diabetes-t2",
       },
       {
-        id: "lung_cancer",
+        id: "lung-cancer",
         name: "Lung Cancer",
         icd10: ["C34"],
         synonyms: [],
         severity: "severe",
         trials: [],
-        iri: "https://example.com/id/clinical/condition/lung_cancer",
+        iri: "https://example.com/id/clinical/condition/lung-cancer",
       },
     ],
     sites: [
@@ -65,36 +65,36 @@ function makeClinicalFixture() {
         state: "MA",
         country: "USA",
         specialties: ["oncology"],
-        trials: ["oncora_p3"],
+        trials: ["oncora-p3"],
         iri: "https://example.com/id/clinical/site/cambridge",
       },
     ],
     trials: [
       {
-        id: "oncora_p3",
+        id: "oncora-p3",
         name: "ONCORA-301",
         protocol_id: "ONC-301",
         phase: "phase_3",
         therapeutic_area: "oncology",
         status: "recruiting",
         sponsor: "BioNova",
-        conditions: ["diabetes_t2"],
+        conditions: ["diabetes-t2"],
         sites: ["cambridge"],
-        iri: "https://example.com/id/clinical/trial/oncora_p3",
+        iri: "https://example.com/id/clinical/trial/oncora-p3",
       },
     ],
     criteria: [
       {
-        trial_id: "oncora_p3",
+        trial_id: "oncora-p3",
         inclusion: { age_min: 18, age_max: 75 },
         exclusion: {},
-        iri: "https://example.com/id/clinical/criterion/oncora_p3",
+        iri: "https://example.com/id/clinical/criterion/oncora-p3",
       },
     ],
     researchers: [],
     content: {
       patient_stories: 2,
-      patient_story_conditions: ["diabetes_t2"],
+      patient_story_conditions: ["diabetes-t2"],
       therapy_topics: ["immunotherapy"],
     },
   };
@@ -159,7 +159,7 @@ describe("renderClinicalPages", () => {
 
     assert.match(
       files.get("condition-explainers.html"),
-      /data-enrich="clinical_condition_explainer_diabetes_t2"/,
+      /data-enrich="clinical_condition_explainer_diabetes-t2"/,
     );
     assert.match(
       files.get("therapy-descriptions.html"),
@@ -167,11 +167,11 @@ describe("renderClinicalPages", () => {
     );
     assert.match(
       files.get("trial-faqs.html"),
-      /data-enrich="clinical_trial_faq_oncora_p3"/,
+      /data-enrich="clinical_trial_faq_oncora-p3"/,
     );
     assert.match(
       files.get("consent-summaries.html"),
-      /data-enrich="clinical_consent_summary_oncora_p3"/,
+      /data-enrich="clinical_consent_summary_oncora-p3"/,
     );
     assert.match(
       files.get("site-descriptions.html"),
@@ -179,7 +179,7 @@ describe("renderClinicalPages", () => {
     );
     assert.match(
       files.get("patient-stories.html"),
-      /data-enrich="clinical_patient_story_diabetes_t2_0"/,
+      /data-enrich="clinical_patient_story_diabetes-t2_0"/,
     );
   });
 
@@ -198,10 +198,10 @@ describe("renderClinicalPages", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
     const prose = new Map([
       [
-        "clinical_condition_explainer_diabetes_t2",
+        "clinical_condition_explainer_diabetes-t2",
         "Diabetes affects how your body uses sugar.",
       ],
-      ["clinical_trial_faq_oncora_p3", "Common questions about ONCORA-301."],
+      ["clinical_trial_faq_oncora-p3", "Common questions about ONCORA-301."],
     ]);
     const { files } = renderHTML(entities, prose, makeTemplates(), {}, _rt);
 
@@ -248,18 +248,18 @@ describe("renderClinicalPages", () => {
 
     assert.match(
       files.get("condition-explainers.html"),
-      /<link itemprop="study" href="https:\/\/example\.com\/id\/clinical\/trial\/oncora_p3"/,
+      /<link itemprop="study" href="https:\/\/example\.com\/id\/clinical\/trial\/oncora-p3"/,
     );
   });
 
   test("fhirCrossRef option: clinical pages emit reverse patient links", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
     const patientIri = "https://example.com/id/clinical/patient/abc";
-    const trialIri = "https://example.com/id/clinical/trial/oncora_p3";
+    const trialIri = "https://example.com/id/clinical/trial/oncora-p3";
     const fhirCrossRef = {
       patientToTrialIris: new Map([[patientIri, new Set([trialIri])]]),
       conditionIdToPatientIris: new Map([
-        ["diabetes_t2", new Set([patientIri])],
+        ["diabetes-t2", new Set([patientIri])],
       ]),
       siteIdToPatientIris: new Map([["cambridge", new Set([patientIri])]]),
       trialIriToPatientIris: new Map([[trialIri, new Set([patientIri])]]),
@@ -335,7 +335,7 @@ describe("renderClinicalPages", () => {
     const siteHtml = files.get("site-descriptions.html");
     assert.match(
       siteHtml,
-      /<link itemprop="availableService" href="https:\/\/example\.com\/id\/clinical\/trial\/oncora_p3"/,
+      /<link itemprop="availableService" href="https:\/\/example\.com\/id\/clinical\/trial\/oncora-p3"/,
     );
     assert.doesNotMatch(
       siteHtml,

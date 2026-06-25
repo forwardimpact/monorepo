@@ -149,13 +149,13 @@ describe("comment proseKeys carries multi-driver array", () => {
       const ids = ctx.drivers.map((d) => d.driver_id).sort();
       assert.deepStrictEqual(
         ids,
-        ["deep_work", "ease_of_release"].sort(),
+        ["deep-work", "ease-of-release"].sort(),
         "both declining driver_ids present",
       );
       // Magnitudes preserved (sorted by |magnitude| descending in generate).
-      assert.strictEqual(ctx.drivers[0].driver_id, "deep_work");
+      assert.strictEqual(ctx.drivers[0].driver_id, "deep-work");
       assert.strictEqual(ctx.drivers[0].magnitude, -6);
-      assert.strictEqual(ctx.drivers[1].driver_id, "ease_of_release");
+      assert.strictEqual(ctx.drivers[1].driver_id, "ease-of-release");
       assert.strictEqual(ctx.drivers[1].magnitude, -4);
       asserted++;
     }

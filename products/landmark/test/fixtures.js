@@ -14,7 +14,7 @@ export const PEOPLE = [
   {
     email: "alice@example.com",
     name: "Alice",
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     level: "J040",
     track: null,
     manager_email: null,
@@ -22,7 +22,7 @@ export const PEOPLE = [
   {
     email: "bob@example.com",
     name: "Bob",
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     level: "J060",
     track: "platform",
     manager_email: "alice@example.com",
@@ -33,14 +33,14 @@ export const TEAM = [
   {
     email: "alice@example.com",
     name: "Alice",
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     level: "J040",
     track: "platform",
   },
   {
     email: "bob@example.com",
     name: "Bob",
-    discipline: "software_engineering",
+    discipline: "software-engineering",
     level: "J060",
     track: null,
   },
@@ -75,7 +75,7 @@ export const SCORES = [
 
 export const EVIDENCE_ROWS = [
   {
-    skill_id: "task_completion",
+    skill_id: "task-completion",
     level_id: "working",
     marker_text: "Delivered a feature",
     matched: true,
@@ -85,7 +85,7 @@ export const EVIDENCE_ROWS = [
     github_artifacts: { email: "alice@example.com" },
   },
   {
-    skill_id: "task_completion",
+    skill_id: "task-completion",
     level_id: "foundational",
     marker_text: "Small feature",
     matched: false,
@@ -134,13 +134,13 @@ export const COMMENTS = [
 ];
 
 export const PATTERNS = [
-  { skill_id: "task_completion", matched: 5, unmatched: 2, total: 7 },
+  { skill_id: "task-completion", matched: 5, unmatched: 2, total: 7 },
   { skill_id: "planning", matched: 1, unmatched: 3, total: 4 },
 ];
 
 /**
  * Full standard MAP_DATA shared by readiness / health / practiced tests.
- * Contains drivers, skills (with markers for task_completion & planning),
+ * Contains drivers, skills (with markers for task-completion & planning),
  * levels J040 & J060, one discipline, one track, and empty capabilities.
  */
 export const MAP_DATA = {
@@ -148,14 +148,14 @@ export const MAP_DATA = {
     {
       id: "quality",
       name: "Quality",
-      contributingSkills: ["task_completion", "planning"],
-      contributingBehaviours: ["systems_thinking"],
+      contributingSkills: ["task-completion", "planning"],
+      contributingBehaviours: ["systems-thinking"],
     },
     {
       id: "reliability",
       name: "Reliability",
-      contributingSkills: ["incident_response"],
-      contributingBehaviours: ["systems_thinking"],
+      contributingSkills: ["incident-response"],
+      contributingBehaviours: ["systems-thinking"],
     },
   ],
   levels: [
@@ -182,16 +182,16 @@ export const MAP_DATA = {
   ],
   disciplines: [
     {
-      id: "software_engineering",
-      coreSkills: ["task_completion"],
+      id: "software-engineering",
+      coreSkills: ["task-completion"],
       supportingSkills: ["planning"],
-      broadSkills: ["incident_response"],
+      broadSkills: ["incident-response"],
     },
   ],
   tracks: [{ id: "platform", skillModifiers: {} }],
   skills: [
     {
-      id: "task_completion",
+      id: "task-completion",
       name: "Task Completion",
       markers: {
         awareness: {
@@ -233,7 +233,7 @@ export const MAP_DATA = {
       },
     },
     {
-      id: "incident_response",
+      id: "incident-response",
       name: "Incident Response",
       markers: {
         awareness: {

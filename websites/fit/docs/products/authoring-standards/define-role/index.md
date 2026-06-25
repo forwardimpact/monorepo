@@ -30,9 +30,9 @@ npx fit-pathway discipline --list
 Example output:
 
 ```text
-software_engineering
-data_engineering
-engineering_management
+software-engineering
+data-engineering
+engineering-management
 ```
 
 List available tracks:
@@ -55,10 +55,10 @@ the missing entity.
 ## Step 2: Create a discipline
 
 Create a new YAML file in `data/pathway/disciplines/`. The filename is the
-discipline ID in snake_case.
+discipline ID in kebab-case.
 
 ```yaml
-# data/pathway/disciplines/site_reliability.yaml
+# data/pathway/disciplines/site-reliability.yaml
 specialization: Site Reliability Engineering
 roleTitle: Site Reliability Engineer
 isProfessional: true
@@ -68,15 +68,15 @@ validTracks:
   - platform
 
 coreSkills:
-  - sre_practices
-  - incident_management
+  - sre-practices
+  - incident-management
   - observability
 supportingSkills:
-  - cloud_platforms
-  - change_management
+  - cloud-platforms
+  - change-management
 broadSkills:
-  - architecture_design
-  - stakeholder_management
+  - architecture-design
+  - stakeholder-management
 ```
 
 Required fields:
@@ -110,7 +110,7 @@ skillModifiers:
   reliability: 1
   delivery: -1
 behaviourModifiers:
-  systems_thinking: 1
+  systems-thinking: 1
 ```
 
 Track `skillModifiers` target **capability IDs** (not individual skill IDs). A
@@ -190,9 +190,9 @@ npx fit-pathway job --list
 ```
 
 ```text
-software_engineering J040, Software Engineer Level I
-software_engineering J060, Software Engineer Level II
-software_engineering J060 platform, Software Engineer Level II - Platform
+software-engineering J040, Software Engineer Level I
+software-engineering J060, Software Engineer Level II
+software-engineering J060 platform, Software Engineer Level II - Platform
 site_reliability J060, Site Reliability Engineer Level II
 site_reliability J060 platform, Site Reliability Engineer Level II - Platform
 ```

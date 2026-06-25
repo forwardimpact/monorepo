@@ -38,7 +38,7 @@ Call `DescribeJob` with a discipline, level, and optional track:
 
 ```js
 const request = pathway.DescribeJobRequest.fromObject({
-  discipline: "software_engineering",
+  discipline: "software-engineering",
   level: "J070",
   track: "platform",
 });
@@ -53,9 +53,9 @@ Expected output (Turtle RDF, abbreviated):
 @prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
 @prefix schema: <https://schema.org/> .
 
-<urn:fit:job:software_engineering:J070:platform> a fit:Job ;
+<urn:fit:job:software-engineering:J070:platform> a fit:Job ;
   schema:title "Senior Engineer Software Engineer - Platform Engineering" ;
-  fit:discipline "software_engineering" ;
+  fit:discipline "software-engineering" ;
   fit:level "J070" ;
   fit:track "platform" ;
   fit:skillCount 16 ;
@@ -72,7 +72,7 @@ Omit the `track` field for the generalist role:
 
 ```js
 const request = pathway.DescribeJobRequest.fromObject({
-  discipline: "software_engineering",
+  discipline: "software-engineering",
   level: "J070",
 });
 
@@ -89,7 +89,7 @@ required:
 
 ```js
 const request = pathway.DescribeAgentProfileRequest.fromObject({
-  discipline: "software_engineering",
+  discipline: "software-engineering",
   track: "platform",
 });
 
@@ -102,8 +102,8 @@ Expected output (Turtle RDF, abbreviated):
 ```text
 @prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
 
-<urn:fit:agent:software_engineering:platform> a fit:AgentProfile ;
-  fit:discipline "software_engineering" ;
+<urn:fit:agent:software-engineering:platform> a fit:AgentProfile ;
+  fit:discipline "software-engineering" ;
   fit:track "platform" ;
   fit:skillCount 14 ;
   fit:behaviourCount 5 .

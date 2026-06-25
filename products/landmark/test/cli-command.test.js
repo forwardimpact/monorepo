@@ -42,7 +42,7 @@ describe("formatResult", () => {
   it("renders marker view in text format", () => {
     const result = {
       view: {
-        skill: "task_completion",
+        skill: "task-completion",
         name: "Task Completion",
         markers: {
           working: {

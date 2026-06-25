@@ -41,27 +41,27 @@ teams:
     - name: Alice
       email: alice@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
         track: platform
     - name: Bob
       email: bob@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J040
 
   delivery:
     - name: Carol
       email: carol@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
     - name: Dan
       email: dan@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J040
-        track: forward_deployed
+        track: forward-deployed
 
 projects:
   migration-q2:
@@ -71,7 +71,7 @@ projects:
       allocation: 0.4
     - name: External Consultant
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
         track: platform
       allocation: 1.0
@@ -156,7 +156,7 @@ supports four kinds of mutation — `--add`, `--remove`, `--move`, and `--promot
 ```sh
 # Hypothetical new hire
 npx fit-summit what-if platform --roster ./summit.yaml \
-  --add "{ discipline: software_engineering, level: J060, track: platform }"
+  --add "{ discipline: software-engineering, level: J060, track: platform }"
 
 # Departure
 npx fit-summit what-if platform --roster ./summit.yaml \

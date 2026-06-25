@@ -78,7 +78,7 @@ describe("fit-landmark dispatcher exit codes", () => {
   });
 
   test("marker does not need Supabase and skips identity resolution", () => {
-    const res = run(["marker", "task_completion", "--data", DATA_DIR], {});
+    const res = run(["marker", "task-completion", "--data", DATA_DIR], {});
     // marker may exit 0 (found) or 1 (not found in current dataset) but
     // must never exit 3 or 4 — those are the dispatcher-error codes the
     // chokepoint reserves for needsSupabase: true commands.

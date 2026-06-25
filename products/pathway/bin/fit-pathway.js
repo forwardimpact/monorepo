@@ -199,9 +199,9 @@ const definition = {
   },
   examples: [
     "fit-pathway discipline backend",
-    "fit-pathway job software_engineering J060 --track=platform",
-    "fit-pathway interview software_engineering J060 --json",
-    "fit-pathway agent software_engineering --track=platform",
+    "fit-pathway job software-engineering J060 --track=platform",
+    "fit-pathway interview software-engineering J060 --json",
+    "fit-pathway agent software-engineering --track=platform",
   ],
   documentation: [
     {

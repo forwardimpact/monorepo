@@ -90,13 +90,13 @@ $ npx fit-summit risks platform
   platform team — structural risks
 
   Single points of failure:
-    task_completion — only Bob holds working level [low]
+    task-completion — only Bob holds working level [low]
 
   Critical gaps:
     planning — no engineer at working level
-      supporting skill for software_engineering discipline.
-    incident_response — no engineer at working level
-      broad skill for software_engineering discipline.
+      supporting skill for software-engineering discipline.
+    incident-response — no engineer at working level
+      broad skill for software-engineering discipline.
 ```
 
 The severity tag on single points of failure reflects the engineer's allocation
@@ -115,16 +115,16 @@ Adding an engineer may resolve existing risks, but can also introduce new ones
 skills neither covers at working+). Summit shows both directions:
 
 ```
-$ npx fit-summit what-if platform --add "{ discipline: software_engineering, level: J060 }"
+$ npx fit-summit what-if platform --add "{ discipline: software-engineering, level: J060 }"
 
-  Adding software_engineering J060 to platform:
+  Adding software-engineering J060 to platform:
 
   Capability changes:
-    + task_completion  depth: 1 → 2
+    + task-completion  depth: 1 → 2
 
   Risk changes:
-    - task_completion no longer single point of failure
-    + incident_response concentration risk: 2 engineers, none at working+
+    - task-completion no longer single point of failure
+    + incident-response concentration risk: 2 engineers, none at working+
 ```
 
 `-` lines are risks resolved by the change. `+` lines are risks the change

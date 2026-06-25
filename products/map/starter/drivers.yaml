@@ -1,144 +1,144 @@
 # yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/drivers.schema.json
 
-- id: clear_direction
+- id: clear-direction
   name: Clear Direction
   description: Teams know what to build and why.
   contributingSkills:
-    - stakeholder_management
-    - product_thinking
+    - stakeholder-management
+    - product-thinking
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
-- id: say_on_priorities
+- id: say-on-priorities
   name: Say On Priorities
   description: Engineers shape the priorities they are asked to deliver.
   contributingSkills:
-    - stakeholder_management
-    - product_thinking
+    - stakeholder-management
+    - product-thinking
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
-- id: requirements_quality
+- id: requirements-quality
   name: Requirements Quality
   description: Requests arrive specific enough to act on without re-discovery.
   contributingSkills:
-    - product_thinking
-    - stakeholder_management
+    - product-thinking
+    - stakeholder-management
     - planning
 
-- id: ease_of_release
+- id: ease-of-release
   name: Ease Of Release
   description: Shipping a change to users is low-friction and low-anxiety.
   contributingSkills:
-    - task_completion
-    - architecture_design
-    - cloud_platforms
+    - task-completion
+    - architecture-design
+    - cloud-platforms
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
-- id: test_efficiency
+- id: test-efficiency
   name: Test Efficiency
   description: The test suite gives fast, trustworthy signal on every change.
   contributingSkills:
-    - task_completion
-    - architecture_design
-    - performance_optimization
+    - task-completion
+    - architecture-design
+    - performance-optimization
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
-- id: managing_tech_debt
+- id: managing-tech-debt
   name: Managing Tech Debt
   description: Known debt is tracked and paid down on a predictable cadence.
   contributingSkills:
     - planning
-    - architecture_design
-    - risk_management
+    - architecture-design
+    - risk-management
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
-- id: code_review
+- id: code-review
   name: Code Review
   description: Reviews are timely, substantive, and improve the change under review.
   contributingSkills:
-    - team_collaboration
+    - team-collaboration
     - mentoring
-    - task_completion
+    - task-completion
 
 - id: documentation
   name: Documentation
   description: The docs a contributor needs are present, current, and discoverable.
   contributingSkills:
-    - task_completion
-    - team_collaboration
+    - task-completion
+    - team-collaboration
     - mentoring
 
-- id: codebase_experience
+- id: codebase-experience
   name: Codebase Experience
   description: Navigating, reading, and changing the codebase feels coherent.
   contributingSkills:
-    - architecture_design
+    - architecture-design
     - mentoring
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
-- id: incident_response
+- id: incident-response
   name: Incident Response
   description: Production issues are detected, mitigated, and learned from quickly.
   contributingSkills:
-    - incident_response
-    - incident_management
-    - risk_management
+    - incident-response
+    - incident-management
+    - risk-management
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
-- id: learning_culture
+- id: learning-culture
   name: Learning Culture
   description: People grow their craft as a normal part of the work.
   contributingSkills:
     - mentoring
-    - team_collaboration
+    - team-collaboration
 
 - id: experimentation
   name: Experimentation
   description: Small, reversible bets are encouraged and resourced.
   contributingSkills:
-    - product_thinking
-    - risk_management
+    - product-thinking
+    - risk-management
     - planning
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
 - id: connectedness
   name: Connectedness
   description: Engineers know who to talk to and feel part of the team.
   contributingSkills:
-    - team_collaboration
+    - team-collaboration
     - mentoring
-    - stakeholder_management
+    - stakeholder-management
 
-- id: efficient_processes
+- id: efficient-processes
   name: Efficient Processes
   description: Process exists to unblock work, not to add ceremony.
   contributingSkills:
     - planning
-    - task_completion
-    - team_collaboration
+    - task-completion
+    - team-collaboration
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking
 
-- id: deep_work
+- id: deep-work
   name: Deep Work
   description: Engineers get uninterrupted time for sustained focus.
   contributingSkills:
     - planning
-    - task_completion
+    - task-completion
 
-- id: leveraging_user_feedback
+- id: leveraging-user-feedback
   name: Leveraging User Feedback
   description: User signal reaches the people building the product and changes what they build.
   contributingSkills:
-    - product_thinking
-    - stakeholder_management
-    - data_integration
+    - product-thinking
+    - stakeholder-management
+    - data-integration
   contributingBehaviours:
-    - systems_thinking
+    - systems-thinking

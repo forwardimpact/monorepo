@@ -16,26 +16,26 @@ service Pathway {
 }
 
 message ListJobsRequest {
-  // Discipline id to filter by (e.g. 'software_engineering')
+  // Discipline id to filter by (e.g. 'software-engineering')
   optional string discipline = 1;
 }
 
 message DescribeJobRequest {
-  // Discipline id (e.g. 'software_engineering')
+  // Discipline id (e.g. 'software-engineering')
   string discipline = 1;
   // Level id (e.g. 'J060')
   string level = 2;
-  // Track id for specialization modifier (e.g. 'forward_deployed')
+  // Track id for specialization modifier (e.g. 'forward-deployed')
   optional string track = 3;
 }
 
 message ListAgentProfilesRequest {
-  // Discipline id to filter by (e.g. 'software_engineering')
+  // Discipline id to filter by (e.g. 'software-engineering')
   optional string discipline = 1;
 }
 
 message DescribeAgentProfileRequest {
-  // Discipline id (e.g. 'software_engineering')
+  // Discipline id (e.g. 'software-engineering')
   string discipline = 1;
   // Track id (e.g. 'platform')
   string track = 2;
@@ -43,30 +43,30 @@ message DescribeAgentProfileRequest {
 }
 
 message DescribeProgressionRequest {
-  // Discipline id (e.g. 'software_engineering')
+  // Discipline id (e.g. 'software-engineering')
   string discipline = 1;
   // Starting level id (e.g. 'J040')
   string from_level = 2;
   // Target level id (e.g. 'J060')
   string to_level = 3;
-  // Track id for specialization modifier (e.g. 'forward_deployed')
+  // Track id for specialization modifier (e.g. 'forward-deployed')
   optional string track = 4;
 }
 
 message ListJobSoftwareRequest {
-  // Discipline id (e.g. 'software_engineering')
+  // Discipline id (e.g. 'software-engineering')
   string discipline = 1;
   // Level id (e.g. 'J060')
   string level = 2;
-  // Track id for specialization modifier (e.g. 'forward_deployed')
+  // Track id for specialization modifier (e.g. 'forward-deployed')
   optional string track = 3;
 }
 
 message GetMarkersForProfileRequest {
-  // Discipline id (e.g. 'software_engineering')
+  // Discipline id (e.g. 'software-engineering')
   string discipline = 1;
   // Level id (e.g. 'J060')
   string level = 2;
-  // Track id for specialization modifier (e.g. 'forward_deployed')
+  // Track id for specialization modifier (e.g. 'forward-deployed')
   optional string track = 3;
 }

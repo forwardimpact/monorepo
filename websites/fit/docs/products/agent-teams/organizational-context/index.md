@@ -144,7 +144,7 @@ The `--level` flag is the per-invocation calibration surface — distinct from
 organizational-context slot (shared across every installation):
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --level=J060
+npx fit-pathway agent software-engineering --track=platform --level=J060
 ```
 
 Set `--level` explicitly when two agents on the same team must reflect
@@ -155,7 +155,7 @@ team using the track.
 Preview what Pathway generates for a given role to confirm placement:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform
+npx fit-pathway agent software-engineering --track=platform
 ```
 
 The output shows all three layers in order. Verify that the content you added
@@ -182,9 +182,9 @@ agent:
 ```
 
 ```yaml
-# data/pathway/capabilities/cloud_platforms.yaml
+# data/pathway/capabilities/cloud-platforms.yaml
 skills:
-  - id: cloud_platforms
+  - id: cloud-platforms
     agent:
       focus: |
         Deploy all services to AWS eu-west-1 using ECS Fargate.
@@ -230,14 +230,14 @@ Agent configurations are derived from your engineering standard data. When the
 standard changes, regenerate the agent files to pick up those changes:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --output=.
+npx fit-pathway agent software-engineering --track=platform --output=.
 ```
 
 Pathway overwrites `.claude/` with the latest derived configuration. Verify the
 updated skill list:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --skills
+npx fit-pathway agent software-engineering --track=platform --skills
 ```
 
 If a skill was added to the discipline's tier arrays, it appears here. If one
@@ -248,8 +248,8 @@ npx fit-pathway agent --list
 ```
 
 ```text
-se-platform software_engineering platform, Software Engineering (Platform Engineering)
-se-sre software_engineering sre, Software Engineering (Site Reliability Engineering)
+se-platform software-engineering platform, Software Engineering (Platform Engineering)
+se-sre software-engineering sre, Software Engineering (Site Reliability Engineering)
 ```
 
 Then run the `agent` command for each combination that your project uses.

@@ -3,7 +3,7 @@
     "type": "add",
     "projectId": "migration-q2",
     "job": {
-      "discipline": "software_engineering",
+      "discipline": "software-engineering",
       "level": "J060"
     },
     "allocation": 0.5
@@ -11,7 +11,7 @@
   "diff": {
     "capabilityChanges": [
       {
-        "skillId": "incident_response",
+        "skillId": "incident-response",
         "skillName": "Incident Response",
         "capabilityId": "reliability",
         "before": {
@@ -43,7 +43,7 @@
         "direction": "same"
       },
       {
-        "skillId": "task_completion",
+        "skillId": "task-completion",
         "skillName": "Task Completion",
         "capabilityId": "delivery",
         "before": {
@@ -82,16 +82,16 @@
         "singlePoints": [],
         "criticalGaps": [
           {
-            "skillId": "incident_response",
+            "skillId": "incident-response",
             "skillName": "Incident Response",
             "capabilityId": "reliability",
-            "reason": "broad skill for software_engineering discipline"
+            "reason": "broad skill for software-engineering discipline"
           },
           {
             "skillId": "planning",
             "skillName": "Planning",
             "capabilityId": "delivery",
-            "reason": "supporting skill for software_engineering discipline"
+            "reason": "supporting skill for software-engineering discipline"
           }
         ],
         "concentrationRisks": []

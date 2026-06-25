@@ -64,7 +64,7 @@ journey.}
 
 ### Track Confirmation
 
-**Recommended track:** {forward_deployed / platform / either}
+**Recommended track:** {forward-deployed / platform / either}
 
 {Explain track fit, referencing interview moments.}
 

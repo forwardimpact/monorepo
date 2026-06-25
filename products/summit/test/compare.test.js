@@ -18,17 +18,17 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
   b:
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J040 }
+      job: { discipline: software-engineering, level: J040 }
 `);
   const left = snapshot(roster, data, "a");
   const right = snapshot(roster, data, "b");
   const diff = diffCoverage(left.coverage, right.coverage);
   const task = diff.capabilityChanges.find(
-    (c) => c.skillId === "task_completion",
+    (c) => c.skillId === "task-completion",
   );
   // Alice (J060) is at working, Bob (J040) is below working.
   assert.equal(task.direction, "down");
@@ -40,19 +40,19 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
   b:
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Carol
       email: carol@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 `);
   const left = snapshot(roster, data, "a");
   const right = snapshot(roster, data, "b");
   const risks = diffRisks(left.risks, right.risks);
-  // Team a has task_completion as SPOF (only Alice at working); team b has 2 working.
+  // Team a has task-completion as SPOF (only Alice at working); team b has 2 working.
   const removedIds = risks.removed.singlePoints.map((s) => s.skillId);
-  assert.ok(removedIds.includes("task_completion"));
+  assert.ok(removedIds.includes("task-completion"));
 });

@@ -25,10 +25,10 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J040 }
+      job: { discipline: software-engineering, level: J040 }
 `;
 
 let data;
@@ -39,9 +39,9 @@ before(async () => {
 
 test("parseJobExpression accepts flow YAML", () => {
   const job = parseJobExpression(
-    "{ discipline: software_engineering, level: J060 }",
+    "{ discipline: software-engineering, level: J060 }",
   );
-  assert.equal(job.discipline, "software_engineering");
+  assert.equal(job.discipline, "software-engineering");
   assert.equal(job.level, "J060");
 });
 
@@ -57,7 +57,7 @@ test("parseScenario rejects multiple mutation flags", () => {
     () =>
       parseScenario(
         {
-          add: "{ discipline: software_engineering, level: J060 }",
+          add: "{ discipline: software-engineering, level: J060 }",
           remove: "Alice",
         },
         { teamId: "a" },
@@ -69,7 +69,7 @@ test("parseScenario rejects multiple mutation flags", () => {
 test("parseScenario parses --add with allocation", () => {
   const scenario = parseScenario(
     {
-      add: "{ discipline: software_engineering, level: J060 }",
+      add: "{ discipline: software-engineering, level: J060 }",
       allocation: "0.5",
     },
     { projectId: "p" },
@@ -83,7 +83,7 @@ test("applyScenario add: team grows by one member", () => {
   const roster = parseRosterYaml(FIXTURE_YAML);
   const scenario = parseScenario(
     {
-      add: "{ discipline: software_engineering, level: J060 }",
+      add: "{ discipline: software-engineering, level: J060 }",
     },
     { teamId: "a" },
   );
@@ -128,11 +128,11 @@ teams:
   a:
     - name: Alice
       email: a@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
   b:
     - name: Bob
       email: b@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 `);
   const scenario = parseScenario({ move: "Alice", to: "b" }, { teamId: "a" });
   const mutated = applyScenario(roster, data, scenario);
@@ -144,7 +144,7 @@ test("diffCoverage tracks headcount direction", () => {
   const roster = parseRosterYaml(FIXTURE_YAML);
   const baseline = snapshot(roster, data, "a");
   const scenario = parseScenario(
-    { add: "{ discipline: software_engineering, level: J060 }" },
+    { add: "{ discipline: software-engineering, level: J060 }" },
     { teamId: "a" },
   );
   const mutated = applyScenario(roster, data, scenario);
@@ -152,7 +152,7 @@ test("diffCoverage tracks headcount direction", () => {
 
   const diff = diffCoverage(baseline.coverage, after.coverage);
   const task = diff.capabilityChanges.find(
-    (c) => c.skillId === "task_completion",
+    (c) => c.skillId === "task-completion",
   );
   assert.equal(task.before.headcountDepth, 1);
   assert.equal(task.after.headcountDepth, 2);
@@ -165,14 +165,14 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Carol
       email: carol@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
   b:
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 `);
   const scenario = parseScenario({ move: "Alice", to: "b" }, { teamId: "a" });
   function snap(r, t) {
@@ -194,10 +194,10 @@ teams:
     ],
   });
   const srcTask = report.teamDiffs[0].coverageDiff.capabilityChanges.find(
-    (c) => c.skillId === "task_completion",
+    (c) => c.skillId === "task-completion",
   );
   const dstTask = report.teamDiffs[1].coverageDiff.capabilityChanges.find(
-    (c) => c.skillId === "task_completion",
+    (c) => c.skillId === "task-completion",
   );
   assert.equal(srcTask.direction, "down");
   assert.equal(dstTask.direction, "up");
@@ -206,10 +206,10 @@ teams:
 test("diffRisks finds resolved and new risks", () => {
   const roster = parseRosterYaml(FIXTURE_YAML);
   const baseline = snapshot(roster, data, "a");
-  // Add a second J060 — task_completion SPOF goes from 1 → 2, so the
+  // Add a second J060 — task-completion SPOF goes from 1 → 2, so the
   // SPOF disappears.
   const scenario = parseScenario(
-    { add: "{ discipline: software_engineering, level: J060 }" },
+    { add: "{ discipline: software-engineering, level: J060 }" },
     { teamId: "a" },
   );
   const mutated = applyScenario(roster, data, scenario);
@@ -217,5 +217,5 @@ test("diffRisks finds resolved and new risks", () => {
 
   const risks = diffRisks(baseline.risks, after.risks);
   const removed = risks.removed.singlePoints.map((r) => r.skillId);
-  assert.ok(removed.includes("task_completion"));
+  assert.ok(removed.includes("task-completion"));
 });

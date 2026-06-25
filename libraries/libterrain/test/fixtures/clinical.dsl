@@ -27,7 +27,7 @@ terrain clinical {
       J050 40%
     }
     disciplines {
-      software_engineering 100%
+      software-engineering 100%
     }
   }
 
@@ -41,7 +41,7 @@ terrain clinical {
 
   standard {
     proficiencies [awareness, foundational, working, practitioner, expert]
-    maturities [emerging, developing, practicing, role_modeling, exemplifying]
+    maturities [emerging, developing, practicing, role-modeling, exemplifying]
 
     levels {
       J040 { title "Software Engineer" rank 1 experience "0-2 years" }
@@ -49,7 +49,7 @@ terrain clinical {
     }
 
     capabilities {
-      coding { name "Coding" skills [python_dev, code_review] }
+      coding { name "Coding" skills [python-dev, code-review] }
     }
 
     behaviours {
@@ -57,10 +57,10 @@ terrain clinical {
     }
 
     disciplines {
-      software_engineering {
+      software-engineering {
         roleTitle "Software Engineer"
-        core [python_dev]
-        supporting [code_review]
+        core [python-dev]
+        supporting [code-review]
       }
     }
 
@@ -69,16 +69,16 @@ terrain clinical {
     }
 
     drivers {
-      clear_direction {
+      clear-direction {
         name "Clear Direction"
-        skills [python_dev]
+        skills [python-dev]
         behaviours [collaboration]
       }
     }
   }
 
   clinical {
-    condition diabetes_t2 {
+    condition diabetes-t2 {
       name "Type 2 Diabetes"
       icd10 [E11]
       synonyms ["high blood sugar"]
@@ -97,13 +97,13 @@ terrain clinical {
       specialties [oncology]
     }
 
-    trial oncora_p3 {
+    trial oncora-p3 {
       name "ONCORA-301"
       protocol_id "BNV-ONC-2024-301"
       project oncora
       phase "phase_3"
       therapeutic_area "oncology"
-      conditions [diabetes_t2]
+      conditions [diabetes-t2]
       sites [cambridge]
       principal_investigator @alpha_lead
       sponsor "BioNova"
@@ -131,13 +131,13 @@ terrain clinical {
     }
   }
 
-  output clinical_db supabase_migration {
+  output clinical-db supabase_migration {
     prefix "bn"
     entities [clinical.conditions, clinical.sites, clinical.researchers, clinical.trials, clinical.criteria]
     include_embeddings true
   }
 
-  output clinical_embed embeddings_jsonl {
+  output clinical-embed embeddings_jsonl {
     path "out/clinical.jsonl"
     entities [clinical.conditions]
     text_fields {

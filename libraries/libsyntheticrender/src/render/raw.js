@@ -374,7 +374,7 @@ function renderRoster(entities) {
     manager_email: person.manager_email || null,
     hire_date: person.hire_date,
     is_manager: person.is_manager || false,
-    archetype: person.archetype || "steady_contributor",
+    archetype: person.archetype || "steady-contributor",
     kind: person.kind || "human",
   }));
 

@@ -6,7 +6,7 @@ function makeClinical() {
   return {
     conditions: [
       {
-        id: "diabetes_t2",
+        id: "diabetes-t2",
         name: "Type 2 Diabetes",
         icd10: ["E11"],
         synonyms: ["high blood sugar"],
@@ -14,8 +14,8 @@ function makeClinical() {
         severity: "chronic",
         prose_topic: "diabetes",
         prose_tone: "empathetic",
-        trials: ["oncora_p3"],
-        iri: "https://example.com/id/clinical/condition/diabetes_t2",
+        trials: ["oncora-p3"],
+        iri: "https://example.com/id/clinical/condition/diabetes-t2",
       },
       {
         id: "cardio",
@@ -26,7 +26,7 @@ function makeClinical() {
         severity: "chronic",
         prose_topic: null,
         prose_tone: null,
-        trials: ["oncora_p3"],
+        trials: ["oncora-p3"],
         iri: "https://example.com/id/clinical/condition/cardio",
       },
     ],
@@ -42,7 +42,7 @@ function makeClinical() {
         org: { id: "hq", name: "HQ", iri: "https://example.com/id/org/hq" },
         capacity: 500,
         specialties: ["oncology"],
-        trials: ["oncora_p3"],
+        trials: ["oncora-p3"],
         iri: "https://example.com/id/clinical/site/cambridge",
       },
     ],
@@ -53,19 +53,19 @@ function makeClinical() {
         name: 'Thoth\'s "Lab"', // contains quotes
         email: "thoth@example.com",
         role: "principal_investigator",
-        trial_ids: ["oncora_p3"],
-        specialty: "data_science",
+        trial_ids: ["oncora-p3"],
+        specialty: "data-science",
         iri: "https://example.com/id/clinical/researcher/thoth",
       },
     ],
     trials: [
       {
-        id: "oncora_p3",
+        id: "oncora-p3",
         name: "ONCORA-301",
         protocol_id: "BNV-ONC-2024-301",
         phase: "phase_3",
         therapeutic_area: "oncology",
-        conditions: ["diabetes_t2", "cardio"],
+        conditions: ["diabetes-t2", "cardio"],
         sites: ["cambridge"],
         principal_investigator: {
           ref: "thoth",
@@ -83,15 +83,15 @@ function makeClinical() {
         prose_topic: null,
         prose_tone: null,
         criteria: { inclusion: {}, exclusion: {} },
-        iri: "https://example.com/id/clinical/trial/oncora_p3",
+        iri: "https://example.com/id/clinical/trial/oncora-p3",
       },
     ],
     criteria: [
       {
-        trial_id: "oncora_p3",
+        trial_id: "oncora-p3",
         inclusion: { age_min: 18, age_max: 75 },
         exclusion: { active_autoimmune: true },
-        iri: "https://example.com/id/clinical/criterion/oncora_p3",
+        iri: "https://example.com/id/clinical/criterion/oncora-p3",
       },
     ],
   };
@@ -162,7 +162,7 @@ describe("renderSql", () => {
     });
     const conditions = out.get("bn_001_conditions.sql");
     assert.ok(conditions.includes('INSERT INTO "conditions"'));
-    assert.ok(conditions.includes("diabetes_t2"));
+    assert.ok(conditions.includes("diabetes-t2"));
     assert.ok(conditions.includes("cardio"));
   });
 
@@ -185,12 +185,12 @@ describe("renderSql", () => {
     assert.ok(trialSites.includes('CREATE TABLE IF NOT EXISTS "trial_sites"'));
     assert.ok(trialSites.includes("trial_id"));
     assert.ok(trialSites.includes("site_id"));
-    assert.ok(trialSites.includes("$$oncora_p3$$"));
+    assert.ok(trialSites.includes("$$oncora-p3$$"));
     assert.ok(trialSites.includes("$$cambridge$$"));
 
     const trialConditions = out.get("bn_007_trial_conditions.sql");
     assert.ok(trialConditions.includes("condition_id"));
-    assert.ok(trialConditions.includes("$$diabetes_t2$$"));
+    assert.ok(trialConditions.includes("$$diabetes-t2$$"));
   });
 
   test("RLS file enables row level security on every table", () => {

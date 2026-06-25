@@ -186,7 +186,7 @@ either skill until it changes.
 bunx fit-pathway skill --list
 ```
 
-Use agent-aligned engineering standard IDs (e.g. `data_integration`,
+Use agent-aligned engineering standard IDs (e.g. `data-integration`,
 `full_stack_development`, `architecture_and_design`) in the `## Skills` section
 instead of free-form tags. Flag any candidate with a CV attachment for
 `req-screen`.

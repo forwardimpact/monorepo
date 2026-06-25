@@ -123,7 +123,7 @@ describe("agent --level integration", () => {
       await silent(() =>
         runAgent({
           dataDir,
-          args: ["software_engineering"],
+          args: ["software-engineering"],
           options: { track: "platform", level: "J040" },
           outputDir: outJ040,
         }),
@@ -131,7 +131,7 @@ describe("agent --level integration", () => {
       await silent(() =>
         runAgent({
           dataDir,
-          args: ["software_engineering"],
+          args: ["software-engineering"],
           options: { track: "platform", level: "J060" },
           outputDir: outJ060,
         }),
@@ -193,7 +193,7 @@ describe("agent --level integration", () => {
       await silent(() =>
         runAgent({
           dataDir,
-          args: ["software_engineering"],
+          args: ["software-engineering"],
           options: { track: "platform", level: "J060" },
         }),
       );
@@ -226,7 +226,7 @@ describe("agent --level integration", () => {
           silent(() =>
             runAgent({
               dataDir,
-              args: ["software_engineering"],
+              args: ["software-engineering"],
               options: { track: "platform", level: "BOGUS" },
             }),
           ),
@@ -254,7 +254,7 @@ describe("agent --level integration", () => {
           silent(() =>
             runAgent({
               dataDir,
-              args: ["software_engineering"],
+              args: ["software-engineering"],
               options: { track: "BOGUS" },
             }),
           ),

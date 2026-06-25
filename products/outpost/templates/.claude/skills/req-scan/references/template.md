@@ -10,7 +10,7 @@ Reference for `req-scan` Step 4. Save to `Knowledge/Prospects/{Name}.md`.
 **Date found:** {YYYY-MM-DD}
 **Location:** {location or "Not specified"}
 **Estimated level:** {J040–J110} (confidence: {high/medium/low})
-**Best track fit:** {forward_deployed / platform / either}
+**Best track fit:** {forward-deployed / platform / either}
 **Match strength:** {strong / moderate}
 
 ## Profile

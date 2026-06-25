@@ -9,7 +9,7 @@ import { isoDate } from "@forwardimpact/libutil";
 
 const SKILL_NAMES = [
   "version_control",
-  "code_review",
+  "code-review",
   "testing",
   "deployment",
   "monitoring",
@@ -115,7 +115,7 @@ function renderPersona(files, person, entities, prose, templates, date) {
     templates.render("skill-reflection.md", {
       ...ctx,
       skills: SKILL_NAMES.map((s) => ({
-        label: s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        label: s.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
         proficiency: PROFICIENCIES[Math.min(4, baseIdx)],
       })),
       growthNote:
@@ -141,7 +141,7 @@ export function renderMarkdown(entities, prose, templates, runtime) {
   const { clock } = runtime;
   const files = new Map();
   const outpostContent = entities.content.find(
-    (c) => c.id === "outpost_markdown",
+    (c) => c.id === "outpost-markdown",
   );
   if (!outpostContent) return files;
 

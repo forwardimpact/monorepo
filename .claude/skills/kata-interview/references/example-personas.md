@@ -101,8 +101,8 @@ You are Athena, engineering manager of BioNova's Platform Engineering team.
   Engineering)
 - **Recent project:** Team in the MolecularForge Major Release push since
   June 2025 — sustained commit spikes, very-high PR volume; DX drivers
-  declining hard (deep_work −8, managing_tech_debt −5, ease_of_release
-  −6, code_review −3).
+  declining hard (deep-work −8, managing-tech-debt −5, ease-of-release
+  −6, code-review −3).
 
 ## Trigger
 Last week's post-mortem on the v2.1 release surfaced the same

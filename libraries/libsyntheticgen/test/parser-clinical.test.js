@@ -109,7 +109,7 @@ describe("clinical block", () => {
   test("parses full clinical block with content", () => {
     const ast = parseDsl(`terrain test {
       clinical {
-        condition diabetes_t2 {
+        condition diabetes-t2 {
           name "Type 2 Diabetes"
           icd10 ["E11"]
           synonyms ["high blood sugar", "insulin resistance"]
@@ -145,13 +145,13 @@ describe("clinical block", () => {
           capacity 200
           specialties [neurology]
         }
-        trial oncora_p3 {
+        trial oncora-p3 {
           name "ONCORA-301"
           protocol_id "BNV-ONC-2024-301"
           project oncora
           phase "phase_3"
           therapeutic_area "oncology"
-          conditions [diabetes_t2, cardiovascular]
+          conditions [diabetes-t2, cardiovascular]
           sites [cambridge, boston]
           principal_investigator @thoth
           sponsor "BioNova"
@@ -167,7 +167,7 @@ describe("clinical block", () => {
             inclusion {
               age_min 18
               age_max 75
-              conditions_required [diabetes_t2]
+              conditions_required [diabetes-t2]
               prior_treatments_allowed ["chemotherapy", "radiation"]
               ecog_max 2
               custom ["Measurable disease per RECIST 1.1"]
@@ -183,12 +183,12 @@ describe("clinical block", () => {
         content {
           condition_explainers per_condition
           therapy_descriptions 6
-          therapy_topics [mab_therapy, immunotherapy]
+          therapy_topics [mab-therapy, immunotherapy]
           trial_faqs per_trial
           consent_summaries per_trial
           site_descriptions per_site
           patient_stories 10
-          patient_story_conditions [diabetes_t2, cardiovascular]
+          patient_story_conditions [diabetes-t2, cardiovascular]
         }
       }
     }`);
@@ -198,7 +198,7 @@ describe("clinical block", () => {
     assert.strictEqual(ast.clinical.trials.length, 1);
 
     const cond0 = ast.clinical.conditions[0];
-    assert.strictEqual(cond0.id, "diabetes_t2");
+    assert.strictEqual(cond0.id, "diabetes-t2");
     assert.strictEqual(cond0.prose_topic, "diabetes for patients");
     assert.strictEqual(cond0.prose_tone, "empathetic");
 
@@ -211,7 +211,7 @@ describe("clinical block", () => {
     assert.strictEqual(trial.principal_investigator, "thoth");
     assert.strictEqual(trial.prose_topic, "Phase 3 trial");
     assert.deepStrictEqual(trial.criteria.inclusion.conditions_required, [
-      "diabetes_t2",
+      "diabetes-t2",
     ]);
     assert.deepStrictEqual(trial.criteria.inclusion.prior_treatments_allowed, [
       "chemotherapy",
@@ -232,7 +232,7 @@ describe("clinical block", () => {
     assert.strictEqual(content.condition_explainers, "per_condition");
     assert.strictEqual(content.therapy_descriptions, 6);
     assert.deepStrictEqual(content.therapy_topics, [
-      "mab_therapy",
+      "mab-therapy",
       "immunotherapy",
     ]);
     assert.strictEqual(content.trial_faqs, "per_trial");
@@ -240,7 +240,7 @@ describe("clinical block", () => {
     assert.strictEqual(content.site_descriptions, "per_site");
     assert.strictEqual(content.patient_stories, 10);
     assert.deepStrictEqual(content.patient_story_conditions, [
-      "diabetes_t2",
+      "diabetes-t2",
       "cardiovascular",
     ]);
   });

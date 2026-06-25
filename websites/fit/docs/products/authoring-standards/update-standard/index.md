@@ -118,12 +118,12 @@ discipline file and add the skill ID to `coreSkills`, `supportingSkills`, or
 `broadSkills`:
 
 ```yaml
-# data/pathway/disciplines/software_engineering.yaml
+# data/pathway/disciplines/software-engineering.yaml
 coreSkills:
-  - architecture_design
-  - code_quality
-  - full_stack_development
-  - release_management        # newly added
+  - architecture-design
+  - code-quality
+  - full-stack-development
+  - release-management        # newly added
 ```
 
 Run validation again -- Map checks that every skill ID referenced in a
@@ -137,7 +137,7 @@ A misspelled skill ID produces an `INVALID_REFERENCE` error:
 
 ```text
 Errors
-  - INVALID_REFERENCE: Discipline 'software_engineering' references unknown skill 'release_managment' (disciplines/software_engineering)
+  - INVALID_REFERENCE: Discipline 'software-engineering' references unknown skill 'release_managment' (disciplines/software-engineering)
 ```
 
 ## Preview the result

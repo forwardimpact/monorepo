@@ -73,12 +73,12 @@ describe("ProseGenerator #buildPrompt", () => {
       length: "1-2 sentences",
       domain: "test.example",
       orgName: "TestCo",
-      role: "L3 software_engineering on the Alpha Team",
+      role: "L3 software-engineering on the Alpha Team",
       scenario: "Release Pressure",
       drivers: [
-        { driver_id: "deep_work", trajectory: "declining", magnitude: -6 },
+        { driver_id: "deep-work", trajectory: "declining", magnitude: -6 },
         {
-          driver_id: "ease_of_release",
+          driver_id: "ease-of-release",
           trajectory: "declining",
           magnitude: -4,
         },
@@ -112,14 +112,14 @@ describe("ProseGenerator #buildPrompt", () => {
     await generator.generatePlain("k1", {
       ...base,
       drivers: [
-        { driver_id: "deep_work", trajectory: "declining", magnitude: -6 },
+        { driver_id: "deep-work", trajectory: "declining", magnitude: -6 },
       ],
     });
     await generator.generatePlain("k2", {
       ...base,
       drivers: [
         {
-          driver_id: "learning_culture",
+          driver_id: "learning-culture",
           trajectory: "rising",
           magnitude: 5,
         },

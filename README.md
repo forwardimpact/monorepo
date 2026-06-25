@@ -62,7 +62,7 @@ Browse your agent-aligned engineering standard:
 
 ```sh
 npx fit-pathway discipline --list
-npx fit-pathway job software_engineering J060
+npx fit-pathway job software-engineering J060
 ```
 
 Guide requires a running service stack — see the

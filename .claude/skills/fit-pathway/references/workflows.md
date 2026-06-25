@@ -11,13 +11,13 @@ data directory. Start with summary commands to discover what's available.
 npx fit-pathway track
 
 # 2. See jobs filtered to a specific track
-npx fit-pathway job --track=forward_deployed
+npx fit-pathway job --track=forward-deployed
 
 # 3. List all job combinations on that track (for piping)
-npx fit-pathway job --list --track=forward_deployed
+npx fit-pathway job --list --track=forward-deployed
 
 # 4. View a specific role
-npx fit-pathway job software_engineering J060 --track=forward_deployed
+npx fit-pathway job software-engineering J060 --track=forward-deployed
 ```
 
 ### Understand a discipline's structure
@@ -27,30 +27,30 @@ npx fit-pathway job software_engineering J060 --track=forward_deployed
 npx fit-pathway discipline
 
 # 2. Drill into a discipline to see skill tiers and behaviour modifiers
-npx fit-pathway discipline software_engineering
+npx fit-pathway discipline software-engineering
 
 # 3. Compare the same discipline across tracks
-npx fit-pathway job software_engineering J060 --track=platform
-npx fit-pathway job software_engineering J060 --track=forward_deployed
+npx fit-pathway job software-engineering J060 --track=platform
+npx fit-pathway job software-engineering J060 --track=forward-deployed
 ```
 
 ### Explore career progression
 
 ```sh
 # 1. See what changes between levels
-npx fit-pathway progress software_engineering J060 --track=forward_deployed
+npx fit-pathway progress software-engineering J060 --track=forward-deployed
 
 # 2. Compare specific levels
-npx fit-pathway progress software_engineering J060 --track=forward_deployed --compare=J100
+npx fit-pathway progress software-engineering J060 --track=forward-deployed --compare=J100
 ```
 
 ### Discover what a track modifies
 
 ```sh
 # 1. View track detail to see all skill and behaviour modifiers
-npx fit-pathway track forward_deployed
+npx fit-pathway track forward-deployed
 
 # 2. Compare the resulting skill matrices side by side
-npx fit-pathway job software_engineering J060 --skills
-npx fit-pathway job software_engineering J060 --track=forward_deployed --skills
+npx fit-pathway job software-engineering J060 --skills
+npx fit-pathway job software-engineering J060 --track=forward-deployed --skills
 ```

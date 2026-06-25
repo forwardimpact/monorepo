@@ -8,7 +8,7 @@ import { toText } from "../src/formatters/coverage.js";
 const PERSON = {
   email: "alice@example.com",
   name: "Alice",
-  discipline: "software_engineering",
+  discipline: "software-engineering",
   level: "J040",
 };
 

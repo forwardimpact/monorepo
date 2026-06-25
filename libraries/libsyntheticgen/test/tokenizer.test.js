@@ -311,6 +311,58 @@ describe("tokenize", () => {
     });
   });
 
+  describe("hyphenated identifiers", () => {
+    test("tokenizes a hyphenated identifier as a single IDENT", () => {
+      const tokens = tokenize("task-completion");
+      assert.deepStrictEqual(tokens[0], {
+        type: "IDENT",
+        value: "task-completion",
+        line: 1,
+      });
+    });
+
+    test("tokenizes multi-hyphen identifiers as one IDENT", () => {
+      const tokens = tokenize("leveraging-user-feedback");
+      assert.deepStrictEqual(tokens[0], {
+        type: "IDENT",
+        value: "leveraging-user-feedback",
+        line: 1,
+      });
+    });
+
+    test("a keyword followed by a negative number still splits", () => {
+      const tokens = tokenize("magnitude -8").filter((t) => t.type !== "EOF");
+      assert.deepStrictEqual(tokens, [
+        { type: "KEYWORD", value: "magnitude", line: 1 },
+        { type: "NUMBER", value: "-8", line: 1 },
+      ]);
+    });
+
+    test("YYYY-MM dates are unaffected by hyphen identifiers", () => {
+      const tokens = tokenize("2024-01");
+      assert.strictEqual(tokens[0].type, "DATE");
+      assert.strictEqual(tokens[0].value, "2024-01");
+    });
+
+    test("keywords are still recognised next to hyphenated idents", () => {
+      const tokens = tokenize("disciplines software-engineering").filter(
+        (t) => t.type !== "EOF",
+      );
+      assert.deepStrictEqual(tokens, [
+        { type: "KEYWORD", value: "disciplines", line: 1 },
+        { type: "IDENT", value: "software-engineering", line: 1 },
+      ]);
+    });
+
+    test("hyphenated idents tokenize inside arrays", () => {
+      const tokens = tokenize("[role-modeling, exemplifying]");
+      const idents = tokens
+        .filter((t) => t.type === "IDENT")
+        .map((t) => t.value);
+      assert.deepStrictEqual(idents, ["role-modeling", "exemplifying"]);
+    });
+  });
+
   describe("complex input", () => {
     test("tokenizes a minimal terrain declaration", () => {
       const input = `terrain test_co {

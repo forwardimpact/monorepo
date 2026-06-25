@@ -5,10 +5,7 @@
  * stays focused on orchestration.
  */
 
-import {
-  getDisciplineAbbreviation,
-  toKebabCase,
-} from "@forwardimpact/libskill/agent";
+import { getDisciplineAbbreviation } from "@forwardimpact/libskill/agent";
 import {
   formatHeader,
   formatSubheader,
@@ -95,7 +92,7 @@ function listAgentCombinationsCompact(data, agentData, runtime) {
     humanTrack,
   } of findValidCombinations(data, agentData)) {
     const abbrev = getDisciplineAbbreviation(discipline.id);
-    const agentName = `${abbrev}-${toKebabCase(track.id)}`;
+    const agentName = `${abbrev}-${track.id}`;
     const specName = humanDiscipline.specialization || humanDiscipline.id;
     runtime.proc.stdout.write(
       `${agentName} ${discipline.id} ${track.id}, ${specName} (${humanTrack.name})\n`,

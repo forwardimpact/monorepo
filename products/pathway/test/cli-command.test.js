@@ -34,8 +34,8 @@ describe("getCliCommand", () => {
       "npx fit-pathway behaviour collaboration",
     );
     assert.strictEqual(
-      getCliCommand("/discipline/software_engineering"),
-      "npx fit-pathway discipline software_engineering",
+      getCliCommand("/discipline/software-engineering"),
+      "npx fit-pathway discipline software-engineering",
     );
   });
 
@@ -48,15 +48,15 @@ describe("getCliCommand", () => {
 
   test("maps job detail with track", () => {
     assert.strictEqual(
-      getCliCommand("/job/software_engineering/level_2/backend"),
-      "npx fit-pathway job software_engineering level_2 --track=backend",
+      getCliCommand("/job/software-engineering/level_2/backend"),
+      "npx fit-pathway job software-engineering level_2 --track=backend",
     );
   });
 
   test("maps job detail without track", () => {
     assert.strictEqual(
-      getCliCommand("/job/software_engineering/level_2"),
-      "npx fit-pathway job software_engineering level_2",
+      getCliCommand("/job/software-engineering/level_2"),
+      "npx fit-pathway job software-engineering level_2",
     );
   });
 

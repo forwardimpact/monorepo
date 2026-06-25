@@ -58,7 +58,6 @@ export function buildCapabilityPrompt(skeleton, ctx, schema, priorOutput) {
       '    Use second-person ("You..."). Each level must show clear',
       "    progression in scope, autonomy, and complexity.",
       "- For each skill that is NOT human-only, also generate an agent section:",
-      "  - agent.name: kebab-case name (e.g., 'code-review', 'data-modeling').",
       "  - agent.description: 1 sentence describing what this agent skill provides.",
       "  - agent.useWhen: A verb-phrase fragment that completes the sentence",
       '    "Use when ___". Examples: "validating code changes",',

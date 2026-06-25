@@ -37,7 +37,7 @@ describe("Skill Modifiers", () => {
     });
 
     it("returns false for skill IDs", () => {
-      assert.strictEqual(isCapability("architecture_design"), false);
+      assert.strictEqual(isCapability("architecture-design"), false);
       assert.strictEqual(isCapability("skill_a"), false);
       assert.strictEqual(isCapability("devops"), false);
     });

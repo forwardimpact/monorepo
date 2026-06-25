@@ -267,7 +267,7 @@ function readNumeric(source, s) {
 /** @param {string} source @param {{ i: number, line: number }} s @returns {{ type: string, value: string }} */
 function readWord(source, s) {
   let word = "";
-  while (s.i < source.length && /[a-zA-Z0-9_]/.test(source[s.i])) {
+  while (s.i < source.length && /[a-zA-Z0-9_-]/.test(source[s.i])) {
     word += source[s.i];
     s.i++;
     if (

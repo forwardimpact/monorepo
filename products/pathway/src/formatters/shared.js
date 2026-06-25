@@ -118,7 +118,7 @@ export function capitalize(str) {
   // Insert space before uppercase letters (for camelCase), then handle snake_case
   return str
     .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/_/g, " ")
+    .replace(/[-_]/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 

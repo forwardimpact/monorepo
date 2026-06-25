@@ -32,7 +32,7 @@
           "type": "array",
           "items": { "$ref": "#/$defs/question" }
         },
-        "role_modeling": {
+        "role-modeling": {
           "type": "array",
           "items": { "$ref": "#/$defs/question" }
         },

@@ -204,7 +204,7 @@ const definition = {
   examples: [
     "fit-landmark org show",
     "fit-landmark snapshot list",
-    "fit-landmark marker task_completion",
+    "fit-landmark marker task-completion",
     "fit-landmark health --manager alice@example.com",
     "fit-landmark health --manager zeus@bionova.example",
     "fit-landmark sources --email self@example.com",

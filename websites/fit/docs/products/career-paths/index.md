@@ -34,11 +34,11 @@ npx fit-pathway discipline --list
 Expected output (your organization's values will differ):
 
 ```text
-clinical_informatics
-data_engineering
-engineering_management
-quality_engineering
-software_engineering
+clinical-informatics
+data-engineering
+engineering-management
+quality-engineering
+software-engineering
 ```
 
 Each line is a discipline ID. Note the one that matches your current role; you
@@ -68,7 +68,7 @@ npx fit-pathway track --list
 ```
 
 ```text
-ml_ops
+ml-ops
 platform
 security
 sre
@@ -82,7 +82,7 @@ three values are all you need for the remaining steps.
 Generate the complete expectation profile for your role:
 
 ```sh
-npx fit-pathway job software_engineering J060
+npx fit-pathway job software-engineering J060
 ```
 
 The output has four sections:
@@ -112,7 +112,7 @@ If your role has a track specialization, add the `--track` flag to see how the
 profile shifts:
 
 ```sh
-npx fit-pathway job software_engineering J060 --track=platform
+npx fit-pathway job software-engineering J060 --track=platform
 ```
 
 Track specializations add track-specific skills and may adjust behaviour
@@ -136,7 +136,7 @@ To understand what a specific proficiency level means in practice, inspect any
 skill:
 
 ```sh
-npx fit-pathway skill architecture_design
+npx fit-pathway skill architecture-design
 ```
 
 ```text
@@ -183,7 +183,7 @@ behaviour and the maturity level expected.
 Inspect a specific behaviour to see what each maturity level looks like:
 
 ```sh
-npx fit-pathway behaviour systems_thinking
+npx fit-pathway behaviour systems-thinking
 ```
 
 ```text
@@ -216,7 +216,7 @@ The five maturity levels:
 | `emerging`      | Shows interest, needs prompting                      |
 | `developing`    | Regularly applies with some guidance                 |
 | `practicing`    | Consistently demonstrates in daily work              |
-| `role_modeling` | Influences the team's approach, others seek them out |
+| `role-modeling` | Influences the team's approach, others seek them out |
 | `exemplifying`  | Shapes organizational culture in this area           |
 
 ## See what changes at the next level
@@ -228,7 +228,7 @@ Run the `progress` command for your current role to see the progression to the
 next level:
 
 ```sh
-npx fit-pathway progress software_engineering J060
+npx fit-pathway progress software-engineering J060
 ```
 
 ```text
@@ -276,7 +276,7 @@ specific changes.
 Add a track to see progression within a specialization:
 
 ```sh
-npx fit-pathway progress software_engineering J060 --track=platform
+npx fit-pathway progress software-engineering J060 --track=platform
 ```
 
 Track specializations often add more skill changes -- in this case, the
@@ -287,7 +287,7 @@ Observability, and Performance Optimization all need to grow as well.
 To compare any two specific levels (not just adjacent ones), use `--compare`:
 
 ```sh
-npx fit-pathway progress software_engineering J040 --compare=J060
+npx fit-pathway progress software-engineering J040 --compare=J060
 ```
 
 ```text

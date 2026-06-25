@@ -116,5 +116,5 @@ export function createGroupedList(groups, renderItem, renderGroupHeader) {
  * @returns {string}
  */
 function formatGroupName(name) {
-  return name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

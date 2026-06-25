@@ -42,14 +42,14 @@
         "emerging": { "type": "string" },
         "developing": { "type": "string" },
         "practicing": { "type": "string" },
-        "role_modeling": { "type": "string" },
+        "role-modeling": { "type": "string" },
         "exemplifying": { "type": "string" }
       },
       "required": [
         "emerging",
         "developing",
         "practicing",
-        "role_modeling",
+        "role-modeling",
         "exemplifying"
       ],
       "additionalProperties": false

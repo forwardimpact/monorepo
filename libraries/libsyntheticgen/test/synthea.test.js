@@ -129,9 +129,9 @@ describe("SyntheaTool", () => {
     // Verify dataset flattening by resource type
     assert.strictEqual(datasets.length, 2);
     const names = datasets.map((d) => d.name).sort();
-    assert.deepStrictEqual(names, ["test_condition", "test_patient"]);
+    assert.deepStrictEqual(names, ["test-condition", "test-patient"]);
 
-    const patientDs = datasets.find((d) => d.name === "test_patient");
+    const patientDs = datasets.find((d) => d.name === "test-patient");
     assert.strictEqual(patientDs.records.length, 1);
     assert.strictEqual(patientDs.metadata.tool, "synthea");
     assert.strictEqual(patientDs.metadata.resourceType, "Patient");
@@ -149,13 +149,13 @@ describe("SyntheaTool", () => {
 
     const tool = makeToolWithBundles(bundles, "/synthea.jar");
     const datasets = await tool.generate({
-      name: "trial_patients",
+      name: "trial-patients",
       population: 5,
       conditions: ["diabetes"],
       seed: 1,
     });
 
-    const patientDs = datasets.find((d) => d.name === "trial_patients_patient");
+    const patientDs = datasets.find((d) => d.name === "trial-patients-patient");
     assert.strictEqual(patientDs.records.length, 3);
     const ids = patientDs.records.map((r) => r.id).sort();
     assert.deepStrictEqual(ids, ["p1", "p3", "p4"]);
@@ -168,12 +168,12 @@ describe("SyntheaTool", () => {
     ]);
     const tool = makeToolWithBundles(bundles, "/synthea.jar");
     const datasets = await tool.generate({
-      name: "trial_patients",
+      name: "trial-patients",
       population: 2,
       conditions: ["E11"],
       seed: 1,
     });
-    const patientDs = datasets.find((d) => d.name === "trial_patients_patient");
+    const patientDs = datasets.find((d) => d.name === "trial-patients-patient");
     assert.strictEqual(patientDs.records.length, 1);
     assert.strictEqual(patientDs.records[0].id, "p1");
   });
@@ -189,7 +189,7 @@ describe("SyntheaTool", () => {
       population: 2,
       seed: 1,
     });
-    const patientDs = datasets.find((d) => d.name === "patients_patient");
+    const patientDs = datasets.find((d) => d.name === "patients-patient");
     assert.strictEqual(patientDs.records.length, 2);
   });
 
@@ -211,7 +211,7 @@ describe("SyntheaTool", () => {
     });
     // No Condition resources → no patient gets a match, but the no-match
     // branch leaves data untouched rather than wiping it.
-    const patientDs = datasets.find((d) => d.name === "patients_patient");
+    const patientDs = datasets.find((d) => d.name === "patients-patient");
     assert.strictEqual(patientDs.records.length, 2);
   });
 

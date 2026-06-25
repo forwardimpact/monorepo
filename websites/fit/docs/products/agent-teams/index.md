@@ -38,9 +38,9 @@ npx fit-pathway agent --list
 Expected output (your organization's values will differ):
 
 ```text
-se-platform software_engineering platform, Software Engineering (Platform Engineering)
-se-sre software_engineering sre, Software Engineering (Site Reliability Engineering)
-de-platform data_engineering platform, Data Engineering (Platform Engineering)
+se-platform software-engineering platform, Software Engineering (Platform Engineering)
+se-sre software-engineering sre, Software Engineering (Site Reliability Engineering)
+de-platform data-engineering platform, Data Engineering (Platform Engineering)
 ...
 ```
 
@@ -59,7 +59,7 @@ Before writing files, preview what Pathway will generate. Run the `agent`
 command without `--output` to see the full configuration on screen:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform
+npx fit-pathway agent software-engineering --track=platform
 ```
 
 The output has three sections, each corresponding to a layer in the generated
@@ -94,7 +94,7 @@ encodes. Without it, Pathway selects a default level based on core-skill
 proficiency.
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --level=J060
+npx fit-pathway agent software-engineering --track=platform --level=J060
 ```
 
 Set `--level` explicitly when generating agents that should meet different
@@ -107,7 +107,7 @@ default-resolved behaviour.
 Once the preview looks right, generate the files into your project:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --output=.
+npx fit-pathway agent software-engineering --track=platform --output=.
 ```
 
 Pathway writes the following structure (the skill directories will match
@@ -134,16 +134,16 @@ configurations without a track omit the suffix.
 List the skill IDs the agent received to confirm they match the discipline:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --skills
+npx fit-pathway agent software-engineering --track=platform --skills
 ```
 
 Expected output (your organization's skills will differ — the starter ships
-this shape for `software_engineering --track=platform`):
+this shape for `software-engineering --track=platform`):
 
 ```text
-task_completion
-incident_response
-incident_management
+task-completion
+incident-response
+incident-management
 ```
 
 Each skill file under `.claude/skills/` contains procedural guidance for one

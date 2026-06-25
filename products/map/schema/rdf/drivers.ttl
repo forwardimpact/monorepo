@@ -47,11 +47,11 @@ fit:DriverShape a sh:NodeShape ;
     sh:property [
         sh:path fit:id ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "id" ;
-        sh:description "Unique driver identifier (snake_case)" ;
+        sh:description "Unique driver identifier (kebab-case)" ;
     ] ;
     sh:property [
         sh:path fit:name ;
@@ -71,14 +71,14 @@ fit:DriverShape a sh:NodeShape ;
     sh:property [
         sh:path fit:contributingSkills ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:name "contributingSkills" ;
         sh:description "Skills that contribute to this driver (skill IDs)" ;
     ] ;
     sh:property [
         sh:path fit:contributingBehaviours ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:name "contributingBehaviours" ;
         sh:description "Behaviours that contribute to this driver (behaviour IDs)" ;
     ] .

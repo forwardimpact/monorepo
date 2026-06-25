@@ -27,15 +27,15 @@ npx fit-pathway job --list
 
 This prints every valid discipline, level, and track combination. Find the row
 that matches the candidate's experience. For example, a mid-level software
-engineer with a platform background maps to `software_engineering J060` with
+engineer with a platform background maps to `software-engineering J060` with
 track `platform`.
 
 If you are unsure which level applies, generate two adjacent role definitions
 and compare the expectations:
 
 ```sh
-npx fit-pathway job software_engineering J060 --track=platform
-npx fit-pathway job software_engineering J070 --track=platform
+npx fit-pathway job software-engineering J060 --track=platform
+npx fit-pathway job software-engineering J070 --track=platform
 ```
 
 The Expectations section of each output describes impact scope, autonomy, and
@@ -49,7 +49,7 @@ The `--add` flag takes a flow-style YAML object describing the role:
 
 ```sh
 npx fit-summit what-if platform --roster ./summit.yaml \
-  --add "{ discipline: software_engineering, level: J060, track: platform }"
+  --add "{ discipline: software-engineering, level: J060, track: platform }"
 ```
 
 Expected output:
@@ -78,7 +78,7 @@ about most:
 
 ```sh
 npx fit-summit what-if platform --roster ./summit.yaml \
-  --add "{ discipline: software_engineering, level: J060, track: platform }" \
+  --add "{ discipline: software-engineering, level: J060, track: platform }" \
   --focus architecture
 ```
 
@@ -105,7 +105,7 @@ track; the other is a J070 data engineer:
 
 ```sh
 npx fit-summit what-if platform --roster ./summit.yaml \
-  --add "{ discipline: software_engineering, level: J060, track: platform }"
+  --add "{ discipline: software-engineering, level: J060, track: platform }"
 ```
 
 ```text
@@ -116,7 +116,7 @@ npx fit-summit what-if platform --roster ./summit.yaml \
 
 ```sh
 npx fit-summit what-if platform --roster ./summit.yaml \
-  --add "{ discipline: data_engineering, level: J070, track: platform }"
+  --add "{ discipline: data-engineering, level: J070, track: platform }"
 ```
 
 ```text

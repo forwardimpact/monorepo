@@ -73,7 +73,7 @@ evidenced it. To see the full rationale -- why Landmark matched that artifact to
 that marker -- use the `evidence` command filtered to a specific skill:
 
 ```sh
-npx fit-landmark evidence --skill architecture_design --email you@example.com
+npx fit-landmark evidence --skill architecture-design --email you@example.com
 ```
 
 Expected output:
@@ -81,7 +81,7 @@ Expected output:
 ```text
   Evidence
 
-    architecture_design: 3 matched, 1 unmatched
+    architecture-design: 3 matched, 1 unmatched
       [matched] Designs services with clear API boundaries
         rationale: A recent pull request introduced a new service boundary with documented...
         provenance: artifact_interpreted
@@ -117,21 +117,21 @@ Expected output:
 ```text
   Growth timeline for you@example.com
 
-    2025-Q1     architecture_design  working
-    2025-Q2     architecture_design  working
-    2025-Q3     architecture_design  practitioner
-    2025-Q1     code_review          working
-    2025-Q2     code_review          working
+    2025-Q1     architecture-design  working
+    2025-Q2     architecture-design  working
+    2025-Q3     architecture-design  practitioner
+    2025-Q1     code-review          working
+    2025-Q2     code-review          working
 ```
 
-In this example, `architecture_design` moved from `working` to `practitioner`
+In this example, `architecture-design` moved from `working` to `practitioner`
 in Q3. That is a visible shift -- the evidence record now reflects growth that
 previously existed only in practice.
 
 Filter to a single skill to focus on one area:
 
 ```sh
-npx fit-landmark timeline --email you@example.com --skill architecture_design
+npx fit-landmark timeline --email you@example.com --skill architecture-design
 ```
 
 If the timeline shows the same proficiency level across multiple quarters with
@@ -147,11 +147,11 @@ When the readiness checklist shows outstanding markers, use the `marker` command
 to see what the standard defines for that proficiency level:
 
 ```sh
-npx fit-landmark marker architecture_design --level practitioner
+npx fit-landmark marker architecture-design --level practitioner
 ```
 
 ```text
-  Markers: architecture_design (practitioner)
+  Markers: architecture-design (practitioner)
 
     - Leads architecture for a product or platform area
     - Defines module boundaries and integration patterns

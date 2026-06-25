@@ -125,14 +125,14 @@ describe("generatePacks", () => {
     );
   });
 
-  test("starter renders software_engineering × J060 without duplicated role token or broken autonomy", () => {
+  test("starter renders software-engineering × J060 without duplicated role token or broken autonomy", () => {
     const swDiscipline = data.disciplines.find(
-      (d) => d.id === "software_engineering",
+      (d) => d.id === "software-engineering",
     );
     const j060 = data.levels.find((l) => l.id === "J060");
     assert.ok(
       swDiscipline && j060,
-      "starter must contain software_engineering + J060",
+      "starter must contain software-engineering + J060",
     );
 
     const title = generateJobTitle({ discipline: swDiscipline, level: j060 });

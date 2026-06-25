@@ -49,9 +49,9 @@ describe("datasets node — condition resolution", () => {
     const parse = {
       datasets: [
         {
-          id: "trial_patients",
+          id: "trial-patients",
           tool: "synthea",
-          config: { conditions: ["diabetes_t2", "lung_cancer"] },
+          config: { conditions: ["diabetes-t2", "lung-cancer"] },
         },
       ],
       outputs: [],
@@ -59,15 +59,15 @@ describe("datasets node — condition resolution", () => {
     };
     const clinical = {
       conditions: [
-        { id: "diabetes_t2", synthea_module: "diabetes" },
-        { id: "lung_cancer", synthea_module: "lung_cancer" },
+        { id: "diabetes-t2", synthea_module: "diabetes" },
+        { id: "lung-cancer", synthea_module: "lung-cancer" },
       ],
     };
 
     await runDatasetsNode(parse, { clinical, factory });
 
     assert.strictEqual(calls.length, 1);
-    assert.deepStrictEqual(calls[0].modules, ["diabetes", "lung_cancer"]);
+    assert.deepStrictEqual(calls[0].modules, ["diabetes", "lung-cancer"]);
   });
 
   test("silently skips unknown condition refs", async () => {
@@ -75,16 +75,16 @@ describe("datasets node — condition resolution", () => {
     const parse = {
       datasets: [
         {
-          id: "trial_patients",
+          id: "trial-patients",
           tool: "synthea",
-          config: { conditions: ["diabetes_t2", "unknown_condition"] },
+          config: { conditions: ["diabetes-t2", "unknown_condition"] },
         },
       ],
       outputs: [],
       seed: 42,
     };
     const clinical = {
-      conditions: [{ id: "diabetes_t2", synthea_module: "diabetes" }],
+      conditions: [{ id: "diabetes-t2", synthea_module: "diabetes" }],
     };
 
     await runDatasetsNode(parse, { clinical, factory });
@@ -97,11 +97,11 @@ describe("datasets node — condition resolution", () => {
     const parse = {
       datasets: [
         {
-          id: "trial_patients",
+          id: "trial-patients",
           tool: "synthea",
           config: {
             modules: ["hypertension"],
-            conditions: ["lung_cancer"],
+            conditions: ["lung-cancer"],
           },
         },
       ],
@@ -112,7 +112,7 @@ describe("datasets node — condition resolution", () => {
     await runDatasetsNode(parse, { clinical: null, factory });
 
     assert.deepStrictEqual(calls[0].modules, ["hypertension"]);
-    assert.deepStrictEqual(calls[0].conditions, ["lung_cancer"]);
+    assert.deepStrictEqual(calls[0].conditions, ["lung-cancer"]);
   });
 
   test("leaves config.modules untouched when dataset has no conditions field", async () => {
@@ -120,7 +120,7 @@ describe("datasets node — condition resolution", () => {
     const parse = {
       datasets: [
         {
-          id: "trial_patients",
+          id: "trial-patients",
           tool: "synthea",
           config: { modules: ["diabetes"] },
         },
@@ -129,7 +129,7 @@ describe("datasets node — condition resolution", () => {
       seed: 42,
     };
     const clinical = {
-      conditions: [{ id: "diabetes_t2", synthea_module: "diabetes" }],
+      conditions: [{ id: "diabetes-t2", synthea_module: "diabetes" }],
     };
 
     await runDatasetsNode(parse, { clinical, factory });
@@ -140,17 +140,17 @@ describe("datasets node — condition resolution", () => {
   test("merges explicit modules with conditions-derived modules, deduped", async () => {
     const { factory, calls } = makeRecordingFactory();
     const ds = {
-      id: "trial_patients",
+      id: "trial-patients",
       tool: "synthea",
       config: {
         modules: ["hypertension"],
-        conditions: ["diabetes_t2", "hypertension_dsl"],
+        conditions: ["diabetes-t2", "hypertension_dsl"],
       },
     };
     const parse = { datasets: [ds], outputs: [], seed: 42 };
     const clinical = {
       conditions: [
-        { id: "diabetes_t2", synthea_module: "diabetes" },
+        { id: "diabetes-t2", synthea_module: "diabetes" },
         // Both DSL conditions can resolve to the same Synthea module —
         // the merge dedupes so we don't load the same module twice.
         { id: "hypertension_dsl", synthea_module: "hypertension" },
@@ -179,12 +179,12 @@ describe("datasets node — condition resolution", () => {
       return {
         checkAvailability: async () => true,
         generate: async (config) => [
-          { name: `${config.name}_patient`, records: [{ id: "p1" }] },
+          { name: `${config.name}-patient`, records: [{ id: "p1" }] },
         ],
       };
     }
     const parse = {
-      datasets: [{ id: "trial_patients", tool: "synthea", config: {} }],
+      datasets: [{ id: "trial-patients", tool: "synthea", config: {} }],
       outputs: [],
       seed: 42,
     };
@@ -194,7 +194,7 @@ describe("datasets node — condition resolution", () => {
       factory: factoryWithDataset,
     });
 
-    assert.ok(result.datasetsMap.has("trial_patients_patient"));
+    assert.ok(result.datasetsMap.has("trial-patients-patient"));
   });
 
   test("skips fhir_microdata_html outputs without 'dataset not generated' log", async () => {
@@ -207,10 +207,10 @@ describe("datasets node — condition resolution", () => {
     };
     const { factory } = makeRecordingFactory();
     const parse = {
-      datasets: [{ id: "trial_patients", tool: "synthea", config: {} }],
+      datasets: [{ id: "trial-patients", tool: "synthea", config: {} }],
       outputs: [
         {
-          dataset: "trial_patients",
+          dataset: "trial-patients",
           format: "fhir_microdata_html",
           config: {},
         },
@@ -240,13 +240,13 @@ describe("datasets node — condition resolution", () => {
   test("does not mutate parse.datasets[i].config", async () => {
     const { factory } = makeRecordingFactory();
     const ds = {
-      id: "trial_patients",
+      id: "trial-patients",
       tool: "synthea",
-      config: { conditions: ["diabetes_t2"] },
+      config: { conditions: ["diabetes-t2"] },
     };
     const parse = { datasets: [ds], outputs: [], seed: 42 };
     const clinical = {
-      conditions: [{ id: "diabetes_t2", synthea_module: "diabetes" }],
+      conditions: [{ id: "diabetes-t2", synthea_module: "diabetes" }],
     };
 
     await runDatasetsNode(parse, { clinical, factory });
@@ -254,6 +254,6 @@ describe("datasets node — condition resolution", () => {
     // Original AST node still only carries `conditions`; nothing wrote
     // `modules` onto it.
     assert.strictEqual(ds.config.modules, undefined);
-    assert.deepStrictEqual(ds.config.conditions, ["diabetes_t2"]);
+    assert.deepStrictEqual(ds.config.conditions, ["diabetes-t2"]);
   });
 });

@@ -20,7 +20,7 @@ function stubQueries({
         person ?? {
           email,
           name: "Alice",
-          discipline: "software_engineering",
+          discipline: "software-engineering",
           level: "J040",
           track: "platform",
         }
@@ -42,7 +42,7 @@ describe("readiness command", () => {
       queries: stubQueries({
         evidence: [
           {
-            skill_id: "task_completion",
+            skill_id: "task-completion",
             matched: true,
             marker_text: "Delivered feature end-to-end",
             artifact_id: "a1",
@@ -68,7 +68,7 @@ describe("readiness command", () => {
         person: {
           email: "bob@example.com",
           name: "Bob",
-          discipline: "software_engineering",
+          discipline: "software-engineering",
           level: "J060",
           track: null,
         },
@@ -83,7 +83,7 @@ describe("readiness command", () => {
       ...MAP_DATA,
       skills: [
         {
-          id: "task_completion",
+          id: "task-completion",
           name: "Task Completion",
           markers: {
             working: {
@@ -98,7 +98,7 @@ describe("readiness command", () => {
           // No markers at any level
         },
         {
-          id: "incident_response",
+          id: "incident-response",
           name: "Incident Response",
           markers: {
             awareness: {
@@ -125,9 +125,9 @@ describe("readiness command", () => {
     const mapDataNoMarkers = {
       ...MAP_DATA,
       skills: [
-        { id: "task_completion", name: "Task Completion" },
+        { id: "task-completion", name: "Task Completion" },
         { id: "planning", name: "Planning" },
-        { id: "incident_response", name: "Incident Response" },
+        { id: "incident-response", name: "Incident Response" },
       ],
     };
     const result = await runReadinessCommand({
@@ -255,7 +255,7 @@ describe("readiness command", () => {
         person: {
           email: "daedalus@bionova.example",
           name: "Daedalus",
-          discipline: "data_engineering",
+          discipline: "data-engineering",
           level: "J080",
           track: null,
         },
@@ -264,11 +264,11 @@ describe("readiness command", () => {
     assert.equal(result.view, null);
     assert.match(
       result.meta.emptyState,
-      /unknown discipline "data_engineering"/i,
+      /unknown discipline "data-engineering"/i,
     );
     assert.match(
       result.meta.emptyState,
-      /Available disciplines: software_engineering/,
+      /Available disciplines: software-engineering/,
     );
     assert.doesNotMatch(result.meta.emptyState, /Unknown level/);
   });

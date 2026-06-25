@@ -30,13 +30,13 @@ Expected output:
 
   Single points of failure:
     infrastructure — only alice.chen holds practitioner level [low]
-    incident_response — only bob.kumar holds working level [low]
+    incident-response — only bob.kumar holds working level [low]
 
   Critical gaps:
     observability — no engineer at working level
-      core skill for software_engineering discipline.
+      core skill for software-engineering discipline.
     capacity_planning — no engineer at working level
-      broad skill for software_engineering discipline.
+      broad skill for software-engineering discipline.
 
   Concentration risks:
     delivery skills — 3 of 5 engineers at J060 working level
@@ -83,7 +83,7 @@ Expected output:
     skill                   2024-Q3 2024-Q4 2025-Q1 2025-Q2 trend
     api_design              3       3       4       4       improving
     capacity_planning       0       0       0       0       stable
-    incident_response       1       1       1       1       stable
+    incident-response       1       1       1       1       stable
     infrastructure          1       1       1       1       stable
     observability           0       0       0       0       stable
     system_design           2       2       3       3       improving
@@ -115,7 +115,7 @@ Expected output:
   Skill                 Platform depth   Delivery depth   Delta
   task_decomposition    3                4                -1
   estimation            2                1                +1
-  incident_response     1                3                -2
+  incident-response     1                3                -2
   system_design         3                1                +2
   api_design            4                2                +2
 
@@ -148,7 +148,7 @@ npx fit-summit growth platform --roster ./summit.yaml
       bob.kumar (J060, awareness) or dana.wu (J060, awareness) could develop this skill.
 
   Low impact (strengthens existing coverage):
-    incident_response
+    incident-response
       carlos.ruiz (J060, foundational) or dana.wu (J060, foundational) could develop this skill.
 ```
 
@@ -172,7 +172,7 @@ npx fit-summit risks platform --roster ./summit.yaml --audience director
 ```text
   Single Points of Failure:
     infrastructure            1 engineer (practitioner)
-    incident_response         1 engineer (working)
+    incident-response         1 engineer (working)
 
   Critical Gaps:
     observability             No engineer at working+

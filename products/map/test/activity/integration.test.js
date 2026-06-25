@@ -22,7 +22,7 @@ const MINI_DSL = `
     people {
       count 5
       distribution { J040 60% J060 40% }
-      disciplines { software_engineering 100% }
+      disciplines { software-engineering 100% }
     }
     standard {
       levels {

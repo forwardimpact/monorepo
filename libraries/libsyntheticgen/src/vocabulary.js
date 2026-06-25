@@ -20,7 +20,7 @@ export const MATURITY_LEVELS = [
   "emerging",
   "developing",
   "practicing",
-  "role_modeling",
+  "role-modeling",
   "exemplifying",
 ];
 
@@ -31,9 +31,9 @@ const PROFICIENCY_INDEX = Object.fromEntries(
 
 /** @type {Record<string, number>} */
 const ARCHETYPE_OFFSET = {
-  high_performer: 1,
-  steady_contributor: 0,
-  new_hire: -1,
+  "high-performer": 1,
+  "steady-contributor": 0,
+  "new-hire": -1,
   struggling: -2,
 };
 

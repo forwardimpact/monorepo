@@ -15,12 +15,12 @@ describe("groupEvidenceBySkill", () => {
     const rows = [
       { skill_id: "planning", matched: true },
       { skill_id: "planning", matched: false },
-      { skill_id: "task_completion", matched: true },
+      { skill_id: "task-completion", matched: true },
     ];
     const grouped = groupEvidenceBySkill(rows);
     assert.equal(grouped.get("planning").matched, 1);
     assert.equal(grouped.get("planning").unmatched, 1);
-    assert.equal(grouped.get("task_completion").matched, 1);
+    assert.equal(grouped.get("task-completion").matched, 1);
   });
 });
 
@@ -59,13 +59,13 @@ describe("highestLevelPerSkillPerQuarter", () => {
         created_at: "2025-04-10T00:00:00Z",
       },
       {
-        skill_id: "task_completion",
+        skill_id: "task-completion",
         level_id: "working",
         matched: true,
         created_at: "2025-01-05T00:00:00Z",
       },
       {
-        skill_id: "task_completion",
+        skill_id: "task-completion",
         level_id: "awareness",
         matched: false,
         created_at: "2025-01-06T00:00:00Z",
@@ -84,7 +84,7 @@ describe("highestLevelPerSkillPerQuarter", () => {
     assert.equal(q2Planning.highestLevel, "foundational");
 
     const q1Task = result.find(
-      (r) => r.quarter === "2025-Q1" && r.skillId === "task_completion",
+      (r) => r.quarter === "2025-Q1" && r.skillId === "task-completion",
     );
     assert.equal(q1Task.highestLevel, "working");
   });

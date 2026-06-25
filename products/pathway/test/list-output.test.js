@@ -24,7 +24,7 @@ async function runCapturing(runner, params) {
 
 const fixture = {
   levels: [{ id: "J040" }, { id: "J060" }],
-  disciplines: [{ id: "software_engineering" }, { id: "data_engineering" }],
+  disciplines: [{ id: "software-engineering" }, { id: "data-engineering" }],
   // track.js configures `sortItems: sortTracksByName`, which sorts before the
   // --list short-circuit and reads `.name.localeCompare` — so `name` is
   // required on each track fixture entry even though `--list` does not print it.

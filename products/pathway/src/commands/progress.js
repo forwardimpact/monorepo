@@ -85,5 +85,5 @@ export const runProgressCommand = createCompositeCommand({
     }),
   formatter: formatProgress,
   usageExample:
-    "npx fit-pathway progress software_engineering L3 --track=platform --compare=L4",
+    "npx fit-pathway progress software-engineering L3 --track=platform --compare=L4",
 });

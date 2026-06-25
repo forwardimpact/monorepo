@@ -4,7 +4,7 @@
  * Each key maps to a context object that guides the LLM prompt. The
  * activity-prose branches dispatch through the `PROSE_ACTIVITIES`
  * registration (see `libsyntheticgen/activity/`); non-activity prose
- * (org_readme, projects, guide_html, outpost_markdown) stays inline
+ * (org_readme, projects, guide-html, outpost-markdown) stays inline
  * because it is not bound by the prose-bearing activity contract.
  */
 
@@ -21,7 +21,7 @@ import { clinicalProseKeys } from "./clinical-prose-keys.js";
 function addGuideContentKeys(keys, guideContent, domain, orgName) {
   for (const topic of guideContent.article_topics || []) {
     keys.set(`article_${topic}`, {
-      topic: `${topic.replace(/_/g, " ")} in pharmaceutical industry`,
+      topic: `${topic.replace(/[-_]/g, " ")} in pharmaceutical industry`,
       tone: "technical, informative",
       length: "6-8 paragraphs",
       domain,
@@ -51,7 +51,7 @@ function addGuideContentKeys(keys, guideContent, domain, orgName) {
 
   for (const topic of guideContent.howto_topics || []) {
     keys.set(`howto_${topic}`, {
-      topic: `how-to guide for ${topic.replace(/_/g, " ")}`,
+      topic: `how-to guide for ${topic.replace(/[-_]/g, " ")}`,
       tone: "instructional",
       length: "5-6 paragraphs",
       domain,
@@ -159,13 +159,13 @@ function addProjectKeys(keys, projects, domain, orgName) {
 }
 
 function addContentKeys(keys, entities, domain, orgName) {
-  const guideContent = entities.content.find((c) => c.id === "guide_html");
+  const guideContent = entities.content.find((c) => c.id === "guide-html");
   if (guideContent) {
     addGuideContentKeys(keys, guideContent, domain, orgName);
   }
 
   const outpostContent = entities.content.find(
-    (c) => c.id === "outpost_markdown",
+    (c) => c.id === "outpost-markdown",
   );
   if (outpostContent) {
     addOutpostKeys(keys, outpostContent, entities, domain, orgName);

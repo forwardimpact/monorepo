@@ -240,7 +240,7 @@ Create a `people.yaml` file with your roster:
 - email: ada@example.com
   name: Ada Lovelace
   github_username: adalovelace
-  discipline: software_engineering
+  discipline: software-engineering
   level: J040
   track: platform
   manager_email: charles@example.com
@@ -248,7 +248,7 @@ Create a `people.yaml` file with your roster:
 - email: charles@example.com
   name: Charles Babbage
   github_username: cbabbage
-  discipline: software_engineering
+  discipline: software-engineering
   level: J060
   manager_email: null
 ```

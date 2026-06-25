@@ -33,7 +33,7 @@ managementResponsibilities:
     You shape platform investment and architecture strategy across the
     business unit
 skills:
-  - id: architecture_design
+  - id: architecture-design
     name: Architecture Design
     human:
       description:
@@ -83,7 +83,6 @@ skills:
           - Produced an architectural design document covering components,
             interfaces, data flow, key decisions, and risks with mitigations
     agent:
-      name: architecture-design
       description: |
         Guide for designing system structure — components, interfaces, and
         data flow — that can be built, operated, and evolved.
@@ -101,7 +100,7 @@ skills:
         - Trade-offs and alternatives considered are documented
         - Risks and mitigations are surfaced
 
-  - id: data_modeling
+  - id: data-modeling
     name: Data Modeling
     human:
       description:
@@ -150,7 +149,6 @@ skills:
           - Produced a model design that names entities, relationships,
             constraints, and the queries it is shaped to serve
     agent:
-      name: data-modeling
       description: |
         Guide for shaping entities, relationships, and constraints that fit
         the workload they have to serve.
@@ -168,7 +166,7 @@ skills:
         - The model fits the workload without application-level workarounds
         - Migration path is documented if an existing model changes
 
-  - id: performance_optimization
+  - id: performance-optimization
     name: Performance Optimization
     human:
       description:
@@ -217,7 +215,6 @@ skills:
           - Produced a performance investigation with profile evidence,
             proposed change, and projected impact before implementation
     agent:
-      name: performance-optimization
       description: |
         Guide for measuring where time and resources actually go and
         reshaping the hot paths.
@@ -235,7 +232,7 @@ skills:
         - Change does not regress other paths
         - Profile evidence is captured alongside the change
 
-  - id: cloud_platforms
+  - id: cloud-platforms
     name: Cloud Platforms
     human:
       description:
@@ -287,7 +284,6 @@ skills:
           - Produced a platform design that names the primitives used and
             justifies each choice against alternatives
     agent:
-      name: cloud-platforms
       description: |
         Guide for building on cloud platform primitives so the system
         inherits the platform's reliability and operability.

@@ -25,7 +25,7 @@ function makeData(overrides = {}) {
     skills: [{ id: "coding", name: "Coding", capability: "delivery" }],
     disciplines: [
       {
-        id: "software_engineering",
+        id: "software-engineering",
         roleTitle: "Software Engineer",
         coreSkills: ["coding"],
         supportingSkills: [],

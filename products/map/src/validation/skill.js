@@ -160,15 +160,6 @@ function validateSkillAgentSection(skill, path) {
   const errors = [];
   const agentPath = `${path}.agent`;
 
-  if (!skill.agent.name) {
-    errors.push(
-      createError(
-        "MISSING_REQUIRED",
-        "Skill agent section missing name",
-        `${agentPath}.name`,
-      ),
-    );
-  }
   if (!skill.agent.description) {
     errors.push(
       createError(

@@ -83,7 +83,7 @@ function showQuestionsSummary(data, runtime) {
     "emerging",
     "developing",
     "practicing",
-    "role_modeling",
+    "role-modeling",
     "exemplifying",
   ];
   const behaviourRows = maturities.map((maturity) => {
@@ -96,7 +96,7 @@ function showQuestionsSummary(data, runtime) {
         }
       }
     }
-    return [maturity.replace(/_/g, " "), count];
+    return [maturity.replace(/[-_]/g, " "), count];
   });
 
   runtime.proc.stdout.write(

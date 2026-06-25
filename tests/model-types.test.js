@@ -37,7 +37,7 @@ describe("Type Helpers", () => {
       assert.strictEqual(getBehaviourMaturityIndex("emerging"), 0);
       assert.strictEqual(getBehaviourMaturityIndex("developing"), 1);
       assert.strictEqual(getBehaviourMaturityIndex("practicing"), 2);
-      assert.strictEqual(getBehaviourMaturityIndex("role_modeling"), 3);
+      assert.strictEqual(getBehaviourMaturityIndex("role-modeling"), 3);
     });
   });
 
@@ -55,7 +55,7 @@ describe("Type Helpers", () => {
     it("clamps to valid range", () => {
       assert.strictEqual(clampBehaviourMaturity(-1), "emerging");
       assert.strictEqual(clampBehaviourMaturity(0), "emerging");
-      assert.strictEqual(clampBehaviourMaturity(3), "role_modeling");
+      assert.strictEqual(clampBehaviourMaturity(3), "role-modeling");
       assert.strictEqual(clampBehaviourMaturity(4), "exemplifying");
       assert.strictEqual(clampBehaviourMaturity(10), "exemplifying");
     });
@@ -81,7 +81,7 @@ describe("Type Helpers", () => {
   describe("behaviourMaturityMeetsRequirement", () => {
     it("correctly compares behaviour maturity levels", () => {
       assert.strictEqual(
-        behaviourMaturityMeetsRequirement("role_modeling", "practicing"),
+        behaviourMaturityMeetsRequirement("role-modeling", "practicing"),
         true,
       );
       assert.strictEqual(
@@ -93,7 +93,7 @@ describe("Type Helpers", () => {
         false,
       );
       assert.strictEqual(
-        behaviourMaturityMeetsRequirement("emerging", "role_modeling"),
+        behaviourMaturityMeetsRequirement("emerging", "role-modeling"),
         false,
       );
     });

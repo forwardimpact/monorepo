@@ -18,7 +18,7 @@ describe("renderFhirMicrodataHtml", () => {
   function basicInput() {
     const patients = [makePatient(PATIENT_A, "Jones", "Alice")];
     const conditions = [
-      makeCondition(PATIENT_A, "diabetes_t2", "Type 2 Diabetes"),
+      makeCondition(PATIENT_A, "diabetes-t2", "Type 2 Diabetes"),
     ];
     const procedures = [makeProcedure(PATIENT_A, "44608003", "Dialysis")];
     const medRequests = [makeMedRequest(PATIENT_A, "metformin", "Metformin")];
@@ -119,7 +119,7 @@ describe("renderFhirMicrodataHtml", () => {
     );
     assert.match(
       html,
-      /href="https:\/\/test\.example\/id\/clinical\/trial\/oncora_p3"/,
+      /href="https:\/\/test\.example\/id\/clinical\/trial\/oncora-p3"/,
     );
   });
 

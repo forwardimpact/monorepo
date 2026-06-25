@@ -15,7 +15,7 @@ skillModifiers:
   reliability: 1
   delivery: -1
 behaviourModifiers:
-  systems_thinking: 1
+  systems-thinking: 1
 assessmentWeights:
   skillWeight: 0.6
   behaviourWeight: 0.4

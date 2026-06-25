@@ -7,7 +7,7 @@ function makeMocks(levels) {
   const entities = {
     "drivers.yaml": [{ id: "delivery", name: "Delivery" }],
     "behaviours/ownership.yaml": { name: "Ownership", human: {} },
-    "disciplines/software_engineering.yaml": {
+    "disciplines/software-engineering.yaml": {
       roleTitle: "Software Engineer",
       coreSkills: ["coding"],
       supportingSkills: [],
@@ -33,7 +33,7 @@ function makeMocks(levels) {
     fs: {
       stat: async () => ({}),
       readdir: async (path) => {
-        if (path.endsWith("disciplines")) return ["software_engineering.yaml"];
+        if (path.endsWith("disciplines")) return ["software-engineering.yaml"];
         if (path.endsWith("behaviours")) return ["ownership.yaml"];
         if (path.endsWith("tracks")) return [];
         if (path.endsWith("capabilities")) return ["delivery.yaml"];

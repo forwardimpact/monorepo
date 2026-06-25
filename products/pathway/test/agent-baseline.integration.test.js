@@ -54,7 +54,7 @@ async function runAgent(dataDir) {
   await silent(() =>
     runAgentCommand({
       data,
-      args: ["software_engineering"],
+      args: ["software-engineering"],
       options: { track: "platform", output: outputDir },
       dataDir,
       templateLoader,

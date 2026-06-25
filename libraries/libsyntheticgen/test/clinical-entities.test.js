@@ -10,7 +10,7 @@ function makePeople() {
       id: "thoth",
       name: "Thoth",
       email: "thoth@example.com",
-      discipline: "data_science",
+      discipline: "data-science",
       is_manager: true,
       team_id: "research",
     },
@@ -18,7 +18,7 @@ function makePeople() {
       id: "apollo",
       name: "Apollo",
       email: "apollo@example.com",
-      discipline: "software_engineering",
+      discipline: "software-engineering",
       is_manager: true,
       team_id: "platform",
     },
@@ -45,7 +45,7 @@ function makeClinicalAst() {
   return {
     conditions: [
       {
-        id: "diabetes_t2",
+        id: "diabetes-t2",
         name: "Type 2 Diabetes",
         icd10: ["E11"],
         synonyms: ["high blood sugar"],
@@ -78,13 +78,13 @@ function makeClinicalAst() {
     ],
     trials: [
       {
-        id: "oncora_p3",
+        id: "oncora-p3",
         name: "ONCORA-301",
         protocol_id: "BNV-ONC-2024-301",
         project_ref: "oncora",
         phase: "phase_3",
         therapeutic_area: "oncology",
-        conditions: ["diabetes_t2", "cardiovascular"],
+        conditions: ["diabetes-t2", "cardiovascular"],
         sites: ["cambridge"],
         principal_investigator: "thoth",
         sponsor: "BioNova",
@@ -124,13 +124,13 @@ describe("clinical entity generation", () => {
     );
     assert.strictEqual(result.conditions.length, 2);
     const c = result.conditions[0];
-    assert.strictEqual(c.id, "diabetes_t2");
+    assert.strictEqual(c.id, "diabetes-t2");
     assert.strictEqual(c.name, "Type 2 Diabetes");
     assert.deepStrictEqual(c.icd10, ["E11"]);
     assert.strictEqual(c.prose_topic, "diabetes for patients");
     assert.strictEqual(
       c.iri,
-      "https://example.com/id/clinical/condition/diabetes_t2",
+      "https://example.com/id/clinical/condition/diabetes-t2",
     );
   });
 
@@ -162,7 +162,7 @@ describe("clinical entity generation", () => {
       rng,
     );
     const trial = result.trials[0];
-    assert.strictEqual(trial.id, "oncora_p3");
+    assert.strictEqual(trial.id, "oncora-p3");
     assert.strictEqual(trial.principal_investigator.ref, "thoth");
     assert.strictEqual(trial.principal_investigator.person.name, "Thoth");
     assert.ok(trial.project);
@@ -179,12 +179,12 @@ describe("clinical entity generation", () => {
       domain,
       rng,
     );
-    const diabetes = result.conditions.find((c) => c.id === "diabetes_t2");
-    assert.deepStrictEqual(diabetes.trials, ["oncora_p3"]);
+    const diabetes = result.conditions.find((c) => c.id === "diabetes-t2");
+    assert.deepStrictEqual(diabetes.trials, ["oncora-p3"]);
     const cardio = result.conditions.find((c) => c.id === "cardiovascular");
-    assert.deepStrictEqual(cardio.trials, ["oncora_p3"]);
+    assert.deepStrictEqual(cardio.trials, ["oncora-p3"]);
     const site = result.sites[0];
-    assert.deepStrictEqual(site.trials, ["oncora_p3"]);
+    assert.deepStrictEqual(site.trials, ["oncora-p3"]);
   });
 
   test("criteria entities are one per trial", () => {
@@ -198,12 +198,12 @@ describe("clinical entity generation", () => {
     );
     assert.strictEqual(result.criteria.length, 1);
     const crit = result.criteria[0];
-    assert.strictEqual(crit.trial_id, "oncora_p3");
+    assert.strictEqual(crit.trial_id, "oncora-p3");
     assert.strictEqual(crit.inclusion.age_min, 18);
     assert.strictEqual(crit.exclusion.active_autoimmune, true);
     assert.strictEqual(
       crit.iri,
-      "https://example.com/id/clinical/criterion/oncora_p3",
+      "https://example.com/id/clinical/criterion/oncora-p3",
     );
   });
 
@@ -222,7 +222,7 @@ describe("clinical entity generation", () => {
     );
     assert.ok(pi);
     assert.strictEqual(pi.name, "Thoth");
-    assert.deepStrictEqual(pi.trial_ids, ["oncora_p3"]);
+    assert.deepStrictEqual(pi.trial_ids, ["oncora-p3"]);
   });
 
   test("throws on unknown PI ref", () => {

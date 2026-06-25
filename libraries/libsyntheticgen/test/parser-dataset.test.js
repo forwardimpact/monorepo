@@ -148,8 +148,8 @@ describe("dataset and output parsing", () => {
         path "out/embed.jsonl"
         entities [clinical.conditions, clinical.trials]
         text_fields {
-          clinical.conditions [name, synonyms, prose_explainer]
-          clinical.trials [name, therapeutic_area, arms, prose_description]
+          clinical.conditions [name, synonyms, prose-explainer]
+          clinical.trials [name, therapeutic_area, arms, prose-description]
         }
       }
     }`);
@@ -163,13 +163,13 @@ describe("dataset and output parsing", () => {
     assert.deepStrictEqual(out.config.text_fields["clinical.conditions"], [
       "name",
       "synonyms",
-      "prose_explainer",
+      "prose-explainer",
     ]);
     assert.deepStrictEqual(out.config.text_fields["clinical.trials"], [
       "name",
       "therapeutic_area",
       "arms",
-      "prose_description",
+      "prose-description",
     ]);
   });
 
@@ -224,42 +224,42 @@ describe("dataset and output parsing", () => {
 
   test("parses conditions field on dataset", () => {
     const ast = parseDsl(`terrain test {
-      dataset trial_patients {
+      dataset trial-patients {
         tool synthea
         population 100
-        conditions [lung_cancer, diabetes_t2, cardiovascular]
+        conditions [lung-cancer, diabetes-t2, cardiovascular]
       }
     }`);
     const ds = ast.datasets[0];
     assert.deepStrictEqual(ds.config.conditions, [
-      "lung_cancer",
-      "diabetes_t2",
+      "lung-cancer",
+      "diabetes-t2",
       "cardiovascular",
     ]);
   });
 
   test("parses conditions alongside modules — both coexist", () => {
     const ast = parseDsl(`terrain test {
-      dataset trial_patients {
+      dataset trial-patients {
         tool synthea
         modules [hypertension]
-        conditions [lung_cancer]
+        conditions [lung-cancer]
       }
     }`);
     const ds = ast.datasets[0];
     assert.deepStrictEqual(ds.config.modules, ["hypertension"]);
-    assert.deepStrictEqual(ds.config.conditions, ["lung_cancer"]);
+    assert.deepStrictEqual(ds.config.conditions, ["lung-cancer"]);
   });
 
   test("parses conditions without modules", () => {
     const ast = parseDsl(`terrain test {
-      dataset trial_patients {
+      dataset trial-patients {
         tool synthea
-        conditions [lung_cancer]
+        conditions [lung-cancer]
       }
     }`);
     const ds = ast.datasets[0];
     assert.strictEqual(ds.config.modules, undefined);
-    assert.deepStrictEqual(ds.config.conditions, ["lung_cancer"]);
+    assert.deepStrictEqual(ds.config.conditions, ["lung-cancer"]);
   });
 });

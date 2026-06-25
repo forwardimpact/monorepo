@@ -33,7 +33,7 @@ describe("base entity IRI helpers", () => {
     [levelIri, "level", "l3"],
     [behaviourIri, "behaviour", "ownership"],
     [disciplineIri, "discipline", "swe"],
-    [trackIri, "track", "forward_deployed"],
+    [trackIri, "track", "forward-deployed"],
     [driverIri, "driver", "impact"],
     [toolIri, "tool", "kubernetes"],
   ];
@@ -48,8 +48,8 @@ describe("base entity IRI helpers", () => {
 describe("jobIri", () => {
   test("includes the track segment when provided", () => {
     assert.strictEqual(
-      jobIri("swe", "l3", "forward_deployed"),
-      `${VOCAB_BASE}job/swe/l3/forward_deployed`,
+      jobIri("swe", "l3", "forward-deployed"),
+      `${VOCAB_BASE}job/swe/l3/forward-deployed`,
     );
   });
 
@@ -65,8 +65,8 @@ describe("jobIri", () => {
 describe("agentProfileIri", () => {
   test("produces discipline/track path", () => {
     assert.strictEqual(
-      agentProfileIri("swe", "forward_deployed"),
-      `${VOCAB_BASE}agent-profile/swe/forward_deployed`,
+      agentProfileIri("swe", "forward-deployed"),
+      `${VOCAB_BASE}agent-profile/swe/forward-deployed`,
     );
   });
 });
@@ -74,8 +74,8 @@ describe("agentProfileIri", () => {
 describe("progressionIri", () => {
   test("includes the track segment when provided", () => {
     assert.strictEqual(
-      progressionIri("swe", "l2", "l3", "forward_deployed"),
-      `${VOCAB_BASE}progression/swe/l2-l3/forward_deployed`,
+      progressionIri("swe", "l2", "l3", "forward-deployed"),
+      `${VOCAB_BASE}progression/swe/l2-l3/forward-deployed`,
     );
   });
 

@@ -27,7 +27,7 @@ npx fit-summit risks <team> --audience director # Director-level (anonymized)
 
 ```sh
 npx fit-summit what-if <team> --remove 'Alice'
-npx fit-summit what-if <team> --add '{ discipline: software_engineering, level: J060, track: platform }'
+npx fit-summit what-if <team> --add '{ discipline: software-engineering, level: J060, track: platform }'
 npx fit-summit what-if <team> --promote 'Bob'
 npx fit-summit what-if <team> --move 'Carol' --to other-team
 npx fit-summit what-if <team> --remove 'Alice' --focus delivery  # Focus diff on one capability

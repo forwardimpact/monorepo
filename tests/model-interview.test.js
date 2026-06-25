@@ -66,7 +66,7 @@ describe("Interview", () => {
     behaviourMaturities: {
       behaviour_x: {
         professionalQuestions: {
-          role_modeling: [
+          "role-modeling": [
             {
               id: "q3",
               text: "Behaviour question",
@@ -76,7 +76,7 @@ describe("Interview", () => {
           ],
         },
         managementQuestions: {
-          role_modeling: [
+          "role-modeling": [
             {
               id: "q3_mgmt",
               text: "Management behaviour question",

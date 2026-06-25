@@ -38,7 +38,7 @@ export const BehaviourMaturity = {
   EMERGING: "emerging",
   DEVELOPING: "developing",
   PRACTICING: "practicing",
-  ROLE_MODELING: "role_modeling",
+  ROLE_MODELING: "role-modeling",
   EXEMPLIFYING: "exemplifying",
 };
 

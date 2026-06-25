@@ -10,16 +10,16 @@ const FAKE_DATA = {
   drivers: [
     {
       id: "quality",
-      contributingSkills: ["task_completion", "planning"],
+      contributingSkills: ["task-completion", "planning"],
     },
   ],
 };
 
 test("mapSkillsToDrivers reverses contributingSkills", () => {
   const map = mapSkillsToDrivers(FAKE_DATA);
-  assert.deepEqual(map.get("task_completion"), ["quality"]);
+  assert.deepEqual(map.get("task-completion"), ["quality"]);
   assert.deepEqual(map.get("planning"), ["quality"]);
-  assert.equal(map.get("incident_response"), undefined);
+  assert.equal(map.get("incident-response"), undefined);
 });
 
 test("decorateRecommendationsWithOutcomes attaches driverContext", () => {
@@ -28,13 +28,13 @@ test("decorateRecommendationsWithOutcomes attaches driverContext", () => {
 
   const recs = [
     {
-      skillId: "task_completion",
+      skillId: "task-completion",
       impact: "critical",
       candidates: [],
       driverContext: null,
     },
     {
-      skillId: "incident_response",
+      skillId: "incident-response",
       impact: "critical",
       candidates: [],
       driverContext: null,
@@ -46,11 +46,11 @@ test("decorateRecommendationsWithOutcomes attaches driverContext", () => {
     driverScores,
     FAKE_DATA,
   );
-  const task = decorated.find((r) => r.skillId === "task_completion");
+  const task = decorated.find((r) => r.skillId === "task-completion");
   assert.ok(task.driverContext);
   assert.equal(task.driverContext.driverId, "quality");
 
-  const incident = decorated.find((r) => r.skillId === "incident_response");
+  const incident = decorated.find((r) => r.skillId === "incident-response");
   assert.equal(incident.driverContext, null);
 });
 
@@ -66,7 +66,7 @@ test("decorateRecommendationsWithOutcomes preserves impact tier order", () => {
       driverContext: null,
     },
     {
-      skillId: "task_completion",
+      skillId: "task-completion",
       impact: "critical",
       candidates: [],
       driverContext: null,
@@ -78,6 +78,6 @@ test("decorateRecommendationsWithOutcomes preserves impact tier order", () => {
     driverScores,
     FAKE_DATA,
   );
-  // task_completion (critical) must still come first.
-  assert.equal(decorated[0].skillId, "task_completion");
+  // task-completion (critical) must still come first.
+  assert.equal(decorated[0].skillId, "task-completion");
 });

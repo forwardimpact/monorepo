@@ -199,25 +199,25 @@ describe("Derivation", () => {
 
   describe("deriveBehaviourMaturity", () => {
     it("elevates maturity for behaviour with discipline modifier", () => {
-      // Base (practicing) + modifier (+1) = role_modeling
+      // Base (practicing) + modifier (+1) = role-modeling
       const maturity = deriveBehaviourMaturity({
         discipline: testDiscipline,
         level: testLevel,
         track: { ...testTrack, behaviourModifiers: {} },
         behaviourId: "behaviour_x",
       });
-      assert.strictEqual(maturity, "role_modeling");
+      assert.strictEqual(maturity, "role-modeling");
     });
 
     it("elevates maturity for behaviour with track modifier", () => {
-      // Base (practicing) + elevation (+1) = role_modeling
+      // Base (practicing) + elevation (+1) = role-modeling
       const maturity = deriveBehaviourMaturity({
         discipline: { ...testDiscipline, behaviourModifiers: {} },
         level: testLevel,
         track: testTrack,
         behaviourId: "behaviour_y",
       });
-      assert.strictEqual(maturity, "role_modeling");
+      assert.strictEqual(maturity, "role-modeling");
     });
 
     it("additively combines modifiers from both sources (clamped)", () => {

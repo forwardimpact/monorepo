@@ -22,7 +22,7 @@ export const BEHAVIOUR_MATURITIES = [
   "emerging",
   "developing",
   "practicing",
-  "role_modeling",
+  "role-modeling",
   "exemplifying",
 ];
 

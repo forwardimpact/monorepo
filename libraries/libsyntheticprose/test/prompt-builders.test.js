@@ -129,7 +129,7 @@ describe("prompt builders", () => {
 
   describe("buildDriverPrompt", () => {
     const drivers = [
-      { id: "clear_direction", name: "Clear Direction", skills: ["python"] },
+      { id: "clear-direction", name: "Clear Direction", skills: ["python"] },
     ];
 
     test("returns system and user strings", () => {
@@ -148,7 +148,7 @@ describe("prompt builders", () => {
         { ...CTX, skillIds: ["python"], behaviourIds: [] },
         SCHEMA,
       );
-      assert.ok(result.user.includes("clear_direction"));
+      assert.ok(result.user.includes("clear-direction"));
     });
   });
 

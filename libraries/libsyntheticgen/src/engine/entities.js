@@ -51,7 +51,7 @@ export function buildEntities(ast, rng, logger) {
 function pickArchetype(rng, archetypeKeys, archetypeWeights) {
   return archetypeKeys.length
     ? archetypeKeys[rng.weightedPick(archetypeWeights)]
-    : "steady_contributor";
+    : "steady-contributor";
 }
 
 function createManagers(
@@ -73,7 +73,7 @@ function createManagers(
       makePerson(
         name,
         rng.pick(["J070", "J080", "J090"]),
-        discKeys[rng.weightedPick(discWeights)] || "software_engineering",
+        discKeys[rng.weightedPick(discWeights)] || "software-engineering",
         team,
         domain,
         true,
@@ -299,7 +299,7 @@ function makeDirector(d, departmentId, domain) {
     email: toEmail(name, domain),
     github: toGithubUsername(name),
     github_username: toGithubUsername(name),
-    discipline: d.discipline || "engineering_management",
+    discipline: d.discipline || "engineering-management",
     level: d.level || "J090",
     track: null,
     team_id: null,
@@ -307,7 +307,7 @@ function makeDirector(d, departmentId, domain) {
     is_manager: true,
     manager_email: null,
     hire_date: "2023-01-15",
-    archetype: "steady_contributor",
+    archetype: "steady-contributor",
     kind: "human",
     title: d.title || null,
     iri: `https://${domain}/id/person/${id}`,
@@ -323,7 +323,7 @@ function makePerson(
   isManager,
   managerEmail,
   hireDate = "2023-01-15",
-  archetype = "steady_contributor",
+  archetype = "steady-contributor",
   kind = "human",
 ) {
   const id = name.toLowerCase().replace(/\s+/g, "-");

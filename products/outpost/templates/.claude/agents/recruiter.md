@@ -66,7 +66,7 @@ candidates, pipeline totals by stage/track, aggregate diversity, retention flags
 
 ```
 Decision: {observation and chosen action}
-Action: {e.g. "req-screen for John Smith against J060 forward_deployed"}
+Action: {e.g. "req-screen for John Smith against J060 forward-deployed"}
 Stage: {1 | 2 | sync | erasure}
 Priority Watch: {priority at risk + one-line why, or "none"}
 ```

@@ -13,13 +13,13 @@ teams:
     - name: Alice
       email: alice@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
         track: platform
     - name: Bob
       email: bob@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J040
 `;
 
@@ -29,13 +29,13 @@ teams:
     - name: Alice
       email: alice@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
         track: platform
     - name: Bob
       email: bob@example.com
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J040
 
 projects:
@@ -44,7 +44,7 @@ projects:
       allocation: 0.6
     - name: External
       job:
-        discipline: software_engineering
+        discipline: software-engineering
         level: J060
       allocation: 1.0
 `;
@@ -70,7 +70,7 @@ test("parseRosterYaml resolves email-only project members from reporting teams",
   assert.equal(migration.members.length, 2);
   const alice = migration.members.find((m) => m.email === "alice@example.com");
   assert.equal(alice.name, "Alice");
-  assert.equal(alice.job.discipline, "software_engineering");
+  assert.equal(alice.job.discipline, "software-engineering");
   assert.equal(alice.job.track, "platform");
   assert.equal(alice.allocation, 0.6);
 });
@@ -81,7 +81,7 @@ teams:
   a:
     - name: X
       email: x@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 projects:
   p:
     - email: x@example.com
@@ -98,7 +98,7 @@ teams:
     - name: X
       email: x@example.com
       allocation: 0.5
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 `;
   assert.throws(() => parseRosterYaml(yaml), /allocation is only allowed/);
 });
@@ -109,7 +109,7 @@ teams:
   a:
     - name: X
       email: x@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 projects:
   p:
     - email: unknown@example.com
@@ -134,7 +134,7 @@ teams:
       job: { discipline: zzz, level: J999, track: qqq }
 `);
   const data = {
-    disciplines: [{ id: "software_engineering" }],
+    disciplines: [{ id: "software-engineering" }],
     levels: [{ id: "J060" }],
     tracks: [{ id: "platform" }],
   };
@@ -148,9 +148,9 @@ teams:
 test("validateRosterAgainstStandard is clean for a valid roster", () => {
   const roster = parseRosterYaml(MINIMAL_YAML);
   const data = {
-    disciplines: [{ id: "software_engineering" }],
+    disciplines: [{ id: "software-engineering" }],
     levels: [{ id: "J040" }, { id: "J060" }],
-    tracks: [{ id: "platform" }, { id: "forward_deployed" }],
+    tracks: [{ id: "platform" }, { id: "forward-deployed" }],
   };
   const result = validateRosterAgainstStandard(roster, data);
   assert.equal(result.errors.length, 0);
@@ -161,7 +161,7 @@ test("loadRosterFromMap groups people by manager_email", async () => {
     {
       email: "alice@example.com",
       name: "Alice",
-      discipline: "software_engineering",
+      discipline: "software-engineering",
       level: "J060",
       track: "platform",
       manager_email: "boss@example.com",
@@ -169,7 +169,7 @@ test("loadRosterFromMap groups people by manager_email", async () => {
     {
       email: "bob@example.com",
       name: "Bob",
-      discipline: "software_engineering",
+      discipline: "software-engineering",
       level: "J040",
       track: null,
       manager_email: "boss@example.com",
@@ -177,7 +177,7 @@ test("loadRosterFromMap groups people by manager_email", async () => {
     {
       email: "carol@example.com",
       name: "Carol",
-      discipline: "software_engineering",
+      discipline: "software-engineering",
       level: "J060",
       track: null,
       manager_email: "other@example.com",
@@ -186,7 +186,7 @@ test("loadRosterFromMap groups people by manager_email", async () => {
     {
       email: "ceo@example.com",
       name: "CEO",
-      discipline: "software_engineering",
+      discipline: "software-engineering",
       level: "J060",
       track: null,
       manager_email: null,

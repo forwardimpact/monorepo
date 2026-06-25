@@ -11,10 +11,7 @@
  */
 
 import { code, div, h2, p, section } from "../lib/render.js";
-import {
-  getDisciplineAbbreviation,
-  toKebabCase,
-} from "@forwardimpact/libskill/agent";
+import { getDisciplineAbbreviation } from "@forwardimpact/libskill/agent";
 import { createCommandPrompt } from "../components/command-prompt.js";
 
 /** Stable id for the install section heading (for aria-labelledby). */
@@ -22,13 +19,13 @@ const INSTALL_HEADING_ID = "agent-builder-install-heading";
 
 /**
  * Derive the pack archive name for a discipline/track combination.
- * Must match `build-packs.js` → `${abbrev}-${toKebabCase(track.id)}`.
+ * Must match `build-packs.js` → `${abbrev}-${track.id}`.
  * @param {{id: string}} discipline
  * @param {{id: string}} track
  * @returns {string}
  */
 export function getPackName(discipline, track) {
-  return `${getDisciplineAbbreviation(discipline.id)}-${toKebabCase(track.id)}`;
+  return `${getDisciplineAbbreviation(discipline.id)}-${track.id}`;
 }
 
 /**

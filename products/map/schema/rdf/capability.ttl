@@ -221,7 +221,7 @@ fit:CapabilityShape a sh:NodeShape ;
     sh:property [
         sh:path fit:id ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:maxCount 1 ;
         sh:name "id" ;
         sh:description "Capability identifier (derived from filename if not specified)" ;
@@ -286,11 +286,11 @@ fit:SkillShape a sh:NodeShape ;
     sh:property [
         sh:path fit:id ;
         sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "id" ;
-        sh:description "Unique skill identifier (snake_case)" ;
+        sh:description "Unique skill identifier (kebab-case)" ;
     ] ;
     sh:property [
         sh:path fit:name ;

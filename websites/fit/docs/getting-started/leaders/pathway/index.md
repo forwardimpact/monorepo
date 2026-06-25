@@ -38,7 +38,7 @@ Generate a complete job definition by combining a discipline, level, and
 optional track:
 
 ```sh
-npx fit-pathway job software_engineering J060 --track=platform
+npx fit-pathway job software-engineering J060 --track=platform
 ```
 
 ## Generate interview questions
@@ -46,7 +46,7 @@ npx fit-pathway job software_engineering J060 --track=platform
 Create role-specific interview question sets:
 
 ```sh
-npx fit-pathway interview software_engineering J060
+npx fit-pathway interview software-engineering J060
 ```
 
 ---

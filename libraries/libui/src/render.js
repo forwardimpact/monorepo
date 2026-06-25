@@ -207,6 +207,6 @@ export function formatLevel(value) {
   // Insert space before uppercase letters (for camelCase), then handle snake_case
   return value
     .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/_/g, " ")
+    .replace(/[-_]/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }

@@ -26,7 +26,7 @@ const EMAIL = "daedalus@bionova.example";
  * level J060 — the contract anchors on the team's repo names, not the
  * literal level id.
  */
-const PERSON = { discipline: "data_engineering", level: "J060", track: null };
+const PERSON = { discipline: "data-engineering", level: "J060", track: null };
 
 function art(id, repository, artifact_type, metadata, occurred_at) {
   return {
@@ -177,19 +177,19 @@ const GETDX_EVIDENCE = {
   evidence: [
     {
       person_email: EMAIL,
-      skill_id: "team_collaboration",
+      skill_id: "team-collaboration",
       proficiency: "foundational",
       observed_at: "2026-01-10T00:00:00Z",
     },
     {
       person_email: EMAIL,
-      skill_id: "cloud_platforms",
+      skill_id: "cloud-platforms",
       proficiency: "working",
       observed_at: "2026-01-17T00:00:00Z",
     },
     {
       person_email: EMAIL,
-      skill_id: "data_integration",
+      skill_id: "data-integration",
       proficiency: "working",
       observed_at: "2026-01-24T00:00:00Z",
     },

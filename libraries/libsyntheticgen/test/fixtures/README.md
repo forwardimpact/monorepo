@@ -4,8 +4,8 @@
 
 Shared `MINI_TERRAIN` DSL string used by `activity.test.js`,
 `prose-activity.test.js`, and `file-path-parity.test.js`. Two scenarios
-hit team alpha (declining on `deep_work` and `ease_of_release`) and team
-beta (rising on `learning_culture` and `connectedness`). The seed is
+hit team alpha (declining on `deep-work` and `ease-of-release`) and team
+beta (rising on `learning-culture` and `connectedness`). The seed is
 `42`; generation is reproducible across Node and Bun.
 
 ## `file-path-baseline.json`

@@ -24,17 +24,17 @@ teams:
   a:
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J040 }
+      job: { discipline: software-engineering, level: J040 }
 `);
   const resolved = resolveTeam(roster, data, { teamId: "a" });
   const coverage = computeCoverage(resolved, data);
   const spofs = detectSinglePointsOfFailure(coverage);
 
-  // task_completion: Bob working (J060 core), Alice foundational → SPOF
-  const task = spofs.find((s) => s.skillId === "task_completion");
+  // task-completion: Bob working (J060 core), Alice foundational → SPOF
+  const task = spofs.find((s) => s.skillId === "task-completion");
   assert.ok(task);
   assert.equal(task.holder.email, "bob@example.com");
 });
@@ -45,42 +45,42 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J040 }
+      job: { discipline: software-engineering, level: J040 }
 projects:
   p:
     - name: Only
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
       allocation: 0.3
 `);
   const resolved = resolveTeam(roster, data, { projectId: "p" });
   const coverage = computeCoverage(resolved, data);
   const spofs = detectSinglePointsOfFailure(coverage);
-  const task = spofs.find((s) => s.skillId === "task_completion");
+  const task = spofs.find((s) => s.skillId === "task-completion");
   assert.equal(task.severity, "high");
 });
 
 test("detectCriticalGaps cites discipline reason for zero-depth skills", () => {
-  // All team members at J040 → task_completion foundational, planning
-  // awareness, incident_response awareness. No skill at working+ → every
+  // All team members at J040 → task-completion foundational, planning
+  // awareness, incident-response awareness. No skill at working+ → every
   // discipline skill is a critical gap.
   const roster = parseRosterYaml(`
 teams:
   a:
     - name: A
       email: a@example.com
-      job: { discipline: software_engineering, level: J040 }
+      job: { discipline: software-engineering, level: J040 }
     - name: B
       email: b@example.com
-      job: { discipline: software_engineering, level: J040 }
+      job: { discipline: software-engineering, level: J040 }
 `);
   const resolved = resolveTeam(roster, data, { teamId: "a" });
   const coverage = computeCoverage(resolved, data);
   const gaps = detectCriticalGaps(resolved, coverage, data);
 
-  assert.ok(gaps.some((g) => g.skillId === "task_completion"));
-  assert.ok(gaps.some((g) => g.skillId === "incident_response"));
-  const incident = gaps.find((g) => g.skillId === "incident_response");
-  assert.ok(/software_engineering/.test(incident.reason));
+  assert.ok(gaps.some((g) => g.skillId === "task-completion"));
+  assert.ok(gaps.some((g) => g.skillId === "incident-response"));
+  const incident = gaps.find((g) => g.skillId === "incident-response");
+  assert.ok(/software-engineering/.test(incident.reason));
 });
 
 test("detectRisks on a zero-member team returns empty arrays", () => {
@@ -104,16 +104,16 @@ teams:
   a:
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J040 }
+      job: { discipline: software-engineering, level: J040 }
 `);
   const resolved = resolveTeam(roster, data, { teamId: "a" });
   const coverage = computeCoverage(resolved, data);
 
   const directorCoverage = withAudienceFilter(coverage, Audience.DIRECTOR);
-  const task = directorCoverage.skills.get("task_completion");
+  const task = directorCoverage.skills.get("task-completion");
   // Director coverage has holders stripped, so a SPOF detector running
   // over the director coverage sees no named holder.
   assert.ok(task.holders.every((h) => !h.email && !h.name));

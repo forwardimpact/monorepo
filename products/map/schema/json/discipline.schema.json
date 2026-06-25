@@ -32,7 +32,7 @@
       "items": {
         "oneOf": [
           { "type": "null" },
-          { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+          { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
         ]
       }
     },
@@ -50,7 +50,7 @@
       "minItems": 1,
       "items": {
         "type": "string",
-        "pattern": "^[a-z][a-z0-9_]*$"
+        "pattern": "^[a-z][a-z0-9-]*$"
       }
     },
     "supportingSkills": {
@@ -58,7 +58,7 @@
       "description": "Supporting skills for solid competence in related capabilities (references skill IDs)",
       "items": {
         "type": "string",
-        "pattern": "^[a-z][a-z0-9_]*$"
+        "pattern": "^[a-z][a-z0-9-]*$"
       }
     },
     "broadSkills": {
@@ -66,7 +66,7 @@
       "description": "Skills for general awareness (references skill IDs)",
       "items": {
         "type": "string",
-        "pattern": "^[a-z][a-z0-9_]*$"
+        "pattern": "^[a-z][a-z0-9-]*$"
       }
     },
     "behaviourModifiers": {

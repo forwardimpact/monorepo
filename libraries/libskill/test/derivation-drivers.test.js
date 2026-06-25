@@ -39,7 +39,7 @@ describe("calculateDriverCoverage", () => {
       },
       {
         ownership: "practicing",
-        collaboration: "role_modeling",
+        collaboration: "role-modeling",
       },
     );
     const drivers = makeDrivers();

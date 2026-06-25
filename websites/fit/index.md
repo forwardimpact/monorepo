@@ -159,7 +159,7 @@ same standard:
 
 ```sh
 npx fit-pathway skill --list
-npx fit-pathway agent software_engineering --track=platform
+npx fit-pathway agent software-engineering --track=platform
 ```
 
 ### For Platform Builders

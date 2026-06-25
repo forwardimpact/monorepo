@@ -21,7 +21,7 @@ managementResponsibilities:
   practitioner: You drive delivery excellence across multiple teams
   expert: You shape delivery culture across the business unit
 skills:
-  - id: task_completion
+  - id: task-completion
     name: Task Completion
     human:
       description:
@@ -65,7 +65,6 @@ skills:
           - Completed a multi-file change that passes CI without human rework
           - Resolved an ambiguous bug report with evidence from logs and tests
     agent:
-      name: task-completion
       description: |
         Guide for completing work items reliably from requirements through
         verification.
@@ -129,7 +128,6 @@ skills:
           - Produced a multi-part plan that accounts for cross-file dependencies
             and testing strategy
     agent:
-      name: planning
       description: |
         Guide for breaking down work, estimating effort, and sequencing
         delivery.
@@ -145,7 +143,7 @@ skills:
         - Plan steps are completed in order
         - Deviations from the plan are documented
 
-  - id: data_integration
+  - id: data-integration
     name: Data Integration
     human:
       description:
@@ -197,7 +195,6 @@ skills:
           - Implemented a multi-stage pipeline that handles partial failure
             without producing duplicate or missing rows downstream
     agent:
-      name: data-integration
       description: |
         Guide for building and operating pipelines that move data between
         source systems and downstream consumers.

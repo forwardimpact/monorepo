@@ -28,7 +28,6 @@ import {
   interpolateTeamInstructions,
   renderOrganizationalContext,
   getDisciplineAbbreviation,
-  toKebabCase,
 } from "@forwardimpact/libskill/agent";
 
 import {
@@ -260,7 +259,7 @@ export async function generatePacks({
         level,
       });
     return {
-      name: `${getDisciplineAbbreviation(combo.discipline.id)}-${toKebabCase(combo.track.id)}`,
+      name: `${getDisciplineAbbreviation(combo.discipline.id)}-${combo.track.id}`,
       description: `${combo.humanDiscipline.specialization || combo.humanDiscipline.name} (${combo.humanTrack.name}) — agent team`,
       content: formatContent(
         { profiles, skillFiles, teamInstructions, orgSection },

@@ -197,7 +197,7 @@ export function createBlockParsers(helpers) {
   const PROJECT_ARRAY_KEYS = new Set([
     "milestones",
     "risks",
-    "technical_choices",
+    "technical-choices",
     "teams",
   ]);
 
@@ -355,7 +355,8 @@ export function createBlockParsers(helpers) {
     if (CONTENT_NUMBER_KEYS.has(kw.value))
       content[kw.value] = parseNumberValue();
     else if (CONTENT_ARRAY_KEYS.has(kw.value)) content[kw.value] = parseArray();
-    else if (kw.value === "blog_topics") content.blog_topics = parsePeopleMap();
+    else if (kw.value === "blog-topics")
+      content["blog-topics"] = parsePeopleMap();
     else
       throw new Error(`Unexpected '${kw.value}' in content at line ${kw.line}`);
   }

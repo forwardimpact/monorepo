@@ -90,7 +90,7 @@ describe("MapService", () => {
     const person = {
       email: "alice@example.com",
       name: "Alice",
-      discipline: "software_engineering",
+      discipline: "software-engineering",
       level: "J060",
       track: null,
       manager_email: "bob@example.com",
@@ -118,7 +118,7 @@ describe("MapService", () => {
     const result = await service.GetPerson({ email: "alice@example.com" });
     const parsed = JSON.parse(result.content);
     assert.equal(parsed.email, "alice@example.com");
-    assert.equal(parsed.discipline, "software_engineering");
+    assert.equal(parsed.discipline, "software-engineering");
   });
 
   it("WriteEvidence rejects row without rationale", async () => {

@@ -64,18 +64,18 @@ export function makeClinical() {
   return {
     conditions: [
       {
-        id: "diabetes_t2",
+        id: "diabetes-t2",
         name: "Type 2 Diabetes",
-        iri: "https://test.example/id/clinical/condition/diabetes_t2",
+        iri: "https://test.example/id/clinical/condition/diabetes-t2",
       },
     ],
     trials: [
       {
-        id: "oncora_p3",
+        id: "oncora-p3",
         name: "ONCORA-301",
-        conditions: ["diabetes_t2"],
+        conditions: ["diabetes-t2"],
         sites: ["cambridge"],
-        iri: "https://test.example/id/clinical/trial/oncora_p3",
+        iri: "https://test.example/id/clinical/trial/oncora-p3",
       },
     ],
     sites: [

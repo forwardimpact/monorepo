@@ -15,7 +15,7 @@ describe("buildFhirCrossRef", () => {
   test("links patient to trial via condition match", () => {
     const patients = [makePatient(PATIENT_A, "Jones", "Alice")];
     const conditions = [
-      makeCondition(PATIENT_A, "diabetes_t2", "Type 2 Diabetes"),
+      makeCondition(PATIENT_A, "diabetes-t2", "Type 2 Diabetes"),
     ];
     const crossRef = buildFhirCrossRef({
       patients,
@@ -25,13 +25,13 @@ describe("buildFhirCrossRef", () => {
     });
 
     const patientIri = `https://test.example/id/clinical/patient/${PATIENT_A}`;
-    const trialIri = "https://test.example/id/clinical/trial/oncora_p3";
+    const trialIri = "https://test.example/id/clinical/trial/oncora-p3";
     assert.deepStrictEqual(
       [...(crossRef.patientToTrialIris.get(patientIri) ?? [])],
       [trialIri],
     );
     assert.deepStrictEqual(
-      [...(crossRef.conditionIdToPatientIris.get("diabetes_t2") ?? [])],
+      [...(crossRef.conditionIdToPatientIris.get("diabetes-t2") ?? [])],
       [patientIri],
     );
     assert.deepStrictEqual(
@@ -104,9 +104,9 @@ describe("buildFhirCrossRef", () => {
       makePatient(PATIENT_C, "Chen", "Carol"),
     ];
     const conditions = [
-      makeCondition(PATIENT_A, "diabetes_t2", "Type 2 Diabetes"),
-      makeCondition(PATIENT_B, "diabetes_t2", "Type 2 Diabetes"),
-      makeCondition(PATIENT_C, "diabetes_t2", "Type 2 Diabetes"),
+      makeCondition(PATIENT_A, "diabetes-t2", "Type 2 Diabetes"),
+      makeCondition(PATIENT_B, "diabetes-t2", "Type 2 Diabetes"),
+      makeCondition(PATIENT_C, "diabetes-t2", "Type 2 Diabetes"),
     ];
     const crossRef = buildFhirCrossRef({
       patients,
@@ -114,7 +114,7 @@ describe("buildFhirCrossRef", () => {
       clinical: makeClinical(),
       domain: "test.example",
     });
-    const trialIri = "https://test.example/id/clinical/trial/oncora_p3";
+    const trialIri = "https://test.example/id/clinical/trial/oncora-p3";
     assert.deepStrictEqual(
       [...crossRef.trialIriToPatientIris.get(trialIri)],
       [

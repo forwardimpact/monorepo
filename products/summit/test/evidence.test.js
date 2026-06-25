@@ -24,13 +24,13 @@ before(async () => {
 test("loadEvidence transforms evidence rows into an EvidenceMap", async () => {
   const fakeRows = [
     {
-      skill_id: "task_completion",
+      skill_id: "task-completion",
       matched: true,
       created_at: new Date().toISOString(),
       github_artifacts: { email: "alice@example.com" },
     },
     {
-      skill_id: "task_completion",
+      skill_id: "task-completion",
       matched: true,
       created_at: new Date().toISOString(),
       github_artifacts: { email: "bob@example.com" },
@@ -53,7 +53,7 @@ test("loadEvidence transforms evidence rows into an EvidenceMap", async () => {
   );
 
   assert.equal(evidence.size, 1);
-  const task = evidence.get("task_completion");
+  const task = evidence.get("task-completion");
   assert.equal(task.count, 2);
   assert.equal(task.practitioners.size, 2);
 });
@@ -64,21 +64,21 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J040 }
+      job: { discipline: software-engineering, level: J040 }
 `);
   const resolved = resolveTeam(roster, data, { teamId: "a" });
   const coverage = computeCoverage(resolved, data);
   const evidence = new Map();
-  evidence.set("task_completion", {
+  evidence.set("task-completion", {
     count: 1,
     practitioners: new Set(["alice@example.com"]),
   });
 
   const decorated = decorateCoverageWithEvidence(coverage, evidence);
-  const task = decorated.skills.get("task_completion");
+  const task = decorated.skills.get("task-completion");
   assert.equal(task.evidencedDepth, 1);
   assert.deepEqual(task.evidencedHolders, ["alice@example.com"]);
   // Empty evidence path: planning has no evidence.
@@ -92,23 +92,23 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 `);
   const resolved = resolveTeam(roster, data, { teamId: "a" });
   const coverage = computeCoverage(resolved, data);
   const risks = detectRisks({ resolvedTeam: resolved, coverage, data });
-  // Both Alice and Bob hold task_completion at working so it's not a SPOF
+  // Both Alice and Bob hold task-completion at working so it's not a SPOF
   // by derivation.
   assert.equal(
-    risks.singlePointsOfFailure.find((s) => s.skillId === "task_completion"),
+    risks.singlePointsOfFailure.find((s) => s.skillId === "task-completion"),
     undefined,
   );
 
   const evidence = new Map();
-  evidence.set("task_completion", {
+  evidence.set("task-completion", {
     count: 1,
     practitioners: new Set(["alice@example.com"]),
   });
@@ -121,7 +121,7 @@ teams:
 
   assert.ok(
     decoratedRisks.singlePointsOfFailure.find(
-      (s) => s.skillId === "task_completion",
+      (s) => s.skillId === "task-completion",
     ),
   );
 });
@@ -138,21 +138,21 @@ teams:
   a:
     - name: Alice
       email: alice@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
     - name: Bob
       email: bob@example.com
-      job: { discipline: software_engineering, level: J060 }
+      job: { discipline: software-engineering, level: J060 }
 `);
   const resolved = resolveTeam(roster, data, { teamId: "a" });
   const coverage = computeCoverage(resolved, data);
   const risks = detectRisks({ resolvedTeam: resolved, coverage, data });
 
-  // Evidence says task_completion has TWO practitioners, but only one
+  // Evidence says task-completion has TWO practitioners, but only one
   // is on the team — the other is from another team. The team-intersect
   // must drop the outsider and leave decoratedRisks with a SPOF for
-  // task_completion.
+  // task-completion.
   const evidence = new Map();
-  evidence.set("task_completion", {
+  evidence.set("task-completion", {
     count: 2,
     practitioners: new Set(["alice@example.com", "outsider@example.com"]),
   });
@@ -164,24 +164,24 @@ teams:
   );
 
   const task = decoratedRisks.singlePointsOfFailure.find(
-    (s) => s.skillId === "task_completion",
+    (s) => s.skillId === "task-completion",
   );
   assert.ok(
     task,
-    "task_completion must be a SPOF when only one team member has evidence",
+    "task-completion must be a SPOF when only one team member has evidence",
   );
 });
 
 test("loadEvidence filters by team emails when team is provided", async () => {
   const fakeRows = [
     {
-      skill_id: "task_completion",
+      skill_id: "task-completion",
       matched: true,
       created_at: new Date().toISOString(),
       github_artifacts: { email: "alice@example.com" },
     },
     {
-      skill_id: "task_completion",
+      skill_id: "task-completion",
       matched: true,
       created_at: new Date().toISOString(),
       github_artifacts: { email: "outsider@example.com" },
@@ -199,7 +199,7 @@ test("loadEvidence filters by team emails when team is provided", async () => {
     },
   );
 
-  const task = evidence.get("task_completion");
+  const task = evidence.get("task-completion");
   assert.equal(task.practitioners.size, 1);
   assert.ok(task.practitioners.has("alice@example.com"));
 });

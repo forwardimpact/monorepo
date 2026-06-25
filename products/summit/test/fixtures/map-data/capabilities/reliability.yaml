@@ -28,7 +28,7 @@ managementResponsibilities:
     You shape reliability strategy across the business unit and own enterprise
     reliability outcomes
 skills:
-  - id: incident_response
+  - id: incident-response
     name: Incident Response
     human:
       description:
@@ -51,7 +51,6 @@ skills:
           You define incident management strategy across the organization and
           lead response to the most critical incidents.
     agent:
-      name: incident-response
       description: |
         Guide for responding to production incidents from detection through
         resolution.

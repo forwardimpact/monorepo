@@ -314,7 +314,7 @@ describe("validateCrossContent", () => {
         {
           snapshot_id: "s1",
           getdx_team_id: "gt1",
-          item_id: "code_review",
+          item_id: "code-review",
           score: 150,
         },
       ];

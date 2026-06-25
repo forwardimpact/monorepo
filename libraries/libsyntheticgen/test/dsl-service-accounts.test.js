@@ -27,7 +27,7 @@ const MIN_DSL = (extra = "") => `terrain test {
     names "greek"
     distribution { mid 100% }
     disciplines { backend 100% }
-    archetypes { steady_contributor 100% }
+    archetypes { steady-contributor 100% }
     ${extra}
   }
 }`;

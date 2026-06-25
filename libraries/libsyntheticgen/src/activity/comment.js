@@ -202,13 +202,13 @@ function* commentProseKeys(output, { domain, orgName }) {
     yield [
       `snapshot_comment_${ck.snapshot_id}_${ck.email.replace(/[@.]/g, "_")}`,
       {
-        topic: `GetDX snapshot survey comment about ${ck.topic_driver_id.replace(/_/g, " ")}`,
+        topic: `GetDX snapshot survey comment about ${ck.topic_driver_id.replace(/[-_]/g, " ")}`,
         tone: "authentic, first-person developer voice",
         length: "1-2 sentences",
         maxTokens: 80,
         domain,
         orgName,
-        role: `${ck.person_level} ${ck.person_discipline.replace(/_/g, " ")} on the ${ck.team_name}`,
+        role: `${ck.person_level} ${ck.person_discipline.replace(/[-_]/g, " ")} on the ${ck.team_name}`,
         scenario: ck.scenario_name,
         drivers: ck.drivers,
       },

@@ -51,7 +51,7 @@ from the transcript — "seemed strong" is not evidence.
 | `emerging`      | Behaviour not observed or only when prompted                 |
 | `developing`    | Behaviour present but inconsistent or surface-level          |
 | `practicing`    | Behaviour consistent and natural throughout the interview    |
-| `role_modeling` | Behaviour demonstrated at high level, influenced the room    |
+| `role-modeling` | Behaviour demonstrated at high level, influenced the room    |
 | `exemplifying`  | Behaviour exceptional, set the standard for the conversation |
 
 ## Level signals

@@ -17,7 +17,7 @@ describe("parse — standard section", () => {
     const ast = parseDsl(`terrain test {
       standard {
         proficiencies [awareness, foundational, working, practitioner, expert]
-        maturities [emerging, developing, practicing, role_modeling, exemplifying]
+        maturities [emerging, developing, practicing, role-modeling, exemplifying]
       }
     }`);
     assert.deepStrictEqual(ast.standard.proficiencies, [
@@ -31,7 +31,7 @@ describe("parse — standard section", () => {
       "emerging",
       "developing",
       "practicing",
-      "role_modeling",
+      "role-modeling",
       "exemplifying",
     ]);
   });
@@ -152,7 +152,7 @@ describe("parse — standard section", () => {
         drivers {
           code_quality {
             name "Code Quality"
-            skills [testing, code_review]
+            skills [testing, code-review]
             behaviours [collaboration]
           }
         }
@@ -161,7 +161,7 @@ describe("parse — standard section", () => {
     const driver = ast.standard.drivers[0];
     assert.strictEqual(driver.id, "code_quality");
     assert.strictEqual(driver.name, "Code Quality");
-    assert.deepStrictEqual(driver.skills, ["testing", "code_review"]);
+    assert.deepStrictEqual(driver.skills, ["testing", "code-review"]);
     assert.deepStrictEqual(driver.behaviours, ["collaboration"]);
   });
 

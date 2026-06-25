@@ -236,7 +236,7 @@ describe("deriveJob", () => {
 
     const job = deriveJob({ discipline, level, skills, behaviours });
 
-    assert.strictEqual(job.id, "software_engineering_level_3");
+    assert.strictEqual(job.id, "software-engineering_level_3");
     assert.strictEqual(job.title, "Software Engineer Level III");
     assert.strictEqual(job.discipline, discipline);
     assert.strictEqual(job.level, level);
@@ -256,7 +256,7 @@ describe("deriveJob", () => {
 
     const job = deriveJob({ discipline, level, track, skills, behaviours });
 
-    assert.strictEqual(job.id, "software_engineering_level_3_platform");
+    assert.strictEqual(job.id, "software-engineering_level_3_platform");
   });
 
   test("includes expectations from level", () => {
@@ -310,7 +310,7 @@ describe("deriveJob", () => {
     const validationRules = {
       invalidCombinations: [
         {
-          discipline: "software_engineering",
+          discipline: "software-engineering",
           track: "platform",
           level: "level_3",
         },

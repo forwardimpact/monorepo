@@ -1,4 +1,4 @@
-fit-landmark 0.1.22 — Landmark — analysis and recommendations on top of Map data.
+fit-landmark 0.1.28 — Landmark — analysis and recommendations on top of Map data.
 
 Usage: fit-landmark <command> [options]
 
@@ -31,8 +31,9 @@ Options:
 Examples:
   fit-landmark org show
   fit-landmark snapshot list
-  fit-landmark marker task_completion
+  fit-landmark marker task-completion
   fit-landmark health --manager alice@example.com
+  fit-landmark health --manager zeus@bionova.example
   fit-landmark sources --email self@example.com
 
 Documentation:
@@ -50,7 +51,7 @@ Documentation:
     Track initiative impact through outcome trends.
   Get Career Guidance Grounded in the Standard
     https://www.forwardimpact.team/docs/products/growth-areas/index.md
-    Identify gaps and track progress toward the next level.
+    Identify gaps and track progress toward the next level. Readiness, timeline, and coverage commands suppress verdicts and frame output as negative-evidence when coverage falls below 30%.
   Check Progress Toward Next Level
     https://www.forwardimpact.team/docs/products/growth-areas/check-progress/index.md
     See where you stand against level expectations.

@@ -227,7 +227,7 @@ fit:LevelShape a sh:NodeShape ;
     ] ;
     sh:property [
         sh:path fit:baseBehaviourMaturity ;
-        sh:in ( fit:emerging fit:developing fit:practicing fit:role_modeling fit:exemplifying ) ;
+        sh:in ( fit:emerging fit:developing fit:practicing fit:role-modeling fit:exemplifying ) ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "baseBehaviourMaturity" ;

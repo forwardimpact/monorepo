@@ -16,7 +16,7 @@
  */
 
 function titleCase(str) {
-  return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return str.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function buildConditionData(conditions, trials, prose, fhirCrossRef = null) {

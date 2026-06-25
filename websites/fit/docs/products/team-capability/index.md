@@ -35,7 +35,7 @@ example, to see what is expected of a Software Engineer (J060) on a platform
 track:
 
 ```sh
-npx fit-pathway job software_engineering J060 --track=platform
+npx fit-pathway job software-engineering J060 --track=platform
 ```
 
 The output has four sections:
@@ -93,7 +93,7 @@ Expected output:
   Capability: Delivery
     task_decomposition        ████████░░  depth: 3 engineers at working+
     estimation                ██████░░░░  depth: 2 engineers at working+
-    incident_response         ████░░░░░░  depth: 1 engineer at working+
+    incident-response         ████░░░░░░  depth: 1 engineer at working+
 
   Capability: Architecture
     system_design             ████████░░  depth: 3 engineers at working+
@@ -126,7 +126,7 @@ Expected output:
 
   Single Points of Failure:
     infrastructure            Only: alice.chen (practitioner)
-    incident_response         Only: bob.kumar (working)
+    incident-response         Only: bob.kumar (working)
 
   Critical Gaps:
     observability             No engineer at working+
@@ -164,7 +164,7 @@ Describe the role you are considering and see what it resolves:
 
 ```sh
 npx fit-summit what-if platform --roster ./summit.yaml \
-  --add "{ discipline: software_engineering, level: J060, track: platform }"
+  --add "{ discipline: software-engineering, level: J060, track: platform }"
 ```
 
 Expected output:
@@ -249,7 +249,7 @@ npx fit-summit what-if platform --roster ./summit.yaml \
   Promoting bob@example.com from J060 to J070
 
   Resolved Risks:
-    incident_response         bob@example.com (now practitioner) no longer single point of failure risk
+    incident-response         bob@example.com (now practitioner) no longer single point of failure risk
 
   Coverage Change:
     Delivery capability       ████████░░ → ██████████  (+20%)
@@ -264,7 +264,7 @@ When the full diff is too broad, narrow the output to one capability area:
 
 ```sh
 npx fit-summit what-if platform --roster ./summit.yaml \
-  --add "{ discipline: software_engineering, level: J060, track: platform }" \
+  --add "{ discipline: software-engineering, level: J060, track: platform }" \
   --focus architecture
 ```
 
@@ -293,7 +293,7 @@ npx fit-summit compare platform delivery --roster ./summit.yaml
   Skill                 Platform depth   Delivery depth   Delta
   task_decomposition    3                4                -1
   estimation            2                1                +1
-  incident_response     1                3                -2
+  incident-response     1                3                -2
   system_design         3                1                +2
   api_design            4                2                +2
 

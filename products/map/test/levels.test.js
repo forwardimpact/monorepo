@@ -45,7 +45,7 @@ describe("levels", () => {
       assert.strictEqual(BehaviourMaturity.EMERGING, "emerging");
       assert.strictEqual(BehaviourMaturity.DEVELOPING, "developing");
       assert.strictEqual(BehaviourMaturity.PRACTICING, "practicing");
-      assert.strictEqual(BehaviourMaturity.ROLE_MODELING, "role_modeling");
+      assert.strictEqual(BehaviourMaturity.ROLE_MODELING, "role-modeling");
       assert.strictEqual(BehaviourMaturity.EXEMPLIFYING, "exemplifying");
     });
   });

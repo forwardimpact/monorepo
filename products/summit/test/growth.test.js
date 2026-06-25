@@ -24,12 +24,12 @@ test("computeGrowthAlignment surfaces critical gaps first", () => {
     {
       email: "a@example.com",
       name: "A",
-      job: { discipline: "software_engineering", level: "J040" },
+      job: { discipline: "software-engineering", level: "J040" },
     },
     {
       email: "b@example.com",
       name: "B",
-      job: { discipline: "software_engineering", level: "J040" },
+      job: { discipline: "software-engineering", level: "J040" },
     },
   ];
   const recs = computeGrowthAlignment({ team, mapData });
@@ -45,12 +45,12 @@ test("computeGrowthAlignment ranks candidates by proximity", () => {
     {
       email: "senior@example.com",
       name: "Senior",
-      job: { discipline: "software_engineering", level: "J060" },
+      job: { discipline: "software-engineering", level: "J060" },
     },
     {
       email: "junior@example.com",
       name: "Junior",
-      job: { discipline: "software_engineering", level: "J040" },
+      job: { discipline: "software-engineering", level: "J040" },
     },
   ];
   const recs = computeGrowthAlignment({ team, mapData });
@@ -80,7 +80,7 @@ test("computeGrowthAlignment attaches null driverContext for every rec in Part 0
     {
       email: "a@example.com",
       name: "A",
-      job: { discipline: "software_engineering", level: "J040" },
+      job: { discipline: "software-engineering", level: "J040" },
     },
   ];
   const recs = computeGrowthAlignment({ team, mapData });
@@ -107,7 +107,7 @@ test("computeGrowthAlignment recommendations expose `skill` per spec.md:583", ()
     {
       email: "a@example.com",
       name: "A",
-      job: { discipline: "software_engineering", level: "J040" },
+      job: { discipline: "software-engineering", level: "J040" },
     },
   ];
   const recs = computeGrowthAlignment({ team, mapData });
@@ -132,27 +132,27 @@ test("computeGrowthAlignment attaches driverContext when driverScores passed", (
     {
       email: "a@example.com",
       name: "A",
-      job: { discipline: "software_engineering", level: "J040" },
+      job: { discipline: "software-engineering", level: "J040" },
     },
   ];
   // starter drivers.yaml defines `quality` with contributingSkills
-  // task_completion and planning.
+  // task-completion and planning.
   const driverScores = new Map();
   driverScores.set("quality", { percentile: 25, vsOrg: -10 });
 
   const recs = computeGrowthAlignment({ team, mapData, driverScores });
-  const task = recs.find((r) => r.skill === "task_completion");
-  assert.ok(task, "task_completion recommendation expected");
+  const task = recs.find((r) => r.skill === "task-completion");
+  assert.ok(task, "task-completion recommendation expected");
   assert.ok(task.driverContext, "driverContext should be populated");
   assert.equal(task.driverContext.driverId, "quality");
   assert.equal(task.driverContext.percentile, 25);
 
-  const incident = recs.find((r) => r.skill === "incident_response");
+  const incident = recs.find((r) => r.skill === "incident-response");
   assert.ok(incident);
   assert.equal(
     incident.driverContext,
     null,
-    "incident_response has no linked driver",
+    "incident-response has no linked driver",
   );
 });
 
@@ -161,10 +161,10 @@ test("computeGrowthAlignment outcome weighting reorders within a tier", () => {
     {
       email: "a@example.com",
       name: "A",
-      job: { discipline: "software_engineering", level: "J040" },
+      job: { discipline: "software-engineering", level: "J040" },
     },
   ];
-  // Without outcomes: planning and task_completion sort alphabetically.
+  // Without outcomes: planning and task-completion sort alphabetically.
   const baseline = computeGrowthAlignment({ team, mapData });
   // With outcomes: same skills exist in the `quality` driver. When one
   // is associated with a bad percentile and the other isn't, the weighted
@@ -178,12 +178,12 @@ test("computeGrowthAlignment outcome weighting reorders within a tier", () => {
   const criticalBaseline = baseline.filter((r) => r.impact === "critical");
   const criticalWeighted = weighted.filter((r) => r.impact === "critical");
   assert.equal(criticalBaseline.length, criticalWeighted.length);
-  // Both task_completion and planning have the same driver weight; the
+  // Both task-completion and planning have the same driver weight; the
   // tiebreaker falls back to name. The assertion here is that the
   // weighted path still returns both and all skills carry the driver
   // context.
   for (const rec of criticalWeighted) {
-    if (rec.skill === "task_completion" || rec.skill === "planning") {
+    if (rec.skill === "task-completion" || rec.skill === "planning") {
       assert.ok(rec.driverContext);
     }
   }
