@@ -1,6 +1,6 @@
 import AppKit
 
-/// App delegate for Outpost.app.
+/// App delegate for fit-outpost.app.
 ///
 /// Manages the process tree: spawns the scheduler as a child process
 /// via posix_spawn and hosts the status menu bar UI in-process.

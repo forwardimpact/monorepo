@@ -4,7 +4,7 @@ set -euo pipefail
 # Assemble a macOS .app bundle from compiled binaries and resources.
 #
 # Usage: build-app.sh [options]
-#   --bundle-name NAME        Bundle directory name (e.g. "Outpost" → Outpost.app)
+#   --bundle-name NAME        Bundle directory name (e.g. "fit-outpost" → fit-outpost.app)
 #   --primary-exec PATH       Path to the primary executable (becomes CFBundleExecutable)
 #   --extra-exec PATH         Additional executable to place in Contents/MacOS/ (repeatable)
 #   --info-plist PATH         Path to Info.plist to embed
