@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/map",
-  "version": "0.15.60",
+  "version": "0.15.61",
   "description": "Validate, store, and publish agent-aligned engineering standards so expectations are operational, not tribal.",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
@@ -83,7 +83,7 @@
     "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libsecret": "^0.1.14",
-    "@forwardimpact/libskill": "^5.0.0",
+    "@forwardimpact/libskill": "^6.0.0",
     "@forwardimpact/libsyntheticgen": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libtemplate": "^0.2.0",

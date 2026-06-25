@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcpathway",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products.",
   "keywords": [
     "pathway",
@@ -49,7 +49,7 @@
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libproto": "^0.1.0",
     "@forwardimpact/librpc": "^0.1.77",
-    "@forwardimpact/libskill": "^5.0.0",
+    "@forwardimpact/libskill": "^6.0.0",
     "@forwardimpact/libtelemetry": "^0.1.30",
     "@forwardimpact/libtype": "^0.1.67",
     "@forwardimpact/libutil": "^0.1.64",
