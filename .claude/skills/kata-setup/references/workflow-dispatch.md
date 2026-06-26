@@ -3,7 +3,7 @@
 Responds to issue and PR events. The product-manager facilitates and routes to
 the best-suited agent. File name: `agent-dispatch.yml`. Replace `{{AGENT_LIST}}`
 (all agents except product-manager and improvement-coach), `{{MODEL}}`, and the
-`{{FIT_EVAL_REF}}` / `{{FIT_WIKI_REF}}` action refs (resolved at generation
+`{{FIT_HARNESS_REF}}` / `{{FIT_WIKI_REF}}` action refs (resolved at generation
 time — see
 [`workflow-shift.md` § Resolving action refs](workflow-shift.md#resolving-action-refs)).
 
@@ -80,7 +80,7 @@ jobs:
           token: ${{ steps.ci-app.outputs.token }}
       - name: Assess and Act
         id: assess
-        uses: forwardimpact/fit-eval@{{FIT_EVAL_REF}}
+        uses: forwardimpact/fit-harness@{{FIT_HARNESS_REF}}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -96,7 +96,7 @@ jobs:
           discussion-id: ${{ inputs.discussion_id }}
       # Copy the `Report run cost` step from workflow-shift.md (read trace-file
       # from `steps.assess`).
-      # fit-eval does not push wiki itself, so push memory with a fresh token.
+      # fit-harness does not push wiki itself, so push memory with a fresh token.
       # Drop this step when wiki is disabled.
       - name: Push wiki changes
         if: always()
@@ -107,9 +107,9 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
 
-Uses `fit-eval` (not `kata-agent`) so the workflow can pass `task-event` and
+Uses `fit-harness` (not `kata-agent`) so the workflow can pass `task-event` and
 select `mode` per event. The `if:` must stay aligned with the `on:` block. The
-recursion guard lives in the action's task composition, not here. The `fit-eval`
+recursion guard lives in the action's task composition, not here. The `fit-harness`
 and `fit-wiki` refs are SHA-pinned at generation time — pair them with the
 Dependabot config from `SKILL.md` Step 2.
 

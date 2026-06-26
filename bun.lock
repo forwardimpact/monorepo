@@ -40,7 +40,7 @@
     },
     "libraries/libcoaligned": {
       "name": "@forwardimpact/libcoaligned",
-      "version": "0.1.14",
+      "version": "0.1.15",
       "bin": {
         "coaligned": "./bin/coaligned.js",
       },
@@ -115,30 +115,6 @@
         "prettier": "^3.0.0",
       },
     },
-    "libraries/libeval": {
-      "name": "@forwardimpact/libeval",
-      "version": "0.1.66",
-      "bin": {
-        "fit-eval": "./bin/fit-eval.js",
-        "fit-trace": "./bin/fit-trace.js",
-        "fit-benchmark": "./bin/fit-benchmark.js",
-        "fit-selfedit": "./bin/fit-selfedit.js",
-      },
-      "dependencies": {
-        "@anthropic-ai/claude-agent-sdk": "0.3.170",
-        "@forwardimpact/libcli": "^0.1.0",
-        "@forwardimpact/libconfig": "^0.1.0",
-        "@forwardimpact/libpreflight": "^0.1.0",
-        "@forwardimpact/libtelemetry": "^0.1.22",
-        "@forwardimpact/libutil": "^0.1.0",
-        "jmespath": "^0.16.0",
-        "minimatch": "^10.0.0",
-        "zod": "^4.4.3",
-      },
-      "devDependencies": {
-        "@forwardimpact/libmock": "^0.1.0",
-      },
-    },
     "libraries/libformat": {
       "name": "@forwardimpact/libformat",
       "version": "0.1.20",
@@ -174,6 +150,30 @@
         "@forwardimpact/libutil": "^0.1.60",
       },
     },
+    "libraries/libharness": {
+      "name": "@forwardimpact/libharness",
+      "version": "1.0.0",
+      "bin": {
+        "fit-harness": "./bin/fit-harness.js",
+        "fit-trace": "./bin/fit-trace.js",
+        "fit-benchmark": "./bin/fit-benchmark.js",
+        "fit-selfedit": "./bin/fit-selfedit.js",
+      },
+      "dependencies": {
+        "@anthropic-ai/claude-agent-sdk": "0.3.170",
+        "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libconfig": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
+        "@forwardimpact/libtelemetry": "^0.1.22",
+        "@forwardimpact/libutil": "^0.1.0",
+        "jmespath": "^0.16.0",
+        "minimatch": "^10.0.0",
+        "zod": "^4.4.3",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+      },
+    },
     "libraries/libhttp": {
       "name": "@forwardimpact/libhttp",
       "version": "0.1.2",
@@ -199,7 +199,7 @@
     },
     "libraries/libmacos": {
       "name": "@forwardimpact/libmacos",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "dependencies": {
         "@forwardimpact/libutil": "^0.1.60",
       },
@@ -220,7 +220,7 @@
     },
     "libraries/libmock": {
       "name": "@forwardimpact/libmock",
-      "version": "0.1.11",
+      "version": "0.1.12",
       "dependencies": {
         "@grpc/grpc-js": "^1.14.4",
       },
@@ -230,7 +230,7 @@
     },
     "libraries/libpack": {
       "name": "@forwardimpact/libpack",
-      "version": "0.1.7",
+      "version": "0.1.9",
       "bin": {
         "fit-pack": "./bin/fit-pack.js",
       },
@@ -355,7 +355,7 @@
     },
     "libraries/libskill": {
       "name": "@forwardimpact/libskill",
-      "version": "5.5.4",
+      "version": "6.0.1",
       "dependencies": {
         "@forwardimpact/map": "^0.15.0",
       },
@@ -402,7 +402,7 @@
     },
     "libraries/libsyntheticgen": {
       "name": "@forwardimpact/libsyntheticgen",
-      "version": "0.1.30",
+      "version": "0.1.31",
       "dependencies": {
         "@forwardimpact/libutil": "^0.1.61",
         "seedrandom": "^3.0.5",
@@ -421,7 +421,7 @@
     },
     "libraries/libsyntheticprose": {
       "name": "@forwardimpact/libsyntheticprose",
-      "version": "0.1.33",
+      "version": "0.1.34",
       "dependencies": {
         "@forwardimpact/libprompt": "^0.1.0",
         "@forwardimpact/libsyntheticgen": "^0.1.21",
@@ -434,7 +434,7 @@
     },
     "libraries/libsyntheticrender": {
       "name": "@forwardimpact/libsyntheticrender",
-      "version": "0.1.32",
+      "version": "0.1.33",
       "dependencies": {
         "@forwardimpact/libsyntheticgen": "^0.1.0",
         "@forwardimpact/libtemplate": "^0.2.0",
@@ -530,7 +530,7 @@
     },
     "libraries/libui": {
       "name": "@forwardimpact/libui",
-      "version": "1.3.2",
+      "version": "1.4.0",
       "devDependencies": {
         "happy-dom": "^20.10.2",
       },
@@ -585,7 +585,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.77",
-        "@forwardimpact/libeval": "^0.1.49",
+        "@forwardimpact/libharness": "^1.0.0",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.47",
         "@forwardimpact/libutil": "^0.1.0",
@@ -616,8 +616,8 @@
       "dependencies": {
         "@forwardimpact/libcodegen": "^0.1.49",
         "@forwardimpact/libdoc": "^0.2.24",
-        "@forwardimpact/libeval": "^0.1.27",
         "@forwardimpact/libgraph": "^0.1.69",
+        "@forwardimpact/libharness": "^1.0.0",
         "@forwardimpact/librc": "^0.1.27",
         "@forwardimpact/libresource": "^0.1.109",
         "@forwardimpact/librpc": "^0.1.97",
@@ -672,7 +672,7 @@
     },
     "products/landmark": {
       "name": "@forwardimpact/landmark",
-      "version": "0.1.28",
+      "version": "0.1.29",
       "bin": {
         "fit-landmark": "./bin/fit-landmark.js",
       },
@@ -694,7 +694,7 @@
     },
     "products/map": {
       "name": "@forwardimpact/map",
-      "version": "0.15.60",
+      "version": "0.15.61",
       "bin": {
         "fit-map": "./bin/fit-map.js",
       },
@@ -725,7 +725,7 @@
     },
     "products/outpost": {
       "name": "@forwardimpact/outpost",
-      "version": "3.5.1",
+      "version": "3.8.1",
       "bin": {
         "fit-outpost": "./bin/fit-outpost.js",
       },
@@ -744,7 +744,7 @@
     },
     "products/pathway": {
       "name": "@forwardimpact/pathway",
-      "version": "0.26.6",
+      "version": "0.26.7",
       "bin": {
         "fit-pathway": "./bin/fit-pathway.js",
       },
@@ -770,7 +770,7 @@
     },
     "products/summit": {
       "name": "@forwardimpact/summit",
-      "version": "0.1.28",
+      "version": "0.1.29",
       "bin": {
         "fit-summit": "./bin/fit-summit.js",
       },
@@ -1018,7 +1018,7 @@
     },
     "services/pathway": {
       "name": "@forwardimpact/svcpathway",
-      "version": "0.1.22",
+      "version": "0.1.23",
       "bin": {
         "fit-svcpathway": "./server.js",
       },
@@ -1295,11 +1295,11 @@
 
     "@forwardimpact/libdoc": ["@forwardimpact/libdoc@workspace:libraries/libdoc"],
 
-    "@forwardimpact/libeval": ["@forwardimpact/libeval@workspace:libraries/libeval"],
-
     "@forwardimpact/libformat": ["@forwardimpact/libformat@workspace:libraries/libformat"],
 
     "@forwardimpact/libgraph": ["@forwardimpact/libgraph@workspace:libraries/libgraph"],
+
+    "@forwardimpact/libharness": ["@forwardimpact/libharness@workspace:libraries/libharness"],
 
     "@forwardimpact/libhttp": ["@forwardimpact/libhttp@workspace:libraries/libhttp"],
 

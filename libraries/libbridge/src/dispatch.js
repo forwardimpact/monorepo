@@ -17,7 +17,7 @@
  * @param {string} params.callbackUrl - Where the workflow posts the reply
  * @param {string} params.correlationId - UUID linking dispatch → callback
  * @param {string} [params.inboxUrl] - Long-poll URL for injecting messages into a live run
- * @param {string} [params.discussionId] - For trace linkage in libeval
+ * @param {string} [params.discussionId] - For trace linkage in libharness
  * @param {string} [params.resumeContext] - JSON string carried across resumes
  * @returns {Promise<void>}
  */

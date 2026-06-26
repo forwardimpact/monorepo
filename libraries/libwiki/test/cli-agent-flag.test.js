@@ -28,7 +28,7 @@ describe("requireAgentFlag", () => {
       {},
       { command: "claim", example: "fit-wiki claim --agent x" },
     );
-    assert.doesNotMatch(r.error, /LIBEVAL_AGENT_PROFILE/);
+    assert.doesNotMatch(r.error, /LIBHARNESS_AGENT_PROFILE/);
     assert.doesNotMatch(r.error, /env/i);
   });
 

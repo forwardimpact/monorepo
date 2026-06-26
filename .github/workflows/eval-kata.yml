@@ -19,7 +19,7 @@ jobs:
       # product-issue-triage) coordinate through the filesystem tracker; the
       # artifact-spine tasks ignore it. The agent SDK inherits this from the
       # job env, and fit-benchmark resolves it (flag > env > github default).
-      LIBEVAL_WORK_TRACKER: filesystem
+      LIBHARNESS_WORK_TRACKER: filesystem
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: forwardimpact/fit-bootstrap@a007a6b9a1fa0db8527b7e29c158db3cf2c96c92 # v1

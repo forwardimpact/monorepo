@@ -14,11 +14,11 @@ marker on `uses:` lines — sibling repos this monorepo maintains:
 | [fit-bootstrap](https://github.com/forwardimpact/fit-bootstrap) | FIT CI environment: Bun, cached deps/workspace, wiki checkout, `bootstrap.sh` |
 | [fit-wiki](https://github.com/forwardimpact/fit-wiki) | Run a `fit-wiki` agent-memory command (push/pull/audit); mints a fresh App token first |
 | [fit-benchmark](https://github.com/forwardimpact/fit-benchmark) | Coding-agent benchmarks |
-| [fit-eval](https://github.com/forwardimpact/fit-eval) | Agent task execution |
-| [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, fit-bootstrap, fit-eval, fit-wiki) |
+| [fit-harness](https://github.com/forwardimpact/fit-harness) | Agent task execution |
+| [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, fit-bootstrap, fit-harness, fit-wiki) |
 
 Every workflow calls `fit-bootstrap@v1` for the environment; `kata-agent`
-delegates to bootstrap/eval/wiki internally. `fit-bootstrap` only **checks
+delegates to bootstrap/harness/wiki internally. `fit-bootstrap` only **checks
 out** the wiki (given a `token`); its App token expires after an hour, so agent
 runs push memory with `fit-wiki@v1` as an `always()` step. Change a sibling's
 interface — and tag it — before the consumer.
@@ -56,11 +56,11 @@ is a compromise indicator.
 ### `IS_SANDBOX` for headless agents
 
 Bypass-permissions mode (every Agent-SDK action) is refused under `uid 0`
-unless the process is marked sandboxed, and runners may be root. So `fit-eval`,
+unless the process is marked sandboxed, and runners may be root. So `fit-harness`,
 `fit-benchmark`, `fit-wiki`, and `kata-agent` set `IS_SANDBOX=1` on their
 agent-spawning step (`fit-bootstrap` spawns no agent). The SDK forwards the
 parent env, so setting it on the action environment suffices — kept out of
-`libeval` so it stays an environment decision. Without it the agent exits 1
+`libharness` so it stays an environment decision. Without it the agent exits 1
 with no output.
 
 ## Local composite actions

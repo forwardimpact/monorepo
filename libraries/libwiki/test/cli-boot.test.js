@@ -33,7 +33,7 @@ describe("fit-wiki boot CLI (in-process)", () => {
   }
 
   test("without --agent fails closed before reading the wiki (both env states)", () => {
-    for (const env of [{}, { LIBEVAL_AGENT_PROFILE: "product-manager" }]) {
+    for (const env of [{}, { LIBHARNESS_AGENT_PROFILE: "product-manager" }]) {
       const harness = makeRuntime({ fsSync: seededFs(), env });
       const result = runBootCommand(
         ctxFor({
@@ -44,7 +44,7 @@ describe("fit-wiki boot CLI (in-process)", () => {
       assert.equal(result.ok, false);
       assert.equal(result.code, 2);
       assert.match(result.error, /^boot requires --agent <name>; e\.g\. /);
-      assert.doesNotMatch(result.error, /LIBEVAL_AGENT_PROFILE/);
+      assert.doesNotMatch(result.error, /LIBHARNESS_AGENT_PROFILE/);
       assert.equal(harness.stdout, "", "no digest printed");
     }
   });

@@ -14,13 +14,13 @@ const csvField = (v) => {
 };
 
 function parseRecordOptions(values, runtime) {
-  const skill = values.skill || runtime.proc.env.LIBEVAL_SKILL;
+  const skill = values.skill || runtime.proc.env.LIBHARNESS_SKILL;
   if (!skill) {
     return {
       error: {
         ok: false,
         code: 2,
-        error: "record requires --skill <name> or LIBEVAL_SKILL env var",
+        error: "record requires --skill <name> or LIBHARNESS_SKILL env var",
       },
     };
   }

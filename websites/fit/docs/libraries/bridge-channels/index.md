@@ -292,7 +292,7 @@ issued for one tenant cannot redeem a callback addressed to another.
 
 ## Evaluate recess triggers
 
-Long-running RFCs use the libeval `Recess` verdict to wait for an external
+Long-running RFCs use the libharness `Recess` verdict to wait for an external
 signal. A trigger is one of three shapes, named for the lead's intent:
 
 - `{ kind: "missing_input", replies: N }` — fire when at least `N` new

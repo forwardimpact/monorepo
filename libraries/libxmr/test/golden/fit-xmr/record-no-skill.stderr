@@ -1,1 +1,1 @@
-fit-xmr: error: record requires --skill <name> or LIBEVAL_SKILL env var
+fit-xmr: error: record requires --skill <name> or LIBHARNESS_SKILL env var

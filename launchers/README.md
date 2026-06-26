@@ -3,7 +3,7 @@
 One thin npm package per **public CLI** — a CLI invoked as `npx fit-<name>`
 in external docs, published skill packs, or published composite actions, and
 backed by a real `bin` in a non-private workspace package. Each launcher's
-npm name equals the invoked name (`fit-eval`, `fit-wiki`, …), so the
+npm name equals the invoked name (`fit-harness`, `fit-wiki`, …), so the
 documented `npx fit-*` contract resolves from the registry
 ([originating spec](../specs/1670-public-cli-launcher-packages/spec.md)).
 

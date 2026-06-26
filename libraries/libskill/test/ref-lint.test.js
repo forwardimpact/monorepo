@@ -156,14 +156,14 @@ describe("lintActionRefs — success-criteria matrix", () => {
     const allowlist = buildPlaceholderAllowlist(ksetup);
     const refs = extractRefs([
       {
-        path: ".claude/skills/fit-eval/SKILL.md",
-        text: "- uses: forwardimpact/fit-eval@{{UNKNOWN_REF}}",
+        path: ".claude/skills/fit-harness/SKILL.md",
+        text: "- uses: forwardimpact/fit-harness@{{UNKNOWN_REF}}",
       },
     ]);
     const findings = await lintActionRefs({
       refs,
       allowlist,
-      resolve: fakeResolver({ "forwardimpact/fit-eval": okRefs() }),
+      resolve: fakeResolver({ "forwardimpact/fit-harness": okRefs() }),
     });
     assert.strictEqual(findings.length, 1);
     assert.match(findings[0].reason, /not a known ref substitution/);

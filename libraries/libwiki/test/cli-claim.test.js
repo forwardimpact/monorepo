@@ -101,7 +101,7 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
     assert.equal(result.ok, false);
     assert.equal(result.code, 2);
     assert.match(result.error, /^release requires --agent <name>; e\.g\. /);
-    assert.doesNotMatch(result.error, /LIBEVAL_AGENT_PROFILE/);
+    assert.doesNotMatch(result.error, /LIBHARNESS_AGENT_PROFILE/);
   });
 
   test("release --expired clears expired rows agent-less", async () => {
@@ -122,7 +122,7 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
     assert.equal(result.ok, false);
     assert.equal(result.code, 2);
     assert.match(result.error, /^claim requires --agent <name>; e\.g\. /);
-    assert.doesNotMatch(result.error, /LIBEVAL_AGENT_PROFILE/);
+    assert.doesNotMatch(result.error, /LIBHARNESS_AGENT_PROFILE/);
   });
 
   test("claim and release push with a MEMORY.md pathspec only", async () => {

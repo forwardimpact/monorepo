@@ -44,7 +44,7 @@ describe("fit-wiki log CLI (in-process)", () => {
   });
 
   test("log decision without --agent fails closed in both env states", async () => {
-    for (const env of [{}, { LIBEVAL_AGENT_PROFILE: "product-manager" }]) {
+    for (const env of [{}, { LIBHARNESS_AGENT_PROFILE: "product-manager" }]) {
       const fsSync = createMockFs();
       const harness = makeRuntime({ fsSync, env });
       const result = await runLogCommand(
@@ -57,7 +57,7 @@ describe("fit-wiki log CLI (in-process)", () => {
       assert.equal(result.ok, false);
       assert.equal(result.code, 2);
       assert.match(result.error, /^log requires --agent <name>; e\.g\. /);
-      assert.doesNotMatch(result.error, /LIBEVAL_AGENT_PROFILE/);
+      assert.doesNotMatch(result.error, /LIBHARNESS_AGENT_PROFILE/);
       // No weekly log minted for any agent.
       assert.equal(
         fsSync.existsSync(`${WIKI_ROOT}/product-manager-2026-W21.md`),

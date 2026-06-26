@@ -1,0 +1,77 @@
+fit-trace 1.0.0 — Download, query, and analyze agent execution traces — read NDJSON output from fit-harness as qualitative research
+
+Usage: fit-trace <command> [options]
+
+Commands:
+  runs [pattern]                             List recent GitHub Actions workflow runs (default pattern: kata|agent)
+  find <run-id> <participant>                Resolve a participant's lane trace for a known run id in one keyed lookup (no run enumeration, no content inspection)
+  download <run-id>                          Download trace artifact and convert to structured JSON; pass --artifact to pick one when a matrix workflow emits multiple `trace--*` artifacts
+  overview                                   Metadata, summary, turn count, tool frequency
+  count                                      Number of turns
+  batch <file> <from> <to>                   Turns in range [from, to) (zero-indexed)
+  head                                       First N turns (default 10; set with --lines)
+  tail                                       Last N turns (default 10; set with --lines)
+  search <file> <pattern>                    Search all content for regex pattern
+  tools                                      Tool usage frequency (descending). See also `tool` (turns for one tool) and `tool-calls` (paired use+result records)
+  tool <file> <name>                         All turns involving a specific tool. See also `tools` (frequency) and `tool-calls` (paired use+result records)
+  tool-calls                                 One record per tool_use block, each paired with its tool_result by toolUseId (orphans emit result:null). See also `tool` and `tools`
+  commands                                   One record per Bash tool_use block, carrying the command text
+  paths                                      Distinct Read/Edit/Write file_path arguments, frequency-sorted
+  compare <file-a> <file-b>                  Side-by-side comparison of two traces: turns, tools, paths, cost, and per-tool delta
+  errors                                     Tool results with isError=true
+  reasoning                                  Agent reasoning text only
+  timeline                                   Compact one-line-per-turn overview
+  stats                                      Token usage and cost breakdown
+  cost <file>                                Total run cost across every participant (agent, supervisor, judge, named profiles), with a per-source breakdown
+  init                                       Full system/init event
+  turn <file> <index>                        Single turn by index
+  by-discussion <discussion-id> [trace-dir]  List trace files whose meta header carries the given discussion_id, ordered by first-event timestamp
+  filter                                     Filter turns by role, tool, or error status
+  split <file>                               Split a combined trace into per-source files following the `trace--<case>--<participant>.<role>.ndjson` convention
+  assert <test-name> <file>                  Shell-friendly assertion — outputs structured JSON for invariant hooks
+
+Options:
+  --help, -h         Show this help
+  --version          Show version
+  --json             Output help as JSON (use --format json for command output)
+  --format=<string>  Command output format: text (default) or json
+  --signatures       Include thinking.signature blobs in output
+
+Examples:
+  fit-trace runs --lookback 7d
+  fit-trace runs --participant release-engineer
+  fit-trace find 27401632821 release-engineer
+  fit-trace download 24497273755
+  fit-trace split structured.json --mode=facilitate
+  fit-trace overview --file structured.json
+  fit-trace overview --file structured.json --format json
+  fit-trace timeline --file structured.json
+  fit-trace stats --file structured.json --by-tool
+  fit-trace cost trace.ndjson
+  fit-trace cost trace.ndjson --markdown
+  fit-trace tool structured.json Conclude
+  fit-trace tool-calls --file structured.json
+  fit-trace commands --file structured.json --match '^git'
+  fit-trace paths --file 'traces/*.ndjson' --prefix /app
+  fit-trace compare trace-a.ndjson trace-b.ndjson
+  fit-trace search structured.json 'error|fail' --context 1
+  fit-trace filter --file structured.json --tool Bash --error
+  fit-trace turn structured.json 3
+  fit-trace assert has-heading --grep '^## Problem' spec.md
+  fit-trace assert no-leak --not --grep 'password' output.log
+  fit-trace assert file-present --exists path/to/spec.md
+  fit-trace assert cites-jtbd --cites-job jtbd-excerpt.md spec.md
+  fit-trace assert used-edit --query "[?type=='assistant'].message.content[] | [?name=='Edit']" trace.ndjson
+
+Documentation:
+  Analyze Traces
+    https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md
+    The full method walkthrough with worked examples (an eval that failed, a multi-agent session that stalled).
+  Run an Eval
+    https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md
+    How `fit-harness supervise` produces the traces this skill analyzes.
+  Prove Agent Changes
+    https://www.forwardimpact.team/docs/libraries/prove-changes/index.md
+    End-to-end workflow including multi-agent collaboration; `split` is the bridge into per-source trace files.
+
+Use fit-trace <command> --help for command-specific options.

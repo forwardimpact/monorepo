@@ -109,17 +109,17 @@ describe("fit-wiki memo CLI (in-process)", () => {
     assert.ok(!readFileSync(outside, "utf-8").includes("traversal"));
   });
 
-  test("--from omitted fails closed even with LIBEVAL_AGENT_PROFILE set", () => {
+  test("--from omitted fails closed even with LIBHARNESS_AGENT_PROFILE set", () => {
     // The env var is no longer a fallback: a missing --from is a fail-closed
     // error regardless of env state, and nothing is written.
     const { result } = run(
       { to: "staff-engineer", message: "env test" },
-      { LIBEVAL_AGENT_PROFILE: "security-engineer" },
+      { LIBHARNESS_AGENT_PROFILE: "security-engineer" },
     );
     assert.equal(result.ok, false);
     assert.equal(result.code, 2);
     assert.match(result.error, /^memo requires --from <name>; e\.g\. /);
-    assert.doesNotMatch(result.error, /LIBEVAL_AGENT_PROFILE/);
+    assert.doesNotMatch(result.error, /LIBHARNESS_AGENT_PROFILE/);
     const content = readFileSync(join(wikiRoot, "staff-engineer.md"), "utf-8");
     assert.ok(!content.includes("env test"), "no memo written");
   });
@@ -127,7 +127,7 @@ describe("fit-wiki memo CLI (in-process)", () => {
   test("exits 2 when --from is omitted and env unset", () => {
     const { result } = run(
       { to: "staff-engineer", message: "test" },
-      { LIBEVAL_AGENT_PROFILE: "" },
+      { LIBHARNESS_AGENT_PROFILE: "" },
     );
     assert.equal(result.ok, false);
     assert.equal(result.code, 2);

@@ -251,11 +251,11 @@ describe("extractCount / extractCounts", () => {
 describe("extractList grammar", () => {
   test("brace expansion (highest precedence)", () => {
     const set = extractList(
-      "`forwardimpact/{fit-benchmark,fit-eval,kata-agent}`",
+      "`forwardimpact/{fit-benchmark,fit-harness,kata-agent}`",
     );
     assert.deepEqual([...set].sort(), [
       "fit-benchmark",
-      "fit-eval",
+      "fit-harness",
       "kata-agent",
     ]);
   });

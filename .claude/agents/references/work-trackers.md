@@ -7,7 +7,7 @@ tracker. A skill never branches on the tracker — it names the operation and le
 the active column realize it.
 
 The active tracker is one input: the environment variable
-`LIBEVAL_WORK_TRACKER`, default `github`. The harness sets it (`fit-eval` /
+`LIBHARNESS_WORK_TRACKER`, default `github`. The harness sets it (`fit-harness` /
 `fit-benchmark` `--work-tracker`); the agent reads it and realizes each
 operation through that column. Production leaves the default `github`; the
 offline coordination benchmark runs `--work-tracker filesystem`.

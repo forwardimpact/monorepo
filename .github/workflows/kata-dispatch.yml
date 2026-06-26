@@ -139,10 +139,10 @@ jobs:
       # Select discuss mode when a discussion_id is supplied (the bridge
       # path resuming or starting a threaded conversation); otherwise run a
       # one-shot facilitate. The discuss / facilitate / supervise modes all
-      # take the same lead-profile + agent-profiles pair after the libeval
+      # take the same lead-profile + agent-profiles pair after the libharness
       # consolidation that landed alongside discuss mode.
       #
-      # Task composition lives inside libeval (libraries/libeval/src/events/
+      # Task composition lives inside libharness (libraries/libharness/src/events/
       # github.js) — the workflow just hands the runner's native event JSON
       # to the action. `GITHUB_EVENT_NAME` is exported automatically by the
       # runner, so the composer can pick the right template without any
@@ -213,7 +213,7 @@ jobs:
           set -euo pipefail
           if [ -n "$TRACE_FILE" ] && [ -f "$TRACE_FILE" ]; then
             echo "Using trace file: $TRACE_FILE"
-            bunx fit-eval callback \
+            bunx fit-harness callback \
               --trace-file="$TRACE_FILE" \
               --callback-url="$CALLBACK_URL" \
               --correlation-id="$CORRELATION_ID" \

@@ -44,7 +44,7 @@
     "@forwardimpact/svcvector": "^0.1.120",
     "@forwardimpact/libcodegen": "^0.1.49",
     "@forwardimpact/libdoc": "^0.2.24",
-    "@forwardimpact/libeval": "^0.1.27",
+    "@forwardimpact/libharness": "^1.0.0",
     "@forwardimpact/libgraph": "^0.1.69",
     "@forwardimpact/librc": "^0.1.27",
     "@forwardimpact/libresource": "^0.1.109",

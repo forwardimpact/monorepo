@@ -20,7 +20,7 @@ unbiased estimator.
 
 ## Why a Separate Tool
 
-`fit-eval` is the generic agent-evaluation plumbing; `fit-benchmark` is the
+`fit-harness` is the generic agent-evaluation plumbing; `fit-benchmark` is the
 opinionated layer on top — task-family format, hidden invariant checks,
 post-hoc judge, and multi-run aggregation.
 
@@ -172,7 +172,7 @@ The `judge.task.md` template supports these variables:
 
 One record per `(taskId, runIndex)`, appended to `<output>/results.jsonl`,
 each validating against a declared schema (see
-[`benchmark/result.js`](https://github.com/forwardimpact/monorepo/blob/main/libraries/libeval/src/benchmark/result.js)).
+[`benchmark/result.js`](https://github.com/forwardimpact/monorepo/blob/main/libraries/libharness/src/benchmark/result.js)).
 Records carry the skill-set hash, family revision, judge verdict, trace paths,
 cost, turn count, and (on pre-flight failure) a `preflightError`.
 

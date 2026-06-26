@@ -4,13 +4,13 @@ description: See exactly what an agent did and why — download traces, query tu
 ---
 
 You need to see exactly what the agent did so you can debug failures and verify
-improvements. `fit-trace` reads the NDJSON traces produced by `fit-eval` and
+improvements. `fit-trace` reads the NDJSON traces produced by `fit-harness` and
 gives you structured queries over every turn, tool call, and result.
 
 ## Prerequisites
 
 - Node.js 18+
-- A trace file -- either `--output` from a `fit-eval` run, or downloaded from CI
+- A trace file -- either `--output` from a `fit-harness` run, or downloaded from CI
   with `fit-trace download`
 
 ## Get the trace

@@ -49,7 +49,7 @@ import {
   createTestPerson,
   createTestRoster,
   createTestEvidenceRow,
-  // libeval stream/message helpers
+  // libharness stream/message helpers
   createToolUseMsg,
   createTextBlockMsg,
   createTestTrace,

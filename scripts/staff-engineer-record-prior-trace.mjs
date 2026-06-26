@@ -241,7 +241,7 @@ function parseTraceEvent(line) {
 
 // Cost, duration, and output_tokens must be summed over ALL "type":"result"
 // events, never read from `fit-trace stats` totals: stats keeps only the
-// last result event (handleResult last-wins in libeval's trace-collector),
+// last result event (handleResult last-wins in libharness's trace-collector),
 // which understates multi-result lanes 11x-55x, and its output-token figure
 // carries a dedup defect on single-result traces too.
 function sumResultEvents(traceFile) {

@@ -93,7 +93,7 @@
   {
     "name": "record missing skill",
     "args": ["record", "--metric", "test", "--value", "1"],
-    "env": { "LIBEVAL_SKILL": "" },
+    "env": { "LIBHARNESS_SKILL": "" },
     "exitCode": 2,
     "stdoutFile": "record-no-skill.stdout",
     "stderrFile": "record-no-skill.stderr"
