@@ -67,9 +67,10 @@ content for others, privilege governs the macOS reach the daemon grants it.
 
 ## Requirements (WHAT)
 
-1. **Declared privilege level per agent.** Each agent in `scheduler.json`
-   declares its level as exactly one of `full` or `restricted`. The schema
-   accepts no other values.
+1. **Mandatory privilege level per agent.** Each agent in `scheduler.json`
+   declares its level as exactly one of `full` or `restricted`. The level is
+   required: a missing level, or any other value, is rejected. There is no
+   implicit default and no fallback.
 2. **Daemon-enforced, agent-immutable.** The daemon applies the level when it
    wakes an agent. An agent cannot raise its own level — the level is owned by
    the same user-only trust root as the spawn-env allow-set and the state roots.
@@ -80,18 +81,12 @@ content for others, privilege governs the macOS reach the daemon grants it.
 4. **`restricted` agents need no TCC grant to do their work.** The substrate a
    `restricted` agent reads and writes — the synced cache and the knowledge base
    — must sit outside TCC-protected folders. The cache already qualifies; the
-   default knowledge-base location must move out of `~/Documents` to a
+   default knowledge-base location moves out of `~/Documents` to a
    non-protected path so a `restricted` agent reaches it without any grant and
-   without triggering a `node`/`claude` Documents prompt.
-5. **Existing knowledge bases are not orphaned.** Changing the default
-   knowledge-base location must not strand a knowledge base an existing user
-   already created under the old default; the upgrade either migrates it or
-   continues to serve it.
-6. **Secure default for new agents; back-compatible for old.** A newly scheduled
-   agent defaults to `restricted`. An existing `scheduler.json` whose agents
-   declare no level keeps today's behavior (`full`), so the verified single-grant
-   model is unchanged for current installs.
-7. **Observable.** Each wake records, in the scheduler log, the privilege level
+   without triggering a `node`/`claude` Documents prompt. This is an
+   unconditional move — the old `~/Documents` location is not retained as a
+   fallback.
+5. **Observable.** Each wake records, in the scheduler log, the privilege level
    resolved for that agent, so an operator and the verification runbook can
    confirm a `restricted` agent was in fact denied the elevated grant.
 
@@ -114,6 +109,7 @@ the privilege levels and the substrate location.
 | Two-bundle or helper-bundle architecture. | A deliberately deferred alternative; revisit only if a `restricted` identity must hold its own persistent narrow grant. |
 | Adding the missing Automation / Calendar entitlements so those services can prompt. | Separate native-distribution issue surfaced by the same verification run. |
 | Changes to the spawn-env allow-set. | The env trust boundary is already closed and unchanged here. |
+| Automated migration or any back-compatible fallback for existing installs (undeclared levels, the old `~/Documents` knowledge-base path). | Clean break. The small number of existing installs are migrated by hand; no legacy default, shim, or fallback path lives in the code. |
 
 ## Success Criteria
 
@@ -121,7 +117,7 @@ the privilege levels and the substrate location.
 | --- | --- | --- |
 | 1 | A `restricted` agent that deliberately attempts a protected read is denied, while a `full` agent in the same install reads the live mail/calendar stores. | TCC verification runbook (extended): the `com.apple.TCC` stream shows an explicit `SystemPolicyAllFiles` **Denied** decision for the `restricted` agent's probe, and **Allowed** for the `full` agent. A positive probe is required so denial is distinguishable from "never attempted." |
 | 2 | A `restricted` agent completes its knowledge-base work with no TCC grant present, and no `node`/`claude` Documents prompt appears. | With only the app's grants present and the knowledge base on the relocated non-protected path, the `restricted` agent's wake writes its briefing at `~/.cache/fit/outpost/state/<agent>_last_output.md`; the privacy panes show no `node`/`claude` entry. |
-| 3 | A default-config sync agent with no level declared behaves as today. | Runbook Axis 1/2 for an undeclared-level agent: access attributes to `fit-outpost.app`, live mail/calendar read succeeds under the one app grant, no `node`/`claude` grant required. |
+| 3 | A sync agent declared `full` reads the live mail/calendar stores under the one app grant. | Runbook Axis 1/2 for a `full` agent: access attributes to `fit-outpost.app`, live mail/calendar read succeeds under the one app grant, no `node`/`claude` grant required. |
 | 4 | Each wake records the resolved privilege level for the agent. | The scheduler log line for a wake contains the agent's resolved level (`full` or `restricted`). |
 | 5 | Documentation states which agents need which macOS permissions, and the substrate location a `restricted` agent uses. | The Outpost product page and engineers getting-started guide describe `full` vs `restricted` agents and the relocated knowledge-base path. |
-| 6 | Upgrading an install that has a knowledge base under the old `~/Documents` default does not orphan it. | After upgrade, the pre-existing knowledge base is still read by its agent (migrated or still served at the old path). |
+| 6 | An agent whose entry omits the level (or declares an invalid one) is refused, not woken — there is no implicit default. | The scheduler log records an `outpost.privilege.rejected` event and no agent process is spawned for that entry. |
