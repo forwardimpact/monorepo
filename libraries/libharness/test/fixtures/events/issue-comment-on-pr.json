@@ -1,0 +1,17 @@
+{
+  "action": "created",
+  "issue": {
+    "number": 99,
+    "title": "Wire up task-event",
+    "html_url": "https://github.com/acme/repo/issues/99",
+    "user": { "login": "alice", "type": "User" },
+    "pull_request": {
+      "html_url": "https://github.com/acme/repo/pull/99"
+    }
+  },
+  "comment": {
+    "html_url": "https://github.com/acme/repo/pull/99#issuecomment-2",
+    "user": { "login": "carol", "type": "Bot" },
+    "body": "CI failed: 2 lint errors in libharness."
+  }
+}

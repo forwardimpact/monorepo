@@ -5,7 +5,7 @@ import {
   createAgentRunner,
   composeProfilePrompt,
   createRedactor,
-} from "@forwardimpact/libeval";
+} from "@forwardimpact/libharness";
 import { RULES } from "../audit/rules.js";
 import { buildContext, resolveScope } from "../audit/scopes.js";
 import {

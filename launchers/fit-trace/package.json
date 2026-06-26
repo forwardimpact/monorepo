@@ -1,7 +1,7 @@
 {
   "name": "fit-trace",
   "version": "0.0.0",
-  "description": "Run fit-trace from the npm registry — launcher for @forwardimpact/libeval",
+  "description": "Run fit-trace from the npm registry — launcher for @forwardimpact/libharness",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
     "bin/"
   ],
   "dependencies": {
-    "@forwardimpact/libeval": "0.0.0"
+    "@forwardimpact/libharness": "0.0.0"
   },
   "engines": {
     "bun": ">=1.2.0",

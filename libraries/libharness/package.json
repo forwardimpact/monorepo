@@ -1,0 +1,74 @@
+{
+  "name": "@forwardimpact/libharness",
+  "version": "1.0.0",
+  "description": "Agent evaluation framework — prove whether agent changes improved outcomes with reproducible evidence.",
+  "keywords": [
+    "eval",
+    "agent",
+    "trace",
+    "claude-code",
+    "supervisor"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/libharness"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Prove Agent Changes",
+      "trigger": "An eval passes locally but fails in CI and the only output is 'assertion failed.'",
+      "bigHire": "prove whether agent changes improved outcomes with reproducible evidence.",
+      "littleHire": "run an eval and get a trace that shows exactly what the agent did.",
+      "competesWith": "manual before/after comparison; trusting gut feeling over evidence; skipping evaluation entirely"
+    }
+  ],
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./bin/fit-eval.js": "./bin/fit-eval.js",
+    "./bin/fit-trace.js": "./bin/fit-trace.js",
+    "./bin/fit-benchmark.js": "./bin/fit-benchmark.js",
+    "./bin/fit-selfedit.js": "./bin/fit-selfedit.js"
+  },
+  "bin": {
+    "fit-eval": "./bin/fit-eval.js",
+    "fit-trace": "./bin/fit-trace.js",
+    "fit-benchmark": "./bin/fit-benchmark.js",
+    "fit-selfedit": "./bin/fit-selfedit.js"
+  },
+  "files": [
+    "src/**/*.js",
+    "bin/**/*.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.170",
+    "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libconfig": "^0.1.0",
+    "@forwardimpact/libpreflight": "^0.1.0",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libutil": "^0.1.0",
+    "jmespath": "^0.16.0",
+    "minimatch": "^10.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

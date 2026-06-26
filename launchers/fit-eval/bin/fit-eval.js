@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-import "@forwardimpact/libeval/bin/fit-eval.js";
+import "@forwardimpact/libharness/bin/fit-eval.js";

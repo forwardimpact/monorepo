@@ -1,8 +1,8 @@
 /**
- * Test helpers for libeval-style streams, tool-use messages, and traces.
+ * Test helpers for libharness-style streams, tool-use messages, and traces.
  *
  * Centralizes concludeMsg / redirectMsg / tellMsg / stripAnsi / collect /
- * writeLines / buildTrace so test files under libraries/libeval/test do not
+ * writeLines / buildTrace so test files under libraries/libharness/test do not
  * each inline their own copy.
  */
 

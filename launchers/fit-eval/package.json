@@ -1,7 +1,7 @@
 {
   "name": "fit-eval",
   "version": "0.0.0",
-  "description": "Run fit-eval from the npm registry — launcher for @forwardimpact/libeval",
+  "description": "Run fit-eval from the npm registry — launcher for @forwardimpact/libharness",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
     "bin/"
   ],
   "dependencies": {
-    "@forwardimpact/libeval": "0.0.0"
+    "@forwardimpact/libharness": "0.0.0"
   },
   "engines": {
     "bun": ">=1.2.0",
