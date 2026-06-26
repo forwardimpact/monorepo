@@ -20,7 +20,7 @@ describe("buildPlaceholderAllowlist", () => {
       },
       {
         path: ".claude/skills/kata-setup/references/workflow-react.md",
-        text: "- uses: forwardimpact/fit-eval@{{FIT_EVAL_REF}}",
+        text: "- uses: forwardimpact/fit-harness@{{FIT_HARNESS_REF}}",
       },
     ]);
     const allow = buildPlaceholderAllowlist(refs);
@@ -28,9 +28,9 @@ describe("buildPlaceholderAllowlist", () => {
       owner: "forwardimpact",
       repo: "kata-agent",
     });
-    assert.deepStrictEqual(allow.get("{{FIT_EVAL_REF}}"), {
+    assert.deepStrictEqual(allow.get("{{FIT_HARNESS_REF}}"), {
       owner: "forwardimpact",
-      repo: "fit-eval",
+      repo: "fit-harness",
     });
     // Body-only placeholder never appears post-@, so never enters the map.
     assert.ok(!allow.has("{{MODEL}}"));

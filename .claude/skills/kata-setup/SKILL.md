@@ -115,7 +115,7 @@ using `references/workflow-shift.md` — a matrix of all selected agents that
 runs in declaration order, one at a time. Write storyboard and coaching
 workflows from `references/workflow-facilitate.md` only when
 `improvement-coach` is selected. Use `forwardimpact/kata-agent` as the action,
-SHA-pinned: resolve the `{{KATA_AGENT_REF}}` / `{{FIT_EVAL_REF}}` /
+SHA-pinned: resolve the `{{KATA_AGENT_REF}}` / `{{FIT_HARNESS_REF}}` /
 `{{FIT_WIKI_REF}}` placeholders per
 [`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs)
 — list the sibling's release tags with `gh api`, pick the highest `vX.Y.Z`

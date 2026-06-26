@@ -8,26 +8,26 @@ prompt. The question is whether the change actually helped. Answering that
 question requires a dataset you can regenerate when the schema changes, a
 session that captures every turn, and an analysis method that connects observed
 behavior to actionable findings. This guide walks the full arc with `fit-terrain`
-and `fit-eval`, then hands off to `fit-trace` for the reading.
+and `fit-harness`, then hands off to `fit-trace` for the reading.
 
 ## Prerequisites
 
 - Node.js 18+
 - `ANTHROPIC_API_KEY` set in the shell (used by both `fit-terrain generate` and
-  `fit-eval`)
+  `fit-harness`)
 - A repository where agents will work
 - The three CLIs ship in two packages -- install once:
 
 ```sh
-npm install -g @forwardimpact/libeval @forwardimpact/libterrain
+npm install -g @forwardimpact/libharness @forwardimpact/libterrain
 ```
 
 Or invoke ephemerally with `npx`:
 
 ```sh
 npx --yes @forwardimpact/libterrain fit-terrain --help
-npx --yes @forwardimpact/libeval fit-eval --help
-npx --yes @forwardimpact/libeval fit-trace --help
+npx --yes @forwardimpact/libharness fit-harness --help
+npx --yes @forwardimpact/libharness fit-trace --help
 ```
 
 ## 1. Define the dataset in a DSL file
@@ -249,7 +249,7 @@ You are facilitating a release-readiness review. The participants are
 For a **supervised evaluation** (one agent, one judge):
 
 ```sh
-npx fit-eval supervise \
+npx fit-harness supervise \
   --task-file=evals/refactor-utils/task.md \
   --lead-profile=refactor-judge \
   --supervisor-cwd=. \
@@ -269,7 +269,7 @@ cap. Exit code `0` means the judge concluded with `success: true`; exit code
 For a **facilitated session** (one facilitator, N participants):
 
 ```sh
-npx fit-eval facilitate \
+npx fit-harness facilitate \
   --task-file=sessions/release-review/task.md \
   --lead-profile=release-facilitator \
   --facilitator-cwd=. \
@@ -287,7 +287,7 @@ the session indefinitely. The CLI default is `20`; raise it for sessions that
 do real implementation work.
 
 For a **threaded discussion** (Chair + N participants, suspendable across a
-bridged channel), use `fit-eval discuss`. It accepts the same lead and
+bridged channel), use `fit-harness discuss`. It accepts the same lead and
 agent flags plus `--discussion-id` (the stable thread identifier carried
 through traces) and `--resume-context` (JSON-serialized prior state for a
 resumed run). The bridge service relays the workflow callback when the

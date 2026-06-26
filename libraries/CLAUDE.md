@@ -60,7 +60,7 @@ must exist together so an external reader lands on the same docs from any
 entry point:
 
 - **User guides** under `websites/fit/docs/libraries/<task-slug>/index.md`.
-  A CLI may carry multiple task guides (e.g. `fit-eval` links to
+  A CLI may carry multiple task guides (e.g. `fit-harness` links to
   `agent-evaluations`, `agent-collaboration`, `trace-analysis`).
 - **Skill** at `.claude/skills/fit-<name>/SKILL.md`.
 - **CLI `--help`** — `documentation` entries on the libcli definition, one

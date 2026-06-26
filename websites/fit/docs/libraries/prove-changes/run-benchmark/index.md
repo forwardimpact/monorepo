@@ -15,10 +15,10 @@ OpenAI HumanEval unbiased estimator.
 
 - Node.js 18+
 - `ANTHROPIC_API_KEY` set in the environment
-- `@forwardimpact/libeval` (ships `fit-eval`, `fit-trace`, and
+- `@forwardimpact/libharness` (ships `fit-harness`, `fit-trace`, and
   `fit-benchmark`). Install globally with
-  `npm install -g @forwardimpact/libeval`, or invoke ephemerally in CI
-  with `npx --yes @forwardimpact/libeval fit-benchmark ...`
+  `npm install -g @forwardimpact/libharness`, or invoke ephemerally in CI
+  with `npx --yes @forwardimpact/libharness fit-benchmark ...`
 
 ## Author a Task Family
 

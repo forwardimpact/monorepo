@@ -1,9 +1,9 @@
-# fit-eval CLI Reference
+# fit-harness CLI Reference
 
 Install and run via npm:
 
 ```sh
-npx fit-eval <command> [options]
+npx fit-harness <command> [options]
 ```
 
 ## Execution Commands

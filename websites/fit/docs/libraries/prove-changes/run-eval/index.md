@@ -4,7 +4,7 @@ description: Know whether agent changes improved outcomes — an agent-as-judge 
 ---
 
 You changed an agent profile, a tool allowlist, or a system prompt -- and now
-you need to know whether things got better or worse. `fit-eval supervise` runs a
+you need to know whether things got better or worse. `fit-harness supervise` runs a
 **judge agent** alongside a **target agent** on a shared orchestration loop:
 the judge sends `Ask` questions, the target replies with `Answer`, and the judge
 calls `Conclude` with a verdict when satisfied. The exit code (`0` pass, `1`
@@ -15,9 +15,9 @@ every turn so you can inspect what happened with `fit-trace`.
 
 - Node.js 18+
 - `ANTHROPIC_API_KEY` set in the environment
-- `@forwardimpact/libeval` (ships both `fit-eval` and `fit-trace`). Install
-  globally with `npm install -g @forwardimpact/libeval`, or invoke ephemerally
-  in CI with `npx --yes @forwardimpact/libeval fit-eval ...`
+- `@forwardimpact/libharness` (ships both `fit-harness` and `fit-trace`). Install
+  globally with `npm install -g @forwardimpact/libharness`, or invoke ephemerally
+  in CI with `npx --yes @forwardimpact/libharness fit-harness ...`
 
 ## Write the task
 
@@ -69,7 +69,7 @@ mask failures.
 ## Run the eval locally
 
 ```sh
-npx fit-eval supervise \
+npx fit-harness supervise \
   --task-file=evals/refactor-utils/task.md \
   --lead-profile=refactor-judge \
   --supervisor-cwd=. \
@@ -80,7 +80,7 @@ npx fit-eval supervise \
 ```
 
 `--agent-cwd` should be a sandbox copy of your repo since the target agent edits
-files there. When omitted, `fit-eval` creates a temporary directory. The judge
+files there. When omitted, `fit-harness` creates a temporary directory. The judge
 stays in `--supervisor-cwd` to inspect the target's work without writing to it.
 `--max-turns` is the per-runner invocation budget (default `200`); the
 orchestration loop that drives the judge↔agent exchange is bounded
@@ -120,7 +120,7 @@ jobs:
         run: |
           mkdir -p /tmp/sandbox /tmp/trace
           cp -r . /tmp/sandbox
-          npx --yes @forwardimpact/libeval fit-eval supervise \
+          npx --yes @forwardimpact/libharness fit-harness supervise \
             --task-file=evals/refactor-utils/task.md \
             --lead-profile=refactor-judge \
             --supervisor-cwd=. \
@@ -132,7 +132,7 @@ jobs:
       - name: Split trace
         if: always()
         run: |
-          npx --yes @forwardimpact/libeval fit-trace split \
+          npx --yes @forwardimpact/libharness fit-trace split \
             /tmp/trace/trace--default.raw.ndjson \
             --mode=supervise \
             --case=default \

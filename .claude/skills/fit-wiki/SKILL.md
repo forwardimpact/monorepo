@@ -113,7 +113,7 @@ npx fit-wiki memo --from technical-writer --to all --message "new XmR baseline"
 
 | Flag | Description |
 | --- | --- |
-| `--from` | Falls back to `LIBEVAL_AGENT_PROFILE` |
+| `--from` | Falls back to `LIBHARNESS_AGENT_PROFILE` |
 | `--to` | Agent name, or `all` to broadcast |
 | `--message` | Memo text |
 

@@ -87,7 +87,7 @@
       ]
     },
     {
-      "name": "fit-eval",
+      "name": "fit-harness",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
       "bundle": "gear"
     },

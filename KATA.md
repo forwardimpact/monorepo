@@ -8,7 +8,7 @@
 
 The Kata Agent Team is an autonomous, continuously improving agent team that
 operates across six surfaces — IDE, scheduled shifts, GitHub Issues, GitHub PRs,
-GitHub Discussions, and Microsoft Teams — using the same harness (`libeval`),
+GitHub Discussions, and Microsoft Teams — using the same harness (`libharness`),
 the same shared memory (`libwiki`), the same agent profiles, and the same
 skills. All execution runs securely inside GitHub Actions. The team is organized
 as a daily **Plan-Do-Study-Act** (PDSA) cycle where agents plan by writing
@@ -22,12 +22,12 @@ in [MONOREPO.md](MONOREPO.md) and the instruction architecture in
 
 ```mermaid
 graph LR
-    SU["Surfaces"] --> H["Harness<br/>libeval"] --> A["Agents<br/>.claude/agents/"] --> S["Skills<br/>.claude/skills/"]
+    SU["Surfaces"] --> H["Harness<br/>libharness"] --> A["Agents<br/>.claude/agents/"] --> S["Skills<br/>.claude/skills/"]
     H --> M["Memory<br/>libwiki + wiki/"]
 ```
 
 **Surfaces** are the entry points — IDE sessions, cron schedules, GitHub
-events, and bridge-relayed messages. The **Harness** (`libeval`) provides the
+events, and bridge-relayed messages. The **Harness** (`libharness`) provides the
 orchestration loop, async coordination primitives (`Ask`/`Answer`/`Announce`),
 role-based tool surfaces, and NDJSON trace capture. **Agents** define persona,
 scope, and skill composition. **Skills** define procedures, checklists, and
@@ -44,7 +44,7 @@ under `forwardimpact/`:
 <!-- enum:sibling-composite-actions:list -->
 - `forwardimpact/fit-benchmark` — coding-agent benchmarks
 - `forwardimpact/fit-bootstrap` — the FIT CI environment
-- `forwardimpact/fit-eval` — agent task execution
+- `forwardimpact/fit-harness` — agent task execution
 - `forwardimpact/fit-wiki` — agent-memory commands with fresh App token
 - `forwardimpact/kata-agent` — full Kata workflow (auth, checkout, bootstrap, eval, wiki push)
 <!-- /enum -->
@@ -64,7 +64,7 @@ A differentiating factor of the Kata Agent Team is its simplicity.
 - **Minimal harness.** The orchestration layer is built around the Claude SDK —
   simple yet incredibly capable.
 - **Minimal runtime dependencies.** Plain JavaScript throughout — the harness
-  (`libeval`) depends on the Claude Agent SDK plus a few small utilities;
+  (`libharness`) depends on the Claude Agent SDK plus a few small utilities;
   memory (`libwiki`) pulls in no third-party packages.
 
 ## Surfaces
@@ -96,7 +96,7 @@ profiles and skills.
 the shared callback registry, durable per-thread state, and resume-trigger
 contract. The bridge acknowledges on the channel, fires `kata-dispatch` via
 `workflow_dispatch`, and posts the agent's reply back to the thread. Suspended
-conversations (`Recess` in `libeval` discuss mode) resume when the trigger
+conversations (`Recess` in `libharness` discuss mode) resume when the trigger
 condition is met.
 
 ## The PDSA Loop
@@ -160,7 +160,7 @@ interviews outside the PDSA cycle.
 **kata-shift** runs the roster sequentially (`max-parallel: 1`, `fail-fast:
 false`). **kata-dispatch** is the event-driven counterpart — the release
 engineer facilitates and routes to the best-suited agent. For bridge-dispatched
-messages, `libeval` discuss mode enables multi-turn threaded conversations
+messages, `libharness` discuss mode enables multi-turn threaded conversations
 spanning days via `Recess`/`Adjourn`. kata-dispatch groups concurrency per
 artifact (issue/PR) with `cancel-in-progress: false` so cascaded events stack;
 storyboard, coaching, and interview each use a single global group. All

@@ -154,7 +154,7 @@
       "name": "@forwardimpact/libharness",
       "version": "1.0.0",
       "bin": {
-        "fit-eval": "./bin/fit-eval.js",
+        "fit-harness": "./bin/fit-harness.js",
         "fit-trace": "./bin/fit-trace.js",
         "fit-benchmark": "./bin/fit-benchmark.js",
         "fit-selfedit": "./bin/fit-selfedit.js",
