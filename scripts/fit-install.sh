@@ -48,14 +48,14 @@ fit_release_for() {
   esac
 }
 
-# Bun compile target for this platform, or empty if no binary is published for
-# it (only linux-x64 and darwin-arm64 are built). An empty target makes fit-*
-# installs skip gracefully so the caller's bunx/npx fallback still resolves.
+# Bun compile target for this platform. Binaries are built only for linux-x64
+# and darwin-arm64; any other platform is unsupported and fails hard — this is
+# the binary distribution path, with no bunx/npx fallback.
 fit_target() {
   case "$(uname -s)-$(uname -m)" in
     Linux-x86_64)  echo "bun-linux-x64" ;;
     Darwin-arm64)  echo "bun-darwin-arm64" ;;
-    *)             echo "" ;;
+    *) echo "::error::no pre-compiled fit-* binary for $(uname -s)-$(uname -m)" >&2; exit 1 ;;
   esac
 }
 
@@ -164,17 +164,12 @@ install_tool() {
 #
 # Download a pre-compiled fit-* binary from its pinned release, verify it
 # against the published .sha256 sidecar, and install it straight into BIN_DIR.
-# Skips gracefully (without failing the run) when no binary is published for
-# this platform or this release yet, so the caller's bunx/npx fallback can
-# still resolve the CLI.
+# A missing binary (unsupported platform or unpublished release) fails hard —
+# there is no bunx/npx fallback.
 install_fit_cli() {
   local name="$1"
   local target release base
   target="$(fit_target)"
-  if [ -z "$target" ]; then
-    echo "::warning::$name: no pre-compiled binary for $OS-$ARCH; skipping (fallback to bunx/npx)" >&2
-    return 0
-  fi
 
   if "$BIN_DIR/$name" --version &>/dev/null; then
     echo "$name already installed"
@@ -187,16 +182,8 @@ install_fit_cli() {
   local tmp_dir bin_tmp sha
   tmp_dir=$(mktemp -d)
   bin_tmp="$tmp_dir/$name"
-  if ! curl -fsSL -o "$bin_tmp" "$base" 2>/dev/null; then
-    echo "::warning::$name: not published on ${release} for ${target}; skipping (fallback to bunx/npx)" >&2
-    rm -rf "$tmp_dir"
-    return 0
-  fi
-  if ! sha="$(curl -fsSL "${base}.sha256")"; then
-    echo "::error::$name: binary downloaded but .sha256 sidecar missing on ${release}" >&2
-    rm -rf "$tmp_dir"
-    return 1
-  fi
+  curl -fsSL -o "$bin_tmp" "$base"
+  sha="$(curl -fsSL "${base}.sha256")"
   sha_verify "$sha" "$bin_tmp"
 
   install -m 0755 "$bin_tmp" "$BIN_DIR/$name"

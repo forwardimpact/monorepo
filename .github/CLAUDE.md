@@ -59,11 +59,11 @@ with no output.
 
 ## Environment bootstrap
 
-`scripts/fit-install.sh` is the single bootstrap path — external tools plus
-pinned, SHA-verified `fit-*` release binaries; `scripts/install-deps.sh`
-forwards to it, and `gear@v*` publishes it for one-line `curl | bash` use (see
-the script header). **`publish-native.yml`** is the unsigned raw-binary release
-channel for null-bundle CLIs (`fit-wiki`).
+`scripts/fit-install.sh` is the single bootstrap path — it installs the
+external tools and pinned, SHA-verified `fit-*` binaries into `$HOME/.local`.
+`gear@v*` publishes it for one-line `curl | bash` use; a missing binary fails
+hard, no `bunx`/`npx` fallback. **`publish-native.yml`** is the raw-binary
+release channel for null-bundle CLIs (`fit-wiki`).
 
 ## Local composite actions
 
