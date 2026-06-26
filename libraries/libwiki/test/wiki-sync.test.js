@@ -42,20 +42,46 @@ describe("WikiSync", () => {
     assert.equal(absent.wikiSync.isCloned(), false);
   });
 
-  test("ensureCloned clones when the directory is empty", async () => {
-    const { wikiSync, methods } = make({ fsSync: createMockFs({}) });
+  test("ensureCloned clones, then pins the identity-insteadOf into local config", async () => {
+    const { git, wikiSync, methods } = make({ fsSync: createMockFs({}) });
     const result = await wikiSync.ensureCloned("https://example/x.wiki.git");
     assert.deepEqual(result, { cloned: true, reason: "cloned" });
-    assert.deepEqual(methods(), ["clone"]);
+    assert.deepEqual(methods(), ["clone", "configSet"]);
+    // The clone carries the identity rule inline — the .git/config the persist
+    // step writes does not exist yet, so the broad rewrite must be neutralised
+    // on the clone invocation itself.
+    const clone = git.calls.find((c) => c.method === "clone");
+    assert.deepEqual(clone.args[2], {
+      config: [
+        "url.https://example/x.wiki.git.insteadOf=https://example/x.wiki.git",
+      ],
+    });
+    // and it is persisted so later fetch/push (which re-apply insteadOf against
+    // the stored remote URL) inherit it from the clone's own config.
+    const set = git.calls.find((c) => c.method === "configSet");
+    assert.deepEqual(set.args, [
+      "url.https://example/x.wiki.git.insteadOf",
+      "https://example/x.wiki.git",
+      { cwd: WIKI },
+    ]);
   });
 
-  test("ensureCloned is a no-op when already cloned", async () => {
-    const { wikiSync, methods } = make({
+  test("ensureCloned skips the clone when already cloned but still pins transport", async () => {
+    const { git, wikiSync, methods } = make({
       fsSync: createMockFs({ [`${WIKI}/.git`]: "" }),
     });
     const result = await wikiSync.ensureCloned("https://example/x.wiki.git");
     assert.deepEqual(result, { cloned: true, reason: "already-cloned" });
-    assert.deepEqual(methods(), []);
+    // No clone — a resumed clone persists from a prior session — but the pin is
+    // re-asserted (idempotent) so an older clone made before this rule still
+    // gains it.
+    assert.deepEqual(methods(), ["configSet"]);
+    const set = git.calls.find((c) => c.method === "configSet");
+    assert.deepEqual(set.args, [
+      "url.https://example/x.wiki.git.insteadOf",
+      "https://example/x.wiki.git",
+      { cwd: WIKI },
+    ]);
   });
 
   test("inheritIdentity reads parent config and writes wiki config", async () => {

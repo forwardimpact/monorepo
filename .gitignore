@@ -51,7 +51,7 @@ id_ecdsa
 # Claude Code worktrees
 .claude/worktrees/
 
-# Wiki (cloned on demand by scripts/wiki-sync.sh, not tracked)
+# Wiki (cloned on demand by `fit-wiki init`, not tracked)
 wiki/
 
 # Development files

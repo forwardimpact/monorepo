@@ -66,9 +66,16 @@ export class GitClient {
     this.#token = token;
   }
 
-  /** Clone `url` into `dir`. */
+  /**
+   * Clone `url` into `dir`. `opts.config` carries `-c key=value` entries
+   * applied to this one invocation (e.g. an `insteadOf` rewrite that must be in
+   * effect before any remote contact, since the clone predates the local
+   * `.git/config`).
+   */
   async clone(url, dir, opts = {}) {
-    return this.#run("clone", [url, dir, ...this.#flagOpts(opts)]);
+    return this.#run("clone", [url, dir, ...this.#flagOpts(opts)], {
+      config: opts.config,
+    });
   }
 
   /** Initialise a repository at `dir`. */
@@ -502,24 +509,27 @@ export class GitClient {
     return flags;
   }
 
-  #run(subcmd, args, { cwd, allowFailure = false } = {}) {
-    return this.#runRaw([subcmd, ...args], { cwd, allowFailure });
+  #run(subcmd, args, { cwd, allowFailure = false, config } = {}) {
+    return this.#runRaw([subcmd, ...args], { cwd, allowFailure, config });
   }
 
-  async #runRaw(args, { cwd, allowFailure = false } = {}) {
+  async #runRaw(args, { cwd, allowFailure = false, config = [] } = {}) {
+    // Per-invocation `-c key=value` config (e.g. an `insteadOf` rewrite). These
+    // precede the subcommand because git only honours `-c` before the verb.
+    const configFlags = (config ?? []).flatMap((entry) => ["-c", entry]);
     // Authenticate over HTTPS by injecting a per-invocation Basic auth header
     // via git's `-c` config (the `-c http.extraHeader` must precede the
     // subcommand). GitHub's git-over-HTTPS expects the token as the password in
     // HTTP Basic auth (username `x-access-token`); a `bearer` scheme is rejected
     // for PAT/OAuth tokens and only works for App installation tokens, so Basic
     // is the broadly-compatible choice. No-op when the client carries no token.
-    const fullArgs = this.#token
+    const authFlags = this.#token
       ? [
           "-c",
           `http.extraHeader=Authorization: Basic ${Buffer.from(`x-access-token:${this.#token}`).toString("base64")}`,
-          ...args,
         ]
-      : args;
+      : [];
+    const fullArgs = [...configFlags, ...authFlags, ...args];
     const result = await this.#runtime.subprocess.run("git", fullArgs, {
       cwd,
       env: this.#runtime.proc.env,

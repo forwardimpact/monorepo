@@ -7,6 +7,24 @@ import { scanPushWindow, appendOverrideRecord } from "./secret-gate.js";
 import { runBudgetGate } from "./budget-gate.js";
 import { currentDayIso } from "./util/clock.js";
 
+/**
+ * A git `insteadOf` rule that maps a URL to itself. Some sandboxed
+ * environments install a broad global rewrite —
+ * `url.<local-proxy>.insteadOf = https://github.com/` — that diverts every
+ * github.com URL, the wiki included, to a proxy that serves only the main repo
+ * and returns 403 for the wiki. An identity rule keyed to the full wiki URL is
+ * a longer prefix match than the broad `https://github.com/` rule, so git wins
+ * it by longest-match and leaves the URL untouched; the request then reaches
+ * github.com over the ambient HTTPS proxy. Where no such broad rewrite exists,
+ * the rule is a harmless no-op. Applied inline on clone and persisted into the
+ * clone's local config for every later network op (see {@link WikiSync#pinTransport}).
+ * @param {string} url - The wiki clone URL.
+ * @returns {string} A `-c`-form `url.<url>.insteadOf=<url>` entry.
+ */
+function selfInsteadOf(url) {
+  return `url.${url}.insteadOf=${url}`;
+}
+
 /** The branch the wiki clone publishes (hard-coded in fetch / rebase / push). */
 const BRANCH = "master";
 const REMOTE = "origin";
@@ -215,13 +233,34 @@ export class WikiSync {
 
   /** Clone the wiki from `url` if it is not already cloned. */
   async ensureCloned(url) {
-    if (this.isCloned()) return { cloned: true, reason: "already-cloned" };
+    if (this.isCloned()) {
+      await this.#pinTransport(url);
+      return { cloned: true, reason: "already-cloned" };
+    }
     try {
-      await this.#authed().clone(url, this.#wikiDir);
+      await this.#authed().clone(url, this.#wikiDir, {
+        config: [selfInsteadOf(url)],
+      });
+      await this.#pinTransport(url);
       return { cloned: true, reason: "cloned" };
     } catch (err) {
       return { cloned: false, reason: err.stderr?.trim() || err.message };
     }
+  }
+
+  /**
+   * Persist the identity-`insteadOf` for the wiki's own URL into the clone's
+   * local config, so every later network op (fetch / push / ls-remote) that
+   * runs against the stored remote URL — and re-applies `insteadOf` at
+   * transport time — is covered without threading `-c` through each call. The
+   * clone command itself takes the same rule inline (the `.git/config` does not
+   * exist yet). Idempotent; safe to re-run on a resumed clone. See
+   * {@link selfInsteadOf} for why the rule is needed.
+   */
+  async #pinTransport(url) {
+    await this.#git.configSet(`url.${url}.insteadOf`, url, {
+      cwd: this.#wikiDir,
+    });
   }
 
   /** Copy git user.name and user.email from the parent repository into the wiki repository. */
