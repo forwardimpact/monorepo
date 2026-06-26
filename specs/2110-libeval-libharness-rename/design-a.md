@@ -4,12 +4,14 @@ Spec 2110 renames the harness library identity, its published CLI surface
 (`fit-eval`→`fit-harness`), its `LIBEVAL_*` env contract, and its prose to
 `harness`, while keeping the evaluation **domain** vocabulary and treating
 `specs/`+CHANGELOG history as immutable. This design fixes WHICH change-units
-exist, WHERE the one non-mechanical piece (env-var compatibility) lives, and in
-WHAT order the units land so the published surface never breaks.
+exist, WHERE the identity/domain token boundary falls, and in WHAT order the
+units land so the monorepo stays CI-green at every commit.
 
-A rename has almost no new architecture. The design work is three things:
-(1) partition the blast radius into **atomic commits** that each keep CI green;
-(2) design the **env-var transition** the spec mandates; (3) sequence the
+A rename has no new architecture — it is a **clean break** end to end, with no
+shims, aliases, or fallbacks anywhere (the env-var rename included). The design
+work is three things: (1) partition the blast radius into **atomic commits**
+that each keep CI green; (2) fix the **identity-vs-domain token boundary** so
+the codemod never corrupts the evaluation vocabulary; (3) sequence the
 **cross-repo publish** so no `uses:` pin ever points at an unpublished tag.
 
 ## Change-units (atomic commits)
@@ -21,7 +23,7 @@ context:fix`, and the test suite green. Ordering across units is § Sequencing.
 | --- | --- | --- |
 | **U1 Library identity** | `git mv libraries/libeval libraries/libharness`; package `name`+`repository.directory`; internal import specifiers; the dep ranges + import sites in `libwiki`, `products/gear`, and the spec-named consumers `libmock`/`libbridge`/`scripts/` | dir move + every importer in one commit or module resolution breaks |
 | **U2 CLI + launchers + invariant** | `bin/fit-eval.js`→`fit-harness.js`, `bin`/`exports` keys; **all three launchers** — `launchers/fit-eval`→`fit-harness` (dir) **and** the byte-exact `import "@forwardimpact/libeval/bin/*"` in the `fit-trace`+`fit-benchmark` launcher bins → `@forwardimpact/libharness`; `SIBLING_ACTION_CLIS` entry; `canonicalBinContent` JSDoc | `public-cli-set` checks launcher bins byte-exact against the package name, so every launcher flips with U1's rename in one commit |
-| **U3 Env contract** | `LIBEVAL_*`→`LIBHARNESS_*` at all read/write sites + the compat shim (§ Env-var) | shim and renamed sites in one commit so both prefixes work from that commit on |
+| **U3 Env contract** | `LIBEVAL_*`→`LIBHARNESS_*` at every read site (`work-tracker.js`, `redaction.js`, `libxmr/record.js`) and write site (lead commands' `AGENT_PROFILE`/`WORK_TRACKER`, `agent-runner`'s `SKILL`) — old names dropped, no alias | harness + its sole reader `libxmr` rename in one commit so the cross-process `SKILL` handoff stays consistent |
 | **U4 Prose + docs + build manifest** | `KATA.md`, `.github/CLAUDE.md` (incl. `IS_SANDBOX`), `libraries/CLAUDE.md`, skills, `websites/**`, `build/cli-manifest.json`, `FIT_EVAL_REF`→`FIT_HARNESS_REF` + `libskill`/`libcoaligned` fixtures | `cli-manifest.json` is hand-maintained — verify the binary build, not just `context:fix` |
 | **U5 Generated tables** | `bun run context:fix` output (`libraries/README.md`, `websites/README.md`, `enum:` blocks) | regenerated last so it reflects U1–U4; never hand-edited |
 | **X1 Sibling repo** | create `forwardimpact/fit-harness`, port `fit-eval` action, cut release tag | external repo; must precede U6 |
@@ -51,41 +53,36 @@ graph LR
   Q -->|evaluateAssertion, Judge, run an eval, description, run-eval slug| K["keep"]
 ```
 
-## Env-var transition (the only real component)
+## Env-var rename (clean break)
 
-The spec requires a window in which a config that sets `LIBEVAL_*` behaves
-identically. Two interface points:
+No resolver, no alias, no dual-write. Every site moves to `LIBHARNESS_*` and the
+old names stop being recognized; a config that still sets `LIBEVAL_*` gets the
+default. Two interface points, both inside U3:
 
 - **Reads** — `work-tracker.js` (`WORK_TRACKER`), `redaction.js`
-  (`REDACTION_DISABLED`, `REDACTION_ENV_VARS`), and `libxmr/record.js`
-  (`SKILL`). The resolver returns the resolved string, so existing tests like
-  `=== "1"` apply to its result unchanged.
-- **Writes** — the harness sets `AGENT_PROFILE`/`WORK_TRACKER` (lead commands)
-  and `SKILL` (`agent-runner`) on the **child** agent env; `SKILL` then crosses
-  a process boundary and is read by `libxmr`.
+  (`REDACTION_DISABLED`, `REDACTION_ENV_VARS`), `libxmr/record.js` (`SKILL`).
+- **Writes** — lead commands set `AGENT_PROFILE`/`WORK_TRACKER` and
+  `agent-runner` sets `SKILL` on the **child** agent env; `SKILL` then crosses a
+  process boundary into `libxmr`.
 
-**Decision: read both, write both, prefer new.** A reader resolves
-`LIBHARNESS_X ?? LIBEVAL_X`; every write site sets **both** names during the
-window — uniformly across all three written vars, not just `SKILL`. (`SKILL` is
-the var that *forces* dual-write because it is the one crossing into `libxmr`;
-the other two are dual-written for one consistent write path, not three.) The
-resolver and its placement trade-offs are in § Key Decisions.
+The `SKILL` handoff is the one cross-process coupling, so its writer
+(`agent-runner`) and reader (`libxmr/record.js`) must rename in the **same
+commit** (U3) — that is the only consistency constraint, and it is satisfied
+because both live in this monorepo and release together. Because there is no
+fallback, no shared helper is needed; each site is a direct token rename.
 
 ```mermaid
 sequenceDiagram
-  participant CI as External CI (sets LIBEVAL_*)
   participant H as Harness (libharness)
   participant A as Agent child env
   participant X as libxmr record
-  CI->>H: LIBEVAL_WORK_TRACKER
-  H->>H: resolveLegacyEnv → value (+deprecation warn)
-  H->>A: set LIBHARNESS_SKILL AND LIBEVAL_SKILL
+  H->>A: set LIBHARNESS_SKILL
   A->>X: env
-  X->>X: LIBHARNESS_SKILL ?? LIBEVAL_SKILL
+  X->>X: read LIBHARNESS_SKILL
 ```
 
-Window removal (drop `LIBEVAL_*` reads/writes and the helper) is a follow-up
-spec, not this one.
+This is a breaking change for external CI that sets `LIBEVAL_*`; the CHANGELOG
+documents the one-step migration.
 
 ## Cross-repo publish sequencing
 
@@ -107,11 +104,10 @@ until consumers migrate; this design does not delete them.
 | Decision | Choice | Rejected alternative |
 | --- | --- | --- |
 | Rename mechanism | Category-scoped codemod gated by the four identity families | Blanket `sed s/eval/harness/` — corrupts evaluation domain (spec (c)) |
-| Clean break vs shim | Clean break everywhere **except** the env contract, where the spec names compat as a requirement | Shimming the package name (`libeval` re-export) — unneeded; npm handles the scope rename via a new name + dependents bump |
-| Env resolver home | Pure helper in `libutil`, shared by `libharness`+`libxmr` | Per-site `??` (drift); `libharness`→`libxmr` import (layering inversion) |
-| Write-side compat | Write both prefixes during the window | Write new only — breaks new-harness → old-`libxmr` `SKILL` handoff |
+| Clean break, no compat | Clean break everywhere incl. the env contract — old package name, CLI name, and `LIBEVAL_*` names all dropped, no alias/shim/fallback | Any compat layer (package re-export, env alias) — adds code to delete later; npm + CHANGELOG handle the one-step migration |
+| Env-var rename | Direct token rename at each read/write site; `SKILL` writer+reader in one commit | Shared resolver / dual-write — pure compat machinery, forbidden under clean break |
 | CLI atomicity | bin + launcher + invariant in one commit (U2) | Separate commits — `public-cli-set` red between them |
-| Sibling repo | New `forwardimpact/fit-harness`; old repo left published | Rename-in-place — breaks every existing SHA pin with no migration window |
+| Sibling repo | New `forwardimpact/fit-harness`; old repo not deleted (external, immutable) | Rename-in-place — breaks every existing SHA pin with no clean cutover |
 | History | `specs/`+CHANGELOG immutable (spec) | Rewrite — large diff, no value, self-referential count churn |
 
 ## Verification mapping
@@ -122,11 +118,11 @@ until consumers migrate; this design does not delete them.
 | 2 library at new path | U1 |
 | 3 `fit-harness` + 3 unchanged CLIs | U2 |
 | 4 `public-cli-set` green | U2 (atomic) |
-| 5 both env prefixes work | U3 + `libutil` resolver; reader sites incl. `libxmr/record.js` |
+| 5 only `LIBHARNESS_*` recognized | U3; read+write sites incl. `libxmr/record.js`, old names dropped |
 | 6 domain vocab intact | token-classification gate |
 | 7 generated tables + manifest | U5 (`context:fix`) + U4 (`cli-manifest.json` manual) |
 | 8 full suite green | every unit's atomicity constraint |
-| 9 non-breaking sequence | § Cross-repo publish sequencing |
+| 9 CI-green rollout sequence | § Cross-repo publish sequencing |
 
 ## Risks
 
@@ -134,7 +130,8 @@ until consumers migrate; this design does not delete them.
   (U4) + an explicit binary-build check, since neither criterion-1 `rg` nor
   `context:fix` catches a stale `fit-eval` entry there.
 - **External pin still on `forwardimpact/fit-eval`.** Acceptable: the old repo
-  stays published; consumers migrate on their own clock. No monorepo pin points
-  at it after U6.
-- **Window never closed.** Tracked as a follow-up spec; the `libutil` helper is
-  the single deletion point.
+  is not deleted; external consumers migrate on their own clock. No monorepo pin
+  points at it after U6.
+- **External CI breaks on the env rename.** Accepted consequence of the clean
+  break; the CHANGELOG documents the `LIBEVAL_*`→`LIBHARNESS_*` swap so the
+  migration is one mechanical step.

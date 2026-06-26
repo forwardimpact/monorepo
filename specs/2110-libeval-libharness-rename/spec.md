@@ -65,7 +65,7 @@ design):
 | Bundled CLIs: `fit-trace`, `fit-benchmark`, `fit-selfedit` | names unchanged; only their `@forwardimpact/libeval` source references change |
 | Launchers | `launchers/fit-eval` → `launchers/fit-harness`; `launchers/fit-trace` and `launchers/fit-benchmark` keep names but repoint their import to `@forwardimpact/libharness` |
 | `public-cli-set` invariant | `SIBLING_ACTION_CLIS` (the `fit-eval` entry) and the `canonicalBinContent` JSDoc `srcName` example in `.coaligned/invariants/public-cli-set.rules.mjs` updated so `fit-harness` is the public CLI and the launcher set stays computed-correct |
-| Env-var contract | `LIBEVAL_*` → `LIBHARNESS_*` (`AGENT_PROFILE`, `SKILL`, `WORK_TRACKER`, `REDACTION_DISABLED`, `REDACTION_ENV_VARS`) in the harness, its **one** cross-library runtime reader `libxmr` (reads `LIBEVAL_SKILL`), and every doc/test that names the prefix — with a transition window (below). Note: `libwiki` is **not** a runtime reader; its `LIBEVAL_AGENT_PROFILE` occurrences are fail-closed test assertions only |
+| Env-var contract | `LIBEVAL_*` → `LIBHARNESS_*` (`AGENT_PROFILE`, `SKILL`, `WORK_TRACKER`, `REDACTION_DISABLED`, `REDACTION_ENV_VARS`) in the harness, its **one** cross-library runtime reader `libxmr` (reads `LIBEVAL_SKILL`), and every doc/test that names the prefix — clean break, old names dropped (below). Note: `libwiki` is **not** a runtime reader; its `LIBEVAL_AGENT_PROFILE` occurrences are fail-closed test assertions only |
 | Cross-library code consumers | `libwiki` (dep range + `src/commands/fix.js` import) and `products/gear` (dep range); `libeval`/`LIBEVAL_*` references in `libmock` (README, and `libraries/libeval/test` path comments inside `src/fixture/eval.js` — see note on the filename below), `libbridge` (`src/dispatch.js` comment), `scripts/` |
 | Skills | `.claude/skills/fit-eval/` → `.claude/skills/fit-harness/` (name, frontmatter, body, Documentation links). Cross-skill identity tokens in `.claude/skills/{fit-benchmark,fit-trace}/SKILL.md` (incl. the `libraries/libeval/src/benchmark/result.js` path inside `fit-benchmark/SKILL.md`); the published `kata-setup` template's `forwardimpact/fit-eval@{{FIT_EVAL_REF}}` action ref **and** the `FIT_EVAL_REF` placeholder name itself (→ `FIT_HARNESS_REF`) across `kata-setup/SKILL.md`, `references/workflow-dispatch.md`, and `references/workflow-shift.md` |
 | Env-var prose surfaces | `.claude/skills/fit-wiki/SKILL.md` `LIBEVAL_AGENT_PROFILE` doc line and the `fit-xmr --help` string in `libraries/libxmr/bin/fit-xmr.js` that names `LIBEVAL_SKILL` — both name the env prefix and must follow the `LIBHARNESS_*` rename (see note on the fit-wiki fallback claim below) |
@@ -101,25 +101,28 @@ Out of scope:
 - **Behavior** — no functional change to orchestration, tracing, redaction,
   benchmarking, or evaluation. Rename only.
 
-## Env-var transition
+## Env-var rename — clean break
 
 `LIBEVAL_*` is a runtime contract: the harness sets it on agent environments,
 `libxmr` reads `LIBEVAL_SKILL`, and external CI configurations set it directly.
-A hard rename is a silent breaking change for any external caller that sets the
-old names. Success therefore **requires** that during a transition window the
-old names keep working: a configuration that sets `LIBEVAL_*` must continue to
-behave identically while `LIBHARNESS_*` becomes the documented form. How that
-compatibility is implemented (alias, fallback read, deprecation notice) is the
-design's call. The window's removal is a follow-up, not part of this spec.
+The rename is a **clean break**: every read and write site moves to
+`LIBHARNESS_*` and the `LIBEVAL_*` names stop being recognized. No alias, no
+fallback read, no deprecation window. A configuration that still sets the old
+names gets the default (as if unset). This is a breaking change for any
+external CI that sets `LIBEVAL_*`; it is called out in the CHANGELOG so
+consumers migrate in one step. The harness and its sole runtime reader
+`libxmr` rename together in the same release, so the cross-process `SKILL`
+handoff stays internally consistent.
 
-## External blast radius and sequencing
+## External blast radius and rollout ordering
 
-Because the full rename touches the published surface, this spec succeeds only
-if the order avoids a broken intermediate state for external consumers:
+The rename is a clean break, so it **is** a breaking change for external
+consumers — they migrate in one step (new package name, new CLI name, new env
+names, new sibling action). The CHANGELOG documents the break. What the rollout
+must still get right is the monorepo's own consistency at every commit:
 
 - The new `@forwardimpact/libharness` package and the `fit-harness` CLI must be
-  publishable before SHA-pinned workflows and the sibling action switch to
-  them.
+  published before SHA-pinned workflows and the sibling action switch to them.
 - The `forwardimpact/fit-harness` sibling repo and its release tags are a
   separate, coordinated change; the monorepo's `uses:` lines flip to it only
   once it exists and is pinned.
@@ -127,8 +130,9 @@ if the order avoids a broken intermediate state for external consumers:
   commit — the invariant computes the launcher set from what docs/skills/sibling
   actions invoke, so renaming the CLI and its launcher must land together.
 
-The detailed ordering is the plan's job; this spec asserts only that a green,
-non-breaking sequence must exist and is a success criterion.
+The detailed ordering is the plan's job; this spec asserts only that the
+sequence keeps every commit's CI green and never points a `uses:` line at an
+unpublished tag.
 
 ## Success Criteria
 
@@ -138,11 +142,11 @@ non-breaking sequence must exist and is a success criterion.
 | 2 | The library lives at `libraries/libharness` with package `@forwardimpact/libharness`, version continuity preserved | `test -d libraries/libharness`; `package.json .name == "@forwardimpact/libharness"`; `bun install` resolves with no unmet `@forwardimpact/libeval` |
 | 3 | `fit-harness` is the harness CLI; `fit-trace`/`fit-benchmark`/`fit-selfedit` keep their names and resolve against the renamed package | `npx fit-harness --help` exits 0; `package.json` `bin` + `exports` carry `fit-harness` and the three unchanged CLIs |
 | 4 | `public-cli-set` invariant passes with `fit-harness` as the public CLI and the launcher set computed-correct | `bun run invariants` |
-| 5 | `LIBHARNESS_*` is the documented contract honored by the harness and by `libxmr` (`LIBHARNESS_SKILL`); a config that sets the old `LIBEVAL_*` names behaves identically during the transition window | env-var tests in `libeval`→`libharness` and `libxmr` pass for both prefixes |
+| 5 | `LIBHARNESS_*` is the only env contract; the harness and `libxmr` (`LIBHARNESS_SKILL`) read and write only the new names and no `LIBEVAL_*` name is recognized anywhere | env-var tests in `libeval`→`libharness` and `libxmr` assert `LIBHARNESS_*` works and `LIBEVAL_*` is ignored |
 | 6 | Evaluation domain vocabulary is unchanged | `evaluateAssertion`, `Judge`, "run an eval", and the framework description still read as evaluation; `run-eval` slug still resolves |
 | 7 | Generated catalog/jobs/enum tables reflect `libharness`/`fit-harness` and are regenerated, not hand-edited | `bun run context:fix` produces no diff after the rename. Caveat: `build/cli-manifest.json` is **not** a `context:fix` output — it is hand-maintained and must be updated and verified separately (criterion 1 will not catch it either, hence its own scope row) |
 | 8 | Full quality suite passes | repository check, test, format, and invariant commands all green |
-| 9 | A non-breaking publish/sibling-repo sequence is documented | the design/plan ordering keeps `bun run invariants` green at every commit and never points a `uses:` line at an unpublished sibling tag |
+| 9 | A CI-green publish/sibling-repo rollout sequence is documented | the design/plan ordering keeps `bun run invariants` green at every commit and never points a `uses:` line at an unpublished sibling tag |
 
 ## Persona and Job
 
@@ -159,6 +163,6 @@ basis, not a silent pick:
 | Decision | Resolution | Needs human signal |
 | --- | --- | --- |
 | Extend rename to the `fit-eval` CLI + launcher + sibling action repo + public doc URLs? | **Yes — full rename** to `fit-harness` | Yes (external blast radius) — confirmed |
-| `LIBEVAL_*` env-var prefix | **Rename to `LIBHARNESS_*`** with a transition window in which the old names keep working | Yes (interface contract) — confirmed |
+| `LIBEVAL_*` env-var prefix | **Rename to `LIBHARNESS_*`** as a clean break — old names stop being recognized; breaking change documented in CHANGELOG | Yes (interface contract) — confirmed |
 | Which "eval" tokens change | **Identity/CLI tokens → harness; evaluation-domain tokens kept** | Recommendation — confirmed |
 | `specs/` + CHANGELOG history | **Left as-is (immutable)** | Recommendation — confirmed |
