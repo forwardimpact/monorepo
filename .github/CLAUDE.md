@@ -31,16 +31,10 @@ then a Dependabot SHA-bump PR — moving `v1` is never how a change reaches here
 `.github/dependabot.yml` opens the SHA-bump PR on its weekly sweep; merge
 through branch protection.
 
-The in-workflow `GITHUB_TOKEN` (and any token minted from `KATA_APP_*`) is
-scoped to the `kata-agent-team` App installation — **this monorepo only** — so
-a direct clone-and-push to a sibling fails 403 **by design**; do not reach for a
-personal token. The supported path is the dispatchable
-[`sibling-edit.yml`](workflows/sibling-edit.yml): per run it mints a
-`contents:write`-only token scoped to one named sibling, runs one edit step in
-the clone, pushes, and appends a per-attempt audit record (rejections included)
-to the **Sibling-edit audit log** issue
-([#1768](https://github.com/forwardimpact/monorepo/issues/1768)). Widening a
-standing token scope needs security-engineer review.
+Every environment has a `GH_TOKEN` and the `gh` CLI available, so some edits
+can be made directly — the token carries content read/write and typically
+admin read, but not admin write. Widening a standing token scope needs
+security-engineer review.
 
 This pinning policy governs workflow `uses:` only; a sibling's internal `uses:`
 (e.g. `kata-agent`'s call to `fit-bootstrap@v1`) is governed by the sibling.
