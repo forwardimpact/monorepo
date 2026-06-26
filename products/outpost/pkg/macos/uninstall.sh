@@ -3,8 +3,8 @@ set -e
 
 # Outpost Uninstaller
 #
-# Removes fit-outpost.app. User data at ~/Documents/Personal/ and config at
-# ~/.fit/outpost/ are preserved.
+# Removes fit-outpost.app. User data at ~/.local/share/fit/outpost/ and config
+# at ~/.fit/outpost/ are preserved.
 
 APP_PATH="/Applications/Forward Impact/fit-outpost.app"
 
@@ -51,9 +51,9 @@ fi
 
 echo ""
 echo "Outpost uninstalled."
-echo "Your data at ~/Documents/Personal/ has been preserved."
+echo "Your data at ~/.local/share/fit/outpost/ has been preserved."
 echo "Your config at ~/.fit/outpost/ has been preserved."
 echo ""
-echo "To remove all data:   rm -rf ~/Documents/Personal/"
+echo "To remove all data:   rm -rf ~/.local/share/fit/outpost/"
 echo "To remove all config: rm -rf ~/.fit/outpost/"
 echo ""

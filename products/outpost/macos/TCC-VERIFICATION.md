@@ -16,14 +16,27 @@ fit-outpost.app  --hop 1-->  fit-outpost daemon  --hop 2-->  claude (node)
    (signed bundle)        ProcessManager.swift            posix-spawn.js
 ```
 
-The goal is that a single grant to `fit-outpost.app` covers the whole subtree.
-Both spawn sites achieve this by passing `disclaim = 0`
-(`ProcessManager.swift`, `posix-spawn.js`): the child keeps the parent chain's
-responsible process rather than becoming responsible for itself, so attribution
-flows up to `fit-outpost.app`. This runbook re-measures the responsible-process
-lookup at **each hop** per release to confirm that setting still holds — an
-inverted `disclaim = 1` would make each child responsible for itself and
-silently break the single-grant model.
+Hop 1 (`ProcessManager.swift`) always passes `disclaim = 0`: the daemon stays a
+child of `fit-outpost.app`. Hop 2 (`posix-spawn.js`) carries a **per-agent**
+disclaim derived from the agent's declared privilege level, so an agent runs
+with only the macOS reach its job requires:
+
+- A `full` agent (mail/calendar sync, mail send) keeps `disclaim = 0`, so its
+  `claude` child inherits `fit-outpost.app` as its responsible process and a
+  single grant to the app covers it — the model this runbook has always
+  measured.
+- A `restricted` agent (synced cache → knowledge base only) passes
+  `disclaim = 1`, so its `claude` child is **responsible for itself**. The app's
+  Full Disk Access and Automation are deliberately **not** extended to it; it
+  operates only on non-TCC-protected substrate (the synced cache and the
+  relocated knowledge base) and is denied a protected read even if fully
+  prompt-injected.
+
+This runbook re-measures the responsible-process lookup at **each hop** per
+release. For a `full` agent both hops must attribute to `fit-outpost.app` — an
+inverted `disclaim = 1` would silently break the single-grant model. For a
+`restricted` agent hop 2 must be self-responsible and the protected read
+**denied** — an inverted `disclaim = 0` would silently grant it the app's reach.
 
 ## TCC services and their `tccutil` identifiers
 
@@ -31,7 +44,7 @@ silently break the single-grant model.
 | -------------------- | --------------------------------- | --------------------------- | ----------------------------- |
 | Mail store read      | `~/Library/Mail/…/Envelope Index` | Full Disk Access            | `SystemPolicyAllFiles`        |
 | Calendar store read  | `~/Library/Calendars/`            | Full Disk Access            | `SystemPolicyAllFiles`        |
-| Knowledge base       | `~/Documents/<kb>`                | Files & Folders (Documents) | `SystemPolicyDocumentsFolder` |
+| Knowledge base       | `~/.local/share/fit/outpost/<kb>` | none (non-TCC location)     | n/a — a restricted agent reaches it with no grant |
 | Draft-side Mail send | Mail via AppleScript              | Automation (AppleEvents)    | `AppleEvents`                 |
 
 The Calendar store is read **as files** (Full Disk Access); this runbook does
@@ -46,8 +59,9 @@ result here does not prove Calendar-API coverage.
 - `claude` installed and resolvable by the daemon. The daemon searches
   `/usr/local/bin`, `~/.claude/bin`, `~/.local/bin`, `/opt/homebrew/bin` in that
   order — confirm which binary it will spawn.
-- At least one agent configured in `~/.fit/outpost/scheduler.json` with a `kb`
-  that exists.
+- At least one `full` and one `restricted` agent configured in
+  `~/.fit/outpost/scheduler.json`, each with a declared `privilege` level and a
+  `kb` that exists (Axis 4 exercises both levels).
 - **The daemon must be running and must have been launched by
   `fit-outpost.app`** (open the app or enable it as a login item) — not started
   with `fit-outpost daemon` from a terminal. `fit-outpost wake` forwards the
@@ -66,17 +80,18 @@ Run each step in order. Record outcomes in the **Results** block at the bottom.
 
 ```sh
 tccutil reset SystemPolicyAllFiles
-tccutil reset SystemPolicyDocumentsFolder
 tccutil reset AppleEvents
 ```
 
 Then in **System Settings → Privacy & Security**, remove any existing `node` or
-Claude-CLI (version-string) entries under Full Disk Access, Files & Folders, and
-Automation.
+Claude-CLI (version-string) entries under Full Disk Access and Automation. (The
+knowledge base is no longer in a TCC-protected folder, so there is no
+Files & Folders state to reset.)
 
 **(b) Grant only `fit-outpost.app`.** Grant `fit-outpost.app` Full Disk Access and, if
-prompted, Files & Folders (Documents) and Automation for Mail. Grant **nothing**
-to `node` or the Claude CLI.
+prompted, Automation for Mail. Grant **nothing** to `node` or the Claude CLI.
+The relocated knowledge base (`~/.local/share/fit/outpost/<kb>`) is outside every
+TCC-protected folder, so no Files & Folders grant is involved.
 
 **(c) Start the attribution stream, then wake an agent.** The spawned `claude`
 is short-lived, so begin capturing before the wake. In a second terminal, the
@@ -134,12 +149,40 @@ the read to succeed.
 single `fit-outpost.app` Automation grant, with no separate `node`/CLI Automation
 entry.
 
-**(g) Fix C — conditional direct grant.** If any single service still fails
+**(g) Assert per-agent privilege denial (Axis 4).** With the same single
+`fit-outpost.app` grant in place, wake one `restricted` agent and one `full`
+agent. The `restricted` agent must deliberately attempt a Full Disk
+Access-protected read (a **positive probe** — e.g. reading
+`~/Library/Mail/…/Envelope Index` — so a denial is distinguishable from "never
+attempted"). In the TCC stream from step (c), confirm:
+
+- the `restricted` agent's probe shows an explicit `SystemPolicyAllFiles`
+  **Denied** decision, with `responsible=` resolving to the self-responsible
+  `claude` child (not `fit-outpost.app`);
+- the `full` agent's live-store read shows `SystemPolicyAllFiles` **Allowed**
+  with `responsible=…/fit-outpost.app`.
+
+Then confirm the `restricted` agent still completed its knowledge-base work with
+**no** grant present — its KB is under `~/.local/share/fit/outpost/<kb>`, a
+non-TCC location, and its briefing lands at
+`~/.cache/fit/outpost/state/<agent>_last_output.md` — and that **no**
+`node`/`claude` entry appears in any privacy pane. Finally, grep the scheduler
+log to confirm each wake recorded its resolved level:
+
+```sh
+grep outpost.privilege.resolved ~/.fit/outpost/logs/scheduler-*.log
+```
+
+Expect one `level: "restricted"` and one `level: "full"` line for the two
+agents. An agent whose entry omits the level logs `outpost.privilege.rejected`
+and is not woken.
+
+**(h) Fix C — conditional direct grant.** If any single service still fails
 under the `fit-outpost.app`-only grant, grant **that one service** (per the table
-above) to `fit-outpost.app` directly, re-run (c)–(f), and record which service
+above) to `fit-outpost.app` directly, re-run (c)–(g), and record which service
 needed it. The remedy is still one process — never a grant to `node` or the CLI.
 
-**(h) Persistence across upgrade (Axis 3).** Rebuild and re-sign `fit-outpost.app`,
+**(i) Persistence across upgrade (Axis 3).** Rebuild and re-sign `fit-outpost.app`,
 reinstall it over the existing grant, and re-wake:
 
 ```sh
@@ -159,6 +202,11 @@ ad-hoc build with a deterministic cdhash survives a `brew upgrade`).
   hops and re-run.
 - **A service fails (Axis 2)** → document the single direct grant for that
   service on `fit-outpost.app`.
+- **A `restricted` agent's probe is Allowed, or a `full` agent's read is Denied
+  (Axis 4)** → hop 2's per-agent disclaim is inverted; check
+  `resolvePrivilege`/`disclaimFor` and the spawn-call threading in
+  `agent-runner.js`. A `restricted` probe that is **never attempted** is not a
+  pass — re-run with the positive probe so denial is observed.
 - **Grant lost on upgrade (Axis 3)** → ship a Developer ID-signed bundle so the
   grant pins to the designated requirement.
 
@@ -179,13 +227,18 @@ Axis 1 — per-hop attribution
 
 Axis 2 — per-service honoring (under one fit-outpost.app grant)
   Full Disk Access (Mail/Calendar read):   PASS/FAIL
-  Files & Folders (Documents KB):           PASS/FAIL
   Automation (draft-side Mail):             PASS/FAIL
   service(s) needing a direct grant:        <none | service name(s)>
 
 Axis 3 — persistence across re-signed upgrade
   grant survived, no re-prompt:             PASS/FAIL
 
-Finding:                 <single-grant holds | disclaim setting | non-inherited service | persistence | combination>
-Fixes applied:           <none | Step (g) | re-sign | combination>
+Axis 4 — per-agent privilege denial (under one fit-outpost.app grant)
+  restricted agent FDA probe:  <SystemPolicyAllFiles Denied | other>   PASS/FAIL
+  full agent live-store read:  <SystemPolicyAllFiles Allowed | other>  PASS/FAIL
+  restricted KB work completed with no grant (non-TCC KB):             PASS/FAIL
+  scheduler log records outpost.privilege.resolved per wake:           PASS/FAIL
+
+Finding:                 <single-grant holds | disclaim setting | non-inherited service | privilege denial | persistence | combination>
+Fixes applied:           <none | Step (h) | re-sign | combination>
 ```
