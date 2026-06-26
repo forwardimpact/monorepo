@@ -12,8 +12,8 @@
  * into a wiki commit is never passed through this redactor.
  *
  * Stateless after construction: `env` is captured once so in-process
- * `process.env` writes (e.g. agent-runner.js LIBEVAL_SKILL, commands/run.js
- * LIBEVAL_AGENT_PROFILE) cannot smuggle a value past the redactor.
+ * `process.env` writes (e.g. agent-runner.js LIBHARNESS_SKILL, commands/run.js
+ * LIBHARNESS_AGENT_PROFILE) cannot smuggle a value past the redactor.
  */
 
 export const DEFAULT_ENV_ALLOWLIST = Object.freeze([
@@ -181,8 +181,8 @@ export class Redactor {
 }
 
 /**
- * Build a redactor. Reads `LIBEVAL_REDACTION_DISABLED` and
- * `LIBEVAL_REDACTION_ENV_VARS` from the supplied env. The env and the stderr
+ * Build a redactor. Reads `LIBHARNESS_REDACTION_DISABLED` and
+ * `LIBHARNESS_REDACTION_ENV_VARS` from the supplied env. The env and the stderr
  * sink are sourced from an injected `runtime` (`runtime.proc.env` /
  * `runtime.proc.stderr`); when no runtime is supplied a default one is
  * constructed so existing callers keep working. An explicit `opts.env`
@@ -192,9 +192,9 @@ export class Redactor {
  * @param {object} [opts]
  * @param {import("@forwardimpact/libutil/runtime").Runtime} [opts.runtime] - Ambient collaborators; `proc.env`/`proc.stderr` are used.
  * @param {Record<string, string|undefined>} [opts.env] - Environment to snapshot. Defaults to `runtime.proc.env`.
- * @param {string[]} [opts.allowlist] - Override the env-var name list. Defaults to `DEFAULT_ENV_ALLOWLIST` or the parsed `LIBEVAL_REDACTION_ENV_VARS` value.
+ * @param {string[]} [opts.allowlist] - Override the env-var name list. Defaults to `DEFAULT_ENV_ALLOWLIST` or the parsed `LIBHARNESS_REDACTION_ENV_VARS` value.
  * @param {ReadonlyArray<{kind: string, regex: RegExp}>} [opts.patterns] - Credential-shape regexes. Defaults to `DEFAULT_PATTERNS`.
- * @param {boolean} [opts.enabled] - Force enabled/disabled; bypasses `LIBEVAL_REDACTION_DISABLED`.
+ * @param {boolean} [opts.enabled] - Force enabled/disabled; bypasses `LIBHARNESS_REDACTION_DISABLED`.
  * @returns {Redactor}
  */
 export function createRedactor({
@@ -207,7 +207,7 @@ export function createRedactor({
   if (!runtime) throw new Error("runtime is required");
   const proc = runtime.proc;
   const resolvedEnv = env ?? proc.env;
-  const envDisabled = resolvedEnv.LIBEVAL_REDACTION_DISABLED === "1";
+  const envDisabled = resolvedEnv.LIBHARNESS_REDACTION_DISABLED === "1";
   const resolvedEnabled = enabled ?? !envDisabled;
   const resolvedAllowlist = allowlist ?? resolveAllowlistFromEnv(resolvedEnv);
   const envSnapshot = resolvedEnabled
@@ -215,20 +215,20 @@ export function createRedactor({
     : Object.freeze({});
   if (!resolvedEnabled) {
     proc.stderr.write(
-      "libharness: trace redaction DISABLED via LIBEVAL_REDACTION_DISABLED — secrets may appear in trace artifact\n",
+      "libharness: trace redaction DISABLED via LIBHARNESS_REDACTION_DISABLED — secrets may appear in trace artifact\n",
     );
   }
   return new Redactor({ envSnapshot, patterns, enabled: resolvedEnabled });
 }
 
 /**
- * Parse `LIBEVAL_REDACTION_ENV_VARS` into a trimmed, non-empty name list.
+ * Parse `LIBHARNESS_REDACTION_ENV_VARS` into a trimmed, non-empty name list.
  * Falls back to `DEFAULT_ENV_ALLOWLIST` when unset or empty.
  * @param {Record<string, string|undefined>} env
  * @returns {string[]}
  */
 function resolveAllowlistFromEnv(env) {
-  const override = env.LIBEVAL_REDACTION_ENV_VARS;
+  const override = env.LIBHARNESS_REDACTION_ENV_VARS;
   if (typeof override !== "string" || override.length === 0) {
     return DEFAULT_ENV_ALLOWLIST;
   }

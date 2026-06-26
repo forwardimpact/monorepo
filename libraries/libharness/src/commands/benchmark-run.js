@@ -32,7 +32,7 @@ export async function runBenchmarkRunCommand(ctx) {
   // The benchmark agent runs via createBenchmarkRunner, not the supervise
   // command, so the active-tracker env must land here before the runner
   // spawns the subprocess that inherits process.env.
-  runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker;
+  runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
 
   // The Claude Agent SDK spawns a `claude` subprocess that inherits
   // process.env. NODE_EXTRA_CA_CERTS causes undici (the HTTP client
@@ -70,7 +70,7 @@ export async function runBenchmarkRunCommand(ctx) {
  * defaults, including the resolved work tracker.
  * @param {Record<string, string|undefined>} values - Parsed option values
  * @param {Record<string, string|undefined>} [env] - Process environment, read
- *   for the `LIBEVAL_WORK_TRACKER` fallback when `--work-tracker` is absent.
+ *   for the `LIBHARNESS_WORK_TRACKER` fallback when `--work-tracker` is absent.
  * @returns {object}
  */
 export function parseRunOptions(values, env = {}) {

@@ -175,11 +175,11 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     assert.deepStrictEqual(out, { a: "", b: "x" });
   });
 
-  test("LIBEVAL_REDACTION_ENV_VARS replaces (not extends) the default allowlist", () => {
+  test("LIBHARNESS_REDACTION_ENV_VARS replaces (not extends) the default allowlist", () => {
     const r = createRedactor({
       runtime: _rt,
       env: {
-        LIBEVAL_REDACTION_ENV_VARS: "FOO,BAR",
+        LIBHARNESS_REDACTION_ENV_VARS: "FOO,BAR",
         FOO: "foo-secret",
         BAR: "bar-secret",
         ANTHROPIC_API_KEY: "anth-secret",
@@ -191,11 +191,11 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     assert.strictEqual(r.redactValue("anth-secret"), "anth-secret");
   });
 
-  test("LIBEVAL_REDACTION_ENV_VARS trims whitespace and ignores empty entries", () => {
+  test("LIBHARNESS_REDACTION_ENV_VARS trims whitespace and ignores empty entries", () => {
     const r = createRedactor({
       runtime: _rt,
       env: {
-        LIBEVAL_REDACTION_ENV_VARS: "  FOO , , BAR  ",
+        LIBHARNESS_REDACTION_ENV_VARS: "  FOO , , BAR  ",
         FOO: "foo-secret",
         BAR: "bar-secret",
       },

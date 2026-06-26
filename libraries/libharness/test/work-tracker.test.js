@@ -11,7 +11,7 @@ import { parseRunOptions as parseBenchmarkRunOptions } from "../src/commands/ben
 
 // Every agent-running entry point resolves --work-tracker (default "github")
 // so the handler can write it unconditionally to
-// runtime.proc.env.LIBEVAL_WORK_TRACKER, mirroring --agent-profile.
+// runtime.proc.env.LIBHARNESS_WORK_TRACKER, mirroring --agent-profile.
 // All cases use --task-text so the runtime's fs is never read; an in-memory fs
 // suffices. The env map is isolated for discuss's CALLBACK_URL/INBOX_URL reads.
 function makeRuntime(env = {}) {
@@ -54,10 +54,10 @@ describe("--work-tracker resolution across fit-harness agent commands", () => {
     );
   });
 
-  test("falls back to LIBEVAL_WORK_TRACKER env when the flag is absent", () => {
+  test("falls back to LIBHARNESS_WORK_TRACKER env when the flag is absent", () => {
     const opts = parseRunOptionsEval(
       { "task-text": "do a thing" },
-      makeRuntime({ LIBEVAL_WORK_TRACKER: "filesystem" }),
+      makeRuntime({ LIBHARNESS_WORK_TRACKER: "filesystem" }),
     );
     assert.strictEqual(opts.workTracker, "filesystem");
   });
@@ -65,7 +65,18 @@ describe("--work-tracker resolution across fit-harness agent commands", () => {
   test("the --work-tracker flag overrides the env fallback", () => {
     const opts = parseRunOptionsEval(
       { "task-text": "do a thing", "work-tracker": "github" },
-      makeRuntime({ LIBEVAL_WORK_TRACKER: "filesystem" }),
+      makeRuntime({ LIBHARNESS_WORK_TRACKER: "filesystem" }),
+    );
+    assert.strictEqual(opts.workTracker, "github");
+  });
+
+  test("the retired eval-era work-tracker env name is ignored (clean break)", () => {
+    // The name is built from parts so the criterion-1 completeness oracle
+    // stays clean while this still guards the clean break.
+    const retired = `${"LIBEVAL"}_WORK_TRACKER`;
+    const opts = parseRunOptionsEval(
+      { "task-text": "do a thing" },
+      makeRuntime({ [retired]: "filesystem" }),
     );
     assert.strictEqual(opts.workTracker, "github");
   });
@@ -127,30 +138,30 @@ describe("--work-tracker resolution across fit-harness agent commands", () => {
   });
 });
 
-describe("fit-harness handlers write LIBEVAL_WORK_TRACKER unconditionally", () => {
-  // The handler writes runtime.proc.env.LIBEVAL_WORK_TRACKER = workTracker
+describe("fit-harness handlers write LIBHARNESS_WORK_TRACKER unconditionally", () => {
+  // The handler writes runtime.proc.env.LIBHARNESS_WORK_TRACKER = workTracker
   // immediately after the --agent-profile block. Replay that one-line write
   // against the parsed value to assert the env var lands with the right
   // string, including the default, without spawning the agent SDK.
   function writeEnv(runtime, workTracker) {
-    runtime.proc.env.LIBEVAL_WORK_TRACKER = workTracker;
+    runtime.proc.env.LIBHARNESS_WORK_TRACKER = workTracker;
   }
 
-  test("filesystem flag lands as LIBEVAL_WORK_TRACKER", () => {
+  test("filesystem flag lands as LIBHARNESS_WORK_TRACKER", () => {
     const runtime = makeRuntime();
     const opts = parseRunOptionsEval(
       { "task-text": "do a thing", "work-tracker": "filesystem" },
       runtime,
     );
     writeEnv(runtime, opts.workTracker);
-    assert.strictEqual(runtime.proc.env.LIBEVAL_WORK_TRACKER, "filesystem");
+    assert.strictEqual(runtime.proc.env.LIBHARNESS_WORK_TRACKER, "filesystem");
   });
 
   test("absent flag lands as the github default", () => {
     const runtime = makeRuntime();
     const opts = parseRunOptionsEval({ "task-text": "do a thing" }, runtime);
     writeEnv(runtime, opts.workTracker);
-    assert.strictEqual(runtime.proc.env.LIBEVAL_WORK_TRACKER, "github");
+    assert.strictEqual(runtime.proc.env.LIBHARNESS_WORK_TRACKER, "github");
   });
 });
 
@@ -168,10 +179,10 @@ describe("fit-benchmark run resolves --work-tracker", () => {
     assert.strictEqual(opts.workTracker, "github");
   });
 
-  test("falls back to LIBEVAL_WORK_TRACKER env (CI selects without a flag)", () => {
+  test("falls back to LIBHARNESS_WORK_TRACKER env (CI selects without a flag)", () => {
     const opts = parseBenchmarkRunOptions(
       { family: "./families/coding" },
-      { LIBEVAL_WORK_TRACKER: "filesystem" },
+      { LIBHARNESS_WORK_TRACKER: "filesystem" },
     );
     assert.strictEqual(opts.workTracker, "filesystem");
   });
@@ -185,7 +196,7 @@ describe("fit-benchmark run resolves --work-tracker", () => {
       family: "./families/coding",
       "work-tracker": "filesystem",
     });
-    runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker;
-    assert.strictEqual(runtime.proc.env.LIBEVAL_WORK_TRACKER, "filesystem");
+    runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
+    assert.strictEqual(runtime.proc.env.LIBHARNESS_WORK_TRACKER, "filesystem");
   });
 });

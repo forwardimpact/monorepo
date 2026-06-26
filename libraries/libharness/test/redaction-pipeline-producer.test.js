@@ -160,7 +160,7 @@ describe("Producer pipeline — patterns (criterion 2)", () => {
 });
 
 describe("Producer pipeline — opt-out warning (criterion 4)", () => {
-  test("LIBEVAL_REDACTION_DISABLED=1 emits stderr warning; sentinels reach fileStream unredacted", async () => {
+  test("LIBHARNESS_REDACTION_DISABLED=1 emits stderr warning; sentinels reach fileStream unredacted", async () => {
     const sink = captureSink();
 
     // Construct the redactor under test. Capture stderr from this site
@@ -177,7 +177,7 @@ describe("Producer pipeline — opt-out warning (criterion 4)", () => {
       redactor = createRedactor({
         runtime: _rt,
         env: {
-          LIBEVAL_REDACTION_DISABLED: "1",
+          LIBHARNESS_REDACTION_DISABLED: "1",
           ANTHROPIC_API_KEY: ANTH_SENT,
         },
       });

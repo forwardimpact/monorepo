@@ -151,13 +151,13 @@ Redaction is on by default for `fit-harness run`/`supervise`/`facilitate`
 and composes two layers:
 
 - **Env-var allowlist** — `ANTHROPIC_API_KEY`, `GH_TOKEN`, `GITHUB_TOKEN`
-  by default; override with `LIBEVAL_REDACTION_ENV_VARS=NAME1,…`
+  by default; override with `LIBHARNESS_REDACTION_ENV_VARS=NAME1,…`
   (replaces, not extends). Runtime values become `[REDACTED:env:NAME]`
   everywhere they appear.
 - **Credential-shape patterns** — `sk-ant-`, `ghp_`, `ghs_`, `gho_`,
   `github_pat_`. Hits become `[REDACTED:pattern:KIND]`.
 
-Set `LIBEVAL_REDACTION_DISABLED=1` to disable (one stderr warning per
+Set `LIBHARNESS_REDACTION_DISABLED=1` to disable (one stderr warning per
 run). Never on CI for a public repo — workflow artifacts are
 downloadable through retention.
 

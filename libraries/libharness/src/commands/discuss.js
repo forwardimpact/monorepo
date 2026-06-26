@@ -95,11 +95,11 @@ export async function runDiscussCommand(ctx) {
     : runtime.proc.stdout;
 
   if (opts.leadProfile) {
-    runtime.proc.env.LIBEVAL_AGENT_PROFILE = opts.leadProfile;
+    runtime.proc.env.LIBHARNESS_AGENT_PROFILE = opts.leadProfile;
   }
   // Unconditional so the default "github" is observable to the agent's
   // active-tracker resolution, mirroring --agent-profile's env write above.
-  runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker;
+  runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const discusser = createDiscusser({

@@ -69,7 +69,7 @@ export async function runSuperviseCommand(ctx) {
 
   // Build the redactor as the first observable side-effect after option
   // parsing — the env snapshot must freeze BEFORE any in-process
-  // env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
+  // env writes the command performs (e.g. LIBHARNESS_AGENT_PROFILE).
   const redactor = createRedactor({ runtime });
 
   // When --output is specified, stream text to stdout while writing NDJSON to file.
@@ -100,11 +100,11 @@ export async function runSuperviseCommand(ctx) {
   }
 
   if (opts.agentProfile) {
-    runtime.proc.env.LIBEVAL_AGENT_PROFILE = opts.agentProfile;
+    runtime.proc.env.LIBHARNESS_AGENT_PROFILE = opts.agentProfile;
   }
   // Unconditional so the default "github" is observable to the agent's
   // active-tracker resolution, mirroring --agent-profile's env write above.
-  runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker;
+  runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const supervisor = createSupervisor({

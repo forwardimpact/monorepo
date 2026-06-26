@@ -75,7 +75,7 @@ export async function runFacilitateCommand(ctx) {
 
   // Build the redactor as the first observable side-effect after option
   // parsing — the env snapshot must freeze BEFORE any in-process
-  // env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
+  // env writes the command performs (e.g. LIBHARNESS_AGENT_PROFILE).
   const redactor = createRedactor({ runtime });
 
   const fileStream = opts.outputPath
@@ -91,11 +91,11 @@ export async function runFacilitateCommand(ctx) {
     : runtime.proc.stdout;
 
   if (opts.facilitatorProfile) {
-    runtime.proc.env.LIBEVAL_AGENT_PROFILE = opts.facilitatorProfile;
+    runtime.proc.env.LIBHARNESS_AGENT_PROFILE = opts.facilitatorProfile;
   }
   // Unconditional so the default "github" is observable to the agent's
   // active-tracker resolution, mirroring --agent-profile's env write above.
-  runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker;
+  runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const facilitator = createFacilitator({

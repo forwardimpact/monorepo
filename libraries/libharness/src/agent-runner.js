@@ -59,7 +59,7 @@ export class AgentRunner {
    * @param {object} deps.redactor
    * @param {import("@forwardimpact/libutil/runtime").Runtime} [deps.runtime] -
    *   Ambient collaborators. Only `proc.env` is read (to record Skill
-   *   invocations into `LIBEVAL_SKILL`); when absent the write is skipped.
+   *   invocations into `LIBHARNESS_SKILL`); when absent the write is skipped.
    */
   constructor(deps) {
     if (!deps.cwd) throw new Error("cwd is required");
@@ -165,7 +165,7 @@ export class AgentRunner {
    * Iterate the SDK query iterator, mirroring every message to the
    * output stream and the `onLine` callback. Captures `sessionId` from
    * the SDK's `system/init` message and tracks Skill invocations into
-   * `LIBEVAL_SKILL` for downstream metrics.
+   * `LIBHARNESS_SKILL` for downstream metrics.
    *
    * If the iterator throws and we triggered the abort ourselves
    * (`currentAbortController.signal.aborted`), we report `aborted:
@@ -244,7 +244,7 @@ export class AgentRunner {
         block.name === "Skill" &&
         block.input?.skill
       ) {
-        env.LIBEVAL_SKILL = block.input.skill;
+        env.LIBHARNESS_SKILL = block.input.skill;
       }
     }
   }

@@ -37,14 +37,14 @@ describe("fit-wiki inbox CLI fail-closed contract", () => {
       assert.equal(result.ok, false);
       assert.equal(result.code, 2);
       assert.match(result.error, /^inbox requires --agent <name>; e\.g\. /);
-      assert.doesNotMatch(result.error, /LIBEVAL_AGENT_PROFILE/);
+      assert.doesNotMatch(result.error, /LIBHARNESS_AGENT_PROFILE/);
     });
 
     test(`${sub} without --agent fails closed even with env set`, () => {
       const { result, fsSync } = run(
         sub,
         { index: "0" },
-        { LIBEVAL_AGENT_PROFILE: "product-manager" },
+        { LIBHARNESS_AGENT_PROFILE: "product-manager" },
       );
       assert.equal(result.ok, false);
       assert.equal(result.code, 2);

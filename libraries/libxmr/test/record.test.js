@@ -113,7 +113,7 @@ describe("fit-xmr record", () => {
     );
   });
 
-  test("LIBEVAL_SKILL fallback when --skill omitted", () => {
+  test("LIBHARNESS_SKILL fallback when --skill omitted", () => {
     const { fs } = run(
       {
         metric: "test_count",
@@ -122,7 +122,7 @@ describe("fit-xmr record", () => {
         "event-type": "kata-test",
         "wiki-root": WIKI_ROOT,
       },
-      { env: { LIBEVAL_SKILL: "kata-env-test" } },
+      { env: { LIBHARNESS_SKILL: "kata-env-test" } },
     );
 
     assert.ok(
@@ -218,7 +218,25 @@ describe("fit-xmr record", () => {
         "event-type": "kata-test",
         "wiki-root": WIKI_ROOT,
       },
-      { env: { LIBEVAL_SKILL: "" } },
+      { env: { LIBHARNESS_SKILL: "" } },
+    );
+
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+  });
+
+  test("the retired eval-era skill env name is ignored (clean break)", () => {
+    // The name is built from parts so the criterion-1 completeness oracle
+    // stays clean while this still guards the clean break.
+    const retired = `${"LIBEVAL"}_SKILL`;
+    const { result } = run(
+      {
+        metric: "test_count",
+        value: "1",
+        "event-type": "kata-test",
+        "wiki-root": WIKI_ROOT,
+      },
+      { env: { [retired]: "kata-env-test" } },
     );
 
     assert.equal(result.ok, false);

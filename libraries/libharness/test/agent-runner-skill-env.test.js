@@ -11,8 +11,8 @@ import {
 
 const noop = () => createNoopRedactor();
 
-describe("AgentRunner LIBEVAL_SKILL env var", () => {
-  test("Skill tool_use sets LIBEVAL_SKILL", async () => {
+describe("AgentRunner LIBHARNESS_SKILL env var", () => {
+  test("Skill tool_use sets LIBHARNESS_SKILL", async () => {
     const messages = [
       { type: "system", subtype: "init", session_id: "s1" },
       {
@@ -38,10 +38,10 @@ describe("AgentRunner LIBEVAL_SKILL env var", () => {
     });
 
     await runner.run("test");
-    assert.equal(runtime.proc.env.LIBEVAL_SKILL, "kata-metrics");
+    assert.equal(runtime.proc.env.LIBHARNESS_SKILL, "kata-metrics");
   });
 
-  test("second Skill tool_use updates LIBEVAL_SKILL", async () => {
+  test("second Skill tool_use updates LIBHARNESS_SKILL", async () => {
     const messages = [
       { type: "system", subtype: "init", session_id: "s1" },
       {
@@ -77,10 +77,10 @@ describe("AgentRunner LIBEVAL_SKILL env var", () => {
     });
 
     await runner.run("test");
-    assert.equal(runtime.proc.env.LIBEVAL_SKILL, "kata-review");
+    assert.equal(runtime.proc.env.LIBHARNESS_SKILL, "kata-review");
   });
 
-  test("non-Skill tool_use leaves LIBEVAL_SKILL unchanged", async () => {
+  test("non-Skill tool_use leaves LIBHARNESS_SKILL unchanged", async () => {
     const messages = [
       { type: "system", subtype: "init", session_id: "s1" },
       {
@@ -116,6 +116,6 @@ describe("AgentRunner LIBEVAL_SKILL env var", () => {
     });
 
     await runner.run("test");
-    assert.equal(runtime.proc.env.LIBEVAL_SKILL, "kata-metrics");
+    assert.equal(runtime.proc.env.LIBHARNESS_SKILL, "kata-metrics");
   });
 });

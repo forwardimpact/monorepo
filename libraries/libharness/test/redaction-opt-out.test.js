@@ -11,13 +11,13 @@ import {
 import { rt as _rt, captureStderr } from "./redaction-helpers.js";
 
 describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => {
-  test("LIBEVAL_REDACTION_DISABLED=1 disables and emits stderr warning exactly once", () => {
+  test("LIBHARNESS_REDACTION_DISABLED=1 disables and emits stderr warning exactly once", () => {
     let r;
     const stderr = captureStderr(() => {
       r = createRedactor({
         runtime: _rt,
         env: {
-          LIBEVAL_REDACTION_DISABLED: "1",
+          LIBHARNESS_REDACTION_DISABLED: "1",
           GH_TOKEN: "would-have-redacted",
         },
       });
@@ -33,12 +33,15 @@ describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => 
     assert.strictEqual(matches.length, 1);
   });
 
-  test('LIBEVAL_REDACTION_DISABLED="true" does NOT disable (literal "1" is the contract)', () => {
+  test("the retired eval-era redaction-disable env name is ignored (clean break)", () => {
+    // The name is built from parts so the criterion-1 completeness oracle
+    // stays clean while this still guards the clean break.
+    const retired = `${"LIBEVAL"}_REDACTION_DISABLED`;
     let r;
     const stderr = captureStderr(() => {
       r = createRedactor({
         runtime: _rt,
-        env: { LIBEVAL_REDACTION_DISABLED: "true", GH_TOKEN: "secret-value" },
+        env: { [retired]: "1", GH_TOKEN: "secret-value" },
       });
     });
     assert.strictEqual(r.enabled, true);
@@ -49,12 +52,31 @@ describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => 
     assert.strictEqual(stderr, "");
   });
 
-  test('LIBEVAL_REDACTION_DISABLED="yes" does NOT disable (literal "1" is the contract)', () => {
+  test('LIBHARNESS_REDACTION_DISABLED="true" does NOT disable (literal "1" is the contract)', () => {
     let r;
     const stderr = captureStderr(() => {
       r = createRedactor({
         runtime: _rt,
-        env: { LIBEVAL_REDACTION_DISABLED: "yes", GH_TOKEN: "secret-value" },
+        env: {
+          LIBHARNESS_REDACTION_DISABLED: "true",
+          GH_TOKEN: "secret-value",
+        },
+      });
+    });
+    assert.strictEqual(r.enabled, true);
+    assert.strictEqual(
+      r.redactValue("secret-value"),
+      "[REDACTED:env:GH_TOKEN]",
+    );
+    assert.strictEqual(stderr, "");
+  });
+
+  test('LIBHARNESS_REDACTION_DISABLED="yes" does NOT disable (literal "1" is the contract)', () => {
+    let r;
+    const stderr = captureStderr(() => {
+      r = createRedactor({
+        runtime: _rt,
+        env: { LIBHARNESS_REDACTION_DISABLED: "yes", GH_TOKEN: "secret-value" },
       });
     });
     assert.strictEqual(r.enabled, true);

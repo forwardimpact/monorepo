@@ -121,7 +121,7 @@ const definition = {
       options: {
         skill: {
           type: "string",
-          description: "Skill name (falls back to LIBEVAL_SKILL env var)",
+          description: "Skill name (falls back to LIBHARNESS_SKILL env var)",
         },
         metric: {
           type: "string",
