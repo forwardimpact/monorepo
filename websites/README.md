@@ -129,7 +129,7 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 | Little | `service-lifecycle/manage-service/` | Start, Stop, or Check a Service |
 | Little | `service-lifecycle/add-observability/` | Add Observability |
 
-**Prove Agent Changes** (Builders → libeval, libterrain)
+**Prove Agent Changes** (Builders → libharness, libterrain)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |

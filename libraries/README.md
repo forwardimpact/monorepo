@@ -18,9 +18,9 @@ can read and tune via JSON.
 | **libcodegen**         | Protobuf code generation — keep types in sync with proto definitions without hand-writing.                                                      |
 | **libconfig**          | Environment-aware application settings — services and CLIs load configuration without custom plumbing.                                          |
 | **libdoc**             | Static documentation sites from markdown — publish docs without a framework.                                                                    |
-| **libeval**            | Agent evaluation framework — prove whether agent changes improved outcomes with reproducible evidence.                                          |
 | **libformat**          | Render markdown to ANSI or HTML — formatted output in any surface without losing structure.                                                     |
 | **libgraph**           | RDF triple store with named ontologies — answer relationship questions without writing join logic.                                              |
+| **libharness**         | Agent evaluation framework — prove whether agent changes improved outcomes with reproducible evidence.                                          |
 | **libhttp**            | HTTP service framework — ship a Hono service endpoint without reimplementing lifecycle, security headers, or health checks.                     |
 | **libindex**           | JSONL-backed indexes with filtering and buffered writes — fast context lookup without an external search engine.                                |
 | **libmacos**           | macOS bundle assembly, code signing, and OS permission helpers — desktop delivery without platform ceremony.                                    |
@@ -219,11 +219,11 @@ generation, rendering, and validation across three libraries.
 
 **Big Hire:** Help me prove whether agent changes improved outcomes with
 reproducible evidence; produce a complete eval dataset from a single DSL file. →
-**libeval, libterrain**
+**libharness, libterrain**
 
 **Little Hire:** Help me run an eval and get a trace that shows exactly what the
 agent did; regenerate a dataset after a schema change and trust the pipeline
-handles the rest. → **libeval, libterrain**
+handles the rest. → **libharness, libterrain**
 
 **Competes With:** manual before/after comparison; trusting gut feeling over
 evidence; skipping evaluation entirely; scripting the pipeline by hand;
