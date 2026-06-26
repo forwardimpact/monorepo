@@ -1,6 +1,6 @@
 [
   {
     "file": "libraries/libwiki/src/wiki-sync.js",
-    "reason": "fit-wiki push/sync sweep is the only whole-tree committer on the tree; scoping it to own-authored paths depends on the wiki push-primitive landing design and is a tracked follow-up. The former shell twin scripts/wiki-sync.sh is retired — fit-wiki is now the single wiki code path"
+    "reason": "fit-wiki push/sync sweep is the only whole-tree committer on the tree; scoping it to own-authored paths depends on the wiki push-primitive landing design and is a tracked follow-up. fit-wiki is the single code path for wiki clone, pull, and push."
   }
 ]
