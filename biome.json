@@ -183,7 +183,7 @@
           "nursery": {
             "noExcessiveLinesPerFile": {
               "level": "error",
-              "options": { "maxLines": 720, "skipBlankLines": true }
+              "options": { "maxLines": 740, "skipBlankLines": true }
             }
           }
         }

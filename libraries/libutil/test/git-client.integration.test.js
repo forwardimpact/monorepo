@@ -114,4 +114,35 @@ describe("GitClient (integration)", () => {
 
     await rm(branchDir, { recursive: true, force: true });
   });
+
+  test("clone applies inline -c config before remote contact", async () => {
+    // A real source repo to clone from.
+    const src = await mkdtemp(path.join(tmpdir(), "git-client-src-"));
+    const s = new GitClient({ runtime: createDefaultRuntime() });
+    await s.init(src);
+    await s.configSet("commit.gpgsign", "false", { cwd: src });
+    await s.configSet("user.email", "t@e.co", { cwd: src });
+    await s.configSet("user.name", "T", { cwd: src });
+    await writeFile(path.join(src, "f.txt"), "hi\n");
+    await s.commitAll("seed", { cwd: src });
+
+    // Clone a bogus URL that resolves only because an inline `insteadOf`
+    // rewrites it to the real source path — so a successful clone proves the
+    // `-c` config was in effect before any remote contact (the property the
+    // wiki transport pin relies on).
+    const dest = path.join(
+      await mkdtemp(path.join(tmpdir(), "git-client-dst-")),
+      "clone",
+    );
+    const bogus = "https://example.invalid/x.git";
+    await client.clone(bogus, dest, {
+      config: [`url.${src}.insteadOf=${bogus}`],
+    });
+    assert.strictEqual(
+      await client.showFile("HEAD", "f.txt", { cwd: dest }),
+      "hi\n",
+    );
+
+    await rm(src, { recursive: true, force: true });
+  });
 });
