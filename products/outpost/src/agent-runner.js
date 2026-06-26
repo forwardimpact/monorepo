@@ -11,6 +11,7 @@ import {
   loadManifest,
   draftSkills,
 } from "./posture.js";
+import { resolvePrivilege, disclaimFor } from "./privilege.js";
 import { buildSpawnEnv } from "./spawn-env.js";
 
 /**
@@ -176,6 +177,24 @@ export class AgentRunner {
    * @param {Record<string, string>} [configEnv] - Extra env vars from config
    */
   async wake(agentName, agent, state, configEnv) {
+    // Resolve the mandatory privilege level before any work. A missing or
+    // invalid level is fail-closed: log and skip the wake — no agent process is
+    // spawned with a guessed privilege. The level lives in the user-only trust
+    // root, so a spawned agent cannot raise its own.
+    let level;
+    try {
+      level = resolvePrivilege(agent);
+    } catch (err) {
+      this.#log(
+        JSON.stringify({
+          event: "outpost.privilege.rejected",
+          agent: agentName,
+          error: err.message,
+        }),
+      );
+      return;
+    }
+
     if (!agent.kb) {
       this.#log(`Agent ${agentName}: no "kb" specified, skipping.`);
       return;
@@ -191,6 +210,13 @@ export class AgentRunner {
     const claude = await this.#findClaude();
 
     this.#log(`Waking agent: ${agentName} (kb: ${agent.kb})`);
+    this.#log(
+      JSON.stringify({
+        event: "outpost.privilege.resolved",
+        agent: agentName,
+        level,
+      }),
+    );
 
     const as = (state.agents[agentName] ||= {});
     as.status = "active";
@@ -226,6 +252,7 @@ export class AgentRunner {
         env,
         kbPath,
         this.#runtime,
+        disclaimFor(level),
       );
       this.#activeChildren.add(pid);
 
