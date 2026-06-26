@@ -55,56 +55,29 @@
     </p>
     <p><strong>Grant privacy access:</strong></p>
     <p>
-      Outpost reads from Apple Mail, Calendar, and Contacts. macOS requires
-      three separate grants on first launch:
+      Outpost reads from Apple Mail, Calendar, and Contacts. Grant every
+      permission to one app &mdash; <strong>Outpost</strong>, from
+      <code>/Applications/Forward Impact/</code> &mdash; and the scheduler and
+      the agents it runs are covered. You never grant access to
+      <code>node</code>, <code>claude</code>, or any other helper process.
     </p>
     <p>
       <strong>1. Files &amp; Folders</strong> &mdash;
       <code
         >System Settings &rarr; Privacy &amp; Security &rarr; Files &amp;
         Folders</code
-      >. When macOS prompts for Documents / Mail / Calendar folders, grant
-      access to each of these processes:
-    </p>
-    <ul>
-      <li>
-        <strong>Outpost</strong> &mdash; the TCC responsible process (Swift
-        launcher)
-      </li>
-      <li>
-        <strong>node</strong> &mdash; runs skill scripts with
-        <code>#!/usr/bin/env node</code> shebangs
-      </li>
-      <li>
-        A version number like <strong>&ldquo;2.1.72&rdquo;</strong> &mdash; this
-        is the Claude Code CLI. macOS shows its version string instead of a
-        name. Safe to grant per-folder access.
-      </li>
-    </ul>
-    <p>
-      <strong>2. Full Disk Access</strong> &mdash;
-      <code
-        >System Settings &rarr; Privacy &amp; Security &rarr; Full Disk
-        Access</code
-      >. The <code>sync-apple-mail</code> and <code>sync-apple-calendar</code>
-      skills read the macOS Mail and Calendar SQLite databases directly. Click
-      <strong>+</strong> and add <strong>Outpost</strong> from
-      <code>/Applications/Forward Impact/</code>. Without this, calendar and mail
-      sync fail silently.
+      >. Prefer this over Full Disk Access: grant <strong>Outpost</strong> only
+      the folders it needs. When macOS prompts, allow access to your knowledge
+      base folder and to Mail and Calendar as each sync first reads them.
+      Without these grants, calendar and mail sync fail silently.
     </p>
     <p>
-      <strong>3. Automation</strong> &mdash;
+      <strong>2. Automation</strong> &mdash;
       <code
         >System Settings &rarr; Privacy &amp; Security &rarr; Automation</code
       >. The <code>draft-emails</code> skill sends mail by driving Apple Mail
       through AppleScript. On first send attempt macOS will prompt &ldquo;allow
       Outpost to control Mail&rdquo; &mdash; click <strong>Allow</strong>.
-    </p>
-    <p>
-      If you are upgrading from a previous Outpost version and a process stops
-      working, toggle its entry <strong>off</strong> then <strong>on</strong>
-      again in the same panel &mdash; macOS revokes the permission when the
-      binary changes.
     </p>
     <p><strong>Next steps:</strong></p>
     <p>1. Populate your identity from the corporate directory:</p>
