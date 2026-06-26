@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 // legitimate subprocess test per binary, so it lives in an
 // `*.integration.test.js` file (exempt from the subprocess-in-tests invariant).
 
-const BINS = ["fit-eval", "fit-benchmark", "fit-trace", "fit-selfedit"];
+const BINS = ["fit-harness", "fit-benchmark", "fit-trace", "fit-selfedit"];
 
 function binPath(name) {
   return fileURLToPath(new URL(`../bin/${name}.js`, import.meta.url));

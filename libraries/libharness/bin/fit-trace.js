@@ -50,7 +50,7 @@ const fileOption = () => ({
 const definition = {
   name: "fit-trace",
   description:
-    "Download, query, and analyze agent execution traces — read NDJSON output from fit-eval as qualitative research",
+    "Download, query, and analyze agent execution traces — read NDJSON output from fit-harness as qualitative research",
   commands: [
     {
       name: "runs",
@@ -455,7 +455,7 @@ const definition = {
       title: "Run an Eval",
       url: "https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md",
       description:
-        "How `fit-eval supervise` produces the traces this skill analyzes.",
+        "How `fit-harness supervise` produces the traces this skill analyzes.",
     },
     {
       title: "Prove Agent Changes",

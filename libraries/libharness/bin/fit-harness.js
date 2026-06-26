@@ -50,7 +50,7 @@ const TASK_INPUT_OPTIONS = {
 };
 
 const definition = {
-  name: "fit-eval",
+  name: "fit-harness",
   description:
     "Run agents and capture NDJSON traces — for agent evaluations or multi-agent collaboration",
   commands: [
@@ -287,12 +287,12 @@ const definition = {
     json: { type: "boolean", description: "Output help as JSON" },
   },
   examples: [
-    "fit-eval run --task-file=task.md --output=trace.ndjson",
-    "fit-eval run --task-file=task.md --work-tracker=filesystem --output=trace.ndjson",
-    "fit-eval supervise --task-file=task.md --lead-profile=judge --agent-profile=coder --output=trace.ndjson",
-    'fit-eval facilitate --task-file=task.md --lead-profile=lead --agent-profiles="security-engineer,technical-writer" --output=trace.ndjson',
-    'fit-eval discuss --task-file=task.md --lead-profile=release-engineer --agent-profiles="staff-engineer,security-engineer" --discussion-id=GD_kw...',
-    "fit-eval output --format=text < trace.ndjson",
+    "fit-harness run --task-file=task.md --output=trace.ndjson",
+    "fit-harness run --task-file=task.md --work-tracker=filesystem --output=trace.ndjson",
+    "fit-harness supervise --task-file=task.md --lead-profile=judge --agent-profile=coder --output=trace.ndjson",
+    'fit-harness facilitate --task-file=task.md --lead-profile=lead --agent-profiles="security-engineer,technical-writer" --output=trace.ndjson',
+    'fit-harness discuss --task-file=task.md --lead-profile=release-engineer --agent-profiles="staff-engineer,security-engineer" --discussion-id=GD_kw...',
+    "fit-harness output --format=text < trace.ndjson",
   ],
   documentation: [
     {
@@ -311,7 +311,7 @@ const definition = {
       title: "Analyze Traces",
       url: "https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md",
       description:
-        "Read the NDJSON traces produced by `fit-eval` with `fit-trace` — grounded-theory method and worked examples.",
+        "Read the NDJSON traces produced by `fit-harness` with `fit-trace` — grounded-theory method and worked examples.",
     },
     {
       title: "Agent Teams",

@@ -16,12 +16,12 @@ traces they produce, and edits skill files under controlled conditions.
 
 | CLI             | Purpose                                                                |
 | --------------- | ---------------------------------------------------------------------- |
-| `fit-eval`      | Run agents in `run`/`supervise`/`facilitate`/`discuss` subcommands.    |
-| `fit-trace`     | Download, query, and analyze NDJSON traces produced by `fit-eval`.     |
+| `fit-harness`      | Run agents in `run`/`supervise`/`facilitate`/`discuss` subcommands.    |
+| `fit-trace`     | Download, query, and analyze NDJSON traces produced by `fit-harness`.     |
 | `fit-benchmark` | Run task families for N runs each and aggregate pass@k.                |
 | `fit-selfedit`  | Write stdin to `.claude/**` paths, gated by settings.json + branch.    |
 
-`fit-eval`'s subcommands share one orchestration loop and one async tool
+`fit-harness`'s subcommands share one orchestration loop and one async tool
 surface, below. The `judge` role is a profile passed to `supervise`.
 
 ## Modes
@@ -147,7 +147,7 @@ Each line is `{ "source": "<participant|orchestrator>", "seq": N, "event":
 and `summary`. `event` is the SDK event verbatim or the orchestrator
 payload. `fit-trace` consumes this format.
 
-Redaction is on by default for `fit-eval run`/`supervise`/`facilitate`
+Redaction is on by default for `fit-harness run`/`supervise`/`facilitate`
 and composes two layers:
 
 - **Env-var allowlist** — `ANTHROPIC_API_KEY`, `GH_TOKEN`, `GITHUB_TOKEN`

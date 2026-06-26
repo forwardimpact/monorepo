@@ -24,7 +24,7 @@ export async function parseSuperviseOptions(values, runtime) {
   const tmpRoot = runtime.proc.env.TMPDIR ?? "/tmp";
   const agentCwd = resolve(
     values["agent-cwd"] ??
-      (await runtime.fs.mkdtemp(join(tmpRoot, "fit-eval-agent-"))),
+      (await runtime.fs.mkdtemp(join(tmpRoot, "fit-harness-agent-"))),
   );
 
   return {
@@ -58,7 +58,7 @@ export async function parseSuperviseOptions(values, runtime) {
  * orchestration loop. The supervisor delegates work through Ask, sees
  * each reply on its next turn, and ends with Conclude.
  *
- * Usage: fit-eval supervise [options]
+ * Usage: fit-harness supervise [options]
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: boolean, code?: number, error?: string}>}

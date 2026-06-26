@@ -271,7 +271,7 @@ export class TraceCollector {
 
   /**
    * Render the accumulated turns as human-readable text — the same path the
-   * live `TeeWriter` stream uses, so `fit-eval output --format=text` over a
+   * live `TeeWriter` stream uses, so `fit-harness output --format=text` over a
    * captured trace reproduces what the live workflow log showed.
    *
    * Source prefixes are emitted whenever at least one turn has a non-null

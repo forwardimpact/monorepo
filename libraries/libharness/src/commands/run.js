@@ -44,7 +44,7 @@ export function parseRunOptions(values, runtime) {
 /**
  * Run command — execute a single agent via the Claude Agent SDK.
  *
- * Usage: fit-eval run [options]
+ * Usage: fit-harness run [options]
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: boolean, code?: number, error?: string}>}

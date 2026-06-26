@@ -64,7 +64,7 @@ export function parseFacilitateOptions(values, runtime) {
 /**
  * Facilitate command — run a facilitated multi-agent session.
  *
- * Usage: fit-eval facilitate [options]
+ * Usage: fit-harness facilitate [options]
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: boolean, code?: number, error?: string}>}

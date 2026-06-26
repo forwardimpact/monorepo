@@ -34,7 +34,7 @@ const INVOKE_RE = /\b(?:npx|bunx)\s+(?:-y\s+|--yes\s+)?(fit-[a-z][a-z-]*)/g;
 // Subsumed by docs/skills today; kept so an action-only CLI stays public.
 export const SIBLING_ACTION_CLIS = [
   "fit-benchmark",
-  "fit-eval",
+  "fit-harness",
   "fit-trace",
   "fit-wiki",
 ];
@@ -62,7 +62,7 @@ const ALLOWED_KEYS = new Set([
  * The canonical launcher bin file — byte-exact, LF, single trailing newline.
  *
  * @param {string} cli - Invoked name, e.g. "fit-trace".
- * @param {string} srcName - Scoped source package, e.g. "@forwardimpact/libeval".
+ * @param {string} srcName - Scoped source package, e.g. "@forwardimpact/libharness".
  * @returns {string}
  */
 export function canonicalBinContent(cli, srcName) {

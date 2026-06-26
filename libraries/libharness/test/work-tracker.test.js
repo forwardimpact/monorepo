@@ -18,7 +18,7 @@ function makeRuntime(env = {}) {
   return { fs: createMockFs(), proc: { env: { ...env } } };
 }
 
-describe("--work-tracker resolution across fit-eval agent commands", () => {
+describe("--work-tracker resolution across fit-harness agent commands", () => {
   test("run resolves --work-tracker filesystem", () => {
     const opts = parseRunOptionsEval(
       { "task-text": "do a thing", "work-tracker": "filesystem" },
@@ -127,7 +127,7 @@ describe("--work-tracker resolution across fit-eval agent commands", () => {
   });
 });
 
-describe("fit-eval handlers write LIBEVAL_WORK_TRACKER unconditionally", () => {
+describe("fit-harness handlers write LIBEVAL_WORK_TRACKER unconditionally", () => {
   // The handler writes runtime.proc.env.LIBEVAL_WORK_TRACKER = workTracker
   // immediately after the --agent-profile block. Replay that one-line write
   // against the parsed value to assert the env var lands with the right

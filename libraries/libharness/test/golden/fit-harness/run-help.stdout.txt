@@ -1,6 +1,6 @@
-fit-eval run — Run a single agent autonomously on a defined task
+fit-harness run — Run a single agent autonomously on a defined task
 
-Usage: fit-eval run [options]
+Usage: fit-harness run [options]
 
 Options:
   --task-file=<string>      Path to a markdown task file

@@ -69,7 +69,7 @@ function writeTrace(records) {
   };
 }
 
-describe("fit-eval callback", () => {
+describe("fit-harness callback", () => {
   beforeEach(() => {
     globalThis.fetch = REAL_FETCH;
   });

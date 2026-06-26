@@ -1,18 +1,18 @@
 {
-  "name": "fit-eval",
+  "name": "fit-harness",
   "version": "0.0.0",
-  "description": "Run fit-eval from the npm registry — launcher for @forwardimpact/libharness",
+  "description": "Run fit-harness from the npm registry — launcher for @forwardimpact/libharness",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",
-    "directory": "launchers/fit-eval"
+    "directory": "launchers/fit-harness"
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "bin": {
-    "fit-eval": "./bin/fit-eval.js"
+    "fit-harness": "./bin/fit-harness.js"
   },
   "files": [
     "bin/"
