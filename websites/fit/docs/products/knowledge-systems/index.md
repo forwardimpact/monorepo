@@ -40,26 +40,26 @@ Outpost Scheduler
 
 Agents:
   + postman
-    KB: ~/Documents/Personal  Schedule: {"type":"cron","expression":"*/15 8-18 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/personal  Schedule: {"type":"cron","expression":"*/15 8-18 * * 1-5"}
     Status: idle  Last wake: 5/4/2026, 9:15:00 AM  Wakes: 12
     Last action: Synced 3 new mail threads
   + concierge
-    KB: ~/Documents/Personal  Schedule: {"type":"cron","expression":"*/30 8-18 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/personal  Schedule: {"type":"cron","expression":"*/30 8-18 * * 1-5"}
     Status: idle  Last wake: 5/4/2026, 9:00:00 AM  Wakes: 6
     Last action: Prepared briefing for 10:00 AM standup
   + librarian
-    KB: ~/Documents/Personal  Schedule: {"type":"cron","expression":"0 9,12,15,18 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/personal  Schedule: {"type":"cron","expression":"0 9,12,15,18 * * 1-5"}
     Status: idle  Last wake: 5/4/2026, 9:00:00 AM  Wakes: 3
     Last action: Extracted 5 entities from recent mail
   + chief-of-staff
-    KB: ~/Documents/Personal  Schedule: {"type":"cron","expression":"0 7,18 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/personal  Schedule: {"type":"cron","expression":"0 7,18 * * 1-5"}
     Status: idle  Last wake: 5/4/2026, 7:00:00 AM  Wakes: 2
     Last action: Compiled daily briefing
   + recruiter
-    KB: ~/Documents/Personal  Schedule: {"type":"cron","expression":"0 8,12,17 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/personal  Schedule: {"type":"cron","expression":"0 8,12,17 * * 1-5"}
     Status: never-woken  Last wake: never  Wakes: 0
   + head-hunter
-    KB: ~/Documents/Personal  Schedule: {"type":"cron","expression":"0 9 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/personal  Schedule: {"type":"cron","expression":"0 9 * * 1-5"}
     Status: never-woken  Last wake: never  Wakes: 0
 ```
 
@@ -86,7 +86,7 @@ a knowledge graph -- plain markdown files organized by entity type. Only the
 OneDrive); the rest of the workspace stays personal and local:
 
 ```text
-~/Documents/Personal/          # Your personal root -- NOT shared
+~/.local/share/fit/outpost/personal/          # Your personal root -- NOT shared
 ├── Knowledge/                 # The knowledge graph -- SHARED with the team
 │   ├── People/                # One note per person you interact with
 │   ├── Organizations/         # Companies, teams, departments
@@ -108,7 +108,7 @@ background you would otherwise reconstruct from memory before a meeting.
 You can search the graph directly:
 
 ```sh
-rg "Sarah Chen" ~/Documents/Personal/Knowledge/
+rg "Sarah Chen" ~/.local/share/fit/outpost/personal/Knowledge/
 ```
 
 ```text
@@ -129,18 +129,22 @@ briefings earlier.
 
 Agent schedules live in the Outpost configuration file at
 `~/.fit/outpost/scheduler.json`. Each agent entry specifies a knowledge base
-path, a schedule, and whether the agent is enabled:
+path, a required `privilege` level (`full` for agents that sync the live
+mail/calendar stores or send mail, `restricted` for agents that only process
+already-synced content), a schedule, and whether the agent is enabled:
 
 ```json
 {
   "agents": {
     "postman": {
-      "kb": "~/Documents/Personal",
+      "kb": "~/.local/share/fit/outpost/personal",
+      "privilege": "full",
       "schedule": { "type": "cron", "expression": "*/15 8-18 * * 1-5" },
       "enabled": true
     },
     "chief-of-staff": {
-      "kb": "~/Documents/Personal",
+      "kb": "~/.local/share/fit/outpost/personal",
+      "privilege": "restricted",
       "schedule": { "type": "cron", "expression": "0 7,18 * * 1-5" },
       "enabled": true
     }
@@ -207,11 +211,11 @@ Outpost ships updated agent definitions and skills with each release. To
 fetch the latest into your knowledge base:
 
 ```sh
-npx fit-outpost update ~/Documents/Personal
+npx fit-outpost update ~/.local/share/fit/outpost/personal
 ```
 
 ```text
-Updating ~/Documents/Personal...
+Updating ~/.local/share/fit/outpost/personal...
   CLAUDE.md              updated
   agents/postman.md      updated
   skills/sync-apple-mail unchanged
@@ -223,7 +227,7 @@ Omit the path to update the knowledge base in the current directory, so you
 can run it from inside the KB itself:
 
 ```sh
-cd ~/Documents/Personal
+cd ~/.local/share/fit/outpost/personal
 npx fit-outpost update
 ```
 

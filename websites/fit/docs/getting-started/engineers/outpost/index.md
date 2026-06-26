@@ -52,8 +52,12 @@ package degrades cleanly off-Apple yet. Switch to a Mac to continue.
 ## Initialize a knowledge base
 
 ```sh
-npx fit-outpost init ~/Documents/Personal
+npx fit-outpost init
 ```
+
+This provisions the default `personal` knowledge base at
+`~/.local/share/fit/outpost/personal`. Pass a name (for example,
+`npx fit-outpost init team`) to provision a second one beside it.
 
 ## Check status
 
@@ -72,20 +76,24 @@ background work. The CLI scheduler works on any platform.
 
 ## macOS Privacy & Security
 
-Outpost needs access to the folders it reads — your knowledge base, Mail, and
-Calendar. Grant every permission to a single app, **fit-outpost.app**, and the
-whole scheduler and the agents it runs are covered. You never grant access to
-`node`, `claude`, or any other helper process.
+Outpost needs access to the live Mail and Calendar stores it reads. Grant every
+permission to a single app, **fit-outpost.app**, and the whole scheduler and the
+agents it runs are covered. You never grant access to `node`, `claude`, or any
+other helper process.
 
-When macOS prompts, prefer specific **Files & Folders** access over **Full Disk
-Access**. Open **System Settings > Privacy & Security > Files & Folders** and
-grant `fit-outpost.app` only the folders it needs:
+Outpost runs two kinds of agent, and they need different access:
 
-- Your knowledge base folder (for example, `~/Documents/Personal`)
-- Mail and Calendar, when a sync first reads them
+- **`full` agents** sync the live Mail and Calendar stores or send mail. They
+  read those stores and drive Mail under the one `fit-outpost.app` grant.
+- **`restricted` agents** only process already-synced content and your knowledge
+  base, which lives outside every protected folder
+  (`~/.local/share/fit/outpost/`). They need **no** macOS grant — even if
+  compromised, a `restricted` agent cannot reach protected files.
 
-If a draft-side skill sends mail, macOS also prompts once under **Automation** to
-let `fit-outpost.app` control Mail — click **Allow**.
+When macOS prompts for the Mail and Calendar stores, grant **Full Disk Access**
+to `fit-outpost.app`. If a draft-side skill sends mail, macOS also prompts once
+under **Automation** to let `fit-outpost.app` control Mail — click **Allow**.
+Your knowledge base needs no grant.
 
 ---
 

@@ -24,6 +24,33 @@ export class KBManager {
   }
 
   /**
+   * Resolve a knowledge-base name to its path under the XDG data home,
+   * `~/.local/share/fit/outpost/<name>`. The argument is a single path segment,
+   * never an arbitrary filesystem path, so a provisioned KB always lands outside
+   * TCC-protected folders. The name is validated — not sanitised — against the
+   * same rule as `agent-path.js`: a name carrying `/`, `\`, `..`, NUL, or a
+   * leading `~` could steer the KB back inside `~/Documents`, reopening the TCC
+   * hole, so it is rejected rather than rewritten.
+   * @param {string} name - The KB name (e.g. `personal`, `team`).
+   * @returns {string} Absolute path under the data home.
+   * @throws {Error} when `name` is empty, non-string, or an unsafe segment.
+   */
+  static kbPathForName(name) {
+    if (
+      typeof name !== "string" ||
+      name.length === 0 ||
+      name.includes("/") ||
+      name.includes("\\") ||
+      name.includes("..") ||
+      name.includes("\0") ||
+      name.startsWith("~")
+    ) {
+      throw new Error(`unsafe KB name: ${JSON.stringify(name)}`);
+    }
+    return join(homedir(), ".local/share/fit/outpost", name);
+  }
+
+  /**
    * Test whether a path exists, via the async fs surface.
    * @param {string} p
    * @returns {Promise<boolean>}

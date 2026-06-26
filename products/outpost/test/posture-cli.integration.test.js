@@ -46,7 +46,7 @@ describe("fit-outpost posture CLI (subprocess integration)", () => {
   });
 
   test("init records the default brief posture", () => {
-    const r = runCli(["init", join(home, "kb")], home);
+    const r = runCli(["init", "personal"], home);
     assert.strictEqual(r.status, 0, r.stderr);
     const record = JSON.parse(
       readFileSync(join(home, ".fit", "outpost", "posture.json"), "utf8"),

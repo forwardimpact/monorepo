@@ -128,9 +128,14 @@ export function readOutput(filePath, runtime) {
  * @param {Record<string, string>} [env] - Environment (defaults to current)
  * @param {string} [cwd] - Working directory for the child process
  * @param {object} [runtime] - Runtime collaborator bag
+ * @param {0|1} [disclaim=0] - TCC responsibility for the child. `0` keeps the
+ *   parent chain's responsible process (the child's access attributes to that
+ *   process, e.g. fit-outpost.app, so one grant covers the subtree); `1` makes
+ *   the child responsible for itself, so the parent's grants are not extended
+ *   to it.
  * @returns {{ pid: number, stdoutFile: string, stderrFile: string }}
  */
-export function spawn(executable, args, env, cwd, runtime) {
+export function spawn(executable, args, env, cwd, runtime, disclaim = 0) {
   const { proc, clock, fsSync } = runtime;
   const argv = buildStringArray([executable, ...args]);
   const envObj = env ?? { ...proc.env };
@@ -157,12 +162,13 @@ export function spawn(executable, args, env, cwd, runtime) {
 
   libc.symbols.posix_spawnattr_init(attr);
 
-  // Do NOT disclaim TCC responsibility: with disclaim = 0 the child keeps the
-  // parent chain's responsible process, so its access is attributed to
-  // fit-outpost.app and a single grant to the app covers the whole subtree.
-  // (disclaim = 1 makes the child responsible for itself, defeating the
-  // single-grant model — see products/outpost/macos/TCC-VERIFICATION.md.)
-  setDisclaim(attr, 0);
+  // Apply the per-wake TCC responsibility setting. With disclaim = 0 the child
+  // keeps the parent chain's responsible process, so its access is attributed
+  // to fit-outpost.app and a single grant to the app covers the whole subtree.
+  // With disclaim = 1 the child is responsible for itself, so the app's grants
+  // are not extended to it (used for least-privilege agents — see
+  // products/outpost/macos/TCC-VERIFICATION.md).
+  setDisclaim(attr, disclaim);
 
   libc.symbols.posix_spawn_file_actions_init(fa);
 

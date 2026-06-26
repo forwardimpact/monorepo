@@ -8,77 +8,14 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { AgentRunner } from "../src/agent-runner.js";
 import {
-  spy,
-  createTestRuntime,
-  createMockFs,
-  createMockProcess,
-} from "@forwardimpact/libmock";
-
-const TEST_KB = "/work/outpost-test-kb";
-const POSTURE_PATH = "/home/u/.fit/outpost/posture.json";
-const MANIFEST_PATH = "/pkg/config/skill-postures.json";
-const MANIFEST = {
-  "draft-emails": "draft",
-  "organize-files": "draft",
-  "send-chat": "draft",
-  "meeting-prep": "brief",
-  "extract-entities": "brief",
-};
-const DRAFT_TOKENS =
-  "Skill(draft-emails) Skill(organize-files) Skill(send-chat)";
-
-/** The posture-config object every AgentRunner construction needs. */
-const postureCfg = () => ({
-  posturePath: POSTURE_PATH,
-  manifestPath: MANIFEST_PATH,
-});
-
-/**
- * Create a mock spawn module that records calls and returns a successful result.
- * @param {Object} [options]
- * @param {number} [options.exitCode=0]
- * @param {string} [options.stdout="ok"]
- * @returns {{ module: Object, calls: Array }}
- */
-function createMockSpawn({ exitCode = 0, stdout = "ok" } = {}) {
-  const calls = [];
-  return {
-    calls,
-    module: {
-      spawn(executable, args, env, cwd) {
-        calls.push({ executable, args, env, cwd });
-        return {
-          pid: 999,
-          stdoutFile: "/tmp/mock-stdout",
-          stderrFile: "/tmp/mock-stderr",
-        };
-      },
-      readOutput: () => stdout,
-      waitForExit: async () => exitCode,
-    },
-  };
-}
-
-function createMockStateManager() {
-  return {
-    save: spy(async () => {}),
-    updateAgentState: spy(async () => {}),
-  };
-}
-
-/**
- * Build a runtime whose mock fs reports TEST_KB as existing and whose proc env
- * carries the supplied vars.
- * @param {Record<string,string>} env
- */
-function makeRuntime(env, files = {}) {
-  const fs = createMockFs({
-    [MANIFEST_PATH]: JSON.stringify(MANIFEST),
-    ...files,
-  });
-  fs.dirs.add(TEST_KB);
-  return createTestRuntime({ fs, proc: createMockProcess({ env }) });
-}
+  TEST_KB,
+  POSTURE_PATH,
+  DRAFT_TOKENS,
+  postureCfg,
+  createMockSpawn,
+  createMockStateManager,
+  makeRuntime,
+} from "./helpers.js";
 
 describe("AgentRunner", () => {
   describe("constructor validation", () => {
@@ -108,7 +45,11 @@ describe("AgentRunner", () => {
         postureCfg(),
       );
 
-      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB, privilege: "full" },
+        { agents: {} },
+      );
 
       assert.strictEqual(calls.length, 1);
       assert.strictEqual(calls[0].env.HOME, "/home/u");
@@ -129,7 +70,7 @@ describe("AgentRunner", () => {
       const configEnv = { ANTHROPIC_API_KEY: "sk-test-123" };
       await runner.wake(
         "test-agent",
-        { kb: TEST_KB },
+        { kb: TEST_KB, privilege: "full" },
         { agents: {} },
         configEnv,
       );
@@ -154,7 +95,7 @@ describe("AgentRunner", () => {
       const configEnv = { NODE_EXTRA_CA_CERTS: "/etc/ssl/custom-ca.pem" };
       await runner.wake(
         "test-agent",
-        { kb: TEST_KB },
+        { kb: TEST_KB, privilege: "full" },
         { agents: {} },
         configEnv,
       );
@@ -178,7 +119,7 @@ describe("AgentRunner", () => {
       const configEnv = { ANTHROPIC_API_KEY: "sk-from-config" };
       await runner.wake(
         "test-agent",
-        { kb: TEST_KB },
+        { kb: TEST_KB, privilege: "full" },
         { agents: {} },
         configEnv,
       );
@@ -199,7 +140,7 @@ describe("AgentRunner", () => {
 
       await runner.wake(
         "test-agent",
-        { kb: TEST_KB },
+        { kb: TEST_KB, privilege: "full" },
         { agents: {} },
         { ANTHROPIC_API_KEY: "~/certs/ca-bundle.pem" },
       );
@@ -224,7 +165,7 @@ describe("AgentRunner", () => {
         postureCfg(),
       );
 
-      const agent = { kb: TEST_KB };
+      const agent = { kb: TEST_KB, privilege: "full" };
       const state = { agents: {} };
       const configEnv = { NODE_OPTIONS: "--require=/tmp/evil.js" };
       await runner.wake("test-agent", agent, state, configEnv);
@@ -262,7 +203,7 @@ describe("AgentRunner", () => {
 
       await runner.wake(
         "test-agent",
-        { kb: TEST_KB },
+        { kb: TEST_KB, privilege: "full" },
         { agents: {} },
         undefined,
       );
@@ -285,7 +226,11 @@ describe("AgentRunner", () => {
         postureCfg(),
       );
 
-      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB, privilege: "full" },
+        { agents: {} },
+      );
       // pid 999 was tracked during wake but removed on exit; force one in.
       runner.activeChildren.add(4242);
       runner.killActiveChildren();
@@ -312,7 +257,11 @@ describe("AgentRunner", () => {
         postureCfg(),
       );
 
-      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB, privilege: "full" },
+        { agents: {} },
+      );
 
       const args = calls[0].args;
       const denyIdx = args.indexOf("--disallowedTools");
@@ -336,7 +285,11 @@ describe("AgentRunner", () => {
         postureCfg(),
       );
 
-      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB, privilege: "full" },
+        { agents: {} },
+      );
 
       assert.ok(calls[0].args.includes("--disallowedTools"));
     });
@@ -355,7 +308,11 @@ describe("AgentRunner", () => {
         postureCfg(),
       );
 
-      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB, privilege: "full" },
+        { agents: {} },
+      );
 
       const args = calls[0].args;
       assert.ok(!args.includes("--disallowedTools"));
@@ -377,7 +334,11 @@ describe("AgentRunner", () => {
         postureCfg(),
       );
 
-      await runner.wake("test-agent", { kb: TEST_KB }, { agents: {} });
+      await runner.wake(
+        "test-agent",
+        { kb: TEST_KB, privilege: "full" },
+        { agents: {} },
+      );
 
       const wrotePosture = runtime.fs.writeFile.mock.calls.some(
         (c) => c.arguments[0] === POSTURE_PATH,
