@@ -18,8 +18,8 @@
 #            and exit. Consumed by fit-bootstrap to scope its actions/cache.
 #
 # All third-party version strings and SHAs live here; the fit-* binaries are
-# pinned by release tag (overridable via the FIT_*_RELEASE env vars below) and
-# verified against the .sha256 sidecar published alongside each asset.
+# pinned by release tag (overridable via the FIT_GEAR_RELEASE env var below)
+# and verified against the .sha256 sidecar published alongside each asset.
 set -euo pipefail
 
 PREFIX="${INSTALL_PREFIX:-$HOME/.local}"
@@ -31,22 +31,12 @@ LIB_DIR="$PREFIX/lib"
 DEFAULT_TOOLS=(apm just gh rg gitleaks)
 
 # ── fit-* binary release coordinates ─────────────────────────────
-# Pinned release tags the fit-* binaries are pulled from. The publish step
-# stamps the live tag into the released copy of this script; any caller may
-# override via the environment to pin a different release.
+# Every installable fit-* CLI (fit-trace, fit-wiki, fit-harness, …) ships in
+# the gear bundle, so one release tag carries them all. The publish step stamps
+# the live tag into the released copy of this script; any caller may override
+# via the environment to pin a different release.
 FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
 FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.6}"
-FIT_WIKI_RELEASE="${FIT_WIKI_RELEASE:-wiki@v0.0.0}"
-
-# Map a fit-* CLI to the release tag that carries its binary. Gear-bundle CLIs
-# (the default) ship on the gear release; fit-wiki ships on its own native
-# release. Product-bundled CLIs (fit-map, fit-pathway, …) would extend this.
-fit_release_for() {
-  case "$1" in
-    fit-wiki) echo "$FIT_WIKI_RELEASE" ;;
-    *)        echo "$FIT_GEAR_RELEASE" ;;
-  esac
-}
 
 # Bun compile target for this platform. Binaries are built only for linux-x64
 # and darwin-arm64; any other platform is unsupported and fails hard — this is
@@ -176,7 +166,7 @@ install_fit_cli() {
     return 0
   fi
 
-  release="$(fit_release_for "$name")"
+  release="$FIT_GEAR_RELEASE"
   base="https://github.com/${FIT_RELEASE_REPO}/releases/download/${release}/${name}-${target}"
 
   local tmp_dir bin_tmp sha

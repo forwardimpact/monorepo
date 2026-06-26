@@ -61,9 +61,9 @@ with no output.
 
 `scripts/fit-install.sh` is the single bootstrap path — it installs the
 external tools and pinned, SHA-verified `fit-*` binaries into `$HOME/.local`.
-`gear@v*` publishes it for one-line `curl | bash` use; a missing binary fails
-hard, no `bunx`/`npx` fallback. **`publish-native.yml`** is the raw-binary
-release channel for null-bundle CLIs (`fit-wiki`).
+`publish-binaries.yml` publishes it on `gear@v*` with the gear CLI binaries
+(`fit-wiki` included) for one-line `curl | bash` bootstrap. A missing binary
+fails hard — no `bunx`/`npx` fallback.
 
 ## Local composite actions
 

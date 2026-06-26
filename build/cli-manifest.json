@@ -179,7 +179,7 @@
     {
       "name": "fit-wiki",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
-      "bundle": null
+      "bundle": "gear"
     }
   ]
 }

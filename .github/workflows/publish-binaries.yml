@@ -283,21 +283,12 @@ jobs:
 
       - name: Stamp and stage fit-install.sh
         if: needs.meta.outputs.bundle == 'gear'
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          # Newest published wiki release (fit-wiki's native channel), so the
-          # stamped script pins a real wiki binary when one exists; left at the
-          # script's default (graceful skip) when none does.
-          WIKI_REL="$(gh api "repos/${GITHUB_REPOSITORY}/releases" --paginate \
-            -q '.[].tag_name' 2>/dev/null | grep '^wiki@v' | sort -V | tail -1 || true)"
-          sed \
-            -e "s|^FIT_GEAR_RELEASE=.*|FIT_GEAR_RELEASE=\"\${FIT_GEAR_RELEASE:-${GITHUB_REF_NAME}}\"|" \
-            ${WIKI_REL:+-e "s|^FIT_WIKI_RELEASE=.*|FIT_WIKI_RELEASE=\"\${FIT_WIKI_RELEASE:-${WIKI_REL}}\"|"} \
+          sed "s|^FIT_GEAR_RELEASE=.*|FIT_GEAR_RELEASE=\"\${FIT_GEAR_RELEASE:-${GITHUB_REF_NAME}}\"|" \
             src/scripts/fit-install.sh > dist/release/fit-install.sh
           chmod +x dist/release/fit-install.sh
-          echo "Stamped fit-install.sh: gear=${GITHUB_REF_NAME} wiki=${WIKI_REL:-<default>}"
+          echo "Stamped fit-install.sh: gear=${GITHUB_REF_NAME}"
 
       - name: Create release and upload assets
         env:
