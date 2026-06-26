@@ -48,7 +48,7 @@ const definition = {
     },
     {
       name: "init",
-      args: "<path>",
+      args: "[name]",
       description: "Initialize a new knowledge base",
     },
     {
@@ -118,11 +118,11 @@ describe("fit-outpost CLI parsing", () => {
     assert.deepStrictEqual(result.positionals, []);
   });
 
-  test('parse(["init", "/tmp/kb"]) returns correct positionals', () => {
+  test('parse(["init", "personal"]) returns correct positionals', () => {
     const proc = createProc();
     const cli = createCli(proc);
-    const result = cli.parse(["init", "/tmp/kb"]);
-    assert.deepStrictEqual(result.positionals, ["init", "/tmp/kb"]);
+    const result = cli.parse(["init", "personal"]);
+    assert.deepStrictEqual(result.positionals, ["init", "personal"]);
   });
 
   test('parse(["--version"]) returns null (version handled)', () => {

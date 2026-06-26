@@ -4,7 +4,7 @@
 //   fit-outpost                     Wake due agents once and exit
 //   fit-outpost daemon              Run continuously (poll every 60s)
 //   fit-outpost wake <agent>        Wake a specific agent immediately
-//   fit-outpost init <path>         Initialize a new knowledge base
+//   fit-outpost init [name]         Initialize a knowledge base by name (default: personal)
 //   fit-outpost update [path]       Update KB with latest CLAUDE.md, agents and skills (defaults to current directory)
 //   fit-outpost stop                Gracefully stop daemon and all running agents
 //   fit-outpost validate            Validate agent definitions exist
@@ -58,7 +58,7 @@ function buildDefinition(version) {
       },
       {
         name: "init",
-        args: "<path>",
+        args: "[name]",
         description: "Initialize a new knowledge base",
       },
       {
@@ -433,13 +433,20 @@ export async function run(runtime, version) {
       return 1;
     },
     init: async () => {
-      if (!args[0]) {
-        cli.usageError("missing required argument <path>");
+      // `init [name]` provisions a KB by name under the data home (default
+      // `personal`), never an arbitrary path — so the substrate cannot be
+      // steered back into a TCC-protected folder. An unsafe name is refused.
+      const name = args[0] ?? "personal";
+      let target;
+      try {
+        target = KBManager.kbPathForName(name);
+      } catch {
+        cli.usageError(`invalid KB name "${name}"`);
         return 2;
       }
       const tpl = await requireTemplateDir();
       if (tpl === null) return 1;
-      const result = await kbManager.init(args[0], tpl);
+      const result = await kbManager.init(target, tpl);
       if (!result.ok) {
         proc.stderr.write(result.error + "\n");
         return result.code;
