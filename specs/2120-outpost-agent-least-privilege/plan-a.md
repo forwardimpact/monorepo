@@ -11,10 +11,12 @@ libmacos `spawn` primitive (`full` → `0`, inherit `fit-outpost.app`;
 `restricted` → `1`, self-responsible so the app's grants do not extend). A
 missing or invalid level throws, is logged as `outpost.privilege.rejected`, and
 skips the wake — no default. The default knowledge base moves unconditionally
-from `~/Documents/Personal` (TCC-protected) to `~/.local/share/fit/outpost/kb`
-(non-TCC) so a self-responsible `restricted` agent works with no grant. Docs,
-installer copy, and the TCC runbook follow the relocation and gain the
-`restricted`-denial probe.
+from `~/Documents/Personal` (TCC-protected) to
+`~/.local/share/fit/outpost/personal` (non-TCC) so a self-responsible
+`restricted` agent works with no grant, and `fit-outpost init [name]` provisions
+a KB by name under the data home (default `personal`) rather than taking an
+arbitrary path. Docs, installer copy, and the TCC runbook follow the relocation
+and gain the `restricted`-denial probe.
 
 Libraries used: libmacos (spawn).
 
@@ -51,7 +53,7 @@ directly (not through the wrapper), so the libmacos primitive's actual FFI
 imports `posix-spawn.js` (it `dlopen`s `bun:ffi` at module load and is not
 node/Linux-importable, which is why no `posix-spawn.test.js` exists). The
 disclaim **value** is asserted at the AgentRunner mock boundary (Step 3); the
-disclaim **effect** rests solely on the manual runbook (Step 6).
+disclaim **effect** rests solely on the manual runbook (Step 7).
 
 ## Step 2 — Add the privilege resolver module
 
@@ -172,7 +174,7 @@ Pin a level on every shipped agent and move the bundled KB path off Documents.
 
 Each agent gains `"privilege"`, classified by whether its job reads the live
 mail/calendar stores or sends mail (→ `full`) or only the synced cache and KB
-(→ `restricted`); every `"kb"` becomes `"~/.local/share/fit/outpost/kb"`:
+(→ `restricted`); every `"kb"` becomes `"~/.local/share/fit/outpost/personal"`:
 
 | Agent | Job basis (template skills) | Level |
 | --- | --- | --- |
@@ -188,26 +190,76 @@ mail/calendar stores or sends mail (→ `full`) or only the synced cache and KB
 `outpost-cli.test.js` is a CLI-help fixture test with no config-loading seam, so
 add a dedicated test that reads the bundled `config/scheduler.json` and, for
 every agent, asserts (a) `privilege` is one of `PRIVILEGE_LEVELS` (imported from
-`../src/privilege.js`) and (b) `kb` does not start with a TCC-protected prefix.
-The bundled paths are stored `~`-prefixed and unexpanded, so the check is a
-literal `startsWith` against `~/Documents`, `~/Desktop`, `~/Downloads`,
-`~/Library`. This is a config-shape guard on the shipped file only — it does not
-add a runtime path constraint in the code.
+`../src/privilege.js`), (b) `kb` does not start with a TCC-protected prefix, and
+(c) `kb` is under `~/.local/share/fit/outpost/`. The bundled paths are stored
+`~`-prefixed and unexpanded, so the checks are literal `startsWith` against
+`~/Documents`, `~/Desktop`, `~/Downloads`, `~/Library` (b) and against
+`~/.local/share/fit/outpost/` (c). This is a config-shape guard on the shipped
+file only — it does not add a runtime path constraint in the code.
 
 Verification: `bun test products/outpost`.
 
-## Step 5 — Relocate the default KB in the installer
+## Step 5 — Provision a named KB under the data home in `init`
+
+Make `init` take a KB **name** under the data home instead of an arbitrary
+path, so a provisioned KB always lands outside TCC-protected folders.
+
+- Modified: `products/outpost/src/outpost.js`
+- Modified: `products/outpost/src/kb-manager.js`
+- Modified: `products/outpost/test/outpost-cli.test.js`
+- Created: `products/outpost/test/kb-name.test.js`
+
+The CLI definition's `init` arg changes from `<path>` to `[name]`
+(`outpost.js:61`, and the mirrored fixture in `outpost-cli.test.js:51`); the
+description is unchanged. Add a validated resolver — `kbPathForName(name)` on
+`KBManager` (a static method or exported helper) — that rejects an unsafe name
+with the `agent-path.js` rule (non-string, empty, `/`, `\`, `..`, NUL, leading
+`~`) and otherwise returns `join(homedir(), ".local/share/fit/outpost", name)`.
+The `init` dispatch (`outpost.js:435`) drops its `if (!args[0]) usageError`
+guard and instead does:
+
+```js
+const name = args[0] ?? "personal";
+let target;
+try {
+  target = kbManager.kbPathForName(name);
+} catch {
+  cli.usageError(`invalid KB name "${name}"`);
+  return 2;
+}
+const result = await kbManager.init(target, tpl);
+```
+
+So a bare `init` provisions the default `personal` KB, `init team` provisions a
+second one, and `init ../escape` (or any TCC-folder attempt) is refused. The
+name segment is the same safe-segment shape `agent-path.js` already validates;
+keep the predicate close to it (import a shared check or mirror the cheap
+`includes` tests) — do not silently sanitise.
+
+The `init` golden parse test (`outpost-cli.test.js:121`,
+`parse(["init", "/tmp/kb"])`) becomes `parse(["init", "personal"])` and the
+embedded definition's `args` is updated to `[name]` so the help fixture stays
+byte-identical to the live definition. The new `kb-name.test.js` asserts:
+`kbPathForName("personal")` resolves under `~/.local/share/fit/outpost/`; an
+absent name defaults (at the dispatch layer) to `personal`; each unsafe form
+(`/`, `\`, `..`, NUL, leading `~`, empty, non-string) throws.
+
+Verification: `bun test products/outpost/test/outpost-cli.test.js
+products/outpost/test/kb-name.test.js`.
+
+## Step 6 — Relocate the default KB in the installer
 
 - Modified: `products/outpost/pkg/macos/postinstall`
 
-`DEFAULT_KB="$REAL_HOME/.local/share/fit/outpost/kb"` (was
-`$REAL_HOME/Documents/Personal`). The `init "$DEFAULT_KB"` call already creates
-the directory tree, so the relocated parent is created on install.
+`DEFAULT_KB="$REAL_HOME/.local/share/fit/outpost/personal"` (was
+`$REAL_HOME/Documents/Personal`), used for the existence check, and the
+provisioning call becomes `init personal` (resolved by Step 5 to that same
+path, which creates the directory tree) rather than passing a full path.
 
-Verification: no CI for the pkg path; covered by the runbook (Step 6) and a
+Verification: no CI for the pkg path; covered by the runbook (Step 7) and a
 `shellcheck` pass.
 
-## Step 6 — Extend the TCC verification runbook
+## Step 7 — Extend the TCC verification runbook
 
 - Modified: `products/outpost/macos/TCC-VERIFICATION.md`
 
@@ -226,7 +278,7 @@ fields to the Results block.
 
 Verification: documentation review against spec Success Criteria 1–3.
 
-## Step 7 — Update end-user docs and installer copy
+## Step 8 — Update end-user docs and installer copy
 
 - Modified: `websites/fit/outpost/index.md`,
   `websites/fit/docs/getting-started/engineers/outpost/index.md`,
@@ -234,11 +286,14 @@ Verification: documentation review against spec Success Criteria 1–3.
   `products/outpost/pkg/macos/conclusion.html`,
   `products/outpost/pkg/macos/uninstall.sh`
 
-Relocate every `~/Documents/Personal` and `~/Documents/Team` reference to
-`~/.local/share/fit/outpost/kb` — including the `npx fit-outpost init …` command
-examples (product page line 153, getting-started line 55), the `welcome.html`
-default-KB line, the `conclusion.html` `cd …` and `identify.sh` paths, and the
-`uninstall.sh` "data preserved" / `rm -rf` lines. In the product page § macOS Privacy & Security
+Relocate every `~/Documents/Personal` reference to
+`~/.local/share/fit/outpost/personal` and every `~/Documents/Team` reference to
+`~/.local/share/fit/outpost/team` — including the `npx fit-outpost init …`
+command examples (product page line 153, getting-started line 55), which become
+`npx fit-outpost init` for the default `personal` KB and `npx fit-outpost init
+team` for a second one; the `welcome.html` default-KB line; the
+`conclusion.html` `cd …` and `identify.sh` paths; and the `uninstall.sh` "data
+preserved" / `rm -rf` lines. In the product page § macOS Privacy & Security
 and the getting-started page, add a short description of which agents need which
 macOS permissions: `full` agents (mail/calendar sync and mail send) read the live
 stores under the one `fit-outpost.app` grant; `restricted` agents operate on the
@@ -263,13 +318,13 @@ manual review of installer copy.
   Out of scope. The runbook and docs must call this out; there is no fallback.
 - **TCC denial is CI-unverifiable.** Code tests assert only the disclaim arg and
   the reject/resolve events; Success Criteria 1–3 rest entirely on the manual
-  runbook (Step 6), the durable guard.
+  runbook (Step 7), the durable guard.
 
 ## Execution
 
-Single PR (`plan(2120): …`). Steps 1–5 are coupled code changes (libmacos
-signature ↔ wake threading; bundled-config paths ↔ resolver) — route to an
-engineering agent (`staff-engineer`). Steps 6–7 (runbook, docs, installer copy)
-share no code with 1–5 and can run in parallel — route to `technical-writer` —
-but must land in the same PR so the relocated path agrees across config, code,
-and docs.
+Single PR (`plan(2120): …`). Steps 1–6 are coupled code changes (libmacos
+signature ↔ wake threading; bundled-config paths ↔ resolver ↔ `init` name
+resolution ↔ installer) — route to an engineering agent (`staff-engineer`).
+Steps 7–8 (runbook, docs, installer copy) share no code with 1–6 and can run in
+parallel — route to `technical-writer` — but must land in the same PR so the
+relocated path agrees across config, code, and docs.
