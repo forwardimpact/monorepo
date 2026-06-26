@@ -1,7 +1,7 @@
 name: "Sibling edit"
 
 # Permission-scoped, audited edit of one sibling composite-action repo
-# (forwardimpact/{fit-bootstrap,fit-eval,fit-benchmark,fit-wiki,kata-agent}).
+# (forwardimpact/{fit-bootstrap,fit-harness,fit-benchmark,fit-wiki,kata-agent}).
 # The in-workflow token is monorepo-scoped and cannot push to a sibling, so
 # this dispatch is the only first-class path to a legitimate sibling edit. The
 # five guardrails (G1-G5) below are enforced verbatim.
@@ -25,7 +25,7 @@ on:
   workflow_dispatch:
     inputs:
       sibling:
-        description: "Sibling repo to edit (one of: fit-bootstrap, fit-eval, fit-benchmark, fit-wiki, kata-agent)"
+        description: "Sibling repo to edit (one of: fit-bootstrap, fit-harness, fit-benchmark, fit-wiki, kata-agent)"
         required: true
         type: string
       edit-command:
@@ -82,7 +82,7 @@ jobs:
           else
             # G3: literal equality against exactly the fixed five.
             case "${SIBLING_INPUT}" in
-              "fit-bootstrap"|"fit-eval"|"fit-benchmark"|"fit-wiki"|"kata-agent")
+              "fit-bootstrap"|"fit-harness"|"fit-benchmark"|"fit-wiki"|"kata-agent")
                 sibling_validated="${SIBLING_INPUT}" ;;
               *)
                 outcome="sibling-rejected" ;;

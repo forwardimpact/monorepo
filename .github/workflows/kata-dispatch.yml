@@ -152,7 +152,7 @@ jobs:
       # this surface preserves the same template-injection-safe contract.
       - name: Assess and Act
         id: assess
-        uses: forwardimpact/fit-eval@c616487598df0840ce237ee375ad7a9837213714 # v1
+        uses: forwardimpact/fit-harness@6af713fe23701ed1001631c8d3118075561cc41e # v1
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
