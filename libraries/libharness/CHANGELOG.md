@@ -1,9 +1,30 @@
 # Changelog
 
-All notable changes to `@forwardimpact/libeval`'s `fit-trace` CLI are recorded
-here.
+All notable changes to `@forwardimpact/libharness`'s CLIs are recorded here.
 
 ## Unreleased
+
+### Renamed: libeval → libharness (breaking, v1.0.0)
+
+The library is renamed to reflect the role it plays — the Kata agent
+**harness** — while keeping its evaluation capability. This is a clean break
+with no aliases or shims; consumers migrate in one step.
+
+- **Package**: `@forwardimpact/libeval` → `@forwardimpact/libharness`. The
+  version takes a fresh major, `1.0.0`.
+- **CLI**: `fit-eval` → `fit-harness`. The `fit-trace`, `fit-benchmark`, and
+  `fit-selfedit` CLIs keep their names.
+- **Sibling action**: `forwardimpact/fit-eval` → `forwardimpact/fit-harness`.
+- **Env-var contract (breaking)**: every `LIBEVAL_*` name is renamed to
+  `LIBHARNESS_*` (`AGENT_PROFILE`, `SKILL`, `WORK_TRACKER`,
+  `REDACTION_DISABLED`, `REDACTION_ENV_VARS`). The old names stop being
+  recognized — no alias, no fallback, no deprecation window. A configuration
+  that still sets `LIBEVAL_*` gets the default as if unset. **Migration:**
+  rename each `LIBEVAL_<NAME>` to `LIBHARNESS_<NAME>` in any CI or environment
+  that sets it. This is the single-step migration path.
+- The evaluation domain vocabulary (`evaluateAssertion`, the `Judge`, "run an
+  eval", the framework description) is unchanged — the harness and evaluation
+  are distinct concepts.
 
 ### fit-trace browse-mode analysis
 
