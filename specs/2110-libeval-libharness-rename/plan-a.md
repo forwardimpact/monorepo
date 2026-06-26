@@ -206,8 +206,8 @@ hand-edit them.
 Concrete: run `bun run context:fix`; commit only its output.
 
 **Verify:** `bun run context:fix` produces no further diff;
-`rg 'libeval|@forwardimpact/libeval|LIBEVAL_' --glob '!specs/**' --glob '!**/CHANGELOG.md'`
-returns nothing, and `rg 'fit-eval' …` returns only the `uses:`/allowlist lines
+`rg --hidden 'libeval|@forwardimpact/libeval|LIBEVAL_' --glob '!specs/**' --glob '!**/CHANGELOG.md'`
+returns nothing, and `rg --hidden 'fit-eval' …` returns only the `uses:`/allowlist lines
 deferred to U6.
 
 ## Step U6 — Flip sibling `uses:` pins and allowlist (one commit, after X1)
@@ -224,7 +224,7 @@ Execution for ordering).
 
 **Verify:** every pinned SHA resolves on `forwardimpact/fit-harness`
 ([citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md));
-final `rg 'libeval|LIBEVAL_|fit-eval' --glob '!specs/**' --glob '!**/CHANGELOG.md'`
+final `rg --hidden 'libeval|LIBEVAL_|fit-eval' --glob '!specs/**' --glob '!**/CHANGELOG.md'`
 returns only the criterion-6 evaluation-domain keep-list (criterion 1).
 
 ## Step X1 — Sibling action repo (outside this checkout; runs before U6)
