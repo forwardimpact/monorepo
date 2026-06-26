@@ -157,15 +157,20 @@ npx fit-outpost status                  # Check what's happening
 
 ### macOS Privacy & Security
 
-Outpost agents need access to specific folders (Documents, Mail, Calendar). When
-macOS prompts, grant only the folders each process needs via **System Settings >
-Privacy & Security > Files & Folders**:
+Outpost needs access to the folders it reads — your knowledge base, Mail, and
+Calendar. Grant every permission to a single app, **fit-outpost.app**, and the
+whole scheduler and the agents it runs are covered. You never grant access to
+`node`, `claude`, or any other helper process.
 
-- **fit-outpost.app** — the TCC responsible process (Swift launcher)
-- **node** — runs skill scripts with `#!/usr/bin/env node` shebangs
-- **"2.1.72"** (or another version number) — this is the **Claude Code CLI**.
-  macOS shows its version string instead of a name. Safe to grant per-folder
-  access.
+When macOS prompts, prefer specific **Files & Folders** access over **Full Disk
+Access**. Open **System Settings > Privacy & Security > Files & Folders** and
+grant `fit-outpost.app` only the folders it needs:
+
+- Your knowledge base folder (for example, `~/Documents/Team`)
+- Mail and Calendar, when a sync first reads them
+
+If a draft-side skill sends mail, macOS also prompts once under **Automation** to
+let `fit-outpost.app` control Mail — click **Allow**.
 
 <div class="grid">
 

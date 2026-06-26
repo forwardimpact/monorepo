@@ -1,11 +1,9 @@
 # Outpost TCC Verification Runbook
 
-A manual macOS hardware procedure that both **diagnoses** whether Outpost's
-spawned agents need more than one TCC grant and **re-checks** that a single
-grant to `fit-outpost.app` still covers them after any change. There is no CI
-equivalent — TCC state cannot be exercised on Linux or in a headless runner — so
-this runbook is the durable guard, run once to diagnose and once per release to
-re-check.
+A manual macOS hardware procedure that **re-checks** that a single grant to
+`fit-outpost.app` covers Outpost's spawned agents after any change. There is no
+CI equivalent — TCC state cannot be exercised on Linux or in a headless runner —
+so this runbook is the durable guard, run once per release.
 
 ## What this measures
 
@@ -154,9 +152,8 @@ ad-hoc build with a deterministic cdhash survives a `brew upgrade`).
 
 ## Interpreting the result
 
-- **All axes pass with one grant, no change made** → the three-grant
-  documentation was stale; only the docs and spawn-site comments change, and the
-  work is internal.
+- **All axes pass with one grant, no change made** → the single-grant model
+  holds; nothing to change.
 - **Axis 1 fails (a hop resolves to its child)** → the disclaim setting at that
   hop misattributes; apply the recorded attribution-preserving setting to both
   hops and re-run.
@@ -189,6 +186,6 @@ Axis 2 — per-service honoring (under one fit-outpost.app grant)
 Axis 3 — persistence across re-signed upgrade
   grant survived, no re-prompt:             PASS/FAIL
 
-Diagnosed root cause:    <stale docs | disclaim setting | non-inherited service | persistence | combination>
-Fixes applied:           <none | Step 3 | Step 4 | Step 5 | combination>
+Finding:                 <single-grant holds | disclaim setting | non-inherited service | persistence | combination>
+Fixes applied:           <none | Step (g) | re-sign | combination>
 ```
