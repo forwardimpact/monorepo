@@ -75,7 +75,7 @@ jobs:
           TRACE_FILE: ${{ steps.agent.outputs.trace-file }}
         run: |
           if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
-            npx fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
+            fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No trace file produced — cost not reported."
           fi

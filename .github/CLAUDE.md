@@ -57,6 +57,14 @@ parent env, so setting it on the action environment suffices — kept out of
 `libharness` so it stays an environment decision. Without it the agent exits 1
 with no output.
 
+## Environment bootstrap
+
+`scripts/fit-install.sh` is the single bootstrap path — it installs the
+external tools and pinned, SHA-verified `fit-*` binaries into `$HOME/.local`.
+`publish-binaries.yml` publishes it on `gear@v*` with the gear CLI binaries
+(`fit-wiki` included) for one-line `curl | bash` bootstrap. A missing binary
+fails hard — no `bunx`/`npx` fallback.
+
 ## Local composite actions
 
 Workflow jobs read as a sequence of `uses:` steps — **not** walls of inline

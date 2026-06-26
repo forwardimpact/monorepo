@@ -1,27 +1,81 @@
 #!/usr/bin/env bash
-# Install external CLI dependencies into $HOME/.local.
-# All version strings live here — the bootstrap action keys its deps cache
-# on hashFiles('scripts/install-deps.sh'), so any version bump invalidates
-# the cache automatically.
+# Install the FIT environment: external CLI tools and/or pre-compiled fit-*
+# binaries, into $HOME/.local. One code path for every environment — CI
+# (fit-bootstrap), Claude session hooks, and `just install` all run this.
+#
+# This file is published verbatim as a GitHub Release asset (fit-install.sh),
+# so any environment can bootstrap with a single line, no repo checkout needed:
+#
+#   curl -fsSL <release-url>/fit-install.sh | bash -s -- fit-trace fit-wiki
+#
+# Usage:
+#   fit-install.sh [--paths] [NAME ...]
+#
+#   NAME   An external tool (apm, just, gh, rg, gitleaks) or a fit-* CLI
+#          (fit-trace, fit-harness, fit-wiki, …). With no NAME, installs the
+#          default external-tool set — the FIT dev/CI environment.
+#   --paths  Print the cache paths the requested names manage, one per line,
+#            and exit. Consumed by fit-bootstrap to scope its actions/cache.
+#
+# All third-party version strings and SHAs live here; the fit-* binaries are
+# pinned by release tag (overridable via the FIT_GEAR_RELEASE env var below)
+# and verified against the .sha256 sidecar published alongside each asset.
 set -euo pipefail
 
 PREFIX="${INSTALL_PREFIX:-$HOME/.local}"
 BIN_DIR="$PREFIX/bin"
 LIB_DIR="$PREFIX/lib"
 
-# Tools installed here, in install order. The same list drives `--paths`.
-TOOLS=(apm just gh rg gitleaks)
+# Default external-tool set, in install order. The same list drives `--paths`
+# when no names are given.
+DEFAULT_TOOLS=(apm just gh rg gitleaks)
 
-# `install-deps.sh --paths` prints the cache paths this script manages — each
-# tool's lib directory plus its bin symlink — one per line. The bootstrap
-# action feeds these into actions/cache so the deps cache holds only what this
-# script installs, not unrelated tooling that shares the prefix (uv, Python,
-# other XDG state under ~/.local). Layout is static, so this is correct even on
-# a cold cache before anything is installed.
-if [ "${1:-}" = "--paths" ]; then
-  for tool in "${TOOLS[@]}"; do
-    echo "$LIB_DIR/$tool"
-    echo "$BIN_DIR/$tool"
+# ── fit-* binary release coordinates ─────────────────────────────
+# Every installable fit-* CLI (fit-trace, fit-wiki, fit-harness, …) ships in
+# the gear bundle, so one release tag carries them all. The publish step stamps
+# the live tag into the released copy of this script; any caller may override
+# via the environment to pin a different release.
+FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
+FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.6}"
+
+# Bun compile target for this platform. Binaries are built only for linux-x64
+# and darwin-arm64; any other platform is unsupported and fails hard — this is
+# the binary distribution path, with no bunx/npx fallback.
+fit_target() {
+  case "$(uname -s)-$(uname -m)" in
+    Linux-x86_64)  echo "bun-linux-x64" ;;
+    Darwin-arm64)  echo "bun-darwin-arm64" ;;
+    *) echo "::error::no pre-compiled fit-* binary for $(uname -s)-$(uname -m)" >&2; exit 1 ;;
+  esac
+}
+
+is_fit_cli() { case "$1" in fit-*) return 0 ;; *) return 1 ;; esac; }
+
+# ── --paths / argument parsing ───────────────────────────────────
+PRINT_PATHS=0
+NAMES=()
+for arg in "$@"; do
+  case "$arg" in
+    --paths) PRINT_PATHS=1 ;;
+    *)       NAMES+=("$arg") ;;
+  esac
+done
+# No external/fit names → the default dev/CI tool set.
+if [ "${#NAMES[@]}" -eq 0 ]; then
+  NAMES=("${DEFAULT_TOOLS[@]}")
+fi
+
+if [ "$PRINT_PATHS" = "1" ]; then
+  # External tools cache as a lib dir + bin symlink; fit-* binaries are single
+  # files installed straight into BIN_DIR. Emit only what each name manages so
+  # the cache holds nothing unrelated that shares the prefix.
+  for name in "${NAMES[@]}"; do
+    if is_fit_cli "$name"; then
+      echo "$BIN_DIR/$name"
+    else
+      echo "$LIB_DIR/$name"
+      echo "$BIN_DIR/$name"
+    fi
   done
   exit 0
 fi
@@ -71,8 +125,8 @@ extract_archive() {
 # install_tool NAME VERSION URL SHA256 BINARY_PATH [STRIP]
 #
 # Extracts the archive into $LIB_DIR/$NAME and symlinks the binary at
-# $LIB_DIR/$NAME/$BINARY_PATH to $BIN_DIR/$NAME. Every tool follows this
-# same layout so the cache paths are predictable.
+# $LIB_DIR/$NAME/$BINARY_PATH to $BIN_DIR/$NAME. Every external tool follows
+# this same layout so the cache paths are predictable.
 install_tool() {
   local name="$1" version="$2" url="$3" sha256="$4" binary_path="$5" strip="${6:-0}"
 
@@ -96,7 +150,38 @@ install_tool() {
   echo "Installed $name $("$BIN_DIR/$name" --version | head -1)"
 }
 
-# ── Platform resolution ──────────────────────────────────────────
+# install_fit_cli NAME
+#
+# Download a pre-compiled fit-* binary from its pinned release, verify it
+# against the published .sha256 sidecar, and install it straight into BIN_DIR.
+# A missing binary (unsupported platform or unpublished release) fails hard —
+# there is no bunx/npx fallback.
+install_fit_cli() {
+  local name="$1"
+  local target release base
+  target="$(fit_target)"
+
+  if "$BIN_DIR/$name" --version &>/dev/null; then
+    echo "$name already installed"
+    return 0
+  fi
+
+  release="$FIT_GEAR_RELEASE"
+  base="https://github.com/${FIT_RELEASE_REPO}/releases/download/${release}/${name}-${target}"
+
+  local tmp_dir bin_tmp sha
+  tmp_dir=$(mktemp -d)
+  bin_tmp="$tmp_dir/$name"
+  curl -fsSL -o "$bin_tmp" "$base"
+  sha="$(curl -fsSL "${base}.sha256")"
+  sha_verify "$sha" "$bin_tmp"
+
+  install -m 0755 "$bin_tmp" "$BIN_DIR/$name"
+  rm -rf "$tmp_dir"
+  echo "Installed $name $("$BIN_DIR/$name" --version 2>/dev/null | head -1) ($release)"
+}
+
+# ── Platform resolution (external tools) ─────────────────────────
 #
 # Each resolve_* function declares the same locals (version, target, sha256,
 # binary_path, strip), resolves platform in the case block, builds the URL,
@@ -226,6 +311,13 @@ resolve_gitleaks() {
 
 # ── Install ──────────────────────────────────────────────────────
 
-for tool in "${TOOLS[@]}"; do
-  "resolve_$tool"
+for name in "${NAMES[@]}"; do
+  if is_fit_cli "$name"; then
+    install_fit_cli "$name"
+  elif declare -F "resolve_$name" >/dev/null; then
+    "resolve_$name"
+  else
+    echo "::error::unknown tool '$name' (expected one of: ${DEFAULT_TOOLS[*]}, or a fit-* CLI)" >&2
+    exit 1
+  fi
 done

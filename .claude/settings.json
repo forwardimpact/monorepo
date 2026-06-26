@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/install-deps.sh"
+            "command": "bash scripts/fit-install.sh"
           },
           {
             "type": "command",
