@@ -10,7 +10,7 @@ BIN_DIR="$PREFIX/bin"
 LIB_DIR="$PREFIX/lib"
 
 # Tools installed here, in install order. The same list drives `--paths`.
-TOOLS=(apm just gh rg)
+TOOLS=(apm just gh rg gitleaks)
 
 # `install-deps.sh --paths` prints the cache paths this script manages — each
 # tool's lib directory plus its bin symlink — one per line. The bootstrap
@@ -198,6 +198,30 @@ resolve_rg() {
 
   local url="https://github.com/BurntSushi/ripgrep/releases/download/${version}/ripgrep-${version}-${target}.tar.gz"
   install_tool rg "$version" "$url" "$sha256" "$binary_path" "$strip"
+}
+
+resolve_gitleaks() {
+  local version="8.30.1"
+  local target sha256 binary_path="gitleaks" strip=0
+
+  case "$OS-$ARCH" in
+    linux-x86_64)
+      target="linux_x64"
+      sha256="551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb" ;;
+    linux-aarch64)
+      target="linux_arm64"
+      sha256="e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570fb4b080" ;;
+    darwin-x86_64)
+      target="darwin_x64"
+      sha256="dfe101a4db2255fc85120ac7f3d25e4342c3c20cf749f2c20a18081af1952709" ;;
+    darwin-arm64)
+      target="darwin_arm64"
+      sha256="b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5" ;;
+    *) echo "::error::gitleaks: unsupported platform $OS-$ARCH" >&2; exit 1 ;;
+  esac
+
+  local url="https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_${target}.tar.gz"
+  install_tool gitleaks "$version" "$url" "$sha256" "$binary_path" "$strip"
 }
 
 # ── Install ──────────────────────────────────────────────────────
