@@ -57,6 +57,14 @@ parent env, so setting it on the action environment suffices — kept out of
 `libharness` so it stays an environment decision. Without it the agent exits 1
 with no output.
 
+## Environment bootstrap
+
+`scripts/fit-install.sh` is the single bootstrap path — external tools plus
+pinned, SHA-verified `fit-*` release binaries; `scripts/install-deps.sh`
+forwards to it, and `gear@v*` publishes it for one-line `curl | bash` use (see
+the script header). **`publish-native.yml`** is the unsigned raw-binary release
+channel for null-bundle CLIs (`fit-wiki`).
+
 ## Local composite actions
 
 Workflow jobs read as a sequence of `uses:` steps — **not** walls of inline

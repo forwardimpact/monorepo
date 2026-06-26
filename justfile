@@ -31,9 +31,9 @@ install-bun:
     bun install --frozen-lockfile
     bunx --workspace=@forwardimpact/libcodegen fit-codegen --all
 
-# Install CLI dependencies (apm, just, gh)
+# Install CLI dependencies (apm, just, gh, rg, gitleaks)
 install-deps:
-    bash scripts/install-deps.sh
+    bash scripts/fit-install.sh
 
 # Bootstrap from scratch
 quickstart: env-reset env-setup synthetic data-init codegen process-fast _quickstart-seed
