@@ -95,7 +95,7 @@ records before grouping; the single-file read is deleted.
     returns `[]` — that would silently flip the missing-dir case to exit 0 and
     break the retained golden; only an *existing* empty dir yields the empty
     union. (b) Preserve the deliberate stack collapse the current `loadRecords`
-    applies (report.js:445-448: `err.stack = \`Error: ${e.message}\``) so the CLI
+    applies (report.js:442-448: `err.stack = \`Error: ${e.message}\``) so the CLI
     error stays free of node-internal async frames; a raw `readdir` ENOENT would
     regenerate to a noisier golden that passes `--verify` while regressing error
     presentation. The existing `report-empty` golden points `--input` at

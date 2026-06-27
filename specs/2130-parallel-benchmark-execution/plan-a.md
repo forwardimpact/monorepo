@@ -13,11 +13,18 @@ three independently executable parts; each part is a clean break per
 > **split to a follow-up spec**; this plan ships Layer 1 (concurrency, ports,
 > ledger, scheduler) and Layer 2 (sharding, merge, distribution). Under
 > concurrency a 429'd cell records an `agentError` and costs one slot, not the
-> run — the run still completes. **Companion edits, outside kata-plan:** trim
-> spec 2130's backpressure in-scope row + "rate-limit failures back off" [L1]
-> criterion (`kata-spec`) and design-a's § Layer 1 `retryRateLimited` row
-> (`kata-design`), then open the follow-up spec. This plan is approvable once
-> those trims land. See [Part 01 Step 4](plan-a-01.md).
+> run — the run still completes.
+>
+> **Hard precondition on approval.** Until the companion trims land, the on-disk
+> spec.md (the "Rate-limit backpressure" in-scope row + the "rate-limit failures
+> back off" [L1] criterion) and design-a.md (§ Layer 1 `retryRateLimited` row)
+> still assert the descoped items, so this plan **contradicts its still-current
+> spec/design** and **must not be approved** (no `plan approved` STATUS write)
+> in that state. The companion edits — outside kata-plan — are: return spec 2130
+> to draft and trim those two spec items (`kata-spec`), remove the design's
+> § Layer 1 `retryRateLimited` row (`kata-design`), and open the follow-up
+> backpressure spec. Only once spec/design no longer carry backpressure is this
+> plan internally consistent and approvable. See [Part 01 Step 4](plan-a-01.md).
 
 ## Approach
 
@@ -36,7 +43,7 @@ schema, and pass@k math are untouched throughout.
 | --- | --- | --- | --- |
 | [01](plan-a-01.md) | Layer 1 — in-process concurrency: `enumerateCells`, `CellScheduler`, single-writer drain, `PortRegistry`, `resolveConcurrency` (Step 4 rate-limit backpressure **descoped** → follow-up spec) | `libraries/libharness` | — |
 | [02](plan-a-02.md) | Layer 2 (runner/report) — `selectShard`, `--shard` parsing, recursive `loadRecords` merge | `libraries/libharness` | 01 (`enumerateCells`) |
-| [03](plan-a-03.md) | Layer 2 (distribution) — composite-action `mode`/shard inputs, reusable workflow, `eval-kata.yml` migration, `fit-bootstrap` parallel-safety coordination, docs | `forwardimpact/fit-benchmark` sibling, `.github/`, `websites/` | 01, 02 (CLI flags) |
+| [03](plan-a-03.md) | Layer 2 (distribution) — sibling action `mode`/shard inputs + reusable workflow (edited via `gh`/`GH_TOKEN`, append-only patch tag), `fit-bootstrap` parallel-safety check, `eval-kata.yml` migration, `fit-benchmark` SKILL.md, docs | `forwardimpact/fit-benchmark`(+`fit-bootstrap`) siblings, `.github/`, `.claude/skills/`, `websites/` | 01, 02 (CLI flags) |
 
 ## Execution
 
@@ -46,19 +53,24 @@ schema, and pass@k math are untouched throughout.
   green before the action and workflow can compose them.
 - **Within a part**, steps are sequential as listed.
 - **Agent routing.** 01 and 02 → an engineering agent (`staff-engineer` or a
-  delegate); they are pure `libharness` code + tests. 03 splits: the
-  action/workflow/`eval-kata.yml` changes → an engineering agent who coordinates
-  the cross-sibling edge per § Cross-sibling coordination below; the
-  `websites/` guide updates → `technical-writer`.
-- **Cross-sibling coordination (gates 03).** The composite action and the new
+  delegate); they are pure `libharness` code + tests. 03: the sibling
+  action/workflow edits, the `fit-bootstrap` parallel-safety check, the
+  `eval-kata.yml` migration, and the `fit-benchmark` SKILL.md → an engineering
+  agent; the `websites/` guide updates → `technical-writer`.
+- **Cross-sibling edits (in Part 03's scope).** The composite action and the new
   `benchmark.yml` reusable workflow live in the `forwardimpact/fit-benchmark`
-  sibling, and the new `fit-benchmark → fit-bootstrap` `uses:` edge plus the
+  sibling; the new `fit-benchmark → fit-bootstrap` internal `uses:` edge and the
   `fit-bootstrap` parallel-safety requirement touch shared CI governed by
-  [`.github/CLAUDE.md`](../../.github/CLAUDE.md). Per spec § Path to approval,
-  these are coordinated with the sibling owners and land as append-only patch
-  tags on the siblings, consumed here via SHA-pinned `uses:` (Dependabot bump),
-  before `eval-kata.yml` migrates. Part 03 states the required interface; the
-  sibling edits themselves are out of this monorepo's tree.
+  [`.github/CLAUDE.md`](../../.github/CLAUDE.md). These edits are **executable in
+  this environment** — `GH_TOKEN` + `gh` carry content read/write, enough to
+  edit a sibling and cut an append-only `v1.0.x` patch tag (admin write is not
+  needed; if it ever is, route to `security-engineer`). The monorepo consumes
+  the tag via a SHA-pinned `uses:` with a `# v1` marker, per `.github/CLAUDE.md`
+  (the `enum:sibling-composite-actions:count` stays `Five` — no new sibling).
+  Part 03 § Sibling-edit mechanics gives the concrete procedure and sequencing
+  (interface tagged before the consumer migrates). A `fit-bootstrap` change, if
+  the parallel-safety check finds one is needed, is coordinated with its owner
+  as that sibling's own patch tag.
 
 ## Risks
 

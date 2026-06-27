@@ -151,7 +151,7 @@ export function resolveConcurrency(values, env = {}) {
       throw new Error("--concurrency must be a positive integer");
     return n;
   }
-  const cores = availableParallelism?.() ?? 1;
+  const cores = availableParallelism(); // node:os, present on supported Node
   return Math.min(CONCURRENCY_CEILING, Math.max(2, Math.floor(cores / 2)));
 }
 ```
