@@ -12,9 +12,9 @@ libmacos `spawn` primitive (`full` → `0`, inherit `fit-outpost.app`;
 missing or invalid level throws, is logged as `outpost.privilege.rejected`, and
 skips the wake — no default. The default knowledge base moves unconditionally
 from `~/Documents/Personal` (TCC-protected) to
-`~/.local/share/fit/outpost/personal` (non-TCC) so a self-responsible
+`~/.local/share/fit/outpost/team` (non-TCC) so a self-responsible
 `restricted` agent works with no grant, and `fit-outpost init [name]` provisions
-a KB by name under the data home (default `personal`) rather than taking an
+a KB by name under the data home (default `team`) rather than taking an
 arbitrary path. Docs, installer copy, and the TCC runbook follow the relocation
 and gain the `restricted`-denial probe.
 
@@ -174,7 +174,7 @@ Pin a level on every shipped agent and move the bundled KB path off Documents.
 
 Each agent gains `"privilege"`, classified by whether its job reads the live
 mail/calendar stores or sends mail (→ `full`) or only the synced cache and KB
-(→ `restricted`); every `"kb"` becomes `"~/.local/share/fit/outpost/personal"`:
+(→ `restricted`); every `"kb"` becomes `"~/.local/share/fit/outpost/team"`:
 
 | Agent | Job basis (template skills) | Level |
 | --- | --- | --- |
@@ -219,7 +219,7 @@ The `init` dispatch (`outpost.js:435`) drops its `if (!args[0]) usageError`
 guard and instead does:
 
 ```js
-const name = args[0] ?? "personal";
+const name = args[0] ?? "team";
 let target;
 try {
   target = kbManager.kbPathForName(name);
@@ -230,18 +230,18 @@ try {
 const result = await kbManager.init(target, tpl);
 ```
 
-So a bare `init` provisions the default `personal` KB, `init team` provisions a
+So a bare `init` provisions the default `team` KB, `init personal` provisions a
 second one, and `init ../escape` (or any TCC-folder attempt) is refused. The
 name segment is the same safe-segment shape `agent-path.js` already validates;
 keep the predicate close to it (import a shared check or mirror the cheap
 `includes` tests) — do not silently sanitise.
 
 The `init` golden parse test (`outpost-cli.test.js:121`,
-`parse(["init", "/tmp/kb"])`) becomes `parse(["init", "personal"])` and the
+`parse(["init", "/tmp/kb"])`) becomes `parse(["init", "team"])` and the
 embedded definition's `args` is updated to `[name]` so the help fixture stays
 byte-identical to the live definition. The new `kb-name.test.js` asserts:
-`kbPathForName("personal")` resolves under `~/.local/share/fit/outpost/`; an
-absent name defaults (at the dispatch layer) to `personal`; each unsafe form
+`kbPathForName("team")` resolves under `~/.local/share/fit/outpost/`; an
+absent name defaults (at the dispatch layer) to `team`; each unsafe form
 (`/`, `\`, `..`, NUL, leading `~`, empty, non-string) throws.
 
 Verification: `bun test products/outpost/test/outpost-cli.test.js
@@ -251,9 +251,9 @@ products/outpost/test/kb-name.test.js`.
 
 - Modified: `products/outpost/pkg/macos/postinstall`
 
-`DEFAULT_KB="$REAL_HOME/.local/share/fit/outpost/personal"` (was
+`DEFAULT_KB="$REAL_HOME/.local/share/fit/outpost/team"` (was
 `$REAL_HOME/Documents/Personal`), used for the existence check, and the
-provisioning call becomes `init personal` (resolved by Step 5 to that same
+provisioning call becomes `init team` (resolved by Step 5 to that same
 path, which creates the directory tree) rather than passing a full path.
 
 Verification: no CI for the pkg path; covered by the runbook (Step 7) and a
@@ -286,12 +286,12 @@ Verification: documentation review against spec Success Criteria 1–3.
   `products/outpost/pkg/macos/conclusion.html`,
   `products/outpost/pkg/macos/uninstall.sh`
 
-Relocate every `~/Documents/Personal` reference to
-`~/.local/share/fit/outpost/personal` and every `~/Documents/Team` reference to
-`~/.local/share/fit/outpost/team` — including the `npx fit-outpost init …`
-command examples (product page line 153, getting-started line 55), which become
-`npx fit-outpost init` for the default `personal` KB and `npx fit-outpost init
-team` for a second one; the `welcome.html` default-KB line; the
+Relocate every `~/Documents/Personal` and `~/Documents/Team` reference to
+`~/.local/share/fit/outpost/team` (the default KB) — including the
+`npx fit-outpost init …` command examples (product page line 153,
+getting-started line 55), which become `npx fit-outpost init` for the default
+`team` KB and `npx fit-outpost init personal` for a second one; the
+`welcome.html` default-KB line; the
 `conclusion.html` `cd …` and `identify.sh` paths; and the `uninstall.sh` "data
 preserved" / `rm -rf` lines. In the product page § macOS Privacy & Security
 and the getting-started page, add a short description of which agents need which

@@ -1,37 +1,37 @@
 {
   "agents": {
     "postman": {
-      "kb": "~/.local/share/fit/outpost/personal",
+      "kb": "~/.local/share/fit/outpost/team",
       "privilege": "full",
       "schedule": { "type": "cron", "expression": "*/15 8-18 * * 1-5" },
       "enabled": true
     },
     "concierge": {
-      "kb": "~/.local/share/fit/outpost/personal",
+      "kb": "~/.local/share/fit/outpost/team",
       "privilege": "full",
       "schedule": { "type": "cron", "expression": "*/30 8-18 * * 1-5" },
       "enabled": true
     },
     "librarian": {
-      "kb": "~/.local/share/fit/outpost/personal",
+      "kb": "~/.local/share/fit/outpost/team",
       "privilege": "restricted",
       "schedule": { "type": "cron", "expression": "0 9,12,15,18 * * 1-5" },
       "enabled": true
     },
     "chief-of-staff": {
-      "kb": "~/.local/share/fit/outpost/personal",
+      "kb": "~/.local/share/fit/outpost/team",
       "privilege": "restricted",
       "schedule": { "type": "cron", "expression": "0 7,18 * * 1-5" },
       "enabled": true
     },
     "recruiter": {
-      "kb": "~/.local/share/fit/outpost/personal",
+      "kb": "~/.local/share/fit/outpost/team",
       "privilege": "restricted",
       "schedule": { "type": "cron", "expression": "0 8,12,17 * * 1-5" },
       "enabled": true
     },
     "head-hunter": {
-      "kb": "~/.local/share/fit/outpost/personal",
+      "kb": "~/.local/share/fit/outpost/team",
       "privilege": "restricted",
       "schedule": { "type": "cron", "expression": "0 9 * * 1-5" },
       "enabled": true

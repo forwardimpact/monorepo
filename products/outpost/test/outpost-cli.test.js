@@ -118,11 +118,11 @@ describe("fit-outpost CLI parsing", () => {
     assert.deepStrictEqual(result.positionals, []);
   });
 
-  test('parse(["init", "personal"]) returns correct positionals', () => {
+  test('parse(["init", "team"]) returns correct positionals', () => {
     const proc = createProc();
     const cli = createCli(proc);
-    const result = cli.parse(["init", "personal"]);
-    assert.deepStrictEqual(result.positionals, ["init", "personal"]);
+    const result = cli.parse(["init", "team"]);
+    assert.deepStrictEqual(result.positionals, ["init", "team"]);
   });
 
   test('parse(["--version"]) returns null (version handled)', () => {

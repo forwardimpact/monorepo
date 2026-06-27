@@ -13,21 +13,21 @@ const DATA_HOME = join(homedir(), ".local/share/fit/outpost");
 describe("KBManager.kbPathForName", () => {
   test("resolves a name under the data home", () => {
     assert.strictEqual(
-      KBManager.kbPathForName("personal"),
-      join(DATA_HOME, "personal"),
+      KBManager.kbPathForName("team"),
+      join(DATA_HOME, "team"),
     );
   });
 
-  test("the default name personal resolves under the data home", () => {
-    // The dispatch layer defaults an absent name to `personal`; the resolved
+  test("the default name team resolves under the data home", () => {
+    // The dispatch layer defaults an absent name to `team`; the resolved
     // path must sit under the non-TCC data home.
-    assert.ok(KBManager.kbPathForName("personal").startsWith(DATA_HOME + "/"));
+    assert.ok(KBManager.kbPathForName("team").startsWith(DATA_HOME + "/"));
   });
 
   test("a second named KB resolves beside the first", () => {
     assert.strictEqual(
-      KBManager.kbPathForName("team"),
-      join(DATA_HOME, "team"),
+      KBManager.kbPathForName("personal"),
+      join(DATA_HOME, "personal"),
     );
   });
 
