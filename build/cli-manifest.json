@@ -180,6 +180,21 @@
       "name": "fit-wiki",
       "targets": ["bun-linux-x64", "bun-darwin-arm64"],
       "bundle": "gear"
+    },
+    {
+      "name": "fit-benchmark",
+      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "bundle": "gear"
+    },
+    {
+      "name": "fit-pack",
+      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "bundle": "gear"
+    },
+    {
+      "name": "coaligned",
+      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "bundle": "gear"
     }
   ]
 }

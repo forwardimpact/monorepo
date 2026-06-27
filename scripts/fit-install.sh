@@ -11,9 +11,9 @@
 # Usage:
 #   fit-install.sh [--paths] [NAME ...]
 #
-#   NAME   An external tool (apm, just, gh, rg, gitleaks) or a fit-* CLI
-#          (fit-trace, fit-harness, fit-wiki, …). With no NAME, installs the
-#          default external-tool set — the FIT dev/CI environment.
+#   NAME   An external tool (apm, just, gh, rg, gitleaks) or a gear binary —
+#          any fit-* CLI (fit-trace, fit-harness, fit-wiki, …) or coaligned.
+#          With no NAME, installs the default dev/CI tool set.
 #   --paths  Print the cache paths the requested names manage, one per line,
 #            and exit. Consumed by fit-bootstrap to scope its actions/cache.
 #
@@ -26,15 +26,17 @@ PREFIX="${INSTALL_PREFIX:-$HOME/.local}"
 BIN_DIR="$PREFIX/bin"
 LIB_DIR="$PREFIX/lib"
 
-# Default external-tool set, in install order. The same list drives `--paths`
-# when no names are given.
-DEFAULT_TOOLS=(apm just gh rg gitleaks)
+# Default dev/CI tool set, in install order: the third-party external tools
+# plus coaligned, which is one of our own gear binaries (pulled pre-compiled
+# from the gear release like any fit-* CLI, not from an upstream archive). The
+# same list drives `--paths` when no names are given.
+DEFAULT_TOOLS=(apm just gh rg gitleaks coaligned)
 
-# ── fit-* binary release coordinates ─────────────────────────────
-# Every installable fit-* CLI (fit-trace, fit-wiki, fit-harness, …) ships in
-# the gear bundle, so one release tag carries them all. The publish step stamps
-# the live tag into the released copy of this script; any caller may override
-# via the environment to pin a different release.
+# ── gear binary release coordinates ──────────────────────────────
+# Every installable gear binary (fit-trace, fit-wiki, fit-harness, …, plus
+# coaligned) ships in the gear bundle, so one release tag carries them all. The
+# publish step stamps the live tag into the released copy of this script; any
+# caller may override via the environment to pin a different release.
 FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
 FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.6}"
 
@@ -45,11 +47,15 @@ fit_target() {
   case "$(uname -s)-$(uname -m)" in
     Linux-x86_64)  echo "bun-linux-x64" ;;
     Darwin-arm64)  echo "bun-darwin-arm64" ;;
-    *) echo "::error::no pre-compiled fit-* binary for $(uname -s)-$(uname -m)" >&2; exit 1 ;;
+    *) echo "::error::no pre-compiled gear binary for $(uname -s)-$(uname -m)" >&2; exit 1 ;;
   esac
 }
 
-is_fit_cli() { case "$1" in fit-*) return 0 ;; *) return 1 ;; esac; }
+# A "gear binary" is one of our own bun-compiled CLIs published in the gear
+# release as a bare {name}-{target} file beside a .sha256 sidecar: every fit-*
+# CLI plus coaligned. They install straight into BIN_DIR (no lib dir), unlike
+# the third-party external tools that extract from an upstream archive.
+is_gear_binary() { case "$1" in fit-*|coaligned) return 0 ;; *) return 1 ;; esac; }
 
 # ── --paths / argument parsing ───────────────────────────────────
 PRINT_PATHS=0
@@ -70,7 +76,7 @@ if [ "$PRINT_PATHS" = "1" ]; then
   # files installed straight into BIN_DIR. Emit only what each name manages so
   # the cache holds nothing unrelated that shares the prefix.
   for name in "${NAMES[@]}"; do
-    if is_fit_cli "$name"; then
+    if is_gear_binary "$name"; then
       echo "$BIN_DIR/$name"
     else
       echo "$LIB_DIR/$name"
@@ -150,13 +156,13 @@ install_tool() {
   echo "Installed $name $("$BIN_DIR/$name" --version | head -1)"
 }
 
-# install_fit_cli NAME
+# install_gear_binary NAME
 #
-# Download a pre-compiled fit-* binary from its pinned release, verify it
-# against the published .sha256 sidecar, and install it straight into BIN_DIR.
-# A missing binary (unsupported platform or unpublished release) fails hard —
-# there is no bunx/npx fallback.
-install_fit_cli() {
+# Download a pre-compiled gear binary (any fit-* CLI or coaligned) from its
+# pinned gear release, verify it against the published .sha256 sidecar, and
+# install it straight into BIN_DIR. A missing binary (unsupported platform or
+# unpublished release) fails hard — there is no bunx/npx fallback.
+install_gear_binary() {
   local name="$1"
   local target release base
   target="$(fit_target)"
@@ -312,12 +318,12 @@ resolve_gitleaks() {
 # ── Install ──────────────────────────────────────────────────────
 
 for name in "${NAMES[@]}"; do
-  if is_fit_cli "$name"; then
-    install_fit_cli "$name"
+  if is_gear_binary "$name"; then
+    install_gear_binary "$name"
   elif declare -F "resolve_$name" >/dev/null; then
     "resolve_$name"
   else
-    echo "::error::unknown tool '$name' (expected one of: ${DEFAULT_TOOLS[*]}, or a fit-* CLI)" >&2
+    echo "::error::unknown tool '$name' (expected one of: ${DEFAULT_TOOLS[*]}, a fit-* CLI, or coaligned)" >&2
     exit 1
   fi
 done
