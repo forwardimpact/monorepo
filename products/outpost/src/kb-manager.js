@@ -2,7 +2,7 @@
  * KBManager — knowledge base init/update operations.
  */
 
-import { join, dirname, resolve } from "node:path";
+import { join, dirname, resolve, basename } from "node:path";
 import { homedir } from "node:os";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
@@ -214,11 +214,37 @@ export class KBManager {
       await this.#ensureDir(join(dest, d));
 
     await this.copyBundledFiles(templateDir, dest);
+    await this.#linkIntoDocuments(dest);
 
     this.#logger.info(
       `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. cd ${dest} && npx apm install\n  2. claude\n  3. Run the person-identify skill to populate your identity`,
     );
     return { ok: true, value: { dest } };
+  }
+
+  /**
+   * Create a navigation symlink at `~/Documents/<name>` pointing to the KB.
+   * The KB data itself stays under the XDG data home, outside TCC-protected
+   * folders — this is only a convenience pointer so the KB is easy to find and
+   * open from Finder. Best-effort: a pre-existing entry is left untouched, and
+   * any failure (e.g. macOS denying write access to `~/Documents`) is logged,
+   * never fatal, because the KB is already provisioned at `dest`.
+   * @param {string} dest - Absolute path to the provisioned KB.
+   * @returns {Promise<void>}
+   */
+  async #linkIntoDocuments(dest) {
+    const link = join(homedir(), "Documents", basename(dest));
+    if (await this.#exists(link)) {
+      this.#logger.info(`  Skipped ${link}: already exists`);
+      return;
+    }
+    try {
+      await this.#ensureDir(dirname(link));
+      await this.#fs.symlink(dest, link, "dir");
+      this.#logger.info(`  Linked ${link} -> ${dest}`);
+    } catch (err) {
+      this.#logger.info(`  Could not link into ~/Documents: ${err.message}`);
+    }
   }
 
   /**

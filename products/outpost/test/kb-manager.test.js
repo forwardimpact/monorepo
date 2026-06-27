@@ -1,5 +1,7 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import { join } from "node:path";
+import { homedir } from "node:os";
 import { KBManager } from "../src/kb-manager.js";
 import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 
@@ -125,6 +127,50 @@ describe("KBManager", () => {
       assert.ok(built.fs.dirs.has("/kb/Briefings"));
       assert.ok(!built.fs.dirs.has("/kb/Knowledge/People"));
       assert.ok(!built.fs.dirs.has("/kb/Knowledge/Briefings"));
+    });
+
+    test("links the KB into ~/Documents for easy navigation", async () => {
+      const built = makeRuntime({
+        "/tpl/CLAUDE.md": "# Instructions",
+        "/tpl/.claude/settings.json": '{"permissions":{}}',
+      });
+      const km = new KBManager(built.runtime, noop);
+      await km.init("/home/share/fit/outpost/Team", "/tpl");
+
+      const link = join(homedir(), "Documents", "Team");
+      const [target, path] = built.fs.symlink.mock.calls[0].arguments;
+      assert.strictEqual(target, "/home/share/fit/outpost/Team");
+      assert.strictEqual(path, link);
+    });
+
+    test("leaves a pre-existing ~/Documents entry untouched", async () => {
+      const link = join(homedir(), "Documents", "Team");
+      const built = makeRuntime({
+        "/tpl/CLAUDE.md": "# Instructions",
+        "/tpl/.claude/settings.json": '{"permissions":{}}',
+        [link]: "existing user file",
+      });
+      const km = new KBManager(built.runtime, noop);
+      await km.init("/home/share/fit/outpost/Team", "/tpl");
+
+      assert.strictEqual(built.fs.symlink.mock.callCount(), 0);
+      assert.strictEqual(built.fs.data.get(link), "existing user file");
+    });
+
+    test("succeeds even when the ~/Documents link cannot be created", async () => {
+      const built = makeRuntime({
+        "/tpl/CLAUDE.md": "# Instructions",
+        "/tpl/.claude/settings.json": '{"permissions":{}}',
+      });
+      built.fs.symlink.mock.mockImplementation(async () => {
+        const err = new Error("EPERM: operation not permitted");
+        err.code = "EPERM";
+        throw err;
+      });
+      const km = new KBManager(built.runtime, noop);
+      const result = await km.init("/home/share/fit/outpost/Team", "/tpl");
+
+      assert.strictEqual(result.ok, true);
     });
 
     test("returns error envelope when KB already exists", async () => {
