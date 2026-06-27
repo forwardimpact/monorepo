@@ -1,6 +1,6 @@
 ---
 title: Library Guides
-description: Workflow guides for the shared libraries that give humans and agents the same capabilities — memory, interfaces, knowledge, contracts, lifecycle, and evals.
+description: Workflow guides for the shared libraries that give humans and agents the same capabilities — memory, coordination, interfaces, knowledge, contracts, lifecycle, and evals.
 layout: product
 toc: false
 ---
@@ -17,7 +17,7 @@ toc: false
 
 </div>
 
-## Bridge Conversations to the Agent Team (Builders)
+## Coordinate an Agent Team (Builders)
 
 <div class="grid">
 
