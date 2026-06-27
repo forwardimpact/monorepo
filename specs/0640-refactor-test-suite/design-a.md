@@ -3,9 +3,9 @@
 ## Restatement
 
 The suite is 440 test files; only 156 (35%) import `@forwardimpact/libmock`,
-three named shared fixtures are still rebuilt inline at multiple sites, a tail of
-**unit** tests does real filesystem/subprocess I/O even though the source seams
-to avoid it now exist, 30 files exceed ~400 LOC, and three combinatorial
+three named shared fixtures are still rebuilt inline at multiple sites, a tail
+of **unit** tests does real filesystem/subprocess I/O even though the source
+seams to avoid it now exist, 30 files exceed ~400 LOC, and three combinatorial
 matrices cross-multiply axes that exercise one code path. The job is to lift
 fake reuse and cut maintenance surface — close the three fixture holes, migrate
 the residual real-I/O unit tests onto the existing `runtime` seam, tame the
@@ -67,8 +67,9 @@ flowchart TD
 ```
 
 Three artifacts land together for a new shared fixture: the export in libmock,
-its inline-shape rule in `check-libmock-rules.mjs`, and its README line. The lint
-enforces the contract; the README makes it discoverable; libmock holds the code.
+its inline-shape rule in `check-libmock-rules.mjs`, and its README line. The
+lint enforces the contract; the README makes it discoverable; libmock holds the
+code.
 
 ## Key Decisions
 
@@ -96,9 +97,9 @@ enforces the contract; the README makes it discoverable; libmock holds the code.
 ## Open Questions for the Plan
 
 1. **Sweep breadth for § B.** Beyond the libprompt/libtemplate loaders, which of
-   the remaining non-`integration` `mkdtemp` / subprocess files assert pure logic
-   (migrate) versus legitimately need real I/O (rename)? Plan enumerates; default
-   migrate only assertions that inspect pure logic.
+   the remaining non-`integration` `mkdtemp` / subprocess files assert pure
+   logic (migrate) versus legitimately need real I/O (rename)? Plan enumerates;
+   default migrate only assertions that inspect pure logic.
 2. **Property-check tooling.** Admit `fast-check` to the library set, or use a
    hand-rolled property loop? Default hand-rolled unless a matrix is genuinely
    property-shaped.

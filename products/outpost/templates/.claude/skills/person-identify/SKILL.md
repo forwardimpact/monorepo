@@ -98,7 +98,7 @@ Key attributes returned (names per Active Directory schema):
 
 - To look up **someone else**, use the sibling `person-lookup` skill — it takes
   free-text input (email or name), searches the Global Catalog forest-wide
-  (`ldap://$dc:3268 -b ''`), handles multiple matches, and does **not** touch the
-  identity cache.
+  (`ldap://$dc:3268 -b ''`), handles multiple matches, and does **not** touch
+  the identity cache.
 - Not Active Directory? The same `ldapsearch -Y GSSAPI` shape works against any
   Kerberos-backed LDAP directory; only the attribute names differ.

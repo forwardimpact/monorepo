@@ -38,7 +38,7 @@ grep "^export" libraries/{lib}/index.js
 
 **Capabilities column examples:**
 
-```
+```text
 | Library      | Capabilities                                            | Key Exports                                    |
 | ------------ | ------------------------------------------------------- | ---------------------------------------------- |
 | libutil      | Path resolution and upward directory search, bundle     | Finder, BundleDownloader, TarExtractor,        |

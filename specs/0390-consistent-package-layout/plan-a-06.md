@@ -533,11 +533,13 @@ After all 15 libraries:
 - Every `src/index.js` in each tier-A library exists.
 - Every subpath key in every tier-A `package.json` has a target that exists on
   disk. Spot-check by running a small script:
+
   ```js
   for each package.json in tier-A:
     for each ["./foo", "./src/foo.js"] in exports:
       assert statSync("libraries/<pkg>/src/foo.js").isFile()
   ```
+
   (The actual implementation uses the same walker logic as
   `scripts/check-package-layout.js`.)
 - `bun run test` passes, 0 regressions vs. the main-branch baseline.
@@ -580,7 +582,7 @@ After all 15 libraries:
    to `../src/`. This is the single most likely cause of post-move test
    failures. A sample audit command per package:
 
-   ```
+   ```text
    rg '^import .* from ["'\''](\.\./[^s])' libraries/<pkg>/test/
    ```
 
@@ -595,7 +597,7 @@ After all 15 libraries:
 
 ## Deliverable commit
 
-```
+```text
 refactor(layout): migrate 15 libraries (tier A) into src/ (part 06/08)
 
 Moves every tier-A library into a src/ subtree and rewrites every

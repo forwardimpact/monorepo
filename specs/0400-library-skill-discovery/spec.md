@@ -83,12 +83,13 @@ plan time has no checklist that says "look for an existing library."
 
 ### 4. Trust erodes on every stale name
 
-Spec 0130 found 13+ wrong names and missing exports across the six `libs-*` files
-(e.g. `WindowBuilder` claimed but actual export is `MemoryWindow`; `VectorIndex`
-claimed but not exported at all). Spec 0130 fixed those once, manually. There is
-no CI guard. Every library refactor can re-introduce the same class of error
-silently. After one stale-name runtime error, an agent learns "the skill files
-lie — reimplement instead." That trust loss reinforces every other failure mode.
+Spec 0130 found 13+ wrong names and missing exports across the six `libs-*`
+files (e.g. `WindowBuilder` claimed but actual export is `MemoryWindow`;
+`VectorIndex` claimed but not exported at all). Spec 0130 fixed those once,
+manually. There is no CI guard. Every library refactor can re-introduce the same
+class of error silently. After one stale-name runtime error, an agent learns
+"the skill files lie — reimplement instead." That trust loss reinforces every
+other failure mode.
 
 The `bun run check:exports` script already exists for `package.json` exports
 (spec 0390). The same idea applied to `Key Exports` columns in `libs-*` SKILL.md
@@ -200,9 +201,9 @@ The description must:
 - Stay under ~100 words so the router can skim it cheaply.
 
 Each SKILL.md body keeps its existing Decision Guide, Composition Recipes, and
-DI Wiring sections (already corrected by spec 0130 for the libraries that are not
-orphans). New `Libraries` table rows are added for all five orphans (`libtool`,
-`libcli`, `librepl`, `libeval`, `libuniverse`).
+DI Wiring sections (already corrected by spec 0130 for the libraries that are
+not orphans). New `Libraries` table rows are added for all five orphans
+(`libtool`, `libcli`, `librepl`, `libeval`, `libuniverse`).
 
 ### Move 3 — Add a discovery protocol to contributor workflow, planning, and agent profiles
 

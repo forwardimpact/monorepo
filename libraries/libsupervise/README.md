@@ -71,5 +71,8 @@ list from `config.json` and drives `fit-svscan` over the socket.
 
 ## Documentation
 
-- [Start, Stop, or Check a Service](https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md) — manage services through one interface, including the `fit-svscan` supervision daemon and `fit-logger` log rotation.
-- [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md) — the full lifecycle setup, including supervision and observability.
+- [Start, Stop, or Check a Service](https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md)
+  — manage services through one interface, including the `fit-svscan`
+  supervision daemon and `fit-logger` log rotation.
+- [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md)
+  — the full lifecycle setup, including supervision and observability.

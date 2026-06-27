@@ -4,7 +4,7 @@ Incremental improvements to the synthetic data libraries, LLM prompts, and
 universe DSL to raise the fidelity and cross-entity coherence of generated
 content so that tests and evaluations produce more reliable, meaningful results.
 
-```
+```text
 specs/0150-synthetic-fidelity/
   spec.md                       This document (WHAT and WHY)
 ```
@@ -331,7 +331,7 @@ producing content that is topically related but narratively incoherent.
 
 Extend the DSL `project` block to accept optional narrative fields:
 
-```
+```text
 project oncora {
   ...
   milestones ["Phase 2 completion", "Phase 3 enrollment start", "Interim data readout"]
@@ -360,7 +360,7 @@ narrative string gives the LLM a human story to ground quantitative patterns.
 
 Extend the DSL `scenario` block to accept a `narrative` string:
 
-```
+```text
 scenario oncora_push {
   ...
   narrative "The team is racing to complete Phase 3 enrollment before the FDA
@@ -386,7 +386,7 @@ Archetypes create distribution shapes that match organizational reality.
 
 Extend the DSL `people` block to declare optional archetypes:
 
-```
+```text
 people {
   ...
   archetypes {
@@ -417,7 +417,7 @@ weights let DSL authors control content mix.
 
 Extend the DSL `content` block to accept topic weights:
 
-```
+```text
 content guide_html {
   ...
   blog_topics {

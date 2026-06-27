@@ -2,8 +2,8 @@
 
 ## Goal
 
-Close out spec 0090 by bringing the documentation and repository metadata in line
-with the shipped implementation:
+Close out spec 0090 by bringing the documentation and repository metadata in
+line with the shipped implementation:
 
 1. Rewrite the existing Summit website pages against real behaviour.
 2. Add Summit to CONTRIBUTING.md and the operations reference where required.
@@ -156,13 +156,13 @@ full delivery, not a single commit marker.
 Two logical commits are appropriate here because documentation and status
 advancement are distinct concerns:
 
-```
+```text
 docs(summit): rewrite overview and internals pages against shipped commands
 ```
 
 and
 
-```
+```text
 chore(specs): advance spec 0090 to done
 ```
 

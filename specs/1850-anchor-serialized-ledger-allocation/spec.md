@@ -10,13 +10,12 @@ lost race destroys the allocation itself. The invariant in one sentence:
 **identity is allocated where writes serialize; the contested page only
 displays what the serialized record already holds.**
 
-This spec is the concrete artifact for the two scheduled evaluation
-points — the 6/24 Exp [#1565](https://github.com/forwardimpact/monorepo/issues/1565)
-read and the 7/02 verdict point of the RFC #873 lineage (per the
-obstacle's standing disposition). It does not pre-empt either: approval
-gates remain where they are, and the experiment's measures keep running
-unchanged. What changes is that those reads now evaluate a proposed
-structure instead of an unbounded repair economy.
+This spec is the concrete artifact for the two scheduled evaluation points — the
+6/24 Exp [#1565](https://github.com/forwardimpact/monorepo/issues/1565) read and
+the 7/02 verdict point of the RFC #873 lineage (per the obstacle's standing
+disposition). It does not pre-empt either: approval gates remain where they are,
+and the experiment's measures keep running unchanged. What changes is that those
+reads now evaluate a proposed structure instead of an unbounded repair economy.
 
 ## Personas and Jobs
 

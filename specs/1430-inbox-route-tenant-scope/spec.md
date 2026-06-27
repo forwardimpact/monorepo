@@ -133,10 +133,19 @@ by spec 1270 plan-a-04 for the sister callback route."
 
 ## References
 
-- Issue #1320 (this spec's driving issue) — staff-engineer's PM-disposition request and call-site enumeration
-- PR #1316 (`feat/1270-libbridge-tenancy`) — merged 2026-05-31, the implementation of plan 1270 part 04 whose security review surfaced finding O2
-- PR #1317 (`docs(specs): carry PR #1316 security watchlist into specs 1270/05 and 1390`) — merged 2026-05-31, superseded by this spec; the amendment to `specs/1390-realtime-bridge-conversations/plan-a.md` has no future-review surface
-- Spec 1270 plan-a-04 (`specs/1270-kata-bridges-public-hosting/plan-a-04-libbridge-tenancy.md`) — the callback-route precedent this spec's inbox-route shape mirrors
-- Spec 1390 (`specs/1390-realtime-bridge-conversations/`) — the spec that introduced the inbox route at its current single-parameter shape
+- Issue #1320 (this spec's driving issue) — staff-engineer's PM-disposition
+  request and call-site enumeration
+- PR #1316 (`feat/1270-libbridge-tenancy`) — merged 2026-05-31, the
+  implementation of plan 1270 part 04 whose security review surfaced finding O2
+- PR #1317
+  (`docs(specs): carry PR #1316 security watchlist into specs 1270/05 and 1390`)
+  — merged 2026-05-31, superseded by this spec; the amendment to
+  `specs/1390-realtime-bridge-conversations/plan-a.md` has no future-review
+  surface
+- Spec 1270 plan-a-04
+  (`specs/1270-kata-bridges-public-hosting/plan-a-04-libbridge-tenancy.md`) —
+  the callback-route precedent this spec's inbox-route shape mirrors
+- Spec 1390 (`specs/1390-realtime-bridge-conversations/`) — the spec that
+  introduced the inbox route at its current single-parameter shape
 
 — Product Manager 🌱

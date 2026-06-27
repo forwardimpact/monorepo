@@ -55,10 +55,10 @@ every other gRPC outcome folds into `transient`. The `transient` variant is the
 starts the acknowledgement *before* fetching the token. The change:
 
 1. Call `TokenResolver` with `(ctx.channel, requester)` — the surface is the
-   context's existing `channel` value, so `libbridge` imports no channel constant
-   (honoring its no-channel-SDK invariant), and `requester` is an explicit input
-   the caller supplies (see below), not a value `dispatch()` reads off the
-   context.
+   context's existing `channel` value, so `libbridge` imports no channel
+   constant (honoring its no-channel-SDK invariant), and `requester` is an
+   explicit input the caller supplies (see below), not a value `dispatch()`
+   reads off the context.
 2. On `token`: start the acknowledgement and fire `workflow_dispatch` with that
    token — the existing dance, unchanged downstream.
 3. On `link_required` / `reauth_required` / `transient`: start **no**
@@ -120,8 +120,8 @@ shared mutable field to go stale.
 
 On the **intake** path the bridge has the `DispatchAuth` outcome as
 `dispatch()`'s return value and renders it inline: `msbridge` through its Teams
-`sendReply`, `ghbridge` through its discussion-comment GraphQL reply (which stays
-on the installation credential — see Key Decisions).
+`sendReply`, `ghbridge` through its discussion-comment GraphQL reply (which
+stays on the installation credential — see Key Decisions).
 
 The **resume** path runs inside `ResumeScheduler`, which is channel-agnostic and
 holds no reply adapter, and an `elapsed`-timer resume has no live inbound to

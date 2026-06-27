@@ -71,8 +71,8 @@ Process **10 files per run**.
 ### 1. Load context and pick the batch
 
 Read the user's name, email, and domain from
-`~/.cache/fit/outpost/state/identity.md` (run the `person-identify` skill first if
-it is missing or stale). List new or changed source files:
+`~/.cache/fit/outpost/state/identity.md` (run the `person-identify` skill first
+if it is missing or stale). List new or changed source files:
 
 ```bash
 node .claude/skills/extract-entities/scripts/state.mjs check

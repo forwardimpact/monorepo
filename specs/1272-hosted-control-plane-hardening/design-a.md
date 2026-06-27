@@ -5,7 +5,7 @@ Spec [1272](spec.md) names six hosted-only gaps inherited from spec 1270's
 architectural moves so each lands independently:
 
 - **A** — ghserver substrate (criteria 1–4): peer-authenticated mint surface
-  + externalized App-key custody with in-place rotation.
+  - externalized App-key custody with in-place rotation.
 - **B** — verified Teams onboarding (criterion 5): inject a Bot Framework JWT
   verifier so `/onboard` accepts a cryptographically proven `tid`.
 - **C** — tenant lifecycle correctness (criteria 6–7): webhook-driven revoke
@@ -113,17 +113,28 @@ sequenceDiagram
 
 ## Suggested move ordering
 
-A planner may sequence the four moves in any order. Smallest-first (B → C → A → D)
-unblocks adopter capability earliest; substrate-first (A → C → B → D) hardens
-the mint surface before extending it. D blocks externally on the sibling
-release accepting `installation-token`.
+A planner may sequence the four moves in any order. Smallest-first (B → C → A →
+D) unblocks adopter capability earliest; substrate-first (A → C → B → D) hardens
+the mint surface before extending it. D blocks externally on the sibling release
+accepting `installation-token`.
 
 ## State invariants
 
-- A `revoked` tenant row never returns from `ResolveByRepo` or `ResolveByChannelKey` (existing tenancy invariant) and is observable only via `ResolveByTenantId` so callback verification can reject mismatched-state callbacks.
-- Every `MintInstallationToken` call traverses the peer-auth interceptor; an unauthenticated caller returns gRPC `UNAUTHENTICATED` before any `ResolveByRepo`.
-- After `MarkTenantRevoked(t)` returns, every pending recess for `t` has been excised from the bridge store via individually-atomic libstorage writes; any later-arriving callback for `t` is refused by the callback handler's existing tenancy-state check on `ResolveByTenantId`. Cross-record atomicity is not required.
-- `ListAllOpenRecesses` server-side filters its result against the current tenancy state, so a recess record for a revoked tenant cannot be re-armed even if `MarkTenantRevoked` raced with a restart.
+- A `revoked` tenant row never returns from `ResolveByRepo` or
+  `ResolveByChannelKey` (existing tenancy invariant) and is observable only via
+  `ResolveByTenantId` so callback verification can reject mismatched-state
+  callbacks.
+- Every `MintInstallationToken` call traverses the peer-auth interceptor; an
+  unauthenticated caller returns gRPC `UNAUTHENTICATED` before any
+  `ResolveByRepo`.
+- After `MarkTenantRevoked(t)` returns, every pending recess for `t` has been
+  excised from the bridge store via individually-atomic libstorage writes; any
+  later-arriving callback for `t` is refused by the callback handler's existing
+  tenancy-state check on `ResolveByTenantId`. Cross-record atomicity is not
+  required.
+- `ListAllOpenRecesses` server-side filters its result against the current
+  tenancy state, so a recess record for a revoked tenant cannot be re-armed even
+  if `MarkTenantRevoked` raced with a restart.
 
 ## Mapping to success criteria
 
@@ -141,4 +152,6 @@ release accepting `installation-token`.
 
 ## Out of scope
 
-Reaffirms spec § Out of scope: hosted discovery artefacts, `FIT_OIDC_URL` auto-set, libindex replacement, self-hosted↔hosted migration, msbridge Bot Framework custody hardening, broader rate-limiting, computed-key BYOK scanner.
+Reaffirms spec § Out of scope: hosted discovery artefacts, `FIT_OIDC_URL`
+auto-set, libindex replacement, self-hosted↔hosted migration, msbridge Bot
+Framework custody hardening, broader rate-limiting, computed-key BYOK scanner.

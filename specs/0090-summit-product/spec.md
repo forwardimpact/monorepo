@@ -5,7 +5,7 @@ deliver. Team capability planning with practiced capability, outcome-weighted
 growth, allocation-aware project teams, trajectory tracking, and exportable
 growth logic.
 
-```
+```text
 @forwardimpact/summit    CLI: fit-summit
 ```
 
@@ -175,7 +175,7 @@ represent full membership.
 For each skill in the framework, Summit computes the team's collective
 proficiency by aggregating individual skill matrices derived through Pathway.
 
-```
+```text
 $ fit-summit coverage platform
 
   Platform team — 5 engineers
@@ -207,7 +207,7 @@ structural fact about team composition.
 For project teams with allocation, coverage shows effective depth — the sum of
 allocations for engineers at working level or above:
 
-```
+```text
 $ fit-summit coverage --project migration-q2
 
   Migration Q2 — 4 members (3.0 FTE)
@@ -230,7 +230,7 @@ When `--evidenced` is passed, coverage displays `evidenced_depth` alongside
 `derived_depth` for each skill. Divergence reveals skills that exist on paper
 but aren't practiced, or skills practiced beyond what the job profile predicts.
 
-```
+```text
 $ fit-summit coverage platform --evidenced
 
   Platform team — 5 engineers (evidence from last 12 months)
@@ -275,7 +275,7 @@ same capability, creating both redundancy and growth bottlenecks. Three Level
 III engineers all strong in delivery but nobody growing toward reliability
 suggests a structural imbalance.
 
-```
+```text
 $ fit-summit risks platform
 
   Platform team — structural risks
@@ -302,7 +302,7 @@ but becomes one by evidence (only one person actually practices it).
 For project teams, risks incorporate allocation. A skill held by one person at
 0.4 allocation is a higher risk than one held by a person at 1.0:
 
-```
+```text
 $ fit-summit risks --project migration-q2
 
   Migration Q2 — structural risks
@@ -319,7 +319,7 @@ on team capability before anyone makes a decision.
 
 **Adding a person:**
 
-```
+```text
 $ fit-summit what-if platform --add "{ discipline: software_engineering, level: J080 }"
 
   Adding a Level III Software Engineer to Platform team:
@@ -338,7 +338,7 @@ $ fit-summit what-if platform --add "{ discipline: software_engineering, level: 
 
 **Adding a targeted hire:**
 
-```
+```text
 $ fit-summit what-if platform --add "{ discipline: software_engineering, level: J080, track: platform }" --focus reliability
 
   Adding a Level III Platform Software Engineer (reliability focus) to Platform team:
@@ -355,7 +355,7 @@ $ fit-summit what-if platform --add "{ discipline: software_engineering, level: 
 
 **Removing a person:**
 
-```
+```text
 $ fit-summit what-if platform --remove Eve
 
   Removing Eve (Level V Platform SE) from Platform team:
@@ -374,7 +374,7 @@ $ fit-summit what-if platform --remove Eve
 
 **Comparing team compositions:**
 
-```
+```text
 $ fit-summit what-if platform --move Alice --to payments
 
   Moving Alice (Level III Platform SE) from Platform to Payments:
@@ -393,7 +393,7 @@ $ fit-summit what-if platform --move Alice --to payments
 
 What-if works with project teams and respects allocation:
 
-```
+```text
 $ fit-summit what-if --project migration-q2 --add "{ discipline: software_engineering, level: J080, track: platform }" --allocation 0.5
 
   Adding a Level III Platform SE (50% allocated) to Migration Q2:
@@ -412,7 +412,7 @@ Summit connects team needs to individual growth opportunities. When a team has a
 gap, that gap is a growth opportunity for someone on the team. When someone
 wants to grow in a direction, Summit shows whether the team needs that growth.
 
-```
+```text
 $ fit-summit growth platform
 
   Growth opportunities aligned with team needs:
@@ -444,7 +444,7 @@ scores. A gap that also shows a poorly-scoring GetDX driver gets boosted
 priority. Managers see both the structural gap and the team's sentiment about
 it.
 
-```
+```text
 $ fit-summit growth platform --outcomes
 
   Growth opportunities aligned with team needs and outcomes:
@@ -478,7 +478,7 @@ improvement areas for this feature to reach full value.
 
 Show how team capability coverage evolved over time as the roster changed.
 
-```
+```text
 $ fit-summit trajectory platform
 
   Platform team — capability trajectory
@@ -525,7 +525,7 @@ quarterly roster snapshots in Map or version-controlled summit.yaml."
 
 **Trajectory with evidence:**
 
-```
+```text
 $ fit-summit trajectory platform --evidenced
 
   Coverage evolution (derived / evidenced):
@@ -547,7 +547,7 @@ person model, displays the team hierarchy derived from `manager_email`. When
 using a local YAML file, displays the parsed teams and project teams with member
 counts, level distribution, and track coverage.
 
-```
+```text
 $ fit-summit roster
 
   Source: summit.yaml
@@ -593,7 +593,7 @@ No service boundary crossed — same process, same data.
 
 ## Positioning
 
-```
+```text
 map → libskill → pathway
               ↓
            summit ──→ (growth logic) ──→ landmark
@@ -730,7 +730,7 @@ infrastructure. The CLI reads team composition from Map's person model or a
 local roster file, loads Map data, runs derivation through libskill, and
 computes team-level properties.
 
-```
+```text
 Summit — Team capability planning from skill data.
 
 Usage:
@@ -774,7 +774,7 @@ supported on all commands that accept a team:
 
 ### What-If Options
 
-```
+```text
   fit-summit what-if <team> --add "<job>"             Add a hypothetical person (e.g. "{ discipline: software_engineering, level: J080 }")
   fit-summit what-if <team> --remove <name>           Remove someone
   fit-summit what-if <team> --move <name> --to <team> Move between teams
@@ -789,7 +789,7 @@ All views support `--format json` for programmatic consumption. This enables
 integration with dashboards, planning tools, or custom reporting without Summit
 needing to know about them.
 
-```
+```text
 $ fit-summit risks platform --format json
 {
   "team": "platform",
@@ -809,7 +809,7 @@ $ fit-summit risks platform --format json
 When `--evidenced` is used with `--format json`, output includes both
 `derivedDepth` and `evidencedDepth` fields per skill.
 
-```
+```text
 $ fit-summit trajectory platform --format json
 {
   "team": "platform",
@@ -833,7 +833,7 @@ $ fit-summit trajectory platform --format json
 }
 ```
 
-```
+```text
 $ fit-summit coverage --project migration-q2 --format json
 {
   "team": "migration-q2",

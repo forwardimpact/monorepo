@@ -35,8 +35,8 @@ The `protobuf.util.Long = Long; protobuf.configure();` pair is the exact binding
 `libcodegen/src/types.js` (lines 62–69) already injects into *generated*
 downstream code; this module applies the same proven, idempotent pattern to
 `fit-codegen`'s **own** binary. In `libraries/libcodegen/src/base.js`, add the
-side-effect import immediately after the existing `import protobuf from "protobufjs";`
-(line 2):
+side-effect import immediately after the existing
+`import protobuf from "protobufjs";` (line 2):
 
 ```js
 import protobuf from "protobufjs";
@@ -46,9 +46,10 @@ import "./long-init.js";
 Verify: `just build-binary fit-codegen bun-linux-x64`, then run the compiled
 binary against the repo's protos — `./dist/binaries/fit-codegen --all` completes
 and `./dist/binaries/fit-codegen --version` prints the version and exits 0. The
-`--all` run is the load-bearing check: it forces `base.js#loadProtobufRoot →
-resolveAll()`, the 64-bit-default resolution that throws today, so a regressed or
-absent `Long` binding fails here even if `--version`/`--help` pass.
+`--all` run is the load-bearing check: it forces
+`base.js#loadProtobufRoot → resolveAll()`, the 64-bit-default resolution that
+throws today, so a regressed or absent `Long` binding fails here even if
+`--version`/`--help` pass.
 
 ## Risks
 

@@ -55,8 +55,12 @@ itself. The grace var covers existing summary-budget and decision-block
 violations until Part 05's migration remediates them mechanically.
 
 Verification:
-- `rg "FIT_WIKI_AUDIT_GRACE_UNTIL" .github/workflows/` returns the runtime-computed `export` line, not a literal date and not a `${{ env.* }}` reference.
-- A deliberate test commit that adds an 81-line agent summary passes CI under the grace window (audit reports finding but exits 0). Revert before merge.
+
+- `rg "FIT_WIKI_AUDIT_GRACE_UNTIL" .github/workflows/` returns the
+  runtime-computed `export` line, not a literal date and not a `${{ env.* }}`
+  reference.
+- A deliberate test commit that adds an 81-line agent summary passes CI under
+  the grace window (audit reports finding but exits 0). Revert before merge.
 
 ## Step 2 — Stop-hook entry installation
 
@@ -104,9 +108,11 @@ of the developer interface (mentioned in `CONTRIBUTING.md` and
 recipe stays as the canonical convenience handle.
 
 Verification:
+
 - `just wiki-audit` runs and produces a RESULT line.
 - `git log --follow scripts/wiki-audit.sh` shows the deletion commit.
-- Orphan-caller rg above returns zero hits post-edit (excluding the deletion-commit reference itself).
+- Orphan-caller rg above returns zero hits post-edit (excluding the
+  deletion-commit reference itself).
 
 ## Step 4 — Cutover-window verification (no pre-cutover rotation)
 
@@ -223,7 +229,7 @@ trace-sample comment lands.
    short, dispatch more runs and re-aggregate.
 7. Post the aggregated table as a PR comment on the implementation PR:
 
-   ```
+   ```text
    ## Spec 1060 verification trace sample
    Window: <start> → <end>
    Runs: N (M React-mode, K direct)
@@ -256,10 +262,10 @@ After merge:
 
 ## Risks (Part 04 only)
 
-- **CI workflow name discovery.** `check-quality.yml` is the assumed
-  host for the audit step but verify with `rg -l 'on:.*pull_request' .github/workflows/`
-  at implementation time. Place the step in the same job as the test
-  step so a failed audit blocks merge alongside test failures.
+- **CI workflow name discovery.** `check-quality.yml` is the assumed host for
+  the audit step but verify with `rg -l 'on:.*pull_request' .github/workflows/`
+  at implementation time. Place the step in the same job as the test step so a
+  failed audit blocks merge alongside test failures.
 - **Grace-window date drift mitigated by runtime computation.** Step 1
   computes `FIT_WIKI_AUDIT_GRACE_UNTIL` inside the workflow at run
   time, not at commit time, so per-commit CI on rebases and on PRs

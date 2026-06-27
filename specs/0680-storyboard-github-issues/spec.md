@@ -61,7 +61,7 @@ from multi-line inline content to one-line issue references. The "Exp N" naming
 convention is preserved as the human-readable identifier; the issue number is
 appended as a link:
 
-```
+```text
 - Exp 15 (#527) — SE coverage retirement proposal
 ```
 

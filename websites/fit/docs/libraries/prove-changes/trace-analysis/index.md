@@ -10,8 +10,8 @@ gives you structured queries over every turn, tool call, and result.
 ## Prerequisites
 
 - Node.js 22+
-- A trace file -- either `--output` from a `fit-harness` run, or downloaded from CI
-  with `fit-trace download`
+- A trace file -- either `--output` from a `fit-harness` run, or downloaded from
+  CI with `fit-trace download`
 
 ## Get the trace
 
@@ -23,10 +23,11 @@ npx fit-trace runs                        # list recent workflow runs
 npx fit-trace download 24497273755        # downloads to /tmp/trace-24497273755/
 ```
 
-The download extracts the artifact zip (`trace--<case>--<participant>.<role>.ndjson`
-files plus the combined `trace--<case>.raw.ndjson`) and produces a
-`structured.json` derived from the first NDJSON file. Both NDJSON files and
-`structured.json` work as input to every query command below.
+The download extracts the artifact zip
+(`trace--<case>--<participant>.<role>.ndjson` files plus the combined
+`trace--<case>.raw.ndjson`) and produces a `structured.json` derived from the
+first NDJSON file. Both NDJSON files and `structured.json` work as input to
+every query command below.
 
 ## Orient with the overview
 

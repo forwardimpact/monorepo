@@ -92,11 +92,13 @@ a wiki commit, verified by inspection.
 ## Out of scope (per spec)
 
 Inventory location (1610), filing-time carry content (1500 / Discussion
-#1385), threshold as a WHAT, retroactive routing, cross-agent profiles, any
+
+## 1385), threshold as a WHAT, retroactive routing, cross-agent profiles, any
+
 `fit-wiki`/`kata-dispatch` tooling change. The diff touches only
 `release-engineer.md` and `specs/1490-*/`.
 
-## Verification
+### Verification
 
 `bun run check` (profile is prose; the context/instructions budget audit
 must still pass). Inspection of each SC row against the edited step body;

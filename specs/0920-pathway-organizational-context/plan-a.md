@@ -95,9 +95,9 @@ and PRs that merge in either order.
    with both files silently uses the `repository/` copy. Part 01's loader
    test case pins this; Part 04's guide writes the canonical position
    (root) only.
-4. **Schema $id consistency.** Ajv indexes every `*.schema.json` by `$id`.
-   The new schema's `$id` follows the existing convention
-   (`https://www.forwardimpact.team/schema/json/organizational-context.schema.json`);
+4. **Schema $id consistency.** Ajv indexes every `*.schema.json` by `$id`. The
+   new schema's `$id` follows the existing convention
+   (`<https://www.forwardimpact.team/schema/json/organizational-context.schema.json>`);
    any typo surfaces as `SCHEMA_NOT_FOUND` in Part 01's validation tests.
 5. **Distribution-pack drift.** `build-packs.js` shares
    `formatTeamInstructions` with the CLI and web preview but is not named

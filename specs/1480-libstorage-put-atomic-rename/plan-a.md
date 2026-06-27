@@ -49,8 +49,8 @@ Deleted: none.
   declare `#nonce;` alongside the existing `#prefix` and `#fs` fields, and
   change the constructor to
   `constructor(prefix, fs, nonce = () => generateUUID()) { this.#prefix = prefix; this.#fs = fs; this.#nonce = nonce; }`.
-  The default keeps every existing two-arg call site working without edit;
-  tests may pass a deterministic stub as the third argument.
+  The default keeps every existing two-arg call site working without edit; tests
+  may pass a deterministic stub as the third argument.
 - In `runtime.js`: in the `Runtime.fs` `@property` prose method list
   (currently lines 20–27, comma-separated names ending `…, symlink, utimes,
   chmod, plus the two stream factories …`), insert `rename` after `unlink`
@@ -121,9 +121,10 @@ Step 2 and Step 4 so the step is independently verifiable):
   and change the constructor call at line 33 to
   `localStorage = new LocalStorage("/test/base", mockFs, nonce);`.
 - Existing happy-path put case at lines 36–45 — change the assertion from
-  `writeFile.calls[0].arguments` equal `["/test/base/subdir/file.txt", "content"]`
-  to equal `["/test/base/subdir/file.txt.libstorage-tmp.stub-1", "content"]`,
-  and add an assertion that `rename.calls[0].arguments` equals
+  `writeFile.calls[0].arguments` equal
+  `["/test/base/subdir/file.txt", "content"]` to equal
+  `["/test/base/subdir/file.txt.libstorage-tmp.stub-1", "content"]`, and add an
+  assertion that `rename.calls[0].arguments` equals
   `["/test/base/subdir/file.txt.libstorage-tmp.stub-1", "/test/base/subdir/file.txt"]`.
 - Existing absolute-path put case (currently at lines 144–151) — apply the
   same shape change to its `writeFile`/`rename` assertions.
@@ -234,13 +235,13 @@ Deleted: none.
 | `services/bridge/index.js` — the compaction-safety comment immediately above `await this.#pendingDispatches.compact();` inside `ResolvePendingDispatch` | Replace with: "`compact()` writes the new index via `storage.put`, which is a write-tmp + atomic rename inside `libstorage` (spec 1480). A process kill mid-compact leaves the index at either its prior or new state. Concurrent-writer correctness for a multi-instance future remains out of scope — bridge runs single-instance per tenant." |
 | `services/bridge/index.js` — the second `compact()` call site at the periodic sweep (currently right after `if (evicted_pending > 0)`) | Add a one-line comment above the call: "Same atomic-rename guarantee as `ResolvePendingDispatch`; see spec 1480." The original comment's "the sweep also calls compact() under the same invariant" line is replaced by this site-local note so the sweep keeps its documented rationale. |
 
-Verification: per-surface — `rg -nU 'atomic file-replace' libraries/libindex/src/base.js`
-returns zero hits (libindex JSDoc stale phrase gone); `rg -nU 'tmp-file
-\+\s+atomic rename inside libstorage' services/bridge/index.js` returns
-zero hits (bridge deferred-workaround comment gone); `rg -nc 'spec 1480'
-libraries/libindex/src/base.js libraries/libstorage/src/index.js
-libraries/libstorage/README.md services/bridge/index.js` returns
-`base.js:1`, `index.js:1`, `README.md:1`, `services/bridge/index.js:2`
+Verification: per-surface —
+`rg -nU 'atomic file-replace' libraries/libindex/src/base.js` returns zero hits
+(libindex JSDoc stale phrase gone);
+`rg -nU 'tmp-file \+\s+atomic rename inside libstorage' services/bridge/index.js`
+returns zero hits (bridge deferred-workaround comment gone);
+`rg -nc 'spec 1480' libraries/libindex/src/base.js libraries/libstorage/src/index.js libraries/libstorage/README.md services/bridge/index.js`
+returns `base.js:1`, `index.js:1`, `README.md:1`, `services/bridge/index.js:2`
 (the bridge has both the `ResolvePendingDispatch` reference and the sweep
 reference).
 

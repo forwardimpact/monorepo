@@ -48,7 +48,6 @@ Measure outgoing and baseline budgets and compute the delta — pure functions
 plus one orchestrator.
 
 - Created: `libraries/libwiki/src/budget-gate.js`
-
 - `budgetRules()` → resolved `[{id, scope, axis, check}]` (axis from the id
   suffix); throws on an unknown id (a rename surfaces here).
 - `budgetedFiles(ctx, wikiRoot)` — enumerate budgeted files via the audit's
@@ -91,8 +90,9 @@ Verification: `node --test libraries/libwiki/test/budget-gate.test.js`.
 6. On a landed push, attach `surfaced` to the result **only when non-empty**
    (happy path byte-identical — criterion 10).
 
-Verification: `node --test libraries/libwiki/test/wiki-sync-budget.integration.test.js`
-and the existing `wiki-sync*.test.js` files stay green.
+Verification:
+`node --test libraries/libwiki/test/wiki-sync-budget.integration.test.js` and
+the existing `wiki-sync*.test.js` files stay green.
 
 ## Step 5: Tests
 

@@ -54,10 +54,10 @@ When the bridge receives a `recessed` callback, the libbridge
    `summary` field is not posted; on this verdict, it exists only for
    trace/debug purposes.
 2. **`ResumeScheduler.enterRecess(ctx, correlation_id, trigger, requester)`**
-   records `open_rfcs[correlation_id] = { trigger, opened_at, history_index_at_open, requester }`
-   — the requester is the surface user id of the human whose message
-   triggered the recessed run, kept so the eventual resume can be
-   attributed.
+   records
+   `open_rfcs[correlation_id] = { trigger, opened_at, history_index_at_open, requester }`
+   — the requester is the surface user id of the human whose message triggered
+   the recessed run, kept so the eventual resume can be attributed.
 3. **For an `elapsed` trigger**, the scheduler computes
    `due_at = opened_at + parseIsoDuration(elapsed)`, stores it on the
    rfc, and arms the embedded `ElapsedScheduler`. When it fires the
@@ -78,9 +78,10 @@ A trigger fires in one of two places:
 
 - **Inbound comment path** — `#handleDiscussionComment` calls
   `resume.processInbound(ctx)` for every comment. The scheduler walks
-  `ctx.open_rfcs`, computes `observed = { replies: history.length - history_index_at_open, opened_at }`,
-  and feeds each `(trigger, observed, Date.now())` triple to
-  `evaluateTrigger`. Fired RFCs are re-dispatched and cancelled.
+  `ctx.open_rfcs`, computes
+  `observed = { replies: history.length - history_index_at_open, opened_at }`,
+  and feeds each `(trigger, observed, Date.now())` triple to `evaluateTrigger`.
+  Fired RFCs are re-dispatched and cancelled.
 - **Elapsed timer path** — `ElapsedScheduler` (embedded in
   `ResumeScheduler`) fires `#fireElapsed(correlationId)` on its own
   schedule. The scheduler looks up the context by walking

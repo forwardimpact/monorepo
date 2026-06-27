@@ -112,8 +112,8 @@ that the wiki clones with its three ledgers via `fit-wiki pull`.
 ## Documentation
 
 - [MONOREPO.md] — repository structure and the JTBD convention.
-- [COALIGNED.md](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md) —
-  the layered instruction architecture (owned by `coaligned-setup`).
+- [COALIGNED.md](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+  — the layered instruction architecture (owned by `coaligned-setup`).
 - [KATA.md](https://github.com/forwardimpact/monorepo/blob/main/KATA.md) — the
   agent team and its PDSA loop (owned by `kata-setup`).
 - [APM](https://microsoft.github.io/apm/) — the package manager that installs

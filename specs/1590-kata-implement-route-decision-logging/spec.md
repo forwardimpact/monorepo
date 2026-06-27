@@ -21,10 +21,11 @@ a zero value when no implementation PR opens. The schema is
 naming the activation context (which storyboard, which spec, which
 trace-pass).
 
-At obstacle filing (Issue [#1467](https://github.com/forwardimpact/monorepo/issues/1467))
-the xRule2 zero-mode streak stands at 27 consecutive slots (40–66) on
-`implementations_shipped`. The most recent zero rows on `origin/main`
-HEAD `dcc3d315`:
+At obstacle filing (Issue
+[#1467](https://github.com/forwardimpact/monorepo/issues/1467)) the xRule2
+zero-mode streak stands at 27 consecutive slots (40–66) on
+`implementations_shipped`. The most recent zero rows on `origin/main` HEAD
+`dcc3d315`:
 
 | Date | Run | Why zero (as established in #1467) |
 |---|---|---|

@@ -86,7 +86,7 @@ npm install @forwardimpact/guide
 npx fit-codegen --all
 ````
 
-````
+````text
 
 **Verify**: Follow the documented steps in a clean directory and confirm
 `node_modules/@forwardimpact/librpc/generated/` is created.
@@ -286,7 +286,7 @@ workflow YAML and confirming the step appears in the correct position.
 
 ## Ordering
 
-```
+```text
 Step 1 (dynamic imports)              ─┐
 Step 2 (codegen documentation)        ├─ can be done in parallel
 Step 3 (engines field, 46 files)      │

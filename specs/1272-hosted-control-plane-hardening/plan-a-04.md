@@ -3,8 +3,9 @@
 Implements design [Move D](design-a.md) (criterion 8, first clause): the
 kata-setup hosted templates pin the **minimum** sibling-action versions of
 `forwardimpact/kata-agent` (and the `fit-eval` action used by `workflow-react`)
-that accept the `installation-token` input. Read [spec § criterion 8 + Risks](spec.md)
-and design Key Decision 7 before executing.
+that accept the `installation-token` input. Read
+[spec § criterion 8 + Risks](spec.md) and design Key Decision 7 before
+executing.
 
 The hosted templates already emit `installation-token:
 ${{ steps.mint.outputs.token }}` (`workflow-agent.md` § Template (Hosted), step
@@ -68,9 +69,9 @@ Refs; no duplicated floor numbers (one home — workflow-agent.md).
 ## Risks
 
 - The floor version numbers are only known once the siblings tag; until then,
-  Step D1 must stop-and-ask rather than guess a number. Do not land a placeholder
-  pin — an under-floor pin silently re-opens the gap on every kata-setup re-run
-  (design Key Decision 7 rejected operator-managed versions for exactly this
-  reason).
+  Step D1 must stop-and-ask rather than guess a number. Do not land a
+  placeholder pin — an under-floor pin silently re-opens the gap on every
+  kata-setup re-run (design Key Decision 7 rejected operator-managed versions
+  for exactly this reason).
 
 — Staff Engineer 🛠️

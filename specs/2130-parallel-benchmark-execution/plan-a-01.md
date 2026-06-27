@@ -4,7 +4,8 @@ In-process bounded concurrency for `BenchmarkRunner`, per
 [design 2130-a § Layer 1](design-a.md#layer-1--in-process-concurrency). All
 changes in `libraries/libharness`. Run from the `libharness` package root.
 
-Libraries used: libharness, libutil (runtime clock), libmock (test runtime/clock).
+Libraries used: libharness, libutil (runtime clock), libmock (test
+runtime/clock).
 
 ## Step 1 — Add `enumerateCells`
 
@@ -113,18 +114,19 @@ exactly once.
 ## Step 4 — Rate-limit backpressure — DESCOPED (moved to a follow-up spec)
 
 Rate-limit backpressure is **out of scope for spec 2130** (descope decision,
-2026-06-27). The review panel established it is not a thin implementation detail:
-a 429 does not throw at the agent-session boundary — `AgentRunner.#consumeQuery`
-(agent-runner.js:190-196) catches the query error and returns it as a
-`{success:false, error}` field — and a robust retry seam (the shared `AgentRunner`
-query call, used by supervise/facilitate/benchmark) is cross-cutting, with a
-trace/cost-correctness contract under retry. That is a WHICH/WHERE decision the
-design must own, so it is split to its own spec rather than wedged into this one.
+2026-06-27). The review panel established it is not a thin implementation
+detail: a 429 does not throw at the agent-session boundary —
+`AgentRunner.#consumeQuery` (agent-runner.js:190-196) catches the query error
+and returns it as a `{success:false, error}` field — and a robust retry seam
+(the shared `AgentRunner` query call, used by supervise/facilitate/benchmark) is
+cross-cutting, with a trace/cost-correctness contract under retry. That is a
+WHICH/WHERE decision the design must own, so it is split to its own spec rather
+than wedged into this one.
 
 Nothing else in this plan depends on it. Under concurrency, a cell that hits a
-429 records an `agentError` (today's behavior, unchanged) and — thanks to Layer 1
-— costs one slot, not the run; the run still completes. The follow-up spec adds
-the retry on top of this scheduler.
+429 records an `agentError` (today's behavior, unchanged) and — thanks to Layer
+1 — costs one slot, not the run; the run still completes. The follow-up spec
+adds the retry on top of this scheduler.
 
 **Upstream trims (applied in this change):** spec 2130's "Rate-limit
 backpressure" in-scope row and "Rate-limit failures back off" [L1] criterion are
@@ -137,7 +139,8 @@ retry).
 
 Concurrency is on by default with a flag/env override.
 
-- **Modified:** `src/commands/benchmark-run.js`, `src/commands/benchmark-definition.js`
+- **Modified:** `src/commands/benchmark-run.js`,
+  `src/commands/benchmark-definition.js`
 
 In `benchmark-run.js` add:
 
@@ -181,20 +184,18 @@ Replace the serial nested loop with enumerate → schedule → single-writer dra
 `run()` yields in completion order.
 
 - **Modified:** `src/benchmark/runner.js`
-
 - Accept `concurrency` in the constructor (default `1` only as a defensive
   floor; the CLI always passes a resolved value).
 - Accept an optional `watchdogMs` constructor opt (default `AGENT_WATCHDOG_MS`)
   and thread it to **both** sites that read the constant in `#runAgent` — the
   cosmetic message (runner.js:372) and the `setTimeout` arg (runner.js:375) — so
   the injection is not half-applied. The 20-min real-timer constant cannot fire
-  inside a unit test, so the "stall costs one slot" test (Step 7) depends on this
-  override; mirror the existing injectable `termGraceMs` pattern.
+  inside a unit test, so the "stall costs one slot" test (Step 7) depends on
+  this override; mirror the existing injectable `termGraceMs` pattern.
 - In `run()`, after staging and task filtering, build
   `const cells = enumerateCells(tasks, this.runs)`.
-- Construct `new CellScheduler({ concurrency: this.concurrency, runCell: (cell) =>
-  this.#runOne(family, wm, cell.task, cell.runIndex, skillSetHash,
-  judgeProfilesDir) })`.
+- Construct
+  `new CellScheduler({ concurrency: this.concurrency, runCell: (cell) => this.#runOne(family, wm, cell.task, cell.runIndex, skillSetHash, judgeProfilesDir) })`.
 - The drain loop is the **sole writer** of `results.jsonl`: `for await (const
   record of scheduler.run(cells)) { await writeRecord(resultsStream, record);
   yield record; }`. Delete the `for (task) for (runIndex)` loop. Keep the
@@ -231,9 +232,9 @@ Each row maps to a spec § Success criteria [L1] line:
 | Rate-limit backoff | **descoped** — moved to a follow-up spec (Step 4); not a 2130 criterion once the spec is trimmed |
 
 **Substituted verification method (called out).** The spec and design phrase the
-bound as "completes in ≈ `ceil(M/C)` batch-durations against the clock seam." The
-mock clock advances a single shared virtual `now` and resolves `sleep` on the
-next microtask, so concurrent cells do not overlap in virtual time — a
+bound as "completes in ≈ `ceil(M/C)` batch-durations against the clock seam."
+The mock clock advances a single shared virtual `now` and resolves `sleep` on
+the next microtask, so concurrent cells do not overlap in virtual time — a
 `ceil(M/C)` virtual-wall-clock assertion is not meaningful. These tests instead
 assert a **max-in-flight high-water-mark = `C`** and a **logical batch index**
 (`floor(completionOrder / C)`), which verify the same boundedness property. The
@@ -241,8 +242,9 @@ fake-agent seam increments a shared counter on entry and decrements on exit
 around an `await` tick to record the high-water-mark. The "stall costs one slot"
 test injects a short `watchdogMs` (Step 6) so the stalled cell's watchdog fires
 in-test rather than at 20 min. Regenerate the `run-help` golden by running, from
-the `libharness` package root, `node ../../scripts/capture-cli-golden.mjs --bin
-fit-benchmark` (the script lives at the monorepo root; the default golden dir
-resolves against the package cwd), then confirm the `--verify` run is clean.
+the `libharness` package root,
+`node ../../scripts/capture-cli-golden.mjs --bin fit-benchmark` (the script
+lives at the monorepo root; the default golden dir resolves against the package
+cwd), then confirm the `--verify` run is clean.
 
 Verification: `bun test test/*.test.js` green from `libraries/libharness`.

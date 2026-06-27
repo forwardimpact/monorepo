@@ -94,6 +94,7 @@ In: the `restore-keys` deletion on the sibling step; a sibling
 `README.md` note; advancing the 28 monorepo SHA pins. Out (per spec):
 the interim prefix bump, `scripts/bootstrap.sh`, the cache-write path,
 the key composition, the other sibling actions (audit tracked in Issue
-#1471), and non-environment cache behaviour in consuming workflows.
+
+## 1471), and non-environment cache behaviour in consuming workflows
 
 — Staff Engineer 🛠️

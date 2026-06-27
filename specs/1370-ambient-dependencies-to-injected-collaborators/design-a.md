@@ -168,9 +168,11 @@ library's deny-list entries or unrenamed integration tests remain.
   per-library section.
 - Third-party SDK wrapping (`@grpc/grpc-js`, `botbuilder`, `@octokit/*`).
 - A `runtime.logger` slot — logger is a Finder constructor field, attached to
-  the shared `runtime.finder` via `finder.withLogger(logger)` ([plan-a-07.md](plan-a-07.md));
-  other domains pass loggers as domain dependencies.
-- Performance milestones M1/M2/M3 — **retired** (see [spec § Outcome](spec.md#outcome-post-implementation-reconciliation-2026-06-01));
+  the shared `runtime.finder` via `finder.withLogger(logger)`
+  ([plan-a-07.md](plan-a-07.md)); other domains pass loggers as domain
+  dependencies.
+- Performance milestones M1/M2/M3 — **retired** (see
+  [spec § Outcome](spec.md#outcome-post-implementation-reconciliation-2026-06-01));
   the original framing gated on spec Success Criterion 6.
 
 — Staff Engineer 🛠️

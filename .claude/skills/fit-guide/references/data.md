@@ -1,6 +1,6 @@
 # Data Pipeline
 
-### Processing
+## Processing
 
 Run processors from your project root after `npx fit-guide init` (see §
 Initialization for the full list). They are independent and idempotent — re-run

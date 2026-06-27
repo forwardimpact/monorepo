@@ -22,7 +22,7 @@ The DSL, parser, and engine are untouched.
 
 ## Architecture
 
-```
+```text
 universe.dsl ──► Parser ──► Engine (unchanged)
                                │
                                ├── entities.people

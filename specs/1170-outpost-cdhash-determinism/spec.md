@@ -10,7 +10,7 @@ the same workspace path on the same `macos-14` runner produce different
 cdhashes. The most recent failure is on `outpost@v3.0.5`
 ([run 26099668719](https://github.com/forwardimpact/monorepo/actions/runs/26099668719)):
 
-```
+```text
 ##[error]cdhash drift detected — bundle is not deterministic
 baseline: CandidateCDHash sha256=c54dbc278fe57e065dedf570d58af97611cbf9be
 after:    CandidateCDHash sha256=d5d6608449a2c9aef17168a2897434ec4b1d0b43
@@ -191,7 +191,8 @@ are unverified-but-not-failed.
   Comment at lines 79–82 names the TCC-grants rationale.
 - [`products/outpost/pkg/build.js`](../../products/outpost/pkg/build.js),
   [`libraries/libmacos/scripts/build-app.sh`](../../libraries/libmacos/scripts/build-app.sh),
-  and [`libraries/libmacos/scripts/sign-app.sh`](../../libraries/libmacos/scripts/sign-app.sh)
+  and
+  [`libraries/libmacos/scripts/sign-app.sh`](../../libraries/libmacos/scripts/sign-app.sh)
   — the three scripts whose combined output is the cdhash-drifting bundle.
 
 — Product Manager 🌱

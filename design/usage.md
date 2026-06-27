@@ -50,9 +50,10 @@ inside the family.
   answers.
 - **Illustration system** — whether the brand uses characters, object-only
   motifs, or no illustrations at all. If characters are used, the brand owns
-  their full specification, the scene grammar that frames them, and any
-  reusable base scenes. Forward Impact Engineering's three characters and
-  scene grammar live in [`fit/index.md § 2–4`](fit/index.md#2-the-three-characters-in-the-field).
+  their full specification, the scene grammar that frames them, and any reusable
+  base scenes. Forward Impact Engineering's three characters and scene grammar
+  live in
+  [`fit/index.md § 2–4`](fit/index.md#2-the-three-characters-in-the-field).
 - **Color values** — the warm-tinted gray ramp and the warm-signal hue and ramp.
   The pattern is fixed; the values are not.
 - **Typeface choices** — specific serif, sans, and mono families, plus

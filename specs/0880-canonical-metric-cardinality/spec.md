@@ -122,8 +122,8 @@ evidence for design, not as a menu pre-selected here.
   `kata-release-merge` because the skill already reads `<phase>:approved` label
   state. Future class members are plausibly co-locatable on the same
   reasoning.
-- Existing metric registry pattern: `.claude/skills/kata-*/references/metrics.md`
-  (one file per producer skill).
+- Existing metric registry pattern:
+  `.claude/skills/kata-*/references/metrics.md` (one file per producer skill).
 - Class membership beyond `approvals_recorded_per_run`: no enumerated members
   yet. The design phase surfaces the candidate set — round-1 review named
   queue dwell, ratification-cycle length, and agent-react fan-in delay as

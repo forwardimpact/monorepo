@@ -143,13 +143,13 @@ passes (all original tests still green; new test green).
 
 Edit only the Landmark row of the Step 3 table (line 87 today). Before:
 
-```
+```text
 | Landmark         | `data/pathway/` and `data/activity/`; substrate (`auth.users` for all humans, schema, seed, smoke) staged by the workflow's `Substrate stage` step |
 ```
 
 After:
 
-```
+```text
 | Landmark         | `data/pathway/`; substrate (`data/activity/`, `auth.users` for all humans, schema, seed, smoke) staged by the workflow's `Substrate stage` step                                |
 ```
 

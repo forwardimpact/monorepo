@@ -362,7 +362,7 @@ pollute the output. The current `console.error` for errors is appropriate.
 
 ### Target architecture
 
-```
+```text
 bin/fit-basecamp.js          ← composition root: parse args, wire deps, dispatch
   ├── Scheduler              ← cron matching, shouldWake logic, wake orchestration
   ├── AgentRunner            ← spawn agent process, capture output, update state

@@ -76,7 +76,7 @@ wired at composition roots. No module-level singletons.
 `products/pathway/src/commands/agent-list.js` line 19 creates a
 `SummaryRenderer` instance at module scope:
 
-```
+```text
 const summary = new SummaryRenderer({ process });
 ```
 
@@ -98,7 +98,7 @@ policy.
 `bun run check` runs `check-package-layout.js` which scans the filesystem. It
 currently fails:
 
-```
+```text
 Non-allowed root subdirectories:
   libraries/librpc/generated/
   libraries/libtype/generated/

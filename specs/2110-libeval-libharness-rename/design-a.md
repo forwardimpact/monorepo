@@ -43,8 +43,8 @@ would corrupt the evaluation domain. The gate: rename only the four identity
 token-families — `libeval`, `@forwardimpact/libeval`, `LIBEVAL_*`, `fit-eval` —
 and leave `evaluateAssertion`, `Judge`, "run an eval", the package
 `description`/`keywords`/`jobs`, and the `run-eval` doc slug untouched.
-Criterion 1's `rg --hidden 'libeval|LIBEVAL_|fit-eval'` is the completeness oracle; the
-keep-list (criterion 6) is the allowlist of surviving matches.
+Criterion 1's `rg --hidden 'libeval|LIBEVAL_|fit-eval'` is the completeness
+oracle; the keep-list (criterion 6) is the allowlist of surviving matches.
 
 ```mermaid
 graph LR

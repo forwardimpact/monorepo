@@ -22,7 +22,7 @@ templates. Prose fields remain optional (Tier 1 LLM or cache, as today).
 
 ## Architecture
 
-```
+```text
 universe.dsl (extended)
     │
     ├── drug oncora { ... }

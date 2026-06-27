@@ -6,13 +6,14 @@ The `kata-spec` SKILL.md tells spec authors not to leak HOW into the spec, but
 states the rule abstractly. Spec [#890](../890-kata-skills-benchmark-family/)'s
 benchmark shows agents reach for `file:line` (e.g. `src/foo.ts:42`) as Problem
 evidence anyway. The fix is to name the `file:line` shape inside two existing
-bullets — one author-facing (Writing a Spec) and one verifier-facing (DO-CONFIRM)
-— without expanding scope to other HOW-leak vectors.
+bullets — one author-facing (Writing a Spec) and one verifier-facing
+(DO-CONFIRM) — without expanding scope to other HOW-leak vectors.
 
 ## Components
 
-The "components" here are textual loci inside `.claude/skills/kata-spec/SKILL.md`.
-Each surface has a different role in the agent's authoring loop:
+The "components" here are textual loci inside
+`.claude/skills/kata-spec/SKILL.md`. Each surface has a different role in the
+agent's authoring loop:
 
 | Component                              | Surface                                | Layer ([COALIGNED.md](../../COALIGNED.md)) | Role in author loop                                                |
 | -------------------------------------- | -------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------ |
@@ -21,9 +22,9 @@ Each surface has a different role in the agent's authoring loop:
 | READ-DO "file paths" bullet            | SKILL.md, READ-DO checklist            | L6 (verificational)                        | **Unmodified** — already names file paths; further edit is dupe    |
 | All other SKILL.md content             | rest of file                           | L4 / L6                                    | **Unmodified** — outside spec scope                                |
 
-The two modified components share one vocabulary token (`file:line`). They differ
-in tense: the author-facing bullet (L4) says "do not write this shape"; the
-verifier-facing bullet (L6) says "check that this shape was not written."
+The two modified components share one vocabulary token (`file:line`). They
+differ in tense: the author-facing bullet (L4) says "do not write this shape";
+the verifier-facing bullet (L6) says "check that this shape was not written."
 
 ### Layering (COALIGNED.md)
 

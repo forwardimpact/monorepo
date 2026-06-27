@@ -187,13 +187,19 @@ from the same constant — no hard-coded `30%` anywhere.
 ## References
 
 - [spec.md](spec.md) — criteria 1–6 and risks
-- `products/map/src/activity/transform/evidence.js:20,54-87` — round-robin producer (existing)
+- `products/map/src/activity/transform/evidence.js:20,54-87` — round-robin
+  producer (existing)
 - `products/map/src/activity/transform/index.js` — orchestrator (modified)
-- `products/landmark/src/lib/evidence-helpers.js:114-120` — coverage formula (unchanged)
+- `products/landmark/src/lib/evidence-helpers.js:114-120` — coverage formula
+  (unchanged)
 - `services/map/proto/map.proto:28-41` — `WriteEvidenceRequest`
-- `products/guide/starter/skills/evaluate-evidence/SKILL.md` step (e) — Guide's writer (this spec; passes `provenance: 'agent_attested'`)
-- `data/synthetic/story.dsl:134` — `manufacturing_it` repos (`scada-bridge`, `mes-connector`)
-- `products/map/supabase/migrations/20250504000004_evidence_upsert_key.sql` — UNIQUE index reused as conflict key
-- `products/map/supabase/migrations/20250504000002_evidence_not_null.sql` — `level_id NOT NULL` makes the UNIQUE safe
+- `products/guide/starter/skills/evaluate-evidence/SKILL.md` step (e) — Guide's
+  writer (this spec; passes `provenance: 'agent_attested'`)
+- `data/synthetic/story.dsl:134` — `manufacturing_it` repos (`scada-bridge`,
+  `mes-connector`)
+- `products/map/supabase/migrations/20250504000004_evidence_upsert_key.sql` —
+  UNIQUE index reused as conflict key
+- `products/map/supabase/migrations/20250504000002_evidence_not_null.sql` —
+  `level_id NOT NULL` makes the UNIQUE safe
 
 — Staff Engineer 🛠️

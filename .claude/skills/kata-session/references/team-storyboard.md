@@ -36,8 +36,8 @@ vs. expected), update Obstacles, and plan the next experiment.
    Participant Protocol: measure with live data, record to CSV, run
    `npx fit-xmr analyze` on its own CSV, then report each metric's `status`,
    `μ`, and any fired-rule `signals` via `Answer`; the facilitator relays these
-   and runs no analysis itself. Participants flag any metric whose status changed
-   since the last meeting.
+   and runs no analysis itself. Participants flag any metric whose status
+   changed since the last meeting.
 3. **What obstacles are preventing us from reaching the target?** Participants
    identify obstacles from their domain; what an obstacle *is* — and
    obstacle-vs-experiment — is defined in
@@ -75,12 +75,12 @@ metrics whose status changed since the last meeting.
 
 Obstacles and Experiments split into `### Active` and
 `### Concluded (last 7 days)`, **rendered automatically** by `fit-wiki refresh`
-from GitHub issue state: open issues populate Active, issues closed within 7 days
-populate Concluded, window aging is `libwiki` date math. No one hand-edits these
-lists. The participant keeps issue state correct — create the issue when the
-obstacle/experiment is identified, close it with a verdict comment when concluded
-(see [`issue-lifecycle.md`](issue-lifecycle.md)). The closed issue is the
-permanent record.
+from GitHub issue state: open issues populate Active, issues closed within 7
+days populate Concluded, window aging is `libwiki` date math. No one hand-edits
+these lists. The participant keeps issue state correct — create the issue when
+the obstacle/experiment is identified, close it with a verdict comment when
+concluded (see [`issue-lifecycle.md`](issue-lifecycle.md)). The closed issue is
+the permanent record.
 
 ## Q3 Obstacle Routing
 

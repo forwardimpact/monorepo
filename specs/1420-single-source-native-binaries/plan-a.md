@@ -4,13 +4,13 @@ Implements [design 1420-a](design-a.md) for [spec 1420](spec.md).
 
 ## Approach
 
-Land the `fit-codegen` compile-readiness fix first so the shared `just
-build-binary` emits a working `fit-codegen` binary; then introduce the
+Land the `fit-codegen` compile-readiness fix first so the shared
+`just build-binary` emits a working `fit-codegen` binary; then introduce the
 single-source-of-truth CLI manifest and collapse the bespoke `just` recipes onto
-it; then add the `build-binaries.yml` reusable workflow plus `publish-native.yml`
-and rewire `publish-brew.yml`/`publish-macos.yml` to consume its artifacts and
-retire the duplicate `fit-outpost` compile. Each part is its own branch off
-`origin/main` and verifiable on its own.
+it; then add the `build-binaries.yml` reusable workflow plus
+`publish-native.yml` and rewire `publish-brew.yml`/`publish-macos.yml` to
+consume its artifacts and retire the duplicate `fit-outpost` compile. Each part
+is its own branch off `origin/main` and verifiable on its own.
 
 ## Parts
 
@@ -38,10 +38,11 @@ preserves the spec-1170 cdhash contract; no part edits it.
   but the `outpost-determinism-probe.yml` PR check is the gate that proves it —
   treat a probe failure as a blocker, not flake.
 - **Smoke gate forces same-OS runners.** Each `bun-darwin-arm64` matrix cell
-  must run on `macos-14` and each `bun-linux-x64` cell on `ubuntu-latest`; a cell
-  scheduled on the wrong OS cannot execute its binary and will fail confusingly.
-  The matrix-generation job must attach the runner label per target.
-- **`fit-codegen` startup crash reproduces only when bundled.** The `Long` bug is
-  invisible under `bun run`/`bunx` (source execution resolves `long`); it appears
-  only in the `--compile` artifact. Verify every 01 fix against the *compiled*
-  binary, never the source CLI.
+  must run on `macos-14` and each `bun-linux-x64` cell on `ubuntu-latest`; a
+  cell scheduled on the wrong OS cannot execute its binary and will fail
+  confusingly. The matrix-generation job must attach the runner label per
+  target.
+- **`fit-codegen` startup crash reproduces only when bundled.** The `Long` bug
+  is invisible under `bun run`/`bunx` (source execution resolves `long`); it
+  appears only in the `--compile` artifact. Verify every 01 fix against the
+  *compiled* binary, never the source CLI.

@@ -17,7 +17,7 @@ integration (Part 03) adds metrics.md references and memory bullets to 14
 skills; and the infrastructure changes (Part 04) wire workflows, profiles, and
 documentation.
 
-```
+```text
 Part 01: kata-metrics skill (utility)
    ↓
 Part 02: kata-storyboard skill (coaching protocol)  ─┐

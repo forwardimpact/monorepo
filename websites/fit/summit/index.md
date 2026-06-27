@@ -53,7 +53,7 @@ For each skill in the agent-aligned engineering standard, Summit computes the
 team's collective proficiency by aggregating individual skill matrices derived
 through Pathway.
 
-```
+```text
 $ npx fit-summit coverage platform
 
   platform team — 3 members
@@ -69,7 +69,7 @@ $ npx fit-summit coverage platform
 For project teams with allocation, coverage reports allocation-weighted
 effective depth:
 
-```
+```text
 $ npx fit-summit coverage --project migration-q2
 
   migration-q2 project — 3 members (2.0 FTE)
@@ -84,7 +84,7 @@ Summit identifies single points of failure, critical gaps, and concentration
 risks — structural facts about team composition, not judgments about
 individuals.
 
-```
+```text
 $ npx fit-summit risks platform
 
   platform team — structural risks
@@ -114,7 +114,7 @@ Adding an engineer may resolve existing risks, but can also introduce new ones
 (for example, two engineers at the same level creates a concentration risk in
 skills neither covers at working+). Summit shows both directions:
 
-```
+```text
 $ npx fit-summit what-if platform --add "{ discipline: software-engineering, level: J060 }"
 
   Adding software-engineering J060 to platform:

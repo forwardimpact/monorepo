@@ -106,7 +106,7 @@ used by the `recipients` table.
 
 Attachment files on disk follow this path structure:
 
-```
+```text
 ~/Library/Mail/V10/.../Attachments/{message_ROWID}/{attachment_id}/{filename}
 ```
 

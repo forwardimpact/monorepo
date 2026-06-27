@@ -93,7 +93,7 @@ passes on clean code before committing.
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md) —
-  where invariants sit in the layered architecture.
-- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md) —
-  the build kit, the rule kit, and the module contract in full.
+- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+  — where invariants sit in the layered architecture.
+- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
+  — the build kit, the rule kit, and the module contract in full.

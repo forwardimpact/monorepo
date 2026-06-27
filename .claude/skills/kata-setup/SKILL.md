@@ -38,8 +38,9 @@ facilitated sessions, and event-driven responses.
       (`forwardimpact/kata-agent@<full-sha> # vX.Y.Z`), never local paths
       or mutable tags.
 - [ ] Use npm/npx in all generated content, never bun/bunx/just.
-- [ ] Read [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) — the hosted-vs-self-hosted
-      trust model the operator is opting into.
+- [ ] Read
+      [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) —
+      the hosted-vs-self-hosted trust model the operator is opting into.
 
 </read_do_checklist>
 
@@ -99,13 +100,13 @@ Ask these questions. Skip any already answered in the task prompt.
    defaults from kata-skills?" If defaults, confirm
    `apm install forwardimpact/kata-skills` is installed.
 
-8. **Control plane** — "Are you using the Forward Impact-hosted control
-   plane, or self-hosting your own GitHub App?" Default: self-hosted. See
-   [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for the trust model of each path. In
-   **hosted** mode the workflows mint a short-lived installation token
-   from `services/oidc` at run time, so the team does **not** configure
-   `KATA_APP_ID` / `KATA_APP_PRIVATE_KEY` (question 2 needs only
-   `ANTHROPIC_API_KEY`); instead set the `FIT_OIDC_URL` repository
+8. **Control plane** — "Are you using the Forward Impact-hosted control plane,
+   or self-hosting your own GitHub App?" Default: self-hosted. See
+   [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for
+   the trust model of each path. In **hosted** mode the workflows mint a
+   short-lived installation token from `services/oidc` at run time, so the team
+   does **not** configure `KATA_APP_ID` / `KATA_APP_PRIVATE_KEY` (question 2
+   needs only `ANTHROPIC_API_KEY`); instead set the `FIT_OIDC_URL` repository
    **variable** to the hosted OIDC URL before the first workflow run.
 
 ### Step 2: Generate Workflow Files
@@ -126,14 +127,12 @@ Pair the pins with a `github-actions` Dependabot config so they receive
 bump PRs instead of rotting. Write `.github/dependabot.yml` (or merge this
 entry into an existing one):
 
-```yaml
-version: 2
-updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-```
+    version: 2
+    updates:
+      - package-ecosystem: "github-actions"
+        directory: "/"
+        schedule:
+          interval: "weekly"
 
 Emit the variant matching question 8's mode: the **`## Template
 (self-hosted)`** block (the default) or the **`## Template (hosted)`**
@@ -148,9 +147,9 @@ and coaching workflows are generated only when `improvement-coach` is selected.
 Every template's first step is a `Kata killswitch` gate that reads the
 `KATA_KILLSWITCH` repository (or org) Actions variable and fails the run when it
 holds a truthy value (anything other than empty, `0`, `false`, `no`, or `off`).
-Keep it first so an engaged switch halts the run before any token mint, checkout,
-or agent work. It is unset by default, so it has no effect until an operator sets
-it.
+Keep it first so an engaged switch halts the run before any token mint,
+checkout, or agent work. It is unset by default, so it has no effect until an
+operator sets it.
 
 ### Step 3: Generate agent-dispatch
 

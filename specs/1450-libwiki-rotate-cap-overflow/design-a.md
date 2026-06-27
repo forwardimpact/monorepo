@@ -87,9 +87,9 @@ produced (one or many), replacing the single `toPath`.
 
 ## Caller data flow
 
-- **`fit-wiki rotate`** (force): `sealed` → print each part, exit 0; `incomplete`
-  → print parts + name the residue section + point at manual recovery, exit
-  non-zero; `noop` → "no rotation needed", exit 0.
+- **`fit-wiki rotate`** (force): `sealed` → print each part, exit 0;
+  `incomplete` → print parts + name the residue section + point at manual
+  recovery, exit non-zero; `noop` → "no rotation needed", exit 0.
 - **`fit-wiki fix`** (force, via `rotateOverBudgetMainLogs`): on `sealed` the
   re-audit is clean and the run exits 0; on `incomplete` the residue part's
   budget finding survives to the human-flag set (exit 2) — only the irreducible

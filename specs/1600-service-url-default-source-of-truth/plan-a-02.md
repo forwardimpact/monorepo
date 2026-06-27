@@ -32,9 +32,10 @@ add the keys that make libconfig produce the canonical URL:
 Intent: add `port` (and `protocol` for http) to services whose defaults declare
 no network key today.
 
-Files modified: `services/{trace,vector,graph,map,pathway,tenancy,ghuser,bridge}/server.js`
-(grpc: add `port`), `services/{oauth,mcp,ghbridge,msbridge}/server.js`
-(http: add `protocol: "http"` + `port`).
+Files modified:
+`services/{trace,vector,graph,map,pathway,tenancy,ghuser,bridge}/server.js`
+(grpc: add `port`), `services/{oauth,mcp,ghbridge,msbridge}/server.js` (http:
+add `protocol: "http"` + `port`).
 
 Concrete change (example, `services/mcp/server.js`):
 
@@ -87,8 +88,9 @@ Files modified: `services/ghserver/README.md`, `services/oidc/README.md`.
 Concrete change: update the listen-port rows to `3007` / `3008` to match the new
 manifest defaults.
 
-Verification: `rg '9201|9202' services/ghserver/README.md services/oidc/README.md`
-returns nothing.
+Verification:
+`rg '9201|9202' services/ghserver/README.md services/oidc/README.md` returns
+nothing.
 
 ## Step 3 — embedding
 

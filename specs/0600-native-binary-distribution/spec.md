@@ -12,7 +12,7 @@ run any `fit-*` CLI. Today's distribution model states this as policy:
 Every published CLI carries a Node shebang that makes this coupling concrete —
 for example, `products/pathway/bin/fit-pathway.js` begins:
 
-```
+```text
 #!/usr/bin/env node
 ```
 
@@ -120,7 +120,8 @@ executables onto a macOS machine without installing Node.
 - **TCC prompts for resources no current CLI accesses.** Only `fit-basecamp`
   requests Calendar, Contacts, and Downloads today. The other bundles ship with
   the minimal JIT entitlement set and no usage-description strings. Adding new
-  TCC-gated resources to any CLI is a per-bundle change, not a spec-0600 concern.
+  TCC-gated resources to any CLI is a per-bundle change, not a spec-0600
+  concern.
 - **Fixing Terminal-inherited TCC responsibility for PATH symlinks.** Capability
   #3 requires that every CLI still be invokable from Terminal through the cask's
   `binary` symlink; that is in scope and must work. What is **out** of scope is

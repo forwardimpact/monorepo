@@ -103,7 +103,7 @@ headers and decoration are minimal — they exist to group, not to sprawl.
 
 Example human-mode help (illustrative):
 
-```
+```text
 fit-pathway 1.2.0 — Career progression for engineering frameworks
 
 Usage: fit-pathway <command> [options]
@@ -138,7 +138,7 @@ screenful.
 
 Example:
 
-```
+```text
 Generated 38 files in ./generated/
   definitions/  — Service definitions
   proto/        — Proto source files
@@ -153,7 +153,7 @@ pattern, not a one-off.
 
 All errors go to stderr with a consistent format:
 
-```
+```text
 fit-map: error: unknown command "valiate" (did you mean "validate"?)
 fit-map: error: missing required argument <path>
 ```
@@ -203,7 +203,7 @@ output it doesn't need, but it can't extract structure from unstructured text.
 
 Example of good Logger usage from the existing ProcessorBase pattern:
 
-```
+```text
 DEBUG 2026-04-10T12:00:00Z codegen generate 8821 MSG003 [step="types" files="12"] Generated protobuf types
 INFO  2026-04-10T12:00:01Z codegen generate 8821 MSG007 [total="38"] Code generation complete
 ```

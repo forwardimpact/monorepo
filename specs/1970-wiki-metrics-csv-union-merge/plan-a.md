@@ -69,8 +69,8 @@ Files: modify `libraries/libwiki/src/wiki-sync.js`.
   capture `changed`.
 - Commit logic becomes (the commit gate is `isClean`; the push gate is the
   independent `#hasCommitsAhead`):
-  - If `changed`, the commit must include `GITATTRIBUTES_FILE`. When `paths`
-    is supplied, commit `commitPaths(message, [...paths, GITATTRIBUTES_FILE], …)`;
+  - If `changed`, the commit must include `GITATTRIBUTES_FILE`. When `paths` is
+    supplied, commit `commitPaths(message, [...paths, GITATTRIBUTES_FILE], …)`;
     when no `paths`, the existing `commitAll` already sweeps it.
   - When `changed` is true but the tree is otherwise clean (no payload), the
     commit gate is taken against the effective pathspec `[GITATTRIBUTES_FILE]`,
@@ -85,16 +85,16 @@ against that effective pathspec. The push gate (`#hasCommitsAhead`) is left
 untouched.
 
 Verification: covered by Step 6 integration tests. Note for the implementer:
-`#hasCommitsAhead` is independent of tree cleanliness, so the "second sync = zero
-commits" assertion must be made from true steady state — the first sync's push
-must have landed (origin/master == HEAD) before re-syncing, otherwise a
-fire-and-forget push that did not land would leave a commit ahead and the
-second sync would push it. Add two `wiki-sync.integration.test.js` cases: (a) a
+`#hasCommitsAhead` is independent of tree cleanliness, so the "second sync =
+zero commits" assertion must be made from true steady state — the first sync's
+push must have landed (origin/master == HEAD) before re-syncing, otherwise a
+fire-and-forget push that did not land would leave a commit ahead and the second
+sync would push it. Add two `wiki-sync.integration.test.js` cases: (a) a
 no-payload sync on a clone lacking the attribute produces exactly one commit
-touching only `.gitattributes` and a follow-up sync (after the first push
-lands) produces zero commits; (b) a scoped-payload sync (`paths` supplied) on a
-clone lacking the attribute commits **both** the payload and `.gitattributes`
-in one commit — guarding against the file being autostashed aside on the
+touching only `.gitattributes` and a follow-up sync (after the first push lands)
+produces zero commits; (b) a scoped-payload sync (`paths` supplied) on a clone
+lacking the attribute commits **both** the payload and `.gitattributes` in one
+commit — guarding against the file being autostashed aside on the
 pathspec-scoped path.
 
 ## Step 4: Audit scope `metrics-csv`

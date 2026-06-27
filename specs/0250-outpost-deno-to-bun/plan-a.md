@@ -93,7 +93,7 @@ binary" to "Compile standalone scheduler binary".
 
 Update the three build scripts:
 
-```
+```text
 "build":     "bun pkg/build.js"
 "build:app": "bun pkg/build.js --app"
 "build:pkg": "bun pkg/build.js --pkg"

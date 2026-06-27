@@ -25,7 +25,10 @@ which assumes Part 03 already migrated every consumer.
 | [04](plan-a-04.md) | Compose + static-inspection gate | `docker-compose.yml` rewrites; existing static-inspection tests retargeted; new "no `process.env.SUPABASE_` in src/bin" test |
 | [05](plan-a-05.md) | Documentation | Seven `websites/` pages + `fit-summit/references/roster.md` + `websites/fit/docs/internals/operations/index.md` recipe swap |
 
-Libraries used: `@forwardimpact/libsecret` (`generateJWT`, `generateSecret`, `generateBase64Secret`, `getOrGenerateSecret`, `updateEnvFile`, plus two new `mintSupabase*` helpers), `@forwardimpact/libconfig` (`Config`, `createServiceConfig`, `createScriptConfig`, `createProductConfig`).
+Libraries used: `@forwardimpact/libsecret` (`generateJWT`, `generateSecret`,
+`generateBase64Secret`, `getOrGenerateSecret`, `updateEnvFile`, plus two new
+`mintSupabase*` helpers), `@forwardimpact/libconfig` (`Config`,
+`createServiceConfig`, `createScriptConfig`, `createProductConfig`).
 
 ## Execution
 

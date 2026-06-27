@@ -7,7 +7,7 @@ For general product conventions see [products/CLAUDE.md](../CLAUDE.md).
 `starter/config.json` is copied to `config/config.json` by `npx fit-guide init`.
 It is the single source of truth for what the Guide agent sees.
 
-```
+```text
 starter/config.json
 ├── init                # Service supervisor (which processes to start)
 ├── product.guide
@@ -29,7 +29,7 @@ The identity prompt is Guide-specific.
 `buildPromptText()` in `services/mcp/index.js` assembles the MCP prompt from
 `service.mcp`:
 
-```
+```text
 {service.mcp.systemPrompt}          ← domain scope, grounding rules
 {routing[0]} -> {ToolName}          ← one line per (tool, routing statement)
 ```
@@ -58,12 +58,14 @@ This composed text is delivered two ways:
 
 1. Add the gRPC method to the service proto, run `just codegen`.
 2. Add to `service.mcp.tools` in `starter/config.json`:
+
    ```json
    "NewTool": {
      "method": "package.Service.Method",
      "description": "What the agent sees in tools/list."
    }
    ```
+
 3. Optionally add `"routing": ["Intent phrase"]` for a prompt hint.
 
 `registerToolsFromConfig` (libmcp) auto-wires the tool — builds a Zod schema

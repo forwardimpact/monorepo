@@ -45,9 +45,10 @@ flowchart TD
 
 > **Superseded during planning/implementation.** This section originally
 > specified a one-shot boot migration to preserve pre-rename bindings. The
-> shipped implementation ([PR #1296](https://github.com/forwardimpact/monorepo/pull/1296))
-> deliberately chose a **clean break** instead; this section now records what
-> shipped, and spec criterion 8 was reversed to match.
+> shipped implementation
+> ([PR #1296](https://github.com/forwardimpact/monorepo/pull/1296)) deliberately
+> chose a **clean break** instead; this section now records what shipped, and
+> spec criterion 8 was reversed to match.
 
 `server.js` calls `createStorage("ghuser")`, rooting durable state at
 `data/ghuser/`: `bindings.jsonl` (the `(surface, surface_user_id)` ↔ token

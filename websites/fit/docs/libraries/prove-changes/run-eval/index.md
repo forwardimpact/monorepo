@@ -4,20 +4,20 @@ description: Know whether agent changes improved outcomes — an agent-as-judge 
 ---
 
 You changed an agent profile, a tool allowlist, or a system prompt -- and now
-you need to know whether things got better or worse. `fit-harness supervise` runs a
-**judge agent** alongside a **target agent** on a shared orchestration loop:
-the judge sends `Ask` questions, the target replies with `Answer`, and the judge
-calls `Conclude` with a verdict when satisfied. The exit code (`0` pass, `1`
-fail) drops into GitHub Actions like any other check. The NDJSON trace captures
-every turn so you can inspect what happened with `fit-trace`.
+you need to know whether things got better or worse. `fit-harness supervise`
+runs a **judge agent** alongside a **target agent** on a shared orchestration
+loop: the judge sends `Ask` questions, the target replies with `Answer`, and the
+judge calls `Conclude` with a verdict when satisfied. The exit code (`0` pass,
+`1` fail) drops into GitHub Actions like any other check. The NDJSON trace
+captures every turn so you can inspect what happened with `fit-trace`.
 
 ## Prerequisites
 
 - Node.js 22+
 - `ANTHROPIC_API_KEY` set in the environment
-- `@forwardimpact/libharness` (ships both `fit-harness` and `fit-trace`). Install
-  globally with `npm install -g @forwardimpact/libharness`, or invoke ephemerally
-  in CI with `npx --yes @forwardimpact/libharness fit-harness ...`
+- `@forwardimpact/libharness` (ships both `fit-harness` and `fit-trace`).
+  Install globally with `npm install -g @forwardimpact/libharness`, or invoke
+  ephemerally in CI with `npx --yes @forwardimpact/libharness fit-harness ...`
 
 ## Write the task
 
@@ -80,12 +80,11 @@ npx fit-harness supervise \
 ```
 
 `--agent-cwd` should be a sandbox copy of your repo since the target agent edits
-files there. When omitted, `fit-harness` creates a temporary directory. The judge
-stays in `--supervisor-cwd` to inspect the target's work without writing to it.
-`--max-turns` is the per-runner invocation budget (default `200`); the
-orchestration loop that drives the judge↔agent exchange is bounded
-separately by an internal lead-turn cap. `--max-turns=0` removes the
-per-runner cap.
+files there. When omitted, `fit-harness` creates a temporary directory. The
+judge stays in `--supervisor-cwd` to inspect the target's work without writing
+to it. `--max-turns` is the per-runner invocation budget (default `200`); the
+orchestration loop that drives the judge↔agent exchange is bounded separately by
+an internal lead-turn cap. `--max-turns=0` removes the per-runner cap.
 
 Exit code `0` means the judge concluded with `success: true`. Exit code `1`
 means `success: false`, the turn limit was reached, or an error occurred.
@@ -147,8 +146,9 @@ jobs:
 ```
 
 `if: always()` on the split and upload steps preserves the trace even when the
-eval fails -- which is when you most need it. `split --mode=supervise --case=default`
-produces `trace--default--agent.agent.ndjson` and
+eval fails -- which is when you most need it.
+`split --mode=supervise --case=default` produces
+`trace--default--agent.agent.ndjson` and
 `trace--default--supervisor.supervisor.ndjson` alongside the original
 `trace--default.raw.ndjson`.
 

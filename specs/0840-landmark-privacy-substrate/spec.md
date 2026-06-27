@@ -14,8 +14,8 @@ visible at HEAD `9891ab23`:
   declares no RLS policies on any table. The six tables Landmark reads today —
   `activity.organization_people`, `activity.evidence`,
   `activity.github_artifacts`, `activity.getdx_snapshots`,
-  `activity.getdx_snapshot_team_scores`, and
-  `activity.getdx_snapshot_comments` (verified by the `from(...)` calls in
+  `activity.getdx_snapshot_team_scores`, and `activity.getdx_snapshot_comments`
+  (verified by the `from(...)` calls in
   `products/map/src/activity/queries/{org,artifacts,evidence,snapshots,comments}.js`)
   — are all readable in full by any holder of an `authenticated` JWT or the
   service role.
@@ -70,7 +70,7 @@ remain deferred under issue #829 until this slice is stable.
 The job served is **Engineering Leaders → Measure Engineering Outcomes**
 ([JTBD.md § Engineering Leaders: Measure Engineering Outcomes](../../JTBD.md#engineering-leaders-measure-engineering-outcomes)).
 A leader's Big Hire is *"demonstrate engineering progress without making
-individuals feel surveilled."* The Anxiety force on this job is *"measurement
+individuals feel surveilled."*The Anxiety force on this job is*"measurement
 feels like surveillance regardless of intent"* — and a substrate where any
 authenticated client reads the full activity schema turns that anxiety into a
 factual claim. Closing the gap before broadening the data sources is what
@@ -228,12 +228,12 @@ satisfy.
   consumed by every command in `products/landmark/src/commands/`).
 - JS query layer Landmark reads through:
   `products/map/src/activity/queries/{org,artifacts,evidence,snapshots,comments}.js`
-  — the `from(...)` calls in these files enumerate the six tables the
-  migration must cover. `org.js` reads `organization_people` indirectly via
-  the `activity.get_team` SQL function
+  — the `from(...)` calls in these files enumerate the six tables the migration
+  must cover. `org.js` reads `organization_people` indirectly via the
+  `activity.get_team` SQL function
   (`products/map/supabase/migrations/20250101000001_get_team_function.sql`,
-  `LANGUAGE sql STABLE`); RLS interaction with the function's `SECURITY
-  INVOKER`/`DEFINER` mode and `search_path` is a design consideration.
+  `LANGUAGE sql STABLE`); RLS interaction with the function's
+  `SECURITY INVOKER`/`DEFINER` mode and `search_path` is a design consideration.
 - Scope as command-option convention:
   `products/landmark/bin/fit-landmark.js:62-168` is the canonical surface
   registry. `products/landmark/src/commands/voice.js:34-67`

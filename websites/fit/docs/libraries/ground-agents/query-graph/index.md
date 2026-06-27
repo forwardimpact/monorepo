@@ -11,7 +11,8 @@ want to write join logic or stand up a SPARQL endpoint to answer the question.
 subject listings from the command line.
 
 For the full workflow of building and populating the graph index from HTML
-knowledge sources, see [Ground Agents in Context](/docs/libraries/ground-agents/).
+knowledge sources, see
+[Ground Agents in Context](/docs/libraries/ground-agents/).
 
 ## Prerequisites
 

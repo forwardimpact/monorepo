@@ -172,6 +172,7 @@ activation.
 Verification: `bun test libraries/libwiki/test/wiki-sync.test.js` — new tests
 drive each branch via `createMockGitClient`, each asserting the named spec
 criterion:
+
 - **Landed only when grounded** — landed reported only on a per-ref `=`/` `
   flag or a post-push remote-tip containing HEAD.
 - **Occurrence-#41 fixture** — force only the inadmissible channels to report
@@ -214,7 +215,8 @@ surviving a stranded-push retry from the same clone.
 
 Files: `libraries/libwiki/src/wiki-sync.js` (sidecar read/consult),
 `libraries/libwiki/src/active-claims.js` (claim-row release/expiry already
-records intent; confirm it composes), `libraries/libwiki/test/wiki-sync.test.js`.
+records intent; confirm it composes),
+`libraries/libwiki/test/wiki-sync.test.js`.
 
 The sidecar is a single file at a fixed, git-reserved-name-free path under the
 wiki clone's `.git/` — `.git/fit-wiki-removal-intent` (untracked, clone-local
@@ -232,6 +234,7 @@ unrelated later push).
 Verification: real-git fixtures for every conservation criterion, each reading
 **content state of the remote-tip tree, never file-history output** (D5 —
 `git log -S` TREESAME-prunes this erasure class):
+
 - **Clean-rebase drop refused** — stale-read commit deletes a foreign claim
   row present in base and tip, no textual overlap (clean replay); refuse, row
   survives on the remote.
@@ -281,6 +284,7 @@ Files: `libraries/libwiki/src/commands/sync.js`,
 
 Verification: integration tests (real-git harness) covering each named spec
 criterion:
+
 - **`claim` failed push** — rejection and transport, separately: **zero exit**
   in both, honest saved-locally warning naming the reason, success message
   **absent**; and a landed claim ⇒ success message, zero exit.
@@ -348,6 +352,7 @@ Writing under `.claude/`: follow self-improvement.md — use
 blocked.
 
 Verification, per named spec criterion:
+
 - **No in-tree publication bypass (D8)** — enumerate the in-tree publication
   surfaces of the wiki remote (CLI, session-end hook, background/harness sync);
   observe each routes through the guarded primitive or is named an accepted

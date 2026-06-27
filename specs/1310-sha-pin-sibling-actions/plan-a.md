@@ -43,7 +43,7 @@ re-baselined value as load-bearing.
 The replacement line shape across every site is the existing repo
 convention seen on `actions/checkout` and `actions/create-github-app-token`:
 
-```
+```text
 - uses: forwardimpact/<sibling>@<40-char-sha> # v1
 ```
 
@@ -88,7 +88,7 @@ done
 `uses: forwardimpact/<sibling>@v1` line to
 `uses: forwardimpact/<sibling>@<sha> # v1`, where `<sha>` is the
 fresh-resolved value from step 1a. Preserve the leading whitespace and
-optional `- ` prefix exactly.
+optional `-` prefix exactly.
 
 **Verification (Step 1 close-out):**
 

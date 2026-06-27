@@ -167,7 +167,7 @@ dropped — the format is not valid APM and misleads anyone reading the file.
 
 New function. Produces:
 
-```
+```text
 curl -sL https://host/packs/se-platform.raw.tar.gz | tar xz
 ```
 
@@ -179,7 +179,7 @@ directory — no intermediate file on disk.
 
 Replaces the current `getApmInstallCommand`. Produces:
 
-```
+```text
 curl -sLO https://host/packs/se-platform.apm.tar.gz && apm unpack se-platform.apm.tar.gz
 ```
 
@@ -196,7 +196,7 @@ bundles — designed for offline, air-gapped, and static hosting scenarios.
 
 Renamed from `getSkillsAddCommand`. No logic change — same output:
 
-```
+```text
 npx skills add https://host/packs/se-platform
 ```
 
@@ -235,7 +235,7 @@ directories are cleaned up after all archives and repositories are written.
 
 After the change, `packs/` contains:
 
-```
+```text
 packs/
   se-platform.raw.tar.gz         ← renamed: .claude/ layout for curl|tar
   se-platform.apm.tar.gz         ← new: .apm/ layout for apm unpack

@@ -109,14 +109,14 @@ jobs:
 
 Uses `fit-harness` (not `kata-agent`) so the workflow can pass `task-event` and
 select `mode` per event. The `if:` must stay aligned with the `on:` block. The
-recursion guard lives in the action's task composition, not here. The `fit-harness`
-and `fit-wiki` refs are SHA-pinned at generation time — pair them with the
-Dependabot config from `SKILL.md` Step 2.
+recursion guard lives in the action's task composition, not here. The
+`fit-harness` and `fit-wiki` refs are SHA-pinned at generation time — pair them
+with the Dependabot config from `SKILL.md` Step 2.
 
 ## Hosted Variant
 
-This workflow mints its own App token, so the hosted delta differs from the shift
-workflow:
+This workflow mints its own App token, so the hosted delta differs from the
+shift workflow:
 
 1. Add `id-token: write` to `permissions` (keep `contents: write`).
 2. Replace the `Generate token` step with the OIDC mint step from

@@ -162,19 +162,20 @@ After `parseRecordOptions`, resolve `eventType` in order:
 New-file branch writes `HEADER + "\n"` (not `EXPECTED_HEADER`). Row
 array becomes seven fields ending in `eventType`.
 
-**Verification.** `bun run --filter @forwardimpact/libxmr test
-test/record.test.js`. New tests: (i) `--event-type kata-shift` lands as
-the trailing field; (ii)
+**Verification.**
+`bun run --filter @forwardimpact/libxmr test test/record.test.js`. New tests:
+(i) `--event-type kata-shift` lands as the trailing field; (ii)
 `GITHUB_WORKFLOW_REF=owner/repo/.github/workflows/kata-dispatch.yml@refs/heads/main`
-yields `event_type=kata-dispatch` with no flag; (iii) neither set
-returns `code=2`. Existing tests pass `--event-type=kata-test`
-explicitly — see Step 9 test fixture migration.
+yields `event_type=kata-dispatch` with no flag; (iii) neither set returns
+`code=2`. Existing tests pass `--event-type=kata-test` explicitly — see Step 9
+test fixture migration.
 
 ## Step 5 — `validate` command surfaces the new field's errors
 
 **Files modified.**
 
-- `libraries/libxmr/src/commands/validate.js` (no logic change — inherits Step 2's `validateCSV` extension)
+- `libraries/libxmr/src/commands/validate.js` (no logic change — inherits Step
+  2's `validateCSV` extension)
 
 **Verification.** A fixture CSV (added to `test/csv.test.js` in Step 2)
 with one row's `event_type` stripped fails `validateCSV` with

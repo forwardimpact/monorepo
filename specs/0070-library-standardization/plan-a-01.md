@@ -202,7 +202,7 @@ libuniverse is a procedural pipeline of ~20 exported functions. Key issues:
 
 ### Target architecture
 
-```
+```text
 CLI (fit-universe.js)         ← composition root: wires all deps
   └── Pipeline                ← orchestrator class
         ├── DslParser         ← wraps tokenizer + parser

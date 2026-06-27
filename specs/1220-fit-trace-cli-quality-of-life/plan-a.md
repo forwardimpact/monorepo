@@ -24,8 +24,9 @@ appears only in caller-facing docs.
 
 Libraries used: libeval (TraceQuery, `loadTrace` wrapping TraceCollector),
 libcli (createCli, the InvocationContext `dispatch()` with `--file`
-`multiple:true`), libutil (the injected `runtime` and `runtime.fsSync.globSync`),
-libconfig (createScriptConfig), libtelemetry (logger).
+`multiple:true`), libutil (the injected `runtime` and
+`runtime.fsSync.globSync`), libconfig (createScriptConfig), libtelemetry
+(logger).
 
 ## Step 1: Capture baseline JSON fixtures (structural-equivalence reference)
 
@@ -38,14 +39,16 @@ reference, not runtime re-derivation (spec Risks row 1b).
   `Bash`/`Read`/`Edit`/`Write` `tool_use` blocks, paired and one orphaned
   `tool_result`, an error result, a thinking block with a signature, and usage
   on every assistant turn.
-- Created: `libraries/libeval/test/fixtures/trace-query-1220/{overview,head,tail,tools,errors,reasoning,init,filter,tool,turn,batch,stats}.json`
-  — captured by running each method's current code path over the fixture
-  (e.g. `createTraceQuery(...).overview()` → `JSON.stringify(stripSignatures(...), null, 2)`).
-  `head`/`tail` are captured at the post-change default `n = 10` so the
-  equivalence comparison in step 6 (which invokes `--lines 10`) is
-  apples-to-apples. Capture is a committed, retained fixture-builder script
-  `test/fixtures/trace-query-1220/build.mjs` (not a throwaway), so the frozen
-  reference is regenerable after a legitimate schema change.
+- Created:
+  `libraries/libeval/test/fixtures/trace-query-1220/{overview,head,tail,tools,errors,reasoning,init,filter,tool,turn,batch,stats}.json`
+  — captured by running each method's current code path over the fixture (e.g.
+  `createTraceQuery(...).overview()` →
+  `JSON.stringify(stripSignatures(...), null, 2)`). `head`/`tail` are captured
+  at the post-change default `n = 10` so the equivalence comparison in step 6
+  (which invokes `--lines 10`) is apples-to-apples. Capture is a committed,
+  retained fixture-builder script `test/fixtures/trace-query-1220/build.mjs`
+  (not a throwaway), so the frozen reference is regenerable after a legitimate
+  schema change.
 
 Verification: a new `test/trace-1220-equivalence.test.js` (added in step 6)
 reads each fixture and deep-equals it against the post-change `--format json`
@@ -61,7 +64,8 @@ through one IO seam.
 - Modified: `libraries/libeval/src/commands/trace.js` — make the existing
   module-private `loadTrace(runtime, file)` (already reading via
   `runtime.fsSync.readFileSync`) an `export function`; no body change. This is
-  the single load entry point step 3 injects as `(file) => loadTrace(runtime, file)`.
+  the single load entry point step 3 injects as
+  `(file) => loadTrace(runtime, file)`.
 
 Add to `TraceQuery`:
 
@@ -81,36 +85,39 @@ statsSummary()   // {totals} — this.stats().totals, no perTurn
   `Map<toolUseId, {turnIndex, name, input}>` over every assistant `tool_use`
   block (name filter optional). `toolCalls` and `commands` consume it. Keep the
   existing `collectToolUseIds(turns, name)` (the `Set`-returning helper at line
-  373 on HEAD) and the existing `tool(name)` body byte-unchanged so `tool()`'s ordering
-  (assistant turns then matching result turns, sorted by `index`) is preserved;
-  `collectToolUseIds` may delegate to `new Set(collectToolUseBlocks(turns, name).keys())`
-  only if the existing `tool()` test still passes unchanged.
-- `statsByTool`: each `tool_use` block in an assistant turn gets `usage/(#tool_use
-  blocks in that turn)` of `inputTokens` and `outputTokens`; assistant turns with
-  zero `tool_use` blocks contribute full usage to the `(no-tool)` bucket. The
-  per-bucket `turns` field counts the distinct host turns that contributed at
-  least one block to that bucket (a turn with two distinct tools counts once in
-  each tool's bucket). `costShare` = `(in+out)/Σ(in+out)` per bucket; the
-  largest bucket absorbs the residual so the column sums to exactly `1.0`.
-  Attribution covers only `inputTokens`/`outputTokens` (the two fields spec
-  criterion 6 names); cache-token fields are **not** bucketed. `totals` is
-  `this.stats().totals` verbatim (carries the cache fields un-split), so
+  373 on HEAD) and the existing `tool(name)` body byte-unchanged so `tool()`'s
+  ordering (assistant turns then matching result turns, sorted by `index`) is
+  preserved; `collectToolUseIds` may delegate to
+  `new Set(collectToolUseBlocks(turns, name).keys())` only if the existing
+  `tool()` test still passes unchanged.
+- `statsByTool`: each `tool_use` block in an assistant turn gets
+  `usage/(#tool_use blocks in that turn)` of `inputTokens` and `outputTokens`;
+  assistant turns with zero `tool_use` blocks contribute full usage to the
+  `(no-tool)` bucket. The per-bucket `turns` field counts the distinct host
+  turns that contributed at least one block to that bucket (a turn with two
+  distinct tools counts once in each tool's bucket). `costShare` =
+  `(in+out)/Σ(in+out)` per bucket; the largest bucket absorbs the residual so
+  the column sums to exactly `1.0`. Attribution covers only
+  `inputTokens`/`outputTokens` (the two fields spec criterion 6 names);
+  cache-token fields are **not** bucketed. `totals` is `this.stats().totals`
+  verbatim (carries the cache fields un-split), so
   `Σ bucket.inputTokens === totals.inputTokens` and
   `Σ bucket.outputTokens === totals.outputTokens` hold by construction — the
   exact equality spec criterion 6 verifies.
-- `compare`: build per-side `{metadata:{caseName, participant}, turnCount,
-  tools:string[], paths:string[], pathCount, cost}` from `this` and `other`;
-  `metadata` comes from the passed `aIdentity`/`bIdentity` (TraceQuery carries no
-  filename). `toolDelta` = `[{tool, a, b, diff}]` over the union of both tool
-  sets; `pathDelta` = `[{path, a, b, diff}]` over the union of both path sets,
-  sorted `|diff|` desc. Empty side: zeroed counters, empty lists,
-  `metadata.marker = "(empty)"`.
+- `compare`: build per-side
+  `{metadata:{caseName, participant}, turnCount, tools:string[], paths:string[], pathCount, cost}`
+  from `this` and `other`; `metadata` comes from the passed
+  `aIdentity`/`bIdentity` (TraceQuery carries no filename). `toolDelta` =
+  `[{tool, a, b, diff}]` over the union of both tool sets; `pathDelta` =
+  `[{path, a, b, diff}]` over the union of both path sets, sorted `|diff|` desc.
+  Empty side: zeroed counters, empty lists, `metadata.marker = "(empty)"`.
 
 Verification: extend `test/trace-query.test.js` with cases per method:
 `toolCalls` count equals `tool_use` block count and orphan emits `result:null`;
 `commands` filter; `paths` frequency+prefix; `statsByTool` token sums equal
 `stats().totals` and `costShare` sums to `1.0`; `compare` identical-traces zero
-deltas and empty-trace marker. `bun test libraries/libeval/test/trace-query.test.js`.
+deltas and empty-trace marker.
+`bun test libraries/libeval/test/trace-query.test.js`.
 
 ## Step 3: Multi-file orchestrator — `src/trace-multi.js`
 
@@ -161,8 +168,8 @@ covering every other renderable verb (`overview`, `head`, `tail`, `tools`,
 `errors`, `reasoning`, `init`, `filter`, `tool`, `turn`, `batch`, `stats`
 un-flagged), per the design's renderer table. Text shapes:
 
-- `renderToolCalls`: `[turnIdx] <Tool> <toolUseId>` / `  in: <one-line input>`
-  / `  out: <one-line result or "(no result)">`.
+- `renderToolCalls`: `[turnIdx] <Tool> <toolUseId>` / `in: <one-line input>`
+  / `out: <one-line result or "(no result)">`.
 - `renderCommands`: `[turnIdx] <command>` per line, newlines escaped.
 - `renderPaths`: `<count>\t<path>` frequency-sorted.
 - `renderCompare`: metadata header printing `caseName` and `participant` for
@@ -177,7 +184,8 @@ un-flagged), per the design's renderer table. Text shapes:
   off the published `src/index.js` surface. No `index.js` change.
 
 Verification: new `test/trace-render.test.js` asserts each renderer's text shape
-and the `(none)`/`(no result)`/`(empty)` sentinels. `bun test libraries/libeval/test/trace-render.test.js`.
+and the `(none)`/`(no result)`/`(empty)` sentinels.
+`bun test libraries/libeval/test/trace-render.test.js`.
 
 ## Step 5: CLI surface — `bin/fit-trace.js`
 
@@ -187,7 +195,6 @@ and the new per-verb flags. The registry uses the array-form `args` plus
 `argsUsage` that spec 1370 established on `main`, and `handler:` references.
 
 - Modified: `libraries/libeval/bin/fit-trace.js`
-
 - Register `tool-calls` (`args: []`, `--file`), `commands` (`args: []`,
   `--file`, option `--match <regex>`), `paths` (`args: []`, `--file`, option
   `--prefix <string>`), `compare` (`args: ["file-a", "file-b"]`,
@@ -226,7 +233,6 @@ returns `{ ok: true }`; cross-trace handlers consume the resolved file list via
 `trace-multi`.
 
 - Modified: `libraries/libeval/src/commands/trace.js`
-
 - Add a `resolveFiles(runtime, ctx)` helper: normalise `ctx.options.file` to an
   array, resolve each value (literal path pass-through; values with glob
   metacharacters `*?[{` expanded via `runtime.fsSync.globSync`), flatten, sort.
@@ -241,7 +247,8 @@ returns `{ ok: true }`; cross-trace handlers consume the resolved file list via
   signatures: !!ctx.options.signatures})` to `runtime.proc.stdout` unless
   `ctx.options.format === "json"`, in which case it calls `writeJSON(runtime,
   payload, ctx.options)`. Return `{ ok: true }`.
-- `paths` and `tools` use `aggregate`; the other cross-trace verbs use `runOver`.
+- `paths` and `tools` use `aggregate`; the other cross-trace verbs use
+  `runOver`.
 - Add handlers `runToolCallsCommand`, `runCommandsCommand` (reads
   `ctx.options.match`), `runPathsCommand` (reads `ctx.options.prefix`),
   `runCompareCommand` (reads the two positionals `ctx.args["file-a"]`,
@@ -259,7 +266,6 @@ returns `{ ok: true }`; cross-trace handlers consume the resolved file list via
   N==1 the prefix is suppressed so single-file output is byte-identical to
   today (criterion 5 "count, timeline unchanged"). They do not pass through a
   record renderer.
-
 - Created: `libraries/libeval/test/trace-1220-equivalence.test.js` — follow the
   package's established handler-test pattern (`trace-cost.test.js`:16-28):
   hand-build a `ctx` `{ options, args, deps: { runtime } }` where `runtime` is
@@ -282,11 +288,10 @@ returns `{ ok: true }`; cross-trace handlers consume the resolved file list via
   asserts the resolution by passing two literal `--file` values (no glob) so it
   too uses the mock-fs pattern, leaving `globSync` exercised by a direct
   `resolveFiles` unit test.
-
 - Add a `resolveFiles` unit test (in `trace-multi.test.js` or a small new file):
   a literal path returns `[path]` without touching `globSync`; a value with glob
-  metacharacters calls `runtime.fsSync.globSync` (stubbed/spied) and flattens the
-  result; multiple `--file` values concatenate and sort; zero resolved files
+  metacharacters calls `runtime.fsSync.globSync` (stubbed/spied) and flattens
+  the result; multiple `--file` values concatenate and sort; zero resolved files
   returns `{ ok: false }`. This isolates the only `globSync` dependency from the
   handler suite.
 
@@ -302,7 +307,6 @@ attribution appears only when N>1.
 Intent: wire `--by-tool` and `--summary` into the `stats` handler and renderers.
 
 - Modified: `libraries/libeval/src/commands/trace.js` (`runStatsCommand`)
-
 - `--summary` → `statsSummary()` (renders/JSON-emits `totals` only).
 - `--by-tool` → `statsByTool()`; `--by-tool --summary` → `totals` only.
 - Neither flag → existing `stats()` per-turn output (unchanged default).
@@ -310,10 +314,10 @@ Intent: wire `--by-tool` and `--summary` into the `stats` handler and renderers.
 
 Verification: `bunx fit-trace stats <fixture> --by-tool --format json` bucket
 `inputTokens`/`outputTokens` sums equal the un-flagged
-`bunx fit-trace stats <fixture> --format json` `totals.inputTokens`/`outputTokens`
-(cache fields excluded), and `costShare` sums to 1.0; `--summary` omits the
-per-turn array. Covered by step 2's query tests plus a handler-level assertion in
-the equivalence test.
+`bunx fit-trace stats <fixture> --format json`
+`totals.inputTokens`/`outputTokens` (cache fields excluded), and `costShare`
+sums to 1.0; `--summary` omits the per-turn array. Covered by step 2's query
+tests plus a handler-level assertion in the equivalence test.
 
 ## Step 8: In-repo caller sweep — working-tree consistency at merge
 
@@ -321,7 +325,8 @@ Intent: keep every in-repo `fit-trace` analysis-verb invocation correct under
 the default-output flip **and the file-input surface change** in the same PR
 (spec Risks row 1c; the design defers only the enumeration to here).
 
-The enumeration (from `rg 'fit-trace (overview|count|batch|head|tail|search|tools|tool|errors|reasoning|timeline|stats|init|turn|filter)' --glob '!specs/**'`)
+The enumeration (from
+`rg 'fit-trace (overview|count|batch|head|tail|search|tools|tool|errors|reasoning|timeline|stats|init|turn|filter)' --glob '!specs/**'`)
 is documentation and skill examples only — no committed script parses
 `fit-trace` JSON output, so neither change breaks in-repo automation; the sweep
 is example-text alignment. Two transforms: (a) default-output — note
@@ -342,9 +347,11 @@ positional file.
   `fit-trace overview` reference takes `--file`; confirm it reads correctly
   under text default.
 
-Verification: `rg -n 'fit-trace (overview|count|head|tail|tools|errors|reasoning|timeline|stats|init|filter) [^-]' .claude/skills websites/fit/docs`
+Verification:
+`rg -n 'fit-trace (overview|count|head|tail|tools|errors|reasoning|timeline|stats|init|filter) [^-]' .claude/skills websites/fit/docs`
 finds no surviving cross-trace positional-file example, and
-`rg -n 'fit-trace (head|tail) .* [0-9]+$'` finds no positional-`N`; `just check` passes.
+`rg -n 'fit-trace (head|tail) .* [0-9]+$'` finds no positional-`N`; `just check`
+passes.
 
 ## Step 9: Method-surface documentation
 
@@ -352,9 +359,9 @@ Intent: align the documented method with the new surface (spec scope rows for
 SKILL.md and the guide; Risks row 5 cross-references).
 
 - Modified: `.claude/skills/fit-trace/SKILL.md` — add the aggregator verbs
-  (`tool-calls`, `commands`, `paths`), `compare`, and `stats --by-tool/--summary`
-  to the method walkthrough; note default text output and `--format json`;
-  show `tool-calls`/`tool`/`tools` adjacently.
+  (`tool-calls`, `commands`, `paths`), `compare`, and
+  `stats --by-tool/--summary` to the method walkthrough; note default text
+  output and `--format json`; show `tool-calls`/`tool`/`tools` adjacently.
 - Modified:
   `websites/fit/docs/libraries/prove-changes/trace-analysis/index.md` — same
   additions in the caller-facing guide, including a repeated-`--file` and a
@@ -365,7 +372,9 @@ SKILL.md and the guide; Risks row 5 cross-references).
 Writing under `.claude/`: follow self-improvement.md; if blocked, use
 `echo … | bunx fit-selfedit <path>`.
 
-Verification: `rg 'tool-calls' .claude/skills/fit-trace/SKILL.md websites/fit/docs/libraries/prove-changes/trace-analysis/index.md` shows the cross-references; `just check` doc lint passes.
+Verification:
+`rg 'tool-calls' .claude/skills/fit-trace/SKILL.md websites/fit/docs/libraries/prove-changes/trace-analysis/index.md`
+shows the cross-references; `just check` doc lint passes.
 
 ## Step 10: CHANGELOG
 

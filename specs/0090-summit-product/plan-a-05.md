@@ -163,7 +163,7 @@ Handler flow:
 
 Mirrors the spec.md:418–433 layout:
 
-```
+```text
   Growth opportunities aligned with team needs:
 
   High impact (addresses critical gaps):
@@ -241,7 +241,7 @@ Smoke test: `bin/fit-summit.js growth platform --roster … --data …` contains
 
 ## Commit
 
-```
+```text
 feat(summit): add growth alignment command and public computeGrowthAlignment export
 ```
 

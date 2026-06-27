@@ -19,8 +19,8 @@ producing new codes.
 
 ### 1.1 Three-layer memory architecture observed in practice
 
-Agents interact with three distinct memory layers, each with different read/write
-patterns:
+Agents interact with three distinct memory layers, each with different
+read/write patterns:
 
 | Layer | Location | Read frequency | Write frequency | Primary accessor |
 |---|---|---|---|---|
@@ -37,7 +37,7 @@ exist" in GitHub Actions).
 
 Solo agent runs show a remarkably consistent initialization sequence:
 
-```
+```text
 1. Read memory-protocol.md        (how to use memory)
 2. ls wiki/                        (discover what exists)
 3. Read wiki/<agent-name>.md       (own summary)
@@ -61,7 +61,7 @@ agent's own résumé; MEMORY.md acts as the team's shared bulletin board.
 In storyboard sessions, the facilitator performs the boot sequence *before*
 spawning participants:
 
-```
+```text
 Facilitator:
   Turn ~16-20: Read wiki/storyboard-2026-M0x.md
   Turn ~16-20: Read wiki/improvement-coach-2026-W<nn>.md
@@ -96,9 +96,9 @@ doesn't fit.
 
 ### 1.5 Claude Code memory vs wiki memory: separate systems, separate purposes
 
-Three traces show agents attempting to read `~/.claude/projects/.../memory/MEMORY.md`
-in CI. It always returns "File does not exist." The agents immediately fall back
-to `wiki/MEMORY.md`.
+Three traces show agents attempting to read
+`~/.claude/projects/.../memory/MEMORY.md` in CI. It always returns "File does
+not exist." The agents immediately fall back to `wiki/MEMORY.md`.
 
 In trace 25247279159, security-engineer reads Claude Code MEMORY.md (Turn 113),
 gets "File does not exist", then reads `wiki/security-engineer.md` (Turn 132)
@@ -132,7 +132,7 @@ surfaced this as a process gap.
 The technical-writer explicitly tracks "memory-index" as a curation area with a
 last-curated date. In trace 25031652139, the TW summary shows:
 
-```
+```text
 | Area            | Last Curated |
 | memory-index    | 2026-04-27   |
 ```
@@ -188,7 +188,7 @@ checking their latest append. This is a hub-and-spoke pattern, not peer-to-peer.
 The facilitator consumes raw fit-xmr JSON and produces human-readable briefings.
 Example from trace 25247279159, Turn 296 (Q2 to product-manager):
 
-```
+```text
 | domain | metric | n | status | μ | latest | signals |
 |---|---|---|---|---|---|---|
 | backlog | issues_triaged | 23 | signals_present (chaos) | 1.0 | 0 | xRule1... |
@@ -209,7 +209,7 @@ measurement and understanding.
 Every agent appends rows to its own `wiki/metrics/<agent>/<domain>/2026.csv`
 using `cat >> ... <<'EOF'` (Bash heredoc). The row format is consistent:
 
-```
+```text
 date,metric,value,unit,run,note
 2026-04-26,open_prs,2,count,run-42,#460 hold + #528 feat...
 ```
@@ -218,9 +218,9 @@ The `run` field links back to a GitHub Actions run URL or a human-readable label
 (e.g., `storyboard-W17-day7`, `coaching-1on1-W18-day1-baseline`). The `note`
 field provides context that would otherwise be lost.
 
-Metrics are written **after** the agent's primary work is complete and **before**
-the wiki summary update. This ordering is consistent across 12 of 14 traces
-checked (2 traces showed summary-first, then metrics).
+Metrics are written **after** the agent's primary work is complete and
+**before** the wiki summary update. This ordering is consistent across 12 of 14
+traces checked (2 traces showed summary-first, then metrics).
 
 ### 2.5 Metric ownership is strict: agents write only their own CSVs
 
@@ -260,7 +260,7 @@ triggers root-cause investigation, not remediation.
 Experiments are pre-registered with expected outcomes *before* the data is
 collected. From coaching trace 25031652139:
 
-```
+```text
 Expected outcome locked before-the-fact: next 2 artifact-driven entries
 each land in N=1 commits
 Verdict horizon 2026-05-12 23:59Z

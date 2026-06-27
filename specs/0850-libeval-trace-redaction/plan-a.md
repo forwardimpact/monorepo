@@ -1,6 +1,7 @@
 # Plan 0850-a — libeval Trace Artifact Secret Redaction
 
-Implements [spec.md](spec.md) under the architecture in [design-a.md](design-a.md).
+Implements [spec.md](spec.md) under the architecture in
+[design-a.md](design-a.md).
 
 ## Approach
 
@@ -11,7 +12,9 @@ then the three command entrypoints (build the redactor as the first
 post-parse side-effect), then update existing test fixtures to pass
 `createNoopRedactor()`, then producer-side integration tests, then docs.
 
-Libraries used: none. `redaction.js` is plain JS over Node built-ins; allowlist + regex composition only.
+Libraries used: none. `redaction.js` is plain JS over Node built-ins; allowlist
+
+- regex composition only.
 
 ## Steps
 
@@ -243,7 +246,8 @@ test("constructor throws on missing redactor", () => {
 });
 ```
 
-Run `bun test libraries/libeval/test/agent-runner.test.js -t "throws on missing redactor"`.
+Run
+`bun test libraries/libeval/test/agent-runner.test.js -t "throws on missing redactor"`.
 
 ### 3. `Supervisor` constructor + `emit*` seams + factory
 
@@ -291,9 +295,9 @@ emitLine(line) {
 }
 ```
 
-Apply the same `this.redactor.redactValue(...)` wrap inside `emitOrchestratorEvent`
-(line 430) and `emitSummary` (line 444). See design § Components for the
-seam catalogue and the `emitSummary` / `Conclude` rationale.
+Apply the same `this.redactor.redactValue(...)` wrap inside
+`emitOrchestratorEvent` (line 430) and `emitSummary` (line 444). See design §
+Components for the seam catalogue and the `emitSummary` / `Conclude` rationale.
 
 Factory `createSupervisor` (line 486–579): build **both** runners
 (`agentRunner` at line 530–541 and `supervisorRunner` at line 548–567) with
@@ -316,10 +320,10 @@ const supervisorRunner = createAgentRunner({ cwd: supervisorCwd, query, output: 
 
 Add `redactor` to the `createSupervisor({...})` JSDoc-typed parameter list and
 to the `new Supervisor({...})` call near the bottom (line 569). The factory
-signature gains `redactor` as a **required** parameter — throw at the top
-of `createSupervisor` (`if (!redactor) throw new Error("redactor is required")`) —
-matching the constructor contract one level down so the failure surfaces at
-the entry point rather than inside the runner.
+signature gains `redactor` as a **required** parameter — throw at the top of
+`createSupervisor` (`if (!redactor) throw new Error("redactor is required")`) —
+matching the constructor contract one level down so the failure surfaces at the
+entry point rather than inside the runner.
 
 Verify: `bun test libraries/libeval/test/supervisor-factory.test.js` —
 expect failures in tests that build the factory without `redactor`; step 6

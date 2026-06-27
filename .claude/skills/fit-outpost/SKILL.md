@@ -12,13 +12,15 @@ description: >
 
 Personal knowledge system with scheduled Claude Code agents. No server, no
 database — just plain files, markdown, and the `claude` CLI. Packaged as a
-native macOS app bundle (`fit-outpost.app`) with TCC-compliant process management.
+native macOS app bundle (`fit-outpost.app`) with TCC-compliant process
+management.
 
 ## When to Use
 
 **Be prepared and productive:**
 
-- Preparing daily briefings from email, calendar, and knowledge context — `npx fit-outpost wake briefing`
+- Preparing daily briefings from email, calendar, and knowledge context —
+  `npx fit-outpost wake briefing`
 - Managing email drafts and response preparation — `npx fit-outpost wake drafts`
 - Maintaining a personal knowledge graph of people, projects, and topics
 
@@ -31,7 +33,8 @@ native macOS app bundle (`fit-outpost.app`) with TCC-compliant process managemen
 - Updating with latest templates and skills — `npx fit-outpost update`
 - Stopping the scheduler — `npx fit-outpost stop`
 - Validating agent/skill references — `npx fit-outpost validate`
-- Adding, removing, disabling, or changing agent schedules — edit `~/.fit/outpost/scheduler.json`
+- Adding, removing, disabling, or changing agent schedules — edit
+  `~/.fit/outpost/scheduler.json`
 
 ---
 
@@ -63,8 +66,8 @@ code, and stderr are tracked in `state.json`.
 
 Running `init <path>` copies the bundled template into the target directory —
 `CLAUDE.md` (instructions), `.claude/agents/` and `.claude/skills/` (built-in
-agents and skills), and `.claude/settings.json` (permissions) — and scaffolds the
-knowledge base structure. The `Knowledge/` graph (People, Organizations,
+agents and skills), and `.claude/settings.json` (permissions) — and scaffolds
+the knowledge base structure. The `Knowledge/` graph (People, Organizations,
 Projects, Topics) is meant to be shared with the team over a synced filesystem;
 the personal `Briefings/` directory sits at the KB root, outside the shared
 graph. User identity is not a copied file — it is resolved live by the
@@ -85,7 +88,7 @@ See [`references/cli.md`](references/cli.md) for full command listings.
 
 ### Process Tree (App Bundle)
 
-```
+```text
 fit-outpost.app/Contents/MacOS/Outpost  ← Swift launcher, TCC responsible
 ├── fit-outpost daemon                   ← Node.js scheduler (posix_spawn)
 │   └── claude --print ...                ← spawned via posix_spawn FFI
@@ -97,7 +100,7 @@ fit-outpost.app/Contents/MacOS/Outpost  ← Swift launcher, TCC responsible
 Synced data and runtime state live outside the KB; notes, drafts, and briefings
 live inside it.
 
-```
+```text
 ~/.cache/fit/outpost/
 ├── apple_mail/         # Synced email threads (.md)
 ├── apple_calendar/     # Synced calendar events (.json)

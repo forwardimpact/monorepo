@@ -53,15 +53,16 @@ Intent: word-or-line budget decided once in core; every `noop` return carries a
 reason and measured size so the handler need not re-read the file.
 
 - Modified: `libraries/libwiki/src/weekly-log.js` (`rotateIfOverBudget`)
-
 - Replace the three bare `{ status: "noop", fromPath }` returns with reasoned
   forms. The missing-file return precedes the read, so it carries no size; the
   floor and under-budget returns measure `lines`/`words` from the read `text`
   (the floor's body is empty, so its `words` is the H1's word count — reported
   for symmetry, not used by the floor branch):
   - missing file → `{ status: "noop", reason: "missing", fromPath }`
-  - header-only/empty body → `{ status: "noop", reason: "floor", lines, words, fromPath }`
-  - under budget without force → `{ status: "noop", reason: "under-budget", lines, words, fromPath }`
+  - header-only/empty body →
+    `{ status: "noop", reason: "floor", lines, words, fromPath }`
+  - under budget without force →
+    `{ status: "noop", reason: "under-budget", lines, words, fromPath }`
 - Widen the non-force gate from lines-only to either budget:
 
 ```js
@@ -80,8 +81,9 @@ if (!force && !overBudget) {
 
 Verify: `bunx vitest run libraries/libwiki/test/weekly-log` and
 `.../cli-fix-rotation.integration.test.js` — `fix`'s deterministic pre-pass
-branches on `status` only, so its behaviour is unchanged; the word-over/line-under
-seal it relied on `force: true` for now also seals without force.
+branches on `status` only, so its behaviour is unchanged; the
+word-over/line-under seal it relied on `force: true` for now also seals without
+force.
 
 ## Step 3 — Migrate handlers onto the resolver; delete env reads
 
@@ -93,8 +95,11 @@ statement; the previously dead/divergent guards become this one live path.
   `commands/inbox.js`, `commands/rotate.js`, `commands/memo.js`
 
 Per file:
+
 - `boot.js`: replace the `agent = options.agent || env… || "staff-engineer"`
-  with `requireAgentFlag(options, { command: "boot", example: "fit-wiki boot --agent staff-engineer" })`; return its error object when `!ok`.
+  with
+  `requireAgentFlag(options, { command: "boot", example: "fit-wiki boot --agent staff-engineer" })`;
+  return its error object when `!ok`.
 - `log.js`: in `commonContext`, return `{ error: res }` when `requireAgentFlag`
   fails (drop the `stderr.write` + bare `{ ok:false, code:2 }`).
 - `claim.js`: `runClaimCommand` resolves first; `runReleaseCommand` resolves
@@ -105,7 +110,9 @@ Per file:
 - `inbox.js`: in `paths`, return `{ error: res }` from the resolver.
 - `rotate.js`: resolver first; keep the existing `target → …` echo (now after a
   confirmed agent).
-- `memo.js`: `requireAgentFlag(options, { command: "memo", flag: "--from", example: 'fit-wiki memo --from staff-engineer --to … --message …' })`; delete the `runtime.proc.env.LIBEVAL_AGENT_PROFILE` read.
+- `memo.js`:
+  `requireAgentFlag(options, { command: "memo", flag: "--from", example: 'fit-wiki memo --from staff-engineer --to … --message …' })`;
+  delete the `runtime.proc.env.LIBEVAL_AGENT_PROFILE` read.
 
 Verify: `bunx vitest run libraries/libwiki/test` — fail-closed tests (step 8)
 assert the new contract; explicit-flag tests pass unmodified.
@@ -116,11 +123,12 @@ Intent: the parameter is the ambient-identity seam; with both env reads gone it
 has no consumer.
 
 - Modified: `libraries/libwiki/src/cli-definition.js`
-
 - `createDefinition(env)` → `createDefinition()`. Update the JSDoc (remove the
   `@param env` and the ambient-dependency sentence).
-- `agentOpt`: delete `default`; description → `"Agent name (required; no environment fallback)"`.
-- memo's `from`: delete `default`; description → `"Sender agent name (required; no environment fallback)"`.
+- `agentOpt`: delete `default`; description →
+  `"Agent name (required; no environment fallback)"`.
+- memo's `from`: delete `default`; description →
+  `"Sender agent name (required; no environment fallback)"`.
 - Modified: `libraries/libwiki/bin/fit-wiki.js:19` → `createDefinition()`.
 - Modified: `libraries/libwiki/test/golden.test.js:24` → `createDefinition()`.
 
@@ -134,13 +142,17 @@ floor stays a zero-exit no-op; a missing/typo'd target exits 2.
 
 - Modified: `libraries/libwiki/src/commands/rotate.js`
 - Modified: `libraries/libwiki/src/cli-definition.js` (rotate `options`)
-
-- Add a `force: { type: "boolean", description: "Seal even an under-budget log (the header-only floor still holds)" }` option to the rotate command.
+- Add a
+  `force: { type: "boolean", description: "Seal even an under-budget log (the header-only floor still holds)" }`
+  option to the rotate command.
 - Stop hardwiring `force: true`; forward `{ force: options.force }`.
 - Branch the `noop` arm on `result.reason`:
-  - `"floor"` → existing zero-exit message (`no rotation needed for <agent>`), `{ ok: true }`.
-  - `"under-budget"` → `{ ok: false, code: 2, error: "<target> is under budget (<lines> lines, <words> words); pass --force to seal it early" }`.
-  - `"missing"` → `{ ok: false, code: 2, error: "no weekly log for <agent> at <fromPath>" }`.
+  - `"floor"` → existing zero-exit message (`no rotation needed for <agent>`),
+    `{ ok: true }`.
+  - `"under-budget"` →
+    `{ ok: false, code: 2, error: "<target> is under budget (<lines> lines, <words> words); pass --force to seal it early" }`.
+  - `"missing"` →
+    `{ ok: false, code: 2, error: "no weekly log for <agent> at <fromPath>" }`.
 
 Verify: `bunx vitest run libraries/libwiki/test/cli-rotate.integration.test.js`
 — under-budget exits 2 + no seal; `--force` seals above floor; floor not
@@ -171,9 +183,13 @@ Intent: the weekly-log budget hints emit a fully resolved, correctly targeted
 
 - Modified: `libraries/libwiki/src/audit/rules.js`
 - Modified: `libraries/libwiki/src/commands/fix.js` (`invariantContract`)
-
 - `weekly-log.line-budget` and `weekly-log.word-budget`: replace the
-  static-string `hint` with `hint: (s) => \`run \\\`bunx fit-wiki rotate --agent ${s.agentPrefix}\\\` to seal this file as a sealed part and start a fresh weekly log\`` — the interpolated prefix replaces the old "(agent = this filename's prefix)" parenthetical, which is intentionally dropped now that the value is resolved. The over-budget hint never trips the new guard.
+  static-string `hint` with `hint: (s) => \`run
+  \\\`bunx fit-wiki rotate --agent ${s.agentPrefix}\\\` to seal this file as a
+  sealed part and start a fresh weekly log\`` — the interpolated prefix replaces
+  the old "(agent = this filename's prefix)" parenthetical, which is
+  intentionally dropped now that the value is resolved. The over-budget hint
+  never trips the new guard.
 - `invariantContract`: filter to static-string hints —
   `RULES.filter((r) => scopes.has(r.scope) && typeof r.hint === "string")`.
 
@@ -195,7 +211,6 @@ the resolver unit test and the first libutil rules-engine test.
 - Modified: existing `cli-boot`, `cli-log`, `cli-claim`, `cli-memo`,
   `cli-rotate` tests — replace assertions of the removed fallback / old guard
   wording with the new fail-closed contract; keep the explicit-flag subset.
-
 - Each agent-scoped subcommand (`boot`, `log decision`, `claim`,
   `release --target`, `inbox {list,ack,promote,drop}`, `rotate`, `memo`):
   drive with no flag, once with `LIBEVAL_AGENT_PROFILE` set and once unset;
@@ -214,9 +229,9 @@ fallback.
 - Modified (confirm exact set via the step-10 sweep before editing):
   `libraries/libwiki/README.md` (agent-resolution sentence);
   `.claude/skills/fit-wiki/SKILL.md` (fallback rows);
-  `.claude/skills/kata-*/SKILL.md` Step 0 boot lines reading bare `fit-wiki boot`;
-  `.claude/agents/references/memory-protocol.md` and `coordination-protocol.md`;
-  the published `websites/**` wiki-operations guide;
+  `.claude/skills/kata-*/SKILL.md` Step 0 boot lines reading bare
+  `fit-wiki boot`; `.claude/agents/references/memory-protocol.md` and
+  `coordination-protocol.md`; the published `websites/**` wiki-operations guide;
   `benchmarks/fit-wiki` fixtures.
 - Each bare `fit-wiki <agent-scoped>` → `--agent <name>` (or `--from`);
   `release --expired` left agent-less. Remove every sentence describing

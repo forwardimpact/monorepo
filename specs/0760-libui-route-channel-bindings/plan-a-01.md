@@ -188,9 +188,11 @@ export function createJsonLdScript(
 ```
 
 **Verification:** test asserts `null` when formatter is absent; given a
-formatter `(ctx, base) => `${base}Skill/${ctx.args.id}``and a body with`{
-"@type": "Skill", name: "Testing"
-}`, asserts the returned element's `type`is`application/ld+json`, `JSON.parse(textContent)["@id"]`is the formatter's return value, body fields are merged, and`@context`carries`vocabularyBase`.
+formatter `(ctx, base) => `${base}Skill/${ctx.args.id}``and a body
+with`{ "@type": "Skill", name: "Testing" }`, asserts the returned element's
+`type`is`application/ld+json`, `JSON.parse(textContent)["@id"]`is the
+formatter's return value, body fields are merged,
+and`@context`carries`vocabularyBase`.
 
 ## Step 6 — Wire new exports into libui's public surface
 

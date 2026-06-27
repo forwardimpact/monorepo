@@ -4,11 +4,11 @@ description: "Give humans and agents the same exploratory loop — one command s
 ---
 
 A CLI answers one question per invocation. Some work is exploratory: a person or
-an agent issues a command, reads the result, and issues the next command with the
-previous one in mind. `@forwardimpact/librepl` provides a `Repl` that runs that
-loop. The same command set works two ways — typed at an interactive prompt and
-passed as one-shot flags — so an agent that learned the flags can drive the tool
-non-interactively, and a person can explore the same commands by hand.
+an agent issues a command, reads the result, and issues the next command with
+the previous one in mind. `@forwardimpact/librepl` provides a `Repl` that runs
+that loop. The same command set works two ways — typed at an interactive prompt
+and passed as one-shot flags — so an agent that learned the flags can drive the
+tool non-interactively, and a person can explore the same commands by hand.
 
 ## Prerequisites
 
@@ -19,14 +19,15 @@ non-interactively, and a person can explore the same commands by hand.
 npm install @forwardimpact/librepl
 ```
 
-The terminal formatter ships as a dependency, so REPL output is rendered the same
-way as the rest of the [shared-surface stack](/docs/libraries/every-surface/).
+The terminal formatter ships as a dependency, so REPL output is rendered the
+same way as the rest of the
+[shared-surface stack](/docs/libraries/every-surface/).
 
 ## 1. Define the application
 
-A `Repl` is constructed from an application object. The two fields you will almost
-always set are `commands` (the named operations) and `onLine` (what to do with a
-plain line of input that is not a command).
+A `Repl` is constructed from an application object. The two fields you will
+almost always set are `commands` (the named operations) and `onLine` (what to do
+with a plain line of input that is not a command).
 
 ```js
 #!/usr/bin/env node
@@ -60,13 +61,13 @@ await repl.start();
 
 Three things are happening here:
 
-- `state` declares the application's data and its initial values. The same object
-  is passed to every handler, so commands read and write shared state.
-- `onLine` receives a plain input line, the live `state`, and an `output` stream.
-  Write the result to `output` and call `output.end()` when done.
-- Each entry in `commands` has a `usage` string and a `handler`. A command marked
-  `type: "boolean"` takes no arguments. A handler may return a `Readable` stream
-  to print output, or return `false` to exit early.
+- `state` declares the application's data and its initial values. The same
+  object is passed to every handler, so commands read and write shared state.
+- `onLine` receives a plain input line, the live `state`, and an `output`
+  stream. Write the result to `output` and call `output.end()` when done.
+- Each entry in `commands` has a `usage` string and a `handler`. A command
+  marked `type: "boolean"` takes no arguments. A handler may return a `Readable`
+  stream to print output, or return `false` to exit early.
 
 ## 2. Run it both ways
 
@@ -97,9 +98,9 @@ notes --list
 ```
 
 The `--list` flag maps to the `list` command. A command whose name has
-underscores maps to a dashed flag (`clear_cache` becomes `--clear-cache`). Piping
-input on stdin runs each line through the same handler the interactive prompt
-uses, so a recorded session replays exactly.
+underscores maps to a dashed flag (`clear_cache` becomes `--clear-cache`).
+Piping input on stdin runs each line through the same handler the interactive
+prompt uses, so a recorded session replays exactly.
 
 ## 3. Persist state between sessions
 
@@ -138,8 +139,8 @@ await repl.start();
 ```
 
 State is keyed per user, so two people on the same machine keep separate
-histories. `@forwardimpact/libstorage` provides ready-made backends (local files,
-S3, Supabase) that satisfy this interface — see
+histories. `@forwardimpact/libstorage` provides ready-made backends (local
+files, S3, Supabase) that satisfy this interface — see
 [Ground Agents in Context](/docs/libraries/ground-agents/) — but any object with
 the three methods works, which keeps tests free of real I/O.
 
@@ -160,8 +161,8 @@ combined list is sorted alphabetically in the help output.
 ## Discovery links for agents
 
 The help output can carry a `documentation` array — the same external links an
-agent finds in a matching skill. An agent reaching the REPL through `--help` gets
-the same progressive-disclosure links it would get anywhere else:
+agent finds in a matching skill. An agent reaching the REPL through `--help`
+gets the same progressive-disclosure links it would get anywhere else:
 
 ```js
 const repl = new Repl({

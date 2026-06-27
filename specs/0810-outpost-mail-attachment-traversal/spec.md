@@ -7,12 +7,12 @@ home directory using an attacker-controlled filename without sanitization,
 allowing arbitrary file write outside the intended attachments directory.
 
 `products/outpost/templates/.claude/skills/sync-apple-mail/scripts/sync-helpers.mjs`
-(`copySingleAttachment`, lines 276-304) takes the attachment name from the
-Apple Mail Envelope Index DB column `attachments.name` — which preserves the
-filename from the email's MIME `Content-Disposition: attachment; filename=`
-header, set by the sender — and passes it to `path.join(destDir, destName)`
-where `destDir = ~/.cache/fit/outpost/apple_mail/attachments/<threadId>/`.
-`path.join` normalises `..` segments, so a filename like
+(`copySingleAttachment`, lines 276-304) takes the attachment name from the Apple
+Mail Envelope Index DB column `attachments.name` — which preserves the filename
+from the email's MIME `Content-Disposition: attachment; filename=` header, set
+by the sender — and passes it to `path.join(destDir, destName)` where
+`destDir = ~/.cache/fit/outpost/apple_mail/attachments/<threadId>/`. `path.join`
+normalises `..` segments, so a filename like
 `../../../../Library/LaunchAgents/com.evil.plist` resolves to a path outside
 `destDir`.
 
@@ -27,11 +27,11 @@ having Outpost installed:
 | 4 | `copyFileSync(source, destPath)` | Writes attacker-controlled bytes (the attachment payload) to attacker-controlled path under `$HOME`. |
 
 Because the macOS user has write access to `~/Library/LaunchAgents/`,
-`~/.zshrc`, `~/.ssh/authorized_keys`, `~/Library/Application Support/Code/User/settings.json`,
-and similar files, a malicious attachment achieves persistence and code
-execution at next user login (LaunchAgents) or shell start (rc files). No
-exploit primitives are missing — the attacker controls both the target path
-and the file content.
+`~/.zshrc`, `~/.ssh/authorized_keys`,
+`~/Library/Application Support/Code/User/settings.json`, and similar files, a
+malicious attachment achieves persistence and code execution at next user login
+(LaunchAgents) or shell start (rc files). No exploit primitives are missing —
+the attacker controls both the target path and the file content.
 
 This is a **HIGH severity** finding: pre-auth (sending email to a published
 address suffices), reliable (sync runs every 5 minutes by default), and

@@ -19,4 +19,6 @@ import { CodegenTypes, CodegenServices, CodegenDefinitions } from '@forwardimpac
 
 ## Documentation
 
-- [Keep Types Synced with Proto Definitions](https://www.forwardimpact.team/docs/libraries/typed-contracts/index.md) — one source of truth from proto definition to runtime: types, MCP tools, and service endpoints regenerated with `fit-codegen`.
+- [Keep Types Synced with Proto Definitions](https://www.forwardimpact.team/docs/libraries/typed-contracts/index.md)
+  — one source of truth from proto definition to runtime: types, MCP tools, and
+  service endpoints regenerated with `fit-codegen`.

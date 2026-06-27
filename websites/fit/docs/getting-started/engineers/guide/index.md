@@ -76,7 +76,7 @@ echo "What skills should I focus on for J060?" | npx fit-guide  # Pipe a questio
 
 Example pipe-mode output:
 
-```
+```text
 Level II engineers in your organization focus on three skill areas:
 
 **System Design** — Design components that interact with other teams'

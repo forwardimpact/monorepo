@@ -46,11 +46,15 @@ unchanged.
 +| `expert`       | define, shape         | business unit / function |
 ```
 
-Cells are copied byte-for-byte from `products/authoring-standards/index.md:82-88`.
+Cells are copied byte-for-byte from
+`products/authoring-standards/index.md:82-88`.
 
 **Verification:**
-- `grep -c "Learning fundamentals" websites/fit/docs/reference/model/index.md` → `0`
-- `grep -E "with guidance|independently|lead, mentor" websites/fit/docs/reference/model/index.md` → matches present
+
+- `grep -c "Learning fundamentals" websites/fit/docs/reference/model/index.md` →
+  `0`
+- `grep -E "with guidance|independently|lead, mentor" websites/fit/docs/reference/model/index.md`
+  → matches present
 
 ## Step 2 — `reference/yaml-schema/index.md` proficiency table
 
@@ -83,9 +87,14 @@ Step 1). The H2 "## Skill Proficiencies" heading above stays unchanged.
 (0..4) are unchanged from the pre-spec table.
 
 **Verification:**
-- `grep -c "Learning fundamentals" websites/fit/docs/reference/yaml-schema/index.md` → `0`
-- `grep -E "with guidance|independently|lead, mentor" websites/fit/docs/reference/yaml-schema/index.md` → matches present
-- `grep -E "^\| .?awareness.?\s+\| 0" websites/fit/docs/reference/yaml-schema/index.md` → match present (confirms `Index` column preserved in proficiency context — spec success criterion 3)
+
+- `grep -c "Learning fundamentals" websites/fit/docs/reference/yaml-schema/index.md`
+  → `0`
+- `grep -E "with guidance|independently|lead, mentor" websites/fit/docs/reference/yaml-schema/index.md`
+  → matches present
+- `grep -E "^\| .?awareness.?\s+\| 0" websites/fit/docs/reference/yaml-schema/index.md`
+  → match present (confirms `Index` column preserved in proficiency context —
+  spec success criterion 3)
 
 ## Step 3 — Build and spec-criteria sweep
 
@@ -145,12 +154,13 @@ Risks below.
 
 ## Execution
 
-Single agent, sequential. Recommend `staff-engineer` for traceability
-with the spec/design author. Branch: `feat/1030-proficiency-table-reference-docs`.
-Commit-message form: `docs(website): align reference proficiency tables
-with canonical (1030)`. Steps 1 and 2 land in one commit; Step 3 is the
-verification sweep before PR push. Both edits are bounded to a single
-table on each page (lines 74-80 and 43-49 of the pre-spec files); no
-adjacent-section rewrite, no companion test, no library touch.
+Single agent, sequential. Recommend `staff-engineer` for traceability with the
+spec/design author. Branch: `feat/1030-proficiency-table-reference-docs`.
+Commit-message form:
+`docs(website): align reference proficiency tables with canonical (1030)`. Steps
+1 and 2 land in one commit; Step 3 is the verification sweep before PR push.
+Both edits are bounded to a single table on each page (lines 74-80 and 43-49 of
+the pre-spec files); no adjacent-section rewrite, no companion test, no library
+touch.
 
 — Staff Engineer 🛠️

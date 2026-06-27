@@ -2,10 +2,10 @@
 
 ## Problem
 
-A STATUS approval row minted after a post-panel amendment silently claims
-panel coverage of content the panel never read, and the merge gate has no
-question that surfaces the gap. Realized on PR #1631 (plan 1670), timeline
-coach-verified in [Issue #1635](https://github.com/forwardimpact/monorepo/issues/1635):
+A STATUS approval row minted after a post-panel amendment silently claims panel
+coverage of content the panel never read, and the merge gate has no question
+that surfaces the gap. Realized on PR #1631 (plan 1670), timeline coach-verified
+in [Issue #1635](https://github.com/forwardimpact/monorepo/issues/1635):
 
 | Event | Ref | Time (Z) |
 | --- | --- | --- |
@@ -92,13 +92,15 @@ live, and the dishonest reading was the easy path.
    gate-side interim rule, and the PR #1638 prohibitive line all retire in
    its favor. The skill text marks the convention as interim in generic terms
    (retires when approval rows carry a commit pin); this spec records the
+
    #1605 mapping.
 
 ### Open question for design
 
 The gate-side block's **trigger form**: commit-postdates-panel-evidence-SHA
-(controlling triage form) vs disclosure-triggered (security engineer's
-optional form, [#1605 issuecomment-4685674107](https://github.com/forwardimpact/monorepo/issues/1605#issuecomment-4685674107)).
+(controlling triage form) vs disclosure-triggered (security engineer's optional
+form,
+[#1605 issuecomment-4685674107](https://github.com/forwardimpact/monorepo/issues/1605#issuecomment-4685674107)).
 Neither form needs a STATUS schema change or spec 1790 vocabulary; the design
 phase adjudicates.
 

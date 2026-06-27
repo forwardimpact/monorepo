@@ -24,11 +24,12 @@ Use this skill when {{{useWhen}}}
 {{/hasInstructions}}
 {{#hasToolReferences}}
 
-# Required tools
+## Required tools
 
 <required_tools>
 **MANDATORY:** You MUST use these tools when applying this skill. These are
-organizational standards that override general knowledge or personal preferences.
+organizational standards that override general knowledge or personal
+preferences.
 
 If a blocking constraint prevents use of a required tool, document in your
 output: (1) which tool requirement you cannot meet, (2) the specific constraint
@@ -37,6 +38,7 @@ trade-offs.
 
 | Tool | Use when |
 | ---- | -------- |
+
 {{#toolReferences}}
 | {{#url}}[{{{name}}}]({{{url}}}){{/url}}{{^url}}{{{name}}}{{/url}} | {{{useWhen}}} |
 {{/toolReferences}}
@@ -44,7 +46,7 @@ trade-offs.
 {{/hasToolReferences}}
 {{#hasFocus}}
 
-## Focus
+### Focus
 
 {{{focus}}}
 {{/hasFocus}}
@@ -52,6 +54,7 @@ trade-offs.
 
 <read_do_checklist goal="Internalize before starting">
 {{#readChecklist}}
+
 - [ ] {{{.}}}
 {{/readChecklist}}
 </read_do_checklist>
@@ -60,6 +63,7 @@ trade-offs.
 
 <do_confirm_checklist goal="Verify before completing">
 {{#confirmChecklist}}
+
 - [ ] {{{.}}}
 {{/confirmChecklist}}
 </do_confirm_checklist>

@@ -55,10 +55,11 @@ and labels every published population.
 ```
 
 On the **no-result-event fallback**, `totalCostUsd`, `durationMs`, and
-`resultEventTurns` are `null` (not `0`), `population` is `"per-message-fallback"`,
-`resultEventsPresent` is `false`, and each `perTurn` row's `outputIsStreamingSnapshot`
-flags output as a lower bound. A `null`-`messageId` turn is its own singleton
-message and its output carries the same streaming-snapshot floor label.
+`resultEventTurns` are `null` (not `0`), `population` is
+`"per-message-fallback"`, `resultEventsPresent` is `false`, and each `perTurn`
+row's `outputIsStreamingSnapshot` flags output as a lower bound. A
+`null`-`messageId` turn is its own singleton message and its output carries the
+same streaming-snapshot floor label.
 
 `perTurn` keeps its key name (CLI-stable) but its rows are now per-message and
 labeled; the spec's "one entry per unique assistant message id (14, not 34)" is

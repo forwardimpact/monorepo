@@ -67,9 +67,9 @@ regression this writer's push would introduce.
 
 ### Semantics — per-writer delta, not absolute cap
 
-- **Baseline**: the worse budget state, per file and per budget predicate,
-  among this writer's push inputs — (i) the writer's session base tree and (ii) the fetched origin
-  tip being landed onto.
+- **Baseline**: the worse budget state, per file and per budget predicate, among
+  this writer's push inputs — (i) the writer's session base tree and (ii) the
+  fetched origin tip being landed onto.
 - **Refusal predicate**: the outgoing tree *introduces or deepens* a breach
   relative to that baseline. Equal-or-improved states always pass.
 - **Foreign breaches pass through by construction**: a file already

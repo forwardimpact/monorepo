@@ -78,10 +78,12 @@ together into `src/`, `./generated/...` still resolves.
   directory exists. Today it does `mkdir -p` on the source, not the target. Add
   a `mkdir -p` for the target parent (`libraries/<pkg>/src/`) before the
   `fsAsync.symlink(sourcePath, targetPath)` call on line 143:
+
   ```js
   await fsAsync.mkdir(path.dirname(targetPath), { recursive: true });
   await fsAsync.symlink(sourcePath, targetPath, "dir");
   ```
+
   Without this, the first codegen run after the move fails with ENOENT because
   `libraries/librpc/src/` does not yet exist when the symlink is being created.
 
@@ -113,6 +115,7 @@ Apply the cross-cutting move recipe from `plan-a.md`:
 5. Run `just codegen` — this recreates the symlink at
    `libraries/librpc/src/generated` pointing into the root `generated/`.
 6. Update `libraries/librpc/package.json`:
+
    ```jsonc
    {
      "main": "./src/index.js",
@@ -120,6 +123,7 @@ Apply the cross-cutting move recipe from `plan-a.md`:
      "files": ["src/**/*.js", "bin/**/*.js", "README.md"]
    }
    ```
+
    No `exports` field is added — librpc does not currently publish subpath
    exports and this spec does not introduce new ones.
 7. Confirm internal imports work unchanged — `./generated/services/exports.js`
@@ -136,12 +140,14 @@ Same recipe, simpler because libtype has exactly one root source file:
 3. `rm libraries/libtype/generated`.
 4. `just codegen` — recreates `libraries/libtype/src/generated`.
 5. Update `libraries/libtype/package.json`:
+
    ```jsonc
    {
      "main": "./src/index.js",
      "files": ["src/**/*.js", "README.md"]
    }
    ```
+
 6. Internal import `./generated/types/types.js` still resolves through the new
    symlink.
 7. Run `bun run node --test libraries/libtype/test/*.test.js`.
@@ -274,9 +280,11 @@ symlinks to paths whose `src/` parent may or may not exist.
 6. **Both `librpc` and `libtype` lack a `files` field.** This is the reason the
    smoke-tested pack works: npm defaults include everything not explicitly
    gitignored. Part 02 introduces a `files` field for cleanliness:
+
    ```jsonc
    "files": ["src/**/*.js", "bin/**/*.js", "README.md"]
    ```
+
    `src/generated/**` is **not** listed — the generated files are never checked
    into the tarball; they are regenerated client-side. If `npm pack --dry-run`
    post-Part-02 shows a different file set than the pre-move baseline (minus the
@@ -284,7 +292,7 @@ symlinks to paths whose `src/` parent may or may not exist.
 
 ## Deliverable commit
 
-```
+```text
 refactor(layout): move codegen symlinks under src/ (part 02/08)
 
 Updates findGeneratedPath in libutil/finder.js so fit-codegen creates

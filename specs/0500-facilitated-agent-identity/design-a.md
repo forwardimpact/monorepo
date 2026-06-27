@@ -26,7 +26,7 @@ on `run` and `supervise` commands but not on `facilitate`.
 **Changed:** Replace `--agents` with `--agent-profiles` (comma-separated list of
 profile names). Add `--agent-cwd` (single directory, shared by all agents).
 
-```
+```text
 # Before
 fit-eval facilitate --agents "sec:role=sec:cwd=.,tw:role=tw:cwd=."
 

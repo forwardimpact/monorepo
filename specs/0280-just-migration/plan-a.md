@@ -34,7 +34,7 @@ storage config — with no layering.
 
 **Create:** `.env.docker-native.example`
 
-```
+```text
 # Contents combined from:
 #   .env.docker.example       — proxy, embedding, map supabase (docker URLs)
 #   .env.auth.gotrue.example  — AUTH_TYPE=gotrue, JWT_AUTH_URL (docker), web auth
@@ -52,7 +52,7 @@ Merge `.env.docker.example`, `.env.auth.supabase.example`, and
 
 **Create:** `.env.docker-supabase.example`
 
-```
+```text
 # Contents combined from:
 #   .env.docker.example            — proxy, embedding, map supabase (docker URLs)
 #   .env.auth.supabase.example     — AUTH_TYPE=supabase, JWT_AUTH_URL (docker), web auth

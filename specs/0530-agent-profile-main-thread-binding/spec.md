@@ -29,15 +29,15 @@ Each started on a commit containing the fix. None adopted its profile.
 | Security Engineer | [24597390612] | 04:58     | no                | **product-manager.md**                       | Ran product-manager PR gate on #414                    |
 
 [24587425816]:
-  https://github.com/forwardimpact/monorepo/actions/runs/24587425816
+  <https://github.com/forwardimpact/monorepo/actions/runs/24587425816>
 [24586709478]:
-  https://github.com/forwardimpact/monorepo/actions/runs/24586709478
+  <https://github.com/forwardimpact/monorepo/actions/runs/24586709478>
 [24596510543]:
-  https://github.com/forwardimpact/monorepo/actions/runs/24596510543
+  <https://github.com/forwardimpact/monorepo/actions/runs/24596510543>
 [24597071264]:
-  https://github.com/forwardimpact/monorepo/actions/runs/24597071264
+  <https://github.com/forwardimpact/monorepo/actions/runs/24597071264>
 [24597390612]:
-  https://github.com/forwardimpact/monorepo/actions/runs/24597390612
+  <https://github.com/forwardimpact/monorepo/actions/runs/24597390612>
 
 **Shared opening phrase.** Every one of the five main-thread agents opens with
 near-identical framing — "The user is asking me to assess the current state of
@@ -60,7 +60,7 @@ whichever profile that queue belongs to. The Security Engineer run even read
 **Init event does not mark a main-thread agent.** The SDK's `system.init` event
 from run 24587425816 contains:
 
-```
+```text
 agents: ['Explore', 'general-purpose', 'improvement-coach', 'Plan',
          'product-manager', 'release-engineer', 'security-engineer',
          'staff-engineer', 'statusline-setup', 'technical-writer']
@@ -94,7 +94,7 @@ wires its agents with a different SDK option shape. Run [24554487708]
 adoption across all five facilitated agents:
 
 [24554487708]:
-  https://github.com/forwardimpact/monorepo/actions/runs/24554487708
+  <https://github.com/forwardimpact/monorepo/actions/runs/24554487708>
 
 | Signal                                                | Solo runs (5 sampled)          | Facilitated run (5 agents) |
 | ----------------------------------------------------- | ------------------------------ | -------------------------- |

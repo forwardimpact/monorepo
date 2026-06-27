@@ -292,7 +292,7 @@ constructor.
 `index.js` `Complete` method reorder (existing block at
 `services/ghuser/index.js:75-127`):
 
-```
+```text
 1. flow = flows.consume(req.state)                  // existing
 2. tokens = github.exchangeCode(...)                // existing
 3. authorizedGithubId = github.getUser(...)         // existing
@@ -420,7 +420,7 @@ against the same forget-resistance class O3 wanted addressed.
 `createLinkCompleteHandler({ channel, store, dispatcher, buildCallbackMeta,
 trustedOrigins, ticketSecret, clock })` reorder:
 
-```
+```text
 1. linkToken = c.req.query("state")
 2. if !linkToken: "Missing state" 400              // existing (lines 33-39)
 3. ticket = c.req.query("ticket")

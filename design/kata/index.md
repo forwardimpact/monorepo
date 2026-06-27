@@ -94,7 +94,7 @@ page may show the wheel with **P** and **D** lit; an Improvement Coach profile
 may show **S** lit. Lit quadrants use a 1.5px stroke; unlit quadrants use a
 0.5px stroke. No fills.
 
-```
+```text
        P
    ╱─ ─ ─╲
   ╱       ╲
@@ -198,7 +198,7 @@ journal.
 
 ### Hero Pattern
 
-```
+```text
 Roboto Slab, 64px, weight 700:
 
   Practice the form.
@@ -221,7 +221,7 @@ wheel** — the four-quadrant chalk circle defined in
 brand's signature: a quiet visible reminder that every Kata page is a turn of
 the cycle.
 
-```
+```text
    K A T A
         ⊕     ← PDSA wheel (P · D · S · A clockwise)
 ```
@@ -245,7 +245,7 @@ The canonical home is `websites/fit/docs/internals/kata/index.md` — sibling to
 `internals/operations/`, `internals/librepl/`. This is
 where the brand renders for human contributors browsing the docs site.
 
-```
+```text
 ┌──────────────────────────────────────────────┐
 │  Forward Impact Engineering Internals  ›  Kata  │
 │                                              │
@@ -288,11 +288,11 @@ emoji-equivalent (`🟥`) reserved for the Trust Boundary section.
 
 ### Surface 3 — Agent Comments and PR/Issue Bodies
 
-When a Kata agent posts on a PR or issue (via `kata-dispatch`), it signs with its
-persona. The signature line is a single line of IBM Plex Mono using the
+When a Kata agent posts on a PR or issue (via `kata-dispatch`), it signs with
+its persona. The signature line is a single line of IBM Plex Mono using the
 convention:
 
-```
+```text
 — {persona icon} {Persona Name} · {phase} · {run-id}
 ```
 
@@ -313,7 +313,7 @@ questions as level-3 subsections, metrics as a mono-table.
 The Kata internals page lives inside the Forward Impact Engineering docs nav.
 Within the Kata section, sub-nav routes to each persona:
 
-```
+```text
 Forward Impact Engineering Docs  ›  Internals  ›  Kata  ›  Staff · Release · Security · Product · Writer · Coach
 ```
 
@@ -322,7 +322,7 @@ persona switcher is a horizontal row at the top of any persona sub-page.
 
 ### Warm/Cool Section Rhythm
 
-```
+```text
 Section 1: white (#ffffff)          — Hero
 Section 2: warm (#f8f6f1)           — Agent persona cards
 Section 3: white (#ffffff)          — How a daily kata runs

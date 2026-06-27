@@ -81,7 +81,7 @@ invariant applicable to every agent trace:
 
 | Invariant                                                         | Evidence                                                                                                                                  | Severity |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `dangerouslyDisableSandbox: true` only used to invoke the wrapper | Every turn with `tool=="Bash"` and `input.dangerouslyDisableSandbox==true` has a `command` beginning with `bash scripts/claude-write.sh ` | **High** |
+| `dangerouslyDisableSandbox: true` only used to invoke the wrapper | Every turn with `tool=="Bash"` and `input.dangerouslyDisableSandbox==true` has a `command` beginning with `bash scripts/claude-write.sh` | **High** |
 
 Violation evidence surfaces in the existing per-run invariant audit. This is the
 mechanical enforcement that SC6 (no skill invents its own workaround) depends

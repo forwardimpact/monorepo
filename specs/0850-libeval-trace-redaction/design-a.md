@@ -41,7 +41,7 @@ sinks but they share the same already-redacted bytes.
 
 ## Interfaces
 
-```
+```text
 redaction.js
   createRedactor({ env, allowlist, patterns, enabled }): Redactor
   Redactor.redactValue(value: unknown): unknown   // structure-preserving deep-walk
@@ -85,7 +85,7 @@ alphabet.
 | Channel | Form | Reason |
 | --- | --- | --- |
 | Env var | `LIBEVAL_REDACTION_DISABLED=1` | One channel, one name, no CLI surface to tunnel through. CI workflows must edit `agent-react.yml` to set it — that diff is reviewable and visible in PR. Documented prohibition: never set in CI on a public repo. |
-| Warning | `createRedactor` writes one stderr line at construction when `enabled === false`: `libeval: trace redaction DISABLED via LIBEVAL_REDACTION_DISABLED — secrets may appear in trace artifact`. Stderr is captured by the workflow log; reviewers and post-hoc auditors can grep for the string. |
+| Warning | `createRedactor` writes one stderr line at construction when `enabled === false`: `libeval: trace redaction DISABLED via LIBEVAL_REDACTION_DISABLED — secrets may appear in trace artifact`. Stderr is captured by the workflow log; reviewers and post-hoc auditors can grep for the string. |  |
 
 The opt-out is auditability via reviewer attention — stderr line + workflow
 YAML diff + the documented prohibition. Code-side enforcement (e.g. refusing

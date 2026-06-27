@@ -313,7 +313,7 @@ async #hashTree(stagedDir) {
 
 Minimal bare config (written in step 12):
 
-```
+```text
 [core]
 	repositoryformatversion = 0
 	filemode = true

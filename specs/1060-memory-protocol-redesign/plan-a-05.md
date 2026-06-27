@@ -123,12 +123,13 @@ single source of truth for sizes/strings.
 CLI surface (parsed via Node's built-in `util.parseArgs`, no libcli
 dependency):
 
-```
+```text
 node scripts/spec-1060-migrate-wiki.mjs --dry-run
 node scripts/spec-1060-migrate-wiki.mjs --apply
 ```
 
 Flags:
+
 - `--dry-run` — print every planned change to stdout; touch nothing on disk.
 - `--apply` — execute. Mutually exclusive with `--dry-run`; one must be present.
 - `--wiki-root <path>` — override default `./wiki`.
@@ -139,9 +140,13 @@ takes a `{ dryRun, fs }` parameter so the dry-run path exercises the
 same code as apply.
 
 Verification (one-time, run during PR development):
-- `node scripts/spec-1060-migrate-wiki.mjs --dry-run` prints the expected change set against the live wiki.
-- The script is self-contained — `node --check scripts/spec-1060-migrate-wiki.mjs` parses clean.
-- No `bun test` integration — the script is one-shot; eyeball verification on the dry-run output plus the diff in 05B is the review surface.
+
+- `node scripts/spec-1060-migrate-wiki.mjs --dry-run` prints the expected change
+  set against the live wiki.
+- The script is self-contained —
+  `node --check scripts/spec-1060-migrate-wiki.mjs` parses clean.
+- No `bun test` integration — the script is one-shot; eyeball verification on
+  the dry-run output plus the diff in 05B is the review surface.
 
 **Lifecycle note**: this step adds the script. Commit 05B runs it
 (producing the migration output) and deletes it in the same commit.
@@ -172,7 +177,8 @@ const ENTRY_RE = /^## \d{4}-\d{2}-\d{2}(?:[\s(].*)?$/m;
 
 Algorithm:
 
-1. Read the file. Split on `ENTRY_RE` to obtain `[h1Preamble, entry1, entry2, ...]`.
+1. Read the file. Split on `ENTRY_RE` to obtain
+   `[h1Preamble, entry1, entry2, ...]`.
 2. Pack entries into chunks where each chunk's cumulative line count
    (including the repeated H1 + annotation, see Step 4 below) stays
    ≤500. Boundaries fall at entry headings only — never mid-entry. If
@@ -209,10 +215,20 @@ largest `staff-engineer-2026-W19.md` at 1909 lines → 4 parts (4 ×
 across the 31 source files ≈ 93.
 
 Verification:
-- `bunx fit-wiki audit --legacy-only` (post-rotation, no grace var) reports zero weekly-log-cap violations.
-- `git diff --stat` shows the deletion of 31 oversize files, creation of ~93 part files, **and** deletion of `scripts/spec-1060-migrate-wiki.mjs` (the script self-destructs in 05B).
-- Byte-equivalence eyeball check during PR development: pick 3 of the 31 rotated files, concatenate `partN`'s body content (skipping each part's H1 except for part 1), and diff against the file's content at the parent commit (pre-05B HEAD). Bytes must match. The H1-strip is the only permitted divergence.
-- The script itself implements a `--verify` mode (no separate test infrastructure) that runs the byte-equivalence check across all rotated files before deleting the originals. `--apply` calls `--verify` internally and aborts on mismatch.
+
+- `bunx fit-wiki audit --legacy-only` (post-rotation, no grace var) reports zero
+  weekly-log-cap violations.
+- `git diff --stat` shows the deletion of 31 oversize files, creation of ~93
+  part files, **and** deletion of `scripts/spec-1060-migrate-wiki.mjs` (the
+  script self-destructs in 05B).
+- Byte-equivalence eyeball check during PR development: pick 3 of the 31 rotated
+  files, concatenate `partN`'s body content (skipping each part's H1 except for
+  part 1), and diff against the file's content at the parent commit (pre-05B
+  HEAD). Bytes must match. The H1-strip is the only permitted divergence.
+- The script itself implements a `--verify` mode (no separate test
+  infrastructure) that runs the byte-equivalence check across all rotated files
+  before deleting the originals. `--apply` calls `--verify` internally and
+  aborts on mismatch.
 
 ## Step 3 — Backfill `### Decision` blocks
 
@@ -242,6 +258,7 @@ reads the original content beneath it.
 
 **Idempotence by content match**: skip entries where any of the
 following hold (any one suffices):
+
 1. The next non-blank line after the entry heading is `### Decision`.
 2. The literal stub paragraph (first sentence
    `Retroactively reconstructed during spec 1060 migration.`) appears
@@ -253,10 +270,18 @@ content-match guard (rule 2) is the load-bearing one for re-runs
 against the migrated tree.
 
 Verification:
-- `bunx fit-wiki audit` post-backfill reports zero decision-block-opening violations.
-- `rg -c "^### Decision" wiki/*-2026-W*.md wiki/*-2026-W*-part*.md` total equals the **exact** entry count from Step 2 (573 + any new W21 entries written during the migration window — record the expected total at PR-open time, no ±tolerance).
-- A spot check on 5 random pre-backfill entries shows the original content intact beneath the stub.
-- A re-run of `node scripts/spec-1060-migrate-wiki.mjs --dry-run` after a successful `--apply` (run on a worktree copy, since the live script self-deletes in 05B) reports zero planned changes.
+
+- `bunx fit-wiki audit` post-backfill reports zero decision-block-opening
+  violations.
+- `rg -c "^### Decision" wiki/*-2026-W*.md wiki/*-2026-W*-part*.md` total equals
+  the **exact** entry count from Step 2 (573 + any new W21 entries written
+  during the migration window — record the expected total at PR-open time, no
+  ±tolerance).
+- A spot check on 5 random pre-backfill entries shows the original content
+  intact beneath the stub.
+- A re-run of `node scripts/spec-1060-migrate-wiki.mjs --dry-run` after a
+  successful `--apply` (run on a worktree copy, since the live script
+  self-deletes in 05B) reports zero planned changes.
 
 ## Step 4 — Compact over-cap summaries
 
@@ -283,10 +308,13 @@ For each over-cap summary `wiki/<agent>.md`:
    marker), state H2s, `## Open Blockers`.
 
 Verification:
+
 - `wc -l wiki/<agent>.md` ≤ 80 for every summary listed by the worklist.
 - `bunx fit-wiki audit` reports zero summary-budget violations.
-- The moved content is locatable in the current week's log under the new dated entry.
-- The new dated entry carries a `### Decision` stub (Step 4 self-emitted, not Step 3 re-run).
+- The moved content is locatable in the current week's log under the new dated
+  entry.
+- The new dated entry carries a `### Decision` stub (Step 4 self-emitted, not
+  Step 3 re-run).
 
 ## Step 5 — Active Claims seed verification
 
@@ -321,8 +349,11 @@ Stop-hook never set one; agents who hit a Stop-hook audit failure
 investigate locally).
 
 Verification:
+
 - `rg "FIT_WIKI_AUDIT_GRACE_UNTIL" .github/` returns zero hits.
-- `bunx fit-wiki audit` against the migrated wiki (which 05B has just produced) exits 0 with `RESULT: pass` — this is the strict-mode evidence specific to Part 05; Part 04 already verified the grace-mode counterpart.
+- `bunx fit-wiki audit` against the migrated wiki (which 05B has just produced)
+  exits 0 with `RESULT: pass` — this is the strict-mode evidence specific to
+  Part 05; Part 04 already verified the grace-mode counterpart.
 
 ## Step 7 — Eval-corpus annotation in spec
 
@@ -330,13 +361,22 @@ Created: `specs/1060-memory-protocol-redesign/eval-corpus.md`.
 
 Document (≤80 lines) recording:
 
-- **Commit hashes** — Migration commit on monorepo `main`; pre-migration commit on the wiki repo (the last commit before the migration commit).
-- **File-count delta** — 31 files deleted, ~93 part files created, N summaries trimmed (substitute real N at PR time).
-- **Rename map** — Two-column table mapping each deleted source file to its part files, so a future eval can reconstruct which physical file holds which content.
-- **Audit baseline** — Path to the saved `bunx fit-wiki audit --format json` snapshot at the migration commit. Snapshot lives at `specs/1060-memory-protocol-redesign/audit-baseline-post-1060.json` (in the monorepo, not the wiki — keeps the audit-clean wiki invariant: a snapshot file in `wiki/` would itself appear in audit scope).
+- **Commit hashes** — Migration commit on monorepo `main`; pre-migration commit
+  on the wiki repo (the last commit before the migration commit).
+- **File-count delta** — 31 files deleted, ~93 part files created, N summaries
+  trimmed (substitute real N at PR time).
+- **Rename map** — Two-column table mapping each deleted source file to its part
+  files, so a future eval can reconstruct which physical file holds which
+  content.
+- **Audit baseline** — Path to the saved `bunx fit-wiki audit --format json`
+  snapshot at the migration commit. Snapshot lives at
+  `specs/1060-memory-protocol-redesign/audit-baseline-post-1060.json` (in the
+  monorepo, not the wiki — keeps the audit-clean wiki invariant: a snapshot file
+  in `wiki/` would itself appear in audit scope).
 - **Eval invariants** — Bulleted list anchoring future eval scaffolds:
   - 21 weeks of data present (W14 through current week).
-  - Decision-block ratio: 100% post-migration (every dated entry leads with `### Decision` or a backfill stub).
+  - Decision-block ratio: 100% post-migration (every dated entry leads with
+    `### Decision` or a backfill stub).
   - Weekly-log line distribution: max ≤500 lines per file.
   - Summary line distribution: max ≤80 lines per `<agent>.md`.
   - Active Claims at empty state (no inherited claims from pre-migration).
@@ -346,20 +386,29 @@ This document is the eval substrate's manifest. Future eval scaffolds
 (greenfield-wiki, partial-rotation, no-decision-block) reference it.
 
 Verification:
-- The file exists; both hashes are real commits; the audit baseline JSON parses and shows `result: pass`.
-- The invariants list matches the migrated state (eyeball check on the PR commit; no separate test scaffold since the script is one-shot).
-- **Research corpus untouched** — assert with `ls -la wiki/memory-protocol-*-2026-05-16.md` shows the original five files at their pre-migration sizes and mtimes (verified by comparing against the file list at the parent commit hash). Spec § Success Criteria row 13 satisfied.
+
+- The file exists; both hashes are real commits; the audit baseline JSON parses
+  and shows `result: pass`.
+- The invariants list matches the migrated state (eyeball check on the PR
+  commit; no separate test scaffold since the script is one-shot).
+- **Research corpus untouched** — assert with
+  `ls -la wiki/memory-protocol-*-2026-05-16.md` shows the original five files at
+  their pre-migration sizes and mtimes (verified by comparing against the file
+  list at the parent commit hash). Spec § Success Criteria row 13 satisfied.
 
 Created in commit 05B alongside `eval-corpus.md`:
-- `specs/1060-memory-protocol-redesign/audit-baseline-post-1060.json` — the saved `bunx fit-wiki audit --format json` snapshot.
+
+- `specs/1060-memory-protocol-redesign/audit-baseline-post-1060.json` — the
+  saved `bunx fit-wiki audit --format json` snapshot.
 
 ## Risks (Part 05 only)
 
 - **The migration commit is large.** Git diff will show ~100 file
   renames/creations and a 100+ KB delta. To make the diff reviewable,
   split Part 05 into **two commits** on the same branch:
-  - Commit 05A: `chore(scripts): add one-shot wiki migration script for spec 1060` —
-    Step 1 only. Small, ~200 lines of Node, fully reviewable.
+  - Commit 05A:
+    `chore(scripts): add one-shot wiki migration script for spec 1060` — Step 1
+    only. Small, ~200 lines of Node, fully reviewable.
   - Commit 05B: `migrate(wiki): retroactive protocol compliance per spec 1060` —
     runs the script, captures its mechanical output (Steps 2–6),
     creates `eval-corpus.md` (Step 7), and **deletes the script in
@@ -415,12 +464,12 @@ Created in commit 05B alongside `eval-corpus.md`:
   re-write via this path. The protocol's CLI Contract Map (Part 02)
   carries a footnote pointing at plan-a-05.md so a future auditor
   reads the asymmetry as designed, not as a contract gap.
-- **WIP idempotence requires script restoration.** During PR
-  development, the developer may need to iterate on the migration
-  (re-run after fixing a bug). After commit 05B is pushed, the script
-  is gone from HEAD; iterating requires `git checkout 05A -- scripts/spec-1060-migrate-wiki.mjs`,
-  re-running, and amending 05B. Document this workflow in the PR
-  description so a future reviewer / re-runner knows the dance.
+- **WIP idempotence requires script restoration.** During PR development, the
+  developer may need to iterate on the migration (re-run after fixing a bug).
+  After commit 05B is pushed, the script is gone from HEAD; iterating requires
+  `git checkout 05A -- scripts/spec-1060-migrate-wiki.mjs`, re-running, and
+  amending 05B. Document this workflow in the PR description so a future
+  reviewer / re-runner knows the dance.
 - **Commit 05B atomicity.** Commit 05B bundles four operations:
   (a) the mechanical migration output (~100 file renames/creations);
   (b) deletion of the script;

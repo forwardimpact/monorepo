@@ -51,8 +51,8 @@ highest-priority action:
 3. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
 
 After choosing, follow the selected skill's full procedure. Classify findings
-per [work-definition.md](references/work-definition.md#classification-tests); the
-branch each work-type lands on:
+per [work-definition.md](references/work-definition.md#classification-tests);
+the branch each work-type lands on:
 
 - **Mechanical fix** -- `fix/doc-review-YYYY-MM-DD` branch from `main`
 - **Structural finding** -- spec via `kata-spec` on `spec/docs-<name>` branch
@@ -68,5 +68,9 @@ branch each work-type lands on:
 - Run `bunx fit-doc build --src=websites/fit --out=dist` (or the matching
   `websites/<site>` path) before committing doc changes
 - **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
-- **Coordination**: [coordination-protocol](.claude/agents/references/coordination-protocol.md). In Assess/memory writes, every cited SHA must resolve on its referenced repo or the body is not published — [§ Citation integrity](.claude/agents/references/citation-integrity.md).
+- **Coordination**:
+  [coordination-protocol](.claude/agents/references/coordination-protocol.md).
+  In Assess/memory writes, every cited SHA must resolve on its referenced repo
+  or the body is not published —
+  [§ Citation integrity](.claude/agents/references/citation-integrity.md).
 - **Auth anomalies**: [auth-anomaly](.claude/agents/references/auth-anomaly.md)

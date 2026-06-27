@@ -377,7 +377,7 @@ touched.
 
 ## Ordering and Dependencies
 
-```
+```text
 Step 1 (lifecycle rewrite) → Step 2 (index card) → Step 3 (model edits) → Step 4 (validate)
 ```
 

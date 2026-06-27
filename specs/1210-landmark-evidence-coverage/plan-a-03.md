@@ -205,6 +205,7 @@ const STOP_WORDS = new Set([
 ```
 
 Notes:
+
 - The function exports `transformEvidenceArtifact(supabase, { mapData })`
   to mirror the existing `transformEvidence(supabase)` signature plus
   the one collaborator the new producer needs.
@@ -233,6 +234,7 @@ shows a single new file; no test stubs leaked into the source module.
 ## Step 3.2 — Orchestrator wires the new producer
 
 Modified:
+
 - `products/map/src/activity/transform/index.js`
 - `products/map/src/commands/activity.js` (`transformAllTargets`,
   `TRANSFORM_TARGETS`, `transform`, AND `seed` — the seed command at
@@ -274,8 +276,9 @@ export async function transformAll(supabase, runtime, { mapData } = {}) {
 
 ### Thread `mapData` through the call chain
 
-`transformAll`'s two call sites today (`products/map/src/commands/activity.js:74,234`)
-pass `(supabase, runtime)` only. The plan threads `mapData` through:
+`transformAll`'s two call sites today
+(`products/map/src/commands/activity.js:74,234`) pass `(supabase, runtime)`
+only. The plan threads `mapData` through:
 
 1. **bin/fit-map.js `dispatchActivity` `case "transform"`.** Today
    reads:
@@ -312,8 +315,8 @@ pass `(supabase, runtime)` only. The plan threads `mapData` through:
    pattern; do not hoist the import — it preserves the cold-start cost
    for non-transform dispatches.
 
-2. **`activity.transform(target, supabase, runtime, { mapData })`.**
-   Add the fourth parameter; thread it into both branches:
+2. **`activity.transform(target, supabase, runtime, { mapData })`.** Add the
+   fourth parameter; thread it into both branches:
 
    ```js
    export async function transform(target, supabase, runtime, { mapData } = {}) {
@@ -354,8 +357,8 @@ pass `(supabase, runtime)` only. The plan threads `mapData` through:
    ```
 
 4. **`TRANSFORM_TARGETS` adds an `evidence-artifact` entry.**
-   `fit-map activity transform evidence-artifact` becomes a runnable
-   target for partial reruns:
+   `fit-map activity transform evidence-artifact` becomes a runnable target for
+   partial reruns:
 
    ```js
    const TRANSFORM_TARGETS = {
@@ -371,24 +374,24 @@ pass `(supabase, runtime)` only. The plan threads `mapData` through:
    };
    ```
 
-   Update the single-target dispatch line in `transform` to pass the
-   third `{ mapData }` argument to `cfg.fn`:
+   Update the single-target dispatch line in `transform` to pass the third
+   `{ mapData }` argument to `cfg.fn`:
 
    ```js
    const r = await cfg.fn(supabase, runtime, { mapData });
    ```
 
    `transformPeople`, `transformAllGetDX`, `transformAllGitHub`, and
-   `transformEvidence` all ignore extra positional arguments today; the
-   new third arg is harmless for them.
+   `transformEvidence` all ignore extra positional arguments today; the new
+   third arg is harmless for them.
 
-5. **`seed` command** (`activity.js:196-265`). Thread `mapData` into
-   the `transformAll` call (`activity.js:234`) and add a parallel
-   `evidenceArtifact` report alongside the existing `result.evidence`
-   report (`activity.js:257-261`). `seed` is callable as
-   `fit-map activity seed` and is wired in `bin/fit-map.js` at
-   `dispatchActivity` `case "seed"`; thread `mapData` there too via
-   the same dynamic-import pattern as the transform case:
+5. **`seed` command** (`activity.js:196-265`). Thread `mapData` into the
+   `transformAll` call (`activity.js:234`) and add a parallel `evidenceArtifact`
+   report alongside the existing `result.evidence` report
+   (`activity.js:257-261`). `seed` is callable as `fit-map activity seed` and is
+   wired in `bin/fit-map.js` at `dispatchActivity` `case "seed"`; thread
+   `mapData` there too via the same dynamic-import pattern as the transform
+   case:
 
    ```js
    case "seed": {
@@ -401,8 +404,8 @@ pass `(supabase, runtime)` only. The plan threads `mapData` through:
    }
    ```
 
-   `activity.seed({ data, supabase, runtime, mapData })` passes
-   `{ mapData }` into `transformAll(supabase, runtime, { mapData })`.
+   `activity.seed({ data, supabase, runtime, mapData })` passes `{ mapData }`
+   into `transformAll(supabase, runtime, { mapData })`.
 
 6. **Ordering**: `transformAllGitHub` first (populates
    `github_artifacts`), then `transformEvidenceArtifact` (writes
@@ -467,8 +470,9 @@ Cases:
 Hand-roll the fake supabase the same way `transform-evidence.test.js`
 does (the existing mock doesn't cover the join chain we need).
 
-Verify: `bun test products/map/test/activity/transform-evidence-artifact.test.js`
-passes all six cases.
+Verify:
+`bun test products/map/test/activity/transform-evidence-artifact.test.js` passes
+all six cases.
 
 ## Step 3.4 — Criteria 1 + 6 verification harness
 
@@ -521,22 +525,23 @@ Assertions:
   `coverage = computeCoverageRatio(allArtifacts, allArtifacts.filter(a => !scoredIds.has(a.artifact_id)))`
   from `evidence-helpers.js:114-120` using the captured rows. Assert
   `coverage.ratio >= COVERAGE_CONFIDENCE_FLOOR` (`0.30`).
-- **Criterion 1(b) ≥14 artifact-interpreted rows.** Assert the
-  captured row set contains `>=14` rows whose `provenance === "artifact_interpreted"`.
+- **Criterion 1(b) ≥14 artifact-interpreted rows.** Assert the captured row set
+  contains `>=14` rows whose `provenance === "artifact_interpreted"`.
   Round-robin `synthetic_placeholder` rows do **not** count toward this
   threshold — the count predicate filters on provenance class.
-- **Criterion 1(c) per-`(repo, skill)` floor.** Captured evidence
-  rows carry `artifact_id` but not `repository`; join back to the
-  fixture artifact array (`artifactsById = new Map(fixtureArtifacts.map(a => [a.artifact_id, a]))`)
-  and project on `(artifactsById.get(row.artifact_id).repository, row.skill_id)`
-  for `row.provenance === "artifact_interpreted"`; assert at least
-  one row exists for each of `("mes-connector", *)` and
-  `("scada-bridge", *)` for at least one skill in the persona's matrix.
+- **Criterion 1(c) per-`(repo, skill)` floor.** Captured evidence rows carry
+  `artifact_id` but not `repository`; join back to the fixture artifact array
+  (`artifactsById = new Map(fixtureArtifacts.map(a => [a.artifact_id, a]))`) and
+  project on `(artifactsById.get(row.artifact_id).repository, row.skill_id)` for
+  `row.provenance === "artifact_interpreted"`; assert at least one row exists
+  for each of `("mes-connector", *)` and `("scada-bridge", *)` for at least one
+  skill in the persona's matrix.
 - **Criterion 6 determinism.** Project both run captures on
   `(artifact_id, skill_id, level_id, marker_text, matched, provenance)`;
   assert the two sets are equal.
 
 Notes:
+
 - The harness uses `transformEvidenceArtifact` + `transformEvidence`
   directly (the producers exposed in their modules), not the
   orchestrator, so the criterion 6 assertion exercises the per-class
@@ -555,7 +560,7 @@ Notes:
 
 ## Verification
 
-```
+```text
 bun test products/map
 ```
 

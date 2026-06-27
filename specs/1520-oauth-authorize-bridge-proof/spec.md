@@ -19,8 +19,9 @@ identity. The binding-integrity hardening in specs 1380 and 1400 does not close
 this: those specs gate the **bridge consume path** for queued dispatches, not
 the **binding upsert** that `/callback` performs before any bridge interaction.
 The redirect_uri allowlist that looked like a small mechanical fix does not
-close it either — GitHub's upstream redirect always targets `${linkBaseUrl}/callback`,
-and the binding upserts before the downstream redirect resolves.
+close it either — GitHub's upstream redirect always targets
+`${linkBaseUrl}/callback`, and the binding upserts before the downstream
+redirect resolves.
 
 ### Defect — Anyone can plant a binding under a victim's non-`github-discussions` surface identity (security, HIGH)
 
@@ -70,7 +71,7 @@ contract.
 
 | Persona | Job | How the gap blocks progress |
 |---|---|---|
-| Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team) | A bridge whose binding can be planted by any tenant member realises the job's named anxiety — autonomy amplifying bad patterns faster than humans can intervene — and forecloses every non-`github-discussions` channel as a viable surface until the gap closes. Until the structural fix ships, the interim kill-switch on `/authorize` and the paired interim `GetToken` quarantine (see § Scope) take msteams entirely offline: new linking is blocked and dispatch under any pre-fix binding is suspended. msteams returns in the structural-fix release, which ships the kill-switch removal, the `GetToken` quarantine removal, and the binding migration in one tag.
+| Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team) | A bridge whose binding can be planted by any tenant member realises the job's named anxiety — autonomy amplifying bad patterns faster than humans can intervene — and forecloses every non-`github-discussions` channel as a viable surface until the gap closes. Until the structural fix ships, the interim kill-switch on `/authorize` and the paired interim `GetToken` quarantine (see § Scope) take msteams entirely offline: new linking is blocked and dispatch under any pre-fix binding is suspended. msteams returns in the structural-fix release, which ships the kill-switch removal, the `GetToken` quarantine removal, and the binding migration in one tag. |
 
 ## Scope
 

@@ -63,7 +63,8 @@ from `node:test`; neither imports from `bun:test`. They are included in the
 verification roots so the inventory matches the runner's discovery surface.
 
 Issue #1328 framed the disposition as binary: enforce (Option A — guard rule
-+ migrate 31 files) or relax (Option B — allowlist + amend record). The
+
+- migrate 31 files) or relax (Option B — allowlist + amend record). The
 **Platform Builders** persona job is to "Build Agent-Capable Systems" via
 the Gear product
 ([JTBD.md](../../JTBD.md#platform-builders-build-agent-capable-systems)) —

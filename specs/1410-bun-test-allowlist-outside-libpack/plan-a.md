@@ -19,7 +19,8 @@ Intent: pure detection of `bun:test` import/export violations from source text.
 
 Files: create `scripts/check-bun-test-imports-rules.mjs`.
 
-- Export `ALLOWLIST = new Set(["describe","test","it","expect","beforeAll","beforeEach","afterEach","afterAll"])`.
+- Export
+  `ALLOWLIST = new Set(["describe","test","it","expect","beforeAll","beforeEach","afterEach","afterAll"])`.
 - Export `SYMBOL_POINTER`, a map from banned-symbol name → replacement pointer
   string: `mock`/`spyOn` → `"use libmock spy()"`; `setSystemTime`/
   `useFakeTimers` → `"bun timer manipulation is banned; see spec 1410 § Out"`.
@@ -27,8 +28,11 @@ Files: create `scripts/check-bun-test-imports-rules.mjs`.
   reference).
 - Export `bunTestFindings(text, isTestFile)` returning
   `Array<{line, kind, name, pointer}>` (no `file` — the script attaches it):
-  - Parse with `acorn.parse(text, { sourceType: "module", ecmaVersion: "latest", locations: true })`. Wrap in try/catch; on parse error return a single
-    finding `{line: 1, kind: "shape", name: "parse-error", pointer: "file is not a parseable ES module"}` so a bad file fails loud, not silent.
+  - Parse with
+    `acorn.parse(text, { sourceType: "module", ecmaVersion: "latest", locations: true })`.
+    Wrap in try/catch; on parse error return a single finding
+    `{line: 1, kind: "shape", name: "parse-error", pointer: "file is not a parseable ES module"}`
+    so a bad file fails loud, not silent.
   - Every `kind:"shape"` finding below carries `pointer: allowlistRef` (SC1c
     requires a pointer on shape rejections too). Omitted from each row for
     brevity — attach it uniformly.
@@ -38,14 +42,22 @@ Files: create `scripts/check-bun-test-imports-rules.mjs`.
     `{kind:"shape", name:"default"}`; `ImportNamespaceSpecifier` →
     `{kind:"shape", name:"namespace"}`; `ImportSpecifier` → let
     `imported = spec.imported.name`; if `isTestFile && ALLOWLIST.has(imported)`
-    no finding, else `{kind:"symbol", name: imported, pointer: SYMBOL_POINTER.get(imported) ?? allowlistRef}`. Zero specifiers → `{kind:"shape", name:"side-effect"}`.
-  - `ExportNamedDeclaration` with source: if any specifier `local.name === "default"` → `{kind:"shape", name:"re-export-default-as"}`, else `{kind:"shape", name:"re-export-named"}`. (Re-export is banned in test and source files alike — `isTestFile` is not consulted.)
-  - `ExportAllDeclaration` with source → `{kind:"shape", name:"re-export-namespace"}`.
+    no finding, else
+    `{kind:"symbol", name: imported, pointer: SYMBOL_POINTER.get(imported) ?? allowlistRef}`.
+    Zero specifiers → `{kind:"shape", name:"side-effect"}`.
+  - `ExportNamedDeclaration` with source: if any specifier
+    `local.name === "default"` → `{kind:"shape", name:"re-export-default-as"}`,
+    else `{kind:"shape", name:"re-export-named"}`. (Re-export is banned in test
+    and source files alike — `isTestFile` is not consulted.)
+  - `ExportAllDeclaration` with source →
+    `{kind:"shape", name:"re-export-namespace"}`.
   - `line` is the node's `loc.start.line`. `allowlistRef` is a constant string
     referencing spec 1410 § Scope allowlist.
 
-Verify: write the probe to a temp `.mjs` (avoids nested shell-quote
-fragility) — `printf 'import { bunTestFindings } from "%s/scripts/check-bun-test-imports-rules.mjs";\nconsole.log(bunTestFindings(`import {spyOn} from "bun:test"`, true));\n' "$PWD" > /tmp/p.mjs && node /tmp/p.mjs` prints one `kind:"symbol"` finding `name:"spyOn"` with a non-null `pointer`.
+Verify: write the probe to a temp `.mjs` (avoids nested shell-quote fragility) —
+`printf 'import { bunTestFindings } from "%s/scripts/check-bun-test-imports-rules.mjs";\nconsole.log(bunTestFindings(`import
+{spyOn} from "bun:test"`, true));\n' "$PWD" > /tmp/p.mjs && node /tmp/p.mjs`
+prints one `kind:"symbol"` finding `name:"spyOn"` with a non-null `pointer`.
 
 ## Step 2 — Check script
 
@@ -67,8 +79,9 @@ Files: create `scripts/check-bun-test-imports.mjs`.
   including `test/` dirs and `tests/` (it is a test-file guard). The `SCOPE`
   and `SKIP_DIRS` constants above are authoritative.
 - For each file: skip the guard's own regression test by basename
-  (`check-bun-test-imports-rules.test.js`); `isTestFile = file.endsWith(".test.js")`;
-  call `bunTestFindings(readFileSync(file,"utf8"), isTestFile)`; print each as a
+  (`check-bun-test-imports-rules.test.js`);
+  `isTestFile = file.endsWith(".test.js")`; call
+  `bunTestFindings(readFileSync(file,"utf8"), isTestFile)`; print each as a
   structured line carrying all five fields, e.g.
   `error: ${rel} line=${f.line} kind=${f.kind} name=${f.name} pointer=${f.pointer}`.
 - Exit 1 if any finding emitted, else 0.
@@ -83,17 +96,22 @@ Intent: nine SC5 leaf assertions against the rules module under `bun test`.
 Files: create `tests/check-bun-test-imports-rules.test.js`.
 
 - `import { describe, test } from "bun:test"; import assert from "node:assert/strict";`
-  and `import { bunTestFindings } from "../scripts/check-bun-test-imports-rules.mjs";`.
+  and
+  `import { bunTestFindings } from "../scripts/check-bun-test-imports-rules.mjs";`.
 - One assertion per leaf:
   - (i) `bunTestFindings('import { describe } from "bun:test"', true)` is empty.
   - (ii) `import { test as t } from "bun:test"` (test file) is empty.
-  - (iii) `import { spyOn } from "bun:test"` (test file) → one `kind:"symbol"` `name:"spyOn"`.
-  - (iv) `import { spyOn as track } from "bun:test"` (test file) → `kind:"symbol"` `name:"spyOn"` (imported side).
+  - (iii) `import { spyOn } from "bun:test"` (test file) → one `kind:"symbol"`
+    `name:"spyOn"`.
+  - (iv) `import { spyOn as track } from "bun:test"` (test file) →
+    `kind:"symbol"` `name:"spyOn"` (imported side).
   - (v.a) `import x from "bun:test"` → `kind:"shape" name:"default"`.
   - (v.b) `import * as x from "bun:test"` → `name:"namespace"`.
   - (v.c) `import "bun:test"` → `name:"side-effect"`.
-  - (vi.a) `export { test } from "bun:test"` with `isTestFile=true` → `re-export-named`.
-  - (vi.b) `export { test } from "bun:test"` with `isTestFile=false` → `re-export-named`.
+  - (vi.a) `export { test } from "bun:test"` with `isTestFile=true` →
+    `re-export-named`.
+  - (vi.b) `export { test } from "bun:test"` with `isTestFile=false` →
+    `re-export-named`.
 - Beyond the nine leaves, assert the two remaining re-export shapes SC1b
   names so all three are covered: `export * from "bun:test"` →
   `re-export-namespace`; `export { default as t } from "bun:test"` →
@@ -116,7 +134,8 @@ Intent: run the guard in the same aggregator as the other `invariants:check-*`.
 
 Files: modify `package.json`.
 
-- Add `"invariants:check-bun-test-imports": "node scripts/check-bun-test-imports.mjs"`.
+- Add
+  `"invariants:check-bun-test-imports": "node scripts/check-bun-test-imports.mjs"`.
 - Append `&& bun run invariants:check-bun-test-imports` to the `invariants`
   chain value.
 
@@ -133,8 +152,13 @@ Intent: replace the one Non-goals bullet + dateless footnote (SC6).
 
 Files: modify `specs/0650-bun-test-runner/spec.md`.
 
-- The target bullet wraps across two source lines (0650 spec.md lines
-  131–132): `- Adding \`bun:test\`-specific features (snapshot testing, etc.) — out of scope;` / `  this spec is purely about the runner switch.` Match the wrapped form (or edit by line range), not a single-line string. Replace it with the Replacement bullet text from spec 1410 § Supersession, followed by `*[amended by spec 1410](../1410-bun-test-allowlist-outside-libpack/spec.md)*` (no date).
+- The target bullet wraps across two source lines (0650 spec.md lines 131–132):
+  `- Adding \`bun:test\`-specific features (snapshot testing, etc.) — out of scope;`
+  / ` this spec is purely about the runner switch.` Match the wrapped form (or
+  edit by line range), not a single-line string. Replace it with the Replacement
+  bullet text from spec 1410 § Supersession, followed by
+  `*[amended by spec 1410](../1410-bun-test-allowlist-outside-libpack/spec.md)*`
+  (no date).
 - The replacement bullet links to spec 1410 § Scope (SC7b).
 
 Verify: original bullet text no longer present in 0650 outside the 1410
@@ -160,8 +184,11 @@ enumerates only the canonical doc, the two spec files, and non-policy mentions
 Define the directory set once (matches spec § Problem):
 `ROOTS="libraries/ services/ products/ tests/ websites/ .github/workflows/test/ .claude/skills/kata-interview/test/"`.
 
-- `bun run invariants` exits 0; `bun test tests/check-bun-test-imports-rules.test.js` passes.
-- SC4a: `grep -rlE "from ['\"]bun:test['\"]" $ROOTS | grep -v '\.test\.js$' | wc -l` → 0.
+- `bun run invariants` exits 0;
+  `bun test tests/check-bun-test-imports-rules.test.js` passes.
+- SC4a:
+  `grep -rlE "from ['\"]bun:test['\"]" $ROOTS | grep -v '\.test\.js$' | wc -l` →
+  0.
 - SC4b: re-export grep from SC4b → 0.
 - Full diff against spec success criteria 1–7.
 

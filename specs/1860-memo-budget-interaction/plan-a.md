@@ -66,7 +66,7 @@ Files: modify `libraries/libwiki/src/audit/scopes.js`.
   state. If any non-budget summary rule still reads them, keep them.
 
 Verification: `bun test libraries/libwiki/test/audit-engine.test.js` with new
-partition cases — a summary with `## Message Inbox` followed by another `## `
+partition cases — a summary with `## Message Inbox` followed by another `##`
 splits at the boundary; an inbox-to-EOF summary puts the tail in the inbox; a
 heading-less summary puts everything in the body; a summary whose inbox heading
 is not the first H2 still splits at the heading. Each case asserts both that

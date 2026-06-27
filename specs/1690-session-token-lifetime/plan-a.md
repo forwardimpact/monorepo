@@ -31,9 +31,9 @@ Sections, mapping to spec success criteria:
 
 - **Token accounting** (design D3/D4): boot + pre-write-batch checks computing
   "expires in N minutes" by clock arithmetic against `KATA_GH_TOKEN_STAMP`
-  (mint/expiry epoch); issuing-job validity = `GITHUB_RUN_ID` + `GITHUB_RUN_ATTEMPT`
-  equality vs the current job — "issuing job ≠ current ⇒ presumed revoked",
-  no API call.
+  (mint/expiry epoch); issuing-job validity = `GITHUB_RUN_ID` +
+  `GITHUB_RUN_ATTEMPT` equality vs the current job — "issuing job ≠ current ⇒
+  presumed revoked", no API call.
 - **Gate** (spec (c)): unexpired per stamp AND control read `GET /rate_limit`
   → 200; 403/404 never count; the control-read-*fails* cell routes to the
   githubstatus + retry discipline below, never component theorizing or harvest.
@@ -96,20 +96,24 @@ Concrete change:
   later step env (`mint+3600` is the conservative TTL floor — the mint action
   exports no expiry, and the spec's "~1 hour" makes a fixed 3600s a safe
   under-estimate, never an over-estimate; see Risks):
+
   ```yaml
   - name: Stamp token
     run: |
       mint=$(date +%s)
       echo "KATA_GH_TOKEN_STAMP=mint=$mint;exp=$((mint+3600));run=${GITHUB_RUN_ID};attempt=${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
   ```
+
 - In the `Assess and Act` step `env:` block (where `GH_TOKEN` is set, line 123),
   add the stamp beside the token so both ride the same step env (design D1):
+
   ```yaml
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
           KATA_GH_TOKEN_STAMP: ${{ env.KATA_GH_TOKEN_STAMP }}
   ```
 
-Verify: `rg -A1 'GH_TOKEN: \$\{\{ steps.ci-app' .github/workflows/kata-dispatch.yml`
+Verify:
+`rg -A1 'GH_TOKEN: \$\{\{ steps.ci-app' .github/workflows/kata-dispatch.yml`
 shows `KATA_GH_TOKEN_STAMP` on the next line within the same `env:` block;
 `rg -n 'KATA_APP_PRIVATE_KEY' .github/workflows/kata-dispatch.yml` shows it only
 at the `ci-app` mint step (91) and the `fit-wiki` push step (145) — never in the

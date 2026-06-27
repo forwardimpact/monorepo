@@ -1,10 +1,15 @@
 # 1140 Part 08 — Synthea Operationalization
 
-Make the Synthea tool operational so `fit-terrain generate` produces patient data from the `trial_patients` dataset. Add a `just` recipe for download/install, a Java availability check, and clinical-aware FHIR post-processing.
+Make the Synthea tool operational so `fit-terrain generate` produces patient
+data from the `trial_patients` dataset. Add a `just` recipe for
+download/install, a Java availability check, and clinical-aware FHIR
+post-processing.
 
 ## Goal
 
-`just synthea-install` downloads the Synthea JAR. `fit-terrain generate` produces patient data filtered to condition-matched patients. The pipeline gracefully skips when Java or the JAR is unavailable.
+`just synthea-install` downloads the Synthea JAR. `fit-terrain generate`
+produces patient data filtered to condition-matched patients. The pipeline
+gracefully skips when Java or the JAR is unavailable.
 
 ## Files
 
@@ -68,7 +73,8 @@ In `cli-helpers.js:114-115`:
 syntheaJar: process.env.SYNTHEA_JAR || "vendor/synthea/synthea-with-dependencies.jar",
 ```
 
-**Verify:** `just synthea-install && bun run fit-terrain generate` works without env vars.
+**Verify:** `just synthea-install && bun run fit-terrain generate` works without
+env vars.
 
 ### Step 4 — Error message update
 
@@ -86,7 +92,9 @@ throw new Error(
 
 ### Step 5 — filterByConditions post-processing
 
-After Synthea generates FHIR bundles and flattens by resource type (`synthea.js:93-101`), add filtering that keeps only patients whose FHIR Condition resources match the clinical condition IDs:
+After Synthea generates FHIR bundles and flattens by resource type
+(`synthea.js:93-101`), add filtering that keeps only patients whose FHIR
+Condition resources match the clinical condition IDs:
 
 ```javascript
 if (config.conditions?.length) {
@@ -115,7 +123,9 @@ if (config.conditions?.length) {
 }
 ```
 
-Matches by FHIR `Condition.code` display name normalized to DSL convention (lowercase, underscored). Unmatched patients kept if no condition resources exist.
+Matches by FHIR `Condition.code` display name normalized to DSL convention
+(lowercase, underscored). Unmatched patients kept if no condition resources
+exist.
 
 **Verify:** `bun test` in `libsyntheticgen`.
 

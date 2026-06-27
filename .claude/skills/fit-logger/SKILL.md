@@ -8,15 +8,16 @@ description: >
 
 # Write Rotated Logs
 
-`fit-logger` reads lines from stdin and appends them to a `current` log file in a
-directory, rotating it to a timestamped archive once it grows past a size limit
-and pruning the oldest archives beyond a retention count. `fit-rc` pipes each
-long-running service through it; you can also run it directly to capture any
-command's output.
+`fit-logger` reads lines from stdin and appends them to a `current` log file in
+a directory, rotating it to a timestamped archive once it grows past a size
+limit and pruning the oldest archives beyond a retention count. `fit-rc` pipes
+each long-running service through it; you can also run it directly to capture
+any command's output.
 
 ## When to Use
 
-- Persist a process's output — `my-service | npx fit-logger --dir data/logs/my-service`
+- Persist a process's output —
+  `my-service | npx fit-logger --dir data/logs/my-service`
 - Tune rotation size and retention — `-s <bytes>` / `-n <count>`
 - Test rotation settings before wiring a service through it
 

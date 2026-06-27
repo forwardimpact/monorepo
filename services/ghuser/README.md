@@ -78,7 +78,7 @@ restrictions, disconnect before starting.
 
 Visit the authorize URL in a browser:
 
-```
+```text
 https://<tunnel-domain>/authorize?surface=test&surface_user_id=you
 ```
 

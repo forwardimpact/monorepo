@@ -92,7 +92,7 @@ Add `WikiSyncConflict extends Error` (sibling of `WikiPullConflict`), carrying
 Replace the rebase-conflict block (currently `rebaseAbort` →
 `mergeOursStrategy`) with:
 
-```
+```text
 if (rebase.exitCode !== 0) {
   await this.#git.rebaseAbort({ cwd });
   const registered =
@@ -118,8 +118,8 @@ run at the call site, so the loop body is, for up to `maxReapply` rounds:
    residue survives; the stale local commit is dropped).
 3. `checkoutPaths("origin/master", paths, { allowMissing: true })` — reset only
    the registered file(s) to the tip.
-4. `freshText` = read the file via `runtime.fsSync` at `path.join(wikiDir, paths[0])`,
-   empty string if absent (founding claim).
+4. `freshText` = read the file via `runtime.fsSync` at
+   `path.join(wikiDir, paths[0])`, empty string if absent (founding claim).
 5. `newText = reapply(freshText)`. If `null`, the op is already satisfied —
    HEAD equals the tip, nothing ahead — return
    `{ pushed: false, reason: "already-satisfied" }`.
@@ -145,6 +145,7 @@ re-runs it.
 
 Verify: `libwiki` `wiki-sync.test.js` (the mock must support per-call sequences
 — see Step 2) —
+
 - a registered op whose push is rejected once then succeeds re-applies and lands
   (asserts `resetSoft`/`checkoutPaths`/`commitPaths` in `calls`, never
   `mergeOursStrategy`); (criteria 1, 2, 5)
@@ -174,13 +175,13 @@ closure from the same row op it just ran:
 The closure closes over the parsed `claim` / `agent` / `target` / `today`, never
 the pre-conflict text. The `--expired` fold's `anyRemoved` is the aggregate of
 each `removeClaim`'s `{removed}` — the loop's null-contract needs the aggregate,
-not a per-row flag. The existing `cli-claim.test.js` stubs `commitAndPush(message,
-paths)` and asserts `push.paths`; the new third `{ reapply }` argument is
-non-breaking for it (the stub ignores extra args) — confirm it still passes, no
-edit needed.
+not a per-row flag. The existing `cli-claim.test.js` stubs
+`commitAndPush(message, paths)` and asserts `push.paths`; the new third
+`{ reapply }` argument is non-breaking for it (the stub ignores extra args) —
+confirm it still passes, no edit needed.
 
-Verify: `libwiki` `cli-claim.integration.test.js` against a real bare origin (the
-closure path is end-to-end) — a claim whose push hits a stale-base conflict
+Verify: `libwiki` `cli-claim.integration.test.js` against a real bare origin
+(the closure path is end-to-end) — a claim whose push hits a stale-base conflict
 lands its row alongside a sibling's claim already on the tip (criterion 1); a
 release racing a foreign claim lands both outcomes (criterion 2); idempotence
 and freshness arms (criterion 3): re-apply add onto a tip already carrying the
@@ -232,8 +233,8 @@ boundary.
   succeeds across calls; both the new spies and the per-call sequence support
   must exist or the tests throw on an undefined spy or a static response.
 - **`--expired` aggregate-removed flag.** The fold over `removeClaim` must track
-  whether *any* row was removed to honor the null-contract; a per-row `{removed}`
-  alone does not tell the closure whether to return text or null.
+  whether *any* row was removed to honor the null-contract; a per-row
+  `{removed}` alone does not tell the closure whether to return text or null.
 
 ## Execution
 

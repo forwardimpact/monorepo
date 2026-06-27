@@ -15,6 +15,7 @@ keyword. → **todo**
 keeping separate lists per project.
 
 **Forces:**
+
 - **Push:** A flat list grows without bound and every item costs attention.
 - **Pull:** A single command that shows just the matching items.
 - **Habit:** Re-reading the entire list each morning.

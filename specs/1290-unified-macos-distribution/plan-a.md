@@ -90,18 +90,20 @@ repo-root-relative.
   1. *Restore bit + assemble* — `chmod +x dist/binaries/fit-outpost` (artifact
      upload drops it), then `just build-app-product outpost` (compiles the
      launcher, emits `dist/apps/fit-outpost.app`).
-  2. *Verify cdhash stability* — outpost-specialised gate: `BUNDLE=dist/apps/fit-outpost.app`;
-     baseline `codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash`; `rm -rf dist/apps
-     products/outpost/dist`; rebuild `just build-app-product outpost`; record
-     after; on mismatch echo the brew lane's
-     `::error::cdhash drift detected — bundle is not deterministic` and `exit 1`.
-     The baseline → rm+rebuild → compare predicate is identical to
+  2. *Verify cdhash stability* — outpost-specialised gate:
+     `BUNDLE=dist/apps/fit-outpost.app`; baseline
+     `codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash`;
+     `rm -rf dist/apps products/outpost/dist`; rebuild
+     `just build-app-product outpost`; record after; on mismatch echo the brew
+     lane's `::error::cdhash drift detected — bundle is not deterministic` and
+     `exit 1`. The baseline → rm+rebuild → compare predicate is identical to
      `publish-brew.yml`'s; only the `$BUNDLE`/name constants are inlined (no
      `case "$KIND"`).
-  3. *Build the `.pkg`* — `bash products/outpost/pkg/macos/build-pkg.sh dist/apps
-     "$VERSION"`, with `env: VERSION: ${{ steps.meta.outputs.version }}` on the
-     step (the old step read the version from package.json; the direct call
-     needs it in env). The `.pkg` lands at `dist/apps/fit-outpost-$VERSION.pkg`.
+  3. *Build the `.pkg`* —
+     `bash products/outpost/pkg/macos/build-pkg.sh dist/apps "$VERSION"`, with
+     `env: VERSION: ${{ steps.meta.outputs.version }}` on the step (the old step
+     read the version from package.json; the direct call needs it in env). The
+     `.pkg` lands at `dist/apps/fit-outpost-$VERSION.pkg`.
 - **"Verify .pkg exists" step (`:54–66`):** remove its
   `working-directory: products/outpost` and repoint `PKG_FILE` from
   `dist/fit-outpost-${VERSION}.pkg` to `dist/apps/fit-outpost-${VERSION}.pkg`.

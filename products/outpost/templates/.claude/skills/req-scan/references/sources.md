@@ -6,14 +6,14 @@ Reference for `req-scan` Step 2 (fetch & scan). One source per wake cycle.
 
 Monthly thread, posted on the 1st.
 
-```
+```text
 WebFetch URL: https://hn.algolia.com/api/v1/search?query=%22Who+wants+to+be+hired%22&tags=ask_hn&hitsPerPage=5
 ```
 
 The first hit whose title matches "Who wants to be hired?" with `created_at` in
 the current or previous month is the target thread.
 
-```
+```text
 WebFetch URL: https://hn.algolia.com/api/v1/items/{objectID}
 ```
 
@@ -34,7 +34,7 @@ WebFetch URL: https://hn.algolia.com/api/v1/items/{objectID}
 
 Search by location (rotate one query per wake):
 
-```
+```text
 WebFetch URL: https://api.github.com/search/users?q=%22open+to+work%22+location:UK&per_page=30&sort=joined&order=desc
 WebFetch URL: https://api.github.com/search/users?q=%22open+to+work%22+location:Europe&per_page=30&sort=joined&order=desc
 WebFetch URL: https://api.github.com/search/users?q=%22looking+for+work%22+location:remote&per_page=30&sort=joined&order=desc
@@ -47,7 +47,7 @@ Alternate bio phrases to rotate across wakes: `"available for hire"`,
 
 Fetch each promising candidate's full profile:
 
-```
+```text
 WebFetch URL: https://api.github.com/users/{login}
 ```
 
@@ -60,7 +60,7 @@ profiles per wake (1 search + 5 profile fetches = 6 requests).
 
 ## 3. dev.to
 
-```
+```text
 WebFetch URL: https://dev.to/api/articles?tag=opentowork&per_page=25
 WebFetch URL: https://dev.to/api/articles?tag=lookingforwork&per_page=25
 ```

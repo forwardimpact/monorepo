@@ -172,10 +172,10 @@ A deterministic command derives `product_share` from merged-PR labels.
   product-mix` targets `wiki/metrics/product-mix/<YYYY>.csv` (`<YYYY>` from
   `--date`); pass `--wiki-root` through when set.
 
-Register in `cli-definition.js`: import `runProductMixCommand`, add a `product-mix`
-command object (description: "Emit the product-vs-internal mix of merged PRs as a
-`product_share` metric row", options `until` / `since` / `run` / `repo` /
-`wiki-root`), and add an `examples` entry `fit-wiki product-mix`.
+Register in `cli-definition.js`: import `runProductMixCommand`, add a
+`product-mix` command object (description: "Emit the product-vs-internal mix of
+merged PRs as a `product_share` metric row", options `until` / `since` / `run` /
+`repo` / `wiki-root`), and add an `examples` entry `fit-wiki product-mix`.
 
 Test (`createMockSubprocess({ responses: { gh: { stdout }, "fit-xmr": { stdout:
 "" } } })` + `createMockFs`, per `test/issue-list-block.test.js` and
@@ -206,13 +206,13 @@ _Awaiting first emission._
 The `2026` literal tracks the storyboard's own year — a fresh storyboard each
 year carries the matching `{YYYY}`, per the template's `{YYYY}` marker form.
 
-In `team-storyboard.md` § Planning vs. Review (Planning meeting paragraph), add a
-sentence: besides the per-skill blocks, instantiate a `#### product_share` block
-under `### product-manager` from `wiki/metrics/product-mix/{YYYY}.csv`.
+In `team-storyboard.md` § Planning vs. Review (Planning meeting paragraph), add
+a sentence: besides the per-skill blocks, instantiate a `#### product_share`
+block under `### product-manager` from `wiki/metrics/product-mix/{YYYY}.csv`.
 
-Verification: after a `product-mix` emission, `npx fit-wiki refresh <storyboard>`
-splices an XmR chart into the block; the planning rule names the product-mix
-block.
+Verification: after a `product-mix` emission,
+`npx fit-wiki refresh <storyboard>` splices an XmR chart into the block; the
+planning rule names the product-mix block.
 
 ## Step 9 — Wire the emitter into the scheduled run
 
@@ -231,28 +231,28 @@ the `1. Survey` item.
 
 ## Risks
 
-- **Sparse early series.** Windows with no labeled merged PRs emit no row, so the
-  series is empty until merges accumulate under the gate; `fit-xmr` reports
-  `insufficient_data` below 15 points. The 7-day default window smooths this. The
-  implementer cannot see this timing from the plan.
-- **Overlapping-window autocorrelation.** A trailing 7-day window emitted once per
-  scheduled run overlaps prior windows; treat `product_share` as a trend, not a
-  per-run control reading. Emitting more than once per day inflates row count
-  without new information.
+- **Sparse early series.** Windows with no labeled merged PRs emit no row, so
+  the series is empty until merges accumulate under the gate; `fit-xmr` reports
+  `insufficient_data` below 15 points. The 7-day default window smooths this.
+  The implementer cannot see this timing from the plan.
+- **Overlapping-window autocorrelation.** A trailing 7-day window emitted once
+  per scheduled run overlaps prior windows; treat `product_share` as a trend,
+  not a per-run control reading. Emitting more than once per day inflates row
+  count without new information.
 - **Published-skill genericity gate.** kata-spec, kata-product-issue, and
   kata-release-merge are published; `bun run invariants` gates them. Keep label
   and rubric references in the generic form the existing skills already use (the
   fully-qualified `work-definition.md` URL); do not add monorepo-specific paths.
-- **Missing-CSV refresh.** Before the first emission the storyboard block's CSV is
-  absent; `refresh` logs a `BlockRenderError` and leaves the placeholder — this is
-  the designed non-fatal path, not a failure.
+- **Missing-CSV refresh.** Before the first emission the storyboard block's CSV
+  is absent; `refresh` logs a `BlockRenderError` and leaves the placeholder —
+  this is the designed non-fatal path, not a failure.
 
 ## Execution
 
 Single unit; route to `staff-engineer`. Steps 1–6, 8, 9 are documentation and
 configuration edits; Step 7 is the only code unit (libwiki command + test). Run
-sequentially: the labels (Step 6) must exist before the gate (Step 5) and emitter
-(Step 7) are exercised, and the emitter (Step 7) must exist before the storyboard
-block (Step 8) renders. A `technical-writer` could take the doc-only steps, but
-the gate, emitter, and storyboard wiring interlock, so one engineering agent
-executing the whole plan is simplest.
+sequentially: the labels (Step 6) must exist before the gate (Step 5) and
+emitter (Step 7) are exercised, and the emitter (Step 7) must exist before the
+storyboard block (Step 8) renders. A `technical-writer` could take the doc-only
+steps, but the gate, emitter, and storyboard wiring interlock, so one
+engineering agent executing the whole plan is simplest.

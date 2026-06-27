@@ -24,7 +24,7 @@ structural.
 
 ## Architecture
 
-```
+```text
 universe.dsl ──► DSL Parser
                     │
                     ├── Entity Graph Builder (Tier 0)
@@ -53,7 +53,7 @@ universe.dsl ──► DSL Parser
 
 ### Universe Definition
 
-```
+```text
 // universe.dsl — Complete synthetic data specification
 
 universe BioNova {

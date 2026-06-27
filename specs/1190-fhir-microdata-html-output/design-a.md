@@ -105,7 +105,7 @@ lowercase-underscored form — the same rule `filterByConditions` applies
 today. Let `dslConditionId` denote `clinical.conditions[].id` and
 `dslTrialId` denote `clinical.trials[].id`. `CrossRefIndex` is shaped:
 
-```
+```text
 CrossRefIndex = {
   patientToTrialIris:        Map<patientIri,     Set<trialIri>>,
   conditionIdToPatientIris:  Map<dslConditionId, Set<patientIri>>,
@@ -126,17 +126,38 @@ condition matching. Trial IRIs in `patientToTrialIris` derive from
 
 ## Data Flow
 
-1. DSL emits `parse.outputs[i] = { dataset: "patients", format: "fhir_microdata_html", config: { path } }`.
-2. `datasets` node generates the FHIR datasets Map via Synthea, exposes `datasetsMap` on its return, and continues rendering standard formats inline (unchanged).
-3. `fhir-cross-ref` returns `null` when no output declares the new format; otherwise walks the FHIR Condition dataset (looked up as `datasetsMap.get("<id>_condition")`) and returns the index.
-4. `skeleton` receives the (possibly `null`) cross-ref and threads it through `renderClinicalPages`. `null` → spec 1140 pages render byte-identically to before (spec criterion 7).
-5. `fhir-microdata-html` renders one HTML file per Patient at `{config.path}/{patient_id}.html` plus `{config.path}/index.html`. Each per-patient page carries one `Person` main item at `https://{domain}/id/clinical/patient/{patient_id}` with inline microdata items for that patient's Conditions, Procedures, and MedicationRequests under the predicates in § Vocabulary. When `patientToTrialIris.get(patientIri)` is non-empty, the page emits `<link itemprop="enrolledIn" href="{trial_iri}" />` for each entry.
+1. DSL emits
+   `parse.outputs[i] = { dataset: "patients", format: "fhir_microdata_html", config: { path } }`.
+2. `datasets` node generates the FHIR datasets Map via Synthea, exposes
+   `datasetsMap` on its return, and continues rendering standard formats inline
+   (unchanged).
+3. `fhir-cross-ref` returns `null` when no output declares the new format;
+   otherwise walks the FHIR Condition dataset (looked up as
+   `datasetsMap.get("<id>_condition")`) and returns the index.
+4. `skeleton` receives the (possibly `null`) cross-ref and threads it through
+   `renderClinicalPages`. `null` → spec 1140 pages render byte-identically to
+   before (spec criterion 7).
+5. `fhir-microdata-html` renders one HTML file per Patient at
+   `{config.path}/{patient_id}.html` plus `{config.path}/index.html`. Each
+   per-patient page carries one `Person` main item at
+   `https://{domain}/id/clinical/patient/{patient_id}` with inline microdata
+   items for that patient's Conditions, Procedures, and MedicationRequests under
+   the predicates in § Vocabulary. When `patientToTrialIris.get(patientIri)` is
+   non-empty, the page emits `<link itemprop="enrolledIn" href="{trial_iri}" />`
+   for each entry.
 
 ## Invariants
 
-- **Synthea `Patient.id` is a UUID.** No slugging needed; both the IRI segment and the filename `{patient_id}.html` use the UUID verbatim. Encoded in a runtime assertion in `renderFhirMicrodataHtml` to fail fast if Synthea ever emits a non-UUID id.
-- **Synthea dataset naming `<id>_<type-lowercased>`.** Load-bearing contract between `SyntheaTool.generate()` and this format. Asserted by the end-to-end test in spec criterion 1.
-- **`datasetsMap` is additive on the `datasets` node return.** Existing readers consume `{files}`; only the two new nodes read `datasetsMap`. No out-of-tree consumer reads it.
+- **Synthea `Patient.id` is a UUID.** No slugging needed; both the IRI segment
+  and the filename `{patient_id}.html` use the UUID verbatim. Encoded in a
+  runtime assertion in `renderFhirMicrodataHtml` to fail fast if Synthea ever
+  emits a non-UUID id.
+- **Synthea dataset naming `<id>_<type-lowercased>`.** Load-bearing contract
+  between `SyntheaTool.generate()` and this format. Asserted by the end-to-end
+  test in spec criterion 1.
+- **`datasetsMap` is additive on the `datasets` node return.** Existing readers
+  consume `{files}`; only the two new nodes read `datasetsMap`. No out-of-tree
+  consumer reads it.
 
 ## Key Decisions
 
@@ -157,11 +178,24 @@ condition matching. Trial IRIs in `patientToTrialIris` derive from
 
 ## Risks
 
-- **Synthea dataset naming convention is load-bearing.** A future rename in `SyntheaTool.generate()` would silently produce empty patient pages. Surfaced by spec criterion 1's file-count assertion.
-- **Cross-ref accuracy depends on `normalizePatientRef` parity.** `Condition.subject.reference` formats vary (`Patient/<id>`, `urn:uuid:<id>`); the shared helper is the only safe reuse. Export it (see Modifications) rather than re-implementing.
-- **Null cross-ref contract** must be respected throughout the clinical-render path: `buildXxxData` truthy-check on `fhirCrossRef` before reaching into its maps. A regression here silently breaks spec criterion 7.
-- **Skeleton sequencing change** is covered in D12 as a deliberate trade-off; the residual risk here is only that the null-path latency on existing runs proves larger than projected. CI delta is the only signal — if observable, the D12 rejected alternative (post-render mutation pass) re-opens.
-- **Set iteration order for reverse-link arrays** governs snapshot stability. JS `Set` preserves insertion order; the cross-ref builder inserts patients in FHIR Patient array order, so `enrolledPatientLinks` order is deterministic across runs given the same seed.
+- **Synthea dataset naming convention is load-bearing.** A future rename in
+  `SyntheaTool.generate()` would silently produce empty patient pages. Surfaced
+  by spec criterion 1's file-count assertion.
+- **Cross-ref accuracy depends on `normalizePatientRef` parity.**
+  `Condition.subject.reference` formats vary (`Patient/<id>`, `urn:uuid:<id>`);
+  the shared helper is the only safe reuse. Export it (see Modifications) rather
+  than re-implementing.
+- **Null cross-ref contract** must be respected throughout the clinical-render
+  path: `buildXxxData` truthy-check on `fhirCrossRef` before reaching into its
+  maps. A regression here silently breaks spec criterion 7.
+- **Skeleton sequencing change** is covered in D12 as a deliberate trade-off;
+  the residual risk here is only that the null-path latency on existing runs
+  proves larger than projected. CI delta is the only signal — if observable, the
+  D12 rejected alternative (post-render mutation pass) re-opens.
+- **Set iteration order for reverse-link arrays** governs snapshot stability. JS
+  `Set` preserves insertion order; the cross-ref builder inserts patients in
+  FHIR Patient array order, so `enrolledPatientLinks` order is deterministic
+  across runs given the same seed.
 
 ## Out of scope (per spec § Excluded, restated)
 

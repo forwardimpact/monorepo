@@ -66,7 +66,7 @@ commands, manages secrets, starts services, and processes data.
 Products keep only their source code, package definition, and product-specific
 assets:
 
-```
+```text
 products/
   guide/
     bin/fit-guide.js          # Product CLI entry point
@@ -93,7 +93,7 @@ no service orchestration.
 
 ### Root Directory Layout
 
-```
+```text
 /                                  (monorepo root)
 ├── .env                           Secrets, API credentials
 ├── .env.local                     Local networking (service URLs)
@@ -385,7 +385,7 @@ services:
 
 The `.env.docker` file updates proxy and embedding URLs accordingly:
 
-```
+```text
 HTTPS_PROXY=http://gateway.local:3128
 EMBEDDING_BASE_URL=http://tei.local:8080
 ```
@@ -520,7 +520,7 @@ make cli-chat           # Verify end-to-end
 
 Root `.gitignore` adds:
 
-```
+```text
 # Environment and runtime
 .env
 .env.local

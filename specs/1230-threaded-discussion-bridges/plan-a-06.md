@@ -31,7 +31,11 @@ The narrative `agent-react` mentions elsewhere in this file were already
 flipped to `kata-dispatch` in Part 03 Step 3.7 — Part 06 only adds the new
 subsection.
 
-Verify: `grep -i discussion .claude/agents/references/coordination-protocol.md` still returns the existing RFC and routing rows (matches spec § Success criteria row 12); `grep -F "### Runtime mechanism" .claude/agents/references/coordination-protocol.md` returns one match.
+Verify: `grep -i discussion .claude/agents/references/coordination-protocol.md`
+still returns the existing RFC and routing rows (matches spec § Success criteria
+row 12);
+`grep -F "### Runtime mechanism" .claude/agents/references/coordination-protocol.md`
+returns one match.
 
 ## Step 6.2 — Kata App webhook subscription guidance
 
@@ -55,19 +59,33 @@ Subscriptions" list for the GitHub Actions trigger events (Issue comment,
 PR review, PR review comment) and add a one-line note clarifying which
 events reach the App webhook vs. the Actions triggers.
 
-Modified: `.claude/skills/kata-setup/SKILL.md` — add a step instructing the operator to deploy `services/ghbridge` before flipping the App webhook URL. Reference the ghbridge README from Part 05.
+Modified: `.claude/skills/kata-setup/SKILL.md` — add a step instructing the
+operator to deploy `services/ghbridge` before flipping the App webhook URL.
+Reference the ghbridge README from Part 05.
 
-Verify: `grep -F "ghbridge" .claude/skills/kata-setup/references/github-app.md` returns at least one match; `grep -F "Disable the webhook" .claude/skills/kata-setup/references/github-app.md` returns empty (the line is replaced wholesale, not qualified).
+Verify: `grep -F "ghbridge" .claude/skills/kata-setup/references/github-app.md`
+returns at least one match;
+`grep -F "Disable the webhook" .claude/skills/kata-setup/references/github-app.md`
+returns empty (the line is replaced wholesale, not qualified).
 
 ## Step 6.3 — README cross-links
 
 Modified:
-- `services/README.md` — under "Catalog", remove the `msteams` row and add `ghbridge` + `msbridge` rows. (Parts 04 and 05 each touch this file for their own rows; Part 06 confirms the merged result is consistent — if both prior parts have already landed clean entries, Step 6.3 is a no-op for this file.)
-- `libraries/README.md` — under "Catalog", add `libbridge` row with the JTBD copy from `libraries/libbridge/package.json`. (Part 01 Step 1.1 created the package; this step exposes it in the catalog.)
-- `websites/fit/docs/libraries/` — add an `libbridge/` index page following the sibling shape (single index page).
-- `websites/fit/docs/services/index.md` (or equivalent navigation file) — make sure both bridges appear.
 
-Verify: `just check` passes (the docs-link gate the implementer should run; no `bun run docs:check` script exists in `package.json`).
+- `services/README.md` — under "Catalog", remove the `msteams` row and add
+  `ghbridge` + `msbridge` rows. (Parts 04 and 05 each touch this file for their
+  own rows; Part 06 confirms the merged result is consistent — if both prior
+  parts have already landed clean entries, Step 6.3 is a no-op for this file.)
+- `libraries/README.md` — under "Catalog", add `libbridge` row with the JTBD
+  copy from `libraries/libbridge/package.json`. (Part 01 Step 1.1 created the
+  package; this step exposes it in the catalog.)
+- `websites/fit/docs/libraries/` — add an `libbridge/` index page following the
+  sibling shape (single index page).
+- `websites/fit/docs/services/index.md` (or equivalent navigation file) — make
+  sure both bridges appear.
+
+Verify: `just check` passes (the docs-link gate the implementer should run; no
+`bun run docs:check` script exists in `package.json`).
 
 ## Step 6.4 — JTBD entries
 
@@ -90,7 +108,8 @@ Step 3.7. This step only adds a one-paragraph "Threaded channels"
 subsection pointing at `services/ghbridge` and `services/msbridge` and the
 libeval `discuss` mode. No duplicate workflow renames here.
 
-Verify: `git diff KATA.md` shows only the new "Threaded channels" subsection (no churn on the workflow-name lines, which Part 03 already fixed).
+Verify: `git diff KATA.md` shows only the new "Threaded channels" subsection (no
+churn on the workflow-name lines, which Part 03 already fixed).
 
 ## Notes for the implementer
 

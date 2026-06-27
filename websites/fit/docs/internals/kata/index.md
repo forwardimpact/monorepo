@@ -143,12 +143,14 @@ from the bridge services for threaded discussions), and the on-demand
 **kata-coaching** workflow dispatched manually.
 
 <!-- enum:kata-workflows:list -->
+
 | Workflow            | Schedule (Paris, CEST)        | Agent                                                                                                       |
 | ------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | **kata-storyboard** | Daily 08:00                   | improvement-coach (facilitates 5 agents)                                                                    |
 | **kata-coaching**   | `workflow_dispatch`           | improvement-coach (facilitates 1 agent)                                                                     |
 | **kata-shift**      | Daily 03:00 · 12:00 · 20:00   | product-manager → staff-engineer → security-engineer → technical-writer → release-engineer → improvement-coach |
 | **kata-dispatch**   | On PR / issue activity (and bridge dispatch) | release-engineer (facilitates up to 4 agents)                                                               |
+
 <!-- /enum -->
 
 A separate `workflow_dispatch`-only utility, **kata-interview**
@@ -184,12 +186,12 @@ Per-output coordination is governed by
 
 ## Metrics
 
-Agents record time-series data to `wiki/metrics/{skill}/{YYYY}.csv`
-after each run. The CSV schema (six fields: date, metric, value, unit, run,
-note), storage convention, and metric design are documented in KATA.md § Metrics.
-The storyboard meeting answers "what is the actual condition now?" with numbers,
-not narratives, and XmR process behavior charts distinguish stable processes
-from special-cause reactions.
+Agents record time-series data to `wiki/metrics/{skill}/{YYYY}.csv` after each
+run. The CSV schema (six fields: date, metric, value, unit, run, note), storage
+convention, and metric design are documented in KATA.md § Metrics. The
+storyboard meeting answers "what is the actual condition now?" with numbers, not
+narratives, and XmR process behavior charts distinguish stable processes from
+special-cause reactions.
 
 ---
 

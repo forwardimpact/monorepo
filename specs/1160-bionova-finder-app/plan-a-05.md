@@ -47,7 +47,8 @@ data; rendering (ANSI for CLI, JSX for web) belongs to the surface. Only
 `libtemplate` is used to fill markdown templates that the surface then
 formats.
 
-Verify: `bun install` resolves; `bun run --filter='./products/polaris/handlers' test` exits 0 (no tests yet).
+Verify: `bun install` resolves;
+`bun run --filter='./products/polaris/handlers' test` exits 0 (no tests yet).
 
 ## Step 2 — Implement `searchTrials`
 
@@ -209,6 +210,7 @@ The allowlist for `safe` (`status`, `current_enrollment`,
 new fields requires a code change, which gets reviewed.
 
 Verify:
+
 - with staff JWT and no `--update`, returns the trial with `signals`
   aggregate; counts equal `interest_signals` row count grouped by score.
 - with staff JWT and `--update '{"status":"completed"}'`, the row is
@@ -250,7 +252,8 @@ const templates = createTemplateLoader(TEMPLATES_DIR);
 const md = templates.render("search-trials.md", await searchTrials(ctx));
 ```
 
-Verify: `createTemplateLoader(TEMPLATES_DIR).render("search-trials.md", searchResult)`
+Verify:
+`createTemplateLoader(TEMPLATES_DIR).render("search-trials.md", searchResult)`
 produces non-empty markdown for each handler.
 
 ## Step 9 — Tests
@@ -258,13 +261,17 @@ produces non-empty markdown for each handler.
 Created: per-handler test file under `products/polaris/handlers/test/`.
 
 Each test:
-- Mocks PostgREST + edge-function clients via `createDataContext({ stub: true })`
+
+- Mocks PostgREST + edge-function clients via
+  `createDataContext({ stub: true })`
 - Asserts handler returns expected shape
-- Asserts no PII leaks in `searchTrials`, `showTrial`, `listSites` (no `email` field in result)
+- Asserts no PII leaks in `searchTrials`, `showTrial`, `listSites` (no `email`
+  field in result)
 - Asserts `manageTrial` rejects non-staff JWT
 - Asserts `searchTrials` falls back to ILIKE when embeddings client throws
 
 Test fixtures in `products/polaris/handlers/test/fixtures/`:
+
 - `seed-trial.json` (1 trial with criteria + sites)
 - `seed-condition.json`
 - `staff-jwt.txt`, `anon-jwt.txt`
@@ -287,10 +294,14 @@ Verify: PR CI green.
 ## Verification (end of part 05)
 
 - [ ] All 6 handlers exported from `products/polaris/handlers/src/index.js`.
-- [ ] Each handler accepts a frozen `{ data, args, options }` context (assert `Object.isFrozen(ctx)` in test).
-- [ ] `searchTrials("high blood sugar")` returns diabetes trials (assertion against seeded data).
-- [ ] `checkEligibility` inserts an `interest_signals` row with `match_score` from edge-function response.
-- [ ] `manageTrial` enforces staff role via PostgREST RLS (verified by integration test).
+- [ ] Each handler accepts a frozen `{ data, args, options }` context (assert
+      `Object.isFrozen(ctx)` in test).
+- [ ] `searchTrials("high blood sugar")` returns diabetes trials (assertion
+      against seeded data).
+- [ ] `checkEligibility` inserts an `interest_signals` row with `match_score`
+      from edge-function response.
+- [ ] `manageTrial` enforces staff role via PostgREST RLS (verified by
+      integration test).
 - [ ] `bun test products/polaris/handlers/` exits 0.
 
 — Staff Engineer 🛠️

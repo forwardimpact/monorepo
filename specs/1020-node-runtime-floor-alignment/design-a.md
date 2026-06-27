@@ -16,7 +16,8 @@ flowchart LR
   Heavy --> Supabase["@supabase/supabase-js → createClient() → realtime construction"]
 ```
 
-Three surface families carry the floor; one invariant script (chained into the existing `bun run invariants` umbrella) triangulates them in CI.
+Three surface families carry the floor; one invariant script (chained into the
+existing `bun run invariants` umbrella) triangulates them in CI.
 
 | Surface family | Authoritative file(s) | Count |
 |---|---|---|
@@ -48,29 +49,29 @@ Subpath-exports keep the side-effect entry per-floor and the testable helper
 separately importable. No default export — the package has no useful surface
 beyond the two named subpaths.
 
-**Bin invocation contract.** The first import in every published entry script
-is the side-effect import. ESM evaluation is post-order over the module graph;
-because libpreflight has zero production dependencies, its `check(22)` body
-runs before any sibling import's body evaluates. If `libpreflight/node22`
-calls `process.exit(1)`, no subsequent import — including
-`@supabase/supabase-js` — evaluates, and no `createClient()` call (the actual
-trigger of the upstream realtime construction; the supabase package entry
-itself does not construct a realtime client at module-evaluation time) ever
-runs. The zero-dep property is load-bearing: if a future change adds any
-production dependency to libpreflight, the assertion (b) test should be
-extended to fail on the addition until the evaluation-order argument is
-re-validated. The reason this design prefers the side-effect import over the simpler
-"inline check at top of bin file" is **drift control plus defence-in-depth**:
-inline duplicates a floor literal across 35 entry scripts (each diverging
-risk caught only by assertion (b)), and a future upstream package that *does*
-construct at module-evaluation time would defeat the inline-at-top pattern but
-not the side-effect import. The libpreflight package has no production
-dependencies, so the import cost is parsing one short module.
+**Bin invocation contract.** The first import in every published entry script is
+the side-effect import. ESM evaluation is post-order over the module graph;
+because libpreflight has zero production dependencies, its `check(22)` body runs
+before any sibling import's body evaluates. If `libpreflight/node22` calls
+`process.exit(1)`, no subsequent import — including `@supabase/supabase-js` —
+evaluates, and no `createClient()` call (the actual trigger of the upstream
+realtime construction; the supabase package entry itself does not construct a
+realtime client at module-evaluation time) ever runs. The zero-dep property is
+load-bearing: if a future change adds any production dependency to libpreflight,
+the assertion (b) test should be extended to fail on the addition until the
+evaluation-order argument is re-validated. The reason this design prefers the
+side-effect import over the simpler "inline check at top of bin file" is
+**drift control plus defence-in-depth**: inline duplicates a floor literal
+across 35 entry scripts (each diverging risk caught only by assertion (b)), and
+a future upstream package that _does_ construct at module-evaluation time would
+defeat the inline-at-top pattern but not the side-effect import. The
+libpreflight package has no production dependencies, so the import cost is
+parsing one short module.
 
 **Failure message contract.** `check.js` writes exactly two lines to
 `processObj.stderr` then calls `processObj.exit(1)`:
 
-```
+```text
 Error: This command requires Node.js {N} or later (running {process.versions.node}).
 Install Node.js {N} (LTS) from https://nodejs.org/ and re-run.
 ```

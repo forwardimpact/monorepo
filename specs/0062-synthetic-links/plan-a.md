@@ -32,7 +32,7 @@ fluency. Separating these two concerns makes each pass simple and testable.
 
 ## Architecture
 
-```
+```text
 universe.dsl ──► Parser ──► Engine
                                │
                                ├── entities (people, teams, projects)

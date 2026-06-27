@@ -147,8 +147,8 @@ export function createBionovaCli({ data }) {
 }
 ```
 
-Verify: `bunx bionova-polaris --help` lists all 7 commands; `bunx bionova-polaris
-search --help` shows the four options.
+Verify: `bunx bionova-polaris --help` lists all 7 commands;
+`bunx bionova-polaris search --help` shows the four options.
 
 ## Step 3 — Author bin entry
 
@@ -184,7 +184,8 @@ if (parsed) {
 
 Make executable: `chmod +x products/polaris/cli/bin/bionova-polaris.js`.
 
-Verify: `./products/polaris/cli/bin/bionova-polaris.js search --condition=diabetes`
+Verify:
+`./products/polaris/cli/bin/bionova-polaris.js search --condition=diabetes`
 (against running stack) prints a list of diabetes trials in ANSI-formatted
 output.
 
@@ -268,7 +269,7 @@ function formatSites(sites) { /* ANSI table */ }
 
 REPL session usage (note the leading slash):
 
-```
+```text
 bionova> /search --condition=diabetes
 [...table of trials...]
 bionova> /trial 0
@@ -289,7 +290,8 @@ Tests:
 - `cli.parse(["search","--condition=diabetes"])` returns expected parsed shape
 - `cli.parse(["admin","trial","abc-123"])` resolves nested subcommand
 - `cli.parse(["--help"])` returns null with help message
-- handler dispatch goes through frozen InvocationContext (asserts `Object.isFrozen`)
+- handler dispatch goes through frozen InvocationContext (asserts
+  `Object.isFrozen`)
 - output formatting uses ANSI (assert ESC sequences present in result)
 
 Verify: `bun test products/polaris/cli/` exits 0; mocked handler context
@@ -338,10 +340,17 @@ documented in PR description.
 ## Verification (end of part 06)
 
 - [ ] `bunx bionova-polaris --help` lists all 7 commands.
-- [ ] `bionova-polaris search --condition=diabetes` returns trials matching diabetes (success criterion #4 partial — matches web search result; full match deferred to part 08).
-- [ ] `bionova-polaris repl` opens librepl-based session. Typing `/search --condition=diabetes` then `/trial 0` shows trial detail. (Bare `search` without slash prefix triggers `/help` per librepl convention.)
-- [ ] `bionova-polaris admin trial <id>` fails without `--token` or `SUPABASE_SERVICE_ROLE_KEY` env.
-- [ ] `bionova-polaris admin trial <id>` with service role succeeds and shows interest signal aggregates (success criterion #5 partial — verified end-to-end in part 08).
+- [ ] `bionova-polaris search --condition=diabetes` returns trials matching
+      diabetes (success criterion #4 partial — matches web search result; full
+      match deferred to part 08).
+- [ ] `bionova-polaris repl` opens librepl-based session. Typing
+      `/search --condition=diabetes` then `/trial 0` shows trial detail. (Bare
+      `search` without slash prefix triggers `/help` per librepl convention.)
+- [ ] `bionova-polaris admin trial <id>` fails without `--token` or
+      `SUPABASE_SERVICE_ROLE_KEY` env.
+- [ ] `bionova-polaris admin trial <id>` with service role succeeds and shows
+      interest signal aggregates (success criterion #5 partial — verified
+      end-to-end in part 08).
 - [ ] `bun test products/polaris/cli/` exits 0.
 - [ ] `bash products/polaris/cli/test/e2e.sh` exits 0 against running stack.
 

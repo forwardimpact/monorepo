@@ -7,7 +7,7 @@ How to implement the ELT pattern described in `spec.md`.
 The existing `activity/ingestion/` directory is restructured into `extract/` and
 `transform/` subdirectories. The `queries/` directory is unchanged.
 
-```
+```text
 products/map/
   activity/
     migrations/
@@ -36,7 +36,7 @@ products/map/
 
 A single Supabase Storage bucket `raw` holds all extracted documents:
 
-```
+```text
 raw/
   github/{delivery_id}.json
   getdx/snapshots-list/{iso-timestamp}.json
@@ -615,10 +615,10 @@ export async function transformAll(supabase) {
 
 ## Synthetic Data Integration Point
 
-The key benefit of ELT is that the synthetic data pipeline (spec 0060) can inject
-data at the **Load** boundary — writing raw documents into Supabase Storage in
-exactly the same format as the Extract step produces. The Transform step then
-processes synthetic raw data identically to real data.
+The key benefit of ELT is that the synthetic data pipeline (spec 0060) can
+inject data at the **Load** boundary — writing raw documents into Supabase
+Storage in exactly the same format as the Extract step produces. The Transform
+step then processes synthetic raw data identically to real data.
 
 ### Synthetic → Raw storage mapping
 

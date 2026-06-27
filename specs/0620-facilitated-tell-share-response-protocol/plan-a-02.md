@@ -197,7 +197,6 @@ context receive it via the participant-side summary passed through
 
    This step is what SC 7 (c) checks for. The implementer writes the step such
    that a grep for `systemPromptAmend` finds it.
-
 8. `## Participant Protocol` — five steps, generic Ask/Answer wording. Q2
    recording, CSV append, Announce vs. Answer discrimination (participants
    Answer the coach; they Announce if they have team-wide context to share
@@ -312,8 +311,8 @@ grep -l "  - kata-storyboard" .claude/agents/*.md
 
 The six expected files are `improvement-coach.md`, `product-manager.md`,
 `release-engineer.md`, `security-engineer.md`, `staff-engineer.md`,
-`technical-writer.md`. For each, replace the single line `  - kata-storyboard`
-with `  - kata-session`. No other edits to these profiles.
+`technical-writer.md`. For each, replace the single line `- kata-storyboard`
+with `- kata-session`. No other edits to these profiles.
 
 **Verify:** `grep -rn "kata-storyboard" .claude/agents/` returns zero matches.
 `grep -rn "kata-session" .claude/agents/` returns six matches (one per profile).

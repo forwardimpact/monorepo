@@ -52,9 +52,8 @@ Two edits:
    import { computeCoverageRatio } from "../lib/evidence-helpers.js";
    ```
 
-2. After `summary` is built, fetch artifact counts and attach a
-   `coverage` block to the view (or `null` when the persona has no
-   artifacts at all):
+2. After `summary` is built, fetch artifact counts and attach a `coverage` block
+   to the view (or `null` when the persona has no artifacts at all):
 
    ```js
    const allArtifacts = (await q.getArtifacts(supabase, { email: options.email })) ?? [];
@@ -86,6 +85,7 @@ Two edits:
    ```
 
 Notes:
+
 - Existing tests pass stub queries via `createMockQueries`; Step 4.8
   updates the stubs to include the two new query functions.
 - **Zero-artifact short-circuit.** When `allArtifacts.length === 0`,
@@ -167,6 +167,7 @@ section header). `toJson` needs no change — the `view` already carries
 `coverage`.
 
 Notes:
+
 - Criterion 3 mechanically requires the coverage line to sit "no more
   than two text lines" from the `X/Y markers evidenced` line. The
   rendered output has zero intervening lines (same indent block); this
@@ -234,6 +235,7 @@ short-circuit.
 Mirror in `toMarkdown`; `toJson` unchanged (view carries `coverage`).
 
 Notes:
+
 - Timeline keeps the per-quarter table rendering above-floor *and*
   below-floor; design § Surface changes calls for a banner not a wrap.
   This preserves the data shape downstream readers depend on while
@@ -265,7 +267,8 @@ return {
 };
 ```
 
-Add `groupEvidenceByProvenance` to `products/landmark/src/lib/evidence-helpers.js`:
+Add `groupEvidenceByProvenance` to
+`products/landmark/src/lib/evidence-helpers.js`:
 
 ```js
 import { PROVENANCE_CLASSES } from "@forwardimpact/map/activity/provenance";
@@ -346,6 +349,7 @@ Mirror in `toMarkdown` (markdown table with one row per provenance
 class). `toJson` unchanged — the view already carries `byProvenance`.
 
 Notes:
+
 - Per-type breakdown retained alongside per-provenance per spec §
   Risks "Criterion 5 introduces a new output element" + design § Key
   decisions row 7.
@@ -401,6 +405,7 @@ import { COVERAGE_CONFIDENCE_FLOOR, floorPercentText } from "../src/lib/confiden
 ```
 
 Notes:
+
 - The interpolation happens once at module load — `floorPercentText()`
   is a pure function — so `--help` output carries the same value as the
   formatters do at runtime, with no risk of drift.
@@ -411,9 +416,9 @@ Notes:
   criterion 4(a)). No skill-side edit is required; the parity rule
   applies to titles + URLs, not description text.
 
-Verify: `npx fit-landmark --help` (or `node products/landmark/bin/fit-landmark.js --help`)
-includes the floor value in the "Find Growth Areas and Build Evidence"
-entry's description.
+Verify: `npx fit-landmark --help` (or
+`node products/landmark/bin/fit-landmark.js --help`) includes the floor value in
+the "Find Growth Areas and Build Evidence" entry's description.
 
 ## Step 4.8 — Command + formatter tests
 
@@ -462,7 +467,7 @@ Verify: `bun test products/landmark/test/lib/confidence-floor.test.js` passes.
 
 ## Verification
 
-```
+```text
 bun test products/landmark
 node products/landmark/bin/fit-landmark.js --help | grep "Find Growth Areas"
 ```

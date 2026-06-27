@@ -99,7 +99,7 @@ edit the manifest and regenerate.
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md) —
-  where jobs sit in the layered architecture.
-- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md) —
-  what `coaligned jtbd` validates and regenerates.
+- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+  — where jobs sit in the layered architecture.
+- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
+  — what `coaligned jtbd` validates and regenerates.

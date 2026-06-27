@@ -88,9 +88,9 @@ Out of scope:
   already-published sibling release tags are left as written. They record what
   was true when written. New CHANGELOG entries describing this rename are in
   scope.
-- **Evaluation domain vocabulary** — see the (c) row above. No `evaluateAssertion`,
-  `Judge`, "run an eval", or evaluation-framework description text is renamed to
-  "harness".
+- **Evaluation domain vocabulary** — see the (c) row above. No
+  `evaluateAssertion`, `Judge`, "run an eval", or evaluation-framework
+  description text is renamed to "harness".
 - **The `libmock/src/fixture/eval.js` filename** — kept. It is an
   evaluation-domain-adjacent test-helper name, not a `libeval` identity token;
   only the `libraries/libeval/test` path references *inside* it move.

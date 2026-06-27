@@ -324,7 +324,7 @@ No changes required to `main`, `bin`, or the existing `scripts` —
 
 Exports a factory `createExporter({ fs, renderer })` returning a class with:
 
-```
+```text
 async exportAll({ data, outputDir })
 ```
 
@@ -401,7 +401,7 @@ Behaviour:
 
 Add recipe after `process-graphs` (line 96):
 
-```
+```text
 # Export framework entities to HTML/microdata
 export-framework:
     bunx --workspace=@forwardimpact/map fit-map export
@@ -409,7 +409,7 @@ export-framework:
 
 Chain it before `process-resources`:
 
-```
+```text
 process: export-framework process-agents process-resources process-tools process-graphs process-vectors
 process-fast: export-framework process-agents process-resources process-tools process-graphs
 ```
@@ -445,7 +445,7 @@ The `microdata` formatters under
 `products/pathway/src/formatters/*/microdata.js` and `microdata-shared.js` are
 dead code at the pathway product's boundary. Verify with:
 
-```
+```text
 grep -rn "ToMicrodata\|microdata-shared" products/pathway/src
 ```
 

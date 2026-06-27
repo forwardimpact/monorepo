@@ -44,11 +44,25 @@ the spec carries the *why* and the *what*; this carries the *how* and the
 
 ## Guard design
 
-- **Scope** — `products/*/{bin,src,test}/**/*.js`. Skips `products/*/node_modules/**`, `products/*/dist/**`. Libraries and services are out of scope (deferred to a follow-up spec — see spec 1070 § Out of scope).
-- **Import detection** — Static `import`/`export` declarations via `acorn` AST walk (consistent with `tests/no-legacy-handler-shape.test.js`). Also catches `await import("…")` (dynamic, `CallExpression` with callee `Import`). JSDoc `import("…")` type references are *not* detected — they don't fail at runtime, and the spec accepts either choice.
-- **Manifest lookup** — Walks upward from each source file to the nearest `package.json`; collects keys from `dependencies`, `devDependencies`, `peerDependencies`, `optionalDependencies` into a set; any `@forwardimpact/*` import not in that set is a finding.
-- **Output** — One line per finding: `products/<pkg>/<path>:<line>: imports "@forwardimpact/<pkg>" but it is not declared in products/<pkg>/package.json`. Exits 1 on any finding, 0 otherwise.
-- **Exports** — `findUndeclaredImports({ files, manifests })` for the unit test, where each entry of `files` is `{ path, source }` and `manifests` is `{ [packageDir]: { dependencies, devDependencies, ... } }`. The CLI builds these inputs from disk; the test passes them directly.
+- **Scope** — `products/*/{bin,src,test}/**/*.js`. Skips
+  `products/*/node_modules/**`, `products/*/dist/**`. Libraries and services are
+  out of scope (deferred to a follow-up spec — see spec 1070 § Out of scope).
+- **Import detection** — Static `import`/`export` declarations via `acorn` AST
+  walk (consistent with `tests/no-legacy-handler-shape.test.js`). Also catches
+  `await import("…")` (dynamic, `CallExpression` with callee `Import`). JSDoc
+  `import("…")` type references are *not* detected — they don't fail at runtime,
+  and the spec accepts either choice.
+- **Manifest lookup** — Walks upward from each source file to the nearest
+  `package.json`; collects keys from `dependencies`, `devDependencies`,
+  `peerDependencies`, `optionalDependencies` into a set; any `@forwardimpact/*`
+  import not in that set is a finding.
+- **Output** — One line per finding:
+  `products/<pkg>/<path>:<line>: imports "@forwardimpact/<pkg>" but it is not declared in products/<pkg>/package.json`.
+  Exits 1 on any finding, 0 otherwise.
+- **Exports** — `findUndeclaredImports({ files, manifests })` for the unit test,
+  where each entry of `files` is `{ path, source }` and `manifests` is
+  `{ [packageDir]: { dependencies, devDependencies, ... } }`. The CLI builds
+  these inputs from disk; the test passes them directly.
 
 ## Verification
 
@@ -56,7 +70,8 @@ On the implementation branch:
 
 1. `bun run context:check-workspace-imports` exits 0.
 2. `bun run context` exits 0 (the guard is in the chain).
-3. `bun run test` exits 0 (the three new tests pass, and existing tests stay green).
+3. `bun run test` exits 0 (the three new tests pass, and existing tests stay
+   green).
 4. `bun run check` exits 0 (format/lint/jsdoc/harness, plus context above).
 5. `bun install` produces a clean diff for `bun.lock`.
 

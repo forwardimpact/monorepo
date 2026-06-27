@@ -208,7 +208,7 @@ across contexts within the brand.
 
 **Context:** Hero illustrations, suite-level marketing, default state.
 
-```
+```text
      🐰💻   🤖💻   👔💻
       \      |      /
        (huddled together)
@@ -232,7 +232,7 @@ to include someone in a blazer.
 
 **Context:** Onboarding screens, first-time user experience, landing page.
 
-```
+```text
     🐰🖐   🤖🖐   👔🖐
      hey!!   hello.   welcome.
 ```
@@ -254,7 +254,7 @@ about the team dynamic in one frame.
 
 **Context:** Documentation pages, knowledge base, "getting started" flows.
 
-```
+```text
     🐰📄  🤖📚  👔📖
      \     |     /
     ┌──────────────┐
@@ -374,7 +374,7 @@ vocabulary of writing things down in the field.
 
 ### Hero Pattern
 
-```
+```text
 Instrument Serif, 64px, weight 400:
 
   Empowered engineers
@@ -413,7 +413,7 @@ fill) and read as if drawn in the same notebook as the
 
 ### Suite Landing Page
 
-```
+```text
 ┌──────────────────────────────────────────────┐
 │  [Trio logo]  Forward Impact Engineering  [Nav]  [☰]  │
 │                                              │
@@ -449,7 +449,7 @@ fill) and read as if drawn in the same notebook as the
 
 ### Navigation Pattern
 
-```
+```text
 [Trio icon]  Forward Impact Engineering   |   Map  ·  Pathway  ·  Guide  ·  Landmark  ·  Summit  ·  Outpost       [Docs]  [Sign in]
 ```
 
@@ -459,7 +459,7 @@ until launch. On mobile, product switcher moves into hamburger menu.
 
 ### Warm/Cool Section Rhythm
 
-```
+```text
 Section 1: white (#ffffff)          — Hero
 Section 2: warm (#faf9f7)           — Product cards
 Section 3: white (#ffffff)          — Feature deep-dive

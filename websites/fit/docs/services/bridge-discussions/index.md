@@ -86,7 +86,7 @@ ahead of `ghbridge` so they start first.
 The PEM file must be entered as a single line with literal `\n` replacing
 each line break, wrapped in double quotes:
 
-```
+```text
 SERVICE_GHBRIDGE_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n...\n-----END RSA PRIVATE KEY-----"
 ```
 

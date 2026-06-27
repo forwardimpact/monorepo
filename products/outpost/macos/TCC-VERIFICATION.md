@@ -11,7 +11,7 @@ macOS attributes a TCC-gated access to the accessing process's **responsible
 process**, walking the spawn chain. Outpost's chain has two `posix_spawn` hops,
 each carrying a `responsibility_spawnattrs_setdisclaim` call:
 
-```
+```text
 fit-outpost.app  --hop 1-->  fit-outpost daemon  --hop 2-->  claude (node)
    (signed bundle)        ProcessManager.swift            posix-spawn.js
 ```
@@ -54,8 +54,8 @@ result here does not prove Calendar-API coverage.
 ## Preconditions
 
 - macOS 14 or later.
-- A built, installed `fit-outpost.app` (note its signing identity — Developer ID or
-  ad-hoc — for the results block).
+- A built, installed `fit-outpost.app` (note its signing identity — Developer ID
+  or ad-hoc — for the results block).
 - `claude` installed and resolvable by the daemon. The daemon searches
   `/usr/local/bin`, `~/.claude/bin`, `~/.local/bin`, `/opt/homebrew/bin` in that
   order — confirm which binary it will spawn.
@@ -88,10 +88,10 @@ Claude-CLI (version-string) entries under Full Disk Access and Automation. (The
 knowledge base is no longer in a TCC-protected folder, so there is no
 Files & Folders state to reset.)
 
-**(b) Grant only `fit-outpost.app`.** Grant `fit-outpost.app` Full Disk Access and, if
-prompted, Automation for Mail. Grant **nothing** to `node` or the Claude CLI.
-The relocated knowledge base (`~/.local/share/fit/outpost/<kb>`) is outside every
-TCC-protected folder, so no Files & Folders grant is involved.
+**(b) Grant only `fit-outpost.app`.** Grant `fit-outpost.app` Full Disk Access
+and, if prompted, Automation for Mail. Grant **nothing** to `node` or the Claude
+CLI. The relocated knowledge base (`~/.local/share/fit/outpost/<kb>`) is outside
+every TCC-protected folder, so no Files & Folders grant is involved.
 
 **(c) Start the attribution stream, then wake an agent.** The spawned `claude`
 is short-lived, so begin capturing before the wake. In a second terminal, the
@@ -129,10 +129,11 @@ sudo launchctl procinfo "$CLAUDE_PID" | grep -i 'responsible'
 ```
 
 Read the responsible process from the TCC stream's access lines (authoritative)
-and corroborate with `launchctl procinfo`'s responsible-pid field. Record, **per
-hop**, whether it is `fit-outpost.app` — a leaf-only check is not sufficient, one
-correct hop can mask an inverted one. If the child exits before you sample it,
-re-wake and capture promptly (or pick an agent whose turn runs longer).
+and corroborate with `launchctl procinfo`'s responsible-pid field. Record,
+**per hop**, whether it is `fit-outpost.app` — a leaf-only check is not
+sufficient, one correct hop can mask an inverted one. If the child exits before
+you sample it, re-wake and capture promptly (or pick an agent whose turn runs
+longer).
 
 **(e) Assert file-access succeeds under one grant (Axis 1+2, file-access).**
 Confirm the agent read the Mail/Calendar stores and wrote its briefing:
@@ -146,8 +147,8 @@ the read to succeed.
 
 **(f) Exercise Automation (Axis 2, AppleEvents).** Trigger a draft-side skill
 (one that drives Mail via AppleScript) and confirm it sends/drafts under the
-single `fit-outpost.app` Automation grant, with no separate `node`/CLI Automation
-entry.
+single `fit-outpost.app` Automation grant, with no separate `node`/CLI
+Automation entry.
 
 **(g) Assert per-agent privilege denial (Axis 4).** With the same single
 `fit-outpost.app` grant in place, wake one `restricted` agent and one `full`
@@ -178,12 +179,13 @@ agents. An agent whose entry omits the level logs `outpost.privilege.rejected`
 and is not woken.
 
 **(h) Fix C — conditional direct grant.** If any single service still fails
-under the `fit-outpost.app`-only grant, grant **that one service** (per the table
-above) to `fit-outpost.app` directly, re-run (c)–(g), and record which service
-needed it. The remedy is still one process — never a grant to `node` or the CLI.
+under the `fit-outpost.app`-only grant, grant **that one service** (per the
+table above) to `fit-outpost.app` directly, re-run (c)–(g), and record which
+service needed it. The remedy is still one process — never a grant to `node` or
+the CLI.
 
-**(i) Persistence across upgrade (Axis 3).** Rebuild and re-sign `fit-outpost.app`,
-reinstall it over the existing grant, and re-wake:
+**(i) Persistence across upgrade (Axis 3).** Rebuild and re-sign
+`fit-outpost.app`, reinstall it over the existing grant, and re-wake:
 
 ```sh
 fit-outpost wake <agent-name>
@@ -215,7 +217,7 @@ ad-hoc build with a deterministic cdhash survives a `brew upgrade`).
 Fill in on every run; this block is the durable, tracked record of the
 diagnosis.
 
-```
+```text
 Date:                    <YYYY-MM-DD>
 macOS version:           <e.g. 14.5>
 fit-outpost.app identity:    <Developer ID | ad-hoc>

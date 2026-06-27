@@ -1,6 +1,6 @@
 # CLI Reference
 
-### Organization and People
+## Organization and People
 
 ```sh
 npx fit-landmark org show                     # Organization directory
@@ -40,4 +40,3 @@ npx fit-landmark health --manager <email>     # Health for a specific manager's 
 npx fit-landmark voice --manager <email>      # Engineer voice from GetDX comments
 npx fit-landmark voice --email <email>        # Individual voice
 ```
-

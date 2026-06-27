@@ -104,7 +104,7 @@ Factory function: `createTraceCollector()`.
 
 ### `bin/fit-trace.js` — CLI
 
-```
+```text
 Usage: fit-trace [--output-format text|json] < stream.ndjson
 ```
 
@@ -147,6 +147,7 @@ Sample stream-json output based on observed Claude Code format.
 1. **Install Claude Code** — unchanged
 2. **Configure Git identity** — unchanged
 3. **Run Claude Code** — capture stream-json to file:
+
    ```bash
    TRACE_DIR=$(mktemp -d)
    AGENT_FLAG=""
@@ -161,13 +162,17 @@ Sample stream-json output based on observed Claude Code format.
      $AGENT_FLAG \
      > "$TRACE_DIR/trace.ndjson"
    ```
+
 4. **Print text to log** — conditional on `inputs.trace`:
+
    ```bash
    npx fit-trace --output-format text < "$TRACE_DIR/trace.ndjson"
    ```
+
    When trace is disabled, fall back to the original `--print` behavior (no
    stream-json, direct text output).
 5. **Upload artifact** — conditional on `inputs.trace`:
+
    ```yaml
    - name: Upload trace artifact
      if: inputs.trace == 'true'

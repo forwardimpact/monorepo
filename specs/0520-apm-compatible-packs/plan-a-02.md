@@ -267,7 +267,7 @@ still assert against old expectations — that is resolved in part 03.
 
 Quick checks:
 
-```
+```text
 # In a temp dir, run the build and inspect output
 ls packs/*.tar.gz        # should see both .raw.tar.gz and .apm.tar.gz per pack
 cat apm.yml              # should show dependencies.apm structure

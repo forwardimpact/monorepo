@@ -33,7 +33,8 @@ incomplete `node:test` shim
 `test()` throws `NotImplementedError` under bun. Under CI contention, when a
 per-test timeout is exceeded the unhandled-between-tests error cascades across
 test boundaries and reddens the gate. Confirmed firings: **#1723** (fixed via
-#1730, merged 2026-06-15) and the **W20** sighting.
+
+## 1730, merged 2026-06-15) and the **W20** sighting
 
 Spec 0650 made a deliberate speed-over-correctness trade and bridged the known
 gap with a runner-independent `spy()` helper. Two things broke the trade:
@@ -66,10 +67,10 @@ single-machine; they establish direction and magnitude, not a distribution.
 
 The "fast AND correct under bun" third option is **dominated**: per-file bun
 (87.1 s) is 24 % *slower* than `node --test`'s 70.3 s baseline and still rides
-bun's shim. The decision is therefore not speed-vs-correctness on a clean suite — it
-is **which idiom the suite converges on**.
+bun's shim. The decision is therefore not speed-vs-correctness on a clean suite
+— it is **which idiom the suite converges on**.
 
-### The split-brain (measured file counts)
+#### The split-brain (measured file counts)
 
 | Idiom | Count | Consequence |
 | --- | --- | --- |
@@ -95,13 +96,13 @@ enumerable from usage: `toBe` 439, `toHaveLength` 105, `toEqual` 103, `toThrow`
 tail below that. This mirrors 0650's own move — there a `spy()` helper replaced
 bun's `mock.fn`; here an `expect` shim replaces bun's `expect`.
 
-## Goal
+### Goal
 
 Settle the runner strategy so the publish gate is deterministic on the critical
 path, and document the resolved trade so the choice stops re-litigating every
 time a new unimplemented `node:test` method surfaces.
 
-## Resolved runner strategy (the settled trade)
+### Resolved runner strategy (the settled trade)
 
 **Define the gate once, run it in every place it must block.** The gate is
 a single named script — **`test:gate`** — that runs `node --test` **and parses
@@ -131,7 +132,7 @@ The earlier design (node only at publish) is rejected here: it lets a node-only
 failure escape review and surface on the release tag, which is exactly the
 "flake blocks a release" failure mode this spec exists to remove.
 
-## Scope
+### Scope
 
 | Change | In scope |
 | --- | --- |
@@ -144,7 +145,7 @@ failure escape review and surface on the release tag, which is exactly the
 | A guard failing CI on **any** new `bun:test` **import statement anywhere in the repo** (import statements, not string mentions) | Yes — the missing mitigation 0650 named. Post-sweep the baseline is zero, so "zero repo-wide" is simpler and strictly safer than scoping to the gate set. Implement it as `scripts/check-bun-test-imports.mjs` **and wire it as an explicit step in a required CI workflow** — mirror how `scripts/check-dependabot.mjs` is run directly at `check-security.yml:41`, *not* routed through an aggregate. The `bun run check` / `bun run context` aggregates are **local-only convenience scripts; no workflow invokes them**, so an entry that relies on `bun run check` to gate (the way `context:check-dependabot` exists in the aggregate yet is the script CI hand-wires directly) would pass locally and never block a PR — the exact silent-non-enforcement this guard exists to prevent. A `package.json` entry (e.g. `context:check-bun-test`) is fine for local runs, but the gating contract is the explicit required workflow step, not the aggregate. (The `describe`-in-`test` direction protects the local **bun** loop, not the release gate — tracked separately, **not** conflated into this guard.) |
 | Document the resolved trade as the settled runner strategy | Yes |
 
-### Excluded
+#### Excluded
 
 - Fixing bun#5090 or any upstream bun behaviour — not ours to fix; this spec
   designs around it.
@@ -155,7 +156,7 @@ failure escape review and surface on the release tag, which is exactly the
 - Coverage tooling and reporter format — unchanged; CI consumes pass/fail
   counts.
 
-## Sequencing constraint (two PRs)
+### Sequencing constraint (two PRs)
 
 The sweep and the gate-flip **must land as two separate PRs, in this order**.
 `node --test` hard-fails on any remaining `bun:` import, so a single PR that
@@ -180,13 +181,14 @@ leaves CI red.
 Splitting this way keeps each PR independently green and reviewable, and means
 the publish step is only repointed once the node gate has been green on `main`.
 
-## Success criteria
+### Success criteria
 
 **Acceptance criteria** — verifiable at merge time; these gate this spec's
-implementation. Criteria are tagged **[PR 1]** (converge + gate script + required
-node job + guard) or **[PR 2]** (one-line publish flip) per the sequencing
-constraint above. **Convergence and gate-flip ship as two PRs; the gate-flip PR
-may not merge until a required `node --test` job has been green on `main`.**
+implementation. Criteria are tagged **[PR 1]** (converge + gate script +
+required node job + guard) or **[PR 2]** (one-line publish flip) per the
+sequencing constraint above. **Convergence and gate-flip ship as two PRs; the
+gate-flip PR may not merge until a required `node --test` job has been green on
+`main`.**
 
 | Criterion | PR | Verification |
 | --- | --- | --- |
@@ -213,7 +215,7 @@ may not merge until a required `node --test` job has been green on `main`.**
 | --- | --- |
 | First-attempt shim-class (bun#5090 / describe-in-test) failures on the gate = 0, sustained. | `Publish: Package` and `Publish: macOS App` run history shows 0 such failures across publish cycles after merge. Initial go-see window: the first 2 cycles (confirms no immediate regression); the **durable target is 0 over 20 consecutive cycles** per the obstacle's target condition. |
 
-## Path to approval
+### Path to approval
 
 This spec reopens spec 0650's runner decision; settling it is an
 owner-decision. Approval is human-only: the spec advances when `wiki/STATUS.md`

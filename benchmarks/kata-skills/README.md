@@ -25,7 +25,7 @@ merge — offline under the filesystem work tracker.
 The work-tracking tasks are offline — run them under the filesystem tracker.
 Run a single task with `--task`:
 
-```
+```text
 fit-benchmark run --family=benchmarks/kata-skills --task=product-issue-triage --work-tracker=filesystem
 ```
 
@@ -40,7 +40,7 @@ The mock app lives once at `workdir/app/`. The harness copies a family-level
 copied if present), so all four tasks get `app/` without any per-task scripting.
 Per-task `workdir/` and `specs/` then overlay on top of this shared base.
 
-```
+```text
 workdir/app/                    # the one mock app, shared by all tasks → cwd/app
 tasks/spec-feature/workdir/     # brief.md + jtbd-excerpt.md  → cwd/ (spec input)
 tasks/design-feature/specs/042-todo-filter/    spec.md         (design input)
@@ -62,13 +62,14 @@ so a benchmark's inputs never shift when a sibling task changes.
 ## Hidden tests
 
 The `implement-feature` feature test lives at
-`tasks/implement-feature/hooks/feature.test.js`. Because `hooks/` is never copied
-into the agent CWD, the agent never sees these assertions; `invariants.sh` copies
-the file (via `$HOOKS_DIR`) into `app/test/` after the agent runs and executes
-the full suite.
+`tasks/implement-feature/hooks/feature.test.js`. Because `hooks/` is never
+copied into the agent CWD, the agent never sees these assertions;
+`invariants.sh` copies the file (via `$HOOKS_DIR`) into `app/test/` after the
+agent runs and executes the full suite.
 
 ## Dependencies
 
 Declared in `apm.yml`. `fit-benchmark run` calls `apm install --target claude`
 automatically before each run — no manual staging step required. The
-`forwardimpact/kata-skills` pack stages every `kata-*` skill the tasks reference.
+`forwardimpact/kata-skills` pack stages every `kata-*` skill the tasks
+reference.

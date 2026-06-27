@@ -53,7 +53,7 @@ graph LR
 
 **Digest schema (boot output, JSON), stable contract:**
 
-```
+```text
 {
   summary: string,
   owned_priorities: [{ item, status, added, link }],
@@ -193,8 +193,17 @@ Each row carries position, rejected alternative, and why.
 ## References
 
 - Spec [1060](spec.md)
-- [memory-protocol.md](../../.claude/agents/references/memory-protocol.md) — current
-- [libwiki](../../libraries/libwiki/) — CLI implementation (existing modules: `src/commands/init.js`, `src/commands/memo.js`, `src/commands/refresh.js`, `src/commands/sync.js`)
+- [memory-protocol.md](../../.claude/agents/references/memory-protocol.md) —
+  current
+- [libwiki](../../libraries/libwiki/) — CLI implementation (existing modules:
+  `src/commands/init.js`, `src/commands/memo.js`, `src/commands/refresh.js`,
+  `src/commands/sync.js`)
 - [wiki-audit.sh](../../scripts/wiki-audit.sh) — to be absorbed
-- [kata-session issue-lifecycle](../../.claude/skills/kata-session/references/issue-lifecycle.md) — obstacle / experiment GH-issue lifecycle the extended `refresh` reflects
-- Research corpus: [research](../../wiki/memory-protocol-research-2026-05-16.md), [study](../../wiki/memory-protocol-study-2026-05-16.md), [content analysis](../../wiki/memory-protocol-content-analysis-2026-05-16.md), [JTBD](../../wiki/memory-protocol-jtbd-2026-05-16.md), [failures](../../wiki/memory-protocol-failures-2026-05-16.md)
+- [kata-session issue-lifecycle](../../.claude/skills/kata-session/references/issue-lifecycle.md)
+  — obstacle / experiment GH-issue lifecycle the extended `refresh` reflects
+- Research corpus:
+  [research](../../wiki/memory-protocol-research-2026-05-16.md),
+  [study](../../wiki/memory-protocol-study-2026-05-16.md),
+  [content analysis](../../wiki/memory-protocol-content-analysis-2026-05-16.md),
+  [JTBD](../../wiki/memory-protocol-jtbd-2026-05-16.md),
+  [failures](../../wiki/memory-protocol-failures-2026-05-16.md)

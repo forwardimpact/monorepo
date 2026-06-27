@@ -48,10 +48,10 @@ package manager reads. Ship the raw tarball when a consumer wants the files as
 authored; ship the APM tarball when they install through APM but prefer a
 downloaded archive over a clone.
 
-`packs/apm/<name>/` is a **static bare git repository** — not a working tree, but
-the `objects/` and `refs/` of a repository with a single tagged commit. Serve it
-over plain HTTP and a consumer can `git clone` it, or `apm install` it, without
-you running a git server.
+`packs/apm/<name>/` is a **static bare git repository** — not a working tree,
+but the `objects/` and `refs/` of a repository with a single tagged commit.
+Serve it over plain HTTP and a consumer can `git clone` it, or `apm install` it,
+without you running a git server.
 
 ## Build the packs
 
@@ -92,17 +92,17 @@ so you can list what was produced or feed it into release notes.
 
 ## Why the output is deterministic
 
-A pack you build twice from the same input is byte-identical, which is what makes
-the artifacts cacheable and a re-release a real diff rather than churn. Two
-mechanisms enforce it:
+A pack you build twice from the same input is byte-identical, which is what
+makes the artifacts cacheable and a re-release a real diff rather than churn.
+Two mechanisms enforce it:
 
 - **Reset timestamps.** Before archiving, every file's modification time is set
-  to the Unix epoch, so the tarball's headers do not carry the wall-clock time of
-  the build.
-- **Sorted entries and stable git identity.** Files are archived in sorted order,
-  and the git repository's commit uses a fixed author, committer, and date. The
-  commit hash therefore depends only on the content, not on when or where you
-  built it.
+  to the Unix epoch, so the tarball's headers do not carry the wall-clock time
+  of the build.
+- **Sorted entries and stable git identity.** Files are archived in sorted
+  order, and the git repository's commit uses a fixed author, committer, and
+  date. The commit hash therefore depends only on the content, not on when or
+  where you built it.
 
 `gzip -n` is used so the compressed stream omits the original filename and
 timestamp, keeping even the `.tar.gz` byte-stable.

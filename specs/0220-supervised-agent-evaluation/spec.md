@@ -114,7 +114,7 @@ directories for supervised evaluations.
 
 The agent works. The supervisor watches and decides what to do next.
 
-```
+```text
 Agent receives task, works autonomously
   ↓
 Agent completes a turn of work (or gets stuck, or asks a question)
@@ -232,9 +232,9 @@ The first scenario demonstrates the pattern. The supervisor runs from the
 monorepo root (inheriting all skills and project context). The agent starts in a
 fresh temp directory.
 
-**Task:** Go to www.forwardimpact.team, find the Guide product, read the
-documentation, and try to install and configure it in a fresh project. Do not
-clone the monorepo — install from npm. Write notes about your experience in
+**Task:** Go to <https://www.forwardimpact.team>, find the Guide product, read
+the documentation, and try to install and configure it in a fresh project. Do
+not clone the monorepo — install from npm. Write notes about your experience in
 `./notes/`.
 
 **Supervisor context:** Inherits the monorepo's full CLAUDE.md and skills,

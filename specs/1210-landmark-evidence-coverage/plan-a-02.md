@@ -53,6 +53,7 @@ rows.push({
 ```
 
 Notes:
+
 - The `rationale` value is now an explanatory sentence, not the literal
   `"synthetic"` marker. The marker role moves to the new `provenance`
   column; the `rationale` column retains its proto-contracted "1-3
@@ -125,6 +126,7 @@ Three updates to the existing hand-rolled fake client + assertions:
    ```
 
 Notes:
+
 - The "idempotency" test (`fake.insertCalls.length` after two calls) is
   unchanged in shape; it now asserts `upsert` was called twice.
 - The "insert error" test still works — the fake returns `{ error:
@@ -137,7 +139,7 @@ passes; all six existing cases pass with the new fake + assertions.
 
 ## Verification
 
-```
+```text
 bun test products/map
 ```
 

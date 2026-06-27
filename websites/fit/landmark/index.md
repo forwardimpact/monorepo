@@ -108,7 +108,7 @@ anchors, GetDX comments, and contributing-skill evidence.
 
 Sample default output:
 
-```
+```text
   Team — health view
 
   Drivers (6)
@@ -139,11 +139,12 @@ All commands support `--format text|json|markdown`.
 Landmark reads from Map's activity layer:
 
 1. `organization_people` for hierarchy and team slicing
-2. `github_artifacts` + `evidence` for marker analysis — Guide assesses artifacts against your standard's markers and writes results to Map
+2. `github_artifacts` + `evidence` for marker analysis — Guide assesses
+   artifacts against your standard's markers and writes results to Map
 3. `getdx_snapshots` + `getdx_snapshot_team_scores` for quarterly outcomes
 4. `getdx_snapshot_comments` for engineer voice
 
-```
+```text
 GitHub + GetDX → Map (ingest + store) → Landmark (present)
                        ↑                       ↑
               Guide (marker analysis)    Summit (recommendations)

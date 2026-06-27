@@ -1,7 +1,7 @@
 # Plan A — Map Activity Seed
 
-Implements spec 0380: a single `fit-map activity seed` command that populates the
-activity database from synthetic data, plus parser consolidation, DSL
+Implements spec 0380: a single `fit-map activity seed` command that populates
+the activity database from synthetic data, plus parser consolidation, DSL
 validation, and an integration test.
 
 ## Approach
@@ -69,7 +69,7 @@ Parts 01 and 02 are independent — launch as concurrent `staff-engineer`
 sub-agents. Part 03 depends on 01 (the seed command uses the shared parser to
 validate the roster locally before uploading). Part 04 depends on 01 and 03.
 
-```
+```text
 01 ──┐
      ├── 03 ── 04
 02 ──┘

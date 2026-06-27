@@ -39,7 +39,8 @@ catches a missing row one coach cycle later, as agent protocol rather than
 shipped tooling. It stays regardless of outcome here — but detection without
 prevention budgets a repair cycle per loss, and the wider corpus (the #1564
 shared-workspace write-loss ledger; measurement-trust family #1704 / #1692 /
-#1709) shows the loss rate is not rare.
+
+## 1709) shows the loss rate is not rare
 
 Metrics CSVs are the right first target because they are the one wiki surface
 where keep-both-sides is _always_ the correct merge for concurrent appends: rows
@@ -48,7 +49,7 @@ date and metric name; analysis groups by metric, never by file position).
 Markdown surfaces have none of these properties, which is why they are excluded
 below.
 
-## Decision
+### Decision
 
 The facilitated #1709 routing (2026-06-12 session, accepted by the
 improvement-coach with the forensic reversal) adopted union-style merging — keep
@@ -58,7 +59,7 @@ this spec's WHAT; where the declaration lives, how provisioning ensures it, and
 the precedence interaction with the existing merge fallback are the design's to
 settle and demonstrate.
 
-## What changes
+### What changes
 
 | Component                           | What changes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -75,7 +76,7 @@ acquires the declaration, leaving a one-sync transition window per existing
 clone during rollout (bounded, and covered by the #1711 detection check while it
 lasts).
 
-## Out of scope
+### Out of scope
 
 - **Non-CSV wiki erasure.** Weekly logs, summaries, the claims table, MEMORY.md,
   and the storyboard keep today's merge behavior, and the keep-local-side
@@ -93,7 +94,7 @@ lasts).
 - **Wiki edits made outside the sync path** (e.g. web UI) — out of reach of
   merge behavior declarations; unchanged.
 
-## Success Criteria
+### Success Criteria
 
 | Claim                                           | Verification                                                                                                                                                                                                  |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -106,7 +107,7 @@ lasts).
 | The non-CSV boundary holds.                     | The two-clone conflict test repeated on a markdown file resolves exactly as today (local side wins on the fallback path).                                                                                     |
 | Published contract is documented.               | `websites/fit/docs/libraries/predictable-team/wiki-operations/index.md` states the metrics-CSV keep-both-sides merge behavior, the duplicate-visibility trade, and the audit finding.                         |
 
-## Relations
+### Relations
 
 - [#1709](https://github.com/forwardimpact/monorepo/issues/1709) (obstacle)
   stays open on two clears: the #1711 verdict after 2026-06-14 EOD, and this
@@ -119,7 +120,8 @@ lasts).
 - #1702 — read-side metrics parser trust; complementary lane.
 - Spec 1990 / [#1720](https://github.com/forwardimpact/monorepo/pull/1720) —
   duplicate of this spec, closed 2026-06-12. Design-phase inputs preserved on
-  this PR: [dedup record with four carry-overs](https://github.com/forwardimpact/monorepo/pull/1719#issuecomment-4691345067),
+  this PR:
+  [dedup record with four carry-overs](https://github.com/forwardimpact/monorepo/pull/1719#issuecomment-4691345067),
   [coverage verification with two supplements](https://github.com/forwardimpact/monorepo/pull/1719#issuecomment-4691538794),
   [eager-push provisioning decision](https://github.com/forwardimpact/monorepo/pull/1719#issuecomment-4691599578).
   Per 1990's scope table, specs 1840/1850 (allocation/reservation contracts)

@@ -69,8 +69,8 @@ flowchart TD
 
 - `build-binaries.yml` takes target selection as a `workflow_call` input and
   emits `actions/upload-artifact` entries keyed `{cli}-{target}` with a sibling
-  `.sha256`. Callers declare `needs:` on the reusable job and `download-artifact`
-  by that key in a downstream job.
+  `.sha256`. Callers declare `needs:` on the reusable job and
+  `download-artifact` by that key in a downstream job.
 - The smoke gate's contract is "binary exits 0 and writes non-empty output on
   its trivial invocation" — satisfiable by every CLI's existing `--help`.
 - The libcodegen `Long`-init module exposes no API; its only contract is

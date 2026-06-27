@@ -25,8 +25,8 @@ This is judgement, not a lint — there is no automated gate.
   behaviour.
 - `libraries/libbridge/test/callback-handler.test.js` — one
   `createCallbackHandler` request flow.
-- `libraries/libharness/test/agent-runner.test.js` — one `AgentRunner` run/resume
-  surface.
+- `libraries/libharness/test/agent-runner.test.js` — one `AgentRunner`
+  run/resume surface.
 - `libraries/libbridge/test/dispatcher.test.js` — one `Dispatcher.dispatch`
   flow.
 - `libraries/libbridge/test/resume-scheduler.test.js` — one `ResumeScheduler`

@@ -15,8 +15,8 @@ test files by behaviour family and records the shape policy plus its allow-list;
 Part 04 collapses the combinatorial matrices to boundary + property cases after
 auditing each for single-path. The three design Open Questions resolve to their
 stated defaults: graph fixtures take `GraphIndex`/`Store` by direct injection
-(Q3), property checks are hand-rolled loops (Q2), and the § B sweep migrates only
-assertions over pure logic — everything else is renamed (Q1).
+(Q3), property checks are hand-rolled loops (Q2), and the § B sweep migrates
+only assertions over pure logic — everything else is renamed (Q1).
 
 ## Part Index
 
@@ -38,8 +38,8 @@ assertions over pure logic — everything else is renamed (Q1).
 - **model-types overlap.** `tests/model-types.test.js` (448 LOC) appears on both
   the > 400 list and the matrix list. **Part 04 owns it** (audit then collapse);
   Part 03's split set excludes it. If Part 04's audit finds it is broad
-  per-helper coverage rather than a single-path cross-multiply, Part 04 splits it
-  by behaviour family under the Part 03 ceiling instead of collapsing.
+  per-helper coverage rather than a single-path cross-multiply, Part 04 splits
+  it by behaviour family under the Part 03 ceiling instead of collapsing.
 - **Part 02 ∩ Part 03 overlap.** `libraries/libterrain/test/pipeline.test.js`
   (411 LOC, `mkdtemp`) and `libraries/libwiki/test/audit-engine.test.js` (421
   LOC, `mkdtemp`) appear on both Part 02's sweep list and Part 03's split list.
@@ -99,8 +99,9 @@ the full suite and the spec's six success criteria.
   if a genuine gap appears.
 - **Matrix single-path assumption (Part 04).** Collapsing a matrix that actually
   exercises distinct branches would drop coverage. Each matrix is audited for
-  single-path **before** collapse (Decision 6); if an axis is a real branch, keep
-  it as discrete cases rather than folding it into the property check.
+  single-path **before** collapse (Decision 6); if an axis is a real branch,
+  keep it as discrete cases rather than folding it into the property check.
 - **Behaviour-family split coupling (Part 03).** Splitting a file with shared
   top-level setup can duplicate fixtures across the new files; lift shared setup
-  into a sibling helper or the relevant libmock fixture rather than copy-pasting.
+  into a sibling helper or the relevant libmock fixture rather than
+  copy-pasting.

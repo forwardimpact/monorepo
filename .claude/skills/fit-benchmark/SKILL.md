@@ -29,7 +29,7 @@ post-hoc judge, and multi-run aggregation.
 A task family is a directory of related coding tasks plus the skill-set
 under test:
 
-```
+```text
 <family>/
   apm.yml                # optional — skill-pack dependencies
   apm.lock.yaml          # skill-set manifest (hashed into skillSetHash)
@@ -107,7 +107,9 @@ Install and run via npm:
 npx fit-benchmark <command> [options]
 ```
 
-The full flag surface lives in [references/cli.md](references/cli.md); task-authoring guidance (local skills, invariants, fast iteration, file-grading) in [references/authoring.md](references/authoring.md).
+The full flag surface lives in [references/cli.md](references/cli.md);
+task-authoring guidance (local skills, invariants, fast iteration, file-grading)
+in [references/authoring.md](references/authoring.md).
 
 ## GitHub Action
 

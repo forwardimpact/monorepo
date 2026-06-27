@@ -696,7 +696,7 @@ structure. This step can run in parallel with steps 1–2.
 
 ### Repository structure
 
-```
+```text
 forwardimpact/homebrew-tap/
 ├── README.md
 ├── Casks/
@@ -852,7 +852,7 @@ npm install @forwardimpact/pathway
 npx fit-pathway dev
 ````
 
-````
+````text
 
 **After:**
 
@@ -887,7 +887,7 @@ Installing any product cask automatically pulls in the shared `fit-services` and
 > `brew upgrade` — you won't be re-prompted. A follow-up release will add
 > Developer ID signing to skip the Gatekeeper step entirely.
 
-````
+````text
 
 ### fit-guide special case
 
@@ -907,7 +907,7 @@ Generated gRPC clients are bundled into the brew binary — no `fit-codegen` ste
 needed. The gRPC service bundles (graph, mcp, pathway, trace, vector) install
 via the `fit-services` shared cask pulled in by `depends_on`.
 
-````
+````text
 
 ### fit-codegen and other library CLIs
 
@@ -931,7 +931,7 @@ fit-codegen --all
 Installing any product cask (e.g. `fit-guide`) also installs `fit-utilities`
 automatically via `depends_on`.
 
-```
+```text
 
 ### Files
 

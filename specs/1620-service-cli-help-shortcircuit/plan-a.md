@@ -162,8 +162,9 @@ Notes the implementer must honour:
 - The existing body moves **byte-for-byte** (only indentation changes) inside
   the `if` block. `mcp`'s trailing `process.on(sig, …)` signal loop moves inside
   too.
-- Use `new URL("./package.json", import.meta.url)` — each `services/*/package.json`
-  is the version source; confirm the file exists per service before wiring.
+- Use `new URL("./package.json", import.meta.url)` — each
+  `services/*/package.json` is the version source; confirm the file exists per
+  service before wiring.
 - Do not pass `fsSync`/`proc` — defaults apply in production.
 
 Verification: `bun test services/{graph,mcp,pathway,trace,vector}/test` still

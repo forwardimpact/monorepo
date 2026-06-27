@@ -59,7 +59,7 @@ Three changes:
 
 ### How it works
 
-```
+```text
 Workflow run starts
   │
   ├─ Clone {repo}.wiki.git to /tmp/wiki

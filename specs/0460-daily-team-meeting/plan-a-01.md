@@ -88,6 +88,7 @@ Create `.claude/skills/kata-metrics/references/csv-schema.md` with:
     trailing comma.
   - Quote fields containing commas using double quotes.
 - **Example:**
+
   ```csv
   date,metric,value,unit,run,note
   2026-04-14,open_vulnerabilities,3,count,https://github.com/forwardimpact/monorepo/actions/runs/12345,

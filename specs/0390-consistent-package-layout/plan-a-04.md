@@ -20,7 +20,7 @@ All six items from spec 0390's "Fix `libraries/libmock`" section:
 
 ## Current state
 
-```
+```text
 libraries/libmock/
 ├── index.js              ← root source, moves to src/index.js
 ├── fixture/
@@ -75,7 +75,7 @@ Current `package.json`:
 
 ## Target state
 
-```
+```text
 libraries/libmock/
 ├── src/
 │   ├── index.js
@@ -226,7 +226,7 @@ changes.
 
 ## Deliverable commit
 
-```
+```text
 refactor(layout): restructure libmock under src/ (part 04/08)
 
 - move root index.js to src/index.js

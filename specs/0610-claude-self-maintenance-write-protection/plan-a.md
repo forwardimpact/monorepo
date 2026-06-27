@@ -211,7 +211,7 @@ line 73 (`### Topic selection`)
 ### 5b — `kata-wiki-curate`
 
 **File:** `.claude/skills/kata-wiki-curate/SKILL.md`  
-**After:** line 46 (`- `wiki/Home.md``)   **Before:** line 48 (`### Step 1:
+**After:** line 46 (`- `wiki/Home.md``) **Before:** line 48 (`### Step 1:
 Summary accuracy`)
 
 ```markdown
@@ -255,13 +255,13 @@ close the new issue on the same evidence.
 
 Change line:
 
-```
+```text
 0610	design	approved
 ```
 
 to:
 
-```
+```text
 0610	plan	draft
 ```
 
@@ -280,7 +280,7 @@ to:
 
 ## Ordering
 
-```
+```text
 Step 1 (wrapper)  ──┬── Step 4 (invariant) ──┐
                     │                        ├── Step 6 (#441) ── Step 7 (STATUS)
 Step 2 (reference) ─┴── Step 5 (citations) ──┘

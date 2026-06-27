@@ -173,12 +173,12 @@ discover the per-Patient pages without requiring filesystem listings.
    a fixture-based test asserting one file per FHIR Patient record
    plus exactly one `index.html`.
 
-2. Every per-Patient page contains exactly one Schema.org main item
-   typed `Person` with `itemid` matching `https://{domain}/id/clinical/patient/{patient_id}`.
-   Verify: parsing the rendered HTML through libresource's
-   `Parser.parseHTML()` returns exactly one main item per file whose
-   `itemtype` is `https://schema.org/Person` and whose IRI shape
-   matches the pattern.
+2. Every per-Patient page contains exactly one Schema.org main item typed
+   `Person` with `itemid` matching
+   `https://{domain}/id/clinical/patient/{patient_id}`. Verify: parsing the
+   rendered HTML through libresource's `Parser.parseHTML()` returns exactly one
+   main item per file whose `itemtype` is `https://schema.org/Person` and whose
+   IRI shape matches the pattern.
 
 3. Each patient page produces inline microdata items for that
    patient's Conditions, Procedures, and MedicationRequests, related

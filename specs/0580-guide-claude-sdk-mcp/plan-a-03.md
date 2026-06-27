@@ -314,6 +314,7 @@ Three collaborating components per the design:
    ```
 
 3. **Token exchange:**
+
    ```javascript
    async function exchangeCode(code, verifier, redirectUri) {
      const res = await fetch(ANTHROPIC_TOKEN_URL, {
@@ -432,7 +433,7 @@ Remove from `init.services`: `llm`, `memory`, `tool`, `agent`. Add to
 
 New service startup order:
 
-```
+```text
 trace → vector → graph → pathway → mcp → web
 ```
 

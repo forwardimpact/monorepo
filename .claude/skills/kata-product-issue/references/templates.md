@@ -6,9 +6,9 @@ comment and PR body is signed `— Product Manager 🌱`.
 ## Issue Comments
 
 `comment` on the issue with the text below, selecting the variant that matches
-the triage decision ([work-trackers.md](../../../agents/references/work-trackers.md)).
-For `wontfix` and duplicate outcomes, chain `label` and/or `close` after the
-comment.
+the triage decision
+([work-trackers.md](../../../agents/references/work-trackers.md)). For `wontfix`
+and duplicate outcomes, chain `label` and/or `close` after the comment.
 
 | Outcome             | Body text                                                                                                                                 | Follow-up                                   |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
@@ -20,7 +20,8 @@ comment.
 
 ### Adding Feedback to Existing Issues
 
-`comment` on the issue ([work-trackers.md](../../../agents/references/work-trackers.md)):
+`comment` on the issue
+([work-trackers.md](../../../agents/references/work-trackers.md)):
 
 > Additional feedback observed during user testing of **<product>** in the
 > `<scenario>` evaluation scenario:
@@ -39,7 +40,8 @@ commit type (`fix(<scope>)` vs `spec(<scope>)`), closing keyword (`Closes` vs
 
 Implement the fix or write the spec on a `<fix|spec>/issue-<number>-…` branch,
 run the repository's check and test commands, and commit with subject
-`<fix|spec>(<scope>): <description>` and a `<Closes|Addresses> #<number>` trailer.
+`<fix|spec>(<scope>): <description>` and a `<Closes|Addresses> #<number>`
+trailer.
 
 ### PR Body
 
@@ -92,7 +94,7 @@ Actual: <what happened>
 
 Inbound triage (existing issues classified):
 
-```
+```text
 | Issue   | Title                           | Category        | Action       | Detail                     |
 | ------- | ------------------------------- | --------------- | ------------ | -------------------------- |
 | #bug-a  | Schema validation crash on null | mechanical fix  | PR #fix-a    | Fix null check in validate |
@@ -102,7 +104,7 @@ Inbound triage (existing issues classified):
 
 Outbound feedback (from user testing):
 
-```
+```text
 | Item  | Feedback                          | Category      | Action               | Issue   |
 | ----- | --------------------------------- | ------------- | -------------------- | ------- |
 | Obs-a | Install docs missing Node version | documentation | commented on #docs-a | #docs-a |

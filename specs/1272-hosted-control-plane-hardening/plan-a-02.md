@@ -43,10 +43,12 @@ export function createOnboardVerifier(auth) {
 ```
 
 - `authenticateChannelRequest(authHeader)` performs full Bot Framework JWT
-  validation (signature against Microsoft's signing keys, `aud === MicrosoftAppId`,
-  issuer) — the SDK owns the JWKS fetch, so the bridge maintains no parallel
-  signing-key path (design Key Decision 3 rejected the direct-JWKS alternative).
-- A forged, expired, or absent token yields `null`; the handler maps `null` → 401.
+  validation (signature against Microsoft's signing keys,
+  `aud === MicrosoftAppId`, issuer) — the SDK owns the JWKS fetch, so the bridge
+  maintains no parallel signing-key path (design Key Decision 3 rejected the
+  direct-JWKS alternative).
+- A forged, expired, or absent token yields `null`; the handler maps `null` →
+  401.
 
 Verification: `bun test test/onboard-verifier.test.js` (authenticated identity
 with `tid` → tid; `isAuthenticated=false` → null; `authenticateChannelRequest`
@@ -62,16 +64,15 @@ instance so `server.js` can build the verifier from it.
 Concrete change: factor the multi-mode authenticator construction out of
 `createDefaultAdapter` into a reused factory. Add
 `createMultiTenantAuthentication(config)` returning
-`new ConfigurationBotFrameworkAuthentication({ MicrosoftAppId, MicrosoftAppPassword,
-MicrosoftAppType: "MultiTenant" })`; `createDefaultAdapter`'s `multi` branch
-calls it and wraps the result in a `CloudAdapter`. The onboard verifier
-(built in `server.js`, Step B3) constructs its own instance via the same
-factory — design Key Decision 3's "one verification path, one SDK upgrade
-surface" is satisfied by sharing the *factory and SDK class*, not a single live
-object (the adapter is built inside the `MsBridgeService` constructor at
-index.js:153, the verifier in `server.js`, so they cannot share one instance
-without a larger wiring change out of scope here). Single-tenant branch
-unchanged.
+`new ConfigurationBotFrameworkAuthentication({ MicrosoftAppId, MicrosoftAppPassword, MicrosoftAppType: "MultiTenant" })`;
+`createDefaultAdapter`'s `multi` branch calls it and wraps the result in a
+`CloudAdapter`. The onboard verifier (built in `server.js`, Step B3) constructs
+its own instance via the same factory — design Key Decision 3's "one
+verification path, one SDK upgrade surface" is satisfied by sharing the
+*factory and SDK class*, not a single live object (the adapter is built inside
+the `MsBridgeService` constructor at index.js:153, the verifier in `server.js`,
+so they cannot share one instance without a larger wiring change out of scope
+here). Single-tenant branch unchanged.
 
 Verification: `bun test test/*.test.js` (existing adapter/runtime tests green —
 the multi-mode adapter still constructs).
@@ -99,7 +100,8 @@ if (config.tenancy_mode === "multi") {
 }
 ```
 
-Add the imports for `createOnboardVerifier` and `createMultiTenantAuthentication`.
+Add the imports for `createOnboardVerifier` and
+`createMultiTenantAuthentication`.
 
 Verification: `bun test test/startup.test.js` plus a multi-mode construction
 test (service builds with a real verifier wired).
@@ -143,9 +145,10 @@ Concrete change:
   prove the criterion-5 trio end to end: proven `tid` → 200 + `active` + repo;
   forged proof (auth throws) → 401, no writes; absent header → 401, no writes.
 
-Verification: `bun test test/onboard-verifier.test.js test/onboard-handler.test.js`
-(proven → active + SetRepo; forged → 401, zero upsert/setRepo; absent → 401,
-zero upsert/setRepo).
+Verification:
+`bun test test/onboard-verifier.test.js test/onboard-handler.test.js` (proven →
+active + SetRepo; forged → 401, zero upsert/setRepo; absent → 401, zero
+upsert/setRepo).
 
 ## Step B6 — Drop default-deny / no-verifier docs
 

@@ -98,7 +98,9 @@ fit-eval skill or CLI `documentation` array — those link user-facing task
 guides, not CI plumbing. The command will appear in `fit-eval --help`
 output but intentionally has no linked guide.
 
-**Verify:** `echo '{"source":"orchestrator","seq":1,"event":{"type":"summary","verdict":"success","summary":"test"}}' > /tmp/trace.ndjson && bunx fit-eval callback --trace-file=/tmp/trace.ndjson --callback-url=http://localhost:3978/api/callback/test --correlation-id=abc` succeeds (against a running bridge or a simple echo server).
+**Verify:**
+`echo '{"source":"orchestrator","seq":1,"event":{"type":"summary","verdict":"success","summary":"test"}}' > /tmp/trace.ndjson && bunx fit-eval callback --trace-file=/tmp/trace.ndjson --callback-url=http://localhost:3978/api/callback/test --correlation-id=abc`
+succeeds (against a running bridge or a simple echo server).
 
 ### Step 2 — Update fit-eval@v1 composite action
 
@@ -305,7 +307,7 @@ from `createServiceConfig`, logger from libtelemetry, tracer from librpc.
 `SERVICE_SECRET` is read from `process.env` in the constructor and used
 to create an `HmacAuth` instance (from librpc) for callback verification.
 
-```
+```text
 // Class
 MsTeamsService(config, { logger, tracer })
   .start()              // listen + start sweep timer
@@ -333,9 +335,9 @@ Internal structure:
    default import with destructuring:
    `import botbuilder from "botbuilder"; const { CloudAdapter, ... } = botbuilder;`.
    `ConfigurationBotFrameworkAuthentication` requires `MicrosoftAppId`,
-   `MicrosoftAppPassword`, and `MicrosoftAppTenantId` (all three from
-   config) for single-tenant authentication. Processes incoming activities
-   via the `/api/messages` route. `continueConversationAsync` receives the
+   `MicrosoftAppPassword`, and `MicrosoftAppTenantId` (all three from config)
+   for single-tenant authentication. Processes incoming activities via the
+   `/api/messages` route. `continueConversationAsync` receives the
    `microsoftAppId` from config.
 
 3. **Activity handler** — On `message` activity type:
@@ -522,7 +524,12 @@ passes.
   when the workflow change lands, the step will fail with "unknown command."
   Sequence: merge libeval, cut a release, then merge the workflow change.
 
-Libraries used: `botbuilder` (CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext), `express` (HTTP server), `@forwardimpact/libconfig` (credential management, env loading), `@forwardimpact/libtelemetry` (structured logging), `@forwardimpact/librpc` (distributed tracing + `HmacAuth` for callback HMAC-SHA256 verification via `SERVICE_SECRET`).
+Libraries used: `botbuilder` (CloudAdapter,
+ConfigurationBotFrameworkAuthentication, TurnContext), `express` (HTTP server),
+`@forwardimpact/libconfig` (credential management, env loading),
+`@forwardimpact/libtelemetry` (structured logging), `@forwardimpact/librpc`
+(distributed tracing + `HmacAuth` for callback HMAC-SHA256 verification via
+`SERVICE_SECRET`).
 
 ## Execution
 

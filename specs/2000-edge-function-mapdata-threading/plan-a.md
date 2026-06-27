@@ -7,10 +7,11 @@ Executes [design-a.md](design-a.md) for [spec.md](spec.md).
 Add the two missing hosted collaborators bottom-up: a minimal Deno runtime/clock
 and a deploy-bundled standard-data loader, then thread them into the three
 clock-touching Edge Function handlers (`transform` also gets `mapData`). The
-orchestrator's producer result gains an additive `producerRan`/`missingCollaborator`
-discriminator so skipped is distinguishable from empty. A new CLI subcommand
-generates the bundle from the existing loader. A first hosted test harness drives
-each handler module against a fake Supabase and fixture bundle.
+orchestrator's producer result gains an additive
+`producerRan`/`missingCollaborator` discriminator so skipped is distinguishable
+from empty. A new CLI subcommand generates the bundle from the existing loader.
+A first hosted test harness drives each handler module against a fake Supabase
+and fixture bundle.
 
 Libraries used: none.
 
@@ -34,8 +35,8 @@ number and the bag is frozen.
 ### 2. Standard-data bundle loader
 
 Read the deploy-bundled standard data through an injectable reader so the loader
-runs under both Deno and the Node test runner; return a typed skip when absent or
-malformed.
+runs under both Deno and the Node test runner; return a typed skip when absent
+or malformed.
 
 - Created: `products/map/supabase/functions/_shared/activity/map-data.js` (the
   `.js` variant per the risk note below — the `.ts` import did not resolve under
@@ -102,15 +103,15 @@ sibling `.js` `handler.js`. The runtime threads into **both** phases —
 (`src/activity/extract/people.js:19`, `src/activity/extract/getdx.js:76`), so a
 transform-only thread would leave the extract clock read throwing. The `.ts`
 `index.ts` becomes a thin wrapper: it builds the Deno-only collaborators
-(`createSupabaseClient` from `../_shared/supabase.ts`, which is the esm.sh-backed
-client; `createHostedRuntime`),
-reads `Deno.env` config, calls the handler, and maps the returned body to an HTTP
-status — preserving each function's current response shape and `ok ? 200 : 500`
-mapping. `handler.js` carries no `Deno`/esm.sh import, so the Node test runner
-imports it cleanly. The old collaborator-less extract/transform calls are
-**replaced**, not duplicated.
+(`createSupabaseClient` from `../_shared/supabase.ts`, which is the
+esm.sh-backed client; `createHostedRuntime`), reads `Deno.env` config, calls the
+handler, and maps the returned body to an HTTP status — preserving each
+function's current response shape and `ok ? 200 : 500` mapping. `handler.js`
+carries no `Deno`/esm.sh import, so the Node test runner imports it cleanly. The
+old collaborator-less extract/transform calls are **replaced**, not duplicated.
 
 - Created: `products/map/supabase/functions/transform/handler.js`
+
   ```js
   export async function handleTransform(supabase, runtime, loadMapData) {
     const md = await loadMapData();
@@ -128,6 +129,7 @@ imports it cleanly. The old collaborator-less extract/transform calls are
     };
   }
   ```
+
   Imports only `transformAll` (shim), nothing Deno-specific. `ok` keeps the
   current people/getdx/github-only computation, leaving the existing 200/500
   contract unchanged (criterion 5); the skip `reason` rides the response
@@ -136,21 +138,23 @@ imports it cleanly. The old collaborator-less extract/transform calls are
   `handlePeopleUpload(supabase, runtime, body, format)`: calls
   `extractPeopleFile(supabase, body, format, runtime)` (now with runtime); on
   `!stored` returns `{ ok: false, stored: false, error }`; else
-  `transformPeople(supabase, runtime)` and returns `{ ok: errors.length === 0,
-  stored: true, path, imported, errors }` — the current response shape, unchanged.
+  `transformPeople(supabase, runtime)` and returns
+  `{ ok: errors.length === 0, stored: true, path, imported, errors }` — the
+  current response shape, unchanged.
 - Created: `products/map/supabase/functions/getdx-sync/handler.js` exporting
   `handleGetDXSync(supabase, runtime, config)`: calls
-  `extractGetDX(supabase, config, runtime)` then `transformAllGetDX(supabase,
-  runtime)`, returns `{ ok, extract: { files, errors }, transform }` — current
-  shape. `config` (`{ apiToken, baseUrl }`) is read from `Deno.env` by the wrapper.
-- Modified: each `index.ts` becomes the `Deno.serve` wrapper. `transform` gains a
-  `respond(body)` helper returning a `Response` with `status: body.ok ? 200 : 500`
-  (matching the other two), and calls
-  `respond(await handleTransform(createSupabaseClient(), createHostedRuntime(),
-  loadHostedMapData))`. `people-upload` keeps its 405 method guard + body read,
-  then calls `handlePeopleUpload`. `getdx-sync` keeps its `Deno.env` reads + the
-  missing-`GETDX_API_TOKEN` 500 guard, then calls `handleGetDXSync`. Each wrapper
-  maps `body.ok` to `200/500`.
+  `extractGetDX(supabase, config, runtime)` then
+  `transformAllGetDX(supabase, runtime)`, returns
+  `{ ok, extract: { files, errors }, transform }` — current shape. `config`
+  (`{ apiToken, baseUrl }`) is read from `Deno.env` by the wrapper.
+- Modified: each `index.ts` becomes the `Deno.serve` wrapper. `transform` gains
+  a `respond(body)` helper returning a `Response` with
+  `status: body.ok ? 200 : 500` (matching the other two), and calls
+  `respond(await handleTransform(createSupabaseClient(), createHostedRuntime(), loadHostedMapData))`.
+  `people-upload` keeps its 405 method guard + body read, then calls
+  `handlePeopleUpload`. `getdx-sync` keeps its `Deno.env` reads + the
+  missing-`GETDX_API_TOKEN` 500 guard, then calls `handleGetDXSync`. Each
+  wrapper maps `body.ok` to `200/500`.
 - `github-webhook/index.ts` is unchanged (takes neither collaborator).
 
 Verify: step-6 tests import the `handler.js` functions and drive them with the
@@ -185,8 +189,8 @@ case "bundle-standard-data": {
 }
 ```
 
-The default path resolves relative to the module (`import.meta.url`), not cwd, so
-it lands at the design's target from any install dir. Add an
+The default path resolves relative to the module (`import.meta.url`), not cwd,
+so it lands at the design's target from any install dir. Add an
 `import { fileURLToPath } from "node:url";` to `bin/fit-map.js` (it imports only
 from `"path"`/`"os"` today).
 
@@ -211,8 +215,9 @@ model the whole surface those transforms touch, not just the producer's:
   producer-focused tests); `storage.from("raw").download(path)` for any seeded
   file.
 - `from("github_artifacts").select(…).not(…)` returning the seeded joined rows;
-  `from("evidence").delete().eq(…)` and `.upsert(rows, opts)` recording payloads;
-  the `github_events`/`github_artifacts`/`getdx_snapshots`/`organization_people`
+  `from("evidence").delete().eq(…)` and `.upsert(rows, opts)` recording
+  payloads; the
+  `github_events`/`github_artifacts`/`getdx_snapshots`/`organization_people`
   reads/writes the other transforms make (all returning empty/`null` so they
   no-op).
 
@@ -230,20 +235,23 @@ a test helper shared across the hosted tests.
     coverage-tier half is verified on the produced rows' `provenance`).
   - criterion 2: a parallel `transformAll(supabase, runtime, { mapData })` over
     the same seeded fake yields identical `evidence.upsert` rows (artifact,
-    marker, provenance); the test compares the two surfaces' payloads, not counts.
-  - criterion 4: `handleTransform` with `loadMapData` returning `{ skipped,
-    reason }` yields `producerRan === false`, `missingCollaborator`, `skipReason`.
+    marker, provenance); the test compares the two surfaces' payloads, not
+    counts.
+  - criterion 4: `handleTransform` with `loadMapData` returning
+    `{ skipped, reason }` yields `producerRan === false`, `missingCollaborator`,
+    `skipReason`.
 - Created: `products/map/test/activity/hosted/people-upload.test.js` — drives
   `handlePeopleUpload` with the fake + `createHostedRuntime()` through the full
   extract→transform round-trip (criterion 3's named live failure is the
   `extractPeopleFile` clock read at `src/activity/extract/people.js:19`),
   asserting no throw and a populated `path`/`imported`.
-- Created: `products/map/test/activity/hosted/getdx-sync.test.js` — `extractGetDX`
-  calls the global `fetch` (no injection seam, `src/activity/extract/getdx.js:113`),
-  so the test stubs `globalThis.fetch` (restored in a `finally`) to return canned
-  GetDX payloads. It asserts the extract clock read (line 76, reached before any
-  fetch) and the `transformAllGetDX` snapshot-comment clock path complete without
-  throwing (criterion 3), seeding a snapshot-comments file in the fake's storage.
+- Created: `products/map/test/activity/hosted/getdx-sync.test.js` —
+  `extractGetDX` calls the global `fetch` (no injection seam,
+  `src/activity/extract/getdx.js:113`), so the test stubs `globalThis.fetch`
+  (restored in a `finally`) to return canned GetDX payloads. It asserts the
+  extract clock read (line 76, reached before any fetch) and the
+  `transformAllGetDX` snapshot-comment clock path complete without throwing
+  (criterion 3), seeding a snapshot-comments file in the fake's storage.
 - Created: `products/map/test/activity/hosted/map-data.test.js` — unit-tests
   `loadHostedMapData` via its `readBundle` parameter (step 2), never the `Deno`
   global.
@@ -261,30 +269,30 @@ these tests, criterion 5 by step 3's unchanged-CLI-tests assertion.
   reference the `Deno` global and import the supabase client from an esm.sh URL,
   neither resolvable under the repository's Node-based runner. The split removes
   the hazard: tests import only the `handler.js`/`map-data.ts` logic modules,
-  which carry no `Deno` or esm.sh import; `loadHostedMapData` takes a `readBundle`
-  seam (step 2). `map-data.ts` is plain TS with no Deno-only import; `bun test`
-  transpiles `.ts` on import, but no `.js` test in this product imports a `.ts`
-  module today — if the import does not resolve, move the loader to `map-data.js`
-  and let a `.ts` shim re-export it (the handlers already follow this `.js`-logic
-  / `.ts`-wrapper split).
+  which carry no `Deno` or esm.sh import; `loadHostedMapData` takes a
+  `readBundle` seam (step 2). `map-data.ts` is plain TS with no Deno-only
+  import; `bun test` transpiles `.ts` on import, but no `.js` test in this
+  product imports a `.ts` module today — if the import does not resolve, move
+  the loader to `map-data.js` and let a `.ts` shim re-export it (the handlers
+  already follow this `.js`-logic / `.ts`-wrapper split).
 - **`extractGetDX` calls the global `fetch`.** It has no injection seam
-  (`src/activity/extract/getdx.js:113`), so the getdx-sync handler test must stub
-  `globalThis.fetch` and restore it; otherwise the test hits the network.
+  (`src/activity/extract/getdx.js:113`), so the getdx-sync handler test must
+  stub `globalThis.fetch` and restore it; otherwise the test hits the network.
 - **Fake breadth.** The handlers drive the full orchestrator, so the hosted
   fake must model the storage list/download and the github/getdx/people table
   ops, not just the producer's chains (step 6 enumerates them); a narrower fake
   throws before reaching the assertions.
 - **Bundle path resolution** differs between the deploy layout and the test
-  fixture; resolve via `import.meta.url` in product code and an injected reader /
-  fixture `mapData` in tests.
+  fixture; resolve via `import.meta.url` in product code and an injected reader
+  / fixture `mapData` in tests.
 
 ## Execution
 
 Single engineering agent, steps in order. Steps 1, 2, and 5 are mutually
 independent. Step 4 depends on steps 1, 2, and 3 (the handlers import
-`createHostedRuntime` and `loadHostedMapData`, and `transform`'s handler consumes
-the new producer result shape). Step 6 depends on steps 1, 2, 3, and 4. Step 5
-produces the deploy bundle but does not feed the test fixtures — step 6 injects
-its own `mapData`.
+`createHostedRuntime` and `loadHostedMapData`, and `transform`'s handler
+consumes the new producer result shape). Step 6 depends on steps 1, 2, 3, and 4.
+Step 5 produces the deploy bundle but does not feed the test fixtures — step 6
+injects its own `mapData`.
 
 — Staff Engineer 🛠️

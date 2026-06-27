@@ -1,6 +1,7 @@
 # Plan 0920-a · Part 01 — Schema, loaders, renderer
 
-Overview: [plan-a.md](plan-a.md) · Spec: [spec.md](spec.md) · Design: [design-a.md](design-a.md)
+Overview: [plan-a.md](plan-a.md) · Spec: [spec.md](spec.md) · Design:
+[design-a.md](design-a.md)
 
 Lays the data spine. After this part merges, the YAML loads, validates, and
 renders into a markdown section, but nothing calls the renderer yet — the
@@ -67,7 +68,9 @@ four cases against an injected-fs temp dir:
    with non-empty `path`.
 4. `{}` (all-empty) → `valid: true`.
 
-**Verify:** `bun run test products/map/test/validation-organizational-context.test.js` exits 0.
+**Verify:**
+`bun run test products/map/test/validation-organizational-context.test.js` exits
+0.
 
 ## Step 2 — Node + browser loader extensions
 
@@ -98,7 +101,8 @@ Both loaders surface `agentData.organizationalContext` with `null` fallback.
      };
 ```
 
-**Modified:** `products/pathway/src/lib/yaml-loader.js` § `loadAgentDataBrowser`:
+**Modified:** `products/pathway/src/lib/yaml-loader.js` §
+`loadAgentDataBrowser`:
 
 ```diff
  export async function loadAgentDataBrowser(dataDir = "./data") {
@@ -158,10 +162,11 @@ directly after `interpolateTeamInstructions`. Contract:
   - `repositories` non-empty → `- **Repositories:** ${items.join(", ")}`
   - `team` non-empty → `- **Team:** ${team}`
   - `manager` non-empty → `- **Manager:** ${manager}`
-  - `adjacentLeads` non-empty → `- **Adjacent leads:** ${entries.map(e => "${e.handle} (${e.role})").join(", ")}`
+  - `adjacentLeads` non-empty →
+    `- **Adjacent leads:** ${entries.map(e => "${e.handle} (${e.role})").join(", ")}`
   - `projects` non-empty → `- **Projects:** ${items.join(", ")}`
   - `escalationPaths` non-empty → `- **Escalation paths:**` parent bullet,
-    then `  - ${trigger} → ${destination}` one indented sub-bullet per entry.
+    then `- ${trigger} → ${destination}` one indented sub-bullet per entry.
 - Empty / absent fields suppress their bullet (no empty bullets emitted).
 - Section ends with exactly one trailing newline (`\n`) after the final
   bullet — no trailing whitespace, no double-blank tail. The composer
@@ -192,20 +197,22 @@ Part 03 populated-starter test asserts against):
 `describe("renderOrganizationalContext")` block:
 
 1. `null` → `null`. 2. `undefined` → `null`. 3. `{}` → `null`.
-4. All-empty concerns slot (`{ repositories: [], team: "", manager: "", adjacentLeads: [], projects: [], escalationPaths: [] }`) → `null`.
-5. Only `manager` populated → section with one bullet only.
-6. Fully-populated design example → equals the reference output byte-for-byte.
-7. `adjacentLeads` with one entry → no trailing comma.
-8. `escalationPaths` with one entry → parent bullet + one sub-bullet.
-9. `repositories` of length 1 → no commas in the bullet.
-10. **Partial-empty:** `repositories` populated but `adjacentLeads: []` and
-    `escalationPaths: []` → section emits the `Repositories` bullet only;
-    the empty `adjacentLeads` and `escalationPaths` produce no parent
-    bullets (exercises the bullet-suppression rule for empty arrays under
-    a populated section).
-11. **Trailing-newline contract:** section ends with exactly one trailing
-    `\n` after the final bullet (not zero, not two) — pins the byte shape
-    composer concatenation relies on.
+2. All-empty concerns slot
+   (`{ repositories: [], team: "", manager: "", adjacentLeads: [], projects: [], escalationPaths: [] }`)
+   → `null`.
+3. Only `manager` populated → section with one bullet only.
+4. Fully-populated design example → equals the reference output byte-for-byte.
+5. `adjacentLeads` with one entry → no trailing comma.
+6. `escalationPaths` with one entry → parent bullet + one sub-bullet.
+7. `repositories` of length 1 → no commas in the bullet.
+8. **Partial-empty:** `repositories` populated but `adjacentLeads: []` and
+   `escalationPaths: []` → section emits the `Repositories` bullet only;
+   the empty `adjacentLeads` and `escalationPaths` produce no parent
+   bullets (exercises the bullet-suppression rule for empty arrays under
+   a populated section).
+9. **Trailing-newline contract:** section ends with exactly one trailing
+   `\n` after the final bullet (not zero, not two) — pins the byte shape
+   composer concatenation relies on.
 
 **Verify (run from repo root):** `bun run test tests/model-agent.test.js`
 exits 0 (the file at the repo's top-level `tests/` resolves workspace

@@ -27,7 +27,7 @@ npx fit-rc start
 
 Expected output (timestamps and process IDs will differ):
 
-```
+```text
 INFO 2026-05-04T10:00:01.123Z rc svscan 42001 MSG001 - Socket ready socket="data/svscan.sock"
 INFO 2026-05-04T10:00:01.456Z rc trace 42001 MSG002 - Service started
 INFO 2026-05-04T10:00:01.789Z rc vector 42001 MSG003 - Service started
@@ -50,7 +50,7 @@ npx fit-rc status
 
 Expected output when services are running:
 
-```
+```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Running
 INFO 2026-05-04T10:05:00.234Z rc trace 42001 MSG002 - up pid="42010"
 INFO 2026-05-04T10:05:00.345Z rc vector 42001 MSG003 - up pid="42011"
@@ -58,7 +58,7 @@ INFO 2026-05-04T10:05:00.345Z rc vector 42001 MSG003 - up pid="42011"
 
 Expected output when the supervision daemon is not running:
 
-```
+```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Not running
 ```
 
@@ -70,7 +70,7 @@ npx fit-rc status trace
 
 If the named service is not in the configuration, `fit-rc` exits with an error:
 
-```
+```text
 Error: Unknown service: nonexistent
 ```
 
@@ -124,9 +124,9 @@ returns silently.
 
 ## Tune log rotation
 
-`fit-rc` pipes each longrun service's output through `fit-logger`, the log writer
-from `@forwardimpact/libsupervise`. It reads lines on stdin, prepends an ISO 8601
-timestamp, writes to a file named `current`, and rotates that file to a
+`fit-rc` pipes each longrun service's output through `fit-logger`, the log
+writer from `@forwardimpact/libsupervise`. It reads lines on stdin, prepends an
+ISO 8601 timestamp, writes to a file named `current`, and rotates that file to a
 timestamped archive once it grows past a size limit. You can run `fit-logger`
 directly to capture any command's output, or to test rotation settings:
 
@@ -147,8 +147,9 @@ my-service | npx fit-logger -d data/logs/my-service -s 1048576 -n 5
 ```
 
 Archives are named `@YYYY-MM-DD_HH-mm-ss-SSS.s` (the trailing `-SSS` is the
-millisecond segment), so sorting filenames gives chronological order. When the count exceeds `--maxFiles`, the oldest archives are
-deleted on the next rotation.
+millisecond segment), so sorting filenames gives chronological order. When the
+count exceeds `--maxFiles`, the oldest archives are deleted on the next
+rotation.
 
 ## Supervise processes directly
 
@@ -183,8 +184,8 @@ The daemon answers each command with a single JSON line and closes the
 connection. `shutdown` is the exception: the daemon exits before replying, so a
 client sees the connection close with no response line. The daemon is a pure
 supervisor -- it knows nothing about service order or oneshot commands. Ordering
-and oneshot handling live in `fit-rc`, which is why `fit-rc` is the interface you
-reach for day to day.
+and oneshot handling live in `fit-rc`, which is why `fit-rc` is the interface
+you reach for day to day.
 
 ## Suppress output
 

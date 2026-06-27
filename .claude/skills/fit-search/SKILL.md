@@ -15,7 +15,8 @@ no database to provision for a modest corpus.
 
 ## When to Use
 
-- Find resources related to a phrase by meaning — `npx fit-search 'career progression'`
+- Find resources related to a phrase by meaning —
+  `npx fit-search 'career progression'`
 - Retrieve ranked candidates to feed an agent's context window
 - Search a corpus too small to justify a hosted vector database
 

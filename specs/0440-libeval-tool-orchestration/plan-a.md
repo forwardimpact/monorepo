@@ -39,7 +39,7 @@ subscription needed.
 
 ## Dependencies
 
-```
+```text
 Part 1 ─┬─→ Part 2 (supervisor uses toolkit + counter)
         └─→ Part 3 (facilitator uses toolkit + counter + bus)
 ```

@@ -26,11 +26,13 @@ both lean heavily internal.
 Fewer than ten of those 100 PRs are genuine product feature or bug work. The
 rest of the product slice is documentation fixes.
 
-**Open work (the 60-PR backlog mapped in [issue #1758](https://github.com/forwardimpact/monorepo/issues/1758);
-the issue title says 63, its per-PR map enumerates 60):**
-the two largest clusters are wiki shared-state (18 PRs) and release-gate
-authority (9 PRs). Both are the team maintaining its own ability to operate.
-Product work is one cluster of eight.
+**Open work (the 60-PR backlog mapped in [issue
+
+## 1758](https://github.com/forwardimpact/monorepo/issues/1758); the issue title
+
+says 63, its per-PR map enumerates 60):** the two largest clusters are wiki
+shared-state (18 PRs) and release-gate authority (9 PRs). Both are the team
+maintaining its own ability to operate. Product work is one cluster of eight.
 
 This is a feedback-structure problem, not a discipline problem. Three causes
 compound:
@@ -62,7 +64,7 @@ saturated approval gate simply queue behind the internal specs already waiting.
 Rebalancing requires changing what the work-selection and measurement paths
 privilege, not only what feeds them.
 
-## Decision
+### Decision
 
 Introduce **product-aligned vs internal** as a first-class axis on the team's
 work, and use it in two places: the routing path that agents apply when they
@@ -94,9 +96,9 @@ The bias is a tie-break and a default, not a quota. It changes which work an
 agent reaches for first; it does not forbid internal work or override an owned
 priority or an active claim.
 
-## Scope
+### Scope
 
-### In scope
+#### In scope
 
 | Component | What changes |
 |---|---|
@@ -105,7 +107,7 @@ priority or an active claim.
 | Spec authoring via the `kata-spec` skill. | A new spec states its product-vs-internal classification. The `kata-product-issue` triage path applies the same axis when it classifies an incoming issue. |
 | The storyboard surface the team reviews each period. | Records the product-vs-internal ratio of the period's completed work as a tracked metric so the balance is reviewable over time. Each completed item carries its classification forward so the ratio is computed from recorded data, not asserted. The skill or workflow that emits the series is a design choice. |
 
-### Out of scope
+#### Out of scope
 
 - **Weighting the human approval gate.** Imposing a product-to-internal ratio on
   what humans approve is a policy decision reserved to a trusted human and is
@@ -120,7 +122,7 @@ priority or an active claim.
 - **Any change to the mechanical-vs-structural fork** or to the fix/spec branch
   separation. The new axis is additive and orthogonal.
 
-## Success Criteria
+### Success Criteria
 
 | Claim | Verification |
 |---|---|

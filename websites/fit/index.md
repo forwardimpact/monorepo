@@ -24,7 +24,7 @@ hero:
 
 ![Map](/assets/icon-map.svg)
 
-### Map — define the standard
+## Map — define the standard
 
 Two managers shouldn't disagree on what 'senior' means. Map turns implicit
 expectations into a validated, plain-text standard that the rest of the suite

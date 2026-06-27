@@ -1,10 +1,15 @@
 # 1140 Part 07 — Clinical HTML Templates + Rendering
 
-Add 7 HTML templates for clinical content and a `renderClinicalPages()` function that follows the existing two-pass pattern: Pass 1 renders Mustache templates with `data-enrich` placeholders and Schema.org microdata; Pass 2 (enricher.js, unchanged) fills prose blocks via LLM.
+Add 7 HTML templates for clinical content and a `renderClinicalPages()` function
+that follows the existing two-pass pattern: Pass 1 renders Mustache templates
+with `data-enrich` placeholders and Schema.org microdata; Pass 2 (enricher.js,
+unchanged) fills prose blocks via LLM.
 
 ## Goal
 
-Clinical HTML pages plug into the existing `renderHTML()` → `enriched` → `write` pipeline path. The `data-enrich` keys use the `clinical_` prefix from Part 03's prose key generator, so the enricher picks them up automatically.
+Clinical HTML pages plug into the existing `renderHTML()` → `enriched` → `write`
+pipeline path. The `data-enrich` keys use the `clinical_` prefix from Part 03's
+prose key generator, so the enricher picks them up automatically.
 
 ## Files
 
@@ -36,20 +41,27 @@ Seven templates with Schema.org microdata:
 | `patient-story.html` | `MedicalCondition` | `clinical_patient_story_{condId}_{i}` |
 | `trial-card.html` | `MedicalTrial` | (none — all entity data) |
 
-Each template uses `itemscope`, `itemtype`, `itemprop` attributes for structured data. Prose blocks are wrapped in `data-enrich` elements with fallback text from entity fields.
+Each template uses `itemscope`, `itemtype`, `itemprop` attributes for structured
+data. Prose blocks are wrapped in `data-enrich` elements with fallback text from
+entity fields.
 
 **Verify:** Files exist in `libraries/libsyntheticrender/templates/`.
 
 ### Step 2 — renderClinicalPages()
 
-Add `renderClinicalPages(files, entities, prose, templates, domain)` to `html.js` after `renderContentPages()`. The function builds template data from entities and prose, renders via the template loader, and wraps in `page()`.
+Add `renderClinicalPages(files, entities, prose, templates, domain)` to
+`html.js` after `renderContentPages()`. The function builds template data from
+entities and prose, renders via the template loader, and wraps in `page()`.
 
 Produces 7 files:
-- `condition-explainers.html` — one section per condition with ICD-10, synonyms, related trial links.
+
+- `condition-explainers.html` — one section per condition with ICD-10, synonyms,
+  related trial links.
 - `therapy-descriptions.html` — one section per therapy topic.
 - `trial-faqs.html` — one section per trial with condition links, sponsor.
 - `consent-summaries.html` — one section per trial with eligibility summary.
-- `site-descriptions.html` — one section per site with address, specialties, active trial links.
+- `site-descriptions.html` — one section per site with address, specialties,
+  active trial links.
 - `patient-stories.html` — one section per story (condition × index).
 - `trial-cards.html` — compact cards for search results, no `data-enrich`.
 
@@ -69,7 +81,9 @@ if (entities.clinical) {
 
 ### Step 4 — Tests
 
-Build a minimal `entities` fixture with `entities.clinical` (2 conditions, 1 site, 1 trial with criteria, content spec). Mock prose cache and template loader.
+Build a minimal `entities` fixture with `entities.clinical` (2 conditions, 1
+site, 1 trial with criteria, content spec). Mock prose cache and template
+loader.
 
 - File count — 7 HTML files produced.
 - Schema.org microdata — correct `itemtype` URLs.
@@ -78,7 +92,8 @@ Build a minimal `entities` fixture with `entities.clinical` (2 conditions, 1 sit
 - Prose populated — cache entries appear in output.
 - Trial-card has no `data-enrich`.
 - No clinical block — zero clinical HTML files, existing files unaffected.
-- IRI references — condition `<link itemprop="study">` → trial IRIs; site `<link itemprop="availableService">` → recruiting trial IRIs only.
+- IRI references — condition `<link itemprop="study">` → trial IRIs; site
+  `<link itemprop="availableService">` → recruiting trial IRIs only.
 
 ## Blast Radius
 

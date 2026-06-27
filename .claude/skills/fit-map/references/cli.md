@@ -1,6 +1,6 @@
 # CLI
 
-### Agent-Aligned Engineering Standard commands
+## Agent-Aligned Engineering Standard commands
 
 ```sh
 npx fit-map init                            # Bootstrap ./data/pathway/ + ./config/config.json; re-runs are idempotent

@@ -36,13 +36,13 @@ logger.info("startup", "Server listening", { port: "3000" });
 
 Expected output on stderr:
 
-```
+```text
 INFO 2026-05-04T10:00:00.000Z my-service startup 42001 MSG001 [port="3000"] Server listening
 ```
 
 The format follows RFC 5424:
 
-```
+```text
 LEVEL TIMESTAMP DOMAIN APP_ID PROC_ID MSG_ID [ATTRIBUTES] MESSAGE
 ```
 

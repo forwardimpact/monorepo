@@ -4,7 +4,7 @@
 
 Hired by the **Teams Using Agents** user group named in
 [CLAUDE.md § Primary Products](../../CLAUDE.md#primary-products), serving
-the **Little Hire** of their _Run a Continuously Improving Agent Team_
+the **Little Hire** of their *Run a Continuously Improving Agent Team*
 job in [JTBD.md](../../JTBD.md): _"Help me onboard a Kata installation
 that runs the Plan-Do-Study-Act loop without per-team prompt
 engineering."_ This spec attacks the setup floor that today gates that

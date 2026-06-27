@@ -46,9 +46,9 @@ subcommand. Exit code is `0` if every record's combined verdict is
 | `--run-dir`  | yes      | Post-run directory whose `cwd/` subdir is the agent CWD; invariants run against that cwd (the path hooks see as `$AGENT_CWD`). |
 | `--output`   | no       | Output file path (defaults to stdout; one JSONL line)                                    |
 
-`invariants` emits an `InvariantsRecord` (narrower than the full `ResultRecord` —
-it skips agent and judge fields because no agent was invoked). Exit
-`0` on pass, `1` on fail.
+`invariants` emits an `InvariantsRecord` (narrower than the full `ResultRecord`
+— it skips agent and judge fields because no agent was invoked). Exit `0` on
+pass, `1` on fail.
 
 ## `report` options
 

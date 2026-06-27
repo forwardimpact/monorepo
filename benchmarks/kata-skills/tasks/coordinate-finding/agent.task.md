@@ -1,12 +1,13 @@
 Read `finding.md` — a study finding that must re-enter the work loop as tracked
 coordination.
 
-Run the coordination loop end to end using the **abstract work-item operations**,
-resolving each through the active tracker described in
-`.claude/agents/references/work-trackers.md`. This run sets
+Run the coordination loop end to end using the
+**abstract work-item operations**, resolving each through the active tracker
+described in `.claude/agents/references/work-trackers.md`. This run sets
 `LIBEVAL_WORK_TRACKER=filesystem`, so each operation realizes as a file write
-under the `.tracker/` layout that reference defines. **Networking is
-unavailable** — do not call any remote tracker; the filesystem column needs none.
+under the `.tracker/` layout that reference defines.
+**Networking is unavailable** — do not call any remote tracker; the filesystem
+column needs none.
 
 Carry out, in order:
 

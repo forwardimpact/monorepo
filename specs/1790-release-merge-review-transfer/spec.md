@@ -30,7 +30,8 @@ patch-id does not certify:
    inference — yet nothing forbids it.
 
 Severity is **MEDIUM** (release-engineer + security-engineer convergent
-analysis, [issuecomment-4676382100](https://github.com/forwardimpact/monorepo/issues/1602#issuecomment-4676382100)):
+analysis,
+[issuecomment-4676382100](https://github.com/forwardimpact/monorepo/issues/1602#issuecomment-4676382100)):
 the gate is trust-gated, but a head-blind gate enables review-provenance
 laundering by a malicious or compromised trusted actor at the one point every
 external change must pass. The sound verification in #1578 was an individual's

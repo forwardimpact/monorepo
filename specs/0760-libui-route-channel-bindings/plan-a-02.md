@@ -137,7 +137,6 @@ entities). After this commit:
 
   The `*Body` functions do **not** include `@id` — that key is added by
   `createJsonLdScript` from the matching `graph<Entity>` formatter.
-
 - Added: per-entity `graph` formatters exported from the same file:
 
   ```js
@@ -388,12 +387,15 @@ Four changes:
    extras today's bin passes inline at `bin/fit-pathway.js:279-286` — `dataDir`,
    `templateLoader`, and `loader` (the data loader instance from
    `@forwardimpact/map/loader`, consumed by `commands/agent.js:253-255`):
+
    ```js
    const data = { ...loaded, dataDir, templateLoader, loader };
    ```
+
 3. Subcommand definitions in the local `definition` object opt into the new
    shape via three new fields per command (Part 01 Step 8 keeps the legacy
    `args: string` shape working for non-opting CLIs; pathway opts in here):
+
    ```js
    {
      name: "skill",
@@ -410,6 +412,7 @@ Four changes:
      options: { track: { type: "string" } },
    },
    ```
+
 4. Replace today's `COMMANDS[command]` lookup and the surrounding
    `await handler({ data, args, options: values, dataDir, templateLoader, loader })`
    block (the implementer locates this block by grep on `await handler(` rather

@@ -6,7 +6,7 @@ FDEs prototype AI applications against synthetic data while waiting for
 production access; the system must support healthcare (Synthea), tabular (SDV),
 and general-purpose (Faker) generation out of the box.
 
-```
+```text
 specs/0063-synthetic-generalize/
   spec.md       This document (WHAT and WHY)
   plan.md       Implementation plan (HOW)
@@ -64,7 +64,7 @@ Introduce a single new concept: **dataset**. A dataset is an array of typed
 records produced by a tool and written to one or more output formats by
 renderers. Every tool produces datasets. Every renderer consumes datasets.
 
-```
+```text
 dataset = {
   name: string,             // identifier, e.g. "patients", "claims"
   schema: object,           // JSON Schema describing one record
@@ -146,7 +146,7 @@ The existing `examples/universe.dsl` (BioNova) is extended with `dataset` and
 a single DSL file as the canonical example while demonstrating that
 org-and-pathway blocks coexist with dataset blocks in the same universe:
 
-```
+```text
 universe BioNova {
   // ... existing org, department, team, people, project,
   //     framework, scenarios, content blocks ...

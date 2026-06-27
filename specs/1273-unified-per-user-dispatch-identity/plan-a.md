@@ -15,7 +15,8 @@ it returns `link_required`/`reauth_required`, so it enriches that return with
 registry-resolved id in multi-tenant, so write-key and verify-key match by
 construction in every mode.
 
-Libraries used: libbridge (Dispatcher, prepareLinkResume, TokenResolver), libtype (generated ghuser/bridge types).
+Libraries used: libbridge (Dispatcher, prepareLinkResume, TokenResolver),
+libtype (generated ghuser/bridge types).
 
 ## Step 1 — Add `tenant_id` to `ghuser` `BeginRequest`
 
@@ -38,11 +39,13 @@ message BeginRequest {
 }
 ```
 
-Verify: `just codegen` succeeds and `ghuser.BeginRequest.fromObject({ tenant_id: "t1" })` round-trips the field.
+Verify: `just codegen` succeeds and
+`ghuser.BeginRequest.fromObject({ tenant_id: "t1" })` round-trips the field.
 
 ## Step 2 — `ghuser` proof reads the resolved tenant; remove `SINGLE_TENANT_ID`
 
-The pending-dispatch proof keys on the tenant carried in on `Begin`, not a hard-coded literal.
+The pending-dispatch proof keys on the tenant carried in on `Begin`, not a
+hard-coded literal.
 
 - Modified: `services/ghuser/src/identity-contracts.js`
 
@@ -66,14 +69,17 @@ The OAuth front forwards the tenant query param onto the `BeginRequest`.
 - Modified: `services/oauth/index.js`
 
 In the `/authorize` handler, read `tenant_id` from `c.req.query()` and pass it
-on the `typed("BeginRequest", { … })` object as `tenant_id: tenant_id || undefined`.
+on the `typed("BeginRequest", { … })` object as
+`tenant_id: tenant_id || undefined`.
 
 Verify: `services/oauth/test/authorize.test.js` gains a case asserting a
-`/authorize?…&tenant_id=t1` request reaches `Begin` with `req.tenant_id === "t1"`.
+`/authorize?…&tenant_id=t1` request reaches `Begin` with
+`req.tenant_id === "t1"`.
 
 ## Step 4 — `prepareLinkResume` sets `tenant_id` on the authorize URL
 
-The bridge's link-resume helper writes the tenant onto the URL it posts into the channel.
+The bridge's link-resume helper writes the tenant onto the URL it posts into the
+channel.
 
 - Modified: `libraries/libbridge/src/link-resume.js`
 
@@ -81,9 +87,9 @@ Add a `tenantId` keyword arg to `prepareLinkResume`; when present, call
 `originUrl.searchParams.set("tenant_id", tenantId)` alongside the existing
 `redirect_uri` / `client_state` params. Absent `tenantId` leaves the URL
 unchanged (no param). This is the **only** place the tenant enters the authorize
-URL — `ghuser` `GetToken` emits the bare `/authorize?surface=…&surface_user_id=…`
-with no tenant — so the Step 3 forwarding and the write-key/verify-key match both
-depend on this augmentation.
+URL — `ghuser` `GetToken` emits the bare
+`/authorize?surface=…&surface_user_id=…` with no tenant — so the Step 3
+forwarding and the write-key/verify-key match both depend on this augmentation.
 
 Verify: `libraries/libbridge/test/link-resume-prepare.test.js` asserts
 `augmentedUrl` carries `tenant_id` when `tenantId` is supplied and omits it when
@@ -91,7 +97,8 @@ not.
 
 ## Step 5 — `Dispatcher` enriches the declined result with `tenant_id`
 
-The dispatcher hands the resolved tenant back to the bridge on the non-token paths.
+The dispatcher hands the resolved tenant back to the bridge on the non-token
+paths.
 
 - Modified: `libraries/libbridge/src/dispatcher.js`
 
@@ -107,9 +114,11 @@ Verify: `libraries/libbridge/test/dispatcher.test.js` `link_required` and
 
 ## Step 6 — Thread the resolved tenant into the pending-dispatch write
 
-The write key uses the dispatcher-resolved tenant instead of a bare channel-key lookup.
+The write key uses the dispatcher-resolved tenant instead of a bare channel-key
+lookup.
 
-- Modified: `services/msbridge/src/discussion-adapter.js`, `services/ghbridge/src/discussion-adapter.js`
+- Modified: `services/msbridge/src/discussion-adapter.js`,
+  `services/ghbridge/src/discussion-adapter.js`
 
 In `putPendingDispatch(target)`, split the write tenant off the target so it
 lands as the sibling `tenant_id` field on `PutPendingDispatchRequest`, never
@@ -154,7 +163,8 @@ behaviour (tenant `"default"`) is unchanged.
 
 ## Step 8 — `ghbridge` link path works multi-tenant
 
-Remove the single-tenant-only guard now that the per-user path is the only dispatch path.
+Remove the single-tenant-only guard now that the per-user path is the only
+dispatch path.
 
 - Modified: `services/ghbridge/src/reply-render.js` (`stashAndPostLink`, `:73`)
 
@@ -179,23 +189,25 @@ Prove criterion 3 — the proof is keyed by the resolved tenant, not `"default"`
 - Modified: `services/ghuser/test/identity-verification.test.js`
 
 The existing single-tenant case (`:102`) `Begin`s with no `tenant_id` and pins
-`VerifyPendingDispatch` to `tenant_id: "default"` (`:148–153`). After Step 2 that
-case would send `tenant_id: undefined` and fail the pinned assertion, so it must
-now pass `tenant_id: "default"` to `Begin` (still asserting `"default"` flows
-through). Add a multi-tenant case: `Begin({ …, tenant_id: "tenant-b" })` asserts
-`VerifyPendingDispatch` receives `tenant_id: "tenant-b"`. This is the `ghuser`
-identity suite, not the bridge `dispatch-auth` suite criterion 7 scopes to, so
-criterion 7 ("existing tests pass unmodified") is unaffected.
+`VerifyPendingDispatch` to `tenant_id: "default"` (`:148–153`). After Step 2
+that case would send `tenant_id: undefined` and fail the pinned assertion, so it
+must now pass `tenant_id: "default"` to `Begin` (still asserting `"default"`
+flows through). Add a multi-tenant case: `Begin({ …, tenant_id: "tenant-b" })`
+asserts `VerifyPendingDispatch` receives `tenant_id: "tenant-b"`. This is the
+`ghuser` identity suite, not the bridge `dispatch-auth` suite criterion 7 scopes
+to, so criterion 7 ("existing tests pass unmodified") is unaffected.
 
 Verify: `bun test services/ghuser/test/identity-verification.test.js` passes;
 the multi-tenant assertion fails if Step 2 regresses to a literal.
 
 ## Step 10 — Collapse the dispatch resolver and delete the App-token path
 
-Make `TokenResolver` the unconditional dispatch credential and remove the orphaned resolver.
+Make `TokenResolver` the unconditional dispatch credential and remove the
+orphaned resolver.
 
 - Deleted: `libraries/libbridge/src/ghserver-token-resolver.js`
-- Modified: `libraries/libbridge/src/index.js` (drop the `GhServerTokenResolver` export, `:40`)
+- Modified: `libraries/libbridge/src/index.js` (drop the `GhServerTokenResolver`
+  export, `:40`)
 - Modified: `services/msbridge/index.js`, `services/msbridge/server.js`
 - Modified: `services/ghbridge/index.js`
 
@@ -221,7 +233,8 @@ test` under both bridges and libbridge passes; `ghbridge/server.js` still wires
 
 Prove criteria 2, 4, and 7 at the bridge boundary.
 
-- Modified: `services/ghbridge/test/dispatch-auth.test.js`, `services/msbridge/test/dispatch-auth.test.js`
+- Modified: `services/ghbridge/test/dispatch-auth.test.js`,
+  `services/msbridge/test/dispatch-auth.test.js`
 
 Add a multi-tenant case to each: an unlinked dispatcher resolves through
 `TokenResolver` → `link_required`, fires no `workflow_dispatch`, and posts the
@@ -229,13 +242,18 @@ existing link prompt (criterion 4 in multi-tenant). The existing single-tenant
 cases stay unmodified (criterion 7). No test may construct
 `GhServerTokenResolver`.
 
-Verify: `bun test services/ghbridge/test/dispatch-auth.test.js services/msbridge/test/dispatch-auth.test.js` passes.
+Verify:
+`bun test services/ghbridge/test/dispatch-auth.test.js services/msbridge/test/dispatch-auth.test.js`
+passes.
 
 ## Step 12 — Documentation: unified dispatch identity
 
-Reflect the reversal of the 1270 per-mode split and that `ghuser` is required in both models.
+Reflect the reversal of the 1270 per-mode split and that `ghuser` is required in
+both models.
 
-- Modified: `TRUST.md`, `services/msbridge/azure-app.md`, `services/ghserver/github-app.md`, `services/ghuser/github-app.md`, `services/ghbridge/README.md`, `services/msbridge/README.md`
+- Modified: `TRUST.md`, `services/msbridge/azure-app.md`,
+  `services/ghserver/github-app.md`, `services/ghuser/github-app.md`,
+  `services/ghbridge/README.md`, `services/msbridge/README.md`
 
 | File | Change |
 | --- | --- |

@@ -53,10 +53,11 @@ self-hosted block is the existing content unchanged. The hosted block
 removes every `KATA_APP_PRIVATE_KEY` / `private-key` / `app-private-key`
 reference and replaces it with an OIDC-mint step (Step 4 below).
 
-Verification: `rg "## Template" .claude/skills/kata-setup/references/workflow-*.md`
-returns six matches (two per file); `rg "KATA_APP_PRIVATE_KEY"
-.claude/skills/kata-setup/references/workflow-*.md` returns zero
-matches inside the `## Template (hosted)` fenced blocks (any
+Verification:
+`rg "## Template" .claude/skills/kata-setup/references/workflow-*.md` returns
+six matches (two per file);
+`rg "KATA_APP_PRIVATE_KEY" .claude/skills/kata-setup/references/workflow-*.md`
+returns zero matches inside the `## Template (hosted)` fenced blocks (any
 text-prose matches outside the YAML are unaffected).
 
 ## Step 4 — Hosted OIDC-mint step

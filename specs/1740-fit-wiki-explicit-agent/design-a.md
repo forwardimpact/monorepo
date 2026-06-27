@@ -47,12 +47,13 @@ flowchart LR
 
 ## Interfaces
 
-**Resolver contract** — `requireAgentFlag(options, { command, flag = "--agent" })`
-returns `{ ok: true, agent }` or
-`{ ok: false, code: 2, error }` where `error` names the missing flag and shows
-a corrected example invocation for the failing subcommand, and never mentions
-an environment variable. Handlers return the error object verbatim — exit
-before any read of agent files or write of any kind.
+**Resolver contract** —
+`requireAgentFlag(options, { command, flag = "--agent" })` returns
+`{ ok: true, agent }` or `{ ok: false, code: 2, error }` where `error` names the
+missing flag and shows a corrected example invocation for the failing
+subcommand, and never mentions an environment variable. Handlers return the
+error object verbatim — exit before any read of agent files or write of any
+kind.
 
 **Hint contract** — a rule's `hint` is a static string or
 `(subject, item, ctx) => string`, resolved once per finding in `applyRule`.

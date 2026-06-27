@@ -7,8 +7,8 @@ tracker. A skill never branches on the tracker — it names the operation and le
 the active column realize it.
 
 The active tracker is one input: the environment variable
-`LIBHARNESS_WORK_TRACKER`, default `github`. The harness sets it (`fit-harness` /
-`fit-benchmark` `--work-tracker`); the agent reads it and realizes each
+`LIBHARNESS_WORK_TRACKER`, default `github`. The harness sets it (`fit-harness`
+/ `fit-benchmark` `--work-tracker`); the agent reads it and realizes each
 operation through that column. Production leaves the default `github`; the
 offline coordination benchmark runs `--work-tracker filesystem`.
 
@@ -91,7 +91,7 @@ The filesystem tracker keeps one file per item under a coordination root
 root is named generically so an agent reading the tree infers the active store
 without consulting this file:
 
-```
+```text
 .tracker/
   issues/{id}.md       # envelope front-matter + body; ## Comments appended
   changes/{id}.md      # envelope (kind: change) + links to its issue(s)

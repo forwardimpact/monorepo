@@ -6,7 +6,7 @@
 
 ## Pipeline Overview
 
-```
+```text
 HTML Knowledge Files (data/knowledge/)
   │
   ├─ process-agents ─── .agent.md configs ──→ common.Agent resources
@@ -196,7 +196,7 @@ schema.
 
 The graph index supports SPARQL-like triple pattern queries:
 
-```
+```text
 (subject, predicate, object)
 ```
 
@@ -262,7 +262,7 @@ knowledge.
 
 ### API
 
-```
+```text
 POST /embed
 Content-Type: application/json
 
@@ -348,7 +348,7 @@ Loaded by `scripts/env.sh` based on `ENV`, `STORAGE`, and `AUTH` variables.
 
 ## Storage Layout
 
-```
+```text
 products/guide/
 ├── config/
 │   ├── config.json          # Service config (from config.example.json)

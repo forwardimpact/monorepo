@@ -67,13 +67,13 @@ the App has write access.
 
 When a GitHub App makes commits, it uses the identity:
 
-```
+```text
 {app-slug}[bot] <{app-id}+{app-slug}[bot]@users.noreply.github.com>
 ```
 
 For example, if the App slug is `forward-impact-ci` and the ID is `123456`:
 
-```
+```text
 forward-impact-ci[bot] <123456+forward-impact-ci[bot]@users.noreply.github.com>
 ```
 

@@ -68,20 +68,21 @@ template-resolution or render-time error. The gate is **replaced for
 `fit-codegen` only**, keyed on the CLI name, leaving the generic `--help` smoke
 for every other binary.
 
-The replacement invokes the compiled binary with `--service --client
---definition` against the same proto set `bunx fit-codegen --all` resolves on
-`main` (the codegen step already runs `just codegen` in the cell, so the
-`node_modules/@forwardimpact/*/proto` set is present). That flag combination
-drives `generateArtifact` for `service`/`client`/`definition` plus
-`runExports` for `services-exports`/`definitions-exports` — all five mustache
-loads — without invoking the `protobufjs-cli` pbjs subprocess that `--type`
-would (pbjs resolution is a separate, pre-existing concern outside this spec's
+The replacement invokes the compiled binary with
+`--service --client --definition` against the same proto set
+`bunx fit-codegen --all` resolves on `main` (the codegen step already runs
+`just codegen` in the cell, so the `node_modules/@forwardimpact/*/proto` set is
+present). That flag combination drives `generateArtifact` for
+`service`/`client`/`definition` plus `runExports` for
+`services-exports`/`definitions-exports` — all five mustache loads — without
+invoking the `protobufjs-cli` pbjs subprocess that `--type` would (pbjs
+resolution is a separate, pre-existing concern outside this spec's
 template-resolution scope). The per-kind render paths fire only after a service
 proto parses (`generateArtifact` returns early for pure-message protos), so the
 gate's coverage rests on the resolved set containing at least one service proto
-— which the `main` proto set does; the gate inherits the same set `--all` uses. The cell's default `set -e` shell fails the gate on
-the binary's non-zero exit, which is exactly the `Missing *.mustache` failure
-mode today.
+— which the `main` proto set does; the gate inherits the same set `--all` uses.
+The cell's default `set -e` shell fails the gate on the binary's non-zero exit,
+which is exactly the `Missing *.mustache` failure mode today.
 
 **Negative-path demonstration (recorded per spec SC#3):** with the
 `cli-manifest.json` asset entry removed, the compiled `fit-codegen --service`

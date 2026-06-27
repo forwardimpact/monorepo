@@ -16,10 +16,9 @@ draft`); CLAUDE.md is the live source of record until 1010 lands.
 
 ## Why now
 
-Two end-to-end `kata-interview` workflow runs ([run
-25999252444](https://github.com/forwardimpact/monorepo/actions/runs/25999252444),
-[run
-25999790849](https://github.com/forwardimpact/monorepo/actions/runs/25999790849))
+Two end-to-end `kata-interview` workflow runs
+([run 25999252444](https://github.com/forwardimpact/monorepo/actions/runs/25999252444),
+[run 25999790849](https://github.com/forwardimpact/monorepo/actions/runs/25999790849))
 revealed an inconsistency in the Landmark substrate flow:
 
 - The source `data/activity/` directory is **not git-tracked** —

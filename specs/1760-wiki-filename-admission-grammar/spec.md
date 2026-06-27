@@ -24,9 +24,10 @@ stray-file rule was **removed** (#1185 / PR #1403, 2026-06-03) for rejecting
 legitimate per-deliverable agent files. Two defects have since demonstrated
 both failure directions:
 
-- **False negative, minted**: the #1570 rogue `product-manager-2026-W24-history.md`
-  passed audit while siphoning weekly-log narrative out of the rotation
-  tooling's reach. PR #1572 closed the minting path; detection remains open.
+- **False negative, minted**: the #1570 rogue
+  `product-manager-2026-W24-history.md` passed audit while siphoning weekly-log
+  narrative out of the rotation tooling's reach. PR #1572 closed the minting
+  path; detection remains open.
 - **False negative, residue**: `.claude/worktrees/agent-a41a176e` — sweep
   residue git-tracked inside the wiki — sat invisible to the audit for seven
   weeks (2026-04-22 → 2026-06-10) and was removed only after a
@@ -148,19 +149,20 @@ general admission mechanism in memory-protocol.md, defined for *future*
 conventions.
 
 Coordination with the live consumer, per issue #1574's amended decision 4 and
-the [coach's cross-link record on #1480](https://github.com/forwardimpact/monorepo/issues/1480#issuecomment-4675714271):
+the
+[coach's cross-link record on #1480](https://github.com/forwardimpact/monorepo/issues/1480#issuecomment-4675714271):
 Obstacle #1480's option (1) is in flight as **spec 1610 / PR #1487** (a
 companion file moving the RE Carry inventory off the summary surface). The
-phase-entry check was performed in this pass: spec 1610 is at `spec draft`
-and its design has not landed, so its filename and H1 are not yet fixed
-(explicitly deferred to 1610's design) and its one-surface audit admit is in
-**1610's scope**, not this spec's. The reciprocal obligation stands:
-whichever implementation lands second conforms to the first — the failure
-mode both specs must avoid is two parallel admission mechanisms in
-memory-protocol.md. A token-free companion filename is admissible under the
-summary class with no grammar change; should 1610's design choose a
-token-bearing name or want its content contract audited, it enters through
-this admission path as its first consumer.
+phase-entry check was performed in this pass: spec 1610 is at `spec draft` and
+its design has not landed, so its filename and H1 are not yet fixed (explicitly
+deferred to 1610's design) and its one-surface audit admit is in
+**1610's scope**, not this spec's. The reciprocal obligation stands: whichever
+implementation lands second conforms to the first — the failure mode both specs
+must avoid is two parallel admission mechanisms in memory-protocol.md. A
+token-free companion filename is admissible under the summary class with no
+grammar change; should 1610's design choose a token-bearing name or want its
+content contract audited, it enters through this admission path as its first
+consumer.
 
 ## Grandfathering
 

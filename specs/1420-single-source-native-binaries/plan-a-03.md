@@ -21,7 +21,7 @@ gh api repos/actions/download-artifact/git/ref/tags/v4 --jq .object.sha
 ```
 
 (Dereference to the commit if it returns a tag object.) The YAML will not run
-until every `PIN_DOWNLOAD_ARTIFACT_V4` is replaced with that SHA + ` # v4`.
+until every `PIN_DOWNLOAD_ARTIFACT_V4` is replaced with that SHA + `# v4`.
 
 ## Step 1 — Add `build-binaries.yml` reusable workflow
 
@@ -107,10 +107,12 @@ pure print-and-exit for every CLI in the manifest because all are libcli
 `createCli` binaries (libcli short-circuits `--help`/`--version` before any
 dispatch or server start, so the five `fit-svc*` CLIs do not bind a port); a
 hypothetical hanging `--help` would time the cell out and surface, not mask, the
-problem. The deeper `fit-codegen` proto-resolution path is additionally proven by
-Part 01's `--all` verify before it ever reaches this gate.
+problem. The deeper `fit-codegen` proto-resolution path is additionally proven
+by Part 01's `--all` verify before it ever reaches this gate.
 
-Verify: a PR carrying this file plus a temporary caller (or `publish-native.yml` from Step 2) runs the matrix; the `fit-codegen` and `fit-outpost` cells pass the smoke gate (they would fail before Part 01).
+Verify: a PR carrying this file plus a temporary caller (or `publish-native.yml`
+from Step 2) runs the matrix; the `fit-codegen` and `fit-outpost` cells pass the
+smoke gate (they would fail before Part 01).
 
 ## Step 2 — Add `publish-native.yml`
 
@@ -173,8 +175,9 @@ CLI-per-target (32 × 2 = 64) plus a `.sha256` beside each.
 
 ## Step 3 — Rewire `publish-brew.yml` onto shared artifacts
 
-Source macOS binaries from `build-binaries.yml` instead of compiling in-workflow;
-keep the `.app` wrap, codesign, cdhash-stability check, and cask PR.
+Source macOS binaries from `build-binaries.yml` instead of compiling
+in-workflow; keep the `.app` wrap, codesign, cdhash-stability check, and cask
+PR.
 
 - Modified: `.github/workflows/publish-brew.yml`
 
@@ -238,9 +241,9 @@ becomes:
 second assembly; for the outpost product tag, `build-app-product outpost`
 re-creates `products/outpost/dist` by re-running `bun pkg/build.js --launcher`
 (deterministic per spec 1170) and re-consumes the preserved
-`dist/binaries/fit-outpost`. The `BASELINE`/`AFTER` capture and comparison around
-this block are unchanged. The **Smoke test**, **Zip bundle and hash**, release,
-and **tap-pr** steps are unchanged.
+`dist/binaries/fit-outpost`. The `BASELINE`/`AFTER` capture and comparison
+around this block are unchanged. The **Smoke test**, **Zip bundle and hash**,
+release, and **tap-pr** steps are unchanged.
 
 Routing every brew tag through `build-binaries.yml` compiles the **full**
 darwin-arm64 set (all 32 CLIs), not just the tag's CLI; the consuming job then
@@ -296,7 +299,9 @@ The `--scheduler` flag no longer exists; the shared `just build-binary
 fit-outpost` is the only `fit-outpost` compile. Update the usage comment block
 (lines 5–10) to drop `--scheduler`.
 
-Verify: `bun pkg/build.js --launcher` builds only `dist/Outpost`; `bun pkg/build.js --app` errors clearly when `dist/fit-outpost` is absent and succeeds once it is present.
+Verify: `bun pkg/build.js --launcher` builds only `dist/Outpost`;
+`bun pkg/build.js --app` errors clearly when `dist/fit-outpost` is absent and
+succeeds once it is present.
 
 ## Step 5 — Rewire `publish-macos.yml` onto the shared `fit-outpost`
 

@@ -22,7 +22,8 @@ Extract the canonical line/word counters into a new module so the seal and the
 audit cannot drift.
 
 - **Created:** `libraries/libwiki/src/budget.js`
-- **Modified:** `libraries/libwiki/src/audit/scopes.js`, `libraries/libwiki/src/index.js`
+- **Modified:** `libraries/libwiki/src/audit/scopes.js`,
+  `libraries/libwiki/src/index.js`
 
 Move `countLines` and `countWords` verbatim out of `scopes.js` into
 `budget.js` and `export` both. `scopes.js` imports them
@@ -36,7 +37,9 @@ it for every non-empty text and differs only on the empty string (split-based
 `1` vs char-scan `0`), which is immaterial to the short-circuit against the 496
 line budget.
 
-Verification: `bun test libraries/libwiki/test/audit-rules.test.js libraries/libwiki/test/audit-engine.test.js` stays green (counts unchanged).
+Verification:
+`bun test libraries/libwiki/test/audit-rules.test.js libraries/libwiki/test/audit-engine.test.js`
+stays green (counts unchanged).
 
 ## Step 2 — Pure bisect
 
@@ -80,7 +83,13 @@ Add `export function bisectWeeklyLog(text, agent, isoWeekStr)` returning
   the file slots (Step 3) continue from the next free global index (design Key
   Decision: local `N of M`, existing slots kept).
 
-Verification: new `bun test libraries/libwiki/test/weekly-log.test.js` cases assert concatenated part bodies equal the original body below its H1, every part is at-or-under both budgets, rendered H1s number `(part 1 of M) … (part M of M)`, and no day-section spans two parts. Two irreducible cases: a lone over-cap `## YYYY-MM-DD` section yields a `residue` named with that date and its `partIndex`; a **zero-day-section** over-cap source (all prologue) yields `residue.section === "prologue"` as its own part.
+Verification: new `bun test libraries/libwiki/test/weekly-log.test.js` cases
+assert concatenated part bodies equal the original body below its H1, every part
+is at-or-under both budgets, rendered H1s number
+`(part 1 of M) … (part M of M)`, and no day-section spans two parts. Two
+irreducible cases: a lone over-cap `## YYYY-MM-DD` section yields a `residue`
+named with that date and its `partIndex`; a **zero-day-section** over-cap source
+(all prologue) yields `residue.section === "prologue"` as its own part.
 
 ## Step 3 — Atomic writer, `nextPartIndex`, and the tagged primitive
 
@@ -88,7 +97,8 @@ Replace the plain-rename seal with a staged-then-commit writer and re-shape
 `rotateIfOverBudget`. `defaultH1` and `agentTitle` are retained; only
 `nextPartPath` and the local `countLines` are removed.
 
-- **Modified:** `libraries/libwiki/src/weekly-log.js`, `libraries/libwiki/src/index.js`
+- **Modified:** `libraries/libwiki/src/weekly-log.js`,
+  `libraries/libwiki/src/index.js`
 
 Replace `nextPartPath` with `nextPartIndex(filePath, fs)` returning the first
 free integer `n` such that `<base>-part${n}.md` does not exist (fixes the
@@ -101,8 +111,8 @@ Add an internal `atomicSeal(filePath, parts, agent, isoWeekStr, fs)` returning
 the produced slot paths (`slots`) **in part order**:
 
 1. From `start = nextPartIndex(filePath, fs)`, reconstruct the M slot paths
-   `<base>-part${start}.md … <base>-part${start+M-1}.md` (same `<base>` derivation
-   the deleted `nextPartPath` used); build the fresh-main body via
+   `<base>-part${start}.md … <base>-part${start+M-1}.md` (same `<base>`
+   derivation the deleted `nextPartPath` used); build the fresh-main body via
    `defaultH1(agent, isoWeekStr)`.
 2. Write each part's rendered text and the fresh-main body to temp files
    (`${slotPath}.tmp` / `${filePath}.tmp`), recording each temp path created so
@@ -145,7 +155,17 @@ once via `isoWeekString(today)` and thread it to `bisectWeeklyLog`/
 Update `index.js`: export `bisectWeeklyLog`; the `rotateIfOverBudget` export
 line is unchanged.
 
-Verification: rewrite `bun test libraries/libwiki/test/weekly-log.integration.test.js` (real `node:fs`) to assert the three statuses and multi-part `parts` arrays. The atomicity case seeds a source that bisects into **≥2 parts** and passes a real-fs-backed `fs` wrapper that delegates `writeFileSync`/`existsSync`/`readFileSync`/`unlinkSync` to `node:fs` and wraps only `renameSync` to succeed on the first part rename and throw on the **second** (so ≥1 slot is already committed when the failure hits, exercising the slot-unlink rollback — not just temp cleanup) → assert the source path/contents/inode are intact and **no** `-partN.md` slot (committed or staged) survives.
+Verification: rewrite
+`bun test libraries/libwiki/test/weekly-log.integration.test.js` (real
+`node:fs`) to assert the three statuses and multi-part `parts` arrays. The
+atomicity case seeds a source that bisects into **≥2 parts** and passes a
+real-fs-backed `fs` wrapper that delegates
+`writeFileSync`/`existsSync`/`readFileSync`/`unlinkSync` to `node:fs` and wraps
+only `renameSync` to succeed on the first part rename and throw on the
+**second** (so ≥1 slot is already committed when the failure hits, exercising
+the slot-unlink rollback — not just temp cleanup) → assert the source
+path/contents/inode are intact and **no** `-partN.md` slot (committed or staged)
+survives.
 
 ## Step 4 — `fit-wiki rotate` handler
 
@@ -166,7 +186,16 @@ Replace the `result.rotated` branch with a `switch (result.status)`:
 Wrap the call in `try/catch`; a thrown fs error returns `{ ok: false, code: 1 }`
 with the message on stderr.
 
-Verification: new `bun test libraries/libwiki/test/cli-rotate.integration.test.js` — modelled on `cli-fix.integration.test.js` (real `node:fs` under `mkdtempSync`, `makeRuntime`/`ctxFor` from `helpers.js`; **not** `createMockFs`, which has no `renameSync`). Covers sealed-multi-part (exit 0, each part printed) and irreducible (exit 1, residue named). The `rotate-help` golden (`test/golden/fit-wiki/rotate-help.stdout.txt`) pins `--help` output only and is unaffected — the command description in `cli-definition.js` is unchanged, and the retired `rotated … → …` stdout string lived only in the integration tests this plan rewrites (no other test asserts it).
+Verification: new
+`bun test libraries/libwiki/test/cli-rotate.integration.test.js` — modelled on
+`cli-fix.integration.test.js` (real `node:fs` under `mkdtempSync`,
+`makeRuntime`/`ctxFor` from `helpers.js`; **not** `createMockFs`, which has no
+`renameSync`). Covers sealed-multi-part (exit 0, each part printed) and
+irreducible (exit 1, residue named). The `rotate-help` golden
+(`test/golden/fit-wiki/rotate-help.stdout.txt`) pins `--help` output only and is
+unaffected — the command description in `cli-definition.js` is unchanged, and
+the retired `rotated … → …` stdout string lived only in the integration tests
+this plan rewrites (no other test asserts it).
 
 ## Step 5 — `fit-wiki fix` auto-fixer
 
@@ -193,7 +222,16 @@ conforming parts and the run exits 0 (`fixed: wiki audit is clean`); only a
 genuine irreducible residue leaves a `weekly-log-part.*-budget` finding, which
 flows to the existing flag set (exit 2).
 
-Verification: `bun test libraries/libwiki/test/cli-fix.integration.test.js` — the existing over-budget test (`cli-fix.integration.test.js:253`, a single 600-line block with **zero** day-sections — now a prologue-overflow irreducible case) has its fixture replaced with a **multi-day** over-cap log (≥2 `## YYYY-MM-DD` sections, each individually under both budgets but jointly over the line budget); its current `result.code === 2` / flagged-`weekly-log-part.line-budget` assertions invert to exit 0 + clean re-audit + ≥2 conforming parts. Add a separate irreducible single-day test (one `## YYYY-MM-DD` section alone over a budget) asserting exit 2 with `weekly-log-part.line-budget` still flagged.
+Verification: `bun test libraries/libwiki/test/cli-fix.integration.test.js` —
+the existing over-budget test (`cli-fix.integration.test.js:253`, a single
+600-line block with **zero** day-sections — now a prologue-overflow irreducible
+case) has its fixture replaced with a **multi-day** over-cap log (≥2
+`## YYYY-MM-DD` sections, each individually under both budgets but jointly over
+the line budget); its current `result.code === 2` /
+flagged-`weekly-log-part.line-budget` assertions invert to exit 0 + clean
+re-audit + ≥2 conforming parts. Add a separate irreducible single-day test (one
+`## YYYY-MM-DD` section alone over a budget) asserting exit 2 with
+`weekly-log-part.line-budget` still flagged.
 
 ## Step 6 — Append paths
 
@@ -210,7 +248,16 @@ dated entry). Wrap the rotate call in `try/catch` — a thrown fs error is
 reported to stderr and the command still returns `{ ok: true }` after appending
 against the (intact) current file.
 
-Verification: add a real-fs integration case (a new `cli-log.integration.test.js`, modelled on `cli-fix.integration.test.js`; **not** the mock-backed `cli-log.test.js`, whose `createMockFs` has no `renameSync`) driving `log decision` against a current log over the **line** budget across ≥2 day-sections (the append path's non-`force` short-circuit triggers on the line budget only, so a word-only-over fixture would `noop` and never seal); assert the source is sealed into conforming parts and the new dated entry lands in a fresh current `<agent>-YYYY-Www.md`. `note`/`done` share the same rotate-then-append path; the existing under-budget `cli-log.test.js` cases (no seal triggered) keep passing on the mock.
+Verification: add a real-fs integration case (a new
+`cli-log.integration.test.js`, modelled on `cli-fix.integration.test.js`;
+**not** the mock-backed `cli-log.test.js`, whose `createMockFs` has no
+`renameSync`) driving `log decision` against a current log over the **line**
+budget across ≥2 day-sections (the append path's non-`force` short-circuit
+triggers on the line budget only, so a word-only-over fixture would `noop` and
+never seal); assert the source is sealed into conforming parts and the new dated
+entry lands in a fresh current `<agent>-YYYY-Www.md`. `note`/`done` share the
+same rotate-then-append path; the existing under-budget `cli-log.test.js` cases
+(no seal triggered) keep passing on the mock.
 
 ## Step 7 — Sealed-part hint text
 
@@ -226,7 +273,9 @@ irreducible single-day section; the bisecting seal produces conforming parts
 otherwise. Rules stay `remediation: "flag"`; `severity`, `check`, and `message`
 are unchanged.
 
-Verification: `bun test libraries/libwiki/test/audit-rules.test.js` green (the engine does not assert hint text; no golden pins it — the rotate/fix goldens cover `--help` only).
+Verification: `bun test libraries/libwiki/test/audit-rules.test.js` green (the
+engine does not assert hint text; no golden pins it — the rotate/fix goldens
+cover `--help` only).
 
 ## Risks
 

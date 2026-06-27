@@ -11,7 +11,8 @@ in sync as the standard evolves. `@forwardimpact/libskill` handles that
 derivation. Load the standard data once with `@forwardimpact/map`, then call
 pure functions that return structured skill matrices, behaviour profiles,
 responsibilities, and agent configurations. The library applies the same rules
-that `fit-pathway` uses internally, so your feature stays consistent with the CLI.
+that `fit-pathway` uses internally, so your feature stays consistent with the
+CLI.
 
 ## Prerequisites
 

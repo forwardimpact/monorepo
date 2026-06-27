@@ -12,7 +12,8 @@ Intent: a dependency-free, runner-independent `expect()` covering the full
 measured matcher surface.
 
 - Created: `libraries/libmock/src/expect/index.js`
-- Modified: `libraries/libmock/package.json` (add `"./expect": "./src/expect/index.js"` to `exports`)
+- Modified: `libraries/libmock/package.json` (add
+  `"./expect": "./src/expect/index.js"` to `exports`)
 
 `export function expect(actual)` returns a matcher object. Implement **exactly
 the D3 measured surface** (12 matchers + `.not`/`.resolves`/`.rejects`), each
@@ -23,7 +24,8 @@ the 49 files use (`.not` already covers complements like falsy/less-than):
   `Map`/`Set`/arrays/plain objects), `toMatchObject` (subset deep-equal).
 - Truthiness/null: `toBeNull`, `toBeUndefined`, `toBeDefined`, `toBeTruthy`.
 - Numeric: `toBeGreaterThan`.
-- Collections/strings: `toHaveLength`, `toContain`, `toMatch` (string or RegExp).
+- Collections/strings: `toHaveLength`, `toContain`, `toMatch` (string or
+  RegExp).
 - Throwing: `toThrow` (no-arg, substring, or RegExp against the thrown message).
 - `.not` getter returns a matcher whose every assertion inverts (a passing
   inner check throws).
@@ -71,7 +73,8 @@ Intent: remove every `bun:test` import so `node --test` can run the gate set.
   `grep -rlE "from ['\"]bun:test['\"]" libraries products services tests`
   (libbridge 20, ghbridge 10, msbridge 9, libpack 6, libeval/libhttp/pathway 4).
 
-Per file, replace the single `import { … } from "bun:test"` line with two imports:
+Per file, replace the single `import { … } from "bun:test"` line with two
+imports:
 
 - `import { describe, test, beforeEach, afterEach } from "node:test";` — keep
   only the structural names that file actually used.
@@ -108,7 +111,8 @@ to one without the other is caught.
 
 1. Expand the **same selector as `test`** (package.json:34 —
    `find ./tests ./libraries ./products ./services ./.github/workflows/test ./.claude/skills/kata-interview/test -name '*.test.js' -not -path '*/node_modules/*'`)
-   to a file list. **Empty list → print error, `process.exit(1)`** (zero-files-fail).
+   to a file list. **Empty list → print error, `process.exit(1)`**
+   (zero-files-fail).
 2. For each file, spawn `node --test <file>`, capture stdout. Parse the TAP
    summary lines `# tests N`, `# pass N`, `# fail N`. **Absent or unparseable
    `# tests` line → print error, exit 1** (fail loud, never pass an unread run).
@@ -136,7 +140,9 @@ makes `bun run test:gate` exit 1 (integration non-vacuity).
 Intent: fail CI on any new `bun:test` import statement anywhere in the repo.
 
 - Created: `scripts/check-bun-test-imports.mjs`
-- Modified: `package.json` (add `"context:check-bun-test": "node scripts/check-bun-test-imports.mjs"` for local use)
+- Modified: `package.json` (add
+  `"context:check-bun-test": "node scripts/check-bun-test-imports.mjs"` for
+  local use)
 
 The script walks tracked `*.js`/`*.mjs` files (excluding `node_modules`) and
 matches **module-specifier statements** that resolve `bun:test` — static import,
@@ -170,13 +176,14 @@ Intent: run the node gate and the guard as required PR + `main` checks.
 
 Add a `gate` job (sibling to `test`), same bootstrap as the `test` job
 (`actions/checkout`, `forwardimpact/fit-bootstrap`, `bunx fit-terrain build`),
-running `bun run test:gate`. Add a step (in `gate` or a small dedicated job) that
-**invokes the guard script directly** — `bun scripts/check-bun-test-imports.mjs`,
-mirroring how `check-dependabot.mjs` is run directly in `check-security.yml`
-(D7/C7) — **not** `bun run context:check-bun-test` and **not** the
-`bun run check`/`context` aggregate. (The `context:check-bun-test`
-`package.json` alias from Step 5 is for local runs only.) Leave the existing `test` job
-(`bun run test`) unchanged and non-blocking/informational.
+running `bun run test:gate`. Add a step (in `gate` or a small dedicated job)
+that **invokes the guard script directly** —
+`bun scripts/check-bun-test-imports.mjs`, mirroring how `check-dependabot.mjs`
+is run directly in `check-security.yml` (D7/C7) — **not**
+`bun run context:check-bun-test` and **not** the `bun run check`/`context`
+aggregate. (The `context:check-bun-test` `package.json` alias from Step 5 is for
+local runs only.) Leave the existing `test` job (`bun run test`) unchanged and
+non-blocking/informational.
 
 Verify: `gate` job appears in the workflow on `pull_request` and `push` to
 `main`; an introduced node-only failure or a new `bun:test` import reddens it.

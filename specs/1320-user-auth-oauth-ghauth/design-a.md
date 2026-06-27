@@ -67,10 +67,10 @@ applies.
 
 PKCE `code_challenge`/`code_verifier` pass through `oauth` untouched into
 `Begin`/`Redeem`; `ghauth` verifies the verifier at `Redeem` against the
-`code_challenge` carried in the grant. Whether `/callback` redirects or renders a "linked" page
-is decided by the flow record: a client-initiated flow carries a `redirect_uri`
-(302 with `downstream_code`); a bridge-initiated link carries none (linked
-page).
+`code_challenge` carried in the grant. Whether `/callback` redirects or renders
+a "linked" page is decided by the flow record: a client-initiated flow carries a
+`redirect_uri` (302 with `downstream_code`); a bridge-initiated link carries
+none (linked page).
 
 ## State (ghauth)
 
@@ -122,7 +122,8 @@ sequenceDiagram
   O-->>U: 302 → client redirect (or linked page)
 ```
 
-Dispatch read path: `bridge → GetToken(surface,user_id) → {token|LinkRequired|ReAuthRequired}`.
+Dispatch read path:
+`bridge → GetToken(surface,user_id) → {token|LinkRequired|ReAuthRequired}`.
 
 ## Key decisions
 

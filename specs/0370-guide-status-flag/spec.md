@@ -264,7 +264,7 @@ starting the Repl. This follows the same command dispatch pattern used by
 
 The help output separates commands from options, making the distinction clear:
 
-```
+```text
 fit-guide 1.0.0 — Conversational agent for the Guide knowledge platform
 
 Usage: fit-guide [command] [options]

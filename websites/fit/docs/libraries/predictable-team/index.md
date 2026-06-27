@@ -29,7 +29,7 @@ Initialize the wiki working tree from your repository root:
 npx fit-wiki init
 ```
 
-```
+```text
 init: wiki ready at wiki
 ```
 
@@ -43,7 +43,7 @@ changes nothing. It authenticates using ambient GitHub credentials.
 
 After initialization, the directory structure looks like this:
 
-```
+```text
 wiki/
   Home.md
   MEMORY.md
@@ -93,7 +93,7 @@ npx fit-xmr record --skill kata-spec --metric findings_count --value 3 --unit co
 `.yml`). Inside GitHub Actions it can be omitted — the value falls back to
 `$GITHUB_WORKFLOW_REF` — but local runs must pass it explicitly.
 
-```
+```text
 metric=findings_count n=1 status=insufficient_data latest=3
 ```
 
@@ -203,7 +203,8 @@ goals based on these limits. They describe what the process does, not what it
 should do.
 
 For a deeper look at signal rules, chart anatomy, and how to respond to each
-classification, see [XmR Analysis](/docs/libraries/predictable-team/xmr-analysis/).
+classification, see
+[XmR Analysis](/docs/libraries/predictable-team/xmr-analysis/).
 
 ## Step 5: Embed live charts in the storyboard
 
@@ -257,6 +258,7 @@ naming any fired rules:
 ```markdown
 <!-- xmr:findings_count:wiki/metrics/kata-spec/2026.csv -->
 ```
+
  UPL 12.5 ──────────────────────────────────────────────
           |
 +1.5s 9.4 |        .           .  .              .
@@ -264,7 +266,8 @@ naming any fired rules:
 -1.5s 3.4 |  .  .     .  .  .        .     .  .     .  .
           |
   LPL 0.3 ──────────────────────────────────────────────
-```
+
+```text
 
 **Signals:** --
 <!-- /xmr -->
@@ -286,7 +289,7 @@ the remote:
 npx fit-wiki pull
 ```
 
-```
+```text
 pull: up to date
 ```
 
@@ -294,7 +297,7 @@ pull: up to date
 npx fit-wiki push
 ```
 
-```
+```text
 push: committed and pushed
 ```
 
@@ -315,7 +318,7 @@ memo delivers the message:
 npx fit-wiki memo --from technical-writer --to staff-engineer --message "findings_count shifted after the new spec rubric landed"
 ```
 
-```
+```text
 wrote wiki/staff-engineer.md
 ```
 
@@ -349,7 +352,8 @@ Confirm the full memory system is working by running through this checklist:
    ls wiki/metrics/
    ```
 
-   Expected: one directory per skill (e.g., `kata-spec/`, `kata-documentation/`).
+   Expected: one directory per skill (e.g., `kata-spec/`,
+   `kata-documentation/`).
 
 3. **CSV validates.** At least one CSV passes schema validation.
 

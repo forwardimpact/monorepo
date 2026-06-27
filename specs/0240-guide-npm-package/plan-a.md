@@ -97,7 +97,7 @@ Rewrite the top of `products/guide/bin/fit-guide.js` to replace the immediate
 
 When `SERVICE_SECRET` is not set, instead of:
 
-```
+```text
 Error: SERVICE_SECRET is not set. For local development, use: make cli-chat
 ```
 
@@ -111,7 +111,7 @@ Print a formatted message explaining:
 5. Links to documentation for setting up the service stack
 6. A pointer to `--help` for CLI options
 
-```
+```text
 fit-guide — Conversational agent for the Guide knowledge platform
 
 Guide requires a running service stack to function. The following
@@ -259,7 +259,7 @@ The existing `usage` constant in `fit-guide.js` references `bunx fit-guide` in
 examples, which is correct for npm users. Review and confirm the examples are
 accurate for the published package context. The current examples look correct:
 
-```
+```text
 echo "Tell me about the company" | bunx fit-guide
 ```
 

@@ -19,7 +19,8 @@ installation and startup instructions.
   under it if one does not exist.
 - Global admin or application admin role on the tenant (the developer
   program tenant grants this by default).
-- A dev tunnel tool: [VS Code Dev Tunnels](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/)
+- A dev tunnel tool:
+  [VS Code Dev Tunnels](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/)
   (`devtunnel` CLI) or [ngrok](https://ngrok.com/).
 
 ## 1. Azure AD App Registration
@@ -28,7 +29,8 @@ The bot authenticates to the Bot Framework using an Azure AD (Entra ID)
 app registration. This produces the `MICROSOFT_APP_ID`,
 `MICROSOFT_APP_PASSWORD`, and `MICROSOFT_APP_TENANT_ID` the bridge needs.
 
-1. Go to [Azure Portal → App registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade).
+1. Go to
+   [Azure Portal → App registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade).
 2. Click **New registration**.
 3. Configure:
    - **Name:** `Kata Agent Bridge` (or any descriptive name).
@@ -68,9 +70,10 @@ call the Graph API directly (e.g. to look up user profiles).
 The Azure Bot resource connects the app registration to the Bot Framework
 and registers the messaging endpoint (the URL where Teams sends activities).
 
-1. Go to [Azure Portal → Create a resource](https://portal.azure.com/#create/hub)
-   and search for **Azure Bot** (may appear as **Azure AI Bot Service** in
-   some portal regions).
+1. Go to
+   [Azure Portal → Create a resource](https://portal.azure.com/#create/hub) and
+   search for **Azure Bot** (may appear as **Azure AI Bot Service** in some
+   portal regions).
 2. Click **Create**.
 3. Configure:
    - **Bot handle:** `kata-agent-bridge` (globally unique identifier).
@@ -92,9 +95,11 @@ activities to the bridge. It must be HTTPS and publicly reachable.
 1. In the Azure Bot resource, go to **Settings → Configuration** (the
    Configuration blade is under the Settings group in the left nav).
 2. Set **Messaging endpoint** to:
-   ```
+
+   ```text
    https://<your-tunnel-domain>/api/messages
    ```
+
    Replace `<your-tunnel-domain>` with the tunnel's public hostname (set up
    in § 4 below). This URL can be updated at any time when the tunnel
    restarts with a new domain.
@@ -122,16 +127,15 @@ Teams App Store.
 Two toggles must be on — missing either one causes sideloading to silently
 fail:
 
-1. **Org-wide setting:**
-   Go to [Teams Admin Center → Teams apps → Manage apps](https://admin.teams.microsoft.com/policies/manage-apps).
-   Click **Org-wide app settings** (top bar). Ensure **Allow interaction
-   with custom apps** is toggled **On**. Save.
+1. **Org-wide setting:** Go to
+   [Teams Admin Center → Teams apps → Manage apps](https://admin.teams.microsoft.com/policies/manage-apps).
+   Click **Org-wide app settings** (top bar). Ensure
+   **Allow interaction with custom apps** is toggled **On**. Save.
 
-2. **Setup policy:**
-   Go to [Teams Admin Center → Teams apps → Setup policies](https://admin.teams.microsoft.com/policies/app-setup).
-   Click the **Global (Org-wide default)** policy. Ensure **Upload custom
-   apps** (also labeled **Allow users to upload custom apps**) is toggled
-   **On**. Save.
+2. **Setup policy:** Go to
+   [Teams Admin Center → Teams apps → Setup policies](https://admin.teams.microsoft.com/policies/app-setup).
+   Click the **Global (Org-wide default)** policy. Ensure **Upload custom apps**
+   (also labeled **Allow users to upload custom apps**) is toggled **On**. Save.
 
 Changes can take up to 24 hours to propagate (usually minutes in a
 developer tenant). To verify propagation: open Teams → Apps → Manage your
@@ -270,6 +274,7 @@ tunnels in non-prototype contexts.
 
 The output shows the public URL, e.g.
 `https://abc123.use2.devtunnels.ms`. Use this as:
+
 - **Messaging endpoint** in the Azure Bot resource (§ 2):
   `https://abc123.use2.devtunnels.ms/api/messages`
 - **`CALLBACK_BASE_URL`** environment variable (§ 5):

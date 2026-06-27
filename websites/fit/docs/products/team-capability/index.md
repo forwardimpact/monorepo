@@ -3,11 +3,11 @@ title: "Make Staffing Decisions You Can Defend"
 description: "Replace staffing intuition with evidence — coverage heatmaps, structural risks, and what-if scenarios that show what each role requires."
 ---
 
-A post-mortem surfaces the same skill gap that caused the last incident —
-nobody saw it before staffing. You need to make staffing decisions you can
-defend by seeing what each role requires. This guide walks through the full workflow: defining
-role requirements with Pathway, modeling team composition with Summit, and
-simulating changes before committing to them.
+A post-mortem surfaces the same skill gap that caused the last incident — nobody
+saw it before staffing. You need to make staffing decisions you can defend by
+seeing what each role requires. This guide walks through the full workflow:
+defining role requirements with Pathway, modeling team composition with Summit,
+and simulating changes before committing to them.
 
 ## Prerequisites
 
@@ -16,10 +16,10 @@ follow each link and return here.
 
 - [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/) --
   standard data initialized
-- [Getting Started: Pathway for Leaders](/docs/getting-started/leaders/pathway/) --
-  Pathway installed
-- [Getting Started: Summit for Leaders](/docs/getting-started/leaders/summit/) --
-  Summit installed and roster created
+- [Getting Started: Pathway for Leaders](/docs/getting-started/leaders/pathway/)
+  -- Pathway installed
+- [Getting Started: Summit for Leaders](/docs/getting-started/leaders/summit/)
+  -- Summit installed and roster created
 
 You will need a `summit.yaml` roster file describing your teams. The
 getting-started guide for Summit walks through creating one.
@@ -136,12 +136,12 @@ Expected output:
     system_design             alice.chen (expert) vs team avg (foundational)
 ```
 
-**Single points of failure** are skills where only one engineer has working-level
-proficiency or above. If that person is on leave or leaves the team, the
-capability disappears entirely.
+**Single points of failure** are skills where only one engineer has
+working-level proficiency or above. If that person is on leave or leaves the
+team, the capability disappears entirely.
 
-**Critical gaps** are skills the team's disciplines and tracks require but no one
-currently covers at the working level. These are the gaps that show up in
+**Critical gaps** are skills the team's disciplines and tracks require but no
+one currently covers at the working level. These are the gaps that show up in
 post-mortems.
 
 **Concentration risks** flag skills where proficiency is concentrated in one
@@ -280,8 +280,8 @@ npx fit-summit what-if platform --roster ./summit.yaml \
 
 ## Compare teams side by side
 
-When restructuring or understanding why two similarly-sized teams feel different,
-compare them directly:
+When restructuring or understanding why two similarly-sized teams feel
+different, compare them directly:
 
 ```sh
 npx fit-summit compare platform delivery --roster ./summit.yaml
@@ -307,8 +307,8 @@ or when a reorganization is under consideration.
 
 ## Match the audience to the conversation
 
-Summit has a privacy model that adjusts individual-level detail based on context.
-Use the `--audience` flag to match the output to your conversation:
+Summit has a privacy model that adjusts individual-level detail based on
+context. Use the `--audience` flag to match the output to your conversation:
 
 | Audience     | Detail level                    | Use for                                  |
 | ------------ | ------------------------------- | ---------------------------------------- |

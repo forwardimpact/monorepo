@@ -120,7 +120,7 @@ Handler flow:
 
 Renders three sections exactly matching spec.md:279–296:
 
-```
+```text
   Platform team — structural risks
 
   Single points of failure:
@@ -214,7 +214,7 @@ points of failure" header.
 
 ## Commit
 
-```
+```text
 feat(summit): add structural risk detection and risks command
 ```
 

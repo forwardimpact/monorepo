@@ -6,7 +6,8 @@ Spec: [`spec.md`](spec.md) · Design: [`design-a.md`](design-a.md).
 
 Add a `## Hazards` section to `.claude/skills/kata-release-cut/SKILL.md`
 after `## Edge Cases`, with eight lettered entries (a)–(h), each a fires-when
-+ recovery in generic published-skill phrasing; cross-reference Edge Cases so
+
+- recovery in generic published-skill phrasing; cross-reference Edge Cases so
 the three existing cases agree with (b)/(c)/(d)/(h). Source per-hazard
 evidence from the surfaces named in design § Evidence sourcing. Displace
 worked detail to `references/hazards.md` only if `bun run check` flags the L5

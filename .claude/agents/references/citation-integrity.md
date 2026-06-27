@@ -27,10 +27,11 @@ comment body, or wiki file content — it holds to three properties.
 
 **Resolution procedure.** For each existence-asserting token, infer the
 referenced repository from context, then resolve via the host's commit-lookup
-capability: for any hosted repository, `gh api repos/{owner}/{repo}/commits/{sha}`
-(non-2xx is non-resolution); for wiki content, `git -C wiki cat-file -e
-{sha}^{commit}` (non-zero exit is non-resolution). A token that fails to resolve
-blocks the publish and emits the property-3 record; a token naming a repository
-the installation cannot reach is recorded, not blocked. The commands illustrate
-the capability; the SHA discriminator and the negative-citation marker are
-authoring-path detail, not fixed here.
+capability: for any hosted repository,
+`gh api repos/{owner}/{repo}/commits/{sha}` (non-2xx is non-resolution); for
+wiki content, `git -C wiki cat-file -e {sha}^{commit}` (non-zero exit is
+non-resolution). A token that fails to resolve blocks the publish and emits the
+property-3 record; a token naming a repository the installation cannot reach is
+recorded, not blocked. The commands illustrate the capability; the SHA
+discriminator and the negative-citation marker are authoring-path detail, not
+fixed here.

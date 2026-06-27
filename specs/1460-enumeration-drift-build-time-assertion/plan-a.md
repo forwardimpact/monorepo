@@ -20,7 +20,7 @@ registry parse). No new dependencies (Security C2).
 
 ## Affected paths
 
-```
+```text
 .coaligned/invariants/enumeration-drift.topics.yml      (new — registry)
 .coaligned/invariants/enumeration-drift.rules.mjs        (new — rule module: build/seed/rules + re-exports)
 .coaligned/invariants/lib/enum-drift.mjs                 (new — pure helpers: probes, parser, grammar, extracted from the module to stay under the per-file size/complexity ceilings)
@@ -103,12 +103,11 @@ different sources, two different intents.
 
 ### Step 1 — Registry data file
 
-Intent: declare all six topics in one data file.
-Files: create `.coaligned/invariants/enumeration-drift.topics.yml`.
-Change: the YAML above, verbatim.
-Verify: the Step 2 module loader parses it (`yaml` package, the root
-devDependency — no new dep, Security C2) without a `registry-invalid`
-finding; until the module exists, `node -e "require('yaml')"` round-trips the file.
+Intent: declare all six topics in one data file. Files: create
+`.coaligned/invariants/enumeration-drift.topics.yml`. Change: the YAML above,
+verbatim. Verify: the Step 2 module loader parses it (`yaml` package, the root
+devDependency — no new dep, Security C2) without a `registry-invalid` finding;
+until the module exists, `node -e "require('yaml')"` round-trips the file.
 
 ### Step 2 — Rule module: loader, probes, parser, subjects, rules, seed
 
@@ -173,7 +172,8 @@ directly:
   rendered in the property's shape + `/enum` close), grouped by
   consumer.
 
-Verify: `node .coaligned/invariants/enumeration-drift.rules.mjs` imports clean; `bunx coaligned invariants` discovers it (appears in run output).
+Verify: `node .coaligned/invariants/enumeration-drift.rules.mjs` imports clean;
+`bunx coaligned invariants` discovers it (appears in run output).
 
 ### Step 3 — Fence-body grammar and rules
 
@@ -223,7 +223,8 @@ Messages match design § Failure modes (e.g. `list-drift`:
 `<topic>:count :: actual=<n> expected=<m>`); `path` is the consumer
 path (from `subject.path`), so the host renders `<path> :: <message>`.
 
-Verify: unit tests in Step 5 assert each rule fires on a crafted subject and stays silent on a clean one.
+Verify: unit tests in Step 5 assert each rule fires on a crafted subject and
+stays silent on a clean one.
 
 ### Step 4 — Consumer fences (seeded, atomic)
 
@@ -269,7 +270,8 @@ Change:
   fetch, but keep them off the same line as prose so the rendered
   count reads cleanly.
 
-Verify: `bun run invariants` exits 0 on the branch against `main` HEAD (spec "Existing consumers pass at landing").
+Verify: `bun run invariants` exits 0 on the branch against `main` HEAD (spec
+"Existing consumers pass at landing").
 
 ### Step 5 — Unit tests
 
@@ -295,18 +297,17 @@ Verify: `bun run test` discovers and passes the new file.
 
 ### Step 6 — Metric-writeback tagging convention
 
-Intent: let the post-landing outcome series populate.
-Files (modify): `.claude/skills/kata-documentation/references/metrics.md`.
-Change: document that enumeration-class findings tag the metrics-row
-`note` `enumeration-drift:<topic-id>:`. Keep it **placeholder-shaped**
-(`<topic-id>`, no monorepo topic ids) per the skill-genericity
-invariant — the skill is published and synced into other repos.
-Mechanic: this file is under `.claude/`, where direct Edit/Write are
-denied (CONTRIBUTING § `.claude/`); apply it via
+Intent: let the post-landing outcome series populate. Files (modify):
+`.claude/skills/kata-documentation/references/metrics.md`. Change: document that
+enumeration-class findings tag the metrics-row `note`
+`enumeration-drift:<topic-id>:`. Keep it **placeholder-shaped** (`<topic-id>`,
+no monorepo topic ids) per the skill-genericity invariant — the skill is
+published and synced into other repos. Mechanic: this file is under `.claude/`,
+where direct Edit/Write are denied (CONTRIBUTING § `.claude/`); apply it via
 `echo … | bunx fit-selfedit .claude/skills/kata-documentation/references/metrics.md`
-on this non-`main` branch, per self-improvement.md.
-Verify: `bunx coaligned invariants` (the `skill-genericity` rule)
-stays green on the edited skill file.
+on this non-`main` branch, per self-improvement.md. Verify:
+`bunx coaligned invariants` (the `skill-genericity` rule) stays green on the
+edited skill file.
 
 ## Risks
 

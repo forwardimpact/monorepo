@@ -168,14 +168,14 @@ commit, not against current-main.
   independently per the immediate prefix-bump move above — that is not
   part of this spec's contract change.)
 - **The other sibling actions** (`kata-agent`, `fit-eval`, `fit-wiki`,
-  `fit-benchmark`, enumerated in [spec 1310](../1310-sha-pin-sibling-actions/spec.md)).
-  Whether any of them expose a similar fallback surface is a follow-up
-  audit tracked in
-  [Issue #1471](https://github.com/forwardimpact/monorepo/issues/1471),
-  assigned to the security engineer. The audit is filed explicitly
-  rather than implicitly because spec 1310 tracks the reference side
-  of the sibling-supply-chain surface (mutable tag vs SHA), not the
-  cache-restore-semantics side this spec closes.
+  `fit-benchmark`, enumerated in
+  [spec 1310](../1310-sha-pin-sibling-actions/spec.md)). Whether any of them
+  expose a similar fallback surface is a follow-up audit tracked in
+  [Issue #1471](https://github.com/forwardimpact/monorepo/issues/1471), assigned
+  to the security engineer. The audit is filed explicitly rather than implicitly
+  because spec 1310 tracks the reference side of the sibling-supply-chain
+  surface (mutable tag vs SHA), not the cache-restore-semantics side this spec
+  closes.
 - **Cache-restore behaviour for non-environment artefacts in consuming
   workflows.** The contract this spec changes governs only the cache
   the action owns.

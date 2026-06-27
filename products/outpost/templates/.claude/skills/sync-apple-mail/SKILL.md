@@ -48,7 +48,9 @@ their email.
 Run the sync as a single Node.js script with embedded SQLite. This avoids N+1
 process invocations and handles all data transformation in one pass:
 
-    node scripts/sync.mjs [--days N]
+```text
+node scripts/sync.mjs [--days N]
+```
 
 - `--days N` — how many days back to look on first sync (default: 30)
 

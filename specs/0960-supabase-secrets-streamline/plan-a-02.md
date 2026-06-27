@@ -1,6 +1,9 @@
 # Plan 0960-a, Part 02 — Bootstrap
 
-Collapse the two-script split, bind the local Supabase CLI to `SUPABASE_JWT_SECRET`, and rewrite the three `.env.*.example` files. After this part `just env-setup` writes a full `.env` and `fit-map activity start` honors the secret it just wrote.
+Collapse the two-script split, bind the local Supabase CLI to
+`SUPABASE_JWT_SECRET`, and rewrite the three `.env.*.example` files. After this
+part `just env-setup` writes a full `.env` and `fit-map activity start` honors
+the secret it just wrote.
 
 ## Step 1 — Write `scripts/env-setup.js`
 
@@ -60,15 +63,24 @@ async function main() {
 main();
 ```
 
-All 8 values are wrapped in `getOrGenerateSecret` so a re-run preserves every value byte-identical (spec § Success Criteria: "every value written by the first run is preserved verbatim by the second"). Manual rotation: delete the line for the value the operator wants to rotate; for `SUPABASE_JWT_SECRET`, also delete `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` so they re-mint against the new secret.
+All 8 values are wrapped in `getOrGenerateSecret` so a re-run preserves every
+value byte-identical (spec § Success Criteria: "every value written by the first
+run is preserved verbatim by the second"). Manual rotation: delete the line for
+the value the operator wants to rotate; for `SUPABASE_JWT_SECRET`, also delete
+`SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` so they re-mint against the
+new secret.
 
-Verification: `bun scripts/env-setup.js` against an empty `.env` writes all 8 keys; second run preserves every value byte-identical; `--output /tmp/out` writes lowercase key=value pairs; `--add-mask --output /tmp/out` prints `::add-mask::` for each.
+Verification: `bun scripts/env-setup.js` against an empty `.env` writes all 8
+keys; second run preserves every value byte-identical; `--output /tmp/out`
+writes lowercase key=value pairs; `--add-mask --output /tmp/out` prints
+`::add-mask::` for each.
 
 ## Step 2 — Replace `just env-setup`, drop `env-secrets`/`env-storage`
 
 Files modified: `justfile`.
 
-Replace lines 357–370 (current `env-setup`, `env-reset`, `env-secrets`, `env-storage` recipes) with:
+Replace lines 357–370 (current `env-setup`, `env-reset`, `env-secrets`,
+`env-storage` recipes) with:
 
 ```just
 # Generate every secret in .env (idempotent — preserves all values across runs)
@@ -80,7 +92,8 @@ env-reset PROFILE="local": config-reset
     cp -f .env.{{PROFILE}}.example .env
 ```
 
-Update `quickstart` (currently line 35 — `quickstart: env-setup synthetic …`) to invoke `env-reset` explicitly so a fresh checkout still wipes-and-regenerates:
+Update `quickstart` (currently line 35 — `quickstart: env-setup synthetic …`) to
+invoke `env-reset` explicitly so a fresh checkout still wipes-and-regenerates:
 
 ```just
 quickstart: env-reset env-setup synthetic data-init codegen process-fast _quickstart-seed
@@ -88,7 +101,10 @@ quickstart: env-reset env-setup synthetic data-init codegen process-fast _quicks
 
 The two old recipes (`env-secrets`, `env-storage`) are deleted in full.
 
-Verification: `just --list | rg env-` shows `env-reset` and `env-setup` only; `just env-reset && just env-setup` produces a fresh `.env`; a second `just env-setup` preserves every value byte-identical; `just quickstart` still wipes-and-regenerates on a fresh checkout.
+Verification: `just --list | rg env-` shows `env-reset` and `env-setup` only;
+`just env-reset && just env-setup` produces a fresh `.env`; a second
+`just env-setup` preserves every value byte-identical; `just quickstart` still
+wipes-and-regenerates on a fresh checkout.
 
 ## Step 3 — Delete the old scripts and their helper files
 
@@ -101,7 +117,9 @@ Files deleted:
 
 `.gitignore` already excludes `.env.storage.*`; no edit needed.
 
-Verification: `rg env-secrets|env-storage scripts justfile` returns zero matches; `find . -name '.env.storage.*' -not -path './node_modules/*'` returns no tracked files.
+Verification: `rg env-secrets|env-storage scripts justfile` returns zero
+matches; `find . -name '.env.storage.*' -not -path './node_modules/*'` returns
+no tracked files.
 
 ## Step 4 — Bind the local Supabase CLI to `SUPABASE_JWT_SECRET`
 
@@ -119,17 +137,25 @@ enable_signup = false
 additional_redirect_urls = ["http://127.0.0.1/*"]
 ```
 
-`env(VAR)` is the Supabase CLI's documented interpolation syntax (since CLI v1.110.0). The CLI substitutes the value at `supabase start` time from `process.env`.
+`env(VAR)` is the Supabase CLI's documented interpolation syntax (since CLI
+v1.110.0). The CLI substitutes the value at `supabase start` time from
+`process.env`.
 
-Verification: starts the local stack (`bun fit-map activity start` after `just env-setup`) and one JWT signed with `SUPABASE_JWT_SECRET` from `.env` verifies against the CLI-issued anon key (same secret end-to-end). Part 03's `auth-issue` migration depends on this binding.
+Verification: starts the local stack (`bun fit-map activity start` after
+`just env-setup`) and one JWT signed with `SUPABASE_JWT_SECRET` from `.env`
+verifies against the CLI-issued anon key (same secret end-to-end). Part 03's
+`auth-issue` migration depends on this binding.
 
 ## Step 5 — Rewrite the three `.env.*.example` files
 
-Files modified: `.env.local.example`, `.env.docker-native.example`, `.env.docker-supabase.example`.
+Files modified: `.env.local.example`, `.env.docker-native.example`,
+`.env.docker-supabase.example`.
 
-Each file's "Service Authentication" + "Map Supabase" + storage-credential blocks reduce to a single Supabase block. Use the canonical block from design § `.env.local.example` Supabase block:
+Each file's "Service Authentication" + "Map Supabase" + storage-credential
+blocks reduce to a single Supabase block. Use the canonical block from design §
+`.env.local.example` Supabase block:
 
-```
+```text
 # ==========================================
 # Supabase (single instance — all products)
 # ==========================================
@@ -148,17 +174,29 @@ Per file (additions and deletions explicit):
 | `.env.docker-native.example` | `http://supabase-kong.local:8000` | Same three placeholder lines | Same deletions; HTTPS/HTTP/NO_PROXY block unchanged |
 | `.env.docker-supabase.example` | `http://supabase-kong.local:8000` | Same three placeholder lines | Same deletions plus commented `SUPABASE_SERVICE_ROLE_KEY` / `MAP_SUPABASE_SERVICE_ROLE_KEY` / `MAP_SUPABASE_ANON_KEY` triple (lines 72–74) under storage section |
 
-Update each file's header quick-start comment from `just env-secrets && just env-storage && just env-github` to `just env-setup && just env-github`.
+Update each file's header quick-start comment from
+`just env-secrets && just env-storage && just env-github` to
+`just env-setup && just env-github`.
 
-Verification: `diff .env.local.example .env.docker-native.example | rg SUPABASE_` shows only the URL value differs; `rg MAP_SUPABASE .env.*.example` and `rg '^# JWT_SECRET' .env.*.example` and `rg MAP_SUPABASE_DB_PORT .env.*.example` each return zero matches.
+Verification:
+`diff .env.local.example .env.docker-native.example | rg SUPABASE_` shows only
+the URL value differs; `rg MAP_SUPABASE .env.*.example` and
+`rg '^# JWT_SECRET' .env.*.example` and `rg MAP_SUPABASE_DB_PORT .env.*.example`
+each return zero matches.
 
 ## Step 6 — Bootstrap integration test
 
 Files created: `tests/env-setup.test.js`.
 
-Test location is `tests/` (not `scripts/test/`) because `package.json:31`'s test command runs `find ./tests ./libraries ./products ./services -name '*.test.js'` — anything under `scripts/` is invisible to CI.
+Test location is `tests/` (not `scripts/test/`) because `package.json:31`'s test
+command runs `find ./tests ./libraries ./products ./services -name '*.test.js'`
+— anything under `scripts/` is invisible to CI.
 
-Each test case spawns the script with `cwd` set to a fresh tmpdir (`mkdtempSync`), via `child_process.spawnSync("bun", [path.resolve("scripts/env-setup.js")], { cwd: tmpdir })`, so the script's `.env` reads and writes hit the isolated tmpdir, not the repo root.
+Each test case spawns the script with `cwd` set to a fresh tmpdir
+(`mkdtempSync`), via
+`child_process.spawnSync("bun", [path.resolve("scripts/env-setup.js")], { cwd: tmpdir })`,
+so the script's `.env` reads and writes hit the isolated tmpdir, not the repo
+root.
 
 Test cases (run with `bun:test`):
 
@@ -172,9 +210,12 @@ Test cases (run with `bun:test`):
 | `--output` shape | Lowercase keys, newline-terminated, eight rows |
 | `--add-mask` | Each value printed once as `::add-mask::<value>` |
 
-Verification: `bun test tests/env-setup.test.js` green; `bun run test` (the repo-wide CI command) discovers and runs the new file.
+Verification: `bun test tests/env-setup.test.js` green; `bun run test` (the
+repo-wide CI command) discovers and runs the new file.
 
 ## Dependencies
 
-- Depends on Part 01 (`mintSupabaseAnonKey`, `mintSupabaseServiceRoleKey` from libsecret).
-- Blocks Part 03 (consumers expect `SUPABASE_*` in `.env` and the local CLI binding to land first so test gates pass).
+- Depends on Part 01 (`mintSupabaseAnonKey`, `mintSupabaseServiceRoleKey` from
+  libsecret).
+- Blocks Part 03 (consumers expect `SUPABASE_*` in `.env` and the local CLI
+  binding to land first so test gates pass).

@@ -58,7 +58,7 @@ case, preserving the packer's move-not-copy guarantee at the finer grain.
 The rotation seam matcher (`/^## (\d{4}-\d{2}-\d{2})/`) already ignores drifted
 headings — that is precisely why a drifted file degrades to one unsplittable
 prologue and the audit never names the cause. The new rule inverts the seam
-matcher: it flags `^## ` lines that the seam matcher would skip, so the audit
+matcher: it flags `^##` lines that the seam matcher would skip, so the audit
 finally names the drift that makes rotation impossible. The seam matcher is
 currently inlined in four places (`weekly-log.js` ×2, `commands/log.js`, and the
 audit's `decisionWithin5` `entryRe`); this design moves it to one

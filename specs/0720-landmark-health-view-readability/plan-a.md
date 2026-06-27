@@ -4,12 +4,12 @@ title: Landmark health view readability — plan A
 status: plan draft
 ---
 
-# Plan 0720-A — Landmark Health View Readability
+## Plan 0720-A — Landmark Health View Readability
 
 See [`spec.md`](./spec.md) for WHAT/WHY and [`design-a.md`](./design-a.md) for
 WHICH/WHERE. This document captures HOW and WHEN.
 
-## Approach
+### Approach
 
 Land the rendering change in three layers: the CLI binary gains a per-command
 `verbose` boolean and copies it onto `result.meta` before formatting; the
@@ -25,7 +25,7 @@ running CLI.
 
 `Libraries used: none.`
 
-## Step 1 — Add `verbose` per-command option to the CLI definition
+### Step 1 — Add `verbose` per-command option to the CLI definition
 
 **Intent.** Surface the boolean flag on the `health` command so libcli parses
 it into `parsed.values.verbose`.
@@ -56,7 +56,7 @@ No global option is added; `--verbose` is health-only by design.
 **Verification.** `bunx fit-landmark health --help` lists `--verbose` under
 the libcli `Options:` block. `bun run check` passes.
 
-## Step 2 — Wire `meta.verbose` between handler and formatter
+### Step 2 — Wire `meta.verbose` between handler and formatter
 
 **Intent.** Copy `values.verbose` onto `result.meta` after the handler returns
 so the dispatcher's `formatResult(command, result)` call gives every formatter
@@ -85,7 +85,7 @@ directly and assert routing. End-to-end smoke: `bunx fit-landmark health
 --manager <email> --verbose` against a populated dev data dir prints the
 verbose paragraph layout; without `--verbose` prints the table.
 
-## Step 3 — Add `dedupeRecommendations` and `renderScoreCells` helpers
+### Step 3 — Add `dedupeRecommendations` and `renderScoreCells` helpers
 
 **Intent.** Land the two private helpers from the design's Interfaces table.
 Both are module-private — no `export`.
@@ -189,7 +189,7 @@ function renderScoreCells(driver, verbose) {
 **Verification.** Direct unit tests added in Step 6 import the module and call
 the helpers via the public renderers; lint passes (`bun run check`).
 
-## Step 4 — Add default-mode text and markdown renderers
+### Step 4 — Add default-mode text and markdown renderers
 
 **Intent.** Implement the table + Recommendations trailer layout from the
 design's Default Layout block.
@@ -285,7 +285,7 @@ function renderMdDefault(view, deduped, lines) {
 labels, presence of `--verbose` only when hidden anchors exist, and absence of
 duplicated recommendations.
 
-## Step 5 — Refactor `toText` and `toMarkdown` to dispatch on `meta.verbose`
+### Step 5 — Refactor `toText` and `toMarkdown` to dispatch on `meta.verbose`
 
 **Intent.** Make both public formatters route on `meta.verbose`. Verbose path
 keeps today's per-driver paragraph layout, but the score line is replaced by
@@ -300,8 +300,8 @@ first-occurrence per `(email, skill)`.
 
 1. Update `renderTextDriver` so the score line carries all five anchors and
    forwards `deduped` to the rec renderer. Contributing-skills, evidence,
-   comments, and initiatives blocks are preserved unchanged (success
-   criterion 3):
+   comments, and initiatives blocks are preserved unchanged (success criterion
+   3):
 
    ```js
    // before
@@ -335,13 +335,13 @@ first-occurrence per `(email, skill)`.
    }
    ```
 
-   Mirror in `renderMdDriver` — replace today's `## Driver: …` heading with
-   the same heading plus a `**Anchors:** ${anchorLines.join(", ")}` line
-   directly below when `anchorLines.length > 0`. Contributing-skills /
-   evidence / comments / initiatives blocks stay.
+   Mirror in `renderMdDriver` — replace today's `## Driver: …` heading with the
+   same heading plus a `**Anchors:** ${anchorLines.join(", ")}` line directly
+   below when `anchorLines.length > 0`. Contributing-skills / evidence /
+   comments / initiatives blocks stay.
 
-2. Replace `renderTextRecommendations` so it consumes `DedupedRec[]` and
-   emits only entries whose `driverNames[0]` equals the current driver:
+2. Replace `renderTextRecommendations` so it consumes `DedupedRec[]` and emits
+   only entries whose `driverNames[0]` equals the current driver:
 
    ```js
    function renderTextRecommendations(driver, lines, deduped) {
@@ -374,10 +374,10 @@ first-occurrence per `(email, skill)`.
    }
    ```
 
-   The existing `formatCandidates` helper (which sliced two candidates onto
-   one line) is no longer used by the verbose path — each candidate now
-   appears on its own first-occurrence driver via dedup. `formatCandidates`
-   becomes unused after this step and is removed in the same edit.
+   The existing `formatCandidates` helper (which sliced two candidates onto one
+   line) is no longer used by the verbose path — each candidate now appears on
+   its own first-occurrence driver via dedup. `formatCandidates` becomes unused
+   after this step and is removed in the same edit.
 
 3. Update `toText` and `toMarkdown` to dispatch on `meta.verbose`. Both
    paths consume the same `DedupedRec[]`:
@@ -403,7 +403,7 @@ first-occurrence per `(email, skill)`.
 `Anchors:` with all four hidden deltas, (b) a candidate-skill pair appearing
 on two drivers renders only on the first.
 
-## Step 6 — Tests for the formatter
+### Step 6 — Tests for the formatter
 
 **Intent.** Add a new test file that calls `toText` and `toMarkdown` directly
 with synthetic `HealthView` + `Meta` shapes. The existing `health.test.js`
@@ -438,7 +438,7 @@ The 6-driver fixture is built inline in the test file (not added to
 **Verification.** `bun test products/landmark/test/health-formatter.test.js`
 passes; `bun run check` reports zero new lint errors.
 
-## Step 7 — Update product page and leadership getting-started page
+### Step 7 — Update product page and leadership getting-started page
 
 **Intent.** Replace the existing one-paragraph health-view description with
 the new shape: a literal `--verbose` mention, a sample of the new default
@@ -476,13 +476,13 @@ output, and no stale claims.
 **Verification.** `bunx fit-doc build --src=websites/fit` succeeds; both pages
 contain a literal `--verbose` mention and a sample block.
 
-## Risks
+### Risks
 
 | Risk | Mitigation |
 | --- | --- |
 | `result.meta` is mutated in the binary, but the handler-formatter contract is not documented as allowing it; a future refactor that freezes `meta` post-handler would silently drop `--verbose`. | Invisible from the plan because `formatResult` already reads `meta.format` via the same channel. Flagged so a future invariant tightening surfaces this site. |
 
-## Execution
+### Execution
 
 Single agent (`staff-engineer`), sequential. Steps 1–2 (CLI binary) and Steps
 3–5 (formatter) can be drafted in either order but must both land before Step

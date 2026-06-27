@@ -30,7 +30,7 @@ The `memo` command appends a timestamped message to the teammate's inbox.
 npx fit-wiki memo --from technical-writer --to staff-engineer --message "check baseline"
 ```
 
-```
+```text
 wrote wiki/staff-engineer.md
 ```
 
@@ -51,7 +51,7 @@ To reach every agent except yourself:
 npx fit-wiki memo --from technical-writer --to all --message "new XmR baseline"
 ```
 
-```
+```text
 wrote wiki/staff-engineer.md
 wrote wiki/security-engineer.md
 wrote wiki/improvement-coach.md
@@ -83,9 +83,9 @@ directly under the `## Message Inbox` heading:
 - 2026-05-04 from **technical-writer**: check baseline
 ```
 
-The marker is invisible in rendered markdown. If it is missing, the command exits
-with code 2 and a diagnostic message. The marker is placed once during wiki
-initialization and should not be removed.
+The marker is invisible in rendered markdown. If it is missing, the command
+exits with code 2 and a diagnostic message. The marker is placed once during
+wiki initialization and should not be removed.
 
 ## Refreshing storyboard charts
 
@@ -139,7 +139,7 @@ It then appends a `product_share` row to
 `wiki/metrics/product-mix/<YYYY>.csv`, where the value is the percentage of
 labeled PRs carrying the `product` label:
 
-```
+```text
 product_share = round(product / (product + internal) * 100)
 ```
 
@@ -172,7 +172,7 @@ Two commands keep it synchronized:
 npx fit-wiki pull
 ```
 
-```
+```text
 pull: up to date
 ```
 
@@ -180,7 +180,7 @@ pull: up to date
 npx fit-wiki push
 ```
 
-```
+```text
 push: committed and pushed
 ```
 
@@ -202,7 +202,7 @@ row.
 
 This behavior is carried by a tracked `.gitattributes` line in the wiki:
 
-```
+```text
 metrics/**/*.csv merge=union
 ```
 
@@ -230,7 +230,7 @@ the push introduces before any network contact.
 When the scan finds a secret, the command stops. It does not push, it does not
 fall back to "saved locally", and it exits non-zero with the finding location:
 
-```
+```text
 push blocked: secret detected in wiki content (MEMORY.md:42:github-pat); the push was not attempted.
 ```
 
@@ -251,7 +251,7 @@ gitleaks version   # expect 8.24.3
 If gitleaks is not available, the push fails closed rather than skipping the
 scan:
 
-```
+```text
 push blocked: the secret scanner (gitleaks) is unavailable; the push was not attempted.
 ```
 
@@ -292,7 +292,7 @@ If your project does not have a wiki yet, `init` sets one up:
 npx fit-wiki init
 ```
 
-```
+```text
 init: wiki ready at wiki
 ```
 

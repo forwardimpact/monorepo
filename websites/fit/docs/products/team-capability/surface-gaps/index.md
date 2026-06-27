@@ -10,8 +10,9 @@ alignment.
 
 ## Prerequisites
 
-Complete [Make Staffing Decisions You Can Defend](/docs/products/team-capability/)
-first. That guide covers roster setup, role requirements, coverage analysis, and
+Complete
+[Make Staffing Decisions You Can Defend](/docs/products/team-capability/) first.
+That guide covers roster setup, role requirements, coverage analysis, and
 what-if simulations. The steps below build on that foundation.
 
 ## Detect structural risks

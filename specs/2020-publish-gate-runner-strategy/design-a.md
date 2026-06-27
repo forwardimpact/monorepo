@@ -84,21 +84,23 @@ flowchart TD
 
 - **`node --test` summary format.** The wrapper parses node 22's TAP summary
   (`# tests N` / `# pass N` / `# fail N`). A node-major upgrade could change the
-  field names; the wrapper must fail loudly (non-zero, explicit message) when the
-  summary is unparseable rather than treat an unparsed run as a pass. The runner
-  is pinned by the root and libmock `package.json` `engines.node` `>=22.0.0`.
+  field names; the wrapper must fail loudly (non-zero, explicit message) when
+  the summary is unparseable rather than treat an unparsed run as a pass. The
+  runner is pinned by the root and libmock `package.json` `engines.node`
+  `>=22.0.0`.
 - **Per-file invocation cost (D4/D6).** Running `node --test` once per file is
   the 87.1 s-class per-file path, not the 70.3 s batched path — the gate is
   slower than the batched number in the spec's table. This is the *only* path
   that yields per-file counts (the batched alternative is unworkable, D4); the
   plan must measure the per-file wall-clock and may parallelise per-file runs,
   but per-file enforcement is non-negotiable.
-- **Shim semantics drift.** A swept file may rely on a bun `expect` behaviour the
-  shim approximates differently (e.g. `toEqual` on class instances). The shim
-  test's semantics-drift cases (C2) plus the integration non-vacuity criterion
-  (invert an assertion in a real swept file → gate non-zero) bound this; any file
-  needing `bun:test`-only semantics the shim cannot reproduce re-bounds the sweep
-  and is surfaced here — **none found in the measured surface** (0/49 use
-  `spy()`/`mock.fn`; all 49 use only the D3 matcher set).
+- **Shim semantics drift.** A swept file may rely on a bun `expect` behaviour
+  the shim approximates differently (e.g. `toEqual` on class instances). The
+  shim test's semantics-drift cases (C2) plus the integration non-vacuity
+  criterion (invert an assertion in a real swept file → gate non-zero) bound
+  this; any file needing `bun:test`-only semantics the shim cannot reproduce
+  re-bounds the sweep and is surfaced here —
+  **none found in the measured surface** (0/49 use `spy()`/`mock.fn`; all 49 use
+  only the D3 matcher set).
 
 — Staff Engineer 🛠️

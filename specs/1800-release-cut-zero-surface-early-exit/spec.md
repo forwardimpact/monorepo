@@ -98,12 +98,12 @@ the verdict record for **both** classification outcomes. The verdict is a
 claim about the recorded pair, never about whatever `HEAD` is at recording
 time (the Evidence table's anchor-drift row).
 
-**A `NO-CUT-OWED` verdict is a four-conjunct claim**: (a) empty publishable
-diff over the bound range, (b) valid anchor, (c) standing-set re-cite —
-condition 3's full standing set: first-release backlog (currently
-svcembedding + svctenancy), held/deferred cuts, and pending
-publish-failure retries and verifications, (d) CI green. These are conditions 2, 1, 3, and 4
-below; the path check alone is never a verdict.
+**A `NO-CUT-OWED` verdict is a four-conjunct claim**: (a) empty publishable diff
+over the bound range, (b) valid anchor, (c) standing-set re-cite — condition 3's
+full standing set: first-release backlog (currently svcembedding + svctenancy),
+held/deferred cuts, and pending publish-failure retries and verifications, (d)
+CI green. These are conditions 2, 1, 3, and 4 below; the path check alone is
+never a verdict.
 
 **Definition — blocked, verifiable-in-run, due.** An obligation is
 *blocked* when its record cites an unmet external prerequisite (a spec
@@ -130,23 +130,23 @@ assessment time (a lifted hold makes the obligation due).
 | 3 | **Carry-forward state re-cited.** Every standing obligation — first-release backlog, held/deferred cuts, pending publish-failure retries and publish-workflow verifications from prior runs — is either empty, explicitly re-cited as blocked with its blocking reference, or verifiable-in-run and resolved to verified-success (§ Definition). Any due obligation — including a verifiable-in-run obligation that resolves to failure — defeats the early exit. | Covers what the range check structurally cannot see (run-343b's carried cut; the untagged-package class above). |
 | 4 | **Main CI green.** The existing pre-flight checklist passed. Re-cited as a conjunct — even though the step sits after pre-flight — so the verdict record is self-contained. | The never-release-from-broken-main rule applies to the verdict, not just to cutting. |
 
-**The refined rule earns its own agreement data.** Condition 2's
-membership tier does not inherit the shadow-window agreement rows that
-validated the directory-level rule
+**The refined rule earns its own agreement data.** Condition 2's membership tier
+does not inherit the shadow-window agreement rows that validated the
+directory-level rule
 ([Exp #1625](https://github.com/forwardimpact/monorepo/issues/1625)): a
-continued or short follow-up shadow window under the same protocol earns
-the refined predicate its own agreement data before the early exit fires
-on it. This is load-bearing for the unscoped (file-kind-agnostic) form —
-if the full sweep would ever CUT on a tarball-identical test-only range,
-that surfaces in shadow as an unsafe-direction disagreement, falsified
-cheaply rather than in production. Because a pinned anchor makes raw
-shadow rows non-independent (rows 392/400/401 re-test one file and count
-as one datum under the experiment's pre-registered root-cause grouping
-rule, [adjudicated](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685697485)),
-the window's agreement evidence is reported in grouped
-distinct-edge-case-class terms per that rule, alongside raw row counts —
-a reporting discipline, deliberately not a numeric class threshold.
-Window length and mechanics are the experiment owners' call.
+continued or short follow-up shadow window under the same protocol earns the
+refined predicate its own agreement data before the early exit fires on it. This
+is load-bearing for the unscoped (file-kind-agnostic) form — if the full sweep
+would ever CUT on a tarball-identical test-only range, that surfaces in shadow
+as an unsafe-direction disagreement, falsified cheaply rather than in
+production. Because a pinned anchor makes raw shadow rows non-independent (rows
+392/400/401 re-test one file and count as one datum under the experiment's
+pre-registered root-cause grouping rule,
+[adjudicated](https://github.com/forwardimpact/monorepo/issues/1625#issuecomment-4685697485)),
+the window's agreement evidence is reported in grouped distinct-edge-case-class
+terms per that rule, alongside raw row counts — a reporting discipline,
+deliberately not a numeric class threshold. Window length and mechanics are the
+experiment owners' call.
 
 ### Authority boundary
 
@@ -194,8 +194,8 @@ the next run needs to chain:
   no SHA pair — it records the unresolvable state it found and sweeps.
 - A full-sweep verdict that ends with **due-but-deferred** obligations (a
   deferral shape condition 3 anticipates; a pending verifiable-in-run
-  verification is not in this class — § Definition) records that it establishes no
-  chainable baseline — the chain is broken, and subsequent assessments
+  verification is not in this class — § Definition) records that it establishes
+  no chainable baseline — the chain is broken, and subsequent assessments
   full-sweep until some run reaches a verified-clean or post-cut state.
 
 Binding sweep verdicts too is what keeps condition 1 resolvable after every
@@ -235,13 +235,13 @@ independently of which implementation lands first:
   **all** verdict kinds per § Recording contract, not only early exits.
 - A `references/` file for worked detail, if the design needs one under the
   headroom constraints above.
-- The skill is published (kata-skills pack) and is the canonical source for
-  the release procedure — this is a verdict-authority contract change for
-  external consumers as well as for the monorepo's release-engineer
-  (precedent: spec 1500, in flight as PR #1384, amends the same
-  published skill via this pipeline). The codified text must stand alone for a consumer with no
-  access to this monorepo's wiki: the baseline/recording contract is stated
-  against the skill's own recording surfaces, not monorepo-specific files.
+- The skill is published (kata-skills pack) and is the canonical source for the
+  release procedure — this is a verdict-authority contract change for external
+  consumers as well as for the monorepo's release-engineer (precedent: spec
+  1500, in flight as PR #1384, amends the same published skill via this
+  pipeline). The codified text must stand alone for a consumer with no access to
+  this monorepo's wiki: the baseline/recording contract is stated against the
+  skill's own recording surfaces, not monorepo-specific files.
 
 ### Excluded
 
@@ -337,9 +337,9 @@ independently of which implementation lands first:
 — Release Engineer 🚀 (r1; r3 applied per the
 [#1623 amendment contract](https://github.com/forwardimpact/monorepo/issues/1623#issuecomment-4685425527);
 r5 evidence-level amendments per the
-[SE assessment of record](https://github.com/forwardimpact/monorepo/pull/1626#issuecomment-4685856878) —
-residence-driven forgone-savings restatement, rows-400/401 anchors,
-FN 0-of-14 refresh, grouped-class agreement reporting)
-· Product Manager 🌱 (r2, Exp #1625 requirements of record; r3 contract,
-run-392 condition-2 packlist-membership refinement; r4, SE-review H1
-fold — pack-manifest-influencing files classify publishable)
+[SE assessment of record](https://github.com/forwardimpact/monorepo/pull/1626#issuecomment-4685856878)
+— residence-driven forgone-savings restatement, rows-400/401 anchors, FN 0-of-14
+refresh, grouped-class agreement reporting) · Product Manager 🌱 (r2, Exp #1625
+requirements of record; r3 contract, run-392 condition-2 packlist-membership
+refinement; r4, SE-review H1 fold — pack-manifest-influencing files classify
+publishable)

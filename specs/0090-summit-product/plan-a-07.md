@@ -217,7 +217,7 @@ evidence, and be wrong.
 
 When `--evidenced` is passed to `trajectory`, the handler prints:
 
-```
+```text
 Evidence on trajectory is not yet supported. Historical evidence
 snapshots would require new Map infrastructure (see spec 0090 Part 07
 notes). Run `fit-summit trajectory <team>` without --evidenced to see
@@ -294,7 +294,7 @@ Supabase env vars prints the fallback message and an all-zero-evidenced view.
 
 ## Commit
 
-```
+```text
 feat(summit): add evidence decorator and outcome weighting for coverage/risks/growth
 ```
 

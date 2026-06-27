@@ -65,7 +65,7 @@ structural.
 
 ## Architecture
 
-```
+```text
 universe.dsl ──► libuniverse
                     │
                     ├── dsl/        DSL Parser (tokenizer + recursive-descent)
@@ -114,7 +114,7 @@ inline a workaround.
 
 ### Universe Definition
 
-```
+```text
 // universe.dsl — Complete synthetic data specification
 
 universe BioNova {
@@ -334,7 +334,7 @@ export function parseUniverse(source) {
 The tokenizer and parser are the same recursive-descent approach as v1. AST node
 types:
 
-```
+```text
 UniverseAST { name, domain, industry, seed, orgs, departments, teams,
               people, projects, scenarios, snapshots, framework, content }
 DepartmentNode { id, name, parent, headcount, _children }
@@ -349,7 +349,7 @@ DxDriverNode { driver_id, trajectory, magnitude }
 
 ### Package Structure
 
-```
+```text
 libraries/libuniverse/
   package.json
   index.js              Re-exports public API
@@ -1177,7 +1177,7 @@ export function validateCrossContent(entities) {
 All generated content lives under `examples/` at the monorepo root, organized by
 content type:
 
-```
+```text
 examples/
   framework/        Framework YAML (disciplines, capabilities, levels, etc.)
   organizational/   HTML microdata, README, ONTOLOGY

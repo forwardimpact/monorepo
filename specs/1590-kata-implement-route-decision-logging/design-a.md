@@ -72,7 +72,7 @@ rules both out; restated here only as the boundary the grammar respects.
 
 `note` for a route-bearing row begins with the grammar, then free text:
 
-```
+```text
 route_taken=3; routes_eligible=[3,4]; <existing free-text note continues>
 ```
 

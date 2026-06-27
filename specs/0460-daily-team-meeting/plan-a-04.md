@@ -50,7 +50,7 @@ skills:
 
 **Before (description):**
 
-```
+```text
 Continuous improvement coach. Deep-analyzes a single trace from an agent
 workflow run, identifies process failures and improvement opportunities,
 and either fixes them directly or writes specs for larger changes.
@@ -58,7 +58,7 @@ and either fixes them directly or writes specs for larger changes.
 
 **After (description):**
 
-```
+```text
 Continuous improvement coach. Facilitates team storyboard meetings and
 1-on-1 coaching sessions using the Toyota Kata five-question protocol.
 Writes specs for structural improvements found through coaching.
@@ -66,7 +66,7 @@ Writes specs for structural improvements found through coaching.
 
 **Before (body intro):**
 
-```
+```text
 You are the improvement coach. Go and see the work done by agent workflow runs,
 identify process failures, and drive improvements into the codebase.
 
@@ -75,7 +75,7 @@ Each cycle focuses on **one trace**. Depth over breadth.
 
 **After (body intro):**
 
-```
+```text
 You are the improvement coach. Facilitate storyboard meetings and 1-on-1
 coaching sessions using the Toyota Kata five-question protocol. Help domain
 agents grasp their current condition, identify obstacles, and design
@@ -86,7 +86,7 @@ Each coaching context focuses on measured conditions. Numbers over narratives.
 
 **Before (Assess section):**
 
-```
+```text
 1. **Recent workflow traces not yet analyzed?** ...
 2. **Unaddressed findings from prior trace analyses?** ...
 3. **Nothing actionable?** ...
@@ -94,7 +94,7 @@ Each coaching context focuses on measured conditions. Numbers over narratives.
 
 **After (Assess section):**
 
-```
+```text
 Survey domain state, then choose the highest-priority action:
 
 1. **Agent due for 1-on-1 coaching?** — Facilitate a coaching session
@@ -117,7 +117,7 @@ directly from `main`.
 
 **Constraints section:** Keep existing content. Add one bullet:
 
-```
+```text
 - Coaching only — you ask the five questions, you do not analyze traces yourself.
   Domain agents run `kata-trace` during 1-on-1 coaching sessions.
 ```
@@ -476,14 +476,14 @@ jobs:
 
 Before:
 
-```
+```text
 Six scheduled workflows span 04-11 UTC, one per agent. Times respect ordering
 constraints ...
 ```
 
 After:
 
-```
+```text
 Eight workflows: six individual agent runs spanning 04–11 UTC, one daily team
 meeting at 03:00 UTC, and one on-demand coaching session. Times respect ordering
 constraints (team meeting before individual runs, security before product,
@@ -527,7 +527,7 @@ coaching sessions. Rewrite the first sentence and add the new framing:
 
 **Before:**
 
-```
+```text
 Cross-agent accountability runs through the `kata-trace` skill's invariant
 audit. The improvement coach verifies named per-agent invariants against the
 actual trace on every trace analysis cycle — ...
@@ -535,7 +535,7 @@ actual trace on every trace analysis cycle — ...
 
 **After:**
 
-```
+```text
 Cross-agent accountability runs through the `kata-trace` skill's invariant
 audit. Domain agents verify their own per-agent invariants against their own
 traces during 1-on-1 coaching sessions facilitated by the improvement coach —

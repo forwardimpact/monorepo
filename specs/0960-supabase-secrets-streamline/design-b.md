@@ -19,9 +19,9 @@ Net deltas vs design-a:
   shape and algorithm stay consistent. `libsecret` retains generic
   `generateJWT` and the `.env` helpers.
 - A second static-inspection rule forbids `@supabase/supabase-js` imports
-  (static **and** dynamic) outside `libsupabase/src/client.js` and the Deno
-  edge function. This retires the dynamic `await import("@supabase/supabase-js")`
-  at `landmark/src/lib/identity.js:154`.
+  (static **and** dynamic) outside `libsupabase/src/client.js` and the Deno edge
+  function. This retires the dynamic `await import("@supabase/supabase-js")` at
+  `landmark/src/lib/identity.js:154`.
 - The static-inspection rule for `process.env.SUPABASE_*` reads **retains the
   same `libstorage` exemption design-a uses**. design-b does not break the
   pre-existing `libconfig/src → libstorage` import; routing `libstorage` reads

@@ -460,10 +460,9 @@ spec. Re-edit with a tab-preserving editor and re-grep.
 
 Append to `wiki/staff-engineer-2026-W<NN>.md` (current ISO week — use
 `date -u +%G-W%V` to resolve) log: spec 1160 implementation completed;
-bionova-apps repo URL; merged-PR list; smoke result. Append a metrics row
-per [references/metrics.md](../../.claude/skills/kata-plan/references/metrics.md)
-to `wiki/metrics/kata-plan/2026.csv` and
-`wiki/metrics/kata-implement/2026.csv`.
+bionova-apps repo URL; merged-PR list; smoke result. Append a metrics row per
+[references/metrics.md](../../.claude/skills/kata-plan/references/metrics.md) to
+`wiki/metrics/kata-plan/2026.csv` and `wiki/metrics/kata-implement/2026.csv`.
 
 Before opening the trailing PR, the implementer **must** collect the
 eight merged PR URLs in bionova-apps and the URL of the green
@@ -504,9 +503,12 @@ bionova-apps PR and the smoke-CI run.
 ## Verification (end of part 08)
 
 - [ ] `scripts/smoke.sh` exits 0 against fresh stack: SC1–SC6 all pass.
-- [ ] CI `e2e` job runs end-to-end on every PR; failures upload `docker compose logs`.
+- [ ] CI `e2e` job runs end-to-end on every PR; failures upload
+      `docker compose logs`.
 - [ ] Railway project deploys each service on watch-path change.
-- [ ] `wiki/STATUS.md` shows `1160	plan	implemented` after the trailing monorepo PR merges.
-- [ ] `https://github.com/forwardimpact/bionova-apps` is public, builds green, README quickstart works against a fresh clone.
+- [ ] `wiki/STATUS.md` shows `1160    plan    implemented` after the trailing
+      monorepo PR merges.
+- [ ] `https://github.com/forwardimpact/bionova-apps` is public, builds green,
+      README quickstart works against a fresh clone.
 
 — Staff Engineer 🛠️

@@ -74,15 +74,17 @@ refused, returns matching counts, leaves other tenants' records intact).
 
 ## Step C4 — ghbridge uninstall→revoke handler
 
-One sentence: dispatch the uninstall-class webhooks to `tenancy.SetState
-(active→revoked)` then `bridge.MarkTenantRevoked`, mirroring `install-handler.js`.
+One sentence: dispatch the uninstall-class webhooks to
+`tenancy.SetState (active→revoked)` then `bridge.MarkTenantRevoked`, mirroring
+`install-handler.js`.
 
 - Created: `services/ghbridge/src/uninstall-handler.js`
 - Modified: `services/ghbridge/index.js` (route uninstall-class events in
   `#handleWebhook`, near install dispatch at index.js:311)
 
-Concrete change — `handleUninstall(body, { tenancyClient, discussionClient, logger })`
-fires on `installation.deleted`, `installation.suspend`, and
+Concrete change —
+`handleUninstall(body, { tenancyClient, discussionClient, logger })` fires on
+`installation.deleted`, `installation.suspend`, and
 `installation.repositories_removed` (an `isUninstallEvent(event, body)` guard
 mirroring `isInstallEvent`). It resolves each affected installation/repo to its
 `tenant_id`, calls `tenancyClient.SetState({ tenant_id, state: "revoked" })`,
@@ -98,8 +100,8 @@ revoked repo returns nothing).
 ## Step C5 — Multi-tenant store adapter binds ListAllOpenRecesses
 
 One sentence: in `multi` mode the bridge process's store adapter implements the
-no-arg `Store.listOpenRecesses()` by calling `ListAllOpenRecesses`; single-tenant
-keeps calling `ListOpenRecesses(tenant_id)`.
+no-arg `Store.listOpenRecesses()` by calling `ListAllOpenRecesses`;
+single-tenant keeps calling `ListOpenRecesses(tenant_id)`.
 
 - Modified: `services/ghbridge/src/discussion-adapter.js` and
   `services/msbridge/src/discussion-adapter.js` (whichever owns
@@ -122,12 +124,13 @@ re-arm on restart" limitation language now that both ship.
 
 - Modified: `services/ghbridge/README.md`, `services/msbridge/README.md`
 
-Concrete change: replace the ghbridge "Deferred: `installation.repositories_removed`
-revoke" section with a statement that uninstall-class webhooks transition the
-tenant `active→revoked` and cancel in-flight recesses/callbacks. Replace the
-"Documented limitation: multi-tenant elapsed-recess re-arm on restart" sections
-in both READMEs with a statement that a hosted restart re-arms every active
-tenant's pending `elapsed` recess via `ListAllOpenRecesses`.
+Concrete change: replace the ghbridge "Deferred:
+`installation.repositories_removed` revoke" section with a statement that
+uninstall-class webhooks transition the tenant `active→revoked` and cancel
+in-flight recesses/callbacks. Replace the "Documented limitation: multi-tenant
+elapsed-recess re-arm on restart" sections in both READMEs with a statement that
+a hosted restart re-arms every active tenant's pending `elapsed` recess via
+`ListAllOpenRecesses`.
 
 Verification: `rg -n "Deferred: .*revoke|elapsed-recess re-arm on restart"
 services/ghbridge services/msbridge` returns nothing.

@@ -21,8 +21,14 @@ Intent: give the gate a content-stable target and stop the composite check from
 auditing shared state.
 Files modified: `package.json` (root).
 
-- Add script: `"wiki:rules": "bun test libraries/libwiki/test/audit-"`. `bun test` treats positional args as path-substring filters (not shell globs), so this selects every `libraries/libwiki/test/audit-*.test.js` file deterministically — independent of shell glob expansion — and any future `audit-*` test rides along (verified: the substring selects the four current `audit-cli|engine|rules|status-row` files).
-- Change `"check"` from `… && bun run context && bun run wiki` to `… && bun run context` (drop the trailing `&& bun run wiki`).
+- Add script: `"wiki:rules": "bun test libraries/libwiki/test/audit-"`.
+  `bun test` treats positional args as path-substring filters (not shell globs),
+  so this selects every `libraries/libwiki/test/audit-*.test.js` file
+  deterministically — independent of shell glob expansion — and any future
+  `audit-*` test rides along (verified: the substring selects the four current
+  `audit-cli|engine|rules|status-row` files).
+- Change `"check"` from `… && bun run context && bun run wiki` to
+  `… && bun run context` (drop the trailing `&& bun run wiki`).
 - Leave `"wiki"` (`bunx fit-wiki audit`) and `"wiki:fix"` unchanged.
 
 Verify: `bun run wiki:rules` passes; `bun run check` no longer invokes
@@ -121,18 +127,35 @@ than opening a second.
 ### 4. Document surfaces, gate meaning, and cadence
 
 Intent: the gate's meaning, the wiki-coupled surfaces, and the cadence are
-documented in monorepo-local homes.
-Files modified: `.github/workflows/check-context.yml`; `.claude/agents/technical-writer.md`.
+documented in monorepo-local homes. Files modified:
+`.github/workflows/check-context.yml`; `.claude/agents/technical-writer.md`.
 
-- `.github/workflows/check-context.yml`: a comment block beside the `wiki` job with (a) the wiki-coupled-surface list (`libraries/libwiki/**`; the `wiki`/`wiki:rules` scripts; `.github/workflows/check-context.yml`), and (b) the gate-meaning paragraph from design-a § Gate meaning. (Spec § Scope permits this workflow-adjacent home; `.github/CLAUDE.md` has no instruction-budget headroom, so the doc lands here rather than there.)
-- Technical-writer agent profile: one line stating the shared-state audit runs daily via `curate-wiki.yml` and that the curator services its routed `wiki-curation` issues. The exact cron value (06:00 UTC) lives once, in `curate-wiki.yml`.
+- `.github/workflows/check-context.yml`: a comment block beside the `wiki` job
+  with (a) the wiki-coupled-surface list (`libraries/libwiki/**`; the
+  `wiki`/`wiki:rules` scripts; `.github/workflows/check-context.yml`), and (b)
+  the gate-meaning paragraph from design-a § Gate meaning. (Spec § Scope permits
+  this workflow-adjacent home; `.github/CLAUDE.md` has no instruction-budget
+  headroom, so the doc lands here rather than there.)
+- Technical-writer agent profile: one line stating the shared-state audit runs
+  daily via `curate-wiki.yml` and that the curator services its routed
+  `wiki-curation` issues. The exact cron value (06:00 UTC) lives once, in
+  `curate-wiki.yml`.
 
-Verify: the gate doc answers "what does a red `wiki` check mean / who owns shared-state findings" without referencing the spec; the agent profile line names the cadence and points at `curate-wiki.yml`.
+Verify: the gate doc answers "what does a red `wiki` check mean / who owns
+shared-state findings" without referencing the spec; the agent profile line
+names the cadence and points at `curate-wiki.yml`.
 
 ## Risks
 
-- `.claude/**` writes (step 4 agent profile) may be gate-blocked — use `bunx fit-selfedit` per CLAUDE.md if a direct edit is refused, on a non-`main` branch.
-- The `curate-wiki.yml` issue step needs `issues: write` and the repo has no prior issue-writing workflow, so org "Actions → workflow permissions / token can create issues" policy may block it. Exercise the issue-create path at the `workflow_dispatch` verify step (against a dirtied fixture) before relying on the cron — a block then surfaces immediately, not on the first silent 06:00 tick.
+- `.claude/**` writes (step 4 agent profile) may be gate-blocked — use
+  `bunx fit-selfedit` per CLAUDE.md if a direct edit is refused, on a non-`main`
+  branch.
+- The `curate-wiki.yml` issue step needs `issues: write` and the repo has no
+  prior issue-writing workflow, so org "Actions → workflow permissions / token
+  can create issues" policy may block it. Exercise the issue-create path at the
+  `workflow_dispatch` verify step (against a dirtied fixture) before relying on
+  the cron — a block then surfaces immediately, not on the first silent 06:00
+  tick.
 
 ## Execution
 

@@ -7,7 +7,7 @@ levers attach. HOW and sequencing belong in the plan.
 
 Two attachment points, one per lever, plus the data that connects them:
 
-```
+```text
   facilitator dispatch                receiver activation
   ─────────────────────               ────────────────────
   [L2] same-surface gate              [L1] path-scoped staging
@@ -59,12 +59,13 @@ only pre-commit source of truth for "mine."
 
 The facilitator holds a same-surface ask until the prior one returns.
 **Rejected:** an agent-side or claim-based mutex over the surface. #1539
-established the claim handshake is advisory, and a real lock's dominant failure —
-held by a dead activation with no lease — is a failure mode the family does not
-have today (S5, Non-Goals). The facilitator already owns dispatch ordering and
-has liveness signal (the Answer); serialization there needs no lock and no
+established the claim handshake is advisory, and a real lock's dominant failure
+— held by a dead activation with no lease — is a failure mode the family does
+not have today (S5, Non-Goals). The facilitator already owns dispatch ordering
+and has liveness signal (the Answer); serialization there needs no lock and no
 lease. **Also rejected:** a gate-time collision check — that is RFC #873's
-gate-side surface, composable with but distinct from L2's protocol-side ordering.
+gate-side surface, composable with but distinct from L2's protocol-side
+ordering.
 
 ### D4 — Key serialization on the touched surface, not the whole workspace
 
@@ -81,17 +82,17 @@ Genuinely multi-owner directives can legitimately target one shared output that
 no activation stages — a shared reconciliation thread, a session summary doc, an
 Announce. Edit-intent therefore carries two structurally distinct classes:
 **staged paths** (L1 stages; D4 also orders on them) and **output surfaces** (D4
-orders on them; L1 never stages). D4's serialization order-key is the **union** of
-both; L1's stage-set is the staged subset only. **Rejected:** a flat surface list
-with a `staged` flag. A consumer that misreads the flag would let L1 stage a
-surface the activation does not own — reintroducing the exact committed-loss L1
-exists to remove — so the split must be a hard type boundary the L1 consumer
-cannot cross, not a convention. Output surfaces inherit D4's granularity rule (the
-specific thread, never "the wiki"), or the coarser key collapses throughput. This
-serializes on a non-staged surface but adds no lock: it is the same advisory
-dispatch hold as D3, keyed on a wider value set, with the Answer as liveness — S5
-holds. D6/S6 closes #1725's single-owner case; D5 covers only the residual case
-where one output surface is legitimately shared across owners.
+orders on them; L1 never stages). D4's serialization order-key is the **union**
+of both; L1's stage-set is the staged subset only. **Rejected:** a flat surface
+list with a `staged` flag. A consumer that misreads the flag would let L1 stage
+a surface the activation does not own — reintroducing the exact committed-loss
+L1 exists to remove — so the split must be a hard type boundary the L1 consumer
+cannot cross, not a convention. Output surfaces inherit D4's granularity rule
+(the specific thread, never "the wiki"), or the coarser key collapses
+throughput. This serializes on a non-staged surface but adds no lock: it is the
+same advisory dispatch hold as D3, keyed on a wider value set, with the Answer
+as liveness — S5 holds. D6/S6 closes #1725's single-owner case; D5 covers only
+the residual case where one output surface is legitimately shared across owners.
 
 ### D6 — Anchor single-routing cardinality (S6) at the L2 dispatch gate
 
@@ -100,33 +101,34 @@ co-recipients receive a no-staging FYI that carries no edit-intent and requires
 no action. This mirrors how D1 anchors the L1 staging discipline at each commit
 path: S6's cardinality control attaches at L2's existing dispatch gate, the same
 component D3/D4 govern. It bounds **how many** lanes act on a directive, where
-D3/D4 bound **when** same-surface asks run — with one correctly-classified acting
-lane there is no fan-out to serialize. S6's guarantee is exactly as strong as the
-single-owner classifier at the gate (spec.md S6): a directive *misclassified as
-multi-owner* falls through to L2's temporal ordering, which caps asks in time but
-not in lane count, so the fan-out can still occur. This design therefore fixes
-the predicate and its default (D7), per spec.md S6's assignment of that choice to
-design surface. **Rejected:** deduplicating the
+D3/D4 bound **when** same-surface asks run — with one correctly-classified
+acting lane there is no fan-out to serialize. S6's guarantee is exactly as
+strong as the single-owner classifier at the gate (spec.md S6): a directive
+*misclassified as multi-owner* falls through to L2's temporal ordering, which
+caps asks in time but not in lane count, so the fan-out can still occur. This
+design therefore fixes the predicate and its default (D7), per spec.md S6's
+assignment of that choice to design surface. **Rejected:** deduplicating the
 duplicate records after fan-out — that is the coordination-comment floor's job
 (#1667 / #1647 / #1732); S6 prevents the fan-out, upstream of it. Cardinality is
 routing only — no lock, lease, or mutual exclusion — so S5 holds.
 
 ### D7 — Single-owner classifier: a directive is single-owner unless it names ≥2 distinct acting lanes; ambiguous defaults to single-owner
 
-The classifier predicate is structural, not semantic: a directive is **multi-owner
-iff it explicitly names two or more distinct acting recipients each given a
-work-producing instruction**; everything else — one named owner, an unaddressed
-"someone should…", a close-out/decision directive — is **single-owner**. The
-conservative default for ambiguity is therefore **single-owner** (one acting
-lane, the rest FYI). **Rejected:** defaulting ambiguous directives to
-multi-owner. The corpus shows the failure that *ships* is the fan-out (#1725
-Mode A, committed-loss-adjacent duplicate records); a starved FYI lane is
-recoverable by re-dispatch on the next turn, while a fanned-out duplicate-write
-collision is committed loss the repair economy must clean up. Biasing toward the
-recoverable error is the conservative choice the spec's S6 trade-off calls for.
-The cost — a genuinely multi-owner directive misread as single-owner delays its
-other lanes by one dispatch cycle — is bounded and self-correcting; the
-facilitator re-routes the held lanes once the owner Answers.
+The classifier predicate is structural, not semantic: a directive is
+**multi-owner iff it explicitly names two or more distinct acting recipients
+each given a work-producing instruction**; everything else — one named owner, an
+unaddressed "someone should…", a close-out/decision directive — is
+**single-owner**. The conservative default for ambiguity is therefore
+**single-owner** (one acting lane, the rest FYI). **Rejected:** defaulting
+ambiguous directives to multi-owner. The corpus shows the failure that *ships*
+is the fan-out (#1725 Mode A, committed-loss-adjacent duplicate records); a
+starved FYI lane is recoverable by re-dispatch on the next turn, while a
+fanned-out duplicate-write collision is committed loss the repair economy must
+clean up. Biasing toward the recoverable error is the conservative choice the
+spec's S6 trade-off calls for. The cost — a genuinely multi-owner directive
+misread as single-owner delays its other lanes by one dispatch cycle — is
+bounded and self-correcting; the facilitator re-routes the held lanes once the
+owner Answers.
 
 ### D8 — Output surfaces are declared by the facilitator at dispatch, not the receiver
 
@@ -136,9 +138,9 @@ an output surface has no such pressure on the receiver. So the **facilitator**
 names the output surfaces when it forms a multi-owner ask (it already knows the
 shared target it is fanning work toward — that is why it is fanning), and the
 dispatch gate orders on the facilitator-declared set. **Rejected:** relying on
-each receiver to declare output surfaces — an undeclared one silently defeats D4,
-and the receiver has no incentive to declare a surface it merely writes to. Moving
-the declaration to the party with both the knowledge and the ordering
+each receiver to declare output surfaces — an undeclared one silently defeats
+D4, and the receiver has no incentive to declare a surface it merely writes to.
+Moving the declaration to the party with both the knowledge and the ordering
 responsibility closes the gap without a new enforcement mechanism.
 
 ## Data flow
@@ -164,8 +166,8 @@ responsibility closes the gap without a new enforcement mechanism.
 - **Coordination-comment floor** (#1667 / #1647 / #1732): untouched. D6/S6 keeps
   a single-owner directive from fanning out; D5 only orders the *asks* when a
   multi-owner fan-out is legitimate. Deduplicating or serializing the comment
-  *writes* once a fan-out has happened stays the floor's job. They compose; D5/D6
-  do not reach into the comment-write path.
+  *writes* once a fan-out has happened stays the floor's job. They compose;
+  D5/D6 do not reach into the comment-write path.
 
 ## Open questions for the plan
 
@@ -183,6 +185,6 @@ responsibility closes the gap without a new enforcement mechanism.
   (without reintroducing a lease, per S5).
 
 (The classifier predicate and default are now fixed in D7; output-surface
-declaration in D8. The open-ended output-surface *closed set* is no longer a gap:
-D8 moves declaration to the facilitator, so there is no undeclared-by-receiver
-case to enumerate.)
+declaration in D8. The open-ended output-surface *closed set* is no longer a
+gap: D8 moves declaration to the facilitator, so there is no
+undeclared-by-receiver case to enumerate.)

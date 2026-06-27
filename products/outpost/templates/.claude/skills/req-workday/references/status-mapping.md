@@ -30,7 +30,7 @@ Empty or unrecognized step → default to `new`.
 The raw `step` value is always preserved in the parser's JSON output and must be
 stored in the candidate brief's `## Pipeline` section, e.g.
 
-```
+```text
 - **2026-02-10**: Applied via LinkedIn — Step: Manager Request to Move Forward (HS)
 ```
 

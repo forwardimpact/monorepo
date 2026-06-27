@@ -229,7 +229,7 @@ Changes:
 
 ## Implementation Order
 
-```
+```text
 WI-1  Fix IRI hallucination         (P0, prerequisite for quality data)
   ↓
 WI-2  Embed people in org structure  (P1, highest single-metric impact)

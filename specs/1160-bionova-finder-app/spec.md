@@ -58,7 +58,8 @@ ANSI or HTML depending on the surface.
 ### Technology stack
 
 Self-hosted Supabase stack via Docker Compose (PG On Rails pattern). PostgreSQL
-+ pgvector for data and semantic search. PostgREST for auto-generated REST API.
+
+- pgvector for data and semantic search. PostgREST for auto-generated REST API.
 GoTrue for auth. HuggingFace TEI for embeddings. Supabase Edge Functions for
 eligibility scoring and embedding generation. Next.js App Router + Tailwind +
 shadcn/ui for the frontend. Forward Impact shared libraries from npm.

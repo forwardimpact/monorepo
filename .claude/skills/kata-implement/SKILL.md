@@ -37,9 +37,9 @@ alongside the skill-specific ones below.
 - [ ] Claim before first code write — atomic `pull` → check → `claim` →
       `push` per
       [memory-protocol § Active Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#active-claims).
-- [ ] Probe the remote of record: `git ls-remote origin
-      "refs/heads/<branch>"` and `list` changes by head branch and by spec
-      number, any state ([work-trackers.md](../../agents/references/work-trackers.md);
+- [ ] Probe the remote of record: `git ls-remote origin "refs/heads/<branch>"`
+      and `list` changes by head branch and by spec number, any state
+      ([work-trackers.md](../../agents/references/work-trackers.md);
       [§ Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create)).
 - [ ] Read the full spec and all plan files before writing any code.
 - [ ] Implement plan-a unless explicitly directed to a different variant.
@@ -67,8 +67,11 @@ alongside the skill-specific ones below.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this Process. Extract previously implemented specs
-and blockers.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and (when this skill reads
+Tier-2 surfaces) `storyboard_items` seed the rest of this Process. Extract
+previously implemented specs and blockers.
 
 > **Writing under `.claude/`:** If the plan targets files there, follow
 > [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md).
@@ -159,10 +162,12 @@ before advancing.
 ### Step 8: Open an implementation PR
 
 Push commits only after the panel is clean; re-run the READ-DO freshness probe
-before the `open-change`. Title the PR with the spec id: `feat(scope): ... (#NNN)`.
-After opening, announce and route on the coordinating issue per
+before the `open-change`. Title the PR with the spec id:
+`feat(scope): ... (#NNN)`. After opening, announce and route on the coordinating
+issue per
 [coordination-protocol § Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#claim--probe--create),
-and hold the PR body to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
+and hold the PR body to
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
 
 ## Handling Problems
 
@@ -184,7 +189,8 @@ Append to the current week's log (see agent profile for the file path):
 
 - **Spec implemented** — Spec number, name, and branch
 - **PR opened** — PR number and branch name
-- **Blockers encountered** — Plan deviations, divergences, test failures, and fixes
+- **Blockers encountered** — Plan deviations, divergences, test failures, and
+  fixes
 - **Deferred specs** — Specs skipped and why
 - **Metrics** — One row per run to `wiki/metrics/{skill}/` per
   `references/metrics.md` (eligibility in KATA.md § Metrics). The metric is

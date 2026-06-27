@@ -32,7 +32,8 @@ monorepo. "Instructions" means all three surfaces, treated equally:
 - `.claude/skills/*/SKILL.md` and reference files — skills.
 - `CHANGELOG.md` (root) — the existing changelog, for what's already recorded.
 - The changes made in the current working session — the source of truth for what
-  changed, since the KB lives on a synced filesystem and is not version-controlled.
+  changed, since the KB lives on a synced filesystem and is not
+  version-controlled.
 
 ## Outputs
 

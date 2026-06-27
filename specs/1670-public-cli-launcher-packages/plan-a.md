@@ -101,12 +101,12 @@ Changes:
   }
   ```
 
-  then `node scripts/check-metadata.mjs --fix` stamps homepage, repository
-  (with per-dir `directory`), license, author, engines, publishConfig, and
-  canonical key order. `launchers/` is deliberately **not** added to root
-  `workspaces` (design Decision 7b) and carries no `os` field — a
-  platform-restricted source (`products/outpost`, `os: ["darwin"]`) surfaces
-  its own `EBADPLATFORM` at install time, which is the correct error.
+  then `node scripts/check-metadata.mjs --fix` stamps homepage, repository (with
+  per-dir `directory`), license, author, engines, publishConfig, and canonical
+  key order. `launchers/` is deliberately **not** added to root `workspaces`
+  (design Decision 7b) and carries no `os` field — a platform-restricted source
+  (`products/outpost`, `os: ["darwin"]`) surfaces its own `EBADPLATFORM` at
+  install time, which is the correct error.
 - `launchers/README.md` states the contract (npm name = invoked name, version
   stamped at publish from the source, exact-pinned dependency), cites spec
   1670, and points to `scripts/check-public-cli-set.mjs` as the enforcement.
@@ -143,12 +143,14 @@ Changes:
     globs (`libraries/*`, `products/*`, `services/*`), per bin entry.
   - **Rule output**: invoked ∩ bins, per bin name.
   - Failure conditions, each with a message naming the offending dir/file:
+
     | # | Condition |
     |---|---|
     | a | the set of `launchers/` **subdirectories** (non-directories like `README.md` excluded) ≠ rule output (either direction) |
     | b | launcher `bin` key ≠ its dir/package name; or `bin/` does not contain exactly one file; or that file is not **byte-exact** equal to the canonical two-line shape (shebang line + the rule-mapped `@forwardimpact/<src>/bin/<cli>.js` import line, LF line endings, single trailing newline — Step 3's code block is the canonical byte sequence) — content equality, not import parsing, because `files: ["bin/"]` ships the whole dir and pinning `package.json` alone stops neither appended code nor a second file (PR #1543 carry 2, [issuecomment-4678620460](https://github.com/forwardimpact/monorepo/pull/1543#issuecomment-4678620460)); or the source `exports` lacks that subpath |
     | c | launcher `version` ≠ `"0.0.0"` or its dependency pin ≠ `"0.0.0"` |
     | d | launcher `package.json` has a key outside the allowed set {name, version, description, homepage, repository, license, author, type, bin, files, dependencies, engines, publishConfig} (subset semantics, per design: "no keys beyond the canonical metadata set"); or is missing any of {name, version, type, bin, files, dependencies}; or `dependencies` ≠ exactly one entry equal to the rule's mapped source; or `files` ≠ `["bin/"]`; or `bin` has ≠ 1 key |
+
 - Tests (in-memory fixtures): missing launcher, stale launcher, bin file
   content deviating from the canonical two-line shape (wrong source import;
   appended third line), a second file in `bin/`, missing source export
@@ -260,8 +262,8 @@ Changes:
 
   where `$SPEC` is `--workspace="$NPM_NAME"` for the source and
   `./launchers/<cli>` for each launcher. A transient failure mid-loop is
-  recovered by re-running the tag: already-published artifacts skip, the
-  rest complete (design § Failure modes).
+  recovered by re-running the tag: already-published artifacts skip, the rest
+  complete (design § Failure modes).
 
 Verify: no local command executes this step either — Step 8.4 rehearses the
 `decide` branch logic against the live registry
@@ -352,7 +354,7 @@ Verify: rehearsal transcript attached to the PR description.
   behavior and describes the un-forced path; verified on npm 10.9.8 and
   re-proven by Step 8.3's all-source linux install.
 - **`--provenance` is new for source publishes too** — needs the public repo
-  + `id-token: write` (both present). A sigstore outage fails the publish;
+  - `id-token: write` (both present). A sigstore outage fails the publish;
   re-running the tag is safe because of the idempotent skip.
 - **First-publish window** — until the first coordinated release, the 22
   unscoped names remain squattable; ownership check turns a pre-claimed name

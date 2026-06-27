@@ -49,7 +49,8 @@ so only structurally anchored restatements are asserted, never free prose. The
 full per-service consumer set is populated in Part 03 once the canonical values
 are fixed; Part 01 seeds `mcp` and `trace` as worked examples.
 
-Verification: `node -e "import('yaml').then(y=>y.parse(require('fs').readFileSync('.coaligned/invariants/service-url-drift.registry.yml','utf8')))"`
+Verification:
+`node -e "import('yaml').then(y=>y.parse(require('fs').readFileSync('.coaligned/invariants/service-url-drift.registry.yml','utf8')))"`
 exits 0 (the `yaml` package, already a root dependency, is what the rule module
 uses at runtime — `import { parse } from "yaml"`, per `ambient-deps.rules.mjs`).
 
@@ -100,7 +101,7 @@ Concrete change — default export `{ name, build, rules }`:
 
 - `name: "service-url-drift"`.
 - `build({ root, runtime })`: load the registry (`import { parse } from "yaml"`
-  + node `fs`), and for each service compute `expectedUrl(root, manifest,
+  - node `fs`), and for each service compute `expectedUrl(root, manifest,
   name)`. For each consumer, locate every restated URL with `rgMatches` (from
   `./lib/rg.mjs`, `onlyMatching: true`) using a per-`kind` pattern that matches
   the **value** (e.g. `(?<=SERVICE_<NAME>_URL[=:]\s*"?)\S+?(?="?$)` for
@@ -109,11 +110,9 @@ Concrete change — default export `{ name, build, rules }`:
   text }`, so the pattern must isolate the value itself. Produce subjects
   `{ service, path, lineNo, restated: m.text, expected }`. Return
   `{ subjects: { "url-restatement": [...] } }`.
-- `rules: [{ id: "service-url.drift", scope: "url-restatement",
-  severity: "fail", check: (s) => urlsEqual(s.restated, s.expected, s.service)
-  ? null : { restated: s.restated }, message: (s) =>
-  `${s.service}: ${s.path}:${s.lineNo} restates ${s.restated}, expected ${s.expected}`,
-  hint: "align the consumer to the service's createServiceConfig URL or update the manifest" }]`.
+- `rules: [{ id: "service-url.drift", scope: "url-restatement", severity: "fail", check: (s) => urlsEqual(s.restated, s.expected, s.service) ? null : { restated: s.restated }, message: (s) => `${s.service}: ${s.path}:${s.lineNo} restates ${s.restated},
+  expected
+  ${s.expected}`, hint: "align the consumer to the service's createServiceConfig URL or update the manifest" }]`.
 - `seed`: omitted — the audit is a standalone script (Step 4), keeping the gate
   and the audit independent per success-criterion 2.
 

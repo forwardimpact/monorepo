@@ -28,8 +28,8 @@ Concrete change — `createPeerVerifier({ publicKeys, clock })` returns
 - `publicKeys` is a `Map<callerId, pem>` supplied by the key resolver (Step A3),
   not embedded — one trust root shared with the App key custody.
 
-Verification: `bun test test/peer-auth.test.js` (valid token → identity; expired,
-wrong-aud, unknown-issuer, absent → null).
+Verification: `bun test test/peer-auth.test.js` (valid token → identity;
+expired, wrong-aud, unknown-issuer, absent → null).
 
 ## Step A2 — Server interceptor wiring + reject path
 
@@ -60,7 +60,7 @@ without a process restart.
 
 - Created: `services/ghserver/src/key-resolver.js`
 - Modified: `services/ghserver/server.js` (replace `assertNonEmpty(private_key)`
-  + literal `createAppAuthCustody({ private_key })` with the resolver),
+  - literal `createAppAuthCustody({ private_key })` with the resolver),
   `services/ghserver/src/app-auth.js` (accept a `privateKeyProvider` instead of
   a literal `private_key`)
 

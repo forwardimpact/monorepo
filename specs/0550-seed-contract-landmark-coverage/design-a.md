@@ -101,7 +101,7 @@ conform, not the other way around.
 The existing `transformAll()` runs `people → getdx → github` in sequence. Append
 `transformEvidence()` after GitHub, preserving the existing order:
 
-```
+```text
 people → getdx → github → evidence (new, appended)
 ```
 
@@ -160,7 +160,7 @@ shouldn't need to know artifact metadata shapes.
 
 ### Evidence (end to end)
 
-```
+```text
 DSL scenario.affects.evidence_skills
   → generateEvidence() → [{person_email, skill_id, proficiency, observed_at}]
   → renderGetDXPayloads() (evidence is co-located here) → getdx/evidence.json
@@ -172,7 +172,7 @@ DSL scenario.affects.evidence_skills
 
 ### Comments (end to end)
 
-```
+```text
 DSL snapshots.comments_per_snapshot
   → generateCommentKeys() → [{snapshot_id, email, driver, timestamp}]
   → renderGetDXComments() → getdx/snapshots-comments/{id}.json (PATH FIX)

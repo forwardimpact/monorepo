@@ -34,9 +34,8 @@ i, N)` is empty for `i > c.length`.
 A first-class shard selector applied before scheduling; an unsharded run is the
 identity `1/1`.
 
-- **Modified:** `src/commands/benchmark-run.js`, `src/commands/benchmark-definition.js`,
-  `src/benchmark/runner.js`
-
+- **Modified:** `src/commands/benchmark-run.js`,
+  `src/commands/benchmark-definition.js`, `src/benchmark/runner.js`
 - Add a `parseShard(raw)` helper in `benchmark-run.js`: parse `"<i>/<N>"` to
   `{index, total}`, validate integers with `1 ≤ index ≤ total`; absent → `null`
   (identity). Thread `shard` into `parseRunOptions`' result.
@@ -72,15 +71,14 @@ records before grouping; the single-file read is deleted.
 - **Modified:** `src/benchmark/report.js`, `src/commands/benchmark-run.js`
   (zero-record guard), `test/golden/fit-benchmark/cases.json` +
   `report-empty.*` goldens
-
 - Rewrite `loadRecords(inputDir, runtime)` to walk `inputDir` recursively with a
   **purpose-built generator** (skip `.git`/`node_modules`, match files named
   `results.jsonl`), then parse/validate/union their lines exactly as today (same
   skip-and-count-on-malformed behavior). Do **not** reuse `task-family.js`'s
   private `walkFiles` — it resolves symlinks and is unexported; `report` wants a
   plain `readdir`-recurse with no symlink following, so write a small local
-  walker. A lone root-level ledger is the trivial one-match case — one code path.
-  Delete the `join(inputDir, "results.jsonl")` single read.
+  walker. A lone root-level ledger is the trivial one-match case — one code
+  path. Delete the `join(inputDir, "results.jsonl")` single read.
 - An unexpected duplicate `(taskId, runIndex)` across shards is **warned and
   counted** to stderr (the partition guarantees none, so a duplicate signals
   misconfiguration), not silently merged — surface it; still include both in
@@ -95,14 +93,14 @@ records before grouping; the single-file read is deleted.
     returns `[]` — that would silently flip the missing-dir case to exit 0 and
     break the retained golden; only an *existing* empty dir yields the empty
     union. (b) Preserve the deliberate stack collapse the current `loadRecords`
-    applies (report.js:442-448: `err.stack = \`Error: ${e.message}\``) so the CLI
-    error stays free of node-internal async frames; a raw `readdir` ENOENT would
-    regenerate to a noisier golden that passes `--verify` while regressing error
-    presentation. The existing `report-empty` golden points `--input` at
-    `test/golden/fit-benchmark/empty-runs`, **which does not exist on disk** — so
-    it stays the missing-dir error case. The error now originates from `readdir`
-    (not the old `readFile`); **regenerate `report-empty.*` and keep the `ENOENT`
-    transform** in `cases.json`; the exit code stays `1`.
+    applies (report.js:442-448: `err.stack = \`Error: ${e.message}\``) so the
+    CLI error stays free of node-internal async frames; a raw `readdir` ENOENT
+    would regenerate to a noisier golden that passes `--verify` while regressing
+    error presentation. The existing `report-empty` golden points `--input` at
+    `test/golden/fit-benchmark/empty-runs`, **which does not exist on disk** —
+    so it stays the missing-dir error case. The error now originates from
+    `readdir` (not the old `readFile`); **regenerate `report-empty.*` and keep
+    the `ENOENT` transform** in `cases.json`; the exit code stays `1`.
   - Cover the *exists-but-empty → exit 0* path with a new `report` unit test
     (Step 4), since no golden exercises it.
 
@@ -119,10 +117,10 @@ is `--verify` clean.
   sibling because `benchmark-report.test.js` is already 389 LOC and these cases
   would push it past the 400-LOC `test-file-shape` ceiling)
 - **Modified:** `test/work-tracker.test.js` (`parseShard` — this file already
-  hosts the `parseRunOptions` option tests), `test/golden/fit-benchmark/run-help.*`
-  (re-regenerated after Part 01: `--shard` lands in the same definition, so
-  this part re-runs the golden capture — see Part 01 Step 7 for the exact
-  package-root invocation)
+  hosts the `parseRunOptions` option tests),
+  `test/golden/fit-benchmark/run-help.*` (re-regenerated after Part 01:
+  `--shard` lands in the same definition, so this part re-runs the golden
+  capture — see Part 01 Step 7 for the exact package-root invocation)
 
 | Criterion | Test |
 | --- | --- |

@@ -1,12 +1,15 @@
 # Plan 0960-a, Part 01 — Foundation
 
-Land the helpers and accessors every other part depends on. No call sites change yet.
+Land the helpers and accessors every other part depends on. No call sites change
+yet.
 
 ## Step 1 — Add `mintSupabaseAnonKey` and `mintSupabaseServiceRoleKey` to libsecret
 
-Long-lived role JWTs with the `{iss: "supabase", iat, exp}` envelope used by today's `env-storage.js` lines 30–34.
+Long-lived role JWTs with the `{iss: "supabase", iat, exp}` envelope used by
+today's `env-storage.js` lines 30–34.
 
-Files modified: `libraries/libsecret/src/index.js`, `libraries/libsecret/test/libsecret.test.js`.
+Files modified: `libraries/libsecret/src/index.js`,
+`libraries/libsecret/test/libsecret.test.js`.
 
 Append after `mintSupabaseJwt`:
 
@@ -31,15 +34,19 @@ export function mintSupabaseServiceRoleKey({ secret }) {
 }
 ```
 
-Add unit tests covering: returns a 3-segment HS256 JWT; payload contains `role` and `iss: "supabase"`; `exp − iat` equals the 10-year constant; rejects empty `secret` with the named error.
+Add unit tests covering: returns a 3-segment HS256 JWT; payload contains `role`
+and `iss: "supabase"`; `exp − iat` equals the 10-year constant; rejects empty
+`secret` with the named error.
 
 Verification: `bun test libraries/libsecret/test/libsecret.test.js` green.
 
 ## Step 2 — Extend `Config.#CREDENTIAL_KEYS` and add four Supabase accessors
 
-Files modified: `libraries/libconfig/src/config.js`, `libraries/libconfig/test/config.test.js`.
+Files modified: `libraries/libconfig/src/config.js`,
+`libraries/libconfig/test/config.test.js`.
 
-In `libraries/libconfig/src/config.js`, replace the `#CREDENTIAL_KEYS` set (currently lines 48–53):
+In `libraries/libconfig/src/config.js`, replace the `#CREDENTIAL_KEYS` set
+(currently lines 48–53):
 
 ```js
 static #CREDENTIAL_KEYS = new Set([
@@ -77,11 +84,16 @@ supabaseJwtSecret() {
 }
 ```
 
-`SUPABASE_URL` is **not** in `#CREDENTIAL_KEYS` — design § Key Decisions row 7. The URL must remain on `process.env` so docker-compose's `${SUPABASE_URL}` interpolation works at the shell level.
+`SUPABASE_URL` is **not** in `#CREDENTIAL_KEYS` — design § Key Decisions row 7.
+The URL must remain on `process.env` so docker-compose's `${SUPABASE_URL}`
+interpolation works at the shell level.
 
 ## Step 3 — Cover the four accessors with libconfig unit tests
 
-Files modified: `libraries/libconfig/test/libconfig-getters.test.js` (accessor round-trips + throw shape), `libraries/libconfig/test/libconfig-credentials.test.js` (the `process.env` isolation assertions, mirroring the existing `ANTHROPIC_API_KEY` block).
+Files modified: `libraries/libconfig/test/libconfig-getters.test.js` (accessor
+round-trips + throw shape),
+`libraries/libconfig/test/libconfig-credentials.test.js` (the `process.env`
+isolation assertions, mirroring the existing `ANTHROPIC_API_KEY` block).
 
 Cover, against a stub `process.env`:
 
@@ -95,21 +107,27 @@ Cover, against a stub `process.env`:
 | `SUPABASE_URL` remains on `process.env` after `Config.load()` | Mirror the existing non-credential test |
 | Each accessor throws `<KEY> not found in environment` when unset | Match the existing `#resolve` throw shape |
 
-Verification: `bun test libraries/libconfig/test/libconfig-getters.test.js libraries/libconfig/test/libconfig-credentials.test.js` green.
+Verification:
+`bun test libraries/libconfig/test/libconfig-getters.test.js libraries/libconfig/test/libconfig-credentials.test.js`
+green.
 
 ## Step 4 — Publish the new libsecret exports
 
 Files modified: `libraries/libsecret/README.md`.
 
-Update the exports table / example block to list `mintSupabaseAnonKey` and `mintSupabaseServiceRoleKey` next to `mintSupabaseJwt`. One-line description each. No new top-level section.
+Update the exports table / example block to list `mintSupabaseAnonKey` and
+`mintSupabaseServiceRoleKey` next to `mintSupabaseJwt`. One-line description
+each. No new top-level section.
 
 Verification: visually inspect; no test gate.
 
 ## Step 5 — Regenerate catalog and run integration check
 
-Files modified: none (verification only — version bumps are owned by `kata-release-cut`, not this PR).
+Files modified: none (verification only — version bumps are owned by
+`kata-release-cut`, not this PR).
 
-Verification: `bun run context:fix` produces no diff; `bun test libraries/libsecret libraries/libconfig` green.
+Verification: `bun run context:fix` produces no diff;
+`bun test libraries/libsecret libraries/libconfig` green.
 
 ## Dependencies
 

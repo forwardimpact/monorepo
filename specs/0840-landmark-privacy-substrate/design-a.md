@@ -16,7 +16,7 @@
 
 ## Interfaces
 
-```
+```text
 identity.js   resolveIdentity(): { email, jwt }   throws IdentityUnresolvedError
 supabase.js   createLandmarkClient(token): SupabaseClient
 retention.js  readRetention(supabase, table): { window, clock }

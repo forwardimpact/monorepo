@@ -159,6 +159,7 @@ The constant `GITHUB_ID_SURFACES` is module-level, placed below
 `EXPIRY_BUFFER_MS`.
 
 Verify: new test `services/ghauth/test/identity-verification.test.js`:
+
 - matching id → binding created with `github_user_id` populated, no
   `outcome` on the response
 - mismatching id → no binding created/modified, response has
@@ -213,6 +214,7 @@ if (result.outcome === "identity_mismatch") {
 ```
 
 Verify: update `services/oauth/test/authorize.test.js`:
+
 - `/authorize` with `client_state` passes it to `Begin`
 - `/callback` receiving `outcome: "identity_mismatch"` renders the refusal
   page (200, HTML contains "mismatch")
@@ -295,6 +297,7 @@ count in `SweepResponse.evicted_pending`.
 **shutdown** — flush pending dispatches alongside discussions and origins.
 
 Verify: add tests to `services/bridge/test/bridge.test.js`:
+
 - put → resolve returns the record and consumes it (second resolve →
   NOT_FOUND)
 - sweep evicts records older than TTL

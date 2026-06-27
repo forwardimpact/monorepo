@@ -45,8 +45,10 @@ document to a manager has no way to repair the result.
 
 Out-of-scope kin from #874:
 
-- **Bug 2 (`× null` track)** — one right answer (omit when null); in flight as PR #878.
-- **Bug 3 (double period)** — one right answer (route through the existing `ensurePeriod()` helper); in flight as PR #878.
+- **Bug 2 (`× null` track)** — one right answer (omit when null); in flight as
+  PR #878.
+- **Bug 3 (double period)** — one right answer (route through the existing
+  `ensurePeriod()` helper); in flight as PR #878.
 
 If PR #878 lands first, this spec's design and plan inherit a tree where bugs
 2 and 3 are already fixed; if this spec's implementation lands first, the bug
@@ -60,8 +62,8 @@ time, or the formatter should accept either shape and normalise on output.
 ## Personas and Job
 
 The hire is **Empowered Engineers** against the Big Hire "Help me see exactly
-what's expected at my level so I stop guessing during reviews" ([JTBD.md](../../JTBD.md)
-§ Empowered Engineers: Understand Expectations).
+what's expected at my level so I stop guessing during reviews"
+([JTBD.md](../../JTBD.md) § Empowered Engineers: Understand Expectations).
 
 The job is fired *while preparing for a 1:1*: the engineer pastes the rendered
 markdown into a prep doc or hands it to a manager. The competing alternative
@@ -116,6 +118,7 @@ discovering breakage at the engineer's 1:1.
   change, in-tree standards (the starter and any in-repo fixtures) are
   updated in the same PR. No runtime shim translates legacy shapes — the
   contract is the contract.
+
 ## Success Criteria
 
 | Claim | Verification |

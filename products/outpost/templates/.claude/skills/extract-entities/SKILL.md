@@ -76,7 +76,8 @@ writes.
 ### 0. Load context and pick the batch
 
 Read the user's identity from `~/.cache/fit/outpost/state/identity.md` (run the
-`person-identify` skill first if it is missing or stale). Find new/changed files:
+`person-identify` skill first if it is missing or stale). Find new/changed
+files:
 
 ```bash
 node scripts/state.mjs check
@@ -151,7 +152,8 @@ filler or meta-commentary.
   domain-lead inference):
   [references/recruitment.md](references/recruitment.md).
 - **Priority links** (Step 7c): rules in
-  [references/links.md](references/links.md#priorities-step-7c). **Never auto-create.**
+  [references/links.md](references/links.md#priorities-step-7c).
+  **Never auto-create.**
 - **Conditions** (cross-cutting states affecting ≥ 3 entities):
   [references/conditions.md](references/conditions.md).
 

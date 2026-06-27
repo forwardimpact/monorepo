@@ -53,18 +53,19 @@ sequenceDiagram
 ## Cross-repo delivery (sequencing constraint, not architecture)
 
 The `kata-agent` composite is a sibling repo. Per
-[`.github/CLAUDE.md`](../../.github/CLAUDE.md) § Editing a published action,
-its (a)/(b) edits land via append-only patch tag → Dependabot SHA-bump PR, and
-under the [#1547](https://github.com/forwardimpact/monorepo/issues/1547)
-forbearance clause a manual sibling SHA-bump PR waits ≤7 days for the weekly
-sweep unless urgency applies, carrying tag↔SHA verification evidence. The
-monorepo PR therefore lands: the `kata-dispatch.yml` mint+stamp+re-auth surface,
-the playbook, and the profile links — the in-repo deliverables — and **files an
-Issue with the composite diff** for the sibling (agent tokens scope to
-`kata-agent-team` only, no sibling push rights). The agent-loaded playbook (c)
-is independent of the composite and merges regardless (spec § phased delivery).
-Adjacent [#1548](https://github.com/forwardimpact/monorepo/issues/1548) is noted,
-not folded.
+[`.github/CLAUDE.md`](../../.github/CLAUDE.md) § Editing a published action, its
+(a)/(b) edits land via append-only patch tag → Dependabot SHA-bump PR, and under
+the [#1547](https://github.com/forwardimpact/monorepo/issues/1547) forbearance
+clause a manual sibling SHA-bump PR waits ≤7 days for the weekly sweep unless
+urgency applies, carrying tag↔SHA verification evidence. The monorepo PR
+therefore lands: the `kata-dispatch.yml` mint+stamp+re-auth surface, the
+playbook, and the profile links — the in-repo deliverables — and
+**files an Issue with the composite diff** for the sibling (agent tokens scope
+to `kata-agent-team` only, no sibling push rights). The agent-loaded playbook
+(c) is independent of the composite and merges regardless (spec § phased
+delivery). Adjacent
+[#1548](https://github.com/forwardimpact/monorepo/issues/1548) is noted, not
+folded.
 
 ## Clean break
 

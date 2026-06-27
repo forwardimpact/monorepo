@@ -181,9 +181,9 @@ this part does:
   `summary_files_conforming` (count of `wiki/<agent>.md` files where
   `wc -l ≤ 80`). Create the CSV and header row if missing.
 - Note in the technical-writer's summary under `## Observations for Teammates`:
-  "Spec 0590 migration complete — next non-curate TW run's kata-trace should show
-  ≤12 wiki reads pre-first-action and first-non-read-action ≤ turn 30 (both 50%
-  of baseline)."
+  "Spec 0590 migration complete — next non-curate TW run's kata-trace should
+  show ≤12 wiki reads pre-first-action and first-non-read-action ≤ turn 30 (both
+  50% of baseline)."
 
 The actual kata-trace comparison is a later improvement-coach / technical-writer
 joint action; it is not in scope for this part.

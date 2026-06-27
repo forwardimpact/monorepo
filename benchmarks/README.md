@@ -12,7 +12,7 @@ Task families for `fit-benchmark`. Each family lives under
 
 ## Task family layout
 
-```
+```text
 benchmarks/<family>/
 ├── apm.yml                      # skill pack dependencies (checked in)
 ├── judge.md                     # family-local judge profile (checked in)

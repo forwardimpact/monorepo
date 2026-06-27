@@ -14,7 +14,7 @@ the overall shape, then read whichever sub-plan you are implementing in full.
 
 ## Dependency order
 
-```
+```text
 plan-a-01.md  (no dependencies — must merge first)
         │
         ├──────────────────────┐

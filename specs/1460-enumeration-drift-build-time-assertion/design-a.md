@@ -107,7 +107,7 @@ spec's dated table:
 Every registered consumer carries a fenced block per asserted
 property, `<!-- enum:TOPIC:PROPERTY -->` … `<!-- /enum -->`:
 
-```
+```text
 <!-- enum:services-tree:list -->
 …content the plan defines…
 <!-- /enum -->

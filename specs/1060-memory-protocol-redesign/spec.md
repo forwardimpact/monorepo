@@ -162,13 +162,13 @@ Beyond the eight decision areas, the redesign:
   floor is allowed to consume. The append-vs-rewrite choice for any
   read-hot file is made with the reader's cost in view, not only the
   writer's.
-- **Replaces probe-heavy writes with primitives.** Where the current
-  protocol leaves writers to fan out across `date`/`ls`/`Read`/`wc -l`/`grep`/`tail`
-  to find an insertion point (F4), the redesign names a primitive — a
-  `fit-wiki` subcommand, a Stop-hook contract, or an equivalent — that
-  collapses the fan-out to one call. Decision area #8 names the specific
-  primitive; this bullet states the principle: no protocol-mandated write
-  should cost six probes.
+- **Replaces probe-heavy writes with primitives.** Where the current protocol
+  leaves writers to fan out across `date`/`ls`/`Read`/`wc -l`/`grep`/`tail` to
+  find an insertion point (F4), the redesign names a primitive — a `fit-wiki`
+  subcommand, a Stop-hook contract, or an equivalent — that collapses the
+  fan-out to one call. Decision area #8 names the specific primitive; this
+  bullet states the principle: no protocol-mandated write should cost six
+  probes.
 - **Names the jobs it serves.** The shared jobs the protocol demonstrably
   serves but does not name today — "find next thing to pick up without
   colliding," "trust another agent's reported state without re-deriving,"
@@ -238,11 +238,12 @@ Beyond the eight decision areas, the redesign:
   of the problem (a read surface for in-flight claims); the *gate side*
   (PR-check tripwires) remains with RFC #873 and is followed, not
   preempted, by this spec.
-- **External-system survey.** The research corpus explicitly excluded a
-  survey of comparable agent memory architectures (`memory-protocol-research-2026-05-16.md`
-  § The four-piece corpus, closing paragraph at lines 25–26; § Method note
-  begins at line 141 and reiterates the exclusion in its "Excluded by user
-  scope choice" bullet). The redesign does not require one.
+- **External-system survey.** The research corpus explicitly excluded a survey
+  of comparable agent memory architectures
+  (`memory-protocol-research-2026-05-16.md` § The four-piece corpus, closing
+  paragraph at lines 25–26; § Method note begins at line 141 and reiterates the
+  exclusion in its "Excluded by user scope choice" bullet). The redesign does
+  not require one.
 
 ## Success Criteria
 
@@ -282,9 +283,10 @@ Beyond the eight decision areas, the redesign:
 - [coordination-protocol.md](../../.claude/agents/references/coordination-protocol.md)
   and [approval-signals.md](../../.claude/agents/references/approval-signals.md)
   — sibling references, deliberately out of scope.
-- RFC Discussion [#873](https://github.com/forwardimpact/monorepo/discussions/873)
-  — parallel-domain-assess collision, the gate-side counterpart to
-  decision area #4.
+- RFC Discussion
+  [#873](https://github.com/forwardimpact/monorepo/discussions/873) —
+  parallel-domain-assess collision, the gate-side counterpart to decision area
+  #4.
 - Issue [#942](https://github.com/forwardimpact/monorepo/issues/942) and
   PR [#943](https://github.com/forwardimpact/monorepo/pull/943) — F1's
   tool-side fix, illustrating the tool+protocol composition pattern named

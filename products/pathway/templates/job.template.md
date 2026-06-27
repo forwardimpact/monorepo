@@ -21,12 +21,14 @@
 ## ROLE BEHAVIOURS
 
 {{#behaviours}}
+
 - **{{{behaviourName}}}:** {{{maturityDescription}}}
 {{/behaviours}}
 {{/hasBehaviours}}
 {{#hasCapabilitySkills}}
 
 ## ROLE RESPONSIBILITIES
+
 {{#capabilitySkills}}
 
 ### {{{capabilityHeading}}}
@@ -34,6 +36,7 @@
 {{{responsibilityDescription}}}:
 
 {{#skills}}
+
 - **{{{skillName}}}:** {{{proficiencyDescription}}}
 {{/skills}}
 {{/capabilitySkills}}

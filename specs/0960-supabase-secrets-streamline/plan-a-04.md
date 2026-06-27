@@ -1,12 +1,16 @@
 # Plan 0960-a, Part 04 — Compose + static-inspection gate
 
-Close the loop: rewrite `docker-compose.yml`, retarget the two existing static-inspection tests, and add the new test that asserts no consumer reads Supabase env vars directly.
+Close the loop: rewrite `docker-compose.yml`, retarget the two existing
+static-inspection tests, and add the new test that asserts no consumer reads
+Supabase env vars directly.
 
 ## Step 1 — Rewrite `docker-compose.yml` Supabase wiring
 
 Files modified: `docker-compose.yml`.
 
-Four services touch Supabase variables; all four migrate identically. Drop `env_file: [.env, .env.storage.supabase]` to `env_file: .env` (since the storage env-files were deleted in Part 02). Rewrite each interpolation:
+Four services touch Supabase variables; all four migrate identically. Drop
+`env_file: [.env, .env.storage.supabase]` to `env_file: .env` (since the storage
+env-files were deleted in Part 02). Rewrite each interpolation:
 
 | Service | Line(s) | Before → After |
 | --- | --- | --- |
@@ -19,29 +23,46 @@ Four services touch Supabase variables; all four migrate identically. Drop `env_
 | `supabase-map-storage` | 259–261 | `env_file: [.env, .env.storage.supabase]` → `env_file: .env` |
 | `supabase-map-storage` | 264 | `PGRST_JWT_SECRET: ${JWT_SECRET}` → `PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}` |
 
-Verification: `rg MAP_SUPABASE docker-compose.yml` returns zero matches; `rg JWT_SECRET docker-compose.yml` returns zero matches (the only `JWT_SECRET` substring left is inside `PGRST_JWT_SECRET` and `SUPABASE_JWT_SECRET`, which are distinct identifiers — assert `rg '\bJWT_SECRET\b' docker-compose.yml` returns zero); `docker compose --profile map-supabase config` with a `.env` produced by `just env-setup` resolves every variable with no warnings.
+Verification: `rg MAP_SUPABASE docker-compose.yml` returns zero matches;
+`rg JWT_SECRET docker-compose.yml` returns zero matches (the only `JWT_SECRET`
+substring left is inside `PGRST_JWT_SECRET` and `SUPABASE_JWT_SECRET`, which are
+distinct identifiers — assert `rg '\bJWT_SECRET\b' docker-compose.yml` returns
+zero); `docker compose --profile map-supabase config` with a `.env` produced by
+`just env-setup` resolves every variable with no warnings.
 
 ## Step 2 — Retarget `service-role-still-used.test.js`
 
 Files modified: `products/map/test/activity/service-role-still-used.test.js`.
 
-Rename the test description, the body's `body.includes("MAP_SUPABASE_SERVICE_ROLE_KEY")` (line 35) → `body.includes("supabaseServiceRoleKey")`, and the failure message. The new assertion: at least one src file calls `config.supabaseServiceRoleKey()` — the post-migration write-path credential signal.
+Rename the test description, the body's
+`body.includes("MAP_SUPABASE_SERVICE_ROLE_KEY")` (line 35) →
+`body.includes("supabaseServiceRoleKey")`, and the failure message. The new
+assertion: at least one src file calls `config.supabaseServiceRoleKey()` — the
+post-migration write-path credential signal.
 
-Verification: `bun test products/map/test/activity/service-role-still-used.test.js` green; a synthetic test that removes every `supabaseServiceRoleKey()` from src fails the test.
+Verification:
+`bun test products/map/test/activity/service-role-still-used.test.js` green; a
+synthetic test that removes every `supabaseServiceRoleKey()` from src fails the
+test.
 
 ## Step 3 — Retarget `no-service-role-in-src.test.js`
 
 Files modified: `products/landmark/test/lib/no-service-role-in-src.test.js`.
 
-Change the regex on line 38 from `/MAP_SUPABASE_SERVICE_ROLE_KEY/` to a regex that matches both the env literal (which must never appear) and the new accessor (which must never appear in Landmark src):
+Change the regex on line 38 from `/MAP_SUPABASE_SERVICE_ROLE_KEY/` to a regex
+that matches both the env literal (which must never appear) and the new accessor
+(which must never appear in Landmark src):
 
 ```js
 const hits = await grepRoots(/SUPABASE_SERVICE_ROLE_KEY|supabaseServiceRoleKey/);
 ```
 
-Update the failure-message string accordingly. The two other tests in the file (`auth.admin.` and `from "...test..."`) are unchanged.
+Update the failure-message string accordingly. The two other tests in the file
+(`auth.admin.` and `from "...test..."`) are unchanged.
 
-Verification: `bun test products/landmark/test/lib/no-service-role-in-src.test.js` green; a synthetic re-introduction of either literal in Landmark src fails the test.
+Verification:
+`bun test products/landmark/test/lib/no-service-role-in-src.test.js` green; a
+synthetic re-introduction of either literal in Landmark src fails the test.
 
 ## Step 4 — Add the new static-inspection test
 
@@ -124,9 +145,18 @@ describe("Spec 0960: no direct Supabase env reads in src/bin", () => {
 });
 ```
 
-The walker honours the spec criterion's boundary explicitly: `products/<p>/src/`, `products/<p>/bin/`, `libraries/<l>/src/`, `libraries/<l>/bin/`, and `services/<s>/**` (services don't nest src/). Directories outside `src`/`bin` (e.g. `products/map/supabase/`, `products/map/starter/`, `libraries/<l>/templates/`) are not visited at all. The Deno edge function at `products/map/supabase/functions/_shared/supabase.ts` is therefore outside scope by construction; no ALLOW entry needed for it.
+The walker honours the spec criterion's boundary explicitly:
+`products/<p>/src/`, `products/<p>/bin/`, `libraries/<l>/src/`,
+`libraries/<l>/bin/`, and `services/<s>/**` (services don't nest src/).
+Directories outside `src`/`bin` (e.g. `products/map/supabase/`,
+`products/map/starter/`, `libraries/<l>/templates/`) are not visited at all. The
+Deno edge function at `products/map/supabase/functions/_shared/supabase.ts` is
+therefore outside scope by construction; no ALLOW entry needed for it.
 
-Verification: `bun test libraries/libconfig/test/no-supabase-env-in-src.test.js` green after Part 03 lands; a synthetic re-introduction of `process.env.SUPABASE_URL` in any src file fails the test; the libstorage and Deno-edge-function exemptions pass.
+Verification: `bun test libraries/libconfig/test/no-supabase-env-in-src.test.js`
+green after Part 03 lands; a synthetic re-introduction of
+`process.env.SUPABASE_URL` in any src file fails the test; the libstorage and
+Deno-edge-function exemptions pass.
 
 ## Step 5 — Repo-wide grep gates
 
@@ -142,9 +172,12 @@ Files modified: none (verification only — confirm Part 03 left nothing behind)
 | `rg 'deprecated.*[Ss]upabase|legacy.*[Ss]upabase|backward.?compat.*[Ss]upabase' products services libraries scripts` | 0 | No shim comments |
 | `rg 'MAP_SUPABASE_.*\|\||MAP_SUPABASE_.*\?\?' products services libraries` | 0 | No fallback chains |
 
-If any of these returns a hit, fix the offender and re-run the suite before tagging the PR for review. The grep checks are a final correctness gate, not a CI test (the static-inspection test in step 4 covers the load-bearing case).
+If any of these returns a hit, fix the offender and re-run the suite before
+tagging the PR for review. The grep checks are a final correctness gate, not a
+CI test (the static-inspection test in step 4 covers the load-bearing case).
 
 ## Dependencies
 
-- Depends on Part 03 completing (the new static-inspection test fails if any consumer still reads `process.env.SUPABASE_`).
+- Depends on Part 03 completing (the new static-inspection test fails if any
+  consumer still reads `process.env.SUPABASE_`).
 - Independent of Part 05 (docs).

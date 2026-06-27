@@ -40,8 +40,8 @@ coordinate-finding stalls exhausted it," and raised the job budget to the
 timeout is not a fix; the ceiling is fixed and the work grows with
 tasks × runs.
 
-**Stall amplification.** Because cells run in series, one stalled cell riding its
-full 20-minute watchdog delays *every* cell behind it. A single pathological
+**Stall amplification.** Because cells run in series, one stalled cell riding
+its full 20-minute watchdog delays *every* cell behind it. A single pathological
 task (the family's `coordinate-finding` is the documented offender) can consume
 a third of the entire budget before its own watchdog even fires.
 
@@ -66,8 +66,8 @@ free; any concurrency layer must solve them or it will corrupt results:
 **The single-machine ceiling is real.** Even perfect in-process concurrency is
 bounded by one runner's CPU, memory, file descriptors, and the per-job timeout.
 Each cell spawns ~3 agent subprocesses, so one `ubuntu-latest` box holds only a
-handful before contention. Beating the **per-job** ceiling requires more than one
-machine — which a step-level composite action cannot orchestrate on its own.
+handful before contention. Beating the **per-job** ceiling requires more than
+one machine — which a step-level composite action cannot orchestrate on its own.
 
 ## Goal
 
@@ -89,11 +89,11 @@ machine, shards across machines, then a merge.**
   whole-run tax into a single occupied slot.
 
 - **Layer 2 — Cross-machine sharding (Option 3, Playwright-inspired).** A
-  first-class `--shard=<i>/<N>` selector runs a deterministic, balanced subset of
-  the grid; each shard emits a partial result ledger; `report` merges partials
-  into one pass@k. A **reusable workflow** (new sibling artifact) fans the shards
-  across a CI matrix and runs a dependent merge job, so a consumer gets
-  cross-machine parallelism from a single `shard-total` input. Beats the
+  first-class `--shard=<i>/<N>` selector runs a deterministic, balanced subset
+  of the grid; each shard emits a partial result ledger; `report` merges
+  partials into one pass@k. A **reusable workflow** (new sibling artifact) fans
+  the shards across a CI matrix and runs a dependent merge job, so a consumer
+  gets cross-machine parallelism from a single `shard-total` input. Beats the
   per-job ceiling by using `N` jobs.
 
 The layers compose: each of `N` shard jobs runs Layer-1 concurrency internally,
@@ -204,9 +204,8 @@ label, APPROVED review, approval comment, or in-session approval). On approval
 the spec proceeds to `kata-design` (WHICH/WHERE — the worker-pool placement and
 the streaming-contract change in the runner, the port-reservation mechanism, the
 durable ledger shape and its merge primitive, the cell-flattening and partition
-function for `--shard`, the multi-input `report` merge, and the reusable workflow
-topology and its `fit-bootstrap` consumption)
-and then `kata-plan`.
+function for `--shard`, the multi-input `report` merge, and the reusable
+workflow topology and its `fit-bootstrap` consumption) and then `kata-plan`.
 
 The new `forwardimpact/fit-benchmark` → `fit-bootstrap` sibling edge and the
 requirement that `fit-bootstrap` be safe under matrix fan-out touch a shared CI

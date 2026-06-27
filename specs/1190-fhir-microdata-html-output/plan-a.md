@@ -27,10 +27,12 @@ per `libraries/libresource/package.json`.
 **Intent:** Make `fhir_microdata_html` parse as a valid `output` block format.
 
 Files modified:
+
 - `libraries/libsyntheticgen/src/dsl/tokenizer.js`
 - `libraries/libsyntheticgen/src/dsl/parser-standard.js`
 
 Changes:
+
 - `tokenizer.js` KEYWORDS set (after `"embeddings_jsonl"` at line 179):
   add `"fhir_microdata_html"`.
 - `parser-standard.js` `DATASET_FORMATS` set (after `"embeddings_jsonl"`
@@ -49,6 +51,7 @@ format" error.
 does.
 
 Files modified:
+
 - `libraries/libsyntheticgen/src/tools/synthea.js`
 
 Change: prepend `export` to `function normalizePatientRef` (line 173).
@@ -62,6 +65,7 @@ assertion (or any subsequent step's test importing it compiles).
 without re-running Synthea or re-parsing files.
 
 Files modified:
+
 - `libraries/libterrain/src/nodes.js`
 
 Changes inside the `datasets` node (lines 195–211):
@@ -116,11 +120,13 @@ test asserting `renderDatasetOutputs` does not emit the
 pure functions, callable from the pipeline nodes in Step 5.
 
 Files created:
+
 - `libraries/libsyntheticrender/src/render/fhir-microdata.js`
 - `libraries/libsyntheticrender/templates/fhir-patient.html`
 - `libraries/libsyntheticrender/templates/fhir-patient-index.html`
 
 Files modified:
+
 - `libraries/libsyntheticrender/src/index.js` — export
   `renderFhirMicrodataHtml` and `buildFhirCrossRef`.
 - `libraries/libsyntheticrender/package.json` — add
@@ -190,6 +196,7 @@ throws; (6) asserts that `config.path` absent throws.
 the gating contract from the design.
 
 Files modified:
+
 - `libraries/libterrain/src/nodes.js`
 
 Insert two entries into the node table between `datasets` and
@@ -278,6 +285,7 @@ the `parse` node output, same source the `entities` node uses at line
 59).
 
 Imports at top of file:
+
 ```diff
  import {
    validateLinks,
@@ -306,6 +314,7 @@ cross-ref is `null`, the chain must be observably identical to the
 pre-change code path (criterion 7).
 
 Files modified:
+
 - `libraries/libterrain/src/nodes.js`
 - `libraries/libsyntheticrender/src/render/renderer.js`
 - `libraries/libsyntheticrender/src/render/html.js`
@@ -443,6 +452,7 @@ criterion-7 byte-identity assertion lives in Step 9.
 enumerable by the `inspect` verb.
 
 Files modified:
+
 - `libraries/libterrain/src/nodes.js` `write` node (lines 267–299) and
   `mergeOutputFiles` (line 395).
 - `libraries/libterrain/src/pipeline.js` `STAGES` array (line 40) —
@@ -503,9 +513,11 @@ the rendered output must surface the expected items and cross-link
 quads.
 
 Files created:
+
 - `libraries/libterrain/test/fhir-microdata-rdf.test.js`
 
 Files modified:
+
 - `libraries/libterrain/package.json` — add
   `"@forwardimpact/libresource": "^0.1.111"` and `"jsdom": "^29.1.1"`
   to `devDependencies`. Versions match `libgraph` and `libvector` (which
@@ -544,6 +556,7 @@ and assert quads:
 declared, 1140 pages render byte-identically.
 
 Files modified:
+
 - `libraries/libsyntheticrender/test/render-clinical-html.test.js` —
   add a negative assertion test against a known fixture: for the
   trial-card, condition-explainer, and site-description outputs

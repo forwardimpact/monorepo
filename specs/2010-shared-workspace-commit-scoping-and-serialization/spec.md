@@ -22,14 +22,14 @@ removing either condition prevents it.**
 
 ## Problem
 
-Vocabulary: a **shared workspace** is the single checkout a facilitated session's
-concurrent agent activations share; a **commit path** is any code that stages
-and commits inside that checkout (an agent's feature commit, an activation
-sweep-commit, or a tool commit such as `fit-wiki claim`/`release`); a **sweep**
-stages by breadth (`git add -A`, `git commit -am`) rather than by explicit path;
-**committed loss** is foreign or wrong-author content reaching a commit — the
-only sub-shape in the family that ships, as opposed to being caught at
-push-reject, rebase, or pre-commit diff.
+Vocabulary: a **shared workspace** is the single checkout a facilitated
+session's concurrent agent activations share; a **commit path** is any code that
+stages and commits inside that checkout (an agent's feature commit, an
+activation sweep-commit, or a tool commit such as `fit-wiki claim`/`release`); a
+**sweep** stages by breadth (`git add -A`, `git commit -am`) rather than by
+explicit path; **committed loss** is foreign or wrong-author content reaching a
+commit — the only sub-shape in the family that ships, as opposed to being caught
+at push-reject, rebase, or pre-commit diff.
 
 The family's facilitated-session catches have all been accidents of tooling —
 push-reject, rebase, scope partition — never a designed control (#1564). The
@@ -99,11 +99,13 @@ separately as post-deployment validation targets below.
 
 S6 is the cardinality complement to L2's temporal serialization, attached at
 L2's existing facilitator-dispatch gate: it bounds **how many** lanes act on one
-directive, where L2's ordering rule bounds **when** same-surface asks run. With a
-single acting lane there is no fan-out to serialize, so S6 alone closes #1725's
-Mode A (the single-owner directive "fanned to six agents"). S6 introduces no
-lock, lease, or mutual exclusion — it constrains routing cardinality only — so S5
-still holds.
+directive, where L2's ordering rule bounds **when** same-surface asks run. With
+a single acting lane there is no fan-out to serialize, so S6 alone closes
+
+## 1725's Mode A (the single-owner directive "fanned to six agents"). S6
+
+introduces no lock, lease, or mutual exclusion — it constrains routing
+cardinality only — so S5 still holds.
 
 **S6's guarantee is exactly as strong as the single-owner classifier at dispatch
 time.** The cardinality cap binds only on directives the classifier labels
@@ -135,10 +137,10 @@ run over the window, one per failure mode.
 
 Each measures its own sub-shape only; Exp #1565's broader predicate P1 ("0
 shared-workspace collisions of any sub-shape") is unchanged and owned by #1565 —
-this spec does not narrow it. The targets are the standing meters for whether the
-two levers held in the field; they do not gate spec approval or merge.
+this spec does not narrow it. The targets are the standing meters for whether
+the two levers held in the field; they do not gate spec approval or merge.
 
-## Non-Goals
+### Non-Goals
 
 - **No distributed lock, mutex, or lock service.** #1539 established that the
   claim handshake is advisory, not a single-writer mutex, and that a real lock's
@@ -150,14 +152,14 @@ two levers held in the field; they do not gate spec approval or merge.
 - **No allocation-contract change.** This spec does not alter how identifiers
   are minted; that is the 1840/1850 adjudication.
 - **No wiki-repo destination gating.** Standing up gitleaks / push-protection on
-  the separate wiki repository is a complementary security control that gates the
-  *destination* repo, orthogonal to L1's staging *scope* — a perfectly scoped
-  commit can still carry a secret into an ungated repo. That gap is a standing
-  known issue tracked on its own line (security-engineer), not folded into this
-  spec's two levers. L1 shrinks the leak surface; closing the destination gap is
-  separate work.
+  the separate wiki repository is a complementary security control that gates
+  the *destination* repo, orthogonal to L1's staging *scope* — a perfectly
+  scoped commit can still carry a secret into an ungated repo. That gap is a
+  standing known issue tracked on its own line (security-engineer), not folded
+  into this spec's two levers. L1 shrinks the leak surface; closing the
+  destination gap is separate work.
 
-## Relationship to in-flight siblings
+### Relationship to in-flight siblings
 
 - **1840 / 1850 (allocation identity).** Disjoint. Those specs decide where
   identity is minted; this one decides how commit paths stage and how the
@@ -190,13 +192,13 @@ two levers held in the field; they do not gate spec approval or merge.
   its lineage (#1576 § Out of scope, #1568) had read as settled. This spec
   supplies the rationale that makes it an *application* of a named discipline
   instead — so the discipline and its sole application site do not graduate as
-  two specs in tension. The sync's design intent (publish this session's own memory) is
-  preserved by staging the session's own-authored paths; what L1 removes is only
-  the capture of a concurrent activation's in-flight residue from the shared
-  checkout. Scoping the sweep is therefore L1, not a contract reversal. The
-  push-primitive landing specifics (stale-tree refusal, fast-forward honesty)
-  remain 1850 D3's; #1583 stays the tracking item for the implementation, citing
-  this spec as its authority.
+  two specs in tension. The sync's design intent (publish this session's own
+  memory) is preserved by staging the session's own-authored paths; what L1
+  removes is only the capture of a concurrent activation's in-flight residue
+  from the shared checkout. Scoping the sweep is therefore L1, not a contract
+  reversal. The push-primitive landing specifics (stale-tree refusal,
+  fast-forward honesty) remain 1850 D3's; #1583 stays the tracking item for the
+  implementation, citing this spec as its authority.
 
 This spec does not pre-empt the 6/24 Exp #1565 read or the 7/02 RFC #873
 verdict; it gives both a proposed structure to evaluate instead of an unbounded

@@ -139,7 +139,7 @@ export class HelpRenderer {
 
 **`render()` output format:**
 
-```
+```text
 fit-pathway 1.2.0 — Career progression for engineering frameworks
 
 Usage: fit-pathway <command> [options]
@@ -208,7 +208,7 @@ export class SummaryRenderer {
 
 **Output format:**
 
-```
+```text
 Generated 38 files in ./generated/
   definitions/  — Service definitions
   proto/        — Proto source files
@@ -220,7 +220,7 @@ Implementation:
 
 - Write `title` followed by newline.
 - For each item in `items`: compute the max label width, pad each label, write
-  `  {label}  — {description}`.
+  `{label}  — {description}`.
 - If `items` is empty, just write the title.
 
 ### 6. Create cli.js — Cli class + createCli factory

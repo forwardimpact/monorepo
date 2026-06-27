@@ -137,7 +137,7 @@ After the loop, emit both manifests (Steps 5–6 below), then clean up `_packs/`
 
 **Pack file layout** (mirrors `agent-io.js` output exactly):
 
-```
+```text
 _packs/<agent-name>/
   .claude/
     agents/

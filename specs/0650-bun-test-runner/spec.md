@@ -6,7 +6,8 @@
 > `test()` (bun#5090), which intermittently reddened the publish gate. Spec 2020
 > settles the runner per surface — `node --test` owns the blocking gate,
 > `bun test` is retained as the informational local/PR loop — and converges the
-> `bun:test` importers back onto `node:test`. Read 2020 for the current strategy.
+> `bun:test` importers back onto `node:test`. Read 2020 for the current
+> strategy.
 
 ## Problem
 

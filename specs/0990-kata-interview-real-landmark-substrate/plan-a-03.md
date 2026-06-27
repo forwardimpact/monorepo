@@ -392,7 +392,8 @@ output naming the failing verb and its exit code, then exit the skill.
 The `Run interview` workflow step exits non-zero because no interview
 was completed — this is the spec § Failure surfacing pathway for
 supervisor-side substrate failures.
-```
+
+```text
 
 ### Edit 8c — Rewrite the read-do checklist line
 

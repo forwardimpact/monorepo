@@ -113,7 +113,7 @@ no separate `*Optional()` variant is added.
 
 ## `.env.local.example` Supabase block (canonical shape)
 
-```
+```text
 # ==========================================
 # Supabase (single instance — all products)
 # ==========================================

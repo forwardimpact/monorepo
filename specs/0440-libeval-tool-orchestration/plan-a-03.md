@@ -85,7 +85,7 @@ Each agent checks `ctx.concluded` after every blocking point (`waitForMessages`,
 `#formatMessages(messages)` renders `[{ from, text, direct }]` into a
 human-readable prompt for the agent:
 
-```
+```text
 [shared] facilitator: Explore the documentation site...
 [direct] agent-2: I found the install guide at...
 ```
@@ -414,7 +414,7 @@ export async function runFacilitateCommand(values, _args) {
 **Agent config format:** Comma-separated `name:key=value` pairs. Each agent gets
 a name and optional overrides:
 
-```
+```text
 --agents "explorer:cwd=/tmp/a:role=explorer,tester:cwd=/tmp/b:role=tester"
 ```
 

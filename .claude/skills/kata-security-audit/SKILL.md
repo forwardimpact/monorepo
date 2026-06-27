@@ -23,7 +23,8 @@ description: >
       findings.
 - [ ] Read every file in the topic's audit scope — not just grep results.
 - [ ] Each finding cites a specific file path and line number.
-- [ ] Each finding categorized: mechanical fix, structural (spec), or observation.
+- [ ] Each finding categorized: mechanical fix, structural (spec), or
+      observation.
 - [ ] Coverage map updated with today's date for the audited topic.
 
 </do_confirm_checklist>
@@ -78,7 +79,15 @@ declares.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find last audit dates per topic in the coverage map. Canonical topic-rotation runs (audit topics under § Audit Areas) write only to the wiki and never open a PR — do **not** `fit-wiki claim` for them; the claim contract applies only when this skill is invoked from `kata-security-update` or otherwise opens a PR (see [memory-protocol § Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#claims)).
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and (when this skill reads
+Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find
+last audit dates per topic in the coverage map. Canonical topic-rotation runs
+(audit topics under § Audit Areas) write only to the wiki and never open a PR —
+do **not** `fit-wiki claim` for them; the claim contract applies only when this
+skill is invoked from `kata-security-update` or otherwise opens a PR (see
+[memory-protocol § Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#claims)).
 
 ### Step 1: Select Topic
 
@@ -152,4 +161,6 @@ This skill produces these non-wiki outputs (per
 - **Discussion** — Policy questions surfaced from audit (e.g. "should we relax
   SHA-pinning for `actions/*`?") that need cross-team input before a spec.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md):
+every cited SHA must resolve on its referenced repo, or the body is not
+published.

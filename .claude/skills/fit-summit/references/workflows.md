@@ -1,6 +1,6 @@
 # Common Workflows
 
-### "What happens if Alice leaves?"
+## "What happens if Alice leaves?"
 
 ```sh
 npx fit-summit risks platform

@@ -18,6 +18,7 @@ Parts 01, 02, and 04 — can run in parallel with any of them.
   library catalog is pre-loaded when the agent starts work.
 - Do **not** modify any other agent profile. Spec 0400's success criterion 5
   permits the plan to identify additional code-writing agents; this plan's risk
+
   #6 in `plan-a.md` explains why only staff-engineer is in scope.
 
 ## Files touched
@@ -221,7 +222,7 @@ Run at the package root after all three edits:
 
 One commit:
 
-```
+```text
 docs(protocol): require library discovery in contributor workflow (spec 0400 part 3/4)
 
 - CONTRIBUTING.md READ-DO: add "search shared libraries first" checklist item

@@ -150,9 +150,9 @@ With a base URL available, the build adds:
 ## Link cards between pages
 
 A collection page can link to its children without hand-writing anchors. A
-content-partial marker pulls the target page's `title` and `description` at build
-time. The marker is an HTML comment of the form `part:TYPE:PATH` wrapped in
-`<!--` and `-->`, where `TYPE` is `card` or `link` and `PATH` is the target
+content-partial marker pulls the target page's `title` and `description` at
+build time. The marker is an HTML comment of the form `part:TYPE:PATH` wrapped
+in `<!--` and `-->`, where `TYPE` is `card` or `link` and `PATH` is the target
 page's path relative to the current page's directory.
 
 A `card` marker pointing at a sibling page named `about` resolves to a card
@@ -164,7 +164,8 @@ honest.
 
 ## Verify
 
-- [ ] `npx fit-doc build --src=docs --out=dist` exits zero and reports each page.
+- [ ] `npx fit-doc build --src=docs --out=dist` exits zero and reports each
+      page.
 - [ ] `dist/index.html` exists and `dist/index.md` holds the same content.
 - [ ] A `[link](other.md)` in source renders as `href="other/"` in the output.
 - [ ] Adding `--base-url` produces `dist/sitemap.xml` with absolute page URLs.

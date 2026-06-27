@@ -46,9 +46,11 @@ Run this skill:
 ### Step 0 — Validate the session
 
 1. Confirm the session directory exists:
-   ```
+
+   ```text
    ~/Library/Application Support/anarlog/sessions/{uuid}/
    ```
+
 2. Confirm `transcript.json` exists and has at least one transcript with words.
 3. Read `_meta.json` to get the session title for context.
 
@@ -132,7 +134,8 @@ json.dump(data, open(path, 'w'), indent=2)
 ```
 
 4. Print a summary:
-   ```
+
+   ```text
    Trimmed: {title}
      Before: {original_words} words, {original_duration}
      After:  {new_words} words, {new_duration}
@@ -147,11 +150,14 @@ people who did not consent to being recorded. The full audio file must be
 deleted to respect participant privacy.
 
 1. Delete the audio file:
+
    ```bash
    rm "~/Library/Application Support/anarlog/sessions/{uuid}/audio.mp3"
    ```
+
 2. Confirm deletion and inform the user:
-   ```
+
+   ```text
    Audio deleted: audio.mp3 removed (recording contained unconsented content beyond the meeting)
    ```
 

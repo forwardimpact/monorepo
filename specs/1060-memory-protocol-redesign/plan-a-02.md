@@ -20,7 +20,7 @@ New section structure (each H2 is a fixed anchor — agents profile
 Step 0 in Part 03 links to these slugs, so the headings cannot change
 after this part lands):
 
-```
+```text
 # Memory Protocol
 ## On-Boot Read Set
 ## On-Boot Routing
@@ -106,10 +106,10 @@ Section content:
   → `claim`/`release`; "trust another agent's reported state without
   re-deriving" → `boot` digest + MEMORY.md; "receive memos without
   breaking my contract" → `fit-wiki inbox`.
-- **CLI Contract Map.** Three-column bidirectional table satisfying
-  spec § Success Criteria row 10 (per-existing-subcommand disposition)
-  and row 11 (mapping each subcommand to its contract **and** each
-  contract assigned to the CLI to the subcommand(s) that realize it):
+- **CLI Contract Map.** Three-column bidirectional table satisfying spec §
+  Success Criteria row 10 (per-existing-subcommand disposition) and row 11
+  (mapping each subcommand to its contract **and** each contract assigned to the
+  CLI to the subcommand(s) that realize it):
 
   | Subcommand | Status | Contract(s) this subcommand realizes |
   |---|---|---|
@@ -131,11 +131,10 @@ Section content:
   | `init` | modified | Active Claims scaffold; Stop-hook installation |
   | `refresh` | extended | Sibling channel (storyboard rendering) — cross-link only |
 
-  Footnote (one line under the table): "One-shot administrative scripts
-  (e.g. `scripts/spec-NNN-*.mjs`) write to `wiki/` transiently and
-  self-delete in the same commit that runs them; they are not part of
-  the protocol's read/write contract. See plan-a-05.md for an
-  example."
+  Footnote (one line under the table): "One-shot administrative scripts (e.g.
+  `scripts/spec-NNN-*.mjs`) write to `wiki/` transiently and self-delete in the
+  same commit that runs them; they are not part of the protocol's read/write
+  contract. See plan-a-05.md for an example."
 
   Followed by the reverse table:
 
@@ -167,11 +166,19 @@ graph TD
 ```
 
 Verification:
-- `rg -n 'F(3|4|5|6|8|10|11|13|17|18)\b' .claude/agents/references/memory-protocol.md` returns ≥1 hit per id the redesign keeps (each id checked individually if a single grep is ambiguous).
-- `rg -n -A5 'F4|F5|F11' .claude/agents/references/memory-protocol.md` returns ≥1 hit whose containing line falls inside the `## Tool-vs-Memory Habit` section (success criterion row 8).
-- `rg -n -A5 '### Decision' .claude/agents/references/memory-protocol.md` returns a hit; "required at the opening" appears within 5 lines (success criterion row 8 part 2).
+
+- `rg -n 'F(3|4|5|6|8|10|11|13|17|18)\b' .claude/agents/references/memory-protocol.md`
+  returns ≥1 hit per id the redesign keeps (each id checked individually if a
+  single grep is ambiguous).
+- `rg -n -A5 'F4|F5|F11' .claude/agents/references/memory-protocol.md` returns
+  ≥1 hit whose containing line falls inside the `## Tool-vs-Memory Habit`
+  section (success criterion row 8).
+- `rg -n -A5 '### Decision' .claude/agents/references/memory-protocol.md`
+  returns a hit; "required at the opening" appears within 5 lines (success
+  criterion row 8 part 2).
 - `wc -l .claude/agents/references/memory-protocol.md` ≤200.
-- Each H2 in the section list above appears as a top-level `^## ` heading in the file (anchor slugs are stable for agent profile links in Part 03).
+- Each H2 in the section list above appears as a top-level `^##` heading in the
+  file (anchor slugs are stable for agent profile links in Part 03).
 
 ## Step 2 — Seed `wiki/MEMORY.md ## Active Claims`
 
@@ -221,10 +228,10 @@ Modified: `CONTRIBUTING.md`. The DO-CONFIRM line currently reads "wiki
 writes per `memory-protocol.md`". Replace with "wiki writes per
 `memory-protocol.md` — prefer `fit-wiki` subcommands over hand-edits".
 
-Run `rg -n 'memory-protocol|MEMORY\.md|Tier 1|Tier 2|80-line|Message Inbox|wiki-audit' CONTRIBUTING.md`
-before editing; any additional hits get the same surgical update
-treatment (citation only, no policy change). Likely zero additional
-hits at planning time.
+Run
+`rg -n 'memory-protocol|MEMORY\.md|Tier 1|Tier 2|80-line|Message Inbox|wiki-audit' CONTRIBUTING.md`
+before editing; any additional hits get the same surgical update treatment
+(citation only, no policy change). Likely zero additional hits at planning time.
 
 Modified: `.claude/agents/references/coordination-protocol.md`. The
 sibling reference cites `memory-protocol.md` four times today. Verify
@@ -235,8 +242,10 @@ changes to coordination-protocol.md** beyond anchor fixes — spec § Out
 of scope disclaims redesigning it.
 
 Verification:
+
 - `bun run check` passes (Biome formatter unchanged).
-- `rg -n 'memory-protocol.md#' .claude/agents/references/coordination-protocol.md` returns anchors that all exist as `^## ` headings in the new protocol file.
+- `rg -n 'memory-protocol.md#' .claude/agents/references/coordination-protocol.md`
+  returns anchors that all exist as `^##` headings in the new protocol file.
 
 ## Step 5 — Citation inventory artifact
 
@@ -253,10 +262,12 @@ Rows cover every match of the expanded pattern across `.claude/`,
 `scripts/`. Status values:
 
 - `matches new` — terminology aligns with the rewritten protocol
-- `edited in Part 02` — protocol file itself, MEMORY.md, KATA.md, CONTRIBUTING.md, coordination-protocol.md
+- `edited in Part 02` — protocol file itself, MEMORY.md, KATA.md,
+  CONTRIBUTING.md, coordination-protocol.md
 - `edited in Part 03` — agent profile, skill, fit-wiki SKILL
 - `edited in Part 04` — justfile, .claude/settings.json, wiki-audit.sh deletion
-- `historical exempt` — research artifact dated 2026-05-16; weekly log pre-cutover; past changelog entry
+- `historical exempt` — research artifact dated 2026-05-16; weekly log
+  pre-cutover; past changelog entry
 
 Built by (expanded pattern to capture every load-bearing term the old
 protocol carries):

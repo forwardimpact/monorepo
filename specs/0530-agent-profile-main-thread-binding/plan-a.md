@@ -20,7 +20,7 @@ preserved bit-for-bit.
 **Create** `/home/user/monorepo/libraries/libeval/src/profile-prompt.js`
 exporting one function:
 
-```
+```text
 composeProfilePrompt(name, { profilesDir, trailer })
   → { type: "preset", preset: "claude_code", append: string }
 ```
@@ -80,7 +80,7 @@ Depends on: Step 1.
 
 Before (line 79–90):
 
-```
+```text
 const { query } = await import("@anthropic-ai/claude-agent-sdk");
 const runner = createAgentRunner({
   cwd, query, output: devNull, model, maxTurns, allowedTools,
@@ -91,7 +91,7 @@ const runner = createAgentRunner({
 
 After:
 
-```
+```text
 import { composeProfilePrompt } from "../profile-prompt.js";
 ...
 const systemPrompt = agentProfile
@@ -120,11 +120,13 @@ runner, one for the supervisor runner — currently at L406 and L437):
 - Replace the agent runner's
   `systemPrompt: { type: "preset", preset: "claude_code", append: AGENT_SYSTEM_PROMPT }`
   with
-  ```
+
+  ```text
   systemPrompt: agentProfile
     ? composeProfilePrompt(agentProfile, { profilesDir, trailer: AGENT_SYSTEM_PROMPT })
     : { type: "preset", preset: "claude_code", append: AGENT_SYSTEM_PROMPT },
   ```
+
 - Same shape for the supervisor runner using `supervisorProfile` and
   `SUPERVISOR_SYSTEM_PROMPT` as trailer.
 - Add `profilesDir` to the factory's dep signature with default
@@ -191,7 +193,7 @@ used as a local or CLI argument name (which is fine to keep — it feeds
 `composeProfilePrompt` and nothing else). The greps below must return zero
 matches inside `libraries/libeval/src/` and `libraries/libeval/bin/`:
 
-```
+```text
 # SDK query option shape: the "agent:" key bound to an identifier,
 # matching across lines so a multi-line object literal cannot hide a
 # regression. Captures `agent: agentProfile`, `agent: this.agentProfile`,

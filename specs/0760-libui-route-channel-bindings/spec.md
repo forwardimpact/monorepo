@@ -348,8 +348,8 @@ because it determines a public-API surface (see Notes).
   `router.on(...)` with an options argument or introduces a sibling registry
   primitive, and (b) whether the top-bar is a libui-owned component or a thinner
   "command provider" hook that consumers wrap into their own bar.
-- Specs 0080 (Landmark) and 0090 (Summit) are the future consumers; this spec does
-  not depend on either being in flight.
+- Specs 0080 (Landmark) and 0090 (Summit) are the future consumers; this spec
+  does not depend on either being in flight.
 - The `InvocationContext` typedef is exported by both libui and libcli, but the
   design phase decides where it physically lives. Three options exist today: a
   new shared package, an existing utility package such as `libtype`, or

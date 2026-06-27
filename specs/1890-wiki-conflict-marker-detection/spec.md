@@ -220,6 +220,7 @@ test command).
 - Dual-lineage every-push specimen (run 292, 2026-06-12): two divergent lanes
   (`bc2dc8ea`, `070aa06d`) each carrying marker-bearing state from the same
   introduction (`210c4b6a`, a foreground rebase-leg own-commit), adjudicated as
+
   #1668 specimen 4 in
   [comment 4689826745](https://github.com/forwardimpact/monorepo/issues/1668#issuecomment-4689826745);
   the security engineer's every-push binding verification on this spec is

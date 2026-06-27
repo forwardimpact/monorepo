@@ -26,7 +26,7 @@ Create `products/pathway/starter/` with the minimal set of files required by the
 spec. Files live directly in `starter/` — no nested subdirectory. The init
 command handles copying them into `data/pathway/` at the target.
 
-```
+```text
 products/pathway/starter/
 ├── framework.yaml
 ├── levels.yaml
@@ -313,7 +313,7 @@ the starter data (not the old examples structure which listed
 
 Update the "Next steps" to use correct commands:
 
-```
+```text
 Next steps:
   1. Edit data files to match your organization
   2. bunx fit-map validate

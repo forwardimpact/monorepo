@@ -34,22 +34,23 @@ submission, brief, or any multi-page PDF that is not a slide deck.
 
 ## Workflow
 
-1.  Check `Knowledge/` for relevant context about the company, product, team,
-    projects, or people mentioned.
-2.  Ensure Playwright is installed:
-    `bun install playwright && bunx playwright install chromium`
-3.  Create a self-contained HTML file with all CSS inlined. The HTML must handle
-    its own page layout — see **HTML Document Rules** below.
-4.  Run the conversion script:
+1. Check `Knowledge/` for relevant context about the company, product, team,
+   projects, or people mentioned.
+2. Ensure Playwright is installed:
+   `bun install playwright && bunx playwright install chromium`
+3. Create a self-contained HTML file with all CSS inlined. The HTML must handle
+   its own page layout — see **HTML Document Rules** below.
+4. Run the conversion script:
 
-        node .claude/skills/doc-create/scripts/convert-to-pdf.mjs <input.html> [output.pdf]
+   ```text
+    node .claude/skills/doc-create/scripts/convert-to-pdf.mjs <input.html> [output.pdf]
+   ```
 
-    If output is omitted, the PDF is written alongside the HTML file with the
-    same name.
-
-5.  Read the PDF back to visually verify it renders correctly. Check each page
-    for overflow, clipped content, and correct page breaks. Fix and re-render if
-    needed.
+   If output is omitted, the PDF is written alongside the HTML file with the
+   same name.
+5. Read the PDF back to visually verify it renders correctly. Check each page
+   for overflow, clipped content, and correct page breaks. Fix and re-render if
+   needed.
 
 **Do NOT show HTML code to the user. Just create the PDF and deliver it.**
 

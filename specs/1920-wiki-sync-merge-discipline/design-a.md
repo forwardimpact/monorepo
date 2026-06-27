@@ -42,11 +42,12 @@ flowchart TD
   L -- no --> X[throw WikiSyncConflict — fail loud]
 ```
 
-The re-apply path replaces the `mergeOursStrategy` call **on the registered-op
-path only**, and conserves the shared working tree throughout. `rebaseAbort`
-restores the autostashed foreign residue; **`resetSoft origin/master`** drops the
-stale local commit by moving HEAD to the tip *without touching the working tree*
-(so foreign uncommitted edits to other files survive — no `reset --hard`);
+The re-apply path replaces the `mergeOursStrategy` call
+**on the registered-op path only**, and conserves the shared working tree
+throughout. `rebaseAbort` restores the autostashed foreign residue;
+**`resetSoft origin/master`** drops the stale local commit by moving HEAD to the
+tip *without touching the working tree* (so foreign uncommitted edits to other
+files survive — no `reset --hard`);
 **`checkoutPaths origin/master -- MEMORY.md`** resets only that one file to the
 tip. `freshText` is then read from the working-tree MEMORY.md (now the tip's),
 so the closure never sees the stale local content. `reapply(freshText)` re-runs
@@ -62,12 +63,11 @@ stale-push race the table tail produces. The no-intent fallback path keeps the
 existing swallow-and-report-pushed behavior. The three outcomes carry distinct
 grounded reasons: `reapplied` (a fresh row landed), `already-satisfied` (the op
 was a no-op on the tip), and the `WikiSyncConflict` throw on bound exhaustion —
-none reuses the early gate's `clean`. Because
-re-derivation runs on the tip's MEMORY.md, every foreign claims-table row **and**
-every prose section the op does not touch is preserved from the tip; only the
-operation's own row changes. The file-scoped registry entry thus behaves
-surface-granularly: the row ops edit the table, the rest of the file rides
-through unchanged from the tip.
+none reuses the early gate's `clean`. Because re-derivation runs on the tip's
+MEMORY.md, every foreign claims-table row **and** every prose section the op
+does not touch is preserved from the tip; only the operation's own row changes.
+The file-scoped registry entry thus behaves surface-granularly: the row ops edit
+the table, the rest of the file rides through unchanged from the tip.
 
 ## Key Decisions
 
@@ -98,13 +98,14 @@ properties are consequences of reusing these functions, not new code.
   `WikiSync` reads the now-tip working-tree file (joining `wikiDir` + the
   registered path) via `runtime.fsSync` and hands the text to `reapply`; the
   closure never reads the stale local commit. D3's guard requires **every**
-  committed path to be in `SINGLETON_PATHS` (claim and release commit exactly the
-  one file). The re-apply path's push runs through a result-aware call that lets
-  the `GitError` on a rejected push reach the loop; the no-intent path keeps the
-  existing swallow. Return reasons: `reapplied`, `already-satisfied`,
+  committed path to be in `SINGLETON_PATHS` (claim and release commit exactly
+  the one file). The re-apply path's push runs through a result-aware call that
+  lets the `GitError` on a rejected push reach the loop; the no-intent path
+  keeps the existing swallow. Return reasons: `reapplied`, `already-satisfied`,
   `pushed`/`clean` (unchanged for the non-conflict paths). Existing two-arg
-  callers (`fit-wiki push` whole-tree) are unchanged: no `reapply`, so a conflict
-  keeps today's `mergeOursStrategy` fallback (1780's floor, not 1920's).
+  callers (`fit-wiki push` whole-tree) are unchanged: no `reapply`, so a
+  conflict keeps today's `mergeOursStrategy` fallback (1780's floor, not
+  1920's).
 - `GitClient` gains `resetSoft(ref, {cwd})` (`git reset --soft <ref>`, moves
   HEAD only) and `checkoutPaths(ref, paths, {cwd, allowMissing})` (`git checkout
   <ref> -- <paths>`, path-scoped, rejecting `:`-prefixed paths the same way once
@@ -117,16 +118,17 @@ properties are consequences of reusing these functions, not new code.
   re-runs `appendClaim(fresh, claim)`; for a release `removeClaim(fresh, …)`;
   for `--expired` it re-derives `filterExpired(parseClaims(fresh), today)` then
   removes each still-expired row. Each returns the new text, or null when the
-  primitive reports `inserted:false`/`removed:false` (no change against the tip).
+  primitive reports `inserted:false`/`removed:false` (no change against the
+  tip).
 
 ## Risks
 
-- **`resetSoft` drops the local commit but not the row intent.** `resetSoft
-  origin/master` moves HEAD to the tip, so the stale local commit is gone; the
-  re-derived row must come entirely from the `reapply` closure (which closes over
-  the parsed operation), never read back from the dropped commit. `resetSoft`
-  leaves the working tree untouched, so foreign uncommitted residue and the
-  checkout of MEMORY.md are unaffected by it.
+- **`resetSoft` drops the local commit but not the row intent.**
+  `resetSoft origin/master` moves HEAD to the tip, so the stale local commit is
+  gone; the re-derived row must come entirely from the `reapply` closure (which
+  closes over the parsed operation), never read back from the dropped commit.
+  `resetSoft` leaves the working tree untouched, so foreign uncommitted residue
+  and the checkout of MEMORY.md are unaffected by it.
 - **No-op outcome is a grounded landing, not a silent skip.** When `reapply`
   returns null, HEAD already equals the tip after `resetSoft` (no fresh commit
   is made), so there is nothing to push and nothing dangling; the path returns a
@@ -143,9 +145,10 @@ properties are consequences of reusing these functions, not new code.
   operator's worst case is the current manual-repair turn — never a destroyed
   local commit or a hang.
 - **Reading MEMORY.md on a tip without the file.** A first-ever claim into a
-  wiki whose `origin/master` has no MEMORY.md: `checkoutPaths(..., {allowMissing:
-  true})` tolerates the absent path and the subsequent read falls back to empty
-  text, so the row ops create the section rather than aborting the founding claim.
+  wiki whose `origin/master` has no MEMORY.md:
+  `checkoutPaths(..., {allowMissing: true})` tolerates the absent path and the
+  subsequent read falls back to empty text, so the row ops create the section
+  rather than aborting the founding claim.
 
 ## Out of scope (per spec)
 

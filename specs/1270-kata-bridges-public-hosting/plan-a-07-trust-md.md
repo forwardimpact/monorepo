@@ -36,6 +36,7 @@ contains the string `Hosted` and the string `Self-hosted`.
 ## Step 3 — Link `TRUST.md` from operator-facing docs
 
 Modified files:
+
 - `.claude/skills/kata-setup/SKILL.md` (Read section adds a one-line
   link to `TRUST.md`).
 - `services/ghbridge/README.md` (overview section adds a one-line

@@ -5,10 +5,12 @@ amendment silently claims panel coverage of content the panel never read, and
 the merge gate infers coverage from timestamp ordering. Two coordinated skill
 edits close the writer-side gap (`kata-plan`) and the gate-side consumption
 gap (`kata-release-merge` Step 6), shipping as one package, retiring when
-#1605's row-pin mechanics land. No code, no STATUS schema change — this is a
+
+## 1605's row-pin mechanics land. No code, no STATUS schema change — this is a
+
 documentation-surface (skill prose) change with a CI invariant gate.
 
-## Components
+### Components
 
 Structure only — *which* piece lives *where*. The rationale for each choice is
 in § Key Decisions; this table does not restate it.
@@ -20,7 +22,7 @@ in § Key Decisions; this table does not restate it.
 | Gate-side fail-closed clause | `kata-release-merge` SKILL.md Step 6 |
 | Supersession marker | one interim clause in each of the two skills |
 
-## Data flow
+### Data flow
 
 ```mermaid
 sequenceDiagram
@@ -45,7 +47,7 @@ sequenceDiagram
     end
 ```
 
-## Key Decisions
+### Key Decisions
 
 | # | Decision | Rejected alternative | Why |
 | --- | --- | --- | --- |
@@ -55,7 +57,7 @@ sequenceDiagram
 | D4 | **Supersession stated generically in skill text**, with the #1605 mapping kept in spec.md. | Naming #1605 in the skill. | Published-skill genericity invariant: no monorepo issue/PR links in skill text. The skill says the convention retires "when approval rows carry a commit pin"; this design and the spec hold the #1605 reference. |
 | D5 | **Two-state record verbatim in merge rationale.** When the gate passes on a dual-SHA annotation, the merge comment reproduces both SHAs and never claims head coverage. | Gate passes silently citing "approved". | The failure mode is *silent* false coverage; making the not-panel-read decision visible and attributable is the whole interim cover (spec § What changes ¶2). |
 
-## Interfaces
+### Interfaces
 
 - **Writer → gate contract**: the coverage evidence is one of two shapes on the
   PR thread — (a) a scoped delta re-read record, or (b) a dual-SHA annotation
@@ -70,7 +72,7 @@ sequenceDiagram
   `check-quality.yml` audit action) gate the changed prose — no incident
   references, no monorepo issue links, within length caps.
 
-## Boundaries (from spec § Scope)
+### Boundaries (from spec § Scope)
 
 - No STATUS schema change; the row carries no SHA until #1605.
 - No dependence on spec 1790's pinned-head vocabulary; this is the
@@ -80,7 +82,7 @@ sequenceDiagram
 - Human approval-signal semantics untouched; this covers panel-evidence-backed
   STATUS writes, which today means plan approvals only.
 
-## Risks
+### Risks
 
 - **Disclosure-triggered leaves the zero-evidence case open.** This is the
   spec's recorded residual, not a design defect — closing it needs #1605. The

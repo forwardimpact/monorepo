@@ -416,7 +416,7 @@ returns only preamble.js (via vocabulary import).
 
 In the user prompt section that describes stage structure, add:
 
-```
+```text
 "targetStage in each handoff MUST be one of the stage IDs listed above.
 Do not invent stage IDs that are not in the provided list."
 ```
@@ -718,7 +718,7 @@ context.
 **DSL update (`examples/universe.dsl`):** Add narrative fields to at least 2
 projects:
 
-```
+```text
 project oncora {
   ...
   milestones ["Phase 2 completion", "Phase 3 enrollment start"]
@@ -903,7 +903,7 @@ should improve further — re-measure and tighten the threshold.
 
 Work proceeds left-to-right within each tier, but tiers are sequential:
 
-```
+```text
 Tier 1: A1 → A2 → A3 → A4 → A5
 Tier 2: B1 → B4 → B5 → B2 → B3 → B6 → B7
 Tier 3: C3 → C1 → C2 → C4

@@ -1,13 +1,15 @@
 # Plan 1850-a-02 — allocation layer (D1, D2, D4, D5)
 
 Moves identifier allocation off the contested ledger page onto append-only
-#1564 anchor comments, with the ledger page and MEMORY row as derived
+
+## 1564 anchor comments, with the ledger page and MEMORY row as derived
+
 projections. Covers SC1, SC2, SC6, SC7, SC8, SC9, SC10. Independent of Part 01.
 
 Libraries used: libwiki (new ledger command), libutil (GhClient), libmock
 (createMockGhClient).
 
-## Step 1 — Anchor body parser
+### Step 1 — Anchor body parser
 
 Intent: parse the fenced allocation block out of a #1564 comment.
 
@@ -24,13 +26,14 @@ Files: create `libraries/libwiki/src/ledger/anchor.js`,
 Verification: round-trip `render` → `parse` is identity; a non-anchor comment
 parses to `null`.
 
-## Step 2 — Anchor reader with full pagination
+### Step 2 — Anchor reader with full pagination
 
 Intent: read every #1564 anchor in server order; never truncate.
 
 Files: create `libraries/libwiki/src/ledger/reader.js`,
 `libraries/libwiki/test/ledger-reader.test.js`; modify
-`libraries/libutil/src/gh-client.js` and `libraries/libmock/src/mock/gh-client.js`.
+`libraries/libutil/src/gh-client.js` and
+`libraries/libmock/src/mock/gh-client.js`.
 
 - Add `GhClient.apiGetPaginated(path, { cwd })` running `gh api --paginate
   --slurp <path>`. With `--slurp`, `gh` wraps the per-page arrays in one outer
@@ -51,7 +54,7 @@ the already-flattened comment array a correct `--slurp` parse would yield)
 yields all anchors across both pages in `id` order (the pagination risk from
 plan-a).
 
-## Step 3 — Fold and projection renderer
+### Step 3 — Fold and projection renderer
 
 Intent: turn the ordered anchor sequence into the ledger page body and MEMORY
 row, detecting double-allocations.
@@ -79,7 +82,7 @@ Verification: a constructed double-allocation fixture yields one `conflicts`
 entry with first-published winner; rebuilding then deleting and re-rendering is
 idempotent.
 
-## Step 4 — `fit-wiki ledger` command
+### Step 4 — `fit-wiki ledger` command
 
 Intent: the operator-facing procedure.
 
@@ -118,7 +121,7 @@ Verification: `cli-ledger.integration.test.js` drives each subcommand against a
 mock gh-client; `allocate` issues exactly one `apiPost` and zero projection
 writes; `rebuild` reproduces a golden projection from a fixed anchor sequence.
 
-## Step 5 — Reservation floor demotion (D5) and conventions home (KD4)
+### Step 5 — Reservation floor demotion (D5) and conventions home (KD4)
 
 Intent: codify detection-only reservation semantics and the procedure's home.
 
@@ -140,7 +143,7 @@ ledger page lives in the wiki repo, this convention edit lands through the
 normal wiki landing path, not the spec PR; the spec PR carries only the libwiki
 code and the procedure documentation.
 
-## Step 6 — Substrate properties documentation (SC10)
+### Step 6 — Substrate properties documentation (SC10)
 
 Intent: record why #1564 comments meet D1's substrate test.
 
@@ -165,7 +168,7 @@ merge, stale fast-forward) against a held anchor is the projection-level test
 above, since those operations act on the wiki repo, which the anchor does not
 live in.
 
-## Risks
+### Risks
 
 - **Backfill double-registration.** Running `allocate --backfill` twice would
   post duplicate anchors; the procedure requires `verify` to pass first, and

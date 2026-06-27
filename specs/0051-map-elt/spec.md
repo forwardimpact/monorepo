@@ -95,7 +95,7 @@ This is the core design goal.
 All raw documents live in Supabase Storage under a single bucket with a
 path-based namespace:
 
-```
+```text
 raw/
   github/{delivery_id}.json           Individual webhook payloads
   getdx/snapshots-list/{timestamp}.json   snapshots.list API responses

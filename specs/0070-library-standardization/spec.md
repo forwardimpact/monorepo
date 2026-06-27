@@ -4,7 +4,7 @@ Standardize all libraries to a single architectural pattern (OO+DI) and
 consolidate Claude skills into capability-based groups so coding agents reliably
 discover and use libraries.
 
-```
+```text
 specs/0070-library-standardization/
   spec.md         This document (WHAT and WHY)
   plan-a-01.md    Migrate non-conforming libraries to OO+DI
@@ -58,7 +58,7 @@ broader system.
 
 Every library (except libskill and libui) follows one pattern:
 
-```
+```text
 ┌──────────────────────────────────────────────┐
 │  Class with constructor-injected dependencies │
 │                                               │

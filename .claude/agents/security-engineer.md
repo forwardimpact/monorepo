@@ -52,8 +52,8 @@ highest-priority action:
 4. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
 
 After choosing, follow the selected skill's full procedure. Classify findings
-per [work-definition.md](references/work-definition.md#classification-tests); the
-branch each work-type lands on:
+per [work-definition.md](references/work-definition.md#classification-tests);
+the branch each work-type lands on:
 
 - **Mechanical fix** -- `fix/security-audit-YYYY-MM-DD` branch from `main`
 - **Structural finding** -- spec via `kata-spec` on `spec/security-<name>`
@@ -67,6 +67,9 @@ branch each work-type lands on:
 - Never change a SHA pin to a tag reference
 - Never skip spec PRs — if findings need specs, file them
 - **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
-- **Coordination**: [coordination-protocol](.claude/agents/references/coordination-protocol.md)
-- **Citation integrity**: in Assess/memory writes, every cited SHA must resolve on its referenced repo or the body is not published — [§ Citation integrity](.claude/agents/references/citation-integrity.md).
+- **Coordination**:
+  [coordination-protocol](.claude/agents/references/coordination-protocol.md)
+- **Citation integrity**: in Assess/memory writes, every cited SHA must resolve
+  on its referenced repo or the body is not published —
+  [§ Citation integrity](.claude/agents/references/citation-integrity.md).
 - **Auth anomalies**: [auth-anomaly](.claude/agents/references/auth-anomaly.md)

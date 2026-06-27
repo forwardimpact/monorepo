@@ -14,8 +14,8 @@ Forward Impact publishes shared libraries (`libcli`, `libui`, `libformat`,
 there is no complete demonstration that an external team can consume these tools
 to build a real product autonomously. The terrain pipeline generates
 organizational and engineering data but has no clinical domain support, so it
-cannot seed a healthcare application. The pitch to engineering leaders and boards
-lacks a concrete, running artifact.
+cannot seed a healthcare application. The pitch to engineering leaders and
+boards lacks a concrete, running artifact.
 
 ### Who is affected
 

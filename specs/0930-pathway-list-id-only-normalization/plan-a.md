@@ -99,7 +99,11 @@ declares "your organization's values will differ"); only the row shape changes.
 | 32–36 (discipline output block) | Replace 3 multi-column rows with 3 id-only lines: `software_engineering`, `data_engineering`, `engineering_management` |
 | 46–49 (track output block) | Replace 2 multi-column rows with 2 id-only lines: `platform`, `sre` |
 
-**Verification:** Visual inspection of each rendered `text` code block after a `--list` invocation in both files — every block holds one id per line, no header, no commas. (`rg -n ','` over the file is too broad — prose around the blocks legitimately contains commas; scope the check to the fenced blocks themselves.)
+**Verification:** Visual inspection of each rendered `text` code block after a
+`--list` invocation in both files — every block holds one id per line, no
+header, no commas. (`rg -n ','` over the file is too broad — prose around the
+blocks legitimately contains commas; scope the check to the fenced blocks
+themselves.)
 
 ### Step 4 — Add a regression test for the `--list` shape
 
@@ -215,12 +219,14 @@ git log --oneline origin/main..HEAD | head -1   # implementation commit
 gh pr view --json title --jq .title              # implementation PR title
 ```
 
-**Pass condition:** every `grep -c ','` prints `0`; every block lists one id
-per line; the default invocation still renders the multi-column table; the
-printed summary-hint bullet says "for IDs"; the implementation PR title begins
-with `feat(pathway)!:` so the breaking-change marker flows into the next
+**Pass condition:** every `grep -c ','` prints `0`; every block lists one id per
+line; the default invocation still renders the multi-column table; the printed
+summary-hint bullet says "for IDs"; the implementation PR title begins with
+`feat(pathway)!:` so the breaking-change marker flows into the next
 `pathway@v0.x.y` GitHub Release notes (the design-decided substitute for a
-per-product CHANGELOG.md, satisfying [`spec.md` § verifiable success criteria](./spec.md#verifiable-success-criteria) row 6).
+per-product CHANGELOG.md, satisfying
+[`spec.md` § verifiable success criteria](./spec.md#verifiable-success-criteria)
+row 6).
 
 Note on the data flag: the CLI walks upward looking for `data/pathway/` and
 the monorepo root has no such directory, so `--data=products/map/starter` is

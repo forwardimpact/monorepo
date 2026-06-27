@@ -109,9 +109,9 @@ machine, reusing one GitHub App.
 > bot resource here is **Single Tenant**. The bridge's `multi` tenancy mode
 > still drives the registry resolver; dispatch uses the per-user OAuth token via
 > `services/ghuser`. Only the Bot Framework app type follows
-> `MICROSOFT_APP_TENANT_ID` (SingleTenant when set).
-> A true multi-tenant offering uses a single-tenant bot + a multi-tenant Entra
-> app distributed through the Teams Store, built on the Microsoft 365 Agents SDK.
+> `MICROSOFT_APP_TENANT_ID` (SingleTenant when set). A true multi-tenant
+> offering uses a single-tenant bot + a multi-tenant Entra app distributed
+> through the Teams Store, built on the Microsoft 365 Agents SDK.
 
 1. **Azure** — register an Entra app (a multi-tenant audience is fine and also
    serves Store distribution), then create an **Azure Bot resource as Single
@@ -129,9 +129,11 @@ machine, reusing one GitHub App.
 4. **Start** the stack (`bunx fit-rc start`) and set the Azure Bot messaging
    endpoint to the fresh tunnel (`README.md` § Azure Bot messaging endpoint).
 5. **Seed the registry** against the running `tenancy` service:
+
    ```sh
    bun scripts/seed-tenancy.mjs        # values default from .env
    ```
+
    It creates the `github-discussions` row first (so `services/ghserver` can
    split the installation id) then the `msteams` row, and fails loudly if
    `ResolveByRepo` would return an unmintable row.

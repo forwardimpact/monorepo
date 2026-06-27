@@ -2,9 +2,9 @@
 
 ## Problem
 
-The Forward Impact website (www.forwardimpact.team) has no `sitemap.xml`, no
-`robots.txt`, no per-page markdown representations, and no `llms.txt` file. This
-means:
+The Forward Impact website (<https://www.forwardimpact.team>) has no
+`sitemap.xml`, no `robots.txt`, no per-page markdown representations, and no
+`llms.txt` file. This means:
 
 1. **Search engines** cannot efficiently discover or prioritize pages. Crawlers
    rely on following links from the home page, which is slow and incomplete for
@@ -14,8 +14,9 @@ means:
 2. **LLM agents** that visit the site to answer user questions must parse
    complex HTML with navigation, styling, and scripts to extract content. This
    is imprecise and wastes context window tokens on boilerplate. The llms.txt
-   standard (https://llmstxt.org) exists specifically to solve this — providing
-   a curated, markdown-formatted entry point that LLMs can consume directly.
+   standard (<https://llmstxt.org>) exists specifically to solve this —
+   providing a curated, markdown-formatted entry point that LLMs can consume
+   directly.
 
 3. **Per-page markdown** does not exist in the built output. When an LLM agent
    or downstream tool needs the content of a single page in clean markdown, the
@@ -71,7 +72,7 @@ files. The website has no manually curated LLM entry point either.
 
 Add a `--base-url` option to `fit-doc build`:
 
-```
+```text
 fit-doc build --src=website --out=dist --base-url=https://www.forwardimpact.team
 ```
 
@@ -153,7 +154,7 @@ section based on the page inventory — the same inventory used for `sitemap.xml
 
 Each link follows the llms.txt format:
 
-```
+```text
 - [Page Title](https://www.forwardimpact.team/about/index.html.md): Description from front matter
 ```
 
@@ -192,7 +193,7 @@ implementation details for the plan.
 
 A new file at `website/public/robots.txt`:
 
-```
+```text
 User-agent: *
 Allow: /
 

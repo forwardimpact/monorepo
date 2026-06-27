@@ -90,7 +90,8 @@ dispatch from the triggering requester rather than held once at construction.
   `oauth` + `ghauth`).
 - Claude Chat and `services/kata` / `services/mcp`; this spec does not
   generalize the dispatch path for that future surface.
-- `ghbridge`'s reply and reaction posting (stays on the installation credential).
+- `ghbridge`'s reply and reaction posting (stays on the installation
+  credential).
 - Rate limiting and the recess/resume *trigger* semantics, which are unchanged
   apart from the redispatch-token reuse named above.
 

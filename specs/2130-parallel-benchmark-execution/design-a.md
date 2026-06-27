@@ -1,12 +1,12 @@
 # Design 2130-a — Parallel Benchmark Execution
 
-Implements spec 2130. The serial nested loop in `BenchmarkRunner.run()` becomes a
-bounded concurrent scheduler (Layer 1), and the runner gains a deterministic
+Implements spec 2130. The serial nested loop in `BenchmarkRunner.run()` becomes
+a bounded concurrent scheduler (Layer 1), and the runner gains a deterministic
 shard selector plus a multi-input merge in `report`, fanned across CI by a new
 reusable workflow (Layer 2). A record's verdict, schema, and the per-cell
 lifecycle (`#runOne`: setup → supervised agent → invariants → judge → teardown)
-are unchanged; only *how many cells run at once* and *how the ledger is
-assembled* change.
+are unchanged; only *how many cells run at once* and
+*how the ledger is assembled* change.
 
 **Clean break — no shims, no fallbacks, no dual representations.** With few
 consumers today, this replaces the obsolete paths outright rather than wrapping
@@ -55,9 +55,9 @@ a write mutex and without a sidecar ledger.
 
 **Streaming contract change.** `run()` now yields in **completion order**, not
 grid order. The CLI consumer already treats records order-independently
-(`stdout` mirror, `anyFail`, zero-record guard), and `report` groups by `taskId`,
-so pass@k is unaffected. This is the one observable behavior change and is called
-out in the spec.
+(`stdout` mirror, `anyFail`, zero-record guard), and `report` groups by
+`taskId`, so pass@k is unaffected. This is the one observable behavior change
+and is called out in the spec.
 
 **Port hand-off, honestly.** A truly held socket cannot be bound by the agent
 later, so `PortRegistry` reserves the *number* (lock + in-use set + re-probe),
@@ -107,8 +107,8 @@ the merge job spawns no agent and needs none. The composite action is the
 **per-shard primitive**; the reusable workflow composes it across the matrix.
 There is no separate single-job entry point to maintain — `shard-total: 1` runs
 the whole family in one shard job (its merge is the identity over one ledger).
-The monorepo's own `eval-kata.yml` migrates to call the reusable workflow and its
-bespoke single-job invocation is deleted, not kept alongside.
+The monorepo's own `eval-kata.yml` migrates to call the reusable workflow and
+its bespoke single-job invocation is deleted, not kept alongside.
 
 ## Key Decisions
 
@@ -132,8 +132,9 @@ bespoke single-job invocation is deleted, not kept alongside.
 - `PortRegistry.acquire(): Promise<number>` / `release(port): void`.
 - `aggregate({inputDir, …})` / `loadRecords` discover `**/results.jsonl`
   recursively, **replacing** the single-file read (no one-file branch retained);
-  an unexpected duplicate `(taskId, runIndex)` is warned and counted, not silently
-  merged (the partition guarantees none, so a duplicate signals misconfiguration).
+  an unexpected duplicate `(taskId, runIndex)` is warned and counted, not
+  silently merged (the partition guarantees none, so a duplicate signals
+  misconfiguration).
 - CLI: `fit-benchmark run --concurrency=<n> --shard=<i>/<N>`;
   `fit-benchmark report --input=<dir>` (now recursive).
 - Action inputs: `concurrency`, `shard-index`, `shard-total`, `mode`.
@@ -142,10 +143,12 @@ bespoke single-job invocation is deleted, not kept alongside.
 
 ## Verification surface
 
-Layer-1 criteria use the runner's existing fake-agent + clock seams (max-in-flight
-≤ C, `ceil(M/C)` batches, `C=1` vs `C=8` identical pass@k, port distinctness,
-one-record-per-cell, stall isolates to one slot) — no live LLM spend. Layer-2
-criteria check `selectShard` is an exact partition, recursive merge equals a
-single run, and a `shard-total=K` dispatch yields `K` shard jobs + 1 merge job.
+Layer-1 criteria use the runner's existing fake-agent + clock seams
+(max-in-flight ≤ C, `ceil(M/C)` batches, `C=1` vs `C=8` identical pass@k, port
+distinctness, one-record-per-cell, stall isolates to one slot) — no live LLM
+spend. Layer-2 criteria check `selectShard` is an exact partition, recursive
+merge equals a single run, and a `shard-total=K` dispatch yields `K` shard jobs
+
+- 1 merge job.
 
 — Staff Engineer 🛠️

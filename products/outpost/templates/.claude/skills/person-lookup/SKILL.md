@@ -86,9 +86,9 @@ The argument is free text: an email, a full name, or just a surname.
   since the OU convention is organization-specific. Narrow with an email for an
   exact hit.
 - **Silent partial results.** Under load the directory occasionally returns an
-  entry's DN with no attributes (exit 0, no error). Every attribute fetch retries
-  with backoff, so a throttled response never masquerades as a person with a
-  blank title or email.
+  entry's DN with no attributes (exit 0, no error). Every attribute fetch
+  retries with backoff, so a throttled response never masquerades as a person
+  with a blank title or email.
 - **No cache.** This skill prints and exits. It never touches
   `~/.cache/fit/outpost/state/identity.md` — that file is owned solely by
   `person-identify`.

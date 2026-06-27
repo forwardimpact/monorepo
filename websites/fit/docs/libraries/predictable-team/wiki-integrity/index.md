@@ -32,14 +32,14 @@ npx fit-wiki audit
 
 When everything conforms, the audit prints a single line and exits zero:
 
-```
+```text
 wiki audit passed
 ```
 
 When a file breaks a rule, each finding is reported under the file it belongs
 to, one row per finding:
 
-```
+```text
 wiki/improvement-coach-2026-W23.md
   3  error  Entry heading '## 6/07 Staff procedural lock' does not match the dated grammar  weekly-log.heading-grammar
             → weekly-log entry headings must be '## YYYY-MM-DD'
@@ -103,7 +103,7 @@ only human-judgment findings remain.
 npx fit-wiki fix
 ```
 
-```
+```text
 fixed: wiki audit is clean
 ```
 
@@ -126,7 +126,7 @@ Some findings are deliberately never auto-fixed, because the safe action depends
 on judgment that a tool cannot supply. When `fix` cannot reach a clean state it
 exits non-zero and names them:
 
-```
+```text
 fit-wiki fix: 1 finding(s) need human judgment (not auto-fixable):
 wiki/old-agent-2026-W20.md
     error  wiki/old-agent-2026-W20.md matches no wiki filename grammar class  admission.not-in-grammar
@@ -138,7 +138,7 @@ Two common cases:
   memory, so `fix` reports it and leaves it in place. Rename it to an admitted
   class by hand.
 - **A lone over-budget block with no split seam.** When a single dated entry or
-  `### ` block alone exceeds the budget, there is no seam to rotate at — shorten
+  `###` block alone exceeds the budget, there is no seam to rotate at — shorten
   the prose yourself.
 
 Run `fix`, then run `audit` again to confirm the wiki is clean before you push.

@@ -11,13 +11,16 @@ entry in libcli's `commands` array, a new `case "logs"` in the dispatch switch,
 and a new `ServiceManager.logs(name)` domain method that streams
 `<rootDir>/<log_dir>/<name>/current` to an injectable stdout sink. Reuse the
 existing `#findServiceIndex` helper for the unknown-service throw (criterion
-#3), gate the missing-arg case in the dispatcher via `cli.usageError` (criterion
-#4), and treat ENOENT on the read stream as the "no logs yet" condition that
+
+## 3), gate the missing-arg case in the dispatcher via `cli.usageError` (criterion
+
+## 4), and treat ENOENT on the read stream as the "no logs yet" condition that
+
 resolves silently (criterion #5). Tests follow the `manager-{verb}.test.js`
 pattern with bespoke inline mocks. The getting-started snippet is rewritten in
 place.
 
-## Step 1 — `ServiceManager.logs(name)` and `stdout` injection
+### Step 1 — `ServiceManager.logs(name)` and `stdout` injection
 
 **Intent.** Add the domain method that maps a service name to a log read and
 writes its bytes to an injected stdout sink.
@@ -62,7 +65,7 @@ writes its bytes to an injected stdout sink.
 **Verification:** `bun run check` passes; the new method is importable from
 `@forwardimpact/librc`.
 
-## Step 2 — Wire `logs` into the CLI dispatcher
+### Step 2 — Wire `logs` into the CLI dispatcher
 
 **Intent.** Declare the command for libcli (so it appears in `--help`) and route
 it through the switch with explicit missing-arg gating.
@@ -106,7 +109,7 @@ it through the switch with explicit missing-arg gating.
 - `bunx fit-rc logs 2>&1 1>/dev/null` exits ≥ 1 with stderr matching both
   `/service/i` and `/(missing|required)/i` (criterion #4).
 
-## Step 3 — Unit tests for `ServiceManager.logs`
+### Step 3 — Unit tests for `ServiceManager.logs`
 
 **Intent.** Cover the four interface rows from the design at the manager
 boundary.
@@ -158,7 +161,7 @@ const capturingSink = (sink = []) =>
 **Verification:** `bun test libraries/librc` passes — five new tests, no
 regressions in `manager-start.test.js` / `manager-stop.test.js`.
 
-## Step 4 — Replace the troubleshooting snippet
+### Step 4 — Replace the troubleshooting snippet
 
 **Intent.** Repair the getting-started page so the flow stays inside `fit-rc`.
 
@@ -196,7 +199,7 @@ separate scope decision out of bounds for this plan.
   returns one match in the "Service startup failures" block (criterion #6
   positive half).
 
-## Step 5 — Verify
+### Step 5 — Verify
 
 **Intent.** Confirm all six spec criteria and the project quality gate pass
 before opening the implementation PR.
@@ -213,16 +216,17 @@ before opening the implementation PR.
    — criterion #4.
 5. `grep -nE 'cat data/logs/[^[:space:]]+/current' websites/fit/docs/getting-started/engineers/guide/index.md`
    returns no match; `grep -nE 'npx fit-rc logs' …` returns a match — criterion
+
    #6.
 
 Criteria #2, #3, #5 are covered by Step 3 unit tests.
 
-## Libraries used
+### Libraries used
 
 `node:stream/promises` (pipeline), `node:stream` (Readable, Writable — test file
 only).
 
-## Risks
+### Risks
 
 - **`pipeline`'s `{ end: false }` is contract, not stylistic.** The Node
   `stream/promises` `pipeline` calls `.end()` on its destination by default; on
@@ -236,7 +240,7 @@ only).
   satisfies both `/service/i` and `/(missing|required)/i`, and the Step 5
   verification grep depends on it byte-for-byte.
 
-## Execution recommendation
+### Execution recommendation
 
 One agent, sequential. Route to `staff-engineer` — code, tests, and the
 getting-started doc edit are tightly coupled (~80 lines src, ~120 lines test, ~6

@@ -1,9 +1,11 @@
 # Plan 2090-b: Work-Item Tracker Abstraction
 
 Implements [design-b.md](design-b.md), the variant selected for planning when
-that design merged ([PR #1785](https://github.com/forwardimpact/monorepo/pull/1785)).
-It is lettered **b** to mirror its design; it is the plan to implement for spec
-2090. [design-a.md](design-a.md) (the `kata-coordinate` skill) stays on record as
+that design merged
+([PR #1785](https://github.com/forwardimpact/monorepo/pull/1785)). It is
+lettered **b** to mirror its design; it is the plan to implement for spec
+2090. [design-a.md](design-a.md) (the `kata-coordinate` skill) stays on record
+      as
 the rejected alternative. Spec, criteria, and exclusions: [spec.md](spec.md).
 
 ## Approach
@@ -44,31 +46,31 @@ definition; every part references it rather than re-deriving it.
 **Excluded surface — `kata-setup`.** `kata-setup` provisions the GitHub tracker
 itself (App, secrets, dispatch reactor, workflow files); its embedded `gh api`
 calls — including the `addDiscussionComment` graphql in generated reactor YAML —
-are the github tracker's own wiring, not portable coordination an agent performs.
-There is no filesystem-tracker equivalent to provision. The matrix's github
-column **names** the dispatch bridge (citing `kata-setup`) rather than relocating
-the generated YAML into the matrix. The criterion-2 verification grep therefore
-runs over the kata-* skills and shared references **excluding `kata-setup/`** and
-`citation-integrity.md` (commit verification). This boundary is the plan's main
-judgment call — see Risks.
+are the github tracker's own wiring, not portable coordination an agent
+performs. There is no filesystem-tracker equivalent to provision. The matrix's
+github column **names** the dispatch bridge (citing `kata-setup`) rather than
+relocating the generated YAML into the matrix. The criterion-2 verification grep
+therefore runs over the kata-* skills and shared references
+**excluding `kata-setup/`** and `citation-integrity.md` (commit verification).
+This boundary is the plan's main judgment call — see Risks.
 
 ### Operation vocabulary
 
 The matrix (Part 01) defines these; every other part may only use these names.
 `create-issue`, `list` (issues or changes), `read` (one item), `comment`,
-`label`, `link`, `open-change`, `update-change`, `gate`, `merge-change`, `close`,
-`create-discussion`, `comment-discussion`. `triage` = label + comment + close;
-`patch` = open-change + merge-change (compositions, not operations). `read` and
-`list` cover the metric-grade tracker queries (`gh pr list`, `gh pr view/diff`,
-`gh issue view`); their rich github realizations live in the matrix and degrade
-on filesystem to front-matter globs.
+`label`, `link`, `open-change`, `update-change`, `gate`, `merge-change`,
+`close`, `create-discussion`, `comment-discussion`. `triage` = label + comment +
+close; `patch` = open-change + merge-change (compositions, not operations).
+`read` and `list` cover the metric-grade tracker queries (`gh pr list`,
+`gh pr view/diff`, `gh issue view`); their rich github realizations live in the
+matrix and degrade on filesystem to front-matter globs.
 
 ### Active-tracker resolution
 
 Skills never branch on the tracker. The matrix instructs the agent to read the
 active column from `$LIBEVAL_WORK_TRACKER` (default `github`) and realize each
-operation through that column. The harness (Part 04) sets that env var; the agent
-resolves the column.
+operation through that column. The harness (Part 04) sets that env var; the
+agent resolves the column.
 
 ### Genericity
 
@@ -77,9 +79,9 @@ New and edited pack content (`work-trackers.md`, the three references,
 `.coaligned/invariants/skill-genericity.rules.mjs`: no `bunx`/`bun run`/`just`,
 no `@forwardimpact/…`, no hardcoded dates or `repos/forwardimpact/monorepo`, no
 monorepo issue/PR links. Use placeholder forms (`repos/{owner}/{repo}`,
-`{YYYY}`). Cross-pack links use `../../agents/references/work-trackers.md` from a
-skill (resolves identically in monorepo and pack) and `work-trackers.md` from a
-sibling reference.
+`{YYYY}`). Cross-pack links use `../../agents/references/work-trackers.md` from
+a skill (resolves identically in monorepo and pack) and `work-trackers.md` from
+a sibling reference.
 
 ## Parts
 
@@ -96,10 +98,10 @@ sibling reference.
 Route every part to an engineering agent (`staff-engineer`); the re-pointing is
 coordination-semantics work, not docs-site prose, so not `technical-writer`.
 Part 01 runs first and alone — it is the citation target for 02, 03, 05. Once 01
-lands, **02, 03, and 04 run in parallel** (disjoint files). **05 runs last**, after
-01 (operation names) and 04 (the `--work-tracker` flag it is invoked with). Run
-`bun run check` and `bun run test` after each part; run `bun run check-skill-refs`
-after 01–03.
+lands, **02, 03, and 04 run in parallel** (disjoint files). **05 runs last**,
+after 01 (operation names) and 04 (the `--work-tracker` flag it is invoked
+with). Run `bun run check` and `bun run test` after each part; run
+`bun run check-skill-refs` after 01–03.
 
 ## Risks
 

@@ -86,9 +86,10 @@ bearer JWT through the same `ConfigurationBotFrameworkAuthentication` the
 cryptographically proven. A request whose `tid` is proven onboards as above; an
 absent or forged proof returns 401 before any registry read. The caller must
 present a Bot Framework-issued bearer token whose audience is the bot's
-`MICROSOFT_APP_ID` — a Graph or Entra user token is rejected. The
-resolved-`tid` → registry-row → `SetRepo` contract is exercised by
-`test/onboard-handler.test.js` and the verifier by `test/onboard-verifier.test.js`.
+`MICROSOFT_APP_ID` — a Graph or Entra user token is rejected. The resolved-`tid`
+→ registry-row → `SetRepo` contract is exercised by
+`test/onboard-handler.test.js` and the verifier by
+`test/onboard-verifier.test.js`.
 
 ### Documented limitation: multi-tenant elapsed-recess re-arm on restart
 
@@ -190,7 +191,8 @@ messaging endpoint is what controls routing, not the package contents.
 
 ## Sideloading
 
-1. In [Teams Admin Center](https://admin.teams.microsoft.com/policies/manage-apps),
+1. In
+   [Teams Admin Center](https://admin.teams.microsoft.com/policies/manage-apps),
    ensure **Org-wide app settings → Allow interaction with custom apps** is on.
 2. In **Setup policies → Global**, ensure **Upload custom apps** is on.
 3. Open Teams → Apps → Manage your apps → **Upload an app** →

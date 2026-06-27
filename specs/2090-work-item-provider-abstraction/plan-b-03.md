@@ -1,29 +1,30 @@
 # Plan 2090-b, Part 03: Re-point the kata-* skills
 
-Replace every in-scope tracker call-site in the kata-* skills and their references
-with an operation name plus a link to `work-trackers.md`. Depends on Part 01.
-Scope boundary (what counts, and the `kata-setup` exclusion) is in
+Replace every in-scope tracker call-site in the kata-* skills and their
+references with an operation name plus a link to `work-trackers.md`. Depends on
+Part 01. Scope boundary (what counts, and the `kata-setup` exclusion) is in
 [plan-b.md](plan-b.md) § Scope boundary. Conventions: [plan-b.md](plan-b.md).
 
 Libraries used: none.
 
 Each step replaces the file's in-scope `gh`/remote-git shapes with operation
-names + `../../agents/references/work-trackers.md`, leaving out-of-scope commands
-(`gh secret`, `gh run`, `git fetch origin main`, tag/wiki pushes, commit-SHA
-verification) untouched. The github realization of each removed shape must
-already exist in the matrix github column (Part 01, Step 3); add any missing
-shape there.
+names + `../../agents/references/work-trackers.md`, leaving out-of-scope
+commands (`gh secret`, `gh run`, `git fetch origin main`, tag/wiki pushes,
+commit-SHA verification) untouched. The github realization of each removed shape
+must already exist in the matrix github column (Part 01, Step 3); add any
+missing shape there.
 
 ## Step 1 — `kata-release-merge`
 
-Files: modify `SKILL.md`, `references/templates.md`, `references/reping-rule.md`,
-`references/comment-gate.md`, `references/announcement-backstop.md`.
+Files: modify `SKILL.md`, `references/templates.md`,
+`references/reping-rule.md`, `references/comment-gate.md`,
+`references/announcement-backstop.md`.
 
 Change: `gh pr comment/view/merge/checks/close`, `gh issue comment/view`,
-`gh api repos/.../pulls` → `comment` / `read` / `merge-change` / `close` / `list`;
-`git push --force-with-lease origin <pr-branch>` (rebase) → `update-change`. Keep
-`gh api repos/.../actions` and `gh run list` (CI introspection) and
-`git fetch origin main`.
+`gh api repos/.../pulls` → `comment` / `read` / `merge-change` / `close` /
+`list`; `git push --force-with-lease origin <pr-branch>` (rebase) →
+`update-change`. Keep `gh api repos/.../actions` and `gh run list` (CI
+introspection) and `git fetch origin main`.
 
 Verification: criterion-2 grep over these files returns zero hits.
 
@@ -42,7 +43,8 @@ Verification: criterion-2 grep over `SKILL.md` returns zero hits.
 
 ## Step 3 — `kata-product-issue`
 
-Files: modify `SKILL.md`, `references/templates.md`, `references/trace-discovery.md`.
+Files: modify `SKILL.md`, `references/templates.md`,
+`references/trace-discovery.md`.
 
 Change: `gh issue *` → `create-issue` / `comment` / `label` / `close` / `read`;
 `git checkout -b <fix|spec>/issue-… && git push -u origin …` → `open-change`.

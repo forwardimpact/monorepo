@@ -121,7 +121,8 @@ secrets and usage are untouched.
 - `msbridge` / `ghbridge` adopting the new interface (follow-up spec).
 - The **Kata Agent Team** App (recorded in the table above; not modified).
 - Cross-surface identity unification (treating the same human as one identity
-  across two surfaces). Each `(surface, surface_user_id)` binding is independent.
+  across two surfaces). Each `(surface, surface_user_id)` binding is
+  independent.
 
 ## Success criteria
 

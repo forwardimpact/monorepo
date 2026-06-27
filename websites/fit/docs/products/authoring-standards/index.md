@@ -14,8 +14,8 @@ Complete the Map and Pathway getting-started guides before continuing:
 
 - [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/) --
   install Map and initialize a `data/pathway/` directory with starter content.
-- [Getting Started: Pathway for Leaders](/docs/getting-started/leaders/pathway/) --
-  install Pathway and confirm you can preview the starter standard.
+- [Getting Started: Pathway for Leaders](/docs/getting-started/leaders/pathway/)
+  -- install Pathway and confirm you can preview the starter standard.
 
 The rest of this guide assumes `npx fit-map validate` passes on the starter data
 and `npx fit-pathway dev` renders it.

@@ -2,18 +2,19 @@
 
 What an obstacle and an experiment *are* — and the obstacle-vs-experiment test —
 is defined in
-[work-definition.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md); this file is
-the operation recipes for filing and closing them. Each recipe names an
+[work-definition.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md);
+this file is the operation recipes for filing and closing them. Each recipe
+names an
 [abstract operation](../../agents/references/work-trackers.md#abstract-operations);
 its concrete shape per tracker lives in the
 [matrix](../../agents/references/work-trackers.md#the-matrix). Obstacle and
 experiment are both issues, distinguished only by label.
 
 The agent being coached — not the facilitator — creates, comments on, and closes
-**its own** obstacle and experiment issues, in both team storyboard and
-1-on-1 sessions. The facilitator has no `Bash`: it `Ask`s the agent to record
-each one, and the agent **reports the `#NNN` back via `Answer`** (the facilitator
-can't `list` to find it) for the storyboard headlines and `Conclude` summary.
+**its own** obstacle and experiment issues, in both team storyboard and 1-on-1
+sessions. The facilitator has no `Bash`: it `Ask`s the agent to record each one,
+and the agent **reports the `#NNN` back via `Answer`** (the facilitator can't
+`list` to find it) for the storyboard headlines and `Conclude` summary.
 
 The storyboard's Active and Concluded lists render from issue state via the
 deterministic `fit-wiki refresh` step — never hand-edit them.

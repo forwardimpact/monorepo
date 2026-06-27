@@ -36,8 +36,8 @@ flowchart TD
   slotn -->|"renderH1(N) + body"| write["commitAtomic: H1\nbody"]
 ```
 
-The bisector no longer owns the part *number*; it owns the part *bodies* and the
-header *shape*. The seal owns the number, because the seal owns the slot.
+The bisector no longer owns the part _number_; it owns the part _bodies_ and the
+header _shape_. The seal owns the number, because the seal owns the slot.
 
 **Clean break — what is removed.** This is not an additive `renderH1` beside the
 old machinery. The bisector's baked `partH1(n, m)` / `finish` `{h1}` field and

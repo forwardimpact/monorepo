@@ -20,8 +20,8 @@ single grant to the app therefore covers every agent uniformly, with no way to
 give one agent less reach than another.
 
 A clean-permission verification on 2026-06-26 (two wakes, `librarian` and
-`postman`, captured from the `com.apple.TCC` log stream) established the runtime's
-actual behavior:
+`postman`, captured from the `com.apple.TCC` log stream) established the
+runtime's actual behavior:
 
 | Observation (2026-06-26 run) | Evidence from the run |
 | --- | --- |
@@ -32,23 +32,23 @@ actual behavior:
 | The synced-content cache the agents read is **not** in a TCC-protected folder. | The cache lives under `~/.cache/fit/outpost/`, outside Documents/Desktop/Downloads/Library. |
 
 The single-responsible-process model is correct for usability and worth keeping
-**for the agents that sync mail and calendar**: one grant, never `node`/`claude`.
-The gap is that the model is all-or-nothing. An agent that only processes the
-already-synced cache and updates the knowledge base runs with the same filesystem
-reach as the agent that reads the live mail store. The synced content it reads is
-attacker-influenceable (`products/outpost/CLAUDE.md` § Trust Boundary treats it
-as data, never instructions), so a prompt-injected knowledge-base agent today can
-read the entire disk — the mail SQLite store, other applications' data — even
-though its job never needs that reach. Existing trust-boundary work hardens the
-config and state roots against **writes**; nothing narrows an agent's **read**
-reach over protected files.
+**for the agents that sync mail and calendar**: one grant, never
+`node`/`claude`. The gap is that the model is all-or-nothing. An agent that only
+processes the already-synced cache and updates the knowledge base runs with the
+same filesystem reach as the agent that reads the live mail store. The synced
+content it reads is attacker-influenceable (`products/outpost/CLAUDE.md` § Trust
+Boundary treats it as data, never instructions), so a prompt-injected
+knowledge-base agent today can read the entire disk — the mail SQLite store,
+other applications' data — even though its job never needs that reach. Existing
+trust-boundary work hardens the config and state roots against **writes**;
+nothing narrows an agent's **read** reach over protected files.
 
 ## Goal
 
-Each agent runs with the least privilege its job requires. An agent that does not
-read the live mail/calendar stores and does not send mail must be unable to read
-Full Disk Access-protected locations, even if fully prompt-injected. Agents that
-do sync or send keep today's verified single-grant behavior.
+Each agent runs with the least privilege its job requires. An agent that does
+not read the live mail/calendar stores and does not send mail must be unable to
+read Full Disk Access-protected locations, even if fully prompt-injected. Agents
+that do sync or send keep today's verified single-grant behavior.
 
 ## Privilege model
 
@@ -59,11 +59,12 @@ Two named levels, mapped to the capabilities each agent's job needs:
 | `full` | Responsible process is `fit-outpost.app`; inherits the app's grants, including Full Disk Access (live mail/calendar read) and Automation (mail send). | Agents that sync the live mail/calendar stores or send mail. |
 | `restricted` | The agent is held responsible for itself; the app's Full Disk Access and Automation are **not** extended to it. Operates only on non-TCC-protected substrate. | Agents that read the synced cache, build the knowledge graph, or stage drafts as files. |
 
-Drafting illustrates the split: composing a reply by reading the synced **cache**
-and writing a draft **file** is `restricted`; it is only the live-store sync and
-the AppleScript mail **send** that require `full`. These levels are orthogonal to
-the `brief` / `brief+draft` posture: posture governs whether an agent may compose
-content for others, privilege governs the macOS reach the daemon grants it.
+Drafting illustrates the split: composing a reply by reading the synced
+**cache** and writing a draft **file** is `restricted`; it is only the
+live-store sync and the AppleScript mail **send** that require `full`. These
+levels are orthogonal to the `brief` / `brief+draft` posture: posture governs
+whether an agent may compose content for others, privilege governs the macOS
+reach the daemon grants it.
 
 ## Requirements (WHAT)
 

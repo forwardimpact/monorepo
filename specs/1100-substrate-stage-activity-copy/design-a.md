@@ -2,14 +2,14 @@
 
 ## Problem (restated)
 
-Today the Landmark kata-interview flow leaves `data/activity/` file staging
-in the supervisor's head: `bunx fit-map substrate stage` seeds the Supabase
+Today the Landmark kata-interview flow leaves `data/activity/` file staging in
+the supervisor's head: `bunx fit-map substrate stage` seeds the Supabase
 substrate but does **not** copy `data/activity/` to `$AGENT_CWD`, so the
-supervisor must remember a manual `cp -r data/activity "$AGENT_CWD/data/activity"`
-on top of the automated `substrate stage`. Run 25999252444 skipped it; run
-25999790849 caught it at supervisor turn 38. We move the copy into substrate
-automation so the workspace exhibits the right state regardless of supervisor
-recall.
+supervisor must remember a manual
+`cp -r data/activity "$AGENT_CWD/data/activity"` on top of the automated
+`substrate stage`. Run 25999252444 skipped it; run 25999790849 caught it at
+supervisor turn 38. We move the copy into substrate automation so the workspace
+exhibits the right state regardless of supervisor recall.
 
 ## Scope
 
@@ -71,7 +71,7 @@ export async function copyActivity({ source, target }) { … }
 Phase sequence post-change (as observable in tests via `runPhase`
 invocations):
 
-```
+```text
 init → copy-activity → stack → url-discovery → migrate → seed → provision → smoke
 ```
 
@@ -79,8 +79,9 @@ init → copy-activity → stack → url-discovery → migrate → seed → prov
 
 1. CI step `Prepare interview workspace` runs `bunx fit-terrain build`, so
    `<monorepo>/data/activity/` exists.
-2. CI step `Substrate stage` runs `bunx fit-map substrate stage --cwd <agent_dir>`.
-   `runStageCommand` runs the `init` phase against `target`.
+2. CI step `Substrate stage` runs
+   `bunx fit-map substrate stage --cwd <agent_dir>`. `runStageCommand` runs the
+   `init` phase against `target`.
 3. The new `copy-activity` phase wrapper resolves `dataRoot` via
    `path.dirname(await findDataDir(undefined))`, then calls `copyActivity({
    source: dataRoot + "/activity", target })`, which invokes `fs.cp(...)`

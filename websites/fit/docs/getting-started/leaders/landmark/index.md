@@ -250,7 +250,7 @@ skills, evidence counts, GetDX comments, and growth recommendations.
 
 Sample default output:
 
-```
+```text
   Team — health view
 
   Drivers (6)

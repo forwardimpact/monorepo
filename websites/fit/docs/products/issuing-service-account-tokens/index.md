@@ -36,7 +36,7 @@ fit-map auth issue --email kata-agent-team@example.com
 
 The verb prints the JWT followed by an export hint:
 
-```
+```text
 Issued JWT for kata-agent-team@example.com (service_account, ttl=8760h)
 
 eyJhbGciOi...

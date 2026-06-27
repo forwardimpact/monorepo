@@ -40,7 +40,7 @@ credential-free path.
 Expected output is exactly these 10 artifacts (authoritative list,
 live-verified 2026-06-11 against monorepo `6010964b`):
 
-```
+```text
 seed_001_conditions.sql
 seed_002_sites.sql
 seed_003_researchers.sql
@@ -240,13 +240,23 @@ Verify: PR CI green (lint + seed-stage jobs).
 
 ## Verification (end of part 03)
 
-- [ ] `data/synthetic/seed/` carries the 10 vendored artifacts + `PROVENANCE.md` + `SHA256SUMS`, all committed; `sha256sum -c SHA256SUMS` passes.
-- [ ] `PROVENANCE.md` pins a real 40-char SHA on `forwardimpact/monorepo:main`; regenerating there per its § Command reproduces the artifacts byte-identical (spec SC6 as corrected).
-- [ ] `scripts/stage-seed.sh` stages 9 SQL files into `products/polaris/site/supabase/migrations/20250101000*_seed_*.sql` with checksum verification, no network.
-- [ ] `./setup.sh` against a fresh stack: stages seed, applies via `supabase db push`, seeds embeddings via `embed-seed`.
-- [ ] `psql -c "SELECT COUNT(*) FROM trials;"` returns ≥ 6 (story.dsl trial count).
-- [ ] `psql -c "SELECT COUNT(*) FROM condition_embeddings;"` returns ≥ 6 (after embed-seed runs).
-- [ ] `psql -c "SELECT indexrelid::regclass FROM pg_index WHERE indrelid = 'condition_embeddings'::regclass AND indisunique;"` includes `condition_embeddings_condition_id_uidx` (from part 02).
-- [ ] `cd products/polaris/site && npx -y supabase@1.219.2 test db` exits 0 (the part-02 RLS test asserts against the now-applied schema).
+- [ ] `data/synthetic/seed/` carries the 10 vendored artifacts + `PROVENANCE.md`
+      + `SHA256SUMS`, all committed; `sha256sum -c SHA256SUMS` passes.
+- [ ] `PROVENANCE.md` pins a real 40-char SHA on `forwardimpact/monorepo:main`;
+      regenerating there per its § Command reproduces the artifacts
+      byte-identical (spec SC6 as corrected).
+- [ ] `scripts/stage-seed.sh` stages 9 SQL files into
+      `products/polaris/site/supabase/migrations/20250101000*_seed_*.sql` with
+      checksum verification, no network.
+- [ ] `./setup.sh` against a fresh stack: stages seed, applies via
+      `supabase db push`, seeds embeddings via `embed-seed`.
+- [ ] `psql -c "SELECT COUNT(*) FROM trials;"` returns ≥ 6 (story.dsl trial
+      count).
+- [ ] `psql -c "SELECT COUNT(*) FROM condition_embeddings;"` returns ≥ 6 (after
+      embed-seed runs).
+- [ ] `psql -c "SELECT indexrelid::regclass FROM pg_index WHERE indrelid = 'condition_embeddings'::regclass AND indisunique;"`
+      includes `condition_embeddings_condition_id_uidx` (from part 02).
+- [ ] `cd products/polaris/site && npx -y supabase@1.219.2 test db` exits 0 (the
+      part-02 RLS test asserts against the now-applied schema).
 
 — Staff Engineer 🛠️

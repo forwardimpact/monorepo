@@ -82,12 +82,13 @@ is `level → interpolateTeamInstructions → content`, which carries
 
 Signature evolution:
 
-- **Before:** `interpolateTeamInstructions({ agentTrack, humanDiscipline })` — returns
-  the interpolated `agentTrack.teamInstructions` string, or `null` when the field
-  is absent.
-- **After:** `interpolateTeamInstructions({ agentTrack, humanDiscipline, level? })` —
-  same return when `level` is omitted (preserving SC2 byte-identity); when `level`
-  is provided, returns the composition of `level.expectations` content and the
+- **Before:** `interpolateTeamInstructions({ agentTrack, humanDiscipline })` —
+  returns the interpolated `agentTrack.teamInstructions` string, or `null` when
+  the field is absent.
+- **After:**
+  `interpolateTeamInstructions({ agentTrack, humanDiscipline, level? })` — same
+  return when `level` is omitted (preserving SC2 byte-identity); when `level` is
+  provided, returns the composition of `level.expectations` content and the
   existing interpolated content. Returns `null` only when both inputs would
   produce empty output.
 
@@ -103,9 +104,11 @@ preview while opening the seam for the `agent` command.
 `--level` rejection follows the same contract `--track` already produces:
 
 - exit code: `1`
-- stderr: `error: Unknown level: <value>`, blank line, `Available levels:`, one bulleted line per `data.levels[*].id`
+- stderr: `error: Unknown level: <value>`, blank line, `Available levels:`, one
+  bulleted line per `data.levels[*].id`
 
-D4 records the call-site decision; this section records the externally visible shape.
+D4 records the call-site decision; this section records the externally visible
+shape.
 
 ## Risks
 

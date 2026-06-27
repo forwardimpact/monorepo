@@ -15,12 +15,12 @@ documents become the anchor.
 
 ## Why now
 
-Two end-to-end `kata-interview` workflow runs ([run
-25999252444](https://github.com/forwardimpact/monorepo/actions/runs/25999252444)
-and [run
-25999790849](https://github.com/forwardimpact/monorepo/actions/runs/25999790849))
-analysed by `fit-trace` show the supervisor spending the bulk of its Bash
-turns reinventing the same data-assembly pipelines:
+Two end-to-end `kata-interview` workflow runs
+([run 25999252444](https://github.com/forwardimpact/monorepo/actions/runs/25999252444)
+and
+[run 25999790849](https://github.com/forwardimpact/monorepo/actions/runs/25999790849))
+analysed by `fit-trace` show the supervisor spending the bulk of its Bash turns
+reinventing the same data-assembly pipelines:
 
 - **Persona-pick toil.** Run 1 supervisor turns 33–50 + Run 2 supervisor
   turns 22–50 grep'ing `wiki/product-manager-2026-W*.md` for
@@ -85,7 +85,7 @@ not constrain the default shape of the operator-facing roster output.
   STATUS row claims spec 1110).
 - Re-publishing libconfig / guide implementations (release-engineer
   scope; [#940](https://github.com/forwardimpact/monorepo/issues/940)
-  + [#983](https://github.com/forwardimpact/monorepo/issues/983)).
+  - [#983](https://github.com/forwardimpact/monorepo/issues/983)).
 - Substrate smoke invariants (audited by `substrate smoke`, untouched
   here).
 - Changes to `.substrate.json`'s on-disk field names — the rename in

@@ -32,6 +32,7 @@ skills:
 ## Working style
 
 {{#workingStyles}}
+
 - **{{title}}** — {{{content}}}
 {{/workingStyles}}
 {{/hasWorkingStyles}}
@@ -41,15 +42,18 @@ skills:
 
 | Skill | Use when |
 | ----- | -------- |
+
 {{#skillIndex}}
 | {{{name}}} | {{{useWhen}}} |
 {{/skillIndex}}
 {{/hasSkills}}
 
 {{#hasConstraints}}
+
 ## Constraints
 
 {{#disciplineConstraints}}
+
 - {{{.}}}
 {{/disciplineConstraints}}
 {{#trackConstraints}}

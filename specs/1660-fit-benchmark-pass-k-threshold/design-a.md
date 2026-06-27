@@ -22,7 +22,7 @@ and drop the `k` input; attribute failures per task. The gate replaces today's
 
 ## Interfaces
 
-```
+```text
 parsePassGate(values) -> { passK: number, passThreshold: number } | null
   null            when neither --pass-k nor --pass-threshold present
   throws          when exactly one present, passK < 1, or threshold ∉ [0,1]

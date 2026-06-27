@@ -59,10 +59,10 @@ Teams Using Agents `<job>` block (design D1).
 
 - `products/kata/package.json`
 
-**Content.** Author-input fields below; `check-metadata.mjs --fix` (run in
-Step 6) canonicalizes by injecting `homepage`, `repository`, `license`,
-`author`, `engines`, and key ordering. With `"private": true`, no
-`publishConfig` is added (check-metadata.mjs `if (!pkg.private) next.publishConfig = …`).
+**Content.** Author-input fields below; `check-metadata.mjs --fix` (run in Step
+6) canonicalizes by injecting `homepage`, `repository`, `license`, `author`,
+`engines`, and key ordering. With `"private": true`, no `publishConfig` is added
+(check-metadata.mjs `if (!pkg.private) next.publishConfig = …`).
 
 ```jsonc
 {
@@ -113,7 +113,7 @@ returned `null` is a no-op in `commitUpdate`).
 **Content (exact).** One sentence, no leading `# heading`, no
 `BEGIN:description` marker, trailing newline:
 
-```
+```text
 Metadata-only — Kata ships as a skill pack under `.claude/skills/kata-*/` per CLAUDE.md § Distribution Model.
 ```
 
@@ -242,9 +242,19 @@ This step's diff is mechanical — no hand-editing of `JTBD.md` or
 created in Step 2; this step rewrites it in place. The other two are
 modified by the JTBD regen.)
 
-- `products/kata/package.json` — `check-metadata.mjs --fix` reorders keys per the canonical order and injects `homepage`, `repository`, `license`, `author`, `engines`. No `publishConfig` because `"private": true`. Hand-authored fields from Step 2 (`name`, `private`, `description`, `jobs`) are preserved verbatim.
-- `JTBD.md` — `coaligned jtbd --fix` inserts the new `<job user="Teams Using Agents" goal="Run a Continuously Improving Agent Team">` block inside the `BEGIN:jobs … END:jobs` body, after the existing Platform Builders blocks (per `USER_ORDER` index 3 from Step 1).
-- `products/README.md` — `coaligned jtbd --fix` inserts a new row in the `BEGIN:catalog … END:catalog` table, alphabetically between `**guide**` and `**landmark**`. The description cell is the verbatim `pkg.description` string from Step 2, namely: `"Run an autonomous, continuously improving development team via a daily Plan-Do-Study-Act loop, shipped as a skill pack under .claude/skills/kata-*/."`
+- `products/kata/package.json` — `check-metadata.mjs --fix` reorders keys per
+  the canonical order and injects `homepage`, `repository`, `license`, `author`,
+  `engines`. No `publishConfig` because `"private": true`. Hand-authored fields
+  from Step 2 (`name`, `private`, `description`, `jobs`) are preserved verbatim.
+- `JTBD.md` — `coaligned jtbd --fix` inserts the new
+  `<job user="Teams Using Agents" goal="Run a Continuously Improving Agent Team">`
+  block inside the `BEGIN:jobs … END:jobs` body, after the existing Platform
+  Builders blocks (per `USER_ORDER` index 3 from Step 1).
+- `products/README.md` — `coaligned jtbd --fix` inserts a new row in the
+  `BEGIN:catalog … END:catalog` table, alphabetically between `**guide**` and
+  `**landmark**`. The description cell is the verbatim `pkg.description` string
+  from Step 2, namely:
+  `"Run an autonomous, continuously improving development team via a daily Plan-Do-Study-Act loop, shipped as a skill pack under .claude/skills/kata-*/."`
 
 **Command.**
 
@@ -262,13 +272,24 @@ specific column widths. After regen, JTBD.md contains, after the
 existing Platform Builders blocks and before the closing
 `<!-- END:jobs -->`, a block whose structural shape is:
 
-- Outer `<job user="Teams Using Agents" goal="Run a Continuously Improving Agent Team">` … `</job>` markers.
-- `## Teams Using Agents: Run a Continuously Improving Agent Team` heading inside the block.
-- `**Trigger:**` paragraph whose content matches `products/kata/package.json .jobs[0].trigger` verbatim, wrapped by Prettier.
-- `**Big Hire:**` paragraph that begins `Help me ` and whose final non-whitespace token is the literal `→ **Kata**` (Prettier may wrap the paragraph onto two or three lines; `→` and `**Kata**` always appear as the trailing tokens, regardless of wrap position).
-- `**Little Hire:**` paragraph that begins `Help me onboard ` and ends with `→ **Kata**` (same wrap-independent shape).
-- `**Competes With:**` paragraph carrying the four `;`-separated fragments joined with `; ` and a trailing `.` (per `mergeCompetesWith`).
-- `**Forces:**` heading followed by four bullets — `- **Push:**`, `- **Pull:**`, `- **Habit:**`, `- **Anxiety:**` — each carrying the matching `forces.*` string verbatim.
+- Outer
+  `<job user="Teams Using Agents" goal="Run a Continuously Improving Agent Team">`
+  … `</job>` markers.
+- `## Teams Using Agents: Run a Continuously Improving Agent Team` heading
+  inside the block.
+- `**Trigger:**` paragraph whose content matches
+  `products/kata/package.json .jobs[0].trigger` verbatim, wrapped by Prettier.
+- `**Big Hire:**` paragraph that begins `Help me` and whose final
+  non-whitespace token is the literal `→ **Kata**` (Prettier may wrap the
+  paragraph onto two or three lines; `→` and `**Kata**` always appear as the
+  trailing tokens, regardless of wrap position).
+- `**Little Hire:**` paragraph that begins `Help me onboard` and ends with
+  `→ **Kata**` (same wrap-independent shape).
+- `**Competes With:**` paragraph carrying the four `;`-separated fragments
+  joined with `;` and a trailing `.` (per `mergeCompetesWith`).
+- `**Forces:**` heading followed by four bullets — `- **Push:**`, `- **Pull:**`,
+  `- **Habit:**`, `- **Anxiety:**` — each carrying the matching `forces.*`
+  string verbatim.
 - `**Fired When:**` paragraph carrying `firedWhen` verbatim.
 
 **Verification.** Precondition: every other `package.json` in the repo is
@@ -279,8 +300,8 @@ Step 2. Then run `bun run context:fix` and check:
 
 1. `bun run context` exits 0.
 2. `git status --short` lists exactly three lines —
-   ` M products/kata/package.json`, ` M JTBD.md`,
-   ` M products/README.md` (all modifications; no untracked or deleted
+   `M products/kata/package.json`, `M JTBD.md`,
+   `M products/README.md` (all modifications; no untracked or deleted
    files). Commit those three files as the Step 6 commit.
 3. Re-running `bun run context:fix` then `git status --short` shows a
    clean tree (idempotency — spec criterion 3).

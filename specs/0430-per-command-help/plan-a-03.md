@@ -34,8 +34,8 @@ help/parsing content:
    without `--version`, examples). Show the exact output format.
 
 4. **Grep-friendliness contract.** Explain the one-line-per-entry rule and show
-   grep examples for both views. This is the core design invariant from spec 0360
-   that carries forward.
+   grep examples for both views. This is the core design invariant from spec
+   0360 that carries forward.
 
 5. **JSON help.** Document `--help --json` for both global and per-command
    views. Show the per-command JSON shape (`parent`, `name`, `options`,

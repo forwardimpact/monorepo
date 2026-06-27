@@ -160,7 +160,8 @@ new `.claude/skills/kata-release-merge/references/experiment-path.md`.
 - Memory section: record PR-open, human-signal, merge, and verdict timestamps
   per experiment PR merged.
 - The detailed discriminator/diff-scope/pin algorithm lives in
-  `references/experiment-path.md`; SKILL.md links it (mirrors `comment-gate.md`).
+  `references/experiment-path.md`; SKILL.md links it (mirrors
+  `comment-gate.md`).
 - Genericity: all text names no monorepo-specific issue, PR, package, or path.
 
 Verification: read the gate step — discriminator, three-state row read,

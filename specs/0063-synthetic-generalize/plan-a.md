@@ -465,7 +465,7 @@ Extend the existing BioNova DSL with `dataset` and `output` blocks that exercise
 all three tools and all six renderers. The new blocks are appended after the
 existing `content` blocks:
 
-```
+```text
   // ─── Datasets ─────────────────────────────────
 
   dataset trial_patients {
@@ -630,7 +630,7 @@ invocation. SDV produces one per table. All tools return `Dataset[]` — Faker
 returns a single-element array. Each dataset's `name` is set by the tool
 (`{dslId}_{resourceOrTable}`), and output blocks reference these expanded names:
 
-```
+```text
 output patients_patient csv  { path "output/patients.csv" }
 output patients_encounter csv { path "output/encounters.csv" }
 output patients_condition csv { path "output/conditions.csv" }

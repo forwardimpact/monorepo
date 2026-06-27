@@ -7,11 +7,12 @@ one at a glance; the current name makes that ambiguous (see Problem).
 
 ## Problem
 
-Spec 1320 (per-user GitHub authentication) shipped `services/ghauth` — a gRPC service that owns the **Kata
-Agent User** App and resolves a per-user, user-to-server GitHub token (`ghu_*`)
-for a `(surface, surface_user_id)` pair. Spec 1270's design introduces a
-sibling, `services/ghserver`, that holds the **Kata Agent Team** App private
-key and mints repo-scoped, server-to-server installation tokens (`ghs_*`).
+Spec 1320 (per-user GitHub authentication) shipped `services/ghauth` — a gRPC
+service that owns the **Kata Agent User** App and resolves a per-user,
+user-to-server GitHub token (`ghu_*`) for a `(surface, surface_user_id)` pair.
+Spec 1270's design introduces a sibling, `services/ghserver`, that holds the
+**Kata Agent Team** App private key and mints repo-scoped, server-to-server
+installation tokens (`ghs_*`).
 
 Two naming defects surface once both services exist side by side:
 
@@ -20,11 +21,11 @@ Two naming defects surface once both services exist side by side:
   title is "GitHub **User** Authentication" and its package description is
   "GitHub user authentication — per-user OAuth token lifecycle" — the
   directory name is broader than the service.
-- **No symmetry with the arriving sibling.** A reader cannot tell from
-  `ghauth` vs `ghserver` which handles which GitHub auth model. The two
-  services are a deliberately-separate pair (distinct credentials, distinct
-  blast radius — see [spec 1270 design-a](../1270-kata-bridges-public-hosting/design-a.md)),
-  and their names should make the user/app split legible.
+- **No symmetry with the arriving sibling.** A reader cannot tell from `ghauth`
+  vs `ghserver` which handles which GitHub auth model. The two services are a
+  deliberately-separate pair (distinct credentials, distinct blast radius — see
+  [spec 1270 design-a](../1270-kata-bridges-public-hosting/design-a.md)), and
+  their names should make the user/app split legible.
 
 A naming rule resolves both: name each service after the GitHub token prefix
 it deals in. `ghu_*` user tokens → **`ghuser`**; `ghs_*` server tokens →

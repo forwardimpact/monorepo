@@ -47,7 +47,8 @@ supabase`); `supabase db lint` parses config.toml without error.
 
 ## Step 3 — Author `interest_signals` migration
 
-Created: `products/polaris/site/supabase/migrations/20260601000000_interest_signals.sql`
+Created:
+`products/polaris/site/supabase/migrations/20260601000000_interest_signals.sql`
 
 Content:
 
@@ -75,7 +76,8 @@ terrain output to have applied first).
 
 ## Step 3b — Author `condition_embeddings` unique-constraint migration
 
-Created: `products/polaris/site/supabase/migrations/20260601000000a_condition_embeddings_unique.sql`
+Created:
+`products/polaris/site/supabase/migrations/20260601000000a_condition_embeddings_unique.sql`
 
 ```sql
 -- libsyntheticrender emits condition_embeddings.condition_id without a UNIQUE
@@ -93,7 +95,8 @@ unique index `condition_embeddings_condition_id_uidx`.
 
 ## Step 4 — Author RLS policies migration
 
-Created: `products/polaris/site/supabase/migrations/20260601000001_rls_policies.sql`
+Created:
+`products/polaris/site/supabase/migrations/20260601000001_rls_policies.sql`
 
 Content (covers every table per design):
 
@@ -238,10 +241,15 @@ Verify: PR CI passes (`supabase db lint` + `bun run lint`).
 
 ## Verification (end of part 02)
 
-- [ ] `products/polaris/site/supabase/migrations/20260601000000_interest_signals.sql` exists with table, indexes, RLS enable.
-- [ ] `products/polaris/site/supabase/migrations/20260601000001_rls_policies.sql` exists; does not duplicate any terrain-emitted policy name.
-- [ ] `supabase db lint` (static SQL syntax check, no DB needed) exits 0 on the migrations directory.
-- [ ] `setup.sh` Step B invokes `npx -y supabase@1.219.2 db push` (full DB application validated at end of part 03).
-- [ ] PR CI runs only static checks; e2e DB tests are deferred to part 03's verification list.
+- [ ] `products/polaris/site/supabase/migrations/20260601000000_interest_signals.sql`
+      exists with table, indexes, RLS enable.
+- [ ] `products/polaris/site/supabase/migrations/20260601000001_rls_policies.sql`
+      exists; does not duplicate any terrain-emitted policy name.
+- [ ] `supabase db lint` (static SQL syntax check, no DB needed) exits 0 on the
+      migrations directory.
+- [ ] `setup.sh` Step B invokes `npx -y supabase@1.219.2 db push` (full DB
+      application validated at end of part 03).
+- [ ] PR CI runs only static checks; e2e DB tests are deferred to part 03's
+      verification list.
 
 — Staff Engineer 🛠️

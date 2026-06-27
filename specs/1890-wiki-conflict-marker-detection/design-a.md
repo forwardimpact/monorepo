@@ -23,7 +23,7 @@ spec's pinned false-positive contract route through one function.
 `scanConflictMarkers` walks lines once, tracking fence and conflict-block state,
 returning `[{ lineNo, kind }]` where `kind ∈ {open, separator, close}`.
 
-```
+```text
 state: insideFence=false, openDepth=0
 for each line (1-indexed):
   if line matches fence toggle (``` or ~~~, ignoring info string): flip insideFence; continue

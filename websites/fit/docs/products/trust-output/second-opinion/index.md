@@ -125,7 +125,8 @@ deliverable yourself and want a standards-grounded check on one aspect.
 
 ## Ask about unfamiliar markers
 
-When Guide references a marker you do not recognize, ask for the full definition:
+When Guide references a marker you do not recognize, ask for the full
+definition:
 
 ```text
 > What markers define working-level testing in our standard?

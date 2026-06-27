@@ -4,7 +4,7 @@ Generate pathway data — the career framework entities validated by
 `npx fit-map validate` — from the universe DSL via LLM-assisted content
 generation. Output lands in `examples/pathway/` as schema-valid YAML.
 
-```
+```text
 specs/0061-synthetic-pathway-data/
   spec.md       This document (WHAT and WHY)
   plan.md       Implementation plan (HOW)
@@ -82,7 +82,7 @@ all non-question types. Question generation is deferred (marked optional).
 
 The universe DSL `framework` block currently accepts three arrays:
 
-```
+```text
 framework {
   proficiencies [awareness, foundational, working, practitioner, expert]
   maturities [emerging, developing, practicing, role_modeling, exemplifying]
@@ -94,7 +94,7 @@ This must be extended to declare the full pathway skeleton — enough structural
 detail that the LLM can fill in coherent prose without inventing the entity
 graph:
 
-```
+```text
 framework {
   proficiencies [awareness, foundational, working, practitioner, expert]
   maturities [emerging, developing, practicing, role_modeling, exemplifying]
@@ -202,7 +202,7 @@ Generated data must pass:
 
 ### Output structure
 
-```
+```text
 examples/pathway/
   framework.yaml
   levels.yaml

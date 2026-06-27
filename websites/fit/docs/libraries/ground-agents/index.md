@@ -11,9 +11,9 @@ engine to retrieve. Four libraries -- `@forwardimpact/libresource`,
 `@forwardimpact/libvector` -- give you a self-contained knowledge infrastructure
 that runs locally without external databases.
 
-The pipeline flows in three stages: ingest HTML into typed resources, extract RDF
-triples into a graph, and generate vector embeddings for semantic retrieval. Each
-stage produces a JSONL-backed index that agents can query directly.
+The pipeline flows in three stages: ingest HTML into typed resources, extract
+RDF triples into a graph, and generate vector embeddings for semantic retrieval.
+Each stage produces a JSONL-backed index that agents can query directly.
 
 ## Prerequisites
 

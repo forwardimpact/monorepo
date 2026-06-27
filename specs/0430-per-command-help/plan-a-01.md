@@ -434,6 +434,7 @@ Add new tests:
    ```
 
 6. **Option name collision:**
+
    ```javascript
    test("throws on command option colliding with global option", () => {
      const proc = createProc();
@@ -517,6 +518,7 @@ Migrate `fullDefinition` from `options` → `globalOptions`. Add tests:
    ```
 
 5. **Global help does NOT show per-command options:**
+
    ```javascript
    test("global help shows only globalOptions, not per-command options", () => {
      // Definition with both globalOptions and command.options

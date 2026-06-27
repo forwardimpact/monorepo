@@ -79,7 +79,11 @@ implemented`; route `kata-implement` only after that signal flips.
 
 ## Libraries used
 
-Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationContext), `@forwardimpact/libui` (createBoundRouter, render, components, freezeInvocationContext), `@forwardimpact/libformat` (createHtmlFormatter, createTerminalFormatter), `@forwardimpact/libtemplate` (createTemplateLoader), `@forwardimpact/librepl` (Repl).
+Libraries used: `@forwardimpact/libcli` (createCli, dispatch,
+freezeInvocationContext), `@forwardimpact/libui` (createBoundRouter, render,
+components, freezeInvocationContext), `@forwardimpact/libformat`
+(createHtmlFormatter, createTerminalFormatter), `@forwardimpact/libtemplate`
+(createTemplateLoader), `@forwardimpact/librepl` (Repl).
 
 ## Risks
 

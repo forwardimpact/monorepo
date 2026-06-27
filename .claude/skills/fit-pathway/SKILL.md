@@ -25,19 +25,26 @@ and agent profile generation. Two audiences use `fit-pathway` differently:
 **Understand what's expected at your level:**
 
 - Looking up role expectations — `npx fit-pathway job <discipline> <level>`
-- Understanding proficiency and autonomy at each level — `npx fit-pathway level <id>`
-- Analyzing career progression gaps — `npx fit-pathway progress <discipline> <level> --compare=<target>`
-- Exploring skills, behaviours, and drivers — `npx fit-pathway skill <id>`, `npx fit-pathway behaviour <id>`
+- Understanding proficiency and autonomy at each level —
+  `npx fit-pathway level <id>`
+- Analyzing career progression gaps —
+  `npx fit-pathway progress <discipline> <level> --compare=<target>`
+- Exploring skills, behaviours, and drivers — `npx fit-pathway skill <id>`,
+  `npx fit-pathway behaviour <id>`
 
 **Configure agents to meet your engineering standard:**
 
-- Generating agent configurations — `npx fit-pathway agent <discipline> --track=<track> --output=./agents`
-- Previewing what an agent profile includes — `npx fit-pathway agent <discipline> --track=<track>`
+- Generating agent configurations —
+  `npx fit-pathway agent <discipline> --track=<track> --output=./agents`
+- Previewing what an agent profile includes —
+  `npx fit-pathway agent <discipline> --track=<track>`
 
 **Make staffing decisions you can defend:**
 
-- Generating or comparing job definitions — `npx fit-pathway job <discipline> <level> --track=<track>`
-- Selecting interview questions for a role — `npx fit-pathway interview <discipline> <level>`
+- Generating or comparing job definitions —
+  `npx fit-pathway job <discipline> <level> --track=<track>`
+- Selecting interview questions for a role —
+  `npx fit-pathway interview <discipline> <level>`
 
 **Publish and maintain your engineering standard:**
 
@@ -164,7 +171,8 @@ npx fit-pathway dev     # Preview changes in browser
 - [Configure Agents to Meet Your Engineering Standard](https://www.forwardimpact.team/docs/products/agent-teams/index.md)
   — Generate, structure, and maintain exported agent teams
 - [Give Agents Organizational Context](https://www.forwardimpact.team/docs/products/agent-teams/organizational-context/index.md)
-  — Track-scoped team instructions and installation-scoped organizational context for exported agent teams
+  — Track-scoped team instructions and installation-scoped organizational context
+  for exported agent teams
 - [See What's Expected at Your Level](https://www.forwardimpact.team/docs/products/career-paths/index.md)
   — Browse jobs, skills, and career progression between levels
 - [Understand Autonomy and Scope](https://www.forwardimpact.team/docs/products/career-paths/autonomy-scope/index.md)

@@ -107,7 +107,7 @@ difference is what's in `node_modules/@forwardimpact/`.
 After this design lands, `git ls-files '*tool.proto' '*resource.proto'
 '*common.proto'` outside `generated/` returns exactly:
 
-```
+```text
 libraries/libproto/proto/tool.proto
 libraries/libproto/proto/resource.proto
 libraries/libproto/proto/common.proto
@@ -131,8 +131,8 @@ Discovery code path is identical in every row — only the contents of
 ## Risks
 
 - **Workspace-symlink discovery fragility.** Bun workspaces link
-  `libraries/libproto` into `node_modules/@forwardimpact/libproto`. The
-  existing `fs.realpathSync` call (`libraries/libcodegen/bin/fit-codegen.js:144`)
+  `libraries/libproto` into `node_modules/@forwardimpact/libproto`. The existing
+  `fs.realpathSync` call (`libraries/libcodegen/bin/fit-codegen.js:144`)
   resolves the symlink before adding to the include list, so duplicate scan
   paths cannot occur.
 

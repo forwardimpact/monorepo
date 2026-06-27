@@ -4,9 +4,9 @@ description: Proto changes flow through to JavaScript types, MCP tools, and serv
 ---
 
 You added a field to a proto file and three hand-maintained type copies are
-already stale. The MCP tool schema still describes yesterday's request shape, the
-service base class expects arguments that no longer exist, and the client sends
-the old format. Four libraries -- `@forwardimpact/libcodegen`,
+already stale. The MCP tool schema still describes yesterday's request shape,
+the service base class expects arguments that no longer exist, and the client
+sends the old format. Four libraries -- `@forwardimpact/libcodegen`,
 `@forwardimpact/libtype`, `@forwardimpact/librpc`, and `@forwardimpact/libmcp`
 -- eliminate that drift. Define the contract once in proto, run `fit-codegen`,
 and the generated artifacts keep every layer consistent: JavaScript types, typed
@@ -36,7 +36,7 @@ to MCP tools.
 The codegen pipeline reads proto files and produces five categories of output,
 each gated by a flag:
 
-```
+```text
 proto/*.proto
     |
     v
@@ -100,7 +100,7 @@ npx fit-codegen --all
 
 Expected output (file count varies with proto count):
 
-```
+```text
 Generated 28 files in ./generated/
   definitions/  — Service definitions
   proto/        — Proto source files

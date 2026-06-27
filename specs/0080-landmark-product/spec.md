@@ -4,7 +4,7 @@ Analysis and recommendation engine for engineering-system signals from Map.
 Surfaces evidence, health, readiness, growth trajectories, initiative impact,
 and engineer voice — all read-only, all deterministic.
 
-```
+```text
 @forwardimpact/landmark    CLI: fit-landmark
 ```
 
@@ -238,7 +238,7 @@ interpret artifacts. Map validates them.
 
 ### Evidence Pipeline
 
-```
+```text
 GitHub Events → Map (storage) → extraction → github_artifacts
                                                 │
                                          Guide (interprets)
@@ -407,7 +407,7 @@ evidence, and engineer voice comments. This is a complete, actionable view — a
 manager sees where outcomes are poor and what the evidence says, without needing
 growth recommendations.
 
-```
+```text
 $ fit-landmark health --manager alice@example.com
 
   Platform team — health view
@@ -423,7 +423,7 @@ $ fit-landmark health --manager alice@example.com
 growth recommendations imported from Summit's `computeGrowthAlignment` function.
 The recommendation line is additive — it does not change the existing output.
 
-```
+```text
 $ fit-landmark health --manager alice@example.com
 
   Platform team — health view
@@ -460,7 +460,7 @@ engineers a voice in the system.
 
 **Voice command group:**
 
-```
+```text
 $ fit-landmark voice --manager alice@example.com
 
   Platform team — engineer voice (Snapshot 2025-Q1)
@@ -474,7 +474,7 @@ $ fit-landmark voice --manager alice@example.com
     quality driver (42nd pctl) ← estimation comments confirm planning gap
 ```
 
-```
+```text
 $ fit-landmark voice --email dan@example.com
 
   Dan's snapshot comments (last 4 snapshots):
@@ -512,7 +512,7 @@ _why_.
 Close the full feedback loop: did completed initiatives actually move the scores
 they targeted?
 
-```
+```text
 $ fit-landmark initiative impact --manager alice@example.com
 
   Completed initiatives — outcome correlation
@@ -573,7 +573,7 @@ name the missing data source and how to populate it.
 
 ## CLI
 
-```
+```text
 Landmark — analysis and recommendations on top of Map data.
 
 Usage:
@@ -718,7 +718,7 @@ is installed. The `voice` and `initiative` commands require new Map tables.
 
 ## Positioning
 
-```
+```text
                        Pure layer                 Activity layer
                   +----------------------+--------------------------------+
 GetDX + GitHub -->| Map (src/loader.js,  | Map (src/activity/queries/*,   |

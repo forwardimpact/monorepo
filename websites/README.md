@@ -92,7 +92,8 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 | Big | `coordinate-team/` | Coordinate an Agent Team |
 | Big | `bridge-channels/` | Bridge a Threaded Channel to the Agent Team |
 
-**Enable Agents on Every Surface** (Builders → libcli, libdoc, libformat, librepl, libtemplate, libui)
+**Enable Agents on Every Surface** (Builders → libcli, libdoc, libformat,
+librepl, libtemplate, libui)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -103,7 +104,8 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 | Little | `every-surface/publish-docs/` | Publish a Documentation Site |
 | Little | `every-surface/render-templates/` | Render Templates with Project Overrides |
 
-**Ground Agents in Context** (Builders → libgraph, libindex, libresource, libvector)
+**Ground Agents in Context** (Builders → libgraph, libindex, libresource,
+libvector)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -120,7 +122,8 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 | Big | `integrate-standard/` | Turn Standard Definitions into Queryable Data |
 | Little | `integrate-standard/derive-profile/` | Derive a Skill Matrix or Agent Profile |
 
-**Keep Service Contracts Typed** (Builders → libproto, libtype, libcodegen, libmcp, librpc, libhttp)
+**Keep Service Contracts Typed** (Builders → libproto, libtype, libcodegen,
+libmcp, librpc, libhttp)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -129,7 +132,8 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 | Little | `typed-contracts/ship-endpoint/` | Ship a Service Endpoint |
 | Little | `typed-contracts/ship-http-endpoint/` | Ship an HTTP Service Endpoint |
 
-**Run a Predictable Platform** (Builders → libpreflight, librc, libsupervise, libtelemetry, libcoaligned)
+**Run a Predictable Platform** (Builders → libpreflight, librc, libsupervise,
+libtelemetry, libcoaligned)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
@@ -158,7 +162,8 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 
 ### Service Guides
 
-**Bridge Conversations to the Agent Team** (Builders → ghbridge, msbridge, tenancy)
+**Bridge Conversations to the Agent Team** (Builders → ghbridge, msbridge,
+tenancy)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |

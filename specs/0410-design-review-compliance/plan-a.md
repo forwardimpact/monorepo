@@ -57,7 +57,7 @@ Parts 02–05 are independent and can run as **concurrent sub-agents** once Part
 01 lands. All four parts are code and infrastructure changes, so route each to
 `staff-engineer`.
 
-```
+```text
 Part 01 (sequential prerequisite)
   └─> Part 02 (map)        ─┐
   └─> Part 03 (pathway)     ├─ concurrent

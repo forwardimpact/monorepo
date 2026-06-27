@@ -1,10 +1,14 @@
 # 1140 Part 04 — Output Format Extensions + Renderers
 
-Add `supabase_migration` and `embeddings_jsonl` as new output formats in the DSL parser, and implement `renderSql()` and `renderEmbeddings()` in `libsyntheticrender`.
+Add `supabase_migration` and `embeddings_jsonl` as new output formats in the DSL
+parser, and implement `renderSql()` and `renderEmbeddings()` in
+`libsyntheticrender`.
 
 ## Goal
 
-The parser accepts `supabase_migration` and `embeddings_jsonl` output blocks with their config fields. The renderers produce Supabase-loadable SQL migrations and JSONL text blocks from clinical entities and prose cache.
+The parser accepts `supabase_migration` and `embeddings_jsonl` output blocks
+with their config fields. The renderers produce Supabase-loadable SQL migrations
+and JSONL text blocks from clinical entities and prose cache.
 
 ## Files
 
@@ -22,13 +26,15 @@ The parser accepts `supabase_migration` and `embeddings_jsonl` output blocks wit
 
 ### Step 1 — Extend DATASET_FORMATS
 
-In `parser-standard.js:221-228`, add `supabase_migration` and `embeddings_jsonl` to the `DATASET_FORMATS` set.
+In `parser-standard.js:221-228`, add `supabase_migration` and `embeddings_jsonl`
+to the `DATASET_FORMATS` set.
 
 **Verify:** `bun test` in `libsyntheticgen`.
 
 ### Step 2 — Extend parseOutput() config fields
 
-In `parser-standard.js:283-303`, add handlers for `prefix`, `entities`, `include_embeddings`, and `text_fields`:
+In `parser-standard.js:283-303`, add handlers for `prefix`, `entities`,
+`include_embeddings`, and `text_fields`:
 
 ```javascript
 else if (kw.value === "prefix") out.config.prefix = parseStringValue();
@@ -52,11 +58,14 @@ Import `parseMappedArrays` from `parser-helpers.js` (added in Part 01).
 
 ### Step 3 — SQL migration renderer
 
-Create `render-sql.js` exporting `renderSql(clinicalEntities, outputConfig)` → `Map<path, content>`.
+Create `render-sql.js` exporting `renderSql(clinicalEntities, outputConfig)` →
+`Map<path, content>`.
 
-Walks `outputConfig.entities` (e.g. `["clinical.conditions", ...]`), resolves each entity type from `clinicalEntities`, generates numbered SQL files in dependency order:
+Walks `outputConfig.entities` (e.g. `["clinical.conditions", ...]`), resolves
+each entity type from `clinicalEntities`, generates numbered SQL files in
+dependency order:
 
-```
+```text
 {prefix}_001_conditions.sql       — CREATE TABLE + INSERT
 {prefix}_002_sites.sql
 {prefix}_003_researchers.sql
@@ -68,28 +77,43 @@ Walks `outputConfig.entities` (e.g. `["clinical.conditions", ...]`), resolves ea
 {prefix}_009_condition_embeddings.sql — pgvector table (when include_embeddings)
 ```
 
-Column type inference: string → `text`, integer → `integer`, date → `text`, boolean → `boolean`, `string[]` → `text[]`, object → `jsonb`. SQL safety: `$$` dollar-quoting for strings, `ARRAY['a', 'b']` for arrays, `$$...$$::jsonb` for objects.
+Column type inference: string → `text`, integer → `integer`, date → `text`,
+boolean → `boolean`, `string[]` → `text[]`, object → `jsonb`. SQL safety: `$$`
+dollar-quoting for strings, `ARRAY['a', 'b']` for arrays, `$$...$$::jsonb` for
+objects.
 
-Junction tables auto-generated from array cross-references (`trial.conditions[]` → `trial_conditions`, `trial.sites[]` → `trial_sites`).
+Junction tables auto-generated from array cross-references (`trial.conditions[]`
+→ `trial_conditions`, `trial.sites[]` → `trial_sites`).
 
-RLS always generated: `ENABLE ROW LEVEL SECURITY` + `public_read` SELECT policy on all tables.
+RLS always generated: `ENABLE ROW LEVEL SECURITY` + `public_read` SELECT policy
+on all tables.
 
-Embeddings table (when `include_embeddings: true`): `CREATE EXTENSION IF NOT EXISTS vector` + `condition_embeddings` table with `vector(384)` column. No INSERTs.
+Embeddings table (when `include_embeddings: true`):
+`CREATE EXTENSION IF NOT EXISTS vector` + `condition_embeddings` table with
+`vector(384)` column. No INSERTs.
 
 **Verify:** `bun test` in `libsyntheticrender`.
 
 ### Step 4 — Embeddings JSONL renderer
 
-Create `render-embeddings.js` exporting `renderEmbeddings(clinicalEntities, proseCache, outputConfig)` → `Map<path, content>`.
+Create `render-embeddings.js` exporting
+`renderEmbeddings(clinicalEntities, proseCache, outputConfig)` →
+`Map<path, content>`.
 
-Walks `outputConfig.entities`, for each entity concatenates fields listed in `outputConfig.text_fields`:
+Walks `outputConfig.entities`, for each entity concatenates fields listed in
+`outputConfig.text_fields`:
 
-- Direct fields (`name`, `synonyms`, `therapeutic_area`, `arms`) — read from entity. Arrays space-joined.
-- Synthetic fields (`prose_explainer`, `prose_description`) — resolve against prose cache: `prose_explainer` → `clinical_condition_explainer_{id}`, `prose_description` → `clinical_consent_summary_{id}`.
+- Direct fields (`name`, `synonyms`, `therapeutic_area`, `arms`) — read from
+  entity. Arrays space-joined.
+- Synthetic fields (`prose_explainer`, `prose_description`) — resolve against
+  prose cache: `prose_explainer` → `clinical_condition_explainer_{id}`,
+  `prose_description` → `clinical_consent_summary_{id}`.
 
-Each line: `{"id": "<entity_id>", "table": "<source_table>", "text": "<concatenated>"}`.
+Each line:
+`{"id": "<entity_id>", "table": "<source_table>", "text": "<concatenated>"}`.
 
-Missing prose cache entries are silently omitted (text block still includes entity fields).
+Missing prose cache entries are silently omitted (text block still includes
+entity fields).
 
 **Verify:** `bun test` in `libsyntheticrender`.
 
@@ -107,12 +131,15 @@ export { renderEmbeddings } from "./render/render-embeddings.js";
 ### Step 6 — Tests
 
 **parser-dataset.test.js:**
-- `supabase_migration` output parses with `prefix`, `entities` (DOTTED_IDENT), `include_embeddings true`.
+
+- `supabase_migration` output parses with `prefix`, `entities` (DOTTED_IDENT),
+  `include_embeddings true`.
 - `embeddings_jsonl` output parses with `entities` and `text_fields {}`.
 - All eight formats accepted.
 - `text_fields` with dotted identifiers parses correctly.
 
 **render-sql.test.js:**
+
 - 9 SQL files for full entity set with `include_embeddings: true`, 8 without.
 - Each file contains `CREATE TABLE IF NOT EXISTS`.
 - INSERT statements per entity.
@@ -123,6 +150,7 @@ export { renderEmbeddings } from "./render/render-embeddings.js";
 - SQL escaping (dollar-quoting for strings with quotes).
 
 **render-embeddings.test.js:**
+
 - Valid JSONL output.
 - Entity fields space-joined in `text`.
 - Prose cache lookup appears in text block.
@@ -130,7 +158,9 @@ export { renderEmbeddings } from "./render/render-embeddings.js";
 
 ## Blast Radius
 
-Created: `render-sql.js`, `render-embeddings.js`, `render-sql.test.js`, `render-embeddings.test.js`. Modified: `parser-standard.js`, `parser-dataset.test.js`, `libsyntheticrender/src/index.js`.
+Created: `render-sql.js`, `render-embeddings.js`, `render-sql.test.js`,
+`render-embeddings.test.js`. Modified: `parser-standard.js`,
+`parser-dataset.test.js`, `libsyntheticrender/src/index.js`.
 
 ## Verification
 

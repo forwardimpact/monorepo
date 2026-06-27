@@ -196,7 +196,7 @@ becomes "≥6 of 12" in the same diff. "Canonical-11" is retained historically.
 
 `fit-xmr` semantics; per-skill metric definitions other than the new entry;
 re-running open experiments; CSV backfill; branch-protection installation;
-`agent-react` routing changes; skill-pack publishing; agent-persona changes;
-the choice of any other binding-constraint metric. CI enforcement of the
-redefinition-pairing grep is acknowledged as a desirable follow-on, not part of this
-spec.
+`agent-react` routing changes; skill-pack publishing; agent-persona changes; the
+choice of any other binding-constraint metric. CI enforcement of the
+redefinition-pairing grep is acknowledged as a desirable follow-on, not part of
+this spec.

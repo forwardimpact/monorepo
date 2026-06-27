@@ -63,7 +63,7 @@ an `output_surface`. Both classes name the specific target (a concrete path, a
 thread) — never a coarse key like "the wiki" — so unrelated work does not
 serialize. Example:
 
-```
+```text
 Ask(to: agent-x, edit-intent: {
   staged_paths: ["wiki/<own-weekly-log>.md", "wiki/metrics/<skill>/<year>.csv"],
   output_surfaces: ["<coordinating-issue> thread"]

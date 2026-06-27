@@ -26,6 +26,7 @@ Files modified: `libraries/libxmr/src/constants.js`,
 `libraries/libxmr/src/csv.js`.
 
 - `constants.js`: append `host_run` to `HEADER` and `COLUMNS`:
+
   ```js
   export const HEADER = "date,metric,value,unit,run,note,event_type,host_run";
   export const COLUMNS = [
@@ -39,6 +40,7 @@ Files modified: `libraries/libxmr/src/constants.js`,
     "host_run",
   ];
   ```
+
 - `csv.js` `parseLine`: add `hostRun: fields[7] || ""` to the returned row
   object (after `eventType`) and add `host_run` to the function's JSDoc field
   roster. `event_type` stays at `fields[6]`; legacy 7-field rows yield
@@ -80,9 +82,11 @@ Intent: a CI row carries `$GITHUB_RUN_ID`; a local row carries `local`.
 Files modified: `libraries/libxmr/src/commands/record.js`.
 
 - In `parseRecordOptions`, derive `hostRun`:
+
   ```js
   const hostRun = runtime.proc.env.GITHUB_RUN_ID || "local";
   ```
+
   add it to the returned `opts`.
 - Append `opts.hostRun` to the `row` array in `runRecordCommand` (the array that
   ends `...opts.note, opts.eventType]` before `.map(csvField).join(",")`), so

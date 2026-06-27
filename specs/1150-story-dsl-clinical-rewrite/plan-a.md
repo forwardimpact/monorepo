@@ -2,7 +2,12 @@
 
 ## Approach
 
-Write the concrete `story.dsl` changes — the `clinical {}` block, new projects, new scenarios, updated datasets, and new outputs — in a single file modification. This plan produces no library code; it exercises all library changes from spec 1140. All 8 parts of the 1140 plan should be implemented before executing this one, because this file exercises the full grammar, entity generation, prose key collection, rendering, and pipeline.
+Write the concrete `story.dsl` changes — the `clinical {}` block, new projects,
+new scenarios, updated datasets, and new outputs — in a single file
+modification. This plan produces no library code; it exercises all library
+changes from spec 1140. All 8 parts of the 1140 plan should be implemented
+before executing this one, because this file exercises the full grammar, entity
+generation, prose key collection, rendering, and pipeline.
 
 Libraries used: none (DSL content only).
 
@@ -42,7 +47,9 @@ Each with `icd10`, `synonyms`, `severity`, `prose_topic`, `prose_tone`.
 
 ### 5 sites
 
-Cambridge main (500 cap), Boston clinical (200), New York satellite (300), Chicago research (250), San Francisco trials (150). Each with address, city, state, country, `org headquarters`, specialties.
+Cambridge main (500 cap), Boston clinical (200), New York satellite (300),
+Chicago research (250), San Francisco trials (150). Each with address, city,
+state, country, `org headquarters`, specialties.
 
 ### 6 trials
 
@@ -55,7 +62,9 @@ Cambridge main (500 cap), Boston clinical (200), New York satellite (300), Chica
 | `her2_combo` | Phase 2 | recruiting | breast_cancer | @asclepius |
 | `copd_inhaler` | Phase 1 | not_yet_recruiting | copd | @apollo |
 
-Each with full `criteria {}` blocks (inclusion: age range, conditions_required, prior_treatments, ecog_max, custom strings; exclusion: conditions_excluded, autoimmune/immunotherapy booleans, custom strings), 2-3 arms, and prose context.
+Each with full `criteria {}` blocks (inclusion: age range, conditions_required,
+prior_treatments, ecog_max, custom strings; exclusion: conditions_excluded,
+autoimmune/immunotherapy booleans, custom strings), 2-3 arms, and prose context.
 
 ### Clinical content
 
@@ -86,7 +95,11 @@ project patient_portal { ... }  — BioNova Patient Portal
 project trial_management { ... } — BioNova Trial Management System
 ```
 
-Each with `teams`, `timeline_start/end`, `milestones`, `risks`, `technical_choices`. Verify that team IDs (`platform_engineering`, `developer_experience`, `clinical_development`, `enterprise_applications`, `security_compliance`, `data_science_ai`) exist in the DSL's department/team hierarchy.
+Each with `teams`, `timeline_start/end`, `milestones`, `risks`,
+`technical_choices`. Verify that team IDs (`platform_engineering`,
+`developer_experience`, `clinical_development`, `enterprise_applications`,
+`security_compliance`, `data_science_ai`) exist in the DSL's department/team
+hierarchy.
 
 **Verify:** `ast.projects.length === 8` (5 existing + 3 new).
 
@@ -94,10 +107,13 @@ Each with `teams`, `timeline_start/end`, `milestones`, `risks`, `technical_choic
 
 Insert after the existing `scenario one_bionova` block.
 
-- `scenario finder_mvp_push` — affects `platform_engineering`, `developer_experience`, `clinical_development`. Timerange 2025-06 to 2025-09.
-- `scenario finder_ga_release` — affects `platform_engineering`, `developer_experience`. Timerange 2025-10 to 2026-03.
+- `scenario finder_mvp_push` — affects `platform_engineering`,
+  `developer_experience`, `clinical_development`. Timerange 2025-06 to 2025-09.
+- `scenario finder_ga_release` — affects `platform_engineering`,
+  `developer_experience`. Timerange 2025-10 to 2026-03.
 
-Each with `affect` blocks containing `github_commits`, `github_prs`, `dx_drivers`, `evidence_skills`, `evidence_floor`.
+Each with `affect` blocks containing `github_commits`, `github_prs`,
+`dx_drivers`, `evidence_skills`, `evidence_floor`.
 
 **Verify:** `ast.scenarios.length === 7` (5 existing + 2 new).
 
@@ -118,7 +134,8 @@ dataset trial_patients {
 
 ## Step 5 — Remove researchers dataset
 
-Delete the `dataset researchers { ... }` block (lines 791-802) and its output blocks (`researchers yaml` at line 811, `researchers markdown` at line 812).
+Delete the `dataset researchers { ... }` block (lines 791-802) and its output
+blocks (`researchers yaml` at line 811, `researchers markdown` at line 812).
 
 **Downstream-consumer check (panel-verified at plan time):** A monorepo-wide
 grep for readers of `output/researchers.{yaml,md}` returned zero code or
@@ -163,7 +180,8 @@ the `entities [...]` list and rely on derivation.
 `therapeutic_area`, which spec 1140 places on conditions, not trials —
 removed to keep the embedding payload consistent with the entity shape.
 
-**Verify:** `ast.outputs` contains `finder_seed` and `finder_embeddings` with correct formats.
+**Verify:** `ast.outputs` contains `finder_seed` and `finder_embeddings` with
+correct formats.
 
 ## Step 7 — Keep unchanged
 
@@ -243,7 +261,8 @@ toggle and handles the project's ESM convention natively. `node -e` with
 static `import` throws SyntaxError; if the implementer prefers Node, run it
 as a `.mjs` script instead.
 
-Expected: clinical: true, conditions: 6, sites: 5, trials: 6, projects: 8, scenarios: 7, datasets: 2.
+Expected: clinical: true, conditions: 6, sites: 5, trials: 6, projects: 8,
+scenarios: 7, datasets: 2.
 
 ### Full pipeline smoke test
 
@@ -269,9 +288,9 @@ ls -la products/finder/site/supabase/migrations/
 ```
 
 `build` is the cached-mode render verb (no LLM calls) per
-`libraries/libterrain/bin/fit-terrain.js:81-98`. The DSL `path` field is
-honored literally by `render-sql.js` + `sinks.js` — no `output/` prefix is
-prepended, so files land under monorepo-root `products/finder/site/supabase/migrations/`.
+`libraries/libterrain/bin/fit-terrain.js:81-98`. The DSL `path` field is honored
+literally by `render-sql.js` + `sinks.js` — no `output/` prefix is prepended, so
+files land under monorepo-root `products/finder/site/supabase/migrations/`.
 
 Note: Step A's `generate` already runs `build` as its second phase ("Fill
 the prose cache via LLM, then build" — `fit-terrain.js:101-102`), so Step

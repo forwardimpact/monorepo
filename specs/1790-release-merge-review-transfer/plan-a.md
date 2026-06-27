@@ -39,7 +39,8 @@ Content (sections, each authored in prose/lists at reference altitude):
      base; new/deleted/renamed path = set change) **plus** per-path blob + file
      mode identity vs the pinned head. State patch-id is never sufficient
      (whitespace-blind, semantic in gated md/YAML; certifies commit pairs not
-     heads). A rebase onto a main that changed the same paths legitimately fails.
+     heads). A rebase onto a main that changed the same paths legitimately
+     fails.
   3. Structural integrity at every head in the chain: same commit count vs base,
      base is an ancestor of main; names the smuggled-commit (count) and
      foreign-base (ancestry) gaps. Chain established from contemporaneous
@@ -57,7 +58,9 @@ Content (sections, each authored in prose/lists at reference altitude):
 
 Cross-link `approval-signals.md` for pin sources; link back from there.
 
-Verification: `rg -n "patch-id|touched-path|ancestor of main|fresh human re-approval|phase PR" .claude/skills/kata-release-merge/references/review-transfer.md` returns hits for all four points + applicability + prohibition.
+Verification:
+`rg -n "patch-id|touched-path|ancestor of main|fresh human re-approval|phase PR" .claude/skills/kata-release-merge/references/review-transfer.md`
+returns hits for all four points + applicability + prohibition.
 
 ## Step 2: Wire Step 5 (rebase) to produce transfer evidence
 
@@ -79,7 +82,9 @@ Change: append a paragraph after the `git push --force-with-lease` line:
 > agent-originated) and the re-approval awaited. The gate may hold a
 > delta-producing rebase until re-approval is in hand rather than void eagerly.
 
-Verification: `rg -n "review-transfer|transfer record|void notice" .claude/skills/kata-release-merge/SKILL.md` shows the Step 5 addition.
+Verification:
+`rg -n "review-transfer|transfer record|void notice" .claude/skills/kata-release-merge/SKILL.md`
+shows the Step 5 addition.
 
 ## Step 3: Wire Step 6 (approval gate) to verify head coverage
 
@@ -99,7 +104,9 @@ Step 7:
 > narrows the boundary above: STATUS stays the approval source; the PR-side read
 > is for pins and transfer records only.
 
-Verification: `rg -n "necessary but not sufficient|covers the current head" .claude/skills/kata-release-merge/SKILL.md` shows the Step 6 addition.
+Verification:
+`rg -n "necessary but not sufficient|covers the current head" .claude/skills/kata-release-merge/SKILL.md`
+shows the Step 6 addition.
 
 ## Step 4: Add the DO-CONFIRM checklist item
 
@@ -112,13 +119,15 @@ Change: add one checklist item immediately after the STATUS item (the
 `wiki/STATUS.md` row bullet ending at line 32, before the implementation-PR
 item on line 33):
 
-```
+```text
 - [ ] For phase PRs (spec/design/plan): an approving signal of the required
       class verifiably covers the current head (pin match or recorded transfer),
       per `references/review-transfer.md`.
 ```
 
-Verification: `rg -n "verifiably covers the current head" .claude/skills/kata-release-merge/SKILL.md` shows it inside the `<do_confirm_checklist>` block.
+Verification:
+`rg -n "verifiably covers the current head" .claude/skills/kata-release-merge/SKILL.md`
+shows it inside the `<do_confirm_checklist>` block.
 
 ## Step 5: Add the invalidation section to approval-signals.md
 
@@ -153,7 +162,11 @@ Prose after the table:
 
 Cross-link `kata-release-merge/references/review-transfer.md`.
 
-Verification: `rg -ni "Signal invalidation|no establishable pin|voided transfer leaves the row|patch-id" .claude/agents/references/approval-signals.md` shows the section and its rules (`-i` because the prose capitalizes "Patch-id"); `git diff .claude/agents/references/approval-signals.md` shows the original signals table (lines 11–19) and trust-rule text changed only by addition.
+Verification:
+`rg -ni "Signal invalidation|no establishable pin|voided transfer leaves the row|patch-id" .claude/agents/references/approval-signals.md`
+shows the section and its rules (`-i` because the prose capitalizes "Patch-id");
+`git diff .claude/agents/references/approval-signals.md` shows the original
+signals table (lines 11–19) and trust-rule text changed only by addition.
 
 ## Step 6: Amend § In-session approval for pin recording
 
@@ -168,7 +181,9 @@ commit otherwise; an approval given before any push is pinned by the same agent
 at first push. Note the same recording duty covers `kata-plan` panel-clean
 approvals via their existing on-PR record.
 
-Verification: `rg -n "approved head SHA|at first push|with the wiki commit" .claude/agents/references/approval-signals.md` shows the amendment.
+Verification:
+`rg -n "approved head SHA|at first push|with the wiki commit" .claude/agents/references/approval-signals.md`
+shows the amendment.
 
 ## Final verification
 
@@ -182,7 +197,8 @@ Verification: `rg -n "approved head SHA|at first push|with the wiki commit" .cla
 - **Boundary text drift.** Step 6's existing boundary is specifically "Labels
   and APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here." The
   Step 3 addition narrows it without deleting it — keep both, do not contradict:
-  STATUS is still the approval source; the new PR-side read is pins/records only.
+  STATUS is still the approval source; the new PR-side read is pins/records
+  only.
 - **Context-window length limits.** `approval-signals.md` and the SKILL.md feed
   agent context; the new reference and sections must stay tight. If a repo
   context check (`Context/instructions`) flags length, trim prose, not the

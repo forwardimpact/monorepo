@@ -19,7 +19,7 @@ Three sentences, composed from the chosen JTBD entry. No product name.
 
 > Today you want to <Big Hire text, product names after `→` stripped>.
 > Specifically: <Little Hire text, also stripped>. Start at
-> https://www.forwardimpact.team — that's the only entry point. Note
+> <https://www.forwardimpact.team> — that's the only entry point. Note
 > friction in your final output, not in files.
 
 ## Worked Examples
@@ -31,6 +31,7 @@ MolecularForge specifics as illustrative.
 ### Example A — *Empowered Engineers: Get Judgment Grounded in the Standard*
 
 JTBD source:
+
 - **Big Hire:** "Help me get career guidance and output review grounded
   in my organization's standard, not impressions or generic advice." →
   Guide
@@ -42,12 +43,13 @@ Ask 2:
 > Today you want to get career guidance and evidence grounded in BioNova's
 > engineering standard, not impressions or generic advice. Specifically:
 > ask a growth question and check whether your recent Oncora work shows
-> progress toward J070. Start at https://www.forwardimpact.team — that's
+> progress toward J070. Start at <https://www.forwardimpact.team> — that's
 > the only entry point. Note friction in your final output, not in files.
 
 ### Example B — *Engineering Leaders: Staff Teams to Succeed*
 
 JTBD source:
+
 - **Big Hire:** "Help me make staffing decisions I can defend by seeing
   what each role requires." → Summit
 - **Little Hire:** "Help me spot capability gaps and check whether a
@@ -59,5 +61,5 @@ Ask 2:
 > each role on your Platform Engineering team actually requires.
 > Specifically: spot the capability gaps the v2.1 post-mortem surfaced and
 > check whether the candidate you've been considering fills them. Start at
-> https://www.forwardimpact.team — that's the only entry point. Note
+> <https://www.forwardimpact.team> — that's the only entry point. Note
 > friction in your final output, not in files.

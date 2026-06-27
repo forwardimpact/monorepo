@@ -94,7 +94,7 @@ Before any tier-B library is migrated, run two separate greps:
 
 **1. Static imports into tier-B libraries by subpath:**
 
-```
+```text
 rg '@forwardimpact/(libagent|libcli|libcodegen|libconfig|libeval|libformat|libindex|libllm|libpolicy|librc|librepl|libsecret|libstorage|libsupervise|libutil|libweb)/[^"'\''`]+' --type js -g '!libraries/*/src/**' -g '!libraries/*/test/**'
 ```
 
@@ -103,7 +103,7 @@ count as cross-package subpath access. Report every hit.
 
 **2. `require.resolve` calls into any `@forwardimpact/*` package:**
 
-```
+```text
 rg 'require\.resolve\(["'\''`]@forwardimpact' --type js
 ```
 
@@ -315,7 +315,7 @@ exports map per case B.
 
 ## Deliverable commit
 
-```
+```text
 refactor(layout): migrate 16 libraries (tier B) into src/ (part 07/08)
 
 Moves every tier-B library (no published subpath exports) into a src/

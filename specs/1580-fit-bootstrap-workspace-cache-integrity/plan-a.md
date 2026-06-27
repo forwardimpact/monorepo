@@ -2,16 +2,16 @@
 
 ## Approach
 
-Execute the [design](design-a.md) across two repos via the propagation
-route [`.github/CLAUDE.md` § Editing a published action](../../.github/CLAUDE.md)
+Execute the [design](design-a.md) across two repos via the propagation route
+[`.github/CLAUDE.md` § Editing a published action](../../.github/CLAUDE.md)
 mandates. Step 1 lands the `restore-keys` deletion and README note on the
-sibling `forwardimpact/fit-bootstrap` behind an append-only patch tag.
-Step 2 advances the monorepo's 28 SHA pins to the resulting commit via the
-Dependabot SHA-bump PR the `github-actions` ecosystem opens on its weekly
-sweep. The steps are strictly sequential — the bump PR cannot pin a commit
-that does not yet exist. Sibling content, the exact-key contract rationale,
-and the six `hashFiles` globs live in the [spec](spec.md) and
-[design](design-a.md); this plan references them and does not restate them.
+sibling `forwardimpact/fit-bootstrap` behind an append-only patch tag. Step 2
+advances the monorepo's 28 SHA pins to the resulting commit via the Dependabot
+SHA-bump PR the `github-actions` ecosystem opens on its weekly sweep. The steps
+are strictly sequential — the bump PR cannot pin a commit that does not yet
+exist. Sibling content, the exact-key contract rationale, and the six
+`hashFiles` globs live in the [spec](spec.md) and [design](design-a.md); this
+plan references them and does not restate them.
 
 Libraries used: none.
 

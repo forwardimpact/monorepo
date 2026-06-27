@@ -109,7 +109,7 @@ Run at the package root after the renames and the CLAUDE.md edit:
 
    Expected output (exactly seven entries, new names only):
 
-   ```
+   ```text
    .claude/skills/libs-cli-and-tooling
    .claude/skills/libs-content
    .claude/skills/libs-grpc-services
@@ -179,7 +179,7 @@ Run at the package root after the renames and the CLAUDE.md edit:
 
 One commit for all five renames plus the CLAUDE.md update:
 
-```
+```text
 docs(skills): rename libs-* groups to task-named (spec 0400 part 1/4)
 
 - libs-service-infrastructure → libs-grpc-services

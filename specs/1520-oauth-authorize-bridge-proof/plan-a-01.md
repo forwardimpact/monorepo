@@ -155,10 +155,10 @@ Cover the five outcomes:
 | Valid pending entry, first claim | resolves `{}`; `claimed_dispatches.jsonl` carries the `link_token` |
 | Same `link_token` claimed twice | second call errors `FAILED_PRECONDITION` |
 
-Use `createMockStorage` + `createMockClock` from
-`@forwardimpact/libmock` (pattern: `services/bridge/test/bridge-dispatch.test.js`).
-Seed pending entries via `PutPendingDispatch` rather than reaching
-into private indices — test through the public RPC surface.
+Use `createMockStorage` + `createMockClock` from `@forwardimpact/libmock`
+(pattern: `services/bridge/test/bridge-dispatch.test.js`). Seed pending entries
+via `PutPendingDispatch` rather than reaching into private indices — test
+through the public RPC surface.
 
 For the concurrency case, drive two `VerifyPendingDispatch` calls with
 `Promise.all([call1, call2])` and assert exactly one resolves and one

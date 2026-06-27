@@ -5,12 +5,12 @@ description: "Ship default templates with a package and let each project overrid
 
 When a tool generates files — an agent profile, a config, a report — the output
 shape should be consistent everywhere the tool runs. But every project wants to
-adjust a detail: a header, a footer, a single section. Copying the whole template
-to change one line means the project misses every later improvement to the
-default. `@forwardimpact/libtemplate` resolves this with two tiers: a package
-ships default templates, and a project overrides any single one by dropping a
-file of the same name into its own templates folder. Everything not overridden
-falls through to the default.
+adjust a detail: a header, a footer, a single section. Copying the whole
+template to change one line means the project misses every later improvement to
+the default. `@forwardimpact/libtemplate` resolves this with two tiers: a
+package ships default templates, and a project overrides any single one by
+dropping a file of the same name into its own templates folder. Everything not
+overridden falls through to the default.
 
 ## Prerequisites
 
@@ -27,23 +27,23 @@ the data decides what renders, not the template.
 ## How two-tier resolution works
 
 A loader is bound to one defaults directory — the templates that ship with your
-package. Each `render` call may also name a project data directory. When both are
-present, the loader checks the project first and the package second:
+package. Each `render` call may also name a project data directory. When both
+are present, the loader checks the project first and the package second:
 
 | Order | Location                      | Role                  |
 | ----- | ----------------------------- | --------------------- |
 | 1     | `{dataDir}/templates/{name}`  | Project override      |
 | 2     | `{defaultsDir}/{name}`        | Package default       |
 
-The first file that exists wins. A project overrides one template by name without
-touching the others, and a missing template raises an error that lists every path
-checked, so a typo in a filename is easy to diagnose.
+The first file that exists wins. A project overrides one template by name
+without touching the others, and a missing template raises an error that lists
+every path checked, so a typo in a filename is easy to diagnose.
 
 ## 1. Create the loader
 
-Build a loader once, bound to your package's templates folder. The loader needs a
-runtime — the same ambient filesystem bag the rest of the stack uses — which keeps
-the loader testable with an in-memory filesystem.
+Build a loader once, bound to your package's templates folder. The loader needs
+a runtime — the same ambient filesystem bag the rest of the stack uses — which
+keeps the loader testable with an in-memory filesystem.
 
 ```js
 // src/render.js
@@ -63,8 +63,8 @@ Ship your default templates in that `templates/` folder. A file named
 
 ## 2. Render a template
 
-`render` loads a template, fills it with Mustache, and returns the result. Pass a
-project data directory as the third argument to enable overrides.
+`render` loads a template, fills it with Mustache, and returns the result. Pass
+a project data directory as the third argument to enable overrides.
 
 ```js
 // templates/agent.template.md
@@ -87,9 +87,9 @@ renderAgent({ name: "Reviewer", role: "Grades diffs." }, "/path/to/project");
 Grades diffs.
 ```
 
-If `/path/to/project/templates/agent.template.md` exists, the loader renders that
-file instead of the package default — same data, project's wording. Omit the
-project directory and the default always renders.
+If `/path/to/project/templates/agent.template.md` exists, the loader renders
+that file instead of the package default — same data, project's wording. Omit
+the project directory and the default always renders.
 
 ## 3. Compose with partials
 

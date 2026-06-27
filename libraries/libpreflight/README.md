@@ -24,7 +24,7 @@ import "@forwardimpact/libpreflight/node22";
 Under Node `>=22` the import returns silently. Under Node `<22` the process
 writes two lines to stderr and exits `1`:
 
-```
+```text
 Error: This command requires Node.js 22 or later (running 20.11.0).
 Install Node.js 22 (LTS) from https://nodejs.org/ and re-run.
 ```
