@@ -15,7 +15,7 @@ behaves.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A CSV with at least 15 data points (fewer points are accepted but limits will
   not be computed)
 

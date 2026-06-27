@@ -17,7 +17,7 @@ memory workflow this fits into, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A wiki already initialized in your project (run `npx fit-wiki init` if not)
 
 ## Running the audit
@@ -76,17 +76,22 @@ npx fit-wiki audit --format json
   "failures": [
     {
       "id": "weekly-log.heading-grammar",
+      "level": "fail",
       "path": "wiki/improvement-coach-2026-W23.md",
-      "line": 3,
-      "message": "Entry heading '## 6/07 Staff procedural lock' does not match the dated grammar"
+      "lineNo": 3,
+      "message": "Entry heading '## 6/07 Staff procedural lock' does not match the dated grammar",
+      "hint": null
     }
   ],
   "warnings": []
 }
 ```
 
-`result` is `pass` or `fail`. `failures` carries the errors; `warnings` carries
-the soft signals. A clean wiki returns `"result": "pass"` with both arrays empty.
+`result` is `pass` or `fail`. Each finding carries its rule `id`, a `level`
+(`fail` or `warn`), the `path`, a `lineNo` when the rule pins one (`null`
+otherwise), the `message`, and an optional `hint` (`null` when the rule offers
+none). `failures` carries the errors; `warnings` carries the soft signals. A
+clean wiki returns `"result": "pass"` with both arrays empty.
 
 ## Auto-fixing findings
 

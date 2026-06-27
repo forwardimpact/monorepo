@@ -16,7 +16,7 @@ a `configure` callback, then call `start()`.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `@forwardimpact/libhttp` installed:
 
 ```sh

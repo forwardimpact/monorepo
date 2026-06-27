@@ -14,7 +14,7 @@ observability to a service. For the full lifecycle setup, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Install the library:
 
 ```sh

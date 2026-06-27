@@ -15,7 +15,7 @@ For the full workflow of setting up typed service contracts from scratch, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A working Guide installation with services running (see
   [Getting Started](/docs/getting-started/))
 - `@forwardimpact/libmcp` and `@forwardimpact/libtype` installed:

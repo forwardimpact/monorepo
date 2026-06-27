@@ -17,7 +17,7 @@ for the working-tree install path, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A built pack, or the `PackBuilder` composition from the tarball guide.
   `PackBuilder.build()` emits the discovery index automatically alongside the
   tarballs and the git repo; you can also drive `DiscEmitter` on its own.

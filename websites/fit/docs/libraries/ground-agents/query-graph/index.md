@@ -15,7 +15,7 @@ knowledge sources, see [Ground Agents in Context](/docs/libraries/ground-agents/
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `@forwardimpact/libgraph` installed:
 
 ```sh

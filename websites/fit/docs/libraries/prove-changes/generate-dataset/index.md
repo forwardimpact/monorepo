@@ -14,7 +14,7 @@ sessions and trace analysis, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `ANTHROPIC_API_KEY` set in the shell (the `generate` verb calls an LLM to
   produce realistic prose for each entity)
 - `@forwardimpact/libterrain` installed:

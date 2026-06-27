@@ -15,7 +15,7 @@ that `fit-pathway` uses internally, so your feature stays consistent with the CL
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Install both packages:
 
 ```sh

@@ -13,7 +13,7 @@ breadcrumbs, and the metadata files that make a site discoverable.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A source directory with at least an `index.template.html` and one `.md` file
 
 `fit-doc` runs through `npx`, so there is nothing to install globally:

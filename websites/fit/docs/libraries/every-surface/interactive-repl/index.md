@@ -12,7 +12,7 @@ non-interactively, and a person can explore the same commands by hand.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Install librepl:
 
 ```sh

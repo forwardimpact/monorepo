@@ -16,7 +16,7 @@ leaves you a clean tree to commit and push.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A **source tree** holding the content to ship: a `skills/` directory with one
   subdirectory per skill (each containing a `SKILL.md`) and, optionally, an
   `agents/` directory of `*.md` agent profiles.

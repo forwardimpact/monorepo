@@ -14,7 +14,7 @@ falls through to the default.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Install libtemplate and the shared runtime helper:
 
 ```sh

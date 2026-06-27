@@ -17,7 +17,7 @@ for your agent team, see the
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A wiki already initialized in your project (see
   [Bootstrapping the wiki](#bootstrapping-the-wiki) if not)
 

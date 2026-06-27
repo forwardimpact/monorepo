@@ -17,7 +17,7 @@ calling the generated service from both gRPC clients and MCP-connected agents.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Proto files co-located in `proto/` directories (either in your project root or
   inside installed `@forwardimpact/*` packages)
 - Install the codegen CLI:

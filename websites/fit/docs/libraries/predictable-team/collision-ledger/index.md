@@ -18,7 +18,7 @@ It assumes the wiki is already set up — see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A wiki already initialized in your project
 - `GITHUB_TOKEN` or `GH_TOKEN` set, or a logged-in `gh` CLI — the ledger reads
   and writes an issue's comment thread over the GitHub API

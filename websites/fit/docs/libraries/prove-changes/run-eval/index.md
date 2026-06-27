@@ -13,7 +13,7 @@ every turn so you can inspect what happened with `fit-trace`.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `ANTHROPIC_API_KEY` set in the environment
 - `@forwardimpact/libharness` (ships both `fit-harness` and `fit-trace`). Install
   globally with `npm install -g @forwardimpact/libharness`, or invoke ephemerally

@@ -9,7 +9,7 @@ gives you structured queries over every turn, tool call, and result.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A trace file -- either `--output` from a `fit-harness` run, or downloaded from CI
   with `fit-trace download`
 

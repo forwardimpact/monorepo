@@ -17,7 +17,7 @@ to grade an agent change against pass/fail criteria, the same machinery powers
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `ANTHROPIC_API_KEY` set in the shell
 - Agent profiles under `.claude/agents/` for the lead and each participant (see
   [Agent Teams](/docs/products/agent-teams/) for authoring them)
@@ -61,9 +61,11 @@ The loop fans messages out over an in-memory bus and writes one
 orchestrator event. `seq` is monotonic across the whole session, so the trace is
 a single ordered record of who did what and when.
 
-The lead has no tools to do the work itself — it is wired with `Read`, `Glob`,
-and `Grep` only, with `Bash`, `Edit`, `Write`, and sub-agent tools removed. It
-exists to delegate. Participants carry whatever tool allowlist you grant them.
+The lead delegates rather than doing the work itself. In facilitate and discuss
+runs it is wired with `Read`, `Glob`, and `Grep` only, with `Edit`, `Write`, and
+sub-agent tools removed. A supervise lead also gets `Bash` so it can inspect the
+working tree between rounds. Participants carry whatever tool allowlist you grant
+them.
 
 ## Pass messages with Ask, Answer, and Announce
 
@@ -230,11 +232,11 @@ method, see [Analyze Traces](/docs/libraries/prove-changes/trace-analysis/).
 
 ## Redaction
 
-Redaction is on by default for `supervise` and `facilitate`. It replaces
-allowlisted environment-variable values (`ANTHROPIC_API_KEY`, `GH_TOKEN`,
-`GITHUB_TOKEN` by default) and credential-shaped strings in the trace. Leave it
-on for any run whose trace might be shared — workflow artifacts are downloadable
-through retention.
+Redaction is on by default across `supervise`, `facilitate`, and `discuss`. It
+replaces allowlisted environment-variable values (`ANTHROPIC_API_KEY`,
+`GH_TOKEN`, `GITHUB_TOKEN`, and more) and credential-shaped strings in the
+trace. Leave it on for any run whose trace might be shared; workflow artifacts
+are downloadable through retention.
 
 ## Verify
 

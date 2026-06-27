@@ -13,7 +13,7 @@ OpenAI HumanEval unbiased estimator.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `ANTHROPIC_API_KEY` set in the environment
 - `@forwardimpact/libharness` (ships `fit-harness`, `fit-trace`, and
   `fit-benchmark`). Install globally with

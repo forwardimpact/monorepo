@@ -13,7 +13,7 @@ DOM.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Install libui:
 
 ```sh
@@ -32,13 +32,13 @@ and get back a node you can hand to `render` or nest inside another component.
 There are fourteen-plus factories; these are the ones most pages reach for.
 
 ```js
+import { render, div } from "@forwardimpact/libui";
 import {
-  render,
   createCard,
   createStatCard,
   createAutoGrid,
   createDetailHeader,
-} from "@forwardimpact/libui";
+} from "@forwardimpact/libui/components";
 
 function renderCity(view) {
   const header = createDetailHeader({
@@ -85,13 +85,8 @@ or re-registering the route. `createReactive` holds a value, notifies
 subscribers when it changes, and hands back an unsubscribe function.
 
 ```js
-import {
-  createReactive,
-  createComputed,
-  createSearchBar,
-  createCardList,
-  render,
-} from "@forwardimpact/libui";
+import { createReactive, createComputed, render, div } from "@forwardimpact/libui";
+import { createSearchBar, createCardList } from "@forwardimpact/libui/components";
 
 function renderCityList(cities) {
   const query = createReactive("");

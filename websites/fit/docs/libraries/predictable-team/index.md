@@ -15,7 +15,7 @@ that updates itself.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A GitHub repository with a wiki enabled (Settings > Features > Wikis)
 - `GITHUB_TOKEN` or `GH_TOKEN` set in the environment (for wiki clone/sync)
 - Agent profiles defined under `.claude/agents/` (one `.md` file per agent)

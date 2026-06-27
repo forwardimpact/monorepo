@@ -17,7 +17,7 @@ stage produces a JSONL-backed index that agents can query directly.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - An embedding endpoint (any OpenAI-compatible `/v1/embeddings` API) for
   vector indexing
 - HTML files with [schema.org](https://schema.org/) microdata markup in a

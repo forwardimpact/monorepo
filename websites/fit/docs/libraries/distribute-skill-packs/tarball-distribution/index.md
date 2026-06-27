@@ -19,7 +19,7 @@ For the single-repository working-tree path, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `git`, `tar`, and `gzip` on the path — `PackBuilder` shells out to all three
   to produce the git repo and the compressed tarballs.
 - Pack **combinations** prepared in memory: each is a `{ name, description,

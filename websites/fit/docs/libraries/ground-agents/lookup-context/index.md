@@ -15,7 +15,7 @@ For the full workflow of building a grounded context pipeline, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `@forwardimpact/libindex` installed:
 
 ```sh

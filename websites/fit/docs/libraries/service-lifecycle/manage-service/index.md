@@ -12,7 +12,7 @@ supervision and observability, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Services defined in `config/config.json` under the `init` key (see
   [Service Lifecycle](/docs/libraries/service-lifecycle/) for the configuration
   format)
@@ -146,8 +146,8 @@ Two options tune rotation:
 my-service | npx fit-logger -d data/logs/my-service -s 1048576 -n 5
 ```
 
-Archives are named `@YYYY-MM-DD_HH-mm-ss.s`, so sorting filenames gives
-chronological order. When the count exceeds `--maxFiles`, the oldest archives are
+Archives are named `@YYYY-MM-DD_HH-mm-ss-SSS.s` (the trailing `-SSS` is the
+millisecond segment), so sorting filenames gives chronological order. When the count exceeds `--maxFiles`, the oldest archives are
 deleted on the next rotation.
 
 ## Supervise processes directly
