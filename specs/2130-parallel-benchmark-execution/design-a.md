@@ -52,7 +52,6 @@ a write mutex and without a sidecar ledger.
 | completion channel + drain loop | `runner.js` `run()` | Async queue the scheduler pushes settled records into; the generator drains it, appends each record to the shard's `results.jsonl` **as it settles**, and yields. Sole writer of the ledger and its only on-disk form — incremental append is the crash-safety mechanism, so there is no per-cell sidecar file. |
 | `PortRegistry` | `benchmark/workdir.js` | Replaces `allocatePort()` (deleted): hand out distinct, bindable ports under a lock with a live in-use set; re-probe if the OS returns an already-reserved number; release on teardown. |
 | `resolveConcurrency` | `commands/benchmark-run.js` | `--concurrency` flag > `LIBHARNESS_BENCHMARK_CONCURRENCY` env > default `min(CONCURRENCY_CEILING, max(2, ⌊cores/2⌋))` (where `CONCURRENCY_CEILING` is a plan-time constant, conservative because each cell spawns ~3 agent subprocesses). |
-| `retryRateLimited` | `benchmark/runner.js` (`#runAgentSafe`) | Wrap the agent session: a 429/rate-limit-class failure retries with bounded exponential backoff inside the cell (under the 20-min watchdog) instead of immediately recording an `agentError`. |
 
 **Streaming contract change.** `run()` now yields in **completion order**, not
 grid order. The CLI consumer already treats records order-independently
