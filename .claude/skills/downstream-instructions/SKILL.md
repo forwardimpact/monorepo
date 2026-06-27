@@ -30,9 +30,12 @@ Run this skill when:
 
 ## Downstream Installations
 
-| Installation | Path                    |
-| ------------ | ----------------------- |
-| Personal     | `~/Documents/Personal/` |
+Knowledge bases live under `~/.local/share/fit/outpost/<name>`, one directory
+per KB. The default knowledge base is named `Team`.
+
+| Installation | Path                              |
+| ------------ | --------------------------------- |
+| Team         | `~/.local/share/fit/outpost/Team/` |
 
 ## Inputs
 
@@ -87,9 +90,9 @@ compare with the canonical template:
 
 ```bash
 # The changed file(s) in the installation
-cat ~/Documents/Personal/CLAUDE.md
-cat ~/Documents/Personal/.claude/agents/<agent>.md
-cat ~/Documents/Personal/.claude/skills/<skill>/SKILL.md
+cat ~/.local/share/fit/outpost/Team/CLAUDE.md
+cat ~/.local/share/fit/outpost/Team/.claude/agents/<agent>.md
+cat ~/.local/share/fit/outpost/Team/.claude/skills/<skill>/SKILL.md
 
 # The canonical template counterpart
 cat products/outpost/templates/CLAUDE.md
@@ -133,8 +136,8 @@ installation-specific content (hardcoded paths, user names, personal
 preferences) and generalize before adding:
 
 ```bash
-ls ~/Documents/Personal/.claude/skills/<new-skill>/
-cat ~/Documents/Personal/.claude/skills/<new-skill>/SKILL.md
+ls ~/.local/share/fit/outpost/Team/.claude/skills/<new-skill>/
+cat ~/.local/share/fit/outpost/Team/.claude/skills/<new-skill>/SKILL.md
 ```
 
 **For removed surfaces:**
