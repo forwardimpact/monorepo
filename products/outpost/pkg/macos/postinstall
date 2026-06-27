@@ -9,7 +9,7 @@ REAL_USER=$(/usr/bin/stat -f "%Su" /dev/console)
 REAL_HOME=$(/usr/bin/dscl . -read "/Users/$REAL_USER" NFSHomeDirectory | /usr/bin/awk '{print $2}')
 
 OUTPOST_HOME="$REAL_HOME/.fit/outpost"
-DEFAULT_KB="$REAL_HOME/.local/share/fit/outpost/personal"
+DEFAULT_KB="$REAL_HOME/.local/share/fit/outpost/team"
 APP_PATH="/Applications/Forward Impact/fit-outpost.app"
 
 # --- Stop running instance gracefully ----------------------------------------
@@ -46,10 +46,10 @@ SCHEDULER="$APP_PATH/Contents/MacOS/fit-outpost"
 
 if [ ! -d "$DEFAULT_KB" ]; then
   if [ -f "$SCHEDULER" ]; then
-    # `init personal` resolves to $DEFAULT_KB under the data home and creates
+    # `init team` resolves to $DEFAULT_KB under the data home and creates
     # the directory tree there (a non-TCC location a restricted agent reaches
     # without any grant).
-    /usr/bin/sudo -u "$REAL_USER" "$SCHEDULER" init personal 2>/dev/null || true
+    /usr/bin/sudo -u "$REAL_USER" "$SCHEDULER" init team 2>/dev/null || true
   fi
 fi
 

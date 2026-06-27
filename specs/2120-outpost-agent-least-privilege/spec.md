@@ -87,7 +87,7 @@ content for others, privilege governs the macOS reach the daemon grants it.
    unconditional move — the old `~/Documents` location is not retained as a
    fallback. Knowledge bases are named and provisioned under the data home:
    `fit-outpost init <name>` creates one at `~/.local/share/fit/outpost/<name>`
-   (default name `personal`) and accepts a name, never an arbitrary filesystem
+   (default name `team`) and accepts a name, never an arbitrary filesystem
    path, so the substrate cannot be steered back inside a TCC-protected folder
    and the user never has to type the data-home prefix.
 5. **Observable.** Each wake records, in the scheduler log, the privilege level
@@ -121,7 +121,7 @@ the privilege levels and the substrate location.
 | # | Criterion | Verified by |
 | --- | --- | --- |
 | 1 | A `restricted` agent that deliberately attempts a protected read is denied, while a `full` agent in the same install reads the live mail/calendar stores. | TCC verification runbook (extended): the `com.apple.TCC` stream shows an explicit `SystemPolicyAllFiles` **Denied** decision for the `restricted` agent's probe, and **Allowed** for the `full` agent. A positive probe is required so denial is distinguishable from "never attempted." |
-| 2 | A `restricted` agent completes its knowledge-base work with no TCC grant present, and no `node`/`claude` Documents prompt appears. | With only the app's grants present and the default `~/.local/share/fit/outpost/personal` knowledge base, the `restricted` agent's wake writes its briefing at `~/.cache/fit/outpost/state/<agent>_last_output.md`; the privacy panes show no `node`/`claude` entry. |
+| 2 | A `restricted` agent completes its knowledge-base work with no TCC grant present, and no `node`/`claude` Documents prompt appears. | With only the app's grants present and the default `~/.local/share/fit/outpost/team` knowledge base, the `restricted` agent's wake writes its briefing at `~/.cache/fit/outpost/state/<agent>_last_output.md`; the privacy panes show no `node`/`claude` entry. |
 | 3 | A sync agent declared `full` reads the live mail/calendar stores under the one app grant. | Runbook Axis 1/2 for a `full` agent: access attributes to `fit-outpost.app`, live mail/calendar read succeeds under the one app grant, no `node`/`claude` grant required. |
 | 4 | Each wake records the resolved privilege level for the agent. | The scheduler log line for a wake contains the agent's resolved level (`full` or `restricted`). |
 | 5 | Documentation states which agents need which macOS permissions, and the substrate location a `restricted` agent uses. | The Outpost product page and engineers getting-started guide describe `full` vs `restricted` agents and the relocated knowledge-base path. |

@@ -41,7 +41,7 @@ Before generating a briefing, search the knowledge graph for each attendee.
 This is the step that turns a generic calendar entry into useful preparation:
 
 ```sh
-rg "Sarah Chen" ~/.local/share/fit/outpost/personal/Knowledge/
+rg "Sarah Chen" ~/.local/share/fit/outpost/team/Knowledge/
 ```
 
 ```text
@@ -61,7 +61,7 @@ file.
 Read the person note for the full picture:
 
 ```sh
-cat ~/.local/share/fit/outpost/personal/Knowledge/People/Sarah\ Chen.md
+cat ~/.local/share/fit/outpost/team/Knowledge/People/Sarah\ Chen.md
 ```
 
 The note contains context (role, what they focus on), a reverse-chronological
@@ -116,7 +116,7 @@ When you want to go deeper than the scheduled briefing, ask for meeting prep
 directly in your knowledge base:
 
 ```sh
-cd ~/.local/share/fit/outpost/personal && claude "prep me for my 10am meeting"
+cd ~/.local/share/fit/outpost/team && claude "prep me for my 10am meeting"
 ```
 
 The meeting-prep skill identifies the meeting from your calendar, looks up every

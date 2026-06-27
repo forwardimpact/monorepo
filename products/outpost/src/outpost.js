@@ -4,7 +4,7 @@
 //   fit-outpost                     Wake due agents once and exit
 //   fit-outpost daemon              Run continuously (poll every 60s)
 //   fit-outpost wake <agent>        Wake a specific agent immediately
-//   fit-outpost init [name]         Initialize a knowledge base by name (default: personal)
+//   fit-outpost init [name]         Initialize a knowledge base by name (default: team)
 //   fit-outpost update [path]       Update KB with latest CLAUDE.md, agents and skills (defaults to current directory)
 //   fit-outpost stop                Gracefully stop daemon and all running agents
 //   fit-outpost validate            Validate agent definitions exist
@@ -434,9 +434,9 @@ export async function run(runtime, version) {
     },
     init: async () => {
       // `init [name]` provisions a KB by name under the data home (default
-      // `personal`), never an arbitrary path — so the substrate cannot be
+      // `team`), never an arbitrary path — so the substrate cannot be
       // steered back into a TCC-protected folder. An unsafe name is refused.
-      const name = args[0] ?? "personal";
+      const name = args[0] ?? "team";
       let target;
       try {
         target = KBManager.kbPathForName(name);
