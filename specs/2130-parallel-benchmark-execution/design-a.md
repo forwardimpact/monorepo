@@ -8,6 +8,15 @@ lifecycle (`#runOne`: setup → supervised agent → invariants → judge → te
 are unchanged; only *how many cells run at once* and *how the ledger is
 assembled* change.
 
+**Clean break — no shims, no fallbacks, no dual representations.** With few
+consumers today, this replaces the obsolete paths outright rather than wrapping
+them: the serial loop, the `allocatePort` allocator, and the single-file
+`loadRecords` read are **deleted**, not flagged or branched. There is one
+scheduler, one durable ledger (the incrementally-appended `results.jsonl` — no
+sidecar copy), one port mechanism, one merge path (always recursive), and one
+sharded primitive where an unsharded run is simply shard `1/1`. No
+`--legacy`/compat flag exists, and no old behavior is preserved "for safety."
+
 ## Architecture
 
 ```mermaid
@@ -20,18 +29,19 @@ flowchart TB
     SCHED --> W3[cell]
     W1 & W2 & W3 -->|completed record| CH[(completion channel)]
     CH --> DRAIN[single-writer drain loop]
-    DRAIN -->|append| JSONL[(results.jsonl)]
+    DRAIN -->|append per completion| JSONL[(results.jsonl)]
     DRAIN -->|yield| OUT[CLI stdout / iterator]
     W1 & W2 & W3 -.acquire/release.-> PR[PortRegistry]
-    W1 & W2 & W3 -.crash-safe.-> RF[(per-cell result.json)]
   end
 ```
 
 Concurrency lives in execution (`CellScheduler` runs `C` cells at once); the
 ledger stays **single-writer** because only the drain loop appends to
 `results.jsonl` and yields. Workers communicate completions through a channel,
-never touch the shared stream. This keeps Layer 1's durability guarantee without
-a write mutex.
+never touch the shared stream. The append is incremental — each cell lands in
+`results.jsonl` the moment it settles — so a killed run keeps every completed
+cell with no second on-disk copy. This is Layer 1's durability guarantee without
+a write mutex and without a sidecar ledger.
 
 ## Layer 1 — in-process concurrency
 
@@ -39,9 +49,8 @@ a write mutex.
 | --- | --- | --- |
 | `enumerateCells(tasks, runs)` | `benchmark/runner.js` | Flatten the grid into a stable ordered `{taskId, runIndex}` list, **task-major / runIndex-minor**. This exact ordering is a load-bearing contract: Layer 2's round-robin balance depends on a task's runIndexes being adjacent in the list. Single source of the cell list for both the scheduler and the shard selector. |
 | `CellScheduler` | new `benchmark/scheduler.js` | Bounded pool: keep ≤ `C` `#runOne` calls in flight; as one settles, start the next; push each settled record onto the completion channel. Built on a small permit semaphore (no new dependency). |
-| completion channel + drain loop | `runner.js` `run()` | Async queue the scheduler pushes settled records into; the generator drains it, appends each record to the shard's `results.jsonl`, and yields. Sole writer of the ledger. |
-| `PortRegistry` | `benchmark/workdir.js` | Replaces `allocatePort()`: hand out distinct, bindable ports under a lock with a live in-use set; re-probe if the OS returns an already-reserved number; release on teardown. |
-| per-cell `result.json` | written by `#runOne`, under `WorkdirManager`'s run dir | After `#runOne` builds and validates a cell's record (before `wm.teardown`), it writes that record to `runs/<slug>/<i>/result.json`. This is the **crash-recovery** unit: a killed run can reconstruct `results.jsonl` from the per-cell files it already wrote. It is *not* the merge target — Layer 2 merges shard-level `results.jsonl` files (below). |
+| completion channel + drain loop | `runner.js` `run()` | Async queue the scheduler pushes settled records into; the generator drains it, appends each record to the shard's `results.jsonl` **as it settles**, and yields. Sole writer of the ledger and its only on-disk form — incremental append is the crash-safety mechanism, so there is no per-cell sidecar file. |
+| `PortRegistry` | `benchmark/workdir.js` | Replaces `allocatePort()` (deleted): hand out distinct, bindable ports under a lock with a live in-use set; re-probe if the OS returns an already-reserved number; release on teardown. |
 | `resolveConcurrency` | `commands/benchmark-run.js` | `--concurrency` flag > `LIBHARNESS_BENCHMARK_CONCURRENCY` env > default `min(CONCURRENCY_CEILING, max(2, ⌊cores/2⌋))` (where `CONCURRENCY_CEILING` is a plan-time constant, conservative because each cell spawns ~3 agent subprocesses). |
 | `retryRateLimited` | `benchmark/runner.js` (`#runAgentSafe`) | Wrap the agent session: a 429/rate-limit-class failure retries with bounded exponential backoff inside the cell (under the 20-min watchdog) instead of immediately recording an `agentError`. |
 
@@ -64,11 +73,11 @@ report, and `merge-reports` stitches the blobs into one. We mirror it.
 
 | Component | Where | Responsibility |
 | --- | --- | --- |
-| `--shard=<i>/<N>` | `commands/benchmark-run.js` → runner | 1-based like Playwright. Parsed to `{index, total}`; validate `1 ≤ i ≤ N`. The runner applies `selectShard` to the enumerated cells before scheduling. When `N > cell count`, the high-index shards select **zero** cells — a valid empty run that writes an empty (header-less) `results.jsonl` the merge tolerates. |
+| `--shard=<i>/<N>` | `commands/benchmark-run.js` → runner | 1-based like Playwright. Parsed to `{index, total}`; validate `1 ≤ i ≤ N`. The runner applies `selectShard` to the enumerated cells before scheduling. An unsharded run is the identity `1/1`. When `N > cell count`, the high-index shards select **zero** cells — a valid run whose `results.jsonl` has zero records, which `loadRecords` unions as the empty set. |
 | `selectShard(cells, i, N)` | `benchmark/runner.js` | Round-robin partition: cell at position `p` runs iff `p % N === i-1`. Deterministic; the union over `i∈1..N` is the exact grid, each cell once; some shards may be empty (above). |
-| multi-input merge | `loadRecords` in `benchmark/report.js` | The recursion lives in `loadRecords`: `report --input=<dir>` discovers **every** `results.jsonl` under the tree (not just `<dir>/results.jsonl`) and unions the records before grouping. The per-cell `result.json` files are ignored by the merge — shards are the merge unit. A single top-level ledger (today's shape) still works as the one-file case. |
+| recursive merge | `loadRecords` in `benchmark/report.js` | `loadRecords` is **rewritten** to discover every `results.jsonl` under `--input` recursively and union the records before grouping; the old single-file read (`<dir>/results.jsonl` only) is **deleted**, not branched. A lone root-level ledger is just the trivial one-match case of the same walk — one code path for both. |
 | reusable workflow | **new** sibling artifact `forwardimpact/fit-benchmark/.github/workflows/benchmark.yml` (`on: workflow_call`) | Owns the matrix a step-level composite action cannot. Inputs mirror the action plus `shard-total`; `ANTHROPIC_API_KEY` as a secret. External consumers reference it `@v1`; the monorepo's own `eval-kata.yml` SHA-pins it per `.github/CLAUDE.md`. |
-| `mode: run\|merge` | `forwardimpact/fit-benchmark` composite action | **Additive, default-preserving:** with no new inputs the action behaves exactly as today (`mode: run`, single job, now Layer-1 concurrent). `merge` runs `report` over a download dir and writes the step summary + combined artifact, keeping both halves behind one SHA-pinned action. |
+| `mode: run\|merge` | `forwardimpact/fit-benchmark` composite action | One action, two operations: `run` (default) executes a shard; `merge` runs `report` over the downloaded shard artifacts and writes the step summary + combined artifact. No legacy path — an unsharded run is `shard-index: 1, shard-total: 1` (the identity case of the same code), and both operations live behind one SHA-pinned action. |
 
 ```mermaid
 flowchart LR
@@ -95,19 +104,23 @@ playing the disambiguating role that `case:` plays for matrix trace artifacts in
 | merge ×1 | **none** — minimal `setup-node` only | `report` reads JSONL and computes pass@k; it touches no wiki, no agent runtime, no apm staging. Paying for `fit-bootstrap` here would provision an environment the merge never uses. |
 
 `IS_SANDBOX=1` stays on each shard's agent-spawning step (the action sets it);
-the merge job spawns no agent and needs none. The monorepo's own `eval-kata.yml`
-migrates to call the reusable workflow with a `shard-total`, dogfooding the path;
-the single-job composite-action entry remains for consumers who want one box.
+the merge job spawns no agent and needs none. The composite action is the
+**per-shard primitive**; the reusable workflow composes it across the matrix.
+There is no separate single-job entry point to maintain — `shard-total: 1` runs
+the whole family in one shard job (its merge is the identity over one ledger).
+The monorepo's own `eval-kata.yml` migrates to call the reusable workflow and its
+bespoke single-job invocation is deleted, not kept alongside.
 
 ## Key Decisions
 
 | Decision | Choice | Rejected alternative |
 | --- | --- | --- |
 | Ledger safety under concurrency | Single-writer drain loop fed by a completion channel; workers never write the shared stream | A write mutex around `results.jsonl` — serializes I/O on the hot path and still needs the channel to preserve yield semantics |
-| Crash safety | Per-cell `result.json` as a crash-recovery unit, plus the assembled shard `results.jsonl` | Only the append stream — a killed run loses all completed cells |
+| Durability | Incremental append — the drain loop writes each record to `results.jsonl` the moment its cell settles (one on-disk form) | Buffer records and write at the end (a killed run loses everything) — or per-cell sidecar files (a second representation to keep in sync, redundant with the incremental append) |
 | Port collisions | `PortRegistry`: reserve the number under a lock + re-probe | Hold the listening socket (agent then can't bind it) or per-slot static port ranges (brittle across families/hosts) |
 | Shard balance | Round-robin `p % N` at **cell** granularity | Playwright's contiguous blocks — cell durations are highly skewed (`implement-feature`, stall-prone `coordinate-finding`), so contiguous risks one shard owning a slow task's whole run block |
-| Merge surface | Recursive `results.jsonl` discovery under `--input` | A new `merge` subcommand — `report` already aggregates; recursive discovery makes the one-file and many-shard cases one code path |
+| Merge surface | Recursive `results.jsonl` discovery under `--input`, replacing the single-file read | A new `merge` subcommand, or branching one-file vs many — recursive discovery is the single path for both, with nothing kept for the old shape |
+| Compatibility | **Clean break** — delete the serial loop, `allocatePort`, and the single-file read; no flags, shims, or dual representations | Keep the old paths behind a `--legacy`/compat flag "for safety" — accrues tech debt now for consumers we do not yet have |
 | Merge in CI | Reuse the composite action via `mode: merge` | A raw `npx fit-benchmark report` step — leaves an unpinned invocation outside the SHA-pinned action surface |
 | Merge-job env | No `fit-bootstrap`; minimal node setup | Add a minimal mode to `fit-bootstrap` — extra coupling for a job with no wiki/agent/monorepo deps |
 | Default concurrency | On by default, flag+env override (formula in the Layer-1 table) | Opt-in flag defaulting to 1 — fails the spec's transparency requirement (consumers get no speedup unchanged) |
@@ -119,8 +132,8 @@ the single-job composite-action entry remains for consumers who want one box.
 - `CellScheduler({concurrency, runCell})` → async iterable of settled records.
 - `PortRegistry.acquire(): Promise<number>` / `release(port): void`.
 - `aggregate({inputDir, …})` / `loadRecords` discover `**/results.jsonl`
-  recursively (added behavior — `loadRecords` reads a single file today); an
-  unexpected duplicate `(taskId, runIndex)` is warned and counted, not silently
+  recursively, **replacing** the single-file read (no one-file branch retained);
+  an unexpected duplicate `(taskId, runIndex)` is warned and counted, not silently
   merged (the partition guarantees none, so a duplicate signals misconfiguration).
 - CLI: `fit-benchmark run --concurrency=<n> --shard=<i>/<N>`;
   `fit-benchmark report --input=<dir>` (now recursive).

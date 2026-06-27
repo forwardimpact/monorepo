@@ -121,7 +121,7 @@ so effective parallelism is `N × C`.
 | Cell-granular, balanced assignment | Assignment is at `(task, runIndex)` granularity, not per-task, so a long task's runs spread across shards (interleaved/round-robin), avoiding the "one slow task monopolizes one job" imbalance. Deterministic and stable across invocations. |
 | Multi-input merge in `report` | `report` aggregates across **multiple shard partial ledgers** into one pass@k, equal to reporting a single non-sharded run over the same cells. (Today it reads one `results.jsonl` from one directory.) |
 | Reusable workflow (new sibling artifact) | A `workflow_call` reusable workflow shipped by the `forwardimpact/fit-benchmark` sibling lets a consumer get cross-machine parallelism from a single `shard-total` input: it fans the shards across CI machines, then merges their partial ledgers into one combined report. Inputs mirror the composite action plus `shard-total`. The internal job topology (matrix, shard-scoped artifact hand-off, dependent merge job) is a design concern. |
-| Composite action retained and unchanged for single-job use | The existing `forwardimpact/fit-benchmark@v1` action keeps working with no new inputs, now faster via Layer 1. It additionally exposes shard inputs (`shard-index`/`shard-total`) so an advanced consumer can hand-roll a matrix without the reusable workflow. |
+| Composite action becomes the per-shard primitive | The action gains `concurrency`, `shard-index`, `shard-total`, and `mode` inputs. An unsharded run is the identity case `shard-index: 1, shard-total: 1` — not a preserved legacy path. The reusable workflow composes this one primitive across the matrix; a consumer may also invoke it directly in their own job. |
 
 ### `fit-bootstrap` and the matrix (the distribution consideration)
 
@@ -154,6 +154,11 @@ and it changes how `fit-bootstrap` is consumed:
   input; deriving an optimal `N` automatically is a later concern.
 - **Provider rate-limit raising.** The run must tolerate existing limits via
   backoff; negotiating higher limits is operational, not in scope.
+- **Backward-compatibility shims or fallback flags.** This is a **clean break**:
+  the serial loop, the old port allocator, and the single-file report read are
+  replaced outright and deleted, not kept behind a `--legacy`/compat flag or a
+  dual ledger representation (see design § Clean break). Layer 1's transparency
+  is a default-value choice, not a compat shim.
 
 ## Success criteria
 
@@ -176,7 +181,7 @@ distribution).
 | Each shard emits a self-contained partial ledger. | L2 | A `--shard` run writes a partial `results.jsonl` containing only its assigned cells, valid on its own. |
 | `report` merges shard partials into one pass@k. | L2 | Aggregating the `N` shard partials yields pass@k identical to a single non-sharded run over the same cells (and identical to the `C`-only run of the same fixture). |
 | The reusable workflow fans out and merges. | L2 | A dispatch of the reusable workflow with `shard-total = K` produces `K` shard jobs plus one dependent merge job; the merge job downloads all `K` shard-scoped artifacts and emits a single combined report and results artifact. |
-| Single-job consumers are unaffected. | L2 | The `forwardimpact/fit-benchmark@v1` action invoked with **no** shard inputs runs the whole family in one job and produces the same report shape as before, now under Layer-1 concurrency. |
+| An unsharded invocation runs the whole family in one job. | L2 | The action with `shard-total` unset (≡ `1/1`) runs every cell in one job and produces the same report shape, now under Layer-1 concurrency — the identity case of the shard primitive, not a separate code path. |
 | The merge job carries no agent scaffold. | L2 | The merge job provisions only what `report` needs (a minimal Node setup — no apm/skill staging, no wiki checkout, no agent runtime). |
 | Shards run concurrently without cross-job contention. | L2 | A `shard-total = K` dispatch runs the `K` shard jobs in parallel; each provisions its own independent environment and writes its own shard-scoped artifact, and the run does not serialize the shards. |
 
