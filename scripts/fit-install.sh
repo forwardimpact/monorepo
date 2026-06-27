@@ -26,11 +26,10 @@ PREFIX="${INSTALL_PREFIX:-$HOME/.local}"
 BIN_DIR="$PREFIX/bin"
 LIB_DIR="$PREFIX/lib"
 
-# Default dev/CI tool set, in install order: the third-party external tools
-# plus coaligned, which is one of our own gear binaries (pulled pre-compiled
-# from the gear release like any fit-* CLI, not from an upstream archive). The
-# same list drives `--paths` when no names are given.
-DEFAULT_TOOLS=(apm just gh rg gitleaks coaligned)
+# Default dev/CI tool set, in install order — the third-party external tools
+# every job needs (scripts/bootstrap.sh runs `just`). This set is ALWAYS
+# installed; any named gear CLIs add to it. The same list drives `--paths`.
+DEFAULT_TOOLS=(apm just gh rg gitleaks)
 
 # ── gear binary release coordinates ──────────────────────────────
 # Every installable gear binary (fit-trace, fit-wiki, fit-harness, …, plus
@@ -38,7 +37,7 @@ DEFAULT_TOOLS=(apm just gh rg gitleaks coaligned)
 # publish step stamps the live tag into the released copy of this script; any
 # caller may override via the environment to pin a different release.
 FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
-FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.6}"
+FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.7}"
 
 # Bun compile target for this platform. Binaries are built only for linux-x64
 # and darwin-arm64; any other platform is unsupported and fails hard — this is
@@ -58,17 +57,25 @@ fit_target() {
 is_gear_binary() { case "$1" in fit-*|coaligned) return 0 ;; *) return 1 ;; esac; }
 
 # ── --paths / argument parsing ───────────────────────────────────
+# The default set is ALWAYS installed; named gear CLIs add to it (deduped). So
+# `clis: fit-doc` yields the external tools plus fit-doc, never fit-doc alone —
+# bootstrap.sh still finds `just`.
 PRINT_PATHS=0
-NAMES=()
+EXTRA=()
 for arg in "$@"; do
   case "$arg" in
     --paths) PRINT_PATHS=1 ;;
-    *)       NAMES+=("$arg") ;;
+    *)       EXTRA+=("$arg") ;;
   esac
 done
-# No external/fit names → the default dev/CI tool set.
-if [ "${#NAMES[@]}" -eq 0 ]; then
-  NAMES=("${DEFAULT_TOOLS[@]}")
+NAMES=("${DEFAULT_TOOLS[@]}")
+if [ "${#EXTRA[@]}" -gt 0 ]; then
+  for n in "${EXTRA[@]}"; do
+    case " ${NAMES[*]} " in
+      *" $n "*) ;;            # already in the default set
+      *)        NAMES+=("$n") ;;
+    esac
+  done
 fi
 
 if [ "$PRINT_PATHS" = "1" ]; then
