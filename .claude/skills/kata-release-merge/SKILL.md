@@ -84,6 +84,8 @@ Parse the title using `type(scope): subject`. Each type maps to a phase:
 
 Clean (mergeable, CI green, up-to-date) → continue to Step 6. Behind, stale, or conflicting → rebase (Step 5). CI failing → fix (Step 5) or block. An approved-and-pinned experiment PR never rebases — skip to Step 6 re-block ([`experiment-path.md`](references/experiment-path.md)).
 
+A PR that pins a consumer to a not-yet-published producer is **blocked** until that producer is released. See the repository's CONTRIBUTING.md § Releasing for producer-before-consumer ordering.
+
 ### Step 5: Rebase + Mechanical Fixes
 
 ```sh

@@ -191,6 +191,18 @@ Pre-1.0 packages bump patch for any change. Post-1.0: semver (breaking=major,
 feat=minor, fix/refactor=patch). The release engineer handles bumps, tags, and
 publishing — see [kata-release-cut](.claude/skills/kata-release-cut).
 
+Some changes span more than one tag. A new or renamed binary, for example, is
+reachable only after every tier that carries it ships. Release producer before
+consumer, bottom-up, confirming each tier resolves before tagging the next:
+
+1. the compiled binary or bundle;
+2. the `fit-install.sh` installer that fetches it, co-versioned with the bundle;
+3. the sibling repos' actions and workflows that run it;
+4. this repo's pins to those siblings.
+
+A consumer pinned ahead of its producer fails closed: a missing binary has no
+`bunx`/`npx` fallback.
+
 ## Quality Commands
 
 ```sh
