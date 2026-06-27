@@ -13,6 +13,7 @@
         "acorn": "^8.17.0",
         "eslint": "^10.4.1",
         "eslint-plugin-jsdoc": "^63.0.2",
+        "rumdl": "^0.2.24",
         "semver": "^7.8.4",
         "serve": "^14.2.6",
         "yaml": "^2.9.0",
@@ -20,7 +21,7 @@
     },
     "libraries/libbridge": {
       "name": "@forwardimpact/libbridge",
-      "version": "0.1.17",
+      "version": "0.1.18",
       "dependencies": {
         "@forwardimpact/libhttp": "^0.1.0",
         "@forwardimpact/libtype": "^0.1.0",
@@ -152,7 +153,7 @@
     },
     "libraries/libharness": {
       "name": "@forwardimpact/libharness",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "bin": {
         "fit-harness": "./bin/fit-harness.js",
         "fit-trace": "./bin/fit-trace.js",
@@ -199,7 +200,7 @@
     },
     "libraries/libmacos": {
       "name": "@forwardimpact/libmacos",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "dependencies": {
         "@forwardimpact/libutil": "^0.1.60",
       },
@@ -220,7 +221,7 @@
     },
     "libraries/libmock": {
       "name": "@forwardimpact/libmock",
-      "version": "0.1.12",
+      "version": "0.1.13",
       "dependencies": {
         "@grpc/grpc-js": "^1.14.4",
       },
@@ -537,7 +538,7 @@
     },
     "libraries/libutil": {
       "name": "@forwardimpact/libutil",
-      "version": "0.1.97",
+      "version": "0.1.98",
       "bin": {
         "fit-download-bundle": "./bin/fit-download-bundle.js",
         "fit-tiktoken": "./bin/fit-tiktoken.js",
@@ -578,7 +579,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.30",
+      "version": "0.2.31",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
@@ -597,7 +598,7 @@
     },
     "libraries/libxmr": {
       "name": "@forwardimpact/libxmr",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "bin": {
         "fit-xmr": "./bin/fit-xmr.js",
       },
@@ -725,7 +726,7 @@
     },
     "products/outpost": {
       "name": "@forwardimpact/outpost",
-      "version": "3.8.1",
+      "version": "3.9.0",
       "bin": {
         "fit-outpost": "./bin/fit-outpost.js",
       },
@@ -1483,6 +1484,20 @@
 
     "@rdfjs/types": ["@rdfjs/types@2.0.1", "", { "dependencies": { "@types/node": "*" } }, "sha512-uyAzpugX7KekAXAHq26m3JlUIZJOC0uSBhpnefGV5i15bevDyyejoB7I+9MKeUrzXD8OOUI3+4FeV1wwQr5ihA=="],
 
+    "@rumdl/cli-darwin-arm64": ["@rumdl/cli-darwin-arm64@0.2.24", "", { "os": "darwin", "cpu": "arm64" }, "sha512-FX0gVJ/fxQtEIcMlnKMyEnKnV5/PJKhc6u6z7bKH3FfjZTgEmKKRQUCWj3jdY3ddt/9Tt48R4V4TlPbRz1CU+Q=="],
+
+    "@rumdl/cli-darwin-x64": ["@rumdl/cli-darwin-x64@0.2.24", "", { "os": "darwin", "cpu": "x64" }, "sha512-ATuACiNOpeGRjXLtxhn2qWnCsT60zds8LsBPU85nsGYkuSVExs0eqW677TTTuwY7o1vTk1lJSl3d6FZAiXkfyw=="],
+
+    "@rumdl/cli-linux-arm64": ["@rumdl/cli-linux-arm64@0.2.24", "", { "os": "linux", "cpu": "arm64" }, "sha512-XbakH0mSWnRdJrTb959BhxXd31qYClTf3y8VXB9Q3Bo7sc2kcot6Tfuoe4KbHbHv/mTyi/HsBqqxF3al7p0rfw=="],
+
+    "@rumdl/cli-linux-arm64-musl": ["@rumdl/cli-linux-arm64-musl@0.2.24", "", { "os": "linux", "cpu": "arm64" }, "sha512-cWIsMQAZF/IT/FKsTsDeQYCYB0QTznYYV+YN7MiwWrVuMtzgmtK1it1SGN/8MFGx1z1qt0r0UqQhzJZ6I6Gbvg=="],
+
+    "@rumdl/cli-linux-x64": ["@rumdl/cli-linux-x64@0.2.24", "", { "os": "linux", "cpu": "x64" }, "sha512-tB+z361UFWc59NZaNg6Rby6k1LJIh5nAaBI3FSscrf1GLe8jYV6D4w90yiiPI6pLQlMQJn1+VnVlgPxFGSkVBg=="],
+
+    "@rumdl/cli-linux-x64-musl": ["@rumdl/cli-linux-x64-musl@0.2.24", "", { "os": "linux", "cpu": "x64" }, "sha512-bEYbCs9MCa9FSaA1KLJT4zkQztvkz4/7I8qDxX79ok/6/RxLHTj8Z8N+D7SDZqcujU3HupO27ZtM79sW1Lnh6Q=="],
+
+    "@rumdl/cli-win32-x64": ["@rumdl/cli-win32-x64@0.2.24", "", { "os": "win32", "cpu": "x64" }, "sha512-IgdM8u1dh6CKNa8YvKeUuLYlDS+wTrKt3bRexXlUVh+smQF4DTi151kRUUP8dvITvkb2KDIXkjJYziDDtJ4idg=="],
+
     "@sindresorhus/base62": ["@sindresorhus/base62@1.0.0", "", {}, "sha512-TeheYy0ILzBEI/CO55CP6zJCSdSWeRtGnHy8U8dWSUH4I68iqTsy7HkMktR4xakThc9jotkPQUXT4ITdbV7cHA=="],
 
     "@sindresorhus/is": ["@sindresorhus/is@4.6.0", "", {}, "sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw=="],
@@ -2162,6 +2177,8 @@
     "router": ["router@2.2.0", "", { "dependencies": { "debug": "^4.4.0", "depd": "^2.0.0", "is-promise": "^4.0.0", "parseurl": "^1.3.3", "path-to-regexp": "^8.0.0" } }, "sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ=="],
 
     "rsa-pem-from-mod-exp": ["rsa-pem-from-mod-exp@0.8.6", "", {}, "sha512-c5ouQkOvGHF1qomUUDJGFcXsomeSO2gbEs6hVhMAtlkE1CuaZase/WzoaKFG/EZQuNmq6pw/EMCeEnDvOgCJYQ=="],
+
+    "rumdl": ["rumdl@0.2.24", "", { "optionalDependencies": { "@rumdl/cli-darwin-arm64": "0.2.24", "@rumdl/cli-darwin-x64": "0.2.24", "@rumdl/cli-linux-arm64": "0.2.24", "@rumdl/cli-linux-arm64-musl": "0.2.24", "@rumdl/cli-linux-x64": "0.2.24", "@rumdl/cli-linux-x64-musl": "0.2.24", "@rumdl/cli-win32-x64": "0.2.24" }, "bin": { "rumdl": "bin/rumdl" } }, "sha512-c6uc1Voz+PsqThfyRp5GgahMdgMTR8W3+OvXnC/mCtqP2iv4Hd7z7E4xtpafZIXZJbOQioBkuorn8JDWse74Aw=="],
 
     "run-applescript": ["run-applescript@7.1.0", "", {}, "sha512-DPe5pVFaAsinSaV6QjQ6gdiedWDcRCbUuiQfQa2wmWV7+xC9bGulGI8+TdRmoFkAPaBXk8CrAbnlY2ISniJ47Q=="],
 

@@ -1,0 +1,43 @@
+# rumdl — Markdown linter and formatter (https://rumdl.dev).
+# `bunx rumdl check .` lints; `bunx rumdl fmt .` formats.
+
+[global]
+# node_modules, generated/, dist/, etc. are gitignored and skipped here too.
+respect-gitignore = true
+# wiki/ is a separate git repo (agent memory), not authored source.
+# JTBD.md is a generated artifact rendered by `coaligned jtbd --fix` from the
+# package.json .jobs source; its byte form is owned by coaligned, which emits
+# unwrapped job bodies. Reflowing it fights the generator, so leave it alone.
+# Golden snapshots and test fixtures are byte-exact test data — golden files
+# must match unwrapped tool output, and fixtures are asserted verbatim — so
+# reflowing them breaks the suites that compare against them.
+exclude = ["wiki", "JTBD.md", "**/test/golden/**", "**/test/fixtures/**"]
+# MD033: repo uses intentional inline HTML (<br> in tables, <job>/
+#        <read_do_checklist> tag conventions).
+# MD041: agent/skill files, content partials, and front-matter-led docs
+#        legitimately do not open with an H1.
+# MD057: relative-link existence check. Has no options to whitelist targets,
+#        so it flags links into wiki/ (a separate repo, present only after
+#        sync) and the repo's root-relative link style. Run a dedicated link
+#        audit instead.
+# MD046: code-block style. rumdl's "consistent" detection misclassifies fenced
+#        blocks indented as list children (treating the 4-space indent as an
+#        indented block), so it flags correct fenced blocks. Pinning a single
+#        style would instead churn published skill files (which carry coaligned
+#        line/word budgets) and tool-generated enum blocks. The repo is already
+#        consistently fenced where it matters.
+disable = ["MD033", "MD041", "MD057", "MD046"]
+
+[MD013]
+# Wrap prose to 80 columns. `reflow` makes `rumdl fmt` re-wrap paragraphs and
+# list items automatically (like Prettier's proseWrap: "always"). Code blocks
+# and tables hold content that cannot be wrapped, so exclude them — reflow
+# leaves them intact and enforcing 80 there is only noise.
+line-length = 80
+reflow = true
+# Exclude content that cannot be wrapped to 80 columns. Reflow still wraps
+# ordinary prose; these elements hold atomic content that has no break point.
+code-blocks = false   # fenced/indented code holds verbatim, unwrappable lines
+tables = false        # table rows cannot be broken without changing meaning
+headings = false      # a heading is one line; wrapping it is not valid markdown
+code-spans = false    # inline `code` (CLI commands, snippets) cannot be split
