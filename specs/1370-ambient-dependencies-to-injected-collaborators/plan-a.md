@@ -2,20 +2,19 @@
 
 ## Approach
 
-The design ratifies a single `runtime` bag (`{ fs, fsSync?, proc, clock,
-subprocess, finder }`) flowing from each entry point through `ctx.deps`
-into every constructor and factory. Every multi-subcommand CLI — libwiki
-included — keeps its per-command-file layout; libwiki adds a `WikiSync`
-collaborator constructed inside `bin/fit-wiki.js` and threaded via
-`cli.dispatch(parsed, { deps: { runtime, wikiSync } })` (Success
-Criterion 4, reframed after PR #1280 review). The plan executes that
-direction as a foundation PR followed by per-library / per-product /
-per-service migration PRs.
-STATUS carries one sub-row per migration unit
-([`{spec}/{unit}`](../../wiki/STATUS.md)) so claims are visible and
-parallel sessions don't collide ([design § Decision 8](design-a.md#key-decisions)).
-The master row at `1370` advances to `plan implemented` only when every
-sub-row is implemented.
+The design ratifies a single `runtime` bag
+(`{ fs, fsSync?, proc, clock, subprocess, finder }`) flowing from each entry
+point through `ctx.deps` into every constructor and factory. Every
+multi-subcommand CLI — libwiki included — keeps its per-command-file layout;
+libwiki adds a `WikiSync` collaborator constructed inside `bin/fit-wiki.js` and
+threaded via `cli.dispatch(parsed, { deps: { runtime, wikiSync } })` (Success
+Criterion 4, reframed after PR #1280 review). The plan executes that direction
+as a foundation PR followed by per-library / per-product / per-service migration
+PRs. STATUS carries one sub-row per migration unit
+([`{spec}/{unit}`](../../wiki/STATUS.md)) so claims are visible and parallel
+sessions don't collide ([design § Decision 8](design-a.md#key-decisions)). The
+master row at `1370` advances to `plan implemented` only when every sub-row is
+implemented.
 
 ## Migration Recipe
 
@@ -216,17 +215,15 @@ audit — plan-a-03), libconfig (process arg → runtime.proc — plan-a-03).
 ## Risks
 
 - **STATUS sub-row tooling not extended.** `kata-dispatch`,
-  `kata-release-merge`, and `fit-wiki claim` currently treat the spec
-  id as `^\d{4}$`; `wiki/STATUS.md` is excluded from
-  `audit/scopes.js`'s `EXCLUDED_BASES` ([scopes.js:14](../../libraries/libwiki/src/audit/scopes.js))
-  so the row shape is unchecked today. Plan-a-01 Step 1
-  authors `STATUS_ID_REGEX` in `libraries/libwiki/src/status.js`
-  (new file), removes `STATUS.md` from `EXCLUDED_BASES`, registers an
-  `audit/status-row.js` rule, and updates the
-  `kata-release-merge` / `kata-dispatch` skill markdown grep patterns.
-  Mitigation: these are listed as Step 1's required file changes and
-  the substep order is documented so the implementer cannot ship
-  half-wired.
+  `kata-release-merge`, and `fit-wiki claim` currently treat the spec id as
+  `^\d{4}$`; `wiki/STATUS.md` is excluded from `audit/scopes.js`'s
+  `EXCLUDED_BASES` ([scopes.js:14](../../libraries/libwiki/src/audit/scopes.js))
+  so the row shape is unchecked today. Plan-a-01 Step 1 authors
+  `STATUS_ID_REGEX` in `libraries/libwiki/src/status.js` (new file), removes
+  `STATUS.md` from `EXCLUDED_BASES`, registers an `audit/status-row.js` rule,
+  and updates the `kata-release-merge` / `kata-dispatch` skill markdown grep
+  patterns. Mitigation: these are listed as Step 1's required file changes and
+  the substep order is documented so the implementer cannot ship half-wired.
 - **libwiki consolidation drift from the four `io`-migrated commands.**
   Those commands ship today; plan-a-02 must preserve their behavior
   byte-for-byte while collapsing `io` → `ctx.deps.runtime`. Mitigation:
@@ -237,9 +234,10 @@ audit — plan-a-03), libconfig (process arg → runtime.proc — plan-a-03).
   to async forces every caller path async. Mitigation: plan-a-02 carries
   the bridge call-site updates inside the libwiki PR (the bridges
   themselves remain on their existing bin contracts).
-- **M2/M3 milestone slippage stalls the program.** ~~A missed milestone
-  halts further wave PRs.~~ **Retired** — the wall-time gate no longer halts
-  any wave ([§ Performance milestone tracking](#performance-milestone-tracking),
+- **M2/M3 milestone slippage stalls the program.**
+  ~~A missed milestone halts further wave PRs.~~ **Retired** — the wall-time
+  gate no longer halts any wave
+  ([§ Performance milestone tracking](#performance-milestone-tracking-retired),
   [spec § Outcome](spec.md#outcome-post-implementation-reconciliation-2026-06-01)).
   The milestones were missed and the program completed anyway; ordering
   plan-a-03/04 smallest-first still helped per-unit feedback latency, which

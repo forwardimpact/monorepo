@@ -48,7 +48,8 @@ short `_Note:_` cross-reference when a signal needs anchoring to an event._
 #### {metric_name}
 
 <!-- xmr:{metric_name}:wiki/metrics/{skill}/{YYYY}.csv Do not edit. Auto-generated. -->
-```
+
+```text
 {14-line Wheeler/Vacanti X+mR chart. The chart labels μ, UPL, LPL, ±1.5σ
 zones, URL, R, and the run index — do not restate any of those numbers outside
 the chart.}
@@ -63,9 +64,8 @@ cross-referencing to a specific event; stable metrics get no prose}.
 
 (Repeat one `#### metric_name` block per metric, grouped under `### {agent}`.
 The deterministic `fit-wiki refresh` step regenerates all marker blocks from CSV
-data — no one runs it by hand. The chart is the visualization — do not duplicate
-its values in surrounding prose. Agents add the cross-reference layer only where
-there is something to say.)
+data. The chart is the visualization — never duplicate its values in prose.
+Agents add the cross-reference layer only where there is something to say.)
 
 ### Notes
 
@@ -123,6 +123,6 @@ still ahead._
 
 When concluding an obstacle or experiment, post the verdict as a closing comment
 on the issue and close the issue. `npx fit-wiki refresh` rerenders both
-`Active` and `Concluded (last 7 days)` from GitHub state — no manual storyboard
-edit needed. Items aged out of the 7-day window drop off the next refresh
-automatically. The closed issue is the permanent record.
+`Active` and `Concluded (last 7 days)` from GitHub state, and items aged out of
+the 7-day window drop off automatically. The closed issue is the permanent
+record.

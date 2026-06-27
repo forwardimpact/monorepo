@@ -6,7 +6,7 @@ Spec: [`spec.md`](./spec.md).
 
 Changes span the runtime (L1), one renamed skill (L6/L7), one workflow (L4), and
 one reference (L7). Layer numbers per
-[KATA.md § Instruction layering](../../KATA.md#instruction-layering).
+[COALIGNED.md § The Layers](../../COALIGNED.md#the-layers).
 
 | Layer | Component                                                                                                                                                        | Role                                                                                    |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |

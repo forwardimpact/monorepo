@@ -5,7 +5,7 @@
 | Persona | Job | How the gap blocks progress |
 |---|---|---|
 | Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team) | Study-phase work begins with finding the trace of a known run. Today a participant cannot ask the trace tooling "my lane's most recent run": the run matcher filters on workflow names only, so participant-name queries return nothing on dispatch-style hosts, and run records carry no pointer back to the workflow run that produced them. Every trace harvest degrades into a forensic sweep — and the sweep misattributes. |
-| Platform Builders | [Evaluate and Improve Agents](../../JTBD.md#platform-builders-evaluate-and-improve-agents) | The trace discovery surface in `libeval` is the shared instrument for locating agent traces. Any consumer building measurement or review on per-participant traces inherits the same gap: discovery keyed by workflow name, attribution by content inspection. |
+| Platform Builders | [Evaluate and Improve Agents](../../JTBD.md#platform-builders-build-agent-capable-systems) | The trace discovery surface in `libeval` is the shared instrument for locating agent traces. Any consumer building measurement or review on per-participant traces inherits the same gap: discovery keyed by workflow name, attribution by content inspection. |
 
 ## Problem
 

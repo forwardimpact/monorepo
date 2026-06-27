@@ -65,15 +65,15 @@ implemented** unless the approver selects a different variant.
 
 When too large for a single unit, decompose into numbered parts:
 
-```
-plan-a.md       ← overview, strategy, and part index
-plan-a-01.md    ← part 1 (independently executable)
-plan-a-02.md    ← part 2 (independently executable)
-```
+    plan-a.md       ← overview, strategy, and part index
+    plan-a-01.md    ← part 1 (independently executable)
+    plan-a-02.md    ← part 2 (independently executable)
 
 - `plan-a.md` holds approach, cross-cutting concerns, and a numbered index.
-- Each `plan-a-NN.md` is independently executable; state inter-part dependencies.
-- Decompose only when there is concrete benefit (size, independence, parallelism).
+- Each `plan-a-NN.md` is independently executable; state inter-part
+  dependencies.
+- Decompose only when there is concrete benefit (size, independence,
+  parallelism).
 - Include an **Execution** section: parallel vs sequential, agent routing.
 
 Alternative plans can also be decomposed (`plan-b-01.md`, etc.).
@@ -82,10 +82,9 @@ Alternative plans can also be decomposed (`plan-b-01.md`, etc.).
 
 The plan translates an approved design into concrete implementation steps.
 
-- **No re-introduction.** A plan's job is to let a trusted agent execute without
-  re-reading the spec or design. Reference them by link; do not restate them.
-  The "Approach" section is one paragraph — if more rationale is needed, the
-  decisions belong in the design.
+- **No re-introduction.** Let a trusted agent execute without re-reading the
+  spec or design. Reference them by link; do not restate them. The "Approach"
+  section is one paragraph; further rationale belongs in the design.
 - **Per-step shape.** Each step is a heading plus: one sentence of intent; a
   file list (created / modified / deleted); the concrete change (code block,
   table, or bullet list); one line of verification. No per-step rationale
@@ -95,10 +94,10 @@ The plan translates an approved design into concrete implementation steps.
 - **Risks.** List risks the implementer cannot see from reading the plan. If the
   mitigation is "do the plan correctly", it is not a risk.
 - **Execution recommendation.** Route parts to the most suitable agent —
-  engineering agents for code, `technical-writer` for docs. For decomposed plans,
-  state which parts can run in parallel vs sequentially.
-- **Clean break.** Follow [§ Clean breaks](../../../CONTRIBUTING.md#read-do): the
-  plan replaces the old path, never wraps it in shims or fallbacks. Compat
+  engineering agents for code, `technical-writer` for docs. For decomposed
+  plans, state which parts can run in parallel vs sequentially.
+- **Clean break.** Follow [§ Clean breaks](../../../CONTRIBUTING.md#read-do):
+  the plan replaces the old path, never wraps it in shims or fallbacks. Compat
   belongs in the plan only when the design names it as a requirement; if a clean
   break can't meet the design, revise the design rather than planning around it.
 
@@ -108,16 +107,19 @@ row, make it a row.
 
 ## Approval
 
-A plan is approved when `wiki/STATUS.md` shows the spec row at `plan
-approved`. Plans may be approved by `staff-engineer` after a clean
-`kata-plan` panel review; alternatively, the same human-driven signals that
-gate spec/design (label, PR comment, APPROVED review, in-session user
-message) also feed STATUS for plans. See
-[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md) and
+A plan is approved when `wiki/STATUS.md` shows the spec row at `plan approved`.
+Plans may be approved by `staff-engineer` after a clean `kata-plan` panel
+review; alternatively, the same human-driven signals that gate spec/design
+(label, PR comment, APPROVED review, in-session user message) also feed STATUS
+for plans. See
+[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md)
+and
 [`coordination-protocol.md` § Approval signal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#approval-signal).
 
-**Post-panel coverage.** A commit between the panel and the STATUS write must not let the row silently claim head coverage: record a scoped panel re-read on the PR, or a dual-SHA PR comment naming the panel-clean and amendment SHAs.
-Retires when approval rows carry a commit pin.
+**Post-panel coverage.** A commit between the panel and the STATUS write must
+not let the row silently claim head coverage: record a scoped panel re-read on
+the PR, or a dual-SHA PR comment naming the panel-clean and amendment SHAs.
+Retires once approval rows carry a commit pin.
 
 ## Reviewing a Plan
 
@@ -135,8 +137,11 @@ When multiple variants exist, note which is recommended (plan-a is the default).
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract specs previously planned and any
-deferred work from prior entries.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and (when this skill reads
+Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
+Extract specs previously planned and any deferred work from prior entries.
 
 ### Step 1: Find the design
 
@@ -149,10 +154,10 @@ Read both end to end.
 
 ### Step 3: Research the codebase
 
-Read the files the plan will target. Before drafting, enumerate in one
-tracked task every library or service primitive the design's directives
-cite, plus the test files that will host new assertions; source-read each
-item's declaration before the first draft. Keep pre-draft reads under 40.
+Read the files the plan will target. Before drafting, enumerate in one tracked
+task every library or service primitive the design cites, plus the test files
+that will host new assertions; source-read each declaration before the first
+draft. Keep pre-draft reads under 40.
 
 ### Step 4: Write the plan
 
@@ -172,7 +177,9 @@ panel is clean.
 
 The PR title carries the spec id: `plan(NNN): …`.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md):
+every cited SHA must resolve on its referenced repo, or the body is not
+published.
 
 ### Step 7: Write STATUS
 
@@ -186,7 +193,9 @@ pushes the wiki commit. `kata-release-merge` will then merge the plan PR.
 Append to the current week's log (see agent profile for the file path):
 
 - **Specs planned** — Spec number, name, and status transition
-- **Plan decisions** — Key approach choices and why (context for the implementer)
+- **Plan decisions** — Key approach choices and why (context for the
+  implementer)
 - **Deferred specs** — Specs skipped and why (not approved, missing info, etc.)
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
-  `references/metrics.md`. See KATA.md § Metrics for the recording-eligibility rule.
+  `references/metrics.md`. See KATA.md § Metrics for the recording-eligibility
+  rule.

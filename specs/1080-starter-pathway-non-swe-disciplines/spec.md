@@ -4,22 +4,24 @@ Addresses [#985](https://github.com/forwardimpact/monorepo/issues/985).
 
 ## Persona and job
 
-Primary: [Empowered Engineers → Find Growth Areas](../../JTBD.md#empowered-engineers-find-growth-areas).
+Primary:
+[Empowered Engineers → Find Growth Areas](../../JTBD.md#empowered-engineers-get-judgment-grounded-in-the-standard).
 Big Hire: "Help me get guidance and evidence grounded in my organization's
 standard, not impressions or generic advice."
 
 Secondary (same surface inherits):
-[Empowered Engineers → Understand Expectations](../../JTBD.md#empowered-engineers-understand-expectations)
-and [Engineering Leaders → Define the Engineering Standard](../../JTBD.md#engineering-leaders-define-the-engineering-standard).
-Each depends on the standard being able to model any discipline the
-organization runs — not just Software Engineering.
+[Empowered Engineers → Understand Expectations](../../JTBD.md#empowered-engineers-see-whats-expected-of-humans-and-agents)
+and
+[Engineering Leaders → Define the Engineering Standard](../../JTBD.md#engineering-leaders-define-the-engineering-standard).
+Each depends on the standard being able to model any discipline the organization
+runs — not just Software Engineering.
 
 ## Problem
 
 The starter pathway content shipped by `fit-map init` declares one discipline
 and two capabilities:
 
-```
+```text
 products/map/starter/disciplines/   software_engineering.yaml
 products/map/starter/capabilities/  delivery.yaml  reliability.yaml
 ```
@@ -27,7 +29,7 @@ products/map/starter/capabilities/  delivery.yaml  reliability.yaml
 The canonical synthetic substrate (`data/synthetic/story.dsl`) declares three
 disciplines in active use at the worked-example organization:
 
-```
+```text
 disciplines { software_engineering 60%  data_engineering 25%  engineering_management 15% }
 ```
 
@@ -49,7 +51,7 @@ reference fourteen skill IDs (`data_integration`, `data_modeling`,
 `incident_management`, `code_review`, `full_stack_development`). Zero of these
 appear under `products/map/starter/capabilities/`:
 
-```
+```text
 $ rg -l 'id: (data_integration|data_modeling|stakeholder_management|team_collaboration|mentoring)' products/map/starter/
 (no matches)
 ```
@@ -84,10 +86,20 @@ Engineer in the org.
 
 **Not in scope** (single home for everything excluded):
 
-- Other starter content: `levels.yaml`, `tracks/`, `behaviours/`, `drivers.yaml`, `questions/`, `standard.yaml` — the starter level ladder is reused as-is. The narrative-arc J080→J090 personas the substrate roster carries depend on a separate level-ladder extension tracked outside this spec; this spec only restores the discipline surface for personas whose level falls inside the current ladder.
-- Director-tier rollup (issue [#955](https://github.com/forwardimpact/monorepo/issues/955)) — aggregation surface, disjoint scope.
-- The synthetic terrain DSL (`data/synthetic/story.dsl`) and `fit-terrain build` — substrate stays the anchor; this spec aligns starter to substrate, not the other way round.
-- `fit-landmark` and `fit-map` command behaviour — code paths unchanged; only data files change.
+- Other starter content: `levels.yaml`, `tracks/`, `behaviours/`,
+  `drivers.yaml`, `questions/`, `standard.yaml` — the starter level ladder is
+  reused as-is. The narrative-arc J080→J090 personas the substrate roster
+  carries depend on a separate level-ladder extension tracked outside this spec;
+  this spec only restores the discipline surface for personas whose level falls
+  inside the current ladder.
+- Director-tier rollup (issue
+  [#955](https://github.com/forwardimpact/monorepo/issues/955)) — aggregation
+  surface, disjoint scope.
+- The synthetic terrain DSL (`data/synthetic/story.dsl`) and `fit-terrain build`
+  — substrate stays the anchor; this spec aligns starter to substrate, not the
+  other way round.
+- `fit-landmark` and `fit-map` command behaviour — code paths unchanged; only
+  data files change.
 
 ## Success criteria
 

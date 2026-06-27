@@ -10,7 +10,7 @@ commands that read from Map's existing `evidence` query module: `evidence`,
 
 ## Scope
 
-**In scope**
+### In scope
 
 - Author `markers:` sections on `task_completion`, `planning`, and at least one
   skill inside `reliability.yaml`.
@@ -26,7 +26,7 @@ commands that read from Map's existing `evidence` query module: `evidence`,
   for seeded skills (the test that previously asserted the empty path now
   asserts real output — both paths are kept, exercised via different fixtures).
 
-**Out of scope**
+### Out of scope
 
 - Health view (Part 03).
 - Voice/initiative commands (Parts 04/05).
@@ -38,7 +38,7 @@ commands that read from Map's existing `evidence` query module: `evidence`,
 
 ### Created
 
-```
+```text
 products/landmark/src/lib/
   evidence-helpers.js
 

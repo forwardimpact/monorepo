@@ -5,8 +5,8 @@ Conventions when working under `services/`. The catalog and jobs live in
 
 ## Audience
 
-Internal contributors only. Services are not published to npm — external
-users reach service functionality through product CLIs and the MCP server.
+Internal contributors only. Services are not published to npm. External
+users reach them through product CLIs and the MCP server.
 
 ### Mandate
 
@@ -19,13 +19,12 @@ service-level logic in products.
 `createServiceConfig(name, defaults)` produces the merged config. The
 merge chain:
 
-```
+```text
 server.js defaults → config.json service.<name> → .env SERVICE_{NAME}_*
 ```
 
 `libconfig` resolves `SERVICE_{NAME}_{KEY}` env vars **only for keys that
-already exist** in the merged object. Undeclared keys in `.env` are
-silently ignored.
+already exist** in the merged object. Undeclared `.env` keys are ignored.
 
 ### Key naming
 
@@ -66,9 +65,8 @@ Most services expose gRPC (`proto/`). HTTP services standardize on `libhttp`'s
 
 Each service follows the same structure:
 
-- **`server.js`** — entry point. Declares config defaults, creates
-  config, logger, tracer, service instance, and calls `start()`.
-  Shebang `#!/usr/bin/env node`; bin entry `fit-svc<name>`.
+- **`server.js`** — entry point (see § `server.js` sequence below). Shebang
+  `#!/usr/bin/env node`; bin entry `fit-svc<name>`.
 - **`index.js`** — service class (gRPC) or factory (MCP).
 - **`proto/*.proto`** — gRPC definition (except `mcp`).
 - **`test/`** — `bun test test/*.test.js`.
@@ -90,8 +88,8 @@ regenerate: `bun run context:fix`.
 ## No external documentation
 
 Services have no published skills, no `--help` linking rules, and no
-fully-qualified documentation URLs. Each service carries its own
-`README.md` for contributor context.
+fully-qualified documentation URLs. Each carries its own `README.md` for
+contributor context.
 
 ## Running services
 
@@ -108,8 +106,9 @@ bunx fit-rc restart <name>   # restart <name> and everything after it
 
 ## Runtime data
 
-Runtime data lives under `data/` — logs in `data/logs/<name>/current`,
-bridge discussion + origin state at `data/bridges/discussions.jsonl` and `data/bridges/origins.jsonl` (owned by `services/bridge`).
+Runtime data lives under `data/`: logs in `data/logs/<name>/current`, bridge
+discussion and origin state at `data/bridges/discussions.jsonl` and
+`data/bridges/origins.jsonl` (owned by `services/bridge`).
 
 ## Proto definitions
 

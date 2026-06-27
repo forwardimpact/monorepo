@@ -15,7 +15,7 @@ controlled wrapper.
 
 ## Scope
 
-**In scope**
+### In scope
 
 - Add two additional drivers to `products/map/starter/drivers.yaml`:
   `reliability` and `cognitive_load` (names and contributing skills picked to
@@ -31,7 +31,7 @@ controlled wrapper.
 - Tests: health command with Summit present, health command with Summit stubbed
   absent (graceful-degrade path).
 
-**Out of scope**
+### Out of scope
 
 - Voice command (Part 04). Health's comment section renders whatever `voice`
   data is passed in; Part 04 adds the fetch. Part 03 leaves the comment section
@@ -45,7 +45,7 @@ controlled wrapper.
 
 ### Created
 
-```
+```text
 products/landmark/src/lib/
   summit.js
 
@@ -109,11 +109,11 @@ pipeline the same way (behaviours are maturity profiles, not
 artifact-interpreted markers).
 
 **Decision:** Part 03 preserves the `contributingBehaviours` field on all three
-drivers (consistency with `quality`), but the `health` command **does not render
-behaviours**. This matches the spec's mock-up exactly. Behaviour rendering is
-explicitly **out of scope** for spec 0080 and should be tracked as a follow-up if
-a user asks for it. The spec's § Out of scope does not list this, so note it in
-Part 06's internals documentation.
+drivers (consistency with `quality`), but the `health` command
+**does not render behaviours**. This matches the spec's mock-up exactly.
+Behaviour rendering is explicitly **out of scope** for spec 0080 and should be
+tracked as a follow-up if a user asks for it. The spec's § Out of scope does not
+list this, so note it in Part 06's internals documentation.
 
 Rationale for preserving the field: dropping `contributingBehaviours` from the
 new drivers would create schema-level asymmetry with `quality` and suggest
@@ -273,7 +273,7 @@ and 05 indicates a contract violation, not a merge problem to resolve.
 
 `health.js` formatter renders the spec's exact shape:
 
-```
+```text
 Platform team — health view
 
   Driver: quality (42nd percentile, vs_org: -10)

@@ -10,8 +10,8 @@
 
 ## Primary Products
 
-Three external user groups hire these products. Internal contributors build and
-maintain the monorepo. See [JTBD.md](JTBD.md) for each persona's jobs.
+Three external user groups hire these products; internal contributors build the
+monorepo. See [JTBD.md](JTBD.md) for each persona's jobs.
 
 - **Engineering Leaders** — Define what good engineering looks like, staff teams
   to succeed, and measure outcomes without blaming individuals.
@@ -23,8 +23,8 @@ maintain the monorepo. See [JTBD.md](JTBD.md) for each persona's jobs.
 ### Map — `fit-map`
 
 Hired by leaders to turn 'good engineering' into an operational definition the
-organization trusts. Catches structural mistakes before they
-ship. [Overview](websites/fit/map/index.md)
+organization trusts, catching structural mistakes before they ship.
+[Overview](websites/fit/map/index.md)
 
 ### Pathway — `fit-pathway`
 
@@ -52,21 +52,20 @@ Surfaces capability gaps before someone gets set up to fail.
 
 ### Outpost — `fit-outpost`
 
-Hired by engineers to keep track of people, projects, and threads without
-continuous effort. Assembles context so they walk into every meeting oriented.
+Hired by engineers to track people, projects, and threads without continuous
+effort, assembling context so they walk into every meeting oriented.
 [Overview](websites/fit/outpost/index.md)
 
 ### Kata — `kata-skills`
 
-Hired by teams using agents to run an autonomous development team that keeps
-getting better. A daily Plan-Do-Study-Act cycle: agents write specs, ship
-features, study their own traces, and act on findings.
-[Internals](websites/fit/docs/internals/kata/)
+Hired by teams using agents to run a self-improving development team. A daily
+Plan-Do-Study-Act cycle: agents write specs, ship features, study their traces,
+and act on findings. [Internals](websites/fit/docs/internals/kata/)
 
 ## Secondary Products
 
 **Platform Builders** hire these products to _construct agent-capable systems
-using shared libraries and services designed for humans and agents._
+from shared libraries and services built for humans and agents._
 [Libraries § Jobs To Be Done](libraries/README.md#jobs-to-be-done) ·
 [Services § Jobs To Be Done](services/README.md#jobs-to-be-done)
 
@@ -83,34 +82,33 @@ the same interface, with tooling to prove changes improved outcomes.
 The monorepo is open source but internal-only; external users consume via
 npm. It is the source of truth for `forwardimpact/*` sibling repos:
 
-- **npm packages** — `fit-*` and `kata-*` CLIs and libraries, installed via
-  `npx fit-*`; bare names are launchers
-  ([launchers/README.md](launchers/README.md)). CLIs use
-  `#!/usr/bin/env node`, no Bun. gRPC
-  products need `npx fit-codegen --all` — see
-  [Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md).
+- **npm packages** — `fit-*` and `kata-*` CLIs and libraries via `npx fit-*`;
+  bare names are launchers ([launchers/README.md](launchers/README.md)). CLIs
+  use `#!/usr/bin/env node`, no Bun. gRPC products need `npx fit-codegen --all`
+  ([Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md)).
 - **Skill packs** — `forwardimpact/{fit-skills,kata-skills,coaligned-skills}`
-  sync on push to `main`. Install: `apm install forwardimpact/fit-skills`
-  (or `kata-skills`, `coaligned-skills`). Internal skills (`libs-*`, product
-  internals) never publish.
+  sync on push to `main`; install with `apm install forwardimpact/<pack>`.
+  Internal skills (`libs-*`, product internals) never publish.
 - **Composite actions** —
-  <!-- enum:sibling-composite-actions:list -->`forwardimpact/{fit-benchmark,fit-bootstrap,fit-harness,fit-wiki,kata-agent}`<!-- /enum -->
+
+  <!-- enum:sibling-composite-actions:list -->
+  `forwardimpact/{fit-benchmark,fit-bootstrap,fit-harness,fit-wiki,kata-agent}`
+  <!-- /enum -->
   released via append-only `v1.0.x` tags. Edit procedure in
   [`.github/CLAUDE.md`](.github/CLAUDE.md).
 
-Published skills teach how products **work** and **use** — not how they're
-implemented. Use fully qualified URLs (e.g.
-`https://www.forwardimpact.team/docs/products/authoring-standards/index.md`).
+Published skills teach how products **work** and **use**, not how they're
+implemented. Use fully qualified URLs, e.g.
+`https://www.forwardimpact.team/docs/products/authoring-standards/index.md`.
 
 External users run Node.js + `npx`; internal contributors run Bun 1.2+ +
-`bunx` + `just`. `just codegen` (in `just quickstart`) runs
-`fit-codegen` internally. External docs use `npm`/`npx`; `bun`/`bunx`/`just`
-appear only in internal docs.
+`bunx` + `just`. `just codegen` (in `just quickstart`) runs `fit-codegen`.
+External docs use `npm`/`npx`; `bun`/`bunx`/`just` appear only in internal docs.
 
 ## Contributor Workflow
 
-Everything below is for internal contributors. External users should consult
-the [Getting Started guides](websites/fit/docs/getting-started/).
+Everything below is for internal contributors; external users should consult the
+[Getting Started guides](websites/fit/docs/getting-started/).
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — Invariants, structure, quality
   commands, security policies. **Read before your first commit.**
@@ -120,7 +118,7 @@ the [Getting Started guides](websites/fit/docs/getting-started/).
 ### Jobs and Checklists
 
 Product jobs live in [JTBD.md](JTBD.md); service and library jobs in their
-README.md files. Tagged checklists gate pause points. Discover both with `rg`:
+README.md. Tagged checklists gate pause points. Discover both with `rg`:
 
 ```sh
 rg '<job '                  # Jobs To Be Done
@@ -133,11 +131,11 @@ rg '<do_confirm_checklist'  # Exit gates — do from memory, then confirm
 
 **Every contribution** runs [§ READ-DO](CONTRIBUTING.md#read-do) then
 [§ DO-CONFIRM](CONTRIBUTING.md#do-confirm). Domain checklists in
-`.claude/skills/kata-*/SKILL.md`. Shared libraries:
+`.claude/skills/kata-*/SKILL.md`; shared libraries in
 [libraries/README.md](libraries/README.md).
 
-When `.claude/**` writes are blocked, use
-`echo … | bunx fit-selfedit <path>` — gated to `.claude/settings.json` Edit() rules + non-`main` branch.
+When `.claude/**` writes are blocked, use `echo … | bunx fit-selfedit <path>` —
+gated to `.claude/settings.json` Edit() rules + non-`main` branch.
 
 ## Writing Style
 
@@ -148,7 +146,7 @@ rhetorical questions, and stacked noun chains. One idea per sentence.
 ## Memory and Coordination
 
 Wiki is **memory** — own state (summaries, logs, metrics), not a handoff
-channel. **Coordination** requires a named receiver and addressable artifact:
+channel. **Coordination** needs a named receiver and addressable artifact:
 Issue, PR/issue comment, Discussion, or `kata-dispatch`. See
 [memory-protocol](.claude/agents/references/memory-protocol.md) and
 [coordination-protocol](.claude/agents/references/coordination-protocol.md).
@@ -156,9 +154,8 @@ Issue, PR/issue comment, Discussion, or `kata-dispatch`. See
 ## Domain Concepts
 
 Agent-aligned engineering standards are defined in YAML under
-[products/map/starter/](products/map/starter/) (starter template, installed
-to `data/pathway/` in consuming projects). Use
-`bunx fit-pathway <entity> --list` to discover available values.
+[products/map/starter/](products/map/starter/) (installed to `data/pathway/` in
+consuming projects). Use `bunx fit-pathway <entity> --list` to list values.
 
 - **Disciplines** — `disciplines/{id}.yaml`
 - **Levels** — `levels.yaml`
@@ -186,7 +183,7 @@ One home per policy.
 **External:**
 
 - **Getting started** — [Getting Started](websites/fit/docs/getting-started/)
-- **Product guides** — [websites/fit/docs/products/](websites/fit/docs/products/)
-- **Library guides** — [websites/fit/docs/libraries/](websites/fit/docs/libraries/)
-- **Service guides** — [websites/fit/docs/services/](websites/fit/docs/services/)
+- **Product guides** — [products/](websites/fit/docs/products/)
+- **Library guides** — [libraries/](websites/fit/docs/libraries/)
+- **Service guides** — [services/](websites/fit/docs/services/)
 - **Published skills** — [fit-\*](.claude/skills/) · [kata-\*](.claude/skills/)

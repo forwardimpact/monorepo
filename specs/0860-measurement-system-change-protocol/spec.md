@@ -12,7 +12,7 @@
 ## Problem
 
 The Kata Agent Team
-([JTBD § Teams Using Agents](../../JTBD.md#teams-using-agents-run-an-autonomous-continuously-improving-development-team))
+([JTBD § Teams Using Agents](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team))
 runs a daily PDSA loop whose Study phase reads canonical metrics (the
 "canonical-11" set referenced by the May Target Condition in
 `wiki/storyboard-2026-M05.md`) through XmR signals. KATA.md § Metrics
@@ -81,14 +81,14 @@ it.
 
 ## Goal
 
-Canonicalise the measurement-system change protocol the team is already
-running implicitly. Name the safe repair moves; require an operational
-redefinition artifact for any change to a canonical-11 metric; place the
+Canonicalise the measurement-system change protocol the team is already running
+implicitly. Name the safe repair moves; require an operational redefinition
+artifact for any change to a canonical-11 metric; place the
 no-silent-redefinition rule in a single shared reference; and add an
-approval-throughput metric to the canonical-11 frame so the binding
-constraint is itself read by the same loop. The loop continues to read XmR signals
-unchanged; what changes is the protocol that surrounds canonical-11
-metric churn and the set of metrics the loop reads.
+approval-throughput metric to the canonical-11 frame so the binding constraint
+is itself read by the same loop. The loop continues to read XmR signals
+unchanged; what changes is the protocol that surrounds canonical-11 metric churn
+and the set of metrics the loop reads.
 
 ## Scope (in)
 

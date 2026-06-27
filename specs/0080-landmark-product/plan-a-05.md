@@ -19,7 +19,7 @@ decision below.
 
 ## Scope
 
-**In scope**
+### In scope
 
 - New migration creating `activity.getdx_initiatives` with the columns spec §
   Data Contracts enumerates.
@@ -32,7 +32,7 @@ decision below.
   subcommands on a single `initiative` command file.
 - Tests for extract, transform, query, and the three Landmark subcommands.
 
-**Out of scope**
+### Out of scope
 
 - Any write path to initiatives (Landmark is read-only).
 - Driver linking UI changes beyond what the schema requires.
@@ -63,7 +63,7 @@ Instead:
 
 ### Created
 
-```
+```text
 products/map/supabase/migrations/
   <next-sequence>_getdx_initiatives.sql
 
@@ -227,7 +227,6 @@ treats the payload as opaque JSON.
    This makes the transform idempotent: replaying the same extract cannot shift
    `completed_at` forward, so the before/after snapshot selection in impact
    computation stays deterministic.
-
 5. Return `{ initiatives: <count>, errors: [...] }`.
 
 ### Query module (thin SELECT wrappers only)

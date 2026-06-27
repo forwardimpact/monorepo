@@ -16,7 +16,7 @@ FACILITATOR_SYSTEM_PROMPT describes orchestration tool semantics (appended to
 the system prompt alongside layer 1 relay mechanics), but the `kata-storyboard`
 skill (layer 4) defines a self-sufficient solo procedure that never references
 those tools. See
-[KATA.md § Instruction layering](../../KATA.md#instruction-layering) for the
+[COALIGNED.md § The Layers](../../COALIGNED.md#the-layers) for the
 five-layer model.
 
 A second, structural conflict reinforces the first: the improvement coach's

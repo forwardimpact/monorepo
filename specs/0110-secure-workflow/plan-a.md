@@ -485,7 +485,7 @@ description: >
 The skill body should cover the following areas as **principles with
 check-items**, not step-by-step instructions:
 
-**1. Supply Chain — GitHub Actions**
+#### 1. Supply Chain — GitHub Actions
 
 - All third-party actions must be pinned to full SHA hashes with a version
   comment (`# v4`). Tag-only references (`@v4`) are not acceptable.
@@ -495,7 +495,7 @@ check-items**, not step-by-step instructions:
 - All workflows must declare explicit `permissions` with least privilege.
 - Dependabot must be configured to propose updates to action SHAs.
 
-**2. Supply Chain — npm Dependencies**
+#### 2. Supply Chain — npm Dependencies
 
 - Minimize the number of external dependencies. Before adding a new package,
   check if an existing dependency or Node.js built-in can serve the same
@@ -506,7 +506,7 @@ check-items**, not step-by-step instructions:
 - `npm audit --audit-level=high` must pass. Publish workflows must gate on audit
   results.
 
-**3. Credential & Secret Leak Prevention**
+#### 3. Credential & Secret Leak Prevention
 
 - `.env` files, API keys, tokens, and credentials must never be committed.
   `.gitignore` must cover all sensitive file patterns.
@@ -517,13 +517,13 @@ check-items**, not step-by-step instructions:
 - Secrets in GitHub Actions must use `secrets.*` — never hardcode values in
   workflow files.
 
-**4. Static Analysis**
+#### 4. Static Analysis
 
 - ESLint must include `eslint-plugin-security` recommended rules.
 - Security rules must not be disabled without explicit justification in a
   comment.
 
-**5. Application Security (OWASP Top 10)**
+#### 5. Application Security (OWASP Top 10)
 
 When reviewing application code, check for:
 
@@ -545,7 +545,7 @@ When reviewing application code, check for:
   validation (all YAML data should be validated against JSON Schema via
   `fit-map validate`).
 
-**6. CI/CD Security**
+#### 6. CI/CD Security
 
 - The `make audit` target must be the single source of truth for security
   checks, running both npm audit and gitleaks.
@@ -553,7 +553,7 @@ When reviewing application code, check for:
 - CI and local engineer workflows must run the same checks (same Makefile
   target).
 
-**7. Audit Workflow**
+#### 7. Audit Workflow
 
 Provide guidance on how to perform a review:
 

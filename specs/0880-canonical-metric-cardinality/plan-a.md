@@ -54,7 +54,7 @@ landed — block until it has. Confirmed live as of 2026-05-11 `main`
 No file deletions. No edits to `.claude/skills/kata-*/references/metrics.md`,
 `coordination-protocol.md`, `wiki/storyboard-*.md`, or any
 `wiki/metrics/*.csv` — therefore no redefinition file is required (per
-[`coordination-protocol.md` § Detection](../../.claude/agents/references/coordination-protocol.md#detection),
+[`coordination-protocol.md` § Detection](../../.claude/agents/references/coordination-protocol.md#claim--probe--create),
 KATA.md § Metrics is not a canonical-11 edge, and the canonical metric set is
 unchanged by this plan).
 
@@ -110,8 +110,8 @@ their `.claude/skills/kata-*/references/metrics.md`.
 
 - `test -f .claude/agents/references/metric-class-guidance.md` exits 0.
 - `rg -c 'co-locates with an existing producer' .claude/agents/references/metric-class-guidance.md`
-  returns exactly 1 (SC3 substring constraint; design § Pointer page shape
-  fixes the substring to one occurrence, in the placement-rule sentence).
+  returns exactly 1 (SC3 substring constraint; design § Pointer page shape fixes
+  the substring to one occurrence, in the placement-rule sentence).
 - `rg -c '^## ' .claude/agents/references/metric-class-guidance.md` returns 4
   (Class boundary, Placement, Cardinality, See also).
 - `wc -l .claude/agents/references/metric-class-guidance.md` returns ≤40 (a
@@ -165,9 +165,9 @@ stations and orchestration utilities do not record.
 - `rg -c 'process-throughput' KATA.md` returns ≥2 (cardinality rule
   introducing the class + rationale paragraph from Step 3).
 - `rg -c 'system-health' KATA.md` returns ≥2 (same surfaces).
-- Membership-criterion sentence (SC1) — three independent single-line
-  substring checks, each must appear on one line within the cardinality-rule
-  paragraph (the awk extractor from the SC2 check below scopes them):
+- Membership-criterion sentence (SC1) — three independent single-line substring
+  checks, each must appear on one line within the cardinality-rule paragraph
+  (the awk extractor from the SC2 check below scopes them):
 
   ```sh
   paragraph=$(awk '/^Each such skill records one or more metrics/{flag=1} flag{print} /^$/{if(flag) exit}' KATA.md)
@@ -176,17 +176,17 @@ stations and orchestration utilities do not record.
   printf '%s' "$paragraph" | rg -c 'co-locates with an existing producer'      # 1
   ```
 
-  Each count must be `1`. The three substrings are each short enough to stay
-  on one line after `proseWrap: always` reflow (≤55 chars), so prose-wrap
-  cannot split them. Together they witness the membership-criterion sentence
-  (covers both classes, ends with the pointer phrase).
+  Each count must be `1`. The three substrings are each short enough to stay on
+  one line after `proseWrap: always` reflow (≤55 chars), so prose-wrap cannot
+  split them. Together they witness the membership-criterion sentence (covers
+  both classes, ends with the pointer phrase).
 - `rg -c 'metric-class-guidance.md' KATA.md` returns exactly 1 (the one-hop
   link — SC3).
 - `rg -n '^Each such skill records one or more metrics' KATA.md` returns
   exactly 1 hit at column 1 (confirms the paragraph break landed — required
   for the awk anchor below to work).
-- SC2 zero-hit grep — run against the amended cardinality-rule paragraph
-  (now isolated from the eligibility sentence by the inserted blank line):
+- SC2 zero-hit grep — run against the amended cardinality-rule paragraph (now
+  isolated from the eligibility sentence by the inserted blank line):
 
   ```sh
   paragraph=$(awk '/^Each such skill records one or more metrics/{flag=1} flag{print} /^$/{if(flag) exit}' KATA.md)
@@ -201,9 +201,9 @@ stations and orchestration utilities do not record.
   ```
 
   Every token's count must be `0`. The non-empty-paragraph guard catches the
-  failure mode where `Each such skill` is mid-paragraph (vacuous pass). The
-  awk pattern reads from the anchor line through the next blank line, so it
-  is independent of prettier's wrap of the closing sentence.
+  failure mode where `Each such skill` is mid-paragraph (vacuous pass). The awk
+  pattern reads from the anchor line through the next blank line, so it is
+  independent of prettier's wrap of the closing sentence.
 - `git diff KATA.md` shows changes only within § Metrics, no leakage into
   adjacent sections.
 
@@ -242,9 +242,9 @@ shift.
   paragraph — SC4 requires ≥1 in this paragraph).
 - `rg -c 'system-health' KATA.md` returns ≥2 (same — SC4 requires ≥1 in this
   paragraph).
-- Paragraph-scoped SC4 grep (counts class-name tokens inside this paragraph
-  only — anchored on the first line, ranged to the next blank line so
-  prettier reflow of the closing sentence cannot break the bound):
+- Paragraph-scoped SC4 grep (counts class-name tokens inside this paragraph only
+  — anchored on the first line, ranged to the next blank line so prettier reflow
+  of the closing sentence cannot break the bound):
 
   ```sh
   rationale=$(awk '/^The constraint is XmR-driven for both classes\./{flag=1} flag{print} /^$/{if(flag) exit}' KATA.md)
@@ -289,7 +289,7 @@ the spec id (`plan(0880): …` for this plan PR, `feat(0880): …` or
 In the implementation PR body, note that this PR does **not** require a
 `wiki/redefinitions/*.md` file — KATA.md § Metrics is not in the canonical-11
 edge set listed by
-[`coordination-protocol.md` § Detection](../../.claude/agents/references/coordination-protocol.md#detection)
+[`coordination-protocol.md` § Detection](../../.claude/agents/references/coordination-protocol.md#claim--probe--create)
 (`wiki/storyboard-*.md`, `.claude/skills/*/references/metrics.md`,
 `coordination-protocol.md` § Measurement-system changes), and the canonical
 metric set is unchanged. This pre-empts a no-silent-redefinition challenge

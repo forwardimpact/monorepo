@@ -14,7 +14,7 @@ listed at the end.
 
 ## Scope
 
-**In scope**
+### In scope
 
 - Flesh out `website/landmark/index.md` with content describing the final
   command surface and the audience model.
@@ -33,7 +33,7 @@ listed at the end.
   parts and this docs part merge. (This step is a reviewer action, not an
   implementation step — documented here for continuity.)
 
-**Out of scope**
+### Out of scope
 
 - Any new command surface.
 - Any change to the generated website build pipeline.
@@ -43,7 +43,7 @@ listed at the end.
 
 ### Created
 
-```
+```text
 website/docs/internals/landmark/
   index.md
 
@@ -185,7 +185,7 @@ reference, don't restate).
 
 After all merges land, update `specs/STATUS`:
 
-```
+```text
 080 done
 ```
 
