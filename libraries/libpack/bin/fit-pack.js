@@ -68,6 +68,18 @@ const definition = {
       description:
         "Stage a skill pack into APM's .apm/ layout so a bare install pulls skills and agents together.",
     },
+    {
+      title: "Build Tarball and Git-Repo Packs",
+      url: "https://www.forwardimpact.team/docs/libraries/distribute-skill-packs/tarball-distribution/index.md",
+      description:
+        "Build distributable packs as flat and APM tarballs and a static bare git repo, with byte-identical output across runs.",
+    },
+    {
+      title: "Publish a Skill Discovery Index",
+      url: "https://www.forwardimpact.team/docs/libraries/distribute-skill-packs/discovery-index/index.md",
+      description:
+        "Emit a .well-known/skills/ discovery index so an agent can find and load skills over the web.",
+    },
   ],
 };
 

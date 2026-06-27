@@ -16,6 +16,19 @@ await storage.put('key.json', { hello: 'world' });
 const data = await storage.get('key.json');
 ```
 
+## `fit-storage` is an internal operator CLI
+
+The library's published surface is the `createStorage` factory and the
+`StorageInterface` it returns. The `fit-storage` CLI (`upload`, `download`,
+`list`, `create-bucket`, `wait`) is an **internal deployment tool** that syncs a
+local `data/` directory to and from a remote bucket. It has no launcher package,
+so it is not a public `npx fit-*` CLI, and the three-artifact linking rule
+(`libraries/CLAUDE.md` § CLIs and progressive documentation) does not apply to
+it — there is deliberately no `SKILL.md` and no `documentation` array. The
+library itself is documented as the persistence substrate in the
+[Ground Agents in Context](https://www.forwardimpact.team/docs/libraries/ground-agents/index.md)
+guide.
+
 ## Atomicity
 
 `put(key, data)` is a same-target atomic file-replace on the local backend:

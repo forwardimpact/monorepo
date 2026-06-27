@@ -123,6 +123,46 @@ as part of the same pass, so a stale claim no longer falsely signals work in
 flight. A claim's expiry defaults to one day after it was made, so this keeps
 the table to genuinely active work.
 
+## Recording the product-mix metric
+
+Your team tracks how much of its merged work is product-facing versus internal.
+The `product-mix` command computes that share directly from merged pull
+requests and records it as a metric the XmR pipeline can chart.
+
+```sh
+npx fit-wiki product-mix
+```
+
+It looks at pull requests merged into `main` in a rolling window — by default
+the last seven days — and counts each one by its `product` or `internal` label.
+It then appends a `product_share` row to
+`wiki/metrics/product-mix/<YYYY>.csv`, where the value is the percentage of
+labeled PRs carrying the `product` label:
+
+```
+product_share = round(product / (product + internal) * 100)
+```
+
+To analyze a specific window, pass the bounds:
+
+```sh
+npx fit-wiki product-mix --since 2026-06-01 --until 2026-06-27
+```
+
+The command is deterministic — re-running it over the same merged PRs produces
+the same value. A window with no labeled merged PRs records no row, avoiding a
+meaningless zero-over-zero ratio. The recorded row flows into the same
+analysis path as every other metric; see
+[Chart a Metric and Check Variation](/docs/libraries/predictable-team/xmr-analysis/)
+to turn it into a control chart.
+
+| Flag      | Required | Description                                              |
+| --------- | -------- | ------------------------------------------------------- |
+| `--since` | No       | Window start ISO date (default: `--until` minus 7 days).|
+| `--until` | No       | Window end ISO date (default: today).                   |
+| `--run`   | No       | Run id recorded on the metric row (default: `gh-live`). |
+| `--repo`  | No       | `owner/repo` slug (default: the `origin` remote).       |
+
 ## Syncing wiki state
 
 The wiki is a separate git repository cloned into `wiki/` within your project.
@@ -270,6 +310,8 @@ using `GH_TOKEN` or `GITHUB_TOKEN` from the environment, or a logged-in
 <div class="grid">
 
 <!-- part:card:.. -->
+<!-- part:card:../wiki-integrity -->
+<!-- part:card:../collision-ledger -->
 <!-- part:card:../xmr-analysis -->
 
 </div>

@@ -99,6 +99,29 @@ const allIds = await resourceIndex.findAll();
 Both `findByPrefix` and `findAll` return `Identifier` objects, not full
 resources. Pass them to `get` to load content.
 
+## Write resources into the index
+
+Beyond the read path, the index can store resources directly. Use this when you
+build resources in code -- from a non-HTML source, or as the output of your own
+processing -- instead of running the ingestion pipeline:
+
+```js
+import { common } from "@forwardimpact/libtype";
+
+const message = common.Message.fromObject({
+  id: { name: "jane-doe" },
+  role: "system",
+  content: "<https://acme.example/people/jane-doe> a schema:Person .",
+});
+
+await resourceIndex.put(message);
+```
+
+`put` generates the resource's identifier if one is not already set, then
+writes a single JSON file under the index's storage prefix. `add` is an alias
+for `put` -- both store one resource and overwrite any existing file with the
+same identifier, so re-writing the same resource is idempotent.
+
 ## Process HTML into resources
 
 The ingestion pipeline converts HTML knowledge sources into typed `Message`
@@ -144,6 +167,46 @@ sorted first for consistent downstream processing:
 
 This content is what the graph processor reads when building the graph index,
 and what the vector processor reads when generating embeddings.
+
+## Customize HTML processing
+
+`fit-process-resources` covers the common path. When you need to drive the
+extraction yourself -- ingesting from a different source, applying custom
+grouping, or skolemizing on your own schedule -- two classes are exported as
+subpath imports.
+
+The `Parser` extracts schema.org microdata from a parsed document into grouped
+RDF items, and converts between quads and Turtle:
+
+```js
+import { Parser } from "@forwardimpact/libresource/parser.js";
+import { Skolemizer } from "@forwardimpact/libresource/skolemizer.js";
+
+const parser = new Parser(new Skolemizer());
+
+const items = await parser.parseHTML(document, "https://acme.example/");
+for (const item of items) {
+  const turtle = await parser.quadsToRdf(item.quads);  // RDF serialization
+}
+```
+
+`parseHTML` returns one entry per main schema.org entity, each carrying its
+`iri` and deduplicated `quads`. `quadsToRdf` serializes quads to Turtle (type
+assertions first); `rdfToQuads` parses Turtle back into quads; `unionQuads`
+merges two quad arrays with RDF union semantics.
+
+The `Skolemizer` replaces blank nodes with content-hashed `urn:skolem:` URIs so
+the same entity gets the same identifier across documents:
+
+```js
+const skolemizer = new Skolemizer();
+const stableQuads = skolemizer.skolemize(quadsWithBlankNodes);
+```
+
+Because the hash is derived from each blank node's own triples, re-running the
+skolemizer on the same content produces the same URIs -- the property that makes
+cross-document deduplication deterministic. Pass a custom base URI to the
+constructor to namespace the skolem identifiers.
 
 ## Typical retrieval flow
 

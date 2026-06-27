@@ -44,6 +44,34 @@ rejects the row when neither resolves. The read commands (`analyze`, `chart`,
 their output, and accept `--event-type <name>` or `--event-type '*'` for all
 rows.
 
+### Route-decision grammar in `note`
+
+A row can tag the decision path its work took with structured tokens at the head
+of the `note`, before any free text:
+
+```
+route_taken=<id>; routes_eligible=[<id>,<id>,...];
+```
+
+- `route_taken` — the single path taken (a small integer, or the literal
+  `none`).
+- `routes_eligible` — the comma-separated set of paths that were available,
+  including the one taken. Brackets are literal; an empty set is `[]`.
+
+Quote the `note` so the embedded comma does not split the column:
+
+```
+2026-06-20,implementations_shipped,3,count,,"route_taken=2; routes_eligible=[2,3];",kata-shift,local
+```
+
+`analyze` partitions on these tokens: `--route <id>` keeps rows whose
+`route_taken` matches, and `--routes-eligible-includes <id>` keeps rows whose
+`routes_eligible` set contains the id. Each filter is inert when omitted, so a
+plain `analyze` charts the whole series. `record --route <id>
+[--routes-eligible <ids>]` writes the grammar and quotes the field for you,
+rejecting unknown path ids. Both filters compose with `--metric` and
+`--event-type`.
+
 ## Example output
 
 ```

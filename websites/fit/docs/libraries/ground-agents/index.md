@@ -55,6 +55,41 @@ data/knowledge/*.html
 filtering, and token budgeting so the specialized indexes inherit that
 behavior without reimplementing it.
 
+## Where the indexes live: the storage substrate
+
+Every index in this pipeline reads and writes through one backend interface from
+`@forwardimpact/libstorage`. The `createStorage(prefix)` factory returns a
+storage handle scoped to a named prefix, and each index is constructed with one:
+
+```js
+import { createStorage } from "@forwardimpact/libstorage";
+
+const storage = createStorage("vectors"); // reads/writes data/vectors/
+```
+
+The same call resolves to a different backend depending on the `STORAGE_TYPE`
+environment variable, with no change to consumer code:
+
+| `STORAGE_TYPE` | Backend                    | Where data lives           |
+| -------------- | -------------------------- | -------------------------- |
+| `local`        | Local filesystem (default) | `data/<prefix>/`           |
+| `s3`           | Amazon S3 or S3-compatible | `<bucket>/<prefix>/`       |
+| `supabase`     | Supabase Storage           | `<bucket>/<prefix>/`       |
+
+Because every index shares this interface, you develop against the local
+filesystem and deploy against S3 or Supabase by setting `STORAGE_TYPE` — the
+graph, vector, and resource indexes never know which backend they are talking
+to. On the local backend, `put(key, data)` is a same-target atomic replace
+(write a sibling temp file, then `rename`), so a process killed mid-write leaves
+the target at either its prior content or the new content, never a truncated
+prefix.
+
+Install it alongside the index libraries:
+
+```sh
+npm install @forwardimpact/libstorage
+```
+
 ## 1. Prepare the knowledge directory
 
 Create `data/knowledge/` and add HTML files with schema.org microdata. The

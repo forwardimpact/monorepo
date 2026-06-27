@@ -122,6 +122,70 @@ and retains the 10 most recent archives.
 If no log file exists yet (the service has not produced output), the command
 returns silently.
 
+## Tune log rotation
+
+`fit-rc` pipes each longrun service's output through `fit-logger`, the log writer
+from `@forwardimpact/libsupervise`. It reads lines on stdin, prepends an ISO 8601
+timestamp, writes to a file named `current`, and rotates that file to a
+timestamped archive once it grows past a size limit. You can run `fit-logger`
+directly to capture any command's output, or to test rotation settings:
+
+```sh
+my-service | npx fit-logger --dir data/logs/my-service
+```
+
+Two options tune rotation:
+
+| Option           | Short | Default     | Effect                                       |
+| ---------------- | ----- | ----------- | -------------------------------------------- |
+| `--dir`          | `-d`  | required    | Directory the log files are written to.      |
+| `--maxFileSize`  | `-s`  | `1000000`   | Bytes before `current` rotates to an archive. |
+| `--maxFiles`     | `-n`  | `10`        | Archives retained; the oldest are pruned.    |
+
+```sh
+my-service | npx fit-logger -d data/logs/my-service -s 1048576 -n 5
+```
+
+Archives are named `@YYYY-MM-DD_HH-mm-ss.s`, so sorting filenames gives
+chronological order. When the count exceeds `--maxFiles`, the oldest archives are
+deleted on the next rotation.
+
+## Supervise processes directly
+
+`fit-rc` drives a supervision daemon, `fit-svscan`, over a Unix domain socket.
+You normally never call the daemon yourself -- `fit-rc start` spawns it -- but
+understanding its control interface helps when debugging a stuck service. Start
+the daemon with a socket path, a PID file, and a log directory:
+
+```sh
+npx fit-svscan --socket data/svscan.sock --pid data/svscan.pid --logdir data/logs
+```
+
+| Option      | Short | Default | Effect                                          |
+| ----------- | ----- | ------- | ----------------------------------------------- |
+| `--socket`  | `-s`  | required| Path to the Unix socket the daemon listens on.  |
+| `--pid`     | `-p`  | required| Path to the PID file the daemon writes.         |
+| `--logdir`  | `-l`  | required| Directory each supervised process logs to.      |
+| `--timeout` | `-t`  | `3000`  | Milliseconds to wait for `SIGTERM` before `SIGKILL`. |
+
+Control commands are newline-delimited JSON objects sent to the socket. Each
+command has a `command` field; `add` and `remove` also carry a service name:
+
+| Command    | Fields              | Response                                  |
+| ---------- | ------------------- | ----------------------------------------- |
+| `ping`     |                     | `{"ok":true,"message":"pong"}`            |
+| `add`      | `name`, `cmd`, `cwd`| Starts and supervises a process.          |
+| `remove`   | `name`              | Stops and removes a supervised process.   |
+| `status`   |                     | State, PID, and restart count per service. |
+| `shutdown` |                     | Stops every service and exits the daemon.  |
+
+The daemon answers each command with a single JSON line and closes the
+connection. `shutdown` is the exception: the daemon exits before replying, so a
+client sees the connection close with no response line. The daemon is a pure
+supervisor -- it knows nothing about service order or oneshot commands. Ordering
+and oneshot handling live in `fit-rc`, which is why `fit-rc` is the interface you
+reach for day to day.
+
 ## Suppress output
 
 All commands accept the `--silent` flag to suppress informational output:

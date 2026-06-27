@@ -304,4 +304,6 @@ produces `{ tag: ["rain", "wind"] }`.
 
 <!-- part:card:add-capability -->
 
+<!-- part:card:build-web-surface -->
+
 </div>

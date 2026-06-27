@@ -117,16 +117,49 @@ If the tool does not appear, check:
 ## How parameters are derived
 
 You do not write parameter schemas. `libmcp` reads the proto message fields
-from codegen metadata and builds a Zod schema for each tool:
+from codegen metadata and builds a Zod schema for each tool. Every parameter is
+marked `.optional()`, so agents can omit fields they do not need.
 
-- **Scalar fields** (`string`, `int32`, `bool`, etc.) become their Zod
-  equivalents -- all marked optional so agents can omit fields they do not need
-- **Repeated fields** accept either a single value or an array -- `libmcp`
-  normalizes single values into arrays before calling the gRPC method
-- **System fields** (`anthropic_api_key`, `filter`, `resource_id`) are excluded
-  automatically -- agents never see them
-- **Nested message fields** are excluded -- only flat scalar parameters are
-  exposed
+### Proto type to Zod validator
+
+Each scalar proto field maps to a fixed Zod validator. Numeric proto types all
+collapse to `z.number()`:
+
+| Proto field type                                              | Zod validator |
+| ------------------------------------------------------------ | ------------- |
+| `string`                                                     | `z.string()`  |
+| `bool`                                                       | `z.boolean()` |
+| `int32`, `int64`, `uint32`, `uint64`, `sint32`, `sint64`     | `z.number()`  |
+| `float`, `double`, `fixed32`, `fixed64`, `sfixed32`, `sfixed64` | `z.number()`  |
+| any unrecognized scalar                                       | `z.string()`  |
+
+A field type with no entry in the table falls back to `z.string()` rather than
+failing the build, so an exotic scalar still produces a usable tool parameter.
+
+### Scalar, repeated, nested, and system fields
+
+`libmcp` treats the four field shapes differently:
+
+- **Scalar fields** become their Zod equivalent from the table above, marked
+  optional.
+- **Repeated fields** accept either a single value or an array --
+  `z.union([validator, z.array(validator)])`. At call time `libmcp`
+  normalizes a single value into a one-element array before constructing the
+  request, so an agent may pass `"electronics"` or `["electronics", "tools"]`
+  for the same field.
+- **Nested message fields** (any field whose type is another proto message) are
+  excluded. Only flat scalar parameters reach the agent, which keeps tool
+  schemas shallow and avoids exposing internal envelope types.
+- **System fields** -- `anthropic_api_key`, `filter`, and `resource_id` -- are
+  excluded automatically. These are supplied by the runtime, not the agent, so
+  they never appear in the tool schema even when the proto message declares
+  them.
+
+A scalar field that an agent omits is normalized to an empty string before the
+typed request is constructed; a repeated field that is omitted becomes an empty
+array.
+
+### Field descriptions from proto comments
 
 Field descriptions come from proto comments. If a proto field has a comment
 above it, that comment becomes the parameter description agents see when
@@ -142,7 +175,29 @@ message DescribeJobRequest {
 ```
 
 These comments produce tool parameters described as "Discipline id (e.g.
-'software-engineering')" and "Level id (e.g. 'J060')".
+'software-engineering')" and "Level id (e.g. 'J060')". A field with no comment
+falls back to its own name with underscores replaced by spaces -- `max_tokens`
+becomes the description "max tokens" -- so a missing comment never leaves a
+parameter undescribed, just under-described.
+
+## Troubleshooting registration
+
+Registration runs once at startup, when the MCP server reads `config.json` and
+walks each tool entry. A misconfigured entry throws immediately rather than
+failing silently at call time. The error names the exact cause:
+
+| Symptom at startup                                            | Cause                                                                 | Fix                                                                                          |
+| ------------------------------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `no metadata for <method>`                                   | Codegen has not run since the proto method was added or renamed        | Run `npx fit-codegen --all`, then restart the server                                          |
+| `no libtype class for <type>`                                | The request message type is not exported from `@forwardimpact/libtype` | Confirm the proto file is discovered by codegen and the package namespace matches the import |
+| `no client for package "<package>"`                          | No gRPC client was passed for the method's package                     | Add the package's client to the `clients` object you hand `registerToolsFromConfig`           |
+| Tool absent from `tools/list`, no error                      | The tool key is missing from `service.mcp.tools`, or the config did not reload | Confirm the key under `service.mcp.tools` and restart so the server re-reads `config.json`    |
+
+The `method` path is split into `package.Service.Method`. The metadata is keyed
+by `package.Service`, and the request class is resolved from
+`@forwardimpact/libtype` by the method's request-type namespace. A mismatch in
+any of the three parts surfaces as one of the errors above, so read the failing
+identifier in the message against your proto file.
 
 ## Checklist
 

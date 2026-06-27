@@ -45,6 +45,20 @@ const definition = {
     "fit-rc status",
     "fit-rc logs trace",
   ],
+  documentation: [
+    {
+      title: "Start, Stop, or Check a Service",
+      url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md",
+      description:
+        "Start, stop, restart, check status, and read logs through one interface.",
+    },
+    {
+      title: "Manage Service Lifecycle from One Interface",
+      url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md",
+      description:
+        "The full lifecycle setup, including supervision and observability.",
+    },
+  ],
 };
 
 const cli = createCli(definition, {

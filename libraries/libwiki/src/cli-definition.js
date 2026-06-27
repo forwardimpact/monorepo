@@ -354,7 +354,19 @@ export function createDefinition() {
         title: "Send a Memo or Update a Storyboard",
         url: "https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-operations/index.md",
         description:
-          "Send cross-team memos, refresh storyboard charts, and sync the wiki.",
+          "Send cross-team memos, refresh storyboard charts, sync the wiki, and record the product-mix metric.",
+      },
+      {
+        title: "Audit and Auto-Fix the Wiki",
+        url: "https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-integrity/index.md",
+        description:
+          "Check the wiki against the rule catalogue, auto-fix what is safe, and flag the rest for a human.",
+      },
+      {
+        title: "Allocate Collision-Ledger Entries for Parallel Work",
+        url: "https://www.forwardimpact.team/docs/libraries/predictable-team/collision-ledger/index.md",
+        description:
+          "Assign stable, collision-free ids to parallel work and rebuild the ledger projections.",
       },
     ],
   };

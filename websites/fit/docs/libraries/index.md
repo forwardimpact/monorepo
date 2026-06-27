@@ -13,6 +13,10 @@ toc: false
 
 <!-- part:card:predictable-team/wiki-operations -->
 
+<!-- part:card:predictable-team/wiki-integrity -->
+
+<!-- part:card:predictable-team/collision-ledger -->
+
 <!-- part:card:predictable-team/xmr-analysis -->
 
 </div>
@@ -20,6 +24,8 @@ toc: false
 ## Coordinate an Agent Team (Builders)
 
 <div class="grid">
+
+<!-- part:card:coordinate-team -->
 
 <!-- part:card:bridge-channels -->
 
@@ -32,6 +38,14 @@ toc: false
 <!-- part:card:every-surface -->
 
 <!-- part:card:every-surface/add-capability -->
+
+<!-- part:card:every-surface/build-web-surface -->
+
+<!-- part:card:every-surface/interactive-repl -->
+
+<!-- part:card:every-surface/render-templates -->
+
+<!-- part:card:every-surface/publish-docs -->
 
 </div>
 
@@ -108,6 +122,10 @@ toc: false
 <div class="grid">
 
 <!-- part:card:distribute-skill-packs -->
+
+<!-- part:card:distribute-skill-packs/tarball-distribution -->
+
+<!-- part:card:distribute-skill-packs/discovery-index -->
 
 </div>
 

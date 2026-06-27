@@ -193,6 +193,57 @@ spans are created, and the gRPC calls proceed without trace context. This means
 you can add the observer first and wire up tracing later without changing your
 handler code.
 
+## Query and visualize recorded traces
+
+Once spans are flowing into the trace index, `fit-visualize` reads them back and
+renders them as Mermaid sequence diagrams. It is a filter-and-query tool: pipe a
+[JMESPath](https://jmespath.org/) expression on stdin to select spans, and it
+emits a diagram of the service interactions in those traces.
+
+```sh
+echo "[?name=='ProcessStream']" | npx fit-visualize
+```
+
+Pass an empty list expression to select every span, then narrow with a filter
+flag:
+
+```sh
+echo "[]" | npx fit-visualize --trace 0f53069dbc62d
+```
+
+| Flag         | Effect                                                          |
+| ------------ | -------------------------------------------------------------- |
+| `--trace`    | Restrict to spans whose trace ID matches.                      |
+| `--resource` | Restrict to spans whose resource ID matches.                   |
+
+The JMESPath expression and the flags compose: the expression filters span
+fields (`name`, `kind`, attributes), and the flags scope the query to a single
+trace or resource. For example, select only client spans for one resource:
+
+```sh
+echo "[?kind==\`2\`]" | npx fit-visualize --resource common.Conversation.abc123
+```
+
+When `--resource` is set, every matching trace is combined into one diagram
+titled by resource ID, with a note marking each trace boundary -- useful for
+following one conversation across several requests. Without it, each trace
+renders as its own diagram titled by trace ID.
+
+The output is a fenced Mermaid block ready to paste into any Markdown renderer:
+
+```mermaid
+sequenceDiagram
+    title Trace: 0f53069dbc62d
+    participant cli
+    participant agent
+    cli->>+agent: ProcessStream (time=2026-05-04T10:00:00.000Z)
+    agent-->>-cli: OK
+```
+
+When no spans match the filter, the command prints
+`No spans found matching the filter criteria.` instead of a diagram, so an empty
+result is unambiguous rather than a blank diagram.
+
 ## What's next
 
 <div class="grid">

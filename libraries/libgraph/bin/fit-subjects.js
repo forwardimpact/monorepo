@@ -16,6 +16,20 @@ const definition = {
     json: { type: "boolean", description: "Output help as JSON" },
   },
   examples: ["fit-subjects", "fit-subjects schema:Person"],
+  documentation: [
+    {
+      title: "Query a Knowledge Graph",
+      url: "https://www.forwardimpact.team/docs/libraries/ground-agents/query-graph/index.md",
+      description:
+        "Answer relationship questions from an RDF graph index with triple-pattern queries and type-filtered subject listings.",
+    },
+    {
+      title: "Give Agents Typed, Retrievable Knowledge",
+      url: "https://www.forwardimpact.team/docs/libraries/ground-agents/index.md",
+      description:
+        "The full workflow for building and populating the graph index from HTML knowledge sources.",
+    },
+  ],
 };
 
 const runtime = createDefaultRuntime();

@@ -235,6 +235,48 @@ Each supervised process runs in its own process group (`detached: true`). When
 the daemon sends a signal, it targets the entire group (shell and child
 processes), preventing orphaned subprocesses.
 
+## Fail fast at startup
+
+A service that starts on the wrong Node.js version, or with a required secret
+left blank, should refuse to run rather than fail halfway through a request.
+`@forwardimpact/libpreflight` makes that refusal happen at the very top of a
+service's entry script, before any heavy import resolves.
+
+Import the runtime-floor check as the **first** import in the entry file. It has
+no dependencies, so it runs before any sibling import body executes:
+
+```js
+#!/usr/bin/env node
+import "@forwardimpact/libpreflight/node22";
+
+// the rest of the service's imports follow
+```
+
+Under a supported Node.js version the import returns silently. Under an
+unsupported version the process writes a clear instruction to stderr and exits
+with code `1`:
+
+```
+Error: This command requires Node.js 22 or later (running 20.11.0).
+Install Node.js 22 (LTS) from https://nodejs.org/ and re-run.
+```
+
+For required configuration, call `assertNonEmpty` right after loading config so a
+missing secret stops the process at startup instead of surfacing as a confusing
+runtime error later:
+
+```js
+import { assertNonEmpty } from "@forwardimpact/libpreflight/assert-non-empty.js";
+
+const config = createServiceConfig("my-service", loadEnv());
+assertNonEmpty(config.session_secret, "session_secret");
+```
+
+An empty string, empty array, empty `Set`, or `undefined`/`null` all count as
+empty. On failure the process writes
+`Error: required configuration "session_secret" is empty.` to stderr and exits
+`1`.
+
 ## Add structured logging
 
 Services that use `@forwardimpact/libtelemetry` produce RFC 5424-formatted log
@@ -328,9 +370,17 @@ await manager.stop();          // Stop all services and daemon
 
 | Library          | Package                              | Concern                                             |
 | ---------------- | ------------------------------------ | --------------------------------------------------- |
+| libpreflight     | `@forwardimpact/libpreflight`        | Fail-fast runtime-floor and required-config checks at startup. |
 | librc            | `@forwardimpact/librc`               | Lifecycle CLI (`fit-rc`) and `ServiceManager` class. |
-| libsupervise     | `@forwardimpact/libsupervise`        | Supervision daemon (`svscan`), log rotation, process state. |
-| libtelemetry     | `@forwardimpact/libtelemetry`        | Structured logging (`Logger`), trace spans (`Tracer`), unified observer (`Observer`). |
+| libsupervise     | `@forwardimpact/libsupervise`        | Supervision daemon (`fit-svscan`), log writer (`fit-logger`), log rotation, process state. |
+| libtelemetry     | `@forwardimpact/libtelemetry`        | Structured logging (`Logger`), trace spans (`Tracer`), unified observer (`Observer`), trace query and rendering (`fit-visualize`). |
+
+Keeping instruction files and architecture honest is the fifth concern in this
+job. That check is `coaligned`, documented with the
+[Co-Aligned standard](https://www.coaligned.team/) rather than here, because it
+runs at authoring time against the repository -- not at service runtime against a
+process. See [Distribute Skill Packs](/docs/libraries/distribute-skill-packs/)
+for the publishing side of keeping shared instructions current.
 
 ## What's next
 

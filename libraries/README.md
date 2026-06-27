@@ -144,26 +144,31 @@ scratch.
 scattered across files no one maintains; searching for context in a growing
 dataset and realizing a full-text engine is overkill but grep is too slow;
 passing context to an agent and realizing the payload is an untyped blob with no
-provenance or access control; adding semantic search to a tool and realizing it
-needs a vector database just to score a few hundred embeddings.
+provenance or access control; realizing the knowledge an agent reads has to live
+somewhere, and that hard-coding local file paths means a move to S3 or Supabase
+rewrites every reader; adding semantic search to a tool and realizing it needs a
+vector database just to score a few hundred embeddings.
 
 **Big Hire:** Help me answer relationship questions without writing join logic;
 look up context fast without an external search engine; give agents typed,
-retrievable knowledge they can trust; find semantically related content without
-a dedicated database. → **libgraph, libindex, libresource, libvector**
+retrievable knowledge they can trust; persist and retrieve agent context behind
+one interface, whatever the backend; find semantically related content without a
+dedicated database. → **libgraph, libindex, libresource, libstorage, libvector**
 
 **Little Hire:** Help me query a named ontology and trust the triples are
 consistent; filter and scan a JSONL index without loading it all into memory;
 resolve a resource by identifier and get a rich context chunk, not a raw file;
+swap local, S3, or Supabase storage without changing a line of consumer code;
 score a query against an index and get ranked results in memory. → **libgraph,
-libindex, libresource, libvector**
+libindex, libresource, libstorage, libvector**
 
 **Competes With:** ad-hoc file joins; embedding relationship data in each
 consumer; skipping the relationship question; full-text search engines; raw file
 scanning; loading entire datasets into memory; passing raw file contents;
 untyped JSON payloads; skipping provenance and hoping the agent figures it out;
-external vector databases; keyword search instead of semantic; skipping
-retrieval entirely.
+raw fs calls scattered across consumers; coupling code to a single cloud SDK; a
+bespoke storage wrapper per project; external vector databases; keyword search
+instead of semantic; skipping retrieval entirely.
 
 </job>
 

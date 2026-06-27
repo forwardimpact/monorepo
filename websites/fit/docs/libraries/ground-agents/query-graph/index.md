@@ -184,6 +184,72 @@ memory and populates the N3 store -- subsequent queries run entirely in memory.
 An `ontology.ttl` file alongside the index captures SHACL shapes inferred from
 the data. The ontology is regenerated when `fit-process-graphs` runs.
 
+## List subjects from code
+
+`fit-subjects` is a thin wrapper around `GraphIndex.getSubjects(type)`. Call the
+method directly when you want the subject-to-type map in your own code rather
+than tab-separated lines:
+
+```js
+import { createGraphIndex } from "@forwardimpact/libgraph";
+
+const graph = createGraphIndex("graphs");
+
+// Every subject of a given type (including ontology synonyms)
+const people = await graph.getSubjects("schema:Person");
+for (const [subjectUri, typeUri] of people) {
+  console.log(subjectUri, typeUri);
+}
+
+// Omit the argument (or pass a wildcard) to list every typed subject
+const everyone = await graph.getSubjects();
+```
+
+`getSubjects` returns a `Map` keyed by subject URI with the subject's
+`rdf:type` URI as the value. Passing a type applies the same automatic synonym
+resolution the CLI uses -- if the ontology declares an alternate label for the
+type, instances of the synonym are included.
+
+## Read every triple
+
+When you need the raw triples rather than matched identifiers -- to re-export
+the graph, count predicates, or feed another tool -- `getAllQuads()` returns
+every quad in the store:
+
+```js
+const quads = await graph.getAllQuads();
+for (const quad of quads) {
+  console.log(quad.subject.value, quad.predicate.value, quad.object.value);
+}
+```
+
+Each quad exposes `subject`, `predicate`, and `object` terms with a `.value`
+holding the URI or literal string.
+
+## Inspect the ontology
+
+The ontology describes the shape of the data -- which types exist, which
+properties each type carries, and how types relate. The generated
+`ontology.ttl` is a SHACL document: one `NodeShape` per observed type, with a
+`PropertyShape` for each predicate, instance counts, the dominant object class
+for object-valued predicates, and inferred inverse relationships.
+
+To build a SHACL ontology document from collected shape data in your own
+pipeline, use the exported `ShaclSerializer`:
+
+```js
+import { ShaclSerializer } from "@forwardimpact/libgraph";
+
+const serializer = new ShaclSerializer();
+const turtle = serializer.serialize(ontologyData);
+```
+
+`serialize` takes a shape-data object -- the per-class subject sets, predicate
+maps, predicate counts, object-type counts, and inverse-predicate map collected
+while scanning the graph -- and returns the Turtle string. Reading the resulting
+shapes tells an agent what questions the graph can answer before it writes a
+single query.
+
 ## What's next
 
 <div class="grid">

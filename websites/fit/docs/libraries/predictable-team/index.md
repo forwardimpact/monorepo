@@ -398,6 +398,8 @@ Confirm the full memory system is working by running through this checklist:
 <div class="grid">
 
 <!-- part:card:wiki-operations -->
+<!-- part:card:wiki-integrity -->
+<!-- part:card:collision-ledger -->
 <!-- part:card:xmr-analysis -->
 
 </div>

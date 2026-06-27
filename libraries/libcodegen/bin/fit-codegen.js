@@ -62,6 +62,14 @@ const definition = {
     "npx fit-codegen --type",
     "npx fit-codegen --service",
   ],
+  documentation: [
+    {
+      title: "Keep Types Synced with Proto Definitions",
+      url: "https://www.forwardimpact.team/docs/libraries/typed-contracts/index.md",
+      description:
+        "One source of truth from proto definition to runtime: types, MCP tools, and service endpoints regenerated with fit-codegen.",
+    },
+  ],
 };
 
 const runtime = createDefaultRuntime();
