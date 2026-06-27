@@ -163,7 +163,7 @@ async function buildLayers(root, fs) {
         id: "L2",
         name: "CONTRIBUTING.md",
         maxLines: 320,
-        maxWords: 1408,
+        maxWords: 1664,
         files: ["CONTRIBUTING.md"],
       },
       {
