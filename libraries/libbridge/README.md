@@ -2,8 +2,9 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-Threaded-channel bridge primitives — relay messages between human channels
-(GitHub Discussions, Microsoft Teams) and the Kata agent team.
+Channel-to-agent-team bridge — relay messages between human channels (GitHub
+Discussions, Microsoft Teams) and the agent team, with thread state,
+multi-tenant routing, rate limits, and resume scheduling handled once.
 
 <!-- END:description -->
 

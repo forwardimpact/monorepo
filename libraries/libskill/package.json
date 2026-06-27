@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/libskill",
   "version": "6.0.1",
-  "description": "Derive skill matrices, agent profiles, and job definitions from standard data — the engineering standard made queryable.",
+  "description": "The engineering standard made queryable — derive skill matrices, job definitions, agent profiles, career paths, and interview plans from standard data.",
   "keywords": [
     "skill",
     "agent",
@@ -23,7 +23,7 @@
       "goal": "Integrate with the Engineering Standard",
       "trigger": "Building a product feature that needs skill matrices or job definitions and realizing the YAML is raw data, not queryable structure.",
       "bigHire": "turn engineering standard definitions into queryable, derivable data.",
-      "littleHire": "derive a skill matrix or agent profile without parsing YAML by hand.",
+      "littleHire": "derive a skill matrix, agent profile, career path, or interview plan without parsing YAML by hand.",
       "competesWith": "parsing YAML files directly; hardcoding role definitions; skipping derivation and displaying raw data"
     }
   ],

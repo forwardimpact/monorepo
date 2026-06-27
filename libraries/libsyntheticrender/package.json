@@ -17,6 +17,16 @@
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Prove Agent Changes",
+      "trigger": "Generated fixtures reach the eval in the wrong shape, or with broken cross-links, and the failure surfaces mid-run.",
+      "bigHire": "render synthetic data to every format the eval consumes and validate it before it enters the pipeline.",
+      "littleHire": "render an entity to HTML, markdown, or JSON and catch a broken link before the eval runs.",
+      "competesWith": "per-format rendering code; validating fixtures by eye; discovering broken fixtures mid-eval"
+    }
+  ],
   "type": "module",
   "main": "./src/index.js",
   "exports": {

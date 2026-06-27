@@ -17,6 +17,16 @@
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Prove Agent Changes",
+      "trigger": "Eval fixtures read like lorem ipsum and agents are tested against content nothing like what they meet in production.",
+      "bigHire": "fill the entity graph with realistic LLM-generated prose and YAML so agents are tested against lifelike data.",
+      "littleHire": "generate realistic content for an entity without writing prompts or cleaning up the output by hand.",
+      "competesWith": "lorem ipsum fixtures; hand-written sample content; testing against unrealistic data"
+    }
+  ],
   "type": "module",
   "main": "./src/index.js",
   "exports": {

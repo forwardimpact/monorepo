@@ -17,6 +17,16 @@
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Prove Agent Changes",
+      "trigger": "An eval needs a populated world to run against and hand-built fixtures drift out of sync with the schema.",
+      "bigHire": "generate a deterministic entity graph from a DSL so eval fixtures are repeatable.",
+      "littleHire": "regenerate the entity graph after a schema change and get the same world every run.",
+      "competesWith": "hand-built fixtures; random data that differs every run; copying a production snapshot"
+    }
+  ],
   "type": "module",
   "main": "./src/index.js",
   "exports": {
