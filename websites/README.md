@@ -83,7 +83,7 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 | Little | `predictable-team/wiki-operations/` | Send a Memo or Update a Storyboard |
 | Little | `predictable-team/xmr-analysis/` | Chart a Metric and Check Variation |
 
-**Bridge Conversations to the Agent Team** (Builders → libbridge)
+**Coordinate an Agent Team** (Builders → libbridge, libharness)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |

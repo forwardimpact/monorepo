@@ -210,6 +210,7 @@ lists the `Edit()` rules that were tried.
 
 ## Documentation
 
-- [Agent Evaluations Guide](https://www.forwardimpact.team/docs/libraries/agent-evaluations/index.md) — how to run an eval and read its trace.
-- [Agent Collaboration Guide](https://www.forwardimpact.team/docs/libraries/agent-collaboration/index.md) — supervise / facilitate / discuss in depth.
-- [Trace Analysis Guide](https://www.forwardimpact.team/docs/libraries/trace-analysis/index.md) — analysing NDJSON traces with `fit-trace`.
+- [Run an Eval](https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md) — author a judge profile, run an eval locally, wire it into CI, and inspect the resulting trace.
+- [Prove Agent Changes](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md) — end-to-end workflow from dataset generation through evaluation to trace analysis, including multi-agent collaboration sessions.
+- [Analyze Traces](https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md) — read the NDJSON traces produced by `fit-harness` with `fit-trace`.
+- [Agent Teams](https://www.forwardimpact.team/docs/products/agent-teams/index.md) — author the profiles consumed by `--agent-profile`, `--lead-profile`, and `--agent-profiles`.
