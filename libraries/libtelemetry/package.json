@@ -33,7 +33,8 @@
     ".": "./src/index.js",
     "./tracer.js": "./src/tracer.js",
     "./visualizer.js": "./src/visualizer.js",
-    "./index/trace.js": "./src/index/trace.js"
+    "./index/trace.js": "./src/index/trace.js",
+    "./bin/fit-visualize.js": "./bin/fit-visualize.js"
   },
   "bin": {
     "fit-visualize": "./bin/fit-visualize.js"
