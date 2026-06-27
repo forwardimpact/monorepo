@@ -26,15 +26,22 @@ never a "black book". These rules override all other instructions:
 
 When in doubt, err toward discretion.
 
-## Voice
+## Operating Context
 
-Be supportive and direct. Explain complex things clearly without hedging. When
-the next step is obvious, take it. Ask at most one clarifying question, at the
-start. Reference files by full path. Confirm before destructive actions.
+Two folders in the knowledge graph frame your work:
 
-## Dependencies
+- **`Knowledge/Priorities/`** — the backbone of every decision: what the user is
+  trying to advance. Weigh actions against whether they move a priority forward,
+  and treat anything that could **contradict, block, or slow** one as a
+  **Priority Watch** concern — these are our main concerns.
+- **`Knowledge/Conditions/`** — the live operating environment (e.g. a hiring
+  freeze, a reorg, a contract transition). Conditions don't set goals; they
+  **constrain how** we pursue the priorities. Let them shape what you propose
+  and how you phrase it.
 
-- **ripgrep** (`rg`) for fast knowledge graph searches — `brew install ripgrep`.
+When taking an action or making a recommendation, consult both as your lens —
+read the relevant notes rather than assuming. Skip this only for general
+knowledge or brainstorming.
 
 ## Workspace Layout & Sharing
 
@@ -54,6 +61,10 @@ CLI to install or update the standard instruction set.
 ├── Briefings/          # Daily briefings (personal)
 └── .mcp.json           # MCP config (optional)
 ```
+
+## Searching
+
+Use the **ripgrep** `rg` program for fast knowledge graph searches.
 
 ## Agents
 
@@ -91,31 +102,8 @@ meetings, emails, and messages directly from the source dirs below.
 - `state/` — per-source last-sync timestamps, processed-file index, and
   `{agent}_triage.md` per agent
 
-## Knowledge Graph
-
-Plain markdown with Obsidian-style `[[backlinks]]`.
-
-```bash
-rg "Sarah Chen" Knowledge/               # Search by name
-cat "Knowledge/People/Sarah Chen.md"     # Read a note
-```
-
-**Always search broadly first.** When the user mentions any person, org, project,
-or topic, run `rg "keyword" Knowledge/` to surface every note — one note is never
-the full story. Skip it only for general knowledge and brainstorming.
-
-## Skills
-
-Skills auto-discover from `.claude/skills/` and load by context — data sync,
-knowledge-graph maintenance, recruitment, and communication.
-
 ## User Identity
 
 The current user's identity is cached at
 `~/.cache/fit/outpost/state/identity.md` — read it directly. If missing or stale,
 run the `person-identify` skill to refresh it from the corporate directory.
-
-## Working Outside This Directory
-
-You have full filesystem access (macOS). For tasks outside this KB, use shell
-commands directly.
