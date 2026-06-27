@@ -40,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/bootstrap.sh"
+            "command": "bash scripts/worktree-create.sh"
           }
         ]
       }
