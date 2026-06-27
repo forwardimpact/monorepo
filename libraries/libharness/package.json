@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libharness",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Agent evaluation framework — prove whether agent changes improved outcomes with reproducible evidence.",
   "keywords": [
     "eval",
