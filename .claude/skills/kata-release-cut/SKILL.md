@@ -23,8 +23,9 @@ its class performs the full sweep):
 
 ## Checklists
 
-<read_do_checklist goal="Confirm CI is green before cutting releases">
+<read_do_checklist goal="Load release policy and confirm CI green">
 
+- [ ] Read **CONTRIBUTING.md § Releasing**; it may override skill defaults.
 - [ ] Ran
       `gh run list --branch main --limit 5 --json name,conclusion,headBranch`.
 - [ ] All recent workflows show `conclusion: success`.
@@ -180,8 +181,11 @@ Append to the current week's log (see agent profile for the file path):
 ## Edge Cases
 
 Release foundational packages before consumers (check `package.json`
-dependencies before tagging). First-release and failed-publish handling:
-[`procedure.md`](references/procedure.md). Related hazards: (c), (d), (b)/(h).
+dependencies before tagging). When a release spans more than packages, the
+repository's CONTRIBUTING.md § Releasing governs the order: producer before
+consumer, each tier confirmed before the next is tagged. First-release and
+failed-publish handling: [`procedure.md`](references/procedure.md). Related
+hazards: (c), (d), (b)/(h).
 
 ## Hazards
 

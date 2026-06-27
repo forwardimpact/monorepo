@@ -62,11 +62,17 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
 
-      - uses: forwardimpact/fit-bootstrap@6499f90c122c47da6db9bd6e26bf83c572a0a036 # v1.0.1
+      - uses: forwardimpact/fit-bootstrap@7084c0a624f84ca714757c3a5d4a8f476b4c70ab # v1.0.3
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
           app-id: ${{ secrets.KATA_APP_ID }}
+          # fit-harness (the Run interview step), the terrain/cost steps, and
+          # the fit-wiki push step run straight off PATH. fit-map is NOT
+          # installed here: it ships in the map@v* release, not the gear bundle,
+          # so the substrate step below keeps bunx as a documented exception
+          # until fit-map joins gear.
+          clis: fit-terrain fit-trace fit-harness fit-wiki
 
       - name: Prepare interview workspace
         id: agent-workspace
@@ -77,7 +83,7 @@ jobs:
           # Build synthetic data so the supervisor can stage the right
           # subset into the agent CWD per the chosen product. The skill's
           # staging table decides what gets copied.
-          bunx fit-terrain build
+          fit-terrain build
 
           # Install the Supabase CLI globally — npm's global install is
           # blocked by supabase's postinstall script, so we use bun.
@@ -94,6 +100,11 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUBSTRATE_FORCE_EMPTY_CORPUS: ${{ inputs.empty-corpus-test }}
         run: |
+          # fit-map is a product CLI published in the map@v* release, not the
+          # gear bundle that fit-install.sh / fit-bootstrap clis draws from, so
+          # it cannot be installed onto PATH here. bunx is a deliberate
+          # exception until fit-map joins gear; every other CLI below runs as a
+          # binary.
           bunx fit-map substrate stage --cwd "${{ steps.agent-workspace.outputs.dir }}"
 
           # Propagate the local Supabase URL + anon key to subsequent
@@ -161,7 +172,7 @@ jobs:
           TRACE_FILE: ${{ steps.interview.outputs.trace-file }}
         run: |
           if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
-            bunx fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
+            fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No trace file produced — cost not reported."
           fi

@@ -17,7 +17,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/fit-bootstrap@6499f90c122c47da6db9bd6e26bf83c572a0a036 # v1.0.1
+      - uses: forwardimpact/fit-bootstrap@7084c0a624f84ca714757c3a5d4a8f476b4c70ab # v1.0.3
       - uses: forwardimpact/fit-benchmark@c5764e7213832cbe28978517aa8547c4834ad50a # v1
         with:
           family: ./benchmarks/fit-wiki
