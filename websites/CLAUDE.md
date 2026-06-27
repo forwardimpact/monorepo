@@ -38,7 +38,7 @@ Every page is a directory containing `index.md`. No other `.md` filenames.
 - **Hand-written markdown links are not checked.** Only partials validate
   their targets.
 - **Cross-links** — every non-hub page ends with `## What's next` using
-  partials only (max four cards). When a page has `## Verify`,
+  partials only (max six cards). When a page has `## Verify`,
   `## What's next` follows it. Card targets follow JTBD structure: Big Hire
   guides link to Little Hire children and sibling Big Hire trees; Little Hire
   guides link back to the parent Big Hire and siblings; Getting Started pages

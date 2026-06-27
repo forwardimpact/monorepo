@@ -310,4 +310,6 @@ produces `{ tag: ["rain", "wind"] }`.
 
 <!-- part:card:render-templates -->
 
+<!-- part:card:publish-docs -->
+
 </div>
