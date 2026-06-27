@@ -104,7 +104,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
 
-      - uses: forwardimpact/fit-bootstrap@93526d6c7d24dfcfbde60c3d7d436f6e305e35a0 # v1.0.5
+      - uses: forwardimpact/fit-bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
