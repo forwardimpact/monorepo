@@ -126,11 +126,12 @@ Nothing else in this plan depends on it. Under concurrency, a cell that hits a
 — costs one slot, not the run; the run still completes. The follow-up spec adds
 the retry on top of this scheduler.
 
-**Companion action (outside kata-plan):** trim spec 2130 to match — remove the
-"Rate-limit backpressure" in-scope row and the "Rate-limit failures back off"
-[L1] success criterion (via `kata-spec`), and remove the § Layer 1
-`retryRateLimited` row from design-a (via `kata-design`) — then open the
-follow-up spec for the backpressure mechanism.
+**Upstream trims (applied in this change):** spec 2130's "Rate-limit
+backpressure" in-scope row and "Rate-limit failures back off" [L1] criterion are
+removed, and design-a's § Layer 1 `retryRateLimited` row is deleted, so plan,
+spec, and design agree. A follow-up spec owns the backpressure mechanism (the
+detection signal, the owning component, and the trace/cost contract under
+retry).
 
 ## Step 5 — `resolveConcurrency` + `--concurrency` flag
 

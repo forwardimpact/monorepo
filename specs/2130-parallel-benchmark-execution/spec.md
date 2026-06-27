@@ -61,7 +61,7 @@ free; any concurrency layer must solve them or it will corrupt results:
 | --- | --- | --- |
 | **Port allocation** | The port allocator opens a listener on port 0, reads the assigned port, **closes the listener, then returns the bare number**. | Two cells racing the allocate→bind window can be handed the **same** port; a real allocate-and-hold contract is required. |
 | **Results durability** | A single append stream is written one awaited line at a time. | Concurrent writers can interleave or lose lines; the verdict ledger must stay one-valid-record-per-cell. |
-| **API rate / cost** | One agent session at a time naturally rate-limits itself. | `concurrency × shards` simultaneous agent sessions can trip provider 429s; the run must degrade with backoff, not fail. |
+| **API rate / cost** | One agent session at a time naturally rate-limits itself. | `concurrency × shards` simultaneous agent sessions can trip provider 429s. Graceful 429 backoff is **deferred to a follow-up spec** (see § Excluded); under this spec a 429'd cell records an `agentError` and costs one slot, not the run. |
 
 **The single-machine ceiling is real.** Even perfect in-process concurrency is
 bounded by one runner's CPU, memory, file descriptors, and the per-job timeout.
@@ -109,7 +109,6 @@ so effective parallelism is `N × C`.
 | Concurrency-safe port allocation | Each in-flight cell receives a **distinct, bindable** port; the current close-then-return allocator's TOCTOU race (two cells handed the same number) is eliminated. The reservation mechanism is a design concern. |
 | Durable, concurrency-safe result ledger | One valid `ResultRecord` per cell regardless of `C` — no interleaved, lost, or truncated lines — and a killed run **retains the cells already completed** (crash-safe). The on-disk shape that achieves both is a design concern. |
 | Order-independent verdict contract | `run()` may yield records in completion order rather than grid order. Every consumer of the record stream — the CLI's stdout mirror, `anyFail`, the zero-record guard, and `report`'s aggregation — must be order-independent; `report` groups by `taskId`, so pass@k does not depend on order. This contract change is stated, not hidden. |
-| Rate-limit backpressure | Concurrent agent sessions that hit provider 429s back off and retry rather than failing the cell or the run. Mechanism is a design concern; graceful degradation is required. |
 | Per-cell isolation preserved | The existing per-task CWD, process group, watchdog, and teardown-with-port-verification continue to bound each cell independently; concurrent teardown of disjoint process groups must not collide. |
 | Staging stays a one-time prelude | apm/skill staging runs once before fan-out and is read-only during runs; it is not duplicated per cell. |
 
@@ -152,8 +151,14 @@ and it changes how `fit-bootstrap` is consumed:
   budget or rate ceiling may surface sooner — acknowledged, not addressed here.
 - **Auto-scaling shard count to family size.** `shard-total` is a consumer
   input; deriving an optimal `N` automatically is a later concern.
-- **Provider rate-limit raising.** The run must tolerate existing limits via
-  backoff; negotiating higher limits is operational, not in scope.
+- **Rate-limit backpressure (429 backoff/retry).** Deferred to a follow-up spec.
+  A 429 does not throw at the agent-session boundary — the agent runner returns
+  it as a result field — and a robust retry seam is the cross-cutting shared
+  agent-runner query call, a design-owned decision better made on its own. Under
+  this spec a 429'd cell records an `agentError` and, thanks to Layer-1
+  concurrency, costs one slot rather than the run.
+- **Provider rate-limit raising.** The run must tolerate existing limits;
+  negotiating higher limits is operational, not in scope.
 - **Backward-compatibility shims or fallback flags.** This is a **clean break**:
   the serial loop, the old port allocator, and the single-file report read are
   replaced outright and deleted, not kept behind a `--legacy`/compat flag or a
@@ -175,7 +180,6 @@ distribution).
 | Port allocation is collision-free under concurrency. | L1 | `K` cells allocated concurrently receive `K` distinct ports, each actually bindable at hand-off (the allocate-and-hold contract); a test that previously could collide under the close-then-return allocator now cannot. |
 | The result ledger is one valid record per cell under concurrency. | L1 | After a concurrent run of `tasks × runs` cells, `results.jsonl` parses with exactly that many records, every one schema-valid, none truncated or interleaved. |
 | A stall costs one slot, not the run. | L1 | With one cell forced to stall to its watchdog and `C > 1`, the other cells produce records and the run completes; the stalled cell is recorded as an `agentError`, and total wall-clock is bounded by `ceil(M/C)` batches, not `M`. |
-| Rate-limit failures back off, they don't fail the run. | L1 | With the fake-agent seam injecting a 429-class failure, the cell retries with bounded backoff (within its watchdog) rather than failing immediately; the run does not abort, and a cell only records an `agentError` after the backoff budget is exhausted. |
 | `--shard=i/N` runs an exact partition. | L2 | For representative `N`, the union of all shards' executed cell-sets equals the full grid with **no overlap and no gaps** — each `(task, runIndex)` runs on exactly one shard. |
 | Shard assignment is balanced and deterministic. | L2 | Each task's run indexes are distributed across shards (no shard gets a whole task while another gets none for `N ≤ runs`), and the same `(family, runs, N)` yields the same partition on repeat invocations. |
 | Each shard emits a self-contained partial ledger. | L2 | A `--shard` run writes a partial `results.jsonl` containing only its assigned cells, valid on its own. |
@@ -200,8 +204,8 @@ label, APPROVED review, approval comment, or in-session approval). On approval
 the spec proceeds to `kata-design` (WHICH/WHERE — the worker-pool placement and
 the streaming-contract change in the runner, the port-reservation mechanism, the
 durable ledger shape and its merge primitive, the cell-flattening and partition
-function for `--shard`, the multi-input `report` merge, the reusable workflow
-topology and its `fit-bootstrap` consumption, and the backpressure mechanism)
+function for `--shard`, the multi-input `report` merge, and the reusable workflow
+topology and its `fit-bootstrap` consumption)
 and then `kata-plan`.
 
 The new `forwardimpact/fit-benchmark` → `fit-bootstrap` sibling edge and the

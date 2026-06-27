@@ -6,25 +6,18 @@ three independently executable parts; each part is a clean break per
 `allocatePort`, and the single-file `loadRecords` read are deleted, not branched.
 
 > **Scope note — rate-limit backpressure descoped (2026-06-27).** The review
-> panel established that the design's Layer-1 backpressure directive is not
-> executable as written (a 429 does not throw — `AgentRunner.#consumeQuery`
-> returns it as a `{success:false, error}` field — and the robust retry seam is
-> the cross-cutting shared `AgentRunner` query call). By decision, backpressure is
-> **split to a follow-up spec**; this plan ships Layer 1 (concurrency, ports,
-> ledger, scheduler) and Layer 2 (sharding, merge, distribution). Under
-> concurrency a 429'd cell records an `agentError` and costs one slot, not the
-> run — the run still completes.
->
-> **Hard precondition on approval.** Until the companion trims land, the on-disk
-> spec.md (the "Rate-limit backpressure" in-scope row + the "rate-limit failures
-> back off" [L1] criterion) and design-a.md (§ Layer 1 `retryRateLimited` row)
-> still assert the descoped items, so this plan **contradicts its still-current
-> spec/design** and **must not be approved** (no `plan approved` STATUS write)
-> in that state. The companion edits — outside kata-plan — are: return spec 2130
-> to draft and trim those two spec items (`kata-spec`), remove the design's
-> § Layer 1 `retryRateLimited` row (`kata-design`), and open the follow-up
-> backpressure spec. Only once spec/design no longer carry backpressure is this
-> plan internally consistent and approvable. See [Part 01 Step 4](plan-a-01.md).
+> panel established that the design's Layer-1 backpressure directive was not
+> executable as written (a 429 does not throw — the agent runner returns it as a
+> result field — and the robust retry seam is the cross-cutting shared
+> agent-runner query call). By decision, backpressure is **split to a follow-up
+> spec**; this plan ships Layer 1 (concurrency, ports, ledger, scheduler) and
+> Layer 2 (sharding, merge, distribution). Under concurrency a 429'd cell records
+> an `agentError` and costs one slot, not the run — the run still completes.
+> **This change applies the descope to the upstream artifacts** in the same
+> branch: spec.md (the in-scope backpressure row + the "rate-limit failures back
+> off" [L1] criterion) and design-a.md (§ Layer 1 `retryRateLimited` row) are
+> trimmed, so plan, spec, and design agree. A follow-up spec adds backpressure on
+> top of this scheduler. See [Part 01 Step 4](plan-a-01.md).
 
 ## Approach
 
