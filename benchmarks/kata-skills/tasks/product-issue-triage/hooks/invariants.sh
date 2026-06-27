@@ -11,11 +11,15 @@ assert issue-present --exists "$ISSUE"
 # Triaged out of scope: closed, labelled wontfix, and carrying a rationale
 # comment. Together these evidence the read -> comment -> label -> close loop
 # the filesystem tracker realizes.
-assert issue-closed --grep 'state:\s*closed' "$ISSUE" \
+# Tolerate quoted front-matter values, the wont-fix / wont fix label spellings,
+# any Comments heading depth, and a singular "Comment" heading. The Comments
+# check still requires non-whitespace after the heading (a real rationale).
+# Case-insensitive and multiline (RegExp /im/).
+assert issue-closed --grep 'state:\s*["'"'"']?closed' "$ISSUE" \
   --message "issue not closed"
-assert issue-wontfix --grep 'wontfix' "$ISSUE" \
+assert issue-wontfix --grep 'wont.?fix' "$ISSUE" \
   --message "no wontfix label applied"
-assert issue-commented --grep '##\s*Comments\s+\S' "$ISSUE" \
+assert issue-commented --grep '#{1,6}\s*Comments?\s+\S' "$ISSUE" \
   --message "no rationale comment appended"
 
 [ "$FAIL" = 0 ] && exit 0 || exit 1

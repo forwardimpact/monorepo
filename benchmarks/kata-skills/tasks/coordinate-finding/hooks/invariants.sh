@@ -19,8 +19,9 @@ assert change-present --exists "$CHANGE"
 ISSUE_ID=$(basename "$ISSUE" .md)
 assert change-links-issue --grep "$ISSUE_ID" "$CHANGE" \
   --message "change does not link back to the issue"
-# The change reached merged state.
-assert change-merged --grep 'state:\s*merged' "$CHANGE" \
+# The change reached merged state. Tolerate quoted front-matter values
+# (state: "merged"). Case-insensitive and multiline (RegExp /im/).
+assert change-merged --grep 'state:\s*["'"'"']?merged' "$CHANGE" \
   --message "change is not state: merged"
 # A trusted approval was recorded on the change (non-empty approval field).
 assert change-approved --grep 'approval:\s*\S' "$CHANGE" \
