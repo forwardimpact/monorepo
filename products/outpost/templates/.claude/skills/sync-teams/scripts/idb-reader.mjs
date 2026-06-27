@@ -31,21 +31,64 @@ function readIdbVarint(buf, offset) {
   return { value: result, bytesRead: pos - offset };
 }
 
+// Highest V8 serialization wire-format version Node's bundled v8.deserialize
+// accepts. Newer Teams/WebView2 builds write version 16, which Node rejects
+// outright even though the payload itself is wire-compatible. We patch the
+// version byte down to this value before deserializing. Bump if Node's V8
+// starts emitting/accepting a higher version natively.
+const V8_MAX_SUPPORTED_VERSION = 15;
+
+// Plausible V8 top-level value tags that immediately follow the
+// [0xFF <version>] header. Used to locate the real V8 payload start inside the
+// Blink envelope without relying on a fixed byte offset (newer envelopes carry
+// a 0xFE trailer that shifts the payload further in). We only ever ACT on a
+// candidate by attempting a deserialize, which validates it — so a stray match
+// just gets skipped.
+const V8_TOP_LEVEL_TAGS = new Set([
+  0x6f, // 'o' begin JS object
+  0x22, // '"' one-byte string
+  0x63, // 'c' two-byte string
+  0x44, // 'D' utf8 string
+  0x49, // 'I' int32
+  0x55, // 'U' uint32
+  0x4e, // 'N' number (double)
+  0x6c, // 'l' bigint
+  0x7b, // '{' begin map
+  0x41, // 'A' begin dense array
+  0x61, // 'a' begin sparse array
+  0x5f, // '_' undefined
+  0x54, // 'T' true
+  0x46, // 'F' false
+  0x30, // '0' null
+]);
+
+// Only the Blink envelope precedes the V8 payload, and it is always small.
+// Scanning a generous prefix keeps non-message records (which never decode)
+// cheap while comfortably covering every real envelope/trailer layout.
+const V8_START_SCAN_LIMIT = 256;
+
 /**
- * Try to deserialize from the second 0xFF marker within the first `limit` bytes.
- * The Blink envelope has: [varint wire_size] [0xFF blink_ver] [envelope...] [0xFF v8_ver] [V8 data]
- * We want the second 0xFF that starts valid V8 data.
+ * Deserialize the V8 payload starting at `off`. Tries the bytes as-is first,
+ * then — for records whose version byte is newer than Node supports — retries
+ * with the version patched down. The wire format is backward-compatible, so a
+ * supported version reads the newer payload correctly.
  */
-function deserializeFromSecondMarker(rawValue, limit) {
-  let ffCount = 0;
-  for (let i = 0; i < limit; i++) {
-    if (rawValue[i] !== 0xff) continue;
-    ffCount++;
-    if (ffCount >= 2) {
+function deserializeAt(rawValue, off) {
+  try {
+    return v8.deserialize(rawValue.subarray(off));
+  } catch {
+    // fall through to version patching
+  }
+
+  const version = rawValue[off + 1];
+  if (version > V8_MAX_SUPPORTED_VERSION) {
+    const patched = Buffer.from(rawValue.subarray(off));
+    for (let v = V8_MAX_SUPPORTED_VERSION; v >= 13; v--) {
+      patched[1] = v;
       try {
-        return v8.deserialize(rawValue.subarray(i));
+        return v8.deserialize(patched);
       } catch {
-        // keep scanning
+        // try the next-lower version
       }
     }
   }
@@ -53,34 +96,24 @@ function deserializeFromSecondMarker(rawValue, limit) {
 }
 
 /**
- * Fallback: try deserializing from every 0xFF position within `limit` bytes.
- */
-function deserializeFromAnyMarker(rawValue, limit) {
-  for (let i = 0; i < limit; i++) {
-    if (rawValue[i] !== 0xff) continue;
-    try {
-      return v8.deserialize(rawValue.subarray(i));
-    } catch {
-      continue;
-    }
-  }
-  return null;
-}
-
-/**
  * Try to deserialize a Chromium IndexedDB value.
- * Values have a Blink envelope before the V8 payload.
- * Scans for the V8 version tag (0xFF) and attempts deserialization.
+ *
+ * Values have a Blink envelope (and, in newer WebView2 builds, a 0xFE trailer)
+ * before the V8 payload. Locate the payload by scanning for a [0xFF <version>
+ * <top-level tag>] header, then decode it — patching the version byte down for
+ * records written with a V8 wire version newer than Node accepts.
  */
 function tryDeserialize(rawValue) {
   if (!rawValue || rawValue.length < 4) return null;
 
-  const headerLimit = Math.min(rawValue.length, 60);
-  const result = deserializeFromSecondMarker(rawValue, headerLimit);
-  if (result !== null) return result;
-
-  const fallbackLimit = Math.min(rawValue.length, 100);
-  return deserializeFromAnyMarker(rawValue, fallbackLimit);
+  const limit = Math.min(rawValue.length - 2, V8_START_SCAN_LIMIT);
+  for (let i = 0; i <= limit; i++) {
+    if (rawValue[i] !== 0xff) continue;
+    if (!V8_TOP_LEVEL_TAGS.has(rawValue[i + 2])) continue;
+    const obj = deserializeAt(rawValue, i);
+    if (obj !== null) return obj;
+  }
+  return null;
 }
 
 /**

@@ -144,6 +144,12 @@ Key conventions:
 - **Normalize names** from Teams format ("Last, First") to "First Last"
 - **Platform** line distinguishes Teams from email in downstream processing
 - **Plain text only** — HTML is stripped, mentions are preserved as plain text
+- **Attachments are not extracted** — files/images on a message are dropped from
+  the markdown. They are hosted on SharePoint/OneDrive, not in the local cache.
+  However, the user has **often manually downloaded** them, so an attachment
+  usually exists under `~/Downloads/` with the **same file name** shown in Teams.
+  When a message references an attachment and you need its contents, look there
+  first.
 - Skip system messages (calls, member adds/removes, topic changes)
 
 ## Error Handling
@@ -175,3 +181,7 @@ Key conventions:
 - Some V8-serialized records (~17% in testing) use formats that
   `v8.deserialize()` cannot decode. These are silently skipped — they are
   typically IndexedDB metadata, not conversation or message records.
+- **Attachments (files/images) are never synced into the markdown** — only the
+  message text is captured. The binaries live on SharePoint/OneDrive, but the
+  user frequently downloads them, so the same-named file is usually already in
+  `~/Downloads/`. Check there before trying to fetch from SharePoint.

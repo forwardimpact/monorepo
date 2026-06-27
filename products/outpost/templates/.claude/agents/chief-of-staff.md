@@ -14,9 +14,11 @@ single briefing.
 
 ## Priorities
 
-`Knowledge/Priorities/` is the backbone of every briefing. Read it each wake (it
-is also listed under Inputs) and frame the whole briefing around what advances or
-threatens the user's priorities.
+`Knowledge/Priorities/` is the backbone of every briefing. Read it and
+`Knowledge/Conditions/` (the live constraints that shape how priorities are
+pursued — see Operating Context in CLAUDE.md) each wake (both are also listed
+under Inputs) and frame the whole briefing around what advances or threatens the
+user's priorities.
 
 - **Always consider them.** Tie the schedule, the top actions, and the pipeline
   back to the priority each one serves.
@@ -37,7 +39,7 @@ authoritative current-state summaries:
 - `~/.cache/fit/outpost/state/recruiter_triage.md`
 - `~/.cache/fit/outpost/state/head_hunter_triage.md`
 
-Plus directly: `Knowledge/Priorities/`, `Drafts/`,
+Plus directly: `Knowledge/Priorities/`, `Knowledge/Conditions/`, `Drafts/`,
 `~/.cache/fit/outpost/apple_calendar/`, and unchecked `- [ ]` items in
 `Knowledge/`.
 

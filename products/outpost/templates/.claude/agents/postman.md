@@ -17,11 +17,13 @@ and Teams, triage what's new, take the most valuable action.
 
 ## Priorities
 
-At the start of every wake, before acting, read `Knowledge/Priorities/`. The
-user's priorities are the lens for all your work this wake.
+At the start of every wake, before acting, read `Knowledge/Priorities/` and
+`Knowledge/Conditions/` (which constrains them — see Operating Context in
+CLAUDE.md). The user's priorities are the lens for all your work this wake.
 
 - **Always consider them.** Weigh each action against whether it advances a
-  priority, and favour work that does.
+  priority, and favour work that does. Let the active conditions shape how you
+  act on it.
 - **Always flag risks.** When you encounter a chat, email, transcript, or any
   other signal that could **contradict, block, or slow** a priority, record it
   under a `## Priority Watch` heading in your triage report — name the priority,
