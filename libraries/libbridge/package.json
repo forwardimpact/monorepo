@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/libbridge",
   "version": "0.1.18",
-  "description": "Threaded-channel bridge primitives — relay messages between human channels (GitHub Discussions, Microsoft Teams) and the Kata agent team.",
+  "description": "Channel-to-agent-team bridge — relay messages between human channels (GitHub Discussions, Microsoft Teams) and the agent team, with thread state, multi-tenant routing, rate limits, and resume scheduling handled once.",
   "keywords": [
     "bridge",
     "discussions",
@@ -20,9 +20,9 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Bridge Conversations to the Agent Team",
+      "goal": "Coordinate an Agent Team",
       "trigger": "Engineers discuss work in chat and GitHub Discussions while the agent team is reachable only from GitHub, and every new channel adapter re-solves intake, thread state, and tenant routing.",
-      "bigHire": "relay conversations between the channels engineers already use and the agent team, with thread state and tenant resolution handled once.",
+      "bigHire": "relay conversations between the channels engineers already use and the agent team, with thread state, multi-tenant routing, and resume scheduling handled once.",
       "littleHire": "register a callback token, build a bounded prompt, and dispatch a workflow without managing each piece directly.",
       "competesWith": "manually creating GitHub issues; copy-pasting between chat and GitHub; per-channel duplication of intake skeletons; ephemeral thread state that vanishes on restart"
     }

@@ -2,8 +2,9 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-Derive skill matrices, agent profiles, and job definitions from standard data —
-the engineering standard made queryable.
+The engineering standard made queryable — derive skill matrices, job
+definitions, agent profiles, career paths, and interview plans from standard
+data.
 
 <!-- END:description -->
 

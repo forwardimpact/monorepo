@@ -1,13 +1,14 @@
 {
   "name": "@forwardimpact/libharness",
   "version": "1.1.0",
-  "description": "Agent evaluation framework — prove whether agent changes improved outcomes with reproducible evidence.",
+  "description": "Autonomous agent team harness — coordinate a lead and participant agents in one async session, with eval, benchmark, and trace tooling to prove the changes worked.",
   "keywords": [
+    "orchestration",
+    "supervisor",
+    "facilitator",
     "eval",
-    "agent",
     "trace",
-    "claude-code",
-    "supervisor"
+    "agent"
   ],
   "homepage": "https://www.forwardimpact.team",
   "repository": {
@@ -20,10 +21,18 @@
   "jobs": [
     {
       "user": "Platform Builders",
+      "goal": "Coordinate an Agent Team",
+      "trigger": "Coordinating several agents in one session means hand-rolling message passing, turn-taking, and termination, and every orchestration script re-solves it.",
+      "bigHire": "coordinate a lead and participant agents over async messages in one session.",
+      "littleHire": "run a supervised pair, a facilitated meeting, or a multi-agent discussion without writing the message bus and turn loop.",
+      "competesWith": "manual orchestration scripts; hand-rolled message passing and turn-taking; sequential single-agent calls; running one agent at a time"
+    },
+    {
+      "user": "Platform Builders",
       "goal": "Prove Agent Changes",
       "trigger": "An eval passes locally but fails in CI and the only output is 'assertion failed.'",
       "bigHire": "prove whether agent changes improved outcomes with reproducible evidence.",
-      "littleHire": "run an eval and get a trace that shows exactly what the agent did.",
+      "littleHire": "run an eval or benchmark and get a trace that shows exactly what the agent did.",
       "competesWith": "manual before/after comparison; trusting gut feeling over evidence; skipping evaluation entirely"
     }
   ],

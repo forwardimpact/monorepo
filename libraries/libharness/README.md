@@ -2,8 +2,9 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-Agent evaluation framework — prove whether agent changes improved outcomes with
-reproducible evidence.
+Autonomous agent team harness — coordinate a lead and participant agents in one
+async session, with eval, benchmark, and trace tooling to prove the changes
+worked.
 
 <!-- END:description -->
 

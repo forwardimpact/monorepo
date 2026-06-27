@@ -2,8 +2,9 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-Wiki lifecycle primitives — stable memory for agent teams so coordination
-persists across sessions.
+Wiki lifecycle for agent teams — persistent memory, declarative integrity
+audits, and a collision ledger so coordination survives across sessions and
+parallel work.
 
 <!-- END:description -->
 

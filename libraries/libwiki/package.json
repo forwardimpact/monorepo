@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/libwiki",
   "version": "0.2.31",
-  "description": "Wiki lifecycle primitives — stable memory for agent teams so coordination persists across sessions.",
+  "description": "Wiki lifecycle for agent teams — persistent memory, declarative integrity audits, and a collision ledger so coordination survives across sessions and parallel work.",
   "keywords": [
     "wiki",
     "memo",
@@ -23,7 +23,7 @@
       "goal": "Operate a Predictable Agent Team",
       "trigger": "An agent finishes a session and its findings vanish because there is no shared memory to write them to.",
       "bigHire": "give agent teams stable memory that persists across sessions.",
-      "littleHire": "send a memo or update a storyboard without managing the wiki infrastructure.",
+      "littleHire": "send a memo, run an integrity audit, or refresh a storyboard without managing the wiki infrastructure.",
       "competesWith": "git commit messages as memory; ephemeral conversation context; starting every session from scratch"
     }
   ],
