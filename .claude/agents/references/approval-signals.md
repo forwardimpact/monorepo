@@ -87,7 +87,10 @@ update a row, locate the line in the code block and replace it in place.
 Format: `{id}\t{phase}\t{status}`. Phases: `spec`, `design`, `plan`.
 Statuses: `draft`, `approved`, `implemented` (plan only), `cancelled`.
 Lifecycle: `spec draft → spec approved → design draft → design approved →
-plan draft → plan approved → plan implemented`. Cancelled is terminal.
+plan draft → plan approved → plan implemented`. Cancelled is terminal. A
+lockstep spec+design PR (both artifacts in one `design(NNN)` PR) skips the
+`spec approved` state: the row moves `spec draft → design draft → design
+approved`, and reaching `design approved` subsumes spec approval.
 
 Commit the wiki edit alongside any other wiki updates from the same
 session; the Stop hook pushes wiki commits.
