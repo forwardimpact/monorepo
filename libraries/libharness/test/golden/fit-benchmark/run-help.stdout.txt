@@ -15,6 +15,7 @@ Options:
   --judge-profile=<string>  Judge profile name
   --work-tracker=<string>   Active work-item tracker (github|filesystem, default: github)
   --max-turns=<string>      Agent-under-test turn budget (default: 50, 0 = unlimited)
+  --concurrency=<string>    Max cells run concurrently (positive integer; default: CPU-aware min(4, max(2, cores/2)); env: LIBHARNESS_BENCHMARK_CONCURRENCY)
   --allowed-tools=<string>  Comma-separated tool allowlist for the agent-under-test (default: Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite)
 
 Global options:

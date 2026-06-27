@@ -59,6 +59,9 @@ export class WorkdirManager {
     this.termGraceMs = termGraceMs ?? DEFAULT_TERM_GRACE_MS;
     this.familyRootPath = familyRootPath ?? null;
     this.runtime = runtime;
+    // One registry per manager: hands out distinct, bindable ports under a lock
+    // so concurrent cells can never be handed the same number.
+    this.ports = new PortRegistry();
   }
 
   /**
@@ -120,7 +123,7 @@ export class WorkdirManager {
     const envNames =
       envDirs.length > 0 ? await loadEnv(envDirs, cwd, this.runtime) : [];
 
-    const port = await allocatePort();
+    const port = await this.ports.acquire();
     const agentTracePath = join(runDir, "agent.ndjson");
     const supervisorTracePath = join(runDir, "supervisor.ndjson");
     const judgeTracePath = join(runDir, "judge.ndjson");
@@ -177,7 +180,46 @@ export class WorkdirManager {
     }
     const portFree = await isPortFree(workdir.port);
     const descendants = await countDescendants(this.runtime, workdir.pgid);
+    // Release the reservation after the port-free probe so a freed number can
+    // be re-handed to a waiting cell.
+    this.ports.release(workdir.port);
     return { portFree, descendants };
+  }
+}
+
+/**
+ * Hands out distinct, bindable TCP ports under a lock. Replaces the bare
+ * close-then-return allocator whose allocate→bind window let two concurrent
+ * cells receive the same number (design 2130-a § Layer 1 "Port hand-off").
+ *
+ * The reservation is the *number*, not a held socket — a held socket could not
+ * be bound by the agent later. `acquire` serializes through a one-slot promise
+ * chain and re-probes if the OS hands back a number already in the live in-use
+ * set, so no two in-flight cells share a port.
+ */
+export class PortRegistry {
+  #inUse = new Set();
+  #tail = Promise.resolve();
+
+  /** @returns {Promise<number>} A distinct, currently-bindable port. */
+  acquire() {
+    const next = this.#tail.then(async () => {
+      let port;
+      do {
+        port = await probeFreePort();
+      } while (this.#inUse.has(port));
+      this.#inUse.add(port);
+      return port;
+    });
+    // Keep the chain alive even if one acquire rejects, so later acquires
+    // still run; swallow here, surface the rejection on `next`.
+    this.#tail = next.catch(() => {});
+    return next;
+  }
+
+  /** @param {number} port */
+  release(port) {
+    this.#inUse.delete(port);
   }
 }
 
@@ -222,7 +264,7 @@ async function runPreflight(runtime, script, cwd, port, vars) {
   };
 }
 
-function allocatePort() {
+function probeFreePort() {
   return new Promise((res, rej) => {
     const server = createServer();
     server.unref();

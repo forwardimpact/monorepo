@@ -7,7 +7,10 @@ import { parseRunOptions as parseRunOptionsEval } from "../src/commands/run.js";
 import { parseSuperviseOptions } from "../src/commands/supervise.js";
 import { parseDiscussOptions } from "../src/commands/discuss.js";
 import { parseFacilitateOptions } from "../src/commands/facilitate.js";
-import { parseRunOptions as parseBenchmarkRunOptions } from "../src/commands/benchmark-run.js";
+import {
+  parseRunOptions as parseBenchmarkRunOptions,
+  resolveConcurrency,
+} from "../src/commands/benchmark-run.js";
 
 // Every agent-running entry point resolves --work-tracker (default "github")
 // so the handler can write it unconditionally to
@@ -198,5 +201,47 @@ describe("fit-benchmark run resolves --work-tracker", () => {
     });
     runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
     assert.strictEqual(runtime.proc.env.LIBHARNESS_WORK_TRACKER, "filesystem");
+  });
+});
+
+describe("fit-benchmark run resolves --concurrency", () => {
+  test("defaults to a value > 1 (on by default, no flag)", () => {
+    assert.ok(resolveConcurrency({}) > 1);
+  });
+
+  test("an explicit --concurrency flag is honored", () => {
+    assert.strictEqual(resolveConcurrency({ concurrency: "8" }), 8);
+  });
+
+  test("falls back to LIBHARNESS_BENCHMARK_CONCURRENCY env", () => {
+    assert.strictEqual(
+      resolveConcurrency({}, { LIBHARNESS_BENCHMARK_CONCURRENCY: "3" }),
+      3,
+    );
+  });
+
+  test("the flag overrides the env fallback", () => {
+    assert.strictEqual(
+      resolveConcurrency(
+        { concurrency: "5" },
+        { LIBHARNESS_BENCHMARK_CONCURRENCY: "3" },
+      ),
+      5,
+    );
+  });
+
+  test("a non-positive concurrency is rejected", () => {
+    assert.throws(
+      () => resolveConcurrency({ concurrency: "0" }),
+      /--concurrency must be a positive integer/,
+    );
+  });
+
+  test("parseRunOptions threads the resolved concurrency", () => {
+    const opts = parseBenchmarkRunOptions({
+      family: "./families/coding",
+      concurrency: "6",
+    });
+    assert.strictEqual(opts.concurrency, 6);
   });
 });

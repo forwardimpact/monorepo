@@ -5,6 +5,7 @@
  */
 
 import { resolve } from "node:path";
+import { availableParallelism } from "node:os";
 
 import { createConfig } from "@forwardimpact/libconfig";
 import { createBenchmarkRunner } from "../benchmark/runner.js";
@@ -95,6 +96,7 @@ export function parseRunOptions(values, env = {}) {
       judge: values["judge-profile"] ?? null,
     },
     maxTurns: parseMaxTurns(values["max-turns"]),
+    concurrency: resolveConcurrency(values, env),
     allowedTools: values["allowed-tools"]
       ? values["allowed-tools"]
           .split(",")
@@ -108,4 +110,31 @@ function parseMaxTurns(raw) {
   if (raw === undefined) return undefined;
   if (raw === "0") return 0;
   return Number.parseInt(raw, 10);
+}
+
+// Conservative because each cell spawns ~3 agent subprocesses (lead +
+// agent-under-test + judge); a low ceiling keeps a single runner from
+// thrashing. The bulk of the CI speedup comes from Layer-2 sharding across
+// machines, not from raising this in-job default.
+const CONCURRENCY_CEILING = 4;
+
+/**
+ * Resolve the cell concurrency: `--concurrency` flag > the
+ * `LIBHARNESS_BENCHMARK_CONCURRENCY` env var > a CPU-aware default of
+ * `min(CONCURRENCY_CEILING, max(2, ⌊cores/2⌋))`. The default is `> 1` so
+ * concurrency is on transparently without any consumer opting in.
+ * @param {Record<string, string|undefined>} values
+ * @param {Record<string, string|undefined>} [env]
+ * @returns {number}
+ */
+export function resolveConcurrency(values, env = {}) {
+  const raw = values.concurrency ?? env.LIBHARNESS_BENCHMARK_CONCURRENCY;
+  if (raw != null && raw !== "") {
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 1)
+      throw new Error("--concurrency must be a positive integer");
+    return n;
+  }
+  const cores = availableParallelism();
+  return Math.min(CONCURRENCY_CEILING, Math.max(2, Math.floor(cores / 2)));
 }
