@@ -125,27 +125,12 @@ uploads `results.jsonl`.
 
 All CLI `run` flags are action inputs, plus CI extras (`summary`,
 `upload-results`, `artifact-name`, `timeout-minutes`, `k`, `format`) and a
-`results-path` output — see the action README. For parallelism the action also
-takes `concurrency` (in-process, on by default) and `shard-index`/`shard-total`
-with `mode` (`run` a shard, or `merge` every shard's partial ledger).
-
-For cross-machine sharding from one input, call the bundled reusable workflow —
-it fans `shard-total` shard jobs out and runs a dependent merge job:
-
-```yaml
-jobs:
-  benchmark:
-    uses: forwardimpact/fit-benchmark/.github/workflows/benchmark.yml@v1
-    with:
-      family: ./benchmarks/my-family
-      shard-total: 4
-    secrets:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-```
-
-Each shard runs in-process concurrency internally; the merge job carries no
-agent scaffold and aggregates via `report --input`, which merges shard ledgers
-recursively.
+`results-path` output — see the action README. For parallelism the action takes
+`concurrency` (in-process, on by default) and `shard-index`/`shard-total` with
+`mode` (`run` a shard, or `merge` every shard's partial ledger). For
+cross-machine sharding from one `shard-total` input, the action ships a
+`benchmark.yml` reusable workflow that fans shards out and runs an
+agent-scaffold-free merge job — see the CI guide below.
 
 | Command | Purpose |
 | --- | --- |
