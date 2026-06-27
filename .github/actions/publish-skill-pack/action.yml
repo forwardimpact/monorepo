@@ -75,7 +75,7 @@ runs:
         if [ "$SYNC_AGENTS" = "true" ]; then
           agents_flag="--with-agents"
         fi
-        fit-pack stage \
+        bunx fit-pack stage \
           --from .claude \
           --prefix "$PACK_PREFIX" \
           --into "$TARGET_DIR" \

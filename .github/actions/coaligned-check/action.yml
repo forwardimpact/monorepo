@@ -7,10 +7,10 @@ description: |
   `command` is set to "instructions", "jtbd", or "invariants", only that
   subcommand runs.
 
-  Assumes the workspace has already been bootstrapped by
-  forwardimpact/fit-bootstrap, which installs `coaligned` as a pinned gear
-  binary on PATH (it is one of the default tools). The binary is required —
-  there is no bunx/npx fallback.
+  Assumes the workspace has already been bootstrapped (Bun installed,
+  dependencies linked) so `bunx coaligned` resolves. When this action is
+  published as a third-party action, a setup step will be added so external
+  consumers do not need to install Bun separately.
 
 inputs:
   command:
@@ -61,12 +61,6 @@ runs:
         COMMAND: ${{ inputs.command }}
         FIX: ${{ inputs.fix }}
       run: |
-        # coaligned is a pinned gear binary on PATH, installed by fit-bootstrap
-        # as a default tool. No bunx/npx fallback — fail hard if it is missing.
-        if ! command -v coaligned &>/dev/null; then
-          echo "::error::coaligned not found on PATH. Bootstrap with forwardimpact/fit-bootstrap (installs coaligned as a default gear binary) before this step. No bunx/npx fallback." >&2
-          exit 1
-        fi
         args=()
         if [ -n "$COMMAND" ]; then
           args+=("$COMMAND")
@@ -74,4 +68,4 @@ runs:
         if [ "$FIX" = "true" ]; then
           args+=("--fix")
         fi
-        coaligned "${args[@]}"
+        bunx coaligned "${args[@]}"
