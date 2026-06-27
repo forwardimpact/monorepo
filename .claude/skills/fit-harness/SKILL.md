@@ -135,6 +135,9 @@ from there.
 
 ## Documentation
 
+- [Coordinate an Agent Team](https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md)
+  — Run a lead and N participant agents in one async session — supervise,
+  facilitate, or discuss — with Ask/Answer/Announce and a single NDJSON trace.
 - [Run an Eval](https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md)
   — Author a judge profile, run an eval locally, wire it into CI, and inspect
   the resulting trace.

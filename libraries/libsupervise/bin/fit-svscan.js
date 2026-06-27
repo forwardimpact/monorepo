@@ -45,6 +45,20 @@ const definition = {
   examples: [
     "fit-svscan --socket /tmp/sv.sock --pid /tmp/sv.pid --logdir /tmp/logs",
   ],
+  documentation: [
+    {
+      title: "Start, Stop, or Check a Service",
+      url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md",
+      description:
+        "Manage services through one interface; fit-svscan is the supervision daemon fit-rc drives.",
+    },
+    {
+      title: "Manage Service Lifecycle from One Interface",
+      url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md",
+      description:
+        "The full lifecycle setup, including supervision and observability.",
+    },
+  ],
 };
 
 const cli = createCli(definition, {

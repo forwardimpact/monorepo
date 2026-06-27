@@ -37,3 +37,7 @@ for (const sig of ["SIGINT", "SIGTERM"]) {
   process.on(sig, () => service.stop());
 }
 ```
+
+## Documentation
+
+- [Ship an HTTP Service Endpoint](https://www.forwardimpact.team/docs/libraries/typed-contracts/ship-http-endpoint/index.md)

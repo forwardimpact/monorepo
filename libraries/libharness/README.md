@@ -210,6 +210,7 @@ lists the `Edit()` rules that were tried.
 
 ## Documentation
 
+- [Coordinate an Agent Team](https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md) — run a lead and N participant agents in one async session (supervise / facilitate / discuss) with Ask/Answer/Announce and a single NDJSON trace.
 - [Run an Eval](https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md) — author a judge profile, run an eval locally, wire it into CI, and inspect the resulting trace.
 - [Prove Agent Changes](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md) — end-to-end workflow from dataset generation through evaluation to trace analysis, including multi-agent collaboration sessions.
 - [Analyze Traces](https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md) — read the NDJSON traces produced by `fit-harness` with `fit-trace`.

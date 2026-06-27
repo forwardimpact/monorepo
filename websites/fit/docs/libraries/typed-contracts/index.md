@@ -17,7 +17,7 @@ calling the generated service from both gRPC clients and MCP-connected agents.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Proto files co-located in `proto/` directories (either in your project root or
   inside installed `@forwardimpact/*` packages)
 - Install the codegen CLI:
@@ -159,6 +159,62 @@ Types with a `resource.Identifier` field (like `common.Message` and
 `tool.ToolFunction`) also receive a `withIdentifier` prototype method that
 auto-populates `id.type`, `id.name`, and `id.tokens` from the instance content.
 
+### Built-in namespaces
+
+Alongside the namespace generated from your own proto package (`inventory`
+above), `@forwardimpact/libtype` always exports six namespaces built from the
+shared schemas:
+
+| Namespace  | What it carries                                                                 |
+| ---------- | ------------------------------------------------------------------------------- |
+| `common`   | Shared envelopes -- `Empty`, `Usage`, `Message`, `Choice`, `Embedding`, `Conversation` |
+| `resource` | The `Identifier` type referenced by messages and tool calls                     |
+| `tool`     | Tool-call types -- `ToolFunction`, `ToolCall`, `ToolCallResult`, `QueryFilter`   |
+| `vector`   | Vector-search request and result types                                          |
+| `graph`    | Graph-query request and result types                                            |
+| `trace`    | Distributed-tracing span and event types                                        |
+
+Import any of them the same way:
+
+```js
+import { common, resource, vector, graph, trace } from "@forwardimpact/libtype";
+```
+
+The `common`, `resource`, `vector`, `graph`, and `trace` namespaces are reused
+across services, so a graph service constructs a `graph.SubjectsQuery` and a
+vector service constructs a `vector` request without redefining those shapes.
+
+### The metadata export
+
+`@forwardimpact/libtype` also exports a `metadata` object built by codegen from
+the same proto files. It is the bridge that lets `libmcp` register tools with no
+hand-written schema:
+
+```js
+import { metadata } from "@forwardimpact/libtype";
+```
+
+`metadata` is keyed by `package.Service`, then by method name. Each method entry
+records the request type and a description of every field -- its proto type,
+whether it is repeated, and the proto comment:
+
+```js
+metadata["inventory.Inventory"]["ListItems"];
+// {
+//   requestType: "inventory.ListItemsRequest",
+//   fields: {
+//     category: { type: "string", repeated: false, description: "Category to filter by" },
+//     limit:    { type: "int32",  repeated: false, description: "Maximum number of results" }
+//   }
+// }
+```
+
+You rarely read `metadata` directly. `libmcp` consults it at startup to build a
+Zod schema for each tool, and `librpc` clients use the type classes it points
+to. Regenerating with `npx fit-codegen --metadata` keeps it in step with the
+proto files. The shared `common.proto` is excluded from `metadata` -- only
+service-bearing proto files contribute entries.
+
 ## Step 4: Implement the service
 
 The codegen produces a base class in
@@ -208,6 +264,7 @@ Wrap the service implementation in the `librpc` `Server` and start it:
 
 ```js
 import { Server } from "@forwardimpact/librpc";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const config = { name: "inventory", host: "0.0.0.0", port: 50060 };
 
@@ -216,15 +273,20 @@ const items = [
   { id: "b2", category: "mechanical", name: "Bearing" },
 ];
 
+const runtime = createDefaultRuntime();
 const service = new InventoryService(config, items);
-const server = new Server(service, config);
+const server = new Server(service, config, { runtime });
 await server.start();
 // Server listening on 0.0.0.0:50060
 ```
 
-The `Server` class adds authentication (HMAC via `SERVICE_SECRET` environment
-variable), keepalive configuration, graceful shutdown on `SIGINT`/`SIGTERM`, and
-health checks at the standard gRPC health endpoint.
+The `Server` takes the service, its config, and an options bag carrying the
+required `runtime` (and optional `logger` / `tracer`). It adds authentication
+(HMAC via the `SERVICE_SECRET` environment variable), keepalive configuration,
+graceful shutdown on `SIGINT`/`SIGTERM`, and health checks at the standard gRPC
+health endpoint. See
+[Ship a Service Endpoint](/docs/libraries/typed-contracts/ship-endpoint/) for
+the authentication, keepalive, retry, and tracing details.
 
 ## Step 6: Call the service from a typed client
 
@@ -324,6 +386,56 @@ The libraries are layered: `libcodegen` produces files that `libtype` and
 `librpc` consume. `libmcp` depends on both `libtype` (for metadata and type
 classes) and `librpc` (for the gRPC clients it wraps).
 
+## Manage shared schemas
+
+Some message types are needed by more than one service -- a tool-call envelope,
+a resource identifier, a token-usage record. Rather than redefine those in each
+proto file, they live once in `@forwardimpact/libproto`, which ships three
+canonical `.proto` files and no JavaScript:
+
+| Shared proto    | Defines                                                                  | Imports                  |
+| --------------- | ----------------------------------------------------------------------- | ------------------------ |
+| `resource.proto`| `Identifier` -- the `type` / `name` / `parent` / `subjects` shape every persisted resource carries | (none)                   |
+| `tool.proto`    | Tool-call types -- `ToolFunction`, `ToolCall`, `ToolCallResult`, `ToolCallMessage`, `QueryFilter` | `resource.proto`         |
+| `common.proto`  | Shared envelopes -- `Empty`, `Usage`, `Message`, `Choice`, `Embedding`, `Conversation` | `resource.proto`, `tool.proto` |
+
+### How imports resolve
+
+When your proto imports a shared file:
+
+```protobuf
+import "common.proto";
+import "tool.proto";
+```
+
+the codegen resolves it without any path configuration. At generation time it
+scans every `proto/` directory it can find -- your project root and every
+installed `@forwardimpact/*` package, including `@forwardimpact/libproto` -- and
+adds each one to the include path. An `import "tool.proto"` then resolves to the
+copy inside `libproto` automatically. Reference shared types by their package
+namespace, as in `tool.ToolCallResult` or `resource.Identifier`.
+
+Declare `@forwardimpact/libproto` as a direct dependency only when your own
+`.proto` file imports one of these shared files. A project that imports no
+shared schema needs no dependency on it.
+
+### Update a shared schema
+
+A shared schema is a contract across every service that imports it, so treat a
+change to one of these three files as a cross-service change:
+
+1. Edit the field in the shared `.proto` file (for example, add an optional
+   field to `tool.ToolCallResult`).
+2. Re-run `npx fit-codegen --all` in **every** service that imports the changed
+   file -- each one regenerates its own types, bases, clients, and metadata
+   against the new shape.
+3. Keep new fields `optional` so a service that has not regenerated yet still
+   reads messages from one that has. Removing or renumbering a field breaks
+   every consumer at once, so add rather than mutate.
+
+Because the shared files live in one package, the edit happens once; the
+regeneration is what propagates it to each consumer.
+
 ## When proto definitions change
 
 After editing a `.proto` file, re-run the codegen:
@@ -366,5 +478,6 @@ subdirectory under `generated/services/`.
 
 <!-- part:card:expose-tool -->
 <!-- part:card:ship-endpoint -->
+<!-- part:card:ship-http-endpoint -->
 
 </div>

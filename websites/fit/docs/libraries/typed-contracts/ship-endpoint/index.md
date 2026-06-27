@@ -15,7 +15,7 @@ classes and clients, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `@forwardimpact/librpc` installed:
 
 ```sh
@@ -91,10 +91,16 @@ const tracer = await createTracer("graph");
 
 const graphIndex = createGraphIndex("graphs");
 const service = new GraphService(config, graphIndex);
-const server = new Server(service, config, logger, tracer);
+const server = new Server(service, config, { runtime, logger, tracer });
 
 await server.start();
 ```
+
+`Server` takes the service, its config, and an options bag. The `runtime` is
+required -- it carries the process collaborators the server reads, including the
+`SERVICE_SECRET` used for authentication. The `logger` and `tracer` are
+optional. Build the runtime once at the entry point with `createDefaultRuntime`
+and thread it through.
 
 `Server` wraps every handler with HMAC authentication, distributed tracing, and
 error handling. It also registers the standard gRPC health check at
@@ -110,6 +116,49 @@ error handling. It also registers the standard gRPC health check at
 | Keepalive            | 30s ping interval, 10s timeout            |
 | Graceful shutdown    | `SIGINT` / `SIGTERM` handlers             |
 | Request validation   | Generated `getHandlers()` verifies types  |
+
+## Authenticate with SERVICE_SECRET
+
+Every call between a `librpc` client and server is authenticated with an
+HMAC-SHA256 token. Both sides read the same shared secret from the
+`SERVICE_SECRET` environment variable, so authentication needs no code -- only a
+secret that is present in both processes.
+
+```sh
+export SERVICE_SECRET="a-shared-secret-of-at-least-32-characters"
+```
+
+The secret must be at least 32 characters; a shorter value is rejected when the
+server or client starts. How tokens flow:
+
+- The client signs a `{serviceId}:{timestamp}` payload with the secret and sends
+  it as an `Authorization: Bearer <token>` metadata header on every call. This
+  happens inside a client interceptor, so you never construct a token by hand.
+- The server verifies the signature with a timing-safe comparison and rejects
+  the call with `UNAUTHENTICATED` if the header is missing, malformed, expired,
+  or signed with a different secret.
+- Tokens are time-limited (a 60-second lifetime by default), so a captured token
+  cannot be replayed indefinitely. The client mints a fresh token per call, so
+  short lifetimes are invisible to callers.
+
+The health check at `grpc.health.v1.Health/Check` is mounted without
+authentication, so an orchestrator can probe liveness without holding the
+secret.
+
+## Keepalive
+
+Both the server and the client open the channel with the same keepalive
+settings, so long-lived streams survive idle periods and dead connections are
+detected promptly:
+
+| Setting                    | Value      | Effect                                      |
+| -------------------------- | ---------- | ------------------------------------------- |
+| Ping interval              | 30 seconds | A keepalive ping is sent every 30 seconds   |
+| Ping timeout               | 10 seconds | A missing ack within 10 seconds drops the connection |
+| Ping without active calls  | permitted  | Idle channels are kept warm                 |
+
+These are applied for you when you construct a `Server` or call
+`createClient` -- there is nothing to configure.
 
 ## Call an existing service
 
@@ -127,6 +176,14 @@ const tracer = await createTracer("my-script");
 
 const graphClient = await createClient("graph", logger, tracer);
 ```
+
+The `logger` and `tracer` arguments are optional. Pass a `tracer` to thread
+distributed tracing across the call: the client opens a `CLIENT` span per RPC
+and propagates the trace context to the server, which opens a matching
+`SERVER` span. Build the tracer once at the entry point with `createTracer`,
+hand it to every client and server in that process, and a single trace then
+spans the whole call chain. Omit both arguments for an ad-hoc client that does
+not log or trace -- authentication and retries still apply.
 
 ### Make a unary call
 
@@ -147,8 +204,22 @@ https://acme.example/people/jane-doe	https://schema.org/Person
 https://acme.example/people/john-smith	https://schema.org/Person
 ```
 
-Retries are automatic -- the client retries transient failures up to 10 times
-with exponential backoff starting at a 1-second base delay (with jitter).
+### How retries work
+
+Transient failures are retried for you. The client wraps every unary and
+streaming call in a retry policy with these defaults:
+
+- **Up to 10 retries** before the call rejects with the underlying error.
+- **Exponential backoff** starting at a 1-second base delay -- the wait roughly
+  doubles each attempt, so a struggling service is not hammered.
+- **Jitter** added to each delay, so a fleet of clients that all failed at the
+  same moment does not retry in lockstep and create a thundering herd.
+
+For a streaming call the retry covers connection establishment: once the first
+chunk arrives the stream is considered connected and later errors surface on the
+stream's `error` event rather than triggering a reconnect. A retried unary call
+is transparent -- your `await` resolves with the eventual response or rejects
+once retries are exhausted.
 
 ### Make a streaming call
 
@@ -197,5 +268,6 @@ You have reached the outcome of this guide when:
 <div class="grid">
 
 <!-- part:card:.. -->
+<!-- part:card:../ship-http-endpoint -->
 
 </div>

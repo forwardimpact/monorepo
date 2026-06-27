@@ -176,3 +176,8 @@ When a `justfile` exists in the source directory with a `build` recipe,
 `fit-doc` runs `just build` before rendering. This lets sites generate or copy
 assets as part of the build pipeline. If `just` is not installed, the hook logs
 a warning and continues.
+
+## Documentation
+
+- [Publish a Documentation Site](https://www.forwardimpact.team/docs/libraries/every-surface/publish-docs/index.md) —
+  Turn a directory of markdown into a static site agents and humans can both navigate, with a companion markdown file for every page.

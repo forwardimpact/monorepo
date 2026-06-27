@@ -14,7 +14,7 @@ library.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Install the library and its peers:
 
 ```sh

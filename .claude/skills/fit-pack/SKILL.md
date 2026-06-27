@@ -70,3 +70,9 @@ an existing pack repository is a single run.
 - [Distribute Skill Packs](https://www.forwardimpact.team/docs/libraries/distribute-skill-packs/index.md)
   — Stage a skill pack into APM's .apm/ layout so a bare install pulls skills
   and agents together
+- [Build Tarball and Git-Repo Packs](https://www.forwardimpact.team/docs/libraries/distribute-skill-packs/tarball-distribution/index.md)
+  — Build distributable packs as flat and APM tarballs and a static bare git
+  repo, with byte-identical output across runs
+- [Publish a Skill Discovery Index](https://www.forwardimpact.team/docs/libraries/distribute-skill-packs/discovery-index/index.md)
+  — Emit a .well-known/skills/ discovery index so an agent can find and load
+  skills over the web

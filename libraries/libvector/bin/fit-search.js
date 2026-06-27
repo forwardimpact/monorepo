@@ -20,6 +20,20 @@ const definition = {
     json: { type: "boolean", description: "Output help as JSON" },
   },
   examples: ["fit-search 'career progression'"],
+  documentation: [
+    {
+      title: "Search Semantically",
+      url: "https://www.forwardimpact.team/docs/libraries/ground-agents/search-semantically/index.md",
+      description:
+        "Find related content by meaning with ranked results from a vector index, no vector database required.",
+    },
+    {
+      title: "Give Agents Typed, Retrievable Knowledge",
+      url: "https://www.forwardimpact.team/docs/libraries/ground-agents/index.md",
+      description:
+        "The full workflow for building an embedding pipeline from knowledge sources.",
+    },
+  ],
 };
 
 const runtime = createDefaultRuntime();

@@ -158,3 +158,5 @@ import {
 
 - [Operate a Predictable Agent Team](https://www.forwardimpact.team/docs/libraries/predictable-team/index.md)
 - [Send a Memo or Update a Storyboard](https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-operations/index.md)
+- [Audit and Auto-Fix the Wiki](https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-integrity/index.md)
+- [Allocate Collision-Ledger Entries for Parallel Work](https://www.forwardimpact.team/docs/libraries/predictable-team/collision-ledger/index.md)

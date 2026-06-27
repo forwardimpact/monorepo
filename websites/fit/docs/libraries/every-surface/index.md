@@ -12,7 +12,7 @@ both the terminal and the browser through a shared contract.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Install all three libraries:
 
 ```sh
@@ -303,5 +303,13 @@ produces `{ tag: ["rain", "wind"] }`.
 <div class="grid">
 
 <!-- part:card:add-capability -->
+
+<!-- part:card:build-web-surface -->
+
+<!-- part:card:interactive-repl -->
+
+<!-- part:card:render-templates -->
+
+<!-- part:card:publish-docs -->
 
 </div>

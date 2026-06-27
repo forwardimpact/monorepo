@@ -14,7 +14,7 @@ sessions and trace analysis, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `ANTHROPIC_API_KEY` set in the shell (the `generate` verb calls an LLM to
   produce realistic prose for each entity)
 - `@forwardimpact/libterrain` installed:
@@ -181,6 +181,11 @@ The pipeline walks a DAG of stages in dependency order:
 | `datasets`     | Runs any external dataset tools (Faker, Synthea, SDV); resolves the `dataset.conditions` field against the clinical block when both are present |
 | `validate`     | Checks entity consistency and HTML structure                                |
 | `write`        | Merges all output and writes to disk                                        |
+
+`fit-terrain` orchestrates three libraries across these stages: libsyntheticgen
+parses the DSL and generates the deterministic entity graph, libsyntheticprose
+resolves the LLM prose and YAML, and libsyntheticrender renders and validates the
+output. You install and run `fit-terrain`; the three libraries work behind it.
 
 The prose cache persists to `data/synthetic/prose-cache.json` by default.
 Subsequent runs with the same DSL reuse cached prose, so only new or changed

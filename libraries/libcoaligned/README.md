@@ -94,3 +94,20 @@ When `rules` is a function it receives the rule helpers:
 
 Findings render in the same ESLint-style format as the other subcommands
 (`--json` for machine output); any finding fails the run.
+
+## Documentation home
+
+libcoaligned shares the **Run a Predictable Platform** job goal with the
+service-lifecycle libraries (librc, libsupervise, libtelemetry, libpreflight),
+but its full guide home is the Co-Aligned standard at
+<https://www.coaligned.team/> and [COALIGNED.md](../../COALIGNED.md), not the
+service-lifecycle guide tree under `websites/fit/docs/libraries/`.
+
+**Decision (2026-06-27):** this is deliberate scope separation, not a gap. The
+`coaligned` checks run at **authoring time** against a repository's instruction
+layers and JTBD blocks; the service-lifecycle libraries run at **service
+runtime** against a live process. Mixing the two into one guide would blur the
+audience. The service-lifecycle Big Hire carries a one-line cross-link to the
+Co-Aligned standard so a reader who lands there can find this check, and that is
+the only link the service-lifecycle tree should carry. Future doc audits should
+treat the absence of a service-lifecycle guide page for `coaligned` as intended.

@@ -296,6 +296,12 @@ const definition = {
   ],
   documentation: [
     {
+      title: "Coordinate an Agent Team",
+      url: "https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md",
+      description:
+        "Run a lead and N participant agents in one async session — supervise, facilitate, or discuss — with Ask/Answer/Announce and a single NDJSON trace.",
+    },
+    {
       title: "Run an Eval",
       url: "https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md",
       description:

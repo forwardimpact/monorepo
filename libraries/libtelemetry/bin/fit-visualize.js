@@ -28,6 +28,20 @@ const definition = {
     "echo \"[?name=='ProcessStream']\" | fit-visualize",
     'echo "[]" | fit-visualize --trace 0f53069dbc62d',
   ],
+  documentation: [
+    {
+      title: "Add Observability",
+      url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/add-observability/index.md",
+      description:
+        "Structured logs and traces with no framework setup, including querying and visualizing recorded traces with fit-visualize.",
+    },
+    {
+      title: "Manage Service Lifecycle from One Interface",
+      url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md",
+      description:
+        "The full lifecycle setup for services, from supervision to observability.",
+    },
+  ],
 };
 
 const cli = createCli(definition, {

@@ -67,6 +67,14 @@ const definition = {
     json: { type: "boolean", description: "Output help as JSON" },
   },
   examples: ["fit-doc build", "fit-doc serve --watch --port 8080"],
+  documentation: [
+    {
+      title: "Publish a Documentation Site",
+      url: "https://www.forwardimpact.team/docs/libraries/every-surface/publish-docs/index.md",
+      description:
+        "Turn a directory of markdown into a static site agents and humans can both navigate, with a companion markdown file for every page.",
+    },
+  ],
 };
 
 const runtime = createDefaultRuntime();

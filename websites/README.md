@@ -81,20 +81,27 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 | ---- | ---- | ----- |
 | Big | `predictable-team/` | Set Up Persistent Memory and Metrics |
 | Little | `predictable-team/wiki-operations/` | Send a Memo or Update a Storyboard |
+| Little | `predictable-team/wiki-integrity/` | Audit and Auto-Fix the Wiki |
+| Little | `predictable-team/collision-ledger/` | Allocate Collision-Ledger Entries for Parallel Work |
 | Little | `predictable-team/xmr-analysis/` | Chart a Metric and Check Variation |
 
 **Coordinate an Agent Team** (Builders → libbridge, libharness)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
+| Big | `coordinate-team/` | Coordinate an Agent Team |
 | Big | `bridge-channels/` | Bridge a Threaded Channel to the Agent Team |
 
-**Enable Agents on Every Surface** (Builders → libcli, libformat, libui)
+**Enable Agents on Every Surface** (Builders → libcli, libdoc, libformat, librepl, libtemplate, libui)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
 | Big | `every-surface/` | Give Agents and Humans the Same Interface |
 | Little | `every-surface/add-capability/` | Add a Capability to Both Surfaces |
+| Little | `every-surface/build-web-surface/` | Build a Web Surface with libui |
+| Little | `every-surface/interactive-repl/` | Build an Interactive REPL |
+| Little | `every-surface/publish-docs/` | Publish a Documentation Site |
+| Little | `every-surface/render-templates/` | Render Templates with Project Overrides |
 
 **Ground Agents in Context** (Builders → libgraph, libindex, libresource, libvector)
 
@@ -120,6 +127,7 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 | Big | `typed-contracts/` | Keep Types Synced with Proto Definitions |
 | Little | `typed-contracts/expose-tool/` | Expose a Proto Method as an Agent Tool |
 | Little | `typed-contracts/ship-endpoint/` | Ship a Service Endpoint |
+| Little | `typed-contracts/ship-http-endpoint/` | Ship an HTTP Service Endpoint |
 
 **Run a Predictable Platform** (Builders → libpreflight, librc, libsupervise, libtelemetry, libcoaligned)
 
@@ -139,6 +147,14 @@ keeps multiple Big Hire trees — slugs are published URLs and do not move
 | Little | `prove-changes/run-benchmark/ci-workflow/` | Automate with GitHub Actions |
 | Little | `prove-changes/trace-analysis/` | Analyze Traces |
 | Little | `prove-changes/generate-dataset/` | Generate an Eval Dataset |
+
+**Distribute Skill Packs** (Builders → libpack)
+
+| Hire | Path | Title |
+| ---- | ---- | ----- |
+| Big | `distribute-skill-packs/` | Distribute Skill Packs |
+| Little | `distribute-skill-packs/tarball-distribution/` | Build Tarball and Git-Repo Packs |
+| Little | `distribute-skill-packs/discovery-index/` | Publish a Skill Discovery Index |
 
 ### Service Guides
 

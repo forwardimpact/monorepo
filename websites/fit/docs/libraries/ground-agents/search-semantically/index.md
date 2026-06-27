@@ -14,7 +14,7 @@ see [Ground Agents in Context](/docs/libraries/ground-agents/).
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `@forwardimpact/libvector` installed:
 
 ```sh
@@ -109,10 +109,23 @@ common.Message.g7h8i9	0.7856
 Filters apply in order: prefix, then scoring and threshold, then limit, then
 token budget.
 
+#### Choosing a threshold
+
+The score is a dot product. For the normalized vectors that standard embedding
+APIs produce, that dot product is cosine similarity, so the score lands on a
+**0-to-1 scale**: `1.0` is an identical direction (a near-perfect match) and
+`0.0` is orthogonal (unrelated). A `threshold` of `0` -- the default -- returns
+every item the limit allows; raise it toward `0.5`-`0.7` to drop weak matches
+and keep only results that mean roughly the same thing as the query. There is no
+upper bound enforced, but values above `1.0` will exclude everything for
+normalized vectors.
+
 ### Multiple query vectors
 
-Pass several query vectors at once -- the index scores each item against every
-vector and keeps the highest score, avoiding multiple passes:
+Pass several query vectors at once to broaden a search across phrasings or
+related concepts. The index scores each stored item against **every** query
+vector and keeps only that item's **highest** score -- so an item that matches
+any one of your phrasings ranks by its best match, not its average:
 
 ```js
 const vectors = await embed(
@@ -121,6 +134,12 @@ const vectors = await embed(
 );
 const results = await vectorIndex.queryItems(vectors, { limit: 5 });
 ```
+
+Each item still appears at most once in the results, ranked by its best score
+across the query set. This keep-highest pass means one call covers several
+related queries without de-duplicating or merging result lists yourself. The
+`threshold` is compared against each item's best score, so an item survives if
+any one query vector clears the bar.
 
 ## Add embeddings to the index
 

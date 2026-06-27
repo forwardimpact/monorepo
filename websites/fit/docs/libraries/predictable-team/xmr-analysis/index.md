@@ -15,7 +15,7 @@ behaves.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A CSV with at least 15 data points (fewer points are accepted but limits will
   not be computed)
 
@@ -153,6 +153,75 @@ before charting. The `metric` column is the natural seam: name each process
 distinctly so they group separately. After a confirmed shift in a single
 process, see the recompute step in
 [What to do when signals appear](#what-to-do-when-signals-appear).
+
+## Partition one metric by decision path
+
+Sometimes a single metric covers work that took different paths, and you want to
+chart each path separately without splitting it into a new metric. A row can
+carry that path as structured tokens inside its `note` field, and the read
+commands can filter on them.
+
+The grammar lives at the head of the `note`, before any free text:
+
+```
+route_taken=<id>; routes_eligible=[<id>,<id>,...];
+```
+
+- **`route_taken`** — the single path this observation took. The id is a small
+  integer (or the literal `none` when the work took no path).
+- **`routes_eligible`** — the comma-separated set of paths that were available
+  for this observation, including the one taken. The brackets are literal; an
+  empty set is `[]`.
+
+A quoted `note` keeps the embedded comma from breaking the column, so a row reads:
+
+```csv
+date,metric,value,unit,run,note,event_type,host_run
+2026-06-20,implementations_shipped,3,count,,"route_taken=2; routes_eligible=[2,3];",kata-shift,local
+```
+
+Any free text follows the trailing semicolon:
+`"route_taken=2; routes_eligible=[2,3]; reverted a flaky test"`.
+
+### Filter to a path
+
+Two `analyze` options read the grammar:
+
+```sh
+npx fit-xmr analyze observations.csv --metric implementations_shipped --route 2
+```
+
+`--route 2` keeps only rows whose `route_taken` is `2`. The chart, limits, and
+signals are then computed over that subset alone, so a path with its own process
+behavior gets its own baseline.
+
+```sh
+npx fit-xmr analyze observations.csv --metric implementations_shipped \
+  --routes-eligible-includes 4
+```
+
+`--routes-eligible-includes 4` keeps rows whose `routes_eligible` set contains
+`4`, whether or not `4` was the path taken. Use it to ask "across every
+observation where path 4 was on the table, how does the metric behave?"
+
+Both options compose with `--event-type` and `--metric`, and each is inert when
+omitted — a plain `analyze` charts the whole series exactly as before. A
+narrow partition often falls under the 15-point floor and reports
+`insufficient`; keep recording until each path has enough observations.
+
+### Record a path
+
+`fit-xmr record` writes the grammar for you. Pass `--route` (and optionally
+`--routes-eligible`) and it prepends the tokens to the `note`, quoting the
+field automatically:
+
+```sh
+npx fit-xmr record --skill kata-implement --metric implementations_shipped \
+  --value 2 --route 2 --routes-eligible 2,3
+```
+
+This appends a row whose `note` is `route_taken=2; routes_eligible=[2,3];`. The
+ids must be drawn from the metric's known path set, or `record` rejects the row.
 
 ## The three detection rules
 

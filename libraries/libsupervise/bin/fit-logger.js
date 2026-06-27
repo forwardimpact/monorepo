@@ -37,6 +37,20 @@ const definition = {
     "fit-logger --dir /var/log/myapp",
     "fit-logger -d ./logs -s 1048576 -n 5",
   ],
+  documentation: [
+    {
+      title: "Start, Stop, or Check a Service",
+      url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md",
+      description:
+        "Manage services through one interface, including tuning log rotation with fit-logger.",
+    },
+    {
+      title: "Manage Service Lifecycle from One Interface",
+      url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md",
+      description:
+        "The full lifecycle setup, including supervision and observability.",
+    },
+  ],
 };
 
 const cli = createCli(definition, {

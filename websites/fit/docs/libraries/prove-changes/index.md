@@ -12,7 +12,7 @@ and `fit-harness`, then hands off to `fit-trace` for the reading.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `ANTHROPIC_API_KEY` set in the shell (used by both `fit-terrain generate` and
   `fit-harness`)
 - A repository where agents will work

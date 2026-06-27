@@ -16,7 +16,7 @@ leaves you a clean tree to commit and push.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - A **source tree** holding the content to ship: a `skills/` directory with one
   subdirectory per skill (each containing a `SKILL.md`) and, optionally, an
   `agents/` directory of `*.md` agent profiles.
@@ -87,11 +87,18 @@ The options:
 | `--readme-title` | README H1                                                      |
 | `--readme-intro` | README intro paragraph                                         |
 
-On success it reports what it staged:
+On success it reports what it staged — the count is the number of skills and
+agents from your source tree that matched, so it reflects the `--prefix` you
+chose and whether you passed `--with-agents`:
 
 ```text
 ✓ Staged 12 skill(s) and 6 agent(s) into ./skills-repo
 ```
+
+That line is an example: staging a `--prefix kata` source with twelve
+`skills/kata-*` directories and six agent profiles reports those twelve and six.
+Your numbers will differ; the count is your check that the right set was
+selected.
 
 `--prefix` is how one source tree feeds several packs. With
 `--prefix kata` only `skills/kata-*` directories ship; a `skills/fit-map`
@@ -182,6 +189,10 @@ You have reached the outcome of this guide when:
 ## What's next
 
 <div class="grid">
+
+<!-- part:card:tarball-distribution -->
+
+<!-- part:card:discovery-index -->
 
 <!-- part:card:../integrate-standard -->
 

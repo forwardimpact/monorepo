@@ -15,7 +15,7 @@ For the full workflow of building a grounded context pipeline, see
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - `@forwardimpact/libindex` installed:
 
 ```sh
@@ -159,12 +159,18 @@ periodically or when the buffer fills:
 ```js
 import { BufferedIndex } from "@forwardimpact/libindex";
 import { createStorage } from "@forwardimpact/libstorage";
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 const storage = createStorage("bulk-index");
-const index = new BufferedIndex(storage, "index.jsonl", {
-  flush_interval: 5000,   // flush every 5 seconds
-  max_buffer_size: 1000,  // or when 1000 items accumulate
-});
+const index = new BufferedIndex(
+  storage,
+  "index.jsonl",
+  {
+    flush_interval: 5000,   // flush every 5 seconds
+    max_buffer_size: 1000,  // or when 1000 items accumulate
+  },
+  { clock: createDefaultClock() },
+);
 
 for (const item of largeDataset) {
   await index.add(item);  // buffered, not written yet
@@ -172,6 +178,13 @@ for (const item of largeDataset) {
 
 await index.shutdown();   // flush remaining items and clear timer
 ```
+
+`BufferedIndex` requires a `clock` so the flush timer can be injected and
+controlled in tests; `createDefaultClock()` supplies one backed by real timers.
+The third argument is the buffer config -- `flush_interval` (default `5000` ms)
+sets how long the index waits before draining a partial buffer, and
+`max_buffer_size` (default `1000`) forces an immediate flush once that many
+items accumulate.
 
 Items are queryable immediately after `add` -- they enter the in-memory map at
 once -- but the storage write is deferred until the next flush. Always call

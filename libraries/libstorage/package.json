@@ -17,6 +17,16 @@
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Ground Agents in Context",
+      "trigger": "Realizing the knowledge an agent reads has to live somewhere, and that hard-coding local file paths means a move to S3 or Supabase rewrites every reader.",
+      "bigHire": "persist and retrieve agent context behind one interface, whatever the backend.",
+      "littleHire": "swap local, S3, or Supabase storage without changing a line of consumer code.",
+      "competesWith": "raw fs calls scattered across consumers; coupling code to a single cloud SDK; a bespoke storage wrapper per project"
+    }
+  ],
   "type": "module",
   "main": "./src/index.js",
   "exports": {

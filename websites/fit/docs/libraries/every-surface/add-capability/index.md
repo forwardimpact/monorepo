@@ -13,7 +13,7 @@ Complete the [Agent-Friendly Surfaces](/docs/libraries/every-surface/) guide
 first -- this page assumes a working `createCli` definition, a
 `createBoundRouter`, and the shared presenter pattern.
 
-- Node.js 18+
+- Node.js 22+
 - The three surface libraries installed:
 
 ```sh
