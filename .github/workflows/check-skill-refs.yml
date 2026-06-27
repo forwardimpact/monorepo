@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/fit-bootstrap@6499f90c122c47da6db9bd6e26bf83c572a0a036 # v1.0.1
+      - uses: forwardimpact/fit-bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
       - name: Skill ref lint
         run: bun run check-skill-refs
         env:
@@ -32,7 +32,7 @@ jobs:
       issues: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/fit-bootstrap@6499f90c122c47da6db9bd6e26bf83c572a0a036 # v1.0.1
+      - uses: forwardimpact/fit-bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
       - name: Upsert or close the drift tracking issue
         env:
           GH_TOKEN: ${{ github.token }}

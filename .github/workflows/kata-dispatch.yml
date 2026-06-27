@@ -130,11 +130,15 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
 
-      - uses: forwardimpact/fit-bootstrap@6499f90c122c47da6db9bd6e26bf83c572a0a036 # v1.0.1
+      - uses: forwardimpact/fit-bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
           app-id: ${{ secrets.KATA_APP_ID }}
+          # fit-harness (the Assess and Act step), the cost/callback steps, and
+          # the fit-wiki push step all run their binaries straight off PATH —
+          # no bunx fallback.
+          clis: fit-harness fit-trace fit-wiki
 
       # Select discuss mode when a discussion_id is supplied (the bridge
       # path resuming or starting a threaded conversation); otherwise run a
@@ -180,7 +184,7 @@ jobs:
           TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
         run: |
           if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
-            bunx fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
+            fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No trace file produced — cost not reported."
           fi
@@ -213,7 +217,7 @@ jobs:
           set -euo pipefail
           if [ -n "$TRACE_FILE" ] && [ -f "$TRACE_FILE" ]; then
             echo "Using trace file: $TRACE_FILE"
-            bunx fit-harness callback \
+            fit-harness callback \
               --trace-file="$TRACE_FILE" \
               --callback-url="$CALLBACK_URL" \
               --correlation-id="$CORRELATION_ID" \

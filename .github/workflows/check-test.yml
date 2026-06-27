@@ -17,12 +17,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/fit-bootstrap@6499f90c122c47da6db9bd6e26bf83c572a0a036 # v1.0.1
+      - uses: forwardimpact/fit-bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
+        with:
+          clis: fit-terrain
       # libwiki's push path secret-scans with gitleaks (fail-closed); the
       # wiki-sync integration tests in the gate set need the binary on PATH,
       # exactly as the informational bun `test` job below does.
       - uses: ./.github/actions/install-gitleaks
-      - run: bunx fit-terrain build
+      - run: fit-terrain build
       - name: Guard against bun:test re-divergence
         run: bun scripts/check-bun-test-imports.mjs
       - name: Run gate (node --test)
@@ -36,18 +38,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/fit-bootstrap@6499f90c122c47da6db9bd6e26bf83c572a0a036 # v1.0.1
+      - uses: forwardimpact/fit-bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
+        with:
+          clis: fit-terrain
       # libwiki's push path secret-scans with gitleaks (fail-closed); the
       # wiki-sync push tests need the binary present on PATH.
       - uses: ./.github/actions/install-gitleaks
-      - run: bunx fit-terrain build
+      - run: fit-terrain build
       - run: bun run test
 
   e2e:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/fit-bootstrap@6499f90c122c47da6db9bd6e26bf83c572a0a036 # v1.0.1
+      - uses: forwardimpact/fit-bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         id: playwright-cache
         with:
