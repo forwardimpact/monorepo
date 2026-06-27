@@ -158,7 +158,7 @@
         "products/outpost/**/*.js",
         "products/outpost/**/*.mjs"
       ],
-      "javascript": { "globals": ["Buffer", "global", "require"] }
+      "javascript": { "globals": ["Buffer", "Bun", "global", "require"] }
     },
     {
       "includes": ["products/map/supabase/functions/**/*.ts"],
