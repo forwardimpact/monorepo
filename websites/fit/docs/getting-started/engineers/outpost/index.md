@@ -55,8 +55,8 @@ package degrades cleanly off-Apple yet. Switch to a Mac to continue.
 npx fit-outpost init
 ```
 
-This provisions the default `team` knowledge base at
-`~/.local/share/fit/outpost/team`. Pass a name (for example,
+This provisions the default `Team` knowledge base at
+`~/.local/share/fit/outpost/Team`. Pass a name (for example,
 `npx fit-outpost init personal`) to provision a second one beside it.
 
 ## Check status

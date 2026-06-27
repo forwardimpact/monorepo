@@ -9,7 +9,7 @@ REAL_USER=$(/usr/bin/stat -f "%Su" /dev/console)
 REAL_HOME=$(/usr/bin/dscl . -read "/Users/$REAL_USER" NFSHomeDirectory | /usr/bin/awk '{print $2}')
 
 OUTPOST_HOME="$REAL_HOME/.fit/outpost"
-DEFAULT_KB="$REAL_HOME/.local/share/fit/outpost/team"
+DEFAULT_KB="$REAL_HOME/.local/share/fit/outpost/Team"
 APP_PATH="/Applications/Forward Impact/fit-outpost.app"
 
 # --- Stop running instance gracefully ----------------------------------------

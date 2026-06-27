@@ -31,7 +31,7 @@ export class KBManager {
    * same rule as `agent-path.js`: a name carrying `/`, `\`, `..`, NUL, or a
    * leading `~` could steer the KB back inside `~/Documents`, reopening the TCC
    * hole, so it is rejected rather than rewritten.
-   * @param {string} name - The KB name (e.g. `team`, `personal`).
+   * @param {string} name - The KB name (e.g. `Team`, `personal`).
    * @returns {string} Absolute path under the data home.
    * @throws {Error} when `name` is empty, non-string, or an unsafe segment.
    */

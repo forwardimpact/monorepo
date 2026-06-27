@@ -150,7 +150,7 @@ trust contract is something you turn on, not something you discover later.
 ```sh
 brew install claude                     # Runtime: Outpost spawns claude as a subprocess
 npm install @forwardimpact/outpost      # macOS only
-npx fit-outpost init                    # Initialize the default "team" knowledge base
+npx fit-outpost init                    # Initialize the default "Team" knowledge base
 npx fit-outpost daemon                  # Start the scheduler
 npx fit-outpost status                  # Check what's happening
 ```

@@ -18,10 +18,10 @@ describe("KBManager.kbPathForName", () => {
     );
   });
 
-  test("the default name team resolves under the data home", () => {
-    // The dispatch layer defaults an absent name to `team`; the resolved
+  test("the default name Team resolves under the data home", () => {
+    // The dispatch layer defaults an absent name to `Team`; the resolved
     // path must sit under the non-TCC data home.
-    assert.ok(KBManager.kbPathForName("team").startsWith(DATA_HOME + "/"));
+    assert.ok(KBManager.kbPathForName("Team").startsWith(DATA_HOME + "/"));
   });
 
   test("a second named KB resolves beside the first", () => {

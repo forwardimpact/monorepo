@@ -40,26 +40,26 @@ Outpost Scheduler
 
 Agents:
   + postman
-    KB: ~/.local/share/fit/outpost/team  Schedule: {"type":"cron","expression":"*/15 8-18 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/Team  Schedule: {"type":"cron","expression":"*/15 8-18 * * 1-5"}
     Status: idle  Last wake: 5/4/2026, 9:15:00 AM  Wakes: 12
     Last action: Synced 3 new mail threads
   + concierge
-    KB: ~/.local/share/fit/outpost/team  Schedule: {"type":"cron","expression":"*/30 8-18 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/Team  Schedule: {"type":"cron","expression":"*/30 8-18 * * 1-5"}
     Status: idle  Last wake: 5/4/2026, 9:00:00 AM  Wakes: 6
     Last action: Prepared briefing for 10:00 AM standup
   + librarian
-    KB: ~/.local/share/fit/outpost/team  Schedule: {"type":"cron","expression":"0 9,12,15,18 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/Team  Schedule: {"type":"cron","expression":"0 9,12,15,18 * * 1-5"}
     Status: idle  Last wake: 5/4/2026, 9:00:00 AM  Wakes: 3
     Last action: Extracted 5 entities from recent mail
   + chief-of-staff
-    KB: ~/.local/share/fit/outpost/team  Schedule: {"type":"cron","expression":"0 7,18 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/Team  Schedule: {"type":"cron","expression":"0 7,18 * * 1-5"}
     Status: idle  Last wake: 5/4/2026, 7:00:00 AM  Wakes: 2
     Last action: Compiled daily briefing
   + recruiter
-    KB: ~/.local/share/fit/outpost/team  Schedule: {"type":"cron","expression":"0 8,12,17 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/Team  Schedule: {"type":"cron","expression":"0 8,12,17 * * 1-5"}
     Status: never-woken  Last wake: never  Wakes: 0
   + head-hunter
-    KB: ~/.local/share/fit/outpost/team  Schedule: {"type":"cron","expression":"0 9 * * 1-5"}
+    KB: ~/.local/share/fit/outpost/Team  Schedule: {"type":"cron","expression":"0 9 * * 1-5"}
     Status: never-woken  Last wake: never  Wakes: 0
 ```
 
@@ -86,7 +86,7 @@ a knowledge graph -- plain markdown files organized by entity type. Only the
 OneDrive); the rest of the workspace stays personal and local:
 
 ```text
-~/.local/share/fit/outpost/team/          # Your workspace root -- NOT shared
+~/.local/share/fit/outpost/Team/          # Your workspace root -- NOT shared
 ├── Knowledge/                 # The knowledge graph -- SHARED with the team
 │   ├── People/                # One note per person you interact with
 │   ├── Organizations/         # Companies, teams, departments
@@ -108,7 +108,7 @@ background you would otherwise reconstruct from memory before a meeting.
 You can search the graph directly:
 
 ```sh
-rg "Sarah Chen" ~/.local/share/fit/outpost/team/Knowledge/
+rg "Sarah Chen" ~/.local/share/fit/outpost/Team/Knowledge/
 ```
 
 ```text
@@ -137,13 +137,13 @@ already-synced content), a schedule, and whether the agent is enabled:
 {
   "agents": {
     "postman": {
-      "kb": "~/.local/share/fit/outpost/team",
+      "kb": "~/.local/share/fit/outpost/Team",
       "privilege": "full",
       "schedule": { "type": "cron", "expression": "*/15 8-18 * * 1-5" },
       "enabled": true
     },
     "chief-of-staff": {
-      "kb": "~/.local/share/fit/outpost/team",
+      "kb": "~/.local/share/fit/outpost/Team",
       "privilege": "restricted",
       "schedule": { "type": "cron", "expression": "0 7,18 * * 1-5" },
       "enabled": true
@@ -211,11 +211,11 @@ Outpost ships updated agent definitions and skills with each release. To
 fetch the latest into your knowledge base:
 
 ```sh
-npx fit-outpost update ~/.local/share/fit/outpost/team
+npx fit-outpost update ~/.local/share/fit/outpost/Team
 ```
 
 ```text
-Updating ~/.local/share/fit/outpost/team...
+Updating ~/.local/share/fit/outpost/Team...
   CLAUDE.md              updated
   agents/postman.md      updated
   skills/sync-apple-mail unchanged
@@ -227,7 +227,7 @@ Omit the path to update the knowledge base in the current directory, so you
 can run it from inside the KB itself:
 
 ```sh
-cd ~/.local/share/fit/outpost/team
+cd ~/.local/share/fit/outpost/Team
 npx fit-outpost update
 ```
 
