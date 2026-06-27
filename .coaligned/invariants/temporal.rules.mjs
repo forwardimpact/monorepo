@@ -101,6 +101,10 @@ const BASE_GLOBS = [
   // Its inline CSS hex colours (` #000`, ` #111`) trip the space-prefixed
   // numeric pattern; it is not authored monorepo source where references rot.
   "!products/outpost/templates/.claude/skills/deck-review/assets/**",
+  // The collision-ledger guide shows example CLI output whose anchor ids
+  // (` #97`, ` #44`) are runtime identifiers, not issue references; they trip
+  // the space-prefixed numeric pattern.
+  "!websites/fit/docs/libraries/predictable-team/collision-ledger/index.md",
 ];
 
 export default {
