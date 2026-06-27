@@ -8,10 +8,13 @@
  *   4. Judge.runJudge → Conclude-driven verdict mapped to pass/fail
  *   5. WorkdirManager.teardown → process-group cleanup
  *
- * Results stream as an async iterable AND are appended to
- * `<output>/results.jsonl` for durability. The two paths are different
- * consumers of the same record — the iterator drives CLI stdout mirroring,
- * the JSONL append is the system of record.
+ * Cells run with bounded in-process concurrency (`CellScheduler`); `run()`
+ * yields records in **completion order**, not grid order. A single drain loop
+ * is the sole writer of `<output>/results.jsonl`, appending each record the
+ * moment its cell settles — that incremental append is the durability and
+ * crash-safety mechanism, so a killed run keeps every completed cell and there
+ * is no sidecar ledger. The iterator drives CLI stdout mirroring off the same
+ * stream.
  */
 
 import { createInterface } from "node:readline";
@@ -27,6 +30,7 @@ import { validateResultRecord } from "./result.js";
 import { runInvariants } from "./invariants.js";
 import { assertJudgeProfileStaged, loadTaskFamily } from "./task-family.js";
 import { createWorkdirManager } from "./workdir.js";
+import { CellScheduler } from "./scheduler.js";
 
 const BASE_TOOLS = [
   "Bash",
@@ -42,6 +46,8 @@ const BASE_TOOLS = [
 // Upper bound on a single supervised agent run. A run that produces no terminal
 // message within this window is treated as a stall and recorded as an
 // agentError, so the benchmark never hangs the event loop into a silent exit.
+// Overridable per-runner via `watchdogMs` so a test can force a stall to fire
+// without waiting the full 20 minutes.
 const AGENT_WATCHDOG_MS = 20 * 60 * 1000;
 
 /** Sole orchestrator for a task-family benchmark run. */
@@ -58,6 +64,13 @@ export class BenchmarkRunner {
    * @param {Function} opts.query - SDK query (injected for testability).
    * @param {string[]} [opts.allowedTools] - Agent tool allowlist (default: BASE_TOOLS).
    * @param {number} [opts.maxTurns] - Agent-under-test turn budget.
+   * @param {number} [opts.concurrency] - Max cells in flight (integer ≥ 1).
+   *   Defaults to 1 as a defensive floor; the CLI always passes a resolved value.
+   * @param {{index: number, total: number}} [opts.shard] - Run only the cells
+   *   assigned to shard `index` of `total` (1-based). Absent ≡ the whole grid
+   *   (identity `1/1`).
+   * @param {number} [opts.watchdogMs] - Per-agent stall watchdog (ms). Defaults
+   *   to `AGENT_WATCHDOG_MS`; injectable so tests can force a stall in-test.
    * @param {number} [opts.termGraceMs] - SIGTERM→SIGKILL grace (ms) for the per-task process group.
    * @param {Function} [opts.runAgent] - Test seam: replaces the agent-under-test
    *   session. Must return `{costUsd, turns, submission, agentError?}` and
@@ -91,6 +104,9 @@ export class BenchmarkRunner {
     query,
     allowedTools,
     maxTurns,
+    concurrency,
+    watchdogMs,
+    shard,
     task,
     skillsFrom,
     termGraceMs,
@@ -117,6 +133,9 @@ export class BenchmarkRunner {
     };
     this.query = query;
     this.maxTurns = maxTurns;
+    this.concurrency = concurrency ?? 1;
+    this.watchdogMs = watchdogMs ?? AGENT_WATCHDOG_MS;
+    this.shard = shard ?? null;
     this.taskFilter = task ?? null;
     this.skillsFrom = skillsFrom ?? null;
     this.termGraceMs = termGraceMs;
@@ -173,24 +192,38 @@ export class BenchmarkRunner {
       runtime,
     });
 
+    const allCells = enumerateCells(tasks, this.runs);
+    // Sharding selects a deterministic subset of the grid; an unsharded run is
+    // the identity 1/1. A high-index shard may select zero cells — a valid run
+    // whose results.jsonl ends up empty.
+    const cells = this.shard
+      ? selectShard(allCells, this.shard.index, this.shard.total)
+      : allCells;
+    const scheduler = new CellScheduler({
+      concurrency: this.concurrency,
+      runCell: (cell) =>
+        this.#runOne(
+          family,
+          wm,
+          cell.task,
+          cell.runIndex,
+          skillSetHash,
+          judgeProfilesDir,
+        ),
+    });
+
     const resultsPath = join(this.output, "results.jsonl");
     const resultsStream = runtime.fs.createWriteStream(resultsPath, {
       flags: "a",
     });
+    // Single-writer drain: the scheduler runs up to `concurrency` cells at
+    // once and pushes each settled record here in completion order. This loop
+    // is the sole writer of `results.jsonl` — workers never touch the stream —
+    // and the per-completion append is the crash-safety mechanism.
     try {
-      for (const task of tasks) {
-        for (let runIndex = 0; runIndex < this.runs; runIndex++) {
-          const record = await this.#runOne(
-            family,
-            wm,
-            task,
-            runIndex,
-            skillSetHash,
-            judgeProfilesDir,
-          );
-          await writeRecord(resultsStream, record);
-          yield record;
-        }
+      for await (const record of scheduler.run(cells)) {
+        await writeRecord(resultsStream, record);
+        yield record;
       }
     } finally {
       await new Promise((r) => resultsStream.end(r));
@@ -199,22 +232,62 @@ export class BenchmarkRunner {
 
   async #runOne(family, wm, task, runIndex, skillSetHash, judgeProfilesDir) {
     const t0 = this.runtime.clock.now();
-    const workdir = await wm.start(task, runIndex);
+    let workdir;
     try {
-      if (workdir.preflightError) {
-        const record = this.#buildPreflightFailureRecord({
-          task,
-          runIndex,
-          workdir,
-          skillSetHash,
-          familyRevision: family.familyRevision,
-          durationMs: this.runtime.clock.now() - t0,
-        });
-        return this.#validateOrFallback(
-          record,
-          resultsRecordKey(task, runIndex),
-        );
-      }
+      workdir = await wm.start(task, runIndex);
+      return await this.#executeCell({
+        family,
+        workdir,
+        task,
+        runIndex,
+        skillSetHash,
+        judgeProfilesDir,
+        t0,
+      });
+    } catch (e) {
+      // `wm.start()` (port acquire + workdir/env seeding) is the one throw site
+      // not caught inside `#executeCell`. Turn it into the runner's own fallback
+      // record so `#runOne` never rejects — the scheduler's one-record-per-cell
+      // contract depends on that. The fallback is schema-skipped by `report`,
+      // the same as any other runner-side schema failure.
+      return {
+        taskId: task.id,
+        runIndex,
+        verdict: "fail",
+        schemaError: `cell setup failed: ${e.message ?? String(e)}`,
+      };
+    } finally {
+      if (workdir) await wm.teardown(workdir).catch(() => {});
+    }
+  }
+
+  /**
+   * Run one cell's lifecycle against an already-started workdir: preflight
+   * gate → supervised agent → invariants → judge → assembled record. Extracted
+   * from `#runOne` so the start/teardown/error wrapper stays under the
+   * complexity ceiling.
+   */
+  async #executeCell({
+    family,
+    workdir,
+    task,
+    runIndex,
+    skillSetHash,
+    judgeProfilesDir,
+    t0,
+  }) {
+    if (workdir.preflightError) {
+      const record = this.#buildPreflightFailureRecord({
+        task,
+        runIndex,
+        workdir,
+        skillSetHash,
+        familyRevision: family.familyRevision,
+        durationMs: this.runtime.clock.now() - t0,
+      });
+      return this.#validateOrFallback(record, resultsRecordKey(task, runIndex));
+    }
+    {
       const agentRun = await this.#runAgentSafe(task, workdir);
       const { costUsd, turns, submission, agentError } = agentRun;
       const breakdown = agentRun.costBreakdown ?? { agent: 0, supervisor: 0 };
@@ -295,8 +368,6 @@ export class BenchmarkRunner {
         ...(agentError && { agentError }),
       };
       return this.#validateOrFallback(record, resultsRecordKey(task, runIndex));
-    } finally {
-      await wm.teardown(workdir).catch(() => {});
     }
   }
 
@@ -369,10 +440,10 @@ export class BenchmarkRunner {
             () =>
               reject(
                 new Error(
-                  `agent run produced no result within ${AGENT_WATCHDOG_MS}ms (possible stall)`,
+                  `agent run produced no result within ${this.watchdogMs}ms (possible stall)`,
                 ),
               ),
-            AGENT_WATCHDOG_MS,
+            this.watchdogMs,
           );
         }),
       ]);
@@ -475,6 +546,40 @@ export class BenchmarkRunner {
       };
     }
   }
+}
+
+/**
+ * Flatten the grid into a stable ordered cell list, task-major /
+ * runIndex-minor. Load-bearing ordering: Part 02's round-robin shard balance
+ * depends on a task's runIndexes being adjacent in this list. Single source of
+ * the cell list for both the scheduler and the shard selector.
+ * @param {import("./task-family.js").Task[]} tasks
+ * @param {number} runs
+ * @returns {{task: import("./task-family.js").Task, runIndex: number}[]}
+ */
+export function enumerateCells(tasks, runs) {
+  const cells = [];
+  for (const task of tasks)
+    for (let runIndex = 0; runIndex < runs; runIndex++)
+      cells.push({ task, runIndex });
+  return cells;
+}
+
+/**
+ * Round-robin partition of the enumerated cells: the cell at position `p` runs
+ * iff `p % total === i - 1`. `i` is 1-based (Playwright-style). The union over
+ * `i ∈ 1..total` is the exact grid, each cell once; when `total > cells.length`
+ * the high-index shards select **zero** cells — a valid run. Because
+ * `enumerateCells` is task-major, a task's run indexes are adjacent, so
+ * round-robin spreads them across shards rather than handing one shard a slow
+ * task's whole run block.
+ * @param {{task: object, runIndex: number}[]} cells
+ * @param {number} i - 1-based shard index.
+ * @param {number} total - Shard count.
+ * @returns {{task: object, runIndex: number}[]}
+ */
+export function selectShard(cells, i, total) {
+  return cells.filter((_, p) => p % total === i - 1);
 }
 
 /**

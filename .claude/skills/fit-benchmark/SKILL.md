@@ -125,7 +125,12 @@ uploads `results.jsonl`.
 
 All CLI `run` flags are action inputs, plus CI extras (`summary`,
 `upload-results`, `artifact-name`, `timeout-minutes`, `k`, `format`) and a
-`results-path` output — see the action README.
+`results-path` output — see the action README. For parallelism the action takes
+`concurrency` (in-process, on by default) and `shard-index`/`shard-total` with
+`mode` (`run` a shard, or `merge` every shard's partial ledger). For
+cross-machine sharding from one `shard-total` input, the action ships a
+`benchmark.yml` reusable workflow that fans shards out and runs an
+agent-scaffold-free merge job — see the CI guide below.
 
 | Command | Purpose |
 | --- | --- |

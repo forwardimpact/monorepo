@@ -5,6 +5,7 @@
  */
 
 import { resolve } from "node:path";
+import { availableParallelism } from "node:os";
 
 import { createConfig } from "@forwardimpact/libconfig";
 import { createBenchmarkRunner } from "../benchmark/runner.js";
@@ -51,18 +52,35 @@ export async function runBenchmarkRunCommand(ctx) {
     runtime.proc.stdout.write(JSON.stringify(record) + "\n");
     if (record.verdict !== "pass") anyFail = true;
   }
-  // A run that emits zero records did nothing (no tasks discovered, or the
-  // agent never produced output). That is a failure, not a silent success —
-  // surface it loudly so CI does not go green on an empty benchmark.
-  if (count === 0) {
-    return {
-      ok: false,
-      code: 1,
-      error:
-        "benchmark produced no result records — no task ran to completion; check the family's tasks/, apm install, and agent availability (ANTHROPIC_API_KEY / claude CLI / IS_SANDBOX)",
-    };
-  }
+  if (count === 0) return resolveZeroRecordOutcome(opts, runtime);
   return anyFail ? { ok: false, code: 1, error: "" } : { ok: true };
+}
+
+/**
+ * Decide the exit outcome when a run streamed zero records. A run that emits no
+ * records normally did nothing (no tasks discovered, or the agent never
+ * produced output) — a failure, surfaced loudly so CI does not go green on an
+ * empty benchmark. The one exception is a deliberately-empty shard: a
+ * high-index `--shard=i/N` with `N > cell count` legitimately selects zero
+ * cells, so it exits 0 with a stderr note. Exported so the relaxed-guard branch
+ * is testable without the full handler's config/SDK setup.
+ * @param {{shard: {index: number, total: number} | null}} opts
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @returns {{ok: true} | {ok: false, code: number, error: string}}
+ */
+export function resolveZeroRecordOutcome(opts, runtime) {
+  if (opts.shard) {
+    runtime.proc.stderr.write(
+      `shard ${opts.shard.index}/${opts.shard.total} selected no cells\n`,
+    );
+    return { ok: true };
+  }
+  return {
+    ok: false,
+    code: 1,
+    error:
+      "benchmark produced no result records — no task ran to completion; check the family's tasks/, apm install, and agent availability (ANTHROPIC_API_KEY / claude CLI / IS_SANDBOX)",
+  };
 }
 
 /**
@@ -95,6 +113,8 @@ export function parseRunOptions(values, env = {}) {
       judge: values["judge-profile"] ?? null,
     },
     maxTurns: parseMaxTurns(values["max-turns"]),
+    concurrency: resolveConcurrency(values, env),
+    shard: parseShard(values.shard),
     allowedTools: values["allowed-tools"]
       ? values["allowed-tools"]
           .split(",")
@@ -108,4 +128,48 @@ function parseMaxTurns(raw) {
   if (raw === undefined) return undefined;
   if (raw === "0") return 0;
   return Number.parseInt(raw, 10);
+}
+
+/**
+ * Parse a `--shard=<i>/<N>` selector into `{index, total}` (1-based), or `null`
+ * for an unsharded run. Validates `1 ≤ index ≤ total` with integer parts.
+ * @param {string|undefined} raw
+ * @returns {{index: number, total: number} | null}
+ */
+export function parseShard(raw) {
+  if (raw == null || raw === "") return null;
+  const m = /^(\d+)\/(\d+)$/.exec(raw.trim());
+  if (!m) throw new Error("--shard must be in the form i/N (e.g. 1/4)");
+  const index = Number.parseInt(m[1], 10);
+  const total = Number.parseInt(m[2], 10);
+  if (total < 1 || index < 1 || index > total)
+    throw new Error("--shard requires 1 ≤ i ≤ N");
+  return { index, total };
+}
+
+// Conservative because each cell spawns ~3 agent subprocesses (lead +
+// agent-under-test + judge); a low ceiling keeps a single runner from
+// thrashing. The bulk of the CI speedup comes from Layer-2 sharding across
+// machines, not from raising this in-job default.
+const CONCURRENCY_CEILING = 4;
+
+/**
+ * Resolve the cell concurrency: `--concurrency` flag > the
+ * `LIBHARNESS_BENCHMARK_CONCURRENCY` env var > a CPU-aware default of
+ * `min(CONCURRENCY_CEILING, max(2, ⌊cores/2⌋))`. The default is `> 1` so
+ * concurrency is on transparently without any consumer opting in.
+ * @param {Record<string, string|undefined>} values
+ * @param {Record<string, string|undefined>} [env]
+ * @returns {number}
+ */
+export function resolveConcurrency(values, env = {}) {
+  const raw = values.concurrency ?? env.LIBHARNESS_BENCHMARK_CONCURRENCY;
+  if (raw != null && raw !== "") {
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 1)
+      throw new Error("--concurrency must be a positive integer");
+    return n;
+  }
+  const cores = availableParallelism();
+  return Math.min(CONCURRENCY_CEILING, Math.max(2, Math.floor(cores / 2)));
 }
