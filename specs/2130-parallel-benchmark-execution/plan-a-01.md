@@ -110,40 +110,27 @@ Verification: with a `runCell` stub that records concurrent entry/exit, a run of
 `M` cells at `C` reports max-in-flight ≤ `C`; all `M` records are yielded
 exactly once.
 
-## Step 4 — Rate-limit backpressure — BLOCKED ON DESIGN REVISION
+## Step 4 — Rate-limit backpressure — DESCOPED (moved to a follow-up spec)
 
-> **Do not implement this step as the design currently specifies it.** The
-> review panel confirmed a blocker: design-a.md § Layer 1 places
-> `retryRateLimited` in `#runAgentSafe` and assumes a 429 surfaces as a **thrown
-> error** at the agent-session boundary. It does not. `AgentRunner.#consumeQuery`
-> (agent-runner.js:190-196) **catches** the query iterator's error and **returns**
-> it as a `{success:false, error}` field; `supervisor.run` then resolves (does
-> not reject), so a `try/catch` retry at any benchmark-runner site is dead code.
-> A correct, robust retry must (a) **detect** the rate limit from the returned
-> `error`/`success` result, not a throw, and (b) sit at a seam that can re-issue
-> the failing **SDK call** with a fresh trace stream — re-running the whole
-> supervised `#runAgent` session on a mid-session 429 both double-writes the
-> reused `combinedStream` (double-counting cost via `sumTraceCost`) and restarts
-> partial agent work. The natural seam is inside `AgentRunner` around the `query`
-> iterator, which is **shared by every harness consumer** (supervise, facilitate,
-> benchmark) — a cross-cutting choice with blast radius, i.e. a WHICH/WHERE
-> decision that belongs in the design, not the plan.
+Rate-limit backpressure is **out of scope for spec 2130** (descope decision,
+2026-06-27). The review panel established it is not a thin implementation detail:
+a 429 does not throw at the agent-session boundary — `AgentRunner.#consumeQuery`
+(agent-runner.js:190-196) catches the query error and returns it as a
+`{success:false, error}` field — and a robust retry seam (the shared `AgentRunner`
+query call, used by supervise/facilitate/benchmark) is cross-cutting, with a
+trace/cost-correctness contract under retry. That is a WHICH/WHERE decision the
+design must own, so it is split to its own spec rather than wedged into this one.
 
-**Action:** return spec 2130 to `kata-design` to revise the § Layer 1
-backpressure row — name the detection signal (returned `error`, not a throw),
-the owning component (`AgentRunner` query seam vs benchmark cell vs scheduler
-admission control), and the trace/cost-correctness contract under retry. The
-other Layer-1 steps (1–3, 5–7) do not depend on backpressure and can proceed;
-this step lands only after the design is amended and re-approved.
+Nothing else in this plan depends on it. Under concurrency, a cell that hits a
+429 records an `agentError` (today's behavior, unchanged) and — thanks to Layer 1
+— costs one slot, not the run; the run still completes. The follow-up spec adds
+the retry on top of this scheduler.
 
-Once the design names the mechanism, this step's shape will be: detect the
-rate-limit class from the result, back off via `this.runtime.clock.sleep(
-RATE_LIMIT_BASE_MS · 2^attempt)` up to `RATE_LIMIT_MAX_RETRIES`, all inside the
-existing watchdog window (the watchdog race, not a second elapsed-time clock,
-bounds total wall-clock), with each attempt re-issuing against a clean trace so
-cost is counted once. The verification must drive the 429 through the real
-result path (a `query` whose iterator errors once then succeeds) and assert both
-a single normal record **and** un-doubled `costUsd`/`turns`.
+**Companion action (outside kata-plan):** trim spec 2130 to match — remove the
+"Rate-limit backpressure" in-scope row and the "Rate-limit failures back off"
+[L1] success criterion (via `kata-spec`), and remove the § Layer 1
+`retryRateLimited` row from design-a (via `kata-design`) — then open the
+follow-up spec for the backpressure mechanism.
 
 ## Step 5 — `resolveConcurrency` + `--concurrency` flag
 
@@ -240,7 +227,7 @@ Each row maps to a spec § Success criteria [L1] line:
 | Port collision-free | Step 2's `PortRegistry` concurrent-acquire test |
 | One record per cell | concurrent run of `tasks×runs` → `results.jsonl` parses to exactly that many schema-valid records, none interleaved/truncated |
 | Stall costs one slot | one cell forced to the watchdog with `C>1` (inject a short `watchdogMs`): others produce records, run completes, stalled cell is `agentError` |
-| Rate-limit backoff | **deferred** — covered when Step 4 lands after the design revision; the spec's "rate-limit failures back off" [L1] criterion is not met until then |
+| Rate-limit backoff | **descoped** — moved to a follow-up spec (Step 4); not a 2130 criterion once the spec is trimmed |
 
 **Substituted verification method (called out).** The spec and design phrase the
 bound as "completes in ≈ `ceil(M/C)` batch-durations against the clock seam." The

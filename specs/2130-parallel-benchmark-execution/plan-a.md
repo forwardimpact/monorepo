@@ -5,18 +5,19 @@ three independently executable parts; each part is a clean break per
 [CONTRIBUTING § Clean breaks](../../CONTRIBUTING.md#read-do) — the serial loop,
 `allocatePort`, and the single-file `loadRecords` read are deleted, not branched.
 
-> **Open blocker — design revision required before full approval.** The review
-> panel confirmed that the design's Layer-1 **rate-limit backpressure** directive
-> rests on a false premise: a 429 does not throw at the agent-session boundary —
-> `AgentRunner.#consumeQuery` (agent-runner.js:190-196) catches it and returns a
-> `{success:false, error}` field — and the robust retry seam (the shared
-> `AgentRunner` query call) is cross-cutting, a WHICH/WHERE decision the design
-> must own. **Spec 2130 returns to `kata-design`** to revise the § Layer 1
-> backpressure row (detection signal, owning component, trace/cost contract under
-> retry). Every other step in this plan is independent of backpressure and is
-> execution-ready; only [Part 01 Step 4](plan-a-01.md) waits on the amended
-> design. Until then the spec's "rate-limit failures back off" [L1] criterion is
-> unmet, so this plan is not yet approvable.
+> **Scope note — rate-limit backpressure descoped (2026-06-27).** The review
+> panel established that the design's Layer-1 backpressure directive is not
+> executable as written (a 429 does not throw — `AgentRunner.#consumeQuery`
+> returns it as a `{success:false, error}` field — and the robust retry seam is
+> the cross-cutting shared `AgentRunner` query call). By decision, backpressure is
+> **split to a follow-up spec**; this plan ships Layer 1 (concurrency, ports,
+> ledger, scheduler) and Layer 2 (sharding, merge, distribution). Under
+> concurrency a 429'd cell records an `agentError` and costs one slot, not the
+> run — the run still completes. **Companion edits, outside kata-plan:** trim
+> spec 2130's backpressure in-scope row + "rate-limit failures back off" [L1]
+> criterion (`kata-spec`) and design-a's § Layer 1 `retryRateLimited` row
+> (`kata-design`), then open the follow-up spec. This plan is approvable once
+> those trims land. See [Part 01 Step 4](plan-a-01.md).
 
 ## Approach
 
@@ -33,7 +34,7 @@ schema, and pass@k math are untouched throughout.
 
 | Part | Scope | Tree | Depends on |
 | --- | --- | --- | --- |
-| [01](plan-a-01.md) | Layer 1 — in-process concurrency: `enumerateCells`, `CellScheduler`, single-writer drain, `PortRegistry`, `resolveConcurrency` (Step 4 rate-limit backpressure **blocked on design revision**) | `libraries/libharness` | — |
+| [01](plan-a-01.md) | Layer 1 — in-process concurrency: `enumerateCells`, `CellScheduler`, single-writer drain, `PortRegistry`, `resolveConcurrency` (Step 4 rate-limit backpressure **descoped** → follow-up spec) | `libraries/libharness` | — |
 | [02](plan-a-02.md) | Layer 2 (runner/report) — `selectShard`, `--shard` parsing, recursive `loadRecords` merge | `libraries/libharness` | 01 (`enumerateCells`) |
 | [03](plan-a-03.md) | Layer 2 (distribution) — composite-action `mode`/shard inputs, reusable workflow, `eval-kata.yml` migration, `fit-bootstrap` parallel-safety coordination, docs | `forwardimpact/fit-benchmark` sibling, `.github/`, `websites/` | 01, 02 (CLI flags) |
 
