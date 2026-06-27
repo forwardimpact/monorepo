@@ -1,10 +1,37 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import * as yaml from "yaml";
+import * as acorn from "acorn";
+import { LIBCLI_IS_COMPILED } from "@forwardimpact/libcli";
 import { runRules } from "@forwardimpact/libutil";
 import { createBuildKit, RULE_KIT } from "./invariant-kit.js";
 
 // The conventional rules location, relative to the project root.
 export const INVARIANTS_DIR = ".coaligned/invariants";
+
+// Rule modules are imported dynamically at runtime, so a compiled binary cannot
+// bundle their bare imports, and the standalone executable has no node_modules
+// to resolve them from — a rule module's `import "yaml"` would fail. Expose the
+// third-party packages libcoaligned already bundles as virtual modules, so a
+// compiled rule module resolves them to the embedded copies. Under node/bunx
+// this is a no-op: node_modules resolves them normally. A rule module that
+// imports a package beyond this set must run via the package, not the binary.
+let bundledRuleDepsRegistered = false;
+function registerBundledRuleDeps() {
+  if (bundledRuleDepsRegistered) return;
+  // Only the standalone binary needs this; node/bunx resolve from node_modules.
+  if (!LIBCLI_IS_COMPILED || typeof Bun === "undefined") {
+    return;
+  }
+  Bun.plugin({
+    name: "coaligned-rule-deps",
+    setup(build) {
+      build.module("yaml", () => ({ exports: yaml, loader: "object" }));
+      build.module("acorn", () => ({ exports: acorn, loader: "object" }));
+    },
+  });
+  bundledRuleDepsRegistered = true;
+}
 
 /**
  * Resolve the root whose `.coaligned/invariants/` applies to the working
@@ -86,6 +113,7 @@ export async function loadRuleModules({
   if (names.length === 0) {
     throw new Error(`no *.rules.mjs modules found in ${dir}`);
   }
+  registerBundledRuleDeps();
   const modules = [];
   for (const name of names) {
     const mod = (await import(pathToFileURL(resolve(dir, name)).href)).default;
