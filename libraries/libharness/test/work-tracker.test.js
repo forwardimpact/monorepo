@@ -10,6 +10,7 @@ import { parseFacilitateOptions } from "../src/commands/facilitate.js";
 import {
   parseRunOptions as parseBenchmarkRunOptions,
   resolveConcurrency,
+  parseShard,
 } from "../src/commands/benchmark-run.js";
 
 // Every agent-running entry point resolves --work-tracker (default "github")
@@ -243,5 +244,34 @@ describe("fit-benchmark run resolves --concurrency", () => {
       concurrency: "6",
     });
     assert.strictEqual(opts.concurrency, 6);
+  });
+});
+
+describe("fit-benchmark run parses --shard", () => {
+  test("absent shard is null (whole family)", () => {
+    assert.strictEqual(parseShard(undefined), null);
+    assert.strictEqual(parseShard(""), null);
+  });
+
+  test("i/N parses to a 1-based {index, total}", () => {
+    assert.deepStrictEqual(parseShard("1/4"), { index: 1, total: 4 });
+    assert.deepStrictEqual(parseShard("3/3"), { index: 3, total: 3 });
+  });
+
+  test("index > total is rejected", () => {
+    assert.throws(() => parseShard("9/3"), /1 ≤ i ≤ N/);
+  });
+
+  test("a non-i/N form is rejected", () => {
+    assert.throws(() => parseShard("4"), /i\/N/);
+    assert.throws(() => parseShard("a/b"), /i\/N/);
+  });
+
+  test("parseRunOptions threads the parsed shard", () => {
+    const opts = parseBenchmarkRunOptions({
+      family: "./families/coding",
+      shard: "2/5",
+    });
+    assert.deepStrictEqual(opts.shard, { index: 2, total: 5 });
   });
 });

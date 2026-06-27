@@ -433,21 +433,55 @@ function median(arr) {
 // Record loading
 // ---------------------------------------------------------------------------
 
+// Directories never worth descending for a `results.jsonl`.
+const SKIP_DIRS = new Set([".git", "node_modules"]);
+
+/**
+ * Load and union every `results.jsonl` found recursively under `inputDir`.
+ *
+ * A single non-sharded run has one root-level ledger — the trivial one-match
+ * case of the same walk. A sharded run lays each shard's partial ledger in its
+ * own subdirectory; merging them equals reporting a single run over the same
+ * cells. An *existing* dir with no ledger yields the empty union (exit 0); a
+ * *missing* dir lets `readdir`'s ENOENT propagate so `report` still errors.
+ * @param {string} inputDir
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @returns {Promise<{records: object[], skipped: number}>}
+ */
 async function loadRecords(inputDir, runtime) {
-  const path = join(inputDir, "results.jsonl");
-  let content;
+  let files;
   try {
-    content = await runtime.fs.readFile(path, "utf8");
+    files = await collectResultsFiles(inputDir, runtime);
   } catch (e) {
     // Re-throw with the stack collapsed to the message line so the CLI's
-    // error rendering stays free of node-internal async `readFile` frames
-    // (matching the pre-1370 stream-error shape the golden captured).
+    // error rendering stays free of node-internal async `readdir` frames
+    // (a missing --input dir surfaces its ENOENT as exit 1, matching the
+    // pre-1370 stream-error shape the golden captured).
     const err = new Error(e.message);
     if (e.code) err.code = e.code;
     err.stack = `Error: ${e.message}`;
     throw err;
   }
   const records = [];
+  let skipped = 0;
+  for (const file of files) {
+    const content = await runtime.fs.readFile(file, "utf8");
+    skipped += parseLedgerInto(content, records, runtime);
+  }
+  warnOnDuplicateCells(records, runtime);
+  return { records, skipped };
+}
+
+/**
+ * Parse one ledger's JSONL into `records`, skipping malformed or schema-invalid
+ * lines with a stderr warning. Returns the skipped count. Extracted from
+ * `loadRecords` to keep its cognitive complexity under the lint ceiling.
+ * @param {string} content
+ * @param {object[]} records - Accumulator, appended in place.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @returns {number} Skipped line count.
+ */
+function parseLedgerInto(content, records, runtime) {
   let skipped = 0;
   for (const line of content.split("\n")) {
     const trimmed = line.trim();
@@ -473,7 +507,55 @@ async function loadRecords(inputDir, runtime) {
     }
     records.push(record);
   }
-  return { records, skipped };
+  return skipped;
+}
+
+/**
+ * Recursively collect paths of every file named `results.jsonl` under `dir`,
+ * skipping `.git`/`node_modules` and never following symlinks. A purpose-built
+ * `readdir` walk — `task-family.js`'s private `walkFiles` resolves symlinks and
+ * is unexported, which is the wrong contract here.
+ * @param {string} dir
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @returns {Promise<string[]>}
+ */
+async function collectResultsFiles(dir, runtime) {
+  const entries = await runtime.fs.readdir(dir, { withFileTypes: true });
+  entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  const out = [];
+  for (const entry of entries) {
+    if (entry.isSymbolicLink()) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (SKIP_DIRS.has(entry.name)) continue;
+      out.push(...(await collectResultsFiles(full, runtime)));
+    } else if (entry.isFile() && entry.name === "results.jsonl") {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
+/**
+ * Warn (do not silently merge) when a `(taskId, runIndex)` cell appears more
+ * than once across shard ledgers. The shard partition guarantees uniqueness, so
+ * a duplicate signals misconfiguration; both copies stay in the group so the
+ * count is honest.
+ * @param {object[]} records
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ */
+function warnOnDuplicateCells(records, runtime) {
+  const counts = new Map();
+  for (const r of records) {
+    const key = `${r.taskId}#${r.runIndex}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  for (const [key, n] of counts) {
+    if (n > 1)
+      runtime.proc.stderr.write(
+        `benchmark report: duplicate cell ${key} appears ${n} times across shard ledgers — the shard partition should make each cell unique\n`,
+      );
+  }
 }
 
 function describeError(e) {

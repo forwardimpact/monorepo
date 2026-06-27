@@ -66,6 +66,9 @@ export class BenchmarkRunner {
    * @param {number} [opts.maxTurns] - Agent-under-test turn budget.
    * @param {number} [opts.concurrency] - Max cells in flight (integer ≥ 1).
    *   Defaults to 1 as a defensive floor; the CLI always passes a resolved value.
+   * @param {{index: number, total: number}} [opts.shard] - Run only the cells
+   *   assigned to shard `index` of `total` (1-based). Absent ≡ the whole grid
+   *   (identity `1/1`).
    * @param {number} [opts.watchdogMs] - Per-agent stall watchdog (ms). Defaults
    *   to `AGENT_WATCHDOG_MS`; injectable so tests can force a stall in-test.
    * @param {number} [opts.termGraceMs] - SIGTERM→SIGKILL grace (ms) for the per-task process group.
@@ -103,6 +106,7 @@ export class BenchmarkRunner {
     maxTurns,
     concurrency,
     watchdogMs,
+    shard,
     task,
     skillsFrom,
     termGraceMs,
@@ -131,6 +135,7 @@ export class BenchmarkRunner {
     this.maxTurns = maxTurns;
     this.concurrency = concurrency ?? 1;
     this.watchdogMs = watchdogMs ?? AGENT_WATCHDOG_MS;
+    this.shard = shard ?? null;
     this.taskFilter = task ?? null;
     this.skillsFrom = skillsFrom ?? null;
     this.termGraceMs = termGraceMs;
@@ -187,7 +192,13 @@ export class BenchmarkRunner {
       runtime,
     });
 
-    const cells = enumerateCells(tasks, this.runs);
+    const allCells = enumerateCells(tasks, this.runs);
+    // Sharding selects a deterministic subset of the grid; an unsharded run is
+    // the identity 1/1. A high-index shard may select zero cells — a valid run
+    // whose results.jsonl ends up empty.
+    const cells = this.shard
+      ? selectShard(allCells, this.shard.index, this.shard.total)
+      : allCells;
     const scheduler = new CellScheduler({
       concurrency: this.concurrency,
       runCell: (cell) =>
@@ -514,6 +525,23 @@ export function enumerateCells(tasks, runs) {
     for (let runIndex = 0; runIndex < runs; runIndex++)
       cells.push({ task, runIndex });
   return cells;
+}
+
+/**
+ * Round-robin partition of the enumerated cells: the cell at position `p` runs
+ * iff `p % total === i - 1`. `i` is 1-based (Playwright-style). The union over
+ * `i ∈ 1..total` is the exact grid, each cell once; when `total > cells.length`
+ * the high-index shards select **zero** cells — a valid run. Because
+ * `enumerateCells` is task-major, a task's run indexes are adjacent, so
+ * round-robin spreads them across shards rather than handing one shard a slow
+ * task's whole run block.
+ * @param {{task: object, runIndex: number}[]} cells
+ * @param {number} i - 1-based shard index.
+ * @param {number} total - Shard count.
+ * @returns {{task: object, runIndex: number}[]}
+ */
+export function selectShard(cells, i, total) {
+  return cells.filter((_, p) => p % total === i - 1);
 }
 
 /**

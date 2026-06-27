@@ -54,8 +54,17 @@ export async function runBenchmarkRunCommand(ctx) {
   }
   // A run that emits zero records did nothing (no tasks discovered, or the
   // agent never produced output). That is a failure, not a silent success —
-  // surface it loudly so CI does not go green on an empty benchmark.
+  // surface it loudly so CI does not go green on an empty benchmark. The one
+  // exception is a deliberately-empty shard: a high-index `--shard=i/N` with
+  // `N > cell count` legitimately selects zero cells (design § Layer 2), so it
+  // exits 0 with a note rather than failing the run.
   if (count === 0) {
+    if (opts.shard) {
+      runtime.proc.stderr.write(
+        `shard ${opts.shard.index}/${opts.shard.total} selected no cells\n`,
+      );
+      return { ok: true };
+    }
     return {
       ok: false,
       code: 1,
@@ -97,6 +106,7 @@ export function parseRunOptions(values, env = {}) {
     },
     maxTurns: parseMaxTurns(values["max-turns"]),
     concurrency: resolveConcurrency(values, env),
+    shard: parseShard(values.shard),
     allowedTools: values["allowed-tools"]
       ? values["allowed-tools"]
           .split(",")
@@ -110,6 +120,23 @@ function parseMaxTurns(raw) {
   if (raw === undefined) return undefined;
   if (raw === "0") return 0;
   return Number.parseInt(raw, 10);
+}
+
+/**
+ * Parse a `--shard=<i>/<N>` selector into `{index, total}` (1-based), or `null`
+ * for an unsharded run. Validates `1 ≤ index ≤ total` with integer parts.
+ * @param {string|undefined} raw
+ * @returns {{index: number, total: number} | null}
+ */
+export function parseShard(raw) {
+  if (raw == null || raw === "") return null;
+  const m = /^(\d+)\/(\d+)$/.exec(raw.trim());
+  if (!m) throw new Error("--shard must be in the form i/N (e.g. 1/4)");
+  const index = Number.parseInt(m[1], 10);
+  const total = Number.parseInt(m[2], 10);
+  if (total < 1 || index < 1 || index > total)
+    throw new Error("--shard requires 1 ≤ i ≤ N");
+  return { index, total };
 }
 
 // Conservative because each cell spawns ~3 agent subprocesses (lead +

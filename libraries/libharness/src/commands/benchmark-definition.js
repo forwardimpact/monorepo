@@ -82,6 +82,11 @@ export const definition = {
           description:
             "Max cells run concurrently (positive integer; default: CPU-aware min(4, max(2, cores/2)); env: LIBHARNESS_BENCHMARK_CONCURRENCY)",
         },
+        shard: {
+          type: "string",
+          description:
+            "Run only shard i of N as i/N (1-based; default: the whole family). Each shard writes a partial results.jsonl; report --input merges them.",
+        },
         "allowed-tools": {
           type: "string",
           description:
