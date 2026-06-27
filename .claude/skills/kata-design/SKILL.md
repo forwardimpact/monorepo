@@ -28,8 +28,7 @@ is no commitment to implement, and a design has nothing to shape.
 - Reviewing a design before approval ("review design NNN", "is design NNN
   ready?")
 - Revisiting a design whose direction needs rethinking before planning
-- Co-running with `kata-spec` when one prompt asks for both and the session
-  holds the technical direction — see
+- Co-running with `kata-spec` when one prompt asks for both — see
   [lockstep co-execution](references/lockstep-co-execution.md)
 
 ## Checklists

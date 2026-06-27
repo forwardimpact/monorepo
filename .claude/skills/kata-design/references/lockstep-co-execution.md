@@ -1,28 +1,13 @@
 # Lockstep Co-Execution (spec + design together)
 
-Shared protocol for when **one prompt asks for both the spec and the design**
-and the session already holds enough context to commit to a technical
-direction. Used by [`kata-spec`](../../kata-spec/SKILL.md) and
-[`kata-design`](../SKILL.md).
+Shared protocol for when **one prompt asks for both the spec and the design**.
+Used by [`kata-spec`](../../kata-spec/SKILL.md) and [`kata-design`](../SKILL.md).
+Both pipelines advance one phase at a time, with a barrier at each phase
+boundary, and ship in a single PR.
 
-Default behaviour is serial: write the spec, ship and approve it, then start the
-design. Lockstep is the opt-in alternative — both pipelines advance one phase at
-a time, with a barrier at each phase boundary, and ship in a **single PR**.
-
-## When lockstep is appropriate
-
-- The same prompt requests both artifacts.
-- You are confident the architecture will not need an independent redirect — the
-  separate design approval exists as a redirection checkpoint, and lockstep
-  collapses it into the spec approval. If you want the design scrutinized as its
-  own gate, run the skills serially instead.
-
-## Why
-
-Run fully serial, the spec review panel and its triage fill the context window
-before the design is ever drafted, so the design is authored from a saturated
-context. Lockstep authors **both artifacts from the same fresh context**, before
-any review-triage detour, then reviews and ships them as one unit.
+Author both artifacts from the same fresh context before reviewing either —
+running fully serial fills the context with spec-review triage before the design
+is drafted.
 
 ## The barrier sequence
 
@@ -59,8 +44,7 @@ spec draft → design draft → design approved
 - `design draft` — once both artifacts are reviewed and pushed in the combined
   PR (a draft→draft bookkeeping move, no approval).
 - `design approved` — the human's single design-class approval signal on the
-  combined PR; a normal single-step approval transition. Approval stays
-  human-only and serial in the sense that one signal still gates the merge.
+  combined PR; a normal single-step approval transition.
 
 ## Metrics
 

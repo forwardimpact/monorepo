@@ -27,8 +27,7 @@ asked for. If they ask for a spec, write the spec and stop.
 - Documenting a proposed feature, change, or improvement with rationale
 - Reviewing a spec before it advances to planning ("review spec NNN", "is spec
   NNN ready?")
-- Co-running with `kata-design` when one prompt asks for both and the session
-  holds the technical direction — see
+- Co-running with `kata-design` when one prompt asks for both — see
   [lockstep co-execution](../kata-design/references/lockstep-co-execution.md)
 
 ## Checklists
