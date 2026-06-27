@@ -16,7 +16,9 @@ else
   FAIL=1
 fi
 
-assert has-decisions  --grep '^##+ .*Decision' "$DESIGN"
-assert names-tradeoff --grep 'reject|alternative|instead of|trade.?off' "$DESIGN"
+# A decisions heading at any depth ("## Decisions", "### Key Decision"), and any
+# of the common ways a rejected option gets named. Case-insensitive (RegExp /im/).
+assert has-decisions  --grep '^#{2,6}[ \t]+.*Decision' "$DESIGN"
+assert names-tradeoff --grep 'reject|alternative|instead of|rather than|trade.?off' "$DESIGN"
 
 [ "$FAIL" = 0 ] && exit 0 || exit 1

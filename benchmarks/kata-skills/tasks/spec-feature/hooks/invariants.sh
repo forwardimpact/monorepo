@@ -8,9 +8,13 @@ assert() { fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
 assert file-present --exists "$SPEC"
 [ "$FAIL" = 1 ] && exit 1
 
-assert has-problem        --grep '^## Problem' "$SPEC"
-assert has-scope          --grep '^##+ (In )?Scope|^##+ Non.?Goals' "$SPEC"
-assert verifiable-success --grep '^## (Success|Acceptance Criteria)' "$SPEC"
+# Match the section at any heading depth, with any heading text that contains
+# the keyword (e.g. "## Problem", "### Problem Statement", "## Out of Scope",
+# "## Non-Goals", "## Success Criteria", "## Acceptance Criteria"). The grep
+# runs case-insensitive and multiline (RegExp /im/).
+assert has-problem        --grep '^#{2,6}[ \t]+.*Problem' "$SPEC"
+assert has-scope          --grep '^#{2,6}[ \t]+.*(Scope|Non.?Goals)' "$SPEC"
+assert verifiable-success --grep '^#{2,6}[ \t]+.*(Success|Acceptance)' "$SPEC"
 assert no-how-leak        --not --grep '[A-Za-z0-9_/.-]+\.(js|ts|sh|py|yml|yaml):[0-9]+' "$SPEC" \
                           --message "file:line reference detected"
 assert cites-jtbd --cites-job "$JTBD" "$SPEC"
