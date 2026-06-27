@@ -28,14 +28,17 @@ is no commitment to implement, and a design has nothing to shape.
 - Reviewing a design before approval ("review design NNN", "is design NNN
   ready?")
 - Revisiting a design whose direction needs rethinking before planning
+- Co-running with `kata-spec` when one prompt asks for both — see
+  [lockstep co-execution](references/lockstep-co-execution.md)
 
 ## Checklists
 
 <read_do_checklist goal="Internalize design-writing boundaries before starting">
 
-- [ ] Confirm `specs/NNN/spec.md` exists on `origin/main` after
-      `git fetch origin main` — wait for the spec PR to merge before
-      starting a design.
+- [ ] Confirm `specs/NNN/spec.md` exists on `origin/main`
+      (`git fetch origin main`) before designing — except under
+      [lockstep co-execution](references/lockstep-co-execution.md), which drafts
+      against the same-branch spec.
 - [ ] Do not write or revise the spec — return it to `draft` if it needs
       changes.
 - [ ] Do not write the plan — this skill writes the design; `kata-plan`
@@ -140,7 +143,9 @@ from prior entries.
 ### Step 1: Find the spec
 
 Run `git fetch origin main`, then confirm `specs/NNN/spec.md` exists on
-`origin/main` — wait for the spec PR to merge before starting a design.
+`origin/main` — wait for the spec PR to merge before starting a design. Under
+[lockstep co-execution](references/lockstep-co-execution.md) the spec is drafted
+in this session instead; skip the wait.
 
 ### Step 2: Study the spec
 
@@ -170,7 +175,9 @@ Before pushing, verify identifiers the design names still exist on
 
 The PR title carries the spec id: `design(NNN): …`. Do not apply the
 `design:approved` label and do not recommend approval — those are human-only
-actions; see § Approval.
+actions; see § Approval. Under
+[lockstep co-execution](references/lockstep-co-execution.md) this single
+`design(NNN)` PR also carries `spec.md`; no separate spec PR is opened.
 
 [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
 

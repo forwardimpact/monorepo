@@ -27,6 +27,8 @@ asked for. If they ask for a spec, write the spec and stop.
 - Documenting a proposed feature, change, or improvement with rationale
 - Reviewing a spec before it advances to planning ("review spec NNN", "is spec
   NNN ready?")
+- Co-running with `kata-design` when one prompt asks for both — see
+  [lockstep co-execution](../kata-design/references/lockstep-co-execution.md)
 
 ## Checklists
 
@@ -35,8 +37,9 @@ asked for. If they ask for a spec, write the spec and stop.
 - [ ] Claim the spec number in `wiki/STATUS.md` as the first action — append a
       `{NNN}\tspec\tdraft` row before writing, so parallel sessions cannot
       claim the same id.
-- [ ] Only produce the deliverable asked for — if asked for a spec, stop after
-      the spec. Do not also write a plan.
+- [ ] Only produce the deliverable(s) asked for — never auto-advance to the
+      plan. Spec+design in one prompt is a valid pairing: run
+      [lockstep co-execution](../kata-design/references/lockstep-co-execution.md).
 - [ ] No implementation details in the spec — file paths, function signatures,
       and code patterns belong in the plan.
 - [ ] When reviewing: evaluate, do not rewrite. If changes are needed, return to
@@ -167,6 +170,10 @@ The PR title carries the spec id: `spec(NNN): …`. Merge of that PR is what
 advances the phase. Apply the matching `product` / `internal` label per the
 shared rubric when opening the PR. Do not apply the `spec:approved` label and
 do not recommend approval — those are human-only actions; see § Approval.
+
+Under [lockstep co-execution](../kata-design/references/lockstep-co-execution.md),
+do **not** open a separate spec PR — the spec ships inside the single combined
+PR opened at the design stage.
 
 [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
 
