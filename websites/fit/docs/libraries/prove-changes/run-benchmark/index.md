@@ -271,6 +271,24 @@ count, and the absolute paths to both NDJSON traces. The record's
 schema is validated at write time, so a malformed write is caught
 before the report stage trips over it.
 
+### Run Cells Concurrently
+
+Cells — each `(task, runIndex)` pair — run concurrently by default, so a
+family no longer takes the *sum* of every cell's wall-clock. Concurrency is
+on without any flag: the default is CPU-aware (`min(4, max(2, cores/2))`).
+Override it with `--concurrency=<n>` or the
+`LIBHARNESS_BENCHMARK_CONCURRENCY` environment variable (the flag wins):
+
+```sh
+npx fit-benchmark run --family=./my-coding-family --runs=5 --concurrency=4
+```
+
+Concurrency does not change the pass@k a serial run would have produced —
+records simply stream in completion order instead of grid order, and each
+cell still lands in `results.jsonl` the moment it settles, so a cancelled
+run keeps every completed cell. One stalled cell now occupies a single slot
+instead of blocking the whole run.
+
 ## Check One Task's Invariants at a Time
 
 For ad-hoc grading without an agent run:
@@ -310,6 +328,43 @@ data only — suitable for machine consumption and before/after diffs.
 
 A `k > n` value emits a structured error row rather than a misleading
 number.
+
+`report --input` discovers every `results.jsonl` **recursively** under the
+directory and unions the records before computing pass@k. A single run with
+one `results.jsonl` is the trivial case; the same command merges the partial
+ledgers produced by sharding (below) when you point it at a directory holding
+each shard's output.
+
+## Shard Across Machines
+
+One machine has a ceiling — CPU, memory, and the CI per-job time limit. For a
+large family, split the grid across machines with `--shard=<i>/<N>`: shard `i`
+of `N` runs a deterministic, balanced subset of the cells and writes a partial
+`results.jsonl` containing only its cells.
+
+```sh
+# On machine 1 of 3:
+npx fit-benchmark run --family=./my-coding-family --runs=5 \
+  --shard=1/3 --output=./runs/shard-1
+# ...machines 2 and 3 run --shard=2/3 and --shard=3/3 into ./runs/shard-2, ./runs/shard-3
+```
+
+The `N` shards form an exact partition: every cell runs on exactly one shard,
+none twice, none dropped. Assignment is at `(task, runIndex)` granularity and
+round-robins across shards, so a slow task's runs spread out rather than
+landing one whole task on a single machine. When `N` exceeds the cell count the
+high-index shards select zero cells — a valid run with an empty ledger.
+
+Collect the shard outputs under one directory and merge them into a single
+pass@k — identical to what a non-sharded run over the same cells would
+report — with the recursive `report --input`:
+
+```sh
+npx fit-benchmark report --input=./runs --k=1,3,5 --format=text
+```
+
+Each shard run also uses in-process concurrency internally, so effective
+parallelism is `N` machines × the per-machine concurrency.
 
 ## Compare Before and After
 
