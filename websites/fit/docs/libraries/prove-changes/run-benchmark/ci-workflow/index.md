@@ -74,11 +74,16 @@ CI-specific inputs that have no CLI equivalent:
 | `judge-profile` | | Judge profile name |
 | `max-turns` | `"50"` | Agent turn budget (`0` = unlimited) |
 | `allowed-tools` | `"Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"` | Agent tool allowlist |
+| `concurrency` | *(CLI default)* | Max cells run concurrently in-process; empty uses the CPU-aware CLI default (on by default) |
+| `shard-index` | `"1"` | 1-based shard index (run mode) |
+| `shard-total` | `"1"` | Total shard count; `"1"` runs the whole family |
+| `mode` | `"run"` | `run` executes one shard; `merge` aggregates every shard's partial ledger |
+| `merge-input` | `"benchmark-merge"` | Directory shard ledgers download into (merge mode) |
 | `k` | `"1,3,5"` | Comma-separated k values for pass@k |
 | `format` | `"text"` | Report output format |
 | `summary` | `"true"` | Append report to `GITHUB_STEP_SUMMARY` |
 | `upload-results` | `"true"` | Upload `results.jsonl` as artifact |
-| `artifact-name` | `"benchmark-results"` | Name for the uploaded artifact |
+| `artifact-name` | `"benchmark-results"` | Name for the uploaded artifact (run mode with `shard-total` > `"1"` uploads `benchmark-shard-<i>`) |
 | `timeout-minutes` | `"60"` | Maximum minutes before cancellation |
 
 ## Outputs
@@ -161,6 +166,35 @@ steps:
       family: ${{ matrix.family.path }}
       artifact-name: benchmark-${{ matrix.family.name }}
 ```
+
+## Scale One Family Across Machines
+
+A single machine has a CPU and a per-job time ceiling. When one family is too
+large to finish in one job — the run hits the timeout — fan it across machines
+with the bundled reusable workflow. A single `shard-total` input runs a
+deterministic, balanced subset of the cells on each machine and merges the
+partial ledgers into one pass@k:
+
+```yaml
+jobs:
+  benchmark:
+    uses: forwardimpact/fit-benchmark/.github/workflows/benchmark.yml@v1
+    with:
+      family: ./benchmarks/my-family
+      runs: "5"
+      shard-total: 4
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+The workflow runs three stages: a `prepare` job emits the shard list, four
+parallel `shard` jobs each run their slice (with in-process concurrency) and
+upload a `benchmark-shard-<i>` partial ledger, and a dependent `merge` job
+aggregates the combined report. The merge job carries **no agent scaffold** —
+it provisions only the report CLI, since `report --input` discovers and unions
+every shard's `results.jsonl` recursively. Effective parallelism is
+`shard-total` × the per-machine concurrency. Leaving `shard-total` unset runs
+the whole family in one shard job — the identity case.
 
 ## Verify
 
