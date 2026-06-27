@@ -1,8 +1,7 @@
 /**
- * Layer-2 sharding coverage (spec 2130 § Success criteria [L2]): `selectShard`
- * is an exact, balanced, deterministic partition, and a `--shard` runner pass
- * writes a self-contained partial ledger (including the deliberately-empty
- * high-index shard).
+ * Sharding coverage: `selectShard` is an exact, balanced, deterministic
+ * partition, and a `--shard` runner pass writes a self-contained partial ledger
+ * (including the deliberately-empty high-index shard).
  */
 
 import { describe, test } from "node:test";

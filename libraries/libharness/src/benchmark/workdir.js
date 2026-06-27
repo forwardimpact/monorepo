@@ -190,7 +190,7 @@ export class WorkdirManager {
 /**
  * Hands out distinct, bindable TCP ports under a lock. Replaces the bare
  * close-then-return allocator whose allocate→bind window let two concurrent
- * cells receive the same number (design 2130-a § Layer 1 "Port hand-off").
+ * cells receive the same number.
  *
  * The reservation is the *number*, not a held socket — a held socket could not
  * be bound by the agent later. `acquire` serializes through a one-slot promise

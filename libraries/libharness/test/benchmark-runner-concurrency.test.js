@@ -1,16 +1,16 @@
 /**
- * Layer-1 concurrency coverage for `BenchmarkRunner` (spec 2130 § Success
- * criteria [L1]). The agent-under-test and judge are injected seams so no SDK
- * runs; the fixture family supplies real tasks + preflight scripts.
+ * In-process concurrency coverage for `BenchmarkRunner`. The agent-under-test
+ * and judge are injected seams so no SDK runs; the fixture family supplies real
+ * tasks + preflight scripts.
  *
- * Substituted verification (called out in plan 2130-a Part 01 Step 7): the mock
- * clock advances one shared virtual `now` and resolves `sleep` on the next
- * microtask, so concurrent cells do not overlap in virtual time. Boundedness is
- * therefore asserted via a **max-in-flight high-water-mark** maintained by the
- * fake-agent seam, not a virtual wall-clock. The "stall costs one slot" property
- * splits into two faithful checks: an injected short `watchdogMs` proves a hung
- * agent session becomes an `agentError` (real watchdog path), and a hook-based
- * slow cell proves a stall occupies one slot while others complete.
+ * Why a high-water-mark instead of a wall-clock assertion: the mock clock
+ * advances one shared virtual `now` and resolves `sleep` on the next microtask,
+ * so concurrent cells do not overlap in virtual time. Boundedness is therefore
+ * asserted via a **max-in-flight high-water-mark** maintained by the fake-agent
+ * seam. The "stall costs one slot" property splits into two checks: an injected
+ * short `watchdogMs` proves a hung agent session becomes an `agentError` (real
+ * watchdog path), and a hook-based slow cell proves a stall occupies one slot
+ * while others complete.
  */
 
 import { describe, test, before } from "node:test";

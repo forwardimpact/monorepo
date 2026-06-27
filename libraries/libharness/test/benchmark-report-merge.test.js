@@ -1,9 +1,9 @@
 /**
- * Layer-2 recursive-merge coverage for `report` (spec 2130 § Success criteria
- * [L2]). `loadRecords` discovers every `results.jsonl` under `--input`
- * recursively and unions the records; merging shard partials equals reporting a
- * single non-sharded run over the same cells. Split from `benchmark-report.test.js`
- * (already 389 LOC) to stay under the test-file-shape ceiling.
+ * Recursive-merge coverage for `report`: `loadRecords` discovers every
+ * `results.jsonl` under `--input` recursively and unions the records, so
+ * merging shard partials equals reporting a single non-sharded run over the
+ * same cells. Split from `benchmark-report.test.js` (near the LOC ceiling) to
+ * keep each file under the test-file-shape ceiling.
  */
 
 import { describe, test } from "node:test";

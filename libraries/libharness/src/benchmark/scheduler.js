@@ -5,7 +5,7 @@
  * yields each settled record in **completion order** (not grid order). The
  * runner's drain loop consumes this async iterable as the sole writer of
  * `results.jsonl`, so concurrency lives here in execution while the ledger
- * stays single-writer (design 2130-a § Layer 1).
+ * stays single-writer — no write mutex on the hot path.
  */
 
 /** Bounded pool that streams settled cell records in completion order. */
