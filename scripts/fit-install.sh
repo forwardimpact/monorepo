@@ -27,9 +27,10 @@ BIN_DIR="$PREFIX/bin"
 LIB_DIR="$PREFIX/lib"
 
 # Default dev/CI tool set, in install order — the third-party external tools
-# every job needs (scripts/bootstrap.sh runs `just`). This set is ALWAYS
-# installed; any named gear CLIs add to it. The same list drives `--paths`.
-DEFAULT_TOOLS=(apm just gh rg gitleaks)
+# every job needs (scripts/bootstrap.sh runs `just`) plus coaligned, our own
+# gear binary that the instruction checks run. This set is ALWAYS installed;
+# any named gear CLIs add to it. The same list drives `--paths`.
+DEFAULT_TOOLS=(apm just gh rg gitleaks coaligned)
 
 # ── gear binary release coordinates ──────────────────────────────
 # Every installable gear binary (fit-trace, fit-wiki, fit-harness, …, plus
@@ -37,7 +38,7 @@ DEFAULT_TOOLS=(apm just gh rg gitleaks)
 # publish step stamps the live tag into the released copy of this script; any
 # caller may override via the environment to pin a different release.
 FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
-FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.7}"
+FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.8}"
 
 # Bun compile target for this platform. Binaries are built only for linux-x64
 # and darwin-arm64; any other platform is unsupported and fails hard — this is

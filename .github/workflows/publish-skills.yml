@@ -101,7 +101,9 @@ jobs:
           vulnerability-scanning: "false"
           secret-scanning: "true"
 
-      - uses: forwardimpact/fit-bootstrap@7084c0a624f84ca714757c3a5d4a8f476b4c70ab # v1.0.3
+      - uses: forwardimpact/fit-bootstrap@4e63230e2a638296a6c201c91f724784e1958f5c # v1.0.4
+        with:
+          clis: fit-pack
 
       - name: Skill ref lint
         run: bun run check-skill-refs
