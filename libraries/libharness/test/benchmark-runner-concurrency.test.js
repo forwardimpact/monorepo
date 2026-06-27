@@ -81,51 +81,81 @@ async function collect(runner) {
   return records;
 }
 
+/**
+ * Deterministic overlap barrier. Each `enter()` bumps the in-flight count,
+ * records the high-water mark, and blocks until `target` calls are
+ * simultaneously in flight (then all release) or a safety timeout fires. A
+ * blocked agent holds its scheduler slot, so the scheduler fills up to its
+ * bound and `target` overlap is reached without racing a fixed sleep against
+ * CI-variable setup/teardown I/O — the source of the earlier flakiness.
+ */
+function overlapBarrier(target) {
+  let inFlight = 0;
+  let highWater = 0;
+  let release;
+  const gate = new Promise((r) => {
+    release = r;
+  });
+  const safety = setTimeout(() => release(), 5000);
+  safety.unref?.();
+  return {
+    get highWater() {
+      return highWater;
+    },
+    async enter() {
+      inFlight++;
+      highWater = Math.max(highWater, inFlight);
+      if (inFlight >= target) {
+        clearTimeout(safety);
+        release();
+      }
+      await gate;
+      inFlight--;
+    },
+  };
+}
+
 describe("BenchmarkRunner Layer-1 concurrency", () => {
   test("on by default: the resolved default concurrency runs cells in parallel", {
     timeout: 30_000,
   }, async () => {
-    let inFlight = 0;
-    let highWater = 0;
-    const trackingAgent = async (task, workdir) => {
-      inFlight++;
-      highWater = Math.max(highWater, inFlight);
-      await new Promise((r) => setTimeout(r, 5));
-      inFlight--;
-      return passingAgent(task, workdir);
-    };
     const concurrency = resolveConcurrency({});
     assert.ok(concurrency > 1, "default concurrency must be > 1");
+    const bar = overlapBarrier(2); // prove ≥2 cells overlap
+    const trackingAgent = (task, workdir) =>
+      bar.enter().then(() => passingAgent(task, workdir));
     const { runner } = await newRunner({
       runs: 3,
       concurrency,
       runAgent: trackingAgent,
     });
     await collect(runner);
-    assert.ok(highWater > 1, `expected parallel execution, got ${highWater}`);
+    assert.ok(
+      bar.highWater > 1,
+      `expected parallel execution, got ${bar.highWater}`,
+    );
   });
 
   test("bounded by C: max-in-flight never exceeds the configured concurrency", {
     timeout: 30_000,
   }, async () => {
     const C = 2;
-    let inFlight = 0;
-    let highWater = 0;
-    const trackingAgent = async (task, workdir) => {
-      inFlight++;
-      highWater = Math.max(highWater, inFlight);
-      await new Promise((r) => setTimeout(r, 5));
-      inFlight--;
-      return passingAgent(task, workdir);
-    };
+    // Barrier target = C: blocked agents hold their slots until exactly C
+    // overlap, so the bound is both reached and never exceeded — deterministic.
+    const bar = overlapBarrier(C);
+    const trackingAgent = (task, workdir) =>
+      bar.enter().then(() => passingAgent(task, workdir));
     const { runner } = await newRunner({
       runs: 3,
       concurrency: C,
       runAgent: trackingAgent,
     });
     await collect(runner);
-    assert.ok(highWater <= C, `max-in-flight ${highWater} exceeded C=${C}`);
-    assert.strictEqual(highWater, C, "the bound should be reached");
+    assert.ok(
+      bar.highWater <= C,
+      `max-in-flight ${bar.highWater} exceeded C=${C}`,
+    );
+    assert.strictEqual(bar.highWater, C, "the bound should be reached");
   });
 
   test("verdict unchanged: C=1 and C=8 produce identical pass@k and per-task n/c", {
@@ -201,15 +231,24 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
   test("a stalled cell costs one slot, not the run", {
     timeout: 30_000,
   }, async () => {
-    // One task's agent stalls (resolves slowly to an agentError); the others
-    // resolve fast. With C>1 the run still completes, the stalled cell is an
-    // agentError, and a fast cell completes before the slow one.
+    // One task's agent stalls until a healthy cell has completed, then records
+    // an agentError; the rest resolve immediately. With C>1 the stalled cell
+    // holds one slot while the others finish and the run completes —
+    // deterministic via a completion signal, not a fixed sleep.
     const completionOrder = [];
+    let signalFast;
+    const aFastCellDone = new Promise((r) => {
+      signalFast = r;
+    });
     const stallingAgent = async (task, workdir) => {
       await writeFile(workdir.agentTracePath, "");
       await writeFile(workdir.supervisorTracePath, "");
       if (task.id === "repo-state") {
-        await new Promise((r) => setTimeout(r, 80));
+        // Hold this slot until a fast cell has finished (safety-capped).
+        await Promise.race([
+          aFastCellDone,
+          new Promise((r) => setTimeout(r, 5000)),
+        ]);
         completionOrder.push(task.id);
         return {
           costUsd: 0,
@@ -218,8 +257,8 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
           agentError: { message: "simulated stall", aborted: false },
         };
       }
-      await new Promise((r) => setTimeout(r, 5));
       completionOrder.push(task.id);
+      signalFast();
       return passingAgent(task, workdir);
     };
     const { runner } = await newRunner({
