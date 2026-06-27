@@ -15,9 +15,9 @@ export class CellScheduler {
    * @param {number} opts.concurrency - Max cells in flight (integer ≥ 1).
    * @param {(cell: {task: object, runIndex: number}) => Promise<object>} opts.runCell -
    *   Runs one cell to a settled record. By contract `runCell` never rejects —
-   *   the runner's `#runOne` returns an `agentError`/`schemaError` record rather
-   *   than throwing — but a rejection is guarded so one bad cell cannot wedge
-   *   the drain.
+   *   the runner's `#runOne` catches setup, agent, and schema failures and
+   *   returns a record rather than throwing — but a rejection is still guarded
+   *   so one bad cell cannot wedge the drain.
    */
   constructor({ concurrency, runCell }) {
     if (!Number.isInteger(concurrency) || concurrency < 1)

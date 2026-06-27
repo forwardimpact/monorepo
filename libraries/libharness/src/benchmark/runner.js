@@ -232,22 +232,62 @@ export class BenchmarkRunner {
 
   async #runOne(family, wm, task, runIndex, skillSetHash, judgeProfilesDir) {
     const t0 = this.runtime.clock.now();
-    const workdir = await wm.start(task, runIndex);
+    let workdir;
     try {
-      if (workdir.preflightError) {
-        const record = this.#buildPreflightFailureRecord({
-          task,
-          runIndex,
-          workdir,
-          skillSetHash,
-          familyRevision: family.familyRevision,
-          durationMs: this.runtime.clock.now() - t0,
-        });
-        return this.#validateOrFallback(
-          record,
-          resultsRecordKey(task, runIndex),
-        );
-      }
+      workdir = await wm.start(task, runIndex);
+      return await this.#executeCell({
+        family,
+        workdir,
+        task,
+        runIndex,
+        skillSetHash,
+        judgeProfilesDir,
+        t0,
+      });
+    } catch (e) {
+      // `wm.start()` (port acquire + workdir/env seeding) is the one throw site
+      // not caught inside `#executeCell`. Turn it into the runner's own fallback
+      // record so `#runOne` never rejects — the scheduler's one-record-per-cell
+      // contract depends on that. The fallback is schema-skipped by `report`,
+      // the same as any other runner-side schema failure.
+      return {
+        taskId: task.id,
+        runIndex,
+        verdict: "fail",
+        schemaError: `cell setup failed: ${e.message ?? String(e)}`,
+      };
+    } finally {
+      if (workdir) await wm.teardown(workdir).catch(() => {});
+    }
+  }
+
+  /**
+   * Run one cell's lifecycle against an already-started workdir: preflight
+   * gate → supervised agent → invariants → judge → assembled record. Extracted
+   * from `#runOne` so the start/teardown/error wrapper stays under the
+   * complexity ceiling.
+   */
+  async #executeCell({
+    family,
+    workdir,
+    task,
+    runIndex,
+    skillSetHash,
+    judgeProfilesDir,
+    t0,
+  }) {
+    if (workdir.preflightError) {
+      const record = this.#buildPreflightFailureRecord({
+        task,
+        runIndex,
+        workdir,
+        skillSetHash,
+        familyRevision: family.familyRevision,
+        durationMs: this.runtime.clock.now() - t0,
+      });
+      return this.#validateOrFallback(record, resultsRecordKey(task, runIndex));
+    }
+    {
       const agentRun = await this.#runAgentSafe(task, workdir);
       const { costUsd, turns, submission, agentError } = agentRun;
       const breakdown = agentRun.costBreakdown ?? { agent: 0, supervisor: 0 };
@@ -328,8 +368,6 @@ export class BenchmarkRunner {
         ...(agentError && { agentError }),
       };
       return this.#validateOrFallback(record, resultsRecordKey(task, runIndex));
-    } finally {
-      await wm.teardown(workdir).catch(() => {});
     }
   }
 

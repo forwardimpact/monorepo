@@ -18,6 +18,7 @@ import {
   enumerateCells,
   selectShard,
 } from "../src/benchmark/runner.js";
+import { resolveZeroRecordOutcome } from "../src/commands/benchmark-run.js";
 import { validateResultRecord } from "../src/benchmark/result.js";
 import { realRuntimeWithSubprocess } from "./real-runtime.js";
 
@@ -158,5 +159,36 @@ describe("BenchmarkRunner --shard partial ledger", () => {
     assert.ok(names.includes("results.jsonl"), "an empty ledger still exists");
     const body = await readFile(join(out, "results.jsonl"), "utf8");
     assert.strictEqual(body.trim(), "", "ledger is empty");
+  });
+});
+
+describe("zero-record exit guard (the relaxed-shard branch)", () => {
+  // resolveZeroRecordOutcome is the exact decision runBenchmarkRunCommand makes
+  // when a run streams zero records — exercised directly so the exit-0-vs-exit-1
+  // fork is covered without the handler's config/SDK setup.
+  function fakeRuntime() {
+    const errs = [];
+    return {
+      runtime: { proc: { stderr: { write: (s) => errs.push(s) } } },
+      errs,
+    };
+  }
+
+  test("a deliberately-empty shard exits 0 with a stderr note", () => {
+    const { runtime, errs } = fakeRuntime();
+    const outcome = resolveZeroRecordOutcome(
+      { shard: { index: 50, total: 50 } },
+      runtime,
+    );
+    assert.deepStrictEqual(outcome, { ok: true });
+    assert.ok(errs.some((e) => /shard 50\/50 selected no cells/.test(e)));
+  });
+
+  test("an unsharded zero-record run still fails (exit 1)", () => {
+    const { runtime } = fakeRuntime();
+    const outcome = resolveZeroRecordOutcome({ shard: null }, runtime);
+    assert.strictEqual(outcome.ok, false);
+    assert.strictEqual(outcome.code, 1);
+    assert.match(outcome.error, /produced no result records/);
   });
 });

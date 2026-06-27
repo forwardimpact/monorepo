@@ -178,12 +178,16 @@ export class WorkdirManager {
         2_000,
       );
     }
-    const portFree = await isPortFree(workdir.port);
-    const descendants = await countDescendants(this.runtime, workdir.pgid);
-    // Release the reservation after the port-free probe so a freed number can
-    // be re-handed to a waiting cell.
-    this.ports.release(workdir.port);
-    return { portFree, descendants };
+    // Release the reservation in a finally so a throwing probe cannot leak the
+    // number from the in-use set; release after the port-free probe so a freed
+    // number can be re-handed to a waiting cell.
+    try {
+      const portFree = await isPortFree(workdir.port);
+      const descendants = await countDescendants(this.runtime, workdir.pgid);
+      return { portFree, descendants };
+    } finally {
+      this.ports.release(workdir.port);
+    }
   }
 }
 

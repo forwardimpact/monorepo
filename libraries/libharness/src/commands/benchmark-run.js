@@ -52,27 +52,35 @@ export async function runBenchmarkRunCommand(ctx) {
     runtime.proc.stdout.write(JSON.stringify(record) + "\n");
     if (record.verdict !== "pass") anyFail = true;
   }
-  // A run that emits zero records did nothing (no tasks discovered, or the
-  // agent never produced output). That is a failure, not a silent success —
-  // surface it loudly so CI does not go green on an empty benchmark. The one
-  // exception is a deliberately-empty shard: a high-index `--shard=i/N` with
-  // `N > cell count` legitimately selects zero cells (design § Layer 2), so it
-  // exits 0 with a note rather than failing the run.
-  if (count === 0) {
-    if (opts.shard) {
-      runtime.proc.stderr.write(
-        `shard ${opts.shard.index}/${opts.shard.total} selected no cells\n`,
-      );
-      return { ok: true };
-    }
-    return {
-      ok: false,
-      code: 1,
-      error:
-        "benchmark produced no result records — no task ran to completion; check the family's tasks/, apm install, and agent availability (ANTHROPIC_API_KEY / claude CLI / IS_SANDBOX)",
-    };
-  }
+  if (count === 0) return resolveZeroRecordOutcome(opts, runtime);
   return anyFail ? { ok: false, code: 1, error: "" } : { ok: true };
+}
+
+/**
+ * Decide the exit outcome when a run streamed zero records. A run that emits no
+ * records normally did nothing (no tasks discovered, or the agent never
+ * produced output) — a failure, surfaced loudly so CI does not go green on an
+ * empty benchmark. The one exception is a deliberately-empty shard: a
+ * high-index `--shard=i/N` with `N > cell count` legitimately selects zero
+ * cells, so it exits 0 with a stderr note. Exported so the relaxed-guard branch
+ * is testable without the full handler's config/SDK setup.
+ * @param {{shard: {index: number, total: number} | null}} opts
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @returns {{ok: true} | {ok: false, code: number, error: string}}
+ */
+export function resolveZeroRecordOutcome(opts, runtime) {
+  if (opts.shard) {
+    runtime.proc.stderr.write(
+      `shard ${opts.shard.index}/${opts.shard.total} selected no cells\n`,
+    );
+    return { ok: true };
+  }
+  return {
+    ok: false,
+    code: 1,
+    error:
+      "benchmark produced no result records — no task ran to completion; check the family's tasks/, apm install, and agent availability (ANTHROPIC_API_KEY / claude CLI / IS_SANDBOX)",
+  };
 }
 
 /**
