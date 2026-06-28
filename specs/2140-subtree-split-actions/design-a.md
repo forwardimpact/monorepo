@@ -146,8 +146,7 @@ change. The name lives across many surface classes: workflow `uses:` pins; the
 `sibling-composite-actions` enum source + consumers; the
 **vendored sibling trees themselves** (e.g. `kata-agent/action.yml`'s pins on
 `bootstrap`/`harness`/`wiki` and `benchmark`'s reusable-workflow); CLI help text
-
-- its golden fixture; `.github/CLAUDE.md` prose; and the published benchmark
+with its golden fixture; `.github/CLAUDE.md` prose; and the published benchmark
 doc. The plan owns the exhaustive inventory and a repo-wide residual grep.
 `dependabot.yml` tracks by ecosystem, not repo name, so no edit. CLIs keep
 `fit-*`, so each action still invokes its CLI by the unchanged name (the `wiki`
