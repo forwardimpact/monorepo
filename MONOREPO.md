@@ -40,6 +40,35 @@ Three directories support the shippable code without being shipped themselves:
   balancer). Subdirectories carry their own READMEs for the specific
   deployment concern they cover.
 
+## Co-Developed Action Repositories
+
+An optional concern beyond the six directories above. A repository that ships a
+composite GitHub Action as its own published sibling repo may keep that action's
+**canonical source in the monorepo**, co-located with the unit it belongs to,
+and publish it verbatim to the sibling via a deterministic subtree split. The
+contributor keeps the monorepo's context and quality gates when editing CI
+actions, and the source is reachable in single-repo environments.
+
+- **Home.** The action's source lives beside its owning unit — a library's
+  action under `libraries/<lib>/actions/<name>/`, a product's under
+  `products/<product>/actions/<name>/`. An action that is CI glue with no owning
+  unit homes under `.github/actions/<name>/`. Each home mirrors the **whole
+  sibling repo root** byte-for-byte, so the projection is faithful in both
+  directions.
+- **Publish.** A workflow splits each home to its sibling `main` with a pinned,
+  deterministic splitter and a non-force push, so the sibling is always a
+  projection of the monorepo and a divergent sibling `main` fails the push.
+- **Consume.** Workflows keep SHA-pinning the published sibling; the split adds
+  no gitlink and no second version reference.
+- **Contribute back.** An external PR opened on the sibling is reviewed there
+  but never merged there; it is replayed into the home as a normal monorepo PR
+  and republished on the next split.
+
+**Inclusion test.** Use this pattern **only** for a repo that has no other home
+in the monorepo and needs no publish-time transform. Skill packs and npm
+packages are excluded: they transform at publish (the skill-pack stage rewrites
+layout) or already have a home under the directories above.
+
 ## Root Files
 
 Three root files orient every contributor. Each has one job; none restates

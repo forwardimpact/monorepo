@@ -1,0 +1,61 @@
+name: "Publish: Actions"
+
+# Outbound mirror for the five co-located composite actions. Each leg splits its
+# monorepo prefix with the pinned splitsh-lite and non-force-pushes the
+# projection to its sibling repo's main (see ./.github/actions/split-and-push).
+# Add or retire an action by editing one matrix entry.
+#
+# Dispatch-only for now: the push trigger is added once the lineage is seeded,
+# so no CI push fires against a sibling's standalone history from before the
+# split (the seed is the only sanctioned force).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: ${{ matrix.action.repo }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        action:
+          - prefix: libraries/libharness/actions/harness
+            repo: harness
+          - prefix: libraries/libharness/actions/benchmark
+            repo: benchmark
+          - prefix: libraries/libwiki/actions/wiki
+            repo: wiki
+          - prefix: products/kata/actions/kata-agent
+            repo: kata-agent
+          - prefix: .github/actions/bootstrap
+            repo: bootstrap
+    steps:
+      - name: Generate installation token
+        id: ci-app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.KATA_APP_ID }}
+          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+          repositories: ${{ matrix.action.repo }}
+
+      # Check out the monorepo (full history — the split needs it). The split
+      # and the local-action references below resolve against this checkout,
+      # never a sibling.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/audit
+        with:
+          vulnerability-scanning: "false"
+          secret-scanning: "true"
+
+      - name: Split and push
+        uses: ./.github/actions/split-and-push
+        with:
+          prefix: ${{ matrix.action.prefix }}
+          sibling-repo: ${{ matrix.action.repo }}
+          token: ${{ steps.ci-app.outputs.token }}

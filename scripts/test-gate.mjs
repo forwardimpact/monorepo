@@ -44,12 +44,27 @@ export const SELECTOR_DIRS = [
 ];
 
 // The `find` predicate, shared with the `test` script's selector.
+//
+// The co-located action homes under ./libraries and ./products are
+// byte-faithful projections of their sibling repos, not authored monorepo
+// source; no sibling ships a *.test.js today, so this prunes them defensively
+// so a future vendored test file never enters the gate set. (.github/actions/
+// bootstrap is not under any SELECTOR_DIRS root, so it needs no prune here.)
 export const SELECTOR_PREDICATE = [
   "-name",
   "*.test.js",
   "-not",
   "-path",
   "*/node_modules/*",
+  "-not",
+  "-path",
+  "./libraries/libharness/actions/*",
+  "-not",
+  "-path",
+  "./libraries/libwiki/actions/*",
+  "-not",
+  "-path",
+  "./products/kata/actions/*",
 ];
 
 // Paths the node gate must NOT run even though they match the shared selector,

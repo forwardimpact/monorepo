@@ -240,6 +240,21 @@ audit-secrets:
         exit 1
     fi
 
+# ── Sibling actions ───────────────────────────────────────────────
+
+# Replay an external sibling PR into its monorepo prefix, preserving authorship.
+# Sibling main is a projection of the monorepo, so external PRs are reviewed on
+# the sibling but land here: the result is a normal monorepo PR under the usual
+# gates, and the next outbound split republishes it. format-patch --binary plus
+# am -3 cover binary hunks and merge fallback; --directory rewrites each patched
+# path into the prefix; am preserves the original author. For a fork-based PR,
+# first fetch the fork's <pr-head> into the clone so origin/main..<pr-head>
+# resolves. On a conflict, run `git am --abort` and re-apply by hand.
+# Usage: just action-pullback <sibling-clone> <pr-head> <prefix>
+action-pullback clone head prefix:
+    git -C {{clone}} format-patch origin/main..{{head}} --stdout --binary \
+      | git am -3 --directory={{prefix}}
+
 # ── Environment ───────────────────────────────────────────────────
 
 # Generate every secret in .env (idempotent — preserves all values across runs)
