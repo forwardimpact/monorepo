@@ -62,7 +62,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
 
-      - uses: forwardimpact/fit-bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - uses: forwardimpact/bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
@@ -141,7 +141,7 @@ jobs:
 
       - name: Run interview
         id: interview
-        uses: forwardimpact/fit-harness@d7562330d565019252c45279124fdb1718c68497 # v1.0.2
+        uses: forwardimpact/harness@d7562330d565019252c45279124fdb1718c68497 # v1.0.2
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -179,7 +179,7 @@ jobs:
 
       - name: Push wiki changes
         if: always()
-        uses: forwardimpact/fit-wiki@2dbe4b3bd46d93dab199172e9dff29214fa509ce # v1.0.0
+        uses: forwardimpact/wiki@2dbe4b3bd46d93dab199172e9dff29214fa509ce # v1.0.0
         with:
           command: push
           app-id: ${{ secrets.KATA_APP_ID }}

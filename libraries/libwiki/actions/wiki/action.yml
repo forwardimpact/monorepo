@@ -4,7 +4,7 @@ description: >
   credentials are supplied, a fresh GitHub App installation token is minted for
   the command — long agent jobs outlive the one-hour token minted at job start,
   so push/pull need a freshly minted one. Run after
-  forwardimpact/fit-bootstrap@v1 with `clis: fit-wiki`, which provides Bun, the
+  forwardimpact/bootstrap@v1 with `clis: fit-wiki`, which provides Bun, the
   workspace, the checked-out ./wiki working copy, and the fit-wiki gear binary
   on PATH. The binary is required — there is no bunx/npx fallback.
 
@@ -66,12 +66,12 @@ runs:
           git -C "$WIKI_PATH" config --unset-all 'http.https://github.com/.extraheader' 2>/dev/null || true
         fi
         # fit-wiki must already be on PATH as a pinned gear binary, installed by
-        # forwardimpact/fit-bootstrap with `clis: fit-wiki`. There is no
+        # forwardimpact/bootstrap with `clis: fit-wiki`. There is no
         # bunx/npx fallback: the binary distribution is the only supported path,
         # so a missing binary fails hard rather than silently resolving a
         # different (registry) build.
         if ! command -v fit-wiki &>/dev/null; then
-          echo "::error::fit-wiki not found on PATH. Install it as a gear binary via forwardimpact/fit-bootstrap with 'clis: fit-wiki' before this step. No bunx/npx fallback." >&2
+          echo "::error::fit-wiki not found on PATH. Install it as a gear binary via forwardimpact/bootstrap with 'clis: fit-wiki' before this step. No bunx/npx fallback." >&2
           exit 1
         fi
         fit-wiki $COMMAND

@@ -114,13 +114,13 @@ jobs:
       LIBHARNESS_WORK_TRACKER: filesystem
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/fit-bootstrap@4e63230e2a638296a6c201c91f724784e1958f5c # v1.0.4
+      - uses: forwardimpact/bootstrap@4e63230e2a638296a6c201c91f724784e1958f5c # v1.0.4
         with:
           # fit-benchmark runs the benchmark binary straight off PATH — the
           # action has no bunx/npx fallback. Requires a gear release that
           # publishes fit-benchmark (gear@v0.1.8+).
           clis: fit-benchmark
-      - uses: forwardimpact/fit-benchmark@v1.0.2
+      - uses: forwardimpact/benchmark@v1.0.2
         with:
           mode: run
           family: ${{ inputs.family }}
@@ -146,7 +146,7 @@ jobs:
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: "22"
-      - uses: forwardimpact/fit-benchmark@v1.0.2
+      - uses: forwardimpact/benchmark@v1.0.2
         with:
           mode: merge
           # family is a required action input but unused in merge mode.

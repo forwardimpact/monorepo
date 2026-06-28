@@ -13,7 +13,7 @@ this one — version-pinned at `@v1` — so they never drift.
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: forwardimpact/fit-bootstrap@v1
+- uses: forwardimpact/bootstrap@v1
   with:
     token: ${{ steps.ci-app.outputs.token }}   # optional, enables wiki checkout
     app-slug: kata-agent-team                   # optional, sets git identity
@@ -43,7 +43,7 @@ The consumer repo must still follow FIT conventions:
 
 | Input         | Required | Default    | Description                                                                              |
 | ------------- | -------- | ---------- | ---------------------------------------------------------------------------------------- |
-| `token`       | No       | `""`       | GitHub token with read access to the wiki. When provided, the wiki is checked out into `./wiki`. Pushing back is the caller's job — see [`forwardimpact/fit-wiki@v1`](https://github.com/forwardimpact/fit-wiki). |
+| `token`       | No       | `""`       | GitHub token with read access to the wiki. When provided, the wiki is checked out into `./wiki`. Pushing back is the caller's job — see [`forwardimpact/wiki@v1`](https://github.com/forwardimpact/wiki). |
 | `app-slug`    | No       | `""`       | GitHub App slug for git identity (e.g. `kata-agent-team`).                              |
 | `app-id`      | No       | `""`       | GitHub App ID for the git identity email.                                                |
 | `bun-version` | No       | `"1.3.11"` | Bun version to install.                                                                  |
@@ -94,5 +94,5 @@ checks).
 
 Pushing the wiki back is **not** this action's job. The token minted at
 job start expires after one hour, so a cleanup-time push fails on long
-agent runs. Push with [`forwardimpact/fit-wiki@v1`](https://github.com/forwardimpact/fit-wiki)
+agent runs. Push with [`forwardimpact/wiki@v1`](https://github.com/forwardimpact/wiki)
 as an `always()` step after the agent — it mints a fresh token first.

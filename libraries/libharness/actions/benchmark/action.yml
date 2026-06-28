@@ -158,11 +158,11 @@ runs:
         TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
       run: |
         # fit-benchmark must be on PATH as a pinned gear binary, installed by
-        # forwardimpact/fit-bootstrap with `clis: fit-benchmark`. No bunx/npx
+        # forwardimpact/bootstrap with `clis: fit-benchmark`. No bunx/npx
         # fallback — a missing binary fails hard rather than silently resolving
         # a different (registry) build.
         if ! command -v fit-benchmark &>/dev/null; then
-          echo "::error::fit-benchmark not found on PATH. Install it as a gear binary via forwardimpact/fit-bootstrap with 'clis: fit-benchmark' before this step. No bunx/npx fallback." >&2
+          echo "::error::fit-benchmark not found on PATH. Install it as a gear binary via forwardimpact/bootstrap with 'clis: fit-benchmark' before this step. No bunx/npx fallback." >&2
           exit 1
         fi
         BENCH_CMD="fit-benchmark"
@@ -212,7 +212,7 @@ runs:
         # fit-benchmark must be on PATH as a pinned gear binary (fit-bootstrap
         # clis: fit-benchmark). No bunx/npx fallback — fail hard if missing.
         if ! command -v fit-benchmark &>/dev/null; then
-          echo "::error::fit-benchmark not found on PATH. Install it as a gear binary via forwardimpact/fit-bootstrap with 'clis: fit-benchmark' before this step. No bunx/npx fallback." >&2
+          echo "::error::fit-benchmark not found on PATH. Install it as a gear binary via forwardimpact/bootstrap with 'clis: fit-benchmark' before this step. No bunx/npx fallback." >&2
           exit 1
         fi
         BENCH_CMD="fit-benchmark"
@@ -256,7 +256,7 @@ runs:
         # fit-benchmark must be on PATH as a pinned gear binary (fit-bootstrap
         # clis: fit-benchmark). No bunx/npx fallback — fail hard if missing.
         if ! command -v fit-benchmark &>/dev/null; then
-          echo "::error::fit-benchmark not found on PATH. Install it as a gear binary via forwardimpact/fit-bootstrap with 'clis: fit-benchmark' before this step. No bunx/npx fallback." >&2
+          echo "::error::fit-benchmark not found on PATH. Install it as a gear binary via forwardimpact/bootstrap with 'clis: fit-benchmark' before this step. No bunx/npx fallback." >&2
           exit 1
         fi
         BENCH_CMD="fit-benchmark"

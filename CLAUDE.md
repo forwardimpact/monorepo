@@ -92,7 +92,7 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
 - **Composite actions** —
 
   <!-- enum:sibling-composite-actions:list -->
-  `forwardimpact/{fit-benchmark,fit-bootstrap,fit-harness,fit-wiki,kata-agent}`
+  `forwardimpact/{benchmark,bootstrap,harness,kata-agent,wiki}`
   <!-- /enum -->
   released via append-only `v1.0.x` tags. Edit procedure in
   [`.github/CLAUDE.md`](.github/CLAUDE.md).

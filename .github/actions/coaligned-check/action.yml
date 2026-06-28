@@ -8,7 +8,7 @@ description: |
   subcommand runs.
 
   Assumes the workspace has already been bootstrapped by
-  forwardimpact/fit-bootstrap, which installs `coaligned` as a pinned gear
+  forwardimpact/bootstrap, which installs `coaligned` as a pinned gear
   binary on PATH (it is one of the default tools). The binary is required —
   there is no bunx/npx fallback.
 
@@ -61,10 +61,10 @@ runs:
         COMMAND: ${{ inputs.command }}
         FIX: ${{ inputs.fix }}
       run: |
-        # coaligned is a pinned gear binary on PATH, installed by fit-bootstrap
+        # coaligned is a pinned gear binary on PATH, installed by bootstrap
         # as a default tool. No bunx/npx fallback — fail hard if it is missing.
         if ! command -v coaligned &>/dev/null; then
-          echo "::error::coaligned not found on PATH. Bootstrap with forwardimpact/fit-bootstrap (installs coaligned as a default gear binary) before this step. No bunx/npx fallback." >&2
+          echo "::error::coaligned not found on PATH. Bootstrap with forwardimpact/bootstrap (installs coaligned as a default gear binary) before this step. No bunx/npx fallback." >&2
           exit 1
         fi
         args=()

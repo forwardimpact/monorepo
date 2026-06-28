@@ -3,7 +3,7 @@ description: >
   Opinionated FIT environment bootstrap. Sets up Bun, restores a single
   environment cache (CLI tools in ~/.local + node_modules + generated),
   installs anything missing, optionally checks out the GitHub wiki, and runs
-  ./scripts/bootstrap.sh. To push the wiki back, run forwardimpact/fit-wiki@v1
+  ./scripts/bootstrap.sh. To push the wiki back, run forwardimpact/wiki@v1
   after the agent step.
 
 inputs:
@@ -12,7 +12,7 @@ inputs:
       GitHub token with read access to the wiki. When provided, the wiki is
       checked out into ./wiki. Leave blank to skip wiki checkout entirely.
       Pushing the wiki back is the caller's responsibility — see
-      forwardimpact/fit-wiki@v1.
+      forwardimpact/wiki@v1.
     required: false
     default: ""
   app-slug:

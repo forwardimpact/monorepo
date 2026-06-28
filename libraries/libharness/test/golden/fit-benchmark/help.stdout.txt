@@ -28,6 +28,6 @@ Documentation:
     Author a coding-task family, run a benchmark across multiple runs, and read the pass@k report.
   Automate with GitHub Actions
     https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/ci-workflow/index.md
-    Run benchmarks in CI with the forwardimpact/fit-benchmark action.
+    Run benchmarks in CI with the forwardimpact/benchmark action.
 
 Use fit-benchmark <command> --help for command-specific options.
