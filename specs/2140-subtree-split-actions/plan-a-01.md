@@ -10,15 +10,17 @@ Clone each sibling at `main` and copy its whole working tree (everything except
 `.git/`) into the mapped home, preserving the byte form so the home equals the
 sibling root.
 
-Files created (one home per sibling, full contents):
+Files created (one home per sibling, full contents); the home directory is named
+for the **renamed** sibling (part 06):
 
-- `libraries/libharness/actions/fit-harness/`
-- `libraries/libharness/actions/fit-benchmark/`
-- `libraries/libwiki/actions/fit-wiki/`
+- `libraries/libharness/actions/harness/`
+- `libraries/libharness/actions/benchmark/`
+- `libraries/libwiki/actions/wiki/`
 - `products/kata/actions/kata-agent/`
-- `.github/actions/fit-bootstrap/`
+- `.github/actions/bootstrap/`
 
-For each `{repo, home}` pair:
+For each `{repo, home}` pair (clone resolves whether or not the rename has
+landed — GitHub redirects the old name):
 
 ```sh
 git clone --depth 1 https://github.com/forwardimpact/<repo>.git /tmp/<repo>
@@ -27,14 +29,14 @@ mkdir -p <home> && cp -R /tmp/<repo>/. <home>/
 ```
 
 The five live sibling trees today carry only `README.md`, `LICENSE`,
-`action.yml`, the `fit-benchmark` reusable workflow, the `fit-bootstrap`
-sub-actions, and `kata-agent/post-run/*.mjs` — **no** `package.json` and **no**
-`*.test.js`. Confirm this when vendoring; the exclusion set in Step 2 is sized
-to exactly these contents.
+`action.yml`, the `benchmark` reusable workflow, the `bootstrap` sub-actions,
+and `kata-agent/post-run/*.mjs` — **no** `package.json` and **no** `*.test.js`.
+Confirm this when vendoring; the exclusion set in Step 2 is sized to exactly
+these contents.
 
 Verify: `test -f` on each home's `action.yml`;
-`test -f libraries/libharness/actions/fit-benchmark/.github/workflows/benchmark.yml`;
-the `fit-bootstrap` home contains its sub-action directories.
+`test -f libraries/libharness/actions/benchmark/.github/workflows/benchmark.yml`;
+the `bootstrap` home contains its sub-action directories.
 
 ## Step 2: Exclude the homes from monorepo authored-source tooling
 
@@ -46,10 +48,10 @@ Files modified:
 
 | File | Change |
 | --- | --- |
-| `biome.json` | Add `"!libraries/libharness/actions/**"`, `"!libraries/libwiki/actions/**"`, `"!products/kata/actions/**"`, `"!.github/actions/fit-bootstrap/**"` to `files.includes` (covers `kata-agent/post-run/*.mjs`, the only vendored JS) |
+| `biome.json` | Add `"!libraries/libharness/actions/**"`, `"!libraries/libwiki/actions/**"`, `"!products/kata/actions/**"`, `"!.github/actions/bootstrap/**"` to `files.includes` (covers `kata-agent/post-run/*.mjs`, the only vendored JS) |
 | `eslint.config.js` | Add the same four globs to the `ignores` array — eslint's `products/**/*.mjs` glob would otherwise lint `kata-agent/post-run/*.mjs` |
 | `.rumdl.toml` | Add the same four paths to `global.exclude` (the vendored `README.md`s) |
-| `package.json` (`test` script) | Defensive only — no sibling ships a `*.test.js` today. Scope the exclusion to the homes the `find` roots actually reach: `-not -path './libraries/libharness/actions/*' -not -path './libraries/libwiki/actions/*' -not -path './products/kata/actions/*'` (`.github/actions/fit-bootstrap` is not under any `find` root) |
+| `package.json` (`test` script) | Defensive only — no sibling ships a `*.test.js` today. Scope the exclusion to the homes the `find` roots actually reach: `-not -path './libraries/libharness/actions/*' -not -path './libraries/libwiki/actions/*' -not -path './products/kata/actions/*'` (`.github/actions/bootstrap` is not under any `find` root) |
 
 Verify: `rg -n 'actions/' biome.json eslint.config.js .rumdl.toml` shows the
 four homes — a presence check only; Step 3 is the actual proof the globs take

@@ -81,7 +81,7 @@ non-fast-forward is rejected and the non-zero exit fails the run. Because the
 lineage is append-only, sibling `main` is normally the previous split tip and
 the new split fast-forwards it. If someone merged a commit on the sibling, that
 commit is not in the new split, the push is **rejected**, and the run fails. No
-durable "last split" record is needed — the remote ref _is_ the record.
+durable "last split" record is needed — the remote ref *is* the record.
 
 This guard is **lazy**, not continuous: drift is caught at the next push that
 touches that prefix, not the moment it happens. Recovery then needs two steps —
@@ -133,6 +133,29 @@ to a sibling via deterministic subtree split._ States the inclusion test —
 **only repos with no other home in the monorepo and no publish-time transform**
 (skill packs/npm packages are excluded: they transform or already have a home).
 
+## Sibling rename — one debranding pass, redirect-preserving
+
+Four siblings are debranded as a maintainer GitHub repo-rename
+(`fit-harness → harness`, `fit-benchmark → benchmark`, `fit-wiki → wiki`,
+`fit-bootstrap → bootstrap`); `kata-agent` is untouched. A repo-rename is chosen
+over create-new because GitHub auto-redirects the old path, so external
+`forwardimpact/fit-*@<sha>` pins and the `v1.0.x` tags keep resolving — no hard
+break. The rename precedes the seed, so the seed (and every later publish)
+targets the renamed `main`.
+
+The rename is consistent only if every monorepo surface naming a sibling moves
+in the same change. Three surface classes carry the names:
+
+| Surface | What repoints |
+| --- | --- |
+| Workflow `uses:` pins | Every `forwardimpact/fit-{harness,benchmark,wiki,bootstrap}@<sha>` line across `.github/workflows/**` (and the `fit-benchmark` reusable-workflow ref in `eval-kata.yml`) → renamed owner/repo, SHA and `# v1` marker unchanged |
+| Enum source + consumers | `.github/CLAUDE.md` § Third-party actions table rows (the `sibling-composite-actions` `md-table` *source*) and the `CLAUDE.md` / `KATA.md` fenced consumer blocks → new names; the `forwardimpact/` filter and `Five` count are unchanged |
+| Dependabot | `.github/dependabot.yml` tracks `github-actions` by ecosystem, not by repo name, so no edit is needed; the weekly sweep follows the renamed pins |
+
+Because the CLIs keep their `fit-*` names, each renamed action's source still
+invokes its CLI by the unchanged name (e.g. the `wiki` action runs `fit-wiki`);
+only the action/repo identity changes.
+
 ## Key Decisions
 
 | Decision             | Choice                                                                          | Rejected alternative                                                                                            |
@@ -144,13 +167,14 @@ to a sibling via deterministic subtree split._ States the inclusion test —
 | Drift detection      | The non-force push (rejection = drift)                                          | Ancestry check against a stored "last split" — needs durable state splitsh-lite has not                         |
 | Inbound              | Replay via `git am --directory`                                                 | `git subtree pull` — ancestry mismatch with splitsh-lite, merge-commit noise                                    |
 | Outbound trigger     | Every push to `main` (continuous mirror)                                        | Tag-only — siblings drift stale between releases                                                                |
-| `fit-bootstrap` home | `.github/actions/fit-bootstrap/` (prefix == sibling root; not consumed locally) | A forced `libraries/libbootstrap` — it is CI glue, not a shipped library                                        |
+| `bootstrap` home | `.github/actions/bootstrap/` (prefix == sibling root; not consumed locally) | A forced `libraries/libbootstrap` — it is CI glue, not a shipped library                                        |
+| Action repo names | Debrand to `harness`/`benchmark`/`wiki`/`bootstrap`; keep `kata-agent`; CLIs/npm/skills keep `fit-*`/`kata-*` | Keep `fit-*` action repos — redundant with the `forwardimpact/` owner namespace |
 
 ## Verification mapping
 
 | Criterion                          | Where satisfied                                                                                |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1 homes populated                  | source move; `fit-benchmark` reusable workflow + `fit-bootstrap` sub-actions inside the prefix |
+| 1 homes populated                  | source move; `benchmark` reusable workflow + `bootstrap` sub-actions inside the prefix |
 | 2 faithful projection              | `splitsh-lite` determinism + push                                                              |
 | 3 non-force after seed             | § One-time seed + workflow passes no `--force`                                                 |
 | 4 consumption unchanged            | no `.gitmodules`; `uses:` `# v1` pins + Dependabot bumps untouched                             |
@@ -158,6 +182,7 @@ to a sibling via deterministic subtree split._ States the inclusion test —
 | 6 drift guarded                    | non-force push rejection (§ Projection invariant)                                              |
 | 7 standard documented              | `MONOREPO.md` section + `.github/CLAUDE.md` rewrite                                            |
 | 8 suite green over relocated trees | check/test/format/invariant run after the five sources move                                    |
+| 9 debranded + repointed            | maintainer repo-rename (redirects) + `uses:`/enum/`.github/CLAUDE.md` repoint; CLIs/npm/skills unchanged |
 
 ## Risks
 
@@ -174,6 +199,6 @@ to a sibling via deterministic subtree split._ States the inclusion test —
 - **Someone merges a PR on the sibling.** The non-force push is rejected and the
   run fails; recovery is to replay that commit into the monorepo, then
   republish.
-- **Reusable-workflow / sub-action paths.** `fit-benchmark`'s
-  `.github/workflows/benchmark.yml` and `fit-bootstrap`'s sub-actions must sit
+- **Reusable-workflow / sub-action paths.** `benchmark`'s
+  `.github/workflows/benchmark.yml` and `bootstrap`'s sub-actions must sit
   inside the prefix or consumers break. Mitigation: criterion 1 checks for them.

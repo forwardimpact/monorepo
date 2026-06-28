@@ -3,7 +3,9 @@
 The one-time lineage seed and the trigger flip that turns on the continuous
 mirror. Maintainer runbook executed at publish time, after parts 01 and 02 are
 on `main`. Criteria 2, 3, and 6 are verified here against live siblings, not in
-any PR gate. Depends on: 01 + 02 merged.
+any PR gate. Depends on: 01 + 02 merged
+**and the part 06 repo-rename already done** (the seed pushes to the renamed
+sibling `main`).
 
 ## Step 1: Verify the App install set
 
