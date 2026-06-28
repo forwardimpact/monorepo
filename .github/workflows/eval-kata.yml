@@ -17,7 +17,7 @@ jobs:
   # GitHub Actions ceiling. The filesystem work-tracker is the reusable
   # workflow's env contract; this caller only picks the family and shard count.
   benchmark:
-    uses: forwardimpact/fit-benchmark/.github/workflows/benchmark.yml@4c58597fabea5260e3fad2c4855703061df66684 # v1
+    uses: forwardimpact/fit-benchmark/.github/workflows/benchmark.yml@66b7dad6715d32d64bdc81614cd7b2edad9b1cae # v1.0.3
     with:
       family: ./benchmarks/kata-skills
       runs: "5"

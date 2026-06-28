@@ -21,7 +21,7 @@ jobs:
         with:
           # fit-benchmark runs the benchmark binary straight off PATH.
           clis: fit-benchmark
-      - uses: forwardimpact/fit-benchmark@c5764e7213832cbe28978517aa8547c4834ad50a # v1
+      - uses: forwardimpact/fit-benchmark@66b7dad6715d32d64bdc81614cd7b2edad9b1cae # v1.0.3
         with:
           family: ./benchmarks/fit-wiki
           runs: "5"

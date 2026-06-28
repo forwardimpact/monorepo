@@ -156,7 +156,7 @@ jobs:
       # this surface preserves the same template-injection-safe contract.
       - name: Assess and Act
         id: assess
-        uses: forwardimpact/fit-harness@6af713fe23701ed1001631c8d3118075561cc41e # v1
+        uses: forwardimpact/fit-harness@d7562330d565019252c45279124fdb1718c68497 # v1.0.2
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -193,7 +193,7 @@ jobs:
       # job start expires after an hour and this run can take up to five.
       - name: Push wiki changes
         if: always()
-        uses: forwardimpact/fit-wiki@269483d677d44834e23f85c79296b836fee8a59f # v1
+        uses: forwardimpact/fit-wiki@2dbe4b3bd46d93dab199172e9dff29214fa509ce # v1.0.0
         with:
           command: push
           app-id: ${{ secrets.KATA_APP_ID }}
