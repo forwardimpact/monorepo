@@ -37,16 +37,16 @@ surfaces and sessions.
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
 `audit/` and `coaligned-check/`.
 <!-- enum:sibling-composite-actions:count -->
-Five external composite actions are published
-under `forwardimpact/`:
+Five composite actions are co-located here and
+published to `forwardimpact/` siblings:
 <!-- /enum -->
 
 <!-- enum:sibling-composite-actions:list -->
-- `forwardimpact/benchmark` — coding-agent benchmarks
-- `forwardimpact/bootstrap` — the FIT CI environment
-- `forwardimpact/harness` — agent task execution
-- `forwardimpact/wiki` — agent-memory commands with fresh App token
-- `forwardimpact/kata-agent` — full Kata workflow (auth, checkout, bootstrap,
+- `benchmark` — coding-agent benchmarks
+- `bootstrap` — the FIT CI environment
+- `harness` — agent task execution
+- `wiki` — agent-memory commands with fresh App token
+- `kata-agent` — full Kata workflow (auth, checkout, bootstrap,
   eval, wiki push)
 <!-- /enum -->
 
