@@ -105,11 +105,6 @@ jobs:
         with:
           clis: fit-pack
 
-      - name: Skill ref lint
-        run: bun run check-skill-refs
-        env:
-          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-
       - name: Publish skill pack
         uses: ./.github/actions/publish-skill-pack
         with:

@@ -31,7 +31,6 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./action-refs": "./src/action-refs.js",
     "./derivation": "./src/derivation.js",
     "./modifiers": "./src/modifiers.js",
     "./agent": "./src/agent.js",
