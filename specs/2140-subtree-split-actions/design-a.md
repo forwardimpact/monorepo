@@ -81,7 +81,7 @@ non-fast-forward is rejected and the non-zero exit fails the run. Because the
 lineage is append-only, sibling `main` is normally the previous split tip and
 the new split fast-forwards it. If someone merged a commit on the sibling, that
 commit is not in the new split, the push is **rejected**, and the run fails. No
-durable "last split" record is needed — the remote ref _is_ the record.
+durable "last split" record is needed — the remote ref *is* the record.
 
 This guard is **lazy**, not continuous: drift is caught at the next push that
 touches that prefix, not the moment it happens. Recovery then needs two steps —
@@ -103,11 +103,8 @@ git -C <sibling-clone> format-patch origin/main..<pr-head> --stdout \
 author; `-3` (and `--binary`) handle merge fallback and binary hunks. The result
 is a normal monorepo PR under the usual gates; merging it makes the next
 outbound split republish the change, closing the sibling PR as "landed via
-monorepo #NNN." Failure handling: a sibling PR touching files at the sibling
-root maps cleanly; a `git am` conflict aborts (`git am --abort`) and the
-maintainer re-applies by hand, and a PR nested under a path the prefix
-duplicates is resolved by adjusting `--directory` depth — neither blocks the
-happy path criterion 5 verifies.
+monorepo #NNN." A `git am` conflict aborts and the maintainer re-applies by hand
+— that does not block the happy path criterion 5 verifies.
 
 Native `git subtree pull` is rejected: it depends on subtree-join commits that
 `splitsh-lite` never creates (ancestry mismatch → fragile merge-base detection)
@@ -133,6 +130,28 @@ to a sibling via deterministic subtree split._ States the inclusion test —
 **only repos with no other home in the monorepo and no publish-time transform**
 (skill packs/npm packages are excluded: they transform or already have a home).
 
+## Sibling rename — one debranding pass, redirect-preserving
+
+Four siblings are debranded by a maintainer GitHub repo-rename
+(`fit-harness → harness`, `fit-benchmark → benchmark`, `fit-wiki → wiki`,
+`fit-bootstrap → bootstrap`); `kata-agent` is untouched. Rename, not create-new,
+so GitHub auto-redirects old paths and `v1.0.x` tags travel — no hard break. The
+rename precedes the seed, so the seed and every later publish target the renamed
+`main`. The one ref that must repoint rather than rely on redirect is the
+`eval-kata.yml` reusable-workflow `uses:` (redirect coverage there is not
+guaranteed).
+
+The rename holds only if every surface naming a sibling moves in the same
+change. The name lives across many surface classes: workflow `uses:` pins; the
+`sibling-composite-actions` enum source + consumers; the
+**vendored sibling trees themselves** (e.g. `kata-agent/action.yml`'s pins on
+`bootstrap`/`harness`/`wiki` and `benchmark`'s reusable-workflow); CLI help text
+with its golden fixture; `.github/CLAUDE.md` prose; and the published benchmark
+doc. The plan owns the exhaustive inventory and a repo-wide residual grep.
+`dependabot.yml` tracks by ecosystem, not repo name, so no edit. CLIs keep
+`fit-*`, so each action still invokes its CLI by the unchanged name (the `wiki`
+action runs `fit-wiki`); only the repo identity changes.
+
 ## Key Decisions
 
 | Decision             | Choice                                                                          | Rejected alternative                                                                                            |
@@ -144,13 +163,14 @@ to a sibling via deterministic subtree split._ States the inclusion test —
 | Drift detection      | The non-force push (rejection = drift)                                          | Ancestry check against a stored "last split" — needs durable state splitsh-lite has not                         |
 | Inbound              | Replay via `git am --directory`                                                 | `git subtree pull` — ancestry mismatch with splitsh-lite, merge-commit noise                                    |
 | Outbound trigger     | Every push to `main` (continuous mirror)                                        | Tag-only — siblings drift stale between releases                                                                |
-| `fit-bootstrap` home | `.github/actions/fit-bootstrap/` (prefix == sibling root; not consumed locally) | A forced `libraries/libbootstrap` — it is CI glue, not a shipped library                                        |
+| `bootstrap` home | `.github/actions/bootstrap/` (prefix == sibling root; not consumed locally) | A forced `libraries/libbootstrap` — it is CI glue, not a shipped library                                        |
+| Action repo names | Debrand to `harness`/`benchmark`/`wiki`/`bootstrap`; keep `kata-agent`; CLIs/npm/skills keep `fit-*`/`kata-*` | Keep `fit-*` action repos — redundant with the `forwardimpact/` owner namespace |
 
 ## Verification mapping
 
 | Criterion                          | Where satisfied                                                                                |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1 homes populated                  | source move; `fit-benchmark` reusable workflow + `fit-bootstrap` sub-actions inside the prefix |
+| 1 homes populated                  | source move; `benchmark` reusable workflow + `bootstrap` sub-actions inside the prefix |
 | 2 faithful projection              | `splitsh-lite` determinism + push                                                              |
 | 3 non-force after seed             | § One-time seed + workflow passes no `--force`                                                 |
 | 4 consumption unchanged            | no `.gitmodules`; `uses:` `# v1` pins + Dependabot bumps untouched                             |
@@ -158,22 +178,21 @@ to a sibling via deterministic subtree split._ States the inclusion test —
 | 6 drift guarded                    | non-force push rejection (§ Projection invariant)                                              |
 | 7 standard documented              | `MONOREPO.md` section + `.github/CLAUDE.md` rewrite                                            |
 | 8 suite green over relocated trees | check/test/format/invariant run after the five sources move                                    |
+| 9 debranded + repointed            | maintainer repo-rename (redirects) + `uses:`/enum/`.github/CLAUDE.md` repoint; CLIs/npm/skills unchanged |
 
 ## Risks
 
-- **Seed force-replace done on the wrong ref → published lineage broken.**
-  Mitigation: the seed is a single, reviewed maintainer step; thereafter the
-  workflow can never force-push (it passes no `--force`).
+- **Seed force-replace on the wrong ref → published lineage broken.**
+  Mitigation: the seed is a single reviewed maintainer step; the workflow itself
+  never force-pushes (passes no `--force`).
 - **`splitsh-lite` version drift breaks the fast-forward.** A different binary
-  version can emit different commit SHAs, turning the next push into a
-  non-fast-forward. Mitigation: pin `splitsh-lite` by SHA; treat a bump as a
-  re-seed, staged through security-engineer review per dependency policy.
+  emits different SHAs → non-fast-forward. Mitigation: pin by SHA; treat a bump
+  as a re-seed via security-engineer review per dependency policy.
 - **App not installed on every sibling.** With `fail-fast: false` one matrix leg
-  fails silently. Mitigation: criterion checks all five publish; document the
-  install set.
+  fails silently. Mitigation: criterion 2 checks all five publish.
 - **Someone merges a PR on the sibling.** The non-force push is rejected and the
   run fails; recovery is to replay that commit into the monorepo, then
   republish.
-- **Reusable-workflow / sub-action paths.** `fit-benchmark`'s
-  `.github/workflows/benchmark.yml` and `fit-bootstrap`'s sub-actions must sit
+- **Reusable-workflow / sub-action paths.** `benchmark`'s
+  `.github/workflows/benchmark.yml` and `bootstrap`'s sub-actions must sit
   inside the prefix or consumers break. Mitigation: criterion 1 checks for them.
