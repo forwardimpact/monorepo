@@ -3,9 +3,8 @@
 The one-time lineage seed and the trigger flip that turns on the continuous
 mirror. Maintainer runbook executed at publish time, after parts 01 and 02 are
 on `main`. Criteria 2, 3, and 6 are verified here against live siblings, not in
-any PR gate. Depends on: 01 + 02 merged
-**and the part 06 repo-rename already done** (the seed pushes to the renamed
-sibling `main`).
+any PR gate. Depends on: 01 + 02 + 04 + 06 merged **and the part 06 repo-rename
+already done** (the seed pushes to the renamed sibling `main`).
 
 ## Step 1: Verify the App install set
 
@@ -20,9 +19,13 @@ Verify: the App's installations list includes all five `forwardimpact/<repo>`.
 For each prefix, run the **same SHA-pinned `splitsh-lite` v1.0.x** the action
 installs (part 02 Step 1) and force-replace the sibling `main` with the lineage
 tip. A different binary version emits divergent SHAs and breaks the first
-non-force CI push. `TOKEN` is minted the same way the workflow does — an App
-token from the App behind `KATA_APP_ID` scoped to that one sibling (or
-equivalent push rights); it is not a standing secret.
+non-force CI push — so capture the SHA **identically** to the action (part 02
+Step 1's confirmed stdout contract), or a trailing-output mismatch makes the
+first CI push a non-fast-forward. `TOKEN` is minted the same way the workflow
+does — an App token from the App behind `KATA_APP_ID` scoped to that one sibling
+(or equivalent push rights); it is not a standing secret. The renamed sibling's
+branch protection must permit this one force push to `main` (confirm before
+relying on it).
 
 ```sh
 SHA=$(splitsh-lite --prefix=<prefix>)

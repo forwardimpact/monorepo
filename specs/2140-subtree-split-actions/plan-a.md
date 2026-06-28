@@ -41,25 +41,31 @@ sub-actions, reusable workflows, `LICENSE`, `README`, and the sibling's own
 | [02](plan-a-02.md) | Outbound: `split-and-push` action + `publish-actions.yml` (dispatch-only) | yes | — |
 | [03](plan-a-03.md) | Inbound: pull-back replay recipe | yes | — |
 | [04](plan-a-04.md) | Standard: `MONOREPO.md` section + `.github/CLAUDE.md` rewrite | yes | — |
-| [05](plan-a-05.md) | Seed runbook + enable the push trigger (maintainer, publish-time) | no | 01 + 02 merged + 06 rename done |
-| [06](plan-a-06.md) | Debrand: repo-rename + repoint `uses:` / enum / `.github/CLAUDE.md` table | no | repo-rename (maintainer) first |
+| [05](plan-a-05.md) | Seed runbook + enable the push trigger (maintainer, publish-time) | no | 01 + 02 + 04 + 06 merged + rename done |
+| [06](plan-a-06.md) | Debrand: repo-rename + repoint every sibling-name surface (8 classes) | no | repo-rename first; 01 (vendored trees) + 04 (`.github/CLAUDE.md` prose) landed |
 
 ## Execution
 
 - **Maintainer first:** the GitHub repo-rename (part 06 Step 1) happens before
-  the seed and before the `uses:` repoint, so both old and new names resolve.
-- **Parallel:** 01, 02, 03, 04, 06 are independent at authoring time — 02 and 06
-  reference repo names as strings, not the relocated files. Route 01, 02, 06 to
-  an **engineering agent** (`staff-engineer`); the `splitsh-lite` SHA pin in 02
-  goes through **`security-engineer`** review per dependency policy. Route 03 to
-  an **engineering agent**. Route 04 to **`technical-writer`** (04 and 06 both
-  touch `.github/CLAUDE.md` in different regions — sequence them or merge with a
-  rebase).
-- **Merge order:** repo-rename → 06's `uses:` repoint; land **01 before 02's
-  first dispatch run** (the split needs the homes on `main`). 03 merges anytime.
+  the repoint and the seed, so both old and new names resolve.
+- **Parallel:** 01, 02, 03, 04 are independent at authoring time (02 references
+  repo names as strings, not relocated files). Route 01, 02 to an **engineering
+  agent** (`staff-engineer`); the `splitsh-lite` SHA pin in 02 goes through
+  **`security-engineer`** per dependency policy. Route 03 to an **engineering
+  agent**. Route 04 to **`technical-writer`**.
+- **Part 06 last among the code PRs:** its repoint sweep needs the vendored
+  trees (01) and the `.github/CLAUDE.md` editing-guidance prose (04) already on
+  `main`, so 06 owns the single repo-wide name swap and the residual-grep gate.
+  Part 06's public-doc surface (I) routes to **`technical-writer`**; the rest to
+  an **engineering agent**. `.github/CLAUDE.md` has exactly one name-token owner
+  (06), removing the 04↔06 seam.
+- **Merge order:** repo-rename → land 01 and 04 → 06 (repoint + grep) → 02; land
+  **01 before 02's first dispatch run** (the split needs the homes on `main`).
+  03 merges anytime.
 - **Sequential, last:** 05 is a maintainer runbook executed at publish time
-  after 01, 02, and the rename are on `main`; criteria 2, 3, and 6 are verified
-  by its seed run and the subsequent CI publishes, not inside any PR gate.
+  after 01, 02, 04, 06, and the rename are on `main`; criteria 2, 3, and 6 are
+  verified by its seed run and the subsequent CI publishes, not inside any PR
+  gate.
 
 ## Risks
 
@@ -77,12 +83,14 @@ sub-actions, reusable workflows, `LICENSE`, `README`, and the sibling's own
   rumdl/test glob), so criterion 8 stays red. Part 01 excludes every home from
   each tool that sweeps it; the implementer extends the ignore set for any
   further tool that `check`/`test` surfaces over the vendored trees.
-- **Repoint before rename, or a missed `uses:` line.** Repointing a `uses:` line
-  to a name that does not exist yet breaks CI; part 06 gates the repoint on the
-  repo-rename being done first (redirects then cover any line not yet bumped). A
-  missed line still resolves via the GitHub redirect, so the failure mode is
-  silent staleness, not breakage — criterion 9 greps for residual
-  `forwardimpact/fit-{harness,benchmark,wiki,bootstrap}` references.
+- **Repoint before rename, or a missed reference.** Repointing to a name that
+  does not exist yet breaks CI; part 06 gates the repoint on the repo-rename
+  being done first (redirects then cover any line not yet bumped). The repo
+  identity lives in eight surface classes (part 06 Step 2), not just
+  `.github/workflows` — a miss resolves via redirect, so the failure mode is
+  silent staleness, not breakage. Criterion 9 is gated by a **repo-wide**
+  residual grep that must return only the intentionally-stale set (`specs/**`,
+  `**/CHANGELOG.md`, the synthetic enum-drift fixture).
 - **A renamed repo collides with an existing `forwardimpact/` repo.** `harness`,
   `benchmark`, `wiki`, `bootstrap` must be free in the org before the rename;
   part 06 Step 1 checks availability first.

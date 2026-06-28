@@ -33,19 +33,22 @@ Files modified: `.github/CLAUDE.md`.
   external sibling PRs are reviewed on the sibling but **never merged there** —
   they land via the `just action-pullback` recipe and reappear on the next
   publish. No remaining instruction to edit an action on the sibling.
-- Leave **structurally unchanged**: the SHA-pin consumption policy, the `# v1`
-  marker, the Dependabot SHA-bump path, and the "Moving a sibling's `v1` tag"
-  rules. The **§ Third-party actions table is the `sibling-composite-actions`
-  enum *source*** (`enumeration-drift.topics.yml`: `md-table`, column
-  `Action (`@v1`)`, filter `forwardimpact/`) — its column header, the five
-  `forwardimpact/<repo>` link rows, and the `Five` count prose (a `count`
-  consumer) are all load-bearing; a stylistic reformat breaks `context`. The
-  matching fenced `<!-- enum -->` consumer blocks in `CLAUDE.md` (`list`) and
-  `KATA.md` (`both`) stay consistent because no sibling is renamed.
+- Keep the **semantics** of the SHA-pin consumption policy, the `# v1` marker,
+  the Dependabot SHA-bump path, and the "Moving a sibling's `v1` tag" rules —
+  reword the editing-guidance prose only.
+- **Do not repoint sibling names in this file.** Every `forwardimpact/fit-*`
+  token in `.github/CLAUDE.md` (the § Third-party actions enum-source table and
+  all prose) is swept by **part 06**, which lands after this part. Part 04 names
+  any repo it must mention using the renamed name and leaves all other name
+  tokens for part 06. The § Third-party actions table is the
+  `sibling-composite-actions` enum *source* (`enumeration-drift.topics.yml`:
+  `md-table`, column `Action (`@v1`)`, filter `forwardimpact/`); its column
+  header and the `Five` count are load-bearing, so part 06 swaps row names
+  without reformatting structure.
 
 Verify: `! rg -ni 'edit(ing)? .*on the sibling' .github/CLAUDE.md`; the §
-Third-party actions source table still holds all five `forwardimpact/` rows and
-its column header; `bun run invariants` (enumeration-drift) and the repository
-`context` check are green.
+Third-party actions source table still holds five `forwardimpact/` rows and its
+column header; `bun run invariants` (enumeration-drift) and the repository
+`context` check are green. (Name-token repointing is part 06's gate.)
 
 Libraries used: none.

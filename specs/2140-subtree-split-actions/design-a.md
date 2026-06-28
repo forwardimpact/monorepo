@@ -103,11 +103,8 @@ git -C <sibling-clone> format-patch origin/main..<pr-head> --stdout \
 author; `-3` (and `--binary`) handle merge fallback and binary hunks. The result
 is a normal monorepo PR under the usual gates; merging it makes the next
 outbound split republish the change, closing the sibling PR as "landed via
-monorepo #NNN." Failure handling: a sibling PR touching files at the sibling
-root maps cleanly; a `git am` conflict aborts (`git am --abort`) and the
-maintainer re-applies by hand, and a PR nested under a path the prefix
-duplicates is resolved by adjusting `--directory` depth — neither blocks the
-happy path criterion 5 verifies.
+monorepo #NNN." A `git am` conflict aborts and the maintainer re-applies by hand
+— that does not block the happy path criterion 5 verifies.
 
 Native `git subtree pull` is rejected: it depends on subtree-join commits that
 `splitsh-lite` never creates (ancestry mismatch → fragile merge-base detection)
@@ -135,26 +132,26 @@ to a sibling via deterministic subtree split._ States the inclusion test —
 
 ## Sibling rename — one debranding pass, redirect-preserving
 
-Four siblings are debranded as a maintainer GitHub repo-rename
+Four siblings are debranded by a maintainer GitHub repo-rename
 (`fit-harness → harness`, `fit-benchmark → benchmark`, `fit-wiki → wiki`,
-`fit-bootstrap → bootstrap`); `kata-agent` is untouched. A repo-rename is chosen
-over create-new because GitHub auto-redirects the old path, so external
-`forwardimpact/fit-*@<sha>` pins and the `v1.0.x` tags keep resolving — no hard
-break. The rename precedes the seed, so the seed (and every later publish)
-targets the renamed `main`.
+`fit-bootstrap → bootstrap`); `kata-agent` is untouched. Rename, not create-new,
+so GitHub auto-redirects old paths and `v1.0.x` tags travel — no hard break. The
+rename precedes the seed, so the seed and every later publish target the renamed
+`main`. The one ref that must repoint rather than rely on redirect is the
+`eval-kata.yml` reusable-workflow `uses:` (redirect coverage there is not
+guaranteed).
 
-The rename is consistent only if every monorepo surface naming a sibling moves
-in the same change. Three surface classes carry the names:
+The rename holds only if every surface naming a sibling moves in the same
+change. The name lives in six classes: workflow `uses:` pins; the
+`sibling-composite-actions` enum source + consumers; the
+**vendored sibling trees themselves** (e.g. `kata-agent/action.yml`'s pins on
+`bootstrap`/`harness`/`wiki` and `benchmark`'s reusable-workflow); CLI help text
 
-| Surface | What repoints |
-| --- | --- |
-| Workflow `uses:` pins | Every `forwardimpact/fit-{harness,benchmark,wiki,bootstrap}@<sha>` line across `.github/workflows/**` (and the `fit-benchmark` reusable-workflow ref in `eval-kata.yml`) → renamed owner/repo, SHA and `# v1` marker unchanged |
-| Enum source + consumers | `.github/CLAUDE.md` § Third-party actions table rows (the `sibling-composite-actions` `md-table` *source*) and the `CLAUDE.md` / `KATA.md` fenced consumer blocks → new names; the `forwardimpact/` filter and `Five` count are unchanged |
-| Dependabot | `.github/dependabot.yml` tracks `github-actions` by ecosystem, not by repo name, so no edit is needed; the weekly sweep follows the renamed pins |
-
-Because the CLIs keep their `fit-*` names, each renamed action's source still
-invokes its CLI by the unchanged name (e.g. the `wiki` action runs `fit-wiki`);
-only the action/repo identity changes.
+- its golden fixture; `.github/CLAUDE.md` prose; and the published benchmark
+doc. The plan owns the exhaustive inventory and a repo-wide residual grep.
+`dependabot.yml` tracks by ecosystem, not repo name, so no edit. CLIs keep
+`fit-*`, so each action still invokes its CLI by the unchanged name (the `wiki`
+action runs `fit-wiki`); only the repo identity changes.
 
 ## Key Decisions
 
@@ -186,16 +183,14 @@ only the action/repo identity changes.
 
 ## Risks
 
-- **Seed force-replace done on the wrong ref → published lineage broken.**
-  Mitigation: the seed is a single, reviewed maintainer step; thereafter the
-  workflow can never force-push (it passes no `--force`).
+- **Seed force-replace on the wrong ref → published lineage broken.**
+  Mitigation: the seed is a single reviewed maintainer step; the workflow itself
+  never force-pushes (passes no `--force`).
 - **`splitsh-lite` version drift breaks the fast-forward.** A different binary
-  version can emit different commit SHAs, turning the next push into a
-  non-fast-forward. Mitigation: pin `splitsh-lite` by SHA; treat a bump as a
-  re-seed, staged through security-engineer review per dependency policy.
+  emits different SHAs → non-fast-forward. Mitigation: pin by SHA; treat a bump
+  as a re-seed via security-engineer review per dependency policy.
 - **App not installed on every sibling.** With `fail-fast: false` one matrix leg
-  fails silently. Mitigation: criterion checks all five publish; document the
-  install set.
+  fails silently. Mitigation: criterion 2 checks all five publish.
 - **Someone merges a PR on the sibling.** The non-force push is rejected and the
   run fails; recovery is to replay that commit into the monorepo, then
   republish.

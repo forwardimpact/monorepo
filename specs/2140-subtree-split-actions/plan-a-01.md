@@ -32,7 +32,10 @@ The five live sibling trees today carry only `README.md`, `LICENSE`,
 `action.yml`, the `benchmark` reusable workflow, the `bootstrap` sub-actions,
 and `kata-agent/post-run/*.mjs` — **no** `package.json` and **no** `*.test.js`.
 Confirm this when vendoring; the exclusion set in Step 2 is sized to exactly
-these contents.
+these contents. The vendored trees also carry the siblings' own
+`forwardimpact/fit-*` self/cross-references (e.g. `kata-agent/action.yml`'s pins
+on the other actions); those are repointed to the renamed repos by **part 06
+Surface B**, which depends on this relocation.
 
 Verify: `test -f` on each home's `action.yml`;
 `test -f libraries/libharness/actions/benchmark/.github/workflows/benchmark.yml`;
