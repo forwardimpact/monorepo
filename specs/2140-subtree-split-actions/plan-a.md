@@ -42,7 +42,7 @@ sub-actions, reusable workflows, `LICENSE`, `README`, and the sibling's own
 | [03](plan-a-03.md) | Inbound: pull-back replay recipe | yes | — |
 | [04](plan-a-04.md) | Standard: `MONOREPO.md` section + `.github/CLAUDE.md` rewrite | yes | — |
 | [05](plan-a-05.md) | Seed runbook + enable the push trigger (maintainer, publish-time) | no | 01 + 02 + 04 + 06 merged + rename done |
-| [06](plan-a-06.md) | Debrand: repo-rename + repoint every sibling-name surface (8 classes) | no | repo-rename first; 01 (vendored trees) + 04 (`.github/CLAUDE.md` prose) landed |
+| [06](plan-a-06.md) | Debrand: repo-rename + repoint every sibling-name surface (10 classes) | no | repo-rename first; 01 (vendored trees) + 04 (`.github/CLAUDE.md` prose) landed |
 
 ## Execution
 
@@ -86,11 +86,12 @@ sub-actions, reusable workflows, `LICENSE`, `README`, and the sibling's own
 - **Repoint before rename, or a missed reference.** Repointing to a name that
   does not exist yet breaks CI; part 06 gates the repoint on the repo-rename
   being done first (redirects then cover any line not yet bumped). The repo
-  identity lives in eight surface classes (part 06 Step 2), not just
+  identity lives in ten surface classes (part 06 Step 2), not just
   `.github/workflows` — a miss resolves via redirect, so the failure mode is
-  silent staleness, not breakage. Criterion 9 is gated by a **repo-wide**
-  residual grep that must return only the intentionally-stale set (`specs/**`,
-  `**/CHANGELOG.md`, the synthetic enum-drift fixture).
+  silent staleness, not breakage. Criterion 9 is gated by a repo-wide
+  **`--hidden`** residual grep (plain `rg` skips `.github/`/`.claude/`) that
+  must return only the intentionally-stale set, plus a re-read of the three
+  bare-name files.
 - **A renamed repo collides with an existing `forwardimpact/` repo.** `harness`,
   `benchmark`, `wiki`, `bootstrap` must be free in the org before the rename;
   part 06 Step 1 checks availability first.

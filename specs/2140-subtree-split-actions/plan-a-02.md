@@ -55,7 +55,8 @@ Files created: `.github/workflows/publish-actions.yml`.
   2. `actions/checkout` (SHA-pinned `# v6`) with `fetch-depth: 0` — checks out
      **the monorepo** (the split and the local-action references below resolve
      against this checkout, never a sibling).
-  3. `./.github/actions/audit` (secret scanning only, as `publish-skills.yml`
+  3. `./.github/actions/audit` with `vulnerability-scanning: "false"`,
+     `secret-scanning: "true"` (secret scanning only, as `publish-skills.yml`
      does).
   4. `./.github/actions/split-and-push` with the leg's `prefix`, `repo`, and the
      step-1 token.

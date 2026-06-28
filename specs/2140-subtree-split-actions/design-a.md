@@ -142,7 +142,7 @@ rename precedes the seed, so the seed and every later publish target the renamed
 guaranteed).
 
 The rename holds only if every surface naming a sibling moves in the same
-change. The name lives in six classes: workflow `uses:` pins; the
+change. The name lives across many surface classes: workflow `uses:` pins; the
 `sibling-composite-actions` enum source + consumers; the
 **vendored sibling trees themselves** (e.g. `kata-agent/action.yml`'s pins on
 `bootstrap`/`harness`/`wiki` and `benchmark`'s reusable-workflow); CLI help text
