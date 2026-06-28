@@ -12,12 +12,12 @@ permissions:
 
 jobs:
   # Fan the kata-skills family (6 tasks × runs:5 = 30 cells) across machines via
-  # the fit-benchmark reusable workflow, then merge the shard ledgers into one
+  # the benchmark reusable workflow, then merge the shard ledgers into one
   # pass@k. Sharding — not a raised per-job timeout — keeps the run inside the
   # GitHub Actions ceiling. The filesystem work-tracker is the reusable
   # workflow's env contract; this caller only picks the family and shard count.
   benchmark:
-    uses: forwardimpact/fit-benchmark/.github/workflows/benchmark.yml@66b7dad6715d32d64bdc81614cd7b2edad9b1cae # v1.0.3
+    uses: forwardimpact/benchmark/.github/workflows/benchmark.yml@66b7dad6715d32d64bdc81614cd7b2edad9b1cae # v1.0.3
     with:
       family: ./benchmarks/kata-skills
       runs: "5"

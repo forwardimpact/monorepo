@@ -80,7 +80,7 @@ jobs:
           token: ${{ steps.ci-app.outputs.token }}
       - name: Assess and Act
         id: assess
-        uses: forwardimpact/fit-harness@{{FIT_HARNESS_REF}}
+        uses: forwardimpact/harness@{{FIT_HARNESS_REF}}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -96,21 +96,21 @@ jobs:
           discussion-id: ${{ inputs.discussion_id }}
       # Copy the `Report run cost` step from workflow-shift.md (read trace-file
       # from `steps.assess`).
-      # fit-harness does not push wiki itself, so push memory with a fresh token.
+      # harness does not push wiki itself, so push memory with a fresh token.
       # Drop this step when wiki is disabled.
       - name: Push wiki changes
         if: always()
-        uses: forwardimpact/fit-wiki@{{FIT_WIKI_REF}}
+        uses: forwardimpact/wiki@{{FIT_WIKI_REF}}
         with:
           command: push
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
 
-Uses `fit-harness` (not `kata-agent`) so the workflow can pass `task-event` and
+Uses `harness` (not `kata-agent`) so the workflow can pass `task-event` and
 select `mode` per event. The `if:` must stay aligned with the `on:` block. The
 recursion guard lives in the action's task composition, not here. The
-`fit-harness` and `fit-wiki` refs are SHA-pinned at generation time — pair them
+`harness` and `wiki` refs are SHA-pinned at generation time — pair them
 with the Dependabot config from `SKILL.md` Step 2.
 
 ## Hosted Variant

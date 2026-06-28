@@ -7,7 +7,7 @@ Claude Agent SDK. Handles trace capture, splitting, and artifact upload.
 ## Usage
 
 ```yaml
-- uses: forwardimpact/fit-harness@v1
+- uses: forwardimpact/harness@v1
   env:
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -74,7 +74,7 @@ the conversation and N participants respond via a bridge callback. Use
 restore prior state when the caller resumes a suspended discussion.
 
 ```yaml
-- uses: forwardimpact/fit-harness@v1
+- uses: forwardimpact/harness@v1
   with:
     mode: discuss
     task-text: "…"
@@ -96,7 +96,7 @@ orchestrator summary and POST it to an external caller:
 
 ```yaml
 - id: assess
-  uses: forwardimpact/fit-harness@v1
+  uses: forwardimpact/harness@v1
   with:
     mode: facilitate
     task-text: "…"

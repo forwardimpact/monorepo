@@ -42,10 +42,10 @@ under `forwardimpact/`:
 <!-- /enum -->
 
 <!-- enum:sibling-composite-actions:list -->
-- `forwardimpact/fit-benchmark` — coding-agent benchmarks
-- `forwardimpact/fit-bootstrap` — the FIT CI environment
-- `forwardimpact/fit-harness` — agent task execution
-- `forwardimpact/fit-wiki` — agent-memory commands with fresh App token
+- `forwardimpact/benchmark` — coding-agent benchmarks
+- `forwardimpact/bootstrap` — the FIT CI environment
+- `forwardimpact/harness` — agent task execution
+- `forwardimpact/wiki` — agent-memory commands with fresh App token
 - `forwardimpact/kata-agent` — full Kata workflow (auth, checkout, bootstrap,
   eval, wiki push)
 <!-- /enum -->

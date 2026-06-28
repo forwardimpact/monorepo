@@ -174,12 +174,12 @@ runs:
         TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
       run: |
         # fit-harness must already be on PATH as a pinned gear binary, installed
-        # by forwardimpact/fit-bootstrap with `clis: fit-harness fit-trace`.
+        # by forwardimpact/bootstrap with `clis: fit-harness fit-trace`.
         # There is no bunx/npx fallback: the binary distribution is the only
         # supported path, so a missing binary fails hard rather than silently
         # resolving a different (registry) build.
         if ! command -v fit-harness &>/dev/null; then
-          echo "::error::fit-harness not found on PATH. Install it as a gear binary via forwardimpact/fit-bootstrap with 'clis: fit-harness fit-trace' before this step. No bunx/npx fallback." >&2
+          echo "::error::fit-harness not found on PATH. Install it as a gear binary via forwardimpact/bootstrap with 'clis: fit-harness fit-trace' before this step. No bunx/npx fallback." >&2
           exit 1
         fi
         HARNESS_CMD="fit-harness"
@@ -309,7 +309,7 @@ runs:
         # fit-trace is a pinned gear binary on PATH (fit-bootstrap clis:
         # fit-trace). No bunx/npx fallback — fail hard if it is missing.
         if ! command -v fit-trace &>/dev/null; then
-          echo "::error::fit-trace not found on PATH. Install it as a gear binary via forwardimpact/fit-bootstrap with 'clis: fit-trace' before this step. No bunx/npx fallback." >&2
+          echo "::error::fit-trace not found on PATH. Install it as a gear binary via forwardimpact/bootstrap with 'clis: fit-trace' before this step. No bunx/npx fallback." >&2
           exit 1
         fi
         TRACE_CMD="fit-trace"

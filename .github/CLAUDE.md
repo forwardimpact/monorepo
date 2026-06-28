@@ -11,16 +11,16 @@ marker on `uses:` lines — sibling repos this monorepo maintains:
 
 | Action (`@v1`) | Purpose |
 |---|---|
-| [fit-bootstrap](https://github.com/forwardimpact/fit-bootstrap) | FIT CI environment: Bun, cached deps/workspace, wiki checkout, `bootstrap.sh` |
-| [fit-wiki](https://github.com/forwardimpact/fit-wiki) | Run a `fit-wiki` agent-memory command (push/pull/audit); mints a fresh App token first |
-| [fit-benchmark](https://github.com/forwardimpact/fit-benchmark) | Coding-agent benchmarks |
-| [fit-harness](https://github.com/forwardimpact/fit-harness) | Agent task execution |
-| [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, fit-bootstrap, fit-harness, fit-wiki) |
+| [bootstrap](https://github.com/forwardimpact/bootstrap) | FIT CI environment: Bun, cached deps/workspace, wiki checkout, `bootstrap.sh` |
+| [wiki](https://github.com/forwardimpact/wiki) | Run a `fit-wiki` agent-memory command (push/pull/audit); mints a fresh App token first |
+| [benchmark](https://github.com/forwardimpact/benchmark) | Coding-agent benchmarks |
+| [harness](https://github.com/forwardimpact/harness) | Agent task execution |
+| [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, bootstrap, harness, wiki) |
 
-Every workflow calls `fit-bootstrap@v1` for the environment; `kata-agent`
-delegates to bootstrap/harness/wiki internally. `fit-bootstrap` only **checks
+Every workflow calls `bootstrap@v1` for the environment; `kata-agent`
+delegates to bootstrap/harness/wiki internally. `bootstrap` only **checks
 out** the wiki (given a `token`); its App token expires after an hour, so agent
-runs push memory with `fit-wiki@v1` as an `always()` step. Change a sibling's
+runs push memory with `wiki@v1` as an `always()` step. Change a sibling's
 interface — and tag it — before the consumer.
 
 ### Editing a published action
@@ -37,7 +37,7 @@ SHA-bump PR (`.github/dependabot.yml`, weekly), not by moving `v1`. Widening a
 standing token scope needs security-engineer review.
 
 This pinning policy governs workflow `uses:` only; a sibling's internal `uses:`
-(e.g. `kata-agent`'s call to `fit-bootstrap@v1`) is governed by the sibling.
+(e.g. `kata-agent`'s call to `bootstrap@v1`) is governed by the sibling.
 
 ### Moving a sibling's `v1` tag
 
@@ -50,9 +50,9 @@ is a compromise indicator.
 ### `IS_SANDBOX` for headless agents
 
 Bypass-permissions mode (every Agent-SDK action) is refused under `uid 0` unless
-the process is marked sandboxed, and runners may be root. So `fit-harness`,
-`fit-benchmark`, `fit-wiki`, and `kata-agent` set `IS_SANDBOX=1` on their
-agent-spawning step (`fit-bootstrap` spawns no agent). The SDK forwards the
+the process is marked sandboxed, and runners may be root. So `harness`,
+`benchmark`, `wiki`, and `kata-agent` set `IS_SANDBOX=1` on their
+agent-spawning step (`bootstrap` spawns no agent). The SDK forwards the
 parent env, so setting it on the action environment suffices — kept out of
 `libharness` so it stays an environment decision. Without it the agent exits 1
 with no output.
@@ -91,7 +91,7 @@ Referenced as `./.github/actions/<name>`:
 `$GITHUB_WORKSPACE` (the caller's checkout), not the action's own dir. So
 workflows use `./.github/actions/<name>`, but a published composite action
 reaching its own subdir must use the full `{owner}/{repo}/{path}@{ref}` form
-(e.g. `forwardimpact/fit-bootstrap/sub-action@v1`), never `./sub`.
+(e.g. `forwardimpact/bootstrap/sub-action@v1`), never `./sub`.
 
 ## macOS code signing & notarization
 

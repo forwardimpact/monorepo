@@ -113,12 +113,12 @@ in [references/authoring.md](references/authoring.md).
 
 ## GitHub Action
 
-The `forwardimpact/fit-benchmark@v1` composite action wraps the CLI: it
+The `forwardimpact/benchmark@v1` composite action wraps the CLI: it
 installs deps, runs the benchmark, appends the report to the step summary, and
 uploads `results.jsonl`.
 
 ```yaml
-- uses: forwardimpact/fit-benchmark@v1
+- uses: forwardimpact/benchmark@v1
   with:
     family: ./benchmarks/my-family
     runs: "5"
@@ -196,4 +196,4 @@ Each run produces agent and judge NDJSON traces, both consumable by
   — Author a coding-task family, run a benchmark across multiple runs,
   and read the pass@k report.
 - [Automate with GitHub Actions](https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/ci-workflow/index.md)
-  — Run benchmarks in CI with the forwardimpact/fit-benchmark action.
+  — Run benchmarks in CI with the forwardimpact/benchmark action.

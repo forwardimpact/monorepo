@@ -1,11 +1,11 @@
 ---
 title: Automate with GitHub Actions
-description: Run fit-benchmark in CI with the forwardimpact/fit-benchmark composite action — step summaries, artifact upload, and PR-triggered benchmarks.
+description: Run fit-benchmark in CI with the forwardimpact/benchmark composite action — step summaries, artifact upload, and PR-triggered benchmarks.
 ---
 
 You have a task family that works locally. Now you want benchmarks to run
 automatically — on pull requests that touch your skills, on a weekly schedule,
-or on demand. The `forwardimpact/fit-benchmark` GitHub Action wraps the CLI,
+or on demand. The `forwardimpact/benchmark` GitHub Action wraps the CLI,
 adds step summaries and artifact upload, and handles timeout control.
 
 ## Prerequisites
@@ -36,7 +36,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: forwardimpact/fit-benchmark@v1
+      - uses: forwardimpact/benchmark@v1
         with:
           family: ./benchmarks/my-family
           runs: "5"
@@ -112,7 +112,7 @@ jobs:
       LLMHUB_PROD_API_KEY: ${{ secrets.LLMHUB_PROD_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: forwardimpact/fit-benchmark@v1
+      - uses: forwardimpact/benchmark@v1
         with:
           family: ./benchmarks/my-family
           runs: "5"
@@ -162,7 +162,7 @@ strategy:
       - { path: "./benchmarks/kata-skills", name: "kata" }
       - { path: "./benchmarks/fit-skills", name: "fit" }
 steps:
-  - uses: forwardimpact/fit-benchmark@v1
+  - uses: forwardimpact/benchmark@v1
     with:
       family: ${{ matrix.family.path }}
       artifact-name: benchmark-${{ matrix.family.name }}
@@ -179,7 +179,7 @@ partial ledgers into one pass@k:
 ```yaml
 jobs:
   benchmark:
-    uses: forwardimpact/fit-benchmark/.github/workflows/benchmark.yml@v1
+    uses: forwardimpact/benchmark/.github/workflows/benchmark.yml@v1
     with:
       family: ./benchmarks/my-family
       runs: "5"

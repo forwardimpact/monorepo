@@ -137,8 +137,8 @@ runs:
     # fit-bootstrap handles Bun + cached deps + cached workspace +
     # ./scripts/bootstrap.sh. The `token:` input gates wiki checkout —
     # leave it empty to skip wiki sync. The wiki is pushed back after the
-    # agent run via forwardimpact/fit-wiki below.
-    - uses: forwardimpact/fit-bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
+    # agent run via forwardimpact/wiki below.
+    - uses: forwardimpact/bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
       with:
         token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
         app-slug: ${{ inputs.app-slug }}
@@ -154,7 +154,7 @@ runs:
     # mints a fresh token for the `gh issue list` calls refresh makes.
     - name: Refresh wiki (pre-run)
       if: inputs.wiki == 'true'
-      uses: forwardimpact/fit-wiki@v1
+      uses: forwardimpact/wiki@v1
       with:
         command: refresh
         app-id: ${{ inputs.app-id }}
@@ -162,7 +162,7 @@ runs:
 
     - name: Assess and Act
       id: assess
-      uses: forwardimpact/fit-harness@6af713fe23701ed1001631c8d3118075561cc41e # v1.0.1
+      uses: forwardimpact/harness@6af713fe23701ed1001631c8d3118075561cc41e # v1.0.1
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -200,7 +200,7 @@ runs:
     # the run even if the agent failed or timed out, matching the push below.
     - name: Refresh wiki (post-run)
       if: always() && inputs.wiki == 'true'
-      uses: forwardimpact/fit-wiki@v1
+      uses: forwardimpact/wiki@v1
       with:
         command: refresh
         app-id: ${{ inputs.app-id }}
@@ -212,7 +212,7 @@ runs:
     # is durable whether the agent step succeeded, failed, or timed out.
     - name: Push wiki changes
       if: always() && inputs.wiki == 'true'
-      uses: forwardimpact/fit-wiki@v1
+      uses: forwardimpact/wiki@v1
       with:
         command: push
         app-id: ${{ inputs.app-id }}

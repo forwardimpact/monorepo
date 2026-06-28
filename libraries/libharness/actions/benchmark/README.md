@@ -7,7 +7,7 @@ Handles task-family execution, pass@k reporting, and result artifact upload.
 ## Usage
 
 ```yaml
-- uses: forwardimpact/fit-benchmark@v1
+- uses: forwardimpact/benchmark@v1
   env:
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   with:
@@ -80,7 +80,7 @@ one pass@k — cross-machine parallelism from a single input:
 ```yaml
 jobs:
   benchmark:
-    uses: forwardimpact/fit-benchmark/.github/workflows/benchmark.yml@v1
+    uses: forwardimpact/benchmark/.github/workflows/benchmark.yml@v1
     with:
       family: ./benchmarks/my-family
       shard-total: 4

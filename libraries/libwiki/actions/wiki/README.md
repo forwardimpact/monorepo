@@ -11,12 +11,12 @@ agent — so memory is flushed reliably regardless of run length or outcome.
 
 ## Usage
 
-Run after `forwardimpact/fit-bootstrap@v1` (which sets up Bun, the workspace,
+Run after `forwardimpact/bootstrap@v1` (which sets up Bun, the workspace,
 and the checked-out `./wiki` working copy):
 
 ```yaml
 - if: always()
-  uses: forwardimpact/fit-wiki@v1
+  uses: forwardimpact/wiki@v1
   with:
     command: push
     app-id: ${{ secrets.KATA_APP_ID }}
@@ -26,7 +26,7 @@ and the checked-out `./wiki` working copy):
 Read-only / local commands need no credentials:
 
 ```yaml
-- uses: forwardimpact/fit-wiki@v1
+- uses: forwardimpact/wiki@v1
   with:
     command: audit
 ```
