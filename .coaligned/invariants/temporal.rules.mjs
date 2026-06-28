@@ -105,6 +105,14 @@ const BASE_GLOBS = [
   // (` #97`, ` #44`) are runtime identifiers, not issue references; they trip
   // the space-prefixed numeric pattern.
   "!websites/fit/docs/libraries/predictable-team/collision-ledger/index.md",
+  // Co-located action sources are byte-faithful projections of their sibling
+  // repos, mirrored here verbatim; their READMEs cross-reference the siblings'
+  // own history and cannot be reworded without diverging the projection, so
+  // they are out of scope like specs/ and benchmarks/.
+  "!libraries/libharness/actions/**",
+  "!libraries/libwiki/actions/**",
+  "!products/kata/actions/**",
+  "!.github/actions/bootstrap/**",
 ];
 
 export default {

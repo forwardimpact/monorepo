@@ -1,0 +1,9 @@
+name: Post Run
+description: Run a command during job cleanup
+inputs:
+  command:
+    required: true
+runs:
+  using: node20
+  main: index.mjs
+  post: post.mjs

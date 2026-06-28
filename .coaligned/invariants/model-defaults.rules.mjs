@@ -33,6 +33,14 @@ const BASE_GLOBS = [
   "!benchmarks/**",
   // This module names example IDs in its comments and would match them.
   "!.coaligned/invariants/model-defaults.rules.mjs",
+  // Co-located action sources are byte-faithful projections of their sibling
+  // repos (their canonical home is the sibling, mirrored here verbatim); a
+  // model ID in their READMEs cannot be reworded without diverging the
+  // projection, so they are out of scope like specs/ and benchmarks/.
+  "!libraries/libharness/actions/**",
+  "!libraries/libwiki/actions/**",
+  "!products/kata/actions/**",
+  "!.github/actions/bootstrap/**",
 ];
 
 export default {

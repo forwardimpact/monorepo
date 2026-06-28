@@ -11,7 +11,19 @@ respect-gitignore = true
 # Golden snapshots and test fixtures are byte-exact test data — golden files
 # must match unwrapped tool output, and fixtures are asserted verbatim — so
 # reflowing them breaks the suites that compare against them.
-exclude = ["wiki", "JTBD.md", "**/test/golden/**", "**/test/fixtures/**"]
+# Co-located action sources are byte-faithful projections of their sibling
+# repos, not authored monorepo markdown; reflowing their READMEs would diverge
+# the projection from the published sibling.
+exclude = [
+  "wiki",
+  "JTBD.md",
+  "**/test/golden/**",
+  "**/test/fixtures/**",
+  "libraries/libharness/actions/**",
+  "libraries/libwiki/actions/**",
+  "products/kata/actions/**",
+  ".github/actions/bootstrap/**",
+]
 # MD033: repo uses intentional inline HTML (<br> in tables, <job>/
 #        <read_do_checklist> tag conventions).
 # MD041: agent/skill files, content partials, and front-matter-led docs

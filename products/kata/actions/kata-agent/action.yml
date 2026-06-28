@@ -1,0 +1,219 @@
+name: Kata Agent
+description: >
+  Run a Kata agent workflow — generates an installation token, checks out the repository, bootstraps the environment, and executes the agent via fit-harness.
+
+inputs:
+  # --- Authentication ---
+  app-id:
+    description: GitHub App ID for token generation and git identity
+    required: true
+  app-private-key:
+    description: GitHub App private key for token generation
+    required: true
+  anthropic-api-key:
+    description: Anthropic API key for the Claude Agent SDK
+    required: true
+  app-slug:
+    description: GitHub App slug for git identity
+    required: false
+    default: "kata-agent-team"
+  # --- Agent configuration ---
+  mode:
+    description: Execution mode (run, supervise, facilitate, discuss)
+    required: false
+    default: "run"
+  task-text:
+    description: Inline task text (mutually exclusive with task-file)
+    required: false
+  task-file:
+    description: Path to task file (mutually exclusive with task-text)
+    required: false
+  agent-profile:
+    description: Agent profile name (run and supervise modes)
+    required: false
+  lead-profile:
+    description: Lead role profile name (supervisor / facilitator / chair) — used by supervise, facilitate, and discuss modes
+    required: false
+  agent-profiles:
+    description: Comma-separated agent profile names (facilitate and discuss modes)
+    required: false
+  agent-model:
+    description: Claude model for agents (all modes); empty uses the fit-harness CLI default
+    required: false
+    default: ""
+  lead-model:
+    description: Claude model for the lead role (supervise / facilitate / discuss modes); empty uses the fit-harness CLI default
+    required: false
+    default: ""
+  max-turns:
+    description: Maximum turns (0 = unlimited)
+    required: false
+    default: "200"
+  allowed-tools:
+    description: Comma-separated list of allowed tools for the agent
+    required: false
+    default: "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
+  supervisor-allowed-tools:
+    description: Comma-separated list of allowed tools for the supervisor (supervise mode only)
+    required: false
+  task-amend:
+    description: Additional text appended to the task prompt for steering
+    required: false
+  # --- Discussion (discuss mode) ---
+  discussion-id:
+    description: Stable id for the threaded discussion (discuss mode); carried through traces for linking and used by callers to resume a suspended run
+    required: false
+  resume-context:
+    description: JSON-serialized prior state for a resumed discuss run (discuss mode)
+    required: false
+  # --- Optional overrides ---
+  cwd:
+    description: Agent working directory (run mode)
+    required: false
+    default: "."
+  supervisor-cwd:
+    description: Supervisor working directory (supervise mode)
+    required: false
+    default: "."
+  agent-cwd:
+    description: Agent working directory (supervise, facilitate, and discuss modes)
+    required: false
+    default: "."
+  timeout-minutes:
+    description: Maximum minutes before cancellation
+    required: false
+    default: "45"
+  trace:
+    description: Enable trace capture and artifact upload
+    required: false
+    default: "true"
+  case:
+    description: Case identifier embedded in trace artifact filenames (use the matrix dimension for matrix runs)
+    required: false
+    default: "default"
+  wiki:
+    description: Enable wiki checkout and sync
+    required: false
+    default: "true"
+
+outputs:
+  trace-file:
+    description: >
+      Absolute path of the raw NDJSON trace file from the agent run
+      (empty when `trace` is disabled). Wraps each
+      agent/supervisor/facilitator/chair/orchestrator event in
+      `{source, seq, event}` envelopes. Read it directly to post-process the
+      run — e.g. `fit-trace cost <file>` to sum spend across every
+      participant. Passed through from the internal `fit-harness` action.
+    value: ${{ steps.assess.outputs.trace-file }}
+  trace-dir:
+    description: >
+      Absolute path of the temp directory holding all trace files for this
+      run (empty when `trace` is disabled). Use it to read the raw or split
+      trace files without globbing the runner's temp space. Passed through
+      from the internal `fit-harness` action.
+    value: ${{ steps.assess.outputs.trace-dir }}
+  case:
+    description: >
+      Effective case identifier embedded in the trace filenames. Passed
+      through from the internal `fit-harness` action.
+    value: ${{ steps.assess.outputs.case }}
+
+runs:
+  using: composite
+  steps:
+    - name: Generate installation token
+      id: ci-app
+      uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.app-private-key }}
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      with:
+        fetch-depth: 0
+        token: ${{ steps.ci-app.outputs.token }}
+
+    # fit-bootstrap handles Bun + cached deps + cached workspace +
+    # ./scripts/bootstrap.sh. The `token:` input gates wiki checkout —
+    # leave it empty to skip wiki sync. The wiki is pushed back after the
+    # agent run via forwardimpact/fit-wiki below.
+    - uses: forwardimpact/fit-bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
+      with:
+        token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
+        app-slug: ${{ inputs.app-slug }}
+        app-id: ${{ inputs.app-id }}
+        # Install the pre-compiled CLIs the run uses onto PATH; fit-wiki only
+        # when wiki sync is enabled. The fit-harness/fit-wiki steps below
+        # resolve these binaries before any npx path.
+        clis: ${{ inputs.wiki == 'true' && 'fit-wiki fit-harness fit-trace' || 'fit-harness fit-trace' }}
+
+    # Render the storyboard from current issue + CSV state before the agent
+    # reads it, so the facilitator and participants see an up-to-date Current
+    # Condition and Active/Concluded lists rather than stale markdown. fit-wiki
+    # mints a fresh token for the `gh issue list` calls refresh makes.
+    - name: Refresh wiki (pre-run)
+      if: inputs.wiki == 'true'
+      uses: forwardimpact/fit-wiki@v1
+      with:
+        command: refresh
+        app-id: ${{ inputs.app-id }}
+        app-private-key: ${{ inputs.app-private-key }}
+
+    - name: Assess and Act
+      id: assess
+      uses: forwardimpact/fit-harness@6af713fe23701ed1001631c8d3118075561cc41e # v1.0.1
+      env:
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        GH_TOKEN: ${{ steps.ci-app.outputs.token }}
+        CLAUDE_CODE_USE_BEDROCK: "0"
+        # The agent runs in bypass-permissions mode, which Claude Code refuses
+        # under uid 0 unless the process is marked sandboxed. fit-harness@v1 sets
+        # this on its own run step; set it here too so the requirement is
+        # explicit at the workflow level. Harmless on non-root runners.
+        IS_SANDBOX: "1"
+      with:
+        mode: ${{ inputs.mode }}
+        task-text: ${{ inputs.task-text }}
+        task-file: ${{ inputs.task-file }}
+        agent-profile: ${{ inputs.agent-profile }}
+        lead-profile: ${{ inputs.lead-profile }}
+        agent-profiles: ${{ inputs.agent-profiles }}
+        agent-model: ${{ inputs.agent-model }}
+        lead-model: ${{ inputs.lead-model }}
+        max-turns: ${{ inputs.max-turns }}
+        allowed-tools: ${{ inputs.allowed-tools }}
+        supervisor-allowed-tools: ${{ inputs.supervisor-allowed-tools }}
+        task-amend: ${{ inputs.task-amend }}
+        cwd: ${{ inputs.cwd }}
+        supervisor-cwd: ${{ inputs.supervisor-cwd }}
+        agent-cwd: ${{ inputs.agent-cwd }}
+        timeout-minutes: ${{ inputs.timeout-minutes }}
+        trace: ${{ inputs.trace }}
+        case: ${{ inputs.case }}
+        discussion-id: ${{ inputs.discussion-id }}
+        resume-context: ${{ inputs.resume-context }}
+
+    # Re-render the storyboard from the issue + CSV state the agent just
+    # produced — obstacles/experiments it created or closed during the session,
+    # and any metric CSV rows it appended. always() so the storyboard reflects
+    # the run even if the agent failed or timed out, matching the push below.
+    - name: Refresh wiki (post-run)
+      if: always() && inputs.wiki == 'true'
+      uses: forwardimpact/fit-wiki@v1
+      with:
+        command: refresh
+        app-id: ${{ inputs.app-id }}
+        app-private-key: ${{ inputs.app-private-key }}
+
+    # Push agent memory back. fit-wiki mints a fresh token (the one minted
+    # at job start expires after an hour, so a long agent run would leave a
+    # cleanup-time push unauthenticated) and runs under always() so memory
+    # is durable whether the agent step succeeded, failed, or timed out.
+    - name: Push wiki changes
+      if: always() && inputs.wiki == 'true'
+      uses: forwardimpact/fit-wiki@v1
+      with:
+        command: push
+        app-id: ${{ inputs.app-id }}
+        app-private-key: ${{ inputs.app-private-key }}

@@ -51,8 +51,10 @@ id_ecdsa
 # Claude Code worktrees
 .claude/worktrees/
 
-# Wiki (cloned on demand by `fit-wiki init`, not tracked)
-wiki/
+# Wiki (cloned on demand by `fit-wiki init`, not tracked). Anchored to the repo
+# root so it does not also swallow a co-located `wiki` action home under
+# libraries/libwiki/actions/.
+/wiki/
 
 # Development files
 tmp/
