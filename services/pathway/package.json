@@ -54,7 +54,7 @@
     "@forwardimpact/libtype": "^0.1.67",
     "@forwardimpact/libutil": "^0.1.64",
     "@forwardimpact/map": "^0.15.12",
-    "n3": "^2.0.3"
+    "n3": "^2.1.0"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
