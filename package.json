@@ -32,7 +32,6 @@
     "format:fix": "biome format --write .",
     "invariants": "bunx coaligned invariants",
     "capture-cli-golden": "node scripts/capture-cli-golden.mjs",
-    "check-skill-refs": "node scripts/check-skill-refs.mjs",
     "test": "find ./tests ./libraries ./products ./services ./.github/workflows/test ./.claude/skills/kata-interview/test -name '*.test.js' -not -path '*/node_modules/*' | xargs bun test --timeout=30000",
     "test:gate": "node scripts/test-gate.mjs",
     "test:e2e": "bunx playwright test",
