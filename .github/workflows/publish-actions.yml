@@ -5,10 +5,21 @@ name: "Publish: Actions"
 # projection to its sibling repo's main (see ./.github/actions/split-and-push).
 # Add or retire an action by editing one matrix entry.
 #
-# Dispatch-only for now: the push trigger is added once the lineage is seeded,
-# so no CI push fires against a sibling's standalone history from before the
-# split (the seed is the only sanctioned force).
+# Fires on every push to main that touches an action source (paths-filtered),
+# plus manual dispatch. The lineage was seeded once (the only sanctioned force);
+# every run here is a non-force fast-forward, and a non-fast-forward — a sibling
+# main that diverged from the projection — is rejected and fails the run.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "libraries/libharness/actions/harness/**"
+      - "libraries/libharness/actions/benchmark/**"
+      - "libraries/libwiki/actions/wiki/**"
+      - "products/kata/actions/kata-agent/**"
+      - ".github/actions/bootstrap/**"
+      - ".github/actions/split-and-push/**"
+      - ".github/workflows/publish-actions.yml"
   workflow_dispatch:
 
 permissions:
