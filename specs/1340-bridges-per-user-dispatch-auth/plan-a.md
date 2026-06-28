@@ -61,8 +61,14 @@ export class TokenResolver {
 ```
 
 - `resolve(surface, surfaceUserId)` returns a `DispatchAuth`:
-  `{ kind: "token", token }` | `{ kind: "link_required", authorizeUrl }` |
-  `{ kind: "reauth_required" }` | `{ kind: "transient", error }`.
+
+  ```ts
+  { kind: "token", token }
+  | { kind: "link_required", authorizeUrl }
+  | { kind: "reauth_required" }
+  | { kind: "transient", error }
+  ```
+
 - Any gRPC error (UNAVAILABLE, deadline, unknown codes) folds into
   `transient`.
 
@@ -91,7 +97,8 @@ Resolve the token **before** the acknowledgement starts. Return a
 
 - Remove `#getGithubToken` private field.
 - Add `#tokenResolver` private field.
-- Validation: `if (!tokenResolver) throw new Error("tokenResolver is required")`.
+- Validation:
+  `if (!tokenResolver) throw new Error("tokenResolver is required")`.
 - Remove the `getGithubToken` validation.
 
 ### `dispatch()` signature
@@ -101,7 +108,8 @@ async dispatch({ ctx, prompt, requester, callbackMeta, ackTarget, historyText, w
 ```
 
 - Add `requester` (required string) to the destructured parameter.
-- Validate: `if (typeof requester !== "string") throw new Error("requester is required")`.
+- Validate:
+  `if (typeof requester !== "string") throw new Error("requester is required")`.
 
 ### `dispatch()` body — token resolution before ack
 
@@ -146,6 +154,7 @@ try {
 ```
 
 Key changes from current code:
+
 - Token resolved at the top, before callback registration and ack.
 - On non-`token` auth: return the variant immediately — no callback
   registered, no ack started, no workflow fired (SC#7).
@@ -182,7 +191,8 @@ constructor({
 ```
 
 - New `#onDeclined` private field.
-- Validation: `if (onDeclined != null && typeof onDeclined !== "function") throw new Error(...)`.
+- Validation:
+  `if (onDeclined != null && typeof onDeclined !== "function") throw new Error(...)`.
 
 ### `enterRecess` — add requester
 
@@ -323,7 +333,8 @@ await dispatcher.dispatch({
 
 Update the "What lives where" table to add `TokenResolver`.
 
-Verify: `node -e "import('@forwardimpact/libbridge').then(m => console.log(typeof m.TokenResolver))"`
+Verify:
+`node -e "import('@forwardimpact/libbridge').then(m => console.log(typeof m.TokenResolver))"`
 — prints `function`.
 
 ## Step 5: Modify msbridge
@@ -361,7 +372,8 @@ const service = new MsBridgeService(config, {
 
 - Import `TokenResolver` from `@forwardimpact/libbridge`.
 - Add `ghauthClient` to deps destructuring.
-- Validate: `if (!deps.ghauthClient) throw new Error("ghauthClient is required")`.
+- Validate:
+  `if (!deps.ghauthClient) throw new Error("ghauthClient is required")`.
 - Replace `Dispatcher` construction:
 
 | Before | After |
@@ -501,7 +513,8 @@ const service = new GhBridgeService(config, {
 
 - Import `TokenResolver` from `@forwardimpact/libbridge`.
 - Add `ghauthClient` to deps destructuring.
-- Validate: `if (!deps.ghauthClient) throw new Error("ghauthClient is required")`.
+- Validate:
+  `if (!deps.ghauthClient) throw new Error("ghauthClient is required")`.
 - Replace `Dispatcher` construction:
 
 | Before | After |
@@ -756,7 +769,8 @@ Integration tests for the ghbridge per-user dispatch flow:
 | --- | --- |
 | Reply posting uses installation credential (graphqlClient), not per-user token | #9 |
 
-Verify: `bun test libraries/libbridge/test/ && bun test services/msbridge/test/ && bun test services/ghbridge/test/`
+Verify:
+`bun test libraries/libbridge/test/ && bun test services/msbridge/test/ && bun test services/ghbridge/test/`
 
 ## Risks
 

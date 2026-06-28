@@ -1,11 +1,11 @@
 # Plan 1270 — Part 04: `libraries/libbridge` `TenantResolver`
 
-Adds the channel-agnostic `TenantResolver` interface to `libbridge`
-plus a `DefaultTenantResolver` for single-tenant mode and a
-`RegistryTenantResolver` that wraps a `services/tenancy` client.
-Channel-specific extraction of `(channel, channel_tenant_key)` stays
-in the calling bridge per [design § Tenant resolver placement](design-a.md#key-decisions).
-Independent of parts 02/03; can run in parallel with part 01.
+Adds the channel-agnostic `TenantResolver` interface to `libbridge` plus a
+`DefaultTenantResolver` for single-tenant mode and a `RegistryTenantResolver`
+that wraps a `services/tenancy` client. Channel-specific extraction of
+`(channel, channel_tenant_key)` stays in the calling bridge per
+[design § Tenant resolver placement](design-a.md#key-decisions). Independent of
+parts 02/03; can run in parallel with part 01.
 
 ## Step 1 — Open the STATUS sub-row
 

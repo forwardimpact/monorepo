@@ -8,7 +8,7 @@ description: "Embedding pipeline — TEI installation, native and supervised ope
 The vector pipeline converts knowledge resources into embeddings for semantic
 search. Guide's `SearchContent` tool queries these embeddings at runtime.
 
-```
+```text
 data/resources/*.json  ──>  TEI (BAAI/bge-small-en-v1.5)  ──>  data/vectors/index.jsonl
                                                                        │
                                                             services/vector (gRPC)

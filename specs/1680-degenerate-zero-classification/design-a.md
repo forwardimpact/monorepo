@@ -54,8 +54,8 @@ stable series does today; only the all-zero series diverts to the new value.
 `classify(metric)` already receives the full metric record, which carries
 `values` (the ordered series) on both the insufficient and the computed path.
 The new branch reads `metric.values`; no new parameter, no `analyze` change. The
-guard is only reachable on the `n >= MIN_POINTS`, no-signal path, so a sub-window
-all-zero series still classifies `insufficient` (boundary unchanged,
+guard is only reachable on the `n >= MIN_POINTS`, no-signal path, so a
+sub-window all-zero series still classifies `insufficient` (boundary unchanged,
 success criterion 3).
 
 Downstream consumers switch on the `classification` string; adding an enum value

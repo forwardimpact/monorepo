@@ -1,10 +1,11 @@
 # Design 0890-a — Kata-Skills Benchmark Family (v1, no ablation)
 
-Spec [#890](spec.md) closes two gaps the `fit-benchmark` substrate left open:
-no task family targets the kata pack, and no operational cadence runs it. This
+Spec [#890](spec.md) closes two gaps the `fit-benchmark` substrate left open: no
+task family targets the kata pack, and no operational cadence runs it. This
 design names the components and interfaces that close both gaps inside the
-substrate already shipped by spec [#870](../870-fit-benchmark-coding-tasks/design-a.md)
-— a top-level `benchmarks/` root with one family, one task, one workflow.
+substrate already shipped by spec
+[#870](../870-fit-benchmark-coding-tasks/design-a.md) — a top-level
+`benchmarks/` root with one family, one task, one workflow.
 
 ## Components
 
@@ -44,7 +45,7 @@ graph TD
 
 ## Family layout
 
-```
+```text
 benchmarks/
   .benchmark-fixture                       # sentinel (see Fixture-safety)
   README.md                                # catalog: per-family layout, how to add

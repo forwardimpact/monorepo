@@ -35,8 +35,8 @@ For each pack, the discovery emitter writes a self-contained index tree:
 ```
 
 `index.json` is the manifest an agent reads first. It carries a schema URL and
-one entry per skill — the skill's name, its one-line description, and the list of
-files that make it up:
+one entry per skill — the skill's name, its one-line description, and the list
+of files that make it up:
 
 ```json
 {
@@ -69,10 +69,10 @@ index that spans every pack:
   .well-known/skills/index.json   # every skill, across all packs
 ```
 
-The aggregate is **deduplicated by skill name**: if the same skill appears in two
-packs, it is listed once, taking the copy from the first pack that contained it.
-A consumer points at one `.well-known/skills/` location and sees the union of
-every skill you publish, with no duplicates.
+The aggregate is **deduplicated by skill name**: if the same skill appears in
+two packs, it is listed once, taking the copy from the first pack that contained
+it. A consumer points at one `.well-known/skills/` location and sees the union
+of every skill you publish, with no duplicates.
 
 ## Emit it on its own
 

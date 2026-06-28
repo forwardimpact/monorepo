@@ -31,7 +31,7 @@ Spec 1370 replaces ambient node-runtime dependencies (`node:fs`,
 `node:child_process`, `Date.now()`/`new Date()`/`setTimeout`, `process.*`)
 with a single injected `runtime` bag threaded from each binary's entry point:
 
-```
+```text
 runtime = { fs, fsSync, proc, clock, subprocess, finder }
 ```
 
@@ -67,10 +67,11 @@ already-migrated dispatched CLI `libraries/libxmr` (handlers as
 
 ## Blocking prerequisites (part-03, must land first)
 
-These are **part-03** units ([plan-a-03-bin-libraries.md](plan-a-03-bin-libraries.md)),
-not part-05 — but landmark/map/outpost cannot pass `kata-release-merge`'s
-per-section blocking gate until they merge. They block only on foundations
-(✅ on `main`), so they are ready to implement now.
+These are **part-03** units
+([plan-a-03-bin-libraries.md](plan-a-03-bin-libraries.md)), not part-05 — but
+landmark/map/outpost cannot pass `kata-release-merge`'s per-section blocking
+gate until they merge. They block only on foundations (✅ on `main`), so they
+are ready to implement now.
 
 | Library | Deny entries remaining | Unblocks |
 |---|---|---|
@@ -126,7 +127,8 @@ Notes: **largest unit.** `fit-map` is dispatched; `dispatch-substrate` is
 single-flow. The `activity/` tree's `spawnSync`/`execFileSync` ingest moves to
 `runtime.subprocess`. Two bins → two goldens. `supabase-cli.js` shells out (the
 `gh auth token`-style sync-accessor escape hatch `runtime.subprocess.runSync`
-may apply). Watch the async-propagation cascade where `run` replaces sync spawns.
+may apply). Watch the async-propagation cascade where `run` replaces sync
+spawns.
 
 ### outpost (`fit-outpost`) — `1370/products-outpost`
 
@@ -178,13 +180,13 @@ them in from the start to avoid a second round:
    (timers, element-id `Date.now()`) are allow-listed like libui — but a
    server-side scheduler's timer is **not** a UI false positive; inject
    `runtime.clock`.
-7. **Declare new workspace deps.** If a test newly imports `@forwardimpact/libmock`
-   (or any workspace pkg), add it to the product's `package.json`
-   `devDependencies` or `check-workspace-imports` fails.
+7. **Declare new workspace deps.** If a test newly imports
+   `@forwardimpact/libmock` (or any workspace pkg), add it to the product's
+   `package.json` `devDependencies` or `check-workspace-imports` fails.
 
 ## Per-unit verification (every product PR)
 
-```
+```text
 node scripts/check-ambient-deps.mjs            # exit 0; no product src smells
 node scripts/check-subprocess-in-tests.mjs     # exit 0
 bun test products/<name>/test/                 # 0 fail, 0 errors
@@ -199,7 +201,7 @@ bun run invariants                             # all green
 
 ## Execution order & completion gate
 
-```
+```text
 libeval, libsupervise (part-03)        ← ready now (block only on foundations)
         │
         ├─ landmark, map  (need libeval)

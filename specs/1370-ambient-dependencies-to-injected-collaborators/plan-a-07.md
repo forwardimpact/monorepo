@@ -63,9 +63,10 @@ left in place at its 116 root call sites.)
     just copy private fields onto a bare object — store the raw `fs`/`fsSync`
     on the instance and rebuild via `new Finder({ fs, fsSync, proc, logger })`
     (identical existence binding, swapped logger).
-  - `services/pathway/server.js:30` — delete `new Finder({ ...runtime, logger })`;
-    call `runtime.finder.findData("data", homedir())` directly (findData does
-    not log, so `logger` was dead).
+  - `services/pathway/server.js:30` — delete
+    `new Finder({ ...runtime, logger })`; call
+    `runtime.finder.findData("data", homedir())` directly (findData does not
+    log, so `logger` was dead).
   - `libraries/libstorage/bin/fit-storage.js:108` — delete `new Finder(...)`;
     use `runtime.finder.findUpward(process.cwd(), "data")` (findUpward does
     not log).
@@ -87,20 +88,20 @@ left in place at its 116 root call sites.)
     `createTestRuntime().finder` from libmock.
   - `libraries/librpc/src/base.js:34-35` — `createAuth(serviceName)` reads
     `createDefaultProc().env.SERVICE_SECRET`, hand-rolling a throwaway `proc`
-    (the "no ambient-dep smell" comment notwithstanding — it *is* the DI
-    bypass, laundered through the factory). Thread the runtime in:
-    `createAuth(serviceName, runtime)` reading `runtime.proc.env.SERVICE_SECRET`;
-    update its call site (the `Server`/base wiring already carries a `runtime`
-    in its options bag per [teardown.md](teardown.md)), and delete the
-    `createDefaultProc` import.
+    (the "no ambient-dep smell" comment notwithstanding — it *is* the DI bypass,
+    laundered through the factory). Thread the runtime in:
+    `createAuth(serviceName, runtime)` reading
+    `runtime.proc.env.SERVICE_SECRET`; update its call site (the `Server`/base
+    wiring already carries a `runtime` in its options bag per
+    [teardown.md](teardown.md)), and delete the `createDefaultProc` import.
   - `libraries/libwiki/src/util/wiki-dir.js:6` — the comment is accurate
     ("SC9 keeps Finder construction inside libutil") but contains the literal
     token `new Finder(`, which the SC9 verify grep (and a reader) trips over;
     reword it to drop the literal call form so the literal-grep verification
     is unambiguous.
-- **Verify:** `rg "new Finder\(" libraries/ products/ services/` returns
-  matches only under `libraries/libutil/` (spec Success Criterion 9, literal
-  form); `rg "createDefaultProc\(" libraries/ products/ services/ -g '!**/libutil/**'`
+- **Verify:** `rg "new Finder\(" libraries/ products/ services/` returns matches
+  only under `libraries/libutil/` (spec Success Criterion 9, literal form);
+  `rg "createDefaultProc\(" libraries/ products/ services/ -g '!**/libutil/**'`
   returns matches only in `test/` files; `bun run test` green for
   libcodegen/libstorage/libwiki/libxmr/librpc, products/pathway,
   services/pathway.
@@ -127,13 +128,13 @@ keeps the two checks' opposing scopes and policies cleanly decoupled.
       `createDefaultSubprocess(...)` (`CallExpression`, callee an `Identifier`
       of that name).
 
-    `createDefaultRuntime(...)` is **not** flagged (sanctioned
-    composition-root factory). **Prod-strict / test-lenient policy:** for a
-    file under a `test/` directory, only `new Finder(` is flagged (SC9 wants
-    Finder gone everywhere); `createDefaultProc/Clock/Subprocess` are permitted
-    in tests (a test may wire a real collaborator deliberately). For all other
-    files (`src/`, `bin/`, package roots) all four are flagged. No allow-list:
-    the tree is clean after Step 1, so any future hit is a real regression.
+  `createDefaultRuntime(...)` is **not** flagged (sanctioned
+  composition-root factory). **Prod-strict / test-lenient policy:** for a
+  file under a `test/` directory, only `new Finder(` is flagged (SC9 wants
+  Finder gone everywhere); `createDefaultProc/Clock/Subprocess` are permitted
+  in tests (a test may wire a real collaborator deliberately). For all other
+  files (`src/`, `bin/`, package roots) all four are flagged. No allow-list:
+  the tree is clean after Step 1, so any future hit is a real regression.
   - `scripts/check-collaborator-construction.test.mjs` — fixtures: `new Finder(`
     in a non-libutil src path is flagged; the same under `libutil/` is not;
     `createDefaultClock()` in a `*.test.js` path is **not** flagged but in a
@@ -179,10 +180,11 @@ then drop librc's two foundation-gap fallbacks.
     so does `createWriteStream` (`:288`); no addition needed. Confirm the
     existing `createReadStream` yields the configured content for the `logs()`
     test; extend only if a gap surfaces.
-  - `libraries/librc/src/manager.js` — delete `this.#fs = deps.fs ?? runtime.fsSync`
-    (use `runtime.fsSync.createReadStream`, which the sync surface already
-    exposes — `runtime.fsSync` is the full `node:fs` module, so the old
-    comment claiming it lacks `createReadStream` was always inaccurate); delete
+  - `libraries/librc/src/manager.js` — delete
+    `this.#fs = deps.fs ?? runtime.fsSync` (use
+    `runtime.fsSync.createReadStream`, which the sync surface already exposes —
+    `runtime.fsSync` is the full `node:fs` module, so the old comment claiming
+    it lacks `createReadStream` was always inaccurate); delete
     `this.#stdout = deps.stdout ?? process.stdout` (use `runtime.proc.stdout`);
     drop `fs`/`stdout` from the `Dependencies` typedef and the foundation-gap
     comments at `:62-78`, `:110-112`, `:129-132`. Leave `deps.spawn` /
@@ -192,11 +194,12 @@ then drop librc's two foundation-gap fallbacks.
     gone, route their sync-fs through `createTestRuntime({ fsSync })` instead.
     The `logs()` test additionally asserts captured `proc.stdout` from the mock
     `Writable`.
-- **Verify:** `rg "deps\.fs|deps\.stdout|process\.stdout" libraries/librc/src/manager.js`
+- **Verify:**
+  `rg "deps\.fs|deps\.stdout|process\.stdout" libraries/librc/src/manager.js`
   returns zero; `logs()` test runs in-process with no real `process.stdout`;
   `bun run scripts/capture-cli-golden.mjs --verify fit-rc` exits 0;
-  `bun run test` green across all `runtime.proc.stdout` consumers (full
-  suite — the proc surface is monorepo-wide).
+  `bun run test` green across all `runtime.proc.stdout` consumers (full suite —
+  the proc surface is monorepo-wide).
 
 ### Step 4 — Land the retroactive artifact corrections and verify no stale references
 
@@ -206,15 +209,15 @@ verifies they are internally consistent and that no machine-checked surface
 still asserts a retired gate.
 
 - **Modified (carried in this PR):** `spec.md` (SC6, SC9, Risks, § Outcome),
-  `design-a.md` (Finder logger seam; surface-extensions-shipped note; retire
-  the `M1/M2/M3` Out-of-Scope line and the per-call-logger Out-of-Scope line),
+  `design-a.md` (Finder logger seam; surface-extensions-shipped note; retire the
+  `M1/M2/M3` Out-of-Scope line and the per-call-logger Out-of-Scope line),
   `teardown.md` (libeval/libsupervise corrected; residue shrunk to the
   plan-closed `logs()` item; svscan-spawn noted as DI-clean-but-not-unified),
-  `plan-a.md` (Migration Order index + master-row re-advance note; **retire
-  the § Performance milestone tracking M1/M2/M3 gate**; reconcile the
-  `check-ambient-deps.deny.json` → `.deny.yml` filename), `plan-a-05-products.md`
-  (the "M3 milestone gates …" line). All SC6-milestone language across the
-  spec dir must read as **retired**, not live.
+  `plan-a.md` (Migration Order index + master-row re-advance note;
+  **retire the § Performance milestone tracking M1/M2/M3 gate**; reconcile the
+  `check-ambient-deps.deny.json` → `.deny.yml` filename),
+  `plan-a-05-products.md` (the "M3 milestone gates …" line). All SC6-milestone
+  language across the spec dir must read as **retired**, not live.
 - **Verify:** searching the spec dir, `scripts/`, and `package.json` for a
   live `25 s` / `M3` wall-time gate surfaces only the retired-with-rationale
   prose in `spec.md`/`plan-a.md` (no CI assertion, no skill grep on the
@@ -226,10 +229,11 @@ still asserts a retired gate.
 Reflect the honest state: the spec has approved-but-unimplemented remediation
 work again.
 
-- **Modified:** `wiki/STATUS.md` — add `1370/part-07-reconciliation\tplan\tapproved`;
-  set master `1370` back to `plan approved` (a sub-row is no longer
-  implemented, so per the file header the master cannot read `implemented`).
-  On this part's implementation, both rows advance to `plan implemented`.
+- **Modified:** `wiki/STATUS.md` — add
+  `1370/part-07-reconciliation\tplan\tapproved`; set master `1370` back to
+  `plan approved` (a sub-row is no longer implemented, so per the file header
+  the master cannot read `implemented`). On this part's implementation, both
+  rows advance to `plan implemented`.
 - **Verify:** `wiki/STATUS.md` parses against `^\d{4}(/[a-z0-9-]+)?$`;
   `1370/teardown` stays `plan implemented`.
 

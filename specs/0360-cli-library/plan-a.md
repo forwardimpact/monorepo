@@ -177,7 +177,7 @@ instead of reading `process` as a module global. Same for `colorize`.
 
 ### Dependency direction
 
-```
+```text
 libcli ← (no monorepo dependencies; only node:util built-in)
   ↑
   ├── products/pathway (imports color primitives + Cli)

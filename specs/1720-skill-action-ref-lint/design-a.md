@@ -61,13 +61,15 @@ tokens are dropped at extraction.
 
 ## Resolution strategy
 
-The resolver runs `git ls-remote --tags --heads https://github.com/<owner>/<repo>`
-with `GIT_TERMINAL_PROMPT=0`. Verified git behavior is the design constraint: a
+The resolver runs
+`git ls-remote --tags --heads https://github.com/<owner>/<repo>` with
+`GIT_TERMINAL_PROMPT=0`. Verified git behavior is the design constraint: a
 missing **and** a private repo both return exit 128 with
 `fatal: could not read Username … terminal prompts disabled` — the auth-demand
 string, identical for absent and private and indistinguishable by message from a
 DNS/connection failure. So the resolver cannot string-match the target's stderr
-to tell "unresolvable" from "unreachable". It instead runs a **two-stage probe**:
+to tell "unresolvable" from "unreachable". It instead runs a
+**two-stage probe**:
 
 1. **Reachability gate** — probe a known-good public anchor (`actions/checkout`)
    anonymously once per run. Failure here → the run is `unreachable` (exit 2);
@@ -75,9 +77,10 @@ to tell "unresolvable" from "unreachable". It instead runs a **two-stage probe**
 2. **Target probe** — only with GitHub proven reachable. Now an exit-128
    auth-demand on the target is unambiguously **repo unresolvable** (assertion 1
    finding, exit 1): reachability is established, so the prompt means
-   private-or-absent, and a published-skill ref must resolve anonymously — either
-   way a finding. A non-128 transport error (e.g. connection reset mid-run)
-   re-checks the gate and, if the gate now fails, demotes to `unreachable`.
+   private-or-absent, and a published-skill ref must resolve anonymously —
+   either way a finding. A non-128 transport error (e.g. connection reset
+   mid-run) re-checks the gate and, if the gate now fails, demotes to
+   `unreachable`.
 
 | Target probe result                         | Interpretation                          |
 | ------------------------------------------- | --------------------------------------- |
@@ -131,7 +134,7 @@ today and stay out of scope per spec — the lint walks `.claude/skills/` only.
 
 One line per finding, stable across triggers:
 
-```
+```text
 .claude/skills/kata-setup/references/workflow-react.md:90 — forwardimpact/kata-action-eval@v1 — repository does not resolve
 ```
 

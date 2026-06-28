@@ -163,14 +163,14 @@ export function renderToolResultLine({ source, preview, withPrefix }) { … }
 
 Each function returns a single `\n`-terminated string:
 
-```
+```text
 [<source>] <ESC><color>…<RESET>\n
 ```
 
 `withPrefix` is `true` for `supervised`/`facilitate` modes, `false` for `raw`.
 `renderToolResultLine` selects `ERROR_COLOR` when `preview.isError`, else
 `colorForSource(source)`. Tool-call lines render `> <ToolName> <hint>`; result
-lines render `  <- <preview.text>`.
+lines render `<- <preview.text>`.
 
 No separate test file — exercised via `tee-writer.test.js` (live path) and
 `trace-collector.test.js` (replay path).
@@ -193,7 +193,6 @@ Edit `libraries/libeval/src/tee-writer.js`:
   ```
 
   (removing the current `--- Evaluation … ---` emit).
-
 - `flushTurns` walks `collector.turns` and, for each turn:
   - `assistant` text block → `renderTextLine`;
   - `assistant` tool_use → `renderToolCallLine(name, hintForCall(name, input))`;
@@ -225,7 +224,7 @@ on each new turn. This is a small, contained addition to `trace-collector.js`.
   from existing tests — it is now suppressed. Replace with the positive
   assertion that the text stream contains no `--- Evaluation` substring.
 - New: supervised mode with a failing `tool_result` (is_error true) → line
-  contains `ERROR_COLOR`, prefixed with `  <- error:`.
+  contains `ERROR_COLOR`, prefixed with `<- error:`.
 - New: all six suppressed orchestrator event types emit to `fileStream` but not
   `textStream`.
 - New: source-prefix present in supervised output even when color bytes are

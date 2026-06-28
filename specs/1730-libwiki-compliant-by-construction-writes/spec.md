@@ -119,7 +119,9 @@ Four capabilities, smallest first:
 
 Auto-rotation mints part files whose names are derived at runtime, so a
 fifth, security-routed requirement rides with it (carried from the PR
-#1571 security review,
+
+## 1571 security review
+
 [#1427 comment 4675559762](https://github.com/forwardimpact/monorepo/issues/1427#issuecomment-4675559762)):
 **the commit layer's path boundary stays scope-safe** — a dynamically
 derived filename handed to the wiki commit path can never widen the
@@ -127,7 +129,7 @@ commit beyond the named files, because the boundary rejects
 pathspec-magic forms (git `:`-prefixed pathspecs survive the `--`
 separator) before they reach git.
 
-## Scope
+### Scope
 
 - **In**: the weekly-log append commands' budget behaviour and
   reporting, rotation of a lone over-cap entry, the audit's weekly-log
@@ -142,7 +144,7 @@ separator) before they reach git.
   (Issue #1574); the storyboard surface; enforcement against
   cross-agent manual edits (a protocol concern, not a tooling one).
 
-## Success Criteria
+### Success Criteria
 
 | # | Claim | Verify |
 |---|---|---|
@@ -156,7 +158,7 @@ separator) before they reach git.
 | 8 | The memory protocol reserves direct weekly-log file edits for repair, stated alongside the append-path instruction. | `rg -C3 "fit-wiki log" .claude/agents/references/memory-protocol.md \| rg -i "repair"` |
 | 9 | The wiki commit path rejects `:`-prefixed pathspec entries, so a rotation-minted filename can never widen a commit beyond the named files, and the boundary's `paths` parameter documents this rejection at the interface. | `libwiki`/`libutil` test: a `:/`-prefixed path handed to the commit boundary is rejected, not passed to git; JSDoc on the commit boundary's `paths` parameter warns that `:`-prefixed pathspec entries are rejected. |
 
-## Why Now
+### Why Now
 
 Spec 1450 made rotation seal only budget-conforming parts and was the
 right first half; the 2026-06-10 churn shows the remaining breaches

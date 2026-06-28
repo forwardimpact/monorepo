@@ -14,6 +14,7 @@ commit of this PR. Verification: `rg "^1270/oidc" wiki/STATUS.md`.
 ## Step 2 — Scaffold `services/oidc/`
 
 Created files:
+
 - `services/oidc/package.json` (mirror `services/oauth/package.json`:
   `name: "@forwardimpact/svcoidc"`, `bin: { "fit-svcoidc":
   "./server.js" }`, dependencies on `libconfig`, `librpc`,
@@ -167,12 +168,11 @@ Update `wiki/STATUS.md`: `1270/oidc\tplan\tapproved` →
 
 ## Risks
 
-- **Forging OIDC tokens.** The validator must verify the signature
-  against the JWKS published at GitHub's discovery endpoint. Skipping
-  signature verification (e.g. decode-only) would let any caller mint
-  tokens for any repo. Step 4 explicitly requires signature
-  verification before claim extraction; `services/oidc/test/oidc-validator.test.js`
-  covers a tampered-token rejection.
+- **Forging OIDC tokens.** The validator must verify the signature against the
+  JWKS published at GitHub's discovery endpoint. Skipping signature verification
+  (e.g. decode-only) would let any caller mint tokens for any repo. Step 4
+  explicitly requires signature verification before claim extraction;
+  `services/oidc/test/oidc-validator.test.js` covers a tampered-token rejection.
 
 - **`audience` claim drift.** GitHub Actions runners may emit OIDC
   tokens with the audience configured by the customer's workflow

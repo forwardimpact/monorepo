@@ -40,7 +40,7 @@ other agents to accumulate between runs.
 
 **Task prompt (all six workflows):**
 
-```
+```text
 Assess the current state of your domain and act on the highest-priority finding.
 ```
 
@@ -333,14 +333,14 @@ to `main` may shift lines before this plan lands.
 
 **Edit A — Opening paragraph (line 16).** Change:
 
-```
+```text
 Ten scheduled workflows, six agent personas, and sixteen skills form a
 self-reinforcing PDSA cycle.
 ```
 
 to:
 
-```
+```text
 Six scheduled workflows — one per agent — six agent personas, and sixteen
 skills form a self-reinforcing PDSA cycle.
 ```
@@ -388,7 +388,7 @@ maps skills to phases.
 
 **Edit D — Authentication section (lines 193-195).** Remove the sentence:
 
-```
+```text
 `security-audit` uses `GITHUB_TOKEN` for checkout (preserving least
 privilege) and a separate App token for API access.
 ```

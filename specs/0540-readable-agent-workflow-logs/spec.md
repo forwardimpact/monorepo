@@ -13,7 +13,7 @@ surface is hard to read.
 
 `TeeWriter.flushTurns` prints every tool call as:
 
-```
+```text
 > Tool: Read {"file_path":"/home/runner/work/monorepo/monorepo/specs/STATUS","offset":0,"limit":2000}
 ```
 
@@ -30,7 +30,7 @@ almost every line.
 In `supervised` and `facilitate` modes, `TeeWriter` prefixes each line with
 `[<source>]`:
 
-```
+```text
 [facilitator] I'll open the meeting with roll call.
 [facilitator] > Tool: mcp__orchestration__RollCall {}
 [staff-engineer] Starting review of open PRs.
@@ -55,7 +55,7 @@ of the run just as hard.
 trace. `TeeWriter` currently ignores everything except the terminal `summary`
 line, which renders as:
 
-```
+```text
 --- Evaluation completed after 42 turns ---
 ```
 
@@ -193,8 +193,8 @@ preview, and (d) red for errors. Nothing else.
 
 ## Dependencies
 
-- **Spec 0440** (`plan implemented`) — orchestration toolkit and facilitate mode;
-  provides the `source` field this spec relies on for color selection.
+- **Spec 0440** (`plan implemented`) — orchestration toolkit and facilitate
+  mode; provides the `source` field this spec relies on for color selection.
 - **Spec 0490** (`plan implemented`) — coach-as-facilitator; the storyboard
   session is the canonical multi-agent workload that exposes the readability
   problem.

@@ -22,14 +22,16 @@ git clone git@github.com:forwardimpact/bionova-apps.git ~/work/bionova-apps
 cd ~/work/bionova-apps
 ```
 
-(`--confirm` was deprecated in gh ≥ 2.20; the non-interactive default behavior is used.)
+(`--confirm` was deprecated in gh ≥ 2.20; the non-interactive default behavior
+is used.)
 
 Permissions: the implementer needs `repo` scope on the `forwardimpact`
 GitHub organization. If `gh repo create` fails with a permission error,
 halt and post an `agent-react` ask to the release-engineer or technical-writer
 to either grant the repo or proxy creation.
 
-Verify: `gh repo view forwardimpact/bionova-apps --json url,visibility` returns `public`.
+Verify: `gh repo view forwardimpact/bionova-apps --json url,visibility` returns
+`public`.
 
 ## Step 2 — Add root metadata files
 
@@ -82,7 +84,7 @@ Verify: `bun install` exits 0; `just --list` shows recipes.
 
 Created (empty dirs with `.gitkeep` where required):
 
-```
+```text
 data/synthetic/seed/          # vendored terrain seed + PROVENANCE.md (part 03 commits; only staged copies are gitignored)
 infrastructure/               # Docker Compose service dirs (this part)
 infrastructure/kong/
@@ -175,10 +177,19 @@ after `docker compose up`.
 
 Created:
 
-- `infrastructure/postgres/Dockerfile` — `FROM supabase/postgres:15.6.1.143`. This image ships pgvector, pg_cron, pg_net, pgjwt, pgsodium, pgaudit, pgcrypto, uuid-ossp pre-installed — chosen because the alternative `pgvector/pgvector:pg16` lacks pg_net, which the notify-updates trigger (part 04) and pg_cron schedule (part 04) require.
-- `infrastructure/postgres/init/00-extensions.sql` — `CREATE EXTENSION IF NOT EXISTS vector; CREATE EXTENSION IF NOT EXISTS pg_cron; CREATE EXTENSION IF NOT EXISTS pg_net; CREATE EXTENSION IF NOT EXISTS pgjwt; CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; CREATE EXTENSION IF NOT EXISTS pgcrypto;`
-- `infrastructure/postgres/init/01-roles.sql` — creates `authenticator`, `anon`, `authenticated`, `service_role` roles per Supabase convention
-- `infrastructure/postgres/init/02-schemas.sql` — `CREATE SCHEMA auth; CREATE SCHEMA storage; CREATE SCHEMA realtime; CREATE SCHEMA net;` (the last hosts pg_net's tables; `supabase/postgres` ships pg_net wired to `net` schema)
+- `infrastructure/postgres/Dockerfile` — `FROM supabase/postgres:15.6.1.143`.
+  This image ships pgvector, pg_cron, pg_net, pgjwt, pgsodium, pgaudit,
+  pgcrypto, uuid-ossp pre-installed — chosen because the alternative
+  `pgvector/pgvector:pg16` lacks pg_net, which the notify-updates trigger (part
+  04) and pg_cron schedule (part 04) require.
+- `infrastructure/postgres/init/00-extensions.sql` —
+  `CREATE EXTENSION IF NOT EXISTS vector; CREATE EXTENSION IF NOT EXISTS pg_cron; CREATE EXTENSION IF NOT EXISTS pg_net; CREATE EXTENSION IF NOT EXISTS pgjwt; CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; CREATE EXTENSION IF NOT EXISTS pgcrypto;`
+- `infrastructure/postgres/init/01-roles.sql` — creates `authenticator`, `anon`,
+  `authenticated`, `service_role` roles per Supabase convention
+- `infrastructure/postgres/init/02-schemas.sql` —
+  `CREATE SCHEMA auth; CREATE SCHEMA storage; CREATE SCHEMA realtime; CREATE SCHEMA net;`
+  (the last hosts pg_net's tables; `supabase/postgres` ships pg_net wired to
+  `net` schema)
 
 Verify: after `docker compose up -d postgres`, `psql -U postgres -c "SELECT
 extname FROM pg_extension ORDER BY extname;"` includes `pg_cron`, `pg_net`,
@@ -210,7 +221,8 @@ Verify: `docker compose up -d` brings all services to `(healthy)` in
 
 Created:
 
-- `.env.example` — JWT_SECRET, POSTGRES_PASSWORD, ANON_KEY, SERVICE_ROLE_KEY, REALTIME_SECRET, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD (all placeholder values)
+- `.env.example` — JWT_SECRET, POSTGRES_PASSWORD, ANON_KEY, SERVICE_ROLE_KEY,
+  REALTIME_SECRET, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD (all placeholder values)
 - `setup.sh` — bash script, `set -euo pipefail`, idempotent
 
 `setup.sh` skeleton (filled in by parts 02, 03, 04):
@@ -280,9 +292,11 @@ Verify: PR opens with green CI (lint + type-check + compose validation pass).
 - [ ] `gh repo view forwardimpact/bionova-apps` returns the repo URL.
 - [ ] `docker compose up -d` brings all 12 services to `healthy` within 180s.
 - [ ] `curl -s http://localhost:8000/rest/v1/` returns PostgREST root JSON.
-- [ ] `curl -s http://localhost:8000/auth/v1/health` returns `{"name":"GoTrue",…}`.
+- [ ] `curl -s http://localhost:8000/auth/v1/health` returns
+      `{"name":"GoTrue",…}`.
 - [ ] `curl -s http://localhost:8080/health` (direct to TEI) returns `OK`.
-- [ ] `psql -h localhost -U postgres -c "SELECT extname FROM pg_extension WHERE extname IN ('vector','pg_cron');"` returns 2 rows.
+- [ ] `psql -h localhost -U postgres -c "SELECT extname FROM pg_extension WHERE extname IN ('vector','pg_cron');"`
+      returns 2 rows.
 - [ ] `./setup.sh` exits 0 against a freshly booted stack.
 
 — Staff Engineer 🛠️

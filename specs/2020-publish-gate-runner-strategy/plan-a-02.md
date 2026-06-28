@@ -1,8 +1,8 @@
 # Plan 2020 — Part 02 (PR 2): Flip the Publish Gate
 
-Repoint both publish "Run tests" steps from `bun run test` to `bun run test:gate`
-once Part 01 is merged and `Test / gate` has been green on `main`. See
-[plan-a](plan-a.md) for strategy.
+Repoint both publish "Run tests" steps from `bun run test` to
+`bun run test:gate` once Part 01 is merged and `Test / gate` has been green on
+`main`. See [plan-a](plan-a.md) for strategy.
 
 **Precondition (merge gate):** Part 01 (PR 1) is merged and the `Test / gate`
 node job has been green on `main`. Do not open this PR before then — the flip

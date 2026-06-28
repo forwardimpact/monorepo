@@ -53,13 +53,15 @@ the success message.
 natural checkpoint before `coverage`, `risks`, or `growth`. Surfacing structural
 observations here lets leadership correct staffing oversights before running
 deeper (and slower) analysis. Two separate Summit evaluation sessions (issues
-#331 and #332, observed 2026-04-11 and 2026-04-12) confirmed that users who hit
+
+## 331 and #332, observed 2026-04-11 and 2026-04-12) confirmed that users who hit
+
 silent warnings in `validate` only discovered the underlying issues much later
 in the `risks` output, after investing time understanding the coverage model.
 
-## What
+### What
 
-### 1. Populate warnings in roster validation
+#### 1. Populate warnings in roster validation
 
 The validation function should detect and report structural composition patterns
 that are not errors but merit attention. Each warning uses the existing `Issue`
@@ -79,30 +81,30 @@ not fire against reporting teams (which have no allocation field).
 
 Warnings are informational. They do not cause a non-zero exit code.
 
-### 2. Display warnings in text output
+#### 2. Display warnings in text output
 
 When the roster is valid (no errors) and warnings are present, the `validate`
 command should print them after the success message. Each warning should display
 its code and human-readable message, matching the existing error display format
 (`[CODE] message`). When there are no warnings, output is unchanged.
 
-### 3. Include warnings in JSON output
+#### 3. Include warnings in JSON output
 
 JSON output already serializes the full `ValidationResult`. No behavioral change
 needed — once warnings are populated, they appear in the JSON output
 automatically. This item exists to make the contract explicit: consumers of the
 JSON output may begin receiving non-empty `warnings` arrays after this change.
 
-## Scope
+### Scope
 
-### Affected entities
+#### Affected entities
 
 - `validateRosterAgainstFramework` — roster validation with warning generation
 - `validate` command handler — warning display in text output mode
 - `ValidationResult.warnings` — populated with the initial warning set above
 - Test suite — new test coverage for warning detection
 
-### Excluded
+#### Excluded
 
 - New warning codes beyond the three defined above — additional patterns can be
   added incrementally in future specs
@@ -117,7 +119,7 @@ JSON output may begin receiving non-empty `warnings` arrays after this change.
 - Exit code changes — warnings must not affect the exit code (zero on valid
   roster, non-zero on errors, regardless of warnings)
 
-## Success criteria
+### Success criteria
 
 1. `fit-summit validate --roster <fixture>` with a roster exhibiting all three
    warning patterns prints `[NO_SENIOR_MEMBER]`, `[TRACKLESS_AT_ENTRY_LEVEL]`,

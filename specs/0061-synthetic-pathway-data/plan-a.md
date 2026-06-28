@@ -117,7 +117,7 @@ Each prompt includes the relevant JSON schema file verbatim. The LLM sees the
 exact constraints it must satisfy. The prompt instructs the LLM to output valid
 JSON conforming to the schema.
 
-```
+```text
 prompts/pathway/
   capability.js     One prompt per capability (generates full YAML file content)
   behaviour.js      One prompt per behaviour

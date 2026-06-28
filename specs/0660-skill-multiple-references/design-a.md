@@ -52,7 +52,7 @@ other. This matches how the existing validators already accumulate errors.
 `skill.references` flows through the destructuring block alongside
 `toolReferences` and `instructions`. Shape on the normalized skill record:
 
-```
+```text
 skill.references: Array<{ name: string, title: string, body: string }> | undefined
 ```
 
@@ -81,7 +81,7 @@ lands in the `{{#hasInstructions}}` region.
 Consequently `prepareAgentSkillData` drops `implementationReference`,
 `hasReference`, and `trimmedReference`. `formatReference` changes signature:
 
-```
+```text
 formatReference(entry, template) → string
 ```
 
@@ -93,7 +93,7 @@ path conventions. Kept rendering pure instead.
 
 ### 5. Reference template — `products/pathway/templates/skill-reference.template.md`
 
-```
+```text
 # {{{title}}}
 
 {{{body}}}

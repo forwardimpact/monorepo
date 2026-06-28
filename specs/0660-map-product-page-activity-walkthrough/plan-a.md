@@ -4,11 +4,12 @@
 
 Edit `websites/fit/map/index.md` to split the existing `## Getting Started`
 block into two `###` subsections — **Standard layer** (the existing three
-commands) and **Activity layer** (one sentence naming Supabase + a labelled
-link to `websites/fit/docs/getting-started/leadership/map/index.md#activity-install-the-supabase-cli`).
-Add `scripts/check-map-page.mjs` to encode the two coupling invariants from
-the design's Drift-Mitigation table; wire it into `package.json` via a new
-`docs` chain that `check` invokes.
+commands) and **Activity layer** (one sentence naming Supabase + a labelled link
+to
+`websites/fit/docs/getting-started/leadership/map/index.md#activity-install-the-supabase-cli`).
+Add `scripts/check-map-page.mjs` to encode the two coupling invariants from the
+design's Drift-Mitigation table; wire it into `package.json` via a new `docs`
+chain that `check` invokes.
 
 ## Files
 
@@ -246,7 +247,7 @@ spec criteria 1 + 3.
 | Risk                                                                                                                                                                                    | Mitigation                                                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `fit-doc` slug generation diverges from `#activity-install-the-supabase-cli` in a future build pipeline change.                                                                         | Step 2 invariant 3 fails fast — the leadership-guide heading must remain the literal `## Activity: install the Supabase CLI`; any slug-generation change requires updating the product page link same PR.  |
-| The Getting Started block is the last H2 in the file today; if a future H3-only audience-card section is added before any new H2, the boundary regex captures more than the subsection. | Step 2's regex bounds at `\n## ` (next H2) or end-of-input; if a new H2 is added between Getting Started and EOF, the regex still bounds correctly at that new H2. Audience cards are H3s and stay inside. |
+| The Getting Started block is the last H2 in the file today; if a future H3-only audience-card section is added before any new H2, the boundary regex captures more than the subsection. | Step 2's regex bounds at `\n##` (next H2) or end-of-input; if a new H2 is added between Getting Started and EOF, the regex still bounds correctly at that new H2. Audience cards are H3s and stay inside. |
 | A future copyedit replaces `[Set up the activity layer →]` with non-link prose, hiding the routing affordance.                                                                          | Step 2 invariant 2 requires the markdown link form `[text](#activity-install-the-supabase-cli)`; any plain-prose rewrite makes `bun run docs` exit 1.                                                      |
 
 ## Execution

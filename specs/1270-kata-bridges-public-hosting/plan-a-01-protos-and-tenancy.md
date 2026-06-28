@@ -123,7 +123,7 @@ Modified files: `services/bridge/proto/bridge.proto`.
 
 Add a required `string tenant_id` to every message that scopes a record
 to or returns a record across tenants. Per
-[design § Storage isolation](design-a.md#storage-isolation): records
+[design § Storage isolation](design-a.md#tenancy-abstraction): records
 and cross-record reads are tenant-scoped in every mode. The field is
 added at the next available field number in each message; all existing
 field numbers are preserved.
@@ -169,6 +169,7 @@ covers each cross-tenant RPC's scoping behaviour.
 ## Step 5 — Scaffold `services/tenancy/`
 
 Created files:
+
 - `services/tenancy/package.json` (mirror `services/ghuser/package.json`
   — `name: "@forwardimpact/svctenancy"`, `bin: { "fit-svctenancy":
   "./server.js" }`, dependencies on `libconfig`, `librpc`,

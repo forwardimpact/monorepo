@@ -32,7 +32,9 @@ security policies.
 - [ ] No unnecessary dependencies.
 - [ ] First-party or official org actions only.
 - [ ] Peer and transitive dependency compatibility verified.
-- [ ] Root `overrides` cover every bumped workspace range (applies to **any** `*/package.json` diff — Dependabot, agent-authored, or direct human edits).
+- [ ] Root `overrides` cover every bumped workspace range (applies to **any**
+      `*/package.json` diff — Dependabot, agent-authored, or direct human
+      edits).
 
 </do_confirm_checklist>
 
@@ -66,8 +68,11 @@ the release Dependabot tracks via the `# v1` comment).
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed this Process.
-Extract previous triage outcomes and packages that repeatedly fail Check 8.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process. Extract previous triage outcomes and packages that repeatedly fail
+Check 8.
 
 ### Step 1: List Open Dependabot PRs
 
@@ -144,7 +149,9 @@ git log --oneline origin/main ^<pr-merge-base> -- '**/package.json' <lockfile>
 If commits exist, rebasing the Dependabot branch on `origin/main` will fix the
 scan. Run the repository's check/test/audit commands, then `open-change` titled
 `chore(deps): <original-title> (rebased)` with body "Rebases Dependabot PR
-#<number> on current main to pick up security fixes." Then `close` the original
+
+## <number> on current main to pick up security fixes." Then `close` the original
+
 change with comment "Superseded by #<new-pr> — rebased on main to resolve stale
 vulnerability-scanning base." (`open-change` and `close`:
 [work-trackers.md](../../agents/references/work-trackers.md).)
@@ -160,14 +167,14 @@ vulnerability-scanning base." (`open-change` and `close`:
 
 ### Step 4: Summary
 
-```
+```text
 | PR      | Title                          | Action | Reason                     |
 | ------- | ------------------------------ | ------ | -------------------------- |
 | #dep-a  | bump protobufjs 7.5.4 to 8.0.0 | close  | Check 8: peer incompatible |
 | #dep-b  | bump upload-pages-artifact ... | fix    | Missing SHA pins           |
 ```
 
-## Memory: What to Record
+### Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

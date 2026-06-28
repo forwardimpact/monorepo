@@ -46,7 +46,8 @@ under `forwardimpact/`:
 - `forwardimpact/fit-bootstrap` — the FIT CI environment
 - `forwardimpact/fit-harness` — agent task execution
 - `forwardimpact/fit-wiki` — agent-memory commands with fresh App token
-- `forwardimpact/kata-agent` — full Kata workflow (auth, checkout, bootstrap, eval, wiki push)
+- `forwardimpact/kata-agent` — full Kata workflow (auth, checkout, bootstrap,
+  eval, wiki push)
 <!-- /enum -->
 
 All are consumed by SHA-pinned `uses:` lines; changes
@@ -145,12 +146,14 @@ cross-cutting fallback.
 The four PDSA workflows:
 
 <!-- enum:kata-workflows:list -->
+
 | Workflow            | Trigger                              | Agent(s)                                                                                                        |
 | ------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | **kata-shift**      | Daily 03:00 · 12:00 · 20:00 (Paris) | product-manager → staff-engineer → security-engineer → technical-writer → release-engineer → improvement-coach  |
 | **kata-storyboard** | Daily 08:00 (Paris)                  | improvement-coach (facilitates 5 agents)                                                                        |
 | **kata-coaching**   | `workflow_dispatch`                  | improvement-coach (facilitates 1 agent)                                                                         |
 | **kata-dispatch**   | Events + bridge dispatch             | release-engineer (facilitates up to 4 agents)                                                                   |
+
 <!-- /enum -->
 
 A separate `workflow_dispatch`-only utility, **kata-interview**
@@ -199,6 +202,7 @@ for utilities).
 | `kata-review`             | Utility | Grade a single artifact (leaf, no sub-agents) |
 | `kata-session`            | Utility | Toyota Kata coaching protocol for sessions    |
 | `kata-setup`              | Utility | Interactive Kata Agent Team setup             |
+
 <!-- /enum -->
 
 ## Shared Memory
@@ -213,11 +217,14 @@ scheduled shift, a bridge-dispatched Discussion reply, and an IDE session all
 read and write the same wiki files.
 
 **Per-agent state:**
-- **Summary** (`{agent}.md`) — current priorities, blockers, teammate observations.
+
+- **Summary** (`{agent}.md`) — current priorities, blockers, teammate
+  observations.
 - **Weekly log** (`{agent}-{YYYY}-W{VV}.md`) — append-only record, one file per
   agent per ISO week.
 
 **Cross-agent state:**
+
 - **MEMORY.md** — cross-cutting priorities and active claims (who is working on
   what target, branch, and PR).
 - **STATUS.md** — canonical approval record for every spec (see § Approval
@@ -322,9 +329,9 @@ accompany.
 - **Surface-agnostic agents.** The same profiles and skills operate identically
   whether triggered by cron, a GitHub event, or a bridge-relayed message.
 - **App-based auth.** GitHub App `kata-agent-team` with 1-hour installation
-  tokens (no PAT). See [`github-app.md`](.claude/skills/kata-setup/references/github-app.md).
+  tokens (no PAT). See
+  [`github-app.md`](.claude/skills/kata-setup/references/github-app.md).
 - **Main branch CI repair.** See CONTRIBUTING.md for the release engineer's
   direct-to-`main` exception.
 - **Authoring.** Instruction architecture, length limits, skill structure, and
   the seven-layer model live in [COALIGNED.md](COALIGNED.md).
-

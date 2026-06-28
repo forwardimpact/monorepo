@@ -206,7 +206,7 @@ Handler flow:
 
 Matches spec.md:484–505:
 
-```
+```text
   Platform team — capability trajectory
 
   Roster changes:
@@ -285,7 +285,7 @@ Smoke tests for both new commands.
 
 ## Commit
 
-```
+```text
 feat(summit): add compare and trajectory commands with git history parsing
 ```
 

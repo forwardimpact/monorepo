@@ -305,7 +305,7 @@ files.
    should find the root justfile and succeed. This is the actual failure
    scenario — agent sessions navigate into subdirectories within the repo.
 
-5. **No file in the repo references `make ` as a command invocation** — except
+5. **No file in the repo references `make` as a command invocation** — except
    historical spec documents in `specs/` which are immutable records.
 
 6. **`Makefile` and `scripts/env.sh` are deleted** — no coexistence.

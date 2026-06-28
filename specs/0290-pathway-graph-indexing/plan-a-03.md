@@ -242,6 +242,7 @@ mirrors `runAgentCommand` lines 437–498:
    `resolveAgentEntities` from `agent.js`, or expose it from a shared module).
 2. `level = deriveReferenceLevel(data.levels)`.
 3. Build `stageParams`:
+
    ```javascript
    const stageParams = {
      discipline: humanDiscipline,
@@ -255,6 +256,7 @@ mirrors `runAgentCommand` lines 437–498:
      stages: data.stages,
    };
    ```
+
 4. If `req.stage` is set: resolve the stage object from `data.stages`, call
    `generateStageAgentProfile({ ...stageParams, stage })`, serialize the single
    profile.
@@ -340,7 +342,7 @@ Classes and predicates used per RPC:
 IRIs follow the convention (constructed via the shared helpers from
 `@forwardimpact/map/iri`):
 
-```
+```text
 https://www.forwardimpact.team/schema/rdf/job/<discipline>/<level>[/<track>]
 https://www.forwardimpact.team/schema/rdf/agent-profile/<discipline>/<track>[/<stage>]
 https://www.forwardimpact.team/schema/rdf/progression/<discipline>/<from>-<to>[/<track>]
@@ -526,7 +528,7 @@ colliding with any other default-port service.
    optional `hash` service. Use port `3010`. Add the line (next to the other
    `SERVICE_*_URL` entries):
 
-   ```
+   ```text
    SERVICE_PATHWAY_URL=grpc://localhost:3010
    ```
 
@@ -536,6 +538,7 @@ colliding with any other default-port service.
    `pathway.Pathway.*` methods.
 
 4. Append to `service.tool.endpoints`:
+
    ```json
    "pathway_list_jobs": {
      "method": "pathway.Pathway.ListJobs",

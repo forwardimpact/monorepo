@@ -23,10 +23,10 @@ documented `npx fit-*` contract resolves from the registry
 
 ## Enforcement
 
-`.coaligned/invariants/public-cli-set.rules.mjs` (auto-discovered by the
-root `invariants` check) recomputes the public set from the rule — invoked names in
+`.coaligned/invariants/public-cli-set.rules.mjs` (auto-discovered by the root
+`invariants` check) recomputes the public set from the rule — invoked names in
 `websites/fit/docs` + published skills + sibling actions, intersected with
-non-private workspace bins — and fails CI when `launchers/` drifts from it,
-a launcher's bin file or `package.json` strays from the canonical shape, a
-placeholder is overwritten, or a source package stops exporting the bin
-subpath its launcher imports.
+non-private workspace bins — and fails CI when `launchers/` drifts from it, a
+launcher's bin file or `package.json` strays from the canonical shape, a
+placeholder is overwritten, or a source package stops exporting the bin subpath
+its launcher imports.

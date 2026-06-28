@@ -2,22 +2,24 @@
 
 ## Approach
 
-Add a new top-level `benchmarks/` directory with a catalog README and a
-sentinel fixture marker, then build one family at `benchmarks/kata-skills/`
-that consists of three checked-in artefacts (family README, judge profile,
-single v1 task) plus a regime-aware staging script that produces a valid
-`fit-benchmark` family tree at build time (per spec [#870](../870-fit-benchmark-coding-tasks/design-a.md)).
-The task `kata-spec/write-feature-spec/` ships an `instructions.md`, a
-brief + JTBD excerpt under `specs/`, a no-op `workdir/scripts/preflight.sh`,
-a templated `judge.task.md`, and a structural `invariants/run.sh` that emits
-NDJSON to `$RESULTS_FD`. A new GitHub Actions workflow drives three triggers
-(manual dispatch and weekly schedule stage the published pack; path-filtered
-PRs stage from in-repo `.claude/`), invokes `bunx fit-benchmark run` then
-`report`, writes the pass@k table to `$GITHUB_STEP_SUMMARY`, asserts the
-cost envelope by summing `costUsd` across the JSONL, and uploads the JSONL
-artefact. Concurrency is keyed on `github.ref` with `cancel-in-progress`.
+Add a new top-level `benchmarks/` directory with a catalog README and a sentinel
+fixture marker, then build one family at `benchmarks/kata-skills/` that consists
+of three checked-in artefacts (family README, judge profile, single v1 task)
+plus a regime-aware staging script that produces a valid `fit-benchmark` family
+tree at build time (per spec
+[#870](../870-fit-benchmark-coding-tasks/design-a.md)). The task
+`kata-spec/write-feature-spec/` ships an `instructions.md`, a brief + JTBD
+excerpt under `specs/`, a no-op `workdir/scripts/preflight.sh`, a templated
+`judge.task.md`, and a structural `invariants/run.sh` that emits NDJSON to
+`$RESULTS_FD`. A new GitHub Actions workflow drives three triggers (manual
+dispatch and weekly schedule stage the published pack; path-filtered PRs stage
+from in-repo `.claude/`), invokes `bunx fit-benchmark run` then `report`, writes
+the pass@k table to `$GITHUB_STEP_SUMMARY`, asserts the cost envelope by summing
+`costUsd` across the JSONL, and uploads the JSONL artefact. Concurrency is keyed
+on `github.ref` with `cancel-in-progress`.
 
-Libraries used: `@forwardimpact/libeval` (`fit-benchmark` CLI — `run`, `report`).
+Libraries used: `@forwardimpact/libeval` (`fit-benchmark` CLI — `run`,
+`report`).
 
 ## Step 1 — Catalog scaffolding
 
@@ -26,10 +28,12 @@ README and the fixture-safety sentinel; wire the path-predicate exclusion
 into the monorepo's existing fixture-discovery commands.
 
 **Created:**
+
 - `benchmarks/README.md`
 - `benchmarks/.benchmark-fixture` (empty)
 
 **Modified:**
+
 - `CLAUDE.md` — the three `rg` discovery commands listed under § Jobs and
   Checklists must each gain `--glob '!benchmarks/**'`. Without this, the
   fixture `<job>` block inside the task's `jtbd-excerpt.md` would be picked
@@ -38,7 +42,7 @@ into the monorepo's existing fixture-discovery commands.
 
 Change:
 
-```
+```text
 benchmarks/
   .benchmark-fixture                       # sentinel; empty file
   README.md                                # catalog
@@ -46,11 +50,12 @@ benchmarks/
 
 `benchmarks/README.md` carries: a one-line catalog statement, a one-paragraph
 "how to add a family" guide naming the required substrate elements
-(`apm.lock.yaml`, `.claude/skills/`, `.claude/agents/`, `tasks/<family>/<task>/`),
-the fixture-safety mechanism (both path predicate `benchmarks/**` and
-ancestor-sentinel `.benchmark-fixture`, with the exact `rg --glob`
-exclusion idiom), and a link to spec [#870](../specs/0870-fit-benchmark-coding-tasks/design-a.md)
-for substrate-level operational notes. Lists the existing family: `kata-skills`.
+(`apm.lock.yaml`, `.claude/skills/`, `.claude/agents/`,
+`tasks/<family>/<task>/`), the fixture-safety mechanism (both path predicate
+`benchmarks/**` and ancestor-sentinel `.benchmark-fixture`, with the exact
+`rg --glob` exclusion idiom), and a link to spec
+[#870](../specs/0870-fit-benchmark-coding-tasks/design-a.md) for substrate-level
+operational notes. Lists the existing family: `kata-skills`.
 
 Verify: `test -f benchmarks/.benchmark-fixture && test -f benchmarks/README.md`;
 `rg '<job ' --glob '!benchmarks/**' JTBD.md` matches existing rows, and
@@ -62,6 +67,7 @@ Intent: create the family root with the family README and the family-local
 judge agent profile.
 
 **Created:**
+
 - `benchmarks/kata-skills/README.md`
 - `benchmarks/kata-skills/.claude/agents/judge.md`
 - `benchmarks/kata-skills/.gitignore`
@@ -98,7 +104,7 @@ naming the deciding evidence.
 produces. The only checked-in entry under `.claude/` is `judge.md`; the
 lockfile is regenerated on every staging run.
 
-```
+```text
 .claude/skills/
 .claude/agents/*
 !.claude/agents/judge.md
@@ -215,11 +221,11 @@ EOF
 ```
 
 Verify: run `./benchmarks/kata-skills/scripts/stage-family.sh --regime in-repo`
-locally; assert `.claude/skills/kata-spec/SKILL.md` exists, `.claude/agents/judge.md`
-is unchanged, `apm.lock.yaml` parses as YAML and carries `regime: in-repo`,
-and running the script twice in succession produces byte-identical
-`apm.lock.yaml` (in-repo determinism — `find … | sort | sha256sum` is stable
-for identical inputs).
+locally; assert `.claude/skills/kata-spec/SKILL.md` exists,
+`.claude/agents/judge.md` is unchanged, `apm.lock.yaml` parses as YAML and
+carries `regime: in-repo`, and running the script twice in succession produces
+byte-identical `apm.lock.yaml` (in-repo determinism —
+`find … | sort | sha256sum` is stable for identical inputs).
 
 ## Step 4 — v1 task scaffolding
 
@@ -232,12 +238,14 @@ for `fit-trace overview` — so the structural rubric has a concrete subject
 to grade.
 
 **Created:**
+
 - `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/instructions.md`
 - `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/supervisor.task.md`
 - `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/judge.task.md`
 - `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/specs/brief.md`
 - `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/specs/jtbd-excerpt.md`
-- `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/workdir/scripts/preflight.sh` (mode `0755`)
+- `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/workdir/scripts/preflight.sh`
+  (mode `0755`)
 
 File contents:
 
@@ -269,7 +277,8 @@ brief, or `verdict="failure"` if it does not. Include a one-sentence
 `summary` naming the deciding evidence.
 ````
 
-Verify: from the family root, `test -x tasks/kata-spec/write-feature-spec/workdir/scripts/preflight.sh`;
+Verify: from the family root,
+`test -x tasks/kata-spec/write-feature-spec/workdir/scripts/preflight.sh`;
 `grep -q '{{INVARIANTS_RESULT}}' tasks/kata-spec/write-feature-spec/judge.task.md`
 and `grep -q '{{AGENT_TRACE_PATH}}' …/judge.task.md`;
 `grep -q '<job user="Platform Builders"' tasks/kata-spec/write-feature-spec/specs/jtbd-excerpt.md`.
@@ -281,7 +290,9 @@ DO-CONFIRM bar. The rubric runs as POSIX `/bin/sh` with `awk`/`grep`/`sed`
 only — no language runtime dependency, matching the existing fixture-family
 invariants scripts under `libraries/libeval/test/fixtures/benchmark-family/`.
 
-**Created:** `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/invariants/run.sh` (executable).
+**Created:**
+`benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/invariants/run.sh`
+(executable).
 
 ```sh
 #!/bin/sh
@@ -356,10 +367,11 @@ fi
 [ "$FAIL" = 0 ] && exit 0 || exit 1
 ```
 
-Verify: from the family root, write a passing fixture `spec.md` into a
-scratch `$WORKDIR` and call `WORKDIR=…  RESULTS_FD=1 sh tasks/kata-spec/write-feature-spec/invariants/run.sh`;
-all six rows emit `pass:true` and the exit code is `0`. Mutate one rule
-(drop the `## Problem` heading) and assert the exit code flips to `1` with
+Verify: from the family root, write a passing fixture `spec.md` into a scratch
+`$WORKDIR` and call
+`WORKDIR=…  RESULTS_FD=1 sh tasks/kata-spec/write-feature-spec/invariants/run.sh`;
+all six rows emit `pass:true` and the exit code is `0`. Mutate one rule (drop
+the `## Problem` heading) and assert the exit code flips to `1` with
 `problem-first` reporting `pass:false`.
 
 ## Step 6 — Workflow

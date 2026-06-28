@@ -74,7 +74,7 @@ steps.
 
 ## Part dependency graph
 
-```
+```text
   01 (check infra, permissive)
     │
     ▼
@@ -124,7 +124,7 @@ assume them without repetition.
 
 For a non-service package that today has root-level `.js` sources:
 
-```
+```text
 1. mkdir -p <pkg>/src
 2. git mv <pkg>/*.js <pkg>/src/        # only root source, not test/
 3. git mv <pkg>/<domain-dir>/ <pkg>/src/<domain-dir>/   # for each non-allowed root subdir

@@ -44,7 +44,6 @@ description: >
   coaching kata questions.
 - `## When to Use` — Your Assess section routed you to a coaching context: team
   storyboard meeting or 1-on-1 coaching session.
-
 - `## Checklists`
 
   `<read_do_checklist goal="Prepare for the coaching session">`:
@@ -179,6 +178,7 @@ Create `.claude/skills/kata-storyboard/references/coaching-protocol.md` with:
 **Content (~70 lines):**
 
 - `# The Five Coaching Kata Questions` heading
+
 - Introduction: these questions structure every coaching interaction — team
   meetings and 1-on-1 sessions. The coach asks, the learner(s) reflect.
 

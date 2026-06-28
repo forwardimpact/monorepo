@@ -17,7 +17,7 @@ Add a **Context Hierarchy** section to the agent profile between Voice and
 Constraints. This section defines a ranked list of context sources the agent
 must exhaust before escalating to subagent exploration.
 
-```
+```text
 System prompt (already loaded)
   → CLAUDE.md (already loaded — read it)
     → Direct file reads (Read/Glob/Grep tools)

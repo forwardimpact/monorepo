@@ -9,8 +9,8 @@ description: >
 
 # Query a Knowledge Graph
 
-`fit-query` matches a triple pattern (`<subject> <predicate> <object>`) against a
-graph index built from RDF knowledge sources and prints the matching
+`fit-query` matches a triple pattern (`<subject> <predicate> <object>`) against
+a graph index built from RDF knowledge sources and prints the matching
 identifiers, one per line. Use `?` as a wildcard for the position you want to
 resolve. It is the relationship companion to `fit-subjects`, which enumerates
 subjects by type.

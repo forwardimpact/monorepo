@@ -100,7 +100,7 @@ prose and always appends `→ **<product names>**` to the end. The
 name** (`kata` → `Kata`); it does not affect the hire body. Together this
 yields:
 
-```
+```text
 **Big Hire:** Help me run an autonomous, continuously improving development team that plans, ships, studies its own traces, and acts on findings. → **Kata**
 ```
 

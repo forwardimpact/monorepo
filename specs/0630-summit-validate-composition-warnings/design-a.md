@@ -95,7 +95,7 @@ success criteria collapse onto the same serialized field.
 
 When `warnings.length > 0`, the formatter prints:
 
-```
+```text
   Composition warnings:
 
     [NO_SENIOR_MEMBER] message…

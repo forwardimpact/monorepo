@@ -20,7 +20,7 @@ New file. Implements the design's `verifyWebhookSignature` interface.
 
 **Algorithm:**
 
-```
+```text
 verifyWebhookSignature(req, secretEnvVar):
   1. secret = Deno.env.get(secretEnvVar)
      → if missing: return { ok: false, response: Response(500) }
@@ -76,7 +76,7 @@ nothing imports. New file exports two functions per the design.
 
 **`corsHeaders(req: Request): Record<string, string>`:**
 
-```
+```text
 1. origin = req.headers.get("Origin")
    → if null: return {} (server-to-server, no CORS needed)
 2. allowedOrigins = Deno.env.get("CORS_ALLOWED_ORIGINS")
@@ -93,7 +93,7 @@ nothing imports. New file exports two functions per the design.
 
 CORS allow headers (when origin matches):
 
-```
+```text
 Access-Control-Allow-Origin: <matched origin>
 Access-Control-Allow-Headers: authorization, x-client-info, apikey, content-type
 Access-Control-Allow-Methods: POST, OPTIONS
@@ -102,7 +102,7 @@ Vary: Origin
 
 **`handlePreflight(req: Request): Response`:**
 
-```
+```text
 1. headers = corsHeaders(req)
 2. return new Response(null, { status: 204, headers })
 ```

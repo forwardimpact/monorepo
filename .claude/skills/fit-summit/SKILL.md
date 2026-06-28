@@ -21,25 +21,33 @@ a team _can_ do, not how well it is doing it.
 **Understand what a team can do:**
 
 - Viewing per-skill headcount depth — `npx fit-summit coverage <team>`
-- Detecting single points of failure, critical gaps, and concentration risks — `npx fit-summit risks <team>`
-- Overlaying evidence from Map's activity layer — `npx fit-summit coverage <team> --evidenced`
+- Detecting single points of failure, critical gaps, and concentration risks —
+  `npx fit-summit risks <team>`
+- Overlaying evidence from Map's activity layer —
+  `npx fit-summit coverage <team> --evidenced`
 
 **Make and defend staffing decisions:**
 
-- Evaluating whether a hire strengthens the team — `npx fit-summit what-if <team> --add '{ discipline: ..., level: ... }'`
-- Simulating a departure or transfer — `npx fit-summit what-if <team> --remove 'Name'`
-- Comparing capability before and after a change — `npx fit-summit what-if <team> --promote 'Name'`
-- Evaluating project-specific coverage — `npx fit-summit coverage <team> --project <name>`
+- Evaluating whether a hire strengthens the team —
+  `npx fit-summit what-if <team> --add '{ discipline: ..., level: ... }'`
+- Simulating a departure or transfer —
+  `npx fit-summit what-if <team> --remove 'Name'`
+- Comparing capability before and after a change —
+  `npx fit-summit what-if <team> --promote 'Name'`
+- Evaluating project-specific coverage —
+  `npx fit-summit coverage <team> --project <name>`
 
 **Growth and trajectory:**
 
 - Growth opportunities aligned with team gaps — `npx fit-summit growth <team>`
-- Weighting recommendations by outcome scores — `npx fit-summit growth <team> --outcomes`
+- Weighting recommendations by outcome scores —
+  `npx fit-summit growth <team> --outcomes`
 - Tracking quarterly capability evolution — `npx fit-summit trajectory <team>`
 
 **Team comparison:**
 
-- Diffing coverage and risks between teams — `npx fit-summit compare <team1> <team2>`
+- Diffing coverage and risks between teams —
+  `npx fit-summit compare <team1> <team2>`
 - Reviewing roster composition — `npx fit-summit roster`
 
 ---

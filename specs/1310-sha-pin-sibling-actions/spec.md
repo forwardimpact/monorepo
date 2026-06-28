@@ -130,9 +130,9 @@ The spec records the residual rather than silently inheriting it.
 
 - Replacing every workflow `uses:` reference to a sibling action
   (`forwardimpact/{fit-bootstrap,kata-agent,fit-eval,fit-wiki,fit-benchmark}@v1`)
-  in `.github/workflows/*.yml` with a SHA-pinned form that carries a
-  `# v1` comment, so the human-readable marker stays legible alongside
-  the immutable pin.
+  in `.github/workflows/*.yml` with a SHA-pinned form that carries a `# v1`
+  comment, so the human-readable marker stays legible alongside the immutable
+  pin.
 - `CONTRIBUTING.md` § Security Policies becoming the single source of
   truth for the pinning rule applied to monorepo workflows, with no
   carve-out language.

@@ -1,10 +1,13 @@
 # 1140 Part 01 — DSL Grammar + Clinical Block Parser
 
-Extend the tokenizer and parser to support `clinical {}` as a new top-level domain block with `condition`, `site`, `trial` (with nested `criteria`), and `content` sub-blocks.
+Extend the tokenizer and parser to support `clinical {}` as a new top-level
+domain block with `condition`, `site`, `trial` (with nested `criteria`), and
+`content` sub-blocks.
 
 ## Goal
 
-Parse a `clinical {}` block into `ast.clinical: ClinicalBlock` — the foundation every downstream part depends on.
+Parse a `clinical {}` block into `ast.clinical: ClinicalBlock` — the foundation
+every downstream part depends on.
 
 ## Files
 
@@ -23,7 +26,7 @@ Parse a `clinical {}` block into `ast.clinical: ClinicalBlock` — the foundatio
 
 Add clinical keywords to the `KEYWORDS` set in `tokenizer.js:20-117`:
 
-```
+```text
 clinical, condition, site, trial, criteria, inclusion, exclusion,
 icd10, synonyms, synthea_module, severity, prose_topic, prose_tone,
 address, city, state, country, capacity, specialties,
@@ -42,7 +45,9 @@ text_fields, supabase_migration, embeddings_jsonl
 
 Cross-check against the existing set — only add genuinely new entries.
 
-Modify `readWord()` (`tokenizer.js:204-211`) to continue reading through dots when followed by a letter, emitting `DOTTED_IDENT` when the word contains at least one dot:
+Modify `readWord()` (`tokenizer.js:204-211`) to continue reading through dots
+when followed by a letter, emitting `DOTTED_IDENT` when the word contains at
+least one dot:
 
 ```javascript
 function readWord(source, s) {
@@ -68,7 +73,9 @@ function readWord(source, s) {
 
 ### Step 2 — Parser helpers: parseMappedArrays()
 
-Add `parseMappedArrays(blockName)` to `parser-helpers.js`. Reads a brace-delimited block of `key array` pairs where keys can be `DOTTED_IDENT`, `IDENT`, or `KEYWORD`:
+Add `parseMappedArrays(blockName)` to `parser-helpers.js`. Reads a
+brace-delimited block of `key array` pairs where keys can be `DOTTED_IDENT`,
+`IDENT`, or `KEYWORD`:
 
 ```javascript
 function parseMappedArrays(blockName) {
@@ -92,15 +99,19 @@ Export from `createDispatchHelpers()` alongside `consumeFields`.
 
 ### Step 3 — Parser: accept DOTTED_IDENT
 
-In `parser.js:54-62`, extend `parseStringOrIdent()` to accept `DOTTED_IDENT`. In `parser.js:83-90`, extend `resolveArrayElement()` to handle `DOTTED_IDENT`.
+In `parser.js:54-62`, extend `parseStringOrIdent()` to accept `DOTTED_IDENT`. In
+`parser.js:83-90`, extend `resolveArrayElement()` to handle `DOTTED_IDENT`.
 
 **Verify:** `bun test` in `libsyntheticgen`.
 
 ### Step 4 — Clinical block parser
 
-Create `parser-clinical.js` exporting `createClinicalParsers(helpers)` → `{ parseClinical }`.
+Create `parser-clinical.js` exporting `createClinicalParsers(helpers)` →
+`{ parseClinical }`.
 
-`parseClinical()` dispatches on sub-keywords `condition`, `site`, `trial`, `content` inside a brace-delimited block. Returns `ClinicalBlock { conditions[], sites[], trials[], content }`.
+`parseClinical()` dispatches on sub-keywords `condition`, `site`, `trial`,
+`content` inside a brace-delimited block. Returns
+`ClinicalBlock { conditions[], sites[], trials[], content }`.
 
 Sub-parsers:
 
@@ -116,36 +127,50 @@ Sub-parsers:
 
 ### Step 5 — Parser entry point
 
-In `parser.js`, add `clinical: null` to the AST initializer (`line 122-138`). Add `clinical` to `TOP_LEVEL` dispatch (`line 140-176`):
+In `parser.js`, add `clinical: null` to the AST initializer (`line 122-138`).
+Add `clinical` to `TOP_LEVEL` dispatch (`line 140-176`):
 
 ```javascript
 clinical: () => { ast.clinical = clinical.parseClinical(); },
 ```
 
-Import `createClinicalParsers` and create the instance alongside `blocks` and `std`.
+Import `createClinicalParsers` and create the instance alongside `blocks` and
+`std`.
 
-**Verify:** Parse the full `data/synthetic/story.dsl` — must produce a valid AST with `ast.clinical === null`. All existing tests pass: `cd libraries/libsyntheticgen && bun test`.
+**Verify:** Parse the full `data/synthetic/story.dsl` — must produce a valid AST
+with `ast.clinical === null`. All existing tests pass:
+`cd libraries/libsyntheticgen && bun test`.
 
 ### Step 6 — Tests
 
 **tokenizer.test.js:**
+
 - `DOTTED_IDENT` — `clinical.conditions` tokenizes as a single token.
-- `DOTTED_IDENT` in array — `[clinical.conditions, clinical.trials]` produces two `DOTTED_IDENT` tokens.
+- `DOTTED_IDENT` in array — `[clinical.conditions, clinical.trials]` produces
+  two `DOTTED_IDENT` tokens.
 - Plain `IDENT` unchanged — `researchers` still tokenizes as `IDENT`.
-- New keywords — `clinical`, `condition`, `site`, `trial`, `criteria` all tokenize as `KEYWORD`.
+- New keywords — `clinical`, `condition`, `site`, `trial`, `criteria` all
+  tokenize as `KEYWORD`.
 
 **parser-clinical.test.js:**
-- Minimal clinical block — single condition, site, trial with criteria, no content.
-- Full clinical block — 2 conditions, 2 sites, 1 trial, content with `per_*` sentinels.
-- Per-entity cardinality — `condition_explainers per_condition` parses to string `"per_condition"`.
-- Cross-domain references — `project oncora` and `principal_investigator @thoth` parse correctly.
+
+- Minimal clinical block — single condition, site, trial with criteria, no
+  content.
+- Full clinical block — 2 conditions, 2 sites, 1 trial, content with `per_*`
+  sentinels.
+- Per-entity cardinality — `condition_explainers per_condition` parses to string
+  `"per_condition"`.
+- Cross-domain references — `project oncora` and `principal_investigator @thoth`
+  parse correctly.
 - Error: unknown keyword in condition — throws with line number.
 - Error: unknown keyword in trial — throws with line number.
-- Clinical block is optional — `terrain test {}` parses with `ast.clinical === null`.
+- Clinical block is optional — `terrain test {}` parses with
+  `ast.clinical === null`.
 
 ## Blast Radius
 
-Created: `parser-clinical.js`, `parser-clinical.test.js`. Modified: `tokenizer.js`, `parser.js`, `parser-helpers.js`, `tokenizer.test.js`.
+Created: `parser-clinical.js`, `parser-clinical.test.js`. Modified:
+`tokenizer.js`, `parser.js`, `parser-helpers.js`, `tokenizer.test.js`.
 
 ## Verification
 

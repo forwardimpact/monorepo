@@ -19,6 +19,7 @@ changes. Two independent bugs (#627, #647) also block end-to-end success.
 ### Step 1a — `libraries/libmacos` extraction: COMPLETE
 
 All files present and functional:
+
 - `src/posix-spawn.js`, `src/tcc-responsibility.js`, `src/index.js`
 - `scripts/build-app.sh`, `scripts/sign-app.sh`
 - `templates/entitlements.plist`, `templates/entitlements-gui.plist`,
@@ -44,6 +45,7 @@ All recipes exist under `# ── Bundles` in the root `justfile`:
 single gear bundle recipe. This is monorepo-side work that has not happened yet.
 
 Per-bundle metadata exists:
+
 - `products/{guide,landmark,map,pathway,summit}/macos/{Info.plist,
   entitlements.plist}`
 - `products/outpost/macos/{Info.plist,Outpost.entitlements}`
@@ -53,6 +55,7 @@ Per-bundle metadata exists:
 ### Step 2 — Release workflow: COMPLETE (but needs gear update)
 
 `.github/workflows/publish-brew.yml` exists with:
+
 - Tag filter: 8 explicit patterns (`outpost@v*`, `guide@v*`, `landmark@v*`,
   `map@v*`, `pathway@v*`, `summit@v*`, `services@v*`, `utilities@v*`)
 - `build` job (macos-14): compile, codesign, cdhash stability gate, ditto zip,
@@ -67,7 +70,8 @@ maps them to `fit-services` / `fit-utilities` cask names. But the tap now has
 not yet accept `gear@v*`. This is spec 0740 SC6 work.
 
 The sed contract the casks must satisfy:
-```
+
+```text
 sed -i \
   -e "s|^  version \".*\"|  version \"${VERSION}\"|" \
   -e "s|^  sha256 \".*\"|  sha256 \"${SHA256}\"|" \
@@ -103,6 +107,7 @@ The commit message: "feat: seed tap with initial casks".
 ### Step 4 — Product overview documentation: NOT DONE
 
 No product overview page has a brew install section:
+
 - `websites/fit/pathway/index.md` — npm only
 - `websites/fit/guide/index.md` — npm only
 - `websites/fit/landmark/index.md` — npm only
@@ -135,6 +140,7 @@ consolidation in the monorepo, tap seeding (done), and documentation.
 ### What spec 0740 covers (updated)
 
 Seven cask files for the tap repo (already seeded):
+
 1. `fit-pathway.rb` — product cask
 2. `fit-map.rb` — product cask
 3. `fit-guide.rb` — product cask
@@ -144,6 +150,7 @@ Seven cask files for the tap repo (already seeded):
 7. `fit-gear.rb` — shared bundle (5 gRPC servers + 20 library CLIs)
 
 Plus monorepo changes:
+
 - Consolidate `build-app-services` / `build-app-utilities` into gear
 - Update `publish-brew.yml` tag filter: add `gear@v*`, remove `services@v*`
   and `utilities@v*`
@@ -169,6 +176,7 @@ Resolved by the tap seeding commit. The tap now contains 8 cask files.
 ### #625 — Outpost rename: Phase 8 cross-repo follow-ups: OPEN
 
 Phases 8b–8d status:
+
 - **8b**: Tag `outpost@v3.0.0`, verify publish-brew + publish-macos — blocked
   by workflow gear consolidation
 - **8c**: `npm deprecate @forwardimpact/basecamp` — independent, can proceed
@@ -204,7 +212,7 @@ PR #607 (plan(0700): git-installable pack repos) has been **merged**.
 
 ## Dependency Graph
 
-```
+```text
 Tap seeding (#645): DONE
   └─ Monorepo gear consolidation (spec 0740 — workflow + justfile + metadata)
        └─ #625 phases 8b–8d (outpost rename cross-repo)

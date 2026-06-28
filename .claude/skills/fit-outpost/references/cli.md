@@ -1,6 +1,6 @@
 # CLI Reference
 
-### Operations
+## Operations
 
 ```sh
 npx fit-outpost                         # Wake due agents once and exit

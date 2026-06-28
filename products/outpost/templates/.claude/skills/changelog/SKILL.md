@@ -11,8 +11,8 @@ teammates syncing the same filesystem can see what changed and why.
 
 This tracks **graph content** — notes under `Knowledge/People/`,
 `Organizations/`, `Projects/`, `Topics/`, `Candidates/`, `Priorities/`, and the
-other subdirectories. It does **not** track changes to instructions (`CLAUDE.md`,
-agents, skills) — that is the `upstream-instructions` skill's job.
+other subdirectories. It does **not** track changes to instructions
+(`CLAUDE.md`, agents, skills) — that is the `upstream-instructions` skill's job.
 
 ## Trigger
 
@@ -40,16 +40,16 @@ agents, skills) — that is the `upstream-instructions` skill's job.
 
 ## Ethics
 
-`Knowledge/` is shared with the team. Every entry obeys the KB's integrity rules:
-objective and factual, work-relevant, no personal judgments. Assume the person a
-note is about will read its changelog entry. Describe **what changed in the
-graph**, not opinions about the people in it.
+`Knowledge/` is shared with the team. Every entry obeys the KB's integrity
+rules: objective and factual, work-relevant, no personal judgments. Assume the
+person a note is about will read its changelog entry. Describe
+**what changed in the graph**, not opinions about the people in it.
 
 <do_confirm_checklist goal="Verify the changelog is accurate and shareable">
 
 - [ ] Exactly one `Knowledge/CHANGELOG.md`; no stray per-folder changelogs.
-- [ ] Every entry names its **Scope** — the specific note(s) or folder(s) touched,
-      by full path.
+- [ ] Every entry names its **Scope** — the specific note(s) or folder(s)
+      touched, by full path.
 - [ ] Each entry has **Who** (author, from identity), **What**, and **Why**.
 - [ ] Descriptions are specific enough to be useful (not "updated some notes").
 - [ ] Dates are the date the change was actually made, not guessed.
@@ -104,8 +104,8 @@ Scope lists every note touched.
 
 ### 4. Write the changelog
 
-Create or update `Knowledge/CHANGELOG.md` (newest first). Group entries under one
-heading per day; one bullet per logical change:
+Create or update `Knowledge/CHANGELOG.md` (newest first). Group entries under
+one heading per day; one bullet per logical change:
 
 ```markdown
 # Knowledge Changelog

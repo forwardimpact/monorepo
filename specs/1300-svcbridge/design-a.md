@@ -84,7 +84,18 @@ and it presents a store-shaped object to `Dispatcher` and
 | Config block | `service.bridge.*` (registered via `createServiceConfig("bridge")`) |
 | Supervisor entry name | `bridge` (bare, matching peer entries like `trace`, `graph`) |
 
-These are not free variables. `createServiceConfig(name)` sets `config.name`, and librpc resolves the gRPC service from it: `getServiceDefinition` looks up `definitions[name.toLowerCase()]` (`librpc/src/base.js`) and both `Server` and `Client` do `capitalizeFirstLetter(config.name)` to name the gRPC service. libcodegen derives the generated dir, the definitions key, and the export prefix from the **proto file basename**, and the class inside each artifact from the in-proto `service` declaration (`libcodegen/src/base.js`, `services.js`, `definitions.js`). So the invariant is: **`config.name` (lowercased) == proto-file basename == lowercased gRPC service name.** The npm package and directory names are decoupled from this chain — `svc` lives only in the package/bin, exactly as peers do it. Aligning the config identifier therefore forces the proto file, proto package, and gRPC service to move with it.
+These are not free variables. `createServiceConfig(name)` sets `config.name`,
+and librpc resolves the gRPC service from it: `getServiceDefinition` looks up
+`definitions[name.toLowerCase()]` (`librpc/src/base.js`) and both `Server` and
+`Client` do `capitalizeFirstLetter(config.name)` to name the gRPC service.
+libcodegen derives the generated dir, the definitions key, and the export prefix
+from the **proto file basename**, and the class inside each artifact from the
+in-proto `service` declaration (`libcodegen/src/base.js`, `services.js`,
+`definitions.js`). So the invariant is: **`config.name` (lowercased) ==
+proto-file basename == lowercased gRPC service name.** The npm package and
+directory names are decoupled from this chain — `svc` lives only in the
+package/bin, exactly as peers do it. Aligning the config identifier therefore
+forces the proto file, proto package, and gRPC service to move with it.
 
 ## Discussion record on the wire
 
@@ -105,9 +116,17 @@ persisted JSONL on disk follows the proto field names.
 | `open_rfcs` | `map<string, OpenRfc>` | Correlation id → `{ trigger, opened_at, history_index_at_open, due_at }`. |
 | `pending_callbacks` | `map<string, string>` | Token → correlation id. Travels with the record per spec. |
 
-`OpenRfc.trigger` is a typed `ResumeTrigger` message — `{ kind, responses, elapsed }` — so the on-disk field name remains `trigger` (preserving the spec's "persisted record shape is unchanged" requirement). `OpenRfc.due_at` is encoded as `optional int64` because `ResumeScheduler.enterRecess` only sets it for `elapsed` and `either` triggers; `ResumeScheduler.rearm` keys arming on field presence, not on the proto3 default `0`.
+`OpenRfc.trigger` is a typed `ResumeTrigger` message —
+`{ kind, responses, elapsed }` — so the on-disk field name remains `trigger`
+(preserving the spec's "persisted record shape is unchanged" requirement).
+`OpenRfc.due_at` is encoded as `optional int64` because
+`ResumeScheduler.enterRecess` only sets it for `elapsed` and `either` triggers;
+`ResumeScheduler.rearm` keys arming on field presence, not on the proto3 default
+`0`.
 
-`Origin` is flat: `{ id, discussion_id, posted_at }`. Opaque per-participant metadata (Bot Framework `ConversationReference`, GitHub node metadata) rides as a JSON string because it is channel-shaped and outside this service's concern.
+`Origin` is flat: `{ id, discussion_id, posted_at }`. Opaque per-participant
+metadata (Bot Framework `ConversationReference`, GitHub node metadata) rides as
+a JSON string because it is channel-shaped and outside this service's concern.
 
 ## RPC contract
 
@@ -123,7 +142,9 @@ persisted JSONL on disk follows the proto field names.
 
 ## Adapter contract (bridge side)
 
-`DiscussionAdapter` is the only new abstraction on the bridge side. It wraps the generated `BridgeClient` and satisfies the contract `Dispatcher` and `ResumeScheduler` consume:
+`DiscussionAdapter` is the only new abstraction on the bridge side. It wraps the
+generated `BridgeClient` and satisfies the contract `Dispatcher` and
+`ResumeScheduler` consume:
 
 | Method | Implementation |
 |---|---|
@@ -134,13 +155,28 @@ persisted JSONL on disk follows the proto field names.
 | `flush()` | No-op. The server-side `BufferedIndex` owns batching, so a `SaveDiscussion` returns when the record is in the service's in-memory index but not necessarily on disk. See § Key decisions on the write-barrier shift this introduces. |
 | `shutdown()` | No-op on the bridge side. The service drains its own buffer through librpc's SIGTERM handler. The previous bridge-side `store.shutdown()` flush gate disappears with the in-process buffer; bridges no longer drain anything on stop. |
 
-`Dispatcher.dispatch` only uses `.add` and `.flush` and is satisfied by this adapter unchanged. `ResumeScheduler` consumes `loadByCorrelation` and `listOpenRecesses` from the adapter to drive its rearm and elapsed-fire paths; that contract widening keeps the resume lifecycle working over a remote backend without leaking gRPC into libbridge.
+`Dispatcher.dispatch` only uses `.add` and `.flush` and is satisfied by this
+adapter unchanged. `ResumeScheduler` consumes `loadByCorrelation` and
+`listOpenRecesses` from the adapter to drive its rearm and elapsed-fire paths;
+that contract widening keeps the resume lifecycle working over a remote backend
+without leaking gRPC into libbridge.
 
 ## Storage layout
 
-The service constructs one `StorageInterface` rooted at `bridges/`, resolved by `libstorage` to `data/bridges/` from the monorepo root, and hands it to two `BufferedIndex` instances using the existing index keys (`discussions.jsonl`, `origins.jsonl`). Both files land at the canonical paths the spec requires, owned by a single process. The discussion store keeps the current 5 s / 1000-entry buffer; the origin store keeps the current 1 s / 100-entry buffer. Both can be overridden via `service.bridge.*`.
+The service constructs one `StorageInterface` rooted at `bridges/`, resolved by
+`libstorage` to `data/bridges/` from the monorepo root, and hands it to two
+`BufferedIndex` instances using the existing index keys (`discussions.jsonl`,
+`origins.jsonl`). Both files land at the canonical paths the spec requires,
+owned by a single process. The discussion store keeps the current 5 s /
+1000-entry buffer; the origin store keeps the current 1 s / 100-entry buffer.
+Both can be overridden via `service.bridge.*`.
 
-A single sweep timer evicts records older than the TTL from both indexes; the cadence carries over from today's `DEFAULT_SWEEP_INTERVAL_MS` (60 s). The discussion side keeps the existing 24 h `conversationTtlMs`. The origin side gains a periodic timer it did not have before — today's `OriginIndex.sweep(now)` is caller-driven; the service moves it onto the same cadence as discussions to put both indexes under one lifecycle. The origin TTL stays at 24 h.
+A single sweep timer evicts records older than the TTL from both indexes; the
+cadence carries over from today's `DEFAULT_SWEEP_INTERVAL_MS` (60 s). The
+discussion side keeps the existing 24 h `conversationTtlMs`. The origin side
+gains a periodic timer it did not have before — today's `OriginIndex.sweep(now)`
+is caller-driven; the service moves it onto the same cadence as discussions to
+put both indexes under one lifecycle. The origin TTL stays at 24 h.
 
 ## Key decisions
 
@@ -161,7 +197,13 @@ A single sweep timer evicts records older than the TTL from both indexes; the ca
 
 ## What this design does not cover
 
-- The agent-facing tool surfaces over the new store (cross-bridge lookup, history recall). Foundation only; the follow-up spec for the tool catalogue will add RPCs without changing the underlying store.
-- Concrete file paths, function signatures, or execution ordering inside any of the components above — those are plan concerns.
-- The shape of the bridge fakes used in tests beyond the contract the adapter satisfies.
-- Removal of the per-bridge legacy files under `data/bridges/{ghbridge,msbridge}/` on operator machines. The clean break means no code reads or writes them; cleanup is operational, not a code change.
+- The agent-facing tool surfaces over the new store (cross-bridge lookup,
+  history recall). Foundation only; the follow-up spec for the tool catalogue
+  will add RPCs without changing the underlying store.
+- Concrete file paths, function signatures, or execution ordering inside any of
+  the components above — those are plan concerns.
+- The shape of the bridge fakes used in tests beyond the contract the adapter
+  satisfies.
+- Removal of the per-bridge legacy files under
+  `data/bridges/{ghbridge,msbridge}/` on operator machines. The clean break
+  means no code reads or writes them; cleanup is operational, not a code change.

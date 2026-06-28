@@ -26,7 +26,7 @@ import {
 
 ## CSV schema
 
-```
+```text
 date,metric,value,unit,run,note,event_type
 2026-01-01,latency,124,ms,,,kata-shift
 2026-01-02,latency,131,ms,,,kata-shift
@@ -49,7 +49,7 @@ rows.
 A row can tag the decision path its work took with structured tokens at the head
 of the `note`, before any free text:
 
-```
+```text
 route_taken=<id>; routes_eligible=[<id>,<id>,...];
 ```
 
@@ -60,7 +60,7 @@ route_taken=<id>; routes_eligible=[<id>,<id>,...];
 
 Quote the `note` so the embedded comma does not split the column:
 
-```
+```text
 2026-06-20,implementations_shipped,3,count,,"route_taken=2; routes_eligible=[2,3];",kata-shift,local
 ```
 
@@ -74,7 +74,7 @@ rejecting unknown path ids. Both filters compose with `--metric` and
 
 ## Example output
 
-```
+```text
  UPL 12.5 ──────────────────────────────●───────────────
           │
 +1.5σ 9.4 │        ·           ·  ·              ·

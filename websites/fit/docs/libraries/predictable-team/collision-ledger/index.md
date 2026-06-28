@@ -59,7 +59,7 @@ Mint the next free id of a kind, keyed to a durable event:
 npx fit-wiki ledger allocate --kind occ --event 7d0f8bca --note "dual-execution episode"
 ```
 
-```
+```text
 #97
 ```
 
@@ -69,7 +69,7 @@ The command prints the provisional id it minted. To allocate several at once:
 npx fit-wiki ledger allocate --kind occ --count 2 --event 7d0f8bca
 ```
 
-```
+```text
 #97 #98
 ```
 
@@ -109,7 +109,7 @@ new anchors are published, rebuild them from the authoritative thread:
 npx fit-wiki ledger rebuild
 ```
 
-```
+```text
 rebuilt: 12 ids, 0 double-allocation(s)
 ```
 
@@ -118,7 +118,7 @@ allocation first-published-wins), and writes the result to the ledger page and
 the memory row, preserving any prose you have written against an anchor. If the
 prose cites an anchor that no longer exists, the command warns:
 
-```
+```text
 warning: prose cites missing anchors: #44
 ```
 
@@ -133,14 +133,14 @@ Confirm the projection matches the anchor record without writing anything:
 npx fit-wiki ledger verify
 ```
 
-```
+```text
 verify: clean
 ```
 
 `verify` re-projects the anchor record and compares it against the ledger page
 and the memory row. When they diverge it lists the problems and exits non-zero:
 
-```
+```text
 verify: ledger page diverges from the anchor record; MEMORY row diverges from the anchor record
 ```
 

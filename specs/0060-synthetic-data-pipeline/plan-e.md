@@ -14,7 +14,7 @@ external dependencies beyond npm packages.
 
 ## Architecture
 
-```
+```text
 seed.yaml ──► Node.js Pipeline
                  │
                  ├── Faker.js (seeded) ─── entity generation

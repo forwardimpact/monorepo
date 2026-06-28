@@ -148,6 +148,7 @@ response returns `""`/detached, a missing `mergeBaseExists`/`refExists` returns
 exit 0/true — so omitting one silently mis-drives the row; tests assert the
 exact `git.calls` method sequence to catch this). Specific assertions the spec
 rows require:
+
 - **Push-half (clean tree, commits ahead)**: drive `isClean`→true,
   `#hasCommitsAhead`→true, and an unverifiable branch state; assert the refusal
   fires with no `push` call — this is the only shape exercising the second

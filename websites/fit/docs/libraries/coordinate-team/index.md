@@ -45,16 +45,18 @@ session ends.
 
 `supervise` is a one-lead, one-participant relay. `facilitate` fans the lead out
 to many named specialists. `discuss` is the suspendable sibling of `facilitate`:
-it carries a stable thread id and can pause for an external reply, which makes it
-the shape a chat-channel bridge drives. (`run` — a single agent with no lead — is
-the autonomous building block under all three, but it does no coordination.)
+it carries a stable thread id and can pause for an external reply, which makes
+it the shape a chat-channel bridge drives. (`run` — a single agent with no lead
+— is the autonomous building block under all three, but it does no
+coordination.)
 
 ## How the lead and participants take turns
 
 Every coordinated session runs the same loop. The lead receives the task on its
 first turn; each participant waits until a message lands on its inbox. From then
-on, both sides repeat the same cycle: drain the inbox, run or resume the LLM with
-the drained messages, then settle any questions they still owe an answer to.
+on, both sides repeat the same cycle: drain the inbox, run or resume the LLM
+with the drained messages, then settle any questions they still owe an answer
+to.
 
 The loop fans messages out over an in-memory bus and writes one
 `{ source, seq, event }` NDJSON line for every tool call, bus message, and
@@ -64,8 +66,8 @@ a single ordered record of who did what and when.
 The lead delegates rather than doing the work itself. In facilitate and discuss
 runs it is wired with `Read`, `Glob`, and `Grep` only, with `Edit`, `Write`, and
 sub-agent tools removed. A supervise lead also gets `Bash` so it can inspect the
-working tree between rounds. Participants carry whatever tool allowlist you grant
-them.
+working tree between rounds. Participants carry whatever tool allowlist you
+grant them.
 
 ## Pass messages with Ask, Answer, and Announce
 
@@ -105,10 +107,10 @@ Every participant also has `RollCall` to list who is currently in the session.
 ## Keep the session from deadlocking
 
 If a participant ends its turn while still owing an answer, the loop injects one
-synthetic reminder and resumes it once. If the question is still unanswered after
-the reminder, the loop emits a `protocol_violation` event and unblocks the asker
-with a synthetic null answer — so a silent participant can never deadlock the
-team. You will see both the reminder and any violation in the trace.
+synthetic reminder and resumes it once. If the question is still unanswered
+after the reminder, the loop emits a `protocol_violation` event and unblocks the
+asker with a synthetic null answer — so a silent participant can never deadlock
+the team. You will see both the reminder and any violation in the trace.
 
 ## End the session
 
@@ -198,8 +200,8 @@ returns sooner.
 the trace) and `--resume-context` (JSON-serialized prior state for a resumed
 run). A bridge service relays the workflow callback when the conversation
 suspends on a `Recess` and re-enters later. Each participant's `Answer` to the
-lead is streamed to the thread as a separate reply as it is produced, not batched
-at the end.
+lead is streamed to the thread as a separate reply as it is produced, not
+batched at the end.
 
 ```sh
 npx fit-harness discuss \

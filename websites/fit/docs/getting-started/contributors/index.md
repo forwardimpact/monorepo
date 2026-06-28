@@ -68,7 +68,7 @@ bun run check:fix
 
 ## Understand the structure
 
-```
+```text
 products/       Products that turn the standard into tooling
 libraries/      Shared libraries (libskill, libdoc, libbridge, etc.)
 services/       gRPC microservices supervised by fit-rc

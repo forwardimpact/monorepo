@@ -1,10 +1,11 @@
 # Citation Inventory — Spec 1060
 
 Inventory of call sites carrying the old memory-protocol terminology
-(`#action-routing` anchor, `Tier 1/2` headings, `Memory Tiers` heading, `80-line`
-cap, `Cross-Cutting Priority Index`, `wiki-audit.sh`). Status column maps each
-call site to the part that lands the update; rows tagged `historical exempt` are
-research artifacts dated 2026-05-16 or pre-cutover weekly logs.
+(`#action-routing` anchor, `Tier 1/2` headings, `Memory Tiers` heading,
+`80-line` cap, `Cross-Cutting Priority Index`, `wiki-audit.sh`). Status column
+maps each call site to the part that lands the update; rows tagged
+`historical exempt` are research artifacts dated 2026-05-16 or pre-cutover
+weekly logs.
 
 Built via `rg -n 'memory-protocol|MEMORY\.md|<!-- memo:inbox -->|80-line|Tier
 1|Tier 2|Memory Tiers|Cross-Cutting Priority|Action Routing|wiki-audit\.sh|action-routing'

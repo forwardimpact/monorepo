@@ -15,7 +15,8 @@ client without you writing one.
 
 ## When to Use
 
-- Probe a gRPC method by hand — `npx fit-unary memory GetWindow '{"resource_id":"..."}'`
+- Probe a gRPC method by hand —
+  `npx fit-unary memory GetWindow '{"resource_id":"..."}'`
 - Smoke-test an endpoint after deploying it
 - Inspect a method's response shape during development
 

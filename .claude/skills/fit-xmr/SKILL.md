@@ -40,7 +40,7 @@ _does_, not what it _should_ do.
 
 `fit-xmr` expects exactly this header:
 
-```
+```text
 date,metric,value,unit,run,note,event_type
 ```
 
@@ -98,10 +98,10 @@ applies them in _Actionable Agile Metrics_:
 | **mR-Rule 1** | A moving range point exceeds URL                                    | mR chart   |
 
 Rules 2 and 3 are not applied to the mR chart — its asymmetric distribution
-breaks symmetric zone tests. When a run-pattern rule fires, **all** participating
-slots are marked, not just the trigger. **No additional rules** — Western
-Electric, Nelson, and trend tests are omitted; they inflate false-alarm rates
-for the small-sample contexts XmR charts target.
+breaks symmetric zone tests. When a run-pattern rule fires, **all**
+participating slots are marked, not just the trigger. **No additional rules** —
+Western Electric, Nelson, and trend tests are omitted; they inflate false-alarm
+rates for the small-sample contexts XmR charts target.
 
 ## The Chart
 
@@ -109,7 +109,7 @@ for the small-sample contexts XmR charts target.
 mR chart (6 rows including a single shared time axis at the bottom that serves
 both charts).
 
-```
+```text
  UPL 12.5 ──────────────────────────────●───────────────
           │
 +1.5σ 9.4 │        ·           ·  ·              ·
@@ -127,7 +127,8 @@ both charts).
 ```
 
 - `·` is a non-signal point; `●` is a signal point.
-- Drop straight down from any X-chart point to find its index in the shared axis.
+- Drop straight down from any X-chart point to find its index in the shared
+  axis.
 - `+1.5σ̂` and `−1.5σ̂` mark the **outer-zone boundary** for X-Rule 3.
 
 ### Computed quantities

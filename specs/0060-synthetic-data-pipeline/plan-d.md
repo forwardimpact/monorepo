@@ -15,7 +15,7 @@ for human review before committing to the monorepo.
 
 ## Architecture
 
-```
+```text
 seed.yaml
     │
     ▼
@@ -494,7 +494,7 @@ llm = OpenAILLM(base_url="http://localhost:8080/v1", model="local")
 
 ## Dependencies
 
-```
+```text
 # Python
 distilabel>=1.5
 argilla>=2.0  # Optional, for review UI

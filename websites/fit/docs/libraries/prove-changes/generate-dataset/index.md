@@ -4,9 +4,10 @@ description: Go from a DSL file to a complete, validated evaluation dataset — 
 ---
 
 You need to produce a dataset for an agent evaluation. The dataset must include
-an organization graph, people, an engineering standard, knowledge-base documents,
-and activity records -- and you need to regenerate the whole thing when the schema
-changes. `fit-terrain generate` does all of that from a single `.dsl` file.
+an organization graph, people, an engineering standard, knowledge-base
+documents, and activity records -- and you need to regenerate the whole thing
+when the schema changes. `fit-terrain generate` does all of that from a single
+`.dsl` file.
 
 For the end-to-end workflow that connects dataset generation to evaluation
 sessions and trace analysis, see
@@ -34,7 +35,7 @@ npx --yes @forwardimpact/libterrain fit-terrain --help
 Create a `.dsl` file that declares the organization, people distribution,
 and engineering standard. The minimum viable DSL needs four top-level blocks:
 
-```
+```text
 // evals/terrain/story.dsl
 
 terrain Acme {
@@ -184,8 +185,9 @@ The pipeline walks a DAG of stages in dependency order:
 
 `fit-terrain` orchestrates three libraries across these stages: libsyntheticgen
 parses the DSL and generates the deterministic entity graph, libsyntheticprose
-resolves the LLM prose and YAML, and libsyntheticrender renders and validates the
-output. You install and run `fit-terrain`; the three libraries work behind it.
+resolves the LLM prose and YAML, and libsyntheticrender renders and validates
+the output. You install and run `fit-terrain`; the three libraries work behind
+it.
 
 The prose cache persists to `data/synthetic/prose-cache.json` by default.
 Subsequent runs with the same DSL reuse cached prose, so only new or changed

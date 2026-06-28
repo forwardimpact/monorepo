@@ -17,7 +17,7 @@ In the **Domain Concepts** section, remove:
 
 Remove the stage-related lines from the entity file listing:
 
-```
+```text
 Before:
 - **Stages** — `stages.yaml`
 - **Drivers** — `drivers.yaml`

@@ -32,9 +32,9 @@ its evidence-based views).
    Shared helpers (`resolveDataDir`, `loadMapData`, `resolveFormat`,
    `createLandmarkClient`) live in `src/lib/`.
 
-2. **Summit is a declared dependency with optional runtime.** Spec 0090 is `done`
-   and `@forwardimpact/summit` already exports `computeGrowthAlignment` from the
-   package root (synchronous function). Landmark lists Summit in its
+2. **Summit is a declared dependency with optional runtime.** Spec 0090 is
+   `done` and `@forwardimpact/summit` already exports `computeGrowthAlignment`
+   from the package root (synchronous function). Landmark lists Summit in its
    `dependencies` so contributors and default npm installs always have it. The
    spec still specifies a graceful-degrade path when Summit is missing, so
    Landmark loads Summit through a dynamic `import()` wrapper and falls back to
@@ -75,7 +75,7 @@ its evidence-based views).
 
 ### Dependency graph
 
-```
+```text
 Part 01 ─────────────┬──→ Part 02 ──→ Part 03 ──┬──→ Part 04 ──┐
 (scaffolding)        │   (evidence    (health)  │   (comments  │
                      │    helpers)              │    + voice)  │

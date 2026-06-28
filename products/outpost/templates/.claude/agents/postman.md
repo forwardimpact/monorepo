@@ -56,7 +56,7 @@ email only.
 
 After acting, emit exactly:
 
-```
+```text
 Decision: {what you observed and why you chose this action}
 Action: {what you did, e.g. "draft-emails for thread 123"}
 Priority Watch: {priority at risk + one-line why, or "none"}

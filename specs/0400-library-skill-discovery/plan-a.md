@@ -25,8 +25,8 @@ moves. The shape of the work is:
    `bun run check` when it doesn't.
 
 The work decomposes into **four parts** on the feature branch
-`claude/spec-0400-planning-a4Okz` (already checked out). Parts 01, 02, and 04 are
-strictly sequential on the `libs-*` surface. Part 03 (discovery protocol) is
+`claude/spec-0400-planning-a4Okz` (already checked out). Parts 01, 02, and 04
+are strictly sequential on the `libs-*` surface. Part 03 (discovery protocol) is
 independent of 01/02/04 and can run in parallel with Part 02 if executed by a
 second agent.
 
@@ -58,8 +58,9 @@ second agent.
 
 ## Part index
 
-Execute parts on the existing `claude/spec-0400-planning-a4Okz` branch. Each part
-has its own plan file with scope, file list, ordering, and verification steps.
+Execute parts on the existing `claude/spec-0400-planning-a4Okz` branch. Each
+part has its own plan file with scope, file list, ordering, and verification
+steps.
 
 | #   | File                         | Scope                                                                                                    | Agent          |
 | --- | ---------------------------- | -------------------------------------------------------------------------------------------------------- | -------------- |
@@ -70,7 +71,7 @@ has its own plan file with scope, file list, ordering, and verification steps.
 
 ## Part dependency graph
 
-```
+```text
   01 (directory renames + CLAUDE.md)
     │
     ▼
@@ -130,7 +131,7 @@ Bold entries are either moved from another group or added from the spec's
 Every `libs-*/SKILL.md` `## Libraries` table must use exactly these headers in
 this order:
 
-```
+```text
 | Library | Capabilities | Key Exports |
 ```
 
@@ -282,8 +283,8 @@ Flag these to the reviewer before execution.
    files themselves (Part 02 catches these because it rewrites each file's "When
    to Use" and body intro).
 
-6. **Spec 0130's Decision Guide text references old group membership.** Any "X vs
-   Y" comparison in a Decision Guide may span a group boundary after Part 01
+6. **Spec 0130's Decision Guide text references old group membership.** Any "X
+   vs Y" comparison in a Decision Guide may span a group boundary after Part 01
    (e.g., `libtelemetry.Logger` advice that currently lives in
    `libs-service-infrastructure` is still relevant to CLI authors using
    `libs-cli-and-tooling`). Mitigation: Part 02's per-file checklist includes

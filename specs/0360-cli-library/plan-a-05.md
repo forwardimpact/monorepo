@@ -11,7 +11,7 @@ backwards compatibility with the old flag syntax.
 Basecamp is the only CLI that uses flags as pseudo-commands. Every other CLI in
 the monorepo uses positional subcommands for dispatch. The current design:
 
-```
+```text
 fit-basecamp --daemon
 fit-basecamp --wake <agent>
 fit-basecamp --init <path>
@@ -25,7 +25,7 @@ prevents basecamp from fitting cleanly into libcli's definition model, where
 
 The new design:
 
-```
+```text
 fit-basecamp daemon
 fit-basecamp wake <agent>
 fit-basecamp init <path>

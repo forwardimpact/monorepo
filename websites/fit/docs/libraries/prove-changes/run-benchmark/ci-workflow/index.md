@@ -10,7 +10,8 @@ adds step summaries and artifact upload, and handles timeout control.
 
 ## Prerequisites
 
-- A task family (see [Run a Benchmark](/docs/libraries/prove-changes/run-benchmark/))
+- A task family (see
+  [Run a Benchmark](/docs/libraries/prove-changes/run-benchmark/))
 - `ANTHROPIC_API_KEY` stored as a repository secret
 
 ## Minimal Workflow
@@ -138,8 +139,8 @@ Scheduled runs on `main` create a weekly baseline. Compare the latest
 
 ## Cost Control
 
-Each run invokes Claude for the agent-under-test, invariants, and judging. Control
-cost with:
+Each run invokes Claude for the agent-under-test, invariants, and judging.
+Control cost with:
 
 - **`runs`** — fewer runs means lower cost but weaker statistical signal.
   Five runs is a reasonable floor for pass@k.

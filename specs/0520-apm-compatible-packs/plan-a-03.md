@@ -253,7 +253,7 @@ assert.ok(match, "apm command should reference /packs/<name>.apm.tar.gz");
 
 Run the full test suite:
 
-```
+```text
 cd products/pathway && bun test test/build-packs.test.js test/agent-builder-install.test.js
 ```
 

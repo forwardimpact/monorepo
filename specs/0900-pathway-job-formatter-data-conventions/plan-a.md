@@ -306,7 +306,8 @@ export { ContractViolationError, throwIfErrors } from "./contract.js";
 ```
 
 The barrel import path is browser-unsafe (it transitively pulls `loader.js`
-+ `fs/promises`); browser entry points in Step 6 import from the subpath
+
+- `fs/promises`); browser entry points in Step 6 import from the subpath
 `@forwardimpact/map/contract` directly, not from the barrel.
 
 Verification: Step 12 (`contract.test.js`).

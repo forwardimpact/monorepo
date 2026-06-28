@@ -76,16 +76,16 @@ callers; once every caller injects `runtime`, the fallback is dead code.
     (`TemplateLoader`), `libsecret/src/index.js` (the env-file + Supabase-JWT
     helpers that read the clock — `readEnvFile`, `getOrGenerateSecret`,
     `updateEnvFile`, `mintSupabaseJwt`, `mintSupabaseAnonKey`,
-    `mintSupabaseServiceRoleKey`, plus the internal `mintSupabaseRoleKey`
-    helper the latter two delegate to; the pure-crypto helpers `generateJWT`
-    / `generateHash` / `generateSecret` take no `runtime`),
+    `mintSupabaseServiceRoleKey`, plus the internal `mintSupabaseRoleKey` helper
+    the latter two delegate to; the pure-crypto helpers `generateJWT` /
+    `generateHash` / `generateSecret` take no `runtime`),
     `libsyntheticgen/src/engine/{activity,activity-initiatives}.js`,
     `libsyntheticprose/src/engine/{generator,cache,pathway}.js`,
     `libsyntheticrender/src/render/{dataset-renderers,markdown,link-assigner}.js`.
   - part 04, coalesce form (`runtime ?? createDefaultRuntime()`):
     `libpack/src/{builder,stager,disc-emitter,git-emitter,tar-emitter}.js`.
-- **Clock-only fallback** — `?? createDefaultClock()` **or** a `clock =
-  createDefaultClock()` default parameter —
+- **Clock-only fallback** — `?? createDefaultClock()` **or** a
+  `clock = createDefaultClock()` default parameter —
   `libtelemetry/src/{span,logger}.js`;
   `libbridge/src/{callback-registry,callback-handler,callback-payload,dispatcher,rate-limit,elapsed-scheduler,inbox-handler,resume-scheduler}.js`
   (libbridge consumes only the clock surface, so it injects `clock` directly
@@ -101,7 +101,6 @@ callers; once every caller injects `runtime`, the fallback is dead code.
   are not a `runtime.proc` surface).
 - **Lazy `getDefaultRuntime()` singleton** — `librc/src/manager.js` (memoizes a
   default runtime so importing the module is side-effect-free in tests).
-
 - **Forcing function (manual, runnable):** none of these are caught by
   `check-ambient-deps` (a `createDefaultRuntime()`/`createDefaultClock()` call,
   a bare `process` identifier, and `globalThis.*` are all unflagged), so this
@@ -112,7 +111,8 @@ callers; once every caller injects `runtime`, the fallback is dead code.
 - **Removal steps:** make `runtime` (or the specific collaborator) a required
   parameter on each constructor/factory, delete the `?? createDefault*` /
   `?? globalThis.*` / `?? process` fallback and the `getDefaultRuntime`
-  singleton, and update the few non-injecting tests to pass `createTestRuntime()`.
+  singleton, and update the few non-injecting tests to pass
+  `createTestRuntime()`.
 
 ## Bridge 4 — legacy call-shape adapters (one-cycle deprecation aliases)
 
@@ -128,7 +128,6 @@ callers that passed the old shape keep working for one cycle.
   runtime = null)` keeps the legacy positional `proc` parameter; `createLogger`
   passes `global.process` through it.
 - `librc/src/manager.js` — `deps.fs` (legacy) precedence over `runtime.fsSync`.
-
 - **Forcing function (manual, runnable):** tracked by this document plus the
   checklist greps (`resolveRuntime`, `_procFromLegacy`, the `Logger` positional
   `proc`). Each per-unit follow-up converts its callers to the runtime shape.
@@ -224,11 +223,11 @@ and correct; the spec's "remaining hits are the live root, not a fallback."
       only remaining hits are the retained composition-root defaults above
       (libstorage `createStorage`, librpc `createTracer`) plus bin/`server.js`
       roots; every per-consumer fallback is removed (Bridge 3).
-- [x] `rg "\?\? process\b|globalThis\.(process|setTimeout|clearTimeout)|getDefaultRuntime"
-      libraries/ products/ services/` → only the foundation-gap residue
-      `librc/manager.js` `deps.stdout ?? process.stdout` remains (NOT-BC) on
-      `main`; **scheduled for removal in [plan-a-07.md](plan-a-07.md)**
-      (approved, pending) once `runtime.proc.stdout` becomes pipeline-grade.
+- [x] `rg "\?\? process\b|globalThis\.(process|setTimeout|clearTimeout)|getDefaultRuntime" libraries/ products/ services/`
+      → only the foundation-gap residue `librc/manager.js`
+      `deps.stdout ?? process.stdout` remains (NOT-BC) on `main`;
+      **scheduled for removal in [plan-a-07.md](plan-a-07.md)** (approved,
+      pending) once `runtime.proc.stdout` becomes pipeline-grade.
 - [x] `rg "resolveRuntime|_procFromLegacy" libraries/` → 0; the `Logger`
       positional `proc` parameter removed (Bridge 4).
 - [x] `finder.js` removed from `check-ambient-deps.deny.yml`; `bun run

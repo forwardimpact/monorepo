@@ -11,7 +11,7 @@ as a GitHub action (labeled issue, `gh` Discussion, direct git ops);
 `coordination-protocol.md` routes outputs to GitHub channels and carries a `gh`
 CLI section; `approval-signals.md` reads approval from PR labels, comments, and
 reviews. The skills and references that file, gate, merge, triage, and patch
-then call `gh` — the precise set is discoverable by grepping for `gh ` across
+then call `gh` — the precise set is discoverable by grepping for `gh` across
 the kata-* skills and the shared references, and is broader than any short list.
 
 This binds the engineering standard's coordination model to one vendor and
@@ -19,15 +19,16 @@ blocks two outcomes:
 
 1. **The coordination half of each skill goes unmeasured.** `fit-benchmark` runs
    each task in an ephemeral working directory seeded only with the family's
-   fixtures, with no tracker credentials and no remote configured; a coordination
-   step that calls a remote tracker cannot run there, and a benchmark must stay
-   reproducible and offline regardless. The `kata-skills` benchmark family is
-   four independent tasks — three grade a single produced artifact each (spec,
-   design, plan) by rubric and judge, and the fourth grades the implementation
-   against a hidden test suite. None of the four exercises a coordination step:
-   filing a finding, opening a change, gating it on a trusted signal, merging
-   it. Coordination is half of what the kata skills do, so a change to filing,
-   gating, or merging ships with no evidence it improved anything.
+   fixtures, with no tracker credentials and no remote configured; a
+   coordination step that calls a remote tracker cannot run there, and a
+   benchmark must stay reproducible and offline regardless. The `kata-skills`
+   benchmark family is four independent tasks — three grade a single produced
+   artifact each (spec, design, plan) by rubric and judge, and the fourth grades
+   the implementation against a hidden test suite. None of the four exercises a
+   coordination step: filing a finding, opening a change, gating it on a trusted
+   signal, merging it. Coordination is half of what the kata skills do, so a
+   change to filing, gating, or merging ships with no evidence it improved
+   anything.
 
 2. **There is no seam for other trackers.** A team running the standard against
    Jira or GitLab has nowhere to fit those systems, because the skills and
@@ -129,10 +130,10 @@ coordination becomes benchmarkable offline via the filesystem tracker. The
 genericization of the references and `gh`-invoking skills is the necessary means
 to it — a coordination task cannot be benchmarked offline unless the skills it
 exercises stop calling `gh` directly, and the harness can select the offline
-tracker. Multi-tracker portability (Jira, GitLab) is an enabled consequence of the
-same seam; building those trackers is future work. A `fit-work` operations CLI
-over the matrix is a sequenced follow-up — the matrix is specified now so that
-CLI inherits a stable seam rather than reinventing one.
+tracker. Multi-tracker portability (Jira, GitLab) is an enabled consequence of
+the same seam; building those trackers is future work. A `fit-work` operations
+CLI over the matrix is a sequenced follow-up — the matrix is specified now so
+that CLI inherits a stable seam rather than reinventing one.
 
 ## Success Criteria
 

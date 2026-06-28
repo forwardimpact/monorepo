@@ -63,13 +63,13 @@ optional.
    a. **The artifact itself.** Read fully before anything else.
 
    b. **Upstream documents.** For a design, read the spec. For a plan, read the
-      spec and design. For a diff, read the spec, design, plan, and
-      CONTRIBUTING.md § Core Rules.
+   spec and design. For a diff, read the spec, design, plan, and
+   CONTRIBUTING.md § Core Rules.
 
    c. **Codebase files the artifact references or modifies.** When the artifact
-      names files, functions, classes, or APIs, read those source files. When a
-      plan lists files to create or change, read the current versions. Verify
-      that the artifact's assumptions about existing code are accurate.
+   names files, functions, classes, or APIs, read those source files. When a
+   plan lists files to create or change, read the current versions. Verify
+   that the artifact's assumptions about existing code are accurate.
 
 3. **Grade against criteria.** Apply the artifact-specific criteria in the
    section below and any domain-specific review criteria defined by your agent
@@ -90,10 +90,10 @@ are review-specific additions on top of the checklist.
 
 For every artifact except `spec.md`, grade whether the artifact faithfully
 represents the constraints and decisions established in the prior phase(s). A
-design that satisfies its own checklist but contradicts a spec constraint, a plan
-that ignores a design decision, or a diff that silently departs from the plan are
-each at minimum a **High** finding. Process Step 2 has you read the upstream
-artifacts — use them.
+design that satisfies its own checklist but contradicts a spec constraint, a
+plan that ignores a design decision, or a diff that silently departs from the
+plan are each at minimum a **High** finding. Process Step 2 has you read the
+upstream artifacts — use them.
 
 ### spec.md
 
@@ -111,7 +111,7 @@ Skill: [`kata-plan`](../kata-plan/SKILL.md). No review-specific deltas.
 ### Implementation diff
 
 Match
-[`kata-implement` § Final verification](../kata-implement/SKILL.md#7-final-verification)
+[`kata-implement` § Final verification](../kata-implement/SKILL.md#step-6-final-verification)
 and CONTRIBUTING.md § Core Rules. Look for:
 
 - Diff implements every spec success criterion
@@ -121,8 +121,8 @@ and CONTRIBUTING.md § Core Rules. Look for:
 - No security regressions (input validation at boundaries, secrets, dangerous
   shell)
 
-You may run the repository's check and test commands yourself to verify the
-head commit, or trust the caller's assertion that they pass — the caller's Step 7
+You may run the repository's check and test commands yourself to verify the head
+commit, or trust the caller's assertion that they pass — the caller's Step 7
 already requires green checks before delegating to you. Treat any test or lint
 failure you observe as at minimum a **High** finding.
 

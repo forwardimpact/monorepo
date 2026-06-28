@@ -122,8 +122,9 @@ function renderCityList(cities) {
 
 `createComputed` derives a value from one or more reactives and recomputes
 whenever any dependency changes. `bind` is the third reactive helper: it ties a
-reactive value directly to an element property, so `bind(count, badge, "textContent")`
-keeps a badge in sync without a manual subscriber.
+reactive value directly to an element property, so
+`bind(count, badge, "textContent")` keeps a badge in sync without a manual
+subscriber.
 
 Reactive state is local to one page render. For values that several routes read
 and write — a logged-in user, a loaded dataset, a theme — use the global store.
@@ -158,9 +159,9 @@ store is the right tool for state that outlives any one route.
 
 ## Survive a handler that throws
 
-A page handler that throws should not blank the entire application. Wrap a render
-function with `withErrorBoundary` and a thrown error renders a friendly message
-instead of an empty screen.
+A page handler that throws should not blank the entire application. Wrap a
+render function with `withErrorBoundary` and a thrown error renders a friendly
+message instead of an empty screen.
 
 ```js
 import { withErrorBoundary } from "@forwardimpact/libui";

@@ -1,7 +1,8 @@
 # Workflow Template: Agent Shift
 
-One workflow runs the whole roster. The matrix is the roster — add or remove an
-agent by editing one line; `max-parallel: 1` serializes them. File: `agent-shift.yml`.
+One workflow (`agent-shift.yml`) runs the whole roster. The matrix is the
+roster: add or remove an agent by editing one matrix line, and `max-parallel: 1`
+serializes them.
 
 ## Placeholders
 
@@ -13,8 +14,11 @@ agent by editing one line; `max-parallel: 1` serializes them. File: `agent-shift
 | `{{WIKI}}`           | `"true"` or `"false"`                               |
 | `{{KATA_AGENT_REF}}` | `b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0` |
 
-The `Kata killswitch` and `Report run cost` steps are the canonical copies the
-other files reference. Emit the self-hosted block (default) or the hosted block per the operator's choice (`SKILL.md` `--hosted`).
+List `{{AGENT_MATRIX}}` in producer → reviewer → shipper order;
+`{{SHIFT_CRONS}}` are shift-start times. Set `wiki: "false"` to skip wiki sync,
+omit `agent-model:` for the default. The `Kata killswitch` and `Report run cost`
+steps are the canonical copies other files reference. Emit the self-hosted block
+(default) or the hosted block per `--hosted` (`SKILL.md`).
 
 ## Template (Self-Hosted)
 
@@ -83,9 +87,9 @@ jobs:
 
 ## Template (Hosted)
 
-The self-hosted template with three changes (the **canonical** hosted recipe others reference):
+The self-hosted template with three changes (the **canonical** hosted recipe):
 
-1. Add `id-token: write` to `permissions` (keep `contents: write`).
+1. Add `id-token: write` to `permissions`, keeping `contents: write`.
 2. Insert this OIDC mint step directly **after** the `Kata killswitch` step:
 
    ```yaml
@@ -109,20 +113,14 @@ The self-hosted template with three changes (the **canonical** hosted recipe oth
 3. In the `kata-agent` step, drop `app-id`/`app-private-key` and add
    `installation-token: ${{ steps.mint.outputs.token }}`.
 
-`FIT_OIDC_URL` is a repository **variable** (the `services/oidc` URL); `::add-mask::` keeps the token out of logs.
+`FIT_OIDC_URL` is the `services/oidc` URL as a repository **variable**;
+`::add-mask::` keeps the token out of logs. Hosted needs a `kata-agent` SHA
+accepting `installation-token`.
 
 ## Resolving Action Refs
 
 Pin published actions to an immutable SHA, never the mutable `v1` tag. List tags
-with `gh api repos/forwardimpact/kata-agent/tags` (`.../fit-harness/tags`,
-`.../fit-wiki/tags` for the refs in `workflow-dispatch.md`), pick the highest
-`vX.Y.Z`, and emit `<full-40-char-sha> # <tag>`. If resolution fails, stop and ask;
-pair the pins with the `github-actions` Dependabot config (`SKILL.md` Step 2).
-
-## Notes
-
-- **`{{AGENT_MATRIX}}`** lists agents in producer → reviewer → shipper order;
-  **`{{SHIFT_CRONS}}`** are shift-start times. Set `wiki: "false"` to skip wiki
-  sync; omit `agent-model:` for the default.
-- **Hosted** needs the `FIT_OIDC_URL` variable and a `kata-agent` SHA accepting
-  `installation-token`.
+with `gh api repos/forwardimpact/kata-agent/tags` (also `fit-harness`,
+`fit-wiki` for `workflow-dispatch.md`), pick the highest `vX.Y.Z`, and emit
+`<full-40-char-sha> # <tag>`. If resolution fails, stop and ask. Pair the pins
+with the `github-actions` Dependabot config (`SKILL.md` Step 2).

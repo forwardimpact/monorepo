@@ -35,9 +35,9 @@ Configuration (loaded via `createServiceConfig("tenancy")`):
 | --------------------- | --------------------------------------------- |
 | `SERVICE_TENANCY_URL` | Listen URL (gRPC, control-plane internal)     |
 
-The service binds to the control plane's internal network. Production
-hardening of the registry substrate and gRPC peer authentication are
-deferred (see [design § What this design does not cover](../../specs/1270-kata-bridges-public-hosting/design-a.md#what-this-design-does-not-cover)).
+The service binds to the control plane's internal network. Production hardening
+of the registry substrate and gRPC peer authentication are deferred (see
+[design § What this design does not cover](../../specs/1270-kata-bridges-public-hosting/design-a.md#what-this-design-does-not-cover)).
 
 ## Running
 

@@ -45,10 +45,11 @@ is independent of 02–04 because the Guide skill produces
 ## Cross-cutting
 
 - **Migration filename.** New migrations follow the existing
-  `YYYYMMDDHHMMSS_<slug>.sql` convention seen on `20260514000000_organization_people_kind.sql`.
-  This plan dates the new file `20260603000000_evidence_provenance.sql` —
-  the implementer adjusts the date prefix to their merge day if needed,
-  preserving sort order against `20260514000000_*`.
+  `YYYYMMDDHHMMSS_<slug>.sql` convention seen on
+  `20260514000000_organization_people_kind.sql`. This plan dates the new file
+  `20260603000000_evidence_provenance.sql` — the implementer adjusts the date
+  prefix to their merge day if needed, preserving sort order against
+  `20260514000000_*`.
 - **Codegen.** Part 01 edits `services/map/proto/map.proto`; `just codegen`
   regenerates `generated/types/`, `generated/services/map/`, and
   `generated/definitions/map.js`. The implementer commits the regenerated
@@ -70,9 +71,10 @@ is independent of 02–04 because the Guide skill produces
   existing `*.test.js` convention under `products/map/test/activity/` and
   `products/landmark/test/`.
 - **Mocking.** Producer tests hand-roll a minimal supabase fake (the existing
-  `transform-evidence.test.js` already does this because `createMockSupabaseClient`
-  doesn't cover `.delete().eq().eq()` / `.upsert({ onConflict })`). Command
-  tests reuse `createMockQueries` from libmock.
+  `transform-evidence.test.js` already does this because
+  `createMockSupabaseClient` doesn't cover `.delete().eq().eq()` /
+  `.upsert({ onConflict })`). Command tests reuse `createMockQueries` from
+  libmock.
 - **CLI/Skill parity.** Part 04 does not add a new `documentation` entry; it
   interpolates the floor value into the description of the existing "Find
   Growth Areas and Build Evidence" entry. `--help` thus carries the floor

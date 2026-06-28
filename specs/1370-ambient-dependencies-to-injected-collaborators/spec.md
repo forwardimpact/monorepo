@@ -119,12 +119,32 @@ one shape and applies that shape across `libraries/`, `products/`, and
 
 ### Out of scope
 
-- **The CLI binary contract for external users.** `npx fit-wiki claim --target …` and every other published CLI continues to accept the same argv, write the same stdout/stderr, and return the same exit codes. Changes are internal to how handlers are wired.
-- **Replacing tests that legitimately exercise real integration.** `libwiki/wiki-repo.test.js` legitimately tests real git behavior (rebase conflicts, `-X ours` recovery), `landmark/dispatcher.test.js` tests the bin's exit-code contract end-to-end, `libeval/benchmark-workdir.test.js`'s listener-cleanup test legitimately spawns a node subprocess. These keep real collaborators. The design phase establishes a naming convention or marker that the lint check (Success Criterion 5) can use to distinguish integration tests from unit tests on the deny-list — the convention itself is a design decision, but the spec requires that one exists so the lint check is mechanically verifiable.
-- **Performance work unrelated to the DI pattern.** Algorithmic speedups, parallelization, dependency upgrades, build-system changes.
-- **A new test runner or assertion library.** node:test and bun:test both continue to work; the contract here is about source structure, not test mechanics.
-- **The migration to TypeScript.** Constructor signatures and collaborator shapes are documented in JSDoc; a future migration can read those without re-deriving them.
-- **External SDK abstractions.** `@grpc/grpc-js`, `@anthropic-ai/claude-agent-sdk`, `botbuilder`, `@octokit/*` and similar third-party SDKs are not wrapped in this spec. The DI contract is for node-runtime primitives and project-internal subprocess targets.
+- **The CLI binary contract for external users.**
+  `npx fit-wiki claim --target …` and every other published CLI continues to
+  accept the same argv, write the same stdout/stderr, and return the same exit
+  codes. Changes are internal to how handlers are wired.
+- **Replacing tests that legitimately exercise real integration.**
+  `libwiki/wiki-repo.test.js` legitimately tests real git behavior (rebase
+  conflicts, `-X ours` recovery), `landmark/dispatcher.test.js` tests the bin's
+  exit-code contract end-to-end, `libeval/benchmark-workdir.test.js`'s
+  listener-cleanup test legitimately spawns a node subprocess. These keep real
+  collaborators. The design phase establishes a naming convention or marker that
+  the lint check (Success Criterion 5) can use to distinguish integration tests
+  from unit tests on the deny-list — the convention itself is a design decision,
+  but the spec requires that one exists so the lint check is mechanically
+  verifiable.
+- **Performance work unrelated to the DI pattern.** Algorithmic speedups,
+  parallelization, dependency upgrades, build-system changes.
+- **A new test runner or assertion library.** node:test and bun:test both
+  continue to work; the contract here is about source structure, not test
+  mechanics.
+- **The migration to TypeScript.** Constructor signatures and collaborator
+  shapes are documented in JSDoc; a future migration can read those without
+  re-deriving them.
+- **External SDK abstractions.** `@grpc/grpc-js`,
+  `@anthropic-ai/claude-agent-sdk`, `botbuilder`, `@octokit/*` and similar
+  third-party SDKs are not wrapped in this spec. The DI contract is for
+  node-runtime primitives and project-internal subprocess targets.
 
 ## Success Criteria
 
@@ -144,8 +164,8 @@ one shape and applies that shape across `libraries/`, `products/`, and
 ## Outcome (post-implementation reconciliation, 2026-06-01)
 
 Parts 01–06 + teardown shipped the charter; SC1–5 and SC7–8 are met and
-CI-enforced. SC9 and SC10 were the final gaps — six `new Finder(` sites
-remained and the enforcing invariant did not exist — and [plan-a-07.md](plan-a-07.md)
+CI-enforced. SC9 and SC10 were the final gaps — six `new Finder(` sites remained
+and the enforcing invariant did not exist — and [plan-a-07.md](plan-a-07.md)
 closes them: every site is collapsed onto `runtime.finder` (the lone logging
 site, codegen's symlink step, via `Finder.withLogger`), and
 `scripts/check-collaborator-construction.mjs` enforces the no-leaf-construction
@@ -170,15 +190,16 @@ what shipped:
   (milliseconds, not subprocess forks, per unit test) is real; the absolute
   wall-time milestone was the wrong gate for a scope that grew underneath it.
   Wall time is now a recorded trend, not a gate.
-- **The last genuine runtime-surface gap** was `librc logs()` (it could not
-  pipe to `runtime.proc.stdout`, a `{ write }` shim). [plan-a-07.md](plan-a-07.md)
+- **The last genuine runtime-surface gap** was `librc logs()` (it could not pipe
+  to `runtime.proc.stdout`, a `{ write }` shim). [plan-a-07.md](plan-a-07.md)
   closes it by making `proc.stdout`/`stderr` pipeline-grade `Writable`s and
-  migrating `logs()` onto `runtime.fsSync.createReadStream` + `runtime.proc.stdout`.
-  The libeval and libsupervise residue the teardown ledger once named as needing
-  "a future runtime-surface-extension spec" had already shipped during the
-  waves (`runtime.fs.createReadStream`/`createWriteStream`, `proc.kill` group
-  signalling, `subprocess.spawn` `detached`/`pid`/`stdin`); [teardown.md](teardown.md)
-  is corrected to match.
+  migrating `logs()` onto `runtime.fsSync.createReadStream` +
+  `runtime.proc.stdout`. The libeval and libsupervise residue the teardown
+  ledger once named as needing "a future runtime-surface-extension spec" had
+  already shipped during the waves
+  (`runtime.fs.createReadStream`/`createWriteStream`, `proc.kill` group
+  signalling, `subprocess.spawn` `detached`/`pid`/`stdin`);
+  [teardown.md](teardown.md) is corrected to match.
 
 ## Risks and Mitigations
 

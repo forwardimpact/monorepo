@@ -52,9 +52,10 @@ webhook implementation's `TOut` is `{ events, keys }` (today's
 while `proseKeys` consumes the `keys` slice. Internal branching inside
 one output's own method (e.g. webhook `proseKeys` branching by
 `prose_type` to emit PR-body vs review-body keys) is allowed — criterion
-#2 governs the call sites, not the per-output method bodies.
 
-## ProseContext shape
+## 2 governs the call sites, not the per-output method bodies
+
+### ProseContext shape
 
 ```ts
 type ProseContext = {
@@ -75,7 +76,7 @@ reads today are derived in `#buildPrompt` from `drivers[0]`, not carried
 as separate `ProseContext` fields. This collapses the comment/webhook
 shape difference at the schema boundary.
 
-## Data flow
+### Data flow
 
 ```mermaid
 flowchart LR
@@ -90,7 +91,7 @@ flowchart LR
   E -.-> NP[non-prose activity outputs:<br/>scores, evidence, initiatives, ...]
 ```
 
-## Comment driver-context fix
+### Comment driver-context fix
 
 The asymmetry has two upstream sources (per spec Problem § 1) and the
 contract fixes both:
@@ -114,7 +115,7 @@ prose-bearing outputs and is the only modification to
 `libsyntheticprose`. The prompt becomes a function of the
 `ProseContext` entry alone (criterion #4).
 
-## Key decisions
+### Key decisions
 
 | #   | Decision                                                                                                                                                  | Rejected alternative                                                                                                              | Why                                                                                                                                                                                          |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -127,7 +128,7 @@ prose-bearing outputs and is the only modification to
 | 7   | `#buildPrompt` derives `driver`/`direction`/`magnitude` scalars from `drivers[0]` rather than reading separate context fields.                            | Keep scalars on `ProseContext`; populate them everywhere they are used.                                                            | Carrying redundant fields invites them to drift again (the same shape of bug as the original asymmetry). Single-source the array and derive the scalar at one site.                          |
 | 8   | `validate-activity.js` reads from the post-refactor field shape (e.g. wherever `commentKeys` and `webhook` events live after the contract).               | Leave validators reading the old field names.                                                                                     | The contract may move `commentKeys` under a per-output `TOut`; validators that read those names must be updated mechanically. The change is mechanical (renames), not a redesign of validators. |
 
-## Migration boundary
+### Migration boundary
 
 Today's per-output logic moves into the corresponding `ProseActivity`
 module's `generate`/`proseKeys`/`render` methods, with one substantive
@@ -137,7 +138,7 @@ design fixes that the per-output logic moves intact except for that fix,
 the call sites consult the registration, and validators read the
 post-refactor field shape.
 
-## Out of scope (re-affirming spec)
+### Out of scope (re-affirming spec)
 
 Library boundary changes; DSL grammar changes; pipeline DAG/cache
 topology; prose template wording; non-prose activity outputs; non-activity

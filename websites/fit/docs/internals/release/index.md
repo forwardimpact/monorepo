@@ -65,13 +65,14 @@ the authoritative mapping between casks and the CLIs they place on `PATH`.
 | `fit-outpost` | `fit-outpost` | 1 |
 | `fit-gear` | `fit-svcgraph`, `fit-svcmcp`, `fit-svcpathway`, `fit-svctrace`, `fit-svcvector`, `fit-codegen`, `fit-terrain`, `fit-harness`, `fit-doc`, `fit-rc`, `fit-xmr`, `fit-storage`, `fit-logger`, `fit-svscan`, `fit-trace`, `fit-visualize`, `fit-query`, `fit-subjects`, `fit-process-graphs`, `fit-process-resources`, `fit-process-vectors`, `fit-search`, `fit-unary`, `fit-tiktoken`, `fit-download-bundle`, `fit-wiki` | 26 |
 
-When a library or service CLI is added or removed, update `build/cli-manifest.json`
-(the single source of truth for the build set, from which `build-app-gear` now
-derives the gear bundle's membership) and the `binary` stanzas in
-`Casks/fit-gear.rb` in the tap repo. Mark a long-running service CLI — one whose
-`bin` starts a server rather than printing `--help` and exiting — with
-`"server": true` so the native build still compiles, checksums, uploads, and
-bundles it but its per-binary smoke gate skips execution (running it would hang).
+When a library or service CLI is added or removed, update
+`build/cli-manifest.json` (the single source of truth for the build set, from
+which `build-app-gear` now derives the gear bundle's membership) and the
+`binary` stanzas in `Casks/fit-gear.rb` in the tap repo. Mark a long-running
+service CLI — one whose `bin` starts a server rather than printing `--help` and
+exiting — with `"server": true` so the native build still compiles, checksums,
+uploads, and bundles it but its per-binary smoke gate skips execution (running
+it would hang).
 
 ## Livecheck regex pattern
 

@@ -172,7 +172,8 @@ validateResultRecord(record): void   // throws on schema mismatch
 
 ## Test surfaces
 
-The design names two surfaces; the plan picks the layering and fixture composition.
+The design names two surfaces; the plan picks the layering and fixture
+composition.
 
 | Surface | What it covers |
 | --- | --- |

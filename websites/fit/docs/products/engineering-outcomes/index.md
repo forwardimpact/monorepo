@@ -14,12 +14,12 @@ individuals.
 - [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/) --
   install Map, migrate the activity schema, load your roster, and sync GetDX
   data.
-- [Getting Started: Landmark for Leaders](/docs/getting-started/leaders/landmark/) --
-  install Landmark and confirm you can run `npx fit-landmark org show`.
-- [Authoring Agent-Aligned Engineering Standards](/docs/products/authoring-standards/) --
-  define drivers and markers in your standard data. Landmark's health, evidence,
-  and readiness views require drivers in `drivers.yaml` and markers in your
-  capability YAML files.
+- [Getting Started: Landmark for Leaders](/docs/getting-started/leaders/landmark/)
+  -- install Landmark and confirm you can run `npx fit-landmark org show`.
+- [Authoring Agent-Aligned Engineering Standards](/docs/products/authoring-standards/)
+  -- define drivers and markers in your standard data. Landmark's health,
+  evidence, and readiness views require drivers in `drivers.yaml` and markers in
+  your capability YAML files.
 
 The rest of this guide assumes Map's activity layer is running and populated.
 If you want to explore with synthetic data first, see
@@ -307,9 +307,9 @@ You have demonstrated engineering progress without surveillance when:
    alice@example.com` shows at least one driver with a score, contributing
    skills, and evidence counts. No "No GetDX snapshot data available" messages.
 
-2. **Trends show direction.** `npx fit-landmark snapshot trend --item code-review
-   --manager alice@example.com` shows scores across multiple snapshots, making
-   the trajectory visible.
+2. **Trends show direction.**
+   `npx fit-landmark snapshot trend --item code-review --manager alice@example.com`
+   shows scores across multiple snapshots, making the trajectory visible.
 
 3. **Engineer voice is surfaced.** `npx fit-landmark voice --manager
    alice@example.com` shows themed comments with counts. Comments align to

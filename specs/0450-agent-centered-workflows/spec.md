@@ -50,7 +50,7 @@ agent. Each workflow wakes the agent on a schedule. The agent reads shared
 memory, surveys the current state of its domain, and picks the highest-priority
 action from its full skill set.
 
-```
+```text
 Current:  Workflow("do X") → Agent → Skill X → Output
 Proposed: Workflow("assess and act") → Agent → Survey → Decide → Skill → Output
 ```

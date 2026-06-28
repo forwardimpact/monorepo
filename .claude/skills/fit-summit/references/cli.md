@@ -1,6 +1,6 @@
 # CLI Reference
 
-### Global Options
+## Global Options
 
 All commands accept these options:
 

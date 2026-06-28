@@ -104,7 +104,6 @@ For each file, the rewrite recipe is:
   libtelemetry's root index does **not** export `Tracer` — it lives at
   `./tracer.js`; if the Key Exports cell lists `Tracer`, the Part 04 check must
   be able to resolve it via the subpath export.
-
 - **Body changes:** keep Decision Guide, Composition Recipes, DI Wiring
   unchanged content-wise; update any stray "service-infrastructure" text to the
   new group name. Update Recipe 1 code comments if they reference `RpcServer`
@@ -349,7 +348,7 @@ Run at the package root after all seven files are rewritten, before committing:
 
 One commit for all seven files:
 
-```
+```text
 docs(skills): rewrite libs-* descriptions and tables (spec 0400 part 2/4)
 
 - Every libs-* SKILL.md frontmatter description now opens with "Use when"

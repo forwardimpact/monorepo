@@ -41,7 +41,7 @@ shims for old names.
 
 ### PageTree
 
-```
+```text
 Map<urlPath, PageMeta>
 
 PageMeta = {
@@ -63,7 +63,7 @@ layout/hero/toc frontmatter fields.
 
 ### Partial registry
 
-```
+```text
 Record<string, (meta: PageMeta, href: string) => string>
 ```
 
@@ -128,7 +128,7 @@ flowchart TD
 
 ### Marker syntax
 
-```
+```text
 <!-- part:<type>:<path> -->
 ```
 
@@ -158,7 +158,8 @@ Relative URL from current page to target page, computed via `path.relative()`:
 ### Errors (both fatal)
 
 - Unknown type: `Unknown partial type "foo" in docs/index.md`
-- Missing target: `Partial target "nonexistent" not found in page tree (referenced from docs/index.md)`
+- Missing target:
+  `Partial target "nonexistent" not found in page tree (referenced from docs/index.md)`
 
 ## Builder Changes
 

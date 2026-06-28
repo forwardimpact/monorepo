@@ -61,7 +61,9 @@ Run when the user asks to find, organize, clean up, or tidy files on their Mac.
 
 Get an overview of both directories:
 
-    node scripts/summarize.mjs
+```text
+node scripts/summarize.mjs
+```
 
 ## Finding Files
 
@@ -79,8 +81,10 @@ find ~/Desktop -maxdepth 1 \( -name "Screenshot*" -o -name "Screen Shot*" \)
 Organize a directory into type-based subdirectories (Documents, Images,
 Archives, Installers, Screenshots):
 
-    node scripts/organize-by-type.mjs ~/Downloads
-    node scripts/organize-by-type.mjs ~/Desktop
+```text
+node scripts/organize-by-type.mjs ~/Downloads
+node scripts/organize-by-type.mjs ~/Desktop
+```
 
 The script creates subdirectories and moves matching files. It does NOT delete
 anything.
@@ -106,7 +110,7 @@ After organizing, collect the paths of document files and invoke the
 
 **Plan:**
 
-```
+```text
 Organization Plan: Desktop & Downloads Cleanup
 
 Found 47 files to organize:
@@ -123,7 +127,7 @@ Should I proceed?
 
 **Results:**
 
-```
+```text
 Organization Complete
 
 Moved 47 files:

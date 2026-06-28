@@ -123,7 +123,7 @@ messages back to the same thread. No Adaptive Cards — plain text only.
 
 The bridge maintains an in-memory map keyed by Teams thread ID:
 
-```
+```text
 threadId → {
   ref,                    // Bot Framework ConversationReference
   history: [...],         // rolling window (last 5 exchanges, 10 entries)

@@ -111,7 +111,7 @@ contained in a worktree lifecycle: create → bootstrap → work → ship → cl
 
 ## Worktree Location Convention
 
-```
+```text
 <repo-root>/../.worktrees/<branch-slug>/
 ```
 

@@ -65,7 +65,7 @@ wake — the chief-of-staff reads it.
 
 ## Output
 
-```
+```text
 Decision: {source chosen and why}
 Action: {what was scanned, e.g. "scanned HN Who Wants to Be Hired March 2026, 47 posts"}
 Prospects: {N} new ({strong} strong, {moderate} moderate), {total} total

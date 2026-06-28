@@ -45,14 +45,14 @@ Six sites change inside one class:
 | `#handleNewMessage` (lines 167–220) | Rewrite the body inside the existing `try { ... } finally` so the order is: load context → set `last_active_at` and metadata → append the user turn (`appendHistory(ctx.history, { role: "user", text })`) → `const { freshDispatchAllowed } = await this.#resume.processInbound(ctx)` → branch. When `freshDispatchAllowed` is false: `await this.#store.add(ctx); await this.#store.flush(); span.setOk(); return;`. When `freshDispatchAllowed` is true: run the existing rate-limit check (with its `context.sendActivity(...)` and `span.addEvent("rate_limited")` branches kept verbatim), then call `this.#dispatcher.dispatch(...)` *without* `historyText` (the user turn is already in `ctx.history`) inside the existing inner `try { ... } catch` block — the `catch` arm that logs and posts `context.sendActivity("Failed to reach the agent team. Please try again later.")` is preserved verbatim (referenced by `websites/fit/docs/services/bridge-conversations/dispatch-from-chat/index.md:124` "Common failure shapes" table, kept intact). Per design key decision #3, `processInbound` runs *before* the rate-limit check — a resume continuation is the agent's scheduling decision, not the user's, so rate-limiting it would penalise the user. ghbridge `index.js:286–310` is the canonical shape this mirrors. |
 | `#handleReply` verdict branches (lines 222–234, and `#applyVerdict` lines 248–259) | Delete `#applyVerdict` entirely. Inside `#handleReply`, after `await this.#postReplies(ref, payload.replies, ctx)`, add a switch on `payload.verdict`: `case "recessed": this.#resume.enterRecess(ctx, meta.correlationId, payload.trigger); break;`, `case "adjourned": this.#resume.cancelRecess(ctx, meta.correlationId); break;`, `case "failed": this.#resume.cancelRecess(ctx, meta.correlationId); if (payload.summary) await sendReply(this.#adapter, this.#msAppId, ref, payload.summary); break;`, `default: break;`. Both cancel calls are unconditional and idempotent over an empty `ctx.open_rfcs`. The `ref` binding required by the failed-summary branch is already in scope at line 226 (`const ref = ctx.participants[0].metadata`). |
 
-No explicit `store.add(ctx); store.flush()` is added inside `#handleReply`
-— libbridge's `createCallbackHandler` already flushes after `handleReply`
-returns (`libraries/libbridge/src/callback-handler.js:147–149`). The
-`enterRecess` ctx mutation is therefore persisted by the existing wrapper.
-The `failed` branch's `payload.summary` is sent to Teams as a reply but
-is *not* appended to `ctx.history` — `#postReplies` is the only history-
-append path on the callback side, and `payload.summary` does not go
-through it. This is the same shape ghbridge carries (`services/ghbridge/index.js:343–348`).
+No explicit `store.add(ctx); store.flush()` is added inside `#handleReply` —
+libbridge's `createCallbackHandler` already flushes after `handleReply` returns
+(`libraries/libbridge/src/callback-handler.js:147–149`). The `enterRecess` ctx
+mutation is therefore persisted by the existing wrapper. The `failed` branch's
+`payload.summary` is sent to Teams as a reply but is *not* appended to
+`ctx.history` — `#postReplies` is the only history- append path on the callback
+side, and `payload.summary` does not go through it. This is the same shape
+ghbridge carries (`services/ghbridge/index.js:343–348`).
 
 The workflow-input field names libbridge writes are snake_case — `prompt`,
 `callback_url`, `correlation_id`, plus any extras from `workflowInputs`
@@ -212,7 +212,8 @@ keep their current text — both branches are unchanged behaviourally
 which the preamble edit already covers).
 
 **Verify:** `bun run check` exits 0 (prose + invariants + jsdoc + lint
-+ schema all green). `git diff --stat` for the doc shows changes
+
+- schema all green). `git diff --stat` for the doc shows changes
 limited to those two regions.
 
 ## Risks

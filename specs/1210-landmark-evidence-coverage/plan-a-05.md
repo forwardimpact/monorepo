@@ -16,19 +16,20 @@ Modified: `products/guide/starter/skills/evaluate-evidence/SKILL.md`
 Replace:
 
 > e. Call `WriteEvidence` once per marker with: `artifact_id`,
->    `skill_id`, `level_id`, `marker_text`, `matched`, `rationale`. Call
->    multiple markers in parallel for throughput.
+> `skill_id`, `level_id`, `marker_text`, `matched`, `rationale`. Call
+> multiple markers in parallel for throughput.
 
 with:
 
 > e. Call `WriteEvidence` once per marker with: `artifact_id`,
->    `skill_id`, `level_id`, `marker_text`, `matched`, `rationale`, and
->    `provenance: 'agent_attested'`. The `provenance` argument tags the
->    row as agent-judged so downstream consumers can distinguish it from
->    human-attested rows. Call multiple markers in parallel for
->    throughput.
+> `skill_id`, `level_id`, `marker_text`, `matched`, `rationale`, and
+> `provenance: 'agent_attested'`. The `provenance` argument tags the
+> row as agent-judged so downstream consumers can distinguish it from
+> human-attested rows. Call multiple markers in parallel for
+> throughput.
 
 Notes:
+
 - `'agent_attested'` is the canonical string from
   `products/map/src/activity/provenance.js` (Part 01 Step 1.4). It is
   not invented; it is one of `PROVENANCE_CLASSES`.
@@ -50,6 +51,7 @@ Add a single line to the `## Constraints` section:
 >   skill does not emit them.
 
 Notes:
+
 - The skill author may otherwise be tempted to think `provenance` is
   optional or context-dependent. The constraint pins it to one literal
   value so the runtime LLM does not paraphrase, drop, or substitute.
@@ -77,7 +79,7 @@ was taken.
 Run the evaluate-evidence skill against a seeded persona with at least
 one scoreable artifact:
 
-```
+```text
 bunx fit-guide -p "evaluate for daedalus@bionova.example"
 ```
 
@@ -95,6 +97,7 @@ Assert at least one row is returned for the persona's artifacts and that
 every row's `provenance = 'agent_attested'` (criterion 7(b)).
 
 Notes:
+
 - (a) alone is sufficient to merge; (b) raises confidence and exercises
   the full Part 01 + Part 05 round-trip.
 - If (b) is taken and any row lands with `provenance != 'agent_attested'`,
@@ -104,7 +107,7 @@ Notes:
 
 ## Verification
 
-```
+```text
 git diff products/guide/starter/skills/evaluate-evidence/SKILL.md
 ```
 

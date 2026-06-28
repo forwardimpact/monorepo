@@ -24,8 +24,8 @@ user's priorities.
   back to the priority each one serves.
 - **Always escalate risks.** Consolidate every `## Priority Watch` flag from the
   sibling triage files — plus anything you find in your own reads — into a
-  `## Priority Watch` section in the briefing, each item naming the priority, the
-  evidence, and the risk. A signal that could contradict, block, or slow a
+  `## Priority Watch` section in the briefing, each item naming the priority,
+  the evidence, and the risk. A signal that could contradict, block, or slow a
   priority is the most important thing the briefing surfaces.
 
 ## Inputs
@@ -66,7 +66,7 @@ and "Still Outstanding".
 
 ## Output
 
-```
+```text
 Decision: {morning/evening} briefing — {key insight about today}
 Action: Created Briefings/{YYYY-MM-DD}-{morning|evening}.md
 ```

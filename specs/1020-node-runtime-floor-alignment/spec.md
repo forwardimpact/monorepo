@@ -44,19 +44,19 @@ script and proceeded to a successful evaluation — but the workaround is
 exactly the kind of out-of-band step the activation funnel is built to
 prevent.
 
-Upstream has already taken its position. Supabase officially dropped Node 18
-on 2025-10-31 (the `engines.node` field in `@supabase/{auth,functions,
-storage}-js` moved to `>=20.0.0` in that release line), supports Node 20 in
-the client libraries, and gates realtime on Node 22+ native WebSocket — the
-channel that produces the upstream error above. The monorepo's published
-floor is two major versions older than upstream's realtime floor; in the
-meantime the Node release calendar has moved past every floor below 22. Node 18 reached end-of-life
-on 2025-04-30 (over a year before this spec). Node 20 reached end-of-life
-on 2026-04-30 (17 days before this spec). Node 22 entered Maintenance LTS
-on 2025-10-21 and remains in maintenance through April 2027. Node 24 has
-been the Active LTS line since 2025-10-28. On the date this spec is
-written, Node 22 is the lowest Node line still receiving upstream support,
-and Node 24 is the current Active LTS.
+Upstream has already taken its position. Supabase officially dropped Node 18 on
+2025-10-31 (the `engines.node` field in `@supabase/{auth,functions, storage}-js`
+moved to `>=20.0.0` in that release line), supports Node 20 in the client
+libraries, and gates realtime on Node 22+ native WebSocket — the channel that
+produces the upstream error above. The monorepo's published floor is two major
+versions older than upstream's realtime floor; in the meantime the Node release
+calendar has moved past every floor below 22. Node 18 reached end-of-life on
+2025-04-30 (over a year before this spec). Node 20 reached end-of-life on
+2026-04-30 (17 days before this spec). Node 22 entered Maintenance LTS on
+2025-10-21 and remains in maintenance through April 2027. Node 24 has been the
+Active LTS line since 2025-10-28. On the date this spec is written, Node 22 is
+the lowest Node line still receiving upstream support, and Node 24 is the
+current Active LTS.
 
 The downstream effect cascades through the job's forces. The _Measure
 Engineering Outcomes_ job's **Anxiety** force ("measurement feels like

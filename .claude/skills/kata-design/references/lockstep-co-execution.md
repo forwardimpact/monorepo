@@ -1,9 +1,9 @@
 # Lockstep Co-Execution (spec + design together)
 
 Shared protocol for when **one prompt asks for both the spec and the design**.
-Used by [`kata-spec`](../../kata-spec/SKILL.md) and [`kata-design`](../SKILL.md).
-Both pipelines advance one phase at a time, with a barrier at each phase
-boundary, and ship in a single PR.
+Used by [`kata-spec`](../../kata-spec/SKILL.md) and
+[`kata-design`](../SKILL.md). Both pipelines advance one phase at a time, with a
+barrier at each phase boundary, and ship in a single PR.
 
 Author both artifacts from the same fresh context before reviewing either —
 running fully serial fills the context with spec-review triage before the design
@@ -36,7 +36,7 @@ The row skips the `spec approved` state — reaching `design approved` subsumes 
 (one human signal approves both stages). See
 [`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
 
-```
+```text
 spec draft → design draft → design approved
 ```
 

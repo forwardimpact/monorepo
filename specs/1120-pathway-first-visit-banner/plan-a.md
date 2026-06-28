@@ -2,8 +2,8 @@
 
 ## Approach
 
-Add two pure modules under `products/pathway/src/` — `lib/first-visit-dismissal.js`
-for the `localStorage`-backed dismissal flag and
+Add two pure modules under `products/pathway/src/` —
+`lib/first-visit-dismissal.js` for the `localStorage`-backed dismissal flag and
 `components/first-visit-banner.js` for the verbatim-copy DOM factory — then call
 them from `renderLanding` so the banner inserts as the first child of
 `.landing-page` only when `isDismissed()` returns `false`. Styling lives in a
@@ -55,7 +55,9 @@ export function markDismissed() {
 }
 ```
 
-**Verify:** module imports cleanly under Node (`bun -e "await import('./products/pathway/src/lib/first-visit-dismissal.js')"`) and unit tests added in Step 6 pass.
+**Verify:** module imports cleanly under Node
+(`bun -e "await import('./products/pathway/src/lib/first-visit-dismissal.js')"`)
+and unit tests added in Step 6 pass.
 
 ### 2. Add banner component factory
 
@@ -76,7 +78,7 @@ single action, single emphasis).
 
 Element tree (matches design § Accessibility model):
 
-```
+```text
 <section class="first-visit-banner"
          role="region"
          aria-labelledby="first-visit-heading"
@@ -115,7 +117,8 @@ export function createFirstVisitBanner({ onDismiss }) {
 The native `<button>` covers spec behaviour 6 (Tab reach, Enter/Space
 activation) without bespoke key handling.
 
-**Verify:** unit tests added in Step 6 pass; eye-check that copy matches spec § Banner copy line-for-line.
+**Verify:** unit tests added in Step 6 pass; eye-check that copy matches spec §
+Banner copy line-for-line.
 
 ### 3. Add banner stylesheet
 
@@ -163,7 +166,9 @@ activation) without bespoke key handling.
 
 No `position: fixed`, no `z-index`. Banner sits in flow per design § Components.
 
-**Verify:** `grep first-visit-banner products/pathway/src/css/bundles/app.css` (after Step 4) shows the import; CSS parse errors surface during Step 7's manual browser run.
+**Verify:** `grep first-visit-banner products/pathway/src/css/bundles/app.css`
+(after Step 4) shows the import; CSS parse errors surface during Step 7's manual
+browser run.
 
 ### 4. Wire stylesheet into app bundle
 
@@ -182,7 +187,8 @@ Add one import line in the Pathway-specific components block, mirroring the
    @import "../components/file-card.css" layer(components);
 ```
 
-**Verify:** `grep first-visit-banner products/pathway/src/css/bundles/app.css` returns the new line.
+**Verify:** `grep first-visit-banner products/pathway/src/css/bundles/app.css`
+returns the new line.
 
 ### 5. Integrate banner into `renderLanding`
 
@@ -293,7 +299,8 @@ If any check fails, fix the implementation rather than relaxing the test.
 
 ## Libraries used
 
-Libraries used: none new at runtime; `happy-dom` (^20.9.0) added as a `devDependencies` entry on `@forwardimpact/pathway` for the banner test.
+Libraries used: none new at runtime; `happy-dom` (^20.9.0) added as a
+`devDependencies` entry on `@forwardimpact/pathway` for the banner test.
 
 ## Risks
 

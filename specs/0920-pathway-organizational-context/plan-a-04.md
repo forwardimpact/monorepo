@@ -1,6 +1,7 @@
 # Plan 0920-a · Part 04 — Documentation + skill/CLI parity
 
-Overview: [plan-a.md](plan-a.md) · Spec: [spec.md](spec.md) · Design: [design-a.md](design-a.md)
+Overview: [plan-a.md](plan-a.md) · Spec: [spec.md](spec.md) · Design:
+[design-a.md](design-a.md)
 
 Depends on: Part 02 merged. After this part merges, the org-context guide
 introduces the slot, distinguishes it from track-scoped `teamInstructions`,
@@ -14,8 +15,9 @@ for Step 7, `staff-engineer` for Step 8 (or both in the same PR).
 
 ### 7a — `agent-teams/organizational-context/index.md`
 
-**Modified:** `websites/fit/docs/products/agent-teams/organizational-context/index.md`.
-Three edits in the same pass:
+**Modified:**
+`websites/fit/docs/products/agent-teams/organizational-context/index.md`. Three
+edits in the same pass:
 
 **(a) Layer reframe.** The page currently presents a three-layer architecture
 (Team Instructions → Agent Profile → Skills). Add the **organizational
@@ -109,9 +111,9 @@ authoring-standards guide. Retarget any matches in the same commit.
 The org-context guide URL
 (`https://www.forwardimpact.team/docs/products/agent-teams/organizational-context/index.md`)
 is already present in both the CLI `documentation` array and the skill's
-`## Documentation` section. Step 7 reframes the guide content, so Step 8
-updates the description text in both places to reflect the new framing.
-URL and entry position in the list are immutable.
+`## Documentation` section. Step 7 reframes the guide content, so Step 8 updates
+the description text in both places to reflect the new framing. URL and entry
+position in the list are immutable.
 
 **Modified:** `products/pathway/bin/fit-pathway.js` § `documentation`. Update
 the matching entry's description text to a single sentence covering both
@@ -147,11 +149,11 @@ Update the bullet's description text to match:
 - `rg -n '^## Step ' websites/fit/docs/products/authoring-standards/index.md`
   returns a clean numbered run with the new Step 7 inserted (no gaps, no
   duplicates after the renumber).
-- Skill/CLI parity for the org-context entry (scope-limited — the existing
-  skill and CLI lists on `main` are not byte-identical across all entries
-  and bringing the lists into full parity is out of scope for spec 0920;
-  what spec 0920 requires is that *the org-context entry* sits at the same
-  position with the same URL and description in both files):
+- Skill/CLI parity for the org-context entry (scope-limited — the existing skill
+  and CLI lists on `main` are not byte-identical across all entries and bringing
+  the lists into full parity is out of scope for spec 0920; what spec 0920
+  requires is that *the org-context entry* sits at the same position with the
+  same URL and description in both files):
 
   ```sh
   # The org-context guide must appear exactly once in each file with the
@@ -165,9 +167,8 @@ Update the bullet's description text to match:
     <(rg -A1 'agent-teams/organizational-context' .claude/skills/fit-pathway/SKILL.md | tail -n1 | sed 's/^[[:space:]]*—[[:space:]]*//')
   ```
 
-  Exit 0 = the two description strings match per `products/CLAUDE.md`
-  § Linking rule, scoped to the one entry this spec touches.
-
+  Exit 0 = the two description strings match per `products/CLAUDE.md` § Linking
+  rule, scoped to the one entry this spec touches.
 - `git diff origin/main...HEAD --stat` lists only the four files in this
   part's slice of the overview File map.
 

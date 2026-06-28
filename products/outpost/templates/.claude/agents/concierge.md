@@ -55,7 +55,7 @@ over **anarlog-process** (catch-up work).
 
 After acting, emit exactly:
 
-```
+```text
 Decision: {what you observed and why you chose this action}
 Action: {what you did, e.g. "meeting-prep for 2pm with Sarah Chen"}
 Priority Watch: {priority at risk + one-line why, or "none"}

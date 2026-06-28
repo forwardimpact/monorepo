@@ -43,11 +43,11 @@ none.
 - `libraries/libproto/test/libproto.test.js` — single smoke test, written
   against `node:test` + `node:assert` (runner-independent per
   `libraries/CLAUDE.md`; `bun test` and `node --test` both execute it). Two
-  assertions: (a) `fs.existsSync` returns true for each of
-  `proto/tool.proto`, `proto/common.proto`, `proto/resource.proto` relative
-  to the package directory; (b) `Object.keys(await import("@forwardimpact/libproto"))`
-  has length 0 (ESM Module Namespace, not `{}`, so use `Object.keys` —
-  not `assert.deepStrictEqual`).
+  assertions: (a) `fs.existsSync` returns true for each of `proto/tool.proto`,
+  `proto/common.proto`, `proto/resource.proto` relative to the package
+  directory; (b) `Object.keys(await import("@forwardimpact/libproto"))` has
+  length 0 (ESM Module Namespace, not `{}`, so use `Object.keys` — not
+  `assert.deepStrictEqual`).
 
 Required `package.json` block:
 
@@ -142,7 +142,7 @@ libproto dep — Guide reaches libproto transitively via its existing
 **Verify:** `git ls-files '*tool.proto' '*resource.proto' '*common.proto'`
 from the repo root returns exactly:
 
-```
+```text
 libraries/libproto/proto/common.proto
 libraries/libproto/proto/resource.proto
 libraries/libproto/proto/tool.proto
@@ -157,9 +157,9 @@ generated/metadata` is identical to a `git stash`-reverted clean run on
 
 **Modified:**
 
-- `libraries/libcodegen/bin/fit-codegen.js` — change
-  `definition.description` (line 34) from
-  `"Generate protobuf types, service clients, and definitions"` to
+- `libraries/libcodegen/bin/fit-codegen.js` — change `definition.description`
+  (line 34) from `"Generate protobuf types, service clients, and definitions"`
+  to
   `"Generate protobuf types, service clients, and definitions from .proto files in installed @forwardimpact/* packages (node_modules/@forwardimpact/*/proto/) and an optional project-local proto/ directory."`
 
 No other code change. Discovery logic (`discoverProtoDirs`,

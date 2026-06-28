@@ -14,7 +14,7 @@ creative content and a smaller model for structured data generation.
 
 ## Architecture
 
-```
+```text
 seed.yaml ──► Python Orchestrator
                  │
                  ├── MLX Server (port 8080)
@@ -98,7 +98,7 @@ llama-server -m models/qwen3-8b-q6_k.gguf --port 8081 \
 
 **Prompt template:**
 
-```
+```text
 <system>
 You are generating entities for a fictional pharmaceutical company called
 BioNova. All person names use Greek mythology. Output valid JSON arrays.
@@ -138,7 +138,7 @@ Existing people (avoid duplicate names): {existing_names}
 
 **Grammar-constrained generation:**
 
-```
+```text
 # llama.cpp GBNF grammar for capability YAML
 root ::= "id: " identifier "\n" "name: " quoted-string "\n" ...
 identifier ::= [a-z] [a-z0-9_]*
@@ -358,7 +358,7 @@ python scripts/generate/pipeline.py --validate-only
 
 ## Dependencies
 
-```
+```text
 # Python
 mlx-lm>=0.22
 llama-cpp-python>=0.3

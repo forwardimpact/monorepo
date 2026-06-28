@@ -25,7 +25,7 @@ another route).
 Record the row through the metrics-recording CLI with the route context as
 typed flags — never hand-write the CSV:
 
-```
+```text
 npx fit-xmr record --skill kata-implement --metric implementations_shipped \
   --value <n> --route <id> --routes-eligible <comma-separated-ids>
 ```

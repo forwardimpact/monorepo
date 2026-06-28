@@ -34,10 +34,11 @@ merged this run (Step 8). The cohort undercounts approvals on PRs merged in a
 prior run still within the window — accepted at boundaries; the storyboard
 meeting reads run-over-run, not per-PR.
 
-For each cohort PR, `read` its label-add events (filtering
-`event=="labeled"` with `label.name` matching `^(spec|design|plan):approved$`,
-keyed by `created_at`) and its APPROVED reviews (filtering `state=="APPROVED"`,
-keyed by `submitted_at`) — [work-trackers.md](../../../agents/references/work-trackers.md).
+For each cohort PR, `read` its label-add events (filtering `event=="labeled"`
+with `label.name` matching `^(spec|design|plan):approved$`, keyed by
+`created_at`) and its APPROVED reviews (filtering `state=="APPROVED"`, keyed by
+`submitted_at`) —
+[work-trackers.md](../../../agents/references/work-trackers.md).
 
 Filter events to `ts ∈ [prev_run_start, current_run_start)` and sum across all
 cohort PRs to `approvals_recorded_per_run` (no per-event de-dup — record the

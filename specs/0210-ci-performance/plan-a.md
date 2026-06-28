@@ -527,17 +527,22 @@ Unit tests alone are insufficient — `@grpc/grpc-js` depends on `node:http2`
 internally, and Bun's HTTP/2 support must be validated with a live service.
 
 1. Run librpc unit tests:
+
    ```sh
    cd libraries/librpc && bun run node --test test/*.test.js
    ```
+
 2. Start a gRPC service and confirm a round-trip call:
+
    ```sh
    make rc-start
    # Run a health check or simple RPC against one of the services
    make rc-stop
    ```
+
 3. Run libtelemetry tests to confirm AsyncLocalStorage trace context
    propagation:
+
    ```sh
    cd libraries/libtelemetry && bun run node --test test/*.test.js
    ```

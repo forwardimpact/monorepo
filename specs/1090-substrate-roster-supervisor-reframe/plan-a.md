@@ -250,8 +250,8 @@ the substantive query/fixture changes land in step 5).
     constraint"`) is unchanged: alice still carries `manager_email:
     null`, so Decision 4's filter removes her before the existing
     invariants are checked, and the test's `out.personas.length === 0`
-    + `/binding constraint:/` regex assertions hold without
-    modification.
+    - `/binding constraint:/` regex assertions hold without
+  modification.
   - Two other tests
     (`"returns empty + diagnostic when no snapshots exist"`,
     `"returns empty + diagnostic when no scores for snapshot"`,
@@ -284,16 +284,14 @@ exits 0.
   - JSON path: serialise the enriched `payload`. Existing
     `selection_metadata` shape preserved.
   - Default path: replace the loop with one
-    `process.stdout.write(formatTable(headers, rows) + "\n")` call
-    (the trailing `\n` mirrors the existing roster verb's per-line
-    terminator). Header set:
+    `process.stdout.write(formatTable(headers, rows) + "\n")` call (the trailing
+    `\n` mirrors the existing roster verb's per-line terminator). Header set:
     `["email", "name", "discipline", "level", "track", "team_name", "manages_count", "parent_email"]`.
-    Rows pull each persona's matching scalar values; `formatTable`
-    renders missing cells via `String(cell || "")`
-    (`libraries/libcli/src/format.js:79`). No bullet, no leading
-    header line — the table's own header row is the spec criterion 1
-    surface (design § Risk C accepts the empty-string rendering for
-    missing `track`).
+    Rows pull each persona's matching scalar values; `formatTable` renders
+    missing cells via `String(cell || "")`
+    (`libraries/libcli/src/format.js:79`). No bullet, no leading header line —
+    the table's own header row is the spec criterion 1 surface (design § Risk C
+    accepts the empty-string rendering for missing `track`).
 - `products/map/test/activity/substrate-roster.test.js` —
   `supabasePersonaArtifacts` (the shared fixture at lines 12–40, which
   is the only fixture in this file expecting alice to qualify) gains
@@ -334,8 +332,8 @@ exits 0.
      Resolve `memoryWindow = Number.parseInt(options?.memoryWindow ?? "5", 10)`
      (clamp to `>= 0`; `0` means no diversification).
   4. `recentEmails = await readPickMemory(memoryPath, memoryWindow)`.
-  5. Filter `personas` to those whose `email` is not in
-     `recentEmails`. If empty, write
+  5. Filter `personas` to those whose `email` is not in `recentEmails`. If
+     empty, write
      `formatError("substrate pick: no candidate diversifies against last <N> picks")`
      to stderr, return 1.
   6. Load AST via `loadStory()`, enrich the first remaining persona via
@@ -403,9 +401,9 @@ exits 0.
 **Modified:**
 
 - `products/map/bin/fit-map.js` — two edits:
-  1. Insert a new `substrate pick` entry into `definition.commands`
-     between the existing `substrate roster` (current line 110-117)
-     and `substrate issue` (current line 118-135) entries:
+  1. Insert a new `substrate pick` entry into `definition.commands` between the
+     existing `substrate roster` (current line 110-117) and `substrate issue`
+     (current line 118-135) entries:
 
      ```js
      {

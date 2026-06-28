@@ -37,7 +37,8 @@ Files modified: `libraries/libwiki/src/audit/scopes.js`.
   `agentPrefix` from the name RE capture group (not `base.replace(/\.md$/,"")`),
   so the r2 agreement rule can match the H1 slug.
 - In `buildContext`, seed `subjects["carry-surface"] = []`.
-- Add `SCOPE_RESOLVERS["carry-surface"] = (ctx) => ctx.subjects["carry-surface"]`.
+- Add
+  `SCOPE_RESOLVERS["carry-surface"] = (ctx) => ctx.subjects["carry-surface"]`.
 
 Verify: a fixture `release-engineer-carries.md` with H1 `# release-engineer
 — Carries` classifies `carry-surface`; one without the H1 is unclassified.
@@ -73,7 +74,8 @@ Files modified: `.claude/agents/references/memory-protocol.md`.
 
 Add a "§ Carry Surface" subsection that: names the verbatim path pattern
 `<agent>-carries.md`; states the per-entry shape (H3 + `**Clears**:` trigger
-+ a referenced-surface pointer); and adds the surface to the On-Boot Read Set
+
+- a referenced-surface pointer); and adds the surface to the On-Boot Read Set
 so boot enumerates open obligations. Carry-semantic field names, no RE-only
 assumptions (§ generalisation hedge).
 
@@ -109,7 +111,9 @@ block into an H3 on the new surface, preserving its `**Carry-clearance:**`
 line verbatim and adding a `**Referenced surface**:` pointer where 1490's
 reconciliation needs one. Migrate **every** per-Assess obligation currently
 under `§ Message Inbox` (the spec § Problem table's #1, #2, #4, #5, #6 + Exp
-#1468, plus any later-added obligation blocks present at migration time —
+
+## 1468, plus any later-added obligation blocks present at migration time —
+
 Exp #1625/#1672, #1548 watch, #1565 Carry #8); a RESOLVED carry (#3) clears
 instead of relocating. Restore `§ Message Inbox` to memo-triage only.
 
@@ -119,7 +123,7 @@ entry is either an unprocessed memo `fit-wiki inbox list --agent
 release-engineer` would surface or a section heading — no per-Assess
 obligation (SC #3).
 
-## Risks
+### Risks
 
 - **Skew window** between C5 (monorepo) and C6 (wiki). Mitigation: 1490's
   resolution rule handles the undesignated default, so either order is
@@ -127,12 +131,12 @@ obligation (SC #3).
 - **Classifier precedence.** None required (distinct H1 literals); the test
   asserts a summary file is not captured as a carry surface and vice versa.
 
-## Execution
+### Execution
 
 Single engineering agent for Steps 1–5 (code + tests, one PR). Step 6 is a
 wiki commit performed alongside, verified by inspection.
 
-## Verification
+### Verification
 
 `bun run check` + `bun test libraries/libwiki`; the SC walk (each of SC #1–#6
 against the artifacts); `bunx fit-wiki audit` clean post-migration.

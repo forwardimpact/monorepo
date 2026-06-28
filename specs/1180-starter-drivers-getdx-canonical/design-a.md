@@ -128,7 +128,7 @@ machinery still owns the "no snapshot data at all" case unchanged.
 
 State signal:
 
-```
+```text
 view.driverJoin = {
   state: "NO_DRIVERS" | "NO_MATCH" | "MATCHED",
   yamlIds:    number,  // mapData.drivers.length

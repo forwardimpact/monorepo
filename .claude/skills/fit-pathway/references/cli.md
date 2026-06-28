@@ -1,6 +1,6 @@
 # CLI Reference
 
-### Getting Started
+## Getting Started
 
 ```sh
 npx fit-pathway dev                           # Run live development server (default port 3000)

@@ -81,7 +81,6 @@ Verify: `just codegen` succeeds and `generated/services/exports.js` exports
 Three `BufferedIndex`-backed stores over one injected `libstorage` store.
 
 - **Created:** `services/ghauth/src/stores.js`
-
 - `BindingStore extends BufferedIndex` — `indexKey: "bindings.jsonl"`, no
   sweep; `static keyOf(surface, userId)`, `loadBinding(surface, userId)`,
   `upsert(record)`. Record: `{ id, github_user_id, access_token,
@@ -110,7 +109,8 @@ load (last-write-wins by append order already gives `upsert` its update
 semantics). `GrantStore.consume` additionally deletes from the in-memory Map
 so a second `Redeem` in the same process fails before the tombstone flushes.
 
-Verify: `node --input-type=module -e "import('./services/ghauth/src/stores.js')"`
+Verify:
+`node --input-type=module -e "import('./services/ghauth/src/stores.js')"`
 imports cleanly and `BindingStore.keyOf('teams','u1') === 'teams:u1'`; a
 `createMockStorage`-backed `BindingStore` `delete`d then rebuilt over the same
 storage no longer returns the binding (the Revoke-durability case, also
@@ -135,9 +135,9 @@ Use `Accept: application/json` + `URLSearchParams`, mirroring
 `libconfig`'s `#refreshOAuthToken`. `code_challenge`/`code_verifier` are
 **not** forwarded to GitHub (downstream-only PKCE).
 
-Verify: with a stub `fetchImpl` returning `{access_token,refresh_token,expires_in}`,
-`exchangeCode` resolves that shape and a `bad_refresh_token` body makes `refresh`
-throw `RevokedError`.
+Verify: with a stub `fetchImpl` returning
+`{access_token,refresh_token,expires_in}`, `exchangeCode` resolves that shape
+and a `bad_refresh_token` body makes `refresh` throw `RevokedError`.
 
 ## Step 4 — ghauth service implementation
 
@@ -247,7 +247,8 @@ Cover SC#1,4,5,6,7,8 with `node:test` + `libmock` mocks.
 | `query-contract` | `GetToken({surface, surface_user_id})` token arm is `typeof === "string"` (SC#8) |
 
 Use a stub `github` (`{ refresh: async () => { throw new RevokedError() } }`
-etc.) injected via the constructor. Verify: `bun test services/ghauth/test/*.test.js`.
+etc.) injected via the constructor. Verify:
+`bun test services/ghauth/test/*.test.js`.
 
 ## Step 8 — oauth service implementation
 
@@ -271,12 +272,13 @@ header lines rather than importing them. Routes registered on the Hono app:
 | `POST /token` | `providerClient.Redeem({code,code_verifier})` → `c.json(tokenResponse)` |
 | `GET /health` | `c.json({status:"ok"})` |
 
-`start()` calls `serve({ fetch: app.fetch, port: config.port, hostname: config.host })`
-from `@hono/node-server` (the `createBridgeServer` pattern — it maps config
-`host` onto `hostname`; libconfig defaults `host` to `0.0.0.0`), retaining the
-returned handle; `stop()` wraps `handle.close()` in a promise; `address()`
-returns `{ port }` from the handle. No `github`/`octokit` identifiers anywhere
-in this file (SC#3). Verify: SC#3 `rg` check in Step 11.
+`start()` calls
+`serve({ fetch: app.fetch, port: config.port, hostname: config.host })` from
+`@hono/node-server` (the `createBridgeServer` pattern — it maps config `host`
+onto `hostname`; libconfig defaults `host` to `0.0.0.0`), retaining the returned
+handle; `stop()` wraps `handle.close()` in a promise; `address()` returns
+`{ port }` from the handle. No `github`/`octokit` identifiers anywhere in this
+file (SC#3). Verify: SC#3 `rg` check in Step 11.
 
 ## Step 9 — oauth server.js
 
@@ -296,10 +298,11 @@ await service.start();
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => service.stop());
 ```
 
-`createClient("ghauth", …)` resolves `GhauthClient` and dials the `service.ghauth`
-config (grpc, port 3006 per Step 5 defaults), so client and server agree on the
-port without a committed `config.json`. Verify: `bunx fit-rc start oauth` boots
-both services (ghauth listed first) and `GET /health` returns `{status:"ok"}`.
+`createClient("ghauth", …)` resolves `GhauthClient` and dials the
+`service.ghauth` config (grpc, port 3006 per Step 5 defaults), so client and
+server agree on the port without a committed `config.json`. Verify:
+`bunx fit-rc start oauth` boots both services (ghauth listed first) and
+`GET /health` returns `{status:"ok"}`.
 
 ## Step 10 — oauth package.json + README
 
@@ -350,7 +353,11 @@ committed `config.json` to edit.
 
 Verify: `bun run context` passes (catalog + workspace-imports guards green).
 
-Libraries used: librpc (Server, createClient, services), libconfig (createServiceConfig), libstorage (createStorage), libindex (BufferedIndex), libtelemetry (createLogger), libtype (message types), libpreflight, hono (Hono), @hono/node-server (serve); libmock (dev). GitHub OAuth uses built-in `fetch` (no octokit added).
+Libraries used: librpc (Server, createClient, services), libconfig
+(createServiceConfig), libstorage (createStorage), libindex (BufferedIndex),
+libtelemetry (createLogger), libtype (message types), libpreflight, hono (Hono),
+@hono/node-server (serve); libmock (dev). GitHub OAuth uses built-in `fetch` (no
+octokit added).
 
 ## Risks
 

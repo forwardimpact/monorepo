@@ -150,8 +150,8 @@ Add a `describe("Redactor — env-allowlist encoded forms (criterion 2)")` block
   installation token in `GITHUB_TOKEN`; assert no token survives.
 - **Criterion 5 (no false positive).** Feed representative benign base64 (a
   file-blob string, tool output) with `env: {}` and assert it round-trips
-  unchanged; also feed it with a populated allowlist whose secrets do not appear,
-  asserting no change.
+  unchanged; also feed it with a populated allowlist whose secrets do not
+  appear, asserting no change.
 - **Arbitrary-value guard.** Assert a hard-coded literal matching only run
   `27288359408`'s bytes is *not* present in the test (the loop derives needles
   from synthetic values), satisfying the spec's anti-fixture requirement.
@@ -171,8 +171,8 @@ base64** form at any byte offset; the boundary is **standard base64 only**
 (not URL-safe base64, hex, or percent-encoding) and the **trace-write sink
 only** (the wiki-commit sink is never passed through the redactor).
 
-Verify: `bun run --cwd libraries/libeval format` (or repo `biome format`) reports
-clean; the `redaction-opt-out.test.js` contract tests pass.
+Verify: `bun run --cwd libraries/libeval format` (or repo `biome format`)
+reports clean; the `redaction-opt-out.test.js` contract tests pass.
 
 ## Risks
 
@@ -193,6 +193,7 @@ clean; the `redaction-opt-out.test.js` contract tests pass.
 
 Single engineering agent, sequential — Steps 1–3 are one tightly coupled source
 change, Step 4 is its regression, Step 5 is documentation on the same file.
-Implement and verify as one unit; the steps are not independently parallelizable.
+Implement and verify as one unit; the steps are not independently
+parallelizable.
 
 — Staff Engineer 🛠️

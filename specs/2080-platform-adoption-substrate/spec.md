@@ -36,7 +36,7 @@ team origin is removed, not migrated.
 The job is **Engineering Leaders → Measure Engineering Outcomes**
 ([JTBD.md](../../JTBD.md#engineering-leaders-measure-engineering-outcomes)). The
 Big Hire is *"demonstrate engineering progress without making individuals feel
-surveilled,"* and its Anxiety force is *"measurement feels like surveillance
+surveilled,"*and its Anxiety force is*"measurement feels like surveillance
 regardless of intent."* A leader investing in platform enablement needs to know
 "is this being adopted, and is it helping?" at team granularity and against
 developer experience, without a per-engineer view that turns that anxiety into
@@ -100,7 +100,8 @@ substrate, and the documentation that describes them.
   the only scope expansion.
 - **`services/map` gRPC proto.** Only the `services/map` test fixture that
   asserts on the removed column changes; the proto and its consumers do not.
-- **Web UI.** The adoption surface ships as a CLI verb; the web binding is later.
+- **Web UI.** The adoption surface ships as a CLI verb; the web binding is
+  later.
 
 ## Constraints (from #829)
 
@@ -142,23 +143,25 @@ canonical and this slice ingests no vendor content to test them against.
   activity-schema migration. `getdx_snapshots` carries `scheduled_for` as a
   single `DATE` (no window) — the correlation cycle is bounded from it.
 - Team-scope RLS idiom to generalize, plus the table-name allowlists to extend
-  (REVOKE/GRANT, retention `COMMENT` set, `_validate_retention_blob` —
-  including its `organization_people`-only null-window branch — `retention_blob`,
-  and the validation `DO` block): the Landmark RLS migration
+  (REVOKE/GRANT, retention `COMMENT` set, `_validate_retention_blob` — including
+  its `organization_people`-only null-window branch — `retention_blob`, and the
+  validation `DO` block): the Landmark RLS migration
   (`20260510000000_landmark_rls.sql`). Its `snapshot_ids_for_person` joins on
-  `getdx_team_id` and must be re-keyed (stays SECURITY INVOKER, membership-scoped).
+  `getdx_team_id` and must be re-keyed (stays SECURITY INVOKER,
+  membership-scoped).
 - GetDX origin to demote: the team, score, and comment transforms in
   `products/map/src/activity/transform/getdx.js` (comment team via
   `getdx_teams.manager_email`); membership currently set there, moves to
   `transform/people.js`.
-- GetDX-team readers to re-point: `products/map/src/activity/queries/snapshots.js`,
-  the substrate persona surfaces (`substrate-persona-query.js`,
-  `persona-enricher.js` — `gdx_team_` prefix coupling), and
-  `products/landmark/src/commands/sources.js`.
-- Synthetic producers to re-root: `libsyntheticgen/src/engine/{entities,activity}.js`
-  (mint the four `gdx_*` prefixes incl. the scenario-effect match at
-  `activity.js`), `libsyntheticrender/src/render/raw.js` and
-  `src/validate-activity.js`, and `services/map/test/map.test.js`.
+- GetDX-team readers to re-point:
+  `products/map/src/activity/queries/snapshots.js`, the substrate persona
+  surfaces (`substrate-persona-query.js`, `persona-enricher.js` — `gdx_team_`
+  prefix coupling), and `products/landmark/src/commands/sources.js`.
+- Synthetic producers to re-root:
+  `libsyntheticgen/src/engine/{entities,activity}.js` (mint the four `gdx_*`
+  prefixes incl. the scenario-effect match at `activity.js`),
+  `libsyntheticrender/src/render/raw.js` and `src/validate-activity.js`, and
+  `services/map/test/map.test.js`.
 - Seed pipeline: `activity.js` `seed` runs `transformAll` whose fixed order is
   people → GetDX; the teams seed must precede it so the `team_id` FK resolves.
 - Stale docs to clean: `.claude/skills/fit-map/references/cli.md`,

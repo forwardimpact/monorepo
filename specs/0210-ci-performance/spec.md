@@ -46,7 +46,7 @@ cycle.
 
 The local `npm run check` command runs four steps sequentially:
 
-```
+```text
 npm run format && npm run lint && npm run test && npm run validate -- --json
 ```
 

@@ -48,9 +48,12 @@ libstorage, libtelemetry, libtype; regeneration via libcodegen (`just codegen`).
 
 ## Step 1 — Move the service tree and rename the proto file
 
-Relocate the directory and the proto source; content edits follow in later steps.
+Relocate the directory and the proto source; content edits follow in later
+steps.
 
-- Moved: `services/ghauth/` → `services/ghuser/` (whole tree, incl. `src/`, `test/`); `services/ghuser/proto/ghauth.proto` → `services/ghuser/proto/ghuser.proto`
+- Moved: `services/ghauth/` → `services/ghuser/` (whole tree, incl. `src/`,
+  `test/`); `services/ghuser/proto/ghauth.proto` →
+  `services/ghuser/proto/ghuser.proto`
 
 ```sh
 git mv services/ghauth services/ghuser
@@ -62,32 +65,49 @@ exists (`git status` shows renames).
 
 ## Step 2 — Rename the renamed service's own source identifiers
 
-Apply § Rename substitutions inside the moved tree; move storage to `data/ghuser/`
-with no migration. `src/stores.js` and `src/github-oauth.js` carry no `ghauth`
-token — they move unchanged (the only reference to `stores.js` is the
-`check-ambient-deps.deny.json` key path, handled in Step 6).
+Apply § Rename substitutions inside the moved tree; move storage to
+`data/ghuser/` with no migration. `src/stores.js` and `src/github-oauth.js`
+carry no `ghauth` token — they move unchanged (the only reference to `stores.js`
+is the `check-ambient-deps.deny.json` key path, handled in Step 6).
 
-- Modified: `services/ghuser/proto/ghuser.proto`, `services/ghuser/package.json`, `services/ghuser/server.js`, `services/ghuser/index.js`, `services/ghuser/README.md`
+- Modified: `services/ghuser/proto/ghuser.proto`,
+  `services/ghuser/package.json`, `services/ghuser/server.js`,
+  `services/ghuser/index.js`, `services/ghuser/README.md`
 
 Concrete changes:
-- **proto**: `package ghuser;`, `service Ghuser { … }` — five RPCs (`Begin`, `Complete`, `Redeem`, `GetToken`, `Revoke`) and all message fields unchanged; `import "common.proto";` unchanged.
-- **package.json**: `"name": "@forwardimpact/svcghuser"`, bin `"fit-svcghuser": "./server.js"`. Leave `repository.directory` for Step 7's `context:fix` to sync; `description`/`jobs`/`keywords` already carry no `ghauth`.
-- **server.js**: `createServiceConfig("ghuser", …)`, `createLogger("ghuser")`, `createTracer("ghuser")`, `createStorage("ghuser")` (clean break — no legacy read), `import { GhuserService } from "./index.js"`, `new GhuserService(…)`.
-- **index.js**: `const { GhuserBase } = services;`, `class GhuserService extends GhuserBase`, JSDoc `@augments GhuserBase` — RPC bodies unchanged.
-- **README.md**: prose only — `SERVICE_GHUSER_*` env table, `createServiceConfig("ghuser")`, `data/ghuser/bindings.jsonl` paths, `services/ghuser/README.md` references.
+
+- **proto**: `package ghuser;`, `service Ghuser { … }` — five RPCs (`Begin`,
+  `Complete`, `Redeem`, `GetToken`, `Revoke`) and all message fields unchanged;
+  `import "common.proto";` unchanged.
+- **package.json**: `"name": "@forwardimpact/svcghuser"`, bin
+  `"fit-svcghuser": "./server.js"`. Leave `repository.directory` for Step 7's
+  `context:fix` to sync; `description`/`jobs`/`keywords` already carry no
+  `ghauth`.
+- **server.js**: `createServiceConfig("ghuser", …)`, `createLogger("ghuser")`,
+  `createTracer("ghuser")`, `createStorage("ghuser")` (clean break — no legacy
+  read), `import { GhuserService } from "./index.js"`, `new GhuserService(…)`.
+- **index.js**: `const { GhuserBase } = services;`,
+  `class GhuserService extends GhuserBase`, JSDoc `@augments GhuserBase` — RPC
+  bodies unchanged.
+- **README.md**: prose only — `SERVICE_GHUSER_*` env table,
+  `createServiceConfig("ghuser")`, `data/ghuser/bindings.jsonl` paths,
+  `services/ghuser/README.md` references.
 
 Verify: `rg -i ghauth services/ghuser` (excluding `test/`) returns nothing.
 
 ## Step 3 — Update the service's own tests
 
-Migrate the seven criterion-7 tests in place (describe strings, `createMockConfig`
-args, `import { GhuserService }`). Create no migration test.
+Migrate the seven criterion-7 tests in place (describe strings,
+`createMockConfig` args, `import { GhuserService }`). Create no migration test.
 
-- Modified: `services/ghuser/test/{smoke,persistence,query-contract,query-linked,query-unlinked,query-reauth,identity-verification}.test.js`
+- Modified:
+  `services/ghuser/test/{smoke,persistence,query-contract,query-linked,query-unlinked,query-reauth,identity-verification}.test.js`
 
-Concrete change: apply § Rename substitutions (`ghauth`→`ghuser`, `Ghauth`→`Ghuser`).
+Concrete change: apply § Rename substitutions (`ghauth`→`ghuser`,
+`Ghauth`→`Ghuser`).
 
-Verify: `rg -i ghauth services/ghuser/test` returns nothing (tests run in Step 4 after codegen).
+Verify: `rg -i ghauth services/ghuser/test` returns nothing (tests run in Step 4
+after codegen).
 
 ## Step 4 — Regenerate derived artifacts
 
@@ -112,37 +132,86 @@ Point every consumer at the regenerated `ghuser` types/client and rename their
 local symbols (§ Rename substitutions). Behaviour-preserving — only identifiers
 move.
 
-- Modified: `libraries/libbridge/src/token-resolver.js`, `libraries/libbridge/test/token-resolver.test.js`, `libraries/libbridge/CLAUDE.md`, `services/ghbridge/server.js`, `services/ghbridge/index.js`, `services/ghbridge/README.md`, `services/ghbridge/test/*.test.js`, `services/msbridge/server.js`, `services/msbridge/index.js`, `services/msbridge/README.md`, `services/msbridge/test/*.test.js`, `services/oauth/server.js`, `services/oauth/README.md`, `services/oauth/test/{authorize,metadata}.test.js`
+- Modified: `libraries/libbridge/src/token-resolver.js`,
+  `libraries/libbridge/test/token-resolver.test.js`,
+  `libraries/libbridge/CLAUDE.md`, `services/ghbridge/server.js`,
+  `services/ghbridge/index.js`, `services/ghbridge/README.md`,
+  `services/ghbridge/test/*.test.js`, `services/msbridge/server.js`,
+  `services/msbridge/index.js`, `services/msbridge/README.md`,
+  `services/msbridge/test/*.test.js`, `services/oauth/server.js`,
+  `services/oauth/README.md`, `services/oauth/test/{authorize,metadata}.test.js`
 
 Concrete changes:
-- **libbridge token-resolver**: `import { ghuser } from "@forwardimpact/libtype"`, `new ghuser.GetTokenRequest(…)`, comments and the `"ghuser client is required"` error; test asserts the new error string. **`libbridge/CLAUDE.md`**: the `TokenResolver` row `… via ghuser gRPC`.
-- **ghbridge / msbridge** `server.js`: `const { GhuserClient, BridgeClient } = clients;`, `createServiceConfig("ghuser")`, locals `ghuserConfig`/`ghuserClient`. `index.js` — the two bridges differ in symbol shape, both covered by the `ghauthClient → ghuserClient` map: ghbridge reads `deps.ghuserClient` directly; msbridge destructures a bare `ghuserClient` (incl. the JSDoc `@param deps.ghuserClient - ghuser gRPC client`); both end with `"ghuserClient is required"` and `new TokenResolver(ghuserClient)`. Tests: `makeGhuserClient`, `ghuserClient:` keys, describe/assert strings. **READMEs** (both): every `ghauth`/`SERVICE_GHAUTH_*` prose + dependency-table occurrence → `ghuser`/`SERVICE_GHUSER_*`.
-- **oauth** `server.js`: `provider: "ghuser"` (resolves the renamed backend definition by name). Tests: `provider: "ghuser"`. **README**: every `ghauth` occurrence → `ghuser` (provider-default prose/table, tunnel-ordering text, `SERVICE_GHUSER_LINK_BASE_URL`, `fit-rc restart ghuser`) plus the relative link `../ghauth/README.md#smoke-test` → `../ghuser/README.md#smoke-test` (retargets to the moved directory).
 
-Verify: `rg -i ghauth services/ghbridge services/msbridge services/oauth libraries/libbridge` and `rg -i ghauth libraries/libbridge/CLAUDE.md` (named explicitly, since `.rgignore` skips `CLAUDE.md`) both return nothing; `bun test` over those four passes.
+- **libbridge token-resolver**:
+  `import { ghuser } from "@forwardimpact/libtype"`,
+  `new ghuser.GetTokenRequest(…)`, comments and the
+  `"ghuser client is required"` error; test asserts the new error string.
+  **`libbridge/CLAUDE.md`**: the `TokenResolver` row `… via ghuser gRPC`.
+- **ghbridge / msbridge** `server.js`:
+  `const { GhuserClient, BridgeClient } = clients;`,
+  `createServiceConfig("ghuser")`, locals `ghuserConfig`/`ghuserClient`.
+  `index.js` — the two bridges differ in symbol shape, both covered by the
+  `ghauthClient → ghuserClient` map: ghbridge reads `deps.ghuserClient`
+  directly; msbridge destructures a bare `ghuserClient` (incl. the JSDoc
+  `@param deps.ghuserClient - ghuser gRPC client`); both end with
+  `"ghuserClient is required"` and `new TokenResolver(ghuserClient)`. Tests:
+  `makeGhuserClient`, `ghuserClient:` keys, describe/assert strings. **READMEs**
+  (both): every `ghauth`/`SERVICE_GHAUTH_*` prose + dependency-table occurrence
+  → `ghuser`/`SERVICE_GHUSER_*`.
+- **oauth** `server.js`: `provider: "ghuser"` (resolves the renamed backend
+  definition by name). Tests: `provider: "ghuser"`. **README**: every `ghauth`
+  occurrence → `ghuser` (provider-default prose/table, tunnel-ordering text,
+  `SERVICE_GHUSER_LINK_BASE_URL`, `fit-rc restart ghuser`) plus the relative
+  link `../ghauth/README.md#smoke-test` → `../ghuser/README.md#smoke-test`
+  (retargets to the moved directory).
+
+Verify:
+`rg -i ghauth services/ghbridge services/msbridge services/oauth libraries/libbridge`
+and `rg -i ghauth libraries/libbridge/CLAUDE.md` (named explicitly, since
+`.rgignore` skips `CLAUDE.md`) both return nothing; `bun test` over those four
+passes.
 
 ## Step 6 — Update tracked configuration and policy
 
-- Modified: `.env.local.example`, `.env.docker-native.example`, `.env.docker-supabase.example`, `config/CLAUDE.md`, `scripts/check-ambient-deps.deny.json`
+- Modified: `.env.local.example`, `.env.docker-native.example`,
+  `.env.docker-supabase.example`, `config/CLAUDE.md`,
+  `scripts/check-ambient-deps.deny.json`
 
 Concrete changes:
-- **`.env.*.example`** (all three): `SERVICE_GHAUTH_{URL,CLIENT_ID,CLIENT_SECRET,LINK_BASE_URL}` → `SERVICE_GHUSER_*`; `SERVICE_OAUTH_PROVIDER=ghuser`; comment refs `services/ghauth` / `services/ghauth/README.md` → `ghuser`.
-- **`config/CLAUDE.md`**: the documented `init.services` row → `{ "name": "ghuser", "command": "node -e \"import('@forwardimpact/svcghuser/server.js')\"" }`.
-- **`scripts/check-ambient-deps.deny.json`**: key `services/ghauth/src/stores.js` → `services/ghuser/src/stores.js` (value `["date-now"]` unchanged).
 
-Verify: `rg -i ghauth .env.local.example .env.docker-native.example .env.docker-supabase.example config/CLAUDE.md scripts/check-ambient-deps.deny.json` returns nothing.
+- **`.env.*.example`** (all three):
+  `SERVICE_GHAUTH_{URL,CLIENT_ID,CLIENT_SECRET,LINK_BASE_URL}` →
+  `SERVICE_GHUSER_*`; `SERVICE_OAUTH_PROVIDER=ghuser`; comment refs
+  `services/ghauth` / `services/ghauth/README.md` → `ghuser`.
+- **`config/CLAUDE.md`**: the documented `init.services` row →
+  `{ "name": "ghuser", "command": "node -e \"import('@forwardimpact/svcghuser/server.js')\"" }`.
+- **`scripts/check-ambient-deps.deny.json`**: key
+  `services/ghauth/src/stores.js` → `services/ghuser/src/stores.js` (value
+  `["date-now"]` unchanged).
+
+Verify:
+`rg -i ghauth .env.local.example .env.docker-native.example .env.docker-supabase.example config/CLAUDE.md scripts/check-ambient-deps.deny.json`
+returns nothing.
 
 ## Step 7 — Update external docs and regenerate the catalog
 
 Hand-edit the three website pages; regenerate `services/README.md` (catalog +
 jobs blocks are generated from package metadata, not hand-edited).
 
-- Modified: `websites/fit/docs/getting-started/contributors/index.md`, `websites/fit/docs/services/bridge-conversations/index.md`, `websites/fit/docs/services/bridge-discussions/index.md`
-- Regenerated: `services/README.md`; `services/ghuser/package.json` `repository.directory`
+- Modified: `websites/fit/docs/getting-started/contributors/index.md`,
+  `websites/fit/docs/services/bridge-conversations/index.md`,
+  `websites/fit/docs/services/bridge-discussions/index.md`
+- Regenerated: `services/README.md`; `services/ghuser/package.json`
+  `repository.directory`
 
 Concrete changes:
-- Website pages: `services/ghauth` → `services/ghuser`, `GhauthClient` → `GhuserClient`, `data/ghauth/` → `data/ghuser/`, `ghauth` in the service list and `init.services` prose → `ghuser`.
-- Run `bun run context:fix` — rewrites the `ghuser` catalog/jobs rows in `services/README.md` and syncs `repository.directory` to `services/ghuser`.
+
+- Website pages: `services/ghauth` → `services/ghuser`, `GhauthClient` →
+  `GhuserClient`, `data/ghauth/` → `data/ghuser/`, `ghauth` in the service list
+  and `init.services` prose → `ghuser`.
+- Run `bun run context:fix` — rewrites the `ghuser` catalog/jobs rows in
+  `services/README.md` and syncs `repository.directory` to `services/ghuser`.
 
 Verify: `rg -i ghauth websites/fit/docs services/README.md` returns nothing.
 
@@ -157,8 +226,8 @@ rg -i 'ghauth' config/CLAUDE.md libraries/libbridge/CLAUDE.md  # .rgignore-skipp
 ```
 
 The first grep mirrors spec criterion 2 verbatim; it is clean only after Step 4
-lands (`bun.lock` is regenerated to `svcghuser`; `generated/**` is gitignored and
-auto-excluded). The second grep names the two `CLAUDE.md` files explicitly —
+lands (`bun.lock` is regenerated to `svcghuser`; `generated/**` is gitignored
+and auto-excluded). The second grep names the two `CLAUDE.md` files explicitly —
 `rg` searches files given on the command line even though `.rgignore` lists
 `CLAUDE.md`, so the criterion-2 sweep never reaches them; this plan edits them
 for correctness (Steps 5–6) beyond criterion 2's reach. Do **not** add

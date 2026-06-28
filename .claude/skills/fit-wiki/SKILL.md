@@ -46,7 +46,8 @@ npx fit-wiki boot --agent staff-engineer [--format markdown]
 | `--format` | `json` (default) or `markdown` |
 | `--wiki-root` | Override wiki root |
 
-Contract: [Memory Protocol § CLI Contract Map](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#cli-contract-map)
+Contract:
+[Memory Protocol § CLI Contract Map](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#cli-contract-map)
 
 ### `log decision | note | done` — Weekly-log append
 
@@ -182,8 +183,11 @@ import {
 - [Operate a Predictable Agent Team](https://www.forwardimpact.team/docs/libraries/predictable-team/index.md)
   — End-to-end guide to wiki memory, XmR charts, and team coordination
 - [Send a Memo or Update a Storyboard](https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-operations/index.md)
-  — How to use `fit-wiki` to send memos, refresh storyboards, sync the wiki, and record the product-mix metric
+  — How to use `fit-wiki` to send memos, refresh storyboards, sync the wiki, and
+  record the product-mix metric
 - [Audit and Auto-Fix the Wiki](https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-integrity/index.md)
-  — Check the wiki against the rule catalogue, auto-fix what is safe, and flag the rest for a human
+  — Check the wiki against the rule catalogue, auto-fix what is safe, and flag the
+  rest for a human
 - [Allocate Collision-Ledger Entries for Parallel Work](https://www.forwardimpact.team/docs/libraries/predictable-team/collision-ledger/index.md)
-  — Assign stable, collision-free ids to parallel work and rebuild the ledger projections
+  — Assign stable, collision-free ids to parallel work and rebuild the ledger
+  projections

@@ -80,7 +80,7 @@ existing `@forwardimpact/libmock` patterns. The final quality gate is
 
 ## Execution
 
-```
+```text
 Part 1 → Part 2 → Part 3 → Part 4
 ```
 

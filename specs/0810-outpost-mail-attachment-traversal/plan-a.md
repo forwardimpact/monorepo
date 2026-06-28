@@ -63,7 +63,8 @@ export function sanitiseAttachmentName(raw) {
 }
 ```
 
-Verify: `node --check products/outpost/templates/.claude/skills/sync-apple-mail/scripts/sync-helpers.mjs`
+Verify:
+`node --check products/outpost/templates/.claude/skills/sync-apple-mail/scripts/sync-helpers.mjs`
 exits 0; the file's existing `export function` lines are unchanged; the new
 export is added once.
 
@@ -411,5 +412,6 @@ file + two test files) with no parallelism worth coordinating. Sequence:
    step 4).
 6. Step 6 — quality gates (depends on all of the above).
 
-Open the implementation PR as `impl(0810): outpost mail attachment path-traversal hardening`
-once steps 1-5 land in the working tree and step 6 passes locally.
+Open the implementation PR as
+`impl(0810): outpost mail attachment path-traversal hardening` once steps 1-5
+land in the working tree and step 6 passes locally.

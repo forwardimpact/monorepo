@@ -25,7 +25,7 @@ structural correctness and link integrity.
 
 ## Architecture
 
-```
+```text
 universe.dsl ──► Parser ──► Engine
                                │
                                ├── Full entity graph
@@ -113,7 +113,7 @@ Here is an example of the target quality:
 
 Generate the full HTML document now.
 
-````
+````text
 
 ### Document types and prompts
 

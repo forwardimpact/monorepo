@@ -10,19 +10,33 @@ permissions:
   contents: read
 
 jobs:
-  format:
+  format-js:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: forwardimpact/fit-bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
-      - run: bun run format
+      - run: bun run format:js
 
-  lint:
+  lint-js:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: forwardimpact/fit-bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
-      - run: bun run lint
+      - run: bun run lint:js
+
+  format-md:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: forwardimpact/fit-bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - run: bun run format:md
+
+  lint-md:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: forwardimpact/fit-bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - run: bun run lint:md
 
   jsdoc:
     runs-on: ubuntu-latest

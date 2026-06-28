@@ -250,7 +250,7 @@ produces output containing "Capability changes".
 
 ## Commit
 
-```
+```text
 feat(summit): add what-if scenario simulation and what-if command
 ```
 

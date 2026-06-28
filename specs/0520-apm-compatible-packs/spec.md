@@ -6,7 +6,7 @@ Organizations deploying Pathway cannot install agent team packs through
 Microsoft APM. A customer running `apm install` against the documented command
 receives:
 
-```
+```text
 $ apm install --verbose https://pathway.bench.pfizer/packs/se-forward-deployed.tar.gz
 [*] Validating 1 package...
   Trying git ls-remote for pathway.bench.pfizer

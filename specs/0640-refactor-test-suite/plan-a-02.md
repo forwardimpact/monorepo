@@ -23,12 +23,12 @@ loader's `promptDir`.
 Replace the `beforeEach` tempdir with a per-test `createMockFs` seed. Each test
 that did `writeFileSync(join(tempDir, "x.prompt.md"), content)` seeds
 `createMockFs({ "/prompts/x.prompt.md": content })` and constructs
-`new PromptLoader("/prompts", createTestRuntime({ fs }))`. Constructor-validation
-tests (`promptDir is required`, etc.) need no fs at all. Drop the `node:fs` /
-`node:os` / `createDefaultRuntime` imports; import `createMockFs`,
-`createTestRuntime` from `@forwardimpact/libmock`. libprompt does **not** yet
-declare libmock — add `"@forwardimpact/libmock"` to `package.json`
-`devDependencies` (matching the version other libs pin) so
+`new PromptLoader("/prompts", createTestRuntime({ fs }))`.
+Constructor-validation tests (`promptDir is required`, etc.) need no fs at all.
+Drop the `node:fs` / `node:os` / `createDefaultRuntime` imports; import
+`createMockFs`, `createTestRuntime` from `@forwardimpact/libmock`. libprompt
+does **not** yet declare libmock — add `"@forwardimpact/libmock"` to
+`package.json` `devDependencies` (matching the version other libs pin) so
 `check-workspace-imports` stays green.
 
 Verify: `bun test libraries/libprompt` (same pass count, no `mkdtemp`);
@@ -55,13 +55,14 @@ The candidate lists below are the seed enumeration as of this plan; Step 4's
 `rg -l mkdtemp` gate is the authoritative closing check, so treat any
 non-`integration` `mkdtemp`/subprocess file the gate surfaces — listed here or
 not — as in-scope for the rule. For each candidate, apply the decision rule,
-then act. The rule (Open Q1 default): **migrate** when the code under test accepts a `runtime` (or `fs`)
-parameter and the assertions inspect pure logic/returned values; **rename** to
-`*.integration.test.js` when the real filesystem/subprocess behaviour is itself
-under test or no injection seam exists; **allow-list** only a genuine residual
-(record it for SC3). When a **migrate** disposition makes a test file the first
-in its package to import `@forwardimpact/libmock`, add libmock to that package's
-`package.json` `devDependencies` in the same change (per plan-a.md § Cross-cutting
+then act. The rule (Open Q1 default): **migrate** when the code under test
+accepts a `runtime` (or `fs`) parameter and the assertions inspect pure
+logic/returned values; **rename** to `*.integration.test.js` when the real
+filesystem/subprocess behaviour is itself under test or no injection seam
+exists; **allow-list** only a genuine residual (record it for SC3). When a
+**migrate** disposition makes a test file the first in its package to import
+`@forwardimpact/libmock`, add libmock to that package's `package.json`
+`devDependencies` in the same change (per plan-a.md § Cross-cutting
 "Workspace-import declarations").
 
 - Modified / renamed: the files in the candidate list (plus any newly-importing
@@ -101,8 +102,8 @@ non-integration):**
 | Guard self-tests (`tests/check-*.test.js`) | leave / allow-list | they intentionally exercise real I/O against the repo |
 
 **Skip:** files already named `*.integration.test.js` (e.g.
-`products/pathway/test/build-packs.integration.test.js`) and any entry already in
-`scripts/check-subprocess-in-tests.allow.json`.
+`products/pathway/test/build-packs.integration.test.js`) and any entry already
+in `scripts/check-subprocess-in-tests.allow.json`.
 
 **Owned end-to-end here (also > 400 LOC, excluded from Part 03):** after
 applying the migrate/rename rule to `libraries/libterrain/test/pipeline.test.js`
@@ -113,8 +114,9 @@ allow-list if cohesive. `products/map/test/pipeline.test.js` is a **rename** to
 GraphIndex rule is scoped to the `createMockStorage` triple, so it does not trip
 here.
 
-Verify per file: `bun test <file>`; `bun run invariants:check-subprocess-in-tests`;
-for the two dual-concern files, also confirm ≤400 LOC (or allow-listed).
+Verify per file: `bun test <file>`;
+`bun run invariants:check-subprocess-in-tests`; for the two dual-concern files,
+also confirm ≤400 LOC (or allow-listed).
 
 ## Step 4 — Establish the SC3 allow-list and verify
 

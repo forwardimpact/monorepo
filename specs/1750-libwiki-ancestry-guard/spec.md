@@ -96,40 +96,41 @@ allowed) with a *failed observation of the remote* on a history-less clone
 
 ## Decisions
 
-**D1 — Ancestry invariant (settled on #1576; restated here).** Refuse to
-commit and to push — creating no commit, adding no working-tree changes,
-naming the recovery — whenever the remote branch exists and HEAD is unborn
-or shares no merge-base with it. The guard holds on **every** invocation
-of the operation, not only when a commit would be created: a clean tree
-contributes nothing new to commit, but if its branch already carries
-unverifiable committed history the push half alone is the D1 damage, and
-the invocation refuses before it. The empty-new-wiki allowance (accepting a
-new wiki's first publication, however many local commits it has
-accumulated) is granted only on positive evidence the remote is empty: a successful, non-swallowed remote observation
-confirming the branch's absence; mere absence of the local remote-tracking
-ref never grants it. The allowance covers the single invocation that earned
-it: if that first publication fails to land — for example, it loses its
-push race to another first-pusher — the remote branch now exists, and any
-retry is judged by the standard rows above (manual recovery, fail-closed);
-no design may auto-re-grant the allowance on retry. When shared ancestry
-cannot be resolved in a shallow clone, verify against full history before
-refusing; if that deeper
-verification itself cannot be completed (network, auth), refuse with a
-distinct could-not-verify error so the operator knows which state they are
-recovering from. Beyond the enumerated shapes, fail closed: any state in
-which the relationship between the history that would be published and the
-remote branch can be neither confirmed nor refuted refuses under the same
-distinct could-not-verify class, so "unverifiable ⇒ refuse, everywhere" is
-operational rather than aspirational. The history the guard verifies must
-be the history the push would publish — a detached HEAD is the canonical
-trap: HEAD resolves and shares a merge-base, so a naive ancestry check
-classifies it verifiable, yet the push publishes the configured branch
-ref, not HEAD, and today the session's commits are silently lost while
-the command reports success (source-confirmed at main `055ed3f5`). Provenance: invariant and positive-evidence standard
-settled at [#1576 issuecomment-4675759237](https://github.com/forwardimpact/monorepo/issues/1576#issuecomment-4675759237);
-fail-closed deepening accepted at [#1576 issuecomment-4675741749](https://github.com/forwardimpact/monorepo/issues/1576#issuecomment-4675741749).
-The evidence and verification mechanisms (probe vs surfaced fetch, how
-full history is obtained) are design decisions.
+**D1 — Ancestry invariant (settled on #1576; restated here).** Refuse to commit
+and to push — creating no commit, adding no working-tree changes, naming the
+recovery — whenever the remote branch exists and HEAD is unborn or shares no
+merge-base with it. The guard holds on **every** invocation of the operation,
+not only when a commit would be created: a clean tree contributes nothing new to
+commit, but if its branch already carries unverifiable committed history the
+push half alone is the D1 damage, and the invocation refuses before it. The
+empty-new-wiki allowance (accepting a new wiki's first publication, however many
+local commits it has accumulated) is granted only on positive evidence the
+remote is empty: a successful, non-swallowed remote observation confirming the
+branch's absence; mere absence of the local remote-tracking ref never grants it.
+The allowance covers the single invocation that earned it: if that first
+publication fails to land — for example, it loses its push race to another
+first-pusher — the remote branch now exists, and any retry is judged by the
+standard rows above (manual recovery, fail-closed); no design may auto-re-grant
+the allowance on retry. When shared ancestry cannot be resolved in a shallow
+clone, verify against full history before refusing; if that deeper verification
+itself cannot be completed (network, auth), refuse with a distinct
+could-not-verify error so the operator knows which state they are recovering
+from. Beyond the enumerated shapes, fail closed: any state in which the
+relationship between the history that would be published and the remote branch
+can be neither confirmed nor refuted refuses under the same distinct
+could-not-verify class, so "unverifiable ⇒ refuse, everywhere" is operational
+rather than aspirational. The history the guard verifies must be the history the
+push would publish — a detached HEAD is the canonical trap: HEAD resolves and
+shares a merge-base, so a naive ancestry check classifies it verifiable, yet the
+push publishes the configured branch ref, not HEAD, and today the session's
+commits are silently lost while the command reports success (source-confirmed at
+main `055ed3f5`). Provenance: invariant and positive-evidence standard settled
+at
+[#1576 issuecomment-4675759237](https://github.com/forwardimpact/monorepo/issues/1576#issuecomment-4675759237);
+fail-closed deepening accepted at
+[#1576 issuecomment-4675741749](https://github.com/forwardimpact/monorepo/issues/1576#issuecomment-4675741749).
+The evidence and verification mechanisms (probe vs surfaced fetch, how full
+history is obtained) are design decisions.
 
 **D2 — Refusal exit semantics (settled for `push` on #1576; extended
 here to `claim`/`release`).** A guard refusal is a command failure:

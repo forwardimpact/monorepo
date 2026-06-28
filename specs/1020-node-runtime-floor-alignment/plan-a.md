@@ -27,7 +27,7 @@ it locally via the bun workspace hoist.
 
 **Files created.**
 
-```
+```text
 libraries/libpreflight/package.json
 libraries/libpreflight/README.md
 libraries/libpreflight/src/check.js
@@ -35,12 +35,12 @@ libraries/libpreflight/src/node22.js
 libraries/libpreflight/test/check.test.js
 ```
 
-**`package.json` shape.** Mirror an existing peer (`libraries/libmock/package.json`
-is the simplest match — zero `dependencies`, ESM, `engines` block, no `bin`)
-and substitute the libpreflight-specific values below. The implementer
-opens `libraries/libmock/package.json` and changes the listed fields,
-leaving the rest of the manifest shape (license, homepage, repository, author,
-publishConfig.access) identical:
+**`package.json` shape.** Mirror an existing peer
+(`libraries/libmock/package.json` is the simplest match — zero `dependencies`,
+ESM, `engines` block, no `bin`) and substitute the libpreflight-specific values
+below. The implementer opens `libraries/libmock/package.json` and changes the
+listed fields, leaving the rest of the manifest shape (license, homepage,
+repository, author, publishConfig.access) identical:
 
 | Field | Value |
 |---|---|
@@ -219,7 +219,7 @@ Criteria).
 
 **Files modified.**
 
-```
+```text
 websites/fit/docs/getting-started/leaders/index.md
 websites/fit/docs/getting-started/leaders/landmark/index.md
 websites/fit/docs/getting-started/leaders/map/index.md
@@ -243,17 +243,17 @@ already reads correctly under the new floor.
 
 **Verification.** Inverted check (anything not `22+`):
 `rg 'Node\.js (\d+)\+' --no-line-number -o -r '$1' websites/fit/docs/getting-started/ | sort -u`
-returns a single line `22` and nothing else. (This finds every
-`Node.js <N>+` token across the doc set and lists the distinct majors; a
-clean result is the single line `22`. Any other line — `18`, `20`, `25`,
-etc. — is a regression.) The discovery-rule check is preferred over an
-enumerated denylist because it survives a future Node bump to `25+`
-without plan amendment. `rg 'Node\.js 22\+' websites/fit/docs/getting-started/{leaders,engineers}/ -l`
-should list every page in the in-scope set (the count drifts as
-getting-started pages are added; the implementer reads the list from
-the rg output rather than asserting a hard-coded "10"). Assertion (c)
-in Step 6 is the authoritative gate. Local `bunx fit-doc build` (run
-inside `websites/fit/`) emits no doc-build error on the changed pages.
+returns a single line `22` and nothing else. (This finds every `Node.js <N>+`
+token across the doc set and lists the distinct majors; a clean result is the
+single line `22`. Any other line — `18`, `20`, `25`, etc. — is a regression.)
+The discovery-rule check is preferred over an enumerated denylist because it
+survives a future Node bump to `25+` without plan amendment.
+`rg 'Node\.js 22\+' websites/fit/docs/getting-started/{leaders,engineers}/ -l`
+should list every page in the in-scope set (the count drifts as getting-started
+pages are added; the implementer reads the list from the rg output rather than
+asserting a hard-coded "10"). Assertion (c) in Step 6 is the authoritative gate.
+Local `bunx fit-doc build` (run inside `websites/fit/`) emits no doc-build error
+on the changed pages.
 
 ### Step 6 — Add `scripts/check-node-floor.mjs` and wire it into invariants
 
@@ -267,15 +267,15 @@ PR.
 **Files modified.** Root `package.json` (npm scripts block).
 
 **Script shape.** Match the style of the existing
-`scripts/check-workspace-imports.mjs` and `scripts/check-libmock.mjs`:
-plain `node`-runnable ESM with `#!/usr/bin/env node` shebang as the first
-line (the two existing siblings both carry this shebang — verified at
-plan authoring), ROOT computed from `import.meta.url`, status-code
-accumulator, `console.error("error: …")` per failure, `process.exit(1)`
-at end if any failure. The script is invoked through `bun` in the npm
-script wiring below — the shebang exists for direct `node scripts/check-node-floor.mjs`
-runs in case a contributor reaches the file outside `bun run invariants`.
-Four assertions in one script:
+`scripts/check-workspace-imports.mjs` and `scripts/check-libmock.mjs`: plain
+`node`-runnable ESM with `#!/usr/bin/env node` shebang as the first line (the
+two existing siblings both carry this shebang — verified at plan authoring),
+ROOT computed from `import.meta.url`, status-code accumulator,
+`console.error("error: …")` per failure, `process.exit(1)` at end if any
+failure. The script is invoked through `bun` in the npm script wiring below —
+the shebang exists for direct `node scripts/check-node-floor.mjs` runs in case a
+contributor reaches the file outside `bun run invariants`. Four assertions in
+one script:
 
 | # | Assertion | Mechanism |
 |---|---|---|

@@ -11,10 +11,10 @@ toc: false
 > — W. Edwards Deming, _The New Economics_
 
 Structural conventions for a repository shared by humans and coding agents.
-Top-level directories carry shippable code, root files orient every
-contributor, and a Jobs To Be Done catalogue grounds them in the progress
-each persona seeks. The jobs supply the aim — without them, the structure is arbitrary;
-without the structure, the jobs are invisible.
+Top-level directories carry shippable code, root files orient every contributor,
+and a Jobs To Be Done catalogue grounds them in the progress each persona seeks.
+The jobs supply the aim — without them, the structure is arbitrary; without the
+structure, the jobs are invisible.
 
 This is the upstream structure that
 [Co-Aligned](https://www.coaligned.team/) layers an instruction architecture

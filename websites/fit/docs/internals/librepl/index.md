@@ -82,7 +82,7 @@ const repl = new Repl({
 
 `repl.start()` executes the following sequence:
 
-```
+```text
 Load state from storage
   → Parse CLI arguments (override state, run CLI commands)
     → Run setup(state)

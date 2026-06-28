@@ -467,7 +467,7 @@ Systematic approach:
 
 Update the `## Documentation` section to reflect the new hierarchy:
 
-```
+```text
 ## Documentation
 
 - Getting Started: Leadership, Engineers, Contributors
@@ -531,7 +531,7 @@ npx fit-doc build --src=website --out=dist
 
 ### Created (26 new files)
 
-```
+```text
 website/docs/getting-started/index.md
 website/docs/getting-started/leadership/index.md
 website/docs/getting-started/engineers/index.md
@@ -562,7 +562,7 @@ website/docs/internals/universe/index.md
 
 ### Modified (8 existing files)
 
-```
+```text
 website/docs/index.md          — Replace grid with four sections
 website/llms.txt               — Update Documentation section
 .claude/skills/fit-map/SKILL.md
@@ -575,7 +575,7 @@ CLAUDE.md                      — Add Distribution Model section
 
 ### Deleted (11 old files)
 
-```
+```text
 website/docs/map/index.md
 website/docs/model/index.md
 website/docs/model/core.md

@@ -268,6 +268,7 @@ so edits here don't shift line numbers for seed/transform changes below.
    ```
 
 4. **`seed()` function:** Add evidence report after the github transform report:
+
    ```javascript
    // After existing: report("Transform github", summarizeCounts(result.github));
    report("Transform evidence", {
@@ -399,7 +400,8 @@ changes needed.
    comment counts in verify output
 5. Run all twelve Landmark views for a synthetic person to confirm non-empty
    output (spec success criterion 2):
-   ```
+
+   ```text
    fit-landmark coverage --email <email>
    fit-landmark evidence --email <email>
    fit-landmark health --email <manager-email>
@@ -413,5 +415,6 @@ changes needed.
    fit-landmark timeline --email <email>
    fit-landmark voice --email <email>
    ```
+
    Use an email and manager-email from the synthetic roster. Every command
    should return at least one row of output.

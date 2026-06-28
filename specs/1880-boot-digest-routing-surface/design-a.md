@@ -48,7 +48,7 @@ The first line inside the block is the freshness stamp
 `<!-- last-successful-sync: YYYY-MM-DD -->`; every subsequent line is one
 attributed item in a fixed grammar that `boot` round-trips:
 
-```
+```text
 - #1694 [staff-engineer] Exp Staff June 12 — … (by dickolsson)
 ```
 
@@ -67,7 +67,7 @@ record shapes in one array, both sources emit the **same** shape: the existing
 bullet fields plus optional attribution fields, so a heterogeneous consumer
 reads one schema. An attributed experiment item is:
 
-```
+```text
 { dim: "<agent>", threshold: "<sanitized title>", status: "open",
   link: null, issue: 1694, author: "<sanitized creator>", source: "experiment" }
 ```
@@ -112,7 +112,8 @@ already-inert file (§ Key Decisions).
    `agent-experiments` block, parse each line's `[agent]` tag, and emit an item
    for the booting agent in the unified shape from § Digest item shape.
    Agent-section h3 bullets remain a source (criterion 8) — the two sources
-   merge into `storyboard_items[]`. Absent block → no experiment items, no error.
+   merge into `storyboard_items[]`. Absent block → no experiment items, no
+   error.
 2. **Standing carries.** `extractStandingCarries(summaryText)` reads bullets
    under a `## Standing Carries` h2 in `wiki/{agent}.md` and returns their full
    bodies **verbatim** (byte-equal, including inline markdown). Delivered as a

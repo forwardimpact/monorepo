@@ -396,7 +396,7 @@ inside one session, not across two scheduled invocations.
 - § Trust Boundary merge-point table (lines 227–239): rewrite the three
   `product-backlog` rows and the one `product-feedback` row as:
 
-  ```
+  ```text
   | **product-manager**   | External fix/bug PRs      | Top-20 contributor gate + CI                    |
   | **product-manager**   | External spec PRs         | Top-20 gate + CI + spec review                  |
   | **product-manager**   | CI app PRs                | Trusted app identity (`forward-impact-ci`) + CI |

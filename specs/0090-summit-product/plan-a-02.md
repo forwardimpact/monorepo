@@ -62,6 +62,7 @@ Core functions (all pure, named exports only):
 - For project teams referenced by email only, merges in the full person record
   from the reporting teams.
 - Returns:
+
   ```ts
   type ResolvedTeam = {
     id: string,
@@ -72,6 +73,7 @@ Core functions (all pure, named exports only):
                            // null for YAML-defined and project teams
   };
   ```
+
 - `managerEmail` is copied from the reporting team's root manager when the team
   was loaded via `loadRosterFromMap`; it's `null` for YAML teams and for project
   teams regardless of source. Part 07's evidence loader uses this to scope
@@ -325,7 +327,7 @@ and assert stdout contains the fixture team's capability section header.
 
 Single commit titled:
 
-```
+```text
 feat(summit): add coverage aggregation, coverage command, audience filter
 ```
 

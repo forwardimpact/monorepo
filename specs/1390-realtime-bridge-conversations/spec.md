@@ -134,8 +134,8 @@ decision.
   bridge library (`libbridge`) so both the GitHub Discussions bridge
   (`services/ghbridge`) and the Microsoft Teams bridge (`services/msbridge`)
   inherit it; only the channel-specific reply-posting differs.
-- **At-most-once thread posts.** A streamed reply or acknowledgement is posted to
-  the thread at most once even if the underlying delivery is retried or the
+- **At-most-once thread posts.** A streamed reply or acknowledgement is posted
+  to the thread at most once even if the underlying delivery is retried or the
   conversation later resumes, and the bridge continues to suppress webhook
   echoes of its own posts.
 

@@ -43,16 +43,18 @@ other change.
 
 Command: `just codegen`
 
-Modified (regenerated): `generated/types/types.js`, `generated/types/metadata.js`,
-`generated/services/map/service.js`, `generated/services/map/client.js`,
-`generated/definitions/map.js` (and any other file `just codegen` touches).
+Modified (regenerated): `generated/types/types.js`,
+`generated/types/metadata.js`, `generated/services/map/service.js`,
+`generated/services/map/client.js`, `generated/definitions/map.js` (and any
+other file `just codegen` touches).
 
 Verify: `git status generated/` lists the regenerated files; commit them
 in the same commit as the proto edit. `bun run context` passes.
 
 ## Step 1.3 — DB migration
 
-Created: `products/map/supabase/migrations/20260603000000_evidence_provenance.sql`
+Created:
+`products/map/supabase/migrations/20260603000000_evidence_provenance.sql`
 
 ```sql
 ALTER TABLE activity.evidence
@@ -60,6 +62,7 @@ ALTER TABLE activity.evidence
 ```
 
 Notes for the implementer:
+
 - The default `human_attested` catches any path that bypasses the
   `WriteEvidence` handler (direct DB inserts, manual RPC callers
   omitting the field).
@@ -154,6 +157,7 @@ export function assertProvenance(value) {
 ```
 
 Notes:
+
 - `Object.freeze` matches the existing pattern at
   `libraries/libskill/src/derivation.js:33` (`ORDER_SKILL_TYPE`) and
   prevents downstream mutation of the array.
@@ -209,6 +213,7 @@ async WriteEvidence(req) {
 ```
 
 Notes:
+
 - The guard runs after the existing required-field checks so empty
   payloads still fail on the original "rationale is required" /
   "artifact_id is required" paths with their existing messages; the new
@@ -242,6 +247,7 @@ block, alongside the existing WriteEvidence cases:
    includes `made_up` and `Must be one of:`; assert no row was inserted.
 
 Notes:
+
 - Reuse the existing test setup in `services/map/test/map.test.js` —
   whatever mock supabase + pathway client harness the file uses. Add the
   three cases inside the existing `WriteEvidence` describe.
@@ -253,7 +259,7 @@ plus the prior cases pass.
 
 ## Verification
 
-```
+```text
 bun test services/map
 bun run context
 ```

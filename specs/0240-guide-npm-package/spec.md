@@ -9,7 +9,7 @@ alongside Map, Pathway, Basecamp, Landmark, and Summit. The product page at
 `/guide/` explains what Guide does and how it fits into the suite. An engineer
 or agent reading this documentation will naturally attempt:
 
-```
+```text
 bun install @forwardimpact/guide
 ```
 

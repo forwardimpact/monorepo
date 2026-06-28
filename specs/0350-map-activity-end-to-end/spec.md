@@ -5,10 +5,10 @@ Finish the Map activity layer so an external leadership user who runs
 database and keep it in sync — without writing any Node scripts, without
 hand-editing edge functions, and without reaching back into the monorepo.
 
-Builds on [spec 0051](../051-map-elt/spec.md), which established the ELT boundary
-and the raw-storage bucket layout. This spec completes that pipeline at the
-edges: the edge functions, the CLI, the tests, and the docs all catch up to the
-helpers 051 put in place.
+Builds on [spec 0051](../051-map-elt/spec.md), which established the ELT
+boundary and the raw-storage bucket layout. This spec completes that pipeline at
+the edges: the edge functions, the CLI, the tests, and the docs all catch up to
+the helpers 051 put in place.
 
 ## Why
 

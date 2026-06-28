@@ -76,7 +76,7 @@ that fires every week is training people to ignore it.
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md) —
-  the layered model the checks enforce.
-- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md) —
-  what each subcommand checks and how findings render.
+- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+  — the layered model the checks enforce.
+- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
+  — what each subcommand checks and how findings render.

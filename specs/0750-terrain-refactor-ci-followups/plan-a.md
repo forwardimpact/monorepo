@@ -40,12 +40,14 @@ contributor docs that name `synthetic-no-prose`.
 
 - **Modified:** `package.json` (`scripts.generate`, `scripts.data:prose`).
 - **Change:**
+
   ```diff
   -    "generate": "fit-terrain",
   +    "generate": "fit-terrain build",
   -    "data:prose": "LOG_LEVEL=error bunx fit-terrain check",
   +    "data:prose": "bunx fit-terrain check",
   ```
+
 - **Out-of-scope siblings (do not edit):** `prestart`, `start`, `dev` are not
   `fit-terrain` callers (they invoke `fit-pathway`/`serve`); `data:schema`
   remains unchanged because design K3 limits the log-level change to
@@ -71,15 +73,19 @@ calls `bun run data:prose` / `data:schema`, both fixed in S2).
   - `.github/workflows/interview-summit-setup.yml` (line 57, in shell heredoc).
 - **Change (each file, single occurrence):** `bunx fit-terrain` →
   `bunx fit-terrain build`. Example for `check-test.yml:18`:
+
   ```diff
   -      - run: bunx fit-terrain
   +      - run: bunx fit-terrain build
   ```
+
   Example for the three `interview-*-setup.yml` files (line numbers above):
+
   ```diff
   -          bunx fit-terrain
   +          bunx fit-terrain build
   ```
+
 - **Verify:**
   `grep -nE 'bunx fit-terrain($|[^[:alnum:]_-])' .github/workflows/*.yml`
   returns four lines, each with `build` immediately following
@@ -90,6 +96,7 @@ calls `bun run data:prose` / `data:schema`, both fixed in S2).
 - **Modified:** `.claude/skills/kata-release-merge/SKILL.md` (the wrapped
   sentence on lines 121–123, ending with `skip to Step 9.`).
 - **Change:**
+
   ```diff
   -After rebase, run `bun run check:fix` then `bun run check`. If checks still fail
   -(excluding expected validation failures from missing `data/pathway/`), mark
@@ -97,6 +104,7 @@ calls `bun run data:prose` / `data:schema`, both fixed in S2).
   +After rebase, run `bun run check:fix` then `bun run check`. If checks still
   +fail, mark **blocked** with the failures and skip to Step 9.
   ```
+
 - **Verify:**
   `grep -n 'data/pathway' .claude/skills/kata-release-merge/SKILL.md` returns no
   matches.
@@ -115,11 +123,11 @@ The gate uses two scanning modes so it cannot false-positive on the legitimate
 `dist/binaries/fit-terrain`):
 
 - **Textual mode** (`justfile`, `.github/workflows/**.yml`): the regex
-  **requires** a `bunx ` prefix. A bare `fit-terrain` token on those surfaces is
+  **requires** a `bunx` prefix. A bare `fit-terrain` token on those surfaces is
   a name argument or path component, not an invocation, and is ignored.
 - **JSON mode** (`package.json`): parse JSON and iterate `scripts.*` values. For
   each shell command (split on `&&` / `;`), strip leading `LOG_LEVEL=…` env
-  prefixes and an optional `bunx ` prefix; if the next token is `fit-terrain`,
+  prefixes and an optional `bunx` prefix; if the next token is `fit-terrain`,
   the token after it must be one of the accepted verbs.
 
 The CLI itself enforces `inspect <stage>`; the gate accepts a bare `inspect` and
@@ -205,17 +213,20 @@ the CLI's usage error surfaces the missing stage on the same CI run.
   recipe; the npm `context:terrain` script is the canonical entry, and
   `bun run check` runs it via `context`).
 - **`package.json` wiring:**
+
   ```diff
   -    "context": "bun run context:instructions && bun run context:metadata && bun run context:catalog",
   +    "context": "bun run context:instructions && bun run context:metadata && bun run context:catalog && bun run context:terrain",
   +    "context:terrain": "bun scripts/check-terrain-callers.mjs",
   ```
+
 - **Verify (non-destructive):**
   1. `bun run context:terrain` exits 0 from a clean working tree post-S1–S3 (the
      textual regex requires `bunx `, so `justfile`'s `build-binary fit-terrain`
      and `dist/binaries/fit-terrain` lines do not trip it; the JSON scan sees
      `fit-terrain build` for `scripts.generate` and is silent).
   2. Confirm the red-path against a stdin fixture, no working-tree edits:
+
      ```sh
      printf '%s\n' '    bunx fit-terrain' \
        | bun -e "
@@ -225,6 +236,7 @@ the CLI's usage error surfaces the missing stage on the same CI run.
        "
      # exit 0 → the pattern correctly flags the bare form
      ```
+
   3. `bun run check` passes end-to-end after the wiring lands.
 
 ### S6 — Update contributor docs
@@ -270,7 +282,7 @@ Libraries used: none.
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | P1  | The `Test (e2e)` `synthetic-cache` is hit on the impl branch (key includes `data/synthetic/**` only), masking the miss-path fix.                                      | The cache is keyed on `hashFiles('data/synthetic/**', 'products/map/schema/json/**', 'bun.lock')`, not on branch — to force a miss, the implementer must touch any file under `data/synthetic/**` (a no-op edit suffices) before pushing.                                                                                                     |
 | P2  | `data:prose` keeps exit-code 1 after the S2 prefix change because the cache invariant currently failing on `main` is unrelated to `LOG_LEVEL`.                        | Spec scope excludes `data/synthetic/` content. If exit-code 1 persists in CI after S2 lands the diagnostic visibly, the residual fix is outside this PR; the implementer reports the surfaced error to the spec author rather than chasing it in S2.                                                                                          |
-| P3  | The S5 gate's textual mode requires a `bunx ` prefix, so a future `fit-terrain VERB` invocation in a workflow `run:` block (without `bunx`) would slip past the gate. | Today no workflow invokes `fit-terrain` without `bunx`, but a future contributor following the npm-script pattern in a workflow could; if that shape appears, extend the textual regex to also match a leading `fit-terrain` token on a recipe/run-block line. The risk is named here so the implementer can monitor for it during S3 review. |
+| P3  | The S5 gate's textual mode requires a `bunx` prefix, so a future `fit-terrain VERB` invocation in a workflow `run:` block (without `bunx`) would slip past the gate. | Today no workflow invokes `fit-terrain` without `bunx`, but a future contributor following the npm-script pattern in a workflow could; if that shape appears, extend the textual regex to also match a leading `fit-terrain` token on a recipe/run-block line. The risk is named here so the implementer can monitor for it during S3 review. |
 
 ## Execution
 

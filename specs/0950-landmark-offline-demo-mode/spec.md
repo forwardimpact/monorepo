@@ -25,8 +25,8 @@ directory" and honored end-to-end by `marker`, has no effect on the
 analytical commands: every one of them is auth-walled before `loadMapData()`
 reads from the resolved path.
 
-A BioNova Platform Engineering Manager (J080 persona) exercised the tool in
-user testing on issue [#921](https://github.com/forwardimpact/monorepo/issues/921)
+A BioNova Platform Engineering Manager (J080 persona) exercised the tool in user
+testing on issue [#921](https://github.com/forwardimpact/monorepo/issues/921)
 and reported the gap verbatim:
 
 > The persona has a complete activity dump on the laptop (`./data/activity/`

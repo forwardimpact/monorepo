@@ -14,7 +14,8 @@ those that pass. Trust is the most critical — record each PR's trust check.
 
 ## When to Use
 
-- A scheduled run finds open PRs awaiting merge, or a specific PR needs an on-demand mergeability decision
+- A scheduled run finds open PRs awaiting merge, or a specific PR needs an
+  on-demand mergeability decision
 - Never for issues — issue triage is `kata-product-issue`
 
 ## Checklists
@@ -27,7 +28,8 @@ those that pass. Trust is the most critical — record each PR's trust check.
 - [ ] `wiki/STATUS.md` row for the spec id shows the matching phase at
       `approved` (or `implemented` for the terminal plan row).
 - [ ] For phase PRs (spec/design/plan): an approving signal of the required
-      class verifiably covers the current head, per `references/review-transfer.md`.
+      class verifiably covers the current head, per
+      `references/review-transfer.md`.
 - [ ] For implementation PRs: parent spec's `plan-a.md` exists on `main`.
 - [ ] No unresolved trusted-human concern in the PR comment thread.
 - [ ] Classification label (`product` / `internal`) is present on the PR.
@@ -35,25 +37,31 @@ those that pass. Trust is the most critical — record each PR's trust check.
 
 </do_confirm_checklist>
 
-A PR that fails any gate is **blocked** with reason; passing PRs merge in Step 11.
+A PR that fails any gate is **blocked** with reason; passing PRs merge in Step
+11.
 
 ## Process
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract PRs blocked in previous runs with consecutive-block counts.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and (when this skill reads
+Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
+Extract PRs blocked in previous runs with consecutive-block counts.
 
 ### Step 1: List Open PRs
 
-`list` open changes against `main` ([work-trackers.md](../../agents/references/work-trackers.md)),
-reading number, title, head branch, author, update time, mergeability, labels,
-and reviews.
+`list` open changes against `main`
+([work-trackers.md](../../agents/references/work-trackers.md)), reading number,
+title, head branch, author, update time, mergeability, labels, and reviews.
 
 Skip PRs authored by `app/dependabot` — handled by `kata-security-update`.
 
 ### Step 2: Verify Contributor Trust
 
-`read` the change's author ([work-trackers.md](../../agents/references/work-trackers.md)). If
+`read` the change's author
+([work-trackers.md](../../agents/references/work-trackers.md)). If
 `app/kata-agent-team`, the PR is **trusted by definition**. Otherwise, look up
 the top 7 human contributors:
 
@@ -82,9 +90,14 @@ Parse the title using `type(scope): subject`. Each type maps to a phase:
 `read` the change's mergeability and CI checks
 ([work-trackers.md](../../agents/references/work-trackers.md)).
 
-Clean (mergeable, CI green, up-to-date) → continue to Step 6. Behind, stale, or conflicting → rebase (Step 5). CI failing → fix (Step 5) or block. An approved-and-pinned experiment PR never rebases — skip to Step 6 re-block ([`experiment-path.md`](references/experiment-path.md)).
+Clean (mergeable, CI green, up-to-date) → continue to Step 6. Behind, stale, or
+conflicting → rebase (Step 5). CI failing → fix (Step 5) or block. An
+approved-and-pinned experiment PR never rebases — skip to Step 6 re-block
+([`experiment-path.md`](references/experiment-path.md)).
 
-A PR that pins a consumer to a not-yet-published producer is **blocked** until that producer is released. See the repository's CONTRIBUTING.md § Releasing for producer-before-consumer ordering.
+A PR that pins a consumer to a not-yet-published producer is **blocked** until
+that producer is released. See the repository's CONTRIBUTING.md § Releasing for
+producer-before-consumer ordering.
 
 ### Step 5: Rebase + Mechanical Fixes
 
@@ -118,7 +131,17 @@ delta-producing move — this step's own mechanical fixes included.
 **Docs fast-path**: A `docs`-typed PR whose changed files are all `.md`/`.mdx`
 passes on trust (Step 2) alone — skip the STATUS check below.
 
-Read `wiki/STATUS.md` for the PR's spec id — `grep -P "^${spec_id}(/[a-z0-9-]+)?\t"` matches the master `NNNN` row and any `NNNN/<unit>` sub-rows. Pass when the row shows the classified phase at `approved` (`implemented` for the terminal plan row); the master row reaches `plan implemented` only once every sub-row does. Absent or `draft`/`cancelled` → **blocked** (`awaiting approval signal`). STATUS-vs-head timestamp ordering is not coverage evidence: when commits land after the last clean review round, fail closed — **blocked** (`review coverage unverifiable at head`) — until a scoped delta review or a reviewed-SHA-plus-head record covers the gap. Labels and APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See [`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
+Read `wiki/STATUS.md` for the PR's spec id —
+`grep -P "^${spec_id}(/[a-z0-9-]+)?\t"` matches the master `NNNN` row and any
+`NNNN/<unit>` sub-rows. Pass when the row shows the classified phase at
+`approved` (`implemented` for the terminal plan row); the master row reaches
+`plan implemented` only once every sub-row does. Absent or `draft`/`cancelled` →
+**blocked** (`awaiting approval signal`). STATUS-vs-head timestamp ordering is
+not coverage evidence: when commits land after the last clean review round, fail
+closed — **blocked** (`review coverage unverifiable at head`) — until a scoped
+delta review or a reviewed-SHA-plus-head record covers the gap. Labels and
+APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See
+[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
 
 **Experiment PRs** (no spec id, one experiment-labeled issue with a named owner)
 take the experiment path instead of the spec-row read — fail-closed
@@ -136,16 +159,19 @@ approval source.
 
 ### Step 7: Open Comment Gate
 
-If a top-7 contributor's most-recent PR comment is an unresolved concern not accepted by a **later** same-human comment, mark **blocked** (`awaiting trusted-contributor reply`); see [`comment-gate.md`](references/comment-gate.md).
+If a top-7 contributor's most-recent PR comment is an unresolved concern not
+accepted by a **later** same-human comment, mark **blocked**
+(`awaiting trusted-contributor reply`); see
+[`comment-gate.md`](references/comment-gate.md).
 
 ### Step 8: Coordinating Issue Announcement (self-heal)
 
 If no comment on the PR's coordinating issue (`Fixes #N` and variants) names the
-PR, post the cross-link and log the miss — **self-heal, never
-block**. Probe sibling PRs on the same issue (`--state all`, paired with the
-issue-comment scan) and resolve duplicates before merging any. Details:
-[`announcement-backstop.md`](references/announcement-backstop.md); no coordinating
-issue → skip.
+PR, post the cross-link and log the miss — **self-heal, never block**. Probe
+sibling PRs on the same issue (`--state all`, paired with the issue-comment
+scan) and resolve duplicates before merging any. Details:
+[`announcement-backstop.md`](references/announcement-backstop.md); no
+coordinating issue → skip.
 
 ### Step 9: Implementation PR Spec Check
 
@@ -164,19 +190,21 @@ spec skip this step.
 
 ### Step 10: Classification Label Gate
 
-Read the PR's labels (fetched in Step 1). If neither `product` nor `internal`
-is present, mark **blocked** (`awaiting classification label`). No fast-path
+Read the PR's labels (fetched in Step 1). If neither `product` nor `internal` is
+present, mark **blocked** (`awaiting classification label`). No fast-path
 exemption: a `.md`/`.mdx` PR skips only the Step 6 approval gate, not this one —
-docs PRs are completed work in the denominator and must carry the label
-per [work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#product-aligned-vs-internal).
+docs PRs are completed work in the denominator and must carry the label per
+[work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#product-aligned-vs-internal).
 
 ### Step 11: Merge Mergeable PRs
 
 1. Post the merge comment from `references/templates.md` § Merge Comment.
-2. `merge-change` ([work-trackers.md](../../agents/references/work-trackers.md)).
+2. `merge-change`
+   ([work-trackers.md](../../agents/references/work-trackers.md)).
 3. Verify state is `MERGED`. On race or branch-protection failure, record and
    move on — do **not** retry without re-running Steps 1–10.
-4. **Re-ping Rule** — re-comment on any still-blocked PR past its 3-day silence window ([`reping-rule.md`](references/reping-rule.md)).
+4. **Re-ping Rule** — re-comment on any still-blocked PR past its 3-day silence
+   window ([`reping-rule.md`](references/reping-rule.md)).
 
 ### Step 12: Produce the Classification Report
 
@@ -203,6 +231,11 @@ Append to the current week's log:
 
 ## Coordination Channels
 
-Outputs (per [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
-**PR comment** for trust rationale, gate failures, merge decisions; **PR thread escalation** for cross-agent requests addressed by name. Ambiguous inbound comments → follow [coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
-Hold every PR comment to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
+Outputs (per
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
+**PR comment** for trust rationale, gate failures, merge decisions;
+**PR thread escalation** for cross-agent requests addressed by name. Ambiguous
+inbound comments → follow
+[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+Hold every PR comment to
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).

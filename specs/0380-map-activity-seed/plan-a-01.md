@@ -128,9 +128,11 @@ longer needed here.
    tests pass.
 2. `bunx fit-map people validate data/activity/roster.yaml` — works as before.
 3. Confirm `parseYamlPeople` and `parseCsv` each exist in exactly one file:
-   ```
+
+   ```text
    grep -rn "function parseYamlPeople\|function parseCsv" products/map/
    ```
+
    Should return only `products/map/activity/parse-people.js`.
 
 ## Risks

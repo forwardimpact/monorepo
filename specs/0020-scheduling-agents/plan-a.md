@@ -11,7 +11,7 @@ independent timers — mail sync, calendar sync, entity extraction — each
 executing a fixed skill with a fixed prompt. There is no observation, no
 decision-making, no adaptation, and no proactive assistance.
 
-```
+```text
 Daemon (checks time, runs due tasks)
   → Claude -p "Use skill X" (executes fixed task)
     → KB (reads/writes knowledge)
@@ -34,7 +34,7 @@ Replace the three tasks with a team of four agents. Each agent owns a clear
 domain, operates at its natural cadence, and communicates with the others
 through the shared filesystem.
 
-```
+```text
 Daemon (wakes agents on schedule)
   → claude --agent postman        -p "Observe and act."  (every 5 min)
   → claude --agent concierge      -p "Observe and act."  (every 10 min)
@@ -465,7 +465,7 @@ Each scheduled agent writes a structured markdown file to the cache state
 directory after every wake. Other agents read these files for cross-domain
 awareness.
 
-```
+```text
 ~/.cache/fit/basecamp/state/
 ├── apple_mail_last_sync        # existing — sync timestamp
 ├── apple_calendar_last_sync    # existing — implicit from sync
@@ -485,7 +485,7 @@ The knowledge graph in `knowledge/` is the primary shared data store. Agents
 write notes, briefings, and drafts. The user reads them. Other agents read them
 for context.
 
-```
+```text
 knowledge/
 ├── People/          # librarian writes, all agents read
 ├── Organizations/   # librarian writes, all agents read
@@ -507,7 +507,7 @@ Synced raw data lives in `~/.cache/fit/basecamp/`. The postman syncs email
 there; the librarian reads it for entity extraction. The concierge syncs events
 there; the chief of staff reads them for daily schedules.
 
-```
+```text
 ~/.cache/fit/basecamp/
 ├── apple_mail/       # postman writes, librarian reads
 ├── apple_calendar/   # concierge writes, chief-of-staff/librarian reads
@@ -553,7 +553,7 @@ This ordering ensures:
 
 With the default schedules, a typical hour looks like:
 
-```
+```text
 :00  postman → concierge → librarian
 :05  postman
 :10  postman → concierge
@@ -815,7 +815,7 @@ distributing it to clients.
 
 ### Status Display
 
-```
+```text
 Basecamp Scheduler
 ==================
 
@@ -847,7 +847,7 @@ Agents:
 
 ### CLI Commands
 
-```
+```text
 Basecamp — Schedule autonomous agents across knowledge bases.
 
 Usage:
@@ -961,7 +961,7 @@ optional strings. The `status` field uses agent vocabulary (`idle`, `active`,
 The menu shows each agent's name, status, and last decision — giving the user
 immediate visibility into what each agent observed and why it acted.
 
-```
+```text
 Basecamp          uptime 2h 15m
 ─────────────────────────────────
 ✓  Postman                  5m ago      ▶
@@ -995,7 +995,7 @@ agent decide, and when? No submenu needed to understand current state.
 
 Each enabled agent's title item has a submenu with actions:
 
-```
+```text
 ┌──────────────────────────────┐
 │ View Briefing                │  ← opens briefingFile in default app
 │ Wake Now                     │  ← sends wake IPC message

@@ -15,8 +15,8 @@ Files: create `.claude/agents/references/work-trackers.md`.
 
 Change: front-matter (`# Work Trackers`) and an intro stating the file is the
 only place tracker-specific commands appear; agents read the active column from
-`$LIBEVAL_WORK_TRACKER` (default `github`) and never branch on it elsewhere. Then
-the envelope table (carried as YAML front-matter on each item):
+`$LIBEVAL_WORK_TRACKER` (default `github`) and never branch on it elsewhere.
+Then the envelope table (carried as YAML front-matter on each item):
 
 | Field | Meaning | github | filesystem |
 | --- | --- | --- | --- |
@@ -28,9 +28,9 @@ the envelope table (carried as YAML front-matter on each item):
 | `discussion` | comment thread | native issue/PR thread | appended `## Comments` section |
 | `approval` | change-only trusted gate | PR label or review by a trusted human | front-matter value |
 
-Then the selection rule: one input, `LIBEVAL_WORK_TRACKER`, default `github`; set
-by the harness (`--work-tracker`), documented here, read by the agent to pick the
-column.
+Then the selection rule: one input, `LIBEVAL_WORK_TRACKER`, default `github`;
+set by the harness (`--work-tracker`), documented here, read by the agent to
+pick the column.
 
 Verification: file exists; contains the envelope table and the selection rule.
 
@@ -42,9 +42,11 @@ Files: modify `work-trackers.md`.
 
 Change: a list defining `create-issue`, `list`, `read`, `comment`, `label`,
 `link`, `open-change`, `update-change`, `gate`, `merge-change`, `close`,
-`create-discussion`, `comment-discussion`. State that `triage` (label + comment +
-close) and `patch` (open-change + merge-change) are compositions, not operations.
-One line each on intent, so a skill citing the name needs no other doc.
+`create-discussion`, `comment-discussion`. State that `triage` (label + comment
+
++ close) and `patch` (open-change + merge-change) are compositions, not
+operations. One line each on intent, so a skill citing the name needs no other
+doc.
 
 Verification: every operation Parts 02/03 cite (per plan-b.md § Operation
 vocabulary) is present.
@@ -96,7 +98,7 @@ Files: modify `work-trackers.md`.
 
 Change: the `.tracker/` layout —
 
-```
+```text
 .tracker/
   issues/{id}.md       # envelope front-matter + body; ## Comments appended
   changes/{id}.md      # envelope (kind: change) + links to its issue(s)

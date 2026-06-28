@@ -42,7 +42,7 @@ each layout from scratch.
 The rule "`bin/` is for entry-point scripts" is only partially held. In
 `products/map`, `bin/` contains:
 
-```
+```text
 bin/fit-map.js
 bin/lib/
   client.js
@@ -128,7 +128,7 @@ bring every product, service, and library into conformance in one pass.
 Every package in `products/`, `services/`, and `libraries/` uses the same
 on-disk shape:
 
-```
+```text
 <package>/
   package.json            Required
   justfile                Per-package task runner (optional)
@@ -191,7 +191,7 @@ codebase requires.
 
 ### Services — exact shape
 
-```
+```text
 services/<name>/
   index.js                Service definition / exports (fixed path)
   server.js               Entry point for the service process (fixed path)

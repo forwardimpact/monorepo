@@ -24,7 +24,7 @@ rather than isolated text blocks.
 
 ## Architecture
 
-```
+```text
 universe.dsl ──► Parser ──► Engine
                                │
                                ├── entities (people, teams, projects)

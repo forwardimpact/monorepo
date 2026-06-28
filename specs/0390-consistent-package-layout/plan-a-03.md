@@ -117,7 +117,7 @@ Part 03 is verification-only on a clean main. It usually produces **no commit**
 If optional cleanup is applied (e.g., adding `files` to
 `services/pathway/package.json`), use:
 
-```
+```text
 refactor(layout): verify services tier conformance (part 03/08)
 
 Verification step — all nine services already conform to the services

@@ -75,11 +75,9 @@ whether one design or several exist.
 When exploring competing architectural approaches for the same spec, create
 additional variants using sequential letters:
 
-```
-design-a.md    ← default (always created first)
-design-b.md    ← alternative approach
-design-c.md    ← another alternative
-```
+    design-a.md    ← default (always created first)
+    design-b.md    ← alternative approach
+    design-c.md    ← another alternative
 
 Each variant should open with a brief rationale explaining how it differs from
 design-a. When the design is approved, **design-a is the design that will be
@@ -104,10 +102,11 @@ interfaces connect them — and why this architecture over alternatives.
   flow, state machines, sequence diagrams.
 - **Scope-faithful.** Stay within the spec's scope. If scope should change,
   return the spec to draft rather than expanding silently.
-- **Clean break.** Follow [§ Clean breaks](../../../CONTRIBUTING.md#read-do): the
-  design replaces the old path, never wraps it in shims or fallbacks. Compat
+- **Clean break.** Follow [§ Clean breaks](../../../CONTRIBUTING.md#read-do):
+  the design replaces the old path, never wraps it in shims or fallbacks. Compat
   belongs in the design only when the spec names it as a requirement; if a clean
-  break can't meet the spec, return the spec to `draft` rather than designing around it.
+  break can't meet the spec, return the spec to `draft` rather than designing
+  around it.
 
 **Form follows content.** Prefer tables for lists with shared structure
 (components, decisions). Prefer bullets for flat facts. Use prose only for the
@@ -137,8 +136,11 @@ merge. If criteria fall short, request changes via PR comment.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract specs previously designed and any deferred work
-from prior entries.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and (when this skill reads
+Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
+Extract specs previously designed and any deferred work from prior entries.
 
 ### Step 1: Find the spec
 
@@ -179,7 +181,9 @@ actions; see § Approval. Under
 [lockstep co-execution](references/lockstep-co-execution.md) this single
 `design(NNN)` PR also carries `spec.md`; no separate spec PR is opened.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md):
+every cited SHA must resolve on its referenced repo, or the body is not
+published.
 
 ## Memory: What to Record
 

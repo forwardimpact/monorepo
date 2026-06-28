@@ -21,18 +21,22 @@ pipeline; all Landmark computation is deterministic — no LLM calls.
 **Demonstrate engineering progress:**
 
 - Showing system-level trends — `npx fit-landmark health --manager <email>`
-- Assessing whether culture investments are working — `npx fit-landmark snapshot trend --item <id>`
-- Exploring GetDX snapshot trends and comparisons — `npx fit-landmark snapshot compare`
+- Assessing whether culture investments are working —
+  `npx fit-landmark snapshot trend --item <id>`
+- Exploring GetDX snapshot trends and comparisons —
+  `npx fit-landmark snapshot compare`
 
 **Find growth areas backed by evidence:**
 
 - Checking promotion readiness — `npx fit-landmark readiness --email <email>`
 - Viewing growth timelines — `npx fit-landmark timeline --email <email>`
-- Comparing evidenced vs derived capability — `npx fit-landmark practiced --manager <email>`
+- Comparing evidenced vs derived capability —
+  `npx fit-landmark practiced --manager <email>`
 
 **Surface engineer voice:**
 
-- Surfacing feedback from GetDX comments — `npx fit-landmark voice --manager <email>`
+- Surfacing feedback from GetDX comments —
+  `npx fit-landmark voice --manager <email>`
 - Viewing an individual's voice — `npx fit-landmark voice --email <email>`
 
 ---
@@ -126,4 +130,5 @@ npx fit-landmark health                  # Should display team health overview
 - [List Engineering Data Sources](https://www.forwardimpact.team/docs/products/engineering-data-sources/index.md)
   — List the activity rows retained about an engineer and their fall-off dates
 - [Sign In to Landmark](https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md)
-  — Sign in via Supabase magic-link so commands resolve your identity automatically
+  — Sign in via Supabase magic-link so commands resolve your identity
+  automatically

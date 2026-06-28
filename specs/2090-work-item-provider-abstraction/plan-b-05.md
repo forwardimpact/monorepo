@@ -2,7 +2,8 @@
 
 Add `coordinate-finding/` to the `kata-skills` benchmark family: an end-to-end
 file → open-change → gate → merge loop graded offline against `.tracker/` files.
-Depends on Part 01 (operation names) and Part 04 (`--work-tracker`). Conventions:
+Depends on Part 01 (operation names) and Part 04 (`--work-tracker`).
+Conventions:
 [plan-b.md](plan-b.md).
 
 Libraries used: fit-trace (the `assert` harness in `invariants.sh`).
@@ -31,8 +32,9 @@ Verification: the three files exist and name only matrix operations (no `gh`).
 
 Intent: seed the finding input and a clean coordination root.
 
-Files: create `benchmarks/kata-skills/tasks/coordinate-finding/workdir/finding.md`
-(and any seed the agent reads).
+Files: create
+`benchmarks/kata-skills/tasks/coordinate-finding/workdir/finding.md` (and any
+seed the agent reads).
 
 Change: a short finding brief the agent files. No pre-existing `.tracker/` (the
 agent creates it); no app/network seed required.

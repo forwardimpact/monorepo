@@ -19,13 +19,14 @@ Files: modify `libraries/libeval/src/commands/run.js`,
 `libraries/libeval/src/commands/facilitate.js`.
 
 Change: parse `--work-tracker` (resolving to `"github"` when absent) in each
-option parser, then **unconditionally** set `runtime.proc.env.LIBEVAL_WORK_TRACKER
-= workTracker` **after the closing `}` of** the `if (…Profile)` block that holds
-the existing `LIBEVAL_AGENT_PROFILE` write (run.js:108-110, supervise.js:100-102,
+option parser, then **unconditionally** set
+`runtime.proc.env.LIBEVAL_WORK_TRACKER = workTracker`
+**after the closing `}` of** the `if (…Profile)` block that holds the existing
+`LIBEVAL_AGENT_PROFILE` write (run.js:108-110, supervise.js:100-102,
 discuss.js:95-97, facilitate.js:91-93). Do **not** place it inside that block or
-copy the conditional guard — the write must always land so the default `"github"`
-is observable. The redaction env snapshot already freezes
-before these writes (run.js:64-67); keep the new write after it.
+copy the conditional guard — the write must always land so the default
+`"github"` is observable. The redaction env snapshot already freezes before
+these writes (run.js:64-67); keep the new write after it.
 
 Verification: a unit test sets `--work-tracker filesystem` and asserts
 `runtime.proc.env.LIBEVAL_WORK_TRACKER === "filesystem"`; with the flag absent
@@ -41,10 +42,10 @@ Files: modify `libraries/libeval/src/commands/benchmark-run.js`.
 
 Change: add `workTracker` (default `"github"`) to `parseRunOptions`'s return
 (benchmark-run.js:50-76), then in `runBenchmarkRunCommand` set
-`runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker` alongside the existing
-`runtime.proc.env.ANTHROPIC_API_KEY` write (benchmark-run.js:30-37), **before**
-`createBenchmarkRunner` so the spawned agent subprocess inherits it. This is the
-write criterion 4's offline filesystem run depends on.
+`runtime.proc.env.LIBEVAL_WORK_TRACKER = opts.workTracker` alongside the
+existing `runtime.proc.env.ANTHROPIC_API_KEY` write (benchmark-run.js:30-37),
+**before** `createBenchmarkRunner` so the spawned agent subprocess inherits it.
+This is the write criterion 4's offline filesystem run depends on.
 
 Verification: a unit test asserts `LIBEVAL_WORK_TRACKER` is set from
 `--work-tracker` before the runner starts.
@@ -76,9 +77,9 @@ respective `cases.json`; add/extend unit tests under `libraries/libeval/test/`
 for the env writes (Steps 1-2).
 
 Change: regenerate the two `help.stdout.txt` to include the new example lines;
-add a `run --help` golden case to each `cases.json` (capturing the `--work-tracker`
-option text), since current cases cover only top-level `--help`. Add the env
-assertions from Steps 1-2.
+add a `run --help` golden case to each `cases.json` (capturing the
+`--work-tracker` option text), since current cases cover only top-level
+`--help`. Add the env assertions from Steps 1-2.
 
 Verification: `bun run test` (golden + unit) passes; `--work-tracker` appears in
 each CLI's golden help output.

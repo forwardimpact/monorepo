@@ -2,10 +2,8 @@
 
 ## Getting Started
 
-```sh
-bun install
-just quickstart
-```
+    bun install
+    just quickstart
 
 `ANTHROPIC_API_KEY` is already set; `libconfig` reads it automatically.
 
@@ -31,8 +29,8 @@ Architectural non-negotiables — the shape of the codebase.
 - **Explain WHY, not WHEN** — Comments, logs, and durable docs state the present
   contract: no spec/design/plan numbers, issue/PR references, or
   experiment/obstacle labels. Provenance lives in PR bodies and git history.
-  `specs/`, `wiki/`, `benchmarks/`, `generated/` are exempt; rewrite, don't port,
-  their content. Enforced by `bun run invariants`.
+  `specs/`, `wiki/`, `benchmarks/`, `generated/` are exempt; rewrite, don't
+  port, their content. Enforced by `bun run invariants`.
 
 ### READ-DO
 
@@ -47,10 +45,10 @@ Entry gate — read every item before starting.
 - [ ] **Search shared libraries first.** Before writing any generic helper, scan
       [libraries/README.md](libraries/README.md). Use a library if one covers
       it; otherwise note that in the commit or plan.
-- [ ] **Reuse libmock; inject collaborators.** Before writing a mock or
-      fixture, check `libraries/libmock/src/index.js` and reuse it. New src
-      takes injected `fs`/`proc`/`clock`/`subprocess`, not ambient globals —
-      see [MONOREPO.md § Ambient Dependencies](MONOREPO.md#ambient-dependencies-and-collaborator-injection).
+- [ ] **Reuse libmock; inject collaborators.** Before writing a mock or fixture,
+      check `libraries/libmock/src/index.js` and reuse it. New src takes
+      injected `fs`/`proc`/`clock`/`subprocess`, not ambient globals — see
+      [MONOREPO.md § Ambient Dependencies](MONOREPO.md#ambient-dependencies-and-collaborator-injection).
 - [ ] **Simple over easy.** Reduce complexity, don't relocate it. Three similar
       lines beat a premature abstraction. Inline single-use helpers; hardcode
       single-consumer configuration.
@@ -90,37 +88,35 @@ Exit gate — verify every item before committing.
 
 ### Monorepo layout
 
-```
-.claude/       # agents and skills, edited via `bunx fit-selfedit`
-products/      # one directory per product — see the products list below
-libraries/
-  lib*/        # shared libraries
-services/
-  <name>/      # one per service — see config/config.json
-config/
-  config.json  # service definitions
-data/
-  synthetic/   # synthetic data DSL and artifacts
-specs/
-  {feature}/   # specifications and plans
-wiki/          # GitHub wiki — shared agent memory
-design/        # design language and brand implementations
-websites/      # public sites — fit/ → forwardimpact.team, kata/ → kata.team
-```
+    .claude/       # agents and skills, edited via `bunx fit-selfedit`
+    products/      # one directory per product — see the products list below
+    libraries/
+      lib*/        # shared libraries
+    services/
+      <name>/      # one per service — see config/config.json
+    config/
+      config.json  # service definitions
+    data/
+      synthetic/   # synthetic data DSL and artifacts
+    specs/
+      {feature}/   # specifications and plans
+    wiki/          # GitHub wiki — shared agent memory
+    design/        # design language and brand implementations
+    websites/      # public sites — fit/ → forwardimpact.team, kata/ → kata.team
 
 The `products/` directory holds one directory per product:
 
 <!-- enum:products-tree:list -->
-```
-map/
-pathway/
-guide/
-landmark/
-summit/
-outpost/
-gear/
-kata/
-```
+
+    map/
+    pathway/
+    guide/
+    landmark/
+    summit/
+    outpost/
+    gear/
+    kata/
+
 <!-- /enum -->
 
 Git tracks `*.example.*` templates in `config/`; live files are gitignored.
@@ -130,22 +126,20 @@ Git tracks `*.example.*` templates in `config/`; live files are gitignored.
 Every package follows the same on-disk shape: source under `src/`, no `.js`
 or `.ts` files at the package root.
 
-```
-<package>/
-  package.json     Required
-  justfile         Per-package task runner (optional)
-  src/             All source (index.js + domain subdirs)
-  bin/             Thin CLI entry points, one per binary
-  config/          Checked-in configuration (optional)
-  macos/           macOS app bundle (optional)
-  pkg/             Packaging artifacts, non-source (optional)
-  proto/           Protobuf source (optional)
-  schema/          Published schemas (optional)
-  starter/         Starter data installed to a consumer (optional)
-  supabase/        Supabase edge project (optional)
-  templates/       Runtime template files (optional)
-  test/            Test files
-```
+    <package>/
+      package.json     Required
+      justfile         Per-package task runner (optional)
+      src/             All source (index.js + domain subdirs)
+      bin/             Thin CLI entry points, one per binary
+      config/          Checked-in configuration (optional)
+      macos/           macOS app bundle (optional)
+      pkg/             Packaging artifacts, non-source (optional)
+      proto/           Protobuf source (optional)
+      schema/          Published schemas (optional)
+      starter/         Starter data installed to a consumer (optional)
+      supabase/        Supabase edge project (optional)
+      templates/       Runtime template files (optional)
+      test/            Test files
 
 Subcommand handlers live under `src/commands/`, helpers under `src/lib/`.
 Published `exports` point at `src/`; consumers import via subpath aliases. No
@@ -205,15 +199,13 @@ A consumer pinned ahead of its producer fails closed: a missing binary has no
 
 ## Quality Commands
 
-```sh
-bun run check                 # All quality gates (run before every commit)
-bun run check:fix             # Auto-fix format and lint issues
-bun run test                  # Unit tests, bun runner (local/PR loop)
-bun run test:gate             # The blocking gate (see Test-runner strategy)
-bun run test:e2e              # Playwright E2E tests
-bunx fit-map validate         # Validate data files
-bunx fit-map validate --shacl # Validate with SHACL syntax check
-```
+    bun run check                 # All quality gates (run before every commit)
+    bun run check:fix             # Auto-fix format and lint issues
+    bun run test                  # Unit tests, bun runner (local/PR loop)
+    bun run test:gate             # The blocking gate (see Test-runner strategy)
+    bun run test:e2e              # Playwright E2E tests
+    bunx fit-map validate         # Validate data files
+    bunx fit-map validate --shacl # Validate with SHACL syntax check
 
 ### Test-runner strategy
 

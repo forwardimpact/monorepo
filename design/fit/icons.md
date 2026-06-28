@@ -11,7 +11,7 @@ with the three characters, see [scenes.md](scenes.md).
 
 ## Map — The Unfolded Map
 
-```
+```text
   ┌─────┬─────┐
   │  ·  │     │
   │ / \ │  ×  │   ← route line with marker
@@ -25,7 +25,7 @@ the single source of truth. Everything else references Map.
 
 ## Pathway — The Switchback Trail
 
-```
+```text
          ╱ ─ ╲
     ╱ ─ ╱     ╲
    ╱   ╱       ╲
@@ -39,7 +39,7 @@ Peaks belong to Summit; Pathway owns the trail.
 
 ## Guide — The Compass
 
-```
+```text
         N
         │
    W ───┼─── E
@@ -54,7 +54,7 @@ AI (a "smart" element within an analog tool).
 
 ## Landmark — The Cairn
 
-```
+```text
       ┃╲
      ┌┸─┐
     ┌────┐
@@ -70,7 +70,7 @@ as Landmark's analysis derives meaning from collected data.
 
 ## Summit — The Peak
 
-```
+```text
       ⛳
       /\
      /  \   /\
@@ -87,7 +87,7 @@ capability the team is trying to reach together.
 
 ## Outpost — The Tent
 
-```
+```text
       △
      / \
     /   \
@@ -101,7 +101,7 @@ portable, reflecting that knowledge management should travel with you.
 
 ## Gear — The Tool Roll
 
-```
+```text
   ╭─┬─┬─┬─┬─╮
   │ │ │ │ │ │    ← pockets with tools
   │ ╿ ╿ ╿ ╿ │
@@ -135,7 +135,7 @@ canvas; each utility is a pocket.
 
 ## Combined Icon: The Suite Mark
 
-```
+```text
  ┌──┬──┐      ╱─╲             N         ┃╲         ⛳/\        △      ╭┬┬┬╮
  │ /│× │     ╱   ╲            │        ┌┸─┐       /  \      / \     │╿╿╿│
  │/ │  │    ~~~~~~~~~~~~  ───┼───    ┌────┐     /    \    /___\    ╰┴┴┴╯

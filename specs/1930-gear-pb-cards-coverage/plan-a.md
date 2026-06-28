@@ -86,7 +86,10 @@ Change, within the existing `### For Platform Builders` group:
     in One Source" and "Ship Service Endpoints Without Boilerplate" now have
     their own cards).
 
-Verify: `grep -oE 'README.md#platform-builders-[a-z0-9-]+' websites/fit/gear/index.md | sort -u | wc -l` returns 12 distinct slugs (distinct, so a duplicated or transposed anchor cannot pass).
+Verify:
+`grep -oE 'README.md#platform-builders-[a-z0-9-]+' websites/fit/gear/index.md | sort -u | wc -l`
+returns 12 distinct slugs (distinct, so a duplicated or transposed anchor cannot
+pass).
 
 ## Step 2 — Add the Empowered Engineers group
 
@@ -107,7 +110,8 @@ Change, after the Platform Builders `</div>` and before the `---` divider:
   sentence Big-Hire paraphrase.
 
 Verify: `grep -c '### For Empowered Engineers' websites/fit/gear/index.md`
-returns 1 and `grep -c 'empowered-engineers-operate-a-predictable-agent-team' websites/fit/gear/index.md`
+returns 1 and
+`grep -c 'empowered-engineers-operate-a-predictable-agent-team' websites/fit/gear/index.md`
 returns 1.
 
 ## Step 3 — Verify the anchor gate, paste gate, and build
@@ -117,9 +121,9 @@ catalog paste, and the site builds.
 
 Files: none (verification only).
 
-- **Anchor parity (mechanical diff).** Derive expected slugs from the source
-  and the page's actual anchors into two comparable, sorted lists, then `diff`
-  — empty diff is the gate:
+- **Anchor parity (mechanical diff).** Derive expected slugs from the source and
+  the page's actual anchors into two comparable, sorted lists, then `diff` —
+  empty diff is the gate:
 
   ```sh
   # expected: slugify each <job> as <persona>-<goal>, lowercased, punctuation
@@ -168,9 +172,10 @@ Files: none (verification only).
   re-extraction governs, not the table above. Always re-run the grep.
 - **GitHub slug edge cases.** The in-scope goals contain only letters, spaces,
   and one colon in the catalog heading (stripped). No goal has parentheses,
-  ampersands, or repeated hyphens, so the lowercase/strip-punctuation/space→hyphen
-  rule is exact for this set; a future goal with other punctuation would need
-  the rule re-checked against GitHub's slugifier.
+  ampersands, or repeated hyphens, so the
+  lowercase/strip-punctuation/space→hyphen rule is exact for this set; a future
+  goal with other punctuation would need the rule re-checked against GitHub's
+  slugifier.
 
 ## Execution
 

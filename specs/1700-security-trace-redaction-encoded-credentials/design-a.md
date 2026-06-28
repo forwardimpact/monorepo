@@ -62,16 +62,17 @@ flowchart LR
 For a secret `S` and alignment `k`, the helper prepends `k` filler bytes,
 standard-base64 encodes `filler+S`, strips the leading chars contaminated by the
 filler and the trailing chars contaminated by the unknown suffix + partial final
-group + padding, and keeps the invariant interior core. **Why this is sound, not
-just empirical:** base64 maps each disjoint 3-byte group to 4 chars
-independently. Once the secret's first byte lands on a group boundary (after the
-`k` filler bytes) and the last whole group ending at or before the secret's last
-byte is reached, the chars covering those interior groups depend only on the
-secret's bytes — never on the bytes before the filler or after the secret. Only
-the partial groups at each edge are neighbor-dependent, so stripping them leaves
-a substring that is identical regardless of what surrounds `S` at that alignment.
-The plan fixes the exact edge-strip counts and pins them with a unit test;
-the architecture-level guarantee is "interior groups are neighbor-independent."
+group + padding, and keeps the invariant interior core.
+**Why this is sound, not just empirical:** base64 maps each disjoint 3-byte
+group to 4 chars independently. Once the secret's first byte lands on a group
+boundary (after the `k` filler bytes) and the last whole group ending at or
+before the secret's last byte is reached, the chars covering those interior
+groups depend only on the secret's bytes — never on the bytes before the filler
+or after the secret. Only the partial groups at each edge are
+neighbor-dependent, so stripping them leaves a substring that is identical
+regardless of what surrounds `S` at that alignment. The plan fixes the exact
+edge-strip counts and pins them with a unit test; the architecture-level
+guarantee is "interior groups are neighbor-independent."
 
 Because padding (`=`) only ever appears in the final partial group, which is
 always stripped, the core is padding-free — so the **same** needle matches
@@ -108,8 +109,8 @@ the `ghs_` plaintext prefix), while the env layer covers **any** allowlisted
 secret in **any** base64 composition. Overlapping placeholders never collide:
 the raw and encoded env passes run before the pattern pass, and once a region is
 replaced by `[REDACTED:env:NAME]` it no longer contains the original bytes, so a
-later pass cannot re-match it (the placeholder text shares no base64-alphabet run
-with any needle or pattern). First hit per region wins; double-redaction is
+later pass cannot re-match it (the placeholder text shares no base64-alphabet
+run with any needle or pattern). First hit per region wins; double-redaction is
 impossible.
 
 ## Key Decisions

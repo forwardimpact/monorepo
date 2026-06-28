@@ -57,7 +57,10 @@ membership; `null` = native channel only).
 `fit-svcgraph` is first among `gear` entries so it remains the gear bundle's
 `--primary-exec` (the CLI `publish-brew.yml`'s gear smoke test invokes).
 
-Verify: `jq -e '.clis | length == 32' build/cli-manifest.json` exits 0, and every `.name` resolves: `jq -r '.clis[].name' build/cli-manifest.json | while read c; do just build-binary "$c" bun-linux-x64 >/dev/null; done` exits 0.
+Verify: `jq -e '.clis | length == 32' build/cli-manifest.json` exits 0, and
+every `.name` resolves:
+`jq -r '.clis[].name' build/cli-manifest.json | while read c; do just build-binary "$c" bun-linux-x64 >/dev/null; done`
+exits 0.
 
 ## Step 2 — Replace the enumeration recipes with a manifest-driven `build-all`
 
@@ -84,7 +87,10 @@ build-all TARGET="bun-darwin-arm64": codegen
 `build-binary` (lines 192–223) is unchanged — it stays the sole compile
 primitive and sole binary-build entry point.
 
-Verify: `rg -n 'build-binaries|build-product-binaries|build-gear-binaries|build-apps' justfile` returns nothing; `just build-all bun-linux-x64` compiles all 32 binaries into `dist/binaries/`.
+Verify:
+`rg -n 'build-binaries|build-product-binaries|build-gear-binaries|build-apps' justfile`
+returns nothing; `just build-all bun-linux-x64` compiles all 32 binaries into
+`dist/binaries/`.
 
 ## Step 3 — Drive `build-app-gear` from the manifest
 
@@ -113,7 +119,11 @@ build-app-gear:
     bash libraries/libmacos/scripts/build-app.sh "${ARGS[@]}"
 ```
 
-Verify (macOS): `jq '[.clis[]|select(.bundle=="gear")]|length' build/cli-manifest.json` is exactly 25; `just build-all bun-darwin-arm64 && just build-app-gear` produces `dist/apps/fit-gear.app` whose `Contents/MacOS/` holds those 25 gear binaries with `fit-svcgraph` as the primary exec.
+Verify (macOS):
+`jq '[.clis[]|select(.bundle=="gear")]|length' build/cli-manifest.json` is
+exactly 25; `just build-all bun-darwin-arm64 && just build-app-gear` produces
+`dist/apps/fit-gear.app` whose `Contents/MacOS/` holds those 25 gear binaries
+with `fit-svcgraph` as the primary exec.
 
 ## Step 4 — Make `build-app-product` outpost consume the shared binary
 
@@ -163,7 +173,10 @@ same step so the cdhash gate fires on PRs that touch the outpost-app recipe:
 
 - Also modified: `.github/workflows/outpost-determinism-probe.yml`
 
-Verify (macOS): `just build-binary fit-outpost bun-darwin-arm64 && just build-app-product outpost` produces `dist/apps/fit-outpost.app`; the probe now triggers on this PR and its two-build cdhash comparison passes.
+Verify (macOS):
+`just build-binary fit-outpost bun-darwin-arm64 && just build-app-product outpost`
+produces `dist/apps/fit-outpost.app`; the probe now triggers on this PR and its
+two-build cdhash comparison passes.
 
 ## Step 5 — Update the release-internals doc
 
@@ -186,11 +199,14 @@ The cask→PATH mapping table (lines 58–66) stays as-is: it is human-facing
 documentation mirroring the tap repo's human-edited cask `binary` stanzas, not a
 build input, so it is not a second build-set enumeration in the spec's sense.
 
-Verify: `rg -n 'build-gear-binaries|build-product-binaries|build-binaries\b' websites/fit/docs/internals/release/index.md` returns nothing, and the surviving `build-app-gear` mention reads as manifest-derived (no inline CLI list beside it).
+Verify:
+`rg -n 'build-gear-binaries|build-product-binaries|build-binaries\b' websites/fit/docs/internals/release/index.md`
+returns nothing, and the surviving `build-app-gear` mention reads as
+manifest-derived (no inline CLI list beside it).
 
 ## Risks
 
 - `build-app-gear`'s primary exec is positional (`GEAR[0]`); if the manifest's
-  gear order is edited so `fit-svcgraph` is no longer first, `publish-brew.yml`'s
-  gear smoke test (`fit-svcgraph --help`) and the cask's primary binary diverge.
-  Keep `fit-svcgraph` first.
+  gear order is edited so `fit-svcgraph` is no longer first,
+  `publish-brew.yml`'s gear smoke test (`fit-svcgraph --help`) and the cask's
+  primary binary diverge. Keep `fit-svcgraph` first.

@@ -5,7 +5,7 @@ analytics to every product in the Forward Impact suite. It owns domain data,
 publishes stable contracts, and enforces schema quality — consumers depend on
 contracts, not implementation details.
 
-```
+```text
 @forwardimpact/map    CLI: fit-map
 ```
 
@@ -32,7 +32,7 @@ The data product serves two audiences with different needs: npm consumers that
 import the pure data model, and operational products that query live data. These
 live in the same product but are separated by a one-way dependency boundary.
 
-```
+```text
 products/map/
   src/              Pure data model (published to npm)
   schema/           JSON Schema + RDF/SHACL (published to npm)
@@ -258,7 +258,7 @@ dependency — these imports are never published.
 
 ## Architecture
 
-```
+```text
                      ┌─────────────────────────────────────────────┐
                      │  @forwardimpact/map                         │
                      │                                             │

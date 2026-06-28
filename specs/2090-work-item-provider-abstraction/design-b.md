@@ -100,7 +100,8 @@ Two kinds share one **envelope** carried as YAML front-matter:
 
 The matrix records how each capability degrades per tracker. Front-matter is the
 envelope carrier, chosen over a sidecar manifest or JSON store so one
-human-readable file holds metadata and body and an agent edits it without a tool.
+human-readable file holds metadata and body and an agent edits it without a
+tool.
 
 ## Abstract operations
 
@@ -132,7 +133,7 @@ matrix rather than carrying `gh`.
 A coordination root `.tracker/` in the working tree, tracker-owned and disjoint
 from app files:
 
-```
+```text
 .tracker/
   issues/{id}.md       # envelope front-matter + body; ## Comments appended
   changes/{id}.md      # envelope (kind: change) + links to its issue(s)
@@ -165,10 +166,10 @@ The libeval command layer sets it on the agent environment exactly where it
 already sets `LIBEVAL_AGENT_PROFILE`; `fit-eval` and `fit-benchmark` declare a
 `--work-tracker` option that feeds it, with matching golden help. The matrix
 documents the variable; skills never branch on it. The benchmark task runs
-`--work-tracker filesystem`; production leaves the default. A harness-set env var
-is chosen over a per-skill flag or a config file, which add surface the sandbox
-must seed and would let skill wording branch on the tracker — the one thing
-criterion 5 forbids.
+`--work-tracker filesystem`; production leaves the default. A harness-set env
+var is chosen over a per-skill flag or a config file, which add surface the
+sandbox must seed and would let skill wording branch on the tracker — the one
+thing criterion 5 forbids.
 
 ## Approval-signal generalization
 
@@ -189,12 +190,12 @@ trust offline is rejected as unverifiable without the tracker.
 `coordinate-finding/` (named for its object, a finding, rather than the
 `-feature` suffix the rubric tasks use) follows the existing task structure —
 agent, judge, and supervisor task files, a workdir overlay, and the preflight
-and invariants hooks. Invoked with `--work-tracker filesystem`, the agent is given a finding
-and runs the loop: `create-issue`, `open-change` linking it, `gate` with a
-trusted signal, `merge-change`, networking unavailable. The invariants hook
-asserts on the resulting `.tracker/` files — issue exists and is linked, change
-reached `state: merged`, `approval` recorded — using the same `assert` harness
-the rubric tasks (spec/design/plan) use.
+and invariants hooks. Invoked with `--work-tracker filesystem`, the agent is
+given a finding and runs the loop: `create-issue`, `open-change` linking it,
+`gate` with a trusted signal, `merge-change`, networking unavailable. The
+invariants hook asserts on the resulting `.tracker/` files — issue exists and is
+linked, change reached `state: merged`, `approval` recorded — using the same
+`assert` harness the rubric tasks (spec/design/plan) use.
 
 ## Criteria coverage
 

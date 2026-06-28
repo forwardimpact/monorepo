@@ -25,10 +25,10 @@ Implements [design-a.md](design-a.md) for [spec 1360](spec.md).
 > this plan.** Two viable directions for the human gate, both touching the
 > spec's scope boundary:
 >
-> 1. **Narrow SC#3** to "denies the `Edit`-family and recognized-Bash-file-command
->    routes (defense-in-depth); the load-bearing closure for the actual
->    `state/`-traversal attack is the hardened agent-state writer (surface 2,
->    Steps 2/4/5)." — a spec change.
+> 1. **Narrow SC#3** to "denies the `Edit`-family and
+>    recognized-Bash-file-command routes (defense-in-depth); the load-bearing
+>    closure for the actual `state/`-traversal attack is the hardened
+>    agent-state writer (surface 2, Steps 2/4/5)." — a spec change.
 > 2. **Remove `Bash(bun *)`/`Bash(bunx *)` from the agent template allow-list
 >    or enable the sandbox** — pulls spec § Out-of-scope (sandboxing) back into
 >    scope; a spec change.
@@ -172,9 +172,9 @@ Replace the private `#buildSpawnEnv` with a delegation that logs rejections.
 Modifies `products/outpost/src/agent-runner.js`.
 
 - Add `import { buildSpawnEnv } from "./spawn-env.js";` at the top.
-- Delete the private `#buildSpawnEnv` method (JSDoc + body, the `#buildSpawnEnv(configEnv)`
-  block); keep the `homedir`/`join` imports (still used by `#findClaude` and
-  `#expandPath`).
+- Delete the private `#buildSpawnEnv` method (JSDoc + body, the
+  `#buildSpawnEnv(configEnv)` block); keep the `homedir`/`join` imports (still
+  used by `#findClaude` and `#expandPath`).
 - In `wake`, at the existing `const env = this.#buildSpawnEnv(configEnv);`
   site — which is **after** the `agent.kb` / `existsSync(kbPath)` early returns,
   so rejections are only logged for wakes that actually spawn (intentional;
@@ -203,11 +203,12 @@ Step 7 by design; that is the only red window in the sequence.)
 Replace the inline `replace(/-/g, "_")` with the validating mapper; skip the
 write on rejection. Modifies `products/outpost/src/state-manager.js`.
 
-- Add `import { agentNameToStatePrefix, UnsafeAgentNameError } from "./agent-path.js";`.
-- Add an **optional** fifth parameter `logFn` to `updateAgentState` (optional
-  so the existing 4-arg calls in `state-manager.test.js` stay green — those
-  tests pass no `logFn` and the rejection branch guards with `if (logFn)`).
-  Pass `this.#log` from `AgentRunner.wake`'s success branch
+- Add
+  `import { agentNameToStatePrefix, UnsafeAgentNameError } from "./agent-path.js";`.
+- Add an **optional** fifth parameter `logFn` to `updateAgentState` (optional so
+  the existing 4-arg calls in `state-manager.test.js` stay green — those tests
+  pass no `logFn` and the rejection branch guards with `if (logFn)`). Pass
+  `this.#log` from `AgentRunner.wake`'s success branch
   (`this.#stateManager.updateAgentState(as, stdout, agentName, this.#cacheDir, this.#log)`).
 - Replace the state-write tail (the `const stateDir` / `mkdirSync` /
   `const prefix = agentName.replace(...)` / `writeFileSync` block) with:
@@ -248,11 +249,13 @@ Step 4 replaces, used here on a read path-join. Route it through the shared
 mapper so the contract is single-sourced. Modifies
 `products/outpost/src/socket-server.js`.
 
-- Add `import { agentNameToStatePrefix, UnsafeAgentNameError } from "./agent-path.js";`.
-- In `#resolveBriefingFile`, replace `const prefix = agentName.replace(/-/g, "_") + "_";`
-  with a guarded call: compute `agentNameToStatePrefix(agentName)`; on
-  `UnsafeAgentNameError`, log via `this.#log` and return `null` (no briefing
-  file) rather than joining a traversal path.
+- Add
+  `import { agentNameToStatePrefix, UnsafeAgentNameError } from "./agent-path.js";`.
+- In `#resolveBriefingFile`, replace
+  `const prefix = agentName.replace(/-/g, "_") + "_";` with a guarded call:
+  compute `agentNameToStatePrefix(agentName)`; on `UnsafeAgentNameError`, log
+  via `this.#log` and return `null` (no briefing file) rather than joining a
+  traversal path.
 
 Verification: existing socket-server behaviour for valid names unchanged;
 add or extend a test feeding a traversal name and asserting the resolved

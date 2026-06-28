@@ -24,6 +24,7 @@ gh secret set SERVICE_SECRET --body "$(node -e "console.log(require('crypto').ra
 ```
 
 The same `SERVICE_SECRET` value must be available to:
+
 - **The bridge service** — via `process.env.SERVICE_SECRET` (loaded from
   `.env` by libconfig or exported in the shell).
 - **GitHub Actions** — via the repository secret, passed to the "Deliver
@@ -114,18 +115,21 @@ specific to the Teams bridge, but the bridge depends on them indirectly:
 After configuring `SERVICE_SECRET`:
 
 1. Confirm the secret is set:
+
    ```sh
    gh secret list | grep SERVICE_SECRET
    ```
 
 2. Trigger a test dispatch with a callback URL pointing to a request
    inspector (e.g. [webhook.site](https://webhook.site)):
+
    ```sh
    gh workflow run agent-react.yml \
      -f prompt="test" \
      -f callback_url="https://webhook.site/<your-uuid>" \
      -f correlation_id="test-123"
    ```
+
    After the run completes, check whether the callback arrived with an
    `Authorization: Bearer ...` header. If the header is absent, the
    `fit-eval callback` command has not yet been updated (see § 3).

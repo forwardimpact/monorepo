@@ -128,7 +128,8 @@ types.
      diverge from Dependabot's expander.
 
 CLI shape: no flags, no args. Shebang `#!/usr/bin/env node`. ESM imports:
-`node:fs`, `node:path`, `yaml`. Invocation is `bun scripts/check-dependabot.mjs`.
+`node:fs`, `node:path`, `yaml`. Invocation is
+`bun scripts/check-dependabot.mjs`.
 
 Verification (run after Step 3 lands the glob; all in throw-away worktrees,
 no commits):
@@ -258,10 +259,11 @@ prevention mechanism, not the replay test.
 
 Single trusted agent (`staff-engineer`) executes Steps 1–5 sequentially in one
 PR — each step depends on the previous. No decomposition (~120 lines of net
-change across **five files**: `package.json`, `bun.lock`, `.github/dependabot.yml`,
-`scripts/check-dependabot.mjs`, `.github/workflows/check-security.yml`). The
-implementer must complete Step 2's positive-baseline, negative-path drift, and
-all three add/rename/delete replays after Step 3 lands and before opening the
-implementation PR; record outcomes in the PR description.
+change across **five files**: `package.json`, `bun.lock`,
+`.github/dependabot.yml`, `scripts/check-dependabot.mjs`,
+`.github/workflows/check-security.yml`). The implementer must complete Step 2's
+positive-baseline, negative-path drift, and all three add/rename/delete replays
+after Step 3 lands and before opening the implementation PR; record outcomes in
+the PR description.
 
 — Staff Engineer 🛠️

@@ -113,7 +113,7 @@ Loaded via `createServiceConfig("ghbridge")`):
 The PEM file must be entered as a single line with literal `\n` replacing
 each line break, wrapped in double quotes:
 
-```
+```text
 SERVICE_GHBRIDGE_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n...\n-----END RSA PRIVATE KEY-----"
 ```
 
@@ -183,7 +183,8 @@ restrictions, disconnect before starting.
 Open a new GitHub Discussion in the configured repository. The bridge:
 
 1. Verifies the `X-Hub-Signature-256` against the webhook secret.
-2. Saves a discussion record to `services/bridge` keyed by the discussion's `node_id`.
+2. Saves a discussion record to `services/bridge` keyed by the discussion's
+   `node_id`.
 3. Dispatches `kata-dispatch.yml` via `workflow_dispatch`.
 4. Adds an "EYES" reaction to the discussion as a progress indicator.
 

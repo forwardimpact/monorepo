@@ -61,7 +61,9 @@ agent's own scoped commit still strands a foreign writer's conflicted
 residue under a success-shaped exit. This face is a property of that
 existing scoped-commit + autostash on `claim`/`release` — **live on `main`
 today and governed by D1's per-caller contract, not a consequence of the
-#1583 item 3 sweep-scoping question** (D6 resolves item 3 out and keeps the
+
+## 1583 item 3 sweep-scoping question** (D6 resolves item 3 out and keeps the
+
 sweep whole-tree). Its honest-outcome contract is § Decisions D9.
 
 These defects are the local members of a wider pattern the team's
@@ -94,24 +96,23 @@ a full-history fetch), caught only by the *external* run-283
 ancestry-verify floor, not by the tool
 ([allocation anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676312051)).
 The occurrence is **release-engineer live-verified** on every independently
-re-verifiable element ([verification anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676483628)):
-origin never accepted `bc982943` (no containing ref at a full-history
-fetch); its parent `27077d6d` *is* an ancestor of `origin/master`,
-isolating the stranding to exactly the one commit the tool reported
-pushed; the swallow is live at source (empty catch around the push,
-unconditional pushed-true return); and the `claim` surface's
-saved-locally branch is confirmed dead code for push failures. The
-ledger's double-#41 is since reconciled — final assignment keeps
-**#41 = `bc982943`** ([reconciliation](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676486013)),
-so this spec's citations stand as written; the SHA-keyed hedge above
-remains the durable protection.
-With #41 the three phantom-class events span the full invisibility
-gradient — #41 (`bc982943`) object-in-hand, #30 (`ba1468cf`)
-object-reconstructed, the measures-CSV phantom no-object (ordinals as of
-their allocation anchors; the ledger renumbers positionally, so SHA and
-anchor keying govern) — so the defect
-is no longer inferred from source capability alone; it has a
-caught-in-the-act specimen. That specimen is no longer alone: a third,
+re-verifiable element
+([verification anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676483628)):
+origin never accepted `bc982943` (no containing ref at a full-history fetch);
+its parent `27077d6d` *is* an ancestor of `origin/master`, isolating the
+stranding to exactly the one commit the tool reported pushed; the swallow is
+live at source (empty catch around the push, unconditional pushed-true return);
+and the `claim` surface's saved-locally branch is confirmed dead code for push
+failures. The ledger's double-#41 is since reconciled — final assignment keeps
+**#41 = `bc982943`**
+([reconciliation](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676486013)),
+so this spec's citations stand as written; the SHA-keyed hedge above remains the
+durable protection. With #41 the three phantom-class events span the full
+invisibility gradient — #41 (`bc982943`) object-in-hand, #30 (`ba1468cf`)
+object-reconstructed, the measures-CSV phantom no-object (ordinals as of their
+allocation anchors; the ledger renumbers positionally, so SHA and anchor keying
+govern) — so the defect is no longer inferred from source capability alone; it
+has a caught-in-the-act specimen. That specimen is no longer alone: a third,
 coach-verified first-hand
 ([ledger disposition](https://github.com/forwardimpact/monorepo/issues/1580#issuecomment-4676327242)),
 landed on the **`fit-wiki release` path** — the run-303 release check
@@ -158,9 +159,9 @@ three caller rows:
 | `fit-wiki claim` | MEMORY.md only | Agents claiming work | Must keep zero exit when the local write succeeded: a claim whose row landed locally is a completed claim; the session-end push is the retry. Loud warning, quiet exit. |
 | `fit-wiki release` (targeted and `--expired` — two distinct call sites) | MEMORY.md only | Agents releasing work, expiry cleanup | Same contract as `claim`, exercised separately per call site. |
 
-## Scope
+### Scope
 
-### In scope
+#### In scope
 
 | Component | What changes |
 |---|---|
@@ -176,7 +177,7 @@ three caller rows:
 | Operator message contract | Failure messages name the reason class and the recovery path; where uncommitted work is retained in the stash on a failed autostash reapplication, the message names where it went (§ Decisions D3 guarantee). Contract is exit code plus reason class — exact wording is plan territory. |
 | Documented contract surface | The `commitAndPush` contract documentation describes the outcome taxonomy and per-caller mapping, traceable to this spec. |
 
-### Out of scope
+#### Out of scope
 
 - **Ancestry verification on unverifiable clones** — spec 1750 (PR #1588),
   the other half of the coordinated series. Its two guard-refusal classes
@@ -197,7 +198,7 @@ three caller rows:
 - **Spec 1730** (compliant-by-construction writes) — standalone; references
   this contract rather than absorbing it.
 
-## Decisions
+### Decisions
 
 Each decision names its carried alternative because the approval signal
 adjudicates between them (settlement sentence above); rationale is kept to
@@ -221,48 +222,46 @@ reason → remediation is pull and re-apply on the true tip.
 claim whose local write succeeded and which the session-end push will
 usually land.
 
-**D2 — Outcome-reason taxonomy, conditioned on the fetch outcome.**
-Distinguish at minimum: *landed*, *nothing to push*, *rejected by remote*
-(non-fast-forward — actionable now: rerun from the true tip), *conflict*
-(rebase conflict — resolve or retry from the true tip), *residue-conflict*
-(§ Decisions D9 — the autostash pop left unmerged paths after an exit-0
-rebase, distinct from *conflict*, which keys on the rebase itself),
-*transport/credential failure* (possibly transient), and *precondition*
-(§ Decisions D7 — the repository state invalidated the operation's
-instruments before it could run). **Grounded-success
-property:** *landed* is asserted only from observed remote state, through
-either admissible channel: the pushed commit reachable from the remote ref
-(post-push remote observation), or the per-ref update report for that ref —
-the machine-readable status the *remote* produces during the push,
-admissible because it is remote-originated even though git relays it on the
-push subprocess's stdout. The inadmissible channels are the subprocess's
-prose output text, its exit status alone, and the absence of a caught
-error — those attest that a process ran, not that the remote accepted.
-The grounding covers the other success-shaped quiet outcome too:
-***nothing to push* is asserted only when the observed remote ref already
-contains local HEAD** — never from pre-fetch arithmetic against the
-remote-tracking ref, which is how it is computed today. As contract, not
-doc-comment convention: the push decision is keyed to whether the remote
-contains the local commits, never to working-tree dirtiness — a
-stranded-resume state (clean tree, local commits ahead: exactly the
-workspace a #41-class stranding leaves behind when D4's remediation turn
-never runs) must re-push, not report quiet success. This pair of
-groundings is what
-makes the external ancestry-verify floor unnecessary over *every*
-success-shaped outcome: occurrence #41
-(§ Evidence) is precisely a success claim made on output text while the
-commit was stranded, detectable only by an out-of-band floor. Any outcome
-that fails this grounding is classified as a failure reason from this
-taxonomy, never as *landed*. *Rejected* is
-reportable only when the preceding remote observation succeeded; when the
-fetch failed, a subsequent push rejection is classified as transport —
-otherwise broken credentials masquerade as contention and "rerun" guidance
-loops forever against a stale ref. Spec 1750's two guard-refusal classes
-(confirmed-unrelated, could-not-verify) join this taxonomy when both specs
-have landed; D7's *precondition* refusal is could-not-verify-shaped
-(verification could not run) and reportable in either series order. *Alternative carried:* collapse *rejected* and *transport*
-into one failure reason — simpler, but they direct different operator
-responses, and conflation is exactly how the run-275 false finding grew.
+**D2 — Outcome-reason taxonomy, conditioned on the fetch outcome.** Distinguish
+at minimum: *landed*, *nothing to push*, *rejected by remote* (non-fast-forward
+— actionable now: rerun from the true tip), *conflict* (rebase conflict —
+resolve or retry from the true tip), *residue-conflict* (§ Decisions D9 — the
+autostash pop left unmerged paths after an exit-0 rebase, distinct from
+*conflict*, which keys on the rebase itself), *transport/credential failure*
+(possibly transient), and *precondition* (§ Decisions D7 — the repository state
+invalidated the operation's instruments before it could run).
+**Grounded-success property:** *landed* is asserted only from observed remote
+state, through either admissible channel: the pushed commit reachable from the
+remote ref (post-push remote observation), or the per-ref update report for that
+ref — the machine-readable status the *remote* produces during the push,
+admissible because it is remote-originated even though git relays it on the push
+subprocess's stdout. The inadmissible channels are the subprocess's prose output
+text, its exit status alone, and the absence of a caught error — those attest
+that a process ran, not that the remote accepted. The grounding covers the other
+success-shaped quiet outcome too: ***nothing to push* is asserted only when the
+observed remote ref already contains local HEAD** — never from pre-fetch
+arithmetic against the remote-tracking ref, which is how it is computed today.
+As contract, not doc-comment convention: the push decision is keyed to whether
+the remote contains the local commits, never to working-tree dirtiness — a
+stranded-resume state (clean tree, local commits ahead: exactly the workspace a
+
+## 41-class stranding leaves behind when D4's remediation turn never runs) must
+
+re-push, not report quiet success. This pair of groundings is what makes the
+external ancestry-verify floor unnecessary over *every* success-shaped outcome:
+occurrence #41 (§ Evidence) is precisely a success claim made on output text
+while the commit was stranded, detectable only by an out-of-band floor. Any
+outcome that fails this grounding is classified as a failure reason from this
+taxonomy, never as *landed*. *Rejected* is reportable only when the preceding
+remote observation succeeded; when the fetch failed, a subsequent push rejection
+is classified as transport — otherwise broken credentials masquerade as
+contention and "rerun" guidance loops forever against a stale ref. Spec 1750's
+two guard-refusal classes (confirmed-unrelated, could-not-verify) join this
+taxonomy when both specs have landed; D7's *precondition* refusal is
+could-not-verify-shaped (verification could not run) and reportable in either
+series order. *Alternative carried:* collapse *rejected* and *transport* into
+one failure reason — simpler, but they direct different operator responses, and
+conflation is exactly how the run-275 false finding grew.
 
 **D3 — Bounded retry, ×1, under two binding constraints.** At most one
 reconcile-and-retry on a rejection outcome; none on transport failure; the
@@ -564,8 +563,8 @@ foreign residue stays uncommitted and `commitAndPush` rebases with
 `--autostash` (`wiki-sync.js:154`). This face sits on that *existing*
 scoped-commit-plus-autostash path — D1 governs it and D6 keeps the sweep
 whole-tree (item 3 resolved out) — so it is live on `main` today,
-independent of whether item 3 ever lands; it is not a consequence of item
-3. `git rebase --autostash` **exits 0 when the rebase succeeds but the
+independent of whether item 3 ever lands; it is not a consequence of that
+item. `git rebase --autostash` **exits 0 when the rebase succeeds but the
 autostash pop conflicts** (reproduced: "Successfully rebased", exit 0, `UU`
 in the tree, the entry kept in `refs/stash`). **Detection is grounded in
 working-tree state, never the rebase exit code or its prose** (consistent
@@ -615,7 +614,7 @@ on `claim`/`release` per D1 — rejected: the conserved content is a foreign
 writer's and the tree is left unsafe for a later whole-tree sweep, so this
 is an unsafe-state refusal (D7), not a saved-locally success (D1).
 
-## Success Criteria
+### Success Criteria
 
 Each criterion is verified against a fixture wiki clone plus a controllable
 remote. Observable channels: exit code, printed message, repository commit
@@ -666,7 +665,7 @@ order.
 | Healthy-clone behavior otherwise unchanged — and the suite's defect-asserting rows are inverted, not preserved. | Run the libwiki test suite — with the rows that assert the removed behaviors revised to the new contract: the silent-clobber recovery rows, and specifically the "commitAndPush tolerates a failing push (WikiRepo fire-and-forget)" test (`wiki-sync.test.js:218` at spec time), which locks in the phantom-success defect and must be **inverted** to assert a failure outcome — plus a healthy-clone fixture through all three surfaces; observe unchanged outcomes and messages apart from the honest-success gating and those revised rows. |
 | The contract documentation describes the taxonomy and per-caller mapping. | Read the `commitAndPush` contract surface documentation; observe it states the outcome taxonomy, the per-caller exit mapping, the conservation guard, and traces to this spec. |
 
-## Provenance
+### Provenance
 
 Folded with attribution: call-site inventory, hook-exit semantics,
 propagation-channel requirement, retry scope, fetch-conditioned taxonomy,
@@ -710,24 +709,23 @@ fixture from the
 with ordinals per the
 [improvement-coach final ledger reconciliation](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676486013)
 (#41 = `bc982943` stands as written), folded 2026-06-11; D7 package
-panel-treated post-landing (3 product + 3 technical fresh seats,
-2026-06-11) with the consensus findings folded — uniform non-zero
-per-caller mapping aligned with 1750's guard-refusal exit semantics
-(replacing the zero-exit claim/release branch, which the panels showed
-vacuous-or-wrong since the refusal precedes the local commit), the
-three-source taxonomy count corrected against 1750's class distinction,
-the warn-and-attempt defense corrected (it cannot prevent a false
-*nothing to push* from a stopped rebase's onto point), the 1750
-detached-HEAD seam named, claim/release + local-non-mutation legs added
-to the criterion, the interrupted-reconcile leg recast as
-state-equivalent construction, and the four-instrument problem framing
-anchored — and the four-instrument § Problem paragraph itself folded from
-the [spec-owner gap flag](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676394990)
-(item 2a), completing the coach-input fold whose decision-row half D7
-carried; wiring-layer push exit-status fidelity clause (D4), the
-matching scope-row tightening, and the masking-fixture criterion from the
-staff-engineer live event (shell-pipeline exit-status masking, fourth
-observation-layer floor-save) routed by the improvement-coach
+panel-treated post-landing (3 product + 3 technical fresh seats, 2026-06-11)
+with the consensus findings folded — uniform non-zero per-caller mapping aligned
+with 1750's guard-refusal exit semantics (replacing the zero-exit claim/release
+branch, which the panels showed vacuous-or-wrong since the refusal precedes the
+local commit), the three-source taxonomy count corrected against 1750's class
+distinction, the warn-and-attempt defense corrected (it cannot prevent a false
+*nothing to push* from a stopped rebase's onto point), the 1750 detached-HEAD
+seam named, claim/release + local-non-mutation legs added to the criterion, the
+interrupted-reconcile leg recast as state-equivalent construction, and the
+four-instrument problem framing anchored — and the four-instrument § Problem
+paragraph itself folded from the
+[spec-owner gap flag](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676394990)
+(item 2a), completing the coach-input fold whose decision-row half D7 carried;
+wiring-layer push exit-status fidelity clause (D4), the matching scope-row
+tightening, and the masking-fixture criterion from the staff-engineer live event
+(shell-pipeline exit-status masking, fourth observation-layer floor-save) routed
+by the improvement-coach
 ([PR #1601 routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4676821202);
 [adjudication anchor](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4676820014)),
 folded 2026-06-11; D5 write-time content-comparison constraint and the
@@ -735,9 +733,9 @@ content-state-not-log-output observation rule from the
 [staff-engineer detection-constraint routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689343074)
 (fourth side-pick-erasure specimen,
 [#1564](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689300925)),
-folded 2026-06-12; D5 conservation scope generalized from Active Claims
-rows to foreign-writer content per the improvement-coach coverage
-question ([family assessment §2](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689377410);
+folded 2026-06-12; D5 conservation scope generalized from Active Claims rows to
+foreign-writer content per the improvement-coach coverage question
+([family assessment §2](https://github.com/forwardimpact/monorepo/issues/1564#issuecomment-4689377410);
 [PR #1601 routing](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4689380320))
 — all four 6/12 specimens' victims were non-claim-row content; disposed
 by the spec holder 2026-06-12, read by the
@@ -789,19 +787,20 @@ rather than to item 3) from the
 [release-engineer assessment](https://github.com/forwardimpact/monorepo/issues/1583#issuecomment-4705169584)
 and the security-engineer conservation review, settled by the
 [staff-engineer 2026-06-15 ruling](https://github.com/forwardimpact/monorepo/pull/1601#issuecomment-4705197459)
-over the [scope-add](https://github.com/forwardimpact/monorepo/issues/1583#issuecomment-4705134298)
+over the
+[scope-add](https://github.com/forwardimpact/monorepo/issues/1583#issuecomment-4705134298)
 and routed to the spec holder, folded by the spec holder 2026-06-15;
 single-grounded-check finalization (RE empirical correction, git 2.54.0,
 reproduced in the commitAndPush shape: `git rebase --abort` resets to
-`orig_head` = the autostash's own base, so the abort pop is a
-zero-divergence three-way apply that cannot conflict and the
-`allowFailure` swallow is inert for it; the conflict-capable second site
-was `mergeOursStrategy({ autostash: true })` at `wiki-sync.js:158`, which
-item 1 removes — leaving the rebase-success pop as the sole
-conflict-capable site) — both reviewers converged on a single general
-grounded detection rather than per-site assertions and on dropping the
-abort-path criterion leg as an unconstructable fixture; the post-abort
-check is retained as near-free defense-in-depth that cannot fire for
-autostash, folded by the spec holder 2026-06-15.
+`orig_head` = the autostash's own base, so the abort pop is a zero-divergence
+three-way apply that cannot conflict and the `allowFailure` swallow is inert for
+it; the conflict-capable second site was
+`mergeOursStrategy({ autostash: true })` at `wiki-sync.js:158`, which item 1
+removes — leaving the rebase-success pop as the sole conflict-capable site) —
+both reviewers converged on a single general grounded detection rather than
+per-site assertions and on dropping the abort-path criterion leg as an
+unconstructable fixture; the post-abort check is retained as near-free
+defense-in-depth that cannot fire for autostash, folded by the spec holder
+2026-06-15.
 
 — Product Manager 🌱

@@ -77,7 +77,8 @@ the heavier substrate work (1, 2) or the cross-repo item (6).
 
 - **Hosted discovery/install artefacts** (marketplace listing, App icon, Teams
   catalog metadata). A technically-functional onboarding does not require them;
-  they remain deferred from design 1270 and are not needed for items 3/6 to work.
+  they remain deferred from design 1270 and are not needed for items 3/6 to
+  work.
 - Auto-setting the `FIT_OIDC_URL` repository variable at `kata-setup` time — it
   remains a documented operator prerequisite (a setup reminder, not a missing
   capability).
@@ -132,19 +133,19 @@ deployment and must not regress (criterion 9).
 - **2026-06-16 — multi-tenant Azure Bot resources are deprecated.** Manual e2e
   testing hit a hard wall: Microsoft no longer permits creating a multi-tenant
   Azure Bot resource, in the portal **or** the CLI
-  (`az bot create --app-type MultiTenant` → `InvalidBotCreationData: Multitenant
-  bot creation is deprecated. Please use SingleTenant or UserAssignedMSI`).
+  (`az bot create --app-type MultiTenant` →
+  `InvalidBotCreationData: Multitenant bot creation is deprecated. Please use SingleTenant or UserAssignedMSI`).
   Existing multi-tenant bots are grandfathered; multi-tenant Entra **app**
   registrations are still allowed — only the Bot *resource* type is gone. This
   invalidates the spec 1270 operator commitment of "a multi-tenant Azure AD app
   and Bot Framework resource… installable by any consenting Entra tenant"; the
   hosted Teams path as designed cannot be stood up fresh. The supported
   replacement (researched 2026-06-16) is a **single-tenant Azure Bot resource +
-  multi-tenant Entra app (`signInAudience = AzureADMultipleOrgs`) + Teams Store /
-  AppSource distribution** — one shared app reaches every tenant, not a
-  per-customer bot and not Graph change-notifications. Relatedly the **Bot
-  Framework SDK is end-of-life** (support ends 2025-12-31); the conversational
-  bot evolves into a Teams **custom engine agent** on the **Microsoft 365 Agents
-  SDK**. This transport re-architecture is a new spec, not a tweak here. The
-  `services/tenancy` mapping and the Move B `/onboard` repo-mapping verifier are
-  transport-agnostic and survive.
+  multi-tenant Entra app (`signInAudience = AzureADMultipleOrgs`) + Teams Store
+  / AppSource distribution** — one shared app reaches every tenant, not a
+  per-customer bot and not Graph change-notifications. Relatedly the
+  **Bot Framework SDK is end-of-life** (support ends 2025-12-31); the
+  conversational bot evolves into a Teams **custom engine agent** on the
+  **Microsoft 365 Agents SDK**. This transport re-architecture is a new spec,
+  not a tweak here. The `services/tenancy` mapping and the Move B `/onboard`
+  repo-mapping verifier are transport-agnostic and survive.

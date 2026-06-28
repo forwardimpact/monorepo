@@ -35,5 +35,8 @@ When nothing matches, the command prints
 
 ## Documentation
 
-- [Add Observability](https://www.forwardimpact.team/docs/libraries/service-lifecycle/add-observability/index.md) — structured logs and traces with no framework setup, including querying and visualizing recorded traces with `fit-visualize`.
-- [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md) — the full lifecycle setup for services, from supervision to observability.
+- [Add Observability](https://www.forwardimpact.team/docs/libraries/service-lifecycle/add-observability/index.md)
+  — structured logs and traces with no framework setup, including querying and
+  visualizing recorded traces with `fit-visualize`.
+- [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md)
+  — the full lifecycle setup for services, from supervision to observability.

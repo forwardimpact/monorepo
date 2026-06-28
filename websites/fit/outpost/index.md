@@ -91,8 +91,9 @@ device:
 **Where AI calls go.** Outpost delegates every AI call to the Claude Code CLI
 already installed on your Mac; it does not select or override the endpoint. The
 endpoint is therefore whichever provider your Claude Code is configured to reach
-— by default the [Anthropic API](https://docs.claude.com/en/docs/claude-code/settings).
-Each call's prompt carries the user content the agent assembled for that wake
+— by default the
+[Anthropic API](https://docs.claude.com/en/docs/claude-code/settings). Each
+call's prompt carries the user content the agent assembled for that wake
 (knowledge-graph excerpts, synced mail and calendar content).
 
 The model endpoint is not the only egress. Agents in the default install

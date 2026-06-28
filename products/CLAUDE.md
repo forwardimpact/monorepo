@@ -67,7 +67,7 @@ from any entry point:
 Skill `## Documentation` list and CLI `documentation` array carry the same
 entries in the same order — same titles, same URLs:
 
-```
+```text
 https://www.forwardimpact.team/docs/products/<task-slug>/index.md
 ```
 

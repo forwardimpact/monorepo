@@ -76,7 +76,9 @@ Once the release ships:
 | `services/ghuser/test/{smoke,completion-ticket,query-contract,query-linked,query-reauth,query-unlinked}.test.js` | 03 | **TOUCH** — inject a no-op `bridgeClient` stub into the `GhuserService` constructor (new hard dep from Step 03.2). |
 | `services/oauth/test/authorize.test.js` | 03 | **TOUCH** — replace `surface_not_supported` mock with `proof_missing` (kill-switch outcome retired in Step 03.4). |
 
-The `Test contract` invariants in [design-a.md § Test contract](design-a.md#test-contract) map 1:1 to the rows above.
+The `Test contract` invariants in
+[design-a.md § Test contract](design-a.md#test-contract) map 1:1 to the rows
+above.
 
 ## Cross-cutting risks
 
@@ -95,7 +97,7 @@ The `Test contract` invariants in [design-a.md § Test contract](design-a.md#tes
   and re-raise as 5xx — the design's fail-closed semantics route them
   through `proof_missing` instead.
 - **Migration write order.** The migration must finish (in-memory deletes
-  + `bindings.flush()` + `migrations.add()` + `migrations.flush()`)
+  - `bindings.flush()` + `migrations.add()` + `migrations.flush()`)
   *before* `server.start()` returns. A partial-migration crash with the
   marker not yet written re-runs the migration on next boot — safe,
   because re-running over an already-cleared `msteams` keyspace is a

@@ -11,7 +11,8 @@ peer's inbox.
 
 Three surfaces hold the legacy single-parameter inbox shape today:
 
-- `libraries/libbridge/src/server.js:101` — `app.get("/api/inbox/:correlationId", …)`
+- `libraries/libbridge/src/server.js:101` —
+  `app.get("/api/inbox/:correlationId", …)`
 - `libraries/libbridge/src/dispatcher.js:102` —
   `` `${this.#callbackBaseUrl}/api/inbox/${correlationId}` ``
 - `libraries/libbridge/src/inbox-handler.js:24` —
@@ -127,7 +128,7 @@ terminal or surfaces it, but no code change is in scope here.
 
 ## Data flow
 
-```
+```text
 Dispatcher.dispatch()
   ├─ tenantResolver.resolve(...) → tenant.tenant_id
   ├─ callbacks.register(correlationId, { ..., tenant_id })  ← binding lives here

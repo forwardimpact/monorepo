@@ -10,10 +10,11 @@ spec's three success criteria.
 
 Add a named **Re-ping Rule** as a new Step 9.5 in `SKILL.md` (fresh-query
 staleness path per design D1, placed after merge per D2), carrying the
-owner-taxonomy table; add a § Re-ping Comments section to `references/templates.md`
-with one `state`/`owner`/`next_action` variant per gate; add a `re-pinged`
-Action value to § Report Summary and Step 10. Writing under `.claude/` may be
-blocked — use `bunx fit-selfedit <path>` if a direct Edit is refused.
+owner-taxonomy table; add a § Re-ping Comments section to
+`references/templates.md` with one `state`/`owner`/`next_action` variant per
+gate; add a `re-pinged` Action value to § Report Summary and Step 10. Writing
+under `.claude/` may be blocked — use `bunx fit-selfedit <path>` if a direct
+Edit is refused.
 
 Libraries used: none.
 
@@ -48,8 +49,8 @@ Content of the new step:
   re-ping, and merge comments are posted via `gh pr comment`, which lands in
   that thread, so the most-recent bot comment there is the true silence anchor.
   The bot's `user.login` on this endpoint is `kata-agent-team[bot]` (verified
-  against the live API); pin that string, not the `app/kata-agent-team`
-  identity slug.
+  against the live API); pin that string, not the `app/kata-agent-team` identity
+  slug.
 
   Decision tree for each candidate:
   - **Most-recent bot comment older than 3 calendar days** → **due**: post the

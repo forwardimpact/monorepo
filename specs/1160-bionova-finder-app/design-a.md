@@ -161,7 +161,7 @@ question source — no runtime LLM dependency.
 
 ## Data Seeding Pipeline
 
-```
+```text
 data/synthetic/story.dsl
   → npx fit-terrain generate
   → data/synthetic/output/seed_*.sql + seed_embeddings.jsonl

@@ -12,11 +12,11 @@ specific pain points:
 `bunx fit-xmr chart <csv> --metric <name>` for each metric, copies the 14-line
 ASCII output, and pastes it into a fenced code block inside the storyboard
 markdown. Across 6 storyboard traces (Apr 17 -- May 2 2026), the facilitator
-runs 6-12 `fit-xmr analyze` calls and 0-6 `fit-xmr chart` calls per session
-(see [`../770-agent-tooling-memo-metric/grounded-analysis.md`](../770-agent-tooling-memo-metric/grounded-analysis.md)). This paste-and-format work costs 10-20 turns per session and
-is error-prone: the facilitator must also write the `**Latest:**`,
-`**Status:**`, and `**Signals:**` lines by hand, reconciling JSON output with
-markdown formatting.
+runs 6-12 `fit-xmr analyze` calls and 0-6 `fit-xmr chart` calls per session (see
+[`../770-agent-tooling-memo-metric/grounded-analysis.md`](../770-agent-tooling-memo-metric/grounded-analysis.md)).
+This paste-and-format work costs 10-20 turns per session and is error-prone: the
+facilitator must also write the `**Latest:**`, `**Status:**`, and `**Signals:**`
+lines by hand, reconciling JSON output with markdown formatting.
 
 **Wiki clone/push/pull is shell-script plumbing.** `scripts/wiki-sync.sh`
 handles git credential injection, clone-if-missing, rebase-on-pull,
@@ -154,7 +154,7 @@ distributed via npm.
 ### Relationship to spec 0770
 
 This spec extends the `libwiki` package and `fit-wiki` CLI introduced in spec
-770. Spec 0770 delivers the package scaffold, `fit-wiki memo`, `fit-xmr
+0770, which delivers the package scaffold, `fit-wiki memo`, `fit-xmr
 record`, and the per-skill flat metrics directory structure
 (`wiki/metrics/<skill>/<YYYY>.csv`). This spec adds `refresh`, `init`, `push`,
 and `pull`.

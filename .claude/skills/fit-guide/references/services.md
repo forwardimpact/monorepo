@@ -1,6 +1,6 @@
 # Service Stack
 
-### Service Order
+## Service Order
 
 Services start in dependency order (defined in `config/config.json`):
 

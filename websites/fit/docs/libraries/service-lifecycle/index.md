@@ -5,8 +5,8 @@ description: Services that stay running and problems that surface before they es
 
 You are running multiple services -- a gRPC server, a vector store, a trace
 collector -- and managing them means remembering which command starts each one,
-watching for crashes by hand, and wading through unstructured console output when
-something goes wrong. Three libraries eliminate that overhead:
+watching for crashes by hand, and wading through unstructured console output
+when something goes wrong. Three libraries eliminate that overhead:
 `@forwardimpact/librc` gives you a single CLI for starting, stopping, and
 checking every service. `@forwardimpact/libsupervise` runs a supervision daemon
 that automatically restarts services when they crash.
@@ -125,7 +125,7 @@ This command:
 
 Expected output (timestamps and process IDs will differ):
 
-```
+```text
 INFO 2026-05-04T10:00:01.123Z rc codegen 42001 MSG001 - Running oneshot direction="up" cmd="npx fit-codegen --all"
 INFO 2026-05-04T10:00:03.456Z rc codegen 42001 MSG002 - Oneshot completed direction="up"
 INFO 2026-05-04T10:00:03.789Z rc trace 42001 MSG003 - Service started
@@ -151,7 +151,7 @@ npx fit-rc status
 
 Expected output when services are running:
 
-```
+```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Running
 INFO 2026-05-04T10:05:00.234Z rc trace 42001 MSG002 - up pid="42010"
 INFO 2026-05-04T10:05:00.345Z rc vector 42001 MSG003 - up pid="42011"
@@ -160,7 +160,7 @@ INFO 2026-05-04T10:05:00.456Z rc graph 42001 MSG004 - up pid="42012"
 
 Expected output when nothing is running:
 
-```
+```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Not running
 ```
 
@@ -256,14 +256,14 @@ Under a supported Node.js version the import returns silently. Under an
 unsupported version the process writes a clear instruction to stderr and exits
 with code `1`:
 
-```
+```text
 Error: This command requires Node.js 22 or later (running 20.11.0).
 Install Node.js 22 (LTS) from https://nodejs.org/ and re-run.
 ```
 
-For required configuration, call `assertNonEmpty` right after loading config so a
-missing secret stops the process at startup instead of surfacing as a confusing
-runtime error later:
+For required configuration, call `assertNonEmpty` right after loading config so
+a missing secret stops the process at startup instead of surfacing as a
+confusing runtime error later:
 
 ```js
 import { assertNonEmpty } from "@forwardimpact/libpreflight/assert-non-empty.js";
@@ -298,7 +298,7 @@ logger.error("handler", "Request failed", { status: "500" });
 
 The log format is:
 
-```
+```text
 LEVEL TIMESTAMP DOMAIN APP_ID PROC_ID MSG_ID [ATTRIBUTES] MESSAGE
 ```
 
@@ -378,8 +378,8 @@ await manager.stop();          // Stop all services and daemon
 Keeping instruction files and architecture honest is the fifth concern in this
 job. That check is `coaligned`, documented with the
 [Co-Aligned standard](https://www.coaligned.team/) rather than here, because it
-runs at authoring time against the repository -- not at service runtime against a
-process. See [Distribute Skill Packs](/docs/libraries/distribute-skill-packs/)
+runs at authoring time against the repository -- not at service runtime against
+a process. See [Distribute Skill Packs](/docs/libraries/distribute-skill-packs/)
 for the publishing side of keeping shared instructions current.
 
 ## What's next

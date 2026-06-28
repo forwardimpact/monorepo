@@ -34,7 +34,7 @@ validation, never for instance generation.
 
 Running fit-guide after a full `just quickstart`:
 
-```
+```text
 > "What skills are defined in the engineering framework?"
 → "No explicit skills were defined or linked to the engineering framework"
 → "The ontology does not include a schema:Skill type"
@@ -46,7 +46,7 @@ Running fit-guide after a full `just quickstart`:
 
 Meanwhile, content queries work fine:
 
-```
+```text
 > "Tell me about drug discovery processes"
 → [comprehensive 6-section answer with projects, leadership, platforms]
 ```
@@ -218,7 +218,6 @@ Two coordinated changes:
 
   All RPCs return `tool.ToolCallResult`. Request messages live in
   `proto/pathway.proto` and follow the naming `<RpcName>Request`.
-
 - Tool descriptions added to `config/tools.example.yml` and the published
   starter `products/guide/starter/tools.yml`, one entry per tool above, each
   with `purpose`, `applicability`, `instructions`, `evaluation`, `parameters`.

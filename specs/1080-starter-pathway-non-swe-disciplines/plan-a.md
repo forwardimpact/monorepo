@@ -52,7 +52,10 @@ Field values (other fields per C-3; descriptive prose implementer-authored):
 | `broadSkills` | `[stakeholder_management, regulatory_compliance]` |
 | `behaviourModifiers.systems_thinking` | `1` (design Decision 5) |
 
-Verify: `node -e "require('yaml').parse(require('fs').readFileSync('products/map/starter/disciplines/data_engineering.yaml','utf-8'))"` exits 0, and `Object.keys` of the parsed object is a superset of the C-3 required keys.
+Verify:
+`node -e "require('yaml').parse(require('fs').readFileSync('products/map/starter/disciplines/data_engineering.yaml','utf-8'))"`
+exits 0, and `Object.keys` of the parsed object is a superset of the C-3
+required keys.
 
 ### Step 2 — Add `disciplines/engineering_management.yaml`
 
@@ -75,7 +78,9 @@ as the one extension over substrate.
 | `broadSkills` | `[architecture_design, incident_management]` |
 | `behaviourModifiers` | (omitted, design Decision 5) |
 
-Verify: parses (per Step 1 check); `isManagement: true` present at top level so `products/map/src/levels.js:167` selects `managementResponsibilities` for readiness rendering.
+Verify: parses (per Step 1 check); `isManagement: true` present at top level so
+`products/map/src/levels.js:167` selects `managementResponsibilities` for
+readiness rendering.
 
 ### Step 3 — Extend `capabilities/delivery.yaml` with `data_integration`
 
@@ -114,11 +119,12 @@ hygiene) — distinct from `incident_response` which is single-incident
 execution. `agent.name`: `incident-management` (C-5). The new block carries
 no `references` sub-key.
 
-Verify: post-edit, `yq '.skills | length' products/map/starter/capabilities/reliability.yaml`
+Verify: post-edit,
+`yq '.skills | length' products/map/starter/capabilities/reliability.yaml`
 returns `2`, `yq '.skills[].id' …` returns `incident_response` then
-`incident_management`, and `yq '.skills[0].references | length' …` returns
-the original entry count (`2`) — confirming the `references` array stayed
-inside `incident_response` and was not pulled out or duplicated.
+`incident_management`, and `yq '.skills[0].references | length' …` returns the
+original entry count (`2`) — confirming the `references` array stayed inside
+`incident_response` and was not pulled out or duplicated.
 
 ### Step 5 — Add `capabilities/scale.yaml`
 
@@ -192,7 +198,11 @@ The generator iterates four directories (`behaviours`, `disciplines`,
 `disciplines/_index.yaml` and `capabilities/_index.yaml` carry diff because
 `behaviours/` and `tracks/` indexes are already current.
 
-Verify: for `disciplines/` and `capabilities/`, `comm -3 <(ls *.yaml | grep -v _index | sed 's/.yaml$//' | sort) <(yq '.files[]' _index.yaml | sort)` is empty (criterion 5); `git status products/map/starter/behaviours/_index.yaml products/map/starter/tracks/_index.yaml` shows no changes.
+Verify: for `disciplines/` and `capabilities/`,
+`comm -3 <(ls *.yaml | grep -v _index | sed 's/.yaml$//' | sort) <(yq '.files[]' _index.yaml | sort)`
+is empty (criterion 5);
+`git status products/map/starter/behaviours/_index.yaml products/map/starter/tracks/_index.yaml`
+shows no changes.
 
 ### Step 9 — Validate
 
@@ -217,7 +227,8 @@ Prove criteria 3 + 4 against the canonical substrate roster.
 - **Modified**: —
 - **Deleted**: —
 
-Prereqs (see Risk 1): `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` set; substrate stack staged (`bunx fit-map substrate stage` if not already).
+Prereqs (see Risk 1): `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` set;
+substrate stack staged (`bunx fit-map substrate stage` if not already).
 
 Commands:
 
@@ -246,7 +257,8 @@ Verify across the captured logs:
   `software_engineering` persona at J040/J060).
 
 Record the per-persona pass/fail in a `## Verification` block in the PR body
-with columns `email | level | discipline | readiness_exit | unknown_discipline_count`.
+with columns
+`email | level | discipline | readiness_exit | unknown_discipline_count`.
 
 ## Risks
 

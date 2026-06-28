@@ -186,7 +186,7 @@ transformers on top.
 
 ## Package Layout
 
-```
+```text
 products/summit/
 ├── package.json             Part 01
 ├── justfile                 Part 01 (optional local tasks)

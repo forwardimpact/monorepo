@@ -13,7 +13,7 @@ directory in the monorepo.
 
 ## Architecture
 
-```
+```text
 seed.yaml ──► Orchestrator (Node.js)
                  │
                  ├── Phase 1: Org Skeleton ──► Claude API ──► ONTOLOGY entities
@@ -221,7 +221,7 @@ any validation error with the error message as context.
 
 **Validation loop:**
 
-```
+```text
 Generate YAML ──► fit-map validate ──► pass? ──► commit
                        │                          ▲
                        ▼                          │

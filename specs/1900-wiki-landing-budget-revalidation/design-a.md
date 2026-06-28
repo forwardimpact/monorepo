@@ -11,12 +11,12 @@ The merged `WikiSync.commitAndPush` (spec 1780 honest-outcome taxonomy + spec
 1750 ancestry guard) commits pathspec-scoped, asserts publishability, then in a
 bounded reconcile loop fetches, rebases (or re-derives a registered singleton
 row against the fresh tip), runs the conflict-marker / conservation / secret
-gates, and pushes — grounding a `landed` outcome or throwing
-`WikiPushFailure`. Nothing measures budgets against the post-reconcile result,
-so two under-cap sides can union over-cap and a single-lane rewrite can overrun,
-and both publish. Budgets are defined once by the audit's rules
-(`summary.word-budget`, `weekly-log.word-budget`, and their line / part variants
-in [`audit/rules.js`](../../libraries/libwiki/src/audit/rules.js)). The gate must
+gates, and pushes — grounding a `landed` outcome or throwing `WikiPushFailure`.
+Nothing measures budgets against the post-reconcile result, so two under-cap
+sides can union over-cap and a single-lane rewrite can overrun, and both
+publish. Budgets are defined once by the audit's rules (`summary.word-budget`,
+`weekly-log.word-budget`, and their line / part variants in
+[`audit/rules.js`](../../libraries/libwiki/src/audit/rules.js)). The gate must
 **reuse those same rules** over the outgoing tree, never re-define them, and
 refuse — never edit.
 

@@ -6,7 +6,7 @@ Reference for `anarlog-follow` Phases 2 and 3.
 
 ### For interviews
 
-```
+```text
 Following: {Title}
 Type: {Interview type}
 Candidate: {Name} — {current role} at {employer}
@@ -27,7 +27,7 @@ Watching for: {specific signals at this interview stage}
 
 ### For general meetings
 
-```
+```text
 Following: {Title}
 Attendees: {names with roles}
 
@@ -66,7 +66,7 @@ Suggested topics:
 
 Output **only when actionable**. Each nudge: 1–3 lines max.
 
-```
+```text
 Probe deeper: {Name} mentioned {topic} — ask for a specific example
 Gap: screening flagged {skill} as uncertain. Try: "{question}"
 Confirmed: {Name} demonstrated {skill} at {level} — "{brief quote}"

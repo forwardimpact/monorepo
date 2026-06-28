@@ -43,11 +43,12 @@ dependencies — shim and scripts are stdlib-only.
   job to `check-test.yml` makes it *run*; marking it a **required** status check
   is a branch-protection setting only a repo admin can flip. Part 01 ships the
   job and notes the admin step; if the check is not marked required, the gate
-  runs but does not block — call this out in the PR body so the human can flip it.
+  runs but does not block — call this out in the PR body so the human can flip
+  it.
 - **Per-file wall-clock.** Part 01's wrapper runs `node --test` per file (design
   D4/D6), so the gate hits the per-file path (~87 s class in the spec's table),
-  not node's 70.3 s batched baseline. Measure it; parallelise per-file runs if it
-  dominates CI time. Enforcement is non-negotiable; speed is tunable.
+  not node's 70.3 s batched baseline. Measure it; parallelise per-file runs if
+  it dominates CI time. Enforcement is non-negotiable; speed is tunable.
 - **`afterAll` is a rename, not a re-point.** One file (`serve.integration`)
   imports and calls `afterAll`; `node:test` has only `after`. The sweep must
   rename both the import and the call site, not just change the source module.

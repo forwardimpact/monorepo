@@ -39,10 +39,10 @@ prefix. The mechanism is a same-directory tmp sibling plus POSIX
 backends inherit the same shape from their service `PutObject` semantics.
 
 **Reserved infix:** `.libstorage-tmp.` — consumers must not produce keys
-containing this literal. The local backend uses `<target>.libstorage-tmp.<nonce>`
-as the per-call tmp sibling and `list` / `findByPrefix` / `findByExtension`
-filter the sentinel out of their results so a process-killed tmp survivor is
-invisible to in-process consumers.
+containing this literal. The local backend uses
+`<target>.libstorage-tmp.<nonce>` as the per-call tmp sibling and `list` /
+`findByPrefix` / `findByExtension` filter the sentinel out of their results so a
+process-killed tmp survivor is invisible to in-process consumers.
 
 Covered:
 

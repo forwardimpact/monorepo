@@ -26,7 +26,7 @@ For multiple packages: commit all bumps, then tag each. On a publish failure,
 
 ## Summary table format (Step 8)
 
-```
+```text
 | Package  | Previous | New    | Tag             | Publish |
 | -------- | -------- | ------ | --------------- | ------- |
 | libskill | 4.0.3    | 4.0.4  | libskill@v4.0.4 | ✓       |

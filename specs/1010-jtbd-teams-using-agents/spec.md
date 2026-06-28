@@ -155,7 +155,8 @@ generator change drifts on the next `bun run context:fix` run.
   cite it. The inline restatement in those completed specs remains as-is.
 - Defining schemas for `products/kata/package.json` or skill-pack metadata
   beyond what is needed for the generator to produce the block.
-- Rewriting any of the existing `<job>` blocks under Engineering Leaders, Empowered Engineers, or Platform Builders in JTBD.md.
+- Rewriting any of the existing `<job>` blocks under Engineering Leaders,
+  Empowered Engineers, or Platform Builders in JTBD.md.
 - Cross-repo follow-ups in sibling `forwardimpact/*` repos that consume
   JTBD.md by reference.
 

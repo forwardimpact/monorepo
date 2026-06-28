@@ -14,8 +14,8 @@ identity automatically; you only run `login` again when the session expires
 or you change machines.
 
 This guide is for **engineers** signing in to read Landmark from the CLI.
-Operators issuing tokens for unattended agents follow a different path —
-see [Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md).
+Operators issuing tokens for unattended agents follow a different path — see
+[Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md).
 
 ## Prerequisites
 
@@ -37,7 +37,7 @@ you a magic-link; clicking it from the same machine redirects the browser
 to the listener, which captures the PKCE code and exchanges it for a
 session. The credentials file is written with mode 0600.
 
-```
+```text
 Sent a magic link to you@example.com.
 Open the email on this machine and click the link — the CLI is listening on 127.0.0.1:54321.
 Logged in as you@example.com.
@@ -55,7 +55,7 @@ fit-landmark login --otp --email you@example.com
 Supabase emails you a six-digit code. Paste it at the prompt; the CLI
 verifies it and persists the same session shape as the browser flow.
 
-```
+```text
 Sent a 6-digit code to you@example.com. Paste it below.
 Code: 123456
 Logged in as you@example.com.
@@ -87,7 +87,7 @@ refreshed tokens are written back to the same credentials file.
 
 When the refresh token itself has aged out, you'll see:
 
-```
+```text
 Authentication required: session expired and refresh failed — run `fit-landmark login` again
 ```
 

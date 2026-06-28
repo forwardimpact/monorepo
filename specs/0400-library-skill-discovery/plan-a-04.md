@@ -19,8 +19,8 @@ must exist; unadvertised library exports are fine.
   the current workflow runs `bun run check:exports` as a standalone job
   (`.github/workflows/check-quality.yml:33–39`) and does **not** invoke
   `bun run check` wholesale, so chaining the new script behind `bun run check`
-  only affects local runs. Without the workflow edit, spec 0400 success criterion
-  6 ("verifiable … in the `check-quality` CI workflow") cannot be met.
+  only affects local runs. Without the workflow edit, spec 0400 success
+  criterion 6 ("verifiable … in the `check-quality` CI workflow") cannot be met.
 - Deliberately out of scope: reverse direction check ("every public export must
   be advertised"), cross-library duplication check, any language server
   integration.
@@ -63,7 +63,7 @@ of the existing `scripts/check-exports-resolve.js` (spec 0390).
 
 ### Algorithm
 
-```
+```text
 1. Enumerate SKILL.md files:
      .claude/skills/libs-*/SKILL.md  (glob)
 
@@ -188,7 +188,7 @@ of the existing `scripts/check-exports-resolve.js` (spec 0390).
 
 ### Example error output
 
-```
+```text
 .claude/skills/libs-grpc-services/SKILL.md: librpc.RpcServer is not a public export
   available exports: Server, Client, createClient, createTracer, createGrpc,
                      createAuth, Rpc, Interceptor, HmacAuth, healthDefinition,
@@ -338,7 +338,7 @@ Run at the package root:
 
 One commit:
 
-```
+```text
 feat(ci): add check:skill-exports script (spec 0400 part 4/4)
 
 New script scripts/check-skill-exports.js asserts every name in a

@@ -5,14 +5,15 @@ short-lived installation tokens -- no long-lived PATs to rotate.
 
 ## Hosted Alternative
 
-Teams using the Forward Impact-hosted control plane **skip this entire
-page**. Instead of registering and self-hosting an App, install the
-Forward Impact-owned App from its public install URL; the hosted
-`services/oidc` mints repo-scoped installation tokens at workflow run time
-from a GitHub Actions OIDC identity, so no `KATA_APP_ID` /
-`KATA_APP_PRIVATE_KEY` secret is configured in the consuming repository.
-Set only the `FIT_OIDC_URL` repository variable and the `ANTHROPIC_API_KEY`
-secret. See [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for the hosted trust model and
+Teams using the Forward Impact-hosted control plane **skip this entire page**.
+Instead of registering and self-hosting an App, install the Forward Impact-owned
+App from its public install URL; the hosted `services/oidc` mints repo-scoped
+installation tokens at workflow run time from a GitHub Actions OIDC identity, so
+no `KATA_APP_ID` / `KATA_APP_PRIVATE_KEY` secret is configured in the consuming
+repository. Set only the `FIT_OIDC_URL` repository variable and the
+`ANTHROPIC_API_KEY` secret. See
+[TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for the
+hosted trust model and
 [`services/oidc/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/oidc/README.md)
 for the exchange contract. The rest of this page is the **self-hosted**
 path.

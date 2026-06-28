@@ -52,8 +52,11 @@ its class performs the full sweep):
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract previous release outcomes and any packages that
-had publish failures from prior entries.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and (when this skill reads
+Tier-2 surfaces) `storyboard_items` seed this Process. Extract prior release
+outcomes and any packages that had publish failures.
 
 ### Step 1: Pre-Flight — Verify Main Branch CI
 
@@ -77,27 +80,25 @@ is a **four-conjunct** claim; any failure ⇒ `SWEEP-REQUIRED`:
    `range_to`. *Directory rule:* a path under no publishable-package directory
    (from the workspace manifest) never defeats this. *Packlist membership*
    (in-directory paths only): non-publishable **iff** `private: true` or absent
-   from the packer's own publish list. Four invariants: **any doubt classifies
-   publishable** — tool error, unparseable output, `.npmignore` present, a path
-   absent at `range_to`, or a change to a pack-manifest-influencing file
-   (`package.json`/`.npmignore`/`.gitignore` at any level in the dir); failure
-   mode is **forgone savings only, never a missed cut**; a package with
-   `prepack`/`prepare`/`prepublishOnly` is **excluded** (paths stay publishable);
-   the always-included set needs no special-casing; npm inclusion semantics are
-   **not** re-implemented.
+   from the packer's own publish list. Four invariants:
+   **any doubt classifies publishable** — tool error, unparseable output,
+   `.npmignore` present, a path absent at `range_to`, or a change to a
+   pack-manifest-influencing file (`package.json`/`.npmignore`/`.gitignore` at
+   any level in the dir); failure mode is **forgone savings, never a missed
+   cut**; a package with `prepack`/`prepare`/`prepublishOnly` is **excluded**
+   (paths stay publishable); npm inclusion semantics are **not** re-implemented.
 3. **Standing-set re-cite** — every standing obligation (first-release backlog,
    held/deferred cuts, pending publish-failure retries and publish-workflow
    verifications) is empty, re-cited as blocked with its reference, or
-   verifiable-in-run and resolved to verified-success. A pending publish-workflow
-   verification is **verifiable-in-run**: resolve it before exiting
-   (`gh run list`) — success clears it; failure or a still-in-progress outcome is
+   verifiable-in-run and resolved to verified-success. A pending
+   publish-workflow verification is **verifiable-in-run**: resolve it before
+   exiting (`gh run list`) — success clears it; failure or still-in-progress is
    **due** ⇒ `SWEEP-REQUIRED`. Any due (unblocked) obligation defeats the exit.
 4. **Main CI green** — the Pre-Flight checklist passed, re-cited so the verdict
    record stands alone.
 
-Each classification binds and records the SHA pair (`range_from` = `B`,
-`range_to` = `HEAD` here); the verdict is a claim about that pair, never live
-`HEAD`.
+Each classification binds the SHA pair (`range_from` = `B`, `range_to` = `HEAD`
+here); the verdict is a claim about that pair, never live `HEAD`.
 
 #### Authority boundary
 
@@ -108,9 +109,9 @@ Each classification binds and records the SHA pair (`range_from` = `B`,
   shallow checkout where `B` is below the fetch boundary the ancestry check is
   unresolvable: deepen to reach `B`, else sweep.
 - **Re-anchor bound.** The chain must re-anchor to a real per-package sweep (any
-  run class) at least once per scheduled cadence interval; cadence-less consumers
-  use a default **maximum chain length of 20 early-exits**. A chain older than
-  the applicable bound is unresolvable ⇒ full sweep. The bound caps drift to
+  run class) at least once per scheduled cadence interval; cadence-less
+  consumers use a default **maximum chain length of 20 early-exits**. A chain
+  past the bound is unresolvable ⇒ full sweep. The bound caps drift to
   commit-accumulation only; publish-failure recovery stays record-dependent (see
   [`references/early-exit.md`](references/early-exit.md)).
 
@@ -140,15 +141,15 @@ For **major** bumps, first update cross-workspace dependents (grep
 ### Step 6: Commit and Tag
 
 Commit all bumps (`git commit`), then tag each package
-(`git tag <prefix>@v<version>`) — for multiple packages, commit all then tag.
+(`git tag <prefix>@v<version>`).
 
 ### Step 7: Push and Verify
 
 Push the commit (`git push origin main`), then each tag individually
 (`git push origin <prefix>@v<version>`) — never `--tags`. Verify publish
-workflows triggered (`gh run list`); on a failure, `gh run view <id> --log-failed`.
-Verify and re-cite any publish-class issue (done = a live artifact) per
-[`procedure.md`](references/procedure.md).
+workflows triggered (`gh run list`); on a failure,
+`gh run view <id> --log-failed`. Verify and re-cite any publish-class issue
+(done = a live artifact) per [`procedure.md`](references/procedure.md).
 
 ### Step 8: Summary
 
@@ -157,7 +158,9 @@ Report a per-package table — previous → new version, tag, publish status
 
 ## Memory: What to Record
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md):
+every cited SHA must resolve on its referenced repo, or the body is not
+published.
 
 Append to the current week's log (see agent profile for the file path):
 
@@ -165,25 +168,23 @@ Append to the current week's log (see agent profile for the file path):
   per release the previous and new version, tag, and publish status.
 - **Publish failures** — package and reason (so the next run can revisit).
 - **Main branch CI state** — green or broken, and what was repaired.
-- **Chainable state (every verdict kind).** Into the existing free-form
-  surfaces (no new CSV columns), against the skill's own surfaces so a consumer
-  with no monorepo wiki can chain: every classification records its SHA pair
-  (`range_from`, `range_to`), `NO-CUT-OWED` and `SWEEP-REQUIRED` alike; an
-  early-exit also records the range-check path summary. A verified-clean or
-  post-cut verdict records that commit as `B` plus each carry re-cite with its
-  blocking reference. A full-sweep ending **due-but-deferred** records **no
-  chainable baseline** — chain broken; subsequent assessments full-sweep until a
-  run reaches a verified-clean/post-cut state. An unclassifiable run records the
-  unresolvable state and sweeps (no SHA pair).
+- **Chainable state (every verdict kind).** Into the existing free-form skill
+  surfaces (no new CSV columns), so a consumer with no monorepo wiki can chain:
+  every classification records its SHA pair (`range_from`, `range_to`),
+  `NO-CUT-OWED` and `SWEEP-REQUIRED` alike; an early-exit also records the
+  range-check path summary. A verified-clean or post-cut verdict records that
+  commit as `B` plus each carry re-cite with its blocking reference. A
+  full-sweep ending **due-but-deferred** records **no chainable baseline**;
+  later assessments full-sweep until a run reaches a verified-clean/post-cut
+  state. An unclassifiable run records no SHA pair.
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
   `references/metrics.md`. See KATA.md § Metrics for the eligibility rule.
 
 ## Edge Cases
 
 Release foundational packages before consumers (check `package.json`
-dependencies before tagging). When a release spans more than packages, the
-repository's CONTRIBUTING.md § Releasing governs the order: producer before
-consumer, each tier confirmed before the next is tagged. First-release and
+dependencies before tagging); CONTRIBUTING.md § Releasing governs multi-package
+order — each tier confirmed before the next is tagged. First-release and
 failed-publish handling: [`procedure.md`](references/procedure.md). Related
 hazards: (c), (d), (b)/(h).
 

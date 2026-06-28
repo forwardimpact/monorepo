@@ -5,7 +5,7 @@
 | Persona | Job | How the gap blocks progress |
 |---|---|---|
 | Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team) | `fit-trace stats` is the Study-phase token/cost instrument. Its totals were wrong in both directions at once — output undercounted ~52–75×, input/cache figures overcounted 2.2–3.9×, session cost undercounted 8× on facilitated traces. PR #1703 repaired the totals (see § Shipped baseline) but left them unpinned by fixtures, and the `perTurn` breakdown, per-model figures, partial-trace fallback, and population labels still mislead — efficiency analyses built on anything below the totals line still inherit false or unlabeled figures. |
-| Platform Builders | [Evaluate and Improve Agents](../../JTBD.md#platform-builders-evaluate-and-improve-agents) | Proving an agent change improved outcomes requires trustworthy measurement. The trace collector and trace query engine in `libeval` are the shared trace instrument; every consumer that builds measurement on the structured trace document — not just the `fit-trace` CLI — inherits the remaining multiply-counted per-turn usage, last-wins `modelUsage`, and unlabeled populations. |
+| Platform Builders | [Evaluate and Improve Agents](../../JTBD.md#platform-builders-build-agent-capable-systems) | Proving an agent change improved outcomes requires trustworthy measurement. The trace collector and trace query engine in `libeval` are the shared trace instrument; every consumer that builds measurement on the structured trace document — not just the `fit-trace` CLI — inherits the remaining multiply-counted per-turn usage, last-wins `modelUsage`, and unlabeled populations. |
 
 ## Problem
 

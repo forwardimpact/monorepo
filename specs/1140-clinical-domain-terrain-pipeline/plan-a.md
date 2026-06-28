@@ -2,7 +2,14 @@
 
 ## Approach
 
-Implement clinical domain support bottom-up through the pipeline: parser first (Part 01), then entity generation (Part 02), prose pipeline (Part 03), output renderers (Part 04), pipeline wiring (Part 05), dataset evolution (Part 06), HTML templates (Part 07), and Synthea operationalization (Part 08). Parts 01-04 can partially parallelize (02 depends on 01; 03 depends on 02; 04 depends on 01 only). Part 05 integrates 02-04. Part 06 depends on 01 and 02. Parts 07 and 08 are independent of 04-05. The story.dsl rewrite (spec 1150) exercises the full stack and should land after all parts.
+Implement clinical domain support bottom-up through the pipeline: parser first
+(Part 01), then entity generation (Part 02), prose pipeline (Part 03), output
+renderers (Part 04), pipeline wiring (Part 05), dataset evolution (Part 06),
+HTML templates (Part 07), and Synthea operationalization (Part 08). Parts 01-04
+can partially parallelize (02 depends on 01; 03 depends on 02; 04 depends on 01
+only). Part 05 integrates 02-04. Part 06 depends on 01 and 02. Parts 07 and 08
+are independent of 04-05. The story.dsl rewrite (spec 1150) exercises the full
+stack and should land after all parts.
 
 ## Part Index
 
@@ -19,7 +26,7 @@ Implement clinical domain support bottom-up through the pipeline: parser first (
 
 ## Dependencies
 
-```
+```text
 01 ──→ 02 ──→ 03 ──→ 05
 │      │             ↑
 │      └──→ 06 ──→ 08
@@ -29,19 +36,30 @@ Implement clinical domain support bottom-up through the pipeline: parser first (
 02 + 03 ──→ 07
 ```
 
-Parts 01 and 04 can run in parallel after 01 completes its tokenizer/parser-helpers work (04 needs `DOTTED_IDENT` and `parseMappedArrays()`). Parts 07 and 08 are leaf nodes that can run in parallel with 05.
+Parts 01 and 04 can run in parallel after 01 completes its
+tokenizer/parser-helpers work (04 needs `DOTTED_IDENT` and
+`parseMappedArrays()`). Parts 07 and 08 are leaf nodes that can run in parallel
+with 05.
 
 ## Libraries Used
 
-`libsyntheticgen` (tokenizer, parser, parser-helpers, parser-clinical, clinical-entities, clinical-prose-keys, synthea tool), `libsyntheticprose` (prompt templates), `libsyntheticrender` (render-sql, render-embeddings, html, templates), `libterrain` (nodes, cli-helpers).
+`libsyntheticgen` (tokenizer, parser, parser-helpers, parser-clinical,
+clinical-entities, clinical-prose-keys, synthea tool), `libsyntheticprose`
+(prompt templates), `libsyntheticrender` (render-sql, render-embeddings, html,
+templates), `libterrain` (nodes, cli-helpers).
 
 ## Execution
 
-Route all parts to `staff-engineer`. Parts 01 → 02 → 03 are sequential. Part 04 can start after 01 lands. Part 05 waits for 02, 03, 04. Parts 06, 07, 08 can run as soon as their deps land. Maximum parallelism: 01 first, then 02 + 04, then 03 + 06, then 05 + 07 + 08.
+Route all parts to `staff-engineer`. Parts 01 → 02 → 03 are sequential. Part 04
+can start after 01 lands. Part 05 waits for 02, 03, 04. Parts 06, 07, 08 can run
+as soon as their deps land. Maximum parallelism: 01 first, then 02 + 04, then 03
+
+- 06, then 05 + 07 + 08.
 
 ## Blast Radius
 
 **Created:**
+
 - `libraries/libsyntheticgen/src/dsl/parser-clinical.js`
 - `libraries/libsyntheticgen/src/engine/clinical-entities.js`
 - `libraries/libsyntheticgen/src/engine/clinical-prose-keys.js`
@@ -69,6 +87,7 @@ Route all parts to `staff-engineer`. Parts 01 → 02 → 03 are sequential. Part
 - `libraries/libsyntheticrender/test/render-clinical-html.test.js`
 
 **Modified:**
+
 - `libraries/libsyntheticgen/src/dsl/tokenizer.js`
 - `libraries/libsyntheticgen/src/dsl/parser.js`
 - `libraries/libsyntheticgen/src/dsl/parser-helpers.js`
@@ -87,6 +106,10 @@ Route all parts to `staff-engineer`. Parts 01 → 02 → 03 are sequential. Part
 
 ## Risks
 
-- **Synthea JAR size (~40MB) in CI.** Mitigated by GitHub Actions cache keyed on `synthea_version`; pipeline already gracefully skips unavailable tools.
-- **DOTTED_IDENT tokenizer change affects existing parsing.** Mitigated by the lexer trying `DOTTED_IDENT` only when a dot is followed by a letter, and all downstream parsers accepting both `IDENT` and `DOTTED_IDENT`.
-- **Clinical prose generation cost.** Mitigated by `--mode no-prose` for development and CI; prose cache prevents re-generation.
+- **Synthea JAR size (~40MB) in CI.** Mitigated by GitHub Actions cache keyed on
+  `synthea_version`; pipeline already gracefully skips unavailable tools.
+- **DOTTED_IDENT tokenizer change affects existing parsing.** Mitigated by the
+  lexer trying `DOTTED_IDENT` only when a dot is followed by a letter, and all
+  downstream parsers accepting both `IDENT` and `DOTTED_IDENT`.
+- **Clinical prose generation cost.** Mitigated by `--mode no-prose` for
+  development and CI; prose cache prevents re-generation.

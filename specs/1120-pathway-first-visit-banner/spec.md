@@ -5,21 +5,23 @@
 The Pathway web UI root route drops engineers directly into entity counts,
 explore cards, and "Build Your Team" CTAs with no framing of what Pathway is or
 how it should be read. The JTBD this product serves —
-[Empowered Engineers: Understand Expectations](../../JTBD.md#empowered-engineers-understand-expectations) —
-names a specific anxiety: *"Looking up the standard might confirm gaps easier
-left ignored."* Without an orienting frame on first arrival, engineers infer
-purpose from interaction patterns, and the surface (rankings, counts, role
-definitions) can read as evaluation rather than reference.
+[Empowered Engineers: Understand Expectations](../../JTBD.md#empowered-engineers-see-whats-expected-of-humans-and-agents)
+— names a specific anxiety:
+*"Looking up the standard might confirm gaps easier left ignored."* Without an
+orienting frame on first arrival, engineers infer purpose from interaction
+patterns, and the surface (rankings, counts, role definitions) can read as
+evaluation rather than reference.
 
-This came to a head in [discussion #1005](https://github.com/forwardimpact/monorepo/discussions/1005):
+This came to a head in
+[discussion #1005](https://github.com/forwardimpact/monorepo/discussions/1005):
 BioNova HR asked for a blocking acknowledgement modal — a "Before you begin"
-screen with an `[x] I understand that Pathway is a development reference, not a
-performance evaluation tool` checkbox gating UI access. The copy they wrote is
-good — it lands Pathway's positioning (reference, not evaluation; visibility,
-not grading; invitation to challenge the standard) — but the modal mechanism
-contradicts the message. @dickolsson accepted a first-visit dismissible banner
-as the product-aligned alternative: same copy, no checkbox, no gate, "Got it"
-not "I acknowledge."
+screen with an
+`[x] I understand that Pathway is a development reference, not a performance evaluation tool`
+checkbox gating UI access. The copy they wrote is good — it lands Pathway's
+positioning (reference, not evaluation; visibility, not grading; invitation to
+challenge the standard) — but the modal mechanism contradicts the message.
+@dickolsson accepted a first-visit dismissible banner as the product-aligned
+alternative: same copy, no checkbox, no gate, "Got it" not "I acknowledge."
 
 ## Persona and job
 
@@ -143,7 +145,7 @@ banner has been recorded for the current origin.
 
 - [Discussion #1005](https://github.com/forwardimpact/monorepo/discussions/1005)
   — original request, triage, and approval of this alternative.
-- [JTBD.md § Empowered Engineers: Understand Expectations](../../JTBD.md#empowered-engineers-understand-expectations)
+- [JTBD.md § Empowered Engineers: Understand Expectations](../../JTBD.md#empowered-engineers-see-whats-expected-of-humans-and-agents)
   — the persona and job this spec serves.
 - [products/pathway/](../../products/pathway/) — the package this spec
   modifies.

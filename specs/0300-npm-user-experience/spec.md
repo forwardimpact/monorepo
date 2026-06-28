@@ -144,4 +144,5 @@ correction.
 - Issue #182: Testing: Add npm package smoke tests to CI/CD
 - Issue #183: Documentation: Clarify package manager support (npm vs bun)
 - Spec 0230: pathway-init-npm (done — Pathway npm install fix)
-- Spec 0240: guide-npm-package (done — Guide npm publishing, early flag handling)
+- Spec 0240: guide-npm-package (done — Guide npm publishing, early flag
+  handling)

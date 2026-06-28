@@ -1,6 +1,7 @@
 # Plan 0920-a · Part 02 — Composer + call sites
 
-Overview: [plan-a.md](plan-a.md) · Spec: [spec.md](spec.md) · Design: [design-a.md](design-a.md)
+Overview: [plan-a.md](plan-a.md) · Spec: [spec.md](spec.md) · Design:
+[design-a.md](design-a.md)
 
 Depends on: Part 01 merged (`renderOrganizationalContext` exported,
 `agentData.organizationalContext` loaded).
@@ -96,7 +97,8 @@ mislabeled as "Team Instructions":
 +  await writeTeamInstructions(teamInstructions, orgSection, baseDir, claudeTemplate);
 ```
 
-**Modified:** `products/pathway/src/commands/agent-io.js` § `writeTeamInstructions`:
+**Modified:** `products/pathway/src/commands/agent-io.js` §
+`writeTeamInstructions`:
 
 ```diff
  export async function writeTeamInstructions(
@@ -119,7 +121,8 @@ mislabeled as "Team Instructions":
 
 ## Step 4c — Web preview call site
 
-**Modified:** `products/pathway/src/pages/agent-builder.js` § `buildDeriveContext`:
+**Modified:** `products/pathway/src/pages/agent-builder.js` §
+`buildDeriveContext`:
 
 ```diff
    function buildDeriveContext(combo, level) {
@@ -137,7 +140,8 @@ mislabeled as "Team Instructions":
    }
 ```
 
-**Modified:** `products/pathway/src/pages/agent-builder-preview.js` § `deriveAgentData`:
+**Modified:** `products/pathway/src/pages/agent-builder-preview.js` §
+`deriveAgentData`:
 
 ```diff
  import {
@@ -209,14 +213,15 @@ mislabeled as "Team Instructions":
 
 **`build-packs.test.js` ripple:** `build-packs.test.js` imports
 `runAgentCommand` (line 25) and exercises pack assembly end-to-end. The
-return-shape change in `derivePackContent` flows through the same pipeline
-the test already runs; if the existing test asserts on the `teamInstructions`
-field of pack content for a non-empty track (the starter's platform track),
-the assertion holds — the rendered string changes only when the slot is
-populated, which the existing test fixture does not set up (slot ships in
-Part 03, not now). After Step 4d lands, run `bun run test products/pathway/test/build-packs.test.js`
-and confirm exit 0; if a snapshot assertion needs an updated golden because
-the test fixture happens to include a populated slot, regenerate it.
+return-shape change in `derivePackContent` flows through the same pipeline the
+test already runs; if the existing test asserts on the `teamInstructions` field
+of pack content for a non-empty track (the starter's platform track), the
+assertion holds — the rendered string changes only when the slot is populated,
+which the existing test fixture does not set up (slot ships in Part 03, not
+now). After Step 4d lands, run
+`bun run test products/pathway/test/build-packs.test.js` and confirm exit 0; if
+a snapshot assertion needs an updated golden because the test fixture happens to
+include a populated slot, regenerate it.
 
 **Scope clarification for `agent-builder-download.js`:** the download button
 consumes `teamInstructionsContent` (already updated by Step 4c) and reads

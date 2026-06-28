@@ -47,7 +47,9 @@ Verification: `node scripts/audit-service-urls.mjs` shows zero mismatches on the
 Intent: `websites/fit/docs/internals/vectors/index.md:79-80` states the
 embedding gRPC server "listens on `SERVICE_EMBEDDING_URL` (default
 `grpc://localhost:3015`)" — the spec's named recurrence evidence (PR #1318 →
-#1454 drifted this exact value). It already reads `3015` (canonical), so this is
+
+## 1454 drifted this exact value). It already reads `3015` (canonical), so this is
+
 a register-don't-churn step: add it as an embedding `docs` consumer so the gate
 protects it going forward.
 
@@ -62,7 +64,7 @@ is the embedding backend, not `SERVICE_EMBEDDING_URL`, and is not matched.
 Verification: `node scripts/audit-service-urls.mjs` shows the embedding
 `internals/vectors` row at `restated == expected` (zero mismatch).
 
-## Step 3 — Confirm the three env files
+### Step 3 — Confirm the three env files
 
 Intent: the `.env.*.example` files already use the canonical scheme
 (`trace` 3001 … `embedding` 3015); confirm, do not churn.
@@ -75,7 +77,7 @@ records why), so it is not swept.
 Verification: `node scripts/audit-service-urls.mjs` shows zero mismatches on
 every `env` row that is in the registry.
 
-## Step 4 — Populate the full registry
+### Step 4 — Populate the full registry
 
 Intent: expand the Part 01 registry skeleton (`mcp`, `trace`) to every in-scope
 service with its complete on-disk consumer set.
@@ -84,6 +86,7 @@ Files modified: `.coaligned/invariants/service-url-drift.registry.yml`.
 
 Concrete change: add a block per service from the canonical table, listing only
 the consumer surfaces that service actually has on disk:
+
 - every service: its in-registry `.env.*.example` rows (the `embedding.local`
   docker-host rows excluded as a deployment-host exception);
 - `init` rows for exactly the seven services init writes (trace, vector, graph,
@@ -95,7 +98,7 @@ Read the live tree to confirm each service's exact surface set.
 Verification: registry parses; the rule module's `build()` runs over every row
 without a locator miss.
 
-## Step 5 — Activation: green first run
+### Step 5 — Activation: green first run
 
 Intent: success-criterion 6 — the gate passes on every registered row.
 
@@ -104,6 +107,7 @@ Files modified: none.
 Concrete change: run the full gate.
 
 Verification:
+
 - `bunx coaligned invariants` is green (the `service-url-drift` module reports
   no findings).
 - `node scripts/audit-service-urls.mjs` prints `0` mismatches.

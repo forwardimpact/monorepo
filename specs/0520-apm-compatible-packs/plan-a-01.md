@@ -73,7 +73,7 @@ After this part, the codebase compiles and the existing test suite fails on:
 
 Quick smoke check:
 
-```
+```text
 grep -r "archivePack\b" products/pathway/src/  # should return 0 matches
 grep -r "writePackRepository\b" products/pathway/src/  # should return 0 matches
 grep -r "writeAggregateRepository\b" products/pathway/src/  # should return 0 matches

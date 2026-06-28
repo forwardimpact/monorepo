@@ -26,10 +26,11 @@ explicit `name`/`title`/`level`/`discipline` fields.
 
 - Modified: `libraries/libsyntheticgen/src/dsl/parser-blocks.js`
 
-`consumeFields` dispatches on the token's `.value` string (parser-helpers.js:42),
-and the tokenizer emits any non-keyword word as an `IDENT` carrying its literal
-value (tokenizer.js:283). So `director`, `level`, and `discipline` need **no**
-keyword registration — the handler-map keys match the IDENT values directly.
+`consumeFields` dispatches on the token's `.value` string
+(parser-helpers.js:42), and the tokenizer emits any non-keyword word as an
+`IDENT` carrying its literal value (tokenizer.js:283). So `director`, `level`,
+and `discipline` need **no** keyword registration — the handler-map keys match
+the IDENT values directly.
 
 ```js
 // inside parseDepartment consumeFields handler map, alongside team:
@@ -99,7 +100,7 @@ Add the director to the `department it` block in the DSL.
 
 - Modified: `data/synthetic/story.dsl`
 
-```
+```text
   department it {
     name "BioNova IT"
     parent headquarters
@@ -128,7 +129,6 @@ unchanged. With ≥2: build `view.teamRollup` and `view.scope`; omit the flat
 `view.drivers`.
 
 - Modified: `products/landmark/src/commands/health.js`
-
 - The resolved `team` rows (from `getTeam`) carry `getdx_team_id`
   (`organization_people` column, migration `20250504000001`). Compute
   `teamIds = new Set(team.map((p) => p.getdx_team_id).filter(Boolean))`.
@@ -137,10 +137,11 @@ unchanged. With ≥2: build `view.teamRollup` and `view.scope`; omit the flat
   score subset (`scores.filter((s) => s.getdx_team_id === id)`), then run the
   existing `buildDriverRows` over the subset to produce
   `{ teamId, teamName: <subset row.team_name>, drivers }`. Collect into
-  `view.teamRollup`. Set `view.scope = { teamCount: teamIds.size, tierLabel: teamLabel }`.
-  Do not set `view.drivers`. Per-team evidence filtering uses the team's
-  `teamEmails` subset — so each block equals the `--manager <team-mgr>` output
-  for that team (SC-5).
+  `view.teamRollup`. Set
+  `view.scope = { teamCount: teamIds.size, tierLabel: teamLabel }`. Do not set
+  `view.drivers`. Per-team evidence filtering uses the team's `teamEmails`
+  subset — so each block equals the `--manager <team-mgr>` output for that team
+  (SC-5).
 - Else: existing path (`view.drivers`), `view.scope` undefined.
 - `computeDriverJoin` runs against the full score set in both modes (its
   counters are set-based, rollup-agnostic).
@@ -159,18 +160,18 @@ still yields `view.drivers` and no `view.scope`.
 Render the rollup in `toText`/`toMarkdown`/`toJson`.
 
 - Modified: `products/landmark/src/formatters/health.js`
-
-- When `view.scope` is present: emit a header line `Across N teams (<tierLabel>)`,
-  then iterate `view.teamRollup` in order; for each, emit a team sub-header
-  (`Team: <teamName>`) followed by the existing default driver table for that
-  team's `drivers`. No sorting, no cross-team deltas (SC-6).
+- When `view.scope` is present: emit a header line
+  `Across N teams (<tierLabel>)`, then iterate `view.teamRollup` in order; for
+  each, emit a team sub-header (`Team: <teamName>`) followed by the existing
+  default driver table for that team's `drivers`. No sorting, no cross-team
+  deltas (SC-6).
 - `toJson` already serialises the whole `view`; assert it includes `teamRollup`
   and `scope`.
 - When `view.scope` is absent: unchanged.
 
-Verify: `health-formatter.test.js` — a view with `scope`+`teamRollup` renders the
-scope line and one block per team in declaration order, no ranking language; a
-view without `scope` renders byte-identical to today.
+Verify: `health-formatter.test.js` — a view with `scope`+`teamRollup` renders
+the scope line and one block per team in declaration order, no ranking language;
+a view without `scope` renders byte-identical to today.
 
 ## Step 6 — CLI help: director-tier example
 
@@ -210,9 +211,10 @@ Run the suite and the spec's verification commands.
 
 ## Risks
 
-- **`makePerson` assumes a non-null `team`.** It reads `team.id`/`team.department`.
-  The director has no team — step 2 must pass department context without a team
-  object, or `makePerson` throws. Adapt the call site, not the existing team path.
+- **`makePerson` assumes a non-null `team`.** It reads
+  `team.id`/`team.department`. The director has no team — step 2 must pass
+  department context without a team object, or `makePerson` throws. Adapt the
+  call site, not the existing team path.
 - **`getdx_team_id` on member and score rows.** The rollup keys off
   `person.getdx_team_id` (migration `20250504000001`) and
   `score.getdx_team_id` (set by the generator, activity.js:256). Existing

@@ -47,29 +47,26 @@ and re-implementing the rollup in two other tools.
 ## Persona and job
 
 **Engineering Leaders → Measure Engineering Outcomes**
-([JTBD.md:31-56](../../JTBD.md)). The Big Hire reads "Help me
-demonstrate engineering progress without making individuals feel
-surveilled," and the Little Hire reads "Help me tell whether culture
-investments are working before the next budget cycle." Both lines
-name the same role — the engineering leader who answers to the CTO
-on org-level outcomes. The Competes-With set names the incumbents the
-product displaces ("sprint velocity; ticket counts; annual reviews;
-asking managers 'how's the team doing?'; not measuring"). The Anxiety
-line — "Measurement feels like surveillance regardless of intent" —
-is materially advantaged by director-tier rollup because aggregation
-across a department-sized group abstracts away from individuals; the
-rollup is the surface where the JTBD's anxiety mitigation lands at
-the leader-tier the JTBD names. The Fired-When line ("metrics get used punitively; or leadership
-turnover deprioritizes measurement") constrains one specific shape of
-rollup surface: any department-tier output element that could be read
-as ranking, shaming, or singling out a team — a "lowest-scoring team"
-badge, a manager-name leaderboard — would fire the first clause of
-the punitive-use condition. Criterion 6 closes that specific shape.
-The longitudinal-punitive-use shape (a symmetric trend display read
-punitively over time) and the leadership-turnover clause are not
+([JTBD.md:31-56](../../JTBD.md)). The Big Hire reads "Help me demonstrate
+engineering progress without making individuals feel surveilled," and the Little
+Hire reads "Help me tell whether culture investments are working before the next
+budget cycle." Both lines name the same role — the engineering leader who
+answers to the CTO on org-level outcomes. The Competes-With set names the
+incumbents the product displaces ("sprint velocity; ticket counts; annual
+reviews; asking managers 'how's the team doing?'; not measuring"). The Anxiety
+line — "Measurement feels like surveillance regardless of intent" — is
+materially advantaged by director-tier rollup because aggregation across a
+department-sized group abstracts away from individuals; the rollup is the
+surface where the JTBD's anxiety mitigation lands at the leader-tier the JTBD
+names. The Fired-When line ("metrics get used punitively; or leadership turnover
+deprioritizes measurement") constrains one specific shape of rollup surface: any
+department-tier output element that could be read as ranking, shaming, or
+singling out a team — a "lowest-scoring team" badge, a manager-name leaderboard
+— would fire the first clause of the punitive-use condition. Criterion 6 closes
+that specific shape. The longitudinal-punitive-use shape (a symmetric trend
+display read punitively over time) and the leadership-turnover clause are not
 anchored by any criterion in this spec; they live one layer up at the
-JTBD-deprecation level rather than in the rollup surface this spec
-ships.
+JTBD-deprecation level rather than in the rollup surface this spec ships.
 
 The persona's own articulation captured during testing
 ([issue #955](https://github.com/forwardimpact/monorepo/issues/955))

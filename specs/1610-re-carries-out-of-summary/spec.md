@@ -48,14 +48,13 @@ clearance is gated on a future event.
 | #6 Exp #1475 trace-attestation header | 420 | 2026-06-15 verdict |
 | Exp #1468 autonomous-Assess pre-check | 270 | 2026-07-01 verdict |
 
-Total at obstacle filing: ~1 580 words, leaving ~470 words of headroom
-for the settled-state sections the contract was written for (last run,
-run plan, first-release backlog, open blockers). Reported state at
-HEAD `a9feca5e` (per [Issue #1480](https://github.com/forwardimpact/monorepo/issues/1480)):
-2 051 words / 2 048-word audit limit. An in-session trim restored
-audit-pass to ~1 998 words at the same HEAD; that trim is **temporary
-slack**, not a structural fix. The next Carry addition recurs the
-breach.
+Total at obstacle filing: ~1 580 words, leaving ~470 words of headroom for the
+settled-state sections the contract was written for (last run, run plan,
+first-release backlog, open blockers). Reported state at HEAD `a9feca5e` (per
+[Issue #1480](https://github.com/forwardimpact/monorepo/issues/1480)): 2 051
+words / 2 048-word audit limit. An in-session trim restored audit-pass to ~1 998
+words at the same HEAD; that trim is **temporary slack**, not a structural fix.
+The next Carry addition recurs the breach.
 
 ### Recurrence shape
 
@@ -87,7 +86,9 @@ input.
 Carry shape and durability are dictated by the per-Assess
 predicate-check protocol routed by product-manager (the precedent
 established by Discussion #1022). The protocols encoded in Carries #5,
-#6, and the Exp #1468 block are intentionally specific: Carry #6's
+
+## 6, and the Exp #1468 block are intentionally specific: Carry #6's
+
 trace-attestation prepend sequence and Exp #1468's autonomous-Assess
 pre-check are falsifier predicates whose load-bearing text *is* the
 literal sequence — paraphrase loses enforceability. The summary's
@@ -96,7 +97,7 @@ treats Carry growth as the price of safe per-Assess obligation
 tracking. The conflict is between two structurally correct things
 sharing one file surface.
 
-## Scope
+### Scope
 
 In scope:
 
@@ -137,7 +138,7 @@ Out of scope (deferred):
 - *Any change to the existing summary word-or-line budgets.* The
   summary stays a settled-state surface under its existing budget.
 
-## Constraints on the design
+### Constraints on the design
 
 - The chosen filename and H1 together must not be misclassified by the
   existing wiki audit's summary or weekly-log classifiers (the new
@@ -152,7 +153,7 @@ Out of scope (deferred):
   protocol-section heading and field names should describe Carry
   semantics rather than release-engineer specifics.)
 
-## Decisions
+### Decisions
 
 - **Carries are a third category, distinct from settled state and
   history.** They earn their own surface rather than sharing the
@@ -168,7 +169,7 @@ Out of scope (deferred):
   1490's existing review cycle (panel R1→R2 already complete) without
   changing either's success criteria.
 
-## Success criteria
+### Success criteria
 
 | # | Criterion | Verifies via |
 |---|---|---|
@@ -179,9 +180,14 @@ Out of scope (deferred):
 | 5 | The live Carries plus the Exp #1468 block are present on the new surface, each with its clearance trigger named. | Each of Carries #1, #2, #4, #5, #6, and the Exp #1468 block in the § Problem table has a corresponding entry on the new surface whose body names a verdict horizon, a spec id whose merge clears it, or a release-tag publication event. Carry #3 is RESOLVED at filing and is not required to migrate. |
 | 6 | The memory protocol explains how RE-on-boot finds open obligations. | `memory-protocol.md` contains a section that (a) identifies the new surface as the canonical home for Carry-style obligations, and (b) describes the entry shape sufficient for a boot procedure to enumerate open obligations and their clearance triggers. |
 
-## Evidence
+### Evidence
 
-- **Obstacle filing.** [Issue #1480](https://github.com/forwardimpact/monorepo/issues/1480) — RE-reported, coach-verified at HEAD `a9feca5e`: `bunx fit-wiki audit` returned `wiki/release-engineer.md 2051 words (limit 2048) summary.word-budget`. The in-session trim that followed restored audit-pass at the same HEAD; the underlying inventory pressure is unchanged.
+- **Obstacle filing.**
+  [Issue #1480](https://github.com/forwardimpact/monorepo/issues/1480) —
+  RE-reported, coach-verified at HEAD `a9feca5e`: `bunx fit-wiki audit` returned
+  `wiki/release-engineer.md 2051 words (limit 2048) summary.word-budget`. The
+  in-session trim that followed restored audit-pass at the same HEAD; the
+  underlying inventory pressure is unchanged.
 - **Word-budget contract.**
   [`libraries/libwiki/src/constants.js`](../../libraries/libwiki/src/constants.js)
   carries the summary's line and word budgets and the corresponding
@@ -207,7 +213,7 @@ Out of scope (deferred):
 - **Precedent for routing protocol changes to PM.** Discussion #1022
   ratified 2026-05-26.
 
-## Adjacency to spec 1490
+### Adjacency to spec 1490
 
 - **[Spec 1490](https://github.com/forwardimpact/monorepo/pull/1383)**
   attacks the *flow* side (Assess-loop predicate that recognises and

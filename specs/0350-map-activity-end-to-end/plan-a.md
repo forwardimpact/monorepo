@@ -105,7 +105,7 @@ remaps the export paths.
 
 ## Directory layout (target)
 
-```
+```text
 products/map/
   activity/
     queries/                         # unchanged, Node-only, out-of-spec-scope
@@ -234,7 +234,7 @@ Run `bun install` at repo root to update `bun.lock`.
 
 Use `git mv` for each file to preserve blame:
 
-```
+```text
 git mv products/map/activity/storage.js                products/map/supabase/functions/_shared/activity/storage.js
 git mv products/map/activity/extract/github.js         products/map/supabase/functions/_shared/activity/extract/github.js
 git mv products/map/activity/extract/getdx.js          products/map/supabase/functions/_shared/activity/extract/getdx.js
@@ -1591,7 +1591,7 @@ Addressed in spec. The mitigation is already in the plan:
 
 ## Ordering summary
 
-```
+```text
 Phase 1 (moves, exports) ─► Phase 2 (edge functions) ─► Phase 3 (CLI) ─► Phase 4 (tests + delete) ─► Phase 5 (verification)
 ```
 

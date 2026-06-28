@@ -116,7 +116,8 @@ loud `undefined`-property failure rather than a silent positional
 swap. The dispatch in `index.js` (Step 03.3) picks the right bag based
 on `contract.evaluatedAt`.
 
-**Verify:** import works; `lookupContract("github-discussions") === githubAccountEquality`;
+**Verify:** import works;
+`lookupContract("github-discussions") === githubAccountEquality`;
 `lookupContract("msteams") === bridgePendingDispatchProof`;
 `lookupContract("unknown") === bridgePendingDispatchProof`.
 
@@ -398,8 +399,11 @@ Test cases:
 | `github-discussions mismatched id returns identity_mismatch` | `github-discussions` | `getUser` returns `"999"`, `surface_user_id` = `"42"` | `outcome === "identity_mismatch"`; no binding |
 | `client_state round-trip carried through to completion` | `github-discussions` | `client_state: "tok-abc"`, `redirect_uri` set | `result.client_state === "tok-abc"` |
 
-The pre-#1399 `"non-github-discussions surface creates binding regardless of id difference"` test stays gone (was deleted by #1399). The
-#1399 kill-switch test (`"non-github-discussions surface is rejected at Begin"` at lines 81-97 of the current file) is **removed**.
+The pre-#1399
+`"non-github-discussions surface creates binding regardless of id difference"`
+test stays gone (was deleted by #1399). The
+
+## 1399 kill-switch test (`"non-github-discussions surface is rejected at Begin"` at lines 81-97 of the current file) is **removed**
 
 Helper update: `createService` adds a `bridgeClient` mock:
 
@@ -442,7 +446,7 @@ proof-failure paths.
 **Verify:** `bun test services/ghuser/test/identity-verification.test.js`
 passes; ≤200 LOC; no allow-list entry needed.
 
-## Step 03.8 — Delete `services/ghuser/test/query-quarantine.test.js`
+### Step 03.8 — Delete `services/ghuser/test/query-quarantine.test.js`
 
 **Deleted:** `services/ghuser/test/query-quarantine.test.js`
 
@@ -453,7 +457,7 @@ file is obsolete. No coverage gap — `GetToken` now uniformly returns
 
 **Verify:** `bun test services/ghuser/test/` runs without the file.
 
-## Step 03.9 — Add `services/ghuser/test/registry.test.js`
+### Step 03.9 — Add `services/ghuser/test/registry.test.js`
 
 **Created:** `services/ghuser/test/registry.test.js`
 
@@ -470,7 +474,7 @@ exercise directly:
 **Verify:** `bun test services/ghuser/test/registry.test.js` passes;
 ≤100 LOC.
 
-## Step 03.10 — Add the `migrations.jsonl` index and the migration
+### Step 03.10 — Add the `migrations.jsonl` index and the migration
 
 A separate `BufferedIndex` namespace records run migrations.
 
@@ -504,7 +508,8 @@ export class MigrationLedger extends BufferedIndex {
 }
 ```
 
-**Created:** `services/ghuser/src/migrations/drop-pre-fix-bridge-proof-bindings.js`
+**Created:**
+`services/ghuser/src/migrations/drop-pre-fix-bridge-proof-bindings.js`
 
 ```js
 const MIGRATION_ID = "1520-drop-pre-fix-bridge-proof-bindings";
@@ -567,7 +572,7 @@ A future surface name with a colon would need a corresponding
 
 **Verify:** unit test in Step 03.12 passes.
 
-## Step 03.11 — Invoke the migration from `server.js` before `start()`
+### Step 03.11 — Invoke the migration from `server.js` before `start()`
 
 **Modified:** `services/ghuser/server.js`
 
@@ -613,7 +618,7 @@ for (const sig of ["SIGINT", "SIGTERM"]) {
 restarting the service skips the migration (`grep` migration ledger
 shows `1520-drop-pre-fix-bridge-proof-bindings` present).
 
-## Step 03.12 — Add `services/ghuser/test/migration.test.js`
+### Step 03.12 — Add `services/ghuser/test/migration.test.js`
 
 **Created:** `services/ghuser/test/migration.test.js`
 
@@ -629,7 +634,7 @@ Cover:
 **Verify:** `bun test services/ghuser/test/migration.test.js` passes;
 ≤200 LOC.
 
-## Step 03.13 — Update `services/oauth/test/authorize.test.js` for the new outcome shape
+### Step 03.13 — Update `services/oauth/test/authorize.test.js` for the new outcome shape
 
 `services/oauth` has **two distinct** outcome-to-HTTP mappings:
 
@@ -666,7 +671,7 @@ at this layer.
 `grep -n surface_not_supported services/oauth/test/` returns zero
 matches.
 
-## Step 03.14 — Run the full test suite and confirm clean break
+### Step 03.14 — Run the full test suite and confirm clean break
 
 ```sh
 bun test
@@ -683,7 +688,7 @@ bun run check
 - `grep -rn "bridge_pending_dispatch_proof\|lookupContract\|MigrationLedger" services/ghuser/`
   returns the expected hits.
 
-## Step 03.15 — Hand off to `kata-release-cut`
+### Step 03.15 — Hand off to `kata-release-cut`
 
 Once Part 03 PR is merged on `main`, post a release-cut hand-off to
 the `release-engineer` inbox via `kata-dispatch` (or, if the merging
@@ -704,7 +709,7 @@ The hand-off is part of the plan only because the atomic-release
 coupling is a release-cut concern, not an implementation concern.
 `staff-engineer` can post the memo; `release-engineer` executes.
 
-## Risks specific to Part 03
+### Risks specific to Part 03
 
 - **Bridge unavailable at boot.** `BridgeClient` is constructed in
   `server.js` but does not connect synchronously (gRPC channel is

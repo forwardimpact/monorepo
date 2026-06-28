@@ -2,9 +2,24 @@
 
 ## Approach
 
-Build the harness inside `@forwardimpact/libeval` as ten new modules under `src/benchmark/` plus a `bin/fit-benchmark.js` entry, in dependency order: pure-data layers (`task-family`, `result`, `apm-installer`), then per-task lifecycle (`workdir`, `invariants`, `judge`), then the orchestrator (`runner`), then `report` and the three subcommand handlers under `commands/`. The agent-under-test runs as a bare `AgentRunner` with a fixed `BASE_TOOLS` allow-list per design Decision 9; the judge composes `Supervisor`+`AgentRunner` per Decision 7; family-shipped paths reach the LLM via prompt templating (`{{INVARIANTS_RESULT}}`, `{{AGENT_TRACE_PATH}}`); the runner owns the JSONL append, handlers mirror to stdout; `apm.lock.yaml` is the LF-normalised fingerprint over a pre-staged `.claude/`; tests use `node:test` + `libmock`'s `createMockAgentQuery` for the agent SDK and the `Supervisor`-with-mock-runners pattern (`test/supervisor-run.test.js`) for the judge.
+Build the harness inside `@forwardimpact/libeval` as ten new modules under
+`src/benchmark/` plus a `bin/fit-benchmark.js` entry, in dependency order:
+pure-data layers (`task-family`, `result`, `apm-installer`), then per-task
+lifecycle (`workdir`, `invariants`, `judge`), then the orchestrator (`runner`),
+then `report` and the three subcommand handlers under `commands/`. The
+agent-under-test runs as a bare `AgentRunner` with a fixed `BASE_TOOLS`
+allow-list per design Decision 9; the judge composes `Supervisor`+`AgentRunner`
+per Decision 7; family-shipped paths reach the LLM via prompt templating
+(`{{INVARIANTS_RESULT}}`, `{{AGENT_TRACE_PATH}}`); the runner owns the JSONL
+append, handlers mirror to stdout; `apm.lock.yaml` is the LF-normalised
+fingerprint over a pre-staged `.claude/`; tests use `node:test` + `libmock`'s
+`createMockAgentQuery` for the agent SDK and the `Supervisor`-with-mock-runners
+pattern (`test/supervisor-run.test.js`) for the judge.
 
-Libraries used: `@forwardimpact/libeval` (`createAgentRunner`, `createSupervisor`, `createTraceCollector`, `composeProfilePrompt`, `AGENT_SYSTEM_PROMPT`), `@forwardimpact/libcli` (`createCli`), `@forwardimpact/libtelemetry` (`createLogger`), `zod`.
+Libraries used: `@forwardimpact/libeval` (`createAgentRunner`,
+`createSupervisor`, `createTraceCollector`, `composeProfilePrompt`,
+`AGENT_SYSTEM_PROMPT`), `@forwardimpact/libcli` (`createCli`),
+`@forwardimpact/libtelemetry` (`createLogger`), `zod`.
 
 ## Plan-level decisions (design left open)
 
@@ -22,9 +37,10 @@ Libraries used: `@forwardimpact/libeval` (`createAgentRunner`, `createSupervisor
 
 Create the executable and wire its definition. **Created:**
 `libraries/libeval/bin/fit-benchmark.js`. **Modified:**
-`libraries/libeval/package.json` (add `"fit-benchmark": "./bin/fit-benchmark.js"`
-to `bin`; add `"./bin/fit-benchmark.js": "./bin/fit-benchmark.js"` to
-`exports`). Mirror `bin/fit-eval.js`. Subcommands and options:
+`libraries/libeval/package.json` (add
+`"fit-benchmark": "./bin/fit-benchmark.js"` to `bin`; add
+`"./bin/fit-benchmark.js": "./bin/fit-benchmark.js"` to `exports`). Mirror
+`bin/fit-eval.js`. Subcommands and options:
 
 | Subcommand | Required | Optional |
 |---|---|---|
@@ -110,24 +126,23 @@ class WorkdirManager {
 // the field without a schema change.
 ```
 
-`start` (1) creates `<runOutputDir>/runs/<task_family>__<task_name>/<runIndex>/cwd/`
-(the path encoding replaces the `/` in `taskId` with `__`); the parent
-of `cwd/` (henceforth `runDir`) holds the trace and log files,
-(2) copies via `fs.cp(task.paths.workdir, cwd, { recursive: true,
-filter: (src) => !src.endsWith(path.join("workdir","scripts")) })` and
-`fs.cp(task.paths.specs, path.join(cwd, "specs"), { recursive: true })`
-(scripts/ is excluded from the agent CWD because preflight runs from
-the template path, not the agent CWD; design § Pre-flight contract),
-(3) copies `<stagingDir>/.claude/` → `<cwd>/.claude/`,
-(4) allocates a free TCP port via `net.createServer().listen(0)` →
-`server.address().port` → `server.close()`,
-(5) sets `agentTracePath = <runDir>/agent.ndjson` and
-`judgeTracePath = <runDir>/judge.ndjson` (siblings of `cwd`),
-(6) spawns `task.paths.workdir/scripts/preflight.sh` with env
-`WORKDIR=cwd`, `PORT=port`, `detached: true` so a fresh process group
-forms; captures `pgid = child.pid`; exit-zero confirms scaffold; non-zero
-populates `preflightError = { phase: "preflight", message, exitCode }`
-and returns the handle without throwing.
+`start` (1) creates
+`<runOutputDir>/runs/<task_family>__<task_name>/<runIndex>/cwd/` (the path
+encoding replaces the `/` in `taskId` with `__`); the parent of `cwd/`
+(henceforth `runDir`) holds the trace and log files, (2) copies via
+`fs.cp(task.paths.workdir, cwd, { recursive: true, filter: (src) => !src.endsWith(path.join("workdir","scripts")) })`
+and `fs.cp(task.paths.specs, path.join(cwd, "specs"), { recursive: true })`
+(scripts/ is excluded from the agent CWD because preflight runs from the
+template path, not the agent CWD; design § Pre-flight contract), (3) copies
+`<stagingDir>/.claude/` → `<cwd>/.claude/`, (4) allocates a free TCP port via
+`net.createServer().listen(0)` → `server.address().port` → `server.close()`, (5)
+sets `agentTracePath = <runDir>/agent.ndjson` and
+`judgeTracePath = <runDir>/judge.ndjson` (siblings of `cwd`), (6) spawns
+`task.paths.workdir/scripts/preflight.sh` with env `WORKDIR=cwd`, `PORT=port`,
+`detached: true` so a fresh process group forms; captures `pgid = child.pid`;
+exit-zero confirms scaffold; non-zero populates
+`preflightError = { phase: "preflight", message, exitCode }` and returns the
+handle without throwing.
 
 `teardown` SIGTERMs the captured `pgid` (`process.kill(-pgid, "SIGTERM")`),
 waits 5 s, SIGKILLs survivors, then verifies (a) the port is free
@@ -272,16 +287,15 @@ class BenchmarkRunner {
 4. Open `<opts.output>/results.jsonl` in append mode (the runner — not
    the handler — owns the durable file write; handlers mirror records
    to stdout for visibility only).
-5. For each `(task, runIndex)` in serial:
-   a. `workdir = await wm.start(task, runIndex)`.
-   b. If `workdir.preflightError`: build the preflight-failure
-      `ResultRecord` (`costUsd: 0`, no submission, no invariants, no
-      judgeVerdict); validate; append; `yield`; teardown; `continue`.
-   c. **Agent-under-test session** — bare `AgentRunner` (design
-      Decision 14, no live supervisor in v1). Wrapped in `try/catch`: a thrown error
-      (network outage, SDK abort, etc.) does **not** abort the lifecycle
-      — invariants and judging still run against the partial workdir
-      (spec criterion 1 demands a record on agent failure):
+5. For each `(task, runIndex)` in serial: a.
+   `workdir = await wm.start(task, runIndex)`. b. If `workdir.preflightError`:
+   build the preflight-failure `ResultRecord` (`costUsd: 0`, no submission, no
+   invariants, no judgeVerdict); validate; append; `yield`; teardown;
+   `continue`. c. **Agent-under-test session** — bare `AgentRunner` (design
+   Decision 14, no live supervisor in v1). Wrapped in `try/catch`: a thrown
+   error (network outage, SDK abort, etc.) does **not** abort the lifecycle —
+   invariants and judging still run against the partial workdir (spec criterion
+   1 demands a record on agent failure):
 
       ```js
       const agentTraceStream = createWriteStream(workdir.agentTracePath);
@@ -318,9 +332,8 @@ class BenchmarkRunner {
       await new Promise((r) => agentTraceStream.end(r));
       ```
 
-      `costUsd`, `turns`, `submission` are then read from the agent
-      trace by ingesting the file into a fresh `TraceCollector` using
-      `node:readline`:
+   `costUsd`, `turns`, `submission` are then read from the agent trace by
+   ingesting the file into a fresh `TraceCollector` using `node:readline`:
 
       ```js
       import { createReadStream } from "node:fs";
@@ -337,40 +350,33 @@ class BenchmarkRunner {
       const submission = lastAssistantText(json);    // P2: last assistant.text block
       ```
 
-      `lastAssistantText(json)` walks `json.turns` in order, returns the
-      last `text` from any `assistant` block, or `""` if none; defined
-      locally in `runner.js`. On the `agentError !== null` branch,
-      `costUsd` and `turns` come from the partial trace via
-      `TraceCollector.toJSON().summary`; if no `result` event ever
-      reached the trace, the collector's defaults yield `0`/`0` —
-      acceptable, and consistent with `preflightError`'s `costUsd: 0`
-      floor.
-   e. `invariants = await runInvariants(task, { cwd: workdir.cwd, port:
-      workdir.port, runDir: dirname(workdir.cwd) })`.
-   f. `judgeVerdict = await runJudge(task, workdir, invariants, { query,
-      model, judgeProfile: profiles.judge })`.
-   f. Compose `ResultRecord` with `profiles: { agent: profiles.agent
-      ?? null, supervisor: null, judge: profiles.judge ?? null }`
-      (P5); other fields per design § Result-record schema —
-      `familyRevision`, `skillSetHash`, `model`, `durationMs`,
-      `verdict = invariants.verdict === "pass" &&
-      judgeVerdict.verdict === "pass" ? "pass" : "fail"`. If
-      `agentError` is non-null, attach `submission: ""`, `costUsd`/
-      `turns` as parsed from whatever made it to the trace (often 0),
-      and let invariants/judge produce their own verdicts as usual.
-      `validateResultRecord(record)`; append one JSONL line; `yield record`.
-      `durationMs` is `Date.now() - t0` where `t0 = Date.now()` is
-      captured at the top of step 5.a (before `wm.start`). If
-      `validateResultRecord` throws (a real bug in the runner — the
-      runner constructed the record), the runner catches the
-      `ZodError`, writes a single fallback line `{taskId, runIndex,
-      verdict: "fail", schemaError: <message>}` to `results.jsonl`
-      (skipped by `aggregate()` per Step 9's malformed-line rule with
-      a stderr warning), `yield`s the partial record so the iterator
-      stays consumable, then proceeds to teardown — the agent budget
-      is already spent and silently dropping the run is worse than a
-      noisy fail.
-   g. `await wm.teardown(workdir)`.
+   `lastAssistantText(json)` walks `json.turns` in order, returns the last
+   `text` from any `assistant` block, or `""` if none; defined locally in
+   `runner.js`. On the `agentError !== null` branch, `costUsd` and `turns` come
+   from the partial trace via `TraceCollector.toJSON().summary`; if no `result`
+   event ever reached the trace, the collector's defaults yield `0`/`0` —
+   acceptable, and consistent with `preflightError`'s `costUsd: 0` floor. e.
+   `invariants = await runInvariants(task, { cwd: workdir.cwd, port: workdir.port, runDir: dirname(workdir.cwd) })`.
+   f.
+   `judgeVerdict = await runJudge(task, workdir, invariants, { query, model, judgeProfile: profiles.judge })`.
+   f. Compose `ResultRecord` with
+   `profiles: { agent: profiles.agent ?? null, supervisor: null, judge: profiles.judge ?? null }`
+   (P5); other fields per design § Result-record schema — `familyRevision`,
+   `skillSetHash`, `model`, `durationMs`,
+   `verdict = invariants.verdict === "pass" && judgeVerdict.verdict === "pass" ? "pass" : "fail"`.
+   If `agentError` is non-null, attach `submission: ""`, `costUsd`/ `turns` as
+   parsed from whatever made it to the trace (often 0), and let invariants/judge
+   produce their own verdicts as usual. `validateResultRecord(record)`; append
+   one JSONL line; `yield record`. `durationMs` is `Date.now() - t0` where
+   `t0 = Date.now()` is captured at the top of step 5.a (before `wm.start`). If
+   `validateResultRecord` throws (a real bug in the runner — the runner
+   constructed the record), the runner catches the `ZodError`, writes a single
+   fallback line `{taskId, runIndex, verdict: "fail", schemaError: <message>}`
+   to `results.jsonl` (skipped by `aggregate()` per Step 9's malformed-line rule
+   with a stderr warning), `yield`s the partial record so the iterator stays
+   consumable, then proceeds to teardown — the agent budget is already spent and
+   silently dropping the run is worse than a noisy fail. g.
+   `await wm.teardown(workdir)`.
 6. Close the JSONL file.
 
 Verify: covered by Step 13 E2E.
@@ -496,8 +502,9 @@ Verify: `bun test test/benchmark-e2e.test.js` exits 0 locally.
 **Created:**
 
 - `.claude/skills/fit-benchmark/SKILL.md` — modelled on
-  `.claude/skills/fit-eval/SKILL.md`. `## Documentation` lists exactly
-  one entry: `[Run a Benchmark](https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/index.md)`
+  `.claude/skills/fit-eval/SKILL.md`. `## Documentation` lists exactly one
+  entry:
+  `[Run a Benchmark](https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/index.md)`
   with the description string from Step 1.
 - `.claude/skills/fit-benchmark/references/cli.md` — full flag surface.
 - `websites/fit/docs/libraries/prove-changes/run-benchmark/index.md` —

@@ -284,11 +284,11 @@ async function onCallback(c) {
 ```
 
 The registry is in-memory; for multi-process bridges, persist
-`pending_callbacks` on each discussion-context record (via the adapter's
-`add()` call) so the host can re-register tokens on restart. The `correlation_id` echoes through the
-workflow and is checked against the consumed entry's `correlationId` to defend
-against token-and-payload mismatches; the tenant binding ensures a token
-issued for one tenant cannot redeem a callback addressed to another.
+`pending_callbacks` on each discussion-context record (via the adapter's `add()`
+call) so the host can re-register tokens on restart. The `correlation_id` echoes
+through the workflow and is checked against the consumed entry's `correlationId`
+to defend against token-and-payload mismatches; the tenant binding ensures a
+token issued for one tenant cannot redeem a callback addressed to another.
 
 ## Evaluate recess triggers
 
@@ -303,9 +303,10 @@ signal. A trigger is one of three shapes, named for the lead's intent:
   use. The schema accepts this shape, but the scheduler throws until
   signal-based resume support ships.
 
-`evaluateTrigger(trigger, observed, now)` returns `{ fired: boolean, due_at?: number }`
-where `due_at` is the absolute ms-epoch when an elapsed arm will fire (useful
-for scheduling a wake-up). The host owns `now` so unit tests stay deterministic:
+`evaluateTrigger(trigger, observed, now)` returns
+`{ fired: boolean, due_at?: number }` where `due_at` is the absolute ms-epoch
+when an elapsed arm will fire (useful for scheduling a wake-up). The host owns
+`now` so unit tests stay deterministic:
 
 ```js
 import { evaluateTrigger } from "@forwardimpact/libbridge";

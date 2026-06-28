@@ -12,8 +12,8 @@ The trace shows the agent spawned general-purpose subagents for repo health
 checks (seq 6, 23, 33), attempted PR classification (seq 125, 128), and fixed a
 spec quality defect (seq 340+). It never invoked the Skill tool for kata-grasp,
 never downloaded a trace artifact, and never performed grounded theory analysis.
-The entire 10-minute session produced useful work (spec 0460 fix), but none of it
-was the improvement coach's assigned function.
+The entire 10-minute session produced useful work (spec 0460 fix), but none of
+it was the improvement coach's assigned function.
 
 ### Root cause: name and description use abstract jargon
 

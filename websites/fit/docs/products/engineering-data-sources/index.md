@@ -32,7 +32,7 @@ fit-landmark sources --email self@example.com
 
 Output groups rows per class:
 
-```
+```text
   Profile (organization_people)
     count:   1
     oldest:  2025-09-01T00:00:00Z

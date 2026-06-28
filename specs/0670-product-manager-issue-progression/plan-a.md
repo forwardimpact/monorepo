@@ -139,11 +139,11 @@ returns the new row.
 
 Set spec 0670 to `plan draft`:
 
-```
+```text
 0670	plan	draft
 ```
 
-**Verification:** `grep '670' specs/STATUS` shows `plan	draft`.
+**Verification:** `grep '670' specs/STATUS` shows `plan    draft`.
 
 ## Blast Radius
 

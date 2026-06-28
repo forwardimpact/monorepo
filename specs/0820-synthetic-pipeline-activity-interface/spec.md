@@ -5,7 +5,7 @@
 The synthetic data pipeline that backs `fit-terrain` (one of the library
 CLIs catalogued under **Gear**, the umbrella product Platform Builders
 hire to evaluate and improve agents —
-[JTBD § Evaluate and Improve Agents](../../JTBD.md#platform-builders-evaluate-and-improve-agents))
+[JTBD § Evaluate and Improve Agents](../../JTBD.md#platform-builders-build-agent-capable-systems))
 binds prose-bearing activity outputs to the pipeline output-by-output
 rather than through a shared contract. The asymmetry is observable: the
 same DSL fact that crosses into the LLM for one prose-bearing output is

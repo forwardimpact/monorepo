@@ -17,14 +17,14 @@ were never reconciled.
 - `libraries/libsyntheticgen/src/engine/activity.js:13-30` declares a 16-id
   `ALL_DRIVERS` constant (`clear_direction`, `say_on_priorities`,
   `requirements_quality`, `ease_of_release`, `test_efficiency`,
-  `managing_tech_debt`, `code_review`, `documentation`,
-  `codebase_experience`, `incident_response`, `learning_culture`,
-  `experimentation`, `connectedness`, `efficient_processes`, `deep_work`,
-  `leveraging_user_feedback`) whose ids mirror GetDX's published driver
-  set. The same 16 ids appear in `data/synthetic/story.dsl:661-742` as a
-  `standard.drivers` taxonomy block. The DSL block is consulted at runtime
-  only for initiative metadata (`libraries/libsyntheticgen/src/engine/activity-initiatives.js`);
-  the source of `item_id` strings on every score row is the constant.
+  `managing_tech_debt`, `code_review`, `documentation`, `codebase_experience`,
+  `incident_response`, `learning_culture`, `experimentation`, `connectedness`,
+  `efficient_processes`, `deep_work`, `leveraging_user_feedback`) whose ids
+  mirror GetDX's published driver set. The same 16 ids appear in
+  `data/synthetic/story.dsl:661-742` as a `standard.drivers` taxonomy block. The
+  DSL block is consulted at runtime only for initiative metadata
+  (`libraries/libsyntheticgen/src/engine/activity-initiatives.js`); the source
+  of `item_id` strings on every score row is the constant.
 - `libraries/libsyntheticgen/src/engine/activity.js:242` iterates
   `ALL_DRIVERS` inside `generateScores`; line 260 writes
   `item_id: driverId` for every score row. Zero ids in `ALL_DRIVERS`
@@ -33,7 +33,7 @@ were never reconciled.
 Observable user impact on the clean install path
 (`npx fit-map init` → `npx fit-terrain build` → `npx fit-landmark health`):
 
-```
+```text
 $ npx fit-landmark health --manager daedalus@bionova.example 2>warnings.txt
 $ wc -l warnings.txt
   # up to 16 distinct "Unknown item_id" lines, one per driver id present

@@ -79,16 +79,20 @@ Intent: fail-severity rule over `conflict-scan` with adjudicate-not-trim hint.
 }
 ```
 
-Verify: `bun test libraries/libwiki/test/audit-rules.test.js` (catalogue + well-formed).
+Verify: `bun test libraries/libwiki/test/audit-rules.test.js` (catalogue +
+well-formed).
 
 ## Step 4 — GitClient primitives
 
-Intent: shallow-decidable merge-state detection, abort, and per-file introduced text.
+Intent: shallow-decidable merge-state detection, abort, and per-file introduced
+text.
 
 - Modified: `libraries/libutil/src/git-client.js` (four new methods PLUS a new
-  `allowFailure` param on the existing `mergeOursStrategy`, threaded to `#runRaw`)
+  `allowFailure` param on the existing `mergeOursStrategy`, threaded to
+  `#runRaw`)
 - Modified: `libraries/libmock/src/mock/git-client.js` (add all four names —
-  `unmergedPaths`, `isMidMerge`, `mergeAbort`, `introducedByFile` — to `GIT_METHODS`)
+  `unmergedPaths`, `isMidMerge`, `mergeAbort`, `introducedByFile` — to
+  `GIT_METHODS`)
 
 | Method | Implementation |
 | ------ | -------------- |
@@ -107,9 +111,9 @@ method without a configured `responses` entry. That default is **truthy** (so
 this includes the existing snapshots updated in step 7.
 
 Also add a unit test in `libraries/libutil/test/git-client.test.js` feeding a
-synthetic `git diff` (mock subprocess `responses`) with a `+++ b/file.md`
-header and `+<<<<<<<` / `+content` body lines, asserting `introducedByFile`
-returns `Map { "file.md" => "<<<<<<<\ncontent" }` (header skipped, `+` stripped).
+synthetic `git diff` (mock subprocess `responses`) with a `+++ b/file.md` header
+and `+<<<<<<<` / `+content` body lines, asserting `introducedByFile` returns
+`Map { "file.md" => "<<<<<<<\ncontent" }` (header skipped, `+` stripped).
 
 Verify: `bun test libraries/libutil/test/git-client.test.js` and
 `bun test libraries/libmock/test/runtime-completeness.test.js`.
@@ -125,7 +129,8 @@ Intent: pin every criterion 1–6 fixture in the audit engine test.
 Fixtures (each asserts `conflict.markers` fires / does not fire):
 
 - **C1 branch-merge block** in a summary: fires (open + separator + close).
-- **C1 stash-pop labels** (`<<<<<<< Updated upstream`, `>>>>>>> Stashed changes`): fires.
+- **C1 stash-pop labels** (`<<<<<<< Updated upstream`,
+  `>>>>>>> Stashed changes`): fires.
 - **C1 split block across two sealed parts**: part-27 file with the open marker
   only → fires on that file (kind `open`); part-28 file with separator + close
   only → fires on that file via the **close** marker (kind `close`) — the
@@ -136,22 +141,29 @@ Fixtures (each asserts `conflict.markers` fires / does not fire):
 - **C2 quoted-rider** (prose surface, fenced code block quoting both label forms
   incl. a column-1 wrapped `` `>>>>>>> <sha>` `` and an in-span `=======`): does
   not fire. Anchored by content shape, not filename.
-- **C2 straight-quote mid-line prose** (markers mid-line, no code span): does not fire.
-- **C3 setext underline** (`=======` under a heading, no open above): does not fire.
-- **C4 STATUS.md conflict block** inside the fenced row table (`fenceExempt:false`): fires.
-- **C5**: assert the finding hint matches `/adjudicate/` and does NOT match `/trim/`.
+- **C2 straight-quote mid-line prose** (markers mid-line, no code span): does
+  not fire.
+- **C3 setext underline** (`=======` under a heading, no open above): does not
+  fire.
+- **C4 STATUS.md conflict block** inside the fenced row table
+  (`fenceExempt:false`): fires.
+- **C5**: assert the finding hint matches `/adjudicate/` and does NOT match
+  `/trim/`.
 - **C6 event-2 peak**: a weekly-log file over the word budget AND containing a
   conflict block → both `weekly-log.word-budget` and `conflict.markers` fire.
 
 Detector unit tests in `conflict-markers.test.js` cover: lone separator (no
-emit), open-without-close (open emit), fence suppression toggle, `fenceExempt:false`
-fires inside a fence, and longer `=`/`<`/`>` runs do not match.
+emit), open-without-close (open emit), fence suppression toggle,
+`fenceExempt:false` fires inside a fence, and longer `=`/`<`/`>` runs do not
+match.
 
-Verify: `bun test libraries/libwiki/test/audit-engine.test.js libraries/libwiki/test/conflict-markers.test.js`.
+Verify:
+`bun test libraries/libwiki/test/audit-engine.test.js libraries/libwiki/test/conflict-markers.test.js`.
 
 ## Step 6 — Sync guards in `commitAndPush`
 
-Intent: mid-merge refusal, failure-allowed+abort fallback, pre-push no-marker check.
+Intent: mid-merge refusal, failure-allowed+abort fallback, pre-push no-marker
+check.
 
 - Modified: `libraries/libwiki/src/wiki-sync.js`
 
@@ -160,30 +172,32 @@ Intent: mid-merge refusal, failure-allowed+abort fallback, pre-push no-marker ch
    refusals — do not throw, so callers reading the result keep working. The four
    refusal reasons (`mid-merge`, `stranded-merge`, `would-publish-markers`,
    `introduced-scan-failed`) are **additive** to the two existing results
-   (`{pushed:false,reason:"clean"}`, `{pushed:true,reason:"pushed"}`), which stay
-   exactly as today (criterion 10).
-2. **Mid-merge refusal** at the very top of `commitAndPush`, before `isClean`: if
-   `await this.#git.isMidMerge({cwd})` → return `{ pushed:false, reason:"mid-merge" }`.
-   This probe runs first on every flow, including the clean no-op path.
+   (`{pushed:false,reason:"clean"}`, `{pushed:true,reason:"pushed"}`), which
+   stay exactly as today (criterion 10).
+2. **Mid-merge refusal** at the very top of `commitAndPush`, before `isClean`:
+   if `await this.#git.isMidMerge({cwd})` → return
+   `{ pushed:false, reason:"mid-merge" }`. This probe runs first on every flow,
+   including the clean no-op path.
 3. **Fallback abort**: change the `mergeOursStrategy` call site to pass
    `allowFailure:true` and capture the result; on non-zero exit run
-   `mergeAbort({cwd})`, then return `{ pushed:false, reason:"stranded-merge",
-   workAt:"stash" }`. (`mergeOursStrategy` gains the `allowFailure` param in step 4.)
-4. **Pre-push no-marker check** — runs after the existing `fetch()` and after the
-   rebase/merge-fallback resolves, on the post-merge HEAD, before `push`, so the
-   diff is against the freshly-fetched `origin/master` tip (criterion 11). It runs
-   on **every** push path, including the merge-fallback branch (dual-lineage,
-   criterion 9):
+   `mergeAbort({cwd})`, then return
+   `{ pushed:false, reason:"stranded-merge", workAt:"stash" }`.
+   (`mergeOursStrategy` gains the `allowFailure` param in step 4.)
+4. **Pre-push no-marker check** — runs after the existing `fetch()` and after
+   the rebase/merge-fallback resolves, on the post-merge HEAD, before `push`, so
+   the diff is against the freshly-fetched `origin/master` tip (criterion 11).
+   It runs on **every** push path, including the merge-fallback branch
+   (dual-lineage, criterion 9):
    `const byFile = await this.#git.introducedByFile("origin/master..HEAD", {cwd})`;
    for each `[path, added]`,
    `scanConflictMarkers(added, { fenceExempt: isProseMarkdown(path) })` where
    `isProseMarkdown(path)` is `path.endsWith(".md") && path !== "STATUS.md"` —
-   STATUS.md is data, never fence-exempt even on the push path (criterion 4 / design
-   "STATUS.md fence false"); non-`.md` files (CSV) are also non-exempt.
+   STATUS.md is data, never fence-exempt even on the push path (criterion 4 /
+   design "STATUS.md fence false"); non-`.md` files (CSV) are also non-exempt.
    If any file fires → return `{ pushed:false, reason:"would-publish-markers" }`
    (commits stay local, no push). A thrown `GitError` from `introducedByFile` is
-   caught and returns `{ pushed:false, reason:"introduced-scan-failed" }` — never a
-   silent pass.
+   caught and returns `{ pushed:false, reason:"introduced-scan-failed" }` —
+   never a silent pass.
 
 Verify: `bun test libraries/libwiki/test/wiki-sync.test.js`.
 
@@ -197,24 +211,27 @@ Intent: pin the sync-guard behaviour and the shallow-clone constraint.
 probe lands before `status` and `introducedByFile` lands before `push`, so every
 existing exact-`methods()` assertion shifts. Update each, and add
 `isMidMerge:false` + `introducedByFile: new Map()` to each test's `responses`:
+
 - dirty-ahead happy path (commits/rebases/pushes): prepend `isMidMerge`, insert
   `introducedByFile` before `push`.
 - paths-scoped commit test and its autostash assertion.
 - merge-ours recovery test (rebase conflict → mergeOursStrategy → push).
-- the two clean no-op tests (clean tree nothing-ahead; foreign-only-dirty): these
-  gain a leading `isMidMerge` call; their early `clean` return means no
+- the two clean no-op tests (clean tree nothing-ahead; foreign-only-dirty):
+  these gain a leading `isMidMerge` call; their early `clean` return means no
   `introducedByFile`.
 
 New fixtures:
 
-- **C7**: `isMidMerge → true` ⇒ result `reason:"mid-merge"`, and `methods()` shows
-  no `commitAll`/`commitPaths`/`push`.
-- **C8**: rebase conflict → `mergeOursStrategy` exitCode 1 ⇒ `mergeAbort` called,
-  result `reason:"stranded-merge"`, `workAt:"stash"`, no `push`.
-- **C9 introduced markers**: `introducedByFile` returns a map with a marker-bearing
-  added side ⇒ `reason:"would-publish-markers"`, no `push`, commits preserved.
-- **C9 dual-lineage**: two separate `commitAndPush` invocations, each with its own
-  marker-bearing `introducedByFile`, each refused independently (stateless per push).
+- **C7**: `isMidMerge → true` ⇒ result `reason:"mid-merge"`, and `methods()`
+  shows no `commitAll`/`commitPaths`/`push`.
+- **C8**: rebase conflict → `mergeOursStrategy` exitCode 1 ⇒ `mergeAbort`
+  called, result `reason:"stranded-merge"`, `workAt:"stash"`, no `push`.
+- **C9 introduced markers**: `introducedByFile` returns a map with a
+  marker-bearing added side ⇒ `reason:"would-publish-markers"`, no `push`,
+  commits preserved.
+- **C9 dual-lineage**: two separate `commitAndPush` invocations, each with its
+  own marker-bearing `introducedByFile`, each refused independently (stateless
+  per push).
 - **C9 unrelated-writer**: `introducedByFile` returns a clean added side (origin
   already corrupt is not in the added side) ⇒ push proceeds.
 - **C10 happy path**: clean ahead tree (`isMidMerge:false`), `introducedByFile`

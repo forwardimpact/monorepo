@@ -34,12 +34,12 @@ the IETF-reserved `.example` TLD ([RFC
 > (`athena@bionova.example`) preparing a quarterly VP review under the
 > *Engineering Leaders → Measure Engineering Outcomes* job. Every
 > team-level command failed before any data path was read.
-
+>
 > **Run 2** (issue comment): BioNova SWE (`antiope@bionova.example`)
 > under the *Empowered Engineers → Find Growth Areas* job. Every activity
 > command — `readiness`, `evidence`, `timeline`, `coverage`, `sources` —
 > failed identically.
-
+>
 > **Run 3** (issue comment): BioNova Director (`zeus@bionova.example`)
 > under *Measure Engineering Outcomes* again. Reported as "third
 > recurrence". The persona's workaround was 25 lines of `jsonwebtoken`

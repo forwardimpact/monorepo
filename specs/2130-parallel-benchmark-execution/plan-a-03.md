@@ -41,12 +41,13 @@ Add inputs: `concurrency`, `shard-index`, `shard-total`, `mode` (`run`|`merge`,
 default `run`). `mode: run` executes one shard —
 `fit-benchmark run --concurrency=<c> --shard=<shard-index>/<shard-total>` — and
 uploads a **shard-scoped** artifact `benchmark-shard-<shard-index>` (the shard
-index plays the `case:` disambiguation role from `.github/CLAUDE.md`). `mode:
-merge` runs `fit-benchmark report` over the downloaded shard artifacts and writes
-the step summary + combined artifact. An unsharded run is the identity
-`shard-index: 1, shard-total: 1`. `IS_SANDBOX=1` stays on the `run` agent step;
-`merge` spawns no agent. Existing inputs (`summary`, `upload-results`,
-`artifact-name`, `timeout-minutes`, `k`, `format`) are preserved.
+index plays the `case:` disambiguation role from `.github/CLAUDE.md`).
+`mode: merge` runs `fit-benchmark report` over the downloaded shard artifacts
+and writes the step summary + combined artifact. An unsharded run is the
+identity `shard-index: 1, shard-total: 1`. `IS_SANDBOX=1` stays on the `run`
+agent step; `merge` spawns no agent. Existing inputs (`summary`,
+`upload-results`, `artifact-name`, `timeout-minutes`, `k`, `format`) are
+preserved.
 
 Verification (sibling CI): action smoke for `mode: run --shard=1/2` produces
 `benchmark-shard-1`; `mode: merge` over two shard artifacts emits one report.
@@ -55,7 +56,8 @@ Verification (sibling CI): action smoke for `mode: run --shard=1/2` produces
 
 A `workflow_call` workflow owns the matrix a step-level action cannot.
 
-- **Sibling (new):** `forwardimpact/fit-benchmark/.github/workflows/benchmark.yml`
+- **Sibling (new):**
+  `forwardimpact/fit-benchmark/.github/workflows/benchmark.yml`
 
 Topology: a `prepare` job emits `[1..N]` as JSON from the `shard-total` input; a
 `shard` matrix job (`matrix: fromJSON(needs.prepare.outputs.shards)`) runs
@@ -91,8 +93,8 @@ append-only patch tag, then the ordered sub-sequence is: (1) tag fit-bootstrap,
 (2) bump `benchmark.yml`'s internal `fit-bootstrap@<sha>` pin (Step 2), (3) tag
 fit-benchmark (Step 4). This dependency gates Step 4 only when a fix is needed.
 
-Verification: a `shard-total=3` dispatch shows three independent bootstrap setups
-with no cache-write contention or token-mint failure in the job logs.
+Verification: a `shard-total=3` dispatch shows three independent bootstrap
+setups with no cache-write contention or token-mint failure in the job logs.
 
 ## Step 4 — Tag the sibling and pin it
 
@@ -184,7 +186,6 @@ Document the two new axes and the reusable-workflow path for external readers.
 - **Modified:**
   `websites/fit/docs/libraries/prove-changes/run-benchmark/ci-workflow/index.md`,
   `websites/fit/docs/libraries/prove-changes/run-benchmark/index.md`
-
 - `run-benchmark/index.md`: document `--concurrency` (on by default, the
   resolution order flag > `LIBHARNESS_BENCHMARK_CONCURRENCY` > CPU-aware
   default) and `--shard=<i>/<N>` (per-shard partial ledger; `report --input`
@@ -197,8 +198,9 @@ Document the two new axes and the reusable-workflow path for external readers.
   [libraries/CLAUDE.md](../../libraries/CLAUDE.md).
 
 Both target guides already exist (and are already listed in SKILL.md's
-`## Documentation` and `benchmark-definition.js`), so this updates existing pages
-— no new slug, no parity change. Keep the same two `## Documentation` entries.
+`## Documentation` and `benchmark-definition.js`), so this updates existing
+pages — no new slug, no parity change. Keep the same two `## Documentation`
+entries.
 
 Verification: `fit-doc` build clean; links resolve; `benchmark-parity.test.js`
 green.
@@ -207,5 +209,5 @@ green.
 
 Steps 1–4 are sibling-side and sequential (action + workflow + bootstrap check →
 tag). Step 5 (eval-kata migration) consumes the Step 4 tag. Steps 6–7 (skill +
-docs) depend only on the finished input/flag surface and can run in parallel with
-5 — route Step 7 to `technical-writer`, Steps 1–6 to an engineering agent.
+docs) depend only on the finished input/flag surface and can run in parallel
+with 5 — route Step 7 to `technical-writer`, Steps 1–6 to an engineering agent.

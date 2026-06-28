@@ -246,11 +246,10 @@ fallback report-clean.
 - **The exact routing destination for any specific carry.** The set
   of destinations is enumerated by the spec; the per-carry choice
   belongs to design.
-- **Retroactive routing of the already-routed carries.** They are
-  routed via [Issue #1381](https://github.com/forwardimpact/monorepo/issues/1381)
-  and the resulting specs (see § Current state). Once Spec 1490
-  ships, the new step prevents future accumulation; it does not
-  re-process the existing ones.
+- **Retroactive routing of the already-routed carries.** They are routed via
+  [Issue #1381](https://github.com/forwardimpact/monorepo/issues/1381) and the
+  resulting specs (see § Current state). Once Spec 1490 ships, the new step
+  prevents future accumulation; it does not re-process the existing ones.
 - **Cross-agent generalisation.** Only the release-engineer profile
   changes. Other agents' profiles may inherit the pattern in their
   own specs if their kata surfaces it; this spec does not edit them.

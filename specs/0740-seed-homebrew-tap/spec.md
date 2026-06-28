@@ -21,9 +21,9 @@ fails downstream of this gap:
 
 The first cask authored sets the precedent the next six inherit. The livecheck
 regex shape against the `<bundle>@v<semver>` tag scheme and the binary stanzas
-that surface every CLI on PATH are cross-cutting first-mover decisions. Authoring
-them once, in concert, is qualitatively different from copy-pasting an existing
-template — there is no template yet.
+that surface every CLI on PATH are cross-cutting first-mover decisions.
+Authoring them once, in concert, is qualitatively different from copy-pasting an
+existing template — there is no template yet.
 
 ## Why
 
@@ -59,6 +59,7 @@ can fulfill.
   the conventions decay together with the workflow when either changes, and
   review of a workflow PR co-locates with review of the conventions PR. Exact
   filename and any further sub-pathing are plan-level decisions.
+
 ### Out of scope
 
 - The runtime `__dirname`/bunfs fix tracked in #627. That is a substantive
@@ -70,8 +71,8 @@ can fulfill.
   8c). Those depend on this spec landing but are not its work product.
 - The TCC re-authorization release notes (#625 phase 8d). Released-notes
   copywriting is downstream of the cask landing.
-- Linux or Intel-Mac casks. Spec 0600 fixed the channel as macOS arm64 only; this
-  spec inherits that constraint without revisiting it.
+- Linux or Intel-Mac casks. Spec 0600 fixed the channel as macOS arm64 only;
+  this spec inherits that constraint without revisiting it.
 - Multi-version installation (`brew install fit-pathway@<old>`). Each cask
   serves the latest released version per the sed-in-place workflow. Multi-tag
   archival is a follow-up if needed.
@@ -129,8 +130,8 @@ unrelated runtime fix to land first.
 - Issue #625 — Outpost rename Phase 8 (8a/8b/8c/8d blocked behind this spec).
 - Issue #627 — runtime `__dirname`/bunfs failure (independent, parallel).
 - Spec 0600 — Native binary distribution (parent; SC11 is the install-surface
-  contract this spec realizes). Spec 0600 deferred "Tap repository location"; the
-  choice — separate `forwardimpact/homebrew-tap` repo — was made when the
+  contract this spec realizes). Spec 0600 deferred "Tap repository location";
+  the choice — separate `forwardimpact/homebrew-tap` repo — was made when the
   publish-brew workflow was authored against that path. This spec inherits that
   choice rather than revisiting it.
 - `.github/workflows/publish-brew.yml` — workflow whose sed contract every cask

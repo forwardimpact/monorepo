@@ -9,7 +9,7 @@ management.
 Supabase project files live in `products/map/` alongside the existing code. The
 Supabase CLI expects `supabase/` at the project root, so we initialize there.
 
-```
+```text
 products/map/
   supabase/
     config.toml                     Supabase project configuration
@@ -340,7 +340,7 @@ typically <100 KB each).
 The existing `001_activity_schema.sql` is renamed to follow Supabase's
 timestamp-based migration convention:
 
-```
+```text
 supabase/migrations/20250101000000_activity_schema.sql
 ```
 

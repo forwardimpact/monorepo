@@ -50,7 +50,7 @@ rejected: needs serialization. YAML rejected: fragile append semantics.
 
 ### Storage
 
-```
+```text
 wiki/metrics/{agent}/{domain}/{YYYY}.csv
 ```
 

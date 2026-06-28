@@ -192,7 +192,8 @@ resolves per request and `msbridge` accepts JWTs from any `active` tenant.
   scope the minted token to the OIDC-asserted `repository`.
 - Rate limiting and DoS posture beyond per-tenant scoping.
 - KMS/HSM custody and rotation for the hosted App private key.
-- Custody hardening for the Bot Framework credential held in `services/msbridge`.
+- Custody hardening for the Bot Framework credential held in
+  `services/msbridge`.
 - Replacement of libindex JSONL with a managed datastore.
 - Exact `TRUST.md` text (content is in scope, drafting is a plan concern).
 - Migration paths between self-hosted and hosted deployments.

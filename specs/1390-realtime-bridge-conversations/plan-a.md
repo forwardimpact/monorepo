@@ -66,7 +66,6 @@ Libraries used: none.
   variables at the calling workflow step level and inherited by the
   composite action's inner steps. The `fit-eval discuss` command reads them
   from `process.env`.
-
 - **Tenant-scope the inbox route (security carry-over from PR #1316).**
   Plan 1270 part 04 established the convention that bridge-facing routes
   bound to a session carry the tenant in the path:

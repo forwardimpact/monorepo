@@ -173,6 +173,7 @@ contributor_list: people
 ```
 
 Update call sites to thread `people`:
+
 - `buildActivityTeams()` (line 160): add `people` parameter, pass to
   `buildLeafTeamEntries(teams, deptMap, orgMap, people)` at line 167.
 - `generateActivity()` (line 69): pass `people` to

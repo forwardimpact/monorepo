@@ -118,7 +118,7 @@ introduced.
   wiki.
 - **Mock subprocess keys by command name**: `git` responses are shared across
   calls in `createMockSubprocess`. Tests exercise the git-present path through a
-  real temp git repo (integration) and the no-git fallback through `createMockFs`
-  with no `.git` entry; unit tests for `grammar.js` need neither.
+  real temp git repo (integration) and the no-git fallback through
+  `createMockFs` with no `.git` entry; unit tests for `grammar.js` need neither.
 
 — Staff Engineer 🛠️

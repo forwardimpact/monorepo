@@ -6,7 +6,7 @@
 |---|---|---|
 | Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team) | The Kata agent team's own automation invokes first-party CLIs by name (`fit-trace`, `fit-wiki`, `fit-xmr`). When a run executes those outside a warm workspace, resolution falls through to the registry and 404s — failing the job. The `kata-storyboard` run on 2026-06-08 ([run 27133534559, job 80080166294](https://github.com/forwardimpact/monorepo/actions/runs/27133534559/job/80080166294)) ended after Q4 (never reached Q5) and the job hard-failed at `error: GET https://registry.npmjs.org/fit-trace - 404`, with participant agents visibly unable to resolve their CLIs mid-session (falling back to `find`, `bun install`, and direct file paths). |
 | Platform Builders | [Build Agent-Capable Systems](../../JTBD.md#platform-builders-build-agent-capable-systems) | Gear's promise is that humans and agents share capabilities "through the same interface … installed via `npx fit-*`". An external builder who runs a documented Gear command such as `npx fit-rc` or `npx fit-xmr` gets a 404, because no package by that name is published. |
-| Empowered Engineers | [Equip Aligned Agent Teams](../../JTBD.md#empowered-engineers-equip-aligned-agent-teams) | The product getting-started guides instruct engineers to run `npx fit-landmark`, `npx fit-map`, `npx fit-summit`, `npx fit-pathway`, `npx fit-guide`, `npx fit-outpost` as the documented first step. Because the published package names differ from these invoked names, each command resolves to no registry package and fails for any user who is not inside the monorepo workspace. |
+| Empowered Engineers | [Equip Aligned Agent Teams](../../JTBD.md#empowered-engineers-see-whats-expected-of-humans-and-agents) | The product getting-started guides instruct engineers to run `npx fit-landmark`, `npx fit-map`, `npx fit-summit`, `npx fit-pathway`, `npx fit-guide`, `npx fit-outpost` as the documented first step. Because the published package names differ from these invoked names, each command resolves to no registry package and fails for any user who is not inside the monorepo workspace. |
 
 ## Problem
 
@@ -126,13 +126,14 @@ these 22 CLIs:
 ## Directed approach (non-binding)
 
 This spec fixes only the observable contract in § Success Criteria; the
-mechanism is the design's to own ([`kata-design`](../../.claude/skills/kata-design/SKILL.md)),
-which must weigh alternatives and prior art. As **non-binding** context, the
-originating investigation favours publishing each public CLI under its invoked
-name via a thin package that delegates to its scoped implementation (a launcher
-per public CLI), pinned to and published atomically with that implementation.
-The design may adopt or reject this; nothing in the Success Criteria depends on
-the mechanism being a launcher.
+mechanism is the design's to own
+([`kata-design`](../../.claude/skills/kata-design/SKILL.md)), which must weigh
+alternatives and prior art. As **non-binding** context, the originating
+investigation favours publishing each public CLI under its invoked name via a
+thin package that delegates to its scoped implementation (a launcher per public
+CLI), pinned to and published atomically with that implementation. The design
+may adopt or reject this; nothing in the Success Criteria depends on the
+mechanism being a launcher.
 
 ## Success Criteria
 

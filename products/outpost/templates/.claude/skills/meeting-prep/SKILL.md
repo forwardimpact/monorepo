@@ -25,7 +25,8 @@ meetings.
 - `Knowledge/People/*.md` — attendee context
 - `Knowledge/Organizations/*.md` — company context
 - `Knowledge/Projects/*.md` — project context
-- `Knowledge/Priorities/*.md` — active priorities and strategic context for framing
+- `Knowledge/Priorities/*.md` — active priorities and strategic context for
+  framing
 - `Knowledge/Candidates/*/brief.md` — candidate context (for interview meetings)
 - `Knowledge/Roles/*.md` — role/requisition context (for interview meetings)
 

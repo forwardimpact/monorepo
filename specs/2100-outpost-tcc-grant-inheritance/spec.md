@@ -33,10 +33,10 @@ Evidence: `websites/fit/outpost/index.md` § macOS Privacy & Security, and
 That three-grant instruction sits in unexplained tension with the project's own
 record. Spec 0600 (written for `fit-basecamp`, Outpost's prior name) set as a
 success criterion that the bundle-launched scheduler disclaims TCC
-responsibility when spawning `claude`, with a hardware test that "observes no TCC
-prompt plus a responsible-process lookup that resolves to the basecamp bundle."
-In other words, the design intends — and 0600 claimed to verify — that a single
-grant to the launching app covers the spawned subtree through the macOS
+responsibility when spawning `claude`, with a hardware test that "observes no
+TCC prompt plus a responsible-process lookup that resolves to the basecamp
+bundle." In other words, the design intends — and 0600 claimed to verify — that
+a single grant to the launching app covers the spawned subtree through the macOS
 responsible-process model. Both spawn sites
 (`products/outpost/macos/Outpost/Sources/ProcessManager.swift`,
 `libraries/libmacos/src/posix-spawn.js`) carry that disclaim call for exactly
@@ -79,9 +79,9 @@ identity switch itself is owned by the certificate rollout, not this spec.
   before the product does anything, and must reason about which folders each of
   three processes needs.
 - **Confusing, low-trust prompts.** Authorizing a bare `node` and a numeric
-  version string gives the user no way to tell what they are granting. One named,
-  signed application is a clear authorization decision — and Developer ID signing
-  makes that name trustworthy.
+  version string gives the user no way to tell what they are granting. One
+  named, signed application is a clear authorization decision — and Developer ID
+  signing makes that name trustworthy.
 - **Recurring re-prompts.** A `node` upgrade or a `claude` version bump presents
   a new process identity, re-triggering prompts the user already answered.
 
@@ -118,9 +118,9 @@ Excluded:
    grant only `Outpost.app`, trigger a wake, confirm sync output under the cache
    directory and inspect the privacy panes.
 2. The same single-grant coverage holds for a draft-side action that drives Mail
-   through AppleEvents (Automation), confirming the outcome is not specific to one
-   TCC service. Verified on the same hardware test by triggering a draft-side
-   skill after granting only `Outpost.app`.
+   through AppleEvents (Automation), confirming the outcome is not specific to
+   one TCC service. Verified on the same hardware test by triggering a
+   draft-side skill after granting only `Outpost.app`.
 3. After the one-time migration grant, a subsequent app upgrade — replacing
    `Outpost.app` with a rebuilt, re-signed Developer ID bundle — keeps the grant
    in force with no re-prompt. Verified by reinstalling a freshly built signed
@@ -139,20 +139,21 @@ Excluded:
 
 - **Requires hardware verification; no CI guard.** The responsible-process model
   and `responsibility_spawnattrs_setdisclaim` cannot be exercised in CI or on
-  Linux, so every behavioral criterion terminates in a manual macOS hardware test
-  (consistent with spec 0600's verification). There is no durable CI regression
-  guard that single-grant behavior stays fixed across future builds; the design
-  should propose the lightest-weight manual re-check that fits the release.
-- **Direction of the disclaim call is unsettled.** The project's own comments and
-  spec 0600 read the call one way; that reading must be confirmed against actual
-  hardware behavior before any change, because an inverted change would silently
-  preserve or worsen the gap rather than fail loudly.
+  Linux, so every behavioral criterion terminates in a manual macOS hardware
+  test (consistent with spec 0600's verification). There is no durable CI
+  regression guard that single-grant behavior stays fixed across future builds;
+  the design should propose the lightest-weight manual re-check that fits the
+  release.
+- **Direction of the disclaim call is unsettled.** The project's own comments
+  and spec 0600 read the call one way; that reading must be confirmed against
+  actual hardware behavior before any change, because an inverted change would
+  silently preserve or worsen the gap rather than fail loudly.
 - **Cross-signer children.** `node` (Homebrew) and `claude` (Anthropic-signed)
   carry signing identities distinct from a Developer-ID-signed `Outpost.app`
   (and an ad-hoc bundle carries no Team ID at all). Whether the
-  responsible-process model attributes the grant to `Outpost.app` regardless of a
-  child's own signature must be confirmed on hardware (criteria 1–2 exercise this
-  directly), not assumed.
+  responsible-process model attributes the grant to `Outpost.app` regardless of
+  a child's own signature must be confirmed on hardware (criteria 1–2 exercise
+  this directly), not assumed.
 - **One-time migration for existing users.** If closing the gap changes
   attribution, existing users re-grant `Outpost.app` once on migration, after
   which the stale `node` and Claude-CLI grants are unnecessary. This is a real

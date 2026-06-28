@@ -60,11 +60,21 @@ tags:
   - "gear@v*"
 ```
 
-Verify: `grep -E '^\s+- "[a-z]+@v\*"' .github/workflows/publish-brew.yml | wc -l` returns `7`; `grep -nE '"(services|utilities)@v\*"' .github/workflows/publish-brew.yml` returns no matches. (Plain `grep` rather than `yq` because the YAML key `on:` parses to boolean `true` under some `yq` builds.)
+Verify:
+`grep -E '^\s+- "[a-z]+@v\*"' .github/workflows/publish-brew.yml | wc -l`
+returns `7`;
+`grep -nE '"(services|utilities)@v\*"' .github/workflows/publish-brew.yml`
+returns no matches. (Plain `grep` rather than `yq` because the YAML key `on:`
+parses to boolean `true` under some `yq` builds.)
 
 ### 2. Collapse both `case "$NAME"` blocks onto a single `gear` branch
 
-File modified: `.github/workflows/publish-brew.yml`. Two case blocks need updating: the `build` job's "Extract bundle and version from tag" step (lines 33–37) and the `tap-pr` job's "Extract bundle and version from tag" step (lines 158–161). The blocks differ — the `build` block sets `KIND`, `BUNDLE`, and `CASK`; the `tap-pr` block sets only `KIND` and `CASK` (no `BUNDLE`). Replace each separately:
+File modified: `.github/workflows/publish-brew.yml`. Two case blocks need
+updating: the `build` job's "Extract bundle and version from tag" step (lines
+33–37) and the `tap-pr` job's "Extract bundle and version from tag" step (lines
+158–161). The blocks differ — the `build` block sets `KIND`, `BUNDLE`, and
+`CASK`; the `tap-pr` block sets only `KIND` and `CASK` (no `BUNDLE`). Replace
+each separately:
 
 **Build job** (lines 33–37):
 
@@ -100,11 +110,16 @@ case "$NAME" in
 esac
 ```
 
-Verify: `grep -n 'KIND=services\|KIND=utilities\|fit-services\|fit-utilities\|FIT Services\|FIT Utilities' .github/workflows/publish-brew.yml` returns no matches.
+Verify:
+`grep -n 'KIND=services\|KIND=utilities\|fit-services\|fit-utilities\|FIT Services\|FIT Utilities' .github/workflows/publish-brew.yml`
+returns no matches.
 
 ### 3. Update the `Build bundle` and `Verify cdhash stability` cases
 
-File modified: `.github/workflows/publish-brew.yml`. Two `case "${{ steps.meta.outputs.kind }}"` blocks share identical structure and both need the same edit: lines 55–68 (`Build bundle`) and lines 91–104 (the rebuild branch inside `Verify cdhash stability`).
+File modified: `.github/workflows/publish-brew.yml`. Two
+`case "${{ steps.meta.outputs.kind }}"` blocks share identical structure and
+both need the same edit: lines 55–68 (`Build bundle`) and lines 91–104 (the
+rebuild branch inside `Verify cdhash stability`).
 
 Replace each services/utilities pair with one gear arm:
 
@@ -121,7 +136,10 @@ case "${{ steps.meta.outputs.kind }}" in
 esac
 ```
 
-Verify: `grep -cE '^\s*gear\)' .github/workflows/publish-brew.yml` returns `2` (one `gear)` arm per case block updated by this step); `grep -nE '^\s*(services|utilities)\)' .github/workflows/publish-brew.yml` returns no matches anywhere in the file.
+Verify: `grep -cE '^\s*gear\)' .github/workflows/publish-brew.yml` returns `2`
+(one `gear)` arm per case block updated by this step);
+`grep -nE '^\s*(services|utilities)\)' .github/workflows/publish-brew.yml`
+returns no matches anywhere in the file.
 
 ### 4. Update the `Smoke test` step's primary CLI selection
 
@@ -142,11 +160,14 @@ case "${{ steps.meta.outputs.kind }}" in
 esac
 ```
 
-Verify: `awk '/Smoke test/,/Verify cdhash stability/' .github/workflows/publish-brew.yml | grep -cE '^\s*(services|utilities)\)'` returns `0`; the same range contains exactly one `gear)` arm.
+Verify:
+`awk '/Smoke test/,/Verify cdhash stability/' .github/workflows/publish-brew.yml | grep -cE '^\s*(services|utilities)\)'`
+returns `0`; the same range contains exactly one `gear)` arm.
 
 ### 5. Refresh the in-line comment on the sed step
 
-File modified: `.github/workflows/publish-brew.yml` (lines 205–208). Replace with:
+File modified: `.github/workflows/publish-brew.yml` (lines 205–208). Replace
+with:
 
 ```yaml
 # Only the version and sha256 lines are updated per release. The rest of the
@@ -155,13 +176,19 @@ File modified: `.github/workflows/publish-brew.yml` (lines 205–208). Replace w
 # dependencies, so each release rewrites exactly one cask file.
 ```
 
-Verify: `git grep -nE 'depends_on graph' -- .github` returns no matches across the repo (catches the same outdated phrase if it migrated to any other workflow file).
+Verify: `git grep -nE 'depends_on graph' -- .github` returns no matches across
+the repo (catches the same outdated phrase if it migrated to any other workflow
+file).
 
 ### 6. Replace the legacy bundle recipes in the root `justfile`
 
 File modified: `justfile` (`# ── Bundles` section, lines ≈175–323).
 
-Delete: `build-service-binaries` (recipe at line 214), `build-utility-binaries` (line 222), `build-app-services` (line 272), `build-app-utilities` (line 286). Update `build-binaries` (line 202) and `build-apps` (line 315) to fan out through the new gear recipes. Locate each by recipe name (the line numbers above are advisory).
+Delete: `build-service-binaries` (recipe at line 214), `build-utility-binaries`
+(line 222), `build-app-services` (line 272), `build-app-utilities` (line 286).
+Update `build-binaries` (line 202) and `build-apps` (line 315) to fan out
+through the new gear recipes. Locate each by recipe name (the line numbers above
+are advisory).
 
 Add `build-gear-binaries` and `build-app-gear`:
 
@@ -260,15 +287,25 @@ build-apps: build-binaries
 ```
 
 Verify (`just --list` indents recipes with four spaces, so anchor with `\s*`):
-- `just --list | grep -E '^\s+(build-(service|utility)-binaries|build-app-(services|utilities))(\s|$)'` returns nothing.
-- `just --list | grep -E '^\s+build-(gear-binaries|app-gear)(\s|$)'` lists both new recipes.
-- `just --show build-gear-binaries`, `just --show build-app-gear`, `just --show build-binaries`, `just --show build-apps` each print the post-edit recipe bodies above and contain no `services` / `utilities` references.
-- `just --dry-run build-apps` exits 0 (parse-level check; this does not execute `bun build` and so cannot catch a missing `package.json bin` entry — those are caught the first time the workflow runs `gear@v*`).
+
+- `just --list | grep -E '^\s+(build-(service|utility)-binaries|build-app-(services|utilities))(\s|$)'`
+  returns nothing.
+- `just --list | grep -E '^\s+build-(gear-binaries|app-gear)(\s|$)'` lists both
+  new recipes.
+- `just --show build-gear-binaries`, `just --show build-app-gear`,
+  `just --show build-binaries`, `just --show build-apps` each print the
+  post-edit recipe bodies above and contain no `services` / `utilities`
+  references.
+- `just --dry-run build-apps` exits 0 (parse-level check; this does not execute
+  `bun build` and so cannot catch a missing `package.json bin` entry — those are
+  caught the first time the workflow runs `gear@v*`).
 
 ### 7. Create `macos/gear/` and remove the predecessor directories
 
-Files created: `macos/gear/Info.plist`, `macos/gear/entitlements.plist`.
-Files deleted: `macos/services/Info.plist`, `macos/services/entitlements.plist`, `macos/libraries/Info.plist`, `macos/libraries/entitlements.plist`. Remove the now-empty `macos/services/` and `macos/libraries/` directories.
+Files created: `macos/gear/Info.plist`, `macos/gear/entitlements.plist`. Files
+deleted: `macos/services/Info.plist`, `macos/services/entitlements.plist`,
+`macos/libraries/Info.plist`, `macos/libraries/entitlements.plist`. Remove the
+now-empty `macos/services/` and `macos/libraries/` directories.
 
 `macos/gear/Info.plist`:
 
@@ -302,9 +339,16 @@ Files deleted: `macos/services/Info.plist`, `macos/services/entitlements.plist`,
 </plist>
 ```
 
-`macos/gear/entitlements.plist`: byte-copy of `macos/services/entitlements.plist` (identical to `macos/libraries/entitlements.plist`; verified `md5sum` match before this plan landed, so the union question is moot).
+`macos/gear/entitlements.plist`: byte-copy of
+`macos/services/entitlements.plist` (identical to
+`macos/libraries/entitlements.plist`; verified `md5sum` match before this plan
+landed, so the union question is moot).
 
-Verify: `ls macos/` returns `gear` only; `plutil -lint macos/gear/Info.plist` exits 0; `plutil -lint macos/gear/entitlements.plist` exits 0; `git grep -nE 'macos/(services|libraries)/' -- ':!specs'` returns no matches (specs are excluded because design-a.md, state-of.md, and this plan reference the predecessor paths historically).
+Verify: `ls macos/` returns `gear` only; `plutil -lint macos/gear/Info.plist`
+exits 0; `plutil -lint macos/gear/entitlements.plist` exits 0;
+`git grep -nE 'macos/(services|libraries)/' -- ':!specs'` returns no matches
+(specs are excluded because design-a.md, state-of.md, and this plan reference
+the predecessor paths historically).
 
 ### 8. Author the conventions document
 
@@ -320,7 +364,8 @@ toc: false
 ---
 ```
 
-Body sections (one section per cross-cutting decision named in spec § In scope; body headings start at `##` per `websites/CLAUDE.md`):
+Body sections (one section per cross-cutting decision named in spec § In scope;
+body headings start at `##` per `websites/CLAUDE.md`):
 
 | Section heading | Coverage |
 | --- | --- |
@@ -372,30 +417,68 @@ graph TD
 | `fit-outpost` | `fit-outpost` | 1 |
 | `fit-gear` | `fit-svcgraph`, `fit-svcmcp`, `fit-svcpathway`, `fit-svctrace`, `fit-svcvector`, `fit-codegen`, `fit-terrain`, `fit-eval`, `fit-doc`, `fit-rc`, `fit-xmr`, `fit-storage`, `fit-logger`, `fit-svscan`, `fit-trace`, `fit-visualize`, `fit-query`, `fit-subjects`, `fit-process-graphs`, `fit-process-resources`, `fit-process-vectors`, `fit-search`, `fit-unary`, `fit-tiktoken`, `fit-download-bundle` | 25 |
 
-Verify: `bunx fit-doc build --src=websites/fit` exits 0 and produces `dist/docs/internals/release/index.html`; `grep -c '^## ' websites/fit/docs/internals/release/index.md` returns exactly `9` (one per row of the table above — Overview, Sed contract, Cask topology, Binary stanza mapping, Livecheck regex pattern, App install path, Zap and uninstall paths, Verification commands, What's next).
+Verify: `bunx fit-doc build --src=websites/fit` exits 0 and produces
+`dist/docs/internals/release/index.html`;
+`grep -c '^## ' websites/fit/docs/internals/release/index.md` returns exactly
+`9` (one per row of the table above — Overview, Sed contract, Cask topology,
+Binary stanza mapping, Livecheck regex pattern, App install path, Zap and
+uninstall paths, Verification commands, What's next).
 
 ### 9. Add the release card to the internals hub
 
-File modified: `websites/fit/docs/internals/index.md`. Insert `<!-- part:card:release -->` between the `operations` and `kata` partials so the rendered grid order is `librepl`, `vectors`, `operations`, `release`, `kata`. Order rule: read-flow grouping (developer toolchain → site infra → human-process → automation), not alphabetical; `release` slots into the human-process bucket alongside `operations`.
+File modified: `websites/fit/docs/internals/index.md`. Insert
+`<!-- part:card:release -->` between the `operations` and `kata` partials so the
+rendered grid order is `librepl`, `vectors`, `operations`, `release`, `kata`.
+Order rule: read-flow grouping (developer toolchain → site infra → human-process
+→ automation), not alphabetical; `release` slots into the human-process bucket
+alongside `operations`.
 
-Step 9 must follow step 8 within the same `technical-writer` PR — `fit-doc build` fails if a `part:card:` target points at a nonexistent page (`websites/CLAUDE.md` § Hub Pages: "the build fails if a partial references a nonexistent page"). Land step 8's `release/index.md` first.
+Step 9 must follow step 8 within the same `technical-writer` PR —
+`fit-doc build` fails if a `part:card:` target points at a nonexistent page
+(`websites/CLAUDE.md` § Hub Pages: "the build fails if a partial references a
+nonexistent page"). Land step 8's `release/index.md` first.
 
-Verify: `grep -c 'part:card:release' websites/fit/docs/internals/index.md` returns `1`; `bunx fit-doc build --src=websites/fit` exits 0 and emits `dist/docs/internals/index.html` with a card linking to `/docs/internals/release/`.
+Verify: `grep -c 'part:card:release' websites/fit/docs/internals/index.md`
+returns `1`; `bunx fit-doc build --src=websites/fit` exits 0 and emits
+`dist/docs/internals/index.html` with a card linking to
+`/docs/internals/release/`.
 
 ### 10. Audit the seeded tap casks against the design
 
-No files created or modified inside the monorepo. The seven cask files exist on `forwardimpact/homebrew-tap/main` (verified 2026-05-04 via `gh api repos/forwardimpact/homebrew-tap/git/trees/main?recursive=1`): `fit-pathway.rb`, `fit-map.rb`, `fit-guide.rb`, `fit-landmark.rb`, `fit-summit.rb`, `fit-outpost.rb`, `fit-gear.rb`. Run a structural audit:
+No files created or modified inside the monorepo. The seven cask files exist on
+`forwardimpact/homebrew-tap/main` (verified 2026-05-04 via
+`gh api repos/forwardimpact/homebrew-tap/git/trees/main?recursive=1`):
+`fit-pathway.rb`, `fit-map.rb`, `fit-guide.rb`, `fit-landmark.rb`,
+`fit-summit.rb`, `fit-outpost.rb`, `fit-gear.rb`. Run a structural audit:
 
-- For each cask, confirm the stanzas design § Cask Anatomy prescribes are present in the prescribed shape: `version`, `sha256`, `url`, `name`, `desc`, `homepage`, `depends_on arch: :arm64`, `app … target: "Forward Impact/…"`, `binary` stanzas referencing `#{appdir}/Forward Impact/…`, `livecheck` block with `:github_releases` strategy and anchored regex, `zap trash:` clause.
-- Cross-check binary stanzas against design § Binary Stanza Mapping — exact name match, no extras, no omissions: 25 entries for `fit-gear.rb`, one entry per product cask.
+- For each cask, confirm the stanzas design § Cask Anatomy prescribes are
+  present in the prescribed shape: `version`, `sha256`, `url`, `name`, `desc`,
+  `homepage`, `depends_on arch: :arm64`, `app … target: "Forward Impact/…"`,
+  `binary` stanzas referencing `#{appdir}/Forward Impact/…`, `livecheck` block
+  with `:github_releases` strategy and anchored regex, `zap trash:` clause.
+- Cross-check binary stanzas against design § Binary Stanza Mapping — exact name
+  match, no extras, no omissions: 25 entries for `fit-gear.rb`, one entry per
+  product cask.
 
-Reconciliation: the staff-engineer cannot push to `forwardimpact/homebrew-tap` (no `HOMEBREW_TAP_PAT`). For each failing row, file a comment on this plan's PR with the deviation and open a tap-side issue at `forwardimpact/homebrew-tap` titled `spec/740: <cask> drift — <criterion>`, assigning the release-engineer. SC4 ("executable names match … performed at seed time") passes for the casks whose audit row is clean, and is conditionally pending for any failing row until the tap-side reconciliation issue closes.
+Reconciliation: the staff-engineer cannot push to `forwardimpact/homebrew-tap`
+(no `HOMEBREW_TAP_PAT`). For each failing row, file a comment on this plan's PR
+with the deviation and open a tap-side issue at `forwardimpact/homebrew-tap`
+titled `spec/740: <cask> drift — <criterion>`, assigning the release-engineer.
+SC4 ("executable names match … performed at seed time") passes for the casks
+whose audit row is clean, and is conditionally pending for any failing row until
+the tap-side reconciliation issue closes.
 
-Verify: a written audit log enumerates each cask with a pass/fail row per criterion; every failing row carries a tap-side issue link assigned to `release-engineer` (no failing row is left unowned).
+Verify: a written audit log enumerates each cask with a pass/fail row per
+criterion; every failing row carries a tap-side issue link assigned to
+`release-engineer` (no failing row is left unowned).
 
 ### 11. Dry-run the workflow's sed contract against each live cask
 
-No files created or modified. Run the workflow's literal `sed -i` against each live cask with sample values, confirm the diff is exactly two changed lines, then run `brew style` and `brew audit --new-cask` against the rewritten file. On macOS, use `gsed` (install via `brew install gnu-sed`) — see Risks § GNU sed requirement.
+No files created or modified. Run the workflow's literal `sed -i` against each
+live cask with sample values, confirm the diff is exactly two changed lines,
+then run `brew style` and `brew audit --new-cask` against the rewritten file. On
+macOS, use `gsed` (install via `brew install gnu-sed`) — see Risks § GNU sed
+requirement.
 
 ```sh
 # Linux: use `sed`. macOS: install gnu-sed and substitute `gsed` for `sed` below.
@@ -420,13 +503,15 @@ for CASK in fit-pathway fit-map fit-guide fit-landmark fit-summit fit-outpost fi
 done
 ```
 
-Verify: every iteration produces clean `brew style` and `brew audit --new-cask` (both exit 0) with no `FAIL` line emitted; the loop exits 0 overall.
+Verify: every iteration produces clean `brew style` and `brew audit --new-cask`
+(both exit 0) with no `FAIL` line emitted; the loop exits 0 overall.
 
-## Libraries used: none.
+## Libraries used: none
 
 ## Success-criteria mapping
 
-How each spec § Success criterion is verified by this plan, and which carry conditional-pass language:
+How each spec § Success criterion is verified by this plan, and which carry
+conditional-pass language:
 
 | Spec SC | Verified by | At plan close-out |
 | --- | --- | --- |
@@ -438,13 +523,40 @@ How each spec § Success criterion is verified by this plan, and which carry con
 
 ## Risks
 
-- **`HOMEBREW_TAP_PAT` not yet provisioned on the monorepo.** The `tap-pr` job at line 190 authenticates against `forwardimpact/homebrew-tap` via `secrets.HOMEBREW_TAP_PAT`. State-of audit § Must-have item 5 flags this secret as not yet set on `forwardimpact/monorepo`. This plan does not add the secret — a repo admin (release-engineer) creates it out-of-band (classic PAT scoped `repo` to `forwardimpact/homebrew-tap` only, ≤ 1-year expiry) before the first `gear@v*` or product tag is pushed, or `tap-pr` will fail at checkout. Owner: `release-engineer`. Verification gate: secret presence audit during the first `kata-release-cut` rehearsal that follows this plan's merge.
-- **GNU sed requirement for step 11.** The workflow runs on `ubuntu-latest` (GNU sed). BSD sed's `-i` requires a backup suffix, so the literal sed contract does not run on default macOS sed. On macOS, install `gnu-sed` (`brew install gnu-sed`) and substitute `gsed` for `sed`. If neither a Linux host nor `gsed` is available, defer step 11 to the release-engineer's first `gear@v*` release rehearsal. Deadline: SC2/SC3 must be verified before the first release tag is pushed.
-- **Cask drift from design.** The tap was seeded externally (commit "feat: seed tap with initial casks", state-of.md § Step 3). Step 10 audits each cask against the design tables before this plan's verification gate closes. Reconciliation requires a `HOMEBREW_TAP_PAT` holder, so the staff-engineer files an issue per failing row at `forwardimpact/homebrew-tap` (title pattern `spec/740: <cask> drift — <criterion>`) and assigns `release-engineer`. SC4 conditionally passes for clean rows and remains pending for failing rows until each tap-side issue closes.
+- **`HOMEBREW_TAP_PAT` not yet provisioned on the monorepo.** The `tap-pr` job
+  at line 190 authenticates against `forwardimpact/homebrew-tap` via
+  `secrets.HOMEBREW_TAP_PAT`. State-of audit § Must-have item 5 flags this
+  secret as not yet set on `forwardimpact/monorepo`. This plan does not add the
+  secret — a repo admin (release-engineer) creates it out-of-band (classic PAT
+  scoped `repo` to `forwardimpact/homebrew-tap` only, ≤ 1-year expiry) before
+  the first `gear@v*` or product tag is pushed, or `tap-pr` will fail at
+  checkout. Owner: `release-engineer`. Verification gate: secret presence audit
+  during the first `kata-release-cut` rehearsal that follows this plan's merge.
+- **GNU sed requirement for step 11.** The workflow runs on `ubuntu-latest` (GNU
+  sed). BSD sed's `-i` requires a backup suffix, so the literal sed contract
+  does not run on default macOS sed. On macOS, install `gnu-sed`
+  (`brew install gnu-sed`) and substitute `gsed` for `sed`. If neither a Linux
+  host nor `gsed` is available, defer step 11 to the release-engineer's first
+  `gear@v*` release rehearsal. Deadline: SC2/SC3 must be verified before the
+  first release tag is pushed.
+- **Cask drift from design.** The tap was seeded externally (commit "feat: seed
+  tap with initial casks", state-of.md § Step 3). Step 10 audits each cask
+  against the design tables before this plan's verification gate closes.
+  Reconciliation requires a `HOMEBREW_TAP_PAT` holder, so the staff-engineer
+  files an issue per failing row at `forwardimpact/homebrew-tap` (title pattern
+  `spec/740: <cask> drift — <criterion>`) and assigns `release-engineer`. SC4
+  conditionally passes for clean rows and remains pending for failing rows until
+  each tap-side issue closes.
 
 ## Execution
 
-Three strands. The two PR-shipping strands (steps 1–7 and 8–9) and the verification strand (steps 10–11) are all independent — the seeded casks on tap main don't change shape based on which monorepo PR lands first, and the dry-run runs the literal sed contract against tap state, not against the post-merge workflow. The verification strand is sequenced second only because its findings are most useful once the implementer can route any drift back into a follow-up tap PR with the consolidation PR's context.
+Three strands. The two PR-shipping strands (steps 1–7 and 8–9) and the
+verification strand (steps 10–11) are all independent — the seeded casks on tap
+main don't change shape based on which monorepo PR lands first, and the dry-run
+runs the literal sed contract against tap state, not against the post-merge
+workflow. The verification strand is sequenced second only because its findings
+are most useful once the implementer can route any drift back into a follow-up
+tap PR with the consolidation PR's context.
 
 | Steps | Owner | PR title | Notes |
 | --- | --- | --- | --- |
@@ -452,6 +564,7 @@ Three strands. The two PR-shipping strands (steps 1–7 and 8–9) and the verif
 | 8, 9 | `technical-writer` | `docs(0740): homebrew cask conventions` | Conventions doc + internals card in one branch. Step 8 lands first within the PR's commit history so step 9's `part:card:release` partial resolves at build time. Independent of the consolidation PR; can land in either order. |
 | 10, 11 | `staff-engineer` (audit) + macOS host (sed dry-run) | (verification only — no monorepo PR) | Audit log filed as a comment on this plan's PR. Step 11's `brew style` dry-run requires a macOS arm64 host with Homebrew installed; if the runner is Linux-only, defer step 11 to the release-engineer's first `gear@v*` rehearsal. |
 
-Sequencing: 1–7 ‖ 8–9 (parallel); 10–11 follows the consolidation PR merge for context, but does not block on it (the audit can run against tap main any time).
+Sequencing: 1–7 ‖ 8–9 (parallel); 10–11 follows the consolidation PR merge for
+context, but does not block on it (the audit can run against tap main any time).
 
 — Staff Engineer 🛠️

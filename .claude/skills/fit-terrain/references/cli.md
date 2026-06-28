@@ -15,7 +15,7 @@ npx fit-terrain --cache=path check         # Custom prose cache file (global fla
 
 Run `npx fit-terrain <verb> --help` for verb-scoped options.
 
-### Verbs
+## Verbs
 
 | Verb       | Outcome                                         | Exit code     |
 | ---------- | ----------------------------------------------- | ------------- |

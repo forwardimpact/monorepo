@@ -47,7 +47,8 @@ artifacts is in `references/trace-discovery.md`.
 
 ## Classification
 
-The mechanical-vs-structural-vs-unsettled-vs-out-of-scope tests are defined once in
+The mechanical-vs-structural-vs-unsettled-vs-out-of-scope tests are defined once
+in
 [work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests);
 this table maps those work-types to the triage-specific action and labels.
 Product alignment (the **Product-aligned** row) is this skill's own criterion —
@@ -78,8 +79,11 @@ project's products should fulfil for its personas.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract issues previously processed and recurring themes
-from prior entries.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and (when this skill reads
+Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
+Extract issues previously processed and recurring themes from prior entries.
 
 ### Step 1: List Open Issues
 
@@ -130,7 +134,9 @@ This skill produces these non-wiki outputs (per
   closures with rationale.
 - **Discussion** — Cross-product policy questions surfaced from triage.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md): every cited SHA must resolve on its referenced repo, or the body is not published.
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md):
+every cited SHA must resolve on its referenced repo, or the body is not
+published.
 
 If an inbound issue comment addressed to this agent is ambiguous, follow
 [coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).

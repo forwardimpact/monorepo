@@ -15,8 +15,8 @@ This creates three visible problems in the wiki:
   run, but nobody decides _what the team should focus on_. The security-engineer
   may spend Tuesday auditing CI/CD while the staff-engineer is implementing a
   spec that will restructure CI/CD — because neither knew the other's intent.
-  Individual assessment (spec 0450) solved _per-agent_ planning; it did not solve
-  _cross-agent_ planning.
+  Individual assessment (spec 0450) solved _per-agent_ planning; it did not
+  solve _cross-agent_ planning.
 
 - **Slow feedback loops.** The "Observations for Teammates" pattern in wiki
   summaries works, but observations routinely sit for days before the target
@@ -60,7 +60,7 @@ Four additions form a cohesive coaching system: a data recording protocol
 sessions (`kata-storyboard`), a reframing of trace analysis as learner-driven
 coaching, and holistic updates to every entry-point kata skill.
 
-```
+```text
 Current:  Coach analyzes agent traces → findings stay in coach's memory
           Agents wake → read wiki → assess own domain → act (in isolation)
 

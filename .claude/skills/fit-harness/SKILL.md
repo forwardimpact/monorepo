@@ -32,9 +32,9 @@ target.)
 ### 2. Agent collaboration
 
 A **facilitator** coordinates **N participant agents** via
-`fit-harness facilitate`. Participants and the facilitator pass targeted messages
-with `Ask`/`Answer` and broadcast with `Announce`; the facilitator ends the
-session with `Conclude`. The trace records every message and tool call.
+`fit-harness facilitate`. Participants and the facilitator pass targeted
+messages with `Ask`/`Answer` and broadcast with `Announce`; the facilitator ends
+the session with `Conclude`. The trace records every message and tool call.
 
 →
 [Prove Agent Changes guide](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md)
@@ -121,12 +121,12 @@ npx fit-harness facilitate \
 
 ## Handing Off to `fit-trace`
 
-Every `fit-harness` execution command produces NDJSON. Once it's on disk, the work
-shifts from running to understanding — that's where `fit-trace` takes over. Use
-`fit-trace overview`, `timeline`, `errors`, and `stats` (cross-trace verbs take
-`--file`; `search` takes a positional file) against the same trace to study
-what the agent did and why. These print text by default; add `--format json`
-for a machine-parseable envelope.
+Every `fit-harness` execution command produces NDJSON. Once it's on disk, the
+work shifts from running to understanding — that's where `fit-trace` takes over.
+Use `fit-trace overview`, `timeline`, `errors`, and `stats` (cross-trace verbs
+take `--file`; `search` takes a positional file) against the same trace to study
+what the agent did and why. These print text by default; add `--format json` for
+a machine-parseable envelope.
 
 The `fit-harness` skill stops at the trace file. The `fit-trace` skill picks up
 from there.

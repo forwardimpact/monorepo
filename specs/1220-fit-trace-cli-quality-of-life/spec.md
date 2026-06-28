@@ -28,11 +28,11 @@ Across both sessions, the wrappers reconstructed the same views:
 
 The CLI today registers 20 commands in
 [`libraries/libeval/bin/fit-trace.js`](../../libraries/libeval/bin/fit-trace.js):
-15 are analyst-facing (`overview`, `count`, `batch`, `head`, `tail`,
-`search`, `tools`, `tool`, `errors`, `reasoning`, `timeline`, `stats`,
-`init`, `turn`, `filter`); five are administrative or IO (`runs`,
-`download`, `by-discussion`, `split`, `assert`). Every analyst-facing verb except `count`
-and `timeline` emits a JSON envelope via `writeJSON`
+15 are analyst-facing (`overview`, `count`, `batch`, `head`, `tail`, `search`,
+`tools`, `tool`, `errors`, `reasoning`, `timeline`, `stats`, `init`, `turn`,
+`filter`); five are administrative or IO (`runs`, `download`, `by-discussion`,
+`split`, `assert`). Every analyst-facing verb except `count` and `timeline`
+emits a JSON envelope via `writeJSON`
 ([`libraries/libeval/src/commands/trace.js`](../../libraries/libeval/src/commands/trace.js)).
 Envelope shapes vary across verbs (a flat array from `errors`, an array of
 `{turn, matches[]}` records from `search`, plain turn objects from

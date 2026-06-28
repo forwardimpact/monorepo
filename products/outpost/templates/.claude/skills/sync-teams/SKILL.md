@@ -48,7 +48,9 @@ their Teams chats.
 
 Run the sync as a single Node.js script:
 
-    node scripts/sync.mjs [--days N]
+```text
+node scripts/sync.mjs [--days N]
+```
 
 - `--days N` — only include messages from the last N days (default: 30)
 
@@ -147,9 +149,9 @@ Key conventions:
 - **Attachments are not extracted** — files/images on a message are dropped from
   the markdown. They are hosted on SharePoint/OneDrive, not in the local cache.
   However, the user has **often manually downloaded** them, so an attachment
-  usually exists under `~/Downloads/` with the **same file name** shown in Teams.
-  When a message references an attachment and you need its contents, look there
-  first.
+  usually exists under `~/Downloads/` with the **same file name** shown in
+  Teams. When a message references an attachment and you need its contents, look
+  there first.
 - Skip system messages (calls, member adds/removes, topic changes)
 
 ## Error Handling

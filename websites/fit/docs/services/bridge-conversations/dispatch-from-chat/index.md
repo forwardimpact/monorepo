@@ -39,11 +39,12 @@ fixed sequence:
    produces an opaque reference that the bridge needs to post the reply
    later. It is stored on `participants[0].metadata` of the discussion
    context.
-3. **Discussion context load or create** — `DiscussionAdapter.loadByChannel("msteams", threadId)`
-   calls the shared `services/bridge` gRPC service, which returns any
-   prior record for this conversation from `data/bridges/discussions.jsonl`
-   (keyed by `msteams:<thread-id>`). A new conversation starts with an
-   empty history via `newDiscussionContext`.
+3. **Discussion context load or create** —
+   `DiscussionAdapter.loadByChannel("msteams", threadId)` calls the shared
+   `services/bridge` gRPC service, which returns any prior record for this
+   conversation from `data/bridges/discussions.jsonl` (keyed by
+   `msteams:<thread-id>`). A new conversation starts with an empty history via
+   `newDiscussionContext`.
 4. **History append** — the user turn is appended to `ctx.history`
    immediately (`{ role: "user", text, author: requester }`, cap 10
    entries via `appendHistory`) and the context is persisted — before
@@ -88,11 +89,11 @@ fixed sequence:
      posts a randomized typing verb every ~25 seconds (`Moonwalking`,
      `Unravelling`, `Tempering`, `Crafting`, `Simmering`, `Percolating`,
      `Decoding`);
-   - calls `dispatchWorkflow` with the workflow file `kata-dispatch.yml`,
-     the prompt produced by `buildPrompt(text, ctx.history)`, the
-     callback URL `${SERVICE_MSBRIDGE_CALLBACK_BASE_URL}/api/callback/<tenant_id>/<token>`
-     (`default` tenant when self-hosted), an inbox URL the workflow can
-     poll for mid-run messages, and the correlation ID;
+   - calls `dispatchWorkflow` with the workflow file `kata-dispatch.yml`, the
+     prompt produced by `buildPrompt(text, ctx.history)`, the callback URL
+     `${SERVICE_MSBRIDGE_CALLBACK_BASE_URL}/api/callback/<tenant_id>/<token>`
+     (`default` tenant when self-hosted), an inbox URL the workflow can poll for
+     mid-run messages, and the correlation ID;
    - on success: pushes the dispatch timestamp into `ctx.dispatches` and
      flushes the store;
    - on failure: stops the acknowledgement, consumes the token from the

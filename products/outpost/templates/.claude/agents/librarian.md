@@ -33,18 +33,20 @@ CLAUDE.md). The user's priorities are the lens for all your work this wake.
 
 Assess what needs processing:
 
-1.  Check for unprocessed synced files (mail and calendar data):
+1. Check for unprocessed synced files (mail and calendar data):
 
-        node .claude/skills/extract-entities/scripts/state.mjs check
+   ```text
+    node .claude/skills/extract-entities/scripts/state.mjs check
+   ```
 
-2.  Count existing knowledge graph entities:
+2. Count existing knowledge graph entities:
 
-    ls Knowledge/People/ Knowledge/Organizations/ Knowledge/Projects/
-    Knowledge/Topics/ Knowledge/Priorities/ 2>/dev/null | wc -l
+   ls Knowledge/People/ Knowledge/Organizations/ Knowledge/Projects/
+   Knowledge/Topics/ Knowledge/Priorities/ 2>/dev/null | wc -l
 
 Write triage results to `~/.cache/fit/outpost/state/librarian_triage.md`:
 
-```
+```text
 # Knowledge Triage — {YYYY-MM-DD HH:MM}
 ## Pending Processing
 - {count} unprocessed synced files
@@ -66,7 +68,7 @@ Choose the most valuable action:
 
 After acting, output exactly:
 
-```
+```text
 Decision: {what you observed and why you chose this action}
 Action: {what you did, e.g. "extract-entities on 7 files"}
 Priority Watch: {priority at risk + one-line why, or "none"}

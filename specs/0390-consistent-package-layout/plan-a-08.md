@@ -227,7 +227,7 @@ needs a pass:
 The technical-writer sub-agent runs a targeted grep for any tree diagram or
 file-path reference that shows the pre-move layout:
 
-```
+```text
 rg -n 'libraries/[a-z]+/[a-z-]+\.js' website/docs/internals/
 rg -n 'products/[a-z]+/[a-z-]+\.js' website/docs/internals/
 rg -n '`[a-z-]+\.js`' website/docs/internals/
@@ -281,7 +281,7 @@ Check `invariants.md` for file-path references. Update any that have moved.
 3. Technical-writer updates each library and product skill file.
 4. Technical-writer commits with:
 
-   ```
+   ```text
    docs(layout): update structure contract and internals pages (part 08/08)
 
    Rewrites CLAUDE.md § Structure to describe the allowed-root-subdirs
@@ -369,7 +369,7 @@ these points intact:
 
 **Stage 1:**
 
-```
+```text
 refactor(layout): enforce strict mode and smoke-test exports (part 08/08 stage 1)
 
 - flip scripts/check-package-layout.js to strict mode by default
@@ -382,7 +382,7 @@ Part 08 stage 1 for spec 0390.
 
 **Stage 2** (technical-writer sub-agent):
 
-```
+```text
 docs(layout): update structure contract and internals pages (part 08/08 stage 2)
 
 Rewrites CLAUDE.md § Structure to describe the allowed-root-subdirs
@@ -395,7 +395,7 @@ Part 08 stage 2 for spec 0390.
 
 **Status advancement** (staff-engineer):
 
-```
+```text
 chore(specs): advance 390 to done
 ```
 

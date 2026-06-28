@@ -10,6 +10,7 @@ Enrollment: {{current_enrollment}}/{{target_enrollment}} participants.
 
 {{#clinical_criteria}}
 Eligibility overview:
+
 - Inclusion: {{inclusion_summary}}.
 - Exclusion: {{exclusion_summary}}.
 {{/clinical_criteria}}

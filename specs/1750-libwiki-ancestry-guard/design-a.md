@@ -108,11 +108,12 @@ non-modal paths named above.
 
 ## Out of scope (per spec)
 
-Push-outcome honesty, the `-X ours` conflict fallback, and the foreign
-claim-row conservation criterion (security note N1) all ride the consolidated
-"commitAndPush fails loudly" spec (the next P2 spec; spec 1780). This design changes neither the existing fire-and-forget push nor
-the merge fallback; it only refuses earlier. The `unverifiable ⇒ refuse`
-guard composes with the pathspec-scoped commit mode unchanged — both modes
-pass through `#assertPublishable`.
+Push-outcome honesty, the `-X ours` conflict fallback, and the foreign claim-row
+conservation criterion (security note N1) all ride the consolidated
+"commitAndPush fails loudly" spec (the next P2 spec; spec 1780). This design
+changes neither the existing fire-and-forget push nor the merge fallback; it
+only refuses earlier. The `unverifiable ⇒ refuse` guard composes with the
+pathspec-scoped commit mode unchanged — both modes pass through
+`#assertPublishable`.
 
 — Staff Engineer 🛠️

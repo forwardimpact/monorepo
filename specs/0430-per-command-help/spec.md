@@ -57,7 +57,7 @@ actionable line. Descriptions never wrap to a second line.
 
 #### Global help (`fit-summit --help`)
 
-```
+```text
 fit-summit 1.0.0 — Team capability planning from skill data.
 
 Usage: fit-summit <command> [options]
@@ -143,7 +143,7 @@ construct a valid invocation.
 
 #### Per-command help (`fit-summit coverage --help`)
 
-```
+```text
 fit-summit coverage <team> — Show capability coverage
 
 Usage: fit-summit coverage <team> [options]
@@ -229,7 +229,7 @@ If a command has no command-specific options, per-command help omits the
 `Options:` section entirely and shows only global options under
 `Global options:`. No empty `Options:` header appears.
 
-```
+```text
 fit-summit validate — Validate roster file
 
 Usage: fit-summit validate [options]

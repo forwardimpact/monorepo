@@ -1,16 +1,15 @@
 # Design 0990-b — One Composite `fit-map substrate` Verb
 
 Spec: `specs/0990-kata-interview-real-landmark-substrate/spec.md` (status:
-`spec approved` on `origin/main`). Alternative to
-[`design-a.md`](design-a.md). **Same workflow-step shape** as design-a
-(because spec § Success Criteria explicitly require CI-step placement
-for assertions before `Run interview`), but collapses design-a's three
-new artifacts — a `just substrate-up` recipe, `scripts/pick-substrate-persona.js`,
-and `scripts/assert-substrate.js` — into **one composite verb on `fit-map`**.
-The supervisor running `kata-interview` can invoke the same verb locally
-or for in-session re-prep with one command instead of three; the
-kata-interview task-prompt addition stays minor (one staging-table row +
-one read-do-checklist line, same as design-a).
+`spec approved` on `origin/main`). Alternative to [`design-a.md`](design-a.md).
+**Same workflow-step shape** as design-a (because spec § Success Criteria
+explicitly require CI-step placement for assertions before `Run interview`), but
+collapses design-a's three new artifacts — a `just substrate-up` recipe,
+`scripts/pick-substrate-persona.js`, and `scripts/assert-substrate.js` — into
+**one composite verb on `fit-map`**. The supervisor running `kata-interview` can
+invoke the same verb locally or for in-session re-prep with one command instead
+of three; the kata-interview task-prompt addition stays minor (one staging-table
+row + one read-do-checklist line, same as design-a).
 
 ## How this differs from design-a
 
@@ -64,27 +63,57 @@ sequenceDiagram
 ## Interfaces
 
 `fit-map substrate up`
-- Required: `--product <name>` — only `landmark` activates the pipeline today; other names exit 0 with a no-op (keeps the verb future-proof for additional products).
+
+- Required: `--product <name>` — only `landmark` activates the pipeline today;
+  other names exit 0 with a no-op (keeps the verb future-proof for additional
+  products).
 - Required: `--out <path>` — path for the discovery `.substrate.json`.
-- Optional: `--emit-env <path>` — when set, also appends `landmark_auth_token=<jwt>` (preceded by an `::add-mask::<jwt>` line) to the file at `<path>` (intended to be `$GITHUB_OUTPUT`).
-- Phases, fail-fast: ensure-env → stack-up → migrate → seed → provision → persona-pick → mint → manifest-write. On any phase failure: non-zero exit with the phase name and a one-line diagnostic in stderr (e.g. `persona-pick: 0 rows matched 'manager-of-one' across 42 human rows`).
-- Idempotent on `.env`: if `.env` already carries `SUPABASE_URL`, skips `env-reset`. Customised local `.env` files are not clobbered.
+- Optional: `--emit-env <path>` — when set, also appends
+  `landmark_auth_token=<jwt>` (preceded by an `::add-mask::<jwt>` line) to the
+  file at `<path>` (intended to be `$GITHUB_OUTPUT`).
+- Phases, fail-fast: ensure-env → stack-up → migrate → seed → provision →
+  persona-pick → mint → manifest-write. On any phase failure: non-zero exit with
+  the phase name and a one-line diagnostic in stderr (e.g.
+  `persona-pick: 0 rows matched 'manager-of-one' across 42 human rows`).
+- Idempotent on `.env`: if `.env` already carries `SUPABASE_URL`, skips
+  `env-reset`. Customised local `.env` files are not clobbered.
 
 `fit-map substrate verify`
+
 - Required: `--manifest <path>` — the discovery file written by `up`.
-- Reads `LANDMARK_AUTH_TOKEN` from `process.env` (CI step sets it via the workflow env in the same way `Run interview` will).
-- Asserts: JWT shape + claims (`aud`, `role`, `email`, `exp > now`); persona row in `organization_people` with `kind = 'human'`; all four discovery values resolve to ≥1 row in the table the matching command queries; every `needsSupabase: true` entry in `fit-landmark`'s `COMMANDS` map (expanded via the libcli `commands` array) exits zero when invoked with options drawn from the manifest; `org team --manager <persona>` / `evidence --email <persona>` / `practice --manager <persona>` each return non-empty top-level row collections under `--format json`.
-- Exits non-zero with a one-line diagnostic per failing check. As a CI step between `Prepare interview workspace` and `Run interview`, a non-zero exit fails the workflow before the agent runs — satisfying spec § Failure surfacing.
+- Reads `LANDMARK_AUTH_TOKEN` from `process.env` (CI step sets it via the
+  workflow env in the same way `Run interview` will).
+- Asserts: JWT shape + claims (`aud`, `role`, `email`, `exp > now`); persona row
+  in `organization_people` with `kind = 'human'`; all four discovery values
+  resolve to ≥1 row in the table the matching command queries; every
+  `needsSupabase: true` entry in `fit-landmark`'s `COMMANDS` map (expanded via
+  the libcli `commands` array) exits zero when invoked with options drawn from
+  the manifest; `org team --manager <persona>` / `evidence --email <persona>` /
+  `practice --manager <persona>` each return non-empty top-level row collections
+  under `--format json`.
+- Exits non-zero with a one-line diagnostic per failing check. As a CI step
+  between `Prepare interview workspace` and `Run interview`, a non-zero exit
+  fails the workflow before the agent runs — satisfying spec § Failure
+  surfacing.
 
 ## Persona-pick and discovery values
 
 Same invariants as design-a. Inside `substrate up`:
 
-1. Scan `organization_people` for `kind = 'human'` rows lexicographically by email.
-2. Reject rows where no other `organization_people` row has `manager_email` equal to this row's email (manager-of-one).
-3. Reject rows where the same join `fit-landmark evidence --email <e>` performs returns 0 (evidence-of-self).
-4. Reject rows where the same query `fit-landmark practice --manager <e>` performs returns 0 (practice-of-directs).
-5. First survivor wins. `manager_email` = persona email (the persona IS the manager probed by `org team` / `practice`). `snapshot_id` = latest `getdx_snapshots` row by `imported_at`. `item_id` = any `getdx_snapshot_team_scores` row in the persona's team scope whose `driver_id` resolves in `drivers.yaml` (so `snapshot trend --item <id>` returns a payload).
+1. Scan `organization_people` for `kind = 'human'` rows lexicographically by
+   email.
+2. Reject rows where no other `organization_people` row has `manager_email`
+   equal to this row's email (manager-of-one).
+3. Reject rows where the same join `fit-landmark evidence --email <e>` performs
+   returns 0 (evidence-of-self).
+4. Reject rows where the same query `fit-landmark practice --manager <e>`
+   performs returns 0 (practice-of-directs).
+5. First survivor wins. `manager_email` = persona email (the persona IS the
+   manager probed by `org team` / `practice`). `snapshot_id` = latest
+   `getdx_snapshots` row by `imported_at`. `item_id` = any
+   `getdx_snapshot_team_scores` row in the persona's team scope whose
+   `driver_id` resolves in `drivers.yaml` (so `snapshot trend --item <id>`
+   returns a payload).
 
 ## Key decisions
 
@@ -102,11 +131,29 @@ Same invariants as design-a. Inside `substrate up`:
 
 ## Data flow
 
-1. **Workspace prep (unchanged).** `Prepare interview workspace` runs `bunx fit-terrain build` and `bun install -g supabase`, emits `dir=$agent_dir` to `$GITHUB_OUTPUT`.
-2. **Substrate up (new, Landmark-gated step).** Calls `bunx fit-map substrate up --product landmark --out ${{ steps.agent-workspace.outputs.dir }}/.substrate.json --emit-env $GITHUB_OUTPUT`. Boots Supabase, ingests synthetic content, picks persona, mints JWT, writes the discovery file, and emits a masked `landmark_auth_token` to the workflow output.
-3. **Substrate verify (new, Landmark-gated step).** Calls `bunx fit-map substrate verify --manifest ${{ steps.agent-workspace.outputs.dir }}/.substrate.json` with `LANDMARK_AUTH_TOKEN` set in the step's `env:` to `steps.up.outputs.landmark_auth_token`. Asserts all spec § Success Criteria rows that don't require the GH-Actions log surface. Non-zero exit fails the workflow here, before `Run interview`.
-4. **Run interview (existing step, one env line added).** `LANDMARK_AUTH_TOKEN: ${{ inputs.product == 'landmark' && steps.up.outputs.landmark_auth_token || '' }}` lands the JWT in the supervisor + agent process env. The supervisor runs `kata-interview`, copies `data/pathway`/`data/activity` per the staging table, drafts `CLAUDE.md` (no product names), and Asks the agent. Agent's `fit-landmark` invocations inherit `LANDMARK_AUTH_TOKEN`.
-5. **Log scan (new, Landmark-gated post-step).** Downloads the workflow's run logs (via `actions/download-artifact` or the `gh run view --log` surface, plan scope) and exits non-zero if any literal value appears unmasked.
+1. **Workspace prep (unchanged).** `Prepare interview workspace` runs
+   `bunx fit-terrain build` and `bun install -g supabase`, emits
+   `dir=$agent_dir` to `$GITHUB_OUTPUT`.
+2. **Substrate up (new, Landmark-gated step).** Calls
+   `bunx fit-map substrate up --product landmark --out ${{ steps.agent-workspace.outputs.dir }}/.substrate.json --emit-env $GITHUB_OUTPUT`.
+   Boots Supabase, ingests synthetic content, picks persona, mints JWT, writes
+   the discovery file, and emits a masked `landmark_auth_token` to the workflow
+   output.
+3. **Substrate verify (new, Landmark-gated step).** Calls
+   `bunx fit-map substrate verify --manifest ${{ steps.agent-workspace.outputs.dir }}/.substrate.json`
+   with `LANDMARK_AUTH_TOKEN` set in the step's `env:` to
+   `steps.up.outputs.landmark_auth_token`. Asserts all spec § Success Criteria
+   rows that don't require the GH-Actions log surface. Non-zero exit fails the
+   workflow here, before `Run interview`.
+4. **Run interview (existing step, one env line added).**
+   `LANDMARK_AUTH_TOKEN: ${{ inputs.product == 'landmark' && steps.up.outputs.landmark_auth_token || '' }}`
+   lands the JWT in the supervisor + agent process env. The supervisor runs
+   `kata-interview`, copies `data/pathway`/`data/activity` per the staging
+   table, drafts `CLAUDE.md` (no product names), and Asks the agent. Agent's
+   `fit-landmark` invocations inherit `LANDMARK_AUTH_TOKEN`.
+5. **Log scan (new, Landmark-gated post-step).** Downloads the workflow's run
+   logs (via `actions/download-artifact` or the `gh run view --log` surface,
+   plan scope) and exits non-zero if any literal value appears unmasked.
 
 ## Trade-offs at a glance
 

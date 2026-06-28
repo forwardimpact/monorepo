@@ -5,7 +5,8 @@
 A structured user-testing run of `fit-landmark` against the persona
 `daedalus@bionova.example` (BioNova manufacturing IT data engineering manager,
 J080) produced a coverage reading of 4.3% over a 180-day window. The session
-findings are recorded in issue [#989](https://github.com/forwardimpact/monorepo/issues/989):
+findings are recorded in issue
+[#989](https://github.com/forwardimpact/monorepo/issues/989):
 
 - `fit-landmark sources` returned 46 GitHub artifacts (PRs, commits, reviews).
 - `fit-landmark evidence` returned 2 marker-evidence interpretations.

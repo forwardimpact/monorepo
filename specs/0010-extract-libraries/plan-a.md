@@ -179,7 +179,7 @@ All routing moves (it's fully generic):
 
 ## Package Structure
 
-```
+```text
 libraries/libui/
 ├── package.json
 ├── src/
@@ -451,7 +451,7 @@ and `output/ui/css/` alongside existing `map/lib/` and `model/lib/`.
 
 ## Dependency Chain After Extraction
 
-```
+```text
 map (data) ──→ libskill (derivation) ──→ pathway (product)
                                               ↑
               libui (UI framework) ─────────┘

@@ -17,8 +17,12 @@ const index = createResourceIndex('resources');
 
 ## Documentation
 
-- [Resolve a Resource](https://www.forwardimpact.team/docs/libraries/ground-agents/resolve-resource/index.md) — turn a resource identifier into rich, typed context with provenance and access control.
-- [Give Agents Typed, Retrievable Knowledge](https://www.forwardimpact.team/docs/libraries/ground-agents/index.md) — the full workflow for ingesting knowledge sources and building the resource index.
+- [Resolve a Resource](https://www.forwardimpact.team/docs/libraries/ground-agents/resolve-resource/index.md)
+  — turn a resource identifier into rich, typed context with provenance and
+  access control.
+- [Give Agents Typed, Retrievable Knowledge](https://www.forwardimpact.team/docs/libraries/ground-agents/index.md)
+  — the full workflow for ingesting knowledge sources and building the resource
+  index.
 
 ## Internal CLIs
 

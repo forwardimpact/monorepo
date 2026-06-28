@@ -21,15 +21,15 @@ This is a long-standing gap, not a new request:
   side-by-side sections with a `Net:` summary. The two-sided rendering is the
   documented intended behaviour.
 - **Implementation regression.** The current command handler computes only the
-  source team's before/after snapshots — `products/summit/src/commands/what-if.js`
-  lines 43–56 take a single `target` (the positional arg) and pass that
-  team's snapshots through `diffCoverage` / `diffRisks` and into the formatters.
-  The mutation function `doMove` (`products/summit/src/aggregation/what-if.js`
-  lines 193–217) already moves the member from source to destination on the
-  cloned roster, so the destination team's after-state is computable from the
-  same `mutated` roster the command already produces. Nothing about the
-  underlying computation blocks two-sided rendering; the command stops short of
-  asking for it.
+  source team's before/after snapshots —
+  `products/summit/src/commands/what-if.js` lines 43–56 take a single `target`
+  (the positional arg) and pass that team's snapshots through `diffCoverage` /
+  `diffRisks` and into the formatters. The mutation function `doMove`
+  (`products/summit/src/aggregation/what-if.js` lines 193–217) already moves the
+  member from source to destination on the cloned roster, so the destination
+  team's after-state is computable from the same `mutated` roster the command
+  already produces. Nothing about the underlying computation blocks two-sided
+  rendering; the command stops short of asking for it.
 
 The CLI `--help` text does not flag the asymmetry. A user reading the help
 output for `--move` cannot tell that the positional team arg is interpreted as

@@ -62,11 +62,12 @@ screen > sync. Stage 3 **never** triggers automatically — only on user request
 
 Triage state goes to `~/.cache/fit/outpost/state/recruiter_triage.md` every wake
 (the chief-of-staff reads it): needs-action by stage, recently processed
-candidates, pipeline totals by stage/track, aggregate diversity, retention flags.
+candidates, pipeline totals by stage/track, aggregate diversity, retention
+flags.
 
 ## Output
 
-```
+```text
 Decision: {observation and chosen action}
 Action: {e.g. "req-screen for John Smith against J060 forward-deployed"}
 Stage: {1 | 2 | sync | erasure}

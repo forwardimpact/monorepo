@@ -9,9 +9,10 @@ description: >
 
 # coaligned-setup
 
-Stand up the [Co-Aligned](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
-instruction architecture in a repository: the root identity and jobs files,
-the invariant directory, and the `npx coaligned` checks that keep them honest.
+Stand up the
+[Co-Aligned](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+instruction architecture in a repository: the root identity and jobs files, the
+invariant directory, and the `npx coaligned` checks that keep them honest.
 
 Run this once per repository. For ongoing work use the sibling skills:
 [coaligned-layer](../coaligned-layer/SKILL.md) for instruction layers,
@@ -101,7 +102,7 @@ validate. Fix any finding before committing — route by subcommand the same way
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md) —
-  the eight layers, their caps, and the rules that separate them.
-- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md) —
-  what each `coaligned` subcommand checks.
+- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+  — the eight layers, their caps, and the rules that separate them.
+- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
+  — what each `coaligned` subcommand checks.

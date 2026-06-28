@@ -25,22 +25,29 @@ Chat.
 
 **Find growth areas:**
 
-- Getting career guidance grounded in your organization's standard — `npx fit-guide "What should I focus on to reach the next level?"`
-- Asking about skills, levels, behaviours, and expectations — `npx fit-guide "What does practitioner-level delivery look like?"`
-- Checking whether recent work shows progress — `npx fit-guide "Does my recent PR show growth in code quality?"`
+- Getting career guidance grounded in your organization's standard —
+  `npx fit-guide "What should I focus on to reach the next level?"`
+- Asking about skills, levels, behaviours, and expectations —
+  `npx fit-guide "What does practitioner-level delivery look like?"`
+- Checking whether recent work shows progress —
+  `npx fit-guide "Does my recent PR show growth in code quality?"`
 
 **Verify agent work:**
 
-- Interpreting engineering artifacts against skill markers — `npx fit-guide "Review this diff against senior delivery expectations"`
-- Getting a second opinion before approving a deliverable — `npx fit-guide "Does this design doc meet the standard for system design?"`
+- Interpreting engineering artifacts against skill markers —
+  `npx fit-guide "Review this diff against senior delivery expectations"`
+- Getting a second opinion before approving a deliverable —
+  `npx fit-guide "Does this design doc meet the standard for system design?"`
 
 **Setup and operations:**
 
-- Bootstrap a new project — `npx fit-guide --init` (safe to re-run; no-op on existing projects)
+- Bootstrap a new project — `npx fit-guide --init` (safe to re-run; no-op on
+  existing projects)
 - Authenticate — `npx fit-guide login`
 - Start the service stack — `npx fit-rc start`
 - Check system readiness — `npx fit-guide status`
-- Process knowledge content — `npx fit-process-resources`, `npx fit-process-graphs`, `npx fit-process-vectors`
+- Process knowledge content — `npx fit-process-resources`,
+  `npx fit-process-graphs`, `npx fit-process-vectors`
 
 ---
 

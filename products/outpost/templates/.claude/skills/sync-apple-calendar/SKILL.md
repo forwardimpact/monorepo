@@ -41,7 +41,9 @@ Run the sync as a single Node.js script with embedded SQLite. This avoids N+1
 process invocations (one per event for attendees) and handles all data
 transformation in one pass:
 
-    node scripts/sync.mjs [--days N]
+```text
+node scripts/sync.mjs [--days N]
+```
 
 - `--days N` — how many days back to sync (default: 30)
 
@@ -101,7 +103,9 @@ Each `{event_id}.json` file:
 After syncing, use the query script to filter events by date or time window.
 **Agents should use this script instead of writing bespoke calendar parsers.**
 
-    node scripts/query.mjs [options]
+```text
+node scripts/query.mjs [options]
+```
 
 ### Time filters (combinable)
 

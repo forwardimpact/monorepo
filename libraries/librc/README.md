@@ -67,5 +67,8 @@ daemon and communicating with it over a Unix socket.
 
 ## Documentation
 
-- [Start, Stop, or Check a Service](https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md) — start, stop, restart, check status, and read logs through one interface with `fit-rc`.
-- [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md) — the full lifecycle setup, including supervision and observability.
+- [Start, Stop, or Check a Service](https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md)
+  — start, stop, restart, check status, and read logs through one interface with
+  `fit-rc`.
+- [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md)
+  — the full lifecycle setup, including supervision and observability.

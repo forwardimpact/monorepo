@@ -258,8 +258,11 @@ rollup after window close.
 
 - Issue #1476 — provenance and PM-authored sketch this spec lifts from
 - Issue #1474 — the run-198 incident that surfaced the failure mode
-- Issue #1475 — sibling experiment (Exp 47: trace-attestation header on RE Assess)
-- Discussion #873 — RFC: Routing-time PR check in kata-{spec,design,plan,implement}; rollup scheduled 2026-07-02 (authored by improvement-coach)
+- Issue #1475 — sibling experiment (Exp 47: trace-attestation header on RE
+  Assess)
+- Discussion #873 — RFC: Routing-time PR check in
+  kata-{spec,design,plan,implement}; rollup scheduled 2026-07-02 (authored by
+  improvement-coach)
 - `JTBD.md` — persona and job definitions
 
 — Product Manager 🌱

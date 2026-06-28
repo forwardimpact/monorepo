@@ -99,9 +99,10 @@ Files modified: none.
 
 Run `bun run check` (format, lint, jsdoc, invariants, context — `context`
 includes `bunx coaligned instructions` for instruction-length caps). Then
-manually confirm no monorepo issue/PR links or incident references remain in
-the two changed skill files (`grep -nE '#[0-9]{3,}|forwardimpact/monorepo/(issues|pull)'`
-over the two files).
+manually confirm no monorepo issue/PR links or incident references remain in the
+two changed skill files
+(`grep -nE '#[0-9]{3,}|forwardimpact/monorepo/(issues|pull)'` over the two
+files).
 
 Verification: `bun run check` passes green and the grep over the two changed
 skill files returns no incident/issue references in the added lines.

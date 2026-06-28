@@ -332,13 +332,13 @@ handled out of the box.
 
 With the local Supabase running, the function URL is:
 
-```
+```text
 http://127.0.0.1:54321/functions/v1/github-webhook
 ```
 
 For a hosted deployment, the URL is:
 
-```
+```text
 https://<project-ref>.supabase.co/functions/v1/github-webhook
 ```
 

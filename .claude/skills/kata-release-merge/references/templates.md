@@ -10,7 +10,8 @@ shown and post it.
 
 ### Untrusted Author
 
-> Release merge: skipping — author `<login>` is not in the top 7 contributors. Requires human review.
+> Release merge: skipping — author `<login>` is not in the top 7 contributors.
+> Requires human review.
 
 ### Unsupported PR Type
 
@@ -18,7 +19,10 @@ shown and post it.
 
 ### Awaiting Approval Signal
 
-> Release merge: blocked — `wiki/STATUS.md` row for the spec does not yet show `<phase>\tapproved`. Apply `<phase>:approved` label, submit an APPROVED review, or post an approval comment from a trusted account; `kata-dispatch` will propagate it into STATUS.
+> Release merge: blocked — `wiki/STATUS.md` row for the spec does not yet show
+> `<phase>\tapproved`. Apply `<phase>:approved` label, submit an APPROVED
+> review, or post an approval comment from a trusted account; `kata-dispatch`
+> will propagate it into STATUS.
 
 ### CI Failing
 
@@ -26,25 +30,32 @@ Comment with the specific failing checks from the change's CI `read`.
 
 ### Substantive Conflict
 
-> Release merge: blocked — substantive conflicts in <files>. Author judgement needed; aborting rebase.
+> Release merge: blocked — substantive conflicts in <files>. Author judgement
+> needed; aborting rebase.
 
 ## Announcement Cross-Link
 
 `comment` on the **coordinating issue** (not the change) when Step 8 finds no
-comment naming the PR ([work-trackers.md](../../../agents/references/work-trackers.md)).
-Adapt the verb to the PR's state at gate time:
+comment naming the PR
+([work-trackers.md](../../../agents/references/work-trackers.md)). Adapt the
+verb to the PR's state at gate time:
 
-> Release merge (announcement backstop): PR #<pr-number> — `<title>` — is in flight for this issue and has reached the merge gate. Cross-link posted by the gate because no prior comment here named the PR; recorded as an adherence miss per coordination-protocol.md fix-in-flight markers.
+> Release merge (announcement backstop): PR #<pr-number> — `<title>` — is in
+> flight for this issue and has reached the merge gate. Cross-link posted by the
+> gate because no prior comment here named the PR; recorded as an adherence miss
+> per coordination-protocol.md fix-in-flight markers.
 
 ## Re-ping Comments
 
 Posted by the **Re-ping Rule** (SKILL.md Step 10, item 4) when a blocked PR's
 silence window has expired. Post the one template below, filling `<state>`,
 `<owner>`, and `<next-action>` from the row matching the PR's block reason —
-already computed in this run's Steps 2–8; the Re-ping Rule does not re-run the gates.
-Post it as a `comment` on the change ([work-trackers.md](../../../agents/references/work-trackers.md)):
+already computed in this run's Steps 2–8; the Re-ping Rule does not re-run the
+gates. Post it as a `comment` on the change
+([work-trackers.md](../../../agents/references/work-trackers.md)):
 
 > Release merge Re-ping Rule — gate still open after 3 calendar days:
+>
 > - state: <state>
 > - owner: <owner>
 > - next_action: <next-action>
@@ -63,14 +74,15 @@ Post it as a `comment` on the change ([work-trackers.md](../../../agents/referen
 `comment` then `merge-change`
 ([work-trackers.md](../../../agents/references/work-trackers.md)):
 
-> Release merge: all gates pass — type `<type>`, CI green, author trusted, STATUS row `<phase>\tapproved`. Merging.
+> Release merge: all gates pass — type `<type>`, CI green, author trusted,
+> STATUS row `<phase>\tapproved`. Merging.
 
 After merging, `read` the change's state. If still `OPEN`, note in the summary
 rather than reporting as merged.
 
 ## Report Summary
 
-```
+```text
 | PR     | Title                          | Type | Author | CI    | STATUS         | Action  | Reason                          |
 | ------ | ------------------------------ | ---- | ------ | ----- | -------------- | ------- | ------------------------------- |
 | #fix-a | fix(parser): schema validation | fix  | alice  | green | n/a            | merged  | All gates pass                  |

@@ -27,7 +27,7 @@ part-07 PR description.
 
 Resulting layout:
 
-```
+```text
 products/polaris/site/
   src/app/
   public/
@@ -140,6 +140,7 @@ Toaster + a header with nav (Home, Search, Sites, About). Admin pages add
 a sidebar.
 
 Each page is a Server Component that:
+
 1. Constructs the `data` context (PostgREST client bound to the request's
    anon/staff JWT)
 2. Calls the matching handler
@@ -254,12 +255,14 @@ Admin page `src/app/admin/trials/[id]/page.tsx` uses `buildAdminCtx`
 instead, so `manageTrial` sees the staff JWT and RLS applies the staff
 role; the page renders an unauthorized state if the cookie is absent.
 
-Verify: `bun run build` exits 0; `bun run dev` and visiting `/search?condition=diabetes`
-renders the diabetes trial list; `/api/search?condition=diabetes` returns
-JSON; `/admin/trials/<id>` 200s when the staff cookie is set and
-401-redirects when it is not (success criteria #2 + #5).
+Verify: `bun run build` exits 0; `bun run dev` and visiting
+`/search?condition=diabetes` renders the diabetes trial list;
+`/api/search?condition=diabetes` returns JSON; `/admin/trials/<id>` 200s when
+the staff cookie is set and 401-redirects when it is not (success criteria #2 +
 
-## Step 4 — Author shared components
+## 5)
+
+### Step 4 — Author shared components
 
 Created under `products/polaris/site/src/components/`:
 
@@ -280,9 +283,10 @@ only (no global CSS beyond `src/app/globals.css` from create-next-app).
 Verify: `bun run lint && bun run build` exits 0 with no Tailwind purge
 warnings.
 
-## Step 5 — Author `/trials/[id]/eligibility/route.ts`
+### Step 5 — Author `/trials/[id]/eligibility/route.ts`
 
 POST handler that:
+
 1. Receives form data (parsed via `request.formData()`)
 2. Builds InvocationContext with `args: { id }`, `options: <answers>`
 3. Calls `checkEligibility`
@@ -291,7 +295,7 @@ POST handler that:
 Verify: form submission inserts `interest_signals` row and redirects with
 score in query string; success criterion #3.
 
-## Step 6 — Dockerfile + healthcheck
+### Step 6 — Dockerfile + healthcheck
 
 Edit `products/polaris/site/Dockerfile`. Compose builds this with
 `context: .` (repo root — set in part 01 step 4); all COPY paths below
@@ -333,7 +337,7 @@ export const GET = () => new Response("ok");
 Verify: `docker compose up -d polaris-site` reaches `(healthy)` within 60s;
 `curl http://localhost:3001/` returns the homepage HTML.
 
-## Step 7 — Tests
+### Step 7 — Tests
 
 Created: `products/polaris/site/src/__tests__/`:
 
@@ -349,7 +353,7 @@ Test runner: `vitest` (added to devDeps) with `@testing-library/react`.
 
 Verify: `cd products/polaris/site && bun run test` exits 0.
 
-## Step 8 — Open part-07 PR
+### Step 8 — Open part-07 PR
 
 ```sh
 git checkout -b products/polaris-site
@@ -362,14 +366,17 @@ gh pr create --title "products: bionova-polaris web (Next.js + Tailwind + shadcn
 Verify: PR CI green (lint + build + vitest); preview link (if Vercel
 preview enabled, else local Docker compose smoke documented).
 
-## Verification (end of part 07)
+### Verification (end of part 07)
 
 - [ ] `bun run build` in `products/polaris/site/` exits 0.
 - [ ] All 7 routes render without runtime errors (manual against `bun run dev`).
-- [ ] `/search?condition=high+blood+sugar` returns diabetes-related trials (success criterion #2).
-- [ ] `/trials/[id]/eligibility` form submits to route handler, inserts interest signal, shows score badge (success criterion #3).
+- [ ] `/search?condition=high+blood+sugar` returns diabetes-related trials
+      (success criterion #2).
+- [ ] `/trials/[id]/eligibility` form submits to route handler, inserts interest
+      signal, shows score badge (success criterion #3).
 - [ ] `/sites?specialty=oncology` filters site list.
-- [ ] `/admin/trials/[id]` returns 401 without staff JWT; returns admin view with signal aggregates with staff JWT.
+- [ ] `/admin/trials/[id]` returns 401 without staff JWT; returns admin view
+      with signal aggregates with staff JWT.
 - [ ] `vitest run` exits 0.
 - [ ] `docker compose up -d polaris-site` reaches `(healthy)` within 60s.
 

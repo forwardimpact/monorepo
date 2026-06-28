@@ -25,10 +25,10 @@ The prompt must contain "evaluate" and one of:
 3. For each artifact returned:
    a. Call `GetArtifact` with the artifact's id to get its detail.
    b. Call `GetPerson` with the artifact's author email to get their profile
-      (discipline, level, track).
+   (discipline, level, track).
    c. Call `GetMarkersForProfile` with the profile to get the markers the
-      engineer is expected to demonstrate. Each line is tab-separated:
-      `skill_id\tlevel_id\tmarker_text`.
+   engineer is expected to demonstrate. Each line is tab-separated:
+   `skill_id\tlevel_id\tmarker_text`.
    d. Evaluate the artifact against each returned marker:
       - Determine `matched` (boolean): does the artifact demonstrate this
         marker?
@@ -36,11 +36,11 @@ The prompt must contain "evaluate" and one of:
       - `matched: false` rows are valid — write them to document what was
         checked and not found.
    e. Call `WriteEvidence` once per marker with: `artifact_id`, `skill_id`,
-      `level_id`, `marker_text`, `matched`, `rationale`, and
-      `provenance: 'agent_attested'`. The `provenance` argument tags the
-      row as agent-judged so downstream consumers can distinguish it from
-      human-attested rows. Call multiple markers in parallel for
-      throughput.
+   `level_id`, `marker_text`, `matched`, `rationale`, and
+   `provenance: 'agent_attested'`. The `provenance` argument tags the
+   row as agent-judged so downstream consumers can distinguish it from
+   human-attested rows. Call multiple markers in parallel for
+   throughput.
 
 ## Constraints
 

@@ -42,15 +42,24 @@ Verification: `bun test test/marker-scanner.test.js` still passes
 Created: `libraries/libwiki/src/active-claims.js`.
 
 Exports:
-- `parseClaims(memoryText)` → `[{ agent, target, branch, pr, claimed_at, expires_at }]`. Returns `[]` when `## Active Claims` heading is missing (silent tolerance per design § Cross-cutting choices).
-- `appendClaim(memoryText, claim, today)` → `{ text, inserted }`. Inserts a row after the existing table; creates header + separator if absent. Refuses (`inserted: false`) if a row with the same `(agent, target)` already exists.
-- `removeClaim(memoryText, { agent, target })` → `{ text, removed }`. Idempotent — `removed: false` when no matching row.
-- `filterExpired(claims, today)` → `{ active, expired }`. Active = rows whose `expires_at >= today`.
+
+- `parseClaims(memoryText)` →
+  `[{ agent, target, branch, pr, claimed_at, expires_at }]`. Returns `[]` when
+  `## Active Claims` heading is missing (silent tolerance per design §
+  Cross-cutting choices).
+- `appendClaim(memoryText, claim, today)` → `{ text, inserted }`. Inserts a row
+  after the existing table; creates header + separator if absent. Refuses
+  (`inserted: false`) if a row with the same `(agent, target)` already exists.
+- `removeClaim(memoryText, { agent, target })` → `{ text, removed }`. Idempotent
+  — `removed: false` when no matching row.
+- `filterExpired(claims, today)` → `{ active, expired }`. Active = rows whose
+  `expires_at >= today`.
 
 The parser uses line-prefix scanning, not regex over the whole file, to
 keep behaviour deterministic when the table is the last section.
 
 Created: `libraries/libwiki/test/active-claims.test.js` covering:
+
 - parse with empty / missing / present sections
 - append idempotence for `(agent, target)` duplicates
 - remove returns `removed: false` for unknown rows
@@ -63,14 +72,23 @@ Verification: `bun test test/active-claims.test.js` passes.
 Created: `libraries/libwiki/src/weekly-log.js`.
 
 Exports:
-- `weeklyLogPath(wikiRoot, agent, today)` → `wiki/{agent}-YYYY-Www.md`. Uses a manual ISO 8601 week computation (Thursday-of-week algorithm) — no `Intl.DateTimeFormat` (cross-runtime instability on edge weeks; see Risks).
-- `rotateIfOverBudget(wikiRoot, agent, today, fs)` → `{ rotated, fromPath, toPath }`. If the current file's `wc -l + appendLines > WEEKLY_LOG_LINE_BUDGET`, rename to `{agent}-YYYY-Www-partN.md` (N = next free integer ≥ 1) and create a fresh file with the H1 heading.
-- `appendEntry(path, body, fs)` → appends `\n` + body to the file, creating it (with H1) if missing.
+
+- `weeklyLogPath(wikiRoot, agent, today)` → `wiki/{agent}-YYYY-Www.md`. Uses a
+  manual ISO 8601 week computation (Thursday-of-week algorithm) — no
+  `Intl.DateTimeFormat` (cross-runtime instability on edge weeks; see Risks).
+- `rotateIfOverBudget(wikiRoot, agent, today, fs)` →
+  `{ rotated, fromPath, toPath }`. If the current file's
+  `wc -l + appendLines > WEEKLY_LOG_LINE_BUDGET`, rename to
+  `{agent}-YYYY-Www-partN.md` (N = next free integer ≥ 1) and create a fresh
+  file with the H1 heading.
+- `appendEntry(path, body, fs)` → appends `\n` + body to the file, creating it
+  (with H1) if missing.
 
 The rotation reads the file once to count lines; the append never
 rewrites existing bytes.
 
 Created: `libraries/libwiki/test/weekly-log.test.js` covering:
+
 - rotation at exactly the line budget (boundary)
 - part numbering increments correctly on multiple rotations
 - append creates the file with H1 when missing
@@ -83,21 +101,29 @@ Verification: `bun test test/weekly-log.test.js` passes.
 Created: `libraries/libwiki/src/boot.js`.
 
 Exports:
-- `buildDigest({ wikiRoot, agent, today, fs, gh })` → JSON object matching design § Digest schema:
-  ```
+
+- `buildDigest({ wikiRoot, agent, today, fs, gh })` → JSON object matching
+  design § Digest schema:
+
+  ```text
   { summary, owned_priorities[], cross_cutting[], claims[], storyboard_items[], inbox_count, storyboard_path }
   ```
+
 - `summary` is the first paragraph of `wiki/{agent}.md` after the H1 (string).
-- `owned_priorities` and `cross_cutting` parse the MEMORY.md priority table; `owned_priorities` filters to rows where `Owner == agent`.
+- `owned_priorities` and `cross_cutting` parse the MEMORY.md priority table;
+  `owned_priorities` filters to rows where `Owner == agent`.
 - `claims` calls `filterExpired(parseClaims(memoryText), today).active`.
-- `storyboard_items` parses the current storyboard's per-agent H3 section (e.g. `### staff-engineer — spec`) when present; falls back to `[]`.
-- `inbox_count` counts bullets immediately after `<!-- memo:inbox -->` until the next blank or H2.
+- `storyboard_items` parses the current storyboard's per-agent H3 section (e.g.
+  `### staff-engineer — spec`) when present; falls back to `[]`.
+- `inbox_count` counts bullets immediately after `<!-- memo:inbox -->` until the
+  next blank or H2.
 
 Missing-section tolerance: every field defaults to its empty form
 (`""`, `[]`, `0`) when the surface is absent (design § Cross-cutting
 choices, silent tolerance).
 
 Created: `libraries/libwiki/test/boot.test.js` covering:
+
 - digest against a fixture wiki with all surfaces present
 - digest against a wiki with `## Active Claims` missing (silent tolerance)
 - digest against a wiki with no storyboard file (`storyboard_items: []`)
@@ -149,10 +175,16 @@ JS — summary budget, summary sections (Message Inbox first H2, Open
 Blockers last), weekly log filename + heading, priority index schema —
 plus four new checks:
 
-1. **Weekly log line budget (cutover-gated).** For files whose week is `>= CUTOVER_ISO_WEEK`, `wc -l <= WEEKLY_LOG_LINE_BUDGET`. Pre-cutover files exempt.
-2. **Decision-block opening.** Every `## YYYY-MM-DD` entry in current-week logs is followed (within 5 non-blank lines) by `### Decision`.
-3. **Active Claims schema.** When `## Active Claims` is present, table header matches `ACTIVE_CLAIMS_TABLE_HEADER`; every row has 6 cells; `expires_at` parses as ISO date.
-4. **Expired claims.** Rows past `expires_at` report as findings (not errors) so `release --expired` cleanup is observable.
+1. **Weekly log line budget (cutover-gated).** For files whose week is
+   `>= CUTOVER_ISO_WEEK`, `wc -l <= WEEKLY_LOG_LINE_BUDGET`. Pre-cutover files
+   exempt.
+2. **Decision-block opening.** Every `## YYYY-MM-DD` entry in current-week logs
+   is followed (within 5 non-blank lines) by `### Decision`.
+3. **Active Claims schema.** When `## Active Claims` is present, table header
+   matches `ACTIVE_CLAIMS_TABLE_HEADER`; every row has 6 cells; `expires_at`
+   parses as ISO date.
+4. **Expired claims.** Rows past `expires_at` report as findings (not errors) so
+   `release --expired` cleanup is observable.
 
 First-run grace: when `FIT_WIKI_AUDIT_GRACE_UNTIL` env var is set to an
 ISO date `>= today`, the **summary-budget** check and **decision-block
@@ -206,12 +238,14 @@ Modified: `src/commands/refresh.js`. Pass `gh` invoker through (DI so
 tests can stub).
 
 Created: `libraries/libwiki/test/issue-list-block.test.js` covering:
+
 - open obstacles render under `<!-- obstacles:open -->`
 - closed experiments respect the 7-day window
 - `gh` failure produces empty block + stderr warning, leaves XmR blocks
   intact
 
-Verification: `bun test test/cli-refresh.test.js test/issue-list-block.test.js` passes.
+Verification: `bun test test/cli-refresh.test.js test/issue-list-block.test.js`
+passes.
 
 ## Step 8 — `init` (Active Claims scaffold + Stop-hook entry)
 
@@ -243,11 +277,13 @@ After the existing clone/identity/metrics block:
    settings.json.
 
 Modified: `libraries/libwiki/test/cli-init.test.js`. Add cases for:
+
 - fresh MEMORY.md without `## Active Claims` → section added with empty row
 - existing MEMORY.md with section → not duplicated
 - settings.json **absent** → file created with the minimal shell
 - settings.json with `hooks.Stop` absent → group added
-- settings.json with `hooks.Stop` present, no audit entry → entry appended; existing `just wiki-push` preserved
+- settings.json with `hooks.Stop` present, no audit entry → entry appended;
+  existing `just wiki-push` preserved
 - settings.json with audit entry already → no change (idempotent)
 
 Verification: `bun test test/cli-init.test.js` passes.
@@ -273,7 +309,7 @@ because they carry sub-subcommands (`decision|note|done` /
 
 Append matching `examples` entries:
 
-```
+```text
 fit-wiki boot
 fit-wiki log decision --surveyed "..." --chosen "..." --rationale "..."
 fit-wiki claim --target spec-1060 --branch claude/...

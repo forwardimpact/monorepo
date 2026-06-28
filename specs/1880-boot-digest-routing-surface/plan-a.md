@@ -67,18 +67,18 @@ export const AGENT_EXPERIMENT_ITEM_RE =
 
 The author suffix is mandatory and anchored at end; the title group is greedy.
 This round-trips unambiguously because `sanitizeTitle` (step 1) guarantees a
-title never contains the literal ` (by ` token, so the trailing ` (by …)` is
+title never contains the literal ` (by ` token, so the trailing `(by …)` is
 always the author.
 Verification: `node -e "import('./libraries/libwiki/src/constants.js')"` imports
 clean; `AGENT_EXPERIMENT_ITEM_RE` matches the step-5 sample line.
 
 ### 3. Scanner recognizes the new kind
 
-Intent: `scanMarkers` returns `{ kind: "agent-experiments", openLine, closeLine }`.
-Files: modify `libraries/libwiki/src/marker-scanner.js`; modify
-`libraries/libwiki/test/` (add a case to the existing marker-scanner test, or
-`issue-list-block.test.js` if that is where scanner cases live — locate with
-`grep -rl scanMarkers test/`).
+Intent: `scanMarkers` returns
+`{ kind: "agent-experiments", openLine, closeLine }`. Files: modify
+`libraries/libwiki/src/marker-scanner.js`; modify `libraries/libwiki/test/` (add
+a case to the existing marker-scanner test, or `issue-list-block.test.js` if
+that is where scanner cases live — locate with `grep -rl scanMarkers test/`).
 
 - `tryOpen`: after the issue-list branch, match `AGENT_EXPERIMENTS_OPEN_RE` →
   return `{ kind: "agent-experiments", openLine: i }`.
@@ -123,6 +123,7 @@ Files: modify `libraries/libwiki/src/issue-list-renderer.js`; modify
 `libraries/libwiki/test/` renderer test.
 
 Add `renderAgentExperiments({ cwd, repo, token, runtime })`:
+
 - `gh issue list --label experiment --state open --json number,title,labels,author --limit 100`
   (add `--repo` when `repo` set; `GH_TOKEN` env from `token`).
 - On non-zero exit or JSON parse failure: throw a sentinel
@@ -138,7 +139,7 @@ Add `renderAgentExperiments({ cwd, repo, token, runtime })`:
 Verification: renderer test with a stubbed `runtime.subprocess` returning two
 labeled + one unlabeled issue → two attributed lines, unlabeled dropped; a
 hostile multi-line title rendered single-line and sigil-escaped; a title
-containing ` (by hand)` round-trips (parses back to the original author, not the
+containing `(by hand)` round-trips (parses back to the original author, not the
 embedded text); a non-zero exit throws `TrackerQueryError`.
 
 ### 6. Refresh writes the block with keep-previous + stamp
@@ -178,16 +179,17 @@ Files: modify `libraries/libwiki/src/boot.js`; modify
     agent push the unified shape: `{ dim: agent, threshold: title, status:
     "open", link: null, issue: Number(n), author, source: "experiment" }`.
   - **h3-bullet scan (fix existing double-parse).** The current loop keeps
-    `inAgent` true across `## ` headings and block markers, so the block's own
+    `inAgent` true across `##` headings and block markers, so the block's own
     `- #NNN [agent] …` bullets would also be captured and misattributed to the
-    last `### {agent}`. Reset `inAgent = false` on any `^## ` heading and on the
+    last `### {agent}`. Reset `inAgent = false` on any `^##` heading and on the
     `AGENT_EXPERIMENTS_OPEN_RE`/`_CLOSE_RE` lines so the h3 scan never reads
     inside the block or past the agent sections. Surviving bullet items get
     `source: "bullet", issue: null, author: null`.
 - Add `extractStandingCarries(summaryText)`: find `## Standing Carries`, collect
-  each `- ` bullet's body verbatim (text after `- `, byte-equal, no trim of
-  inner content) until the next `## ` or EOF. Absent section → `[]`.
-- `buildDigest`: add `standing_carries: extractStandingCarries(summaryText ?? "")`.
+  each `-` bullet's body verbatim (text after `- `, byte-equal, no trim of
+  inner content) until the next `##` or EOF. Absent section → `[]`.
+- `buildDigest`: add
+  `standing_carries: extractStandingCarries(summaryText ?? "")`.
   `extractSummary` is unchanged (Last-run paragraph only).
 
 Verification: boot test — a fixture wiki with a materialized block yields a
@@ -223,16 +225,17 @@ Verification: `cd libraries/libwiki && bun test`.
 
 ### 10. Rewrite the dead-format fixture corpus
 
-Intent: no test surface retains `### {agent} — backlog` (criterion 11).
-Files: modify `libraries/libwiki/test/golden/fit-wiki/fixture/storyboard-2026-M05.md`,
+Intent: no test surface retains `### {agent} — backlog` (criterion 11). Files:
+modify `libraries/libwiki/test/golden/fit-wiki/fixture/storyboard-2026-M05.md`,
 `libraries/libwiki/test/golden/fit-wiki/boot-json.stdout.txt`,
 `libraries/libwiki/test/helpers.js` (the `seedCleanWiki` writer + its
-module-level `STORYBOARD_AGENTS` map), `libraries/libwiki/test/audit-engine.test.js`,
+module-level `STORYBOARD_AGENTS` map),
+`libraries/libwiki/test/audit-engine.test.js`,
 `libraries/libwiki/test/audit-cli.test.js`, and any inline test storyboards
 (`grep -rln -- '— backlog' libraries/libwiki/test/`).
 
 Each storyboard fixture becomes the live shape: per-agent `### {agent}` h3 with
-an h4 metric + fenced XmR block, a team-wide `## ` h2 immediately after the last
+an h4 metric + fenced XmR block, a team-wide `##` h2 immediately after the last
 agent section, an `agent-experiments` block (with a stamp line and at least one
 attributed item), and at least one live-format agent-section bullet. Regenerate
 `boot-json.stdout.txt` from the rewritten golden fixture so the golden matches

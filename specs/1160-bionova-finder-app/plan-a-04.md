@@ -77,7 +77,7 @@ type EmbedSeedResponse = { seeded: number; skipped: number };
 JSONL row shape (verified against
 `libraries/libsyntheticrender/src/render/render-embeddings.js:35`):
 
-```
+```text
 {"id":"<text-id>","table":"conditions","text":"…prose…"}
 ```
 
@@ -190,7 +190,8 @@ Behavior: triggered by a DB trigger on `trials.status` change. Queries
 will usually be empty), logs a "would-notify" line. Email sending is
 stubbed (GoTrue email integration deferred per design).
 
-Created: `products/polaris/site/supabase/migrations/20260601000002_notify_trigger.sql`
+Created:
+`products/polaris/site/supabase/migrations/20260601000002_notify_trigger.sql`
 
 The trigger uses `pg_net.http_post` (already created in part 01's
 `00-extensions.sql` via the `supabase/postgres` image). Kong requires an
@@ -294,7 +295,8 @@ Created:
 | `services/polaris-functions/notify-updates/test.ts` | Unit: builds correct log line; idempotent on repeat trigger |
 | `services/polaris-functions/sync-listings/test.ts` | Unit: parses SQL INSERTs; dry_run returns counts without writes |
 
-Test runner: `deno test --allow-net --allow-read --allow-env services/polaris-functions/`.
+Test runner:
+`deno test --allow-net --allow-read --allow-env services/polaris-functions/`.
 
 Verify: `deno test` exits 0; CI runs this in a new job `edge-functions` in
 `.github/workflows/ci.yml`.
@@ -314,10 +316,13 @@ Verify: PR CI green (deno check + deno test + compose validate).
 ## Verification (end of part 04)
 
 - [ ] `curl http://localhost:8082/health` returns `ok`.
-- [ ] `embed-seed` populates `condition_embeddings` with row count matching JSONL.
-- [ ] `eligibility-check` returns each of `eligible`, `possibly_eligible`, `not_eligible` for the appropriate seeded patient × trial pairing.
+- [ ] `embed-seed` populates `condition_embeddings` with row count matching
+      JSONL.
+- [ ] `eligibility-check` returns each of `eligible`, `possibly_eligible`,
+      `not_eligible` for the appropriate seeded patient × trial pairing.
 - [ ] `UPDATE trials SET status=…` fires `notify-updates`; log line appears.
-- [ ] `sync-listings` upserts seeded SQL idempotently; `pg_cron` schedule listed.
+- [ ] `sync-listings` upserts seeded SQL idempotently; `pg_cron` schedule
+      listed.
 - [ ] `deno test services/polaris-functions/` exits 0.
 
 — Staff Engineer 🛠️

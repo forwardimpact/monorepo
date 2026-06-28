@@ -29,7 +29,8 @@ dotted-literal keys are illustrative, not the on-disk encoding.
 
 ## Step 1 — Pure merge classifier
 
-**Created:** `libraries/libconfig/src/merge.js`, `libraries/libconfig/test/merge.test.js`
+**Created:** `libraries/libconfig/src/merge.js`,
+`libraries/libconfig/test/merge.test.js`
 
 `mergeConfigFragment({ existing, fragment, overwrites })` returns
 `{ result, conflicts }` where `conflicts: [{ kind: "config", path }]` (dotted
@@ -99,7 +100,13 @@ on disjoint top-level keys, plus leaf-path diagnostic accuracy
 `libraries/libconfig/src/bootstrap.js`,
 `libraries/libconfig/test/bootstrap.test.js`
 
-**Modified:** `libraries/libconfig/src/index.js` (add `export { bootstrapProject } from "./bootstrap.js"`), `libraries/libconfig/package.json` (add `"@forwardimpact/libsecret": "^0.1.15"` to `dependencies` only — **do not bump `version`**; the version bump is `kata-release-cut`'s surface after merge). Run `bun run context:fix` after the package.json edit so `libraries/README.md` and any dependency catalog re-generate to reflect the new edge.
+**Modified:** `libraries/libconfig/src/index.js` (add
+`export { bootstrapProject } from "./bootstrap.js"`),
+`libraries/libconfig/package.json` (add `"@forwardimpact/libsecret": "^0.1.15"`
+to `dependencies` only — **do not bump `version`**; the version bump is
+`kata-release-cut`'s surface after merge). Run `bun run context:fix` after the
+package.json edit so `libraries/README.md` and any dependency catalog
+re-generate to reflect the new edge.
 
 ```js
 // libraries/libconfig/src/errors.js
@@ -331,8 +338,9 @@ would need to thread the same path into `getOrGenerateSecret` (via its
 Two changes:
 
 1. Drop the non-zero exit when `data/pathway/` exists; switch to `cp` with
-   `force: false` (`fs.cp(starterDir, dataDir, { recursive: true, force: false, errorOnExist: false })`) so re-runs are no-ops on already-copied
-   files.
+   `force: false`
+   (`fs.cp(starterDir, dataDir, { recursive: true, force: false, errorOnExist: false })`)
+   so re-runs are no-ops on already-copied files.
 2. After the `data/pathway/` copy, call `bootstrapProject({ target,
    fragment: {} })`. Empty fragment materialises `target/config/config.json`
    with `"{}"` content (the anchoring criterion — Decision #9). No
@@ -359,12 +367,13 @@ The success/next-steps stdout block stays.
   vacuously. Use `process.chdir` + restore in `afterEach`; `Finder.findUpward`'s
   `maxDepth=3` covers the two ancestor hops needed.
 - **Bootstrap-shape parity test (spec success criterion):** in two fresh
-  tmpdirs, run `runInit(tmpA)` and `runStageCommand({ config, target: tmpB }, deps)`
-  (with stub deps so the Supabase phases are no-ops). Walk both trees and
-  assert the recursive set of files under the project root is identical
-  (`config/config.json`, `data/pathway/...`). Strictly satisfies spec
-  § Success Criteria row "Bootstrap shape is identical from `fit-map init`
-  directly and from the kata-interview Substrate stage."
+  tmpdirs, run `runInit(tmpA)` and
+  `runStageCommand({ config, target: tmpB }, deps)` (with stub deps so the
+  Supabase phases are no-ops). Walk both trees and assert the recursive set of
+  files under the project root is identical (`config/config.json`,
+  `data/pathway/...`). Strictly satisfies spec § Success Criteria row "Bootstrap
+  shape is identical from `fit-map init` directly and from the kata-interview
+  Substrate stage."
 
 **Verification:** `bun test products/map/test/init.test.js` exits 0.
 
@@ -465,7 +474,10 @@ async function dispatchSubstrate(subcommand, _rest, values) {
   makes the new `init` phase recorded in `invocations`, mirroring the
   existing pattern for `stack`/`seed`/`provision`/`smoke`.
 - Existing phase-ordering test (`test("invokes phases in stack → … order")`):
-  rename to `"invokes phases in init → stack → url-discovery → migrate → seed → provision → smoke order"` and update the `assert.deepEqual(invocations, [...])` array to prepend `"init"`.
+  rename to
+  `"invokes phases in init → stack → url-discovery → migrate → seed → provision → smoke order"`
+  and update the `assert.deepEqual(invocations, [...])` array to prepend
+  `"init"`.
 - Existing `SUBSTRATE_FORCE_EMPTY_CORPUS` test: prepend `"init"` to the
   `invocations` expectation.
 - Existing per-phase-failure test: unchanged (still seeds `failPhase: "seed"`).
@@ -473,7 +485,8 @@ async function dispatchSubstrate(subcommand, _rest, values) {
   explicit `target` — to at least one test case to lock the new
   parameter's plumbing.
 
-**Verification:** `bun test products/map/test/activity/substrate-stage.test.js` exits 0.
+**Verification:** `bun test products/map/test/activity/substrate-stage.test.js`
+exits 0.
 
 ## Step 7 — Drop the kata-interview `mkdir` workaround
 
@@ -496,23 +509,24 @@ invocation to pass `--cwd`:
 +          bunx fit-map substrate stage --cwd "${{ steps.agent-workspace.outputs.dir }}"
 ```
 
-The Landmark `if:` gate is preserved. The shell-level `bunx --no-install --
-supabase status --output json` invocation later in the same step is
-unchanged — it runs from the repo root, finds `products/map/supabase/config.toml`
-via the supabase CLI's own project discovery, and writes the discovered
-`SUPABASE_URL` / `SUPABASE_ANON_KEY` to `$GITHUB_ENV` for downstream steps.
-`runStageCommand`'s url-discovery phase sets these same vars in its own
-subprocess's `process.env` (so seed/provision/smoke phases observe them
-in-process); the shell-level `supabase status` block re-discovers and
-exports independently — no cross-process state leak.
+The Landmark `if:` gate is preserved. The shell-level
+`bunx --no-install -- supabase status --output json` invocation later in the
+same step is unchanged — it runs from the repo root, finds
+`products/map/supabase/config.toml` via the supabase CLI's own project
+discovery, and writes the discovered `SUPABASE_URL` / `SUPABASE_ANON_KEY` to
+`$GITHUB_ENV` for downstream steps. `runStageCommand`'s url-discovery phase sets
+these same vars in its own subprocess's `process.env` (so seed/provision/smoke
+phases observe them in-process); the shell-level `supabase status` block
+re-discovers and exports independently — no cross-process state leak.
 
 **Verification:** kata-interview workflow on the implementation branch runs
 green for a Landmark interview; the `agent-workspace` artefact carries
-`config/config.json` (from `runInit`'s init phase) and `data/pathway/`
-(starter copy); `grep -nE 'mkdir|install -d' .github/workflows/kata-interview.yml | grep config`
-is empty; the same run's later `supervisor` step still receives
-`SUPABASE_URL` and `SUPABASE_ANON_KEY` via `$GITHUB_ENV` (asserted by the
-existing `Run interview` step using them as `env:` keys).
+`config/config.json` (from `runInit`'s init phase) and `data/pathway/` (starter
+copy);
+`grep -nE 'mkdir|install -d' .github/workflows/kata-interview.yml | grep config`
+is empty; the same run's later `supervisor` step still receives `SUPABASE_URL`
+and `SUPABASE_ANON_KEY` via `$GITHUB_ENV` (asserted by the existing
+`Run interview` step using them as `env:` keys).
 
 ## Risks
 

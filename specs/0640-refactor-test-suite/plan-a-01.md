@@ -176,7 +176,8 @@ Replace the inline `{ mockStorage, n3Store, graphIndex }` setup with
 `createGraphIndexFixture`, passing `GraphIndex` and `Store` by direct injection
 (Open Q3 default).
 
-- Modified: `libraries/libgraph/test/{index-items,prefixes,index-loading,libgraph-filters,libgraph-query}.test.js`
+- Modified:
+  `libraries/libgraph/test/{index-items,prefixes,index-loading,libgraph-filters,libgraph-query}.test.js`
 
 Each `beforeEach` becomes
 `({ mockStorage, n3Store, graphIndex } = createGraphIndexFixture({ GraphIndex, Store, … }))`,

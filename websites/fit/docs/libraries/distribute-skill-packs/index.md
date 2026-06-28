@@ -164,10 +164,11 @@ apm install <owner>/skills-repo
 ## Re-stage to update or migrate
 
 Running `fit-pack stage` again is the update path. It rewrites `.apm/`, the
-manifest, and the README from the current source, and it **retires any earlier
-flat layout** — a root `skills/` or `agents/` directory left over from a hand-built
-pack is removed in the same run. Migrating an existing pack repository to the
-correct layout is therefore a single `stage` followed by a commit.
+manifest, and the README from the current source, and it
+**retires any earlier flat layout** — a root `skills/` or `agents/` directory
+left over from a hand-built pack is removed in the same run. Migrating an
+existing pack repository to the correct layout is therefore a single `stage`
+followed by a commit.
 
 Because the output is deterministic, an unchanged source produces an unchanged
 tree: re-running when nothing changed leaves `git status` clean, so you only
@@ -177,9 +178,9 @@ ever commit real differences.
 
 You have reached the outcome of this guide when:
 
-- `npx fit-pack stage` writes `.apm/skills/<name>/`, `.apm/agents/<name>.agent.md`,
-  `.apm/agents/references/`, `apm.yml`, and `README.md` into your target
-  repository.
+- `npx fit-pack stage` writes `.apm/skills/<name>/`,
+  `.apm/agents/<name>.agent.md`, `.apm/agents/references/`, `apm.yml`, and
+  `README.md` into your target repository.
 - Each staged `SKILL.md` carries the injected `license` and `metadata.version`.
 - `--prefix` selects only the matching skills, and `--with-agents` controls
   whether agent profiles are staged.

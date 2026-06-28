@@ -10,7 +10,15 @@ live only if design-b is chosen.
 
 ## Approach
 
-Land the protocol section in `coordination-protocol.md`. Amend `KATA.md` § Metrics line 261 to admit cardinality > 1 per producing skill (so design-b § Components' "additional rows" instruction lands without textually contradicting the constitution) and add a linking paragraph. Add `approvals_recorded_per_run` to `kata-release-merge` (one new row in `references/metrics.md`, one new sub-step 8.5 in `SKILL.md`). Add the `Redefinition:` slot to the Headlines bullet template in `storyboard-template.md`. The wiki-side updates (canonical enumeration, denominator increment, one observed first-row CSV entry) ship through the separate wiki checkout in the implementation run.
+Land the protocol section in `coordination-protocol.md`. Amend `KATA.md` §
+Metrics line 261 to admit cardinality > 1 per producing skill (so design-b §
+Components' "additional rows" instruction lands without textually contradicting
+the constitution) and add a linking paragraph. Add `approvals_recorded_per_run`
+to `kata-release-merge` (one new row in `references/metrics.md`, one new
+sub-step 8.5 in `SKILL.md`). Add the `Redefinition:` slot to the Headlines
+bullet template in `storyboard-template.md`. The wiki-side updates (canonical
+enumeration, denominator increment, one observed first-row CSV entry) ship
+through the separate wiki checkout in the implementation run.
 
 Libraries used: none.
 
@@ -23,7 +31,8 @@ Add a new H2 section between `## Approval signal` (line 34) and
 Section body, in order:
 
 1. **Lead paragraph** (≤4 lines) — one sentence introducing the section.
-2. **Eight repair-move table** with columns `Move | Definition | Falsifier-set kind | Existing precedent`:
+2. **Eight repair-move table** with columns
+   `Move | Definition | Falsifier-set kind | Existing precedent`:
 
    | Move | Definition (one sentence) | Falsifier-set kind | Existing precedent |
    |---|---|---|---|
@@ -36,11 +45,25 @@ Section body, in order:
    | `rule-semantics-rfc` | Challenge an XmR rule's blocking effect on `predictable` via Discussion RFC; quorum required. | "RFC quorum not reached by horizon" | #814 |
    | `habit-to-policy` | Promote an undocumented defensive habit into a `SKILL.md` check after a defect surfaces. | "post-promotion defect of the same shape recurs" | #817, PR #655 |
 
-   One sentence below the table: "The list is closed; extensions land via the spec/design/plan/implement chain."
-
-3. **Redefinition shape** — a fenced YAML code block exactly matching design-b § Redefinition shape (file artifact). One sentence below states `verdict_horizon ≤ cohort_readout` and the `denominator_effect` enum semantics.
-4. **No-silent-redefinition rule** — blockquote verbatim from design-b § No-silent-redefinition rule (the blockquote already contains the "KATA.md § Metrics links to it; no other file restates it." sentence — do not duplicate it).
-5. **Worked example** (spec Success #2) — heading `### Worked example — SE Exp 33 (#787) sidecar pre-flight`. The literal YAML block below goes inline under the heading (the implementer pastes it verbatim). The example is inline only; no on-disk founding redefinition file is created (design § Migration boundary grandfathers the spec 0860 implementation PR). `denominator_effect: none` is used so the example illustrates the shape without forcing the design's "non-`none` requires a linked storyboard headline" provision, which has no corresponding field in the design's YAML shape.
+   One sentence below the table: "The list is closed; extensions land via the
+   spec/design/plan/implement chain."
+3. **Redefinition shape** — a fenced YAML code block exactly matching design-b §
+   Redefinition shape (file artifact). One sentence below states
+   `verdict_horizon ≤ cohort_readout` and the `denominator_effect` enum
+   semantics.
+4. **No-silent-redefinition rule** — blockquote verbatim from design-b §
+   No-silent-redefinition rule (the blockquote already contains the "KATA.md §
+   Metrics links to it; no other file restates it." sentence — do not duplicate
+   it).
+5. **Worked example** (spec Success #2) — heading
+   `### Worked example — SE Exp 33 (#787) sidecar pre-flight`. The literal YAML
+   block below goes inline under the heading (the implementer pastes it
+   verbatim). The example is inline only; no on-disk founding redefinition file
+   is created (design § Migration boundary grandfathers the spec 0860
+   implementation PR). `denominator_effect: none` is used so the example
+   illustrates the shape without forcing the design's "non-`none` requires a
+   linked storyboard headline" provision, which has no corresponding field in
+   the design's YAML shape.
 
    ```yaml
    ---
@@ -63,12 +86,30 @@ Section body, in order:
    One paragraph context: SE Exp 33 opened a sidecar CSV to evaluate the
    `findings_count` recasting; the cohort ratifies at the 2026-05-26 read-out.
    ```
-6. **Detection** — heading `### Detection`. The fenced `sh` block from design-b verbatim. One sentence above states the rule ("any commit touching a canonical-11 metric edge must, in the same commit, add or modify a `wiki/redefinitions/*.md` file"); one sentence below names the edges (`wiki/storyboard-*.md`, `.claude/skills/*/references/metrics.md`, `coordination-protocol.md` § Measurement-system changes) and acknowledges per design § Detection that cross-repo enforcement (between this monorepo and the wiki repo) is the follow-on CI workstream.
 
-Verify: `rg '^## Measurement-system changes$' .claude/agents/references/coordination-protocol.md` returns one hit;
-`rg -c '^\| \`(producer-rehoming|mode-restriction|historical-phasing|sidecar-pre-flight|stock-vs-flow-recast|event-driven-recast|rule-semantics-rfc|habit-to-policy)\`' .claude/agents/references/coordination-protocol.md` returns 8 (note: brittle on table-cell whitespace — re-run after `bun run format:fix`);
-`rg '^### Worked example' .claude/agents/references/coordination-protocol.md` returns one hit;
-`rg '^### Detection' .claude/agents/references/coordination-protocol.md` returns one hit.
+6. **Detection** — heading `### Detection`. The fenced `sh` block from design-b
+   verbatim. One sentence above states the rule ("any commit touching a
+   canonical-11 metric edge must, in the same commit, add or modify a
+   `wiki/redefinitions/*.md` file"); one sentence below names the edges
+   (`wiki/storyboard-*.md`, `.claude/skills/*/references/metrics.md`,
+   `coordination-protocol.md` § Measurement-system changes) and acknowledges per
+   design § Detection that cross-repo enforcement (between this monorepo and the
+   wiki repo) is the follow-on CI workstream.
+
+Verify:
+`rg '^## Measurement-system changes$' .claude/agents/references/coordination-protocol.md`
+returns one hit;
+
+```sh
+rg -c '^\| `(producer-rehoming|mode-restriction|historical-phasing|sidecar-pre-flight|stock-vs-flow-recast|event-driven-recast|rule-semantics-rfc|habit-to-policy)`' .claude/agents/references/coordination-protocol.md
+```
+
+returns 8 (note: brittle on table-cell whitespace — re-run after
+`bun run format:fix`);
+`rg '^### Worked example' .claude/agents/references/coordination-protocol.md`
+returns one hit;
+`rg '^### Detection' .claude/agents/references/coordination-protocol.md` returns
+one hit.
 
 ## Step 2 — `KATA.md` § Metrics: cardinality amendment + linking paragraph
 
@@ -76,13 +117,22 @@ Two edits to § Metrics (currently lines 257–274). **Modified:** `KATA.md`.
 
 **Edit 2a — cardinality amendment.** Line 261 currently reads:
 
-> Each such skill records exactly one metric: the **count of units of work the process produced this run** (issues triaged, PRs merged, findings filed, and so on). Pipeline stations and orchestration utilities do not record.
+> Each such skill records exactly one metric: the
+> **count of units of work the process produced this run** (issues triaged, PRs
+> merged, findings filed, and so on). Pipeline stations and orchestration
+> utilities do not record.
 
 Replace with:
 
-> Each such skill records one or more metrics, each a **count of units of work the process produced this run** (issues triaged, PRs merged, findings filed, approvals recorded, and so on). Multiple metrics from one producer land as multiple rows in `wiki/metrics/{skill}/{YYYY}.csv` (one row per metric per run). Pipeline stations and orchestration utilities do not record.
+> Each such skill records one or more metrics, each a
+> **count of units of work the process produced this run** (issues triaged, PRs
+> merged, findings filed, approvals recorded, and so on). Multiple metrics from
+> one producer land as multiple rows in `wiki/metrics/{skill}/{YYYY}.csv` (one
+> row per metric per run). Pipeline stations and orchestration utilities do not
+> record.
 
-**Edit 2b — linking paragraph.** Insert one paragraph before the blank line that separates § Metrics from § Authentication (after line 274):
+**Edit 2b — linking paragraph.** Insert one paragraph before the blank line that
+separates § Metrics from § Authentication (after line 274):
 
 ```markdown
 Changes to the canonical-11 set — additions, removals, conditional or
@@ -94,14 +144,20 @@ verdict horizon, and the cohort read-out date. The no-silent-redefinition rule
 lives there; this section does not restate it.
 ```
 
-Verify: `rg -n 'one or more metrics' KATA.md` returns one hit in § Metrics; `rg -n 'one row per metric per run' KATA.md` returns one hit; `rg -n 'Measurement-system changes' KATA.md` returns one match; `rg -n 'exactly one metric' KATA.md` returns 0 hits. `git diff KATA.md` shows changes only inside § Metrics (lines 257–274 range, plus the appended paragraph).
+Verify: `rg -n 'one or more metrics' KATA.md` returns one hit in § Metrics;
+`rg -n 'one row per metric per run' KATA.md` returns one hit;
+`rg -n 'Measurement-system changes' KATA.md` returns one match;
+`rg -n 'exactly one metric' KATA.md` returns 0 hits. `git diff KATA.md` shows
+changes only inside § Metrics (lines 257–274 range, plus the appended
+paragraph).
 
 ## Step 3 — `kata-release-merge` `references/metrics.md` new row
 
-Three edits to align the file with the amended KATA.md cardinality. **Modified:**
-`.claude/skills/kata-release-merge/references/metrics.md`.
+Three edits to align the file with the amended KATA.md cardinality.
+**Modified:** `.claude/skills/kata-release-merge/references/metrics.md`.
 
-**Edit 3a — header.** Replace the existing line 3–4 ("Record per KATA.md § Metrics. Append / one row per run.") with:
+**Edit 3a — header.** Replace the existing line 3–4 ("Record per KATA.md §
+Metrics. Append / one row per run.") with:
 
 ```markdown
 Record per KATA.md § Metrics. Append one row per metric per run.
@@ -116,7 +172,8 @@ Record per KATA.md § Metrics. Append one row per metric per run.
 | approvals_recorded_per_run   | count | `<phase>:approved` label-add events + APPROVED review events observed in `[prev_run_start, current_run_start)` | `gh api repos/{owner}/{repo}/issues/<n>/timeline` + `.../pulls/<n>/reviews`         |
 ```
 
-**Edit 3c — window definition.** Append below the existing "Backlog … is queried, not recorded." line:
+**Edit 3c — window definition.** Append below the existing "Backlog … is
+queried, not recorded." line:
 
 ```markdown
 `prev_run_start` is the `startedAt` of the previous completed `agent-team`
@@ -128,14 +185,21 @@ SKILL.md Step 1 plus any phase PR merged within the window (Step 8).
 [`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes).
 ```
 
-Verify: `rg -n 'approvals_recorded_per_run' .claude/skills/kata-release-merge/references/metrics.md` returns ≥1 hit; `rg -n 'one row per metric per run' .claude/skills/kata-release-merge/references/metrics.md` returns one hit; the table renders as two data rows under one header.
+Verify:
+`rg -n 'approvals_recorded_per_run' .claude/skills/kata-release-merge/references/metrics.md`
+returns ≥1 hit;
+`rg -n 'one row per metric per run' .claude/skills/kata-release-merge/references/metrics.md`
+returns one hit; the table renders as two data rows under one header.
 
 ## Step 4 — `kata-release-merge` SKILL.md recording instructions
 
 Three edits to wire the metric. **Modified:**
 `.claude/skills/kata-release-merge/SKILL.md`.
 
-Code blocks below use four-tick outer fences so inner triple-backticks land verbatim in `SKILL.md`. The implementer pastes the body between the outer four-ticks; the inner three-tick fences are part of the body. GNU `date -d` is used; the agent runs on Linux GitHub-hosted runners.
+Code blocks below use four-tick outer fences so inner triple-backticks land
+verbatim in `SKILL.md`. The implementer pastes the body between the outer
+four-ticks; the inner three-tick fences are part of the body. GNU `date -d` is
+used; the agent runs on Linux GitHub-hosted runners.
 
 **Edit 4a — append to the end of the `### Step 0: Read Memory` body:**
 
@@ -155,7 +219,11 @@ prev_run_start=$(gh run list --workflow=agent-team.yml --status=completed \
 The window for approval-throughput counting is `[prev_run_start, current_run_start)`.
 ````
 
-**Edit 4b — insert a new `### Step 8.5` between Step 8 (line 165) and Step 9 (line 166).** Step 9's existing body and `## Memory: what to record` are unchanged; Memory's existing "Append one row per run to `wiki/metrics/{skill}/` per `references/metrics.md`" bullet produces two rows per run once Step 3 lands the new metric definition.
+**Edit 4b — insert a new `### Step 8.5` between Step 8 (line 165) and Step 9
+(line 166).** Step 9's existing body and `## Memory: what to record` are
+unchanged; Memory's existing "Append one row per run to `wiki/metrics/{skill}/`
+per `references/metrics.md`" bullet produces two rows per run once Step 3 lands
+the new metric definition.
 
 Insert:
 
@@ -192,9 +260,20 @@ case (every call errored) records `0` with a non-empty `api_errors=` so
 the next storyboard meeting can see producer health.
 ````
 
-**Edit 4c — Memory section ripple.** The existing `## Memory: what to record` Metrics bullet at line 181 currently reads "Append one row per run to `wiki/metrics/{skill}/` per `references/metrics.md`." Replace with: "Append one row per metric per run to `wiki/metrics/{skill}/` per `references/metrics.md`." This aligns the bullet with the amended KATA.md cardinality language and Step 3 Edit 3a; the Memory bullet's `references/metrics.md` redirect already routes readers to the per-metric table.
+**Edit 4c — Memory section ripple.** The existing `## Memory: what to record`
+Metrics bullet at line 181 currently reads "Append one row per run to
+`wiki/metrics/{skill}/` per `references/metrics.md`." Replace with: "Append one
+row per metric per run to `wiki/metrics/{skill}/` per `references/metrics.md`."
+This aligns the bullet with the amended KATA.md cardinality language and Step 3
+Edit 3a; the Memory bullet's `references/metrics.md` redirect already routes
+readers to the per-metric table.
 
-Verify: `rg -n 'approvals_recorded_per_run|prev_run_start|current_run_start' .claude/skills/kata-release-merge/SKILL.md` returns ≥4 hits; `### Step 8.5: Collect approval-throughput count` exists between `### Step 8: Merge` and `### Step 9: Produce`; `rg -n 'one row per metric per run' .claude/skills/kata-release-merge/SKILL.md` returns one hit on the Memory bullet; the existing Step 9 body is unchanged.
+Verify:
+`rg -n 'approvals_recorded_per_run|prev_run_start|current_run_start' .claude/skills/kata-release-merge/SKILL.md`
+returns ≥4 hits; `### Step 8.5: Collect approval-throughput count` exists
+between `### Step 8: Merge` and `### Step 9: Produce`;
+`rg -n 'one row per metric per run' .claude/skills/kata-release-merge/SKILL.md`
+returns one hit on the Memory bullet; the existing Step 9 body is unchanged.
 
 ## Step 5 — `storyboard-template.md` Redefinition link slot
 
@@ -204,27 +283,40 @@ canonical-12 enumeration lives in `wiki/storyboard-*.md` per design
 `.claude/skills/kata-session/references/storyboard-template.md`.
 
 Replace line 33 (currently
-`- \`{agent}\` / \`{metric}\` — {value} {trend/badge} — {one-line reason}`) with:
+`- \`{agent}\` / \`{metric}\` — {value} {trend/badge} — {one-line reason}`)
+with:
 
 ```markdown
 - `{agent}` / `{metric}` — {value} {trend/badge} — {one-line reason} — Redefinition: {`wiki/redefinitions/...md` or `—`}
 ```
 
-Verify: `rg -n 'Redefinition:' .claude/skills/kata-session/references/storyboard-template.md` returns one hit; `git diff` shows one changed line and no inserts elsewhere.
+Verify:
+`rg -n 'Redefinition:' .claude/skills/kata-session/references/storyboard-template.md`
+returns one hit; `git diff` shows one changed line and no inserts elsewhere.
 
 ## Step 6 — `team-storyboard.md` worked-example refresh
 
-The Q3-obstacle-routing worked example (lines 102–105) is historical (dated 2026-05-02). The historical `canonical-11` reference is unchanged. **Modified:** `.claude/skills/kata-session/references/team-storyboard.md`.
+The Q3-obstacle-routing worked example (lines 102–105) is historical (dated
+2026-05-02). The historical `canonical-11` reference is unchanged. **Modified:**
+`.claude/skills/kata-session/references/team-storyboard.md`.
 
-Append one sentence and a one-line slot-data demonstration to the existing worked example: "Each headline bullet for the four metrics carries the new `Redefinition:` slot per [`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes); for this date the value is `—` on all four. Example: `- kata-release-merge / prs_actioned — … — Redefinition: —`."
+Append one sentence and a one-line slot-data demonstration to the existing
+worked example: "Each headline bullet for the four metrics carries the new
+`Redefinition:` slot per
+[`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes);
+for this date the value is `—` on all four. Example:
+`- kata-release-merge / prs_actioned — … — Redefinition: —`."
 
-Verify: `rg -n 'Redefinition: —' .claude/skills/kata-session/references/team-storyboard.md` returns one hit on the worked example; the historical "canonical-11" reference at line 103 is unchanged.
+Verify:
+`rg -n 'Redefinition: —' .claude/skills/kata-session/references/team-storyboard.md`
+returns one hit on the worked example; the historical "canonical-11" reference
+at line 103 is unchanged.
 
 ## Step 7 — Wiki: `storyboard-2026-M05.md` enumeration update + one observed CSV row
 
-Wiki-side changes committed through the separate `wiki/` checkout during
-the implementation run; pushed via the Stop hook (`just wiki-push`).
-**Modified:** `wiki/storyboard-2026-M05.md`, `wiki/metrics/kata-release-merge/2026.csv`.
+Wiki-side changes committed through the separate `wiki/` checkout during the
+implementation run; pushed via the Stop hook (`just wiki-push`). **Modified:**
+`wiki/storyboard-2026-M05.md`, `wiki/metrics/kata-release-merge/2026.csv`.
 
 The implementor reads `wiki/storyboard-2026-M05.md` first; let `N` be the
 current canonical-set cardinality (the count of `{producer}/{metric}` items
@@ -256,29 +348,84 @@ named in the May storyboard's "N canonical metrics" prose). Edits:
    row is *measured*, satisfying spec Success #4(c).
 
 Verify (in the wiki checkout):
+
 - Pre-edit and post-edit counts of `≥[0-9]+ of [0-9]+` matches in
   `wiki/storyboard-2026-M05.md` are equal; every post-edit match has the
   incremented denominator.
 - `rg -c 'approvals_recorded_per_run' wiki/storyboard-2026-M05.md` returns ≥1.
-- `rg -c '^- \`' wiki/storyboard-2026-M05.md` in the new enumeration block returns `N + 1`.
+- `rg -c '^- \`'
+  wiki/storyboard-2026-M05.md` in the new enumeration block returns `N + 1`.
 - Every Headlines bullet contains the substring `Redefinition:`.
-- `rg '^[0-9]{4}-[0-9]{2}-[0-9]{2},approvals_recorded_per_run,' wiki/metrics/kata-release-merge/2026.csv` returns ≥1 row whose `window=` field is non-empty.
+- `rg '^[0-9]{4}-[0-9]{2}-[0-9]{2},approvals_recorded_per_run,' wiki/metrics/kata-release-merge/2026.csv`
+  returns ≥1 row whose `window=` field is non-empty.
 
 ## Step 8 — Quality gates
 
-Run from repo root in order: `bun run format:fix`, `bun run check`, `bun run test`. The change set is documentation-only on the main-repo side; no codegen or build steps are involved.
+Run from repo root in order: `bun run format:fix`, `bun run check`,
+`bun run test`. The change set is documentation-only on the main-repo side; no
+codegen or build steps are involved.
 
-Verify locally before push: `bun run check` exits 0. PR title carries the spec id (e.g., `feat(kata): measurement-system change protocol (#860)`).
+Verify locally before push: `bun run check` exits 0. PR title carries the spec
+id (e.g., `feat(kata): measurement-system change protocol (#860)`).
 
 ## Risks
 
-1. **Scope expansion vs design-b literal text.** Design-b is internally inconsistent: § Components row for `approvals_recorded_per_run` admits "additional rows" in `kata-release-merge`'s existing CSV (cardinality 2), while decision #1 commits to "no constitutional change" and decision #4 says "no KATA.md amendment is required." KATA.md line 261's "exactly one metric" cannot host § Components' "additional rows" without amendment. Step 2 Edit 2a resolves the inconsistency by amending the cardinality clause to "one or more metrics," preserving "count of units of work" (decision #4's load-bearing commitment) while admitting § Components' instruction. The amendment is the minimum delta needed; the approver has explicitly directed this resolution rather than the alternative (block on a follow-on governance spec). Reviewers should weigh whether this delta is in-scope for spec 0860 or belongs in a sibling governance PR.
-2. **Design-b API-surface claim is factually incorrect.** Design-b § Approval-throughput metric states "No new GitHub-API surface beyond the existing `gh pr view --json labels,timelineItems`," but `gh pr view --json` does not accept a `timelineItems` field (verified against `gh` 2.63.2 — available PR fields include `labels`, `latestReviews`, `reviews`, but not `timelineItems`). The plan uses `gh api repos/{owner}/{repo}/issues/<n>/timeline` (REST) plus `.../pulls/<n>/reviews` instead — the working surface that returns the events the metric needs. This is technically "new API surface" relative to the SKILL.md's current `gh api` calls (Step 2 contributor lookup) but no new auth or scope. Implementation PR body should note the design's surface claim was incorrect; reviewers may file a doc-correction redefinition (`move: rule-semantics-rfc` or similar) against design-b after merge.
-3. **GitHub REST timeline endpoint shape stability.** The REST timeline (`gh api .../issues/<n>/timeline`) returns events with `event: "labeled"`, `label.name`, `created_at`. A breaking change in the GitHub REST API would silently emit `0`s. The producer-rehoming move (Step 1 table row 1) is the protocol response if `xRule3` fires on eight consecutive zeros.
-4. **Wiki-vs-main-repo PR boundary on Success #6.** Design-b § Detection states cross-repo CI enforcement is the follow-on, out of scope. The detection grep works **within the wiki checkout**. For main-repo edges (`coordination-protocol.md`, `.claude/skills/*/references/metrics.md`), Success #6 holds only when those edges are accompanied by a wiki commit adding a redefinition file — a coupling the follow-on CI must verify across the two repos.
-5. **GitHub timeline fan-out.** Step 8.5 calls `gh api .../timeline` once per cohort PR per run. With ~15 open phase PRs the call count is fine; past ~30 the run risks secondary rate limits during the 03:00/12:00/20:00 windows. A future optimisation short-circuits on PRs whose `updated_at` precedes `prev_run_start`. The blanket-failure branch records `0` with a non-empty `api_errors=` note so producer health is visible on the chart.
-6. **`gh run list` window-source workflow-name binding.** Step 4a's `--workflow=agent-team.yml` is operational: if `kata-release-merge` is ever moved to a separate workflow file, this argument must move with it. Not visible from the SKILL.md body alone.
+1. **Scope expansion vs design-b literal text.** Design-b is internally
+   inconsistent: § Components row for `approvals_recorded_per_run` admits
+   "additional rows" in `kata-release-merge`'s existing CSV (cardinality 2),
+   while decision #1 commits to "no constitutional change" and decision #4 says
+   "no KATA.md amendment is required." KATA.md line 261's "exactly one metric"
+   cannot host § Components' "additional rows" without amendment. Step 2 Edit 2a
+   resolves the inconsistency by amending the cardinality clause to "one or more
+   metrics," preserving "count of units of work" (decision #4's load-bearing
+   commitment) while admitting § Components' instruction. The amendment is the
+   minimum delta needed; the approver has explicitly directed this resolution
+   rather than the alternative (block on a follow-on governance spec). Reviewers
+   should weigh whether this delta is in-scope for spec 0860 or belongs in a
+   sibling governance PR.
+2. **Design-b API-surface claim is factually incorrect.** Design-b §
+   Approval-throughput metric states "No new GitHub-API surface beyond the
+   existing `gh pr view --json labels,timelineItems`," but `gh pr view --json`
+   does not accept a `timelineItems` field (verified against `gh` 2.63.2 —
+   available PR fields include `labels`, `latestReviews`, `reviews`, but not
+   `timelineItems`). The plan uses
+   `gh api repos/{owner}/{repo}/issues/<n>/timeline` (REST) plus
+   `.../pulls/<n>/reviews` instead — the working surface that returns the events
+   the metric needs. This is technically "new API surface" relative to the
+   SKILL.md's current `gh api` calls (Step 2 contributor lookup) but no new auth
+   or scope. Implementation PR body should note the design's surface claim was
+   incorrect; reviewers may file a doc-correction redefinition
+   (`move: rule-semantics-rfc` or similar) against design-b after merge.
+3. **GitHub REST timeline endpoint shape stability.** The REST timeline
+   (`gh api .../issues/<n>/timeline`) returns events with `event: "labeled"`,
+   `label.name`, `created_at`. A breaking change in the GitHub REST API would
+   silently emit `0`s. The producer-rehoming move (Step 1 table row 1) is the
+   protocol response if `xRule3` fires on eight consecutive zeros.
+4. **Wiki-vs-main-repo PR boundary on Success #6.** Design-b § Detection states
+   cross-repo CI enforcement is the follow-on, out of scope. The detection grep
+   works **within the wiki checkout**. For main-repo edges
+   (`coordination-protocol.md`, `.claude/skills/*/references/metrics.md`),
+   Success #6 holds only when those edges are accompanied by a wiki commit
+   adding a redefinition file — a coupling the follow-on CI must verify across
+   the two repos.
+5. **GitHub timeline fan-out.** Step 8.5 calls `gh api .../timeline` once per
+   cohort PR per run. With ~15 open phase PRs the call count is fine; past ~30
+   the run risks secondary rate limits during the 03:00/12:00/20:00 windows. A
+   future optimisation short-circuits on PRs whose `updated_at` precedes
+   `prev_run_start`. The blanket-failure branch records `0` with a non-empty
+   `api_errors=` note so producer health is visible on the chart.
+6. **`gh run list` window-source workflow-name binding.** Step 4a's
+   `--workflow=agent-team.yml` is operational: if `kata-release-merge` is ever
+   moved to a separate workflow file, this argument must move with it. Not
+   visible from the SKILL.md body alone.
 
 ## Execution recommendation
 
-Single staff-engineer executor, sequential. Steps 1–6 (main-repo edits) run in order: Step 2 cites Step 1's anchor; Step 4 cites Step 3's metric definition; Step 6 cites Step 5's bullet template format. Step 7 runs after the main-repo edits — the wiki edits cite anchors Step 1 and Step 2 establish, and Step 7.4's "one observed CSV row" runs the Step 8.5 logic that Step 4 lands. Step 8 closes. No parallelism; no decomposition into parts. Route entirely to the engineering agent — every edit is a code/doc change with no prose audience that warrants `technical-writer`.
+Single staff-engineer executor, sequential. Steps 1–6 (main-repo edits) run in
+order: Step 2 cites Step 1's anchor; Step 4 cites Step 3's metric definition;
+Step 6 cites Step 5's bullet template format. Step 7 runs after the main-repo
+edits — the wiki edits cite anchors Step 1 and Step 2 establish, and Step 7.4's
+"one observed CSV row" runs the Step 8.5 logic that Step 4 lands. Step 8 closes.
+No parallelism; no decomposition into parts. Route entirely to the engineering
+agent — every edit is a code/doc change with no prose audience that warrants
+`technical-writer`.

@@ -40,7 +40,7 @@ The files being loaded are themselves growing past the point where they still
 earn their place in startup context. On 2026-04-21, reproduced via
 `wc -l wiki/*.md` and summed with `awk`:
 
-```
+```text
 Total wiki:                                     8,375 lines
 Largest weekly log (product-manager-2026-W16):  1,446 lines
 All agent summaries + MEMORY.md + Home.md:        719 lines

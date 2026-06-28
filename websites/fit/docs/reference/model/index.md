@@ -217,7 +217,7 @@ agent-aligned engineering standard may define more.
 
 ## Behaviour Derivation
 
-```
+```text
 Final Maturity = Level Base + Discipline Modifier + Track Modifier
 ```
 

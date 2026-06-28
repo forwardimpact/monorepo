@@ -70,10 +70,15 @@ Each run covers **one topic** in depth.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find last review dates per topic in the coverage map.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and (when this skill reads
+Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find
+last review dates per topic in the coverage map.
 
 > **Writing under `.claude/`:** If this run edits files under `.claude/skills/`,
-> follow [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md).
+> follow
+> [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md).
 
 ### Topic selection
 
@@ -104,9 +109,11 @@ Run the DO-CONFIRM checklist at the top of this skill.
 
 ### Cross-page-consistency: `<sh>+<text>` re-execution
 
-Re-execute each `<sh prompt>` block against starter data or the local CLI,
-diff against the adjacent `<text>`, and emit a row in
-`wiki/metrics/kata-documentation/{YYYY}.csv` tagged `kata-documentation-cross-page-consistency-sh-output-reexec` per divergence; scope: `<sh>+<text>` pairs only, staleness-class-3 stays local-to-topic.
+Re-execute each `<sh prompt>` block against starter data or the local CLI, diff
+against the adjacent `<text>`, and emit a row in
+`wiki/metrics/kata-documentation/{YYYY}.csv` tagged
+`kata-documentation-cross-page-consistency-sh-output-reexec` per divergence;
+scope: `<sh>+<text>` pairs only, staleness-class-3 stays local-to-topic.
 
 ## Interactive Writing
 
@@ -153,9 +160,9 @@ Verbs: `add` for new pages, `update` for changes, `fix` for corrections.
 
 ### Publishing changes
 
-Commits are not visible until pushed. After committing on a branch, `open-change`
-([work-trackers.md](../../agents/references/work-trackers.md)) with the title and
-body, holding the PR body to
+Commits are not visible until pushed. After committing on a branch,
+`open-change` ([work-trackers.md](../../agents/references/work-trackers.md))
+with the title and body, holding the PR body to
 [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
 
 Each branch gets its own PR. Fix and spec branches are independent — push and PR
@@ -172,7 +179,8 @@ Append to the current week's log (see agent profile for the file path):
   (fixed/spec'd/deferred)
 - **Deferred work** — Issues needing follow-up with enough context to resume
 - **Accuracy errors** — Specific docs that diverged from source code
-- **Memos sent** — Callouts dispatched via `fit-wiki memo` to agents whose work affects docs
+- **Memos sent** — Callouts dispatched via `fit-wiki memo` to agents whose work
+  affects docs
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
   per `references/metrics.md`. See KATA.md § Metrics for the
   recording-eligibility rule.

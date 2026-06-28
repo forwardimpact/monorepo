@@ -191,7 +191,7 @@ internals come first, then library internals, then operations).
 
 Add `libcli` to the libraries listing:
 
-```
+```text
 libraries/
   libcli/              # CLI infrastructure, help, arg parsing, formatting
   libskill/            # derivation logic, job/agent models
@@ -203,7 +203,7 @@ libraries/
 Add libcli to the `libs-web-presentation` group (it provides CLI presentation
 utilities, analogous to libui for web and libformat for content):
 
-```
+```text
 - **`libs-web-presentation`** — libui, libformat, libweb, libdoc, libtemplate,
   libcli, librepl
 ```

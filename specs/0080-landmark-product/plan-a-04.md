@@ -17,7 +17,7 @@ land together.
 
 ## Scope
 
-**In scope**
+### In scope
 
 - New migration creating `activity.getdx_snapshot_comments` with the columns
   spec § Data Contracts enumerates.
@@ -35,7 +35,7 @@ land together.
 - Tests for the new extract path, transform, query, Landmark voice command, and
   the updated health command.
 
-**Out of scope**
+### Out of scope
 
 - Initiatives pipeline (Part 05).
 - Theme analysis beyond a simple frequency bucket — the spec mock-ups show theme
@@ -47,7 +47,7 @@ land together.
 
 ### Created
 
-```
+```text
 products/map/supabase/migrations/
   <next-sequence>_getdx_snapshot_comments.sql
 
@@ -237,7 +237,7 @@ Add the exports entry:
 
 Signature:
 
-```
+```text
 fit-landmark voice --manager <email>
 fit-landmark voice --email <email>
 ```

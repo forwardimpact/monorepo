@@ -20,14 +20,13 @@ Related JTBD:
 
 Three terms used below, anchored to the existing skill:
 
-- **Block comment** — the comment the skill posts when a PR is
-  marked **blocked** by any of the six gates (trust, type, CI,
-  mechanical readiness, approval, open comments). The five
-  templated variants live in `references/templates.md` § Skip
-  Comments (Untrusted Author, Unsupported PR Type, Awaiting Approval
-  Signal, CI Failing, Substantive Conflict); the sixth — Awaiting
-  trusted-contributor reply — is the open-comment gate's reason
-  per [`references/comment-gate.md`](../../.claude/skills/kata-release-merge/references/comment-gate.md).
+- **Block comment** — the comment the skill posts when a PR is marked
+  **blocked** by any of the six gates (trust, type, CI, mechanical readiness,
+  approval, open comments). The five templated variants live in
+  `references/templates.md` § Skip Comments (Untrusted Author, Unsupported PR
+  Type, Awaiting Approval Signal, CI Failing, Substantive Conflict); the sixth —
+  Awaiting trusted-contributor reply — is the open-comment gate's reason per
+  [`references/comment-gate.md`](../../.claude/skills/kata-release-merge/references/comment-gate.md).
 - **Re-ping** — a fresh block comment from the skill on a
   subsequent release-merge run, posted while the PR is still in the
   same blocked state. A re-ping is a *new* comment, not an edit of

@@ -69,7 +69,7 @@ When the CSV carries exactly one metric, `--metric` is optional.
 
 The output is a 14-line X+mR chart:
 
-```
+```text
  UPL 12.5 ──────────────────────────────●───────────────
           │
 +1.5σ 9.4 │        ·           ·  ·              ·
@@ -163,7 +163,7 @@ commands can filter on them.
 
 The grammar lives at the head of the `note`, before any free text:
 
-```
+```text
 route_taken=<id>; routes_eligible=[<id>,<id>,...];
 ```
 
@@ -173,7 +173,8 @@ route_taken=<id>; routes_eligible=[<id>,<id>,...];
   for this observation, including the one taken. The brackets are literal; an
   empty set is `[]`.
 
-A quoted `note` keeps the embedded comma from breaking the column, so a row reads:
+A quoted `note` keeps the embedded comma from breaking the column, so a row
+reads:
 
 ```csv
 date,metric,value,unit,run,note,event_type,host_run

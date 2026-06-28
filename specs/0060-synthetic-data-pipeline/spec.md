@@ -4,7 +4,7 @@ Replace all hand-crafted example content with a generation pipeline that
 produces coherent, cross-referenced synthetic data for every product in the
 monorepo.
 
-```
+```text
 specs/0060-synthetic-data-pipeline/
   spec.md          This document (WHAT and WHY)
   plan-a.md        Custom DSL with tiered generation (implemented, v3)

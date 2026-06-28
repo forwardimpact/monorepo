@@ -167,8 +167,9 @@ The `# Organizational Context` branch fires only when both layers are empty
 and `orgSection` is the sole content — the pre-change semantics.
 
 `handleAgent` — add `levelForInstructions` to the destructured params object.
-Replace the single `interpolateTeamInstructions({ agentTrack, humanDiscipline })`
-call at line 253 with the `level: levelForInstructions` form. Update the
+Replace the single
+`interpolateTeamInstructions({ agentTrack, humanDiscipline })` call at line 253
+with the `level: levelForInstructions` form. Update the
 `printTeamInstructions(agentTrack, humanDiscipline, orgSection, claudeTemplate)`
 call to pass `levelForInstructions` as the fifth positional.
 
@@ -184,8 +185,9 @@ Verify:
   is empty (C-1).
 - `grep -n 'interpolateTeamInstructions(' products/pathway/src` outside
   `commands/agent.js` (i.e., excluding the import lines via
-  `| grep -v '^[^:]*:.*[ ,{]interpolateTeamInstructions,*$'`) shows exactly
-  two pre-change call shapes: `build-packs.js:114` and `agent-builder-preview.js:129`.
+  `| grep -v '^[^:]*:.*[ ,{]interpolateTeamInstructions,*$'`) shows exactly two
+  pre-change call shapes: `build-packs.js:114` and
+  `agent-builder-preview.js:129`.
 
 ### Step 3 — Extend `interpolateTeamInstructions` to compose expectations
 
@@ -318,7 +320,8 @@ or the second capture sees the first capture's stub as the "original."
 | SC3b       | Regression: `levelId = undefined`, `trackId = "BOGUS"`. Apply `stripAnsi` then assert the `--track` rejection still produces its existing error shape (`Unknown track: BOGUS` then `Available tracks:` …). Confirms the shared `requireEntity` helper was not broken in Step 2.                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | LIST       | `args: []`, `options: { list: true, level: "BOGUS" }`. Capture stdout via the helper; restore before capturing the baseline (see ANSI-handling paragraph). Assert captured stdout matches the captured stdout of a parallel `args: [], options: { list: true }` run (baseline). No `process.exit` rejection — `--list` short-circuit precedes level resolution (C-5).                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
-Verify: `bun test products/pathway/test/agent-level.test.js` exits 0; 5 tests pass.
+Verify: `bun test products/pathway/test/agent-level.test.js` exits 0; 5 tests
+pass.
 
 ### Step 6 — Confirm SC2 baseline regression intact
 
@@ -379,7 +382,8 @@ the new section; `bun run check` exits 0.
 ### Step 8 — Update `organizational-context/index.md` guide with `--level` note
 
 - **Created**: —
-- **Modified**: `websites/fit/docs/products/agent-teams/organizational-context/index.md`
+- **Modified**:
+  `websites/fit/docs/products/agent-teams/organizational-context/index.md`
 - **Deleted**: —
 
 Confirm the target heading exists:

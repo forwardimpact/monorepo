@@ -35,7 +35,7 @@ shared definitions file is referenced by other schemas — verify no remaining
 
 In `loadAllData()` (line 330), remove the line that loads `stages.yaml`:
 
-```
+```text
 Before: stages are loaded and included in the returned data object
 After:  no stages property in returned data
 ```

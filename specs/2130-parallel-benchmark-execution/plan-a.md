@@ -3,21 +3,23 @@
 Executes [design 2130-a](design-a.md) for [spec 2130](spec.md). Decomposed into
 three independently executable parts; each part is a clean break per
 [CONTRIBUTING § Clean breaks](../../CONTRIBUTING.md#read-do) — the serial loop,
-`allocatePort`, and the single-file `loadRecords` read are deleted, not branched.
+`allocatePort`, and the single-file `loadRecords` read are deleted, not
+branched.
 
 > **Scope note — rate-limit backpressure descoped (2026-06-27).** The review
 > panel established that the design's Layer-1 backpressure directive was not
 > executable as written (a 429 does not throw — the agent runner returns it as a
 > result field — and the robust retry seam is the cross-cutting shared
-> agent-runner query call). By decision, backpressure is **split to a follow-up
-> spec**; this plan ships Layer 1 (concurrency, ports, ledger, scheduler) and
-> Layer 2 (sharding, merge, distribution). Under concurrency a 429'd cell records
-> an `agentError` and costs one slot, not the run — the run still completes.
+> agent-runner query call). By decision, backpressure is
+> **split to a follow-up spec**; this plan ships Layer 1 (concurrency, ports,
+> ledger, scheduler) and Layer 2 (sharding, merge, distribution). Under
+> concurrency a 429'd cell records an `agentError` and costs one slot, not the
+> run — the run still completes.
 > **This change applies the descope to the upstream artifacts** in the same
 > branch: spec.md (the in-scope backpressure row + the "rate-limit failures back
 > off" [L1] criterion) and design-a.md (§ Layer 1 `retryRateLimited` row) are
-> trimmed, so plan, spec, and design agree. A follow-up spec adds backpressure on
-> top of this scheduler. See [Part 01 Step 4](plan-a-01.md).
+> trimmed, so plan, spec, and design agree. A follow-up spec adds backpressure
+> on top of this scheduler. See [Part 01 Step 4](plan-a-01.md).
 
 ## Approach
 
@@ -54,16 +56,16 @@ schema, and pass@k math are untouched throughout.
   `benchmark.yml` reusable workflow live in the `forwardimpact/fit-benchmark`
   sibling; the new `fit-benchmark → fit-bootstrap` internal `uses:` edge and the
   `fit-bootstrap` parallel-safety requirement touch shared CI governed by
-  [`.github/CLAUDE.md`](../../.github/CLAUDE.md). These edits are **executable in
-  this environment** — `GH_TOKEN` + `gh` carry content read/write, enough to
-  edit a sibling and cut an append-only `v1.0.x` patch tag (admin write is not
-  needed; if it ever is, route to `security-engineer`). The monorepo consumes
-  the tag via a SHA-pinned `uses:` with a `# v1` marker, per `.github/CLAUDE.md`
-  (the `enum:sibling-composite-actions:count` stays `Five` — no new sibling).
-  Part 03 § Sibling-edit mechanics gives the concrete procedure and sequencing
-  (interface tagged before the consumer migrates). A `fit-bootstrap` change, if
-  the parallel-safety check finds one is needed, is coordinated with its owner
-  as that sibling's own patch tag.
+  [`.github/CLAUDE.md`](../../.github/CLAUDE.md). These edits are
+  **executable in this environment** — `GH_TOKEN` + `gh` carry content
+  read/write, enough to edit a sibling and cut an append-only `v1.0.x` patch tag
+  (admin write is not needed; if it ever is, route to `security-engineer`). The
+  monorepo consumes the tag via a SHA-pinned `uses:` with a `# v1` marker, per
+  `.github/CLAUDE.md` (the `enum:sibling-composite-actions:count` stays `Five` —
+  no new sibling). Part 03 § Sibling-edit mechanics gives the concrete procedure
+  and sequencing (interface tagged before the consumer migrates). A
+  `fit-bootstrap` change, if the parallel-safety check finds one is needed, is
+  coordinated with its owner as that sibling's own patch tag.
 
 ## Risks
 
@@ -74,12 +76,12 @@ schema, and pass@k math are untouched throughout.
   maintained by the fake-agent seam (high-water-mark ≤ `C`) and a logical batch
   index, not a virtual-clock wall time. Part 01 specifies this seam.
 - **`report` input-dir behavior splits into two pinned cases.** Recursive
-  discovery replaces the `<dir>/results.jsonl` `readFile`: an *existing* dir with
-  no ledger now yields the empty union (exit 0), while a *missing* dir still
-  errors (exit 1) via an uncaught `readdir` ENOENT. The `report-empty` golden
-  (a missing dir) keeps exit 1 but its error shape changes — Part 02 regenerates
-  it, preserves the deliberate stack-collapse, and covers the existing-empty
-  exit-0 path with a unit test.
+  discovery replaces the `<dir>/results.jsonl` `readFile`: an *existing* dir
+  with no ledger now yields the empty union (exit 0), while a *missing* dir
+  still errors (exit 1) via an uncaught `readdir` ENOENT. The `report-empty`
+  golden (a missing dir) keeps exit 1 but its error shape changes — Part 02
+  regenerates it, preserves the deliberate stack-collapse, and covers the
+  existing-empty exit-0 path with a unit test.
 - **Concurrent teardown of disjoint process groups.** `WorkdirManager.teardown`
   signals `-pgid` and probes the port; under concurrency several teardowns run
   at once. They target disjoint process groups and distinct ports, but Part 01

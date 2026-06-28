@@ -17,7 +17,7 @@ that serves users by their goals, not by where code happens to live.
 
 The docs hub presents nine cards in a flat grid:
 
-```
+```text
 Map | Model | Lifecycle | Pathway | Agents | Reference | Universe | Basecamp | Landmark
 ```
 
@@ -115,7 +115,7 @@ progressive-disclosure layer.
 Replace the current flat `/docs/` hierarchy with a three-tier structure
 organized by audience and task:
 
-```
+```text
 /docs/
   getting-started/           Quickstart guides per user group
     leadership/              Author your first framework

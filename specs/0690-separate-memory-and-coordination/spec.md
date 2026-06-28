@@ -58,7 +58,7 @@ does not look up "routing." The name does not advertise its purpose.
 
 Each of the six agent profiles in `.claude/agents/` ends with the same footer:
 
-```
+```text
 - **Coordination Channels**:
   [memory](.claude/agents/references/memory-protocol.md) (files:
   `wiki/<agent>.md`, `wiki/<agent>-$(date +%G-W%V).md`),
@@ -78,7 +78,9 @@ update Owner/Status, or when to remove a resolved entry.
 
 In the trace, `MEMORY.md` carries a 1,200-word cross-cutting priority entry
 about the **previous** run-14 blocker, marked `Status: merging on PR #560`. PR
-#560 was merged hours earlier; the entry is historically resolved. The new
+
+## 560 was merged hours earlier; the entry is historically resolved. The new
+
 run-15 e2e blocker is not registered. The release engineer reads `MEMORY.md`
 (turn 21), observes the stale entry, and edits no row in it.
 
@@ -100,7 +102,7 @@ mandate boundary without having produced a `fix/` or `spec/` branch. The set of
 affected files is discoverable mechanically by
 `grep -ln "stop and report" .claude/agents/*.md .claude/skills/**/SKILL.md`.
 
-### Evidence — the existing audit catches this but cannot prevent it
+#### Evidence — the existing audit catches this but cannot prevent it
 
 `.claude/skills/kata-trace/references/invariants.md` already declares one
 relevant cross-cutting invariant — "Open questions in wiki cite a Discussion"
@@ -111,16 +113,16 @@ main-red window. The invariant is correct but covers only one of two failure
 modes — the other being mandate-boundary stops that produce no non-wiki artifact
 at all.
 
-### Why now
+#### Why now
 
 The release engineer profile is the only one with a routine that hits this
 boundary daily, but every agent profile carries the same footer and the same
 protocol references, so the defect generalises. The defect is at L7/L8 (skill
 references and project policy); fixes at lower layers will not hold.
 
-## Scope
+### Scope
 
-### In scope
+#### In scope
 
 | Area                                                                            | Change                                                                                                                                                                                  |
 | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -133,7 +135,7 @@ references and project policy); fixes at lower layers will not hold.
 | `kata-trace` invariants (cross-cutting table)                                   | Add an invariant covering mandate-boundary stops that produce no non-wiki artifact (High severity)                                                                                      |
 | `KATA.md`                                                                       | Update § Shared Memory and § Coordination Channels to align with the memory/coordination dichotomy; remove wiki from coordination channel table; rename `routing-protocol.md` reference |
 
-### Out of scope
+#### Out of scope
 
 | Area                                             | Reason                                                                                                              |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
@@ -143,9 +145,9 @@ references and project policy); fixes at lower layers will not hold.
 | Wiki structure beyond `MEMORY.md` rotation       | Spec 0590 covered condensed memory and the priority index; this spec only adds the rotation rule                     |
 | Change to the agent-react facilitator            | Already correctly described in the renamed `coordination-protocol.md` § Cross-agent escalation; no behaviour change |
 
-## What Changes
+### What Changes
 
-### CLAUDE.md declares the dichotomy
+#### CLAUDE.md declares the dichotomy
 
 A new top-level section names Memory and Coordination as distinct concerns and
 states what each one is, where it lives, and what it is **not**. The wiki is
@@ -156,7 +158,7 @@ Issue, PR/issue comment, Discussion, or `agent-react` invocation. The section
 sits at the project-policy layer (L8) so every downstream profile, skill, and
 reference inherits it.
 
-### KATA.md aligns Shared Memory and Coordination Channels
+#### KATA.md aligns Shared Memory and Coordination Channels
 
 KATA.md documents the Kata system for internal contributors. Its § Shared Memory
 already frames the wiki as a memory layer. Its § Coordination Channels currently
@@ -168,7 +170,7 @@ from five to four, the `routing-protocol.md` reference becomes
 state, not deliberation") moves to § Shared Memory where it describes a
 memory-layer property.
 
-### `routing-protocol.md` becomes `coordination-protocol.md`
+#### `routing-protocol.md` becomes `coordination-protocol.md`
 
 The file's content is largely correct; its name is wrong for the mental
 operation it serves. "Routing" describes a mechanism; "coordination" describes
@@ -176,14 +178,14 @@ the activity an agent is trying to do. The rename makes the file findable by
 purpose. The opening framing shifts from describing channels by output type to
 describing how agents coordinate, with the wiki excluded from that list.
 
-### Agent profile footers split Memory and Coordination
+#### Agent profile footers split Memory and Coordination
 
 Every agent profile ends with two distinct entries instead of one — one Memory
 entry pointing at `memory-protocol.md` and naming the agent's wiki files; one
 Coordination entry pointing at `coordination-protocol.md` and naming the GitHub
 channels. Neither entry labels the wiki as a coordination channel.
 
-### Profiles and skills that stop at a mandate boundary name the receiving artifact
+#### Profiles and skills that stop at a mandate boundary name the receiving artifact
 
 Any agent profile or skill whose process can terminate with "stop and report"
 without producing a `fix/` or `spec/` branch names **what kind of non-wiki
@@ -195,7 +197,7 @@ the boundary (the profile's Assess procedure or the skill's
 `## Coordination Channels` block, whichever applies), so "report" is no longer
 ambiguous and the wiki is no longer the path of least resistance.
 
-### `MEMORY.md` rotation procedure
+#### `MEMORY.md` rotation procedure
 
 `memory-protocol.md` adds a procedure governing the Cross-Cutting Priorities
 index lifecycle:
@@ -211,7 +213,7 @@ The procedure does not change `MEMORY.md`'s position as a Tier-1 read for every
 agent and does not change the existing entry cap (already in
 `memory-protocol.md`).
 
-### A new mandate-boundary invariant
+#### A new mandate-boundary invariant
 
 `kata-trace`'s `references/invariants.md` § Cross-cutting invariants gains one
 entry: **"Mandate-boundary stop produces at least one non-wiki artifact."**
@@ -232,7 +234,7 @@ This sits alongside the existing High-severity "Open questions in wiki cite a
 Discussion" invariant — together they form a two-sided check on the wiki-as-
 handoff failure mode.
 
-## Success Criteria
+### Success Criteria
 
 Each criterion can be mechanically verified at merge time against the working
 tree of the implementing branch.

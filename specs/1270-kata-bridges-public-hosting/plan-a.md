@@ -67,9 +67,9 @@ the literal value `"default"`. No code path branches on
 In single-tenant mode:
 
 - `libbridge` constructs a `DefaultTenantResolver` that returns
-  `{ tenant_id: "default", channel, channel_tenant_key: "default", repo: <config.github_repo>, state: "active" }` without
-  reaching `services/tenancy`. `ghbridge` and `msbridge` instantiate this
-  resolver from their existing `github_repo` / `app_*` / `ms_*` config.
+  `{ tenant_id: "default", channel, channel_tenant_key: "default", repo: <config.github_repo>, state: "active" }`
+  without reaching `services/tenancy`. `ghbridge` and `msbridge` instantiate
+  this resolver from their existing `github_repo` / `app_*` / `ms_*` config.
 - `services/tenancy`, `services/ghserver`, and `services/oidc` are not
   started. The bridge reads `KATA_APP_PRIVATE_KEY` directly to build
   its in-process `createAppAuth` closure.
@@ -182,7 +182,7 @@ path).
 The hosted-path call into `services/oidc` follows the GitHub Actions
 OIDC token-exchange shape:
 
-```
+```text
 POST https://<oidc-host>/token
 Authorization: bearer <github-actions-oidc-token>
 Body: { audience: "fit-ghserver" }

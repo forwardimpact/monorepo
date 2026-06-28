@@ -93,11 +93,12 @@ sequenceDiagram
 ## Interfaces
 
 `fit-map substrate stage --product landmark` — exits 0 only after stack
+
 + migrations + seed + provision + self-smoke pass.
 
 `fit-map substrate roster --format json` — JSON array of invariant-satisfying
-personas with selection metadata; empty → non-zero with which-invariant-filtered-most
-diagnostic.
+personas with selection metadata; empty → non-zero with
+which-invariant-filtered-most diagnostic.
 
 `fit-map substrate issue --email <e> --cwd <path> [--ttl <d>]` — atomically
 writes `<path>/.env` + `<path>/.substrate.json`; stdout success line only.
@@ -119,9 +120,16 @@ the repo-settings surface. Same operational shape as `ANTHROPIC_API_KEY`.
 
 1. Steps 0–2 (existing) — read memory; pick `product=landmark`; pick job.
 2. Step 3 (existing) — stage `data/*` into `$AGENT_CWD`.
-3. **Step 3a (new, Landmark only):** Bash `bunx fit-map substrate roster --format json`; pick a persona using two signals — **memory diversification** (exclude personas referenced in recent log entries) and **JTBD-role alignment** (the supervisor LLM matches the picked job's audience against roster-row `role`); Bash `bunx fit-map substrate issue --email <pick> --cwd $AGENT_CWD`. Supervisor never sees JWT bytes.
+3. **Step 3a (new, Landmark only):** Bash
+   `bunx fit-map substrate roster --format json`; pick a persona using two
+   signals — **memory diversification** (exclude personas referenced in recent
+   log entries) and **JTBD-role alignment** (the supervisor LLM matches the
+   picked job's audience against roster-row `role`); Bash
+   `bunx fit-map substrate issue --email <pick> --cwd $AGENT_CWD`. Supervisor
+   never sees JWT bytes.
 4. Step 4 (existing) — write `CLAUDE.md` from synthetic content for `<pick>`.
-5. Steps 5–9 (existing) — Asks proceed; agent inherits `$AGENT_CWD` cwd; libconfig reads `.env`; agent reads `./.substrate.json` for command options.
+5. Steps 5–9 (existing) — Asks proceed; agent inherits `$AGENT_CWD` cwd;
+   libconfig reads `.env`; agent reads `./.substrate.json` for command options.
 
 Selection-signal **scoring detail** (weights, window sizes, tie-break order)
 is plan-level — the design names only the two signals and their data sources.

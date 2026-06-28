@@ -116,7 +116,8 @@ handler passes `(file) => loadTrace(runtime, file)`, wiring the IO seam once.
 | `aggregate(files, query, key, load)` | Merges record arrays keyed by `key(record)` summing `count`; produces a single frequency-sorted list. Used by `paths` and `tools`. Records carry `sources: string[]` only when N>1 (see Key Decisions row "Aggregated `sources` plurality") |
 | `compareTwo(a, b, load)` | Loads two files via `load`, derives each side's `{caseName, participant}` from its basename (the convention parse), and threads them into `traceA.compare(traceB, {aIdentity, bIdentity})` — the `TraceQuery` has no filename of its own. Not multi-file. |
 
-Distinct functions, not one branching parameter — the verb-class table pins which each handler reaches for.
+Distinct functions, not one branching parameter — the verb-class table pins
+which each handler reaches for.
 
 ## Output rendering — `src/trace-render.js`
 
@@ -125,7 +126,7 @@ One named export per renderable verb; each accepts the query result plus
 
 | Renderer | Default text shape |
 | --- | --- |
-| `renderToolCalls` | `[turnIdx] <Tool> <toolUseId>` header, `  in: <one-line input>`, `  out: <one-line result or "(no result)">` per block |
+| `renderToolCalls` | `[turnIdx] <Tool> <toolUseId>` header, `in: <one-line input>`, `out: <one-line result or "(no result)">` per block |
 | `renderCommands` | `[turnIdx] <command-text>` one per line (grep-friendly, newlines in command text escaped) |
 | `renderPaths` | `<count>\t<path>` columns, frequency-sorted |
 | `renderCompare` | Two-column block: metadata header (prints `caseName` and `participant` for both sides unconditionally — `participant` renders as `(none)` when null, mirroring the `(no-tool)`/`(empty)` parenthesised sentinels, so the field is never silently omitted in text), per-row metric, then `Tool \| A \| B \| Δ` toolDelta table and `Path \| A \| B \| Δ` pathDelta table |

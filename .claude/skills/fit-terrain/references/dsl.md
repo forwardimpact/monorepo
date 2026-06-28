@@ -3,7 +3,7 @@
 Terrain files define a complete synthetic environment. A minimal reference DSL
 ships with the package; projects supply their own DSL file via `--story=path`.
 
-### Top-Level Blocks
+## Top-Level Blocks
 
 ```dsl
 terrain Name {

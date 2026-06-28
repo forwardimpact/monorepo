@@ -21,8 +21,8 @@ all per-team facts. Putting them in `tracks/platform.yaml` either contaminates
 every other Platform team's agent with the wrong context, or forces the
 organization to fork the track per team — abandoning the standard.
 
-A Senior Software Engineer at a pharma org exercised the generator during
-user testing on issue [#881](https://github.com/forwardimpact/monorepo/issues/881)
+A Senior Software Engineer at a pharma org exercised the generator during user
+testing on issue [#881](https://github.com/forwardimpact/monorepo/issues/881)
 and reported the gap verbatim:
 
 > Nothing in the discipline/track YAML accepts repo names, team handles, or
@@ -56,15 +56,16 @@ work across multiple repositories are not affected.
 
 ## Personas and Job
 
-The hire is **Empowered Engineers** against the *Equip Aligned Agent Teams*
-job (see [JTBD.md](../../JTBD.md), under the `<job user="Empowered Engineers"
-goal="Equip Aligned Agent Teams">` entry). The Little Hire — "give agents organizational context
-without bespoke prompts" — names the specific outcome this spec delivers. The
-job's **Trigger** ("an agent's work was rejected because it followed generic
-practices instead of the organization's standards") is what the persona will
-stop experiencing once their agent has access to the team's repos, manager,
-leads, projects, and escalation paths in a form derived from versioned inputs
-rather than hand-appended after generation.
+The hire is **Empowered Engineers** against the *Equip Aligned Agent Teams* job
+(see [JTBD.md](../../JTBD.md), under the
+`<job user="Empowered Engineers" goal="Equip Aligned Agent Teams">` entry). The
+Little Hire — "give agents organizational context without bespoke prompts" —
+names the specific outcome this spec delivers. The job's **Trigger** ("an
+agent's work was rejected because it followed generic practices instead of the
+organization's standards") is what the persona will stop experiencing once their
+agent has access to the team's repos, manager, leads, projects, and escalation
+paths in a form derived from versioned inputs rather than hand-appended after
+generation.
 
 The downstream observable is the rendered `.claude/CLAUDE.md` the engineer
 reads and the agent loads: it must surface the per-team facts the persona

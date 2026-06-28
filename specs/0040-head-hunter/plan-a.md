@@ -21,14 +21,14 @@ The agent never contacts candidates.
 | File                                               | Change                                                                                     |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `products/basecamp/config/scheduler.json`          | Added `head-hunter` agent entry (60-minute interval)                                       |
-| `products/basecamp/template/.claude/settings.json` | Added WebFetch domain permissions for hn.algolia.com, hachyderm.io, dev.to, www.reddit.com |
+| `products/basecamp/template/.claude/settings.json` | Added WebFetch domain permissions for hn.algolia.com, hachyderm.io, dev.to, <https://www.reddit.com> |
 | `products/basecamp/template/CLAUDE.md`             | Added head-hunter to agent table, triage files, cache layout, and skills table             |
 
 ## Architecture
 
 ### Agent Lifecycle
 
-```
+```text
 Scheduler (every 60 min)
   → Wake head-hunter agent
     → Initialize memory (first run only)
@@ -82,7 +82,7 @@ Prospect notes follow the existing `knowledge/Candidates/` convention but live
 in a `Prospects/` subdirectory to distinguish them from recruiter-sourced
 candidates:
 
-```
+```text
 knowledge/Prospects/{Name}.md
 ```
 

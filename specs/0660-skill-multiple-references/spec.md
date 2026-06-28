@@ -147,7 +147,7 @@ Two adjacent changes to the existing deprecated-field machinery in
 For each entry in `skill.references`, the generator writes
 `<skillDir>/references/{name}.md` with contents:
 
-```
+```text
 # {title}
 
 {body}

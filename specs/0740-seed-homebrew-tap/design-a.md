@@ -49,7 +49,7 @@ Each live cask follows an identical structure:
 
 Assets follow the pattern in the workflow's "Zip bundle and hash" step:
 
-```
+```text
 https://github.com/forwardimpact/monorepo/releases/download/{name}@v{version}/{cask}-{version}-darwin-arm64.zip
 ```
 

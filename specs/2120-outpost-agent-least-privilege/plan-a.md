@@ -40,18 +40,18 @@ export function spawn(executable, args, env, cwd, runtime, disclaim = 0) {
   setDisclaim(attr, disclaim); // was setDisclaim(attr, 0)
 ```
 
-Update the function's JSDoc and the inline comment above the call to describe the
-input: `0` keeps the parent chain's responsible process (`fit-outpost.app`); `1`
-makes the child responsible for itself.
+Update the function's JSDoc and the inline comment above the call to describe
+the input: `0` keeps the parent chain's responsible process (`fit-outpost.app`);
+`1` makes the child responsible for itself.
 
-Verification: `bun test libraries/libmacos/test/tcc-responsibility.test.js` stays
-green — the `createTccSpawn` wrapper calls `spawn` with its 5 existing positional
-args (`tcc-responsibility.js:17-23`), so `disclaim` defaults to `0` there. That
-test does **not** exercise the new param, and the wake path calls `spawnMod.spawn`
-directly (not through the wrapper), so the libmacos primitive's actual FFI
-`setDisclaim(attr, 1)` behaviour has **zero automated coverage**: no unit test
-imports `posix-spawn.js` (it `dlopen`s `bun:ffi` at module load and is not
-node/Linux-importable, which is why no `posix-spawn.test.js` exists). The
+Verification: `bun test libraries/libmacos/test/tcc-responsibility.test.js`
+stays green — the `createTccSpawn` wrapper calls `spawn` with its 5 existing
+positional args (`tcc-responsibility.js:17-23`), so `disclaim` defaults to `0`
+there. That test does **not** exercise the new param, and the wake path calls
+`spawnMod.spawn` directly (not through the wrapper), so the libmacos primitive's
+actual FFI `setDisclaim(attr, 1)` behaviour has **zero automated coverage**: no
+unit test imports `posix-spawn.js` (it `dlopen`s `bun:ffi` at module load and is
+not node/Linux-importable, which is why no `posix-spawn.test.js` exists). The
 disclaim **value** is asserted at the AgentRunner mock boundary (Step 3); the
 disclaim **effect** rests solely on the manual runbook (Step 7).
 
@@ -88,8 +88,8 @@ export function disclaimFor(level) {
 ```
 
 Tests cover: each level resolves to itself; missing, `undefined`, and an unknown
-string each throw; `disclaimFor` returns `0` for `full` and `1` for `restricted`;
-`PRIVILEGE_LEVELS` is exactly `["full", "restricted"]`.
+string each throw; `disclaimFor` returns `0` for `full` and `1` for
+`restricted`; `PRIVILEGE_LEVELS` is exactly `["full", "restricted"]`.
 
 Verification: `bun test products/outpost/test/privilege.test.js`.
 
@@ -142,15 +142,15 @@ const { pid, stdoutFile, stderrFile } = spawnMod.spawn(
 
 - Modified: `products/outpost/test/agent-runner.test.js`
 
-Two changes. First, widen the shared `createMockSpawn` helper (`spawn(executable,
-args, env, cwd)` at line 48) to also capture the 5th (`runtime`) and 6th
-(`disclaim`) positional args, since the privilege tests assert the disclaim value
-and the current helper drops everything past the 4th arg. Second, add a valid
-`privilege` to **every** `wake` agent fixture across all describe blocks
-(`#buildSpawnEnv`, `killActiveChildren`, `posture gate` — the bare
-`{ kb: TEST_KB }` literals at lines 111–380); without a level each now throws in
-`resolvePrivilege`, logs `outpost.privilege.rejected`, and skips the spawn,
-breaking those suites.
+Two changes. First, widen the shared `createMockSpawn` helper
+(`spawn(executable, args, env, cwd)` at line 48) to also capture the 5th
+(`runtime`) and 6th (`disclaim`) positional args, since the privilege tests
+assert the disclaim value and the current helper drops everything past the 4th
+arg. Second, add a valid `privilege` to **every** `wake` agent fixture across
+all describe blocks (`#buildSpawnEnv`, `killActiveChildren`, `posture gate` —
+the bare `{ kb: TEST_KB }` literals at lines 111–380); without a level each now
+throws in `resolvePrivilege`, logs `outpost.privilege.rejected`, and skips the
+spawn, breaking those suites.
 
 - Created: `products/outpost/test/agent-runner-privilege.test.js`
 
@@ -291,13 +291,13 @@ Relocate every `~/Documents/Personal` and `~/Documents/Team` reference to
 `npx fit-outpost init …` command examples (product page line 153,
 getting-started line 55), which become `npx fit-outpost init` for the default
 `team` KB and `npx fit-outpost init personal` for a second one; the
-`welcome.html` default-KB line; the
-`conclusion.html` `cd …` and `identify.sh` paths; and the `uninstall.sh` "data
-preserved" / `rm -rf` lines. In the product page § macOS Privacy & Security
-and the getting-started page, add a short description of which agents need which
-macOS permissions: `full` agents (mail/calendar sync and mail send) read the live
-stores under the one `fit-outpost.app` grant; `restricted` agents operate on the
-synced cache and the relocated KB and need no grant.
+`welcome.html` default-KB line; the `conclusion.html` `cd …` and `identify.sh`
+paths; and the `uninstall.sh` "data preserved" / `rm -rf` lines. In the product
+page § macOS Privacy & Security and the getting-started page, add a short
+description of which agents need which macOS permissions: `full` agents
+(mail/calendar sync and mail send) read the live stores under the one
+`fit-outpost.app` grant; `restricted` agents operate on the synced cache and the
+relocated KB and need no grant.
 
 Verification: `bunx fit-doc serve --src=websites/fit` builds without error;
 manual review of installer copy.
@@ -305,13 +305,13 @@ manual review of installer copy.
 ## Risks
 
 - **Coupled libmacos release.** Step 1 changes `@forwardimpact/libmacos`, which
-  releases separately. In-monorepo `bun test` sees the change immediately through
-  the workspace link, so the verification commands here need no republish. But
-  shipping to npm consumers requires a coupled `kata-release-cut` libmacos version
-  bump plus a lockfile update before outpost's `^0.1.0` range resolves the new
-  `spawn`; that release coordination is a separate post-merge step, not part of
-  implementation. The trailing `disclaim = 0` default keeps the change
-  backward-compatible for any other libmacos consumer.
+  releases separately. In-monorepo `bun test` sees the change immediately
+  through the workspace link, so the verification commands here need no
+  republish. But shipping to npm consumers requires a coupled `kata-release-cut`
+  libmacos version bump plus a lockfile update before outpost's `^0.1.0` range
+  resolves the new `spawn`; that release coordination is a separate post-merge
+  step, not part of implementation. The trailing `disclaim = 0` default keeps
+  the change backward-compatible for any other libmacos consumer.
 - **Hand-migration of existing installs (intended clean break).** Once this
   lands, an existing `scheduler.json` with undeclared levels is refused at wake
   until an operator adds a level and moves the KB off `~/Documents` — spec §

@@ -40,7 +40,7 @@ error. This is intentional — the DSL must be updated.
 
 Remove the `stages` line from the `framework` block (line 743):
 
-```
+```text
 Before: stages [specify, plan, scaffold, code, review, deploy]
 After:  (line deleted)
 ```
@@ -63,14 +63,14 @@ stage definitions — no longer needed.
 
 **Before (lines 62-70):**
 
-```
+```text
 "- agent.stages: Object with ONLY the stages where this skill is meaningfully relevant."
 ... (stage criteria, per-stage focus/readChecklist/confirmChecklist)
 ```
 
 **After:**
 
-```
+```text
 "- agent.focus: 1 sentence — the overall primary focus for this skill."
 "- agent.readChecklist: Array of 5-9 items — steps to read/understand before acting."
 "  Follow READ-DO semantics: read each item, then do it."

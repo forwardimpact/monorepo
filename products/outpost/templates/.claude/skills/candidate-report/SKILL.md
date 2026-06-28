@@ -50,7 +50,8 @@ before deciding whether to invest interview time.
 - [ ] Verdict class matches the overall assessment.
 - [ ] Report fits on a single A4 page (browser print preview).
 - [ ] CSS is inlined in the `<style>` block.
-- [ ] Footer shows the author name and role from `~/.cache/fit/outpost/state/identity.md`.
+- [ ] Footer shows the author name and role from
+      `~/.cache/fit/outpost/state/identity.md`.
 - [ ] Written as if the candidate will read it; no special-category data.
 
 </do_confirm_checklist>
@@ -61,7 +62,7 @@ before deciding whether to invest interview time.
 
 Read whatever exists for the candidate:
 
-```
+```text
 Knowledge/Candidates/{Name}/brief.md        # required
 Knowledge/Candidates/{Name}/screening.md    # if produced by req-screen
 Knowledge/Candidates/{Name}/interview-*.md  # if produced by req-assess
@@ -118,7 +119,7 @@ preview overflows, cut content.
 
 Save the completed HTML to:
 
-```
+```text
 Drafts/{Recipient}-{CandidateSurname}-Report.html
 ```
 

@@ -1,9 +1,9 @@
 # Re-ping Rule — Candidate Set and Mechanics
 
-Mechanics for the **Re-ping Rule** invoked in SKILL.md Step 10 (item 4). The rule keeps
-the gate a two-way channel: a PR that stays blocked across runs gets a fresh,
-owner-named comment on a known cadence instead of one block comment that
-silently ages.
+Mechanics for the **Re-ping Rule** invoked in SKILL.md Step 10 (item 4). The
+rule keeps the gate a two-way channel: a PR that stays blocked across runs gets
+a fresh, owner-named comment on a known cadence instead of one block comment
+that silently ages.
 
 ## Parameters
 

@@ -9,13 +9,13 @@ same coupling that produced the withdrawals.
 
 ## Problem restated
 
-The summary audit budgets (`summary.word-budget` 2048 words, `summary.line-budget`
-496 lines, both `fail`) measure the whole summary file via `countWords(text)` /
-`countLines(text)` in `audit/scopes.js`, **including the `## Message Inbox`
-region** that `fit-wiki memo` delivers into. At limit cycle a single delivery
-publishes a breach, so senders withdraw the memos a breached owner most needs.
-The inbox region is already the file's first H2 (enforced by
-`summary.first-h2-inbox`), so it is a cleanly delimited span.
+The summary audit budgets (`summary.word-budget` 2048 words,
+`summary.line-budget` 496 lines, both `fail`) measure the whole summary file via
+`countWords(text)` / `countLines(text)` in `audit/scopes.js`,
+**including the `## Message Inbox` region** that `fit-wiki memo` delivers into.
+At limit cycle a single delivery publishes a breach, so senders withdraw the
+memos a breached owner most needs. The inbox region is already the file's first
+H2 (enforced by `summary.first-h2-inbox`), so it is a cleanly delimited span.
 
 ## Key decisions
 
@@ -81,7 +81,7 @@ reason.
 ## Risks
 
 - **Inbox-region delimitation.** The split keys on the `## Message Inbox`
-  heading and the next `## ` ending its span. The plan must implement the
+  heading and the next `##` ending its span. The plan must implement the
   partition so the end-of-file case, the missing-heading case, and the
   not-first-H2 case all cover the file exactly once. The degenerate row above
   states the intended behavior; the plan must encode it with a test per case.

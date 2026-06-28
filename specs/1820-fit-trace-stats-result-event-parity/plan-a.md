@@ -17,12 +17,14 @@ testing via node:test as in the existing corpus.
 
 ## Step 1 — Collector: capture messageId and bump version
 
-Intent: give the query layer a per-message key and a deterministic post-change marker.
+Intent: give the query layer a per-message key and a deterministic post-change
+marker.
 
 Files: modify `libraries/libeval/src/trace-collector.js`.
 
 - In `handleAssistant`, add `messageId: message.id ?? null` to the pushed
-  assistant turn object (alongside `index`, `role`, `source`, `content`, `usage`).
+  assistant turn object (alongside `index`, `role`, `source`, `content`,
+  `usage`).
 - In `toJSON`, change `version: "1.1.0"` to `version: "1.2.0"`.
 
 Verify: `bun test libraries/libeval/test/trace-collector-schema.test.js` after
@@ -33,7 +35,8 @@ today; Step 6 adds one and renames the `v1.1 schema expansion` describe block to
 
 ## Step 2 — Collector: additive modelUsage merge
 
-Intent: stop `modelUsage` last-wins; sum the additive allow-set across result events.
+Intent: stop `modelUsage` last-wins; sum the additive allow-set across result
+events.
 
 Files: modify `libraries/libeval/src/trace-collector.js`.
 
@@ -175,7 +178,7 @@ Files: modify `libraries/libeval/test/trace-query-helpers.js`,
   `population: "carried-document-summary"` and per-turn rows labeled
   `carried-document-per-turn`.
 - New `trace-parity.test.js`, loading NDJSON fixtures via `createTraceCollector`
-  + `createTraceQuery` and the structured fixture via `createTraceQuery` (the
+  - `createTraceQuery` and the structured fixture via `createTraceQuery` (the
   same exported path `loadTrace` uses), asserts per spec success criteria:
   single-result parity; multi-result parity (incl. `resultEventTurns: 19`);
   multi-lane totals; **`durationMs` equals the sum of the result events'
@@ -188,10 +191,10 @@ Files: modify `libraries/libeval/test/trace-query-helpers.js`,
   (`timeline`/`turn`/`head`/`tail`) identical on the repro fixtures.
 - **Pin direction (criterion "fixtures pin the defect family").** Add an
   assertion that the naive pre-#1703 arithmetic differs from the pinned figures:
-  for each repro fixture compute the per-stream-event sum (the old multiply-count
-  path) and the last-result-event-only cost (the old last-wins path) inline and
-  assert each ≠ the pinned result-event totals — demonstrating the pin's failure
-  direction without checking out `dd62ecc8`.
+  for each repro fixture compute the per-stream-event sum (the old
+  multiply-count path) and the last-result-event-only cost (the old last-wins
+  path) inline and assert each ≠ the pinned result-event totals — demonstrating
+  the pin's failure direction without checking out `dd62ecc8`.
 
 Verify: `bun test libraries/libeval/` is green.
 
@@ -215,7 +218,8 @@ Files: modify `.claude/skills/fit-trace/SKILL.md`,
   engineer to fold into the cut (`kata-release-cut`). Writing the docs is best
   handed to `technical-writer`.
 
-Verify: `rg "the result event" .claude/skills/fit-trace websites/fit/docs/libraries/prove-changes`
+Verify:
+`rg "the result event" .claude/skills/fit-trace websites/fit/docs/libraries/prove-changes`
 finds no singular-for-multi-result usage; `bunx fit-doc build` (or the repo's
 docs check) passes.
 

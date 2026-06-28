@@ -1,6 +1,7 @@
 # libbridge
 
-Channel-agnostic primitives shared by `services/ghbridge` and `services/msbridge`.
+Channel-agnostic primitives shared by `services/ghbridge` and
+`services/msbridge`.
 
 ## Invariants
 

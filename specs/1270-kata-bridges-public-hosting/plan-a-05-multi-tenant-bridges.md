@@ -19,10 +19,10 @@ Append `1270/multi-tenant-bridges\tplan\tapproved` to `wiki/STATUS.md`.
 
 Modified files: `services/ghbridge/server.js`, `services/ghbridge/index.js`.
 
-Add `tenancy_mode: "single"` to the `createServiceConfig` defaults
-object (allowed: `"single" | "multi"`). In `server.js`, use the
-direct-class client pattern already present in this file at
-`services/ghbridge/server.js` (the `clients` destructure block) (`const { GhuserClient, BridgeClient } = clients`):
+Add `tenancy_mode: "single"` to the `createServiceConfig` defaults object
+(allowed: `"single" | "multi"`). In `server.js`, use the direct-class client
+pattern already present in this file at `services/ghbridge/server.js` (the
+`clients` destructure block) (`const { GhuserClient, BridgeClient } = clients`):
 
 ```js
 const { GhuserClient, BridgeClient, TenancyClient, GhserverClient } = clients;
@@ -41,12 +41,12 @@ if (config.tenancy_mode === "multi") {
 }
 ```
 
-Pass `tenantResolver` and (when present) `ghserverClient` to
-`GhBridgeService` constructor as `deps`. The constructor stores both;
-the request handler reads `deps.tenantResolver` to look up the tenant
-and reads `deps.ghserverClient` instead of using the existing
-`getInstallationToken` closure (built from `createAppAuth` at
-`services/ghbridge/server.js` (the `getInstallationToken` closure built from `createAppAuth`)) when in multi-tenant mode.
+Pass `tenantResolver` and (when present) `ghserverClient` to `GhBridgeService`
+constructor as `deps`. The constructor stores both; the request handler reads
+`deps.tenantResolver` to look up the tenant and reads `deps.ghserverClient`
+instead of using the existing `getInstallationToken` closure (built from
+`createAppAuth` at `services/ghbridge/server.js` (the `getInstallationToken`
+closure built from `createAppAuth`)) when in multi-tenant mode.
 
 Verification: `services/ghbridge/test/server.test.js` adds
 single-tenant and multi-tenant startup cases; multi-tenant case
@@ -56,10 +56,11 @@ mocks `TenancyClient` and `GhserverClient` via libmock.
 
 Modified files: `services/ghbridge/server.js`, `services/ghbridge/index.js`.
 
-The token derivation today lives at `services/ghbridge/server.js` (the `getInstallationToken` closure built from `createAppAuth`)
-(`getInstallationToken` closure built from `createAppAuth` with the
-static `app_installation_id`) and is consumed by `graphqlClient` for
-the reply path. In multi-tenant mode, build the closure differently:
+The token derivation today lives at `services/ghbridge/server.js` (the
+`getInstallationToken` closure built from `createAppAuth`)
+(`getInstallationToken` closure built from `createAppAuth` with the static
+`app_installation_id`) and is consumed by `graphqlClient` for the reply path. In
+multi-tenant mode, build the closure differently:
 
 ```js
 async function getInstallationToken(repo) {
@@ -189,8 +190,8 @@ the mock `ghserverClient`.
 
 ## Step 7 — Hosted onboarding endpoint for Teams repo mapping
 
-Modified files: `services/msbridge/index.js`, `services/msbridge/src/onboard-handler.js`
-(new).
+Modified files: `services/msbridge/index.js`,
+`services/msbridge/src/onboard-handler.js` (new).
 
 Add `POST /onboard` with body `{ tenant_id, repo: { owner, name } }`.
 The handler validates that the caller authenticated as a Microsoft
@@ -321,17 +322,16 @@ Update `wiki/STATUS.md`: `1270/multi-tenant-bridges\tplan\tapproved` →
   risk is if Microsoft removes the multi-tenant mode (no current
   signal of that). Documented in `services/msbridge/README.md`.
 
-- **Contract: `RegistryTenantResolver.resolveByTenantId` returns
-  rows regardless of state.** Per part-04 (`libbridge/src/tenant-resolver.js:101`,
-  JSDoc-documented), `resolveByTenantId` returns revoked tenants by
-  design so the callback path can distinguish "unknown tenant" from
-  "known but revoked". Any part-05+ call site that treats the
-  returned row as authorization to proceed is a privilege escalation
-  against revoked tenants. Reviewers must verify each new
-  `resolveByTenantId` caller applies its own `state === "active"`
-  check, or routes through `resolveByRepo`/`resolveByChannelKey`
-  (which already filter to active). Carry-over from PR #1316 security
-  review (O3).
+- **Contract: `RegistryTenantResolver.resolveByTenantId` returns rows regardless
+  of state.** Per part-04 (`libbridge/src/tenant-resolver.js:101`,
+  JSDoc-documented), `resolveByTenantId` returns revoked tenants by design so
+  the callback path can distinguish "unknown tenant" from "known but revoked".
+  Any part-05+ call site that treats the returned row as authorization to
+  proceed is a privilege escalation against revoked tenants. Reviewers must
+  verify each new `resolveByTenantId` caller applies its own
+  `state === "active"` check, or routes through
+  `resolveByRepo`/`resolveByChannelKey` (which already filter to active).
+  Carry-over from PR #1316 security review (O3).
 
 ## Libraries used
 

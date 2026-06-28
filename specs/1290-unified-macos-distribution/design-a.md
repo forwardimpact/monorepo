@@ -49,12 +49,12 @@ flowchart TD
 ```
 
 The brew lane already runs `bin → asm → gate → zip → release` for the same tag
-(`publish-brew.yml`, whose gate does baseline → `rm -rf dist/apps
-products/outpost/dist` → rebuild → compare); the `.pkg` lane now shares the first
-three nodes' shape against the same canonical artifact. The download-path move
-from `products/outpost/dist/` to `dist/binaries/` is the seam that lets the
-`.pkg` job call `build-app-product` at all — `build-app-product.sh:25` reads the
-CLI binary from `dist/binaries/fit-outpost`.
+(`publish-brew.yml`, whose gate does baseline →
+`rm -rf dist/apps products/outpost/dist` → rebuild → compare); the `.pkg` lane
+now shares the first three nodes' shape against the same canonical artifact. The
+download-path move from `products/outpost/dist/` to `dist/binaries/` is the seam
+that lets the `.pkg` job call `build-app-product` at all —
+`build-app-product.sh:25` reads the CLI binary from `dist/binaries/fit-outpost`.
 
 ## Key Decisions
 

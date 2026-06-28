@@ -248,7 +248,7 @@ files, template) or managed by external workflow steps (`CNAME`).
 
 **File:** `website/robots.txt` (new)
 
-```
+```text
 User-agent: *
 Allow: /
 
@@ -319,7 +319,7 @@ headers. Classifies each page into a section based on URL path:
 
 For each H2 section, appends page links in llms.txt format:
 
-```
+```text
 - [Page Title](https://www.forwardimpact.team/about/index.md): Description
 ```
 
@@ -550,7 +550,7 @@ Also update **Recipe 3** (line ~74) to show the `baseUrl` parameter:
 **Site Structure** (line ~20): Add `robots.txt` and `llms.txt` to the directory
 tree:
 
-```
+```text
 website/
 ├── CNAME                    # Custom domain: www.forwardimpact.team
 ├── index.template.html      # Shared Mustache template for every page

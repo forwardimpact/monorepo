@@ -4,14 +4,14 @@ title: Landmark health view readability — design A
 status: design draft
 ---
 
-# Design A — Landmark Health View Readability
+## Design A — Landmark Health View Readability
 
 The spec is a rendering problem with the data already in hand. The view shape
 emitted by `products/landmark/src/commands/health.js` is unchanged; everything
 ships in the `text` and `markdown` formatters and one new boolean meta field.
 JSON output is exempt by spec.
 
-## Components
+### Components
 
 ```mermaid
 flowchart LR
@@ -37,7 +37,7 @@ flowchart LR
 | `dedupeRecommendations(drivers)`       | private helper inside `formatters/health`      | Walk `drivers[].recommendations[].candidates[]`; collapse to one `DedupedRec` per `(candidate.email, rec.skill)`.    |
 | `renderScoreCells(driver, verbose)`    | private helper inside `formatters/health`      | Returns the cell tuple for a driver row in default mode and the multi-anchor block in verbose mode.                  |
 
-## Data Flow
+### Data Flow
 
 ```mermaid
 sequenceDiagram
@@ -66,14 +66,14 @@ The view shape (`drivers[]` with `score`, all four `vs_*` deltas,
 by the command today and passed through unchanged. The command's per-driver
 recommendation fan-out is kept; the formatter is the single owner of dedup.
 
-## Default Layout
+### Default Layout
 
 Driver iteration order matches `view.drivers`; no new sort. The plural header
 `Drivers (N)` is the row-dimension anchor (success criterion 1).
 
 **Text:**
 
-```
+```text
   {teamLabel} — health view
 
   Drivers (N)
@@ -112,7 +112,7 @@ Driver iteration order matches `view.drivers`; no new sort. The plural header
 anchors (`vs_prev`, `vs_50th`, `vs_75th`, `vs_90th`); the displayed `vs_org` is
 not counted. `-` if all hidden anchors are null. No literal arrow glyphs.
 
-## Verbose Layout
+### Verbose Layout
 
 `meta.verbose === true` reuses today's paragraph form (driver heading,
 contributing skills, evidence counts, comments, recommendations, initiatives).
@@ -120,7 +120,7 @@ Score line lists all four hidden anchors; recs render inline per driver but each
 `(candidate, skill)` appears only on its first occurrence — the same
 `DedupedRec` set powers both modes (success criterion 3).
 
-## Multi-Candidate Recommendation Dedup
+### Multi-Candidate Recommendation Dedup
 
 `recommendations[].candidates` is an array. Dedup is keyed per
 `(candidate.email, rec.skill)` — a rec naming two candidates yields two
@@ -128,7 +128,7 @@ Score line lists all four hidden anchors; recs render inline per driver but each
 emits one entry per first-seen key, and appends `driver.name` to `driverNames`
 on later hits. `impact` is taken from the first occurrence.
 
-## Key Decisions
+### Key Decisions
 
 | Decision                            | Choice                                                                            | Rejected alternative                                       | Why                                                                                                                        |
 | ----------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -140,7 +140,7 @@ on later hits. `impact` is taken from the first occurrence.
 | Recommendation home in default      | Single trailer section under the table                                            | Inline under each driver                                   | Inline placement is what causes the verbatim-repetition bug (success criterion 4).                                         |
 | Initiatives + comments in default   | Hidden in default, visible in `--verbose`                                         | A truncated trailer in default                             | Default budget is ≤50 lines for 6 drivers; trailer truncation reintroduces the "what's hidden?" ambiguity.                 |
 
-## Interfaces
+### Interfaces
 
 ```ts
 // formatters/health.js — public exports
@@ -175,14 +175,14 @@ interface DedupedRec {
 `HealthView` and `Driver` are the shape produced by `runHealthCommand` today —
 this design does not modify them.
 
-## Scope-Faithful Notes
+### Scope-Faithful Notes
 
 - **JSON path untouched.** `toJson` ignores `meta.verbose`; full view shape
   emitted as today.
 - **No view-shape mutation.** Dedup state is per-render and local; the command
   remains the sole producer of `view.drivers[].recommendations`.
 
-## Risks
+### Risks
 
 | Risk                                                            | Mitigation                                                                       |
 | --------------------------------------------------------------- | -------------------------------------------------------------------------------- |
@@ -190,7 +190,7 @@ this design does not modify them.
 | Dedup hides recs the user wants to see per driver               | Trailer line names every driver the rec applies to (`for Quality, Reliability`). |
 | `--verbose` becomes the new default in users' muscle memory     | Default layout's `More` cell hints `--verbose` so discovery is self-evident.     |
 
-## Out of Scope (for the planner)
+### Out of Scope (for the planner)
 
 File-level edits, doc wording, execution ordering, test assertions. Doc pages in
 spec scope (landmark product page + leadership getting-started) each own one

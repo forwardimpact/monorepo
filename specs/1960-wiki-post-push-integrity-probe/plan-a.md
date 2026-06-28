@@ -207,6 +207,7 @@ same path `WikiSync` uses as `#wikiDir`; pass it as `wikiDir` so the git `cwd`
 and the fs read-root are one directory (the just-rebased tree).
 
 `sweepTier2({ runtime, gitClient, wikiDir, agent, now }) -> Detection[]`:
+
 1. `email = await gitClient.configGet("user.email", { cwd: wikiDir })`. An empty
    email means the lane identity is unresolvable → return one degenerate
    `makeDetection({tier:2, contentId:"<unresolvable: no author identity>",
@@ -217,13 +218,14 @@ and the fs read-root are one directory (the just-rebased tree).
 3. `w = previousSessionWindow(commits, SESSION_GAP_MS)`: `w.kind === "vacuous"`
    ⇒ return `[]`; else `w.kind === "window"` with the tip-run commits.
 4. For each window commit (oldest→newest), diff against its parent:
-   `diff = await diffRange(sha + "~1 " + sha, { cwd: wikiDir })`. `diff === null`
-   (git failure / unresolvable content) ⇒ emit a degenerate detection
-   (criterion 7 content clause) and continue. An empty string is a legitimate
-   no-addition commit — skip silently. Otherwise `parseDiff(diff)`, keeping
-   records whose `home` satisfies `isLaneFile(home, agent)`. (A root commit has
-   no `~1` parent and returns `null`; window commits are never the repo root, so
-   this does not arise in practice, but the `null` path covers it as degenerate.)
+   `diff = await diffRange(sha + "~1 " + sha, { cwd: wikiDir })`.
+   `diff === null` (git failure / unresolvable content) ⇒ emit a degenerate
+   detection (criterion 7 content clause) and continue. An empty string is a
+   legitimate no-addition commit — skip silently. Otherwise `parseDiff(diff)`,
+   keeping records whose `home` satisfies `isLaneFile(home, agent)`. (A root
+   commit has no `~1` parent and returns `null`; window commits are never the
+   repo root, so this does not arise in practice, but the `null` path covers it
+   as degenerate.)
 5. `tipText = enumerateLaneFiles(wikiDir, agent, runtime.fsSync)` files read and
    concatenated.
 6. `findAbsent(laneChanges, tipText, norm)` → one `makeDetection({tier:2,
@@ -254,6 +256,7 @@ Files: modified `libraries/libwiki/src/wiki-sync.js`,
 In `commitAndPush`, after the existing pre-push fetch/rebase/merge has produced
 the final local HEAD but **before** the post-push fetch advances
 `origin/master`, capture the pushed delta; then probe after the push:
+
 1. Right before `client.push(...)` (the local fetch+rebase has run, so HEAD is
    final and `origin/master` is the pre-push base), compute the pushed delta as
    the two-tree range diff `diffRange("origin/master HEAD", {cwd: #wikiDir})` →

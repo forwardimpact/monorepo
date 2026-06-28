@@ -91,12 +91,12 @@ strip ANSI with a standard regex.
 
 Every line is `[<prefix>]<ESC><color><body><RESET>` where:
 
-- `<prefix>` — `[<source>] ` in `supervised` / `facilitate` mode, empty in `raw`
+- `<prefix>` — `[<source>]` in `supervised` / `facilitate` mode, empty in `raw`
   mode. Kept outside the color escape so grep and color-stripped views still
   work.
 - `<color>` — `colorForSource(source)` for text and tool-call lines;
   `ERROR_COLOR` for failed tool-result previews, regardless of source.
-- `<body>` — agent text, `> <ToolName> <hint>`, or `  <- <preview>` for results.
+- `<body>` — agent text, `> <ToolName> <hint>`, or `<- <preview>` for results.
   The two-space indent + `<-` ties the preview visually to its call.
 - `<RESET>` — `\u001b[0m` so color does not bleed into the next line.
 
@@ -104,7 +104,7 @@ No banners, no boxes, no emoji, no separators.
 
 ### Example
 
-```
+```text
 [facilitator] Let me open with roll call.
 [facilitator] > mcp__orchestration__RollCall
 [facilitator]   <- 6 participants

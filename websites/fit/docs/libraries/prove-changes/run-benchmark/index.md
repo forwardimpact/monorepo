@@ -25,7 +25,7 @@ OpenAI HumanEval unbiased estimator.
 A task family is a directory of related coding tasks plus the skill-set
 under test:
 
-```
+```text
 my-coding-family/
   .env                                   # family env vars (committed defaults)
   .env.local                             # family secrets (gitignored)
@@ -51,8 +51,8 @@ my-coding-family/
 
 Task IDs are directory names under `tasks/` (e.g. `todo-api`). The directory
 splits into what the agent sees (`workdir/`, `specs/`, `.claude/`) and what the
-harness keeps hidden (`hooks/`). The agent never receives the invariants script —
-that is the structural guarantee it cannot peek at the tests.
+harness keeps hidden (`hooks/`). The agent never receives the invariants script
+— that is the structural guarantee it cannot peek at the tests.
 
 ### What the agent sees
 

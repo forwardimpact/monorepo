@@ -91,16 +91,37 @@ sequenceDiagram
 
 ## Risks
 
-- **A — DSL absent.** `loadStory` returns `null` when `data/synthetic/story.dsl` is missing; enricher returns the persona row with `repos: null, department_name: null, scenario: null`. Spec criterion 2 holds only when terrain is staged — guaranteed by the kata-interview workflow's `fit-terrain build` step.
-- **B — DSL schema drift.** Enricher is coupled to `story.dsl`'s grammar via `createDslParser`. A grammar change throws a parse error; `loadStory` catches and rethrows with the file path and parser message, and the verbs exit non-zero (rather than silently degrading), so the supervisor sees the drift inside Step 3a. The plan's manifest-promotion step (move `@forwardimpact/libsyntheticgen` from `devDependencies` to `dependencies` in `products/map/package.json`) is gated by the spec-1070 workspace-imports guard, so a missing promotion fails CI before merge.
-- **C — `formatTable` null cells render as empty strings** (`libraries/libcli/src/format.js:79`: `String(cell || "")`). The supervisor sees an empty column for a missing `team_name` or `parent_email`, not a sentinel — clear enough to drive a different pick.
-- **D — Memory persistence across CI runs.** `picks.csv` is durable only if committed back to the wiki. The existing wiki-sync workflow handles this; if it fails, cross-run diversification degrades to single-run diversification. Detection surfaces in the next supervisor session via memory-window staleness.
-- **E — Memory file growth.** Append-only with one row per pick; observed cadence ≤2 picks/day → ≤500 rows/year. Rotation deferred; flag for re-spec if growth exceeds bound.
+- **A — DSL absent.** `loadStory` returns `null` when `data/synthetic/story.dsl`
+  is missing; enricher returns the persona row with
+  `repos: null, department_name: null, scenario: null`. Spec criterion 2 holds
+  only when terrain is staged — guaranteed by the kata-interview workflow's
+  `fit-terrain build` step.
+- **B — DSL schema drift.** Enricher is coupled to `story.dsl`'s grammar via
+  `createDslParser`. A grammar change throws a parse error; `loadStory` catches
+  and rethrows with the file path and parser message, and the verbs exit
+  non-zero (rather than silently degrading), so the supervisor sees the drift
+  inside Step 3a. The plan's manifest-promotion step (move
+  `@forwardimpact/libsyntheticgen` from `devDependencies` to `dependencies` in
+  `products/map/package.json`) is gated by the spec-1070 workspace-imports
+  guard, so a missing promotion fails CI before merge.
+- **C — `formatTable` null cells render as empty strings**
+  (`libraries/libcli/src/format.js:79`: `String(cell || "")`). The supervisor
+  sees an empty column for a missing `team_name` or `parent_email`, not a
+  sentinel — clear enough to drive a different pick.
+- **D — Memory persistence across CI runs.** `picks.csv` is durable only if
+  committed back to the wiki. The existing wiki-sync workflow handles this; if
+  it fails, cross-run diversification degrades to single-run diversification.
+  Detection surfaces in the next supervisor session via memory-window staleness.
+- **E — Memory file growth.** Append-only with one row per pick; observed
+  cadence ≤2 picks/day → ≤500 rows/year. Rotation deferred; flag for re-spec if
+  growth exceeds bound.
 
 ## Out of scope (for this design)
 
 - `.substrate.json` on-disk field names (spec § Out-of-scope row 5).
-- Persona-corpus invariants `substrate smoke` audits (unchanged; only the field name one consumer assertion reads moves).
-- SKILL.md Step 3a text — owned by the plan, against the contract named in criterion 5 above.
-- Migration-time materialization of DSL fields — rejected (Decision 3a) for cost-vs-benefit and substrate-stage-surface containment, not spec OOS.
-
+- Persona-corpus invariants `substrate smoke` audits (unchanged; only the field
+  name one consumer assertion reads moves).
+- SKILL.md Step 3a text — owned by the plan, against the contract named in
+  criterion 5 above.
+- Migration-time materialization of DSL fields — rejected (Decision 3a) for
+  cost-vs-benefit and substrate-stage-surface containment, not spec OOS.

@@ -18,7 +18,7 @@ only publicly-listening process never touches the App private key.
 
 ### Token exchange contract
 
-```
+```text
 POST /token
 Authorization: bearer <github-actions-oidc-token>
 → 200 { installation_token, expires_at }

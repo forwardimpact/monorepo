@@ -5,8 +5,8 @@ description: "Keep agents aligned as your engineering standard evolves — guida
 
 You generated an agent team and it works -- now you need to add organizational
 context like deployment targets, platform conventions, and team-specific
-constraints. This guide shows where each type of guidance belongs and how to keep
-it consistent as the standard evolves.
+constraints. This guide shows where each type of guidance belongs and how to
+keep it consistent as the standard evolves.
 
 ## Prerequisites
 

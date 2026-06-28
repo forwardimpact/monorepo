@@ -18,6 +18,10 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SKILL_PATH = join(__dirname, "..", "SKILL.md");
 const skill = readFileSync(SKILL_PATH, "utf8");
+// Prose is reflowed to 80 columns, so a guarded phrase may wrap across lines.
+// Match phrase content against a whitespace-collapsed copy; layout is not the
+// thing under test here.
+const skillFlat = skill.replace(/\s+/g, " ");
 
 describe("kata-interview SKILL.md amendments", () => {
   it("Step 3 staging table carries a substrate-backed row", () => {
@@ -25,21 +29,21 @@ describe("kata-interview SKILL.md amendments", () => {
   });
 
   it("Step 3a persona-pick names the substrate verbs", () => {
-    assert.match(skill, /fit-map substrate pick/);
-    assert.match(skill, /fit-map substrate issue/);
+    assert.match(skillFlat, /fit-map substrate pick/);
+    assert.match(skillFlat, /fit-map substrate issue/);
   });
 
   it("read-do checklist line is amended verbatim", () => {
-    assert.doesNotMatch(skill, /No product names anywhere agent-visible/);
+    assert.doesNotMatch(skillFlat, /No product names anywhere agent-visible/);
     assert.match(
-      skill,
+      skillFlat,
       /product-named environment variables required by the production CLI are permitted in the agent's environment/,
     );
   });
 
   it("Step 4 CLAUDE.md exclusion list is unchanged", () => {
     assert.match(
-      skill,
+      skillFlat,
       /Excluded: goal sentence, Big Hire, Little Hire, Fired-When, product name/,
     );
   });

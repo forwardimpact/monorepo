@@ -62,6 +62,6 @@ rg "{Name}" Knowledge/ ~/.cache/fit/outpost/
 
 Expected: no matches except this erasure report.
 
-```
+```text
 
 ```

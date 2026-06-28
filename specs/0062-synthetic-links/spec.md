@@ -3,7 +3,7 @@
 Enrich `libuniverse` synthetic organizational output with deep, cross-linked
 microdata so the Guide agent can be evaluated on multi-hop graph traversal.
 
-```
+```text
 specs/0062-synthetic-links/
   spec.md         This document (WHAT and WHY)
   plan-a.md       Deterministic skeleton + LLM link enrichment (implemented)

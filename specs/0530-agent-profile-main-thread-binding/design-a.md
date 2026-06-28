@@ -24,7 +24,7 @@ a main-thread input we control.
 
 ### Interface — `composeProfilePrompt`
 
-```
+```text
 composeProfilePrompt(
   name: string,
   opts: { profilesDir: string, trailer?: string }

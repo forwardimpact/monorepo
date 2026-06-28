@@ -348,7 +348,7 @@ Each of these must pass before Part 01 is considered done:
 
 Single commit titled:
 
-```
+```text
 feat(summit): scaffold package, roster loading, roster and validate commands
 ```
 

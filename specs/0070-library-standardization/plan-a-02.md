@@ -8,7 +8,7 @@ the group skills. No transition period, no coexistence.
 
 22 library skills, each ~55 lines, each following the same template:
 
-```
+```text
 When to Use → Key Concepts → Usage Patterns (2–3 isolated examples) → Integration
 ```
 
@@ -31,7 +31,7 @@ When to Use → Key Concepts → Usage Patterns (2–3 isolated examples) → In
 5 group skills + 1 individual (libskill). Total system prompt surface area drops
 from 22 descriptions to 6.
 
-```
+```text
 .claude/skills/
   libs-service-infrastructure/SKILL.md    NEW (replaces 5 skills)
   libs-data-persistence/SKILL.md          NEW (replaces 6 skills)

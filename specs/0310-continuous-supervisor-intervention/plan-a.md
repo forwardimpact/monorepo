@@ -129,7 +129,7 @@ path is untouched because every line still writes to `buffer` and still calls
 Replace the body of the existing agent-turn branch inside the `for` loop with an
 inner loop that drives the agent through interventions. Pseudocode:
 
-```
+```text
 for each turn 1..maxTurns:
   relay = extractLastText(supervisorRunner, supervisorResult.text)
   interventions = 0
@@ -365,7 +365,7 @@ intervene — the mechanics (batches, `EVALUATION_INTERVENTION`,
 be restated here (per CLAUDE.md / CONTINUOUS_IMPROVEMENT.md's
 instruction-layering rule):
 
-```
+```text
 Intervene when the agent heads down a dead end, burns turn budget on the
 wrong thing, or has misread the documentation — but intervene sparingly.
 The agent's independent struggle is part of the signal; step in only when

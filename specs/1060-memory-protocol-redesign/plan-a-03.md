@@ -23,7 +23,7 @@ priorities and storyboard items preempt domain steps.` line with the
 following — citation-only (no policy text added beyond what the
 rewritten protocol now contains):
 
-```
+```text
 0. **[On-boot read set](.claude/agents/references/memory-protocol.md#on-boot-read-set)**
    — `Read wiki/MEMORY.md` then `Bash: fit-wiki boot`. The three Tier 1
    surfaces are `wiki/{self}.md`, `wiki/MEMORY.md`, and the current
@@ -41,18 +41,19 @@ Wiki-write instructions in each profile gain a single citation line
 below the existing list (no policy added — the policy lives in the
 rewritten protocol):
 
-```
+```text
 - **Wiki writes** — `fit-wiki` subcommands per
   [Memory Protocol § CLI Contract Map](.claude/agents/references/memory-protocol.md#cli-contract-map).
 ```
 
 Verification per file:
+
 - YAML frontmatter byte-identical (`head -10 .claude/agents/{agent}.md`
   before and after).
 - `rg -n 'fit-wiki boot' .claude/agents/` returns exactly six hits, one
   per profile.
 - `rg -n '#on-boot-read-set' .claude/agents/` returns six hits and each
-  anchor resolves to an `^## ` heading in the rewritten protocol.
+  anchor resolves to an `^##` heading in the rewritten protocol.
 
 ## Step 2 — Update Step 0 in eleven kata-* skills
 
@@ -77,7 +78,7 @@ they have different Step 0 wording; they remain untouched).
 
 Each file carries a paragraph like:
 
-```
+```text
 ### Step 0: Read Memory
 
 Read memory per the agent profile. Extract … from prior entries.
@@ -88,7 +89,7 @@ add domain-specific extraction targets). Replace **only the first
 sentence** with the citation-only form, preserving the per-skill
 extraction sentence verbatim:
 
-```
+```text
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per
 [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
 The boot digest's `owned_priorities`, `claims`, and (when this skill
@@ -102,22 +103,28 @@ to `forwardimpact/kata-skills` (per `CLAUDE.md § Distribution Model`)
 and must resolve outside the monorepo.
 
 Verification:
-- `rg -n 'fit-wiki boot' .claude/skills/kata-*/SKILL.md` returns at least eleven hits.
-- Per-skill counts: `for f in .claude/skills/kata-*/SKILL.md; do echo "$f: $(rg -c 'fit-wiki boot' $f)"; done` shows ≥1 per file in the worklist.
-- The second sentence (per-skill extraction) survives byte-for-byte: `diff` of the post-edit Step 0 paragraph minus the new first sentence equals the original Step 0 minus its first sentence.
+
+- `rg -n 'fit-wiki boot' .claude/skills/kata-*/SKILL.md` returns at least eleven
+  hits.
+- Per-skill counts:
+  `for f in .claude/skills/kata-*/SKILL.md; do echo "$f: $(rg -c 'fit-wiki boot' $f)"; done`
+  shows ≥1 per file in the worklist.
+- The second sentence (per-skill extraction) survives byte-for-byte: `diff` of
+  the post-edit Step 0 paragraph minus the new first sentence equals the
+  original Step 0 minus its first sentence.
 
 ## Step 3 — Update `kata-wiki-curate` SKILL audit reference
 
 Modified: `.claude/skills/kata-wiki-curate/SKILL.md`. Line 80 currently
 reads:
 
-```
+```text
 - **Contract conformance** — When `just wiki-audit` is available (added by spec ...)
 ```
 
 Replace with:
 
-```
+```text
 - **Contract conformance** — Run `bunx fit-wiki audit`. (The legacy
   `just wiki-audit` recipe is removed in Part 04; the audit logic now
   lives in `fit-wiki`.)
@@ -153,8 +160,10 @@ Per subcommand, the new sub-section template:
 fit-wiki <name> ...
 ```
 
-Contract: [Memory Protocol § CLI Contract Map](https://www.forwardimpact.team/docs/libraries/wiki-operations/index.md#cli-contract-map)
-```
+Contract:
+[Memory Protocol § CLI Contract Map](https://www.forwardimpact.team/docs/libraries/wiki-operations/index.md#cli-contract-map)
+
+```text
 
 Total addition ≤60 lines, not the original ~80.
 

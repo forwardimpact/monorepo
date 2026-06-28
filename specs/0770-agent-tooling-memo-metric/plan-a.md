@@ -35,7 +35,10 @@ header bootstrap. `libwiki` does not depend on `libxmr` per design P3.
 - Created: empty `libraries/libwiki/bin/fit-wiki.js`,
   `libraries/libwiki/src/commands/memo.js` placeholders (filled in step 5).
 
-Verify: `bun install` adds the workspace; `bun -e "import('./libraries/libwiki/src/index.js').then(m => console.log(Object.keys(m)))"` prints the named exports above. Do not run `bun run lib:fix` (deferred to Step 16).
+Verify: `bun install` adds the workspace;
+`bun -e "import('./libraries/libwiki/src/index.js').then(m => console.log(Object.keys(m)))"`
+prints the named exports above. Do not run `bun run lib:fix` (deferred to Step
+16).
 
 ### 2. Implement `MemoWriter`
 
@@ -78,8 +81,8 @@ release-engineer, security-engineer, staff-engineer, technical-writer).
 
 - Created: `libraries/libwiki/src/marker-migrator.js` exporting
   `insertMarkers({ agentsDir, wikiRoot }, fs = nodeFs)` — for each summary
-  returned by `listAgents`: read; if `MEMO_INBOX_MARKER` already present, count as
-  `skipped`; else locate `OBSERVATIONS_HEADING` line, splice
+  returned by `listAgents`: read; if `MEMO_INBOX_MARKER` already present, count
+  as `skipped`; else locate `OBSERVATIONS_HEADING` line, splice
   `\n${MEMO_INBOX_MARKER}\n` immediately after the heading line (M2), write,
   count as `inserted`. If the heading is missing, push to `errors`. Returns
   `{ inserted: [...], skipped: [...], errors: [...] }`. Idempotent.
@@ -94,14 +97,14 @@ Verify: `bun test test/marker-migrator.test.js` green.
 - Modified: `libraries/libwiki/bin/fit-wiki.js` — `createCli` definition with
   one command:
 
-  ```
+  ```text
   memo  [--from <sender>]  --to <target|all>  --message <text>  [--wiki-root <path>]
   ```
 
   `--to`, `--message` required; `--from` optional (falls back to
   `LIBEVAL_AGENT_PROFILE` env var per M8); `--wiki-root` optional (default
-  resolved at runtime — see handler). Global options: `help`, `version`,
-  `json`. Examples cover one-target send and `--to all` broadcast.
+  resolved at runtime — see handler). Global options: `help`, `version`, `json`.
+  Examples cover one-target send and `--to all` broadcast.
 - Modified: `libraries/libwiki/src/commands/memo.js` exporting
   `runMemoCommand(values, args, cli)`:
   - Resolve roots: `projectRoot` via
@@ -164,8 +167,8 @@ green; `process.env.LIBEVAL_AGENT_PROFILE` is set in the three command files.
     (X3 — append before analyze).
   - Append one CSV row. Quote helper inline at the top of `record.js`:
     `const csvField = (v) => /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v);`
-    — applied to every field. (`libxmr/src/csv.js` does not currently export
-    a quote helper; this is a local helper, not a new public export.)
+    — applied to every field. (`libxmr/src/csv.js` does not currently export a
+    quote helper; this is a local helper, not a new public export.)
   - Read full file, call `analyze(text)`, filter to the recorded metric;
     pull `{ n, status, latest: { value } }`. For the
     `insufficient_data` branch (`n < MIN_POINTS`), `analyze` still sets
@@ -174,8 +177,9 @@ green; `process.env.LIBEVAL_AGENT_PROFILE` is set in the three command files.
     (`predictable | signals_present | insufficient_data`).
   - Print one line:
     `metric=<name> n=<n> status=<status> latest=<value>` (X2).
-  - If `analyze` throws: `process.stderr.write("warning: analyze failed: <msg>\n")`,
-    exit 0 (X3 — row already durable).
+  - If `analyze` throws:
+    `process.stderr.write("warning: analyze failed: <msg>\n")`, exit 0 (X3 — row
+    already durable).
   - Append failure (`writeFileSync` throws) → exit 2.
 - Modified: `libraries/libxmr/bin/fit-xmr.js` — register `record` in
   `commands` array and `COMMANDS` dispatch; add example
@@ -221,7 +225,8 @@ run `bun run lib:fix` (deferred to Step 16).
   but a checked-in one-shot script is preserved as the audit trail).
   Run from repo root: `bun scripts/migrate-memo-markers.mjs`.
 
-Verify (criterion #5): `grep -c '<!-- memo:inbox -->' wiki/{improvement-coach,product-manager,release-engineer,security-engineer,staff-engineer,technical-writer}.md`
+Verify (criterion #5):
+`grep -c '<!-- memo:inbox -->' wiki/{improvement-coach,product-manager,release-engineer,security-engineer,staff-engineer,technical-writer}.md`
 returns `1` for every file.
 
 ### 10. Migrate metrics to per-skill structure

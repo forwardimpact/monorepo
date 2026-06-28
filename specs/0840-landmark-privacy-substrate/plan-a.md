@@ -1,6 +1,7 @@
 # Plan 0840-a — Landmark privacy substrate
 
-Implements [spec.md](spec.md) under the architecture in [design-a.md](design-a.md).
+Implements [spec.md](spec.md) under the architecture in
+[design-a.md](design-a.md).
 
 ## Approach
 
@@ -13,7 +14,9 @@ their docs. Existing commands need only the dispatcher rewiring — their query
 modules are untouched because RLS clamps results server-side. Each step ends
 in a green test command before the next begins.
 
-Libraries used: `@supabase/supabase-js` (`auth.admin.{listUsers,createUser,updateUserById}`, `createClient`). `signTestToken` uses Node built-in `node:crypto` directly.
+Libraries used: `@supabase/supabase-js`
+(`auth.admin.{listUsers,createUser,updateUserById}`, `createClient`).
+`signTestToken` uses Node built-in `node:crypto` directly.
 
 ## Steps
 
@@ -45,11 +48,15 @@ process.stdout.write(`  export MAP_SUPABASE_ANON_KEY=${status.anon_key}\n`);
 process.stdout.write(`  export MAP_SUPABASE_JWT_SECRET=${status.jwt_secret}\n\n`);
 ```
 
-Verify: `bunx fit-map activity start` prints all four env vars; `bunx fit-map activity status` reports the Auth service `RUNNING`; `bun test products/map/test/activity-start.test.js` (added in step 8) asserts the new export lines.
+Verify: `bunx fit-map activity start` prints all four env vars;
+`bunx fit-map activity status` reports the Auth service `RUNNING`;
+`bun test products/map/test/activity-start.test.js` (added in step 8) asserts
+the new export lines.
 
 ### 2. RLS + retention migration
 
-- **Created:** `products/map/supabase/migrations/20260510000000_landmark_rls.sql`
+- **Created:**
+  `products/map/supabase/migrations/20260510000000_landmark_rls.sql`
 
 ```sql
 -- Revoke prior grants on the six RLS'd tables only. Tables not in
@@ -207,7 +214,10 @@ BEGIN
 END $$;
 ```
 
-Verify: `bunx fit-map activity migrate` succeeds; `bun test products/map/test/activity/migration-rls.test.js` (added in step 8) passes; `psql` shows `relrowsecurity = true` on all six tables and the per-table `COMMENT` blobs round-trip.
+Verify: `bunx fit-map activity migrate` succeeds;
+`bun test products/map/test/activity/migration-rls.test.js` (added in step 8)
+passes; `psql` shows `relrowsecurity = true` on all six tables and the per-table
+`COMMENT` blobs round-trip.
 
 ### 3. Test JWT helper
 
@@ -236,7 +246,8 @@ export function signTestToken({ email, secret = process.env.MAP_SUPABASE_JWT_SEC
 Containment: never imported from `products/landmark/src/`. Step 8 adds a
 guard test that greps `src/` for the helper path.
 
-Verify: `bun test products/landmark/test/lib/sign-test-token.test.js` (added in step 8) decodes the token and asserts the claim shape.
+Verify: `bun test products/landmark/test/lib/sign-test-token.test.js` (added in
+step 8) decodes the token and asserts the claim shape.
 
 ### 4. Identity resolver
 
@@ -281,7 +292,11 @@ export function resolveIdentity(env = process.env) {
 }
 ```
 
-Verify: `bun test products/landmark/test/lib/identity.test.js` (added in step 8) covers missing, malformed, expired, no-email, forged-signature (with secret present), and happy paths. When the secret is absent, signature verification is left to Postgres at request time and the `email` claim is treated as opaque per the comment.
+Verify: `bun test products/landmark/test/lib/identity.test.js` (added in step 8)
+covers missing, malformed, expired, no-email, forged-signature (with secret
+present), and happy paths. When the secret is absent, signature verification is
+left to Postgres at request time and the `email` claim is treated as opaque per
+the comment.
 
 ### 5. Authenticated Supabase client
 
@@ -316,7 +331,9 @@ export function isRelationNotFoundError(err) {
 
 Criterion 3a chokepoint: no `MAP_SUPABASE_SERVICE_ROLE_KEY` reference remains.
 
-Verify: `grep -r MAP_SUPABASE_SERVICE_ROLE_KEY products/landmark/src/` returns no matches; `bun test products/landmark/test/lib/supabase.test.js` (added in step 8).
+Verify: `grep -r MAP_SUPABASE_SERVICE_ROLE_KEY products/landmark/src/` returns
+no matches; `bun test products/landmark/test/lib/supabase.test.js` (added in
+step 8).
 
 ### 6. Dispatcher rewiring
 
@@ -375,7 +392,11 @@ And in the existing `catch` block (`bin/fit-landmark.js:268-275`), prepend the
 }
 ```
 
-Verify: `bun test products/landmark/test/dispatcher.test.js` (added in step 8) asserts exit codes 0/3/4 by spawning the binary via `node:child_process.spawnSync`; manual smoke `LANDMARK_AUTH_TOKEN= fit-landmark voice --email a@b` exits 4, `fit-landmark marker x` exits 0.
+Verify: `bun test products/landmark/test/dispatcher.test.js` (added in step 8)
+asserts exit codes 0/3/4 by spawning the binary via
+`node:child_process.spawnSync`; manual smoke
+`LANDMARK_AUTH_TOKEN= fit-landmark voice --email a@b` exits 4,
+`fit-landmark marker x` exits 0.
 
 ### 7. New verbs
 
@@ -388,9 +409,9 @@ NO_SOURCES_FOR_PERSON: (email) =>
   `No sources retained for ${email} that you can see.`,
 ```
 
-- **Created:** `products/map/src/activity/retention.js` (consumed by `sources.js`
-  in this same step) and the matching entry in `products/map/package.json`
-  `exports`:
+- **Created:** `products/map/src/activity/retention.js` (consumed by
+  `sources.js` in this same step) and the matching entry in
+  `products/map/package.json` `exports`:
 
 ```json
 "./activity/retention": "./src/activity/retention.js"
@@ -508,8 +529,10 @@ RPC without re-touching the migration file. The Landmark client's
 `db.schema = "activity"` makes
 `supabase.rpc("snapshot_ids_for_person", …)` resolve to the
 `activity.`-qualified function above.
-- **Created:** `products/landmark/src/formatters/sources.js` — text/json/markdown
-  exports mirroring `org.js` formatter shape, keyed off `result.items[]`.
+
+- **Created:** `products/landmark/src/formatters/sources.js` —
+  text/json/markdown exports mirroring `org.js` formatter shape, keyed off
+  `result.items[]`.
 - **Modified:** `products/landmark/src/formatters/index.js` — add `sources`
   to the imports and the `formatters` registry object.
 - **Modified:** `products/landmark/bin/fit-landmark.js` — add
@@ -520,7 +543,8 @@ RPC without re-touching the migration file. The Landmark client's
   `"fit-landmark sources --email self@example.com"`, and add the
   documentation entry from step 9.
 
-Verify: `bun test products/landmark/test/sources.test.js` (added in step 8) covers populated, zero, scope-clamped, and falloff cases.
+Verify: `bun test products/landmark/test/sources.test.js` (added in step 8)
+covers populated, zero, scope-clamped, and falloff cases.
 
 #### 7b. `fit-map people provision`
 
@@ -620,11 +644,14 @@ case "provision": {
 }
 ```
 
-  - `commands[]` row for `people` updates `args` to
-    `<validate|push|provision> [file]`.
-  - Update the `people` `description` to mention `provision`.
+- `commands[]` row for `people` updates `args` to
+  `<validate|push|provision> [file]`.
+- Update the `people` `description` to mention `provision`.
 
-Verify: `bun test products/map/test/activity/people-provision.test.js` (added in step 8) covers create / idempotent re-run / decommission / re-add lifecycle, asserting `id` stability across the no-op and re-add paths and that `banned_until` is >50 years out for decommissioned rows.
+Verify: `bun test products/map/test/activity/people-provision.test.js` (added in
+step 8) covers create / idempotent re-run / decommission / re-add lifecycle,
+asserting `id` stability across the no-op and re-add paths and that
+`banned_until` is >50 years out for decommissioned rows.
 
 ### 8. Tests
 
@@ -676,7 +703,10 @@ half) need a running stack. The contract:
    `people-provision.test.js`, and `sources.test.js` all wrap their cases
    in `withLiveActivity`.
 
-3. **Local invocation:** `bunx fit-map activity start && eval "$(bunx fit-map activity status --env)" && bun run test`. (The `--env` flag printing a sourceable export block is a sub-task of step 1 — already covered by the four `MAP_SUPABASE_*` exports.)
+3. **Local invocation:**
+   `bunx fit-map activity start && eval "$(bunx fit-map activity status --env)" && bun run test`.
+   (The `--env` flag printing a sourceable export block is a sub-task of step 1
+   — already covered by the four `MAP_SUPABASE_*` exports.)
 
 4. **CI invocation (follow-up, not blocking slice 1):** A separate workflow
    `check-test-live.yml` boots Supabase via `supabase/setup-cli` action
@@ -720,7 +750,8 @@ documentation and the skill/CLI links into them.
   — reconcile `auth.users` against the roster so identity-derived RLS works.
 ```
 
-- **Modified:** `products/landmark/bin/fit-landmark.js` `definition.documentation` — append:
+- **Modified:** `products/landmark/bin/fit-landmark.js`
+  `definition.documentation` — append:
 
 ```js
 { title: "List Engineering Data Sources",
@@ -728,7 +759,8 @@ documentation and the skill/CLI links into them.
   description: "List the activity rows retained about an engineer and their fall-off dates." },
 ```
 
-- **Modified:** `products/map/bin/fit-map.js` `definition.documentation` — append:
+- **Modified:** `products/map/bin/fit-map.js` `definition.documentation` —
+  append:
 
 ```js
 { title: "Provision Engineer Auth Users",
@@ -736,7 +768,8 @@ documentation and the skill/CLI links into them.
   description: "Reconcile auth.users against the roster so identity-derived RLS works." },
 ```
 
-Verify: `bun run context:fix` regenerates catalog rows; `bun run check` is green.
+Verify: `bun run context:fix` regenerates catalog rows; `bun run check` is
+green.
 
 ### 10. Final integration sweep
 

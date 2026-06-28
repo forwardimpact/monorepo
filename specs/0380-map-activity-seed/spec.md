@@ -90,7 +90,7 @@ internal contributor tool and may be documented only in internal docs
 
 A `just seed` target (or similar) that chains the full workflow:
 
-```
+```text
 supabase-up → supabase-migrate → synthetic → seed
 ```
 
@@ -117,7 +117,7 @@ The DSL parser should validate that `people.distribution` keys exist in
 people whose levels failed framework validation. The parser should fail with a
 clear error like:
 
-```
+```text
 distribution key "L1" does not match any framework level (have: J040, J060, J070, J080, J090, J100)
 ```
 

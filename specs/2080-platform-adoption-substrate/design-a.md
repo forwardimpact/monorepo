@@ -55,7 +55,7 @@ Identity, JWT issuance, and the anon-key read client are unchanged from spec
 
 **Adapter contract** (pull-only, aggregate-only):
 
-```
+```text
 PlatformAdapter:
   platform_id():            string          // must match a platforms row
   period_grain():           'day'|'week'|'month'|'quarter'
@@ -109,9 +109,10 @@ and upserts on the PK (idempotent).
 **Read.** `fit-landmark adoption` queries `platform_usage` (and, for
 correlation, `getdx_snapshot_team_scores`) under the caller JWT; RLS clamps both
 to `teams_in_scope()`. The matrix suppresses or rolls up sub-threshold cells on
-both sides, withholds an unpaired `usage` metric, draws the per-team-per-platform
-control chart via `fit-xmr`, and pairs a usage period with the snapshot whose
-`scheduled_for` (a single DATE) is the latest at or before the period's end.
+both sides, withholds an unpaired `usage` metric, draws the
+per-team-per-platform control chart via `fit-xmr`, and pairs a usage period with
+the snapshot whose `scheduled_for` (a single DATE) is the latest at or before
+the period's end.
 
 ## Clean-break removals and rewrites
 
@@ -140,7 +141,8 @@ control chart via `fit-xmr`, and pairs a usage period with the snapshot whose
 - **`ancestors` correctness.** Scope depends on the slug path; `teams push` must
   recompute it on every roster change or a moved team mis-scopes.
 - **Correlation bounding.** `scheduled_for` is a single DATE; the cycle is the
-  half-open interval up to the next snapshot's `scheduled_for`, so a usage period
-  maps to the latest snapshot at or before its end.
-- **Roster gaps.** A GetDX team or platform cohort with no matching `source_refs`
-  silently drops its rows; transforms and the collector count skips.
+  half-open interval up to the next snapshot's `scheduled_for`, so a usage
+  period maps to the latest snapshot at or before its end.
+- **Roster gaps.** A GetDX team or platform cohort with no matching
+  `source_refs` silently drops its rows; transforms and the collector count
+  skips.

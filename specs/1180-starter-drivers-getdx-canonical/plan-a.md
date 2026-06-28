@@ -55,6 +55,7 @@ Document GetDX as the canonical DX vendor.
 
 - **Created**: `products/map/starter/README.md`
 - Single short markdown file:
+
   ```markdown
   # Starter standard
 
@@ -65,6 +66,7 @@ Document GetDX as the canonical DX vendor.
   Edit any file under this directory to match your organization. To re-seed
   a clean copy, remove the file and re-run `npx fit-map init`.
   ```
+
 - **Verify**: file lands in user installs at `data/pathway/README.md` after
   `npx fit-map init` (covered by `init.test.js` directory-non-empty check;
   no new assertion needed).
@@ -92,6 +94,7 @@ Detect the three join states once in `runHealthCommand`.
 - Insert the block **immediately after `attachComments(drivers,
   allComments)` (line 85) and before `meta.warnings = [...new
   Set(meta.warnings)]` (line 88)**:
+
   ```js
   const yamlIds = (mapData.drivers ?? []).length;
   const scoreIds = new Set(scores.map((s) => s.item_id)).size;
@@ -105,6 +108,7 @@ Detect the three join states once in `runHealthCommand`.
   // not branch.
   const driverJoin = { state, yamlIds, scoreIds, matched };
   ```
+
   This mirrors design § Health view join states exactly: `MATCHED`
   requires `matched > 0`; `NO_MATCH` requires `scoreIds > 0 && matched ===
   0`; the residual case (drivers configured but no team-scoped scores)
@@ -124,6 +128,7 @@ already covered because `toJson` spreads `view` (including `driverJoin`).
 
 - **Modified**: `products/landmark/src/formatters/health.js`
 - Add two small renderers shared by default and verbose modes:
+
   ```js
   function noDriversText() {
     return [
@@ -142,6 +147,7 @@ already covered because `toJson` spreads `view` (including `driverJoin`).
     ];
   }
   ```
+
   Mirror with `noDriversMarkdown(view)` / `noMatchMarkdown(view)` for the
   markdown path. The final wording above is the plan's commitment (design §
   Out-of-design row 1 deferred to plan).
@@ -149,6 +155,7 @@ already covered because `toJson` spreads `view` (including `driverJoin`).
   NO_DRIVERS / NO_MATCH branches **immediately after the header push and
   blank line, returning early before `dedupeRecommendations` runs and
   before any default/verbose rendering**:
+
   ```js
   if (view.driverJoin?.state === "NO_DRIVERS") {
     lines.push(...noDriversText());
@@ -159,6 +166,7 @@ already covered because `toJson` spreads `view` (including `driverJoin`).
     return lines.join("\n");
   }
   ```
+
   `state: null` (residual fall-through) and `state: "MATCHED"` both
   continue into the existing default/verbose branches; `meta.warnings`
   surfacing is unchanged (today's formatters do not render `meta.warnings`
@@ -168,12 +176,14 @@ already covered because `toJson` spreads `view` (including `driverJoin`).
   `Evidence:` push at line 160) and `renderMdDriver` (the matching pushes
   at lines 203 and 204), guard both pushes on
   `driver.contributingSkills.length > 0`:
+
   ```js
   if (driver.contributingSkills.length > 0) {
     lines.push(`      Contributing skills: ${formatSkillNames(driver)}`);
     lines.push(`      Evidence: ${formatEvidenceParts(driver)}`);
   }
   ```
+
   This is a real change for any driver with empty `contributingSkills` —
   including all 16 new starter drivers in the MATCHED path. Existing
   `health-formatter.test.js` cases pass because `makeDriver()` seeds
@@ -218,9 +228,10 @@ Catch cross-package breakage before push.
 
 - `bun run check` — type, lint, format, JSDoc, context.
 - `bun test` — full repo test suite.
-- **Verify**: zero failures. A failure in `products/landmark/test/snapshot.test.js`
-  or any other snapshot consumer signals that the new `view.driverJoin`
-  field is not being treated as additive — investigate before push.
+- **Verify**: zero failures. A failure in
+  `products/landmark/test/snapshot.test.js` or any other snapshot consumer
+  signals that the new `view.driverJoin` field is not being treated as additive
+  — investigate before push.
 
 ### Step 9: End-to-end clean-install verification (spec criteria 3 + 5)
 

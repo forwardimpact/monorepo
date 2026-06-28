@@ -138,7 +138,7 @@ build-packs writer.
 
 Replace contents with:
 
-```
+```text
 # {{{title}}}
 
 {{{body}}}
@@ -168,7 +168,7 @@ update; lint clean.
 
 Delete lines 15–17:
 
-```
+```text
 {{#hasReference}}
 See [implementation reference](references/REFERENCE.md) for code examples.
 {{/hasReference}}
@@ -407,7 +407,7 @@ no hits.
 
 Replace line 136:
 
-```
+```text
 | `capabilities/*.yaml` | `skills[].references[]` (each entry → one file) | `skills/*/references/{name}.md` | Skill |
 ```
 

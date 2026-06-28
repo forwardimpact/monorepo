@@ -18,7 +18,7 @@ limits.
 
 Search by skill + availability:
 
-```
+```text
 WebFetch URL: https://api.github.com/search/users?q=%22data+engineering%22+%22open+to+work%22&per_page=30&sort=joined&order=desc
 WebFetch URL: https://api.github.com/search/users?q=%22full+stack%22+%22available+for+hire%22&per_page=30&sort=joined&order=desc
 WebFetch URL: https://api.github.com/search/users?q=%22devops%22+%22looking+for%22&per_page=30&sort=joined&order=desc
@@ -26,7 +26,7 @@ WebFetch URL: https://api.github.com/search/users?q=%22devops%22+%22looking+for%
 
 Search repos with README signals:
 
-```
+```text
 WebFetch URL: https://api.github.com/search/repositories?q=%22hire+me%22+in:readme&sort=updated&order=desc&per_page=10
 ```
 
@@ -38,7 +38,7 @@ Manchester, Edinburgh.
 Try broader tags: `jobsearch`, `career`, `remotework`, `job`, `hiring`. Or pull
 from a tag and filter by title/description:
 
-```
+```text
 WebFetch URL: https://dev.to/api/articles?tag=career&per_page=25
 ```
 

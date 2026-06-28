@@ -163,9 +163,10 @@ legacy-shape miss) appear in the run.
 
 ### Step 4 — Update `Dispatcher` URL construction
 
-Switches `inboxUrl` from `${base}/api/inbox/${correlationId}?tenant_id=${enc(t)}`
-to `${base}/api/inbox/${tenant_id}/${correlationId}`. `tenant_id` is
-already in scope at the construction site (`dispatcher.js:101`).
+Switches `inboxUrl` from
+`${base}/api/inbox/${correlationId}?tenant_id=${enc(t)}` to
+`${base}/api/inbox/${tenant_id}/${correlationId}`. `tenant_id` is already in
+scope at the construction site (`dispatcher.js:101`).
 
 - Modified: `libraries/libbridge/src/dispatcher.js`
 - Modified: `libraries/libbridge/test/dispatcher.test.js`
@@ -211,7 +212,9 @@ onInbox: createInboxHandler({
 }),
 ```
 
-Verification: `bun test services/ghbridge/test/*.test.js services/msbridge/test/*.test.js` green.
+Verification:
+`bun test services/ghbridge/test/*.test.js services/msbridge/test/*.test.js`
+green.
 
 ### Step 6 — Update libeval test fixtures
 

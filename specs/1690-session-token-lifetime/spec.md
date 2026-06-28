@@ -217,18 +217,17 @@ they neither fire nor confirm the falsifier.
 
 ### Excluded
 
-- **(d) Transcript token-masking / probe-hygiene — split, SE-owned, now
-  landed as finding [#1557](https://github.com/forwardimpact/monorepo/issues/1557).**
+- **(d) Transcript token-masking / probe-hygiene — split, SE-owned, now landed
+  as finding [#1557](https://github.com/forwardimpact/monorepo/issues/1557).**
   Different threat axis (confidentiality vs. this spec's availability) and
   different verification surface (NDJSON trace artifacts and wiki commits;
   step-log masking does not rewrite them). The SE audit confirmed one leak —
-  run-252's trace artifact persisted the App token in base64 extraheader
-  form, which the redactor's raw-byte scrubbing misses — classified
-  structural, with an SE spec in flight on its own sequence. Only the single
-  no-transcript-leakage acceptance criterion on (a) is retained here,
-  because it constrains the mechanism this spec creates; per SE, (a) removes
-  the *need* to harvest while the redactor fix is defense-in-depth
-  regardless.
+  run-252's trace artifact persisted the App token in base64 extraheader form,
+  which the redactor's raw-byte scrubbing misses — classified structural, with
+  an SE spec in flight on its own sequence. Only the single
+  no-transcript-leakage acceptance criterion on (a) is retained here, because it
+  constrains the mechanism this spec creates; per SE, (a) removes the *need* to
+  harvest while the redactor fix is defense-in-depth regardless.
 - **Least-privilege token narrowing.** Both mint sites issue
   full-installation-permission tokens; narrowing is a separate SE finding
   (MEDIUM-low), not this spec.

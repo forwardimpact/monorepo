@@ -15,8 +15,9 @@ another, and that separation is what makes a failed run attributable. This
 skill authors and repairs the layers a contributor edits: L3–L7.
 
 `npx coaligned instructions` enforces a line cap and a word cap on every layer.
-Either breach fails. See [references/layer-reference.md](references/layer-reference.md)
-for the layers, their properties, and their caps.
+Either breach fails. See
+[references/layer-reference.md](references/layer-reference.md) for the layers,
+their properties, and their caps.
 
 ## Procedure
 
@@ -96,7 +97,7 @@ promises and nothing another layer owns.
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md) —
-  every layer, its properties, and the rules that separate them.
-- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md) —
-  what `coaligned instructions` enforces.
+- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+  — every layer, its properties, and the rules that separate them.
+- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
+  — what `coaligned instructions` enforces.

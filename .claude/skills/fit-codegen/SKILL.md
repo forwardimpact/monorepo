@@ -17,7 +17,8 @@ header — do not edit generated files; change the proto and regenerate.
 ## When to Use
 
 - Regenerate everything after a proto change — `npx fit-codegen --all`
-- Generate one artifact kind — `--type`, `--service`, `--client`, `--definition`, `--metadata`
+- Generate one artifact kind — `--type`, `--service`, `--client`,
+  `--definition`, `--metadata`
 - Bootstrap a gRPC product for the first time
 
 ## Usage

@@ -8,11 +8,11 @@ empty states or produce unscoped results against every known dataset — synthet
 and real alike. There are two independent root causes:
 
 **1. Synthetic data gaps and a broken manager-scoping chain make Landmark
-untestable and its manager-scoped features non-functional.**
-A Landmark deep-test against BioNova synthetic data (211 engineers, 7 GetDX
-snapshots, 12 820 GitHub events, 312 evidence records) revealed two gaps where
-generated data and existing query logic do not match what Landmark needs. Web API
-research against the real GetDX API confirmed that one of the gaps is not a
+untestable and its manager-scoped features non-functional.** A Landmark
+deep-test against BioNova synthetic data (211 engineers, 7 GetDX snapshots, 12
+820 GitHub events, 312 evidence records) revealed two gaps where generated data
+and existing query logic do not match what Landmark needs. Web API research
+against the real GetDX API confirmed that one of the gaps is not a
 data-generation problem but a broken data chain: the manager-scoping logic
 depends on `getdx_teams.manager_email`, which the GetDX `teams.list` API never
 populates, leaving the column always null.
@@ -27,9 +27,9 @@ including production — has zero real evidence, and Landmark's core value
 proposition (growth visible in work, not only in role) cannot be delivered.
 
 Both root causes must be resolved together because the synthetic data fixes are
-the test harness for the Guide pipeline: until synthetic data correctly exercises
-all Landmark commands, there is no reliable way to verify that Guide-written
-evidence produces correct output in those commands.
+the test harness for the Guide pipeline: until synthetic data correctly
+exercises all Landmark commands, there is no reliable way to verify that
+Guide-written evidence produces correct output in those commands.
 
 This spec also removes the initiative and scorecard feature from Landmark. Web
 API research shows that GetDX initiatives reference software catalog scorecards
@@ -55,29 +55,29 @@ be useful; that belongs in a separate spec.
 ### Gap 1 — Manager-scoped views depend on a data chain that is never populated
 
 `voice --manager`, `health --manager`, and `snapshot trend --manager` all scope
-their results through a chain: commenter email → `organization_people.manager_email`
-→ `getdx_teams.manager_email` → `getdx_team_id`. The DB columns exist and the
-logic is correct, but the chain breaks at `getdx_teams.manager_email`. The
-transform that populates `getdx_teams` resolves `manager_email` via a
-`team.manager_name` field from the GetDX `teams.list` response — but that field
-does not exist in the API. The API returns `manager_id` (an opaque user
-identifier); `manager_name` is absent. Because `team.manager_name` is always
-undefined, `manager_email` is always null, which cascades to `team_id` on
-comments being null, and all manager-filtered queries returning empty or unscoped
-results.
+their results through a chain: commenter email →
+`organization_people.manager_email` → `getdx_teams.manager_email` →
+`getdx_team_id`. The DB columns exist and the logic is correct, but the chain
+breaks at `getdx_teams.manager_email`. The transform that populates
+`getdx_teams` resolves `manager_email` via a `team.manager_name` field from the
+GetDX `teams.list` response — but that field does not exist in the API. The API
+returns `manager_id` (an opaque user identifier); `manager_name` is absent.
+Because `team.manager_name` is always undefined, `manager_email` is always null,
+which cascades to `team_id` on comments being null, and all manager-filtered
+queries returning empty or unscoped results.
 
 Separately, the real `snapshots.driverComments.list` endpoint returns a
 `driver_name` field per comment that the current DB schema and transform
-pipeline do not capture. This means driver-level filtering and display of comment
-context are unavailable. Capturing `driver_name` is in scope.
+pipeline do not capture. This means driver-level filtering and display of
+comment context are unavailable. Capturing `driver_name` is in scope.
 
 The fix has two parts:
 
 - **Manager-scoping:** Manager-filtered views must derive their scope from
   `organization_people`, which carries accurate `manager_email` from the roster
-  and is not subject to the GetDX API gap. Each manager-filtered view must return
-  results limited to the manager's direct reports as recorded in the roster. The
-  specific query strategy is a design decision.
+  and is not subject to the GetDX API gap. Each manager-filtered view must
+  return results limited to the manager's direct reports as recorded in the
+  roster. The specific query strategy is a design decision.
 
 - **Synthetic data:** The terrain generates `organization_people` rows; these
   must carry accurate `manager_email` values so the corrected query logic
@@ -91,8 +91,8 @@ pipeline generates `proficiencyDescriptions`, `readChecklist`, and
 `confirmChecklist` but no `markers` blocks. All three commands return empty
 states regardless of evidence volume.
 
-The generated capability entities must include representative `markers` arrays so
-that Landmark's evidence-based commands have criteria to evaluate against.
+The generated capability entities must include representative `markers` arrays
+so that Landmark's evidence-based commands have criteria to evaluate against.
 
 Marker definitions are installation-specific by design (spec 0080,
 §Starter Data Philosophy). The synthetic data must include at least
@@ -104,10 +104,11 @@ exercise the Landmark commands, not exhaustive.
 The `initiative list`, `initiative show`, and `initiative impact` commands must
 be removed from Landmark. GetDX initiatives reference software catalog
 scorecards — a distinct GetDX product area where SQL checks evaluate whether
-catalog entities (services, repositories) meet quality levels (Bronze/Silver/Gold).
-This is unrelated to snapshot factor scores. The `initiative impact` view joins
-`initiative.scorecard_id` against snapshot score `item_id`s; these are different
-ID spaces that will never match, so the computed delta is always null.
+catalog entities (services, repositories) meet quality levels
+(Bronze/Silver/Gold). This is unrelated to snapshot factor scores. The
+`initiative impact` view joins `initiative.scorecard_id` against snapshot score
+`item_id`s; these are different ID spaces that will never match, so the computed
+delta is always null.
 
 The correct model for initiative impact — if the feature is to be built — is a
 new design decision. It is excluded from this spec.
@@ -124,7 +125,7 @@ rows to `activity.evidence` that Landmark can present.
 
 This is the pipeline spec 0080 described but did not implement:
 
-```
+```text
 Activity artifacts → Map (activity tables)
                             │
                      Guide evaluates
@@ -137,25 +138,26 @@ Activity artifacts → Map (activity tables)
 
 ### Activity source abstraction
 
-Activity data in Map is not homogeneous. Today it includes GitHub artifacts (pull
-requests, code reviews, pushes). Anticipated future sources include GitHub
+Activity data in Map is not homogeneous. Today it includes GitHub artifacts
+(pull requests, code reviews, pushes). Anticipated future sources include GitHub
 Copilot activity and Claude Code activity. Each source type has different
 structure, different signal density, and different relevance to skill markers —
 for example, a pull request carries a title, description, diff context, and
-review thread, while a Copilot activity record carries completion-level telemetry.
-An evaluation function written for one source type cannot be applied to another
-without either producing incorrect matches or requiring the function to know about
-every source type that will ever exist.
+review thread, while a Copilot activity record carries completion-level
+telemetry. An evaluation function written for one source type cannot be applied
+to another without either producing incorrect matches or requiring the function
+to know about every source type that will ever exist.
 
-The evaluation pipeline must support multiple activity source types. Adding a new
-source type must not require modifying the evaluation logic or the evidence write
-path. This spec ships evaluation for GitHub artifacts only. Future source types
-(Copilot, Claude Code) must be addable without changes to evaluation or output.
+The evaluation pipeline must support multiple activity source types. Adding a
+new source type must not require modifying the evaluation logic or the evidence
+write path. This spec ships evaluation for GitHub artifacts only. Future source
+types (Copilot, Claude Code) must be addable without changes to evaluation or
+output.
 
 ### Engineering standard grounding
 
-Guide must never free-associate markers. Every evidence row it writes must cite a
-`skill_id` and `marker_text` that exist verbatim in the organization's
+Guide must never free-associate markers. Every evidence row it writes must cite
+a `skill_id` and `marker_text` that exist verbatim in the organization's
 engineering standard. The authoritative source for that standard is the pathway
 data (capability YAML files), which defines skills, proficiency levels, and the
 `markers` array under each proficiency.
@@ -168,8 +170,8 @@ The current engineering standard access layer does not expose a method that
 returns markers for a given engineer profile. Adding that capability is in scope
 for this spec. The capability must accept a `(discipline, level, track)` profile
 and return the markers the engineer is expected to demonstrate. Which layer
-exposes this, what the interface looks like, and how it is implemented are design
-decisions.
+exposes this, what the interface looks like, and how it is implemented are
+design decisions.
 
 ### Batch scope
 
@@ -187,9 +189,9 @@ supports person-scoped retrieval only. Team-scoped and org-scoped retrieval are
 not supported and must be added as part of this spec.
 
 Evaluation must also be schedulable for continuous delivery — runnable on a
-recurring cadence without manual invocation — so that new artifacts are evaluated
-as they arrive without operator intervention. The mechanism for scheduling is a
-design decision.
+recurring cadence without manual invocation — so that new artifacts are
+evaluated as they arrive without operator intervention. The mechanism for
+scheduling is a design decision.
 
 Evaluation is idempotent: an artifact that already has evidence rows is not
 re-evaluated, so running evaluation twice over the same scope produces no
@@ -197,8 +199,8 @@ duplicate rows.
 
 ### Evidence output contract
 
-Each evaluated artifact produces one or more evidence rows. Guide must honour the
-`activity.evidence` schema:
+Each evaluated artifact produces one or more evidence rows. Guide must honour
+the `activity.evidence` schema:
 
 | Column | Requirement | Meaning |
 |---|---|---|
@@ -210,14 +212,16 @@ Each evaluated artifact produces one or more evidence rows. Guide must honour th
 | `rationale` | Non-null, required | Guide's reasoning (one to three sentences) |
 
 Guide must always provide `rationale` and `level_id`; rows written without them
-are invalid. Whether enforcing this requires schema changes is a design decision.
+are invalid. Whether enforcing this requires schema changes is a design
+decision.
 
 `matched: false` rows are valid and must be written. They document what was
 checked and not found. Landmark uses `matched: false` rows in two ways: in
-coverage calculations (any evidence row, regardless of match, counts the artifact
-as interpreted) and in `evidence` command output (displayed as unmatched items
-alongside matched ones). They do not contribute positively to `readiness`
-checklists, which only count `matched: true` rows against marker criteria.
+coverage calculations (any evidence row, regardless of match, counts the
+artifact as interpreted) and in `evidence` command output (displayed as
+unmatched items alongside matched ones). They do not contribute positively to
+`readiness` checklists, which only count `matched: true` rows against marker
+criteria.
 
 ### What is excluded from this spec
 

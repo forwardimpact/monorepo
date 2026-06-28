@@ -1,6 +1,6 @@
 # CLI Reference
 
-### Conversational Agent
+## Conversational Agent
 
 ```sh
 npx fit-guide                              # Send a question (piped or as args)

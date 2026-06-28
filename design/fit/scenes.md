@@ -1,9 +1,9 @@
 # Forward Impact Engineering Product Scenes
 
 These scenes extend the
-[reusable base scenes](../index.md#4-reusable-base-scenes) with Forward Impact
+[reusable base scenes](index.md#4-reusable-base-scenes) with Forward Impact
 Engineering product symbols. All follow the
-[scene grammar](../index.md#3-scene-grammar).
+[scene grammar](index.md#3-scene-grammar).
 
 For the Forward Impact Engineering brand context — palette, typography, product
 taxonomy — see [index.md](index.md).
@@ -14,7 +14,7 @@ taxonomy — see [index.md](index.md).
 
 **Context:** Map product pages, skills data model, taxonomy visualizations.
 
-```
+```text
     🐰    🤖    👔
      \    |    /
     ┌──────────────┐
@@ -39,7 +39,7 @@ shared absorption — three people lost in the same puzzle.
 
 **Context:** Pathway product pages, skills catalogue, career features.
 
-```
+```text
         ↖ ↗
          ▌ ↘   ← arrow signs at different angles
          ▌
@@ -79,7 +79,7 @@ trail. Characters and signpost float freely on pure white.
 
 **Context:** Outpost product pages, knowledge management, workspace features.
 
-```
+```text
         ╳
     🐰 / \ 🤖  👔
        / × \    (flap)
@@ -107,7 +107,7 @@ gear.
 
 **Context:** Guide product pages, AI onboarding, career advice chatbot.
 
-```
+```text
     🐰       👔
      \  🤖  /
       ╲[🧭]╱
@@ -131,7 +131,7 @@ flavors of eagerness.
 
 **Context:** Landmark product pages, analysis dashboards, measurement features.
 
-```
+```text
     🐰👀   🤖🔭   👔👉
        \    |    ↘
        (no ground, no horizon)
@@ -167,7 +167,7 @@ fewer strokes, smaller.
 
 **Context:** Summit product pages, team capability analysis, staffing scenarios.
 
-```
+```text
                 ⛳
                /\
               /  \
@@ -195,7 +195,7 @@ mountain peak; Pathway owns the trail.
 
 **Context:** Gear product pages, library catalog, skill-pack documentation.
 
-```
+```text
     🐰⤵       🤖         👔⤴
      ↘        |          ↗
    ┌───────────────────────────┐

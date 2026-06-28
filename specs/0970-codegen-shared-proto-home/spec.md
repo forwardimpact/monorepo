@@ -14,19 +14,18 @@ npx fit-guide --init
 Step 1 crashes hard in any directory that is not a clone of this monorepo.
 The crash is observable on every published-package install:
 
-```
+```text
 $ npm install @forwardimpact/guide
 $ npx fit-codegen --all
 ENOENT … proto/tool.proto
 ```
 
-`@forwardimpact/guide/proto/common.proto:5-6` declares
-`import "resource.proto"` and `import "tool.proto"`, and `common.proto` uses
-`tool.ToolCall`. None of the published `@forwardimpact/*` packages ship
-`tool.proto`. The canonical file lives at `proto/tool.proto` at the monorepo
-root and is not under any package's `files` field. The proto-discovery
-function in `@forwardimpact/libcodegen` scans `node_modules/@forwardimpact/*/proto/`
-and `<projectRoot>/proto/` (see
+`@forwardimpact/guide/proto/common.proto:5-6` declares `import "resource.proto"`
+and `import "tool.proto"`, and `common.proto` uses `tool.ToolCall`. None of the
+published `@forwardimpact/*` packages ship `tool.proto`. The canonical file
+lives at `proto/tool.proto` at the monorepo root and is not under any package's
+`files` field. The proto-discovery function in `@forwardimpact/libcodegen` scans
+`node_modules/@forwardimpact/*/proto/` and `<projectRoot>/proto/` (see
 [`libraries/libcodegen/bin/fit-codegen.js:134-156`](../../libraries/libcodegen/bin/fit-codegen.js)
 for the current implementation). For an external installer both directories
 exist but neither contains `tool.proto`. Internal contributors do not see

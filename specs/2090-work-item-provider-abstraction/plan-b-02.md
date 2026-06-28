@@ -1,8 +1,8 @@
 # Plan 2090-b, Part 02: Re-point the coordination references
 
 Re-express the three shared coordination references and the session
-issue-lifecycle recipes over the abstract operations, moving their tracker shapes
-into the matrix. Depends on Part 01. Conventions: [plan-b.md](plan-b.md).
+issue-lifecycle recipes over the abstract operations, moving their tracker
+shapes into the matrix. Depends on Part 01. Conventions: [plan-b.md](plan-b.md).
 
 Libraries used: none.
 
@@ -13,8 +13,8 @@ via".
 
 Files: modify `.claude/agents/references/work-definition.md`.
 
-Change: replace each "Created via" GitHub action (labeled issue, `gh` Discussion,
-direct git ops) with the operation that creates it (`create-issue` +
+Change: replace each "Created via" GitHub action (labeled issue, `gh`
+Discussion, direct git ops) with the operation that creates it (`create-issue` +
 label / `create-discussion` / `open-change`) and a link to `work-trackers.md`.
 No `gh` shape remains.
 

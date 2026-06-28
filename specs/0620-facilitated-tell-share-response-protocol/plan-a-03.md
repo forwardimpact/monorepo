@@ -109,28 +109,36 @@ alternations:
 
 - **No participant-tool naming** (SC 8: "does not name tools the participant
   should use"):
+
   ```bash
   grep -nE 'kata-trace|kata-metrics|kata-implement|Bash|Read|Grep|Glob'
   .github/workflows/kata-coaching.yml
   ```
+
   Zero matches in the `task-text:` block.
 - **No enforcement phrasing** (SC 8: "stop making tool calls", "then Share"):
+
   ```bash
   grep -nE 'then Answer|then Share|respond via|stop making|must Answer|before your turn'
   .github/workflows/kata-coaching.yml
   ```
+
   Zero matches.
 - **No Q1 content prescription / no participant-work assignment**:
+
   ```bash
   grep -nE 'Q1|first question|analyze.*trace|have (them|the participant)'
   .github/workflows/kata-coaching.yml
   ```
+
   Zero matches.
 - **Positive: task-text primes the propagation step** (SC 7 (d)):
+
   ```bash
   grep -nE 'kata-session|systemPromptAmend|one-on-one'
   .github/workflows/kata-coaching.yml
   ```
+
   At least one match per token inside the `task-text:` block.
 
 ### Step 2 — Add `protocol_violation` invariants

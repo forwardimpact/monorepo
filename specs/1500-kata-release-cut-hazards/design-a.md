@@ -1,11 +1,13 @@
 # Design 1500 — Codify the kata-release-cut hazard set
 
 Spec: [`spec.md`](spec.md). Codifies the eight hazards (a)–(h) from Issue
-#1381 into `kata-release-cut/SKILL.md` so each letter resolves to a
+
+## 1381 into `kata-release-cut/SKILL.md` so each letter resolves to a
+
 fires-when + recovery statement, with the existing *Edge Cases* section made
 consistent.
 
-## Components
+### Components
 
 | # | Component | Where | Role |
 |---|---|---|---|
@@ -13,7 +15,7 @@ consistent.
 | C2 | Edge Cases reconciliation | SKILL.md § Edge Cases | Cross-references so `0.0.0`-skip↔(c), failed-publish↔(d), dependency-chain↔(b)/(h) do not contradict |
 | C3 | Worked detail (conditional) | `.claude/skills/kata-release-cut/references/hazards.md` | Per-hazard mechanism detail displaced under the budget if SKILL.md cannot hold it |
 
-## Hazard encoding (C1)
+### Hazard encoding (C1)
 
 Each hazard is a labelled entry whose **letter is the stable identifier** so
 existing `wiki/release-engineer.md` Run-Plan references ("rule (g)", "(h)")
@@ -32,7 +34,7 @@ fixed by the carry-forwards below):
 | (g) | A wiki audit budget overage (line/word cap) | **Route to the surface's owning agent** (MEMORY.md / frontmatter) — not a mechanical repair; RE's mechanical scope ends at content-judgement |
 | (h) | A source merge introduces a new workspace library as a dependency of already-tagged consumers | Cut the new library's first-release tag at the same source commit **before** re-tagging consumers; tag in dependency order |
 
-## Key decisions
+### Key decisions
 
 | Decision | Choice | Rejected alternative |
 |---|---|---|
@@ -44,7 +46,7 @@ fixed by the carry-forwards below):
 | (d) preflight mechanism | (d) **codifies the recovery text only**: preflight the publish credential via a publish-identity probe (`npm whoami`-class) run **out of band before any tag op**; the design does **not** author a validation workflow (spec excludes publish-workflow/tool changes), it names the principle the agent applies | Codifying an early-fail step inside the publish workflow — couples the recovery to a workflow file the spec excludes; the in-skill text names *when/what*, not *which workflow* |
 | Budget placement | Hold (C1) in SKILL.md; **displace to references/hazards.md only if** the combined file (after 1800) exceeds budget | Always splitting — unnecessary indirection; letters must resolve in SKILL.md |
 
-## Genericity
+### Genericity
 
 `kata-release-cut` is a **published** skill. Hazard entries state the
 *principle* — not this monorepo's incident specifics, package names, or
@@ -60,7 +62,7 @@ expected stderr"; "the consumer's smoke test fails to find the
 just-published dependency"); `MEMORY.md`/frontmatter (g)-routing stays —
 those are guaranteed installation surfaces the genericity rules permit.
 
-## Evidence sourcing (CF-4)
+### Evidence sourcing (CF-4)
 
 The plan sources each hazard's fires-when + recovery from these authoritative
 surfaces, in this precedence: (1) `wiki/release-engineer.md § Run Plan` for
@@ -70,7 +72,7 @@ for the precedent run and applied recovery; (3) GitHub workflow run history
 is the index. Provenance lives in spec/design only, never in the published
 skill text (§ Genericity).
 
-## SC verifiability anchors (CF-2)
+### SC verifiability anchors (CF-2)
 
 | SC | Inspect | Passes when |
 |---|---|---|
@@ -81,22 +83,24 @@ skill text (§ Genericity).
 | line-budget | `bun run check` output | green |
 | diff scope | `git diff --stat origin/main...HEAD` | only skill dir + `references/` + `specs/1500-*/` |
 
-## Coexistence with spec 1800
+### Coexistence with spec 1800
 
 Disjoint sections (1800: classification step + recording; 1500: `## Hazards`
+
 + Edge Cases cross-refs), no contradiction. The ≤95% L5 headroom target is
 **1800's** criterion; 1500's own budget gate is `bun run check`. The plan
 inherits the ≤95% target only as the second-landing constraint per Issue
-#1613 — the sequencing belongs to the plan, not this design.
 
-## Out of scope (per spec)
+## 1613 — the sequencing belongs to the plan, not this design
+
+### Out of scope (per spec)
 
 Hazards beyond (a)–(h), kata-release-merge, tool authoring ((f)/(g)),
 publish-workflow file changes, weekly-log backfill, the first-release
 authoring convention (Discussion #1385). Diff touches only the skill dir +
 `references/` + `specs/1500-*/`.
 
-## Verification
+### Verification
 
 `bun run check`; a reader-test per SC — look up each letter in SKILL.md and
 confirm it resolves to a fires-when + recovery; consistency read of Edge

@@ -663,7 +663,7 @@ existing tests verify the current shape; updated tests verify the new shape.
 
 **Files modified:** `libraries/libeval/test/trace-collector.test.js`
 
-### New tests to add:
+### New tests to add
 
 1. **System turns stored for init** — Feed an init event, verify a system turn
    with `role: "system"`, `subtype: "init"`, and `data` containing full init
@@ -692,7 +692,7 @@ existing tests verify the current shape; updated tests verify the new shape.
 
 9. **toText renders user text** — Verify user text appears in text output.
 
-### Existing tests to update:
+### Existing tests to update
 
 Tests using `collectFixture()` and inline event construction will need
 mechanical updates:
@@ -745,7 +745,7 @@ Tests for the `stripSignatures` pure function:
 
 **Files modified:** `libraries/libeval/test/trace-query.test.js`
 
-### `buildTrace()` helper update:
+### `buildTrace()` helper update
 
 Add optional `initEvent` field support:
 
@@ -761,7 +761,7 @@ function buildTrace(overrides = {}) {
 }
 ```
 
-### New tests to add:
+### New tests to add
 
 1. **`init()` returns initEvent** — Build trace with
    `initEvent: { subtype: "init", agents: [...] }`, verify `query.init()`
@@ -821,7 +821,7 @@ The SKILL.md file (not `references/examples.md`, which covers grounded theory
 methodology) lists available `fit-trace` commands at lines 79–86. Add the new
 commands to the existing command listing:
 
-```
+```text
 bunx fit-trace init /tmp/trace-<run-id>/structured.json
 bunx fit-trace turn /tmp/trace-<run-id>/structured.json 12
 bunx fit-trace filter /tmp/trace-<run-id>/structured.json --role system
@@ -881,7 +881,7 @@ None.
 
 ## Ordering and dependencies
 
-```
+```text
 Step 1 (collector)
   ↓
 Step 2 (query) + Step 3 (filter) — parallel, both depend on Step 1

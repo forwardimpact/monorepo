@@ -14,10 +14,10 @@ committed pre-fix fixture. Steps 1→4 are sequential (each builds on the prior
 export); 5 depends on 1–4; 6 depends on 5's script; 7 rebases last.
 
 Libraries used: libskill (new modules + exports), libutil (add `lsRemote` to
-`GitClient`; resolver consumes it via two clients — token-bearing and anonymous),
-libmock (Runtime fake in the GitClient test). The design's component table names
-`yaml`; this plan deliberately drops it — the fenced/prose scan is line-based, so
-no YAML parse is needed.
+`GitClient`; resolver consumes it via two clients — token-bearing and
+anonymous), libmock (Runtime fake in the GitClient test). The design's component
+table names `yaml`; this plan deliberately drops it — the fenced/prose scan is
+line-based, so no YAML parse is needed.
 
 ## Step 1 — Ref types and extractor
 
@@ -89,24 +89,26 @@ Files:
 
 Change:
 
-- `GitClient.lsRemote(url)` → `#runRaw(['ls-remote', '--tags', '--heads', url],
-  {allowFailure: true})` returning `{exitCode, stdout, stderr}`. **No new
-  `#runRaw` option**: `#runRaw` already sources env from `this.#runtime.proc.env`
-  and threads `this.#token` (or not) automatically. Anonymous transport is a
-  GitClient **without** a token (or `client.withAuth(null)`); `GIT_TERMINAL_PROMPT=0`
-  is set on the runtime's `proc.env` by the driver (Step 5), preserving the
-  injection seam — not read from `process.env` inside the client.
-- `ref-resolver.js`: export `createGitResolver({ authedGit, anonGit, anchor =
-  'actions/checkout' })` returning `{ resolve({owner, repo, anonymous}) }`. It
-  picks `anonGit` when `anonymous`, else `authedGit`. First call probes the
-  anchor via `anonGit` (memoized); **gate-red = any nonzero anchor exit** →
-  `{state: 'unreachable'}`, no string-matching. Gate green: run the target;
-  `exitCode 0` → `{state:'ok', refs: parse(stdout)}`; `exitCode 128` →
-  `{state:'absent'}` (reachability is proven, so an auth-demand means
-  private-or-absent — a finding); any other nonzero → re-probe the anchor and
-  return `unreachable` if it now fails, else `absent`. `parse` reads
-  `<sha>\trefs/tags/<t>` and the `<t>^{}` peel line, so tag→SHA uses the peel SHA
-  when present (annotated) and the bare tag SHA otherwise (lightweight).
+- `GitClient.lsRemote(url)` →
+  `#runRaw(['ls-remote', '--tags', '--heads', url], {allowFailure: true})`
+  returning `{exitCode, stdout, stderr}`. **No new `#runRaw` option**: `#runRaw`
+  already sources env from `this.#runtime.proc.env` and threads `this.#token`
+  (or not) automatically. Anonymous transport is a GitClient **without** a token
+  (or `client.withAuth(null)`); `GIT_TERMINAL_PROMPT=0` is set on the runtime's
+  `proc.env` by the driver (Step 5), preserving the injection seam — not read
+  from `process.env` inside the client.
+- `ref-resolver.js`: export
+  `createGitResolver({ authedGit, anonGit, anchor = 'actions/checkout' })`
+  returning `{ resolve({owner, repo, anonymous}) }`. It picks `anonGit` when
+  `anonymous`, else `authedGit`. First call probes the anchor via `anonGit`
+  (memoized); **gate-red = any nonzero anchor exit** → `{state: 'unreachable'}`,
+  no string-matching. Gate green: run the target; `exitCode 0` →
+  `{state:'ok', refs: parse(stdout)}`; `exitCode 128` → `{state:'absent'}`
+  (reachability is proven, so an auth-demand means private-or-absent — a
+  finding); any other nonzero → re-probe the anchor and return `unreachable` if
+  it now fails, else `absent`. `parse` reads `<sha>\trefs/tags/<t>` and the
+  `<t>^{}` peel line, so tag→SHA uses the peel SHA when present (annotated) and
+  the bare tag SHA otherwise (lightweight).
 
 Verify: `bun test …/git-client-lsremote.test.js` (libmock Runtime whose
 `subprocess.run` returns canned `{stdout, exitCode}`) + `bun test
@@ -161,10 +163,10 @@ Files:
 
 - create `scripts/check-skill-refs.mjs`
 - create `tests/check-skill-refs.integration.test.js`
-- modify `package.json` (add `check-skill-refs: node scripts/check-skill-refs.mjs`
-  as a top-level script; do **not** fold into `context` — the lint touches the
-  network and its CI gate is the dedicated workflow in Step 6, not the
-  `Context` jobs)
+- modify `package.json` (add
+  `check-skill-refs: node scripts/check-skill-refs.mjs` as a top-level script;
+  do **not** fold into `context` — the lint touches the network and its CI gate
+  is the dedicated workflow in Step 6, not the `Context` jobs)
 
 Change: `#!/usr/bin/env node`. Parse `--root <dir>` (default repo root). Build a
 default Runtime with `proc.env = {...process.env, GIT_TERMINAL_PROMPT: '0'}`.
@@ -172,9 +174,10 @@ Walk `<root>/.claude/skills/**` (`SKILL.md` + `references/*.md`), build `files`,
 run extractor → `buildPlaceholderAllowlist` + `anchorContextual`. Construct
 `authedGit = new GitClient({ runtime, token: process.env.GH_TOKEN })` and
 `anonGit = new GitClient({ runtime })` (no token), pass both to
-`createGitResolver`, then `lintActionRefs`. Print `file:line — owner/repo[@ref] —
-<reason>`. Exit 0 clean, 1 findings, 2 unreachable. `GH_TOKEN` is optional —
-absent (fork PR) means internal private refs read as findings, per design § Risks.
+`createGitResolver`, then `lintActionRefs`. Print
+`file:line — owner/repo[@ref] — <reason>`. Exit 0 clean, 1 findings, 2
+unreachable. `GH_TOKEN` is optional — absent (fork PR) means internal private
+refs read as findings, per design § Risks.
 
 The authoritative 11-finding assertion against the pre-fix corpus is the
 **unit** test in Step 4 (resolver fake returns `absent` for the `kata-action-*`
@@ -185,10 +188,11 @@ Verify: `bun test tests/check-skill-refs.integration.test.js` — spawns
 `node scripts/check-skill-refs.mjs --root <fixture>` against the committed
 pre-fix fixture and asserts a nonzero exit with the `file:line — … — <reason>`
 format on stdout. The test lives under `tests/` (collected by the `test` glob);
-`check-subprocess-in-tests` scans only `{libraries,products,services}/*/test`, so
-a top-level `tests/` file is outside its scope — the `.integration.test.js`
-suffix is convention, not an invariant requirement. This test reaches the network
-for the `kata-action-*` probes; mark it accordingly so it is skippable offline.
+`check-subprocess-in-tests` scans only `{libraries,products,services}/*/test`,
+so a top-level `tests/` file is outside its scope — the `.integration.test.js`
+suffix is convention, not an invariant requirement. This test reaches the
+network for the `kata-action-*` probes; mark it accordingly so it is skippable
+offline.
 
 ## Step 6 — CI surfaces
 
@@ -204,17 +208,18 @@ Change:
 - `check-skill-refs.yml` (following the `check-context.yml` job shape): `on` =
   `pull_request` (paths `.claude/skills/**`), `schedule` (daily cron),
   `workflow_dispatch`. Top-level `permissions: contents: read`. Job `lint`:
-  checkout → `forwardimpact/fit-bootstrap@<pinned-sha>` → `run: bun run
-  check-skill-refs` with `env: { GH_TOKEN: ${{ github.token }} }`. A separate job
-  `drift-issue` with `needs: lint`, a **single** guard
+  checkout → `forwardimpact/fit-bootstrap@<pinned-sha>` →
+  `run: bun run check-skill-refs` with `env: { GH_TOKEN: ${{ github.token }} }`.
+  A separate job `drift-issue` with `needs: lint`, a **single** guard
   `if: always() && github.event_name == 'schedule'`, and
-  `permissions: contents: read, issues: write`: when `needs.lint.result ==
-  'failure'`, upsert a single issue titled `skill-ref-lint: drift detected` via
+  `permissions: contents: read, issues: write`: when
+  `needs.lint.result == 'failure'`, upsert a single issue titled
+  `skill-ref-lint: drift detected` via
   `gh issue list --search "in:title skill-ref-lint: drift detected" --state open`
-  (operate on the **first** match if several; create if none; else `gh issue
-  edit` the body with the finding output); when `lint` succeeded, `gh issue
-  close` any open match. The `schedule` guard keeps PR/dispatch runs from
-  touching the issue.
+  (operate on the **first** match if several; create if none; else
+  `gh issue edit` the body with the finding output); when `lint` succeeded,
+  `gh issue close` any open match. The `schedule` guard keeps PR/dispatch runs
+  from touching the issue.
 - `publish-skills.yml`: in **both** `publish-fit-skills` and
   `publish-kata-skills`, add a `Skill ref lint` step — `uses:
   forwardimpact/fit-bootstrap@<pinned-sha>` with `working-directory: monorepo`,
@@ -225,8 +230,9 @@ Change:
   checkout path the workflow already uses (`path: monorepo`).
 
 Verify: `actionlint .github/workflows/check-skill-refs.yml`; read
-`publish-skills.yml` and confirm the `Skill ref lint` step precedes `Sync skills`
-in both jobs and that fit-bootstrap precedes it and is scoped to `monorepo`.
+`publish-skills.yml` and confirm the `Skill ref lint` step precedes
+`Sync skills` in both jobs and that fit-bootstrap precedes it and is scoped to
+`monorepo`.
 
 ## Step 7 — Rebase and prove the clean tree
 

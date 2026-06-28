@@ -232,7 +232,7 @@ becomes a first-class trace fact rather than an inference. The specific data
 structures, call sites, and nudge mechanism are design decisions; see
 design-a.md.
 
-### Participant-side coaching framing reaches participants via a generic,
+### Participant-side coaching framing reaches participants via a generic
 
 consumer-controlled pass-through
 
@@ -348,8 +348,8 @@ evidence function is shared.
 - **Facilitator-as-pure-orchestrator posture (spec 0490 scope).** That spec
   established the coach as a pure facilitator with orchestration-tool-only
   interaction. This spec refines the vocabulary of those tools; it does not
-  revert the posture. Prompt text introduced by spec 0490 is rewritten to the new
-  vocabulary, not removed.
+  revert the posture. Prompt text introduced by spec 0490 is rewritten to the
+  new vocabulary, not removed.
 - **Behavioural recovery strategies.** Shorter timeouts, automatic retry on
   protocol_violation, or re-dispatching a stalled coaching session are out of
   scope. The runtime's one bounded resume-once is the only recovery action;
@@ -372,10 +372,10 @@ evidence function is shared.
 - **Spec 0490** (`plan implemented`) — facilitator-as-pure-orchestrator posture.
   This spec refines the vocabulary that spec 0490 introduced; the posture itself
   is preserved.
-- **Spec 0500** (`plan implemented`) — facilitated-agent identity. Unchanged; the
-  participant-side coaching-framing surface this spec selects (libeval's generic
-  `systemPromptAmend` pass-through populated by the facilitator) sits alongside
-  the identity surface, not inside it.
+- **Spec 0500** (`plan implemented`) — facilitated-agent identity. Unchanged;
+  the participant-side coaching-framing surface this spec selects (libeval's
+  generic `systemPromptAmend` pass-through populated by the facilitator) sits
+  alongside the identity surface, not inside it.
 
 ## Success Criteria
 

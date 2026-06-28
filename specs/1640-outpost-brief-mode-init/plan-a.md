@@ -18,13 +18,13 @@ Libraries used: libcli (command/dispatch), libutil (runtime fs/clock), none new.
 
 ## Step 1 — Skill-posture manifest
 
-Intent: ship the design's membership table as deterministic data.
-Files: create `products/outpost/config/skill-postures.json`.
-Change: a flat object keyed by every bundled skill directory name (the 26 under
-`templates/.claude/skills/`), value `"brief"` or `"draft"`. Draft set:
-`draft-emails`, `send-chat`, `organize-files`, `deck-create`, `doc-create`,
-`candidate-report`. All others `"brief"`.
-Verify: `node -e "const m=require('./products/outpost/config/skill-postures.json'); const fs=require('fs'); const dirs=fs.readdirSync('products/outpost/templates/.claude/skills',{withFileTypes:true}).filter(d=>d.isDirectory()).map(d=>d.name); const miss=dirs.filter(d=>!(d in m)); if(miss.length) throw new Error('unclassified: '+miss); console.log('all',dirs.length,'classified')"`
+Intent: ship the design's membership table as deterministic data. Files: create
+`products/outpost/config/skill-postures.json`. Change: a flat object keyed by
+every bundled skill directory name (the 26 under `templates/.claude/skills/`),
+value `"brief"` or `"draft"`. Draft set: `draft-emails`, `send-chat`,
+`organize-files`, `deck-create`, `doc-create`, `candidate-report`. All others
+`"brief"`. Verify:
+`node -e "const m=require('./products/outpost/config/skill-postures.json'); const fs=require('fs'); const dirs=fs.readdirSync('products/outpost/templates/.claude/skills',{withFileTypes:true}).filter(d=>d.isDirectory()).map(d=>d.name); const miss=dirs.filter(d=>!(d in m)); if(miss.length) throw new Error('unclassified: '+miss); console.log('all',dirs.length,'classified')"`
 
 ## Step 2 — `posture.js` module
 
@@ -33,7 +33,8 @@ Files: create `products/outpost/src/posture.js`.
 Change: export an injectable class/functions using `runtime.fs`:
 
 - `readPosture(fs, posturePath)` → `"brief" | "brief+draft" | null` (null when
-  the file is absent or unparseable; the file shape is `{ "posture": <value> }`).
+  the file is absent or unparseable; the file shape is
+  `{ "posture": <value> }`).
 - `writePosture(fs, posturePath, value)` → validates `value` is one of the two
   strings (throws otherwise) and writes `{ posture }` JSON + newline.
 - `effectivePosture(stored)` → `stored ?? "brief"` (interim-window default,
@@ -58,15 +59,14 @@ on a clean `HOME` shows `{"posture":"brief"}` (covered by CLI test, Step 7).
 
 ## Step 4 — `posture` command (SC5)
 
-Intent: discoverable one-shot affordance to record a posture.
-Files: modify `products/outpost/src/outpost.js`.
-Change: add to `buildDefinition` commands:
+Intent: discoverable one-shot affordance to record a posture. Files: modify
+`products/outpost/src/outpost.js`. Change: add to `buildDefinition` commands:
 `{ name: "posture", args: "[brief|brief+draft]", description: "Show or set the adoption posture (brief or brief+draft)" }`.
 Add a `posture` handler to `COMMANDS`: with no arg, print the current effective
 posture; with an arg, validate and `writePosture`, then confirm. Invalid arg →
-`cli.usageError`, exit 2.
-Verify: `--help` lists `posture`; `fit-outpost posture brief+draft` then
-`fit-outpost status` shows `posture: brief+draft` (Step 7 CLI test).
+`cli.usageError`, exit 2. Verify: `--help` lists `posture`;
+`fit-outpost posture brief+draft` then `fit-outpost status` shows
+`posture: brief+draft` (Step 7 CLI test).
 
 ## Step 5 — `status` emits the posture line (SC6)
 
@@ -80,15 +80,14 @@ Verify: Step 7 asserts the regex on `status` output for each state.
 ## Step 6 — Wake-path gate (SC1, SC3, SC4, SC12)
 
 Intent: under `brief`, deny draft-side skills and inject the brief directive;
-under `brief+draft`, spawn unchanged.
-Files: modify `products/outpost/src/agent-runner.js`; thread
-`posturePath` (`join(OUTPOST_HOME, "posture.json")`) + `manifestPath`
+under `brief+draft`, spawn unchanged. Files: modify
+`products/outpost/src/agent-runner.js`; thread `posturePath`
+(`join(OUTPOST_HOME, "posture.json")`) + `manifestPath`
 (`join(PKG_DIR, "config", "skill-postures.json")`, both already in `run()`
 scope) into `AgentRunner` from `outpost.js`'s single construction site
-(`new AgentRunner(...)`).
-Change: in `wake`, before building `spawnArgs`, compute
-`posture = effectivePosture(await readPosture(...))`. When `posture === "brief"`,
-append to `spawnArgs`:
+(`new AgentRunner(...)`). Change: in `wake`, before building `spawnArgs`,
+compute `posture = effectivePosture(await readPosture(...))`. When
+`posture === "brief"`, append to `spawnArgs`:
 
 - `"--disallowedTools", draftSkills(manifest).map(s => \`Skill(${s})\`).join(" ")`
   (one space-joined token list per the CLI's documented format).
@@ -151,11 +150,13 @@ required substring is present and the forbidden ones are absent.
 
 ## Step 9 — Regenerate the help golden
 
-Intent: keep the captured `--help` snapshot honest after the new command.
-Files: modify `products/outpost/test/golden/fit-outpost/help.stdout`.
-Change: re-capture via
+Intent: keep the captured `--help` snapshot honest after the new command. Files:
+modify `products/outpost/test/golden/fit-outpost/help.stdout`. Change:
+re-capture via
 `cd products/outpost && node ../../scripts/capture-cli-golden.mjs --bin fit-outpost --exec bin/fit-outpost.js`.
-Verify: `node ../../scripts/capture-cli-golden.mjs --bin fit-outpost --exec bin/fit-outpost.js --verify` clean.
+Verify:
+`node ../../scripts/capture-cli-golden.mjs --bin fit-outpost --exec bin/fit-outpost.js --verify`
+clean.
 
 ## Step 10 — Full suite
 

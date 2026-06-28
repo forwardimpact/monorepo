@@ -440,7 +440,7 @@ Mock `query` to simulate a multi-turn relay. Verify:
 
 ### Flag parsing
 
-```
+```text
 fit-eval run [options]
 
 Options:
@@ -508,13 +508,13 @@ contains the desired `.claude/` configuration.
 Single agent in CI (replaces the claude action). The agent profile is loaded
 from `.claude/agents/` within the working directory:
 
-```
+```text
 fit-eval run --task=.github/tasks/security-audit.md --cwd=. --model=opus --max-turns=50
 ```
 
 Single agent with trace file:
 
-```
+```text
 fit-eval run --task=.github/tasks/release-readiness.md --output=traces/release.ndjson
 ```
 
@@ -524,7 +524,7 @@ fit-eval run --task=.github/tasks/release-readiness.md --output=traces/release.n
 
 ### Flag parsing
 
-```
+```text
 fit-eval supervise [options]
 
 Options:
@@ -558,7 +558,7 @@ persona, point `--supervisor-cwd` to a directory containing the desired
 
 Supervisor inherits monorepo context:
 
-```
+```text
 fit-eval supervise \
   --task=scenarios/guide-setup/task.md \
   --supervisor-cwd=. \
@@ -567,7 +567,7 @@ fit-eval supervise \
 
 Both purpose-built (fully isolated scenario):
 
-```
+```text
 fit-eval supervise \
   --task=scenarios/guide-setup/task.md \
   --supervisor-cwd=scenarios/guide-setup/supervisor \
@@ -576,7 +576,7 @@ fit-eval supervise \
 
 Different personas via working directories:
 
-```
+```text
 fit-eval supervise \
   --task=scenarios/guide-setup/task.md \
   --supervisor-cwd=scenarios/guide-setup/supervisor \
@@ -588,7 +588,7 @@ from its own `--*-cwd`.
 
 Minimal (defaults):
 
-```
+```text
 fit-eval supervise --task=task.md
 ```
 
@@ -832,7 +832,7 @@ are unchanged.
 
 **New files:**
 
-```
+```text
 scenarios/guide-setup/
   task.md              Task for the agent
   supervisor/
@@ -844,9 +844,10 @@ scenarios/guide-setup/
 ### `scenarios/guide-setup/task.md`
 
 > You are an engineer evaluating the Forward Impact engineering platform. Go to
-> www.forwardimpact.team, find the Guide product, read the documentation, and
-> try to install and configure it in a fresh project. Do not clone the monorepo
-> — install from npm. Write notes about your experience in ./notes/.
+> <https://www.forwardimpact.team>, find the Guide product, read the
+> documentation, and try to install and configure it in a fresh project. Do not
+> clone the monorepo — install from npm. Write notes about your experience in
+> ./notes/.
 
 ### `scenarios/guide-setup/supervisor/CLAUDE.md`
 
@@ -887,7 +888,7 @@ directory is for fully isolated scenarios.
 
 ### Invocation
 
-```
+```text
 fit-eval supervise \
   --task=scenarios/guide-setup/task.md \
   --supervisor-cwd=scenarios/guide-setup/supervisor \
@@ -896,7 +897,7 @@ fit-eval supervise \
 
 Or using the monorepo as supervisor context:
 
-```
+```text
 fit-eval supervise \
   --task=scenarios/guide-setup/task.md \
   --supervisor-cwd=. \
@@ -907,7 +908,7 @@ fit-eval supervise \
 
 **New files:**
 
-```
+```text
 scenarios/guide-onboarding/
   task.md              Task for the agent
   agent/
@@ -930,8 +931,8 @@ docs clear? Do the commands work? Is the output useful?
 ### `scenarios/guide-onboarding/task.md`
 
 > You are an engineer trying out the Forward Impact Guide product for the first
-> time. Start at www.forwardimpact.team, find the Guide product page, and follow
-> the instructions to install and run fit-guide.
+> time. Start at <https://www.forwardimpact.team>, find the Guide product page,
+> and follow the instructions to install and run fit-guide.
 >
 > Your goal is to get fit-guide working and run a few prompts with it:
 >
@@ -961,7 +962,7 @@ docs clear? Do the commands work? Is the output useful?
 The product-manager runs from the monorepo root, inheriting all its skills,
 product knowledge, and CLAUDE.md context:
 
-```
+```text
 fit-eval supervise \
   --task=scenarios/guide-onboarding/task.md \
   --supervisor-cwd=. \

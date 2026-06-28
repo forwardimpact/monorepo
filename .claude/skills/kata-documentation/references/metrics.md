@@ -10,9 +10,9 @@ one row per run.
 
 ## `docs_pages_over_ceiling` — Definition
 
-**Pool:** the rows in the `wiki/technical-writer.md` § Documentation Review State
-table. This is the operational rotation pool the scheduled review skill draws
-from — a collapsed view of the SKILL.md `### Topic areas` table. The pool
+**Pool:** the rows in the `wiki/technical-writer.md` § Documentation Review
+State table. This is the operational rotation pool the scheduled review skill
+draws from — a collapsed view of the SKILL.md `### Topic areas` table. The pool
 definition is the wiki table because that is what rotation actually consults.
 
 **Computation:** at end-of-day, count topics where `age_days > 14`. Strict
@@ -31,7 +31,7 @@ enumerations (services lists, library and skill counts, sibling-action
 tables, products and workflow lists), a finding the gate would have caught is
 recorded on its `errors_found` row with a `note` that begins:
 
-```
+```text
 enumeration-drift:<topic-id>:
 ```
 

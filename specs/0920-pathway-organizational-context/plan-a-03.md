@@ -1,6 +1,7 @@
 # Plan 0920-a · Part 03 — Starter content + baseline fixture
 
-Overview: [plan-a.md](plan-a.md) · Spec: [spec.md](spec.md) · Design: [design-a.md](design-a.md)
+Overview: [plan-a.md](plan-a.md) · Spec: [spec.md](spec.md) · Design:
+[design-a.md](design-a.md)
 
 Depends on: Part 02 merged. After this part merges, a fresh
 `npx fit-pathway agent` against the starter renders the design's reference
@@ -83,7 +84,7 @@ cp "$WORK/out/.claude/CLAUDE.md" \
 elsewhere in the repo) would silently rewrite it and break the test on CI
 vs local. Add to `.gitattributes` (create the file if it does not exist):
 
-```
+```text
 products/pathway/test/fixtures/* text eol=lf
 ```
 
@@ -93,8 +94,8 @@ This pins LF line endings for every fixture under `fixtures/`. Verify with
 
 **Created:** `products/pathway/test/agent-baseline.test.js` — two cases:
 
-1. **Byte-identical absent-slot.** Copy `products/map/starter/` into a temp
-   dir, remove `organizational-context.yaml`, run
+1. **Byte-identical absent-slot.** Copy `products/map/starter/` into a temp dir,
+   remove `organizational-context.yaml`, run
    `bunx fit-pathway agent software_engineering --track=platform --output=. --data=./data`,
    read `.claude/CLAUDE.md`, assert bytes match the fixture.
 2. **Populated starter renders reference section.** Copy

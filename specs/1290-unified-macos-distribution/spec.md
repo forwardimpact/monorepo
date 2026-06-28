@@ -411,7 +411,8 @@ holds trivially.
   `--bundle-name` flag is the divergence point Outpost's `.pkg` lane
   exploits and that this spec closes.
 - [`products/outpost/pkg/build.js`](../../products/outpost/pkg/build.js)
-  and [`products/outpost/pkg/macos/build-pkg.sh`](../../products/outpost/pkg/macos/build-pkg.sh)
+  and
+  [`products/outpost/pkg/macos/build-pkg.sh`](../../products/outpost/pkg/macos/build-pkg.sh)
   — the Outpost `.pkg` lane builder and its payload step.
 - [`justfile`](../../justfile) — recipes `build-app-product NAME` and
   `build-app-gear`, the canonical brew-lane builders that all seven

@@ -73,8 +73,8 @@ flowchart LR
   commit them, or the substrate stays at the old `manager_email: null` state.
 - **Re-pointing manager_email shifts `org team` output for IT managers.** An IT
   team manager now has a manager, so `org team --manager zeus@` is non-empty and
-  `get_team` from a team manager is unchanged (it walks *down*). Verified by SC-5
-  projection equality; the plan adds a test that a team manager's own team
+  `get_team` from a team manager is unchanged (it walks *down*). Verified by
+  SC-5 projection equality; the plan adds a test that a team manager's own team
   resolution is byte-identical before/after.
 
 — Staff Engineer 🛠️

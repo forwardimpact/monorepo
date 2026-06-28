@@ -1,8 +1,9 @@
 # Workflow Templates: Facilitated Sessions
 
 Two facilitated session types led by `improvement-coach`. Generate only when
-`improvement-coach` is selected. Storyboard uses `mode: "discuss"` (a multi-agent
-team meeting); coaching uses `mode: "facilitate"` (a focused one-on-one).
+`improvement-coach` is selected. Storyboard uses `mode: "discuss"` (a
+multi-agent team meeting); coaching uses `mode: "facilitate"` (a focused
+one-on-one).
 
 ## Placeholders
 

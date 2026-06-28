@@ -9,7 +9,7 @@
 
 Running the compiled binary against the repo's protos fails:
 
-```
+```text
 Missing service.js.mustache template
 ```
 
@@ -53,18 +53,45 @@ the build gate while remaining unfit for its purpose.
 
 ### Invariants preserved (not changes)
 
-These properties are unchanged by this spec; they appear here so the design phase preserves them rather than treating them as implicitly out of scope.
+These properties are unchanged by this spec; they appear here so the design
+phase preserves them rather than treating them as implicitly out of scope.
 
-- **Template set.** The kind set is exactly the five rendered today (`service`, `client`, `definition`, `services-exports`, `definitions-exports`); none are added, removed, or renamed.
-- **Rendered output.** What `fit-codegen --all` produces is unchanged file-for-file from a source re-run on the same proto inputs. Codegen output is deterministic byte-for-byte given a fixed input set (no timestamps, no `Date.now()`) once the unsorted `readdirSync` iterations in `runExports` (`libraries/libcodegen/src/definitions.js:62`, `libraries/libcodegen/src/services.js:55`) are sorted — a one-line repair carried in this change's scope (see § Scope row "Rendered-output determinism repair"). With that repair in place, equivalence is checked without a reproducibility hedge.
-- **Public render-path API surface.** `libcodegen`'s public exports — `CodegenBase`, `CodegenTypes`, `CodegenServices`, `CodegenDefinitions`, `CodegenMetadata` (from `libraries/libcodegen/src/index.js`) — continue to expose render paths that callers reach without supplying a template path, a template loader, or a template body. The change moves where templates come from, not how callers ask for renders.
-- **npm distribution.** `@forwardimpact/libcodegen` consumers continue to reach render paths without supplying or locating templates themselves. The user-observable property is preserved; the mechanism (on-disk templates under `templates/` vs. inlined string literals in the published `dist/`, or anything else) is `design-a.md`'s call.
+- **Template set.** The kind set is exactly the five rendered today (`service`,
+  `client`, `definition`, `services-exports`, `definitions-exports`); none are
+  added, removed, or renamed.
+- **Rendered output.** What `fit-codegen --all` produces is unchanged
+  file-for-file from a source re-run on the same proto inputs. Codegen output is
+  deterministic byte-for-byte given a fixed input set (no timestamps, no
+  `Date.now()`) once the unsorted `readdirSync` iterations in `runExports`
+  (`libraries/libcodegen/src/definitions.js:62`,
+  `libraries/libcodegen/src/services.js:55`) are sorted — a one-line repair
+  carried in this change's scope (see § Scope row "Rendered-output determinism
+  repair"). With that repair in place, equivalence is checked without a
+  reproducibility hedge.
+- **Public render-path API surface.** `libcodegen`'s public exports —
+  `CodegenBase`, `CodegenTypes`, `CodegenServices`, `CodegenDefinitions`,
+  `CodegenMetadata` (from `libraries/libcodegen/src/index.js`) — continue to
+  expose render paths that callers reach without supplying a template path, a
+  template loader, or a template body. The change moves where templates come
+  from, not how callers ask for renders.
+- **npm distribution.** `@forwardimpact/libcodegen` consumers continue to reach
+  render paths without supplying or locating templates themselves. The
+  user-observable property is preserved; the mechanism (on-disk templates under
+  `templates/` vs. inlined string literals in the published `dist/`, or anything
+  else) is `design-a.md`'s call.
 
 ### Out of scope
 
-- Adding a Windows compiled binary or any platform not already in spec 1420's matrix.
-- The `loadTemplate("exports")` jsdoc kind in `libraries/libcodegen/src/base.js`, for which no template file exists today — tracked separately as Issue [#1450](https://github.com/forwardimpact/monorepo/issues/1450).
-- A second compiled consumer of `libcodegen` (none exists today; `fit-codegen` is the only `bin` reaching a render path). Forward-compatibility for hypothetical future consumers is a natural consequence of putting the resolution mechanism inside the library, not a separate verification gate.
+- Adding a Windows compiled binary or any platform not already in spec 1420's
+  matrix.
+- The `loadTemplate("exports")` jsdoc kind in
+  `libraries/libcodegen/src/base.js`, for which no template file exists today —
+  tracked separately as Issue
+  [#1450](https://github.com/forwardimpact/monorepo/issues/1450).
+- A second compiled consumer of `libcodegen` (none exists today; `fit-codegen`
+  is the only `bin` reaching a render path). Forward-compatibility for
+  hypothetical future consumers is a natural consequence of putting the
+  resolution mechanism inside the library, not a separate verification gate.
 
 ## Success Criteria
 

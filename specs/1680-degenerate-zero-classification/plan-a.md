@@ -52,7 +52,8 @@ export function classify(metric) {
 }
 ```
 
-Verification: `bun test libraries/libxmr/test/classify.test.js` passes after Step 2.
+Verification: `bun test libraries/libxmr/test/classify.test.js` passes after
+Step 2.
 
 ## Step 2: Add classify unit tests
 
@@ -84,7 +85,8 @@ Files modified: `libraries/libxmr/test/analyze.test.js`.
 
 Change: add three cases using the file's `makeCSV` helper.
 
-- 15 all-zero rows → `status: "predictable"`, `classification: "degenerate-zero"`.
+- 15 all-zero rows → `status: "predictable"`,
+  `classification: "degenerate-zero"`.
 - An explicit contrast assertion in one test: an all-zero series is
   `degenerate-zero` while a positive stable series is `stable`, both
   `predictable`.
@@ -95,7 +97,8 @@ Verification: `bun test libraries/libxmr/test/analyze.test.js` passes.
 
 ## Step 4: Document the value in the libxmr README
 
-Intent: README gains a § Classifications table (none today — success criterion 4).
+Intent: README gains a § Classifications table (none today — success criterion
+4).
 
 Files modified: `libraries/libxmr/README.md`.
 
@@ -116,6 +119,7 @@ Files modified:
 `websites/fit/docs/libraries/predictable-team/xmr-analysis/index.md`.
 
 Changes:
+
 - `classification` JSON-field bullet (~line 114): add `degenerate-zero` to the
   enumerated values.
 - § Classifications table (~line 153): add a `degenerate-zero` row — "Every
@@ -145,7 +149,8 @@ no process signal).
 Note: this writes under `.claude/`. If a direct Edit is blocked, apply via
 `echo … | bunx fit-selfedit .claude/skills/fit-xmr/SKILL.md` per CLAUDE.md.
 
-Verification: `rg -c degenerate-zero .claude/skills/fit-xmr/SKILL.md` returns ≥ 1.
+Verification: `rg -c degenerate-zero .claude/skills/fit-xmr/SKILL.md` returns ≥
+1.
 
 ## Step 7: Full verification
 

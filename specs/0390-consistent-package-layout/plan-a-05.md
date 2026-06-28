@@ -21,7 +21,7 @@ below. The whole part ships as one commit.
 
 ### Current state
 
-```
+```text
 products/map/
 ├── activity/
 │   ├── parse-people.js
@@ -67,7 +67,7 @@ products/map/
 
 ### Target state
 
-```
+```text
 products/map/
 ├── bin/
 │   └── fit-map.js          ← thin entry point only
@@ -130,11 +130,13 @@ products/map/
 10. Update `products/map/package.json` exports — rewrite every
     `"./activity/..."` value from `"./activity/..."` to `"./src/activity/..."`.
     For example:
+
     ```jsonc
     "./activity/queries/org": "./src/activity/queries/org.js",
     "./activity/parse-people": "./src/activity/parse-people.js",
     "./activity/validate/people": "./src/activity/validate/people.js",
     ```
+
     The `"./activity/storage"`, `"./activity/extract/*"`, and
     `"./activity/transform/*"` keys already point at
     `./supabase/functions/_shared/activity/...` — leave those targets unchanged
@@ -148,6 +150,7 @@ products/map/
 14. Verify all 25 exports (1 root `"."` + 24 subpaths): grep every `"./"` and
     `"."` key in map's `package.json` and for each, confirm the target file
     exists with `test -f`. This is the per-package version of success criterion
+
     #9.
 
 ### products/map imports recap
@@ -173,7 +176,7 @@ Use `bun run test` after every rewrite to catch misses.
 
 ### Current state
 
-```
+```text
 products/guide/
 ├── bin/
 │   └── fit-guide.js
@@ -189,7 +192,7 @@ No `src/`. No `main`. No `exports`.
 
 ### Target state
 
-```
+```text
 products/guide/
 ├── bin/
 │   └── fit-guide.js
@@ -210,11 +213,13 @@ products/guide/
 3. `rmdir products/guide/lib` (must be empty after step 2).
 4. **Create `products/guide/src/index.js`** — the spec requires every
    non-service package to have `src/index.js`. Contents:
+
    ```js
    // Public entry point for @forwardimpact/guide.
    // Re-exports the thin helpers the CLI wires together at launch.
    export * from "./lib/status.js";
    ```
+
    This is a new file. Keep it minimal — only re-export what is currently
    imported elsewhere from the guide package (likely nothing outside of
    `bin/fit-guide.js`).
@@ -226,6 +231,7 @@ products/guide/
    uses a relative import (`../lib/status.js`), not the package name. If any
    external consumer appears in the grep, investigate before proceeding.
 7. Update `products/guide/package.json`:
+
    ```jsonc
    {
      "main": "./src/index.js",
@@ -236,6 +242,7 @@ products/guide/
      "files": ["src/**/*.js", "bin/**/*.js", "proto/**", "starter/**", "README.md"]
    }
    ```
+
 8. Run `bun run node --test products/guide/test/*.test.js`.
 9. Spot-check `bunx fit-guide --help`.
 
@@ -243,7 +250,7 @@ products/guide/
 
 ### Current state
 
-```
+```text
 products/basecamp/
 ├── config/
 │   └── scheduler.json
@@ -286,9 +293,11 @@ products/basecamp/
 
 1. `git mv products/basecamp/template products/basecamp/templates`
 2. Grep for `template/` references inside basecamp:
-   ```
+
+   ```text
    rg 'template/' products/basecamp/ -l
    ```
+
 3. Update every hit. Typical call sites:
    - `products/basecamp/src/kb-manager.js` — likely reads the template directory
      at runtime.
@@ -296,25 +305,31 @@ products/basecamp/
 4. Update `products/basecamp/package.json` `files` field to replace `template/`
    (if present) with `templates/`.
 5. Grep the entire monorepo for `basecamp/template/` (external references):
-   ```
+
+   ```text
    rg 'basecamp/template' .
    ```
+
 6. **Create `products/basecamp/bin/fit-basecamp.js`** as a thin CLI shim.
    Preserve the current shebang (`#!/usr/bin/env bun`) because `src/basecamp.js`
    uses it — swapping to node is out of scope for this spec. Contents:
+
    ```js
    #!/usr/bin/env bun
    // Thin entry point — delegates to src/basecamp.js.
    import "../src/basecamp.js";
    ```
+
    Make it executable: `chmod +x products/basecamp/bin/fit-basecamp.js`.
 7. **Update `products/basecamp/package.json`**:
+
    ```jsonc
    {
      "main": "./src/basecamp.js",
      "bin": { "fit-basecamp": "./bin/fit-basecamp.js" }
    }
    ```
+
    Do **not** remove the shebang from `src/basecamp.js`. When `src/basecamp.js`
    is executed as a library entry it runs a CLI dispatcher at the bottom of the
    file — leaving that in place means the thin shim just re-imports the module
@@ -324,6 +339,7 @@ products/basecamp/
    fits.
 8. **Update the scripts in `package.json`** that currently reference
    `src/basecamp.js` as a runtime target:
+
    ```jsonc
    "scripts": {
      "start": "bun ./bin/fit-basecamp.js",
@@ -331,6 +347,7 @@ products/basecamp/
      "build": "bun pkg/build.js"
    }
    ```
+
    (Read the current scripts first — they may reference `src/basecamp.js`
    directly. Rewrite to point at `bin/fit-basecamp.js`.)
 9. Run `bun run node --test products/basecamp/test/*.test.js`.
@@ -373,6 +390,7 @@ Part 05 fixes both gaps.
 1. **Create `products/pathway/src/index.js`.** Make it a thin re-export of the
    types module (which is the closest thing to a public library entry pathway
    has today):
+
    ```js
    // Public entry point for @forwardimpact/pathway.
    // The primary consumption mode is the CLI (fit-pathway) — this
@@ -382,9 +400,11 @@ Part 05 fixes both gaps.
    // definitions.
    export * from "./types.js";
    ```
+
    Keep it minimal. Do not move runtime logic — that is out of scope.
 2. **Update `products/pathway/package.json`** to add `main` and a `"."` exports
    entry:
+
    ```jsonc
    {
      "main": "./src/index.js",
@@ -395,6 +415,7 @@ Part 05 fixes both gaps.
      }
    }
    ```
+
    The `./formatters` and `./commands` entries stay exactly as today.
 3. Run `bun run node --test products/pathway/test/*.test.js`.
 4. Spot-check `bunx fit-pathway --help`.
@@ -476,7 +497,7 @@ Part 05 fixes both gaps.
 
 ## Deliverable commit
 
-```
+```text
 refactor(layout): flatten product layouts to the contract (part 05/08)
 
 - products/map: move bin/lib/ into src/{lib,commands}/, fold activity/

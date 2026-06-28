@@ -68,15 +68,39 @@ graph TD
 
 ## Data Flow
 
-**Write path.** Agent → `fit-xmr record --skill <agent> --metric <name> --value <n> [--event-type <name>] --run <id> --note <free text>`. `record.js` resolves `event_type` from `--event-type`, falling back to parsing the workflow filename out of `process.env.GITHUB_WORKFLOW_REF` (`basename(ref.split('@')[0], '.yml')`). Exits non-zero if neither resolves. Appends `date,metric,value,unit,run,note,event_type`.
+**Write path.** Agent runs:
 
-**Read path.** Consumer → `fit-xmr analyze|chart|summarize <csv-path>` → `csv.parseCSV` validates the header against `HEADER` → apply `--event-type` filter (default `DEFAULT_SHIFT_TYPE`) before XmR computation → output names the slice in its header. The pre-existing `--event-type=*` escape hatch yields the unfiltered series and is named as such in the output.
+```sh
+fit-xmr record --skill <agent> --metric <name> --value <n> [--event-type <name>] --run <id> --note <free text>
+```
 
-**Migration path (one-shot, this PR series only).** A single invocation of `node scripts/spec-1540-migrate-to-event-type.mjs` walks `wiki/metrics/**/2026.csv`, applies the classifier per file, rewrites in place, and performs the two outlier-onboarding moves (see § Outlier CSVs). The migration commits land in the same PR series as the runtime patch and the script removal — after merge, `git log` is the record of how the migration happened; the codebase carries no migration code.
+`record.js` resolves `event_type` from `--event-type`, falling back to parsing
+the workflow filename out of `process.env.GITHUB_WORKFLOW_REF`
+(`basename(ref.split('@')[0], '.yml')`). Exits non-zero if neither resolves.
+Appends `date,metric,value,unit,run,note,event_type`.
 
-**Storyboard refresh.** `fit-wiki refresh` regenerates storyboard chart blocks by calling `analyze()` + `renderChart()` from `libxmr`. No code change in `libwiki`; the shift-work default propagates because every downstream caller of `analyze` inherits it.
+**Read path.** Consumer → `fit-xmr analyze|chart|summarize <csv-path>` →
+`csv.parseCSV` validates the header against `HEADER` → apply `--event-type`
+filter (default `DEFAULT_SHIFT_TYPE`) before XmR computation → output names the
+slice in its header. The pre-existing `--event-type=*` escape hatch yields the
+unfiltered series and is named as such in the output.
 
-**Validation path.** `fit-xmr validate <csv-path>` enforces header equality and per-row non-empty `event_type`. No version branch — a non-matching header is an error, full stop.
+**Migration path (one-shot, this PR series only).** A single invocation of
+`node scripts/spec-1540-migrate-to-event-type.mjs` walks
+`wiki/metrics/**/2026.csv`, applies the classifier per file, rewrites in place,
+and performs the two outlier-onboarding moves (see § Outlier CSVs). The
+migration commits land in the same PR series as the runtime patch and the script
+removal — after merge, `git log` is the record of how the migration happened;
+the codebase carries no migration code.
+
+**Storyboard refresh.** `fit-wiki refresh` regenerates storyboard chart blocks
+by calling `analyze()` + `renderChart()` from `libxmr`. No code change in
+`libwiki`; the shift-work default propagates because every downstream caller of
+`analyze` inherits it.
+
+**Validation path.** `fit-xmr validate <csv-path>` enforces header equality and
+per-row non-empty `event_type`. No version branch — a non-matching header is an
+error, full stop.
 
 ## Key Decisions
 
@@ -105,32 +129,31 @@ after merge** — the script's pre-flight rejects any divergent file
 non-zero going forward, so the script itself becomes the standard's
 enforcement edge until removed.
 
-**`wiki/metrics/kata-release-engineer-trace-attestation/2026.csv` —
-relocate.** Header is `date,activation_run_id,prior_run_id,
-p1_header_present,p2_prior_marked_unverified,p3_was_false_positive,note`,
-zero overlap with `EXPECTED_HEADER`. The file records per-activation
-P1/P2/P3 attestation booleans, not `metric`/`value`. It lives under
-`wiki/metrics/**` by directory convention only. The migration script
-performs an atomic rename to **`wiki/release-engineer/trace-attestation-2026.csv`**
-(off `wiki/metrics/**` entirely) and updates the trace-attestation writer
-in the release-engineer skill to the new path. Semantic content
-unchanged; RE Exp #1468 (verdict horizon 7/01) reads the same series at
-the new path. **RE concurrence required before merge.**
+**`wiki/metrics/kata-release-engineer-trace-attestation/2026.csv` — relocate.**
+Header is
+`date,activation_run_id,prior_run_id, p1_header_present,p2_prior_marked_unverified,p3_was_false_positive,note`,
+zero overlap with `EXPECTED_HEADER`. The file records per-activation P1/P2/P3
+attestation booleans, not `metric`/`value`. It lives under `wiki/metrics/**` by
+directory convention only. The migration script performs an atomic rename to
+**`wiki/release-engineer/trace-attestation-2026.csv`** (off `wiki/metrics/**`
+entirely) and updates the trace-attestation writer in the release-engineer skill
+to the new path. Semantic content unchanged; RE Exp #1468 (verdict horizon 7/01)
+reads the same series at the new path. **RE concurrence required before merge.**
 
 **`wiki/metrics/kata-product-issue/2026.csv` — split.** Header is
-`date,metric,value,unit,run,note,predicate_resolution`; the first six
-columns match `EXPECTED_HEADER`, the trailing `predicate_resolution` is a
-skill-private extension tied to PM Exp 41 (locked 2026-06-05; verdict
-horizon ~2026-06-19). The migration script splits the file: rows are
-rewritten to the unified 7-col + `event_type=kata-product-issue` schema
-in place, and the `predicate_resolution` data is extracted to a new
-PM-owned file at **`wiki/product-manager/exp-41-predicate-resolutions-2026.csv`**
-keyed by `(date, run)` (only rows where `predicate_resolution != n/a`).
-The `kata-product-issue` skill writer is updated to record predicate
-resolutions to the new file; the metric CSV's row arity downstream
-readers see is the standard 7. **PM concurrence required before merge**
-— PM may propose an alternative onboarding (fold into `note`, defer the
-split to post-Exp 41) and the design re-iterates if so.
+`date,metric,value,unit,run,note,predicate_resolution`; the first six columns
+match `EXPECTED_HEADER`, the trailing `predicate_resolution` is a skill-private
+extension tied to PM Exp 41 (locked 2026-06-05; verdict horizon ~2026-06-19).
+The migration script splits the file: rows are rewritten to the unified 7-col +
+`event_type=kata-product-issue` schema in place, and the `predicate_resolution`
+data is extracted to a new PM-owned file at
+**`wiki/product-manager/exp-41-predicate-resolutions-2026.csv`** keyed by
+`(date, run)` (only rows where `predicate_resolution != n/a`). The
+`kata-product-issue` skill writer is updated to record predicate resolutions to
+the new file; the metric CSV's row arity downstream readers see is the standard
+seven. **PM concurrence required before merge** — PM may propose an alternative
+onboarding (fold into `note`, defer the split to post-Exp 41) and the design
+re-iterates if so.
 
 Cross-agent coordination: PR description names PM and RE as affected
 owners and links this section. If either objects, the design freezes at

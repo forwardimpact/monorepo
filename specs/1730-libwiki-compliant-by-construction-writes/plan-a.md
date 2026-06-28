@@ -12,10 +12,10 @@ logical commit with its tests. The trigger signature change (step 3) touches all
 three `rotateIfOverBudget` callers in one commit so the tree never holds a
 half-migrated signature.
 
-Libraries used: libwiki (weekly-log, commands/log, commands/rotate, commands/fix,
-boot, audit/rules, constants), libutil (git-client). The new drift rule reuses
-the existing `weekly-log-main`/`-part` scopes, so `audit/scopes.js` is not
-modified.
+Libraries used: libwiki (weekly-log, commands/log, commands/rotate,
+commands/fix, boot, audit/rules, constants), libutil (git-client). The new drift
+rule reuses the existing `weekly-log-main`/`-part` scopes, so `audit/scopes.js`
+is not modified.
 
 ## Step 1 — Home the day-section seam regex in constants
 
@@ -38,11 +38,14 @@ export const WEEKLY_LOG_SEAM_RE = /^## (\d{4}-\d{2}-\d{2})/;
 
 Replace the inline `/^## (\d{4}-\d{2}-\d{2})/` literals in `weekly-log.js`
 (`bisectWeeklyLog` seam scan and `rebisectOverBudgetPart` fallback) and
-`commands/log.js` (`lastDateHeading`) with a `new RegExp(WEEKLY_LOG_SEAM_RE, "gm")`
-where the `g` flag is needed. The audit's `decisionWithin5` `entryRe` keeps its
-own stricter anchored variant (design note).
+`commands/log.js` (`lastDateHeading`) with a
+`new RegExp(WEEKLY_LOG_SEAM_RE, "gm")` where the `g` flag is needed. The audit's
+`decisionWithin5` `entryRe` keeps its own stricter anchored variant (design
+note).
 
-Verify: `bunx vitest run libraries/libwiki/test/weekly-log.test.js libraries/libwiki/test/cli-log.test.js` — existing rotation/append tests pass unchanged.
+Verify:
+`bunx vitest run libraries/libwiki/test/weekly-log.test.js libraries/libwiki/test/cli-log.test.js`
+— existing rotation/append tests pass unchanged.
 
 ## Step 2 — Sub-entry rotation for the irreducible day-section
 
@@ -55,36 +58,38 @@ Re-bisect a lone over-cap day-section at its `###` block seams inside
 Mechanism:
 
 - Extract the seam-find + `packSections` body of `bisectWeeklyLog` into an inner
-  `splitAt(body, seamRe, measure, overBudget)` that returns `{partBodies, residue}`.
+  `splitAt(body, seamRe, measure, overBudget)` that returns
+  `{partBodies, residue}`.
 - When `packSections` flags a lone day-section as the residue, re-run `splitAt`
-  on that section's text with a `### ` block-seam matcher; the block sections
+  on that section's text with a `###` block-seam matcher; the block sections
   pack under the same budgets. Splice the resulting block-bodies into
   `partBodies` in place of the single over-cap day-section.
-- Terminal residue is now a single `### ` block that alone exceeds a cap
+- Terminal residue is now a single `###` block that alone exceeds a cap
   (criterion 3); never recurse below `###`. The packer's existing "chunk alone
   over budget → seal as own part + record residue" branch is the base case.
 - **Residue naming:** the inner `splitAt` on the day-section returns its own
-  `residue` naming the over-cap `### ` block (heading text, lines, words). When
+  `residue` naming the over-cap `###` block (heading text, lines, words). When
   the outer pass splices block-bodies in for a day-section, it replaces the
   outer day-section residue with this inner block residue, so the surfaced
-  residue's `section` names the `### ` block (not the date) and carries the
+  residue's `section` names the `###` block (not the date) and carries the
   block's `lines`/`words` — what criterion 3 requires reported. Generalise
   `residueOf`/`prologueResidue` to take a heading string rather than `sec.date`.
 - **`rebisectOverBudgetPart` narrowing (the one caller whose result changes).**
-  It already calls `bisectWeeklyLog` then short-circuits on `parts.length === 1`.
-  Once sub-entry splitting lands, a formerly-irreducible part yields multiple
-  block-parts, so that branch is reached only for a true single over-cap `### `
-  block — the narrowing happens structurally with no edit to the branch logic.
-  Step 1 already replaced its inline date-seam literal with the constant. No
-  further change here; the part-level fixture below pins the new behaviour.
+  It already calls `bisectWeeklyLog` then short-circuits on
+  `parts.length === 1`. Once sub-entry splitting lands, a formerly-irreducible
+  part yields multiple block-parts, so that branch is reached only for a true
+  single over-cap `###` block — the narrowing happens structurally with no edit
+  to the branch logic. Step 1 already replaced its inline date-seam literal with
+  the constant. No further change here; the part-level fixture below pins the
+  new behaviour.
 - The move-not-copy invariant holds: block bodies are byte-slices of the
   day-section text, which is a byte-slice of the body.
 
 Verify: `libwiki` tests covering all three paths spec criterion 2 enumerates —
 (a) bisector unit test in `weekly-log.test.js`: a single over-cap dated entry
-with multiple `### ` blocks splits into budget-conforming parts; assert outputs
+with multiple `###` blocks splits into budget-conforming parts; assert outputs
 concatenate content-equal with the input (criterion 4) and no part exceeds a cap
-except a single over-cap `### ` block whose residue names the block, lines, and
+except a single over-cap `###` block whose residue names the block, lines, and
 words (criteria 2, 3); (b) the auto-fixer / part path in
 `weekly-log-part.integration.test.js` via `rebisectOverBudgetPart`; (c) the
 force-rotate path in `cli-rotate.integration.test.js` via `fit-wiki rotate`.
@@ -92,7 +97,8 @@ force-rotate path in `cli-rotate.integration.test.js` via `fit-wiki rotate`.
 ## Step 3 — Word-cap trigger and caller signature change
 
 Widen `rotateIfOverBudget`'s `appendLines` number to a `{lines, words}` delta
-and trigger on either projected cap (design D3). Clean break — change all callers.
+and trigger on either projected cap (design D3). Clean break — change all
+callers.
 
 - Modified: `libraries/libwiki/src/weekly-log.js`,
   `libraries/libwiki/src/commands/log.js`,
@@ -103,16 +109,19 @@ Change:
 
 - `rotateIfOverBudget(wikiRoot, agent, today, delta = {lines: 0, words: 0}, options, fs)`.
   Replace the line-only guard with: read `current` lines and words; if
-  `!force && current.lines + delta.lines <= LINE_BUDGET && current.words + delta.words <= WORD_BUDGET` return noop.
-- `commands/log.js` `rotateBeforeAppend(wikiRoot, agent, today, delta, runtime)`;
-  each sub-handler computes `delta = { lines: countLines(body), words: countWords(body) }`
-  for the body it is about to append (`note` uses the conservative `withHeading`
+  `!force && current.lines + delta.lines <= LINE_BUDGET && current.words + delta.words <= WORD_BUDGET`
+  return noop.
+- `commands/log.js`
+  `rotateBeforeAppend(wikiRoot, agent, today, delta, runtime)`; each sub-handler
+  computes `delta = { lines: countLines(body), words: countWords(body) }` for
+  the body it is about to append (`note` uses the conservative `withHeading`
   body, the same string its line-count path uses today, so the word projection
-  does not under-count). `commands/log.js` adds `countLines`/`countWords` imports
-  from `budget.js` (not imported today).
+  does not under-count). `commands/log.js` adds `countLines`/`countWords`
+  imports from `budget.js` (not imported today).
 - `commands/rotate.js` (line 30) and `commands/fix.js` (line 108) currently pass
-  the 4th positional as the bare number `0`; both change to `{ lines: 0, words: 0 }`
-  (both force-rotate; the delta is moot but the signature is uniform).
+  the 4th positional as the bare number `0`; both change to
+  `{ lines: 0, words: 0 }` (both force-rotate; the delta is moot but the
+  signature is uniform).
 
 Verify: `libwiki` test — append fixtures at the line-cap and at the word-cap
 boundary (line count under cap, word count over — the `6501/6400` shape); assert
@@ -138,19 +147,21 @@ contains value, cap, and remaining for both budgets (criterion 5).
 
 ## Step 5 — Boot digest headroom
 
-Add `summary_headroom` and `weekly_log_headroom` to the digest (design, criterion 6).
+Add `summary_headroom` and `weekly_log_headroom` to the digest (design,
+criterion 6).
 
 - Modified: `libraries/libwiki/src/boot.js`
 
 Add a helper `headroom(text, lineCap, wordCap)` returning the design's field
 shape exactly:
-`{ words, lines, word_cap, line_cap, words_remaining, lines_remaining }`
-(reuse `countLines`/`countWords`). `summary_headroom` from the already-read
+`{ words, lines, word_cap, line_cap, words_remaining, lines_remaining }` (reuse
+`countLines`/`countWords`). `summary_headroom` from the already-read
 `summaryText` against `SUMMARY_*` caps. `weekly_log_headroom` is a new read of
 `weeklyLogPath(wikiRoot, agent, today)` against `WEEKLY_LOG_*` caps; absent file
-→ zero counts, full headroom. boot.js gains imports for `countLines`/`countWords`
-(`budget.js`), `weeklyLogPath` (`weekly-log.js`), and the four cap constants
-(`constants.js`), none imported today. Both fields additive.
+→ zero counts, full headroom. boot.js gains imports for
+`countLines`/`countWords` (`budget.js`), `weeklyLogPath` (`weekly-log.js`), and
+the four cap constants (`constants.js`), none imported today. Both fields
+additive.
 
 Verify: `libwiki` test asserting both digest fields against fixtures
 (`boot.test.js`).
@@ -165,7 +176,7 @@ log`; drop the hand-split hints (design D5, criterion 7).
 Changes:
 
 - New rule `weekly-log.heading-grammar` on `weekly-log-main` and a twin on
-  `weekly-log-part`: a `check` flagging each `^## ` line whose remainder does
+  `weekly-log-part`: a `check` flagging each `^##` line whose remainder does
   not match `WEEKLY_LOG_SEAM_RE` (i.e. an entry-shaped heading the seam-finder
   would skip). Message names the offending line; hint names `fit-wiki log`.
 - `decision-block.heading-within-5` hint: append "open entries with `fit-wiki
@@ -205,16 +216,19 @@ Reserve direct weekly-log edits for repair (criterion 8).
 Alongside the existing `fit-wiki log` append instruction (§ During Each Run /
 Weekly Log Contract), add one sentence: direct edits of a weekly-log file are
 reserved for repair of an existing entry; new entries always go through
-`fit-wiki log`. Follow [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md)
+`fit-wiki log`. Follow
+[self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md)
 for the `.claude/**` write.
 
-Verify: `rg -C3 "fit-wiki log" .claude/agents/references/memory-protocol.md | rg -i "repair"` (criterion 8).
+Verify:
+`rg -C3 "fit-wiki log" .claude/agents/references/memory-protocol.md | rg -i "repair"`
+(criterion 8).
 
 ## Risks
 
 - **`rebisectOverBudgetPart`'s `parts.length === 1` short-circuit.** Once step 2
   lands, a part that used to be irreducible may now split; the short-circuit
-  must narrow to the true base case (a single over-cap `### ` block). Step 2's
+  must narrow to the true base case (a single over-cap `###` block). Step 2's
   test must include a part-level fixture (`weekly-log-part.integration.test.js`)
   so the `fix` path inherits sub-entry rotation, not just the append path.
 - **Word-count of the `note` conservative heading.** `runNote` may or may not

@@ -111,11 +111,30 @@ error contract. The function's signature and return shape
 
 **Render-path gate** — `loader.loadAndValidate(dataDir)`
 
-New method on `DataLoader` in `products/map/src/loader.js`: loads via `loadAllData`, calls `validateAllData(data)`, then invokes a new `throwIfErrors(result, { ruleCodes: ["INVALID_VALUE"], paths: [/professionalTitle$/, /autonomyExpectation$/] })` helper (next to `validateAllData`). The helper holds the canonical contract URL as a module constant and constructs `ContractViolationError extends Error` with own properties `{ field, value, reason, contractUrl }` from the first matching error's `path`/`message`/`value`; the URL is set from the constant, not parsed out of the error message. Non-K3/K5 validation errors pass through silently to preserve current render behaviour. Node-side render entry points (`bin/fit-pathway.js:323` default handler, `commands/build-packs.js:215`) switch from `loadAllData` to `loadAndValidate`. Browser-side consumers of `lib/yaml-loader.js` add `throwIfErrors(validateAllData(data))` directly after their existing `loadAllData` call, since `DataLoader` is Node-only. The outer `try/catch` at `bin/fit-pathway.js:319/334` already prints and exits non-zero, so the new error surfaces as a clear CLI message.
+New method on `DataLoader` in `products/map/src/loader.js`: loads via
+`loadAllData`, calls `validateAllData(data)`, then invokes a new
+`throwIfErrors(result, { ruleCodes: ["INVALID_VALUE"], paths: [/professionalTitle$/, /autonomyExpectation$/] })`
+helper (next to `validateAllData`). The helper holds the canonical contract URL
+as a module constant and constructs `ContractViolationError extends Error` with
+own properties `{ field, value, reason, contractUrl }` from the first matching
+error's `path`/`message`/`value`; the URL is set from the constant, not parsed
+out of the error message. Non-K3/K5 validation errors pass through silently to
+preserve current render behaviour. Node-side render entry points
+(`bin/fit-pathway.js:323` default handler, `commands/build-packs.js:215`) switch
+from `loadAllData` to `loadAndValidate`. Browser-side consumers of
+`lib/yaml-loader.js` add `throwIfErrors(validateAllData(data))` directly after
+their existing `loadAllData` call, since `DataLoader` is Node-only. The outer
+`try/catch` at `bin/fit-pathway.js:319/334` already prints and exits non-zero,
+so the new error surfaces as a clear CLI message.
 
 **Authoring-path gate** — `runFullValidation`
 
-In `products/map/src/schema-validation.js:445`, `runFullValidation` adds one `const allData = validateAllData(loadedData)` call **inside** the existing `if (loadedData)` guard (line 453) — `validateAllData` destructures its argument and would crash on `undefined` — and merges `allData.errors`/`warnings` into the returned result. `fit-map validate` thereby surfaces K3/K5 errors alongside its existing output, with no new code path.
+In `products/map/src/schema-validation.js:445`, `runFullValidation` adds one
+`const allData = validateAllData(loadedData)` call **inside** the existing
+`if (loadedData)` guard (line 453) — `validateAllData` destructures its argument
+and would crash on `undefined` — and merges `allData.errors`/`warnings` into the
+returned result. `fit-map validate` thereby surfaces K3/K5 errors alongside its
+existing output, with no new code path.
 
 **Schema** — `description` strings updated per K11. No `pattern` added.
 

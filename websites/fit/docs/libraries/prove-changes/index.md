@@ -7,8 +7,8 @@ You changed an agent profile, tightened a tool allowlist, or rewrote a system
 prompt. The question is whether the change actually helped. Answering that
 question requires a dataset you can regenerate when the schema changes, a
 session that captures every turn, and an analysis method that connects observed
-behavior to actionable findings. This guide walks the full arc with `fit-terrain`
-and `fit-harness`, then hands off to `fit-trace` for the reading.
+behavior to actionable findings. This guide walks the full arc with
+`fit-terrain` and `fit-harness`, then hands off to `fit-trace` for the reading.
 
 ## Prerequisites
 
@@ -41,7 +41,7 @@ output in multiple formats, and validates the result -- all from one source.
 Create a minimal DSL file. This example declares a small organization with one
 team, a people distribution, and an engineering standard:
 
-```
+```text
 // evals/terrain/story.dsl
 
 terrain Acme {
@@ -148,8 +148,8 @@ ones you need on subsequent runs:
 npx fit-terrain check --story=evals/terrain/story.dsl
 ```
 
-`check` parses the DSL, generates entities, and reports prose cache completeness.
-On a fresh file every key will be a miss -- that is expected.
+`check` parses the DSL, generates entities, and reports prose cache
+completeness. On a fresh file every key will be a miss -- that is expected.
 
 ```sh
 npx fit-terrain generate --story=evals/terrain/story.dsl

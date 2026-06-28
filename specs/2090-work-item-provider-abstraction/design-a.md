@@ -22,10 +22,11 @@ flowchart TD
   TREE -->|invariants.sh reads| VERDICT[pass/fail verdict]
 ```
 
-A skill names a tracker-independent operation. The active tracker, chosen by
-one environment variable, selects which matrix column realizes it: the `github`
+A skill names a tracker-independent operation. The active tracker, chosen by one
+environment variable, selects which matrix column realizes it: the `github`
 column (existing `gh` shapes) or the `filesystem` column (file-write recipes
-against `.tracker/`). The matrix is the single home for any tracker-specific command.
+against `.tracker/`). The matrix is the single home for any tracker-specific
+command.
 
 ## Components
 
@@ -92,7 +93,7 @@ operations. Obstacle and experiment are issues distinguished by label, so
 A coordination root `.tracker/` in the working tree, tracker-owned and disjoint
 from app files:
 
-```
+```text
 .tracker/
   issues/{id}.md      # envelope front-matter + body; ## Comments appended
   changes/{id}.md      # envelope (kind: change) + links to its issue(s)
@@ -145,11 +146,11 @@ without the tracker.
 `coordinate-finding/` follows the existing task structure — the agent, judge,
 and supervisor task files, a workdir overlay, and the preflight and invariants
 hooks. The agent is given a finding and runs the loop: `create-issue`,
-`open-change` linking it, `gate` with a trusted signal, `merge-change`, all under
-the filesystem tracker with networking unavailable. The invariants hook asserts
-on the resulting `.tracker/` files — issue exists and is linked, change reached
-`state: merged`, `approval` recorded — using the same `assert` harness the other
-tasks use.
+`open-change` linking it, `gate` with a trusted signal, `merge-change`, all
+under the filesystem tracker with networking unavailable. The invariants hook
+asserts on the resulting `.tracker/` files — issue exists and is linked, change
+reached `state: merged`, `approval` recorded — using the same `assert` harness
+the other tasks use.
 
 ## Criteria coverage
 

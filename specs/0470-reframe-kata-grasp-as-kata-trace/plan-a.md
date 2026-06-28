@@ -233,8 +233,8 @@ replacement to `kata-trace` is correct. Apply `kata-grasp` → `kata-trace`
 | Line | Before                                           | After                                            |
 | ---- | ------------------------------------------------ | ------------------------------------------------ |
 | 17   | `the `kata-grasp` invariant audit verifies`      | `the `kata-trace` invariant audit verifies`      |
-| 49   | `kata-grasp` invariant audit can verify`         | `kata-trace` invariant audit can verify`         |
-| 70   | `kata-grasp` invariant audit verifies this call` | `kata-trace` invariant audit verifies this call` |
+| 49 | `kata-grasp` invariant audit can verify`         | `kata-trace` invariant audit can verify` |  |
+| 70 | `kata-grasp` invariant audit verifies this call` | `kata-trace` invariant audit verifies this call` |  |
 | 117  | `Used by `kata-grasp` to download traces`        | `Used by `kata-trace` to download traces`        |
 
 ### 6c. `kata-gh-cli/references/commands.md` — 1 reference
@@ -287,10 +287,10 @@ replacement to `kata-trace` is correct. Apply `kata-grasp` → `kata-trace`
   implementer must `cd wiki && git add staff-engineer.md && git commit` and then
   update the submodule reference in the parent repo. Forgetting this leaves the
   wiki change uncommitted.
-- **Spec 0450 references**: `specs/0450-agent-centered-workflows/plan-a.md` quotes
-  the improvement-coach profile text verbatim (line 207). After this rename, the
-  quoted text in 450's plan will say `kata-trace` — which is correct for the
-  future state but diverges from what 450 originally described. This is
+- **Spec 0450 references**: `specs/0450-agent-centered-workflows/plan-a.md`
+  quotes the improvement-coach profile text verbatim (line 207). After this
+  rename, the quoted text in 450's plan will say `kata-trace` — which is correct
+  for the future state but diverges from what 450 originally described. This is
   acceptable because 450 is at `review` status and its plan should reflect the
   current skill name at implementation time.
 

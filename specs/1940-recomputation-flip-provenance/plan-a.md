@@ -52,7 +52,6 @@ own behavior is asserted in Step 3.
 sorted group; stamp only when a slot date equals the anchor.
 
 - Modified: `libraries/libxmr/src/analyze.js`
-
 - Add `priorReadAnchor` to the options destructure:
   `{ eventType = DEFAULT_SHIFT_TYPE, priorReadAnchor } = {}`.
 - After `const signals = detectSignals(...)` in the `n >= MIN_POINTS` branch,
@@ -79,7 +78,6 @@ pre-anchor cluster, so an adverse signal is wholly pre-anchor
 post-anchor slots (`new-point`).
 
 - Created: `libraries/libxmr/test/provenance.test.js`
-
 - Test A (criteria 1+2): a single CSV whose `analyze(csv, { priorReadAnchor })`
   yields both `recomputation-revealed` (on an X-Rule 1 / mR-Rule 1 record with
   `max(slots) <= anchorSlot`) and `new-point` (on the X-Rule 2 zero-run that
@@ -100,7 +98,6 @@ Surface the anchor on the `analyze` command.
 
 - Modified: `libraries/libxmr/bin/fit-xmr.js`,
   `libraries/libxmr/src/commands/analyze.js`
-
 - In `fit-xmr.js`, add to the `analyze` command `options`:
   `"prior-read": { type: "string", description: "Prior-read anchor date (YYYY-MM-DD) for per-signal provenance" }`.
 - In `runAnalyzeCommand`, pass it through:
@@ -137,7 +134,6 @@ new group-3 leaves unshifted, so an extra group is backward-compatible).
 
 - Modified: `libraries/libwiki/src/commands/refresh.js`,
   `libraries/libwiki/src/block-renderer.js`
-
 - In `refresh.js#renderForBlock`, pass `priorReadAnchor: block.priorReadAnchor`
   into the `renderBlock` call.
 - In `block-renderer.js`, add `priorReadAnchor` to `renderBlock`'s options and
@@ -173,7 +169,6 @@ new-point signals.
 
 - Modified: `libraries/libwiki/test/block-renderer.test.js` (and/or
   `cli-refresh.integration.test.js`)
-
 - Seed a #1692-shape CSV via `createMockFs`; call
   `renderBlock({ ..., priorReadAnchor: <pre-tail date> })`; assert the
   `**Signals:**` line contains `recomputation-revealed` for the adverse rule and

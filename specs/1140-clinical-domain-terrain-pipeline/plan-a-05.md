@@ -1,10 +1,14 @@
 # 1140 Part 05 — Pipeline Integration
 
-Add a `clinical-output` pipeline stage that wires the clinical entity graph, prose cache, and output configs together to produce SQL migrations and embeddings JSONL.
+Add a `clinical-output` pipeline stage that wires the clinical entity graph,
+prose cache, and output configs together to produce SQL migrations and
+embeddings JSONL.
 
 ## Goal
 
-The pipeline DAG gains a `clinical-output` stage. Clinical output files flow through `write` alongside existing outputs. The existing `datasets` stage silently skips clinical outputs.
+The pipeline DAG gains a `clinical-output` stage. Clinical output files flow
+through `write` alongside existing outputs. The existing `datasets` stage
+silently skips clinical outputs.
 
 ## Files
 
@@ -48,19 +52,23 @@ In `buildNodes()` (`nodes.js:29-250`), add a new stage:
 },
 ```
 
-Import `renderSql` and `renderEmbeddings` from `@forwardimpact/libsyntheticrender` alongside the existing `renderDataset` import.
+Import `renderSql` and `renderEmbeddings` from
+`@forwardimpact/libsyntheticrender` alongside the existing `renderDataset`
+import.
 
 **Verify:** `bun test` in `libterrain`.
 
 ### Step 2 — Extend write stage dependencies
 
-Add `clinical-output` to the `write` stage's `deps` array (`nodes.js:234-249`). Add it to the `run` destructured params and pass to `mergeOutputFiles()`.
+Add `clinical-output` to the `write` stage's `deps` array (`nodes.js:234-249`).
+Add it to the `run` destructured params and pass to `mergeOutputFiles()`.
 
 **Verify:** `bun test` in `libterrain`.
 
 ### Step 3 — Extend mergeOutputFiles()
 
-In `mergeOutputFiles()` (`nodes.js:299-319`), add clinical output as a source. Clinical output files bypass `--only` filtering (structured data, not prose):
+In `mergeOutputFiles()` (`nodes.js:299-319`), add clinical output as a source.
+Clinical output files bypass `--only` filtering (structured data, not prose):
 
 ```javascript
 for (const [k, v] of clinicalOutput.files) files.set(k, v);
@@ -70,7 +78,8 @@ for (const [k, v] of clinicalOutput.files) files.set(k, v);
 
 ### Step 4 — Guard: no clinical block
 
-When `ast.clinical` is null, `clinical-output` returns `{ files: new Map() }`. The `write` stage merges nothing. No behavior change for existing DSL files.
+When `ast.clinical` is null, `clinical-output` returns `{ files: new Map() }`.
+The `write` stage merges nothing. No behavior change for existing DSL files.
 
 **Verify:** Existing pipeline test passes without changes.
 
@@ -78,8 +87,10 @@ When `ast.clinical` is null, `clinical-output` returns `{ files: new Map() }`. T
 
 Extend `pipeline.test.js`:
 
-- No clinical block — existing test passes, `clinical-output` produces zero files.
-- With clinical block — DSL fixture with minimal `clinical {}` and output blocks. Assert SQL files and JSONL file in output.
+- No clinical block — existing test passes, `clinical-output` produces zero
+  files.
+- With clinical block — DSL fixture with minimal `clinical {}` and output
+  blocks. Assert SQL files and JSONL file in output.
 - Write stage includes clinical files — merged output contains SQL and JSONL.
 - Existing outputs unaffected — `datasets` stage still produces existing files.
 

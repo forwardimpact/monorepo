@@ -38,8 +38,8 @@ This is v3 of the plan, revised after v2 to address two architectural gaps:
   flags.
 - **fit-map stays simple.** The `fit-map` CLI gains zero new commands or flags.
 - **Generate raw documents, not DB rows.** The pipeline produces the same
-  document formats as the ELT Extract step (spec 0051). Synthetic data enters the
-  pipeline at the Load boundary, not at the Transform output.
+  document formats as the ELT Extract step (spec 0051). Synthetic data enters
+  the pipeline at the Load boundary, not at the Transform output.
 
 ## Approach
 
@@ -60,7 +60,7 @@ structural.
 
 ## Architecture
 
-```
+```text
 universe.dsl ──► libuniverse
                     │
                     ├── bin/            CLI: fit-universe
@@ -107,7 +107,7 @@ inline a workaround.
 
 ### Universe Definition
 
-```
+```text
 // universe.dsl — Complete synthetic data specification
 
 universe BioNova {
@@ -319,7 +319,7 @@ export function parseUniverse(source) {
 The tokenizer and parser are the same recursive-descent approach as v1. AST node
 types:
 
-```
+```text
 UniverseAST { name, domain, industry, seed, orgs, departments, teams,
               people, projects, scenarios, snapshots, framework, content }
 DepartmentNode { id, name, parent, headcount, _children }
@@ -334,7 +334,7 @@ DxDriverNode { driver_id, trajectory, magnitude }
 
 ### Package Structure
 
-```
+```text
 libraries/libuniverse/
   package.json
   index.js              Re-exports public API
@@ -1218,7 +1218,7 @@ v3 supports two output modes controlled by CLI flags:
 Writes raw documents as individual local files under `examples/activity/raw/`,
 mirroring the Supabase Storage path structure:
 
-```
+```text
 examples/
   framework/                    Framework YAML
   organizational/               HTML microdata, README, ONTOLOGY
@@ -1529,7 +1529,7 @@ Usage: `npm run generate`, `npm run generate -- --cached --load`, etc.
 
 ### Synthetic data path
 
-```
+```text
 universe.dsl
     │
     ▼
@@ -1552,7 +1552,7 @@ fit-universe (Tier 0 + Tier 1/2)
 
 ### Real data path
 
-```
+```text
 GitHub webhook ──► Extract edge function ──► Supabase Storage (raw/ bucket)
 GetDX API      ──► Extract edge function ──► Supabase Storage (raw/ bucket)
 People CSV     ──► Extract edge function ──► Supabase Storage (raw/ bucket)

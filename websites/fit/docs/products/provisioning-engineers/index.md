@@ -36,7 +36,7 @@ fit-map people provision
 
 The verb reports a per-action summary:
 
-```
+```text
   Provisioning auth.users from organization_people
 
   created: 4

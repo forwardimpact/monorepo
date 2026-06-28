@@ -11,7 +11,7 @@ this is the strict foundation.
 
 ## Scope
 
-**In scope**
+### In scope
 
 - Create `products/landmark/` with the standard per-package layout (spec 0390).
 - Declare dependencies and add Landmark to the monorepo workspace.
@@ -23,7 +23,7 @@ this is the strict foundation.
 - Tests for each command using `node:test` and stub clients.
 - `bun run check` clean.
 
-**Out of scope**
+### Out of scope
 
 - Evidence-based views (Part 02).
 - Health view (Part 03).
@@ -36,7 +36,7 @@ this is the strict foundation.
 
 ### Created
 
-```
+```text
 products/landmark/
   package.json
   bin/

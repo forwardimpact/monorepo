@@ -22,7 +22,9 @@ export function filterTodos(todos, substring) {
 }
 ```
 
-Verification: `node -e "import('./src/store.js').then(m=>console.log(m.filterTodos([{text:'Buy milk'}],'milk').length))"` prints `1`.
+Verification:
+`node -e "import('./src/store.js').then(m=>console.log(m.filterTodos([{text:'Buy milk'}],'milk').length))"`
+prints `1`.
 
 ## Step 2 — Apply the filter in the `list` command
 

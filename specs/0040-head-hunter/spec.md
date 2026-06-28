@@ -244,7 +244,7 @@ REMOTE, ONSITE, or specific geographies.
 
 **Optimal format for polymath FDE recruiting:**
 
-```
+```text
 [Company] | Staff/Principal Forward Deployed Engineer | US East Coast, UK, EU | Full-time
 
 We build [what you do]. We're looking for polymath-type engineers — people
@@ -721,7 +721,9 @@ communities, build relationships with career services offices).
 2. **Twitter/X posts with #VibeCoding + #BuildInPublic** — Tag relevant
    influencers. Host Twitter Spaces on "what FDE work looks like."
 3. **Mastodon posts on [Hachyderm.io](https://hachyderm.io/)** with
-   #GetFediHired and #HachyJobs
+
+## GetFediHired and #HachyJobs
+
 4. **[dev.to](https://dev.to/)** — Write articles about FDE work and tag with
    #hiring. Use the formal job listings system. The
    [Vibe Coding Forem](https://vibe.forem.com/) is a goldmine.
@@ -781,7 +783,7 @@ communities, build relationships with career services offices).
   changers)
 - [Relocate.me](https://relocate.me/) premium placement (European relocation)
 
-### Key principles for non-traditional candidate attraction
+#### Key principles for non-traditional candidate attraction
 
 **Frame the role as a destination for polymaths, not just engineers.** Every job
 description should explicitly state: "We value diverse paths — law, policy,
@@ -801,7 +803,7 @@ contribute genuinely to 3-5 priority communities
 [Rands Leadership Slack](https://randsinrepose.com/welcome-to-rands-leadership-slack/),
 and one geographic-specific community) before posting any openings.
 
-## Conclusion
+### Conclusion
 
 The landscape for reaching polymath FDE candidates has shifted dramatically
 toward **AI coding tool communities** and **mission-driven platforms** that

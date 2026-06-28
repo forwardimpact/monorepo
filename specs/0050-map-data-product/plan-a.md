@@ -7,7 +7,7 @@ How to implement Map as the data product described in `spec.md`.
 New files live under `activity/` in the Map product. The pure layer (`src/`,
 `schema/`, `examples/`) is unchanged.
 
-```
+```text
 products/map/
   src/                          # Pure layer (unchanged, published to npm)
   schema/                       # JSON Schema + SHACL (unchanged, published)
@@ -228,7 +228,7 @@ Guide handles the next step: interpreting unscored artifacts into evidence.
 
 ### Evidence pipeline
 
-```
+```text
 GitHub Events → Map (github_events → github_artifacts)
                                         │
                                  Guide (interprets against markers)

@@ -37,7 +37,9 @@ that is a **bug**. Do not tell the agent the key is pre-configured.
 - [ ] Persona identity drawn from synthetic content (per Step 4) — not invented.
 - [ ] Persona situation drawn from the chosen JTBD entry (per Step 4).
 - [ ] Job text appears only in Ask 2 — never in `CLAUDE.md`.
-- [ ] No product names in the persona file or in supervisor-authored Ask templates; product-named environment variables required by the production CLI are permitted in the agent's environment.
+- [ ] No product names in the persona file or in supervisor-authored Ask
+      templates; product-named environment variables required by the production
+      CLI are permitted in the agent's environment.
 - [ ] Workspace staged per Step 3; `CLAUDE.md` written before Ask 1.
 - [ ] No leaks of monorepo internals, skills, or pre-configured tokens.
 - [ ] Do not fix problems for the agent — friction is the signal.
@@ -58,7 +60,11 @@ that is a **bug**. Do not tell the agent the key is pre-configured.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Bias product selection toward products not interviewed recently.
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+The boot digest's `owned_priorities`, `claims`, and (when this skill reads
+Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Bias
+product selection toward products not interviewed recently.
 
 ### Step 1: Pick the Product
 
@@ -122,7 +128,8 @@ Excluded: goal sentence, Big Hire, Little Hire, Fired-When, product name.
 Fired-When stays with you for Step 8 classification.
 
 Template: [`references/persona-template.md`](references/persona-template.md).
-Worked examples: [`references/example-personas.md`](references/example-personas.md).
+Worked examples:
+[`references/example-personas.md`](references/example-personas.md).
 
 ### Step 5: Initiate the Session
 
@@ -172,11 +179,12 @@ Classify each for action:
 | **Documentation**   | Unclear, missing, or outdated docs    | Create docs issue     |
 | **Out of scope**    | Not actionable or outside the product | Skip — note in report |
 
-For each actionable finding, with your own `gh`: extract; search for
-duplicates; create a new issue or comment on a matching one (templates in
+For each actionable finding, with your own `gh`: extract; search for duplicates;
+create a new issue or comment on a matching one (templates in
 `../kata-product-issue/references/templates.md`) naming the JTBD job
 (`<user>: <goal>`) in the body; add it to the report table with its issue
-number, holding each body to [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
+number, holding each body to
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
 
 ### Step 9: Report
 

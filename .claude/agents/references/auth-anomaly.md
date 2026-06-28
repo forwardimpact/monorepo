@@ -13,16 +13,17 @@ stampless surface, see § Stampless surfaces.
 
 Token freshness is clock arithmetic against `KATA_GH_TOKEN_STAMP`, never an API
 probe. The stamp is one value carrying `mint` (epoch), `exp` (epoch), `run`
-(`GITHUB_RUN_ID`), and `attempt` (`GITHUB_RUN_ATTEMPT`). Compute, at session boot
-and before each write batch, at zero API cost:
+(`GITHUB_RUN_ID`), and `attempt` (`GITHUB_RUN_ATTEMPT`). Compute, at session
+boot and before each write batch, at zero API cost:
 
 - **TTL** — "token expires in N minutes" = `(exp − now) / 60`. At or past `exp`,
   the token is dead (TTL lapse). This is shape 1.
 - **Issuing-job validity** — if `run` ≠ the current `GITHUB_RUN_ID` **or**
-  `attempt` ≠ the current `GITHUB_RUN_ATTEMPT`, the token's issuing job execution
-  is not the current one, so it is **presumed revoked regardless of age**. A
-  re-run attempt shares the run id but is a fresh job execution that revoked the
-  prior attempt's token; the attempt comparison closes that window.
+  `attempt` ≠ the current `GITHUB_RUN_ATTEMPT`, the token's issuing job
+  execution is not the current one, so it is
+  **presumed revoked regardless of age**. A re-run attempt shares the run id but
+  is a fresh job execution that revoked the prior attempt's token; the attempt
+  comparison closes that window.
 
 Both determinations come from the stamp alone. A 401 probe cannot substitute: it
 cannot attribute (token death and a platform fault look identical at the
@@ -58,14 +59,14 @@ retry the failed call once after ~5s.
    plus at least one retry).
 2. The token is **unexpired per (b) and passes the control read**.
 3. **No covering incident, checked twice** — live at sighting time AND
-   retroactively (≥30–60 minutes later) against the full incidents history for an
-   incident whose window brackets the sighting. The retroactive check is
+   retroactively (≥30–60 minutes later) against the full incidents history for
+   an incident whose window brackets the sighting. The retroactive check is
    load-bearing: status pages lag onset.
 
-Classification is two-stage: **provisional** at sighting, **confirmed** after the
-retro check. **One confirmed sighting fires.** On fire: stop workaround craft,
-file the sighting with endpoint-class × verb × client attribution, and route to
-security-engineer as a local-cause investigation.
+Classification is two-stage: **provisional** at sighting, **confirmed** after
+the retro check. **One confirmed sighting fires.** On fire: stop workaround
+craft, file the sighting with endpoint-class × verb × client attribution, and
+route to security-engineer as a local-cause investigation.
 
 ## Interlocking rules
 

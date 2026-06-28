@@ -22,6 +22,7 @@ workflow, so subsequent parts can see their progress with a single command.
 ## Files modified
 
 - `package.json` — add `layout` script; add `layout` to the `check` pipeline:
+
   ```jsonc
   "scripts": {
     "check": "bun run format && bun run lint && bun run layout",
@@ -30,7 +31,9 @@ workflow, so subsequent parts can see their progress with a single command.
     // ...
   }
   ```
+
 - `.github/workflows/check-quality.yml` — add a third job `layout`:
+
   ```yaml
   layout:
     runs-on: ubuntu-latest
@@ -39,7 +42,9 @@ workflow, so subsequent parts can see their progress with a single command.
       - uses: ./.github/actions/bootstrap
       - run: bun run layout
   ```
+
 - `justfile` — add a `layout` recipe under `## ── Quality ──` for convenience:
+
   ```make
   # Check package layout against allowed-subdirs contract
   layout:
@@ -206,7 +211,7 @@ if (violations.length || rootSourceFiles.length) {
 
 ## Deliverable commit
 
-```
+```text
 refactor(layout): add package layout contract check (permissive)
 
 Introduces bun run layout, powered by scripts/check-package-layout.js,

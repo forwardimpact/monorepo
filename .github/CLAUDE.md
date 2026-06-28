@@ -49,8 +49,8 @@ is a compromise indicator.
 
 ### `IS_SANDBOX` for headless agents
 
-Bypass-permissions mode (every Agent-SDK action) is refused under `uid 0`
-unless the process is marked sandboxed, and runners may be root. So `fit-harness`,
+Bypass-permissions mode (every Agent-SDK action) is refused under `uid 0` unless
+the process is marked sandboxed, and runners may be root. So `fit-harness`,
 `fit-benchmark`, `fit-wiki`, and `kata-agent` set `IS_SANDBOX=1` on their
 agent-spawning step (`fit-bootstrap` spawns no agent). The SDK forwards the
 parent env, so setting it on the action environment suffices — kept out of
