@@ -38,6 +38,7 @@ runs:
         echo "${SPLITSH_SHA256}  splitsh.tar.gz" | sha256sum -c -
         tar xzf splitsh.tar.gz
         rm splitsh.tar.gz
+        chmod +x splitsh-lite
         sudo mv splitsh-lite /usr/local/bin/
 
     - name: Split and push (non-force)
@@ -51,6 +52,10 @@ runs:
         # The seed runbook captures the SHA identically, so the seed tip and the
         # first CI push agree.
         SHA="$(splitsh-lite --prefix="$PREFIX")"
+        if [ -z "$SHA" ]; then
+          echo "splitsh-lite produced no SHA for prefix ${PREFIX}" >&2
+          exit 1
+        fi
         echo "split ${PREFIX} -> ${SHA}"
         # Plain refspec, no leading `+` and no force flag: the remote main IS
         # the record of the last projection, so a non-fast-forward is rejected
