@@ -25,16 +25,16 @@ interface — and tag it — before the consumer.
 
 ### Editing a published action
 
-`uses:` lines pin an immutable SHA; the `# v1` marker is advisory and never
-affects resolution. Edits land via an append-only patch tag on the sibling,
-then a Dependabot SHA-bump PR — moving `v1` is never how a change reaches here.
-`.github/dependabot.yml` opens the SHA-bump PR on its weekly sweep; merge
-through branch protection.
+Each action's **canonical source lives in this monorepo**, beside its owning
+unit (or `.github/actions/` for CI glue) — edit it there. `publish-actions.yml`
+mirrors each home to its sibling `main` as a non-force subtree split, so the
+sibling is always a projection. An external PR is reviewed on the sibling but
+**never merged there** — replay it into the home with `just action-pullback`;
+the next publish republishes it.
 
-Every environment has a `GH_TOKEN` and the `gh` CLI available, so some edits
-can be made directly — the token carries content read/write and typically
-admin read, but not admin write. Widening a standing token scope needs
-security-engineer review.
+Consumption is unchanged: a published change reaches consumers via a Dependabot
+SHA-bump PR (`.github/dependabot.yml`, weekly), not by moving `v1`. Widening a
+standing token scope needs security-engineer review.
 
 This pinning policy governs workflow `uses:` only; a sibling's internal `uses:`
 (e.g. `kata-agent`'s call to `fit-bootstrap@v1`) is governed by the sibling.
