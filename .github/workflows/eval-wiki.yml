@@ -17,11 +17,11 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@2bebda7abaffe16b79a6a5c4e3e82eddc1f7c7d1 # v1.0.7
+      - uses: forwardimpact/bootstrap@c349e223de51a865ac223cc712972487393829b5 # v1.0.8
         with:
           # fit-benchmark runs the benchmark binary straight off PATH.
           clis: fit-benchmark
-      - uses: forwardimpact/benchmark@66b7dad6715d32d64bdc81614cd7b2edad9b1cae # v1.0.3
+      - uses: forwardimpact/benchmark@f0ed6cd1bd94ba00a494a19d8c8d858b68cbefd2 # v1.0.4
         with:
           family: ./benchmarks/fit-wiki
           runs: "5"
