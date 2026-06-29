@@ -59,9 +59,9 @@ dedupe? })` → `[{ path, lineNo, text, reason? }]`. Every match is a violation;
 pair it with `failAll`.
 
 - Matching is **case-insensitive unless `caseSensitive`** is set.
-- `patterns` entries are strings, or objects `{ pattern, reason?, globs?,
-  caseSensitive?, onlyMatching?, exclude? }`. Per-entry options override the call
-  defaults, and `globs` merge.
+- `patterns` entries are strings, or objects
+  `{ pattern, reason?, globs?, caseSensitive?, onlyMatching?, exclude? }`.
+  Per-entry options override the call defaults, and `globs` merge.
 - `exclude` — a RegExp tested against the raw `rel:lineNo:text` line, to drop
   false positives.
 - `dedupe` — `false`, `true` (key on the raw line), or a key function over
