@@ -16,24 +16,62 @@ const LABEL = {
 };
 const TITLE = "Wiki curation: shared-state audit findings";
 
+// GitHub rejects an issue or comment body over 65536 characters. Keep the whole
+// body under a margin below that so the preamble, JSON fence, and truncation
+// notice always fit. When the findings overflow, the body carries the first N
+// that fit plus a count; the full list stays reproducible via `fit-wiki audit`.
+const MAX_BODY = 65000;
+
 /**
  * Compose the issue body from the audit's JSON findings. The findings ride a
  * fenced ```json block; the body is passed to `gh` via `--body-file` (a temp
  * file), never argv, so untrusted finding text cannot be misread as a flag.
  * @param {string} findingsJson
+ * @param {{shown?: number, total?: number}} [trunc]
  * @returns {string}
  */
-function buildBody(findingsJson) {
-  return [
+function buildBody(findingsJson, { shown, total } = {}) {
+  const lines = [
     "Scheduled `curate-wiki` audit found shared-wiki violations.",
     "",
     "Owner: **technical-writer** (service these via the curation shift; the per-PR `wiki` gate no longer reads shared wiki state).",
     "",
-    "```json",
-    findingsJson,
-    "```",
-    "",
-  ].join("\n");
+  ];
+  if (total != null && shown != null && shown < total) {
+    lines.push(
+      `Showing ${shown} of ${total} findings — the body was truncated to fit GitHub's comment limit. Run \`fit-wiki audit\` for the full list.`,
+      "",
+    );
+  }
+  lines.push("```json", findingsJson, "```", "");
+  return lines.join("\n");
+}
+
+/**
+ * Build the largest postable body for the audit findings. The full findings
+ * usually fit; when they don't, keep the first N `fail` findings that stay
+ * under GitHub's body limit and label the body as truncated. The shrink steps
+ * down proportionally to the overflow, so it converges in a couple of passes.
+ * @param {{level: string}[]} findings
+ * @returns {string}
+ */
+function fitBody(findings) {
+  const total = findings.filter((f) => f.level === "fail").length;
+  const full = buildBody(emitFindingsJson(findings), { shown: total, total });
+  if (full.length <= MAX_BODY) return full;
+
+  const failures = findings.filter((f) => f.level === "fail");
+  let shown = failures.length;
+  while (shown > 0) {
+    const body = buildBody(emitFindingsJson(failures.slice(0, shown)), {
+      shown,
+      total,
+    });
+    if (body.length <= MAX_BODY) return body;
+    const next = Math.floor((shown * MAX_BODY) / body.length);
+    shown = next < shown ? next : shown - 1;
+  }
+  return buildBody(emitFindingsJson([]), { shown: 0, total });
 }
 
 // Resolve the monorepo's `owner/repo` slug the way refresh.js/product-mix.js
@@ -60,35 +98,49 @@ async function resolveToken() {
 }
 
 /**
- * Audit the shared wiki and, when it is dirty, route the findings to the
- * single `wiki-curation` issue (create or comment) addressed to the
- * technical-writer. This is the SOLE home of the shared-wiki audit verdict; the
- * per-PR `wiki` gate no longer reads live wiki state. A clean wiki routes
- * nothing. The label/search/create-or-comment logic lives here, not in the
- * workflow, so the curation step is one CLI call.
- *
+ * Find the open `wiki-curation` issue by its verbatim title, or null. Any
+ * parse failure or empty result is treated as "no issue" (create path).
+ * @param {import("@forwardimpact/libcli").InvocationContext["deps"]["runtime"]} runtime
+ * @param {string[]} repoArgs
+ * @param {{cwd: string, env: object}} opts
+ * @returns {Promise<number|null>}
+ */
+async function findOpenIssue(runtime, repoArgs, opts) {
+  const list = await runtime.subprocess.run(
+    "gh",
+    [
+      "issue",
+      "list",
+      "--search",
+      `${TITLE} in:title`,
+      "--state",
+      "open",
+      "--json",
+      "number",
+      ...repoArgs,
+    ],
+    opts,
+  );
+  try {
+    return JSON.parse(list.stdout || "[]")[0]?.number ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Route the composed body to the single `wiki-curation` issue: ensure the
+ * label, find the open issue by title, then comment on it or create it. The
+ * body goes through a temp file (never argv) so untrusted finding text cannot
+ * be read as a flag. On a `gh` failure the reason is logged and `ok:false`
+ * returned so the caller exits non-zero.
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @param {string} body
+ * @param {ReturnType<typeof createLogger>} logger
  * @returns {Promise<{ok: boolean}>}
  */
-export async function runCurateCommand(ctx) {
+async function routeFindings(ctx, body, logger) {
   const { runtime, gitClient } = ctx.deps;
-  const logger = createLogger("wiki", runtime);
-  const { findings } = auditWiki(ctx);
-
-  if (!findings.some((f) => f.level === "fail")) {
-    runtime.proc.stdout.write("wiki audit clean — no curation issue routed\n");
-    return { ok: true };
-  }
-
-  const body = buildBody(emitFindingsJson(findings));
-
-  if (ctx.options["dry-run"]) {
-    runtime.proc.stdout.write(
-      `[dry-run] would route findings to issue "${TITLE}":\n\n${body}`,
-    );
-    return { ok: true };
-  }
-
   const cwd = resolveProjectRoot(runtime);
   const repo =
     ctx.options.repo || (await deriveRepo(gitClient, cwd, runtime.proc.env));
@@ -115,27 +167,7 @@ export async function runCurateCommand(ctx) {
     { cwd, env },
   );
 
-  const list = await runtime.subprocess.run(
-    "gh",
-    [
-      "issue",
-      "list",
-      "--search",
-      `${TITLE} in:title`,
-      "--state",
-      "open",
-      "--json",
-      "number",
-      ...repoArgs,
-    ],
-    { cwd, env },
-  );
-  let number = null;
-  try {
-    number = JSON.parse(list.stdout || "[]")[0]?.number ?? null;
-  } catch {
-    number = null;
-  }
+  const number = await findOpenIssue(runtime, repoArgs, { cwd, env });
 
   // Pass the body through a temp file, not argv — robust to length and immune
   // to finding text being read as a flag.
@@ -143,37 +175,28 @@ export async function runCurateCommand(ctx) {
   const bodyFile = path.join(tmp, "wiki-curation-body.md");
   runtime.fsSync.writeFileSync(bodyFile, body);
 
-  const result = number
-    ? await runtime.subprocess.run(
-        "gh",
-        [
-          "issue",
-          "comment",
-          String(number),
-          "--body-file",
-          bodyFile,
-          ...repoArgs,
-        ],
-        { cwd, env },
-      )
-    : await runtime.subprocess.run(
-        "gh",
-        [
-          "issue",
-          "create",
-          "--title",
-          TITLE,
-          "--body-file",
-          bodyFile,
-          "--label",
-          LABEL.name,
-          ...repoArgs,
-        ],
-        { cwd, env },
-      );
+  const args = number
+    ? ["issue", "comment", String(number), "--body-file", bodyFile, ...repoArgs]
+    : [
+        "issue",
+        "create",
+        "--title",
+        TITLE,
+        "--body-file",
+        bodyFile,
+        "--label",
+        LABEL.name,
+        ...repoArgs,
+      ];
+  const result = await runtime.subprocess.run("gh", args, { cwd, env });
 
   if (result.exitCode !== 0) {
-    logger.warn("curate", `gh issue ${number ? "comment" : "create"} failed`);
+    const detail = (result.stderr || result.stdout || "").trim();
+    const action = number ? "comment" : "create";
+    logger.warn(
+      "curate",
+      `gh issue ${action} failed${detail ? `: ${detail}` : ""}`,
+    );
     return { ok: false };
   }
   runtime.proc.stdout.write(
@@ -182,4 +205,37 @@ export async function runCurateCommand(ctx) {
       : "Opened a new wiki-curation issue\n",
   );
   return { ok: true };
+}
+
+/**
+ * Audit the shared wiki and, when it is dirty, route the findings to the
+ * single `wiki-curation` issue (create or comment) addressed to the
+ * technical-writer. This is the SOLE home of the shared-wiki audit verdict; the
+ * per-PR `wiki` gate no longer reads live wiki state. A clean wiki routes
+ * nothing. The label/search/create-or-comment logic lives here, not in the
+ * workflow, so the curation step is one CLI call.
+ *
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: boolean}>}
+ */
+export async function runCurateCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const logger = createLogger("wiki", runtime);
+  const { findings } = auditWiki(ctx);
+
+  if (!findings.some((f) => f.level === "fail")) {
+    runtime.proc.stdout.write("wiki audit clean — no curation issue routed\n");
+    return { ok: true };
+  }
+
+  const body = fitBody(findings);
+
+  if (ctx.options["dry-run"]) {
+    runtime.proc.stdout.write(
+      `[dry-run] would route findings to issue "${TITLE}":\n\n${body}`,
+    );
+    return { ok: true };
+  }
+
+  return routeFindings(ctx, body, logger);
 }

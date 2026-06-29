@@ -121,6 +121,26 @@ describe("fit-wiki curate", () => {
     );
   });
 
+  test("an over-large finding set truncates the body under GitHub's limit", async () => {
+    // Many distinct over-budget summaries push the full findings JSON past
+    // GitHub's 65536-char body limit; curate must still post a fitting body.
+    const many = {};
+    for (let i = 0; i < 300; i++) {
+      many[`${WIKI_ROOT}/staff-engineer-${i}.md`] =
+        `# Staff Engineer ${i} — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${Array(600).fill(`pad-${i}`).join("\n")}\n`;
+    }
+    const { harness, run } = curate(cleanWiki(many), {
+      options: { "dry-run": true },
+    });
+    const result = await run;
+    assert.equal(result.ok, true);
+    assert.ok(
+      harness.stdout.length <= 65536,
+      `body must fit GitHub's limit, was ${harness.stdout.length}`,
+    );
+    assert.match(harness.stdout, /Showing \d+ of \d+ findings/);
+  });
+
   test("--dry-run prints the body and makes no gh call", async () => {
     const { harness, subprocess, run } = curate(cleanWiki(OVER_BUDGET), {
       options: { "dry-run": true },
