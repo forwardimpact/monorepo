@@ -10,6 +10,7 @@ Commands:
   inbox [subcommand]                Triage the agent's Message Inbox (list/ack/promote/drop)
   rotate                            Rotate the current weekly log to a sealed part
   audit                             Audit the wiki against the declarative rule catalogue (line and word budgets, headings, decision blocks, storyboards, claims)
+  curate                            Audit the shared wiki and route any findings to the single wiki-curation issue (create or comment), addressed to the technical-writer
   fix                               Auto-fix wiki audit findings: rotate weekly logs, fix the rest with an AI agent (technical-writer, Haiku), flag the unresolvable
   memo                              Send a cross-team memo into a teammate's Message Inbox
   refresh [storyboard-path]         Regenerate storyboard XmR/marker blocks and clear expired MEMORY.md claims
@@ -32,6 +33,7 @@ Examples:
   fit-wiki inbox list --agent staff-engineer
   fit-wiki rotate --agent staff-engineer
   fit-wiki audit
+  fit-wiki curate
   fit-wiki fix
   fit-wiki memo --from staff-engineer --to security-engineer --message "audit d642ff0c"
   fit-wiki refresh

@@ -367,9 +367,12 @@ export async function runStatsCommand(ctx) {
  */
 export async function runCostCommand(ctx) {
   const { runtime } = ctx.deps;
-  const cost = computeTraceCost(
-    runtime.fsSync.readFileSync(ctx.args.file, "utf8"),
-  );
+  // Tolerate a missing/empty trace: a CI step reports cost under `always()`,
+  // so the trace may not exist (the run failed before producing one). Print
+  // nothing and exit 0 rather than throwing — the caller needs no `if [ -f ]`.
+  const file = ctx.args.file;
+  if (!file || !runtime.fsSync.existsSync(file)) return { ok: true };
+  const cost = computeTraceCost(runtime.fsSync.readFileSync(file, "utf8"));
   if (ctx.options.markdown) {
     runtime.proc.stdout.write(renderCostMarkdown(cost));
   } else {
@@ -512,9 +515,12 @@ export async function runSplitCommand(ctx) {
   const file = ctx.args.file;
   if (!file) return { ok: false, code: 1, error: "split: missing input file" };
 
+  // `discuss` has the same lead + N-participants shape as `facilitate`, and the
+  // splitter buckets purely by envelope `source` (mode-independent), so it is
+  // accepted alongside the structural modes — the CLI owns this, not callers.
   const mode = ctx.options.mode;
   if (!mode) return { ok: false, code: 1, error: "split: --mode is required" };
-  if (!["run", "supervise", "facilitate"].includes(mode)) {
+  if (!["run", "supervise", "facilitate", "discuss"].includes(mode)) {
     return { ok: false, code: 1, error: `split: invalid --mode "${mode}"` };
   }
 

@@ -29,9 +29,11 @@ export function parseDiscussOptions(values, runtime) {
   );
 
   const profilesRaw = values["agent-profiles"];
-  const agentCwd = resolve(values["agent-cwd"] ?? ".");
+  // `||` (not `??`) so an empty-string flag from a CI forwarder falls back to
+  // the default rather than overriding it with "".
+  const agentCwd = resolve(values["agent-cwd"] || ".");
 
-  const maxTurnsRaw = values["max-turns"] ?? "40";
+  const maxTurnsRaw = values["max-turns"] || "40";
   const maxTurns = maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10);
 
   const agentConfigs = parseAgentProfiles(profilesRaw, agentCwd, maxTurns);
@@ -46,21 +48,21 @@ export function parseDiscussOptions(values, runtime) {
     }
   }
 
-  const maxLeadTurnsRaw = values["max-lead-turns"] ?? "200";
+  const maxLeadTurnsRaw = values["max-lead-turns"] || "200";
   const maxLeadTurns = parseInt(maxLeadTurnsRaw, 10);
 
   return {
     taskContent,
     taskAmend,
     agentConfigs,
-    leadProfile: values["lead-profile"] ?? undefined,
+    leadProfile: values["lead-profile"] || undefined,
     leadModel: values["lead-model"] || LEAD_MODEL,
     agentModel: values["agent-model"] || AGENT_MODEL,
     maxTurns,
     maxLeadTurns,
     outputPath: values.output,
     workTracker: resolveWorkTracker(values, runtime?.proc?.env),
-    discussionId: values["discussion-id"] ?? null,
+    discussionId: values["discussion-id"] || null,
     resumeContext,
     callbackUrl: runtime.proc.env.CALLBACK_URL ?? null,
     inboxUrl: runtime.proc.env.INBOX_URL ?? null,

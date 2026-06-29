@@ -83,21 +83,16 @@ jobs:
       github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && (github.event.action == 'opened' || (github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))))) || github.event_name == 'issue_comment' || (github.event_name == 'pull_request_target' && ((github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))) || (github.event.action == 'closed' && github.event.pull_request.merged == true))) || github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
     steps:
-      # Killswitch: abort early when the KATA_KILLSWITCH variable is set to a
-      # truthy value. Lets an operator halt every kata-* workflow from one
-      # place without disabling each one individually. Kept as the first step
-      # so the run fails before any token minting, checkout, or agent work.
+      # Killswitch first: fail before any token minting or agent work so one
+      # repository variable halts every kata-* workflow at once.
       - name: Kata killswitch
         shell: bash
         env:
           KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
         run: |
           case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
-            ""|0|false|no|off)
-              echo "Kata killswitch not engaged; proceeding." ;;
-            *)
-              echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2
-              exit 1 ;;
+            ""|0|false|no|off) ;;
+            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH})." >&2; exit 1 ;;
           esac
 
       - name: Generate installation token
@@ -177,17 +172,13 @@ jobs:
           discussion-id: ${{ inputs.discussion_id }}
           resume-context: ${{ inputs.resume_context }}
 
+      # fit-trace cost tolerates a missing trace, so no file guard is needed.
       - name: Report run cost
         if: always()
         shell: bash
         env:
           TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
-        run: |
-          if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
-            fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "No trace file produced — cost not reported."
-          fi
+        run: fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
 
       # Push agent memory back with a freshly minted token — the token from
       # job start expires after an hour and this run can take up to five.

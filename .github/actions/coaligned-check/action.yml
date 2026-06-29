@@ -29,31 +29,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Validate inputs
-      shell: bash
-      env:
-        COMMAND: ${{ inputs.command }}
-        FIX: ${{ inputs.fix }}
-      run: |
-        case "$COMMAND" in
-          ""|instructions|jtbd|invariants) ;;
-          *)
-            echo "::error::coaligned-check: unknown command \"$COMMAND\". Expected one of: \"\" (run every check), instructions, jtbd, invariants."
-            exit 2
-            ;;
-        esac
-        case "$FIX" in
-          true|false) ;;
-          *)
-            echo "::error::coaligned-check: fix must be \"true\" or \"false\", got \"$FIX\"."
-            exit 2
-            ;;
-        esac
-        if [ "$FIX" = "true" ] && [ "$COMMAND" != "jtbd" ]; then
-          echo "::error::coaligned-check: fix=true is only supported for command=jtbd."
-          exit 2
-        fi
-
     - name: Run coaligned
       shell: bash
       working-directory: ${{ inputs.working-directory }}
@@ -61,17 +36,9 @@ runs:
         COMMAND: ${{ inputs.command }}
         FIX: ${{ inputs.fix }}
       run: |
-        # coaligned is a pinned gear binary on PATH, installed by bootstrap
-        # as a default tool. No bunx/npx fallback — fail hard if it is missing.
-        if ! command -v coaligned &>/dev/null; then
-          echo "::error::coaligned not found on PATH. Bootstrap with forwardimpact/bootstrap (installs coaligned as a default gear binary) before this step. No bunx/npx fallback." >&2
-          exit 1
-        fi
+        # coaligned is a pinned gear binary on PATH (a default bootstrap tool) —
+        # assumed present. It validates its own command/flag set.
         args=()
-        if [ -n "$COMMAND" ]; then
-          args+=("$COMMAND")
-        fi
-        if [ "$FIX" = "true" ]; then
-          args+=("--fix")
-        fi
+        [ -n "$COMMAND" ] && args+=("$COMMAND")
+        [ "$FIX" = "true" ] && args+=("--fix")
         coaligned "${args[@]}"

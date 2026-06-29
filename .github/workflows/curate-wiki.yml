@@ -32,39 +32,11 @@ jobs:
         with:
           repository: ${{ github.repository }}.wiki
           path: wiki
-      - id: audit
-        # `fit-wiki audit` exits non-zero when the wiki is dirty; capture that
-        # so the routing step still runs. The `dirty` flag (not stdout parsing)
-        # gates routing; the JSON rides through a random-delimiter heredoc
-        # because audit findings are untrusted text.
-        run: |
-          set +e
-          out="$(fit-wiki audit --format json)"; code=$?
-          set -e
-          # `fit-wiki audit` returns exactly 1 when the wiki is dirty (findings).
-          # 0 = clean; any other code = the audit itself failed — fail the job
-          # so the break is visible rather than routed as a spurious issue.
-          case "$code" in
-            0) dirty=false ;;
-            1) dirty=true ;;
-            *) echo "::error::fit-wiki audit exited $code (not a findings verdict)"; exit "$code" ;;
-          esac
-          delim="EOF_$(openssl rand -hex 8)"
-          { echo "json<<$delim"; printf '%s\n' "$out"; echo "$delim"; } >> "$GITHUB_OUTPUT"
-          echo "dirty=$dirty" >> "$GITHUB_OUTPUT"
-      - name: Route findings to the technical-writer
-        if: steps.audit.outputs.dirty == 'true'
+      # Audit the shared wiki and, when dirty, route findings to the single
+      # wiki-curation issue (create or comment). The label/search/create-or-
+      # comment logic lives in `fit-wiki curate`, not here.
+      - name: Audit and route findings
         env:
           GH_TOKEN: ${{ github.token }}
-          FINDINGS: ${{ steps.audit.outputs.json }}
-        run: |
-          gh label create wiki-curation --color BFD4F2 \
-            --description "Shared-wiki audit findings from scheduled curation" 2>/dev/null || true
-          title="Wiki curation: shared-state audit findings"
-          body=$'Scheduled `curate-wiki` audit found shared-wiki violations.\n\nOwner: **technical-writer** (service these via the curation shift; the per-PR `wiki` gate no longer reads shared wiki state).\n\n```json\n'"$FINDINGS"$'\n```'
-          num="$(gh issue list --search "$title in:title" --state open --json number --jq '.[0].number')"
-          if [ -n "$num" ]; then
-            gh issue comment "$num" --body "$body"
-          else
-            gh issue create --title "$title" --body "$body" --label wiki-curation
-          fi
+          FIT_GH_REPO: ${{ github.repository }}
+        run: fit-wiki curate

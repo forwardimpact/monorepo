@@ -9,6 +9,7 @@ import { runClaimCommand, runReleaseCommand } from "./commands/claim.js";
 import { runInboxCommand } from "./commands/inbox.js";
 import { runRotateCommand } from "./commands/rotate.js";
 import { runAuditCommand } from "./commands/audit.js";
+import { runCurateCommand } from "./commands/curate.js";
 import { runFixCommand } from "./commands/fix.js";
 import { runLedgerCommand } from "./commands/ledger.js";
 
@@ -175,6 +176,25 @@ export function createDefinition() {
         },
       },
       {
+        name: "curate",
+        description:
+          "Audit the shared wiki and route any findings to the single wiki-curation issue (create or comment), addressed to the technical-writer",
+        handler: runCurateCommand,
+        options: {
+          ...wikiRootOpt,
+          ...todayOpt,
+          repo: {
+            type: "string",
+            description: "owner/repo slug (default: origin remote)",
+          },
+          "dry-run": {
+            type: "boolean",
+            description:
+              "Print the issue body and intended action without calling gh",
+          },
+        },
+      },
+      {
         name: "fix",
         description:
           "Auto-fix wiki audit findings: rotate weekly logs, fix the rest with an AI agent (technical-writer, Haiku), flag the unresolvable",
@@ -335,6 +355,7 @@ export function createDefinition() {
       "fit-wiki inbox list --agent staff-engineer",
       "fit-wiki rotate --agent staff-engineer",
       "fit-wiki audit",
+      "fit-wiki curate",
       "fit-wiki fix",
       'fit-wiki memo --from staff-engineer --to security-engineer --message "audit d642ff0c"',
       "fit-wiki refresh",

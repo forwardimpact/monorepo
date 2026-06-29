@@ -90,6 +90,15 @@
     "transform": []
   },
   {
+    "name": "curate help",
+    "args": ["curate", "--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "curate-help.stdout.txt",
+    "stderrFile": "curate-help.stderr.txt",
+    "transform": []
+  },
+  {
     "name": "fix help",
     "args": ["fix", "--help"],
     "env": {},

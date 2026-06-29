@@ -36,9 +36,11 @@ export function parseFacilitateOptions(values, runtime) {
 
   const profilesRaw = values["agent-profiles"];
   if (!profilesRaw) throw new Error("--agent-profiles is required");
-  const agentCwd = resolve(values["agent-cwd"] ?? ".");
+  // `||` (not `??`) so an empty-string flag from a CI forwarder falls back to
+  // the default rather than overriding it with "".
+  const agentCwd = resolve(values["agent-cwd"] || ".");
 
-  const maxTurnsRaw = values["max-turns"] ?? "20";
+  const maxTurnsRaw = values["max-turns"] || "20";
   const maxTurns = maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10);
 
   // Thread --max-turns into each participant: without this, every facilitated
@@ -51,12 +53,12 @@ export function parseFacilitateOptions(values, runtime) {
     taskContent,
     taskAmend,
     agentConfigs,
-    facilitatorCwd: resolve(values["facilitator-cwd"] ?? "."),
+    facilitatorCwd: resolve(values["facilitator-cwd"] || "."),
     agentModel: values["agent-model"] || AGENT_MODEL,
     facilitatorModel: values["lead-model"] || LEAD_MODEL,
     maxTurns,
     outputPath: values.output,
-    facilitatorProfile: values["lead-profile"] ?? undefined,
+    facilitatorProfile: values["lead-profile"] || undefined,
     workTracker: resolveWorkTracker(values, runtime?.proc?.env),
   };
 }

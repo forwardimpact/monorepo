@@ -9,8 +9,14 @@ import { buildContext, resolveScope } from "../audit/scopes.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot } from "../util/wiki-dir.js";
 
-/** Run the wiki audit and emit findings. JSON via --format json. */
-export function runAuditCommand(ctx) {
+/**
+ * Run the wiki audit and return its findings plus the resolved project root.
+ * Shared by `runAuditCommand` (emits them) and `runCurateCommand` (routes
+ * them to an issue) so the two cannot drift.
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {{ findings: object[], projectRoot: string }}
+ */
+export function auditWiki(ctx) {
   const { runtime } = ctx.deps;
   const options = ctx.options;
   const projectRoot = resolveProjectRoot(runtime);
@@ -23,7 +29,14 @@ export function runAuditCommand(ctx) {
     fs: runtime.fsSync,
     subprocess: runtime.subprocess,
   });
-  const findings = runRules(RULES, auditCtx, { resolveScope });
+  return { findings: runRules(RULES, auditCtx, { resolveScope }), projectRoot };
+}
+
+/** Run the wiki audit and emit findings. JSON via --format json. */
+export function runAuditCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const options = ctx.options;
+  const { findings, projectRoot } = auditWiki(ctx);
 
   runtime.proc.stdout.write(
     options.format === "json"
