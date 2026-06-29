@@ -37,7 +37,7 @@ jobs:
           - { name: improvement-coach }
     steps:
       # kata-agent runs the killswitch first and reports run cost last.
-      - uses: forwardimpact/kata-agent@159e107c83fbfffaced24f126fdc3c3bff4cb81a # v1
+      - uses: forwardimpact/kata-agent@53a90b6bb037894080f18577a437bb70de1c745d # v1.0.4
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
