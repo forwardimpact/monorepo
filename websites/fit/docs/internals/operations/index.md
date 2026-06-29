@@ -167,9 +167,10 @@ See each product's skill file for full CLI reference.
 
 ## Kata Agent Team Authentication
 
-The [Kata Agent Team](/docs/internals/kata/) authenticates to GitHub using a
-**GitHub App** that generates short-lived installation tokens per workflow run.
-Two setup options are available:
+The **Kata Agent Team** (defined in
+[`KATA.md`](https://github.com/forwardimpact/monorepo/blob/main/KATA.md))
+authenticates to GitHub using a **GitHub App** that generates short-lived
+installation tokens per workflow run. Two setup options are available:
 
 ### Option 1: Kata Agent Team App (recommended)
 
@@ -218,7 +219,6 @@ and distribute them.
 
 <div class="grid">
 
-<!-- part:card:../kata -->
 <!-- part:card:../../getting-started/contributors -->
 
 </div>

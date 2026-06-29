@@ -41,7 +41,7 @@ jobs:
 ## Prerequisites
 
 - A GitHub App installed on your repository (see
-  [setup guide](https://www.forwardimpact.team/docs/internals/kata/))
+  [setup guide](https://www.kata.team/))
 - Repository secrets: `KATA_APP_ID`, `KATA_APP_PRIVATE_KEY`, `ANTHROPIC_API_KEY`
 - Agent profiles in `.claude/agents/` (install via
   `npx skills add forwardimpact/kata-skills`)

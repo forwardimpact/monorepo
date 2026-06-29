@@ -10,15 +10,13 @@
 
 ## Primary Products
 
-Three external user groups hire these products; internal contributors build the
+Two external user groups hire these products; internal contributors build the
 monorepo. See [JTBD.md](JTBD.md) for each persona's jobs.
 
 - **Engineering Leaders** — Define what good engineering looks like, staff teams
   to succeed, and measure outcomes without blaming individuals.
 - **Empowered Engineers** — See what's expected of them and their agents, get
   judgment grounded in the standard, and stay prepared.
-- **Teams Using Agents** —
-  [Run a continuously improving agent team](JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team).
 
 ### Map — `fit-map`
 
@@ -56,26 +54,23 @@ Hired by engineers to track people, projects, and threads without continuous
 effort, assembling context so they walk into every meeting oriented.
 [Overview](websites/fit/outpost/index.md)
 
-### Kata — `kata-skills`
-
-Hired by teams using agents to run a self-improving development team. A daily
-Plan-Do-Study-Act cycle: agents write specs, ship features, study their traces,
-and act on findings. [Internals](websites/fit/docs/internals/kata/)
-
 ## Secondary Products
 
-**Platform Builders** hire these products to _construct agent-capable systems
-from shared libraries and services built for humans and agents._
-[Libraries § Jobs To Be Done](libraries/README.md#jobs-to-be-done) ·
-[Services § Jobs To Be Done](services/README.md#jobs-to-be-done)
+**Platform Builders** and **Teams Using Agents** hire these to build and run
+agent-capable systems. See [JTBD.md](JTBD.md) for their jobs.
 
-### Gear — `fit-skills`
-
-Hired by platform builders to give humans and agents shared capabilities through
-the same interface, with tooling to prove changes improved outcomes.
-[Overview](websites/fit/gear/index.md) ·
-[Libraries § Catalog](libraries/README.md#catalog) ·
-[Services § Catalog](services/README.md#catalog)
+- **Gear — `fit-skills`** — Shared capabilities for humans and agents through
+  one interface, with tooling to prove changes improved outcomes.
+  [Overview](websites/fit/gear/index.md) ·
+  [Libraries](libraries/README.md#catalog) ·
+  [Services](services/README.md#catalog)
+- **Kata — `kata-skills`** — A self-improving agent team running a daily
+  Plan-Do-Study-Act cycle: write specs, ship features, study traces, act on
+  findings. [KATA.md](KATA.md)
+- **Co-Aligned Instructions Standard** — The layered instruction architecture
+  for aligned coding agents. [COALIGNED.md](COALIGNED.md)
+- **Monorepo Structure Standard** — The directory shape and root files a
+  repository shared by humans and agents follows. [MONOREPO.md](MONOREPO.md)
 
 ## Distribution Model
 
@@ -178,8 +173,7 @@ One home per policy.
 - **Contribution standards & security** — [CONTRIBUTING.md](CONTRIBUTING.md)
 - **CLI/skill linking policy** — [products/](products/CLAUDE.md) ·
   [libraries/](libraries/CLAUDE.md)
-- **Kata Agent Team** — [KATA.md](KATA.md) ·
-  [Internals](websites/fit/docs/internals/kata/)
+- **Kata Agent Team** — [KATA.md](KATA.md)
 
 **External:**
 
