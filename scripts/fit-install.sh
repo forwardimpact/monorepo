@@ -38,7 +38,7 @@ DEFAULT_TOOLS=(apm just gh rg gitleaks coaligned)
 # publish step stamps the live tag into the released copy of this script; any
 # caller may override via the environment to pin a different release.
 FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
-FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.10}"
+FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.11}"
 
 # Bun compile target for this platform. Binaries are built only for linux-x64
 # and darwin-arm64; any other platform is unsupported and fails hard — this is
