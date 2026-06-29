@@ -67,7 +67,7 @@ Collection pages use `toc: false` and a grid of content partials to link to
 children. Cards are organized under `##` job headings with a persona label.
 Partial paths are relative to the page's directory — `agent-teams` for a
 sibling, `../docs/libraries` for a cross-tree reference. See `gear/index.md`
-and `docs/internals/kata/index.md` for examples.
+for an example.
 
 ### Getting Started Pages
 

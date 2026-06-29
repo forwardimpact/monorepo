@@ -155,6 +155,4 @@ a backup suffix with `-i`.
 
 <!-- part:card:../operations -->
 
-<!-- part:card:../kata -->
-
 </div>

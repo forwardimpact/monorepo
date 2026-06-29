@@ -235,19 +235,19 @@ omitted entirely.
 
 ## 5. Layout Patterns
 
-The Kata Agent Team is **internal**. It has no public marketing site. The brand
-surfaces in four real places, ordered by how often a contributor or agent
-encounters them:
+The brand surfaces in four real places, ordered from the fullest rendering down
+to plain markdown. `KATA.md` is the authoritative source inside the monorepo;
+the public site is the external home.
 
-### Surface 1 — The Internals Page
+### Surface 1 — The Public Site (`www.kata.team`)
 
-The canonical home is `websites/fit/docs/internals/kata/index.md` — sibling to
-`internals/operations/`, `internals/librepl/`. This is
-where the brand renders for human contributors browsing the docs site.
+The canonical web rendering is `websites/kata/index.md`, served at
+`www.kata.team`. This is where the brand renders in full for anyone evaluating
+or adopting the Kata Agent Team.
 
 ```text
 ┌──────────────────────────────────────────────┐
-│  Forward Impact Engineering Internals  ›  Kata  │
+│  www.kata.team                                 │
 │                                              │
 │     Kata                                     │  ← Roboto Slab 700, 44px
 │                                              │
@@ -307,18 +307,6 @@ summaries (`wiki/{persona}.md`) follow a fixed Kata template — the brand's
 typographic discipline applied to plain markdown. Persona name as H1, current
 condition as a blockquote, target condition as a level-2 heading, the five kata
 questions as level-3 subsections, metrics as a mono-table.
-
-### Navigation Pattern (Internals Page)
-
-The Kata internals page lives inside the Forward Impact Engineering docs nav.
-Within the Kata section, sub-nav routes to each persona:
-
-```text
-Forward Impact Engineering Docs  ›  Internals  ›  Kata  ›  Staff · Release · Security · Product · Writer · Coach
-```
-
-Current persona is bold (`600`). Others are regular (`400`) in `--gray-400`. The
-persona switcher is a horizontal row at the top of any persona sub-page.
 
 ### Warm/Cool Section Rhythm
 

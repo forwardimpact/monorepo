@@ -36,7 +36,6 @@ topics:
       - { path: "KATA.md", property: list }
       - { path: "websites/kata/index.md", property: count }
       - { path: "websites/kata/llms.txt", property: count }
-      - { path: "websites/fit/docs/internals/kata/index.md", property: count }
   - id: products-tree
     source: { type: fs-glob, pattern: "products/*/package.json", id: dirname }
     consumers:
@@ -45,5 +44,4 @@ topics:
   - id: kata-workflows
     source: { type: fs-glob, pattern: ".github/workflows/kata-*.yml", id: basename-noext, exclude: ["kata-interview.yml"] }
     consumers:
-      - { path: "websites/fit/docs/internals/kata/index.md", property: both }
       - { path: "KATA.md", property: list }

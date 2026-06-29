@@ -1,6 +1,6 @@
 ---
 title: Internals
-description: Understand how the system works under the hood — architecture and code for the Kata Agent Team, the REPL library, vector services, operations, and the release process.
+description: Understand how the system works under the hood — architecture and code for the REPL library, vector services, operations, and the release process.
 layout: product
 toc: false
 ---
@@ -14,7 +14,5 @@ toc: false
 <!-- part:card:operations -->
 
 <!-- part:card:release -->
-
-<!-- part:card:kata -->
 
 </div>
