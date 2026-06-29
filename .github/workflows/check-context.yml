@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - uses: forwardimpact/bootstrap@2bebda7abaffe16b79a6a5c4e3e82eddc1f7c7d1 # v1.0.7
       - uses: ./.github/actions/coaligned-check
         with:
           command: instructions
@@ -23,14 +23,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - uses: forwardimpact/bootstrap@2bebda7abaffe16b79a6a5c4e3e82eddc1f7c7d1 # v1.0.7
       - run: bun run context:check-metadata
 
   jtbd:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - uses: forwardimpact/bootstrap@2bebda7abaffe16b79a6a5c4e3e82eddc1f7c7d1 # v1.0.7
       - uses: ./.github/actions/coaligned-check
         with:
           command: jtbd
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - uses: forwardimpact/bootstrap@2bebda7abaffe16b79a6a5c4e3e82eddc1f7c7d1 # v1.0.7
       - uses: ./.github/actions/coaligned-check
         with:
           command: invariants
@@ -66,5 +66,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - uses: forwardimpact/bootstrap@2bebda7abaffe16b79a6a5c4e3e82eddc1f7c7d1 # v1.0.7
       - run: bun run wiki:rules

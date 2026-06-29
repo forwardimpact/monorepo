@@ -17,7 +17,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - uses: forwardimpact/bootstrap@2bebda7abaffe16b79a6a5c4e3e82eddc1f7c7d1 # v1.0.7
         with:
           # fit-benchmark runs the benchmark binary straight off PATH.
           clis: fit-benchmark

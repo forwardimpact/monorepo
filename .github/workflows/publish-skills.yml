@@ -101,7 +101,7 @@ jobs:
           vulnerability-scanning: "false"
           secret-scanning: "true"
 
-      - uses: forwardimpact/bootstrap@75f15439f4d3d72f18f155ca51292d1bd3222a0b # v1.0.6
+      - uses: forwardimpact/bootstrap@2bebda7abaffe16b79a6a5c4e3e82eddc1f7c7d1 # v1.0.7
         with:
           clis: fit-pack
 
