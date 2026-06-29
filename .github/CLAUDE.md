@@ -5,9 +5,10 @@ actions (`actions/`) they consume.
 
 ## Third-party actions
 
-<!-- enum:sibling-composite-actions:count -->Five<!-- /enum --> composite
-actions are co-located in this monorepo and published to `forwardimpact/`
-siblings, SHA-pinned with a `# v1` marker on `uses:` lines:
+<!-- enum:sibling-composite-actions:count -->
+Five composite actions are co-located in this monorepo and published to
+`forwardimpact/` siblings, SHA-pinned with a `# v1` marker on `uses:` lines:
+<!-- /enum -->
 
 | Action (`@v1`) | Purpose |
 |---|---|
@@ -42,7 +43,7 @@ This pinning policy governs workflow `uses:` only; a sibling's internal `uses:`
 ### Moving a sibling's `v1` tag
 
 Monorepo consumption stays SHA-pinned; `v1` exists only for external
-consumers. A human with tag rights may move `v1` only to an existing `v1.x.y`
+consumers. Cutting a release moves `v1` only to an existing `v1.x.y`
 release commit — reachable from the sibling's `main` and a descendant of
 `v1`'s current target. Never backward, untagged, or off-`main`; any other move
 is a compromise indicator.

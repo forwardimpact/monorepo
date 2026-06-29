@@ -37,8 +37,8 @@ surfaces and sessions.
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
 `audit/` and `coaligned-check/`.
 <!-- enum:sibling-composite-actions:count -->
-Five composite actions are co-located here and
-published to `forwardimpact/` siblings:
+Five composite actions are co-located here and published to `forwardimpact/`
+siblings:
 <!-- /enum -->
 
 <!-- enum:sibling-composite-actions:list -->
@@ -49,9 +49,9 @@ published to `forwardimpact/` siblings:
 - `kata-agent` — full Kata workflow (auth, checkout, bootstrap, eval, wiki push)
 <!-- /enum -->
 
-All are consumed by SHA-pinned `uses:` lines; changes
-arrive via append-only patch tags and Dependabot SHA-bump PRs. Run
-`kata-setup` to generate workflows interactively.
+Publish, pinning, and release mechanics live in
+[`.github/CLAUDE.md`](.github/CLAUDE.md); run `kata-setup` to generate
+workflows interactively.
 
 ## Simplicity
 

@@ -91,8 +91,8 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
   Internal skills (`libs-*`, product internals) never publish.
 - **Composite actions** — co-located with their owning unit
   (`libraries/*/actions/`, `products/*/actions/`, `.github/actions/`), published
-  verbatim to siblings by subtree split, consumed SHA-pinned, append-only
-  `v1.0.x` tags. Edit in-repo ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
+  to siblings by subtree split. Edit in-repo
+  ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
 
   <!-- enum:sibling-composite-actions:list -->
   `benchmark`, `bootstrap`, `harness`, `kata-agent`, `wiki`
@@ -112,7 +112,7 @@ Everything below is for internal contributors; external users should consult the
 [Getting Started guides](websites/fit/docs/getting-started/).
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — Invariants, structure, quality
-  commands, security policies. **Read before your first commit.**
+  commands, releasing, security policies. **Read before your first commit.**
 - **[Operations Reference](websites/fit/docs/internals/operations/index.md)** —
   Environment setup, service management, common tasks.
 

@@ -185,6 +185,12 @@ Pre-1.0 packages bump patch for any change. Post-1.0: semver (breaking=major,
 feat=minor, fix/refactor=patch). The release engineer handles bumps, tags, and
 publishing — see [kata-release-cut](.claude/skills/kata-release-cut).
 
+**Composite actions** release on a separate tag space: append-only `v1.0.x`
+tags on the sibling repos, with `v1` a moving major alias for external
+consumers. A push to `main` mirrors each action to its sibling by subtree
+split; the publish path, SHA-pin policy, and `v1`-move constraints live in
+[`.github/CLAUDE.md`](.github/CLAUDE.md).
+
 Some changes span more than one tag. A new or renamed binary, for example, is
 reachable only after every tier that carries it ships. Release producer before
 consumer, bottom-up, confirming each tier resolves before tagging the next:
