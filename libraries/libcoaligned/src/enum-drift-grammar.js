@@ -1,38 +1,19 @@
-// Pure helpers for the enumeration-drift invariant: registry
-// loading, glob-containment, the fs-glob and md-table source probes, the
-// list/count value extractors, and the fenced-block consumer parser. Kept
-// separate from enumeration-drift.rules.mjs so each module stays under the
-// repo's per-file size and per-function complexity ceilings; the rule module
-// re-exports these so the unit test imports them from one place.
+// The enumeration-drift grammar: source probes (fs-glob, md-table), the
+// list/count value extractors, and the fenced-block consumer parser. These are
+// the reusable mechanics the invariant kit injects as `kit.enumDrift`; they
+// carry no policy. Filesystem access is passed in (`fsSync`) rather than
+// imported, so this module stays clean under the repo's ambient-deps invariant;
+// the orchestration that binds them lives in enum-drift.js.
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
-import { parse as parseYaml } from "yaml";
 
-export const REGISTRY_FILE = "enumeration-drift.topics.yml";
 export const VALID_PROPERTIES = new Set(["count", "list"]);
 
-/** Read+parse the registry YAML in `dir`; returns `{topics}` or `{error}`. */
-export function loadRegistry(dir) {
-  let text;
-  try {
-    text = readFileSync(join(dir, REGISTRY_FILE), "utf8");
-  } catch (err) {
-    return { error: `cannot read registry: ${err.message}` };
-  }
-  let data;
-  try {
-    data = parseYaml(text);
-  } catch (err) {
-    return { error: `cannot parse registry: ${err.message}` };
-  }
-  if (!data || !Array.isArray(data.topics)) {
-    return { error: "registry must declare a top-level `topics` list" };
-  }
-  return { topics: data.topics };
-}
-
-/** Reject a pattern/file that escapes `root` (absolute or `..`); else null. */
+/** Reject a pattern/file that escapes `root` (absolute or `..`); else null.
+ *
+ * @param {string} pattern - A repo-relative source pattern or file path.
+ * @returns {string|null} An error message, or null when contained.
+ */
 export function checkContainment(pattern) {
   if (typeof pattern !== "string" || pattern === "") {
     return "missing or empty pattern";
@@ -46,13 +27,22 @@ export function checkContainment(pattern) {
 
 // --- fs-glob probe ---------------------------------------------------------
 
-/** Compile one path segment (e.g. `kata-*`) to a line-anchored, safe regex. */
+/** Compile one path segment (e.g. `kata-*`) to a line-anchored, safe regex.
+ *
+ * @param {string} segment - A single glob path segment.
+ * @returns {RegExp} An anchored matcher for one path component.
+ */
 export function segmentToRegExp(segment) {
   const escaped = segment.replace(/[.+^${}()|[\]\\?]/g, "\\$&");
   return new RegExp(`^${escaped.replace(/\*/g, "[^/]+")}$`);
 }
 
-/** Derive an identifier from a matched path per the registry `id` rule. */
+/** Derive an identifier from a matched path per the registry `id` rule.
+ *
+ * @param {string} relPath - The matched path, repo-relative.
+ * @param {"dirname"|"basename"|"basename-noext"} id - Derivation rule.
+ * @returns {string} The derived identifier.
+ */
 export function deriveId(relPath, id) {
   const parts = relPath.split("/");
   const base = parts[parts.length - 1];
@@ -70,7 +60,7 @@ function splitGlob(pattern) {
 }
 
 /** Walk `tail`-deep below `dir`, matching each level, collecting ids. */
-function walkGlob(dir, tail, fixed, relParts, id, excludeSet, ids) {
+function walkGlob(dir, tail, fixed, relParts, id, excludeSet, ids, fsSync) {
   if (relParts.length === tail.length) {
     const base = relParts[relParts.length - 1];
     if (!excludeSet.has(base)) {
@@ -82,7 +72,7 @@ function walkGlob(dir, tail, fixed, relParts, id, excludeSet, ids) {
   const isLast = relParts.length === tail.length - 1;
   let entries;
   try {
-    entries = readdirSync(dir);
+    entries = fsSync.readdirSync(dir);
   } catch {
     return;
   }
@@ -91,23 +81,38 @@ function walkGlob(dir, tail, fixed, relParts, id, excludeSet, ids) {
     const full = join(dir, entry);
     let isDir = false;
     try {
-      isDir = statSync(full).isDirectory();
+      isDir = fsSync.statSync(full).isDirectory();
     } catch {
       continue;
     }
     if (!isLast && !isDir) continue;
-    walkGlob(full, tail, fixed, [...relParts, entry], id, excludeSet, ids);
+    walkGlob(
+      full,
+      tail,
+      fixed,
+      [...relParts, entry],
+      id,
+      excludeSet,
+      ids,
+      fsSync,
+    );
   }
 }
 
-/** Probe a fs-glob source into a Set of identifiers. */
-export function probeFsGlob(source, root) {
+/** Probe a fs-glob source into a Set of identifiers.
+ *
+ * @param {{ pattern: string, id?: string, exclude?: string[] }} source
+ * @param {string} root - Repository root.
+ * @param {{ existsSync: Function, readdirSync: Function, statSync: Function }} fsSync
+ * @returns {Set<string>}
+ */
+export function probeFsGlob(source, root, fsSync) {
   const { pattern, id = "basename", exclude = [] } = source;
   const { fixed, tail } = splitGlob(pattern);
   const baseDir = join(root, ...fixed);
   const ids = new Set();
-  if (!existsSync(baseDir)) return ids;
-  walkGlob(baseDir, tail, fixed, [], id, new Set(exclude), ids);
+  if (!fsSync.existsSync(baseDir)) return ids;
+  walkGlob(baseDir, tail, fixed, [], id, new Set(exclude), ids, fsSync);
   return ids;
 }
 
@@ -115,9 +120,11 @@ export function probeFsGlob(source, root) {
 
 /**
  * Reduce a composite-action cell to its bare slug. Unwraps a leading
- * `[text](url)` markdown link to its link text (the form the real
- * `.github/CLAUDE.md` table uses), then drops backticks, the
+ * `[text](url)` markdown link to its link text, then drops backticks, the
  * `forwardimpact/` scope, and a trailing `@version`.
+ *
+ * @param {string} cell - A raw table cell.
+ * @returns {string} The bare slug.
  */
 export function bareSlug(cell) {
   const trimmed = cell.trim();
@@ -135,7 +142,11 @@ function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** Split a GFM table row `| a | b |` into cells, or null when not a row. */
+/** Split a GFM table row `| a | b |` into cells, or null when not a row.
+ *
+ * @param {string} line - One source line.
+ * @returns {string[]|null} Trimmed cells, or null when the line is not a row.
+ */
 export function parseTableRow(line) {
   const t = line.trim();
   if (!t.startsWith("|")) return null;
@@ -167,10 +178,16 @@ function sectionTableRows(lines, section) {
   return rows;
 }
 
-/** Probe a md-table source: filtered column cells under a section heading. */
-export function probeMdTable(source, root) {
+/** Probe a md-table source: filtered column cells under a section heading.
+ *
+ * @param {{ file: string, section: string, column: string, filter: string }} source
+ * @param {string} root - Repository root.
+ * @param {{ readFileSync: Function }} fsSync
+ * @returns {Set<string>}
+ */
+export function probeMdTable(source, root, fsSync) {
   const { file, section, column, filter } = source;
-  const lines = readFileSync(join(root, file), "utf8").split("\n");
+  const lines = fsSync.readFileSync(join(root, file), "utf8").split("\n");
   const rows = sectionTableRows(lines, section);
   if (rows.length === 0) return new Set();
   const filterRe = new RegExp(filter);
@@ -185,8 +202,14 @@ export function probeMdTable(source, root) {
   return out;
 }
 
-/** Resolve a topic's source to `{set}` or `{error}`. */
-export function probeSource(source, root) {
+/** Resolve a topic's source to `{set}` or `{error}`.
+ *
+ * @param {{ type?: string }} source - A topic `source` descriptor.
+ * @param {string} root - Repository root.
+ * @param {object} [fsSync] - Sync filesystem surface (unused on error paths).
+ * @returns {{ set: Set<string> }|{ error: string }}
+ */
+export function probeSource(source, root, fsSync) {
   if (!source || typeof source.type !== "string") {
     return { error: "source missing `type`" };
   }
@@ -200,8 +223,8 @@ export function probeSource(source, root) {
     return {
       set:
         source.type === "fs-glob"
-          ? probeFsGlob(source, root)
-          : probeMdTable(source, root),
+          ? probeFsGlob(source, root, fsSync)
+          : probeMdTable(source, root, fsSync),
     };
   } catch (err) {
     return { error: `${source.type} probe failed: ${err.message}` };
@@ -246,7 +269,11 @@ function buildWordNumbers() {
   return out;
 }
 
-/** Every count in a span, in source order (digits + English word-numbers). */
+/** Every count in a span, in source order (digits + English word-numbers).
+ *
+ * @param {string} span - The text to scan.
+ * @returns {number[]} Counts in source order.
+ */
 export function extractCounts(span) {
   const matches = [];
   let m;
@@ -264,7 +291,11 @@ export function extractCounts(span) {
   return matches.sort((a, b) => a.pos - b.pos).map((x) => x.value);
 }
 
-/** The first count in a span, or null. */
+/** The first count in a span, or null.
+ *
+ * @param {string} span - The text to scan.
+ * @returns {number|null}
+ */
 export function extractCount(span) {
   const all = extractCounts(span);
   return all.length === 0 ? null : all[0];
@@ -274,7 +305,11 @@ function firstToken(s) {
   return s.trim().split(/\s+/)[0] ?? "";
 }
 
-/** Normalize a list token to its comparison form (slug, no slash, lowercase). */
+/** Normalize a list token to its comparison form (slug, no slash, lowercase).
+ *
+ * @param {string} raw - A raw list token.
+ * @returns {string} The normalized identifier.
+ */
 export function normalizeToken(raw) {
   let s = (raw ?? "").trim();
   if (s === "") return "";
@@ -359,15 +394,37 @@ function treeIds(lines) {
   return ids;
 }
 
-// Identifier set from a list-shaped span. Precedence: brace expansion, bullets,
-// GFM table, ASCII tree, then a parenthetical comma-list (last resort, since a
-// bullet/tree leaf often carries a parenthetical aside whose commas are prose).
+// A bare comma/space-separated run of inline code spans and nothing else, e.g.
+// `a`, `b`, `c`. Returns the code-span tokens, or null when the span carries
+// any other text (prose, a bullet marker, an item description). That ambiguity
+// — commas inside a description versus commas between items — is exactly what
+// the bracketed shapes resolve, so this fires only when the whole span is code
+// spans plus separators, and needs at least two so a lone token is not a list.
+function inlineCodeSpanList(span) {
+  const t = span.trim();
+  const spans = t.match(/`[^`]+`/g);
+  if (!spans || spans.length < 2) return null;
+  const residue = t.replace(/`[^`]+`/g, "").replace(/[\s,]+/g, "");
+  return residue === "" ? spans : null;
+}
+
+/**
+ * Identifier set from a list-shaped span. Precedence: brace expansion, bullets,
+ * a bare comma/space-separated run of code spans, GFM table, ASCII tree, then a
+ * parenthetical comma-list (last resort, since a bullet/tree leaf often carries
+ * a parenthetical aside whose commas are prose).
+ *
+ * @param {string} span - The fenced body to read.
+ * @returns {Set<string>} The normalized identifier set.
+ */
 export function extractList(span) {
   const lines = span.split("\n");
   const brace = matchAll(span, /\{([^{}]+)\}/g);
   if (brace.length > 0) return tokensToSet(brace);
   const bullets = bulletTokens(lines);
   if (bullets.length > 0) return tokensToSet(bullets);
+  const codeSpans = inlineCodeSpanList(span);
+  if (codeSpans) return tokensToSet(codeSpans);
   const table = tableIds(lines);
   if (table) return table;
   const tree = treeIds(lines);
@@ -485,8 +542,13 @@ function unclosedRecords(open, records) {
   }
 }
 
-// Scan a consumer's text for enum fences outside top-level code blocks (a span
-// may itself enclose a code block). Returns one record per enum:TOPIC:PROPERTY.
+/**
+ * Scan a consumer's text for enum fences outside top-level code blocks (a span
+ * may itself enclose a code block). Returns one record per enum:TOPIC:PROPERTY.
+ *
+ * @param {string} text - The consumer file's text.
+ * @returns {Array<object>} Per-claim records.
+ */
 export function parseConsumer(text) {
   const lines = text.split("\n");
   const records = [];

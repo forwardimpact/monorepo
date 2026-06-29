@@ -79,6 +79,11 @@ policy; the kit owns the mechanism:
   per-entry `exclude` and built-in de-duplication.
 - `restatementDrift({ entries, equal })` — the shared "single source restated
   across consumers" scan + compare (service URLs, scalar values).
+- `enumDrift.build(registry)` / `enumDrift.seed(registry)` — the
+  enumeration-drift engine: assert (or seed) that every consumer's fenced
+  `<!-- enum:TOPIC:PROPERTY -->` block matches its source-of-truth set (an
+  fs-glob or md-table probe). Pass a parsed topics registry (e.g.
+  `config(topicsFile)`); pair with the rule kit's `enumDriftRules`.
 - `readText`, `readJson`, `config(name, fallback?)` (co-located JSON/YAML),
   `listDir(path, { dirsOnly? })`.
 - `lineAt(text, offset)`, `glob(pattern)`.
@@ -91,6 +96,8 @@ When `rules` is a function it receives the rule helpers:
   `parseError` (paired with `scanAst`).
 - `failAll(scope, { id, message, hint?, when? })` — fails every subject in
   scope (the build step already decided each is a violation).
+- `enumDriftRules` — the enumeration-drift rule set, paired with the build
+  kit's `enumDrift` (expose via `rules: (kit) => kit.enumDriftRules`).
 
 Findings render in the same ESLint-style format as the other subcommands
 (`--json` for machine output); any finding fails the run.

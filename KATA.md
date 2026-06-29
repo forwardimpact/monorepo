@@ -46,8 +46,7 @@ published to `forwardimpact/` siblings:
 - `bootstrap` — the FIT CI environment
 - `harness` — agent task execution
 - `wiki` — agent-memory commands with fresh App token
-- `kata-agent` — full Kata workflow (auth, checkout, bootstrap,
-  eval, wiki push)
+- `kata-agent` — full Kata workflow (auth, checkout, bootstrap, eval, wiki push)
 <!-- /enum -->
 
 All are consumed by SHA-pinned `uses:` lines; changes

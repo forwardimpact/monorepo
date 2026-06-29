@@ -15,6 +15,8 @@ import { isAbsolute, join, relative, resolve } from "node:path";
 import { parse as acornParse } from "acorn";
 import { parse as parseYaml } from "yaml";
 
+import { buildSubjects, ENUM_DRIFT_RULES, seedBodies } from "./enum-drift.js";
+
 // -- AST -----------------------------------------------------------------
 
 /**
@@ -405,6 +407,15 @@ export function createBuildKit({ root, dir, runtime }) {
       .map((e) => e.name);
   }
 
+  // The enumeration-drift engine, bound to this run's root and filesystem. A
+  // rule module passes its parsed registry (e.g. `config(topicsFile)`) to
+  // `build`/`seed`; the matching rule set is on the rule kit as
+  // `enumDriftRules`.
+  const enumDrift = {
+    build: (registry) => buildSubjects({ registry, root, fsSync }),
+    seed: (registry) => seedBodies({ registry, root, fsSync }),
+  };
+
   return {
     root,
     dir,
@@ -415,6 +426,7 @@ export function createBuildKit({ root, dir, runtime }) {
     walk,
     grep,
     restatementDrift,
+    enumDrift,
     readText,
     readJson,
     config,
@@ -431,6 +443,13 @@ export function createBuildKit({ root, dir, runtime }) {
  * build the two recurring rule shapes so the module declares only policy.
  */
 export const RULE_KIT = {
+  /**
+   * The enumeration-drift rule set, paired with the build kit's `enumDrift`. A
+   * rule module that delegates to `kit.enumDrift` exposes these via
+   * `rules: (kit) => kit.enumDriftRules`.
+   */
+  enumDriftRules: ENUM_DRIFT_RULES,
+
   /**
    * The standard parse-error rule: fails any subject carrying a `parseError`
    * string (as produced by the build kit's `scanAst`).
