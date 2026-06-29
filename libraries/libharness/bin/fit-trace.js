@@ -350,7 +350,7 @@ const definition = {
       options: {
         mode: {
           type: "string",
-          description: "Execution mode: run, supervise, or facilitate",
+          description: "Execution mode: run, supervise, facilitate, or discuss",
         },
         case: {
           type: "string",

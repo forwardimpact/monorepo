@@ -95,6 +95,14 @@ inputs:
     description: Enable wiki checkout and sync
     required: false
     default: "true"
+  killswitch:
+    description: >
+      Operator killswitch. When set to a truthy value (anything other than
+      empty/0/false/no/off) the run fails fast before any token minting,
+      checkout, or agent work. Pass `${{ vars.KATA_KILLSWITCH }}` so one
+      repository variable halts every kata-* workflow at once.
+    required: false
+    default: ""
 
 outputs:
   trace-file:
@@ -122,6 +130,18 @@ outputs:
 runs:
   using: composite
   steps:
+    # Killswitch first: fail before any token minting, checkout, or agent work
+    # so one repository variable halts every kata-* workflow at once.
+    - name: Kata killswitch
+      shell: bash
+      env:
+        KATA_KILLSWITCH: ${{ inputs.killswitch }}
+      run: |
+        case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
+          ""|0|false|no|off) ;;
+          *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH})." >&2; exit 1 ;;
+        esac
+
     - name: Generate installation token
       id: ci-app
       uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
@@ -217,3 +237,13 @@ runs:
         command: push
         app-id: ${{ inputs.app-id }}
         app-private-key: ${{ inputs.app-private-key }}
+
+    # Sum spend across every participant. fit-trace cost tolerates a missing
+    # trace (the run may have failed before producing one), so this needs no
+    # file guard.
+    - name: Report run cost
+      if: always()
+      shell: bash
+      env:
+        TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
+      run: fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"

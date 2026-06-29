@@ -83,10 +83,6 @@ inputs:
     description: Case identifier embedded in trace artifact filenames (use the matrix case id for matrix runs; defaults to "default")
     required: false
     default: "default"
-  artifact-suffix:
-    description: (Deprecated — pass `case` instead) Legacy alias for `case`; honored with a warning when set
-    required: false
-    default: ""
 
 outputs:
   trace-dir:
@@ -106,7 +102,7 @@ outputs:
       summary) should read this path directly.
     value: ${{ steps.setup.outputs.trace-file }}
   case:
-    description: Effective case identifier (after resolving `case` / legacy `artifact-suffix`).
+    description: Effective case identifier (the `case` input, or "default").
     value: ${{ steps.setup.outputs.case }}
 
 runs:
@@ -117,27 +113,18 @@ runs:
       id: setup
       shell: bash
       env:
-        CASE_INPUT: ${{ inputs.case }}
-        SUFFIX_INPUT: ${{ inputs.artifact-suffix }}
+        CASE: ${{ inputs.case }}
       run: |
         TRACE_DIR=$(mktemp -d)
-        echo "trace-dir=$TRACE_DIR" >> "$GITHUB_OUTPUT"
-        # Resolve effective case. Explicit `case` (non-default) wins; legacy
-        # `artifact-suffix` is honored with a deprecation warning; otherwise
-        # fall through to "default".
-        if [ -n "$CASE_INPUT" ] && [ "$CASE_INPUT" != "default" ]; then
-          EFFECTIVE_CASE="$CASE_INPUT"
-        elif [ -n "$SUFFIX_INPUT" ]; then
-          echo "::warning::artifact-suffix is deprecated; pass case=<id> instead"
-          EFFECTIVE_CASE="$SUFFIX_INPUT"
-        else
-          EFFECTIVE_CASE="default"
-        fi
-        echo "case=$EFFECTIVE_CASE" >> "$GITHUB_OUTPUT"
-        # Publish the raw trace file path so downstream steps can read it
-        # without globbing /tmp. Kept in sync with the --output path passed
-        # to the CLI in the "Run fit-harness" step below.
-        echo "trace-file=$TRACE_DIR/trace--$EFFECTIVE_CASE.raw.ndjson" >> "$GITHUB_OUTPUT"
+        CASE="${CASE:-default}"
+        # Publish the trace dir, effective case, and raw trace file path so
+        # downstream steps read them without globbing /tmp. The trace-file path
+        # is kept in sync with the --output passed in "Run fit-harness".
+        {
+          echo "trace-dir=$TRACE_DIR"
+          echo "case=$CASE"
+          echo "trace-file=$TRACE_DIR/trace--$CASE.raw.ndjson"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Run fit-harness
       shell: bash
@@ -173,130 +160,71 @@ runs:
         TRACE_CASE: ${{ steps.setup.outputs.case }}
         TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
       run: |
-        # fit-harness must already be on PATH as a pinned gear binary, installed
-        # by forwardimpact/bootstrap with `clis: fit-harness fit-trace`.
-        # There is no bunx/npx fallback: the binary distribution is the only
-        # supported path, so a missing binary fails hard rather than silently
-        # resolving a different (registry) build.
-        if ! command -v fit-harness &>/dev/null; then
-          echo "::error::fit-harness not found on PATH. Install it as a gear binary via forwardimpact/bootstrap with 'clis: fit-harness fit-trace' before this step. No bunx/npx fallback." >&2
-          exit 1
-        fi
-        HARNESS_CMD="fit-harness"
-
-        args=()
-
-        # Resolve task source — exactly one of task-file, task-text, task-event
-        # is required. task-event hands the runner's native event JSON to the
-        # CLI; libharness composes the task from the (event_name, action) template
-        # and lifts payload.inputs.prompt into the amendment.
-        task_sources=0
-        [ -n "$TASK_FILE" ] && task_sources=$((task_sources + 1))
-        [ -n "$TASK_TEXT" ] && task_sources=$((task_sources + 1))
-        [ -n "$TASK_EVENT" ] && task_sources=$((task_sources + 1))
-
-        if [ "$task_sources" -eq 0 ]; then
-          echo "::error::One of task-file, task-text, task-event is required"
-          exit 1
-        elif [ "$task_sources" -gt 1 ]; then
-          echo "::error::task-file, task-text, task-event are mutually exclusive"
-          exit 1
-        fi
-
-        if [ -n "$TASK_FILE" ]; then
-          args+=("--task-file=$TASK_FILE")
-        elif [ -n "$TASK_TEXT" ]; then
-          args+=("--task-text=$TASK_TEXT")
-        else
-          args+=("--task-event=$TASK_EVENT")
-        fi
-
-        if [ -n "$TASK_AMEND" ]; then
-          args+=("--task-amend=$TASK_AMEND")
-        fi
-
-        if [ -n "$MCP_SERVER" ]; then
-          args+=("--mcp-server=$MCP_SERVER")
-        fi
-
+        # fit-harness + fit-trace are pinned gear binaries on PATH, installed by
+        # forwardimpact/bootstrap (clis: fit-harness fit-trace) — assumed present.
+        #
+        # Flags accepted by every mode. Empty values are forwarded verbatim: the
+        # CLI treats an empty flag as unset and falls back to its own default, so
+        # no per-flag `if [ -n ]` guards are needed. The CLI also enforces
+        # task-source mutual exclusivity (exactly one of file/text/event), so the
+        # workflow just forwards all three and lets it select.
+        base=(
+          "--task-file=$TASK_FILE"
+          "--task-text=$TASK_TEXT"
+          "--task-event=$TASK_EVENT"
+          "--task-amend=$TASK_AMEND"
+          "--agent-model=$AGENT_MODEL"
+          "--max-turns=$MAX_TURNS"
+        )
         if [ "$TRACE_ENABLED" = "true" ] && [ -n "$TRACE_DIR" ]; then
-          args+=("--output=$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson")
+          base+=("--output=$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson")
         fi
 
-        # Mode-invariant flags. --max-turns is always forwarded; the CLI
-        # treats "0" as unlimited, while omitting the flag silently falls
-        # back to the SDK's ~50-turn cap.
-        args+=("--max-turns=$MAX_TURNS")
-        # Model flags are omitted when empty so the CLI defaults
-        # (@forwardimpact/libutil/models) stay the single source of truth.
-        if [ -n "$AGENT_MODEL" ]; then
-          args+=("--agent-model=$AGENT_MODEL")
-        fi
-
-        if [ "$MODE" = "supervise" ]; then
-          if [ -n "$LEAD_MODEL" ]; then
-            args+=("--lead-model=$LEAD_MODEL")
-          fi
-          if [ -n "$LEAD_PROFILE" ]; then
-            args+=("--lead-profile=$LEAD_PROFILE")
-          fi
-          if [ -n "$SUPERVISOR_TOOLS" ]; then
-            args+=("--supervisor-allowed-tools=$SUPERVISOR_TOOLS")
-          fi
-          if [ -n "$AGENT_PROFILE" ]; then
-            args+=("--agent-profile=$AGENT_PROFILE")
-          fi
-
-          # Composite action steps can't use the GitHub `timeout-minutes`
-          # field, so enforce the cap with the shell `timeout` command.
-          timeout "${TIMEOUT_MINUTES}m" $HARNESS_CMD supervise \
-            --supervisor-cwd="$SUPERVISOR_CWD" \
-            --agent-cwd="$AGENT_CWD" \
-            --allowed-tools="$TOOLS" \
-            "${args[@]}"
-        elif [ "$MODE" = "facilitate" ]; then
-          if [ -n "$LEAD_MODEL" ]; then
-            args+=("--lead-model=$LEAD_MODEL")
-          fi
-          if [ -n "$LEAD_PROFILE" ]; then
-            args+=("--lead-profile=$LEAD_PROFILE")
-          fi
-
-          timeout "${TIMEOUT_MINUTES}m" $HARNESS_CMD facilitate \
-            --facilitator-cwd="." \
-            --agent-profiles="$AGENT_PROFILES" \
-            --agent-cwd="$AGENT_CWD" \
-            "${args[@]}"
-        elif [ "$MODE" = "discuss" ]; then
-          if [ -n "$LEAD_MODEL" ]; then
-            args+=("--lead-model=$LEAD_MODEL")
-          fi
-          if [ -n "$LEAD_PROFILE" ]; then
-            args+=("--lead-profile=$LEAD_PROFILE")
-          fi
-          if [ -n "$AGENT_PROFILES" ]; then
-            args+=("--agent-profiles=$AGENT_PROFILES")
-          fi
-          if [ -n "$DISCUSSION_ID" ]; then
-            args+=("--discussion-id=$DISCUSSION_ID")
-          fi
-          if [ -n "$RESUME_CONTEXT" ]; then
-            args+=("--resume-context=$RESUME_CONTEXT")
-          fi
-
-          timeout "${TIMEOUT_MINUTES}m" $HARNESS_CMD discuss \
-            --agent-cwd="$AGENT_CWD" \
-            "${args[@]}"
-        else
-          if [ -n "$AGENT_PROFILE" ]; then
-            args+=("--agent-profile=$AGENT_PROFILE")
-          fi
-
-          timeout "${TIMEOUT_MINUTES}m" $HARNESS_CMD run \
-            --cwd="$CWD" \
-            --allowed-tools="$TOOLS" \
-            "${args[@]}"
-        fi
+        # Composite action steps can't use the GitHub `timeout-minutes` field, so
+        # enforce the cap with the shell `timeout` command. One branch per mode —
+        # each subcommand declares its own flag set, so the flags are scoped to
+        # the mode that accepts them.
+        case "$MODE" in
+          supervise)
+            timeout "${TIMEOUT_MINUTES}m" fit-harness supervise \
+              --supervisor-cwd="$SUPERVISOR_CWD" \
+              --agent-cwd="$AGENT_CWD" \
+              --allowed-tools="$TOOLS" \
+              --supervisor-allowed-tools="$SUPERVISOR_TOOLS" \
+              --lead-profile="$LEAD_PROFILE" \
+              --lead-model="$LEAD_MODEL" \
+              --agent-profile="$AGENT_PROFILE" \
+              --mcp-server="$MCP_SERVER" \
+              "${base[@]}"
+            ;;
+          facilitate)
+            timeout "${TIMEOUT_MINUTES}m" fit-harness facilitate \
+              --facilitator-cwd="." \
+              --agent-profiles="$AGENT_PROFILES" \
+              --agent-cwd="$AGENT_CWD" \
+              --lead-profile="$LEAD_PROFILE" \
+              --lead-model="$LEAD_MODEL" \
+              "${base[@]}"
+            ;;
+          discuss)
+            timeout "${TIMEOUT_MINUTES}m" fit-harness discuss \
+              --agent-cwd="$AGENT_CWD" \
+              --agent-profiles="$AGENT_PROFILES" \
+              --lead-profile="$LEAD_PROFILE" \
+              --lead-model="$LEAD_MODEL" \
+              --discussion-id="$DISCUSSION_ID" \
+              --resume-context="$RESUME_CONTEXT" \
+              "${base[@]}"
+            ;;
+          *)
+            timeout "${TIMEOUT_MINUTES}m" fit-harness run \
+              --cwd="$CWD" \
+              --allowed-tools="$TOOLS" \
+              --agent-profile="$AGENT_PROFILE" \
+              --mcp-server="$MCP_SERVER" \
+              "${base[@]}"
+            ;;
+        esac
 
     - name: Split trace
       if: always() && inputs.trace == 'true' && steps.setup.outputs.trace-dir != ''
@@ -306,23 +234,11 @@ runs:
         MODE: ${{ inputs.mode }}
         TRACE_CASE: ${{ steps.setup.outputs.case }}
       run: |
-        # fit-trace is a pinned gear binary on PATH (fit-bootstrap clis:
-        # fit-trace). No bunx/npx fallback — fail hard if it is missing.
-        if ! command -v fit-trace &>/dev/null; then
-          echo "::error::fit-trace not found on PATH. Install it as a gear binary via forwardimpact/bootstrap with 'clis: fit-trace' before this step. No bunx/npx fallback." >&2
-          exit 1
-        fi
-        TRACE_CMD="fit-trace"
-        # `fit-trace split` only accepts run|supervise|facilitate today, but
-        # the splitter itself is mode-agnostic (it buckets by envelope
-        # `source`). Discuss runs have the same lead + N-participants shape
-        # as facilitate, so map them onto `facilitate` for the splitter.
-        SPLIT_MODE="$MODE"
-        if [ "$SPLIT_MODE" = "discuss" ]; then
-          SPLIT_MODE="facilitate"
-        fi
-        $TRACE_CMD split "$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson" \
-          --mode="$SPLIT_MODE" \
+        # fit-trace accepts `discuss` directly (it buckets by envelope source,
+        # mapping discuss onto the facilitate shape internally), so the mode is
+        # forwarded as-is.
+        fit-trace split "$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson" \
+          --mode="$MODE" \
           --case="$TRACE_CASE" \
           --output-dir="$TRACE_DIR"
 

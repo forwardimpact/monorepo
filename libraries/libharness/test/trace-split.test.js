@@ -368,6 +368,32 @@ describe("fit-trace split", () => {
     });
   });
 
+  describe("discuss mode", () => {
+    test("is accepted and buckets by source like facilitate", () => {
+      const event = {
+        type: "assistant",
+        message: { content: [{ type: "text", text: "hi" }] },
+      };
+      const { fs, dir, file } = setupTrace([
+        { source: "facilitator", seq: 0, event },
+        { source: "staff-engineer", seq: 1, event },
+      ]);
+
+      const result = split({ mode: "discuss", case: "demo" }, [file], fs);
+      assert.notStrictEqual(result?.ok, false);
+      assert.ok(
+        fs.existsSync(
+          path.join(dir, "trace--demo--facilitator.facilitator.ndjson"),
+        ),
+      );
+      assert.ok(
+        fs.existsSync(
+          path.join(dir, "trace--demo--staff-engineer.agent.ndjson"),
+        ),
+      );
+    });
+  });
+
   describe("invalid mode", () => {
     test("rejects unknown --mode values", async () => {
       const { fs, file } = setupTrace([

@@ -50,4 +50,27 @@ describe("fit-trace cost", () => {
     assert.match(out, /\| supervisor \| 0\.0500 \|/);
     assert.match(out, /\| agent \| 0\.0200 \|/);
   });
+
+  test("a missing trace file exits ok and prints nothing", async () => {
+    // A CI cost step runs under always(); the trace may not exist when the
+    // run failed before producing one. The handler must not throw.
+    const fsSync = createMockFs({});
+    let out = "";
+    const result = await runCostCommand({
+      options: { markdown: true },
+      args: { file: "/traces/absent.ndjson" },
+      deps: {
+        runtime: { fsSync, proc: { stdout: { write: (s) => (out += s) } } },
+      },
+    });
+    assert.deepStrictEqual(result, { ok: true });
+    assert.strictEqual(out, "");
+  });
+
+  test("an empty trace file reports zero cost", async () => {
+    const out = await cost({}, []);
+    const parsed = JSON.parse(out);
+    assert.strictEqual(parsed.totalCostUsd, 0);
+    assert.deepStrictEqual(parsed.bySource, {});
+  });
 });

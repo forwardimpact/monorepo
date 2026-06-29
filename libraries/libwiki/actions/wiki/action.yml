@@ -65,13 +65,6 @@ runs:
         if [ -d "$WIKI_PATH/.git" ]; then
           git -C "$WIKI_PATH" config --unset-all 'http.https://github.com/.extraheader' 2>/dev/null || true
         fi
-        # fit-wiki must already be on PATH as a pinned gear binary, installed by
-        # forwardimpact/bootstrap with `clis: fit-wiki`. There is no
-        # bunx/npx fallback: the binary distribution is the only supported path,
-        # so a missing binary fails hard rather than silently resolving a
-        # different (registry) build.
-        if ! command -v fit-wiki &>/dev/null; then
-          echo "::error::fit-wiki not found on PATH. Install it as a gear binary via forwardimpact/bootstrap with 'clis: fit-wiki' before this step. No bunx/npx fallback." >&2
-          exit 1
-        fi
+        # fit-wiki is a pinned gear binary on PATH, installed by
+        # forwardimpact/bootstrap (clis: fit-wiki) — assumed present.
         fit-wiki $COMMAND

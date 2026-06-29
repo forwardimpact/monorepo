@@ -8,63 +8,16 @@ on:
       - "design/fit/**"
       - "libraries/libdoc/**"
       - ".github/workflows/website-fit.yaml"
+      - ".github/workflows/website.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: "website-fit"
-  cancel-in-progress: false
-
 jobs:
   publish:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-
-      - uses: forwardimpact/bootstrap@2bebda7abaffe16b79a6a5c4e3e82eddc1f7c7d1 # v1.0.7
-        with:
-          clis: fit-doc
-
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: 22
-
-      - uses: ./.github/actions/audit
-
-      - name: Build website
-        run: fit-doc build --src=websites/fit --out=dist
-
-      - name: Copy schema files
-        run: |
-          mkdir -p dist/schema/json
-          cp products/map/schema/json/*.json dist/schema/json/
-          mkdir -p dist/schema/rdf
-          cp products/map/schema/rdf/*.ttl dist/schema/rdf/
-
-      - name: Copy CNAME file
-        run: cp websites/fit/CNAME dist/
-
-      - name: Upload site artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: fit-pages
-          path: dist
-
-      - name: Generate installation token
-        id: ci-app
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
-        with:
-          app-id: ${{ secrets.KATA_APP_ID }}
-          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
-          repositories: fit-pages
-
-      - name: Trigger deployment
-        env:
-          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-        run: |
-          gh api repos/forwardimpact/fit-pages/dispatches \
-            -f event_type=deploy \
-            -f "client_payload[run_id]=${{ github.run_id }}"
+    uses: ./.github/workflows/website.yml
+    with:
+      site: fit
+      copy-schema: true
+    secrets: inherit

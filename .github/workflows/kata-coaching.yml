@@ -23,47 +23,16 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
-      # Killswitch: abort early when the KATA_KILLSWITCH variable is set to a
-      # truthy value. Lets an operator halt every kata-* workflow from one
-      # place without disabling each one individually. Kept as the first step
-      # so the run fails before any token minting, checkout, or agent work.
-      - name: Kata killswitch
-        shell: bash
-        env:
-          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
-        run: |
-          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
-            ""|0|false|no|off)
-              echo "Kata killswitch not engaged; proceeding." ;;
-            *)
-              echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2
-              exit 1 ;;
-          esac
-
+      # kata-agent runs the killswitch first and reports run cost last.
       - uses: forwardimpact/kata-agent@159e107c83fbfffaced24f126fdc3c3bff4cb81a # v1
-        id: agent
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          killswitch: ${{ vars.KATA_KILLSWITCH }}
           mode: "facilitate"
           task-text: >-
             Facilitate a one-on-one Kata coaching session with "${{ inputs.agent }}".
           lead-profile: "improvement-coach"
           agent-profiles: "${{ inputs.agent }}"
           task-amend: ${{ inputs.task-amend }}
-
-      # Sum spend across every participant from the trace kata-agent exposes.
-      # Cost logic lives in the `fit-trace` CLI; this step only reads the
-      # path and redirects the markdown summary.
-      - name: Report run cost
-        if: always()
-        shell: bash
-        env:
-          TRACE_FILE: ${{ steps.agent.outputs.trace-file }}
-        run: |
-          if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
-            fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "No trace file produced — cost not reported."
-          fi

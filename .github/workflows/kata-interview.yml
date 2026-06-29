@@ -33,21 +33,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
-      # Killswitch: abort early when the KATA_KILLSWITCH variable is set to a
-      # truthy value. Lets an operator halt every kata-* workflow from one
-      # place without disabling each one individually. Kept as the first step
-      # so the run fails before any token minting, checkout, or agent work.
+      # Killswitch first: fail before any token minting or agent work so one
+      # repository variable halts every kata-* workflow at once.
       - name: Kata killswitch
         shell: bash
         env:
           KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
         run: |
           case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
-            ""|0|false|no|off)
-              echo "Kata killswitch not engaged; proceeding." ;;
-            *)
-              echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH}). Failing fast." >&2
-              exit 1 ;;
+            ""|0|false|no|off) ;;
+            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH})." >&2; exit 1 ;;
           esac
 
       - name: Generate installation token
@@ -165,17 +160,13 @@ jobs:
           supervisor-allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,Skill,TodoWrite"
           task-amend: ${{ steps.amend.outputs.amend }}
 
+      # fit-trace cost tolerates a missing trace, so no file guard is needed.
       - name: Report run cost
         if: always()
         shell: bash
         env:
           TRACE_FILE: ${{ steps.interview.outputs.trace-file }}
-        run: |
-          if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
-            fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "No trace file produced — cost not reported."
-          fi
+        run: fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
 
       - name: Push wiki changes
         if: always()

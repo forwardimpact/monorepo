@@ -21,35 +21,37 @@ export async function parseSuperviseOptions(values, runtime) {
   );
   const supervisorAllowedToolsRaw = values["supervisor-allowed-tools"];
 
+  // `||` (not `??`) throughout so an empty-string flag from a CI forwarder
+  // falls back to the default rather than overriding it with "".
   const tmpRoot = runtime.proc.env.TMPDIR ?? "/tmp";
   const agentCwd = resolve(
-    values["agent-cwd"] ??
+    values["agent-cwd"] ||
       (await runtime.fs.mkdtemp(join(tmpRoot, "fit-harness-agent-"))),
   );
 
   return {
     taskContent,
     taskAmend,
-    supervisorCwd: resolve(values["supervisor-cwd"] ?? "."),
+    supervisorCwd: resolve(values["supervisor-cwd"] || "."),
     agentCwd,
     agentModel: values["agent-model"] || AGENT_MODEL,
     supervisorModel: values["lead-model"] || LEAD_MODEL,
     maxTurns: (() => {
-      const raw = values["max-turns"] ?? "200";
+      const raw = values["max-turns"] || "200";
       return raw === "0" ? 0 : parseInt(raw, 10);
     })(),
     outputPath: values.output,
-    supervisorProfile: values["lead-profile"] ?? undefined,
-    agentProfile: values["agent-profile"] ?? undefined,
+    supervisorProfile: values["lead-profile"] || undefined,
+    agentProfile: values["agent-profile"] || undefined,
     workTracker: resolveWorkTracker(values, runtime?.proc?.env),
     allowedTools: (
-      values["allowed-tools"] ??
+      values["allowed-tools"] ||
       "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
     ).split(","),
     supervisorAllowedTools: supervisorAllowedToolsRaw
       ? supervisorAllowedToolsRaw.split(",")
       : undefined,
-    mcpServer: values["mcp-server"] ?? undefined,
+    mcpServer: values["mcp-server"] || undefined,
   };
 }
 

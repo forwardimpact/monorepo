@@ -1,0 +1,13 @@
+fit-wiki curate — Audit the shared wiki and route any findings to the single wiki-curation issue (create or comment), addressed to the technical-writer
+
+Usage: fit-wiki curate [options]
+
+Options:
+  --wiki-root=<string>  Override wiki root directory (default: wiki)
+  --today=<string>      Override today's ISO date (testing)
+  --repo=<string>       owner/repo slug (default: origin remote)
+  --dry-run             Print the issue body and intended action without calling gh
+
+Global options:
+  --help, -h  Show this help
+  --json      Render --help output as JSON

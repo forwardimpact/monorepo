@@ -22,22 +22,24 @@ export function parseRunOptions(values, runtime) {
     values,
     runtime,
   );
-  const maxTurnsRaw = values["max-turns"] ?? "50";
+  // `||` (not `??`) so an empty-string flag from a CI forwarder falls back to
+  // the default, rather than overriding it with "".
+  const maxTurnsRaw = values["max-turns"] || "50";
 
   return {
     taskContent,
     taskAmend,
-    cwd: resolve(values.cwd ?? "."),
+    cwd: resolve(values.cwd || "."),
     agentModel: values["agent-model"] || AGENT_MODEL,
     maxTurns: maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10),
     outputPath: values.output,
-    agentProfile: values["agent-profile"] ?? undefined,
+    agentProfile: values["agent-profile"] || undefined,
     workTracker: resolveWorkTracker(values, runtime?.proc?.env),
     allowedTools: (
-      values["allowed-tools"] ??
+      values["allowed-tools"] ||
       "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
     ).split(","),
-    mcpServer: values["mcp-server"] ?? undefined,
+    mcpServer: values["mcp-server"] || undefined,
   };
 }
 
