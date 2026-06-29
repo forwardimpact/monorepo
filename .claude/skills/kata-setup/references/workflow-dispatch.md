@@ -67,7 +67,7 @@ jobs:
       || github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
     steps:
-      # First step: copy the `Kata killswitch` step verbatim from workflow-shift.md.
+      # First step: the `Kata killswitch` step from workflow-shift.md § Inline steps.
       - name: Generate token
         id: ci-app
         uses: actions/create-github-app-token@v3
@@ -94,8 +94,8 @@ jobs:
           agent-model: "{{MODEL}}"
           lead-model: "{{MODEL}}"
           discussion-id: ${{ inputs.discussion_id }}
-      # Copy the `Report run cost` step from workflow-shift.md (read trace-file
-      # from `steps.assess`).
+      # Then the `Report run cost` step per workflow-shift.md § Inline steps
+      # (TRACE_FILE from `steps.assess.outputs.trace-file`).
       # harness does not push wiki itself, so push memory with a fresh token.
       # Drop this step when wiki is disabled.
       - name: Push wiki changes

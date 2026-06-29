@@ -15,10 +15,11 @@ serializes them.
 | `{{KATA_AGENT_REF}}` | `b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0` |
 
 List `{{AGENT_MATRIX}}` in producer → reviewer → shipper order;
-`{{SHIFT_CRONS}}` are shift-start times. Set `wiki: "false"` to skip wiki sync,
-omit `agent-model:` for the default. The `Kata killswitch` and `Report run cost`
-steps are the canonical copies other files reference. Emit the self-hosted block
-(default) or the hosted block per `--hosted` (`SKILL.md`).
+`{{SHIFT_CRONS}}` are shift-start times. Set `wiki: "false"` to skip sync, omit
+`agent-model:` for the default. `kata-agent` runs the killswitch gate first and
+reports cost last. These workflows pass
+`killswitch: ${{ vars.KATA_KILLSWITCH }}` and add no inline steps. Emit the
+self-hosted (default) or hosted block per `--hosted` (`SKILL.md`).
 
 ## Template (Self-Hosted)
 
@@ -49,21 +50,14 @@ jobs:
         agent:
           {{AGENT_MATRIX}}
     steps:
-      - name: Kata killswitch
-        shell: bash
-        env:
-          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
-        run: |
-          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
-            ""|0|false|no|off) echo "Killswitch not engaged; proceeding." ;;
-            *) echo "::error::KATA_KILLSWITCH engaged. Failing fast." >&2; exit 1 ;;
-          esac
+      # kata-agent runs the killswitch first and reports run cost last.
       - uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}
         id: agent
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          killswitch: ${{ vars.KATA_KILLSWITCH }}
           agent-profile: ${{ matrix.agent.name }}
           agent-model: "{{MODEL}}"
           wiki: "{{WIKI}}"
@@ -72,17 +66,6 @@ jobs:
             Assess the current state of your domain and act on the
             highest-priority finding.
           task-amend: ${{ inputs.task-amend }}
-      - name: Report run cost
-        if: always()
-        shell: bash
-        env:
-          TRACE_FILE: ${{ steps.agent.outputs.trace-file }}
-        run: |
-          if [ -n "${TRACE_FILE:-}" ] && [ -f "$TRACE_FILE" ]; then
-            fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "No trace file produced — cost not reported."
-          fi
 ```
 
 ## Template (Hosted)
@@ -90,7 +73,7 @@ jobs:
 The self-hosted template with three changes (the **canonical** hosted recipe):
 
 1. Add `id-token: write` to `permissions`, keeping `contents: write`.
-2. Insert this OIDC mint step directly **after** the `Kata killswitch` step:
+2. Insert this OIDC mint step as the **first** step, before `kata-agent`:
 
    ```yaml
          - name: Mint installation token via Forward Impact OIDC
@@ -110,12 +93,31 @@ The self-hosted template with three changes (the **canonical** hosted recipe):
              printf 'token=%s\n' "$INSTALL_TOKEN" >> "$GITHUB_OUTPUT"
    ```
 
-3. In the `kata-agent` step, drop `app-id`/`app-private-key` and add
-   `installation-token: ${{ steps.mint.outputs.token }}`.
+3. In the `kata-agent` step, drop `app-id`/`app-private-key`, add
+   `installation-token: ${{ steps.mint.outputs.token }}`; keep `killswitch:`.
 
-`FIT_OIDC_URL` is the `services/oidc` URL as a repository **variable**;
-`::add-mask::` keeps the token out of logs. Hosted needs a `kata-agent` SHA
-accepting `installation-token`.
+`FIT_OIDC_URL` is the `services/oidc` URL as a repository **variable**, masked
+in logs. Hosted needs a `kata-agent` SHA accepting `installation-token`.
+
+## Inline steps
+
+For the harness-based dispatch workflow (`workflow-dispatch.md`), which does not
+delegate to `kata-agent`: copy the killswitch below as its first step, and add a
+final `if: always()` step running `fit-trace cost "$TRACE_FILE" --markdown >>
+"$GITHUB_STEP_SUMMARY"` (`TRACE_FILE` from the trace step's `trace-file`; a
+missing trace is tolerated, no guard).
+
+```yaml
+      - name: Kata killswitch
+        shell: bash
+        env:
+          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
+        run: |
+          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
+            ""|0|false|no|off) ;;
+            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH})." >&2; exit 1 ;;
+          esac
+```
 
 ## Resolving Action Refs
 

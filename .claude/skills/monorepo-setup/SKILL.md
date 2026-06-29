@@ -1,7 +1,7 @@
 ---
 name: monorepo-setup
 description: >
-  Stand up a new MONOREPO.md-compliant repository end to end — bootstrap the
+  Stand up a new Monorepo-standard repository end to end — bootstrap the
   skeleton, install the skill packs, run coaligned-setup then kata-setup, and
   fill the seams neither owns (root package.json, directory tree, agent
   profiles, CI, remote creation). Use when creating a Forward Impact-style repo
@@ -11,7 +11,7 @@ description: >
 # monorepo-setup
 
 Orchestrate a full repository bootstrap to the three standards: structure
-([MONOREPO.md](https://github.com/forwardimpact/monorepo/blob/main/MONOREPO.md)),
+([Monorepo](https://www.monorepo.team/)),
 instruction architecture (via the `coaligned-setup` skill), and the agent team
 (via the `kata-setup` skill).
 
@@ -34,9 +34,9 @@ once per repository.
 
 `git init`, default branch `main`, then the seam files from
 [references/repo-skeleton.md](references/repo-skeleton.md): `.gitignore` and the
-MONOREPO.md top-level directories, each with a `README.md` naming its jobs.
-See [MONOREPO.md] for what each directory is for — do not invent structure.
-Commit.
+[Monorepo standard][monorepo] top-level directories, each with a `README.md`
+naming its jobs. See [the Monorepo standard][monorepo] for what each directory
+is for — do not invent structure. Commit.
 
 ### Step 2 — Add the root package.json
 
@@ -97,7 +97,7 @@ that the wiki clones with its three ledgers via `fit-wiki pull`.
 
 <do_confirm_checklist goal="Verify the repo stands before handing off">
 
-- [ ] Git, the root `package.json`, and the MONOREPO.md directory tree exist.
+- [ ] Git, the root `package.json`, and the Monorepo directory tree exist.
 - [ ] Both skill packs and the kata agent profiles are under `.claude/`.
 - [ ] `coaligned-setup` and `kata-setup` both completed.
 - [ ] The check workflows exist (`check-quality`, `check-test`, `check-context`)
@@ -111,12 +111,12 @@ that the wiki clones with its three ledgers via `fit-wiki pull`.
 
 ## Documentation
 
-- [MONOREPO.md] — repository structure and the JTBD convention.
-- [COALIGNED.md](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+- [Monorepo][monorepo] — repository structure and the JTBD convention.
+- [Co-Aligned](https://www.coaligned.team/)
   — the layered instruction architecture (owned by `coaligned-setup`).
-- [KATA.md](https://github.com/forwardimpact/monorepo/blob/main/KATA.md) — the
+- [Kata Agent Team](https://www.kata.team/) — the
   agent team and its PDSA loop (owned by `kata-setup`).
 - [APM](https://microsoft.github.io/apm/) — the package manager that installs
   the skill packs.
 
-[MONOREPO.md]: https://github.com/forwardimpact/monorepo/blob/main/MONOREPO.md
+[monorepo]: https://www.monorepo.team/

@@ -10,7 +10,7 @@ description: >
 # Set Up the Kata Agent Team
 
 Interactive skill that configures the
-[Kata Agent Team](https://www.forwardimpact.team/docs/internals/kata/) in your
+[Kata Agent Team](https://www.kata.team/) in your
 repository. Generates GitHub Actions workflow files for scheduled agents,
 facilitated sessions, and event-driven responses.
 
@@ -57,8 +57,9 @@ facilitated sessions, and event-driven responses.
 - [ ] The dispatch workflow does no prompt assembly — it passes
       `task-event: ${{ github.event_path }}` and lets the action compose the
       task (including the recursion guard).
-- [ ] Every generated workflow's first step is the `Kata killswitch` gate
-      (before any token mint or checkout).
+- [ ] Every generated workflow gates on the killswitch: `kata-agent` workflows
+      pass `killswitch: ${{ vars.KATA_KILLSWITCH }}`; the harness-based dispatch
+      workflow keeps the inline `Kata killswitch` first step.
 
 </do_confirm_checklist>
 
@@ -144,11 +145,14 @@ The matrix in `agent-shift.yml` carries one line per selected agent, in
 producer → reviewer → shipper order (see `references/schedules.md`). Storyboard
 and coaching workflows are generated only when `improvement-coach` is selected.
 
-Every template's first step is a `Kata killswitch` gate that reads the
-`KATA_KILLSWITCH` repository (or org) Actions variable and fails the run when it
-holds a truthy value (anything other than empty, `0`, `false`, `no`, or `off`).
-Keep it first so an engaged switch halts the run before any token mint,
-checkout, or agent work. It is unset by default, so it has no effect until an
+Every template gates on the `KATA_KILLSWITCH` repository (or org) Actions
+variable, failing the run when it holds a truthy value (anything other than
+empty, `0`, `false`, `no`, or `off`). The `kata-agent` workflows (shift,
+storyboard, coaching) pass `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the
+action, which runs the gate as its first internal step — before any token mint,
+checkout, or agent work. The harness-based dispatch workflow mints its own token
+in the workflow, so it keeps an inline `Kata killswitch` first step that halts
+before that mint. The switch is unset by default, so it has no effect until an
 operator sets it.
 
 ### Step 3: Generate agent-dispatch
@@ -185,5 +189,5 @@ Summarize what was created and suggest next steps:
 - To halt all kata workflows at once (an emergency stop), set the
   `KATA_KILLSWITCH` repository variable to a truthy value (e.g. `1`); clear or
   unset it to resume
-- Read the [Kata internals](https://www.forwardimpact.team/docs/internals/kata/)
-  for architecture details
+- Read the [Kata Agent Team](https://www.kata.team/) site for how the team
+  works and its PDSA rhythm
