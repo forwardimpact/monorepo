@@ -38,7 +38,12 @@ exclude = [
 #        style would instead churn published skill files (which carry coaligned
 #        line/word budgets) and tool-generated enum blocks. The repo is already
 #        consistently fenced where it matters.
-disable = ["MD033", "MD041", "MD057", "MD046"]
+# MD001: heading-increment. A strict one-level-at-a-time hierarchy is the wrong
+#        constraint for documents whose structure is presentational, not
+#        outline-driven. The suite landing page presents five product cards as
+#        peers under one section; their heading level expresses equal weight,
+#        not nesting depth. Leave heading structure to each document and author.
+disable = ["MD033", "MD041", "MD057", "MD046", "MD001"]
 
 [MD013]
 # Wrap prose to 80 columns. `reflow` makes `rumdl fmt` re-wrap paragraphs and
