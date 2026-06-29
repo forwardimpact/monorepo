@@ -158,7 +158,7 @@ runs:
     # ./scripts/bootstrap.sh. The `token:` input gates wiki checkout —
     # leave it empty to skip wiki sync. The wiki is pushed back after the
     # agent run via forwardimpact/wiki below.
-    - uses: forwardimpact/bootstrap@27438d9d934d1ca9c68aa131026591134dd96ceb # v1.0.2
+    - uses: forwardimpact/bootstrap@c349e223de51a865ac223cc712972487393829b5 # v1.0.8
       with:
         token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
         app-slug: ${{ inputs.app-slug }}
@@ -182,7 +182,7 @@ runs:
 
     - name: Assess and Act
       id: assess
-      uses: forwardimpact/harness@6af713fe23701ed1001631c8d3118075561cc41e # v1.0.1
+      uses: forwardimpact/harness@b7409ad9a1df4ff75eca8fe68041b5384f75bd7e # v1.0.3
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
