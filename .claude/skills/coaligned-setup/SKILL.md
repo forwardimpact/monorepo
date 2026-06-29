@@ -3,14 +3,14 @@ name: coaligned-setup
 description: >
   Bootstrap the Co-Aligned instruction architecture in a repository. Use
   when a repo has no layered agent instructions yet, when adopting the
-  COALIGNED.md standard, or when wiring `npx coaligned` into the checks so
+  Co-Aligned standard, or when wiring `npx coaligned` into the checks so
   instruction layers, jobs, and invariants stay enforced.
 ---
 
 # coaligned-setup
 
 Stand up the
-[Co-Aligned](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+[Co-Aligned](https://www.coaligned.team/)
 instruction architecture in a repository: the root identity and jobs files, the
 invariant directory, and the `npx coaligned` checks that keep them honest.
 
@@ -102,7 +102,7 @@ validate. Fix any finding before committing — route by subcommand the same way
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+- [Co-Aligned Instruction Architecture Standard](https://www.coaligned.team/)
   — the eight layers, their caps, and the rules that separate them.
 - [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
   — what each `coaligned` subcommand checks.

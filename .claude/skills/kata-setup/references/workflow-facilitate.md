@@ -47,13 +47,14 @@ jobs:
   kata:
     runs-on: ubuntu-latest
     steps:
-      # First step: copy `Kata killswitch` verbatim from workflow-shift.md.
+      # kata-agent runs the killswitch first and reports run cost last.
       - uses: forwardimpact/kata-agent@{{KATA_AGENT_REF}}
         id: agent
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          killswitch: ${{ vars.KATA_KILLSWITCH }}
           mode: "discuss"
           lead-profile: "improvement-coach"
           agent-profiles: "{{AGENT_LIST}}"
@@ -63,7 +64,6 @@ jobs:
           task-text: >-
             Facilitate a team Kata storyboard session.
           task-amend: ${{ inputs.task-amend }}
-      # Last step: copy `Report run cost` verbatim from workflow-shift.md.
 ```
 
 ## Coaching Template
@@ -82,8 +82,8 @@ changes:
 
 Both are `kata-agent` workflows, so the hosted delta is identical to
 [`workflow-shift.md` § Template (hosted)](workflow-shift.md): add
-`id-token: write` to `permissions`, insert the OIDC mint step after the
-`Kata killswitch` step, and replace `app-id` / `app-private-key` with
+`id-token: write` to `permissions`, insert the OIDC mint step as the first step,
+and replace `app-id` / `app-private-key` with
 `installation-token: ${{ steps.mint.outputs.token }}`.
 
 ## Notes

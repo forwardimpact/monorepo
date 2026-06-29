@@ -8,8 +8,8 @@ commit the lockfile until the pinned `@forwardimpact/*` versions are published.
 
 ## Directory layout
 
-Per MONOREPO.md. Create only what the repo will use; each shippable directory
-carries a `README.md` naming its jobs.
+Per the [Monorepo standard](https://www.monorepo.team/). Create only what the
+repo will use; each shippable directory carries a `README.md` naming its jobs.
 
 - `products/` `services/` `libraries/` — shippable code (README each).
 - `websites/` — docs hub. `infrastructure/` — deployment assets.
