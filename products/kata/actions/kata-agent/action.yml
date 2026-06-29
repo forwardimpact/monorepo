@@ -99,8 +99,8 @@ inputs:
     description: >
       Operator killswitch. When set to a truthy value (anything other than
       empty/0/false/no/off) the run fails fast before any token minting,
-      checkout, or agent work. Pass `${{ vars.KATA_KILLSWITCH }}` so one
-      repository variable halts every kata-* workflow at once.
+      checkout, or agent work. Pass the `KATA_KILLSWITCH` repository variable
+      so one variable halts every kata-* workflow at once.
     required: false
     default: ""
 
