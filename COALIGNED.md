@@ -36,7 +36,7 @@ attribution depends on the separation.
 2. **CONTRIBUTING.md** & **JTBD.md** — contribution standards and jobs. See
    [MONOREPO.md](MONOREPO.md).
 3. **Agent profile** — persona, voice, skill routing, scope constraints.
-4. **Agent references (`references/`)** — cross-cutting protocols shared across
+4. **Agent references (`x-*.md`)** — cross-cutting protocols shared across
    agents: memory, coordination, approval.
 5. **Skill procedure (SKILL.md)** — decision-making, sequencing, rationale.
 6. **Skill references (`references/`)** — data the procedure consults:
@@ -129,10 +129,16 @@ scope constraints.
 ## L4 — Agent Reference
 
 Progressive disclosure for agent-scoped data — profiles (L3) stay minimal,
-references load on demand when a profile or procedure cites them. Co-located in
-`.claude/agents/references/<name>.md`. Same declarative role as L6 skill
+references load on demand when a profile or procedure cites them. Stored flat in
+`.claude/agents/x-<name>.md`, as siblings of the profiles. A
+`.claude/agents/*.md` file is a **profile** when it carries `name`/`description`
+frontmatter — the test the agent loader applies — and a **reference** when it
+does not; the `x-` filename prefix is the enforced naming convention that makes
+references visible and sorts them last (CI asserts the prefix and the
+frontmatter classifier always agree). Same declarative role as L6 skill
 references but shared across agents — cross-cutting protocols (memory,
-coordination, approval) that no single skill owns.
+coordination, approval) that no single skill owns. L4 and L6 stay distinct
+layers with separate budgets.
 
 ### Properties of Good Agent References
 

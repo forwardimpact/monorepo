@@ -2,7 +2,7 @@
 
 Governs **agent memory and action routing** via the `fit-wiki` CLI. Each
 contract below maps to a `fit-wiki` subcommand. For non-wiki outputs see
-[coordination-protocol.md](coordination-protocol.md).
+[coordination-protocol.md](x-coordination-protocol.md).
 
 ## On-Boot Read Set
 
@@ -59,7 +59,7 @@ product-aligned work outranks internal. **Exception:** internal work lifting a
 constraint that currently blocks product delivery keeps its place. The bias is a
 default, not a quota; it never overrides an owned priority or claim, nor forbids
 internal work. On a product-vs-internal tie, `### Decision` names the
-[axis value](work-definition.md#product-aligned-vs-internal) and, if internal
+[axis value](x-work-definition.md#product-aligned-vs-internal) and, if internal
 won, the constraint it lifts.
 
 ## Tool-vs-Memory Habit
@@ -192,7 +192,7 @@ point**:
    `release` your row, push, and re-route.
 
 Pair the gate with the pre-PR freshness probe —
-[coordination-protocol.md § Claim → probe → create](coordination-protocol.md#claim--probe--create).
+[coordination-protocol.md § Claim → probe → create](x-coordination-protocol.md#claim--probe--create).
 
 ## CLI Contract Map
 

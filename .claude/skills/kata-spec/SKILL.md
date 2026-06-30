@@ -85,7 +85,7 @@ Identify which persona and job from [JTBD.md](../../../JTBD.md) the spec serves.
   by entity or behaviour name, not by `file:line` pointer.
 - **State the classification.** The spec carries a one-line
   product-vs-internal classification per the shared rubric in
-  [work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#product-aligned-vs-internal).
+  [work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#product-aligned-vs-internal).
 
 **Form follows content.** Prefer tables for lists with shared structure (files,
 criteria, alternatives). Prefer bullets for flat facts. Use prose only for the
@@ -101,9 +101,9 @@ label, APPROVED review, approval comment on the PR, or a direct message in an
 interactive session. `kata-dispatch` validates trust and propagates PR-side
 signals into STATUS; an in-session agent writes STATUS when the user explicitly
 approves. See
-[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md)
+[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-approval-signals.md)
 and
-[`coordination-protocol.md` § Approval signal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#approval-signal).
+[`coordination-protocol.md` § Approval signal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md#approval-signal).
 
 Phase progression is derived from `main`: once the spec PR merges,
 `specs/NNN/spec.md` exists on `main` and the next phase may begin. A STATUS
@@ -131,7 +131,7 @@ If criteria fall short, request changes via PR comment.
 ### Step 0: Read Memory
 
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
 The boot digest's `owned_priorities`, `claims`, and (when this skill reads
 Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
 Extract specs previously written and any deferred work from prior entries.
@@ -179,7 +179,7 @@ Under
 **not** open a separate spec PR — the spec ships inside the single combined PR
 opened at the design stage.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md):
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md):
 every cited SHA must resolve on its referenced repo, or the body is not
 published.
 

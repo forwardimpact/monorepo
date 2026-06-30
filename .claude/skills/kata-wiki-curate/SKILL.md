@@ -40,7 +40,7 @@ If time-constrained, run `contract-audit` to completion, then prioritize
 **Verify state before writing.** When adding or editing any agent-summary entry
 that names a PR or Issue (Watching-list, "Recently merged", Open Blockers,
 Observations to Teammates), `read` the work item's state at write time
-([work-trackers.md](../../agents/references/work-trackers.md)) —
+([work-trackers.md](../../agents/x-work-trackers.md)) —
 never infer it from teammate summaries, memos, or prior curation entries, which
 may be stale by hours. The same applies to edits triggered by cross-agent
 corrections: re-verify the named artifact rather than transcribing it verbatim.
@@ -50,7 +50,7 @@ corrections: re-verify the named artifact rather than transcribing it verbatim.
 ### Step 0: Read Memory
 
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
 The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed
 this Process. Then read every file in `wiki/`: agent summaries
 (`wiki/<agent>.md`), the current week's log for each
@@ -58,7 +58,7 @@ this Process. Then read every file in `wiki/`: agent summaries
 
 > **Writing under `.claude/`:** If this run edits files under `.claude/agents/`
 > or `.claude/skills/`, follow
-> [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md).
+> [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-self-improvement.md).
 
 ### Step 1: Contract audit
 
@@ -160,7 +160,7 @@ context beyond the index entry. Remove resolved items within one curation cycle.
 ### Publishing changes
 
 Hold wiki content to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md)
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md)
 before publishing.
 
 Wiki changes are not visible to other agents until pushed. After committing,

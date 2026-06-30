@@ -37,7 +37,7 @@ Eligibility — at least one threshold must hold. `list` open issues for the
 `obstacle` and `experiment` labels separately, then dedupe by number for the
 OR-union (a label filter ANDs, so a single combined query would miss items
 carrying only one label); ≥10 unique items → eligible
-([work-trackers.md](../../agents/references/work-trackers.md)).
+([work-trackers.md](../../agents/x-work-trackers.md)).
 
 A sweep processes every eligible cluster, at most once per ISO week, unless a
 producer-orphaning event forces it.
@@ -161,13 +161,13 @@ Append to the current week's coach log
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md)):
 
 - **PR body** — Consolidated spec/design PR carries an Addresses overview
   listing the issues closed and the PRs it supersedes.
 - **Issue/PR close** — Addressed issues and superseded PRs closed as duplicate,
   each commenting the spec link (held to
-  [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md));
+  [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md));
   never on out-of-scope items.
 - **Storyboard headline** — The next storyboard meeting after a sweep surfaces
   the consolidated PR as a Q1 target-condition reference.

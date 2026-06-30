@@ -7,7 +7,7 @@ close a thread on behalf of a human who has not yet reacted.
 ## Procedure
 
 `read` the change's discussion thread
-([work-trackers.md](../../../agents/references/work-trackers.md)).
+([work-trackers.md](../../../agents/x-work-trackers.md)).
 For each top-7 human contributor (kata-release-merge Step 2 lookup) who has
 commented on the PR, read their **most recent** comment. If it raises a
 concern, question, or objection that has not been resolved by a **later**

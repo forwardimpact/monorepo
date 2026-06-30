@@ -44,7 +44,7 @@ the canonical form into your target repository:
       <skill-name>/SKILL.md        # one directory per skill
     agents/
       <agent-name>.agent.md        # one file per agent profile
-      references/                  # shared files skills and agents cite
+      x-<name>.md                  # shared files skills and agents cite (flat)
 ```
 
 Two rules are load-bearing, and getting either wrong is the failure this guide
@@ -103,8 +103,8 @@ selected.
 `--prefix` is how one source tree feeds several packs. With
 `--prefix kata` only `skills/kata-*` directories ship; a `skills/fit-map`
 directory in the same source is left out. Omit `--with-agents` for a
-skills-only pack — the shared `references/` still ship, because skills cite them
-too.
+skills-only pack — the shared `x-*.md` references still ship, because skills
+cite them too.
 
 ## Review what was written
 
@@ -179,7 +179,7 @@ ever commit real differences.
 You have reached the outcome of this guide when:
 
 - `npx fit-pack stage` writes `.apm/skills/<name>/`,
-  `.apm/agents/<name>.agent.md`, `.apm/agents/references/`, `apm.yml`, and
+  `.apm/agents/<name>.agent.md`, `.apm/agents/x-<name>.md`, `apm.yml`, and
   `README.md` into your target repository.
 - Each staged `SKILL.md` carries the injected `license` and `metadata.version`.
 - `--prefix` selects only the matching skills, and `--with-agents` controls

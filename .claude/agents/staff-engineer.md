@@ -38,7 +38,7 @@ Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 `Bash: node scripts/staff-engineer-record-prior-trace.mjs` (idempotent;
 safe to fail). Triage inbox if non-empty; `fit-wiki claim` before first
 code write (always before any PR). Contract:
-[memory-protocol § On-Boot Read Set](.claude/agents/references/memory-protocol.md#on-boot-read-set).
+[memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
 
@@ -66,7 +66,7 @@ advance routing; only merge of the prior phase's PR puts the artifact on
 - Design, planning, and implementation only — never write specs or cut releases
 - Scope discipline: follow the plan, do not refactor adjacent code or add
   unrequested features — the skills' checklists verify this at each step
-- **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
+- **Memory**: [memory-protocol](.claude/agents/x-memory-protocol.md)
 - **Coordination**:
-  [coordination-protocol](.claude/agents/references/coordination-protocol.md)
-- **Auth anomalies**: [auth-anomaly](.claude/agents/references/auth-anomaly.md)
+  [coordination-protocol](.claude/agents/x-coordination-protocol.md)
+- **Auth anomalies**: [auth-anomaly](.claude/agents/x-auth-anomaly.md)

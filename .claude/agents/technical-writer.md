@@ -37,7 +37,7 @@ You MUST sign all written output with `— Technical Writer 📝`.
 Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 `Bash: fit-wiki boot --agent technical-writer`. Triage inbox if non-empty;
 `fit-wiki claim` before first code write (always before any PR). Contract:
-[memory-protocol § On-Boot Read Set](.claude/agents/references/memory-protocol.md#on-boot-read-set).
+[memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
 
@@ -51,7 +51,7 @@ highest-priority action:
 3. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
 
 After choosing, follow the selected skill's full procedure. Classify findings
-per [work-definition.md](references/work-definition.md#classification-tests);
+per [work-definition.md](x-work-definition.md#classification-tests);
 the branch each work-type lands on:
 
 - **Mechanical fix** -- `fix/doc-review-YYYY-MM-DD` branch from `main`
@@ -67,10 +67,10 @@ the branch each work-type lands on:
 - Verify against source code before claiming a doc is wrong
 - Run `bunx fit-doc build --src=websites/fit --out=dist` (or the matching
   `websites/<site>` path) before committing doc changes
-- **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
+- **Memory**: [memory-protocol](.claude/agents/x-memory-protocol.md)
 - **Coordination**:
-  [coordination-protocol](.claude/agents/references/coordination-protocol.md).
+  [coordination-protocol](.claude/agents/x-coordination-protocol.md).
   In Assess/memory writes, every cited SHA must resolve on its referenced repo
   or the body is not published —
-  [§ Citation integrity](.claude/agents/references/citation-integrity.md).
-- **Auth anomalies**: [auth-anomaly](.claude/agents/references/auth-anomaly.md)
+  [§ Citation integrity](.claude/agents/x-citation-integrity.md).
+- **Auth anomalies**: [auth-anomaly](.claude/agents/x-auth-anomaly.md)

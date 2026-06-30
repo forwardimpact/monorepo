@@ -28,15 +28,14 @@ async function makeSource() {
     join(source, "skills", "fit-map", "SKILL.md"),
     "---\nname: fit-map\ndescription: Map\n---\n# Map\n",
   );
-  await mkdir(join(source, "agents", "references"), { recursive: true });
+  await mkdir(join(source, "agents"), { recursive: true });
   await writeFile(
     join(source, "agents", "staff-engineer.md"),
     "---\nname: staff-engineer\ndescription: Staff engineer profile\n---\n# Staff\n",
   );
-  await writeFile(
-    join(source, "agents", "references", "memory.md"),
-    "# Memory protocol\n",
-  );
+  // References are flat siblings of the profiles, identified by the absence of
+  // agent frontmatter (and the x- naming convention).
+  await writeFile(join(source, "agents", "x-memory.md"), "# Memory protocol\n");
   return source;
 }
 
@@ -90,14 +89,19 @@ describe("SkillPackPublisher", () => {
     expect(
       existsSync(join(target, ".apm", "agents", "staff-engineer.agent.md")),
     ).toBe(true);
-    // References ship alongside agents.
-    expect(
-      existsSync(join(target, ".apm", "agents", "references", "memory.md")),
-    ).toBe(true);
+    // References ship flat alongside agents, no references/ subdir.
+    expect(existsSync(join(target, ".apm", "agents", "x-memory.md"))).toBe(
+      true,
+    );
+    expect(existsSync(join(target, ".apm", "agents", "references"))).toBe(
+      false,
+    );
 
     expect(result.skills).toEqual([
       { name: "kata-review", description: "Review an artifact" },
     ]);
+    // The frontmatter-less reference is excluded from the agents table, even
+    // though the unified pass now reads it.
     expect(result.agents).toEqual([
       { name: "staff-engineer", description: "Staff engineer profile" },
     ]);
@@ -179,9 +183,10 @@ describe("SkillPackPublisher", () => {
     expect(
       existsSync(join(target, ".apm", "agents", "staff-engineer.agent.md")),
     ).toBe(false);
-    expect(
-      existsSync(join(target, ".apm", "agents", "references", "memory.md")),
-    ).toBe(true);
+    // References still ship flat for a skills-only pack.
+    expect(existsSync(join(target, ".apm", "agents", "x-memory.md"))).toBe(
+      true,
+    );
     const readme = await readFile(join(target, "README.md"), "utf-8");
     expect(readme).not.toContain("## Available Agents");
   });

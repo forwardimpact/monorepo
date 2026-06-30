@@ -144,8 +144,8 @@ rhetorical questions, and stacked noun chains. One idea per sentence.
 Wiki is **memory** — own state (summaries, logs, metrics), not a handoff
 channel. **Coordination** needs a named receiver and addressable artifact:
 Issue, PR/issue comment, Discussion, or `kata-dispatch`. See
-[memory-protocol](.claude/agents/references/memory-protocol.md) and
-[coordination-protocol](.claude/agents/references/coordination-protocol.md).
+[memory-protocol](.claude/agents/x-memory-protocol.md) and
+[coordination-protocol](.claude/agents/x-coordination-protocol.md).
 
 ## Domain Concepts
 

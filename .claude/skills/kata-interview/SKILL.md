@@ -61,7 +61,7 @@ that is a **bug**. Do not tell the agent the key is pre-configured.
 ### Step 0: Read Memory
 
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
 The boot digest's `owned_priorities`, `claims`, and (when this skill reads
 Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Bias
 product selection toward products not interviewed recently.
@@ -184,7 +184,7 @@ create a new issue or comment on a matching one (templates in
 `../kata-product-issue/references/templates.md`) naming the JTBD job
 (`<user>: <goal>`) in the body; add it to the report table with its issue
 number, holding each body to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md).
 
 ### Step 9: Report
 

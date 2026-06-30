@@ -117,7 +117,7 @@ graph LR
   feedback triage, one-topic-deep doc review, one-trace-deep grounded theory.
 - **Act** — Mechanical findings become **pushed fix PRs**; structural findings
   become `spec.md` documents on **pushed spec branches** — classify each per
-  [work-definition.md § Classification tests](.claude/agents/references/work-definition.md#classification-tests).
+  [work-definition.md § Classification tests](.claude/agents/x-work-definition.md#classification-tests).
   A local commit is not a PR — the URL is the only valid completion signal.
   `fix/` and `spec/` branches never mix.
 
@@ -136,7 +136,7 @@ agent writes a spec rather than attempting the fix.
 | **improvement-coach** | Study          | Facilitate storyboard meetings and 1-on-1 coaching sessions             |
 
 Each agent selects work via
-[on-boot routing](.claude/agents/references/memory-protocol.md#on-boot-routing):
+[on-boot routing](.claude/agents/x-memory-protocol.md#on-boot-routing):
 owned priorities → active claims → storyboard deliverables → domain checks →
 cross-cutting fallback.
 
@@ -233,13 +233,13 @@ read and write the same wiki files.
 - **Metrics** (`metrics/{skill}/{YYYY}.csv`) — per-skill run metrics.
 
 The canonical read-summary, append-log, update-summary cadence is defined in
-[memory-protocol.md](.claude/agents/references/memory-protocol.md). Read
+[memory-protocol.md](.claude/agents/x-memory-protocol.md). Read
 contract: `Read wiki/MEMORY.md` + `Bash: fit-wiki boot --agent <self>`.
 
 ## Coordination
 
 Four channels, governed by
-[coordination-protocol.md](.claude/agents/references/coordination-protocol.md):
+[coordination-protocol.md](.claude/agents/x-coordination-protocol.md):
 
 | Channel               | Use for                                          | Lifetime                              | Mechanism                    |
 | --------------------- | ------------------------------------------------ | ------------------------------------- | ---------------------------- |
@@ -297,7 +297,7 @@ row per spec: `{id}\t{phase}\t{status}`. STATUS is the canonical record;
 Agents never autonomously originate `spec approved` or `design approved` —
 they only propagate signals from trusted humans. Plans may be approved by
 `staff-engineer` after `kata-plan` review. See
-[approval-signals.md](.claude/agents/references/approval-signals.md).
+[approval-signals.md](.claude/agents/x-approval-signals.md).
 
 ## Metrics
 

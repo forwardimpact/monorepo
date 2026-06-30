@@ -80,8 +80,21 @@ async function findByName(root, name, kind, fs) {
   return out;
 }
 
-async function findAgentProfiles(root, claudeDirs, fs) {
-  const out = [];
+// A `.claude/agents/*.md` file is a profile when it carries both `name` and
+// `description` frontmatter — the same test Claude Code's agent loader applies
+// to decide what loads as an agent — and a reference otherwise. This replaces
+// the old references-subdirectory marker, which APM flattens away.
+const isProfile = (text) =>
+  /^name:[ \t]*\S/m.test(text) && /^description:[ \t]*\S/m.test(text);
+
+/**
+ * Partition the flat `agents/*.md` listing into profiles (L3) and references
+ * (L4) by frontmatter. Reads each file once and shares the read between the
+ * two layers, replacing the former separate directory walks.
+ */
+async function partitionAgents(root, claudeDirs, fs) {
+  const profiles = [];
+  const references = [];
   for (const d of claudeDirs) {
     const files = await listFiles(
       root,
@@ -89,23 +102,12 @@ async function findAgentProfiles(root, claudeDirs, fs) {
       (e) => e.isFile() && e.name.endsWith(".md"),
       fs,
     );
-    out.push(...files);
+    for (const path of files) {
+      const text = await readText(root, path, fs);
+      (text && isProfile(text) ? profiles : references).push(path);
+    }
   }
-  return out;
-}
-
-async function findAgentReferences(root, claudeDirs, fs) {
-  const out = [];
-  for (const d of claudeDirs) {
-    const files = await listFiles(
-      root,
-      `${d}/agents/references`,
-      (e) => e.isFile() && e.name.endsWith(".md"),
-      fs,
-    );
-    out.push(...files);
-  }
-  return out;
+  return { profiles, references };
 }
 
 async function findSkillDirs(root, claudeDirs, fs) {
@@ -142,6 +144,8 @@ async function buildLayers(root, fs) {
   const allClaude = await findByName(root, "CLAUDE.md", "file", fs);
   const rootClaude = allClaude.filter((p) => p === "CLAUDE.md");
   const subdirClaude = allClaude.filter((p) => p !== "CLAUDE.md");
+  const { profiles: agentProfiles, references: agentReferences } =
+    await partitionAgents(root, claudeDirs, fs);
   return {
     skillDirs,
     layers: [
@@ -179,15 +183,15 @@ async function buildLayers(root, fs) {
         name: "agent profile",
         maxLines: 72,
         maxWords: 448,
-        files: await findAgentProfiles(root, claudeDirs, fs),
+        files: agentProfiles,
       },
       {
         id: "L4",
         name: "agent reference",
         maxLines: 192,
         maxWords: 1280,
-        files: (await findAgentReferences(root, claudeDirs, fs)).filter(
-          (p) => !p.endsWith("/agents/references/memory-protocol.md"),
+        files: agentReferences.filter(
+          (p) => !p.endsWith("/agents/x-memory-protocol.md"),
         ),
       },
       {
@@ -204,8 +208,8 @@ async function buildLayers(root, fs) {
         // open-ended.
         maxLines: 216,
         maxWords: 1588,
-        files: (await findAgentReferences(root, claudeDirs, fs)).filter((p) =>
-          p.endsWith("/agents/references/memory-protocol.md"),
+        files: agentReferences.filter((p) =>
+          p.endsWith("/agents/x-memory-protocol.md"),
         ),
       },
       {

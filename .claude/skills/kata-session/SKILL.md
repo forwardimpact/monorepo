@@ -80,7 +80,7 @@ skill only for the full Participant Protocol below.
       reported via `Answer`.
 - [ ] Metrics reported via `Answer` match the CSV rows just written.
 - [ ] Q3 obstacle meets its definition (see
-      [work-definition.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests))
+      [work-definition.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests))
       and is recorded as a labeled issue; `#NNN` reported back.
 - [ ] Q4 experiment recorded as a labeled issue (`experiment` + `agent:{self}`)
       with its expected outcome and `#NNN` reported back.
@@ -105,7 +105,7 @@ These questions structure every coaching interaction. The coach asks via
    what was learned.
 
 What an obstacle and an experiment *are* is defined in
-[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests);
+[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests);
 mode-specific question wording (team vs. 1-on-1) lives in the overlays.
 
 ## Facilitator Process
@@ -144,7 +144,7 @@ mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    [`team-storyboard.md`](references/team-storyboard.md#q3-obstacle-routing).
    - **Discussion** — shared-artifact change (metric, rule, boundary, policy) or
      same question in ≥2 agents' Q3 answers. The owning agent opens an RFC per
-     [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md).
+     [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md).
    - **Coaching** — participant-scoped blocker / unanalyzed trace / stalled
      experiment: not dispatched here. The obstacle issue stands; the coach
      dispatches `kata-coaching.yml` in its Assess run.
@@ -182,7 +182,7 @@ Applies in both modes; expands the coach's session-open briefing.
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and report its `#NNN`.
 
 Hold participant writes to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md).
 
 ## Memory: What to Record
 

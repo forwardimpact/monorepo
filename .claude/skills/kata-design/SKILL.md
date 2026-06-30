@@ -120,7 +120,7 @@ approved`. **Human-only**: agents never originate `design approved` — they
 only propagate signals already expressed by a trusted human (label, APPROVED
 review, approval comment, or in-session message), which `kata-dispatch` or
 the active agent writes to STATUS. See
-[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/approval-signals.md).
+[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-approval-signals.md).
 
 ## Reviewing a Design
 
@@ -137,7 +137,7 @@ merge. If criteria fall short, request changes via PR comment.
 ### Step 0: Read Memory
 
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
 The boot digest's `owned_priorities`, `claims`, and (when this skill reads
 Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
 Extract specs previously designed and any deferred work from prior entries.
@@ -181,7 +181,7 @@ actions; see § Approval. Under
 [lockstep co-execution](references/lockstep-co-execution.md) this single
 `design(NNN)` PR also carries `spec.md`; no separate spec PR is opened.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md):
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md):
 every cited SHA must resolve on its referenced repo, or the body is not
 published.
 

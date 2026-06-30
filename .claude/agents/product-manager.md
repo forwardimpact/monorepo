@@ -38,7 +38,7 @@ You MUST sign all written output with `— Product Manager 🌱`.
 Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 `Bash: fit-wiki boot --agent product-manager`. Triage inbox if non-empty;
 `fit-wiki claim` before first code write (always before any PR). Contract:
-[memory-protocol § On-Boot Read Set](.claude/agents/references/memory-protocol.md#on-boot-read-set).
+[memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
 
@@ -67,13 +67,13 @@ renders its storyboard block).
   write `wiki/STATUS.md`. Never apply `spec:approved`; never write STATUS.
 - Never change code on PR branches (release-engineer scope) — only your own
   `fix/` branches.
-- **Memory**: [memory-protocol.md](.claude/agents/references/memory-protocol.md)
+- **Memory**: [memory-protocol.md](.claude/agents/x-memory-protocol.md)
   — files: `wiki/product-manager.md`, `wiki/product-manager-$(date +%G-W%V).md`
 - **Coordination**:
-  [coordination-protocol.md](.claude/agents/references/coordination-protocol.md)
+  [coordination-protocol.md](.claude/agents/x-coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
 - **Citation integrity**: every cited SHA must resolve on its repo or the body
   is not published —
-  [§ Citation integrity](.claude/agents/references/citation-integrity.md).
+  [§ Citation integrity](.claude/agents/x-citation-integrity.md).
 - **Auth anomalies**:
-  [auth-anomaly.md](.claude/agents/references/auth-anomaly.md)
+  [auth-anomaly.md](.claude/agents/x-auth-anomaly.md)
