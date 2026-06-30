@@ -66,19 +66,44 @@ describe("checkInstructions", () => {
     const findings = await checkInstructions({
       root: ROOT,
       runtime: runtimeWith({
-        [`${ROOT}/.claude/agents/references/big.md`]: oversize,
+        [`${ROOT}/.claude/agents/x-big.md`]: oversize,
       }),
     });
     const f = findings.find(
       (x) =>
         x.id === "instructions.line-budget" &&
-        x.path.endsWith(".claude/agents/references/big.md"),
+        x.path.endsWith(".claude/agents/x-big.md"),
     );
     assert.ok(
       f,
       `expected an agent-reference line-budget finding, got: ${JSON.stringify(findings)}`,
     );
     assert.match(f.message, /agent reference/);
+  });
+
+  test("classifies a frontmatter profile as L3, not an L4 reference", async () => {
+    // 100 lines exceeds the 72-line L3 profile cap but stays under the 192-line
+    // L4 reference cap. A file carrying name/description frontmatter must be
+    // judged a profile (and flagged) — proving the partition keys on
+    // frontmatter, not on a directory, so a misclassification as a reference
+    // (which would pass under 192) is caught here.
+    const profile = `---\nname: staff-engineer\ndescription: Staff engineer profile\n---\n${"line\n".repeat(100)}`;
+    const findings = await checkInstructions({
+      root: ROOT,
+      runtime: runtimeWith({
+        [`${ROOT}/.claude/agents/staff-engineer.md`]: profile,
+      }),
+    });
+    const f = findings.find(
+      (x) =>
+        x.id === "instructions.line-budget" &&
+        x.path.endsWith(".claude/agents/staff-engineer.md"),
+    );
+    assert.ok(
+      f,
+      `expected an L3 profile line-budget finding, got: ${JSON.stringify(findings)}`,
+    );
+    assert.match(f.message, /agent profile/);
   });
 
   test("admits memory-protocol.md above the default L4 cap", async () => {
@@ -89,7 +114,7 @@ describe("checkInstructions", () => {
     const findings = await checkInstructions({
       root: ROOT,
       runtime: runtimeWith({
-        [`${ROOT}/.claude/agents/references/memory-protocol.md`]: oversize,
+        [`${ROOT}/.claude/agents/x-memory-protocol.md`]: oversize,
       }),
     });
     const f = findings.find(
@@ -109,7 +134,7 @@ describe("checkInstructions", () => {
     const findings = await checkInstructions({
       root: ROOT,
       runtime: runtimeWith({
-        [`${ROOT}/.claude/agents/references/memory-protocol.md`]: oversize,
+        [`${ROOT}/.claude/agents/x-memory-protocol.md`]: oversize,
       }),
     });
     const f = findings.find(
