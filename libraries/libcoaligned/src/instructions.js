@@ -83,7 +83,7 @@ async function findByName(root, name, kind, fs) {
 // A `.claude/agents/*.md` file is a profile when it carries both `name` and
 // `description` frontmatter — the same test Claude Code's agent loader applies
 // to decide what loads as an agent — and a reference otherwise. This replaces
-// the old `agents/references/` directory marker, which APM flattens away.
+// the old references-subdirectory marker, which APM flattens away.
 const isProfile = (text) =>
   /^name:[ \t]*\S/m.test(text) && /^description:[ \t]*\S/m.test(text);
 
