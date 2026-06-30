@@ -23,16 +23,6 @@ export class SkillPackPublisher {
     this.#fs = runtime.fs;
   }
 
-  /** Return true if a path exists. */
-  async #exists(path) {
-    try {
-      await this.#fs.access(path);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   /**
    * Stage the pack into `targetDir`.
    *
@@ -53,8 +43,7 @@ export class SkillPackPublisher {
   async publish(opts) {
     await this.#clean(opts.targetDir);
     const skills = await this.#stageSkills(opts);
-    const agents = opts.withAgents ? await this.#stageAgents(opts) : [];
-    await this.#stageAgentReferences(opts);
+    const agents = await this.#stageAgentDir(opts);
     await this.#writeManifest(opts);
     await this.#writeReadme(opts, skills, agents);
     return { skills, agents };
@@ -103,8 +92,21 @@ export class SkillPackPublisher {
     return staged;
   }
 
-  /** Copy `agents/*.md` into `.apm/agents/<stem>.agent.md`. */
-  async #stageAgents({ sourceDir, targetDir }) {
+  /**
+   * Stage the flat `agents/*.md` directory into `.apm/agents/`, partitioning
+   * each file by frontmatter.
+   *
+   * A file is a **profile** when it carries both `name` and `description`
+   * frontmatter — the same test Claude Code's agent loader applies — and a
+   * **reference** otherwise. Profiles ship as `<stem>.agent.md` and feed the
+   * agents table, but only when `withAgents` is set (non-agent packs ship no
+   * profiles). References always ship flat as `<stem>.md` and never enter the
+   * agents table, so every pack carries the references skills and profiles
+   * cite, agent-syncing or not.
+   *
+   * @returns {Promise<object[]>} the staged profiles (empty without agents).
+   */
+  async #stageAgentDir({ sourceDir, targetDir, withAgents }) {
     const { mkdir, readdir, readFile, writeFile } = this.#fs;
     const srcDir = join(sourceDir, "agents");
     const destDir = join(targetDir, APM_AGENTS_DIR);
@@ -119,27 +121,18 @@ export class SkillPackPublisher {
     for (const file of files) {
       const content = await readFile(join(srcDir, file), "utf-8");
       const stem = basename(file, ".md");
-      await writeFile(join(destDir, apmAgentFilename(stem)), content, "utf-8");
-      staged.push({
-        name: frontmatterField(content, "name") || stem,
-        description: foldedField(content, "description"),
-      });
+      if (isProfile(content)) {
+        if (!withAgents) continue;
+        await writeFile(join(destDir, apmAgentFilename(stem)), content, "utf-8");
+        staged.push({
+          name: frontmatterField(content, "name") || stem,
+          description: foldedField(content, "description"),
+        });
+      } else {
+        await writeFile(join(destDir, `${stem}.md`), content, "utf-8");
+      }
     }
     return staged;
-  }
-
-  /**
-   * Copy `agents/references/` into `.apm/agents/references/`. Every pack ships
-   * the references that skills and profiles cite, not only agent-syncing ones.
-   * Runs after agent staging so the references dir is never wiped.
-   */
-  async #stageAgentReferences({ sourceDir, targetDir }) {
-    const { mkdir, cp } = this.#fs;
-    const src = join(sourceDir, "agents", "references");
-    if (!(await this.#exists(src))) return;
-    const destAgents = join(targetDir, APM_AGENTS_DIR);
-    await mkdir(destAgents, { recursive: true });
-    await cp(src, join(destAgents, "references"), { recursive: true });
   }
 
   /** Write the APM package manifest. */
@@ -231,6 +224,19 @@ export function injectFrontmatter(content, version) {
     `  author: ${AUTHOR}`,
   );
   return lines.join("\n");
+}
+
+/**
+ * A `.claude/agents/*.md` file is a **profile** when it carries both `name`
+ * and `description` frontmatter — the test Claude Code's agent loader applies
+ * to decide what loads as an agent — and a **reference** otherwise.
+ * @param {string} content
+ * @returns {boolean}
+ */
+function isProfile(content) {
+  return Boolean(
+    frontmatterField(content, "name") && frontmatterField(content, "description"),
+  );
 }
 
 /** Read a single-line frontmatter field value (first match), or "". */
