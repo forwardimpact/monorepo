@@ -174,20 +174,19 @@ for prerequisites, configuration, and the tunnel/webhook setup.
 
 ### Step 4: Verify
 
-Run verification:
+Setup is verified when the repository is green, not when files exist:
 
-- `gh secret list` — confirm secrets are configured
-- Confirm workflow files were written to `.github/workflows/`
-- Suggest a test run: `gh workflow run "Agent: Shift"`
+- Validate every generated workflow parses as YAML.
+- Run the repository's checks on a clean checkout; never leave or ignore red CI.
+- `gh secret list` — confirm secrets and the named agent profiles resolve at run
+  time (profiles committed or bootstrap-installed from the pinned packs).
+- Suggest a first run: `gh workflow run "Agent: Shift"`.
 
 ### Step 5: Report
 
-Summarize what was created and suggest next steps:
+Summarize what was created and the next steps:
 
 - Customize agent profiles if using defaults
 - Adjust schedules after observing initial runs
-- To halt all kata workflows at once (an emergency stop), set the
-  `KATA_KILLSWITCH` repository variable to a truthy value (e.g. `1`); clear or
-  unset it to resume
-- Read the [Kata Agent Team](https://www.kata.team/) site for how the team
-  works and its PDSA rhythm
+- Emergency stop: set `KATA_KILLSWITCH` to a truthy value; unset it to resume
+- Read the [Kata Agent Team](https://www.kata.team/) site for the PDSA rhythm

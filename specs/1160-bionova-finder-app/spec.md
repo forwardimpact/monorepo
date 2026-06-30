@@ -41,13 +41,13 @@ synthetic data.
 ### Synthetic data foundation
 
 `bionova-apps` vendors `data/synthetic/story.dsl` **verbatim** from this
-monorepo, alongside the committed `prose-cache.json`. The DSL is the repository's
-domain source of truth — the apex of the provenance chain, not generated
-output. `bionova-apps` runs `fit-terrain` against its own copy of `story.dsl`
-to produce the SQL migrations and embeddings JSONL that seed PostgreSQL. The
-build is credential-free: `fit-terrain build` renders from the committed prose
-cache and makes no LLM calls. Regenerating from the vendored DSL reproduces the
-seed byte-for-byte.
+monorepo, alongside the committed `prose-cache.json`. The DSL is the
+repository's domain source of truth — the apex of the provenance chain, not
+generated output. `bionova-apps` runs `fit-terrain` against its own copy of
+`story.dsl` to produce the SQL migrations and embeddings JSONL that seed
+PostgreSQL. The build is credential-free: `fit-terrain build` renders from the
+committed prose cache and makes no LLM calls. Regenerating from the vendored DSL
+reproduces the seed byte-for-byte.
 
 This inverts the relationship from "vendor the rendered SQL" to "vendor the DSL
 and render locally." Auditing what the app contains means reading
@@ -89,11 +89,11 @@ ANSI or HTML depending on the surface.
 ### Technology stack
 
 Self-hosted Supabase stack via Docker Compose (PG On Rails pattern). PostgreSQL
-+ pgvector for data and semantic search. PostgREST for auto-generated REST API.
-GoTrue for auth. HuggingFace TEI for embeddings. Supabase Edge Functions for
-eligibility scoring and embedding generation. Next.js App Router + Tailwind +
-shadcn/ui for the frontend. Forward Impact shared libraries from npm.
-`@forwardimpact/libterrain` + `@forwardimpact/map` from npm provide the
+with pgvector for data and semantic search. PostgREST for auto-generated REST
+API. GoTrue for auth. HuggingFace TEI for embeddings. Supabase Edge Functions
+for eligibility scoring and embedding generation. Next.js App Router with
+Tailwind and shadcn/ui for the frontend. Forward Impact shared libraries from
+npm. `@forwardimpact/libterrain` and `@forwardimpact/map` from npm provide the
 synthetic-data build.
 
 ### Data seeding
@@ -183,10 +183,10 @@ implemented. Each needs its own spec, design, and plan.
 3. `/trials/:id/eligibility` presents a screener and returns a match score.
    Verify: completing the screener for a matching patient returns "eligible".
 
-4. `/trials/:id` shows the trial's FAQ and consent summary, and `/conditions/:id`
-   shows the condition explainer — all sourced from prose seed tables. Verify:
-   the rendered text matches the corresponding `clinical_*` keys in
-   `prose-cache.json`.
+4. `/trials/:id` shows the trial's FAQ and consent summary, and
+   `/conditions/:id` shows the condition explainer — all sourced from prose seed
+   tables. Verify: the rendered text matches the corresponding `clinical_*` keys
+   in `prose-cache.json`.
 
 5. `bionova-polaris search --condition=diabetes` returns the same trials as the
    web search. Verify: CLI output matches web response data.
