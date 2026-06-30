@@ -36,7 +36,7 @@ attribution depends on the separation.
 2. **CONTRIBUTING.md** & **JTBD.md** — contribution standards and jobs. See
    [MONOREPO.md](MONOREPO.md).
 3. **Agent profile** — persona, voice, skill routing, scope constraints.
-4. **Agent references (`references/`)** — cross-cutting protocols shared across
+4. **Agent references (`x-*.md`)** — cross-cutting protocols shared across
    agents: memory, coordination, approval.
 5. **Skill procedure (SKILL.md)** — decision-making, sequencing, rationale.
 6. **Skill references (`references/`)** — data the procedure consults:

@@ -108,7 +108,7 @@ describe("checkInstructions", () => {
 
   test("admits memory-protocol.md above the default L4 cap", async () => {
     // 200 lines exceeds the 192-line default agent-reference cap but stays
-    // under the memory-protocol override (212) — proves the per-file budget
+    // under the memory-protocol override (216) — proves the per-file budget
     // applies to this one reference.
     const oversize = "line\n".repeat(200);
     const findings = await checkInstructions({

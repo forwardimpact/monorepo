@@ -238,9 +238,8 @@ export function injectFrontmatter(content, version) {
  * @returns {boolean}
  */
 function isProfile(content) {
-  return Boolean(
-    frontmatterField(content, "name") &&
-      frontmatterField(content, "description"),
+  return (
+    /^name:[ \t]*\S/m.test(content) && /^description:[ \t]*\S/m.test(content)
   );
 }
 
