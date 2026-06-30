@@ -14,6 +14,11 @@ answers what agents align to: the progress each persona seeks, not a feature
 list. The Checklist Manifesto (Gawande) answers how alignment holds under
 load: structured instructions keep existing knowledge consistently applied.
 
+The lowest layer, verification, uses two checklist gates. Each is wrapped in
+a semantic tag — `<read_do_checklist>` for entry gates, `<do_confirm_checklist>`
+for exit gates — so every pause point in a repository is discoverable from
+anywhere with one `rg` search.
+
 Co-Aligned builds on the Monorepo structure standard and is the upstream
 architecture the Kata Agent Team implements.
 

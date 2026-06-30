@@ -292,6 +292,15 @@
   margin-bottom: var(--space-12);
 }
 
+.section-body code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  color: var(--ink-600);
+  background: var(--ink-50);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+}
+
 /* ── Stats ─────────────────────────────────────────────────────── */
 
 .stats-grid {
@@ -423,6 +432,18 @@
   font-size: var(--text-body-size);
   color: var(--gray-400);
   line-height: 1.6;
+}
+
+.gate-find {
+  display: inline-block;
+  margin-top: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink-600);
+  background: var(--ink-50);
+  border: 1px solid var(--ink-100);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
 }
 
 /* ── Getting Started ───────────────────────────────────────────── */
