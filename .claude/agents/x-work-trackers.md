@@ -162,9 +162,9 @@ Where a tracker cannot express a capability, it degrades as follows:
 
 ## See also
 
-- [`work-definition.md`](work-definition.md) — what each work-type is, and how
+- [`work-definition.md`](x-work-definition.md) — what each work-type is, and how
   to classify a finding into one.
-- [`coordination-protocol.md`](coordination-protocol.md) — which operation
+- [`coordination-protocol.md`](x-coordination-protocol.md) — which operation
   carries each output type.
-- [`approval-signals.md`](approval-signals.md) — how a `gate` and a
+- [`approval-signals.md`](x-approval-signals.md) — how a `gate` and a
   `merge-change` feed `wiki/STATUS.md`.

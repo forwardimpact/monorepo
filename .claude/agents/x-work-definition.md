@@ -7,11 +7,11 @@ single home for two questions: *what each work-type **is*** and *how to
 rubric; the sibling references own the rest.
 
 - **Routing** — which channel carries each work-type — lives in
-  [`coordination-protocol.md`](coordination-protocol.md).
+  [`coordination-protocol.md`](x-coordination-protocol.md).
 - **Gating** — how phase artifacts enter `main` — lives in
-  [`approval-signals.md`](approval-signals.md).
+  [`approval-signals.md`](x-approval-signals.md).
 - **Commands** — the concrete shapes for each operation live in
-  [`work-trackers.md`](work-trackers.md); the obstacle/experiment recipes that
+  [`work-trackers.md`](x-work-trackers.md); the obstacle/experiment recipes that
   compose them are in
   [`issue-lifecycle.md`](../../skills/kata-session/references/issue-lifecycle.md)
   and the agent profiles (branch names).
@@ -21,9 +21,9 @@ rubric; the sibling references own the rest.
 Cross-references only — see the owning reference for routing/gate detail.
 
 Each "Created via" names an [abstract
-operation](work-trackers.md#abstract-operations) or the skill that drives it;
+operation](x-work-trackers.md#abstract-operations) or the skill that drives it;
 the operation's concrete shape lives in the
-[matrix](work-trackers.md#the-matrix).
+[matrix](x-work-trackers.md#the-matrix).
 
 | Work-type          | What it is                                                   | Created via                       |
 | ------------------ | ----------------------------------------------------------- | --------------------------------- |
@@ -37,8 +37,8 @@ the operation's concrete shape lives in the
 | **Discussion/RFC** | An unsettled cross-cutting question                         | `create-discussion`               |
 
 Routing per work-type is in [`coordination-protocol.md` § Channel by output
-type](coordination-protocol.md#channel-by-output-type); gating is in
-[`approval-signals.md`](approval-signals.md).
+type](x-coordination-protocol.md#channel-by-output-type); gating is in
+[`approval-signals.md`](x-approval-signals.md).
 
 ## Classification tests
 
@@ -116,11 +116,11 @@ branches from mixing (`KATA.md` § Agents, § Design Principles).
 
 ## See also
 
-- [`coordination-protocol.md`](coordination-protocol.md) — which channel
+- [`coordination-protocol.md`](x-coordination-protocol.md) — which channel
   carries each work-type, and the decision-question order.
-- [`approval-signals.md`](approval-signals.md) — how phase artifacts are gated
+- [`approval-signals.md`](x-approval-signals.md) — how phase artifacts are gated
   into `main`.
-- [`work-trackers.md`](work-trackers.md) — the concrete shape for each abstract
+- [`work-trackers.md`](x-work-trackers.md) — the concrete shape for each abstract
   operation, per tracker.
 - [`issue-lifecycle.md`](../../skills/kata-session/references/issue-lifecycle.md)
   — the operation recipes for obstacle and experiment issues.

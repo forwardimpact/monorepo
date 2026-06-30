@@ -1,16 +1,16 @@
 # Coordination Protocol
 
 Pick the channel by what the output **is**, not where context happens to be.
-[work-definition.md](work-definition.md) defines each output type and how to
+[work-definition.md](x-work-definition.md) defines each output type and how to
 classify a finding into one; this protocol routes each type to its channel.
-[memory-protocol.md](memory-protocol.md) governs wiki cadence and structure;
+[memory-protocol.md](x-memory-protocol.md) governs wiki cadence and structure;
 this protocol covers every other output an agent produces.
 
 ## Channel by output type
 
 Each channel names an [abstract
-operation](work-trackers.md#abstract-operations) (or a non-tracker surface); its
-concrete per-tracker shape lives in the [matrix](work-trackers.md#the-matrix).
+operation](x-work-trackers.md#abstract-operations) (or a non-tracker surface); its
+concrete per-tracker shape lives in the [matrix](x-work-trackers.md#the-matrix).
 
 | Output                                          | Channel                                  |
 | ----------------------------------------------- | ---------------------------------------- |
@@ -26,7 +26,7 @@ concrete per-tracker shape lives in the [matrix](work-trackers.md#the-matrix).
 ## Agent labels on experiment issues
 
 Experiment issues carry an `agent:{name}` label so agents find their work
-during [on-boot routing](memory-protocol.md#on-boot-routing): `list` open issues
+during [on-boot routing](x-memory-protocol.md#on-boot-routing): `list` open issues
 filtered to the `experiment` and `agent:{self}` labels.
 
 Valid labels: `agent:staff-engineer`, `agent:product-manager`,
@@ -36,7 +36,7 @@ Valid labels: `agent:staff-engineer`, `agent:product-manager`,
 
 Phase artifacts are gated into `main`
 by `kata-release-merge` against `wiki/STATUS.md`. See
-[`approval-signals.md`](approval-signals.md) for the full signal catalogue,
+[`approval-signals.md`](x-approval-signals.md) for the full signal catalogue,
 trust rule, and write protocol. `kata-dispatch` is the bridge from PR-side
 signals (labels, comments, reviews) to STATUS — it never originates approvals,
 only propagates signals already expressed by a trusted human.
@@ -54,7 +54,7 @@ or comment body, or wiki file content — every existence-asserting SHA-shaped
 token it cites must resolve on the repository that citation references, or the
 publish is blocked loudly and a record appended to `wiki/citation-blocks.md`.
 The three properties and the resolution procedure live in
-[citation-integrity.md](citation-integrity.md).
+[citation-integrity.md](x-citation-integrity.md).
 
 ## Decision questions
 
@@ -64,7 +64,7 @@ When an output could fit multiple channels, ask in order:
 2. Is it **tied to one artifact**? Yes → comment there. No → continue.
 3. Is it **mechanical or structural**? Mechanical → `fix/`. Structural →
    `spec/`. (Apply the test in
-   [work-definition.md § Classification tests](work-definition.md#classification-tests).)
+   [work-definition.md § Classification tests](x-work-definition.md#classification-tests).)
 4. Otherwise → wiki.
 
 A finding can require **multiple channels in parallel** — e.g., a CVE raising
@@ -112,14 +112,14 @@ lands where the next reader looks.
 
 1. **Claim** before the first code write, atomically with the wiki push —
    procedure in
-   [memory-protocol.md § Active Claims](memory-protocol.md#active-claims).
+   [memory-protocol.md § Active Claims](x-memory-protocol.md#active-claims).
 2. **Probe** the remote of record for prior or in-flight work on the
    target. A claim-row cell, a local ref, or a search-index read is each
    point-in-time and can false-negative against a moving origin — none is
    sufficient absence evidence alone, and a false "nothing exists" mints
    duplicate work with no concurrency required:
    The change-existence probes are the `list` operation (concrete shape per
-   tracker in the [matrix](work-trackers.md#the-matrix)); branch existence is a
+   tracker in the [matrix](x-work-trackers.md#the-matrix)); branch existence is a
    canonical-state read, not a tracker operation:
    - **Branch existence:** `git ls-remote origin "refs/heads/<branch>"` —
      exact ref only; glob refspecs fail silent on a miss.
@@ -157,7 +157,7 @@ their behalf.
 
 ## Channels this protocol does NOT cover
 
-- **Wiki reads/writes** — see [memory-protocol.md](memory-protocol.md).
+- **Wiki reads/writes** — see [memory-protocol.md](x-memory-protocol.md).
 - **Storyboard inputs** — record to metrics CSV; `fit-xmr` reads CSV.
 - **Sub-agent invocation** — owned by individual skill procedures.
 
@@ -171,7 +171,7 @@ linked. Format: `<Channel> <ref>: <one-line topic> (<URL>)`.
 Each non-wiki output names an operation — `comment`,
 `create-discussion` / `comment-discussion`, `create-issue`, `open-change`. The
 shape realizing each on the active tracker lives in
-[`work-trackers.md`](work-trackers.md); capture the returned id/URL for the
+[`work-trackers.md`](x-work-trackers.md); capture the returned id/URL for the
 citation above.
 
 ## `## Coordination Channels` block in a skill
