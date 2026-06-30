@@ -1,10 +1,13 @@
 # Plan 1160-a-05 — Shared handlers
 
-Implement the six surface-agnostic handlers under
+Implement the eight surface-agnostic handlers under
 `products/polaris/handlers/` that both CLI (part 06) and web (part 07)
 dispatch into. Handlers accept a frozen `InvocationContext` and return
 plain data; rendering is the surface's job (libformat for CLI, JSX/libui
-for web).
+for web). Every prose surface reads a terrain-generated seed table:
+`showTrial` includes the trial FAQ and consent summary, `showCondition`
+the condition explainer, `listSites` each site's description, `listStories`
+patient stories, and `showAbout` the therapy descriptions.
 
 All paths are inside `bionova-apps/`.
 
@@ -103,15 +106,36 @@ Created: `products/polaris/handlers/src/show-trial.js`
 export async function showTrial(ctx) {
   // ctx.args = { id }
   // Reads trials (by id), criteria, trial_sites → sites, trial_conditions → conditions
-  // Returns: { trial, criteria: { inclusion, exclusion }, sites: [...], conditions: [...], principal_investigator }
+  // Also reads trial_faqs (trial_id) and consent_summaries (trial_id) — both public-read prose
+  //   const faq = await db.get(`trial_faqs?trial_id=eq.${id}&select=faq`);
+  //   const consent = await db.get(`consent_summaries?trial_id=eq.${id}&select=summary`);
+  // Returns: { trial, criteria: { inclusion, exclusion }, sites: [...], conditions: [...],
+  //            principal_investigator, faq: faq[0]?.faq, consentSummary: consent[0]?.summary }
 }
 ```
 
 Verify: `showTrial({ args: { id: <seed-trial-id> } })` returns the same
 nested shape as the design's `manageTrial` parent shape, minus admin-only
-fields.
+fields, plus `faq` and `consentSummary` strings from the prose tables.
 
-## Step 4 — Implement `checkEligibility`
+## Step 4 — Implement `showCondition`
+
+Created: `products/polaris/handlers/src/show-condition.js`
+
+```js
+export async function showCondition(ctx) {
+  // ctx.args = { id }
+  // Reads conditions (by id) + its explainer from condition_explainers (public-read prose)
+  //   const condition = await db.get(`conditions?id=eq.${id}&select=*`);
+  //   const explainer = await db.get(`condition_explainers?condition_id=eq.${id}&select=explainer`);
+  // Returns: { condition: condition[0], explainer: explainer[0]?.explainer }
+}
+```
+
+Verify: `showCondition({ args: { id: <seed-condition-id> } })` returns the
+condition row with an `explainer` string from `condition_explainers`.
+
+## Step 5 — Implement `checkEligibility`
 
 Created: `products/polaris/handlers/src/check-eligibility.js`
 
@@ -128,7 +152,7 @@ Verify: `checkEligibility({ args: { id: <trial> }, options: { age: 55,
 conditions: ["type-2-diabetes"], … } })` returns `eligible` and inserts an
 `interest_signals` row.
 
-## Step 5 — Implement `listSites`
+## Step 6 — Implement `listSites`
 
 Created: `products/polaris/handlers/src/list-sites.js`
 
@@ -136,15 +160,38 @@ Created: `products/polaris/handlers/src/list-sites.js`
 export async function listSites(ctx) {
   // ctx.options = { specialty? }
   // SELECT * FROM sites; optionally filter on specialties array containment
-  // Returns: { sites: [...] }
+  // Embed each site's description from site_descriptions (public-read prose)
+  //   const descriptions = await db.get(`site_descriptions?select=site_id,description`);
+  //   each site gains description: descriptions.find(d => d.site_id === site.id)?.description
+  // Returns: { sites: [{ ..., description }] }
 }
 ```
 
-Verify: `listSites({ options: {} })` returns all 5 seeded sites;
+Verify: `listSites({ options: {} })` returns all 5 seeded sites, each with a
+`description` from `site_descriptions`;
 `listSites({ options: { specialty: "oncology" } })` returns only sites
 with `oncology` in `specialties`.
 
-## Step 6 — Implement `showAbout`
+## Step 7 — Implement `listStories`
+
+Created: `products/polaris/handlers/src/list-stories.js`
+
+```js
+export async function listStories(ctx) {
+  // ctx.options = { condition? }
+  // SELECT id, condition_id, story_index, story FROM patient_stories (public-read prose)
+  // optionally filter on condition_id when --condition is a catalog id
+  //   const q = condition ? `patient_stories?condition_id=eq.${condition}` : `patient_stories`;
+  //   const stories = await db.get(`${q}&select=id,condition_id,story_index,story&order=story_index`);
+  // Returns: { stories: [...] }
+}
+```
+
+Verify: `listStories({ options: {} })` returns all seeded patient stories;
+`listStories({ options: { condition: <condition-id> } })` returns only that
+condition's stories ordered by `story_index`.
+
+## Step 8 — Implement `showAbout`
 
 Created: `products/polaris/handlers/src/show-about.js`
 
@@ -152,16 +199,19 @@ Created: `products/polaris/handlers/src/show-about.js`
 export async function showAbout(ctx) {
   // Static metadata: BioNova mission, partnership disclosures, contact email
   // Reads from a YAML file at products/polaris/handlers/data/about.yaml so staff can edit without code
-  return { mission, partnerships, contact };
+  // Also reads therapy_descriptions (public-read prose) for the therapies list
+  //   const therapies = await db.get(`therapy_descriptions?select=topic,description`);
+  return { mission, partnerships, contact, therapies };
 }
 ```
 
 Also created: `products/polaris/handlers/data/about.yaml` — placeholder
 content (mission statement, two partnership lines, contact email).
 
-Verify: `showAbout({})` returns the YAML deserialized to a plain object.
+Verify: `showAbout({})` returns the YAML deserialized to a plain object, plus
+a `therapies` list of `{ topic, description }` from `therapy_descriptions`.
 
-## Step 7 — Implement `manageTrial`
+## Step 9 — Implement `manageTrial`
 
 Created: `products/polaris/handlers/src/manage-trial.js`
 
@@ -219,7 +269,7 @@ Verify:
 - with anon JWT, the call fails with 401 (RLS denies UPDATE; SELECT works
   for read mode but the handler still requires `ctx.data.token`).
 
-## Step 8 — Author shared markdown templates
+## Step 10 — Author shared markdown templates
 
 The CLI (part 06) uses these templates with `libtemplate` and renders the
 output with `libformat`'s `createTerminalFormatter`. The web surface
@@ -234,8 +284,10 @@ Created templates under `products/polaris/handlers/templates/`:
 
 - `search-trials.md`
 - `show-trial.md`
+- `show-condition.md`
 - `check-eligibility.md`
 - `list-sites.md`
+- `list-stories.md`
 - `show-about.md`
 - `manage-trial.md`
 
@@ -256,7 +308,7 @@ Verify:
 `createTemplateLoader(TEMPLATES_DIR).render("search-trials.md", searchResult)`
 produces non-empty markdown for each handler.
 
-## Step 9 — Tests
+## Step 11 — Tests
 
 Created: per-handler test file under `products/polaris/handlers/test/`.
 
@@ -279,7 +331,7 @@ Test fixtures in `products/polaris/handlers/test/fixtures/`:
 Verify: `bun run --filter='./products/polaris/handlers' test` exits 0 with
 ≥ 18 assertions (3 per handler avg).
 
-## Step 10 — Open part-05 PR
+## Step 12 — Open part-05 PR
 
 ```sh
 git checkout -b products/polaris-handlers
@@ -293,11 +345,18 @@ Verify: PR CI green.
 
 ## Verification (end of part 05)
 
-- [ ] All 6 handlers exported from `products/polaris/handlers/src/index.js`.
+- [ ] All 8 handlers exported from `products/polaris/handlers/src/index.js`
+      (including `showCondition` and `listStories`).
 - [ ] Each handler accepts a frozen `{ data, args, options }` context (assert
       `Object.isFrozen(ctx)` in test).
 - [ ] `searchTrials("high blood sugar")` returns diabetes trials (assertion
       against seeded data).
+- [ ] Prose fields surface from their seed tables: `showTrial` returns `faq`
+      (`trial_faqs`) and `consentSummary` (`consent_summaries`); `showCondition`
+      returns `explainer` (`condition_explainers`); `listSites` sites carry
+      `description` (`site_descriptions`); `listStories` returns
+      `patient_stories` rows; `showAbout` returns `therapies`
+      (`therapy_descriptions`).
 - [ ] `checkEligibility` inserts an `interest_signals` row with `match_score`
       from edge-function response.
 - [ ] `manageTrial` enforces staff role via PostgREST RLS (verified by

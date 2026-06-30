@@ -173,6 +173,13 @@ done
 [ "$sc1_fail" = "0" ] && ok "all ${#expected[@]} services healthy" || docker compose ps
 emb_count=$(pg "SELECT COUNT(*) FROM condition_embeddings;")
 test "${emb_count:-0}" -gt 0 && ok "embeddings seeded ($emb_count)" || bad "no embeddings (got '$emb_count')"
+# The six prose tables (rendered from story.dsl via prerequisite B) must each
+# carry ≥1 row, or the prose surfaces SC4 checks have nothing to render.
+for t in condition_explainers trial_faqs consent_summaries \
+         site_descriptions patient_stories therapy_descriptions; do
+  rows=$(pg "SELECT COUNT(*) FROM $t;")
+  test "${rows:-0}" -gt 0 && ok "prose table $t seeded ($rows)" || bad "prose table $t empty (got '$rows')"
+done
 
 # SC2: /api/search returns trials matching a plain-language condition query.
 # Match strictly on `trials[].conditions[].name`, NOT on therapeutic_area
@@ -209,12 +216,37 @@ else
     || bad "matching patient → $score (expected eligible; trial=$sc3_trial_id; rerun scripts/build-fixture.sh if seed changed)"
 fi
 
-# SC4: CLI search matches web search data — compare against the same
+# SC4: prose surfaces render from the seed prose tables. The trial page
+# exposes its FAQ + consent summary and the condition page its explainer
+# via the same `/api/*` Route Handlers (see plan-a-07 step 3). Assert each
+# field is present and non-empty so a dropped prose table fails loudly here,
+# not as blank UI. Reuse the SC3 fixture's trial (it is a real seeded trial);
+# pick any condition from the conditions table for the explainer check.
+note "SC4: prose surfaces (FAQ, consent summary, explainer)"
+sc4_trial_id="$sc3_trial_id"
+if [ -z "$sc4_trial_id" ] || [ "$sc4_trial_id" = "<unknown>" ]; then
+  sc4_trial_id=$(curl -fsS "http://localhost:8000/rest/v1/trials?select=id&limit=1" \
+    -H "apikey:$ANON_KEY" | jq -r '.[0].id')
+fi
+trial_prose=$(curl -fsS "http://localhost:3001/api/trials/$sc4_trial_id")
+faq=$(echo "$trial_prose" | jq -r '.faq // ""')
+consent=$(echo "$trial_prose" | jq -r '.consentSummary // ""')
+[ -n "$faq" ] && [ "$faq" != "null" ] && ok "trial $sc4_trial_id has non-empty faq" \
+  || bad "trial $sc4_trial_id faq empty"
+[ -n "$consent" ] && [ "$consent" != "null" ] && ok "trial $sc4_trial_id has non-empty consentSummary" \
+  || bad "trial $sc4_trial_id consentSummary empty"
+sc4_condition_id=$(curl -fsS "http://localhost:8000/rest/v1/conditions?select=id&limit=1" \
+  -H "apikey:$ANON_KEY" | jq -r '.[0].id')
+explainer=$(curl -fsS "http://localhost:3001/api/conditions/$sc4_condition_id" | jq -r '.explainer // ""')
+[ -n "$explainer" ] && [ "$explainer" != "null" ] && ok "condition $sc4_condition_id has non-empty explainer" \
+  || bad "condition $sc4_condition_id explainer empty"
+
+# SC5: CLI search matches web search data — compare against the same
 # handler-backed JSON. The web surface exposes JSON via Route Handlers
 # at `/api/*` (see plan-a-07 step 3); pages and routes share the same
 # handler and `buildCtx`, so equal output here proves both surfaces
 # pull the same data.
-note "SC4: CLI search matches web"
+note "SC5: CLI search matches web"
 web_ids=$(curl -fsS "http://localhost:3001/api/search?condition=diabetes" \
   | jq -r '[.trials[].id] | sort | join(",")')
 cli_ids=$(node products/polaris/cli/bin/bionova-polaris.js search --condition=diabetes --json \
@@ -222,67 +254,79 @@ cli_ids=$(node products/polaris/cli/bin/bionova-polaris.js search --condition=di
 [ -n "$cli_ids" ] && [ "$cli_ids" = "$web_ids" ] && ok "cli ids = web ids" \
   || bad "cli=$cli_ids web=$web_ids"
 
-# SC5: admin CLI updates reflect in web (via DB query AND rendered JSON).
+# SC6: admin CLI updates reflect in web (via DB query AND rendered JSON).
 # Pick a different trial than the SC3 fixture so we are not testing the
 # same row twice; use the first 'recruiting' trial.
-note "SC5: admin update propagates"
-sc5_trial_id=$(curl -fsS "http://localhost:8000/rest/v1/trials?status=eq.recruiting&select=id&limit=1" \
+note "SC6: admin update propagates"
+sc6_trial_id=$(curl -fsS "http://localhost:8000/rest/v1/trials?status=eq.recruiting&select=id&limit=1" \
   -H "apikey:$ANON_KEY" | jq -r '.[0].id')
-if [ "$sc5_trial_id" = "$sc3_trial_id" ]; then
-  # Pick the next recruiting trial so SC5 does not collide with SC3's row.
-  sc5_trial_id=$(curl -fsS "http://localhost:8000/rest/v1/trials?status=eq.recruiting&select=id&id=neq.${sc3_trial_id}&limit=1" \
+if [ "$sc6_trial_id" = "$sc3_trial_id" ]; then
+  # Pick the next recruiting trial so SC6 does not collide with SC3's row.
+  sc6_trial_id=$(curl -fsS "http://localhost:8000/rest/v1/trials?status=eq.recruiting&select=id&id=neq.${sc3_trial_id}&limit=1" \
     -H "apikey:$ANON_KEY" | jq -r '.[0].id')
 fi
-if [ -z "$sc5_trial_id" ] || [ "$sc5_trial_id" = "null" ]; then
+if [ -z "$sc6_trial_id" ] || [ "$sc6_trial_id" = "null" ]; then
   bad "no recruiting trial to update"
 else
   SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
-    node products/polaris/cli/bin/bionova-polaris.js admin trial "$sc5_trial_id" --update '{"status":"completed"}'
+    node products/polaris/cli/bin/bionova-polaris.js admin trial "$sc6_trial_id" --update '{"status":"completed"}'
   # Verify via PostgREST (anon role)
-  new_status=$(curl -fsS "http://localhost:8000/rest/v1/trials?id=eq.${sc5_trial_id}&select=status" \
+  new_status=$(curl -fsS "http://localhost:8000/rest/v1/trials?id=eq.${sc6_trial_id}&select=status" \
     -H "apikey:$ANON_KEY" | jq -r '.[0].status')
-  [ "$new_status" = "completed" ] && ok "REST shows completed (trial $sc5_trial_id)" || bad "REST shows '$new_status', expected completed (trial $sc5_trial_id)"
+  [ "$new_status" = "completed" ] && ok "REST shows completed (trial $sc6_trial_id)" || bad "REST shows '$new_status', expected completed (trial $sc6_trial_id)"
   # Verify the web JSON surface — proves the page handler reads the new value, not just PostgREST.
-  api_status=$(curl -fsS "http://localhost:3001/api/trials/$sc5_trial_id" | jq -r .trial.status)
-  [ "$api_status" = "completed" ] && ok "web /api/trials/$sc5_trial_id shows completed" || bad "web /api/trials/$sc5_trial_id shows '$api_status'"
+  api_status=$(curl -fsS "http://localhost:3001/api/trials/$sc6_trial_id" | jq -r .trial.status)
+  [ "$api_status" = "completed" ] && ok "web /api/trials/$sc6_trial_id shows completed" || bad "web /api/trials/$sc6_trial_id shows '$api_status'"
   # Spot-check the rendered HTML page does not error.
-  web_status=$(curl -fsS -o /dev/null -w "%{http_code}" "http://localhost:3001/trials/$sc5_trial_id")
+  web_status=$(curl -fsS -o /dev/null -w "%{http_code}" "http://localhost:3001/trials/$sc6_trial_id")
   [ "$web_status" = "200" ] && ok "web page renders trial" || bad "web page returned HTTP $web_status"
 fi
 
-# SC6: seed data is deterministic and regenerable.
-# In bionova-apps, "regenerable" means: wiping the DB and the staged
-# migrations, then re-running setup.sh from the committed vendored seed,
-# produces the same seed signature. The monorepo-side half of SC6
-# (regenerate at the provenance SHA → byte-identical to the vendored
-# copies) runs in the monorepo per data/synthetic/seed/PROVENANCE.md;
-# stage-seed.sh's sha256 check pins this run to those exact bytes.
-# The vendored seed itself is committed and is never deleted here.
-#
-# The DB truncate destroys live rows (staff edits made via SC5 above),
-# so we require an explicit `SMOKE_DESTRUCTIVE=1` env to run SC6's wipe.
-# CI sets it; humans don't. Without it, SC6 records skip (not fail) so
-# the local run stays green and the destructive surface stays opt-in.
-note "SC6: seed regenerable from vendored copies"
-if [ "${SMOKE_DESTRUCTIVE:-0}" != "1" ]; then
-  ok "SC6 skipped (set SMOKE_DESTRUCTIVE=1 to exercise the destructive regen path)"
+# SC7: seed data is deterministic and regenerable FROM THE VENDORED DSL,
+# inside bionova-apps. "Regenerable" means: re-running the local render
+# (`scripts/build-seed.sh`) against the vendored `story.dsl` + `prose-cache.json`
+# reproduces the rendered SQL/JSONL byte-identical to the committed
+# `data/synthetic/SEED.sha256` anchor (see plan-a-03 step 4). This half is
+# NON-DESTRUCTIVE — it only renders into the disposable `data/synthetic/.build/`
+# and checksums; it never touches the live DB. The monorepo-side half (the same
+# render at the provenance SHA → identical bytes) is recorded in
+# `data/synthetic/PROVENANCE.md`; `SEED.sha256` pins both runs to the same bytes.
+note "SC7: seed regenerable from vendored DSL"
+if [ ! -d "$ROOT/.git" ] || [ ! -d "$ROOT/data/synthetic" ]; then
+  bad "SC7 \$ROOT=$ROOT is not the bionova-apps repo"
 else
-  if [ ! -d "$ROOT/.git" ] || [ ! -d "$ROOT/data/synthetic" ]; then
-    bad "SC6 \$ROOT=$ROOT is not the bionova-apps repo"
+  bash "$ROOT/scripts/build-seed.sh"
+  if (cd "$ROOT/data/synthetic/.build/products/polaris/site/supabase/migrations" \
+      && sha256sum -c "$ROOT/data/synthetic/SEED.sha256" >/dev/null); then
+    ok "deterministic render matches data/synthetic/SEED.sha256"
   else
-    ORIG=$(pg "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
-    docker compose exec -T postgres psql -U postgres -c \
-      "TRUNCATE conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, interest_signals CASCADE;"
-    # Forget the staged seed versions so `supabase db push` re-applies them —
-    # TRUNCATE clears data tables only, not the migration ledger.
-    docker compose exec -T postgres psql -U postgres -c \
-      "DELETE FROM supabase_migrations.schema_migrations WHERE version LIKE '20250101000%';"
-    find "$ROOT/products/polaris/site/supabase/migrations" -maxdepth 1 -name "20250101000*_seed_*.sql" -delete
-    (cd "$ROOT" && ./setup.sh)
-    REGEN=$(pg "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
-    [ "$ORIG" = "$REGEN" ] && ok "deterministic regen from vendored seed" \
-      || bad "regen drift: $ORIG → $REGEN"
+    bad "render drift: rendered SQL/JSONL does not match data/synthetic/SEED.sha256"
   fi
+fi
+
+# SC7 (DB half): a `supabase db push` of the freshly staged migrations
+# reproduces identical seeded data. This truncates the live DB and re-applies
+# the staged migrations, destroying staff edits made via SC6 above, so it is
+# gated behind an explicit `SMOKE_DESTRUCTIVE=1` env. CI sets it; humans don't.
+# Without it, the DB half records skip (not fail) so the local run stays green
+# and the destructive surface stays opt-in.
+note "SC7: staged migrations reproduce identical data"
+if [ "${SMOKE_DESTRUCTIVE:-0}" != "1" ]; then
+  ok "SC7 DB half skipped (set SMOKE_DESTRUCTIVE=1 to exercise the destructive db-push path)"
+elif [ ! -d "$ROOT/.git" ] || [ ! -d "$ROOT/data/synthetic" ]; then
+  bad "SC7 \$ROOT=$ROOT is not the bionova-apps repo"
+else
+  ORIG=$(pg "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
+  docker compose exec -T postgres psql -U postgres -c \
+    "TRUNCATE conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, interest_signals CASCADE;"
+  # Forget the staged seed versions so `supabase db push` re-applies them —
+  # TRUNCATE clears data tables only, not the migration ledger.
+  docker compose exec -T postgres psql -U postgres -c \
+    "DELETE FROM supabase_migrations.schema_migrations WHERE version LIKE '20250101%';"
+  (cd "$ROOT" && ./setup.sh)
+  REGEN=$(pg "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
+  [ "$ORIG" = "$REGEN" ] && ok "deterministic db push from rendered seed" \
+    || bad "db-push drift: $ORIG → $REGEN"
 fi
 
 echo "===================="
@@ -298,8 +342,8 @@ matching-patient eligibility request that satisfies every inclusion
 criterion of that trial). The fixture is regenerated by
 `scripts/build-fixture.sh` (below), which queries the live DB so it
 stays in sync with the vendored seed. The committed JSON is the output
-of running that script against the seed vendored at the provenance SHA
-recorded in `data/synthetic/seed/PROVENANCE.md`.
+of running that script against the seed rendered from the DSL vendored at
+the provenance SHA recorded in `data/synthetic/PROVENANCE.md`.
 
 Created: `scripts/build-fixture.sh`
 
@@ -349,7 +393,7 @@ criterion shape changes (i.e., spec 1150 evolves), re-run
 PR. No separate README is required — the script is the canonical
 procedure.
 
-Verify: against a clean stack, `scripts/smoke.sh` exits 0 and reports all 6
+Verify: against a clean stack, `scripts/smoke.sh` exits 0 and reports all 7
 SCs pass.
 
 ## Step 5 — Wire smoke script into CI
@@ -429,12 +473,12 @@ what `scripts/smoke.sh` exercises.
 ```sh
 git checkout -b deploy/smoke-and-railway
 git add infrastructure/railway/ products/polaris/site/railway.toml services/polaris-functions/railway.toml products/polaris/site/Dockerfile services/polaris-functions/Dockerfile .github/workflows/ scripts/smoke.sh docs/ README.md
-git commit -m "deploy: railway configs + e2e smoke verifying SC1–SC6"
+git commit -m "deploy: railway configs + e2e smoke verifying SC1–SC7"
 git push -u origin deploy/smoke-and-railway
-gh pr create --title "deploy: railway configs + e2e smoke verifying SC1–SC6" --body "Implements plan-a-08 of spec 1160. CI e2e job verifies all six success criteria against a fresh stack."
+gh pr create --title "deploy: railway configs + e2e smoke verifying SC1–SC7" --body "Implements plan-a-08 of spec 1160. CI e2e job verifies all seven success criteria against a fresh stack."
 ```
 
-Verify: PR CI green (all jobs); e2e job reports 6 SCs passing.
+Verify: PR CI green (all jobs); e2e job reports 7 SCs passing.
 
 ## Step 9 — Mark plan implemented in the monorepo (separate PR)
 
@@ -477,7 +521,7 @@ git commit -m "feat(1160): close spec lifecycle (bionova-apps shipped)"
 git push -u origin feat/1160-implemented
 gh pr create --title "feat(1160): close spec lifecycle (bionova-apps shipped)" --body "Closes spec 1160 lifecycle.
 
-Implementation lives at https://github.com/forwardimpact/bionova-apps (Apache-2.0). Eight PRs merged in that repo (links below); the smoke script verifies SC1–SC6 against a fresh \`docker compose up && ./setup.sh\`.
+Implementation lives at https://github.com/forwardimpact/bionova-apps (Apache-2.0). Eight PRs merged in that repo (links below); the smoke script verifies SC1–SC7 against a fresh \`docker compose up && ./setup.sh\`.
 
 No code under this monorepo changes — the trailing PR is STATUS + log + metrics only. Trusted-human review here is the only safety net for the bionova-apps build (no monorepo CI exercises it).
 
@@ -502,7 +546,7 @@ bionova-apps PR and the smoke-CI run.
 
 ## Verification (end of part 08)
 
-- [ ] `scripts/smoke.sh` exits 0 against fresh stack: SC1–SC6 all pass.
+- [ ] `scripts/smoke.sh` exits 0 against fresh stack: SC1–SC7 all pass.
 - [ ] CI `e2e` job runs end-to-end on every PR; failures upload
       `docker compose logs`.
 - [ ] Railway project deploys each service on watch-path change.
