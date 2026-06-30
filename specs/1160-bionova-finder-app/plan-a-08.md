@@ -305,7 +305,7 @@ else
 fi
 
 # SC7 (DB half): a `supabase db push` of the freshly staged migrations
-# reproduces identical seeded data. This truncates the live DB and re-applies
+# reproduces identical seeded data. This drops the seeded tables and re-applies
 # the staged migrations, destroying staff edits made via SC6 above, so it is
 # gated behind an explicit `SMOKE_DESTRUCTIVE=1` env. CI sets it; humans don't.
 # Without it, the DB half records skip (not fail) so the local run stays green
@@ -317,12 +317,16 @@ elif [ ! -d "$ROOT/.git" ] || [ ! -d "$ROOT/data/synthetic" ]; then
   bad "SC7 \$ROOT=$ROOT is not the bionova-apps repo"
 else
   ORIG=$(pg "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
+  # Reset to a pristine schema before re-applying. The seed migrations are not
+  # idempotent (plain INSERTs and unguarded CREATE POLICY), so truncating data
+  # is not enough — re-pushing onto surviving tables/policies fails. DROP the
+  # seeded tables (CASCADE clears their policies and dependents) and forget every
+  # recorded version so setup.sh's `db push --include-all` rebuilds each object
+  # and row from scratch. Default privileges re-grant the new tables.
   docker compose exec -T postgres psql -U postgres -c \
-    "TRUNCATE conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, interest_signals CASCADE;"
-  # Forget the staged seed versions so `supabase db push` re-applies them —
-  # TRUNCATE clears data tables only, not the migration ledger.
+    "DROP TABLE IF EXISTS conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_explainers, trial_faqs, consent_summaries, site_descriptions, patient_stories, therapy_descriptions, condition_embeddings, interest_signals CASCADE;"
   docker compose exec -T postgres psql -U postgres -c \
-    "DELETE FROM supabase_migrations.schema_migrations WHERE version LIKE '20250101%';"
+    "DELETE FROM supabase_migrations.schema_migrations WHERE version LIKE '20250101%' OR version LIKE '20260601%';"
   (cd "$ROOT" && ./setup.sh)
   REGEN=$(pg "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
   [ "$ORIG" = "$REGEN" ] && ok "deterministic db push from rendered seed" \

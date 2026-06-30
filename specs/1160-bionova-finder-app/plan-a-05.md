@@ -196,9 +196,17 @@ condition's stories ordered by `story_index`.
 Created: `products/polaris/handlers/src/show-about.js`
 
 ```js
+// Default to the file next to this module (CLI and tests). A bundler that
+// rewrites `new URL("../data/about.yaml", import.meta.url)` into a static asset
+// path (Next.js standalone, part 07) leaves the runtime fs read pointing at a
+// file that does not exist, so let the host override with POLARIS_ABOUT_PATH.
+const ABOUT_PATH =
+  process.env.POLARIS_ABOUT_PATH ||
+  new URL("../data/about.yaml", import.meta.url).pathname;
+
 export async function showAbout(ctx) {
   // Static metadata: BioNova mission, partnership disclosures, contact email
-  // Reads from a YAML file at products/polaris/handlers/data/about.yaml so staff can edit without code
+  // read from ABOUT_PATH (YAML) so staff can edit without code.
   // Also reads therapy_descriptions (public-read prose) for the therapies list
   //   const therapies = await db.get(`therapy_descriptions?select=topic,description`);
   return { mission, partnerships, contact, therapies };
@@ -206,7 +214,8 @@ export async function showAbout(ctx) {
 ```
 
 Also created: `products/polaris/handlers/data/about.yaml` — placeholder
-content (mission statement, two partnership lines, contact email).
+content (mission statement, two partnership lines, contact email). The web
+surface sets `POLARIS_ABOUT_PATH` to the bundled copy (part 07).
 
 Verify: `showAbout({})` returns the YAML deserialized to a plain object, plus
 a `therapies` list of `{ topic, description }` from `therapy_descriptions`.
