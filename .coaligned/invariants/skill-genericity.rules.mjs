@@ -21,8 +21,26 @@
 // links are sanctioned (canonical-protocol references) and do not match
 // these rules. fit-* and coaligned-* skills are out of scope: they document
 // their own published CLIs and legitimately name @forwardimpact packages and
-// tool integrations. Only kata-* skills (plus the agent references) are
-// scanned — see the glob in build().
+// tool integrations. Only kata-* skills (plus the agent references, which now
+// live flat at .claude/agents/x-*.md) are scanned — see the globs in build().
+// The six agent profiles are deliberately NOT genericity-scanned: they carry
+// internal contributor tooling (bun run check:fix, bunx fit-doc, websites/fit)
+// and making them pack-generic is out of this rule's scope.
+//
+// A second, separate guard ("agent-naming") scans every .claude/agents/*.md
+// file — profiles and references alike — and asserts the x- naming convention
+// agrees with the frontmatter classifier the runtime loader uses: a file with
+// name+description frontmatter is a profile and must NOT be named x-*; a file
+// without it is a reference and MUST be named x-*. This catches a reference
+// that grew agent frontmatter (and would load as a subagent) or a profile that
+// took the reference prefix, turning a naming slip into a CI failure.
+
+import { basename } from "node:path";
+
+// A `.claude/agents/*.md` file is a profile when it carries both `name` and
+// `description` frontmatter — the same test Claude Code's agent loader applies.
+const isProfile = (text) =>
+  /^name:[ \t]*\S/m.test(text) && /^description:[ \t]*\S/m.test(text);
 
 const PATTERNS = [
   // --- Group 1: internal-only tooling ---
@@ -105,15 +123,20 @@ const PATTERNS = [
 export default {
   name: "skill-genericity",
 
-  build({ grep }) {
+  build({ grep, scan }) {
     return {
       subjects: {
         "skill-match": grep({
           patterns: PATTERNS,
-          paths: [".claude/skills/", ".claude/agents/references/"],
-          globs: [".claude/skills/kata-*/**", ".claude/agents/references/**"],
+          paths: [".claude/skills/", ".claude/agents/"],
+          globs: [".claude/skills/kata-*/**", ".claude/agents/x-*.md"],
           caseSensitive: true,
           dedupe: (m) => `${m.raw}|${m.reason}`,
+        }),
+        "agent-naming": scan({
+          dirs: [".claude/agents"],
+          match: (n) => n.endsWith(".md"),
+          read: true,
         }),
       },
     };
@@ -124,6 +147,17 @@ export default {
       id: "skills.monorepo-specific",
       message: (s) => `${s.text.trim()} — ${s.reason}`,
       hint: "published pack content (kata-* skills and agent references) must hold in a repo that installed the pack yesterday (.claude/skills/CLAUDE.md § Generic by design); narrow the rule in .coaligned/invariants/skill-genericity.rules.mjs only for a legitimate generic usage",
+    }),
+    // The x- naming convention must agree with the frontmatter classifier: the
+    // two booleans are equal exactly when they disagree with the convention.
+    failAll("agent-naming", {
+      id: "agents.naming-convention",
+      when: (s) => isProfile(s.text) === basename(s.path).startsWith("x-"),
+      message: (s) =>
+        isProfile(s.text)
+          ? `${s.rel} carries name+description frontmatter (a profile) but is named x-* — profiles must not use the x- reference prefix`
+          : `${s.rel} has no agent frontmatter (a reference) but is not named x-* — agent references must carry the x- prefix`,
+      hint: "the x- filename prefix and the frontmatter classifier must agree (COALIGNED.md § L4): every x-*.md has no agent frontmatter, and every profile has name+description and is not named x-*",
     }),
   ],
 };
