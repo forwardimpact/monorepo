@@ -1258,7 +1258,10 @@ terrain BioNova {
     path "products/polaris/site/supabase/migrations/"
     prefix "seed"
     entities [clinical.conditions, clinical.sites,
-              clinical.researchers, clinical.trials, clinical.criteria]
+              clinical.researchers, clinical.trials, clinical.criteria,
+              clinical.condition_explainers, clinical.trial_faqs,
+              clinical.consent_summaries, clinical.site_descriptions,
+              clinical.patient_stories, clinical.therapy_descriptions]
     include_embeddings true
   }
 
