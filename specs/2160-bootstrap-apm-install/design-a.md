@@ -55,7 +55,7 @@ deployed tree.
 | Provisioning gate | `if: hashFiles('apm.yml') != ''` on the three new steps | Declarative no-op for repos without a root `apm.yml`; never runs a bare `apm install` (SC2). |
 | apm cache | new `actions/cache` step | Restores/saves `apm`'s content-addressed download cache (`~/.cache/apm`), keyed on `apm.lock.yaml`, so warm runs reuse checkouts (SC5). |
 | Provision packs | new composite `run` step | Runs `apm install` from the repo root; deploys profiles + skills (SC1). |
-| Verify provisioning | new composite `run` step | Reconciles each pack declared in `apm.yml` against the lockfile + disk: every declared pack must have a resolved lockfile entry whose `deployed_files` all exist; exits nonzero otherwise (SC4). |
+| Verify provisioning | new composite `run` step | Reconciles each pack declared in `apm.yml` (`dependencies.apm`) against the lockfile + disk: every declared pack must match a lockfile entry (by `repo_url`) with a non-empty `deployed_files`, all of which exist; exits nonzero otherwise (SC4). |
 | `apm` CLI | already installed by `fit-install.sh` | Resolves packs against `apm.lock.yaml` `resolved_commit` (SC3) and deploys profiles + skills (its `deployed_files`) per the repo's `apm.yml`. |
 
 ## Interfaces
@@ -72,12 +72,14 @@ deployed tree.
   marker such as `.claude/`/`CLAUDE.md`) decides deploy paths.
 - **Failure contract** — `apm install` exits `0` even when a pack fails to
   resolve (verified), so the exit code cannot gate the run. Verify instead
-  reconciles the packs **declared** in `apm.yml` against the post-install
-  `apm.lock.yaml` and disk: a declared pack with no resolved lockfile entry, or
-  any `deployed_files` path that is absent, fails the action. Anchoring on the
-  declared list (not on whatever `deployed_files` happen to be present) catches
-  a pack that never resolved — whose lockfile entry would otherwise be missing
-  entirely — so the run never reaches `scripts/bootstrap.sh` partial.
+  reconciles the packs **declared** under `apm.yml`'s `dependencies.apm` against
+  the post-install `apm.lock.yaml` (matched by `repo_url`) and disk: a declared
+  pack with no resolved lockfile entry, an entry with empty `deployed_files`, or
+  any listed path that is absent fails the action. Anchoring on the declared
+  list (not on whatever `deployed_files` happen to be present) catches a pack
+  that never resolved — whose lockfile entry would otherwise be missing
+  entirely. Verify is the failure point within the provisioning unit, so the run
+  never reaches `scripts/bootstrap.sh` partial.
 
 ## Key Decisions
 
@@ -88,7 +90,7 @@ deployed tree.
 | Deploy mechanism | Plain `apm install`; let the repo's `apm.yml`/`apm.lock.yaml` drive paths and `apm` deploy profiles itself (the reference consumer's lockfile records `.claude/agents/*.md` under `deployed_files`). | Replicate the benchmark installer's manual `apm_modules/**/agents/` staging — that workaround is specific to the benchmark's `apm install --target claude` harness isolation; the plain install bootstrap runs needs no such staging and it would couple `bootstrap` to `apm` internals. |
 | Cache isolation | A separate `apm.yml`-gated `actions/cache` for `~/.cache/apm`, keyed on `apm.lock.yaml`. | Fold `apm.lock.yaml` into the existing env-cache key — a pack bump would needlessly drop `node_modules`/`generated`; gating keeps the apm concern inert for non-apm repos. |
 | Re-download avoidance | Rely on `apm`'s content-addressed cache (git db + checkouts by commit); always run `apm install` on a warm cache (cheap local deploy). `actions/cache` saves on a successful run; a cold or lock-changed cache fetches from upstream — the intended re-provision. | Skip `apm install` on a cache hit — the deployed trees live in the (uncached) workspace, so they must be re-deployed every run. |
-| Failure detection | Reconcile `apm.yml` declared packs against resolved lockfile entries + on-disk `deployed_files`. | Trust `apm install`'s exit code (verified it exits `0` on an unresolvable pack), or check only `deployed_files` presence — a never-resolved pack omits its lockfile entry, so that check passes blind, violating SC4. |
+| Failure detection | Reconcile `apm.yml` declared packs against resolved lockfile entries (non-empty `deployed_files`) + on-disk paths. | Trust `apm install`'s exit code (verified it exits `0` on an unresolvable pack), or check only `deployed_files` presence — a never-resolved pack omits its lockfile entry, so that check passes blind, violating SC4. |
 
 ## Data flow
 
