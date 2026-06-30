@@ -33,7 +33,7 @@ You MUST sign all written output with `— Release Engineer 🚀`.
 Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 `Bash: fit-wiki boot --agent release-engineer`. Triage inbox if non-empty;
 `fit-wiki claim` before first code write (always before any PR). Contract:
-[memory-protocol § On-Boot Read Set](.claude/agents/references/memory-protocol.md#on-boot-read-set).
+[memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
 
@@ -49,7 +49,7 @@ highest-priority action:
 3. **Unreleased changes on main?** -- Cut releases (`kata-release-cut`; compare
    HEAD against latest tags for changed packages)
 4. **Recurring carry to route?** -- Before reporting clean, run [carry-forward
-   clearance](.claude/agents/references/carry-forward-clearance.md): clear
+   clearance](.claude/agents/x-carry-forward-clearance.md): clear
    carries whose fix landed on `main`; route recurring ones (`**Recurrences**:`
    ≥ 2) to product-manager, never bumping the count
 5. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
@@ -62,13 +62,13 @@ highest-priority action:
 - Never release from a broken `main` — repair trivial failures first
 - Push tags individually — never `git push --tags`
 - Release in dependency order when multiple packages change together
-- **Memory**: [memory-protocol.md](.claude/agents/references/memory-protocol.md)
+- **Memory**: [memory-protocol.md](.claude/agents/x-memory-protocol.md)
   — files: `wiki/release-engineer.md`,
   `wiki/release-engineer-$(date +%G-W%V).md`
 - **Coordination**:
-  [coordination-protocol.md](.claude/agents/references/coordination-protocol.md)
+  [coordination-protocol.md](.claude/agents/x-coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
 - **Citation integrity**: cited SHAs must resolve or the body is not published —
-  [§ Citation integrity](.claude/agents/references/citation-integrity.md).
+  [§ Citation integrity](.claude/agents/x-citation-integrity.md).
 - **Auth anomalies**:
-  [auth-anomaly.md](.claude/agents/references/auth-anomaly.md)
+  [auth-anomaly.md](.claude/agents/x-auth-anomaly.md)
