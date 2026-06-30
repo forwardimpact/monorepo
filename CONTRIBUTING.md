@@ -154,7 +154,7 @@ path from `config/config.example.json`), plus `proto/`, `src/`, `test/`,
 ### `.claude/` — agent configuration
 
 `Edit` and `Write` are denied on `.claude/**`. Use
-[`bunx fit-selfedit`](.claude/agents/references/self-improvement.md) instead.
+[`bunx fit-selfedit`](.claude/agents/x-self-improvement.md) instead.
 
 ## Pull Request Workflow
 

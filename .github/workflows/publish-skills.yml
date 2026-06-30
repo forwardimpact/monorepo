@@ -9,7 +9,6 @@ on:
       - ".claude/skills/coaligned-*/**"
       - ".claude/skills/monorepo-*/**"
       - ".claude/agents/*.md"
-      - ".claude/agents/references/**"
       - "products/gear/package.json"
       - "libraries/libcoaligned/package.json"
       - ".github/actions/publish-skill-pack/**"

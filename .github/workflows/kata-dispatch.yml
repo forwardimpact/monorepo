@@ -157,7 +157,7 @@ jobs:
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
           # Token freshness stamp — rides the same step env as GH_TOKEN so the
           # accounting can never pair a token with another token's stamp. See
-          # the "Stamp installation token" step and .claude/agents/references/auth-anomaly.md.
+          # the "Stamp installation token" step and .claude/agents/x-auth-anomaly.md.
           KATA_GH_TOKEN_STAMP: ${{ env.KATA_GH_TOKEN_STAMP }}
           CLAUDE_CODE_USE_BEDROCK: "0"
           CALLBACK_URL: ${{ inputs.callback_url }}
