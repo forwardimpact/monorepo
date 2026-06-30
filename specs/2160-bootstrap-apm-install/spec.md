@@ -1,4 +1,4 @@
-# Spec 2150 — Provision declared packs in the bootstrap action
+# Spec 2160 — Provision declared packs in the bootstrap action
 
 **Classification:** Internal — CI/build tooling for the published `bootstrap`
 action, with no user-facing product surface change, though its impact lands on a
