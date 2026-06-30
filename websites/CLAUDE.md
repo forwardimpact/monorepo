@@ -2,14 +2,14 @@
 
 Four sites built by `fit-doc`
 ([internals](fit/docs/internals/fit-doc/index.md)). Two are live; two are
-placeholders pending content and a publish workflow.
+built and pending a publish workflow.
 
-| Site                       | Source                | Domain                   | Status      |
-| -------------------------- | --------------------- | ------------------------ | ----------- |
-| Forward Impact Engineering | `websites/fit/`       | `www.forwardimpact.team` | Live        |
-| Kata Agent Team            | `websites/kata/`      | `www.kata.team`          | Live        |
-| Co-Aligned                 | `websites/coaligned/` | `www.coaligned.team`     | Placeholder |
-| Monorepo Structure         | `websites/monorepo/`  | `www.monorepo.team`      | Placeholder |
+| Site                       | Source                | Domain                   | Status |
+| -------------------------- | --------------------- | ------------------------ | ------ |
+| Forward Impact Engineering | `websites/fit/`       | `www.forwardimpact.team` | Live   |
+| Kata Agent Team            | `websites/kata/`      | `www.kata.team`          | Live   |
+| Co-Aligned                 | `websites/coaligned/` | `www.coaligned.team`     | Built  |
+| Monorepo Structure         | `websites/monorepo/`  | `www.monorepo.team`      | Built  |
 
 Preview locally:
 
@@ -115,7 +115,7 @@ Live sites share the same deployment pattern. Workflows in
 | `website-fit.yaml`  | `fit-pages`  | `forwardimpact/fit-pages`  |
 | `website-kata.yaml` | `kata-pages` | `forwardimpact/kata-pages` |
 
-The Co-Aligned and Monorepo placeholder sites do not yet have publish
+The Co-Aligned and Monorepo sites are built but do not yet have publish
 workflows; they will be added when the sites are ready to ship.
 
 Push to `main` (path-filtered) triggers: build with `fit-doc`, upload artifact,

@@ -1,0 +1,27 @@
+# Co-Aligned
+
+> An instruction architecture for humans and coding agents — eight layers,
+> each with one job, each independently auditable.
+
+Co-Aligned is an open-source standard for creating aligned coding agents.
+Instructions span eight layers, ascending from most general (the system
+prompt, every run) to most specific (a checklist at one pause point). Each
+layer owns a single job, and no layer restates another — so a defect always
+traces to exactly one of them.
+
+It draws on two well-publicized ideas. Jobs To Be Done (Christensen, Moesta)
+answers what agents align to: the progress each persona seeks, not a feature
+list. The Checklist Manifesto (Gawande) answers how alignment holds under
+load: structured instructions keep existing knowledge consistently applied.
+
+Co-Aligned builds on the Monorepo structure standard and is the upstream
+architecture the Kata Agent Team implements.
+
+Install via `apm install forwardimpact/coaligned-skills`, then ask Claude to
+set it up. Wire `npx coaligned` into your checks to keep every layer honest.
+
+## Optional
+
+- [The full standard (COALIGNED.md)](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+- [Monorepo structure standard](https://www.monorepo.team/)
+- [Kata Agent Team](https://www.kata.team/)
