@@ -3,8 +3,8 @@ name: coaligned-setup
 description: >
   Bootstrap the Co-Aligned instruction architecture in a repository. Use
   when a repo has no layered agent instructions yet, when adopting the
-  Co-Aligned standard, or when wiring `npx coaligned` into the checks so
-  instruction layers, jobs, and invariants stay enforced.
+  Co-Aligned standard, or when wiring the `coaligned` checks into the
+  repository so instruction layers, jobs, and invariants stay enforced.
 ---
 
 # coaligned-setup
@@ -12,7 +12,7 @@ description: >
 Stand up the
 [Co-Aligned](https://www.coaligned.team/)
 instruction architecture in a repository: the root identity and jobs files, the
-invariant directory, and the `npx coaligned` checks that keep them honest.
+invariant directory, and the `coaligned` checks that keep them honest.
 
 Run this once per repository. For ongoing work use the sibling skills:
 [coaligned-layer](../coaligned-layer/SKILL.md) for instruction layers,
@@ -41,7 +41,7 @@ preference.
   generation.
 - **Generated `.jobs` blocks** — the repo is genuinely many packages, each
   with its own `package.json`. Each package declares `jobs` in its manifest;
-  `npx coaligned jtbd --fix` generates the catalog and job blocks into the
+  `coaligned jtbd --fix` generates the catalog and job blocks into the
   README and root `JTBD.md`.
 
 When in doubt, choose the static file — fewer moving parts. See
@@ -65,28 +65,36 @@ Do not restate one file in another. CLAUDE.md orients; CONTRIBUTING.md governs.
 
 Create `.coaligned/invariants/`. Leave it empty for now, or add a first rule
 module with coaligned-invariant. The directory is where the repo's own
-declarative checks live; `npx coaligned invariants` discovers every
-`*.rules.mjs` under it.
+declarative checks live; `coaligned invariants` discovers every `*.rules.mjs`
+under it.
 
 ### Step 4 — Wire the checks into the repository
 
-Add `npx coaligned` to the repository's check command so every layer, job, and
-invariant is enforced before merge.
+Wire the check into the repository's check command and CI so every layer, job,
+and invariant is enforced before merge. The CLI exposes four entry points:
 
-```sh
-npx coaligned                # instructions + jtbd (and invariants if present)
-npx coaligned instructions   # layer length and checklist caps only
-npx coaligned jtbd --fix     # regenerate stale catalog and job blocks
-npx coaligned invariants     # the repo's own rule modules
+```text
+coaligned                # instructions + jtbd (and invariants if present)
+coaligned instructions   # layer length and checklist caps only
+coaligned jtbd --fix     # regenerate stale catalog and job blocks
+coaligned invariants     # the repo's own rule modules
 ```
 
-Run the bare `npx coaligned` in the repository's lint/check task and in CI.
+Invoke it through an entry point the run environment can resolve. A clean CI
+runner has nothing on `PATH` and no workspace to resolve a bare `coaligned`
+against, so wire the registry-resolvable form — the published CLI package run
+through the repository's package manager — and record that concrete command in
+CONTRIBUTING.md. Use the same command in the lint/check task and the CI job;
+never one that only resolves on a contributor's pre-provisioned machine.
 
 ### Step 5 — Verify the bootstrap
 
-Run `npx coaligned`. A clean run means the layers fit their caps and the jobs
-validate. Fix any finding before committing — route by subcommand the same way
-[coaligned-audit](../coaligned-audit/SKILL.md) does.
+Verify the wired check the way CI runs it, from a clean dependency resolution. A
+`coaligned` already on your `PATH` masks an invocation that cannot resolve on a
+fresh runner — so confirm the repository's check command passes on a clean
+checkout, not just in your shell. A clean run means the layers fit their caps and
+the jobs validate; fix any finding before committing, routing by subcommand the
+same way [coaligned-audit](../coaligned-audit/SKILL.md) does.
 
 ## Done When
 
@@ -95,8 +103,11 @@ validate. Fix any finding before committing — route by subcommand the same way
 - [ ] `CLAUDE.md`, `CONTRIBUTING.md`, and `JTBD.md` exist and stay within
       their caps.
 - [ ] `.coaligned/invariants/` exists.
-- [ ] `npx coaligned` is wired into the repository's check command and CI.
-- [ ] `npx coaligned` passes with no findings.
+- [ ] The check is wired into the repository's check command and CI through an
+      invocation a clean runner resolves, with the concrete command in
+      CONTRIBUTING.md.
+- [ ] The wired check passes from a clean checkout, not only from a binary
+      already installed on `PATH`.
 
 </do_confirm_checklist>
 

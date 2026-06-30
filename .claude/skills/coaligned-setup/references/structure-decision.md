@@ -17,7 +17,7 @@ generated blocks back into a static file — is rarely worth it.
 ## Single static JTBD.md
 
 Author Big Hire entries directly in `JTBD.md`. Nothing generates them; the file
-is the source of truth. `npx coaligned jtbd` validates entry structure but has
+is the source of truth. `coaligned jtbd` validates entry structure but has
 nothing to regenerate.
 
 Best for a repository that ships as one unit: a single library, one service,
@@ -42,7 +42,7 @@ Each package declares its jobs in `package.json`:
 }
 ```
 
-`npx coaligned jtbd --fix` reads every package's `jobs`, validates them against
+`coaligned jtbd --fix` reads every package's `jobs`, validates them against
 the JTBD schema, and regenerates the marker-delimited catalog and job blocks in
 the directory READMEs and the root `JTBD.md`. Run it whenever a manifest's
 `jobs` change; CI fails if a generated block is stale.
