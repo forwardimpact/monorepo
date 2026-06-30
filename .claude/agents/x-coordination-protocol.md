@@ -8,9 +8,10 @@ this protocol covers every other output an agent produces.
 
 ## Channel by output type
 
-Each channel names an [abstract
-operation](x-work-trackers.md#abstract-operations) (or a non-tracker surface); its
-concrete per-tracker shape lives in the [matrix](x-work-trackers.md#the-matrix).
+Each channel names an
+[abstract operation](x-work-trackers.md#abstract-operations) (or a non-tracker
+surface); its concrete per-tracker shape lives in the
+[matrix](x-work-trackers.md#the-matrix).
 
 | Output                                          | Channel                                  |
 | ----------------------------------------------- | ---------------------------------------- |
@@ -25,8 +26,8 @@ concrete per-tracker shape lives in the [matrix](x-work-trackers.md#the-matrix).
 
 ## Agent labels on experiment issues
 
-Experiment issues carry an `agent:{name}` label so agents find their work
-during [on-boot routing](x-memory-protocol.md#on-boot-routing): `list` open issues
+Experiment issues carry an `agent:{name}` label so agents find their work during
+[on-boot routing](x-memory-protocol.md#on-boot-routing): `list` open issues
 filtered to the `experiment` and `agent:{self}` labels.
 
 Valid labels: `agent:staff-engineer`, `agent:product-manager`,
@@ -113,14 +114,13 @@ lands where the next reader looks.
 1. **Claim** before the first code write, atomically with the wiki push —
    procedure in
    [memory-protocol.md § Active Claims](x-memory-protocol.md#active-claims).
-2. **Probe** the remote of record for prior or in-flight work on the
-   target. A claim-row cell, a local ref, or a search-index read is each
-   point-in-time and can false-negative against a moving origin — none is
-   sufficient absence evidence alone, and a false "nothing exists" mints
-   duplicate work with no concurrency required:
-   The change-existence probes are the `list` operation (concrete shape per
-   tracker in the [matrix](x-work-trackers.md#the-matrix)); branch existence is a
-   canonical-state read, not a tracker operation:
+2. **Probe** the remote of record for prior or in-flight work on the target. A
+   claim-row cell, a local ref, or a search-index read is each point-in-time and
+   can false-negative against a moving origin — none is sufficient absence
+   evidence alone, and a false "nothing exists" mints duplicate work with no
+   concurrency required: The change-existence probes are the `list` operation
+   (concrete shape per tracker in the [matrix](x-work-trackers.md#the-matrix));
+   branch existence is a canonical-state read, not a tracker operation:
    - **Branch existence:** `git ls-remote origin "refs/heads/<branch>"` —
      exact ref only; glob refspecs fail silent on a miss.
    - **Change existence:** `list` changes by head branch, across **all**

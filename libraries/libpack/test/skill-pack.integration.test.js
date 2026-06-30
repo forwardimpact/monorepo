@@ -35,10 +35,7 @@ async function makeSource() {
   );
   // References are flat siblings of the profiles, identified by the absence of
   // agent frontmatter (and the x- naming convention).
-  await writeFile(
-    join(source, "agents", "x-memory.md"),
-    "# Memory protocol\n",
-  );
+  await writeFile(join(source, "agents", "x-memory.md"), "# Memory protocol\n");
   return source;
 }
 
@@ -93,9 +90,9 @@ describe("SkillPackPublisher", () => {
       existsSync(join(target, ".apm", "agents", "staff-engineer.agent.md")),
     ).toBe(true);
     // References ship flat alongside agents, no references/ subdir.
-    expect(
-      existsSync(join(target, ".apm", "agents", "x-memory.md")),
-    ).toBe(true);
+    expect(existsSync(join(target, ".apm", "agents", "x-memory.md"))).toBe(
+      true,
+    );
     expect(existsSync(join(target, ".apm", "agents", "references"))).toBe(
       false,
     );
@@ -187,9 +184,9 @@ describe("SkillPackPublisher", () => {
       existsSync(join(target, ".apm", "agents", "staff-engineer.agent.md")),
     ).toBe(false);
     // References still ship flat for a skills-only pack.
-    expect(
-      existsSync(join(target, ".apm", "agents", "x-memory.md")),
-    ).toBe(true);
+    expect(existsSync(join(target, ".apm", "agents", "x-memory.md"))).toBe(
+      true,
+    );
     const readme = await readFile(join(target, "README.md"), "utf-8");
     expect(readme).not.toContain("## Available Agents");
   });

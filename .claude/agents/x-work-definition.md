@@ -120,8 +120,8 @@ branches from mixing (`KATA.md` § Agents, § Design Principles).
   carries each work-type, and the decision-question order.
 - [`approval-signals.md`](x-approval-signals.md) — how phase artifacts are gated
   into `main`.
-- [`work-trackers.md`](x-work-trackers.md) — the concrete shape for each abstract
-  operation, per tracker.
+- [`work-trackers.md`](x-work-trackers.md) — the concrete shape for each
+  abstract operation, per tracker.
 - [`issue-lifecycle.md`](../../skills/kata-session/references/issue-lifecycle.md)
   — the operation recipes for obstacle and experiment issues.
 - `kata-pattern-synthesis` (corpus mapping) and `kata-session`

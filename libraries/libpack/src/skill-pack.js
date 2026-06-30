@@ -123,7 +123,11 @@ export class SkillPackPublisher {
       const stem = basename(file, ".md");
       if (isProfile(content)) {
         if (!withAgents) continue;
-        await writeFile(join(destDir, apmAgentFilename(stem)), content, "utf-8");
+        await writeFile(
+          join(destDir, apmAgentFilename(stem)),
+          content,
+          "utf-8",
+        );
         staged.push({
           name: frontmatterField(content, "name") || stem,
           description: foldedField(content, "description"),
@@ -235,7 +239,8 @@ export function injectFrontmatter(content, version) {
  */
 function isProfile(content) {
   return Boolean(
-    frontmatterField(content, "name") && frontmatterField(content, "description"),
+    frontmatterField(content, "name") &&
+      frontmatterField(content, "description"),
   );
 }
 

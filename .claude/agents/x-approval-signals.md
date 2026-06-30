@@ -11,9 +11,9 @@ writes the row.
 Each signal is a work-item event — a trusted approval marker on a change
 (`gate`) or a change reaching `merged` (`merge-change`). The concrete shape that
 realizes each on the active tracker lives in the
-[matrix](x-work-trackers.md#the-matrix) (github: PR label, review, or merge event,
-relayed by the `kata-dispatch` bridge; filesystem: the `approval` field and
-`state: merged`).
+[matrix](x-work-trackers.md#the-matrix) (github: PR label, review, or merge
+event, relayed by the `kata-dispatch` bridge; filesystem: the `approval` field
+and `state: merged`).
 
 | Signal | Source | Captured by |
 |---|---|---|
