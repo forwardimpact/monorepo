@@ -35,7 +35,7 @@ flowchart TD
   I -- no --> K[Bootstrap: scripts/bootstrap.sh]
   I -- yes --> J1[apm cache restore+save key=apm.lock.yaml]
   J1 --> J2[Provision: apm install]
-  J2 --> J3[Verify: every deployed_files path exists]
+  J2 --> J3[Verify: declared packs resolved + files exist]
   J3 --> K
 ```
 
