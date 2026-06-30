@@ -4,7 +4,10 @@ Build the Next.js App Router web frontend under `products/polaris/site/`,
 styled with Tailwind + shadcn/ui, dispatching to shared handlers via
 `@forwardimpact/libui`.
 
-All paths are inside `bionova-apps/`.
+All paths are inside `bionova-apps/`. The read-only surfaces source their
+patient-facing copy from the terrain-generated prose seed tables (condition
+explainers, trial FAQs, consent summaries, site descriptions, patient stories,
+therapy descriptions) — no hand-authored text.
 
 ## Step 1 — Scaffold Next.js project
 
@@ -93,10 +96,12 @@ Created (one `page.tsx` per route + `layout.tsx`):
 | --- | --- | --- |
 | `/` | `src/app/page.tsx` | hero + search form (no handler) |
 | `/search` | `src/app/search/page.tsx` | `searchTrials` |
-| `/trials/[id]` | `src/app/trials/[id]/page.tsx` | `showTrial` |
+| `/trials/[id]` | `src/app/trials/[id]/page.tsx` | `showTrial` (also renders the trial FAQ + consent summary from `faq`/`consentSummary` on the result) |
 | `/trials/[id]/eligibility` | `src/app/trials/[id]/eligibility/page.tsx` | `checkEligibility` (POST handler in `route.ts`) |
-| `/sites` | `src/app/sites/page.tsx` | `listSites` |
-| `/about` | `src/app/about/page.tsx` | `showAbout` |
+| `/conditions/[id]` | `src/app/conditions/[id]/page.tsx` | `showCondition` (condition + its explainer text from the `condition_explainers` seed table) |
+| `/sites` | `src/app/sites/page.tsx` | `listSites` (also renders each site's `description`) |
+| `/stories` | `src/app/stories/page.tsx` | `listStories` (patient stories from the `patient_stories` seed table; supports `?condition=` filter) |
+| `/about` | `src/app/about/page.tsx` | `showAbout` (also renders therapy descriptions from the `therapies` list) |
 | `/admin/trials/[id]` | `src/app/admin/trials/[id]/page.tsx` | `manageTrial` |
 
 JSON variants of every read handler are exposed via sibling Route Handlers
@@ -112,7 +117,9 @@ Created (one `route.ts` per read handler, beside `src/app/api/`):
 | --- | --- | --- |
 | `GET /api/search` | `src/app/api/search/route.ts` | `searchTrials` |
 | `GET /api/trials/[id]` | `src/app/api/trials/[id]/route.ts` | `showTrial` |
+| `GET /api/conditions/[id]` | `src/app/api/conditions/[id]/route.ts` | `showCondition` |
 | `GET /api/sites` | `src/app/api/sites/route.ts` | `listSites` |
+| `GET /api/stories` | `src/app/api/stories/route.ts` | `listStories` |
 | `GET /api/about` | `src/app/api/about/route.ts` | `showAbout` |
 
 Shape of every Route Handler:
@@ -251,6 +258,11 @@ export default async function SearchPage({ searchParams }: { searchParams: Recor
 }
 ```
 
+`src/app/conditions/[id]/page.tsx` follows the same shape with `showCondition`
+and `args: { id }`, rendering the condition plus its `explainer` text.
+`src/app/stories/page.tsx` follows the search-page shape with `listStories`,
+threading `?condition=` through `ctx.options` to render the filtered stories.
+
 Admin page `src/app/admin/trials/[id]/page.tsx` uses `buildAdminCtx`
 instead, so `manageTrial` sees the staff JWT and RLS applies the staff
 role; the page renders an unauthorized state if the cookie is absent.
@@ -369,12 +381,16 @@ preview enabled, else local Docker compose smoke documented).
 ### Verification (end of part 07)
 
 - [ ] `bun run build` in `products/polaris/site/` exits 0.
-- [ ] All 7 routes render without runtime errors (manual against `bun run dev`).
+- [ ] All 9 routes render without runtime errors (manual against `bun run dev`).
 - [ ] `/search?condition=high+blood+sugar` returns diabetes-related trials
       (success criterion #2).
+- [ ] `/trials/[id]` shows the trial FAQ and consent summary.
+- [ ] `/conditions/<id>` shows the condition explainer.
+- [ ] `/stories` lists patient stories; `/stories?condition=<id>` filters them.
 - [ ] `/trials/[id]/eligibility` form submits to route handler, inserts interest
       signal, shows score badge (success criterion #3).
-- [ ] `/sites?specialty=oncology` filters site list.
+- [ ] `/sites?specialty=oncology` filters site list and shows each site's
+      description.
 - [ ] `/admin/trials/[id]` returns 401 without staff JWT; returns admin view
       with signal aggregates with staff JWT.
 - [ ] `vitest run` exits 0.

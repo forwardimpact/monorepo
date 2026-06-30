@@ -16,22 +16,27 @@ Build the `bionova-apps` external repository to spec
 ## Approach
 
 The implementation lives in a new, separate GitHub repository
-(`forwardimpact/bionova-apps`) — not in this monorepo. **bionova-apps does
-NOT run `fit-terrain` itself**: `libterrain`'s bin resolves its project
-root by upward `package.json` search from the consumer's CWD
-(`bin/fit-terrain.js:199`, `runtime.finder.findProjectRoot()`), so from an
-external repo it would look for `data/synthetic/story.dsl` and
-`products/map/schema/json` in that repo — neither exists outside the
-monorepo, and the schema dir is not in the published npm package. The
-data pipeline is therefore inverted (r2, see part 03): the implementer
-regenerates terrain output inside the monorepo (spec 1150's
-implementation; output paths are gitignored, never committed) and
-**vendors** the SQL and JSONL artifacts into bionova-apps at
-`data/synthetic/seed/` with recorded provenance. No network fetch occurs
-at `setup.sh` time. Parts are decomposed by surface so they can run in
-parallel where the design allows. Each part is independently verifiable
-end-to-end against a local `docker compose` boot; the final part ties
-everything to the spec's six success criteria.
+(`forwardimpact/bionova-apps`) — not in this monorepo. **The app is built
+around synthetic data: `bionova-apps` vendors `data/synthetic/story.dsl` and
+`prose-cache.json` verbatim and runs `fit-terrain build` against them itself.**
+The DSL is the repository's domain source of truth; the SQL migrations and
+embeddings JSONL are rendered locally, never authored or vendored as output.
+This depends on two monorepo prerequisites that must publish to npm first (see
+Prerequisites): an `--output-root` flag so the build renders into a disposable
+directory instead of deleting `products/polaris/`, and prose-to-SQL rendering
+so the six clinical prose tables are emitted. The build is credential-free —
+`fit-terrain build` renders from the committed prose cache with zero LLM calls.
+Regenerating from the vendored DSL reproduces the seed byte-for-byte (SC7).
+Parts are decomposed by surface so they can run in parallel where the design
+allows. Each part is independently verifiable end-to-end against a local
+`docker compose` boot; the final part ties everything to the spec's seven
+success criteria.
+
+> **Revision r3** replaces r2's "vendor the rendered SQL" pipeline with
+> "vendor the DSL and render locally." r2 vendored `data/synthetic/seed/*.sql`
+> because `fit-terrain` could not run outside the monorepo. r3 makes it run
+> there (prerequisite A) and surfaces the generated prose (prerequisite B), so
+> the app is fully synthetic-data-driven. Part 03 is rewritten accordingly.
 
 ## Where this lives
 
@@ -52,30 +57,33 @@ this spec; the monorepo PR (`plan-implemented`) updates only
 | Dep | Status | Where checked |
 | --- | --- | --- |
 | Spec 1140 — clinical-output pipeline | implemented (commits `8bbf8f1c`, `0c921e81`) | `libterrain` clinical-output stage emits `supabase_migration` + `embeddings_jsonl` files |
-| Spec 1150 — story.dsl clinical rewrite | **implemented** (`wiki/STATUS.md` row `1150 plan implemented`; live-verified 2026-06-11 — `bunx fit-terrain build` at `6010964b`: 0 cache misses, all 10 seed artifacts produced) | story.dsl carries `clinical {}` + `output … supabase_migration {…}` blocks at `data/synthetic/story.dsl:1250–1266` |
-| `@forwardimpact/libcli@0.1.12`, `libui@1.3.0`, `libformat@0.1.18`, `libtemplate@0.2.12`, `librepl@0.1.14` on npm | published — versions verified via `npm view @forwardimpact/<lib> version` at panel-review time | part 01 pins these exact versions; implementer re-runs `npm view @forwardimpact/{libcli,libui,libformat,libtemplate,librepl} version` immediately before `bun install` and bumps in the part-01 PR if any further patch level published since. **libui crossed a minor (1.2 → 1.3): the implementer must scan `CHANGELOG.md` (or the GitHub release notes for `@forwardimpact/libui@1.3.0`) for breaking changes to `createBoundRouter`, `render`, `freezeInvocationContext`, and the exported `components` surface used by plan-a-07; record the scan result in the part-01 PR body** even when no breakage is found. **libterrain is NOT a bionova-apps dependency** — see Approach |
+| Spec 1150 — story.dsl clinical rewrite | **implemented** (`wiki/STATUS.md` row `1150 plan implemented`; live-verified 2026-06-11 — `bunx fit-terrain build` at `6010964b`: 0 cache misses, all seed artifacts produced) | story.dsl carries `clinical {}` + `output … supabase_migration {…}` blocks at `data/synthetic/story.dsl:1250–1272` |
+| **Prerequisite A — `fit-terrain` external execution** | **NOT YET SPECCED — blocks implementation.** Needs `--output-root` (route the write sink off the project root so it does not `rm -rf products/polaris/`) and `--schema-dir` defaulting to `@forwardimpact/map`'s published `schema/json`. Must publish in a new `@forwardimpact/libterrain` minor. | `libterrain/bin/fit-terrain.js` sink wiring (~233–241) + `src/sinks.js` `writeFiles` (~262–285); `bin/fit-terrain.js:200` schema path; `@forwardimpact/map` `files` at `products/map/package.json:69–75`. See design § Prerequisite library changes A. |
+| **Prerequisite B — clinical prose → SQL** | **NOT YET SPECCED — blocks parts 05/07 prose surfaces.** Materialize the six prose types as records, add their `TABLE_SPEC` entries, and pass the prose cache into `renderSql`. Must publish in the same `libterrain`/`libsyntheticrender`/`libsyntheticgen` release train. | `libsyntheticgen/src/engine/clinical-entities.js` (~100–107); `libsyntheticrender/src/render/render-sql.js` `TABLE_SPEC` (~12–66); `libterrain/src/nodes.js` `renderClinicalOutput` (~543–545). See design § Prerequisite library changes B. |
+| `@forwardimpact/libcli@0.1.12`, `libui@1.3.0`, `libformat@0.1.18`, `libtemplate@0.2.12`, `librepl@0.1.14` on npm | published — versions verified via `npm view @forwardimpact/<lib> version` at panel-review time | part 01 pins these exact versions; implementer re-runs `npm view @forwardimpact/{libcli,libui,libformat,libtemplate,librepl} version` immediately before `bun install` and bumps in the part-01 PR if any further patch level published since. **libui crossed a minor (1.2 → 1.3): the implementer must scan `CHANGELOG.md` (or the GitHub release notes for `@forwardimpact/libui@1.3.0`) for breaking changes to `createBoundRouter`, `render`, `freezeInvocationContext`, and the exported `components` surface used by plan-a-07; record the scan result in the part-01 PR body** even when no breakage is found. |
+| `@forwardimpact/libterrain` + `@forwardimpact/map` on npm | required at the versions that carry prerequisites A and B | part 01 adds both as `devDependencies`; part 03 pins the exact versions that include `--output-root` and prose-to-SQL rendering, and records them in its PR body |
 
-**This plan should not enter implementation until spec 1150 lands on
-`origin/main`.** Spec 1150 generates the clinical schema and seed data
-that every part beyond 01 references. Part 01 (bootstrap + infrastructure)
-is the only part that can land without 1150 — and even that is risky
-because the postgres image choice (see part 01 step 6) depends on the
-extensions terrain ultimately needs. Approval recommendation: hold this
-plan in `plan approved` state until `wiki/STATUS.md` shows `1150 plan
-implemented`; route `kata-implement` only after that signal flips.
+**This plan must not enter implementation until prerequisites A and B are
+implemented and published to npm, in addition to spec 1150 (done).** Part 01
+(bootstrap + infrastructure) is the only part that can land without A/B; every
+part from 03 onward needs `fit-terrain build` to run externally (A) and the
+prose tables to exist (B). Approval recommendation: hold this plan in `plan
+approved` state until both prerequisite specs show `plan implemented` in
+`wiki/STATUS.md` and their npm releases are live; route `kata-implement` only
+after both signals flip.
 
 ## Part Index
 
 | Part | Title | Scope | Depends on |
 | --- | --- | --- | --- |
-| [01](plan-a-01.md) | Repo bootstrap + infrastructure | New repo, MONOREPO.md, `package.json`, `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | — |
-| [02](plan-a-02.md) | Schema + RLS + interest_signals migration | Hand-written migration for `interest_signals`, RLS policies, schema verification | 01 |
-| [03](plan-a-03.md) | Data pipeline (r2) | vendored terrain seed in `data/synthetic/seed/` + `PROVENANCE.md`, `scripts/stage-seed.sh`, `setup.sh` data steps | 01, 02, spec 1150 implemented |
+| [01](plan-a-01.md) | Repo bootstrap + infrastructure | New repo, MONOREPO.md, `package.json` (+ `libterrain`/`map` devDeps), `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | A |
+| [02](plan-a-02.md) | Schema + RLS + interest_signals migration | Hand-written migration for `interest_signals`, RLS policies (prose tables get `public_read` from terrain), schema verification | 01 |
+| [03](plan-a-03.md) | Data pipeline (r3) | vendored `story.dsl` + `prose-cache.json` verbatim + `PROVENANCE.md`; `scripts/build-seed.sh` runs `fit-terrain build --output-root`; `setup.sh` data steps | 01, 02, prereqs A+B, spec 1150 |
 | [04](plan-a-04.md) | Edge functions | `embed-seed`, `eligibility-check`, `notify-updates`, `sync-listings` under `services/polaris-functions/` | 03 |
-| [05](plan-a-05.md) | Shared handlers | `products/polaris/handlers/` — `searchTrials`, `showTrial`, `checkEligibility`, `listSites`, `showAbout`, `manageTrial` | 03 |
-| [06](plan-a-06.md) | CLI surface | `products/polaris/cli/` + `bin/bionova-polaris.js`, libcli wiring, `repl` subcommand | 05 |
-| [07](plan-a-07.md) | Web surface | `products/polaris/site/` — Next.js App Router, Tailwind, shadcn/ui, libui routing | 05 |
-| [08](plan-a-08.md) | Deployment + smoke tests | Railway watch-path config per service, success-criteria verification script | 01–07 |
+| [05](plan-a-05.md) | Shared handlers | `products/polaris/handlers/` — `searchTrials`, `showTrial` (+FAQ/consent), `showCondition`, `checkEligibility`, `listSites` (+description), `listStories`, `showAbout` (+therapies), `manageTrial` | 03 |
+| [06](plan-a-06.md) | CLI surface | `products/polaris/cli/` + `bin/bionova-polaris.js`, libcli wiring, `condition`/`stories` commands, `repl` subcommand | 05 |
+| [07](plan-a-07.md) | Web surface | `products/polaris/site/` — Next.js App Router, Tailwind, shadcn/ui, libui routing, `/conditions/:id` + `/stories` routes | 05 |
+| [08](plan-a-08.md) | Deployment + smoke tests | Railway watch-path config per service, seven-criteria verification script (incl. local `fit-terrain build` regen + prose tables) | 01–07 |
 
 ## Libraries used
 
@@ -83,29 +91,42 @@ Libraries used: `@forwardimpact/libcli` (createCli, dispatch,
 freezeInvocationContext), `@forwardimpact/libui` (createBoundRouter, render,
 components, freezeInvocationContext), `@forwardimpact/libformat`
 (createHtmlFormatter, createTerminalFormatter), `@forwardimpact/libtemplate`
-(createTemplateLoader), `@forwardimpact/librepl` (Repl).
+(createTemplateLoader), `@forwardimpact/librepl` (Repl). Build-time only:
+`@forwardimpact/libterrain` (`fit-terrain build --output-root`) and
+`@forwardimpact/map` (schema resolution) — invoked by `setup.sh` and the
+`build-seed` script, never imported by a surface.
 
 ## Risks
 
-- **Spec 1150 not implemented before this plan starts.** Resolved — 1150
-  is implemented and live-verified (see Prerequisites). r1's residual
-  assumption that 1150's artifacts would be *committed* to monorepo
-  `main` was never true (terrain output is generated, never committed —
-  `products/polaris/` is gitignored); part 03 (r2) therefore vendors
-  regenerated artifacts instead of fetching committed ones. Part 03
-  step 1 regenerates and verifies the artifact list before vendoring.
-- **libterrain not invokable from external repos.** Re-confirmed at
-  revision time (the mechanism changed since r1, the conclusion holds):
-  `libraries/libterrain/bin/fit-terrain.js:199` now resolves
-  `monorepoRoot` via `runtime.finder.findProjectRoot()` (upward
-  `package.json` search from CWD), so in bionova-apps it would resolve
-  bionova-apps' own root — which has no `data/synthetic/story.dsl` and
-  no `products/map/schema/json` (line 200; the schema dir is absent
-  from libterrain's published `files` field). Conclusion unchanged:
-  bionova-apps cannot run terrain; it consumes terrain output produced
-  inside the monorepo. SC6 (regenerable) is satisfied by regenerating
-  in the monorepo at the provenance SHA and byte-diffing against the
-  vendored copies — see part 03 (r2) and spec SC6 as corrected.
+- **Prerequisites A and B are not yet specced or published.** This is the
+  gating risk. r3 deliberately depends on `fit-terrain` running externally
+  (A) and emitting prose tables (B); neither exists today. If either slips,
+  this plan cannot start past part 01. Mitigation: the two prerequisites are
+  small, well-scoped library changes (design § Prerequisite library changes
+  lists the exact files and line ranges). They must be specced, implemented,
+  and published as an `@forwardimpact/libterrain` (+`libsyntheticrender`,
+  `libsyntheticgen`, `map`) release train before `kata-implement` is routed
+  here. Part 03 pins the exact npm versions that carry them. **Fallback:** if
+  A/B cannot ship, revert to r2's vendor-the-rendered-SQL pipeline (preserved
+  in git history) — the app loses local regeneration and the prose surfaces,
+  but still boots. That fallback is a different spec revision, not a silent
+  degrade.
+- **`fit-terrain build` deleting `products/polaris/`.** Without
+  `--output-root`, the write sink `rm -rf`s the first two path segments of
+  each output path (`sinks.js` `writeFiles` ~262–285), i.e. `products/polaris`
+  — the app's own code. Part 03 always passes
+  `--output-root data/synthetic/.build` and stages from there; the
+  `build-seed.sh` script refuses to run if the output root resolves to the
+  repo root. SC7 (regenerable) is satisfied by running the build in
+  bionova-apps against the vendored DSL and byte-diffing against `SHA256SUMS`;
+  the monorepo at the provenance SHA reproduces the same bytes.
+- **Prose tables are silently dropped if prerequisite B is missing at
+  build time.** `render-sql.js` ignores unknown entities in the output
+  block's `entities[]` (no error). If part 03 runs against a `libterrain`
+  that predates B, the six prose tables simply will not appear and parts
+  05/07 prose surfaces will 404 on empty tables. Part 03 step 1 asserts the
+  prose tables are present in the build output before proceeding, and part 08
+  smoke-tests row counts, so the gap fails loudly rather than shipping blank.
 - **Schema type mismatch: `trials.id` is `text` not `uuid`.** Confirmed
   at `libraries/libsyntheticrender/src/render/render-sql.js:32-33` (the
   trials entity spec) which is rendered by `renderEntityTable` (same

@@ -62,7 +62,8 @@ polaris-functions`.
 Created: `services/polaris-functions/embed-seed/mod.ts`
 
 Behavior: reads JSONL from a path on disk (default
-`/data/synthetic/seed/seed_embeddings.jsonl`); for each row whose `table`
+`/data/synthetic/seed_embeddings.jsonl`, written by `build-seed.sh` and
+mounted per plan-a-03 step 8); for each row whose `table`
 is `"conditions"`, POSTs the prose text to TEI (`POST ${TEI_URL}/embed`),
 receives a 384-dim vector, and upserts into
 `condition_embeddings(condition_id, embedding)` via PostgREST.
@@ -70,7 +71,7 @@ receives a 384-dim vector, and upserts into
 Request shape:
 
 ```ts
-type EmbedSeedRequest = { source?: string };  // defaults to /data/synthetic/seed/seed_embeddings.jsonl
+type EmbedSeedRequest = { source?: string };  // defaults to /data/synthetic/seed_embeddings.jsonl
 type EmbedSeedResponse = { seeded: number; skipped: number };
 ```
 
@@ -241,14 +242,23 @@ Verify: `UPDATE trials SET status='completed' WHERE id=<some_id>;` logs a
 
 Created: `services/polaris-functions/sync-listings/mod.ts`
 
-Behavior: re-reads `data/synthetic/seed/seed_*.sql` (mounted read-only at
-`/data/synthetic/seed/` per plan-a-03 step 6 — same volume the
-`embed-seed` function already uses), parses out `INSERT` statements for
-`trials` and `criteria` tables, upserts via PostgREST. Used to refresh
-seed data without re-running full `setup.sh`. The path is deliberate:
-the only mount the `polaris-functions` container has on
-`data/synthetic/` is `:seed`, so `sync-listings` reads the seed vendored
-there by part 03 (r2) — no second bind-mount needed.
+Behavior: re-reads the staged trial/criteria migrations from the rendered
+seed, parses out `INSERT` statements for `trials` and `criteria` tables,
+and upserts via PostgREST. Used to refresh seed data without re-running
+full `setup.sh`. In r3 there is no committed `data/synthetic/seed/*.sql` —
+the SQL is rendered by `build-seed.sh` into the staged migrations
+directory. Mount that directory read-only into the `polaris-functions`
+container (add to the `volumes` block edited in plan-a-03 step 8):
+
+```yaml
+  - ./products/polaris/site/supabase/migrations:/data/migrations:ro
+```
+
+`sync-listings` reads `/data/migrations/20250101*_seed_004_trials.sql` and
+`*_seed_005_criteria.sql`. The directory is populated by `build-seed.sh`
+before `docker compose up`, so the mount is non-empty at function-invoke
+time. To refresh after a DSL re-vendor, run `build-seed.sh` then invoke
+`sync-listings`.
 
 Request:
 

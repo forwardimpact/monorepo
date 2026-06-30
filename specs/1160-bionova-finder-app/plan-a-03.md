@@ -1,142 +1,170 @@
-# Plan 1160-a-03 — Vendored seed data from monorepo terrain output
+# Plan 1160-a-03 — Vendor story.dsl verbatim and render seed locally
 
-Wire bionova-apps's data pipeline. **Revision r2** (fetch→vendor mechanism
-swap): r1 assumed terrain output was committed to monorepo `main` and had
-bionova-apps fetch it from `raw.githubusercontent.com` at `setup.sh` time.
-That premise was false at approval — terrain output is generated, never
-committed (`products/polaris/` is gitignored at `.gitignore:12` since
-`8d3948aa`, and `git log --all --diff-filter=A` shows no seed artifact ever
-landed). Adaptation (a) accepted by PM triage on
-[Issue #1608](https://github.com/forwardimpact/monorepo/issues/1608):
-the implementer regenerates the artifacts inside the monorepo and **vendors
-them into bionova-apps with recorded provenance**. No `fit-terrain`
-invocation and no network fetch occurs in bionova-apps — at `setup.sh` time
-or any other time. Spec SC6's verify command is corrected in the same PR
-that carries this revision.
+Wire bionova-apps's data pipeline. **Revision r3** (vendor-output → vendor-DSL):
+r2 vendored the rendered `data/synthetic/seed/*.sql` because `fit-terrain` could
+not run outside the monorepo. r3 makes the app build around synthetic data: it
+vendors `data/synthetic/story.dsl` and `prose-cache.json` **verbatim** and runs
+`fit-terrain build` against them inside bionova-apps. The DSL is the domain
+source of truth; the SQL and embeddings JSONL are rendered locally and never
+committed.
 
-Steps 1–2 run in the monorepo; all other paths are inside `bionova-apps/`.
+This part depends on **prerequisites A and B** (plan-a.md § Prerequisites):
+`fit-terrain` must accept `--output-root` (A) and emit the six prose tables (B).
+Do not start this part until both are published to npm.
 
-## Step 1 — Generate the seed artifacts in the monorepo
+All paths are inside `bionova-apps/` unless a step says "in the monorepo".
 
-In a monorepo checkout at a recorded commit on `origin/main` (the
-**provenance SHA**), with the committed prose cache:
+## Step 1 — Vendor story.dsl + prose-cache verbatim, with provenance
 
-```sh
-cd <monorepo>
-PROVENANCE_SHA=$(git rev-parse HEAD)        # record for step 2
-rm -rf products/polaris/site/supabase/migrations/   # gitignored output dir — clear stale local builds
-bunx fit-terrain check                       # must report 0 misses (100% hit rate)
-bunx fit-terrain build                       # writes products/polaris/site/supabase/migrations/
-ls products/polaris/site/supabase/migrations/
-```
-
-`check` proves the build needs zero LLM calls (no API key path); `build`
-renders from the committed cache. `npx fit-terrain generate` at a full
-cache produces identical output and is the verb spec SC6 uses — but note
-it resolves an Anthropic credential at startup even when the cache is
-full (`bin/fit-terrain.js:141–145`), so `check` + `build` is the
-credential-free path.
-
-Expected output is exactly these 10 artifacts (authoritative list,
-live-verified 2026-06-11 against monorepo `6010964b`):
-
-```text
-seed_001_conditions.sql
-seed_002_sites.sql
-seed_003_researchers.sql
-seed_004_trials.sql
-seed_005_criteria.sql
-seed_006_trial_sites.sql
-seed_007_trial_conditions.sql
-seed_008_rls.sql
-seed_009_condition_embeddings.sql
-seed_embeddings.jsonl
-```
-
-r1 listed `seed_006_trial_conditions.sql` / `seed_007_trial_sites.sql` —
-the two were swapped relative to terrain's actual output; corrected here
-from live output. If terrain output filenames change upstream, this list
-updates in the same commit that re-vendors.
-
-Verify: `check` reports 0 misses; `build` exits 0; the directory listing
-matches the 10 filenames exactly.
-
-## Step 2 — Vendor the artifacts into bionova-apps with provenance
-
-Copy the 10 artifacts to `data/synthetic/seed/` in bionova-apps and write
-`data/synthetic/seed/PROVENANCE.md`:
+In a monorepo checkout at a recorded commit on `origin/main` (the **provenance
+SHA**), copy the two source files unchanged into bionova-apps and record where
+they came from:
 
 ```sh
-mkdir -p <bionova-apps>/data/synthetic/seed
-cp <monorepo>/products/polaris/site/supabase/migrations/seed_* <bionova-apps>/data/synthetic/seed/
-cd <bionova-apps>/data/synthetic/seed && sha256sum seed_* > SHA256SUMS
+PROVENANCE_SHA=$(cd <monorepo> && git rev-parse HEAD)
+mkdir -p <bionova-apps>/data/synthetic
+cp <monorepo>/data/synthetic/story.dsl       <bionova-apps>/data/synthetic/story.dsl
+cp <monorepo>/data/synthetic/prose-cache.json <bionova-apps>/data/synthetic/prose-cache.json
+cd <bionova-apps>/data/synthetic && sha256sum story.dsl prose-cache.json > SOURCE.sha256
 ```
 
-`PROVENANCE.md` content (one page):
+`story.dsl` is copied **byte-for-byte** — no path edits, even though its
+`polaris-seed` output block targets `products/polaris/site/supabase/migrations/`
+(the `--output-root` flag in step 3 redirects that safely). Editing the
+vendored DSL is out of scope (spec § Excluded); domain changes happen in the
+monorepo and are re-vendored.
+
+Write `data/synthetic/PROVENANCE.md` (one page):
 
 - Generating repo + SHA: `forwardimpact/monorepo` @ `$PROVENANCE_SHA`
-- Source: `data/synthetic/story.dsl` (`seed 42`) + committed
-  `prose-cache.json`
-- Command: `bunx fit-terrain check && bunx fit-terrain build` (equivalently
-  `npx fit-terrain generate` at full cache)
-- Output origin: `products/polaris/site/supabase/migrations/` (gitignored in
-  the monorepo — generated, never committed there)
-- SC6 verify procedure: regenerate in the monorepo at `$PROVENANCE_SHA`,
-  then `sha256sum -c SHA256SUMS` against the regenerated files (byte-diff);
-  then `supabase db push` of the staged migrations reproduces identical
-  data.
+- Vendored verbatim: `story.dsl` (`seed 42`) + `prose-cache.json`
+- Render command: `bunx fit-terrain build --story data/synthetic/story.dsl
+  --cache data/synthetic/prose-cache.json --output-root data/synthetic/.build`
+- libterrain version that produced the committed `SEED.sha256`: `<pinned>`
+- SC7 verify: run the render command here, then `sha256sum -c SEED.sha256`
+  against `data/synthetic/.build/.../migrations/`; running the same command in
+  the monorepo at `$PROVENANCE_SHA` reproduces identical bytes.
 
-All 12 files (10 artifacts + `PROVENANCE.md` + `SHA256SUMS`) are
-**committed** — they are the repo's seed source of truth.
+Verify: `sha256sum -c SOURCE.sha256` passes; `PROVENANCE.md` carries a real
+40-char SHA reachable on `forwardimpact/monorepo:main`; `story.dsl` is
+byte-identical to the monorepo's at `$PROVENANCE_SHA` (`diff` is empty).
 
-Verify: `sha256sum -c SHA256SUMS` passes in `data/synthetic/seed/`;
-`PROVENANCE.md` carries a real 40-char SHA reachable on
-`forwardimpact/monorepo:main`.
+## Step 2 — Pin the libterrain/map versions that carry prereqs A+B
 
-## Step 3 — Author `scripts/stage-seed.sh`
+Part 01 added `@forwardimpact/libterrain` and `@forwardimpact/map` as
+`devDependencies`. Pin the exact versions that include `--output-root` (A) and
+prose-to-SQL rendering (B):
 
-Created: `scripts/stage-seed.sh` — stages the vendored SQL into supabase
-migrations (replaces r1's `scripts/fetch-seed.sh`; no network, no env).
+```sh
+npm view @forwardimpact/libterrain version       # must be ≥ the A+B release
+npm view @forwardimpact/map version
+```
+
+Record the resolved versions in this part's PR body. If the A+B release is not
+yet on npm, **stop** — this part is blocked (plan-a.md § Prerequisites).
+
+Verify: `bun pm ls | grep -E 'libterrain|@forwardimpact/map'` shows the pinned
+versions; `bunx fit-terrain --help` lists `--output-root` and `--schema-dir`.
+
+## Step 3 — Author `scripts/build-seed.sh`
+
+Created: `scripts/build-seed.sh` — renders the vendored DSL into a disposable
+build dir and stages the SQL into supabase migrations. Replaces r2's
+`scripts/stage-seed.sh` (no vendored SQL to stage anymore).
 
 ```sh
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-SEED_DIR="$ROOT/data/synthetic/seed"
-MIG_DIR="$ROOT/products/polaris/site/supabase/migrations"
+SYN="$ROOT/data/synthetic"
+BUILD="$SYN/.build"                                   # gitignored, disposable
+OUT="$BUILD/products/polaris/site/supabase/migrations" # terrain writes here
+MIG="$ROOT/products/polaris/site/supabase/migrations"
 
-[ -s "$SEED_DIR/seed_001_conditions.sql" ] || { echo "FAIL: vendored seed missing at $SEED_DIR"; exit 1; }
-(cd "$SEED_DIR" && sha256sum -c SHA256SUMS >/dev/null) || { echo "FAIL: vendored seed does not match SHA256SUMS"; exit 1; }
+# Guard: never let terrain's rm -rf hit the repo root (would delete products/).
+case "$BUILD" in "$ROOT") echo "FATAL: output root is repo root"; exit 1;; esac
 
-# Stage SQL into supabase/migrations with 2025-prefixed timestamps so terrain
-# files sort before hand-written 20260601* files (FK to trials resolves).
-# Each file gets a DISTINCT version derived from its seed_NNN number —
-# supabase db push records versions in supabase_migrations.schema_migrations
-# (version-keyed), so same-version files would collide.
-mkdir -p "$MIG_DIR"
-find "$MIG_DIR" -maxdepth 1 -name "20250101000*_seed_*.sql" -delete
-for f in "$SEED_DIR"/seed_*.sql; do
-  base=$(basename "$f")                        # seed_001_conditions.sql
-  n="${base#seed_}"; n="${n%%_*}"              # 001
-  cp "$f" "$MIG_DIR/20250101000${n}_${base}"   # version 20250101000001 … 009
+# Verify the vendored sources are intact before rendering.
+(cd "$SYN" && sha256sum -c SOURCE.sha256 >/dev/null) \
+  || { echo "FAIL: vendored story.dsl/prose-cache do not match SOURCE.sha256"; exit 1; }
+
+rm -rf "$BUILD"; mkdir -p "$BUILD"
+# Credential-free: build renders from the committed cache, zero LLM calls.
+bunx fit-terrain build \
+  --story "$SYN/story.dsl" \
+  --cache "$SYN/prose-cache.json" \
+  --output-root "$BUILD"
+
+# Assert the prose tables rendered (prerequisite B); fail loudly if dropped.
+for t in condition_explainers trial_faqs consent_summaries \
+         site_descriptions patient_stories therapy_descriptions; do
+  ls "$OUT"/seed_*_"$t".sql >/dev/null 2>&1 \
+    || { echo "FAIL: prose table $t missing — prerequisite B not in libterrain"; exit 1; }
 done
-echo "Staged $(ls "$MIG_DIR"/20250101000*_seed_*.sql | wc -l) seed migrations"
+
+# Stage SQL into supabase/migrations with 2025-prefixed, per-file-distinct
+# versions so terrain files sort before hand-written 20260601* files (FK to
+# trials resolves) and each records a unique version in schema_migrations.
+mkdir -p "$MIG"
+find "$MIG" -maxdepth 1 -name "20250101*_seed_*.sql" -delete
+i=0
+for f in "$OUT"/seed_*.sql; do
+  i=$((i+1)); printf -v n '%04d' "$i"
+  cp "$f" "$MIG/20250101${n}_$(basename "$f")"
+done
+cp "$OUT/seed_embeddings.jsonl" "$SYN/seed_embeddings.jsonl"   # for embed-seed mount
+echo "Staged $i seed migrations + embeddings"
 ```
 
-Make executable: `chmod +x scripts/stage-seed.sh`.
+Make executable: `chmod +x scripts/build-seed.sh`.
 
-Verify: `bash scripts/stage-seed.sh` exits 0 and stages 9 files matching
-`products/polaris/site/supabase/migrations/20250101000*_seed_*.sql`.
+Verify: `bash scripts/build-seed.sh` exits 0; stages ≥ 15 files matching
+`products/polaris/site/supabase/migrations/20250101*_seed_*.sql` (9 core + 6
+prose); writes `data/synthetic/seed_embeddings.jsonl`.
 
-## Step 4 — Wire staging into `setup.sh`
+## Step 4 — Record the determinism anchor `SEED.sha256`
+
+After the first clean `build-seed.sh` run, capture checksums of the rendered
+SQL + JSONL as the regeneration anchor (this is committed; the `.build/`
+output itself is not):
+
+```sh
+cd data/synthetic/.build/products/polaris/site/supabase/migrations
+sha256sum seed_*.sql seed_embeddings.jsonl > "$ROOT/data/synthetic/SEED.sha256"
+```
+
+`build-seed.sh` regenerates from the vendored DSL; `SEED.sha256` proves the
+render is deterministic. SC7's verify is `build-seed.sh && (cd .build/.../migrations && sha256sum -c <repo>/data/synthetic/SEED.sha256)`.
+
+Verify: `SEED.sha256` lists 15+ files; a second `build-seed.sh` run produces
+output that passes `sha256sum -c data/synthetic/SEED.sha256`.
+
+## Step 5 — Gitignore the build dir; commit the sources
+
+Add to `.gitignore`:
+
+```gitignore
+data/synthetic/.build/
+data/synthetic/seed_embeddings.jsonl
+products/polaris/site/supabase/migrations/20250101*_seed_*.sql
+```
+
+Committed seed source of truth: `data/synthetic/story.dsl`,
+`prose-cache.json`, `SOURCE.sha256`, `SEED.sha256`, `PROVENANCE.md`,
+`README.md`. The rendered SQL/JSONL are regenerated, never committed.
+
+Verify: `git status` shows the six committed files staged and no `.build/` or
+staged-seed artifacts tracked.
+
+## Step 6 — Wire the build into `setup.sh`
 
 Edit `setup.sh` from part 01; replace the placeholder Step B with:
 
 ```sh
-# Step B0 — stage vendored seed into supabase migrations
-echo "Staging vendored seed data…"
-"$ROOT/scripts/stage-seed.sh"
+# Step B0 — render + stage seed from the vendored DSL
+echo "Building seed from data/synthetic/story.dsl…"
+"$ROOT/scripts/build-seed.sh"
 
 # Step B — apply migrations via supabase db push
 echo "Running supabase db push…"
@@ -145,118 +173,124 @@ npx -y supabase@1.219.2 db push --db-url "postgres://postgres:${POSTGRES_PASSWOR
 cd "$ROOT"
 ```
 
-No `MONOREPO_SHA` runtime variable exists in r2 — the provenance SHA is
-documentation in `PROVENANCE.md`, not a setup-time input. r1's `.env`
-plumbing for it is dropped.
+Verify: after `docker compose up -d` and `./setup.sh`, `psql -c "\dt"` lists
+all 15 tables (conditions, sites, researchers, trials, criteria,
+trial_conditions, trial_sites, condition_embeddings, the six prose tables,
+interest_signals).
 
-Verify: after `docker compose up -d` and `./setup.sh`, `psql -c "\dt"`
-lists all 9 tables (conditions, sites, researchers, trials, criteria,
-trial_conditions, trial_sites, condition_embeddings, interest_signals).
+## Step 7 — Wire `embed-seed` invocation
 
-## Step 5 — Wire `embed-seed` invocation
-
-Add Step C (embeddings seeding) to `setup.sh`:
+Add Step C (embeddings seeding) to `setup.sh`. The JSONL now lives at
+`data/synthetic/seed_embeddings.jsonl` (written by `build-seed.sh`), mounted
+into the polaris-functions container (step 8):
 
 ```sh
 # Step C — populate condition_embeddings via embed-seed edge function.
-# The JSONL is mounted at /data/synthetic/seed/seed_embeddings.jsonl
-# inside the polaris-functions container (volume added in step 6 below).
 echo "Seeding embeddings via embed-seed edge function…"
 curl --fail -sS -X POST "http://localhost:8000/functions/v1/embed-seed" \
   -H "apikey: ${SERVICE_ROLE_KEY}" \
   -H "Authorization: Bearer ${SERVICE_ROLE_KEY}" \
   -H "Content-Type: application/json" \
-  --data '{"source":"/data/synthetic/seed/seed_embeddings.jsonl"}'
+  --data '{"source":"/data/synthetic/seed_embeddings.jsonl"}'
 ```
 
-## Step 6 — Mount seed dir into edge-functions container
+## Step 8 — Mount the embeddings JSONL into the edge-functions container
 
-Edit `docker-compose.yml` `polaris-functions` block (from part 01) to add:
+Edit `docker-compose.yml` `polaris-functions` block (from part 01):
 
 ```yaml
 volumes:
-  - ./data/synthetic/seed:/data/synthetic/seed:ro
+  - ./data/synthetic/seed_embeddings.jsonl:/data/synthetic/seed_embeddings.jsonl:ro
 ```
 
-The mount now serves committed files — present on every fresh clone, so
-r1's `mkdir -p` guard in `setup.sh` Step A is unnecessary and dropped.
+The JSONL is produced by `build-seed.sh` before `docker compose` needs it
+(setup ordering: build-seed → up → embed-seed). If a fresh clone has not run
+build-seed yet, `setup.sh` runs it as Step B0 before the embed-seed POST.
 
-Verify: `docker compose exec polaris-functions ls /data/synthetic/seed/`
-lists the vendored files.
+Verify: `docker compose exec polaris-functions ls /data/synthetic/` lists
+`seed_embeddings.jsonl`.
 
-## Step 7 — Add `data/synthetic/seed/README.md`
+## Step 9 — Add `data/synthetic/README.md`
 
-Created: `data/synthetic/seed/README.md`
+Created: `data/synthetic/README.md`. Key points:
 
-Content: one-page describing the vendored approach. Key points:
-
-- bionova-apps does NOT run `fit-terrain` and does NOT fetch at setup
-  time; the seed is vendored, committed, and staged locally by
-  `scripts/stage-seed.sh`
-- To refresh: regenerate in a monorepo checkout (PROVENANCE.md § Command),
-  copy the artifacts here, regenerate `SHA256SUMS`, update the provenance
-  SHA, and commit — one PR, reviewable as a diff
-- To audit what's in the seed: `cat data/synthetic/seed/seed_*.sql`
-- Source of the data: `forwardimpact/monorepo/data/synthetic/story.dsl`
-  at the SHA recorded in `PROVENANCE.md`
+- This directory is the app's domain source of truth. `story.dsl` is vendored
+  verbatim from `forwardimpact/monorepo` at the SHA in `PROVENANCE.md`.
+- bionova-apps renders the seed locally with `fit-terrain build` (no LLM key —
+  the prose cache is committed). The rendered SQL/JSONL are gitignored.
+- To audit what the app contains: read `story.dsl` (not SQL dumps).
+- To refresh the domain: change the DSL in the monorepo, regenerate the prose
+  cache there, re-vendor `story.dsl` + `prose-cache.json` here, rerun
+  `build-seed.sh`, refresh `SEED.sha256`, bump the provenance SHA, commit.
+- To regenerate locally: `bash scripts/build-seed.sh`.
 
 Verify: file present; renders cleanly on GitHub.
 
-## Step 8 — Add CI step that proves staging works
+## Step 10 — Add CI step that proves the local build is deterministic
 
 Edit `.github/workflows/ci.yml` (from part 01):
 
 ```yaml
-  seed-stage:
+  seed-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
-      - run: bash scripts/stage-seed.sh
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bash scripts/build-seed.sh
       - run: |
-          test "$(ls products/polaris/site/supabase/migrations/20250101000*_seed_*.sql | wc -l)" -eq 9
-          test -s data/synthetic/seed/seed_embeddings.jsonl
-          test "$(wc -l < data/synthetic/seed/seed_embeddings.jsonl)" -ge 6
-          grep -Eq '[0-9a-f]{40}' data/synthetic/seed/PROVENANCE.md
+          MIG=products/polaris/site/supabase/migrations
+          test "$(ls $MIG/20250101*_seed_*.sql | wc -l)" -ge 15
+          (cd data/synthetic/.build/products/polaris/site/supabase/migrations \
+            && sha256sum -c "$GITHUB_WORKSPACE/data/synthetic/SEED.sha256")
+          test -s data/synthetic/seed_embeddings.jsonl
+          grep -Eq '[0-9a-f]{40}' data/synthetic/PROVENANCE.md
 ```
 
-No network access needed — the job validates checksum integrity (inside
-`stage-seed.sh`), staging count, embeddings presence, and that provenance
-pins a real SHA.
+The job needs npm (libterrain) but **no LLM credential** — `build` renders from
+the committed cache. The `sha256sum -c` against `SEED.sha256` is the SC7
+determinism gate: a non-deterministic render or a libterrain version drift
+fails here.
 
-Verify: PR CI runs `seed-stage` job; passes on the vendored layout.
+Verify: PR CI runs `seed-build`; passes on the vendored-DSL layout.
 
-## Step 9 — Open part-03 PR
+## Step 11 — Open part-03 PR
 
 ```sh
-git checkout -b data/vendored-seed
-git add scripts/stage-seed.sh setup.sh docker-compose.yml data/synthetic/ .github/workflows/ci.yml
-git commit -m "data: vendor terrain seed with provenance; stage locally at setup"
-git push -u origin data/vendored-seed
-gh pr create --title "data: vendor terrain seed with provenance" --body "Implements plan-a-03 (r2) of spec 1160. bionova-apps does not run fit-terrain (no story.dsl or schema dir outside the monorepo) and does not fetch at setup time (terrain output is generated, never committed, in the monorepo — products/polaris/ is gitignored). The seed is vendored from monorepo@<PROVENANCE_SHA> with sha256 provenance; scripts/stage-seed.sh stages it into supabase migrations. Deviation from r1 recorded per kata-implement § Handling Problems; PM acceptance and SC6 correction: forwardimpact/monorepo#1608."
+git checkout -b data/vendored-dsl
+git add scripts/build-seed.sh setup.sh docker-compose.yml data/synthetic/ \
+        .github/workflows/ci.yml .gitignore package.json
+git commit -m "data: vendor story.dsl verbatim; render seed locally with fit-terrain"
+git push -u origin data/vendored-dsl
+gh pr create --title "data: vendor story.dsl verbatim; render seed locally" \
+  --body "Implements plan-a-03 (r3) of spec 1160. bionova-apps vendors data/synthetic/story.dsl + prose-cache.json verbatim from monorepo@<PROVENANCE_SHA> and runs fit-terrain build --output-root to render the seed locally (no LLM key; prose cache committed). Requires libterrain prereqs A (--output-root) and B (prose→SQL), pinned at <versions>. SEED.sha256 is the determinism anchor (SC7). Supersedes r2's vendor-the-SQL approach."
 ```
 
-Verify: PR CI green (lint + seed-stage jobs).
+Verify: PR CI green (lint + seed-build jobs).
 
 ## Verification (end of part 03)
 
-- [ ] `data/synthetic/seed/` carries the 10 vendored artifacts + `PROVENANCE.md`
-      + `SHA256SUMS`, all committed; `sha256sum -c SHA256SUMS` passes.
-- [ ] `PROVENANCE.md` pins a real 40-char SHA on `forwardimpact/monorepo:main`;
-      regenerating there per its § Command reproduces the artifacts
-      byte-identical (spec SC6 as corrected).
-- [ ] `scripts/stage-seed.sh` stages 9 SQL files into
-      `products/polaris/site/supabase/migrations/20250101000*_seed_*.sql` with
-      checksum verification, no network.
-- [ ] `./setup.sh` against a fresh stack: stages seed, applies via
+- [ ] `data/synthetic/` carries `story.dsl` + `prose-cache.json` vendored
+      verbatim (byte-identical to monorepo@`$PROVENANCE_SHA`), plus
+      `SOURCE.sha256`, `SEED.sha256`, `PROVENANCE.md`, `README.md`, all committed.
+- [ ] `PROVENANCE.md` pins a real 40-char SHA on `forwardimpact/monorepo:main`
+      and the libterrain version used.
+- [ ] `bunx fit-terrain --help` shows `--output-root` (prereq A present).
+- [ ] `scripts/build-seed.sh` renders into `data/synthetic/.build/`, asserts the
+      six prose tables, stages ≥ 15 SQL files, and refuses to run if the output
+      root is the repo root.
+- [ ] A repeat `build-seed.sh` run passes `sha256sum -c data/synthetic/SEED.sha256`
+      (SC7 determinism).
+- [ ] `./setup.sh` against a fresh stack: renders seed, applies via
       `supabase db push`, seeds embeddings via `embed-seed`.
-- [ ] `psql -c "SELECT COUNT(*) FROM trials;"` returns ≥ 6 (story.dsl trial
-      count).
+- [ ] `psql -c "SELECT COUNT(*) FROM trials;"` returns ≥ 6.
+- [ ] `psql -c "SELECT COUNT(*) FROM trial_faqs;"` and the other five prose
+      tables each return ≥ 1.
 - [ ] `psql -c "SELECT COUNT(*) FROM condition_embeddings;"` returns ≥ 6 (after
       embed-seed runs).
 - [ ] `psql -c "SELECT indexrelid::regclass FROM pg_index WHERE indrelid = 'condition_embeddings'::regclass AND indisunique;"`
       includes `condition_embeddings_condition_id_uidx` (from part 02).
-- [ ] `cd products/polaris/site && npx -y supabase@1.219.2 test db` exits 0 (the
-      part-02 RLS test asserts against the now-applied schema).
+- [ ] `cd products/polaris/site && npx -y supabase@1.219.2 test db` exits 0.
 
 — Staff Engineer 🛠️

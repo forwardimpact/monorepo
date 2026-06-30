@@ -102,6 +102,12 @@ export function createBionovaCli({ data }) {
         handler: async (ctx) => renderOrJson("show-trial")(await handlers.showTrial(ctx), ctx),
       },
       {
+        name: "condition",
+        description: "Show a condition and its plain-language explainer.",
+        args: ["id"],
+        handler: async (ctx) => renderOrJson("show-condition")(await handlers.showCondition(ctx), ctx),
+      },
+      {
         name: "eligibility",
         description: "Run the eligibility screener for a trial.",
         args: ["id"],
@@ -117,6 +123,12 @@ export function createBionovaCli({ data }) {
         description: "List enrollment sites.",
         options: { specialty: { type: "string" } },
         handler: async (ctx) => renderOrJson("list-sites")(await handlers.listSites(ctx), ctx),
+      },
+      {
+        name: "stories",
+        description: "List patient stories, optionally by condition.",
+        options: { condition: { type: "string" } },
+        handler: async (ctx) => renderOrJson("list-stories")(await handlers.listStories(ctx), ctx),
       },
       {
         name: "about",
@@ -147,7 +159,7 @@ export function createBionovaCli({ data }) {
 }
 ```
 
-Verify: `bunx bionova-polaris --help` lists all 7 commands;
+Verify: `bunx bionova-polaris --help` lists all 9 commands;
 `bunx bionova-polaris search --help` shows the four options.
 
 ## Step 3 — Author bin entry
@@ -245,9 +257,17 @@ export async function startRepl(ctx) {
           return out(formatTrialDetail(await handlers.showTrial({ ...ctx, args: { id } })));
         },
       },
+      condition: {
+        usage: "/condition <id> — show a condition and its explainer",
+        handler: async (args) => out(formatCondition(await handlers.showCondition({ ...ctx, args: { id: args[0] ?? "" } }))),
+      },
       sites: {
         usage: "/sites [--specialty=<name>] — list enrollment sites",
         handler: async (args) => out(formatSites(await handlers.listSites({ ...ctx, options: parseKvArgs(args) }))),
+      },
+      stories: {
+        usage: "/stories [--condition=<id>] — list patient stories",
+        handler: async (args) => out(formatStories(await handlers.listStories({ ...ctx, options: parseKvArgs(args) }))),
       },
     },
   });
@@ -264,7 +284,9 @@ function parseKvArgs(args) {
 }
 function formatTrials(trials) { /* ANSI table */ }
 function formatTrialDetail(detail) { /* ANSI formatted block */ }
+function formatCondition(detail) { /* ANSI block: condition + explainer */ }
 function formatSites(sites) { /* ANSI table */ }
+function formatStories(result) { /* ANSI list of patient stories */ }
 ```
 
 REPL session usage (note the leading slash):
@@ -339,10 +361,13 @@ documented in PR description.
 
 ## Verification (end of part 06)
 
-- [ ] `bunx bionova-polaris --help` lists all 7 commands.
+- [ ] `bunx bionova-polaris --help` lists all 9 commands.
 - [ ] `bionova-polaris search --condition=diabetes` returns trials matching
       diabetes (success criterion #4 partial — matches web search result; full
       match deferred to part 08).
+- [ ] `bionova-polaris condition <id>` shows the condition and its explainer;
+      `bionova-polaris stories --condition=<id>` lists that condition's patient
+      stories.
 - [ ] `bionova-polaris repl` opens librepl-based session. Typing
       `/search --condition=diabetes` then `/trial 0` shows trial detail. (Bare
       `search` without slash prefix triggers `/help` per librepl convention.)

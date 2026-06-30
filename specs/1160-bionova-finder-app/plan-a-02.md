@@ -126,7 +126,7 @@ CREATE POLICY interest_signals_anon_insert ON interest_signals FOR INSERT WITH C
 CREATE POLICY interest_signals_staff_read ON interest_signals FOR SELECT USING (auth.jwt() ->> 'role' = 'staff');
 
 -- Service role bypass (Edge Functions): grant unrestricted on every product table
-GRANT ALL ON conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, interest_signals TO service_role;
+GRANT ALL ON conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, condition_explainers, trial_faqs, consent_summaries, site_descriptions, patient_stories, therapy_descriptions, interest_signals TO service_role;
 ```
 
 Note: `render-sql.js` in libsyntheticrender may already emit
@@ -144,9 +144,15 @@ VALUES (…)` succeeds as anon.
 `libsyntheticrender/src/render/render-sql.js` always emits one
 `CREATE POLICY public_read ON <table> FOR SELECT USING (true)` per
 clinical table (verified by reading the source at plan-write time).
-That means terrain's output will contain `public_read` policies for
+That means terrain's output will contain `public_read` policies (and
+`ALTER TABLE … ENABLE ROW LEVEL SECURITY`) for every table it emits:
 `conditions`, `sites`, `researchers`, `trials`, `criteria`, junction
-tables, and `condition_embeddings`.
+tables, `condition_embeddings`, and the six prose tables
+(`condition_explainers`, `trial_faqs`, `consent_summaries`,
+`site_descriptions`, `patient_stories`, `therapy_descriptions`). The prose
+tables are read-only to the public, so terrain's `public_read` is the only
+policy they need — this migration adds nothing for them beyond the
+`service_role` GRANT above.
 
 To avoid policy-name collision with the plan-02 migration:
 
@@ -174,7 +180,7 @@ CREATE POLICY interest_signals_anon_insert ON interest_signals FOR INSERT WITH C
 CREATE POLICY interest_signals_staff_read ON interest_signals FOR SELECT USING (auth.jwt() ->> 'role' = 'staff');
 
 -- Service role bypass for Edge Functions
-GRANT ALL ON conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, interest_signals TO service_role;
+GRANT ALL ON conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, condition_explainers, trial_faqs, consent_summaries, site_descriptions, patient_stories, therapy_descriptions, interest_signals TO service_role;
 ```
 
 If render-sql.js's behavior changes (e.g., 1140's follow-up alters which
