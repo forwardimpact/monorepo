@@ -92,9 +92,9 @@ never one that only resolves on a contributor's pre-provisioned machine.
 Verify the wired check the way CI runs it, from a clean dependency resolution. A
 `coaligned` already on your `PATH` masks an invocation that cannot resolve on a
 fresh runner — so confirm the repository's check command passes on a clean
-checkout, not just in your shell. A clean run means the layers fit their caps and
-the jobs validate; fix any finding before committing, routing by subcommand the
-same way [coaligned-audit](../coaligned-audit/SKILL.md) does.
+checkout, not just in your shell. A clean run means the layers fit their caps
+and the jobs validate; fix any finding before committing, routing by subcommand
+the same way [coaligned-audit](../coaligned-audit/SKILL.md) does.
 
 ## Done When
 
