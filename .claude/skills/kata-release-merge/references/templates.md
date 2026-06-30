@@ -3,7 +3,7 @@
 Comment templates and report formats for the merge gate.
 
 Each template is a `comment` on a change or issue
-([work-trackers.md](../../../agents/references/work-trackers.md)); fill the body
+([work-trackers.md](../../../agents/x-work-trackers.md)); fill the body
 shown and post it.
 
 ## Skip Comments
@@ -37,7 +37,7 @@ Comment with the specific failing checks from the change's CI `read`.
 
 `comment` on the **coordinating issue** (not the change) when Step 8 finds no
 comment naming the PR
-([work-trackers.md](../../../agents/references/work-trackers.md)). Adapt the
+([work-trackers.md](../../../agents/x-work-trackers.md)). Adapt the
 verb to the PR's state at gate time:
 
 > Release merge (announcement backstop): PR #<pr-number> — `<title>` — is in
@@ -52,7 +52,7 @@ silence window has expired. Post the one template below, filling `<state>`,
 `<owner>`, and `<next-action>` from the row matching the PR's block reason —
 already computed in this run's Steps 2–8; the Re-ping Rule does not re-run the
 gates. Post it as a `comment` on the change
-([work-trackers.md](../../../agents/references/work-trackers.md)):
+([work-trackers.md](../../../agents/x-work-trackers.md)):
 
 > Release merge Re-ping Rule — gate still open after 3 calendar days:
 >
@@ -72,7 +72,7 @@ gates. Post it as a `comment` on the change
 ## Merge Comment
 
 `comment` then `merge-change`
-([work-trackers.md](../../../agents/references/work-trackers.md)):
+([work-trackers.md](../../../agents/x-work-trackers.md)):
 
 > Release merge: all gates pass — type `<type>`, CI green, author trusted,
 > STATUS row `<phase>\tapproved`. Merging.

@@ -71,14 +71,14 @@ Each run covers **one topic** in depth.
 ### Step 0: Read Memory
 
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
 The boot digest's `owned_priorities`, `claims`, and (when this skill reads
 Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find
 last review dates per topic in the coverage map.
 
 > **Writing under `.claude/`:** If this run edits files under `.claude/skills/`,
 > follow
-> [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/self-improvement.md).
+> [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-self-improvement.md).
 
 ### Topic selection
 
@@ -150,7 +150,7 @@ scope: `<sh>+<text>` pairs only, staleness-class-3 stays local-to-topic.
 
 Every review must produce both categories when applicable. Classify each finding
 with
-[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests)
+[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests)
 (mechanical fix vs structural spec). Branch naming, commit conventions, and
 independence rules are defined in the agent profile.
 
@@ -161,9 +161,9 @@ Verbs: `add` for new pages, `update` for changes, `fix` for corrections.
 ### Publishing changes
 
 Commits are not visible until pushed. After committing on a branch,
-`open-change` ([work-trackers.md](../../agents/references/work-trackers.md))
+`open-change` ([work-trackers.md](../../agents/x-work-trackers.md))
 with the title and body, holding the PR body to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md).
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md).
 
 Each branch gets its own PR. Fix and spec branches are independent — push and PR
 each one separately. Wiki changes follow the wiki curation skill's publishing
@@ -188,7 +188,7 @@ Append to the current week's log (see agent profile for the file path):
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md)):
 
 - **PR comment** — Doc-impact callouts on code PRs that change behaviour
   documented in `websites/`.
@@ -196,4 +196,4 @@ This skill produces these non-wiki outputs (per
   than a writing task.
 
 If an inbound PR comment addressed to this agent is ambiguous, follow
-[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md#inbound-unclear-addressed-comments).

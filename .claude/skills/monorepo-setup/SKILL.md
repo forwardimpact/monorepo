@@ -56,7 +56,8 @@ apm install forwardimpact/coaligned-skills forwardimpact/kata-skills --target cl
 Both sub-skills assume their packs sit in `.claude/skills/`. APM integrates
 skills only — confirm the kata **agent profiles** also landed in
 `.claude/agents/`. If missing, copy them from the kata-skills repo
-(`agents/*.agent.md` → `.claude/agents/<name>.md`, with `agents/references/`).
+(`agents/*.agent.md` → `.claude/agents/<name>.md`, with the flat
+`agents/x-*.md` reference files).
 
 ### Step 4 — Run coaligned-setup, then kata-setup
 

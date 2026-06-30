@@ -80,14 +80,14 @@ declares.
 ### Step 0: Read Memory
 
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
 The boot digest's `owned_priorities`, `claims`, and (when this skill reads
 Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find
 last audit dates per topic in the coverage map. Canonical topic-rotation runs
 (audit topics under § Audit Areas) write only to the wiki and never open a PR —
 do **not** `fit-wiki claim` for them; the claim contract applies only when this
 skill is invoked from `kata-security-update` or otherwise opens a PR (see
-[memory-protocol § Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#claims)).
+[memory-protocol § Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#claims)).
 
 ### Step 1: Select Topic
 
@@ -130,7 +130,7 @@ paths and line numbers.
 
 Every audit must produce all applicable categories of output. Classify each
 finding with
-[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests)
+[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests)
 (mechanical fix vs structural spec vs unsettled Discussion). Security-specific:
 a cross-team policy question goes to a Discussion **before** any spec or fix
 that depends on the answer.
@@ -156,11 +156,11 @@ Append to the current week's log (see agent profile for the file path):
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md)):
 
 - **Discussion** — Policy questions surfaced from audit (e.g. "should we relax
   SHA-pinning for `actions/*`?") that need cross-team input before a spec.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md):
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md):
 every cited SHA must resolve on its referenced repo, or the body is not
 published.

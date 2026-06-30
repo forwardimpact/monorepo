@@ -49,14 +49,14 @@ artifacts is in `references/trace-discovery.md`.
 
 The mechanical-vs-structural-vs-unsettled-vs-out-of-scope tests are defined once
 in
-[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#classification-tests);
+[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests);
 this table maps those work-types to the triage-specific action and labels.
 Product alignment (the **Product-aligned** row) is this skill's own criterion —
 see § Product Vision Alignment below.
 
 Triage also assigns each issue's product-vs-internal value from the shared
 rubric in
-[work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/work-definition.md#product-aligned-vs-internal),
+[work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#product-aligned-vs-internal),
 and the resulting spec or fix carries the matching `product` / `internal`
 label. The § Product Vision Alignment judgement decides whether an issue is in
 scope; the axis value itself comes from the rubric, not a private definition.
@@ -65,7 +65,7 @@ scope; the axis value itself comes from the rubric, not a private definition.
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | **Mechanical fix/bug**   | Fix PR (direct git ops, no spec)                                                                                    |
 | **Product-aligned**      | Write spec via the `kata-spec` skill                                                                                |
-| **Cross-product policy** | Open Discussion (per [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)); label `triaged` |
+| **Cross-product policy** | Open Discussion (per [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md)); label `triaged` |
 | **Out of scope**         | Comment + label `triaged`/`wontfix`                                                                                 |
 
 ## Product Vision Alignment
@@ -80,7 +80,7 @@ project's products should fulfil for its personas.
 ### Step 0: Read Memory
 
 Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)).
+[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
 The boot digest's `owned_priorities`, `claims`, and (when this skill reads
 Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
 Extract issues previously processed and recurring themes from prior entries.
@@ -89,14 +89,14 @@ Extract issues previously processed and recurring themes from prior entries.
 
 `list` open issues (cap ~50), excluding `experiment` and `obstacle` labels,
 reading number, title, body, author, labels, and timestamps
-([work-trackers.md](../../agents/references/work-trackers.md)).
+([work-trackers.md](../../agents/x-work-trackers.md)).
 
 Skip issues with `triaged` or `wontfix` labels.
 
 ### Step 2: Read and Classify Each Issue
 
 `read` the issue's title, body, comments, labels, and author
-([work-trackers.md](../../agents/references/work-trackers.md)).
+([work-trackers.md](../../agents/x-work-trackers.md)).
 
 Classify against the table above. Record reasoning briefly so a future run can
 audit the decision.
@@ -128,15 +128,15 @@ Append to the current week's log (see agent profile for the file path):
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md)):
+[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md)):
 
 - **Issue comment** — Triage classification, clarification requests, "not now"
   closures with rationale.
 - **Discussion** — Cross-product policy questions surfaced from triage.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/citation-integrity.md):
+[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md):
 every cited SHA must resolve on its referenced repo, or the body is not
 published.
 
 If an inbound issue comment addressed to this agent is ambiguous, follow
-[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/coordination-protocol.md#inbound-unclear-addressed-comments).
+[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md#inbound-unclear-addressed-comments).

@@ -7,7 +7,7 @@ comment and PR body is signed `— Product Manager 🌱`.
 
 `comment` on the issue with the text below, selecting the variant that matches
 the triage decision
-([work-trackers.md](../../../agents/references/work-trackers.md)). For `wontfix`
+([work-trackers.md](../../../agents/x-work-trackers.md)). For `wontfix`
 and duplicate outcomes, chain `label` and/or `close` after the comment.
 
 | Outcome             | Body text                                                                                                                                 | Follow-up                                   |
@@ -21,7 +21,7 @@ and duplicate outcomes, chain `label` and/or `close` after the comment.
 ### Adding Feedback to Existing Issues
 
 `comment` on the issue
-([work-trackers.md](../../../agents/references/work-trackers.md)):
+([work-trackers.md](../../../agents/x-work-trackers.md)):
 
 > Additional feedback observed during user testing of **<product>** in the
 > `<scenario>` evaluation scenario:
@@ -45,7 +45,7 @@ trailer.
 
 ### PR Body
 
-`open-change` ([work-trackers.md](../../../agents/references/work-trackers.md))
+`open-change` ([work-trackers.md](../../../agents/x-work-trackers.md))
 titled `<fix|spec>(<scope>): <description>` with this body:
 
 ```markdown
@@ -72,7 +72,7 @@ Spec for issue #<number>. Needs review before implementation — see the
 
 ## New Issues from User Testing
 
-`create-issue` ([work-trackers.md](../../../agents/references/work-trackers.md))
+`create-issue` ([work-trackers.md](../../../agents/x-work-trackers.md))
 titled `<bug|docs|feat>(<product>): <concise description>`, labeled
 `user-testing`, with this body:
 

@@ -23,7 +23,7 @@ that passed all gates merged and are gone. There is no prior-run-membership
 check — the silence window test below filters out PRs first blocked this run.
 
 For each candidate, `read` the change's discussion
-([work-trackers.md](../../../agents/references/work-trackers.md)) and take the
+([work-trackers.md](../../../agents/x-work-trackers.md)) and take the
 most-recent bot comment timestamp (`user.login == "kata-agent-team[bot]"`).
 
 This is the same conversation thread the open-comment gate reads
@@ -50,7 +50,7 @@ When due, post the matching re-ping variant from
 [`templates.md`](templates.md) § Re-ping Comments for the PR's block reason
 **already computed in this run's Steps 2–8** — do not re-run the gates or
 re-`read` the change's CI checks
-([work-trackers.md](../../../agents/references/work-trackers.md)); the failing
+([work-trackers.md](../../../agents/x-work-trackers.md)); the failing
 checks and reason carry from the run's own classification.
 
 ## Owner taxonomy

@@ -47,8 +47,8 @@ It writes into `<target-repo>`:
   `license` and a `metadata` version block injected into each `SKILL.md`.
 - `.apm/agents/<name>.agent.md` — each `agents/*.md` profile, renamed to the
   `.agent.md` suffix the installer discovers (only with `--with-agents`).
-- `.apm/agents/references/` — shared reference files that skills and profiles
-  cite, shipped for every pack.
+- `.apm/agents/x-<name>.md` — shared reference files that skills and profiles
+  cite, shipped flat for every pack (no `references/` subdir).
 - `apm.yml` — the package manifest (`name`, `version`, `description`).
 - `README.md` — install command and a table of the staged skills and agents.
 
