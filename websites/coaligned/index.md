@@ -154,18 +154,20 @@ layout: home
     <div class="reveal">
       <div class="section-label">Verification</div>
       <h2 class="section-headline">Two gates. One at entry, one at exit.</h2>
-      <p class="section-body">Checklists never teach — they confirm. If an item needs explaining, the procedure above it is incomplete. Pick the right type for the moment, and the pause point stays natural instead of getting skipped.</p>
+      <p class="section-body">Checklists never teach — they confirm; if an item needs explaining, the procedure above it is incomplete. Each gate is wrapped in a semantic <code>&lt;read_do_checklist&gt;</code> or <code>&lt;do_confirm_checklist&gt;</code> tag, so every pause point in the repository is one <code>rg</code> search away — no map required.</p>
     </div>
     <div class="duo-grid stagger">
       <div class="gate-card stagger-item">
         <div class="gate-kind">Entry gate</div>
         <div class="gate-name">READ-DO</div>
         <p class="gate-desc">Read each item, then do it. Loads constraints into memory before the first line of work, when missing one sends everything in the wrong direction.</p>
+        <code class="gate-find">rg '&lt;read_do_checklist'</code>
       </div>
       <div class="gate-card stagger-item">
         <div class="gate-kind">Exit gate</div>
         <div class="gate-name">DO-CONFIRM</div>
         <p class="gate-desc">Do from memory, then pause and confirm. Verifies nothing was missed before a commit, merge, or release — independent checks, no interruption mid-flow.</p>
+        <code class="gate-find">rg '&lt;do_confirm_checklist'</code>
       </div>
     </div>
   </div>
