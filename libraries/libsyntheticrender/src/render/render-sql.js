@@ -86,17 +86,89 @@ const JUNCTIONS = [
   },
 ];
 
+// Patient-facing prose tables. Each is one text column keyed off a base entity
+// plus its foreign key, except `patient_stories` which fans out to several
+// rows per condition. `rows(clinical, cache)` resolves the prose text from the
+// cache under the exact logical keys the generator emits (see
+// libsyntheticgen clinicalProseKeys), so ids line up with cache entries.
+const PROSE_TABLE_SPEC = [
+  {
+    key: "condition_explainers",
+    table: "condition_explainers",
+    pk: "condition_id",
+    foreignKeys: [{ column: "condition_id", references: "conditions(id)" }],
+    rows: (c, cache) =>
+      (c.conditions ?? []).map((x) => ({
+        condition_id: x.id,
+        explainer: cache.get(`clinical_condition_explainer_${x.id}`) ?? null,
+      })),
+  },
+  {
+    key: "trial_faqs",
+    table: "trial_faqs",
+    pk: "trial_id",
+    foreignKeys: [{ column: "trial_id", references: "trials(id)" }],
+    rows: (c, cache) =>
+      (c.trials ?? []).map((x) => ({
+        trial_id: x.id,
+        faq: cache.get(`clinical_trial_faq_${x.id}`) ?? null,
+      })),
+  },
+  {
+    key: "consent_summaries",
+    table: "consent_summaries",
+    pk: "trial_id",
+    foreignKeys: [{ column: "trial_id", references: "trials(id)" }],
+    rows: (c, cache) =>
+      (c.trials ?? []).map((x) => ({
+        trial_id: x.id,
+        summary: cache.get(`clinical_consent_summary_${x.id}`) ?? null,
+      })),
+  },
+  {
+    key: "site_descriptions",
+    table: "site_descriptions",
+    pk: "site_id",
+    foreignKeys: [{ column: "site_id", references: "sites(id)" }],
+    rows: (c, cache) =>
+      (c.sites ?? []).map((x) => ({
+        site_id: x.id,
+        description: cache.get(`clinical_site_description_${x.id}`) ?? null,
+      })),
+  },
+  {
+    key: "patient_stories",
+    table: "patient_stories",
+    pk: "id",
+    foreignKeys: [{ column: "condition_id", references: "conditions(id)" }],
+    rows: (c, cache) => patientStoryRows(c, cache),
+  },
+  {
+    key: "therapy_descriptions",
+    table: "therapy_descriptions",
+    pk: "topic",
+    rows: (c, cache) =>
+      (c.content?.therapy_topics ?? []).map((topic) => ({
+        topic,
+        description: cache.get(`clinical_therapy_description_${topic}`) ?? null,
+      })),
+  },
+];
+
 /**
  * Render coordinated Supabase migration files for a clinical entity graph.
  *
  * @param {object} clinicalEntities - `entities.clinical` from the generator
  * @param {object} outputConfig - `{ path, prefix, entities, include_embeddings }`.
  *   `path`, when present, prefixes every emitted filename (directory layout).
+ * @param {Map<string, string>|object} [prose] - resolved prose cache keyed by
+ *   logical key; supplies the text columns of the patient-facing prose tables.
  * @returns {Map<string, string>} path → file content
  */
-export function renderSql(clinicalEntities, outputConfig) {
+export function renderSql(clinicalEntities, outputConfig, prose) {
   const prefix = outputConfig.prefix ?? "clinical";
   const dir = normalizeDir(outputConfig.path);
+  const cache = toCache(prose);
   const requested = new Set(
     (outputConfig.entities ?? []).map((e) => stripDomain(e)),
   );
@@ -105,6 +177,9 @@ export function renderSql(clinicalEntities, outputConfig) {
   const includedKeys = new Set(includedSpecs.map((s) => s.key));
   const includedJunctions = JUNCTIONS.filter(
     (j) => includedKeys.has(j.sourceKey) && includedKeys.has(j.arrayField),
+  );
+  const includedProseSpecs = PROSE_TABLE_SPEC.filter((s) =>
+    requested.has(s.key),
   );
 
   const files = new Map();
@@ -128,9 +203,19 @@ export function renderSql(clinicalEntities, outputConfig) {
     );
   }
 
+  // Prose tables reference conditions/trials/sites, so they render after the
+  // base tables — the numbered filenames preserve that FK-apply order.
+  for (const spec of includedProseSpecs) {
+    files.set(
+      filePath(`${prefix}_${next()}_${spec.table}.sql`),
+      renderEntityTable(spec, spec.rows(clinicalEntities, cache)),
+    );
+  }
+
   const allTables = [
     ...includedSpecs.map((s) => s.table),
     ...includedJunctions.map((j) => j.table),
+    ...includedProseSpecs.map((s) => s.table),
   ];
   files.set(filePath(`${prefix}_${next()}_rls.sql`), renderRls(allTables));
 
@@ -144,6 +229,9 @@ export function renderSql(clinicalEntities, outputConfig) {
   return files;
 }
 
+// Prose specs declare no skip set — their row objects carry only real columns.
+const EMPTY_SKIP = new Set();
+
 function normalizeDir(path) {
   if (!path) return "";
   return path.endsWith("/") ? path : `${path}/`;
@@ -152,6 +240,40 @@ function normalizeDir(path) {
 function stripDomain(entityRef) {
   const dot = entityRef.indexOf(".");
   return dot === -1 ? entityRef : entityRef.slice(dot + 1);
+}
+
+function toCache(cache) {
+  if (cache instanceof Map) return cache;
+  return new Map(Object.entries(cache ?? {}));
+}
+
+/**
+ * Reproduce the generator's patient-story distribution so each row's id matches
+ * a prose cache key. For every condition listed in
+ * `content.patient_story_conditions`, emit `perCondition` rows
+ * (`ceil(patient_stories / conditions)`); conditions absent from the graph are
+ * skipped exactly as `clinicalProseKeys` skips them, keeping ids and FKs valid.
+ */
+function patientStoryRows(clinical, cache) {
+  const content = clinical.content;
+  if (!content) return [];
+  const storyConditions = content.patient_story_conditions ?? [];
+  const total = content.patient_stories ?? 0;
+  const perCondition = Math.ceil(total / Math.max(storyConditions.length, 1));
+  const rows = [];
+  for (const condId of storyConditions) {
+    const cond = (clinical.conditions ?? []).find((c) => c.id === condId);
+    if (!cond) continue;
+    for (let i = 0; i < perCondition; i++) {
+      rows.push({
+        id: `${condId}_${i}`,
+        condition_id: condId,
+        story_index: i,
+        story: cache.get(`clinical_patient_story_${condId}_${i}`) ?? null,
+      });
+    }
+  }
+  return rows;
 }
 
 function renderEntityTable(spec, records) {
@@ -184,10 +306,11 @@ function renderEntityTable(spec, records) {
 function inferColumns(spec, records) {
   const direct = [];
   const seen = new Set();
+  const skip = spec.skip ?? EMPTY_SKIP;
   for (const rec of records) {
     for (const key of Object.keys(rec)) {
       if (seen.has(key)) continue;
-      if (spec.skip.has(key)) continue;
+      if (skip.has(key)) continue;
       seen.add(key);
       direct.push({
         name: key,
