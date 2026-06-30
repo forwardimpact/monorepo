@@ -245,7 +245,7 @@ Docker Compose orchestrates these PG On Rails services under
 | --- | --- | --- | --- |
 | `kong` | `kong:3.4` | 8000 | API gateway routing |
 | `postgres` | `supabase/postgres` + pgvector | 5432 | Primary database |
-| `pgbouncer` | `edoburu/pgbouncer` | 6432 | Connection pooling |
+| `pgbouncer` | `edoburu/pgbouncer` | 6432 | Connection pooling for the PostgREST data API only |
 | `postgrest` | `postgrest/postgrest` | 3000 | REST API from schema |
 | `gotrue` | `supabase/gotrue` | 9999 | Auth service |
 | `realtime` | `supabase/realtime` | 4000 | PG On Rails baseline (not wired for MVP) |
@@ -254,6 +254,16 @@ Docker Compose orchestrates these PG On Rails services under
 | `tei` | `ghcr.io/huggingface/text-embeddings-inference` | 8080 | Embedding generation |
 | `polaris-site` | `products/polaris/site/Dockerfile` | 3001 | Next.js frontend |
 | `polaris-functions` | `services/polaris-functions/` | 8082 | Deno edge functions |
+
+Only `postgrest` connects through the pooler (it is the high-connection data
+API). `gotrue` and `storage` send a `search_path` startup parameter that
+transaction-mode pgbouncer rejects, and `realtime` relies on session-scoped
+prepared statements, so those three connect directly to `postgres:5432`.
+Because `postgrest` is pooled, it runs with prepared statements and the
+LISTEN/NOTIFY schema-reload channel disabled; `setup.sh` reloads its schema
+cache (SIGUSR1) after applying migrations. The `anon`/`service_role` API keys
+are JWTs that must be signed with the same `JWT_SECRET` the services verify
+against (and kept in sync with `kong.yml`).
 
 ## Prerequisite library changes
 

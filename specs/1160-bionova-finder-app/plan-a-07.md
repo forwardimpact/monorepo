@@ -55,7 +55,12 @@ Edit `package.json` to add workspace deps:
 ```
 
 Add `output: "standalone"` to `next.config.mjs` so the Dockerfile builds a
-minimal runtime image.
+minimal runtime image, plus `experimental.outputFileTracingRoot` pointing at the
+monorepo root (`fileURLToPath(new URL("../../../", import.meta.url))`). Without
+the tracing root Next infers the app directory as the root and emits a flat
+`server.js`; with it the standalone output nests the server under
+`products/polaris/site/` (with `node_modules` at the bundle root), which is
+where the Dockerfile runner copies and runs it.
 
 Verify: `cd products/polaris/site && bun install && bun run build` exits 0.
 
@@ -318,15 +323,17 @@ FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 RUN npm install -g bun@1.2
 # Copy workspace root metadata first for caching
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 COPY products/polaris/handlers ./products/polaris/handlers
 COPY products/polaris/site ./products/polaris/site
-RUN bun install --production=false
+RUN bun install
 RUN cd products/polaris/site && bun run build
 
 FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 COPY --from=builder /app/products/polaris/site/.next/standalone ./
 COPY --from=builder /app/products/polaris/site/.next/static ./products/polaris/site/.next/static
 COPY --from=builder /app/products/polaris/site/public ./products/polaris/site/public
@@ -334,9 +341,15 @@ EXPOSE 3000
 CMD ["node", "products/polaris/site/server.js"]
 ```
 
-The `bun install` step in the builder stage resolves the `workspace:*`
-dep `@bionova/polaris-handlers` because both directories are present
-under `/app/`.
+Use plain `bun install` (not `--production=false`, which bun 1.2 rejects — bun
+installs devDependencies by default). The builder resolves the `workspace:*` dep
+`@bionova/polaris-handlers` because both directories are present under `/app/`.
+The `experimental.outputFileTracingRoot` set in Step 1 is what makes the runner
+COPY/CMD paths (`products/polaris/site/server.js`) line up with the standalone
+output. The compose service also sets
+`POLARIS_ABOUT_PATH=/app/products/polaris/handlers/data/about.yaml` so the about
+handler reads the bundled YAML (the bundler rewrites the handler's
+`new URL(import.meta.url)` path to an unreadable asset URL — see part 05).
 
 Add `src/app/api/health/route.ts`:
 
@@ -344,7 +357,9 @@ Add `src/app/api/health/route.ts`:
 export const GET = () => new Response("ok");
 ```
 
-(matches the part-01 healthcheck `curl -f http://localhost:3000/api/health`.)
+(A useful app-level liveness route; the container healthcheck itself is a `bash`
+`/dev/tcp` TCP probe because the runtime image ships neither `curl` nor `wget` —
+see part 01.)
 
 Verify: `docker compose up -d polaris-site` reaches `(healthy)` within 60s;
 `curl http://localhost:3001/` returns the homepage HTML.

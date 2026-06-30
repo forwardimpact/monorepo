@@ -65,8 +65,10 @@ Behavior: reads JSONL from a path on disk (default
 `/data/synthetic/seed_embeddings.jsonl`, written by `build-seed.sh` and
 mounted per plan-a-03 step 8); for each row whose `table`
 is `"conditions"`, POSTs the prose text to TEI (`POST ${TEI_URL}/embed`),
-receives a 384-dim vector, and upserts into
-`condition_embeddings(condition_id, embedding)` via PostgREST.
+receives a 384-dim vector, and upserts `{ id, condition_id, embedding }` (the
+row id is the condition id, supplied for the NOT-NULL text PK) into
+`condition_embeddings` via PostgREST with `on_conflict=condition_id` — which
+needs the unique index from plan-a-02 step 3b.
 
 Request shape:
 

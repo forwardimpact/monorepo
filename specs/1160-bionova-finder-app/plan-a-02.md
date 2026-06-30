@@ -77,7 +77,7 @@ terrain output to have applied first).
 ## Step 3b — Author `condition_embeddings` unique-constraint migration
 
 Created:
-`products/polaris/site/supabase/migrations/20260601000000a_condition_embeddings_unique.sql`
+`products/polaris/site/supabase/migrations/20260601000005_condition_embeddings_unique.sql`
 
 ```sql
 -- libsyntheticrender emits condition_embeddings.condition_id without a UNIQUE
@@ -86,9 +86,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS condition_embeddings_condition_id_uidx
   ON condition_embeddings(condition_id);
 ```
 
-Filename `…000000a_…` sorts after `20260601000000_interest_signals.sql`
-but before `20260601000001_rls_policies.sql`, ensuring the index exists
-before any policy or trigger references it.
+The version must be a **distinct 14-digit timestamp**. `supabase db push` keys
+each migration on the leading digits before the first underscore, so a suffixed
+`20260601000000a_…` collides with `20260601000000_interest_signals.sql` and is
+silently skipped — the index never gets created and the embed-seed upsert later
+fails with `42P10`. `20260601000005` sorts last among the hand-written
+migrations, which is fine: the index only has to exist before `embed-seed` runs
+at setup time, not before any other migration.
 
 Verify: after `supabase db push`, `\d condition_embeddings` shows the
 unique index `condition_embeddings_condition_id_uidx`.

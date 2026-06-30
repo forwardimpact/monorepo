@@ -135,7 +135,8 @@ sha256sum seed_*.sql seed_embeddings.jsonl > "$ROOT/data/synthetic/SEED.sha256"
 ```
 
 `build-seed.sh` regenerates from the vendored DSL; `SEED.sha256` proves the
-render is deterministic. SC7's verify is `build-seed.sh && (cd .build/.../migrations && sha256sum -c <repo>/data/synthetic/SEED.sha256)`.
+render is deterministic. SC7's verify is
+`build-seed.sh && (cd .build/.../migrations && sha256sum -c <repo>/data/synthetic/SEED.sha256)`.
 
 Verify: `SEED.sha256` lists 15+ files; a second `build-seed.sh` run produces
 output that passes `sha256sum -c data/synthetic/SEED.sha256`.
@@ -169,8 +170,18 @@ echo "Building seed from data/synthetic/story.dsl…"
 # Step B — apply migrations via supabase db push
 echo "Running supabase db push…"
 cd "$ROOT/products/polaris/site"
-npx -y supabase@1.219.2 db push --db-url "postgres://postgres:${POSTGRES_PASSWORD}@localhost:5432/postgres"
+# --include-all applies every pending local migration regardless of its order
+# relative to what is already recorded. Without it a re-seed (where the seed
+# versions are removed but later ones remain) is refused as "out of order".
+npx -y supabase@1.219.2 db push --include-all --db-url "postgres://postgres:${POSTGRES_PASSWORD}@localhost:5432/postgres"
 cd "$ROOT"
+
+# Reload PostgREST's schema cache. It loads the cache once at startup (before
+# these migrations created the tables) and runs behind the transaction pooler
+# with the NOTIFY reload channel disabled, so it will not pick up the new tables
+# on its own. SIGUSR1 forces an in-place reload.
+docker compose kill -s SIGUSR1 postgrest >/dev/null 2>&1 || docker compose restart postgrest >/dev/null 2>&1
+sleep 3
 ```
 
 Verify: after `docker compose up -d` and `./setup.sh`, `psql -c "\dt"` lists
@@ -273,15 +284,16 @@ Verify: PR CI green (lint + seed-build jobs).
 
 - [ ] `data/synthetic/` carries `story.dsl` + `prose-cache.json` vendored
       verbatim (byte-identical to monorepo@`$PROVENANCE_SHA`), plus
-      `SOURCE.sha256`, `SEED.sha256`, `PROVENANCE.md`, `README.md`, all committed.
+      `SOURCE.sha256`, `SEED.sha256`, `PROVENANCE.md`, `README.md`, all
+      committed.
 - [ ] `PROVENANCE.md` pins a real 40-char SHA on `forwardimpact/monorepo:main`
       and the libterrain version used.
 - [ ] `bunx fit-terrain --help` shows `--output-root` (prereq A present).
 - [ ] `scripts/build-seed.sh` renders into `data/synthetic/.build/`, asserts the
       six prose tables, stages ≥ 15 SQL files, and refuses to run if the output
       root is the repo root.
-- [ ] A repeat `build-seed.sh` run passes `sha256sum -c data/synthetic/SEED.sha256`
-      (SC7 determinism).
+- [ ] A repeat `build-seed.sh` run passes
+      `sha256sum -c data/synthetic/SEED.sha256` (SC7 determinism).
 - [ ] `./setup.sh` against a fresh stack: renders seed, applies via
       `supabase db push`, seeds embeddings via `embed-seed`.
 - [ ] `psql -c "SELECT COUNT(*) FROM trials;"` returns ≥ 6.
