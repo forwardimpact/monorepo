@@ -540,7 +540,7 @@ function unwrapFhirDatasets(datasetsMap, out, domain, crossRef) {
 
 function renderClinicalOutput(out, clinical, prose) {
   if (out.format === "supabase_migration") {
-    return renderSql(clinical, out.config);
+    return renderSql(clinical, out.config, prose);
   }
   return renderEmbeddings(clinical, prose, out.config);
 }

@@ -190,7 +190,7 @@ export function createPipeline(opts) {
 export async function selectOutputSink({
   verb,
   load,
-  monorepoRoot,
+  outputRoot,
   prettierFn,
   logger,
   config,
@@ -201,7 +201,7 @@ export async function selectOutputSink({
   if (verb !== "build" && verb !== "generate") return new NullSink();
 
   const writeSink = new WriteSink({
-    monorepoRoot,
+    outputRoot,
     prettierFn,
     logger,
     runtime,

@@ -4,7 +4,8 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { format } from "prettier";
 import {
   createCli,
@@ -55,6 +56,16 @@ const definition = {
   globalOptions: {
     story: { type: "string", description: "Path to a custom story DSL file" },
     cache: { type: "string", description: "Path to prose cache file" },
+    "output-root": {
+      type: "string",
+      description:
+        "Directory to write generated output into (default: project root)",
+    },
+    "schema-dir": {
+      type: "string",
+      description:
+        "Directory of map JSON schemas for pathway rendering (default: resolved from @forwardimpact/map)",
+    },
     help: { type: "boolean", short: "h", description: "Show this help" },
     version: { type: "boolean", description: "Show version" },
     json: { type: "boolean", description: "Output help as JSON" },
@@ -165,6 +176,27 @@ async function resolveLlmApi(config, modelOverride) {
 }
 
 /**
+ * Resolve the map JSON-schema directory from the installed `@forwardimpact/map`
+ * package. Pathway rendering reads nine `<name>.schema.json` files from here.
+ * Returns `null` when the package is not installed, so the pipeline cleanly
+ * skips pathway rendering rather than crashing — an external consumer that only
+ * renders clinical output (Polaris's case) need not depend on `map`.
+ *
+ * Called directly in this module so `this === import.meta`, which Bun requires
+ * for `import.meta.resolve`.
+ */
+function defaultSchemaDir() {
+  try {
+    const url = import.meta.resolve(
+      "@forwardimpact/map/schema/json/standard.schema.json",
+    );
+    return dirname(fileURLToPath(url));
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Run the pipeline for the given verb. Returns whether the verb succeeded;
  * the caller maps that to process.exitCode.
  *
@@ -175,6 +207,8 @@ async function resolveLlmApi(config, modelOverride) {
  * @param {string} [options.model]
  * @param {string} [options.story]
  * @param {string} [options.cache]
+ * @param {string} [options.outputRoot]
+ * @param {string} [options.schemaDir]
  * @returns {Promise<{ ok: boolean }>}
  */
 async function runVerb(options) {
@@ -197,7 +231,11 @@ async function runVerb(options) {
   // handles the compiled-vs-source split: cwd for a compiled binary, upward
   // package.json search otherwise — so this stays free of build-mode checks.
   const monorepoRoot = runtime.finder.findProjectRoot();
-  const schemaDir = join(monorepoRoot, "products/map/schema/json");
+  // Read root (story/cache/schema defaults) stays the resolved project root.
+  // Only the *write* target moves when `--output-root` is given, so an external
+  // consumer renders into a disposable directory it owns.
+  const outputRoot = options.outputRoot || monorepoRoot;
+  const schemaDir = options.schemaDir || defaultSchemaDir();
   const cachePath =
     options.cache ||
     join(monorepoRoot, "data", "synthetic", "prose-cache.json");
@@ -233,7 +271,7 @@ async function runVerb(options) {
   const sink = await selectOutputSink({
     verb,
     load: !!options.load,
-    monorepoRoot,
+    outputRoot,
     prettierFn: format,
     logger,
     config,
@@ -355,6 +393,8 @@ async function main() {
       model: values.model,
       story: values.story,
       cache: values.cache,
+      outputRoot: values["output-root"],
+      schemaDir: values["schema-dir"],
     }));
   } catch (err) {
     if (
