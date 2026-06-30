@@ -41,7 +41,7 @@
     },
     "libraries/libcoaligned": {
       "name": "@forwardimpact/libcoaligned",
-      "version": "0.1.15",
+      "version": "0.1.16",
       "bin": {
         "coaligned": "./bin/coaligned.js",
       },
@@ -153,7 +153,7 @@
     },
     "libraries/libharness": {
       "name": "@forwardimpact/libharness",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "bin": {
         "fit-harness": "./bin/fit-harness.js",
         "fit-trace": "./bin/fit-trace.js",
@@ -503,6 +503,7 @@
         "@forwardimpact/libtelemetry": "^0.1.23",
         "@forwardimpact/libtemplate": "^0.2.0",
         "@forwardimpact/libutil": "^0.1.0",
+        "@forwardimpact/map": "^0.15.61",
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
@@ -579,7 +580,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.31",
+      "version": "0.2.33",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
@@ -613,7 +614,7 @@
     },
     "products/gear": {
       "name": "@forwardimpact/gear",
-      "version": "0.1.6",
+      "version": "0.1.12",
       "dependencies": {
         "@forwardimpact/libcodegen": "^0.1.49",
         "@forwardimpact/libdoc": "^0.2.24",

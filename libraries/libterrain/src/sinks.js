@@ -10,7 +10,7 @@
  * @module libterrain/sinks
  */
 
-import { join, dirname } from "path";
+import { join, dirname, relative, isAbsolute } from "path";
 import {
   ContentFormatter,
   formatContent,
@@ -39,17 +39,20 @@ export class NullSink {
   }
 }
 
-/** Sink that formats pipeline output with Prettier and writes files to disk under the monorepo root. */
+/** Sink that formats pipeline output with Prettier and writes files to disk under the output root. */
 export class WriteSink {
   /**
-   * @param {{ monorepoRoot: string, prettierFn: Function, logger: object, runtime?: import('@forwardimpact/libutil/runtime').Runtime }} options
+   * @param {{ outputRoot: string, prettierFn: Function, logger: object, runtime?: import('@forwardimpact/libutil/runtime').Runtime }} options
+   *   `outputRoot` is the directory every generated file is written beneath; in
+   *   the monorepo it is the repo root, but an external consumer points it at a
+   *   disposable build directory via `fit-terrain --output-root`.
    */
-  constructor({ monorepoRoot, prettierFn, logger, runtime }) {
-    if (!monorepoRoot) throw new Error("monorepoRoot is required");
+  constructor({ outputRoot, prettierFn, logger, runtime }) {
+    if (!outputRoot) throw new Error("outputRoot is required");
     if (!prettierFn) throw new Error("prettierFn is required");
     if (!logger) throw new Error("logger is required");
     if (!runtime) throw new Error("runtime is required");
-    this.monorepoRoot = monorepoRoot;
+    this.outputRoot = outputRoot;
     this.formatter = new ContentFormatter(prettierFn, logger);
     this.logger = logger;
     this._fs = runtime.fs;
@@ -68,22 +71,20 @@ export class WriteSink {
 
     const filesWritten = await writeFiles(
       formattedFiles,
-      this.monorepoRoot,
+      this.outputRoot,
       this._fs,
+      this.logger,
     );
 
     let rawWritten = 0;
     if (formattedRaw.size > 0) {
-      await writeRawLocally(formattedRaw, this.monorepoRoot, this._fs);
+      await writeRawLocally(formattedRaw, this.outputRoot, this._fs);
       rawWritten = formattedRaw.size;
     }
 
     const evidence = result.entities?.activity?.evidence;
     if (evidence) {
-      const evidencePath = join(
-        this.monorepoRoot,
-        "data/activity/evidence.json",
-      );
+      const evidencePath = join(this.outputRoot, "data/activity/evidence.json");
       await this._fs.mkdir(dirname(evidencePath), { recursive: true });
       const formatted = await formatContent(
         evidencePath,
@@ -256,24 +257,55 @@ async function ensureDirs(paths, fs) {
 }
 
 /**
- * Write a Map of relative paths → content under the monorepo root. Cleans
- * each top-level subdirectory before writing so removed entities don't linger.
+ * True when `dir` is a strict descendant of `root` — not `root` itself and not
+ * a path that escapes it via `..`. Guards the destructive clean in
+ * `writeFiles` so a stray output path can never `rm -rf` the output root or
+ * anything outside it (the primary risk when `fit-terrain` runs in a
+ * consumer's repo via `--output-root`).
  */
-async function writeFiles(files, monorepoRoot, fs) {
+function isInside(root, dir) {
+  const rel = relative(root, dir);
+  return rel !== "" && !rel.startsWith("..") && !isAbsolute(rel);
+}
+
+/**
+ * Write a Map of relative paths → content under the output root. Cleans each
+ * top-level subdirectory before writing so removed entities don't linger.
+ * Both the directories cleaned and the files written must be strict
+ * descendants of `outputRoot`; a path that would escape it is a fatal error
+ * raised before any `rm` runs, rather than a silent write outside the root.
+ */
+async function writeFiles(files, outputRoot, fs, logger) {
+  // Validate every write target before any destructive action. A clean dir can
+  // resolve inside the root while the full path still escapes (`a/b/../../..`),
+  // so both are checked: full paths here, the cleaned dirs below.
+  const entries = [...files].map(([relPath, content]) => {
+    const fullPath = join(outputRoot, relPath);
+    if (!isInside(outputRoot, fullPath)) {
+      throw new Error(
+        `refusing to write '${fullPath}': escapes output root '${outputRoot}'`,
+      );
+    }
+    return [fullPath, content];
+  });
+
   const generatedDirs = new Set();
   for (const relPath of files.keys()) {
     const parts = relPath.split("/");
     if (parts.length >= 2) {
-      generatedDirs.add(join(monorepoRoot, parts[0], parts[1]));
+      const dir = join(outputRoot, parts[0], parts[1]);
+      if (!isInside(outputRoot, dir)) {
+        throw new Error(
+          `refusing to clean '${dir}': escapes output root '${outputRoot}'`,
+        );
+      }
+      generatedDirs.add(dir);
     }
   }
   for (const dir of generatedDirs) {
+    logger?.info?.("write", `cleaning ${dir}`);
     await fs.rm(dir, { recursive: true, force: true });
   }
-  const entries = [...files].map(([relPath, content]) => [
-    join(monorepoRoot, relPath),
-    content,
-  ]);
   await ensureDirs(
     entries.map(([fullPath]) => fullPath),
     fs,
@@ -284,8 +316,8 @@ async function writeFiles(files, monorepoRoot, fs) {
   return files.size;
 }
 
-async function writeRawLocally(rawDocuments, monorepoRoot, fs) {
-  const rawRoot = join(monorepoRoot, "data/activity/raw");
+async function writeRawLocally(rawDocuments, outputRoot, fs) {
+  const rawRoot = join(outputRoot, "data/activity/raw");
   const entries = [...rawDocuments].map(([storagePath, content]) => [
     join(rawRoot, storagePath),
     content,

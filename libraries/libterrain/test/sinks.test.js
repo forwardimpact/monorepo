@@ -83,7 +83,7 @@ describe("WriteSink", () => {
     });
 
     const sink = new WriteSink({
-      monorepoRoot: ROOT,
+      outputRoot: ROOT,
       prettierFn: format,
       runtime,
       logger: makeLogger(),
@@ -126,7 +126,7 @@ describe("WriteSink", () => {
     });
 
     const sink = new WriteSink({
-      monorepoRoot: ROOT,
+      outputRoot: ROOT,
       prettierFn: format,
       runtime,
       logger: makeLogger(),
@@ -146,7 +146,7 @@ describe("WriteSink", () => {
       files: new Map([["data/knowledge/x.html", "<p>hi</p>"]]),
     });
     const sink = new WriteSink({
-      monorepoRoot: ROOT,
+      outputRoot: ROOT,
       prettierFn: format,
       runtime,
       logger: makeLogger(),
@@ -156,6 +156,63 @@ describe("WriteSink", () => {
       fs.existsSync(join(ROOT, "data/activity/evidence.json")),
       false,
     );
+  });
+
+  test("writes under a caller-chosen outputRoot, not the project root", async () => {
+    const BUILD = "/build/.synthetic";
+    const { fs, runtime } = fsRuntime();
+    const result = makeResult({
+      files: new Map([["products/polaris/site/seed.sql", "select 1;\n"]]),
+    });
+    const sink = new WriteSink({
+      outputRoot: BUILD,
+      prettierFn: format,
+      runtime,
+      logger: makeLogger(),
+    });
+    await sink.accept(result);
+
+    assert.ok(
+      fs.existsSync(join(BUILD, "products/polaris/site/seed.sql")),
+      "file should land under the output root",
+    );
+    assert.strictEqual(
+      fs.existsSync(join(ROOT, "products/polaris/site/seed.sql")),
+      false,
+      "nothing should be written under the project root",
+    );
+  });
+
+  test("refuses to clean a directory that escapes the output root", async () => {
+    const { runtime } = fsRuntime();
+    // A relative path climbing out of the output root would otherwise resolve
+    // the clean target to a sibling of the root — the catastrophic rm the guard
+    // exists to prevent.
+    const result = makeResult({
+      files: new Map([["../../evil/x.txt", "boom"]]),
+    });
+    const sink = new WriteSink({
+      outputRoot: ROOT,
+      prettierFn: format,
+      runtime,
+      logger: makeLogger(),
+    });
+    await assert.rejects(() => sink.accept(result), /escapes output root/);
+  });
+
+  test("refuses a write whose full path escapes even when its top dir stays inside", async () => {
+    const { runtime } = fsRuntime();
+    // "a/b" stays inside so the clean guard passes, but the full path escapes.
+    const result = makeResult({
+      files: new Map([["a/b/../../../../etc/passwd", "boom"]]),
+    });
+    const sink = new WriteSink({
+      outputRoot: ROOT,
+      prettierFn: format,
+      runtime,
+      logger: makeLogger(),
+    });
+    await assert.rejects(() => sink.accept(result), /escapes output root/);
   });
 });
 
@@ -250,7 +307,7 @@ describe("CompositeSink", () => {
     });
 
     const writeSink = new WriteSink({
-      monorepoRoot: ROOT,
+      outputRoot: ROOT,
       prettierFn: format,
       runtime,
       logger: makeLogger(),
