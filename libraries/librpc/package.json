@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/librpc",
-  "version": "0.1.109",
+  "version": "0.1.110",
   "description": "gRPC server and client framework — ship service endpoints without reimplementing transport.",
   "keywords": [
     "grpc",

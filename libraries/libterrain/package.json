@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libterrain",
-  "version": "0.1.39",
+  "version": "0.1.40",
   "description": "Full synthetic data pipeline — generate, render, and validate evaluation datasets end to end.",
   "keywords": [
     "synthetic",

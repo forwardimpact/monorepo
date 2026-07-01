@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libpreflight",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Fail fast at process start with product-authored errors — runtime-floor checks and required-config assertions before heavy imports resolve.",
   "keywords": [
     "preflight",

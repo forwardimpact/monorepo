@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libdoc",
-  "version": "0.2.36",
+  "version": "0.2.37",
   "description": "Static documentation sites from markdown — publish docs without a framework.",
   "keywords": [
     "docs",
