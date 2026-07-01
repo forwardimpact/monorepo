@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/gear",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Shared libraries and services for platform builders and agents — CLIs, retrieval, evaluation, and infrastructure published to npm.",
   "keywords": [
     "agent",
