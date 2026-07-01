@@ -70,7 +70,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - uses: forwardimpact/bootstrap@52b7f3fe405a559fd8f2c95b102499e0df9b152b # v1.0.10
 
@@ -275,7 +275,7 @@ jobs:
       # self-contained; callers may still override via FIT_*_RELEASE.
       - name: Check out bootstrap script
         if: needs.meta.outputs.bundle == 'gear'
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           sparse-checkout: scripts/fit-install.sh
           sparse-checkout-cone-mode: false
@@ -334,7 +334,7 @@ jobs:
           repositories: homebrew-tap
 
       - name: Checkout tap repo
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: forwardimpact/homebrew-tap
           token: ${{ steps.ci-app.outputs.token }}
