@@ -29,7 +29,8 @@ pipeline from scattered email threads.
 - `~/.cache/fit/outpost/apple_mail/attachments/` — CV/resume attachments.
 - `~/.cache/fit/outpost/apple_calendar/*.json` — calendar events (for
   cross-source inference).
-- `Knowledge/Roles/*.md` — open role/requisition files (metadata inheritance).
+- `Knowledge/Roles/*.md` — role/requisition files (check the `**Status:**`
+  field: `open` for active roles, `closed` for historical).
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (shared
   with `extract-entities`).
 - `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
@@ -40,8 +41,8 @@ pipeline from scattered email threads.
 - `Knowledge/Candidates/{Full Name}/brief.md` — candidate profile note.
 - `Knowledge/Candidates/{Full Name}/CV.pdf` (or `CV.docx`) — local CV copy.
 - `Knowledge/Candidates/{Full Name}/headshot.jpeg` — candidate photo.
-- `Knowledge/Roles/*.md` — created/updated role files (Candidates tables
-  rebuilt).
+- `Knowledge/Roles/*.md` — role files created/updated; the `**Status:**` field
+  determines visibility (open/closed).
 - `~/.cache/fit/outpost/state/graph_processed` — updated with processed threads.
 
 <do_confirm_checklist goal="Verify candidate processing batch is complete and
@@ -94,21 +95,24 @@ links.
 
 ### 3. Sync `Knowledge/Roles/`
 
-This keeps role metadata current and enables inheritance.
+Role files are flat here; the `**Status:**` field is `open` or `closed`.
 
 1. Read each Role file's Info block to map Req → Role file path, Hiring manager,
-   Domain lead, recruiter, Channel.
-2. Find Reqs referenced by candidate briefs but missing a Role file:
-   `rg "^\*\*Req:\*\*" Knowledge/Candidates/*/brief.md`. For each missing Req,
-   create a stub using the **Role file stub** in
-   [references/templates.md](references/templates.md), then enrich by searching
-   the graph: `rg "{req_number}" Knowledge/`.
-3. Rebuild each Role file's `## Candidates` table by scanning briefs:
+   Domain lead, recruiter, Channel. Look up by filename substring so a req-less
+   role stays findable: `ls Knowledge/Roles/ | grep "{partial_name_or_req}"`.
+2. Find Reqs in candidate briefs missing a Role file:
+   `rg "^\*\*Req:\*\*" Knowledge/Candidates/*/brief.md`. Check all Role files
+   first; for a genuinely missing open role, create a stub with `**Status:**
+   open` using the **Role file stub** in
+   [references/templates.md](references/templates.md), then enrich:
+   `rg "{req_number}" Knowledge/`.
+3. Rebuild each **open** Role file's `## Candidates` table by scanning briefs:
    `rg -l "Req:.*{req_number}" Knowledge/Candidates/*/brief.md`. Use the **Role
-   Candidates table** format from `references/templates.md`. Sort by First seen,
-   newest first.
+   Candidates table** format from `references/templates.md`, newest first.
 4. If a Role file has a hiring manager but no domain lead, walk the
    `**Reports to:**` chain in `Knowledge/People/` to a VP or senior leader.
+5. When a role closes (filled, cancelled, or frozen 6+ months), set its
+   `**Status:**` field to `closed` — only on a clear signal.
 
 ### 4. Identify recruitment threads
 

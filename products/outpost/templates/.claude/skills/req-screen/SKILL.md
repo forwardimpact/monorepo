@@ -39,7 +39,8 @@ This is **Stage 1** of a three-stage hiring pipeline:
 - Target role (optional).
 - Existing `Knowledge/Candidates/{Name}/brief.md`, if any.
 - `Knowledge/Roles/*.md` matching the candidate's `Req` (provides `Level`,
-  `Discipline`, `Hiring manager`, `Domain lead`).
+  `Discipline`, `Hiring manager`, `Domain lead`, and the `**Status:**` field).
+  Look up by Req number or filename substring.
 
 ## Outputs
 
@@ -82,7 +83,8 @@ cat "Knowledge/Roles/{matching file}"
 
 Use the Role's `Level` and `Discipline` as the target unless the user specified
 a different target. Capture `Hiring manager` and `Domain lead` for the screening
-header.
+header. Note the `**Status:**` field, but don't let historical (`closed`) roles
+block screening of still-active candidates.
 
 If no target is available, estimate one using the level heuristics in
 [references/rubric.md](references/rubric.md#level-estimation-heuristics).

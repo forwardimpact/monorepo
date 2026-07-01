@@ -38,7 +38,8 @@ integrate with the `req-track` pipeline format.
 
 - `Knowledge/Candidates/{Clean Name}/brief.md` — candidate profile.
 - `Knowledge/Candidates/{Clean Name}/CV.md` — resume text as markdown.
-- `Knowledge/Roles/{Req ID} — {Title}.md` — created or updated.
+- `Knowledge/Roles/{Req ID} — {Title}.md` — created or updated with
+  `**Status:** open`. Update to `**Status:** closed` when the role closes.
 - Updated existing briefs when a candidate already exists.
 
 <do_confirm_checklist goal="Verify the Workday import is consistent with
@@ -96,7 +97,8 @@ header indices, name annotations) are in
 ls Knowledge/Roles/ | grep "{Req ID}"
 ```
 
-Use the **Role file stub** in
+New role files go in `Knowledge/Roles/` with `**Status:** open`. Use the
+**Role file stub** in
 [references/templates.md](references/templates.md). Resolve the domain lead by:
 
 1. `rg "{Req ID}" Knowledge/` — look in project timelines, People notes, Topics

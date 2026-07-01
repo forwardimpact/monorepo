@@ -104,7 +104,13 @@ gracefully — but the correct fix is to make the deck arrow-keys-only per
    **source line / column / context** for each highlight. (If the browser blocks
    folder access on `file://`, **Save** downloads the JSON instead — move it
    next to the deck.)
-4. Navigation while reviewing is the deck's normal **← / →** (the overlay's own
+4. The connected folder is **remembered across reloads** (the directory handle
+   is stored in IndexedDB, keyed per deck). After a reload the tool reconnects
+   silently if the browser still grants access; otherwise the button reads
+   **Reconnect folder** and a single click re-grants permission without
+   re-picking the folder. (Browsers require a user gesture to re-grant, so the
+   one click can't be avoided; clearing site data forgets the folder.)
+5. Navigation while reviewing is the deck's normal **← / →** (the overlay's own
    keystrokes never leak to the deck).
 
 ## Acting on the feedback (the review loop)

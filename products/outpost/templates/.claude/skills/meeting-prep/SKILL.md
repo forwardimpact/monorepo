@@ -28,7 +28,8 @@ meetings.
 - `Knowledge/Priorities/*.md` — active priorities and strategic context for
   framing
 - `Knowledge/Candidates/*/brief.md` — candidate context (for interview meetings)
-- `Knowledge/Roles/*.md` — role/requisition context (for interview meetings)
+- `Knowledge/Roles/*.md` — role/requisition context (for interview meetings);
+  check the `**Status:**` field to distinguish active from historical reqs
 
 ## Outputs
 
@@ -145,7 +146,7 @@ When preparing for interview meetings (title contains "Interview", "Screening",
 
 1. **Read the candidate brief:** `Knowledge/Candidates/{Name}/brief.md`
 2. **Read the Role file:** Look up the `Req` field and read the corresponding
-   `Knowledge/Roles/*.md` file.
+   `Knowledge/Roles/*.md` file; check the `**Status:**` field for context.
 3. **Include in the briefing:**
    - Candidate's current status, skills, and screening recommendation
    - Role context: hiring manager, domain lead, remaining positions

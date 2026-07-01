@@ -39,7 +39,8 @@ This is **Stage 3** of the three-stage pipeline:
 - Standard data via `fit-pathway`.
 - `Knowledge/Candidates/Insights.md` — cross-candidate context.
 - `Knowledge/Roles/*.md` — the candidate's requisition (positions, hiring
-  manager, domain lead).
+  manager, domain lead). Check the `**Status:**` field to distinguish active
+  from historical reqs.
 - `Knowledge/Priorities/*.md` — strategic context.
 - Other active candidates at the same level — relative positioning.
 
@@ -118,7 +119,8 @@ ls Knowledge/Roles/ | grep "{req_number}"
 cat "Knowledge/Roles/{matching file}"
 ```
 
-Capture remaining positions, hiring manager, domain lead, goal alignment, other
+Check the `**Status:**` field. Capture remaining positions, hiring manager,
+domain lead, goal alignment, other
 candidates on the same req, and channel (hr / vendor). Frame the recommendation
 in terms of strategic impact.
 

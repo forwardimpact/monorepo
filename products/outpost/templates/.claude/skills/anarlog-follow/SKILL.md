@@ -101,8 +101,8 @@ interactions.
 #### 5. Load type-specific context
 
 **Interviews:** read `Knowledge/Candidates/{Name}/{brief,screening,panel}.md`,
-look up the `Req` field's matching `Knowledge/Roles/*.md`, and load standard
-expectations:
+look up the `Req` field's matching `Knowledge/Roles/*.md` file (check the
+`**Status:**` field for context), and load standard expectations:
 
 ```bash
 bunx fit-pathway job {discipline} {level} --track={track}

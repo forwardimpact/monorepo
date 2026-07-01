@@ -43,8 +43,10 @@ Field map and resolution rules for Step 2 of `req-track`.
 
 Stop at the first match:
 
-1. **Req-first inheritance** — look up `Knowledge/Roles/*.md` for the matching
-   Req; inherit Hiring manager and Domain lead from the Role file.
+1. **Req-first inheritance** — search `Knowledge/Roles/` for a file matching the
+   Req number or role description (use filename substring lookup for req-less
+   roles); check the `**Status:**` field (open/closed), then inherit Hiring
+   manager and Domain lead from the Role file.
 2. **Calendar inference** —
    `rg -l "{Candidate Name}" ~/.cache/fit/outpost/apple_calendar/`. The non-user
    organizer of an interview event is likely the hiring manager.

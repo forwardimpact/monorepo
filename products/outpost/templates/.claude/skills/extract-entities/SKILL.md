@@ -41,8 +41,9 @@ under `Knowledge/`. The core knowledge-graph builder.
   auto-created.
 - `Knowledge/Conditions/` — created when cross-cutting patterns are detected, or
   updated.
-- `Knowledge/Roles/`, `Knowledge/Candidates/*/brief.md` — enriched with inferred
-  metadata.
+- `Knowledge/Roles/*.md`, `Knowledge/Candidates/*/brief.md` — enriched with
+  inferred metadata. New role stubs created with `**Status:** open`; update to
+  `**Status:** closed` when a role closes.
 - `~/.cache/fit/outpost/state/graph_processed` — updated.
 
 <do_confirm_checklist goal="Verify the batch produced clean, linked,

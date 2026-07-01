@@ -5,13 +5,15 @@ Reference templates for `req-workday` Steps 1b, 4, and 5.
 ## Role file stub
 
 Use when no Role file exists for the requisition. Filename:
-`Knowledge/Roles/{Req ID} — {Short Title}.md`.
+`Knowledge/Roles/{Req ID} — {Short Title}.md`. The `**Status:**` field
+(`open`/`closed`) is updated in place — never move files.
 
 ```markdown
 # {Requisition Title}
 
 ## Info
 **Req:** {Req ID}
+**Status:** open
 **Title:** {Full title from export}
 **Level:** {Infer from title: "Principal" → J100, "Staff" → J090, "Director" → J100 M-track, "Senior" → J070}
 **Track:** {P-track for IC roles, M-track for Director/Manager roles}

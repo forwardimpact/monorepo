@@ -13,6 +13,11 @@
  * (b) resolve each highlight to its SOURCE line/column + context lines by
  * reading the page’s own source file. No build step, no server, no deps.
  *
+ * The connected folder is remembered across reloads (the directory handle is
+ * stored in IndexedDB). On reload it reconnects silently if the browser still
+ * grants permission; otherwise the button reads “Reconnect folder” and one
+ * click re-grants access without re-picking the folder.
+ *
  * Optional host hook: if the page defines `window.deckGoto(index)` the panel’s
  * “Go” buttons will navigate to the right slide. Without it, the tool still
  * works (it falls back to scrollIntoView).
@@ -60,7 +65,8 @@
   /* ----------------------------- state ------------------------------------ */
   var state = loadLocal();        // { version, tool, target, annotations:[] }
   var review = false;
-  var dirHandle = null;           // File System Access directory handle
+  var dirHandle = null;           // File System Access directory handle (active)
+  var rememberedHandle = null;    // handle from a prior session, awaiting re-grant
   var sourceText = null;          // page source (for line/column)
   var pending = null;             // annotation awaiting note + confirm
   var ui = {};                    // DOM refs
@@ -150,6 +156,7 @@
   ui.count = ui.panel.querySelector(".sa-count");
   ui.status = ui.panel.querySelector(".sa-status");
   ui.list = ui.panel.querySelector(".sa-list");
+  ui.connectBtn = ui.panel.querySelector('[data-act="connect"]');
   ui.note = ui.pop.querySelector("textarea");
   var onlyThisSlide = false;
 
@@ -435,26 +442,103 @@
     if (ui.count) ui.count.textContent = state.annotations.length;
   }
 
+  /* Persist the connected directory handle across reloads. FileSystemHandles are
+   * structured-cloneable, so they live in IndexedDB (localStorage is strings
+   * only). Re-granting read/write permission after a reload needs a user
+   * gesture, so a remembered folder reconnects with one click via the same
+   * "Connect folder" button rather than the full directory picker. Keyed by
+   * cfg.target so distinct decks in a folder don't clobber each other. */
+  var IDB_NAME = "slide-annotator", IDB_STORE = "handles";
+  function idbOpen() {
+    return new Promise(function (resolve, reject) {
+      if (!window.indexedDB) { reject(new Error("no-idb")); return; }
+      var req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = function () { req.result.createObjectStore(IDB_STORE); };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+  function idbGet(key) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var r = db.transaction(IDB_STORE, "readonly").objectStore(IDB_STORE).get(key);
+        r.onsuccess = function () { resolve(r.result || null); };
+        r.onerror = function () { reject(r.error); };
+      });
+    }).catch(function () { return null; });
+  }
+  function idbSet(key, val) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(IDB_STORE, "readwrite");
+        tx.objectStore(IDB_STORE).put(val, key);
+        tx.oncomplete = function () { resolve(true); };
+        tx.onerror = function () { reject(tx.error); };
+      });
+    }).catch(function () { return false; });
+  }
+
+  function updateConnectLabel() {
+    if (!ui.connectBtn) return;
+    ui.connectBtn.textContent = dirHandle ? "Folder connected"
+      : rememberedHandle ? "Reconnect folder" : "Connect folder";
+  }
+
+  // Adopt a (freshly picked or re-granted) handle: link source, load any
+  // sidecar, and remember it for next time. Shared by connect and restore.
+  async function adoptFolder(handle) {
+    dirHandle = handle;
+    // read page source → enables source line/column resolution
+    try {
+      var fh = await dirHandle.getFileHandle(cfg.target);
+      sourceText = await (await fh.getFile()).text();
+      state.annotations.forEach(function (a) { a.source = locateInSource(a); });
+    } catch (e) { sourceText = null; setStatus("Connected, but '" + cfg.target + "' not found in folder — line numbers unavailable."); }
+    // load an existing sidecar if present
+    try {
+      var sh = await dirHandle.getFileHandle(SIDECAR);
+      mergeLoaded(JSON.parse(await (await sh.getFile()).text()));
+    } catch (e) { /* none yet */ }
+    await idbSet(cfg.target, dirHandle);
+    rememberedHandle = null;
+    updateConnectLabel();
+    persistLocal(); renderPanel(); renderHighlights();
+    setStatus("Connected. Saving to " + SIDECAR + (sourceText ? " · source linked" : ""));
+  }
+
   async function connectFolder() {
+    // Prefer a folder remembered from a prior session: re-granting permission is
+    // a single click (this click IS the required user gesture), no picker.
+    if (rememberedHandle) {
+      try {
+        var perm = await rememberedHandle.requestPermission({ mode: "readwrite" });
+        if (perm === "granted") { await adoptFolder(rememberedHandle); return; }
+      } catch (e) { /* fall through to the picker */ }
+      rememberedHandle = null; updateConnectLabel();
+    }
     if (!window.showDirectoryPicker) { setStatus("Folder access unsupported in this browser. Use Save (downloads the JSON)."); return; }
     try {
-      dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-      // read page source → enables source line/column resolution
-      try {
-        var fh = await dirHandle.getFileHandle(cfg.target);
-        sourceText = await (await fh.getFile()).text();
-        state.annotations.forEach(function (a) { a.source = locateInSource(a); });
-      } catch (e) { sourceText = null; setStatus("Connected, but '" + cfg.target + "' not found in folder — line numbers unavailable."); }
-      // load an existing sidecar if present
-      try {
-        var sh = await dirHandle.getFileHandle(SIDECAR);
-        mergeLoaded(JSON.parse(await (await sh.getFile()).text()));
-      } catch (e) { /* none yet */ }
-      persistLocal(); renderPanel(); renderHighlights();
-      setStatus("Connected. Saving to " + SIDECAR + (sourceText ? " · source linked" : ""));
+      await adoptFolder(await window.showDirectoryPicker({ mode: "readwrite" }));
     } catch (e) {
       if (e && e.name !== "AbortError") setStatus("Folder access blocked (" + e.name + "). Use Save to download the JSON instead.");
     }
+  }
+
+  // On load, try to restore a previously connected folder. queryPermission needs
+  // no gesture; if it's still "granted" we reconnect silently. If it's "prompt",
+  // we keep the handle so the next "Connect folder" click reconnects with one
+  // grant dialog (no picker). Handles cleared/denied storage are ignored.
+  function restoreFolder() {
+    idbGet(cfg.target).then(function (handle) {
+      if (!handle || typeof handle.queryPermission !== "function") return;
+      handle.queryPermission({ mode: "readwrite" }).then(function (perm) {
+        if (perm === "granted") { adoptFolder(handle); }
+        else {
+          rememberedHandle = handle; updateConnectLabel();
+          if (review) setStatus("Folder '" + cfg.target + "' remembered — click Reconnect folder.");
+        }
+      }).catch(function () {});
+    });
   }
 
   async function saveDisk() {
@@ -591,4 +675,5 @@
   };
 
   updateCount();
+  restoreFolder();
 })();

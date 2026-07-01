@@ -3,6 +3,13 @@
 Reference for `extract-entities` Step 7b. Enrich `Knowledge/Roles/` and
 `Knowledge/Candidates/` with metadata that no single source carries.
 
+All Role files are flat in `Knowledge/Roles/`. The `**Status:**` field
+distinguishes:
+
+- **`Status: open`** — active openings (use for new candidates and table
+  rebuilds).
+- **`Status: closed`** — completed/withdrawn roles (read-only).
+
 ## Requisition number detection
 
 Scan email subjects and bodies for requisition numbers (e.g. 7-digit Workday
@@ -10,9 +17,12 @@ IDs).
 
 1. `ls Knowledge/Roles/ | grep "{req_number}"` — does a Role file exist?
 2. **No file:** create a stub using the Role-stub template in `req-track` Step
-   0b. Search `rg "{req_number}" Knowledge/` for context to enrich it.
-3. **File exists:** check whether the email provides new metadata (hiring
-   manager, recruiter, locations) and update the Role file.
+   0b, with `**Status:** open`. Search `rg "{req_number}" Knowledge/` for
+   context to enrich it.
+3. **File exists:** check the `**Status:**` field. If `open`, check whether the
+   email provides new metadata (hiring manager, recruiter, locations) and update
+   the Role file. If `closed`, link for historical reference only; do not add
+   new candidates or rebuild tables.
 
 ## Hiring manager — calendar inference
 
