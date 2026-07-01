@@ -52,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: forwardimpact/bootstrap@52b7f3fe405a559fd8f2c95b102499e0df9b152b # v1.0.10
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -63,7 +63,7 @@ jobs:
       - name: Install Playwright OS dependencies
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: bunx playwright install-deps chrome
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: synthetic-cache
         with:
           path: |
@@ -74,7 +74,7 @@ jobs:
           key: synthetic-${{ hashFiles('data/synthetic/**', 'products/map/schema/json/**', 'bun.lock') }}
       - if: steps.synthetic-cache.outputs.cache-hit != 'true'
         run: just synthetic
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: public
           key: pathway-build-${{ hashFiles('data/synthetic/**', 'products/map/schema/json/**', 'products/pathway/src/**', 'products/map/starter/**', 'libraries/**/src/**', 'libraries/**/package.json', 'bun.lock') }}
