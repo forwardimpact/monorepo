@@ -58,7 +58,7 @@
     "@forwardimpact/libstorage": "^0.1.53",
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libtype": "^0.1.63",
-    "n3": "^2.0.3"
+    "n3": "^2.1.0"
   },
   "devDependencies": {
     "@forwardimpact/libutil": "^0.1.60",
