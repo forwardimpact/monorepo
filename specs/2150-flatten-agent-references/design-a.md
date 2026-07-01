@@ -12,8 +12,8 @@ The whole change rests on one substitution: the directory `agents/references/`
 was a **classifier** — "a file here is a reference, not a profile." APM destroys
 that classifier by flattening. The replacement is the test Claude Code's agent
 loader already uses: a `.claude/agents/*.md` file is a **profile** if it has
-`name`/`description` frontmatter, a **reference** if it does not. Three consumers
-that read the directory must adopt the frontmatter test instead.
+`name`/`description` frontmatter, a **reference** if it does not. Three
+consumers that read the directory must adopt the frontmatter test instead.
 
 ## Components
 
@@ -31,7 +31,7 @@ that read the directory must adopt the frontmatter test instead.
 
 A pure predicate, applied to a `.claude/agents/*.md` file's content:
 
-```
+```text
 isProfile(file)  := frontmatter has both `name` and `description`
 isReference(file) := not isProfile(file)
 ```
@@ -80,12 +80,12 @@ link form resolves everywhere.
 `<stem>.agent.md`, recording each in the agents table. After flattening it would
 wrongly treat the nine references as agents. The design:
 
-- `#stageAgents` reads each `agents/*.md`, applies `isProfile`. Profiles stage as
-  `<stem>.agent.md` and feed the agents table. References stage as plain
+- `#stageAgents` reads each `agents/*.md`, applies `isProfile`. Profiles stage
+  as `<stem>.agent.md` and feed the agents table. References stage as plain
   `<stem>.md` and are excluded from the table.
-- `#stageAgentReferences` (the `cp` of `agents/references/`) is **deleted** — the
-  references now ride along through the single staging pass. No `references/`
-  subdir is created in the pack.
+- `#stageAgentReferences` (the `cp` of `agents/references/`) is **deleted** —
+  the references now ride along through the single staging pass. No
+  `references/` subdir is created in the pack.
 
 The pack's `.apm/agents/` becomes flat (six `.agent.md` + nine `.md`), which APM
 then installs verbatim into a flat `.claude/agents/` — the flatten is now a
@@ -161,14 +161,14 @@ and the loader's verdict can never drift apart.
 
 ## Risks
 
-- **A future reference accidentally carries `name`/`description` frontmatter** and
-  is mis-classified as an agent (and would load as a subagent). Mitigation: the
-  `isProfile ⟺ not x-*` convention guard added to the genericity invariant fails
-  CI on exactly this — a prefixed file with frontmatter, or a profile named
-  `x-*`. This converts the design's only soft spot into an enforced rule.
-- **A citation outside the swept globs** (e.g. a non-`.md` surface) keeps the old
-  path. Mitigation: criterion 3's `rg --hidden` oracle spans all files, not only
-  the edited ones.
-- **`memory-protocol` budget regression** if the filename special-case is dropped
-  in the finder rewrite. Mitigation: criterion 5 asserts the enlarged budget
-  against the flat path.
+- **A future reference accidentally carries `name`/`description` frontmatter**
+  and is mis-classified as an agent (and would load as a subagent). Mitigation:
+  the `isProfile ⟺ not x-*` convention guard added to the genericity invariant
+  fails CI on exactly this — a prefixed file with frontmatter, or a profile
+  named `x-*`. This converts the design's only soft spot into an enforced rule.
+- **A citation outside the swept globs** (e.g. a non-`.md` surface) keeps the
+  old path. Mitigation: criterion 3's `rg --hidden` oracle spans all files, not
+  only the edited ones.
+- **`memory-protocol` budget regression** if the filename special-case is
+  dropped in the finder rewrite. Mitigation: criterion 5 asserts the enlarged
+  budget against the flat path.

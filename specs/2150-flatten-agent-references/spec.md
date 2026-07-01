@@ -26,10 +26,10 @@ install:
 | Customer (apm install) | profiles + references **flattened as siblings** | **no — every reference link dangles** |
 
 In a fresh install the nine references land at `.claude/agents/<name>.md`, but
-the profiles still link to `.claude/agents/references/<name>.md`, which no longer
-exists. An agent that follows its own on-boot reading instructions to read the
-memory protocol hits a missing path. The same break hits the GitHub-URL links
-that skills use to cite agent references, since those URLs encode the
+the profiles still link to `.claude/agents/references/<name>.md`, which no
+longer exists. An agent that follows its own on-boot reading instructions to
+read the memory protocol hits a missing path. The same break hits the GitHub-URL
+links that skills use to cite agent references, since those URLs encode the
 `references/` segment too.
 
 The monorepo is the outlier. APM's flattening is fixed behavior with no flag to
@@ -61,17 +61,18 @@ merge them with skill references.
 The classifier shift is the heart of the change. Today "is it in
 `agents/references/`?" answers "is this a reference, not a profile?" Flattening
 removes that directory, so the question must be answered the way Claude Code's
-own agent loader already answers it: a file in `.claude/agents/` is a **profile**
-if it has `name`/`description` frontmatter and a **reference** if it does not.
-The monorepo's own tooling adopts the same classifier the runtime already uses.
+own agent loader already answers it: a file in `.claude/agents/` is a
+**profile** if it has `name`/`description` frontmatter and a **reference** if it
+does not. The monorepo's own tooling adopts the same classifier the runtime
+already uses.
 
-References also take an `x-` filename prefix (`x-memory-protocol.md`). The prefix
-is a human-and-sort aid — it makes references visually obvious as not-agents and
-sorts them below all six profiles — and a guard: the two signals must agree, so a
-file named `x-*` must carry no agent frontmatter and a profile must not be named
-`x-*`. Frontmatter remains the authoritative classifier because it is what the
-loader keys on; the prefix is an enforced convention that keeps the visible name
-honest about what the loader will do.
+References also take an `x-` filename prefix (`x-memory-protocol.md`). The
+prefix is a human-and-sort aid — it makes references visually obvious as
+not-agents and sorts them below all six profiles — and a guard: the two signals
+must agree, so a file named `x-*` must carry no agent frontmatter and a profile
+must not be named `x-*`. Frontmatter remains the authoritative classifier
+because it is what the loader keys on; the prefix is an enforced convention that
+keeps the visible name honest about what the loader will do.
 
 ## Scope
 

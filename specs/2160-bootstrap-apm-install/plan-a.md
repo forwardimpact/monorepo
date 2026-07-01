@@ -25,10 +25,10 @@ Run with Bun from the repo root. This is a Bun `.mjs` (not a `.sh` like the
 sibling `fit-install.sh`) because the reconciliation needs a YAML parser, and
 `Bun.YAML.parse` is the dependency-free one the runtime already provides — keep
 the `.mjs` extension and the `bun <path>` invocation. Read `apm.yml` and
-`apm.lock.yaml` from `process.cwd()` via `node:fs`, parse with `Bun.YAML.parse`. Normalize a
-`repo_url` by stripping any `#<ref>` suffix, a trailing `.git`, and a leading
-`https://<host>/` or `git@<host>:` so the declared `owner/repo#sha` form and the
-lockfile's `owner/repo` form compare equal. Then:
+`apm.lock.yaml` from `process.cwd()` via `node:fs`, parse with `Bun.YAML.parse`.
+Normalize a `repo_url` by stripping any `#<ref>` suffix, a trailing `.git`, and
+a leading `https://<host>/` or `git@<host>:` so the declared `owner/repo#sha`
+form and the lockfile's `owner/repo` form compare equal. Then:
 
 - Build the declared set from `apm.yml` `dependencies.apm` (a list of strings),
   normalized. If `apm.yml` has no `dependencies.apm`, there is nothing to verify
@@ -93,8 +93,8 @@ save step). Provisioning always runs because the deployed trees live in the
 uncached workspace, so a warm cache reuses `apm`'s content-addressed checkouts
 while a changed lock re-fetches (SC5).
 
-Verification: `bun -e
-"Bun.YAML.parse(require('fs').readFileSync('.github/actions/bootstrap/action.yml','utf8'))"`
+Verification:
+`bun -e "Bun.YAML.parse(require('fs').readFileSync('.github/actions/bootstrap/action.yml','utf8'))"`
 parses cleanly and the three new steps sit after `Add deps to PATH` and before
 `Bootstrap` — that step order is what guarantees SC1 (profiles on disk before
 `scripts/bootstrap.sh`). The monorepo declares no root `apm.yml`, so this cannot
@@ -106,7 +106,8 @@ run end to end in this repo's own CI; the live SC1 path is exercised by an
 Keep the action's own description and README accurate now that it provisions
 packs.
 
-- Modified: `.github/actions/bootstrap/action.yml` (the top-level `description:`)
+- Modified: `.github/actions/bootstrap/action.yml` (the top-level
+  `description:`)
 - Modified: `.github/actions/bootstrap/README.md`
 
 Extend the `description:` to name pack provisioning. In `README.md`, add a short

@@ -19,13 +19,14 @@ model, invariant build kit).
 **Deviation from design.** design-a § Genericity invariant widens the grep
 selector to `.claude/agents/**`. As written that breaks the suite: the six
 profiles carry legitimate internal-agent tooling the genericity patterns flag
-(`release-engineer.md` `bun run check:fix`; `technical-writer.md` `bunx fit-doc`,
-`websites/fit`). Profiles were never genericity-scanned and making them
-pack-generic is outside spec 2150's scope. Step 7 therefore scopes the grep to
-the relocated references (`.claude/agents/x-*.md`) — the faithful 1:1
-replacement for the old `agents/references/**` glob — which satisfies criterion 6
-("covers the relocated references"). The new `x-` convention guard still scans
-**all** `.claude/agents/*.md`. Profile genericity is left to a follow-up.
+(`release-engineer.md` `bun run check:fix`; `technical-writer.md`
+`bunx fit-doc`, `websites/fit`). Profiles were never genericity-scanned and
+making them pack-generic is outside spec 2150's scope. Step 7 therefore scopes
+the grep to the relocated references (`.claude/agents/x-*.md`) — the faithful
+1:1 replacement for the old `agents/references/**` glob — which satisfies
+criterion 6 ("covers the relocated references"). The new `x-` convention guard
+still scans **all** `.claude/agents/*.md`. Profile genericity is left to a
+follow-up.
 
 ## Step 1 — Relocate and rename the nine references
 
@@ -54,7 +55,8 @@ returns nothing (every internal cross-link now carries the `x-` prefix).
 
 Rewrite each profile's reference links to the flat sibling path, anchors kept.
 
-Files (modified): `.claude/agents/{improvement-coach,product-manager,release-engineer,security-engineer,staff-engineer,technical-writer}.md`.
+Files (modified):
+`.claude/agents/{improvement-coach,product-manager,release-engineer,security-engineer,staff-engineer,technical-writer}.md`.
 
 - Root-relative form `.claude/agents/references/<n>.md#a` →
   `.claude/agents/x-<n>.md#a` (all six profiles; the on-boot `memory-protocol`
@@ -96,6 +98,7 @@ Verify: `rg -l 'agents/references/' .claude/skills/` returns nothing.
 Drop `agents/references/` wherever named outside immutable history.
 
 Files (modified):
+
 - `CLAUDE.md` (two links: `memory-protocol`, `coordination-protocol`).
 - `CONTRIBUTING.md` (one link: `self-improvement`, the `fit-selfedit` line).
 - `KATA.md` (five links: `work-definition`, `memory-protocol` ×2,
@@ -111,11 +114,13 @@ Files (modified):
   `".claude/agents/references/**"` path trigger — the relocated references are
   matched by the existing `".claude/agents/*.md"` line.
 - `.github/workflows/kata-dispatch.yml`: the comment naming
-  `.claude/agents/references/auth-anomaly.md` → `.claude/agents/x-auth-anomaly.md`.
+  `.claude/agents/references/auth-anomaly.md` →
+  `.claude/agents/x-auth-anomaly.md`.
 
 Verify:
 `rg --hidden 'agents/references/' --glob '!specs/**' --glob '!CHANGELOG.md' --glob '!.git/**'`
-returns nothing across the repo; `rg 'references/' websites/fit/docs/libraries/distribute-skill-packs/index.md`
+returns nothing across the repo;
+`rg 'references/' websites/fit/docs/libraries/distribute-skill-packs/index.md`
 names no agent-reference subdir.
 
 ## Step 5 — `libpack`: one frontmatter-partitioned staging pass
@@ -134,11 +139,14 @@ the existing without-agents test guards exactly this. The pass must run
 unconditionally; only the profile half is gated.
 
 - In `publish()`, replace the two lines
+
   ```js
   const agents = opts.withAgents ? await this.#stageAgents(opts) : [];
   await this.#stageAgentReferences(opts);
   ```
-  with one unconditional pass: `const agents = await this.#stageAgentDir(opts);`.
+
+  with one unconditional pass:
+  `const agents = await this.#stageAgentDir(opts);`.
 - `#stageAgentDir` reads each `agents/*.md` (the source is already flat), and
   for each file applies `isProfile` := `frontmatterField(content,"name")` and
   `frontmatterField(content,"description")` both non-empty:
@@ -175,9 +183,9 @@ Files (modified): `libraries/libcoaligned/src/instructions.js`,
 
 - Add an `isProfile(text)` predicate (frontmatter has both `name` and
   `description`). `findAgentProfiles` currently returns **all** `agents/*.md`;
-  add the `isProfile` filter to it. Replace `findAgentReferences`' `agents/references`
-  glob with the same `agents/*.md` listing filtered to `!isProfile`. Both
-  finders read each file's text once; share the read.
+  add the `isProfile` filter to it. Replace `findAgentReferences`'
+  `agents/references` glob with the same `agents/*.md` listing filtered to
+  `!isProfile`. Both finders read each file's text once; share the read.
 - The two L4 layer entries select by the flat path: the `memory-protocol`
   override match changes from `/agents/references/memory-protocol.md` to
   `/agents/x-memory-protocol.md`; the default-L4 entry excludes that same path.
@@ -203,17 +211,18 @@ Files (modified): `.coaligned/invariants/skill-genericity.rules.mjs`.
 - In `build`, swap **only the agents entries** of the genericity grep selector,
   leaving the skills entries in place: `paths` stays `".claude/skills/"` and
   replaces `".claude/agents/references/"` with `".claude/agents/"`; `globs`
-  stays `".claude/skills/kata-*/**"` and replaces `".claude/agents/references/**"`
-  with `".claude/agents/x-*.md"` — the relocated references, the faithful
-  replacement for the old glob (see § Deviation from design: `**` would flag
-  legitimate internal tooling in the six profiles). Update the module's header
-  comment accordingly.
-- Add the convention guard as a second subject set via the build kit's `scan({
-  dirs: [".claude/agents"], match: (n) => n.endsWith(".md"), read: true })` —
-  this scans **all** agents (profiles and references). Gate it with `failAll`'s
-  `when` predicate (the kit supports `when`; the `check` itself fails every
-  in-scope subject): `when: (s) => isProfile(s.text) === basename(s.path).startsWith("x-")`,
-  where `isProfile` tests for both `name` and `description` frontmatter. The two
+  stays `".claude/skills/kata-*/**"` and replaces
+  `".claude/agents/references/**"` with `".claude/agents/x-*.md"` — the
+  relocated references, the faithful replacement for the old glob (see §
+  Deviation from design: `**` would flag legitimate internal tooling in the six
+  profiles). Update the module's header comment accordingly.
+- Add the convention guard as a second subject set via the build kit's
+  `scan({ dirs: [".claude/agents"], match: (n) => n.endsWith(".md"), read: true })`
+  — this scans **all** agents (profiles and references). Gate it with
+  `failAll`'s `when` predicate (the kit supports `when`; the `check` itself
+  fails every in-scope subject):
+  `when: (s) => isProfile(s.text) === basename(s.path).startsWith("x-")`, where
+  `isProfile` tests for both `name` and `description` frontmatter. The two
   conformant pairs (profile not named `x-*`; reference named `x-*`) make the two
   booleans differ, so equality is the violation — an `x-*` file with agent
   frontmatter, or a profile named `x-*`. Message names the offending file and
@@ -230,13 +239,14 @@ Record the new location and the frontmatter classifier; keep L4-vs-L6.
 Files (modified): `COALIGNED.md`.
 
 - § L4 — Agent Reference: change "Co-located in
-  `.claude/agents/references/<name>.md`" to the flat `.claude/agents/x-<name>.md`
-  and state that a `.claude/agents/*.md` file is a profile when it carries
-  `name`/`description` frontmatter and a reference when it does not, with the
-  `x-` prefix as the enforced naming convention. Leave the L4/L6 distinction and
-  the budget table (L4 ≤192 lines) intact.
+  `.claude/agents/references/<name>.md`" to the flat
+  `.claude/agents/x-<name>.md` and state that a `.claude/agents/*.md` file is a
+  profile when it carries `name`/`description` frontmatter and a reference when
+  it does not, with the `x-` prefix as the enforced naming convention. Leave the
+  L4/L6 distinction and the budget table (L4 ≤192 lines) intact.
 
-Verify: `bunx coaligned instructions` and `bun run lint:md` pass on `COALIGNED.md`.
+Verify: `bunx coaligned instructions` and `bun run lint:md` pass on
+`COALIGNED.md`.
 
 ## Step 9 — Full-suite and parity verification
 
