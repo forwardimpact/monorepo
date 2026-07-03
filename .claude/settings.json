@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/fit-install.sh"
+            "command": "bash .github/actions/bootstrap/fit-install.sh"
           },
           {
             "type": "command",
