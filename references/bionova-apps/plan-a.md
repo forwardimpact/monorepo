@@ -32,6 +32,16 @@ allows. Each part is independently verifiable end-to-end against a local
 `docker compose` boot; the final part ties everything to the spec's seven
 success criteria.
 
+**Repository scaffolding is not hand-rolled.** Part 01 stands up the
+Monorepo-standard skeleton by invoking the **monorepo-setup skill** (which runs
+`coaligned-setup` and `kata-setup` in turn), then layers the Polaris product and
+its infrastructure onto it. The skill is authoritative for the skeleton —
+`git`, the base `package.json`, `.gitignore`, the directory tree,
+`scripts/bootstrap.sh`, the skill packs and agent profiles, the root instruction
+files, the per-concern check workflows, remote creation, the wiki, and
+`.claude/settings.json`. This plan does not restate or contradict any of that;
+where a skeleton file needs bionova content it is extended, never replaced.
+
 > **Revision r3** replaces r2's "vendor the rendered SQL" pipeline with
 > "vendor the DSL and render locally." r2 vendored `data/synthetic/seed/*.sql`
 > because `fit-terrain` could not run outside the monorepo. r3 makes it run
@@ -76,7 +86,7 @@ after both signals flip.
 
 | Part | Title | Scope | Depends on |
 | --- | --- | --- | --- |
-| [01](plan-a-01.md) | Repo bootstrap + infrastructure | New repo, MONOREPO.md, `package.json` (+ `libterrain`/`map` devDeps), `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | A |
+| [01](plan-a-01.md) | Repo bootstrap + infrastructure | Repo skeleton via the **monorepo-setup skill**, then layered: `package.json`/`.gitignore`/CI extensions (+ `libterrain`/`map` devDeps), `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | A |
 | [02](plan-a-02.md) | Schema + RLS + interest_signals migration | Hand-written migration for `interest_signals`, RLS policies (prose tables get `public_read` from terrain), schema verification | 01 |
 | [03](plan-a-03.md) | Data pipeline (r3) | vendored `story.dsl` + `prose-cache.json` verbatim + `PROVENANCE.md`; `scripts/build-seed.sh` runs `fit-terrain build --output-root`; `setup.sh` data steps | 01, 02, prereqs A+B, spec 1150 |
 | [04](plan-a-04.md) | Edge functions | `embed-seed`, `eligibility-check`, `notify-updates`, `sync-listings` under `services/polaris-functions/` | 03 |

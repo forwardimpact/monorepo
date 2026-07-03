@@ -111,8 +111,11 @@ calls.
 
 ### Included
 
-- Repository structure following MONOREPO.md standard with PG On Rails
-  infrastructure under `infrastructure/`.
+- Repository scaffolding stood up by the **monorepo-setup skill** (which runs
+  `coaligned-setup` and `kata-setup`) — the skeleton, instruction layers, agent
+  team, check workflows, wiki, and remote. The spec layers the Polaris product
+  and its PG On Rails infrastructure (`infrastructure/`) onto that skeleton and
+  does not re-specify what the skill owns.
 - `data/synthetic/story.dsl` and `prose-cache.json` vendored verbatim from the
   monorepo, with recorded provenance (`PROVENANCE.md`, `SHA256SUMS`).
 - `products/polaris/` — `site/` (Next.js), `cli/` (bionova-polaris), `handlers/`

@@ -10,7 +10,7 @@
 // When an upgrade changes a value, the stale doc lines fail here instead of
 // silently drifting.
 //
-// Out of scope: specs/, wiki/, benchmarks/ (historical records), test files
+// Out of scope: specs/, references/, wiki/, benchmarks/ (historical records), test files
 // and libmock (fixture data — arbitrary sample values, not defaults).
 
 import { resolve } from "node:path";
@@ -29,6 +29,9 @@ const BASE_GLOBS = [
   "!node_modules/**",
   "!generated/**",
   "!specs/**",
+  // Reference specs for external-repo implementations (references/*): may name
+  // model ids as part of documenting the external build, out of scope like specs/.
+  "!references/**",
   "!wiki/**",
   "!benchmarks/**",
   // This module names example IDs in its comments and would match them.
