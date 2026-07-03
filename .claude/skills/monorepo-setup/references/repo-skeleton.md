@@ -50,6 +50,28 @@ apm_modules/      # APM writes this on first install
 Pin a version whose budgets exempt YAML frontmatter (0.1.15+); published skill
 packs carry publish-injected frontmatter that otherwise breaches the caps.
 
+## scripts/bootstrap.sh
+
+The `bootstrap` composite action (every Kata workflow runs it) checks out the
+repo, puts the `fit-*` CLIs on PATH, then runs `./scripts/bootstrap.sh`. The
+action requires this file with no guard — a repo missing it fails every
+workflow at that step with `exit 127`. Keep it to environment setup: install
+the workspace, then sync the wiki.
+
+```sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Install workspace dependencies with the repository's install command.
+<install-command>
+
+# Sync agent memory. Non-fatal so a missing or empty wiki never blocks CI.
+npx fit-wiki init || echo "bootstrap: wiki init skipped" >&2
+npx fit-wiki pull || echo "bootstrap: wiki pull skipped" >&2
+```
+
+Commit it executable (`chmod +x scripts/bootstrap.sh`).
+
 ## Check workflows
 
 Never a single `check.yml`. Generate one workflow per concern — at minimum
