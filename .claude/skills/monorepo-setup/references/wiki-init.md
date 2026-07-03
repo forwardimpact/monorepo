@@ -6,16 +6,19 @@ GitHub Wiki of the repo, `<repo>.wiki.git`) cloned into `wiki/` and gitignored,
 so it is never created by the bootstrap commit. Neither `coaligned-setup` nor
 `kata-setup` seeds it; this skill does.
 
-Two pieces: a minimal `.claude/settings.json` that drives the wiki lifecycle
-through Claude Code hooks, and the three named-ledger files (`Home.md`,
-`MEMORY.md`, `STATUS.md`) scaffolded empty so the first agent run reads a valid
-wiki instead of an empty clone.
+Two pieces: a `.claude/settings.json` whose Claude Code hooks bootstrap the
+environment and drive the wiki lifecycle, and the three named-ledger files
+(`Home.md`, `MEMORY.md`, `STATUS.md`) scaffolded empty so the first agent run
+reads a valid wiki instead of an empty clone.
 
 ## .claude/settings.json
 
-The lifecycle is two moves: pull the shared wiki down before a session reads
-it, push local changes back when the session stops. `init` clones the wiki on
-first run and is idempotent after.
+**SessionStart** bootstraps the environment in two moves: curl the published,
+versioned `fit-install.sh` release asset to put the pinned FIT toolchain on
+`PATH`, then run local `scripts/bootstrap.sh` (workspace install, then wiki
+sync). A consuming repo holds no installer of its own — it fetches the released
+artifact pinned to a gear release. **Stop** pushes agent memory back;
+**WorktreeCreate** clones the wiki into a fresh worktree.
 
 ```json
 {
@@ -23,8 +26,11 @@ first run and is idempotent after.
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "npx fit-wiki init" },
-          { "type": "command", "command": "npx fit-wiki pull" }
+          {
+            "type": "command",
+            "command": "curl -fsSL https://github.com/forwardimpact/monorepo/releases/download/<gear-release>/fit-install.sh | bash"
+          },
+          { "type": "command", "command": "bash scripts/bootstrap.sh" }
         ]
       }
     ],
@@ -41,6 +47,12 @@ first run and is idempotent after.
   }
 }
 ```
+
+Pin `<gear-release>` to a specific `gear@vX.Y.Z` tag, never `latest` — a
+consumer tracks versioned artifacts, not the moving tip (resolve the current tag
+with `gh release list --repo forwardimpact/monorepo`). `scripts/bootstrap.sh`
+(see [repo-skeleton.md](repo-skeleton.md)) already runs `fit-wiki init`/`pull`
+on SessionStart, so no separate wiki-pull hook belongs there.
 
 If `coaligned-setup` or `kata-setup` already wrote `.claude/settings.json`,
 merge these hook arrays into it rather than overwriting — do not drop their
