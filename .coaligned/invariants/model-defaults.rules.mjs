@@ -29,8 +29,8 @@ const BASE_GLOBS = [
   "!node_modules/**",
   "!generated/**",
   "!specs/**",
-  // Reference-implementation records (e.g. references/bionova-apps/): frozen
-  // build history for external repos, out of scope like specs/.
+  // Reference specs for external-repo implementations (references/*): may name
+  // model ids as part of documenting the external build, out of scope like specs/.
   "!references/**",
   "!wiki/**",
   "!benchmarks/**",
