@@ -33,10 +33,12 @@ once per repository.
 ### Step 1 — Bootstrap the skeleton
 
 `git init`, default branch `main`, then the seam files from
-[references/repo-skeleton.md](references/repo-skeleton.md): `.gitignore` and the
-[Monorepo standard][monorepo] top-level directories, each with a `README.md`
-naming its jobs. See [the Monorepo standard][monorepo] for what each directory
-is for — do not invent structure. Commit.
+[references/repo-skeleton.md](references/repo-skeleton.md): `.gitignore`,
+`scripts/bootstrap.sh` (the `bootstrap` action runs it in every Kata workflow —
+without it they fail `exit 127`), and the [Monorepo standard][monorepo]
+top-level directories, each with a `README.md` naming its jobs. See [the
+Monorepo standard][monorepo] for what each directory is for — do not invent
+structure. Commit.
 
 ### Step 2 — Add the root package.json
 
@@ -99,6 +101,7 @@ that the wiki clones with its three ledgers via `fit-wiki pull`.
 <do_confirm_checklist goal="Verify the repo stands before handing off">
 
 - [ ] Git, the root `package.json`, and the Monorepo directory tree exist.
+- [ ] `scripts/bootstrap.sh` exists and is executable (the `bootstrap` action runs it).
 - [ ] Both skill packs and the kata agent profiles are under `.claude/`.
 - [ ] `coaligned-setup` and `kata-setup` both completed.
 - [ ] The check workflows exist (`check-quality`, `check-test`, `check-context`)
