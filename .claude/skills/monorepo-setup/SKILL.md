@@ -101,7 +101,8 @@ that the wiki clones with its three ledgers via `fit-wiki pull`.
 <do_confirm_checklist goal="Verify the repo stands before handing off">
 
 - [ ] Git, the root `package.json`, and the Monorepo directory tree exist.
-- [ ] `scripts/bootstrap.sh` exists and is executable (the `bootstrap` action runs it).
+- [ ] `scripts/bootstrap.sh` exists and is executable (the `bootstrap` action
+      runs it).
 - [ ] Both skill packs and the kata agent profiles are under `.claude/`.
 - [ ] `coaligned-setup` and `kata-setup` both completed.
 - [ ] The check workflows exist (`check-quality`, `check-test`, `check-context`)
