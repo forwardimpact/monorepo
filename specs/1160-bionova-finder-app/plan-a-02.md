@@ -173,6 +173,15 @@ To avoid policy-name collision with the plan-02 migration:
 Updated `20260601000001_rls_policies.sql` body:
 
 ```sql
+-- Self-contained auth.jwt() helper. GoTrue defines this at runtime, but this
+-- migration's policies depend on it and may apply before GoTrue has migrated,
+-- so define the canonical Supabase version here to keep the migration
+-- self-contained (idempotent CREATE OR REPLACE).
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE OR REPLACE FUNCTION auth.jwt() RETURNS jsonb
+  LANGUAGE sql STABLE
+  AS $$ SELECT coalesce(current_setting('request.jwt.claims', true)::jsonb, '{}'::jsonb) $$;
+
 -- Staff writes on trials + criteria
 CREATE POLICY trials_staff_write ON trials FOR INSERT WITH CHECK (auth.jwt() ->> 'role' = 'staff');
 CREATE POLICY trials_staff_update ON trials FOR UPDATE USING (auth.jwt() ->> 'role' = 'staff');
@@ -182,6 +191,9 @@ CREATE POLICY criteria_staff_update ON criteria FOR UPDATE USING (auth.jwt() ->>
 -- interest_signals: anonymous insert, staff read
 CREATE POLICY interest_signals_anon_insert ON interest_signals FOR INSERT WITH CHECK (true);
 CREATE POLICY interest_signals_staff_read ON interest_signals FOR SELECT USING (auth.jwt() ->> 'role' = 'staff');
+-- RLS gates rows but NOT base-table privileges: anon must also hold the INSERT
+-- grant or the insert fails with "permission denied" before RLS even runs.
+GRANT INSERT ON interest_signals TO anon, authenticated;
 
 -- Service role bypass for Edge Functions
 GRANT ALL ON conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, condition_explainers, trial_faqs, consent_summaries, site_descriptions, patient_stories, therapy_descriptions, interest_signals TO service_role;

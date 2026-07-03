@@ -61,13 +61,23 @@ skills only — confirm the kata **agent profiles** also landed in
 (`agents/*.agent.md` → `.claude/agents/<name>.md`, with the flat
 `agents/x-*.md` reference files).
 
-### Step 4 — Run coaligned-setup, then kata-setup
+### Step 4 — Invoke coaligned-setup, then kata-setup
 
-Run the `coaligned-setup` skill to completion, then the `kata-setup` skill.
-Order matters: the root identity files exist before the agent team references
-them. Each skill owns its domain end to end — follow them, do not duplicate
-their steps here. Answer their configuration prompts with the choices from the
-entry checklist.
+These two upstream skills are the reason this orchestration exists. **Invoke
+each one as a skill and run it to completion** — do not read them for reference
+and hand-roll their work, and do not move on while one is unfinished. This is a
+hard gate, not a pointer: the most common failure of this step is treating
+"run coaligned-setup" as prose and skipping the actual skill invocation.
+
+Invoke `coaligned-setup` first, then `kata-setup`. Order matters: the root
+identity files must exist before the agent team references them. Each skill owns
+its domain end to end — follow it, do not restate its steps here. Answer their
+configuration prompts with the choices from the entry checklist.
+
+Do not proceed to Step 5 until both have run. Confirm each left its artifacts:
+`coaligned-setup` — `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, and
+`.coaligned/`; `kata-setup` — the agent workflows under `.github/workflows/`. If
+an artifact is missing, the skill did not run — invoke it before continuing.
 
 ### Step 5 — Add the check CI
 
@@ -106,7 +116,9 @@ that the wiki clones with its three ledgers via `fit-wiki pull`.
 - [ ] `scripts/bootstrap.sh` exists and is executable (the `bootstrap` action
       runs it).
 - [ ] Both skill packs and the kata agent profiles are under `.claude/`.
-- [ ] `coaligned-setup` and `kata-setup` both completed.
+- [ ] `coaligned-setup` and `kata-setup` were each invoked as skills and ran to
+      completion — `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.coaligned/`, and
+      the agent workflows all exist.
 - [ ] The check workflows exist (`check-quality`, `check-test`, `check-context`)
       and `coaligned` runs clean.
 - [ ] The remote exists, the wiki is on, and `KATA_KILLSWITCH` is engaged.
