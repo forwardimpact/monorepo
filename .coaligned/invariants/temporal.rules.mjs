@@ -4,7 +4,8 @@
 // superseded, the reference rots. Every comment, log message, or test label
 // should stand on its own and explain WHY the code exists, not WHEN it landed.
 //
-// Out of scope: specs/, wiki/, benchmarks/, generated/, node_modules/, .git/.
+// Out of scope: specs/, references/, wiki/, benchmarks/, generated/,
+// node_modules/, .git/.
 
 const PATTERNS = [
   { pattern: "\\bspec[- ][0-9]{2,5}\\b" },
@@ -90,6 +91,9 @@ const BASE_GLOBS = [
   "!node_modules/**",
   "!generated/**",
   "!specs/**",
+  // Reference-implementation records (e.g. references/bionova-apps/): frozen
+  // build history for external repos, out of scope like specs/.
+  "!references/**",
   "!wiki/**",
   "!benchmarks/**",
   "!bun.lock",
