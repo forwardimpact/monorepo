@@ -153,7 +153,7 @@ Service definitions (one per `infrastructure/` subdirectory):
 | `kong` | `kong:3.4.3.1` | 8000:8000 | `kong health` | (none) |
 | `postgres` | builds `infrastructure/postgres/` (Dockerfile based on `supabase/postgres:15.6.1.143`, which ships pgvector + pg_cron + pg_net + pgjwt + pgsodium + pgaudit + pgcrypto + uuid-ossp out of the box) | 5432:5432 | `pg_isready -U postgres` | (none) |
 | `pgbouncer` | `edoburu/pgbouncer:1.22.1-p0` (the edoburu tags carry a `-pN` patch suffix; a bare `1.22.1` does not exist) | 6432:6432 | `nc -z 127.0.0.1 6432` | `postgres` |
-| `postgrest` | `postgrest/postgrest:v12.0.2` | 3000:3000 | `bash -c 'exec 3<>/dev/tcp/127.0.0.1/3000'` | `pgbouncer` |
+| `postgrest` | builds `infrastructure/postgrest/` (`FROM postgrest/postgrest:v12.0.2` with a static busybox copied in — the upstream image is distroless) | 3000:3000 | `/bin/busybox nc -z -w 2 127.0.0.1 3000` | `pgbouncer` |
 | `gotrue` | `supabase/gotrue:v2.151.0` | 9999:9999 | `wget -q --spider http://127.0.0.1:9999/health` | `postgres` |
 | `realtime` | `supabase/realtime:v2.30.34` | 4000:4000 | `bash -c 'exec 3<>/dev/tcp/127.0.0.1/4000'` | `postgres` |
 | `storage` | `supabase/storage-api:v1.0.6` | 5000:5000 | `wget -q --spider http://127.0.0.1:5000/status` | `postgres`, `minio` |
@@ -167,12 +167,18 @@ All services share a single Docker network `bionova` (created by compose).
 Postgres password and JWT secret are read from `.env` (template at
 `.env.example` committed; `.env` is gitignored).
 
-**Healthchecks use only tools the image actually ships.** The `postgrest`,
-`tei`, `polaris-site`, and `polaris-functions` images carry `bash` but neither
-`curl` nor `wget`, so they probe with a `bash` `/dev/tcp` TCP connect;
-`realtime` has `curl` but no `/api/health` route, so it also uses a TCP probe.
-Probes target `127.0.0.1`, never `localhost`: the BusyBox `nc`/`wget` in several
-images resolve `localhost` to IPv6 `::1`, but the services bind IPv4 `0.0.0.0`.
+**Healthchecks use only tools the image actually ships.** The `tei`,
+`polaris-site`, and `polaris-functions` images carry `bash` but neither `curl`
+nor `wget`, so they probe with a `bash` `/dev/tcp` TCP connect; `realtime` has
+`curl` but no `/api/health` route, so it also uses a TCP probe. `postgrest` is
+**distroless** — it ships only the `postgrest` binary, no shell, `wget`, `curl`,
+or `nc` — so a container healthcheck has nothing to run and the probe can never
+pass, leaving the container `unhealthy` forever. Its Dockerfile
+(`infrastructure/postgrest/Dockerfile`) copies a static busybox
+(`FROM busybox:1.36.1-musl`) into the image, and the healthcheck probes the API
+port with `/bin/busybox nc -z -w 2 127.0.0.1 3000`. Probes target `127.0.0.1`,
+never `localhost`: the BusyBox `nc`/`wget` in several images resolve `localhost`
+to IPv6 `::1`, but the services bind IPv4 `0.0.0.0`.
 
 **Only `postgrest` connects through pgbouncer.** The transaction pooler exists
 for the high-connection PostgREST data API. `gotrue` and `storage` send a
@@ -195,6 +201,10 @@ context in `docker-compose.yml`:
       context: .
       dockerfile: services/polaris-functions/Dockerfile
 ```
+
+`postgrest` also builds rather than using its image directly, but from its own
+directory (`build: { context: infrastructure/postgrest }`) — its Dockerfile
+only copies a busybox into the distroless image and needs no workspace access.
 
 Verify: `docker compose config` parses; `docker compose up -d postgres tei`
 brings both healthy within 120s.
@@ -349,7 +359,7 @@ those do not cover — **one workflow per concern, never folded into a single
 | `.github/workflows/check-compose.yml` | `cp .env.example .env && docker compose config --quiet` |
 | `.github/workflows/check-seed.yml` | seed-render determinism: `bash scripts/build-seed.sh`, assert ≥15 seed migrations, `sha256sum -c data/synthetic/SEED.sha256` |
 | `.github/workflows/check-edge.yml` | `deno check`, `deno test`, `deno lint` in `services/polaris-functions/` |
-| `.github/workflows/check-e2e.yml` | boot the stack, `./setup.sh`, `SMOKE_DESTRUCTIVE=1 ./scripts/smoke.sh` (filled in by part 08) |
+| `.github/workflows/check-e2e.yml` | render the seed, **pre-fetch the TEI model on the host** and point `tei` at the local copy (the container cannot fetch through the runner's TLS-inspecting proxy — see Step 7), then boot the stack, `./setup.sh`, `SMOKE_DESTRUCTIVE=1 ./scripts/smoke.sh` (filled in by part 08) |
 | `.github/workflows/deploy.yml` | Railway watch-path deploy on push to `main` (filled in by part 08) |
 | `.github/CODEOWNERS` | `* @forwardimpact/agent-team` (extend only if `kata-setup` did not already set it) |
 | `.github/pull_request_template.md` | Summary, Test plan (if not already scaffolded) |
