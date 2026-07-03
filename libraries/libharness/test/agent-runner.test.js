@@ -533,6 +533,46 @@ describe("AgentRunner", () => {
     assert.match(result.error.message, /Credit balance/);
   });
 
+  test("run() forwards pathToClaudeCodeExecutable when set", async () => {
+    let captured = null;
+    const query = mockQuery(
+      [{ type: "result", subtype: "success", result: "OK" }],
+      (params) => {
+        captured = params;
+      },
+    );
+    const runner = new AgentRunner({
+      cwd: "/work",
+      query,
+      output: new PassThrough(),
+      pathToClaudeCodeExecutable: "/opt/bin/claude",
+      redactor: noop(),
+    });
+    await runner.run("task");
+    assert.strictEqual(
+      captured.options.pathToClaudeCodeExecutable,
+      "/opt/bin/claude",
+    );
+  });
+
+  test("run() omits pathToClaudeCodeExecutable when unset", async () => {
+    let captured = null;
+    const query = mockQuery(
+      [{ type: "result", subtype: "success", result: "OK" }],
+      (params) => {
+        captured = params;
+      },
+    );
+    const runner = new AgentRunner({
+      cwd: "/work",
+      query,
+      output: new PassThrough(),
+      redactor: noop(),
+    });
+    await runner.run("task");
+    assert.ok(!("pathToClaudeCodeExecutable" in captured.options));
+  });
+
   test("createAgentRunner factory returns an AgentRunner instance", () => {
     const runner = createAgentRunner({
       cwd: "/tmp",

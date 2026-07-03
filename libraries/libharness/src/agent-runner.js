@@ -7,6 +7,7 @@
  */
 
 import { AGENT_MODEL } from "@forwardimpact/libutil/models";
+import { resolveClaudeExecutable } from "./claude-executable.js";
 
 const DEFAULT_ALLOWED_TOOLS = ["Bash", "Read", "Glob", "Grep", "Write", "Edit"];
 
@@ -56,6 +57,10 @@ export class AgentRunner {
    * @param {string|object} [deps.systemPrompt] - SDK system prompt (string replaces default; {type:'preset', preset:'claude_code', append} appends)
    * @param {string[]} [deps.disallowedTools] - Tools to explicitly remove from the model's context
    * @param {Record<string, object>} [deps.mcpServers] - MCP server configs to pass to the SDK query
+   * @param {string} [deps.pathToClaudeCodeExecutable] - Absolute path to the
+   *   native `claude` CLI the SDK should spawn. Set for compiled fit-* binaries,
+   *   which can't self-resolve the SDK's platform optional dependency; omitted
+   *   from source runs so the SDK resolves its own version-matched binary.
    * @param {object} deps.redactor
    * @param {import("@forwardimpact/libutil/runtime").Runtime} [deps.runtime] -
    *   Ambient collaborators. Only `proc.env` is read (to record Skill
@@ -79,6 +84,7 @@ export class AgentRunner {
     this.systemPrompt = deps.systemPrompt ?? null;
     this.disallowedTools = deps.disallowedTools ?? [];
     this.mcpServers = deps.mcpServers ?? null;
+    this.pathToClaudeCodeExecutable = deps.pathToClaudeCodeExecutable ?? null;
     this.taskAmend = deps.taskAmend ?? null;
     this.sessionId = null;
     /** @type {AbortController|null} */
@@ -158,6 +164,9 @@ export class AgentRunner {
       }),
       ...(this.systemPrompt && { systemPrompt: this.systemPrompt }),
       ...(this.mcpServers && { mcpServers: this.mcpServers }),
+      ...(this.pathToClaudeCodeExecutable && {
+        pathToClaudeCodeExecutable: this.pathToClaudeCodeExecutable,
+      }),
     };
   }
 
@@ -250,7 +259,14 @@ export class AgentRunner {
   }
 }
 
-/** Factory function — wires real dependencies. */
+/**
+ * Factory function — wires real dependencies. Resolves the native `claude`
+ * executable for compiled fit-* binaries so the SDK doesn't fail to find its
+ * own platform optional dependency; an explicit `deps` value overrides it.
+ */
 export function createAgentRunner(deps) {
-  return new AgentRunner(deps);
+  return new AgentRunner({
+    pathToClaudeCodeExecutable: resolveClaudeExecutable(),
+    ...deps,
+  });
 }
