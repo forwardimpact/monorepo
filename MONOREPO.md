@@ -69,6 +69,19 @@ in the monorepo and needs no publish-time transform. Skill packs and npm
 packages are excluded: they transform at publish (the skill-pack stage rewrites
 layout) or already have a home under the directories above.
 
+## Environment Bootstrap
+
+A Monorepo-standard repository carries one environment-setup entrypoint at
+`scripts/bootstrap.sh`. CI resolves the shared tooling, then runs this script to
+make the workspace usable — install dependencies, run any codegen, and sync the
+`wiki/` working memory. The shared CI bootstrap action invokes it by path with
+no fallback, so the file is mandatory: a repo missing it fails every agent and
+check workflow at the bootstrap step with `exit 127`.
+
+Keep it to environment setup. Keeping the branch current with the default
+branch, provisioning services, and seeding data are separate concerns owned by
+whoever needs them, not folded into this entrypoint.
+
 ## Root Files
 
 Three root files orient every contributor. Each has one job; none restates
