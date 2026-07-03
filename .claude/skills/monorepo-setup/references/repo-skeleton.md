@@ -52,13 +52,21 @@ packs carry publish-injected frontmatter that otherwise breaches the caps.
 
 ## scripts/bootstrap.sh
 
-The `bootstrap` composite action (every Kata workflow runs it) checks out the
-repo, puts the `fit-*` CLIs on PATH, then runs `./scripts/bootstrap.sh`. The
-action requires this file with no guard — a repo missing it fails every
-workflow at that step with `exit 127`. In a Claude session the same script runs
-from the `SessionStart` hook, after the installer curl (see
-[wiki-init.md](wiki-init.md)). Keep it to environment setup: install the
-workspace, then sync the wiki.
+This is the **workspace** half of the two-layer bootstrap (the installer that
+puts the toolchain on `PATH` is the other half — see
+[wiki-init.md](wiki-init.md)). Both entry points run installer-then-this-script
+in the same order: the `bootstrap` composite action in every Kata workflow, and
+the `SessionStart` hook in a Claude session. So every environment-setup step
+that must hold in both places lives here, not in the CI-only action. The action
+requires this file with no guard — a repo missing it fails every workflow at
+that step with `exit 127`.
+
+Keep it to environment setup: install the workspace, reconstitute the APM skill
+packs and agent profiles, then sync the wiki. The `apm install` step is what
+lets a repo treat `.claude/skills/` and `.claude/agents/` as reconstitutable
+build output rather than committed source — the kata agent workflows require
+those present, and this is the only step that rebuilds them on a fresh
+environment.
 
 ```sh
 #!/usr/bin/env bash
@@ -66,6 +74,11 @@ set -euo pipefail
 
 # Install workspace dependencies with the repository's install command.
 <install-command>
+
+# Reconstitute the APM skill packs + agent profiles when this repo uses APM.
+if [ -f apm.yml ] || [ -f apm.lock.yaml ]; then
+  apm install
+fi
 
 # Sync agent memory. Non-fatal so a missing or empty wiki never blocks CI.
 npx fit-wiki init || echo "bootstrap: wiki init skipped" >&2

@@ -108,7 +108,16 @@ data/synthetic/seed_embeddings.jsonl
 products/polaris/site/supabase/migrations/20250101*_seed_*.sql
 # Per-service runtime data volumes:
 infrastructure/*/data/
+# APM skill packs + agent profiles — reconstituted by scripts/bootstrap.sh:
+.agents/
+.claude/agents/
+.claude/skills/
+.github/agents/
 ```
+
+Polaris treats the skill packs and agent profiles as reconstitutable build
+output: the skeleton's `scripts/bootstrap.sh` rebuilds them from `apm.yml` on
+every environment (CI and native), so they are gitignored rather than committed.
 
 Verify: `bun install` exits 0; `just --list` shows recipes; `bun run check`
 (coaligned + lint + tsc) passes.
