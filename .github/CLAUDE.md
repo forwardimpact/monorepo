@@ -60,11 +60,11 @@ with no output.
 
 ## Environment bootstrap
 
-`scripts/fit-install.sh` is the single bootstrap path — it installs the
-external tools and pinned, SHA-verified `fit-*` binaries into `$HOME/.local`.
-`publish-binaries.yml` publishes it on `gear@v*` with the gear CLI binaries
-(`fit-wiki` included) for one-line `curl | bash` bootstrap. A missing binary
-fails hard — no `bunx`/`npx` fallback.
+`.github/actions/bootstrap/fit-install.sh` is the single bootstrap path — it
+installs the external tools and pinned, SHA-verified `fit-*` binaries into
+`$HOME/.local`, beside the `bootstrap` action so it travels with the subtree
+split. `publish-binaries.yml` publishes it on `gear@v*` for `curl | bash`
+bootstrap. A missing binary fails hard — no `bunx`/`npx` fallback.
 
 ## Local composite actions
 

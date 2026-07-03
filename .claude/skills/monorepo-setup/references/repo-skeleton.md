@@ -55,8 +55,10 @@ packs carry publish-injected frontmatter that otherwise breaches the caps.
 The `bootstrap` composite action (every Kata workflow runs it) checks out the
 repo, puts the `fit-*` CLIs on PATH, then runs `./scripts/bootstrap.sh`. The
 action requires this file with no guard — a repo missing it fails every
-workflow at that step with `exit 127`. Keep it to environment setup: install
-the workspace, then sync the wiki.
+workflow at that step with `exit 127`. In a Claude session the same script runs
+from the `SessionStart` hook, after the installer curl (see
+[wiki-init.md](wiki-init.md)). Keep it to environment setup: install the
+workspace, then sync the wiki.
 
 ```sh
 #!/usr/bin/env bash

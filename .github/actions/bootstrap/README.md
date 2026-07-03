@@ -24,9 +24,10 @@ Cold-cache runtime is ~3 minutes; warm-cache is ~15-20 seconds.
 
 ## Prerequisites
 
-The action **bundles its own installer** (`fit-install.sh`, synced from the
-monorepo source of truth) and runs it via `$GITHUB_ACTION_PATH`, so the
-consumer repo needs no install script of its own. The installer puts the
+The action **bundles its own installer** (`fit-install.sh`, the canonical
+source of truth, co-located here so it travels with the subtree split) and
+runs it via `$GITHUB_ACTION_PATH`, so the consumer repo needs no install
+script of its own. The installer puts the
 pinned external tools (`apm`, `just`, `gh`, `rg`, `gitleaks`) and any
 requested `fit-*` binaries (see the `clis` input) on `PATH`.
 

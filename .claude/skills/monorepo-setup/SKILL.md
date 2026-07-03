@@ -85,10 +85,12 @@ KATA_KILLSWITCH --body 1`) so the agent workflows stay dormant until the
 operator finishes `kata-setup`'s App and secret steps. Those credential-bound
 steps cannot run from here — record them in an operator runbook (`SETUP.md`).
 
-Then stand up the agent team's memory: add the `.claude/settings.json` wiki
-hooks, `fit-wiki init` the wiki, seed the three named ledgers (`Home.md`,
-`MEMORY.md`, `STATUS.md`) empty-but-scaffolded, and `fit-wiki push`. Full
-sequence in [references/wiki-init.md].
+Then stand up the agent team's memory: add the `.claude/settings.json` session
+hooks (SessionStart curls the pinned `fit-install.sh` release, then runs
+`scripts/bootstrap.sh`; Stop pushes the wiki), `fit-wiki init` the wiki, seed
+the three named ledgers (`Home.md`, `MEMORY.md`, `STATUS.md`)
+empty-but-scaffolded, and `fit-wiki push`. Full sequence in
+[references/wiki-init.md].
 
 ### Step 7 — Verify the composition
 
@@ -108,7 +110,8 @@ that the wiki clones with its three ledgers via `fit-wiki pull`.
 - [ ] The check workflows exist (`check-quality`, `check-test`, `check-context`)
       and `coaligned` runs clean.
 - [ ] The remote exists, the wiki is on, and `KATA_KILLSWITCH` is engaged.
-- [ ] `.claude/settings.json` drives the wiki lifecycle, and the wiki holds
+- [ ] `.claude/settings.json` drives session bootstrap (curl `fit-install.sh`,
+      then `scripts/bootstrap.sh`) and the wiki lifecycle, and the wiki holds
       `Home.md`, `MEMORY.md`, and `STATUS.md`.
 - [ ] `SETUP.md` lists the operator's remaining credential steps.
 
