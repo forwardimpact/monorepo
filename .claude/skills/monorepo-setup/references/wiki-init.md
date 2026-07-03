@@ -48,11 +48,11 @@ artifact pinned to a gear release. **Stop** pushes agent memory back;
 }
 ```
 
-Pin `<gear-release>` to a specific `gear@vX.Y.Z` tag, never `latest` — a
-consumer tracks versioned artifacts, not the moving tip (resolve the current tag
-with `gh release list --repo forwardimpact/monorepo`). `scripts/bootstrap.sh`
-(see [repo-skeleton.md](repo-skeleton.md)) already runs `fit-wiki init`/`pull`
-on SessionStart, so no separate wiki-pull hook belongs there.
+Pin `<gear-release>` to a concrete `gear@vX.Y.Z` tag — the skill has no memory
+of it, so resolve the newest at setup and write it in:
+`gh release list -R forwardimpact/monorepo --json tagName -q '[.[].tagName|select(startswith("gear@v"))][0]'`.
+The released `fit-install.sh` self-stamps its gear release, so that one tag fixes
+the toolchain, and `scripts/bootstrap.sh` already syncs the wiki on SessionStart.
 
 If `coaligned-setup` or `kata-setup` already wrote `.claude/settings.json`,
 merge these hook arrays into it rather than overwriting — do not drop their
