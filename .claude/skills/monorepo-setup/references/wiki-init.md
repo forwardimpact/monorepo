@@ -48,8 +48,8 @@ artifact pinned to a gear release. **Stop** pushes agent memory back;
 }
 ```
 
-Pin `<gear-release>` to a concrete `gear@vX.Y.Z` tag — the skill has no memory
-of it, so resolve the newest at setup and write it in:
+Pin `<gear-release>` to a concrete `gear@vX.Y.Z` tag — resolve the newest at
+setup and write it in:
 `gh release list -R forwardimpact/monorepo --json tagName -q '[.[].tagName|select(startswith("gear@v"))][0]'`.
 The released `fit-install.sh` self-stamps its gear release, so that one tag fixes
 the toolchain, and `scripts/bootstrap.sh` already syncs the wiki on SessionStart.
