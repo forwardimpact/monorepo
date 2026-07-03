@@ -61,6 +61,11 @@ skills only — confirm the kata **agent profiles** also landed in
 (`agents/*.agent.md` → `.claude/agents/<name>.md`, with the flat
 `agents/x-*.md` reference files).
 
+The `apm.yml` this writes makes the packs reconstitutable:
+`scripts/bootstrap.sh` runs `apm install` on every fresh environment (Step 1),
+so you may commit `.claude/skills/` and `.claude/agents/` or gitignore them as
+build output — either satisfies the run-time requirement that they be present.
+
 ### Step 4 — Invoke coaligned-setup, then kata-setup
 
 These two upstream skills are the reason this orchestration exists. **Invoke

@@ -71,16 +71,32 @@ layout) or already have a home under the directories above.
 
 ## Environment Bootstrap
 
-A Monorepo-standard repository carries one environment-setup entrypoint at
-`scripts/bootstrap.sh`. CI resolves the shared tooling, then runs this script to
-make the workspace usable — install dependencies, run any codegen, and sync the
-`wiki/` working memory. The shared CI bootstrap action invokes it by path with
-no fallback, so the file is mandatory: a repo missing it fails every agent and
-check workflow at the bootstrap step with `exit 127`.
+Every agent session sets up its environment in two layers, in order:
 
-Keep it to environment setup. Keeping the branch current with the default
-branch, provisioning services, and seeding data are separate concerns owned by
-whoever needs them, not folded into this entrypoint.
+1. **Toolchain — `fit-install.sh`.** Puts the pinned FIT toolchain on `PATH`
+   (`apm`, `just`, `gh`, `rg`, `gitleaks`, `coaligned`, and any requested
+   `fit-*` CLIs). It is a released, versioned, repo-agnostic artifact — the same
+   bytes for every repository, installing binaries only. It never mutates a
+   repository's working tree.
+2. **Workspace — `scripts/bootstrap.sh`.** Uses that toolchain to reconstitute
+   _this_ repository's tree: install dependencies with the repo's own package
+   manager; run `apm install` to rebuild the APM skill packs and agent profiles
+   when the repo carries an `apm.yml`; sync the `wiki/` working memory. It is
+   repo-owned, because these steps are repo-specific.
+
+Both entry points run **both layers, in the same order**. The CI bootstrap
+action runs `fit-install.sh` then `scripts/bootstrap.sh`; the native
+`.claude/settings.json` `SessionStart` hook does the same. That symmetry is the
+contract — an agent gets the same tools, dependencies, skills, and memory
+whether it runs in CI or a local session. **A step that must hold in both
+places belongs in one of these two scripts, never in the CI-only composite
+action**, which native sessions never invoke.
+
+`scripts/bootstrap.sh` is mandatory: the CI bootstrap action invokes it by path
+with no fallback, so a repo missing it fails every agent and check workflow at
+that step with `exit 127`. Keep it to environment setup. Keeping the branch
+current with the default branch, provisioning services, and seeding data are
+separate concerns owned by whoever needs them, not folded into this entrypoint.
 
 ## Root Files
 
