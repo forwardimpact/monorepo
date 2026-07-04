@@ -158,7 +158,7 @@ runs:
     # ./scripts/bootstrap.sh. The `token:` input gates wiki checkout —
     # leave it empty to skip wiki sync. The wiki is pushed back after the
     # agent run via forwardimpact/wiki below.
-    - uses: forwardimpact/bootstrap@c349e223de51a865ac223cc712972487393829b5 # v1.0.8
+    - uses: forwardimpact/bootstrap@af1f2e7950785db1ba3bee648cf75098c415fb42 # v1.0.11
       with:
         token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
         app-slug: ${{ inputs.app-slug }}
