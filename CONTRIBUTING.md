@@ -185,6 +185,13 @@ Pre-1.0 packages bump patch for any change. Post-1.0: semver (breaking=major,
 feat=minor, fix/refactor=patch). The release engineer handles bumps, tags, and
 publishing — see [kata-release-cut](.claude/skills/kata-release-cut).
 
+Tags go only on commits already on `main`. PRs land by squash-merge, so a
+reviewed branch's commits never reach `main` — its version bump arrives as one
+new squash commit. Merge that first, then tag the resulting `main` commit;
+never tag a feature-branch SHA, or the tag strands on a commit absent from
+`main` and the publish pipeline builds orphaned code. The `Release: Tag`
+workflow enforces this: it refuses any SHA not reachable from `main`.
+
 **Composite actions** release on a separate tag space: append-only `v1.0.x`
 tags on the sibling repos, with `v1` a moving major alias for external
 consumers. A push to `main` mirrors each action to its sibling by subtree
