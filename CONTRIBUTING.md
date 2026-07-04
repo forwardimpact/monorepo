@@ -192,17 +192,17 @@ release-cutting environment can't push tags.
 sibling action repos too), and `sha` (default: the target's default-branch
 tip). It pushes each tag from CI with an App token — not `GITHUB_TOKEN`, so
 publish pipelines still fire — via
-[`release-tagger`](.github/actions/release-tagger/action.yml): tags are
-append-only, an action release's `v<major>` alias moves forward-only, and only
-commits reachable from the default branch are taggable. Squash-merge leaves a
-branch's own commits off `main`, so merge first, then tag the resulting `main`
-commit.
+[`release-tagger`](.github/actions/release-tagger/action.yml): release tags are
+append-only, an action release's `v<major>` alias always tracks the latest
+release, and only commits reachable from the default branch are taggable.
+Squash-merge leaves a branch's own commits off `main`, so merge first, then tag
+the resulting `main` commit.
 
 **Composite actions** use a separate tag space: append-only `v1.0.x` on the
-sibling repos, with `v1` a forward-only major alias (dispatch `Release: Tag`
-with `repo: <sibling>` and the `v1.0.x` tag). A push to `main` mirrors each
-action to its sibling by subtree split; the publish path and `v1`-move
-constraints live in [`.github/CLAUDE.md`](.github/CLAUDE.md).
+sibling repos, with `v1` a major alias that tracks the latest release (dispatch
+`Release: Tag` with `repo: <sibling>` and the `v1.0.x` tag). A push to `main`
+mirrors each action to its sibling by subtree split; the publish path and
+`v1`-move policy live in [`.github/CLAUDE.md`](.github/CLAUDE.md).
 
 Some changes span tags: a new binary is reachable only after every tier ships.
 Release producer before consumer, bottom-up: (1) the compiled binary/bundle;

@@ -89,23 +89,23 @@ runs:
           tag_commit="$(git rev-parse "refs/tags/$t^{commit}")"
 
           # v1-move: only for exact v<major>.<minor>.<patch> action releases.
-          # The major alias tracks the release tag's commit, moving forward only.
+          # The major alias always tracks the latest release commit — NOT
+          # forward-only. Subtree-split projections are periodically re-seeded
+          # (an upstream history rewrite orphans older projected commits), so a
+          # new release legitimately lands off the previous alias lineage; an
+          # ancestor check would wedge the alias permanently. Safety is the
+          # lighter guard below: the target carries this release tag and is on
+          # the default branch (never an arbitrary or off-branch SHA).
           printf '%s' "$t" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$' || continue
           major="${t%%.*}"
-          if git rev-parse -q --verify "refs/tags/$major^{commit}" >/dev/null 2>&1; then
-            old="$(git rev-parse "refs/tags/$major^{commit}")"
-            if [ "$old" = "$tag_commit" ]; then
-              echo "$major already at $tag_commit"
-            elif git merge-base --is-ancestor "$old" "$tag_commit"; then
-              git tag -f "$major" "$tag_commit"
-              git push --force --quiet origin "refs/tags/$major"
-              echo "moved $major: $old -> $tag_commit"
-            else
-              echo "::error::refusing to move $major: current target $old is not an ancestor of $tag_commit (backward or off-line move)"; exit 1
-            fi
+          if ! git merge-base --is-ancestor "$tag_commit" "$default_ref"; then
+            echo "::error::$t ($tag_commit) is not on ${default_ref#origin/}; refusing to move $major"; exit 1
+          fi
+          if [ "$(git rev-parse -q --verify "refs/tags/$major^{commit}" 2>/dev/null || true)" = "$tag_commit" ]; then
+            echo "$major already at $tag_commit"
           else
-            git tag "$major" "$tag_commit"
-            git push --quiet origin "refs/tags/$major"
-            echo "created alias $major -> $tag_commit"
+            git tag -f "$major" "$tag_commit"
+            git push --force --quiet origin "refs/tags/$major"
+            echo "set $major -> $tag_commit"
           fi
         done
