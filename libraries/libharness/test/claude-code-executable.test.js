@@ -21,7 +21,8 @@ describe("resolveClaudeCodeExecutable", () => {
     assert.strictEqual(
       resolveClaudeCodeExecutable({
         isCompiled: true,
-        which: (cmd) => (cmd === "claude" ? "/home/runner/.local/bin/claude" : null),
+        which: (cmd) =>
+          cmd === "claude" ? "/home/runner/.local/bin/claude" : null,
       }),
       "/home/runner/.local/bin/claude",
     );

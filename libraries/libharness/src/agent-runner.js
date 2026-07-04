@@ -84,7 +84,9 @@ export class AgentRunner {
     this.systemPrompt = deps.systemPrompt ?? null;
     this.disallowedTools = deps.disallowedTools ?? [];
     this.mcpServers = deps.mcpServers ?? null;
-    this.pathToClaudeCodeExecutable = deps.pathToClaudeCodeExecutable ?? null;
+    // Optional; read only through a truthy guard in #callOptions, so an absent
+    // value stays undefined rather than needing a `?? null` default.
+    this.pathToClaudeCodeExecutable = deps.pathToClaudeCodeExecutable;
     this.taskAmend = deps.taskAmend ?? null;
     this.sessionId = null;
     /** @type {AbortController|null} */
