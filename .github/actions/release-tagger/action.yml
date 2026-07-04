@@ -1,0 +1,111 @@
+name: Release Tagger
+description: >
+  Create append-only release tags on a target repo and, for action releases
+  (`v<major>.<minor>.<patch>`), move the `v<major>` alias forward per the
+  monorepo's v1-move policy. Deterministic and idempotent: an existing release
+  tag is never moved, and the major alias only ever moves forward to a commit
+  that carries the release tag and is reachable from the default branch.
+
+inputs:
+  owner:
+    description: Repository owner (org).
+    required: true
+  repo:
+    description: Target repository name (no owner prefix).
+    required: true
+  tags:
+    description: Whitespace/comma-separated release tags to create.
+    required: true
+  sha:
+    description: Commit to tag; defaults to the target repo's default-branch tip.
+    required: false
+    default: ""
+  token:
+    description: >
+      Token with `contents: write` on the target repo (an App installation
+      token scoped to that repo). Minted by the caller — composite actions
+      cannot read secrets.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        OWNER: ${{ inputs.owner }}
+        REPO: ${{ inputs.repo }}
+        TAGS: ${{ inputs.tags }}
+        SHA_INPUT: ${{ inputs.sha }}
+        TAG_TOKEN: ${{ inputs.token }}
+      run: |
+        set -euo pipefail
+
+        # Work in a throwaway clone of the TARGET repo so this action can tag
+        # any org repo, not just the one it runs in. blob:none keeps the full
+        # commit graph + tags (needed for ancestry and alias checks) without
+        # fetching file contents.
+        work="$(mktemp -d)"
+        git clone --quiet --filter=blob:none \
+          "https://x-access-token:${TAG_TOKEN}@github.com/${OWNER}/${REPO}.git" "$work"
+        cd "$work"
+        git config user.name "kata-agent-team[bot]"
+        git config user.email "kata-agent-team[bot]@users.noreply.github.com"
+
+        default_ref="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
+
+        # Resolve and validate the target commit: a full SHA reachable from the
+        # default branch (a reviewed commit), never an arbitrary ref.
+        target="${SHA_INPUT:-$(git rev-parse "$default_ref")}"
+        if ! printf '%s' "$target" | grep -Eq '^[0-9a-f]{40}$'; then
+          echo "::error::sha must be a full 40-char commit (got '$target')"; exit 1
+        fi
+        if ! git merge-base --is-ancestor "$target" "$default_ref"; then
+          echo "::error::target $target is not reachable from ${default_ref#origin/}"; exit 1
+        fi
+
+        # Normalize separators, then validate every tag's shape up front so a
+        # bad entry fails before anything is pushed.
+        tags="$(printf '%s' "$TAGS" | tr ',\n\r\t' '    ')"
+        n=0
+        for t in $tags; do
+          case "$t" in
+            *@v[0-9]*) ;;                       # package release: <name>@v<version>
+            v[0-9]*.[0-9]*.[0-9]*) ;;           # action release: v<major>.<minor>.<patch>
+            *) echo "::error::tag '$t' is not release-shaped"; exit 1 ;;
+          esac
+          n=$((n + 1))
+        done
+        [ "$n" -gt 0 ] || { echo "::error::no tags supplied"; exit 1; }
+
+        for t in $tags; do
+          # Append-only: create the release tag if absent, never move it.
+          if git rev-parse -q --verify "refs/tags/$t^{commit}" >/dev/null 2>&1; then
+            echo "$t already exists — leaving in place"
+          else
+            git tag "$t" "$target"
+            git push --quiet origin "refs/tags/$t"
+            echo "created $t -> $target"
+          fi
+          tag_commit="$(git rev-parse "refs/tags/$t^{commit}")"
+
+          # v1-move: only for exact v<major>.<minor>.<patch> action releases.
+          # The major alias tracks the release tag's commit, moving forward only.
+          printf '%s' "$t" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$' || continue
+          major="${t%%.*}"
+          if git rev-parse -q --verify "refs/tags/$major^{commit}" >/dev/null 2>&1; then
+            old="$(git rev-parse "refs/tags/$major^{commit}")"
+            if [ "$old" = "$tag_commit" ]; then
+              echo "$major already at $tag_commit"
+            elif git merge-base --is-ancestor "$old" "$tag_commit"; then
+              git tag -f "$major" "$tag_commit"
+              git push --force --quiet origin "refs/tags/$major"
+              echo "moved $major: $old -> $tag_commit"
+            else
+              echo "::error::refusing to move $major: current target $old is not an ancestor of $tag_commit (backward or off-line move)"; exit 1
+            fi
+          else
+            git tag "$major" "$tag_commit"
+            git push --quiet origin "refs/tags/$major"
+            echo "created alias $major -> $tag_commit"
+          fi
+        done
