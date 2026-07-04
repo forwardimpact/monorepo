@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libpolicy",
-  "version": "0.1.64",
+  "version": "0.1.65",
   "description": "Access-control policy evaluation — scoped context access without per-service authorization logic.",
   "keywords": [
     "policy",

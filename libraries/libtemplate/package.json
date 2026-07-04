@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libtemplate",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "Mustache template loader with project-level overrides — consistent rendered output across surfaces.",
   "keywords": [
     "template",
