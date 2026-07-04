@@ -39,10 +39,10 @@ skill only for the full Participant Protocol below.
       artifact guidance.
 - [ ] Pick metrics CSVs from `wiki/metrics/` for participants to report.
       Participants — not the facilitator — run `npx fit-xmr analyze`.
-- [ ] Team runs: confirm each metric has its `<!-- xmr:... -->` marker (a
-      participant seeds missing ones from
-      [`storyboard-template.md`](references/storyboard-template.md)); blocks
-      render from the deterministic `fit-wiki refresh` step, never the
+- [ ] Team runs: `fit-wiki refresh` creates the storyboard and renders all
+      blocks before the meeting; a participant seeds any missing
+      `<!-- xmr:... -->` marker from
+      [`storyboard-template.md`](references/storyboard-template.md), never the
       facilitator.
 
 </read_do_checklist>
