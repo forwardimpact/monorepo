@@ -6,7 +6,7 @@ _The long-term direction that gives meaning to target conditions and
 experiments. Changes rarely — only when strategic direction shifts._
 _**Budget: ≤100 words.** State, not history._
 
-> [Write the challenge here.]
+> [product-manager writes the challenge here.]
 
 ## Target Condition
 
@@ -16,7 +16,7 @@ in terms verifiable with data from metrics CSVs._
 _**Budget: ≤900 words** (the per-dimension table dominates; prose intro stays
 short)._
 
-> [Write the target condition here. Include specific metrics and thresholds.]
+> [product-manager writes the target condition, with metrics and thresholds.]
 
 **Due:** YYYY-MM-DD (end of month)
 

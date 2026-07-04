@@ -11,6 +11,7 @@ import {
   parseRepoSlug,
 } from "../issue-list-renderer.js";
 import { parseClaims, filterExpired, removeClaim } from "../active-claims.js";
+import { renderStoryboardSkeleton } from "../storyboard-skeleton.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot, resolveWikiRoot } from "../util/wiki-dir.js";
 
@@ -90,9 +91,8 @@ function spliceBlock(lines, block, rendered) {
   );
 }
 
-// A missing current-month storyboard (e.g. a coaching run early in the month,
-// before the storyboard meeting created it) is non-fatal: return null so the
-// deterministic refresh step exits cleanly instead of failing the job.
+// A missing current-month storyboard is non-fatal: return null so the caller
+// can create it (see createStoryboardSkeleton) rather than fail the job.
 function readStoryboardOrNull(runtime, storyboardPath) {
   try {
     return runtime.fsSync.readFileSync(storyboardPath, "utf-8");
@@ -100,6 +100,20 @@ function readStoryboardOrNull(runtime, storyboardPath) {
     if (err.code !== "ENOENT") throw err;
     return null;
   }
+}
+
+// Create the current-month storyboard from the minimal skeleton when it does
+// not exist. Refresh is the deterministic "freshen the wiki" step and runs
+// before the session (kata-agent pre-run), so creating here guarantees the file
+// is on disk before participants look for it — without any lead having a write
+// tool. The skeleton carries the section structure and the generic issue-list
+// markers; the render pass below fills them and participants seed metric blocks.
+function createStoryboardSkeleton(runtime, storyboardPath, logger) {
+  const skeleton = renderStoryboardSkeleton(currentDayIso(runtime));
+  runtime.fsSync.mkdirSync(path.dirname(storyboardPath), { recursive: true });
+  runtime.fsSync.writeFileSync(storyboardPath, skeleton);
+  logger.info("refresh", `created storyboard at ${storyboardPath}`);
+  return skeleton;
 }
 
 // Drop every MEMORY.md `## Active Claims` row past its `expires_at`, writing the
@@ -142,11 +156,11 @@ export async function runRefreshCommand(ctx) {
     projectRoot,
     ctx.args["storyboard-path"] || currentStoryboardRelPath(runtime),
   );
-  const text = readStoryboardOrNull(runtime, storyboardPath);
-  if (text === null) {
-    logger.warn("refresh", `no storyboard at ${storyboardPath}`);
-    return { ok: true };
-  }
+  const existing = readStoryboardOrNull(runtime, storyboardPath);
+  const created = existing === null;
+  const text = created
+    ? createStoryboardSkeleton(runtime, storyboardPath, logger)
+    : existing;
   const blocks = scanMarkers(text, {
     warn: (message) => logger.warn("refresh", message),
   });
@@ -200,7 +214,7 @@ export async function runRefreshCommand(ctx) {
   if (spliced) runtime.fsSync.writeFileSync(storyboardPath, lines.join("\n"));
   if (options.format === "json") {
     runtime.proc.stdout.write(
-      JSON.stringify({ blocks: blocks.length, spliced }) + "\n",
+      JSON.stringify({ blocks: blocks.length, spliced, created }) + "\n",
     );
   }
   return { ok: true };

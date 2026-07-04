@@ -13,15 +13,16 @@ Experiments. Full template, with per-section word budgets, at
 ## Planning vs. Review
 
 **Planning meeting** — first meeting of the month or no storyboard exists.
-Create the storyboard from [`storyboard-template.md`](storyboard-template.md):
-for every `wiki/metrics/{skill}/{YYYY}.csv`, instantiate one
-`#### {metric_name}` block under `### {skill}` with its
-`<!-- xmr:{metric}:{csv} -->` / `<!-- /xmr -->` marker pair. Besides the
-per-skill blocks, instantiate a `#### product_share` block under
-`### product-manager` from `wiki/metrics/product-mix/{YYYY}.csv`. Then lead the
-team through: the Challenge, the Target Condition (measurable, by month end),
-the Current Condition from metrics CSVs, initial Obstacles, and the first
-Experiment.
+`npx fit-wiki refresh` creates the monthly file (section skeleton +
+`obstacles`/`experiments` markers) before the meeting. It omits the per-metric
+XmR blocks: for every
+`wiki/metrics/{skill}/{YYYY}.csv`, a participant seeds one `#### {metric_name}`
+block under `### {skill}` with its `<!-- xmr:{metric}:{csv} -->` /
+`<!-- /xmr -->` pair, plus a `#### product_share` block under
+`### product-manager` from `wiki/metrics/product-mix/{YYYY}.csv`; the next
+refresh renders them. Then lead the team through the Challenge, Target Condition
+(measurable, by month end), Current Condition from metrics CSVs, initial
+Obstacles, and the first Experiment.
 
 **Review meeting** — all other team meetings. Walk through the five questions,
 update Current Condition with fresh metrics, record experiment outcomes (actual
@@ -29,9 +30,9 @@ vs. expected), update Obstacles, and plan the next experiment.
 
 ## Question Wording (Team)
 
-1. **What is the target condition?** Read the target from the storyboard. Ground
-   the conversation in where the team is headed. If the target is unclear or
-   expired, update it (planning mode).
+1. **What is the target condition?** Read the target from the storyboard. If the
+   Challenge or Target Condition is unset or expired (planning mode), `Ask` the
+   product-manager to write it into the storyboard.
 2. **What is the actual condition now?** Each participant follows the
    Participant Protocol: measure with live data, record to CSV, run
    `npx fit-xmr analyze` on its own CSV, then report each metric's `status`,
@@ -64,8 +65,6 @@ preserved. Rendered contents — `**Latest:**` / `**Status:**`, the X+mR chart,
 `**Signals:**` — match the template; **do not restate `μ`, `UPL`, `LPL`, or zone
 values in prose** outside the chart.
 
-If a metric is missing its marker pair, a participant seeds it from
-[`storyboard-template.md`](storyboard-template.md); the next refresh renders it.
 Markers are the contract — never paste charts or issue lists by hand.
 
 Above the agent-domain sections, write a tight `### Headlines` list naming only

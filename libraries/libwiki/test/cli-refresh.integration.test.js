@@ -43,6 +43,28 @@ async function refresh(cwd, storyboardPath) {
   return harness;
 }
 
+// Refresh with a stubbed `gh` returning no issues, so a freshly created
+// skeleton's issue-list blocks render hermetically. Returns the resolved
+// storyboard path (explicit arg, or the current-month default under wiki/).
+async function refreshCreates(cwd, storyboardPath) {
+  const subprocess = createMockSubprocess({
+    responses: { gh: { stdout: "[]", exitCode: 0 } },
+  });
+  const harness = makeRuntime({ cwd, now: FIXED_NOW, subprocess });
+  const gitClient = new GitClient({ runtime: harness.runtime });
+  await runRefreshCommand(
+    ctxFor({
+      runtime: harness.runtime,
+      gitClient,
+      options: {},
+      args: storyboardPath ? { "storyboard-path": storyboardPath } : {},
+    }),
+  );
+  return storyboardPath
+    ? join(cwd, storyboardPath)
+    : join(cwd, "wiki", `storyboard-${yearMonth(FIXED_NOW)}.md`);
+}
+
 describe("fit-wiki refresh CLI (in-process)", () => {
   test("no markers — file unchanged", async () => {
     const dir = createProject();
@@ -119,10 +141,29 @@ describe("fit-wiki refresh CLI (in-process)", () => {
     assert.ok(readFileSync(storyboard, "utf-8").includes("preserved content"));
   });
 
-  test("missing storyboard file — no-op, exit 0", async () => {
+  test("missing storyboard file — creates skeleton, exit 0", async () => {
     const dir = createProject();
-    // No storyboard written at all.
-    await assert.doesNotReject(() => refresh(dir, "storyboard.md"));
+    // No storyboard written at all; refresh creates it from the skeleton.
+    const created = readFileSync(
+      await refreshCreates(dir, "storyboard.md"),
+      "utf-8",
+    );
+    assert.match(created, /^# Storyboard — 2026 May$/m);
+    assert.match(created, /^## Challenge$/m);
+    assert.match(created, /^\*\*Due:\*\* 2026-05-31$/m);
+    assert.ok(created.includes("<!-- obstacles:open"));
+    assert.ok(created.includes("<!-- experiments:closed"));
+  });
+
+  test("missing storyboard defaults to the current-month path", async () => {
+    const dir = createProject();
+    await refreshCreates(dir, undefined);
+    const defaultPath = join(
+      dir,
+      "wiki",
+      `storyboard-${yearMonth(FIXED_NOW)}.md`,
+    );
+    assert.ok(readFileSync(defaultPath, "utf-8").includes("# Storyboard —"));
   });
 
   test("clears expired MEMORY.md claims even with no storyboard", async () => {
@@ -142,7 +183,7 @@ describe("fit-wiki refresh CLI (in-process)", () => {
         "",
       ].join("\n"),
     );
-    await refresh(dir, "storyboard.md"); // no storyboard file on disk
+    await refreshCreates(dir, "storyboard.md"); // no storyboard file on disk
     const after = readFileSync(join(wikiDir, "MEMORY.md"), "utf-8");
     assert.ok(!after.includes("| old |"), "expired row removed");
     assert.ok(after.includes("| new |"), "unexpired row kept");
