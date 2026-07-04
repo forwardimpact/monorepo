@@ -185,49 +185,30 @@ Pre-1.0 packages bump patch for any change. Post-1.0: semver (breaking=major,
 feat=minor, fix/refactor=patch). The release engineer handles bumps, tags, and
 publishing — see [kata-release-cut](.claude/skills/kata-release-cut).
 
-**Create tags by dispatching the `Release: Tag` workflow, not `git push`.** The
-environments that cut releases can push branches and merge PRs but cannot push
-tags or create releases, so [`release-tag.yml`](.github/workflows/release-tag.yml)
-is the primary way to create any release tag. Dispatch it (Actions UI,
-`gh workflow run release-tag.yml`, or an MCP `run_workflow`) with a `tags` list,
-plus an optional `repo` (any org repo the kata App is installed on — defaults to
-this one, so it tags sibling action repos too) and `sha` (defaults to the
-target's default-branch tip). It mints an App installation token scoped to the
-target repo and pushes each tag from CI — with the App token, not
-`GITHUB_TOKEN`, so a tag-triggered publish pipeline in the target repo still
-fires. The deterministic logic lives in
-[`.github/actions/release-tagger`](.github/actions/release-tagger/action.yml):
-release tags are append-only (an existing tag is never moved), and for an action
-release `v<major>.<minor>.<patch>` the `v<major>` alias moves forward-only — it
-refuses any SHA not reachable from the default branch, and any backward or
-off-line alias move.
+**Create tags with the `Release: Tag` workflow, not `git push`** — the
+release-cutting environment can't push tags.
+[`release-tag.yml`](.github/workflows/release-tag.yml): dispatch it with a
+`tags` list, an optional `repo` (any org repo the kata App is on, so it tags
+sibling action repos too), and `sha` (default: the target's default-branch
+tip). It pushes each tag from CI with an App token — not `GITHUB_TOKEN`, so
+publish pipelines still fire — via
+[`release-tagger`](.github/actions/release-tagger/action.yml): tags are
+append-only, an action release's `v<major>` alias moves forward-only, and only
+commits reachable from the default branch are taggable. Squash-merge leaves a
+branch's own commits off `main`, so merge first, then tag the resulting `main`
+commit.
 
-Tags go only on commits already on `main`. PRs land by squash-merge, so a
-reviewed branch's commits never reach `main` — its version bump arrives as one
-new squash commit. Merge that first, then tag the resulting `main` commit;
-never tag a feature-branch SHA, or the tag strands on a commit absent from
-`main` and the publish pipeline builds orphaned code. The `Release: Tag`
-workflow enforces this: it refuses any SHA not reachable from `main`.
+**Composite actions** use a separate tag space: append-only `v1.0.x` on the
+sibling repos, with `v1` a forward-only major alias (dispatch `Release: Tag`
+with `repo: <sibling>` and the `v1.0.x` tag). A push to `main` mirrors each
+action to its sibling by subtree split; the publish path and `v1`-move
+constraints live in [`.github/CLAUDE.md`](.github/CLAUDE.md).
 
-**Composite actions** release on a separate tag space: append-only `v1.0.x`
-tags on the sibling repos, with `v1` a moving major alias for external
-consumers (created and moved by the `Release: Tag` workflow's forward-only
-alias logic — pass `repo: <sibling>` and the `v1.0.x` tag). A push to `main`
-mirrors each action to its sibling by subtree split; the publish path, SHA-pin
-policy, and `v1`-move constraints live in
-[`.github/CLAUDE.md`](.github/CLAUDE.md).
-
-Some changes span more than one tag. A new or renamed binary, for example, is
-reachable only after every tier that carries it ships. Release producer before
-consumer, bottom-up, confirming each tier resolves before tagging the next:
-
-1. the compiled binary or bundle;
-2. the `fit-install.sh` installer that fetches it, co-versioned with the bundle;
-3. the sibling repos' actions and workflows that run it;
-4. this repo's pins to those siblings.
-
-A consumer pinned ahead of its producer fails closed: a missing binary has no
-`bunx`/`npx` fallback.
+Some changes span tags: a new binary is reachable only after every tier ships.
+Release producer before consumer, bottom-up: (1) the compiled binary/bundle;
+(2) the co-versioned `fit-install.sh`; (3) the sibling actions; (4) this repo's
+pins. A consumer pinned ahead of its producer fails closed — no `bunx`/`npx`
+fallback.
 
 ## Quality Commands
 
