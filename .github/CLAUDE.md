@@ -42,11 +42,10 @@ This pinning policy governs workflow `uses:` only; a sibling's internal `uses:`
 
 ### Moving a sibling's `v1` tag
 
-Monorepo consumption stays SHA-pinned; `v1` exists only for external
-consumers. Cutting a release moves `v1` only to an existing `v1.x.y`
-release commit — reachable from the sibling's `main` and a descendant of
-`v1`'s current target. Never backward, untagged, or off-`main`; any other move
-is a compromise indicator.
+`v1` exists only for external consumers; monorepo consumption stays SHA-pinned.
+Cutting a release moves `v1` to the new `v1.x.y` commit on the sibling's `main`
+— **not** forward-only, since subtree-split re-seeds orphan old commits. The
+only guard: a tagged release commit on `main`, never off-`main`.
 
 ### `IS_SANDBOX` for headless agents
 
