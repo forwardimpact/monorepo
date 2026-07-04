@@ -1,0 +1,102 @@
+name: "Release: Tag"
+
+# Create and push release tags on an already-reviewed commit, so the
+# tag-triggered publish pipelines (Publish: Binaries, Publish: Package) fire.
+#
+# Dispatch-only. A release cut updates package.json on main via PR; the actual
+# `{prefix}@v{version}` tags are created here. Tags are pushed with the kata App
+# token, NOT the default GITHUB_TOKEN — a GITHUB_TOKEN push would not retrigger
+# the downstream `push: tags` workflows (GitHub suppresses that to avoid
+# recursion), so the release would never publish.
+#
+# A release sweep cuts every package from the same release commit, so one `sha`
+# targets a whole `tags` list. Each tag is validated and pushed on its own ref
+# (never `git push --tags`), per the release policy. Guardrails: each tag must
+# be release-shaped (`<name>@v<version>`), the target must be a full 40-char SHA
+# reachable from main (never an unreviewed commit), and an existing tag is never
+# moved — so a re-run after a partial failure only pushes what is still missing.
+#
+# `sha` defaults to the commit this run was dispatched against (`github.sha`).
+# Steady state: dispatch against `main` and omit `sha` — it tags the tip, which
+# is the release commit. Pass `sha` explicitly only to tag an out-of-line
+# reviewed commit (e.g. one that predates this workflow).
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Release tags to create, whitespace/comma separated (e.g. 'gear@v0.1.14 libharness@v1.2.1')"
+        required: true
+        type: string
+      sha:
+        description: "Commit SHA to tag; defaults to the dispatched ref's commit. Must be a full 40-char SHA reachable from main."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint App token
+        id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.KATA_APP_ID }}
+          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+          persist-credentials: true
+
+      - name: Validate and push tags
+        env:
+          SHA_INPUT: ${{ inputs.sha }}
+          TAGS: ${{ inputs.tags }}
+        run: |
+          set -euo pipefail
+
+          # Default the target to the commit this run was dispatched against.
+          SHA="${SHA_INPUT:-$GITHUB_SHA}"
+
+          # The target commit is validated once — every tag in the list points
+          # at it. Reject anything that is not a full SHA reachable from main.
+          if ! printf '%s' "$SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::sha must be a full 40-char hex commit"; exit 1
+          fi
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$SHA" origin/main; then
+            echo "::error::sha $SHA is not reachable from main"; exit 1
+          fi
+
+          # Normalize separators (commas/newlines -> spaces) and validate the
+          # whole list before pushing any tag, so a bad entry fails the run
+          # before it half-applies.
+          tags="$(printf '%s' "$TAGS" | tr ',\n\r\t' '    ')"
+          count=0
+          for t in $tags; do
+            case "$t" in
+              *@v[0-9]*) ;;
+              *) echo "::error::tag '$t' must look like <name>@v<version>"; exit 1 ;;
+            esac
+            count=$((count + 1))
+          done
+          if [ "$count" -eq 0 ]; then
+            echo "::error::no tags supplied"; exit 1
+          fi
+
+          # Push each tag on its own ref — never `git push --tags`. An existing
+          # tag is skipped (idempotent re-run), never moved.
+          for t in $tags; do
+            if git ls-remote --tags --exit-code origin "refs/tags/$t" >/dev/null 2>&1; then
+              echo "$t already exists on origin — skipping"
+              continue
+            fi
+            git tag "$t" "$SHA"
+            git push origin "refs/tags/$t"
+            echo "Pushed $t -> $SHA"
+          done
