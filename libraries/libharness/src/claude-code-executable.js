@@ -24,7 +24,7 @@ import { LIBCLI_IS_COMPILED } from "@forwardimpact/libcli";
  * @returns {string | undefined} absolute path to `claude`, or undefined to
  *   defer resolution to the SDK.
  */
-export function resolveClaudeExecutable({
+export function resolveClaudeCodeExecutable({
   which = defaultWhich,
   isCompiled = LIBCLI_IS_COMPILED,
 } = {}) {

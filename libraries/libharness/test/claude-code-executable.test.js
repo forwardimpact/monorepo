@@ -1,9 +1,9 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 
-import { resolveClaudeExecutable } from "@forwardimpact/libharness";
+import { resolveClaudeCodeExecutable } from "@forwardimpact/libharness";
 
-describe("resolveClaudeExecutable", () => {
+describe("resolveClaudeCodeExecutable", () => {
   test("returns undefined from source (not compiled), never touching PATH", () => {
     let called = false;
     const which = () => {
@@ -11,7 +11,7 @@ describe("resolveClaudeExecutable", () => {
       return "/should/not/be/used";
     };
     assert.strictEqual(
-      resolveClaudeExecutable({ isCompiled: false, which }),
+      resolveClaudeCodeExecutable({ isCompiled: false, which }),
       undefined,
     );
     assert.strictEqual(called, false);
@@ -19,7 +19,7 @@ describe("resolveClaudeExecutable", () => {
 
   test("returns the resolved path when compiled and claude is on PATH", () => {
     assert.strictEqual(
-      resolveClaudeExecutable({
+      resolveClaudeCodeExecutable({
         isCompiled: true,
         which: (cmd) => (cmd === "claude" ? "/home/runner/.local/bin/claude" : null),
       }),
@@ -29,7 +29,7 @@ describe("resolveClaudeExecutable", () => {
 
   test("returns undefined when compiled but claude is not on PATH", () => {
     assert.strictEqual(
-      resolveClaudeExecutable({ isCompiled: true, which: () => null }),
+      resolveClaudeCodeExecutable({ isCompiled: true, which: () => null }),
       undefined,
     );
   });

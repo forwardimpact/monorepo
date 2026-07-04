@@ -7,7 +7,7 @@
  */
 
 import { AGENT_MODEL } from "@forwardimpact/libutil/models";
-import { resolveClaudeExecutable } from "./claude-executable.js";
+import { resolveClaudeCodeExecutable } from "./claude-code-executable.js";
 
 const DEFAULT_ALLOWED_TOOLS = ["Bash", "Read", "Glob", "Grep", "Write", "Edit"];
 
@@ -266,7 +266,7 @@ export class AgentRunner {
  */
 export function createAgentRunner(deps) {
   return new AgentRunner({
-    pathToClaudeCodeExecutable: resolveClaudeExecutable(),
+    pathToClaudeCodeExecutable: resolveClaudeCodeExecutable(),
     ...deps,
   });
 }
