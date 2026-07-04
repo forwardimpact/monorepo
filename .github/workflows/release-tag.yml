@@ -15,17 +15,23 @@ name: "Release: Tag"
 # be release-shaped (`<name>@v<version>`), the target must be a full 40-char SHA
 # reachable from main (never an unreviewed commit), and an existing tag is never
 # moved — so a re-run after a partial failure only pushes what is still missing.
+#
+# `sha` defaults to the commit this run was dispatched against (`github.sha`).
+# Steady state: dispatch against `main` and omit `sha` — it tags the tip, which
+# is the release commit. Pass `sha` explicitly only to tag an out-of-line
+# reviewed commit (e.g. one that predates this workflow).
 on:
   workflow_dispatch:
     inputs:
-      sha:
-        description: "Full 40-char commit SHA to tag (must be reachable from main)"
-        required: true
-        type: string
       tags:
         description: "Release tags to create, whitespace/comma separated (e.g. 'gear@v0.1.14 libharness@v1.2.1')"
         required: true
         type: string
+      sha:
+        description: "Commit SHA to tag; defaults to the dispatched ref's commit. Must be a full 40-char SHA reachable from main."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -49,10 +55,13 @@ jobs:
 
       - name: Validate and push tags
         env:
-          SHA: ${{ inputs.sha }}
+          SHA_INPUT: ${{ inputs.sha }}
           TAGS: ${{ inputs.tags }}
         run: |
           set -euo pipefail
+
+          # Default the target to the commit this run was dispatched against.
+          SHA="${SHA_INPUT:-$GITHUB_SHA}"
 
           # The target commit is validated once — every tag in the list points
           # at it. Reject anything that is not a full SHA reachable from main.
