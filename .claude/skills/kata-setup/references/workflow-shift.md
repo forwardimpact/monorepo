@@ -122,7 +122,7 @@ missing trace is tolerated, no guard).
 ## Resolving Action Refs
 
 Pin published actions to an immutable SHA, never the mutable `v1` tag. List tags
-with `gh api repos/forwardimpact/kata-agent/tags` (also `harness`,
-`wiki` for `workflow-dispatch.md`), pick the highest `vX.Y.Z`, and emit
+with `gh api repos/forwardimpact/kata-agent/tags` (also `bootstrap`, `harness`,
+and `wiki` for `workflow-dispatch.md`), pick the highest `vX.Y.Z`, and emit
 `<full-40-char-sha> # <tag>`. If resolution fails, stop and ask. Pair the pins
 with the `github-actions` Dependabot config (`SKILL.md` Step 2).

@@ -3,18 +3,16 @@
 Responds to issue and PR events. The product-manager facilitates and routes to
 the best-suited agent. File name: `agent-dispatch.yml`. Replace `{{AGENT_LIST}}`
 (all agents except product-manager and improvement-coach), `{{MODEL}}`, and the
-`{{FIT_HARNESS_REF}}` / `{{FIT_WIKI_REF}}` action refs (resolved at generation
-time — see
+`{{FIT_BOOTSTRAP_REF}}` / `{{FIT_HARNESS_REF}}` / `{{FIT_WIKI_REF}}` action refs
+(resolved at generation time — see
 [`workflow-shift.md` § Resolving action refs](workflow-shift.md#resolving-action-refs)).
 
-The workflow does **no prompt assembly**. It hands the runner's native event
-payload to the action via `task-event: ${{ github.event_path }}`; the action
-composes the task — context, routing instruction, and recursion guard — from the
-event, so untrusted event fields never touch a shell here.
-
-The block below is **self-hosted**. For the **hosted** control plane (see
-[`SKILL.md`](../SKILL.md) `--hosted`), apply the delta under
-[§ Hosted variant](#hosted-variant) — no `KATA_APP_PRIVATE_KEY`.
+The workflow does **no prompt assembly**: it hands the runner's native event
+payload to the action (`task-event: ${{ github.event_path }}`), which composes
+the task (context, routing, recursion guard), so untrusted fields never hit a
+shell. The block below is **self-hosted**; for the **hosted** control plane
+([`SKILL.md`](../SKILL.md) `--hosted`) apply the
+[§ Hosted variant](#hosted-variant) delta — no `KATA_APP_PRIVATE_KEY`.
 
 ## Template (Self-Hosted)
 
@@ -29,9 +27,8 @@ on:
   pull_request_target:
     types: [labeled, closed]
   # No `pull_request_review_comment` trigger: a review fires N comment events
-  # plus one `pull_request_review.submitted` at once. They share the per-target
-  # group below; with cancel-in-progress: false the racing pending runs cancel
-  # each other. The `submitted` payload already carries every inline comment.
+  # plus one `pull_request_review.submitted`, which already carries every inline
+  # comment; they share the per-target group below (cancel-in-progress: false).
   pull_request_review:
     types: [submitted]
   workflow_dispatch:
@@ -78,6 +75,13 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
+      # harness runs fit-harness off PATH and installs nothing; bootstrap
+      # installs the CLIs the harness, cost, and wiki-push steps invoke directly.
+      - uses: forwardimpact/bootstrap@{{FIT_BOOTSTRAP_REF}}
+        with:
+          token: ${{ steps.ci-app.outputs.token }}
+          app-id: ${{ secrets.KATA_APP_ID }}
+          clis: fit-harness fit-trace fit-wiki
       - name: Assess and Act
         id: assess
         uses: forwardimpact/harness@{{FIT_HARNESS_REF}}
@@ -94,10 +98,8 @@ jobs:
           agent-model: "{{MODEL}}"
           lead-model: "{{MODEL}}"
           discussion-id: ${{ inputs.discussion_id }}
-      # Then the `Report run cost` step per workflow-shift.md § Inline steps
-      # (TRACE_FILE from `steps.assess.outputs.trace-file`).
-      # harness does not push wiki itself, so push memory with a fresh token.
-      # Drop this step when wiki is disabled.
+      # Report run cost step per workflow-shift.md § Inline steps (TRACE_FILE
+      # from steps.assess.outputs.trace-file). Drop the wiki push when wiki off.
       - name: Push wiki changes
         if: always()
         uses: forwardimpact/wiki@{{FIT_WIKI_REF}}
@@ -107,22 +109,20 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
 
-Uses `harness` (not `kata-agent`) so the workflow can pass `task-event` and
-select `mode` per event. The `if:` must stay aligned with the `on:` block. The
-recursion guard lives in the action's task composition, not here. The
-`harness` and `wiki` refs are SHA-pinned at generation time — pair them
-with the Dependabot config from `SKILL.md` Step 2.
+Uses `harness` (not `kata-agent`) so it can pass `task-event` and select `mode`
+per event; keep `if:` aligned with `on:`. Refs are SHA-pinned at generation
+time (Dependabot per `SKILL.md`).
 
 ## Hosted Variant
 
-This workflow mints its own App token, so the hosted delta differs from the
-shift workflow:
+This workflow mints its own token, so the hosted delta differs from shift:
 
 1. Add `id-token: write` to `permissions` (keep `contents: write`).
 2. Replace the `Generate token` step with the OIDC mint step from
    [`workflow-shift.md` § Template (hosted)](workflow-shift.md).
-3. Change the checkout `token:` and the `Assess and Act` `GH_TOKEN:` from
-   `${{ steps.ci-app.outputs.token }}` to `${{ steps.mint.outputs.token }}`.
+3. Change the checkout `token:`, the bootstrap `token:`, and the `Assess and
+   Act` `GH_TOKEN:` from `${{ steps.ci-app.outputs.token }}` to
+   `${{ steps.mint.outputs.token }}`.
 
-`Push wiki changes` keeps minting from the App secrets, so it is unchanged.
-Requires the `FIT_OIDC_URL` repository variable.
+`Push wiki changes` still mints from App secrets (unchanged); needs the
+`FIT_OIDC_URL` repository variable.
