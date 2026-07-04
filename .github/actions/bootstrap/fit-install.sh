@@ -119,7 +119,7 @@ fetch_and_verify() {
 extract_archive() {
   local archive="$1" dest="$2" strip="${3:-0}"
   case "$archive" in
-    *.tar.gz)
+    *.tar.gz | *.tgz)
       if [ "$strip" -gt 0 ]; then
         tar -xz -C "$dest" --strip-components="$strip" -f "$archive"
       else
