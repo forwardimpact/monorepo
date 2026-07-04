@@ -63,13 +63,13 @@ export function renderStoryboardSkeleton(todayIso) {
 
 ## Challenge
 
-> [Set during the planning meeting.]
+> [product-manager sets this in the planning meeting.]
 
 ## Target Condition
 
 **Due:** ${endOfMonthIso(todayIso)}
 
-> [Set during the planning meeting.]
+> [product-manager sets this in the planning meeting.]
 
 ## Current Condition
 

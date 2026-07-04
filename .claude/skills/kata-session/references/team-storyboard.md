@@ -30,9 +30,9 @@ vs. expected), update Obstacles, and plan the next experiment.
 
 ## Question Wording (Team)
 
-1. **What is the target condition?** Read the target from the storyboard. Ground
-   the conversation in where the team is headed. If the target is unclear or
-   expired, update it (planning mode).
+1. **What is the target condition?** Read the target from the storyboard. If the
+   Challenge or Target Condition is unset or expired (planning mode), `Ask` the
+   product-manager to write it into the storyboard.
 2. **What is the actual condition now?** Each participant follows the
    Participant Protocol: measure with live data, record to CSV, run
    `npx fit-xmr analyze` on its own CSV, then report each metric's `status`,
