@@ -11,7 +11,7 @@
 # Usage:
 #   fit-install.sh [--paths] [NAME ...]
 #
-#   NAME   An external tool (apm, just, gh, rg, gitleaks) or a gear binary —
+#   NAME   An external tool (apm, just, gh, rg, gitleaks, claude) or a gear binary —
 #          any fit-* CLI (fit-trace, fit-harness, fit-wiki, …) or coaligned.
 #          With no NAME, installs the default dev/CI tool set.
 #   --paths  Print the cache paths the requested names manage, one per line,
@@ -27,10 +27,12 @@ BIN_DIR="$PREFIX/bin"
 LIB_DIR="$PREFIX/lib"
 
 # Default dev/CI tool set, in install order — the third-party external tools
-# every job needs (scripts/bootstrap.sh runs `just`) plus coaligned, our own
-# gear binary that the instruction checks run. This set is ALWAYS installed;
-# any named gear CLIs add to it. The same list drives `--paths`.
-DEFAULT_TOOLS=(apm just gh rg gitleaks coaligned)
+# every job needs (scripts/bootstrap.sh runs `just`), `claude` (the Claude Code
+# native CLI the Agent SDK spawns — fit-harness/fit-benchmark point at it via
+# pathToClaudeCodeExecutable), plus coaligned, our own gear binary that the
+# instruction checks run. This set is ALWAYS installed; any named gear CLIs add
+# to it. The same list drives `--paths`.
+DEFAULT_TOOLS=(apm just gh rg gitleaks claude coaligned)
 
 # ── gear binary release coordinates ──────────────────────────────
 # Every installable gear binary (fit-trace, fit-wiki, fit-harness, …, plus
@@ -321,6 +323,41 @@ resolve_gitleaks() {
 
   local url="https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_${target}.tar.gz"
   install_tool gitleaks "$version" "$url" "$sha256" "$binary_path" "$strip"
+}
+
+resolve_claude() {
+  # The Claude Code native CLI the Agent SDK spawns. It ships inside the SDK's
+  # platform-specific optional dependency (@anthropic-ai/claude-agent-sdk-<plat>),
+  # which `bun build --compile` does NOT embed — so a compiled fit-harness /
+  # fit-benchmark cannot self-resolve it. We install the version-matched binary
+  # here and libharness points the SDK at it via pathToClaudeCodeExecutable.
+  #
+  # VERSION MUST TRACK @anthropic-ai/claude-agent-sdk in
+  # libraries/libharness/package.json — a Dependabot bump there requires a
+  # matching version + sha256 bump here, or the spawned CLI drifts from the SDK
+  # protocol. The tarball is the npm platform package (top-level `package/`, so
+  # strip=1); its sole exported binary is `package/claude`.
+  local version="0.3.170"
+  local pkg sha256 binary_path="claude" strip=1
+
+  case "$OS-$ARCH" in
+    linux-x86_64)
+      pkg="linux-x64"
+      sha256="0a20346fa0bb6a1afc8c1d1bd214ddb12c6bcca3e926cd50c6a0830dd57f2112" ;;
+    linux-aarch64)
+      pkg="linux-arm64"
+      sha256="0b286e784c35d690f419464ce1a8ee3187f548105aaa42e2b4f5e2f4ecd2d535" ;;
+    darwin-x86_64)
+      pkg="darwin-x64"
+      sha256="c04d595043630fcc1ae4a1c51115b5e24bd2d80cc9f4de66a1ef6192f21e2171" ;;
+    darwin-arm64)
+      pkg="darwin-arm64"
+      sha256="c8e19615c13f639743b766d15365e51518ab16e7716b68fdcd81a3cf4e1651a2" ;;
+    *) echo "::error::claude: unsupported platform $OS-$ARCH" >&2; exit 1 ;;
+  esac
+
+  local url="https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk-${pkg}/-/claude-agent-sdk-${pkg}-${version}.tgz"
+  install_tool claude "$version" "$url" "$sha256" "$binary_path" "$strip"
 }
 
 # ── Install ──────────────────────────────────────────────────────

@@ -11,6 +11,7 @@ export {
   pickTraceArtifact,
 } from "./trace-github.js";
 export { AgentRunner, createAgentRunner } from "./agent-runner.js";
+export { resolveClaudeCodeExecutable } from "./claude-code-executable.js";
 export {
   composeProfilePrompt,
   composeLeadPrompt,
