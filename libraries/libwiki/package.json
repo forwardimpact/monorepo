@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libwiki",
-  "version": "0.2.33",
+  "version": "0.2.34",
   "description": "Wiki lifecycle for agent teams — persistent memory, declarative integrity audits, and a collision ledger so coordination survives across sessions and parallel work.",
   "keywords": [
     "wiki",

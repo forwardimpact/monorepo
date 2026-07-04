@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libsupervise",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "description": "Process supervision driven by JSON daemon manifests — services stay running and recoverable without manual intervention.",
   "keywords": [
     "supervisor",

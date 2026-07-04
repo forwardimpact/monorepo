@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcvector",
-  "version": "0.1.129",
+  "version": "0.1.130",
   "description": "Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.",
   "keywords": [
     "vector",

@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libformat",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "Render markdown to ANSI or HTML — formatted output in any surface without losing structure.",
   "keywords": [
     "markdown",

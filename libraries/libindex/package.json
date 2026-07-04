@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libindex",
-  "version": "0.1.44",
+  "version": "0.1.45",
   "description": "JSONL-backed indexes with filtering and buffered writes — fast context lookup without an external search engine.",
   "keywords": [
     "index",
