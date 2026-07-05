@@ -1,151 +1,153 @@
-# Design 2170: Reusable interview action + CLI split
+# Design 2170: Reusable interview action + generic substrate verb
 
-Restates spec 2170: extract the generic switching-interview infrastructure into
-a published composite action, push its two untested inline-bash blocks into
-tested verbs on `fit-map` and `fit-harness`, parameterize the entry point, and
-reduce the workflow to a wrapper — so an external consumer (Polaris) can run its
-own interview.
+Restates spec 2170: extract the switching-interview capability into a published
+composite action, and give the generic Supabase bring-up a home in `fit-terrain`
+so a different-domain Supabase app (Polaris) can interview itself — not just
+repos running the full FI stack.
+
+## The seam (revision)
+
+The prior draft hardcoded `fit-map substrate stage` as the "generic" substrate
+step. It is not generic: `fit-map` is an FI product whose stage knows the map
+schema, roster invariants, and Landmark smoke, and whose phases share
+in-process env with a map client. Polaris cannot use it. Two layers:
+
+- **Generic Supabase bring-up** (opinionated: the consumer uses Supabase) —
+  start the stack, discover the URL, emit env. Every Supabase-backed consumer
+  needs exactly this. → **add** a `fit-terrain substrate up` verb (`fit-terrain`
+  is generic, already Supabase-aware, already on PATH in the action).
+- **FI persona + seed layer** — the map-schema seed, `auth.users` provision,
+  roster `pick`, JWT `issue`, Landmark smoke. → **stays in `fit-map`**, invoked
+  through a *pluggable* action command so Polaris substitutes its own.
+
+We **add** rather than **move**: relocating `fit-map`'s stage into `fit-terrain`
+would close a `libterrain → @forwardimpact/map → libterrain` dependency cycle
+(libterrain already depends on map), break the in-process env its map client
+reads, and disrupt `activity.js`'s use of the shared spawner. So `fit-terrain
+substrate up` is a clean generic primitive; `fit-map substrate stage` keeps its
+richer pipeline and only gains an `--emit-env` output. Convergence (map stage
+delegating to the verb once the spawner is extracted to a lower shared library)
+is future work, out of scope.
 
 ## Components
 
 | Component | Location | Purpose |
 | --- | --- | --- |
-| `kata-interview` action | `products/kata/actions/kata-interview/action.yml` | Composite action owning generic interview infra; published by subtree split, consumed SHA-pinned |
+| `kata-interview` action | `products/kata/actions/kata-interview/action.yml` | Composite action; orchestration + generic infra, domain steps delegated to injected commands |
 | Action README | `products/kata/actions/kata-interview/README.md` | Input/output contract for external consumers |
-| Supabase-env emit | `products/map/src/commands/substrate-stage.js` (dispatched via `products/map/bin/dispatch-substrate.js`) | Emit `SUPABASE_URL`/`SUPABASE_ANON_KEY` as env-file lines |
-| Log secret scan | `libraries/libharness/` (`fit-harness scan-logs`) + `libraries/libharness/src/commands/` | Scan a run's log archive for secret literals; fail closed |
-| Workflow wrapper | `.github/workflows/kata-interview.yml` | Thin `workflow_dispatch` wrapper; passes inputs to the action and retains `concurrency` + job `timeout-minutes` (a composite action cannot declare either) |
-| Shape test | `.github/workflows/test/kata-interview-shape.test.js` | Assert generic substrate gating + sub-60 timeout |
-| Skill parameterization | `.claude/skills/kata-interview/{SKILL.md,references/job-handoff.md}` | Read entry-point URL from env, not hardcoded |
-| Reference wiring | `references/bionova-apps/` | Document a Polaris interview workflow wrapping the action |
+| Generic substrate | `libraries/libterrain/` (`fit-terrain substrate up`) | Supabase bring-up: `start` → discover → `--emit-env`. Own thin, cwd-explicit spawner. No schema/migration knowledge |
+| FI emit hook | `products/map/src/commands/substrate-stage.js` | Existing phases unchanged; gains an `--emit-env` output after `url-discovery` |
+| Log secret scan | `libraries/libharness/` (`fit-harness scan-logs`) | Scan a run's log archive for secret literals; fail closed |
+| Workflow wrapper | `.github/workflows/kata-interview.yml` | Thin wrapper; supplies FI substrate + persona commands; keeps `concurrency` + job `timeout-minutes` |
+| Skill parameterization | `.claude/skills/kata-interview/{SKILL.md,references/job-handoff.md}` | Read `WEBSITE_URL`; run the injected persona-select command instead of hardcoding `fit-map` |
+| Reference wiring | `references/bionova-apps/` | Document Polaris supplying its own substrate command + anonymous access |
 
 ## Architecture
 
 ```mermaid
 graph TD
-    subgraph consumer["Consumer workflow (this repo OR bionova-apps)"]
-        wf["kata-interview.yml — workflow_dispatch inputs"]
-    end
-    wf -->|uses, SHA-pinned| act
-
+    wf["wrapper workflow (monorepo OR bionova-apps)"] -->|uses| act
     subgraph act["kata-interview composite action"]
-        ks["killswitch → token → checkout → bootstrap (+supabase)"]
         tb["fit-terrain build"]
-        sub["substrate stage + env emit (if substrate)"]
+        sub["run substrate-setup-command (if set) → emits SUPABASE_URL/KEY"]
         run["fit-harness supervise — kata-interview skill"]
         post["fit-trace cost → wiki push → scan-logs (if substrate)"]
-        ks --> tb --> sub --> run --> post
+        tb --> sub --> run --> post
     end
-
-    sub -->|"fit-map substrate ... --emit-env $GITHUB_ENV"| fm["fit-map"]
-    post -->|"fit-harness scan-logs --run-id ... --secret ..."| fh["fit-harness"]
-    run -->|"website-url in agent env; two Asks"| agent["isolated persona agent → website-url"]
+    sub -.monorepo.-> fm["bunx fit-map substrate stage --cwd $AGENT_CWD --emit-env"]
+    sub -.polaris.-> pol["fit-terrain substrate up --emit-env + supabase db push + seed"]
+    run -->|"PERSONA_SELECT_COMMAND (optional) + WEBSITE_URL"| skill["supervisor builds persona, two Asks"]
+    post --> fh["fit-harness scan-logs"]
 ```
 
 ## Action interface
 
-Inputs mirror `kata-agent` for the shared knobs (`app-id`, `app-private-key`,
-`anthropic-api-key`, `app-slug`, `max-turns`, `timeout-minutes`,
-`allowed-tools`, `killswitch`) and add the interview-specific ones:
+Shared `kata-agent` knobs (`app-id`, `app-private-key`, `anthropic-api-key`,
+`app-slug`, `max-turns`, `timeout-minutes`, `allowed-tools`, `killswitch`) plus:
 
 | Input | Required | Role |
 | --- | --- | --- |
 | `website-url` | yes | Entry point handed to the persona agent in Ask 2 |
-| `product` | no | Product to interview; empty lets the supervisor pick |
-| `job` | no | JTBD goal to test; empty lets the supervisor pick |
-| `task-amend` | no | Steering appended to the task prompt |
-| `substrate` | no (default `false`) | Whether to bring up the Supabase substrate + run the post-run secret scan |
-| `substrate-force-empty-corpus` | no | CI assertion toggle for the empty-corpus failure path (renames the workflow's current `empty-corpus-test` input for the substrate-generic vocabulary) |
-| `jwt-secret`, `service-role-key` | no | Substrate secrets, forwarded only when `substrate` |
+| `product`, `job`, `task-amend` | no | Selection + steering, as today |
+| `substrate-setup-command` | no | Shell command that brings up the substrate and emits `SUPABASE_URL`/`SUPABASE_ANON_KEY` to `$GITHUB_ENV`. Non-empty ⇒ the substrate path (bring-up + post-run scan). Empty ⇒ file-only interview. |
+| `persona-select-command` | no | Command the supervisor runs to seal a persona + stash a JWT. Empty ⇒ persona from `story.dsl` / anonymous access. |
+| `jwt-secret`, `service-role-key` | no | Substrate secrets, forwarded to the setup/persona commands only when the substrate path is active |
 
-Composite actions cannot read `secrets.*` (`.github/CLAUDE.md`), so
-`jwt-secret`/`service-role-key` are **inputs** the wrapper passes from its own
-`secrets.*` — this is why the substrate secrets become action inputs rather than
-being read internally. Outputs pass through the harness
-`trace-file`/`trace-dir`. The action sets `WEBSITE_URL` (and, under substrate,
-`SUPABASE_URL`/`SUPABASE_ANON_KEY` via `$GITHUB_ENV`) into the run environment;
-the supervisor reads `WEBSITE_URL` when composing Ask 2. Substrate steps and the
-secret scan are gated on `inputs.substrate == 'true'`, replacing every
-`product == 'landmark'` literal.
+Composite actions cannot read `secrets.*`, declare `concurrency`, or set a job
+`timeout-minutes` — so secrets arrive as inputs and the last two stay on the
+wrapper. Outputs pass through the harness `trace-file`/`trace-dir`. The action
+sets `WEBSITE_URL` and (when set) `PERSONA_SELECT_COMMAND` into the run env.
+Substrate steps and the scan gate on `inputs.substrate-setup-command != ''` — no
+`product == 'landmark'` literal anywhere.
 
 ## CLI verb interfaces
 
 | Verb | Signature | Behaviour |
 | --- | --- | --- |
-| `fit-map substrate stage` | add `--emit-env <path>` | After the `url-discovery` phase, append `SUPABASE_URL=<url>` and `SUPABASE_ANON_KEY=<key>` lines to `<path>`; the action points it at `$GITHUB_ENV`. Removes the workflow's inline `supabase status --output json` + `python3`. |
-| `fit-harness scan-logs` | `--archive <zip>` \| `--run-id <id> --repo <owner/repo>`; repeatable `--secret <label>=<literal>` | Resolve a log archive (download via `gh` when `--run-id`), scan every entry for each non-empty secret literal, print `FAIL: <label> literal in run logs` per hit, exit non-zero on any hit; fail closed if the archive cannot be read. |
+| `fit-terrain substrate up` (new) | `--cwd <dir> --emit-env <path>` | Opinionated Supabase bring-up: `supabase start` (from `<cwd>`), parse `status --output json`, append `SUPABASE_URL=`/`SUPABASE_ANON_KEY=` to `<path>`. Migration/seed are the consumer's concern — this verb only brings up + discovers. |
+| `fit-map substrate stage` | add `--emit-env <path>` | Phases unchanged; after `url-discovery`, also append the two lines to `<path>`. No delegation, no spawner move. `pick`/`issue` unchanged. |
+| `fit-harness scan-logs` | `--archive <zip>` \| `--run-id <id> --repo <owner/repo>`; repeatable `--secret <label>=<literal>` | Resolve/extract the archive (download via `gh` for `--run-id`), scan for each literal, `FAIL: <label> literal in run logs` per hit, non-zero on any hit, fail closed on unreadable archive. |
 
-`--emit-env` reuses the URL already parsed in the `url-discovery` phase, so no
-second `supabase status` call. `scan-logs` takes secret literals as inputs
-(never reads them from a fixed env name) so it is generic to any run; the action
-passes the persona JWT (from the `--stash` file), `jwt-secret`, and
-`service-role-key`.
+`fit-terrain substrate up` carries its own minimal Supabase spawner (start +
+status via `runtime.subprocess`), taking `cwd` explicitly rather than resolving
+a package root — so it is portable to Polaris' checkout. `libterrain` already
+declares `@supabase/supabase-js`; nothing moves out of `products/map`.
 
-## Interview run wiring
+## Persona selection (pluggable)
 
-The action calls the harness `supervise` mode exactly as the workflow does today
-(`lead-profile: product-manager`, `supervisor-cwd: .`, `agent-cwd` = the staged
-temp dir, `IS_SANDBOX=1`, `task-text` = "Run the `kata-interview` skill"). The
-killswitch moves into the action as its first composite step (as `kata-agent`
-does); `concurrency` and the job `timeout-minutes` stay on the wrapper workflow,
-which a composite action cannot declare. The other additions are `WEBSITE_URL`
-on the run env and the generic substrate gating. The skill's Step 5 reads
-`WEBSITE_URL` from the environment; the `job-handoff` reference's Ask 2 template
-and both worked examples use that value instead of the literal
-`https://www.forwardimpact.team`. When unset (never, from the action), the skill
-errors rather than inventing a URL.
+The skill's Step 3a stops calling `fit-map` directly. The supervisor runs
+`$PERSONA_SELECT_COMMAND` when set: it must seal identity into `$AGENT_CWD` and
+stash a bare JWT for the post-run scan — the contract `fit-map substrate issue`
+already satisfies (it writes `.env` + `.substrate.json` at `--cwd` and a bare
+JWT at `--stash`; the FI command chains `pick` → `issue --stash`). When unset,
+the supervisor builds identity from `story.dsl` and issues no JWT. `WEBSITE_URL`
+handling in Ask 2 is unchanged from the merged design.
 
 ## Key Decisions
 
 | Decision | Chosen | Rejected | Why |
 | --- | --- | --- | --- |
-| Split seam | `fit-map` owns Supabase-env emit; `fit-harness` owns log scan | One new `fit-interview` CLI / `libinterview` | Each block already has a domain owner; a new package would need to join the gear bundle and duplicate substrate/run ownership. Splitting keeps each verb beside the lifecycle it belongs to. |
-| Substrate gating | Generic `substrate` boolean input | Keep `product == 'landmark'` | The product-name predicate is monorepo-only; Polaris is substrate-backed but not named "landmark". A boolean makes the action reusable and keeps the shape invariant meaningful. |
-| Entry point | `website-url` input → `WEBSITE_URL` env → skill reads it | Hardcode per-consumer skill fork; or a skill config file | An env var threads cleanly from action input to the supervisor with no new file; the skill stays a single published artifact. A per-consumer fork defeats reuse. |
-| Publish path | Subtree-split sibling, SHA-pinned — one new `publish-actions.yml` matrix entry + path filter | Reference the action by local path only | Consumers are *other repos* (Polaris); only a published sibling is consumable cross-repo. The mechanism already ships `kata-agent`, so this reuses it rather than inventing one. |
-| `scan-logs` input model | Secret literals passed as `--secret` args | Read a fixed env var (`JWT_SECRET`, …) | Passing literals keeps the verb generic and unit-testable against a fixture archive with no CI secrets; the action supplies the three literals. |
-| `scan-logs` home | `fit-harness` | `fit-trace` | The GH log archive is not an NDJSON trace; scanning a run's own output for leaked secrets is a run-lifecycle concern `fit-harness` already owns. |
-| `fit-map` on PATH | Keep the documented `bunx fit-map` exception | Move `fit-map` into the gear bundle | Out of scope; `fit-map` ships in the `map@v*` release. The action documents the exception exactly as the workflow does today. |
+| Generic substrate | **Add** `fit-terrain substrate up` (bring-up + emit only) | **Move** `fit-map substrate stage` into `fit-terrain` | A move closes a `libterrain → map` cycle, breaks the map client's in-process env, and disrupts `activity.js`; adding a clean primitive avoids all three and still gives Polaris a generic bring-up. |
+| Bring-up scope | Start + discover + emit only | Also apply migrations/seed | Migrations and seed are schema-specific (map vs Polaris, different dirs); keeping them in the consumer's command keeps the verb truly generic. |
+| Domain substrate | Injected `substrate-setup-command` | Hardcode `fit-map substrate stage` | The FI seed/provision/smoke is product-specific; Polaris supplies `fit-terrain substrate up` + `supabase db push` + its seed. |
+| Persona selection | Injected `persona-select-command`, `fit-map issue` contract | Hardcode `fit-map` in the skill | Persona invariants are FI-only; the `.env`/`.substrate.json`/stash contract lets Polaris substitute or omit it. |
+| `scan-logs` home | `fit-harness` | `fit-trace` | A GH log archive is not an NDJSON trace; scanning a run's own output is a run-lifecycle concern. |
 
 ## Data flow — substrate interview
 
 ```text
 bootstrap installs CLIs + supabase
-  → fit-terrain build                         (synthetic data)
-  → fit-map substrate stage --cwd $AGENT_CWD --emit-env $GITHUB_ENV
-       (init→stack→url-discovery→migrate→seed→provision→smoke;
-        SUPABASE_URL/SUPABASE_ANON_KEY appended to $GITHUB_ENV)
-  → supervisor: fit-map substrate pick / issue --stash $RUNNER_TEMP/.persona-jwt
-  → fit-harness supervise (kata-interview skill; WEBSITE_URL in agent env)
+  → fit-terrain build                              (synthetic data)
+  → run $substrate-setup-command                   (emits SUPABASE_URL/ANON_KEY → $GITHUB_ENV)
+       monorepo: bunx fit-map substrate stage --cwd $AGENT_CWD --emit-env $GITHUB_ENV
+       polaris:  fit-terrain substrate up --cwd . --emit-env $GITHUB_ENV && supabase db push && <embed>
+  → fit-harness supervise (skill; WEBSITE_URL + PERSONA_SELECT_COMMAND in env)
+       supervisor runs $PERSONA_SELECT_COMMAND (if set) → seals persona + stashes JWT
   → fit-trace cost → wiki push
-  → fit-harness scan-logs --run-id $RUN_ID --repo $REPO \
-       --secret <persona-jwt> --secret <jwt-secret> --secret <service-role-key>
+  → fit-harness scan-logs --run-id … --repo … --secret persona-jwt=… --secret …
 ```
 
-For a non-substrate interview (`substrate: false`), the substrate stage,
-env emit, `pick`/`issue`, and `scan-logs` steps are skipped; the persona is
-built from `story.dsl`/`prose-cache.json` as today.
+File-only interview (`substrate-setup-command` empty): setup, persona command,
+and scan are skipped; persona built from `story.dsl` as today.
 
 ## Reference-app wiring
 
-`references/bionova-apps/` gains, in its spec/design prose (not a monorepo
-workflow), a documented `interview.yml` that wraps
-`forwardimpact/kata-interview@<sha>` with `website-url` = the Polaris entry
-point, `substrate: true`, and Polaris' `JWT_SECRET`/`SERVICE_ROLE_KEY`. Because
-Polaris already vendors `story.dsl` and runs `fit-terrain build`, the action's
-build + substrate + scan path applies unchanged. The interview needs none of
-spec 1160's `--output-root` prerequisite: it stages synthetic data into a temp
-`agent-cwd`, not the app tree, so the `rm -rf`-on-project-root hazard that flag
-addresses never arises here.
+`references/bionova-apps/` documents (prose, not a monorepo workflow) a Polaris
+`interview.yml` wrapping `forwardimpact/kata-interview@<sha>` with `website-url`
+= the Polaris entry point and `substrate-setup-command` = `npx fit-terrain
+substrate up --cwd . --emit-env "$GITHUB_ENV"` followed by Polaris' own
+`supabase db push` + embed seed. Patient interviews use anonymous access (no
+`persona-select-command`); staff interviews pass a Polaris persona command. It
+needs no `fit-map` and no map schema.
 
 ## Test strategy
 
-- **`fit-map` emit** — unit test asserts `--emit-env <tmp>` writes the two
-  `KEY=value` lines from a stubbed status source.
-- **`fit-harness scan-logs`** — unit test builds a fixture archive, asserts
-  non-zero + `FAIL:` line on a planted literal and zero on a clean archive, and
-  asserts fail-closed on an unreadable archive.
-- **Shape test** — parses both files: on `action.yml`, substrate-only steps and
-  substrate-selecting env keys carry the `substrate` predicate and no
-  `product == 'landmark'` literal appears; on the wrapper workflow, the
-  interview job's `timeout-minutes < 60`.
+- **`fit-terrain substrate up`** — unit test with a stubbed Supabase spawner
+  asserts `--emit-env` writes both `KEY=value` lines from a stubbed `status`.
+- **`fit-map substrate stage --emit-env`** — test asserts the two lines are
+  written after `url-discovery`, with the existing phases stubbed.
+- **`fit-harness scan-logs`** — hit (non-zero), clean (zero), unreadable
+  archive (fail closed).
+- **Shape test** — on `action.yml`, substrate steps + the scan gate on
+  `substrate-setup-command != ''`, no `product == 'landmark'`; on the wrapper,
+  the interview job's `timeout-minutes < 60`.
