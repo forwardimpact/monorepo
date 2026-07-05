@@ -58,12 +58,14 @@ Changes:
   - `scanDirectory` walks `dir`, and for each `{ label, value }` with non-empty
     `value`, records `label` if `value` occurs in any file; returns
     `{ failures: string[] }`.
-  - `runScanLogsCommand` reads `ctx.options`: parse each repeated `--secret`
-    (`label=literal`) into `secrets`, **splitting on the first `=` only** (JWTs
-    and base64 keys contain `=`; a greedy split truncates the literal and
-    silently disarms the scan). `ctx.options.secret` is a string for one
-    occurrence and an array for many (libcli `multiple`) — normalize to an
-    array. Resolve a logs dir — extract `--archive <zip>` via
+  - `runScanLogsCommand` takes its runtime from `ctx.deps.runtime` (as
+    `tee.js`/`callback.js` do) and reads flags from `ctx.options`. Parse each
+    repeated `--secret` (`label=literal`) into `secrets`, **splitting on the
+    first `=` only** (JWTs and base64 keys contain `=`; a greedy split truncates
+    the literal and silently disarms the scan). `ctx.options.secret` is **always
+    an array** (libcli forwards `multiple:true` to node `parseArgs`), including
+    the single- and zero-occurrence cases — iterate it directly. Resolve a logs
+    dir — extract `--archive <zip>` via
     `runtime.subprocess.run("unzip", …)`, or when `--run-id`/`--repo` are given,
     download with `gh api /repos/<repo>/actions/runs/<id>/logs` to a temp zip
     then extract. Fail closed (`{ ok: false, code: 1, error }`) if download or
@@ -105,8 +107,10 @@ Model on `products/kata/actions/kata-agent/action.yml`. Inputs per design
    `agent-cwd: $agent_dir`, `task-text: "Run the kata-interview skill."`, env
    `WEBSITE_URL`, `IS_SANDBOX=1`, and the substrate secrets gated by the
    `inputs.substrate == 'true' && … || ''` ternary.
-8. `fit-trace cost "${{ steps.interview.outputs.trace-file }}" --markdown >>
-   $GITHUB_STEP_SUMMARY` (`always()`).
+8. Report cost (`always()`) — via a
+   `TRACE_FILE: ${{ steps.interview.outputs.trace-file }}` step env,
+   `fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"` (the
+   `kata-agent` pattern).
 9. Push wiki via `wiki@<sha>` (`always()`).
 10. Scan logs — `if: always() && inputs.substrate == 'true'`: if the
     `$RUNNER_TEMP/.persona-jwt` stash exists, read it and `echo
@@ -117,11 +121,17 @@ Model on `products/kata/actions/kata-agent/action.yml`. Inputs per design
     persona-jwt=<stash> --secret jwt-secret=<secret> --secret
     service-role-key=<secret>` (skip empty literals).
 
+The persona-JWT stash the scan step (item 10) reads is produced *inside* the
+harness step (item 7): the supervisor running the `kata-interview` skill calls
+`fit-map substrate issue --stash "$RUNNER_TEMP/.persona-jwt"` (skill Step 3a).
+No action step writes it — item 10's missing-file guard covers a run that
+skipped `issue`.
+
 Outputs: `trace-file`, `trace-dir` passed through from the harness step. README
 documents every input/output for external consumers.
 
-- Verification: `bun run --cwd . check` yaml parse in the shape test (Step 6);
-  action file present with declared inputs.
+- Verification: the Step 6 shape test parses `action.yml` and asserts the
+  declared inputs and substrate gating.
 
 ## Step 4: Workflow wrapper
 
@@ -202,9 +212,9 @@ the Polaris entry point, `substrate: true`, and Polaris'
 
 ## Risks
 
-- **libcli `options.multiple`** must collect repeated `--secret` into an array;
-  Step 2's parser must tolerate both a single string and an array (libcli yields
-  a string for one occurrence).
+- **`--secret` parsing** — `options.multiple` yields an array in every case
+  (zero/one/many), so the parser iterates it and splits each on the first `=`;
+  the fail-open trap is a greedy split, not the arity.
 - **`unzip`/`gh` availability** — both are present on the bootstrapped runner;
   `scan-logs` fails closed if either is absent, so a missing tool surfaces as a
   loud non-zero, not a silent pass.
