@@ -1,4 +1,4 @@
-name: Security
+name: "Check: Security"
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Data
+name: "Check: Data"
 
 on:
   push:

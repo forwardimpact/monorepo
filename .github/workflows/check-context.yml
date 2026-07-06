@@ -1,4 +1,4 @@
-name: Context
+name: "Check: Context"
 
 on:
   push:
