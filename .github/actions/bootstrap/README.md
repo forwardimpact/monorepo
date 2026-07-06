@@ -40,6 +40,22 @@ The consumer repo must still follow FIT conventions:
   script does not sync.
 - `bun.lock` — its hash is part of the cache key.
 
+## Provisioning
+
+When the consumer repo declares packs in a **root `apm.yml`**, the action runs
+`apm install` (pinned by `apm.lock.yaml`) before `scripts/bootstrap.sh`, so a
+later agent step finds its declared agent profiles and skills on disk. A verify
+step then reconciles every pack declared under `apm.yml` `dependencies.apm`
+against the resolved `apm.lock.yaml` entries and the deployed files: a declared
+pack that did not resolve, or a recorded file that is missing, **fails the run**
+rather than continuing with a partial environment (`apm install` itself exits
+`0` on an unresolvable pack, so its exit code cannot gate this).
+
+With **no root `apm.yml`**, all three provisioning steps skip — the action runs
+no `apm install`, creates no `apm.yml`, and behaves exactly as it does without
+this feature. A repo that commits its instruction trees (like the monorepo)
+takes this branch.
+
 ## Inputs
 
 | Input         | Required | Default    | Description                                                                              |
@@ -59,17 +75,25 @@ critical path makes a single `actions/cache` restore:
   (each tool's lib dir + bin symlink, plus any requested `fit-*` binary, which
   keeps unrelated `~/.local` tooling out of the cache), plus `node_modules`,
   `generated`, and `libraries/*/src/generated`.
-- **Key** — `env-v3-<os>-<hash>`, where the hash covers everything on a
-  hashFiles-visible path that changes what gets generated: `bun.lock`,
-  `**/*.proto`, and the `libcodegen` sources. The action rebases the workspace
-  onto `origin/main` *before* hashing, so the key reflects the tree
-  `scripts/bootstrap.sh` actually runs against — a feature branch caught behind
-  a release commit lands on the same key as a fresh build of main, not a stale
-  snapshot.
-- **Version prefix** — bump `env-vN` (v2 → v3 → …) when the cached layout or
-  the bundled installer's tool versions change in a way the hash can't see (the
-  installer lives in the action, off any hashFiles-visible path); v3 marks the
-  move to the bundled `fit-install.sh`.
+- **Key** — `env-v4-<os>-<clis>-<installer-hash>-<hash>`, where the trailing
+  hash covers everything on a hashFiles-visible path that changes what gets
+  generated: `bun.lock`, `**/*.proto`, and the `libcodegen` sources. The action
+  rebases the workspace onto `origin/main` *before* hashing, so the key reflects
+  the tree `scripts/bootstrap.sh` actually runs against — a feature branch
+  caught behind a release commit lands on the same key as a fresh build of main,
+  not a stale snapshot.
+- **Version prefix** — bump `env-vN` (v2 → v3 → …) when the cached layout
+  changes in a way the hash can't see; v3 marks the move to the bundled
+  `fit-install.sh`, and v4 adds the `<clis>` segment so each tool set caches
+  separately. The `<installer-hash>` segment folds in the bundled installer's
+  contents (tool versions + pinned gear release), so those invalidate the cache
+  automatically without a prefix bump.
+
+A separate, `apm.yml`-gated cache holds `apm`'s content-addressed download
+directory (`~/.cache/apm`), keyed on `apm.lock.yaml`. It is independent of the
+environment cache above, so a pack bump re-provisions packs without dropping
+`node_modules` or `generated`, and repos without a root `apm.yml` never touch
+it. See [Provisioning](#provisioning).
 
 The cache is **exact-key-restore-only**: there is no `restore-keys` prefix
 fallback. On an exact-key hit `cache-hit` is `'true'` and the action skips

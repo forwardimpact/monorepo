@@ -2,9 +2,10 @@ name: FIT Bootstrap
 description: >
   Opinionated FIT environment bootstrap. Sets up Bun, restores a single
   environment cache (CLI tools in ~/.local + node_modules + generated),
-  installs anything missing, optionally checks out the GitHub wiki, and runs
-  ./scripts/bootstrap.sh. To push the wiki back, run forwardimpact/wiki@v1
-  after the agent step.
+  installs anything missing, optionally checks out the GitHub wiki, provisions
+  the packs a root apm.yml declares (pinned by apm.lock.yaml) when one is
+  present, and runs ./scripts/bootstrap.sh. To push the wiki back, run
+  forwardimpact/wiki@v1 after the agent step.
 
 inputs:
   token:
@@ -155,6 +156,28 @@ runs:
     - name: Add deps to PATH
       shell: bash
       run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    # When the consuming repo declares packs in a root apm.yml, provision them
+    # before scripts/bootstrap.sh so any later agent step finds its profiles and
+    # skills on disk. The file is the gate: a repo that commits its trees (the
+    # monorepo) or declares no apm.yml takes the no branch and these three steps
+    # never run — no bare `apm install` that would auto-create apm.yml.
+    - name: Restore apm download cache
+      if: hashFiles('apm.yml') != ''
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: ~/.cache/apm
+        key: apm-v1-${{ runner.os }}-${{ hashFiles('apm.lock.yaml') }}
+
+    - name: Provision packs
+      if: hashFiles('apm.yml') != ''
+      shell: bash
+      run: apm install
+
+    - name: Verify provisioning
+      if: hashFiles('apm.yml') != ''
+      shell: bash
+      run: bun "$GITHUB_ACTION_PATH/apm-verify.mjs"
 
     - name: Bootstrap
       shell: bash
