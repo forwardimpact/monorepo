@@ -297,3 +297,49 @@ prose cache; today they reach only HTML output, never SQL.
 The `polaris-seed` output block in `data/synthetic/story.dsl` already lists the
 six prose entities (the only DSL change this spec makes); the parser accepts
 them and the renderer silently ignores them until specs B land.
+
+## Interviewing Polaris
+
+Polaris proves Forward Impact's method for an external team, so it should be
+interviewable the same way this monorepo interviews its own products — with the
+published `forwardimpact/kata-interview` composite action, not a forked
+workflow. The action owns the generic infrastructure (token, checkout,
+bootstrap, `fit-terrain build`, the supervised run, cost, wiki push, log scan);
+Polaris supplies only its own entry point and substrate command.
+
+`.github/workflows/interview.yml` in `bionova-apps`:
+
+```yaml
+jobs:
+  interview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50 # composite actions cannot set a job timeout
+    steps:
+      - uses: forwardimpact/kata-interview@<sha> # pin like every sibling action
+        with:
+          app-id: ${{ secrets.KATA_APP_ID }}
+          app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          website-url: https://polaris.bionova.example
+          # Generic Supabase bring-up, then Polaris' own migration + embed seed.
+          # No fit-map and no map schema — bring-up + emit is all the action needs.
+          substrate-setup-command: >-
+            npx fit-terrain substrate up --cwd . --emit-env "$GITHUB_ENV"
+            && supabase db push
+            && ./data/synthetic/setup.sh
+          jwt-secret: ${{ secrets.SUPABASE_JWT_SECRET }}
+          service-role-key: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+```
+
+Patient interviews omit `persona-select-command` entirely — Polaris is
+patient-facing with anonymous access, so the supervisor builds the persona from
+the vendored `story.dsl` and issues no JWT. A staff-facing interview would pass
+a Polaris persona command satisfying the same `.env` / `.substrate.json` / stash
+contract the action documents.
+
+The substrate command brings Supabase up from the repo checkout (`--cwd .`,
+using Polaris' own `supabase/` config), while the interview itself stages its
+working files into the temp `agent-cwd` the action creates — so this needs no
+`fit-map`, no map schema, and no Polaris application code running in the runner.
+Prerequisite A (`fit-terrain` runs outside the monorepo) is the same dependency
+the seed pipeline already relies on.
