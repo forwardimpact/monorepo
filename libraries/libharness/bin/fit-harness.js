@@ -13,6 +13,7 @@ import { runSuperviseCommand } from "../src/commands/supervise.js";
 import { runFacilitateCommand } from "../src/commands/facilitate.js";
 import { runDiscussCommand } from "../src/commands/discuss.js";
 import { runCallbackCommand } from "../src/commands/callback.js";
+import { runScanLogsCommand } from "../src/commands/scan-logs.js";
 import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
 const LEAD_OPTIONS = {
@@ -276,6 +277,35 @@ const definition = {
           type: "string",
           description:
             "Discussion id (fallback when the trace lacks a meta event)",
+        },
+      },
+    },
+    {
+      name: "scan-logs",
+      args: [],
+      argsUsage: "",
+      handler: runScanLogsCommand,
+      description:
+        "Scan a run's log archive for secret literals; exit non-zero on any hit, fail closed on an unreadable archive",
+      options: {
+        archive: {
+          type: "string",
+          description: "Path to an already-resolved log archive (.zip)",
+        },
+        "run-id": {
+          type: "string",
+          description:
+            "GitHub Actions run id to download the log archive for (with --repo)",
+        },
+        repo: {
+          type: "string",
+          description: "owner/repo for the --run-id download",
+        },
+        secret: {
+          type: "string",
+          multiple: true,
+          description:
+            "Repeatable label=literal; the literal (everything after the first =) is searched for in the logs",
         },
       },
     },
