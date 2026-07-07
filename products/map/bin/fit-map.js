@@ -16,6 +16,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createProductConfig } from "@forwardimpact/libconfig";
 import { findDataDir } from "../src/lib/data-dir.js";
 import { dispatchSubstrate as _dispatchSubstrate } from "./dispatch-substrate.js";
+import { dispatchAuth as _dispatchAuth } from "./dispatch-auth.js";
 import {
   createCli,
   SummaryRenderer,
@@ -96,6 +97,11 @@ const definition = {
         cwd: {
           type: "string",
           description: "Target dir for the init bootstrap (default: cwd)",
+        },
+        "emit-env": {
+          type: "string",
+          description:
+            "Append SUPABASE_URL= / SUPABASE_ANON_KEY= lines to this path after url-discovery (e.g. $GITHUB_ENV)",
         },
       },
     },
@@ -500,24 +506,12 @@ async function dispatchGetdx(subcommand, rest, values) {
 }
 
 async function dispatchAuth(subcommand, _rest, values) {
-  switch (subcommand) {
-    case "issue": {
-      const supabase = await mapClient();
-      const { runAuthIssueCommand } = await import(
-        "../src/commands/auth-issue.js"
-      );
-      await runAuthIssueCommand({
-        supabase,
-        config,
-        options: { email: values.email, ttl: values.ttl },
-        runtime,
-      });
-      return 0;
-    }
-    default:
-      cli.usageError(`unknown auth subcommand: ${subcommand || "(none)"}`);
-      return 1;
-  }
+  return _dispatchAuth(subcommand, _rest, values, {
+    config,
+    mapClient,
+    cli,
+    runtime,
+  });
 }
 
 async function dispatchSubstrate(subcommand, _rest, values) {

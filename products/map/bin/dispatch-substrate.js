@@ -30,7 +30,12 @@ export async function dispatchSubstrate(subcommand, _rest, values, deps) {
       const { runStageCommand } = await import(
         "../src/commands/substrate-stage.js"
       );
-      return runStageCommand({ config, target: values.cwd, runtime });
+      return runStageCommand({
+        config,
+        target: values.cwd,
+        emitEnv: values["emit-env"],
+        runtime,
+      });
     }
     case "roster": {
       const supabase = await mapClient();
