@@ -9,7 +9,11 @@
 
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { createTestRuntime, createMockFs } from "@forwardimpact/libmock";
+import {
+  createTestRuntime,
+  createMockFs,
+  createMockProcess,
+} from "@forwardimpact/libmock";
 
 import {
   scanDirectory,
@@ -87,6 +91,57 @@ describe("scanDirectory", () => {
 });
 
 describe("runScanLogsCommand", () => {
+  // Build a runtime whose `unzip` "extracts" the given fixture files into the
+  // `-d <dir>` target in the mock fs, so the whole command (resolve → extract
+  // → scan → exit code) runs end-to-end without a real archive or binary.
+  function runtimeExtracting(files) {
+    const fs = createMockFs();
+    const proc = createMockProcess();
+    const subprocess = {
+      run: async (cmd, args = []) => {
+        if (cmd === "unzip") {
+          const dir = args[args.indexOf("-d") + 1];
+          for (const [name, content] of Object.entries(files)) {
+            fs.writeFileSync(`${dir}/${name}`, content);
+          }
+        }
+        return { exitCode: 0, stdout: "", stderr: "" };
+      },
+      spawn: () => ({ exitCode: Promise.resolve(0) }),
+    };
+    return createTestRuntime({ fs, proc, subprocess });
+  }
+
+  test("hit: a resolved archive containing a literal exits non-zero", async () => {
+    const runtime = runtimeExtracting({
+      "1_build.txt": "starting\nAuthorization: Bearer super-secret-jwt\ndone",
+    });
+    const result = await runScanLogsCommand({
+      deps: { runtime },
+      options: {
+        archive: "/tmp/run-logs.zip",
+        secret: ["persona-jwt=super-secret-jwt", "unused=not-present"],
+      },
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 1);
+  });
+
+  test("clean: a resolved archive with no literal exits zero", async () => {
+    const runtime = runtimeExtracting({
+      "1_build.txt": "all values masked as ***\n",
+    });
+    const result = await runScanLogsCommand({
+      deps: { runtime },
+      options: {
+        archive: "/tmp/run-logs.zip",
+        secret: ["persona-jwt=super-secret-jwt"],
+      },
+    });
+    assert.equal(result.ok, true);
+    assert.equal(result.code, 0);
+  });
+
   test("fails closed when the archive cannot be extracted", async () => {
     const runtime = createTestRuntime({
       subprocess: {

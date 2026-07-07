@@ -142,9 +142,9 @@ export async function runScanLogsCommand(ctx) {
   try {
     dir = await resolveLogsDir({ options, runtime });
   } catch (err) {
-    // Fail closed: an unresolvable archive must not pass as "no leak".
-    runtime.proc.stderr.write(`FAIL: scan-logs: ${err.message}\n`);
-    return { ok: false, code: 1, error: err.message };
+    // Fail closed: an unresolvable archive must not pass as "no leak". The
+    // dispatcher prints the returned `error`, so don't also write it here.
+    return { ok: false, code: 1, error: `scan-logs: ${err.message}` };
   }
 
   const failures = await scanDirectory({ dir, secrets, runtime });

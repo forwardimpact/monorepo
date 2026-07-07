@@ -90,7 +90,7 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
   ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
 
   <!-- enum:sibling-composite-actions:list -->
-  `benchmark`, `bootstrap`, `harness`, `kata-agent`, `wiki`
+  `benchmark`, `bootstrap`, `harness`, `kata-agent`, `kata-interview`, `wiki`
   <!-- /enum -->
 
 Published skills teach how products **work** and **use**, not how they're

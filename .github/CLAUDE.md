@@ -6,8 +6,8 @@ actions (`actions/`) they consume.
 ## Third-party actions
 
 <!-- enum:sibling-composite-actions:count -->
-Five composite actions are co-located in this monorepo and published to
-`forwardimpact/` siblings, SHA-pinned with a `# v1` marker on `uses:` lines:
+Six composite actions are co-located here and published to `forwardimpact/`
+siblings, SHA-pinned (`# v1`) on `uses:` lines:
 <!-- /enum -->
 
 | Action (`@v1`) | Purpose |
@@ -17,6 +17,7 @@ Five composite actions are co-located in this monorepo and published to
 | [benchmark](https://github.com/forwardimpact/benchmark) | Coding-agent benchmarks |
 | [harness](https://github.com/forwardimpact/harness) | Agent task execution |
 | [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, bootstrap, harness, wiki) |
+| [kata-interview](https://github.com/forwardimpact/kata-interview) | JTBD switching interview run |
 
 Every workflow calls `bootstrap@v1` for the environment; `kata-agent`
 delegates to bootstrap/harness/wiki internally. `bootstrap` only **checks

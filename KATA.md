@@ -37,7 +37,7 @@ surfaces and sessions.
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
 `audit/` and `coaligned-check/`.
 <!-- enum:sibling-composite-actions:count -->
-Five composite actions are co-located here and published to `forwardimpact/`
+Six composite actions are co-located here and published to `forwardimpact/`
 siblings:
 <!-- /enum -->
 
@@ -47,6 +47,7 @@ siblings:
 - `harness` — agent task execution
 - `wiki` — agent-memory commands with fresh App token
 - `kata-agent` — full Kata workflow (auth, checkout, bootstrap, eval, wiki push)
+- `kata-interview` — JTBD switching interview run
 <!-- /enum -->
 
 Publish, pinning, and release mechanics live in
