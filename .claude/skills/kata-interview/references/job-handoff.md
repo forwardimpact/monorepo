@@ -16,10 +16,11 @@ it automatically).
 ## Ask 2 — Job Delivery
 
 Three sentences, composed from the chosen JTBD entry. No product name.
+`<website-url>` is the entry point read from `WEBSITE_URL` (SKILL.md § Step 5).
 
 > Today you want to <Big Hire text, product names after `→` stripped>.
 > Specifically: <Little Hire text, also stripped>. Start at
-> <https://www.forwardimpact.team> — that's the only entry point. Note
+> `<website-url>` — that's the only entry point. Note
 > friction in your final output, not in files.
 
 ## Worked Examples
@@ -43,7 +44,7 @@ Ask 2:
 > Today you want to get career guidance and evidence grounded in BioNova's
 > engineering standard, not impressions or generic advice. Specifically:
 > ask a growth question and check whether your recent Oncora work shows
-> progress toward J070. Start at <https://www.forwardimpact.team> — that's
+> progress toward J070. Start at `<website-url>` — that's
 > the only entry point. Note friction in your final output, not in files.
 
 ### Example B — *Engineering Leaders: Staff Teams to Succeed*
@@ -61,5 +62,5 @@ Ask 2:
 > each role on your Platform Engineering team actually requires.
 > Specifically: spot the capability gaps the v2.1 post-mortem surfaced and
 > check whether the candidate you've been considering fills them. Start at
-> <https://www.forwardimpact.team> — that's the only entry point. Note
+> `<website-url>` — that's the only entry point. Note
 > friction in your final output, not in files.
