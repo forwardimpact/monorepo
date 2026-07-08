@@ -122,5 +122,6 @@ Push to `main` (path-filtered) triggers: build with `fit-doc`, upload artifact,
 dispatch to the pages repo via GitHub App token. The pages repo deploys to
 GitHub Pages.
 
-The FIT workflow also copies JSON and RDF schemas from `products/map/schema/`
-into `dist/schema/`, published at `/schema/json/` and `/schema/rdf/`.
+The FIT workflow also copies schemas (JSON from `libraries/libskill/schema/`,
+RDF from `products/map/schema/`) into `dist/schema/`, published at
+`/schema/json/` and `/schema/rdf/`.

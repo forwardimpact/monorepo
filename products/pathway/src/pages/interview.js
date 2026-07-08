@@ -21,7 +21,7 @@ import { createBadge } from "../components/card.js";
 import { createBackLink } from "../components/nav.js";
 import { createDetailSection } from "../components/detail.js";
 import { renderError } from "../components/error-page.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 import {
   prepareAllInterviews,
   INTERVIEW_TYPES,

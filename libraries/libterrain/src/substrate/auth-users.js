@@ -1,12 +1,8 @@
 /**
- * `fit-map people provision` — reconcile auth.users against the roster.
- *
- * Operator-only verb that uses the service-role-keyed client (the same
- * credential `fit-map people push` consumes) to call Supabase's
- * `auth.admin.*` API. Creates an `auth.users` row for every
- * `activity.organization_people.email`, restores rows previously banned,
- * and decommissions rows whose roster entry has been removed by setting
- * `banned_until` ≥100 years out.
+ * Reconcile Supabase `auth.users` against the contract roster
+ * (`substrate.people`) via the admin API, and look up individual auth
+ * users by email. The contract's auth model: email identities, RLS keyed
+ * on `auth.email()`, service-role key for provisioning.
  */
 
 import {
@@ -16,6 +12,31 @@ import {
 } from "@forwardimpact/libcli";
 
 const BAN_FOREVER = "876000h"; // ≈100 years; gotrue parses to a future banned_until.
+
+/**
+ * Look up a Supabase `auth.users` row by email via the admin API.
+ * Iterates pages so it works on rosters larger than the API's page size.
+ *
+ * @param {import("@supabase/supabase-js").SupabaseClient} supabase
+ * @param {string} email
+ * @returns {Promise<object | null>} The matching user row, or null if absent.
+ */
+export async function findAuthUser(supabase, email) {
+  // listUsers() is paginated; iterate so rosters larger than one page
+  // still resolve.
+  let page = 1;
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage: 1000,
+    });
+    if (error) throw new Error(`listUsers: ${error.message}`);
+    const match = data.users.find((u) => u.email === email);
+    if (match) return match;
+    if (data.users.length < 1000) return null;
+    page += 1;
+  }
+}
 
 async function listAuthUsers(supabase) {
   const out = new Map();
@@ -30,7 +51,7 @@ async function listAuthUsers(supabase) {
     for (const u of data.users) {
       // Skip auth.users rows without an email — non-roster identities
       // (phone-auth users, pre-confirmed test seeds) the reconciler has
-      // no opinion on. They are not Landmark callers because RLS keys
+      // no opinion on. They are not product callers because RLS keys
       // off auth.email().
       if (typeof u.email !== "string" || !u.email) continue;
       out.set(u.email, u);
@@ -92,22 +113,24 @@ async function decommissionUser(supabase, email, user, nowMs) {
 }
 
 /**
- * Run the people-provision command.
+ * Reconcile `auth.users` against the `substrate.people` roster: create an
+ * `auth.users` row for every roster email, restore rows previously banned,
+ * and decommission rows whose roster entry has been removed by setting
+ * `banned_until` ≥100 years out.
  *
  * @param {object} params
- * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase - Service-role client.
+ * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase -
+ *   Service-role client bound to the `substrate` schema.
  * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators (proc, clock).
  * @returns {Promise<{summary: object, meta: object}>}
  */
-export async function runProvisionCommand({ supabase, runtime }) {
+export async function runProvision({ supabase, runtime }) {
   const nowMs = runtime.clock.now();
   runtime.proc.stdout.write(
-    formatHeader("Provisioning auth.users from organization_people") + "\n\n",
+    formatHeader("Provisioning auth.users from substrate.people") + "\n\n",
   );
-  const { data: roster, error } = await supabase
-    .from("organization_people")
-    .select("email");
-  if (error) throw new Error(`organization_people: ${error.message}`);
+  const { data: roster, error } = await supabase.from("people").select("email");
+  if (error) throw new Error(`substrate.people: ${error.message}`);
   const rosterEmails = new Set(roster.map((r) => r.email));
   const authUsers = await listAuthUsers(supabase);
 

@@ -295,4 +295,19 @@ describe("levels", () => {
       assert.strictEqual(getConceptEmoji(null, "skill"), "💡");
     });
   });
+
+  describe("package export surface", () => {
+    test("./levels resolves through the package export", async () => {
+      const levels = await import("@forwardimpact/libskill/levels");
+      assert.strictEqual(levels.SkillProficiency.EXPERT, "expert");
+    });
+
+    test("./schema/json/* resolves the standard schema", async () => {
+      const schema = await import(
+        "@forwardimpact/libskill/schema/json/standard.schema.json",
+        { with: { type: "json" } }
+      );
+      assert.ok(schema.default.$id);
+    });
+  });
 });

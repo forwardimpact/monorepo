@@ -2,10 +2,11 @@
 name: fit-terrain
 description: >
   Produce a complete eval dataset from a single DSL file so you can prove
-  agent changes with reproducible evidence. Use when setting up an eval
-  and you need to coordinate generation, rendering, and validation, when
-  bootstrapping a realistic environment for demos or testing, or when
-  regenerating a dataset after a schema change.
+  agent changes with reproducible evidence, and run substrate identity
+  verbs against any Supabase stack implementing the Substrate Contract.
+  Use when setting up an eval, bootstrapping a realistic environment,
+  regenerating a dataset after a schema change, or provisioning, picking,
+  and issuing personas for an interview run.
 ---
 
 # fit-terrain CLI
@@ -106,23 +107,18 @@ key block descriptions.
 
 ## Data Resolution
 
-Use `--story=path` to specify a custom terrain DSL file. Without `--story`, the
-CLI falls back to the minimal reference DSL bundled with the package.
-
-Generated output writes to the `data/` directories listed under Content Types
-above.
+Use `--story=path` to specify a custom terrain DSL file. Without `--story`,
+the CLI falls back to the minimal reference DSL bundled with the package.
+Generated output writes to the `data/` directories in
+[`references/cli.md`](references/cli.md) § Content Types.
 
 ---
 
 ## Prose Cache
 
-The prose cache is stored at `data/synthetic/prose-cache.json`. This file is
-pre-populated for the BioNova terrain. The default mode reads from it without
-LLM calls.
-
-`fit-terrain generate` regenerates prose and writes the cache after generation
-completes. To do a full regeneration, delete the cache file first and run
-`fit-terrain generate`.
+The prose cache lives at `data/synthetic/prose-cache.json` (pre-populated
+for the BioNova terrain). For a full regeneration, delete the cache file
+first and run `fit-terrain generate`.
 
 ---
 
@@ -155,12 +151,23 @@ missing the pipeline logs an "unavailable" line and skips the Synthea block
 
 ## Logging
 
-Set `DEBUG=terrain` for verbose debug output during generation. Operational
-progress is logged to stderr via libtelemetry Logger (RFC 5424 format with
-timestamps). Stdout is reserved for file counts, validation results, and prose
+Set `DEBUG=terrain` for verbose debug output. Operational progress logs to
+stderr; stdout is reserved for file counts, validation results, and prose
 cache statistics.
 
 ---
+
+## Substrate Identity Verbs
+
+Seven `substrate` verbs (`up`, `init`, `check`, `provision`, `pick`,
+`roster`, `issue`) bring up a Supabase stack and run the identity
+capability against the
+[Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md)
+— a `substrate` Postgres schema of consumer-defined views (`people`
+required; `evidence` and `discovery` optional with declared
+degradation). The verbs query only contract relations, never your
+vendor tables. Command lines and exit codes:
+[`references/cli.md`](references/cli.md).
 
 ## Feeding Generated Content to Guide
 
@@ -178,11 +185,7 @@ npx fit-guide               # Verify end-to-end
 
 After generation, the CLI runs cross-content validation automatically and
 reports pass/fail for each check. Validate the generated pathway data
-separately:
-
-```sh
-npx fit-map validate
-```
+separately with `npx fit-map validate`.
 
 ## Documentation
 
@@ -191,3 +194,8 @@ npx fit-map validate
   analysis
 - [Generate an Eval Dataset](https://www.forwardimpact.team/docs/libraries/prove-changes/generate-dataset/index.md)
   — Using the Terrain DSL to define and generate synthetic datasets
+- [The Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md)
+  — The consumer-implemented relations, auth model, env vars, and
+  degradation semantics behind the substrate identity verbs
+- [Provision Engineer Auth Users](https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md)
+  — Reconcile auth.users against the roster so identity-derived RLS works

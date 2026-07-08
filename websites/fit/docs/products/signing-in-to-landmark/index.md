@@ -20,8 +20,8 @@ Operators issuing tokens for unattended agents follow a different path — see
 ## Prerequisites
 
 - An `auth.users` row paired with your roster entry. Your operator runs
-  `fit-map people provision` to keep these synchronized — if your email is
-  not in the roster, login will fail.
+  `fit-terrain substrate provision` to keep these synchronized — if your email
+  is not in the roster, login will fail.
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY` available in your environment.
   Local installs get these in `.env` from `just env-setup`; hosted
   Supabase projects expose them in Project Settings → API.

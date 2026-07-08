@@ -5,11 +5,11 @@
  * and capability definitions. Extracted from derivation.js for max-lines compliance.
  */
 
-import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/map/levels";
+import { SKILL_PROFICIENCY_ORDER } from "./levels.js";
 
 /**
  * Build a map of capability ID to maximum skill proficiency
- * @param {import('@forwardimpact/map/levels').SkillMatrixEntry[]} skillMatrix - Derived skill matrix
+ * @param {import('./levels.js').SkillMatrixEntry[]} skillMatrix - Derived skill matrix
  * @returns {Map<string, string>} Map of capability ID to max proficiency
  */
 function buildCapabilityProficiencyMap(skillMatrix) {
@@ -29,7 +29,7 @@ function buildCapabilityProficiencyMap(skillMatrix) {
 
 /**
  * Count skills per capability at the capability's max proficiency
- * @param {import('@forwardimpact/map/levels').SkillMatrixEntry[]} skillMatrix - Derived skill matrix
+ * @param {import('./levels.js').SkillMatrixEntry[]} skillMatrix - Derived skill matrix
  * @param {Map<string, string>} capabilityProficiencies - Max proficiency per capability
  * @returns {Map<string, number>} Map of capability ID to skill count at max proficiency
  */
@@ -53,9 +53,9 @@ function countSkillsAtMaxProficiency(skillMatrix, capabilityProficiencies) {
  * responsibility statement from the capability definition.
  *
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').SkillMatrixEntry[]} params.skillMatrix - Derived skill matrix for the job
+ * @param {import('./levels.js').SkillMatrixEntry[]} params.skillMatrix - Derived skill matrix for the job
  * @param {Object[]} params.capabilities - Capability definitions with responsibilities
- * @param {import('@forwardimpact/map/levels').Discipline} params.discipline - The discipline (determines which responsibilities to use)
+ * @param {import('./levels.js').Discipline} params.discipline - The discipline (determines which responsibilities to use)
  * @returns {Array<{capability: string, capabilityName: string, emojiIcon: string, responsibility: string, level: string}>}
  */
 export function deriveResponsibilities({

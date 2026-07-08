@@ -21,7 +21,7 @@ import { createLevelCell } from "../../components/detail.js";
 import {
   BEHAVIOUR_MATURITY_ORDER,
   getConceptEmoji,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 import { prepareBehaviourDetail } from "./shared.js";
 import { createJsonLdScript, behaviourToJsonLd } from "../json-ld.js";
 

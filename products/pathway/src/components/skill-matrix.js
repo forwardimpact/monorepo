@@ -18,7 +18,7 @@ import {
 import { getSkillProficiencyIndex } from "../lib/render.js";
 import { createLevelCell } from "./detail.js";
 import { createBadge } from "./card.js";
-import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/map/levels";
+import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/libskill/levels";
 import { truncate } from "../formatters/shared.js";
 
 /**

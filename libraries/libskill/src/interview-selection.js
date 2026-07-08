@@ -10,7 +10,7 @@ import {
   getBehaviourMaturityIndex,
   SKILL_PROFICIENCY_ORDER,
   Capability,
-} from "@forwardimpact/map/levels";
+} from "./levels.js";
 
 import {
   WEIGHT_SKILL_TYPE,

@@ -1,7 +1,7 @@
 import {
   getSkillProficiencyIndex,
   getBehaviourMaturityIndex,
-} from "../levels.js";
+} from "@forwardimpact/libskill/levels";
 
 import {
   createValidationResult,
@@ -10,10 +10,10 @@ import {
 } from "./common.js";
 
 /**
- * @param {import('../levels.js').SelfAssessment} selfAssessment
- * @param {import('../levels.js').Skill[]} skills
- * @param {import('../levels.js').Behaviour[]} behaviours
- * @returns {import('../levels.js').ValidationResult}
+ * @param {import('@forwardimpact/libskill/levels').SelfAssessment} selfAssessment
+ * @param {import('@forwardimpact/libskill/levels').Skill[]} skills
+ * @param {import('@forwardimpact/libskill/levels').Behaviour[]} behaviours
+ * @returns {import('@forwardimpact/libskill/levels').ValidationResult}
  */
 export function validateSelfAssessment(selfAssessment, skills, behaviours) {
   const errors = [];
@@ -105,10 +105,10 @@ export function validateSelfAssessment(selfAssessment, skills, behaviours) {
 }
 
 /**
- * @param {import('../levels.js').QuestionBank} questionBank
- * @param {import('../levels.js').Skill[]} skills
- * @param {import('../levels.js').Behaviour[]} behaviours
- * @returns {import('../levels.js').ValidationResult}
+ * @param {import('@forwardimpact/libskill/levels').QuestionBank} questionBank
+ * @param {import('@forwardimpact/libskill/levels').Skill[]} skills
+ * @param {import('@forwardimpact/libskill/levels').Behaviour[]} behaviours
+ * @returns {import('@forwardimpact/libskill/levels').ValidationResult}
  */
 export function validateQuestionBank(questionBank, skills, behaviours) {
   const errors = [];

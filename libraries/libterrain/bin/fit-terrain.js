@@ -30,7 +30,7 @@ import {
   printCacheReport,
   printGenerateStats,
 } from "../src/cli-helpers.js";
-import { runSubstrateUp } from "../src/commands/substrate-up.js";
+import { dispatchSubstrate } from "./dispatch-substrate.js";
 
 // Overlay the runtime so the prompt/template loaders read inlined assets when
 // this is a compiled binary; a no-op in source/npx execution.
@@ -49,6 +49,18 @@ const documentation = [
     description:
       "Using the Terrain DSL to define and generate synthetic datasets.",
   },
+  {
+    title: "The Substrate Contract",
+    url: "https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md",
+    description:
+      "The consumer-implemented relations, auth model, env vars, and degradation semantics behind the substrate identity verbs.",
+  },
+  {
+    title: "Provision Engineer Auth Users",
+    url: "https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md",
+    description:
+      "Reconcile auth.users against the roster so identity-derived RLS works.",
+  },
 ];
 
 const definition = {
@@ -65,7 +77,7 @@ const definition = {
     "schema-dir": {
       type: "string",
       description:
-        "Directory of map JSON schemas for pathway rendering (default: resolved from @forwardimpact/map)",
+        "Directory of standard JSON schemas for pathway rendering (default: resolved from @forwardimpact/libskill)",
     },
     help: { type: "boolean", short: "h", description: "Show this help" },
     version: { type: "boolean", description: "Show version" },
@@ -151,6 +163,97 @@ const definition = {
         'bunx fit-terrain substrate up --cwd . --emit-env "$GITHUB_ENV"',
       ],
     },
+    {
+      name: "substrate init",
+      description:
+        "Scaffold a starter Substrate Contract migration (schema + commented example views) into <cwd>/supabase/migrations/ for editing. Offline — needs no stack or env.",
+      options: {
+        cwd: {
+          type: "string",
+          description:
+            "Consumer checkout to scaffold into (default: current directory)",
+        },
+      },
+      examples: ["bunx fit-terrain substrate init --cwd ."],
+    },
+    {
+      name: "substrate check",
+      description:
+        "Validate a live stack against the Substrate Contract: one diagnostic per missing or malformed relation; exits non-zero only when a required relation fails. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+      examples: ["bunx fit-terrain substrate check"],
+    },
+    {
+      name: "substrate provision",
+      description:
+        "Reconcile auth.users against substrate.people: create missing, restore banned, decommission removed. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+      examples: ["bunx fit-terrain substrate provision"],
+    },
+    {
+      name: "substrate pick",
+      description:
+        "Return one invariant-satisfying persona, diversified against --memory when supplied (appending the pick on success; stateless otherwise).",
+      options: {
+        format: {
+          type: "string",
+          description: "Output format: json (default) or text",
+        },
+        memory: {
+          type: "string",
+          description:
+            "Pick-memory CSV path; omit for a stateless pick with no memory",
+        },
+        "memory-window": {
+          type: "string",
+          description: "Recent picks to diversify against (default: 5)",
+        },
+      },
+      examples: [
+        "bunx fit-terrain substrate pick --format json",
+        "bunx fit-terrain substrate pick --memory picks.csv --memory-window 5",
+      ],
+    },
+    {
+      name: "substrate roster",
+      description:
+        "List every invariant-satisfying persona (operator surface over the same query as pick).",
+      options: {
+        format: {
+          type: "string",
+          description: "Output format: text table (default) or json",
+        },
+      },
+      examples: ["bunx fit-terrain substrate roster --format json"],
+    },
+    {
+      name: "substrate issue",
+      description:
+        "Mint a persona JWT and atomically write the .env / .substrate.json / stash set. The .env variable name is caller-supplied via --token-env (required, no default). Needs SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and JWT_SECRET.",
+      options: {
+        email: {
+          type: "string",
+          description: "Persona email (a substrate.people kind=human row)",
+        },
+        cwd: {
+          type: "string",
+          description: "Directory receiving .env and .substrate.json",
+        },
+        "token-env": {
+          type: "string",
+          description: "Env var name for the JWT line written to .env",
+        },
+        ttl: {
+          type: "string",
+          description: "Token lifetime (default: 1h)",
+        },
+        stash: {
+          type: "string",
+          description: "Also write the bare JWT to this path (mode 0600)",
+        },
+      },
+      examples: [
+        "bunx fit-terrain substrate issue --email a@b.c --cwd . --token-env MY_APP_TOKEN",
+      ],
+    },
   ],
   examples: [
     "bunx fit-terrain check",
@@ -198,24 +301,27 @@ async function resolveLlmApi(config, modelOverride) {
 }
 
 /**
- * Resolve the map JSON-schema directory from the installed `@forwardimpact/map`
- * package. Pathway rendering reads nine `<name>.schema.json` files from here.
- * Returns `null` when the package is not installed, so the pipeline cleanly
- * skips pathway rendering rather than crashing — an external consumer that only
- * renders clinical output (Polaris's case) need not depend on `map`.
+ * Resolve the standard JSON-schema directory from the installed
+ * `@forwardimpact/libskill` package. Pathway rendering reads nine
+ * `<name>.schema.json` files from here. `libskill` is a required dependency,
+ * so a resolution miss can only mean a broken install — fail loudly.
  *
  * Called directly in this module so `this === import.meta`, which Bun requires
  * for `import.meta.resolve`.
  */
 function defaultSchemaDir() {
+  let url;
   try {
-    const url = import.meta.resolve(
-      "@forwardimpact/map/schema/json/standard.schema.json",
+    url = import.meta.resolve(
+      "@forwardimpact/libskill/schema/json/standard.schema.json",
     );
-    return dirname(fileURLToPath(url));
-  } catch {
-    return null;
+  } catch (cause) {
+    throw new Error(
+      "Cannot resolve @forwardimpact/libskill/schema/json — reinstall fit-terrain (libskill is a required dependency).",
+      { cause },
+    );
   }
+  return dirname(fileURLToPath(url));
 }
 
 /**
@@ -403,21 +509,17 @@ async function main() {
 
   const { values, positionals } = parsed;
 
-  // `substrate up` is a generic Supabase bring-up, not a pipeline verb — it
-  // builds no synthetic-data pipeline, so it dispatches before resolveVerb.
+  // Substrate verbs are stack/identity commands, not pipeline verbs — they
+  // build no synthetic-data pipeline, so they dispatch before resolveVerb.
   if (positionals[0] === "substrate") {
-    if (positionals[1] !== "up") {
+    const code = await dispatchSubstrate(positionals[1], values, { runtime });
+    if (code === null) {
       cli.usageError(
         `Unknown substrate subcommand "${positionals[1] ?? ""}". Run "fit-terrain --help".`,
       );
       return;
     }
-    const ok = await runSubstrateUp({
-      cwd: values.cwd,
-      emitEnv: values["emit-env"],
-      runtime,
-    });
-    if (ok !== 0) runtime.proc.exitCode = 1;
+    if (code !== 0) runtime.proc.exitCode = 1;
     return;
   }
 

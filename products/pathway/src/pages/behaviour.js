@@ -9,7 +9,7 @@ import { renderNotFound } from "../components/error-page.js";
 import { prepareBehavioursList } from "../formatters/behaviour/shared.js";
 import { behaviourToDOM } from "../formatters/behaviour/dom.js";
 import { behaviourToCardConfig } from "../lib/card-mappers.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Render behaviours list page

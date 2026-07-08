@@ -1,4 +1,7 @@
-import { Capability, SKILL_PROFICIENCY_ORDER } from "../levels.js";
+import {
+  Capability,
+  SKILL_PROFICIENCY_ORDER,
+} from "@forwardimpact/libskill/levels";
 
 import { createError, createWarning } from "./common.js";
 import {
@@ -326,7 +329,7 @@ function validateSkillMarkers(skill, path) {
 }
 
 /**
- * @param {import('../levels.js').Skill} skill
+ * @param {import('@forwardimpact/libskill/levels').Skill} skill
  * @param {number} index
  * @param {string[]} [requiredStageIds]
  * @returns {{errors: Array, warnings: Array}}

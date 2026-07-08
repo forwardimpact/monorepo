@@ -25,8 +25,8 @@ project. Engineers do not run it.
   - **Hosted Supabase** — find them in Project Settings → API → Project URL,
     Service Role Key, and JWT Secret.
 - The target email already has both an `organization_people` row and an
-  `auth.users` row. Run `fit-map people push` then `fit-map people provision`
-  if it doesn't.
+  `auth.users` row. Run `fit-map people push` then
+  `fit-terrain substrate provision` if it doesn't.
 
 ## Mint a token
 
@@ -110,7 +110,7 @@ the next Supabase Auth check.
 ```sh
 # Remove the row from organization_people and re-run provision —
 # the auth.users row gets banned (banned_until ≥100 years).
-fit-map people provision
+fit-terrain substrate provision
 ```
 
 To bring the identity back, re-add the roster row and run `provision`

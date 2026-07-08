@@ -129,5 +129,13 @@ toc: false
 
 </div>
 
+## Provision Substrate Identities (Builders)
+
+<div class="grid">
+
+<!-- part:card:substrate-contract -->
+
+</div>
+
 Looking for product workflows? See [Product Guides](/docs/products/). For shared
 gRPC service integration, see [Service Guides](/docs/services/).

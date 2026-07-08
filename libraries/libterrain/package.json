@@ -32,7 +32,8 @@
     ".": "./src/index.js",
     "./bin/fit-terrain.js": "./bin/fit-terrain.js",
     "./pipeline": "./src/pipeline.js",
-    "./load": "./src/load.js"
+    "./load": "./src/load.js",
+    "./substrate": "./src/substrate/index.js"
   },
   "bin": {
     "fit-terrain": "./bin/fit-terrain.js"
@@ -44,16 +45,18 @@
   ],
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
-    "@forwardimpact/libutil": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.59",
-    "@forwardimpact/map": "^0.15.61",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libprompt": "^0.1.0",
+    "@forwardimpact/libsecret": "^0.1.14",
+    "@forwardimpact/libskill": "^6.1.0",
     "@forwardimpact/libsyntheticgen": "^0.1.0",
     "@forwardimpact/libsyntheticprose": "^0.1.0",
     "@forwardimpact/libsyntheticrender": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.23",
-    "@forwardimpact/libtemplate": "^0.2.0"
+    "@forwardimpact/libtemplate": "^0.2.0",
+    "@forwardimpact/libutil": "^0.1.0",
+    "@supabase/supabase-js": "^2.108.1"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0",
@@ -62,9 +65,6 @@
   },
   "peerDependencies": {
     "prettier": "^3.0.0"
-  },
-  "optionalDependencies": {
-    "@supabase/supabase-js": "^2.108.1"
   },
   "engines": {
     "bun": ">=1.2.0",

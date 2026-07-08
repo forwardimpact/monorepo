@@ -21,7 +21,7 @@ import {
   focusAgentSkills,
 } from "./policies/composed.js";
 import { LIMIT_AGENT_WORKING_STYLES } from "./policies/thresholds.js";
-import { SkillProficiency } from "@forwardimpact/map/levels";
+import { SkillProficiency } from "./levels.js";
 
 /**
  * Derive the reference level for agent generation.

@@ -23,7 +23,7 @@ import {
 
 /**
  * Load JSON schemas from the schema directory.
- * @param {string} schemaDir - Path to products/map/schema/json/
+ * @param {string} schemaDir - Path to the standard JSON-schema directory (libskill schema/json/)
  * @param {object} [runtime] - Runtime collaborator bag
  * @returns {object} schemas keyed by entity type
  */

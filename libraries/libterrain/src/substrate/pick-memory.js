@@ -1,9 +1,8 @@
 /**
- * Pick-memory log for the `substrate pick` verb. Append-only CSV at
- * `wiki/kata-interview/picks.csv` (top-level skill-scoped directory).
- * Schema: `picked_at,persona_email,run_id`. CSV quoting is deliberately
- * omitted — all three values are bounded shapes (ISO timestamp, email,
- * numeric GitHub run id) with no commas or newlines.
+ * Pick-memory log for the `substrate pick` verb. Append-only CSV at a
+ * caller-supplied path. Schema: `picked_at,persona_email,run_id`. CSV
+ * quoting is deliberately omitted — all three values are bounded shapes
+ * (ISO timestamp, email, numeric CI run id) with no commas or newlines.
  */
 
 import path from "node:path";
@@ -15,7 +14,7 @@ const HEADER = "picked_at,persona_email,run_id";
  * Read the last `windowN` `persona_email` values from the pick log.
  * Returns an empty `Set` when the file does not exist or `windowN === 0`.
  *
- * @param {string} memoryPath - absolute path to picks.csv
+ * @param {string} memoryPath - absolute path to the pick log CSV
  * @param {number} windowN
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs).
  * @returns {Promise<Set<string>>}

@@ -8,7 +8,7 @@ import {
   createTestCapability,
 } from "@forwardimpact/libmock";
 
-import { Capability } from "@forwardimpact/map/levels";
+import { Capability } from "@forwardimpact/libskill/levels";
 
 export const testSkills = [
   createTestSkill({

@@ -149,7 +149,7 @@ function validateSkillAgentFields(skillsWithAgent) {
  * @param {Object} params
  * @param {Object} params.humanData
  * @param {Object} params.agentData
- * @returns {import('../levels.js').ValidationResult}
+ * @returns {import('@forwardimpact/libskill/levels').ValidationResult}
  */
 export function validateAgentData({ humanData, agentData }) {
   const errors = [];

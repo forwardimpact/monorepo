@@ -1,6 +1,17 @@
-import { describe, test } from "node:test";
+/**
+ * Enricher keys on the contract's bare `team_id` (vendor-prefix mapping is
+ * the consumer view's job) and degrades to null DSL fields when the story
+ * AST or the team is absent.
+ */
+
+import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { enrichPersonaRow } from "../../src/lib/persona-enricher.js";
+
+import {
+  loadStory,
+  enrichPersonaRow,
+} from "../src/substrate/persona-enricher.js";
+import { createTestRuntime } from "@forwardimpact/libmock";
 
 function makeAst() {
   return {
@@ -20,7 +31,7 @@ function makeAst() {
 
 describe("enrichPersonaRow", () => {
   test("returns row with three null fields when ast is null", () => {
-    const row = { email: "p@x", getdx_team_id: "gdx_team_alpha" };
+    const row = { email: "p@x", team_id: "alpha" };
     const out = enrichPersonaRow(row, null);
     assert.equal(out.email, "p@x");
     assert.equal(out.repos, null);
@@ -28,35 +39,41 @@ describe("enrichPersonaRow", () => {
     assert.equal(out.scenario, null);
   });
 
-  test("returns repos, department_name, scenario when ast matches", () => {
-    const row = { email: "p@x", getdx_team_id: "gdx_team_alpha" };
+  test("resolves by bare team_id — no vendor prefix handling", () => {
+    const row = { email: "p@x", team_id: "alpha" };
     const out = enrichPersonaRow(row, makeAst());
     assert.deepEqual(out.repos, ["a", "b"]);
     assert.equal(out.department_name, "Engineering");
     assert.equal(out.scenario.id, "s1");
   });
 
-  test("returns three null fields when getdx_team_id is missing or unmapped", () => {
+  test("vendor-prefixed ids no longer resolve", () => {
+    const out = enrichPersonaRow(
+      { email: "p@x", team_id: "gdx_team_alpha" },
+      makeAst(),
+    );
+    assert.equal(out.repos, null);
+    assert.equal(out.department_name, null);
+    assert.equal(out.scenario, null);
+  });
+
+  test("returns three null fields when team_id is missing or unmapped", () => {
     const ast = makeAst();
     const noId = enrichPersonaRow({ email: "p@x" }, ast);
     assert.equal(noId.repos, null);
     assert.equal(noId.department_name, null);
     assert.equal(noId.scenario, null);
 
-    const noPrefix = enrichPersonaRow(
-      { email: "p@x", getdx_team_id: "alpha" },
-      ast,
-    );
-    assert.equal(noPrefix.repos, null);
-    assert.equal(noPrefix.department_name, null);
-    assert.equal(noPrefix.scenario, null);
-
-    const unknown = enrichPersonaRow(
-      { email: "p@x", getdx_team_id: "gdx_team_unknown" },
-      ast,
-    );
+    const unknown = enrichPersonaRow({ email: "p@x", team_id: "unknown" }, ast);
     assert.equal(unknown.repos, null);
     assert.equal(unknown.department_name, null);
     assert.equal(unknown.scenario, null);
+  });
+});
+
+describe("loadStory", () => {
+  test("returns null when story.dsl is absent", async () => {
+    const runtime = createTestRuntime();
+    assert.equal(await loadStory(runtime, "/nowhere"), null);
   });
 });

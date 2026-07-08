@@ -5,7 +5,7 @@
  */
 
 import { div, heading1, heading2, p, a, ul, li, span } from "../lib/render.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 import { generateAllJobs } from "@forwardimpact/libskill/derivation";
 
 /**

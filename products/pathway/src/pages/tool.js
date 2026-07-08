@@ -10,7 +10,7 @@ import { prepareToolsList } from "../formatters/tool/shared.js";
 import { createBadge } from "../components/card.js";
 import { createCardList } from "../components/list.js";
 import { toolToCardConfig } from "../lib/card-mappers.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Render tools list page

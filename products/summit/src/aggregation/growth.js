@@ -13,7 +13,7 @@
  * `driverScores` parameters without changing the shape.
  */
 
-import { getSkillProficiencyIndex } from "@forwardimpact/map/levels";
+import { getSkillProficiencyIndex } from "@forwardimpact/libskill/levels";
 
 import { computeCoverage, derivePersonMatrix } from "./coverage.js";
 import { detectRisks } from "./risks.js";

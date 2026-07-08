@@ -8,10 +8,15 @@ Landmark's row-level security policies admit a request based on the JWT's
 already exists — so before any engineer can read their own activity rows,
 their roster entry needs a paired `auth.users` row.
 
-`fit-map people provision` reconciles `auth.users` against the
-`activity.organization_people` roster: it creates rows for new engineers,
-restores rows that were previously decommissioned, and bans rows whose
-roster entry has been removed.
+`fit-terrain substrate provision` reconciles `auth.users` against the
+`substrate.people` roster: it creates rows for new engineers, restores
+rows that were previously decommissioned, and bans rows whose roster
+entry has been removed. The roster is read through the
+[Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md)
+— a `substrate.people` view your stack implements. Map installations
+already ship the view over `activity.organization_people`; any other
+Supabase-backed stack implements the contract once and gets the same
+verb.
 
 This guide is for **operators** — anyone running the verb against a
 production Supabase instance. Engineers do not run it.
@@ -19,25 +24,26 @@ production Supabase instance. Engineers do not run it.
 ## Prerequisites
 
 - `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` available in your
-  environment. Local installs get these in `.env` from `just env-setup`;
-  hosted Supabase projects expose them in Project Settings → API. The
-  service-role key is the same credential `fit-map people push` consumes —
-  `provision` is operator-only by virtue of which credential it reads.
-  It is registered on `fit-map`, not `fit-landmark`, because Landmark's
-  read path no longer holds the service-role key.
-- `activity.organization_people` populated. Run `fit-map people push
-  <roster.yaml>` first if it isn't.
+  environment. Hosted Supabase projects expose them in Project Settings →
+  API. The service-role key is the same credential `fit-map people push`
+  consumes — `provision` is operator-only by virtue of which credential
+  it reads. It lives on `fit-terrain`, not `fit-landmark`, because
+  Landmark's read path never holds the service-role key.
+- `substrate.people` implemented and populated. Map installations: run
+  `fit-map people push <roster.yaml>` first if the roster is empty. Other
+  stacks: `fit-terrain substrate check` verifies the contract is in
+  place.
 
 ## Run it
 
 ```sh
-fit-map people provision
+npx fit-terrain substrate provision
 ```
 
 The verb reports a per-action summary:
 
 ```text
-  Provisioning auth.users from organization_people
+  Provisioning auth.users from substrate.people
 
   created: 4
   restored: 0

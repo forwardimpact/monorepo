@@ -36,12 +36,11 @@ npx fit-landmark login --email you@example.com
 
 `login` walks Supabase's magic-link flow and stores the session (0600) in your
 platform's config directory — `~/.config/landmark/credentials.json` on Linux;
-see [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
-macOS and Windows paths. Subsequent commands resolve your
-identity automatically. Use `--otp` to skip the browser and paste the
-six-digit code instead. If your email is not in the activity roster, login
-fails — your operator runs `fit-map people provision` to keep `auth.users`
-synchronized.
+see [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the macOS
+and Windows paths. Subsequent commands resolve your identity automatically. Use
+`--otp` to skip the browser and paste the six-digit code instead. If your email
+is not in the activity roster, login fails — your operator runs
+`fit-terrain substrate provision` to keep `auth.users` synchronized.
 
 ## Browse marker definitions
 

@@ -7,7 +7,7 @@ import {
   getCapabilityEmoji,
   getCapabilityResponsibility,
   getConceptEmoji,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 
 import { testCategories } from "./model-fixtures.js";
 

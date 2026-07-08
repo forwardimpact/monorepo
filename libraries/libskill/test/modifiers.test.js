@@ -11,7 +11,7 @@ import {
   resolveSkillModifier,
 } from "../src/modifiers.js";
 
-import { Capability } from "@forwardimpact/map/levels";
+import { Capability } from "../src/levels.js";
 
 // =============================================================================
 // Test fixtures

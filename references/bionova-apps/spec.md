@@ -93,8 +93,7 @@ with pgvector for data and semantic search. PostgREST for auto-generated REST
 API. GoTrue for auth. HuggingFace TEI for embeddings. Supabase Edge Functions
 for eligibility scoring and embedding generation. Next.js App Router with
 Tailwind and shadcn/ui for the frontend. Forward Impact shared libraries from
-npm. `@forwardimpact/libterrain` and `@forwardimpact/map` from npm provide the
-synthetic-data build.
+npm. `@forwardimpact/libterrain` from npm provides the synthetic-data build.
 
 ### Data seeding
 
@@ -152,13 +151,11 @@ implemented. Each needs its own spec, design, and plan.
    paths: it writes output relative to the resolved project root and would
    `rm -rf` `products/polaris/` (the app code) in an external repo. It needs an
    `--output-root` flag so output renders into a disposable build directory
-   chosen by the caller. The map schema directory it loads for pathway
-   rendering (`products/map/schema/json`) is published in `@forwardimpact/map`
-   but not resolvable by path outside the monorepo; pathway rendering is
-   skipped when no `--schema-dir` is supplied, which is acceptable for Polaris
-   (it needs only the clinical output), but the flag should resolve
-   `@forwardimpact/map` by default so the verbatim DSL's `standard {}` block
-   still renders if requested. `--story` and `--cache` overrides already exist.
+   chosen by the caller. The standard schema directory it loads for pathway
+   rendering is published in `@forwardimpact/libskill`'s `schema/json` — a
+   hard dependency of `libterrain` — so `--schema-dir` resolves it by default
+   and the verbatim DSL's `standard {}` block renders with no extra package.
+   `--story` and `--cache` overrides already exist.
 2. **Prose entities rendered to SQL.** The clinical `content {}` block already
    generates condition explainers, trial FAQs, consent summaries, site
    descriptions, patient stories, and therapy descriptions into the prose

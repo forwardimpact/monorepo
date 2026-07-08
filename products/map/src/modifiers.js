@@ -5,7 +5,7 @@
  * Full modifier logic is in @forwardimpact/libskill.
  */
 
-import { Capability } from "./levels.js";
+import { Capability } from "@forwardimpact/libskill/levels";
 
 /**
  * Valid skill capability names (derived from Capability enum)

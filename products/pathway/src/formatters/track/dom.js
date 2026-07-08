@@ -15,7 +15,7 @@ import {
   createBehaviourModifierTable,
   createSkillModifierTableWithCapabilities,
 } from "../../components/modifier-table.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 import { prepareTrackDetail } from "./shared.js";
 import { createJsonLdScript, trackToJsonLd } from "../json-ld.js";
 

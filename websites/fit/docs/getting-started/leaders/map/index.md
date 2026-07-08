@@ -298,13 +298,12 @@ curl -X POST \
 
 ## Activity: provision auth users
 
-Landmark's row-level security admits a request based on the JWT's `email`
-claim, and Supabase Auth only issues a JWT for an `auth.users` row that
-already exists. After pushing the roster, reconcile `auth.users` against
-`activity.organization_people`:
+Landmark's row-level security admits a request based on the JWT's `email` claim,
+and Supabase Auth only issues a JWT for an `auth.users` row that already exists.
+After pushing the roster, reconcile `auth.users` against the roster:
 
 ```sh
-npx fit-map people provision
+npx fit-terrain substrate provision
 ```
 
 The command prints a per-action summary (`created`, `restored`,

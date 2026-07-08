@@ -159,7 +159,7 @@ function validateDisciplineBehaviourModifiers(discipline, path, behaviourIds) {
 }
 
 /**
- * @param {import('../levels.js').Discipline} discipline
+ * @param {import('@forwardimpact/libskill/levels').Discipline} discipline
  * @param {number} index
  * @param {Set<string>} skillIds
  * @param {Set<string>} behaviourIds
@@ -213,7 +213,7 @@ export function validateDiscipline(
 }
 
 /**
- * @param {import('../levels.js').Discipline[]} disciplines
+ * @param {import('@forwardimpact/libskill/levels').Discipline[]} disciplines
  * @returns {Set<string>}
  */
 export function getAllDisciplineSkillIds(disciplines) {

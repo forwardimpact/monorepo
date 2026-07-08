@@ -10,7 +10,7 @@ import { renderNotFound } from "../components/error-page.js";
 import { prepareDisciplinesList } from "../formatters/discipline/shared.js";
 import { disciplineToDOM } from "../formatters/discipline/dom.js";
 import { disciplineToCardConfig } from "../lib/card-mappers.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Format discipline group name for display

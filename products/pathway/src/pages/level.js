@@ -8,7 +8,7 @@ import { createBadge } from "../components/card.js";
 import { renderNotFound } from "../components/error-page.js";
 import { prepareLevelsList } from "../formatters/level/shared.js";
 import { levelToDOM } from "../formatters/level/dom.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Render levels list page

@@ -15,7 +15,7 @@ import {
   formatBullet,
 } from "@forwardimpact/libcli";
 import { mintSupabaseJwt, parseDuration } from "@forwardimpact/libsecret";
-import { findAuthUser } from "../lib/auth-helpers.js";
+import { findAuthUser } from "@forwardimpact/libterrain/substrate";
 
 const DEFAULT_TTL = "8760h"; // 1 year.
 
@@ -70,7 +70,7 @@ export async function runAuthIssueCommand({
   if (!authUser) {
     throw new Error(
       `auth issue: no auth.users row for ${email}. ` +
-        "Run `fit-map people provision` first.",
+        "Run `fit-terrain substrate provision` first.",
     );
   }
 

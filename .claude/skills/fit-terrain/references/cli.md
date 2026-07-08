@@ -39,6 +39,33 @@ Run `npx fit-terrain <verb> --help` for verb-scoped options.
 Dataset outputs (declared via `output` blocks in the DSL) are written
 regardless of `--only` to the paths each `output` block names.
 
+## Substrate Verbs
+
+Identity capability against the
+[Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md).
+Stack-facing verbs need `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`;
+`issue` also needs `JWT_SECRET`; `init` is offline.
+
+```sh
+npx fit-terrain substrate up --cwd . --emit-env "$GITHUB_ENV"  # Start stack, emit URL/anon key
+npx fit-terrain substrate init --cwd .                         # Scaffold starter contract migration
+npx fit-terrain substrate check                                # Validate stack against the contract
+npx fit-terrain substrate provision                            # Reconcile auth.users vs substrate.people
+npx fit-terrain substrate pick --format json --memory picks.csv --memory-window 5
+npx fit-terrain substrate roster --format json                 # List qualifying personas
+npx fit-terrain substrate issue --email <e> --cwd <dir> --token-env <NAME> [--ttl 1h] [--stash <path>]
+```
+
+| Verb        | Outcome                                                         | Exit code |
+| ----------- | --------------------------------------------------------------- | --------- |
+| `up`        | Local Supabase started; URL/anon key emitted                    | 0 / 1     |
+| `init`      | Timestamped starter migration under `<cwd>/supabase/migrations` | 0 / 1     |
+| `check`     | One diagnostic per missing/malformed relation                   | 1 only when a required relation fails |
+| `provision` | auth.users created/restored/decommissioned from the roster      | 0 / 1     |
+| `pick`      | One persona (JSON payload with `applied_invariants`)            | 1 when none qualifies or diversifies |
+| `roster`    | Every qualifying persona (table or JSON)                        | 0 / 1     |
+| `issue`     | Atomic `.env` / `.substrate.json` / stash set, mode 0600        | 0 / 1     |
+
 ### Global Flags
 
 | Flag             | Description                       |

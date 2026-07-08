@@ -82,16 +82,15 @@ devDependencies (do **not** drop the skeleton's `check` / `coaligned` entries):
     "eslint": "9.39.4",
     "eslint-config-prettier": "9.1.2",
     "prettier": "3.9.4",
-    "@forwardimpact/libterrain": "<pinned in part 03>",
-    "@forwardimpact/map": "<pinned in part 03>"
+    "@forwardimpact/libterrain": "<pinned in part 03>"
   }
 }
 ```
 
 The Deno service `services/polaris-functions/` is **not** a Bun workspace — it
 carries `deno.json`, not `package.json`, so `lint`/`test` run JS and Deno
-tooling in separate steps. `@forwardimpact/libterrain` and `@forwardimpact/map`
-are **build-time devDependencies only** — `setup.sh` and
+tooling in separate steps. `@forwardimpact/libterrain` is a
+**build-time devDependency only** — `setup.sh` and
 `scripts/build-seed.sh` invoke `fit-terrain build` to render the seed from the
 vendored `story.dsl`; no surface imports them. Part 03 pins the exact versions
 that carry prerequisites A (`--output-root`) and B (prose→SQL).

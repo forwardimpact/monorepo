@@ -6,7 +6,7 @@
  */
 
 import { div, span, details, summary } from "../lib/render.js";
-import { getCapabilityEmoji } from "@forwardimpact/map/levels";
+import { getCapabilityEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Create checklist display grouped by capability

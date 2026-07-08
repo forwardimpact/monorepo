@@ -18,7 +18,7 @@ import {
   createJobBuilderButton,
   createInterviewPrepButton,
 } from "../../components/action-buttons.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 import { prepareDisciplineDetail } from "./shared.js";
 import { formatModifier } from "../shared.js";
 import { createJsonLdScript, disciplineToJsonLd } from "../json-ld.js";

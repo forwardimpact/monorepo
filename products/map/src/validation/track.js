@@ -114,7 +114,7 @@ function validateTrackAssessmentWeights(track, path) {
 }
 
 /**
- * @param {import('../levels.js').Track} track
+ * @param {import('@forwardimpact/libskill/levels').Track} track
  * @param {number} index
  * @param {Set<string>} disciplineSkillIds
  * @param {Set<string>} behaviourIds

@@ -13,7 +13,7 @@ import { deriveSkillMatrix } from "@forwardimpact/libskill/derivation";
 import {
   SkillProficiency,
   getSkillProficiencyIndex,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 
 import { computeEffectiveDepth, meetsWorking } from "./depth.js";
 import { TeamNotFoundError, UnknownJobFieldError } from "./errors.js";

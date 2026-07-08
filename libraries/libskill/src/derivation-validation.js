@@ -78,11 +78,11 @@ function matchesInvalidCombination(
 /**
  * Check if a job combination is valid
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').Discipline} params.discipline - The discipline
- * @param {import('@forwardimpact/map/levels').Level} params.level - The level
- * @param {import('@forwardimpact/map/levels').Track} [params.track] - The track (optional)
- * @param {import('@forwardimpact/map/levels').JobValidationRules} [params.validationRules] - Optional validation rules
- * @param {Array<import('@forwardimpact/map/levels').Level>} [params.levels] - Optional array of all levels for minLevel validation
+ * @param {import('./levels.js').Discipline} params.discipline - The discipline
+ * @param {import('./levels.js').Level} params.level - The level
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
+ * @param {import('./levels.js').JobValidationRules} [params.validationRules] - Optional validation rules
+ * @param {Array<import('./levels.js').Level>} [params.levels] - Optional array of all levels for minLevel validation
  * @returns {boolean} True if the combination is valid
  */
 export function isValidJobCombination({

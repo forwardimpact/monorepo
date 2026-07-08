@@ -5,8 +5,8 @@ description: >
   expectations, and provision activity-database substrates. Use when
   defining or updating skills, capabilities, behaviours, disciplines,
   tracks, levels, or questions; when pushing rosters, syncing GetDX
-  snapshots, or ingesting GitHub artifacts; or when staging, listing,
-  picking, and issuing personas from a seeded substrate.
+  snapshots, or ingesting GitHub artifacts; or when staging a seeded
+  substrate.
 ---
 
 # Map Product
@@ -20,8 +20,9 @@ operator surfaces — each owns a different consumer:
   `organization_people`, GitHub artifacts, GetDX snapshots, marker
   evidence. Leaders ingest into this over time.
 - **Substrate** — a single-shot provisioning pipeline that collapses
-  activity-layer setup into one verb, then exposes persona-pick and
-  JWT-issue verbs against the seeded database.
+  activity-layer setup into one verb and implements the Substrate
+  Contract as views, so the generic `fit-terrain substrate` identity
+  verbs run against the seeded database.
 
 Standard and activity entities are published in structured formats so
 agents can interpret them reliably.
@@ -33,8 +34,8 @@ agents can interpret them reliably.
 - Validating, indexing, or exporting standard data.
 - Managing the activity database — starting Supabase, pushing rosters,
   syncing GetDX, reprocessing the raw bucket, verifying ingest.
-- Provisioning or interrogating a **substrate** — staging the database,
-  listing or picking a persona, issuing a JWT.
+- Provisioning a **substrate** — staging the database in one shot for
+  persona work with `fit-terrain substrate`.
 
 ## Standard Layer
 
@@ -44,13 +45,15 @@ Edit YAML under `data/pathway/`. Entity files use co-located `human:` and
 Run `npx fit-map validate` after every change. Validation runs in two
 phases:
 
-1. **Schema** — each YAML against its JSON Schema (`schema/json/`).
+1. **Schema** — each YAML against its JSON Schema (the standard's
+   schemas ship in `@forwardimpact/libskill` under `schema/json/`).
 2. **Referential** — cross-references resolve (skill IDs in disciplines,
    behaviour IDs in tracks, track IDs in `validTracks`, driver
    `contributingSkills`/`contributingBehaviours`, level `minLevel`).
 
-When schema changes touch `schema/json/`, update `schema/rdf/` in the
-same commit — the two formats must stay in sync.
+When the standard's JSON Schemas change (libskill's `schema/json/`),
+update map's `schema/rdf/` in the same commit — the two formats must
+stay in sync.
 
 Generate browser indexes with `npx fit-map generate-index`. Render base
 entities to HTML microdata with `npx fit-map export`. Common authoring
@@ -81,10 +84,10 @@ deployments.
 
 ## Substrate
 
-Four verbs provision and interrogate an invariant-satisfying activity
-database. The pipeline collapses the activity-layer flow above — when
-running substrate, `init`, `migrate`, `seed`, `people push`, and
-`provision` are all internal phases. Do not invoke them separately.
+One verb provisions an invariant-satisfying activity database. The
+pipeline collapses the activity-layer flow above — when running
+substrate, `init`, `migrate`, `seed`, `people push`, and `provision` are
+all internal phases. Do not invoke them separately.
 
 ### One-shot stage
 
@@ -103,7 +106,7 @@ identifies the failing step):
 | `url-discovery` | Parse `supabase status` → set `SUPABASE_URL`/`SUPABASE_ANON_KEY` |
 | `migrate`       | `supabase db reset`                                              |
 | `seed`          | Load activity data                                               |
-| `provision`     | Reconcile `auth.users` against the roster                        |
+| `provision`     | Reconcile `auth.users` against the roster (shared `fit-terrain` capability) |
 | `smoke`         | Invoke every gated product command end-to-end                    |
 
 `SUBSTRATE_FORCE_EMPTY_CORPUS=true` forces the smoke phase to fail with
@@ -111,48 +114,20 @@ the empty-corpus diagnostic — used by CI to assert the failure path.
 
 ### Persona selection
 
-After staging, pick one persona that satisfies every corpus invariant:
+Map's migrations implement the Substrate Contract as views over the
+activity schema, so persona selection and credential issue run through
+the generic verbs:
 
 ```sh
-npx fit-map substrate roster --format json   # List every qualifying persona
-npx fit-map substrate pick --format json     # Pick one, diversified
+npx fit-terrain substrate pick --format json
+npx fit-terrain substrate issue --email <e> --cwd <agent_dir> --token-env <NAME>
 ```
 
-`substrate pick` reads and appends a caller-scoped picks log under
-`wiki/` to diversify against the last `--memory-window` picks (default
-5). When zero candidates qualify, the output names the binding
-constraint: `parent_email_known`, `manages`, `authors_evidence`, or
-`practice_directs`.
-
-A qualifying persona satisfies all five invariants:
-
-1. Their `manager_email` is non-null (no top-of-tree rows).
-2. They are the manager of ≥1 other row.
-3. They have authored ≥1 `evidence` row.
-4. They manage ≥1 direct who has authored ≥1 evidence row.
-5. The corpus carries ≥1 `getdx_snapshots` row and ≥1 `item_id`.
-
-### JWT issue
-
-Seal persona identity into the agent's cwd atomically:
-
-```sh
-npx fit-map substrate issue --email <e> --cwd <agent_dir> [--ttl 1h] [--stash <p>]
-```
-
-Writes two files, mode 0600 each:
-
-- `.env` — the product's JWT env var carrying the issued token (one line)
-- `.substrate.json` — discovery vector (persona email, manager email,
-  snapshot id, item id, `generated_at`)
-
-`--stash <p>` writes a bare-JWT copy to a second workflow-private
-path that the caller controls — useful when a downstream step needs
-the JWT but the agent must not see it.
-
-Rejects non-`human` rows on purpose — service-account JWTs use
-`fit-map auth issue` instead. The substrate path is for engineer
-personas only.
+See the
+[Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md)
+guide for the relations, invariants, and degradation semantics.
+Service-account JWTs use `fit-map auth issue` — the substrate path is for
+engineer personas only.
 
 ## Verification
 
@@ -180,7 +155,5 @@ the failing command.
   — Add a discipline, track, or capability to the standard
 - [YAML Schema Reference](https://www.forwardimpact.team/docs/reference/yaml-schema/index.md)
   — File format reference for every entity type
-- [Provision Engineer Auth Users](https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md)
-  — Reconcile auth.users against the roster so identity-derived RLS works
 - [Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md)
   — Mint long-lived Supabase JWTs for unattended agents

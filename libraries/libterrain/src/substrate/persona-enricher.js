@@ -3,10 +3,12 @@
  *
  * Sources the three DSL-only persona-template fields (`repos`,
  * `department_name`, `scenario`) from `data/synthetic/story.dsl`,
- * augmenting persona rows already carrying the Supabase scalars and
+ * augmenting persona rows already carrying the contract scalars and
  * joined team/parent/peer context. AST traversal is delegated to
  * `@forwardimpact/libsyntheticgen`'s public helpers; this module owns
- * only the substrate ↔ DSL id coupling and the row-shape contract.
+ * only the contract ↔ DSL id coupling and the row-shape contract. The
+ * contract's `team_id` is the DSL team id — any vendor-prefix mapping is
+ * the consumer view's job, not this module's.
  */
 
 import {
@@ -19,9 +21,9 @@ import {
 /**
  * Resolve `data/synthetic/story.dsl` upward from `cwd`, parse it, and
  * return the AST. Returns `null` when the file is absent so the verbs
- * degrade gracefully under externally-published `npx fit-map` callers
- * with no staged terrain. Wraps parser errors with the file path so the
- * supervisor sees DSL drift inside Step 3a (Risk B).
+ * degrade gracefully for consumers with no staged terrain. Wraps parser
+ * errors with the file path so the caller sees DSL drift, not a bare
+ * parse message.
  *
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs, finder, proc).
  * @param {string} [cwd] - working directory (defaults to `runtime.proc.cwd()`)
@@ -52,11 +54,10 @@ export async function loadStory(runtime, cwd = runtime.proc.cwd()) {
 export function enrichPersonaRow(row, ast) {
   const nulls = { repos: null, department_name: null, scenario: null };
   if (!ast) return { ...row, ...nulls };
-  const teamRef = row?.getdx_team_id;
-  if (typeof teamRef !== "string" || !teamRef.startsWith("gdx_team_")) {
+  const teamId = row?.team_id;
+  if (typeof teamId !== "string" || !teamId) {
     return { ...row, ...nulls };
   }
-  const teamId = teamRef.slice("gdx_team_".length);
   const team = findTeamById(ast, teamId);
   if (!team) return { ...row, ...nulls };
   const department = findDepartmentForTeam(ast, team);
