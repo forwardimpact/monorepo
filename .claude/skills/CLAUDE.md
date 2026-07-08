@@ -32,10 +32,10 @@ about HOW — do not prescribe tactics for ordinary engineering work.
 ### No monorepo leakage
 
 - Do not name this monorepo's packages, services, sites, workflows, scopes, file
-  paths, or data directories. Two exceptions: invoking `fit-*` / `kata-*` CLIs
-  via npx (`npx fit-wiki boot`, `npx fit-xmr analyze`), and the surfaces every
-  installation carries — CLAUDE.md, CONTRIBUTING.md, JTBD.md, KATA.md, `specs/`,
-  `wiki/`, `websites/`.
+  paths, or data directories. Two exceptions: invoking `fit-*` / `kata-*` /
+  `coaligned` CLIs bare (`fit-wiki boot`, `fit-xmr analyze` — never an `npx` or
+  `bunx` prefix), and the surfaces every installation carries — CLAUDE.md,
+  CONTRIBUTING.md, JTBD.md, KATA.md, `specs/`, `wiki/`, `websites/`.
 - Write placeholder forms for anything repo-specific: `websites/<site>`,
   `@<scope>/<pkg>`, `<lockfile>`, `{YYYY}`, `repos/{owner}/{repo}`.
 - Quality commands are repo-specific. Write "the repository's check / test /
@@ -45,7 +45,8 @@ about HOW — do not prescribe tactics for ordinary engineering work.
 - Repo-local data (action inventories, agent rosters, coverage tables) is
   derived live with a command, never snapshotted into a reference file.
 - Links that leave the skill folder use fully-qualified public URLs, except
-  sibling `kata-*` skills and the guaranteed surfaces above. `fit-*` skills ship
+  sibling `kata-*` skills, the pack-shipped agent profiles and references
+  (`../../agents/*.md`), and the guaranteed surfaces above. `fit-*` skills ship
   in a separate pack — full URL. Never link this monorepo's issues or PRs:
   provenance rots, and the skill must stand on its own.
 - `.coaligned/invariants/skill-genericity.rules.mjs` gates the mechanical
@@ -61,6 +62,15 @@ owns it — agent profile, agent reference, the affected code's local CLAUDE.md,
 or CONTRIBUTING.md. If yes, state the principle in one line; do not encode the
 specific recovery procedure.
 
+## House style
+
+One template across every pack: descriptive Title Case H1, `## When to Use`,
+`## Checklists` near the top, `## Process` with `### Step N: Title` headings,
+`## Documentation` last where present. American spelling (`judgment`,
+`labeled`); `behaviour` stays — it is the domain term. Point at shared
+protocols, do not restate them: the Read Memory step and citation-integrity
+mentions are one-sentence pointers to the owning agent reference.
+
 ### The litmus test
 
 Every line must pass: _correct and useful in a repository that installed this
@@ -69,7 +79,7 @@ elsewhere or nowhere.
 
 ## `## Documentation` section
 
-Every `fit-*` skill that has a matching CLI (`npx fit-<name>`) must end with a
+Every `fit-*` skill that has a matching CLI (`fit-<name>`) must end with a
 `## Documentation` section listing guides as markdown links:
 
 ```markdown

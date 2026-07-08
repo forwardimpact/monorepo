@@ -7,14 +7,14 @@ short-lived installation tokens -- no long-lived PATs to rotate.
 
 Teams using the Forward Impact-hosted control plane **skip this entire page**.
 Instead of registering and self-hosting an App, install the Forward Impact-owned
-App from its public install URL; the hosted `services/oidc` mints repo-scoped
+App from its public install URL; the hosted OIDC service mints repo-scoped
 installation tokens at workflow run time from a GitHub Actions OIDC identity, so
 no `KATA_APP_ID` / `KATA_APP_PRIVATE_KEY` secret is configured in the consuming
 repository. Set only the `FIT_OIDC_URL` repository variable and the
 `ANTHROPIC_API_KEY` secret. See
 [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for the
 hosted trust model and
-[`services/oidc/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/oidc/README.md)
+[OIDC service README](https://github.com/forwardimpact/monorepo/blob/main/services/oidc/README.md)
 for the exchange contract. The rest of this page is the **self-hosted**
 path.
 
@@ -26,17 +26,17 @@ path.
 3. Enable the webhook. **Webhook URL** = `${GHBRIDGE_PUBLIC_URL}/api/webhook`.
    **Webhook secret** = a random 32-byte hex string (also set as
    `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET` on the ghbridge process). Discussion
-   events are served by `services/ghbridge`; other events still reach GitHub
+   events are served by the ghbridge service; other events still reach GitHub
    Actions via their own triggers and need no webhook URL.
 4. Under **Permissions**, set the **repository permissions** below.
 5. Under **Subscribe to events**, check the events listed below.
 6. Set "Where can this GitHub App be installed?" to "Only on this account."
 7. Click **Create GitHub App**.
 
-Deploy `services/ghbridge` before flipping the App webhook URL to point at
+Deploy the ghbridge service before flipping the App webhook URL to point at
 it -- the bridge must be reachable at `${GHBRIDGE_PUBLIC_URL}/api/webhook`
 when GitHub starts delivering events. See
-[`services/ghbridge/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
+[ghbridge README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
 for deployment, tunnel, and configuration steps.
 
 ## Repository Permissions
@@ -56,7 +56,7 @@ The App delivers two event families through different channels. Subscribe to
 the events below on the App, and both channels will fire when their respective
 events arrive.
 
-### App Webhook (served by `services/ghbridge`)
+### App Webhook (served by ghbridge)
 
 Discussion events reach `agent-dispatch` only through the App webhook URL
 configured above:
@@ -79,10 +79,10 @@ for these:
 ## Webhook Events
 
 The App webhook URL receives the two Discussion subscriptions listed above.
-`services/ghbridge` verifies the `X-Hub-Signature-256` header against the
+The ghbridge service verifies the `X-Hub-Signature-256` header against the
 shared secret, persists thread state, and dispatches `agent-dispatch` via
 `workflow_dispatch`. See
-[`services/ghbridge/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
+[ghbridge README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
 for the full request/response shape, callback verdicts (`adjourned`,
 `recessed`, `failed`), and resume-trigger contract.
 

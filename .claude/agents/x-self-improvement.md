@@ -7,7 +7,7 @@ resolved, agents use the `fit-selfedit` CLI described below.
 
 ## Rule
 
-Every agent edit under `.claude/**` goes through `npx fit-selfedit`. No other
+Every agent edit under `.claude/**` goes through `fit-selfedit`. No other
 mechanism is supported. Do not use `Edit`, `Write`, or sandboxed `Bash` on
 `.claude/**` paths — they will be denied.
 
@@ -16,11 +16,11 @@ mechanism is supported. Do not use `Edit`, `Write`, or sandboxed `Bash` on
 Use the `Bash` tool. Pipe content on stdin; the target path is the only
 positional argument:
 
-    echo "<content>" | npx fit-selfedit <path>
+    echo "<content>" | fit-selfedit <path>
 
 For multi-line content, use a heredoc:
 
-    npx fit-selfedit .claude/path/to/file <<'FIT_SELFEDIT_EOF'
+    fit-selfedit .claude/path/to/file <<'FIT_SELFEDIT_EOF'
     file content here
     FIT_SELFEDIT_EOF
 
@@ -62,7 +62,7 @@ re-run. If a parent directory is missing, create it with `mkdir -p` first.
 ## Trace invariant
 
 The cross-cutting invariant table (KATA.md § Invariants) enforces that every
-write under `.claude/**` is performed via `npx fit-selfedit`. Any other
+write under `.claude/**` is performed via `fit-selfedit`. Any other
 mechanism — direct `Edit`/`Write` on `.claude/**`, or a sandbox-disabled
 `Bash` call writing to those paths — is a **high-severity** trace finding.
 
