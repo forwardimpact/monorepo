@@ -8,7 +8,8 @@ smoke, and `auth issue` to the `libterrain` capabilities (SC6, SC7).
 
 `map` maps `activity.*` onto the contract relations.
 
-- Created: `products/map/supabase/migrations/20260708000000_substrate_contract.sql`
+- Created:
+  `products/map/supabase/migrations/20260708000000_substrate_contract.sql`
 - Modified: `products/map/supabase/config.toml`
 
 Migration content (shape; implementer finalizes SQL):
@@ -57,9 +58,11 @@ probe passes against a stub built from the migration's column lists (SC7).
 
 ## Step 2 — Delete the moved verbs and support modules
 
-- Deleted: `products/map/src/commands/{substrate-pick,substrate-roster,substrate-issue,substrate-persona-query,people-provision}.js`,
+- Deleted:
+  `products/map/src/commands/{substrate-pick,substrate-roster,substrate-issue,substrate-persona-query,people-provision}.js`,
   `products/map/src/lib/{persona-enricher,pick-memory,auth-helpers}.js`
-- Deleted: `products/map/test/activity/{substrate-pick.integration,substrate-roster,substrate-issue.integration,substrate-persona-query,people-provision.integration}.test.js`,
+- Deleted:
+  `products/map/test/activity/{substrate-pick.integration,substrate-roster,substrate-issue.integration,substrate-persona-query,people-provision.integration}.test.js`,
   `products/map/test/lib/{persona-enricher,pick-memory.integration}.test.js`,
   `products/map/test/activity/_substrate-stubs.js` (superseded by
   `libterrain/test/substrate-stubs.js`)

@@ -32,19 +32,20 @@ gains `"schema/json/*.json"`. `map`: `exports` drops `"./levels"` and
 `"./schema/json/*"` (keeps `"./schema/rdf/*"`); prune `schema/json` from
 `files` if listed.
 
-Verify: `node -e 'import("@forwardimpact/libskill/schema/json/standard.schema.json", {with:{type:"json"}})'`
-resolves; `rg '"\./levels"|"\./schema/json' products/map/package.json` is
-empty; add the two resolution assertions to
-`libraries/libskill/test/levels.test.js` (SC2).
+Verify:
+`node -e 'import("@forwardimpact/libskill/schema/json/standard.schema.json", {with:{type:"json"}})'`
+resolves; `rg '"\./levels"|"\./schema/json' products/map/package.json` is empty;
+add the two resolution assertions to `libraries/libskill/test/levels.test.js`
+(SC2).
 
 ## Step 3 — Repoint libskill internals and drop its map dependency
 
 Break the package cycle.
 
-- Modified: `libraries/libskill/src/{agent,derivation,derivation-responsibilities,derivation-validation,interview,interview-helpers,interview-selection,interview-specialized,matching,matching-development,modifiers,progression}.js`,
+- Modified:
+  `libraries/libskill/src/{agent,derivation,derivation-responsibilities,derivation-validation,interview,interview-helpers,interview-selection,interview-specialized,matching,matching-development,modifiers,progression}.js`,
   `libraries/libskill/src/policies/{filters,orderings,predicates}.js`,
-  `libraries/libskill/test/modifiers.test.js`,
-  `libraries/libskill/package.json`
+  `libraries/libskill/test/modifiers.test.js`, `libraries/libskill/package.json`
 
 `@forwardimpact/map/levels` → `./levels.js` (relative; test uses
 `../src/levels.js`). `dependencies` drops `@forwardimpact/map`.
@@ -102,11 +103,12 @@ is where dev and build serve libskill's src
 `/map/lib/levels.js` stops existing after the move. No test covers
 importmaps; get this wrong and the published site 404s silently.
 
-Verify: `rg "@forwardimpact/map/levels|@forwardimpact/map/schema/json" --glob '!specs/**'`
-is empty (SC3 — the spec's exact command; `references/` is updated by
-part 06 and must also be clean); `rg '/map/lib/levels' products/pathway/src`
-is empty; `bun test tests/ products/` passes and a pathway `dev`/`build`
-smoke loads a page that imports levels.
+Verify:
+`rg "@forwardimpact/map/levels|@forwardimpact/map/schema/json" --glob '!specs/**'`
+is empty (SC3 — the spec's exact command; `references/` is updated by part 06
+and must also be clean); `rg '/map/lib/levels' products/pathway/src` is empty;
+`bun test tests/ products/` passes and a pathway `dev`/`build` smoke loads a
+page that imports levels.
 
 ## Step 6 — libterrain resolves the schema dir from libskill
 

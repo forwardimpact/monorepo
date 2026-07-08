@@ -120,9 +120,9 @@ Verify:
 `rg 'PRODUCT_LANDMARK_TOKEN|kata-interview|getdx_|github_' libraries/libterrain/src/ libraries/libterrain/bin/`
 is empty (SC4, SC5); `test/substrate-init.test.js`,
 `test/substrate-check.test.js`, `test/substrate-pick.test.js` (memory on/off,
-window, token-env-free), `test/substrate-issue.test.js` (file set,
-`--token-env` threading and required-ness, stash, non-human rejection,
-identity-only degradation) pass.
+window, token-env-free), `test/substrate-issue.test.js` (file set, `--token-env`
+threading and required-ness, stash, non-human rejection, identity-only
+degradation) pass.
 
 ## Step 5 — CLI wiring and package surface
 

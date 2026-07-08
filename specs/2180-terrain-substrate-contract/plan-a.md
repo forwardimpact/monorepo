@@ -30,11 +30,11 @@ library takes them only as required options.
 | [05](plan-a-05.md) | Contract guide, skills, docs | Substrate Contract guide, `fit-terrain`/`fit-map` skill + CLI doc parity, provisioning guide + verb-doc sweep | 03 |
 | [06](plan-a-06.md) | Polaris reference wiring | `references/bionova-apps/` drops `@forwardimpact/map`, documents the full `up → init → check → provision → pick → issue` loop | 02 |
 
-Libraries used: libskill (levels module, `schema/json/*` — new home),
-libterrain (substrate verbs — new home), libsecret (`mintSupabaseJwt`,
-`parseDuration`), libconfig (`createScriptConfig` env resolution:
-`supabaseUrl`, `supabaseServiceRoleKey`, `supabaseJwtSecret`), libcli
-(`formatTable`, `formatError`, `formatSuccess`), libutil (runtime, `isoTimestamp`),
+Libraries used: libskill (levels module, `schema/json/*` — new home), libterrain
+(substrate verbs — new home), libsecret (`mintSupabaseJwt`, `parseDuration`),
+libconfig (`createScriptConfig` env resolution: `supabaseUrl`,
+`supabaseServiceRoleKey`, `supabaseJwtSecret`), libcli (`formatTable`,
+`formatError`, `formatSuccess`), libutil (runtime, `isoTimestamp`),
 libsyntheticgen (DSL persona enrichment), libmock (`createTestRuntime`).
 
 ## Risks

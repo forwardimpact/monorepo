@@ -48,9 +48,8 @@ SKILL.md gains a substrate section: what the contract is (one paragraph), the
 seven verbs with one-line purposes, the env vars, and the degradation
 one-liners; `## Documentation` gains
 `[Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md)`.
-The CLI `documentation` array adds the same entry in the same order
-(linking rule in `libraries/CLAUDE.md`). `references/cli.md` lists the new
-verbs.
+The CLI `documentation` array adds the same entry in the same order (linking
+rule in `libraries/CLAUDE.md`). `references/cli.md` lists the new verbs.
 
 Verify: skill list and CLI array carry identical entries in identical order;
 `bun run invariants` (skill-genericity) passes.
@@ -66,8 +65,9 @@ now runs via the shared library) and the smoke, deletes the roster/pick/issue
 and `people provision` verb documentation, and points persona selection at
 `npx fit-terrain substrate` plus the contract guide URL.
 
-Verify: `rg 'substrate (pick|issue|roster)|people provision' .claude/skills/fit-map/`
-is empty.
+Verify:
+`rg 'substrate (pick|issue|roster)|people provision' .claude/skills/fit-map/` is
+empty.
 
 ## Step 4 — Provisioning guide and every doc commanding the moved verbs
 
@@ -102,8 +102,9 @@ CLIs' arrays match their skills' `## Documentation` lists.
   source-location column/prose, if it names the map package — the published
   `/schema/json/…` URLs are unchanged)
 
-Verify: `rg -n 'schema/json' .claude/skills/fit-map/ websites/fit/docs/reference/`
-shows no line locating the JSON schemas in the map product.
+Verify:
+`rg -n 'schema/json' .claude/skills/fit-map/ websites/fit/docs/reference/` shows
+no line locating the JSON schemas in the map product.
 
 Libraries used: none.
 

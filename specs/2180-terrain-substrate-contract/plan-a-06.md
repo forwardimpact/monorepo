@@ -62,11 +62,10 @@ Content to add:
 Step 2 also rewords the section's "No fit-map and no map schema" comments so
 they stay true without naming a tool the flow never touches.
 
-Verify: each of `fit-terrain substrate init|check|provision|pick|issue`
-appears as a command string in § Interviewing Polaris
+Verify: each of `fit-terrain substrate init|check|provision|pick|issue` appears
+as a command string in § Interviewing Polaris
 (`rg -o 'fit-terrain substrate (init|check|provision|pick|issue)' references/bionova-apps/design-a.md`
-yields all five), and `rg 'fit-map' references/bionova-apps/` is empty
-(SC10).
+yields all five), and `rg 'fit-map' references/bionova-apps/` is empty (SC10).
 
 Libraries used: none.
 

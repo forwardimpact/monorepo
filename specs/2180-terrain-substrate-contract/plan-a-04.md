@@ -28,8 +28,9 @@ above the step updates to say so. Note: the old command extracted `.email`
 from a payload whose email lives at `.personas[0].email`; the new extraction
 is the correct path, not a behaviour change.
 
-Verify: `yq '.jobs.interview.steps[0].with' .github/workflows/kata-interview.yml`
-shows the new command; workflow shape test below passes.
+Verify:
+`yq '.jobs.interview.steps[0].with' .github/workflows/kata-interview.yml` shows
+the new command; workflow shape test below passes.
 
 ## Step 2 — Shape-test assertions
 
