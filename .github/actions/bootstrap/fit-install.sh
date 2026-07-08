@@ -29,10 +29,12 @@ LIB_DIR="$PREFIX/lib"
 # Default dev/CI tool set, in install order — the third-party external tools
 # every job needs (scripts/bootstrap.sh runs `just`), `claude` (the Claude Code
 # native CLI the Agent SDK spawns — fit-harness/fit-benchmark point at it via
-# pathToClaudeCodeExecutable), plus coaligned, our own gear binary that the
-# instruction checks run. This set is ALWAYS installed; any named gear CLIs add
-# to it. The same list drives `--paths`.
-DEFAULT_TOOLS=(apm just gh rg gitleaks claude coaligned)
+# pathToClaudeCodeExecutable), plus our own gear binaries: coaligned, which the
+# instruction checks run, and the five fit-* CLIs the kata-* skills invoke.
+# This set is ALWAYS installed; any named gear CLIs add to it. The same list
+# drives `--paths`.
+DEFAULT_TOOLS=(apm just gh rg gitleaks claude coaligned
+  fit-wiki fit-xmr fit-trace fit-doc fit-terrain)
 
 # ── gear binary release coordinates ──────────────────────────────
 # Every installable gear binary (fit-trace, fit-wiki, fit-harness, …, plus
