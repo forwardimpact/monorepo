@@ -105,3 +105,41 @@ describe("kata-interview.yml wrapper", () => {
     );
   });
 });
+
+describe("kata-interview.yml persona-select-command", () => {
+  const step = wf.jobs.interview.steps.find(
+    (s) => s.uses === "./products/kata/actions/kata-interview",
+  );
+  const withMap = step?.with ?? {};
+  const personaSelect = String(withMap["persona-select-command"] ?? "");
+
+  it("drives persona pick and issue through fit-terrain", () => {
+    assert.match(personaSelect, /fit-terrain substrate pick/);
+    assert.match(personaSelect, /fit-terrain substrate issue/);
+  });
+
+  it("carries the FI pick-memory path and issued-token name as options", () => {
+    assert.match(personaSelect, /--memory "wiki\/kata-interview\/picks\.csv"/);
+    assert.match(personaSelect, /--token-env PRODUCT_LANDMARK_TOKEN/);
+  });
+
+  it("invokes no fit-map — the persona step is terrain-only", () => {
+    assert.doesNotMatch(personaSelect, /fit-map/);
+  });
+
+  it("uses fit-map only in substrate-setup-command across the with: map", () => {
+    for (const [key, value] of Object.entries(withMap)) {
+      if (key === "substrate-setup-command") continue;
+      assert.doesNotMatch(
+        String(value),
+        /fit-map/,
+        `fit-map must not appear in "${key}"`,
+      );
+    }
+    assert.match(
+      String(withMap["substrate-setup-command"]),
+      /fit-map/,
+      "substrate-setup-command should still invoke fit-map",
+    );
+  });
+});

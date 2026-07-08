@@ -46,8 +46,11 @@ jobs:
       # substrate + persona commands. The action gates all substrate steps on
       # `substrate-setup-command != ''` — so a file-only product passes an
       # empty command and skips bring-up, persona selection, and the log scan.
-      # `bunx fit-map` is the sole remaining documented exception (fit-map
-      # ships in the map release, not the gear bundle on PATH).
+      # Persona pick/issue run `fit-terrain` (on PATH via the gear bundle) and
+      # carry the FI-specific values — pick memory and the issued token name —
+      # as explicit options. `bunx fit-map substrate stage` is the sole
+      # remaining `fit-map` exception (fit-map ships in the map release, not
+      # the gear bundle on PATH).
       - uses: ./products/kata/actions/kata-interview
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
@@ -58,7 +61,7 @@ jobs:
           job: ${{ inputs.job }}
           task-amend: ${{ inputs.task-amend }}
           substrate-setup-command: ${{ contains(fromJSON('["landmark"]'), inputs.product) && format('SUBSTRATE_FORCE_EMPTY_CORPUS={0} bunx fit-map substrate stage --cwd "$AGENT_CWD" --emit-env "$GITHUB_ENV"', inputs.empty-corpus-test) || '' }}
-          persona-select-command: ${{ contains(fromJSON('["landmark"]'), inputs.product) && 'persona=$(bunx fit-map substrate pick --format json) && printf ''%s\n'' "$persona" && email=$(printf ''%s'' "$persona" | jq -r .email) && bunx fit-map substrate issue --email "$email" --cwd "$AGENT_CWD" --stash "$RUNNER_TEMP/.persona-jwt"' || '' }}
+          persona-select-command: ${{ contains(fromJSON('["landmark"]'), inputs.product) && 'persona=$(fit-terrain substrate pick --format json --memory "wiki/kata-interview/picks.csv") && printf ''%s\n'' "$persona" && email=$(printf ''%s'' "$persona" | jq -r ''.personas[0].email'') && fit-terrain substrate issue --email "$email" --cwd "$AGENT_CWD" --token-env PRODUCT_LANDMARK_TOKEN --stash "$RUNNER_TEMP/.persona-jwt"' || '' }}
           jwt-secret: ${{ secrets.SUPABASE_JWT_SECRET }}
           service-role-key: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           killswitch: ${{ vars.KATA_KILLSWITCH }}
