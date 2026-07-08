@@ -8,7 +8,7 @@ Two distinct sources:
 
 - **Identity** (name, team, manager, teammates, repos, recent project
   context, company facts) — drawn from the installation's synthetic
-  content. In a monorepo using `fit-terrain`, that is typically the DSL at
+  content. In a repository using `fit-terrain`, that is typically the DSL at
   `data/synthetic/story.dsl` and the generated prose at
   `data/synthetic/prose-cache.json`.
 - **Situation** (Trigger, Forces, Competes With) — drawn from the chosen

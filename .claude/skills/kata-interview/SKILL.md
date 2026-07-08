@@ -1,7 +1,8 @@
 ---
 name: kata-interview
 description: >
-  Conduct a JTBD switching interview to test a Forward Impact product.
+  Conduct a JTBD switching interview to test one of the repository's
+  products.
   Build a persona grounded in the installation's synthetic content with
   the situation drawn from the chosen JTBD entry, hand the job to the
   agent at the public website in two Ask calls, and capture findings as
@@ -11,11 +12,11 @@ description: >
 # Switching Interview
 
 A **JTBD switching interview**: an agent, briefed only with a persona, tries
-to get a chosen Job To Be Done done using a Forward Impact product they meet
-cold at the public website. The agent is isolated with no monorepo access.
-You run in the monorepo root with `JTBD.md`, the synthetic `data/` from
-`fit-terrain build`, the `supabase` CLI, and project context — use them to
-stage, craft, and verify, but never leak.
+to get a chosen Job To Be Done done using one of the repository's products
+they meet cold at the public website. The agent is isolated with no
+repository access. You run in the repository root with `JTBD.md`, the
+synthetic `data/` from `fit-terrain build`, and project context — use them
+to stage, craft, and verify, but never leak.
 
 ## When to Use
 
@@ -26,9 +27,9 @@ This skill is not part of scheduled runs.
 
 ## LLM Availability
 
-`ANTHROPIC_API_KEY` is in the shell — `libconfig` reads it. LLM-backed
-products (Guide, Outpost) work zero-config; if the agent asks for a key,
-that is a **bug**. Do not tell the agent the key is pre-configured.
+`ANTHROPIC_API_KEY` is in the shell and the products read it. LLM-backed
+products work zero-config; if the agent asks for a key, that is a **bug**. Do
+not tell the agent the key is pre-configured.
 
 ## Checklists
 
@@ -41,7 +42,7 @@ that is a **bug**. Do not tell the agent the key is pre-configured.
       templates; product-named environment variables required by the production
       CLI are permitted in the agent's environment.
 - [ ] Workspace staged per Step 3; `CLAUDE.md` written before Ask 1.
-- [ ] No leaks of monorepo internals, skills, or pre-configured tokens.
+- [ ] No leaks of repository internals, skills, or pre-configured tokens.
 - [ ] Do not fix problems for the agent — friction is the signal.
 
 </read_do_checklist>
@@ -68,31 +69,26 @@ product selection toward products not interviewed recently.
 
 ### Step 1: Pick the Product
 
-If the task includes `Product:`, use it. Otherwise pick one of the products
-under `products/` that has a `<job>` entry in `JTBD.md`.
+If the task includes `Product:`, use it. Otherwise pick one of the
+repository's products that has a `<job>` entry in `JTBD.md`.
 
 ### Step 2: Pick the Job
 
 Read `JTBD.md`. Find every `<job>` entry whose **Big Hire** or **Little
-Hire** line names the chosen product (e.g. `→ **Map, Pathway**`). If the
+Hire** line names the chosen product (e.g. `→ **<Product>**`). If the
 task includes `Job:`, match it against the `goal=` attribute; otherwise
 pick one. Record the full block: `user`, `goal`, Trigger, Big Hire, Little
 Hire, Competes With, Forces (Push, Pull, Habit, Anxiety), Fired When.
 
 ### Step 3: Stage the Agent Workspace
 
-The workflow ran `fit-terrain build` and installed `supabase`.
-Copy the subset the chosen product needs into `$AGENT_CWD`:
-
-| Product          | Stage into `$AGENT_CWD`                                                                                                                            |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Guide, Outpost   | nothing                                                                                                                                            |
-| Pathway          | `data/pathway/`                                                                                                                                    |
-| Map              | `data/pathway/` and `data/activity/`                                                                                                               |
-| Substrate-backed | `data/pathway/`; the workflow's substrate-setup step brings the substrate up and emits its URL/key — the skill stages no substrate itself |
-| Summit           | `data/pathway/` and `data/activity/raw/activity/summit.yaml` (as `summit.yaml` at root)                                                            |
-
-Use `cp -r data/pathway "$AGENT_CWD/data/pathway"` and similar.
+The workflow ran `fit-terrain build`. Copy the data subset the chosen
+product needs into `$AGENT_CWD` — the product's own directory plus any
+shared data it reads:
+`cp -r data/<product> "$AGENT_CWD/data/<product>"` and similar. LLM-backed
+products need nothing staged. For substrate-backed products the workflow's
+substrate-setup step brings the substrate up and emits its URL/key — the
+skill stages no substrate itself.
 
 ### Step 3a: Select the Persona (when a persona-select command is set)
 
@@ -106,7 +102,7 @@ the loop works for any substrate a consumer supplies.
   scenario) from the command's output for Step 4. On non-zero exit, write a
   diagnostic and exit the skill.
 - **`PERSONA_SELECT_COMMAND` unset** — issue no JWT; build the persona
-  identity from `data/synthetic/story.dsl` and `prose-cache.json` (Step 4).
+  identity from the synthetic content `fit-terrain build` produced (Step 4).
 
 ### Step 4: Craft the Persona
 
@@ -115,8 +111,8 @@ situation** — never the job. Two sources:
 
 - **Identity** (name, team, manager, teammates, repos, recent project,
   company facts) — when a persona-select command ran (Step 3a), from the
-  persona it printed. Otherwise from `data/synthetic/story.dsl` and
-  `prose-cache.json`.
+  persona it printed. Otherwise from the synthetic content `fit-terrain
+  build` produced.
 - **Situation** (Trigger, Forces, Competes With) — from the chosen JTBD
   entry, rephrased into the persona's voice.
 
@@ -151,13 +147,13 @@ carries steering not matching `Product:` / `Job:`, append it to Ask 2.
 | Job done or abandoned    | Proceed to Step 7                          |
 
 Short reply messages, not further `Ask` calls — only Step 5 uses two Asks.
-Use monorepo access to verify observations, but never feed verification
+Use repository access to verify observations, but never feed verification
 back to the agent.
 
 ### Step 7: Transition to Post-Interview
 
 Once done or abandoned, stop Asking and do Steps 8–9 yourself with your own
-Bash and monorepo checkout — never delegate wrap-up to the agent (it breaks
+Bash and repository checkout — never delegate wrap-up to the agent (it breaks
 isolation). Conclude only after filing issues and writing the report.
 
 ### Step 8: Capture Findings
