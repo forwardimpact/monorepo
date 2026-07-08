@@ -51,9 +51,9 @@ vs. expected), update Obstacles, and plan the next experiment.
 
 ## Metrics
 
-Each participant records to `wiki/metrics/{skill}/{YYYY}.csv`. See
-[`metrics.md`](metrics.md) for suggested coaching-side metrics and KATA.md §
-Metrics for the recording-eligibility rule.
+Each participant records to `wiki/metrics/{skill}/{YYYY}.csv` per its own
+skill's `references/metrics.md`; KATA.md § Metrics has the
+recording-eligibility rule.
 
 ## Storyboard Updates
 
