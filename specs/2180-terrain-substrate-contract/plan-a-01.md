@@ -93,8 +93,20 @@ Mechanical import swap `@forwardimpact/map/levels` →
 `@forwardimpact/map/validation` and `@forwardimpact/map/activity/*` imports
 stay — only the levels/schema surface moves.
 
-Verify: `rg "@forwardimpact/map/levels|@forwardimpact/map/schema/json" --glob '!specs/**' --glob '!references/**'`
-is empty (SC3); `bun test tests/ products/` passes.
+Pathway's three browser importmaps are **not** a mechanical specifier swap:
+in `products/pathway/src/{index,slides,handout}.html` the
+`"@forwardimpact/map/levels": "/map/lib/levels.js"` entry becomes
+`"@forwardimpact/libskill/levels": "/model/lib/levels.js"` — `/model/lib/`
+is where dev and build serve libskill's src
+(`products/pathway/src/commands/dev.js:130`, `build.js:142`), and
+`/map/lib/levels.js` stops existing after the move. No test covers
+importmaps; get this wrong and the published site 404s silently.
+
+Verify: `rg "@forwardimpact/map/levels|@forwardimpact/map/schema/json" --glob '!specs/**'`
+is empty (SC3 — the spec's exact command; `references/` is updated by
+part 06 and must also be clean); `rg '/map/lib/levels' products/pathway/src`
+is empty; `bun test tests/ products/` passes and a pathway `dev`/`build`
+smoke loads a page that imports levels.
 
 ## Step 6 — libterrain resolves the schema dir from libskill
 
@@ -115,7 +127,25 @@ Verify: `rg '@forwardimpact/map' libraries/` is empty (SC1);
 `bun test libraries/libterrain` passes; `bunx fit-terrain validate` renders
 pathway output in the monorepo.
 
-## Step 7 — Repo-wide checks
+## Step 7 — CI and website publish follow the schema move
+
+The published schema URLs and the CI cache keys reference the old path.
+
+- Modified: `.github/workflows/website.yml` (line 50:
+  `cp products/map/schema/json/*.json dist/schema/json/` →
+  `cp libraries/libskill/schema/json/*.json dist/schema/json/`; the `dist/`
+  target and the published `https://www.forwardimpact.team/schema/json/…`
+  `$id` URLs are unchanged)
+- Modified: `.github/workflows/check-test.yml` (lines 74 and 80: both
+  `hashFiles(…)` cache keys swap `products/map/schema/json/**` for
+  `libraries/libskill/schema/json/**` — a stale path silently hashes to
+  nothing and the synthetic/pathway caches stop invalidating)
+- Modified: `websites/CLAUDE.md` (§ around line 126: the sentence describing
+  where the published schemas are copied from names the new source)
+
+Verify: `rg 'products/map/schema' .github/ websites/` is empty.
+
+## Step 8 — Repo-wide checks
 
 Verify: `bun run invariants` (workspace-imports guard) and `bun test` pass;
 `bun run context:fix` shows no catalog drift.

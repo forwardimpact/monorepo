@@ -27,7 +27,7 @@ library takes them only as required options.
 | [02](plan-a-02.md) | libterrain substrate verbs | `substrate` module (client, contract, persona query, enricher, pick memory, auth users), six verbs, CLI wiring, unit tests | 01 |
 | [03](plan-a-03.md) | map after the move | Contract-view migration + API exposure, four verbs deleted, stage/smoke/`auth issue` repointed, tests | 02 |
 | [04](plan-a-04.md) | Interview workflow wiring | `persona-select-command` switches to `fit-terrain`, shape-test assertions | 03 |
-| [05](plan-a-05.md) | Contract guide, skills, docs | Substrate Contract guide, `fit-terrain`/`fit-map` skill + CLI doc parity, provisioning guide repoint | 02 |
+| [05](plan-a-05.md) | Contract guide, skills, docs | Substrate Contract guide, `fit-terrain`/`fit-map` skill + CLI doc parity, provisioning guide + verb-doc sweep | 03 |
 | [06](plan-a-06.md) | Polaris reference wiring | `references/bionova-apps/` drops `@forwardimpact/map`, documents the full `up → init → check → provision → pick → issue` loop | 02 |
 
 Libraries used: libskill (levels module, `schema/json/*` — new home),
@@ -71,8 +71,9 @@ libsyntheticgen (DSL persona enrichment), libmock (`createTestRuntime`).
 
 | Sequencing | Notes |
 | --- | --- |
-| 01 → 02 → 03 → 04 sequential | Each depends on the previous; repo green after every part |
-| 05 ∥ 06 parallel after 02 | Documentation of the verbs and the Polaris reference need only the library surface; they can land while 03/04 are in flight |
+| 01 → 02 → 03 → 04 sequential | Each depends on the previous; repo green after every part. Part 04 additionally waits for the release cut (see its risk) |
+| 06 parallel after 02 | The Polaris reference needs only the library surface and touches no map file |
+| 05 after 03 | Part 05 edits `products/map/bin/fit-map.js` and the fit-map skill that part 03 also touches, and must not document verbs as gone while the shipped CLI still has them |
 
 Route parts 01–04 and 06 to `staff-engineer` via `kata-implement`; route
 part 05 to `technical-writer` (guide + skill prose, with the CLI

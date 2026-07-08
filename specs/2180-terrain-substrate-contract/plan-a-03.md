@@ -69,15 +69,15 @@ probe passes against a stub built from the migration's column lists (SC7).
   `products/map/bin/dispatch-substrate.js` (only the `stage` case and a
   `stage`-only `known` set survive)
 
-Verify: `fit-map --help` lists none of the four verbs; a new assertion in an
-existing CLI-definition test (or `products/map/test/cli-definition.test.js`)
-pins their absence (SC6).
+Verify: `fit-map --help` lists none of the four verbs; a **new**
+`products/map/test/cli-definition.test.js` (no CLI-definition test exists
+today) pins their absence (SC6).
 
 ## Step 3 — Stage provisions through libterrain
 
 - Modified: `products/map/src/commands/substrate-stage.js`,
-  `products/map/src/lib/client.js` (no change needed — `createMapClient`
-  already takes `schema`), `products/map/package.json`
+  `products/map/package.json` (`createMapClient` already takes a `schema`
+  option — `src/lib/client.js` is untouched)
 
 `loadProvision` default becomes
 `() => import("@forwardimpact/libterrain/substrate").then((m) => m.runProvision)`.

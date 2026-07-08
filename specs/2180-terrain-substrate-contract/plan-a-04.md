@@ -18,12 +18,15 @@ persona=$(fit-terrain substrate pick --format json \
   --token-env PRODUCT_LANDMARK_TOKEN --stash "$RUNNER_TEMP/.persona-jwt"
 ```
 
-(single-quoted YAML expression string like today; `fit-terrain` is on PATH in
-the action, no `bunx`). `substrate-setup-command` is untouched — `bunx
-fit-map substrate stage` stays the sole `fit-map` line, and the comment above
-the step updates to say so. Note: the old command extracted `.email` from a
-payload whose email lives at `.personas[0].email`; the new extraction is the
-correct path, not a behaviour change.
+The block above is the logical shape, not verbatim YAML: like today's line 61
+it collapses to a single line inside the `${{ … && '…' || '' }}` expression,
+where every embedded single quote — including the `jq` filter's — doubles to
+`''` (so the filter reads `jq -r ''.personas[0].email''`). `fit-terrain` is
+on PATH in the action, no `bunx`. `substrate-setup-command` is untouched —
+`bunx fit-map substrate stage` stays the sole `fit-map` line, and the comment
+above the step updates to say so. Note: the old command extracted `.email`
+from a payload whose email lives at `.personas[0].email`; the new extraction
+is the correct path, not a behaviour change.
 
 Verify: `yq '.jobs.interview.steps[0].with' .github/workflows/kata-interview.yml`
 shows the new command; workflow shape test below passes.
@@ -47,6 +50,10 @@ Libraries used: none.
 
 ## Risks
 
-- This part must not land before part 03: the workflow's pick queries
-  `substrate.*`, which exists only once map's contract-view migration ships
-  in the release the interview runner installs.
+- The gate for merging this part is the **release cut**, not part 03's merge:
+  the interview runner installs `fit-terrain` as a pre-built binary via the
+  bootstrap action and runs the published `bunx fit-map` — both must come
+  from the release train carrying parts 01–03 (`libskill`, `libterrain`,
+  `map`), or every landmark interview fails with an unknown-subcommand or
+  missing-`substrate.*` error. Merge this part only after that release
+  ships.

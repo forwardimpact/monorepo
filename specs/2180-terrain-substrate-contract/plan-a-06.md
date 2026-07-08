@@ -24,7 +24,9 @@ dependency, so Polaris needs no direct `map` package at all.
 - Modified: `references/bionova-apps/plan-a-03.md` (version-pin step drops
   `npm view @forwardimpact/map version` and the `bun pm ls` grep for map)
 
-Verify: `rg '@forwardimpact/map|fit-map' references/bionova-apps/` is empty.
+Verify: `rg '@forwardimpact/map' references/bionova-apps/` is empty. (The
+"no fit-map" prose in design § Interviewing Polaris is rewritten by Step 2 —
+the combined `fit-map`-free check runs there.)
 
 ## Step 2 — Document the full substrate identity loop
 
@@ -57,8 +59,14 @@ Content to add:
   mapping, never restating the relation tables (references/CLAUDE.md § route
   each change to the layer that owns it).
 
-Verify: `rg -l 'init|check|provision|pick|issue' references/bionova-apps/design-a.md`
-matches, and the six verb names all appear in § Interviewing Polaris (SC10).
+Step 2 also rewords the section's "No fit-map and no map schema" comments so
+they stay true without naming a tool the flow never touches.
+
+Verify: each of `fit-terrain substrate init|check|provision|pick|issue`
+appears as a command string in § Interviewing Polaris
+(`rg -o 'fit-terrain substrate (init|check|provision|pick|issue)' references/bionova-apps/design-a.md`
+yields all five), and `rg 'fit-map' references/bionova-apps/` is empty
+(SC10).
 
 Libraries used: none.
 

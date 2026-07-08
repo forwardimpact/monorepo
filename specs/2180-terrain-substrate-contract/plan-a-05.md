@@ -69,20 +69,41 @@ and `people provision` verb documentation, and points persona selection at
 Verify: `rg 'substrate (pick|issue|roster)|people provision' .claude/skills/fit-map/`
 is empty.
 
-## Step 4 — Provisioning guide follows the verb
+## Step 4 — Provisioning guide and every doc commanding the moved verbs
 
 - Modified: `websites/fit/docs/products/provisioning-engineers/index.md`,
+  `websites/fit/docs/products/signing-in-to-landmark/index.md`,
+  `websites/fit/docs/products/issuing-service-account-tokens/index.md`,
+  `websites/fit/docs/getting-started/leaders/landmark/index.md`,
+  `websites/fit/docs/getting-started/leaders/map/index.md`,
+  `websites/fit/docs/getting-started/engineers/landmark/index.md`,
   `products/map/bin/fit-map.js`, `libraries/libterrain/bin/fit-terrain.js`,
   `.claude/skills/fit-map/SKILL.md`, `.claude/skills/fit-terrain/SKILL.md`
 
-The guide's command becomes `npx fit-terrain substrate provision` with the
-contract (not the map schema) as the stated prerequisite; its
-"Provision Engineer Auth Users" entry moves from `fit-map`'s
-`documentation` array + skill list to `fit-terrain`'s, keeping list/array
-parity on both sides.
+The provisioning guide's command becomes
+`npx fit-terrain substrate provision` with the contract (not the map schema)
+as the stated prerequisite; its "Provision Engineer Auth Users" entry moves
+from `fit-map`'s `documentation` array + skill list to `fit-terrain`'s,
+keeping list/array parity on both sides. The five other docs above each
+command `fit-map people provision` in passing — repoint every occurrence to
+the new verb.
 
-Verify: guide names no `fit-map` command; both CLIs' arrays match their
-skills' `## Documentation` lists.
+Verify: `rg -l 'people provision' websites/ .claude/skills/` is empty; both
+CLIs' arrays match their skills' `## Documentation` lists.
+
+## Step 5 — Schema-location mentions follow the part-01 move
+
+- Modified: `.claude/skills/fit-map/SKILL.md` (validation section lines
+  ~47–52: "each YAML against its JSON Schema (`schema/json/`)" and the
+  schema-change instruction now name the schemas' libskill home while
+  `schema/rdf/` stays map's),
+  `.claude/skills/fit-map/references/` (any file locating `schema/json` in
+  map), `websites/fit/docs/reference/yaml-schema/index.md` (the
+  source-location column/prose, if it names the map package — the published
+  `/schema/json/…` URLs are unchanged)
+
+Verify: `rg -n 'schema/json' .claude/skills/fit-map/ websites/fit/docs/reference/`
+shows no line locating the JSON schemas in the map product.
 
 Libraries used: none.
 

@@ -82,6 +82,10 @@ Enricher change: `enrichPersonaRow(row, ast)` keys on the contract's
 `gdx_team_` prefix handling deletes; vendor-id mapping is the consumer view's
 job (part 03). `loadStory` ports unchanged (upward resolution of
 `data/synthetic/story.dsl` from cwd; absent → `null`, un-enriched rows).
+Declared deviation from design § CLI verb interfaces: the pick path reads
+**only** `story.dsl` — `prose-cache.json` is not read by the enricher today
+and this plan adds no such read; the design's mention describes the synthetic
+story artifact family, not a second resolution.
 
 Verify: `test/substrate-enricher.test.js` (team resolution by bare `team_id`,
 absent AST → null fields) and `test/substrate-provision.test.js`
@@ -102,11 +106,11 @@ One module per verb, signatures from design § CLI verb interfaces.
 | Verb | Implementation notes |
 | --- | --- |
 | `init --cwd <dir>` | Offline. Writes `<cwd>/supabase/migrations/<ts>_substrate_contract.sql` (`ts` from `runtime.clock`): `CREATE SCHEMA substrate`, service-role grants, one commented example view per contract relation generated from `SUBSTRATE_CONTRACT` columns |
-| `check` | Column-explicit `select(<columns>).limit(1)` per relation via the client; one diagnostic per missing/malformed relation; required failure → exit 1, optional absence → info diagnostic, exit 0 |
+| `check` | Column-explicit `select(<columns>).limit(1)` per relation via the client; one diagnostic per missing/malformed relation; required missing **or malformed** → exit 1; optional missing or malformed → info diagnostic, exit 0 (severity follows the relation's required flag, not the failure kind) |
 | `provision` | Thin wrapper over `runProvision` |
 | `pick --format json\|text --memory <path> --memory-window <n>` | Port of map's `runPickCommand`: memory only when `--memory` supplied (read window, append on success; stateless otherwise); window default 5 via `--memory-window`; enrichment via `loadStory`; payload gains `selection_metadata.applied_invariants` from the query |
 | `roster --format json\|text` | Port of map's `runRosterCommand` over the same query; table headers unchanged |
-| `issue --email <e> --cwd <p> --token-env <NAME> [--ttl <d>] [--stash <path>]` | Port of map's `runSubstrateIssueCommand`: `--token-env` **required, no default**; `.env` line is `<NAME>=<jwt>`; `.substrate.json` carries the discovery key/values (spread, not nested) + `persona_email`, `manager_email` (persona's own email — port the invariant-(a) comment), `generated_at`; no discovery → identity-only file; same tmp-write/rename atomicity, mode 0600, stash behaviour; `kind !== "human"` rejection message names `substrate.people`, not `fit-map auth issue` |
+| `issue --email <e> --cwd <p> --token-env <NAME> [--ttl <d>] [--stash <path>]` | Port of map's `runSubstrateIssueCommand`: `--token-env` **required, no default**; `.env` line is `<NAME>=<jwt>`; `.substrate.json` carries the discovery key/values (spread, not nested) + `persona_email`, `manager_email` (persona's own email — port the invariant-(a) comment), `generated_at`; discovery values come from the persona-query module's exported discovery loader (the `substrate.discovery` fold) — map's `resolveDiscoveryVector` has no successor, `issue` calls that shared helper itself; loader returns `null` → identity-only file; same tmp-write/rename atomicity, mode 0600, stash behaviour; `kind !== "human"` rejection message names `substrate.people`, not `fit-map auth issue` |
 
 No `PRODUCT_LANDMARK_TOKEN` or `kata-interview` literal survives (SC5). The
 pick-memory `run_id` column keeps its `env.GITHUB_RUN_ID ?? ""` source — CI
@@ -151,9 +155,9 @@ Libraries used: libsecret (`mintSupabaseJwt`, `parseDuration`), libconfig
 
 ## Risks
 
-- `pick`'s enrichment resolves `story.dsl`/`prose-cache.json` upward from
-  `cwd` with a depth cap of 5 (ported `findUpward` call) — in the interview
-  action the process cwd is the checkout root, so the cap is safe, but do not
+- `pick`'s enrichment resolves `data/synthetic/story.dsl` upward from `cwd`
+  with a depth cap of 5 (ported `findUpward` call) — in the interview action
+  the process cwd is the checkout root, so the cap is safe, but do not
   "simplify" to project-root resolution: an external consumer has no
   monorepo-shaped root.
 - `check` must not use `select("*")` — PostgREST accepts unknown relations
