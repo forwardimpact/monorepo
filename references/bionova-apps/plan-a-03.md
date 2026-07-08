@@ -49,22 +49,21 @@ Verify: `sha256sum -c SOURCE.sha256` passes; `PROVENANCE.md` carries a real
 40-char SHA reachable on `forwardimpact/monorepo:main`; `story.dsl` is
 byte-identical to the monorepo's at `$PROVENANCE_SHA` (`diff` is empty).
 
-## Step 2 — Pin the libterrain/map versions that carry prereqs A+B
+## Step 2 — Pin the libterrain version that carries prereqs A+B
 
-Part 01 added `@forwardimpact/libterrain` and `@forwardimpact/map` as
-`devDependencies`. Pin the exact versions that include `--output-root` (A) and
+Part 01 added `@forwardimpact/libterrain` as a
+`devDependency`. Pin the exact version that include `--output-root` (A) and
 prose-to-SQL rendering (B):
 
 ```sh
 npm view @forwardimpact/libterrain version       # must be ≥ the A+B release
-npm view @forwardimpact/map version
 ```
 
-Record the resolved versions in this part's PR body. If the A+B release is not
+Record the resolved version in this part's PR body. If the A+B release is not
 yet on npm, **stop** — this part is blocked (plan-a.md § Prerequisites).
 
-Verify: `bun pm ls | grep -E 'libterrain|@forwardimpact/map'` shows the pinned
-versions; `bunx fit-terrain --help` lists `--output-root` and `--schema-dir`.
+Verify: `bun pm ls | grep libterrain` shows the pinned
+version; `bunx fit-terrain --help` lists `--output-root` and `--schema-dir`.
 
 ## Step 3 — Author `scripts/build-seed.sh`
 

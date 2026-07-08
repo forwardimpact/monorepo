@@ -70,7 +70,6 @@ graph TD
 | `libtemplate` | `products/polaris/handlers/` | Mustache templates for trial cards, eligibility reports |
 | `librepl` | `products/polaris/cli/` | `bionova-polaris repl` — staff interactive trial data exploration |
 | `libterrain` (`fit-terrain`) | `setup.sh` / `package.json` build script | Build-time only. Renders the vendored `story.dsl` to seed SQL + embeddings JSONL. Not imported by any surface. |
-| `@forwardimpact/map` | dependency of `libterrain` | Build-time only. Resolves the map schema dir for `--schema-dir` (pathway rendering is skipped for Polaris). |
 
 ## Shared Surface Architecture
 
@@ -276,7 +275,7 @@ before `bionova-apps` implementation begins. Each needs its own spec.
 | Change | File | Evidence today |
 | --- | --- | --- |
 | Add `--output-root` flag; route the write sink there instead of the resolved project root | `libraries/libterrain/bin/fit-terrain.js` (sink wiring ~233–241), `libraries/libterrain/src/sinks.js` (`writeFiles` ~262–285) | `writeFiles` does `fs.rm(dir, {recursive, force})` on `join(monorepoRoot, parts[0], parts[1])` for each output path — would delete `products/polaris/` in an external repo |
-| Add `--schema-dir` flag, default-resolving `@forwardimpact/map`'s published `schema/json` | `libraries/libterrain/bin/fit-terrain.js:200` (`join(monorepoRoot, "products/map/schema/json")`); add `@forwardimpact/map` dep to `libterrain/package.json` | Schema is published in `@forwardimpact/map` `files` (`products/map/package.json:69–75`) but not bundled with `libterrain`; pathway rendering is gated on `options.schemaDir` (`src/nodes.js:184–187`), so absent schema simply skips pathway output — acceptable for Polaris |
+| Add `--schema-dir` flag, default-resolving `@forwardimpact/libskill`'s published `schema/json` | `libraries/libterrain/bin/fit-terrain.js` (`defaultSchemaDir()`); `@forwardimpact/libskill` is a hard dependency of `libterrain` | The standard schemas are published in `@forwardimpact/libskill` `files` and ship with every `libterrain` install, so pathway rendering needs no extra package; pathway rendering is gated on `options.schemaDir` (`src/nodes.js:184–187`) |
 
 `--story` and `--cache` overrides already exist (`bin/fit-terrain.js:226–227`,
 `:201–203`). `findProjectRoot()` (`libraries/libutil/src/finder.js:134–144`)
@@ -305,7 +304,22 @@ interviewable the same way this monorepo interviews its own products — with th
 published `forwardimpact/kata-interview` composite action, not a forked
 workflow. The action owns the generic infrastructure (token, checkout,
 bootstrap, `fit-terrain build`, the supervised run, cost, wiki push, log scan);
-Polaris supplies only its own entry point and substrate command.
+Polaris supplies only its own entry point, substrate command, and — for
+staff-facing interviews — a persona command built from the
+`fit-terrain substrate` verbs against the
+[Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md).
+The guide is the normative reference for the relations, columns, auth model,
+and degradation semantics; this section names only the Polaris-specific
+mapping.
+
+**One-time scaffold, committed.** `npx fit-terrain substrate init --cwd .`
+writes the starter migration into `supabase/migrations/`; Polaris edits the
+commented example views to map its clinical schema onto the contract. Staff
+and researchers become `substrate.people` rows, with Polaris roles mapped onto
+the mandated `discipline`/`level`/`track` columns. `substrate.evidence` and
+`substrate.discovery` start declared optional-absent (or get mapped later),
+with the degradation that declares: structural-only pick invariants, and an
+identity-only `.substrate.json` from `issue`.
 
 `.github/workflows/interview.yml` in `bionova-apps`:
 
@@ -321,25 +335,40 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           website-url: https://polaris.bionova.example
-          # Generic Supabase bring-up, then Polaris' own migration + embed seed.
-          # No fit-map and no map schema — bring-up + emit is all the action needs.
+          # Generic Supabase bring-up, Polaris' own migrations + embed seed,
+          # then the contract gate and identity provisioning.
           substrate-setup-command: >-
             npx fit-terrain substrate up --cwd . --emit-env "$GITHUB_ENV"
             && supabase db push
             && ./data/synthetic/setup.sh
+            && npx fit-terrain substrate check
+            && npx fit-terrain substrate provision
           jwt-secret: ${{ secrets.SUPABASE_JWT_SECRET }}
           service-role-key: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 ```
 
 Patient interviews omit `persona-select-command` entirely — Polaris is
 patient-facing with anonymous access, so the supervisor builds the persona from
-the vendored `story.dsl` and issues no JWT. A staff-facing interview would pass
-a Polaris persona command satisfying the same `.env` / `.substrate.json` / stash
-contract the action documents.
+the vendored `story.dsl` and issues no JWT. A staff-facing interview passes a
+persona command over the same verbs the FI wrapper uses, with Polaris' own
+token name (and, if diversification across runs matters, a Polaris-scoped
+`--memory` path):
+
+```sh
+persona=$(npx fit-terrain substrate pick --format json) \
+&& email=$(printf '%s' "$persona" | jq -r '.personas[0].email') \
+&& npx fit-terrain substrate issue --email "$email" --cwd "$AGENT_CWD" \
+  --token-env PRODUCT_POLARIS_TOKEN --stash "$RUNNER_TEMP/.persona-jwt"
+```
+
+This satisfies the same `.env` / `.substrate.json` / stash contract the action
+documents; `--token-env` carries the Polaris token name, so nothing
+Landmark-specific enters the flow.
 
 The substrate command brings Supabase up from the repo checkout (`--cwd .`,
 using Polaris' own `supabase/` config), while the interview itself stages its
-working files into the temp `agent-cwd` the action creates — so this needs no
-`fit-map`, no map schema, and no Polaris application code running in the runner.
-Prerequisite A (`fit-terrain` runs outside the monorepo) is the same dependency
-the seed pipeline already relies on.
+working files into the temp `agent-cwd` the action creates — the whole loop
+runs on `fit-terrain` plus Polaris' own migrations and seed, with no Polaris
+application code running in the runner. Prerequisite A (`fit-terrain` runs
+outside the monorepo) is the same dependency the seed pipeline already relies
+on.

@@ -68,10 +68,10 @@ this spec; the monorepo PR (`plan-implemented`) updates only
 | --- | --- | --- |
 | Spec 1140 — clinical-output pipeline | implemented (commits `8bbf8f1c`, `0c921e81`) | `libterrain` clinical-output stage emits `supabase_migration` + `embeddings_jsonl` files |
 | Spec 1150 — story.dsl clinical rewrite | **implemented** (`wiki/STATUS.md` row `1150 plan implemented`; live-verified 2026-06-11 — `bunx fit-terrain build` at `6010964b`: 0 cache misses, all seed artifacts produced) | story.dsl carries `clinical {}` + `output … supabase_migration {…}` blocks at `data/synthetic/story.dsl:1250–1272` |
-| **Prerequisite A — `fit-terrain` external execution** | **NOT YET SPECCED — blocks implementation.** Needs `--output-root` (route the write sink off the project root so it does not `rm -rf products/polaris/`) and `--schema-dir` defaulting to `@forwardimpact/map`'s published `schema/json`. Must publish in a new `@forwardimpact/libterrain` minor. | `libterrain/bin/fit-terrain.js` sink wiring (~233–241) + `src/sinks.js` `writeFiles` (~262–285); `bin/fit-terrain.js:200` schema path; `@forwardimpact/map` `files` at `products/map/package.json:69–75`. See design § Prerequisite library changes A. |
+| **Prerequisite A — `fit-terrain` external execution** | **NOT YET SPECCED — blocks implementation.** Needs `--output-root` (route the write sink off the project root so it does not `rm -rf products/polaris/`) and `--schema-dir` defaulting to `@forwardimpact/libskill`'s published `schema/json` (a hard dependency of `libterrain`). Must publish in a new `@forwardimpact/libterrain` minor. | `libterrain/bin/fit-terrain.js` sink wiring (~233–241) + `src/sinks.js` `writeFiles` (~262–285); `bin/fit-terrain.js` `defaultSchemaDir()`. See design § Prerequisite library changes A. |
 | **Prerequisite B — clinical prose → SQL** | **NOT YET SPECCED — blocks parts 05/07 prose surfaces.** Materialize the six prose types as records, add their `TABLE_SPEC` entries, and pass the prose cache into `renderSql`. Must publish in the same `libterrain`/`libsyntheticrender`/`libsyntheticgen` release train. | `libsyntheticgen/src/engine/clinical-entities.js` (~100–107); `libsyntheticrender/src/render/render-sql.js` `TABLE_SPEC` (~12–66); `libterrain/src/nodes.js` `renderClinicalOutput` (~543–545). See design § Prerequisite library changes B. |
 | `@forwardimpact/libcli@0.1.12`, `libui@1.3.0`, `libformat@0.1.18`, `libtemplate@0.2.12`, `librepl@0.1.14` on npm | published — versions verified via `npm view @forwardimpact/<lib> version` at panel-review time | part 01 pins these exact versions; implementer re-runs `npm view @forwardimpact/{libcli,libui,libformat,libtemplate,librepl} version` immediately before `bun install` and bumps in the part-01 PR if any further patch level published since. **libui crossed a minor (1.2 → 1.3): the implementer must scan `CHANGELOG.md` (or the GitHub release notes for `@forwardimpact/libui@1.3.0`) for breaking changes to `createBoundRouter`, `render`, `freezeInvocationContext`, and the exported `components` surface used by plan-a-07; record the scan result in the part-01 PR body** even when no breakage is found. |
-| `@forwardimpact/libterrain` + `@forwardimpact/map` on npm | required at the versions that carry prerequisites A and B | part 01 adds both as `devDependencies`; part 03 pins the exact versions that include `--output-root` and prose-to-SQL rendering, and records them in its PR body |
+| `@forwardimpact/libterrain` on npm | required at the version that carries prerequisites A and B | part 01 adds it as a `devDependency`; part 03 pins the exact version that includes `--output-root` and prose-to-SQL rendering, and records it in its PR body |
 
 **This plan must not enter implementation until prerequisites A and B are
 implemented and published to npm, in addition to spec 1150 (done).** Part 01
@@ -102,9 +102,9 @@ freezeInvocationContext), `@forwardimpact/libui` (createBoundRouter, render,
 components, freezeInvocationContext), `@forwardimpact/libformat`
 (createHtmlFormatter, createTerminalFormatter), `@forwardimpact/libtemplate`
 (createTemplateLoader), `@forwardimpact/librepl` (Repl). Build-time only:
-`@forwardimpact/libterrain` (`fit-terrain build --output-root`) and
-`@forwardimpact/map` (schema resolution) — invoked by `setup.sh` and the
-`build-seed` script, never imported by a surface.
+`@forwardimpact/libterrain` (`fit-terrain build --output-root`; schema
+resolution ships via its `libskill` dependency) — invoked by `setup.sh` and
+the `build-seed` script, never imported by a surface.
 
 ## Risks
 
