@@ -6,10 +6,7 @@
  * Extracted from interview.js for max-lines compliance.
  */
 
-import {
-  getSkillProficiencyIndex,
-  SKILL_PROFICIENCY_ORDER,
-} from "@forwardimpact/map/levels";
+import { getSkillProficiencyIndex, SKILL_PROFICIENCY_ORDER } from "./levels.js";
 
 import {
   DEFAULT_INTERVIEW_QUESTION_MINUTES,
@@ -148,11 +145,11 @@ function buildDecompositionCandidates(job, questionBank, roleType) {
 /**
  * Derive Mission Fit interview questions (skill-focused)
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').JobDefinition} params.job - The job definition
- * @param {import('@forwardimpact/map/levels').QuestionBank} params.questionBank - The question bank
+ * @param {import('./levels.js').JobDefinition} params.job - The job definition
+ * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
  * @param {number} [params.targetMinutes=45] - Target interview length in minutes
  * @param {string} [params.roleType='professionalQuestions'] - Role type
- * @returns {import('@forwardimpact/map/levels').InterviewGuide}
+ * @returns {import('./levels.js').InterviewGuide}
  */
 export function deriveMissionFitInterview({
   job,
@@ -191,11 +188,11 @@ export function deriveMissionFitInterview({
 /**
  * Derive Decomposition interview questions (capability-focused)
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').JobDefinition} params.job - The job definition
- * @param {import('@forwardimpact/map/levels').QuestionBank} params.questionBank - The question bank
+ * @param {import('./levels.js').JobDefinition} params.job - The job definition
+ * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
  * @param {number} [params.targetMinutes=60] - Target interview length in minutes
  * @param {string} [params.roleType='professionalQuestions'] - Role type
- * @returns {import('@forwardimpact/map/levels').InterviewGuide}
+ * @returns {import('./levels.js').InterviewGuide}
  */
 export function deriveDecompositionInterview({
   job,
@@ -234,11 +231,11 @@ export function deriveDecompositionInterview({
 /**
  * Derive Stakeholder Simulation interview questions (behaviour-focused)
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').JobDefinition} params.job - The job definition
- * @param {import('@forwardimpact/map/levels').QuestionBank} params.questionBank - The question bank
+ * @param {import('./levels.js').JobDefinition} params.job - The job definition
+ * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
  * @param {number} [params.targetMinutes=60] - Target interview length in minutes
  * @param {string} [params.roleType='professionalQuestions'] - Role type
- * @returns {import('@forwardimpact/map/levels').InterviewGuide}
+ * @returns {import('./levels.js').InterviewGuide}
  */
 export function deriveStakeholderInterview({
   job,

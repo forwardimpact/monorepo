@@ -54,7 +54,7 @@ export {
 import {
   SKILL_PROFICIENCY_ORDER,
   BEHAVIOUR_MATURITY_ORDER,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 
 /**
  * Get the index for a skill proficiency (1-5)

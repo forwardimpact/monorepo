@@ -4,7 +4,7 @@
 
 import { tableToMarkdown, formatModifier } from "../shared.js";
 import { prepareTracksList, prepareTrackDetail } from "./shared.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Format track list as markdown

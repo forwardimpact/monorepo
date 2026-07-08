@@ -2,7 +2,7 @@
  * @param {boolean} valid
  * @param {Array} errors
  * @param {Array} warnings
- * @returns {import('../levels.js').ValidationResult}
+ * @returns {import('@forwardimpact/libskill/levels').ValidationResult}
  */
 export function createValidationResult(valid, errors = [], warnings = []) {
   return { valid, errors, warnings };
@@ -13,7 +13,7 @@ export function createValidationResult(valid, errors = [], warnings = []) {
  * @param {string} message
  * @param {string} [path]
  * @param {*} [value]
- * @returns {import('../levels.js').ValidationError}
+ * @returns {import('@forwardimpact/libskill/levels').ValidationError}
  */
 export function createError(type, message, path, value) {
   const error = { type, message };
@@ -26,7 +26,7 @@ export function createError(type, message, path, value) {
  * @param {string} type
  * @param {string} message
  * @param {string} [path]
- * @returns {import('../levels.js').ValidationWarning}
+ * @returns {import('@forwardimpact/libskill/levels').ValidationWarning}
  */
 export function createWarning(type, message, path) {
   const warning = { type, message };

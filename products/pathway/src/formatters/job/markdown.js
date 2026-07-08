@@ -9,7 +9,7 @@ import {
 } from "../shared.js";
 import { formatLevel } from "../../lib/render.js";
 import { formatJobDescription } from "./description.js";
-import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/map/levels";
+import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/libskill/levels";
 import { toolkitToMarkdown } from "../toolkit/markdown.js";
 
 /**

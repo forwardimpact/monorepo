@@ -7,7 +7,7 @@
 
 import { createBadge } from "../components/card.js";
 import { formatLevel } from "./render.js";
-import { getCapabilityEmoji } from "@forwardimpact/map/levels";
+import { getCapabilityEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Create an external link element styled as a badge

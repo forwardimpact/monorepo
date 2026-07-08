@@ -6,7 +6,7 @@
  * (e.g., "delivery: 1", "scale: -1") - individual skill modifiers are not allowed.
  */
 
-import { Capability } from "@forwardimpact/map/levels";
+import { Capability } from "./levels.js";
 
 /**
  * Valid skill capability names for modifier expansion
@@ -25,9 +25,9 @@ export function isCapability(key) {
 
 /**
  * Get skills by capability from a skills array
- * @param {import('@forwardimpact/map/levels').Skill[]} skills - Array of all skills
+ * @param {import('./levels.js').Skill[]} skills - Array of all skills
  * @param {string} capability - The capability to filter by
- * @returns {import('@forwardimpact/map/levels').Skill[]} Skills in the specified capability
+ * @returns {import('./levels.js').Skill[]} Skills in the specified capability
  */
 export function getSkillsByCapability({ skills, capability }) {
   return skills.filter((skill) => skill.capability === capability);
@@ -35,7 +35,7 @@ export function getSkillsByCapability({ skills, capability }) {
 
 /**
  * Build a map of capability to skill IDs
- * @param {import('@forwardimpact/map/levels').Skill[]} skills - Array of all skills
+ * @param {import('./levels.js').Skill[]} skills - Array of all skills
  * @returns {Object<string, string[]>} Map of capability to array of skill IDs
  */
 export function buildCapabilityToSkillsMap(skills) {
@@ -63,7 +63,7 @@ export function buildCapabilityToSkillsMap(skills) {
  * Returns an object with individual skill modifiers expanded from capabilities.
  *
  * @param {Object<string, number>} skillModifiers - The capability skill modifiers
- * @param {import('@forwardimpact/map/levels').Skill[]} skills - Array of all skills (for capability lookup)
+ * @param {import('./levels.js').Skill[]} skills - Array of all skills (for capability lookup)
  * @returns {Object<string, number>} Expanded skill modifiers with individual skill IDs
  */
 export function expandModifiersToSkills({ skillModifiers, skills }) {
@@ -135,7 +135,7 @@ export function extractSkillModifiers(skillModifiers) {
  *
  * @param {string} skillId - The skill ID to get modifier for
  * @param {Object<string, number>} skillModifiers - The capability skill modifiers
- * @param {import('@forwardimpact/map/levels').Skill[]} skills - Array of all skills
+ * @param {import('./levels.js').Skill[]} skills - Array of all skills
  * @returns {number} The effective modifier for this skill
  */
 export function resolveSkillModifier({ skillId, skillModifiers, skills }) {

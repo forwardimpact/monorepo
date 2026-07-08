@@ -4,7 +4,7 @@
 
 import { tableToMarkdown, capitalize } from "../shared.js";
 import { prepareLevelsList, prepareLevelDetail } from "./shared.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Format level list as markdown

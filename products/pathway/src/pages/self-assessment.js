@@ -10,7 +10,7 @@ import {
   getCapabilityOrder,
   getCapabilityEmoji,
   getConceptEmoji,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 import {
   renderIntroStep,
   renderSkillsStep,

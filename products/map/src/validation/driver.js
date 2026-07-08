@@ -1,7 +1,7 @@
 import { createError, createWarning } from "./common.js";
 
 /**
- * @param {import('../levels.js').Driver} driver
+ * @param {import('@forwardimpact/libskill/levels').Driver} driver
  * @param {number} index
  * @param {Set<string>} skillIds
  * @param {Set<string>} behaviourIds

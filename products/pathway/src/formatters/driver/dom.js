@@ -5,7 +5,7 @@
 import { div, heading1, heading2, p, a, span } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
 import { prepareDriverDetail } from "./shared.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 import { createJsonLdScript, driverToJsonLd } from "../json-ld.js";
 
 /**

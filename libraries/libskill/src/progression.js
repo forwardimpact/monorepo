@@ -9,7 +9,7 @@
 import {
   getSkillProficiencyIndex,
   getBehaviourMaturityIndex,
-} from "@forwardimpact/map/levels";
+} from "./levels.js";
 import { deriveJob } from "./derivation.js";
 import { isValidJobCombination } from "./derivation-validation.js";
 import {

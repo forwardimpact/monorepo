@@ -27,7 +27,7 @@ import {
 import {
   SKILL_PROFICIENCY_ORDER,
   BEHAVIOUR_MATURITY_ORDER,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 
 /**
  * Create a level descriptions table

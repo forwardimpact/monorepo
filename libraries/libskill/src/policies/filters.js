@@ -9,7 +9,7 @@
  * distinguish them from predicates without runtime probing.
  */
 
-import { getSkillProficiencyIndex } from "@forwardimpact/map/levels";
+import { getSkillProficiencyIndex } from "../levels.js";
 
 // =============================================================================
 // Matrix filter tagging

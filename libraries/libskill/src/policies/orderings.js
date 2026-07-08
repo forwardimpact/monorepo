@@ -12,7 +12,7 @@ import {
   getSkillProficiencyIndex,
   getBehaviourMaturityIndex,
   getCapabilityOrder,
-} from "@forwardimpact/map/levels";
+} from "../levels.js";
 
 // =============================================================================
 // Canonical Orderings

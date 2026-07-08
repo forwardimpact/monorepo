@@ -10,7 +10,10 @@ import { renderNotFound } from "../components/error-page.js";
 import { prepareSkillsList } from "../formatters/skill/shared.js";
 import { skillToDOM } from "../formatters/skill/dom.js";
 import { skillToCardConfig } from "../lib/card-mappers.js";
-import { getCapabilityEmoji, getConceptEmoji } from "@forwardimpact/map/levels";
+import {
+  getCapabilityEmoji,
+  getConceptEmoji,
+} from "@forwardimpact/libskill/levels";
 import { generateSkillMarkdown } from "@forwardimpact/libskill/agent";
 import {
   formatAgentSkill,

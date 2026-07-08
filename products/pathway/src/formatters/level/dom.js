@@ -22,7 +22,7 @@ import {
   SKILL_PROFICIENCY_ORDER,
   BEHAVIOUR_MATURITY_ORDER,
   getConceptEmoji,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 import { createJobBuilderButton } from "../../components/action-buttons.js";
 import { prepareLevelDetail } from "./shared.js";
 import { createJsonLdScript, levelToJsonLd } from "../json-ld.js";

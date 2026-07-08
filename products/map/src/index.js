@@ -38,7 +38,6 @@ export {
 export { ContractViolationError, throwIfErrors } from "./contract.js";
 
 // Type constants and helpers
-export * from "./levels.js";
 
 // Capability validation helper
 export { isCapability } from "./modifiers.js";

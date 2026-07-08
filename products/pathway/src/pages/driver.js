@@ -9,7 +9,7 @@ import { renderNotFound } from "../components/error-page.js";
 import { prepareDriversList } from "../formatters/driver/shared.js";
 import { driverToDOM } from "../formatters/driver/dom.js";
 import { driverToCardConfig } from "../lib/card-mappers.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Render drivers list page

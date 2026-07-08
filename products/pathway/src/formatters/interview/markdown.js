@@ -3,7 +3,7 @@
  */
 
 import { formatLevel } from "../../lib/render.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Append follow-ups to lines

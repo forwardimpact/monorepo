@@ -8,7 +8,7 @@
 import {
   getSkillProficiencyIndex,
   getBehaviourMaturityIndex,
-} from "@forwardimpact/map/levels";
+} from "./levels.js";
 
 import { isSeniorLevel, generateAllJobs } from "./derivation.js";
 

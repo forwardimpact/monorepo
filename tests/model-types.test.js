@@ -9,7 +9,7 @@ import {
   skillProficiencyMeetsRequirement,
   behaviourMaturityMeetsRequirement,
   groupSkillsByCapability,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 
 import {
   compareByCapability,

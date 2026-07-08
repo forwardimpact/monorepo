@@ -10,7 +10,7 @@
  * - allOf/anyOf/not - combinators
  */
 
-import { getSkillProficiencyIndex } from "@forwardimpact/map/levels";
+import { getSkillProficiencyIndex } from "../levels.js";
 
 // =============================================================================
 // Identity Predicates

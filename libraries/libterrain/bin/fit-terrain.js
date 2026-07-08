@@ -65,7 +65,7 @@ const definition = {
     "schema-dir": {
       type: "string",
       description:
-        "Directory of map JSON schemas for pathway rendering (default: resolved from @forwardimpact/map)",
+        "Directory of standard JSON schemas for pathway rendering (default: resolved from @forwardimpact/libskill)",
     },
     help: { type: "boolean", short: "h", description: "Show this help" },
     version: { type: "boolean", description: "Show version" },
@@ -198,24 +198,27 @@ async function resolveLlmApi(config, modelOverride) {
 }
 
 /**
- * Resolve the map JSON-schema directory from the installed `@forwardimpact/map`
- * package. Pathway rendering reads nine `<name>.schema.json` files from here.
- * Returns `null` when the package is not installed, so the pipeline cleanly
- * skips pathway rendering rather than crashing — an external consumer that only
- * renders clinical output (Polaris's case) need not depend on `map`.
+ * Resolve the standard JSON-schema directory from the installed
+ * `@forwardimpact/libskill` package. Pathway rendering reads nine
+ * `<name>.schema.json` files from here. `libskill` is a required dependency,
+ * so a resolution miss can only mean a broken install — fail loudly.
  *
  * Called directly in this module so `this === import.meta`, which Bun requires
  * for `import.meta.resolve`.
  */
 function defaultSchemaDir() {
+  let url;
   try {
-    const url = import.meta.resolve(
-      "@forwardimpact/map/schema/json/standard.schema.json",
+    url = import.meta.resolve(
+      "@forwardimpact/libskill/schema/json/standard.schema.json",
     );
-    return dirname(fileURLToPath(url));
-  } catch {
-    return null;
+  } catch (cause) {
+    throw new Error(
+      "Cannot resolve @forwardimpact/libskill/schema/json — reinstall fit-terrain (libskill is a required dependency).",
+      { cause },
+    );
   }
+  return dirname(fileURLToPath(url));
 }
 
 /**

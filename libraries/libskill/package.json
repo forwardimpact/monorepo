@@ -42,15 +42,15 @@
     "./profile": "./src/profile.js",
     "./progression": "./src/progression.js",
     "./policies": "./src/policies/index.js",
-    "./toolkit": "./src/toolkit.js"
+    "./toolkit": "./src/toolkit.js",
+    "./levels": "./src/levels.js",
+    "./schema/json/*": "./schema/json/*"
   },
   "files": [
     "src/**/*.js",
+    "schema/json/*.json",
     "README.md"
   ],
-  "dependencies": {
-    "@forwardimpact/map": "^0.15.0"
-  },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
   },

@@ -71,11 +71,11 @@ jobs:
             data/knowledge
             data/activity
             data/personal
-          key: synthetic-${{ hashFiles('data/synthetic/**', 'products/map/schema/json/**', 'bun.lock') }}
+          key: synthetic-${{ hashFiles('data/synthetic/**', 'libraries/libskill/schema/json/**', 'bun.lock') }}
       - if: steps.synthetic-cache.outputs.cache-hit != 'true'
         run: just synthetic
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: public
-          key: pathway-build-${{ hashFiles('data/synthetic/**', 'products/map/schema/json/**', 'products/pathway/src/**', 'products/map/starter/**', 'libraries/**/src/**', 'libraries/**/package.json', 'bun.lock') }}
+          key: pathway-build-${{ hashFiles('data/synthetic/**', 'libraries/libskill/schema/json/**', 'products/pathway/src/**', 'products/map/starter/**', 'libraries/**/src/**', 'libraries/**/package.json', 'bun.lock') }}
       - run: bun run test:e2e

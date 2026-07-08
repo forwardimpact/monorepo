@@ -1,7 +1,7 @@
 import { createError, createWarning } from "./common.js";
 
 /**
- * @param {import('../levels.js').Behaviour} behaviour
+ * @param {import('@forwardimpact/libskill/levels').Behaviour} behaviour
  * @param {number} index
  * @returns {{errors: Array, warnings: Array}}
  */

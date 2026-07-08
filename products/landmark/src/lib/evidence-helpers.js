@@ -3,7 +3,7 @@
  * All functions are pure.
  */
 
-import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/map/levels";
+import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/libskill/levels";
 import { PROVENANCE_CLASSES } from "@forwardimpact/map/activity/provenance";
 
 /**

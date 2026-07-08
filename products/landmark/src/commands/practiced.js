@@ -7,7 +7,7 @@
 import { getTeam } from "@forwardimpact/map/activity/queries/org";
 import { getPracticePatterns } from "@forwardimpact/map/activity/queries/evidence";
 import { deriveSkillMatrix } from "@forwardimpact/libskill";
-import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/map/levels";
+import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/libskill/levels";
 
 import { EMPTY_STATES } from "../lib/empty-state.js";
 

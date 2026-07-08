@@ -9,7 +9,7 @@ import { renderNotFound } from "../components/error-page.js";
 import { prepareTracksList } from "../formatters/track/shared.js";
 import { trackToDOM } from "../formatters/track/dom.js";
 import { trackToCardConfig } from "../lib/card-mappers.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Render tracks list page

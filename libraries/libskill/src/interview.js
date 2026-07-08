@@ -26,8 +26,8 @@ import {
 /**
  * Derive interview questions for a job
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').JobDefinition} params.job - The job definition
- * @param {import('@forwardimpact/map/levels').QuestionBank} params.questionBank - The question bank
+ * @param {import('./levels.js').JobDefinition} params.job - The job definition
+ * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
  * @param {Object} [params.options] - Generation options
  * @param {boolean} [params.options.includeBelowLevel=true] - Include one question from level below
  * @param {boolean} [params.options.deterministic=false] - Use deterministic selection
@@ -36,7 +36,7 @@ import {
  * @param {number} [params.options.targetMinutes=60] - Target interview length in minutes
  * @param {number} [params.options.skillBehaviourRatio=RATIO_SKILL_BEHAVIOUR] - Ratio of time for skills vs behaviours
  * @param {string} [params.options.roleType='professionalQuestions'] - Role type
- * @returns {import('@forwardimpact/map/levels').InterviewGuide}
+ * @returns {import('./levels.js').InterviewGuide}
  */
 export function deriveInterviewQuestions({ job, questionBank, options = {} }) {
   const {
@@ -108,10 +108,10 @@ export function deriveInterviewQuestions({ job, questionBank, options = {} }) {
 /**
  * Derive a short/screening interview within a time budget
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').JobDefinition} params.job - The job definition
- * @param {import('@forwardimpact/map/levels').QuestionBank} params.questionBank - The question bank
+ * @param {import('./levels.js').JobDefinition} params.job - The job definition
+ * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
  * @param {number} [params.targetMinutes=20] - Target interview length in minutes
- * @returns {import('@forwardimpact/map/levels').InterviewGuide}
+ * @returns {import('./levels.js').InterviewGuide}
  */
 export function deriveShortInterview({
   job,
@@ -228,10 +228,10 @@ function pickNextAlternating(
 /**
  * Derive behaviour-focused interview questions
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').JobDefinition} params.job - The job definition
- * @param {import('@forwardimpact/map/levels').QuestionBank} params.questionBank - The question bank
+ * @param {import('./levels.js').JobDefinition} params.job - The job definition
+ * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
  * @param {string} [params.roleType='professionalQuestions'] - Role type
- * @returns {import('@forwardimpact/map/levels').InterviewGuide}
+ * @returns {import('./levels.js').InterviewGuide}
  */
 export function deriveBehaviourQuestions({
   job,
@@ -284,12 +284,12 @@ export function deriveBehaviourQuestions({
 /**
  * Generate a focused interview for specific skills/behaviours
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').JobDefinition} params.job - The job definition
- * @param {import('@forwardimpact/map/levels').QuestionBank} params.questionBank - The question bank
+ * @param {import('./levels.js').JobDefinition} params.job - The job definition
+ * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
  * @param {string[]} [params.focusSkills] - Skill IDs to focus on
  * @param {string[]} [params.focusBehaviours] - Behaviour IDs to focus on
  * @param {string} [params.roleType='professionalQuestions'] - Role type
- * @returns {import('@forwardimpact/map/levels').InterviewGuide}
+ * @returns {import('./levels.js').InterviewGuide}
  */
 export function deriveFocusedInterview({
   job,

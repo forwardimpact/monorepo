@@ -12,7 +12,7 @@ import {
   clampSkillProficiency,
   clampBehaviourMaturity,
   skillProficiencyMeetsRequirement,
-} from "@forwardimpact/map/levels";
+} from "./levels.js";
 
 import { resolveSkillModifier } from "./modifiers.js";
 import { ORDER_SKILL_TYPE } from "./policies/orderings.js";
@@ -31,7 +31,7 @@ export { deriveResponsibilities } from "./derivation-responsibilities.js";
  * Build a Map of skillId → skillType for a discipline.
  * Enables O(1) lookup instead of repeated array scans.
  * @internal Used by deriveSkillMatrix; not part of the public API.
- * @param {import('@forwardimpact/map/levels').Discipline} discipline - The discipline
+ * @param {import('./levels.js').Discipline} discipline - The discipline
  * @returns {Map<string, string>} Map of skill ID to skill type
  */
 export function buildSkillTypeMap(discipline) {
@@ -50,7 +50,7 @@ export function buildSkillTypeMap(discipline) {
 
 /**
  * Determine the skill tier (core/supporting/broad) for a skill within a discipline
- * @param {import('@forwardimpact/map/levels').Discipline} discipline - The discipline
+ * @param {import('./levels.js').Discipline} discipline - The discipline
  * @param {string} skillId - The skill ID
  * @returns {string|null} The skill tier or null if skill not in discipline
  */
@@ -69,7 +69,7 @@ export function getSkillTypeForDiscipline({ discipline, skillId }) {
 
 /**
  * Find the highest base skill proficiency index for a level
- * @param {import('@forwardimpact/map/levels').Level} level - The level
+ * @param {import('./levels.js').Level} level - The level
  * @returns {number} The highest base skill proficiency index
  */
 export function findMaxBaseSkillProficiency(level) {
@@ -86,11 +86,11 @@ export function findMaxBaseSkillProficiency(level) {
 /**
  * Derive the skill proficiency for a specific skill given discipline, track, and level
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').Discipline} params.discipline - The discipline
- * @param {import('@forwardimpact/map/levels').Track} [params.track] - The track (optional)
- * @param {import('@forwardimpact/map/levels').Level} params.level - The level
+ * @param {import('./levels.js').Discipline} params.discipline - The discipline
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
+ * @param {import('./levels.js').Level} params.level - The level
  * @param {string} params.skillId - The skill ID
- * @param {import('@forwardimpact/map/levels').Skill[]} params.skills - All available skills (for capability lookup)
+ * @param {import('./levels.js').Skill[]} params.skills - All available skills (for capability lookup)
  * @returns {string|null} The derived skill proficiency or null if skill not in discipline
  */
 export function deriveSkillProficiency({
@@ -129,9 +129,9 @@ export function deriveSkillProficiency({
 /**
  * Derive the behaviour maturity for a specific behaviour given discipline, track, and level
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').Discipline} params.discipline - The discipline
- * @param {import('@forwardimpact/map/levels').Track} [params.track] - The track (optional)
- * @param {import('@forwardimpact/map/levels').Level} params.level - The level
+ * @param {import('./levels.js').Discipline} params.discipline - The discipline
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
+ * @param {import('./levels.js').Level} params.level - The level
  * @param {string} params.behaviourId - The behaviour ID
  * @returns {string} The derived maturity level
  */
@@ -225,11 +225,11 @@ export function deriveSkillMatrix({
 /**
  * Derive the complete behaviour profile for a job
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').Discipline} params.discipline - The discipline
- * @param {import('@forwardimpact/map/levels').Level} params.level - The level
- * @param {import('@forwardimpact/map/levels').Track} [params.track] - The track (optional)
- * @param {import('@forwardimpact/map/levels').Behaviour[]} params.behaviours - All available behaviours
- * @returns {import('@forwardimpact/map/levels').BehaviourProfileEntry[]} Complete behaviour profile
+ * @param {import('./levels.js').Discipline} params.discipline - The discipline
+ * @param {import('./levels.js').Level} params.level - The level
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
+ * @param {import('./levels.js').Behaviour[]} params.behaviours - All available behaviours
+ * @returns {import('./levels.js').BehaviourProfileEntry[]} Complete behaviour profile
  */
 export function deriveBehaviourProfile({
   discipline,
@@ -384,9 +384,9 @@ function coverageRatio(covered, total) {
 /**
  * Calculate driver coverage for a job
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').JobDefinition} params.job - The job definition
- * @param {import('@forwardimpact/map/levels').Driver[]} params.drivers - All drivers
- * @returns {import('@forwardimpact/map/levels').DriverCoverage[]} Coverage analysis for each driver
+ * @param {import('./levels.js').JobDefinition} params.job - The job definition
+ * @param {import('./levels.js').Driver[]} params.drivers - All drivers
+ * @returns {import('./levels.js').DriverCoverage[]} Coverage analysis for each driver
  */
 export function calculateDriverCoverage({ job, drivers }) {
   const proficiencyMap = new Map(
@@ -435,7 +435,7 @@ export function calculateDriverCoverage({ job, drivers }) {
 
 /**
  * Get all skills in a discipline
- * @param {import('@forwardimpact/map/levels').Discipline} discipline - The discipline
+ * @param {import('./levels.js').Discipline} discipline - The discipline
  * @returns {string[]} All skill IDs in the discipline
  */
 export function getDisciplineSkillIds(discipline) {
@@ -448,7 +448,7 @@ export function getDisciplineSkillIds(discipline) {
 
 /**
  * Return the ordinalRank of a level for numeric comparison and sorting.
- * @param {import('@forwardimpact/map/levels').Level} level - The level
+ * @param {import('./levels.js').Level} level - The level
  * @returns {number} The ordinal rank
  */
 export function getLevelRank(level) {
@@ -457,7 +457,7 @@ export function getLevelRank(level) {
 
 /**
  * Return true if the level meets or exceeds the senior threshold (Staff+).
- * @param {import('@forwardimpact/map/levels').Level} level - The level
+ * @param {import('./levels.js').Level} level - The level
  * @returns {boolean} True if the level is senior (Staff+)
  */
 export function isSeniorLevel(level) {
@@ -521,13 +521,13 @@ function deriveJobsForLevel(
 /**
  * Generate all valid job definitions from the data
  * @param {Object} params
- * @param {import('@forwardimpact/map/levels').Discipline[]} params.disciplines - All disciplines
- * @param {import('@forwardimpact/map/levels').Level[]} params.levels - All levels
- * @param {import('@forwardimpact/map/levels').Track[]} params.tracks - All tracks
- * @param {import('@forwardimpact/map/levels').Skill[]} params.skills - All skills
- * @param {import('@forwardimpact/map/levels').Behaviour[]} params.behaviours - All behaviours
- * @param {import('@forwardimpact/map/levels').JobValidationRules} [params.validationRules] - Optional validation rules
- * @returns {import('@forwardimpact/map/levels').JobDefinition[]} All valid job definitions
+ * @param {import('./levels.js').Discipline[]} params.disciplines - All disciplines
+ * @param {import('./levels.js').Level[]} params.levels - All levels
+ * @param {import('./levels.js').Track[]} params.tracks - All tracks
+ * @param {import('./levels.js').Skill[]} params.skills - All skills
+ * @param {import('./levels.js').Behaviour[]} params.behaviours - All behaviours
+ * @param {import('./levels.js').JobValidationRules} [params.validationRules] - Optional validation rules
+ * @returns {import('./levels.js').JobDefinition[]} All valid job definitions
  */
 export function generateAllJobs({
   disciplines,

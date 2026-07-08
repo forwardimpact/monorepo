@@ -5,7 +5,7 @@
 import { div, heading1, heading2, p, span } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
 import { createLevelDots } from "../../components/detail.js";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
  * Format interview detail as DOM elements

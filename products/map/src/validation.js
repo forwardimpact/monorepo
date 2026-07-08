@@ -67,7 +67,7 @@ function validateSkillCapabilityRefs(skills, capabilityIds, allErrors) {
 
 /**
  * @param {Object} data
- * @returns {import('./levels.js').ValidationResult}
+ * @returns {import('@forwardimpact/libskill/levels').ValidationResult}
  */
 export function validateAllData({
   drivers,

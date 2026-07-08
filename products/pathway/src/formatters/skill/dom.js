@@ -21,7 +21,7 @@ import { createLevelCell } from "../../components/detail.js";
 import { formatModifier } from "../shared.js";
 import { createSkillFileViewer } from "../../components/skill-file-viewer.js";
 import { createToolIcon } from "../../lib/card-mappers.js";
-import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/map/levels";
+import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/libskill/levels";
 import { prepareSkillDetail } from "./shared.js";
 import { createJsonLdScript, skillToJsonLd } from "../json-ld.js";
 

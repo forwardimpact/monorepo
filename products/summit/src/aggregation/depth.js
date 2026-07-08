@@ -9,7 +9,7 @@
 import {
   SkillProficiency,
   skillProficiencyMeetsRequirement,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 
 /**
  * Is a proficiency at working level or above?

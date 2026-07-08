@@ -46,7 +46,7 @@
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libutil": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.59",
-    "@forwardimpact/map": "^0.15.61",
+    "@forwardimpact/libskill": "^6.1.0",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libprompt": "^0.1.0",
     "@forwardimpact/libsyntheticgen": "^0.1.0",

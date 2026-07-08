@@ -40,8 +40,6 @@
     "./validation": "./src/validation.js",
     "./schema-validation": "./src/schema-validation.js",
     "./index-generator": "./src/index-generator.js",
-    "./levels": "./src/levels.js",
-    "./schema/json/*": "./schema/json/*",
     "./schema/rdf/*": "./schema/rdf/*",
     "./activity/queries/org": "./src/activity/queries/org.js",
     "./activity/queries/snapshots": "./src/activity/queries/snapshots.js",

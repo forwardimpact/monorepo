@@ -18,7 +18,7 @@ import {
   formatSubheader,
   formatBullet,
 } from "@forwardimpact/libcli";
-import { getConceptEmoji } from "@forwardimpact/map/levels";
+import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 import { capitalize } from "../formatters/shared.js";
 
 /**

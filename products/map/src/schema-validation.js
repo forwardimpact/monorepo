@@ -480,9 +480,12 @@ export function createSchemaValidator(runtime) {
   if (!runtime?.fs)
     throw new Error("createSchemaValidator requires runtime.fs");
   const { readFile, readdir, stat } = runtime.fs;
-  const schemaDir = join(
-    dirname(fileURLToPath(import.meta.url)),
-    "../schema/json",
+  const schemaDir = dirname(
+    fileURLToPath(
+      import.meta.resolve(
+        "@forwardimpact/libskill/schema/json/defs.schema.json",
+      ),
+    ),
   );
   return new SchemaValidator(
     {

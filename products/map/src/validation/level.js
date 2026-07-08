@@ -1,12 +1,12 @@
 import {
   getSkillProficiencyIndex,
   getBehaviourMaturityIndex,
-} from "../levels.js";
+} from "@forwardimpact/libskill/levels";
 
 import { createError, createWarning } from "./common.js";
 
 /**
- * @param {import('../levels.js').Level} level
+ * @param {import('@forwardimpact/libskill/levels').Level} level
  * @param {number} index
  * @returns {{errors: Array, warnings: Array}}
  */

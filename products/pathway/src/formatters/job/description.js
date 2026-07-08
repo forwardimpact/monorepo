@@ -10,7 +10,7 @@
 
 import Mustache from "mustache";
 
-import { BEHAVIOUR_MATURITY_ORDER } from "@forwardimpact/map/levels";
+import { BEHAVIOUR_MATURITY_ORDER } from "@forwardimpact/libskill/levels";
 import { trimValue, trimFields } from "../shared.js";
 
 /**

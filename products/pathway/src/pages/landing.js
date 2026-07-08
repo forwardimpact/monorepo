@@ -8,7 +8,7 @@ import { createStatCard } from "../components/card.js";
 import {
   groupSkillsByCapability,
   getConceptEmoji,
-} from "@forwardimpact/map/levels";
+} from "@forwardimpact/libskill/levels";
 import { aggregateTools } from "../formatters/tool/shared.js";
 import { createCommandPrompt } from "../components/command-prompt.js";
 import { createFirstVisitBanner } from "../components/first-visit-banner.js";

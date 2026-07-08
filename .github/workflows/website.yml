@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       copy-schema:
-        description: "Copy products/map/schema into dist/schema (fit only)"
+        description: "Copy the published schemas (libskill JSON, map RDF) into dist/schema (fit only)"
         required: false
         type: boolean
         default: false
@@ -47,7 +47,7 @@ jobs:
         if: inputs.copy-schema
         run: |
           mkdir -p dist/schema/json dist/schema/rdf
-          cp products/map/schema/json/*.json dist/schema/json/
+          cp libraries/libskill/schema/json/*.json dist/schema/json/
           cp products/map/schema/rdf/*.ttl dist/schema/rdf/
 
       - name: Copy CNAME file
