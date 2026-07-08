@@ -13,12 +13,10 @@ enabling tooling integration.
 
 ## Schema Formats
 
-| Format      | Package Path   | Purpose                      |
-| ----------- | -------------- | ---------------------------- |
-| JSON Schema | `schema/json/` | YAML validation tooling      |
-| RDF/SHACL   | `schema/rdf/`  | Linked data interoperability |
-
-Paths are relative to `products/map/` (published as `@forwardimpact/map`).
+| Format      | Package Path   | Published in                 | Purpose                      |
+| ----------- | -------------- | ---------------------------- | ---------------------------- |
+| JSON Schema | `schema/json/` | `@forwardimpact/libskill`    | YAML validation tooling      |
+| RDF/SHACL   | `schema/rdf/`  | `@forwardimpact/map`         | Linked data interoperability |
 
 ---
 
@@ -39,7 +37,7 @@ Paths are relative to `products/map/` (published as `@forwardimpact/map`).
 
 Entity file locations are relative to your data directory — typically
 `data/pathway/`, configurable via `npx fit-map validate --data=<path>`. Schema
-paths are relative to `products/map/` in the monorepo.
+paths are relative to each schema's package root.
 
 ---
 

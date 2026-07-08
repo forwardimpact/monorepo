@@ -48,7 +48,7 @@ Today's minimum stand-up is three steps under Map plus one Landmark login:
    Settings → API.
 2. **Push the roster.** `npx fit-map people push ./people.yaml` populates
    `activity.organization_people`.
-3. **Provision auth users.** `npx fit-map people provision` reconciles
+3. **Provision auth users.** `npx fit-terrain substrate provision` reconciles
    `auth.users` against the roster so each engineer's email maps to an
    authenticable identity. See
    [Provision Engineer Auth Users](/docs/products/provisioning-engineers/) for

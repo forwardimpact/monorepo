@@ -30,14 +30,7 @@ import {
   printCacheReport,
   printGenerateStats,
 } from "../src/cli-helpers.js";
-import { runSubstrateUp } from "../src/commands/substrate-up.js";
-import { runSubstrateInit } from "../src/commands/substrate-init.js";
-import { runSubstrateCheck } from "../src/commands/substrate-check.js";
-import { runSubstrateProvision } from "../src/commands/substrate-provision.js";
-import { runSubstratePick } from "../src/commands/substrate-pick.js";
-import { runSubstrateRoster } from "../src/commands/substrate-roster.js";
-import { runSubstrateIssue } from "../src/commands/substrate-issue.js";
-import { createSubstrateClient } from "../src/substrate/client.js";
+import { dispatchSubstrate } from "./dispatch-substrate.js";
 
 // Overlay the runtime so the prompt/template loaders read inlined assets when
 // this is a compiled binary; a no-op in source/npx execution.
@@ -55,6 +48,18 @@ const documentation = [
     url: "https://www.forwardimpact.team/docs/libraries/prove-changes/generate-dataset/index.md",
     description:
       "Using the Terrain DSL to define and generate synthetic datasets.",
+  },
+  {
+    title: "The Substrate Contract",
+    url: "https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md",
+    description:
+      "The consumer-implemented relations, auth model, env vars, and degradation semantics behind the substrate identity verbs.",
+  },
+  {
+    title: "Provision Engineer Auth Users",
+    url: "https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md",
+    description:
+      "Reconcile auth.users against the roster so identity-derived RLS works.",
   },
 ];
 
@@ -452,69 +457,6 @@ const KNOWN_VERBS = new Set([
   "inspect",
 ]);
 
-/**
- * Build the service-role substrate client from script config. Every
- * stack-facing substrate verb funnels through here; `substrate init` and
- * `substrate up` are offline/bring-up and never touch it.
- */
-async function substrateClient() {
-  const config = await createScriptConfig("terrain");
-  return { config, supabase: createSubstrateClient({ config }) };
-}
-
-const SUBSTRATE_HANDLERS = {
-  up: (values) =>
-    runSubstrateUp({
-      cwd: values.cwd,
-      emitEnv: values["emit-env"],
-      runtime,
-    }),
-  init: (values) => runSubstrateInit({ cwd: values.cwd, runtime }),
-  check: async () => {
-    const { supabase } = await substrateClient();
-    return runSubstrateCheck({ supabase, runtime });
-  },
-  provision: async () => {
-    const { supabase } = await substrateClient();
-    return runSubstrateProvision({ supabase, runtime });
-  },
-  pick: async (values) => {
-    const { supabase } = await substrateClient();
-    return runSubstratePick({
-      supabase,
-      options: {
-        format: values.format,
-        memory: values.memory,
-        memoryWindow: values["memory-window"],
-      },
-      runtime,
-    });
-  },
-  roster: async (values) => {
-    const { supabase } = await substrateClient();
-    return runSubstrateRoster({
-      supabase,
-      options: { format: values.format },
-      runtime,
-    });
-  },
-  issue: async (values) => {
-    const { config, supabase } = await substrateClient();
-    return runSubstrateIssue({
-      supabase,
-      config,
-      options: {
-        email: values.email,
-        cwd: values.cwd,
-        tokenEnv: values["token-env"],
-        ttl: values.ttl,
-        stash: values.stash,
-      },
-      runtime,
-    });
-  },
-};
-
 function isParseError(err) {
   const code = err.code ?? err.cause?.code;
   return typeof code === "string" && code.startsWith("ERR_PARSE_ARGS_");
@@ -570,14 +512,13 @@ async function main() {
   // Substrate verbs are stack/identity commands, not pipeline verbs — they
   // build no synthetic-data pipeline, so they dispatch before resolveVerb.
   if (positionals[0] === "substrate") {
-    const handler = SUBSTRATE_HANDLERS[positionals[1]];
-    if (!handler) {
+    const code = await dispatchSubstrate(positionals[1], values, { runtime });
+    if (code === null) {
       cli.usageError(
         `Unknown substrate subcommand "${positionals[1] ?? ""}". Run "fit-terrain --help".`,
       );
       return;
     }
-    const code = await handler(values);
     if (code !== 0) runtime.proc.exitCode = 1;
     return;
   }

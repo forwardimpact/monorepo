@@ -151,12 +151,6 @@ const definition = {
       description: "File format reference for every entity type.",
     },
     {
-      title: "Provision Engineer Auth Users",
-      url: "https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md",
-      description:
-        "Reconcile auth.users against the roster so identity-derived RLS works.",
-    },
-    {
       title: "Issue Service-Account Tokens",
       url: "https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md",
       description: "Mint long-lived Supabase JWTs for unattended agents.",
