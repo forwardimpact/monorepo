@@ -129,7 +129,7 @@ describe("assertPersonaIsHuman", () => {
     const sb = makeSupabase(null, { message: "boom" });
     await assert.rejects(
       () => assertPersonaIsHuman(sb, "x@x"),
-      /organization_people: boom/,
+      /substrate\.people: boom/,
     );
   });
 

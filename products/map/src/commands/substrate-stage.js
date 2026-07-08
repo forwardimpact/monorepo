@@ -49,7 +49,7 @@ export async function runStageCommand(
     createMapClient = defaultCreateMapClient,
     loadSeed = () => import("./activity.js").then((m) => m.seed),
     loadProvision = () =>
-      import("./people-provision.js").then((m) => m.runProvisionCommand),
+      import("@forwardimpact/libterrain/substrate").then((m) => m.runProvision),
     loadSmoke = () =>
       import("./substrate-smoke.js").then((m) => m.runSelfSmoke),
     // Anchor the re-read at `target` so the post-init load observes the
@@ -109,20 +109,31 @@ export async function runStageCommand(
 
   await runPhase("migrate", () => cli.run(["db", "reset"]));
 
+  // Two clients from here on: the activity-schema client serves seed (vendor
+  // tables), while provision and the smoke run the libterrain-owned substrate
+  // capability, whose queries name contract relations and need a client bound
+  // to the `substrate` schema — the activity client would fail them with
+  // "relation people not found".
   const supabase = createMapClient({ config: stageConfig });
+  const substrateClient = createMapClient({
+    config: stageConfig,
+    schema: "substrate",
+  });
   const dataDir = await findDataDir(undefined, runtime);
   const dataRoot = path.dirname(dataDir);
   const seed = await loadSeed();
-  const runProvisionCommand = await loadProvision();
+  const runProvision = await loadProvision();
   await runPhase("seed", () => seed({ data: dataRoot, supabase, runtime }));
-  await runPhase("provision", () => runProvisionCommand({ supabase, runtime }));
+  await runPhase("provision", () =>
+    runProvision({ supabase: substrateClient, runtime }),
+  );
 
   if (runtime.proc.env.SUBSTRATE_FORCE_EMPTY_CORPUS === "true") {
     throw new Error("[substrate stage: smoke] empty corpus (test injection)");
   }
   const runSelfSmoke = await loadSmoke();
   await runPhase("smoke", () =>
-    runSelfSmoke({ supabase, config: stageConfig, runtime }),
+    runSelfSmoke({ supabase: substrateClient, config: stageConfig, runtime }),
   );
 
   runtime.proc.stdout.write(formatSuccess("Substrate ready") + "\n");

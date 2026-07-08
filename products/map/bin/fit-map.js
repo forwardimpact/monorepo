@@ -59,9 +59,8 @@ const definition = {
     },
     {
       name: "people",
-      args: "<validate|push|provision> [file]",
-      description:
-        "Validate or push people files, or provision auth.users from the roster",
+      args: "<validate|push> [file]",
+      description: "Validate or push people files",
     },
     {
       name: "activity",
@@ -102,47 +101,6 @@ const definition = {
           type: "string",
           description:
             "Append SUPABASE_URL= / SUPABASE_ANON_KEY= lines to this path after url-discovery (e.g. $GITHUB_ENV)",
-        },
-      },
-    },
-    {
-      name: "substrate roster",
-      description:
-        "List invariant-satisfying personas from the seeded substrate",
-      options: {
-        format: { type: "string", description: "Output format (text|json)" },
-      },
-    },
-    {
-      name: "substrate pick",
-      description:
-        "Pick one invariant-satisfying persona diversified against recent picks (writes wiki/kata-interview/picks.csv)",
-      options: {
-        "memory-window": {
-          type: "string",
-          description: "Recent-pick window size (default 5)",
-        },
-        format: {
-          type: "string",
-          description: "Output format (text|json), default json",
-        },
-      },
-    },
-    {
-      name: "substrate issue",
-      description:
-        "Atomically write .env (JWT) and .substrate.json (discovery vector) into a target dir",
-      options: {
-        email: { type: "string", description: "Persona email" },
-        cwd: { type: "string", description: "Target dir for the atomic write" },
-        ttl: {
-          type: "string",
-          description: "JWT TTL (e.g. 1h, 30d). Default 1h.",
-        },
-        stash: {
-          type: "string",
-          description:
-            "Optional second path to write the bare JWT to (workflow-private; not for external operators)",
         },
       },
     },
@@ -408,14 +366,6 @@ async function dispatchPeople(subcommand, rest, values) {
       const supabase = await mapClient();
       return people.push(filePath, supabase, runtime);
     }
-    case "provision": {
-      const supabase = await mapClient();
-      const { runProvisionCommand } = await import(
-        "../src/commands/people-provision.js"
-      );
-      await runProvisionCommand({ supabase, runtime });
-      return 0;
-    }
     case "import": {
       runtime.proc.stderr.write(
         formatWarning(
@@ -517,7 +467,6 @@ async function dispatchAuth(subcommand, _rest, values) {
 async function dispatchSubstrate(subcommand, _rest, values) {
   return _dispatchSubstrate(subcommand, _rest, values, {
     config,
-    mapClient,
     cli,
     runtime,
   });

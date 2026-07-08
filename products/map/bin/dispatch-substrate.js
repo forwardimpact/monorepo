@@ -3,14 +3,15 @@
 /**
  * Substrate subcommand dispatch — extracted from `bin/fit-map.js` so the
  * CLI entry point stays under biome's `nursery/noExcessiveLinesPerFile`
- * cap (`biome.json` line 46-49: `maxLines: 530, skipBlankLines: true`).
- * Keeping the `substrate pick` case here (instead of inlining it into
- * `fit-map.js`) preserves headroom under the line cap.
+ * cap (`biome.json`: `maxLines: 530, skipBlankLines: true`).
  *
- * Callers pass `{ config, mapClient, cli, runtime }` so this module stays
- * dep-free at import time (no Supabase init, no CLI singleton) and
- * stays easy to test if needed. `runtime` is the injected collaborator
- * bag threaded from `bin/fit-map.js` (the sole construction site).
+ * Only `stage` lives here: the identity verbs (provision, pick, roster,
+ * issue) moved to `fit-terrain substrate` behind the Substrate Contract.
+ *
+ * Callers pass `{ config, cli, runtime }` so this module stays dep-free at
+ * import time (no Supabase init, no CLI singleton). `runtime` is the
+ * injected collaborator bag threaded from `bin/fit-map.js` (the sole
+ * construction site).
  */
 
 import { fileURLToPath } from "node:url";
@@ -20,11 +21,11 @@ import { resolveVersion } from "@forwardimpact/libcli";
  * @param {string} subcommand
  * @param {Array<string>} _rest
  * @param {Record<string, string|undefined>} values
- * @param {{ config: object, mapClient: () => Promise<object>, cli: { usageError: (msg: string) => void }, runtime: import('@forwardimpact/libutil/runtime').Runtime }} deps
+ * @param {{ config: object, cli: { usageError: (msg: string) => void }, runtime: import('@forwardimpact/libutil/runtime').Runtime }} deps
  * @returns {Promise<number>}
  */
 export async function dispatchSubstrate(subcommand, _rest, values, deps) {
-  const { config, mapClient, cli, runtime } = deps;
+  const { config, cli, runtime } = deps;
   switch (subcommand) {
     case "stage": {
       const { runStageCommand } = await import(
@@ -37,58 +38,17 @@ export async function dispatchSubstrate(subcommand, _rest, values, deps) {
         runtime,
       });
     }
-    case "roster": {
-      const supabase = await mapClient();
-      const { runRosterCommand } = await import(
-        "../src/commands/substrate-roster.js"
-      );
-      return runRosterCommand({
-        supabase,
-        options: { format: values.format },
-        runtime,
-      });
-    }
-    case "pick": {
-      const supabase = await mapClient();
-      const { runPickCommand } = await import(
-        "../src/commands/substrate-pick.js"
-      );
-      return runPickCommand({
-        supabase,
-        options: {
-          memoryWindow: values["memory-window"],
-          format: values.format,
-        },
-        runtime,
-      });
-    }
-    case "issue": {
-      const supabase = await mapClient();
-      const { runSubstrateIssueCommand } = await import(
-        "../src/commands/substrate-issue.js"
-      );
-      return runSubstrateIssueCommand({
-        supabase,
-        config,
-        options: {
-          email: values.email,
-          cwd: values.cwd,
-          ttl: values.ttl,
-          stash: values.stash,
-        },
-        runtime,
-      });
-    }
     default:
       cli.usageError(`unknown substrate subcommand: ${subcommand || "(none)"}`);
       return 1;
   }
 }
 
-const USAGE = `dispatch-substrate <stage|roster|pick|issue> [options]
+const USAGE = `dispatch-substrate <stage> [options]
 
-Single-flow entry for the Landmark-substrate verbs (normally invoked as
-\`fit-map substrate <verb>\`). Constructs the default runtime and dispatches.`;
+Single-flow entry for the Landmark-substrate staging pipeline (normally
+invoked as \`fit-map substrate stage\`). Constructs the default runtime and
+dispatches. Persona identity verbs live in \`fit-terrain substrate\`.`;
 
 /**
  * Single-flow entry point. The bin is the sole construction site for the
@@ -113,7 +73,7 @@ async function main(runtime) {
   }
 
   const [subcommand, ...rest] = argv;
-  const known = new Set(["stage", "roster", "pick", "issue"]);
+  const known = new Set(["stage"]);
   if (!known.has(subcommand)) {
     runtime.proc.stderr.write(
       `dispatch-substrate: error: unknown substrate subcommand: ${subcommand}\n`,
@@ -122,7 +82,6 @@ async function main(runtime) {
   }
 
   const { createProductConfig } = await import("@forwardimpact/libconfig");
-  const { createMapClient } = await import("../src/lib/client.js");
   const config = await createProductConfig("map");
   const cli = {
     usageError: (msg) =>
@@ -130,7 +89,6 @@ async function main(runtime) {
   };
   return dispatchSubstrate(subcommand, rest, parseValues(rest), {
     config,
-    mapClient: () => createMapClient({ config }),
     cli,
     runtime,
   });

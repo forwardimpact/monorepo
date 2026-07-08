@@ -13,3 +13,4 @@ export {
   loadDiscovery,
 } from "./persona-query.js";
 export { findAuthUser, runProvision } from "./auth-users.js";
+export { runSubstrateCheck } from "../commands/substrate-check.js";

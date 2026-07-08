@@ -705,6 +705,7 @@
         "@forwardimpact/libsyntheticgen": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
         "@forwardimpact/libtemplate": "^0.2.0",
+        "@forwardimpact/libterrain": "^0.1.40",
         "@forwardimpact/libutil": "^0.1.64",
         "@supabase/supabase-js": "^2.108.1",
         "ajv": "^8.20.0",

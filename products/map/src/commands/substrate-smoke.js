@@ -98,7 +98,7 @@ async function runSmokeCommand(runtime, argv, jwt) {
  */
 export async function runSelfSmoke({ supabase, config, runtime }) {
   const { findInvariantSatisfyingPersonas } = await import(
-    "./substrate-persona-query.js"
+    "@forwardimpact/libterrain/substrate"
   );
   const { personas, discovery, diagnostic } =
     await findInvariantSatisfyingPersonas({ supabase });
@@ -164,31 +164,33 @@ export function assertJwtShape(jwt, expectedEmail, nowMs) {
 }
 
 /**
- * Confirm an `organization_people` row exists for `email` and carries
- * `kind = "human"`. Throws otherwise.
+ * Confirm a `substrate.people` row exists for `email` and carries
+ * `kind = "human"`. Throws otherwise. Requires the substrate-schema client.
  * @param {import("@supabase/supabase-js").SupabaseClient} supabase
  * @param {string} email
  */
 export async function assertPersonaIsHuman(supabase, email) {
   const { data, error } = await supabase
-    .from("organization_people")
+    .from("people")
     .select("kind")
     .eq("email", email)
     .maybeSingle();
-  if (error) throw new Error(`organization_people: ${error.message}`);
+  if (error) throw new Error(`substrate.people: ${error.message}`);
   if (data?.kind !== "human") {
     throw new Error(`persona ${email} kind=${data?.kind}, not human`);
   }
 }
 
 /**
- * Verify both the persona row and discovery vector carry the values the
- * smoke loop will substitute into command argv placeholders. The
- * `parent_email` field is the operator-surface name for the persona's
- * organizational parent; the assertion gates "persona has a non-null
- * parent".
+ * Verify both the persona row and the folded discovery object carry the
+ * values the smoke loop will substitute into command argv placeholders.
+ * The library degrades declaredly when `substrate.discovery` is absent;
+ * the FI requirement that discovery resolves is enforced here, in map's
+ * smoke — not in the library. The `parent_email` field is the
+ * operator-surface name for the persona's organizational parent; the
+ * assertion gates "persona has a non-null parent".
  * @param {object} persona
- * @param {{snapshot_id: string, item_id: string}} discovery
+ * @param {{snapshot_id: string, item_id: string}|null} discovery
  */
 export function assertDiscoveryResolves(persona, discovery) {
   if (!persona.email || !persona.parent_email) {
@@ -196,7 +198,7 @@ export function assertDiscoveryResolves(persona, discovery) {
       `persona missing email/parent_email: ${JSON.stringify(persona)}`,
     );
   }
-  if (!discovery.snapshot_id || !discovery.item_id) {
+  if (!discovery?.snapshot_id || !discovery?.item_id) {
     throw new Error(
       `discovery vector incomplete: ${JSON.stringify(discovery)}`,
     );

@@ -153,7 +153,7 @@ describe("runAuthIssueCommand", () => {
     );
   });
 
-  test("missing auth.users row points at `people provision`", async () => {
+  test("missing auth.users row points at `fit-terrain substrate provision`", async () => {
     const supabase = makeStub({
       rosterRow: { email: "alice@example.com", kind: "human" },
       authUsers: [],
@@ -166,7 +166,7 @@ describe("runAuthIssueCommand", () => {
           options: { email: "alice@example.com" },
           runtime,
         }),
-      /no auth\.users row[\s\S]*fit-map people provision/,
+      /no auth\.users row[\s\S]*fit-terrain substrate provision/,
     );
   });
 

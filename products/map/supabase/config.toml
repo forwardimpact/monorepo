@@ -1,7 +1,7 @@
 [api]
 enabled = true
 port = 54321
-schemas = ["public", "activity"]
+schemas = ["public", "activity", "substrate"]
 extra_search_path = ["public", "activity"]
 
 [db]
