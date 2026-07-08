@@ -56,12 +56,12 @@
     "@forwardimpact/libtelemetry": "^0.1.23",
     "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libutil": "^0.1.0",
-    "@supabase/supabase-js": "^2.108.1"
+    "@supabase/supabase-js": "^2.110.1"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0",
     "@forwardimpact/libresource": "^0.1.111",
-    "linkedom": "^0.18.12"
+    "linkedom": "^0.18.13"
   },
   "peerDependencies": {
     "prettier": "^3.0.0"
