@@ -494,6 +494,7 @@
         "@forwardimpact/libconfig": "^0.1.59",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libprompt": "^0.1.0",
+        "@forwardimpact/libsecret": "^0.1.14",
         "@forwardimpact/libskill": "^6.1.0",
         "@forwardimpact/libsyntheticgen": "^0.1.0",
         "@forwardimpact/libsyntheticprose": "^0.1.0",
@@ -501,14 +502,12 @@
         "@forwardimpact/libtelemetry": "^0.1.23",
         "@forwardimpact/libtemplate": "^0.2.0",
         "@forwardimpact/libutil": "^0.1.0",
+        "@supabase/supabase-js": "^2.108.1",
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.111",
         "linkedom": "^0.18.12",
-      },
-      "optionalDependencies": {
-        "@supabase/supabase-js": "^2.108.1",
       },
       "peerDependencies": {
         "prettier": "^3.0.0",
