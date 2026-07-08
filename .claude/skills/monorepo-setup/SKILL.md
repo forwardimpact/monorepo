@@ -42,7 +42,8 @@ structure. Commit.
 
 ### Step 2 — Add the root package.json
 
-Create the root manifest from [references/repo-skeleton.md]. This is the seam
+Create the root manifest from
+[references/repo-skeleton.md](references/repo-skeleton.md). This is the seam
 `coaligned-setup` assumes: it wires `npx coaligned` into the check task but
 never creates the manifest. The `coaligned` bin ships only inside
 `@forwardimpact/libcoaligned` (no bare launcher), so add it as a devDependency,
@@ -90,7 +91,8 @@ an artifact is missing, the skill did not run — invoke it before continuing.
 that run on push and pull request — separate from the agent workflows
 `kata-setup` generates. One workflow per concern, never a single `check.yml`: at
 minimum `check-quality.yml`, `check-test.yml`, and `check-context.yml`. SHA-pin
-every action. Templates in [references/check-workflows.md].
+every action. Templates in
+[references/check-workflows.md](references/check-workflows.md).
 
 ### Step 6 — Create the remote, then seed and initialize the wiki
 
@@ -105,7 +107,7 @@ hooks (SessionStart curls the pinned `fit-install.sh` release, then runs
 `scripts/bootstrap.sh`; Stop pushes the wiki), `fit-wiki init` the wiki, seed
 the three named ledgers (`Home.md`, `MEMORY.md`, `STATUS.md`)
 empty-but-scaffolded, and `fit-wiki push`. Full sequence in
-[references/wiki-init.md].
+[references/wiki-init.md](references/wiki-init.md).
 
 ### Step 7 — Verify the composition
 

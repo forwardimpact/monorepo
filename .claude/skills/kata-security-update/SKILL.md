@@ -149,11 +149,9 @@ git log --oneline origin/main ^<pr-merge-base> -- '**/package.json' <lockfile>
 If commits exist, rebasing the Dependabot branch on `origin/main` will fix the
 scan. Run the repository's check/test/audit commands, then `open-change` titled
 `chore(deps): <original-title> (rebased)` with body "Rebases Dependabot PR
-
-## <number> on current main to pick up security fixes." Then `close` the original
-
-change with comment "Superseded by #<new-pr> — rebased on main to resolve stale
-vulnerability-scanning base." (`open-change` and `close`:
+`#<number>` on current main to pick up security fixes." Then `close` the
+original change with comment "Superseded by #<new-pr> — rebased on main to
+resolve stale vulnerability-scanning base." (`open-change` and `close`:
 [work-trackers.md](../../agents/x-work-trackers.md).)
 
 > **Do not use `@dependabot rebase`.** GitHub Apps cannot trigger Dependabot
@@ -174,7 +172,7 @@ vulnerability-scanning base." (`open-change` and `close`:
 | #dep-b  | bump upload-pages-artifact ... | fix    | Missing SHA pins           |
 ```
 
-### Memory: What to Record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 
