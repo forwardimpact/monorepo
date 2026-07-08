@@ -22,8 +22,8 @@ const BAN_FOREVER = "876000h"; // ≈100 years; gotrue parses to a future banned
  * @returns {Promise<object | null>} The matching user row, or null if absent.
  */
 export async function findAuthUser(supabase, email) {
-  // Roster size in the hundreds; one page covers any practical org.
-  // listUsers() returns paginated results; iterate to be safe.
+  // listUsers() is paginated; iterate so rosters larger than one page
+  // still resolve.
   let page = 1;
   while (true) {
     const { data, error } = await supabase.auth.admin.listUsers({

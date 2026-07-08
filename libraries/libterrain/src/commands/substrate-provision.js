@@ -15,6 +15,7 @@ import { runProvision } from "../substrate/auth-users.js";
  * @returns {Promise<number>}
  */
 export async function runSubstrateProvision({ supabase, runtime }) {
-  const { meta } = await runProvision({ supabase, runtime });
-  return meta.ok ? 0 : 1;
+  // runProvision reports failure by throwing; a resolved call is success.
+  await runProvision({ supabase, runtime });
+  return 0;
 }

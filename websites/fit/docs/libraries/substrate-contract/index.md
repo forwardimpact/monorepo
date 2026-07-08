@@ -15,7 +15,7 @@ This page is the normative definition of the contract. The verbs that consume
 it ship with `@forwardimpact/libterrain`:
 
 ```sh
-npx --yes @forwardimpact/libterrain fit-terrain --help
+npx fit-terrain --help
 ```
 
 ## The contract
@@ -126,8 +126,10 @@ in a CSV it appends on success (window size via `--memory-window`, default
 `issue` writes three things atomically (mode 0600): a `<NAME>=<jwt>` line to
 `.env`, the discovery key/values plus `persona_email`, `manager_email`, and
 `generated_at` to `.substrate.json`, and the bare token to `--stash` when
-supplied. `--token-env` is required and has no default — the token's name
-belongs to your application, not to this library.
+supplied. Those three field names are reserved — a `substrate.discovery` row
+using one of them is overridden by the identity values. `--token-env` is
+required and has no default — the token's name belongs to your application,
+not to this library.
 
 ## Roster visibility
 

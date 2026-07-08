@@ -102,6 +102,30 @@ describe("substrate issue", () => {
     assert.deepEqual(entries, []);
   });
 
+  test("discovery rows cannot overwrite the reserved identity fields", async () => {
+    const code = await runSubstrateIssue({
+      supabase: seededStub({
+        discovery: [
+          { key: "persona_email", value: "evil@x" },
+          { key: "manager_email", value: "evil@x" },
+          { key: "generated_at", value: "1970-01-01" },
+          { key: "snapshot_id", value: "S1" },
+        ],
+      }),
+      config,
+      options: { email: "mgr@x", cwd: tmpdir, tokenEnv: "T" },
+      runtime,
+    });
+    assert.equal(code, 0);
+    const parsed = JSON.parse(
+      await fs.readFile(path.join(tmpdir, ".substrate.json"), "utf8"),
+    );
+    assert.equal(parsed.persona_email, "mgr@x");
+    assert.equal(parsed.manager_email, "mgr@x");
+    assert.notEqual(parsed.generated_at, "1970-01-01");
+    assert.equal(parsed.snapshot_id, "S1");
+  });
+
   test("absent substrate.discovery writes an identity-only .substrate.json", async () => {
     const code = await runSubstrateIssue({
       supabase: seededStub({ discovery: null }),

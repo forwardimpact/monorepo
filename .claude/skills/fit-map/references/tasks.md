@@ -2,17 +2,17 @@
 
 ## Schema Definitions
 
-### JSON Schema (`schema/json/`)
+### JSON Schema (`@forwardimpact/libskill` `schema/json/`)
 
 Validates YAML structure. One schema per entity type.
 
-### RDF/SHACL (`schema/rdf/`)
+### RDF/SHACL (map's `schema/rdf/`)
 
 Semantic representation for linked data interoperability.
 
 **Schema synchronization:** When adding or modifying properties, update both
-`schema/json/` and `schema/rdf/` in the same commit. The two formats must stay
-in sync.
+libskill's `schema/json/` and map's `schema/rdf/` in the same commit — the
+sync crosses packages. The two formats must stay in sync.
 
 ---
 

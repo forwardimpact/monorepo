@@ -90,13 +90,16 @@ export async function runSubstrateIssue({
     // Structural invariant (b): the persona IS the manager of ≥1 other row
     // (verified by findInvariantSatisfyingPersonas), so manager-scoped
     // queries take the persona's OWN email — not the persona's own manager.
+    // Discovery spreads FIRST: `persona_email`, `manager_email`, and
+    // `generated_at` are reserved identity fields a consumer-defined
+    // discovery row must never overwrite.
     await fs.writeFile(
       subTmp,
       JSON.stringify(
         {
+          ...(discovery ?? {}),
           persona_email: email,
           manager_email: email,
-          ...(discovery ?? {}),
           generated_at: isoTimestamp(runtime.clock.now()),
         },
         null,
