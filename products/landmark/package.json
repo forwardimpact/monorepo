@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/landmark",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "description": "Surface engineering progress from activity evidence — outcomes visible without singling out individuals.",
   "keywords": [
     "engineering",
@@ -54,7 +54,7 @@
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/libpreflight": "^0.1.0",
-    "@forwardimpact/libskill": "^6.0.0",
+    "@forwardimpact/libskill": "^6.2.0",
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libutil": "^0.1.72",
     "@forwardimpact/map": "^0.15.18",

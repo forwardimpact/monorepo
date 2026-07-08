@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libterrain",
-  "version": "0.1.40",
+  "version": "0.1.41",
   "description": "Full synthetic data pipeline — generate, render, and validate evaluation datasets end to end.",
   "keywords": [
     "synthetic",
@@ -49,7 +49,7 @@
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libprompt": "^0.1.0",
     "@forwardimpact/libsecret": "^0.1.14",
-    "@forwardimpact/libskill": "^6.1.0",
+    "@forwardimpact/libskill": "^6.2.0",
     "@forwardimpact/libsyntheticgen": "^0.1.0",
     "@forwardimpact/libsyntheticprose": "^0.1.0",
     "@forwardimpact/libsyntheticrender": "^0.1.0",

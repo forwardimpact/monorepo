@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/pathway",
-  "version": "0.26.8",
+  "version": "0.26.9",
   "description": "Explore roles, generate agent profiles, and surface career expectations so progression and team configuration are visible, not guessed.",
   "keywords": [
     "career",
@@ -62,7 +62,7 @@
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libpack": "^0.1.0",
     "@forwardimpact/libpreflight": "^0.1.0",
-    "@forwardimpact/libskill": "^6.0.0",
+    "@forwardimpact/libskill": "^6.2.0",
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libui": "^1.0.0",
