@@ -15,6 +15,11 @@ on:
         description: "Additional text appended to the task prompt for steering"
         required: false
         type: string
+      website-url:
+        description: "Public entry point handed to the persona agent"
+        required: false
+        type: string
+        default: "https://www.forwardimpact.team"
       empty-corpus-test:
         description: "Force substrate-stage to see an empty corpus (CI assertion)"
         required: false
@@ -31,204 +36,29 @@ permissions:
 jobs:
   interview:
     runs-on: ubuntu-latest
+    # A composite action cannot declare concurrency or a job timeout — both
+    # stay here. Keep timeout-minutes strictly under 60 so a stalled run
+    # cannot outlive its 1-hour App token.
     timeout-minutes: 50
     steps:
-      # Killswitch first: fail before any token minting or agent work so one
-      # repository variable halts every kata-* workflow at once.
-      - name: Kata killswitch
-        shell: bash
-        env:
-          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
-        run: |
-          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
-            ""|0|false|no|off) ;;
-            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH})." >&2; exit 1 ;;
-          esac
-
-      - name: Generate installation token
-        id: ci-app
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+      # Thin wrapper over the reusable action. The only monorepo-specific
+      # knowledge lives here: which products are substrate-backed, and the FI
+      # substrate + persona commands. The action gates all substrate steps on
+      # `substrate-setup-command != ''` — so a file-only product passes an
+      # empty command and skips bring-up, persona selection, and the log scan.
+      # `bunx fit-map` is the sole remaining documented exception (fit-map
+      # ships in the map release, not the gear bundle on PATH).
+      - uses: ./products/kata/actions/kata-interview
         with:
-          app-id: ${{ secrets.KATA_APP_ID }}
-          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
-
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-        with:
-          fetch-depth: 0
-          token: ${{ steps.ci-app.outputs.token }}
-
-      - uses: forwardimpact/bootstrap@52b7f3fe405a559fd8f2c95b102499e0df9b152b # v1.0.10
-        with:
-          token: ${{ steps.ci-app.outputs.token }}
-          app-slug: kata-agent-team
-          app-id: ${{ secrets.KATA_APP_ID }}
-          # fit-harness (the Run interview step), the terrain/cost steps, and
-          # the fit-wiki push step run straight off PATH. fit-map is NOT
-          # installed here: it ships in the map@v* release, not the gear bundle,
-          # so the substrate step below keeps bunx as a documented exception
-          # until fit-map joins gear.
-          clis: fit-terrain fit-trace fit-harness fit-wiki
-
-      - name: Prepare interview workspace
-        id: agent-workspace
-        shell: bash
-        run: |
-          agent_dir=$(mktemp -d)
-
-          # Build synthetic data so the supervisor can stage the right
-          # subset into the agent CWD per the chosen product. The skill's
-          # staging table decides what gets copied.
-          fit-terrain build
-
-          # Install the Supabase CLI globally — npm's global install is
-          # blocked by supabase's postinstall script, so we use bun.
-          bun install -g supabase
-
-          echo "dir=$agent_dir" >> "$GITHUB_OUTPUT"
-
-      - name: Substrate stage
-        id: substrate-stage
-        if: inputs.product == 'landmark'
-        shell: bash
-        env:
-          JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUBSTRATE_FORCE_EMPTY_CORPUS: ${{ inputs.empty-corpus-test }}
-        run: |
-          # fit-map is a product CLI published in the map@v* release, not the
-          # gear bundle that fit-install.sh / fit-bootstrap clis draws from, so
-          # it cannot be installed onto PATH here. bunx is a deliberate
-          # exception until fit-map joins gear; every other CLI below runs as a
-          # binary.
-          bunx fit-map substrate stage --cwd "${{ steps.agent-workspace.outputs.dir }}"
-
-          # Propagate the local Supabase URL + anon key to subsequent
-          # workflow steps. The Node process running `bunx fit-map
-          # substrate stage` sets these in its own process.env only;
-          # the supervisor's later `bunx fit-map substrate roster/issue`
-          # invocations and the agent's `fit-landmark` spawns need them
-          # via $GITHUB_ENV.
-          status_json=$(bunx --no-install -- supabase status --output json)
-          api_url=$(echo "$status_json" | python3 -c 'import sys,json; print(json.load(sys.stdin)["API_URL"])')
-          anon_key=$(echo "$status_json" | python3 -c 'import sys,json; print(json.load(sys.stdin)["ANON_KEY"])')
-          if [ -z "$api_url" ] || [ -z "$anon_key" ]; then
-            echo "FAIL: supabase status did not yield API_URL + ANON_KEY" >&2
-            exit 1
-          fi
-          echo "SUPABASE_URL=$api_url" >> "$GITHUB_ENV"
-          echo "SUPABASE_ANON_KEY=$anon_key" >> "$GITHUB_ENV"
-
-      - name: Compose task amendment
-        id: amend
-        shell: bash
-        env:
-          PRODUCT: ${{ inputs.product }}
-          JOB: ${{ inputs.job }}
-          USER_AMEND: ${{ inputs.task-amend }}
-        run: |
-          {
-            echo 'amend<<AMEND_EOF'
-            [ -n "$PRODUCT" ] && echo "Product: $PRODUCT"
-            [ -n "$JOB" ] && echo "Job: $JOB"
-            [ -n "$USER_AMEND" ] && echo "$USER_AMEND"
-            echo 'AMEND_EOF'
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Run interview
-        id: interview
-        uses: forwardimpact/harness@b7409ad9a1df4ff75eca8fe68041b5384f75bd7e # v1.0.3
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-          CLAUDE_CODE_USE_BEDROCK: "0"
-          AGENT_CWD: ${{ inputs.product == 'landmark' && steps.agent-workspace.outputs.dir || '' }}
-          JWT_SECRET: ${{ inputs.product == 'landmark' && secrets.SUPABASE_JWT_SECRET || '' }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ inputs.product == 'landmark' && secrets.SUPABASE_SERVICE_ROLE_KEY || '' }}
-        with:
-          mode: "supervise"
-          task-text: |
-            Run the `kata-interview` skill.
-
-            If a `Product:` or `Job:` line is appended below, honour it;
-            otherwise the skill picks. Any other appended text is steering
-            — pass it through.
-          supervisor-cwd: "."
-          agent-cwd: ${{ steps.agent-workspace.outputs.dir }}
-          lead-profile: "product-manager"
-          max-turns: "200"
-          allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,WebFetch,WebSearch"
-          supervisor-allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,Skill,TodoWrite"
-          task-amend: ${{ steps.amend.outputs.amend }}
-
-      # fit-trace cost tolerates a missing trace, so no file guard is needed.
-      - name: Report run cost
-        if: always()
-        shell: bash
-        env:
-          TRACE_FILE: ${{ steps.interview.outputs.trace-file }}
-        run: fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Push wiki changes
-        if: always()
-        uses: forwardimpact/wiki@f88ea81402d4d3411baf9ca0a38cafb11dfa7f60 # v1.0.1
-        with:
-          command: push
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
-
-      - name: Scan logs for sensitive values
-        if: always() && inputs.product == 'landmark'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-          JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
-          SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          stash="$RUNNER_TEMP/.persona-jwt"
-          if [ ! -f "$stash" ]; then
-            echo "No persona-JWT stash at $stash — substrate issue did not run."
-            persona_jwt=""
-          else
-            persona_jwt=$(cat "$stash")
-            echo "::add-mask::$persona_jwt"
-          fi
-
-          # Download the in-progress run's log archive. GH serves the
-          # archive of all completed-step logs even while the run is
-          # active; only the scan step's own logs are excluded — fine,
-          # since the scan step never echoes the JWT. Spec § Success
-          # Criteria row 8 requires the assertion to fire non-zero on a
-          # literal hit; a fail-open `exit 0` on download failure would
-          # silently disarm the gate, so we fail closed.
-          if ! gh api -H "Accept: application/vnd.github+json" \
-              "/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/logs" \
-              > /tmp/run-logs.zip 2>/tmp/gh-err.log; then
-            echo "FAIL: log archive download failed — gh api stderr:" >&2
-            cat /tmp/gh-err.log >&2
-            echo "App installation must carry 'Actions: Read'; see PR description." >&2
-            exit 1
-          fi
-          if ! unzip -q /tmp/run-logs.zip -d /tmp/run-logs/; then
-            echo "FAIL: log archive empty/unreadable — cannot verify scan." >&2
-            exit 1
-          fi
-
-          fail=0
-          # Scan the run logs for all three secret literals.
-          # GH Actions auto-masks the two repo secrets, so grepping for
-          # them is normally a no-op — but the scan still performs the
-          # grep so the criterion is satisfied literally and to catch the
-          # unlikely case where GH's masker fails on a partial match.
-          for pair in \
-              "persona-jwt:$persona_jwt" \
-              "jwt-secret:$JWT_SECRET" \
-              "service-role-key:$SERVICE_ROLE_KEY"; do
-            label="${pair%%:*}"
-            value="${pair#*:}"
-            [ -z "$value" ] && continue
-            if grep -RFq -- "$value" /tmp/run-logs/; then
-              echo "FAIL: $label literal in run logs" >&2
-              fail=1
-            fi
-          done
-          exit $fail
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          website-url: ${{ inputs.website-url }}
+          product: ${{ inputs.product }}
+          job: ${{ inputs.job }}
+          task-amend: ${{ inputs.task-amend }}
+          substrate-setup-command: ${{ contains(fromJSON('["landmark"]'), inputs.product) && format('SUBSTRATE_FORCE_EMPTY_CORPUS={0} bunx fit-map substrate stage --cwd "$AGENT_CWD" --emit-env "$GITHUB_ENV"', inputs.empty-corpus-test) || '' }}
+          persona-select-command: ${{ contains(fromJSON('["landmark"]'), inputs.product) && 'persona=$(bunx fit-map substrate pick --format json) && printf ''%s\n'' "$persona" && email=$(printf ''%s'' "$persona" | jq -r .email) && bunx fit-map substrate issue --email "$email" --cwd "$AGENT_CWD" --stash "$RUNNER_TEMP/.persona-jwt"' || '' }}
+          jwt-secret: ${{ secrets.SUPABASE_JWT_SECRET }}
+          service-role-key: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          killswitch: ${{ vars.KATA_KILLSWITCH }}

@@ -31,12 +31,15 @@ import { formatSuccess } from "@forwardimpact/libcli";
  * @param {object} params.config - libconfig product config for "map".
  * @param {string} [params.target] - Target dir for the init bootstrap
  *   (default: `runtime.proc.cwd()`).
+ * @param {string} [params.emitEnv] - Path to append `SUPABASE_URL=` /
+ *   `SUPABASE_ANON_KEY=` to after the `url-discovery` phase (e.g.
+ *   `$GITHUB_ENV`). Omit to skip the emit; all phases are unchanged.
  * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators.
  * @param {object} [deps]
  * @returns {Promise<number>}
  */
 export async function runStageCommand(
-  { config, target, runtime },
+  { config, target, emitEnv, runtime },
   {
     loadInit = () => import("./init.js").then((m) => m.runInit),
     loadCopyActivity = () =>
@@ -93,6 +96,15 @@ export async function runStageCommand(
     // the live local-stack values.
     runtime.proc.env.SUPABASE_URL = status.API_URL;
     runtime.proc.env.SUPABASE_ANON_KEY = status.ANON_KEY;
+    // Carry the same two lines across CI steps when asked. Same emit shape
+    // as `fit-terrain substrate up --emit-env`, so a consumer can swap the
+    // FI stage for the generic bring-up without changing the action.
+    if (emitEnv) {
+      await runtime.fs.appendFile(
+        emitEnv,
+        `SUPABASE_URL=${status.API_URL}\nSUPABASE_ANON_KEY=${status.ANON_KEY}\n`,
+      );
+    }
   });
 
   await runPhase("migrate", () => cli.run(["db", "reset"]));

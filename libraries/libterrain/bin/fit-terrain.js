@@ -30,6 +30,7 @@ import {
   printCacheReport,
   printGenerateStats,
 } from "../src/cli-helpers.js";
+import { runSubstrateUp } from "../src/commands/substrate-up.js";
 
 // Overlay the runtime so the prompt/template loaders read inlined assets when
 // this is a compiled binary; a no-op in source/npx execution.
@@ -127,6 +128,27 @@ const definition = {
         "bunx fit-terrain inspect entities",
         "bunx fit-terrain inspect cache-lookup",
         "bunx fit-terrain inspect validate",
+      ],
+    },
+    {
+      name: "substrate up",
+      description:
+        "Bring up a local Supabase stack generically (start + discover); emit its URL/anon key. No migrations or seed — those stay with the consumer.",
+      options: {
+        cwd: {
+          type: "string",
+          description:
+            "Checkout to start Supabase from (default: current directory)",
+        },
+        "emit-env": {
+          type: "string",
+          description:
+            "Append SUPABASE_URL= / SUPABASE_ANON_KEY= lines to this path (e.g. $GITHUB_ENV)",
+        },
+      },
+      examples: [
+        "bunx fit-terrain substrate up",
+        'bunx fit-terrain substrate up --cwd . --emit-env "$GITHUB_ENV"',
       ],
     },
   ],
@@ -380,6 +402,25 @@ async function main() {
   if (!parsed) return;
 
   const { values, positionals } = parsed;
+
+  // `substrate up` is a generic Supabase bring-up, not a pipeline verb — it
+  // builds no synthetic-data pipeline, so it dispatches before resolveVerb.
+  if (positionals[0] === "substrate") {
+    if (positionals[1] !== "up") {
+      cli.usageError(
+        `Unknown substrate subcommand "${positionals[1] ?? ""}". Run "fit-terrain --help".`,
+      );
+      return;
+    }
+    const ok = await runSubstrateUp({
+      cwd: values.cwd,
+      emitEnv: values["emit-env"],
+      runtime,
+    });
+    if (ok !== 0) runtime.proc.exitCode = 1;
+    return;
+  }
+
   const resolved = resolveVerb(positionals);
   if (!resolved) return;
 

@@ -17,6 +17,7 @@ on:
       - "libraries/libharness/actions/benchmark/**"
       - "libraries/libwiki/actions/wiki/**"
       - "products/kata/actions/kata-agent/**"
+      - "products/kata/actions/kata-interview/**"
       - ".github/actions/bootstrap/**"
       - ".github/actions/split-and-push/**"
       - ".github/workflows/publish-actions.yml"
@@ -41,6 +42,8 @@ jobs:
             repo: wiki
           - prefix: products/kata/actions/kata-agent
             repo: kata-agent
+          - prefix: products/kata/actions/kata-interview
+            repo: kata-interview
           - prefix: .github/actions/bootstrap
             repo: bootstrap
     steps:

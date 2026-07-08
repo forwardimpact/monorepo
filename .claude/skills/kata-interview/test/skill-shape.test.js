@@ -1,8 +1,9 @@
 /**
  * Shape assertion for the kata-interview SKILL.md. Guards:
  *   - Step 3 staging table carries a substrate-backed-products row.
- *   - Step 3a persona-pick names the substrate verbs the reframe
- *     invokes (`substrate pick` + `substrate issue`).
+ *   - Step 3a persona selection is driven by the injected
+ *     `PERSONA_SELECT_COMMAND` (no hardcoded `fit-map` verbs) and reads the
+ *     entry point from `WEBSITE_URL`.
  *   - The read-do-checklist line carries the amended wording (the
  *     literal "No product names anywhere agent-visible" must be gone, so
  *     production CLI env vars stay permitted).
@@ -28,9 +29,16 @@ describe("kata-interview SKILL.md amendments", () => {
     assert.match(skill, /\| Substrate-backed\s+\|.*substrate.*\|/);
   });
 
-  it("Step 3a persona-pick names the substrate verbs", () => {
-    assert.match(skillFlat, /fit-map substrate pick/);
-    assert.match(skillFlat, /fit-map substrate issue/);
+  it("Step 3a persona selection is driven by PERSONA_SELECT_COMMAND", () => {
+    // The reframe drops hardcoded fit-map verbs in favour of the injected
+    // command contract, so the skill stays generic across substrates.
+    assert.doesNotMatch(skillFlat, /fit-map substrate pick/);
+    assert.doesNotMatch(skillFlat, /fit-map substrate issue/);
+    assert.match(skillFlat, /PERSONA_SELECT_COMMAND/);
+  });
+
+  it("Step 5 reads the entry point from WEBSITE_URL", () => {
+    assert.match(skillFlat, /WEBSITE_URL/);
   });
 
   it("read-do checklist line is amended verbatim", () => {

@@ -89,29 +89,24 @@ Copy the subset the chosen product needs into `$AGENT_CWD`:
 | Guide, Outpost   | nothing                                                                                                                                            |
 | Pathway          | `data/pathway/`                                                                                                                                    |
 | Map              | `data/pathway/` and `data/activity/`                                                                                                               |
-| Substrate-backed | `data/pathway/`; automated workflows commonly bring up the substrate already — otherwise `npx fit-map substrate stage --cwd "$AGENT_CWD"`         |
+| Substrate-backed | `data/pathway/`; the workflow's substrate-setup step brings the substrate up and emits its URL/key — the skill stages no substrate itself |
 | Summit           | `data/pathway/` and `data/activity/raw/activity/summit.yaml` (as `summit.yaml` at root)                                                            |
 
 Use `cp -r data/pathway "$AGENT_CWD/data/pathway"` and similar.
 
-### Step 3a: Pick the Persona (substrate-backed products only)
+### Step 3a: Select the Persona (when a persona-select command is set)
 
-For **substrate-backed products**, the substrate is already up (per
-Step 3). Pick a persona and seal identity via two `fit-map substrate`
-verbs — see the
-[`fit-map` skill § Substrate](https://github.com/forwardimpact/monorepo/blob/main/.claude/skills/fit-map/SKILL.md)
-for verb mechanics, invariants, and exit codes:
+Persona selection is driven by an injected command, not hardcoded here, so
+the loop works for any substrate a consumer supplies.
 
-1. `npx fit-map substrate pick --format json` — read `email`, `name`,
-   `github_username`, `team_name`, `department_name`,
-   `parent.{name,github_username,level}`, `repos`, `teammates`, and
-   `scenario` off the returned persona; no follow-up reads of
-   `data/synthetic/` are needed.
-2. `npx fit-map substrate issue --email <picked> --cwd "$AGENT_CWD"
-   --stash "$RUNNER_TEMP/.persona-jwt"` — `--stash` is for the post-run
-   log scan; the agent has no `$RUNNER_TEMP` access.
-
-On non-zero exit, write a diagnostic naming the verb and exit the skill.
+- **`PERSONA_SELECT_COMMAND` set** — run it. Its contract: seal a persona
+  identity (`.env` + `.substrate.json`) into `$AGENT_CWD` and stash a bare
+  JWT for the post-run log scan (the agent has no `$RUNNER_TEMP` access).
+  Read the persona it prints (name, team, manager, teammates, repos, and
+  scenario) from the command's output for Step 4. On non-zero exit, write a
+  diagnostic and exit the skill.
+- **`PERSONA_SELECT_COMMAND` unset** — issue no JWT; build the persona
+  identity from `data/synthetic/story.dsl` and `prose-cache.json` (Step 4).
 
 ### Step 4: Craft the Persona
 
@@ -119,8 +114,9 @@ Write `$AGENT_CWD/CLAUDE.md`. The persona file carries **who** and **the
 situation** — never the job. Two sources:
 
 - **Identity** (name, team, manager, teammates, repos, recent project,
-  company facts) — substrate-backed: Step 3a's persona row. Others:
-  `data/synthetic/story.dsl` and `prose-cache.json`.
+  company facts) — when a persona-select command ran (Step 3a), from the
+  persona it printed. Otherwise from `data/synthetic/story.dsl` and
+  `prose-cache.json`.
 - **Situation** (Trigger, Forces, Competes With) — from the chosen JTBD
   entry, rephrased into the persona's voice.
 
@@ -136,8 +132,9 @@ Worked examples:
 Hand off in **two `Ask` calls** so persona and job both surface inline in
 the trace. **Ask 1** opens with an introduction prompt; the agent's
 `Answer` brings the persona, Trigger, and Forces inline. **Ask 2**
-delivers the job (Big Hire + Little Hire as the persona's own want); the
-website URL is in the Ask 2 template.
+delivers the job (Big Hire + Little Hire as the persona's own want) and the
+entry point. Read the entry point from `WEBSITE_URL` in the environment; if
+it is unset, write a diagnostic and exit the skill.
 
 Templates and worked examples:
 [`references/job-handoff.md`](references/job-handoff.md). If the task
