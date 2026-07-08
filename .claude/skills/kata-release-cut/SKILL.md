@@ -169,7 +169,7 @@ Append to the current week's log (see agent profile for the file path):
 - **Publish failures** — package and reason (so the next run can revisit).
 - **Main branch CI state** — green or broken, and what was repaired.
 - **Chainable state (every verdict kind).** Into the existing free-form skill
-  surfaces (no new CSV columns), so a consumer with no monorepo wiki can chain:
+  surfaces (no new CSV columns), so any consuming repository can chain:
   every classification records its SHA pair (`range_from`, `range_to`),
   `NO-CUT-OWED` and `SWEEP-REQUIRED` alike; an early-exit also records the
   range-check path summary. A verified-clean or post-cut verdict records that

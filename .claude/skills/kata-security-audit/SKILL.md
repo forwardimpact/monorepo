@@ -1,7 +1,7 @@
 ---
 name: kata-security-audit
 description: >
-  Perform a holistic security review of the monorepo. Assess GitHub Actions
+  Perform a holistic security review of the repository. Assess GitHub Actions
   supply chain, dependency hygiene, credential leak controls, CI audit gates,
   and application-level vulnerabilities. Use when reviewing PRs for security
   impact, auditing the repo posture, or investigating a reported vulnerability.
@@ -11,7 +11,7 @@ description: >
 
 ## When to Use
 
-- Scheduled audit of the monorepo's security posture (one topic per run)
+- Scheduled audit of the repository's security posture (one topic per run)
 - Reviewing a PR for security impact
 - Investigating a reported vulnerability
 

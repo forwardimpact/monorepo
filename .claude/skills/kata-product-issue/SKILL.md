@@ -28,9 +28,9 @@ triage decisions captured here.
 
 All comment templates are in `references/templates.md`.
 
-For PM-trace experiment grading, the discovery procedure for locating
-`trace--<case>--product-manager.agent.ndjson` slices inside `Kata: Dispatch`
-artifacts is in `references/trace-discovery.md`.
+For grading experiments from agent traces, the procedure for locating trace
+slices inside the dispatch workflow's artifacts is in
+`references/trace-discovery.md`.
 
 ## Checklists
 

@@ -167,7 +167,7 @@ Wiki changes are not visible to other agents until pushed. After committing,
 push the wiki — `cd wiki && git push origin HEAD:master` (or let the `Stop`
 hook push it).
 
-If the curation also produced monorepo fixes (e.g. stale spec STATUS, doc
+If the curation also produced repository fixes (e.g. stale spec STATUS, doc
 corrections), open a PR from a `fix/wiki-curate-YYYY-MM-DD` branch off `main` —
 same discipline as doc-review fixes.
 

@@ -105,10 +105,10 @@ Ask these questions. Skip any already answered in the task prompt.
    or self-hosting your own GitHub App?" Default: self-hosted. See
    [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for
    the trust model of each path. In **hosted** mode the workflows mint a
-   short-lived installation token from `services/oidc` at run time, so the team
-   does **not** configure `KATA_APP_ID` / `KATA_APP_PRIVATE_KEY` (question 2
-   needs only `ANTHROPIC_API_KEY`); instead set the `FIT_OIDC_URL` repository
-   **variable** to the hosted OIDC URL before the first workflow run.
+   short-lived installation token from the hosted OIDC service at run time, so
+   the team does **not** configure `KATA_APP_ID` / `KATA_APP_PRIVATE_KEY`
+   (question 2 needs only `ANTHROPIC_API_KEY`); instead set the `FIT_OIDC_URL`
+   repository **variable** to the hosted OIDC URL before the first workflow run.
 
 ### Step 2: Generate Workflow Files
 
@@ -164,12 +164,12 @@ comments, issue comments, and discussions?" If yes, generate
 `## Template (self-hosted)` otherwise. The workflow does no prompt assembly: it
 passes the event payload via `task-event` and the action composes the task.
 
-If discussion replies are wanted, also instruct the operator to deploy
-`services/ghbridge` before flipping the App webhook URL to point at it. PR,
+If discussion replies are wanted, also instruct the operator to deploy the
+ghbridge service before flipping the App webhook URL to point at it. PR,
 issue, and review events reach `agent-dispatch` directly via workflow triggers
 and need no bridge, but Discussion events arrive through the App webhook and
-require a running ghbridge instance. Point them at
-[`services/ghbridge/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
+require a running ghbridge instance. Point them at the
+[ghbridge README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
 for prerequisites, configuration, and the tunnel/webhook setup.
 
 ### Step 4: Verify

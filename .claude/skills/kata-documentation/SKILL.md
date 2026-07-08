@@ -107,13 +107,13 @@ last review dates per topic in the coverage map.
 
 Run the DO-CONFIRM checklist at the top of this skill.
 
-### Cross-page-consistency: `<sh>+<text>` re-execution
+### Cross-page-consistency: re-run `<sh>` examples
 
-Re-execute each `<sh prompt>` block against starter data or the local CLI, diff
-against the adjacent `<text>`, and emit a row in
-`wiki/metrics/kata-documentation/{YYYY}.csv` tagged
-`kata-documentation-cross-page-consistency-sh-output-reexec` per divergence;
-scope: `<sh>+<text>` pairs only, staleness-class-3 stays local-to-topic.
+For this topic, re-run each `<sh prompt>` block against starter data or the
+local CLI and diff its output against the adjacent `<text>` block. Record one
+row in `wiki/metrics/{skill}/{YYYY}.csv` per divergence, tagged
+`kata-documentation-cross-page-consistency-sh-output-reexec`. Staleness found
+in a page's prose stays with that page's own topic.
 
 ## Interactive Writing
 

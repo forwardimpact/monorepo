@@ -1,6 +1,6 @@
 # 1-on-1 Coaching Overlay
 
-Applies to `kata-coaching.yml` runs: the improvement coach facilitates a 1-on-1
+Applies to coaching-workflow runs: the improvement coach facilitates a 1-on-1
 session with one domain agent.
 
 ## Session Shape

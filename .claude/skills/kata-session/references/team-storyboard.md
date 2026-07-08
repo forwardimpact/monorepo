@@ -1,6 +1,6 @@
 # Team Storyboard Overlay
 
-Applies to `kata-storyboard.yml` runs: the improvement coach facilitates a
+Applies to storyboard-workflow runs: the improvement coach facilitates a
 monthly team storyboard meeting with multiple participants.
 
 ## Artifact

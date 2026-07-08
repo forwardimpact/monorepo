@@ -145,8 +145,7 @@ decided, not a new feature. Scoped to this skill.
 
 ## Memory: What to Record
 
-Append to the current week's coach log
-(`wiki/improvement-coach-$(date +%G-W%V).md`):
+Append to the current week's log (see agent profile for the file path):
 
 - **Trigger** — Which threshold fired, with the count and date.
 - **Corpus** — Item numbers gathered (counts by label).

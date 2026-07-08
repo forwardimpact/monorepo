@@ -116,10 +116,10 @@ for plans. See
 and
 [`coordination-protocol.md` § Approval signal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md#approval-signal).
 
-**Post-panel coverage.** A commit between the panel and the STATUS write must
-not let the row silently claim head coverage: record a scoped panel re-read on
-the PR, or a dual-SHA PR comment naming the panel-clean and amendment SHAs.
-Retires once approval rows carry a commit pin.
+**Post-panel coverage.** If commits land between the panel and the STATUS
+write, record a scoped panel re-read on the PR, or a dual-SHA PR comment naming
+the panel-clean and amendment SHAs — the row must not silently claim head
+coverage.
 
 ## Reviewing a Plan
 
@@ -154,10 +154,9 @@ Read both end to end.
 
 ### Step 3: Research the codebase
 
-Read the files the plan will target. Before drafting, enumerate in one tracked
-task every library or service primitive the design cites, plus the test files
-that will host new assertions; source-read each declaration before the first
-draft. Keep pre-draft reads under 40.
+Read the files the plan will target. Before drafting, enumerate every library
+or service primitive the design cites, plus the test files that will host new
+assertions, and source-read each declaration before the first draft.
 
 ### Step 4: Write the plan
 
