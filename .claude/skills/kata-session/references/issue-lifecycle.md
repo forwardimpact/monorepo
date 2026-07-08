@@ -2,12 +2,12 @@
 
 What an obstacle and an experiment *are* — and the obstacle-vs-experiment test —
 is defined in
-[work-definition.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md);
+[work-definition.md](../../../agents/x-work-definition.md);
 this file is the operation recipes for filing and closing them. Each recipe
 names an
-[abstract operation](../../agents/x-work-trackers.md#abstract-operations);
+[abstract operation](../../../agents/x-work-trackers.md#abstract-operations);
 its concrete shape per tracker lives in the
-[matrix](../../agents/x-work-trackers.md#the-matrix). Obstacle and
+[matrix](../../../agents/x-work-trackers.md#the-matrix). Obstacle and
 experiment are both issues, distinguished only by label.
 
 The agent being coached — not the facilitator — creates, comments on, and closes
@@ -74,7 +74,7 @@ exp:{issue}	registered	-	#{issue}
 
 This is bookkeeping, written by the owning agent (never the facilitator). The
 row's `approved` state is human-originated and written elsewhere; see
-[approval-signals.md § Experiment rows](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-approval-signals.md).
+[approval-signals.md § Experiment rows](../../../agents/x-approval-signals.md).
 
 ## At open-change (code-shipping experiments)
 

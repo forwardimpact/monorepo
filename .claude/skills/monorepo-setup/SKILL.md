@@ -44,7 +44,7 @@ structure. Commit.
 
 Create the root manifest from
 [references/repo-skeleton.md](references/repo-skeleton.md). This is the seam
-`coaligned-setup` assumes: it wires `npx coaligned` into the check task but
+`coaligned-setup` assumes: it wires `coaligned` into the check task but
 never creates the manifest. The `coaligned` bin ships only inside
 `@forwardimpact/libcoaligned` (no bare launcher), so add it as a devDependency,
 pinned to a release whose budgets exempt YAML frontmatter (0.1.15+) — otherwise

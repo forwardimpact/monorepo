@@ -34,7 +34,7 @@ other is still drafting.
 
 The row skips the `spec approved` state — reaching `design approved` subsumes it
 (one human signal approves both stages). See
-[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-approval-signals.md).
+[`approval-signals.md`](../../../agents/x-approval-signals.md).
 
 ```text
 spec draft → design draft → design approved

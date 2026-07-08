@@ -60,10 +60,10 @@ that is a **bug**. Do not tell the agent the key is pre-configured.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and (when this skill reads
-Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Bias
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process. Bias
 product selection toward products not interviewed recently.
 
 ### Step 1: Pick the Product
@@ -81,7 +81,7 @@ Hire, Competes With, Forces (Push, Pull, Habit, Anxiety), Fired When.
 
 ### Step 3: Stage the Agent Workspace
 
-The workflow ran `npx fit-terrain build` and installed `supabase`.
+The workflow ran `fit-terrain build` and installed `supabase`.
 Copy the subset the chosen product needs into `$AGENT_CWD`:
 
 | Product          | Stage into `$AGENT_CWD`                                                                                                                            |
@@ -181,12 +181,12 @@ create a new issue or comment on a matching one (templates in
 `../kata-product-issue/references/templates.md`) naming the JTBD job
 (`<user>: <goal>`) in the body; add it to the report table with its issue
 number, holding each body to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md).
+[Citation integrity](../../agents/x-citation-integrity.md).
 
 ### Step 9: Report
 
 Final summary: product and job; whether the persona got it done; which JTBD
-forces materialised; table of findings and issues created or updated.
+forces materialized; table of findings and issues created or updated.
 
 ## Memory: What to Record
 

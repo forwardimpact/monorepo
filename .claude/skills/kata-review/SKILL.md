@@ -25,14 +25,15 @@ action. Never spawns sub-agents.
 ## Invariant: never spawn
 
 This skill's Process has **no step that launches a sub-agent**. That is the
-property that prevents the spec / plan / implement review loop from recursing —
+property that prevents the spec / design / plan / implement review loop from
+recursing —
 if you find yourself wanting to make an `Agent` tool call from inside this
 skill, stop and return findings instead.
 
 ## Severity Vocabulary
 
-This is the canonical definition of review severity for the spec → plan →
-implement arc. Grade every finding using exactly one level:
+This is the canonical definition of review severity for the spec → design →
+plan → implement arc. Grade every finding using exactly one level:
 
 - **Blocker** — The work is broken, dangerous, or materially wrong. Must fix
   before advancing (approving the spec, advancing status, merging code).

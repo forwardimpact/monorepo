@@ -1,7 +1,7 @@
 ---
 name: coaligned-invariant
 description: >
-  Author a declarative invariant rule module for `npx coaligned invariants`.
+  Author a declarative invariant rule module for `coaligned invariants`.
   Use when a repository needs to enforce its own architectural rule — a
   forbidden import, a value that must agree across files, a directory shape —
   as a `.coaligned/invariants/*.rules.mjs` module the CLI discovers and runs.
@@ -9,13 +9,13 @@ description: >
 
 # coaligned-invariant
 
-`npx coaligned invariants` is a generic host. It finds every `*.rules.mjs`
+`coaligned invariants` is a generic host. It finds every `*.rules.mjs`
 under `.coaligned/invariants/`, runs each module's declarative rules through a
 shared engine, and reports findings. The policy lives in the repository; the
 CLI ships only the engine.
 
 Write one module per invariant. A module never imports the engine — it loads
-into the consuming repo via npx, where the package is not resolvable. It
+into consuming repos where the engine package is not resolvable. It
 declares only policy; the injected kits own all mechanism.
 
 ## Procedure
@@ -61,16 +61,16 @@ When an invariant lands on a codebase with existing violations, grandfather
 them: add an optional `seed(kit)` that prints a deny-list, store it as
 co-located YAML, and have `build` read it via `kit.config`. Each migration PR
 removes entries; the list is monotone, never added to. Refresh with
-`npx coaligned invariants --seed <module-name>`.
+`coaligned invariants --seed <module-name>`.
 
 ### Step 6 — Run it
 
 Drop the module in `.coaligned/invariants/` and run:
 
 ```sh
-npx coaligned invariants            # run every module
-npx coaligned invariants --json     # machine output
-npx coaligned invariants --seed <name>   # print a module's seed text
+coaligned invariants            # run every module
+coaligned invariants --json     # machine output
+coaligned invariants --seed <name>   # print a module's seed text
 ```
 
 Any finding fails the run. Confirm the rule fires on a known violation and
@@ -86,7 +86,7 @@ passes on clean code before committing.
 - [ ] Each rule reports on violation and returns `null` when clean.
 - [ ] A grandfather `seed` exists only if the invariant landed on existing
       violations, and its deny-list is monotone.
-- [ ] `npx coaligned invariants` fails on a planted violation and passes on
+- [ ] `coaligned invariants` fails on a planted violation and passes on
       clean code.
 
 </do_confirm_checklist>

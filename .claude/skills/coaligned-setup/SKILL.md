@@ -133,7 +133,7 @@ the same way [coaligned-audit](../coaligned-audit/SKILL.md) does.
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://www.coaligned.team/)
+- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
   — the eight layers, their caps, and the rules that separate them.
 - [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
   — what each `coaligned` subcommand checks.

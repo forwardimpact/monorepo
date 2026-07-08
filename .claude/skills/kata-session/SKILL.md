@@ -38,7 +38,7 @@ skill only for the full Participant Protocol below.
       [`references/one-on-one.md`](references/one-on-one.md)) and follow its
       artifact guidance.
 - [ ] Pick metrics CSVs from `wiki/metrics/` for participants to report.
-      Participants — not the facilitator — run `npx fit-xmr analyze`.
+      Participants — not the facilitator — run `fit-xmr analyze`.
 - [ ] Team runs: `fit-wiki refresh` creates the storyboard and renders all
       blocks before the meeting; a participant seeds any missing
       `<!-- xmr:... -->` marker from
@@ -76,11 +76,11 @@ skill only for the full Participant Protocol below.
 
 - [ ] Q2 data gathered from live sources, not memory or prior logs.
 - [ ] Domain metrics appended to CSV before answering (step 2), and
-      `npx fit-xmr analyze` run on own CSV(s) with `status`/`μ`/`signals`
+      `fit-xmr analyze` run on own CSV(s) with `status`/`μ`/`signals`
       reported via `Answer`.
 - [ ] Metrics reported via `Answer` match the CSV rows just written.
 - [ ] Q3 obstacle meets its definition (see
-      [work-definition.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests))
+      [work-definition.md](../../agents/x-work-definition.md#classification-tests))
       and is recorded as a labeled issue; `#NNN` reported back.
 - [ ] Q4 experiment recorded as a labeled issue (`experiment` + `agent:{self}`)
       with its expected outcome and `#NNN` reported back.
@@ -105,7 +105,7 @@ These questions structure every coaching interaction. The coach asks via
    what was learned.
 
 What an obstacle and an experiment *are* is defined in
-[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests);
+[work-definition.md § Classification tests](../../agents/x-work-definition.md#classification-tests);
 mode-specific question wording (team vs. 1-on-1) lives in the overlays.
 
 ## Facilitator Process
@@ -123,7 +123,7 @@ mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    Team mode: broadcast once via `Announce` at session open. 1-on-1: prepend
    it to the Q1 `Ask` body.
 4. **Collect XmR analysis from participants.** Participants run
-   `npx fit-xmr analyze` on their own CSVs (Participant Protocol step 2) and
+   `fit-xmr analyze` on their own CSVs (Participant Protocol step 2) and
    report `status`, fired-rule `signals`, and `latest` in their Q2 `Answer`. The
    facilitator has no `Bash` — it relays what they report, flagging any
    `insufficient_data` metric.
@@ -144,7 +144,7 @@ mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    [`team-storyboard.md`](references/team-storyboard.md#q3-obstacle-routing).
    - **Discussion** — shared-artifact change (metric, rule, boundary, policy) or
      same question in ≥2 agents' Q3 answers. The owning agent opens an RFC per
-     [coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md).
+     [coordination-protocol.md](../../agents/x-coordination-protocol.md).
    - **Coaching** — participant-scoped blocker / unanalyzed trace / stalled
      experiment: not dispatched here. The obstacle issue stands; the coach
      dispatches the coaching workflow in its Assess run.
@@ -165,7 +165,7 @@ Applies in both modes; expands the coach's session-open briefing.
 2. **Record metrics to CSV and analyze them.** Before answering, append one row
    per metric to `wiki/metrics/{skill}/{YYYY}.csv` per the skill's
    `references/metrics.md`, creating the directory and header if needed. Then
-   run `npx fit-xmr analyze <csv> --format json`. The CSV is authoritative; your
+   run `fit-xmr analyze <csv> --format json`. The CSV is authoritative; your
    `Answer` summarizes it.
 3. **Answer with measured data.** Report numbers via
    `Answer(askId=N, message=…)`, quoting the `askId` from the `[ask#N]` header.
@@ -182,7 +182,7 @@ Applies in both modes; expands the coach's session-open briefing.
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and report its `#NNN`.
 
 Hold participant writes to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md).
+[Citation integrity](../../agents/x-citation-integrity.md).
 
 ## Memory: What to Record
 

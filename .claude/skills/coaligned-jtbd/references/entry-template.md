@@ -41,7 +41,7 @@ array. Services and libraries carry Little Hire entries — no `forces` or
 }
 ```
 
-`npx coaligned jtbd --fix` reads these and regenerates the README catalog rows
+`coaligned jtbd --fix` reads these and regenerates the README catalog rows
 and the marker-delimited job blocks. Edit the manifest, never the generated
 block.
 

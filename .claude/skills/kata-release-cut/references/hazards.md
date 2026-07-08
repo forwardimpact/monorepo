@@ -21,7 +21,7 @@ fires-when plus its recovery; the longer mechanics for (d) and (h) follow below.
   `check:fix`; run the existing JSDoc auto-fix separately.
 - **(g) Wiki audit budget overage** — a wiki surface breaches a line/word
   budget; route to its owning agent (MEMORY.md / frontmatter), not a mechanical
-  repair — the fix needs content judgement.
+  repair — the fix needs content judgment.
 - **(h) New library dependency of tagged consumers** — cut the new library's
   first-release tag at the same source commit before re-tagging its consumers,
   in dependency order (below). (b) is its symptom.

@@ -52,10 +52,10 @@ its class performs the full sweep):
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and (when this skill reads
-Tier-2 surfaces) `storyboard_items` seed this Process. Extract prior release
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process. Extract prior release
 outcomes and any packages that had publish failures.
 
 ### Step 1: Pre-Flight — Verify Main Branch CI
@@ -158,9 +158,8 @@ Report a per-package table — previous → new version, tag, publish status
 
 ## Memory: What to Record
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md):
-every cited SHA must resolve on its referenced repo, or the body is not
-published.
+Hold every published body to
+[citation integrity](../../agents/x-citation-integrity.md).
 
 Append to the current week's log (see agent profile for the file path):
 

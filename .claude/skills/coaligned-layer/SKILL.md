@@ -3,7 +3,7 @@ name: coaligned-layer
 description: >
   Author or repair an instruction layer to the Co-Aligned standard — an agent
   profile, agent reference, SKILL.md, skill reference, or checklist. Use when
-  adding an agent or skill, when `npx coaligned instructions` flags a length
+  adding an agent or skill, when `coaligned instructions` flags a length
   breach, or when one layer has started restating another.
 ---
 
@@ -14,7 +14,7 @@ one job. A defect in one layer is a different class of problem from a defect in
 another, and that separation is what makes a failed run attributable. This
 skill authors and repairs the layers a contributor edits: L3–L7.
 
-`npx coaligned instructions` enforces a line cap and a word cap on every layer.
+`coaligned instructions` enforces a line cap and a word cap on every layer.
 Either breach fails. See
 [references/layer-reference.md](references/layer-reference.md) for the layers,
 their properties, and their caps.
@@ -68,7 +68,7 @@ and the seven properties of a good checklist.
 
 ### Step 4 — Fit the cap
 
-Run `npx coaligned instructions`. On a length breach, do not just delete words —
+Run `coaligned instructions`. On a length breach, do not just delete words —
 move them to the layer that owns them:
 
 - L5 over cap → push templates, examples, and tables down to an L6 reference.
@@ -80,7 +80,7 @@ is too long.
 
 ### Step 5 — Verify
 
-`npx coaligned instructions` passes. Re-read the edited layer against its
+`coaligned instructions` passes. Re-read the edited layer against its
 single job: a reader following only this layer should get exactly what the layer
 promises and nothing another layer owns.
 
@@ -91,7 +91,7 @@ promises and nothing another layer owns.
 - [ ] The layer carries only its own job — no content another layer owns.
 - [ ] Shared tools are separated by voice, not duplicated.
 - [ ] Every checklist is tagged and uses the correct READ-DO / DO-CONFIRM type.
-- [ ] `npx coaligned instructions` passes with no length findings.
+- [ ] `coaligned instructions` passes with no length findings.
 
 </do_confirm_checklist>
 

@@ -12,7 +12,8 @@ build({ scan, scanAst, walk, grep, config, root }) { … }
 Two standing rules:
 
 - Never import `fs`, `node:child_process`, the package itself, or any ambient
-  dependency. A module loads via npx in consumer repos where none resolve.
+  dependency. A module loads in consumer repos where the engine package does not
+  resolve.
 - Return plain data from `build`. The rules decide pass or fail. The one
   exception is when the build step is the natural place to compute the violation
   set; then pair it with `failAll`.

@@ -112,9 +112,9 @@ Plans may be approved by `staff-engineer` after a clean `kata-plan` panel
 review; alternatively, the same human-driven signals that gate spec/design
 (label, PR comment, APPROVED review, in-session user message) also feed STATUS
 for plans. See
-[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-approval-signals.md)
+[`approval-signals.md`](../../agents/x-approval-signals.md)
 and
-[`coordination-protocol.md` § Approval signal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md#approval-signal).
+[`coordination-protocol.md` § Approval signal](../../agents/x-coordination-protocol.md#approval-signal).
 
 **Post-panel coverage.** If commits land between the panel and the STATUS
 write, record a scoped panel re-read on the PR, or a dual-SHA PR comment naming
@@ -137,10 +137,10 @@ When multiple variants exist, note which is recommended (plan-a is the default).
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and (when this skill reads
-Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process.
 Extract specs previously planned and any deferred work from prior entries.
 
 ### Step 1: Find the design
@@ -176,9 +176,8 @@ panel is clean.
 
 The PR title carries the spec id: `plan(NNN): …`.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md):
-every cited SHA must resolve on its referenced repo, or the body is not
-published.
+Hold every published body to
+[citation integrity](../../agents/x-citation-integrity.md).
 
 ### Step 7: Write STATUS
 

@@ -139,7 +139,7 @@ Halt the cluster and adjust in any of these cases:
 ## Coach Scope Exception
 
 The coach's general "no writing specs or fix PRs" constraint
-([`improvement-coach.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/improvement-coach.md))
+([`improvement-coach.md`](../../agents/improvement-coach.md))
 is extended here: the spec writes up what the corpus already implicitly
 decided, not a new feature. Scoped to this skill.
 
@@ -160,13 +160,13 @@ Append to the current week's log (see agent profile for the file path):
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md)):
+[coordination-protocol.md](../../agents/x-coordination-protocol.md)):
 
 - **PR body** — Consolidated spec/design PR carries an Addresses overview
   listing the issues closed and the PRs it supersedes.
 - **Issue/PR close** — Addressed issues and superseded PRs closed as duplicate,
   each commenting the spec link (held to
-  [Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md));
+  [Citation integrity](../../agents/x-citation-integrity.md));
   never on out-of-scope items.
 - **Storyboard headline** — The next storyboard meeting after a sweep surfaces
   the consolidated PR as a Q1 target-condition reference.

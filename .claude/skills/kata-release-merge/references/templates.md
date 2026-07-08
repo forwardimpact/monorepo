@@ -30,7 +30,7 @@ Comment with the specific failing checks from the change's CI `read`.
 
 ### Substantive Conflict
 
-> Release merge: blocked — substantive conflicts in <files>. Author judgement
+> Release merge: blocked — substantive conflicts in <files>. Author judgment
 > needed; aborting rebase.
 
 ## Announcement Cross-Link
