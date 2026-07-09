@@ -49,6 +49,24 @@ modes of operation:
 
 </do_confirm_checklist>
 
+## Process
+
+### Step 0: Read Memory
+
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process. Find last review dates per topic in the coverage map.
+
+> **Writing under `.claude/`:** If this run edits files under `.claude/skills/`,
+> follow
+> [self-improvement.md](../../agents/x-self-improvement.md).
+
+### Step 1: Route by mode
+
+Scheduled runs review one topic in depth — continue with § Scheduled Review.
+Interactive runs write or update pages — continue with § Interactive Writing.
+
 ## Scheduled Review
 
 Each run covers **one topic** in depth.
@@ -67,18 +85,6 @@ Each run covers **one topic** in depth.
 | `root-docs`              | `CLAUDE.md`, `CONTRIBUTING.md`, `KATA.md`, `SECURITY.md`                                  |
 | `llms-txt-and-seo`       | `websites/<site>/llms.txt`, `websites/<site>/robots.txt`, sitemap completeness            |
 | `cross-page-consistency` | Terminology, proficiency scales, field names across all pages                             |
-
-### Step 0: Read Memory
-
-Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Find
-last review dates per topic in the coverage map.
-
-> **Writing under `.claude/`:** If this run edits files under `.claude/skills/`,
-> follow
-> [self-improvement.md](../../agents/x-self-improvement.md).
 
 ### Topic selection
 
@@ -102,10 +108,6 @@ last review dates per topic in the coverage map.
    build.
 9. Check `git log --oneline -20 -- <paths>` for recent code changes that may
    have invalidated docs.
-
-### Review checklist
-
-Run the DO-CONFIRM checklist at the top of this skill.
 
 ### Cross-page-consistency: re-run `<sh>` examples
 

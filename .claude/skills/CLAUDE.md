@@ -70,6 +70,8 @@ One template across every pack: descriptive Title Case H1, `## When to Use`,
 `labeled`); `behaviour` stays — it is the domain term. Point at shared
 protocols, do not restate them: the Read Memory step and citation-integrity
 mentions are one-sentence pointers to the owning agent reference.
+`.coaligned/invariants/skill-template.rules.mjs` gates the mechanical subset
+in CI; on a false positive, narrow the rule there.
 
 ### The litmus test
 
