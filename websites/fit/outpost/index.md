@@ -6,7 +6,7 @@ toc: false
 hero:
   image: /assets/scene-outpost.svg
   alt: An engineer, an AI robot, and a business professional setting up an A-frame tent together
-  subtitle: Set up camp. Outpost keeps you prepared — it syncs your email and calendar, builds a knowledge graph, drafts responses, and prepares meeting briefs. All running as scheduled AI tasks in the background.
+  subtitle: Set up camp. Outpost keeps you prepared — a team of scheduled agents syncs your email, calendar, and chat, builds a knowledge graph, prepares meeting briefs, and drafts responses in the background while you work.
   cta:
     - label: View on GitHub
       href: https://github.com/forwardimpact/monorepo/tree/main/products/outpost
@@ -24,31 +24,71 @@ arrive already oriented.
 ### For Empowered Engineers
 
 Keep track of people, projects, and threads without depending on memory. Walk
-into every meeting already oriented. Set it up once and it keeps working in the
-background — continuous awareness without continuous effort.
+into every meeting already oriented. Set it up once and a team of agents keeps
+working in the background — continuous awareness without continuous effort.
 
-- Automatic email and calendar sync from Apple Mail and Calendar
-- A knowledge graph of people, organizations, projects, and topics
-- AI-drafted email responses using your full context
-- Meeting preparation briefings before every call
-- Presentation generation and file organization on autopilot
+- A team of scheduled agents that sync mail, calendar, and Teams chat while you
+  work
+- A shared knowledge graph of people, organizations, projects, and topics, kept
+  current as messages arrive
+- A daily briefing that synthesizes what changed into your priorities
+- Meeting briefs assembled before every call from attendee history and open
+  threads
+- Drafted email replies, chat messages, documents, and slide decks grounded in
+  your context — when you opt into drafting
+- Optional recruitment agents that screen candidates against your engineering
+  standard
 
 ---
 
 ## How Outpost Works
 
-### Core Skills
+Outpost is not a single assistant you chat with. It runs a **team of agents**,
+each with a job, that wake on their own schedule. Every wake, an agent observes
+what changed, decides the most useful action, and does it — then goes back to
+sleep. You configure the team once; it keeps working while you don't.
 
-| Skill                    | What it does                                   |
-| ------------------------ | ---------------------------------------------- |
-| **Sync Apple Mail**      | Reads email threads from Mail.app via SQLite   |
-| **Sync Apple Calendar**  | Reads upcoming events from Calendar.app        |
-| **Extract Entities**     | Processes synced data into a knowledge graph   |
-| **Draft Emails**         | Writes response drafts using your full context |
-| **Meeting Prep**         | Creates briefings before upcoming meetings     |
-| **Create Presentations** | Generates PDF slide decks from markdown        |
-| **Document Collab**      | Assists with document creation and editing     |
-| **Organize Files**       | Cleans up and organizes your files             |
+### Your agent team
+
+A fresh install ships six agents. Each carries a small set of skills and a cron
+schedule you can edit or disable in `~/.fit/outpost/scheduler.json`.
+
+| Agent              | What it does                                             | Runs                    | Access     |
+| ------------------ | -------------------------------------------------------- | ----------------------- | ---------- |
+| **postman**        | Syncs mail and Teams, triages messages, drafts replies   | every 15 min, work hours | full       |
+| **concierge**      | Syncs calendar, prepares meeting briefs, files transcripts | every 30 min, work hours | full       |
+| **librarian**      | Extracts entities into the knowledge graph, organizes files | four times a day       | restricted |
+| **chief-of-staff** | Synthesizes every agent's notes into a daily briefing    | morning and evening     | restricted |
+| **recruiter**      | Screens CVs and assesses interviews against your standard | three times a day       | restricted |
+| **head-hunter**    | Scans public sources for open candidates, never contacts them | each morning       | restricted |
+
+Each agent writes a short note per wake. The **chief-of-staff** reads all of
+them to assemble the daily briefing, so nothing has to be pieced together by
+hand. `full` and `restricted` refer to macOS access — see
+[macOS Privacy and Security](#macos-privacy-and-security) below. The recruitment
+agents (`recruiter`, `head-hunter`) ground their judgments in your
+[Pathway](/pathway/) engineering standard; leave them disabled if you are not
+hiring.
+
+### What your agents can do
+
+The team's abilities come from skills — self-contained capabilities the agents
+load as needed. The default install ships these, grouped by what they are for.
+Composing skills (marked **draft**) only run once you opt into the
+[`brief+draft` posture](#choosing-your-posture).
+
+| Area                       | Skills                                                                       |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| **Sync sources**           | Apple Mail, Apple Calendar, Microsoft Teams chat                             |
+| **Build the knowledge graph** | Extract entities, organize files (**draft**), record a changelog          |
+| **Prepare for meetings**   | Meeting prep, process and trim meeting-notes sessions, follow up             |
+| **Compose and send** (**draft**) | Draft email replies, send chat messages                                |
+| **Documents and decks**    | Create and collaborate on documents (create is **draft**), create, review, and summarize slide decks |
+| **Look people up**         | Identify yourself and look up anyone in the corporate directory              |
+| **Recruit engineers**      | Scan, track, screen, assess, decide on, and forget candidates                |
+
+Skills are auto-discovered from the knowledge base, so you can add your own or
+pull updates with `npx fit-outpost update`.
 
 ### Prerequisites
 
@@ -153,10 +193,21 @@ brew install claude                     # Runtime: Outpost spawns claude as a su
 npm install @forwardimpact/outpost      # macOS only
 npx fit-outpost init                    # Initialize the default "Team" knowledge base
 npx fit-outpost daemon                  # Start the scheduler
-npx fit-outpost status                  # Check what's happening
+npx fit-outpost status                  # Check what each agent is doing
 ```
 
-### macOS Privacy & Security
+Once the scheduler is running, these commands drive the team day to day:
+
+| Command                       | What it does                                            |
+| ----------------------------- | ------------------------------------------------------- |
+| `fit-outpost status`          | Show each agent's schedule, last wake, and last action  |
+| `fit-outpost wake <agent>`    | Wake one agent now instead of waiting for its schedule  |
+| `fit-outpost posture [mode]`  | Show or set the adoption posture (`brief`, `brief+draft`) |
+| `fit-outpost update`          | Pull the latest instructions, agents, and skills into a KB |
+| `fit-outpost validate`        | Confirm every configured agent has a definition         |
+| `fit-outpost stop`            | Gracefully stop the daemon and any running agents        |
+
+### macOS Privacy and Security
 
 Outpost needs access to the live Mail and Calendar stores it reads. Grant every
 permission to a single app, **fit-outpost.app**, and the whole scheduler and the
