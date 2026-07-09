@@ -63,10 +63,29 @@ Do not restate one file in another. CLAUDE.md orients; CONTRIBUTING.md governs.
 
 ### Step 3 — Create the invariant directory
 
-Create `.coaligned/invariants/`. Leave it empty for now, or add a first rule
-module with coaligned-invariant. The directory is where the repo's own
-declarative checks live; `coaligned invariants` discovers every `*.rules.mjs`
-under it.
+Create `.coaligned/invariants/` and seed it with the starter rule. The
+directory is where the repo's own declarative checks live; `coaligned
+invariants` discovers every `*.rules.mjs` under it, so an empty directory
+enforces nothing and the wired check has nothing to prove.
+
+Copy the bundled starter rule verbatim so every new repo begins with one live
+invariant:
+
+```sh
+cp .claude/skills/coaligned-setup/assets/no-conflict-markers.rules.mjs \
+   .coaligned/invariants/
+```
+
+[`no-conflict-markers`](assets/no-conflict-markers.rules.mjs) fails any tracked
+file that carries a leftover git merge-conflict marker. It is generic by
+design — language-agnostic, zero-configuration, and firing only on an
+unambiguous defect — so it holds in any consuming repository from the first
+commit. It also proves the pipeline end to end: the directory is discovered, a
+module loads, and a planted marker fails the check.
+
+Add repo-specific rules on top with
+[coaligned-invariant](../coaligned-invariant/SKILL.md); keep or remove the
+starter once the repo has invariants of its own.
 
 ### Step 4 — Wire the checks into the repository
 
@@ -102,7 +121,8 @@ the same way [coaligned-audit](../coaligned-audit/SKILL.md) does.
 
 - [ ] `CLAUDE.md`, `CONTRIBUTING.md`, and `JTBD.md` exist and stay within
       their caps.
-- [ ] `.coaligned/invariants/` exists.
+- [ ] `.coaligned/invariants/` exists and holds the `no-conflict-markers`
+      starter rule.
 - [ ] The check is wired into the repository's check command and CI through an
       invocation a clean runner resolves, with the concrete command in
       CONTRIBUTING.md.
