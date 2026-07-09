@@ -26,14 +26,14 @@ Record the row through the metrics-recording CLI with the route context as
 typed flags — never hand-write the CSV:
 
 ```text
-npx fit-xmr record --skill kata-implement --metric implementations_shipped \
+fit-xmr record --skill kata-implement --metric implementations_shipped \
   --value <n> --route <id> --routes-eligible <comma-separated-ids>
 ```
 
 The CLI writes the route context as a machine-readable prefix on the row's
 note (`route_taken=<id>; routes_eligible=[<ids>];`) and rejects a missing or
 unknown route. A downstream reader partitions the population with
-`npx fit-xmr analyze … --route <id>` or `--routes-eligible-includes <id>`.
+`fit-xmr analyze … --route <id>` or `--routes-eligible-includes <id>`.
 
 The route set is closed; adding a route is a deliberate change. The id →
 route table above is checked against the recorder's source declaration, so

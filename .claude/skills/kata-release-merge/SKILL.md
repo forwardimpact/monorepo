@@ -44,10 +44,10 @@ A PR that fails any gate is **blocked** with reason; passing PRs merge in Step
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and (when this skill reads
-Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process.
 Extract PRs blocked in previous runs with consecutive-block counts.
 
 ### Step 1: List Open PRs
@@ -141,7 +141,7 @@ not coverage evidence: when commits land after the last clean review round, fail
 closed — **blocked** (`review coverage unverifiable at head`) — until a scoped
 delta review or a reviewed-SHA-plus-head record covers the gap. Labels and
 APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See
-[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-approval-signals.md).
+[`approval-signals.md`](../../agents/x-approval-signals.md).
 
 **Experiment PRs** (no spec id, one experiment-labeled issue with a named owner)
 take the experiment path instead of the spec-row read — fail-closed
@@ -194,7 +194,7 @@ Read the PR's labels (fetched in Step 1). If neither `product` nor `internal` is
 present, mark **blocked** (`awaiting classification label`). No fast-path
 exemption: a `.md`/`.mdx` PR skips only the Step 6 approval gate, not this one —
 docs PRs are completed work in the denominator and must carry the label per
-[work-definition.md § Product-aligned vs internal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#product-aligned-vs-internal).
+[work-definition.md § Product-aligned vs internal](../../agents/x-work-definition.md#product-aligned-vs-internal).
 
 ### Step 11: Merge Mergeable PRs
 
@@ -232,10 +232,10 @@ Append to the current week's log:
 ## Coordination Channels
 
 Outputs (per
-[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md)):
+[coordination-protocol.md](../../agents/x-coordination-protocol.md)):
 **PR comment** for trust rationale, gate failures, merge decisions;
 **PR thread escalation** for cross-agent requests addressed by name. Ambiguous
 inbound comments → follow
-[coordination-protocol.md § Inbound: unclear addressed comments](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md#inbound-unclear-addressed-comments).
+[coordination-protocol.md § Inbound: unclear addressed comments](../../agents/x-coordination-protocol.md#inbound-unclear-addressed-comments).
 Hold every PR comment to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md).
+[Citation integrity](../../agents/x-citation-integrity.md).

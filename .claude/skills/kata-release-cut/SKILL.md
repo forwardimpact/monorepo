@@ -52,10 +52,10 @@ its class performs the full sweep):
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and (when this skill reads
-Tier-2 surfaces) `storyboard_items` seed this Process. Extract prior release
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process. Extract prior release
 outcomes and any packages that had publish failures.
 
 ### Step 1: Pre-Flight — Verify Main Branch CI
@@ -63,57 +63,29 @@ outcomes and any packages that had publish failures.
 Run the READ-DO checklist above before proceeding. Tag prefix mapping:
 [`references/procedure.md`](references/procedure.md).
 
-### Step 2: Classify — Discriminator Predicate
+### Step 2: Classify — Sweep or Early Exit
 
-The **first assessment step** after Pre-Flight; the per-package sweep
-(Step 3 onward) runs **only** on `SWEEP-REQUIRED` or unclassifiable. The gate is
-this step's position, not an ordering hint (mechanics:
-[`references/early-exit.md`](references/early-exit.md)). A `NO-CUT-OWED` verdict
-is a **four-conjunct** claim; any failure ⇒ `SWEEP-REQUIRED`:
+The first assessment step after Pre-Flight: the per-package sweep (Step 3
+onward) runs unless this step records a `NO-CUT-OWED` early exit. Only an
+event-driven post-merge assessment may exit; a full-sweep run, or any run
+that cannot determine its class, always sweeps. Every verdict binds a SHA
+pair (`range_from` = the baseline, `range_to` = `HEAD`) — it is a claim
+about that range, never about live `HEAD`.
 
-1. **Verified-clean baseline `B`** — a commit cited by a prior run record,
-   ancestor of `HEAD`, at which an assessment verified zero unreleased commits
-   beyond what it re-cited as blocked. Set by a full sweep reaching that state,
-   a post-cut state, or a chained earlier early-exit.
-2. **Zero publishable paths over `B..HEAD`** by **per-commit union** (each
-   commit's changed paths, not a net diff), in two tiers at the frozen
-   `range_to`. *Directory rule:* a path under no publishable-package directory
-   (from the workspace manifest) never defeats this. *Packlist membership*
-   (in-directory paths only): non-publishable **iff** `private: true` or absent
-   from the packer's own publish list. Four invariants:
-   **any doubt classifies publishable** — tool error, unparseable output,
-   `.npmignore` present, a path absent at `range_to`, or a change to a
-   pack-manifest-influencing file (`package.json`/`.npmignore`/`.gitignore` at
-   any level in the dir); failure mode is **forgone savings, never a missed
-   cut**; a package with `prepack`/`prepare`/`prepublishOnly` is **excluded**
-   (paths stay publishable); npm inclusion semantics are **not** re-implemented.
-3. **Standing-set re-cite** — every standing obligation (first-release backlog,
-   held/deferred cuts, pending publish-failure retries and publish-workflow
-   verifications) is empty, re-cited as blocked with its reference, or
-   verifiable-in-run and resolved to verified-success. A pending
-   publish-workflow verification is **verifiable-in-run**: resolve it before
-   exiting (`gh run list`) — success clears it; failure or still-in-progress is
-   **due** ⇒ `SWEEP-REQUIRED`. Any due (unblocked) obligation defeats the exit.
-4. **Main CI green** — the Pre-Flight checklist passed, re-cited so the verdict
-   record stands alone.
+`NO-CUT-OWED` requires all four conditions. When any fails, or any check is
+in doubt, record `SWEEP-REQUIRED` and sweep:
 
-Each classification binds the SHA pair (`range_from` = `B`, `range_to` = `HEAD`
-here); the verdict is a claim about that pair, never live `HEAD`.
+1. **Verified-clean baseline.** A prior run record cites a commit, ancestor
+   of `HEAD`, verified to carry no unreleased work beyond re-cited blocks.
+2. **Zero publishable paths.** No commit in the range touched a publishable
+   path, tested per commit against the packer's own publish list.
+3. **Standing set re-cited.** Every standing obligation is empty, re-cited
+   as blocked, or resolved in-run to verified success.
+4. **Main CI green.** Pre-Flight passed, re-cited in the verdict record.
 
-#### Authority boundary
-
-- **Who may exit.** Only an event-driven post-merge assessment; full-sweep runs
-  always sweep.
-- **Unclassifiable ⇒ sweep.** A run that cannot determine its class or resolve
-  an unambiguous valid baseline records the unresolvable state and sweeps. On a
-  shallow checkout where `B` is below the fetch boundary the ancestry check is
-  unresolvable: deepen to reach `B`, else sweep.
-- **Re-anchor bound.** The chain must re-anchor to a real per-package sweep (any
-  run class) at least once per scheduled cadence interval; cadence-less
-  consumers use a default **maximum chain length of 20 early-exits**. A chain
-  past the bound is unresolvable ⇒ full sweep. The bound caps drift to
-  commit-accumulation only; publish-failure recovery stays record-dependent (see
-  [`references/early-exit.md`](references/early-exit.md)).
+The full conditions, doubt rules, and re-anchor bound are normative in
+[references/early-exit.md](references/early-exit.md); worked invocations in
+[references/early-exit-mechanics.md](references/early-exit-mechanics.md).
 
 ### Step 3: Enumerate Changed Packages
 
@@ -158,9 +130,8 @@ Report a per-package table — previous → new version, tag, publish status
 
 ## Memory: What to Record
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md):
-every cited SHA must resolve on its referenced repo, or the body is not
-published.
+Hold every published body to
+[citation integrity](../../agents/x-citation-integrity.md).
 
 Append to the current week's log (see agent profile for the file path):
 
@@ -168,14 +139,14 @@ Append to the current week's log (see agent profile for the file path):
   per release the previous and new version, tag, and publish status.
 - **Publish failures** — package and reason (so the next run can revisit).
 - **Main branch CI state** — green or broken, and what was repaired.
-- **Chainable state (every verdict kind).** Into the existing free-form skill
-  surfaces (no new CSV columns), so a consumer with no monorepo wiki can chain:
-  every classification records its SHA pair (`range_from`, `range_to`),
-  `NO-CUT-OWED` and `SWEEP-REQUIRED` alike; an early-exit also records the
-  range-check path summary. A verified-clean or post-cut verdict records that
-  commit as `B` plus each carry re-cite with its blocking reference. A
-  full-sweep ending **due-but-deferred** records **no chainable baseline**;
-  later assessments full-sweep until a run reaches a verified-clean/post-cut
+- **Chainable state (every verdict kind).** Record in the existing free-form
+  skill surfaces (no new CSV columns), so the next assessment can chain.
+  Every classification records its SHA pair (`range_from`, `range_to`),
+  whatever the verdict; an early exit also records the range-check path
+  summary. A verified-clean or post-cut verdict records that commit as the
+  baseline plus each carried obligation with its blocking reference. A full
+  sweep that ends due-but-deferred records no chainable baseline, so later
+  assessments keep sweeping until a run reaches a verified-clean or post-cut
   state. An unclassifiable run records no SHA pair.
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
   `references/metrics.md`. See KATA.md § Metrics for the eligibility rule.
@@ -186,7 +157,9 @@ Release foundational packages before consumers (check `package.json`
 dependencies before tagging); CONTRIBUTING.md § Releasing governs multi-package
 order — each tier confirmed before the next is tagged. First-release and
 failed-publish handling: [`procedure.md`](references/procedure.md). Related
-hazards: (c), (d), (b)/(h).
+hazards: non-zero first version, credential expiry, and the first-release
+dependency race with its new-dependency variant
+([references/hazards.md](references/hazards.md)).
 
 ## Hazards
 

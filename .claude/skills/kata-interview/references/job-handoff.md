@@ -35,9 +35,9 @@ JTBD source:
 
 - **Big Hire:** "Help me get career guidance and output review grounded
   in my organization's standard, not impressions or generic advice." →
-  Guide
+  <Product>
 - **Little Hire:** "Help me ask a growth question or get a second opinion
-  on a deliverable before approving it." → Guide
+  on a deliverable before approving it." → <Product>
 
 Ask 2:
 
@@ -52,9 +52,9 @@ Ask 2:
 JTBD source:
 
 - **Big Hire:** "Help me make staffing decisions I can defend by seeing
-  what each role requires." → Summit
+  what each role requires." → <Product>
 - **Little Hire:** "Help me spot capability gaps and check whether a
-  candidate fills them." → Summit
+  candidate fills them." → <Product>
 
 Ask 2:
 

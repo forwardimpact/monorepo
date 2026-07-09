@@ -1,6 +1,7 @@
 /**
  * Shape assertion for the kata-interview SKILL.md. Guards:
- *   - Step 3 staging table carries a substrate-backed-products row.
+ *   - Step 3 keeps the substrate-backed staging contract (the workflow's
+ *     substrate-setup step owns the substrate; the skill stages none).
  *   - Step 3a persona selection is driven by the injected
  *     `PERSONA_SELECT_COMMAND` (no hardcoded `fit-map` verbs) and reads the
  *     entry point from `WEBSITE_URL`.
@@ -25,8 +26,12 @@ const skill = readFileSync(SKILL_PATH, "utf8");
 const skillFlat = skill.replace(/\s+/g, " ");
 
 describe("kata-interview SKILL.md amendments", () => {
-  it("Step 3 staging table carries a substrate-backed row", () => {
-    assert.match(skill, /\| Substrate-backed\s+\|.*substrate.*\|/);
+  it("Step 3 keeps the substrate-backed staging contract", () => {
+    assert.match(
+      skillFlat,
+      /substrate-backed products the workflow's substrate-setup step brings the substrate up/,
+    );
+    assert.match(skillFlat, /stages no substrate itself/);
   });
 
   it("Step 3a persona selection is driven by PERSONA_SELECT_COMMAND", () => {

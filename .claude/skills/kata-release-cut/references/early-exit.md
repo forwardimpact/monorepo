@@ -1,108 +1,71 @@
-# Early-exit mechanics
+# Early-exit protocol
 
-Worked detail for the Step 2 discriminator predicate — the invocations and
-examples only; the normative rule lives in SKILL.md § Step 2. Generic
-placeholders: substitute the real directory, prefix, and SHAs at run time.
+The normative rules for SKILL.md § Step 2. A `NO-CUT-OWED` verdict requires
+all four conditions below; when any condition fails, or any check is in
+doubt, the verdict is `SWEEP-REQUIRED`. Worked invocations and traversal
+hazards live in [early-exit-mechanics.md](early-exit-mechanics.md).
 
-## Per-commit union walk (condition 2)
+## Verdicts and authority
 
-Condition 2 tests the **union of paths changed by each commit** in the bound
-range, not a net diff. Use:
+- Only an event-driven post-merge assessment may exit early. Full-sweep runs
+  always sweep.
+- A run that cannot determine its class, or cannot resolve one unambiguous
+  valid baseline, records the unresolvable state and sweeps.
+- Every classification binds a SHA pair: `range_from` is the baseline `B`,
+  `range_to` is `HEAD` at assessment time. The verdict is a claim about that
+  pair, never about live `HEAD`.
+- The intended failure mode is forgone savings, never a missed cut: doubt
+  always classifies toward the sweep.
 
-```sh
-git log --no-merges --name-only --format='' "${range_from}..${range_to}" \
-  | sort -u
-```
+## Condition 1 — Verified-clean baseline
 
-The union of this output must remain a **superset** of every per-directory log
-the sweep would run (`git log "${latest}..HEAD" -- "${directory}"`, Step 3).
-Two traversal hazards:
+A commit `B`, cited by a prior run record and an ancestor of `HEAD`, at which
+an assessment verified zero unreleased commits beyond what it re-cited as
+blocked. A full sweep reaching that state, a post-cut state, or a chained
+earlier early-exit each set a valid `B`. On a shallow checkout where `B` sits
+below the fetch boundary, deepen until the ancestry check can run; if `B`
+still cannot be reached, the baseline is unresolvable and the run sweeps.
 
-- **Net diff is unsound.** `git diff range_from..range_to` collapses an
-  add-then-revert pair inside the range to nothing, so a file that was edited
-  and reverted across two commits would escape the test. The per-commit walk
-  sees both commits.
-- **No `--first-parent`.** `--first-parent` prunes side-branch commits that a
-  merge brought in; the per-directory sweep counts those commits, so omitting
-  side-branch commits could yield a false `NO-CUT-OWED`. Walk every non-merge
-  commit. If any traversal cannot be shown a superset of the sweep's
-  path-scoped log, the run is unclassifiable ⇒ full sweep.
+## Condition 2 — Zero publishable paths over `B..HEAD`
 
-The workspace manifest (the publishable-directory set) is read at `range_to`,
-never at `range_from`: a manifest change inside the range must not narrow the
-set. A brand-new package directory appearing in the range therefore sits under
-a publishable directory at `range_to`, reaches the packlist tier, and — absent
-from any prior publish list — classifies publishable ⇒ `SWEEP-REQUIRED`.
+Test the union of paths changed by each commit in the range (never a net
+diff), in two tiers at the frozen `range_to`:
 
-## Packlist membership (condition 2, tier 2)
+1. **Directory tier.** A path under no publishable-package directory (from
+   the workspace manifest, read at `range_to`) never defeats the exit.
+2. **Packlist tier**, for in-directory paths only. A path is non-publishable
+   only when the package is `private: true` or the path is absent from the
+   packer's own publish list. Never re-implement npm inclusion semantics.
 
-Runs **only** on paths that already passed the directory tier, so the modal
-zero-surface range (docs, wiki, skills) never invokes it — cost stays seconds
-and ~zero tokens. Read the packer's publish list at the frozen `range_to`. Pin
-a throwaway worktree so the live checkout is not mutated:
+Route every doubt to publishable: a tool error, unparseable output, a
+present `.npmignore`, a path absent at `range_to`, or any change to a
+pack-manifest-influencing file (`package.json`, `.npmignore`, or
+`.gitignore` at any level in the package directory). A package that declares
+`prepack`, `prepare`, or `prepublishOnly` is excluded from the packlist
+refinement — all its paths stay publishable, because a build step is a
+genuine missed-cut channel.
 
-```sh
-git worktree add --detach /tmp/rc-pin "${range_to}"
-( cd /tmp/rc-pin/"${directory}" && npm pack --dry-run --json --ignore-scripts )
-git worktree remove /tmp/rc-pin
-```
+## Condition 3 — Standing-set re-cite
 
-Parse the JSON `files[].path` array — that is the authoritative publish list.
-A path under the directory is **non-publishable iff** the package is
-`private: true` or the path is absent from that list. Do not re-implement npm
-inclusion semantics; the packer's list is the source of truth.
+Every standing obligation — first-release backlog, held or deferred cuts,
+pending publish-failure retries, pending publish-workflow verifications —
+must be empty, re-cited as blocked with its reference, or verifiable-in-run
+and resolved to verified success. A pending publish-workflow verification is
+verifiable-in-run: resolve it before exiting (`gh run list`). Success clears
+it; a failure or a still-in-progress run is due, and any due (unblocked)
+obligation defeats the exit.
 
-Route each doubt class to publishable (⇒ `SWEEP-REQUIRED`):
+## Condition 4 — Main CI green
 
-- `npm pack` errored, or its output did not parse as expected.
-- An `.npmignore` is present in the package.
-- A candidate path is absent at `range_to` (deleted or renamed in range — its
-  removal can itself change the artifact).
-- The range changed a **pack-manifest-influencing file**: `package.json`,
-  `.npmignore`, or `.gitignore` at any level within the package directory. A
-  nested ignore file is never packed yet can change the tarball, so the
-  invariant a dropped path must satisfy is that it cannot **change** the
-  published artifact, not merely that it is not packed.
+The Pre-Flight checklist passed, re-cited in the verdict record so the
+record stands alone.
 
-A package whose `package.json` declares a pack-affecting lifecycle script
-(`prepack`, `prepare`, or `prepublishOnly`) is **excluded from the
-refinement** — all its paths stay publishable, because a build step is a
-genuine missed-cut channel for external consumers.
+## Re-anchor bound
 
-## What the re-anchor bound guarantees
-
-A wrong baseline record survives at most one re-anchor interval. The next full
-sweep re-verifies every tagged package from its tags and every untagged
-package from its history, so unreleased **commits** cannot silently accumulate
-past it. The guarantee covers the commit-accumulation class only: pending
-publish-failure recovery is record-dependent under both the sweep and the early
-exit (a tag-based sweep cannot see a failed publish either).
-
-## Baseline resolution (condition 1)
-
-The baseline `B` is a commit SHA cited by a prior run record with an ancestry
-assertion against `HEAD`:
-
-```sh
-git merge-base --is-ancestor "${B}" HEAD && echo "B is an ancestor"
-```
-
-- **Resolved.** `B` is an ancestor of `HEAD` → it is the `range_from`.
-- **No record / not an ancestor / ambiguous.** Unclassifiable ⇒ full sweep.
-- **Chain age.** If the chain since the last real per-package sweep exceeds the
-  re-anchor bound (one scheduled cadence interval, or the cadence-less default
-  of 20 early-exits), `B` is stale ⇒ full sweep.
-
-### Shallow-clone worked example
-
-A dispatch checkout is often shallow, so `B` can sit below the fetch boundary:
-
-```sh
-git cat-file -e "${B}^{commit}" 2>/dev/null || echo "B not present locally"
-```
-
-When `B` is absent, the ancestry check cannot run. Deepen the clone to reach
-`B` (`git fetch --deepen=<n>` or `--shallow-since`), then retry the ancestry
-check. If `B` still cannot be reached, the baseline is unresolvable ⇒ full
-sweep (default). Never treat an unreachable `B` as a satisfied conjunct — that
-would silently suppress every future exit.
+The early-exit chain must re-anchor to a real per-package sweep (any run
+class) at least once per scheduled cadence interval; cadence-less consumers
+use a default maximum chain length of 20 early-exits. A chain past the bound
+is unresolvable, so the run sweeps. The bound caps drift from commit
+accumulation only; publish-failure recovery stays record-dependent (see
+[early-exit-mechanics.md](early-exit-mechanics.md) § What the re-anchor
+bound guarantees).

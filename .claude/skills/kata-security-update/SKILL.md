@@ -68,9 +68,9 @@ the release Dependabot tracks via the `# v1` comment).
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
 Process. Extract previous triage outcomes and packages that repeatedly fail
 Check 8.
 
@@ -123,7 +123,7 @@ that workspace under the policy minimum.
 Commit and push fix work **before** long-running verification; never end the
 session with verification still in the background — it dies at turn end, and the
 PR's CI is the verification of record. Hold every PR or comment body to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md).
+[Citation integrity](../../agents/x-citation-integrity.md).
 
 Each disposition uses tracker operations from
 [work-trackers.md](../../agents/x-work-trackers.md).
@@ -149,11 +149,9 @@ git log --oneline origin/main ^<pr-merge-base> -- '**/package.json' <lockfile>
 If commits exist, rebasing the Dependabot branch on `origin/main` will fix the
 scan. Run the repository's check/test/audit commands, then `open-change` titled
 `chore(deps): <original-title> (rebased)` with body "Rebases Dependabot PR
-
-## <number> on current main to pick up security fixes." Then `close` the original
-
-change with comment "Superseded by #<new-pr> — rebased on main to resolve stale
-vulnerability-scanning base." (`open-change` and `close`:
+`#<number>` on current main to pick up security fixes." Then `close` the
+original change with comment "Superseded by #<new-pr> — rebased on main to
+resolve stale vulnerability-scanning base." (`open-change` and `close`:
 [work-trackers.md](../../agents/x-work-trackers.md).)
 
 > **Do not use `@dependabot rebase`.** GitHub Apps cannot trigger Dependabot
@@ -174,7 +172,7 @@ vulnerability-scanning base." (`open-change` and `close`:
 | #dep-b  | bump upload-pages-artifact ... | fix    | Missing SHA pins           |
 ```
 
-### Memory: What to Record
+## Memory: What to Record
 
 Append to the current week's log (see agent profile for the file path):
 

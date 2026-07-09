@@ -36,12 +36,12 @@ artifact pinned to a gear release. **Stop** pushes agent memory back;
     ],
     "WorktreeCreate": [
       {
-        "hooks": [{ "type": "command", "command": "npx fit-wiki init" }]
+        "hooks": [{ "type": "command", "command": "fit-wiki init" }]
       }
     ],
     "Stop": [
       {
-        "hooks": [{ "type": "command", "command": "npx fit-wiki push" }]
+        "hooks": [{ "type": "command", "command": "fit-wiki push" }]
       }
     ]
   }
@@ -66,13 +66,13 @@ them under `wiki/`, then let `init` finish the scaffold and `push` publish it:
 
 1. Enable the wiki on the remote and create its first page (any content) so the
    `<repo>.wiki.git` repository exists — an empty wiki has no git repo to clone.
-2. `npx fit-wiki init` — clones the wiki into `wiki/`, creates
+2. `fit-wiki init` — clones the wiki into `wiki/`, creates
    `wiki/metrics/<skill>/` directories for each installed skill, and appends the
    `## Active Claims` table to `MEMORY.md`.
 3. Write the three files below into `wiki/` (Step 2 leaves `MEMORY.md` with only
    the Active Claims block if it did not exist; write the full template, then
    re-run `init` to re-append Active Claims if needed).
-4. `npx fit-wiki push` — publishes the seeded ledgers.
+4. `fit-wiki push` — publishes the seeded ledgers.
 
 Each file is empty apart from scaffolding: a heading, a one-line description of
 what the surface is for, and an empty table or fence. Agents and `fit-wiki`

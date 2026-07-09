@@ -8,7 +8,7 @@ description: >
   prevents the spec/design/plan/implement review loop from recursing.
 ---
 
-# Review
+# Review Artifacts
 
 Independent grading skill for artifacts produced by `kata-spec`, `kata-design`,
 `kata-plan`, and `kata-implement`. Returns severity-graded findings; takes no
@@ -25,14 +25,15 @@ action. Never spawns sub-agents.
 ## Invariant: never spawn
 
 This skill's Process has **no step that launches a sub-agent**. That is the
-property that prevents the spec / plan / implement review loop from recursing —
+property that prevents the spec / design / plan / implement review loop from
+recursing —
 if you find yourself wanting to make an `Agent` tool call from inside this
 skill, stop and return findings instead.
 
 ## Severity Vocabulary
 
-This is the canonical definition of review severity for the spec → plan →
-implement arc. Grade every finding using exactly one level:
+This is the canonical definition of review severity for the spec → design →
+plan → implement arc. Grade every finding using exactly one level:
 
 - **Blocker** — The work is broken, dangerous, or materially wrong. Must fix
   before advancing (approving the spec, advancing status, merging code).
@@ -51,37 +52,42 @@ optional.
 
 ## Process
 
-1. **Identify the artifact type.** The caller tells you whether the input is a
-   `spec.md`, a `design-a.md`, a `plan-a.md` (plus any decomposed parts), or a
-   code diff (`git diff origin/main...HEAD`). You are spawned cold with no
-   back-channel to the caller — if the artifact type or path is genuinely
-   ambiguous, return a single **Blocker** finding asking for clarification and
-   stop. Do not guess.
+### Step 1: Identify the artifact type
 
-2. **Build context before grading.** Read in this order:
+The caller tells you whether the input is a `spec.md`, a `design-a.md`, a
+`plan-a.md` (plus any decomposed parts), or a code diff
+(`git diff origin/main...HEAD`). You are spawned cold with no back-channel to
+the caller — if the artifact type or path is genuinely ambiguous, return a
+single **Blocker** finding asking for clarification and stop. Do not guess.
 
-   a. **The artifact itself.** Read fully before anything else.
+### Step 2: Build context before grading
 
-   b. **Upstream documents.** For a design, read the spec. For a plan, read the
+Read in this order:
+
+1. **The artifact itself.** Read fully before anything else.
+2. **Upstream documents.** For a design, read the spec. For a plan, read the
    spec and design. For a diff, read the spec, design, plan, and
    CONTRIBUTING.md § Core Rules.
-
-   c. **Codebase files the artifact references or modifies.** When the artifact
+3. **Codebase files the artifact references or modifies.** When the artifact
    names files, functions, classes, or APIs, read those source files. When a
    plan lists files to create or change, read the current versions. Verify
    that the artifact's assumptions about existing code are accurate.
 
-3. **Grade against criteria.** Apply the artifact-specific criteria in the
-   section below and any domain-specific review criteria defined by your agent
-   profile. For each gap or risk, write one finding with:
-   - File path and line number (or commit hash)
-   - The criterion violated, in one short phrase
-   - Severity per the vocabulary above
-   - One-sentence explanation
+### Step 3: Grade against criteria
 
-4. **Return findings only.** Do not modify the artifact, do not open PRs, do not
-   invoke other skills, do not spawn sub-agents. Group findings by severity and
-   report.
+Apply the artifact-specific criteria in the section below and any
+domain-specific review criteria defined by your agent profile. For each gap or
+risk, write one finding with:
+
+- File path and line number (or commit hash)
+- The criterion violated, in one short phrase
+- Severity per the vocabulary above
+- One-sentence explanation
+
+### Step 4: Return findings only
+
+Do not modify the artifact, do not open PRs, do not invoke other skills, do not
+spawn sub-agents. Group findings by severity and report.
 
 ## Artifact Criteria
 

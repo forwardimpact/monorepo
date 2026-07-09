@@ -49,36 +49,36 @@ corrections: re-verify the named artifact rather than transcribing it verbatim.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and `storyboard_items` seed
-this Process. Then read every file in `wiki/`: agent summaries
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process. Then read every file in `wiki/`: agent summaries
 (`wiki/<agent>.md`), the current week's log for each
 (`wiki/<agent>-$(date +%G-W%V).md`), `wiki/MEMORY.md`, and `wiki/Home.md`.
 
 > **Writing under `.claude/`:** If this run edits files under `.claude/agents/`
 > or `.claude/skills/`, follow
-> [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-self-improvement.md).
+> [self-improvement.md](../../agents/x-self-improvement.md).
 
 ### Step 1: Contract audit
 
-Run `npx fit-wiki fix` first — it rotates over-budget weekly logs, re-bisects
+Run `fit-wiki fix` first — it rotates over-budget weekly logs, re-bisects
 over-budget sealed parts, hands prose-judgment findings (including a missing
 `### Decision`) to a Haiku technical-writer (re-auditing each round), and exits
 non-zero flagging anything irreducible (a lone over-budget day-section) for a
 human rather than inventing content. Then run
-`npx fit-wiki audit --format json` to confirm — it checks every wiki file
+`fit-wiki audit --format json` to confirm — it checks every wiki file
 (summaries, weekly logs and sealed parts, MEMORY.md, priority and claims rows,
 the current storyboard) against the rule catalogue. The same audit gates
 pre-merge CI, so a clean local run is the bar. Hand-resolve each flagged
 `fail` in the named file:
 
 - **Budgets** (line/word) — trim settled state, or
-  `npx fit-wiki rotate --agent <agent>` to seal an overflowing weekly log.
+  `fit-wiki rotate --agent <agent>` to seal an overflowing weekly log.
 - **Section order / markers** — reorder the summary. The curator is the only
   agent that rewrites summaries; others propose edits via observations.
 - **Decision blocks** — `fit-wiki fix` now inserts a missing `### Decision`
-  summarising the entry's narrative; verify it matches what the entry records,
+  summarizing the entry's narrative; verify it matches what the entry records,
   not invented rationale.
 - **MEMORY.md structure / row shape** — repair headings, separators, and column
   counts in place.
@@ -89,10 +89,10 @@ invariant above.
 ### Step 2: Claims hygiene
 
 Audit warns (`expired-claim`) on every `## Active Claims` row past its
-`expires_at`; clear them with `npx fit-wiki refresh` — a stale claim
+`expires_at`; clear them with `fit-wiki refresh` — a stale claim
 falsely signals work in flight. For rows not yet expired but naming a PR/Issue
 that has since merged or closed, verify state per the write-time invariant and
-release each via `npx fit-wiki release --agent <agent> --target <id>`.
+release each via `fit-wiki release --agent <agent> --target <id>`.
 
 ### Step 3: Summary accuracy
 
@@ -110,17 +110,17 @@ must satisfy the write-time invariant above.
 
 ### Step 4: Inbox follow-up
 
-List each agent's inbox via `npx fit-wiki inbox list --agent <agent>`. For each
+List each agent's inbox via `fit-wiki inbox list --agent <agent>`. For each
 memo:
 
 1. The recipient owns the inbox; the sender is the bold name on the bullet
    (`- [date] **<sender>**: <text>`).
 2. Check the recipient's weekly logs after the memo date for acknowledgement.
 3. A team-level item belongs in Cross-Cutting Priorities —
-   `npx fit-wiki inbox promote --agent <recipient> --index N` writes the
+   `fit-wiki inbox promote --agent <recipient> --index N` writes the
    priority row and removes the bullet in one step.
 4. Flag memos >2 weeks old with no response: re-send a nudge via
-   `npx fit-wiki memo --from technical-writer --to <recipient> --message "<flag text>"`.
+   `fit-wiki memo --from technical-writer --to <recipient> --message "<flag text>"`.
 
 ### Step 5: Memory index & storyboard
 
@@ -132,7 +132,7 @@ checks the content it cannot read.
 - **`wiki/Home.md`** — agent count matches; summary links work; quick links
   current.
 - **`wiki/storyboard-YYYY-MNN.md`** — marker blocks are auto-generated; don't
-  hand-edit them, run `npx fit-wiki refresh` if stale. Surrounding prose should
+  hand-edit them, run `fit-wiki refresh` if stale. Surrounding prose should
   reflect the live condition.
 
 Update MEMORY.md and Home.md if they've drifted.
@@ -160,14 +160,14 @@ context beyond the index entry. Remove resolved items within one curation cycle.
 ### Publishing changes
 
 Hold wiki content to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md)
+[Citation integrity](../../agents/x-citation-integrity.md)
 before publishing.
 
 Wiki changes are not visible to other agents until pushed. After committing,
 push the wiki — `cd wiki && git push origin HEAD:master` (or let the `Stop`
 hook push it).
 
-If the curation also produced monorepo fixes (e.g. stale spec STATUS, doc
+If the curation also produced repository fixes (e.g. stale spec STATUS, doc
 corrections), open a PR from a `fix/wiki-curate-YYYY-MM-DD` branch off `main` —
 same discipline as doc-review fixes.
 

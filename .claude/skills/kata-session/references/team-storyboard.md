@@ -1,6 +1,6 @@
 # Team Storyboard Overlay
 
-Applies to `kata-storyboard.yml` runs: the improvement coach facilitates a
+Applies to storyboard-workflow runs: the improvement coach facilitates a
 monthly team storyboard meeting with multiple participants.
 
 ## Artifact
@@ -13,7 +13,7 @@ Experiments. Full template, with per-section word budgets, at
 ## Planning vs. Review
 
 **Planning meeting** — first meeting of the month or no storyboard exists.
-`npx fit-wiki refresh` creates the monthly file (section skeleton +
+`fit-wiki refresh` creates the monthly file (section skeleton +
 `obstacles`/`experiments` markers) before the meeting. It omits the per-metric
 XmR blocks: for every
 `wiki/metrics/{skill}/{YYYY}.csv`, a participant seeds one `#### {metric_name}`
@@ -35,14 +35,14 @@ vs. expected), update Obstacles, and plan the next experiment.
    product-manager to write it into the storyboard.
 2. **What is the actual condition now?** Each participant follows the
    Participant Protocol: measure with live data, record to CSV, run
-   `npx fit-xmr analyze` on its own CSV, then report each metric's `status`,
+   `fit-xmr analyze` on its own CSV, then report each metric's `status`,
    `μ`, and any fired-rule `signals` via `Answer`; the facilitator relays these
    and runs no analysis itself. Participants flag any metric whose status
    changed since the last meeting.
 3. **What obstacles are preventing us from reaching the target?** Participants
    identify obstacles from their domain; what an obstacle *is* — and
    obstacle-vs-experiment — is defined in
-   [work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests).
+   [work-definition.md § Classification tests](../../../agents/x-work-definition.md#classification-tests).
 4. **What is the next step? What do you expect?** For the obstacle currently
    being addressed, participants propose their next experiment and its expected
    outcome, scoped to one or two daily cycles.
@@ -51,9 +51,9 @@ vs. expected), update Obstacles, and plan the next experiment.
 
 ## Metrics
 
-Each participant records to `wiki/metrics/{skill}/{YYYY}.csv`. See
-[`metrics.md`](metrics.md) for suggested coaching-side metrics and KATA.md §
-Metrics for the recording-eligibility rule.
+Each participant records to `wiki/metrics/{skill}/{YYYY}.csv` per its own
+skill's `references/metrics.md`; KATA.md § Metrics has the
+recording-eligibility rule.
 
 ## Storyboard Updates
 
@@ -85,7 +85,7 @@ the permanent record.
 
 Per SKILL.md Step 7, the facilitator picks a route per obstacle (parallel
 allowed) and logs it; trigger criteria live in
-[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests).
+[work-definition.md § Classification tests](../../../agents/x-work-definition.md#classification-tests).
 Discussion is delegated to the owning agent, Coaching to the coach's Assess run:
 
 | Trigger                                                                          | Route      |

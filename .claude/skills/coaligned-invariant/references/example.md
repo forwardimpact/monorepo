@@ -10,7 +10,7 @@ forbidden package. It shows the three required parts (top comment, `build`,
 // Invariant: src files must not import the legacy "old-client" package.
 // New code uses "new-client". A monotone deny-list grandfathers files that
 // still import the old one during migration; each PR removes its entries.
-// Refresh the deny-list: npx coaligned invariants --seed no-legacy-client
+// Refresh the deny-list: coaligned invariants --seed no-legacy-client
 
 import { stringify as stringifyYaml } from "yaml";
 

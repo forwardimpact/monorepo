@@ -25,7 +25,7 @@ stay outside this standard.
 
 An approval signal certifies the specific head it was given on. It never
 certifies a bare phase. The pin source per signal class is defined in
-[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-approval-signals.md)
+[`approval-signals.md`](../../../agents/x-approval-signals.md)
 § Signal invalidation. A signal whose pin cannot be established transfers to no
 other head. It is valid only on a head where the signal is freshly
 re-confirmed.

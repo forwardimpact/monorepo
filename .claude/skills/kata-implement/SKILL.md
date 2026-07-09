@@ -36,11 +36,11 @@ alongside the skill-specific ones below.
       tree.
 - [ ] Claim before first code write — atomic `pull` → check → `claim` →
       `push` per
-      [memory-protocol § Active Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#active-claims).
+      [memory-protocol § Active Claims](../../agents/x-memory-protocol.md#active-claims).
 - [ ] Probe the remote of record: `git ls-remote origin "refs/heads/<branch>"`
       and `list` changes by head branch and by spec number, any state
       ([work-trackers.md](../../agents/x-work-trackers.md);
-      [§ Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md#claim--probe--create)).
+      [§ Claim → probe → create](../../agents/x-coordination-protocol.md#claim--probe--create)).
 - [ ] Read the full spec and all plan files before writing any code.
 - [ ] Implement plan-a unless explicitly directed to a different variant.
 - [ ] Implement only what the plan describes — no unrequested refactors,
@@ -67,14 +67,14 @@ alongside the skill-specific ones below.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and (when this skill reads
-Tier-2 surfaces) `storyboard_items` seed the rest of this Process. Extract
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process. Extract
 previously implemented specs and blockers.
 
 > **Writing under `.claude/`:** If the plan targets files there, follow
-> [self-improvement.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-self-improvement.md).
+> [self-improvement.md](../../agents/x-self-improvement.md).
 
 ### Step 1: Study the spec deeply
 
@@ -165,13 +165,13 @@ Push commits only after the panel is clean; re-run the READ-DO freshness probe
 before the `open-change`. Title the PR with the spec id:
 `feat(scope): ... (#NNN)`. After opening, announce and route on the coordinating
 issue per
-[coordination-protocol § Claim → probe → create](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md#claim--probe--create),
+[coordination-protocol § Claim → probe → create](../../agents/x-coordination-protocol.md#claim--probe--create),
 and hold the PR body to
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md).
+[Citation integrity](../../agents/x-citation-integrity.md).
 
 ## Handling Problems
 
-- **Plan step is unclear.** Read the spec for intent, then use your judgement.
+- **Plan step is unclear.** Read the spec for intent, then use your judgment.
   Note what you decided and why in the commit message.
 - **Plan step conflicts with current code.** Adapt to the current state. The
   plan describes what to achieve, not exact keystrokes. Flag significant

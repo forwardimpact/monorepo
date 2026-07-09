@@ -96,8 +96,8 @@ The self-hosted template with three changes (the **canonical** hosted recipe):
 3. In the `kata-agent` step, drop `app-id`/`app-private-key`, add
    `installation-token: ${{ steps.mint.outputs.token }}`; keep `killswitch:`.
 
-`FIT_OIDC_URL` is the `services/oidc` URL as a repository **variable**, masked
-in logs. Hosted needs a `kata-agent` SHA accepting `installation-token`.
+`FIT_OIDC_URL` is the hosted OIDC service URL as a repository **variable**,
+masked in logs. Hosted needs a `kata-agent` SHA accepting `installation-token`.
 
 ## Inline steps
 

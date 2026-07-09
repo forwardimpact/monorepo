@@ -50,7 +50,15 @@ const PATTERNS = [
   },
   {
     pattern: "\\bbunx ",
-    reason: "internal runner — invoke fit-* CLIs via npx",
+    reason: "internal runner — invoke fit-* CLIs bare",
+  },
+  {
+    pattern: "\\bnpx (fit-|coaligned|kata-)",
+    reason: "CLIs are invoked bare — drop the npx prefix",
+  },
+  {
+    pattern: "`bun`",
+    reason: 'internal runner — say "the repository\'s <task> command"',
   },
   {
     pattern: "\\bbun (install|pm|test|audit)\\b",
@@ -82,6 +90,20 @@ const PATTERNS = [
   {
     pattern: "repos/forwardimpact/monorepo",
     reason: "hardcoded repo path — use repos/{owner}/{repo}",
+  },
+  {
+    pattern: "\\bkata-(storyboard|coaching|shift|dispatch)\\.yml",
+    reason:
+      "internal workflow filename — kata-setup generates agent-*.yml; name the workflow by role",
+  },
+  {
+    pattern: "`services/(oidc|ghbridge)",
+    reason:
+      "internal service path — name the service by role, or link its README by full URL",
+  },
+  {
+    pattern: "\\bthe monorepo\\b",
+    reason: 'internal framing — say "the repository"',
   },
   {
     pattern: "metrics/[a-z-]+/20[0-9]{2}",

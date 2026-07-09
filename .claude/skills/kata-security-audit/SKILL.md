@@ -1,7 +1,7 @@
 ---
 name: kata-security-audit
 description: >
-  Perform a holistic security review of the monorepo. Assess GitHub Actions
+  Perform a holistic security review of the repository. Assess GitHub Actions
   supply chain, dependency hygiene, credential leak controls, CI audit gates,
   and application-level vulnerabilities. Use when reviewing PRs for security
   impact, auditing the repo posture, or investigating a reported vulnerability.
@@ -11,7 +11,7 @@ description: >
 
 ## When to Use
 
-- Scheduled audit of the monorepo's security posture (one topic per run)
+- Scheduled audit of the repository's security posture (one topic per run)
 - Reviewing a PR for security impact
 - Investigating a reported vulnerability
 
@@ -79,15 +79,15 @@ declares.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and (when this skill reads
-Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Find
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process. Find
 last audit dates per topic in the coverage map. Canonical topic-rotation runs
 (audit topics under § Audit Areas) write only to the wiki and never open a PR —
 do **not** `fit-wiki claim` for them; the claim contract applies only when this
 skill is invoked from `kata-security-update` or otherwise opens a PR (see
-[memory-protocol § Claims](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#claims)).
+[memory-protocol § Active Claims](../../agents/x-memory-protocol.md#active-claims)).
 
 ### Step 1: Select Topic
 
@@ -130,7 +130,7 @@ paths and line numbers.
 
 Every audit must produce all applicable categories of output. Classify each
 finding with
-[work-definition.md § Classification tests](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-work-definition.md#classification-tests)
+[work-definition.md § Classification tests](../../agents/x-work-definition.md#classification-tests)
 (mechanical fix vs structural spec vs unsettled Discussion). Security-specific:
 a cross-team policy question goes to a Discussion **before** any spec or fix
 that depends on the answer.
@@ -156,11 +156,10 @@ Append to the current week's log (see agent profile for the file path):
 ## Coordination Channels
 
 This skill produces these non-wiki outputs (per
-[coordination-protocol.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md)):
+[coordination-protocol.md](../../agents/x-coordination-protocol.md)):
 
 - **Discussion** — Policy questions surfaced from audit (e.g. "should we relax
   SHA-pinning for `actions/*`?") that need cross-team input before a spec.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md):
-every cited SHA must resolve on its referenced repo, or the body is not
-published.
+Hold every published body to
+[citation integrity](../../agents/x-citation-integrity.md).

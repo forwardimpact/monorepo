@@ -112,14 +112,14 @@ Plans may be approved by `staff-engineer` after a clean `kata-plan` panel
 review; alternatively, the same human-driven signals that gate spec/design
 (label, PR comment, APPROVED review, in-session user message) also feed STATUS
 for plans. See
-[`approval-signals.md`](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-approval-signals.md)
+[`approval-signals.md`](../../agents/x-approval-signals.md)
 and
-[`coordination-protocol.md` § Approval signal](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-coordination-protocol.md#approval-signal).
+[`coordination-protocol.md` § Approval signal](../../agents/x-coordination-protocol.md#approval-signal).
 
-**Post-panel coverage.** A commit between the panel and the STATUS write must
-not let the row silently claim head coverage: record a scoped panel re-read on
-the PR, or a dual-SHA PR comment naming the panel-clean and amendment SHAs.
-Retires once approval rows carry a commit pin.
+**Post-panel coverage.** If commits land between the panel and the STATUS
+write, record a scoped panel re-read on the PR, or a dual-SHA PR comment naming
+the panel-clean and amendment SHAs — the row must not silently claim head
+coverage.
 
 ## Reviewing a Plan
 
@@ -137,10 +137,10 @@ When multiple variants exist, note which is recommended (plan-a is the default).
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot --agent <self>` (per
-[Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#on-boot-read-set)).
-The boot digest's `owned_priorities`, `claims`, and (when this skill reads
-Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process.
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
+Process.
 Extract specs previously planned and any deferred work from prior entries.
 
 ### Step 1: Find the design
@@ -154,10 +154,9 @@ Read both end to end.
 
 ### Step 3: Research the codebase
 
-Read the files the plan will target. Before drafting, enumerate in one tracked
-task every library or service primitive the design cites, plus the test files
-that will host new assertions; source-read each declaration before the first
-draft. Keep pre-draft reads under 40.
+Read the files the plan will target. Before drafting, enumerate every library
+or service primitive the design cites, plus the test files that will host new
+assertions, and source-read each declaration before the first draft.
 
 ### Step 4: Write the plan
 
@@ -177,9 +176,8 @@ panel is clean.
 
 The PR title carries the spec id: `plan(NNN): …`.
 
-[Citation integrity](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-citation-integrity.md):
-every cited SHA must resolve on its referenced repo, or the body is not
-published.
+Hold every published body to
+[citation integrity](../../agents/x-citation-integrity.md).
 
 ### Step 7: Write STATUS
 
