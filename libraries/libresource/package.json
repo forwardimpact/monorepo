@@ -58,9 +58,9 @@
     "@forwardimpact/libtype": "^0.1.63",
     "@forwardimpact/libutil": "^0.1.60",
     "html-minifier-terser": "^7.2.0",
-    "linkedom": "^0.18.12",
+    "linkedom": "^0.18.13",
     "microdata-rdf-streaming-parser": "^3.0.0",
-    "n3": "^2.0.3"
+    "n3": "^2.1.1"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
