@@ -43,8 +43,9 @@ Run this once per repository. For ongoing work use the sibling skills:
       their caps.
 - [ ] `CLAUDE.md` carries a Jobs and Checklists section pointing at JTBD.md and
       the tagged pause-point checklists.
-- [ ] `.coaligned/invariants/` exists and holds the `no-conflict-markers`
-      starter rule.
+- [ ] `.coaligned/invariants/` holds the `no-conflict-markers` starter rule, and
+      CONTRIBUTING.md points at the invariants tooling for finding and adding
+      rules.
 - [ ] The check is wired into the repository's check command and CI through an
       invocation a clean runner resolves, with the concrete command in
       CONTRIBUTING.md.
@@ -89,8 +90,9 @@ its cap (L1 ≤ 192 lines; L2 ≤ 320 lines).
 
   Keep the tag names verbatim — they are the discovery contract contributors
   and the `coaligned` checks rely on.
-- **`CONTRIBUTING.md`** (L2) — contribution standards: invariants, the quality
-  commands, security policy, and the universal checklists.
+- **`CONTRIBUTING.md`** (L2) — contribution standards: the architectural
+  invariants, the quality commands, security policy, and the universal
+  checklists.
 - **`JTBD.md`** (L2) — the jobs, per Step 1. Use coaligned-jtbd to author
   entries to spec.
 
@@ -121,6 +123,13 @@ module loads, and a planted marker fails the check.
 Add repo-specific rules on top with
 [coaligned-invariant](../coaligned-invariant/SKILL.md); keep or remove the
 starter once the repo has invariants of its own.
+
+Point CONTRIBUTING.md at this layer so contributors can find and extend it:
+where the rules live (`.coaligned/invariants/*.rules.mjs`), the `coaligned
+invariants` command that runs them, and
+[coaligned-invariant](../coaligned-invariant/SKILL.md) for authoring a rule.
+This is the invariant *tooling* — distinct from the architectural
+non-negotiables CONTRIBUTING.md already states in prose.
 
 ### Step 4: Wire the checks into the repository
 

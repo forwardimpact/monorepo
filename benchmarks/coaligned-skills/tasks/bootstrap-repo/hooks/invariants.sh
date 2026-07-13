@@ -33,4 +33,11 @@ assert jtbd-has-job --grep '<job' "$JTBD" \
 assert starter-rule-present --exists "$STARTER" \
   --message "no-conflict-markers starter rule not installed"
 
+# CONTRIBUTING.md points at the invariant tooling — the discovery contract for
+# the layer coaligned-setup creates: where machine-checked rules live and the
+# command that runs them.
+assert contributing-surfaces-invariants \
+  --grep 'coaligned invariants|\.coaligned/invariants' "$CONTRIBUTING" \
+  --message "CONTRIBUTING.md does not point at the invariant tooling"
+
 [ "$FAIL" = 0 ] && exit 0 || exit 1
