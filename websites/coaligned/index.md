@@ -75,7 +75,7 @@ layout: home
       <div class="layer-card stagger-item">
         <div class="layer-tag">L1</div>
         <div class="layer-name">CLAUDE.md</div>
-        <p class="layer-desc">Project identity. What it is, who it serves, and where to find things.</p>
+        <p class="layer-desc">Project identity — what it is, who it serves, and where to find its jobs and checklists.</p>
       </div>
       <div class="layer-card stagger-item">
         <div class="layer-tag">L2</div>

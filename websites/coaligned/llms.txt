@@ -19,8 +19,12 @@ a semantic tag — `<read_do_checklist>` for entry gates, `<do_confirm_checklist
 for exit gates — so every pause point in a repository is discoverable from
 anywhere with one `rg` search.
 
-Co-Aligned builds on the Monorepo structure standard and is the upstream
-architecture the Kata Agent Team implements.
+Co-Aligned stands on its own: any well-structured repository can adopt it,
+whatever its directory shape. It defines the universal root files every
+co-aligned repository carries — CLAUDE.md, CONTRIBUTING.md, and JTBD.md — along
+with the Jobs To Be Done conventions. A repository's structure standard extends
+it; the Monorepo standard is one such extension, and the Kata Agent Team
+implements it as a daily loop.
 
 Install via `apm install forwardimpact/coaligned-skills`, then ask Claude to
 set it up. Wire `npx coaligned` into your checks to keep every layer honest.

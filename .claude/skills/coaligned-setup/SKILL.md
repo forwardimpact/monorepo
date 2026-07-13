@@ -41,6 +41,8 @@ Run this once per repository. For ongoing work use the sibling skills:
 
 - [ ] `CLAUDE.md`, `CONTRIBUTING.md`, and `JTBD.md` exist and stay within
       their caps.
+- [ ] `CLAUDE.md` carries a Jobs and Checklists section pointing at JTBD.md and
+      the tagged pause-point checklists.
 - [ ] `.coaligned/invariants/` exists and holds the `no-conflict-markers`
       starter rule.
 - [ ] The check is wired into the repository's check command and CI through an
@@ -76,6 +78,17 @@ its cap (L1 ≤ 192 lines; L2 ≤ 320 lines).
 
 - **`CLAUDE.md`** (L1) — project identity: what the repo is, who it serves,
   where things live, and how to route to skills. Orientation, not procedure.
+  The L1 property is that it surfaces the discovery conventions, so include a
+  brief **Jobs and Checklists** section naming where jobs live and how jobs and
+  checklists are found with `rg`. Copy the starter and adapt its first line to
+  the jobs shape from Step 1:
+
+  ```sh
+  cat .claude/skills/coaligned-setup/assets/jobs-and-checklists.md
+  ```
+
+  Keep the tag names verbatim — they are the discovery contract contributors
+  and the `coaligned` checks rely on.
 - **`CONTRIBUTING.md`** (L2) — contribution standards: invariants, the quality
   commands, security policy, and the universal checklists.
 - **`JTBD.md`** (L2) — the jobs, per Step 1. Use coaligned-jtbd to author

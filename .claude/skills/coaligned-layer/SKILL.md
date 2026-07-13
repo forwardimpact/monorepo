@@ -12,7 +12,11 @@ description: >
 The Co-Aligned architecture splits instructions across eight layers, each with
 one job. A defect in one layer is a different class of problem from a defect in
 another, and that separation is what makes a failed run attributable. This
-skill authors and repairs the layers a contributor edits: L3–L7.
+skill authors and repairs the layers a contributor edits: L3–L7. The root
+identity and jobs files (L1/L2) have their properties set by the standard and
+are bootstrapped once by [coaligned-setup](../coaligned-setup/SKILL.md) —
+including the `CLAUDE.md` section that surfaces how jobs and checklists are
+discovered. Repair those there, not here.
 
 `coaligned instructions` enforces a line cap and a word cap on every layer.
 Either breach fails. See

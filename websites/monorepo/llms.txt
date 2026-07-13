@@ -18,8 +18,10 @@ governs (invariants, rules, policy), and JTBD.md catalogues the Big Hires.
 Jobs are wrapped in a semantic `<job>` tag so any of them is discoverable
 from anywhere with one `rg` search.
 
-Monorepo is the structure that Co-Aligned layers an instruction architecture
-on top of, and that the Kata Agent Team implements as a daily loop.
+Monorepo builds on the Co-Aligned instruction architecture — which defines
+those three root files and the `<job>` convention — and adds the directory
+shape they live in. The Kata Agent Team implements the whole standard as a
+daily loop.
 
 Stand up a new one with `apm install forwardimpact/coaligned-skills
 forwardimpact/kata-skills`, then ask Claude to set up the repository.

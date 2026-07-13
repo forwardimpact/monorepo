@@ -6,9 +6,12 @@
 > — Atul Gawande, _The Checklist Manifesto_
 
 This standard defines the layered instruction architecture for creating aligned
-coding agents. It builds on the repository structure — see
-[MONOREPO.md](MONOREPO.md) for the top-level directories, root files, and the
-JTBD entry structure and tagging convention this standard assumes.
+coding agents, together with the universal root files every co-aligned
+repository carries — `CLAUDE.md`, `CONTRIBUTING.md`, and `JTBD.md`. It stands on
+its own: any well-structured repository can adopt it, whatever its directory
+shape. A repository's structure standard extends it — for a monorepo, see
+[MONOREPO.md](MONOREPO.md) for the top-level directories and how jobs map onto
+them.
 
 It draws on two well-publicized ideas:
 
@@ -104,13 +107,128 @@ text carry no tags; the harness applies them at composition time.
 ## L1 — Project Identity (CLAUDE.md)
 
 Auto-loaded via `settingSources: ["project"]`. Orients every contributor on
-every run. Properties of a good `CLAUDE.md` are defined upstream in
-[MONOREPO.md](MONOREPO.md).
+every run: _what_ the project is, _who_ it serves, and _where_ to find things.
+
+### Properties of a Good Project Identity
+
+1. **Orients, doesn't govern.** Answers what, who, where. Rules and policies
+   belong in `CONTRIBUTING.md`.
+2. **Navigation hub.** Points to everything, restates nothing. A link is
+   cheaper than a duplicate.
+3. **Stable.** Changes rarely — frequent churn means content belongs elsewhere.
+4. **Budget-conscious.** Every line loads on every run. If a section is only
+   relevant to one workflow, push it deeper.
+5. **Surfaces the discovery conventions.** Because it is the one layer loaded
+   on every run, it advertises how the architecture's tagged artifacts are
+   found. A brief section names where jobs live ([JTBD.md](JTBD.md)) and how
+   both jobs and checklists are discovered with `rg`, so a contributor reaches
+   them without knowing where they sit.
+
+A repository's structure standard may add conventions on top (for a monorepo,
+the tooling split and how jobs distribute across directories — see
+[MONOREPO.md](MONOREPO.md)); it never replaces these universal properties.
 
 ## L2 — Contribution Standards & Jobs (CONTRIBUTING.md, JTBD.md)
 
-Read on demand, not auto-loaded. Properties of `CONTRIBUTING.md` and the JTBD
-entry structure are defined upstream in [MONOREPO.md](MONOREPO.md).
+Read on demand, not auto-loaded.
+
+### Contribution Standards (CONTRIBUTING.md)
+
+Governs _how_ contributors work — invariants, technical rules, git workflow,
+security policies.
+
+1. **Rules, not procedures.** What to do and what not to do — step-by-step
+   sequencing belongs closer to the work.
+2. **Universal scope.** Every item applies to every contribution. Workflow-
+   specific rules belong with the workflow that owns them.
+3. **Verifiable.** Each rule should be checkable — by a human, a script, or a
+   list. Aspirational guidance that can't be verified drifts.
+
+### Jobs To Be Done (JTBD.md)
+
+The canonical catalogue of "Big Hires" — one entry per persona-outcome pair.
+Captures _what progress each persona seeks_.
+
+#### Entry Structure
+
+Each entry follows a fixed structure. The first five elements are required for
+all entries. _Forces_ and _Fired When_ are required for **products** but
+omitted for **services** and **libraries**.
+
+- **User** — persona hiring the product (`##` heading).
+- **Goal** — high-level progress sought (`###` heading).
+- **Trigger** — a specific moment that creates the job, not a role
+  description.
+- **Big Hire** — "{progress}." — the adoption decision; why this gets hired
+  over the alternatives. Rendered as "Help me {progress}." with a product
+  arrow.
+- **Little Hire** — "{progress}." — the repeated daily use; what brings the
+  user back each time. Rendered the same way.
+- **Competes With** — what currently gets hired instead; semicolon-delimited.
+- **Forces** — Four forces: _Push_ (status quo pain), _Pull_ (desired future
+  state, not features), _Habit_ (current behavior resisting change), _Anxiety_
+  (fear blocking adoption).
+- **Fired When** — Conditions under which the product gets abandoned; include
+  at least one environmental shift beyond product failure.
+
+#### Properties of Good JTBD Entries
+
+Drawing from Christensen and Moesta's methodology:
+
+1. **Progress, not features.** "Help me make staffing decisions I can defend"
+   is a job. "Help me run what-if staffing scenarios" is a feature request
+   wearing job syntax. If removing the product arrow makes the statement
+   meaningless, the job is too solution-shaped.
+2. **Trigger is a moment, not a role.** "Starting the third project that
+   needs the same plumbing" is a moment. "Building systems consumed by both
+   humans and agents" is a role description. A good trigger answers "what
+   just happened?"
+3. **Competing hires include nonconsumption.** Every Competes With list must
+   include a "hire nothing" option. Nonconsumption is usually the real
+   incumbent.
+4. **Pull describes a desired future, not a feature list.** "Confidence that
+   a staffing change strengthens the team" is a future state. "System-level
+   team views and what-if scenarios" is a feature list.
+5. **Forces are asymmetric.** One force often dominates. If all four feel
+   equally weighted, the analysis was filled in from a template rather than
+   reconstructed from a decision story.
+6. **Fired When includes the world, not just the product.** Products get
+   abandoned when the environment shifts — a reorg, a budget cut, a tool ban.
+7. **Field-validated, not desk-authored.** JTBD entries are hypotheses until
+   confirmed by customer struggle stories. An entry that surprises the product
+   team is more likely correct than one that confirms existing assumptions.
+
+#### `<job>` Tagging Convention
+
+Wrap every job — Big or Little — in a semantic tag so it can be discovered
+without knowing where it lives:
+
+```markdown
+<job user="<persona>" goal="<outcome>">
+
+**Trigger:** <the moment that creates the job>.
+
+**Big Hire:** <progress sought>. → **<product>**
+
+**Little Hire:** <repeated daily progress>. → **<product>**
+
+</job>
+```
+
+- Tag attributes (`user`, `goal`) make search results self-describing — each
+  match shows purpose without opening the file.
+- Keep the full opening tag on one line within 74 characters so `rg` output
+  stays coherent.
+
+Discover jobs from anywhere in the repo with `rg '<job '`.
+
+#### Big Hires and Little Hires
+
+Jobs live near the code that serves them. **Big Hires** — the adoption decision
+per persona-outcome pair — live in `JTBD.md` with the full entry structure.
+**Little Hires** — narrower, repeated daily jobs — live wherever they fit best:
+package or module READMEs, design docs, or nearby code. A repository's structure
+standard says where that is for its shape.
 
 ## L3 — Agent Profile
 
