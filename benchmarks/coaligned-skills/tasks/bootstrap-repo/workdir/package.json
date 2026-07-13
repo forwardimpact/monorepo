@@ -1,0 +1,25 @@
+{
+  "name": "unitconv",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Convert between metric and imperial units at the terminal.",
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "benchmarks/coaligned-skills/tasks/bootstrap-repo/workdir"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "bin": {
+    "unitconv": "src/convert.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  }
+}

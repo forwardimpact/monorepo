@@ -1,0 +1,28 @@
+name: "Eval: Co-Aligned"
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: eval-coaligned-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Fan the coaligned-skills family (2 tasks × runs:5 = 10 cells) across
+  # machines via the benchmark reusable workflow, then merge the shard ledgers
+  # into one pass@k. One shard per task keeps each machine's run small. This
+  # caller only picks the family and shard count; the filesystem work-tracker is
+  # the reusable workflow's env contract.
+  benchmark:
+    uses: forwardimpact/benchmark/.github/workflows/benchmark.yml@66b7dad6715d32d64bdc81614cd7b2edad9b1cae # v1.0.3
+    with:
+      family: ./benchmarks/coaligned-skills
+      runs: "5"
+      max-turns: "30"
+      judge-profile: judge
+      shard-total: "2"
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

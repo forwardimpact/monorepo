@@ -20,33 +20,35 @@ unbiased estimator.
 
 ## Why a Separate Tool
 
-`fit-harness` is the generic agent-evaluation plumbing; `fit-benchmark` is the
-opinionated layer on top — task-family format, hidden invariant checks,
-post-hoc judge, and multi-run aggregation.
+`fit-harness` is the generic agent-evaluation plumbing; `fit-benchmark` adds the
+opinionated layer: task-family format, hidden invariants, judge, and pass@k.
 
 ## Task Family Format
 
-A task family is a directory of related coding tasks plus the skill-set
-under test:
+A task family is a directory of related tasks plus the skill-set under test.
+You author these files:
 
 ```text
 <family>/
-  apm.yml                # optional — skill-pack dependencies
-  apm.lock.yaml          # skill-set manifest (hashed into skillSetHash)
-  .env / .env.local      # env vars — loaded + rendered into each agent CWD
-  .claude/               # pre-staged skills + agent profiles
+  apm.yml                # skill-pack dependency (or stage local skills with --skills-from)
+  judge.md               # optional — family-local judge profile
+  .env / .env.local      # optional — env vars loaded + rendered into each agent CWD
   workdir/               # optional — shared base copied into EVERY task CWD
   specs/                 # optional — shared base copied into EVERY task CWD/specs
   tasks/<task-name>/
-    agent.task.md         # agent prompt (required)
-    .env / .env.local     # task env vars — loaded + rendered (gitignored)
-    supervisor.task.md    # optional — supervisor context for the relay
+    agent.task.md         # agent prompt (required) — trigger the skill, don't restate it
     judge.task.md         # optional — judge prompt (see § Judge Template Variables)
+    supervisor.task.md    # optional — supervisor context for the relay
     hooks/preflight.sh    # optional — smoke probe; exit 0 confirms scaffold
     hooks/invariants.sh   # optional — fd 3 = $RESULTS_FD for structured rows
-    specs/                # copied into agent CWD (overlays family specs/)
-    workdir/              # copied into agent CWD (overlays family workdir/)
+    specs/ workdir/       # optional — copied into agent CWD (overlay family-level)
 ```
+
+`run` generates the rest — `.claude/`, `apm.lock.yaml` (hashed into
+`skillSetHash`), and `apm_modules/`: outputs, not sources. Git-ignore them once
+at the directory holding your families, never per family — see
+[references/authoring.md](references/authoring.md) for what to commit and the
+`agent.task.md` prompt.
 
 Task IDs are directory names under `tasks/`. Local paths and git URLs
 are both accepted.
