@@ -1,5 +1,9 @@
-# Artifacts every family generates at run time (`apm install` / `fit-benchmark
-# run`). Ignored once here so families don't each repeat them. `apm_modules/`
-# and `node_modules/` are already covered by the repo-root .gitignore.
+# Everything a family generates at run time (`apm install` / `fit-benchmark
+# run`), ignored once here so families don't each carry a copy. `apm install`
+# also drops a per-family `.gitignore`; that generated noise is ignored too.
+# `apm_modules/` and `node_modules/` are already covered by the repo-root
+# .gitignore.
 */.claude/
 */apm.lock.yaml
+*/.gitignore
+*/bun.lock

@@ -109,17 +109,18 @@ that no output exists yet.
 ## What to commit
 
 Commit only the files you author. `run` and `apm install` generate `.claude/`,
-`apm.lock.yaml`, and `apm_modules/` inside each family — these are outputs, so
-ignore them. Put the ignore patterns once, in a `.gitignore` at the directory
-that holds your families, rather than copying one into every family:
+`apm.lock.yaml`, `apm_modules/`, and a per-family `.gitignore` — all outputs, so
+ignore them. Put the patterns once, in a `.gitignore` at the directory that
+holds your families, rather than a copy in every family:
 
 ```gitignore
 */.claude/
 */apm.lock.yaml
+*/.gitignore
 ```
 
-Most repos already ignore `apm_modules/` and `node_modules/` globally; add a
-per-family `.gitignore` only for an artifact unique to one family. `apm.yml`
-stays in each family — `apm install` runs in the family root and each family
-names its own pack — so it is authored, not generated, and belongs at the
-family level.
+Most repos already ignore `apm_modules/` and `node_modules/` globally. For an
+artifact unique to one family, add a `<family>/<path>` line to that same shared
+file rather than a per-family `.gitignore`. `apm.yml` is authored, not generated
+— `apm install` runs in each family root against that family's pack — so it
+stays at the family level.
