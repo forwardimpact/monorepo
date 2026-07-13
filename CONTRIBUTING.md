@@ -32,6 +32,10 @@ Architectural non-negotiables — the shape of the codebase.
   `specs/`, `wiki/`, `benchmarks/`, `generated/` are exempt; rewrite, don't
   port, their content. Enforced by `bun run invariants`.
 
+The mechanically checkable subset lives in `.coaligned/invariants/*.rules.mjs`,
+run by `bun run invariants` (inside `bun run check`). Add a rule with the
+[coaligned-invariant](.claude/skills/coaligned-invariant/SKILL.md) skill.
+
 ### READ-DO
 
 Entry gate — read every item before starting.
