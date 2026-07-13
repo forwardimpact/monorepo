@@ -340,10 +340,20 @@ jobs:
           token: ${{ steps.ci-app.outputs.token }}
           path: tap
 
+      # The cask's binary block is regenerated from cli-manifest.json, so the
+      # manifest and its render script must travel with this job.
+      - name: Checkout monorepo for the cask render script
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          path: main
+          persist-credentials: false
+
       - name: Update cask and push to tap main
         working-directory: tap
         env:
           CASK: ${{ needs.meta.outputs.cask }}
+          BUNDLE: ${{ needs.meta.outputs.bundle }}
+          KIND: ${{ needs.meta.outputs.kind }}
           VERSION: ${{ needs.meta.outputs.version }}
           SHA256: ${{ steps.hash.outputs.sha256 }}
           KATA_APP_ID: ${{ secrets.KATA_APP_ID }}
@@ -351,13 +361,20 @@ jobs:
           set -euo pipefail
           git config user.name "kata-agent-team[bot]"
           git config user.email "${KATA_APP_ID}+kata-agent-team[bot]@users.noreply.github.com"
-          # Only version + sha256 are bumped per release; the cask body (binary
-          # stanzas, livecheck) is human-edited and survives.
           CASK_FILE="Casks/${CASK}.rb"
+          # version + sha256 are per-release; sed them in place.
           sed -i \
             -e "s|^  version \".*\"|  version \"${VERSION}\"|" \
             -e "s|^  sha256 \".*\"|  sha256 \"${SHA256}\"|" \
             "$CASK_FILE"
+          # The gear cask links ~30 CLIs — regenerate that block from the
+          # manifest so it can never drift from the bundle (a stale name fails
+          # `brew install` at link time). Product casks link one binary and
+          # keep their hand-written stanza.
+          if [ "$KIND" = gear ]; then
+            bash ../main/build/render-cask-binaries.sh "$CASK_FILE" "$BUNDLE"
+            ruby -c "$CASK_FILE"
+          fi
           git add "$CASK_FILE"
           git commit -m "Update ${CASK} to ${VERSION}"
           git push origin HEAD:main
