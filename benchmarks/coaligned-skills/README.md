@@ -13,7 +13,7 @@ agent's working directory.
 
 | Task | Skill exercised | Agent produces | Grading |
 | --- | --- | --- | --- |
-| `bootstrap-repo` | `coaligned-setup` | `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.coaligned/invariants/` | Invariants (files exist; `CLAUDE.md` surfaces job **and** checklist discovery; `JTBD.md` carries a `<job>`; starter rule present) + judge (orients not governs, faithful to the project) |
+| `bootstrap-repo` | `coaligned-setup` | `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.coaligned/invariants/` | Invariants (files exist; `CLAUDE.md` surfaces job **and** checklist discovery; `JTBD.md` carries a `<job>`; starter rule present; `CONTRIBUTING.md` points at the invariant tooling) + judge (orients not governs, faithful to the project) |
 | `author-job` | `coaligned-jtbd` | a `<job>` entry appended to `JTBD.md` | Invariants (`<job>` tag with `user`/`goal`, Trigger, Big Hire, Little Hire) + judge (progress not features, trigger is a moment, includes nonconsumption) |
 
 `bootstrap-repo` is the primary task: it exercises the full setup path and
