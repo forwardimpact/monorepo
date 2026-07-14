@@ -196,5 +196,48 @@
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     }
-  ]
+  ],
+  "bundles": {
+    "map": {
+      "info_plist": "products/map/macos/Info.plist",
+      "entitlements": "products/map/macos/entitlements.plist",
+      "version": "products/map/package.json"
+    },
+    "pathway": {
+      "info_plist": "products/pathway/macos/Info.plist",
+      "entitlements": "products/pathway/macos/entitlements.plist",
+      "version": "products/pathway/package.json"
+    },
+    "guide": {
+      "info_plist": "products/guide/macos/Info.plist",
+      "entitlements": "products/guide/macos/entitlements.plist",
+      "version": "products/guide/package.json"
+    },
+    "landmark": {
+      "info_plist": "products/landmark/macos/Info.plist",
+      "entitlements": "products/landmark/macos/entitlements.plist",
+      "version": "products/landmark/package.json"
+    },
+    "summit": {
+      "info_plist": "products/summit/macos/Info.plist",
+      "entitlements": "products/summit/macos/entitlements.plist",
+      "version": "products/summit/package.json"
+    },
+    "outpost": {
+      "info_plist": "products/outpost/macos/Info.plist",
+      "entitlements": "products/outpost/macos/Outpost.entitlements",
+      "version": "products/outpost/package.json",
+      "launcher": "products/outpost/dist/Outpost",
+      "resources": [
+        "products/outpost/config",
+        "products/outpost/templates",
+        "design/fit/assets/icon-outpost.svg"
+      ]
+    },
+    "gear": {
+      "info_plist": "macos/gear/Info.plist",
+      "entitlements": "macos/gear/entitlements.plist",
+      "version": "package.json"
+    }
+  }
 }

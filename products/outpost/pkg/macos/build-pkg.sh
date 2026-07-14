@@ -21,7 +21,7 @@ IDENTIFIER="team.forwardimpact.outpost"
 
 if [ ! -d "$APP_PATH" ]; then
   echo "Error: fit-outpost.app not found at $APP_PATH"
-  echo "Run 'just build-app-product outpost' first."
+  echo "Run 'just build-app outpost' first."
   exit 1
 fi
 
