@@ -24,28 +24,22 @@ jobs:
   meta:
     runs-on: ubuntu-latest
     outputs:
-      name: ${{ steps.m.outputs.name }}
       version: ${{ steps.m.outputs.version }}
-      kind: ${{ steps.m.outputs.kind }}
       bundle: ${{ steps.m.outputs.bundle }}
       bundle_name: ${{ steps.m.outputs.bundle_name }}
       cask: ${{ steps.m.outputs.cask }}
     steps:
       - id: m
         run: |
-          NAME="${GITHUB_REF_NAME%%@v*}"
+          # The tag prefix is the bundle for every product and for gear alike;
+          # no per-kind branch — bundle_name and cask derive uniformly.
+          BUNDLE="${GITHUB_REF_NAME%%@v*}"
           VERSION="${GITHUB_REF_NAME#*@v}"
-          case "$NAME" in
-            gear)  KIND=gear;    BUNDLE=gear;     BUNDLE_NAME="fit-gear.app";    CASK=fit-gear    ;;
-            *)     KIND=product; BUNDLE="$NAME";  BUNDLE_NAME="fit-${NAME}.app"; CASK="fit-${NAME}" ;;
-          esac
           {
-            echo "name=${NAME}"
             echo "version=${VERSION}"
-            echo "kind=${KIND}"
             echo "bundle=${BUNDLE}"
-            echo "bundle_name=${BUNDLE_NAME}"
-            echo "cask=${CASK}"
+            echo "bundle_name=fit-${BUNDLE}.app"
+            echo "cask=fit-${BUNDLE}"
           } >> "$GITHUB_OUTPUT"
 
   # Build only the tagged bundle's CLIs (both targets), once. Each is run inside
@@ -69,8 +63,6 @@ jobs:
     with:
       bundle: ${{ needs.meta.outputs.bundle }}
       version: ${{ needs.meta.outputs.version }}
-      kind: ${{ needs.meta.outputs.kind }}
-      name: ${{ needs.meta.outputs.name }}
       bundle_name: ${{ needs.meta.outputs.bundle_name }}
       cask: ${{ needs.meta.outputs.cask }}
     secrets: inherit
@@ -133,6 +125,9 @@ jobs:
       #   curl -fsSL <gear-release>/fit-install.sh | bash -s -- fit-trace …
       # Stamp the live tags in as the pinned defaults so the published copy is
       # self-contained; callers may still override via FIT_*_RELEASE.
+      # This gate is intentionally gear-only — fit-install.sh installs the gear
+      # toolbox, not a product. It is domain asymmetry, not a gear special-case:
+      # products are Homebrew-only and carry no bootstrap installer.
       - name: Check out bootstrap script
         if: needs.meta.outputs.bundle == 'gear'
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
@@ -227,7 +222,6 @@ jobs:
         env:
           CASK: ${{ needs.meta.outputs.cask }}
           BUNDLE: ${{ needs.meta.outputs.bundle }}
-          KIND: ${{ needs.meta.outputs.kind }}
           VERSION: ${{ needs.meta.outputs.version }}
           SHA256: ${{ steps.hash.outputs.sha256 }}
           X64_SHA: ${{ steps.hash.outputs.x64_sha }}
@@ -243,14 +237,12 @@ jobs:
             -e "s|^  version \".*\"|  version \"${VERSION}\"|" \
             -e "s|^  sha256 \".*\"|  sha256 \"${SHA256}\"|" \
             "$CASK_FILE"
-          # The gear cask links ~30 CLIs — regenerate that block from the
-          # manifest so it can never drift from the bundle (a stale name fails
-          # `brew install` at link time). Product casks link one binary and
-          # keep their hand-written stanza.
-          if [ "$KIND" = gear ]; then
-            bash ../main/build/render-cask-binaries.sh "$CASK_FILE" "$BUNDLE"
-            ruby -c "$CASK_FILE"
-          fi
+          # Regenerate the cask's binary block from the manifest for every
+          # bundle so it can never drift from the shipped set (a stale name
+          # fails `brew install` at link time). A single-CLI product yields its
+          # one stanza, gear yields ~30 — one code path, no gear special-case.
+          bash ../main/build/render-cask-binaries.sh "$CASK_FILE" "$BUNDLE"
+          ruby -c "$CASK_FILE"
           # Linux formula: version + both per-arch checksums, each keyed to its
           # url arch token so the on_intel/on_arm stanzas never cross-assign.
           FORMULA_FILE="Formula/${CASK}.rb"

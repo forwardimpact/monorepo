@@ -14,12 +14,6 @@ on:
       version:
         type: string
         required: true
-      kind:
-        type: string
-        required: true
-      name:
-        type: string
-        required: true
       bundle_name:
         type: string
         required: true
@@ -92,52 +86,38 @@ jobs:
 
       - name: Assemble bundle
         env:
-          KIND: ${{ inputs.kind }}
-          NAME: ${{ inputs.name }}
-        run: |
-          case "$KIND" in
-            gear)     just build-app-gear ;;
-            product)  just build-app-product "$NAME" ;;
-          esac
+          BUNDLE: ${{ inputs.bundle }}
+        run: just build-app "$BUNDLE"
 
       - name: Smoke test
         env:
-          KIND: ${{ inputs.kind }}
-          NAME: ${{ inputs.name }}
+          BUNDLE: ${{ inputs.bundle }}
           BUNDLE_NAME: ${{ inputs.bundle_name }}
         run: |
-          BUNDLE="dist/apps/${BUNDLE_NAME}"
-          codesign --verify --deep --strict "$BUNDLE"
-          case "$KIND" in
-            product)  "$BUNDLE/Contents/MacOS/fit-${NAME}" --help ;;
-            gear)
-              # Smoke every gear CLI, not just the first — the gear bundle ships
-              # ~25 and a single startup-crash binary would otherwise ship
-              # signed. Server entries honour --help via the libcli short-circuit,
-              # so they are smoked alongside the rest with no carve-out.
-              for cli in $(jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json); do
-                "$BUNDLE/Contents/MacOS/$cli" --help >/dev/null
-              done
-              ;;
-          esac
+          APP="dist/apps/${BUNDLE_NAME}"
+          codesign --verify --deep --strict "$APP"
+          # Smoke every CLI the manifest assigns to this bundle, not just the
+          # first — a single startup-crash binary would otherwise ship signed.
+          # A single-CLI product runs the loop once; gear runs it ~29 times.
+          # Server entries honour --help via the libcli short-circuit, so they
+          # are smoked alongside the rest with no carve-out.
+          for cli in $(jq -r --arg b "$BUNDLE" '.clis[] | select(.bundle == $b) | .name' build/cli-manifest.json); do
+            "$APP/Contents/MacOS/$cli" --help >/dev/null
+          done
 
       - name: Verify cdhash stability
         # Rebuild from the same (already checksum-verified) binaries and confirm
         # the signed cdhash is identical. A drifting cdhash wipes TCC grants on
         # `brew upgrade`, so a non-deterministic wrap must fail the release.
         env:
-          KIND: ${{ inputs.kind }}
-          NAME: ${{ inputs.name }}
+          BUNDLE: ${{ inputs.bundle }}
           BUNDLE_NAME: ${{ inputs.bundle_name }}
         run: |
-          BUNDLE="dist/apps/${BUNDLE_NAME}"
-          BASELINE=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
+          BUNDLE_PATH="dist/apps/${BUNDLE_NAME}"
+          BASELINE=$(codesign -dvvv "$BUNDLE_PATH" 2>&1 | grep -i CDHash || true)
           rm -rf dist/apps products/outpost/dist   # keep dist/binaries
-          case "$KIND" in
-            gear)     just build-app-gear ;;
-            product)  just build-app-product "$NAME" ;;
-          esac
-          AFTER=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
+          just build-app "$BUNDLE"
+          AFTER=$(codesign -dvvv "$BUNDLE_PATH" 2>&1 | grep -i CDHash || true)
           if [ "$BASELINE" != "$AFTER" ]; then
             echo "::error::cdhash drift detected — bundle is not deterministic"
             echo "baseline: $BASELINE"; echo "after: $AFTER"; exit 1
@@ -183,7 +163,7 @@ jobs:
           shasum -a 256 "dist/release/${ASSET}" | awk '{print $1}' > "dist/release/${ASSET}.sha256"
 
       - name: Build .pkg
-        if: inputs.name == 'outpost'
+        if: inputs.bundle == 'outpost'
         env:
           VERSION: ${{ inputs.version }}
         run: |
@@ -195,7 +175,7 @@ jobs:
           cp "dist/apps/fit-outpost-${VERSION}.pkg" dist/release/
 
       - name: Notarize and staple .pkg
-        if: inputs.name == 'outpost' && steps.signing.outputs.enabled == 'true'
+        if: inputs.bundle == 'outpost' && steps.signing.outputs.enabled == 'true'
         uses: ./.github/actions/notarize
         with:
           path: dist/release/fit-outpost-${{ inputs.version }}.pkg
