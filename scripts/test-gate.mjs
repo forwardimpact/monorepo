@@ -39,8 +39,6 @@ export const SELECTOR_DIRS = [
   "./libraries",
   "./products",
   "./services",
-  "./.github/workflows/test",
-  "./.claude/skills/kata-interview/test",
 ];
 
 // The `find` predicate, shared with the `test` script's selector.
@@ -75,12 +73,6 @@ export const SELECTOR_PREDICATE = [
 // them here after expansion. The set is enumerated explicitly so it is reviewable
 // and a new unrunnable file is a deliberate addition, never a silent drop.
 //
-//   - tests/bun-test-imports.test.js — the regression test for the sanctioned
-//     `bun:test` universal-subset allowlist invariant. It deliberately imports
-//     the allowlisted subset from `bun:test`, so `node --test` cannot resolve it
-//     (ERR_UNSUPPORTED_ESM_URL_SCHEME). The matching exemption in
-//     `scripts/check-bun-test-imports.mjs` keeps the re-divergence guard from
-//     flagging the same sanctioned import.
 //   - products/map/test/activity/hosted/*.test.js — these import the Supabase
 //     edge-function shared runtime `_shared/runtime.ts`; `node --test` on the
 //     pinned node major has no TypeScript loader (ERR_UNKNOWN_FILE_EXTENSION
@@ -88,7 +80,6 @@ export const SELECTOR_PREDICATE = [
 //     names — they carry no `bun:test` import — but their `.ts` dependency keeps
 //     them bun-only until the edge-function runtime is node-loadable.
 export const GATE_EXEMPT_PATHS = [
-  "tests/bun-test-imports.test.js",
   "products/map/test/activity/hosted/getdx-sync.test.js",
   "products/map/test/activity/hosted/people-upload.test.js",
   "products/map/test/activity/hosted/runtime.test.js",

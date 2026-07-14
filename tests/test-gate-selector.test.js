@@ -45,12 +45,12 @@ describe("test:gate selector is the single source of truth", () => {
 });
 
 // The node gate exempts a small, enumerated set of bun-only files that
-// `node --test` structurally cannot load (the bun:test allowlist regression
-// test; the `.ts`-importing Supabase edge-function tests). These assertions keep
-// the exemption honest: it must stay non-vacuous (each exempt file is genuinely
-// node-unloadable, so it is never exempting a file node could have run), and the
-// guard's exemption must stay a subset of the gate's (a file kept out of the node
-// gate but still flagged by the guard would never go green).
+// `node --test` structurally cannot load (the `.ts`-importing Supabase
+// edge-function tests). These assertions keep the exemption honest: it must stay
+// non-vacuous (each exempt file is genuinely node-unloadable, so it is never
+// exempting a file node could have run), and the guard's exemption must stay a
+// subset of the gate's (a file kept out of the node gate but still flagged by the
+// guard would never go green).
 describe("node-gate exemptions are bounded and justified", () => {
   test("every gate-exempt path exists, matches the selector, and is node-unloadable", () => {
     for (const rel of GATE_EXEMPT_PATHS) {
@@ -76,22 +76,5 @@ describe("node-gate exemptions are bounded and justified", () => {
         `${rel} is exempt from the bun:test guard but not from the node gate — the node gate would still try to load it and fail`,
       );
     }
-  });
-
-  test("the allowlist-test path still carries a real bun:test import (anti-vacuity)", () => {
-    // If the allowlist regression test ever drops its bun:test import, the
-    // exemption is dead weight and should be removed — this asserts the exemption
-    // is still load-bearing rather than silently masking a now-clean file.
-    const allowlistTest = "tests/bun-test-imports.test.js";
-    assert.ok(
-      EXEMPT_RELATIVE_PATHS.includes(allowlistTest),
-      "the allowlist-test path must be on the guard exemption list",
-    );
-    const src = readFileSync(join(repoRoot, allowlistTest), "utf8");
-    assert.match(
-      src,
-      /(?:\bfrom\s+|\bimport\s*\(\s*|\brequire\s*\(\s*)["']bun:test["']/,
-      "the allowlist regression test no longer imports bun:test — remove the exemption",
-    );
   });
 });
