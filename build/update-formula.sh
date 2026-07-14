@@ -7,7 +7,7 @@
 #
 #   Usage: build/update-formula.sh <formula-file> <version> <x64-sha> <arm64-sha>
 #
-# The formula shape (design 2190-a):
+# The formula shape this rewrites:
 #
 #   version "X.Y.Z"
 #   on_linux do
