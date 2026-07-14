@@ -63,7 +63,7 @@ jobs:
   # reusable workflow matrixed over arch; emits the `package-assets` artifact.
   # secrets: inherit forwards the macos-signing environment secrets, which the
   # reusable workflow's job scopes with `environment: macos-signing`.
-  package:
+  package-macos:
     needs: [meta, binaries]
     uses: ./.github/workflows/package-macos.yml
     with:
@@ -76,7 +76,7 @@ jobs:
     secrets: inherit
 
   # Pack the bundle's Linux binaries into one tarball per architecture. Runs in
-  # parallel with `package`; emits the linux-packages-<arch> artifacts.
+  # parallel with `package-macos`; emits the linux-packages-<arch> artifacts.
   package-linux:
     needs: [meta, binaries]
     uses: ./.github/workflows/package-linux.yml
@@ -88,7 +88,7 @@ jobs:
   # Created with GITHUB_TOKEN: this is one workflow, so nothing downstream needs
   # the release event to fire.
   release:
-    needs: [meta, binaries, package, package-linux]
+    needs: [meta, binaries, package-macos, package-linux]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -164,7 +164,7 @@ jobs:
   # tap-scoped App token (least privilege), and recomputes the hash from the
   # actual zip rather than trusting the sidecar.
   tap:
-    needs: [meta, package, package-linux, release]
+    needs: [meta, package-macos, package-linux, release]
     runs-on: ubuntu-latest
     permissions:
       contents: read
