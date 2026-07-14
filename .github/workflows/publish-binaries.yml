@@ -75,6 +75,15 @@ jobs:
       cask: ${{ needs.meta.outputs.cask }}
     secrets: inherit
 
+  # Pack the bundle's Linux binaries into one tarball per architecture. Runs in
+  # parallel with `package`; emits the linux-packages-<arch> artifacts.
+  package-linux:
+    needs: [meta, binaries]
+    uses: ./.github/workflows/package-linux.yml
+    with:
+      bundle: ${{ needs.meta.outputs.bundle }}
+      version: ${{ needs.meta.outputs.version }}
+
   # Publish the GitHub release with the raw binaries + cask zip (+ pkg).
   # Created with GITHUB_TOKEN: this is one workflow, so nothing downstream needs
   # the release event to fire.

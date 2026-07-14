@@ -1,0 +1,53 @@
+name: "Package: Linux"
+
+# Reusable: pack the tagged bundle's already-built Linux binaries into one
+# tarball per architecture, the Linux analog of package-macos.yml's signed
+# .app. No signing — integrity rests on the published .sha256. Called per
+# release tag by publish-binaries.yml; emits one `linux-packages-<arch>`
+# artifact per cell (upload-artifact v4 rejects a shared name across matrix
+# cells, so the arch disambiguates, exactly as build-binaries.yml does).
+# Downstream jobs collect them with the `linux-packages-*` pattern.
+on:
+  workflow_call:
+    inputs:
+      bundle:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  package-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm64]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Download Linux binaries
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: "*-bun-linux-${{ matrix.arch }}"
+          path: dist/binaries
+          # Merge every matched artifact into dist/binaries as bare {cli} +
+          # {cli}.sha256; build-tarball.sh reads the executables from there.
+          merge-multiple: true
+
+      - name: Pack tarball
+        run: bash build/build-tarball.sh "${{ inputs.bundle }}" "${{ matrix.arch }}"
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: linux-packages-${{ matrix.arch }}
+          path: dist/release/
+          if-no-files-found: error
+          retention-days: 1
