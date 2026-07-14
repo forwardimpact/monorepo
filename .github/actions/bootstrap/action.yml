@@ -146,8 +146,13 @@ runs:
         # invalidates on lockfile / proto / codegen-source edits.
         key: env-v4-${{ runner.os }}-${{ steps.cache-paths.outputs.clis_key }}-${{ steps.cache-paths.outputs.installer_hash }}-${{ hashFiles('bun.lock', '**/*.proto', 'libraries/libcodegen/src/**', 'libraries/libcodegen/templates/**', 'libraries/libcodegen/bin/**') }}
 
+    # Always run on macOS: there the brew-managed tools (formulae + fit-gear
+    # cask) live in brew's prefix, not the cached $HOME/.local, so a cache hit
+    # restores only the download tools (apm, claude) and the workspace dirs. The
+    # script's `brew list || brew install` and `command -v` guards make the
+    # re-run cheap and idempotent. Linux keeps skipping on a cache hit.
     - name: Install CLI dependencies
-      if: steps.env-cache.outputs.cache-hit != 'true'
+      if: runner.os == 'macOS' || steps.env-cache.outputs.cache-hit != 'true'
       shell: bash
       env:
         CLIS: ${{ inputs.clis }}
