@@ -53,7 +53,8 @@ architecture set. macOS keeps its existing `package-assets` artifact name (so
 the `release` skip-guard and `tap` download keep working); Linux adds parallel
 `linux-packages-<arch>` artifacts (one per matrix cell). The symmetry is in the
 shape — one package workflow per platform, each emitting its packages artifacts
-— not in a churny rename of a working contract. A future macOS x64 target is one matrix value, not new code.
+— not in a churny rename of a working contract. A future macOS x64 target is one
+matrix value, not new code.
 
 ## Components
 

@@ -104,10 +104,10 @@ Out of scope:
     CLI.
 11. The pipeline has no gear-vs-product conditional: `meta`, the macOS packaging
     job, and the tap job derive every bundle's `.app` contents and cask binary
-    block from `build/cli-manifest.json`. Verify: no `KIND`/`kind` branch selects
-    gear vs product; one `build-app.sh <bundle>` serves both; the cask render
-    runs unconditionally. Only outpost's launcher/`.pkg` and the gear bootstrap
-    installer remain bundle-specific.
+    block from `build/cli-manifest.json`. Verify: no `KIND`/`kind` branch
+    selects gear vs product; one `build-app.sh <bundle>` serves both; the cask
+    render runs unconditionally. Only outpost's launcher/`.pkg` and the gear
+    bootstrap installer remain bundle-specific.
 12. The unified `.app` assembly is byte-identical to the prior per-kind scripts.
     Verify: for gear and a product, the assembled bundle (tree, `Info.plist`,
     executables) matches what `build-app-gear.sh`/`build-app-product.sh`

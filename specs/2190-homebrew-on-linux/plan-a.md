@@ -11,9 +11,9 @@ hold the logic the workflows only orchestrate: `build-tarball.sh` packs a
 bundle's manifest CLIs as the `binaries` job built and checksummed them (no
 re-verification), and `update-formula.sh` rewrites a formula's version and
 per-arch checksums. The `release` and `tap` jobs gain the per-arch
-`linux-packages-<arch>` artifacts beside the unchanged `package-assets`. Steps 1–8 and 10 land in the
-monorepo; step 9 seeds the external tap by hand and must precede the first
-post-change release tag.
+`linux-packages-<arch>` artifacts beside the unchanged `package-assets`. Steps
+1–8 and 10 land in the monorepo; step 9 seeds the external tap by hand and must
+precede the first post-change release tag.
 
 Libraries used: none.
 
@@ -186,7 +186,8 @@ Track the release in the tap by updating both packages in one commit.
 
 Add `package-linux` to `needs`. Add a second `download-artifact` step
 (`pattern: linux-packages-*`, `merge-multiple: true`, `path: dist/release`)
-beside the existing `package-assets` download. In the `hash` step, set `X64_SHA`/`ARM64_SHA` from
+beside the existing `package-assets` download. In the `hash` step, set
+`X64_SHA`/`ARM64_SHA` from
 `shasum -a 256 dist/release/fit-<bundle>-linux-{x64,arm64}.tar.gz | awk '{print $1}'`.
 The monorepo checkout at `path: main` is already unconditional, so after the
 existing cask `sed`/render, run
