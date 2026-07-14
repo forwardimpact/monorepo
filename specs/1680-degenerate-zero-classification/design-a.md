@@ -61,7 +61,7 @@ success criterion 3).
 Downstream consumers switch on the `classification` string; adding an enum value
 is additive. The published JSON shape gains one possible value; no field is
 renamed or removed. This is a clean break in the sense of [§ Clean
-breaks](../../CONTRIBUTING.md#read-do): no shim, no fallback — the classifier
+breaks](../../CONTRIBUTING.md#checklists): no shim, no fallback — the classifier
 emits the correct verdict directly and every reader sees it.
 
 ## Doc enumeration sites (success criterion 4)

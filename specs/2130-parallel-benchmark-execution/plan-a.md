@@ -2,8 +2,8 @@
 
 Executes [design 2130-a](design-a.md) for [spec 2130](spec.md). Decomposed into
 three independently executable parts; each part is a clean break per
-[CONTRIBUTING § Clean breaks](../../CONTRIBUTING.md#read-do) — the serial loop,
-`allocatePort`, and the single-file `loadRecords` read are deleted, not
+[CONTRIBUTING § Clean breaks](../../CONTRIBUTING.md#checklists) — the serial
+loop, `allocatePort`, and the single-file `loadRecords` read are deleted, not
 branched.
 
 > **Scope note — rate-limit backpressure descoped (2026-06-27).** The review

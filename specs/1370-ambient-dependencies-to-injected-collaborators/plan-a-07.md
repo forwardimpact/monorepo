@@ -27,21 +27,21 @@ golden replay in Step 3 only confirms those two cases stay byte-identical.
 
 ## Approach
 
-Three small code changes plus a documentation reconciliation. The
-collaborator collapse leans on the fact that
-`findData`/`findUpward`/`findProjectRoot` never read the logger (only
-`createSymlink`/`createPackageSymlinks` do, via `finder.js:163`), so the
-sites that only resolve paths lose nothing by switching to bare
-`runtime.finder`; the one site that logs (codegen's symlink creation) gets a
-`Finder.withLogger(logger)` seam — which also grounds the [design's
-per-call-logger claim](design-a.md#components) to a mechanism that actually
-exists. The librc change implements the exact `proc.stdout` surface extension
-the [teardown ledger](teardown.md) named as required. No
+Three small code changes plus a documentation reconciliation. The collaborator
+collapse leans on the fact that `findData`/`findUpward`/`findProjectRoot` never
+read the logger (only `createSymlink`/`createPackageSymlinks` do, via
+`finder.js:163`), so the sites that only resolve paths lose nothing by switching
+to bare `runtime.finder`; the one site that logs (codegen's symlink creation)
+gets a `Finder.withLogger(logger)` seam — which also grounds the
+[design's per-call-logger claim](design-a.md#components) to a mechanism that
+actually exists. The librc change implements the exact `proc.stdout` surface
+extension the [teardown ledger](teardown.md) named as required. No
 backward-compat shim: every `new Finder(` and the `logs()` `deps.fs` /
-`deps.stdout` fallbacks are deleted, not wrapped ([§ Clean
-breaks](../../CONTRIBUTING.md#read-do)). librc's `deps.spawn` / `deps.execSync`
-are **not** touched — they are a deliberate DI seam for the svscan fd-redirect
-spawn (see [teardown.md § Residual](teardown.md), not a `logs()` fallback).
+`deps.stdout` fallbacks are deleted, not wrapped
+([§ Clean breaks](../../CONTRIBUTING.md#checklists)). librc's `deps.spawn` /
+`deps.execSync` are **not** touched — they are a deliberate DI seam for the
+svscan fd-redirect spawn (see [teardown.md § Residual](teardown.md), not a
+`logs()` fallback).
 
 ## Steps
 

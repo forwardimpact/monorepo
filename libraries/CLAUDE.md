@@ -21,7 +21,7 @@ Before writing a generic capability under products, services, websites, or
 scripts, check the [catalog](README.md). If a library covers it, use it; if
 not, note that in the commit or plan so the next contributor does not
 re-search. This rule lives next to the other invariants in
-[CONTRIBUTING.md](../CONTRIBUTING.md#read-do).
+[CONTRIBUTING.md](../CONTRIBUTING.md#checklists).
 
 ## Configuration
 

@@ -102,7 +102,7 @@ interfaces connect them — and why this architecture over alternatives.
   flow, state machines, sequence diagrams.
 - **Scope-faithful.** Stay within the spec's scope. If scope should change,
   return the spec to draft rather than expanding silently.
-- **Clean break.** Follow [§ Clean breaks](../../../CONTRIBUTING.md#read-do):
+- **Clean break.** Follow [§ Clean breaks](../../../CONTRIBUTING.md#checklists):
   the design replaces the old path, never wraps it in shims or fallbacks. Compat
   belongs in the design only when the spec names it as a requirement; if a clean
   break can't meet the spec, return the spec to `draft` rather than designing
