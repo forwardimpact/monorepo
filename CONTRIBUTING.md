@@ -7,51 +7,43 @@
 
 `ANTHROPIC_API_KEY` is already set; `libconfig` reads it automatically.
 
-## Core Rules
-
-**READ-DO**: read each item, then do it. **DO-CONFIRM**: do from memory, then
-confirm (Gawande, _Checklist Manifesto_ Ch. 6).
-
-### Invariants
+## Invariants
 
 Architectural non-negotiables — the shape of the codebase.
 
-- **OO+DI everywhere** — Classes accept collaborators via constructors. Factory
-  functions (`createXxx`) wire implementations; composition roots (CLI `bin/`
-  entry points) wire instances; tests inject mocks directly. No module-level
-  singletons or inline dependency creation. Exempt — pure stateless functions
-  need no DI: libskill, libui (functional DOM), libsecret (crypto), libtype
-  (generated protobuf).
+- **OO+DI everywhere** — Classes take collaborators via constructors. Factories
+  (`createXxx`) wire implementations; composition roots (CLI `bin/`) wire
+  instances; tests inject mocks. No module-level singletons or inline dependency
+  creation. Exempt (pure stateless): libskill, libui (functional DOM), libsecret
+  (crypto), libtype (generated protobuf).
 - **No frontend frameworks** — Vanilla JS, ESM modules only, no CommonJS.
 - **FIT upstream of Kata** — FIT skills and docs (`fit-*`, `websites/fit/`,
   shared `libraries/`) must not reference the Kata Agent Team. Kata may
-  reference FIT; the dependency points one way.
+  reference FIT; the dependency is one-way.
 - **Explain WHY, not WHEN** — Comments, logs, and durable docs state the present
   contract: no spec/design/plan numbers, issue/PR references, or
   experiment/obstacle labels. Provenance lives in PR bodies and git history.
   `specs/`, `wiki/`, `benchmarks/`, `generated/` are exempt; rewrite, don't
-  port, their content. Enforced by `bun run invariants`.
+  port. Enforced by `bun run invariants`.
 
 The mechanically checkable subset lives in `.coaligned/invariants/*.rules.mjs`,
-run by `bun run invariants` (inside `bun run check`). Add a rule with the
+run by `bun run invariants` (inside `bun run check`); add rules with the
 [coaligned-invariant](.claude/skills/coaligned-invariant/SKILL.md) skill.
 
-### READ-DO
-
-Entry gate — read every item before starting.
+## Checklists
 
 <read_do_checklist goal="Internalize constraints before writing code">
 
-- [ ] **Understand the task.** What is it asking? Which files will I
-      touch, and which will I not?
+- [ ] **Understand the task.** What is it asking? Which files will I touch,
+      which not?
 - [ ] **Smallest plan.** No unrequested features, abstractions, or refactors.
 - [ ] **Read the code** I'm about to change before writing.
-- [ ] **Search shared libraries first.** Before writing any generic helper, scan
-      [libraries/README.md](libraries/README.md). Use a library if one covers
-      it; otherwise note that in the commit or plan.
-- [ ] **Reuse libmock; inject collaborators.** Before writing a mock or fixture,
-      check `libraries/libmock/src/index.js` and reuse it. New src takes
-      injected `fs`/`proc`/`clock`/`subprocess`, not ambient globals — see
+- [ ] **Search shared libraries first.** Before writing a generic helper, scan
+      [libraries/README.md](libraries/README.md); use one if it covers the need,
+      else note that in the commit or plan.
+- [ ] **Reuse libmock; inject collaborators.** Reuse
+      `libraries/libmock/src/index.js` before writing a mock or fixture. New src
+      takes injected `fs`/`proc`/`clock`/`subprocess`, not ambient globals — see
       [MONOREPO.md § Ambient Dependencies](MONOREPO.md#ambient-dependencies-and-collaborator-injection).
 - [ ] **Simple over easy.** Reduce complexity, don't relocate it. Three similar
       lines beat a premature abstraction. Inline single-use helpers; hardcode
@@ -65,19 +57,14 @@ Entry gate — read every item before starting.
 
 </read_do_checklist>
 
-### DO-CONFIRM
-
-Exit gate — verify every item before committing.
-
 <do_confirm_checklist goal="Verify quality and publish before finishing">
 
 - [ ] `bun run check` passes — format, lint, jsdoc, invariants, context.
 - [ ] `bun run test` passes — new logic has tests.
-- [ ] No new inline mock/fixture helpers that libmock already provides.
-      Touched test files import from `@forwardimpact/libmock` instead of
-      redefining `createMock*`, `make*`, or `stubQueries`.
-- [ ] My diff only contains changes the task required — no unrequested
-      refactors or scope creep.
+- [ ] No new inline mock/fixture helpers libmock already provides — touched
+      test files import from `@forwardimpact/libmock` instead of redefining
+      `createMock*`, `make*`, or `stubQueries`.
+- [ ] My diff contains only changes the task required — no scope creep.
 - [ ] Commit format: `type(scope): subject` (see § Git Conventions).
 - [ ] If the run produced commits: branch pushed with `git push -u origin` and
       PR URL captured in output. Exception: release engineer's direct-to-`main`
@@ -127,8 +114,8 @@ Git tracks `*.example.*` templates in `config/`; live files are gitignored.
 
 ### Per-package layout
 
-Every package follows the same on-disk shape: source under `src/`, no `.js`
-or `.ts` files at the package root.
+Every package shares one on-disk shape: source under `src/`, no `.js`/`.ts` at
+the package root.
 
     <package>/
       package.json     Required
@@ -191,22 +178,21 @@ publishing — see [kata-release-cut](.claude/skills/kata-release-cut).
 
 **Create tags with the `Release: Tag` workflow, not `git push`** — the
 release-cutting environment can't push tags.
-[`release-tag.yml`](.github/workflows/release-tag.yml): dispatch it with a
-`tags` list, an optional `repo` (any org repo the kata App is on, so it tags
-sibling action repos too), and `sha` (default: the target's default-branch
-tip). It pushes each tag from CI with an App token — not `GITHUB_TOKEN`, so
-publish pipelines still fire — via
-[`release-tagger`](.github/actions/release-tagger/action.yml): release tags are
-append-only, an action release's `v<major>` alias always tracks the latest
-release, and only commits reachable from the default branch are taggable.
-Squash-merge leaves a branch's own commits off `main`, so merge first, then tag
-the resulting `main` commit.
+[`release-tag.yml`](.github/workflows/release-tag.yml): dispatch with a `tags`
+list, optional `repo` (any org repo the kata App is on, so it tags sibling
+action repos too), and `sha` (default: the target's default-branch tip). It
+pushes each tag from CI with an App token, not `GITHUB_TOKEN`, so publish
+pipelines still fire, via
+[`release-tagger`](.github/actions/release-tagger/action.yml): tags are
+append-only, an action release's `v<major>` alias tracks the latest release, and
+only default-branch-reachable commits are taggable. Squash-merge leaves a
+branch's commits off `main` — merge first, then tag the `main` commit.
 
 **Composite actions** use a separate tag space: append-only `v1.0.x` on the
-sibling repos, with `v1` a major alias that tracks the latest release (dispatch
-`Release: Tag` with `repo: <sibling>` and the `v1.0.x` tag). A push to `main`
-mirrors each action to its sibling by subtree split; the publish path and
-`v1`-move policy live in [`.github/CLAUDE.md`](.github/CLAUDE.md).
+siblings, `v1` an alias for the latest release (dispatch `Release: Tag` with
+`repo: <sibling>` and the `v1.0.x` tag). A push to `main` mirrors each action to
+its sibling by subtree split; publish path and `v1`-move policy live in
+[`.github/CLAUDE.md`](.github/CLAUDE.md).
 
 Some changes span tags: a new binary is reachable only after every tier ships.
 Release producer before consumer, bottom-up: (1) the compiled binary/bundle;
@@ -219,19 +205,33 @@ fallback.
     bun run check                 # All quality gates (run before every commit)
     bun run check:fix             # Auto-fix format and lint issues
     bun run test                  # Unit tests, bun runner (local/PR loop)
-    bun run test:gate             # The blocking gate (see Test-runner strategy)
+    bun run test:gate             # The blocking gate (see Testing)
     bun run test:e2e              # Playwright E2E tests
     bunx fit-map validate         # Validate data files
     bunx fit-map validate --shacl # Validate with SHACL syntax check
 
-### Test-runner strategy
+## Testing
 
-Settled per surface. `node --test` (`bun run test:gate`) is the blocking gate:
-reference-correct, since `describe`-inside-`test` is valid where bun throws
-([bun#5090](https://github.com/oven-sh/bun/issues/5090)). `bun test`
-(`bun run test`) is the fast, non-required loop. Never import `bun:test` — node
-cannot resolve `bun:`; `scripts/check-bun-test-imports.mjs` reddens on any.
-Import from `node:test` and `@forwardimpact/libmock/expect`.
+Test behavior, not structure guarded elsewhere.
+
+- **Test behavior** — outputs, responses, error paths. Unit-test pure logic;
+  integration-test the wiring.
+- **Don't test the shape of declarative artifacts** — asserting a workflow,
+  action, `SKILL.md`, or generated file holds a given key, step, or string
+  re-encodes the file as a brittle test that proves nothing ran. Enforce
+  structure with an invariant (`.coaligned/invariants/`) or let the consuming
+  runtime fail.
+- **Don't duplicate an enforcement** — an invariant that gates CI is the test;
+  re-running its rule over the same tree in a unit test is redundant (testing a
+  complex pure helper inside a rule is fine).
+
+Runner strategy, per surface:
+
+- **Gate on `node --test`** (`bun run test:gate`) — reference-correct where bun
+  throws ([bun#5090](https://github.com/oven-sh/bun/issues/5090)).
+- **Iterate on `bun test`** (`bun run test`) — fast, non-required loop.
+- **Import from `node:test` and `@forwardimpact/libmock/expect`**, never
+  `bun:test`; `scripts/check-bun-test-imports.mjs` reddens on any.
 
 ## Security
 
@@ -257,11 +257,10 @@ Security policies apply to all contributors — human and agent.
   consolidate overlapping packages.
 - **Align versions.** Declare the same range across workspaces. Bun hoists
   matched versions; don't drop a runtime dep just because it deduplicates.
-- **No nested duplicates.** The same package at two major versions is
-  forbidden. Before a major bump, run `bun pm ls` and inspect `bun.lock` for
-  `invalid` markers; close the PR if dependents lack compatible ranges.
-- **Audit after changes.** Run `just audit-vulnerabilities` after adding or
-  updating deps.
+- **No nested duplicates.** No package at two major versions. Before a major
+  bump, run `bun pm ls` and inspect `bun.lock` for `invalid` markers; close the
+  PR if dependents lack compatible ranges.
+- **Audit after changes.** Run `just audit-vulnerabilities` after dep changes.
 - **No `jsdom`** (its `css-tree` breaks `bun --compile`) — use `linkedom` for
   parsing, `happy-dom` for browser-env tests.
 

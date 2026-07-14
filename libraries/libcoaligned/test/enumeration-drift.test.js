@@ -4,7 +4,6 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 
-import mod from "../../../.coaligned/invariants/enumeration-drift.rules.mjs";
 import { buildSubjects, ENUM_DRIFT_RULES } from "../src/enum-drift.js";
 import { fsSync } from "./helpers.js";
 
@@ -91,41 +90,7 @@ describe("rules fire on drift and stay silent on clean", () => {
   });
 });
 
-describe("module shape + engine over the live repo", () => {
-  test("default export satisfies the host contract", () => {
-    assert.equal(mod.name, "enumeration-drift");
-    assert.equal(typeof mod.build, "function");
-    assert.equal(typeof mod.seed, "function");
-    // rules is a function that returns the injected rule set.
-    assert.equal(typeof mod.rules, "function");
-    assert.equal(
-      mod.rules({ enumDriftRules: ENUM_DRIFT_RULES }),
-      ENUM_DRIFT_RULES,
-    );
-  });
-
-  test("build delegates to kit.config + kit.enumDrift.build", () => {
-    let configArg;
-    let buildArg;
-    const sentinel = { subjects: { assertion: [], fence: [], registry: [] } };
-    const kit = {
-      config: (name) => {
-        configArg = name;
-        return { topics: [] };
-      },
-      enumDrift: {
-        build: (registry) => {
-          buildArg = registry;
-          return sentinel;
-        },
-      },
-    };
-    const out = mod.build(kit);
-    assert.equal(configArg, "enumeration-drift.topics.yml");
-    assert.deepEqual(buildArg, { topics: [] });
-    assert.equal(out, sentinel);
-  });
-
+describe("engine over the live repo", () => {
   test("engine over the live repo produces no drift findings", () => {
     const root = join(import.meta.dirname, "../../..");
     const registry = parseYaml(

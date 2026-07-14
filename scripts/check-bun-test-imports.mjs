@@ -23,20 +23,12 @@ import { fileURLToPath } from "node:url";
 const repoRoot = resolve(new URL("..", import.meta.url).pathname);
 const SELF = resolve(new URL(import.meta.url).pathname);
 
-// The repo sanctions a bounded universal-subset `bun:test` allowlist
-// (`describe`, `test`, `expect`, lifecycle hooks) in `**/*.test.js`, enforced by
-// the AST-based invariant `.coaligned/invariants/bun-test-imports.rules.mjs`.
-// That invariant's own regression test (`tests/bun-test-imports.test.js`)
-// deliberately imports the allowlisted subset from `bun:test` and carries
-// `bun:test` import strings as fixtures, so it is a bun-only test by design and
-// cannot run under `node --test`. This guard exempts that one governed path
-// rather than forbid it: the allowlist invariant owns which symbols this file may
-// import; this guard keeps every other file off `bun:test` so the node gate can
-// load it. The matching exemption in `scripts/test-gate.mjs` (GATE_EXEMPT_PATHS)
-// keeps this file out of the node gate set. Exported (repo-relative) so
-// `tests/test-gate-selector.test.js` can assert the guard exemption and the gate
-// exemption stay in sync.
-export const EXEMPT_RELATIVE_PATHS = ["tests/bun-test-imports.test.js"];
+// No file anywhere in the repo may import `bun:test` — the whole suite runs on
+// `node:test`. The exemption list is empty; it stays here (exported, repo-relative)
+// so a future sanctioned bun-only path can be added in one place and so
+// `tests/test-gate-selector.test.js` can assert the guard exemption stays a
+// subset of the node gate's (`scripts/test-gate.mjs` GATE_EXEMPT_PATHS).
+export const EXEMPT_RELATIVE_PATHS = [];
 const EXEMPT_PATHS = new Set(
   EXEMPT_RELATIVE_PATHS.map((p) => resolve(repoRoot, p)),
 );
