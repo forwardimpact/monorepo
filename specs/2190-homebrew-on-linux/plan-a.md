@@ -56,12 +56,19 @@ preserving the signing-secret scoping, so the pipeline is symmetric.
 - Created: `.github/workflows/package-macos.yml`
 - Modified: `.github/workflows/publish-binaries.yml` (`package` job)
 
-Move the current `package` job body verbatim into `package-macos.yml` under
+Move the current `package` job body into `package-macos.yml` under
 `on: workflow_call` with inputs `bundle`, `version`, `kind`, `name`,
 `bundle_name`, `cask`. Declare `environment: macos-signing` and
-`strategy.matrix.arch: [arm64]` on its build job; keep every step (download,
+`strategy.matrix.arch: [arm64]` on its build job. Keep every step (download,
 checksum verify, sign, assemble, smoke, cdhash-stability, notarize, staple, zip,
-`.pkg`, upload `package-assets`) unchanged. Replace the inline job in
+`.pkg`, upload `package-assets`) behaviorally unchanged, but thread
+`matrix.arch` through the two hardcoded arch literals so the matrix is genuine
+data, not a single-cell label: the download
+`pattern: "*-bun-darwin-${{ matrix.arch }}"` (today `publish-binaries.yml:82`)
+and the zip `ASSET="${CASK}-${VERSION}-darwin-${{ matrix.arch }}.zip"` (`:204`).
+For the sole `arch: arm64` cell the output is byte-identical to today;
+the point is that a future macOS `x64` target is then one matrix value, not new
+code (design § Job graph, § Key decisions). Replace the inline job in
 `publish-binaries.yml` with:
 
 ```yaml
@@ -79,7 +86,8 @@ checksum verify, sign, assemble, smoke, cdhash-stability, notarize, staple, zip,
 ```
 
 Verify: `actionlint` on both files passes; the emitted artifact name is still
-`package-assets` and the cdhash-stability step is present.
+`package-assets`, the cdhash-stability step is present, and no `darwin-arm64`
+literal remains (both arch tokens now read `darwin-${{ matrix.arch }}`).
 
 ## Step 4: Add the tarball packing script
 
