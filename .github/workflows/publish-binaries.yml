@@ -88,7 +88,7 @@ jobs:
   # Created with GITHUB_TOKEN: this is one workflow, so nothing downstream needs
   # the release event to fire.
   release:
-    needs: [meta, binaries, package]
+    needs: [meta, binaries, package, package-linux]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -104,16 +104,28 @@ jobs:
           mkdir -p dist/release
           # Per-target artifacts are named {cli}-{target} and hold a bare {cli} +
           # {cli}.sha256; re-emit each with the target in the asset name. The
-          # package-assets artifact (cask zip, sha, pkg) is staged as-is.
+          # package artifacts (cask zip/sha/pkg; the Linux tarballs) are not raw
+          # binaries — stage them separately below.
+          #
+          # arm64 Linux ships only inside the bundle tarball, so its raw
+          # per-CLI artifacts are dropped here — the bootstrap installer is
+          # x64-only and would be the only consumer.
           for dir in dist/artifacts/*/; do
             key="$(basename "$dir")"
-            [ "$key" = "package-assets" ] && continue
+            case "$key" in
+              package-assets|linux-packages-*|*-bun-linux-arm64) continue ;;
+            esac
             bin="$(find "$dir" -maxdepth 1 -type f ! -name '*.sha256')"
             test -n "$bin" || { echo "::error::artifact $key has no binary"; exit 1; }
             install -m 0755 "$bin" "dist/release/$key"
             cp "$bin.sha256" "dist/release/$key.sha256"
           done
           cp -R dist/artifacts/package-assets/. dist/release/
+          # One artifact per arch (linux-packages-x64, linux-packages-arm64),
+          # each holding its tarball + .sha256.
+          for dir in dist/artifacts/linux-packages-*/; do
+            cp -R "$dir". dist/release/
+          done
 
       # The gear release carries the bootstrap script too, co-versioned with
       # the gear binaries it installs. Any environment — CI, Claude session
