@@ -32,7 +32,8 @@ done < <(jq -r --arg b "$BUNDLE" '.clis[] | select(.bundle == $b) | .name' build
 [ "${#CLIS[@]}" -gt 0 ] || { echo "Error: no manifest CLI in bundle '$BUNDLE'" >&2; exit 1; }
 
 for CLI in "${CLIS[@]}"; do
-  test -f "dist/binaries/$CLI" || { echo "Error: dist/binaries/$CLI missing" >&2; exit 1; }
+  test -f "dist/binaries/$CLI" \
+    || { echo "Error: dist/binaries/$CLI missing (bundle $BUNDLE, arch $ARCH)" >&2; exit 1; }
 done
 
 mkdir -p dist/release

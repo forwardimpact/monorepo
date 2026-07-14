@@ -16,7 +16,8 @@ field is human-edited in the tap repo and survives releases unchanged.
 
 ## Sed contract
 
-Each release rewrites exactly two lines in one cask file. The `tap` job's
+Each release rewrites exactly two lines in the cask file (the formula's
+per-arch contract is separate — see below). The `tap` job's
 "Update cask and formula, push to tap main" step runs:
 
 ```sh
