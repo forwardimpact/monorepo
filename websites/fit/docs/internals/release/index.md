@@ -1,22 +1,23 @@
 ---
-title: Homebrew Cask Conventions
-description: How Forward Impact's Homebrew tap and publish-brew workflow stay coherent.
+title: Homebrew Tap Conventions
+description: How Forward Impact's Homebrew tap, casks, and Linux formulae stay coherent with the release pipeline.
 toc: false
 ---
 
 ## Overview
 
-The `forwardimpact/homebrew-tap` repository holds seven Homebrew cask
-definitions — one per product and one shared `fit-gear` bundle. The
-`publish-brew.yml` workflow in the monorepo builds, signs, and uploads release
-assets, then opens a PR against the tap to update the cask's `version` and
-`sha256`. Every other field in a cask is human-edited in the tap repo and
-survives releases unchanged.
+The `forwardimpact/homebrew-tap` repository holds two package families: seven
+Homebrew casks under `Casks/` — one per product and one shared `fit-gear`
+bundle, installed on macOS — and seven matching formulae under `Formula/`,
+installed on Linux. The `publish-binaries.yml` workflow's `tap` job builds and
+uploads the release assets, then updates the affected cask and formula and
+pushes the change directly to the tap's `main` — no pull request. Every other
+field is human-edited in the tap repo and survives releases unchanged.
 
 ## Sed contract
 
-Each release rewrites exactly two lines in one cask file. The workflow's
-"Update cask version and sha256" step runs:
+Each release rewrites exactly two lines in one cask file. The `tap` job's
+"Update cask and formula, push to tap main" step runs:
 
 ```sh
 sed -i \
@@ -31,6 +32,58 @@ this shape or the workflow's substitutions will silently miss.
 
 All other authored fields — `url`, `name`, `desc`, `homepage`, `depends_on`,
 `app`, `binary`, `livecheck`, `zap` — are never touched by the workflow.
+
+## Linux formulae
+
+Linux has no cask — Homebrew ignores casks there — so each bundle ships a
+formula under `Formula/<token>.rb` beside its cask, in the same tap and under
+the same token. A formula installs the bundle's per-architecture tarball
+(`fit-<bundle>-linux-<arch>.tar.gz`), and its `install` runs
+`bin.install Dir["*"]` because the tarball holds only the self-contained CLIs:
+
+```ruby
+class FitGear < Formula
+  desc "Gear CLIs"
+  homepage "https://www.forwardimpact.team"
+  version "X.Y.Z"
+  on_linux do
+    on_intel do
+      url ".../gear@v#{version}/fit-gear-linux-x64.tar.gz"
+      sha256 "<x64>"
+    end
+    on_arm do
+      url ".../gear@v#{version}/fit-gear-linux-arm64.tar.gz"
+      sha256 "<arm64>"
+    end
+  end
+
+  def install
+    bin.install Dir["*"]
+  end
+end
+```
+
+The install command differs by platform. On macOS the documented command
+installs the cask; on Linux it installs the formula:
+
+```sh
+brew install --cask <tap>/<bundle>   # macOS — unchanged
+brew install <tap>/<bundle>          # Linux
+```
+
+The macOS `--cask` path is unchanged by this addition, and the formula is
+`on_linux`-only. A bare `brew install <tap>/<bundle>` on macOS resolves to the
+formula, which loads no macOS artifact and installs nothing — a fail-safe, not
+a wrong install.
+
+### Formula checksum contract
+
+A cask carries one `sha256`, rewritten by the flat two-line `sed` above. A
+formula carries two — one per architecture — identical in shape, so
+`build/update-formula.sh` keys each `sha256` to the arch token (`linux-x64` or
+`linux-arm64`) in the `url` line above it; the `on_intel` and `on_arm` stanzas
+never cross-assign. The top-level `version` is rewritten in the same pass, and
+each `url` picks up the new version through `#{version}` interpolation.
 
 ## Cask topology
 
@@ -129,12 +182,13 @@ Each cask declares a `zap trash:` stanza that removes its preferences plist on
 
 ## Verification commands
 
-Before merging a tap PR that modifies cask structure (not the automated
-version/sha256 updates), run:
+Before merging a tap PR that modifies cask or formula structure (not the
+automated version/sha256 updates), run:
 
 ```sh
 brew style Casks/*.rb
 brew audit --new-cask Casks/{cask}.rb
+brew audit Formula/{token}.rb
 ```
 
 To dry-run the workflow's sed contract locally against a cask:
