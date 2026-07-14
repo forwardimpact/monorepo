@@ -10,8 +10,8 @@ byte-for-byte, and add a parallel `package-linux.yml`. Two new `build/` scripts
 hold the logic the workflows only orchestrate: `build-tarball.sh` packs a
 bundle's manifest CLIs as the `binaries` job built and checksummed them (no
 re-verification), and `update-formula.sh` rewrites a formula's version and
-per-arch checksums. The `release` and `tap` jobs gain a `linux-packages`
-artifact beside the unchanged `package-assets`. Steps 1–8 and 10 land in the
+per-arch checksums. The `release` and `tap` jobs gain the per-arch
+`linux-packages-<arch>` artifacts beside the unchanged `package-assets`. Steps 1–8 and 10 land in the
 monorepo; step 9 seeds the external tap by hand and must precede the first
 post-change release tag.
 
@@ -127,7 +127,8 @@ Produce both architecture tarballs from the already-built binaries.
 `pattern: "*-bun-linux-${{ matrix.arch }}"`, `path: dist/binaries`,
 `merge-multiple: true`; then
 `bash build/build-tarball.sh "${{ inputs.bundle }}" "${{ matrix.arch }}"`;
-`upload-artifact` name `linux-packages`, path `dist/release/`,
+`upload-artifact` name `linux-packages-${{ matrix.arch }}` (one per cell — a
+shared name collides under upload-artifact v4), path `dist/release/`,
 `if-no-files-found: error`. Wire the caller job:
 
 ```yaml
@@ -139,8 +140,9 @@ Produce both architecture tarballs from the already-built binaries.
       version: ${{ needs.meta.outputs.version }}
 ```
 
-Verify: `actionlint` passes; a dispatch run yields a `linux-packages` artifact
-holding `fit-<bundle>-linux-x64.tar.gz`, `-arm64.tar.gz`, and both `.sha256`.
+Verify: `actionlint` passes; a dispatch run yields two artifacts
+`linux-packages-x64` and `linux-packages-arm64`, each holding its arch's
+`fit-<bundle>-linux-<arch>.tar.gz` + `.sha256`.
 
 ## Step 6: Stage the Linux tarballs on the release
 
@@ -150,10 +152,11 @@ raw assets (no consumer).
 - Modified: `.github/workflows/publish-binaries.yml` (`release` job)
 
 Add `package-linux` to `needs`. In the raw-staging loop, `continue` on keys
-equal to `linux-packages` (as it already does for `package-assets`) **and** on
+matching `linux-packages-*` (as it already does for `package-assets`) **and** on
 keys ending in `-bun-linux-arm64`, so arm64 ships only inside the tarball. After
-the loop, add `cp -R dist/artifacts/linux-packages/. dist/release/` beside the
-existing `package-assets` copy.
+the loop, copy each per-arch dir with
+`for dir in dist/artifacts/linux-packages-*/; do cp -R "$dir". dist/release/; done`
+beside the existing `package-assets` copy.
 
 Verify: a dispatch release lists `fit-<bundle>-linux-{x64,arm64}.tar.gz` +
 `.sha256` and the `{cli}-bun-linux-x64` raw assets, and no
@@ -182,8 +185,8 @@ Track the release in the tap by updating both packages in one commit.
 - Modified: `.github/workflows/publish-binaries.yml` (`tap` job)
 
 Add `package-linux` to `needs`. Add a second `download-artifact` step
-(`name: linux-packages`, `path: dist/release`) beside the existing
-`package-assets` download. In the `hash` step, set `X64_SHA`/`ARM64_SHA` from
+(`pattern: linux-packages-*`, `merge-multiple: true`, `path: dist/release`)
+beside the existing `package-assets` download. In the `hash` step, set `X64_SHA`/`ARM64_SHA` from
 `shasum -a 256 dist/release/fit-<bundle>-linux-{x64,arm64}.tar.gz | awk '{print $1}'`.
 The monorepo checkout at `path: main` is already unconditional, so after the
 existing cask `sed`/render, run

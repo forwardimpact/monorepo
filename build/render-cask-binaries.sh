@@ -16,6 +16,15 @@ BUNDLE="${2:?usage: render-cask-binaries.sh <cask-file> <bundle>}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MANIFEST="$ROOT/build/cli-manifest.json"
 
+# The splice needs both anchors: it keeps everything through `app "..."` and
+# resumes at `livecheck do`. A cask missing `livecheck do` would silently lose
+# everything after `app` (zap, the closing end). Fail loud here rather than emit
+# invalid Ruby that only a downstream `ruby -c` would reject with no context.
+grep -q '^  app "' "$CASK_FILE" \
+  || { echo "Error: no 'app \"...\"' line in $CASK_FILE" >&2; exit 1; }
+grep -q '^  livecheck do' "$CASK_FILE" \
+  || { echo "Error: no 'livecheck do' line in $CASK_FILE — splice would drop everything after 'app'" >&2; exit 1; }
+
 APP="fit-${BUNDLE}"
 PREFIX="  binary \"#{appdir}/Forward Impact/${APP}.app/Contents/MacOS/"
 

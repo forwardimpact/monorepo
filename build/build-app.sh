@@ -29,7 +29,8 @@ ENTITLEMENTS="$(field entitlements)"
 VERSION_SRC="$(field version)"
 LAUNCHER="$(field launcher)"
 
-[ -n "$INFO_PLIST" ] || { echo "Error: no .bundles[$BUNDLE] entry in $MANIFEST" >&2; exit 1; }
+jq -e --arg b "$BUNDLE" '.bundles[$b]' "$MANIFEST" >/dev/null \
+  || { echo "Error: no .bundles[$BUNDLE] entry in $MANIFEST" >&2; exit 1; }
 VERSION="$(jq -r .version "$VERSION_SRC")"
 
 # mapfile needs bash 4+; macOS runners ship bash 3.2, so read line-by-line.

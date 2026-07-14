@@ -42,18 +42,18 @@ flowchart TD
   build --> pmac[package-macos → package-macos.yml<br/>matrix: arch=arm64 today]
   build --> plin[package-linux → package-linux.yml<br/>matrix: arch=x64,arm64]
   pmac -->|package-assets| rel[release: gh release]
-  plin -->|linux-packages| rel
+  plin -->|linux-packages-*| rel
   build -->|x64 raw artifacts| rel
   pmac -->|package-assets| tap[tap: update cask + formula, one commit]
-  plin -->|linux-packages| tap
+  plin -->|linux-packages-*| tap
 ```
 
 `package-macos` and `package-linux` run in parallel, each matrixed over its own
 architecture set. macOS keeps its existing `package-assets` artifact name (so
-the `release` skip-guard and `tap` download keep working); Linux adds a parallel
-`linux-packages` artifact. The symmetry is in the shape — one package workflow
-per platform, each emitting one packages artifact — not in a churny rename of a
-working contract. A future macOS x64 target is one matrix value, not new code.
+the `release` skip-guard and `tap` download keep working); Linux adds parallel
+`linux-packages-<arch>` artifacts (one per matrix cell). The symmetry is in the
+shape — one package workflow per platform, each emitting its packages artifacts
+— not in a churny rename of a working contract. A future macOS x64 target is one matrix value, not new code.
 
 ## Components
 
@@ -113,9 +113,10 @@ end
 - **Manifest → containers:** the `.app` assembly and the tarball packing both
   read `cli-manifest.json`, so the containers never diverge.
 - **Package workflow → downstream:** `package-macos` emits `package-assets`,
-  `package-linux` emits `linux-packages` (each: containers + `.sha256`).
-  `release` uploads both as release assets; `tap` downloads both and recomputes
-  checksums. The shape is uniform; the names are fixed by the existing contract.
+  `package-linux` emits `linux-packages-<arch>` (one per arch; each holds the
+  containers plus `.sha256`). `release` uploads both as release assets; `tap`
+  downloads both (`linux-packages-*` merged) and recomputes checksums. The shape
+  is uniform; the names are fixed by the existing contract.
 - **Release → formula (assets):** each bundle publishes
   `fit-<bundle>-linux-{x64,arm64}.tar.gz` + `.sha256`; `{cli}-bun-linux-x64` raw
   assets remain for the installer.

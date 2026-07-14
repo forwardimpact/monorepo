@@ -106,8 +106,11 @@ graph TD
 
 ## Binary stanza mapping
 
-Each cask exposes only the executables bundled in its own `.app`. This table is
-the authoritative mapping between casks and the CLIs they place on `PATH`.
+Each cask exposes only the executables bundled in its own `.app`.
+`build/cli-manifest.json` is the source of truth; this table mirrors the CLIs
+each cask places on `PATH`. Regenerate the `fit-gear` row with
+`jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json`
+when the bundle set changes.
 
 | Cask | Executables on PATH | Count |
 | --- | --- | --- |
@@ -117,7 +120,7 @@ the authoritative mapping between casks and the CLIs they place on `PATH`.
 | `fit-landmark` | `fit-landmark` | 1 |
 | `fit-summit` | `fit-summit` | 1 |
 | `fit-outpost` | `fit-outpost` | 1 |
-| `fit-gear` | `fit-svcgraph`, `fit-svcmcp`, `fit-svcpathway`, `fit-svctrace`, `fit-svcvector`, `fit-codegen`, `fit-terrain`, `fit-harness`, `fit-doc`, `fit-rc`, `fit-xmr`, `fit-storage`, `fit-logger`, `fit-svscan`, `fit-trace`, `fit-visualize`, `fit-query`, `fit-subjects`, `fit-process-graphs`, `fit-process-resources`, `fit-process-vectors`, `fit-search`, `fit-unary`, `fit-tiktoken`, `fit-download-bundle`, `fit-wiki` | 26 |
+| `fit-gear` | `fit-svcgraph`, `fit-svcmcp`, `fit-svcpathway`, `fit-svctrace`, `fit-svcvector`, `fit-codegen`, `fit-terrain`, `fit-harness`, `fit-doc`, `fit-rc`, `fit-xmr`, `fit-storage`, `fit-logger`, `fit-svscan`, `fit-trace`, `fit-visualize`, `fit-query`, `fit-subjects`, `fit-process-graphs`, `fit-process-resources`, `fit-process-vectors`, `fit-search`, `fit-unary`, `fit-tiktoken`, `fit-download-bundle`, `fit-wiki`, `fit-benchmark`, `fit-pack`, `coaligned` | 29 |
 
 Both the `.app` assembly and the cask `binary` block derive from
 `build/cli-manifest.json` for **every** bundle — one code path, no gear
