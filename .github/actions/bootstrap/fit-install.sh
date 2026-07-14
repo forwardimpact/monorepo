@@ -148,7 +148,7 @@ extract_archive() {
 install_tool() {
   local name="$1" version="$2" url="$3" sha256="$4" binary_path="$5" strip="${6:-0}"
 
-  if "$BIN_DIR/$name" --version &>/dev/null; then
+  if command -v "$name" &>/dev/null; then
     echo "$name already installed"
     return 0
   fi
@@ -179,7 +179,7 @@ install_gear_binary() {
   local target release base
   target="$(fit_target)"
 
-  if "$BIN_DIR/$name" --version &>/dev/null; then
+  if command -v "$name" &>/dev/null; then
     echo "$name already installed"
     return 0
   fi
