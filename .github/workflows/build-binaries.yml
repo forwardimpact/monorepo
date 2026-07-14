@@ -49,7 +49,9 @@ jobs:
               | $c.targets[]
               | select(. as $t | $req | index($t))
               | { cli: $c.name, target: .,
-                  os: (if . == "bun-linux-x64" then "ubuntu-latest" else "macos-14" end) } ]
+                  os: (if . == "bun-linux-x64" then "ubuntu-latest"
+                       elif . == "bun-linux-arm64" then "ubuntu-24.04-arm"
+                       else "macos-14" end) } ]
           ' build/cli-manifest.json)
           # Fail loudly on a bad `targets`/`bundle` input rather than emit an
           # empty matrix that silently skips every build.
