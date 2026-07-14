@@ -56,185 +56,24 @@ jobs:
       contents: read
     uses: ./.github/workflows/build-binaries.yml
     with:
-      targets: '["bun-linux-x64", "bun-darwin-arm64"]'
+      targets: '["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"]'
       bundle: ${{ needs.meta.outputs.bundle }}
 
-  # Assemble + sign + notarize the .app and (outpost) the .pkg on one runner,
-  # reusing the same signed bundle. No cross-workflow handoff.
+  # Assemble + sign + notarize the .app and (outpost) the .pkg. Delegated to a
+  # reusable workflow matrixed over arch; emits the `package-assets` artifact.
+  # secrets: inherit forwards the macos-signing environment secrets, which the
+  # reusable workflow's job scopes with `environment: macos-signing`.
   package:
     needs: [meta, binaries]
-    runs-on: macos-14
-    # Environment-scoped signing secrets — only jobs that declare this
-    # environment can read them, so kata-* agent workflows cannot.
-    environment: macos-signing
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-
-      - uses: forwardimpact/bootstrap@52b7f3fe405a559fd8f2c95b102499e0df9b152b # v1.0.10
-
-      - uses: ./.github/actions/audit
-
-      - name: Download macOS binaries
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          pattern: "*-bun-darwin-arm64"
-          path: dist/dl
-          # Merge every matched artifact into dist/dl as bare {cli} +
-          # {cli}.sha256 (no per-artifact subdir). Deterministic for 1 CLI
-          # (outpost) or 25 (gear) — names don't collide.
-          merge-multiple: true
-
-      - name: Verify checksums and stage binaries
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          mkdir -p dist/binaries
-          # The .sha256 sibling holds only the hash (build-binaries emits
-          # `shasum | awk '{print $1}'`), so compare rather than `shasum -c`.
-          # Verifying before signing proves the bytes we sign are the bytes the
-          # build produced.
-          found=0
-          for sha in dist/dl/*.sha256; do
-            bin="${sha%.sha256}"
-            test -f "$bin" || { echo "::error::$sha has no matching binary"; exit 1; }
-            want="$(cat "$sha")"
-            got="$(shasum -a 256 "$bin" | awk '{print $1}')"
-            [ "$want" = "$got" ] || { echo "::error::checksum mismatch for $bin"; exit 1; }
-            install -m 0755 "$bin" "dist/binaries/$(basename "$bin")"
-            found=$((found + 1))
-          done
-          [ "$found" -gt 0 ] || { echo "::error::no binaries downloaded to dist/dl"; exit 1; }
-
-      - name: Set up code signing
-        id: signing
-        uses: ./.github/actions/macos-signing
-        with:
-          app-cert-base64: ${{ secrets.APPLE_DEV_ID_APP_P12_BASE64 }}
-          app-cert-password: ${{ secrets.APPLE_DEV_ID_APP_P12_PASSWORD }}
-          installer-cert-base64: ${{ secrets.APPLE_DEV_ID_INSTALLER_P12_BASE64 }}
-          installer-cert-password: ${{ secrets.APPLE_DEV_ID_INSTALLER_P12_PASSWORD }}
-
-      - name: Assemble bundle
-        env:
-          KIND: ${{ needs.meta.outputs.kind }}
-          NAME: ${{ needs.meta.outputs.name }}
-        run: |
-          case "$KIND" in
-            gear)     just build-app-gear ;;
-            product)  just build-app-product "$NAME" ;;
-          esac
-
-      - name: Smoke test
-        env:
-          KIND: ${{ needs.meta.outputs.kind }}
-          NAME: ${{ needs.meta.outputs.name }}
-          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
-        run: |
-          BUNDLE="dist/apps/${BUNDLE_NAME}"
-          codesign --verify --deep --strict "$BUNDLE"
-          case "$KIND" in
-            product)  "$BUNDLE/Contents/MacOS/fit-${NAME}" --help ;;
-            gear)
-              # Smoke every gear CLI, not just the first — the gear bundle ships
-              # ~25 and a single startup-crash binary would otherwise ship
-              # signed. Server entries honour --help via the libcli short-circuit,
-              # so they are smoked alongside the rest with no carve-out.
-              for cli in $(jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json); do
-                "$BUNDLE/Contents/MacOS/$cli" --help >/dev/null
-              done
-              ;;
-          esac
-
-      - name: Verify cdhash stability
-        # Rebuild from the same (already checksum-verified) binaries and confirm
-        # the signed cdhash is identical. A drifting cdhash wipes TCC grants on
-        # `brew upgrade`, so a non-deterministic wrap must fail the release.
-        env:
-          KIND: ${{ needs.meta.outputs.kind }}
-          NAME: ${{ needs.meta.outputs.name }}
-          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
-        run: |
-          BUNDLE="dist/apps/${BUNDLE_NAME}"
-          BASELINE=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
-          rm -rf dist/apps products/outpost/dist   # keep dist/binaries
-          case "$KIND" in
-            gear)     just build-app-gear ;;
-            product)  just build-app-product "$NAME" ;;
-          esac
-          AFTER=$(codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash || true)
-          if [ "$BASELINE" != "$AFTER" ]; then
-            echo "::error::cdhash drift detected — bundle is not deterministic"
-            echo "baseline: $BASELINE"; echo "after: $AFTER"; exit 1
-          fi
-          echo "cdhash stable: $AFTER"
-
-      - name: Notarize and staple app
-        if: steps.signing.outputs.enabled == 'true'
-        uses: ./.github/actions/notarize
-        with:
-          path: dist/apps/${{ needs.meta.outputs.bundle_name }}
-          api-key-base64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
-          api-key-id: ${{ secrets.APPLE_API_KEY_ID }}
-          api-issuer: ${{ secrets.APPLE_API_ISSUER_ID }}
-
-      - name: Verify app is signed, notarized, and stapled
-        if: steps.signing.outputs.enabled == 'true'
-        env:
-          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
-        run: |
-          set -euo pipefail
-          BUNDLE="dist/apps/${BUNDLE_NAME}"
-          codesign --verify --deep --strict --verbose=2 "$BUNDLE"
-          # Gatekeeper assessment + stapled ticket — the .pkg must never wrap an
-          # un-notarized app.
-          spctl --assess --type exec --verbose=4 "$BUNDLE"
-          xcrun stapler validate "$BUNDLE"
-
-      - name: Zip cask and hash
-        id: hash
-        env:
-          VERSION: ${{ needs.meta.outputs.version }}
-          CASK: ${{ needs.meta.outputs.cask }}
-          BUNDLE_NAME: ${{ needs.meta.outputs.bundle_name }}
-        run: |
-          set -euo pipefail
-          BUNDLE="dist/apps/${BUNDLE_NAME}"
-          ASSET="${CASK}-${VERSION}-darwin-arm64.zip"
-          mkdir -p dist/release
-          # ditto preserves codesign metadata through zip; a plain zip does not.
-          ditto -c -k --sequesterRsrc --keepParent "$BUNDLE" "dist/release/${ASSET}"
-          shasum -a 256 "dist/release/${ASSET}" | awk '{print $1}' > "dist/release/${ASSET}.sha256"
-
-      - name: Build .pkg
-        if: needs.meta.outputs.name == 'outpost'
-        env:
-          VERSION: ${{ needs.meta.outputs.version }}
-        run: |
-          set -euo pipefail
-          # Wrap the same signed + notarized + stapled app built above — no
-          # rebuild, no re-download. build-pkg.sh signs the .pkg with the
-          # installer identity (MACOS_INSTALLER_IDENTITY) when set.
-          bash products/outpost/pkg/macos/build-pkg.sh "$PWD/dist/apps" "$VERSION"
-          cp "dist/apps/fit-outpost-${VERSION}.pkg" dist/release/
-
-      - name: Notarize and staple .pkg
-        if: needs.meta.outputs.name == 'outpost' && steps.signing.outputs.enabled == 'true'
-        uses: ./.github/actions/notarize
-        with:
-          path: dist/release/fit-outpost-${{ needs.meta.outputs.version }}.pkg
-          api-key-base64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
-          api-key-id: ${{ secrets.APPLE_API_KEY_ID }}
-          api-issuer: ${{ secrets.APPLE_API_ISSUER_ID }}
-
-      - name: Upload release-bound package assets
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: package-assets
-          path: dist/release/
-          if-no-files-found: error
-          retention-days: 1
+    uses: ./.github/workflows/package-macos.yml
+    with:
+      bundle: ${{ needs.meta.outputs.bundle }}
+      version: ${{ needs.meta.outputs.version }}
+      kind: ${{ needs.meta.outputs.kind }}
+      name: ${{ needs.meta.outputs.name }}
+      bundle_name: ${{ needs.meta.outputs.bundle_name }}
+      cask: ${{ needs.meta.outputs.cask }}
+    secrets: inherit
 
   # Publish the GitHub release with the raw binaries + cask zip (+ pkg).
   # Created with GITHUB_TOKEN: this is one workflow, so nothing downstream needs
