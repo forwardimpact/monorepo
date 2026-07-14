@@ -233,7 +233,62 @@ exist — the live pipeline is `publish-binaries.yml`'s `tap` job with a direct
 `sed`+push.
 
 Verify: `bunx fit-doc build --src=websites/fit` succeeds and the section
-renders.
+renders. Also update the "Binary stanza mapping" section: the cask binary block
+is now rendered for every bundle (not gear only).
+
+## Step 11: Make macOS `.app` assembly manifest-driven
+
+Give `cli-manifest.json` a `bundles` map and collapse the two assemblers into
+one, so the gear-vs-product `KIND` branch has no place to live.
+
+- Modified: `build/cli-manifest.json`, `justfile`,
+  `products/outpost/pkg/build.js`, `products/outpost/pkg/macos/build-pkg.sh`,
+  `.github/workflows/outpost-determinism-probe.yml`
+- Created: `build/build-app.sh`
+- Deleted: `build/build-app-gear.sh`, `build/build-app-product.sh`
+
+Add a top-level `bundles` map to the manifest, one entry per bundle, with
+`info_plist`, `entitlements`, `version` (the `package.json` to read), and — for
+outpost — `launcher` and `resources`. Write `build/build-app.sh <bundle>`: read
+`.bundles[<bundle>]` for the assembly inputs and `.clis[] | select(.bundle ==
+$b)` for the executables (first is primary, rest are extra); a bundle with a
+`launcher` builds it via `products/<bundle>/pkg/build.js --launcher`, uses it as
+primary, and rides every CLI along. Replace the `build-app-gear`/
+`build-app-product` recipes with one `build-app BUNDLE`, and repoint the three
+callers that named the old recipes.
+
+Verify: for gear and a product, `just build-app <bundle>` from fake binaries
+produces a bundle byte-identical to the deleted scripts' output (tree,
+`Info.plist`, executables); a real product binary assembles, `codesign
+--verify` passes, and its CLI runs `--help` with exit 0.
+
+## Step 12: Retire `KIND` from `meta` and `package-macos.yml`
+
+- Modified: `.github/workflows/publish-binaries.yml` (`meta`, `package-macos`
+  caller), `.github/workflows/package-macos.yml`
+
+Drop the `meta` `case` — `bundle`, `bundle_name` (`fit-<bundle>.app`), and
+`cask` (`fit-<bundle>`) derive uniformly from the tag prefix; remove the `kind`
+and `name` outputs and inputs. In `package-macos.yml` the assemble, smoke, and
+cdhash steps run `just build-app "${{ inputs.bundle }}"` and loop the bundle's
+manifest CLIs; the `.pkg` steps gate on `inputs.bundle == 'outpost'`.
+
+Verify: `actionlint` passes; no `KIND`/`kind` selects gear vs product; the
+cdhash-stability step is intact.
+
+## Step 13: Render the cask binary block for every bundle
+
+- Modified: `.github/workflows/publish-binaries.yml` (`tap` job)
+
+Remove the `if [ "$KIND" = gear ]` guard so `render-cask-binaries.sh` runs for
+every cask (a single-CLI product yields its one stanza). Keep the gear bootstrap
+`if: needs.meta.outputs.bundle == 'gear'` — `fit-install.sh` installs the gear
+toolbox and is domain-specific, not a gear-vs-product smell; add a comment
+saying so.
+
+Verify: `actionlint` passes; the render + `ruby -c` run unconditionally; the
+gear bootstrap gate is the only surviving `== 'gear'` and is commented as
+domain-intentional.
 
 ## Risks
 
@@ -247,14 +302,30 @@ renders.
   cdhash-stability re-verification is the guard that the reusable workflow
   signs the same bytes deterministically; a drift fails the release rather than
   shipping a TCC-wiping bundle.
+- **`.app` assembly unification risks the signing path.** The byte-identical
+  gate (steps 11–12) is the guard: the unified `build-app.sh` must reproduce
+  each bundle's `.app` exactly, or the cdhash-stability step fails the release.
+- **Product casks must tolerate `render-cask-binaries.sh`.** Rendering the
+  binary block for every bundle assumes each product cask has the `app "…"` →
+  `livecheck do` structure the script splices between; a product cask lacking
+  `livecheck do` would lose everything after `app`. All current casks carry
+  `livecheck`, and the first post-change release rewrites the product blocks.
+  This is a change to the product **casks** in the external tap (the `.app`
+  bytes are unchanged).
 
 ## Execution
 
 Order within the monorepo: `1 → 2`, then `4 → 5` and `7 → 8`. Step 1 must
 precede step 5 (the arm64 cell must build before `package-linux` downloads it),
 and step 5 must precede steps 6 and 8 (both add `package-linux` to a job's
-`needs`). Step 3 is independent. Route the monorepo code steps (1–8) to
-`staff-engineer` and step 10 (docs) to `technical-writer`. Step 9 is a
-hand-authored PR on the external `forwardimpact/homebrew-tap` repo — not
-routable to an in-repo agent on this branch — and must merge to the tap before
-the first post-change release tag.
+`needs`). Step 3 is independent. The macOS-symmetry steps run `11 → 12 → 13`:
+step 11 (unified `build-app.sh` + manifest `bundles` map) precedes step 12
+(which calls `just build-app` from `package-macos.yml`), and step 12's `meta`
+simplification precedes step 13 (the `tap` render, which no longer reads
+`kind`). Steps 11–13 build on step 3's extracted `package-macos.yml`. Route the
+monorepo code steps (1–8, 11–13) to `staff-engineer` and step 10 (docs) to
+`technical-writer`. Step 9 is a hand-authored PR on the external
+`forwardimpact/homebrew-tap` repo — not routable to an in-repo agent on this
+branch — and must merge to the tap before the first post-change release tag.
+The product casks in that tap must carry a `livecheck do` line before the first
+render-for-all release (step 13 risk).
