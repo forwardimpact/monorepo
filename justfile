@@ -200,13 +200,10 @@ build-binary NAME TARGET="bun-darwin-arm64":
 build-all TARGET="bun-darwin-arm64": codegen
     bash build/build-all.sh "{{TARGET}}"
 
-# Assemble dist/apps/fit-<NAME>.app for a product (outpost is special-cased)
-build-app-product NAME:
-    bash build/build-app-product.sh "{{NAME}}"
-
-# Assemble dist/apps/fit-gear.app — bundles the manifest's gear CLI subset
-build-app-gear:
-    bash build/build-app-gear.sh
+# Assemble dist/apps/fit-<BUNDLE>.app — one manifest-driven path for every
+# bundle (gear and products alike; outpost's launcher is manifest data)
+build-app BUNDLE:
+    bash build/build-app.sh "{{BUNDLE}}"
 
 # ── Quality ───────────────────────────────────────────────────────
 

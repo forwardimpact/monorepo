@@ -42,18 +42,19 @@ flowchart TD
   build --> pmac[package-macos → package-macos.yml<br/>matrix: arch=arm64 today]
   build --> plin[package-linux → package-linux.yml<br/>matrix: arch=x64,arm64]
   pmac -->|package-assets| rel[release: gh release]
-  plin -->|linux-packages| rel
+  plin -->|linux-packages-*| rel
   build -->|x64 raw artifacts| rel
   pmac -->|package-assets| tap[tap: update cask + formula, one commit]
-  plin -->|linux-packages| tap
+  plin -->|linux-packages-*| tap
 ```
 
 `package-macos` and `package-linux` run in parallel, each matrixed over its own
 architecture set. macOS keeps its existing `package-assets` artifact name (so
-the `release` skip-guard and `tap` download keep working); Linux adds a parallel
-`linux-packages` artifact. The symmetry is in the shape — one package workflow
-per platform, each emitting one packages artifact — not in a churny rename of a
-working contract. A future macOS x64 target is one matrix value, not new code.
+the `release` skip-guard and `tap` download keep working); Linux adds parallel
+`linux-packages-<arch>` artifacts (one per matrix cell). The symmetry is in the
+shape — one package workflow per platform, each emitting its packages artifacts
+— not in a churny rename of a working contract. A future macOS x64 target is one
+matrix value, not new code.
 
 ## Components
 
@@ -61,11 +62,12 @@ working contract. A future macOS x64 target is one matrix value, not new code.
 | --- | --- | --- |
 | Build target set | `build/cli-manifest.json`, `build-binaries.yml` matrix | Add `bun-linux-arm64` to each CLI's `targets` **and** turn the matrix's two-branch `os` ternary (`bun-linux-x64` → `ubuntu-latest`, else → `macos-14`) into a three-way map routing arm64 Linux to `ubuntu-24.04-arm`; without it the arm64 build silently runs on macOS. |
 | Release target list | `publish-binaries.yml` `binaries` job `with: targets` | Add `bun-linux-arm64` to the target array. |
-| `package-macos.yml` | new reusable workflow | The current `package` job lifted into a reusable workflow with an `arch` matrix and `bundle`/`version` inputs. It declares `environment: macos-signing` on its own job and takes signing secrets via `secrets: inherit`, preserving the scoping that keeps kata agents out of the certs. Behavior-preserving: same sign, notarize, staple, cdhash-stability check, cask zip, `.pkg`. Emits `package-assets` (unchanged name). |
-| `package-linux.yml` | new reusable workflow | Matrix `arch=[x64,arm64]`. Per bundle, pack its manifest CLIs into `fit-<bundle>-linux-<arch>.tar.gz` + `.sha256`. Same manifest source as the `.app`. The tarball holds only the self-contained CLI executables (assets are inlined), so it carries no loose files. Emits `linux-packages`. |
-| Release staging | `publish-binaries.yml` `release` job | Extend the skip-guard (today skips only `package-assets`) to also skip `linux-packages`, stage the Linux tarballs + `.sha256` as release assets, and keep staging the **x64** raw `{cli}-bun-linux-x64` assets for the bootstrap installer. arm64 ships only in the tarball — no arm64 raw asset (no consumer). |
+| Manifest `bundles` map + `build-app.sh` | `build/cli-manifest.json`, `build/build-app.sh` | The manifest gains a `bundles` map keying each bundle to its macOS assembly inputs (`info_plist`, `entitlements`, `version` source, optional `launcher` and `resources`). One `build-app.sh <bundle>` reads that map plus `.clis[]` and assembles any bundle's `.app` — replacing `build-app-gear.sh` and `build-app-product.sh`. A single-CLI product and gear take the same path; outpost's launcher is manifest data, not a branch. Byte-identical `.app` output to the prior scripts. |
+| `package-macos.yml` | new reusable workflow | The current `package` job lifted into a reusable workflow with an `arch` matrix and `bundle`/`version`/`bundle_name`/`cask` inputs. It declares `environment: macos-signing` on its own job and takes signing secrets via `secrets: inherit`, preserving the scoping that keeps kata agents out of the certs. Assemble/smoke/cdhash all run `just build-app <bundle>` and loop the bundle's manifest CLIs — no `KIND`. Behavior-preserving: same sign, notarize, staple, cdhash-stability check, cask zip, `.pkg`. Emits `package-assets` (unchanged name). |
+| `package-linux.yml` | new reusable workflow | Matrix `arch=[x64,arm64]`. Per bundle, pack its manifest CLIs into `fit-<bundle>-linux-<arch>.tar.gz` + `.sha256`. Same manifest source as the `.app`. The tarball holds only the self-contained CLI executables (assets are inlined), so it carries no loose files. Emits one `linux-packages-<arch>` artifact per cell (a shared name would collide under upload-artifact v4). |
+| Release staging | `publish-binaries.yml` `release` job | Extend the skip-guard (today skips only `package-assets`) to also skip `linux-packages-*` and every `*-bun-linux-arm64` raw artifact, stage the Linux tarballs + `.sha256` as release assets, and keep staging the **x64** raw `{cli}-bun-linux-x64` assets for the bootstrap installer. arm64 ships only in the tarball — no arm64 raw asset (no consumer). |
 | Tap formulae | existing tap repo, `Formula/<token>.rb` beside `Casks/` | One formula per bundle. `on_linux` + `on_arm`/`on_intel` select the arch tarball and its `sha256`; `install` does `bin.install Dir["*"]` (exact — the tarball is only executables). Same tap and token as the cask. |
-| Cask + formula update | `publish-binaries.yml` `tap` job | Download both `package-assets` and `linux-packages`, recompute checksums, update the cask (one `sha256`) and the formula (version + the two per-arch `sha256`, each anchored under its `on_intel`/`on_arm` block — a targeted substitution per stanza, distinct from the cask's single sed). One commit, one tap-scoped token. |
+| Cask + formula update | `publish-binaries.yml` `tap` job | Download `package-assets` and the `linux-packages-*` artifacts (`merge-multiple`), recompute checksums, update the cask (`sha256` + binary block rendered from the manifest for **every** bundle) and the formula (version + the two per-arch `sha256`, each anchored under its `on_intel`/`on_arm` block — a targeted substitution per stanza, distinct from the cask's single sed). One commit, one tap-scoped token. |
 
 ## Formula shape
 
@@ -98,7 +100,9 @@ end
 | Packaging orchestration | **One reusable workflow per platform, matrixed over arch**, mirroring `build-binaries.yml` | A unified `package.yml` with a `platform` matrix branching to sign-or-tar — forces two very different flows into one conditional body, against "workflows orchestrate, actions implement". Bespoke inline jobs (status quo) — not matrixed, so a new arch/platform edits a job body. |
 | Arch/platform as data | Matrix values + a target→runner map expression | Hardcoded per-target jobs — parallelism and additions require copy-editing jobs. |
 | macOS packaging | **Extract the `package` job into `package-macos.yml`** with `environment: macos-signing` + `secrets: inherit` declared inside it, behavior-preserving | Leave it inline — keeps the signing path untouched but leaves the pipeline asymmetric. Extraction risk is bounded: composite actions and the cdhash-stability check are unchanged, and the signing-secret scoping is preserved by declaring the environment inside the reusable workflow. |
-| Artifact naming | Retain `package-assets` (macOS); add `linux-packages` | Rename both to a uniform `<platform>-packages` — cosmetic symmetry that silently breaks the `release` skip-guard and the `tap` download, which key on the literal `package-assets`. |
+| macOS assembly symmetry | **Data-drive `.app` assembly and cask rendering from `cli-manifest.json` for every bundle** — a `bundles` map, one `build-app.sh`, cask render unconditional — so the gear-vs-product `KIND` branch disappears end to end (`meta`, `package-macos`, `tap`). Byte-identical `.app` output guards the signing path. | Keep `KIND` and the two assemblers (status quo asymmetry). Also rejected: relocate the branch into `build-app.sh` (a `case $bundle` inside the script) — moves the smell rather than removing it. This deliberately supersedes spec 1420's "packaging stays in the recipes, the manifest owns only the build set" decision: the goal here is full bundle symmetry, so packaging config becomes manifest data. |
+| Cask binary block | Render it from the manifest for **every** bundle (a product yields its one stanza) | Render only for gear, hand-write product stanzas (status quo) — the gear-vs-product branch this spec removes; product blocks could silently drift from the shipped set. |
+| Artifact naming | Retain `package-assets` (macOS); add per-cell `linux-packages-<arch>` collected via a `linux-packages-*` pattern | A shared `linux-packages` — upload-artifact v4 rejects a duplicate name across the two matrix cells (409). Renaming `package-assets` too — cosmetic churn that breaks the `release` skip-guard and `tap` download keyed on the literal. |
 | Linux distribution unit | One tarball per bundle, mirroring the macOS `.app` | Per-CLI formula + `fit-gear` meta-formula — asymmetric with the bundle-container model, ~29 churning formula files, empty-install audit friction. |
 | Package format | Homebrew **formula** | A cask — macOS-only; Homebrew ignores casks on Linux. |
 | Tap location | The **existing tap**, `Formula/` beside `Casks/` | A dedicated Linux tap — a second repo/token to avoid a bounded token collision (see Risks) that never touches the documented `--cask` path. |
@@ -110,9 +114,10 @@ end
 - **Manifest → containers:** the `.app` assembly and the tarball packing both
   read `cli-manifest.json`, so the containers never diverge.
 - **Package workflow → downstream:** `package-macos` emits `package-assets`,
-  `package-linux` emits `linux-packages` (each: containers + `.sha256`).
-  `release` uploads both as release assets; `tap` downloads both and recomputes
-  checksums. The shape is uniform; the names are fixed by the existing contract.
+  `package-linux` emits `linux-packages-<arch>` (one per arch; each holds the
+  containers plus `.sha256`). `release` uploads both as release assets; `tap`
+  downloads both (`linux-packages-*` merged) and recomputes checksums. The shape
+  is uniform; the names are fixed by the existing contract.
 - **Release → formula (assets):** each bundle publishes
   `fit-<bundle>-linux-{x64,arm64}.tar.gz` + `.sha256`; `{cli}-bun-linux-x64` raw
   assets remain for the installer.

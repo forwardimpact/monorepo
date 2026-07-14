@@ -23,14 +23,14 @@ jobs:
       - name: First build
         run: |
           just build-binary "fit-outpost"
-          just build-app-product outpost
+          just build-app outpost
           cp -R dist/apps/fit-outpost.app /tmp/outpost-before.app
           codesign -dvvv dist/apps/fit-outpost.app 2>&1 | grep -i CDHash > /tmp/cdhash.before
       - name: Second build
         run: |
           rm -rf dist/apps dist/binaries products/outpost/dist
           just build-binary "fit-outpost"
-          just build-app-product outpost
+          just build-app outpost
           cp -R dist/apps/fit-outpost.app /tmp/outpost-after.app
           codesign -dvvv dist/apps/fit-outpost.app 2>&1 | grep -i CDHash > /tmp/cdhash.after
       - name: Diffoscope

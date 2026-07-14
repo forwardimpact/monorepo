@@ -45,7 +45,8 @@ In scope:
 | Area | Change |
 | --- | --- |
 | Build matrix | Produce a native Linux **arm64** binary for every CLI, alongside the existing Linux x64 and macOS arm64 outputs. This needs arm64 Linux CI capacity and a runner-selection change, not only a new target entry. |
-| Bundle packaging | Pack each bundle's CLIs into one per-architecture Linux tarball, its contents defined by the bundle manifest — the Linux analog of the macOS `.app` assembly. The macOS `.app` packaging is unchanged. |
+| Bundle packaging | Pack each bundle's CLIs into one per-architecture Linux tarball, its contents defined by the bundle manifest — the Linux analog of the macOS `.app` assembly. |
+| Packaging symmetry | Drive every bundle's `.app` assembly and every cask's `binary` block from `build/cli-manifest.json`, gear and products alike, so the gear-vs-product `KIND` branch disappears from the pipeline. The manifest gains a `bundles` map (per-bundle plist, entitlements, version source, and any launcher or resources); one `build-app.sh <bundle>` replaces the separate gear and product assemblers; the cask binary-block render runs for every bundle. The `.app` bytes stay byte-identical, so signing and notarization are unaffected; the product **casks** gain the generated binary block. Outpost's native launcher and `.pkg`, and the gear bootstrap installer, stay bundle-specific by domain necessity. |
 | Release assets | Publish the per-bundle Linux tarballs (x64 and arm64), each with a checksum. The existing x64 raw per-CLI binaries stay published unchanged for the bootstrap installer. |
 | Tap | The existing tap gains one formula per bundle beside the casks. Each formula selects its bundle's tarball by host architecture and verifies the published checksum at install. |
 | Release pipeline | On each tag, update every affected cask (as today) and formula (version and per-architecture checksums) so the tap tracks the release. |
@@ -53,10 +54,13 @@ In scope:
 
 Out of scope:
 
-- **macOS distribution output is unchanged.** The signed, notarized `.app`, the
-  cask, and their signing and notarization are byte-for-byte what users install
-  today. The packaging job may be refactored into a matrixed reusable workflow
-  for pipeline symmetry, but its output does not change.
+- **The macOS `.app` bytes are unchanged.** The signed, notarized `.app` and
+  its signing and notarization are byte-for-byte what users install today — the
+  unified `build-app.sh` reproduces each bundle's `.app` exactly, verified by
+  the cdhash-stability gate. The **cask** files do change: the binary block is
+  now generated for every bundle (product casks gain the rendered block), which
+  keeps the linked binaries from drifting. The documented `--cask` install
+  command and what it installs are unchanged.
 - **The bootstrap installer stays x64-only.** `fit-install.sh` keeps consuming
   the x64 raw per-CLI release binaries; it does not gain an arm64 Linux channel
   here. This is not a regression — the installer never supported arm64 Linux —
@@ -98,3 +102,13 @@ Out of scope:
 10. The documented Linux instructions install a working bundle. Verify:
     following the documented tap-and-install commands on Linux yields a runnable
     CLI.
+11. The pipeline has no gear-vs-product conditional: `meta`, the macOS packaging
+    job, and the tap job derive every bundle's `.app` contents and cask binary
+    block from `build/cli-manifest.json`. Verify: no `KIND`/`kind` branch
+    selects gear vs product; one `build-app.sh <bundle>` serves both; the cask
+    render runs unconditionally. Only outpost's launcher/`.pkg` and the gear
+    bootstrap installer remain bundle-specific.
+12. The unified `.app` assembly is byte-identical to the prior per-kind scripts.
+    Verify: for gear and a product, the assembled bundle (tree, `Info.plist`,
+    executables) matches what `build-app-gear.sh`/`build-app-product.sh`
+    produced, so the cdhash-stability gate holds.

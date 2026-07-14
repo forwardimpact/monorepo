@@ -2,67 +2,67 @@
   "clis": [
     {
       "name": "fit-map",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "map"
     },
     {
       "name": "fit-pathway",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "pathway"
     },
     {
       "name": "fit-guide",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "guide"
     },
     {
       "name": "fit-landmark",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "landmark"
     },
     {
       "name": "fit-summit",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "summit"
     },
     {
       "name": "fit-outpost",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "outpost"
     },
     {
       "name": "fit-svcgraph",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear",
       "server": true
     },
     {
       "name": "fit-svcmcp",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear",
       "server": true
     },
     {
       "name": "fit-svcpathway",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear",
       "server": true
     },
     {
       "name": "fit-svctrace",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear",
       "server": true
     },
     {
       "name": "fit-svcvector",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear",
       "server": true
     },
     {
       "name": "fit-codegen",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear",
       "assets": [
         {
@@ -73,7 +73,7 @@
     },
     {
       "name": "fit-terrain",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear",
       "assets": [
         {
@@ -88,113 +88,156 @@
     },
     {
       "name": "fit-harness",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-doc",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-rc",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-xmr",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-storage",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-logger",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-svscan",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-trace",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-visualize",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-query",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-subjects",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-process-graphs",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-process-resources",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-process-vectors",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-search",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-unary",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-tiktoken",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-download-bundle",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-wiki",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-benchmark",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "fit-pack",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
       "name": "coaligned",
-      "targets": ["bun-linux-x64", "bun-darwin-arm64"],
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     }
-  ]
+  ],
+  "bundles": {
+    "map": {
+      "info_plist": "products/map/macos/Info.plist",
+      "entitlements": "products/map/macos/entitlements.plist",
+      "version": "products/map/package.json"
+    },
+    "pathway": {
+      "info_plist": "products/pathway/macos/Info.plist",
+      "entitlements": "products/pathway/macos/entitlements.plist",
+      "version": "products/pathway/package.json"
+    },
+    "guide": {
+      "info_plist": "products/guide/macos/Info.plist",
+      "entitlements": "products/guide/macos/entitlements.plist",
+      "version": "products/guide/package.json"
+    },
+    "landmark": {
+      "info_plist": "products/landmark/macos/Info.plist",
+      "entitlements": "products/landmark/macos/entitlements.plist",
+      "version": "products/landmark/package.json"
+    },
+    "summit": {
+      "info_plist": "products/summit/macos/Info.plist",
+      "entitlements": "products/summit/macos/entitlements.plist",
+      "version": "products/summit/package.json"
+    },
+    "outpost": {
+      "info_plist": "products/outpost/macos/Info.plist",
+      "entitlements": "products/outpost/macos/Outpost.entitlements",
+      "version": "products/outpost/package.json",
+      "launcher": "products/outpost/dist/Outpost",
+      "resources": [
+        "products/outpost/config",
+        "products/outpost/templates",
+        "design/fit/assets/icon-outpost.svg"
+      ]
+    },
+    "gear": {
+      "info_plist": "macos/gear/Info.plist",
+      "entitlements": "macos/gear/entitlements.plist",
+      "version": "package.json"
+    }
+  }
 }

@@ -8,7 +8,7 @@
 //
 // The fit-outpost scheduler binary is produced by the shared
 // `just build-binary fit-outpost`. The .app bundle and .pkg installer are
-// assembled by the release workflow via `just build-app-product outpost` and
+// assembled by the release workflow via `just build-app outpost` and
 // `pkg/macos/build-pkg.sh` against the canonical dist/apps/fit-outpost.app —
 // this script only compiles the launcher they consume.
 
