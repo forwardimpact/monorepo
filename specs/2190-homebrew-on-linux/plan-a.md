@@ -66,9 +66,14 @@ checksum verify, sign, assemble, smoke, cdhash-stability, notarize, staple, zip,
 data, not a single-cell label: the download
 `pattern: "*-bun-darwin-${{ matrix.arch }}"` (today `publish-binaries.yml:82`)
 and the zip `ASSET="${CASK}-${VERSION}-darwin-${{ matrix.arch }}.zip"` (`:204`).
-For the sole `arch: arm64` cell the output is byte-identical to today;
-the point is that a future macOS `x64` target is then one matrix value, not new
-code (design § Job graph, § Key decisions). Replace the inline job in
+For the sole `arch: arm64` cell the output is byte-identical to today. This
+makes the container-producing stage matrix data, so a future macOS `x64` cell is
+one matrix value there (design § Job graph, § Key decisions). It does not by
+itself finish macOS x64: the `tap` job still recomputes the cask zip sha from a
+hardcoded `darwin-arm64` name (`publish-binaries.yml:325`) and the cask carries
+a single `sha256`, so a real x64 consumer would also need a per-arch cask
+selector. That is deferred (macOS is arm64-only today, with no x64 consumer, and
+this spec is Linux) and stays out of this plan. Replace the inline job in
 `publish-binaries.yml` with:
 
 ```yaml
@@ -86,8 +91,10 @@ code (design § Job graph, § Key decisions). Replace the inline job in
 ```
 
 Verify: `actionlint` on both files passes; the emitted artifact name is still
-`package-assets`, the cdhash-stability step is present, and no `darwin-arm64`
-literal remains (both arch tokens now read `darwin-${{ matrix.arch }}`).
+`package-assets`, the cdhash-stability step is present, and within
+`package-macos.yml` both arch tokens read `darwin-${{ matrix.arch }}` with no
+`darwin-arm64` literal left (the `tap` job's `:325` reference is out of scope,
+as above).
 
 ## Step 4: Add the tarball packing script
 
