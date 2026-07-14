@@ -164,7 +164,7 @@ jobs:
   # tap-scoped App token (least privilege), and recomputes the hash from the
   # actual zip rather than trusting the sidecar.
   tap:
-    needs: [meta, package, release]
+    needs: [meta, package, package-linux, release]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -175,15 +175,29 @@ jobs:
           name: package-assets
           path: dist/release
 
-      - name: Compute cask sha256
+      - name: Download Linux tarballs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: "linux-packages-*"
+          merge-multiple: true
+          path: dist/release
+
+      - name: Compute cask and formula checksums
         id: hash
         env:
           CASK: ${{ needs.meta.outputs.cask }}
+          BUNDLE: ${{ needs.meta.outputs.bundle }}
           VERSION: ${{ needs.meta.outputs.version }}
         run: |
           set -euo pipefail
           ZIP="dist/release/${CASK}-${VERSION}-darwin-arm64.zip"
-          echo "sha256=$(shasum -a 256 "$ZIP" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          # Recompute every checksum from the actual assets rather than trusting
+          # the build sidecar — same trust model as the cask zip.
+          {
+            echo "sha256=$(shasum -a 256 "$ZIP" | awk '{print $1}')"
+            echo "x64_sha=$(shasum -a 256 "dist/release/fit-${BUNDLE}-linux-x64.tar.gz" | awk '{print $1}')"
+            echo "arm64_sha=$(shasum -a 256 "dist/release/fit-${BUNDLE}-linux-arm64.tar.gz" | awk '{print $1}')"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Generate installation token
         id: ci-app
@@ -208,7 +222,7 @@ jobs:
           path: main
           persist-credentials: false
 
-      - name: Update cask and push to tap main
+      - name: Update cask and formula, push to tap main
         working-directory: tap
         env:
           CASK: ${{ needs.meta.outputs.cask }}
@@ -216,6 +230,8 @@ jobs:
           KIND: ${{ needs.meta.outputs.kind }}
           VERSION: ${{ needs.meta.outputs.version }}
           SHA256: ${{ steps.hash.outputs.sha256 }}
+          X64_SHA: ${{ steps.hash.outputs.x64_sha }}
+          ARM64_SHA: ${{ steps.hash.outputs.arm64_sha }}
           KATA_APP_ID: ${{ secrets.KATA_APP_ID }}
         run: |
           set -euo pipefail
@@ -235,6 +251,11 @@ jobs:
             bash ../main/build/render-cask-binaries.sh "$CASK_FILE" "$BUNDLE"
             ruby -c "$CASK_FILE"
           fi
-          git add "$CASK_FILE"
+          # Linux formula: version + both per-arch checksums, each keyed to its
+          # url arch token so the on_intel/on_arm stanzas never cross-assign.
+          FORMULA_FILE="Formula/${CASK}.rb"
+          bash ../main/build/update-formula.sh "$FORMULA_FILE" "$VERSION" "$X64_SHA" "$ARM64_SHA"
+          # One commit tracks both packages for this release.
+          git add "$CASK_FILE" "$FORMULA_FILE"
           git commit -m "Update ${CASK} to ${VERSION}"
           git push origin HEAD:main
