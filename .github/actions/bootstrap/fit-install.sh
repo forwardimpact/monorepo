@@ -1,7 +1,25 @@
 #!/usr/bin/env bash
 # Install the FIT environment: external CLI tools and/or pre-compiled fit-*
-# binaries, into $HOME/.local. One code path for every environment — CI
-# (fit-bootstrap), Claude session hooks, and `just install` all run this.
+# binaries. One code path for every environment — CI (fit-bootstrap), Claude
+# session hooks, and `just install` all run this.
+#
+# Two install channels, chosen by platform, favouring official packaging where
+# one exists:
+#
+#   Darwin  — Homebrew. Standard homebrew-core formulae (just, gh, ripgrep,
+#             gitleaks) and the forwardimpact/homebrew-tap `fit-gear` cask (which
+#             ships every fit-* CLI and coaligned). Versions track what brew and
+#             the tap publish. `brew --prefix`/bin is already on PATH.
+#   Linux   — pinned, SHA256-verified upstream archives into $HOME/.local. Every
+#             third-party version + SHA lives here; fit-* binaries are pinned by
+#             release tag (FIT_GEAR_RELEASE) and verified against a .sha256
+#             sidecar. This is the reproducible, cacheable path.
+#
+# Two tools stay on the pinned download path on BOTH platforms (no brew): `claude`
+# is the SDK-embedded Claude Code CLI whose version must track
+# @anthropic-ai/claude-agent-sdk in libraries/libharness/package.json, and `apm`
+# is pinned to a version other tooling (benchmarks, the benchmark action) agrees
+# on. Moving either onto brew later is a one-line TOOL_TABLE edit.
 #
 # This file is published verbatim as a GitHub Release asset (fit-install.sh),
 # so any environment can bootstrap with a single line, no repo checkout needed:
@@ -16,10 +34,8 @@
 #          With no NAME, installs the default dev/CI tool set.
 #   --paths  Print the cache paths the requested names manage, one per line,
 #            and exit. Consumed by fit-bootstrap to scope its actions/cache.
-#
-# All third-party version strings and SHAs live here; the fit-* binaries are
-# pinned by release tag (overridable via the FIT_GEAR_RELEASE env var below)
-# and verified against the .sha256 sidecar published alongside each asset.
+#            On Darwin, brew-managed tools emit nothing (brew installs globally
+#            and is idempotent); only the $HOME/.local download tools are cached.
 set -euo pipefail
 
 PREFIX="${INSTALL_PREFIX:-$HOME/.local}"
@@ -36,13 +52,43 @@ LIB_DIR="$PREFIX/lib"
 DEFAULT_TOOLS=(apm just gh rg gitleaks claude coaligned
   fit-wiki fit-xmr fit-trace fit-doc fit-terrain)
 
-# ── gear binary release coordinates ──────────────────────────────
+# ── gear binary release coordinates (Linux download path) ────────
 # Every installable gear binary (fit-trace, fit-wiki, fit-harness, …, plus
 # coaligned) ships in the gear bundle, so one release tag carries them all. The
 # publish step stamps the live tag into the released copy of this script; any
-# caller may override via the environment to pin a different release.
+# caller may override via the environment to pin a different release. On Darwin
+# the fit-gear cask supersedes this — the tap versions the gear set there.
 FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
 FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.14}"
+
+# ── tool registry ────────────────────────────────────────────────
+# The routing table: how each external tool is installed on Darwin.
+#   formula   — a homebrew-core formula (brew install <token>)
+#   cask      — a homebrew cask (brew install --cask <token>)
+#   download  — never brew, on any platform; pinned+verified download into
+#               $HOME/.local (the resolve_<name> function below). This is the
+#               escape hatch for version-pinned tools (claude, apm).
+# On Linux every external tool uses its resolve_<name>, regardless of kind.
+#
+#            name      kind      brew-token
+TOOL_TABLE="
+apm       download  -
+just      formula   just
+gh        formula   gh
+rg        formula   ripgrep
+gitleaks  formula   gitleaks
+claude    download  -
+"
+
+# The gear cask ships ALL gear CLIs (every fit-* plus coaligned) via `binary`
+# stanzas that symlink each one onto brew's bin. The fully-qualified name
+# auto-adds the tap, so no separate `brew tap` step is needed.
+GEAR_CASK="forwardimpact/homebrew-tap/fit-gear"
+
+ARCH=$(uname -m)
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+IS_DARWIN=0
+[ "$OS" = "darwin" ] && IS_DARWIN=1
 
 # Bun compile target for this platform. Binaries are built only for linux-x64
 # and darwin-arm64; any other platform is unsupported and fails hard — this is
@@ -55,11 +101,28 @@ fit_target() {
   esac
 }
 
-# A "gear binary" is one of our own bun-compiled CLIs published in the gear
-# release as a bare {name}-{target} file beside a .sha256 sidecar: every fit-*
-# CLI plus coaligned. They install straight into BIN_DIR (no lib dir), unlike
-# the third-party external tools that extract from an upstream archive.
+# A "gear binary" is one of our own bun-compiled CLIs: every fit-* CLI plus
+# coaligned. On Darwin they all come from the fit-gear cask; on Linux each is a
+# bare {name}-{target} file in the gear release beside a .sha256 sidecar.
 is_gear_binary() { case "$1" in fit-*|coaligned) return 0 ;; *) return 1 ;; esac; }
+
+# tool_field NAME COLUMN(kind|token) — look up a column in TOOL_TABLE. Prints
+# nothing (and returns non-zero via the empty read) for an unknown name.
+tool_field() {
+  local want="$1" col="$2" n kind token
+  while read -r n kind token; do
+    [ -z "$n" ] && continue
+    if [ "$n" = "$want" ]; then
+      case "$col" in
+        kind)  printf '%s\n' "$kind" ;;
+        token) printf '%s\n' "$token" ;;
+      esac
+      return 0
+    fi
+  done <<EOF
+$TOOL_TABLE
+EOF
+}
 
 # ── --paths / argument parsing ───────────────────────────────────
 # The default set is ALWAYS installed; named gear CLIs add to it (deduped). So
@@ -84,13 +147,24 @@ if [ "${#EXTRA[@]}" -gt 0 ]; then
 fi
 
 if [ "$PRINT_PATHS" = "1" ]; then
-  # External tools cache as a lib dir + bin symlink; fit-* binaries are single
-  # files installed straight into BIN_DIR. Emit only what each name manages so
-  # the cache holds nothing unrelated that shares the prefix.
+  # Emit only the cache paths each name manages so the cache holds nothing
+  # unrelated that shares the prefix.
+  #
+  #   Linux — external tools cache as a lib dir + bin symlink; gear binaries are
+  #           single files in BIN_DIR.
+  #   Darwin — brew-managed tools (formulae + the gear cask) emit NOTHING: brew
+  #           installs globally into its own prefix and is idempotent, so the
+  #           bootstrap action re-runs `brew install` each time rather than
+  #           caching brittle Cellar/Caskroom symlinks. Only the download tools
+  #           (apm, claude) live in $HOME/.local and are worth caching.
   for name in "${NAMES[@]}"; do
     if is_gear_binary "$name"; then
+      [ "$IS_DARWIN" = 1 ] && continue        # gear cask — not cached on Darwin
       echo "$BIN_DIR/$name"
     else
+      if [ "$IS_DARWIN" = 1 ] && [ "$(tool_field "$name" kind)" != "download" ]; then
+        continue                              # brew formula/cask — not cached
+      fi
       echo "$LIB_DIR/$name"
       echo "$BIN_DIR/$name"
     fi
@@ -100,10 +174,7 @@ fi
 
 mkdir -p "$BIN_DIR"
 
-ARCH=$(uname -m)
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-
-# ── Helpers ──────────────────────────────────────────────────────
+# ── Helpers (download path) ──────────────────────────────────────
 
 sha_verify() {
   if command -v sha256sum &>/dev/null; then
@@ -173,7 +244,8 @@ install_tool() {
 # Download a pre-compiled gear binary (any fit-* CLI or coaligned) from its
 # pinned gear release, verify it against the published .sha256 sidecar, and
 # install it straight into BIN_DIR. A missing binary (unsupported platform or
-# unpublished release) fails hard — there is no bunx/npx fallback.
+# unpublished release) fails hard — there is no bunx/npx fallback. Linux only;
+# on Darwin the fit-gear cask supersedes this.
 install_gear_binary() {
   local name="$1"
   local target release base
@@ -199,7 +271,55 @@ install_gear_binary() {
   echo "Installed $name $("$BIN_DIR/$name" --version 2>/dev/null | head -1) ($release)"
 }
 
-# ── Platform resolution (external tools) ─────────────────────────
+# ── Helpers (brew path, Darwin) ──────────────────────────────────
+
+# Ensure `brew` is callable, sourcing its shellenv from the standard prefixes if
+# it is installed but not yet on PATH (fresh shells, some CI images). A genuinely
+# absent brew fails hard — Darwin has no download fallback for brew-managed tools.
+require_brew() {
+  if ! command -v brew &>/dev/null; then
+    local p
+    for p in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+      if [ -x "$p" ]; then eval "$("$p" shellenv)"; break; fi
+    done
+  fi
+  command -v brew &>/dev/null || {
+    echo "::error::brew not found on Darwin; install Homebrew first" >&2
+    exit 1
+  }
+}
+
+# brew_install_formula TOKEN NAME — install a homebrew-core formula if its
+# command isn't already present. `brew list` short-circuits reinstalls so this
+# is cheap to re-run (the bootstrap action always runs the install step on macOS).
+brew_install_formula() {
+  local token="$1" name="$2"
+  require_brew
+  brew list --formula "$token" &>/dev/null || brew install "$token"
+  echo "Installed $name $("$name" --version 2>/dev/null | head -1)"
+}
+
+# brew_install_cask TOKEN NAME — the general single-tool cask case. Unused today
+# (kept for when a download tool moves to a cask), mirrors the formula helper.
+brew_install_cask() {
+  local token="$1" name="$2"
+  require_brew
+  brew list --cask "${token##*/}" &>/dev/null || brew install --cask "$token"
+  echo "Installed $name $("$name" --version 2>/dev/null | head -1)"
+}
+
+# brew_install_gear — install the fit-gear cask once. One cask provisions every
+# gear CLI, so the latch stops us re-running brew for each gear name in a run.
+_GEAR_CASK_DONE=0
+brew_install_gear() {
+  [ "$_GEAR_CASK_DONE" = 1 ] && return 0
+  require_brew
+  brew list --cask "${GEAR_CASK##*/}" &>/dev/null || brew install --cask "$GEAR_CASK"
+  _GEAR_CASK_DONE=1
+  echo "Installed gear cask (${GEAR_CASK##*/})"
+}
+
+# ── Platform resolution (download path) ──────────────────────────
 #
 # Each resolve_* function declares the same locals (version, target, sha256,
 # binary_path, strip), resolves platform in the case block, builds the URL,
@@ -337,8 +457,9 @@ resolve_claude() {
   # VERSION MUST TRACK @anthropic-ai/claude-agent-sdk in
   # libraries/libharness/package.json — a Dependabot bump there requires a
   # matching version + sha256 bump here, or the spawned CLI drifts from the SDK
-  # protocol. The tarball is the npm platform package (top-level `package/`, so
-  # strip=1); its sole exported binary is `package/claude`.
+  # protocol. This is why claude stays on the pinned download path (no brew) on
+  # both platforms. The tarball is the npm platform package (top-level `package/`,
+  # so strip=1); its sole exported binary is `package/claude`.
   local version="0.3.170"
   local pkg sha256 binary_path="claude" strip=1
 
@@ -364,13 +485,39 @@ resolve_claude() {
 
 # ── Install ──────────────────────────────────────────────────────
 
-for name in "${NAMES[@]}"; do
+# install_one NAME — route one tool to its install channel for this platform.
+install_one() {
+  local name="$1" kind
+
+  if command -v "$name" &>/dev/null; then
+    echo "$name already installed"
+    return 0
+  fi
+
   if is_gear_binary "$name"; then
-    install_gear_binary "$name"
-  elif declare -F "resolve_$name" >/dev/null; then
-    "resolve_$name"
-  else
+    if [ "$IS_DARWIN" = 1 ]; then
+      brew_install_gear
+    else
+      install_gear_binary "$name"
+    fi
+    return 0
+  fi
+
+  kind="$(tool_field "$name" kind)"
+  if [ -z "$kind" ]; then
     echo "::error::unknown tool '$name' (expected one of: ${DEFAULT_TOOLS[*]}, a fit-* CLI, or coaligned)" >&2
     exit 1
   fi
+
+  if [ "$IS_DARWIN" = 1 ] && [ "$kind" = "formula" ]; then
+    brew_install_formula "$(tool_field "$name" token)" "$name"
+  elif [ "$IS_DARWIN" = 1 ] && [ "$kind" = "cask" ]; then
+    brew_install_cask "$(tool_field "$name" token)" "$name"
+  else
+    "resolve_$name"
+  fi
+}
+
+for name in "${NAMES[@]}"; do
+  install_one "$name"
 done
