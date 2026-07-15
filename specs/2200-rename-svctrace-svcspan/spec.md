@@ -125,14 +125,32 @@ shell passes a bare `|` to ripgrep as regex alternation (never `\|`, which
 ripgrep reads as a literal pipe); `\(`, `\"`, and `\b` are literal-paren,
 literal-quote, and word-boundary tokens.
 
-| Criterion                                                                    | Verification                                                                                                                                                               |
-| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No `svctrace` / `fit-svctrace` identifier remains                            | `rg --hidden $X 'svctrace'` → no output                                                                                                                                    |
-| No service-identity `trace` path, image, container, or compose block remains | `rg --hidden $X 'services/trace                                                                                                                                            | data/traces                 | data/logs/trace\b                                                                                                                                           | fi/trace:             | container_name: trace | trace\.local                             | ^ trace:'`→ no output;`test ! -d services/trace && test -d services/span`                                                                                                                   |
-| Package and bin published under the new name                                 | `services/span/package.json` `name` is `@forwardimpact/svcspan`, `bin` is `fit-svcspan`; `fit-svcspan --help` runs; `rg --hidden $X '@forwardimpact/svctrace'` → no output |
-| Proto renamed                                                                | `rg 'package span;' services/span/proto/span.proto` matches; `rg --hidden $X 'package trace;                                                                               | service Trace'` → no output |
-| Generated + coupled trace symbols gone, span symbols present                 | `rg --hidden $X 'TraceServiceDefinition                                                                                                                                    | TraceClient                 | TraceBase                                                                                                                                                   | createMockTraceClient | traceClient           | traceConfig'`→ no output;`rg 'SpanClient | SpanBase'` matches; the repository codegen command runs clean with no uncommitted diff (the generated trees are gitignored, so the diff — not the grep — is what guards regenerated output) |
-| Config key resolves as `span` everywhere it is read                          | `rg --hidden $X 'createServiceConfig\("trace"\)                                                                                                                            | createStorage\("traces"\)   | SERVICE*TRACE*'`→ no output;`rg '"trace"' products/guide/src/lib/status.js`→ no output; the service-URL-drift registry entry names`services/span/server.js` |
-| Shared OpenTelemetry classes preserved                                       | `rg 'class Tracer                                                                                                                                                          | class TraceIndex            | class TraceVisualizer'`matches;`rg 'trace_id' services/span/proto/span.proto` matches                                                                       |
-| Service guides name the span service, keep OTel terms                        | `rg 'svctrace                                                                                                                                                              | the trace service           | createClient\("trace"                                                                                                                                       | trace\.(Span          | Query                 | Record)                                  | data/traces' websites/`→ no output;`rg 'createClient\("span"' websites/` matches                                                                                                            |
-| Affected test suites pass                                                    | span-service, telemetry-library, rpc-library, and guide (`products/guide`) suites are green                                                                                |
+- **No `svctrace` / `fit-svctrace` identifier remains** —
+  `rg --hidden $X 'svctrace'` → no output.
+- **No service-identity `trace` path, image, container, or compose block
+  remains** —
+  `rg --hidden $X 'services/trace|data/traces|data/logs/trace\b|fi/trace:|container_name: trace|trace\.local|^trace:'`
+  → no output; `test ! -d services/trace && test -d services/span`.
+- **Package and bin published under the new name** —
+  `services/span/package.json` `name` is `@forwardimpact/svcspan`, `bin` is
+  `fit-svcspan`; `fit-svcspan --help` runs;
+  `rg --hidden $X '@forwardimpact/svctrace'` → no output.
+- **Proto renamed** — `rg 'package span;' services/span/proto/span.proto`
+  matches; `rg --hidden $X 'package trace;|service Trace'` → no output.
+- **Generated and coupled trace symbols gone, span symbols present** —
+  `rg --hidden $X 'TraceServiceDefinition|TraceClient|TraceBase|createMockTraceClient|traceClient|traceConfig'`
+  → no output; `rg 'SpanClient|SpanBase'` matches; the repository codegen
+  command runs clean with no uncommitted diff (the generated trees are
+  gitignored, so the diff, not the grep, guards regenerated output).
+- **Config key resolves as `span` everywhere it is read** —
+  `rg --hidden $X 'createServiceConfig\("trace"\)|createStorage\("traces"\)|SERVICE_TRACE_'`
+  → no output; `rg '"trace"' products/guide/src/lib/status.js` → no output; the
+  service-URL-drift registry entry names `services/span/server.js`.
+- **Shared OpenTelemetry classes preserved** —
+  `rg 'class Tracer|class TraceIndex|class TraceVisualizer'` matches;
+  `rg 'trace_id' services/span/proto/span.proto` matches.
+- **Service guides name the span service, keep OTel terms** —
+  `rg 'svctrace|the trace service|createClient\("trace"|trace\.(Span|Query|Record)|data/traces' websites/`
+  → no output; `rg 'createClient\("span"' websites/` matches.
+- **Affected test suites pass** — span-service, telemetry-library, rpc-library,
+  and guide (`products/guide`) suites are green.
