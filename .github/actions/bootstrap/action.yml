@@ -144,7 +144,13 @@ runs:
         # so tool/binary version changes invalidate the cache automatically and
         # the vN prefix no longer needs a manual bump for them. hashFiles still
         # invalidates on lockfile / proto / codegen-source edits.
-        key: env-v4-${{ runner.os }}-${{ steps.cache-paths.outputs.clis_key }}-${{ steps.cache-paths.outputs.installer_hash }}-${{ hashFiles('bun.lock', '**/*.proto', 'libraries/libcodegen/src/**', 'libraries/libcodegen/templates/**', 'libraries/libcodegen/bin/**') }}
+        #
+        # runner.arch is load-bearing: runner.os is "Linux" for BOTH ubuntu-latest
+        # (X64) and ubuntu-24.04-arm (ARM64), so without it an arm64 runner
+        # restores the x64 cache and gets x64 binaries in ~/.local — an x64 `just`
+        # then dies with "cannot execute binary file: Exec format error". The two
+        # architectures must cache under distinct keys.
+        key: env-v4-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-paths.outputs.clis_key }}-${{ steps.cache-paths.outputs.installer_hash }}-${{ hashFiles('bun.lock', '**/*.proto', 'libraries/libcodegen/src/**', 'libraries/libcodegen/templates/**', 'libraries/libcodegen/bin/**') }}
 
     # Always run on macOS: there the brew-managed tools (formulae + fit-gear
     # cask) live in brew's prefix, not the cached $HOME/.local, so a cache hit

@@ -90,6 +90,16 @@ OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 IS_DARWIN=0
 [ "$OS" = "darwin" ] && IS_DARWIN=1
 
+# Raw gear-binary download channel. The release compiles raw per-CLI gear
+# assets only for linux-x64 (the one Linux target the bootstrap installer
+# consumes); Darwin gets them from the fit-gear cask. linux-aarch64 has NO raw
+# gear asset — arm64 gear ships via Homebrew (spec 2190), and the arm64 release
+# runner builds every gear CLI from source, so it never needs a pre-built one.
+# So on linux-aarch64 the gear-binary install is skipped rather than hard-failed,
+# which is what lets a `ubuntu-24.04-arm` build runner bootstrap at all.
+GEAR_DOWNLOAD=0
+[ "$OS-$ARCH" = "linux-x86_64" ] && GEAR_DOWNLOAD=1
+
 # Bun compile target for this platform. Binaries are built only for linux-x64
 # and darwin-arm64; any other platform is unsupported and fails hard — this is
 # the binary distribution path, with no bunx/npx fallback.
@@ -160,6 +170,7 @@ if [ "$PRINT_PATHS" = "1" ]; then
   for name in "${NAMES[@]}"; do
     if is_gear_binary "$name"; then
       [ "$IS_DARWIN" = 1 ] && continue        # gear cask — not cached on Darwin
+      [ "$GEAR_DOWNLOAD" = 0 ] && continue     # no raw gear asset (e.g. linux-arm64)
       echo "$BIN_DIR/$name"
     else
       if [ "$IS_DARWIN" = 1 ] && [ "$(tool_field "$name" kind)" != "download" ]; then
@@ -497,8 +508,13 @@ install_one() {
   if is_gear_binary "$name"; then
     if [ "$IS_DARWIN" = 1 ]; then
       brew_install_gear
-    else
+    elif [ "$GEAR_DOWNLOAD" = 1 ]; then
       install_gear_binary "$name"
+    else
+      # No raw gear asset for this platform (e.g. linux-aarch64). Skip rather
+      # than hard-fail: the arm64 release runner builds gear from source and
+      # never needs a pre-built one, and arm64 runtime installs go via Homebrew.
+      echo "::notice::skipping gear binary '$name' on $OS-$ARCH — no raw gear asset (arm64 gear ships via Homebrew; CI builds from source)"
     fi
     return 0
   fi
