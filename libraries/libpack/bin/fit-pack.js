@@ -25,6 +25,11 @@ const definition = {
           type: "string",
           description: "Skill directory prefix to select (e.g. kata)",
         },
+        all: {
+          type: "boolean",
+          description:
+            "Stage every skill in --from regardless of prefix (source dir is the pack boundary)",
+        },
         into: {
           type: "string",
           description: "Target sibling repo working tree",
@@ -60,6 +65,7 @@ const definition = {
   },
   examples: [
     "fit-pack stage --prefix kata --with-agents --into skills-repo --name kata-skills --pack-version 1.2.3",
+    "fit-pack stage --all --with-agents --from products/outpost/templates/.claude --into skills-repo --name outpost-skills --pack-version 3.11.0",
   ],
   documentation: [
     {
@@ -96,16 +102,21 @@ const [command] = positionals;
 
 const commands = {
   async stage() {
-    for (const required of ["prefix", "into", "name", "pack-version"]) {
+    for (const required of ["into", "name", "pack-version"]) {
       if (!values[required]) {
         cli.usageError(`--${required} is required`);
         process.exit(2);
       }
     }
+    if (!values.all && !values.prefix) {
+      cli.usageError("--prefix or --all is required");
+      process.exit(2);
+    }
     const publisher = new SkillPackPublisher({ runtime });
     const { skills, agents } = await publisher.publish({
       sourceDir: values.from || ".claude",
       prefix: values.prefix,
+      all: Boolean(values.all),
       targetDir: values.into,
       name: values.name,
       version: values["pack-version"],
