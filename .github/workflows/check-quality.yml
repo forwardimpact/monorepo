@@ -14,33 +14,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@ccdf5ac74abf2a47f7a1f9af4b06c6ac7444d0d6 # v1.0.14
+      - uses: forwardimpact/bootstrap@3d474156f8e1c77f7ed94609912d9de3756896ff # v1.0.15
       - run: bun run format:js
 
   lint-js:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@ccdf5ac74abf2a47f7a1f9af4b06c6ac7444d0d6 # v1.0.14
+      - uses: forwardimpact/bootstrap@3d474156f8e1c77f7ed94609912d9de3756896ff # v1.0.15
       - run: bun run lint:js
 
   format-md:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@ccdf5ac74abf2a47f7a1f9af4b06c6ac7444d0d6 # v1.0.14
+      - uses: forwardimpact/bootstrap@3d474156f8e1c77f7ed94609912d9de3756896ff # v1.0.15
       - run: bun run format:md
 
   lint-md:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@ccdf5ac74abf2a47f7a1f9af4b06c6ac7444d0d6 # v1.0.14
+      - uses: forwardimpact/bootstrap@3d474156f8e1c77f7ed94609912d9de3756896ff # v1.0.15
       - run: bun run lint:md
 
   jsdoc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@ccdf5ac74abf2a47f7a1f9af4b06c6ac7444d0d6 # v1.0.14
+      - uses: forwardimpact/bootstrap@3d474156f8e1c77f7ed94609912d9de3756896ff # v1.0.15
       - run: bun run jsdoc
