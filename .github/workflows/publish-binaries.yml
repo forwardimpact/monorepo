@@ -130,7 +130,7 @@ jobs:
       # products are Homebrew-only and carry no bootstrap installer.
       - name: Check out bootstrap script
         if: needs.meta.outputs.bundle == 'gear'
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           sparse-checkout: .github/actions/bootstrap/fit-install.sh
           sparse-checkout-cone-mode: false
@@ -203,7 +203,7 @@ jobs:
           repositories: homebrew-tap
 
       - name: Checkout tap repo
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: forwardimpact/homebrew-tap
           token: ${{ steps.ci-app.outputs.token }}
@@ -212,7 +212,7 @@ jobs:
       # The cask's binary block is regenerated from cli-manifest.json, so the
       # manifest and its render script must travel with this job.
       - name: Checkout monorepo for the cask render script
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           path: main
           persist-credentials: false

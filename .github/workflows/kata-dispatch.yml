@@ -120,7 +120,7 @@ jobs:
           mint=$(date +%s)
           echo "KATA_GH_TOKEN_STAMP=mint=${mint};exp=$((mint + 3600 - 120));run=${GITHUB_RUN_ID};attempt=${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
