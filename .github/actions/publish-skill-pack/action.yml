@@ -15,8 +15,23 @@ description: >
 
 inputs:
   pack-prefix:
-    description: Skill directory prefix under .claude/skills (e.g. fit, coaligned, kata).
-    required: true
+    description: >
+      Skill directory prefix under the source dir's skills/ (e.g. fit,
+      coaligned, kata). Leave empty and set `all` when the source dir is itself
+      the pack boundary and its skills share no common prefix.
+    required: false
+    default: ""
+  source-dir:
+    description: >
+      Directory holding skills/ and agents/ to stage from. Defaults to the
+      repo-root .claude; a product-local pack points this at its own .claude
+      (e.g. products/outpost/templates/.claude).
+    default: .claude
+  all:
+    description: >
+      When "true", stage every skill in the source dir regardless of prefix.
+      Use for a single-pack source dir whose skills share no common prefix.
+    default: "false"
   sibling-repo:
     description: >
       Sibling repo short name (e.g. fit-skills). Names the apm package and the
@@ -64,6 +79,8 @@ runs:
       shell: bash
       env:
         PACK_PREFIX: ${{ inputs.pack-prefix }}
+        SOURCE_DIR: ${{ inputs.source-dir }}
+        STAGE_ALL: ${{ inputs.all }}
         TARGET_DIR: ${{ inputs.target-dir }}
         APM_NAME: ${{ inputs.sibling-repo }}
         APM_DESCRIPTION: ${{ inputs.apm-description }}
@@ -71,13 +88,23 @@ runs:
         README_INTRO: ${{ inputs.readme-intro }}
         SYNC_AGENTS: ${{ inputs.sync-agents }}
       run: |
+        # A matrix entry that omits source-dir/all renders them empty here, not
+        # as the input defaults, so coalesce to the repo-root prefix pack shape.
+        source_dir="${SOURCE_DIR:-.claude}"
+
+        select_flag="--prefix $PACK_PREFIX"
+        if [ "$STAGE_ALL" = "true" ]; then
+          select_flag="--all"
+        fi
+
         agents_flag=""
         if [ "$SYNC_AGENTS" = "true" ]; then
           agents_flag="--with-agents"
         fi
+
         fit-pack stage \
-          --from .claude \
-          --prefix "$PACK_PREFIX" \
+          --from "$source_dir" \
+          $select_flag \
           --into "$TARGET_DIR" \
           --name "$APM_NAME" \
           --pack-version "$VERSION" \
