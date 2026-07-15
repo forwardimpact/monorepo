@@ -243,10 +243,12 @@ jobs:
           # one stanza, gear yields ~30 — one code path, no gear special-case.
           bash ../main/build/render-cask-binaries.sh "$CASK_FILE" "$BUNDLE"
           ruby -c "$CASK_FILE"
-          # Linux formula: version + both per-arch checksums, each keyed to its
-          # url arch token so the on_intel/on_arm stanzas never cross-assign.
+          # Linux formula: rendered in full from the manifest + cask each
+          # release (the tap ships no formula skeleton, unlike the cask), so the
+          # first release of any bundle creates Formula/<token>.rb and a new
+          # bundle folds in with no hand-seeded tap file.
           FORMULA_FILE="Formula/${CASK}.rb"
-          bash ../main/build/update-formula.sh "$FORMULA_FILE" "$VERSION" "$X64_SHA" "$ARM64_SHA"
+          bash ../main/build/render-formula.sh "$FORMULA_FILE" "$CASK" "$BUNDLE" "$VERSION" "$X64_SHA" "$ARM64_SHA" "$CASK_FILE"
           # One commit tracks both packages for this release.
           git add "$CASK_FILE" "$FORMULA_FILE"
           git commit -m "Update ${CASK} to ${VERSION}"
