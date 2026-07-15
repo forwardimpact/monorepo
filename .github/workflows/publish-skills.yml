@@ -9,7 +9,10 @@ on:
       - ".claude/skills/coaligned-*/**"
       - ".claude/skills/monorepo-*/**"
       - ".claude/agents/*.md"
+      - "products/outpost/templates/.claude/skills/**"
+      - "products/outpost/templates/.claude/agents/*.md"
       - "products/gear/package.json"
+      - "products/outpost/package.json"
       - "libraries/libcoaligned/package.json"
       - ".github/actions/publish-skill-pack/**"
       - ".github/workflows/publish-skills.yml"
@@ -77,6 +80,24 @@ jobs:
               Skills for bootstrapping a Forward Impact-style monorepo end to
               end — repository structure, instruction architecture, and the Kata
               Agent Team — composing the Co-Aligned and Kata packs.
+          # Outpost is a product-local pack: its skills and agents live under
+          # the installation template, not repo-root .claude, and its skills
+          # share no common prefix — the directory itself is the pack boundary,
+          # so it stages with `all: "true"` instead of a prefix.
+          - prefix: ""
+            repo: outpost-skills
+            version-file: products/outpost/package.json
+            source-dir: products/outpost/templates/.claude
+            all: "true"
+            sync-agents: "true"
+            readme-title: Outpost Skills
+            readme-intro: >-
+              Agents and skills for [Outpost](https://forwardimpact.team), the
+              personal chief-of-staff that tracks people, projects, and threads.
+            apm-description: >-
+              Outpost agents and skills — the chief-of-staff, concierge,
+              librarian, postman, and recruiter agents plus the skills they run
+              to sync, triage, and brief.
     steps:
       - name: Generate installation token
         id: ci-app
@@ -108,6 +129,8 @@ jobs:
         uses: ./.github/actions/publish-skill-pack
         with:
           pack-prefix: ${{ matrix.pack.prefix }}
+          source-dir: ${{ matrix.pack.source-dir }}
+          all: ${{ matrix.pack.all }}
           sibling-repo: ${{ matrix.pack.repo }}
           version-file: ${{ matrix.pack.version-file }}
           apm-description: ${{ matrix.pack.apm-description }}

@@ -107,6 +107,32 @@ describe("SkillPackPublisher", () => {
     ]);
   });
 
+  test("all: stages every skill regardless of prefix", async () => {
+    const source = await makeSource();
+    const target = await makeTempDir();
+
+    const result = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      all: true,
+      targetDir: target,
+      name: "outpost-skills",
+      version: "3.11.0",
+      withAgents: true,
+    });
+
+    // Both prefixes staged — the directory itself is the pack boundary.
+    expect(
+      existsSync(join(target, ".apm", "skills", "kata-review", "SKILL.md")),
+    ).toBe(true);
+    expect(
+      existsSync(join(target, ".apm", "skills", "fit-map", "SKILL.md")),
+    ).toBe(true);
+    expect(result.skills.map((s) => s.name).sort()).toEqual([
+      "fit-map",
+      "kata-review",
+    ]);
+  });
+
   test("injects version metadata into staged SKILL.md", async () => {
     const source = await makeSource();
     const target = await makeTempDir();
