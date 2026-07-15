@@ -497,25 +497,56 @@ resolve_claude() {
 
 # ── Install ──────────────────────────────────────────────────────
 
+# Session-start accounting. A warm session re-runs this hook with everything
+# already present; rather than a line per tool, we tally outcomes and print one
+# summary at the end. Only real deltas (a fresh install, printed by the install
+# helpers) and a one-time degraded-mode notice speak up as they happen.
+PRESENT=()
+SKIPPED=()
+
+# Lazily probe whether the gear release host (github.com) is reachable, caching
+# the verdict. Some environments — notably the web-session network policy —
+# allow the npm registry but block github.com, so the gear-binary download
+# channel cannot work there. We detect that once, say so plainly, and skip the
+# native gear install instead of dying on a raw `curl: (56)` error: the fit-*
+# CLIs still run via `bunx fit-*` from npm.
+GEAR_NET=""   # "" (unprobed) | "ok" | "blocked"
+gear_net_ok() {
+  if [ -z "$GEAR_NET" ]; then
+    if curl -fsS --max-time 8 -o /dev/null "https://github.com" 2>/dev/null; then
+      GEAR_NET=ok
+    else
+      GEAR_NET=blocked
+      echo "note: github.com unreachable (network policy?) — skipping native gear binaries; fit-* run via 'bunx fit-*'"
+    fi
+  fi
+  [ "$GEAR_NET" = ok ]
+}
+
 # install_one NAME — route one tool to its install channel for this platform.
 install_one() {
   local name="$1" kind
 
   if command -v "$name" &>/dev/null; then
-    echo "$name already installed"
+    PRESENT+=("$name")
     return 0
   fi
 
   if is_gear_binary "$name"; then
     if [ "$IS_DARWIN" = 1 ]; then
       brew_install_gear
-    elif [ "$GEAR_DOWNLOAD" = 1 ]; then
-      install_gear_binary "$name"
-    else
+    elif [ "$GEAR_DOWNLOAD" = 0 ]; then
       # No raw gear asset for this platform (e.g. linux-aarch64). Skip rather
       # than hard-fail: the arm64 release runner builds gear from source and
       # never needs a pre-built one, and arm64 runtime installs go via Homebrew.
-      echo "::notice::skipping gear binary '$name' on $OS-$ARCH — no raw gear asset (arm64 gear ships via Homebrew; CI builds from source)"
+      SKIPPED+=("$name")
+    elif gear_net_ok; then
+      # A single asset that 404s (unpublished release) must not abort the whole
+      # hook either — record it and move on. Calling in `||` context suppresses
+      # errexit inside install_gear_binary.
+      install_gear_binary "$name" || SKIPPED+=("$name")
+    else
+      SKIPPED+=("$name")   # github blocked; gear_net_ok already explained why
     fi
     return 0
   fi
@@ -538,3 +569,11 @@ install_one() {
 for name in "${NAMES[@]}"; do
   install_one "$name"
 done
+
+# ── Summary ──────────────────────────────────────────────────────
+# One line for the steady state (everything already present) and an explicit
+# list for anything skipped — so a warm session is near-silent and a degraded
+# one says exactly what is missing.
+[ "${#PRESENT[@]}" -gt 0 ] && echo "tools ready (${#PRESENT[@]}): ${PRESENT[*]}"
+[ "${#SKIPPED[@]}" -gt 0 ] && echo "tools skipped, will run via bunx: ${SKIPPED[*]}"
+exit 0
