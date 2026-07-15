@@ -174,4 +174,5 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
+console.log("✓ dependabot coverage intact");
 process.exit(0);

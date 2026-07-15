@@ -25,7 +25,7 @@
     "wiki:rules": "bun test libraries/libwiki/test/audit-",
     "wiki:fix": "bunx fit-wiki fix",
     "check:fix": "bun run format:js:fix && bun run lint:js:fix && bun run format:md:fix && bun run lint:md:fix && bun run context:fix && bun run wiki:fix",
-    "jsdoc": "eslint",
+    "jsdoc": "DEBUG= eslint && echo '✓ jsdoc passed'",
     "lint:js": "biome lint .",
     "lint:js:fix": "biome lint --write .",
     "format:js": "biome format .",

@@ -140,4 +140,7 @@ for (const file of files) {
   }
 }
 
+if (!stale)
+  console.log(`✓ package.json metadata current (${files.length} files)`);
+
 process.exit(stale ? 1 : 0);
