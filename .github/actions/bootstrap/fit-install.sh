@@ -345,8 +345,9 @@ resolve_apm() {
       target="${OS}-${ARCH}"
       sha256="a9be6afb9f33f63598d11a7de1029722fd2601aa2ecaebfe82f4903e12a23a52" ;;
     linux-aarch64)
-      target="${OS}-${ARCH}"
-      sha256="0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5" ;;
+      # apm names its arm64 asset apm-linux-arm64, not the uname -m "aarch64".
+      target="linux-arm64"
+      sha256="4b64ff40b2b70ae3c97eb64a608cadcb06c4713cd878708c9685a12394278ca0" ;;
     darwin-x86_64)
       target="${OS}-${ARCH}"
       sha256="c76ef17fa3250f87131ee09d1c8e166fce535dc2d7cea6e44fc1c5d0e3df0bac" ;;
