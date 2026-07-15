@@ -5,7 +5,7 @@
 # skeleton (whose binary block render-cask-binaries.sh regenerates), it ships NO
 # formula skeleton, so this writes the whole file. That also means a new bundle
 # folds in with no hand-seeded tap file: adding its tag + manifest entry is
-# enough, exactly as the spec 2190 scope promises.
+# enough.
 #
 #   Usage: render-formula.sh <formula-file> <token> <bundle> <version> \
 #            <x64-sha> <arm64-sha> <cask-file>
