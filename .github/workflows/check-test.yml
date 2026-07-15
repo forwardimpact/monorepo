@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@52b7f3fe405a559fd8f2c95b102499e0df9b152b # v1.0.10
+      - uses: forwardimpact/bootstrap@ccdf5ac74abf2a47f7a1f9af4b06c6ac7444d0d6 # v1.0.14
         with:
           clis: fit-terrain
       # libwiki's push path secret-scans with gitleaks (fail-closed); the
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@52b7f3fe405a559fd8f2c95b102499e0df9b152b # v1.0.10
+      - uses: forwardimpact/bootstrap@ccdf5ac74abf2a47f7a1f9af4b06c6ac7444d0d6 # v1.0.14
         with:
           clis: fit-terrain
       # libwiki's push path secret-scans with gitleaks (fail-closed); the
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@52b7f3fe405a559fd8f2c95b102499e0df9b152b # v1.0.10
+      - uses: forwardimpact/bootstrap@ccdf5ac74abf2a47f7a1f9af4b06c6ac7444d0d6 # v1.0.14
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         id: playwright-cache
         with:
