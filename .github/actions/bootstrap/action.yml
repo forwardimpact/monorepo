@@ -133,7 +133,7 @@ runs:
 
     - name: Restore environment cache
       id: env-cache
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ steps.cache-paths.outputs.paths }}
         # The vN prefix is a manual cache-buster: bump it (v2 → v3 → …) when the
@@ -175,7 +175,7 @@ runs:
     # never run — no bare `apm install` that would auto-create apm.yml.
     - name: Restore apm download cache
       if: hashFiles('apm.yml') != ''
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ~/.cache/apm
         key: apm-v1-${{ runner.os }}-${{ hashFiles('apm.lock.yaml') }}
