@@ -64,7 +64,7 @@ with no output.
 installs the external tools and pinned, SHA-verified `fit-*` binaries into
 `$HOME/.local`, beside the `bootstrap` action so it travels with the subtree
 split. `publish-binaries.yml` publishes it on `gear@v*` for `curl | bash`
-bootstrap. A missing binary fails hard — no `bunx`/`npx` fallback.
+bootstrap. A blocked download falls back to `apt`/`npm` registries.
 
 ## Local composite actions
 

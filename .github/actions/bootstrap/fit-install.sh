@@ -15,6 +15,15 @@
 #             release tag (FIT_GEAR_RELEASE) and verified against a .sha256
 #             sidecar. This is the reproducible, cacheable path.
 #
+# When the reproducible channel is unreachable — notably a Claude Code web
+# session, whose network policy blocks github.com entirely (release assets
+# included, for every repo) while allowing package registries — each tool falls
+# back to a trusted registry: apt for the distro CLIs (ripgrep, just, gh,
+# gitleaks) and the npm registry for our own gear CLIs (published as node
+# launchers). claude already downloads from the npm registry, so it needs no
+# fallback. apm has no trusted-registry build, so a blocked web session skips it
+# rather than failing. See the CHANNELS section below.
+#
 # Two tools stay on the pinned download path on BOTH platforms (no brew): `claude`
 # is the SDK-embedded Claude Code CLI whose version must track
 # @anthropic-ai/claude-agent-sdk in libraries/libharness/package.json, and `apm`
@@ -61,24 +70,24 @@ DEFAULT_TOOLS=(apm just gh rg gitleaks claude coaligned
 FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
 FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.1.14}"
 
-# ── tool registry ────────────────────────────────────────────────
-# The routing table: how each external tool is installed on Darwin.
-#   formula   — a homebrew-core formula (brew install <token>)
-#   cask      — a homebrew cask (brew install --cask <token>)
-#   download  — never brew, on any platform; pinned+verified download into
-#               $HOME/.local (the resolve_<name> function below). This is the
-#               escape hatch for version-pinned tools (claude, apm).
-# On Linux every external tool uses its resolve_<name>, regardless of kind.
-#
-#            name      kind      brew-token
-TOOL_TABLE="
-apm       download  -
-just      formula   just
-gh        formula   gh
-rg        formula   ripgrep
-gitleaks  formula   gitleaks
-claude    download  -
-"
+# ── tool classification ──────────────────────────────────────────
+# System-package-manager token for the four third-party CLIs a distro packages.
+# The homebrew formula name and the Debian/Ubuntu package name are identical for
+# all four, so one map serves both the brew (macOS) and apt (Linux) channels.
+# The installed command can differ from the package name (ripgrep ships `rg`).
+pkg_token() {
+  case "$1" in
+    rg)       echo ripgrep ;;
+    just)     echo just ;;
+    gh)       echo gh ;;
+    gitleaks) echo gitleaks ;;
+    *)        return 1 ;;
+  esac
+}
+
+# A "system tool" is one a platform package manager can provide (the four
+# above). Everything else is a gear binary, apm, or claude.
+is_system_tool() { pkg_token "$1" >/dev/null 2>&1; }
 
 # The gear cask ships ALL gear CLIs (every fit-* plus coaligned) via `binary`
 # stanzas that symlink each one onto brew's bin. The fully-qualified name
@@ -100,9 +109,10 @@ IS_DARWIN=0
 GEAR_DOWNLOAD=0
 [ "$OS-$ARCH" = "linux-x86_64" ] && GEAR_DOWNLOAD=1
 
-# Bun compile target for this platform. Binaries are built only for linux-x64
-# and darwin-arm64; any other platform is unsupported and fails hard — this is
-# the binary distribution path, with no bunx/npx fallback.
+# Bun compile target for the gear-binary download channel. Raw per-CLI assets
+# exist only for linux-x64 and darwin-arm64; the dispatcher only calls this on a
+# supported target (GEAR_DOWNLOAD gates it), and other platforms fall back to the
+# npm channel (node launchers).
 fit_target() {
   case "$(uname -s)-$(uname -m)" in
     Linux-x86_64)  echo "bun-linux-x64" ;;
@@ -116,33 +126,17 @@ fit_target() {
 # bare {name}-{target} file in the gear release beside a .sha256 sidecar.
 is_gear_binary() { case "$1" in fit-*|coaligned) return 0 ;; *) return 1 ;; esac; }
 
-# tool_field NAME COLUMN(kind|token) — look up a column in TOOL_TABLE. Prints
-# nothing (and returns non-zero via the empty read) for an unknown name.
-tool_field() {
-  local want="$1" col="$2" n kind token
-  while read -r n kind token; do
-    [ -z "$n" ] && continue
-    if [ "$n" = "$want" ]; then
-      case "$col" in
-        kind)  printf '%s\n' "$kind" ;;
-        token) printf '%s\n' "$token" ;;
-      esac
-      return 0
-    fi
-  done <<EOF
-$TOOL_TABLE
-EOF
-}
-
 # ── --paths / argument parsing ───────────────────────────────────
 # The default set is ALWAYS installed; named gear CLIs add to it (deduped). So
 # `clis: fit-doc` yields the external tools plus fit-doc, never fit-doc alone —
 # bootstrap.sh still finds `just`.
 PRINT_PATHS=0
+SOFT=0
 EXTRA=()
 for arg in "$@"; do
   case "$arg" in
     --paths) PRINT_PATHS=1 ;;
+    --soft)  SOFT=1 ;;         # best-effort: report unavailable tools, still exit 0
     *)       EXTRA+=("$arg") ;;
   esac
 done
@@ -173,8 +167,8 @@ if [ "$PRINT_PATHS" = "1" ]; then
       [ "$GEAR_DOWNLOAD" = 0 ] && continue     # no raw gear asset (e.g. linux-arm64)
       echo "$BIN_DIR/$name"
     else
-      if [ "$IS_DARWIN" = 1 ] && [ "$(tool_field "$name" kind)" != "download" ]; then
-        continue                              # brew formula/cask — not cached
+      if [ "$IS_DARWIN" = 1 ] && is_system_tool "$name"; then
+        continue                              # brew formula — installed in brew's prefix, not cached
       fi
       echo "$LIB_DIR/$name"
       echo "$BIN_DIR/$name"
@@ -254,9 +248,9 @@ install_tool() {
 #
 # Download a pre-compiled gear binary (any fit-* CLI or coaligned) from its
 # pinned gear release, verify it against the published .sha256 sidecar, and
-# install it straight into BIN_DIR. A missing binary (unsupported platform or
-# unpublished release) fails hard — there is no bunx/npx fallback. Linux only;
-# on Darwin the fit-gear cask supersedes this.
+# install it straight into BIN_DIR. Returns non-zero on any failure (missing
+# asset, blocked network) so the dispatcher can fall back to the npm channel.
+# Linux only; on Darwin the fit-gear cask supersedes this.
 install_gear_binary() {
   local name="$1"
   local target release base
@@ -285,8 +279,9 @@ install_gear_binary() {
 # ── Helpers (brew path, Darwin) ──────────────────────────────────
 
 # Ensure `brew` is callable, sourcing its shellenv from the standard prefixes if
-# it is installed but not yet on PATH (fresh shells, some CI images). A genuinely
-# absent brew fails hard — Darwin has no download fallback for brew-managed tools.
+# it is installed but not yet on PATH (fresh shells, some CI images). Returns
+# non-zero when brew is genuinely absent, so the caller's channel can step aside
+# — the release channel resolves these tools on Darwin too.
 require_brew() {
   if ! command -v brew &>/dev/null; then
     local p
@@ -294,19 +289,17 @@ require_brew() {
       if [ -x "$p" ]; then eval "$("$p" shellenv)"; break; fi
     done
   fi
-  command -v brew &>/dev/null || {
-    echo "::error::brew not found on Darwin; install Homebrew first" >&2
-    exit 1
-  }
+  command -v brew &>/dev/null
 }
 
 # brew_install_formula TOKEN NAME — install a homebrew-core formula if its
 # command isn't already present. `brew list` short-circuits reinstalls so this
 # is cheap to re-run (the bootstrap action always runs the install step on macOS).
+# Returns non-zero on any failure so the dispatcher can try the next channel.
 brew_install_formula() {
   local token="$1" name="$2"
-  require_brew
-  brew list --formula "$token" &>/dev/null || brew install "$token"
+  require_brew || return 1
+  brew list --formula "$token" &>/dev/null || brew install "$token" || return 1
   echo "Installed $name $("$name" --version 2>/dev/null | head -1)"
 }
 
@@ -314,8 +307,8 @@ brew_install_formula() {
 # (kept for when a download tool moves to a cask), mirrors the formula helper.
 brew_install_cask() {
   local token="$1" name="$2"
-  require_brew
-  brew list --cask "${token##*/}" &>/dev/null || brew install --cask "$token"
+  require_brew || return 1
+  brew list --cask "${token##*/}" &>/dev/null || brew install --cask "$token" || return 1
   echo "Installed $name $("$name" --version 2>/dev/null | head -1)"
 }
 
@@ -324,8 +317,8 @@ brew_install_cask() {
 _GEAR_CASK_DONE=0
 brew_install_gear() {
   [ "$_GEAR_CASK_DONE" = 1 ] && return 0
-  require_brew
-  brew list --cask "${GEAR_CASK##*/}" &>/dev/null || brew install --cask "$GEAR_CASK"
+  require_brew || return 1
+  brew list --cask "${GEAR_CASK##*/}" &>/dev/null || brew install --cask "$GEAR_CASK" || return 1
   _GEAR_CASK_DONE=1
   echo "Installed gear cask (${GEAR_CASK##*/})"
 }
@@ -496,45 +489,145 @@ resolve_claude() {
 }
 
 # ── Install ──────────────────────────────────────────────────────
+#
+# Each tool resolves through an ordered list of CHANNELS; the first that
+# succeeds wins. This is what makes one script correct on every platform AND in
+# the restricted web-session sandbox. A channel returns 0 on success, or
+# non-zero when it is inapplicable here or its install failed — so the loop
+# moves to the next one. Channels run in `if`/`||` context, which disables
+# errexit for the whole call chain, so an internal curl/apt failure is caught
+# rather than aborting the script.
+#
+#   release      pinned, SHA-verified download into $HOME/.local (resolve_<name>).
+#                Reproducible; the CI/local default. github-hosted tools are
+#                gated on github reachability, since a web-session policy blocks
+#                github.com outright — the download can never succeed there.
+#   brew         Homebrew formula/cask (macOS only). The native macOS channel.
+#   apt          Debian/Ubuntu package (Linux only). The trusted fallback when
+#                github is blocked; archive.ubuntu.com is on every web allowlist.
+#   npm          global install from the npm registry (any platform). Always
+#                allowlisted, so it is the universal fallback for our gear CLIs
+#                (published as node launchers).
+#
+# claude's "release" is an npm-registry tarball, not github, so it is NOT gated
+# and works in web sessions as-is. apm has no channel but its github release, so
+# a blocked web session skips it (reported, not fatal under --soft).
 
-# install_one NAME — route one tool to its install channel for this platform.
-install_one() {
-  local name="$1" kind
+PRESENT=()      # already on PATH
+INSTALLED=()    # freshly installed this run, via any channel
+SKIPPED=()      # no channel could provide it (reported; fatal unless --soft)
 
-  if command -v "$name" &>/dev/null; then
-    echo "$name already installed"
-    return 0
-  fi
-
-  if is_gear_binary "$name"; then
-    if [ "$IS_DARWIN" = 1 ]; then
-      brew_install_gear
-    elif [ "$GEAR_DOWNLOAD" = 1 ]; then
-      install_gear_binary "$name"
+# Probe github.com once, caching the verdict. Web-session network policies allow
+# the npm/apt registries but block github.com, so github-hosted release assets
+# — third-party or our own gear, whatever the repo — simply cannot download
+# there. Detecting this lets the release channel step aside for a trusted one
+# instead of dying on a raw `curl: (56)`.
+GITHUB_NET=""   # "" (unprobed) | "ok" | "blocked"
+github_reachable() {
+  if [ -z "$GITHUB_NET" ]; then
+    if curl -fsS --max-time 8 -o /dev/null "https://github.com" 2>/dev/null; then
+      GITHUB_NET=ok
     else
-      # No raw gear asset for this platform (e.g. linux-aarch64). Skip rather
-      # than hard-fail: the arm64 release runner builds gear from source and
-      # never needs a pre-built one, and arm64 runtime installs go via Homebrew.
-      echo "::notice::skipping gear binary '$name' on $OS-$ARCH — no raw gear asset (arm64 gear ships via Homebrew; CI builds from source)"
+      GITHUB_NET=blocked
+      echo "note: github.com unreachable (network policy?) — using package registries (apt/npm) instead"
     fi
+  fi
+  [ "$GITHUB_NET" = ok ]
+}
+
+# Every release download is github-hosted EXCEPT claude, whose pinned tarball
+# comes from the (always-allowlisted) npm registry — so it is never gated.
+github_hosted() { [ "$1" != claude ]; }
+
+# apt plumbing (Linux fallback): one guarded `apt-get update` per run, executed
+# as root directly or via sudo when available.
+AS_ROOT=""
+[ "$(id -u)" != 0 ] && command -v sudo &>/dev/null && AS_ROOT="sudo"
+_APT_UPDATED=0
+apt_update_once() {
+  [ "$_APT_UPDATED" = 1 ] && return 0
+  $AS_ROOT env DEBIAN_FRONTEND=noninteractive apt-get update -qq >/dev/null 2>&1 || return 1
+  _APT_UPDATED=1
+}
+
+# ── Channels ─────────────────────────────────────────────────────
+
+ch_release() {
+  if github_hosted "$1"; then github_reachable || return 1; fi
+  "resolve_$1"
+}
+
+ch_release_gear() {
+  [ "$GEAR_DOWNLOAD" = 1 ] || return 1     # no raw gear asset (e.g. linux-arm64)
+  github_reachable || return 1
+  install_gear_binary "$1"
+}
+
+ch_brew()      { [ "$IS_DARWIN" = 1 ] && brew_install_formula "$(pkg_token "$1")" "$1"; }
+ch_brew_gear() { [ "$IS_DARWIN" = 1 ] && brew_install_gear; }
+
+ch_apt() {
+  [ "$IS_DARWIN" = 0 ] || return 1
+  local pkg; pkg="$(pkg_token "$1")" || return 1
+  apt_update_once || return 1
+  $AS_ROOT env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$pkg" >/dev/null 2>&1 || return 1
+  echo "Installed $1 $("$1" --version 2>/dev/null | head -1) (apt $pkg)"
+}
+
+ch_npm() {
+  # Our gear CLIs publish to npm as node launchers; a global install puts the
+  # command on PATH (npm's global bin is already there). Not every gear CLI is
+  # published (coaligned is not yet), so a 404 just falls through.
+  npm install -g "$1" >/dev/null 2>&1 || return 1
+  echo "Installed $1 $("$1" --version 2>/dev/null | head -1) (npm)"
+}
+
+# channels_for NAME — the ordered channel list for a tool on this platform.
+# macOS resolves via its first channel (brew) since github is reachable there
+# anyway; Linux CI/local hits `release` (pinned, reproducible); a blocked Linux
+# web session falls through to the trusted registry.
+channels_for() {
+  if is_gear_binary "$1"; then
+    echo "brew_gear release_gear npm"
+  elif is_system_tool "$1"; then
+    echo "brew release apt"
+  else
+    echo "release"        # apm, claude — pinned download only (claude via npm)
+  fi
+}
+
+# install_one NAME — try each channel in order; first success wins.
+install_one() {
+  local name="$1" ch
+  if command -v "$name" &>/dev/null; then
+    PRESENT+=("$name")
     return 0
   fi
-
-  kind="$(tool_field "$name" kind)"
-  if [ -z "$kind" ]; then
-    echo "::error::unknown tool '$name' (expected one of: ${DEFAULT_TOOLS[*]}, a fit-* CLI, or coaligned)" >&2
-    exit 1
-  fi
-
-  if [ "$IS_DARWIN" = 1 ] && [ "$kind" = "formula" ]; then
-    brew_install_formula "$(tool_field "$name" token)" "$name"
-  elif [ "$IS_DARWIN" = 1 ] && [ "$kind" = "cask" ]; then
-    brew_install_cask "$(tool_field "$name" token)" "$name"
-  else
-    "resolve_$name"
-  fi
+  for ch in $(channels_for "$name"); do
+    if "ch_$ch" "$name"; then
+      INSTALLED+=("$name")
+      return 0
+    fi
+  done
+  SKIPPED+=("$name")
 }
 
 for name in "${NAMES[@]}"; do
   install_one "$name"
 done
+
+# ── Summary ──────────────────────────────────────────────────────
+# Steady state on one line; explicit lists for what changed or is missing. A
+# warm session stays near-silent; a degraded one names exactly what it lacks.
+[ "${#PRESENT[@]}" -gt 0 ]   && echo "tools ready (${#PRESENT[@]}): ${PRESENT[*]}"
+[ "${#INSTALLED[@]}" -gt 0 ] && echo "tools installed (${#INSTALLED[@]}): ${INSTALLED[*]}"
+if [ "${#SKIPPED[@]}" -gt 0 ]; then
+  echo "tools unavailable: ${SKIPPED[*]}" >&2
+  if [ "$SOFT" = "1" ]; then
+    echo "note: continuing without them (--soft); published gear CLIs still run via 'bunx <name>'" >&2
+  else
+    echo "::error::no install channel succeeded for: ${SKIPPED[*]}" >&2
+    exit 1
+  fi
+fi
+exit 0

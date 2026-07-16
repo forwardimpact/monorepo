@@ -7,6 +7,12 @@ npm name equals the invoked name (`fit-harness`, `fit-wiki`, …), so the
 documented `npx fit-*` contract resolves from the registry
 ([originating spec](../specs/1670-public-cli-launcher-packages/spec.md)).
 
+The one non-`fit-*` public CLI is `coaligned` (backed by
+`@forwardimpact/libcoaligned`), invoked as `npx coaligned …` in the published
+setup skills. The fit-only invocation scan cannot see it, so it is named in the
+rule's `PUBLISHED_NON_FIT_CLIS` — the launcher stays computed, not
+hand-maintained.
+
 ## Contract
 
 - **npm name = invoked name.** The launcher's only content is a two-line

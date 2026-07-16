@@ -4,6 +4,9 @@
 // workspace package. Every public CLI must have a matching launcher package
 // under `launchers/` (npm name = invoked name), and nothing else may live
 // there — the launcher set is computed from the rule, never hand-maintained.
+// Nearly all public CLIs are `fit-*`; the rare non-fit public CLI (coaligned,
+// invoked as `npx coaligned …` in the published setup skills) is named in
+// PUBLISHED_NON_FIT_CLIS, since the fit-only invocation scan cannot see it.
 // See launchers/README.md for the published contract.
 //
 // Checks, each failing CI with a message naming the offending dir/file:
@@ -38,6 +41,13 @@ export const SIBLING_ACTION_CLIS = [
   "fit-trace",
   "fit-wiki",
 ];
+
+// Public CLIs the fit-only invocation scan cannot capture. coaligned ships to
+// external users via `apm` and is invoked as `npx coaligned …` in the published
+// setup skills, but INVOKE_RE matches only fit-* names and the skill scan only
+// walks fit-*/kata-* dirs — so it is named here to stay public, the same escape
+// hatch SIBLING_ACTION_CLIS gives action-only CLIs.
+export const PUBLISHED_NON_FIT_CLIS = ["coaligned"];
 
 const REQUIRED_KEYS = [
   "name",
@@ -229,7 +239,7 @@ export function checkPublicCliSet({ invokedNames, packages, launchers }) {
 }
 
 function collectInvokedNames({ listDir, scan }) {
-  const names = new Set(SIBLING_ACTION_CLIS);
+  const names = new Set([...SIBLING_ACTION_CLIS, ...PUBLISHED_NON_FIT_CLIS]);
   const dirs = ["websites/fit/docs"];
   for (const entry of listDir(".claude/skills")) {
     if (/^(fit|kata)-/.test(entry)) dirs.push(`.claude/skills/${entry}`);
