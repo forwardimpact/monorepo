@@ -64,7 +64,13 @@ with no output.
 installs the external tools and pinned, SHA-verified `fit-*` binaries into
 `$HOME/.local`, beside the `bootstrap` action so it travels with the subtree
 split. `publish-binaries.yml` publishes it on `gear@v*` for `curl | bash`
-bootstrap. A missing binary fails hard — no `bunx`/`npx` fallback.
+bootstrap. Each tool resolves through an ordered list of channels (`release` →
+platform package manager): CI and local get the pinned, reproducible download;
+where github.com is unreachable — a Claude Code web session blocks it outright,
+release assets included — tools fall back to a trusted registry (`apt` for the
+distro CLIs, `npm` for our gear CLIs). `apm` has no registry build, so a blocked
+web session skips it. Session hooks pass `--soft` so a skipped tool is reported,
+not fatal; CI omits it, keeping a missing tool a hard failure.
 
 ## Local composite actions
 
