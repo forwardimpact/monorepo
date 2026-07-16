@@ -12,9 +12,9 @@ and the docs (Step 4) — so that when the single regeneration gate (Step 5:
 gitignored generated trees and the generated catalog rows from the renamed proto
 and metadata; the proto filename drives their `span/` subdirectory and the proto
 `package span` / `service Span` drive the `Span*` symbol names. The generated
-trees are never hand-edited. Verification (Step 6) is the spec's `--hidden` sweep
-set plus the four affected test suites — no behaviour changes, so a green rename
-is a correct rename.
+trees are never hand-edited. Verification (Step 6) is the spec's `--hidden`
+sweep set plus the four affected test suites — no behaviour changes, so a green
+rename is a correct rename.
 
 Libraries used: none (rename only).
 
@@ -50,13 +50,13 @@ git mv services/span/test/trace.test.js services/span/test/span.test.js
 | `test/bin-smoke…js` | `describe("fit-svctrace bin smoke"` | `"fit-svcspan bin smoke"` |
 
 Keep: `TraceIndex` (imported from libtelemetry, hand-written OTel class) and its
-instance local `traceIndex` (the `index.js` constructor param and the `server.js`
-local), `trace_id` field, and test data strings (`trace123`). `index.js` keeps
-its `#index` field. The storage-bucket local follows the bucket rename:
-`traceStorage`→`spanStorage`.
+instance local `traceIndex` (the `index.js` constructor param and the
+`server.js` local), `trace_id` field, and test data strings (`trace123`).
+`index.js` keeps its `#index` field. The storage-bucket local follows the bucket
+rename: `traceStorage`→`spanStorage`.
 
-Verify: `rg 'package span;|service Span' services/span/proto/span.proto` matches;
-`test ! -d services/trace && test -d services/span`.
+Verify: `rg 'package span;|service Span' services/span/proto/span.proto`
+matches; `test ! -d services/trace && test -d services/span`.
 
 ## Step 2: Move the coupled shared-library references
 
@@ -98,7 +98,8 @@ complete site list, not a sample.
 
 Verify (after Step 5 regenerates the symbols these reference):
 `rg --hidden $X 'TraceClient|traceClient|traceConfig|createMockTraceClient'` →
-no output; `rg 'createMockTracer|class Tracer|class TraceIndex|class TraceVisualizer'`
+no output;
+`rg 'createMockTracer|class Tracer|class TraceIndex|class TraceVisualizer'`
 still matches; the libtelemetry suite (Step 6) resolves `span` from libtype.
 
 ## Step 3: Update consumers, orchestration, and config
@@ -126,7 +127,8 @@ alias). The `package.json` dependency renames here must land before the Step 5
 | `websites/fit/docs/internals/release/index.md` | `fit-svctrace` in the `fit-gear` bundle list (123) | `fit-svcspan` (keep `fit-trace`) |
 | `build/cli-manifest.json` | `"name": "fit-svctrace"` (52) | `"fit-svcspan"` (keep `fit-trace`, 125) |
 
-Verify: `rg --hidden $X 'svctrace|@forwardimpact/svctrace|SERVICE_TRACE_|services/trace|data/traces|fi/trace:|container_name: trace|trace\.local|^trace:'`
+Verify:
+`rg --hidden $X 'svctrace|@forwardimpact/svctrace|SERVICE_TRACE_|services/trace|data/traces|fi/trace:|container_name: trace|trace\.local|^trace:'`
 → no output; `rg '"trace"' products/guide/src/lib/status.js` → no output.
 
 ## Step 4: Update service guides and skill data-layout reference
@@ -144,12 +146,14 @@ slugs.
 | `.claude/skills/fit-guide/references/data.md` | `traces/` data-layout row → `spans/` | "Distributed traces" description prose |
 
 The `.claude/**` edit may be blocked by the settings gate; if a normal write is
-denied, apply it via `echo … | bunx fit-selfedit .claude/skills/fit-guide/references/data.md`
+denied, apply it via
+`echo … | bunx fit-selfedit .claude/skills/fit-guide/references/data.md`
 (CLAUDE.md § Contributor Workflow).
 
-Verify: `rg 'svctrace|the trace service|createClient\("trace"|trace\.(Span|Query|Record)|data/traces' websites/`
-→ no output; `rg 'createClient\("span"' websites/` matches; `rg 'traceClient' websites/ .claude/`
-→ no output.
+Verify:
+`rg 'svctrace|the trace service|createClient\("trace"|trace\.(Span|Query|Record)|data/traces' websites/`
+→ no output; `rg 'createClient\("span"' websites/` matches;
+`rg 'traceClient' websites/ .claude/` → no output.
 
 ## Step 5: Regenerate the generated trees and catalogs
 
@@ -169,7 +173,8 @@ just codegen                # bunx --workspace=@forwardimpact/libcodegen fit-cod
 bun run context:fix         # regenerates catalog rows + jobs from package.json
 ```
 
-Verify: `rg --hidden $X 'TraceServiceDefinition|TraceBase|package trace;|/trace\.Trace/'`
+Verify:
+`rg --hidden $X 'TraceServiceDefinition|TraceBase|package trace;|/trace\.Trace/'`
 → no output; `rg 'SpanClient|SpanBase'` matches; no untracked `generated/` churn
 (trees are gitignored); `rg 'svctrace|trace' services/README.md` → span-worded
 catalog row + jobs only.
@@ -180,18 +185,49 @@ Run the spec's success-criteria sweeps and the affected suites. `$X` is the
 spec's exclusion set: `-g '!specs/**' -g '!.git/**' -g '!*.lock'`.
 
 - `rg --hidden $X 'svctrace'` → no output.
-- `rg --hidden $X 'services/trace|data/traces|data/logs/trace\b|fi/trace:|container_name: trace|trace\.local|^trace:'` → no output; `test ! -d services/trace && test -d services/span`.
-- `rg --hidden $X 'TraceServiceDefinition|TraceClient|TraceBase|createMockTraceClient|traceClient|traceConfig'` → no output; `rg 'SpanClient|SpanBase'` matches.
-- `rg --hidden $X 'createServiceConfig\("trace"\)|createStorage\("traces"\)|SERVICE_TRACE_'` → no output; `rg '"trace"' products/guide/src/lib/status.js` → no output.
-- `rg 'package span;' services/span/proto/span.proto` matches; `rg --hidden $X 'package trace;|service Trace'` → no output.
-- Registry names the new manifest: `rg 'services/span/server.js' .coaligned/invariants/service-url-drift.registry.yml` matches.
-- Docs sweep: `rg 'svctrace|the trace service|createClient\("trace"|trace\.(Span|Query|Record)|data/traces' websites/` → no output; `rg 'createClient\("span"' websites/` matches.
-- `rg 'class Tracer|class TraceIndex|class TraceVisualizer'` matches; `rg 'trace_id' services/span/proto/span.proto` matches (OTel preserved).
+- `rg --hidden $X 'services/trace|data/traces|data/logs/trace\b|fi/trace:|container_name: trace|trace\.local|^trace:'`
+  → no output; `test ! -d services/trace && test -d services/span`.
+- `rg --hidden $X 'TraceServiceDefinition|TraceClient|TraceBase|createMockTraceClient|traceClient|traceConfig'`
+  → no output; `rg 'SpanClient|SpanBase'` matches.
+- `rg --hidden $X 'createServiceConfig\("trace"\)|createStorage\("traces"\)|SERVICE_TRACE_'`
+  → no output; `rg '"trace"' products/guide/src/lib/status.js` → no output.
+- `rg 'package span;' services/span/proto/span.proto` matches;
+  `rg --hidden $X 'package trace;|service Trace'` → no output.
+- Registry names the new manifest:
+  `rg 'services/span/server.js' .coaligned/invariants/service-url-drift.registry.yml`
+  matches.
+- Docs sweep:
+  `rg 'svctrace|the trace service|createClient\("trace"|trace\.(Span|Query|Record)|data/traces' websites/`
+  → no output; `rg 'createClient\("span"' websites/` matches.
+- `rg 'class Tracer|class TraceIndex|class TraceVisualizer'` matches;
+  `rg 'trace_id' services/span/proto/span.proto` matches (OTel preserved).
 - No untracked `generated/` churn; a second `just codegen` leaves no diff.
 - `fit-svcspan --help` runs (after the Step 5 `bun install` relinks the bin).
 - Suites green: `cd services/span && bun test test/*.test.js`;
   telemetry (`libraries/libtelemetry`), rpc (`libraries/librpc`), and guide
   (`products/guide`) suites.
+
+## Manual smoke test (optional runtime check)
+
+The Step 6 sweeps and suites prove the rename statically. To confirm the renamed
+service still captures spans end to end, drive a real gRPC call — the span
+service only records spans sent by other services' tracers, not by direct-index
+CLIs (`fit-query` reads `data/graphs` locally and emits no spans).
+
+1. Add `span` (and `graph`, before it) to `config/config.json` `init.services`,
+   then start under `fit-rc` with `.env` loaded — `just rc-start` (or
+   `set -a; source .env; set +a; bunx fit-rc start graph`). `fit-rc` runs each
+   service under Node; do not hand-launch `server.js` (see
+   [services/CLAUDE.md](../../services/CLAUDE.md) § Running services).
+2. Drive a traced gRPC call: `bunx fit-unary graph GetOntology '{}'`. The graph
+   server's tracer emits a SERVER span (and the client a CLIENT span) to the
+   span service.
+3. Wait for the buffered flush (the span index flushes on an interval, ~5s),
+   then confirm the spans landed: `rg 'graph\.' data/spans/index.jsonl`
+   (pre-rename this path is `data/traces/index.jsonl`).
+
+A green run proves the config key `span`, `createStorage("spans")`, the
+`/span.Span/*` path, and the `data/spans` bucket all resolve at runtime.
 
 ## Risks
 

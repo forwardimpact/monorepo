@@ -93,22 +93,22 @@ contributor context.
 
 ## Running services
 
-Services are managed by `fit-rc`. The service list lives in
-`config/config.json` under `init.services`.
+`fit-rc` runs the services in `config/config.json` `init.services` — gitignored,
+so create it first from the `init` structure in
+[`config/CLAUDE.md`](../config/CLAUDE.md) (dependency order; `start <name>`
+brings up everything before it). Use the `just` wrappers (`rc-start`, `rc-stop`,
+`rc-status`, `rc-restart`): they load `.env` (`set dotenv-load`), which services
+need for `SERVICE_*` config and auth. A bare `bunx fit-rc …` needs `.env`
+sourced first (`set -a; source .env; set +a`) or gRPC auth fails and calls hang.
 
-```sh
-bunx fit-rc start                # start all services
-bunx fit-rc stop                 # stop all services
-bunx fit-rc status               # show service status
-bunx fit-rc start <name>     # start everything up through <name>
-bunx fit-rc restart <name>   # restart <name> and everything after it
-```
+`fit-rc` spawns each service under Node (`node -e "import(...)"`). Do not
+hand-launch a gRPC `server.js` under Bun (`bun run …`) — it binds the port but
+never dispatches RPCs, so clients hang. Logs: `data/logs/<name>/current`.
 
 ## Runtime data
 
-Runtime data lives under `data/`: logs in `data/logs/<name>/current`, bridge
-discussion and origin state at `data/bridges/discussions.jsonl` and
-`data/bridges/origins.jsonl` (owned by `services/bridge`).
+Runtime data lives under `data/`; bridge discussion and origin state at
+`data/bridges/{discussions,origins}.jsonl` (owned by `services/bridge`).
 
 ## Proto definitions
 
