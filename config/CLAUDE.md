@@ -1,7 +1,10 @@
 # Config
 
 Local runtime configuration. This directory is gitignored — each contributor
-maintains their own `config.json`, read by `libconfig` at startup.
+maintains their own `config.json`, read by `libconfig` at startup. A fresh
+clone has none: create one from the structure below before running services. A
+minimal `init.services` block (the services you need, in dependency order) is
+enough for `fit-rc`; `service`/`product` blocks override constructor defaults.
 
 ## Audience
 
