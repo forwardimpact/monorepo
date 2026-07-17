@@ -36,10 +36,10 @@ class MockMetadata {
 describe("Tracer", () => {
   describe("AsyncLocalStorage context isolation", () => {
     test("maintains separate span contexts for concurrent operations", async () => {
-      const mockTraceClient = { RecordSpan: () => Promise.resolve() };
+      const mockSpanClient = { RecordSpan: () => Promise.resolve() };
       const tracer = new Tracer({
         serviceName: "test-service",
-        traceClient: mockTraceClient,
+        spanClient: mockSpanClient,
         grpcMetadata: MockMetadata,
         clock: createMockClock(),
       });
@@ -90,10 +90,10 @@ describe("Tracer", () => {
     });
 
     test("startClientSpan reads parent from AsyncLocalStorage", () => {
-      const mockTraceClient = { RecordSpan: () => Promise.resolve() };
+      const mockSpanClient = { RecordSpan: () => Promise.resolve() };
       const tracer = new Tracer({
         serviceName: "test-service",
-        traceClient: mockTraceClient,
+        spanClient: mockSpanClient,
         grpcMetadata: MockMetadata,
         clock: createMockClock(),
       });
@@ -123,10 +123,10 @@ describe("Tracer", () => {
     });
 
     test("startServerSpan extracts trace context from metadata", () => {
-      const mockTraceClient = { RecordSpan: () => Promise.resolve() };
+      const mockSpanClient = { RecordSpan: () => Promise.resolve() };
       const tracer = new Tracer({
         serviceName: "test-service",
-        traceClient: mockTraceClient,
+        spanClient: mockSpanClient,
         grpcMetadata: MockMetadata,
         clock: createMockClock(),
       });

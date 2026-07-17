@@ -15,7 +15,7 @@ any step after editing its inputs.
 | `data/vectors/`   | Embedding vector indices                |
 | `data/graphs/`    | RDF quad index + ontology               |
 | `data/memories/`  | Conversation state                      |
-| `data/traces/`    | Distributed traces                      |
+| `data/spans/`     | Distributed traces                      |
 | `data/policies/`  | Access control policies                 |
 | `data/logs/`      | Service logs                            |
 | `data/cli/`       | CLI session data                        |

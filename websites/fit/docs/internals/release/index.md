@@ -120,7 +120,7 @@ when the bundle set changes.
 | `fit-landmark` | `fit-landmark` | 1 |
 | `fit-summit` | `fit-summit` | 1 |
 | `fit-outpost` | `fit-outpost` | 1 |
-| `fit-gear` | `fit-svcgraph`, `fit-svcmcp`, `fit-svcpathway`, `fit-svctrace`, `fit-svcvector`, `fit-codegen`, `fit-terrain`, `fit-harness`, `fit-doc`, `fit-rc`, `fit-xmr`, `fit-storage`, `fit-logger`, `fit-svscan`, `fit-trace`, `fit-visualize`, `fit-query`, `fit-subjects`, `fit-process-graphs`, `fit-process-resources`, `fit-process-vectors`, `fit-search`, `fit-unary`, `fit-tiktoken`, `fit-download-bundle`, `fit-wiki`, `fit-benchmark`, `fit-pack`, `coaligned` | 29 |
+| `fit-gear` | `fit-svcgraph`, `fit-svcmcp`, `fit-svcpathway`, `fit-svcspan`, `fit-svcvector`, `fit-codegen`, `fit-terrain`, `fit-harness`, `fit-doc`, `fit-rc`, `fit-xmr`, `fit-storage`, `fit-logger`, `fit-svscan`, `fit-trace`, `fit-visualize`, `fit-query`, `fit-subjects`, `fit-process-graphs`, `fit-process-resources`, `fit-process-vectors`, `fit-search`, `fit-unary`, `fit-tiktoken`, `fit-download-bundle`, `fit-wiki`, `fit-benchmark`, `fit-pack`, `coaligned` | 29 |
 
 Both the `.app` assembly and the cask `binary` block derive from
 `build/cli-manifest.json` for **every** bundle — one code path, no gear

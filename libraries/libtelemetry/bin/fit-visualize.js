@@ -13,12 +13,13 @@ const runtime = createDefaultRuntime();
 
 const definition = {
   name: "fit-visualize",
-  description: "Query and visualize traces using JMESPath expressions",
+  description:
+    "Query and visualize OpenTelemetry spans using JMESPath expressions",
   globalOptions: {
-    trace: { type: "string", description: "Filter traces by trace ID" },
+    trace: { type: "string", description: "Filter spans by trace ID" },
     resource: {
       type: "string",
-      description: "Filter traces by resource ID",
+      description: "Filter spans by resource ID",
     },
     help: { type: "boolean", short: "h", description: "Show this help" },
     version: { type: "boolean", description: "Show version" },
@@ -33,7 +34,7 @@ const definition = {
       title: "Add Observability",
       url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/add-observability/index.md",
       description:
-        "Structured logs and traces with no framework setup, including querying and visualizing recorded traces with fit-visualize.",
+        "Structured logs and spans with no framework setup, including querying and visualizing recorded spans with fit-visualize.",
     },
     {
       title: "Manage Service Lifecycle from One Interface",
@@ -56,8 +57,8 @@ const { values } = parsed;
 
 const usage = `**Usage:** <JMESPath expression>
 
-Query and visualize traces from the trace index using JMESPath expressions.
-Apply filters to narrow down traces before querying.
+Query and visualize spans from the span index using JMESPath expressions.
+Apply filters to narrow the spans before querying.
 
 **Examples:**
 
@@ -67,9 +68,9 @@ Apply filters to narrow down traces before querying.
     echo "[?contains(name, 'QueryByPattern')]" | just cli-visualize ARGS="--resource common.Conversation.abc123"`;
 
 /**
- * Queries and visualizes traces using JMESPath
+ * Queries and visualizes spans using JMESPath
  * @param {string} prompt - The JMESPath query expression
- * @param {object} state - REPL state containing trace filters and indices
+ * @param {object} state - REPL state containing span filters and indices
  * @param {import("stream").Writable} outputStream - Stream to write results to
  */
 async function queryTraces(prompt, state, outputStream) {
@@ -102,8 +103,8 @@ const repl = new Repl({
   usage,
 
   setup: async (state) => {
-    const traceStorage = createStorage("traces");
-    state.traceIndex = new TraceIndex(traceStorage, "index.jsonl", {
+    const spanStorage = createStorage("spans");
+    state.traceIndex = new TraceIndex(spanStorage, "index.jsonl", {
       clock: runtime.clock,
     });
     state.visualizer = new TraceVisualizer(state.traceIndex, runtime);
@@ -116,7 +117,7 @@ const repl = new Repl({
 
   commands: {
     trace: {
-      usage: "Filter traces by trace ID",
+      usage: "Filter spans by trace ID",
       handler: (args, state) => {
         if (args.length === 0) {
           return "Usage: /trace <id>";
@@ -125,7 +126,7 @@ const repl = new Repl({
       },
     },
     resource: {
-      usage: "Filter traces by resource ID",
+      usage: "Filter spans by resource ID",
       handler: (args, state) => {
         if (args.length === 0) {
           return "Usage: /resource <id>";

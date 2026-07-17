@@ -1,13 +1,13 @@
 ---
 title: Add Observability
-description: Structured, machine-readable logs and traces without configuring a logging framework — drop in a log line or trace span and it works.
+description: Structured, machine-readable logs and spans without configuring a logging framework — drop in a log line or a span and it works.
 ---
 
 You need to log what a service is doing and trace operations across service
 boundaries, but you do not want to configure a logging framework, pick a format,
 or wire up an export pipeline. `@forwardimpact/libtelemetry` provides three
 tools that work out of the box: a `Logger` that produces RFC 5424-formatted
-lines, a `Tracer` that records spans to a trace service, and an `Observer` that
+lines, a `Tracer` that records spans to a span service, and an `Observer` that
 unifies both for gRPC operations. This page covers the bounded task of adding
 observability to a service. For the full lifecycle setup, see
 [Service Lifecycle](/docs/libraries/service-lifecycle/).
@@ -85,9 +85,9 @@ and appends the stack trace when debug output is enabled:
 logger.exception("db", err, { host: "localhost" });
 ```
 
-## Add a trace span
+## Add a span
 
-The `Tracer` requires a trace service client and a gRPC metadata constructor.
+The `Tracer` requires a span service client and a gRPC metadata constructor.
 Once configured, creating a span is a single call:
 
 ```js
@@ -95,7 +95,7 @@ import { Tracer } from "@forwardimpact/libtelemetry/tracer.js";
 
 const tracer = new Tracer({
   serviceName: "my-service",
-  traceClient,      // gRPC client for the trace service
+  spanClient,      // gRPC client for the span service
   grpcMetadata,     // gRPC Metadata constructor
 });
 
@@ -193,9 +193,9 @@ spans are created, and the gRPC calls proceed without trace context. This means
 you can add the observer first and wire up tracing later without changing your
 handler code.
 
-## Query and visualize recorded traces
+## Query and visualize recorded spans
 
-Once spans are flowing into the trace index, `fit-visualize` reads them back and
+Once spans are flowing into the span index, `fit-visualize` reads them back and
 renders them as Mermaid sequence diagrams. It is a filter-and-query tool: pipe a
 [JMESPath](https://jmespath.org/) expression on stdin to select spans, and it
 emits a diagram of the service interactions in those traces.

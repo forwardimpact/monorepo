@@ -1,9 +1,8 @@
 {
-  "name": "@forwardimpact/svctrace",
+  "name": "@forwardimpact/svcspan",
   "version": "0.1.49",
   "description": "OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.",
   "keywords": [
-    "trace",
     "opentelemetry",
     "spans",
     "grpc",
@@ -13,7 +12,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",
-    "directory": "services/trace"
+    "directory": "services/span"
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -21,16 +20,16 @@
     {
       "user": "Platform Builders",
       "goal": "Prove Agent Changes",
-      "trigger": "Finishing an agent improvement and realizing there is no centralized place to store and compare trace spans.",
-      "bigHire": "collect trace spans from any product without each one managing its own storage.",
+      "trigger": "Finishing an agent improvement and realizing there is no centralized place to store and compare spans.",
+      "bigHire": "collect spans from any product without each one managing its own storage.",
       "littleHire": "send spans from a product and trust they are queryable later.",
-      "competesWith": "per-product trace files; manual log comparison; skipping observability entirely"
+      "competesWith": "per-product span files; manual log comparison; skipping observability entirely"
     }
   ],
   "type": "module",
   "main": "index.js",
   "bin": {
-    "fit-svctrace": "./server.js"
+    "fit-svcspan": "./server.js"
   },
   "files": [
     "proto/",

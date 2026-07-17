@@ -200,5 +200,5 @@ tenancy)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
-| Big | `prove-changes/` | Collect Trace Spans from Any Product |
+| Big | `prove-changes/` | Collect Spans from Any Product |
 | Little | `prove-changes/send-spans/` | Send Spans from a Product |

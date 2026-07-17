@@ -69,7 +69,7 @@
     "@forwardimpact/svcgraph": "^0.1.60",
     "@forwardimpact/svcmcp": "^0.1.0",
     "@forwardimpact/svcpathway": "^0.1.8",
-    "@forwardimpact/svctrace": "^0.1.34",
+    "@forwardimpact/svcspan": "^0.1.34",
     "@forwardimpact/svcvector": "^0.1.111"
   },
   "devDependencies": {

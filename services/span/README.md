@@ -1,4 +1,4 @@
-# Trace Service
+# Span Service
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
@@ -10,5 +10,5 @@ improved outcomes.
 ## Getting Started
 
 ```sh
-bun services/trace/server.js
+bun services/span/server.js
 ```

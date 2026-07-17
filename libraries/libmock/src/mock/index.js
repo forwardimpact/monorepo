@@ -18,7 +18,7 @@ export {
   createMockMemoryClient,
   createMockLlmClient,
   createMockAgentClient,
-  createMockTraceClient,
+  createMockSpanClient,
   createMockVectorClient,
   createMockGraphClient,
   createMockToolClient,

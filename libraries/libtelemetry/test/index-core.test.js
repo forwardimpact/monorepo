@@ -2,7 +2,7 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { TraceIndex } from "../src/index/trace.js";
-import { trace } from "@forwardimpact/libtype";
+import { span as spanType } from "@forwardimpact/libtype";
 import { assertThrowsMessage, createMockStorage } from "@forwardimpact/libmock";
 import { createMockClock } from "@forwardimpact/libmock";
 const _clock = createMockClock();
@@ -52,7 +52,7 @@ describe("TraceIndex - Core", () => {
 
   describe("add() Method", () => {
     test("adds span to index with correct item structure", async () => {
-      const span = trace.Span.fromObject({
+      const span = spanType.SpanItem.fromObject({
         trace_id: "trace123",
         span_id: "span456",
         parent_span_id: "",
@@ -62,7 +62,7 @@ describe("TraceIndex - Core", () => {
         end_time_unix_nano: "2000000",
         attributes: { "service.name": "test-service" },
         events: [],
-        status: { code: trace.Code.OK, message: "" },
+        status: { code: spanType.Code.OK, message: "" },
         resource: { attributes: {} },
       });
 
@@ -75,7 +75,7 @@ describe("TraceIndex - Core", () => {
     });
 
     test("adds span with resource_id to index", async () => {
-      const span = trace.Span.fromObject({
+      const span = spanType.SpanItem.fromObject({
         trace_id: "trace123",
         span_id: "span789",
         parent_span_id: "span456",
@@ -85,7 +85,7 @@ describe("TraceIndex - Core", () => {
         end_time_unix_nano: "2000000",
         attributes: { "service.name": "agent" },
         events: [],
-        status: { code: trace.Code.OK, message: "" },
+        status: { code: spanType.Code.OK, message: "" },
         resource: { attributes: { id: "common.Conversation.abc-123" } },
       });
 
@@ -104,7 +104,7 @@ describe("TraceIndex - Core", () => {
   describe("queryItems() - Basic Filtering", () => {
     beforeEach(async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
@@ -114,13 +114,13 @@ describe("TraceIndex - Core", () => {
           end_time_unix_nano: "2000000",
           attributes: {},
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
@@ -130,13 +130,13 @@ describe("TraceIndex - Core", () => {
           end_time_unix_nano: "2000000",
           attributes: {},
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace2",
           span_id: "span3",
           parent_span_id: "",
@@ -146,7 +146,7 @@ describe("TraceIndex - Core", () => {
           end_time_unix_nano: "2000000",
           attributes: {},
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );

@@ -1,4 +1,4 @@
-import { trace } from "@forwardimpact/libtype";
+import { span as spanType } from "@forwardimpact/libtype";
 
 import { msToIso } from "./time.js";
 
@@ -55,8 +55,8 @@ export class TraceVisualizer {
 
   /**
    * Groups spans by trace_id
-   * @param {import("@forwardimpact/libtype").trace.Span[]} spans - Array of spans
-   * @returns {Map<string, import("@forwardimpact/libtype").trace.Span[]>} Map of trace_id to spans
+   * @param {import("@forwardimpact/libtype").span.SpanItem[]} spans - Array of spans
+   * @returns {Map<string, import("@forwardimpact/libtype").span.SpanItem[]>} Map of trace_id to spans
    */
   #groupByTrace(spans) {
     const groups = new Map();
@@ -72,7 +72,7 @@ export class TraceVisualizer {
   /**
    * Visualizes a single trace as a Mermaid sequence diagram
    * @param {string} traceId - Trace ID
-   * @param {import("@forwardimpact/libtype").trace.Span[]} spans - Array of spans in the trace
+   * @param {import("@forwardimpact/libtype").span.SpanItem[]} spans - Array of spans in the trace
    * @returns {string} Raw Mermaid sequence diagram syntax
    */
   #visualizeTrace(traceId, spans) {
@@ -101,7 +101,7 @@ export class TraceVisualizer {
   /**
    * Generates timeline events from spans for chronological processing
    * Creates both "start" and "end" events for each span
-   * @param {import("@forwardimpact/libtype").trace.Span[]} spans - Array of spans
+   * @param {import("@forwardimpact/libtype").span.SpanItem[]} spans - Array of spans
    * @returns {Array<{type: 'start'|'end', time: bigint, span: object}>} Timeline events
    */
   #generateTimelineEvents(spans) {
@@ -109,7 +109,7 @@ export class TraceVisualizer {
 
     for (const span of spans) {
       // Only process CLIENT spans (they represent the interactions)
-      if (span.kind === trace.Kind.CLIENT) {
+      if (span.kind === spanType.Kind.CLIENT) {
         const startTime = BigInt(span.start_time_unix_nano);
         const endTime = BigInt(span.end_time_unix_nano);
 
@@ -134,7 +134,7 @@ export class TraceVisualizer {
   /**
    * Processes timeline events in chronological order to generate properly nested interactions
    * @param {Array<{type: 'start'|'end', time: bigint, span: object}>} events - Timeline events
-   * @param {import("@forwardimpact/libtype").trace.Span[]} allSpans - All spans in trace
+   * @param {import("@forwardimpact/libtype").span.SpanItem[]} allSpans - All spans in trace
    * @returns {string[]} Array of Mermaid sequence diagram lines
    */
   #processTimelineEvents(events, allSpans) {
@@ -184,15 +184,15 @@ export class TraceVisualizer {
    * Generates the return line for a service interaction
    * @param {string} fromService - Source service name
    * @param {string} toService - Target service name
-   * @param {import("@forwardimpact/libtype").trace.Span} serverSpan - SERVER span
+   * @param {import("@forwardimpact/libtype").span.SpanItem} serverSpan - SERVER span
    * @returns {string} Mermaid return line
    */
   #generateReturnLine(fromService, toService, serverSpan) {
     // Convert numeric Code enum to string representation
-    const statusCodeNum = serverSpan.status?.code ?? trace.Code.UNSET;
+    const statusCodeNum = serverSpan.status?.code ?? spanType.Code.UNSET;
     const statusCode =
-      Object.keys(trace.Code).find(
-        (key) => trace.Code[key] === statusCodeNum,
+      Object.keys(spanType.Code).find(
+        (key) => spanType.Code[key] === statusCodeNum,
       ) || "UNSET";
     const errorMessage = serverSpan.status?.message || "";
 
@@ -211,7 +211,7 @@ export class TraceVisualizer {
 
   /**
    * Extracts unique service participants from spans in architectural order
-   * @param {import("@forwardimpact/libtype").trace.Span[]} spans - Array of spans
+   * @param {import("@forwardimpact/libtype").span.SpanItem[]} spans - Array of spans
    * @returns {string[]} Array of participant service names in architectural order
    */
   #extractParticipants(spans) {
@@ -224,7 +224,7 @@ export class TraceVisualizer {
       }
 
       // For CLIENT spans, also add the target service
-      if (span.kind === trace.Kind.CLIENT) {
+      if (span.kind === spanType.Kind.CLIENT) {
         const rpcService = span.attributes["rpc_service"];
         if (rpcService) {
           participantSet.add(rpcService);
@@ -249,15 +249,15 @@ export class TraceVisualizer {
 
   /**
    * Finds the corresponding SERVER span for a CLIENT span
-   * @param {import("@forwardimpact/libtype").trace.Span[]} spans - Array of all spans
-   * @param {import("@forwardimpact/libtype").trace.Span} clientSpan - CLIENT span to find match for
-   * @returns {import("@forwardimpact/libtype").trace.Span|null} Matching SERVER span or null
+   * @param {import("@forwardimpact/libtype").span.SpanItem[]} spans - Array of all spans
+   * @param {import("@forwardimpact/libtype").span.SpanItem} clientSpan - CLIENT span to find match for
+   * @returns {import("@forwardimpact/libtype").span.SpanItem|null} Matching SERVER span or null
    */
   #findServerSpan(spans, clientSpan) {
     return (
       spans.find(
         (span) =>
-          span.kind === trace.Kind.SERVER &&
+          span.kind === spanType.Kind.SERVER &&
           span.parent_span_id === clientSpan.span_id,
       ) || null
     );
@@ -265,7 +265,7 @@ export class TraceVisualizer {
 
   /**
    * Extracts attributes from span events matching specified event names
-   * @param {import("@forwardimpact/libtype").trace.Span} span - Span to extract attributes from
+   * @param {import("@forwardimpact/libtype").span.SpanItem} span - Span to extract attributes from
    * @param {string[]} eventNames - Event names to search for
    * @returns {string} Formatted attribute string or empty string
    */
@@ -314,7 +314,7 @@ export class TraceVisualizer {
   /**
    * Visualizes multiple traces as a single combined Mermaid sequence diagram
    * Used when filtering by resource_id to show conversation flow across requests
-   * @param {Map<string, import("@forwardimpact/libtype").trace.Span[]>} traceGroups - Map of trace_id to spans
+   * @param {Map<string, import("@forwardimpact/libtype").span.SpanItem[]>} traceGroups - Map of trace_id to spans
    * @param {string} resourceId - Resource ID being visualized
    * @returns {string} Raw Mermaid sequence diagram syntax
    */

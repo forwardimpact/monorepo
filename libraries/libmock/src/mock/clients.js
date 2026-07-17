@@ -76,11 +76,11 @@ export function createMockAgentClient(overrides = {}) {
 }
 
 /**
- * Creates a mock trace client
+ * Creates a mock span client
  * @param {object} overrides - Method overrides
- * @returns {object} Mock trace client
+ * @returns {object} Mock span client
  */
-export function createMockTraceClient(overrides = {}) {
+export function createMockSpanClient(overrides = {}) {
   return {
     RecordSpan: spy(() => Promise.resolve()),
     ...overrides,

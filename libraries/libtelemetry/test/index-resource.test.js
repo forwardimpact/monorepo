@@ -2,7 +2,7 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { TraceIndex } from "../src/index/trace.js";
-import { trace } from "@forwardimpact/libtype";
+import { span as spanType } from "@forwardimpact/libtype";
 import { createMockStorage } from "@forwardimpact/libmock";
 import { createMockClock } from "@forwardimpact/libmock";
 const _clock = createMockClock();
@@ -21,7 +21,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
   describe("queryItems() - Resource ID Filtering with Complete Traces", () => {
     beforeEach(async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
@@ -31,13 +31,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "5000000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
@@ -47,13 +47,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "2500000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: { id: "common.Conversation.conv1" } },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span3",
           parent_span_id: "span2",
@@ -63,13 +63,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "2400000",
           attributes: { "service.name": "memory" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: { id: "common.Conversation.conv1" } },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span4",
           parent_span_id: "span1",
@@ -79,13 +79,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "4000000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace2",
           span_id: "span5",
           parent_span_id: "",
@@ -95,7 +95,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "2000000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: { id: "common.Conversation.conv2" } },
         }),
       );
@@ -149,7 +149,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
 
     test("combines resource_id and trace_id filters", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace3",
           span_id: "span6",
           parent_span_id: "",
@@ -159,7 +159,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "2000000",
           attributes: {},
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: { id: "common.Conversation.conv1" } },
         }),
       );
@@ -194,7 +194,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
   describe("queryItems() - Multiple Traces with Same Resource", () => {
     test("returns complete traces when resource appears in multiple traces", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
@@ -204,13 +204,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "3000000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
@@ -220,13 +220,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "2500000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: { id: "test.Resource.id" } },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace2",
           span_id: "span3",
           parent_span_id: "",
@@ -236,13 +236,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "7000000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace2",
           span_id: "span4",
           parent_span_id: "span3",
@@ -252,13 +252,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "5500000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: { id: "test.Resource.id" } },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace2",
           span_id: "span5",
           parent_span_id: "span3",
@@ -268,7 +268,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "6500000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -292,7 +292,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
 
     test("handles sibling spans with and without resource_id", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
@@ -302,13 +302,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "5000000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
@@ -318,13 +318,13 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "2500000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: { id: "test.Resource.id" } },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span3",
           parent_span_id: "span1",
@@ -334,7 +334,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
           end_time_unix_nano: "4000000",
           attributes: { "service.name": "agent" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );

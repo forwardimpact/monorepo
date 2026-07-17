@@ -49,7 +49,7 @@
       "server": true
     },
     {
-      "name": "fit-svctrace",
+      "name": "fit-svcspan",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear",
       "server": true

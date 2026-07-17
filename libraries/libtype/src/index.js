@@ -16,7 +16,7 @@ const {
   vector = {},
   graph = {},
   tool = {},
-  trace = {},
+  span = {},
 } = types;
 
 /**
@@ -176,5 +176,5 @@ export {
   vector,
   graph,
   tool,
-  trace,
+  span,
 };

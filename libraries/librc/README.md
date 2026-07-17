@@ -30,7 +30,7 @@ Omit `[service]` to operate on all configured services.
     "log_dir": "data/logs",
     "shutdown_timeout": 3000,
     "services": [
-      { "name": "trace", "command": "node -e \"import('@forwardimpact/svctrace/server.js')\"" }
+      { "name": "span", "command": "node -e \"import('@forwardimpact/svcspan/server.js')\"" }
     ]
   }
 }

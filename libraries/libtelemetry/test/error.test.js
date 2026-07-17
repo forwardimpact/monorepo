@@ -5,7 +5,7 @@ import { Tracer } from "../src/tracer.js";
 import { createMockClock } from "@forwardimpact/libmock";
 
 test("Tracer enriches errors with trace context in observeClientUnaryCall", async () => {
-  const mockTraceClient = {
+  const mockSpanClient = {
     RecordSpan: async () => ({}),
   };
 
@@ -35,7 +35,7 @@ test("Tracer enriches errors with trace context in observeClientUnaryCall", asyn
 
   const tracer = new Tracer({
     serviceName: "test-service",
-    traceClient: mockTraceClient,
+    spanClient: mockSpanClient,
     grpcMetadata: mockGrpcMetadata,
     clock: createMockClock(),
   });
@@ -70,7 +70,7 @@ test("Tracer enriches errors with trace context in observeClientUnaryCall", asyn
 });
 
 test("Tracer enriches errors with trace context in observeServerUnaryCall", async () => {
-  const mockTraceClient = {
+  const mockSpanClient = {
     RecordSpan: async () => ({}),
   };
 
@@ -100,7 +100,7 @@ test("Tracer enriches errors with trace context in observeServerUnaryCall", asyn
 
   const tracer = new Tracer({
     serviceName: "test-service",
-    traceClient: mockTraceClient,
+    spanClient: mockSpanClient,
     grpcMetadata: mockGrpcMetadata,
     clock: createMockClock(),
   });
@@ -138,7 +138,7 @@ test("Tracer enriches errors with trace context in observeServerUnaryCall", asyn
 });
 
 test("Logger extracts trace context from error", async () => {
-  const mockTraceClient = {
+  const mockSpanClient = {
     RecordSpan: async () => ({}),
   };
 
@@ -168,7 +168,7 @@ test("Logger extracts trace context from error", async () => {
 
   const tracer = new Tracer({
     serviceName: "test-service",
-    traceClient: mockTraceClient,
+    spanClient: mockSpanClient,
     grpcMetadata: mockGrpcMetadata,
     clock: createMockClock(),
   });
@@ -195,7 +195,7 @@ test("Logger extracts trace context from error", async () => {
 });
 
 test("Tracer handles non-Error objects gracefully", async () => {
-  const mockTraceClient = {
+  const mockSpanClient = {
     RecordSpan: async () => ({}),
   };
 
@@ -225,7 +225,7 @@ test("Tracer handles non-Error objects gracefully", async () => {
 
   const tracer = new Tracer({
     serviceName: "test-service",
-    traceClient: mockTraceClient,
+    spanClient: mockSpanClient,
     grpcMetadata: mockGrpcMetadata,
     clock: createMockClock(),
   });

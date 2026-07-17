@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { TraceVisualizer } from "../src/visualizer.js";
 import { TraceIndex } from "../src/index/trace.js";
-import { trace } from "@forwardimpact/libtype";
+import { span as spanType } from "@forwardimpact/libtype";
 import { assertThrowsMessage, createMockStorage } from "@forwardimpact/libmock";
 import { createMockClock } from "@forwardimpact/libmock";
 const _clock = createMockClock();
@@ -73,12 +73,12 @@ describe("TraceVisualizer - basics", () => {
     beforeEach(async () => {
       // Create a simple CLIENT -> SERVER interaction
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "agent.ProcessStream",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "3000000",
           attributes: {
@@ -87,18 +87,18 @@ describe("TraceVisualizer - basics", () => {
             rpc_service: "memory",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
           name: "agent.ProcessStream",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1500000",
           end_time_unix_nano: "2500000",
           attributes: {
@@ -106,7 +106,7 @@ describe("TraceVisualizer - basics", () => {
             rpc_method: "ProcessStream",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -148,12 +148,12 @@ describe("TraceVisualizer - basics", () => {
     test("filters spans by trace_id", async () => {
       // Add spans for a different trace
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace2",
           span_id: "span3",
           parent_span_id: "",
           name: "test.Operation",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "4000000",
           end_time_unix_nano: "5000000",
           attributes: {
@@ -162,7 +162,7 @@ describe("TraceVisualizer - basics", () => {
             rpc_service: "llm",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -180,12 +180,12 @@ describe("TraceVisualizer - basics", () => {
     test("orders participants in architectural sequence", async () => {
       // Add more services in non-architectural order
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span3",
           parent_span_id: "",
           name: "llm.CreateCompletions",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "3500000",
           end_time_unix_nano: "4500000",
           attributes: {
@@ -194,18 +194,18 @@ describe("TraceVisualizer - basics", () => {
             rpc_service: "llm",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span4",
           parent_span_id: "span3",
           name: "llm.CreateCompletions",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "3600000",
           end_time_unix_nano: "4400000",
           attributes: {
@@ -213,7 +213,7 @@ describe("TraceVisualizer - basics", () => {
             rpc_method: "CreateCompletions",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );

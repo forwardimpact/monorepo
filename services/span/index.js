@@ -1,17 +1,17 @@
 import { services } from "@forwardimpact/librpc";
 import { TraceIndex } from "@forwardimpact/libtelemetry/index/trace.js";
 
-const { TraceBase } = services;
+const { SpanBase } = services;
 
 /**
- * Trace service for receiving and storing trace spans
+ * Span service for receiving and storing trace spans
  */
-export class TraceService extends TraceBase {
+export class SpanService extends SpanBase {
   #index;
 
   /**
-   * Creates a new Trace service instance
-   * Note: Trace service does NOT accept a tracer parameter to avoid infinite recursion
+   * Creates a new Span service instance
+   * Note: Span service does NOT accept a tracer parameter to avoid infinite recursion
    * @param {import("@forwardimpact/libconfig").ServiceConfig} config - Service configuration
    * @param {TraceIndex} traceIndex - Initialized TraceIndex for storing traces
    */
@@ -24,8 +24,8 @@ export class TraceService extends TraceBase {
 
   /**
    * Records a span to the trace index
-   * @param {import("@forwardimpact/libtype").trace.Span} req - Span to record
-   * @returns {Promise<import("@forwardimpact/libtype").trace.RecordSpanResponse>} Response
+   * @param {import("@forwardimpact/libtype").span.SpanItem} req - Span to record
+   * @returns {Promise<import("@forwardimpact/libtype").span.RecordResponse>} Response
    */
   async RecordSpan(req) {
     if (!req.trace_id) throw new Error("trace_id is required");
@@ -37,8 +37,8 @@ export class TraceService extends TraceBase {
 
   /**
    * Queries spans from the trace index
-   * @param {import("@forwardimpact/libtype").trace.QueryRequest} req - Query request
-   * @returns {Promise<import("@forwardimpact/libtype").trace.QueryResponse>} Response with spans
+   * @param {import("@forwardimpact/libtype").span.QueryRequest} req - Query request
+   * @returns {Promise<import("@forwardimpact/libtype").span.QueryResponse>} Response with spans
    */
   async QuerySpans(req) {
     const filter = req.filter || {};

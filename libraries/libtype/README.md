@@ -10,5 +10,5 @@ contracts.
 ## Getting Started
 
 ```js
-import { common, resource, vector, graph, tool, trace } from '@forwardimpact/libtype';
+import { common, resource, vector, graph, tool, span } from '@forwardimpact/libtype';
 ```

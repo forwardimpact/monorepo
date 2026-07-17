@@ -172,15 +172,15 @@ shared schemas:
 | `tool`     | Tool-call types -- `ToolFunction`, `ToolCall`, `ToolCallResult`, `QueryFilter`   |
 | `vector`   | Vector-search request and result types                                          |
 | `graph`    | Graph-query request and result types                                            |
-| `trace`    | Distributed-tracing span and event types                                        |
+| `span`     | Distributed-tracing span and event types                                        |
 
 Import any of them the same way:
 
 ```js
-import { common, resource, vector, graph, trace } from "@forwardimpact/libtype";
+import { common, resource, vector, graph, span } from "@forwardimpact/libtype";
 ```
 
-The `common`, `resource`, `vector`, `graph`, and `trace` namespaces are reused
+The `common`, `resource`, `vector`, `graph`, and `span` namespaces are reused
 across services, so a graph service constructs a `graph.SubjectsQuery` and a
 vector service constructs a `vector` request without redefining those shapes.
 

@@ -33,7 +33,7 @@ function run(token) {
   };
 }
 
-describe("fit-svctrace bin smoke", () => {
+describe("fit-svcspan bin smoke", () => {
   for (const token of TOKENS) {
     test(`${token} exits 0, prints output, binds no port`, () => {
       const { code, signal, out } = run(token);

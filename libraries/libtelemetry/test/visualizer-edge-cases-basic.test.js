@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { TraceVisualizer } from "../src/visualizer.js";
 import { TraceIndex } from "../src/index/trace.js";
-import { trace } from "@forwardimpact/libtype";
+import { span as spanType } from "@forwardimpact/libtype";
 import { createMockStorage } from "@forwardimpact/libmock";
 import { createMockClock } from "@forwardimpact/libmock";
 const _clock = createMockClock();
@@ -24,12 +24,12 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
   describe("visualize() - Edge Cases", () => {
     test("handles CLIENT span without corresponding SERVER span", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "external.Call",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
           attributes: {
@@ -38,7 +38,7 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
             rpc_service: "external",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -58,33 +58,33 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
 
     test("handles spans with missing attributes gracefully", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "incomplete.Operation",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
           attributes: {}, // Missing service.name and rpc.method
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
           name: "incomplete.Operation",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1100000",
           end_time_unix_nano: "1900000",
           attributes: {}, // Missing service.name and rpc.method
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -104,12 +104,12 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
 
     test("handles spans with empty events array", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "test.Method",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
           attributes: {
@@ -118,18 +118,18 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
             rpc_service: "memory",
           },
           events: [], // Empty events
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
           name: "test.Method",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1100000",
           end_time_unix_nano: "1900000",
           attributes: {
@@ -137,7 +137,7 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
             rpc_method: "Method",
           },
           events: [], // Empty events
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -161,12 +161,12 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
 
     test("handles single-service traces", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "agent.InternalOperation",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
           attributes: {
@@ -174,7 +174,7 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
             rpc_method: "InternalOperation",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
