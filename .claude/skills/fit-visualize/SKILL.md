@@ -1,16 +1,17 @@
 ---
 name: fit-visualize
 description: >
-  Query recorded traces with JMESPath and render them as Mermaid sequence
-  diagrams. Use when you need to read back spans from the trace index, filter by
-  trace or resource id, and see the call flow without wiring up a tracing UI.
+  Query recorded OpenTelemetry spans with JMESPath and render them as Mermaid
+  sequence diagrams. Use when you need to read spans back from the span index,
+  filter by trace or resource id, and see the call flow without wiring up a
+  tracing UI.
 ---
 
-# Visualize Recorded Traces
+# Visualize Recorded Spans
 
-`fit-visualize` reads spans from the trace index, filters them with a JMESPath
+`fit-visualize` reads spans from the span index, filters them with a JMESPath
 expression piped on stdin, and prints a Mermaid sequence diagram you can paste
-into any Markdown renderer. Use it to see what a service did after traces are
+into any Markdown renderer. Use it to see what a service did once spans are
 flowing.
 
 ## When to Use
@@ -39,13 +40,13 @@ The JMESPath expression is read from stdin and applied to the spans before
 rendering. `--trace` and `--resource` narrow the set first. Output is a fenced
 `mermaid` block, ready to paste into Markdown.
 
-The trace index is read from the `traces` storage location. Record spans first —
-see the guide below.
+Spans are read from the `spans` storage location. Record spans first — see the
+guide below.
 
 ## Documentation
 
 - [Add Observability](https://www.forwardimpact.team/docs/libraries/service-lifecycle/add-observability/index.md)
-  — Structured logs and traces with no framework setup, including querying and
-  visualizing recorded traces with `fit-visualize`.
+  — Structured logs and spans with no framework setup, including querying and
+  visualizing recorded spans with `fit-visualize`.
 - [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md)
   — The full lifecycle setup for services, from supervision to observability.
