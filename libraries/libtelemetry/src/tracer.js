@@ -8,7 +8,7 @@ import { extractAttributes } from "./attributes.js";
  */
 export class Tracer {
   #serviceName;
-  #traceClient;
+  #spanClient;
   #spanContext;
   #grpcMetadata;
   #clock;
@@ -17,19 +17,19 @@ export class Tracer {
    * Creates a new tracer instance
    * @param {object} options - Tracer configuration
    * @param {string} options.serviceName - Name of the service
-   * @param {object} options.traceClient - Trace service client
+   * @param {object} options.spanClient - Span service client
    * @param {Function} options.grpcMetadata - gRPC Metadata constructor for creating metadata instances
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} options.clock -
    *   Injected clock collaborator, threaded into every Span.
    */
-  constructor({ serviceName, traceClient, grpcMetadata, clock }) {
+  constructor({ serviceName, spanClient, grpcMetadata, clock }) {
     if (!serviceName) throw new Error("serviceName is required");
-    if (!traceClient) throw new Error("traceClient is required");
+    if (!spanClient) throw new Error("spanClient is required");
     if (!grpcMetadata) throw new Error("grpcMetadata is required");
     if (!clock) throw new Error("clock is required");
 
     this.#serviceName = serviceName;
-    this.#traceClient = traceClient;
+    this.#spanClient = spanClient;
     this.#grpcMetadata = grpcMetadata;
     this.#clock = clock;
     this.#spanContext = new AsyncLocalStorage();
@@ -62,7 +62,7 @@ export class Tracer {
       attributes: options.attributes || {},
       traceId: options.traceId,
       parentSpanId: options.parentSpanId,
-      traceClient: this.#traceClient,
+      spanClient: this.#spanClient,
       clock: this.#clock,
     });
 

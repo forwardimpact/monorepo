@@ -40,7 +40,7 @@
     "@forwardimpact/svcgraph": "^0.1.68",
     "@forwardimpact/svcmcp": "^0.1.6",
     "@forwardimpact/svcpathway": "^0.1.13",
-    "@forwardimpact/svctrace": "^0.1.41",
+    "@forwardimpact/svcspan": "^0.1.41",
     "@forwardimpact/svcvector": "^0.1.120",
     "@forwardimpact/libcodegen": "^0.1.49",
     "@forwardimpact/libdoc": "^0.2.24",

@@ -18,8 +18,8 @@
 # kinds — kept consistent by hand when a manifest port changes, not gated).
 
 services:
-  trace:
-    manifest: services/trace/server.js
+  span:
+    manifest: services/span/server.js
     consumers:
       - { kind: env, path: .env.local.example }
       - { kind: env, path: .env.docker-native.example }

@@ -53,7 +53,7 @@ describe("fit-guide init", () => {
     for (const key of [
       "SERVICE_SECRET",
       "MCP_TOKEN",
-      "SERVICE_TRACE_URL",
+      "SERVICE_SPAN_URL",
       "SERVICE_VECTOR_URL",
       "SERVICE_GRAPH_URL",
       "SERVICE_PATHWAY_URL",

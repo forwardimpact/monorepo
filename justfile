@@ -115,11 +115,11 @@ process-graphs:
 
 # Initialize data directories
 data-init:
-    mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/logs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants data/activity data/pathway data/personal
+    mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/logs data/memories data/policies data/resources data/spans data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants data/activity data/pathway data/personal
 
 # Remove generated data
 data-clean:
-    rm -rf generated data/cli data/eval data/logs data/graphs data/knowledge data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+    rm -rf generated data/cli data/eval data/logs data/graphs data/knowledge data/memories data/policies data/resources data/spans data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
 
 # Clean, init, and regenerate code
 data-reset: data-clean data-init codegen

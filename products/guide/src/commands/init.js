@@ -50,7 +50,7 @@ export async function runInitCommand(runtime) {
     env: {
       SERVICE_SECRET: serviceSecret,
       MCP_TOKEN: mcpToken,
-      SERVICE_TRACE_URL: "grpc://localhost:3001",
+      SERVICE_SPAN_URL: "grpc://localhost:3001",
       SERVICE_VECTOR_URL: "grpc://localhost:3002",
       SERVICE_GRAPH_URL: "grpc://localhost:3003",
       SERVICE_PATHWAY_URL: "grpc://localhost:3005",

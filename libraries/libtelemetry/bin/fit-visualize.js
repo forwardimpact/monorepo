@@ -102,8 +102,8 @@ const repl = new Repl({
   usage,
 
   setup: async (state) => {
-    const traceStorage = createStorage("traces");
-    state.traceIndex = new TraceIndex(traceStorage, "index.jsonl", {
+    const spanStorage = createStorage("spans");
+    state.traceIndex = new TraceIndex(spanStorage, "index.jsonl", {
       clock: runtime.clock,
     });
     state.visualizer = new TraceVisualizer(state.traceIndex, runtime);

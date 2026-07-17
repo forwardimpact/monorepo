@@ -144,7 +144,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p data/logs
-          bun run services/trace/server.js     > data/logs/trace.log   2>&1 &
+          bun run services/span/server.js     > data/logs/span.log   2>&1 &
           bun run services/graph/server.js     > data/logs/graph.log   2>&1 &
           bun run services/pathway/server.js   > data/logs/pathway.log 2>&1 &
           bun run services/mcp/server.js       > data/logs/mcp.log     2>&1 &
@@ -188,7 +188,7 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          for f in data/logs/trace.log data/logs/graph.log data/logs/pathway.log data/logs/mcp.log; do
+          for f in data/logs/span.log data/logs/graph.log data/logs/pathway.log data/logs/mcp.log; do
             echo "=== $f ==="
             cat "$f" 2>/dev/null || echo "(not found)"
           done
@@ -196,4 +196,4 @@ jobs:
       - name: Stop services
         if: always()
         shell: bash
-        run: pkill -f "svcgraph\|svcpathway\|svcmcp\|svctrace" || true
+        run: pkill -f "svcgraph\|svcpathway\|svcmcp\|svcspan" || true

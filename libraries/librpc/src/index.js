@@ -26,20 +26,20 @@ export const clients = exports.clients || {};
  * This factory should be called at startup in server.js files or when creating clients
  * @param {string} serviceName - Name of the service being traced
  * @returns {Promise<Tracer>} Configured tracer instance
- * @throws {Error} If trace service configuration cannot be loaded
+ * @throws {Error} If span service configuration cannot be loaded
  */
 export async function createTracer(serviceName) {
-  const traceConfig = await createServiceConfig("trace");
-  const { TraceClient } = clients;
+  const spanConfig = await createServiceConfig("span");
+  const { SpanClient } = clients;
   // createTracer is a composition-root factory; it builds the production
-  // runtime as its DI root, threads it into the TraceClient (so the client's
+  // runtime as its DI root, threads it into the SpanClient (so the client's
   // auth reads SERVICE_SECRET off the bag) and into the Tracer (and thus every
   // Span) via its clock.
   const runtime = createDefaultRuntime();
-  const traceClient = new TraceClient(traceConfig, runtime);
+  const spanClient = new SpanClient(spanConfig, runtime);
   return new Tracer({
     serviceName,
-    traceClient,
+    spanClient,
     grpcMetadata: grpc.Metadata,
     clock: runtime.clock,
   });

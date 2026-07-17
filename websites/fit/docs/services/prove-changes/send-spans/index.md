@@ -6,7 +6,7 @@ description: Trace spans emitted and immediately queryable — without managing 
 You need to record trace spans from within a product -- what happened, how long
 it took, whether it succeeded -- and trust that those spans are stored and
 queryable afterward. This page walks through the bounded task of connecting to
-the trace service, building a span, sending it, and querying it back to
+the span service, building a span, sending it, and querying it back to
 confirm the round trip.
 
 For the full setup including architecture context, the query interface, and
@@ -18,26 +18,26 @@ tree reconstruction, see
 - Completed the
   [Collect Trace Spans from Any Product](/docs/services/prove-changes/) guide --
   you have `@forwardimpact/librpc` and `@forwardimpact/libtype` installed, and
-  the trace service is running.
+  the span service is running.
 
 ## Connect
 
 ```js
 import { createClient } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
-import { trace } from "@forwardimpact/libtype";
+import { span } from "@forwardimpact/libtype";
 
 const logger = createLogger("my-product");
-const traceClient = await createClient("trace", logger);
+const spanClient = await createClient("span", logger);
 ```
 
 ## Send a span
 
-Build a `trace.Span` and call `RecordSpan`. Every span needs a `trace_id`
+Build a `span.SpanItem` and call `RecordSpan`. Every span needs a `trace_id`
 (grouping related spans) and a `span_id` (unique to this span):
 
 ```js
-const span = trace.Span.fromObject({
+const record = span.SpanItem.fromObject({
   trace_id: "eval-run-042",
   span_id: "step-01",
   name: "generate-output",
@@ -54,7 +54,7 @@ const span = trace.Span.fromObject({
   },
 });
 
-const result = await traceClient.RecordSpan(span);
+const result = await spanClient.RecordSpan(record);
 console.log("Sent:", result.success);
 ```
 
@@ -69,7 +69,7 @@ Sent: true
 Link a child span to its parent using `parent_span_id`:
 
 ```js
-const childSpan = trace.Span.fromObject({
+const childSpan = span.SpanItem.fromObject({
   trace_id: "eval-run-042",
   span_id: "step-02",
   parent_span_id: "step-01",
@@ -88,7 +88,7 @@ const childSpan = trace.Span.fromObject({
   },
 });
 
-await traceClient.RecordSpan(childSpan);
+await spanClient.RecordSpan(childSpan);
 ```
 
 ## Send an error span
@@ -96,7 +96,7 @@ await traceClient.RecordSpan(childSpan);
 When a step fails, set the status code to `ERROR` (2) with a message:
 
 ```js
-const errorSpan = trace.Span.fromObject({
+const errorSpan = span.SpanItem.fromObject({
   trace_id: "eval-run-042",
   span_id: "step-03",
   parent_span_id: "step-01",
@@ -113,7 +113,7 @@ const errorSpan = trace.Span.fromObject({
   },
 });
 
-await traceClient.RecordSpan(errorSpan);
+await spanClient.RecordSpan(errorSpan);
 ```
 
 ## Query to confirm
@@ -121,11 +121,11 @@ await traceClient.RecordSpan(errorSpan);
 After sending spans, query them back by trace ID to confirm storage:
 
 ```js
-const query = trace.QueryRequest.fromObject({
+const query = span.QueryRequest.fromObject({
   filter: { trace_id: "eval-run-042" },
 });
 
-const result = await traceClient.QuerySpans(query);
+const result = await spanClient.QuerySpans(query);
 console.log("Stored spans:", result.spans?.length ?? 0);
 
 for (const s of result.spans ?? []) {
@@ -150,19 +150,19 @@ either produces a gRPC error:
 
 ```js
 try {
-  const bad = trace.Span.fromObject({
+  const bad = span.SpanItem.fromObject({
     trace_id: "",
     span_id: "orphan",
     name: "missing-trace-id",
   });
-  await traceClient.RecordSpan(bad);
+  await spanClient.RecordSpan(bad);
 } catch (err) {
   console.error(err.message);
   // "trace_id is required"
 }
 ```
 
-If the trace service is unreachable, the client retries up to 10 times with
+If the span service is unreachable, the client retries up to 10 times with
 exponential backoff (1-second base delay, doubling each attempt, plus jitter)
 before surfacing the connection error.
 

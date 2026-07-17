@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { TraceVisualizer } from "../src/visualizer.js";
 import { TraceIndex } from "../src/index/trace.js";
-import { trace } from "@forwardimpact/libtype";
+import { span as spanType } from "@forwardimpact/libtype";
 import { createMockStorage } from "@forwardimpact/libmock";
 import { createMockClock } from "@forwardimpact/libmock";
 const _clock = createMockClock();
@@ -25,12 +25,12 @@ describe("TraceVisualizer - attributes and errors", () => {
   describe("visualize() - Request and Response Attributes", () => {
     test("includes request attributes in visualization", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "memory.AppendMemory",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
           attributes: {
@@ -48,18 +48,18 @@ describe("TraceVisualizer - attributes and errors", () => {
               },
             },
           ],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
           name: "memory.AppendMemory",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1100000",
           end_time_unix_nano: "1900000",
           attributes: {
@@ -67,7 +67,7 @@ describe("TraceVisualizer - attributes and errors", () => {
             rpc_method: "AppendMemory",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -86,12 +86,12 @@ describe("TraceVisualizer - attributes and errors", () => {
 
     test("includes response attributes in visualization", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "vector.QueryItems",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
           attributes: {
@@ -100,18 +100,18 @@ describe("TraceVisualizer - attributes and errors", () => {
             rpc_service: "vector",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
           name: "vector.QueryItems",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1100000",
           end_time_unix_nano: "1900000",
           attributes: {
@@ -128,7 +128,7 @@ describe("TraceVisualizer - attributes and errors", () => {
               },
             },
           ],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -147,12 +147,12 @@ describe("TraceVisualizer - attributes and errors", () => {
 
     test("filters out empty and null attributes", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "test.Method",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
           attributes: {
@@ -172,18 +172,18 @@ describe("TraceVisualizer - attributes and errors", () => {
               },
             },
           ],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
           name: "test.Method",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1100000",
           end_time_unix_nano: "1900000",
           attributes: {
@@ -191,7 +191,7 @@ describe("TraceVisualizer - attributes and errors", () => {
             rpc_method: "Method",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -220,12 +220,12 @@ describe("TraceVisualizer - attributes and errors", () => {
   describe("visualize() - Error Status Handling", () => {
     test("displays error status and message", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "tool.ExecuteTool",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
           attributes: {
@@ -234,18 +234,18 @@ describe("TraceVisualizer - attributes and errors", () => {
             rpc_service: "tool",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
           name: "tool.ExecuteTool",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1100000",
           end_time_unix_nano: "1900000",
           attributes: {
@@ -254,7 +254,7 @@ describe("TraceVisualizer - attributes and errors", () => {
           },
           events: [],
           status: {
-            code: trace.Code.ERROR,
+            code: spanType.Code.ERROR,
             message: "Tool execution failed: timeout",
           },
           resource: { attributes: {} },
@@ -276,12 +276,12 @@ describe("TraceVisualizer - attributes and errors", () => {
 
     test("prefers error message over response attributes", async () => {
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span1",
           parent_span_id: "",
           name: "graph.QueryTriples",
-          kind: trace.Kind.CLIENT,
+          kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
           attributes: {
@@ -290,18 +290,18 @@ describe("TraceVisualizer - attributes and errors", () => {
             rpc_service: "graph",
           },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await traceIndex.add(
-        trace.Span.fromObject({
+        spanType.SpanItem.fromObject({
           trace_id: "trace1",
           span_id: "span2",
           parent_span_id: "span1",
           name: "graph.QueryTriples",
-          kind: trace.Kind.SERVER,
+          kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1100000",
           end_time_unix_nano: "1900000",
           attributes: {
@@ -318,7 +318,7 @@ describe("TraceVisualizer - attributes and errors", () => {
             },
           ],
           status: {
-            code: trace.Code.ERROR,
+            code: spanType.Code.ERROR,
             message: "Invalid query pattern",
           },
           resource: { attributes: {} },

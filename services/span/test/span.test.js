@@ -2,39 +2,39 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 // Module under test
-import { TraceService } from "../index.js";
+import { SpanService } from "../index.js";
 import { TraceIndex } from "@forwardimpact/libtelemetry/index/trace.js";
-import { trace } from "@forwardimpact/libtype";
+import { span } from "@forwardimpact/libtype";
 import { createMockConfig, createMockStorage } from "@forwardimpact/libmock";
 import { createMockClock } from "@forwardimpact/libmock";
 const _clock = createMockClock();
 
-describe("trace service", () => {
-  describe("TraceService", () => {
-    test("exports TraceService class", () => {
-      assert.strictEqual(typeof TraceService, "function");
-      assert.ok(TraceService.prototype);
+describe("span service", () => {
+  describe("SpanService", () => {
+    test("exports SpanService class", () => {
+      assert.strictEqual(typeof SpanService, "function");
+      assert.ok(SpanService.prototype);
     });
 
-    test("TraceService has RecordSpan method", () => {
-      assert.strictEqual(typeof TraceService.prototype.RecordSpan, "function");
+    test("SpanService has RecordSpan method", () => {
+      assert.strictEqual(typeof SpanService.prototype.RecordSpan, "function");
     });
 
-    test("TraceService has QuerySpans method", () => {
-      assert.strictEqual(typeof TraceService.prototype.QuerySpans, "function");
+    test("SpanService has QuerySpans method", () => {
+      assert.strictEqual(typeof SpanService.prototype.QuerySpans, "function");
     });
 
-    test("TraceService has shutdown method", () => {
-      assert.strictEqual(typeof TraceService.prototype.shutdown, "function");
+    test("SpanService has shutdown method", () => {
+      assert.strictEqual(typeof SpanService.prototype.shutdown, "function");
     });
 
-    test("TraceService constructor accepts expected parameters", () => {
+    test("SpanService constructor accepts expected parameters", () => {
       // Test constructor signature by checking parameter count
-      assert.strictEqual(TraceService.length, 2); // config, traceIndex
+      assert.strictEqual(SpanService.length, 2); // config, traceIndex
     });
 
-    test("TraceService has proper method signatures", () => {
-      const methods = Object.getOwnPropertyNames(TraceService.prototype);
+    test("SpanService has proper method signatures", () => {
+      const methods = Object.getOwnPropertyNames(SpanService.prototype);
       assert(methods.includes("RecordSpan"));
       assert(methods.includes("QuerySpans"));
       assert(methods.includes("shutdown"));
@@ -42,13 +42,13 @@ describe("trace service", () => {
     });
   });
 
-  describe("TraceService business logic", () => {
+  describe("SpanService business logic", () => {
     let mockConfig;
     let mockTraceIndex;
     let mockStorage;
 
     beforeEach(() => {
-      mockConfig = createMockConfig("trace");
+      mockConfig = createMockConfig("span");
 
       // Create mock storage for TraceIndex
       mockStorage = createMockStorage();
@@ -60,7 +60,7 @@ describe("trace service", () => {
     });
 
     test("creates service instance with trace index", () => {
-      const service = new TraceService(mockConfig, mockTraceIndex);
+      const service = new SpanService(mockConfig, mockTraceIndex);
 
       assert.ok(service);
       assert.strictEqual(service.config, mockConfig);
@@ -69,16 +69,16 @@ describe("trace service", () => {
     test("throws error if traceIndex is missing", () => {
       assert.throws(
         () => {
-          new TraceService(mockConfig);
+          new SpanService(mockConfig);
         },
         { message: "traceIndex is required" },
       );
     });
 
     test("RecordSpan stores span in index", async () => {
-      const service = new TraceService(mockConfig, mockTraceIndex);
+      const service = new SpanService(mockConfig, mockTraceIndex);
 
-      const spanRequest = trace.Span.fromObject({
+      const spanRequest = span.SpanItem.fromObject({
         trace_id: "trace123",
         span_id: "span456",
         parent_span_id: "",
@@ -88,7 +88,7 @@ describe("trace service", () => {
         end_time_unix_nano: "1698345601000000000",
         attributes: { "service.name": "test-service" },
         events: [],
-        status: { code: trace.Code.OK, message: "" },
+        status: { code: span.Code.OK, message: "" },
         resource: { attributes: {} },
       });
 
@@ -101,11 +101,11 @@ describe("trace service", () => {
     });
 
     test("QuerySpans returns stored spans", async () => {
-      const service = new TraceService(mockConfig, mockTraceIndex);
+      const service = new SpanService(mockConfig, mockTraceIndex);
 
       // Record a span first
       await service.RecordSpan(
-        trace.Span.fromObject({
+        span.SpanItem.fromObject({
           trace_id: "trace123",
           span_id: "span456",
           parent_span_id: "",
@@ -115,7 +115,7 @@ describe("trace service", () => {
           end_time_unix_nano: "1698345601000000000",
           attributes: { "service.name": "test-service" },
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: span.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -132,11 +132,11 @@ describe("trace service", () => {
     });
 
     test("QuerySpans filters by trace_id", async () => {
-      const service = new TraceService(mockConfig, mockTraceIndex);
+      const service = new SpanService(mockConfig, mockTraceIndex);
 
       // Record spans with different trace IDs
       await service.RecordSpan(
-        trace.Span.fromObject({
+        span.SpanItem.fromObject({
           trace_id: "trace123",
           span_id: "span1",
           parent_span_id: "",
@@ -146,13 +146,13 @@ describe("trace service", () => {
           end_time_unix_nano: "1698345601000000000",
           attributes: {},
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: span.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await service.RecordSpan(
-        trace.Span.fromObject({
+        span.SpanItem.fromObject({
           trace_id: "trace456",
           span_id: "span2",
           parent_span_id: "",
@@ -162,7 +162,7 @@ describe("trace service", () => {
           end_time_unix_nano: "1698345601000000000",
           attributes: {},
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: span.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
@@ -179,12 +179,12 @@ describe("trace service", () => {
     });
 
     test("QuerySpans respects limit parameter", async () => {
-      const service = new TraceService(mockConfig, mockTraceIndex);
+      const service = new SpanService(mockConfig, mockTraceIndex);
 
       // Record multiple spans
       for (let i = 0; i < 5; i++) {
         await service.RecordSpan(
-          trace.Span.fromObject({
+          span.SpanItem.fromObject({
             trace_id: "trace123",
             span_id: `span${i}`,
             parent_span_id: "",
@@ -194,7 +194,7 @@ describe("trace service", () => {
             end_time_unix_nano: "1698345601000000000",
             attributes: {},
             events: [],
-            status: { code: trace.Code.OK, message: "" },
+            status: { code: span.Code.OK, message: "" },
             resource: { attributes: {} },
           }),
         );
@@ -211,9 +211,9 @@ describe("trace service", () => {
     });
 
     test("RecordSpan handles span with events", async () => {
-      const service = new TraceService(mockConfig, mockTraceIndex);
+      const service = new SpanService(mockConfig, mockTraceIndex);
 
-      const spanRequest = trace.Span.fromObject({
+      const spanRequest = span.SpanItem.fromObject({
         trace_id: "trace123",
         span_id: "span456",
         parent_span_id: "span123",
@@ -229,7 +229,7 @@ describe("trace service", () => {
             attributes: { hit_rate: "0.95" },
           },
         ],
-        status: { code: trace.Code.OK, message: "" },
+        status: { code: span.Code.OK, message: "" },
         resource: { attributes: {} },
       });
 
@@ -245,9 +245,9 @@ describe("trace service", () => {
     });
 
     test("RecordSpan handles error status", async () => {
-      const service = new TraceService(mockConfig, mockTraceIndex);
+      const service = new SpanService(mockConfig, mockTraceIndex);
 
-      const spanRequest = trace.Span.fromObject({
+      const spanRequest = span.SpanItem.fromObject({
         trace_id: "trace123",
         span_id: "span789",
         parent_span_id: "",
@@ -258,7 +258,7 @@ describe("trace service", () => {
         attributes: { "service.name": "test-service" },
         events: [],
         status: {
-          code: trace.Code.ERROR,
+          code: span.Code.ERROR,
           message: "Connection timeout",
         },
         resource: { attributes: {} },
@@ -271,12 +271,12 @@ describe("trace service", () => {
 
       const stored = mockTraceIndex.index.get("span789");
       assert.ok(stored);
-      assert.strictEqual(stored.span.status.code, trace.Code.ERROR);
+      assert.strictEqual(stored.span.status.code, span.Code.ERROR);
       assert.strictEqual(stored.span.status.message, "Connection timeout");
     });
 
     test("QuerySpans requires either trace_id or resource_id", async () => {
-      const service = new TraceService(mockConfig, mockTraceIndex);
+      const service = new SpanService(mockConfig, mockTraceIndex);
 
       await assert.rejects(
         async () => {
@@ -287,11 +287,11 @@ describe("trace service", () => {
     });
 
     test("QuerySpans filters by resource_id", async () => {
-      const service = new TraceService(mockConfig, mockTraceIndex);
+      const service = new SpanService(mockConfig, mockTraceIndex);
 
       // Record spans with resource_id
       await service.RecordSpan(
-        trace.Span.fromObject({
+        span.SpanItem.fromObject({
           trace_id: "trace123",
           span_id: "span1",
           parent_span_id: "",
@@ -301,13 +301,13 @@ describe("trace service", () => {
           end_time_unix_nano: "1698345601000000000",
           attributes: {},
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: span.Code.OK, message: "" },
           resource: { attributes: {} },
         }),
       );
 
       await service.RecordSpan(
-        trace.Span.fromObject({
+        span.SpanItem.fromObject({
           trace_id: "trace123",
           span_id: "span2",
           parent_span_id: "span1",
@@ -317,7 +317,7 @@ describe("trace service", () => {
           end_time_unix_nano: "1698345601000000000",
           attributes: {},
           events: [],
-          status: { code: trace.Code.OK, message: "" },
+          status: { code: span.Code.OK, message: "" },
           resource: { attributes: { id: "common.Conversation.test123" } },
         }),
       );

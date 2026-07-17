@@ -7,7 +7,7 @@ You need to log what a service is doing and trace operations across service
 boundaries, but you do not want to configure a logging framework, pick a format,
 or wire up an export pipeline. `@forwardimpact/libtelemetry` provides three
 tools that work out of the box: a `Logger` that produces RFC 5424-formatted
-lines, a `Tracer` that records spans to a trace service, and an `Observer` that
+lines, a `Tracer` that records spans to a span service, and an `Observer` that
 unifies both for gRPC operations. This page covers the bounded task of adding
 observability to a service. For the full lifecycle setup, see
 [Service Lifecycle](/docs/libraries/service-lifecycle/).
@@ -87,7 +87,7 @@ logger.exception("db", err, { host: "localhost" });
 
 ## Add a trace span
 
-The `Tracer` requires a trace service client and a gRPC metadata constructor.
+The `Tracer` requires a span service client and a gRPC metadata constructor.
 Once configured, creating a span is a single call:
 
 ```js
@@ -95,7 +95,7 @@ import { Tracer } from "@forwardimpact/libtelemetry/tracer.js";
 
 const tracer = new Tracer({
   serviceName: "my-service",
-  traceClient,      // gRPC client for the trace service
+  spanClient,      // gRPC client for the span service
   grpcMetadata,     // gRPC Metadata constructor
 });
 

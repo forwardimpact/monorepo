@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package trace;
+package span;
 
-service Trace {
-  rpc RecordSpan(Span) returns (RecordResponse);
+service Span {
+  rpc RecordSpan(SpanItem) returns (RecordResponse);
   rpc QuerySpans(QueryRequest) returns (QueryResponse);
 }
 
@@ -20,7 +20,7 @@ enum Code {
   ERROR = 2;
 }
 
-message Span {
+message SpanItem {
   string trace_id = 1;
   string span_id = 2;
   string parent_span_id = 3;
@@ -64,5 +64,5 @@ message QueryRequest {
 }
 
 message QueryResponse {
-  repeated Span spans = 1;
+  repeated SpanItem spans = 1;
 }

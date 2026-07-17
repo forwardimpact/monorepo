@@ -1,4 +1,4 @@
-import { trace } from "@forwardimpact/libtype";
+import { span as spanType } from "@forwardimpact/libtype";
 
 /**
  * Compute the wall-clock offset (ns) relative to hrtime.bigint() using the
@@ -31,7 +31,7 @@ function nowNano(wallClockOffsetNs) {
  */
 export class Span {
   #object;
-  #traceClient;
+  #spanClient;
   #wallClockOffsetNs;
 
   /**
@@ -43,7 +43,7 @@ export class Span {
    * @param {object} options.attributes - Initial span attributes
    * @param {string} [options.traceId] - Trace ID from parent context
    * @param {string} [options.parentSpanId] - Parent span ID from parent context
-   * @param {object} options.traceClient - Trace service client
+   * @param {object} options.spanClient - Span service client
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} options.clock -
    *   Injected clock collaborator (drives the wall-clock offset).
    */
@@ -54,7 +54,7 @@ export class Span {
     attributes,
     traceId,
     parentSpanId,
-    traceClient,
+    spanClient,
     clock,
   }) {
     if (!clock) throw new Error("clock is required");
@@ -69,9 +69,9 @@ export class Span {
       end_time_unix_nano: "",
       attributes: { service_name: serviceName, ...attributes },
       events: [],
-      status: { code: trace.Code.UNSET, message: "" },
+      status: { code: spanType.Code.UNSET, message: "" },
     };
-    this.#traceClient = traceClient;
+    this.#spanClient = spanClient;
   }
 
   /**
@@ -103,7 +103,7 @@ export class Span {
    */
   setError(error) {
     this.#object.status = {
-      code: trace.Code.ERROR,
+      code: spanType.Code.ERROR,
       message: error?.message || String(error),
     };
   }
@@ -114,19 +114,19 @@ export class Span {
    */
   setOk() {
     this.#object.status = {
-      code: trace.Code.OK,
+      code: spanType.Code.OK,
     };
   }
 
   /**
-   * Ends the span and sends it to trace service
+   * Ends the span and sends it to span service
    * @returns {Promise<void>}
    */
   async end() {
     this.#object.end_time_unix_nano = nowNano(this.#wallClockOffsetNs);
 
-    const span = trace.Span.fromObject(this.#object);
-    await this.#traceClient.RecordSpan(span);
+    const span = spanType.SpanItem.fromObject(this.#object);
+    await this.#spanClient.RecordSpan(span);
   }
 
   /**

@@ -105,9 +105,9 @@ async function queryDataInventory(graphConfig, runtime) {
   return { resources, triples };
 }
 
-const SERVICE_NAMES = ["trace", "vector", "graph", "pathway", "mcp"];
+const SERVICE_NAMES = ["span", "vector", "graph", "pathway", "mcp"];
 
-const GRPC_SERVICES = ["trace", "vector", "graph", "pathway"];
+const GRPC_SERVICES = ["span", "vector", "graph", "pathway"];
 
 const HTTP_SERVICES = {
   mcp: "/health",

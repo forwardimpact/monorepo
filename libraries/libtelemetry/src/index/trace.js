@@ -1,6 +1,6 @@
 import jmespath from "jmespath";
 import { BufferedIndex } from "@forwardimpact/libindex";
-import { trace } from "@forwardimpact/libtype";
+import { span as spanType } from "@forwardimpact/libtype";
 
 /**
  * Specialized index for trace spans with custom filtering
@@ -29,14 +29,14 @@ export class TraceIndex extends BufferedIndex {
     // Reconstruct span objects from plain JSON to ensure proper enum values
     for (const item of this.index.values()) {
       if (item.span && typeof item.span === "object") {
-        item.span = trace.Span.fromObject(item.span);
+        item.span = spanType.SpanItem.fromObject(item.span);
       }
     }
   }
 
   /**
    * Adds a span to the index with custom item structure
-   * @param {import("@forwardimpact/libtype").trace.Span} span - Span to add to the index
+   * @param {import("@forwardimpact/libtype").span.SpanItem} span - Span to add to the index
    * @returns {Promise<void>}
    */
   async add(span) {
@@ -49,8 +49,8 @@ export class TraceIndex extends BufferedIndex {
 
   /**
    * Sorts spans chronologically by start time
-   * @param {import("@forwardimpact/libtype").trace.Span[]} spans - Array of spans to sort
-   * @returns {import("@forwardimpact/libtype").trace.Span[]} Sorted array of spans
+   * @param {import("@forwardimpact/libtype").span.SpanItem[]} spans - Array of spans to sort
+   * @returns {import("@forwardimpact/libtype").span.SpanItem[]} Sorted array of spans
    */
   #sortSpansByTime(spans) {
     return spans.sort((a, b) => {
@@ -81,7 +81,7 @@ export class TraceIndex extends BufferedIndex {
   /**
    * Gets all spans from the given trace IDs
    * @param {Set<string>} traceIds - Set of trace IDs to retrieve spans for
-   * @returns {import("@forwardimpact/libtype").trace.Span[]} Array of spans from those traces
+   * @returns {import("@forwardimpact/libtype").span.SpanItem[]} Array of spans from those traces
    */
   #getSpansFromTraces(traceIds) {
     const spans = [];
@@ -97,7 +97,7 @@ export class TraceIndex extends BufferedIndex {
   /**
    * Gets all spans matching the optional trace_id filter
    * @param {string} [trace_id] - Optional trace ID filter
-   * @returns {import("@forwardimpact/libtype").trace.Span[]} Array of matching spans
+   * @returns {import("@forwardimpact/libtype").span.SpanItem[]} Array of matching spans
    */
   #getSpansByTraceId(trace_id) {
     const spans = [];
@@ -113,7 +113,7 @@ export class TraceIndex extends BufferedIndex {
   /**
    * Filters traces by evaluating JMESPath query per-trace
    * Returns trace IDs where the JMESPath query has a positive match
-   * @param {Map<string, import("@forwardimpact/libtype").trace.Span[]>} traceGroups - Spans grouped by trace_id
+   * @param {Map<string, import("@forwardimpact/libtype").span.SpanItem[]>} traceGroups - Spans grouped by trace_id
    * @param {string} query - JMESPath expression to evaluate
    * @returns {string[]} Array of matching trace IDs
    */
@@ -147,7 +147,7 @@ export class TraceIndex extends BufferedIndex {
    * @param {object} [filter] - Filter object for query constraints
    * @param {string} [filter.trace_id] - Filter by trace ID
    * @param {string} [filter.resource_id] - Filter by resource ID
-   * @returns {Promise<import("@forwardimpact/libtype").trace.Span[]>} Array of spans matching the filter, sorted by start time
+   * @returns {Promise<import("@forwardimpact/libtype").span.SpanItem[]>} Array of spans matching the filter, sorted by start time
    */
   async queryItems(query = null, filter = {}) {
     if (!this.loaded) await this.loadData();

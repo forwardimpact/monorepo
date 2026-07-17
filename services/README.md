@@ -23,8 +23,8 @@ that let agents consume backend functionality natively.
 | **oauth**     | OAuth 2.1 authorization server adapter — protocol-only HTTP front that delegates to a configured provider backend over gRPC.                      |
 | **oidc**      | GitHub Actions OIDC exchange front — validates a workflow OIDC token and mints a repo-scoped installation token without holding signing material. |
 | **pathway**   | Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products.                                          |
+| **span**      | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.                                               |
 | **tenancy**   | Tenant registry — `(channel, channel_tenant_key) → Tenant` lookup for the hosted control plane.                                                   |
-| **trace**     | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.                                               |
 | **vector**    | Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.                                                 |
 
 <!-- END:catalog -->
@@ -153,15 +153,15 @@ logic; hardcoding role definitions.
 ## Platform Builders: Prove Agent Changes
 
 **Trigger:** Finishing an agent improvement and realizing there is no
-centralized place to store and compare trace spans.
+centralized place to store and compare spans.
 
-**Big Hire:** Help me collect trace spans from any product without each one
-managing its own storage. → **trace**
+**Big Hire:** Help me collect spans from any product without each one managing
+its own storage. → **span**
 
 **Little Hire:** Help me send spans from a product and trust they are queryable
-later. → **trace**
+later. → **span**
 
-**Competes With:** per-product trace files; manual log comparison; skipping
+**Competes With:** per-product span files; manual log comparison; skipping
 observability entirely.
 
 </job>

@@ -8,29 +8,29 @@ import { createStorage } from "@forwardimpact/libstorage";
 import { TraceIndex } from "@forwardimpact/libtelemetry/index/trace.js";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-import { TraceService } from "./index.js";
+import { SpanService } from "./index.js";
 
 const handled = serverFlagsShortCircuit({
-  name: "fit-svctrace",
-  description: "Trace index gRPC service",
+  name: "fit-svcspan",
+  description: "Span index gRPC service",
   packageJsonUrl: new URL("./package.json", import.meta.url),
   argv: process.argv.slice(2),
 });
 
 if (!handled) {
-  const config = await createServiceConfig("trace", {
+  const config = await createServiceConfig("span", {
     port: 3001,
   });
   const runtime = createDefaultRuntime();
   const { clock } = runtime;
 
-  // Initialize storage for traces
-  const traceStorage = createStorage("traces");
+  // Initialize storage for spans
+  const spanStorage = createStorage("spans");
 
-  // Create trace index
-  const traceIndex = new TraceIndex(traceStorage, "index.jsonl", { clock });
+  // Create span index
+  const traceIndex = new TraceIndex(spanStorage, "index.jsonl", { clock });
 
-  const service = new TraceService(config, traceIndex);
+  const service = new SpanService(config, traceIndex);
   const server = new Server(service, config, { runtime });
   await server.start();
 }

@@ -45,7 +45,7 @@ Defines which processes `fit-rc` manages.
     "log_dir": "data/logs",
     "shutdown_timeout": 3000,
     "services": [
-      { "name": "trace",   "command": "node -e \"import('@forwardimpact/svctrace/server.js')\"" },
+      { "name": "span",   "command": "node -e \"import('@forwardimpact/svcspan/server.js')\"" },
       { "name": "vector",  "command": "node -e \"import('@forwardimpact/svcvector/server.js')\"" },
       { "name": "graph",   "command": "node -e \"import('@forwardimpact/svcgraph/server.js')\"" },
       { "name": "map",     "command": "node -e \"import('@forwardimpact/svcmap/server.js')\"" },

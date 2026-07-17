@@ -113,8 +113,8 @@ The services tree holds these gRPC microservices:
 - oauth
 - oidc
 - pathway
+- span
 - tenancy
-- trace
 - vector
 
 <!-- /enum -->

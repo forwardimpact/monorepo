@@ -14,8 +14,8 @@ import { runStatus } from "../src/lib/status.js";
  */
 function createMockConfigFactory(overrides = {}) {
   const defaults = {
-    trace: {
-      name: "trace",
+    span: {
+      name: "span",
       host: "localhost",
       port: 3001,
       url: "grpc://localhost:3001",

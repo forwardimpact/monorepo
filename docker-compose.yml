@@ -104,21 +104,21 @@ services:
         aliases:
           - graph.local
 
-  trace:
+  span:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        TARGET_PATH: services/trace
+        TARGET_PATH: services/span
       secrets:
         - github_token
-    image: fi/trace:latest
-    container_name: trace
+    image: fi/span:latest
+    container_name: span
     env_file: .env
     networks:
       internal:
         aliases:
-          - trace.local
+          - span.local
 
   # ==========================================
   # Embedding Service (TEI)
