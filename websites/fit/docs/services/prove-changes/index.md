@@ -1,11 +1,11 @@
 ---
-title: Collect Trace Spans from Any Product
-description: Products that emit trace spans without managing storage — shared span gRPC service with a single collection point.
+title: Collect Spans from Any Product
+description: Products that emit spans without managing storage — shared span gRPC service with a single collection point.
 ---
 
-You are building a product that generates trace spans -- recording what an agent
+You are building a product that generates spans -- recording what an agent
 did, how long each step took, and whether it succeeded -- and you need those
-spans stored somewhere queryable. Managing per-product trace files means each
+spans stored somewhere queryable. Managing per-product span files means each
 product reinvents storage, indexing, and query logic. The span gRPC service
 accepts spans from any product, stores them in a shared JSONL-backed index, and
 serves them back through a query interface. Your product sends a span; the
@@ -46,7 +46,7 @@ Product B ──┘                    └── (query interface)
 ```
 
 The span service intentionally does not trace itself -- connecting a tracer
-to a service that records traces would create infinite recursion.
+to a service that records spans would create infinite recursion.
 
 ## Connect to the span service
 

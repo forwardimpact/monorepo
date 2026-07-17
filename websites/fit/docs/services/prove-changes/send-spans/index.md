@@ -1,9 +1,9 @@
 ---
 title: Send Spans from a Product
-description: Trace spans emitted and immediately queryable — without managing storage infrastructure.
+description: Spans emitted and immediately queryable — without managing storage infrastructure.
 ---
 
-You need to record trace spans from within a product -- what happened, how long
+You need to record spans from within a product -- what happened, how long
 it took, whether it succeeded -- and trust that those spans are stored and
 queryable afterward. This page walks through the bounded task of connecting to
 the span service, building a span, sending it, and querying it back to
@@ -11,12 +11,12 @@ confirm the round trip.
 
 For the full setup including architecture context, the query interface, and
 tree reconstruction, see
-[Collect Trace Spans from Any Product](/docs/services/prove-changes/).
+[Collect Spans from Any Product](/docs/services/prove-changes/).
 
 ## Prerequisites
 
 - Completed the
-  [Collect Trace Spans from Any Product](/docs/services/prove-changes/) guide --
+  [Collect Spans from Any Product](/docs/services/prove-changes/) guide --
   you have `@forwardimpact/librpc` and `@forwardimpact/libtype` installed, and
   the span service is running.
 
