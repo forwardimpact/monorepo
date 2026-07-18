@@ -160,3 +160,61 @@ describe("Supervisor - createSupervisor factory", () => {
     assert.strictEqual(s.supervisorRunner.maxTurns, 200);
   });
 });
+
+describe("Supervisor - advisor wiring", () => {
+  const registeredTools = (runner) =>
+    Object.keys(runner.mcpServers.orchestration.instance._registeredTools);
+
+  test("with advisorModel the agent server carries the Advisor tool and the lead carries neither", () => {
+    const s = createSupervisor({ ...baseOpts(), advisorModel: "adv-model" });
+    assert.ok(registeredTools(s.agentRunner).includes("Advisor"));
+    assert.ok(!registeredTools(s.supervisorRunner).includes("Advisor"));
+    assert.ok(!s.supervisorRunner.systemPrompt.includes("`Advisor` tool"));
+  });
+
+  test("guidance is composed after an existing amendment in the agent prompt", () => {
+    const s = createSupervisor({
+      ...baseOpts(),
+      advisorModel: "adv-model",
+      agentSystemPromptAmend: "<EXISTING_AMEND>",
+    });
+    const append = s.agentRunner.systemPrompt.append;
+    const amendAt = append.indexOf("<EXISTING_AMEND>");
+    const guidanceAt = append.indexOf("`Advisor` tool is available");
+    assert.ok(amendAt !== -1, "existing amendment present");
+    assert.ok(guidanceAt !== -1, "guidance present");
+    assert.ok(amendAt < guidanceAt, "guidance follows the amendment");
+  });
+
+  test("without advisorModel no advisor text or tool appears", () => {
+    const s = createSupervisor(baseOpts());
+    assert.ok(!s.agentRunner.systemPrompt.append.includes("Advisor"));
+    assert.ok(!registeredTools(s.agentRunner).includes("Advisor"));
+  });
+
+  test("loop stop aborts a pending consult, which resolves fail-open", async () => {
+    // The advisor session's query hangs until its abort controller fires —
+    // the same shape as a wedged live consult.
+    const hangingQuery = (params) =>
+      (async function* () {
+        await new Promise((_, reject) => {
+          params.options.abortController.signal.addEventListener("abort", () =>
+            reject(new Error("aborted by signal")),
+          );
+        });
+      })();
+    const s = createSupervisor({
+      ...baseOpts(),
+      query: hangingQuery,
+      advisorModel: "adv-model",
+    });
+
+    const advisor =
+      s.agentRunner.mcpServers.orchestration.instance._registeredTools.Advisor;
+    const pending = advisor.handler({ question: "Q" }, {});
+    // #stop() aborts this controller; trigger the same path directly.
+    s.abortController.abort();
+    const result = await pending;
+    assert.match(result.content[0].text, /advisor is unavailable/);
+  });
+});

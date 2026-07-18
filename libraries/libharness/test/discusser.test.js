@@ -2,9 +2,14 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
-import { Discusser, augmentContextForDiscuss } from "../src/discusser.js";
+import {
+  Discusser,
+  augmentContextForDiscuss,
+  createDiscusser,
+} from "../src/discusser.js";
 import { createOrchestrationContext } from "../src/orchestration-toolkit.js";
 import { createNoopRedactor } from "../src/redaction.js";
+import { createTestRuntime } from "@forwardimpact/libmock";
 
 function readLines(stream) {
   let buffer = "";
@@ -196,5 +201,44 @@ describe("Discusser - summary shape", () => {
       !("pending_asks" in last.event),
       "summary must not include pending_asks under the sync-Ask model",
     );
+  });
+});
+
+describe("createDiscusser - advisor wiring", () => {
+  const factoryOpts = (overrides = {}) => ({
+    agentConfigs: [
+      {
+        name: "agent-1",
+        role: "worker",
+        cwd: "/tmp/agent-1",
+        systemPromptAmend: "<EXISTING_AMEND>",
+      },
+    ],
+    query: async function* () {},
+    output: new PassThrough(),
+    redactor: createNoopRedactor(),
+    runtime: createTestRuntime(),
+    ...overrides,
+  });
+  const registeredTools = (runner) =>
+    Object.keys(runner.mcpServers.orchestration.instance._registeredTools);
+
+  test("with advisorModel the agent carries the Advisor tool and guidance; the lead carries neither", () => {
+    const d = createDiscusser(factoryOpts({ advisorModel: "adv-model" }));
+    const agent = d.loop.agents[0];
+    assert.ok(registeredTools(agent.runner).includes("Advisor"));
+    const append = agent.runner.systemPrompt.append;
+    const amendAt = append.indexOf("<EXISTING_AMEND>");
+    const guidanceAt = append.indexOf("`Advisor` tool is available");
+    assert.ok(amendAt !== -1 && guidanceAt !== -1 && amendAt < guidanceAt);
+    assert.ok(!registeredTools(d.loop.leadRunner).includes("Advisor"));
+    assert.ok(!d.loop.leadRunner.systemPrompt.includes("`Advisor` tool"));
+  });
+
+  test("without advisorModel the agent surface is unchanged", () => {
+    const d = createDiscusser(factoryOpts());
+    const agent = d.loop.agents[0];
+    assert.ok(!registeredTools(agent.runner).includes("Advisor"));
+    assert.ok(!agent.runner.systemPrompt.append.includes("Advisor"));
   });
 });

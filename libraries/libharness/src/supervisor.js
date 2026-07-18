@@ -21,11 +21,14 @@ import { createAgentRunner } from "./agent-runner.js";
 import { composeSystemPrompt } from "./profile-prompt.js";
 import { createMessageBus } from "./message-bus.js";
 import {
+  advisorTool,
   createOrchestrationContext,
   createSupervisedAgentToolServer,
   createSupervisorToolServer,
 } from "./orchestration-toolkit.js";
 import { OrchestrationLoop } from "./orchestration-loop.js";
+import { advisorGuidance, createAdvisor, createAdvisorBudget } from "./advisor.js";
+import { createTranscriptRecorder } from "./transcript-recorder.js";
 
 /** System prompt for the supervisor lead. L0 mechanics only per COALIGNED. */
 export const SUPERVISOR_SYSTEM_PROMPT =
@@ -59,6 +62,7 @@ export class Supervisor extends OrchestrationLoop {
    * @param {object} deps.ctx
    * @param {object} deps.redactor
    * @param {string} [deps.taskAmend]
+   * @param {AbortController} [deps.abortController]
    */
   constructor({
     supervisorRunner,
@@ -68,6 +72,7 @@ export class Supervisor extends OrchestrationLoop {
     ctx,
     taskAmend,
     redactor,
+    abortController,
   }) {
     if (!agentRunner) throw new Error("agentRunner is required");
     if (!supervisorRunner) throw new Error("supervisorRunner is required");
@@ -82,6 +87,7 @@ export class Supervisor extends OrchestrationLoop {
       ctx,
       taskAmend,
       redactor,
+      abortController,
     });
   }
 
@@ -125,6 +131,8 @@ const devNull = new Writable({
  * @param {string} [deps.profilesDir]
  * @param {string} [deps.taskAmend]
  * @param {Record<string, object>} [deps.agentMcpServers]
+ * @param {string} [deps.advisorModel] - Claude model for advisor consults; absent means no Advisor tool is offered.
+ * @param {number} [deps.advisorMaxUses] - Session-wide consult budget (default 3).
  * @returns {Supervisor}
  */
 export function createSupervisor({
@@ -147,6 +155,8 @@ export function createSupervisor({
   agentMcpServers,
   redactor,
   runtime,
+  advisorModel,
+  advisorMaxUses,
 }) {
   if (!redactor) throw new Error("redactor is required");
   if (!runtime) throw new Error("runtime is required");
@@ -165,10 +175,62 @@ export function createSupervisor({
 
   let supervisor;
   const perRunBudget = maxTurns ?? 200;
+  const abortController = new AbortController();
 
-  const agentServer = createSupervisedAgentToolServer(ctx);
+  // Advisor wiring — everything below is gated on advisorModel being set;
+  // with it unset the composed prompt and tool surface are byte-identical
+  // to today's.
+  const budget = advisorModel ? createAdvisorBudget(advisorMaxUses ?? 3) : null;
+  const agentSystemPrompt = composeSystemPrompt({
+    role: "agent",
+    profile: agentProfile,
+    profilesDir: resolvedProfilesDir,
+    trailer: AGENT_SYSTEM_PROMPT,
+    amend: advisorModel
+      ? [agentSystemPromptAmend, advisorGuidance(budget.maxUses)]
+          .filter(Boolean)
+          .join("\n\n")
+      : agentSystemPromptAmend,
+    runtime,
+  });
+
+  let recorder = null;
+  let extraTools;
+  if (advisorModel) {
+    recorder = createTranscriptRecorder({
+      systemPrompt: agentSystemPrompt,
+      redactor,
+    });
+    // Late-bound through the `let supervisor` closure — the instance does
+    // not exist yet when the advisor and tool are built.
+    const advisor = createAdvisor({
+      model: advisorModel,
+      cwd: agentCwd,
+      query,
+      recorder,
+      redactor,
+      runtime,
+      onLine: (line) => supervisor.emitLine("advisor", line),
+    });
+    abortController.signal.addEventListener("abort", () => advisor.abort());
+    extraTools = [
+      advisorTool({
+        from: "agent",
+        consult: (q) => advisor.consult(q),
+        emit: (e) => supervisor.emitOrchestratorEvent(e),
+        budget,
+        model: advisorModel,
+      }),
+    ];
+  }
+
+  const agentServer = createSupervisedAgentToolServer(
+    ctx,
+    extraTools ? { extraTools } : {},
+  );
   const supervisorServer = createSupervisorToolServer(ctx);
 
+  const emitAgentLine = (line) => supervisor.emitLine("agent", line);
   const agentRunner = createAgentRunner({
     cwd: agentCwd,
     query,
@@ -176,16 +238,15 @@ export function createSupervisor({
     model: agentModel ?? model,
     maxTurns: perRunBudget,
     allowedTools,
-    onLine: (line) => supervisor.emitLine("agent", line),
+    onLine: recorder
+      ? (line) => {
+          emitAgentLine(line);
+          recorder.recordMessage(line);
+        }
+      : emitAgentLine,
+    ...(recorder && { onPrompt: (text) => recorder.recordPrompt(text) }),
     settingSources: ["project"],
-    systemPrompt: composeSystemPrompt({
-      role: "agent",
-      profile: agentProfile,
-      profilesDir: resolvedProfilesDir,
-      trailer: AGENT_SYSTEM_PROMPT,
-      amend: agentSystemPromptAmend,
-      runtime,
-    }),
+    systemPrompt: agentSystemPrompt,
     mcpServers: { orchestration: agentServer, ...agentMcpServers },
     redactor,
   });
@@ -231,6 +292,7 @@ export function createSupervisor({
     ctx,
     taskAmend,
     redactor,
+    abortController,
   });
   return supervisor;
 }
