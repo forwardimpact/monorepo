@@ -37,7 +37,8 @@ Created:
   invariant flags an undeclared import, static or dynamic). Copy each real `^`
   pin from the current libvector/libgraph manifests; the library manifest uses
   those pins, not the launcher's `0.0.0`. `description`, `keywords` (last token
-  `agent`), and a `jobs` block per [libraries/CLAUDE.md](../../libraries/CLAUDE.md).
+  `agent`), and a `jobs` block per
+  [libraries/CLAUDE.md](../../libraries/CLAUDE.md).
 - `libraries/librag/README.md` — purpose, the two bins, one composition example.
 - `libraries/librag/src/commands/resources.js`, `graphs.js`, `vectors.js`,
   `search.js`, `query.js`, `subjects.js` — each exports `run({ positionals,
@@ -88,7 +89,8 @@ Modified:
   `./bin/*.js` `exports` entries (keep `./index/vector.js`,
   `./processor/vector.js`).
 
-Verification: `rg -l 'fit-(process-\w+|search|query|subjects)' libraries/*/package.json`
+Verification:
+`rg -l 'fit-(process-\w+|search|query|subjects)' libraries/*/package.json`
 returns nothing.
 
 ## Step 3: Swap the RAG launchers
@@ -115,7 +117,8 @@ the launcher imports resolve.
 
 Verification: `node launchers/fit-process/bin/fit-process.js --help` and the
 `fit-rag` launcher resolve their `@forwardimpact/librag` import and print help
-(the `public-cli-set` invariant clears in step 10, after the doc/skill rewrites).
+(the `public-cli-set` invariant clears in step 10, after the doc/skill
+rewrites).
 
 ## Step 4: Give `fit-codegen` `generate` and `download` subcommands
 
@@ -133,8 +136,8 @@ Created:
   @forwardimpact/libcodegen` with optional deps) and exit non-zero.
 - `libraries/libcodegen/src/commands/download.js` — exports `run(...)`; ports
   `fit-download-bundle`'s body — `createScriptConfig("download-bundle")`,
-  `createBundleDownloader(createStorage, logger, runtime)`, `downloader.download()`,
-  `execLine(0, { spawn, process })`.
+  `createBundleDownloader(createStorage, logger, runtime)`,
+  `downloader.download()`, `execLine(0, { spawn, process })`.
 
 Modified:
 
@@ -151,11 +154,12 @@ Modified:
   `@forwardimpact/libconfig` (download needs `createScriptConfig`); keep
   `protobufjs` in `dependencies`.
 
-Verification: `node bin/fit-codegen.js generate --all` regenerates code; `node
-bin/fit-codegen.js download --help` prints usage (criterion 4). For criterion 6,
-`npm install @forwardimpact/libcodegen --omit=optional` into a scratch dir yields
-a `node_modules` with no `@grpc/proto-loader`, `mustache`, or `protobufjs-cli`,
-`download` still runs, and `generate` prints the reinstall hint.
+Verification: `node bin/fit-codegen.js generate --all` regenerates code;
+`node bin/fit-codegen.js download --help` prints usage (criterion 4). For
+criterion 6, `npm install @forwardimpact/libcodegen --omit=optional` into a
+scratch dir yields a `node_modules` with no `@grpc/proto-loader`, `mustache`, or
+`protobufjs-cli`, `download` still runs, and `generate` prints the reinstall
+hint.
 
 ## Step 5: Remove `fit-download-bundle` from `libutil`
 
@@ -197,15 +201,17 @@ Modified:
 | `Dockerfile` | Entrypoint `fit-download-bundle` → `fit-codegen download`, preserving the existing `../../node_modules/.bin/` invocation form: `CMD ["bun","run","../../node_modules/.bin/fit-codegen","download","--","bun","server.js"]` |
 | `CLAUDE.md` | `npx fit-codegen --all` → `npx fit-codegen generate --all`; the `just codegen … runs fit-codegen` line unchanged in meaning |
 
-Verification: criterion 7 — `rg -n 'fit-(process-\w+|search|query|subjects|download-bundle)|fit-codegen --' justfile Dockerfile .github CLAUDE.md`
+Verification: criterion 7 —
+`rg -n 'fit-(process-\w+|search|query|subjects|download-bundle)|fit-codegen --' justfile Dockerfile .github CLAUDE.md`
 finds no removed form.
 
 ## Step 8: Update skills
 
 Delete the three read skills, add the two consolidated skills, and teach
 `fit-codegen` its subcommands. Skill `## Documentation` mirrors the CLI
-`documentation` array (per [.claude/skills/CLAUDE.md](../../.claude/skills/CLAUDE.md)),
-bare CLI names, no `npx`.
+`documentation` array (per
+[.claude/skills/CLAUDE.md](../../.claude/skills/CLAUDE.md)), bare CLI names, no
+`npx`.
 
 Deleted: `.claude/skills/fit-search`, `.claude/skills/fit-query`,
 `.claude/skills/fit-subjects`.
@@ -263,7 +269,8 @@ Run the generators, then the full gate.
 
 Verification: `bun run check` and `bunx coaligned` exit 0; spot-run
 `fit-process resources --base=… && fit-process graphs && fit-process vectors`
-then `fit-rag query`/`search`/`subjects` reproduce the old stdout (criteria 1, 2).
+then `fit-rag query`/`search`/`subjects` reproduce the old stdout (criteria 1,
+2).
 
 ## Execution
 
