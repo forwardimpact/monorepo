@@ -136,6 +136,9 @@ jobs:
           shard-total: ${{ inputs.shard-total }}
           k: ${{ inputs.k }}
           format: ${{ inputs.format }}
+          # Each shard emits a short status + pass@k summary; the merge job
+          # renders the full report over the combined ledger.
+          summary-detail: compact
 
   # Merge job: no agent scaffold — only Node for the report CLI. Download every
   # shard's partial ledger and aggregate one combined pass@k report.

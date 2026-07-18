@@ -1,7 +1,9 @@
 /**
  * `fit-benchmark report` — aggregate `results.jsonl` into pass@k via the
  * OpenAI HumanEval estimator. Output is JSON by default; pass --format=text
- * to render a markdown table.
+ * to render a markdown table. --detail=compact drops the per-task detail
+ * sections so a sharded run's per-shard summary stays short (the merge job
+ * renders the full report over the combined ledger).
  */
 
 import { resolve } from "node:path";
@@ -35,11 +37,19 @@ export async function runBenchmarkReportCommand(ctx) {
   if (format !== "json" && format !== "text") {
     return { ok: false, code: 1, error: "--format must be 'json' or 'text'" };
   }
+  const detail = values.detail ?? "full";
+  if (detail !== "full" && detail !== "compact") {
+    return {
+      ok: false,
+      code: 1,
+      error: "--detail must be 'full' or 'compact'",
+    };
+  }
 
   const report = await aggregate({
     inputDir: resolve(inputDir),
     kValues,
-    includeRuns: format === "text",
+    includeRuns: format === "text" && detail === "full",
     runtime,
   });
   if (format === "text") {

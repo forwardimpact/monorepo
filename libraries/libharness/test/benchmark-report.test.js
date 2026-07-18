@@ -387,3 +387,34 @@ describe("renderTextReport (full report)", () => {
     assert.doesNotMatch(text, /#### Invariant Checks/);
   });
 });
+
+describe("renderTextReport (compact report)", () => {
+  // Without includeRuns the report carries no per-run detail, so renderTextReport
+  // selects the compact path — the shape a sharded run's per-shard summary uses.
+  test("renders status header and pass@k table without per-task detail", async () => {
+    const records = [
+      baseRecord({ taskId: "alpha", runIndex: 0, verdict: "pass" }),
+      baseRecord({
+        taskId: "beta",
+        runIndex: 0,
+        verdict: "fail",
+        invariants: {
+          verdict: "fail",
+          details: [{ test: "t1", pass: false, message: "nope" }],
+          exitCode: 1,
+        },
+      }),
+    ];
+    const runtime = jsonlRuntime(records);
+    const report = await aggregate({
+      runtime,
+      inputDir: INPUT_DIR,
+      kValues: [1],
+    });
+    const text = renderTextReport(report, [1]);
+    assert.match(text, /❌ \*\*1\/2 tasks passing\*\* \| 2 runs/);
+    assert.match(text, /\| taskId \| n \| c \| pass@1 \|/);
+    assert.doesNotMatch(text, /## Task Details/);
+    assert.doesNotMatch(text, /#### Invariant Checks/);
+  });
+});

@@ -44,6 +44,7 @@ Handles task-family execution, pass@k reporting, and result artifact upload.
 | `mode`             | No       | `run`              | `run` executes one shard; `merge` aggregates every shard's partial ledger |
 | `merge-input`      | No       | `benchmark-merge`  | Directory shard ledgers download into (merge mode) |
 | `summary`          | No       | `true`             | Append report to GITHUB_STEP_SUMMARY      |
+| `summary-detail`   | No       | `full`             | Run-mode summary verbosity (`full` or `compact`); `compact` renders status + pass@k only. Merge always renders full. |
 | `upload-results`   | No       | `true`             | Upload results.jsonl as artifact          |
 | `artifact-name`    | No       | `benchmark-results`| Name for the uploaded artifact (run mode with `shard-total` > 1 uploads `benchmark-shard-<i>`) |
 | `timeout-minutes`  | No       | `60`               | Max runtime for the run step (minutes)    |
@@ -63,7 +64,8 @@ The action executes three steps in sequence:
    `<output>/results.jsonl`.
 2. **Report** — runs `fit-benchmark report` and appends the output to
    `GITHUB_STEP_SUMMARY`. Fires even when the run step fails (`if: always()`).
-   Disable with `summary: "false"`.
+   Disable with `summary: "false"`. Set `summary-detail: compact` to emit a short
+   status + pass@k summary instead of the full per-task detail.
 3. **Upload** — uploads `results.jsonl` as a workflow artifact. Fires even when
    earlier steps fail. Disable with `upload-results: "false"`.
 
@@ -93,3 +95,8 @@ The workflow runs a `prepare` job (emits the shard list), `shard-total` parallel
 `benchmark-shard-<i>`), and one dependent `merge` job (no agent scaffold — only
 the report CLI) that aggregates the combined report. Calling the action directly
 with `shard-total` unset is the identity case: the whole family in one job.
+
+Each `shard` job emits a **compact** summary (status + pass@k, no per-task
+detail), so a many-shard run is quick to scan; the `merge` job emits the single
+**full** report over the combined ledger. Calling the action directly (unsharded)
+keeps the full summary by default.

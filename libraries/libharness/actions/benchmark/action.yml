@@ -71,6 +71,10 @@ inputs:
     description: Append text report to GITHUB_STEP_SUMMARY after the run
     required: false
     default: "true"
+  summary-detail:
+    description: "Verbosity of the run-mode step summary (full|compact). compact renders status + pass@k only; merge mode always renders full."
+    required: false
+    default: "full"
   upload-results:
     description: Upload results.jsonl as a workflow artifact
     required: false
@@ -200,6 +204,7 @@ runs:
         OUTPUT_DIR: ${{ inputs.output }}
         K_VALUES: ${{ inputs.k }}
         FORMAT: ${{ inputs.format }}
+        SUMMARY_DETAIL: ${{ inputs.summary-detail }}
       run: |
         RESULTS="$OUTPUT_DIR/results.jsonl"
         if [ ! -s "$RESULTS" ]; then
@@ -207,10 +212,13 @@ runs:
           exit 0
         fi
 
+        # A sharded run passes summary-detail=compact so each shard emits a
+        # short status + pass@k summary; the merge job renders the full report.
         fit-benchmark report \
           --input="$OUTPUT_DIR" \
           --k="$K_VALUES" \
-          --format="$FORMAT" >> "$GITHUB_STEP_SUMMARY"
+          --format="$FORMAT" \
+          --detail="$SUMMARY_DETAIL" >> "$GITHUB_STEP_SUMMARY"
 
     - name: Upload shard results
       if: always() && inputs.mode == 'run' && inputs.upload-results == 'true'
