@@ -132,32 +132,12 @@
       "bundle": "gear"
     },
     {
-      "name": "fit-query",
+      "name": "fit-process",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
-      "name": "fit-subjects",
-      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
-      "bundle": "gear"
-    },
-    {
-      "name": "fit-process-graphs",
-      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
-      "bundle": "gear"
-    },
-    {
-      "name": "fit-process-resources",
-      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
-      "bundle": "gear"
-    },
-    {
-      "name": "fit-process-vectors",
-      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
-      "bundle": "gear"
-    },
-    {
-      "name": "fit-search",
+      "name": "fit-rag",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
@@ -168,11 +148,6 @@
     },
     {
       "name": "fit-tiktoken",
-      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
-      "bundle": "gear"
-    },
-    {
-      "name": "fit-download-bundle",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
