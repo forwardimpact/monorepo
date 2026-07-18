@@ -21,6 +21,10 @@ export async function parseSuperviseOptions(values, runtime) {
   );
   const supervisorAllowedToolsRaw = values["supervisor-allowed-tools"];
 
+  if (values["advisor-max-uses"] && !values["advisor-model"]) {
+    throw new Error("--advisor-max-uses requires --advisor-model");
+  }
+
   // `||` (not `??`) throughout so an empty-string flag from a CI forwarder
   // falls back to the default rather than overriding it with "".
   const tmpRoot = runtime.proc.env.TMPDIR ?? "/tmp";
@@ -52,6 +56,8 @@ export async function parseSuperviseOptions(values, runtime) {
       ? supervisorAllowedToolsRaw.split(",")
       : undefined,
     mcpServer: values["mcp-server"] || undefined,
+    advisorModel: values["advisor-model"] || undefined,
+    advisorMaxUses: parseInt(values["advisor-max-uses"] || "3", 10),
   };
 }
 
@@ -125,6 +131,8 @@ export async function runSuperviseCommand(ctx) {
     agentMcpServers,
     redactor,
     runtime,
+    advisorModel: opts.advisorModel,
+    advisorMaxUses: opts.advisorMaxUses,
   });
 
   const result = await supervisor.run(opts.taskContent);

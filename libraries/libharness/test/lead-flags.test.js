@@ -128,6 +128,80 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
   });
 });
 
+describe("--advisor-model / --advisor-max-uses across lead modes", () => {
+  // run's parser is covered in run-advisor.test.js.
+  test("supervise surfaces the advisor options with max-uses defaulting to 3", async () => {
+    const defaults = await parseSuperviseOptions(
+      { "task-text": "x", "agent-cwd": "." },
+      makeRuntime(),
+    );
+    assert.strictEqual(defaults.advisorModel, undefined);
+    assert.strictEqual(defaults.advisorMaxUses, 3);
+
+    const opts = await parseSuperviseOptions(
+      {
+        "task-text": "x",
+        "agent-cwd": ".",
+        "advisor-model": "adv-m",
+        "advisor-max-uses": "5",
+      },
+      makeRuntime(),
+    );
+    assert.strictEqual(opts.advisorModel, "adv-m");
+    assert.strictEqual(opts.advisorMaxUses, 5);
+
+    await assert.rejects(
+      parseSuperviseOptions(
+        { "task-text": "x", "agent-cwd": ".", "advisor-max-uses": "5" },
+        makeRuntime(),
+      ),
+      /--advisor-max-uses requires --advisor-model/,
+    );
+  });
+
+  test("facilitate surfaces the advisor options with max-uses defaulting to 3", () => {
+    const base = { "task-text": "x", "agent-profiles": "alpha" };
+    const defaults = parseFacilitateOptions(base, makeRuntime());
+    assert.strictEqual(defaults.advisorModel, undefined);
+    assert.strictEqual(defaults.advisorMaxUses, 3);
+
+    const opts = parseFacilitateOptions(
+      { ...base, "advisor-model": "adv-m", "advisor-max-uses": "5" },
+      makeRuntime(),
+    );
+    assert.strictEqual(opts.advisorModel, "adv-m");
+    assert.strictEqual(opts.advisorMaxUses, 5);
+
+    assert.throws(
+      () =>
+        parseFacilitateOptions({ ...base, "advisor-max-uses": "5" }, makeRuntime()),
+      /--advisor-max-uses requires --advisor-model/,
+    );
+  });
+
+  test("discuss surfaces the advisor options with max-uses defaulting to 3", () => {
+    const defaults = parseDiscussOptions({ "task-text": "x" }, makeRuntime());
+    assert.strictEqual(defaults.advisorModel, undefined);
+    assert.strictEqual(defaults.advisorMaxUses, 3);
+
+    const opts = parseDiscussOptions(
+      { "task-text": "x", "advisor-model": "adv-m", "advisor-max-uses": "5" },
+      makeRuntime(),
+    );
+    assert.strictEqual(opts.advisorModel, "adv-m");
+    assert.strictEqual(opts.advisorMaxUses, 5);
+
+    assert.throws(
+      () =>
+        parseDiscussOptions(
+          { "task-text": "x", "advisor-max-uses": "5" },
+          makeRuntime(),
+        ),
+      /--advisor-max-uses requires --advisor-model/,
+    );
+  });
+});
+
 describe("blank model flags fall through to the role constants", () => {
   // Composite-action inputs are strings, so an unset input arrives as
   // `--lead-model=` (empty string). Blank must behave like absent so the

@@ -36,6 +36,9 @@ export function parseFacilitateOptions(values, runtime) {
 
   const profilesRaw = values["agent-profiles"];
   if (!profilesRaw) throw new Error("--agent-profiles is required");
+  if (values["advisor-max-uses"] && !values["advisor-model"]) {
+    throw new Error("--advisor-max-uses requires --advisor-model");
+  }
   // `||` (not `??`) so an empty-string flag from a CI forwarder falls back to
   // the default rather than overriding it with "".
   const agentCwd = resolve(values["agent-cwd"] || ".");
@@ -60,6 +63,8 @@ export function parseFacilitateOptions(values, runtime) {
     outputPath: values.output,
     facilitatorProfile: values["lead-profile"] || undefined,
     workTracker: resolveWorkTracker(values, runtime?.proc?.env),
+    advisorModel: values["advisor-model"] || undefined,
+    advisorMaxUses: parseInt(values["advisor-max-uses"] || "3", 10),
   };
 }
 
@@ -112,6 +117,8 @@ export async function runFacilitateCommand(ctx) {
     taskAmend: opts.taskAmend,
     redactor,
     runtime,
+    advisorModel: opts.advisorModel,
+    advisorMaxUses: opts.advisorMaxUses,
   });
 
   const result = await facilitator.run(opts.taskContent);

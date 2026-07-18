@@ -51,6 +51,10 @@ export function parseDiscussOptions(values, runtime) {
   const maxLeadTurnsRaw = values["max-lead-turns"] || "200";
   const maxLeadTurns = parseInt(maxLeadTurnsRaw, 10);
 
+  if (values["advisor-max-uses"] && !values["advisor-model"]) {
+    throw new Error("--advisor-max-uses requires --advisor-model");
+  }
+
   return {
     taskContent,
     taskAmend,
@@ -67,6 +71,8 @@ export function parseDiscussOptions(values, runtime) {
     callbackUrl: runtime.proc.env.CALLBACK_URL ?? null,
     inboxUrl: runtime.proc.env.INBOX_URL ?? null,
     correlationId: runtime.proc.env.CORRELATION_ID ?? null,
+    advisorModel: values["advisor-model"] || undefined,
+    advisorMaxUses: parseInt(values["advisor-max-uses"] || "3", 10),
   };
 }
 
@@ -121,6 +127,8 @@ export async function runDiscussCommand(ctx) {
     inboxUrl: opts.inboxUrl,
     correlationId: opts.correlationId,
     runtime,
+    advisorModel: opts.advisorModel,
+    advisorMaxUses: opts.advisorMaxUses,
   });
 
   const result = await discusser.run(opts.taskContent);

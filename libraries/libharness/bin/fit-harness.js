@@ -27,6 +27,20 @@ const LEAD_OPTIONS = {
   },
 };
 
+// Advisor consult flags, shared by all four session modes.
+const ADVISOR_OPTIONS = {
+  "advisor-model": {
+    type: "string",
+    description:
+      "Claude model for advisor consults; omitting the flag disables the Advisor tool (default: off)",
+  },
+  "advisor-max-uses": {
+    type: "string",
+    description:
+      "Session-wide consult budget shared by all participants (default: 3; requires --advisor-model)",
+  },
+};
+
 // Shared task-input flags: --task-file (path), --task-text (inline), and
 // --task-event (path to native GitHub event JSON composed into a task via
 // libharness/src/events/github.js). Exactly one of the three is required.
@@ -94,6 +108,7 @@ const definition = {
           description:
             "Connect to the MCP service (e.g. --mcp-server=guide); adds mcp__<name>__* to allowed tools",
         },
+        ...ADVISOR_OPTIONS,
       },
     },
     {
@@ -143,6 +158,7 @@ const definition = {
           description:
             "Connect to the MCP service (e.g. --mcp-server=guide); adds mcp__<name>__* to allowed tools",
         },
+        ...ADVISOR_OPTIONS,
       },
     },
     {
@@ -185,6 +201,7 @@ const definition = {
           description:
             "Active work-item tracker (github|filesystem, default: github)",
         },
+        ...ADVISOR_OPTIONS,
       },
     },
     {
@@ -231,6 +248,7 @@ const definition = {
           description:
             "Active work-item tracker (github|filesystem, default: github)",
         },
+        ...ADVISOR_OPTIONS,
       },
     },
     {
