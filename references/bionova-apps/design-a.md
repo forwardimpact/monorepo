@@ -312,16 +312,27 @@ The guide is the normative reference for the relations, columns, auth model,
 and degradation semantics; this section names only the Polaris-specific
 mapping.
 
-**One-time scaffold, committed.** `npx fit-terrain substrate init --cwd .`
-writes the starter migration into `supabase/migrations/`; Polaris edits the
-commented example views to map its clinical schema onto the contract. Staff
-and researchers become `substrate.people` rows, with Polaris roles mapped onto
-the mandated `discipline`/`level`/`track` columns. `substrate.evidence` and
-`substrate.discovery` start declared optional-absent (or get mapped later),
-with the degradation that declares: structural-only pick invariants, and an
-identity-only `.substrate.json` from `issue`.
+**One-time scaffold, committed.**
+`npx fit-terrain substrate init --cwd products/polaris/site` writes the starter
+migration beside Polaris' own migrations, in
+`products/polaris/site/supabase/migrations/`. Polaris edits the commented
+example views to map its clinical schema onto the contract. The only
+person-shaped seed table is `researchers`, so staff map onto
+`substrate.people` from there: the research `specialty` becomes `discipline`, a
+trial-load proxy becomes `level`, and every row sits on a `clinical` track.
+The seed carries no reporting hierarchy, so the view synthesizes a
+deterministic manager chain by id order; the structural pick invariants need
+one (a persona has a manager and manages at least one direct). `substrate.evidence`
+and `substrate.discovery` start declared optional-absent, with the degradation
+that declares: structural-only pick invariants, and an identity-only
+`.substrate.json` from `issue`. PostgREST must expose the `substrate` schema,
+so `substrate` is added to `PGRST_DB_SCHEMAS` on the `postgrest` service in
+`docker-compose.yml`.
 
-`.github/workflows/interview.yml` in `bionova-apps`:
+`.github/workflows/kata-interview.yml` in `bionova-apps` is a thin
+`workflow_dispatch` wrapper. It carries a `persona-mode` input (`patient` |
+`staff`) so a patient interview runs anonymous and a staff interview provisions
+an identity. The substrate command is gated on the product being `polaris`:
 
 ```yaml
 jobs:
@@ -335,29 +346,39 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           website-url: https://polaris.bionova.example
-          # Generic Supabase bring-up, Polaris' own migrations + embed seed,
-          # then the contract gate and identity provisioning.
+          # Polaris' substrate is its own docker-compose stack, brought up and
+          # seeded by ./setup.sh (not the Supabase CLI). Emit the API URL/anon
+          # key for later steps, then gate on the contract and provision.
           substrate-setup-command: >-
-            npx fit-terrain substrate up --cwd . --emit-env "$GITHUB_ENV"
-            && supabase db push
-            && ./data/synthetic/setup.sh
-            && npx fit-terrain substrate check
-            && npx fit-terrain substrate provision
+            cp .env.example .env
+            && docker compose up -d --wait
+            && ./setup.sh
+            && export SUPABASE_URL=http://localhost:8000
+            && export SUPABASE_ANON_KEY="$(grep -E '^ANON_KEY=' .env | cut -d= -f2-)"
+            && printf 'SUPABASE_URL=%s\nSUPABASE_ANON_KEY=%s\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" >> "$GITHUB_ENV"
+            && fit-terrain substrate check
+            && fit-terrain substrate provision
           jwt-secret: ${{ secrets.SUPABASE_JWT_SECRET }}
           service-role-key: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 ```
 
-Patient interviews omit `persona-select-command` entirely — Polaris is
+`SUPABASE_URL` lands in `$GITHUB_ENV` so the persona-select command (staff path)
+can reach the stack from the later harness step. The substrate secrets hold the
+well-known Supabase demo values from `.env.example`, since this repo is a local
+sandbox; they must match the secret the compose stack signs tokens with.
+
+Patient interviews leave `persona-select-command` empty. Polaris is
 patient-facing with anonymous access, so the supervisor builds the persona from
 the vendored `story.dsl` and issues no JWT. A staff-facing interview passes a
 persona command over the same verbs the FI wrapper uses, with Polaris' own
 token name (and, if diversification across runs matters, a Polaris-scoped
-`--memory` path):
+`--memory` path). `fit-terrain` is on PATH via the action's bootstrap step, so
+the command calls it bare:
 
 ```sh
-persona=$(npx fit-terrain substrate pick --format json) \
+persona=$(fit-terrain substrate pick --format json) \
 && email=$(printf '%s' "$persona" | jq -r '.personas[0].email') \
-&& npx fit-terrain substrate issue --email "$email" --cwd "$AGENT_CWD" \
+&& fit-terrain substrate issue --email "$email" --cwd "$AGENT_CWD" \
   --token-env PRODUCT_POLARIS_TOKEN --stash "$RUNNER_TEMP/.persona-jwt"
 ```
 
@@ -365,10 +386,9 @@ This satisfies the same `.env` / `.substrate.json` / stash contract the action
 documents; `--token-env` carries the Polaris token name, so nothing
 Landmark-specific enters the flow.
 
-The substrate command brings Supabase up from the repo checkout (`--cwd .`,
-using Polaris' own `supabase/` config), while the interview itself stages its
-working files into the temp `agent-cwd` the action creates — the whole loop
-runs on `fit-terrain` plus Polaris' own migrations and seed, with no Polaris
-application code running in the runner. Prerequisite A (`fit-terrain` runs
-outside the monorepo) is the same dependency the seed pipeline already relies
-on.
+The substrate command brings Polaris' own Supabase stack up from the repo
+checkout, while the interview stages its working files into the temp
+`agent-cwd` the action creates. The persona still meets Polaris at the external
+`website-url`; the local stack exists to validate the contract and provision
+identities. Prerequisite A (`fit-terrain` runs outside the monorepo) is the
+same dependency the seed pipeline already relies on.
