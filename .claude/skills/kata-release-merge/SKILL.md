@@ -163,12 +163,13 @@ approval source.
 
 **Retention PRs** (`retention`-typed, no spec id, spanning many `specs/NNN/`
 directories) take a self-contained head-coverage rule instead of the spec-row
-read: pass only when a `product-manager` approving review exists **and its
-review commit SHA equals the current head**. Any later commit re-blocks until a
-fresh PM review covers the new head. Retention PRs sit outside
-[`references/review-transfer.md`](references/review-transfer.md) (§ Applicability
-restricts it to spec/design/plan phase PRs), so the gate applies this rule
-directly. See [`approval-signals.md`](../../agents/x-approval-signals.md).
+read: pass only when a `product-manager` approving review exists
+**and its review commit SHA equals the current head**. Any later commit
+re-blocks until a fresh PM review covers the new head. Retention PRs sit outside
+[`references/review-transfer.md`](references/review-transfer.md) (§
+Applicability restricts it to spec/design/plan phase PRs), so the gate applies
+this rule directly. See
+[`approval-signals.md`](../../agents/x-approval-signals.md).
 
 ### Step 7: Open Comment Gate
 

@@ -62,7 +62,8 @@ and states each class's preservation precondition, then defers to the Act paths:
   storyboard, or a canonical record (`STATUS.md`, `MEMORY.md`).
 - Never trim a `STATUS.md` ledger row when archiving its spec directory — the
   row is the permanent record.
-- Never push to `main`; spec removal is PR-mediated through the release engineer.
+- Never push to `main`; spec removal is PR-mediated through the release
+  engineer.
 - **Boundary with technical writer**: you own past-week logs (including sealed
   `-partN`), past-month storyboards, and terminal specs; the technical writer
   owns `MEMORY.md`, active claims, current summaries, observations.
