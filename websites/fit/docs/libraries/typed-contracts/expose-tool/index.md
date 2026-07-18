@@ -87,7 +87,7 @@ runtime. Without this step, the new method has no field metadata and
 registration will fail with a "no metadata" error.
 
 ```sh
-npx fit-codegen --all
+npx fit-codegen generate --all
 ```
 
 This generates `metadata.js` inside `@forwardimpact/libtype`, which contains
@@ -188,7 +188,7 @@ failing silently at call time. The error names the exact cause:
 
 | Symptom at startup                                            | Cause                                                                 | Fix                                                                                          |
 | ------------------------------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `no metadata for <method>`                                   | Codegen has not run since the proto method was added or renamed        | Run `npx fit-codegen --all`, then restart the server                                          |
+| `no metadata for <method>`                                   | Codegen has not run since the proto method was added or renamed        | Run `npx fit-codegen generate --all`, then restart the server                                          |
 | `no libtype class for <type>`                                | The request message type is not exported from `@forwardimpact/libtype` | Confirm the proto file is discovered by codegen and the package namespace matches the import |
 | `no client for package "<package>"`                          | No gRPC client was passed for the method's package                     | Add the package's client to the `clients` object you hand `registerToolsFromConfig`           |
 | Tool absent from `tools/list`, no error                      | The tool key is missing from `service.mcp.tools`, or the config did not reload | Confirm the key under `service.mcp.tools` and restart so the server re-reads `config.json`    |

@@ -76,7 +76,7 @@ command that runs once during startup or shutdown):
       {
         "name": "codegen",
         "type": "oneshot",
-        "up": "npx fit-codegen --all",
+        "up": "npx fit-codegen generate --all",
         "down": "echo codegen teardown"
       },
       {
@@ -126,7 +126,7 @@ This command:
 Expected output (timestamps and process IDs will differ):
 
 ```text
-INFO 2026-05-04T10:00:01.123Z rc codegen 42001 MSG001 - Running oneshot direction="up" cmd="npx fit-codegen --all"
+INFO 2026-05-04T10:00:01.123Z rc codegen 42001 MSG001 - Running oneshot direction="up" cmd="npx fit-codegen generate --all"
 INFO 2026-05-04T10:00:03.456Z rc codegen 42001 MSG002 - Oneshot completed direction="up"
 INFO 2026-05-04T10:00:03.789Z rc trace 42001 MSG003 - Service started
 INFO 2026-05-04T10:00:04.012Z rc vector 42001 MSG004 - Service started

@@ -17,7 +17,7 @@ feature expects.
 ## Prerequisites
 
 - Node.js 18+
-- Generated client code available (run `npx fit-codegen --all` if not)
+- Generated client code available (run `npx fit-codegen generate --all` if not)
 - Services running (`npx fit-rc start`)
 
 Install the transport and type packages:

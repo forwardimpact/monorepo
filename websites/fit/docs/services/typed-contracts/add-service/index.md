@@ -18,7 +18,7 @@ For the full MCP service setup and architecture, see
   [Expose Backend Services as Agent Tools](/docs/services/typed-contracts/)
   guide -- you understand the MCP service architecture and can connect a client.
 - A gRPC service with a proto file under `proto/` (or `services/<name>/proto/`).
-- `npx fit-codegen --all` available for regenerating client code.
+- `npx fit-codegen generate --all` available for regenerating client code.
 
 ## Step 1: Define the proto file
 
@@ -52,7 +52,7 @@ Run codegen to produce the typed client, type definitions, and metadata the MCP
 service needs:
 
 ```sh
-npx fit-codegen --all
+npx fit-codegen generate --all
 ```
 
 This generates:
@@ -184,7 +184,7 @@ validation schema. Required fields become `z.string()`, optional fields become
 
 You have reached the outcome of this guide when:
 
-- `npx fit-codegen --all` generates client code for your new service.
+- `npx fit-codegen generate --all` generates client code for your new service.
 - The tool entry in `config/config.json` uses the correct
   `<package>.<Service>.<RPC>` method path.
 - The MCP service starts without errors after adding the client.

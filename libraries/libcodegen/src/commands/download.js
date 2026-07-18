@@ -7,8 +7,9 @@ import { createBundleDownloader, execLine } from "@forwardimpact/libutil";
 
 /**
  * `fit-codegen download` — download the generated code bundle from remote
- * storage and unpack it, then optionally exec a trailing `-- <command>`. Ports
- * `fit-download-bundle`; carries none of the generation toolchain.
+ * storage and unpack it, then optionally exec a trailing `-- <command>`.
+ * Carries none of the generation toolchain, so a production image can fetch the
+ * bundle without the proto compiler.
  * @param {object} ctx
  * @param {import("@forwardimpact/libutil/runtime").Runtime} ctx.runtime
  * @returns {Promise<void>}
@@ -21,7 +22,7 @@ export async function run({ runtime }) {
   await downloader.download();
 
   // If additional arguments follow `--`, execute them after the download.
-  // Shift 1 skips the `download` subcommand token so `-- <command>` resolves
-  // the same as it did for the bare `fit-download-bundle` bin.
+  // Shift 1 skips the `download` subcommand token so a trailing `-- <command>`
+  // resolves the same as it did before the subcommand split.
   execLine(1, { spawn, process });
 }

@@ -40,7 +40,7 @@ each gated by a flag:
 proto/*.proto
     |
     v
-fit-codegen --all
+fit-codegen generate --all
     |
     +---> generated/types/types.js       (--type)       JavaScript protobuf types
     +---> generated/types/metadata.js    (--metadata)   Field metadata for MCP schemas
@@ -95,7 +95,7 @@ path, so cross-file imports work without extra configuration.
 Generate all artifacts with a single command:
 
 ```sh
-npx fit-codegen --all
+npx fit-codegen generate --all
 ```
 
 Expected output (file count varies with proto count):
@@ -113,15 +113,15 @@ Code generation complete (types, services, clients, definitions, metadata).
 You can also generate specific artifact categories:
 
 ```sh
-npx fit-codegen --type        # JavaScript types only
-npx fit-codegen --service     # Service base classes only
-npx fit-codegen --client      # Typed clients only
-npx fit-codegen --definition  # gRPC definitions only
-npx fit-codegen --metadata    # Field metadata for MCP only
+npx fit-codegen generate --type        # JavaScript types only
+npx fit-codegen generate --service     # Service base classes only
+npx fit-codegen generate --client      # Typed clients only
+npx fit-codegen generate --definition  # gRPC definitions only
+npx fit-codegen generate --metadata    # Field metadata for MCP only
 ```
 
-Combine flags to generate a subset: `npx fit-codegen --type --client` generates
-types and clients without rebuilding service bases or definitions.
+Combine flags to generate a subset: `npx fit-codegen generate --type --client`
+generates types and clients without rebuilding service bases or definitions.
 
 ## Step 3: Use generated types
 
@@ -211,9 +211,9 @@ metadata["inventory.Inventory"]["ListItems"];
 
 You rarely read `metadata` directly. `libmcp` consults it at startup to build a
 Zod schema for each tool, and `librpc` clients use the type classes it points
-to. Regenerating with `npx fit-codegen --metadata` keeps it in step with the
-proto files. The shared `common.proto` is excluded from `metadata` -- only
-service-bearing proto files contribute entries.
+to. Regenerating with `npx fit-codegen generate --metadata` keeps it in step
+with the proto files. The shared `common.proto` is excluded from `metadata` --
+only service-bearing proto files contribute entries.
 
 ## Step 4: Implement the service
 
@@ -426,9 +426,9 @@ change to one of these three files as a cross-service change:
 
 1. Edit the field in the shared `.proto` file (for example, add an optional
    field to `tool.ToolCallResult`).
-2. Re-run `npx fit-codegen --all` in **every** service that imports the changed
-   file -- each one regenerates its own types, bases, clients, and metadata
-   against the new shape.
+2. Re-run `npx fit-codegen generate --all` in **every** service that imports the
+   changed file -- each one regenerates its own types, bases, clients, and
+   metadata against the new shape.
 3. Keep new fields `optional` so a service that has not regenerated yet still
    reads messages from one that has. Removing or renumbering a field breaks
    every consumer at once, so add rather than mutate.
@@ -441,7 +441,7 @@ regeneration is what propagates it to each consumer.
 After editing a `.proto` file, re-run the codegen:
 
 ```sh
-npx fit-codegen --all
+npx fit-codegen generate --all
 ```
 
 Every downstream artifact updates: the types in `libtype` reflect the new
@@ -467,7 +467,8 @@ subdirectory under `generated/services/`.
   instances. It applies prototype patches (like `withIdentifier`) that the raw
   constructor does not.
 - **Incremental generation saves time.** When iterating on a single service,
-  `npx fit-codegen --client` regenerates only clients instead of the full suite.
+  `npx fit-codegen generate --client` regenerates only clients instead of the
+  full suite.
 - **The codegen is installation-specific.** Each project runs its own
   `fit-codegen` because it may define custom proto files. Generated code is
   never bundled in published npm packages.

@@ -125,7 +125,7 @@ Run the resource processor to parse every HTML file in `data/knowledge/` and
 store each entity as a typed `Message` resource:
 
 ```sh
-npx fit-process-resources --base=https://example.com/
+npx fit-process resources --base=https://example.com/
 ```
 
 The processor:
@@ -163,7 +163,7 @@ With resources in place, extract their RDF content into a graph index and
 generate the ontology:
 
 ```sh
-npx fit-process-graphs
+npx fit-process graphs
 ```
 
 The graph processor:
@@ -183,7 +183,7 @@ file to understand what questions the graph can answer before writing queries.
 Verify the graph was built:
 
 ```sh
-npx fit-subjects
+npx fit-rag subjects
 ```
 
 ```text
@@ -195,7 +195,7 @@ Each line shows a subject URI and its type. Run a triple-pattern query to test
 a relationship:
 
 ```sh
-npx fit-query "?" schema:worksFor "?"
+npx fit-rag query "?" schema:worksFor "?"
 ```
 
 ```text
@@ -213,7 +213,7 @@ The vector processor takes each resource's text content, sends it to an
 embedding endpoint, and stores the resulting vectors:
 
 ```sh
-npx fit-process-vectors
+npx fit-process vectors
 ```
 
 This requires the embedding gRPC service (`@forwardimpact/svcembedding`),
@@ -243,7 +243,7 @@ The processor:
 After processing, test a semantic search:
 
 ```sh
-npx fit-search "senior engineering role"
+npx fit-rag search "senior engineering role"
 ```
 
 ```text
@@ -318,9 +318,9 @@ ls data/resources/       # Typed resource JSON files
 ls data/graphs/          # index.jsonl + ontology.ttl
 ls data/vectors/         # index.jsonl with embeddings
 
-npx fit-subjects                           # All subjects and types
-npx fit-query "?" rdf:type schema:Person   # Graph query
-npx fit-search "team member"               # Semantic search
+npx fit-rag subjects                           # All subjects and types
+npx fit-rag query "?" rdf:type schema:Person   # Graph query
+npx fit-rag search "team member"               # Semantic search
 ```
 
 Each command should return results drawn from the HTML files you ingested. If a

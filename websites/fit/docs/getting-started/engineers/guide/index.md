@@ -21,7 +21,7 @@ npm install @forwardimpact/guide
 ## Install and configure
 
 ```sh
-npx fit-codegen --all    # provided by @forwardimpact/libcodegen (a dependency of guide)
+npx fit-codegen generate --all    # provided by @forwardimpact/libcodegen (a dependency of guide)
 npx fit-guide --init
 ```
 
@@ -50,8 +50,8 @@ Before starting the services, process the standard data into the indexes that
 Guide's services read at runtime:
 
 ```sh
-npx fit-process-resources # provided by @forwardimpact/libresource
-npx fit-process-graphs    # provided by @forwardimpact/libgraph
+npx fit-process resources # provided by @forwardimpact/libresource
+npx fit-process graphs    # provided by @forwardimpact/libgraph
 ```
 
 These steps transform your `data/pathway/` into the resource index, knowledge
@@ -120,8 +120,8 @@ If Guide cannot answer questions, the knowledge indexes may not be populated.
 Run the processing pipeline:
 
 ```sh
-npx fit-process-resources
-npx fit-process-graphs
+npx fit-process resources
+npx fit-process graphs
 ```
 
 Then restart the services.
@@ -140,7 +140,7 @@ npx fit-rc stop && npx fit-rc start
 Run code generation first — Guide depends on generated gRPC clients:
 
 ```sh
-npx fit-codegen --all
+npx fit-codegen generate --all
 ```
 
 ### Service startup failures
