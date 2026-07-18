@@ -2,9 +2,9 @@
 
 Shared protocol for callers of `kata-review`. Used by:
 
-- `kata-spec` Step 5 — product + technical, 3 each
-- `kata-design` / `kata-plan` Step 5 — technical + devex, 3 each
-- `kata-implement` Step 7 — technical of 5, devex of 3
+- `kata-spec` Step 5 — product + technical panels, 3 each
+- `kata-design` / `kata-plan` Step 5 — technical + devex panels, 3 each
+- `kata-implement` Step 7 — technical panel of 5 + devex panel of 3
 
 ## Panel Composition
 
@@ -21,7 +21,7 @@ Each panel has a role (`subagent_type`) and a size.
 | `kata-implement` | diff (`origin/main...HEAD`) | technical | engineering agent  | 5         |
 | `kata-implement` | diff (`origin/main...HEAD`) | devex     | `devex-engineer`  | 3         |
 
-Rationale for panels, sizes, and the spec-only product panel:
+Rationale for panels, sizes, and scope:
 [panel-rationale.md](panel-rationale.md).
 
 ## How to Invoke

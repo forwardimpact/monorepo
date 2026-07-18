@@ -66,8 +66,8 @@ still-linked log is never retired at any age.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per the owning
-agent profile's on-boot read set.
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 
 ### Step 1: Detect Terminal Stale Specs
 
@@ -115,3 +115,6 @@ Append to the current week's log:
 - **Retired** — each artifact, its class, and the window it cleared.
 - **Deferred** — candidates held back and why (e.g. a live `detail:` link).
 - **Retention PR** — the PR opened for spec removals and its merge outcome.
+- **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
+  per `references/metrics.md`. See KATA.md § Metrics for the
+  recording-eligibility rule.

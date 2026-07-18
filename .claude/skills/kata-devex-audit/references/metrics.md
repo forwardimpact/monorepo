@@ -7,5 +7,5 @@ one row per run.
 | -------------- | ----- | -------------------------------- | ------------ |
 | findings_count | count | New findings identified this run | Audit report |
 
-Open debt items are queried from the coverage map, not recorded — they are a
-stock, not a per-run flow.
+The coverage map records only the last-audited date per area — it is not a
+store of open debt items, and the open-debt stock is not recorded here.

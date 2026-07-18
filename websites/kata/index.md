@@ -153,7 +153,7 @@ layout: home
         <span class="agent-icon">&#x1f5c4;</span>
         <div class="agent-name">Archivist</div>
         <div class="agent-phase">Study &middot; Act</div>
-        <p class="agent-desc">Retires stale logs, storyboards, and completed specs once their signal is safely preserved.</p>
+        <p class="agent-desc">Retires stale logs, storyboards, and completed or cancelled specs once their signal is safely preserved.</p>
       </div>
       <div class="agent-card stagger-item">
         <span class="agent-icon">&#x2b55;</span>

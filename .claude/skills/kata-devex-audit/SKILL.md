@@ -64,11 +64,11 @@ that touches it, read the local CLAUDE.md and apply every invariant it declares.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per the owning
-agent profile's on-boot read set. Find the last audit date per area in the
-coverage map. Canonical area-rotation runs write only to the wiki and never open
-a PR — do **not** `fit-wiki claim` for them; the claim contract applies only
-when this skill opens a PR.
+Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
+Find the last audit date per area in the coverage map. Canonical area-rotation
+runs write only to the wiki and never open a PR — do **not** `fit-wiki claim`
+for them; the claim contract applies only when this skill opens a PR.
 
 ### Step 1: Select Area
 
@@ -116,8 +116,8 @@ Append to the current week's log:
   (fixed / spec'd / deferred).
 - **Deferred work** — items needing follow-up with enough context to resume.
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
-  per [`references/metrics.md`](references/metrics.md). See KATA.md § Metrics for
-  the recording-eligibility rule.
+  per `references/metrics.md`. See KATA.md § Metrics for the
+  recording-eligibility rule.
 
 ## Coordination Channels
 
