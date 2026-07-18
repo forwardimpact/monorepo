@@ -1,24 +1,24 @@
 {
-  "name": "fit-process-vectors",
+  "name": "fit-rag",
   "version": "0.0.0",
-  "description": "Run fit-process-vectors from the npm registry — launcher for @forwardimpact/libvector",
+  "description": "Run fit-rag from the npm registry — launcher for @forwardimpact/librag",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",
-    "directory": "launchers/fit-process-vectors"
+    "directory": "launchers/fit-rag"
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "bin": {
-    "fit-process-vectors": "./bin/fit-process-vectors.js"
+    "fit-rag": "./bin/fit-rag.js"
   },
   "files": [
     "bin/"
   ],
   "dependencies": {
-    "@forwardimpact/libvector": "0.0.0"
+    "@forwardimpact/librag": "0.0.0"
   },
   "engines": {
     "bun": ">=1.2.0",

@@ -1,24 +1,24 @@
 {
-  "name": "fit-query",
+  "name": "fit-process",
   "version": "0.0.0",
-  "description": "Run fit-query from the npm registry — launcher for @forwardimpact/libgraph",
+  "description": "Run fit-process from the npm registry — launcher for @forwardimpact/librag",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",
-    "directory": "launchers/fit-query"
+    "directory": "launchers/fit-process"
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "bin": {
-    "fit-query": "./bin/fit-query.js"
+    "fit-process": "./bin/fit-process.js"
   },
   "files": [
     "bin/"
   ],
   "dependencies": {
-    "@forwardimpact/libgraph": "0.0.0"
+    "@forwardimpact/librag": "0.0.0"
   },
   "engines": {
     "bun": ">=1.2.0",
