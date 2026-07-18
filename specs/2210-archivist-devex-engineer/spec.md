@@ -25,8 +25,8 @@ six-persona roster. Left unowned, both compound with every shift.
   rotation — unbounded growth. Monthly storyboards accumulate the same way.
 - The technical writer's wiki curation enforces *hygiene* — contract audit,
   claims, teammate observations, MEMORY.md currency — and rotates a log only
-  when it breaches its size budget. No agent does *time-based retention*: nothing
-  retires a past-week log or past-month storyboard by age, or archives a
+  when it breaches its size budget. No agent does *time-based retention*:
+  nothing retires a past-week log or past-month storyboard by age, or archives a
   completed spec.
 - Effect: every agent's on-boot read set and every repository-wide search grows,
   raising context cost and lowering signal for all agents.
