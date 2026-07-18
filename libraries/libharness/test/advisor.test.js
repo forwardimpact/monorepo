@@ -93,11 +93,17 @@ describe("createAdvisor", () => {
       "Bash",
       "Write",
       "Edit",
+      "NotebookEdit",
       "Agent",
       "Task",
       "TaskOutput",
       "TaskStop",
+      "TodoWrite",
+      "WebFetch",
+      "WebSearch",
     ]);
+    // No bus presence: the advisor session carries no MCP servers at all.
+    assert.ok(!("mcpServers" in opts));
     assert.ok(opts.systemPrompt.append.includes(ADVISOR_SYSTEM_PROMPT));
     assert.strictEqual(result.advice, "Take the smaller refactor.");
     assert.strictEqual(typeof result.durationMs, "number");

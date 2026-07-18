@@ -197,6 +197,30 @@ describe("Facilitator - createFacilitator factory", () => {
     assert.ok(!f.facilitatorRunner.systemPrompt.includes("`Advisor` tool"));
   });
 
+  test("loop stop aborts a facilitated agent's pending consult, which resolves fail-open", async () => {
+    const hangingQuery = (params) =>
+      (async function* () {
+        await new Promise((_, reject) => {
+          params.options.abortController.signal.addEventListener("abort", () =>
+            reject(new Error("aborted by signal")),
+          );
+        });
+      })();
+    const f = createFacilitator({
+      ...baseOpts(),
+      query: hangingQuery,
+      advisorModel: "adv-model",
+    });
+
+    const advisor = findAgent(f, "agent-1").runner.mcpServers.orchestration
+      .instance._registeredTools.Advisor;
+    const pending = advisor.handler({ question: "Q" }, {});
+    // #stop() aborts this controller; trigger the same path directly.
+    f.abortController.abort();
+    const result = await pending;
+    assert.match(result.content[0].text, /advisor is unavailable/);
+  });
+
   test("per-agent allowedTools and maxTurns propagate", () => {
     const f = createFacilitator({
       ...baseOpts(),

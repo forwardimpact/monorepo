@@ -80,15 +80,22 @@ const ADVISOR_ALLOWED_TOOLS = ["Read", "Glob", "Grep"];
 
 // Under the harness's always-on bypassPermissions, `allowedTools` alone is
 // not structural — `disallowedTools` is what removes tools from the model's
-// context, the same treatment the lead runners get.
+// context, the same treatment the lead runners get. The advisor's contract
+// is stricter than the leads' (read-only inspection, nothing else), so the
+// list also removes the write-capable and non-inspection built-ins the
+// lead convention leaves in.
 const ADVISOR_DISALLOWED_TOOLS = [
   "Bash",
   "Write",
   "Edit",
+  "NotebookEdit",
   "Agent",
   "Task",
   "TaskOutput",
   "TaskStop",
+  "TodoWrite",
+  "WebFetch",
+  "WebSearch",
 ];
 
 const devNull = new Writable({

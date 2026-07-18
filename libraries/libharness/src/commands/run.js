@@ -27,7 +27,7 @@ import { AGENT_MODEL } from "@forwardimpact/libutil/models";
  * Parse and validate run command options from parsed values.
  * @param {object} values - Parsed option values from cli.parse()
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
- * @returns {{ taskContent: string, cwd: string, model: string, maxTurns: number, outputPath: string|undefined, agentProfile: string|undefined, workTracker: string, allowedTools: string[], advisorModel: string|undefined, advisorMaxUses: number }}
+ * @returns {{ taskContent: string, taskAmend: string|undefined, cwd: string, agentModel: string, maxTurns: number, outputPath: string|undefined, agentProfile: string|undefined, workTracker: string, allowedTools: string[], mcpServer: string|undefined, advisorModel: string|undefined, advisorMaxUses: number }}
  */
 export function parseRunOptions(values, runtime) {
   const { task: taskContent, amend: taskAmend } = resolveTaskContent(

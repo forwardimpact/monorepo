@@ -80,6 +80,15 @@ describe("parseRunOptions - advisor flags", () => {
       /--advisor-max-uses requires --advisor-model/,
     );
   });
+
+  test("a malformed --advisor-max-uses is a usage error, not a silent NaN", () => {
+    for (const bad of ["abc", "0", "-2"]) {
+      assert.throws(
+        () => parse({ "advisor-model": "adv-m", "advisor-max-uses": bad }),
+        /--advisor-max-uses must be a positive integer/,
+      );
+    }
+  });
 });
 
 describe("wireRunSession - advisor wiring", () => {
