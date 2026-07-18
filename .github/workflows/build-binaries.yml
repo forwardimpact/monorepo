@@ -88,7 +88,7 @@ jobs:
             # compiled binary previously failed on with "Missing *.mustache". It
             # skips --type (pbjs subprocess, a separate concern). `set -e` (the
             # default shell) fails the gate on the binary's non-zero exit.
-            "$BIN" --service --client --definition
+            "$BIN" generate --service --client --definition
           else
             # Capture stdout+stderr: a CLI that prints --help to stderr must
             # still count as non-empty output (the gate is "starts and writes
