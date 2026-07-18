@@ -3,8 +3,7 @@
 **Classification:** Internal. Every change lands under `.claude/` (two agent
 profiles, two skills, the approval-signal catalogue, the `kata-review`
 caller-protocol reference), `KATA.md`, the `kata-shift` workflow, and the
-`websites/kata/` enumeration consumers. Nothing lands under `products/` or
-`services/`.
+`websites/kata/` product site. Nothing lands under `products/` or `services/`.
 
 **Persona / job:** Teams Using Agents — *Run a Continuously Improving Agent
 Team* ([JTBD.md](../../JTBD.md)). Both agents defend the long-run effectiveness
@@ -142,7 +141,7 @@ Components changed:
 | `kata-release-merge` skill               | Recognize the retention-PR class and product-manager approval as its merge signal |
 | Approval-signal catalogue                | `x-approval-signals` and `KATA.md` § Approval Signal / § Trust Boundary gain the retention-PR product-manager signal |
 | `KATA.md`                                | Roster table, skills enumeration block, `kata-shift` roster sequence and the `kata-storyboard` facilitation count in § Workflows, and the hand-maintained persona-count prose ("Six personas") |
-| `websites/kata/index.md`, `llms.txt`     | `published-skills` enumeration count consumers, plus the hand-maintained agent-count prose ("Six agents") |
+| `websites/kata/` public site             | Update the Kata product site (`index.md` "The Team" agent-card grid and headline count, `llms.txt` named-persona list) to include both agents, and refresh the `published-skills` enumeration counts these files carry |
 | `kata-shift` workflow                    | Add both agents to the shift roster matrix                   |
 
 Excluded:
@@ -170,7 +169,8 @@ Excluded:
 | `published-skills` enumeration stays consistent across `KATA.md`, `websites/kata/index.md`, and `llms.txt`      | the repository's enumeration-drift invariant (`coaligned invariants`) |
 | `KATA.md` roster table lists both agents                                                                       | `KATA.md` § Agents                                                 |
 | `kata-review` caller protocol lists a DevEx panel — own role and size — for design, plan, and implementation, and not for spec reviews | `kata-review` caller-protocol reference (panel-composition table) |
-| Persona-count and roster prose in `KATA.md`, `websites/kata/index.md`, and `llms.txt` reflect the two added agents | those files (hand-maintained prose, not enum-gated) |
+| The `websites/kata/` public site reflects both agents: an agent card each in the `index.md` "The Team" grid, the updated headline count, and both names in the `llms.txt` persona list | `websites/kata/index.md`, `llms.txt` (hand-maintained content, not enum-gated) |
+| Hand-maintained persona-count prose in `KATA.md` reflects the two added agents | `KATA.md` (not enum-gated) |
 | `kata-shift` roster matrix and its § Workflows roster sequence include `archivist` and `devex-engineer`          | the `kata-shift` workflow file; `KATA.md` § Workflows              |
 | Archivist scope constraints forbid removing non-terminal specs, current-week logs, the current-month storyboard, and canonical records (STATUS.md, MEMORY.md) | Archivist profile constraints section |
 | Archivist opens a release-engineer-gated PR to remove spec directories (never pushing to `main`), and removes wiki artifacts directly on shift | Archivist profile; `kata-archive` skill |
