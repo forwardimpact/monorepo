@@ -57,6 +57,7 @@ pass, `1` on fail.
 | `--input`  | no       | Run-output directory containing `results.jsonl` (default `benchmark-runs`)           |
 | `--k`      | no       | Comma-separated `k` values (default `1,3,5`)                                         |
 | `--format` | no       | Output format `json` or `text` (default `json`)                                      |
+| `--detail` | no       | Text report verbosity `full` or `compact` (default `full`); `compact` drops per-task detail for a short sharded-run summary |
 
 Records that fail schema validation are skipped with a stderr warning
 and counted under `totals.skipped`.

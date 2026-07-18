@@ -140,6 +140,11 @@ export const definition = {
           type: "string",
           description: "Output format (json|text, default: json)",
         },
+        detail: {
+          type: "string",
+          description:
+            "Text report verbosity (full|compact, default: full). compact omits per-task detail — useful for sharded run summaries.",
+        },
       },
     },
   ],

@@ -54,7 +54,8 @@ task N times, append the pass@k report to the GitHub step summary, and upload
    `bunx`, then `npx`.
 3. **Run** — executes `fit-benchmark run` with the provided inputs.
 4. **Report** — appends the text report to `GITHUB_STEP_SUMMARY` (when
-   `summary` is `"true"`).
+   `summary` is `"true"`). Set `summary-detail` to `"compact"` for a short
+   status + pass@k summary instead of the full per-task detail.
 5. **Upload** — uploads `results.jsonl` as a workflow artifact (when
    `upload-results` is `"true"`).
 
@@ -83,6 +84,7 @@ CI-specific inputs that have no CLI equivalent:
 | `k` | `"1,3,5"` | Comma-separated k values for pass@k |
 | `format` | `"text"` | Report output format |
 | `summary` | `"true"` | Append report to `GITHUB_STEP_SUMMARY` |
+| `summary-detail` | `"full"` | Run-mode summary verbosity (`full` or `compact`); `compact` renders status + pass@k only |
 | `upload-results` | `"true"` | Upload `results.jsonl` as artifact |
 | `artifact-name` | `"benchmark-results"` | Name for the uploaded artifact (run mode with `shard-total` > `"1"` uploads `benchmark-shard-<i>`) |
 | `timeout-minutes` | `"60"` | Maximum minutes before cancellation |
@@ -196,6 +198,10 @@ it provisions only the report CLI, since `report --input` discovers and unions
 every shard's `results.jsonl` recursively. Effective parallelism is
 `shard-total` × the per-machine concurrency. Leaving `shard-total` unset runs
 the whole family in one shard job — the identity case.
+
+Each shard job emits a compact summary (status + pass@k), so a many-shard run
+stays quick to scan; the merge job emits the single full report over the
+combined ledger.
 
 ## Verify
 

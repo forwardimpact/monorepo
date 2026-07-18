@@ -143,11 +143,19 @@ export function renderTextReport(report, kValues) {
 }
 
 // ---------------------------------------------------------------------------
-// Compact report (legacy path)
+// Compact report — status line + pass@k table, no per-task detail. Selected by
+// `report --detail=compact` (aggregate without `includeRuns`); the per-shard
+// summary uses it so a sharded run stays short while the merge job renders the
+// full report over the combined ledger.
 // ---------------------------------------------------------------------------
 
 function renderCompactReport(report, kValues) {
+  const { totals } = report;
+  const passing = report.tasks.filter((t) => t.c > 0 && t.c === t.n).length;
+  const icon = statusIcon(passing === totals.tasks);
   const lines = [
+    `${icon} **${passing}/${totals.tasks} tasks passing** | ${totals.runs} runs${totals.skipped ? ` | ${totals.skipped} skipped` : ""}`,
+    "",
     renderPassAtKTable(report, kValues),
     "",
     renderTotalsLine(report),
