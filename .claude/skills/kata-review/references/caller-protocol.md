@@ -2,23 +2,26 @@
 
 Shared protocol for callers of `kata-review`. Used by:
 
-- `kata-spec` Step 5, `kata-design` Step 5, `kata-plan` Step 5 — panel of 3
-- `kata-implement` Step 7 — panel of 5
+- `kata-spec` Step 5 — product + technical panels, 3 each
+- `kata-design` / `kata-plan` Step 5 — technical + devex panels, 3 each
+- `kata-implement` Step 7 — technical panel of 5 + devex panel of 3
 
 ## Panel Composition
 
-Each panel has a role (`subagent_type`) and a size. Callers launch all panels
-for a given artifact in a single message so they run in parallel.
+Each panel has a role (`subagent_type`) and a size.
 
 | Caller           | Artifact                    | Panel     | `subagent_type`   | Reviewers |
 | ---------------- | --------------------------- | --------- | ----------------- | --------- |
 | `kata-spec`      | `spec.md`                   | product   | `product-manager` | 3         |
 | `kata-spec`      | `spec.md`                   | technical | engineering agent  | 3         |
 | `kata-design`    | `design-a.md`               | technical | engineering agent  | 3         |
+| `kata-design`    | `design-a.md`               | devex     | `devex-engineer`  | 3         |
 | `kata-plan`      | `plan-a.md` (+ parts)       | technical | engineering agent  | 3         |
+| `kata-plan`      | `plan-a.md` (+ parts)       | devex     | `devex-engineer`  | 3         |
 | `kata-implement` | diff (`origin/main...HEAD`) | technical | engineering agent  | 5         |
+| `kata-implement` | diff (`origin/main...HEAD`) | devex     | `devex-engineer`  | 3         |
 
-Rationale for panels, sizes, and the spec-only product panel:
+Rationale for panels, sizes, and scope:
 [panel-rationale.md](panel-rationale.md).
 
 ## How to Invoke

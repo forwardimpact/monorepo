@@ -33,5 +33,5 @@ jobs:
           task-text: >-
             Facilitate a team Kata storyboard session.
           lead-profile: "improvement-coach"
-          agent-profiles: "security-engineer,technical-writer,product-manager,staff-engineer,release-engineer"
+          agent-profiles: "security-engineer,devex-engineer,technical-writer,archivist,product-manager,staff-engineer,release-engineer"
           task-amend: ${{ inputs.task-amend }}
