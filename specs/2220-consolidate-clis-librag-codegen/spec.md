@@ -1,8 +1,9 @@
 # Spec 2220: Consolidate the RAG and codegen CLIs
 
-**Classification:** Internal — the change lands on shared libraries
-(`libraries/`), agent skills (`.claude/skills/`), and library documentation. No
-`products/` or `services/` surface changes.
+**Classification:** Product-aligned — beyond shared libraries (`libraries/`),
+agent skills (`.claude/skills/`), and library docs, the change updates the
+**Gear** product landing page (`websites/fit/gear/`) and Gear's product scope,
+which documents a product surface a persona hires.
 
 **Persona / job:** Platform Builders, across two jobs. The RAG consolidation
 serves *Ground Agents in Context*
@@ -96,6 +97,7 @@ fresh installation learns only the consolidated surface.
 | `websites/fit/docs/libraries/ground-agents/**` | Command invocations updated to `fit-process`/`fit-rag`; page slugs unchanged (published URLs) |
 | `websites/fit/docs/libraries/typed-contracts/**`, `internals/release`, `internals/vectors`, `getting-started/engineers/guide` | `fit-codegen`/RAG command invocations updated |
 | `libraries/README.md` catalog, `websites/fit/docs` library index | New `librag`; `fit-download-bundle` entry removed |
+| `websites/fit/gear/index.md` (Gear product page) + Gear product scope | Reflect `librag` in the catalog and regenerated library count; keep the "Ground Agents in Context" retrieval capability copy accurate for the unified `fit-rag` surface |
 
 Doc page slugs are published URLs, kept in place (retitled at most, never
 moved). Two slugs are referenced by CLI `documentation` arrays today —
@@ -112,7 +114,7 @@ launcher packages; removing the six RAG bins and their launchers; adding
 `fit-codegen download` and removing `fit-download-bundle`; making the
 proto-compiler toolchain opt-in for `libcodegen`; updating all internal call
 sites (including the container `Dockerfile` entrypoint), affected `fit-*`
-skills, and library docs.
+skills, library docs, and the **Gear** product landing page and product scope.
 
 **Excluded:** decoupling `protobufjs` from `libtype`/`libtelemetry` (a
 foundational re-architecture); consolidating any hard-excluded CLIs
@@ -133,4 +135,5 @@ behavior.
 | 6 | A production install of `libcodegen` omits the proto-compiler toolchain | Installing `libcodegen` with optional dependencies omitted yields a `node_modules` without `@grpc/proto-loader`, `mustache`, or `protobufjs-cli`, and `fit-codegen download` still runs |
 | 7 | No live call site references a removed CLI | `rg` for the removed bin names finds no hits in shipped source, CI, the `Dockerfile`, docs, or `CLAUDE.md` (excluding `specs/`, test fixtures, and generated/lock files) |
 | 8 | Affected skills exist and are in CLI parity | `.claude/skills/fit-rag`, `fit-process`, `fit-codegen` present; `fit-search`/`fit-query`/`fit-subjects` skills absent; each skill's `## Documentation` matches its CLI's `documentation` array |
-| 9 | Repository checks pass | `bun run check` and `bunx coaligned` are green |
+| 9 | The Gear product page reflects the consolidation | `websites/fit/gear/index.md` shows the regenerated library count including `librag`, its "Ground Agents in Context" copy stays accurate, and no removed-CLI names appear |
+| 10 | Repository checks pass | `bun run check` and `bunx coaligned` are green |

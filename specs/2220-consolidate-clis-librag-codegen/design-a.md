@@ -104,6 +104,7 @@ here.
 | Ground-agents guides | `websites/fit/docs/libraries/ground-agents/**` | Rewrite `npx fit-*` invocations; slugs unchanged |
 | Codegen/vectors/release docs | `typed-contracts`, `internals/{vectors,release}`, `getting-started/engineers/guide` | Update invocations |
 | Catalogs | `libraries/README.md`, library docs index | Add `librag`; drop `fit-download-bundle` |
+| Gear product page | `websites/fit/gear/index.md` | Library-count enum regenerates for `librag` (mechanical via `context`); confirm the "Ground Agents in Context" card copy fits the unified `fit-rag` surface |
 
 Skill packs are generic: the new skills name CLIs bare (`fit-rag search`), never
 `npx`/paths, per `.claude/skills/CLAUDE.md`.
