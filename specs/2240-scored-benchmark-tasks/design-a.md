@@ -42,12 +42,14 @@ A details row is a **scored check** iff it carries a numeric `weight > 0`:
 - **Full marks** is the count predicate *every scored check passes*, exposed as
   a `fullMarks` boolean on the derivation result. The verdict never compares
   float sums, so fractional weights carry no equality hazard.
-- **Malformed scored rows fail.** A row with a valid weight but a missing or
-  non-boolean `pass` counts as a *failing* scored check (its weight enters the
-  denominator only), and the derivation reports a `malformed` count that the
-  `invariants` subcommand and the report surface as a warning. Silently
-  dropping such rows could mint full marks from a broken hook. Rows the fd-3
-  parser already marks `parseError` carry no weight and stay diagnostic.
+- **A `weight` key declares scored intent; malformed intent fails.** Any row
+  carrying a `weight` key is a scored check. If the weight is invalid (not a
+  finite number > 0) or `pass` is missing or non-boolean, the row counts as a
+  *failing* scored check — an invalid weight contributes at the unit weight 1,
+  a valid one at its own value, in the denominator only — and the derivation's
+  `malformed` count records it. Silently dropping either defect could mint
+  full marks from a broken hook. Rows the fd-3 parser already marks
+  `parseError` carry no keys to inspect and stay diagnostic.
 - Zero scored checks → the task is judged; derivation returns `null` and no
   `score` field appears anywhere.
 - Rows without `weight` remain what they are today: diagnostic detail. A
@@ -65,12 +67,12 @@ A details row is a **scored check** iff it carries a numeric `weight > 0`:
 | --- | --- | --- |
 | `deriveScore(details)` | new `benchmark/score.js` | Pure: apply § convention, return `{score, fullMarks, malformed}` or `null`. Sole home of the arithmetic and the full-marks predicate. |
 | Verdict + score composition | `benchmark/runner.js` `#executeCell` | Effective score: `null` when derivation is `null`; `0` when the invariants exit code or the judge gate fails; the derived score otherwise. Verdict: `pass` iff every gate passes ∧ (derivation is `null` ∨ `fullMarks`). Preflight-failure records never reach this path and stay exactly as today (no invariants, no score); their zero is realized in aggregation per spec requirement 4. |
-| Record schema | `benchmark/result.js` | Optional `score` (number, 0–1) on the happy record and on the invariants record. Preflight records are unchanged. |
-| `invariants` subcommand | `commands/benchmark-invariants.js` | Same derivation and the same gate composition as `run` (invariants exit code ≠ 0 → record score 0), so hook authoring iterates against the real contract. The record's existing `exitCode` field keeps mirroring the script's exit; the CLI *process* exits non-zero when the gate fails or `fullMarks` is false, mirroring `run`'s cell verdict. |
+| Record schema | `benchmark/result.js` | Optional `score` (number, 0–1) and optional `malformedChecks` (integer, present only when > 0) on the happy record and on the invariants record, so the report reads both off the record without re-deriving from details. Preflight records are unchanged. |
+| `invariants` subcommand | `commands/benchmark-invariants.js` | Same derivation and the same gate composition as `run` (invariants exit code ≠ 0 → record score 0), so hook authoring iterates against the real contract. The record's existing `exitCode` field keeps mirroring the script's exit; the CLI *process* exits non-zero when the gate fails or `fullMarks` is false — the invariants-gate ∧ full-marks portion of `run`'s cell verdict (no judge runs here). |
 | Report aggregation | `benchmark/report.js` | A task group is scored when ≥ 1 record carries `score`. Per scored task: `meanScore` and `scoreAtK[k]` (§ Estimator). A record without `score` in a scored group contributes its verdict as the degenerate score — pass = 1, fail = 0 — so a preflight failure drags the mean down and a pre-conversion passing cell does not (its old verdict already asserted full marks). |
-| Report rendering | `benchmark/report.js` | Text: the pass@k table gains `score` and `score@k` columns only when the report contains a scored task (judged rows render `—`); the per-task runs table gains a `Score` column under the same condition; malformed-row warnings render with the task detail. JSON: fields appear on scored tasks only. |
+| Report rendering | `benchmark/report.js` | Text: the pass@k table gains `score` and `score@k` columns only when the report contains a scored task (judged rows render `—`); the per-task runs table gains a `Score` column under the same condition; records with `malformedChecks` render a warning in the task detail. JSON: fields appear on scored tasks only. |
 | `fit-trace assert --weight` | `commands/assert.js` + the CLI definition in `bin/fit-trace.js` | Optional flag; validates a positive number; adds `weight` to the emitted row. Keeps the documented authoring contract able to author scored checks without hand-written JSON. |
-| Leading example | `benchmarks/kata-skills/tasks/implement-feature/hooks/` | Gate: app present + the **baseline** suite green, run against pristine baseline tests restored from `$HOOKS_DIR` first (the agent-editable copy in `app/test/` cannot vouch for itself; the same restore-from-hooks move the hidden test already uses). Score: the hidden feature suite split into one test file per scored check; each runs as its own `node --test` invocation and its exit status becomes one `weight: 1` row — the process-exit analog of the assert helper, with no reporter parsing. Judge (scope discipline) unchanged. Family README rows updated. |
+| Leading example | `benchmarks/kata-skills/tasks/implement-feature/hooks/` | Gate: app present + the **baseline** suite green, run against pristine baseline tests restored from `$HOOKS_DIR` first (the agent-editable copy in `app/test/` cannot vouch for itself; the same restore-from-hooks move the hidden test already uses). The `hooks/` copy duplicates the family `workdir/` baseline test — an accepted drift pair, since `$FAMILY_DIR` is absent under the `invariants` subcommand; the family README names the pair. Score: the hidden feature suite split into one test file per scored check; each runs as its own `node --test` invocation and its exit status becomes one `weight: 1` row — the process-exit analog of the assert helper, with no reporter parsing. Judge (scope discipline) unchanged. Family README rows updated. |
 | Docs | `fit-benchmark` SKILL.md, `references/authoring.md`, `references/cli.md`, Run a Benchmark guide, `benchmarks/README.md` | Scored vs judged shapes, the row convention, the exit-code contract and gate/score helper split, gate-protection semantics, report columns, and when to author which shape. |
 
 ## Key Decisions
@@ -80,7 +82,7 @@ A details row is a **scored check** iff it carries a numeric `weight > 0`:
 | How a task declares itself scored | Row-level `weight` on fd-3 check rows | A `{"score": 0.8}` summary row — every hook reimplements the arithmetic, rounding drifts across families, and per-check evidence is lost. A manifest/flag — configuration that can contradict what the rows actually contain. |
 | Verdict for scored cells | `pass` requires gates ∧ full marks | Gates-only verdict — pass@k saturates on partially-solved tasks and `run`'s exit code goes green on partial capability, breaking CI semantics. |
 | Gate failure vs score | A failed invariants/judge gate forces record score 0; row-less failures resolve at aggregation | Reporting the raw score alongside a failed gate — a cell that hacked the scaffold or flunked the scope judge could mint high scores into the mean, which is the gaming vector the gates exist to close. |
-| Malformed scored rows | Count as failing scored checks + surfaced warning | Silently ignoring them — a typo in `pass` demotes a failing check out of the score and can flip a cell to full marks with no signal. Failing the whole hook — turns a diagnostic-quality issue into a gate failure, zeroing runs that mechanically completed work. |
+| Malformed scored rows | Count as failing scored checks + surfaced warning (§ convention) | Silently ignoring them — see the convention's rationale. Failing the whole hook — turns a diagnostic-quality issue into a gate failure, zeroing runs that mechanically completed work. |
 | Where the score is computed | At record time, one pure function, two callers | At report time from `details` — every downstream consumer re-implements weighting, and ledgers stop being self-describing. |
 | Score-less records in a scored group | Degenerate verdict score: pass = 1, fail = 0 | Skipping them — inflates the mean exactly when the agent fails hardest (preflight failures vanish from the denominator). Counting all as 0 — deflates pre-conversion passing cells that the Compatibility section promises merge cleanly. |
 | Best-of-k statistic | Exact expected-max via order statistics (§ Estimator) | Mean only — hides best-case capability and is asymmetric with pass@k. Monte Carlo — nondeterministic reports for the same ledger. |
@@ -109,10 +111,10 @@ the existing pass@k field carries, so the two estimators expose one idiom.
 deriveScore(details) // → {score: number, fullMarks: boolean, malformed: number} | null
 
 // ResultRecord (happy branch) — additive
-{ …existing, score?: number }          // 0–1; absent on judged tasks
+{ …existing, score?: number, malformedChecks?: number }  // absent on judged tasks
 
 // InvariantsRecord — additive
-{ taskId, invariants, exitCode, score?: number }
+{ taskId, invariants, exitCode, score?: number, malformedChecks?: number }
 
 // report JSON — additive, scored tasks only
 task: { …existing, meanScore?: number, scoreAtK?: Record<k, number|{error: string}> }
