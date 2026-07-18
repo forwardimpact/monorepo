@@ -1,7 +1,10 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 
-import { createTestRuntime, createMockAgentQuery } from "@forwardimpact/libmock";
+import {
+  createTestRuntime,
+  createMockAgentQuery,
+} from "@forwardimpact/libmock";
 
 import {
   ADVISOR_SYSTEM_PROMPT,
@@ -114,7 +117,10 @@ describe("createAdvisor", () => {
     assert.match(prompt, /You are the caller agent\./);
     assert.match(prompt, /<caller_prompts>\nThe delivered task/);
     assert.match(prompt, /<caller_transcript>\n\{"type":"assistant","seq":1\}/);
-    assert.match(prompt, /<consult_question>\nWhich approach\?\n<\/consult_question>/);
+    assert.match(
+      prompt,
+      /<consult_question>\nWhich approach\?\n<\/consult_question>/,
+    );
   });
 
   test("a second consult re-renders the record as it stands (stateless)", async () => {
@@ -156,6 +162,7 @@ describe("createAdvisor", () => {
   test("a throwing query yields {unavailable} with the error reason", async () => {
     const query = () =>
       (async function* () {
+        yield { type: "system", subtype: "init", session_id: "sess-boom" };
         throw new Error("model exploded");
       })();
     const advisor = createAdvisor(baseDeps({ query }));

@@ -26,7 +26,11 @@ import {
   advisorTool,
   createOrchestrationContext,
 } from "./orchestration-toolkit.js";
-import { advisorGuidance, createAdvisor, createAdvisorBudget } from "./advisor.js";
+import {
+  createAdvisor,
+  createAdvisorBudget,
+  withAdvisorGuidance,
+} from "./advisor.js";
 import { createTranscriptRecorder } from "./transcript-recorder.js";
 import {
   createDiscussLeadToolServer,
@@ -326,11 +330,7 @@ export function createDiscusser({
       profile: config.agentProfile,
       profilesDir: resolvedProfilesDir,
       trailer: DISCUSS_AGENT_SYSTEM_PROMPT,
-      amend: advisorModel
-        ? [config.systemPromptAmend, advisorGuidance(budget.maxUses)]
-            .filter(Boolean)
-            .join("\n\n")
-        : config.systemPromptAmend,
+      amend: withAdvisorGuidance(config.systemPromptAmend, budget),
       runtime,
     });
 

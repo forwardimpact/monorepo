@@ -144,6 +144,42 @@ thread for a question that outlives the current session. In `discuss` mode,
 `Acknowledge` posts a brief message straight to the thread (a status update or a
 reply to a human follow-up) without discharging an owed Answer.
 
+## Consult an advisor
+
+An advisor is a bounded, read-only, one-shot consult on a stronger model. When
+an agent participant hits a hard decision — an architectural fork, an unclear
+root cause, a trade-off it cannot rank — it calls the `Advisor` tool with one
+focused question. The harness forwards the agent's full session context (its
+system prompt, delivered prompts, and transcript so far) plus the question to
+a fresh session on the advisor model. That session can read files but cannot
+write, execute, or spawn agents; its final text returns as the tool result and
+the caller stays in control of its own loop.
+
+Two flags enable it, on `run`, `supervise`, `facilitate`, and `discuss`:
+
+```sh
+npx fit-harness facilitate \
+  --task-file=sessions/release-review/task.md \
+  --lead-profile=release-facilitator \
+  --agent-profiles=security-engineer,release-engineer \
+  --advisor-model="claude-opus-4-8[1m]" \
+  --advisor-max-uses=3 \
+  --output=trace.ndjson
+```
+
+Omitting `--advisor-model` disables the tool entirely — no advisor prompt
+text, no tool, no cost. `--advisor-max-uses` (default 3) is a session-wide
+budget shared by all participants and enforced in code; once spent, further
+consults return "proceed with your best judgment" without starting an advisor
+session. Consults are fail-open: a consult that times out, errors, or is
+aborted resolves the same way, and the caller's session continues normally.
+Lead roles never get the tool — only agent participants do.
+
+Every consult is evident in the trace: an `advisor_consult` orchestrator event
+records the caller, question, model, duration, and remaining budget, and the
+advisor session's own lines — including its result event with token usage and
+cost — appear under a distinct `advisor` source.
+
 ## Run a facilitated session
 
 Write a facilitator profile and one profile per participant. Each participant

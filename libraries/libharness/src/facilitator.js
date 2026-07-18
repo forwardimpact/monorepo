@@ -18,7 +18,11 @@ import {
   createFacilitatedAgentToolServer,
 } from "./orchestration-toolkit.js";
 import { OrchestrationLoop } from "./orchestration-loop.js";
-import { advisorGuidance, createAdvisor, createAdvisorBudget } from "./advisor.js";
+import {
+  createAdvisor,
+  createAdvisorBudget,
+  withAdvisorGuidance,
+} from "./advisor.js";
 import { createTranscriptRecorder } from "./transcript-recorder.js";
 
 /** System prompt for the facilitator lead. L0 mechanics only per COALIGNED. */
@@ -148,11 +152,7 @@ export function createFacilitator({
       profile: config.agentProfile,
       profilesDir: resolvedProfilesDir,
       trailer: FACILITATED_AGENT_SYSTEM_PROMPT,
-      amend: advisorModel
-        ? [config.systemPromptAmend, advisorGuidance(budget.maxUses)]
-            .filter(Boolean)
-            .join("\n\n")
-        : config.systemPromptAmend,
+      amend: withAdvisorGuidance(config.systemPromptAmend, budget),
       runtime,
     });
 

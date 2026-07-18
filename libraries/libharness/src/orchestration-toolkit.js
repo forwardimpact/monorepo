@@ -432,7 +432,10 @@ export function createFacilitatorToolServer(ctx) {
 }
 
 /** Facilitated agent tools: Ask + Answer + Announce + RollCall + RequestForComment (+ extras). */
-export function createFacilitatedAgentToolServer(ctx, { from, extraTools = [] }) {
+export function createFacilitatedAgentToolServer(
+  ctx,
+  { from, extraTools = [] },
+) {
   return orchestrationServer([
     ...baseTools(ctx, { from, defaultTo: "facilitator", broadcast: true }),
     requestForCommentTool(ctx),

@@ -27,7 +27,11 @@ import {
   createSupervisorToolServer,
 } from "./orchestration-toolkit.js";
 import { OrchestrationLoop } from "./orchestration-loop.js";
-import { advisorGuidance, createAdvisor, createAdvisorBudget } from "./advisor.js";
+import {
+  createAdvisor,
+  createAdvisorBudget,
+  withAdvisorGuidance,
+} from "./advisor.js";
 import { createTranscriptRecorder } from "./transcript-recorder.js";
 
 /** System prompt for the supervisor lead. L0 mechanics only per COALIGNED. */
@@ -186,11 +190,7 @@ export function createSupervisor({
     profile: agentProfile,
     profilesDir: resolvedProfilesDir,
     trailer: AGENT_SYSTEM_PROMPT,
-    amend: advisorModel
-      ? [agentSystemPromptAmend, advisorGuidance(budget.maxUses)]
-          .filter(Boolean)
-          .join("\n\n")
-      : agentSystemPromptAmend,
+    amend: withAdvisorGuidance(agentSystemPromptAmend, budget),
     runtime,
   });
 

@@ -8,7 +8,10 @@ import {
   FACILITATOR_SYSTEM_PROMPT,
   FACILITATED_AGENT_SYSTEM_PROMPT,
 } from "@forwardimpact/libharness";
-import { createMockAgentQuery, createTestRuntime } from "@forwardimpact/libmock";
+import {
+  createMockAgentQuery,
+  createTestRuntime,
+} from "@forwardimpact/libmock";
 import { createNoopRedactor } from "../src/redaction.js";
 
 const baseOpts = () => ({
@@ -150,8 +153,14 @@ describe("Facilitator - createFacilitator factory", () => {
     const tools = (name) =>
       findAgent(f, name).runner.mcpServers.orchestration.instance
         ._registeredTools;
-    const first = await tools("agent-1").Advisor.handler({ question: "A?" }, {});
-    const denied = await tools("agent-2").Advisor.handler({ question: "B?" }, {});
+    const first = await tools("agent-1").Advisor.handler(
+      { question: "A?" },
+      {},
+    );
+    const denied = await tools("agent-2").Advisor.handler(
+      { question: "B?" },
+      {},
+    );
 
     assert.match(first.content[0].text, /Advice\./);
     assert.match(denied.content[0].text, /Consult limit reached \(1\/1 used\)/);

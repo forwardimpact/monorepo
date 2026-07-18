@@ -573,22 +573,7 @@ describe("AgentRunner", () => {
     assert.ok(!("pathToClaudeCodeExecutable" in captured.options));
   });
 
-  test("onPrompt receives the amended task on run()", async () => {
-    const prompts = [];
-    const runner = new AgentRunner({
-      cwd: "/tmp",
-      query: mockQuery([{ type: "result", subtype: "success", result: "OK" }]),
-      output: new PassThrough(),
-      taskAmend: "Amendment.",
-      onPrompt: (text) => prompts.push(text),
-      redactor: noop(),
-    });
-
-    await runner.run("Do the task");
-    assert.deepStrictEqual(prompts, ["Do the task\n\nAmendment."]);
-  });
-
-  test("onPrompt receives the raw prompt on resume()", async () => {
+  test("onPrompt receives the amended task on run() and the raw prompt on resume()", async () => {
     const prompts = [];
     let callCount = 0;
     const query = async function* () {
@@ -604,13 +589,14 @@ describe("AgentRunner", () => {
       cwd: "/tmp",
       query,
       output: new PassThrough(),
+      taskAmend: "Amendment.",
       onPrompt: (text) => prompts.push(text),
       redactor: noop(),
     });
 
-    await runner.run("Initial");
+    await runner.run("Do the task");
     await runner.resume("Follow up");
-    assert.deepStrictEqual(prompts, ["Initial", "Follow up"]);
+    assert.deepStrictEqual(prompts, ["Do the task\n\nAmendment.", "Follow up"]);
   });
 
   test("createAgentRunner factory returns an AgentRunner instance", () => {

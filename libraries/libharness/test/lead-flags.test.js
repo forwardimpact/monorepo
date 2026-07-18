@@ -174,7 +174,10 @@ describe("--advisor-model / --advisor-max-uses across lead modes", () => {
 
     assert.throws(
       () =>
-        parseFacilitateOptions({ ...base, "advisor-max-uses": "5" }, makeRuntime()),
+        parseFacilitateOptions(
+          { ...base, "advisor-max-uses": "5" },
+          makeRuntime(),
+        ),
       /--advisor-max-uses requires --advisor-model/,
     );
   });

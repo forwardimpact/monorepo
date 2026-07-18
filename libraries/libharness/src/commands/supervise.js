@@ -3,6 +3,7 @@ import { isoTimestamp } from "@forwardimpact/libutil";
 import { createSupervisor } from "../supervisor.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
+import { parseAdvisorOptions } from "./advisor-flags.js";
 import { resolveTaskContent } from "./task-input.js";
 import { resolveWorkTracker } from "./work-tracker.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
@@ -20,10 +21,6 @@ export async function parseSuperviseOptions(values, runtime) {
     runtime,
   );
   const supervisorAllowedToolsRaw = values["supervisor-allowed-tools"];
-
-  if (values["advisor-max-uses"] && !values["advisor-model"]) {
-    throw new Error("--advisor-max-uses requires --advisor-model");
-  }
 
   // `||` (not `??`) throughout so an empty-string flag from a CI forwarder
   // falls back to the default rather than overriding it with "".
@@ -56,8 +53,7 @@ export async function parseSuperviseOptions(values, runtime) {
       ? supervisorAllowedToolsRaw.split(",")
       : undefined,
     mcpServer: values["mcp-server"] || undefined,
-    advisorModel: values["advisor-model"] || undefined,
-    advisorMaxUses: parseInt(values["advisor-max-uses"] || "3", 10),
+    ...parseAdvisorOptions(values),
   };
 }
 

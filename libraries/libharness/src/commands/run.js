@@ -17,6 +17,7 @@ import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { createTranscriptRecorder } from "../transcript-recorder.js";
 import { SequenceCounter } from "../sequence-counter.js";
+import { parseAdvisorOptions } from "./advisor-flags.js";
 import { resolveWorkTracker } from "./work-tracker.js";
 import { resolveTaskContent } from "./task-input.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
@@ -37,10 +38,6 @@ export function parseRunOptions(values, runtime) {
   // the default, rather than overriding it with "".
   const maxTurnsRaw = values["max-turns"] || "50";
 
-  if (values["advisor-max-uses"] && !values["advisor-model"]) {
-    throw new Error("--advisor-max-uses requires --advisor-model");
-  }
-
   return {
     taskContent,
     taskAmend,
@@ -55,8 +52,7 @@ export function parseRunOptions(values, runtime) {
       "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
     ).split(","),
     mcpServer: values["mcp-server"] || undefined,
-    advisorModel: values["advisor-model"] || undefined,
-    advisorMaxUses: parseInt(values["advisor-max-uses"] || "3", 10),
+    ...parseAdvisorOptions(values),
   };
 }
 

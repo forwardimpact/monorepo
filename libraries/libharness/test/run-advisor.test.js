@@ -22,7 +22,10 @@ function makeRuntime() {
 }
 
 function parse(values, runtime = makeRuntime()) {
-  return parseRunOptions({ "task-text": "do it", cwd: "/work", ...values }, runtime);
+  return parseRunOptions(
+    { "task-text": "do it", cwd: "/work", ...values },
+    runtime,
+  );
 }
 
 const adviceMessages = [

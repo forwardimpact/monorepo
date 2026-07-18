@@ -10,7 +10,8 @@ import {
 import { createDiscussAgentToolServer } from "../src/discuss-tools.js";
 import { createAdvisorBudget } from "../src/advisor.js";
 
-const registeredTools = (server) => Object.keys(server.instance._registeredTools);
+const registeredTools = (server) =>
+  Object.keys(server.instance._registeredTools);
 
 function makeTool({ budget, consultResult, from = "agent-1" } = {}) {
   const consults = [];
@@ -122,12 +123,10 @@ describe("agent tool-server extraTools seam", () => {
       "RollCall",
       "Advisor",
     ]);
-    assert.deepStrictEqual(registeredTools(createSupervisedAgentToolServer(ctx())), [
-      "Ask",
-      "Answer",
-      "Announce",
-      "RollCall",
-    ]);
+    assert.deepStrictEqual(
+      registeredTools(createSupervisedAgentToolServer(ctx())),
+      ["Ask", "Answer", "Announce", "RollCall"],
+    );
   });
 
   test("facilitated agent server includes an injected extra tool and defaults to the unchanged surface", () => {
@@ -144,7 +143,9 @@ describe("agent tool-server extraTools seam", () => {
       "Advisor",
     ]);
     assert.deepStrictEqual(
-      registeredTools(createFacilitatedAgentToolServer(ctx(), { from: "agent-1" })),
+      registeredTools(
+        createFacilitatedAgentToolServer(ctx(), { from: "agent-1" }),
+      ),
       ["Ask", "Answer", "Announce", "RollCall", "RequestForComment"],
     );
   });
@@ -165,7 +166,14 @@ describe("agent tool-server extraTools seam", () => {
     ]);
     assert.deepStrictEqual(
       registeredTools(createDiscussAgentToolServer(ctx(), { from: "agent-1" })),
-      ["Ask", "Answer", "Announce", "RollCall", "RequestForComment", "Acknowledge"],
+      [
+        "Ask",
+        "Answer",
+        "Announce",
+        "RollCall",
+        "RequestForComment",
+        "Acknowledge",
+      ],
     );
   });
 });

@@ -81,7 +81,9 @@ export class AgentRunner {
     this.maxTurns = deps.maxTurns ?? 50;
     this.allowedTools = deps.allowedTools ?? DEFAULT_ALLOWED_TOOLS;
     this.onLine = deps.onLine ?? null;
-    this.onPrompt = deps.onPrompt ?? null;
+    // Optional; read only through a truthy guard in run()/resume(), so an
+    // absent value stays undefined rather than needing a `?? null` default.
+    this.onPrompt = deps.onPrompt;
     this.settingSources = deps.settingSources ?? [];
     this.systemPrompt = deps.systemPrompt ?? null;
     this.disallowedTools = deps.disallowedTools ?? [];

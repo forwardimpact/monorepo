@@ -60,6 +60,19 @@ export function createAdvisorBudget(maxUses) {
   return { maxUses, used: 0 };
 }
 
+/**
+ * Fold the consult guidance into an existing run-specific amendment when
+ * the advisor is enabled (budget present); return the amendment unchanged
+ * otherwise, so advisor-off prompts stay byte-identical.
+ * @param {string|undefined} amend - The existing amendment, if any.
+ * @param {{maxUses: number}|null} budget
+ * @returns {string|undefined}
+ */
+export function withAdvisorGuidance(amend, budget) {
+  if (!budget) return amend;
+  return [amend, advisorGuidance(budget.maxUses)].filter(Boolean).join("\n\n");
+}
+
 /** Consult timeout — generous for a read-a-few-files-and-answer session, and the universal guard in modes with no stop path. */
 export const DEFAULT_CONSULT_TIMEOUT_MS = 300_000;
 

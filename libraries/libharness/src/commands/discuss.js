@@ -3,6 +3,7 @@ import { isoTimestamp } from "@forwardimpact/libutil";
 import { createDiscusser } from "../discusser.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
+import { parseAdvisorOptions } from "./advisor-flags.js";
 import { resolveTaskContent } from "./task-input.js";
 import { resolveWorkTracker } from "./work-tracker.js";
 import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
@@ -51,10 +52,6 @@ export function parseDiscussOptions(values, runtime) {
   const maxLeadTurnsRaw = values["max-lead-turns"] || "200";
   const maxLeadTurns = parseInt(maxLeadTurnsRaw, 10);
 
-  if (values["advisor-max-uses"] && !values["advisor-model"]) {
-    throw new Error("--advisor-max-uses requires --advisor-model");
-  }
-
   return {
     taskContent,
     taskAmend,
@@ -71,8 +68,7 @@ export function parseDiscussOptions(values, runtime) {
     callbackUrl: runtime.proc.env.CALLBACK_URL ?? null,
     inboxUrl: runtime.proc.env.INBOX_URL ?? null,
     correlationId: runtime.proc.env.CORRELATION_ID ?? null,
-    advisorModel: values["advisor-model"] || undefined,
-    advisorMaxUses: parseInt(values["advisor-max-uses"] || "3", 10),
+    ...parseAdvisorOptions(values),
   };
 }
 
