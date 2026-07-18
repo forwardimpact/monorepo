@@ -32,7 +32,9 @@ jobs:
           - { name: product-manager }
           - { name: staff-engineer }
           - { name: security-engineer }
+          - { name: devex-engineer }
           - { name: technical-writer }
+          - { name: archivist }
           - { name: release-engineer }
           - { name: improvement-coach }
     steps:

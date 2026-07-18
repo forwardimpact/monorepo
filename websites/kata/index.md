@@ -18,7 +18,7 @@ layout: home
   </svg>
   <h1 class="hero-title">Autonomous coding agents that continuously improve</h1>
   <!-- enum:published-skills:count -->
-  <p class="hero-subtitle">An autonomous agent team that keeps getting better — organized as a daily Plan-Do-Study-Act cycle. Sixteen skills. A focused agent roster. Zero infrastructure.</p>
+  <p class="hero-subtitle">An autonomous agent team that keeps getting better — organized as a daily Plan-Do-Study-Act cycle. Eighteen skills. A focused agent roster. Zero infrastructure.</p>
   <!-- /enum -->
   <div class="scroll-hint">
     <span>Scroll</span>
@@ -36,7 +36,7 @@ layout: home
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
         <!-- enum:published-skills:count -->
-        <div class="stat-number">16</div>
+        <div class="stat-number">18</div>
         <!-- /enum -->
         <div class="stat-label">Skills</div>
         <div class="stat-detail">Each under 200 lines of text</div>
@@ -109,7 +109,7 @@ layout: home
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">The Team</div>
-      <h2 class="section-headline">Six agents. Explicit scope.</h2>
+      <h2 class="section-headline">Eight agents. Explicit scope.</h2>
       <p class="section-body">Each persona knows what it must do — and what it must not. When a finding exceeds scope, the agent writes a spec rather than attempting the fix.</p>
     </div>
     <div class="agents-grid stagger">
@@ -132,6 +132,12 @@ layout: home
         <p class="agent-desc">Patches dependencies, hardens supply chain, enforces security policies.</p>
       </div>
       <div class="agent-card stagger-item">
+        <span class="agent-icon">&#x1f9f9;</span>
+        <div class="agent-name">DevEx Engineer</div>
+        <div class="agent-phase">Do &middot; Study &middot; Act</div>
+        <p class="agent-desc">Audits codebase health, reviews maintainability, and clears debt without changing behavior.</p>
+      </div>
+      <div class="agent-card stagger-item">
         <span class="agent-icon">&#x1f4cb;</span>
         <div class="agent-name">Product Manager</div>
         <div class="agent-phase">Study &middot; Act</div>
@@ -142,6 +148,12 @@ layout: home
         <div class="agent-name">Technical Writer</div>
         <div class="agent-phase">Study &middot; Act</div>
         <p class="agent-desc">Reviews docs for accuracy, curates agent memory, fixes staleness.</p>
+      </div>
+      <div class="agent-card stagger-item">
+        <span class="agent-icon">&#x1f5c4;</span>
+        <div class="agent-name">Archivist</div>
+        <div class="agent-phase">Study &middot; Act</div>
+        <p class="agent-desc">Retires stale logs, storyboards, and completed specs once their signal is safely preserved.</p>
       </div>
       <div class="agent-card stagger-item">
         <span class="agent-icon">&#x2b55;</span>

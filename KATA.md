@@ -124,16 +124,18 @@ graph LR
 
 ## Agents
 
-Six personas with explicit scope constraints — when a finding exceeds scope, the
-agent writes a spec rather than attempting the fix.
+Eight personas with explicit scope constraints — when a finding exceeds scope,
+the agent writes a spec rather than attempting the fix.
 
 | Agent                 | Phase          | Purpose                                                                 |
 | --------------------- | -------------- | ----------------------------------------------------------------------- |
 | **staff-engineer**    | Plan, Do       | Own the full spec -> design -> plan -> implement arc for approved specs |
 | **release-engineer**  | Do             | Keep PR branches merge-ready, repair trivial CI, cut releases           |
 | **security-engineer** | Do, Study, Act | Patch dependencies, harden supply chain, enforce security policies      |
+| **devex-engineer**    | Do, Study, Act | Audit codebase health, review maintainability, clean debt without behavior change |
 | **product-manager**   | Study, Act     | Triage issues, review spec quality, run evaluations                     |
 | **technical-writer**  | Study, Act     | Review docs for accuracy, curate wiki, fix staleness, spec gaps         |
+| **archivist**         | Study, Act     | Retire stale logs, storyboards, and terminal specs once their signal is preserved |
 | **improvement-coach** | Study          | Facilitate storyboard meetings and 1-on-1 coaching sessions             |
 
 Each agent selects work via
@@ -149,8 +151,8 @@ The four PDSA workflows:
 
 | Workflow            | Trigger                              | Agent(s)                                                                                                        |
 | ------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| **kata-shift**      | Daily 03:00 · 12:00 · 20:00 (Paris) | product-manager → staff-engineer → security-engineer → technical-writer → release-engineer → improvement-coach  |
-| **kata-storyboard** | Daily 08:00 (Paris)                  | improvement-coach (facilitates 5 agents)                                                                        |
+| **kata-shift**      | Daily 03:00 · 12:00 · 20:00 (Paris) | product-manager → staff-engineer → security-engineer → devex-engineer → technical-writer → archivist → release-engineer → improvement-coach  |
+| **kata-storyboard** | Daily 08:00 (Paris)                  | improvement-coach (facilitates 7 agents)                                                                        |
 | **kata-coaching**   | `workflow_dispatch`                  | improvement-coach (facilitates 1 agent)                                                                         |
 | **kata-dispatch**   | Events + bridge dispatch             | release-engineer (facilitates up to 4 agents)                                                                   |
 
@@ -198,6 +200,8 @@ for utilities).
 | `kata-documentation`      | Study   | One topic deep per run                        |
 | `kata-wiki-curate`        | Study   | Agent memory hygiene                          |
 | `kata-backlog-synthesis`  | Study   | Consolidate overlapping issues/PRs into one spec |
+| `kata-archive`            | Study   | Retire stale time-bounded artifacts safely    |
+| `kata-devex-audit`        | Study   | Deep-dive codebase-health review, one area/run |
 | `kata-spec`               | Act     | Write specs capturing WHAT/WHY                |
 | `kata-review`             | Utility | Grade a single artifact (leaf, no sub-agents) |
 | `kata-session`            | Utility | Toyota Kata coaching protocol for sessions    |
@@ -281,6 +285,12 @@ graph TD
 Top-7 contributors pass the trust gate; `kata-agent-team` PRs are trusted by
 identity.
 
+**Retention PRs** preserve this boundary: the archivist opens a
+`retention(specs)` PR to remove terminal spec directories but never pushes to
+`main`; the product manager approves once every target is terminal and its
+durable signal is preserved; the release engineer merges. The release engineer
+stays the sole `main`-push agent.
+
 ## Approval Signal
 
 Approval state is recorded in `wiki/STATUS.md` — a tab-separated file, one
@@ -294,10 +304,13 @@ row per spec: `{id}\t{phase}\t{status}`. STATUS is the canonical record;
 | Approval comment ("LGTM", "ship it") | Trusted contributor | `kata-dispatch` |
 | In-session user message | Trusted user | Active agent |
 | `kata-plan` panel-clean | `staff-engineer` (plans only) | `kata-plan` skill |
+| retention-PR approval | `product-manager` (retention PRs only) | `kata-release-merge` at the gate |
 
 Agents never autonomously originate `spec approved` or `design approved` —
 they only propagate signals from trusted humans. Plans may be approved by
-`staff-engineer` after `kata-plan` review. See
+`staff-engineer` after `kata-plan` review; the product manager may originate a
+retention-PR approval, read by `kata-release-merge` at the gate rather than from
+a STATUS row. See
 [approval-signals.md](.claude/agents/x-approval-signals.md).
 
 ## Metrics
