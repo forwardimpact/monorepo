@@ -48,14 +48,16 @@ the highest-priority bucket:
 Emit the product mix: `npx fit-wiki product-mix` (the next `fit-wiki refresh`
 renders its storyboard block).
 
-1. **Survey.** `gh pr list --search 'spec(' --state open` +
+1. **Survey.** `gh pr list --search 'spec( OR retention(' --state open` +
    `gh issue list --search "-label:experiment -label:obstacle"` +
-   `wiki/STATUS.md`. Buckets: **P1** open spec PRs whose STATUS row is still
-   `spec draft`. **P2** issues labeled `needs-spec`. **P3** untriaged issues.
-2. **Act.** P1 → `kata-spec` review; post findings via PR comment (never
-   apply `spec:approved` and never write STATUS — both human-only for specs).
-   P2 → `kata-spec` to write a spec for the oldest issue. P3 →
-   `kata-product-issue` to triage. All empty → fallback, then clean.
+   `wiki/STATUS.md`. Buckets: **P0** open `retention` PRs. **P1** open spec PRs
+   whose STATUS row is still `spec draft`. **P2** issues labeled `needs-spec`.
+   **P3** untriaged issues.
+2. **Act.** P0 → review the `retention` PR: confirm every target is terminal and
+   its durable signal preserved, then post an approving review. P1 → `kata-spec`
+   review; post findings via PR comment (human-only for specs). P2 → `kata-spec`
+   to write a spec for the oldest issue. P3 → `kata-product-issue` to triage.
+   All empty → fallback, then clean.
 
 `kata-interview` is supervisor-initiated, not part of scheduled runs.
 
@@ -64,7 +66,10 @@ renders its storyboard block).
 - **Users**: [JTBD.md](JTBD.md) — know which persona/job each issue and spec
   serves.
 - Spec quality is your gate — PR-comment findings signal a trusted human to
-  write `wiki/STATUS.md`. Never apply `spec:approved`; never write STATUS.
+  write `wiki/STATUS.md`. Never originate `spec approved` or `design approved` —
+  both human-only. You may post an approving review on a `retention` PR once
+  every target is terminal and its durable signal is preserved; that review
+  writes no STATUS.
 - Never change code on PR branches (release-engineer scope) — only your own
   `fix/` branches.
 - **Memory**: [memory-protocol.md](.claude/agents/x-memory-protocol.md)

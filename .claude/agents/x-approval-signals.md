@@ -24,6 +24,11 @@ and `state: merged`).
 | Direct user message in interactive session | Trusted user | Active agent (in-session) |
 | `kata-plan` panel-clean | `staff-engineer` (plans only) | `kata-plan` skill |
 | Implementation merge | `kata-release-merge` | Skill (writes `plan implemented`) |
+| retention-PR approval | `product-manager` (retention PRs only) | `kata-release-merge` at the gate — **no STATUS write** |
+
+The retention-PR approval is the one class not mediated by STATUS: a retention
+PR carries no spec id and spans many `specs/NNN/` directories, so the gate reads
+the product-manager review directly at merge time.
 
 ## Trust rule
 
@@ -31,7 +36,10 @@ Spec and design approvals must originate from a trusted human. Agents
 **never** autonomously originate `spec approved` or `design approved` —
 they only propagate signals already expressed by a trusted human. Plans
 may be approved by `staff-engineer` after a clean `kata-plan` panel
-review.
+review. The product manager may originate a retention-PR approval on a
+`retention` PR once every target is terminal and its durable signal is
+preserved; the human-only rule stays scoped to `spec approved` and
+`design approved`.
 
 The release engineer's trust gate (top-7 contributor or `kata-agent-team`)
 is the canonical trust check. `kata-dispatch` runs the same check before
@@ -52,6 +60,13 @@ this section names the per-class pin source and the head-move consequence.
 | Approval comment | head SHA when the comment was posted | same as label (human-originated) |
 | In-session user message | head SHA recorded with the STATUS write (§ In-session approval) | same as label (human-originated) |
 | `kata-plan` panel-clean | head SHA on the PR-side panel record | agent-originated; any delta voids and needs fresh `staff-engineer` re-approval |
+| retention-PR approval | the PM review's own commit SHA | agent-originated; any delta voids and needs a fresh `product-manager` review |
+
+Retention PRs sit **outside** `review-transfer.md`, whose § Applicability scopes
+it to spec/design/plan phase PRs; the gate applies this self-contained
+head-coverage rule directly. The retention row's mechanics are otherwise
+identical to `kata-plan` panel-clean — the PM review carries its own commit SHA,
+so no separate pin record is needed.
 
 Rules:
 

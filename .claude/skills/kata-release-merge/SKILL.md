@@ -82,6 +82,8 @@ Parse the title using `type(scope): subject`. Each type maps to a phase:
 - `plan` → plan phase, gate STATUS row `{NNN}\tplan\tapproved`
 - `feat`, `fix`, `bug`, `refactor`, `chore` → implementation phase
 - `docs` → docs fast-path (Step 6, capped to `.md`/`.mdx` files)
+- `retention` → retention phase (no spec-id STATUS row; gated on a
+  product-manager review in Step 6)
 - `!` breaking variants retain the base type
 - Any other type → mark **blocked**
 
@@ -93,7 +95,9 @@ Parse the title using `type(scope): subject`. Each type maps to a phase:
 Clean (mergeable, CI green, up-to-date) → continue to Step 6. Behind, stale, or
 conflicting → rebase (Step 5). CI failing → fix (Step 5) or block. An
 approved-and-pinned experiment PR never rebases — skip to Step 6 re-block
-([`experiment-path.md`](references/experiment-path.md)).
+([`experiment-path.md`](references/experiment-path.md)). Likewise an
+approved-and-pinned `retention` PR never rebases — a head delta re-blocks rather
+than the gate's own rebase silently voiding the product-manager approval.
 
 A PR that pins a consumer to a not-yet-published producer is **blocked** until
 that producer is released. See the repository's CONTRIBUTING.md § Releasing for
@@ -157,6 +161,15 @@ reason naming the voided or unverifiable transfer. This narrows the boundary
 above: the PR-side read is for pins and transfer records only; STATUS stays the
 approval source.
 
+**Retention PRs** (`retention`-typed, no spec id, spanning many `specs/NNN/`
+directories) take a self-contained head-coverage rule instead of the spec-row
+read: pass only when a `product-manager` approving review exists **and its
+review commit SHA equals the current head**. Any later commit re-blocks until a
+fresh PM review covers the new head. Retention PRs sit outside
+[`references/review-transfer.md`](references/review-transfer.md) (§ Applicability
+restricts it to spec/design/plan phase PRs), so the gate applies this rule
+directly. See [`approval-signals.md`](../../agents/x-approval-signals.md).
+
 ### Step 7: Open Comment Gate
 
 If a top-7 contributor's most-recent PR comment is an unresolved concern not
@@ -185,8 +198,10 @@ spec id (e.g. `feat(...): … (#NNN)` or "implements spec NNN"):
 
 An **experiment PR** that passed Step 6 runs the diff-scope check here instead,
 not advancing the row
-([`experiment-path.md`](references/experiment-path.md)). PRs not referencing a
-spec skip this step.
+([`experiment-path.md`](references/experiment-path.md)). A `retention` PR is
+naturally excluded — this step fires only for the implementation types above, so
+no `plan implemented` write occurs for it. PRs not referencing a spec skip this
+step.
 
 ### Step 10: Classification Label Gate
 
@@ -195,6 +210,7 @@ present, mark **blocked** (`awaiting classification label`). No fast-path
 exemption: a `.md`/`.mdx` PR skips only the Step 6 approval gate, not this one —
 docs PRs are completed work in the denominator and must carry the label per
 [work-definition.md § Product-aligned vs internal](../../agents/x-work-definition.md#product-aligned-vs-internal).
+A `retention` PR carries `internal` and is gated here like any other class.
 
 ### Step 11: Merge Mergeable PRs
 
