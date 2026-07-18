@@ -337,6 +337,59 @@ function concludeTool(ctx) {
   );
 }
 
+const ADVISOR_DESC =
+  "Consult a stronger model on one focused question. Your full session context (system prompt, prompts, transcript so far) is forwarded automatically — you cannot restrict it. The advice returns in the tool result. The consult budget is shared session-wide across all participants.";
+
+/**
+ * Build the `Advisor` consult tool for one caller. Mode-agnostic: loop
+ * modes pass it into the agent tool-server factories via `extraTools`;
+ * run mode gives it a dedicated server. No orchestration-context
+ * dependency — the budget object and emit callback are injected.
+ *
+ * @param {object} deps
+ * @param {string} deps.from - Caller's canonical name (event attribution).
+ * @param {(question: string) => Promise<{advice?: string, unavailable?: boolean, reason?: string, durationMs: number}>} deps.consult
+ * @param {(event: object) => void} deps.emit - Orchestrator-event emitter for the `advisor_consult` event.
+ * @param {{maxUses: number, used: number}} deps.budget - Session-wide budget shared by every caller's handler.
+ * @param {string} deps.model - Advisor model id, carried on the consult event.
+ */
+export function advisorTool({ from, consult, emit, budget, model }) {
+  return tool(
+    "Advisor",
+    ADVISOR_DESC,
+    { question: z.string() },
+    async ({ question }) => {
+      if (budget.used >= budget.maxUses) {
+        return textResult(
+          `Consult limit reached (${budget.maxUses}/${budget.maxUses} used) — proceed with your best judgment.`,
+        );
+      }
+      // Increment before the first await so two concurrent callers cannot
+      // both pass a last-slot check.
+      budget.used++;
+      const r = await consult(question);
+      const remaining = budget.maxUses - budget.used;
+      emit({
+        type: "advisor_consult",
+        caller: from,
+        question,
+        model,
+        durationMs: r.durationMs,
+        remaining,
+      });
+      if (r.unavailable) {
+        // Not isError: fail-open, the caller continues normally.
+        return textResult(
+          `The advisor is unavailable (${r.reason}) — proceed with your best judgment.`,
+        );
+      }
+      return textResult(
+        `${r.advice}\n\n[advisor consults remaining: ${remaining}]`,
+      );
+    },
+  );
+}
+
 const orchestrationServer = (tools) =>
   createSdkMcpServer({ name: "orchestration", tools });
 
@@ -354,15 +407,16 @@ export function createSupervisorToolServer(ctx) {
   ]);
 }
 
-/** Supervised agent tools: Ask + Answer + Announce + RollCall. */
-export function createSupervisedAgentToolServer(ctx) {
-  return orchestrationServer(
-    baseTools(ctx, {
+/** Supervised agent tools: Ask + Answer + Announce + RollCall (+ extras). */
+export function createSupervisedAgentToolServer(ctx, { extraTools = [] } = {}) {
+  return orchestrationServer([
+    ...baseTools(ctx, {
       from: "agent",
       defaultTo: "supervisor",
       broadcast: false,
     }),
-  );
+    ...extraTools,
+  ]);
 }
 
 /** Facilitator tools: Ask + Answer + Announce + RollCall + Conclude. */
@@ -377,11 +431,12 @@ export function createFacilitatorToolServer(ctx) {
   ]);
 }
 
-/** Facilitated agent tools: Ask + Answer + Announce + RollCall + RequestForComment. */
-export function createFacilitatedAgentToolServer(ctx, { from }) {
+/** Facilitated agent tools: Ask + Answer + Announce + RollCall + RequestForComment (+ extras). */
+export function createFacilitatedAgentToolServer(ctx, { from, extraTools = [] }) {
   return orchestrationServer([
     ...baseTools(ctx, { from, defaultTo: "facilitator", broadcast: true }),
     requestForCommentTool(ctx),
+    ...extraTools,
   ]);
 }
 
