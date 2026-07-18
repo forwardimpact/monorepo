@@ -3,6 +3,7 @@ import { isoTimestamp } from "@forwardimpact/libutil";
 import { createDiscusser } from "../discusser.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
+import { parseAdvisorOptions } from "./advisor-flags.js";
 import { resolveTaskContent } from "./task-input.js";
 import { resolveWorkTracker } from "./work-tracker.js";
 import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
@@ -67,6 +68,7 @@ export function parseDiscussOptions(values, runtime) {
     callbackUrl: runtime.proc.env.CALLBACK_URL ?? null,
     inboxUrl: runtime.proc.env.INBOX_URL ?? null,
     correlationId: runtime.proc.env.CORRELATION_ID ?? null,
+    ...parseAdvisorOptions(values),
   };
 }
 
@@ -121,6 +123,8 @@ export async function runDiscussCommand(ctx) {
     inboxUrl: opts.inboxUrl,
     correlationId: opts.correlationId,
     runtime,
+    advisorModel: opts.advisorModel,
+    advisorMaxUses: opts.advisorMaxUses,
   });
 
   const result = await discusser.run(opts.taskContent);

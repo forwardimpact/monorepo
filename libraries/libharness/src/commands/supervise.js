@@ -3,6 +3,7 @@ import { isoTimestamp } from "@forwardimpact/libutil";
 import { createSupervisor } from "../supervisor.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
+import { parseAdvisorOptions } from "./advisor-flags.js";
 import { resolveTaskContent } from "./task-input.js";
 import { resolveWorkTracker } from "./work-tracker.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
@@ -52,6 +53,7 @@ export async function parseSuperviseOptions(values, runtime) {
       ? supervisorAllowedToolsRaw.split(",")
       : undefined,
     mcpServer: values["mcp-server"] || undefined,
+    ...parseAdvisorOptions(values),
   };
 }
 
@@ -125,6 +127,8 @@ export async function runSuperviseCommand(ctx) {
     agentMcpServers,
     redactor,
     runtime,
+    advisorModel: opts.advisorModel,
+    advisorMaxUses: opts.advisorMaxUses,
   });
 
   const result = await supervisor.run(opts.taskContent);

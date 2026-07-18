@@ -1,4 +1,4 @@
-fit-harness 1.0.0 — Run agents and capture NDJSON traces — for agent evaluations or multi-agent collaboration
+fit-harness 1.3.0 — Run agents and capture NDJSON traces — for agent evaluations or multi-agent collaboration
 
 Usage: fit-harness <command> [options]
 
@@ -10,6 +10,7 @@ Commands:
   output               Read NDJSON from stdin and emit a structured or readable form
   tee [output.ndjson]  Stream readable text to stdout while saving raw NDJSON to a file
   callback             Extract the terminal summary from an NDJSON trace and POST it to a callback URL
+  scan-logs            Scan a run's log archive for secret literals; exit non-zero on any hit, fail closed on an unreadable archive
 
 Options:
   --format=<string>  Output format (json|text)
@@ -26,6 +27,9 @@ Examples:
   fit-harness output --format=text < trace.ndjson
 
 Documentation:
+  Coordinate an Agent Team
+    https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md
+    Run a lead and N participant agents in one async session — supervise, facilitate, or discuss — with Ask/Answer/Announce and a single NDJSON trace.
   Run an Eval
     https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md
     Author a judge profile, run an eval locally, wire it into CI, and inspect the resulting trace.

@@ -8,7 +8,10 @@ import {
   FACILITATOR_SYSTEM_PROMPT,
   FACILITATED_AGENT_SYSTEM_PROMPT,
 } from "@forwardimpact/libharness";
-import { createTestRuntime } from "@forwardimpact/libmock";
+import {
+  createMockAgentQuery,
+  createTestRuntime,
+} from "@forwardimpact/libmock";
 import { createNoopRedactor } from "../src/redaction.js";
 
 const baseOpts = () => ({
@@ -127,6 +130,95 @@ describe("Facilitator - createFacilitator factory", () => {
       assert.ok(agent.runner.mcpServers);
       assert.strictEqual(agent.runner.mcpServers.orchestration.type, "sdk");
     }
+  });
+
+  test("two facilitated agents share one advisor budget", async () => {
+    const adviceMessages = [
+      { type: "system", subtype: "init", session_id: "sess-adv" },
+      {
+        type: "result",
+        subtype: "success",
+        result: "Advice.",
+        total_cost_usd: 0.01,
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+    ];
+    const f = createFacilitator({
+      ...baseOpts(),
+      query: createMockAgentQuery(adviceMessages),
+      advisorModel: "adv-model",
+      advisorMaxUses: 1,
+    });
+
+    const tools = (name) =>
+      findAgent(f, name).runner.mcpServers.orchestration.instance
+        ._registeredTools;
+    const first = await tools("agent-1").Advisor.handler(
+      { question: "A?" },
+      {},
+    );
+    const denied = await tools("agent-2").Advisor.handler(
+      { question: "B?" },
+      {},
+    );
+
+    assert.match(first.content[0].text, /Advice\./);
+    assert.match(denied.content[0].text, /Consult limit reached \(1\/1 used\)/);
+  });
+
+  test("with advisorModel every agent carries the Advisor tool and guidance; the lead carries neither", () => {
+    const f = createFacilitator({
+      ...baseOpts(),
+      agentConfigs: [
+        {
+          name: "agent-1",
+          role: "worker",
+          cwd: "/tmp/agent-1",
+          systemPromptAmend: "<EXISTING_AMEND>",
+        },
+      ],
+      advisorModel: "adv-model",
+    });
+    const a = findAgent(f, "agent-1");
+    const append = a.runner.systemPrompt.append;
+    const amendAt = append.indexOf("<EXISTING_AMEND>");
+    const guidanceAt = append.indexOf("`Advisor` tool is available");
+    assert.ok(amendAt !== -1 && guidanceAt !== -1 && amendAt < guidanceAt);
+    assert.ok(
+      Object.keys(
+        a.runner.mcpServers.orchestration.instance._registeredTools,
+      ).includes("Advisor"),
+    );
+    assert.ok(
+      !Object.keys(
+        f.facilitatorRunner.mcpServers.orchestration.instance._registeredTools,
+      ).includes("Advisor"),
+    );
+    assert.ok(!f.facilitatorRunner.systemPrompt.includes("`Advisor` tool"));
+  });
+
+  test("loop stop aborts a facilitated agent's pending consult, which resolves fail-open", async () => {
+    const hangingQuery = (params) =>
+      (async function* () {
+        await new Promise((_, reject) => {
+          params.options.abortController.signal.addEventListener("abort", () =>
+            reject(new Error("aborted by signal")),
+          );
+        });
+      })();
+    const f = createFacilitator({
+      ...baseOpts(),
+      query: hangingQuery,
+      advisorModel: "adv-model",
+    });
+
+    const advisor = findAgent(f, "agent-1").runner.mcpServers.orchestration
+      .instance._registeredTools.Advisor;
+    const pending = advisor.handler({ question: "Q" }, {});
+    // #stop() aborts this controller; trigger the same path directly.
+    f.abortController.abort();
+    const result = await pending;
+    assert.match(result.content[0].text, /advisor is unavailable/);
   });
 
   test("per-agent allowedTools and maxTurns propagate", () => {

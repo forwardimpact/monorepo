@@ -53,6 +53,7 @@ export class AgentRunner {
    * @param {number} [deps.maxTurns] - Maximum agentic turns; 0 means unlimited
    * @param {string[]} [deps.allowedTools] - Tools the agent may use
    * @param {function} [deps.onLine] - Callback invoked with each NDJSON line as it's produced
+   * @param {function} [deps.onPrompt] - Callback invoked with the effective (amend-applied) prompt of each run/resume
    * @param {string[]} [deps.settingSources] - SDK setting sources (e.g. ['project'] to load CLAUDE.md)
    * @param {string|object} [deps.systemPrompt] - SDK system prompt (string replaces default; {type:'preset', preset:'claude_code', append} appends)
    * @param {string[]} [deps.disallowedTools] - Tools to explicitly remove from the model's context
@@ -80,6 +81,9 @@ export class AgentRunner {
     this.maxTurns = deps.maxTurns ?? 50;
     this.allowedTools = deps.allowedTools ?? DEFAULT_ALLOWED_TOOLS;
     this.onLine = deps.onLine ?? null;
+    // Optional; read only through a truthy guard in run()/resume(), so an
+    // absent value stays undefined rather than needing a `?? null` default.
+    this.onPrompt = deps.onPrompt;
     this.settingSources = deps.settingSources ?? [];
     this.systemPrompt = deps.systemPrompt ?? null;
     this.disallowedTools = deps.disallowedTools ?? [];
@@ -106,6 +110,7 @@ export class AgentRunner {
         ? `${task}\n\n${this.taskAmend}`
         : this.taskAmend
       : task;
+    if (this.onPrompt) this.onPrompt(effectiveTask);
     try {
       const iterator = this.query({
         prompt: effectiveTask,
@@ -125,6 +130,7 @@ export class AgentRunner {
   async resume(prompt) {
     const abortController = new AbortController();
     this.currentAbortController = abortController;
+    if (this.onPrompt) this.onPrompt(prompt);
     try {
       const iterator = this.query({
         prompt,

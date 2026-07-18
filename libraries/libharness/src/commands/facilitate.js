@@ -3,6 +3,7 @@ import { isoTimestamp } from "@forwardimpact/libutil";
 import { createFacilitator } from "../facilitator.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
+import { parseAdvisorOptions } from "./advisor-flags.js";
 import { resolveTaskContent } from "./task-input.js";
 import { resolveWorkTracker } from "./work-tracker.js";
 import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
@@ -60,6 +61,7 @@ export function parseFacilitateOptions(values, runtime) {
     outputPath: values.output,
     facilitatorProfile: values["lead-profile"] || undefined,
     workTracker: resolveWorkTracker(values, runtime?.proc?.env),
+    ...parseAdvisorOptions(values),
   };
 }
 
@@ -112,6 +114,8 @@ export async function runFacilitateCommand(ctx) {
     taskAmend: opts.taskAmend,
     redactor,
     runtime,
+    advisorModel: opts.advisorModel,
+    advisorMaxUses: opts.advisorMaxUses,
   });
 
   const result = await facilitator.run(opts.taskContent);

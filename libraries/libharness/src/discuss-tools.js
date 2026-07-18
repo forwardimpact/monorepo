@@ -107,7 +107,7 @@ const ACKNOWLEDGE_DESC =
   "Acknowledge an Ask before starting work. Posts a visible comment on the thread. Does not discharge the Ask — you still owe an Answer.";
 
 /** Discuss-mode agent tool server. */
-export function createDiscussAgentToolServer(ctx, { from }) {
+export function createDiscussAgentToolServer(ctx, { from, extraTools = [] }) {
   return orchestrationServer([
     ...baseTools(ctx, { from, defaultTo: "lead", broadcast: true }),
     requestForCommentTool(ctx),
@@ -133,6 +133,7 @@ export function createDiscussAgentToolServer(ctx, { from }) {
         return { content: [{ type: "text", text: "Acknowledged." }] };
       },
     ),
+    ...extraTools,
   ]);
 }
 

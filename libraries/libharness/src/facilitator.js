@@ -12,11 +12,18 @@ import { createAgentRunner } from "./agent-runner.js";
 import { composeSystemPrompt } from "./profile-prompt.js";
 import { createMessageBus } from "./message-bus.js";
 import {
+  advisorTool,
   createOrchestrationContext,
   createFacilitatorToolServer,
   createFacilitatedAgentToolServer,
 } from "./orchestration-toolkit.js";
 import { OrchestrationLoop } from "./orchestration-loop.js";
+import {
+  createAdvisor,
+  createAdvisorBudget,
+  withAdvisorGuidance,
+} from "./advisor.js";
+import { createTranscriptRecorder } from "./transcript-recorder.js";
 
 /** System prompt for the facilitator lead. L0 mechanics only per COALIGNED. */
 export const FACILITATOR_SYSTEM_PROMPT =
@@ -92,6 +99,8 @@ const devNull = new Writable({
  * @param {string} [deps.facilitatorProfile]
  * @param {string} [deps.profilesDir]
  * @param {string} [deps.taskAmend]
+ * @param {string} [deps.advisorModel] - Claude model for advisor consults; absent means no Advisor tool is offered.
+ * @param {number} [deps.advisorMaxUses] - Session-wide consult budget shared by all agent participants (default 3).
  * @returns {Facilitator}
  */
 export function createFacilitator({
@@ -110,6 +119,8 @@ export function createFacilitator({
   taskAmend,
   redactor,
   runtime,
+  advisorModel,
+  advisorMaxUses,
 }) {
   if (!redactor) throw new Error("redactor is required");
   if (!runtime) throw new Error("runtime is required");
@@ -129,11 +140,55 @@ export function createFacilitator({
 
   const facilitatorServer = createFacilitatorToolServer(ctx);
 
+  const abortController = new AbortController();
+  // One budget per session, shared by every agent's Advisor handler.
+  const budget = advisorModel ? createAdvisorBudget(advisorMaxUses ?? 3) : null;
+
   const agents = agentConfigs.map((config) => {
-    const agentServer = createFacilitatedAgentToolServer(ctx, {
-      from: config.name,
+    // Everything advisor-shaped is gated on advisorModel; with it unset the
+    // composed prompt and tool surface are byte-identical to today's.
+    const systemPrompt = composeSystemPrompt({
+      role: "agent",
+      profile: config.agentProfile,
+      profilesDir: resolvedProfilesDir,
+      trailer: FACILITATED_AGENT_SYSTEM_PROMPT,
+      amend: withAdvisorGuidance(config.systemPromptAmend, budget),
+      runtime,
     });
 
+    let recorder = null;
+    let extraTools;
+    if (advisorModel) {
+      recorder = createTranscriptRecorder({ systemPrompt, redactor });
+      // Late-bound through the `let facilitator` closure — the instance
+      // does not exist yet when the advisor and tool are built.
+      const advisor = createAdvisor({
+        model: advisorModel,
+        cwd: config.cwd ?? facilitatorCwd,
+        query,
+        recorder,
+        redactor,
+        runtime,
+        onLine: (line) => facilitator.emitLine("advisor", line),
+      });
+      abortController.signal.addEventListener("abort", () => advisor.abort());
+      extraTools = [
+        advisorTool({
+          from: config.name,
+          consult: (q) => advisor.consult(q),
+          emit: (e) => facilitator.emitOrchestratorEvent(e),
+          budget,
+          model: advisorModel,
+        }),
+      ];
+    }
+
+    const agentServer = createFacilitatedAgentToolServer(ctx, {
+      from: config.name,
+      ...(extraTools && { extraTools }),
+    });
+
+    const emitAgentLine = (line) => facilitator.emitLine(config.name, line);
     const runner = createAgentRunner({
       cwd: config.cwd ?? facilitatorCwd,
       query,
@@ -141,17 +196,16 @@ export function createFacilitator({
       model: agentModel ?? model,
       maxTurns: config.maxTurns ?? 50,
       allowedTools: config.allowedTools,
-      onLine: (line) => facilitator.emitLine(config.name, line),
+      onLine: recorder
+        ? (line) => {
+            emitAgentLine(line);
+            recorder.recordMessage(line);
+          }
+        : emitAgentLine,
+      ...(recorder && { onPrompt: (text) => recorder.recordPrompt(text) }),
       mcpServers: { orchestration: agentServer },
       settingSources: ["project"],
-      systemPrompt: composeSystemPrompt({
-        role: "agent",
-        profile: config.agentProfile,
-        profilesDir: resolvedProfilesDir,
-        trailer: FACILITATED_AGENT_SYSTEM_PROMPT,
-        amend: config.systemPromptAmend,
-        runtime,
-      }),
+      systemPrompt,
       redactor,
     });
 
@@ -200,6 +254,7 @@ export function createFacilitator({
     ctx,
     taskAmend,
     redactor,
+    abortController,
   });
   return facilitator;
 }

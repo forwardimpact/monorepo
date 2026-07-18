@@ -22,7 +22,16 @@ import { ReplyEmitter } from "./reply-emitter.js";
 import { composeSystemPrompt } from "./profile-prompt.js";
 import { SequenceCounter } from "./sequence-counter.js";
 import { createMessageBus } from "./message-bus.js";
-import { createOrchestrationContext } from "./orchestration-toolkit.js";
+import {
+  advisorTool,
+  createOrchestrationContext,
+} from "./orchestration-toolkit.js";
+import {
+  createAdvisor,
+  createAdvisorBudget,
+  withAdvisorGuidance,
+} from "./advisor.js";
+import { createTranscriptRecorder } from "./transcript-recorder.js";
 import {
   createDiscussLeadToolServer,
   createDiscussAgentToolServer,
@@ -206,6 +215,8 @@ export class Discusser {
  * @param {string|null} [deps.callbackUrl]
  * @param {string|null} [deps.inboxUrl]
  * @param {string|null} [deps.correlationId]
+ * @param {string} [deps.advisorModel] - Claude model for advisor consults; absent means no Advisor tool is offered.
+ * @param {number} [deps.advisorMaxUses] - Session-wide consult budget shared by all agent participants (default 3).
  * @returns {Discusser}
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: factory wires N runners + resume hydration paths
@@ -228,6 +239,8 @@ export function createDiscusser({
   inboxUrl,
   correlationId,
   runtime,
+  advisorModel,
+  advisorMaxUses,
 }) {
   if (!redactor) throw new Error("redactor is required");
   if (!runtime) throw new Error("runtime is required");
@@ -306,11 +319,54 @@ export function createDiscusser({
   let discusser;
   const leadServer = createDiscussLeadToolServer(ctx);
 
+  // One budget per session, shared by every agent's Advisor handler.
+  const budget = advisorModel ? createAdvisorBudget(advisorMaxUses ?? 3) : null;
+
   const agents = resolvedConfigs.map((config) => {
-    const agentServer = createDiscussAgentToolServer(ctx, {
-      from: config.name,
+    // Everything advisor-shaped is gated on advisorModel; with it unset the
+    // composed prompt and tool surface are byte-identical to today's.
+    const systemPrompt = composeSystemPrompt({
+      role: "agent",
+      profile: config.agentProfile,
+      profilesDir: resolvedProfilesDir,
+      trailer: DISCUSS_AGENT_SYSTEM_PROMPT,
+      amend: withAdvisorGuidance(config.systemPromptAmend, budget),
+      runtime,
     });
 
+    let recorder = null;
+    let extraTools;
+    if (advisorModel) {
+      recorder = createTranscriptRecorder({ systemPrompt, redactor });
+      // Late-bound through the `let discusser` closure — the instance does
+      // not exist yet when the advisor and tool are built.
+      const advisor = createAdvisor({
+        model: advisorModel,
+        cwd: config.cwd ?? resolvedLeadCwd,
+        query,
+        recorder,
+        redactor,
+        runtime,
+        onLine: (line) => discusser.loop.emitLine("advisor", line),
+      });
+      abortController.signal.addEventListener("abort", () => advisor.abort());
+      extraTools = [
+        advisorTool({
+          from: config.name,
+          consult: (q) => advisor.consult(q),
+          emit: (e) => discusser.loop.emitOrchestratorEvent(e),
+          budget,
+          model: advisorModel,
+        }),
+      ];
+    }
+
+    const agentServer = createDiscussAgentToolServer(ctx, {
+      from: config.name,
+      ...(extraTools && { extraTools }),
+    });
+
+    const emitAgentLine = (line) => discusser.loop.emitLine(config.name, line);
     const runner = createAgentRunner({
       cwd: config.cwd ?? resolvedLeadCwd,
       query,
@@ -318,17 +374,16 @@ export function createDiscusser({
       model: agentModel ?? AGENT_MODEL,
       maxTurns: config.maxTurns ?? 50,
       allowedTools: config.allowedTools,
-      onLine: (line) => discusser.loop.emitLine(config.name, line),
+      onLine: recorder
+        ? (line) => {
+            emitAgentLine(line);
+            recorder.recordMessage(line);
+          }
+        : emitAgentLine,
+      ...(recorder && { onPrompt: (text) => recorder.recordPrompt(text) }),
       mcpServers: { orchestration: agentServer },
       settingSources: ["project"],
-      systemPrompt: composeSystemPrompt({
-        role: "agent",
-        profile: config.agentProfile,
-        profilesDir: resolvedProfilesDir,
-        trailer: DISCUSS_AGENT_SYSTEM_PROMPT,
-        amend: config.systemPromptAmend,
-        runtime,
-      }),
+      systemPrompt,
       redactor,
     });
 

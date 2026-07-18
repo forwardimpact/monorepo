@@ -26,6 +26,7 @@ export {
 export { TeeWriter, createTeeWriter } from "./tee-writer.js";
 export { SequenceCounter, createSequenceCounter } from "./sequence-counter.js";
 export {
+  advisorTool,
   createOrchestrationContext,
   createRequestForCommentHandler,
   createSupervisorToolServer,
@@ -34,6 +35,14 @@ export {
   createFacilitatedAgentToolServer,
   createJudgeToolServer,
 } from "./orchestration-toolkit.js";
+export {
+  ADVISOR_SYSTEM_PROMPT,
+  advisorGuidance,
+  createAdvisor,
+  createAdvisorBudget,
+  DEFAULT_CONSULT_TIMEOUT_MS,
+} from "./advisor.js";
+export { createTranscriptRecorder } from "./transcript-recorder.js";
 export { MessageBus, createMessageBus } from "./message-bus.js";
 export { OrchestrationLoop } from "./orchestration-loop.js";
 export {

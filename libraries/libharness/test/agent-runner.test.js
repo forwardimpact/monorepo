@@ -573,6 +573,32 @@ describe("AgentRunner", () => {
     assert.ok(!("pathToClaudeCodeExecutable" in captured.options));
   });
 
+  test("onPrompt receives the amended task on run() and the raw prompt on resume()", async () => {
+    const prompts = [];
+    let callCount = 0;
+    const query = async function* () {
+      callCount++;
+      if (callCount === 1) {
+        yield { type: "system", subtype: "init", session_id: "sess-p" };
+        yield { type: "result", subtype: "success", result: "OK" };
+      } else {
+        yield { type: "result", subtype: "success", result: "Resumed" };
+      }
+    };
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query,
+      output: new PassThrough(),
+      taskAmend: "Amendment.",
+      onPrompt: (text) => prompts.push(text),
+      redactor: noop(),
+    });
+
+    await runner.run("Do the task");
+    await runner.resume("Follow up");
+    assert.deepStrictEqual(prompts, ["Do the task\n\nAmendment.", "Follow up"]);
+  });
+
   test("createAgentRunner factory returns an AgentRunner instance", () => {
     const runner = createAgentRunner({
       cwd: "/tmp",
