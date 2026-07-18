@@ -32,7 +32,7 @@ grep-friendly help and JSON output; every library ships a matching skill in the
 The pack ships these packages, all published to npm under
 `@forwardimpact/lib*` and `@forwardimpact/svc*`:
 
-- <!-- enum:libraries-list:count -->39<!-- /enum --> libraries
+- <!-- enum:libraries-list:count -->40<!-- /enum --> libraries
 - <!-- enum:services-tree:count -->15<!-- /enum --> services
 
 Browse the full tables in

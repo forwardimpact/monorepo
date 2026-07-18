@@ -29,7 +29,7 @@ export async function run({ positionals, runtime, cli }) {
   const query = positionals.join(" ");
   if (!query) {
     cli.usageError("expected a query string");
-    process.exit(2);
+    runtime.proc.exit(2);
   }
 
   const embeddingConfig = await createServiceConfig("embedding");

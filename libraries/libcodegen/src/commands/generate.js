@@ -1,7 +1,5 @@
-import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { execFileSync } from "node:child_process";
 
 import { SummaryRenderer, withEmbeddedAssets } from "@forwardimpact/libcli";
 import { Logger } from "@forwardimpact/libtelemetry";
@@ -59,8 +57,10 @@ function computeFlags(values) {
 /**
  * Create tar.gz bundle of all directories inside sourcePath
  * @param {string} sourcePath - Path containing directories to bundle
+ * @param {object} fs - Sync filesystem surface (runtime.fsSync)
+ * @param {object} subprocess - Subprocess surface (runtime.subprocess)
  */
-async function createBundle(sourcePath) {
+function createBundle(sourcePath, fs, subprocess) {
   const bundlePath = path.join(sourcePath, "bundle.tar.gz");
 
   // Get all directories in sourcePath
@@ -74,18 +74,13 @@ async function createBundle(sourcePath) {
   }
 
   // Create tar.gz archive using system tar command
-  try {
-    execFileSync(
-      "tar",
-      ["-czf", bundlePath, "-C", sourcePath, ...directories],
-      {
-        stdio: "pipe",
-      },
-    );
-  } catch (error) {
-    throw new Error(`Failed to create bundle: ${error.message}`, {
-      cause: error,
-    });
+  const result = subprocess.runSync(
+    "tar",
+    ["-czf", bundlePath, "-C", sourcePath, ...directories],
+    { stdio: "pipe" },
+  );
+  if (result.exitCode !== 0) {
+    throw new Error(`Failed to create bundle: ${result.stderr}`);
   }
 }
 
@@ -94,9 +89,10 @@ async function createBundle(sourcePath) {
  * and the project root. Scans node_modules for packages that include
  * a proto/ subdirectory, plus the project's own proto/ if present.
  * @param {string} projectRoot - Project root directory path
+ * @param {object} fs - Sync filesystem surface (runtime.fsSync)
  * @returns {string[]} Array of absolute paths to proto directories
  */
-function discoverProtoDirs(projectRoot) {
+function discoverProtoDirs(projectRoot, fs) {
   const protoDirs = [];
 
   // Scan node_modules/@forwardimpact/*/proto/ for package-owned protos
@@ -161,14 +157,15 @@ function createCodegen(
 /**
  * Count files recursively in a directory
  * @param {string} dirPath - Directory to count files in
+ * @param {object} fs - Sync filesystem surface (runtime.fsSync)
  * @returns {number} Total file count
  */
-function countFiles(dirPath) {
+function countFiles(dirPath, fs) {
   let count = 0;
   if (!fs.existsSync(dirPath)) return count;
   for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      count += countFiles(path.join(dirPath, entry.name));
+      count += countFiles(path.join(dirPath, entry.name), fs);
     } else if (!entry.name.endsWith(".tar.gz")) {
       count++;
     }
@@ -180,11 +177,12 @@ function countFiles(dirPath) {
  * Print a summary of generated code
  * @param {string} sourcePath - Path to generated directory
  * @param {object} flags - Parsed generation flags
- * @param {object} runtime - Injected runtime
+ * @param {object} fs - Sync filesystem surface (runtime.fsSync)
+ * @param {object} proc - Process surface (runtime.proc)
  */
-function printSummary(sourcePath, flags, runtime) {
-  const totalFiles = countFiles(sourcePath);
-  const relPath = path.relative(process.cwd(), sourcePath);
+function printSummary(sourcePath, flags, fs, proc) {
+  const totalFiles = countFiles(sourcePath, fs);
+  const relPath = path.relative(proc.cwd(), sourcePath);
 
   const dirLabels = {
     types: "Protocol Buffer types",
@@ -205,14 +203,14 @@ function printSummary(sourcePath, flags, runtime) {
     }
   }
 
-  const summary = new SummaryRenderer({ process });
+  const summary = new SummaryRenderer({ process: proc });
   summary.render(
     {
       title: `Generated ${totalFiles} files in ./${relPath}/`,
       ok: true,
       items,
     },
-    process.stdout,
+    proc.stdout,
   );
 
   const generated = [
@@ -222,9 +220,7 @@ function printSummary(sourcePath, flags, runtime) {
     flags.doDefinitions && "definitions",
     flags.doMetadata && "metadata",
   ].filter(Boolean);
-  process.stdout.write(
-    `\nCode generation complete (${generated.join(", ")}).\n`,
-  );
+  proc.stdout.write(`\nCode generation complete (${generated.join(", ")}).\n`);
 }
 
 /**
@@ -290,6 +286,9 @@ async function runCodegen({
   protoLoader,
   runtime,
 }) {
+  const fs = runtime.fsSync;
+  const proc = runtime.proc;
+
   const generatedStorage = createStorage("generated", "local");
   const sourcePath = generatedStorage.path();
 
@@ -319,7 +318,7 @@ async function runCodegen({
   // Inject the embedded-overlay sync fs so loadTemplate's reads of the virtual
   // template mount hit the inlined registry in a compiled binary. In
   // source/npx execution withEmbeddedAssets is a no-op and this is the full
-  // node:fs sync surface, identical to the bare `fs` used elsewhere in this file.
+  // node:fs sync surface, identical to the runtime.fsSync used above.
   const codegenFs = withEmbeddedAssets(runtime).fsSync;
   const codegens = createCodegen(
     protoDirs,
@@ -332,9 +331,9 @@ async function runCodegen({
   await executeGeneration(codegens, sourcePath, flags);
 
   await finder.createPackageSymlinks(sourcePath);
-  await createBundle(sourcePath);
+  createBundle(sourcePath, fs, runtime.subprocess);
 
-  printSummary(sourcePath, flags, runtime);
+  printSummary(sourcePath, flags, fs, proc);
 }
 
 /**
@@ -349,12 +348,13 @@ async function runCodegen({
  * @returns {Promise<void>}
  */
 export async function run({ values, runtime, cli }) {
+  const proc = runtime.proc;
   const flags = computeFlags(values);
   if (!flags.hasGenerationFlags()) {
     cli.usageError(
       "no generation flags specified (use --all, --type, --service, --client, --definition, or --metadata)",
     );
-    process.exit(2);
+    proc.exit(2);
   }
 
   // Bind protobufjs's util.Long before the proto-loader descriptor extension
@@ -376,7 +376,7 @@ export async function run({ values, runtime, cli }) {
           "install omitted. Reinstall with optional dependencies: " +
           "npm install @forwardimpact/libcodegen",
       );
-      process.exit(1);
+      proc.exit(1);
     }
     throw err;
   }
@@ -386,9 +386,9 @@ export async function run({ values, runtime, cli }) {
   // so createPackageSymlinks (the one logging Finder consumer) keeps emitting
   // symlink debug logs.
   const finder = runtime.finder.withLogger(logger);
-  const projectRoot = finder.findProjectRoot(process.cwd());
+  const projectRoot = finder.findProjectRoot(proc.cwd());
 
-  const protoDirs = discoverProtoDirs(projectRoot);
+  const protoDirs = discoverProtoDirs(projectRoot, runtime.fsSync);
   if (protoDirs.length === 0) {
     throw new Error(
       "No proto directories found. Ensure @forwardimpact packages " +

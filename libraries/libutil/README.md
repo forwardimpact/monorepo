@@ -18,6 +18,6 @@ import { countTokens, Finder, createRetry } from '@forwardimpact/libutil';
 agent-facing tool and intentionally ships no skill or user guide; the
 token-counting capability is consumed programmatically via `countTokens`.
 
-The reusable bundle-fetch helpers (`createBundleDownloader`, `execLine`) stay
-exported here; the CLI that fetches a generated-code bundle from remote storage
-is now `fit-codegen download`.
+The reusable `createBundleDownloader` helper stays exported here and is now
+consumed by `fit-codegen download`, the CLI that fetches a generated-code bundle
+from remote storage. The `execLine` exec helper also remains exported.

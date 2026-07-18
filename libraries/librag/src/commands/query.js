@@ -22,7 +22,7 @@ export function formatQueryLine(identifier) {
 export async function run({ positionals, runtime, cli }) {
   if (positionals.length !== 3) {
     cli.usageError("expected 3 arguments: <subject> <predicate> <object>");
-    process.exit(2);
+    runtime.proc.exit(2);
   }
 
   const pattern = parseGraphQuery(positionals.join(" "));
