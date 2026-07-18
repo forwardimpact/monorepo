@@ -355,6 +355,7 @@ export async function run({ values, runtime, cli }) {
       "no generation flags specified (use --all, --type, --service, --client, --definition, or --metadata)",
     );
     proc.exit(2);
+    return;
   }
 
   // Bind protobufjs's util.Long before the proto-loader descriptor extension
@@ -377,6 +378,7 @@ export async function run({ values, runtime, cli }) {
           "npm install @forwardimpact/libcodegen",
       );
       proc.exit(1);
+      return;
     }
     throw err;
   }

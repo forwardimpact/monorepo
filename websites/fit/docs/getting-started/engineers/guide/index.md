@@ -50,8 +50,8 @@ Before starting the services, process the standard data into the indexes that
 Guide's services read at runtime:
 
 ```sh
-npx fit-process resources # provided by @forwardimpact/libresource
-npx fit-process graphs    # provided by @forwardimpact/libgraph
+npx fit-process resources # provided by @forwardimpact/librag
+npx fit-process graphs    # provided by @forwardimpact/librag
 ```
 
 These steps transform your `data/pathway/` into the resource index, knowledge

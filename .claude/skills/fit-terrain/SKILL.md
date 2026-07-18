@@ -174,9 +174,9 @@ vendor tables. Command lines and exit codes:
 After generation, bootstrap the full Guide pipeline:
 
 ```sh
-npx fit-process-resources   # Create resource index from knowledge files
-npx fit-process-graphs      # Build RDF graph from resources
-npx fit-process-vectors     # Generate vector embeddings (requires TEI)
+npx fit-process resources   # Create resource index from knowledge files
+npx fit-process graphs      # Build RDF graph from resources
+npx fit-process vectors     # Generate vector embeddings (requires TEI)
 npx fit-rc start            # Start services
 npx fit-guide               # Verify end-to-end
 ```

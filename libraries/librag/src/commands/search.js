@@ -7,7 +7,7 @@ import { VectorIndex } from "@forwardimpact/libvector/index/vector.js";
 /**
  * Format one `fit-rag search` result line — `identifier<TAB>score` with the
  * score fixed to four decimals (empty when absent), byte-identical to the old
- * `fit-search` output.
+ * `fit-rag search` output.
  * @param {{ score?: number }} identifier
  * @returns {string}
  */
@@ -17,7 +17,7 @@ export function formatSearchLine(identifier) {
 
 /**
  * `fit-rag search` — search the vector index by embedding a query string.
- * Ports `fit-search`. Builds the embedding client here so the offline read
+ * Ports `fit-rag search`. Builds the embedding client here so the offline read
  * commands never require the embedding service.
  * @param {object} ctx
  * @param {string[]} ctx.positionals - Subcommand arguments: `<query>`
@@ -30,6 +30,7 @@ export async function run({ positionals, runtime, cli }) {
   if (!query) {
     cli.usageError("expected a query string");
     runtime.proc.exit(2);
+    return;
   }
 
   const embeddingConfig = await createServiceConfig("embedding");

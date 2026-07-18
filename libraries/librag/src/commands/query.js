@@ -2,7 +2,7 @@ import { createGraphIndex, parseGraphQuery } from "@forwardimpact/libgraph";
 
 /**
  * Format one `fit-rag query` result line — the bare identifier, byte-identical
- * to the old `fit-query` output.
+ * to the old `fit-rag query` output.
  * @param {unknown} identifier
  * @returns {string}
  */
@@ -12,7 +12,7 @@ export function formatQueryLine(identifier) {
 
 /**
  * `fit-rag query` — query the graph index with a triple pattern. Ports
- * `fit-query`; prints one bare identifier per line.
+ * `fit-rag query`; prints one bare identifier per line.
  * @param {object} ctx
  * @param {string[]} ctx.positionals - Subcommand arguments: `<subject> <predicate> <object>`
  * @param {import("@forwardimpact/libutil/runtime").Runtime} ctx.runtime
@@ -23,6 +23,7 @@ export async function run({ positionals, runtime, cli }) {
   if (positionals.length !== 3) {
     cli.usageError("expected 3 arguments: <subject> <predicate> <object>");
     runtime.proc.exit(2);
+    return;
   }
 
   const pattern = parseGraphQuery(positionals.join(" "));

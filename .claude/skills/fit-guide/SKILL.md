@@ -46,8 +46,8 @@ Chat.
 - Authenticate — `npx fit-guide login`
 - Start the service stack — `npx fit-rc start`
 - Check system readiness — `npx fit-guide status`
-- Process knowledge content — `npx fit-process-resources`,
-  `npx fit-process-graphs`, `npx fit-process-vectors`
+- Process knowledge content — `npx fit-process resources`,
+  `npx fit-process graphs`, `npx fit-process vectors`
 
 ---
 
@@ -109,9 +109,9 @@ update never rotates credentials. Then authenticate and set up the stack:
 npx fit-guide --init        # Bootstrap .env + config/config.json (idempotent)
 npx fit-codegen --all       # Generate gRPC stubs and field metadata
 npx fit-guide --login       # OAuth PKCE login (or set ANTHROPIC_API_KEY in .env)
-npx fit-process-resources   # Process starter knowledge HTML
-npx fit-process-graphs      # Build the RDF index
-npx fit-process-vectors     # Build the vector index (skip if no embeddings backend)
+npx fit-process resources   # Process starter knowledge HTML
+npx fit-process graphs      # Build the RDF index
+npx fit-process vectors     # Build the vector index (skip if no embeddings backend)
 npx fit-rc start            # Launch the service stack
 npx fit-guide "What skills does a senior engineer need?"
 ```

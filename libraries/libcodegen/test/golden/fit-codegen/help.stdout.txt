@@ -1,19 +1,23 @@
-fit-codegen 0.1.59 — Generate protobuf types, service clients, and definitions from .proto files in installed @forwardimpact/* packages (node_modules/@forwardimpact/*/proto/) and an optional project-local proto/ directory.
+fit-codegen 0.1.68 — Generate code from proto contracts, or download a pre-generated bundle. `generate` needs the optional proto-compiler toolchain; `download` is lean and fetches the bundle a production image consumes at startup.
 
-Usage: fit-codegen [options]
+Usage: fit-codegen <command> [options]
+
+Commands:
+  generate  Generate protobuf types, service clients, and definitions from .proto files in installed @forwardimpact/* packages (node_modules/@forwardimpact/*/proto/) and an optional project-local proto/ directory.
+  download  Download the generated code bundle from remote storage and unpack it. Append `-- <command>` to exec a process after the download completes.
 
 Options:
-  --all         Generate all code
-  --type        Generate protobuf types only
-  --service     Generate service bases only
-  --client      Generate clients only
-  --definition  Generate service definitions only
-  --metadata    Generate field metadata only
-  --help, -h    Show this help
-  --version     Show version
-  --json        Output help as JSON
+  --help, -h  Show this help
+  --version   Show version
+  --json      Output help as JSON
 
 Examples:
-  npx fit-codegen --all
-  npx fit-codegen --type
-  npx fit-codegen --service
+  npx fit-codegen generate --all
+  npx fit-codegen download
+
+Documentation:
+  Keep Types Synced with Proto Definitions
+    https://www.forwardimpact.team/docs/libraries/typed-contracts/index.md
+    One source of truth from proto definition to runtime: types, MCP tools, and service endpoints regenerated with fit-codegen.
+
+Use fit-codegen <command> --help for command-specific options.

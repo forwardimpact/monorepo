@@ -10,7 +10,7 @@ hand-writing.
 ## Getting Started
 
 ```sh
-npx fit-codegen --all
+npx fit-codegen generate --all
 ```
 
 ```js

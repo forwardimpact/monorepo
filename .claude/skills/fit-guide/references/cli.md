@@ -21,6 +21,6 @@ tools and prompts, and streams the response.
 ### Supporting CLI Tools
 
 ```sh
-npx fit-search "query text"              # Vector similarity search
+npx fit-rag search "query text"              # Vector similarity search
 npx fit-rc status                        # Service health
 ```

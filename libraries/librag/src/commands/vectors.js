@@ -9,7 +9,7 @@ import { VectorProcessor } from "@forwardimpact/libvector/processor/vector.js";
 
 /**
  * `fit-process vectors` — process resources into vector embeddings (the
- * `vectors` index). Ports `fit-process-vectors`. Builds the embedding client
+ * `vectors` index). Ports `fit-process vectors`. Builds the embedding client
  * here so the offline write commands never require the embedding service.
  * @param {object} ctx
  * @param {import("@forwardimpact/libutil/runtime").Runtime} ctx.runtime

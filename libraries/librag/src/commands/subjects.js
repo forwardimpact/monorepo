@@ -2,7 +2,7 @@ import { createGraphIndex } from "@forwardimpact/libgraph";
 
 /**
  * Format one `fit-rag subjects` line — `subject<TAB>type`, byte-identical to
- * the old `fit-subjects` output.
+ * the old `fit-rag subjects` output.
  * @param {string} subject
  * @param {string} type
  * @returns {string}
@@ -13,7 +13,7 @@ export function formatSubjectLine(subject, type) {
 
 /**
  * `fit-rag subjects` — list graph subjects, optionally filtered by type. Ports
- * `fit-subjects`.
+ * `fit-rag subjects`.
  * @param {object} ctx
  * @param {string[]} ctx.positionals - Subcommand arguments: `[type]`
  * @param {import("@forwardimpact/libutil/runtime").Runtime} ctx.runtime

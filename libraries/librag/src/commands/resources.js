@@ -9,7 +9,7 @@ import { Skolemizer } from "@forwardimpact/libresource/skolemizer.js";
 
 /**
  * `fit-process resources` — process HTML files in the knowledge base
- * directory into the `resources` index. Ports `fit-process-resources`.
+ * directory into the `resources` index. Ports `fit-process resources`.
  * @param {object} ctx
  * @param {Record<string, string|boolean|undefined>} ctx.values - Parsed options (`base`)
  * @param {import("@forwardimpact/libutil/runtime").Runtime} ctx.runtime

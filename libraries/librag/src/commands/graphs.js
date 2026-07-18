@@ -6,7 +6,7 @@ import { GraphProcessor } from "@forwardimpact/libgraph/processor/graph.js";
 
 /**
  * `fit-process graphs` — process resources into RDF graphs (the `graphs`
- * index). Ports `fit-process-graphs`, keeping its own actor constant.
+ * index). Ports `fit-process graphs`, keeping its own actor constant.
  * @param {object} ctx
  * @param {import("@forwardimpact/libutil/runtime").Runtime} ctx.runtime
  * @returns {Promise<void>}
