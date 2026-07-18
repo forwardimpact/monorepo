@@ -31,17 +31,12 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./bin/fit-process-resources.js": "./bin/fit-process-resources.js",
     "./processor/resource.js": "./src/processor/resource.js",
     "./parser.js": "./src/parser.js",
     "./skolemizer.js": "./src/skolemizer.js"
   },
-  "bin": {
-    "fit-process-resources": "./bin/fit-process-resources.js"
-  },
   "files": [
     "src/**/*.js",
-    "bin/**/*.js",
     "README.md"
   ],
   "scripts": {

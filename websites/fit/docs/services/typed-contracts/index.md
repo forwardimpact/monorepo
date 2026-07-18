@@ -17,7 +17,7 @@ agent tools.
 ## Prerequisites
 
 - Node.js 18+
-- Generated client code available (run `npx fit-codegen --all` if not)
+- Generated client code available (run `npx fit-codegen generate --all` if not)
 - All backend services running (`npx fit-rc start`)
 - The `MCP_TOKEN` environment variable set (the MCP service requires a bearer
   token for authentication)

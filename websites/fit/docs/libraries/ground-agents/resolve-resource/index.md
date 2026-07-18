@@ -3,10 +3,10 @@ title: Resolve a Resource
 description: Give agents rich, typed context from a resource identifier — provenance, access control, and RDF content instead of raw files.
 ---
 
-You have a resource identifier -- returned by `fit-query`, `fit-search`, or an
-index lookup -- and you need to retrieve the actual content behind it. Passing
-a raw file path to an agent loses provenance, ignores access control, and
-leaves the consumer guessing the content type. `@forwardimpact/libresource`
+You have a resource identifier -- returned by `fit-rag query`, `fit-rag search`,
+or an index lookup -- and you need to retrieve the actual content behind it.
+Passing a raw file path to an agent loses provenance, ignores access control,
+and leaves the consumer guessing the content type. `@forwardimpact/libresource`
 resolves identifiers into typed resources with structured content, stable
 identifiers, and policy-controlled access.
 
@@ -23,7 +23,7 @@ npm install @forwardimpact/libresource
 ```
 
 - A populated resource index under `data/resources/` (produced by
-  `fit-process-resources` during the ingestion pipeline)
+  `fit-process resources` during the ingestion pipeline)
 
 ## Create a resource index
 
@@ -125,10 +125,10 @@ same identifier, so re-writing the same resource is idempotent.
 ## Process HTML into resources
 
 The ingestion pipeline converts HTML knowledge sources into typed `Message`
-resources using `fit-process-resources`:
+resources using `fit-process resources`:
 
 ```sh
-npx fit-process-resources --base https://acme.example/
+npx fit-process resources --base https://acme.example/
 ```
 
 The command reads HTML files from the `data/knowledge/` directory, extracts
@@ -170,7 +170,7 @@ and what the vector processor reads when generating embeddings.
 
 ## Customize HTML processing
 
-`fit-process-resources` covers the common path. When you need to drive the
+`fit-process resources` covers the common path. When you need to drive the
 extraction yourself -- ingesting from a different source, applying custom
 grouping, or skolemizing on your own schedule -- two classes are exported as
 subpath imports.

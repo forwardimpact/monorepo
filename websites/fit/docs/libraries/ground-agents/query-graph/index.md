@@ -7,8 +7,8 @@ You need to find how two concepts relate -- which people belong to an
 organization, which projects reference a capability, which resources share a
 type. The relationships exist as RDF triples in a graph index, but you do not
 want to write join logic or stand up a SPARQL endpoint to answer the question.
-`fit-query` and `fit-subjects` give you triple-pattern queries and type-filtered
-subject listings from the command line.
+`fit-rag query` and `fit-rag subjects` give you triple-pattern queries and
+type-filtered subject listings from the command line.
 
 For the full workflow of building and populating the graph index from HTML
 knowledge sources, see
@@ -24,15 +24,15 @@ npm install -g @forwardimpact/libgraph
 ```
 
 - A populated graph index under `data/graphs/` (produced by
-  `fit-process-graphs` during the ingestion pipeline)
+  `fit-process graphs` during the ingestion pipeline)
 
 ## List all subjects by type
 
 When you need to see every entity of a given type in the graph, use
-`fit-subjects` with a prefixed type:
+`fit-rag subjects` with a prefixed type:
 
 ```sh
-npx fit-subjects schema:Person
+npx fit-rag subjects schema:Person
 ```
 
 ```text
@@ -44,7 +44,7 @@ Each line is a tab-separated pair: the subject URI and its `rdf:type`. To list
 all subjects regardless of type, omit the argument:
 
 ```sh
-npx fit-subjects
+npx fit-rag subjects
 ```
 
 ```text
@@ -66,12 +66,12 @@ automatic.
 
 ## Query with a triple pattern
 
-`fit-query` takes exactly three positional arguments -- subject, predicate,
+`fit-rag query` takes exactly three positional arguments -- subject, predicate,
 object -- and returns the resource identifiers whose triples match the pattern.
 Use `?` for any position you want to leave open:
 
 ```sh
-npx fit-query "?" schema:worksFor "https://acme.example/orgs/acme-hq"
+npx fit-rag query "?" schema:worksFor "https://acme.example/orgs/acme-hq"
 ```
 
 ```text
@@ -80,13 +80,13 @@ common.Message.d4e5f6
 ```
 
 The output is one resource identifier per line. Each identifier can be passed
-to `fit-process-resources` or resolved through `libresource` to retrieve the
+to `fit-process resources` or resolved through `libresource` to retrieve the
 full context chunk.
 
 ### Find all properties of a subject
 
 ```sh
-npx fit-query "https://acme.example/people/jane-doe" "?" "?"
+npx fit-rag query "https://acme.example/people/jane-doe" "?" "?"
 ```
 
 ```text
@@ -99,7 +99,7 @@ see the actual triples, resolve the identifier through the resource index.
 ### Find entities by predicate
 
 ```sh
-npx fit-query "?" schema:name "?"
+npx fit-rag query "?" schema:name "?"
 ```
 
 ```text
@@ -117,7 +117,7 @@ When the object is a literal string rather than a URI, wrap it in double
 quotes:
 
 ```sh
-npx fit-query "?" schema:name "\"Jane Doe\""
+npx fit-rag query "?" schema:name "\"Jane Doe\""
 ```
 
 ```text
@@ -183,13 +183,13 @@ at `data/graphs/index.jsonl`. On first access, the index loads the JSONL into
 memory and populates the N3 store -- subsequent queries run entirely in memory.
 
 An `ontology.ttl` file alongside the index captures SHACL shapes inferred from
-the data. The ontology is regenerated when `fit-process-graphs` runs.
+the data. The ontology is regenerated when `fit-process graphs` runs.
 
 ## List subjects from code
 
-`fit-subjects` is a thin wrapper around `GraphIndex.getSubjects(type)`. Call the
-method directly when you want the subject-to-type map in your own code rather
-than tab-separated lines:
+`fit-rag subjects` is a thin wrapper around `GraphIndex.getSubjects(type)`. Call
+the method directly when you want the subject-to-type map in your own code
+rather than tab-separated lines:
 
 ```js
 import { createGraphIndex } from "@forwardimpact/libgraph";

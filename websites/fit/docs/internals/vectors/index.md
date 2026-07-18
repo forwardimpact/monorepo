@@ -20,7 +20,7 @@ Two separate concerns use TEI:
 
 | Concern             | When                  | Who calls TEI                                  |
 | ------------------- | --------------------- | ---------------------------------------------- |
-| **Batch indexing**  | `fit-process-vectors` | CLI → embedding service (gRPC) → TEI           |
+| **Batch indexing**  | `fit-process vectors` | CLI → embedding service (gRPC) → TEI           |
 | **Query embedding** | Runtime search        | vector service → embedding service (gRPC) → TEI |
 
 Both go through the embedding service (`SERVICE_EMBEDDING_URL`), which proxies
@@ -111,7 +111,7 @@ To process only vectors (when resources already exist):
 ```sh
 just process-vectors
 # or directly:
-bunx fit-process-vectors
+bunx fit-process vectors
 ```
 
 Without TEI, use `just process-fast` to skip the vector step.
@@ -158,8 +158,8 @@ Each line in `data/vectors/index.jsonl` is a self-contained JSON record:
 | --------------------- | ------------------------------------ | ---------------------------------------------------- |
 | `VectorProcessor`     | `libraries/libvector/src/processor/` | Batch embedding pipeline (extends `ProcessorBase`)   |
 | `VectorIndex`         | `libraries/libvector/src/index/`     | JSONL-backed index with dot-product search           |
-| `fit-process-vectors` | `libraries/libvector/bin/`           | CLI for batch processing                             |
-| `fit-search`          | `libraries/libvector/bin/`           | CLI for ad-hoc similarity search                     |
+| `fit-process vectors` | `libraries/librag/src/commands/`           | CLI for batch processing                             |
+| `fit-rag search`          | `libraries/librag/src/commands/`           | CLI for ad-hoc similarity search                     |
 | vector service        | `services/vector/`                   | gRPC service that loads the index and serves queries |
 
 ---

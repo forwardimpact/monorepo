@@ -27,11 +27,9 @@
     "./completion-ticket": "./src/completion-ticket.js",
     "./git-client": "./src/git-client.js",
     "./gh-client": "./src/gh-client.js",
-    "./bin/fit-download-bundle.js": "./bin/fit-download-bundle.js",
     "./bin/fit-tiktoken.js": "./bin/fit-tiktoken.js"
   },
   "bin": {
-    "fit-download-bundle": "./bin/fit-download-bundle.js",
     "fit-tiktoken": "./bin/fit-tiktoken.js"
   },
   "files": [

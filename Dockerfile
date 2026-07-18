@@ -34,4 +34,4 @@ WORKDIR /app/${TARGET_PATH}
 EXPOSE 3000
 
 # Download generated code bundle before starting the server
-CMD ["bun", "run", "../../node_modules/.bin/fit-download-bundle", "--", "bun", "server.js"]
+CMD ["bun", "run", "../../node_modules/.bin/fit-codegen", "download", "--", "bun", "server.js"]

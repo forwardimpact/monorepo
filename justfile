@@ -29,7 +29,7 @@ install: install-bun install-deps
 # Install bun dependencies and generate code
 install-bun:
     bun install --frozen-lockfile
-    bunx --workspace=@forwardimpact/libcodegen fit-codegen --all
+    bunx --workspace=@forwardimpact/libcodegen fit-codegen generate --all
 
 # Install CLI dependencies (apm, just, gh, rg, gitleaks)
 install-deps:
@@ -69,23 +69,23 @@ synthetic-update:
 
 # Generate all (types, services, clients)
 codegen:
-    bunx --workspace=@forwardimpact/libcodegen fit-codegen --all
+    bunx --workspace=@forwardimpact/libcodegen fit-codegen generate --all
 
 # Generate types only
 codegen-type:
-    bunx --workspace=@forwardimpact/libcodegen fit-codegen --type
+    bunx --workspace=@forwardimpact/libcodegen fit-codegen generate --type
 
 # Generate clients only
 codegen-client:
-    bunx --workspace=@forwardimpact/libcodegen fit-codegen --client
+    bunx --workspace=@forwardimpact/libcodegen fit-codegen generate --client
 
 # Generate service bases only
 codegen-service:
-    bunx --workspace=@forwardimpact/libcodegen fit-codegen --service
+    bunx --workspace=@forwardimpact/libcodegen fit-codegen generate --service
 
 # Generate definitions only
 codegen-definition:
-    bunx --workspace=@forwardimpact/libcodegen fit-codegen --definition
+    bunx --workspace=@forwardimpact/libcodegen fit-codegen generate --definition
 
 # ── Process ───────────────────────────────────────────────────────
 
@@ -101,15 +101,15 @@ export-standard:
 
 # Process knowledge resources
 process-resources:
-    bunx --workspace=@forwardimpact/libresource fit-process-resources
+    bunx --workspace=@forwardimpact/librag fit-process resources
 
 # Process vector indices
 process-vectors:
-    bunx --workspace=@forwardimpact/libvector fit-process-vectors
+    bunx --workspace=@forwardimpact/librag fit-process vectors
 
 # Process graph indices
 process-graphs:
-    bunx --workspace=@forwardimpact/libgraph fit-process-graphs
+    bunx --workspace=@forwardimpact/librag fit-process graphs
 
 # ── Data ──────────────────────────────────────────────────────────
 
@@ -164,15 +164,15 @@ cli-chat:
 
 # Vector similarity search
 cli-search:
-    bunx --workspace=@forwardimpact/libvector fit-search {{ARGS}}
+    bunx --workspace=@forwardimpact/librag fit-rag search {{ARGS}}
 
 # Graph triple pattern queries
 cli-query:
-    bunx --workspace=@forwardimpact/libgraph fit-query {{ARGS}}
+    bunx --workspace=@forwardimpact/librag fit-rag query {{ARGS}}
 
 # List graph subjects by type
 cli-subjects:
-    bunx --workspace=@forwardimpact/libgraph fit-subjects {{ARGS}}
+    bunx --workspace=@forwardimpact/librag fit-rag subjects {{ARGS}}
 
 # Trace visualization
 cli-visualize:
@@ -264,7 +264,7 @@ env-reset PROFILE="local":
 
 # Download generated code bundle from S3
 download-bundle:
-    bunx --workspace=@forwardimpact/libutil fit-download-bundle
+    bunx --workspace=@forwardimpact/libcodegen fit-codegen download
 
 # ── Docker ────────────────────────────────────────────────────────
 

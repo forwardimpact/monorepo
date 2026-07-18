@@ -22,9 +22,9 @@ classes and clients, see
 npm install @forwardimpact/librpc
 ```
 
-- Generated service definitions produced by `npx fit-codegen --all` (this
-  creates the typed base classes and client classes that `@forwardimpact/librpc`
-  re-exports)
+- Generated service definitions produced by `npx fit-codegen generate --all`
+  (this creates the typed base classes and client classes that
+  `@forwardimpact/librpc` re-exports)
 - The `SERVICE_SECRET` environment variable set (a string of at least 32
   characters, shared between server and client for HMAC authentication)
 

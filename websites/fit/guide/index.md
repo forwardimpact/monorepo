@@ -41,7 +41,7 @@ review by exception, not by default.
 
 ```sh
 npm install @forwardimpact/guide
-npx fit-codegen --all
+npx fit-codegen generate --all
 npx fit-guide --init
 ```
 

@@ -55,7 +55,7 @@ code:
 
 ```sh
 npm install @forwardimpact/pathway @forwardimpact/guide
-npx fit-codegen --all
+npx fit-codegen generate --all
 ```
 
 Browse your agent-aligned engineering standard:

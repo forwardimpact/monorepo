@@ -30,7 +30,7 @@ file. Today that means the four service packages `@forwardimpact/svcgraph`,
 
 There is no JavaScript export surface — `import "@forwardimpact/libproto"`
 yields an empty namespace object on purpose. Consumers reach the schemas via
-codegen: `npx fit-codegen --all` scans
+codegen: `npx fit-codegen generate --all` scans
 `node_modules/@forwardimpact/*/proto/` for `.proto` files at install time and
 treats every directory it finds as an include path.
 

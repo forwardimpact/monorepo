@@ -1,0 +1,70 @@
+{
+  "name": "@forwardimpact/librag",
+  "version": "0.1.0",
+  "description": "Consolidated retrieval CLIs — build the knowledge indexes, then query them by meaning or relationship.",
+  "keywords": [
+    "rag",
+    "retrieval",
+    "knowledge",
+    "cli",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/librag"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Ground Agents in Context",
+      "trigger": "Installing the knowledge stack and meeting six separately-named CLIs for what is really two operations: build the indexes, then query them.",
+      "bigHire": "run the whole retrieval pipeline from two binaries with one subcommand per operation.",
+      "littleHire": "process resources into indexes, then search, query, or list subjects over them.",
+      "competesWith": "learning six binary names; wiring three write CLIs and three read CLIs by hand; skipping retrieval entirely"
+    }
+  ],
+  "type": "module",
+  "exports": {
+    "./bin/fit-process.js": "./bin/fit-process.js",
+    "./bin/fit-rag.js": "./bin/fit-rag.js"
+  },
+  "bin": {
+    "fit-process": "./bin/fit-process.js",
+    "fit-rag": "./bin/fit-rag.js"
+  },
+  "files": [
+    "src/**/*.js",
+    "bin/**/*.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/libgraph": "^0.1.78",
+    "@forwardimpact/libpreflight": "^0.1.0",
+    "@forwardimpact/libresource": "^0.1.111",
+    "@forwardimpact/librpc": "^0.1.77",
+    "@forwardimpact/libstorage": "^0.1.78",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libtype": "^0.1.63",
+    "@forwardimpact/libutil": "^0.1.60",
+    "@forwardimpact/libvector": "^0.1.98"
+  },
+  "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

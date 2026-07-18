@@ -26,7 +26,7 @@ const index = createResourceIndex('resources');
 
 ## Internal CLIs
 
-`fit-process-resources` is an internal build-pipeline step (it ingests source
-documents into typed resources as part of populating the index). It is not an
-agent-facing tool and intentionally ships no skill or user guide. The
-agent-facing path is the programmatic resolver documented in the guides above.
+The `fit-process resources` build step (in [`librag`](../librag/README.md))
+ingests source documents into typed resources as part of populating the index.
+It is not an agent-facing tool. The agent-facing path is the programmatic
+resolver documented in the guides above.

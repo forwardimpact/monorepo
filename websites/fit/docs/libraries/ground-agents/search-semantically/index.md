@@ -7,7 +7,7 @@ You need to find resources related to a query by meaning, not by exact keyword
 match. Standing up a vector database for a few hundred embeddings is overhead
 you do not need. `@forwardimpact/libvector` keeps the index in a JSONL file,
 loads it into memory on first access, and scores queries using dot-product
-similarity. `fit-search` wraps this into a single CLI command.
+similarity. `fit-rag search` wraps this into a single CLI command.
 
 For the full workflow of building an embedding pipeline from knowledge sources,
 see [Ground Agents in Context](/docs/libraries/ground-agents/).
@@ -22,17 +22,17 @@ npm install @forwardimpact/libvector
 ```
 
 - A populated vector index under `data/vectors/` (produced by
-  `fit-process-vectors` during the ingestion pipeline)
+  `fit-process vectors` during the ingestion pipeline)
 - For the CLI: an embedding endpoint reachable at the configured base URL, and
   a valid API token
 
 ## Search from the command line
 
-`fit-search` embeds your query string, scores it against the index, and prints
-ranked results:
+`fit-rag search` embeds your query string, scores it against the index, and
+prints ranked results:
 
 ```sh
-npx fit-search "career progression for senior engineers"
+npx fit-rag search "career progression for senior engineers"
 ```
 
 ```text
@@ -159,12 +159,12 @@ const vector = [0.012, -0.034, 0.056, /* ... 1536 dimensions ... */];
 await vectorIndex.add(identifier, vector);
 ```
 
-For bulk ingestion, use `fit-process-vectors` instead. The processor reads all
+For bulk ingestion, use `fit-process vectors` instead. The processor reads all
 resources from `data/resources/`, skips entries already present in the index,
 embeds the rest in batches, and appends the results:
 
 ```sh
-npx fit-process-vectors
+npx fit-process vectors
 ```
 
 ## How scoring works

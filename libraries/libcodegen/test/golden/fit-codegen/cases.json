@@ -7,11 +7,11 @@
     "stderrFile": "help.stderr.txt"
   },
   {
-    "name": "no-flags",
-    "args": [],
+    "name": "generate-no-flags",
+    "args": ["generate"],
     "exitCode": 2,
-    "stdoutFile": "no-flags.stdout.txt",
-    "stderrFile": "no-flags.stderr.txt",
+    "stdoutFile": "generate-no-flags.stdout.txt",
+    "stderrFile": "generate-no-flags.stderr.txt",
     "transform": [
       {
         "pattern": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z",

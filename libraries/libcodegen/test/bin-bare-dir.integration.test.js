@@ -41,8 +41,14 @@ describe("fit-codegen bin in a bare directory", () => {
     assert.match(result.stdout, /^\d+\.\d+\.\d+/);
   });
 
-  test("no flags exits 2 with the usage error", () => {
+  test("a bare invocation prints help and exits 0", () => {
     const result = run([]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /Usage: fit-codegen/);
+  });
+
+  test("generate with no flags exits 2 with the usage error", () => {
+    const result = run(["generate"]);
     assert.equal(result.status, 2);
     assert.match(result.stderr, /no generation flags specified/);
   });

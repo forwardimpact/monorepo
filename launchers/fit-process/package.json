@@ -1,0 +1,30 @@
+{
+  "name": "fit-process",
+  "version": "0.0.0",
+  "description": "Run fit-process from the npm registry — launcher for @forwardimpact/librag",
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "launchers/fit-process"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "bin": {
+    "fit-process": "./bin/fit-process.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "dependencies": {
+    "@forwardimpact/librag": "0.0.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -31,20 +31,11 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./bin/fit-process-graphs.js": "./bin/fit-process-graphs.js",
-    "./bin/fit-subjects.js": "./bin/fit-subjects.js",
-    "./bin/fit-query.js": "./bin/fit-query.js",
     "./index/graph.js": "./src/index/graph.js",
     "./processor/graph.js": "./src/processor/graph.js"
   },
-  "bin": {
-    "fit-process-graphs": "./bin/fit-process-graphs.js",
-    "fit-subjects": "./bin/fit-subjects.js",
-    "fit-query": "./bin/fit-query.js"
-  },
   "files": [
     "src/**/*.js",
-    "bin/**/*.js",
     "README.md"
   ],
   "scripts": {

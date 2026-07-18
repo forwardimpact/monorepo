@@ -14,7 +14,10 @@ import { countTokens, Finder, createRetry } from '@forwardimpact/libutil';
 
 ## Internal CLIs
 
-`fit-tiktoken` (token counting) and `fit-download-bundle` (fetch a
-generated-code bundle from remote storage) are internal helper CLIs. They are
-not agent-facing tools and intentionally ship no skill or user guide; the
+`fit-tiktoken` (token counting) is an internal helper CLI. It is not an
+agent-facing tool and intentionally ships no skill or user guide; the
 token-counting capability is consumed programmatically via `countTokens`.
+
+The reusable `createBundleDownloader` helper stays exported here and is now
+consumed by `fit-codegen download`, the CLI that fetches a generated-code bundle
+from remote storage. The `execLine` exec helper also remains exported.

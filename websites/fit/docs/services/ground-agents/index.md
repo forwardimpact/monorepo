@@ -7,9 +7,9 @@ You are building a product feature that needs relationship traversal or semantic
 search, and you do not want each product to stand up its own graph database or
 vector store. Two gRPC services -- `graph` and `vector` -- provide those
 capabilities to any product through a shared backend. Connect once with the
-generated client code from `npx fit-codegen --all`, and every product in the
-monorepo can query relationships and search content through the same typed
-interface.
+generated client code from `npx fit-codegen generate --all`, and every product
+in the monorepo can query relationships and search content through the same
+typed interface.
 
 This guide walks through connecting to both services, running a representative
 call against each, and verifying the responses match what the underlying indexes
@@ -20,7 +20,7 @@ build features on top of them.
 ## Prerequisites
 
 - Node.js 18+
-- Generated client code available (run `npx fit-codegen --all` if not)
+- Generated client code available (run `npx fit-codegen generate --all` if not)
 - Services running (`npx fit-rc start`)
 - A populated knowledge base: `data/graphs/index.jsonl` for the graph service,
   `data/vectors/index.jsonl` for the vector service. If you have not built these
