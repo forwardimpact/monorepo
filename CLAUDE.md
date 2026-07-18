@@ -79,7 +79,8 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
 
 - **npm packages** — `fit-*` and `kata-*` CLIs and libraries via `npx fit-*`;
   bare names are launchers ([launchers/README.md](launchers/README.md)). CLIs
-  use `#!/usr/bin/env node`, no Bun. gRPC products need `npx fit-codegen generate --all`
+  use `#!/usr/bin/env node`, no Bun. gRPC products need
+  `npx fit-codegen generate --all`
   ([Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md)).
 - **Skill packs** — `forwardimpact/{fit-skills,kata-skills,coaligned-skills}`
   sync on push to `main`; install with `apm install forwardimpact/<pack>`.
