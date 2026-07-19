@@ -74,7 +74,7 @@ action) → **run** (harness action / `<platform>-harness`) → **see**
 | Platform bins | `products/<platform>/bin/<platform>-*.js` (moved) | The six thin entry points relocated from `libraries/libharness/bin/` (harness, trace, benchmark, selfedit), `libraries/libwiki/bin/` (wiki), and `libraries/libxmr/bin/` (xmr), renamed to the product family. Each keeps its definition-and-dispatch wiring; its `../src/…` imports become package imports. |
 | Platform actions | `products/<platform>/actions/{bootstrap,harness,wiki,benchmark}/` (moved) | The composite actions that execute the runtime in CI, relocated from `.github/actions/bootstrap/`, `libraries/libharness/actions/{harness,benchmark}/`, and `libraries/libwiki/actions/wiki/`. |
 | Overview page | `websites/fit/<platform>/index.md` (new) | The "stand up and operate an agent team" story by persona; presents the CLIs and the CI actions as one loop; Getting Started names the bring-up layer. `layout: product`. |
-| Platform skill | `.claude/skills/<product skill>/SKILL.md` (new) | When to hire the platform; how the capabilities compose into the loop. CLI-parity `## Documentation` blocks live on each capability CLI's own (renamed) skill; the product skill narrates the loop across them. |
+| Platform skill | product-named skill under `.claude/skills/` (new) | When to hire the platform; how the capabilities compose into the loop. CLI-parity `## Documentation` blocks live on each capability CLI's own (renamed) skill; the product skill narrates the loop across them. |
 | Library purification | `libraries/libharness/`, `libraries/libwiki/`, `libraries/libxmr/` | The `actions/` subdirectories, `bin/` directories, and `bin` fields are removed; each library exports the command modules its former bins need and becomes import-only. |
 | CLI consumer repoint | installer, run actions, skills, launchers | The bootstrap installer bundle list and the `harness`/`wiki`/`benchmark` action steps invoke the renamed bins; the CLI-named skills rename with their CLIs; the launcher set is recomputed by the `public-cli-set` invariant (new-name launchers in, old `fit-*` launchers out). |
 | Publish workflow repoint | `.github/workflows/publish-actions.yml` | Matrix `prefix:` for `bootstrap`/`harness`/`benchmark`/`wiki` repointed under `products/<platform>/actions/`; `paths:` filter updated. `repo:` sibling names unchanged. |
@@ -113,14 +113,14 @@ action) → **run** (harness action / `<platform>-harness`) → **see**
   `action.yml` files pin the sibling repos by name, so they are unaffected too.
 - **Consumer, not re-exporter** — installing the product yields commands,
   never APIs: the package declares `bin` and `dependencies` but no `exports`
-  and no `main`, so nothing under it is importable. The runtime libraries stay
-  individually published as the API home, and the product never appears in an
-  import statement. All four `libharness` command surfaces (harness, trace,
-  benchmark, selfedit) become product bins — benchmarking and self-edit are
-  part of proving and running an agent team, not build-time primitives.
-- **Shared foundation is out of scope** — `libtelemetry`, `libutil`, and similar
-  cross-cutting packages are not in the runtime subset. Wherever Gear re-exports
-  them today is left as-is; `PLATFORM` does not claim them.
+  and no `main`, and it never appears in an import statement. All four
+  `libharness` command surfaces (harness, trace, benchmark, selfedit) become
+  product bins — benchmarking and self-edit are part of proving and running
+  an agent team, not build-time primitives.
+- **Shared foundation is consumption only** — `libcli`, `libtelemetry`,
+  `libutil`, and similar cross-cutting packages are not part of the platform's
+  surface; the bins consume them as ordinary dependencies, exactly as the
+  library bins do today. Wherever Gear re-exports them is left as-is.
 - **Name indirection** — every new path carries the deferred name. The design is
   correct for any chosen slug; implementation substitutes the resolved name into
   `<platform>` across the new/edited surfaces at once.
@@ -129,7 +129,7 @@ action) → **run** (harness action / `<platform>-harness`) → **see**
 
 | Decision | Choice | Rejected alternative |
 | --- | --- | --- |
-| Product tier | Secondary product shipping usage surfaces only: JTBD + page + skill, per-capability bins under `bin/`, and an actions surface like `products/kata/actions/`. | A Primary product with one umbrella `fit-<platform>` CLI — collapses four distinct command surfaces into subcommands and invents an aggregate with nothing of its own to do. |
+| Product tier | Secondary product shipping usage surfaces only: JTBD + page + skill, per-capability bins under `bin/`, and an actions surface like `products/kata/actions/`. | A Primary product with one umbrella `fit-<platform>` CLI — collapses six distinct command surfaces into subcommands and invents an aggregate with nothing of its own to do. |
 | npm relationship | The product consumes the libraries as ordinary `dependencies` and exposes only bins; APIs are imported from the published libraries directly. | Re-export the libraries Gear-style — makes the product a second import channel and re-creates the meta-package grab-bag one level down, blurring the UI/implementation boundary the split draws. |
 | CLI ownership | The product owns the thin bin wiring; libraries keep handlers and components and drop `bin` entirely. | Leave the bins in the libraries and only re-export them — keeps four freestanding `fit-*` brands and leaves libraries shipping user interface, the same mis-filing the actions move fixes. |
 | Command family | Rename the bins to `<platform>-<capability>`, resolved with the product name. | Keep the `fit-harness`… names under the product — preserves the incoherent freestanding brands and hides the product from the command line, forfeiting the coherence the split buys. |
@@ -141,7 +141,7 @@ action) → **run** (harness action / `<platform>-harness`) → **see**
 | `bootstrap` placement | Move it into the product with the other run actions, accepting that most CI workflows consume it as the base FIT environment. That base environment *is* the platform's stand-up step; every CI job is a tenant of it. | Keep `bootstrap` under `.github/` as neutral infra — leaves the "stand up" step of the loop outside the product and the actions surface incomplete. |
 | JTBD binding | New distinct job *Stand Up and Operate an Agent Team* under `Teams Using Agents`; Kata's existing job untouched. | Re-point Kata's job to `PLATFORM` — erases Kata's ownership of its own hire; or two `user`s on one job — the schema allows one `user` per entry. |
 | Kata relationship | Document Kata as the reference tenant; move no code. | Build a fresh demo tenant to prove genericity — the spec already treats Kata as living proof; a second tenant is unbuilt scope. |
-| Naming | Defer; carry `<platform>` placeholder through every surface. | Pick a name now — the user reserved naming for a later iteration. |
+| Naming | Defer; carry the `<platform>` placeholder through every surface. | Pick a name now — the spec records naming as an explicit open decision, resolved before implementation. |
 | Boundary cases | `libdoc`, `librc`, `libsupervise`, `svcspan` stay in Gear; `libterrain` and `svcpathway` deferred, untouched. | Pull `fit-doc`/`fit-terrain` into the platform now — doc fails the run-the-team test; terrain is Map-entangled (spec Scope-out). |
 
 ## Data flow
@@ -150,7 +150,7 @@ action) → **run** (harness action / `<platform>-harness`) → **see**
 sequenceDiagram
   participant Author as this change
   participant Plat as products/&lt;platform&gt;
-  participant Libs as libraries/{libharness,libwiki}
+  participant Libs as libraries/{libharness,libwiki,libxmr}
   participant Gear as products/gear
   participant CI as publish-actions.yml
   participant Ctx as context command + hand edits

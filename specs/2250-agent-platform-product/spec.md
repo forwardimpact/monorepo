@@ -18,7 +18,7 @@ whatever slug is chosen.
 The monorepo already ships a working substrate for running an agent team — the
 bootstrap layer plus the `fit-harness`, `fit-trace`, `fit-wiki`, and `fit-xmr`
 CLIs, and the composite actions that execute those CLIs in CI — but no product
-frames it. The substrate is homeless in three ways:
+frames it. The substrate is homeless in four ways:
 
 - **Its runtime libraries are buried inside Gear.** Gear is a meta-package that
   re-exports everything a platform builder might import — retrieval (graph,
@@ -106,15 +106,15 @@ the CLIs and the GitHub Actions — and no importable API of its own:
 APIs stay library-direct. `@forwardimpact/libharness`,
 `@forwardimpact/libwiki`, and `@forwardimpact/libxmr` remain individually
 published; a builder who wants the components imports the library, never the
-product. With Gear shedding the three libraries too, the runtime subset leaves
-the meta-package layer entirely — its API home is the libraries themselves.
+product.
 
 Extracting the actions and the bins leaves `libharness`, `libwiki`, and
 `libxmr` as pure import targets on both surfaces. Gear sheds the three runtime
 libraries and the "chart agent metrics" clause, leaving one clean promise:
-composable primitives you build agents *with*. `svcspan` stays in Gear — it is
-a build-time/retrieval service (Guide's OTel collector), never part of the run
-loop.
+composable primitives you build agents *with*. No meta-package re-exports the
+runtime subset afterward; its API home is the libraries themselves. `svcspan`
+stays in Gear — it is a build-time/retrieval service (Guide's OTel collector),
+never part of the run loop.
 
 **Compatibility stance: clean break.** The old `fit-*` command names for the
 six moved CLIs are removed, not aliased — no shim bins, no dual publish. Every
@@ -131,9 +131,10 @@ benefit secondarily (they can adopt the runtime without Kata), but the product
 declares one Big Hire under one `user`. Gear keeps **Platform Builders → Build
 Agent-Capable Systems**, the build half.
 
-This is a clean break, not an additive layer: the runtime libraries move out of
-Gear and the run actions move out of the library directories, rather than being
-cross-listed, so each persona-job has exactly one product to hire.
+This is a clean break, not an additive layer: the runtime libraries leave
+Gear's dependency list, and the bins and run actions move out of the library
+directories and `.github/`, rather than being cross-listed, so each
+persona-job has exactly one product to hire.
 
 ## Scope
 
@@ -151,7 +152,7 @@ cross-listed, so each persona-job has exactly one product to hire.
 | Bring-up narrative ownership | The bootstrap layer (now `products/<platform>/actions/bootstrap/`, plus `fit-install.sh` and `scripts/bootstrap.sh`) is framed as `PLATFORM`'s stand-it-up story in the product's overview and skill. |
 | Gear refocus (clean break) | Remove the three runtime libraries from `products/gear/package.json`, and remove the operate-time promise ("chart agent metrics") from Gear's `jobs` entry, so Gear's promise is build-time primitives only. `svcspan` remains a Gear dependency. |
 | Overview page | `websites/fit/<platform>/index.md` — the cohesive "stand up and operate an agent team" story, organized by persona, presenting the CLIs and the CI actions as one runtime loop, with a Getting Started that names the bring-up layer. |
-| Skill | `.claude/skills/fit-<platform>/SKILL.md` describing when to hire the platform and how its capabilities compose (stand up → run → see → remember → measure). |
+| Skill | A product skill under `.claude/skills/`, named for the product, describing when to hire the platform and how its capabilities compose (stand up → run → see → remember → measure). The CLI-named skills keep their own per-command documentation. |
 | Kata as reference implementation | The overview page and `KATA.md` name Kata as the platform's first tenant — the proof the substrate is generic and swappable — without moving any Kata code. |
 | Generated context + counts | Regenerate the `JTBD.md` and `products/README.md` catalog blocks via the repo's context command, and update the hand-maintained product-count prose in the `products/README.md` intro, `CLAUDE.md` § Secondary Products, and the `sibling-composite-actions` enum / `.github/CLAUDE.md` action-home prose to reflect the new action homes and both products. |
 
