@@ -35,7 +35,14 @@ if (!handled) {
 
   const tei = spawn(
     "text-embeddings-router",
-    ["--model-id", model, "--port", String(backend_port), "--json-output"],
+    [
+      "--model-id",
+      model,
+      "--port",
+      String(backend_port),
+      "--auto-truncate",
+      "--json-output",
+    ],
     { stdio: "inherit" },
   );
 
